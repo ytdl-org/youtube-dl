@@ -19,13 +19,105 @@ from ..utils import (
 from ..compat import compat_etree_fromstring
 
 
-class ARDMediathekIE(InfoExtractor):
+class ARDBaseIE(InfoExtractor):
+    # Format information is valid for all media saved on ARD's Akamai servers.
+    # IMPORTANT: Not valid for media from WDR/BR/etc. servers
+
+    _ALL_FORMATS = {
+        'vcodec': 'H.264',
+        'acodec': 'LC-AAC',
+    }
+
+    _FORMATS = {
+        320: {
+            'width': 320,
+            'height': 188,
+            'vbr': 128,
+            'abr': 61,
+        },
+        480: {
+            'width': 480,
+            'height': 270,
+            'vbr': 256,
+            'abr': 61,
+        },
+        512: {
+            'width': 512,
+            'height': 288,
+            'vbr': 512,
+            'abr': 94,
+        },
+        640: {
+            'width': 640,
+            'height': 360,
+            'vbr': 1024,
+            'abr': 192,
+        },
+        960: {
+            'width': 960,
+            'height': 540,
+            'vbr': 1800,
+            'abr': 192,
+        },
+        1280: {
+            'width': 1280,
+            'height': 720,
+            'vbr': 3584,
+            'abr': 192,
+        },
+    }
+
+    def _check_additional_formats(self, formats, video_id):
+        urls = {}
+        for format in formats:
+            url = format['url']
+            if not url.endswith('.mp4'):
+                continue
+            base_url = url.rsplit('/', 1)[0]
+            m = re.search(r'.*/([0-9]+)-[0-9]\..*$', url)
+            if not m:
+                continue
+            width = int_or_none(m.group(1))
+            if base_url in urls and width in urls[base_url]:
+                continue
+            if base_url not in urls:
+                urls[base_url] = [width]
+            elif width not in urls[base_url]:
+                urls[base_url].append(width)
+
+        for base_url, ignore in urls.items():
+            for width in (x for x in self._FORMATS if x not in ignore):
+                url = '%s/%s-1.mp4' % (base_url, width)
+                if self._is_valid_url(url, video_id):
+                    format_info = self._FORMATS[width]
+                    format_id = '%s-%s' % (determine_ext(url), format_info['vbr'] + format_info['abr'])
+                    format_info.update({
+                        'url': url,
+                        'format_id': format_id,
+                    })
+                    format_info.update(self._ALL_FORMATS)
+                    formats.append(format_info)
+
+
+class ARDMediathekIE(ARDBaseIE):
     IE_NAME = 'ARD:mediathek'
     _VALID_URL = r'^https?://(?:(?:www\.)?ardmediathek\.de|mediathek\.(?:daserste|rbb-online)\.de|one\.ard\.de)/(?:.*/)(?P<video_id>[0-9]+|[^0-9][^/\?]+)[^/\?]*(?:\?.*)?'
 
     _TESTS = [{
+        # available till 06.10.2023
+        'url': 'http://mediathek.daserste.de/Das-Wort-zum-Sonntag/Christian-Rommert-Vielen-Dank-/Video?bcastId=442936&documentId=56727614',
+        'md5': 'da2c6b8643cdd4a46f6446bf2786f5b6',
+        'info_dict': {
+            'id': '56727614',
+            'ext': 'mp4',
+            'title': 'Christian Rommert: Vielen Dank!?',
+            'description': 'md5:ef94f0f576290c7c85137174229a21ca',
+            'duration': 233,
+        },
+    }, {
         # available till 26.07.2022
         'url': 'http://www.ardmediathek.de/tv/S%C3%9CDLICHT/Was-ist-die-Kunst-der-Zukunft-liebe-Ann/BR-Fernsehen/Video?bcastId=34633636&documentId=44726822',
+        'md5': '0ab612119ade6214395380723abbfd11',
         'info_dict': {
             'id': '44726822',
             'ext': 'mp4',
@@ -33,10 +125,6 @@ class ARDMediathekIE(InfoExtractor):
             'description': 'md5:4ada28b3e3b5df01647310e41f3a62f5',
             'duration': 1740,
         },
-        'params': {
-            # m3u8 download
-            'skip_download': True,
-        }
     }, {
         'url': 'https://one.ard.de/tv/Mord-mit-Aussicht/Mord-mit-Aussicht-6-39-T%C3%B6dliche-Nach/ONE/Video?bcastId=46384294&documentId=55586872',
         'only_matching': True,
@@ -58,6 +146,7 @@ class ARDMediathekIE(InfoExtractor):
             media_info_url, video_id, 'Downloading media JSON')
 
         formats = self._extract_formats(media_info, video_id)
+        self._check_additional_formats(formats, video_id)
 
         if not formats:
             if '"fsk"' in webpage:
@@ -93,7 +182,7 @@ class ARDMediathekIE(InfoExtractor):
         type_ = media_info.get('_type')
         media_array = media_info.get('_mediaArray', [])
         formats = []
-        for num, media in enumerate(media_array):
+        for media in media_array:
             for stream in media.get('_mediaStreamArray', []):
                 stream_urls = stream.get('_stream')
                 if not stream_urls:
@@ -108,6 +197,7 @@ class ARDMediathekIE(InfoExtractor):
                     ext = determine_ext(stream_url)
                     if quality != 'auto' and ext in ('f4m', 'm3u8'):
                         continue
+
                     if ext == 'f4m':
                         formats.extend(self._extract_f4m_formats(
                             update_url_query(stream_url, {
@@ -123,22 +213,38 @@ class ARDMediathekIE(InfoExtractor):
                             f = {
                                 'url': server,
                                 'play_path': stream_url,
-                                'format_id': 'a%s-rtmp-%s' % (num, quality),
+                                'format_id': 'rtmp-%s' % quality,
                             }
                         else:
                             f = {
                                 'url': stream_url,
-                                'format_id': 'a%s-%s-%s' % (num, ext, quality)
+                                'format_id': '%s-%s' % (ext, quality),
                             }
-                        m = re.search(r'_(?P<width>\d+)x(?P<height>\d+)\.mp4$', stream_url)
+
+                        m = re.search(r'.*/([0-9]+)-[0-9]\..*$', stream_url)
                         if m:
-                            f.update({
-                                'width': int(m.group('width')),
-                                'height': int(m.group('height')),
-                            })
+                            width = int_or_none(m.group(1))
+                            f.update(self._FORMATS.get(width, {}))
+                            f.update(self._ALL_FORMATS)
+                            f.update({'format_id': '%s-%s' % (ext, f['vbr'] + f['abr'])})
+                        else:
+                            width = stream.get('_width')
+                            height = stream.get('_height')
+                            if not width and not height:
+                                m = re.search(r'_(?P<width>\d+)x(?P<height>\d+)\.mp4$', stream_url)
+                                if m:
+                                    width = int(m.group('width'))
+                                    height = int(m.group('height'))
+                            if width and height:
+                                f.update({
+                                    'width': width,
+                                    'height': height,
+                                })
+
                         if type_ == 'audio':
                             f['vcodec'] = 'none'
                         formats.append(f)
+
         return formats
 
     def _real_extract(self, url):
@@ -204,6 +310,7 @@ class ARDMediathekIE(InfoExtractor):
                     'format_id': fid,
                     'url': furl,
                 })
+            self._check_additional_formats(formats, video_id)
             self._sort_formats(formats)
             info = {
                 'formats': formats,
@@ -220,18 +327,19 @@ class ARDMediathekIE(InfoExtractor):
             'id': video_id,
             'title': self._live_title(title) if info.get('is_live') else title,
             'description': description,
-            'thumbnail': thumbnail,
         })
+        if thumbnail:
+            info['thumbnail'] = thumbnail
 
         return info
 
 
-class ARDIE(InfoExtractor):
+class ARDIE(ARDBaseIE):
     _VALID_URL = r'(?P<mainurl>https?://(www\.)?daserste\.de/[^?#]+/videos(-folgen-verpasst)?/(?P<display_id>[^/?#]+)-(?P<id>[0-9]+))\.html'
     _TESTS = [{
         # available till 14.02.2019
         'url': 'http://www.daserste.de/information/talk/maischberger/videos/das-groko-drama-zerlegen-sich-die-volksparteien-video-102.html',
-        'md5': '8e4ec85f31be7c7fc08a26cdbc5a1f49',
+        'md5': '19308261237ed95f2293b05eabede2d0',
         'info_dict': {
             'display_id': 'das-groko-drama-zerlegen-sich-die-volksparteien-video',
             'id': '102',
@@ -261,22 +369,47 @@ class ARDIE(InfoExtractor):
         thumbnail = xpath_text(video_node, './/teaserImage//variant/url')
 
         formats = []
+        format_ids = {}
         for a in video_node.findall('.//asset'):
-            f = {
-                'format_id': a.attrib['type'],
-                'width': int_or_none(a.find('./frameWidth').text),
-                'height': int_or_none(a.find('./frameHeight').text),
-                'vbr': int_or_none(a.find('./bitrateVideo').text),
-                'abr': int_or_none(a.find('./bitrateAudio').text),
-                'vcodec': a.find('./codecVideo').text,
-                'tbr': int_or_none(a.find('./totalBitrate').text),
-            }
             if a.find('./serverPrefix').text:
-                f['url'] = a.find('./serverPrefix').text
-                f['playpath'] = a.find('./fileName').text
+                url = a.find('./serverPrefix').text
+                playpath = a.find('./fileName').text
             else:
-                f['url'] = a.find('./fileName').text
-            formats.append(f)
+                url = a.find('./fileName').text
+                playpath = None
+
+            if url.endswith('.f4m'):
+                formats.extend(self._extract_f4m_formats(
+                    url + '?hdcore=3.11.0',
+                    display_id, f4m_id='hds', fatal=False))
+            elif url.endswith('.m3u8'):
+                formats.extend(self._extract_m3u8_formats(
+                    url, display_id, m3u8_id='hls', fatal=False))
+            else:
+                tbr = int_or_none(a.find('./totalBitrate').text)
+                format_id = '%s-%s' % (determine_ext(url), tbr)
+                if 'HbbTV' in a.attrib['type']:
+                    continue
+                if format_id in format_ids:
+                    format_ids[format_id] += 1
+                    format_id += '-%s' % format_ids[format_id]
+                else:
+                    format_ids[format_id] = 1
+                f = {
+                    'url': url,
+                    'playpath': playpath,
+                    'format_id': format_id,
+                    'width': int_or_none(a.find('./frameWidth').text),
+                    'height': int_or_none(a.find('./frameHeight').text),
+                    'vbr': int_or_none(a.find('./bitrateVideo').text),
+                    'abr': int_or_none(a.find('./bitrateAudio').text),
+                    'vcodec': a.find('./codecVideo').text,
+                    'acodec': 'LC-AAC',
+                    'tbr': tbr,
+                }
+                formats.append(f)
+
+        self._check_additional_formats(formats, display_id)
         self._sort_formats(formats)
 
         return {
@@ -290,18 +423,18 @@ class ARDIE(InfoExtractor):
         }
 
 
-class ARDBetaMediathekIE(InfoExtractor):
+class ARDBetaMediathekIE(ARDBaseIE):
     _VALID_URL = r'https://beta\.ardmediathek\.de/[a-z]+/player/(?P<video_id>[a-zA-Z0-9]+)/(?P<display_id>[^/?#]+)'
     _TESTS = [{
         'url': 'https://beta.ardmediathek.de/ard/player/Y3JpZDovL2Rhc2Vyc3RlLmRlL3RhdG9ydC9mYmM4NGM1NC0xNzU4LTRmZGYtYWFhZS0wYzcyZTIxNGEyMDE/die-robuste-roswita',
-        'md5': '2d02d996156ea3c397cfc5036b5d7f8f',
+        'md5': '7338f01de1ca7af9538cc0bdfc438dd1',
         'info_dict': {
             'display_id': 'die-robuste-roswita',
             'id': 'Y3JpZDovL2Rhc2Vyc3RlLmRlL3RhdG9ydC9mYmM4NGM1NC0xNzU4LTRmZGYtYWFhZS0wYzcyZTIxNGEyMDE',
             'title': 'Tatort: Die robuste Roswita',
             'description': r're:^Der Mord.*trüber ist als die Ilm.',
             'duration': 5316,
-            'thumbnail': 'https://img.ardmediathek.de/standard/00/55/43/59/34/-1774185891/16x9/960?mandant=ard',
+            'thumbnail': r're:^https?://img.ardmediathek.de.*$',
             'upload_date': '20180826',
             'ext': 'mp4',
         },
@@ -348,12 +481,24 @@ class ARDBetaMediathekIE(InfoExtractor):
                     formats.extend(self._extract_m3u8_formats(
                         format_url, video_id, 'mp4', m3u8_id='hls', fatal=False))
                 else:
-                    formats.append({
-                        'format_id': 'http-' + widget['_quality'],
-                        'url': format_url,
-                        'preference': 10,  # Plain HTTP, that's nice
-                    })
+                    m = re.search(r'.*/([0-9]+)-[0-9]\..*$', format_url)
+                    width = int_or_none(m.group(1)) if m else None
+                    if width and width in self._FORMATS:
+                        info = self._FORMATS[width]
+                        info.update({
+                            'format_id': '%s-%s' % (determine_ext(format_url), info['vbr'] + info['abr']),
+                            'url': format_url,
+                        })
+                        info.update(self._ALL_FORMATS)
+                        formats.append(info)
+                    else:
+                        formats.append({
+                            'format_id': '%s-%s' % (determine_ext(format_url), widget['_quality']),
+                            'url': format_url,
+                        })
 
+        self._remove_duplicate_formats(formats)
+        self._check_additional_formats(formats, video_id)
         self._sort_formats(formats)
         res['formats'] = formats
 
