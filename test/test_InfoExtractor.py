@@ -61,6 +61,7 @@ class TestInfoExtractor(unittest.TestCase):
             <meta content='Foo' property=og:foobar>
             <meta name="og:test1" content='foo > < bar'/>
             <meta name="og:test2" content="foo >//< bar"/>
+            <meta property=og-test3 content='Ill-formatted opengraph'/>
             '''
         self.assertEqual(ie._og_search_title(html), 'Foo')
         self.assertEqual(ie._og_search_description(html), 'Some video\'s description ')
@@ -69,6 +70,7 @@ class TestInfoExtractor(unittest.TestCase):
         self.assertEqual(ie._og_search_property('foobar', html), 'Foo')
         self.assertEqual(ie._og_search_property('test1', html), 'foo > < bar')
         self.assertEqual(ie._og_search_property('test2', html), 'foo >//< bar')
+        self.assertEqual(ie._og_search_property('test3', html), 'Ill-formatted opengraph')
         self.assertEqual(ie._og_search_property(('test0', 'test1'), html), 'foo > < bar')
         self.assertRaises(RegexNotFoundError, ie._og_search_property, 'test0', html, None, fatal=True)
         self.assertRaises(RegexNotFoundError, ie._og_search_property, ('test0', 'test00'), html, None, fatal=True)
