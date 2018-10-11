@@ -84,7 +84,7 @@ class ORFTVthekIE(InfoExtractor):
                 'preference': -10 if fd['delivery'] == 'hls' else None,
                 'format_id': '%s-%s-%s' % (
                     fd['delivery'], fd['quality'], fd['quality_string']),
-                'url': fd['src'],
+                'url': fd['src'].replace('https://apasfpd.apa.at', 'https://apasfpd.sf.apa.at'),
                 'protocol': fd['protocol'],
                 'quality': quality_to_int(fd['quality']),
             } for fd in sd['sources']]
