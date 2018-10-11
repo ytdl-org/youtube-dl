@@ -12,7 +12,7 @@ from ..utils import (
 
 
 class ImgurIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:i\.)?imgur\.com/(?:(?:gallery|(?:topic|r)/[^/]+)/)?(?P<id>[a-zA-Z0-9]{6,})(?:[/?#&]+|\.[a-z0-9]+)?$'
+    _VALID_URL = r'https?://(?:i\.)?imgur\.com/(?:(?:topic|r)/[^/]+/)?(?P<id>[a-zA-Z0-9]{6,})(?:[/?#&]+|\.[a-z0-9]+)?$'
 
     _TESTS = [{
         'url': 'https://i.imgur.com/A61SaA1.gifv',
@@ -31,7 +31,7 @@ class ImgurIE(InfoExtractor):
             'description': 'Imgur: The magic of the Internet',
         },
     }, {
-        'url': 'https://imgur.com/gallery/YcAQlkx',
+        'url': 'https://imgur.com/YcAQlkx',
         'info_dict': {
             'id': 'YcAQlkx',
             'ext': 'mp4',
@@ -113,7 +113,7 @@ class ImgurIE(InfoExtractor):
 
 
 class ImgurAlbumIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:i\.)?imgur\.com/(?:(?:a|gallery|topic/[^/]+)/)?(?P<id>[a-zA-Z0-9]{5})(?:[/?#&]+)?$'
+    _VALID_URL = r'https?://(?:i\.)?imgur\.com/(?:(?:a|gallery|topic/[^/]+)/)?(?P<id>[a-zA-Z0-9]{5,})(?:[/?#&]+)?$'
 
     _TESTS = [{
         'url': 'http://imgur.com/gallery/Q95ko',
