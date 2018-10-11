@@ -2,7 +2,6 @@
 from __future__ import unicode_literals
 
 from .anvato import AnvatoIE
-from ..utils import js_to_json
 
 
 class FOX9IE(AnvatoIE):
@@ -34,9 +33,9 @@ class FOX9IE(AnvatoIE):
 
         video_id = self._parse_json(
             self._search_regex(
-                r'AnvatoPlaylist\s*\(\s*(\[.+?\])\s*\)\s*;',
+                r"this\.videosJson\s*=\s*'(\[.+?\])';",
                 webpage, 'anvato playlist'),
-            video_id, transform_source=js_to_json)[0]['video']
+            video_id)[0]['video']
 
         return self._get_anvato_videos(
             'anvato_epfox_app_web_prod_b3373168e12f423f41504f207000188daf88251b',

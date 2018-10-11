@@ -1,12 +1,12 @@
 # coding: utf-8
 from __future__ import unicode_literals
 
-import base64
 import re
 
 from .common import InfoExtractor
 from ..aes import aes_cbc_decrypt
 from ..compat import (
+    compat_b64decode,
     compat_ord,
     compat_str,
 )
@@ -142,11 +142,11 @@ class RTL2YouIE(RTL2YouBaseIE):
         stream_data = self._download_json(
             self._BACKWERK_BASE_URL + 'stream/video/' + video_id, video_id)
 
-        data, iv = base64.b64decode(stream_data['streamUrl']).decode().split(':')
+        data, iv = compat_b64decode(stream_data['streamUrl']).decode().split(':')
         stream_url = intlist_to_bytes(aes_cbc_decrypt(
-            bytes_to_intlist(base64.b64decode(data)),
+            bytes_to_intlist(compat_b64decode(data)),
             bytes_to_intlist(self._AES_KEY),
-            bytes_to_intlist(base64.b64decode(iv))
+            bytes_to_intlist(compat_b64decode(iv))
         ))
         if b'rtl2_you_video_not_found' in stream_url:
             raise ExtractorError('video not found', expected=True)

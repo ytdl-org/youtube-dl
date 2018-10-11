@@ -1325,8 +1325,8 @@ class AdobePassIE(InfoExtractor):
     _DOWNLOADING_LOGIN_PAGE = 'Downloading Provider Login Page'
 
     def _download_webpage_handle(self, *args, **kwargs):
-        headers = kwargs.get('headers', {})
-        headers.update(self.geo_verification_headers())
+        headers = self.geo_verification_headers()
+        headers.update(kwargs.get('headers', {}))
         kwargs['headers'] = headers
         return super(AdobePassIE, self)._download_webpage_handle(
             *args, **compat_kwargs(kwargs))

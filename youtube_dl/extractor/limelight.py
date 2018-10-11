@@ -10,6 +10,7 @@ from ..utils import (
     float_or_none,
     int_or_none,
     smuggle_url,
+    try_get,
     unsmuggle_url,
     ExtractorError,
 )
@@ -220,6 +221,12 @@ class LimelightBaseIE(InfoExtractor):
             'subtitles': subtitles,
         }
 
+    def _extract_info_helper(self, pc, mobile, i, metadata):
+        return self._extract_info(
+            try_get(pc, lambda x: x['playlistItems'][i]['streams'], list) or [],
+            try_get(mobile, lambda x: x['mediaList'][i]['mobileUrls'], list) or [],
+            metadata)
+
 
 class LimelightMediaIE(LimelightBaseIE):
     IE_NAME = 'limelight'
@@ -275,17 +282,16 @@ class LimelightMediaIE(LimelightBaseIE):
     def _real_extract(self, url):
         url, smuggled_data = unsmuggle_url(url, {})
         video_id = self._match_id(url)
-        self._initialize_geo_bypass(smuggled_data.get('geo_countries'))
+        self._initialize_geo_bypass({
+            'countries': smuggled_data.get('geo_countries'),
+        })
 
         pc, mobile, metadata = self._extract(
             video_id, 'getPlaylistByMediaId',
             'getMobilePlaylistByMediaId', 'properties',
             smuggled_data.get('source_url'))
 
-        return self._extract_info(
-            pc['playlistItems'][0].get('streams', []),
-            mobile['mediaList'][0].get('mobileUrls', []) if mobile else [],
-            metadata)
+        return self._extract_info_helper(pc, mobile, 0, metadata)
 
 
 class LimelightChannelIE(LimelightBaseIE):
@@ -326,10 +332,7 @@ class LimelightChannelIE(LimelightBaseIE):
             'media', smuggled_data.get('source_url'))
 
         entries = [
-            self._extract_info(
-                pc['playlistItems'][i].get('streams', []),
-                mobile['mediaList'][i].get('mobileUrls', []) if mobile else [],
-                medias['media_list'][i])
+            self._extract_info_helper(pc, mobile, i, medias['media_list'][i])
             for i in range(len(medias['media_list']))]
 
         return self.playlist_result(entries, channel_id, pc['title'])

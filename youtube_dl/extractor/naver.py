@@ -1,8 +1,6 @@
 # coding: utf-8
 from __future__ import unicode_literals
 
-import re
-
 from .common import InfoExtractor
 from ..utils import (
     ExtractorError,
@@ -43,9 +41,14 @@ class NaverIE(InfoExtractor):
         video_id = self._match_id(url)
         webpage = self._download_webpage(url, video_id)
 
-        m_id = re.search(r'var rmcPlayer = new nhn\.rmcnmv\.RMCVideoPlayer\("(.+?)", "(.+?)"',
-                         webpage)
-        if m_id is None:
+        vid = self._search_regex(
+            r'videoId["\']\s*:\s*(["\'])(?P<value>(?:(?!\1).)+)\1', webpage,
+            'video id', fatal=None, group='value')
+        in_key = self._search_regex(
+            r'inKey["\']\s*:\s*(["\'])(?P<value>(?:(?!\1).)+)\1', webpage,
+            'key', default=None, group='value')
+
+        if not vid or not in_key:
             error = self._html_search_regex(
                 r'(?s)<div class="(?:nation_error|nation_box|error_box)">\s*(?:<!--.*?-->)?\s*<p class="[^"]+">(?P<msg>.+?)</p>\s*</div>',
                 webpage, 'error', default=None)
@@ -53,9 +56,9 @@ class NaverIE(InfoExtractor):
                 raise ExtractorError(error, expected=True)
             raise ExtractorError('couldn\'t extract vid and key')
         video_data = self._download_json(
-            'http://play.rmcnmv.naver.com/vod/play/v2.0/' + m_id.group(1),
+            'http://play.rmcnmv.naver.com/vod/play/v2.0/' + vid,
             video_id, query={
-                'key': m_id.group(2),
+                'key': in_key,
             })
         meta = video_data['meta']
         title = meta['subject']

@@ -5,6 +5,7 @@ from .common import InfoExtractor
 from ..utils import (
     int_or_none,
     mimetype2ext,
+    url_or_none,
 )
 
 
@@ -43,7 +44,7 @@ class AparatIE(InfoExtractor):
 
         formats = []
         for item in file_list[0]:
-            file_url = item.get('file')
+            file_url = url_or_none(item.get('file'))
             if not file_url:
                 continue
             ext = mimetype2ext(item.get('type'))

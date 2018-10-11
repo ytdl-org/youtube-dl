@@ -4,28 +4,33 @@ from __future__ import unicode_literals
 import uuid
 import xml.etree.ElementTree as etree
 import json
+import re
 
 from .common import InfoExtractor
+from .brightcove import BrightcoveNewIE
 from ..compat import (
     compat_str,
     compat_etree_register_namespace,
 )
 from ..utils import (
+    determine_ext,
+    ExtractorError,
     extract_attributes,
+    int_or_none,
+    merge_dicts,
+    parse_duration,
+    smuggle_url,
+    url_or_none,
     xpath_with_ns,
     xpath_element,
     xpath_text,
-    int_or_none,
-    parse_duration,
-    ExtractorError,
-    determine_ext,
 )
 
 
 class ITVIE(InfoExtractor):
     _VALID_URL = r'https?://(?:www\.)?itv\.com/hub/[^/]+/(?P<id>[0-9a-zA-Z]+)'
     _GEO_COUNTRIES = ['GB']
-    _TEST = {
+    _TESTS = [{
         'url': 'http://www.itv.com/hub/mr-bean-animated-series/2a2936a0053',
         'info_dict': {
             'id': '2a2936a0053',
@@ -36,7 +41,19 @@ class ITVIE(InfoExtractor):
             # rtmp download
             'skip_download': True,
         },
-    }
+    }, {
+        # unavailable via data-playlist-url
+        'url': 'https://www.itv.com/hub/through-the-keyhole/2a2271a0033',
+        'only_matching': True,
+    }, {
+        # InvalidVodcrid
+        'url': 'https://www.itv.com/hub/james-martins-saturday-morning/2a5159a0034',
+        'only_matching': True,
+    }, {
+        # ContentUnavailable
+        'url': 'https://www.itv.com/hub/whos-doing-the-dishes/2a2898a0024',
+        'only_matching': True,
+    }]
 
     def _real_extract(self, url):
         video_id = self._match_id(url)
@@ -100,51 +117,83 @@ class ITVIE(InfoExtractor):
             'Content-Type': 'text/xml; charset=utf-8',
             'SOAPAction': 'http://tempuri.org/PlaylistService/GetPlaylist',
         })
+
+        info = self._search_json_ld(webpage, video_id, default={})
+        formats = []
+        subtitles = {}
+
+        def extract_subtitle(sub_url):
+            ext = determine_ext(sub_url, 'ttml')
+            subtitles.setdefault('en', []).append({
+                'url': sub_url,
+                'ext': 'ttml' if ext == 'xml' else ext,
+            })
+
         resp_env = self._download_xml(
             params['data-playlist-url'], video_id,
-            headers=headers, data=etree.tostring(req_env))
-        playlist = xpath_element(resp_env, './/Playlist')
-        if playlist is None:
-            fault_code = xpath_text(resp_env, './/faultcode')
-            fault_string = xpath_text(resp_env, './/faultstring')
-            if fault_code == 'InvalidGeoRegion':
-                self.raise_geo_restricted(
-                    msg=fault_string, countries=self._GEO_COUNTRIES)
-            raise ExtractorError('%s said: %s' % (self.IE_NAME, fault_string))
-        title = xpath_text(playlist, 'EpisodeTitle', fatal=True)
-        video_element = xpath_element(playlist, 'VideoEntries/Video', fatal=True)
-        media_files = xpath_element(video_element, 'MediaFiles', fatal=True)
-        rtmp_url = media_files.attrib['base']
-
-        formats = []
-        for media_file in media_files.findall('MediaFile'):
-            play_path = xpath_text(media_file, 'URL')
-            if not play_path:
-                continue
-            tbr = int_or_none(media_file.get('bitrate'), 1000)
-            f = {
-                'format_id': 'rtmp' + ('-%d' % tbr if tbr else ''),
-                'play_path': play_path,
-                # Providing this swfVfy allows to avoid truncated downloads
-                'player_url': 'http://www.itv.com/mercury/Mercury_VideoPlayer.swf',
-                'page_url': url,
-                'tbr': tbr,
-                'ext': 'flv',
-            }
-            app = self._search_regex(
-                'rtmpe?://[^/]+/(.+)$', rtmp_url, 'app', default=None)
-            if app:
-                f.update({
-                    'url': rtmp_url.split('?', 1)[0],
-                    'app': app,
+            headers=headers, data=etree.tostring(req_env), fatal=False)
+        if resp_env:
+            playlist = xpath_element(resp_env, './/Playlist')
+            if playlist is None:
+                fault_code = xpath_text(resp_env, './/faultcode')
+                fault_string = xpath_text(resp_env, './/faultstring')
+                if fault_code == 'InvalidGeoRegion':
+                    self.raise_geo_restricted(
+                        msg=fault_string, countries=self._GEO_COUNTRIES)
+                elif fault_code not in (
+                        'InvalidEntity', 'InvalidVodcrid', 'ContentUnavailable'):
+                    raise ExtractorError(
+                        '%s said: %s' % (self.IE_NAME, fault_string), expected=True)
+                info.update({
+                    'title': self._og_search_title(webpage),
+                    'episode_title': params.get('data-video-episode'),
+                    'series': params.get('data-video-title'),
                 })
             else:
-                f['url'] = rtmp_url
-            formats.append(f)
+                title = xpath_text(playlist, 'EpisodeTitle', default=None)
+                info.update({
+                    'title': title,
+                    'episode_title': title,
+                    'episode_number': int_or_none(xpath_text(playlist, 'EpisodeNumber')),
+                    'series': xpath_text(playlist, 'ProgrammeTitle'),
+                    'duration': parse_duration(xpath_text(playlist, 'Duration')),
+                })
+                video_element = xpath_element(playlist, 'VideoEntries/Video', fatal=True)
+                media_files = xpath_element(video_element, 'MediaFiles', fatal=True)
+                rtmp_url = media_files.attrib['base']
 
-        ios_playlist_url = params.get('data-video-playlist')
+                for media_file in media_files.findall('MediaFile'):
+                    play_path = xpath_text(media_file, 'URL')
+                    if not play_path:
+                        continue
+                    tbr = int_or_none(media_file.get('bitrate'), 1000)
+                    f = {
+                        'format_id': 'rtmp' + ('-%d' % tbr if tbr else ''),
+                        'play_path': play_path,
+                        # Providing this swfVfy allows to avoid truncated downloads
+                        'player_url': 'http://www.itv.com/mercury/Mercury_VideoPlayer.swf',
+                        'page_url': url,
+                        'tbr': tbr,
+                        'ext': 'flv',
+                    }
+                    app = self._search_regex(
+                        'rtmpe?://[^/]+/(.+)$', rtmp_url, 'app', default=None)
+                    if app:
+                        f.update({
+                            'url': rtmp_url.split('?', 1)[0],
+                            'app': app,
+                        })
+                    else:
+                        f['url'] = rtmp_url
+                    formats.append(f)
+
+                for caption_url in video_element.findall('ClosedCaptioningURIs/URL'):
+                    if caption_url.text:
+                        extract_subtitle(caption_url.text)
+
+        ios_playlist_url = params.get('data-video-playlist') or params.get('data-video-id')
         hmac = params.get('data-video-hmac')
-        if ios_playlist_url and hmac:
+        if ios_playlist_url and hmac and re.match(r'https?://', ios_playlist_url):
             headers = self.geo_verification_headers()
             headers.update({
                 'Accept': 'application/vnd.itv.vod.playlist.v2+json',
@@ -159,12 +208,12 @@ class ITVIE(InfoExtractor):
                         'token': ''
                     },
                     'device': {
-                        'manufacturer': 'Apple',
-                        'model': 'iPad',
+                        'manufacturer': 'Safari',
+                        'model': '5',
                         'os': {
-                            'name': 'iPhone OS',
-                            'version': '9.3',
-                            'type': 'ios'
+                            'name': 'Windows NT',
+                            'version': '6.1',
+                            'type': 'desktop'
                         }
                     },
                     'client': {
@@ -173,10 +222,10 @@ class ITVIE(InfoExtractor):
                     },
                     'variantAvailability': {
                         'featureset': {
-                            'min': ['hls', 'aes'],
-                            'max': ['hls', 'aes']
+                            'min': ['hls', 'aes', 'outband-webvtt'],
+                            'max': ['hls', 'aes', 'outband-webvtt']
                         },
-                        'platformTag': 'mobile'
+                        'platformTag': 'dotcom'
                     }
                 }).encode(), headers=headers, fatal=False)
             if ios_playlist:
@@ -197,27 +246,67 @@ class ITVIE(InfoExtractor):
                         formats.append({
                             'url': href,
                         })
+                subs = video_data.get('Subtitles')
+                if isinstance(subs, list):
+                    for sub in subs:
+                        if not isinstance(sub, dict):
+                            continue
+                        href = url_or_none(sub.get('Href'))
+                        if href:
+                            extract_subtitle(href)
+                if not info.get('duration'):
+                    info['duration'] = parse_duration(video_data.get('Duration'))
+
         self._sort_formats(formats)
 
-        subtitles = {}
-        for caption_url in video_element.findall('ClosedCaptioningURIs/URL'):
-            if not caption_url.text:
-                continue
-            ext = determine_ext(caption_url.text, 'ttml')
-            subtitles.setdefault('en', []).append({
-                'url': caption_url.text,
-                'ext': 'ttml' if ext == 'xml' else ext,
-            })
-
-        info = self._search_json_ld(webpage, video_id, default={})
         info.update({
             'id': video_id,
-            'title': title,
             'formats': formats,
             'subtitles': subtitles,
-            'episode_title': title,
-            'episode_number': int_or_none(xpath_text(playlist, 'EpisodeNumber')),
-            'series': xpath_text(playlist, 'ProgrammeTitle'),
-            'duartion': parse_duration(xpath_text(playlist, 'Duration')),
         })
-        return info
+
+        webpage_info = self._search_json_ld(webpage, video_id, default={})
+        if not webpage_info.get('title'):
+            webpage_info['title'] = self._html_search_regex(
+                r'(?s)<h\d+[^>]+\bclass=["\'][^>]*episode-title["\'][^>]*>([^<]+)<',
+                webpage, 'title', default=None) or self._og_search_title(
+                webpage, default=None) or self._html_search_meta(
+                'twitter:title', webpage, 'title',
+                default=None) or webpage_info['episode']
+
+        return merge_dicts(info, webpage_info)
+
+
+class ITVBTCCIE(InfoExtractor):
+    _VALID_URL = r'https?://(?:www\.)?itv\.com/btcc/(?:[^/]+/)*(?P<id>[^/?#&]+)'
+    _TEST = {
+        'url': 'http://www.itv.com/btcc/races/btcc-2018-all-the-action-from-brands-hatch',
+        'info_dict': {
+            'id': 'btcc-2018-all-the-action-from-brands-hatch',
+            'title': 'BTCC 2018: All the action from Brands Hatch',
+        },
+        'playlist_mincount': 9,
+    }
+    BRIGHTCOVE_URL_TEMPLATE = 'http://players.brightcove.net/1582188683001/HkiHLnNRx_default/index.html?videoId=%s'
+
+    def _real_extract(self, url):
+        playlist_id = self._match_id(url)
+
+        webpage = self._download_webpage(url, playlist_id)
+
+        entries = [
+            self.url_result(
+                smuggle_url(self.BRIGHTCOVE_URL_TEMPLATE % video_id, {
+                    # ITV does not like some GB IP ranges, so here are some
+                    # IP blocks it accepts
+                    'geo_ip_blocks': [
+                        '193.113.0.0/16', '54.36.162.0/23', '159.65.16.0/21'
+                    ],
+                    'referrer': url,
+                }),
+                ie=BrightcoveNewIE.ie_key(), video_id=video_id)
+            for video_id in re.findall(r'data-video-id=["\'](\d+)', webpage)]
+
+        title = self._og_search_title(webpage, fatal=False)
+
+        return self.playlist_result(entries, playlist_id, title)

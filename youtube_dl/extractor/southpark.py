@@ -6,7 +6,7 @@ from .mtv import MTVServicesInfoExtractor
 
 class SouthParkIE(MTVServicesInfoExtractor):
     IE_NAME = 'southpark.cc.com'
-    _VALID_URL = r'https?://(?:www\.)?(?P<url>southpark\.cc\.com/(?:clips|(?:full-)?episodes)/(?P<id>.+?)(\?|#|$))'
+    _VALID_URL = r'https?://(?:www\.)?(?P<url>southpark\.cc\.com/(?:clips|(?:full-)?episodes|collections)/(?P<id>.+?)(\?|#|$))'
 
     _FEED_URL = 'http://www.southparkstudios.com/feeds/video-player/mrss'
 
@@ -20,6 +20,9 @@ class SouthParkIE(MTVServicesInfoExtractor):
             'timestamp': 1112760000,
             'upload_date': '20050406',
         },
+    }, {
+        'url': 'http://southpark.cc.com/collections/7758/fan-favorites/1',
+        'only_matching': True,
     }]
 
 
@@ -41,7 +44,7 @@ class SouthParkEsIE(SouthParkIE):
 
 class SouthParkDeIE(SouthParkIE):
     IE_NAME = 'southpark.de'
-    _VALID_URL = r'https?://(?:www\.)?(?P<url>southpark\.de/(?:clips|alle-episoden)/(?P<id>.+?)(\?|#|$))'
+    _VALID_URL = r'https?://(?:www\.)?(?P<url>southpark\.de/(?:clips|alle-episoden|collections)/(?P<id>.+?)(\?|#|$))'
     _FEED_URL = 'http://www.southpark.de/feeds/video-player/mrss/'
 
     _TESTS = [{
@@ -70,12 +73,15 @@ class SouthParkDeIE(SouthParkIE):
             'description': 'Kyle will mit seinem kleinen Bruder Ike Videospiele spielen. Als der nicht mehr mit ihm spielen will, hat Kyle Angst, dass er die Kids von heute nicht mehr versteht.',
         },
         'playlist_count': 3,
+    }, {
+        'url': 'http://www.southpark.de/collections/2476/superhero-showdown/1',
+        'only_matching': True,
     }]
 
 
 class SouthParkNlIE(SouthParkIE):
     IE_NAME = 'southpark.nl'
-    _VALID_URL = r'https?://(?:www\.)?(?P<url>southpark\.nl/(?:clips|(?:full-)?episodes)/(?P<id>.+?)(\?|#|$))'
+    _VALID_URL = r'https?://(?:www\.)?(?P<url>southpark\.nl/(?:clips|(?:full-)?episodes|collections)/(?P<id>.+?)(\?|#|$))'
     _FEED_URL = 'http://www.southpark.nl/feeds/video-player/mrss/'
 
     _TESTS = [{
@@ -90,7 +96,7 @@ class SouthParkNlIE(SouthParkIE):
 
 class SouthParkDkIE(SouthParkIE):
     IE_NAME = 'southparkstudios.dk'
-    _VALID_URL = r'https?://(?:www\.)?(?P<url>southparkstudios\.dk/(?:clips|full-episodes)/(?P<id>.+?)(\?|#|$))'
+    _VALID_URL = r'https?://(?:www\.)?(?P<url>southparkstudios\.(?:dk|nu)/(?:clips|full-episodes|collections)/(?P<id>.+?)(\?|#|$))'
     _FEED_URL = 'http://www.southparkstudios.dk/feeds/video-player/mrss/'
 
     _TESTS = [{
@@ -100,4 +106,10 @@ class SouthParkDkIE(SouthParkIE):
             'description': 'Butters is convinced he\'s living in a virtual reality.',
         },
         'playlist_mincount': 3,
+    }, {
+        'url': 'http://www.southparkstudios.dk/collections/2476/superhero-showdown/1',
+        'only_matching': True,
+    }, {
+        'url': 'http://www.southparkstudios.nu/collections/2476/superhero-showdown/1',
+        'only_matching': True,
     }]

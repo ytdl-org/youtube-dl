@@ -211,7 +211,7 @@ class YoutubeDL(object):
                        At the moment, this is only supported by YouTube.
     proxy:             URL of the proxy server to use
     geo_verification_proxy:  URL of the proxy to use for IP address verification
-                       on geo-restricted sites. (Experimental)
+                       on geo-restricted sites.
     socket_timeout:    Time to wait for unresponsive hosts, in seconds
     bidi_workaround:   Work around buggy terminals without bidirectional text
                        support, using fridibi
@@ -259,7 +259,7 @@ class YoutubeDL(object):
                        - "warn": only emit a warning
                        - "detect_or_warn": check whether we can do anything
                                            about it, warn otherwise (default)
-    source_address:    (Experimental) Client-side IP address to bind to.
+    source_address:    Client-side IP address to bind to.
     call_home:         Boolean, true iff we are allowed to contact the
                        youtube-dl servers for debugging.
     sleep_interval:    Number of seconds to sleep before each download when
@@ -281,11 +281,14 @@ class YoutubeDL(object):
                        match_filter_func in utils.py is one example for this.
     no_color:          Do not emit color codes in output.
     geo_bypass:        Bypass geographic restriction via faking X-Forwarded-For
-                       HTTP header (experimental)
+                       HTTP header
     geo_bypass_country:
                        Two-letter ISO 3166-2 country code that will be used for
                        explicit geographic restriction bypassing via faking
-                       X-Forwarded-For HTTP header (experimental)
+                       X-Forwarded-For HTTP header
+    geo_bypass_ip_block:
+                       IP range in CIDR notation that will be used similarly to
+                       geo_bypass_country
 
     The following options determine which downloader is picked:
     external_downloader: Executable of the external downloader to call.
@@ -298,11 +301,12 @@ class YoutubeDL(object):
     the downloader (see youtube_dl/downloader/common.py):
     nopart, updatetime, buffersize, ratelimit, min_filesize, max_filesize, test,
     noresizebuffer, retries, continuedl, noprogress, consoletitle,
-    xattr_set_filesize, external_downloader_args, hls_use_mpegts.
+    xattr_set_filesize, external_downloader_args, hls_use_mpegts,
+    http_chunk_size.
 
     The following options are used by the post processors:
-    prefer_ffmpeg:     If True, use ffmpeg instead of avconv if both are available,
-                       otherwise prefer avconv.
+    prefer_ffmpeg:     If False, use avconv instead of ffmpeg if both are available,
+                       otherwise prefer ffmpeg.
     postprocessor_args: A list of additional command-line arguments for the
                         postprocessor.
 
@@ -531,12 +535,16 @@ class YoutubeDL(object):
     def save_console_title(self):
         if not self.params.get('consoletitle', False):
             return
+        if self.params.get('simulate', False):
+            return
         if compat_os_name != 'nt' and 'TERM' in os.environ:
             # Save the title on stack
             self._write_string('\033[22;0t', self._screen_file)
 
     def restore_console_title(self):
         if not self.params.get('consoletitle', False):
+            return
+        if self.params.get('simulate', False):
             return
         if compat_os_name != 'nt' and 'TERM' in os.environ:
             # Restore the title from stack
@@ -975,6 +983,8 @@ class YoutubeDL(object):
                     'playlist': playlist,
                     'playlist_id': ie_result.get('id'),
                     'playlist_title': ie_result.get('title'),
+                    'playlist_uploader': ie_result.get('uploader'),
+                    'playlist_uploader_id': ie_result.get('uploader_id'),
                     'playlist_index': i + playliststart,
                     'extractor': ie_result['extractor'],
                     'webpage_url': ie_result['webpage_url'],
@@ -1030,7 +1040,7 @@ class YoutubeDL(object):
             '!=': operator.ne,
         }
         operator_rex = re.compile(r'''(?x)\s*
-            (?P<key>width|height|tbr|abr|vbr|asr|filesize|fps)
+            (?P<key>width|height|tbr|abr|vbr|asr|filesize|filesize_approx|fps)
             \s*(?P<op>%s)(?P<none_inclusive>\s*\?)?\s*
             (?P<value>[0-9.]+(?:[kKmMgGtTpPeEzZyY]i?[Bb]?)?)
             $
@@ -1472,23 +1482,28 @@ class YoutubeDL(object):
             if info_dict.get('%s_number' % field) is not None and not info_dict.get(field):
                 info_dict[field] = '%s %d' % (field.capitalize(), info_dict['%s_number' % field])
 
+        for cc_kind in ('subtitles', 'automatic_captions'):
+            cc = info_dict.get(cc_kind)
+            if cc:
+                for _, subtitle in cc.items():
+                    for subtitle_format in subtitle:
+                        if subtitle_format.get('url'):
+                            subtitle_format['url'] = sanitize_url(subtitle_format['url'])
+                        if subtitle_format.get('ext') is None:
+                            subtitle_format['ext'] = determine_ext(subtitle_format['url']).lower()
+
+        automatic_captions = info_dict.get('automatic_captions')
         subtitles = info_dict.get('subtitles')
-        if subtitles:
-            for _, subtitle in subtitles.items():
-                for subtitle_format in subtitle:
-                    if subtitle_format.get('url'):
-                        subtitle_format['url'] = sanitize_url(subtitle_format['url'])
-                    if subtitle_format.get('ext') is None:
-                        subtitle_format['ext'] = determine_ext(subtitle_format['url']).lower()
 
         if self.params.get('listsubtitles', False):
             if 'automatic_captions' in info_dict:
-                self.list_subtitles(info_dict['id'], info_dict.get('automatic_captions'), 'automatic captions')
+                self.list_subtitles(
+                    info_dict['id'], automatic_captions, 'automatic captions')
             self.list_subtitles(info_dict['id'], subtitles, 'subtitles')
             return
+
         info_dict['requested_subtitles'] = self.process_subtitles(
-            info_dict['id'], subtitles,
-            info_dict.get('automatic_captions'))
+            info_dict['id'], subtitles, automatic_captions)
 
         # We now pick which formats have to be downloaded
         if info_dict.get('formats') is None:
@@ -1846,7 +1861,7 @@ class YoutubeDL(object):
                     def compatible_formats(formats):
                         video, audio = formats
                         # Check extension
-                        video_ext, audio_ext = audio.get('ext'), video.get('ext')
+                        video_ext, audio_ext = video.get('ext'), audio.get('ext')
                         if video_ext and audio_ext:
                             COMPATIBLE_EXTS = (
                                 ('mp3', 'mp4', 'm4a', 'm4p', 'm4b', 'm4r', 'm4v', 'ismv', 'isma'),
@@ -2231,8 +2246,16 @@ class YoutubeDL(object):
                 sys.exc_clear()
             except Exception:
                 pass
-        self._write_string('[debug] Python version %s - %s\n' % (
-            platform.python_version(), platform_name()))
+
+        def python_implementation():
+            impl_name = platform.python_implementation()
+            if impl_name == 'PyPy' and hasattr(sys, 'pypy_version_info'):
+                return impl_name + ' version %d.%d.%d' % sys.pypy_version_info[:3]
+            return impl_name
+
+        self._write_string('[debug] Python version %s (%s) - %s\n' % (
+            platform.python_version(), python_implementation(),
+            platform_name()))
 
         exe_versions = FFmpegPostProcessor.get_versions(self)
         exe_versions['rtmpdump'] = rtmpdump_version()

@@ -310,6 +310,7 @@ class SmotriBroadcastIE(InfoExtractor):
     IE_DESC = 'Smotri.com broadcasts'
     IE_NAME = 'smotri:broadcast'
     _VALID_URL = r'https?://(?:www\.)?(?P<url>smotri\.com/live/(?P<id>[^/]+))/?.*'
+    _NETRC_MACHINE = 'smotri'
 
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
@@ -352,17 +353,18 @@ class SmotriBroadcastIE(InfoExtractor):
             adult_content = False
 
         ticket = self._html_search_regex(
-            r"window\.broadcast_control\.addFlashVar\('file'\s*,\s*'([^']+)'\)",
-            broadcast_page, 'broadcast ticket')
+            (r'data-user-file=(["\'])(?P<ticket>(?!\1).+)\1',
+             r"window\.broadcast_control\.addFlashVar\('file'\s*,\s*'(?P<ticket>[^']+)'\)"),
+            broadcast_page, 'broadcast ticket', group='ticket')
 
-        url = 'http://smotri.com/broadcast/view/url/?ticket=%s' % ticket
+        broadcast_url = 'http://smotri.com/broadcast/view/url/?ticket=%s' % ticket
 
         broadcast_password = self._downloader.params.get('videopassword')
         if broadcast_password:
-            url += '&pass=%s' % hashlib.md5(broadcast_password.encode('utf-8')).hexdigest()
+            broadcast_url += '&pass=%s' % hashlib.md5(broadcast_password.encode('utf-8')).hexdigest()
 
         broadcast_json_page = self._download_webpage(
-            url, broadcast_id, 'Downloading broadcast JSON')
+            broadcast_url, broadcast_id, 'Downloading broadcast JSON')
 
         try:
             broadcast_json = json.loads(broadcast_json_page)

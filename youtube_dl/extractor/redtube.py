@@ -3,12 +3,12 @@ from __future__ import unicode_literals
 import re
 
 from .common import InfoExtractor
-from ..compat import compat_str
 from ..utils import (
     ExtractorError,
     int_or_none,
     str_to_int,
     unified_strdate,
+    url_or_none,
 )
 
 
@@ -16,12 +16,12 @@ class RedTubeIE(InfoExtractor):
     _VALID_URL = r'https?://(?:(?:www\.)?redtube\.com/|embed\.redtube\.com/\?.*?\bid=)(?P<id>[0-9]+)'
     _TESTS = [{
         'url': 'http://www.redtube.com/66418',
-        'md5': '7b8c22b5e7098a3e1c09709df1126d2d',
+        'md5': 'fc08071233725f26b8f014dba9590005',
         'info_dict': {
             'id': '66418',
             'ext': 'mp4',
             'title': 'Sucked on a toilet',
-            'upload_date': '20120831',
+            'upload_date': '20110811',
             'duration': 596,
             'view_count': int,
             'age_limit': 18,
@@ -46,9 +46,10 @@ class RedTubeIE(InfoExtractor):
             raise ExtractorError('Video %s has been removed' % video_id, expected=True)
 
         title = self._html_search_regex(
-            (r'<h1 class="videoTitle[^"]*">(?P<title>.+?)</h1>',
-             r'videoTitle\s*:\s*(["\'])(?P<title>)\1'),
-            webpage, 'title', group='title')
+            (r'<h(\d)[^>]+class="(?:video_title_text|videoTitle)[^"]*">(?P<title>(?:(?!\1).)+)</h\1>',
+             r'(?:videoTitle|title)\s*:\s*(["\'])(?P<title>(?:(?!\1).)+)\1',),
+            webpage, 'title', group='title',
+            default=None) or self._og_search_title(webpage)
 
         formats = []
         sources = self._parse_json(
@@ -70,8 +71,8 @@ class RedTubeIE(InfoExtractor):
             video_id, fatal=False)
         if medias and isinstance(medias, list):
             for media in medias:
-                format_url = media.get('videoUrl')
-                if not format_url or not isinstance(format_url, compat_str):
+                format_url = url_or_none(media.get('videoUrl'))
+                if not format_url:
                     continue
                 format_id = media.get('quality')
                 formats.append({
@@ -87,12 +88,14 @@ class RedTubeIE(InfoExtractor):
 
         thumbnail = self._og_search_thumbnail(webpage)
         upload_date = unified_strdate(self._search_regex(
-            r'<span[^>]+class="added-time"[^>]*>ADDED ([^<]+)<',
+            r'<span[^>]+>ADDED ([^<]+)<',
             webpage, 'upload date', fatal=False))
-        duration = int_or_none(self._search_regex(
-            r'videoDuration\s*:\s*(\d+)', webpage, 'duration', default=None))
+        duration = int_or_none(self._og_search_property(
+            'video:duration', webpage, default=None) or self._search_regex(
+                r'videoDuration\s*:\s*(\d+)', webpage, 'duration', default=None))
         view_count = str_to_int(self._search_regex(
-            r'<span[^>]*>VIEWS</span></td>\s*<td>([\d,.]+)',
+            (r'<div[^>]*>Views</div>\s*<div[^>]*>\s*([\d,.]+)',
+             r'<span[^>]*>VIEWS</span>\s*</td>\s*<td>\s*([\d,.]+)'),
             webpage, 'view count', fatal=False))
 
         # No self-labeling, but they describe themselves as

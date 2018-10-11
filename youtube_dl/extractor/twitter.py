@@ -43,7 +43,7 @@ class TwitterBaseIE(InfoExtractor):
 
 class TwitterCardIE(TwitterBaseIE):
     IE_NAME = 'twitter:card'
-    _VALID_URL = r'https?://(?:www\.)?twitter\.com/i/(?:cards/tfw/v1|videos(?:/tweet)?)/(?P<id>\d+)'
+    _VALID_URL = r'https?://(?:www\.)?twitter\.com/i/(?P<path>cards/tfw/v1|videos(?:/tweet)?)/(?P<id>\d+)'
     _TESTS = [
         {
             'url': 'https://twitter.com/i/cards/tfw/v1/560070183650213889',
@@ -51,11 +51,10 @@ class TwitterCardIE(TwitterBaseIE):
             'info_dict': {
                 'id': '560070183650213889',
                 'ext': 'mp4',
-                'title': 'Twitter Card',
+                'title': 'Twitter web player',
                 'thumbnail': r're:^https?://.*\.jpg$',
                 'duration': 30.033,
             },
-            'skip': 'Video gone',
         },
         {
             'url': 'https://twitter.com/i/cards/tfw/v1/623160978427936768',
@@ -63,11 +62,9 @@ class TwitterCardIE(TwitterBaseIE):
             'info_dict': {
                 'id': '623160978427936768',
                 'ext': 'mp4',
-                'title': 'Twitter Card',
-                'thumbnail': r're:^https?://.*\.jpg',
-                'duration': 80.155,
+                'title': 'Twitter web player',
+                'thumbnail': r're:^https?://.*$',
             },
-            'skip': 'Video gone',
         },
         {
             'url': 'https://twitter.com/i/cards/tfw/v1/654001591733886977',
@@ -111,6 +108,8 @@ class TwitterCardIE(TwitterBaseIE):
         },
     ]
 
+    _API_BASE = 'https://api.twitter.com/1.1'
+
     def _parse_media_info(self, media_info, video_id):
         formats = []
         for media_variant in media_info.get('variants', []):
@@ -120,15 +119,15 @@ class TwitterCardIE(TwitterBaseIE):
             elif media_url.endswith('.mpd'):
                 formats.extend(self._extract_mpd_formats(media_url, video_id, mpd_id='dash'))
             else:
-                vbr = int_or_none(dict_get(media_variant, ('bitRate', 'bitrate')), scale=1000)
+                tbr = int_or_none(dict_get(media_variant, ('bitRate', 'bitrate')), scale=1000)
                 a_format = {
                     'url': media_url,
-                    'format_id': 'http-%d' % vbr if vbr else 'http',
-                    'vbr': vbr,
+                    'format_id': 'http-%d' % tbr if tbr else 'http',
+                    'tbr': tbr,
                 }
                 # Reported bitRate may be zero
-                if not a_format['vbr']:
-                    del a_format['vbr']
+                if not a_format['tbr']:
+                    del a_format['tbr']
 
                 self._search_dimensions_in_video_url(a_format, media_url)
 
@@ -150,86 +149,124 @@ class TwitterCardIE(TwitterBaseIE):
         bearer_token = self._search_regex(
             r'BEARER_TOKEN\s*:\s*"([^"]+)"',
             main_script, 'bearer token')
-        guest_token = self._search_regex(
-            r'document\.cookie\s*=\s*decodeURIComponent\("gt=(\d+)',
-            webpage, 'guest token')
+        # https://developer.twitter.com/en/docs/tweets/post-and-engage/api-reference/get-statuses-show-id
         api_data = self._download_json(
-            'https://api.twitter.com/2/timeline/conversation/%s.json' % video_id,
-            video_id, 'Downloading mobile API data',
+            '%s/statuses/show/%s.json' % (self._API_BASE, video_id),
+            video_id, 'Downloading API data',
             headers={
                 'Authorization': 'Bearer ' + bearer_token,
-                'x-guest-token': guest_token,
             })
-        media_info = try_get(api_data, lambda o: o['globalObjects']['tweets'][video_id]
-                                                  ['extended_entities']['media'][0]['video_info']) or {}
+        media_info = try_get(api_data, lambda o: o['extended_entities']['media'][0]['video_info']) or {}
         return self._parse_media_info(media_info, video_id)
 
     def _real_extract(self, url):
-        video_id = self._match_id(url)
+        path, video_id = re.search(self._VALID_URL, url).groups()
 
         config = None
         formats = []
         duration = None
 
-        webpage = self._download_webpage(url, video_id)
+        urls = [url]
+        if path.startswith('cards/'):
+            urls.append('https://twitter.com/i/videos/' + video_id)
 
-        iframe_url = self._html_search_regex(
-            r'<iframe[^>]+src="((?:https?:)?//(?:www\.youtube\.com/embed/[^"]+|(?:www\.)?vine\.co/v/\w+/card))"',
-            webpage, 'video iframe', default=None)
-        if iframe_url:
-            return self.url_result(iframe_url)
+        for u in urls:
+            webpage = self._download_webpage(u, video_id)
 
-        config = self._parse_json(self._html_search_regex(
-            r'data-(?:player-)?config="([^"]+)"', webpage,
-            'data player config', default='{}'),
-            video_id)
+            iframe_url = self._html_search_regex(
+                r'<iframe[^>]+src="((?:https?:)?//(?:www\.youtube\.com/embed/[^"]+|(?:www\.)?vine\.co/v/\w+/card))"',
+                webpage, 'video iframe', default=None)
+            if iframe_url:
+                return self.url_result(iframe_url)
 
-        if config.get('source_type') == 'vine':
-            return self.url_result(config['player_url'], 'Vine')
+            config = self._parse_json(self._html_search_regex(
+                r'data-(?:player-)?config="([^"]+)"', webpage,
+                'data player config', default='{}'),
+                video_id)
 
-        periscope_url = PeriscopeIE._extract_url(webpage)
-        if periscope_url:
-            return self.url_result(periscope_url, PeriscopeIE.ie_key())
+            if config.get('source_type') == 'vine':
+                return self.url_result(config['player_url'], 'Vine')
 
-        video_url = config.get('video_url') or config.get('playlist', [{}])[0].get('source')
+            periscope_url = PeriscopeIE._extract_url(webpage)
+            if periscope_url:
+                return self.url_result(periscope_url, PeriscopeIE.ie_key())
 
-        if video_url:
-            if determine_ext(video_url) == 'm3u8':
-                formats.extend(self._extract_m3u8_formats(video_url, video_id, ext='mp4', m3u8_id='hls'))
+            video_url = config.get('video_url') or config.get('playlist', [{}])[0].get('source')
+
+            if video_url:
+                if determine_ext(video_url) == 'm3u8':
+                    formats.extend(self._extract_m3u8_formats(video_url, video_id, ext='mp4', m3u8_id='hls'))
+                else:
+                    f = {
+                        'url': video_url,
+                    }
+
+                    self._search_dimensions_in_video_url(f, video_url)
+
+                    formats.append(f)
+
+            vmap_url = config.get('vmapUrl') or config.get('vmap_url')
+            if vmap_url:
+                formats.extend(
+                    self._extract_formats_from_vmap_url(vmap_url, video_id))
+
+            media_info = None
+
+            for entity in config.get('status', {}).get('entities', []):
+                if 'mediaInfo' in entity:
+                    media_info = entity['mediaInfo']
+
+            if media_info:
+                formats.extend(self._parse_media_info(media_info, video_id))
+                duration = float_or_none(media_info.get('duration', {}).get('nanos'), scale=1e9)
+
+            username = config.get('user', {}).get('screen_name')
+            if username:
+                formats.extend(self._extract_mobile_formats(username, video_id))
+
+            if formats:
+                title = self._search_regex(r'<title>([^<]+)</title>', webpage, 'title')
+                thumbnail = config.get('posterImageUrl') or config.get('image_src')
+                duration = float_or_none(config.get('duration'), scale=1000) or duration
+                break
+
+        if not formats:
+            headers = {
+                'Authorization': 'Bearer AAAAAAAAAAAAAAAAAAAAAPYXBAAAAAAACLXUNDekMxqa8h%2F40K4moUkGsoc%3DTYfbDKbT3jJPCEVnMYqilB28NHfOPqkca3qaAxGfsyKCs0wRbw',
+                'Referer': url,
+            }
+            ct0 = self._get_cookies(url).get('ct0')
+            if ct0:
+                headers['csrf_token'] = ct0.value
+            guest_token = self._download_json(
+                '%s/guest/activate.json' % self._API_BASE, video_id,
+                'Downloading guest token', data=b'',
+                headers=headers)['guest_token']
+            headers['x-guest-token'] = guest_token
+            self._set_cookie('api.twitter.com', 'gt', guest_token)
+            config = self._download_json(
+                '%s/videos/tweet/config/%s.json' % (self._API_BASE, video_id),
+                video_id, headers=headers)
+            track = config['track']
+            vmap_url = track.get('vmapUrl')
+            if vmap_url:
+                formats = self._extract_formats_from_vmap_url(vmap_url, video_id)
             else:
-                f = {
-                    'url': video_url,
-                }
-
-                self._search_dimensions_in_video_url(f, video_url)
-
-                formats.append(f)
-
-        vmap_url = config.get('vmapUrl') or config.get('vmap_url')
-        if vmap_url:
-            formats.extend(
-                self._extract_formats_from_vmap_url(vmap_url, video_id))
-
-        media_info = None
-
-        for entity in config.get('status', {}).get('entities', []):
-            if 'mediaInfo' in entity:
-                media_info = entity['mediaInfo']
-
-        if media_info:
-            formats.extend(self._parse_media_info(media_info, video_id))
-            duration = float_or_none(media_info.get('duration', {}).get('nanos'), scale=1e9)
-
-        username = config.get('user', {}).get('screen_name')
-        if username:
-            formats.extend(self._extract_mobile_formats(username, video_id))
+                playback_url = track['playbackUrl']
+                if determine_ext(playback_url) == 'm3u8':
+                    formats = self._extract_m3u8_formats(
+                        playback_url, video_id, 'mp4',
+                        entry_protocol='m3u8_native', m3u8_id='hls')
+                else:
+                    formats = [{
+                        'url': playback_url,
+                    }]
+            title = 'Twitter web player'
+            thumbnail = config.get('posterImage')
+            duration = float_or_none(track.get('durationMs'), scale=1000)
 
         self._remove_duplicate_formats(formats)
         self._sort_formats(formats)
-
-        title = self._search_regex(r'<title>([^<]+)</title>', webpage, 'title')
-        thumbnail = config.get('posterImageUrl') or config.get('image_src')
-        duration = float_or_none(config.get('duration'), scale=1000) or duration
 
         return {
             'id': video_id,
@@ -258,9 +295,6 @@ class TwitterIE(InfoExtractor):
             'uploader_id': 'freethenipple',
             'duration': 12.922,
         },
-        'params': {
-            'skip_download': True,  # requires ffmpeg
-        },
     }, {
         'url': 'https://twitter.com/giphz/status/657991469417025536/photo/1',
         'md5': 'f36dcd5fb92bf7057f155e7d927eeb42',
@@ -277,7 +311,6 @@ class TwitterIE(InfoExtractor):
         'skip': 'Account suspended',
     }, {
         'url': 'https://twitter.com/starwars/status/665052190608723968',
-        'md5': '39b7199856dee6cd4432e72c74bc69d4',
         'info_dict': {
             'id': '665052190608723968',
             'ext': 'mp4',
@@ -303,19 +336,15 @@ class TwitterIE(InfoExtractor):
         },
     }, {
         'url': 'https://twitter.com/jaydingeer/status/700207533655363584',
-        'md5': '',
         'info_dict': {
             'id': '700207533655363584',
             'ext': 'mp4',
-            'title': 'あかさ - BEAT PROD: @suhmeduh #Damndaniel',
-            'description': 'あかさ on Twitter: "BEAT PROD: @suhmeduh  https://t.co/HBrQ4AfpvZ #Damndaniel https://t.co/byBooq2ejZ"',
+            'title': 'JG - BEAT PROD: @suhmeduh #Damndaniel',
+            'description': 'JG on Twitter: "BEAT PROD: @suhmeduh  https://t.co/HBrQ4AfpvZ #Damndaniel https://t.co/byBooq2ejZ"',
             'thumbnail': r're:^https?://.*\.jpg',
-            'uploader': 'あかさ',
+            'uploader': 'JG',
             'uploader_id': 'jaydingeer',
             'duration': 30.0,
-        },
-        'params': {
-            'skip_download': True,  # requires ffmpeg
         },
     }, {
         'url': 'https://twitter.com/Filmdrunk/status/713801302971588609',
@@ -342,9 +371,6 @@ class TwitterIE(InfoExtractor):
             'uploader': 'Captain America',
             'duration': 3.17,
         },
-        'params': {
-            'skip_download': True,  # requires ffmpeg
-        },
     }, {
         'url': 'https://twitter.com/OPP_HSD/status/779210622571536384',
         'info_dict': {
@@ -370,9 +396,6 @@ class TwitterIE(InfoExtractor):
             'uploader_id': 'news_al3alm',
             'duration': 277.4,
         },
-        'params': {
-            'format': 'best[format_id^=http-]',
-        },
     }, {
         'url': 'https://twitter.com/i/web/status/910031516746514432',
         'info_dict': {
@@ -384,6 +407,22 @@ class TwitterIE(InfoExtractor):
             'uploader': 'Préfet de Guadeloupe',
             'uploader_id': 'Prefet971',
             'duration': 47.48,
+        },
+        'params': {
+            'skip_download': True,  # requires ffmpeg
+        },
+    }, {
+        # card via api.twitter.com/1.1/videos/tweet/config
+        'url': 'https://twitter.com/LisPower1/status/1001551623938805763',
+        'info_dict': {
+            'id': '1001551623938805763',
+            'ext': 'mp4',
+            'title': 're:.*?Shep is on a roll today.*?',
+            'thumbnail': r're:^https?://.*\.jpg',
+            'description': 'md5:63b036c228772523ae1924d5f8e5ed6b',
+            'uploader': 'Lis Power',
+            'uploader_id': 'LisPower1',
+            'duration': 111.278,
         },
         'params': {
             'skip_download': True,  # requires ffmpeg

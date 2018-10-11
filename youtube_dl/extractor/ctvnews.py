@@ -11,10 +11,10 @@ class CTVNewsIE(InfoExtractor):
     _VALID_URL = r'https?://(?:.+?\.)?ctvnews\.ca/(?:video\?(?:clip|playlist|bin)Id=|.*?)(?P<id>[0-9.]+)'
     _TESTS = [{
         'url': 'http://www.ctvnews.ca/video?clipId=901995',
-        'md5': '10deb320dc0ccb8d01d34d12fc2ea672',
+        'md5': '9b8624ba66351a23e0b6e1391971f9af',
         'info_dict': {
             'id': '901995',
-            'ext': 'mp4',
+            'ext': 'flv',
             'title': 'Extended: \'That person cannot be me\' Johnson says',
             'description': 'md5:958dd3b4f5bbbf0ed4d045c790d89285',
             'timestamp': 1467286284,

@@ -93,58 +93,11 @@ class RtlNlIE(InfoExtractor):
 
         meta = info.get('meta', {})
 
-        # m3u8 streams are encrypted and may not be handled properly by older ffmpeg/avconv.
-        # To workaround this previously adaptive -> flash trick was used to obtain
-        # unencrypted m3u8 streams (see https://github.com/rg3/youtube-dl/issues/4118)
-        # and bypass georestrictions as well.
-        # Currently, unencrypted m3u8 playlists are (intentionally?) invalid and therefore
-        # unusable albeit can be fixed by simple string replacement (see
-        # https://github.com/rg3/youtube-dl/pull/6337)
-        # Since recent ffmpeg and avconv handle encrypted streams just fine encrypted
-        # streams are used now.
         videopath = material['videopath']
         m3u8_url = meta.get('videohost', 'http://manifest.us.rtl.nl') + videopath
 
         formats = self._extract_m3u8_formats(
             m3u8_url, uuid, 'mp4', m3u8_id='hls', fatal=False)
-
-        video_urlpart = videopath.split('/adaptive/')[1][:-5]
-        PG_URL_TEMPLATE = 'http://pg.us.rtl.nl/rtlxl/network/%s/progressive/%s.mp4'
-
-        PG_FORMATS = (
-            ('a2t', 512, 288),
-            ('a3t', 704, 400),
-            ('nettv', 1280, 720),
-        )
-
-        def pg_format(format_id, width, height):
-            return {
-                'url': PG_URL_TEMPLATE % (format_id, video_urlpart),
-                'format_id': 'pg-%s' % format_id,
-                'protocol': 'http',
-                'width': width,
-                'height': height,
-            }
-
-        if not formats:
-            formats = [pg_format(*pg_tuple) for pg_tuple in PG_FORMATS]
-        else:
-            pg_formats = []
-            for format_id, width, height in PG_FORMATS:
-                try:
-                    # Find hls format with the same width and height corresponding
-                    # to progressive format and copy metadata from it.
-                    f = next(f for f in formats if f.get('height') == height)
-                    # hls formats may have invalid width
-                    f['width'] = width
-                    f_copy = f.copy()
-                    f_copy.update(pg_format(format_id, width, height))
-                    pg_formats.append(f_copy)
-                except StopIteration:
-                    # Missing hls format does mean that no progressive format with
-                    # such width and height exists either.
-                    pass
-            formats.extend(pg_formats)
         self._sort_formats(formats)
 
         thumbnails = []

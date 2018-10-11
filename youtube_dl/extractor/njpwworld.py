@@ -43,7 +43,8 @@ class NJPWWorldIE(InfoExtractor):
         webpage, urlh = self._download_webpage_handle(
             'https://njpwworld.com/auth/login', None,
             note='Logging in', errnote='Unable to login',
-            data=urlencode_postdata({'login_id': username, 'pw': password}))
+            data=urlencode_postdata({'login_id': username, 'pw': password}),
+            headers={'Referer': 'https://njpwworld.com/auth'})
         # /auth/login will return 302 for successful logins
         if urlh.geturl() == 'https://njpwworld.com/auth/login':
             self.report_warning('unable to login')

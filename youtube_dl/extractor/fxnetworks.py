@@ -41,7 +41,7 @@ class FXNetworksIE(AdobePassIE):
         if 'The content you are trying to access is not available in your region.' in webpage:
             self.raise_geo_restricted()
         video_data = extract_attributes(self._search_regex(
-            r'(<a.+?rel="http://link\.theplatform\.com/s/.+?</a>)', webpage, 'video data'))
+            r'(<a.+?rel="https?://link\.theplatform\.com/s/.+?</a>)', webpage, 'video data'))
         player_type = self._search_regex(r'playerType\s*=\s*[\'"]([^\'"]+)', webpage, 'player type', default=None)
         release_url = video_data['rel']
         title = video_data['data-title']

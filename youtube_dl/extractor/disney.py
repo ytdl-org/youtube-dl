@@ -10,6 +10,7 @@ from ..utils import (
     compat_str,
     determine_ext,
     ExtractorError,
+    update_url_query,
 )
 
 
@@ -108,9 +109,16 @@ class DisneyIE(InfoExtractor):
                 continue
             tbr = int_or_none(flavor.get('bitrate'))
             if tbr == 99999:
-                formats.extend(self._extract_m3u8_formats(
+                # wrong ks(Kaltura Signature) causes 404 Error
+                flavor_url = update_url_query(flavor_url, {'ks': ''})
+                m3u8_formats = self._extract_m3u8_formats(
                     flavor_url, video_id, 'mp4',
-                    m3u8_id=flavor_format, fatal=False))
+                    m3u8_id=flavor_format, fatal=False)
+                for f in m3u8_formats:
+                    # Apple FairPlay
+                    if '/fpshls/' in f['url']:
+                        continue
+                    formats.append(f)
                 continue
             format_id = []
             if flavor_format:

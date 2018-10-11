@@ -1,8 +1,8 @@
 from __future__ import unicode_literals
 
-import base64
 from math import ceil
 
+from .compat import compat_b64decode
 from .utils import bytes_to_intlist, intlist_to_bytes
 
 BLOCK_SIZE_BYTES = 16
@@ -180,7 +180,7 @@ def aes_decrypt_text(data, password, key_size_bytes):
     """
     NONCE_LENGTH_BYTES = 8
 
-    data = bytes_to_intlist(base64.b64decode(data.encode('utf-8')))
+    data = bytes_to_intlist(compat_b64decode(data))
     password = bytes_to_intlist(password.encode('utf-8'))
 
     key = password[:key_size_bytes] + [0] * (key_size_bytes - len(password))

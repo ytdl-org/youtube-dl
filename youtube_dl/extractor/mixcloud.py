@@ -1,12 +1,12 @@
 from __future__ import unicode_literals
 
-import base64
 import functools
 import itertools
 import re
 
 from .common import InfoExtractor
 from ..compat import (
+    compat_b64decode,
     compat_chr,
     compat_ord,
     compat_str,
@@ -79,7 +79,7 @@ class MixcloudIE(InfoExtractor):
 
         if encrypted_play_info is not None:
             # Decode
-            encrypted_play_info = base64.b64decode(encrypted_play_info)
+            encrypted_play_info = compat_b64decode(encrypted_play_info)
         else:
             # New path
             full_info_json = self._parse_json(self._html_search_regex(
@@ -109,7 +109,7 @@ class MixcloudIE(InfoExtractor):
             kpa_target = encrypted_play_info
         else:
             kps = ['https://', 'http://']
-            kpa_target = base64.b64decode(info_json['streamInfo']['url'])
+            kpa_target = compat_b64decode(info_json['streamInfo']['url'])
         for kp in kps:
             partial_key = self._decrypt_xor_cipher(kpa_target, kp)
             for quote in ["'", '"']:
@@ -165,7 +165,7 @@ class MixcloudIE(InfoExtractor):
                 format_url = stream_info.get(url_key)
                 if not format_url:
                     continue
-                decrypted = self._decrypt_xor_cipher(key, base64.b64decode(format_url))
+                decrypted = self._decrypt_xor_cipher(key, compat_b64decode(format_url))
                 if not decrypted:
                     continue
                 if url_key == 'hlsUrl':
@@ -179,6 +179,10 @@ class MixcloudIE(InfoExtractor):
                     formats.append({
                         'format_id': 'http',
                         'url': decrypted,
+                        'downloader_options': {
+                            # Mixcloud starts throttling at >~5M
+                            'http_chunk_size': 5242880,
+                        },
                     })
             self._sort_formats(formats)
 

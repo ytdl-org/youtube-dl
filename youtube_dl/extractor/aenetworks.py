@@ -122,7 +122,8 @@ class AENetworksIE(AENetworksBaseIE):
 
         query = {
             'mbr': 'true',
-            'assetTypes': 'high_video_s3'
+            'assetTypes': 'high_video_ak',
+            'switch': 'hls_high_ak',
         }
         video_id = self._html_search_meta('aetn:VideoID', webpage)
         media_url = self._search_regex(

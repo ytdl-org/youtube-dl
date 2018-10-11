@@ -41,7 +41,7 @@ class ArchiveOrgIE(InfoExtractor):
         webpage = self._download_webpage(
             'http://archive.org/embed/' + video_id, video_id)
         jwplayer_playlist = self._parse_json(self._search_regex(
-            r"(?s)Play\('[^']+'\s*,\s*(\[.+\])\s*,\s*{.*?}\);",
+            r"(?s)Play\('[^']+'\s*,\s*(\[.+\])\s*,\s*{.*?}\)",
             webpage, 'jwplayer playlist'), video_id)
         info = self._parse_jwplayer_data(
             {'playlist': jwplayer_playlist}, video_id, base_url=url)
