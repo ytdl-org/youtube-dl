@@ -79,7 +79,8 @@ class SafariIE(SafariBaseIE):
                             (?:www\.)?safaribooksonline\.com/
                             (?:
                                 library/view/[^/]+/(?P<course_id>[^/]+)/(?P<part>[^/?\#&]+)\.html|
-                                videos/[^/]+/[^/]+/(?P<reference_id>[^-]+-[^/?\#&]+)
+                                videos/[^/]+/[^/]+/(?P<reference_id>[^-]+-[^/?\#&]+)|
+                                learning-paths/[^/]+/[^/]+/(?P<learning_part_id>[^/?\#&]+)
                             )
                     '''
 
@@ -113,8 +114,14 @@ class SafariIE(SafariBaseIE):
         mobj = re.match(self._VALID_URL, url)
 
         reference_id = mobj.group('reference_id')
+        learning_part_id = mobj.group('learning_part_id')
         if reference_id:
             video_id = reference_id
+            partner_id = self._PARTNER_ID
+            ui_id = self._UICONF_ID
+        elif learning_part_id:
+            video_id = learning_part_id
+            reference_id = learning_part_id
             partner_id = self._PARTNER_ID
             ui_id = self._UICONF_ID
         else:
@@ -236,5 +243,54 @@ class SafariCourseIE(SafariBaseIE):
             for chapter in course_json['chapters']]
 
         course_title = course_json['title']
+
+        return self.playlist_result(entries, course_id, course_title)
+
+
+class SafariLearningPathIE(SafariBaseIE):
+    IE_NAME = 'safari:learning-path'
+    IE_DESC = 'safaribooksonline.com learning paths'
+
+    _VALID_URL = r'''(?x)
+                    https?://
+                        (?:
+                            (?:www\.)?safaribooksonline\.com/
+                            (?:learning-paths/[^/]+)
+                        )
+                        /(?P<id>[^/]+)
+                    '''
+
+    _TESTS = [{
+        'url': 'https://www.safaribooksonline.com/learning-paths/learning-path-python/9781788996396',
+        'only_matching': True,
+    }, {
+        'url': 'https://www.safaribooksonline.com/learning-paths/learning-path-aws/9781788833097',
+        'only_matching': True,
+    }]
+
+    @classmethod
+    def suitable(cls, url):
+        return (False if SafariIE.suitable(url)
+                else super(SafariLearningPathIE, cls).suitable(url))
+
+    def _real_extract(self, url):
+        course_id = self._match_id(url)
+
+        course_page = self._download_webpage(
+            url,
+            course_id, 'Downloading course Web Page')
+
+        link_ids = re.findall(r'(?:\"|\/)([0-9]{10,13}\-video[0-9_]+)\"', course_page)
+        title = self._search_regex(r'\"title\"\:[/s]*\"([^\"]*)\"', course_page, 'title')
+
+        if len(link_ids) is 0:
+            raise ExtractorError(
+                'No link IDs found for course %s' % course_id, expected=True)
+
+        entries = [
+            self.url_result(url + "/" + link, SafariIE.ie_key())
+            for link in link_ids]
+
+        course_title = title
 
         return self.playlist_result(entries, course_id, course_title)
