@@ -444,6 +444,7 @@ class NiconicoPlaylistIE(InfoExtractor):
         'info_dict': {
             'id': '27411728',
             'title': 'AKB48のオールナイトニッポン',
+            'uploader': 'のっく',
         },
         'playlist_mincount': 225,
     }
@@ -465,6 +466,7 @@ class NiconicoPlaylistIE(InfoExtractor):
         return {
             '_type': 'playlist',
             'title': self._search_regex(r'\s+name: "(.*?)"', webpage, 'title'),
+            'uploader': self._search_regex(r'\s+nickname: "(.*?)"', webpage, 'uploader'),
             'id': list_id,
             'entries': entries,
         }
