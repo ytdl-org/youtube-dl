@@ -30,6 +30,9 @@ class TV5MondePlusIE(InfoExtractor):
     }
     _GEO_BYPASS = False
 
+    def _get_subtitles(self, subs_url):
+        return {'fr': [{'ext': 'vtt', 'url': subs_url}]}
+
     def _real_extract(self, url):
         display_id = self._match_id(url)
         webpage = self._download_webpage(url, display_id)
@@ -65,6 +68,14 @@ class TV5MondePlusIE(InfoExtractor):
                 })
         self._sort_formats(formats)
 
+        subtitles = {}
+        if vpl_data.get('data-captions'):
+            subtitles_data = self._parse_json(
+                vpl_data['data-captions'], display_id).get('data', False)
+            if subtitles_data:
+                subs_url = subtitles_data[0]['file']
+                subtitles = self.extract_subtitles('https://www.tv5mondeplus.com' + subs_url)
+
         return {
             'id': display_id,
             'display_id': display_id,
@@ -76,4 +87,5 @@ class TV5MondePlusIE(InfoExtractor):
             'formats': formats,
             'episode': episode,
             'series': series,
+            'subtitles': subtitles,
         }
