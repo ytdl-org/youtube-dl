@@ -1012,6 +1012,7 @@ from .smotri import (
     SmotriBroadcastIE,
 )
 from .snotr import SnotrIE
+from .sonosfm import SonosFmIE
 from .sohu import SohuIE
 from .sonyliv import SonyLIVIE
 from .soundcloud import (
