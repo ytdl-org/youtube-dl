@@ -9,18 +9,21 @@ import copy
 import datetime
 import errno
 import fileinput
+import hashlib
 import io
 import itertools
 import json
 import locale
 import operator
 import os
+import pickle
 import platform
 import re
 import shutil
 import subprocess
 import socket
 import sys
+import tempfile
 import time
 import tokenize
 import traceback
@@ -108,6 +111,119 @@ from .version import __version__
 
 if compat_os_name == 'nt':
     import ctypes
+
+youtube_dl_url_key = "youtube_dl_url_key"
+
+
+class PlaylistTaskLog(object):
+    def __init__(self, task_id, tmp_path=None, max_retry_count=5, to_screen=None):
+        self.to_screen = to_screen or print
+        self._task_id = task_id
+        self._log = {}
+        self._tmp_path = tmp_path or tempfile.gettempdir()
+        self._log_file = os.path.join(self._tmp_path, "{}.pkl".format(self._task_id))
+        self._max_retry_count = max_retry_count
+        self._pkl_exists_before = False
+        # init log
+        self._init_log()
+
+    def _init_log(self):
+        if not os.path.exists(self._log_file):
+            with open(self._log_file, "wb"):
+                pass
+            self._pkl_exists_before = False
+            return
+
+        with open(self._log_file, "rb") as f:
+            self._log = pickle.load(f)
+            self._pkl_exists_before = True
+            return
+
+    def _update_config(self):
+        if not self._log:
+            if os.path.exists(self._log_file):
+                os.remove(self._log_file)
+            return
+
+        with open(self._log_file, "wb") as f:
+            pickle.dump(self._log, f)
+
+    @classmethod
+    def create_id_by_ie_result(cls, ie_result):
+
+        def byteify(object_input):
+            if isinstance(object_input, dict):
+                str_dict = {byteify(key): byteify(value) for key, value in object_input.items()}
+                return ";;;".join(["{}:{}".format(key, str_dict[key]) for key in sorted(str_dict.keys())])
+            elif isinstance(object_input, (list, tuple)):
+                return ";;;".join([byteify(element) for element in sorted(object_input)])
+            else:
+                return "{}".format(object_input)
+
+        try:
+            if youtube_dl_url_key in ie_result:
+                try:
+                    return hashlib.md5(ie_result[youtube_dl_url_key]).hexdigest()
+                except Exception:
+                    return hashlib.md5(ie_result[youtube_dl_url_key].encode("utf-8")).hexdigest()
+        except Exception:
+            pass
+
+        try:
+            return hashlib.md5(json.dumps(ie_result, sort_keys=True)).hexdigest()
+        except TypeError:
+            return hashlib.md5(byteify(ie_result).encode("utf-8")).hexdigest()
+
+    def __iter__(self):
+        # python 2
+        return self
+
+    def __next__(self):
+        # Python 3
+        def _pop_task_info():
+            if not self._log:
+                return None
+
+            sorted_list = sorted(self._log.keys(), key=lambda x: self._log[x]["count"])
+
+            return self._log[sorted_list[0]]
+
+        while True:
+            task_info = _pop_task_info()
+
+            if task_info is None:
+                raise StopIteration
+
+            return task_info["task"]
+
+    next = __next__  # python 2
+
+    def commit(self, video_id, success=True):
+        if video_id not in self._log:
+            self.to_screen("WARNING: {} not in playlist log!".format(video_id))
+            return
+
+        if success is True:
+            self._log.pop(video_id)
+        else:
+            self._log[video_id]["count"] += 1
+            if self._log[video_id]["count"] > self._max_retry_count:
+                self._log.pop(video_id)
+
+        self._update_config()
+        # self.to_screen("DEBUG: PlaylistTaskLog[{} left] is {}".format(len(self._log), self._log))
+        self.to_screen("DEBUG: left {} videos".format(len(self._log)))
+
+    def add_task(self, number, n_entries, entry, extra):
+        video_id = "{}".format(number)
+
+        if not self._pkl_exists_before and video_id not in self._log:
+            self._log[video_id] = {
+                "count": 0,
+                "task": {"vid": video_id, "number": number, "n_entries": n_entries, "entry": entry, "extra": extra}
+            }
+
+            self._update_config()
 
 
 class YoutubeDL(object):
@@ -800,6 +916,12 @@ class YoutubeDL(object):
                     }
                 self.add_default_extra_info(ie_result, ie, url)
                 if process:
+                    try:
+                        if youtube_dl_url_key not in ie_result:
+                            ie_result[youtube_dl_url_key] = url
+                    except Exception:
+                        pass
+
                     return self.process_ie_result(ie_result, download, extra_info)
                 else:
                     return ie_result
@@ -972,8 +1094,10 @@ class YoutubeDL(object):
 
             x_forwarded_for = ie_result.get('__x_forwarded_for_ip')
 
+            _download_log = PlaylistTaskLog(task_id=PlaylistTaskLog.create_id_by_ie_result(ie_result),
+                                            to_screen=self.to_screen)
+
             for i, entry in enumerate(entries, 1):
-                self.to_screen('[download] Downloading video %s of %s' % (i, n_entries))
                 # This __x_forwarded_for_ip thing is a bit ugly but requires
                 # minimal changes
                 if x_forwarded_for:
@@ -997,10 +1121,24 @@ class YoutubeDL(object):
                     self.to_screen('[download] ' + reason)
                     continue
 
-                entry_result = self.process_ie_result(entry,
-                                                      download=download,
-                                                      extra_info=extra)
-                playlist_results.append(entry_result)
+                _download_log.add_task(number=i, n_entries=len(entries), entry=entry, extra=extra)
+
+            # try to download all videos
+            for task in _download_log:
+                self.to_screen('[download] Downloading No.{} in {} videos'.format(task["number"], task["n_entries"]))
+
+                try:
+                    entry_result = self.process_ie_result(task["entry"],
+                                                          download=download,
+                                                          extra_info=task["extra"])
+                except Exception as e:
+                    self.to_stderr("ERROR: {}".format(e))
+                    _download_log.commit(video_id=task["vid"], success=False)
+                else:
+                    playlist_results.append(entry_result)
+
+                    _download_log.commit(video_id=task["vid"], success=True)
+
             ie_result['entries'] = playlist_results
             self.to_screen('[download] Finished downloading playlist: %s' % playlist)
             return ie_result
