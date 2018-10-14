@@ -183,7 +183,7 @@ from .cbsnews import (
 from .cbssports import CBSSportsIE
 from .ccc import CCCIE
 from .ccma import CCMAIE
-from .cctv import CCTVIE
+from .cctv import CCTVIE, CCTVChannelIE
 from .cda import CDAIE
 from .ceskatelevize import (
     CeskaTelevizeIE,

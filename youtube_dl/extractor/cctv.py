@@ -1,6 +1,7 @@
 # coding: utf-8
 from __future__ import unicode_literals
 
+import json
 import re
 
 from .common import InfoExtractor
@@ -189,3 +190,56 @@ class CCTVIE(InfoExtractor):
             'duration': duration,
             'formats': formats,
         }
+
+
+class CCTVChannelIE(InfoExtractor):
+    IE_DESC = '央视网 栏目'
+    _VALID_URL = r'http://tv.cctv.com/lm/(?P<id>[0-9A-Za-z-_]+)/?'
+    _TESTS = [{
+        'url': 'http://tv.cctv.com/lm/d10fys/',
+        'only_matching': True,
+    }]
+
+    def _entries(self, page, playlist_id):
+        re_req_item_id = re.compile(r'setItemByid[a-zA-Z0-9]+')
+        re_req_id_tmp = re.compile(r'videolistByColumnId\?id=[a-zA-Z0-9]+(?=&)')
+        re_req_id = re.compile(r'(?<=id=)[a-zA-Z0-9]+')
+        count_per_page = 100
+
+        req_item_id = re_req_item_id.findall(page)[0]
+        req_id = re_req_id.findall(re_req_id_tmp.findall(page)[0])[0]
+
+        page = 0
+        while True:
+            page += 1
+
+            url_template = "http://api.cntv.cn/lanmu/videolistByColumnId" + \
+                           "?id={}&serviceId=tvcctv&type=0&n={}&t=jsonp&cb={}&p=".format(
+                               req_id, count_per_page, req_item_id)
+            content = self._download_webpage(url_template + str(page), playlist_id)
+            if not content:
+                break
+
+            content = content.rstrip()
+            req_item_id = re_req_item_id.findall(content)[0]
+
+            video_list = json.loads(content[(len(req_item_id) + 1):-2])["response"]["docs"]
+
+            for content_dict in video_list:
+                video_id, video_title, video_url = \
+                    content_dict["videoId"], content_dict["videoTitle"], content_dict["videoUrl"]
+                yield self.url_result(video_url, ie="CCTV", video_id=video_id, video_title=video_title)
+
+            if len(video_list) < count_per_page:
+                break
+
+    def _real_extract(self, url):
+        channel_id = self._match_id(url)
+
+        channel_page = self._download_webpage(
+            url, channel_id,
+            'Downloading channel page', fatal=False)
+        if channel_page is False:
+            raise Exception('CCTV said: Cannot connect to {}'.format(url), expected=True)
+
+        return self.playlist_result(self._entries(channel_page, channel_id), channel_id)
