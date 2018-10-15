@@ -333,7 +333,6 @@ class BrightcoveLegacyIE(InfoExtractor):
             if publisher_id and publisher_id[0].isdigit():
                 publisher_id = publisher_id[0]
             if not publisher_id:
-                valid_key = lambda key: key and ',' in key
                 player_key = query.get('playerKey')
                 if player_key and ',' in player_key[0]:
                     player_key = player_key[0]
