@@ -175,13 +175,13 @@ class FFmpegPostProcessor(PostProcessor):
                 return audio_codec
         return None
 
-    def run_ffmpeg_multiple_files(self, input_paths, out_path, opts):
+    def run_ffmpeg_multiple_files(self, input_paths, out_path, opts, info):
         self.check_version()
 
         oldest_mtime = min(
             os.stat(encodeFilename(path)).st_mtime for path in input_paths)
 
-        opts += self._configuration_args()
+        opts += map(lambda s: s % info, self._configuration_args())
 
         files_cmd = []
         for path in input_paths:
@@ -204,8 +204,8 @@ class FFmpegPostProcessor(PostProcessor):
             raise FFmpegPostProcessorError(msg)
         self.try_utime(out_path, oldest_mtime, oldest_mtime)
 
-    def run_ffmpeg(self, path, out_path, opts):
-        self.run_ffmpeg_multiple_files([path], out_path, opts)
+    def run_ffmpeg(self, path, out_path, opts, info):
+        self.run_ffmpeg_multiple_files([path], out_path, opts, info)
 
     def _ffmpeg_filename_argument(self, fn):
         # Always use 'file:' because the filename may contain ':' (ffmpeg
@@ -224,14 +224,14 @@ class FFmpegExtractAudioPP(FFmpegPostProcessor):
         self._preferredquality = preferredquality
         self._nopostoverwrites = nopostoverwrites
 
-    def run_ffmpeg(self, path, out_path, codec, more_opts):
+    def run_ffmpeg(self, path, out_path, codec, more_opts, info):
         if codec is None:
             acodec_opts = []
         else:
             acodec_opts = ['-acodec', codec]
         opts = ['-vn'] + acodec_opts + more_opts
         try:
-            FFmpegPostProcessor.run_ffmpeg(self, path, out_path, opts)
+            FFmpegPostProcessor.run_ffmpeg(self, path, out_path, opts, info)
         except FFmpegPostProcessorError as err:
             raise AudioConversionError(err.msg)
 
@@ -302,7 +302,7 @@ class FFmpegExtractAudioPP(FFmpegPostProcessor):
 
         try:
             self._downloader.to_screen('[ffmpeg] Destination: ' + new_path)
-            self.run_ffmpeg(path, new_path, acodec, more_opts)
+            self.run_ffmpeg(path, new_path, acodec, more_opts, information)
         except AudioConversionError as e:
             raise PostProcessingError(
                 'audio conversion failed: ' + e.msg)
@@ -334,7 +334,7 @@ class FFmpegVideoConvertorPP(FFmpegPostProcessor):
         prefix, sep, ext = path.rpartition('.')
         outpath = prefix + sep + self._preferedformat
         self._downloader.to_screen('[' + 'ffmpeg' + '] Converting video from %s to %s, Destination: ' % (information['ext'], self._preferedformat) + outpath)
-        self.run_ffmpeg(path, outpath, options)
+        self.run_ffmpeg(path, outpath, options, information)
         information['filepath'] = outpath
         information['format'] = self._preferedformat
         information['ext'] = self._preferedformat
@@ -390,7 +390,7 @@ class FFmpegEmbedSubtitlePP(FFmpegPostProcessor):
 
         temp_filename = prepend_extension(filename, 'temp')
         self._downloader.to_screen('[ffmpeg] Embedding subtitles in \'%s\'' % filename)
-        self.run_ffmpeg_multiple_files(input_files, temp_filename, opts)
+        self.run_ffmpeg_multiple_files(input_files, temp_filename, opts, info)
         os.remove(encodeFilename(filename))
         os.rename(encodeFilename(temp_filename), encodeFilename(filename))
 
@@ -462,7 +462,7 @@ class FFmpegMetadataPP(FFmpegPostProcessor):
                 options.extend(['-map_metadata', '1'])
 
         self._downloader.to_screen('[ffmpeg] Adding metadata to \'%s\'' % filename)
-        self.run_ffmpeg_multiple_files(in_filenames, temp_filename, options)
+        self.run_ffmpeg_multiple_files(in_filenames, temp_filename, options, info)
         if chapters:
             os.remove(metadata_filename)
         os.remove(encodeFilename(filename))
@@ -476,7 +476,7 @@ class FFmpegMergerPP(FFmpegPostProcessor):
         temp_filename = prepend_extension(filename, 'temp')
         args = ['-c', 'copy', '-map', '0:v:0', '-map', '1:a:0']
         self._downloader.to_screen('[ffmpeg] Merging formats into "%s"' % filename)
-        self.run_ffmpeg_multiple_files(info['__files_to_merge'], temp_filename, args)
+        self.run_ffmpeg_multiple_files(info['__files_to_merge'], temp_filename, args, info)
         os.rename(encodeFilename(temp_filename), encodeFilename(filename))
         return info['__files_to_merge'], info
 
@@ -509,7 +509,7 @@ class FFmpegFixupStretchedPP(FFmpegPostProcessor):
 
         options = ['-c', 'copy', '-aspect', '%f' % stretched_ratio]
         self._downloader.to_screen('[ffmpeg] Fixing aspect ratio in "%s"' % filename)
-        self.run_ffmpeg(filename, temp_filename, options)
+        self.run_ffmpeg(filename, temp_filename, options, info)
 
         os.remove(encodeFilename(filename))
         os.rename(encodeFilename(temp_filename), encodeFilename(filename))
@@ -527,7 +527,7 @@ class FFmpegFixupM4aPP(FFmpegPostProcessor):
 
         options = ['-c', 'copy', '-f', 'mp4']
         self._downloader.to_screen('[ffmpeg] Correcting container in "%s"' % filename)
-        self.run_ffmpeg(filename, temp_filename, options)
+        self.run_ffmpeg(filename, temp_filename, options, info)
 
         os.remove(encodeFilename(filename))
         os.rename(encodeFilename(temp_filename), encodeFilename(filename))
@@ -543,7 +543,7 @@ class FFmpegFixupM3u8PP(FFmpegPostProcessor):
 
             options = ['-c', 'copy', '-f', 'mp4', '-bsf:a', 'aac_adtstoasc']
             self._downloader.to_screen('[ffmpeg] Fixing malformed AAC bitstream in "%s"' % filename)
-            self.run_ffmpeg(filename, temp_filename, options)
+            self.run_ffmpeg(filename, temp_filename, options, info)
 
             os.remove(encodeFilename(filename))
             os.rename(encodeFilename(temp_filename), encodeFilename(filename))
@@ -602,7 +602,7 @@ class FFmpegSubtitlesConvertorPP(FFmpegPostProcessor):
                 else:
                     sub_filenames.append(srt_file)
 
-            self.run_ffmpeg(old_file, new_file, ['-f', new_format])
+            self.run_ffmpeg(old_file, new_file, ['-f', new_format], info)
 
             with io.open(new_file, 'rt', encoding='utf-8') as f:
                 subs[lang] = {

@@ -48,7 +48,7 @@ class EmbedThumbnailPP(FFmpegPostProcessor):
 
             self._downloader.to_screen('[ffmpeg] Adding thumbnail to "%s"' % filename)
 
-            self.run_ffmpeg_multiple_files([filename, thumbnail_filename], temp_filename, options)
+            self.run_ffmpeg_multiple_files([filename, thumbnail_filename], temp_filename, options, info)
 
             if not self._already_have_thumbnail:
                 os.remove(encodeFilename(thumbnail_filename))
