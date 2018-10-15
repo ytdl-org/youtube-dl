@@ -1717,7 +1717,7 @@ class YoutubeDL(object):
         if reason is not None:
             self.to_screen('[download] ' + reason)
             return
-        
+
         self._num_downloads += 1
 
         info_dict['_filename'] = filename = self.prepare_filename(info_dict)
