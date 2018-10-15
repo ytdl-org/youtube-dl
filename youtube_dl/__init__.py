@@ -389,6 +389,7 @@ def _real_main(argv=None):
         'min_views': opts.min_views,
         'max_views': opts.max_views,
         'daterange': date,
+        'stopatfirst': opts.stopatfirst,
         'cachedir': opts.cachedir,
         'youtube_print_sig_code': opts.youtube_print_sig_code,
         'age_limit': opts.age_limit,

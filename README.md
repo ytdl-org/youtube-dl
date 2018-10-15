@@ -144,6 +144,8 @@ Alternatively, refer to the [developer instructions](#developer-instructions) fo
                                      this date (i.e. inclusive)
     --dateafter DATE                 Download only videos uploaded on or after
                                      this date (i.e. inclusive)
+    --stopatfirst                    Stop downloading of further videos when the
+                                     first video is not in daterange
     --min-views COUNT                Do not download any videos with less than
                                      COUNT views
     --max-views COUNT                Do not download any videos with more than
