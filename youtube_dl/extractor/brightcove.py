@@ -356,7 +356,9 @@ class BrightcoveLegacyIE(InfoExtractor):
 
     def _extract_video_info(self, video_info):
         video_id = compat_str(video_info['id'])
+
         publisher_id = video_info.get('publisherId')
+
         info = {
             'id': video_id,
             'title': video_info['displayName'].strip(),
@@ -444,8 +446,16 @@ class BrightcoveLegacyIE(InfoExtractor):
                 else:
                     return ad_info
 
-        if 'url' not in info and not info.get('formats'):
-            raise ExtractorError('Unable to extract video url for %s' % video_id)
+        if not info.get('url') and not info.get('formats'):
+            uploader_id = info.get('uploader_id')
+            if uploader_id:
+                info.update({
+                    '_type': 'url',
+                    'url': 'http://players.brightcove.net/%s/default_default/index.html?videoId=%s' % (uploader_id, video_id),
+                    'ie_key': BrightcoveNewIE.ie_key(),
+                })
+            else:
+                raise ExtractorError('Unable to extract video url for %s' % video_id)
         return info
 
 
