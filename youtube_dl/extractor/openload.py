@@ -243,7 +243,7 @@ class PhantomJSwrapper(object):
 
 
 class OpenloadIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:www\.)?(?:openload\.(?:co|io|link)|oload\.(?:tv|stream|site|xyz|win|download|cloud|cc))/(?:f|embed)/(?P<id>[a-zA-Z0-9-_]+)'
+    _VALID_URL = r'https?://(?:www\.)?(?:openload\.(?:co|io|link)|oload\.(?:tv|stream|site|xyz|win|download|cloud|cc|icu))/(?:f|embed)/(?P<id>[a-zA-Z0-9-_]+)'
 
     _TESTS = [{
         'url': 'https://openload.co/f/kUEfGclsU9o',
@@ -317,6 +317,9 @@ class OpenloadIE(InfoExtractor):
     }, {
         'url': 'https://oload.cc/embed/5NEAbI2BDSk',
         'only_matching': True,
+    }, {
+        'url': 'https://oload.icu/f/-_i4y_F_Hs8',
+        'only_matching': True
     }]
 
     _USER_AGENT = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/56.0.2924.87 Safari/537.36'
