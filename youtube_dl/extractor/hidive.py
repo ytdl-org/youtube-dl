@@ -42,7 +42,7 @@ class HiDiveIE(InfoExtractor):
         if email is None:
             return
 
-        webpage = self._download_webpage(self._LOGIN_URL, None)
+        webpage = self._download_webpage(self._LOGIN_URL, None, 'Login page')
         form = self._search_regex(
             r'(?s)<form[^>]+action="/account/login"[^>]*>(.+?)</form>',
             webpage, 'login form')
@@ -59,12 +59,27 @@ class HiDiveIE(InfoExtractor):
         title, key = mobj.group('title', 'key')
         video_id = '%s/%s' % (title, key)
 
+        # Need to choose a profile to reach stream page
+        webpage = self._download_webpage('https://www.hidive.com/profile/choose', None, 'Getting profiles')
+        profile_id = self._search_regex(r'<button[^>]+data-profile-id="([0-9A-z]+)[^>]+>', webpage, 'Profile id')
+        profile_hash = self._search_regex(r'<button[^>]+data-hash="([0-9A-z]+)[^>]+>', webpage, 'Profile hash')
+
+        profile_data = {
+            'profileId': profile_id,
+            'hash': profile_hash
+        }
+
+        # PlayerId is subject to change, can grab the valid id from the stream page
+        self._download_webpage('https://www.hidive.com/ajax/chooseprofile', None, 'Choosing first profile', data=urlencode_postdata(profile_data))
+        webpage = self._download_webpage(url, None, 'Getting PlayerId')
+        json_data = self._parse_json(self._html_search_regex(r'<body data-json=\'(.+)\'>', webpage, 'Player settings'), video_id)
+
         settings = self._download_json(
             'https://www.hidive.com/play/settings', video_id,
             data=urlencode_postdata({
                 'Title': title,
                 'Key': key,
-                'PlayerId': 'f4f895ce1ca713ba263b91caeb1daa2d08904783',
+                'PlayerId': json_data['playerConfig']['PlayerId']
             }))
 
         restriction = settings.get('restrictionReason')
