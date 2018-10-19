@@ -929,6 +929,7 @@ from .revision3 import (
     Revision3IE,
 )
 from .rice import RICEIE
+from .rightnowmedia import RightNowMediaIE
 from .rmcdecouverte import RMCDecouverteIE
 from .ro220 import Ro220IE
 from .rockstargames import RockstarGamesIE
