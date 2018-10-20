@@ -8,12 +8,12 @@ from ..utils import js_to_json
 
 
 class LineTVIE(InfoExtractor):
-    _VALID_URL = r'https?://tv\.line\.me/v/(?P<id>\d+)_[^/]+-(?P<segment>ep\d+-\d+)'
+    _VALID_URL = r'https?://tv\.line\.me/v/(?P<id>\d+)_[^/]+'
 
     _TESTS = [{
         'url': 'https://tv.line.me/v/793123_goodbye-mrblack-ep1-1/list/69246',
         'info_dict': {
-            'id': '793123_ep1-1',
+            'id': '793123',
             'ext': 'mp4',
             'title': 'Goodbye Mr.Black | EP.1-1',
             'thumbnail': r're:^https?://.*\.jpg$',
@@ -23,12 +23,13 @@ class LineTVIE(InfoExtractor):
     }, {
         'url': 'https://tv.line.me/v/2587507_%E6%B4%BE%E9%81%A3%E5%A5%B3%E9%86%ABx-ep1-02/list/185245',
         'only_matching': True,
+    }, {
+        'url': 'https://tv.line.me/v/1730228_%E6%A5%B5%E5%93%81%E7%B5%95%E9%85%8D-%E6%9B%9D%E9%9C%B2%E7%AF%87-%E5%8A%87%E6%83%85%E9%A0%90%E5%91%8A/list/132023',
+        'only_matching': True,
     }]
 
     def _real_extract(self, url):
-        series_id, segment = re.match(self._VALID_URL, url).groups()
-        video_id = '%s_%s' % (series_id, segment)
-
+        video_id = re.match(self._VALID_URL, url).group('id')
         webpage = self._download_webpage(url, video_id)
 
         player_params = self._parse_json(self._search_regex(
