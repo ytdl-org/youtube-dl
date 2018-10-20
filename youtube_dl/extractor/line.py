@@ -89,3 +89,49 @@ class LineTVIE(InfoExtractor):
                            for thumbnail in video_info.get('thumbnails', {}).get('list', [])],
             'view_count': video_info.get('meta', {}).get('count'),
         }
+
+
+class LineTVPlaylistIE(InfoExtractor):
+    _VALID_URL = r'https?://tv\.line\.me/v/(?P<segment>[0-9]+)/list/(?P<id>[0-9]+)'
+
+    _TEST = {
+        'url': 'https://tv.line.me/v/1736524/list/132427',
+        'info_dict': {
+            'id': '132427',
+            'title': '極品絕配 EP01'
+        },
+        'playlist_count': 7,
+    }
+
+    def _real_extract(self, url):
+        url_re = re.compile(self._VALID_URL)
+        m = url_re.match(url)
+        playlist_id = m.group('id')
+        segment_id = m.group('segment')
+
+        webpage = self._download_webpage(url, playlist_id)
+        playlist_title = self._search_regex(
+            r'<span[^>]+class="_playlist_name"[^>]*>([^<]+)',
+            webpage, 'playlist_title')
+        series_title = self._search_regex(
+            r"'vpt.title',\s*'([^']+)",
+            webpage, 'series_title')
+
+        playlist = self._download_webpage(
+            'https://tv.line.me/api/%s/playlist/%s/%s/false/false' % (segment_id, series_title, playlist_id),
+            playlist_id)
+        segment_paths = re.findall(
+            r'<div[^>]+class="vod_item3"[^>]*>[^<]*<a[^>]+href="(/v/[^/]+/list/[^"]+)',
+            playlist)
+        segment_titles = re.findall(
+            r'<tooltip[^>]+title="([^"]+)',
+            playlist)
+
+        entries = [
+            self.url_result(
+                'https://tv.line.me' + segment_path,
+                ie='LineTV', video_title=segment_title)
+            for segment_path, segment_title in zip(segment_paths, segment_titles)
+        ]
+
+        return self.playlist_result(entries, playlist_id, playlist_title)
