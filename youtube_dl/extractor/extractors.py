@@ -623,6 +623,11 @@ from .microsoftvirtualacademy import (
     MicrosoftVirtualAcademyIE,
     MicrosoftVirtualAcademyCourseIE,
 )
+from .minds import (
+    MindsIE,
+    MindsActivityIE,
+    MindsChannelIE,
+)
 from .minhateca import MinhatecaIE
 from .ministrygrid import MinistryGridIE
 from .minoto import MinotoIE
