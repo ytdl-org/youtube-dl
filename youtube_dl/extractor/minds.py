@@ -78,8 +78,15 @@ class MindsIE(InfoExtractor):
             if res.headers.get('content-type', '').startswith('image/'):
                 thumbnail = getattr(res, 'url', None)
         tags = data.get('tags', '').strip()
-        if isinstance(tags, compat_str):
+        if isinstance(tags, compat_str) and tags:
             tags = [x.strip() for x in tags.split(',')]
+        else:
+            tags = None
+        category = data.get('category')
+        if isinstance(category, compat_str) and category:
+            category = [category]
+        else:
+            category = None
 
         return {
             'id': video_id,
