@@ -3,6 +3,7 @@ from __future__ import unicode_literals
 import re
 
 from .common import InfoExtractor
+from ..compat import compat_str
 from ..utils import (int_or_none, sanitized_Request, str_or_none,
                      unified_strdate)
 
@@ -63,7 +64,7 @@ class MindsIE(InfoExtractor):
         description = str_or_none(data.get('description'))
         if description:
             description = description.strip()
-        uploader_url = age_limit = None
+        uploader_url = age_limit = thumbnail = None
 
         if owner.get('username'):
             uploader_url = 'https://www.minds.com/%s' % owner.get('username')
@@ -71,11 +72,13 @@ class MindsIE(InfoExtractor):
             age_limit = 18
 
         thumbnail_api_url = data.get('thumbnail_src')
-        thumbnail = None
         if thumbnail_api_url:
             req = sanitized_Request(thumbnail_api_url, method='HEAD')
             res = self._request_webpage(req, video_id)
             thumbnail = getattr(res, 'url', None)
+        tags = data.get('tags', '').strip()
+        if isinstance(tags, compat_str):
+            tags = [x.strip() for x in tags.split(',')]
 
         return {
             'id': video_id,
@@ -94,7 +97,7 @@ class MindsIE(InfoExtractor):
             'average_rating': int_or_none(data.get('rating')),
             'age_limit': age_limit,
             'categories': [str_or_none(data.get('category'))],
-            'tags': [x.strip() for x in data.get('tags', '').split(',')],
+            'tags': tags,
             # As of 20181020 the API is returning `false` for this value both
             # at top level and within the entity.comments:count path. The only
             # other way to get this is to fetch all comments and count.
