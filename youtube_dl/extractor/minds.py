@@ -75,7 +75,8 @@ class MindsIE(InfoExtractor):
         if thumbnail_api_url:
             req = sanitized_Request(thumbnail_api_url, method='HEAD')
             res = self._request_webpage(req, video_id)
-            thumbnail = getattr(res, 'url', None)
+            if res.headers.get('content-type', '').startswith('image/'):
+                thumbnail = getattr(res, 'url', None)
         tags = data.get('tags', '').strip()
         if isinstance(tags, compat_str):
             tags = [x.strip() for x in tags.split(',')]
