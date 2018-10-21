@@ -1,3 +1,19 @@
+version 2018.10.05
+
+Extractors
+* [pluralsight] Improve authentication (#17762)
+* [dailymotion] Fix extraction (#17699)
+* [crunchyroll] Switch to HTTPS for RpcApi (#17749)
++ [philharmoniedeparis] Add support for pad.philharmoniedeparis.fr (#17705)
+* [philharmoniedeparis] Fix extraction (#17705)
++ [jamendo] Add support for licensing.jamendo.com (#17724)
++ [openload] Add support for oload.cloud (#17710)
+* [pluralsight] Fix subtitles extraction (#17726, #17728)
++ [vimeo] Add another config regular expression (#17690)
+* [spike] Fix Paramount Network extraction (#17677)
+* [hotstar] Fix extraction (#14694, #14931, #17637)
+
+
 version 2018.09.26
 
 Extractors

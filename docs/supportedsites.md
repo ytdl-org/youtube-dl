@@ -360,7 +360,7 @@
  - **HitRecord**
  - **HornBunny**
  - **HotNewHipHop**
- - **HotStar**
+ - **hotstar**
  - **hotstar:playlist**
  - **Howcast**
  - **HowStuffWorks**

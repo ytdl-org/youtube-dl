@@ -4,6 +4,7 @@ import collections
 import json
 import os
 import random
+import re
 
 from .common import InfoExtractor
 from ..compat import (
@@ -196,7 +197,10 @@ query viewClip {
         if error:
             raise ExtractorError('Unable to login: %s' % error, expected=True)
 
-        if all(p not in response for p in ('__INITIAL_STATE__', '"currentUser"')):
+        if all(not re.search(p, response) for p in (
+                r'__INITIAL_STATE__', r'["\']currentUser["\']',
+                # new layout?
+                r'>\s*Sign out\s*<')):
             BLOCKED = 'Your account has been blocked due to suspicious activity'
             if BLOCKED in response:
                 raise ExtractorError(
