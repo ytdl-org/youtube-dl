@@ -511,6 +511,8 @@ The basic usage is not to set any template arguments when downloading a single f
  - `timestamp` (numeric): UNIX timestamp of the moment the video became available
  - `upload_date` (string): Video upload date (YYYYMMDD)
  - `uploader_id` (string): Nickname or id of the video uploader
+ - `channel` (string): Full name of the channel the video is uploaded on
+ - `channel_id` (string): Id of the channel
  - `location` (string): Physical location where the video was filmed
  - `duration` (numeric): Length of the video in seconds
  - `view_count` (numeric): How many users have watched the video on the platform

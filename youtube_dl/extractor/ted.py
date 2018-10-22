@@ -212,8 +212,6 @@ class TEDIE(InfoExtractor):
 
         http_url = None
         for format_id, resources in resources_.items():
-            if not isinstance(resources, dict):
-                continue
             if format_id == 'h264':
                 for resource in resources:
                     h264_url = resource.get('file')
@@ -242,6 +240,8 @@ class TEDIE(InfoExtractor):
                         'tbr': int_or_none(resource.get('bitrate')),
                     })
             elif format_id == 'hls':
+                if not isinstance(resources, dict):
+                    continue
                 stream_url = url_or_none(resources.get('stream'))
                 if not stream_url:
                     continue

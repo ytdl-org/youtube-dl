@@ -349,6 +349,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                             (?:www\.)?hooktube\.com/|
                             (?:www\.)?yourepeat\.com/|
                             tube\.majestyc\.net/|
+                            (?:www\.)?invidio\.us/|
                             youtube\.googleapis\.com/)                        # the various hostnames, with wildcard subdomains
                          (?:.*?\#/)?                                          # handle anchor (#/) redirect urls
                          (?:                                                  # the various things that can precede the ID:
@@ -1066,6 +1067,10 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
         },
         {
             'url': 'https://www.youtube.com/watch?v=MuAGGZNfUkU&list=RDMM',
+            'only_matching': True,
+        },
+        {
+            'url': 'https://invidio.us/watch?v=BaW_jenozKc',
             'only_matching': True,
         },
     ]
@@ -2419,7 +2424,7 @@ class YoutubePlaylistIE(YoutubePlaylistBaseInfoExtractor):
 
 class YoutubeChannelIE(YoutubePlaylistBaseInfoExtractor):
     IE_DESC = 'YouTube.com channels'
-    _VALID_URL = r'https?://(?:youtu\.be|(?:\w+\.)?youtube(?:-nocookie)?\.com)/channel/(?P<id>[0-9A-Za-z_-]+)'
+    _VALID_URL = r'https?://(?:youtu\.be|(?:\w+\.)?youtube(?:-nocookie)?\.com|(?:www\.)?invidio\.us)/channel/(?P<id>[0-9A-Za-z_-]+)'
     _TEMPLATE_URL = 'https://www.youtube.com/channel/%s/videos'
     _VIDEO_RE = r'(?:title="(?P<title>[^"]+)"[^>]+)?href="/watch\?v=(?P<id>[0-9A-Za-z_-]+)&?'
     IE_NAME = 'youtube:channel'
@@ -2440,6 +2445,9 @@ class YoutubeChannelIE(YoutubePlaylistBaseInfoExtractor):
             'id': 'UUs0ifCMCm1icqRbqhUINa0w',
             'title': 'Uploads from Deus Ex',
         },
+    }, {
+        'url': 'https://invidio.us/channel/UC23qupoDRn9YOAVzeoxjOQA',
+        'only_matching': True,
     }]
 
     @classmethod

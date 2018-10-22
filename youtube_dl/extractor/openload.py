@@ -243,7 +243,7 @@ class PhantomJSwrapper(object):
 
 
 class OpenloadIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:www\.)?(?:openload\.(?:co|io|link)|oload\.(?:tv|stream|site|xyz|win|download))/(?:f|embed)/(?P<id>[a-zA-Z0-9-_]+)'
+    _VALID_URL = r'https?://(?:www\.)?(?:openload\.(?:co|io|link)|oload\.(?:tv|stream|site|xyz|win|download|cloud|cc))/(?:f|embed)/(?P<id>[a-zA-Z0-9-_]+)'
 
     _TESTS = [{
         'url': 'https://openload.co/f/kUEfGclsU9o',
@@ -308,8 +308,14 @@ class OpenloadIE(InfoExtractor):
         'url': 'https://oload.download/f/kUEfGclsU9o',
         'only_matching': True,
     }, {
+        'url': 'https://oload.cloud/f/4ZDnBXRWiB8',
+        'only_matching': True,
+    }, {
         # Its title has not got its extension but url has it
         'url': 'https://oload.download/f/N4Otkw39VCw/Tomb.Raider.2018.HDRip.XviD.AC3-EVO.avi.mp4',
+        'only_matching': True,
+    }, {
+        'url': 'https://oload.cc/embed/5NEAbI2BDSk',
         'only_matching': True,
     }]
 

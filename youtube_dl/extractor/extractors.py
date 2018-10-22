@@ -1153,7 +1153,6 @@ from .tv2 import (
     TV2ArticleIE,
 )
 from .tv2hu import TV2HuIE
-from .tv3 import TV3IE
 from .tv4 import TV4IE
 from .tv5mondeplus import TV5MondePlusIE
 from .tva import TVAIE
@@ -1455,8 +1454,20 @@ from .youtube import (
 from .zapiks import ZapiksIE
 from .zaq1 import Zaq1IE
 from .zattoo import (
+    BBVTVIE,
+    EinsUndEinsTVIE,
+    EWETVIE,
+    GlattvisionTVIE,
+    MNetTVIE,
+    MyVisionTVIE,
+    NetPlusIE,
+    OsnatelTVIE,
+    QuantumTVIE,
     QuicklineIE,
     QuicklineLiveIE,
+    SAKTVIE,
+    VTXTVIE,
+    WalyTVIE,
     ZattooIE,
     ZattooLiveIE,
 )
