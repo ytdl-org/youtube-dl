@@ -741,6 +741,7 @@ from .noco import NocoIE
 from .nonktube import NonkTubeIE
 from .noovo import NoovoIE
 from .normalboots import NormalbootsIE
+from .northpoint import NorthpointIE
 from .nosvideo import NosVideoIE
 from .nova import (
     NovaEmbedIE,
