@@ -1,8 +1,10 @@
 # coding: utf-8
 from __future__ import unicode_literals
 
-import re
+import base64
 import json
+import re
+import struct
 
 from .common import InfoExtractor
 from .adobepass import AdobePassIE
@@ -310,6 +312,10 @@ class BrightcoveLegacyIE(InfoExtractor):
                 'Cannot find playerKey= variable. Did you forget quotes in a shell invocation?',
                 expected=True)
 
+    def _brightcove_new_url_result(self, publisher_id, video_id):
+        brightcove_new_url = 'http://players.brightcove.net/%s/default_default/index.html?videoId=%s' % (publisher_id, video_id)
+        return self.url_result(brightcove_new_url, BrightcoveNewIE.ie_key(), video_id)
+
     def _get_video_info(self, video_id, query, referer=None):
         headers = {}
         linkBase = query.get('linkBaseURL')
@@ -323,6 +329,28 @@ class BrightcoveLegacyIE(InfoExtractor):
             r"<h1>We're sorry.</h1>([\s\n]*<p>.*?</p>)+", webpage,
             'error message', default=None)
         if error_msg is not None:
+            publisher_id = query.get('publisherId')
+            if publisher_id and publisher_id[0].isdigit():
+                publisher_id = publisher_id[0]
+            if not publisher_id:
+                player_key = query.get('playerKey')
+                if player_key and ',' in player_key[0]:
+                    player_key = player_key[0]
+                else:
+                    player_id = query.get('playerID')
+                    if player_id and player_id[0].isdigit():
+                        player_page = self._download_webpage(
+                            'http://link.brightcove.com/services/player/bcpid' + player_id[0],
+                            video_id, headers=headers, fatal=False)
+                        if player_page:
+                            player_key = self._search_regex(
+                                r'<param\s+name="playerKey"\s+value="([\w~,-]+)"',
+                                player_page, 'player key', fatal=False)
+                if player_key:
+                    enc_pub_id = player_key.split(',')[1].replace('~', '=')
+                    publisher_id = struct.unpack('>Q', base64.urlsafe_b64decode(enc_pub_id))[0]
+                if publisher_id:
+                    return self._brightcove_new_url_result(publisher_id, video_id)
             raise ExtractorError(
                 'brightcove said: %s' % error_msg, expected=True)
 
@@ -444,8 +472,12 @@ class BrightcoveLegacyIE(InfoExtractor):
                 else:
                     return ad_info
 
-        if 'url' not in info and not info.get('formats'):
-            raise ExtractorError('Unable to extract video url for %s' % video_id)
+        if not info.get('url') and not info.get('formats'):
+            uploader_id = info.get('uploader_id')
+            if uploader_id:
+                info.update(self._brightcove_new_url_result(uploader_id, video_id))
+            else:
+                raise ExtractorError('Unable to extract video url for %s' % video_id)
         return info
 
 
