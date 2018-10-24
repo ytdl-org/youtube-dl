@@ -17,7 +17,7 @@ from ..compat import compat_HTTPError
 
 
 class DiscoveryIE(DiscoveryGoBaseIE):
-    _VALID_URL = r'''(?x)https?://(?:www\.)?(?P<site>
+    _VALID_URL = r'''(?x)https?://(?:www\.|watch\.)?(?P<site>
             discovery|
             investigationdiscovery|
             discoverylife|
@@ -26,7 +26,9 @@ class DiscoveryIE(DiscoveryGoBaseIE):
             destinationamerica|
             sciencechannel|
             tlc|
-            velocity
+            velocity|
+            foodnetwork|
+            hgtv
         )\.com(?P<path>/tv-shows/[^/]+/(?:video|full-episode)s/(?P<id>[^./?#]+))'''
     _TESTS = [{
         'url': 'https://www.discovery.com/tv-shows/cash-cab/videos/dave-foley',

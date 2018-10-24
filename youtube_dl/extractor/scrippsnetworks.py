@@ -19,7 +19,7 @@ class ScrippsNetworksWatchIE(AWSIE):
     _VALID_URL = r'''(?x)
                     https?://
                         watch\.
-                        (?P<site>hgtv|foodnetwork|travelchannel|diynetwork|cookingchanneltv|geniuskitchen)\.com/
+                        (?P<site>travelchannel|diynetwork|cookingchanneltv|geniuskitchen)\.com/
                         (?:
                             player\.[A-Z0-9]+\.html\#|
                             show/(?:[^/]+/){2}|
