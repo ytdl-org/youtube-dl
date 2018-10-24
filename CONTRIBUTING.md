@@ -297,4 +297,7 @@ title = self._search_regex(
 ### Use safe conversion functions
 
 Wrap all extracted numeric data into safe functions from `utils`: `int_or_none`, `float_or_none`. Use them for string to number conversions as well.
-
+### Name:Neeshma C Paul
+  -Place: Kerala,India
+  -Github:[Neeshmacpaul](https://github.com/Neeshmacpaul)
+  -linkedin:[Neeshma C Paul](https://www.linkedin.com/in/neeshma-c-paul-5b1526149/)
