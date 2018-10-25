@@ -3,8 +3,10 @@ from __future__ import unicode_literals
 
 from .common import InfoExtractor
 from ..utils import (
+    base_url,
     int_or_none,
     unescapeHTML,
+    urljoin,
 )
 
 
@@ -27,8 +29,16 @@ class BildIE(InfoExtractor):
     def _real_extract(self, url):
         video_id = self._match_id(url)
 
-        video_data = self._download_json(
-            url.split('.bild.html')[0] + ',view=json.bild.html', video_id)
+        # if we didn't get a direct link to the video, try to find it on the page
+        if 'bild.de/video/clip/' not in url:
+            json_url = self._search_regex(
+                r'data-video-json="(.*?)"',
+                self._download_webpage(url, video_id), video_id)
+            video_data = self._download_json(
+                urljoin(base_url(url), json_url), video_id)
+        else:
+            video_data = self._download_json(
+                url.split('.bild.html')[0] + ',view=json.bild.html', video_id)
 
         return {
             'id': video_id,
