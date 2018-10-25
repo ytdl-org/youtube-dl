@@ -995,13 +995,13 @@ class YoutubeDL(object):
                 }
 
                 reason = self._match_entry(entry, incomplete=True)
-                if reason.endswith('has already been recorded in archive') and self.params.get('break_on_existing'):
-                    self.to_screen('[download] stopping downloading because ' + reason)
-                    break
-
-                elif reason is not None:
-                    self.to_screen('[download] ' + reason)
-                    continue
+                if reason is not None:
+                    if reason.endswith('has already been recorded in the archive') and self.params.get('break_on_existing'):
+                        print('[download] tried downloading a file that\'s already in the archive, stopping since --break-on-existing is set.')
+                        break
+                    else:
+                        self.to_screen('[download] ' + reason)
+                        continue
 
                 entry_result = self.process_ie_result(entry,
                                                       download=download,
