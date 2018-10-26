@@ -18,7 +18,7 @@ class SportBoxEmbedIE(InfoExtractor):
         'info_dict': {
             'id': '211355',
             'ext': 'mp4',
-            'title': '211355',
+            'title': 'В Новороссийске прошел детский турнир «Поле славы боевой»',
             'thumbnail': r're:^https?://.*\.jpg$',
             'duration': 292,
             'view_count': int,
@@ -48,8 +48,17 @@ class SportBoxEmbedIE(InfoExtractor):
 
         wjplayer_data = self._parse_json(
             self._search_regex(
-                r'(?s)wjplayer\(({.+?})\);', webpage, 'wjplayer settings'),
+                r'(?s)var\s+playerOptions\s*=\s*({.+?});', webpage, 'wjplayer settings'),
             video_id, transform_source=js_to_json)
+
+        wjplayer_data['sources'] = self._parse_json(
+            self._search_regex(
+                r'(?s)playerOptions\.sources\s*=\s*(\[.+?\]);', webpage, 'wjplayer sources'),
+            video_id, transform_source=js_to_json)
+
+        title = self._html_search_meta(
+            ['og:title', 'twitter:title'], webpage) or self._html_search_regex(
+            r'<title>(.+?)</title>', webpage, 'title', fatal=False) or video_id
 
         formats = []
         for source in wjplayer_data['sources']:
@@ -71,7 +80,7 @@ class SportBoxEmbedIE(InfoExtractor):
 
         return {
             'id': video_id,
-            'title': video_id,
+            'title': title,
             'thumbnail': wjplayer_data.get('poster'),
             'duration': int_or_none(wjplayer_data.get('duration')),
             'view_count': view_count,
