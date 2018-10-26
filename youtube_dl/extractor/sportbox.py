@@ -18,7 +18,7 @@ class SportBoxEmbedIE(InfoExtractor):
         'info_dict': {
             'id': '211355',
             'ext': 'mp4',
-            'title': u'В Новороссийске прошел детский турнир «Поле славы боевой»',
+            'title': 'В Новороссийске прошел детский турнир «Поле славы боевой»',
             'thumbnail': r're:^https?://.*\.jpg$',
             'duration': 292,
             'view_count': int,
