@@ -58,6 +58,8 @@ class CiscoLiveIE(InfoExtractor):
         """
         bc_id = result['videos'][0]['url']
         video_title = result['title']
+        self.to_screen('Resolved Brightcove ID: %s' % bc_id)
+        self.to_screen('Found video "%s"' % video_title)
         return self.url_result(
             smuggle_url(self.BRIGHTCOVE_URL_TEMPLATE % bc_id,
                         {'title': video_title}),
@@ -79,6 +81,8 @@ class CiscoLiveIE(InfoExtractor):
         # Single session URL (single video)
         if m.group('id'):
             rf_id = m.group('id')
+            self.to_screen('Downloading video for Cisco Live session ID %s' %
+                           rf_id)
             rf_api_args['url_or_request'] = self.RAINFOCUS_API_URL % 'session'
             rf_api_args['video_id'] = rf_id
             rf_api_args['data'] = compat_urllib_parse_urlencode({'id': rf_id})
@@ -89,6 +93,8 @@ class CiscoLiveIE(InfoExtractor):
             # Filter query URL (multiple videos)
             if m.group('query'):
                 rf_query = m.group('query')
+                self.to_screen('Downloading video collection for query %s' %
+                               rf_query)
                 rf_query = str(rf_query + "&type=session&size=1000")
                 data = rf_query
                 rf_api_args['url_or_request'] = self.RAINFOCUS_API_URL % 'search'
