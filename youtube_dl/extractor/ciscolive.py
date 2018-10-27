@@ -78,7 +78,7 @@ class CiscoLiveIE(InfoExtractor):
 
         # Single session URL (single video)
         if m.group('id'):
-            rf_id = m.groups('id')[0]
+            rf_id = m.group('id')
             rf_api_args['url_or_request'] = self.RAINFOCUS_API_URL % 'session'
             rf_api_args['video_id'] = rf_id
             rf_api_args['data'] = compat_urllib_parse_urlencode({'id': rf_id})
@@ -88,7 +88,7 @@ class CiscoLiveIE(InfoExtractor):
         else:
             # Filter query URL (multiple videos)
             if m.group('query'):
-                rf_query = m.groups('query')[0]
+                rf_query = m.group('query')
                 rf_query = str(rf_query + "&type=session&size=1000")
                 data = rf_query
                 rf_api_args['url_or_request'] = self.RAINFOCUS_API_URL % 'search'
