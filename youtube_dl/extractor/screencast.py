@@ -91,6 +91,14 @@ class ScreencastIE(InfoExtractor):
                     'meta tag video URL', default=None)
 
         if video_url is None:
+            video_url = self._html_search_regex(
+                r'"MediaContentUrl":"([^"]+)"', webpage, 'media content url', default=None)
+
+        if video_url is None:
+            video_url = self._html_search_meta(
+                'og:video', webpage, default=None)
+
+        if video_url is None:
             raise ExtractorError('Cannot find video')
 
         title = self._og_search_title(webpage, default=None)
