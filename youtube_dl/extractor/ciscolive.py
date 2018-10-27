@@ -9,7 +9,7 @@ from ..utils import smuggle_url
 
 class CiscoLiveIE(InfoExtractor):
     IE_NAME = 'ciscolive'
-    _VALID_URL = r'https://ciscolive.cisco.com/on-demand-library/\??(?P<query>.*?)#/(?:session/(?P<id>.+))?$'
+    _VALID_URL = r'https://ciscolive.cisco.com/on-demand-library/\??(?P<query>[^#]+)#/(?:session/(?P<id>.+))?$'
     _TESTS = [{
         'url': 'https://ciscolive.cisco.com/on-demand-library/?#/session/1423353499155001FoSs',
         'md5': 'c98acf395ed9c9f766941c70f5352e22',
