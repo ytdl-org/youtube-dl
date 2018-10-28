@@ -147,6 +147,7 @@ class CiscoLiveIE(InfoExtractor):
         else:
             # Filter query URL (multiple videos)
             if mobj.group('query'):
+                rf_query = mobj.group('query')
                 rf_query = str(rf_query + '&type=session&size=1000')
                 rf_api_args['url_or_request'] = self.RAINFOCUS_API_URL % 'search'
                 rf_api_args['data'] = rf_query
