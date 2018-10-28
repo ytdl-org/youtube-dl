@@ -818,7 +818,7 @@
  - **Spiegeltv**
  - **sport.francetvinfo.fr**
  - **Sport5**
- - **SportBoxEmbed**
+ - **SportBox**
  - **SportDeutschland**
  - **SpringboardPlatform**
  - **Sprout**
@@ -909,7 +909,6 @@
  - **TV2**
  - **tv2.hu**
  - **TV2Article**
- - **TV3**
  - **TV4**: tv4.se and tv4play.se
  - **TV5MondePlus**: TV5MONDE+
  - **TVA**
