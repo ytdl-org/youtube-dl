@@ -55,7 +55,7 @@ class CiscoLiveIE(InfoExtractor):
 
     def _parse_rf_item(self, rf_item):
         """ Parses metadata and passes to Brightcove extractor
-        
+
         """
         # Metadata parsed from Rainfocus API result
         # Not all of which is appropriate to pass to Brightcove extractor
@@ -72,7 +72,7 @@ class CiscoLiveIE(InfoExtractor):
             # Full session title [Campus QoS Design-Simplified]
             "sess_desc": rf_item.get("abstract"),
             # Description [This session will apply Cisco's QoS strategy for rich media...]
-            "sess_pres_name": rf_item["participants"][0]["fullName"], # TODO: Needs safe get() method
+            "sess_pres_name": rf_item["participants"][0]["fullName"],  # TODO: Needs safe get() method
             # Presenter's full name [Tim Szigeti]
             "sess_pres_title": rf_item["participants"][0]["jobTitle"],
             # Presenter's job title [Principal Engineer - Technical Marketing]
@@ -87,7 +87,7 @@ class CiscoLiveIE(InfoExtractor):
             "sess_location": rf_item["times"][0]["room"]
             # Session location [Hall 7.3 Breakout Room 732]
         }
-        
+
         # Metadata passed to final Brightcove extractor
         # TODO: Only title is passed--need to work on how to best merge smuggled metadata
         metadata = {
@@ -96,16 +96,30 @@ class CiscoLiveIE(InfoExtractor):
             "creator": rf_result.get("sess_pres_name"),
             "description": rf_result.get("sess_desc"),
             "series": rf_result.get("event_name"),
-            "duration": rf_result["sess_duration"],
-            "location": rf_result["sess_location"]
+            "duration": rf_result.get("sess_duration"),
+            "location": rf_result.get("sess_location")
         }
         self.to_screen("Session: %s [%s]" % (rf_result["sess_title"], rf_result["sess_abbr"]))
         self.to_screen("Presenter: %s, %s" % (rf_result["sess_pres_name"], rf_result["sess_pres_title"]))
         self.to_screen("Presentation PDF: %s" % rf_result["sess_pdf_url"])
-        return self.url_result(
-            smuggle_url(rf_result["sess_bc_url"], metadata),
-                        'BrightcoveNew', rf_result["sess_bc_id"],
-                        rf_result["sess_title"])
+        return self.url_result(smuggle_url(rf_result["sess_bc_url"], metadata),
+                               'BrightcoveNew', rf_result["sess_bc_id"],
+                               rf_result["sess_title"])
+
+    def _check_bc_url_exists(self, rf_item):
+        """ Checks for the existence of a Brightcove URL
+
+        """
+        msg = "Skipping session that does not include a valid video URL: %s" % rf_item.get("title", "Unknown title")
+        try:
+            bc_id = rf_item["videos"][0]["url"]
+            mobj = re.match(r'\d+', bc_id)
+            if mobj:
+                return rf_item
+            else:
+                self.report_warning(msg)
+        except IndexError:
+            self.report_warning(msg)
 
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
@@ -128,19 +142,20 @@ class CiscoLiveIE(InfoExtractor):
             rf_api_args['data'] = compat_urllib_parse_urlencode({'id': rf_id})
             self.to_screen('Video for session ID %s' % rf_id)
             rf_api_result = self._download_json(**rf_api_args)
-            rf_item = rf_api_result['items'][0]
+            rf_item = self._check_bc_url_exists(rf_api_result['items'][0])
             return self._parse_rf_item(rf_item)
         else:
             # Filter query URL (multiple videos)
             if mobj.group('query'):
-                rf_query = mobj.group('query')
-                rf_query = str(rf_query + "&type=session&size=1000")
-                data = rf_query
+                rf_query = str(rf_query + '&type=session&size=1000')
                 rf_api_args['url_or_request'] = self.RAINFOCUS_API_URL % 'search'
-                rf_api_args['data'] = data
+                rf_api_args['data'] = rf_query
                 # Query JSON results offer no obvious way to ID the search
-                rf_api_args['video_id'] = "Filter query"
-                self.to_screen('Video collection for query %s' % rf_query)
-                rf_api_result = self._download_json(**rf_api_args)
-                entries = [self._parse_rf_item(rf_item) for rf_item in rf_api_result['sectionList'][0]['items']]
+                rf_api_args['video_id'] = 'Filter query'
+                self.to_screen('Video collection for filter query "%s"' % rf_query)
+                rf_api_results = self._download_json(**rf_api_args)
+                # Not all sessions have videos; filter them out before moving on
+                rf_video_results = [rf_item for rf_item in rf_api_results["sectionList"][0]["items"]
+                                    if self._check_bc_url_exists(rf_item)]
+                entries = [self._parse_rf_item(rf_item) for rf_item in rf_video_results]
                 return self.playlist_result(entries)
