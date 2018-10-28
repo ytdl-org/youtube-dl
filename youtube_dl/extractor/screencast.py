@@ -92,7 +92,8 @@ class ScreencastIE(InfoExtractor):
 
         if video_url is None:
             video_url = self._html_search_regex(
-                r'"MediaContentUrl":"([^"]+)"', webpage, 'media content url', default=None)
+                r'MediaContentUrl["\']\s*:(["\'])(?P<url>(?:(?!\1).)+)\1',
+                webpage, 'video url', default=None, group='url')
 
         if video_url is None:
             video_url = self._html_search_meta(
