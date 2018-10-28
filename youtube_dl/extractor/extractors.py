@@ -868,6 +868,10 @@ from .pornhub import (
 from .pornotube import PornotubeIE
 from .pornovoisines import PornoVoisinesIE
 from .pornoxo import PornoXOIE
+from .porntrex import (
+    PornTrexIE,
+    PornTrexPlayListIE,
+)
 from .puhutv import (
     PuhuTVIE,
     PuhuTVSerieIE,
