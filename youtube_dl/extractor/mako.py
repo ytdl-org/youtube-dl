@@ -41,14 +41,12 @@ class MakoIE(InfoExtractor):
         js = self._download_json('https://mako.co.il/AjaxPage?jspName=playlist.jsp&vcmid={}&videoChannelId={}&galleryChannelId={}&encryption=no'.format(
             vcmid, videoChannelId, vcmid), video_id)
 
-        print self.parse_urls(js['media'])
-
         return {
-            'id': js['videoDetails']['guid'],
-            'title': js['videoDetails']['title'],
-            'description': js['videoDetails']['desc'],
-            'duration': parse_duration(js['videoDetails']['duration']),
-            'formats': self.parse_urls(js['media']),
-            'view_count': js['videoDetails']['numViews'],
+            'id': js.get('videoDetails').get('guid') or video_id,
+            'title': js.get('videoDetails').get('title') or self._og_search_title(webpage)),
+            'description': js.get('videoDetails').get('desc') or self._og_search_description(webpage),
+            'duration': parse_duration(js.get('videoDetails').get('duration')),
+            'formats': self.parse_urls(js.get('media')),
+            'view_count': js.get('videoDetails').get('numViews'),
             }
 
