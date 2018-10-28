@@ -15,29 +15,33 @@ class PornTrexIE(InfoExtractor):
     _NETRC_MACHINE = 'porntrex'
     _VALID_URL = r'https?://(?:www\.)?porntrex\.com/video/(?P<id>[0-9]+)/.*'
     _TEST = {
-        'url': 'https://www.porntrex.com/video/519351/be-ariyana-adin-breaking-and-entering-this-pussy',
-        # 'md5': 'TODO: md5 sum of the first 10241 bytes of the video file (use --test)',
+        'url': 'https://www.porntrex.com/video/519351/\
+                be-ariyana-adin-breaking-and-entering-this-pussy',
         'info_dict': {
             'id': '519351',
             'ext': 'mp4',
             'title': 'BE - Ariyana Adin - Breaking And Entering This Pussy',
             'uploader': 'brand95',
-            'description': 'BE - Ariyana Adin - Breaking And Entering This Pussy',
+            'description': 'BE - Ariyana Adin - Breaking And Entering This \
+Pussy',
         }
     }
 
     def get_resolution(self, url):
+        '''Video resolution extraction from url'''
         try:
-            resolution = ((url.split('.')[2])).split('_')[-1]
-        except:
+            resolution = ((url.split('.')[2])).split('_')[2]
+        except IndexError:
             resolution = '480p'
         return resolution
-    
+
     def get_protocol(self, url):
-        return url.split('/')[0]
+        '''Video protocol extraction from url'''
+        return url.split(':')[0]
 
     def get_thumbnails(self, html):
-        thumbnails_regex = re.compile('href="(http.*?/screenshots/\d+.jpg/)"')
+        '''Each video has 10 thumbnails - extracted here.'''
+        thumbnails_regex = re.compile(r'href="(http.*?/screenshots/\d+.jpg/)"')
         thumbnails_list = re.findall(thumbnails_regex, html)
         thumbnails = []
         for thumbs in thumbnails_list:
@@ -57,7 +61,7 @@ class PornTrexIE(InfoExtractor):
         login_form.update({
             'username': username.encode('utf-8'),
             'pass': password.encode('utf-8'),
-            })
+        })
 
         login_page = self._download_webpage(
             'https://www.porntrex.com/ajax-login/', None,
@@ -66,8 +70,9 @@ class PornTrexIE(InfoExtractor):
 
         if re.search(r'generic-error hidden', login_page):
             raise ExtractorError(
-                'Unable to login, incorrect username and/or password', expected=True)
-    
+                'Unable to login, incorrect username and/or password',
+                expected=True)
+
     def _real_initialize(self):
         self._login()
 
@@ -75,14 +80,18 @@ class PornTrexIE(InfoExtractor):
         video_id = self._match_id(url)
         webpage = self._download_webpage(url, video_id)
 
-        is_video_private_regex = re.compile('Only active members can watch private videos.')
+        private_string = 'Only active members can watch private videos.'
+        is_video_private_regex = re.compile(private_string)
         if (re.findall(is_video_private_regex, webpage)):
             self.raise_login_required()
 
-        title = self._html_search_regex(r'<title>(.+?)</title>', webpage, 'title',)
+        title = self._html_search_regex(
+            r'<title>(.+?)</title>', webpage, 'title',)
         url2_regex = re.compile("'(https://www.porntrex.com/get_file/.*?)/'")
         url2 = re.findall(url2_regex, webpage)
-        uploader_regex = re.compile(r'<a href="https://www.porntrex.com/members/[0-9]+?/">(.+?)</a>', re.DOTALL)
+        uploader_regex = re.compile(
+            r'<a href="https://www.porntrex.com/members/[0-9]+?/">(.+?)</a>',
+            re.DOTALL)
         uploader = re.findall(uploader_regex, webpage)[0].strip()
         formats = []
         for x, _ in enumerate(url2):
@@ -93,6 +102,7 @@ class PornTrexIE(InfoExtractor):
                             })
         # self.get_thumbnails(webpage)
         self._sort_formats(formats)
+        print(formats)
 
         return {
             'id': video_id,
@@ -105,24 +115,18 @@ class PornTrexIE(InfoExtractor):
 
 
 class PornTrexPlayListIE(InfoExtractor):
-    '''Class for downloading Porntrex video playlists.'''    
+    '''Class for downloading Porntrex video playlists.'''
     _NETRC_MACHINE = 'porntrex'
-    _VALID_URL = r'https?://(?:www\.)?porntrex\.com/playlists/(?P<id>[0-9]+)/.*'
+    _VALID_URL = \
+        r'https?://(?:www\.)?porntrex\.com/playlists/(?P<id>[0-9]+)/.*'
     _TEST = {
         'url': 'https://www.porntrex.com/playlists/60671/les45/',
-        # 'md5': 'TODO: md5 sum of the first 10241 bytes of the video file (use --test)',
         'info_dict': {
             'id': '477697',
             'ext': 'mp4',
             'uploader': 'tarpi',
             'title': '4.  Kelly Divine, Tiffany Minx  (1080p)',
             'description': '4.  Kelly Divine, Tiffany Minx  (1080p)'
-            # 'thumbnail': r're:^https?://.*\.jpg$',
-            # TODO more properties, either as:
-            # * A value
-            # * MD5 checksum; start the string with md5:
-            # * A regular expression; start the string with re:
-            # * Any Python type (for example int or float)
         }
     }
 
