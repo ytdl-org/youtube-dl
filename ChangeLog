@@ -1,4 +1,4 @@
-version <unreleased>
+version 2018.10.29
 
 Core
 + [extractor/common] Add validation for JSON-LD URLs
