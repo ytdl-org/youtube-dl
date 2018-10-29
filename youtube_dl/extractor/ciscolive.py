@@ -100,7 +100,7 @@ class CiscoLiveIE(InfoExtractor):
             'id': cl_id,
             'title': '%s [%s]' % (title, cl_id),
             'creator': '%s, %s' % (presenter_name, presenter_title),
-            'description': '%s\nSlide Deck: %s' % (description, pdf_url),
+            'description': '%s\nVideo Player: %s\nSlide Deck: %s' % (description, bc_url, pdf_url),
             'series': event_name,
             'duration': duration,
             'location': location,
@@ -155,4 +155,4 @@ class CiscoLiveIE(InfoExtractor):
                 if self._check_bc_url_exists(rf_item)
             ]
             entries = [self._parse_rf_item(rf_item) for rf_item in rf_video_results]
-            return self.playlist_result(entries)
+            return self.playlist_result(entries, 'Filter query')
