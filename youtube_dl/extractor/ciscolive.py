@@ -43,15 +43,25 @@ class CiscoLiveIE(InfoExtractor):
             'uploader_id': '5647924234001',
             'upload_date': '20180629',
         }
+    }, {
+        'url': 'https://ciscolive.cisco.com/on-demand-library/?search.solutions=scpsSolutions_cleanair#/',
+        'md5': '80e0c3b87e373fe3a3316b934b8915bf',
+        'info_dict': {
+            'id': '5803735679001',
+            'ext': 'mp4',
+            'timestamp': 1530311842,
+            'title': 'Beating the CCIE Routing & Switching',
+            'uploader_id': '5647924234001',
+            'upload_date': '20180629',
+        }
     }]
 
     # These appear to be constant across all Cisco Live presentations
     # and are not tied to any user session or event
-    RAINFOCUS_API_URL = "https://events.rainfocus.com/api/%s"
-    RAINFOCUS_APIPROFILEID = "Na3vqYdAlJFSxhYTYQGuMbpafMqftalz"
-    RAINFOCUS_WIDGETID = "n6l4Lo05R8fiy3RpUBm447dZN8uNWoye"
-    BRIGHTCOVE_ACCOUNT_ID = "5647924234001"
-    BRIGHTCOVE_URL_TEMPLATE = "http://players.brightcove.net/5647924234001/SyK2FdqjM_default/index.html?videoId=%s"
+    RAINFOCUS_API_URL = 'https://events.rainfocus.com/api/%s'
+    RAINFOCUS_APIPROFILEID = 'Na3vqYdAlJFSxhYTYQGuMbpafMqftalz'
+    RAINFOCUS_WIDGETID = 'n6l4Lo05R8fiy3RpUBm447dZN8uNWoye'
+    BRIGHTCOVE_URL_TEMPLATE = 'http://players.brightcove.net/5647924234001/SyK2FdqjM_default/index.html?videoId=%s'
 
     def _parse_rf_item(self, rf_item):
         """ Parses metadata and passes to Brightcove extractor
@@ -59,55 +69,55 @@ class CiscoLiveIE(InfoExtractor):
         """
         # Metadata parsed from Rainfocus API result
         # Not all of which is appropriate to pass to Brightcove extractor
-        rf_result = {
-            "event_name": rf_item.get("eventName"),
-            # Full event name [Cisco Live EMEA 2016]
-            "event_label": rf_item.get("eventLabel"),
-            # Year/location [2016 Berlin]
-            "sess_rf_id": rf_item.get("eventId"),
-            # Rainfocus ID [14382715417240cleu16]
-            "sess_abbr": rf_item.get("abbreviation"),
-            # Shorthand session ID [BRKCRS-2501]
-            "sess_title": rf_item.get("title"),
-            # Full session title [Campus QoS Design-Simplified]
-            "sess_desc": rf_item.get("abstract"),
-            # Description [This session will apply Cisco's QoS strategy for rich media...]
-            "sess_pres_name": rf_item["participants"][0]["fullName"],  # TODO: Needs safe get() method
-            # Presenter's full name [Tim Szigeti]
-            "sess_pres_title": rf_item["participants"][0]["jobTitle"],
-            # Presenter's job title [Principal Engineer - Technical Marketing]
-            "sess_pdf_url": rf_item["files"][0]["url"],
-            # Presentation PDF URL [https://clnv.s3.amazonaws.com/2016/eur/pdf/BRKCRS-2501.pdf]
-            "sess_bc_id": rf_item["videos"][0]["url"],
-            # Session Brightcove video ID [5803710412001]
-            "sess_bc_url": self.BRIGHTCOVE_URL_TEMPLATE % rf_item["videos"][0]["url"],
-            # Session Brightcove video URL [http://players.brightcove.net/5647924234001/SyK2FdqjM_default/index.html?videoId=5803710412001]
-            "sess_duration": rf_item["times"][0]["length"] * 60,
-            # Session duration in seconds [7200]
-            "sess_location": rf_item["times"][0]["room"]
-            # Session location [Hall 7.3 Breakout Room 732]
-        }
+        # but might be nice to print to output
+
+        event_name = rf_item.get('eventName')
+        # Full event name [Cisco Live EMEA 2016]
+        # rf_id = rf_item.get('eventId')
+        # Rainfocus ID [14382715417240cleu16]
+        cl_id = rf_item.get('abbreviation')
+        # Cisco Live ID - Shorthand session ID [BRKCRS-2501]
+        title = rf_item.get('title')
+        # Full session title [Campus QoS Design-Simplified]
+        description = rf_item.get('abstract')
+        # Description [This session will apply Cisco's QoS strategy for rich media...]
+        presenter_name = rf_item['participants'][0]['fullName']  # TODO: Needs safe get() method
+        # Presenter's full name [Tim Szigeti]
+        presenter_title = rf_item['participants'][0]['jobTitle']
+        # Presenter's job title [Principal Engineer - Technical Marketing]
+        pdf_url = rf_item['files'][0]['url']
+        # Presentation PDF URL [https://clnv.s3.amazonaws.com/2016/eur/pdf/BRKCRS-2501.pdf]
+        bc_id = rf_item['videos'][0]['url']
+        # Brightcove video ID [5803710412001]
+        bc_url = self.BRIGHTCOVE_URL_TEMPLATE % bc_id
+        # Brightcove video URL [http://players.brightcove.net/5647924234001/SyK2FdqjM_default/index.html?videoId=5803710412001]
+        duration = rf_item['times'][0]['length'] * 60
+        # Duration. Provided in minutes * 60 = seconds [7200]
+        location = rf_item['times'][0]['room']
+        # Location [Hall 7.3 Breakout Room 732]
 
         # Metadata passed to final Brightcove extractor
         # TODO: Only title is passed--need to work on how to best merge smuggled metadata
         metadata = {
-            "id": rf_result.get("sess_abbr"),
-            "title": rf_result.get("sess_title"),
-            "creator": rf_result.get("sess_pres_name"),
-            "description": rf_result.get("sess_desc"),
-            "series": rf_result.get("event_name"),
-            "duration": rf_result.get("sess_duration"),
-            "location": rf_result.get("sess_location")
+            'id': cl_id,
+            'title': title,
+            'creator': presenter_name,
+            'description': description,
+            'series': event_name,
+            'duration': duration,
+            'location': location,
         }
-        self.to_screen("Session: %s [%s]" % (rf_result["sess_title"], rf_result["sess_abbr"]))
-        self.to_screen("Presenter: %s, %s" % (rf_result["sess_pres_name"], rf_result["sess_pres_title"]))
-        self.to_screen("Presentation PDF: %s" % rf_result["sess_pdf_url"])
-        return self.url_result(smuggle_url(rf_result["sess_bc_url"], metadata),
-                               'BrightcoveNew', rf_result["sess_bc_id"],
-                               rf_result["sess_title"])
+        self.to_screen('Event Name: %s' % event_name)
+        self.to_screen('Session ID: %s' % cl_id)
+        self.to_screen('Session Title: %s' % title)
+        self.to_screen('Presenter: %s, %s' % (presenter_name, presenter_title))
+        self.to_screen('Slide Deck URL: %s' % pdf_url)
+        self.to_screen('Video URL: %s' % bc_url)
+        return self.url_result(smuggle_url(bc_url, metadata), 'BrightcoveNew', bc_id, title)
 
     def _check_bc_url_exists(self, rf_item):
-        """ Checks for the existence of a Brightcove URL
+        """ Checks for the existence of a Brightcove URL in a
+            RainFocus result item
 
         """
         msg = "Skipping session that does not include a valid video URL: %s" % rf_item.get("title", "Unknown title")
@@ -123,40 +133,39 @@ class CiscoLiveIE(InfoExtractor):
 
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
-        rf_api_headers = {
+        rf_headers = {
             'Origin': 'https://ciscolive.cisco.com',
             'rfApiProfileId': self.RAINFOCUS_APIPROFILEID,
             'rfWidgetId': self.RAINFOCUS_WIDGETID,
             'Referer': url
         }
-        rf_api_args = {
+        rf_args = {
             'video_id': None,
-            'headers': rf_api_headers
+            'headers': rf_headers
         }
 
         # Single session URL (single video)
         if mobj.group('id'):
             rf_id = mobj.group('id')
-            rf_api_args['url_or_request'] = self.RAINFOCUS_API_URL % 'session'
-            rf_api_args['video_id'] = rf_id
-            rf_api_args['data'] = compat_urllib_parse_urlencode({'id': rf_id})
-            self.to_screen('Video for session ID %s' % rf_id)
-            rf_api_result = self._download_json(**rf_api_args)
-            rf_item = self._check_bc_url_exists(rf_api_result['items'][0])
+            rf_args['url_or_request'] = self.RAINFOCUS_API_URL % 'session'
+            rf_args['video_id'] = rf_id
+            rf_args['data'] = compat_urllib_parse_urlencode({'id': rf_id})
+            rf_result = self._download_json(**rf_args)
+            rf_item = self._check_bc_url_exists(rf_result['items'][0])
             return self._parse_rf_item(rf_item)
         else:
             # Filter query URL (multiple videos)
             if mobj.group('query'):
                 rf_query = mobj.group('query')
                 rf_query = str(rf_query + '&type=session&size=1000')
-                rf_api_args['url_or_request'] = self.RAINFOCUS_API_URL % 'search'
-                rf_api_args['data'] = rf_query
+                rf_args['url_or_request'] = self.RAINFOCUS_API_URL % 'search'
+                rf_args['data'] = rf_query
                 # Query JSON results offer no obvious way to ID the search
-                rf_api_args['video_id'] = 'Filter query'
+                rf_args['video_id'] = 'Filter query'
                 self.to_screen('Video collection for filter query "%s"' % rf_query)
-                rf_api_results = self._download_json(**rf_api_args)
+                rf_results = self._download_json(**rf_args)
                 # Not all sessions have videos; filter them out before moving on
-                rf_video_results = [rf_item for rf_item in rf_api_results["sectionList"][0]["items"]
+                rf_video_results = [rf_item for rf_item in rf_results["sectionList"][0]["items"]
                                     if self._check_bc_url_exists(rf_item)]
                 entries = [self._parse_rf_item(rf_item) for rf_item in rf_video_results]
                 return self.playlist_result(entries)
