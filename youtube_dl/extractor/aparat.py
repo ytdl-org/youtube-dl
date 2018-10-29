@@ -34,32 +34,45 @@ class AparatIE(InfoExtractor):
             'http://www.aparat.com/video/video/embed/vt/frame/showvideo/yes/videohash/' + video_id,
             video_id)
 
-        title = self._search_regex(r'\s+title:\s*"([^"]+)"', webpage, 'title')
+        title = self._search_regex(r'title":"([^"]+)', webpage, 'title')
+        title =  title.decode('unicode_escape')
 
         file_list = self._parse_json(
             self._search_regex(
-                r'fileList\s*=\s*JSON\.parse\(\'([^\']+)\'\)', webpage,
-                'file list'),
+               r'options\s*=\s*JSON\.parse\(\'([^\']+)\'\)', webpage,
+               'options'),
             video_id)
+        appleSrc = file_list['plugins']['sabaPlayerPlugin']['multiSRC'][0]
+        multiSrc = file_list['plugins']['sabaPlayerPlugin']['multiSRC'][1]
+
 
         formats = []
-        for item in file_list[0]:
-            file_url = url_or_none(item.get('file'))
+        for item in multiSrc:
+            file_url = url_or_none(item.get('src'))
+
+
             if not file_url:
                 continue
             ext = mimetype2ext(item.get('type'))
+
+
             label = item.get('label')
+
+            file_url = file_url + '.'+label
+
             formats.append({
-                'url': file_url,
-                'ext': ext,
-                'format_id': label or ext,
-                'height': int_or_none(self._search_regex(
-                    r'(\d+)[pP]', label or '', 'height', default=None)),
+                    'url': file_url,
+                    'ext': ext,
+                    'format_id': label or ext,
+                    'height': int_or_none(self._search_regex(
+                        r'(\d+)[pP]', label or '', 'height', default=None)),
             })
+
+
         self._sort_formats(formats)
 
-        thumbnail = self._search_regex(
-            r'image:\s*"([^"]+)"', webpage, 'thumbnail', fatal=False)
+        thumbnail = file_list['plugins']['sabaPlayerPlugin']['thumbs']['src']
+
 
         return {
             'id': video_id,
