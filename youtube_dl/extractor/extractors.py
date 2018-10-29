@@ -572,6 +572,10 @@ from .limelight import (
     LimelightChannelListIE,
 )
 from .line import LineTVIE
+from .linkedin import (
+    LinkedInLearningIE,
+    LinkedInLearningCourseIE,
+)
 from .litv import LiTVIE
 from .liveleak import (
     LiveLeakIE,
