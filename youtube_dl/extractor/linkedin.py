@@ -161,7 +161,7 @@ class LinkedInLearningCourseIE(LinkedInLearningBaseIE):
                 if not video_slug:
                     continue
                 entries.append({
-                    '_type': 'url',
+                    '_type': 'url_transparent',
                     'id': self._get_video_id(video.get('urn'), course_slug, video_slug),
                     'title': video.get('title'),
                     'url': 'https://www.linkedin.com/learning/%s/%s' % (course_slug, video_slug),
