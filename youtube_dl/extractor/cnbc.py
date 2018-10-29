@@ -38,7 +38,7 @@ class CNBCIE(InfoExtractor):
 
 
 class CNBCVideoIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:www)?\.cnbc\.com/video/(?:[^/]+/)+(?P<id>[^./?#&]+)'
+    _VALID_URL = r'https?://(?:www\.)?cnbc\.com/video/(?:[^/]+/)+(?P<id>[^./?#&]+)'
     _TEST = {
         'url': 'https://www.cnbc.com/video/2018/07/19/trump-i-dont-necessarily-agree-with-raising-rates.html',
         'info_dict': {
