@@ -211,7 +211,7 @@ from .clyp import ClypIE
 from .cmt import CMTIE
 from .cnbc import (
     CNBCIE,
-    CNBCNewIE,
+    CNBCVideoIE,
 )
 from .cnn import (
     CNNIE,

@@ -3,10 +3,7 @@ from __future__ import unicode_literals
 
 
 from .common import InfoExtractor
-from ..utils import (
-    js_to_json,
-    smuggle_url,
-)
+from ..utils import smuggle_url
 
 
 class CNBCIE(InfoExtractor):
@@ -40,36 +37,30 @@ class CNBCIE(InfoExtractor):
         }
 
 
-class CNBCNewIE(InfoExtractor):
-    IE_NAME = 'CNBC:new'
-    _VALID_URL = r'https?://(?:www)?\.cnbc\.com/video.*/(?P<id>[^.]+)'  
+class CNBCVideoIE(InfoExtractor):
+    _VALID_URL = r'https?://(?:www)?\.cnbc\.com/video/(?:[^/]+/)+(?P<id>[^./?#&]+)'
     _TEST = {
         'url': 'https://www.cnbc.com/video/2018/07/19/trump-i-dont-necessarily-agree-with-raising-rates.html',
         'info_dict': {
             'id': '7000031301',
             'ext': 'mp4',
-            'title': 'Trump: I don\'t necessarily agree with raising rates',
+            'title': "Trump: I don't necessarily agree with raising rates",
             'description': 'md5:878d8f0b4ebb5bb1dda3514b91b49de3',
             'timestamp': 1531958400,
             'upload_date': '20180719',
             'uploader': 'NBCU-CNBC',
         },
         'params': {
-            # m3u8 download
             'skip_download': True,
         },
     }
 
-    CNBC_URL_TEMPLATE = 'http://video.cnbc.com/gallery/?video=%s'
-
     def _real_extract(self, url):
         display_id = self._match_id(url)
         webpage = self._download_webpage(url, display_id)
-        video_id = self._parse_json(
-            self._search_regex(
-                r'(?s).*<script[^>]*>.*?({.+?content_id.+?}).*?</script>',
-                webpage, display_id),
-            display_id, transform_source=js_to_json
-        )['content_id']
-
-        return self.url_result(self.CNBC_URL_TEMPLATE % video_id, 'CNBC')
+        video_id = self._search_regex(
+            r'content_id["\']\s*:\s*["\'](\d+)', webpage, display_id,
+            'video id')
+        return self.url_result(
+            'http://video.cnbc.com/gallery/?video=%s' % video_id,
+            CNBCIE.ie_key())
