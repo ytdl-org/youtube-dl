@@ -596,8 +596,8 @@ class BrightcoveNewIE(AdobePassIE):
 
         return entries
 
-    def _parse_brightcove_metadata(self, json_data, video_id, headers={}, smuggled_data={}):
-        title = smuggled_data.get('title') or json_data['name'].strip()
+    def _parse_brightcove_metadata(self, json_data, video_id, headers={}):
+        title = json_data['name'].strip()
 
         formats = []
         for source in json_data.get('sources', []):
@@ -772,4 +772,4 @@ class BrightcoveNewIE(AdobePassIE):
                 })
 
         return self._parse_brightcove_metadata(
-            json_data, video_id, headers=headers, smuggled_data=smuggled_data)
+            json_data, video_id, headers=headers)
