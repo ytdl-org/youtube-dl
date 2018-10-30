@@ -1330,6 +1330,7 @@ from .voxmedia import (
     VoxMediaIE,
 )
 from .vporn import VpornIE
+from .vpro import Vpro3Voor12IE
 from .vrt import VRTIE
 from .vrak import VrakIE
 from .vrv import (
