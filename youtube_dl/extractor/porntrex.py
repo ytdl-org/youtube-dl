@@ -11,42 +11,18 @@ from ..utils import (
 
 
 class PornTrexIE(InfoExtractor):
-    '''Class for downloading Porntrex video.'''
     _NETRC_MACHINE = 'porntrex'
-    _VALID_URL = r'https?://(?:www\.)?porntrex\.com/video/(?P<id>[0-9]+)/.*'
+    _VALID_URL = r'https?://(?:www\.)?porntrex\.com/video/(?P<id>[0-9]+)/'
     _TEST = {
-        'url': 'https://www.porntrex.com/video/519351/\
-                be-ariyana-adin-breaking-and-entering-this-pussy',
+        'url': 'https://www.porntrex.com/video/519351/be-ariyana-adin-breaking-and-entering-this-pussy',
         'info_dict': {
             'id': '519351',
             'ext': 'mp4',
             'title': 'BE - Ariyana Adin - Breaking And Entering This Pussy',
             'uploader': 'brand95',
-            'description': 'BE - Ariyana Adin - Breaking And Entering This \
-Pussy',
+            'description': 'BE - Ariyana Adin - Breaking And Entering This Pussy',
         }
     }
-
-    def get_resolution(self, url):
-        '''Video resolution extraction from url'''
-        try:
-            resolution = ((url.split('.')[2])).split('_')[2]
-        except IndexError:
-            resolution = '480p'
-        return resolution
-
-    def get_protocol(self, url):
-        '''Video protocol extraction from url'''
-        return url.split(':')[0]
-
-    def get_thumbnails(self, html):
-        '''Each video has 10 thumbnails - extracted here.'''
-        thumbnails_regex = re.compile(r'href="(http.*?/screenshots/\d+.jpg/)"')
-        thumbnails_list = re.findall(thumbnails_regex, html)
-        thumbnails = []
-        for thumbs in thumbnails_list:
-            thumbnails.append({'url': thumbs})
-        return thumbnails
 
     def _login(self):
         username, password = self._get_login_info()
@@ -82,7 +58,7 @@ Pussy',
 
         private_string = 'Only active members can watch private videos.'
         is_video_private_regex = re.compile(private_string)
-        if (re.findall(is_video_private_regex, webpage)):
+        if re.findall(is_video_private_regex, webpage):
             self.raise_login_required()
 
         title = self._html_search_regex(
@@ -93,32 +69,34 @@ Pussy',
             r'<a href="https://www.porntrex.com/members/[0-9]+?/">(.+?)</a>',
             re.DOTALL)
         uploader = re.findall(uploader_regex, webpage)[0].strip()
+        thumbnails_regex = re.compile(r'href="(http.*?/screenshots/\d+.jpg/)"')
+        thumbnails_list = re.findall(thumbnails_regex, webpage)
+        thumbnails = []
+        for thumbs in thumbnails_list:
+            thumbnails.append({'url': thumbs})
         formats = []
         for x, _ in enumerate(url2):
             formats.append({'url': url2[x],
                             'ext': url2[x].split('.')[-1],
-                            'resolution': self.get_resolution(url2[x]),
-                            'protocol': self.get_protocol(url2[x]),
+                            'protocol': url2[x].split(':')[0],
                             })
-        # self.get_thumbnails(webpage)
+
         self._sort_formats(formats)
-        print(formats)
 
         return {
             'id': video_id,
             'title': title,
             'description': self._og_search_description(webpage),
             'uploader': uploader,
-            'thumbnails': self.get_thumbnails(webpage),
+            'thumbnails': thumbnails,
             'formats': formats,
         }
 
 
 class PornTrexPlayListIE(InfoExtractor):
-    '''Class for downloading Porntrex video playlists.'''
     _NETRC_MACHINE = 'porntrex'
     _VALID_URL = \
-        r'https?://(?:www\.)?porntrex\.com/playlists/(?P<id>[0-9]+)/.*'
+        r'https?://(?:www\.)?porntrex\.com/playlists/(?P<id>[0-9]+)/'
     _TEST = {
         'url': 'https://www.porntrex.com/playlists/60671/les45/',
         'info_dict': {
@@ -129,9 +107,6 @@ class PornTrexPlayListIE(InfoExtractor):
             'description': '4.  Kelly Divine, Tiffany Minx  (1080p)'
         }
     }
-
-    def playlist_title(self, html):
-        return self._html_search_regex(r'<title>(.+?)</title>', html, 'title',)
 
     def _real_extract(self, url):
         playlist_id = self._match_id(url)
@@ -150,6 +125,9 @@ class PornTrexPlayListIE(InfoExtractor):
         return {
             '_type': 'playlist',
             'id': playlist_id,
-            'title': self.playlist_title(webpage),
+            'title': self._html_search_regex(
+                r'<title>(.+?)</title>',
+                webpage,
+                'title',),
             'entries': entries,
         }
