@@ -12,7 +12,7 @@ from ..utils import (
 
 class CiscoLiveIE(InfoExtractor):
     IE_NAME = 'ciscolive'
-    _VALID_URL = r'(?:https?://)?ciscolive.cisco.com/on-demand-library/\??(?P<query>[^#]+)#/(?:session/(?P<id>.+))?$'
+    _VALID_URL = r'(?:https?://)?ciscolive\.cisco\.com/on-demand-library/\??(?P<query>[^#]+)#/(?:session/(?P<id>.+))?$'
     _TESTS = [
         {
             'url': 'https://ciscolive.cisco.com/on-demand-library/?#/session/1423353499155001FoSs',
@@ -69,34 +69,17 @@ class CiscoLiveIE(InfoExtractor):
         ''' Parses metadata and passes to Brightcove extractor
 
         '''
-        # Metadata parsed from Rainfocus API result
-        # Not all of which is appropriate to pass to Brightcove extractor
-        # but might be nice to print to output
-
         event_name = rf_item.get('eventName')
-        # Full event name [Cisco Live EMEA 2016]
-        # rf_id = rf_item.get('eventId')
-        # Rainfocus ID [14382715417240cleu16]
         cl_id = rf_item.get('abbreviation')
-        # Cisco Live ID - Shorthand session ID [BRKCRS-2501]
         title = rf_item.get('title')
-        # Full session title [Campus QoS Design-Simplified]
         description = clean_html(rf_item.get('abstract'))
-        # Description [This session will apply Cisco's QoS strategy for rich media...]
         presenter_name = try_get(rf_item, lambda x: x['participants'][0]['fullName'])
-        # Presenter's full name [Tim Szigeti]
         presenter_title = try_get(rf_item, lambda x: x['participants'][0]['jobTitle'])
-        # Presenter's job title [Principal Engineer - Technical Marketing]
         pdf_url = try_get(rf_item, lambda x: x['files'][0]['url'])
-        # Presentation PDF URL [https://clnv.s3.amazonaws.com/2016/eur/pdf/BRKCRS-2501.pdf]
         bc_id = try_get(rf_item, lambda x: x['videos'][0]['url'])
-        # Brightcove video ID [5803710412001]
         bc_url = self.BRIGHTCOVE_URL_TEMPLATE % bc_id
-        # Brightcove video URL [http://players.brightcove.net/5647924234001/SyK2FdqjM_default/index.html?videoId=5803710412001]
         duration = try_get(rf_item, lambda x: x['times'][0]['length'])
-        # Duration. Provided in minutes * 60 = seconds [7200]
         location = try_get(rf_item, lambda x: x['times'][0]['room'])
-        # Location [Hall 7.3 Breakout Room 732]
 
         if duration:
             duration = duration * 60
