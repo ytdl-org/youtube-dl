@@ -80,14 +80,16 @@ class ORFTVthekIE(InfoExtractor):
             if not video_id or not title:
                 continue
             video_id = compat_str(video_id)
-            formats = [{
-                'preference': -10 if fd['delivery'] == 'hls' else None,
-                'format_id': '%s-%s-%s' % (
-                    fd['delivery'], fd['quality'], fd['quality_string']),
-                'url': fd['src'],
-                'protocol': fd['protocol'],
-                'quality': quality_to_int(fd['quality']),
-            } for fd in sd['sources']]
+            formats = []
+            for fd in sd['sources']:
+                format_id = '%s-%s-%s' % (
+                    fd['delivery'], fd['quality'], fd['quality_string'])
+                if determine_ext(fd['src']) == 'm3u8':
+                    formats.extend(self._extract_m3u8_formats(
+                        fd['src'], video_id, 'mp4', m3u8_id=format_id))
+                elif determine_ext(fd['src']) == 'f4m':
+                    formats.extend(self._extract_f4m_formats(
+                        fd['src'], video_id, f4m_id=format_id))
 
             # Check for geoblocking.
             # There is a property is_geoprotection, but that's always false
