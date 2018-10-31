@@ -168,9 +168,9 @@ Alternatively, refer to the [developer instructions](#developer-instructions) fo
                                      use --match-filter "like_count > 100 &
                                      dislike_count <? 50 & description" .
     --no-playlist                    Download only the video, if the URL refers
-                                     to a video and a playlist.
-    --yes-playlist                   Download the playlist, if the URL refers to
-                                     a video and a playlist.
+                                     to a video and not a playlist.
+    --yes-playlist                   Download the playlist, whether the URL refers to
+                                     a video or a playlist.
     --age-limit YEARS                Download only videos suitable for the given
                                      age
     --download-archive FILE          Download only videos not listed in the
