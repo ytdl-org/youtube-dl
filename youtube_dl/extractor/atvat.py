@@ -28,8 +28,10 @@ class ATVAtIE(InfoExtractor):
         display_id = self._match_id(url)
         webpage = self._download_webpage(url, display_id)
         video_data = self._parse_json(unescapeHTML(self._search_regex(
-            r'class="[^"]*jsb_video/FlashPlayer[^"]*"[^>]+data-jsb="([^"]+)"',
-            webpage, 'player data')), display_id)['config']['initial_video']
+            [
+                r'var\s+flashPlayerOptions\s*=\s*"([^"]+)"',
+                r'class="[^"]*jsb_video/FlashPlayer[^"]*"[^>]+data-jsb="([^"]+)"',
+            ], webpage, 'player data')), display_id)['config']['initial_video']
 
         video_id = video_data['id']
         video_title = video_data['title']
