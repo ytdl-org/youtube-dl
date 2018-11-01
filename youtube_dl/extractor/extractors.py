@@ -209,7 +209,10 @@ from .cloudy import CloudyIE
 from .clubic import ClubicIE
 from .clyp import ClypIE
 from .cmt import CMTIE
-from .cnbc import CNBCIE
+from .cnbc import (
+    CNBCIE,
+    CNBCVideoIE,
+)
 from .cnn import (
     CNNIE,
     CNNBlogsIE,
@@ -569,6 +572,10 @@ from .limelight import (
     LimelightChannelListIE,
 )
 from .line import LineTVIE
+from .linkedin import (
+    LinkedInLearningIE,
+    LinkedInLearningCourseIE,
+)
 from .litv import LiTVIE
 from .liveleak import (
     LiveLeakIE,
@@ -1043,7 +1050,7 @@ from .spike import (
 )
 from .stitcher import StitcherIE
 from .sport5 import Sport5IE
-from .sportbox import SportBoxEmbedIE
+from .sportbox import SportBoxIE
 from .sportdeutschland import SportDeutschlandIE
 from .springboardplatform import SpringboardPlatformIE
 from .sprout import SproutIE

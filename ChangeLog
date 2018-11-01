@@ -1,3 +1,27 @@
+version 2018.10.29
+
+Core
++ [extractor/common] Add validation for JSON-LD URLs
+
+Extractors
++ [sportbox] Add support for matchtv.ru
+* [sportbox] Fix extraction (#17978)
+* [screencast] Fix extraction (#14590, #14617, #17990)
++ [openload] Add support for oload.icu
++ [ivi] Add support for ivi.tv
+* [crunchyroll] Improve extraction failsafeness (#17991)
+* [dailymail] Fix formats extraction (#17976)
+* [viewster] Reduce format requests
+* [cwtv] Handle API errors (#17905)
++ [rutube] Use geo verification headers (#17897)
++ [brightcove:legacy] Add fallbacks to brightcove:new (#13912)
+- [tv3] Remove extractor (#10461, #15339)
+* [ted] Fix extraction for HTTP and RTMP formats (#5941, #17572, #17894)
++ [openload] Add support for oload.cc (#17823)
++ [patreon] Extract post_file URL (#17792)
+* [patreon] Fix extraction (#14502, #10471)
+
+
 version 2018.10.05
 
 Extractors
