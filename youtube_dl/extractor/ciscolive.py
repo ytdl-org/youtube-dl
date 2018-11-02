@@ -11,8 +11,7 @@ from ..utils import (
     try_get,
     clean_html,
     urlencode_postdata,
-    int_or_none,
-    ExtractorError
+    int_or_none
 )
 
 
