@@ -8,16 +8,7 @@ from .common import InfoExtractor
 from .kaltura import KalturaIE
 
 
-class AZMedienBaseIE(InfoExtractor):
-    _PARTNER_ID = '1719221'
-
-    def _kaltura_video(self, partner_id, entry_id):
-        return self.url_result(
-            'kaltura:%s:%s' % (partner_id, entry_id), ie=KalturaIE.ie_key(),
-            video_id=entry_id)
-
-
-class AZMedienIE(AZMedienBaseIE):
+class AZMedienIE(InfoExtractor):
     IE_DESC = 'AZ Medien videos'
     _VALID_URL = r'''(?x)
                     https?://
@@ -58,9 +49,11 @@ class AZMedienIE(AZMedienBaseIE):
         'only_matching': True
     }]
 
+    _PARTNER_ID = '1719221'
+
     def _real_extract(self, url):
-        video_id = self._match_id(url)
         mobj = re.match(self._VALID_URL, url)
+        video_id = mobj.group('id')
         entry_id = mobj.group('kaltura_id')
 
         if not entry_id:
@@ -92,4 +85,6 @@ class AZMedienIE(AZMedienBaseIE):
                 data=json.dumps(payload).encode())
             entry_id = json_data['data']['article']['mainAssetRelation']['asset']['kalturaId']
 
-        return self._kaltura_video(self._PARTNER_ID, entry_id)
+        return self.url_result(
+            'kaltura:%s:%s' % (self._PARTNER_ID, entry_id),
+            ie=KalturaIE.ie_key(), video_id=entry_id)
