@@ -84,8 +84,6 @@
  - **awaan:season**
  - **awaan:video**
  - **AZMedien**: AZ Medien videos
- - **AZMedienPlaylist**: AZ Medien playlists
- - **AZMedienShowPlaylist**: AZ Medien show playlists
  - **BaiduVideo**: 百度视频
  - **bambuser**
  - **bambuser:channel**
@@ -178,6 +176,7 @@
  - **Clyp**
  - **cmt.com**
  - **CNBC**
+ - **CNBCVideo**
  - **CNN**
  - **CNNArticle**
  - **CNNBlogs**
@@ -251,6 +250,7 @@
  - **EchoMsk**
  - **egghead:course**: egghead.io course
  - **egghead:lesson**: egghead.io lesson
+ - **ehftv**
  - **eHow**
  - **EinsUndEinsTV**
  - **Einthusan**
@@ -445,6 +445,8 @@
  - **limelight:channel**
  - **limelight:channel_list**
  - **LineTV**
+ - **linkedin:learning**
+ - **linkedin:learning:course**
  - **LiTV**
  - **LiveLeak**
  - **LiveLeakEmbed**
@@ -930,6 +932,7 @@
  - **TVPlayer**
  - **TVPlayHome**
  - **Tweakers**
+ - **TwitCasting**
  - **twitch:chapter**
  - **twitch:clips**
  - **twitch:profile**
