@@ -33,7 +33,8 @@ class Laola1TvEmbedIE(InfoExtractor):
 
     def _extract_token_url(self, stream_access_url, video_id, data):
         return self._download_json(
-            stream_access_url, video_id, headers={
+            self._proto_relative_url(stream_access_url, 'https:'), video_id,
+            headers={
                 'Content-Type': 'application/json',
             }, data=json.dumps(data).encode())['data']['stream-access'][0]
 
@@ -225,7 +226,7 @@ class Laola1TvIE(Laola1TvBaseIE):
 
 class EHFTVIE(Laola1TvBaseIE):
     IE_NAME = 'ehftv'
-    _VALID_URL = r'https?://(?:www\.)?ehftv\.com/[a-z]+(-[a-z]+)?/[^/]+/(?P<id>[^/?#&]+)'
+    _VALID_URL = r'https?://(?:www\.)?ehftv\.com/[a-z]+(?:-[a-z]+)?/[^/]+/(?P<id>[^/?#&]+)'
 
     _TESTS = [{
         'url': 'https://www.ehftv.com/int/video/paris-saint-germain-handball-pge-vive-kielce/1166761',
