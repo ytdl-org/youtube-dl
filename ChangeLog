@@ -1,3 +1,25 @@
+version <unreleased>
+
+Core
+* [extractor/common] Ensure response handle is not prematurely closed before
+  it can be read if it matches expected_status (#17195, #17846, #17447)
+
+Extractors
+* [laola1tv:embed] Set correct stream access URL scheme (#16341)
++ [ehftv] Add support for ehftv.com (#15408)
+* [azmedien] Adopt to major site redesign (#17745, #17746)
++ [twitcasting] Add support for twitcasting.tv (#17981)
+* [orf:tvthek] Fix extraction (#17737, #17956, #18024)
++ [openload] Add support for oload.fun (#18045)
+* [njpwworld] Fix authentication (#17427)
++ [linkedin:learning] Add support for linkedin.com/learning (#13545)
+* [theplatform] Improve error detection (#13222)
+* [cnbc] Simplify extraction (#14280, #17110)
++ [cbnc] Add support for new URL schema (#14193)
+* [aparat] Improve extraction and extract more metadata (#17445, #18008)
+* [aparat] Fix extraction
+
+
 version 2018.10.29
 
 Core
