@@ -1,4 +1,4 @@
-version <unreleased>
+version 2018.11.03
 
 Core
 * [extractor/common] Ensure response handle is not prematurely closed before
