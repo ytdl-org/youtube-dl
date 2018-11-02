@@ -6,8 +6,8 @@ from .common import InfoExtractor
 import re
 
 
-class TwitcastingIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:(?:www|ssl|en|pt|es|ja|ko)\.)?twitcasting\.tv/(?P<uploader_id>[^\/]+)/movie/(?P<video_id>[0-9]+)'
+class TwitCastingIE(InfoExtractor):
+    _VALID_URL = r'https?://(?:[^/]+\.)?twitcasting\.tv/(?P<uploader_id>[^/]+)/movie/(?P<id>\d+)'
     _TEST = {
         'url': 'https://twitcasting.tv/ivetesangalo/movie/2357609',
         'md5': '745243cad58c4681dc752490f7540d7f',
@@ -18,24 +18,40 @@ class TwitcastingIE(InfoExtractor):
             'uploader_id': 'ivetesangalo',
             'description': "Moi! I'm live on TwitCasting from my iPhone.",
             'thumbnail': r're:^https?://.*\.jpg$',
-        }
+        },
+        'params': {
+            'skip_download': True,
+        },
     }
 
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
-        video_id = mobj.group('video_id')
+        video_id = mobj.group('id')
         uploader_id = mobj.group('uploader_id')
 
         webpage = self._download_webpage(url, video_id)
 
-        playlist_url = self._html_search_regex(r'(["\'])(?P<url>http.+?\.m3u8.*?)\1', webpage, name='playlist url', group='url')
-        formats = self._extract_m3u8_formats(playlist_url, video_id, ext='mp4')
+        title = self._html_search_regex(
+            r'(?s)<[^>]+id=["\']movietitle[^>]+>(.+?)</',
+            webpage, 'title', default=None) or self._html_search_meta(
+            'twitter:title', webpage, fatal=True)
+
+        m3u8_url = self._search_regex(
+            (r'data-movie-url=(["\'])(?P<url>(?:(?!\1).)+)\1',
+             r'(["\'])(?P<url>http.+?\.m3u8.*?)\1'),
+            webpage, 'm3u8 url', group='url')
+
+        formats = self._extract_m3u8_formats(
+            m3u8_url, video_id, ext='mp4', entry_protocol='m3u8_native',
+            m3u8_id='hls')
+
         thumbnail = self._og_search_thumbnail(webpage)
-        title = self._html_search_meta('twitter:title', webpage)
-        description = self._og_search_description(webpage) or self._html_search_meta('twitter:description', webpage)
-        return{
+        description = self._og_search_description(
+            webpage, default=None) or self._html_search_meta(
+            'twitter:description', webpage)
+
+        return {
             'id': video_id,
-            'url': url,
             'title': title,
             'description': description,
             'thumbnail': thumbnail,
