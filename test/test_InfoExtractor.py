@@ -9,11 +9,30 @@ import sys
 import unittest
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from test.helper import FakeYDL, expect_dict, expect_value
-from youtube_dl.compat import compat_etree_fromstring
+from test.helper import FakeYDL, expect_dict, expect_value, http_server_port
+from youtube_dl.compat import compat_etree_fromstring, compat_http_server
 from youtube_dl.extractor.common import InfoExtractor
 from youtube_dl.extractor import YoutubeIE, get_info_extractor
 from youtube_dl.utils import encode_data_uri, strip_jsonp, ExtractorError, RegexNotFoundError
+import threading
+
+
+TEAPOT_RESPONSE_STATUS = 418
+TEAPOT_RESPONSE_BODY = "<h1>418 I'm a teapot</h1>"
+
+
+class InfoExtractorTestRequestHandler(compat_http_server.BaseHTTPRequestHandler):
+    def log_message(self, format, *args):
+        pass
+
+    def do_GET(self):
+        if self.path == '/teapot':
+            self.send_response(TEAPOT_RESPONSE_STATUS)
+            self.send_header('Content-Type', 'text/html; charset=utf-8')
+            self.end_headers()
+            self.wfile.write(TEAPOT_RESPONSE_BODY.encode())
+        else:
+            assert False
 
 
 class TestIE(InfoExtractor):
@@ -742,6 +761,25 @@ jwplayer("mediaplayer").setup({"abouttext":"Visit Indie DB","aboutlink":"http:\/
                 expect_value(self, entries, expected_entries, None)
                 for i in range(len(entries)):
                     expect_dict(self, entries[i], expected_entries[i])
+
+    def test_response_with_expected_status_returns_content(self):
+        # Checks for mitigations against the effects of
+        # <https://bugs.python.org/issue15002> that affect Python 3.4.1+, which
+        # manifest as `_download_webpage`, `_download_xml`, `_download_json`,
+        # or the underlying `_download_webpage_handle` returning no content
+        # when a response matches `expected_status`.
+
+        httpd = compat_http_server.HTTPServer(
+            ('127.0.0.1', 0), InfoExtractorTestRequestHandler)
+        port = http_server_port(httpd)
+        server_thread = threading.Thread(target=httpd.serve_forever)
+        server_thread.daemon = True
+        server_thread.start()
+
+        (content, urlh) = self.ie._download_webpage_handle(
+            'http://127.0.0.1:%d/teapot' % port, None,
+            expected_status=TEAPOT_RESPONSE_STATUS)
+        self.assertEqual(content, TEAPOT_RESPONSE_BODY)
 
 
 if __name__ == '__main__':
