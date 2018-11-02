@@ -3,10 +3,16 @@ from __future__ import unicode_literals
 
 import re
 from .common import InfoExtractor
-from ..compat import compat_urllib_parse_urlencode
+from ..compat import (
+    compat_urllib_parse_urlparse,
+    compat_parse_qs
+)
 from ..utils import (
     try_get,
-    clean_html
+    clean_html,
+    urlencode_postdata,
+    int_or_none,
+    ExtractorError
 )
 
 
@@ -78,7 +84,7 @@ class CiscoLiveIE(InfoExtractor):
         pdf_url = try_get(rf_item, lambda x: x['files'][0]['url'])
         bc_id = try_get(rf_item, lambda x: x['videos'][0]['url'])
         bc_url = self.BRIGHTCOVE_URL_TEMPLATE % bc_id
-        duration = try_get(rf_item, lambda x: x['times'][0]['length'])
+        duration = int_or_none(try_get(rf_item, lambda x: x['times'][0]['length']))
         location = try_get(rf_item, lambda x: x['times'][0]['room'])
 
         if duration:
@@ -115,28 +121,30 @@ class CiscoLiveIE(InfoExtractor):
             'rfWidgetId': self.RAINFOCUS_WIDGETID,
             'Referer': url,
         }
-
         # Single session URL (single video)
         if mobj.group('id'):
             rf_id = mobj.group('id')
             request = self.RAINFOCUS_API_URL % 'session'
-            data = compat_urllib_parse_urlencode({'id': rf_id})
-            rf_result = self._download_json(request, rf_id, data=data,
-                                            headers=headers)
+            data = urlencode_postdata({'id': rf_id})
+            rf_result = self._download_json(request, rf_id, data=data, headers=headers)
             rf_item = self._check_bc_id_exists(try_get(rf_result, lambda x: x['items'][0], dict))
+            if not rf_item:
+                msg = 'Rain Focus JSON response did not return a Brightcove video ID'
+                raise ExtractorError(msg)
             return self._parse_rf_item(rf_item)
         else:
             # Filter query URL (multiple videos)
-            rf_query = mobj.group('query')
-            rf_query = str(rf_query + '&type=session&size=1000')
+            rf_query = compat_parse_qs((compat_urllib_parse_urlparse(url).query))
+            rf_query['type'] = 'session'
+            rf_query['size'] = 1000
+            data = urlencode_postdata(rf_query)
             request = self.RAINFOCUS_API_URL % 'search'
             # Query JSON results offer no obvious way to ID the search
-            rf_results = self._download_json(request, 'Filter query',
-                                             data=rf_query, headers=headers)
+            rf_results = self._download_json(request, 'Filter query', data=data, headers=headers)
             # Not all sessions have videos; filter them out before moving on
             rf_video_results = [
                 rf_item
-                for rf_item in try_get(rf_results, lambda x: x['sectionList'][0]['items'], list)
+                for rf_item in rf_results['sectionList'][0]['items']
                 if self._check_bc_id_exists(rf_item)
             ]
             entries = [self._parse_rf_item(rf_item) for rf_item in rf_video_results]
