@@ -82,7 +82,7 @@ class CiscoLiveIE(InfoExtractor):
         presenter_name = try_get(rf_item, lambda x: x['participants'][0]['fullName'])
         presenter_title = try_get(rf_item, lambda x: x['participants'][0]['jobTitle'])
         pdf_url = try_get(rf_item, lambda x: x['files'][0]['url'])
-        bc_id = try_get(rf_item, lambda x: x['videos'][0]['url'])
+        bc_id = rf_item['videos'][0]['url']
         bc_url = self.BRIGHTCOVE_URL_TEMPLATE % bc_id
         duration = int_or_none(try_get(rf_item, lambda x: x['times'][0]['length']))
         location = try_get(rf_item, lambda x: x['times'][0]['room'])
@@ -127,10 +127,7 @@ class CiscoLiveIE(InfoExtractor):
             request = self.RAINFOCUS_API_URL % 'session'
             data = urlencode_postdata({'id': rf_id})
             rf_result = self._download_json(request, rf_id, data=data, headers=headers)
-            rf_item = self._check_bc_id_exists(try_get(rf_result, lambda x: x['items'][0], dict))
-            if not rf_item:
-                msg = 'Rain Focus JSON response did not return a Brightcove video ID'
-                raise ExtractorError(msg)
+            rf_item = self._check_bc_id_exists(rf_result['items'][0])
             return self._parse_rf_item(rf_item)
         else:
             # Filter query URL (multiple videos)
