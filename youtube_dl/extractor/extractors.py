@@ -708,6 +708,7 @@ from .newgrounds import (
     NewgroundsIE,
     NewgroundsPlaylistIE,
 )
+from .news18 import News18IE
 from .newstube import NewstubeIE
 from .nextmedia import (
     NextMediaIE,
