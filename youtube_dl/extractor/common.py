@@ -69,6 +69,7 @@ from ..utils import (
     update_url_query,
     urljoin,
     url_basename,
+    url_or_none,
     xpath_element,
     xpath_text,
     xpath_with_ns,
@@ -605,6 +606,11 @@ class InfoExtractor(object):
         except (compat_urllib_error.URLError, compat_http_client.HTTPException, socket.error) as err:
             if isinstance(err, compat_urllib_error.HTTPError):
                 if self.__can_accept_status_code(err, expected_status):
+                    # Retain reference to error to prevent file object from
+                    # being closed before it can be read. Works around the
+                    # effects of <https://bugs.python.org/issue15002>
+                    # introduced in Python 3.4.1.
+                    err.fp._error = err
                     return err.fp
 
             if errnote is False:
@@ -1213,10 +1219,10 @@ class InfoExtractor(object):
         def extract_video_object(e):
             assert e['@type'] == 'VideoObject'
             info.update({
-                'url': e.get('contentUrl'),
+                'url': url_or_none(e.get('contentUrl')),
                 'title': unescapeHTML(e.get('name')),
                 'description': unescapeHTML(e.get('description')),
-                'thumbnail': e.get('thumbnailUrl') or e.get('thumbnailURL'),
+                'thumbnail': url_or_none(e.get('thumbnailUrl') or e.get('thumbnailURL')),
                 'duration': parse_duration(e.get('duration')),
                 'timestamp': unified_timestamp(e.get('uploadDate')),
                 'filesize': float_or_none(e.get('contentSize')),

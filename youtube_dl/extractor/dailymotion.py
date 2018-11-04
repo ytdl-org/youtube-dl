@@ -22,7 +22,10 @@ from ..utils import (
     parse_iso8601,
     sanitized_Request,
     str_to_int,
+    try_get,
     unescapeHTML,
+    update_url_query,
+    url_or_none,
     urlencode_postdata,
 )
 
@@ -171,10 +174,25 @@ class DailymotionIE(DailymotionBaseInfoExtractor):
              r'__PLAYER_CONFIG__\s*=\s*({.+?});'],
             webpage, 'player v5', default=None)
         if player_v5:
-            player = self._parse_json(player_v5, video_id)
-            metadata = player['metadata']
+            player = self._parse_json(player_v5, video_id, fatal=False) or {}
+            metadata = try_get(player, lambda x: x['metadata'], dict)
+            if not metadata:
+                metadata_url = url_or_none(try_get(
+                    player, lambda x: x['context']['metadata_template_url1']))
+                if metadata_url:
+                    metadata_url = metadata_url.replace(':videoId', video_id)
+                else:
+                    metadata_url = update_url_query(
+                        'https://www.dailymotion.com/player/metadata/video/%s'
+                        % video_id, {
+                            'embedder': url,
+                            'integration': 'inline',
+                            'GK_PV5_NEON': '1',
+                        })
+                metadata = self._download_json(
+                    metadata_url, video_id, 'Downloading metadata JSON')
 
-            if metadata.get('error', {}).get('type') == 'password_protected':
+            if try_get(metadata, lambda x: x['error']['type']) == 'password_protected':
                 password = self._downloader.params.get('videopassword')
                 if password:
                     r = int(metadata['id'][1:], 36)

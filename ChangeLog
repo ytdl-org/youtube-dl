@@ -1,3 +1,65 @@
+version 2018.11.03
+
+Core
+* [extractor/common] Ensure response handle is not prematurely closed before
+  it can be read if it matches expected_status (#17195, #17846, #17447)
+
+Extractors
+* [laola1tv:embed] Set correct stream access URL scheme (#16341)
++ [ehftv] Add support for ehftv.com (#15408)
+* [azmedien] Adopt to major site redesign (#17745, #17746)
++ [twitcasting] Add support for twitcasting.tv (#17981)
+* [orf:tvthek] Fix extraction (#17737, #17956, #18024)
++ [openload] Add support for oload.fun (#18045)
+* [njpwworld] Fix authentication (#17427)
++ [linkedin:learning] Add support for linkedin.com/learning (#13545)
+* [theplatform] Improve error detection (#13222)
+* [cnbc] Simplify extraction (#14280, #17110)
++ [cbnc] Add support for new URL schema (#14193)
+* [aparat] Improve extraction and extract more metadata (#17445, #18008)
+* [aparat] Fix extraction
+
+
+version 2018.10.29
+
+Core
++ [extractor/common] Add validation for JSON-LD URLs
+
+Extractors
++ [sportbox] Add support for matchtv.ru
+* [sportbox] Fix extraction (#17978)
+* [screencast] Fix extraction (#14590, #14617, #17990)
++ [openload] Add support for oload.icu
++ [ivi] Add support for ivi.tv
+* [crunchyroll] Improve extraction failsafeness (#17991)
+* [dailymail] Fix formats extraction (#17976)
+* [viewster] Reduce format requests
+* [cwtv] Handle API errors (#17905)
++ [rutube] Use geo verification headers (#17897)
++ [brightcove:legacy] Add fallbacks to brightcove:new (#13912)
+- [tv3] Remove extractor (#10461, #15339)
+* [ted] Fix extraction for HTTP and RTMP formats (#5941, #17572, #17894)
++ [openload] Add support for oload.cc (#17823)
++ [patreon] Extract post_file URL (#17792)
+* [patreon] Fix extraction (#14502, #10471)
+
+
+version 2018.10.05
+
+Extractors
+* [pluralsight] Improve authentication (#17762)
+* [dailymotion] Fix extraction (#17699)
+* [crunchyroll] Switch to HTTPS for RpcApi (#17749)
++ [philharmoniedeparis] Add support for pad.philharmoniedeparis.fr (#17705)
+* [philharmoniedeparis] Fix extraction (#17705)
++ [jamendo] Add support for licensing.jamendo.com (#17724)
++ [openload] Add support for oload.cloud (#17710)
+* [pluralsight] Fix subtitles extraction (#17726, #17728)
++ [vimeo] Add another config regular expression (#17690)
+* [spike] Fix Paramount Network extraction (#17677)
+* [hotstar] Fix extraction (#14694, #14931, #17637)
+
+
 version 2018.09.26
 
 Extractors
