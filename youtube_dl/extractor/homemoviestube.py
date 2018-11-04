@@ -26,8 +26,7 @@ class HomeMoviesTubeIE(InfoExtractor):
 
         webpage = self._download_webpage(url, display_id)
 
-        video_url = self._html_search_regex(
-            r'<source src="(.+?)"', webpage, 'video URL')
+        video_url = self._html_search_regex(r'<source src="(.+?)"', webpage, 'video URL')
 
         title = self._html_search_regex(r'<h1>(.+?)</h1>', webpage, 'title')
 
