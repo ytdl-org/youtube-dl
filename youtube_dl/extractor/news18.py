@@ -23,9 +23,6 @@ class News18IE(InfoExtractor):
         video_url = self._search_regex(r'(?P<url>https?:\/\/vodpd\.news18\.com[\/\w_-]+\.mp4)', webpage, 'video URL',default='')
         title = self._og_search_title(webpage)
 
-        print(video_url)
-        print(video_id)
-        print(title)
         return {
             'url': video_url,
             'id': video_id,
