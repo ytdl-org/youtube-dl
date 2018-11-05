@@ -2162,7 +2162,11 @@ class YoutubePlaylistIE(YoutubePlaylistBaseInfoExtractor):
                         (?:https?://)?
                         (?:\w+\.)?
                         (?:
-                            youtube\.com/
+                            (?:
+                                youtube\.com|
+                                invidio\.us
+                            )
+                            /
                             (?:
                                (?:course|view_play_list|my_playlists|artist|playlist|watch|embed/(?:videoseries|[0-9A-Za-z_-]{11}))
                                \? (?:.*?[&;])*? (?:p|a|list)=
@@ -2313,6 +2317,9 @@ class YoutubePlaylistIE(YoutubePlaylistBaseInfoExtractor):
     }, {
         # music album playlist
         'url': 'OLAK5uy_m4xAFdmMC5rX3Ji3g93pQe3hqLZw_9LhM',
+        'only_matching': True,
+    }, {
+        'url': 'https://invidio.us/playlist?list=PLDIoUOhQQPlXr63I_vwF9GD8sAKh77dWU',
         'only_matching': True,
     }]
 
