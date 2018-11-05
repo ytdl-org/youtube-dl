@@ -22,7 +22,7 @@ class ZattooPlatformBaseIE(InfoExtractor):
     _power_guide_hash = None
 
     def _host_url(self):
-        return 'https://%s' % self._HOST
+        return 'https://%s' % (self._API_HOST if hasattr(self, '_API_HOST') else self._HOST)
 
     def _login(self):
         username, password = self._get_login_info()
@@ -286,6 +286,7 @@ class ZattooLiveIE(ZattooBaseIE):
 class NetPlusIE(ZattooIE):
     _NETRC_MACHINE = 'netplus'
     _HOST = 'netplus.tv'
+    _API_HOST = 'www.%s' % _HOST
     _VALID_URL = _make_valid_url(ZattooIE._VALID_URL_TEMPLATE, _HOST)
 
     _TESTS = [{
@@ -300,7 +301,7 @@ class MNetTVIE(ZattooIE):
     _VALID_URL = _make_valid_url(ZattooIE._VALID_URL_TEMPLATE, _HOST)
 
     _TESTS = [{
-        'url': 'https://www.tvplus.m-net.de/watch/abc/123-abc',
+        'url': 'https://tvplus.m-net.de/watch/abc/123-abc',
         'only_matching': True,
     }]
 
@@ -311,7 +312,7 @@ class WalyTVIE(ZattooIE):
     _VALID_URL = _make_valid_url(ZattooIE._VALID_URL_TEMPLATE, _HOST)
 
     _TESTS = [{
-        'url': 'https://www.player.waly.tv/watch/abc/123-abc',
+        'url': 'https://player.waly.tv/watch/abc/123-abc',
         'only_matching': True,
     }]
 
@@ -319,6 +320,7 @@ class WalyTVIE(ZattooIE):
 class BBVTVIE(ZattooIE):
     _NETRC_MACHINE = 'bbvtv'
     _HOST = 'bbv-tv.net'
+    _API_HOST = 'www.%s' % _HOST
     _VALID_URL = _make_valid_url(ZattooIE._VALID_URL_TEMPLATE, _HOST)
 
     _TESTS = [{
@@ -330,6 +332,7 @@ class BBVTVIE(ZattooIE):
 class VTXTVIE(ZattooIE):
     _NETRC_MACHINE = 'vtxtv'
     _HOST = 'vtxtv.ch'
+    _API_HOST = 'www.%s' % _HOST
     _VALID_URL = _make_valid_url(ZattooIE._VALID_URL_TEMPLATE, _HOST)
 
     _TESTS = [{
@@ -341,6 +344,7 @@ class VTXTVIE(ZattooIE):
 class MyVisionTVIE(ZattooIE):
     _NETRC_MACHINE = 'myvisiontv'
     _HOST = 'myvisiontv.ch'
+    _API_HOST = 'www.%s' % _HOST
     _VALID_URL = _make_valid_url(ZattooIE._VALID_URL_TEMPLATE, _HOST)
 
     _TESTS = [{
@@ -355,7 +359,7 @@ class GlattvisionTVIE(ZattooIE):
     _VALID_URL = _make_valid_url(ZattooIE._VALID_URL_TEMPLATE, _HOST)
 
     _TESTS = [{
-        'url': 'https://www.iptv.glattvision.ch/watch/abc/123-abc',
+        'url': 'https://iptv.glattvision.ch/watch/abc/123-abc',
         'only_matching': True,
     }]
 
@@ -363,6 +367,7 @@ class GlattvisionTVIE(ZattooIE):
 class SAKTVIE(ZattooIE):
     _NETRC_MACHINE = 'saktv'
     _HOST = 'saktv.ch'
+    _API_HOST = 'www.%s' % _HOST
     _VALID_URL = _make_valid_url(ZattooIE._VALID_URL_TEMPLATE, _HOST)
 
     _TESTS = [{
@@ -377,7 +382,7 @@ class EWETVIE(ZattooIE):
     _VALID_URL = _make_valid_url(ZattooIE._VALID_URL_TEMPLATE, _HOST)
 
     _TESTS = [{
-        'url': 'https://www.tvonline.ewe.de/watch/abc/123-abc',
+        'url': 'https://tvonline.ewe.de/watch/abc/123-abc',
         'only_matching': True,
     }]
 
@@ -385,6 +390,7 @@ class EWETVIE(ZattooIE):
 class QuantumTVIE(ZattooIE):
     _NETRC_MACHINE = 'quantumtv'
     _HOST = 'quantum-tv.com'
+    _API_HOST = 'www.%s' % _HOST
     _VALID_URL = _make_valid_url(ZattooIE._VALID_URL_TEMPLATE, _HOST)
 
     _TESTS = [{
@@ -399,7 +405,7 @@ class OsnatelTVIE(ZattooIE):
     _VALID_URL = _make_valid_url(ZattooIE._VALID_URL_TEMPLATE, _HOST)
 
     _TESTS = [{
-        'url': 'https://www.onlinetv.osnatel.de/watch/abc/123-abc',
+        'url': 'https://tvonline.osnatel.de/watch/abc/123-abc',
         'only_matching': True,
     }]
 
@@ -407,6 +413,7 @@ class OsnatelTVIE(ZattooIE):
 class EinsUndEinsTVIE(ZattooIE):
     _NETRC_MACHINE = '1und1tv'
     _HOST = '1und1.tv'
+    _API_HOST = 'www.%s' % _HOST
     _VALID_URL = _make_valid_url(ZattooIE._VALID_URL_TEMPLATE, _HOST)
 
     _TESTS = [{
