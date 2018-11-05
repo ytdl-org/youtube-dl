@@ -401,7 +401,7 @@ class QuantumTVIE(ZattooIE):
 
 class OsnatelTVIE(ZattooIE):
     _NETRC_MACHINE = 'osnateltv'
-    _HOST = 'onlinetv.osnatel.de'
+    _HOST = 'tvonline.osnatel.de'
     _VALID_URL = _make_valid_url(ZattooIE._VALID_URL_TEMPLATE, _HOST)
 
     _TESTS = [{
