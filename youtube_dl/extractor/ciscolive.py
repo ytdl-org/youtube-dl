@@ -108,9 +108,10 @@ class CiscoLiveIE(InfoExtractor):
 
         '''
         bc_id = try_get(rf_item, lambda x: x['videos'][0]['url'])
-        mobj = re.match(r'\d+', bc_id)
-        if mobj:
-            return rf_item
+        if bc_id:
+            mobj = re.match(r'\d+', bc_id)
+            if mobj:
+                return rf_item
 
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
