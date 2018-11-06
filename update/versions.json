@@ -1,6 +1,6 @@
 {
-    "latest": "2018.11.03",
-    "signature": "9027d4cf8b8aeb639dd1526e55b85a7c9a47ca85e1078b6b76a40ab87831a083d0e57bba33d41b7d639269e7b0c117e3972bedfe6d77db6671149baf9f30f2ef077e4a4b3c5af0ccdd49d3114a7a2c9e3c59bd623f5062f96e8297b0e753919cc436b7e13b1fa755d669d88923920d214700f27679ff85fc88f82637501cc872",
+    "latest": "2018.11.07",
+    "signature": "1fd2e54f7b2f156f50bc592a3d78b810bdf85090fd0f301c770d61099ce35a8202125382a979bb23d71f0e4dc55aebad9aaf488f0ba29946a7e12161182864a092f7f762ab29433be81356960fca1178eb623066e2fe6e9334e29b65f69f8c93add2f14bc2107299b1cc7a1524a572c655a441a8694651288907a1660db33c08",
     "versions": {
         "2012.02.22": {
             "bin": [
@@ -12186,6 +12186,20 @@
             "tar": [
                 "https://yt-dl.org/downloads/2018.11.03/youtube-dl-2018.11.03.tar.gz",
                 "920aff8c13a3fdf68f5d9975c3e4d9d64acd9e96a51561080405bc902187f086"
+            ]
+        },
+        "2018.11.07": {
+            "bin": [
+                "https://yt-dl.org/downloads/2018.11.07/youtube-dl",
+                "a975dd0794c15cce9161e96408be2e4dc0da89dbb6c1b4f685f82a0e2febb6bd"
+            ],
+            "exe": [
+                "https://yt-dl.org/downloads/2018.11.07/youtube-dl.exe",
+                "01c488278435c8a233f433cdfbb274491acafd0caafedebceb1218ef2628baa9"
+            ],
+            "tar": [
+                "https://yt-dl.org/downloads/2018.11.07/youtube-dl-2018.11.07.tar.gz",
+                "69f6f7bc3280fe8fc89347050b07072e51fcca63d31da531f353d43545156ce7"
             ]
         }
     }
