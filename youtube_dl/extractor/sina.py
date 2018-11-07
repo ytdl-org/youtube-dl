@@ -64,7 +64,7 @@ class SinaIE(InfoExtractor):
                 # The video id is in the redirected url
                 self.to_screen('Getting video id')
                 request = HEADRequest(url)
-                (_, urlh) = self._download_webpage_handle(request, 'NA', False)
+                _, urlh = self._download_webpage_handle(request, 'NA', False)
                 return self._real_extract(urlh.geturl())
             else:
                 pseudo_id = mobj.group('pseudo_id')

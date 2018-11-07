@@ -53,6 +53,12 @@ class RuutuIE(InfoExtractor):
                 'age_limit': 0,
             },
         },
+        # Episode where <SourceFile> is "NOT-USED", but has other
+        # downloadable sources available.
+        {
+            'url': 'http://www.ruutu.fi/video/3193728',
+            'only_matching': True,
+        },
     ]
 
     def _real_extract(self, url):
@@ -72,7 +78,7 @@ class RuutuIE(InfoExtractor):
                     video_url = child.text
                     if (not video_url or video_url in processed_urls or
                             any(p in video_url for p in ('NOT_USED', 'NOT-USED'))):
-                        return
+                        continue
                     processed_urls.append(video_url)
                     ext = determine_ext(video_url)
                     if ext == 'm3u8':

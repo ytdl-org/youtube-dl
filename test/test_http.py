@@ -8,21 +8,13 @@ import sys
 import unittest
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
+from test.helper import http_server_port
 from youtube_dl import YoutubeDL
 from youtube_dl.compat import compat_http_server, compat_urllib_request
 import ssl
 import threading
 
 TEST_DIR = os.path.dirname(os.path.abspath(__file__))
-
-
-def http_server_port(httpd):
-    if os.name == 'java' and isinstance(httpd.socket, ssl.SSLSocket):
-        # In Jython SSLSocket is not a subclass of socket.socket
-        sock = httpd.socket.sock
-    else:
-        sock = httpd.socket
-    return sock.getsockname()[1]
 
 
 class HTTPTestRequestHandler(compat_http_server.BaseHTTPRequestHandler):
@@ -47,7 +39,7 @@ class HTTPTestRequestHandler(compat_http_server.BaseHTTPRequestHandler):
                 self.end_headers()
                 return
 
-            new_url = 'http://localhost:%d/中文.html' % http_server_port(self.server)
+            new_url = 'http://127.0.0.1:%d/中文.html' % http_server_port(self.server)
             self.send_response(302)
             self.send_header(b'Location', new_url.encode('utf-8'))
             self.end_headers()
@@ -74,7 +66,7 @@ class FakeLogger(object):
 class TestHTTP(unittest.TestCase):
     def setUp(self):
         self.httpd = compat_http_server.HTTPServer(
-            ('localhost', 0), HTTPTestRequestHandler)
+            ('127.0.0.1', 0), HTTPTestRequestHandler)
         self.port = http_server_port(self.httpd)
         self.server_thread = threading.Thread(target=self.httpd.serve_forever)
         self.server_thread.daemon = True
@@ -86,15 +78,15 @@ class TestHTTP(unittest.TestCase):
             return
 
         ydl = YoutubeDL({'logger': FakeLogger()})
-        r = ydl.extract_info('http://localhost:%d/302' % self.port)
-        self.assertEqual(r['entries'][0]['url'], 'http://localhost:%d/vid.mp4' % self.port)
+        r = ydl.extract_info('http://127.0.0.1:%d/302' % self.port)
+        self.assertEqual(r['entries'][0]['url'], 'http://127.0.0.1:%d/vid.mp4' % self.port)
 
 
 class TestHTTPS(unittest.TestCase):
     def setUp(self):
         certfn = os.path.join(TEST_DIR, 'testcert.pem')
         self.httpd = compat_http_server.HTTPServer(
-            ('localhost', 0), HTTPTestRequestHandler)
+            ('127.0.0.1', 0), HTTPTestRequestHandler)
         self.httpd.socket = ssl.wrap_socket(
             self.httpd.socket, certfile=certfn, server_side=True)
         self.port = http_server_port(self.httpd)
@@ -107,11 +99,11 @@ class TestHTTPS(unittest.TestCase):
             ydl = YoutubeDL({'logger': FakeLogger()})
             self.assertRaises(
                 Exception,
-                ydl.extract_info, 'https://localhost:%d/video.html' % self.port)
+                ydl.extract_info, 'https://127.0.0.1:%d/video.html' % self.port)
 
         ydl = YoutubeDL({'logger': FakeLogger(), 'nocheckcertificate': True})
-        r = ydl.extract_info('https://localhost:%d/video.html' % self.port)
-        self.assertEqual(r['entries'][0]['url'], 'https://localhost:%d/vid.mp4' % self.port)
+        r = ydl.extract_info('https://127.0.0.1:%d/video.html' % self.port)
+        self.assertEqual(r['entries'][0]['url'], 'https://127.0.0.1:%d/vid.mp4' % self.port)
 
 
 def _build_proxy_handler(name):
@@ -132,23 +124,23 @@ def _build_proxy_handler(name):
 class TestProxy(unittest.TestCase):
     def setUp(self):
         self.proxy = compat_http_server.HTTPServer(
-            ('localhost', 0), _build_proxy_handler('normal'))
+            ('127.0.0.1', 0), _build_proxy_handler('normal'))
         self.port = http_server_port(self.proxy)
         self.proxy_thread = threading.Thread(target=self.proxy.serve_forever)
         self.proxy_thread.daemon = True
         self.proxy_thread.start()
 
         self.geo_proxy = compat_http_server.HTTPServer(
-            ('localhost', 0), _build_proxy_handler('geo'))
+            ('127.0.0.1', 0), _build_proxy_handler('geo'))
         self.geo_port = http_server_port(self.geo_proxy)
         self.geo_proxy_thread = threading.Thread(target=self.geo_proxy.serve_forever)
         self.geo_proxy_thread.daemon = True
         self.geo_proxy_thread.start()
 
     def test_proxy(self):
-        geo_proxy = 'localhost:{0}'.format(self.geo_port)
+        geo_proxy = '127.0.0.1:{0}'.format(self.geo_port)
         ydl = YoutubeDL({
-            'proxy': 'localhost:{0}'.format(self.port),
+            'proxy': '127.0.0.1:{0}'.format(self.port),
             'geo_verification_proxy': geo_proxy,
         })
         url = 'http://foo.com/bar'
@@ -162,7 +154,7 @@ class TestProxy(unittest.TestCase):
 
     def test_proxy_with_idn(self):
         ydl = YoutubeDL({
-            'proxy': 'localhost:{0}'.format(self.port),
+            'proxy': '127.0.0.1:{0}'.format(self.port),
         })
         url = 'http://中文.tw/'
         response = ydl.urlopen(url).read().decode('utf-8')

@@ -24,7 +24,7 @@ class PlaytvakIE(InfoExtractor):
             'id': 'A150730_150323_hodinovy-manzel_kuko',
             'ext': 'mp4',
             'title': 'Vyžeňte vosy a sršně ze zahrady',
-            'description': 'md5:f93d398691044d303bc4a3de62f3e976',
+            'description': 'md5:4436e61b7df227a093778efb7e373571',
             'thumbnail': r're:(?i)^https?://.*\.(?:jpg|png)$',
             'duration': 279,
             'timestamp': 1438732860,
@@ -36,9 +36,19 @@ class PlaytvakIE(InfoExtractor):
         'info_dict': {
             'id': 'A150624_164934_planespotting_cat',
             'ext': 'flv',
-            'title': 're:^Přímý přenos iDNES.cz [0-9]{4}-[0-9]{2}-[0-9]{2} [0-9]{2}:[0-9]{2}$',
+            'title': 're:^Planespotting [0-9]{4}-[0-9]{2}-[0-9]{2} [0-9]{2}:[0-9]{2}$',
             'description': 'Sledujte provoz na ranveji Letiště Václava Havla v Praze',
-            'thumbnail': r're:(?i)^https?://.*\.(?:jpg|png)$',
+            'is_live': True,
+        },
+        'params': {
+            'skip_download': True,  # requires rtmpdump
+        },
+    }, {  # another live stream, this one without Misc.videoFLV
+        'url': 'https://slowtv.playtvak.cz/zive-sledujte-vlaky-v-primem-prenosu-dwi-/hlavni-nadrazi.aspx?c=A151218_145728_hlavni-nadrazi_plap',
+        'info_dict': {
+            'id': 'A151218_145728_hlavni-nadrazi_plap',
+            'ext': 'flv',
+            'title': 're:^Hlavní nádraží [0-9]{4}-[0-9]{2}-[0-9]{2} [0-9]{2}:[0-9]{2}$',
             'is_live': True,
         },
         'params': {
@@ -95,7 +105,7 @@ class PlaytvakIE(InfoExtractor):
         webpage = self._download_webpage(url, video_id)
 
         info_url = self._html_search_regex(
-            r'Misc\.videoFLV\(\s*{\s*data\s*:\s*"([^"]+)"', webpage, 'info url')
+            r'Misc\.video(?:FLV)?\(\s*{\s*data\s*:\s*"([^"]+)"', webpage, 'info url')
 
         parsed_url = compat_urlparse.urlparse(info_url)
 
@@ -160,7 +170,7 @@ class PlaytvakIE(InfoExtractor):
         if is_live:
             title = self._live_title(title)
         description = self._og_search_description(webpage, default=None) or self._html_search_meta(
-            'description', webpage, 'description')
+            'description', webpage, 'description', default=None)
         timestamp = None
         duration = None
         if not is_live:

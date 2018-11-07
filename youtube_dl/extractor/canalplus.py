@@ -4,59 +4,36 @@ from __future__ import unicode_literals
 import re
 
 from .common import InfoExtractor
-from ..compat import compat_urllib_parse_urlparse
 from ..utils import (
-    dict_get,
     # ExtractorError,
     # HEADRequest,
     int_or_none,
     qualities,
-    remove_end,
     unified_strdate,
 )
 
 
 class CanalplusIE(InfoExtractor):
-    IE_DESC = 'canalplus.fr, piwiplus.fr and d8.tv'
-    _VALID_URL = r'''(?x)
-                        https?://
-                            (?:
-                                (?:
-                                    (?:(?:www|m)\.)?canalplus\.fr|
-                                    (?:www\.)?piwiplus\.fr|
-                                    (?:www\.)?d8\.tv|
-                                    (?:www\.)?c8\.fr|
-                                    (?:www\.)?d17\.tv|
-                                    (?:(?:football|www)\.)?cstar\.fr|
-                                    (?:www\.)?itele\.fr
-                                )/(?:(?:[^/]+/)*(?P<display_id>[^/?#&]+))?(?:\?.*\bvid=(?P<vid>\d+))?|
-                                player\.canalplus\.fr/#/(?P<id>\d+)
-                            )
-
-                    '''
+    IE_DESC = 'mycanal.fr and piwiplus.fr'
+    _VALID_URL = r'https?://(?:www\.)?(?P<site>mycanal|piwiplus)\.fr/(?:[^/]+/)*(?P<display_id>[^?/]+)(?:\.html\?.*\bvid=|/p/)(?P<id>\d+)'
     _VIDEO_INFO_TEMPLATE = 'http://service.canal-plus.com/video/rest/getVideosLiees/%s/%s?format=json'
     _SITE_ID_MAP = {
-        'canalplus': 'cplus',
+        'mycanal': 'cplus',
         'piwiplus': 'teletoon',
-        'd8': 'd8',
-        'c8': 'd8',
-        'd17': 'd17',
-        'cstar': 'd17',
-        'itele': 'itele',
     }
 
     # Only works for direct mp4 URLs
     _GEO_COUNTRIES = ['FR']
 
     _TESTS = [{
-        'url': 'http://www.canalplus.fr/c-emissions/pid1830-c-zapping.html?vid=1192814',
+        'url': 'https://www.mycanal.fr/d17-emissions/lolywood/p/1397061',
         'info_dict': {
-            'id': '1405510',
-            'display_id': 'pid1830-c-zapping',
+            'id': '1397061',
+            'display_id': 'lolywood',
             'ext': 'mp4',
-            'title': 'Zapping - 02/07/2016',
-            'description': 'Le meilleur de toutes les chaînes, tous les jours',
-            'upload_date': '20160702',
+            'title': 'Euro 2016 : Je préfère te prévenir - Lolywood - Episode 34',
+            'description': 'md5:7d97039d455cb29cdba0d652a0efaa5e',
+            'upload_date': '20160602',
         },
     }, {
         # geo restricted, bypassed
@@ -70,64 +47,12 @@ class CanalplusIE(InfoExtractor):
             'upload_date': '20140724',
         },
         'expected_warnings': ['HTTP Error 403: Forbidden'],
-    }, {
-        # geo restricted, bypassed
-        'url': 'http://www.c8.fr/c8-divertissement/ms-touche-pas-a-mon-poste/pid6318-videos-integrales.html?vid=1443684',
-        'md5': 'bb6f9f343296ab7ebd88c97b660ecf8d',
-        'info_dict': {
-            'id': '1443684',
-            'display_id': 'pid6318-videos-integrales',
-            'ext': 'mp4',
-            'title': 'Guess my iep ! - TPMP - 07/04/2017',
-            'description': 'md5:6f005933f6e06760a9236d9b3b5f17fa',
-            'upload_date': '20170407',
-        },
-        'expected_warnings': ['HTTP Error 403: Forbidden'],
-    }, {
-        'url': 'http://www.itele.fr/chroniques/invite-michael-darmon/rachida-dati-nicolas-sarkozy-est-le-plus-en-phase-avec-les-inquietudes-des-francais-171510',
-        'info_dict': {
-            'id': '1420176',
-            'display_id': 'rachida-dati-nicolas-sarkozy-est-le-plus-en-phase-avec-les-inquietudes-des-francais-171510',
-            'ext': 'mp4',
-            'title': 'L\'invité de Michaël Darmon du 14/10/2016 - ',
-            'description': 'Chaque matin du lundi au vendredi, Michaël Darmon reçoit un invité politique à 8h25.',
-            'upload_date': '20161014',
-        },
-    }, {
-        'url': 'http://football.cstar.fr/cstar-minisite-foot/pid7566-feminines-videos.html?vid=1416769',
-        'info_dict': {
-            'id': '1416769',
-            'display_id': 'pid7566-feminines-videos',
-            'ext': 'mp4',
-            'title': 'France - Albanie : les temps forts de la soirée - 20/09/2016',
-            'description': 'md5:c3f30f2aaac294c1c969b3294de6904e',
-            'upload_date': '20160921',
-        },
-        'params': {
-            'skip_download': True,
-        },
-    }, {
-        'url': 'http://m.canalplus.fr/?vid=1398231',
-        'only_matching': True,
-    }, {
-        'url': 'http://www.d17.tv/emissions/pid8303-lolywood.html?vid=1397061',
-        'only_matching': True,
     }]
 
     def _real_extract(self, url):
-        mobj = re.match(self._VALID_URL, url)
+        site, display_id, video_id = re.match(self._VALID_URL, url).groups()
 
-        site_id = self._SITE_ID_MAP[compat_urllib_parse_urlparse(url).netloc.rsplit('.', 2)[-2]]
-
-        # Beware, some subclasses do not define an id group
-        display_id = remove_end(dict_get(mobj.groupdict(), ('display_id', 'id', 'vid')), '.html')
-
-        webpage = self._download_webpage(url, display_id)
-        video_id = self._search_regex(
-            [r'<canal:player[^>]+?videoId=(["\'])(?P<id>\d+)',
-             r'id=["\']canal_video_player(?P<id>\d+)',
-             r'data-video=["\'](?P<id>\d+)'],
-            webpage, 'video id', default=mobj.group('vid'), group='id')
+        site_id = self._SITE_ID_MAP[site]
 
         info_url = self._VIDEO_INFO_TEMPLATE % (site_id, video_id)
         video_data = self._download_json(info_url, video_id, 'Downloading video JSON')
@@ -161,7 +86,7 @@ class CanalplusIE(InfoExtractor):
                     format_url + '?hdcore=2.11.3', video_id, f4m_id=format_id, fatal=False))
             else:
                 formats.append({
-                    # the secret extracted ya function in http://player.canalplus.fr/common/js/canalPlayer.js
+                    # the secret extracted from ya function in http://player.canalplus.fr/common/js/canalPlayer.js
                     'url': format_url + '?secret=pqzerjlsmdkjfoiuerhsdlfknaes',
                     'format_id': format_id,
                     'preference': preference(format_id),

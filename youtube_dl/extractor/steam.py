@@ -75,6 +75,9 @@ class SteamIE(InfoExtractor):
             gameID = m.group('gameID')
             playlist_id = gameID
             videourl = self._VIDEO_PAGE_TEMPLATE % playlist_id
+
+        self._set_cookie('steampowered.com', 'mature_content', '1')
+
         webpage = self._download_webpage(videourl, playlist_id)
 
         if re.search('<h2>Please enter your birth date to continue:</h2>', webpage) is not None:

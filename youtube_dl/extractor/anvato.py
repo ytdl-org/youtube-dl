@@ -134,8 +134,32 @@ class AnvatoIE(InfoExtractor):
         'telemundo': 'anvato_mcp_telemundo_web_prod_c5278d51ad46fda4b6ca3d0ea44a7846a054f582'
     }
 
+    _API_KEY = '3hwbSuqqT690uxjNYBktSQpa5ZrpYYR0Iofx7NcJHyA'
+
     _ANVP_RE = r'<script[^>]+\bdata-anvp\s*=\s*(["\'])(?P<anvp>(?:(?!\1).)+)\1'
     _AUTH_KEY = b'\x31\xc2\x42\x84\x9e\x73\xa0\xce'
+
+    _TESTS = [{
+        # from https://www.boston25news.com/news/watch-humpback-whale-breaches-right-next-to-fishing-boat-near-nh/817484874
+        'url': 'anvato:8v9BEynrwx8EFLYpgfOWcG1qJqyXKlRM:4465496',
+        'info_dict': {
+            'id': '4465496',
+            'ext': 'mp4',
+            'title': 'VIDEO: Humpback whale breaches right next to NH boat',
+            'description': 'VIDEO: Humpback whale breaches right next to NH boat. Footage courtesy: Zach Fahey.',
+            'duration': 22,
+            'timestamp': 1534855680,
+            'upload_date': '20180821',
+            'uploader': 'ANV',
+        },
+        'params': {
+            'skip_download': True,
+        },
+    }, {
+        # from https://sanfrancisco.cbslocal.com/2016/06/17/source-oakland-cop-on-leave-for-having-girlfriend-help-with-police-reports/
+        'url': 'anvato:DVzl9QRzox3ZZsP9bNu5Li3X7obQOnqP:3417601',
+        'only_matching': True,
+    }]
 
     def __init__(self, *args, **kwargs):
         super(AnvatoIE, self).__init__(*args, **kwargs)
@@ -169,7 +193,8 @@ class AnvatoIE(InfoExtractor):
             'api': {
                 'anvrid': anvrid,
                 'anvstk': md5_text('%s|%s|%d|%s' % (
-                    access_key, anvrid, server_time, self._ANVACK_TABLE[access_key])),
+                    access_key, anvrid, server_time,
+                    self._ANVACK_TABLE.get(access_key, self._API_KEY))),
                 'anvts': server_time,
             },
         }
@@ -277,10 +302,13 @@ class AnvatoIE(InfoExtractor):
 
     def _real_extract(self, url):
         url, smuggled_data = unsmuggle_url(url, {})
-        self._initialize_geo_bypass(smuggled_data.get('geo_countries'))
+        self._initialize_geo_bypass({
+            'countries': smuggled_data.get('geo_countries'),
+        })
 
         mobj = re.match(self._VALID_URL, url)
         access_key, video_id = mobj.group('access_key_or_mcp', 'id')
         if access_key not in self._ANVACK_TABLE:
-            access_key = self._MCP_TO_ACCESS_KEY_TABLE[access_key]
+            access_key = self._MCP_TO_ACCESS_KEY_TABLE.get(
+                access_key) or access_key
         return self._get_anvato_videos(access_key, video_id)

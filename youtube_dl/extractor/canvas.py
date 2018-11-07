@@ -11,6 +11,7 @@ from ..utils import (
     strip_or_none,
     float_or_none,
     int_or_none,
+    merge_dicts,
     parse_iso8601,
 )
 
@@ -246,11 +247,15 @@ class VrtNUIE(GigyaBaseIE):
     def _real_extract(self, url):
         display_id = self._match_id(url)
 
-        webpage = self._download_webpage(url, display_id)
+        webpage, urlh = self._download_webpage_handle(url, display_id)
 
-        title = self._html_search_regex(
+        info = self._search_json_ld(webpage, display_id, default={})
+
+        # title is optional here since it may be extracted by extractor
+        # that is delegated from here
+        title = strip_or_none(self._html_search_regex(
             r'(?ms)<h1 class="content__heading">(.+?)</h1>',
-            webpage, 'title').strip()
+            webpage, 'title', default=None))
 
         description = self._html_search_regex(
             r'(?ms)<div class="content__description">(.+?)</div>',
@@ -276,7 +281,7 @@ class VrtNUIE(GigyaBaseIE):
             webpage, 'release_date', default=None))
 
         # If there's a ? or a # in the URL, remove them and everything after
-        clean_url = url.split('?')[0].split('#')[0].strip('/')
+        clean_url = urlh.geturl().split('?')[0].split('#')[0].strip('/')
         securevideo_url = clean_url + '.mssecurevideo.json'
 
         try:
@@ -295,7 +300,7 @@ class VrtNUIE(GigyaBaseIE):
         # the first one
         video_id = list(video.values())[0].get('videoid')
 
-        return {
+        return merge_dicts(info, {
             '_type': 'url_transparent',
             'url': 'https://mediazone.vrt.be/api/v1/vrtvideo/assets/%s' % video_id,
             'ie_key': CanvasIE.ie_key(),
@@ -307,4 +312,4 @@ class VrtNUIE(GigyaBaseIE):
             'season_number': season_number,
             'episode_number': episode_number,
             'release_date': release_date,
-        }
+        })

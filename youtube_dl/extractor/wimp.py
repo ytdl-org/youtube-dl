@@ -36,7 +36,8 @@ class WimpIE(InfoExtractor):
         webpage = self._download_webpage(url, video_id)
 
         youtube_id = self._search_regex(
-            r"videoId\s*:\s*[\"']([0-9A-Za-z_-]{11})[\"']",
+            (r"videoId\s*:\s*[\"']([0-9A-Za-z_-]{11})[\"']",
+             r'data-id=["\']([0-9A-Za-z_-]{11})'),
             webpage, 'video URL', default=None)
         if youtube_id:
             return {

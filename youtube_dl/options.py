@@ -203,7 +203,7 @@ def parseOpts(overrideArguments=None):
     network.add_option(
         '--proxy', dest='proxy',
         default=None, metavar='URL',
-        help='Use the specified HTTP/HTTPS/SOCKS proxy. To enable experimental '
+        help='Use the specified HTTP/HTTPS/SOCKS proxy. To enable '
              'SOCKS proxy, specify a proper scheme. For example '
              'socks5://127.0.0.1:1080/. Pass in an empty string (--proxy "") '
              'for direct connection')
@@ -232,7 +232,7 @@ def parseOpts(overrideArguments=None):
         '--geo-verification-proxy',
         dest='geo_verification_proxy', default=None, metavar='URL',
         help='Use this proxy to verify the IP address for some geo-restricted sites. '
-        'The default proxy specified by --proxy (or none, if the options is not present) is used for the actual downloading.')
+        'The default proxy specified by --proxy (or none, if the option is not present) is used for the actual downloading.')
     geo.add_option(
         '--cn-verification-proxy',
         dest='cn_verification_proxy', default=None, metavar='URL',
@@ -240,15 +240,19 @@ def parseOpts(overrideArguments=None):
     geo.add_option(
         '--geo-bypass',
         action='store_true', dest='geo_bypass', default=True,
-        help='Bypass geographic restriction via faking X-Forwarded-For HTTP header (experimental)')
+        help='Bypass geographic restriction via faking X-Forwarded-For HTTP header')
     geo.add_option(
         '--no-geo-bypass',
         action='store_false', dest='geo_bypass', default=True,
-        help='Do not bypass geographic restriction via faking X-Forwarded-For HTTP header (experimental)')
+        help='Do not bypass geographic restriction via faking X-Forwarded-For HTTP header')
     geo.add_option(
         '--geo-bypass-country', metavar='CODE',
         dest='geo_bypass_country', default=None,
-        help='Force bypass geographic restriction with explicitly provided two-letter ISO 3166-2 country code (experimental)')
+        help='Force bypass geographic restriction with explicitly provided two-letter ISO 3166-2 country code')
+    geo.add_option(
+        '--geo-bypass-ip-block', metavar='IP_BLOCK',
+        dest='geo_bypass_ip_block', default=None,
+        help='Force bypass geographic restriction with explicitly provided IP block in CIDR notation')
 
     selection = optparse.OptionGroup(parser, 'Video Selection')
     selection.add_option(
@@ -479,6 +483,11 @@ def parseOpts(overrideArguments=None):
         action='store_true', dest='noresizebuffer', default=False,
         help='Do not automatically adjust the buffer size. By default, the buffer size is automatically resized from an initial value of SIZE.')
     downloader.add_option(
+        '--http-chunk-size',
+        dest='http_chunk_size', metavar='SIZE', default=None,
+        help='Size of a chunk for chunk-based HTTP downloading (e.g. 10485760 or 10M) (default is disabled). '
+             'May be useful for bypassing bandwidth throttling imposed by a webserver (experimental)')
+    downloader.add_option(
         '--test',
         action='store_true', dest='test', default=False,
         help=optparse.SUPPRESS_HELP)
@@ -493,7 +502,7 @@ def parseOpts(overrideArguments=None):
     downloader.add_option(
         '--xattr-set-filesize',
         dest='xattr_set_filesize', action='store_true',
-        help='Set file xattribute ytdl.filesize with expected file size (experimental)')
+        help='Set file xattribute ytdl.filesize with expected file size')
     downloader.add_option(
         '--hls-prefer-native',
         dest='hls_prefer_native', action='store_true', default=None,
@@ -671,7 +680,8 @@ def parseOpts(overrideArguments=None):
     filesystem.add_option(
         '-a', '--batch-file',
         dest='batchfile', metavar='FILE',
-        help='File containing URLs to download (\'-\' for stdin)')
+        help="File containing URLs to download ('-' for stdin), one URL per line. "
+             "Lines starting with '#', ';' or ']' are considered as comments and ignored.")
     filesystem.add_option(
         '--id', default=False,
         action='store_true', dest='useid', help='Use only video ID in file name')
@@ -831,11 +841,11 @@ def parseOpts(overrideArguments=None):
     postproc.add_option(
         '--prefer-avconv',
         action='store_false', dest='prefer_ffmpeg',
-        help='Prefer avconv over ffmpeg for running the postprocessors (default)')
+        help='Prefer avconv over ffmpeg for running the postprocessors')
     postproc.add_option(
         '--prefer-ffmpeg',
         action='store_true', dest='prefer_ffmpeg',
-        help='Prefer ffmpeg over avconv for running the postprocessors')
+        help='Prefer ffmpeg over avconv for running the postprocessors (default)')
     postproc.add_option(
         '--ffmpeg-location', '--avconv-location', metavar='PATH',
         dest='ffmpeg_location',

@@ -16,6 +16,7 @@ from ..utils import (
     int_or_none,
     try_get,
     unified_timestamp,
+    url_or_none,
 )
 
 
@@ -102,7 +103,8 @@ class RutubeIE(RutubeBaseIE):
 
         options = self._download_json(
             'http://rutube.ru/api/play/options/%s/?format=json' % video_id,
-            video_id, 'Downloading options JSON')
+            video_id, 'Downloading options JSON',
+            headers=self.geo_verification_headers())
 
         formats = []
         for format_id, format_url in options['video_balancer'].items():
@@ -176,8 +178,8 @@ class RutubePlaylistBaseIE(RutubeBaseIE):
                 break
 
             for result in results:
-                video_url = result.get('video_url')
-                if not video_url or not isinstance(video_url, compat_str):
+                video_url = url_or_none(result.get('video_url'))
+                if not video_url:
                     continue
                 entry = self._extract_video(result, require_title=False)
                 entry.update({

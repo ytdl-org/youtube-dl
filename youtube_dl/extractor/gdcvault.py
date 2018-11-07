@@ -91,7 +91,7 @@ class GDCVaultIE(InfoExtractor):
     ]
 
     def _login(self, webpage_url, display_id):
-        (username, password) = self._get_login_info()
+        username, password = self._get_login_info()
         if username is None or password is None:
             self.report_warning('It looks like ' + webpage_url + ' requires a login. Try specifying a username and password and try again.')
             return None

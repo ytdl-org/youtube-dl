@@ -12,7 +12,7 @@ class BellMediaIE(InfoExtractor):
             (?:
                 ctv|
                 tsn|
-                bnn|
+                bnn(?:bloomberg)?|
                 thecomedynetwork|
                 discovery|
                 discoveryvelocity|
@@ -27,17 +27,16 @@ class BellMediaIE(InfoExtractor):
             much\.com
         )/.*?(?:\bvid(?:eoid)?=|-vid|~|%7E|/(?:episode)?)(?P<id>[0-9]{6,})'''
     _TESTS = [{
-        'url': 'http://www.ctv.ca/video/player?vid=706966',
-        'md5': 'ff2ebbeae0aa2dcc32a830c3fd69b7b0',
+        'url': 'https://www.bnnbloomberg.ca/video/david-cockfield-s-top-picks~1403070',
+        'md5': '36d3ef559cfe8af8efe15922cd3ce950',
         'info_dict': {
-            'id': '706966',
-            'ext': 'mp4',
-            'title': 'Larry Day and Richard Jutras on the TIFF red carpet of \'Stonewall\'',
-            'description': 'etalk catches up with Larry Day and Richard Jutras on the TIFF red carpet of "Stonewall”.',
-            'upload_date': '20150919',
-            'timestamp': 1442624700,
+            'id': '1403070',
+            'ext': 'flv',
+            'title': 'David Cockfield\'s Top Picks',
+            'description': 'md5:810f7f8c6a83ad5b48677c3f8e5bb2c3',
+            'upload_date': '20180525',
+            'timestamp': 1527288600,
         },
-        'expected_warnings': ['HTTP Error 404'],
     }, {
         'url': 'http://www.thecomedynetwork.ca/video/player?vid=923582',
         'only_matching': True,
@@ -70,6 +69,7 @@ class BellMediaIE(InfoExtractor):
         'investigationdiscovery': 'invdisc',
         'animalplanet': 'aniplan',
         'etalk': 'ctv',
+        'bnnbloomberg': 'bnn',
     }
 
     def _real_extract(self, url):

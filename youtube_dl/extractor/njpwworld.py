@@ -31,6 +31,8 @@ class NJPWWorldIE(InfoExtractor):
         'skip': 'Requires login',
     }
 
+    _LOGIN_URL = 'https://front.njpwworld.com/auth/login'
+
     def _real_initialize(self):
         self._login()
 
@@ -40,12 +42,17 @@ class NJPWWorldIE(InfoExtractor):
         if not username:
             return True
 
+        # Setup session (will set necessary cookies)
+        self._request_webpage(
+            'https://njpwworld.com/', None, note='Setting up session')
+
         webpage, urlh = self._download_webpage_handle(
-            'https://njpwworld.com/auth/login', None,
+            self._LOGIN_URL, None,
             note='Logging in', errnote='Unable to login',
-            data=urlencode_postdata({'login_id': username, 'pw': password}))
+            data=urlencode_postdata({'login_id': username, 'pw': password}),
+            headers={'Referer': 'https://front.njpwworld.com/auth'})
         # /auth/login will return 302 for successful logins
-        if urlh.geturl() == 'https://njpwworld.com/auth/login':
+        if urlh.geturl() == self._LOGIN_URL:
             self.report_warning('unable to login')
             return False
 

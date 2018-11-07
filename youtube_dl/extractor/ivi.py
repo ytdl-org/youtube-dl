@@ -15,7 +15,7 @@ from ..utils import (
 class IviIE(InfoExtractor):
     IE_DESC = 'ivi.ru'
     IE_NAME = 'ivi'
-    _VALID_URL = r'https?://(?:www\.)?ivi\.ru/(?:watch/(?:[^/]+/)?|video/player\?.*?videoId=)(?P<id>\d+)'
+    _VALID_URL = r'https?://(?:www\.)?ivi\.(?:ru|tv)/(?:watch/(?:[^/]+/)?|video/player\?.*?videoId=)(?P<id>\d+)'
     _GEO_BYPASS = False
     _GEO_COUNTRIES = ['RU']
 
@@ -65,7 +65,11 @@ class IviIE(InfoExtractor):
                 'thumbnail': r're:^https?://.*\.jpg$',
             },
             'skip': 'Only works from Russia',
-        }
+        },
+        {
+            'url': 'https://www.ivi.tv/watch/33560/',
+            'only_matching': True,
+        },
     ]
 
     # Sorted by quality

@@ -141,6 +141,7 @@ class MedialaanIE(GigyaBaseIE):
 
         vod_id = config.get('vodId') or self._search_regex(
             (r'\\"vodId\\"\s*:\s*\\"(.+?)\\"',
+             r'"vodId"\s*:\s*"(.+?)"',
              r'<[^>]+id=["\']vod-(\d+)'),
             webpage, 'video_id', default=None)
 

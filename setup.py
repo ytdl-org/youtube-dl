@@ -109,6 +109,7 @@ setup(
     author_email='ytdl@yt-dl.org',
     maintainer='Sergey M.',
     maintainer_email='dstftw@gmail.com',
+    license='Unlicense',
     packages=[
         'youtube_dl',
         'youtube_dl.extractor', 'youtube_dl.downloader',

@@ -114,7 +114,7 @@ class LivestreamIE(InfoExtractor):
 
         smil_url = video_data.get('smil_url')
         if smil_url:
-            formats.extend(self._extract_smil_formats(smil_url, video_id))
+            formats.extend(self._extract_smil_formats(smil_url, video_id, fatal=False))
 
         m3u8_url = video_data.get('m3u8_url')
         if m3u8_url:

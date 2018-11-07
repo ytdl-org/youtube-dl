@@ -239,7 +239,7 @@ class IqiyiIE(InfoExtractor):
         return ohdave_rsa_encrypt(data, e, N)
 
     def _login(self):
-        (username, password) = self._get_login_info()
+        username, password = self._get_login_info()
 
         # No authentication to be performed
         if not username:

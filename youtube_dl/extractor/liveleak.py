@@ -7,7 +7,7 @@ from ..utils import int_or_none
 
 
 class LiveLeakIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:\w+\.)?liveleak\.com/view\?(?:.*?)i=(?P<id>[\w_]+)(?:.*)'
+    _VALID_URL = r'https?://(?:\w+\.)?liveleak\.com/view\?.*?\b[it]=(?P<id>[\w_]+)'
     _TESTS = [{
         'url': 'http://www.liveleak.com/view?i=757_1364311680',
         'md5': '0813c2430bea7a46bf13acf3406992f4',
@@ -79,6 +79,9 @@ class LiveLeakIE(InfoExtractor):
             'title': 'Fuel Depot in China Explosion caught on video',
         },
         'playlist_count': 3,
+    }, {
+        'url': 'https://www.liveleak.com/view?t=HvHi_1523016227',
+        'only_matching': True,
     }]
 
     @staticmethod

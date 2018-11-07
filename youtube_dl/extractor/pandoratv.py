@@ -1,6 +1,8 @@
 # coding: utf-8
 from __future__ import unicode_literals
 
+import re
+
 from .common import InfoExtractor
 from ..compat import (
     compat_str,
@@ -18,7 +20,14 @@ from ..utils import (
 class PandoraTVIE(InfoExtractor):
     IE_NAME = 'pandora.tv'
     IE_DESC = '판도라TV'
-    _VALID_URL = r'https?://(?:.+?\.)?channel\.pandora\.tv/channel/video\.ptv\?'
+    _VALID_URL = r'''(?x)
+                        https?://
+                            (?:
+                                (?:www\.)?pandora\.tv/view/(?P<user_id>[^/]+)/(?P<id>\d+)|  # new format
+                                (?:.+?\.)?channel\.pandora\.tv/channel/video\.ptv\?|        # old format
+                                m\.pandora\.tv/?\?                                          # mobile
+                            )
+                    '''
     _TESTS = [{
         'url': 'http://jp.channel.pandora.tv/channel/video.ptv?c1=&prgid=53294230&ch_userid=mikakim&ref=main&lot=cate_01_2',
         'info_dict': {
@@ -53,14 +62,25 @@ class PandoraTVIE(InfoExtractor):
             # Test metadata only
             'skip_download': True,
         },
+    }, {
+        'url': 'http://www.pandora.tv/view/mikakim/53294230#36797454_new',
+        'only_matching': True,
+    }, {
+        'url': 'http://m.pandora.tv/?c=view&ch_userid=mikakim&prgid=54600346',
+        'only_matching': True,
     }]
 
     def _real_extract(self, url):
-        qs = compat_urlparse.parse_qs(compat_urlparse.urlparse(url).query)
-        video_id = qs.get('prgid', [None])[0]
-        user_id = qs.get('ch_userid', [None])[0]
-        if any(not f for f in (video_id, user_id,)):
-            raise ExtractorError('Invalid URL', expected=True)
+        mobj = re.match(self._VALID_URL, url)
+        user_id = mobj.group('user_id')
+        video_id = mobj.group('id')
+
+        if not user_id or not video_id:
+            qs = compat_urlparse.parse_qs(compat_urlparse.urlparse(url).query)
+            video_id = qs.get('prgid', [None])[0]
+            user_id = qs.get('ch_userid', [None])[0]
+            if any(not f for f in (video_id, user_id,)):
+                raise ExtractorError('Invalid URL', expected=True)
 
         data = self._download_json(
             'http://m.pandora.tv/?c=view&m=viewJsonApi&ch_userid=%s&prgid=%s'

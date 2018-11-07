@@ -2,11 +2,14 @@
 from __future__ import unicode_literals
 
 from .common import InfoExtractor
+from .kaltura import KalturaIE
 from .youtube import YoutubeIE
 from ..utils import (
     determine_ext,
     int_or_none,
+    NO_DEFAULT,
     parse_iso8601,
+    smuggle_url,
     xpath_text,
 )
 
@@ -14,18 +17,19 @@ from ..utils import (
 class HeiseIE(InfoExtractor):
     _VALID_URL = r'https?://(?:www\.)?heise\.de/(?:[^/]+/)+[^/]+-(?P<id>[0-9]+)\.html'
     _TESTS = [{
+        # kaltura embed
         'url': 'http://www.heise.de/video/artikel/Podcast-c-t-uplink-3-3-Owncloud-Tastaturen-Peilsender-Smartphone-2404147.html',
-        'md5': 'ffed432483e922e88545ad9f2f15d30e',
         'info_dict': {
-            'id': '2404147',
+            'id': '1_kkrq94sm',
             'ext': 'mp4',
             'title': "Podcast: c't uplink 3.3 – Owncloud / Tastaturen / Peilsender Smartphone",
-            'format_id': 'mp4_720p',
-            'timestamp': 1411812600,
-            'upload_date': '20140927',
+            'timestamp': 1512734959,
+            'upload_date': '20171208',
             'description': 'md5:c934cbfb326c669c2bcabcbe3d3fcd20',
-            'thumbnail': r're:^https?://.*/gallery/$',
-        }
+        },
+        'params': {
+            'skip_download': True,
+        },
     }, {
         # YouTube embed
         'url': 'http://www.heise.de/newsticker/meldung/Netflix-In-20-Jahren-vom-Videoverleih-zum-TV-Revolutionaer-3814130.html',
@@ -38,6 +42,32 @@ class HeiseIE(InfoExtractor):
             'upload_date': '20170830',
             'uploader': 'Netflix Deutschland, Österreich und Schweiz',
             'uploader_id': 'netflixdach',
+        },
+        'params': {
+            'skip_download': True,
+        },
+    }, {
+        'url': 'https://www.heise.de/video/artikel/nachgehakt-Wie-sichert-das-c-t-Tool-Restric-tor-Windows-10-ab-3700244.html',
+        'info_dict': {
+            'id': '1_ntrmio2s',
+            'ext': 'mp4',
+            'title': "nachgehakt: Wie sichert das c't-Tool Restric'tor Windows 10 ab?",
+            'description': 'md5:47e8ffb6c46d85c92c310a512d6db271',
+            'timestamp': 1512470717,
+            'upload_date': '20171205',
+        },
+        'params': {
+            'skip_download': True,
+        },
+    }, {
+        'url': 'https://www.heise.de/ct/artikel/c-t-uplink-20-8-Staubsaugerroboter-Xiaomi-Vacuum-2-AR-Brille-Meta-2-und-Android-rooten-3959893.html',
+        'info_dict': {
+            'id': '1_59mk80sf',
+            'ext': 'mp4',
+            'title': "c't uplink 20.8: Staubsaugerroboter Xiaomi Vacuum 2, AR-Brille Meta 2 und Android rooten",
+            'description': 'md5:f50fe044d3371ec73a8f79fcebd74afc',
+            'timestamp': 1517567237,
+            'upload_date': '20180202',
         },
         'params': {
             'skip_download': True,
@@ -57,19 +87,45 @@ class HeiseIE(InfoExtractor):
         video_id = self._match_id(url)
         webpage = self._download_webpage(url, video_id)
 
-        title = self._html_search_meta('fulltitle', webpage, default=None)
-        if not title or title == "c't":
-            title = self._search_regex(
-                r'<div[^>]+class="videoplayerjw"[^>]+data-title="([^"]+)"',
-                webpage, 'title')
+        def extract_title(default=NO_DEFAULT):
+            title = self._html_search_meta(
+                ('fulltitle', 'title'), webpage, default=None)
+            if not title or title == "c't":
+                title = self._search_regex(
+                    r'<div[^>]+class="videoplayerjw"[^>]+data-title="([^"]+)"',
+                    webpage, 'title', default=None)
+            if not title:
+                title = self._html_search_regex(
+                    r'<h1[^>]+\bclass=["\']article_page_title[^>]+>(.+?)<',
+                    webpage, 'title', default=default)
+            return title
+
+        title = extract_title(default=None)
+        description = self._og_search_description(
+            webpage, default=None) or self._html_search_meta(
+            'description', webpage)
+
+        kaltura_url = KalturaIE._extract_url(webpage)
+        if kaltura_url:
+            return {
+                '_type': 'url_transparent',
+                'url': smuggle_url(kaltura_url, {'source_url': url}),
+                'ie_key': KalturaIE.ie_key(),
+                'title': title,
+                'description': description,
+            }
 
         yt_urls = YoutubeIE._extract_urls(webpage)
         if yt_urls:
-            return self.playlist_from_matches(yt_urls, video_id, title, ie=YoutubeIE.ie_key())
+            return self.playlist_from_matches(
+                yt_urls, video_id, title, ie=YoutubeIE.ie_key())
+
+        title = extract_title()
 
         container_id = self._search_regex(
             r'<div class="videoplayerjw"[^>]+data-container="([0-9]+)"',
             webpage, 'container ID')
+
         sequenz_id = self._search_regex(
             r'<div class="videoplayerjw"[^>]+data-sequenz="([0-9]+)"',
             webpage, 'sequenz ID')
@@ -94,10 +150,6 @@ class HeiseIE(InfoExtractor):
                 'height': height,
             })
         self._sort_formats(formats)
-
-        description = self._og_search_description(
-            webpage, default=None) or self._html_search_meta(
-            'description', webpage)
 
         return {
             'id': video_id,

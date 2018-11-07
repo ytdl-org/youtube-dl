@@ -10,7 +10,7 @@ from ..utils import update_url_query
 class NickIE(MTVServicesInfoExtractor):
     # None of videos on the website are still alive?
     IE_NAME = 'nick.com'
-    _VALID_URL = r'https?://(?:(?:www|beta)\.)?nick(?:jr)?\.com/(?:[^/]+/)?(?:videos/clip|[^/]+/videos)/(?P<id>[^/?#.]+)'
+    _VALID_URL = r'https?://(?P<domain>(?:(?:www|beta)\.)?nick(?:jr)?\.com)/(?:[^/]+/)?(?:videos/clip|[^/]+/videos)/(?P<id>[^/?#.]+)'
     _FEED_URL = 'http://udat.mtvnservices.com/service1/dispatch.htm'
     _GEO_COUNTRIES = ['US']
     _TESTS = [{
@@ -69,8 +69,72 @@ class NickIE(MTVServicesInfoExtractor):
             'mgid': uri,
         }
 
-    def _extract_mgid(self, webpage):
-        return self._search_regex(r'data-contenturi="([^"]+)', webpage, 'mgid')
+    def _real_extract(self, url):
+        domain, display_id = re.match(self._VALID_URL, url).groups()
+        video_data = self._download_json(
+            'http://%s/data/video.endLevel.json' % domain,
+            display_id, query={
+                'urlKey': display_id,
+            })
+        return self._get_videos_info(video_data['player'] + video_data['id'])
+
+
+class NickBrIE(MTVServicesInfoExtractor):
+    IE_NAME = 'nickelodeon:br'
+    _VALID_URL = r'''(?x)
+                    https?://
+                        (?:
+                            (?P<domain>(?:www\.)?nickjr|mundonick\.uol)\.com\.br|
+                            (?:www\.)?nickjr\.[a-z]{2}
+                        )
+                        /(?:programas/)?[^/]+/videos/(?:episodios/)?(?P<id>[^/?\#.]+)
+                    '''
+    _TESTS = [{
+        'url': 'http://www.nickjr.com.br/patrulha-canina/videos/210-labirinto-de-pipoca/',
+        'only_matching': True,
+    }, {
+        'url': 'http://mundonick.uol.com.br/programas/the-loud-house/videos/muitas-irmas/7ljo9j',
+        'only_matching': True,
+    }, {
+        'url': 'http://www.nickjr.nl/paw-patrol/videos/311-ge-wol-dig-om-terug-te-zijn/',
+        'only_matching': True,
+    }, {
+        'url': 'http://www.nickjr.de/blaze-und-die-monster-maschinen/videos/f6caaf8f-e4e8-4cc1-b489-9380d6dcd059/',
+        'only_matching': True,
+    }]
+
+    def _real_extract(self, url):
+        domain, display_id = re.match(self._VALID_URL, url).groups()
+        webpage = self._download_webpage(url, display_id)
+        uri = self._search_regex(
+            r'data-(?:contenturi|mgid)="([^"]+)', webpage, 'mgid')
+        video_id = self._id_from_uri(uri)
+        config = self._download_json(
+            'http://media.mtvnservices.com/pmt/e1/access/index.html',
+            video_id, query={
+                'uri': uri,
+                'configtype': 'edge',
+            }, headers={
+                'Referer': url,
+            })
+        info_url = self._remove_template_parameter(config['feedWithQueryParams'])
+        if info_url == 'None':
+            if domain.startswith('www.'):
+                domain = domain[4:]
+            content_domain = {
+                'mundonick.uol': 'mundonick.com.br',
+                'nickjr': 'br.nickelodeonjunior.tv',
+            }[domain]
+            query = {
+                'mgid': uri,
+                'imageEp': content_domain,
+                'arcEp': content_domain,
+            }
+            if domain == 'nickjr.com.br':
+                query['ep'] = 'c4b16088'
+            info_url = update_url_query(
+                'http://feeds.mtvnservices.com/od/feed/intl-mrss-player-feed', query)
+        return self._get_videos_info_from_url(info_url, video_id)
 
 
 class NickDeIE(MTVServicesInfoExtractor):
@@ -147,7 +211,7 @@ class NickNightIE(NickDeIE):
 
 class NickRuIE(MTVServicesInfoExtractor):
     IE_NAME = 'nickelodeonru'
-    _VALID_URL = r'https?://(?:www\.)nickelodeon\.(?:ru|fr|es|pt|ro|hu)/[^/]+/(?:[^/]+/)*(?P<id>[^/?#&]+)'
+    _VALID_URL = r'https?://(?:www\.)nickelodeon\.(?:ru|fr|es|pt|ro|hu|com\.tr)/[^/]+/(?:[^/]+/)*(?P<id>[^/?#&]+)'
     _TESTS = [{
         'url': 'http://www.nickelodeon.ru/shows/henrydanger/videos/episodes/3-sezon-15-seriya-licenziya-na-polyot/pmomfb#playlist/7airc6',
         'only_matching': True,
@@ -168,6 +232,9 @@ class NickRuIE(MTVServicesInfoExtractor):
         'only_matching': True,
     }, {
         'url': 'http://www.nickelodeon.hu/musorok/spongyabob-kockanadrag/videok/episodes/buborekfujas-az-elszakadt-nadrag/q57iob#playlist/k6te4y',
+        'only_matching': True,
+    }, {
+        'url': 'http://www.nickelodeon.com.tr/programlar/sunger-bob/videolar/kayip-yatak/mgqbjy',
         'only_matching': True,
     }]
 
