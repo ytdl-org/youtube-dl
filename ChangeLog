@@ -1,3 +1,15 @@
+version <unreleased>
+
+Extractors
++ [youtube] Add another JS signature function name regex (#18091, #18093,
+  #18094)
+* [facebook] Fix tahoe request (#17171)
+* [cliphunter] Fix extraction (#18083)
++ [youtube:playlist] Add support for invidio.us (#18077)
+* [zattoo] Arrange API hosts for derived extractors (#18035)
++ [youtube] Add fallback metadata extraction from videoDetails (#18052)
+
+
 version 2018.11.03
 
 Core
