@@ -983,6 +983,7 @@ from .senateisvp import SenateISVPIE
 from .sendtonews import SendtoNewsIE
 from .servingsys import ServingSysIE
 from .servus import ServusIE
+from .servushockeynight import servushockeynightIE
 from .sevenplus import SevenPlusIE
 from .sexu import SexuIE
 from .seznamzpravy import (
