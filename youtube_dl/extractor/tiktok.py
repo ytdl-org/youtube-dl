@@ -2,7 +2,13 @@
 from __future__ import unicode_literals
 
 from .common import InfoExtractor
-from ..utils import urlhandle_detect_ext
+from ..utils import (
+    urlhandle_detect_ext,
+    try_get,
+    compat_str,
+    url_or_none,
+    str_or_none,
+)
 
 
 class TikTokIE(InfoExtractor):
@@ -23,17 +29,27 @@ class TikTokIE(InfoExtractor):
     def _real_extract(self, url):
         video_id = self._match_id(url)
         webpage = self._download_webpage(url, video_id)
-        json_string = self._search_regex(r'var data = ({.*});', webpage, 'json_string')
-        json_data = self._parse_json(json_string, video_id)
+
+        data = self._parse_json(
+            self._search_regex(
+                r'var data = ({.*});', webpage, 'json_string', webpage, 'data'
+            ), video_id)
+
         title = self._og_search_title(webpage)
         description = self._og_search_description(webpage)
-        video_url = json_data.get("video").get("play_addr").get("url_list")[0]
-        uploader = json_data.get("author").get("nickname")
-        thumbnail_list = json_data.get("video").get("cover").get("url_list")
-        thumbnail = thumbnail_list[0] if len(thumbnail_list) > 0 else None
-        handle = self._download_webpage_handle(video_url, video_id, fatal=False)
-        URLHandle = handle[1] if handle is not False else None
-        ext = urlhandle_detect_ext(URLHandle)
+
+        video_url = url_or_none(
+            try_get(data, lambda x: x['video']['play_addr']['url_list'][0], compat_str))
+
+        uploader = try_get(data, lambda x: x['author']['nickname'], compat_str)
+
+        thumbnail = url_or_none(
+            try_get(
+                data, lambda x: x['video']['cover']['url_list'][0], compat_str))
+
+        ext = str_or_none(
+            urlhandle_detect_ext(
+                self._request_webpage(video_url, video_id, fatal=False)))
 
         return {
             'id': video_id,
