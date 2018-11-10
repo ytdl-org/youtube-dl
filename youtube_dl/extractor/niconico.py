@@ -11,7 +11,6 @@ from ..compat import (
 )
 from ..utils import (
     determine_ext,
-    dict_get,
     ExtractorError,
     int_or_none,
     float_or_none,
@@ -22,6 +21,7 @@ from ..utils import (
     unified_timestamp,
     urlencode_postdata,
     xpath_text,
+    xpath_element,
 )
 
 
@@ -45,6 +45,7 @@ class NiconicoIE(InfoExtractor):
             'duration': 33,
             'view_count': int,
             'comment_count': int,
+            'tags': list
         },
         'skip': 'Requires an account',
     }, {
@@ -62,6 +63,7 @@ class NiconicoIE(InfoExtractor):
             'upload_date': '20110429',
             'timestamp': 1304065916,
             'duration': 209,
+            'tags': list
         },
         'skip': 'Requires an account',
     }, {
@@ -78,6 +80,7 @@ class NiconicoIE(InfoExtractor):
             'timestamp': int,  # timestamp field has different value if logged in
             'duration': 304,
             'view_count': int,
+            'tags': list
         },
         'skip': 'Requires an account',
     }, {
@@ -92,6 +95,7 @@ class NiconicoIE(InfoExtractor):
             'upload_date': '20140104',
             'uploader': 'アニメロチャンネル',
             'uploader_id': '312',
+            'tags': list
         },
         'skip': 'The viewing period of the video you were searching for has expired.',
     }, {
@@ -111,6 +115,7 @@ class NiconicoIE(InfoExtractor):
             'uploader_id': '1392194',
             'view_count': int,
             'comment_count': int,
+            'tags': list
         },
         'skip': 'Requires an account',
     }, {
@@ -130,6 +135,7 @@ class NiconicoIE(InfoExtractor):
             'duration': 198,
             'view_count': int,
             'comment_count': int,
+            'tags': list
         },
         'skip': 'Requires an account',
     }, {
@@ -149,6 +155,7 @@ class NiconicoIE(InfoExtractor):
             'duration': 5271,
             'view_count': int,
             'comment_count': int,
+            'tags': list
         },
         'skip': 'Requires an account',
     }, {
@@ -284,6 +291,18 @@ class NiconicoIE(InfoExtractor):
         def _format_id_from_url(video_url):
             return 'economy' if video_real_url.endswith('low') else 'normal'
 
+        video_info_xml = self._download_xml(
+            'http://ext.nicovideo.jp/api/getthumbinfo/' + video_id,
+            video_id, note='Downloading video info page')
+
+        def get_video_info(items):
+            if not isinstance(items, list):
+                items = [items]
+            for item in items:
+                ret = xpath_text(video_info_xml, './/' + item)
+                if ret:
+                    return ret
+
         try:
             video_real_url = api_data['video']['smileInfo']['url']
         except KeyError:  # Flash videos
@@ -305,18 +324,6 @@ class NiconicoIE(InfoExtractor):
                         self.IE_NAME, flv_info['error'][0]), expected=True)
                 else:
                     raise ExtractorError('Unable to find video URL')
-
-            video_info_xml = self._download_xml(
-                'http://ext.nicovideo.jp/api/getthumbinfo/' + video_id,
-                video_id, note='Downloading video info page')
-
-            def get_video_info(items):
-                if not isinstance(items, list):
-                    items = [items]
-                for item in items:
-                    ret = xpath_text(video_info_xml, './/' + item)
-                    if ret:
-                        return ret
 
             video_real_url = flv_info['url'][0]
 
@@ -349,9 +356,6 @@ class NiconicoIE(InfoExtractor):
                     'ext': 'mp4',
                     'format_id': _format_id_from_url(video_real_url),
                 }]
-
-            def get_video_info(items):
-                return dict_get(api_data['video'], items)
 
         # Start extracting information
         title = get_video_info('title')
@@ -420,6 +424,8 @@ class NiconicoIE(InfoExtractor):
         uploader_id = get_video_info(['ch_id', 'user_id']) or owner.get('id')
         uploader = get_video_info(['ch_name', 'user_nickname']) or owner.get('nickname')
 
+        tags = [tag.text for tag in xpath_element(video_info_xml, './/' + 'tags')]
+
         return {
             'id': video_id,
             'title': title,
@@ -433,6 +439,7 @@ class NiconicoIE(InfoExtractor):
             'comment_count': comment_count,
             'duration': duration,
             'webpage_url': webpage_url,
+            'tags': tags
         }
 
 
