@@ -26,16 +26,21 @@ class TikTokIE(InfoExtractor):
         json_string = self._search_regex(r'var data = ({.*});', webpage, 'json_string')
         json_data = self._parse_json(json_string, video_id)
         title = self._og_search_title(webpage)
+        description = self._og_search_description(webpage)
         video_url = json_data.get("video").get("play_addr").get("url_list")[0]
         uploader = json_data.get("author").get("nickname")
-        thumbnail = json_data.get("video").get("cover").get("url_list")[0]
+        thumbnail_list = json_data.get("video").get("cover").get("url_list")
+        thumbnail = thumbnail_list[0] if len(thumbnail_list) > 0 else None
+        handle = self._download_webpage_handle(video_url, video_id, fatal=False)
+        URLHandle = handle[1] if handle is not False else None
+        ext = urlhandle_detect_ext(URLHandle)
 
         return {
             'id': video_id,
             'title': title,
-            'description': self._og_search_description(webpage),
+            'description': description,
             'uploader': uploader,
             'url': video_url,
-            'ext': urlhandle_detect_ext(self._download_webpage_handle(video_url, video_id)[1]),
+            'ext': ext,
             'thumbnail': thumbnail,
         }
