@@ -1,6 +1,7 @@
 # coding: utf-8
 from __future__ import unicode_literals
 
+import re
 import time
 
 from .common import InfoExtractor
@@ -8,6 +9,7 @@ from ..compat import compat_str
 from ..utils import (
     ExtractorError,
     js_to_json,
+    try_get,
     update_url_query,
     urlencode_postdata,
 )
@@ -32,7 +34,9 @@ class PicartoIE(InfoExtractor):
         return False if PicartoVodIE.suitable(url) else super(PicartoIE, cls).suitable(url)
 
     def _real_extract(self, url):
-        channel_id = self._match_id(url)
+        mobj = re.match(self._VALID_URL, url)
+        channel_id = mobj.group('id')
+
         metadata = self._download_json(
             'https://api.picarto.tv/v1/channel/name/' + channel_id,
             channel_id)
@@ -45,7 +49,7 @@ class PicartoIE(InfoExtractor):
             data=urlencode_postdata({'loadbalancinginfo': channel_id}),
             note='Downloading load balancing info')
 
-        token = self._VALID_URL_RE.match(url).group('token') or 'public'
+        token = mobj.group('token') or 'public'
         params = {
             'con': int(time.time() * 1000),
             'token': token,
@@ -99,9 +103,11 @@ class PicartoIE(InfoExtractor):
 
         return {
             'id': channel_id,
-            'title': self._live_title(channel_id),
+            'title': self._live_title(metadata.get('title') or channel_id),
             'is_live': True,
-            'thumbnail': metadata.get('thumbnails', {}).get('web'),
+            'thumbnail': try_get(metadata, lambda x: x['thumbnails']['web']),
+            'channel': channel_id,
+            'channel_url': 'https://picarto.tv/%s' % channel_id,
             'age_limit': age_limit,
             'formats': formats,
         }
