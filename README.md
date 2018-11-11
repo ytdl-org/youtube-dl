@@ -1168,7 +1168,28 @@ title = self._search_regex(
 
 ### Use safe conversion functions
 
-Wrap all extracted numeric data into safe functions from `utils`: `int_or_none`, `float_or_none`. Use them for string to number conversions as well.
+Wrap all extracted numeric data into safe functions from [`youtube_dl/utils.py`](https://github.com/rg3/youtube-dl/blob/master/youtube_dl/utils.py): `int_or_none`, `float_or_none`. Use them for string to number conversions as well.
+
+Use `url_or_none` for safe URL processing.
+
+Use `try_get` for safe metadata extraction from parsed JSON.
+
+Explore [`youtube_dl/utils.py`](https://github.com/rg3/youtube-dl/blob/master/youtube_dl/utils.py) for more useful convenience functions.
+
+#### More examples
+
+##### Safely extract optional description from parsed JSON
+```python
+description = try_get(response, lambda x: x['result']['video'][0]['summary'], compat_str)
+```
+
+##### Safely extract more optional metadata
+```python
+video = try_get(response, lambda x: x['result']['video'][0], dict) or {}
+description = video.get('summary')
+duration = float_or_none(video.get('durationMs'), scale=1000)
+view_count = int_or_none(video.get('views'))
+```
 
 # EMBEDDING YOUTUBE-DL
 
