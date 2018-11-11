@@ -33,18 +33,14 @@ class PicartoIE(InfoExtractor):
         return False if PicartoVodIE.suitable(url) else super(PicartoIE, cls).suitable(url)
 
     def _real_extract(self, url):
-        channel_id = self._match_id(url)
-        stream_page = self._download_webpage(url, channel_id)
-
-        if '>This channel does not exist' in stream_page:
+        fetch_id = self._match_id(url)
+        try:
+            player = self._download_json("https://api.picarto.tv/v1/channel/name/%s"
+                    % fetch_id,fetch_id)
+        except:
             raise ExtractorError(
-                'Channel %s does not exist' % channel_id, expected=True)
-
-        player = self._parse_json(
-            self._search_regex(
-                r'(?s)playerSettings\[\d+\]\s*=\s*(\{.+?\}\s*\n)', stream_page,
-                'player settings'),
-            channel_id, transform_source=js_to_json)
+                    'Channel %s does not exist' % fetch_id, expected=True)
+        channel_id = player.get('name')
 
         if player.get('online') is False:
             raise ExtractorError('Stream is offline', expected=True)
