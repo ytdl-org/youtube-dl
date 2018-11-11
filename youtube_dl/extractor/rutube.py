@@ -103,7 +103,8 @@ class RutubeIE(RutubeBaseIE):
 
         options = self._download_json(
             'http://rutube.ru/api/play/options/%s/?format=json' % video_id,
-            video_id, 'Downloading options JSON')
+            video_id, 'Downloading options JSON',
+            headers=self.geo_verification_headers())
 
         formats = []
         for format_id, format_url in options['video_balancer'].items():
