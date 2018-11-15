@@ -1371,7 +1371,7 @@ from .webofstories import (
     WebOfStoriesPlaylistIE,
 )
 from .weibo import (
-    WeiboIE, 
+    WeiboIE,
     WeiboMobileIE
 )
 from .weiqitv import WeiqiTVIE
@@ -1423,6 +1423,7 @@ from .yandexdisk import YandexDiskIE
 from .yapfiles import YapFilesIE
 from .yesjapan import YesJapanIE
 from .yinyuetai import YinYueTaiIE
+from .yizhibo import YizhiboIE
 from .ynet import YnetIE
 from .youjizz import YouJizzIE
 from .youku import (
