@@ -4,11 +4,10 @@ from __future__ import unicode_literals
 from .common import InfoExtractor
 from ..utils import (
     compat_str,
-    determine_ext,
     int_or_none,
+    str_or_none,
     try_get,
     url_or_none,
-    urlhandle_detect_ext
 )
 
 
@@ -22,7 +21,7 @@ class TikTokIE(InfoExtractor):
             'ext': 'mp4',
             'title': 'Zureeal|TikTok|Global Video Community',
             'thumbnail': 'http://m-p16.akamaized.net/img/tos-maliva-p-0068/5e7a4ec40fb146888fa27aa8d78f86fd~noop.image',
-            'description': 'Zureeal has just created an awesome short video with ♬ original sound - joogieboy1596',
+            'description': '#bowsette#mario#cosplay#uk#lgbt#gaming#asian#bowsettecosplay',
             'uploader': 'Zureeal',
             'width': 540,
             'height': 960,
@@ -35,66 +34,32 @@ class TikTokIE(InfoExtractor):
 
         data = self._parse_json(
             self._search_regex(
-                r'var data = ({.+?});', webpage, 'json_string', webpage, 'data'
+                r'var data = ({.+?});', webpage, 'data'
             ), video_id)
 
         title = self._og_search_title(webpage)
-        description = self._og_search_description(webpage)
 
-        width = int_or_none(try_get(data, lambda x: x['video']['width'], int))
-        height = int_or_none(try_get(data, lambda x: x['video']['height'], int))
+        description = str_or_none(try_get(data, lambda x: x['desc']))
+        width = int_or_none(try_get(data, lambda x: x['video']['width']))
+        height = int_or_none(try_get(data, lambda x: x['video']['height']))
 
         formats = []
 
-        for url in data['video']['play_addr']['url_list']:
-            ext = determine_ext(url)
-            if ext == 'unknown_video':
-                urlh = self._request_webpage(
-                    url, video_id, note='Determining extension'
-                )
-                ext = urlhandle_detect_ext(urlh)
+        def extract_formats(url_list):
+            if url_list[0] is None:
+                return
+            for url in url_list[0]:
                 formats.append({
                     'url': url,
-                    'ext': ext,
+                    'ext': 'mp4',
                     'height': height,
                     'width': width,
-                    'quality': -2,
-                    'format_note': "Normal quality",
+                    'format_note': url_list[1]
                 })
 
-        for url in data['video']['download_addr']['url_list']:
-            ext = determine_ext(url)
-            if ext == 'unknown_video':
-                urlh = self._request_webpage(
-                    url, video_id, note='Determining extension'
-                )
-                ext = urlhandle_detect_ext(urlh)
-                formats.append({
-                    'url': url,
-                    'ext': ext,
-                    'height': height,
-                    'width': width,
-                    'quality': 1,
-                    'format_note': "Download quality",
-                })
-
-        for url in data['video']['play_addr_lowbr']['url_list']:
-            ext = determine_ext(url)
-            if ext == 'unknown_video':
-                urlh = self._request_webpage(
-                    url, video_id, note='Determining extension'
-                )
-                ext = urlhandle_detect_ext(urlh)
-                formats.append({
-                    'url': url,
-                    'ext': ext,
-                    'height': height,
-                    'width': width,
-                    'quality': -3,
-                    'format_note': "Low bitrate",
-                })
-
-        self._sort_formats(formats)
+        extract_formats((try_get(data, lambda x: x['video']['play_addr_lowbr']['url_list']), 'Low quality'))
+        extract_formats((try_get(data, lambda x: x['video']['play_addr']['url_list']), 'Normal quality'))
+        extract_formats((try_get(data, lambda x: x['video']['download_addr']['url_list']), 'Download quality'))
 
         uploader = try_get(data, lambda x: x['author']['nickname'], compat_str)
 
