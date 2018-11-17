@@ -88,11 +88,7 @@ from .awaan import (
     AWAANLiveIE,
     AWAANSeasonIE,
 )
-from .azmedien import (
-    AZMedienIE,
-    AZMedienPlaylistIE,
-    AZMedienShowPlaylistIE,
-)
+from .azmedien import AZMedienIE
 from .baidu import BaiduVideoIE
 from .bambuser import BambuserIE, BambuserChannelIE
 from .bandcamp import BandcampIE, BandcampAlbumIE, BandcampWeeklyIE
@@ -543,6 +539,7 @@ from .la7 import LA7IE
 from .laola1tv import (
     Laola1TvEmbedIE,
     Laola1TvIE,
+    EHFTVIE,
     ITTFIE,
 )
 from .lci import LCIIE
@@ -1196,6 +1193,7 @@ from .tweakers import TweakersIE
 from .twentyfourvideo import TwentyFourVideoIE
 from .twentymin import TwentyMinutenIE
 from .twentythreevideo import TwentyThreeVideoIE
+from .twitcasting import TwitCastingIE
 from .twitch import (
     TwitchVideoIE,
     TwitchChapterIE,
@@ -1388,6 +1386,7 @@ from .wsj import (
     WSJIE,
     WSJArticleIE,
 )
+from .wwe import WWEIE
 from .xbef import XBefIE
 from .xboxclips import XboxClipsIE
 from .xfileshare import XFileShareIE
@@ -1480,3 +1479,4 @@ from .zattoo import (
 )
 from .zdf import ZDFIE, ZDFChannelIE
 from .zingmp3 import ZingMp3IE
+from .zype import ZypeIE
