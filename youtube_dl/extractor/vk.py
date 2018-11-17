@@ -295,11 +295,10 @@ class VKIE(VKBaseIE):
             'only_matching': True,
         },
         {
-            # The video Футбол. РФПЛ.14-й тур. Кубань - Локомотив 5:0 38' Сергей Ткачёв is not available in your region.
+            # The video is not available in your region.
             'url': 'https://vk.com/video-51812607_171445436',
             'only_matching': True,
-        }
-    ]
+        }]
 
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
@@ -360,8 +359,8 @@ class VKIE(VKBaseIE):
             r'<!>This video is no longer available, because it has been deleted.':
             'Video %s is no longer available, because it has been deleted.',
 
-            r'is not available in your region.':
-                'Video %s is not available in your region.',
+            r'<!>The video .+? is not available in your region.':
+            'Video %s is not available in your region.',
         }
 
         for error_re, error_msg in ERRORS.items():
