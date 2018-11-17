@@ -504,8 +504,7 @@ class VKUserVideosIE(VKBaseIE):
     }, {
         'url': 'http://new.vk.com/videos205387401',
         'only_matching': True,
-    }
-    ]
+    }]
 
     def _real_extract(self, url):
         page_id = self._match_id(url)
