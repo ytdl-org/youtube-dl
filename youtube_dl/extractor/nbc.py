@@ -93,6 +93,9 @@ class NBCIE(AdobePassIE):
                 'fields[shows]': 'shortTitle',
                 'include': 'show.shortTitle',
             })
+        if len(response['data']) is 0:
+          response = self._download_json(response['links']['self'],video_id)
+        
         video_data = response['data'][0]['attributes']
         query = {
             'mbr': 'true',
