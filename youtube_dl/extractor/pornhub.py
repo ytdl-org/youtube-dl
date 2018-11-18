@@ -121,6 +121,9 @@ class PornHubIE(InfoExtractor):
     }, {
         'url': 'http://www.pornhub.com/video/show?viewkey=648719015',
         'only_matching': True,
+    }, {
+        'url': 'https://www.pornhub.net/view_video.php?viewkey=203640933',
+        'only_matching': True,
     }]
 
     @staticmethod
@@ -392,9 +395,6 @@ class PornHubUserVideosIE(PornHubPlaylistBaseIE):
         'only_matching': True,
     }, {
         'url': 'https://www.pornhub.com/pornstar/jenny-blighe/videos/upload',
-        'only_matching': True,
-    }, {
-        'url': 'https://www.pornhub.net/view_video.php?viewkey=203640933',
         'only_matching': True,
     }]
 
