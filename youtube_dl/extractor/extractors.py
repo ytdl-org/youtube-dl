@@ -1386,6 +1386,7 @@ from .wsj import (
     WSJIE,
     WSJArticleIE,
 )
+from .wwe import WWEIE
 from .xbef import XBefIE
 from .xboxclips import XboxClipsIE
 from .xfileshare import XFileShareIE

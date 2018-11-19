@@ -1080,6 +1080,7 @@
  - **wrzuta.pl:playlist**
  - **WSJ**: Wall Street Journal
  - **WSJArticle**
+ - **WWE**
  - **XBef**
  - **XboxClips**
  - **XFileShare**: XFileShare based sites: DaClips, FileHoot, GorillaVid, MovPod, PowerWatch, Rapidvideo.ws, TheVideoBee, Vidto, Streamin.To, XVIDSTAGE, Vid ABC, VidBom, vidlo, RapidVideo.TV, FastVideo.me
@@ -1139,3 +1140,4 @@
  - **ZDF**
  - **ZDFChannel**
  - **zingmp3**: mp3.zing.vn
+ - **Zype**
