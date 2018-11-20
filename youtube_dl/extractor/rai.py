@@ -274,7 +274,6 @@ class RaiPlayPlaylistIE(InfoExtractor):
             ('programma', 'nomeProgramma'), webpage, 'title')
         description = unescapeHTML(self._html_search_meta(
             ('description', 'og:description'), webpage, 'description'))
-        print(description)
 
         entries = []
         for mobj in re.finditer(

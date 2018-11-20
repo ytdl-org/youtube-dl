@@ -18,11 +18,11 @@ from ..utils import (
 )
 
 
-class ZattooBaseIE(InfoExtractor):
-    _NETRC_MACHINE = 'zattoo'
-    _HOST_URL = 'https://zattoo.com'
-
+class ZattooPlatformBaseIE(InfoExtractor):
     _power_guide_hash = None
+
+    def _host_url(self):
+        return 'https://%s' % (self._API_HOST if hasattr(self, '_API_HOST') else self._HOST)
 
     def _login(self):
         username, password = self._get_login_info()
@@ -33,13 +33,13 @@ class ZattooBaseIE(InfoExtractor):
 
         try:
             data = self._download_json(
-                '%s/zapi/v2/account/login' % self._HOST_URL, None, 'Logging in',
+                '%s/zapi/v2/account/login' % self._host_url(), None, 'Logging in',
                 data=urlencode_postdata({
                     'login': username,
                     'password': password,
                     'remember': 'true',
                 }), headers={
-                    'Referer': '%s/login' % self._HOST_URL,
+                    'Referer': '%s/login' % self._host_url(),
                     'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
                 })
         except ExtractorError as e:
@@ -53,7 +53,7 @@ class ZattooBaseIE(InfoExtractor):
 
     def _real_initialize(self):
         webpage = self._download_webpage(
-            self._HOST_URL, None, 'Downloading app token')
+            self._host_url(), None, 'Downloading app token')
         app_token = self._html_search_regex(
             r'appToken\s*=\s*(["\'])(?P<token>(?:(?!\1).)+?)\1',
             webpage, 'app token', group='token')
@@ -62,7 +62,7 @@ class ZattooBaseIE(InfoExtractor):
 
         # Will setup appropriate cookies
         self._request_webpage(
-            '%s/zapi/v2/session/hello' % self._HOST_URL, None,
+            '%s/zapi/v2/session/hello' % self._host_url(), None,
             'Opening session', data=urlencode_postdata({
                 'client_app_token': app_token,
                 'uuid': compat_str(uuid4()),
@@ -75,7 +75,7 @@ class ZattooBaseIE(InfoExtractor):
 
     def _extract_cid(self, video_id, channel_name):
         channel_groups = self._download_json(
-            '%s/zapi/v2/cached/channels/%s' % (self._HOST_URL,
+            '%s/zapi/v2/cached/channels/%s' % (self._host_url(),
                                                self._power_guide_hash),
             video_id, 'Downloading channel list',
             query={'details': False})['channel_groups']
@@ -93,28 +93,30 @@ class ZattooBaseIE(InfoExtractor):
 
     def _extract_cid_and_video_info(self, video_id):
         data = self._download_json(
-            '%s/zapi/program/details' % self._HOST_URL,
+            '%s/zapi/v2/cached/program/power_details/%s' % (
+                self._host_url(), self._power_guide_hash),
             video_id,
             'Downloading video information',
             query={
-                'program_id': video_id,
-                'complete': True
+                'program_ids': video_id,
+                'complete': True,
             })
 
-        p = data['program']
+        p = data['programs'][0]
         cid = p['cid']
 
         info_dict = {
             'id': video_id,
-            'title': p.get('title') or p['episode_title'],
-            'description': p.get('description'),
-            'thumbnail': p.get('image_url'),
+            'title': p.get('t') or p['et'],
+            'description': p.get('d'),
+            'thumbnail': p.get('i_url'),
             'creator': p.get('channel_name'),
-            'episode': p.get('episode_title'),
-            'episode_number': int_or_none(p.get('episode_number')),
-            'season_number': int_or_none(p.get('season_number')),
+            'episode': p.get('et'),
+            'episode_number': int_or_none(p.get('e_no')),
+            'season_number': int_or_none(p.get('s_no')),
             'release_year': int_or_none(p.get('year')),
-            'categories': try_get(p, lambda x: x['categories'], list),
+            'categories': try_get(p, lambda x: x['c'], list),
+            'tags': try_get(p, lambda x: x['g'], list)
         }
 
         return cid, info_dict
@@ -126,11 +128,11 @@ class ZattooBaseIE(InfoExtractor):
 
         if is_live:
             postdata_common.update({'timeshift': 10800})
-            url = '%s/zapi/watch/live/%s' % (self._HOST_URL, cid)
+            url = '%s/zapi/watch/live/%s' % (self._host_url(), cid)
         elif record_id:
-            url = '%s/zapi/watch/recording/%s' % (self._HOST_URL, record_id)
+            url = '%s/zapi/watch/recording/%s' % (self._host_url(), record_id)
         else:
-            url = '%s/zapi/watch/recall/%s/%s' % (self._HOST_URL, cid, video_id)
+            url = '%s/zapi/watch/recall/%s/%s' % (self._host_url(), cid, video_id)
 
         formats = []
         for stream_type in ('dash', 'hls', 'hls5', 'hds'):
@@ -201,13 +203,13 @@ class ZattooBaseIE(InfoExtractor):
         return info_dict
 
 
-class QuicklineBaseIE(ZattooBaseIE):
+class QuicklineBaseIE(ZattooPlatformBaseIE):
     _NETRC_MACHINE = 'quickline'
-    _HOST_URL = 'https://mobiltv.quickline.com'
+    _HOST = 'mobiltv.quickline.com'
 
 
 class QuicklineIE(QuicklineBaseIE):
-    _VALID_URL = r'https?://(?:www\.)?mobiltv\.quickline\.com/watch/(?P<channel>[^/]+)/(?P<id>[0-9]+)'
+    _VALID_URL = r'https?://(?:www\.)?%s/watch/(?P<channel>[^/]+)/(?P<id>[0-9]+)' % re.escape(QuicklineBaseIE._HOST)
 
     _TEST = {
         'url': 'https://mobiltv.quickline.com/watch/prosieben/130671867-maze-runner-die-auserwaehlten-in-der-brandwueste',
@@ -220,7 +222,7 @@ class QuicklineIE(QuicklineBaseIE):
 
 
 class QuicklineLiveIE(QuicklineBaseIE):
-    _VALID_URL = r'https?://(?:www\.)?mobiltv\.quickline\.com/watch/(?P<id>[^/]+)'
+    _VALID_URL = r'https?://(?:www\.)?%s/watch/(?P<id>[^/]+)' % re.escape(QuicklineBaseIE._HOST)
 
     _TEST = {
         'url': 'https://mobiltv.quickline.com/watch/srf1',
@@ -236,8 +238,18 @@ class QuicklineLiveIE(QuicklineBaseIE):
         return self._extract_video(channel_name, video_id, is_live=True)
 
 
+class ZattooBaseIE(ZattooPlatformBaseIE):
+    _NETRC_MACHINE = 'zattoo'
+    _HOST = 'zattoo.com'
+
+
+def _make_valid_url(tmpl, host):
+    return tmpl % re.escape(host)
+
+
 class ZattooIE(ZattooBaseIE):
-    _VALID_URL = r'https?://(?:www\.)?zattoo\.com/watch/(?P<channel>[^/]+?)/(?P<id>[0-9]+)[^/]+(?:/(?P<recid>[0-9]+))?'
+    _VALID_URL_TEMPLATE = r'https?://(?:www\.)?%s/watch/(?P<channel>[^/]+?)/(?P<id>[0-9]+)[^/]+(?:/(?P<recid>[0-9]+))?'
+    _VALID_URL = _make_valid_url(_VALID_URL_TEMPLATE, ZattooBaseIE._HOST)
 
     # Since regular videos are only available for 7 days and recorded videos
     # are only available for a specific user, we cannot have detailed tests.
@@ -269,3 +281,142 @@ class ZattooLiveIE(ZattooBaseIE):
     def _real_extract(self, url):
         channel_name = video_id = self._match_id(url)
         return self._extract_video(channel_name, video_id, is_live=True)
+
+
+class NetPlusIE(ZattooIE):
+    _NETRC_MACHINE = 'netplus'
+    _HOST = 'netplus.tv'
+    _API_HOST = 'www.%s' % _HOST
+    _VALID_URL = _make_valid_url(ZattooIE._VALID_URL_TEMPLATE, _HOST)
+
+    _TESTS = [{
+        'url': 'https://www.netplus.tv/watch/abc/123-abc',
+        'only_matching': True,
+    }]
+
+
+class MNetTVIE(ZattooIE):
+    _NETRC_MACHINE = 'mnettv'
+    _HOST = 'tvplus.m-net.de'
+    _VALID_URL = _make_valid_url(ZattooIE._VALID_URL_TEMPLATE, _HOST)
+
+    _TESTS = [{
+        'url': 'https://tvplus.m-net.de/watch/abc/123-abc',
+        'only_matching': True,
+    }]
+
+
+class WalyTVIE(ZattooIE):
+    _NETRC_MACHINE = 'walytv'
+    _HOST = 'player.waly.tv'
+    _VALID_URL = _make_valid_url(ZattooIE._VALID_URL_TEMPLATE, _HOST)
+
+    _TESTS = [{
+        'url': 'https://player.waly.tv/watch/abc/123-abc',
+        'only_matching': True,
+    }]
+
+
+class BBVTVIE(ZattooIE):
+    _NETRC_MACHINE = 'bbvtv'
+    _HOST = 'bbv-tv.net'
+    _API_HOST = 'www.%s' % _HOST
+    _VALID_URL = _make_valid_url(ZattooIE._VALID_URL_TEMPLATE, _HOST)
+
+    _TESTS = [{
+        'url': 'https://www.bbv-tv.net/watch/abc/123-abc',
+        'only_matching': True,
+    }]
+
+
+class VTXTVIE(ZattooIE):
+    _NETRC_MACHINE = 'vtxtv'
+    _HOST = 'vtxtv.ch'
+    _API_HOST = 'www.%s' % _HOST
+    _VALID_URL = _make_valid_url(ZattooIE._VALID_URL_TEMPLATE, _HOST)
+
+    _TESTS = [{
+        'url': 'https://www.vtxtv.ch/watch/abc/123-abc',
+        'only_matching': True,
+    }]
+
+
+class MyVisionTVIE(ZattooIE):
+    _NETRC_MACHINE = 'myvisiontv'
+    _HOST = 'myvisiontv.ch'
+    _API_HOST = 'www.%s' % _HOST
+    _VALID_URL = _make_valid_url(ZattooIE._VALID_URL_TEMPLATE, _HOST)
+
+    _TESTS = [{
+        'url': 'https://www.myvisiontv.ch/watch/abc/123-abc',
+        'only_matching': True,
+    }]
+
+
+class GlattvisionTVIE(ZattooIE):
+    _NETRC_MACHINE = 'glattvisiontv'
+    _HOST = 'iptv.glattvision.ch'
+    _VALID_URL = _make_valid_url(ZattooIE._VALID_URL_TEMPLATE, _HOST)
+
+    _TESTS = [{
+        'url': 'https://iptv.glattvision.ch/watch/abc/123-abc',
+        'only_matching': True,
+    }]
+
+
+class SAKTVIE(ZattooIE):
+    _NETRC_MACHINE = 'saktv'
+    _HOST = 'saktv.ch'
+    _API_HOST = 'www.%s' % _HOST
+    _VALID_URL = _make_valid_url(ZattooIE._VALID_URL_TEMPLATE, _HOST)
+
+    _TESTS = [{
+        'url': 'https://www.saktv.ch/watch/abc/123-abc',
+        'only_matching': True,
+    }]
+
+
+class EWETVIE(ZattooIE):
+    _NETRC_MACHINE = 'ewetv'
+    _HOST = 'tvonline.ewe.de'
+    _VALID_URL = _make_valid_url(ZattooIE._VALID_URL_TEMPLATE, _HOST)
+
+    _TESTS = [{
+        'url': 'https://tvonline.ewe.de/watch/abc/123-abc',
+        'only_matching': True,
+    }]
+
+
+class QuantumTVIE(ZattooIE):
+    _NETRC_MACHINE = 'quantumtv'
+    _HOST = 'quantum-tv.com'
+    _API_HOST = 'www.%s' % _HOST
+    _VALID_URL = _make_valid_url(ZattooIE._VALID_URL_TEMPLATE, _HOST)
+
+    _TESTS = [{
+        'url': 'https://www.quantum-tv.com/watch/abc/123-abc',
+        'only_matching': True,
+    }]
+
+
+class OsnatelTVIE(ZattooIE):
+    _NETRC_MACHINE = 'osnateltv'
+    _HOST = 'tvonline.osnatel.de'
+    _VALID_URL = _make_valid_url(ZattooIE._VALID_URL_TEMPLATE, _HOST)
+
+    _TESTS = [{
+        'url': 'https://tvonline.osnatel.de/watch/abc/123-abc',
+        'only_matching': True,
+    }]
+
+
+class EinsUndEinsTVIE(ZattooIE):
+    _NETRC_MACHINE = '1und1tv'
+    _HOST = '1und1.tv'
+    _API_HOST = 'www.%s' % _HOST
+    _VALID_URL = _make_valid_url(ZattooIE._VALID_URL_TEMPLATE, _HOST)
+
+    _TESTS = [{
+        'url': 'https://www.1und1.tv/watch/abc/123-abc',
+        'only_matching': True,
+    }]

@@ -299,10 +299,13 @@ class VimeoIE(VimeoBaseInfoExtractor):
                 'uploader_url': r're:https?://(?:www\.)?vimeo\.com/atencio',
                 'uploader_id': 'atencio',
                 'uploader': 'Peter Atencio',
+                'channel_id': 'keypeele',
+                'channel_url': r're:https?://(?:www\.)?vimeo\.com/channels/keypeele',
                 'timestamp': 1380339469,
                 'upload_date': '20130928',
                 'duration': 187,
             },
+            'expected_warnings': ['Unable to download JSON metadata'],
         },
         {
             'url': 'http://vimeo.com/76979871',
@@ -355,11 +358,13 @@ class VimeoIE(VimeoBaseInfoExtractor):
             'url': 'https://vimeo.com/channels/tributes/6213729',
             'info_dict': {
                 'id': '6213729',
-                'ext': 'mov',
+                'ext': 'mp4',
                 'title': 'Vimeo Tribute: The Shining',
                 'uploader': 'Casey Donahue',
                 'uploader_url': r're:https?://(?:www\.)?vimeo\.com/caseydonahue',
                 'uploader_id': 'caseydonahue',
+                'channel_url': r're:https?://(?:www\.)?vimeo\.com/channels/tributes',
+                'channel_id': 'tributes',
                 'timestamp': 1250886430,
                 'upload_date': '20090821',
                 'description': 'md5:bdbf314014e58713e6e5b66eb252f4a6',
@@ -465,6 +470,9 @@ class VimeoIE(VimeoBaseInfoExtractor):
         if 'Referer' not in headers:
             headers['Referer'] = url
 
+        channel_id = self._search_regex(
+            r'vimeo\.com/channels/([^/]+)', url, 'channel id', default=None)
+
         # Extract ID from URL
         mobj = re.match(self._VALID_URL, url)
         video_id = mobj.group('id')
@@ -543,6 +551,7 @@ class VimeoIE(VimeoBaseInfoExtractor):
                 else:
                     config_re = [r' = {config:({.+?}),assets:', r'(?:[abc])=({.+?});']
                 config_re.append(r'\bvar\s+r\s*=\s*({.+?})\s*;')
+                config_re.append(r'\bconfig\s*=\s*({.+?})\s*;')
                 config = self._search_regex(config_re, webpage, 'info section',
                                             flags=re.DOTALL)
                 config = json.loads(config)
@@ -563,19 +572,23 @@ class VimeoIE(VimeoBaseInfoExtractor):
             if config.get('view') == 4:
                 config = self._verify_player_video_password(redirect_url, video_id)
 
+        vod = config.get('video', {}).get('vod', {})
+
         def is_rented():
             if '>You rented this title.<' in webpage:
                 return True
             if config.get('user', {}).get('purchased'):
                 return True
-            label = try_get(
-                config, lambda x: x['video']['vod']['purchase_options'][0]['label_string'], compat_str)
-            if label and label.startswith('You rented this'):
-                return True
+            for purchase_option in vod.get('purchase_options', []):
+                if purchase_option.get('purchased'):
+                    return True
+                label = purchase_option.get('label_string')
+                if label and (label.startswith('You rented this') or label.endswith(' remaining')):
+                    return True
             return False
 
-        if is_rented():
-            feature_id = config.get('video', {}).get('vod', {}).get('feature_id')
+        if is_rented() and vod.get('is_trailer'):
+            feature_id = vod.get('feature_id')
             if feature_id and not data.get('force_feature_id', False):
                 return self.url_result(smuggle_url(
                     'https://player.vimeo.com/player/%s' % feature_id,
@@ -652,6 +665,8 @@ class VimeoIE(VimeoBaseInfoExtractor):
                 r'<link[^>]+rel=["\']license["\'][^>]+href=(["\'])(?P<license>(?:(?!\1).)+)\1',
                 webpage, 'license', default=None, group='license')
 
+        channel_url = 'https://vimeo.com/channels/%s' % channel_id if channel_id else None
+
         info_dict = {
             'id': video_id,
             'formats': formats,
@@ -662,6 +677,8 @@ class VimeoIE(VimeoBaseInfoExtractor):
             'like_count': like_count,
             'comment_count': comment_count,
             'license': cc_license,
+            'channel_id': channel_id,
+            'channel_url': channel_url,
         }
 
         info_dict = merge_dicts(info_dict, info_dict_config, json_ld)

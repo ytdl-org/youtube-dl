@@ -785,6 +785,10 @@ class TestUtil(unittest.TestCase):
             'vcodec': 'h264',
             'acodec': 'aac',
         })
+        self.assertEqual(parse_codecs('av01.0.05M.08'), {
+            'vcodec': 'av01.0.05M.08',
+            'acodec': 'none',
+        })
 
     def test_escape_rfc3986(self):
         reserved = "!*'();:@&=+$,/?#[]"

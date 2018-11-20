@@ -23,7 +23,7 @@ class XFileShareIE(InfoExtractor):
         (r'powerwatch\.pw', 'PowerWatch'),
         (r'rapidvideo\.ws', 'Rapidvideo.ws'),
         (r'thevideobee\.to', 'TheVideoBee'),
-        (r'vidto\.me', 'Vidto'),
+        (r'vidto\.(?:me|se)', 'Vidto'),
         (r'streamin\.to', 'Streamin.To'),
         (r'xvidstage\.com', 'XVIDSTAGE'),
         (r'vidabc\.com', 'Vid ABC'),
@@ -115,7 +115,10 @@ class XFileShareIE(InfoExtractor):
         'only_matching': True,
     }, {
         'url': 'http://www.fastvideo.me/k8604r8nk8sn/FAST_FURIOUS_8_-_Trailer_italiano_ufficiale.mp4.html',
-        'only_matching': True
+        'only_matching': True,
+    }, {
+        'url': 'http://vidto.se/1tx1pf6t12cg.html',
+        'only_matching': True,
     }]
 
     @staticmethod

@@ -41,6 +41,7 @@ from ..utils import (
     remove_quotes,
     remove_start,
     smuggle_url,
+    str_or_none,
     str_to_int,
     try_get,
     unescapeHTML,
@@ -64,7 +65,7 @@ class YoutubeBaseInfoExtractor(InfoExtractor):
     # If True it will raise an error if no login info is provided
     _LOGIN_REQUIRED = False
 
-    _PLAYLIST_ID_RE = r'(?:PL|LL|EC|UU|FL|RD|UL|TL)[0-9A-Za-z-_]{10,}'
+    _PLAYLIST_ID_RE = r'(?:PL|LL|EC|UU|FL|RD|UL|TL|OLAK5uy_)[0-9A-Za-z-_]{10,}'
 
     def _set_language(self):
         self._set_cookie(
@@ -259,7 +260,9 @@ class YoutubeBaseInfoExtractor(InfoExtractor):
         return True
 
     def _download_webpage_handle(self, *args, **kwargs):
-        kwargs.setdefault('query', {})['disable_polymer'] = 'true'
+        query = kwargs.get('query', {}).copy()
+        query['disable_polymer'] = 'true'
+        kwargs['query'] = query
         return super(YoutubeBaseInfoExtractor, self)._download_webpage_handle(
             *args, **compat_kwargs(kwargs))
 
@@ -347,6 +350,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                             (?:www\.)?hooktube\.com/|
                             (?:www\.)?yourepeat\.com/|
                             tube\.majestyc\.net/|
+                            (?:www\.)?invidio\.us/|
                             youtube\.googleapis\.com/)                        # the various hostnames, with wildcard subdomains
                          (?:.*?\#/)?                                          # handle anchor (#/) redirect urls
                          (?:                                                  # the various things that can precede the ID:
@@ -490,12 +494,15 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                 'uploader': 'Philipp Hagemeister',
                 'uploader_id': 'phihag',
                 'uploader_url': r're:https?://(?:www\.)?youtube\.com/user/phihag',
+                'channel_id': 'UCLqxVugv74EIW3VWh2NOa3Q',
+                'channel_url': r're:https?://(?:www\.)?youtube\.com/channel/UCLqxVugv74EIW3VWh2NOa3Q',
                 'upload_date': '20121002',
                 'license': 'Standard YouTube License',
                 'description': 'test chars:  "\'/\\ä↭𝕐\ntest URL: https://github.com/rg3/youtube-dl/issues/1892\n\nThis is a test video for youtube-dl.\n\nFor more information, contact phihag@phihag.de .',
                 'categories': ['Science & Technology'],
                 'tags': ['youtube-dl'],
                 'duration': 10,
+                'view_count': int,
                 'like_count': int,
                 'dislike_count': int,
                 'start_time': 1,
@@ -578,6 +585,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                 'categories': ['Science & Technology'],
                 'tags': ['youtube-dl'],
                 'duration': 10,
+                'view_count': int,
                 'like_count': int,
                 'dislike_count': int,
             },
@@ -1064,6 +1072,10 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
             'url': 'https://www.youtube.com/watch?v=MuAGGZNfUkU&list=RDMM',
             'only_matching': True,
         },
+        {
+            'url': 'https://invidio.us/watch?v=BaW_jenozKc',
+            'only_matching': True,
+        },
     ]
 
     def __init__(self, *args, **kwargs):
@@ -1178,7 +1190,10 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
     def _parse_sig_js(self, jscode):
         funcname = self._search_regex(
             (r'(["\'])signature\1\s*,\s*(?P<sig>[a-zA-Z0-9$]+)\(',
-             r'\.sig\|\|(?P<sig>[a-zA-Z0-9$]+)\('),
+             r'\.sig\|\|(?P<sig>[a-zA-Z0-9$]+)\(',
+             r'yt\.akamaized\.net/\)\s*\|\|\s*.*?\s*c\s*&&\s*d\.set\([^,]+\s*,\s*(?P<sig>[a-zA-Z0-9$]+)\(',
+             r'\bc\s*&&\s*d\.set\([^,]+\s*,\s*(?P<sig>[a-zA-Z0-9$]+)\(',
+             r'\bc\s*&&\s*d\.set\([^,]+\s*,\s*\([^)]*\)\s*\(\s*(?P<sig>[a-zA-Z0-9$]+)\('),
             jscode, 'Initial JS player signature function name', group='sig')
 
         jsi = JSInterpreter(jscode)
@@ -1527,6 +1542,8 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
         def extract_view_count(v_info):
             return int_or_none(try_get(v_info, lambda x: x['view_count'][0]))
 
+        player_response = {}
+
         # Get video info
         embed_webpage = None
         if re.search(r'player-age-gate-content">', video_webpage) is not None:
@@ -1569,6 +1586,12 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                 if args.get('livestream') == '1' or args.get('live_playback') == 1:
                     is_live = True
                 sts = ytplayer_config.get('sts')
+                if not player_response:
+                    pl_response = str_or_none(args.get('player_response'))
+                    if pl_response:
+                        pl_response = self._parse_json(pl_response, video_id, fatal=False)
+                        if isinstance(pl_response, dict):
+                            player_response = pl_response
             if not video_info or self._downloader.params.get('youtube_include_dash_manifest', True):
                 # We also try looking in get_video_info since it may contain different dashmpd
                 # URL that points to a DASH manifest with possibly different itag set (some itags
@@ -1597,6 +1620,10 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                     if not video_info_webpage:
                         continue
                     get_video_info = compat_parse_qs(video_info_webpage)
+                    if not player_response:
+                        pl_response = get_video_info.get('player_response', [None])[0]
+                        if isinstance(pl_response, dict):
+                            player_response = pl_response
                     add_dash_mpd(get_video_info)
                     if view_count is None:
                         view_count = extract_view_count(get_video_info)
@@ -1642,9 +1669,14 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                     '"token" parameter not in video info for unknown reason',
                     video_id=video_id)
 
+        video_details = try_get(
+            player_response, lambda x: x['videoDetails'], dict) or {}
+
         # title
         if 'title' in video_info:
             video_title = video_info['title'][0]
+        elif 'title' in player_response:
+            video_title = video_details['title']
         else:
             self._downloader.report_warning('Unable to extract video title')
             video_title = '_'
@@ -1707,6 +1739,8 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
 
         if view_count is None:
             view_count = extract_view_count(video_info)
+        if view_count is None and video_details:
+            view_count = int_or_none(video_details.get('viewCount'))
 
         # Check for "rental" videos
         if 'ypc_video_rental_bar_text' in video_info and 'author' not in video_info:
@@ -1887,7 +1921,9 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
             raise ExtractorError('no conn, hlsvp or url_encoded_fmt_stream_map information found in video info')
 
         # uploader
-        video_uploader = try_get(video_info, lambda x: x['author'][0], compat_str)
+        video_uploader = try_get(
+            video_info, lambda x: x['author'][0],
+            compat_str) or str_or_none(video_details.get('author'))
         if video_uploader:
             video_uploader = compat_urllib_parse_unquote_plus(video_uploader)
         else:
@@ -1904,6 +1940,10 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
             video_uploader_url = mobj.group('uploader_url')
         else:
             self._downloader.report_warning('unable to extract uploader nickname')
+
+        channel_id = self._html_search_meta(
+            'channelId', video_webpage, 'channel id')
+        channel_url = 'http://www.youtube.com/channel/%s' % channel_id if channel_id else None
 
         # thumbnail image
         # We try first to get a high quality image:
@@ -1996,12 +2036,19 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
         like_count = _extract_count('like')
         dislike_count = _extract_count('dislike')
 
+        if view_count is None:
+            view_count = str_to_int(self._search_regex(
+                r'<[^>]+class=["\']watch-view-count[^>]+>\s*([\d,\s]+)', video_webpage,
+                'view count', default=None))
+
         # subtitles
         video_subtitles = self.extract_subtitles(video_id, video_webpage)
         automatic_captions = self.extract_automatic_captions(video_id, video_webpage)
 
         video_duration = try_get(
             video_info, lambda x: int_or_none(x['length_seconds'][0]))
+        if not video_duration:
+            video_duration = int_or_none(video_details.get('lengthSeconds'))
         if not video_duration:
             video_duration = parse_duration(self._html_search_meta(
                 'duration', video_webpage, 'video duration'))
@@ -2076,6 +2123,8 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
             'uploader': video_uploader,
             'uploader_id': video_uploader_id,
             'uploader_url': video_uploader_url,
+            'channel_id': channel_id,
+            'channel_url': channel_url,
             'upload_date': upload_date,
             'license': video_license,
             'creator': video_creator or artist,
@@ -2114,7 +2163,11 @@ class YoutubePlaylistIE(YoutubePlaylistBaseInfoExtractor):
                         (?:https?://)?
                         (?:\w+\.)?
                         (?:
-                            youtube\.com/
+                            (?:
+                                youtube\.com|
+                                invidio\.us
+                            )
+                            /
                             (?:
                                (?:course|view_play_list|my_playlists|artist|playlist|watch|embed/(?:videoseries|[0-9A-Za-z_-]{11}))
                                \? (?:.*?[&;])*? (?:p|a|list)=
@@ -2123,7 +2176,7 @@ class YoutubePlaylistIE(YoutubePlaylistBaseInfoExtractor):
                             youtu\.be/[0-9A-Za-z_-]{11}\?.*?\blist=
                         )
                         (
-                            (?:PL|LL|EC|UU|FL|RD|UL|TL)?[0-9A-Za-z-_]{10,}
+                            (?:PL|LL|EC|UU|FL|RD|UL|TL|OLAK5uy_)?[0-9A-Za-z-_]{10,}
                             # Top tracks, they can also include dots
                             |(?:MC)[\w\.]*
                         )
@@ -2227,6 +2280,7 @@ class YoutubePlaylistIE(YoutubePlaylistBaseInfoExtractor):
             'description': 'md5:507cdcb5a49ac0da37a920ece610be80',
             'categories': ['People & Blogs'],
             'tags': list,
+            'view_count': int,
             'like_count': int,
             'dislike_count': int,
         },
@@ -2260,6 +2314,13 @@ class YoutubePlaylistIE(YoutubePlaylistBaseInfoExtractor):
         'only_matching': True,
     }, {
         'url': 'TLGGrESM50VT6acwMjAyMjAxNw',
+        'only_matching': True,
+    }, {
+        # music album playlist
+        'url': 'OLAK5uy_m4xAFdmMC5rX3Ji3g93pQe3hqLZw_9LhM',
+        'only_matching': True,
+    }, {
+        'url': 'https://invidio.us/playlist?list=PLDIoUOhQQPlXr63I_vwF9GD8sAKh77dWU',
         'only_matching': True,
     }]
 
@@ -2403,7 +2464,7 @@ class YoutubePlaylistIE(YoutubePlaylistBaseInfoExtractor):
 
 class YoutubeChannelIE(YoutubePlaylistBaseInfoExtractor):
     IE_DESC = 'YouTube.com channels'
-    _VALID_URL = r'https?://(?:youtu\.be|(?:\w+\.)?youtube(?:-nocookie)?\.com)/channel/(?P<id>[0-9A-Za-z_-]+)'
+    _VALID_URL = r'https?://(?:youtu\.be|(?:\w+\.)?youtube(?:-nocookie)?\.com|(?:www\.)?invidio\.us)/channel/(?P<id>[0-9A-Za-z_-]+)'
     _TEMPLATE_URL = 'https://www.youtube.com/channel/%s/videos'
     _VIDEO_RE = r'(?:title="(?P<title>[^"]+)"[^>]+)?href="/watch\?v=(?P<id>[0-9A-Za-z_-]+)&?'
     IE_NAME = 'youtube:channel'
@@ -2424,6 +2485,9 @@ class YoutubeChannelIE(YoutubePlaylistBaseInfoExtractor):
             'id': 'UUs0ifCMCm1icqRbqhUINa0w',
             'title': 'Uploads from Deus Ex',
         },
+    }, {
+        'url': 'https://invidio.us/channel/UC23qupoDRn9YOAVzeoxjOQA',
+        'only_matching': True,
     }]
 
     @classmethod

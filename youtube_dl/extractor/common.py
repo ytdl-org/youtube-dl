@@ -69,6 +69,7 @@ from ..utils import (
     update_url_query,
     urljoin,
     url_basename,
+    url_or_none,
     xpath_element,
     xpath_text,
     xpath_with_ns,
@@ -211,6 +212,11 @@ class InfoExtractor(object):
                     If not explicitly set, calculated from timestamp.
     uploader_id:    Nickname or id of the video uploader.
     uploader_url:   Full URL to a personal webpage of the video uploader.
+    channel:        Full name of the channel the video is uploaded on.
+                    Note that channel fields may or may not repeat uploader
+                    fields. This depends on a particular extractor.
+    channel_id:     Id of the channel.
+    channel_url:    Full URL to a channel webpage.
     location:       Physical location where the video was filmed.
     subtitles:      The available subtitles as a dictionary in the format
                     {tag: subformats}. "tag" is usually a language code, and
@@ -600,6 +606,11 @@ class InfoExtractor(object):
         except (compat_urllib_error.URLError, compat_http_client.HTTPException, socket.error) as err:
             if isinstance(err, compat_urllib_error.HTTPError):
                 if self.__can_accept_status_code(err, expected_status):
+                    # Retain reference to error to prevent file object from
+                    # being closed before it can be read. Works around the
+                    # effects of <https://bugs.python.org/issue15002>
+                    # introduced in Python 3.4.1.
+                    err.fp._error = err
                     return err.fp
 
             if errnote is False:
@@ -1205,10 +1216,10 @@ class InfoExtractor(object):
         def extract_video_object(e):
             assert e['@type'] == 'VideoObject'
             info.update({
-                'url': e.get('contentUrl'),
+                'url': url_or_none(e.get('contentUrl')),
                 'title': unescapeHTML(e.get('name')),
                 'description': unescapeHTML(e.get('description')),
-                'thumbnail': e.get('thumbnailUrl') or e.get('thumbnailURL'),
+                'thumbnail': url_or_none(e.get('thumbnailUrl') or e.get('thumbnailURL')),
                 'duration': parse_duration(e.get('duration')),
                 'timestamp': unified_timestamp(e.get('uploadDate')),
                 'filesize': float_or_none(e.get('contentSize')),
@@ -1698,9 +1709,9 @@ class InfoExtractor(object):
                 # However, this is not always respected, for example, [2]
                 # contains EXT-X-STREAM-INF tag which references AUDIO
                 # rendition group but does not have CODECS and despite
-                # referencing audio group an audio group, it represents
-                # a complete (with audio and video) format. So, for such cases
-                # we will ignore references to rendition groups and treat them
+                # referencing an audio group it represents a complete
+                # (with audio and video) format. So, for such cases we will
+                # ignore references to rendition groups and treat them
                 # as complete formats.
                 if audio_group_id and codecs and f.get('vcodec') != 'none':
                     audio_group = groups.get(audio_group_id)
