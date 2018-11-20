@@ -1,6 +1,8 @@
 # coding: utf-8
 from __future__ import unicode_literals
 
+import itertools
+
 from .common import InfoExtractor
 from ..compat import (
     compat_parse_qs,
@@ -29,12 +31,12 @@ class CiscoLiveBaseIE(InfoExtractor):
         'rfWidgetId': RAINFOCUS_WIDGET_ID,
     }
 
-    def _call_api(self, ep, rf_id, query, referrer):
+    def _call_api(self, ep, rf_id, query, referrer, note=None):
         headers = self.HEADERS.copy()
         headers['Referer'] = referrer
         return self._download_json(
-            self.RAINFOCUS_API_URL % ep, rf_id, data=urlencode_postdata(query),
-            headers=headers)
+            self.RAINFOCUS_API_URL % ep, rf_id, note=note,
+            data=urlencode_postdata(query), headers=headers)
 
     def _parse_rf_item(self, rf_item):
         event_name = rf_item.get('eventName')
@@ -77,9 +79,6 @@ class CiscoLiveSessionIE(CiscoLiveBaseIE):
             'uploader_id': '5647924234001',
             'location': '16B Mezz.',
         },
-        'params': {
-            'proxy': '127.0.0.1:8118',
-        }
     }
 
     def _real_extract(self, url):
@@ -93,12 +92,9 @@ class CiscoLiveSearchIE(CiscoLiveBaseIE):
     _TESTS = [{
         'url': 'https://ciscolive.cisco.com/on-demand-library/?search.event=ciscoliveus2018&search.technicallevel=scpsSkillLevel_aintroductory&search.focus=scpsSessionFocus_designAndDeployment#/',
         'info_dict': {
-            'title': 'Filter query',
+            'title': 'Search query',
         },
         'playlist_count': 5,
-        'params': {
-            'proxy': '127.0.0.1:8118',
-        }
     }, {
         'url': 'https://ciscolive.cisco.com/on-demand-library/?search.technology=scpsTechnology_applicationDevelopment&search.technology=scpsTechnology_ipv6&search.focus=scpsSessionFocus_troubleshootingTroubleshooting#/',
         'only_matching': True,
@@ -112,15 +108,35 @@ class CiscoLiveSearchIE(CiscoLiveBaseIE):
     def _check_bc_id_exists(rf_item):
         return int_or_none(try_get(rf_item, lambda x: x['videos'][0]['url'])) is not None
 
+    def _entries(self, query, url):
+        query['size'] = 50
+        query['from'] = 0
+        for page_num in itertools.count(1):
+            results = self._call_api(
+                'search', None, query, url,
+                'Downloading search JSON page %d' % page_num)
+            sl = try_get(results, lambda x: x['sectionList'][0], dict)
+            if sl:
+                results = sl
+            items = results.get('items')
+            if not items or not isinstance(items, list):
+                break
+            for item in items:
+                if not isinstance(item, dict):
+                    continue
+                if not self._check_bc_id_exists(item):
+                    continue
+                yield self._parse_rf_item(item)
+            size = int_or_none(results.get('size'))
+            if size is not None:
+                query['size'] = size
+            total = int_or_none(results.get('total'))
+            if total is not None and query['from'] + query['size'] > total:
+                break
+            query['from'] += query['size']
+
     def _real_extract(self, url):
-        rf_query = compat_parse_qs(compat_urllib_parse_urlparse(url).query)
-        rf_query['type'] = 'session'
-        rf_query['size'] = 1000
-        rf_results = self._call_api('search', None, rf_query, url)
-        entries = [
-            self._parse_rf_item(rf_item)
-            for rf_item
-            in rf_results['sectionList'][0]['items']
-            if self._check_bc_id_exists(rf_item)
-        ]
-        return self.playlist_result(entries, playlist_title='Filter query')
+        query = compat_parse_qs(compat_urllib_parse_urlparse(url).query)
+        query['type'] = 'session'
+        return self.playlist_result(
+            self._entries(query, url), playlist_title='Search query')
