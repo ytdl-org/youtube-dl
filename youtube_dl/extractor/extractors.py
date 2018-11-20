@@ -194,7 +194,10 @@ from .chirbit import (
     ChirbitProfileIE,
 )
 from .cinchcast import CinchcastIE
-from .ciscolive import CiscoLiveIE
+from .ciscolive import (
+    CiscoLiveSessionIE,
+    CiscoLiveSearchIE,
+)
 from .cjsw import CJSWIE
 from .cliphunter import CliphunterIE
 from .clippit import ClippitIE
