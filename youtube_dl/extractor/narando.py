@@ -32,7 +32,7 @@ class NarandoIE(InfoExtractor):
         # TODO more code goes here, for example ...
         title = self._html_search_regex(r'<h1 class="visible-xs h3">(.+?)</h1>', webpage, 'title')
 #        print(title)
-        player_id = self._html_search_regex(" ".join(r'[\n\r].*https:\/\/narando.com\/r\/\s*([^"]*)'.split()), webpage, 'player_id')
+        player_id = self._html_search_regex(r'[\n\r].*https:\/\/narando.com\/r\/\s*([^"]*)', webpage, 'player_id')
         player_page = self._download_webpage('https://narando.com/widget?r=' + player_id, player_id)
         download_url = self._html_search_regex(r'.<div class="stream_url hide">\s*([^?]*)', player_page, 'download_url')
         description = self._html_search_regex(r'<meta content="(.+?)" property="og:description" />', webpage, 'description')
