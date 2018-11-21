@@ -1482,4 +1482,4 @@ from .zingmp3 import ZingMp3IE
 from .zype import ZypeIE
 
 
-from .narando import NarandoIE
+from .narando import NarandoIE, NarandoPlayerIE
