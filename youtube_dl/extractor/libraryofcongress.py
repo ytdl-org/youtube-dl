@@ -20,12 +20,11 @@ class LibraryOfCongressIE(InfoExtractor):
     _TESTS = [{
         # embedded via <div class="media-player"
         'url': 'http://loc.gov/item/90716351/',
-        'md5': '353917ff7f0255aa6d4b80a034833de8',
+        'md5': '6ec0ae8f07f86731b1b2ff70f046210a',
         'info_dict': {
             'id': '90716351',
             'ext': 'mp4',
             'title': "Pa's trip to Mars",
-            'thumbnail': r're:^https?://.*\.jpg$',
             'duration': 0,
             'view_count': int,
         },
