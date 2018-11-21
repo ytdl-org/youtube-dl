@@ -672,7 +672,10 @@ from .myvi import (
     MyviEmbedIE,
 )
 from .myvidster import MyVidsterIE
-from .narando import NarandoIE
+from .narando import (
+    NarandoIE,
+    NarandoPlayerIE,
+)
 from .nationalgeographic import (
     NationalGeographicVideoIE,
     NationalGeographicIE,
