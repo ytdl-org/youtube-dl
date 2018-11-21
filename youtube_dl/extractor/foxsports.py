@@ -8,7 +8,7 @@ from ..utils import (
 
 
 class FoxSportsIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:www\.)?foxsports\.com/(?:[^/]+/)*(?P<id>[^/]+)'
+    _VALID_URL = r'https?://(?:www\.)?foxsports\.com/(?:[^/]+/)*video/(?P<id>\d+)'
 
     _TEST = {
         'url': 'http://www.foxsports.com/tennessee/video/432609859715',
@@ -28,16 +28,5 @@ class FoxSportsIE(InfoExtractor):
     def _real_extract(self, url):
         video_id = self._match_id(url)
 
-        webpage = self._download_webpage(url, video_id)
-
-        config = self._parse_json(
-            self._html_search_regex(
-                r"""class="[^"]*(?:fs-player|platformPlayer-wrapper)[^"]*".+?data-player-config='([^']+)'""",
-                webpage, 'data player config'),
-            video_id)
-
-        return self.url_result(smuggle_url(update_url_query(
-            config['releaseURL'], {
-                'mbr': 'true',
-                'switch': 'http',
-            }), {'force_smil_url': True}))
+        return self.url_result(
+            'https://feed.theplatform.com/f/BKQ29B/foxsports-all?byId=' + video_id, 'ThePlatformFeed')
