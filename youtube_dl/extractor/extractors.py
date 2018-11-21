@@ -230,6 +230,7 @@ from .commonprotocols import (
 )
 from .condenast import CondeNastIE
 from .corus import CorusIE
+from .cpac import CpacIE
 from .cracked import CrackedIE
 from .crackle import CrackleIE
 from .criterion import CriterionIE
