@@ -1,4 +1,4 @@
-version <unreleased>
+version 2018.11.23
 
 Core
 + [setup.py] Add more relevant classifiers

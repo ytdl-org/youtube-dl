@@ -163,6 +163,8 @@
  - **chirbit**
  - **chirbit:profile**
  - **Cinchcast**
+ - **CiscoLiveSearch**
+ - **CiscoLiveSession**
  - **CJSW**
  - **cliphunter**
  - **Clippit**
