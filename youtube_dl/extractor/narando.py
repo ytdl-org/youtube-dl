@@ -39,7 +39,6 @@ class NarandoIE(InfoExtractor):
         'md5': 'd20f671f0395bab8f8285d1f6e8f965e',
         'info_dict': {
             'id': 'b2t4t789kxgy9g7ms4rwjvvw',
-            'display_id': 'an-ihrem-selbstlob-erkennt-man-sie',
             'ext': 'mp3',
             'title': 'An  ihrem  Selbstlob  erkennt  man  sie',
             'url': 'https://static.narando.com/sounds/10492/original.mp3',
@@ -56,7 +55,6 @@ class NarandoIE(InfoExtractor):
         description = self._html_search_regex(r'<meta content="(.+?)" property="og:description" />', webpage, 'description')
 
         return {
-            'display_id': video_id,
             'id': player_id,
             'title': title,
             'url': player_url,
