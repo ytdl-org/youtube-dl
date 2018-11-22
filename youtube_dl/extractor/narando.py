@@ -42,7 +42,6 @@ class NarandoIE(InfoExtractor):
             'ext': 'mp3',
             'title': 'An  ihrem  Selbstlob  erkennt  man  sie',
             'url': 'https://static.narando.com/sounds/10492/original.mp3',
-            'description': u'omnisophie.com: Kaum  eine  Woche  vergeht,  dass  nicht  jemand  mir  gegenüber  seine  Mathematik-Unkenntnisse  tränenlos  beweint.  „In  Mathe  war  ich  niemals  gut.“  Diese  Leute  sagen  mir  das  wohl,  weil  ich  Mathematiker  bin,  und  da  gehört  so  ein  fröhliches „Understatement“  zum  Small  Talk.  So  wie  wenn  ich  selbst  bedauernd-entschuldigend  auf  meine  grauen  Haare  zeige.  Ich  kann  eben  auch  nicht  alles  bieten...  „Mathe  kann  ich  nicht“,  „Ich  habe  kein  Internet“  oder  „Ich  will  auch  bewusst  nicht  alles  können“  wird  fast  wie  Eigenlob  vorgetragen.',
         }
     }
 
@@ -52,12 +51,10 @@ class NarandoIE(InfoExtractor):
         title = self._html_search_regex(r'<h1 class="visible-xs h3">(.+?)</h1>', webpage, 'title')
         player_id = self._html_search_regex(r'[\n\r].*https:\/\/narando.com\/r\/\s*([^"]*)', webpage, 'player_id')
         player_url = 'https://narando.com/widget?r=' + player_id
-        description = self._html_search_regex(r'<meta content="(.+?)" property="og:description" />', webpage, 'description')
 
         return {
             'id': player_id,
             'title': title,
             'url': player_url,
-            'description': description,
             '_type': 'url',
         }
