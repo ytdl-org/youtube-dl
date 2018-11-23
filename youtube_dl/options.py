@@ -232,7 +232,6 @@ def parseOpts(overrideArguments=None):
         help='Make all connections via IPv6',
     )
 
-
     geo = optparse.OptionGroup(parser, 'Geo Restriction')
     geo.add_option(
         '--geo-verification-proxy',
