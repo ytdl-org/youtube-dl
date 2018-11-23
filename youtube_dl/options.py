@@ -198,6 +198,11 @@ def parseOpts(overrideArguments=None):
         action='store_true', dest='no_color',
         default=False,
         help='Do not emit color codes in output')
+    general.add_option(
+        '--skip-http-head',
+        action='store_const', default=False, dest='generic_skip_http_head',
+        help='Skip the initial HTTP head request',
+    )
 
     network = optparse.OptionGroup(parser, 'Network Options')
     network.add_option(
@@ -226,12 +231,6 @@ def parseOpts(overrideArguments=None):
         action='store_const', const='::', dest='source_address',
         help='Make all connections via IPv6',
     )
-    network.add_option(
-        '--skip-http-head',
-        action='store_const', default=False, dest='skip_http_head',
-        help='Skip the initial HTTP head request',
-    )
-
 
 
     geo = optparse.OptionGroup(parser, 'Geo Restriction')
