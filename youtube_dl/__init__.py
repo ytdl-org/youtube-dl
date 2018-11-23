@@ -403,7 +403,7 @@ def _real_main(argv=None):
         'prefer_ffmpeg': opts.prefer_ffmpeg,
         'include_ads': opts.include_ads,
         'default_search': opts.default_search,
-        'skip_http_head': opts.skip_http_head,
+        'skip_http_head': opts.generic_skip_http_head,
         'youtube_include_dash_manifest': opts.youtube_include_dash_manifest,
         'encoding': opts.encoding,
         'extract_flat': opts.extract_flat,
