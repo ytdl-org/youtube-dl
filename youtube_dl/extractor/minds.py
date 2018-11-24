@@ -37,7 +37,8 @@ class MindsIE(InfoExtractor):
             'referer': url,
             'x-xsrf-token': token.value if token else '',
         }
-        data = self._download_json(video_api_url, video_id, headers=headers)
+        data = self._download_json(video_api_url, video_id, headers=headers,
+                                   query={'children': 'false'})
         formats = []
         owner = data.get('ownerObj', {})
 
@@ -73,7 +74,8 @@ class MindsIE(InfoExtractor):
 
         thumbnail_api_url = data.get('thumbnail_src')
         if thumbnail_api_url:
-            req = sanitized_Request(thumbnail_api_url, method='HEAD')
+            req = sanitized_Request(thumbnail_api_url)
+            req.get_method = lambda: 'HEAD'
             res = self._request_webpage(req, video_id)
             if res.headers.get('content-type', '').startswith('image/'):
                 thumbnail = getattr(res, 'url', None)
@@ -136,6 +138,8 @@ class MindsChannelIE(InfoExtractor):
     def _real_extract(self, url):
         channel_name = self._match_id(url)
         api_url = 'https://www.minds.com/api/v1/channel/%s' % channel_name
+        if channel_name == 'media':
+            return self.url_result(url, ie='Minds')
         token = self._get_cookies(url).get('XSRF-TOKEN')
         headers = {
             'authority': 'www.minds.com',
