@@ -5,7 +5,7 @@ import itertools
 import re
 
 from .common import InfoExtractor
-from ..utils import urlencode_postdata
+from ..utils import unescapeHTML, urlencode_postdata
 
 
 class BitChuteIE(InfoExtractor):
@@ -42,6 +42,7 @@ class BitChuteIE(InfoExtractor):
             webpage, 'title', default=None) or self._html_search_meta(
             'description', webpage, 'title',
             default=None) or self._og_search_description(webpage)
+        title = unescapeHTML(title)
 
         formats = [
             {'url': mobj.group('url')}
