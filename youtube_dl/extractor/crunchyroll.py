@@ -3,6 +3,7 @@ from __future__ import unicode_literals
 
 import re
 import json
+import xml.etree.ElementTree as etree
 import zlib
 
 from hashlib import sha1
@@ -398,7 +399,7 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
                 'Downloading subtitles for ' + sub_name, data={
                     'subtitle_script_id': sub_id,
                 })
-            if sub_doc is None:
+            if not isinstance(sub_doc, etree.Element):
                 continue
             sid = sub_doc.get('id')
             iv = xpath_text(sub_doc, 'iv', 'subtitle iv')
@@ -515,7 +516,7 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
                         'video_quality': stream_quality,
                         'current_page': url,
                     })
-                if streamdata is not None:
+                if isinstance(streamdata, etree.Element):
                     stream_info = streamdata.find('./{default}preload/stream_info')
                     if stream_info is not None:
                         stream_infos.append(stream_info)
@@ -526,7 +527,7 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
                         'video_format': stream_format,
                         'video_encode_quality': stream_quality,
                     })
-                if stream_info is not None:
+                if isinstance(stream_info, etree.Element):
                     stream_infos.append(stream_info)
                 for stream_info in stream_infos:
                     video_encode_id = xpath_text(stream_info, './video_encode_id')
@@ -598,10 +599,22 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
         series = self._html_search_regex(
             r'(?s)<h\d[^>]+\bid=["\']showmedia_about_episode_num[^>]+>(.+?)</h\d',
             webpage, 'series', fatal=False)
-        season = xpath_text(metadata, 'series_title')
 
-        episode = xpath_text(metadata, 'episode_title') or media_metadata.get('title')
-        episode_number = int_or_none(xpath_text(metadata, 'episode_number') or media_metadata.get('episode_number'))
+        season = episode = episode_number = duration = thumbnail = None
+
+        if isinstance(metadata, etree.Element):
+            season = xpath_text(metadata, 'series_title')
+            episode = xpath_text(metadata, 'episode_title')
+            episode_number = int_or_none(xpath_text(metadata, 'episode_number'))
+            duration = float_or_none(media_metadata.get('duration'), 1000)
+            thumbnail = xpath_text(metadata, 'episode_image_url')
+
+        if not episode:
+            episode = media_metadata.get('title')
+        if not episode_number:
+            episode_number = int_or_none(media_metadata.get('episode_number'))
+        if not thumbnail:
+            thumbnail = media_metadata.get('thumbnail', {}).get('url')
 
         season_number = int_or_none(self._search_regex(
             r'(?s)<h\d[^>]+id=["\']showmedia_about_episode_num[^>]+>.+?</h\d>\s*<h4>\s*Season (\d+)',
@@ -611,8 +624,8 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
             'id': video_id,
             'title': video_title,
             'description': video_description,
-            'duration': float_or_none(media_metadata.get('duration'), 1000),
-            'thumbnail': xpath_text(metadata, 'episode_image_url') or media_metadata.get('thumbnail', {}).get('url'),
+            'duration': duration,
+            'thumbnail': thumbnail,
             'uploader': video_uploader,
             'upload_date': video_upload_date,
             'series': series,

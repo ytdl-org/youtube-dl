@@ -49,6 +49,9 @@ class DailyMailIE(InfoExtractor):
             'http://www.dailymail.co.uk/api/player/%s/video-sources.json' % video_id)
 
         video_sources = self._download_json(sources_url, video_id)
+        body = video_sources.get('body')
+        if body:
+            video_sources = body
 
         formats = []
         for rendition in video_sources['renditions']:
