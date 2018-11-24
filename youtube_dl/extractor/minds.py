@@ -133,13 +133,11 @@ class MindsActivityIE(InfoExtractor):
 
 
 class MindsChannelIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:www\.)?minds\.com/(?P<id>[^/]+)'
+    _VALID_URL = r'https?://(?:www\.)?minds\.com/(?!newsfeed|media|api)(?P<id>[^/]+)'
 
     def _real_extract(self, url):
         channel_name = self._match_id(url)
         api_url = 'https://www.minds.com/api/v1/channel/%s' % channel_name
-        if channel_name == 'media':
-            return self.url_result(url, ie='Minds')
         token = self._get_cookies(url).get('XSRF-TOKEN')
         headers = {
             'authority': 'www.minds.com',
