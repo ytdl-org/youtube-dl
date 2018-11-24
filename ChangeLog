@@ -1,3 +1,23 @@
+version 2018.11.23
+
+Core
++ [setup.py] Add more relevant classifiers
+
+Extractors
+* [mixcloud] Fallback to hardcoded decryption key (#18016)
+* [nbc:news] Fix article extraction (#16194)
+* [foxsports] Fix extraction (#17543)
+* [loc] Relax regular expression and improve formats extraction
++ [ciscolive] Add support for ciscolive.cisco.com (#17984)
+* [nzz] Relax kaltura regex (#18228)
+* [sixplay] Fix formats extraction
+* [bitchute] Improve title extraction
+* [kaltura] Limit requested MediaEntry fields
++ [americastestkitchen] Add support for zype embeds (#18225)
++ [pornhub] Add pornhub.net alias
+* [nova:embed] Fix extraction (#18222)
+
+
 version 2018.11.18
 
 Extractors
