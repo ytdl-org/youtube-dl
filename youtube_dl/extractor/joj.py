@@ -30,15 +30,6 @@ class JojIE(InfoExtractor):
             'duration': 3118,
         }
     }, {
-        'url': 'https://media.joj.sk/embed/1a2dokc',
-        'info_dict': {
-            'id': '1a2dokc',
-            'ext': 'mp4',
-            'title': 'SOM MAMA',
-            'thumbnail': r're:^https?://.*\.jpg$',
-            'duration': 2401,
-        }
-    }, {
         'url': 'https://media.joj.sk/embed/9i1cxv',
         'only_matching': True,
     }, {
@@ -70,7 +61,7 @@ class JojIE(InfoExtractor):
 
         bitrates = self._parse_json(
             self._search_regex(
-                r'(?s)(?:bitrates|var\s+src)\s*=\s*({.+?});', webpage, 'bitrates',
+                r'(?s)(?:src|bitrates)\s*=\s*({.+?});', webpage, 'bitrates',
                 default='{}'),
             video_id, transform_source=js_to_json, fatal=False)
 
