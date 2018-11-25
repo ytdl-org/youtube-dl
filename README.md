@@ -95,7 +95,7 @@ Alternatively, refer to the [developer instructions](#developer-instructions) fo
     --proxy URL                      Use the specified HTTP/HTTPS/SOCKS proxy.
                                      To enable SOCKS proxy, specify a proper
                                      scheme. For example
-                                     socks5://127.0.0.1:1080/. Pass in an empty
+                                     socks5://username:password@127.0.0.1:1080/. Pass in an empty
                                      string (--proxy "") for direct connection
     --socket-timeout SECONDS         Time to wait before giving up, in seconds
     --source-address IP              Client-side IP address to bind to
@@ -455,6 +455,7 @@ For example, with the following configuration file youtube-dl will always extrac
 --no-mtime
 
 # Use this proxy
+#--proxy socks5://username:password@hostname:port/
 --proxy 127.0.0.1:3128
 
 # Save all videos under Movies directory in your home directory
