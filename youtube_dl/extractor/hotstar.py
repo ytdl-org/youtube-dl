@@ -75,7 +75,7 @@ class HotStarIE(HotStarBaseIE):
             webpage, 'app state'), video_id)
         video_data = {}
         for v in app_state.values():
-            content = try_get(v, lambda x: x['initialState']['contentData']['content'], dict)
+            content = try_get(v, lambda x: x['initialState']['contentDetail']['content'], dict)
             if content and content.get('contentId') == video_id:
                 video_data = content
 
