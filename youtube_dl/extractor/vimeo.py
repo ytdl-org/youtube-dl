@@ -1127,6 +1127,17 @@ class VHXEmbedIE(InfoExtractor):
         video_data = self._call_api(video_id, access_token)
         title = video_data.get('title') or video_data['name']
 
+        subtitles = {}
+        for subtitle in try_get(video_data, lambda x: x['tracks']['subtitles'], list) or []:
+            lang = subtitle.get('srclang') or subtitle.get('label')
+            for _link in subtitle.get('_links', {}).values():
+                href = _link.get('href')
+                if not href:
+                    continue
+                subtitles.setdefault(lang, []).append({
+                    'url': href,
+                })
+
         q = qualities(['small', 'medium', 'large', 'source'])
         thumbnails = []
         for thumbnail_id, thumbnail_url in video_data.get('thumbnail', {}).items():
@@ -1142,6 +1153,7 @@ class VHXEmbedIE(InfoExtractor):
             'description': video_data.get('description'),
             'duration': int_or_none(try_get(video_data, lambda x: x['duration']['seconds'])),
             'formats': formats,
+            'subtitles': subtitles,
             'thumbnails': thumbnails,
             'timestamp': unified_timestamp(video_data.get('created_at')),
             'view_count': int_or_none(video_data.get('plays_count')),
