@@ -52,12 +52,12 @@ class AZMedienIE(InfoExtractor):
 
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
+        host = mobj.group('host')
         video_id = mobj.group('id')
         entry_id = mobj.group('kaltura_id')
 
         if not entry_id:
-            api_path = '/api/pub/gql/%s' % mobj.group('host').split('.')[0]
-            api_url = 'https://www.%s%s' % (mobj.group('host'), api_path)
+            api_url = 'https://www.%s/api/pub/gql/%s' % (host, host.split('.')[0])
             payload = {
                 'query': '''query VideoContext($articleId: ID!) {
                     article: node(id: $articleId) {
