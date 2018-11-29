@@ -15,11 +15,10 @@ class TikTokIE(InfoExtractor):
     _VALID_URL = r'https?://(?:m\.)?tiktok\.com/v/(?P<id>[0-9]+)'
     _TEST = {
         'url': 'https://m.tiktok.com/v/6606727368545406213.html',
-        'md5': 'd584b572e92fcd48888051f238022420',
         'info_dict': {
             'id': '6606727368545406213',
             'ext': 'mp4',
-            'title': 'Zureeal|TikTok|Global Video Community',
+            'title': 'Zureeal on TikTok',
             'thumbnail': 'http://m-p16.akamaized.net/img/tos-maliva-p-0068/5e7a4ec40fb146888fa27aa8d78f86fd~noop.image',
             'description': '#bowsette#mario#cosplay#uk#lgbt#gaming#asian#bowsettecosplay',
             'uploader': 'Zureeal',
@@ -34,7 +33,7 @@ class TikTokIE(InfoExtractor):
 
         data = self._parse_json(
             self._search_regex(
-                r'var data = ({.+?});', webpage, 'data'
+                r'var\s*data\s*=\s*({.+?});', webpage, 'data'
             ), video_id)
 
         title = self._og_search_title(webpage)
@@ -45,21 +44,21 @@ class TikTokIE(InfoExtractor):
 
         formats = []
 
-        def extract_formats(url_list):
-            if url_list[0] is None:
-                return
-            for url in url_list[0]:
+        for key, label in (('play_addr_lowbr', 'Low'), ('play_addr', 'Normal'), ('download_addr', 'Download')):
+            for format in try_get(data, lambda x: x['video'][key]['url_list']):
+                format_url = url_or_none(format)
+                if not format_url:
+                    continue
                 formats.append({
                     'url': url,
                     'ext': 'mp4',
                     'height': height,
                     'width': width,
-                    'format_note': url_list[1]
+                    'format_note': label,
+                    'quality': -2 if label == 'Low' else (1 if label == 'Download' else 0)
                 })
 
-        extract_formats((try_get(data, lambda x: x['video']['play_addr_lowbr']['url_list']), 'Low quality'))
-        extract_formats((try_get(data, lambda x: x['video']['play_addr']['url_list']), 'Normal quality'))
-        extract_formats((try_get(data, lambda x: x['video']['download_addr']['url_list']), 'Download quality'))
+        self._sort_formats(formats)
 
         uploader = try_get(data, lambda x: x['author']['nickname'], compat_str)
 
