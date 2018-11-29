@@ -43,6 +43,7 @@ class HotStarIE(HotStarBaseIE):
     IE_NAME = 'hotstar'
     _VALID_URL = r'https?://(?:www\.)?hotstar\.com/(?:.+?[/-])?(?P<id>\d{10})'
     _TESTS = [{
+        # contentData
         'url': 'https://www.hotstar.com/can-you-not-spread-rumours/1000076273',
         'info_dict': {
             'id': '1000076273',
@@ -57,6 +58,10 @@ class HotStarIE(HotStarBaseIE):
             # m3u8 download
             'skip_download': True,
         }
+    }, {
+        # contentDetail
+        'url': 'https://www.hotstar.com/movies/radha-gopalam/1000057157',
+        'only_matching': True,
     }, {
         'url': 'http://www.hotstar.com/sports/cricket/rajitha-sizzles-on-debut-with-329/2001477583',
         'only_matching': True,
@@ -74,8 +79,12 @@ class HotStarIE(HotStarBaseIE):
             r'<script>window\.APP_STATE\s*=\s*({.+?})</script>',
             webpage, 'app state'), video_id)
         video_data = {}
+        getters = (
+            lambda x, k=k: x['initialState']['content%s' % k]['content']
+            for k in ('Data', 'Detail')
+        )
         for v in app_state.values():
-            content = try_get(v, lambda x: x['initialState']['contentData']['content'], dict)
+            content = try_get(v, getters, dict)
             if content and content.get('contentId') == video_id:
                 video_data = content
 
