@@ -299,7 +299,7 @@ class NiconicoIE(InfoExtractor):
             #    'http://flapi.nicovideo.jp/api/getflv/' + video_id + '?as3=1',
             #    video_id, 'Downloading flv info')
             # Nov 2018: the method above no longer returns the correct swf address; use below instead
-            flv_info_webpage = watch_api_data.get('flashvars', {}).get(u'flvInfo')
+            flv_info_webpage = watch_api_data.get('flashvars', {}).get('flvInfo')
             flv_info_webpage = compat_urllib_parse.unquote(flv_info_webpage)
             flv_info = compat_urlparse.parse_qs(flv_info_webpage)
             if 'url' not in flv_info:
