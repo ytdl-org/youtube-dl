@@ -8,6 +8,7 @@ from .common import InfoExtractor
 from ..compat import (
     compat_parse_qs,
     compat_urlparse,
+    compat_urllib_parse,
 )
 from ..utils import (
     determine_ext,
@@ -284,14 +285,22 @@ class NiconicoIE(InfoExtractor):
         def _format_id_from_url(video_url):
             return 'economy' if video_real_url.endswith('low') else 'normal'
 
+        watch_api_data_string = self._html_search_regex(
+            r'<div[^>]+id="watchAPIDataContainer"[^>]+>([^<]+)</div>',
+            webpage, 'watch api data', default=None)
+        watch_api_data = self._parse_json(watch_api_data_string, video_id) if watch_api_data_string else {}
+        video_detail = watch_api_data.get('videoDetail', {})
+
         try:
             video_real_url = api_data['video']['smileInfo']['url']
         except KeyError:  # Flash videos
             # Get flv info
-            flv_info_webpage = self._download_webpage(
-                'http://flapi.nicovideo.jp/api/getflv/' + video_id + '?as3=1',
-                video_id, 'Downloading flv info')
-
+            # flv_info_webpage = self._download_webpage(
+            #    'http://flapi.nicovideo.jp/api/getflv/' + video_id + '?as3=1',
+            #    video_id, 'Downloading flv info')
+            # Nov 2018: the method above no longer returns the correct swf address; use below instead
+            flv_info_webpage = watch_api_data.get('flashvars', {}).get(u'flvInfo')
+            flv_info_webpage = compat_urllib_parse.unquote(flv_info_webpage)
             flv_info = compat_urlparse.parse_qs(flv_info_webpage)
             if 'url' not in flv_info:
                 if 'deleted' in flv_info:
@@ -361,12 +370,6 @@ class NiconicoIE(InfoExtractor):
             title = self._html_search_regex(
                 r'<span[^>]+class="videoHeaderTitle"[^>]*>([^<]+)</span>',
                 webpage, 'video title')
-
-        watch_api_data_string = self._html_search_regex(
-            r'<div[^>]+id="watchAPIDataContainer"[^>]+>([^<]+)</div>',
-            webpage, 'watch api data', default=None)
-        watch_api_data = self._parse_json(watch_api_data_string, video_id) if watch_api_data_string else {}
-        video_detail = watch_api_data.get('videoDetail', {})
 
         thumbnail = (
             get_video_info(['thumbnail_url', 'thumbnailURL']) or
