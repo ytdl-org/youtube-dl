@@ -15,11 +15,12 @@ class TikTokIE(InfoExtractor):
     _VALID_URL = r'https?://(?:m\.)?tiktok\.com/v/(?P<id>[0-9]+)'
     _TEST = {
         'url': 'https://m.tiktok.com/v/6606727368545406213.html',
+        'md5': 'd584b572e92fcd48888051f238022420',
         'info_dict': {
             'id': '6606727368545406213',
             'ext': 'mp4',
             'title': 'Zureeal on TikTok',
-            'thumbnail': 'http://m-p16.akamaized.net/img/tos-maliva-p-0068/5e7a4ec40fb146888fa27aa8d78f86fd~noop.image',
+            'thumbnail': r're:^https?://.*~noop.image',
             'description': '#bowsette#mario#cosplay#uk#lgbt#gaming#asian#bowsettecosplay',
             'uploader': 'Zureeal',
             'width': 540,
@@ -33,7 +34,7 @@ class TikTokIE(InfoExtractor):
 
         data = self._parse_json(
             self._search_regex(
-                r'var\s*data\s*=\s*({.+?});', webpage, 'data'
+                r'var\s+data\s*=\s*({.+?});', webpage, 'data'
             ), video_id)
 
         title = self._og_search_title(webpage)
@@ -44,18 +45,18 @@ class TikTokIE(InfoExtractor):
 
         formats = []
 
-        for key, label in (('play_addr_lowbr', 'Low'), ('play_addr', 'Normal'), ('download_addr', 'Download')):
+        for count, (key, label) in enumerate((('play_addr_lowbr', 'Low'), ('play_addr', 'Normal'), ('download_addr', 'Download')), -2):
             for format in try_get(data, lambda x: x['video'][key]['url_list']):
                 format_url = url_or_none(format)
                 if not format_url:
                     continue
                 formats.append({
-                    'url': url,
+                    'url': format_url,
                     'ext': 'mp4',
                     'height': height,
                     'width': width,
                     'format_note': label,
-                    'quality': -2 if label == 'Low' else (1 if label == 'Download' else 0)
+                    'quality': count
                 })
 
         self._sort_formats(formats)
