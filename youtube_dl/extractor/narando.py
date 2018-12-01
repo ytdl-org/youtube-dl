@@ -19,7 +19,7 @@ class NarandoPlayerIE(InfoExtractor):
 
     def _real_extract(self, url):
         video_id = self._match_id(url)
-        webpage = self._download_webpage('https://narando.com/widget?r=' + video_id, video_id)
+        webpage = self._download_webpage(url, video_id)
         title = self._html_search_regex(r'<span class="clip-title">(.+?)</span>', webpage, 'title')
         download_url = self._html_search_regex(r'.<div class="stream_url hide">\s*([^?]*)', webpage, 'download_url')
         return {
