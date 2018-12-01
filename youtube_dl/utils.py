@@ -3948,8 +3948,12 @@ def write_xattr(path, key, value):
 
 
 def random_birthday(year_field, month_field, day_field):
+    start_date = datetime.date(1950, 1, 1)
+    end_date = datetime.date(1995, 12, 31)
+    offset = random.randint(0, (end_date - start_date).days)
+    random_date = start_date + datetime.timedelta(offset)
     return {
-        year_field: str(random.randint(1950, 1995)),
-        month_field: str(random.randint(1, 12)),
-        day_field: str(random.randint(1, 31)),
+        year_field: str(random_date.year),
+        month_field: str(random_date.month),
+        day_field: str(random_date.day),
     }
