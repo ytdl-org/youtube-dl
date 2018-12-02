@@ -1,3 +1,20 @@
+version <unreleased>
+
+Core
+* [utils] Fix random_birthday to generate existing dates only (#18284)
+
+Extractors
++ [tiktok] Add support for tiktok.com (#18108, #18135)
+* [pornhub] Use actual URL host for requests (#18359)
+* [lynda] Fix authentication (#18158, #18217)
+* [gfycat] Update API endpoint (#18333, #18343)
++ [hotstar] Add support for alternative app state layout (#18320)
+* [azmedien] Fix extraction (#18334, #18336)
++ [vimeo] Add support for VHX (Vimeo OTT) (#14835)
+* [joj] Fix extraction (#18280, #18281)
++ [wistia] Add support for fast.wistia.com (#18287)
+
+
 version 2018.11.23
 
 Core
