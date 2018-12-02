@@ -244,7 +244,7 @@ class UstreamIE(InfoExtractor):
 
 
 class UstreamChannelIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:www\.)?ustream\.tv/channel/(?P<slug>.+)'
+    _VALID_URL = r'https?://(?:www\.|align\.)?ustream\.tv/channel/(?P<slug>.+)'
     IE_NAME = 'ustream:channel'
     _TEST = {
         'url': 'http://www.ustream.tv/channel/channeljapan',
