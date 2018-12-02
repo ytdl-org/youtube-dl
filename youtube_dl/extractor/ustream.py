@@ -19,7 +19,7 @@ from ..utils import (
 
 
 class UstreamIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:www\.)?ustream\.tv/(?P<type>recorded|embed|embed/recorded)/(?P<id>\d+)'
+    _VALID_URL = r'https?://(?:www\.|align\.)?ustream\.tv/(?P<type>recorded|embed|embed/recorded)/(?P<id>\d+)'
     IE_NAME = 'ustream'
     _TESTS = [{
         'url': 'http://www.ustream.tv/recorded/20274954',
