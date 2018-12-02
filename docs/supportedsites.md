@@ -885,6 +885,8 @@
  - **ThisAmericanLife**
  - **ThisAV**
  - **ThisOldHouse**
+ - **TikTok**
+ - **TikTokUser**
  - **tinypic**: tinypic.com videos
  - **TMZ**
  - **TMZArticle**
@@ -979,6 +981,7 @@
  - **VevoPlaylist**
  - **VGTV**: VGTV, BTTV, FTV, Aftenposten and Aftonbladet
  - **vh1.com**
+ - **vhx:embed**
  - **Viafree**
  - **vice**
  - **vice:article**

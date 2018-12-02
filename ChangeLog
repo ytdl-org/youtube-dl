@@ -1,4 +1,4 @@
-version <unreleased>
+version 2018.12.03
 
 Core
 * [utils] Fix random_birthday to generate existing dates only (#18284)
