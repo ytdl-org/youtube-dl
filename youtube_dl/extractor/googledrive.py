@@ -60,6 +60,10 @@ class GoogleDriveIE(InfoExtractor):
     }, {
         'url': 'https://drive.google.com/uc?id=0B2fjwgkl1A_CX083Tkowdmt6d28',
         'only_matching': True,
+    }, {
+        # no downloadable video
+        'url': 'https://drive.google.com/file/d/1L_ao48RH6DoHXGhBYdXo4UjfEkTDyReY/view',
+        'only_matching': True,
     }]
     _FORMATS_EXT = {
         '5': 'flv',
@@ -238,13 +242,14 @@ class GoogleDriveIE(InfoExtractor):
                     urlh, url, video_id, note='Downloading confirmation page',
                     errnote='Unable to confirm download', fatal=False)
                 if confirmation_webpage:
-                    confirm = self._search_regex(
-                        r'confirm=([^&"\']+)', confirmation_webpage,
-                        'confirmation code', fatal=False)
-                    if confirm:
-                        add_source_format(update_url_query(source_url, {
-                            'confirm': confirm,
-                        }))
+                    if 'uc-error-caption' not in confirmation_webpage:
+                        confirm = self._search_regex(
+                            r'confirm=([^&"\']+)', confirmation_webpage,
+                            'confirmation code', fatal=False)
+                        if confirm:
+                            add_source_format(update_url_query(source_url, {
+                                'confirm': confirm,
+                            }))
 
         if not formats:
             reason = self._search_regex(
