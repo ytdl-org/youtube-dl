@@ -366,8 +366,8 @@ class NRKTVIE(NRKBaseIE):
 
 
 class NRKTVEpisodeIE(InfoExtractor):
-    _VALID_URL = r'https?://tv\.nrk\.no/serie/(?P<id>[^/]+/sesong/\d+/episode/\d+)'
-    _TEST = {
+    _VALID_URL = r'https?://tv\.nrk\.no/serie/(?P<id>[^/]+/(sesong/\d+/episode/\d+|\d+/[a-zA-Z]{4}\d{8}))'
+    _TESTS = [{
         'url': 'https://tv.nrk.no/serie/backstage/sesong/1/episode/8',
         'info_dict': {
             'id': 'MSUI14000816AA',
@@ -383,7 +383,24 @@ class NRKTVEpisodeIE(InfoExtractor):
         'params': {
             'skip_download': True,
         },
-    }
+    },
+    {
+        'url': 'https://tv.nrk.no/serie/lindmo/2018/MUHU11006318/avspiller',
+        'info_dict': {
+            'id': 'MUHU11006318AA',
+            'ext': 'mp4',
+            'title': 'Lindmo 23.11.2018',
+            'description': 'md5:370fb1fffa22cb0f47ab4b8453fc8070',
+            'duration': 3024,
+            'series': 'Lindmo',
+            'season_number': 2018,
+            'episode_number': None,
+            'episode': '23. november',
+        },
+        'params': {
+            'skip_download': True,
+        },
+    }]
 
     def _real_extract(self, url):
         display_id = self._match_id(url)
