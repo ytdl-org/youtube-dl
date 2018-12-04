@@ -15,7 +15,7 @@ from ..utils import (
 
 
 class LyndaBaseIE(InfoExtractor):
-    _SIGNIN_URL = 'https://www.lynda.com/signin'
+    _SIGNIN_URL = 'https://www.lynda.com/signin/lynda'
     _PASSWORD_URL = 'https://www.lynda.com/signin/password'
     _USER_URL = 'https://www.lynda.com/signin/user'
     _ACCOUNT_CREDENTIALS_HINT = 'Use --username and --password options to provide lynda.com account credentials.'

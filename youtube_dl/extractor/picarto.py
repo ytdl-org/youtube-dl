@@ -1,6 +1,7 @@
 # coding: utf-8
 from __future__ import unicode_literals
 
+import re
 import time
 
 from .common import InfoExtractor
@@ -15,7 +16,7 @@ from ..utils import (
 
 
 class PicartoIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:www.)?picarto\.tv/(?P<id>[a-zA-Z0-9]+)'
+    _VALID_URL = r'https?://(?:www.)?picarto\.tv/(?P<id>[a-zA-Z0-9]+)(?:/(?P<token>[a-zA-Z0-9]+))?'
     _TEST = {
         'url': 'https://picarto.tv/Setz',
         'info_dict': {
@@ -33,20 +34,14 @@ class PicartoIE(InfoExtractor):
         return False if PicartoVodIE.suitable(url) else super(PicartoIE, cls).suitable(url)
 
     def _real_extract(self, url):
-        channel_id = self._match_id(url)
-        stream_page = self._download_webpage(url, channel_id)
+        mobj = re.match(self._VALID_URL, url)
+        channel_id = mobj.group('id')
 
-        if '>This channel does not exist' in stream_page:
-            raise ExtractorError(
-                'Channel %s does not exist' % channel_id, expected=True)
+        metadata = self._download_json(
+            'https://api.picarto.tv/v1/channel/name/' + channel_id,
+            channel_id)
 
-        player = self._parse_json(
-            self._search_regex(
-                r'(?s)playerSettings\[\d+\]\s*=\s*(\{.+?\}\s*\n)', stream_page,
-                'player settings'),
-            channel_id, transform_source=js_to_json)
-
-        if player.get('online') is False:
+        if metadata.get('online') is False:
             raise ExtractorError('Stream is offline', expected=True)
 
         cdn_data = self._download_json(
@@ -54,20 +49,13 @@ class PicartoIE(InfoExtractor):
             data=urlencode_postdata({'loadbalancinginfo': channel_id}),
             note='Downloading load balancing info')
 
-        def get_event(key):
-            return try_get(player, lambda x: x['event'][key], compat_str) or ''
-
+        token = mobj.group('token') or 'public'
         params = {
-            'token': player.get('token') or '',
-            'ticket': get_event('ticket'),
             'con': int(time.time() * 1000),
-            'type': get_event('ticket'),
-            'scope': get_event('scope'),
+            'token': token,
         }
 
         prefered_edge = cdn_data.get('preferedEdge')
-        default_tech = player.get('defaultTech')
-
         formats = []
 
         for edge in cdn_data['edges']:
@@ -80,8 +68,6 @@ class PicartoIE(InfoExtractor):
                 tech_type = tech.get('type')
                 preference = 0
                 if edge_id == prefered_edge:
-                    preference += 1
-                if tech_type == default_tech:
                     preference += 1
                 format_id = []
                 if edge_id:
@@ -109,7 +95,7 @@ class PicartoIE(InfoExtractor):
                     continue
         self._sort_formats(formats)
 
-        mature = player.get('mature')
+        mature = metadata.get('adult')
         if mature is None:
             age_limit = None
         else:
@@ -117,9 +103,11 @@ class PicartoIE(InfoExtractor):
 
         return {
             'id': channel_id,
-            'title': self._live_title(channel_id),
+            'title': self._live_title(metadata.get('title') or channel_id),
             'is_live': True,
-            'thumbnail': player.get('vodThumb'),
+            'thumbnail': try_get(metadata, lambda x: x['thumbnails']['web']),
+            'channel': channel_id,
+            'channel_url': 'https://picarto.tv/%s' % channel_id,
             'age_limit': age_limit,
             'formats': formats,
         }

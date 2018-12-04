@@ -161,11 +161,17 @@ class MixcloudIE(InfoExtractor):
             stream_info = info_json['streamInfo']
             formats = []
 
+            def decrypt_url(f_url):
+                for k in (key, 'IFYOUWANTTHEARTISTSTOGETPAIDDONOTDOWNLOADFROMMIXCLOUD'):
+                    decrypted_url = self._decrypt_xor_cipher(k, f_url)
+                    if re.search(r'^https?://[0-9a-z.]+/[0-9A-Za-z/.?=&_-]+$', decrypted_url):
+                        return decrypted_url
+
             for url_key in ('url', 'hlsUrl', 'dashUrl'):
                 format_url = stream_info.get(url_key)
                 if not format_url:
                     continue
-                decrypted = self._decrypt_xor_cipher(key, compat_b64decode(format_url))
+                decrypted = decrypt_url(compat_b64decode(format_url))
                 if not decrypted:
                     continue
                 if url_key == 'hlsUrl':

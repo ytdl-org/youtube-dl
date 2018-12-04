@@ -39,9 +39,17 @@ class ThePlatformBaseIE(OnceIE):
             smil_url, video_id, note=note, query={'format': 'SMIL'},
             headers=self.geo_verification_headers())
         error_element = find_xpath_attr(meta, _x('.//smil:ref'), 'src')
-        if error_element is not None and error_element.attrib['src'].startswith(
-                'http://link.theplatform.%s/s/errorFiles/Unavailable.' % self._TP_TLD):
-            raise ExtractorError(error_element.attrib['abstract'], expected=True)
+        if error_element is not None:
+            exception = find_xpath_attr(
+                error_element, _x('.//smil:param'), 'name', 'exception')
+            if exception is not None:
+                if exception.get('value') == 'GeoLocationBlocked':
+                    self.raise_geo_restricted(error_element.attrib['abstract'])
+                elif error_element.attrib['src'].startswith(
+                        'http://link.theplatform.%s/s/errorFiles/Unavailable.'
+                        % self._TP_TLD):
+                    raise ExtractorError(
+                        error_element.attrib['abstract'], expected=True)
 
         smil_formats = self._parse_smil_formats(
             meta, smil_url, video_id, namespace=default_ns,
@@ -335,7 +343,7 @@ class ThePlatformFeedIE(ThePlatformBaseIE):
     def _extract_feed_info(self, provider_id, feed_id, filter_query, video_id, custom_fields=None, asset_types_query={}, account_id=None):
         real_url = self._URL_TEMPLATE % (self.http_scheme(), provider_id, feed_id, filter_query)
         entry = self._download_json(real_url, video_id)['entries'][0]
-        main_smil_url = 'http://link.theplatform.com/s/%s/media/guid/%d/%s' % (provider_id, account_id, entry['guid']) if account_id else None
+        main_smil_url = 'http://link.theplatform.com/s/%s/media/guid/%d/%s' % (provider_id, account_id, entry['guid']) if account_id else entry.get('plmedia$publicUrl')
 
         formats = []
         subtitles = {}
@@ -348,7 +356,8 @@ class ThePlatformFeedIE(ThePlatformBaseIE):
             if first_video_id is None:
                 first_video_id = cur_video_id
                 duration = float_or_none(item.get('plfile$duration'))
-            for asset_type in item['plfile$assetTypes']:
+            file_asset_types = item.get('plfile$assetTypes') or compat_parse_qs(compat_urllib_parse_urlparse(smil_url).query)['assetTypes']
+            for asset_type in file_asset_types:
                 if asset_type in asset_types:
                     continue
                 asset_types.append(asset_type)

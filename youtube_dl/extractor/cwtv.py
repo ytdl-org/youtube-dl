@@ -3,6 +3,7 @@ from __future__ import unicode_literals
 
 from .common import InfoExtractor
 from ..utils import (
+    ExtractorError,
     int_or_none,
     parse_age_limit,
     parse_iso8601,
@@ -66,9 +67,12 @@ class CWTVIE(InfoExtractor):
 
     def _real_extract(self, url):
         video_id = self._match_id(url)
-        video_data = self._download_json(
+        data = self._download_json(
             'http://images.cwtv.com/feed/mobileapp/video-meta/apiversion_8/guid_' + video_id,
-            video_id)['video']
+            video_id)
+        if data.get('result') != 'ok':
+            raise ExtractorError(data['msg'], expected=True)
+        video_data = data['video']
         title = video_data['title']
         mpx_url = video_data.get('mpx_url') or 'http://link.theplatform.com/s/cwtv/media/guid/2703454149/%s?formats=M3U' % video_id
 
