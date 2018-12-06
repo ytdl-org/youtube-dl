@@ -173,13 +173,18 @@ class ARDMediathekIE(InfoExtractor):
         title = self._html_search_regex(
             [r'<h1(?:\s+class="boxTopHeadline")?>(.*?)</h1>',
              r'<meta name="dcterms\.title" content="(.*?)"/>',
-             r'<h4 class="headline">(.*?)</h4>'],
+             r'<h4 class="headline">(.*?)</h4>',
+             r'<title[^>]*>(.*?)</title>'],
             webpage, 'title')
         description = self._html_search_meta(
             'dcterms.abstract', webpage, 'description', default=None)
         if description is None:
             description = self._html_search_meta(
-                'description', webpage, 'meta description')
+                'description', webpage, 'meta description', default=None)
+        if description is None:
+            description = self._html_search_regex(
+                r'<p\s+class="teasertext">(.+?)</p>',
+                webpage, 'teaser text', default=None)
 
         # Thumbnail is sometimes not present.
         # It is in the mobile version, but that seems to use a different URL
