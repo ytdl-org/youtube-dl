@@ -553,6 +553,10 @@ from .lcp import (
 )
 from .learnr import LearnrIE
 from .lecture2go import Lecture2GoIE
+from .lecturio import (
+    LecturioIE,
+    LecturioCourseIE,
+)
 from .leeco import (
     LeIE,
     LePlaylistIE,
