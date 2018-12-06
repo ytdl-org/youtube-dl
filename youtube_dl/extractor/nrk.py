@@ -537,6 +537,7 @@ class NRKTVSeriesIE(NRKTVSerieBaseIE):
             entries = []
             entries.extend(self._extract_seasons(series.get('seasons')))
             entries.extend(self._extract_entries(series.get('instalments')))
+            entries.extend(self._extract_episodes(series.get('extraMaterial')))
             return self.playlist_result(entries, series_id, title, description)
 
         # Old layout (e.g. https://tv.nrksuper.no/serie/labyrint)
