@@ -183,7 +183,8 @@ class ARDMediathekIE(InfoExtractor):
                 'description', webpage, 'meta description', default=None)
         if description is None:
             description = self._html_search_regex(
-                r'<p\s+class="teasertext">(.*?)</p>', webpage, 'teaser text')
+                r'<p\s+class="teasertext">(.+?)</p>',
+                webpage, 'teaser text', default=None)
 
         # Thumbnail is sometimes not present.
         # It is in the mobile version, but that seems to use a different URL
