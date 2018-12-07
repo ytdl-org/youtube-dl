@@ -48,6 +48,7 @@ class NiconicoIE(InfoExtractor):
         },
         'skip': 'Requires an account',
     }, {
+        # video was uploaded as .swf, and hasn't re-encoded (on web, FLASH player)
         # File downloaded with and without credentials are different, so omit
         # the md5 field
         'url': 'http://www.nicovideo.jp/watch/nm14296458',
@@ -284,9 +285,8 @@ class NiconicoIE(InfoExtractor):
         def _format_id_from_url(video_url):
             return 'economy' if video_real_url.endswith('low') else 'normal'
 
-        try:
-            video_real_url = api_data['video']['smileInfo']['url']
-        except KeyError:  # Flash videos
+        # If the video is (originally) .swf, use the .swf version
+        if video_id.startswith('nm'):
             # Get flv info
             flv_info_webpage = self._download_webpage(
                 'http://flapi.nicovideo.jp/api/getflv/' + video_id + '?as3=1',
@@ -324,12 +324,17 @@ class NiconicoIE(InfoExtractor):
             if not extension:
                 extension = determine_ext(video_real_url)
 
-            formats = [{
-                'url': video_real_url,
-                'ext': extension,
-                'format_id': _format_id_from_url(video_real_url),
-            }]
-        else:
+            if extension == 'swf':
+                formats = [{
+                    'url': video_real_url,
+                    'ext': extension,
+                    'format_id': _format_id_from_url(video_real_url),
+                }]
+
+        try:
+            formats
+        except NameError:  # No swf video found
+            video_real_url = api_data['video']['smileInfo']['url']
             formats = []
 
             dmc_info = api_data['video'].get('dmcInfo')
