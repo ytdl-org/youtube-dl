@@ -182,13 +182,18 @@ class DailymotionIE(DailymotionBaseInfoExtractor):
                 if metadata_url:
                     metadata_url = metadata_url.replace(':videoId', video_id)
                 else:
-                    metadata_url = update_url_query(
-                        'https://www.dailymotion.com/player/metadata/video/%s'
-                        % video_id, {
-                            'embedder': url,
-                            'integration': 'inline',
-                            'GK_PV5_NEON': '1',
-                        })
+                    if (17 < age_limit) :
+                        metadata_url = update_url_query(
+                            'https://www.dailymotion.com/player/metadata/video/%s'
+                            % video_id, {})
+                    else :
+                        metadata_url = update_url_query(
+                            'https://www.dailymotion.com/player/metadata/video/%s'
+                            % video_id, {
+                                'embedder': url,
+                                'integration': 'inline',
+                                'GK_PV5_NEON': '1',
+                            })
                 metadata = self._download_json(
                     metadata_url, video_id, 'Downloading metadata JSON')
 
