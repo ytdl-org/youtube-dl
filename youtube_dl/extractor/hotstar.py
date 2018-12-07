@@ -79,7 +79,7 @@ class HotStarIE(HotStarBaseIE):
             r'<script>window\.APP_STATE\s*=\s*({.+?})</script>',
             webpage, 'app state'), video_id)
         video_data = {}
-        getters = (
+        getters = list(
             lambda x, k=k: x['initialState']['content%s' % k]['content']
             for k in ('Data', 'Detail')
         )
@@ -87,6 +87,7 @@ class HotStarIE(HotStarBaseIE):
             content = try_get(v, getters, dict)
             if content and content.get('contentId') == video_id:
                 video_data = content
+                break
 
         title = video_data['title']
 
