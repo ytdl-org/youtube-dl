@@ -78,7 +78,7 @@ def update_self(to_screen, verbose, opener):
         to_screen('youtube-dl is up to date (%s)' % __version__)
         return
 
-    to_screen('Updating to version ' + version_id + ' ...')
+    to_screen('Updating to version ' + version_id + ' from version ' + __version__ + ' ...')
     version = versions_info['versions'][version_id]
 
     print_notes(to_screen, versions_info['versions'])
