@@ -1,5 +1,6 @@
 from __future__ import unicode_literals
 
+import itertools
 import re
 
 from .common import InfoExtractor
@@ -319,3 +320,60 @@ class XHamsterEmbedIE(InfoExtractor):
             video_url = dict_get(vars, ('downloadLink', 'homepageLink', 'commentsLink', 'shareUrl'))
 
         return self.url_result(video_url, 'XHamster')
+
+
+class XHamsterUserIE(InfoExtractor):
+    _VALID_URL = r'https?://(?:.+?\.)?xhamster\.com/users/(?P<id>[^/]+)/videos/?'
+    _TESTS = [
+        {
+            'note': 'Paginated user profile',
+            'url': 'https://xhamster.com/users/netvideogirls/videos',
+            'playlist_mincount': 267,
+            'info_dict': {
+                'id': 'netvideogirls',
+                'title': 'netvideogirls'
+            }
+        },
+        {
+            'note': 'Non-paginated user profile',
+            'url': 'https://xhamster.com/users/firatkaan/videos',
+            'playlist_mincount': 1,
+            'info_dict': {
+                'id': 'firatkaan',
+                'title': 'firatkaan'
+            }
+        }
+    ]
+
+    def _real_extract(self, url):
+        user_id = self._match_id(url)
+        videos = []
+
+        for page in itertools.count(1):
+            address = 'https://xhamster.com/users/%s/videos/%d' % (user_id, page)
+            webpage = self._download_webpage(address, user_id, note="Downloading page %d" % page)
+            video_url_matches = re.finditer(r'<a class="video-thumb__image-container thumb-image-container" href="(https://xhamster.com/videos/[^"/]+)" data-sprite', webpage)
+            for video_url_match in video_url_matches:
+                video_url = video_url_match.group(1)
+                videos += [self.url_result(video_url, 'XHamster', '-'.split(video_url)[-1])]
+            if re.search(r'<div class="pager-container"[^>]*>\s*<ul class="no-popunder">\s*</ul>\s*</div>', webpage):
+                # The pager is empty; there is only a single page of results.
+                break
+            next_page_matcher = re.search(r'<a\s+data-page="next"\s+href="([^"]+)">', webpage)
+            if next_page_matcher:
+                # There is a next page.
+                address = next_page_matcher.group(1)
+                continue
+            # Check we can find the previous page button as a sanity check.
+            prev_page_matcher = re.search(r'<a\s+data-page="prev"\s+href="([^"]+)">', webpage)
+            if prev_page_matcher:
+                # No more pages.
+                break
+            raise ExtractorError("Could not correctly parse pagination buttons.")
+
+        return {
+            "_type": "playlist",
+            "entries": videos,
+            "id": user_id,
+            "title": user_id
+        }
