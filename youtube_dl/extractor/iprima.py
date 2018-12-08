@@ -12,7 +12,7 @@ from ..utils import (
 
 
 class IPrimaIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:play|prima)\.iprima\.cz/(?:.+/)?(?P<id>[^?#]+)'
+    _VALID_URL = r'https?://(?:play|prima|www)\.iprima\.cz/(?:[^/]+/)*(?P<id>[^/?#&]+)'
     _GEO_BYPASS = False
 
     _TESTS = [{
@@ -40,6 +40,9 @@ class IPrimaIE(InfoExtractor):
     }, {
         # iframe prima.iprima.cz
         'url': 'https://prima.iprima.cz/porady/jak-se-stavi-sen/rodina-rathousova-praha',
+        'only_matching': True,
+    }, {
+        'url': 'http://www.iprima.cz/filmy/desne-rande',
         'only_matching': True,
     }]
 
