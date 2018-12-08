@@ -352,20 +352,20 @@ class XHamsterUserIE(InfoExtractor):
         for page in itertools.count(1):
             address = 'https://xhamster.com/users/%s/videos/%d' % (user_id, page)
             webpage = self._download_webpage(address, user_id, note="Downloading page %d" % page)
-            video_url_matches = re.finditer(r'<a class="video-thumb__image-container thumb-image-container" href="(https://xhamster.com/videos/[^"/]+)" data-sprite', webpage)
+            video_url_matches = re.finditer(r'<a[^>]+class="[^"]*thumb-image-container[^"]*"[^>]+href="(https://xhamster.com/videos/[^"/]+)"', webpage)
             for video_url_match in video_url_matches:
                 video_url = video_url_match.group(1)
                 videos += [self.url_result(video_url, 'XHamster', '-'.split(video_url)[-1])]
-            if re.search(r'<div class="pager-container"[^>]*>\s*<ul class="no-popunder">\s*</ul>\s*</div>', webpage):
+            if re.search(r'<div class="pager-container"[^>]*>\s*<ul[^>]*>\s*</ul>\s*</div>', webpage):
                 # The pager is empty; there is only a single page of results.
                 break
-            next_page_matcher = re.search(r'<a\s+data-page="next"\s+href="([^"]+)">', webpage)
+            next_page_matcher = re.search(r'<a[^>]+data-page="next"[^>]+href="([^"]+)"[^>]*>', webpage)
             if next_page_matcher:
                 # There is a next page.
                 address = next_page_matcher.group(1)
                 continue
             # Check we can find the previous page button as a sanity check.
-            prev_page_matcher = re.search(r'<a\s+data-page="prev"\s+href="([^"]+)">', webpage)
+            prev_page_matcher = re.search(r'<a[^>]+data-page="prev"[^>]+href="([^"]+)"[^>]*>', webpage)
             if prev_page_matcher:
                 # No more pages.
                 break
