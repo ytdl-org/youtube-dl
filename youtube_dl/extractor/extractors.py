@@ -483,6 +483,7 @@ from .imdb import (
 from .imgur import (
     ImgurIE,
     ImgurAlbumIE,
+    ImgurGalleryIE,
 )
 from .ina import InaIE
 from .inc import IncIE
