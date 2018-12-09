@@ -33,7 +33,7 @@
  - **AdobeTVShow**
  - **AdobeTVVideo**
  - **AdultSwim**
- - **aenetworks**: A+E Networks: A&E, Lifetime, History.com, FYI Network
+ - **aenetworks**: A+E Networks: A&E, Lifetime, History.com, FYI Network and History Vault
  - **afreecatv**: afreecatv.com
  - **AirMozilla**
  - **AliExpressLive**
@@ -376,7 +376,8 @@
  - **imdb**: Internet Movie Database trailers
  - **imdb:list**: Internet Movie Database lists
  - **Imgur**
- - **ImgurAlbum**
+ - **imgur:album**
+ - **imgur:gallery**
  - **Ina**
  - **Inc**
  - **IndavideoEmbed**
@@ -435,6 +436,8 @@
  - **Le**: 乐视网
  - **Learnr**
  - **Lecture2Go**
+ - **Lecturio**
+ - **LecturioCourse**
  - **LEGO**
  - **Lemonde**
  - **Lenta**
@@ -853,6 +856,8 @@
  - **TastyTrade**
  - **TBS**
  - **TDSLifeway**
+ - **Teachable**
+ - **TeachableCourse**
  - **teachertube**: teachertube.com videos
  - **teachertube:user:collection**: teachertube.com user and collection videos
  - **TeachingChannel**
@@ -961,8 +966,6 @@
  - **uol.com.br**
  - **uplynk**
  - **uplynk:preplay**
- - **Upskill**
- - **UpskillCourse**
  - **Urort**: NRK P3 Urørt
  - **URPlay**
  - **USANetwork**
