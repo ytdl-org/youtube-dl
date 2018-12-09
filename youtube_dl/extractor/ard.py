@@ -21,7 +21,7 @@ from ..compat import compat_etree_fromstring
 
 class ARDMediathekIE(InfoExtractor):
     IE_NAME = 'ARD:mediathek'
-    _VALID_URL = r'^https?://(?:(?:www\.)?ardmediathek\.de|mediathek\.(?:daserste|rbb-online)\.de|one\.ard\.de)/(?:.*/)(?P<video_id>[0-9]+|[^0-9][^/\?]+)[^/\?]*(?:\?.*)?'
+    _VALID_URL = r'^https?://(?:(?:(?:www|classic)\.)?ardmediathek\.de|mediathek\.(?:daserste|rbb-online)\.de|one\.ard\.de)/(?:.*/)(?P<video_id>[0-9]+|[^0-9][^/\?]+)[^/\?]*(?:\?.*)?'
 
     _TESTS = [{
         # available till 26.07.2022
@@ -50,6 +50,9 @@ class ARDMediathekIE(InfoExtractor):
     }, {
         # audio
         'url': 'http://mediathek.rbb-online.de/radio/Hörspiel/Vor-dem-Fest/kulturradio/Audio?documentId=30796318&topRessort=radio&bcastId=9839158',
+        'only_matching': True,
+    }, {
+        'url': 'https://classic.ardmediathek.de/tv/Panda-Gorilla-Co/Panda-Gorilla-Co-Folge-274/Das-Erste/Video?bcastId=16355486&documentId=58234698',
         'only_matching': True,
     }]
 
