@@ -1,3 +1,27 @@
+version <unreleased>
+
+Core
+* [YoutubeDL] Keep session cookies in cookie file between runs
+* [YoutubeDL] Recognize session cookies with expired set to 0 (#12929)
+
+Extractors
++ [teachable] Add support for teachable platform sites (#5451, #18150, #18272)
++ [aenetworks] Add support for historyvault.com (#18460)
+* [imgur] Improve gallery and album detection and extraction (#9133, #16577,
+  #17223, #18404)
+* [iprima] Relax URL regular expression (#18453)
+* [hotstar] Fix video data extraction (#18386)
+* [ard:mediathek] Fix title and description extraction (#18349, #18371)
+* [xvideos] Switch to HTTPS (#18422, #18427)
++ [lecturio] Add support for lecturio.com (#18405)
++ [nrktv:series] Add support for extra materials
+* [nrktv:season,series] Fix extraction (#17159, #17258)
+* [nrktv] Relax URL regular expression (#18304, #18387)
+* [yourporn] Fix extraction (#18424, #18425)
+* [tbs] Fix info extraction (#18403)
++ [gamespot] Add support for review URLs
+
+
 version 2018.12.03
 
 Core
