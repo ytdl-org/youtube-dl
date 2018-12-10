@@ -51,3 +51,6 @@ venv/
 
 # VS Code related files
 .vscode
+
+# Snap related files
+*.snap

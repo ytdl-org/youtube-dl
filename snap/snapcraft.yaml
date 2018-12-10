@@ -1,0 +1,25 @@
+name: youtube-dl
+base: core18
+version: 'git'
+summary: Download videos from youtube.com or other video platforms
+description: |
+  youtube-dl is a command-line program to download videos from YouTube.com and
+  a few more sites. It requires the Python interpreter, version 2.6, 2.7, or
+  3.2+, and it is not platform specific. It should work on your Unix box, on
+  Windows or on macOS. It is released to the public domain, which means you
+  can modify it, redistribute it or use it however you like.
+
+grade: stable
+confinement: strict
+
+parts:
+  youtube-dl:
+    plugin: python
+    source: .
+
+apps:
+  youtube-dl:
+    command: youtube-dl
+    plugs:
+      - home
+      - network
