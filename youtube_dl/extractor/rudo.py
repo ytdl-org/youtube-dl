@@ -38,8 +38,12 @@ class RudoIE(InfoExtractor):
 
         webpage = self._download_webpage(url, video_id, encoding='iso-8859-1')
 
-        jwplayer_data = self._parse_json(re.sub('events: {(.|\n)*},\nabouttext', 'abouttext', 
-            self._search_regex(r'(?s)playerInstance\.setup\(({.+?})\)', webpage, 'jwplayer data')), video_id,
+        jwplayer_data = self._parse_json(
+            re.sub(
+                'events: {(.|\n)*},\nabouttext',
+                'abouttext',
+                self._search_regex(r'(?s)playerInstance\.setup\(({.+?})\)', webpage, 'jwplayer data')),
+            video_id,
             transform_source=lambda s: js_to_json(re.sub(r'encodeURI\([^)]+\)', '""', s)))
 
         info_dict = self._parse_jwplayer_data(
