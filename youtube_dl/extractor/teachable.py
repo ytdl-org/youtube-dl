@@ -135,7 +135,6 @@ class TeachableIE(TeachableBaseIE):
     @staticmethod
     def _extract_url(webpage, source_url):
         if not TeachableIE._is_teachable(webpage):
-            print('NOT TEACHABLE')
             return
         if re.match(r'https?://[^/]+/(?:courses|p)', source_url):
             return '%s%s' % (TeachableBaseIE._URL_PREFIX, source_url)
