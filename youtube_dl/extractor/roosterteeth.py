@@ -31,7 +31,7 @@ class RoosterTeethIE(InfoExtractor):
             'description': 'md5:0cc3b21986d54ed815f5faeccd9a9ca5',
             'thumbnail': r're:^https?://.*\.png$',
             'series': 'Million Dollars, But...',
-            'episode': 'S2:E10 - Million Dollars, But... The Game Announcement',
+            'episode': 'Million Dollars, But... The Game Announcement',
         },
     }, {
         'url': 'http://achievementhunter.roosterteeth.com/episode/off-topic-the-achievement-hunter-podcast-2016-i-didn-t-think-it-would-pass-31',
