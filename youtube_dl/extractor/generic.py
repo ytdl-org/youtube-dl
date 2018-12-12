@@ -109,6 +109,7 @@ from .vice import ViceIE
 from .xfileshare import XFileShareIE
 from .cloudflarestream import CloudflareStreamIE
 from .peertube import PeerTubeIE
+from .vimp import ViMPIE
 from .teachable import TeachableIE
 from .indavideo import IndavideoEmbedIE
 from .apa import APAIE
@@ -2018,6 +2019,16 @@ class GenericIE(InfoExtractor):
             },
             'playlist_count': 2,
         },
+        {   # ViMP embed
+            'url': 'https://www.regio-tv.de/video_video,-auf-ein-bier-mit-verena-schneider-_vidid,151368.html',
+            'info_dict': {
+                'id': '31575',
+                'ext': 'mp4',
+                'title': 'Auf ein Bier mit Verena Schneider',
+                'description': 'md5:8fb85042ea46dfaa60f49943256382c9',
+                'uploader': 'EckleA',
+            }
+        },
         {
             # Indavideo embed
             'url': 'https://streetkitchen.hu/receptek/igy_kell_otthon_hamburgert_sutni/',
@@ -3112,6 +3123,11 @@ class GenericIE(InfoExtractor):
         if peertube_urls:
             return self.playlist_from_matches(
                 peertube_urls, video_id, video_title, ie=PeerTubeIE.ie_key())
+
+        vimp_urls = ViMPIE._extract_urls(webpage, url)
+        if vimp_urls:
+            return self.playlist_from_matches(
+                vimp_urls, video_id, video_title, ie=ViMPIE.ie_key())
 
         teachable_url = TeachableIE._extract_url(webpage, url)
         if teachable_url:
