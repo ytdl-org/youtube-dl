@@ -418,6 +418,10 @@ from .gameone import (
 )
 from .gamespot import GameSpotIE
 from .gamestar import GameStarIE
+from .gaana import (
+    GaanaIE,
+    GaanaAlbumIE,
+)
 from .gaskrank import GaskrankIE
 from .gazeta import GazetaIE
 from .gdcvault import GDCVaultIE
