@@ -60,6 +60,7 @@ class YoutubeBaseInfoExtractor(InfoExtractor):
 
     _LOOKUP_URL = 'https://accounts.google.com/_/signin/sl/lookup'
     _CHALLENGE_URL = 'https://accounts.google.com/_/signin/sl/challenge'
+    _SELECT_TFA_URL = 'https://accounts.google.com/_/signin/selectchallenge?hl=en&TL={0}'
     _TFA_URL = 'https://accounts.google.com/_/signin/challenge?hl=en&TL={0}'
 
     _NETRC_MACHINE = 'youtube'
@@ -206,6 +207,18 @@ class YoutubeBaseInfoExtractor(InfoExtractor):
 
                 tfa_code = remove_start(tfa_code, 'G-')
 
+                select_tfa_results = req(
+                    self._SELECT_TFA_URL.format(tl), [2],
+                    'Selecting TOTP TFA challenge', 'Unable to select TOTP TFA challenge')
+
+                if select_tfa_results is False:
+                    return False
+
+                tl = try_get(select_tfa_results, lambda x: x[1][2], compat_str)
+                if not tl:
+                    warn('Unable to extract TL')
+                    return False
+
                 tfa_req = [
                     user_hash, None, 2, None,
                     [
@@ -215,10 +228,21 @@ class YoutubeBaseInfoExtractor(InfoExtractor):
 
                 tfa_results = req(
                     self._TFA_URL.format(tl), tfa_req,
-                    'Submitting TFA code', 'Unable to submit TFA code')
+                    'Submitting TFA code', 'Unable to submit TFA code, trying another way')
 
                 if tfa_results is False:
-                    return False
+                    tfa_req = [
+                        user_hash, None, 2, None,
+                        [
+                            6, None, None, None, None,
+                            [tfa_code, True]
+                        ]]
+                    tfa_results = req(
+                        self._TFA_URL.format(tl), tfa_req,
+                        'Submitting TFA code', 'Unable to submit TFA code')
+
+                    if tfa_results is False:
+                        return False
 
                 tfa_res = try_get(tfa_results, lambda x: x[0][5], list)
                 if tfa_res:
