@@ -16,7 +16,7 @@ class OlympicChannelIE(InfoExtractor):
             'info_dict': {
                 '_type': 'video',
                 'id': 'E18112220',
-                'ext': 'm3u8',
+                'ext': 'mp4',
                 'title': 'News of the Week with Ash Tulloch',
                 'thumbnail': 'https://img.olympicchannel.com/images/image/private/t_social_share_thumb/primary/fzcmi2e6kji6cnjjs1xz',
                 'description': 'Exclusive interviews with Rika Kihira after her Grand Prix finals win, Yuzuru Hanyu&#39;s coach on the injured star, and Valerie Adams on Tokyo.',
@@ -28,7 +28,7 @@ class OlympicChannelIE(InfoExtractor):
             'info_dict': {
                 '_type': 'video',
                 'id': 'E17060701',
-                'ext': 'm3u8',
+                'ext': 'mp4',
                 'title': 'Past and Present – Field hockey',
                 'thumbnail': 'https://img.olympicchannel.com/images/image/private/t_social_share_thumb/primary/z61ca9vgb4h6t6r2se1f',
                 'description': 'We reunite a pair of &quot;Las Leonas&quot; and travel back to the early days of field hockey.',
@@ -50,7 +50,7 @@ class OlympicChannelIE(InfoExtractor):
             'id': video_id,
             'title': title,
             'description': self._og_search_description(webpage),
-            'formats': self._extract_m3u8_formats(m3u8_url, video_id),
+            'formats': self._extract_m3u8_formats(m3u8_url, video_id, ext='mp4'),
             'thumbnail': thumbnail_url,
         }
 
