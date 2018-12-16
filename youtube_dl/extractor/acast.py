@@ -17,7 +17,14 @@ from ..utils import (
 
 class ACastIE(InfoExtractor):
     IE_NAME = 'acast'
-    _VALID_URL = r'https?://(?:(?:embed|www)\.)?acast\.com/(?P<channel>[^/]+)/(?P<id>[^/#?]+)'
+    _VALID_URL = r'''(?x)
+                    https?://
+                        (?:
+                            (?:(?:embed|www)\.)?acast\.com/|
+                            play\.acast\.com/s/
+                        )
+                        (?P<channel>[^/]+)/(?P<id>[^/#?]+)
+                    '''
     _TESTS = [{
         'url': 'https://www.acast.com/sparpodcast/2.raggarmordet-rosterurdetforflutna',
         'md5': 'a02393c74f3bdb1801c3ec2695577ce0',
@@ -35,6 +42,9 @@ class ACastIE(InfoExtractor):
         }
     }, {
         'url': 'http://embed.acast.com/adambuxton/ep.12-adam-joeschristmaspodcast2015',
+        'only_matching': True,
+    }, {
+        'url': 'https://play.acast.com/s/rattegangspodden/s04e09-styckmordet-i-helenelund-del-22',
         'only_matching': True,
     }]
 
