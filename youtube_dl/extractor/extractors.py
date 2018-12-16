@@ -671,6 +671,10 @@ from .mtv import (
     MTV81IE,
 )
 from .muenchentv import MuenchenTVIE
+from .murrtube import (
+    MurrtubeIE,
+    MurrtubeUserVideosIE
+)
 from .musicplayon import MusicPlayOnIE
 from .mwave import MwaveIE, MwaveMeetGreetIE
 from .mychannels import MyChannelsIE
