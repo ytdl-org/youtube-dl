@@ -12,7 +12,7 @@ from ..utils import (
 
 
 class IPrimaIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:play|prima|www)\.iprima\.cz/(?:[^/]+/)*(?P<id>[^/?#&]+)'
+    _VALID_URL = r'https?://(?:[^/]+)\.iprima\.cz/(?:[^/]+/)*(?P<id>[^/?#&]+)'
     _GEO_BYPASS = False
 
     _TESTS = [{
@@ -43,6 +43,21 @@ class IPrimaIE(InfoExtractor):
         'only_matching': True,
     }, {
         'url': 'http://www.iprima.cz/filmy/desne-rande',
+        'only_matching': True,
+    }, {
+        'url': 'https://zoom.iprima.cz/10-nejvetsich-tajemstvi-zahad/posvatna-mista-a-stavby',
+        'only_matching': True,
+    }, {
+        'url': 'https://krimi.iprima.cz/mraz-0/sebevrazdy',
+        'only_matching': True,
+    }, {
+        'url': 'https://cool.iprima.cz/derava-silnice-nevadi',
+        'only_matching': True,
+    }, {
+        'url': 'https://love.iprima.cz/laska-az-za-hrob/slib-dany-bratrovi',
+        'only_matching': True,
+    }, {
+        'url': 'https://autosalon.iprima.cz/motorsport/7-epizoda-1',
         'only_matching': True,
     }]
 
