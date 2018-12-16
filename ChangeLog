@@ -1,3 +1,21 @@
+version <unreleased>
+
+Extractors
+* [ard:beta] Improve geo restricted videos extraction
+* [ard:beta] Fix subtitles extraction
+* [ard:beta] Improve extraction robustness
+* [ard:beta] Relax URL regular expression (#18441)
+* [acast] Add support for embed.acast.com and play.acast.com (#18483)
+* [iprima] Relax URL regular expression (#18515, #18540)
+* [vrv] Fix initial state extraction (#18553)
+* [youtube] Fix mark watched (#18546)
++ [safari] Add support for learning.oreilly.com (#18510)
+* [youtube] Fix multifeed extraction (#18531)
+* [lecturio] Improve subtitles extraction (#18488)
+* [uol] Fix format URL extraction (#18480)
++ [ard:mediathek] Add support for classic.ardmediathek.de (#18473)
+
+
 version 2018.12.09
 
 Core
