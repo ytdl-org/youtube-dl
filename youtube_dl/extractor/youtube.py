@@ -48,6 +48,7 @@ from ..utils import (
     unified_strdate,
     unsmuggle_url,
     uppercase_escape,
+    url_or_none,
     urlencode_postdata,
 )
 
@@ -1386,8 +1387,11 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
             self._downloader.report_warning(err_msg)
             return {}
 
-    def _mark_watched(self, video_id, video_info):
-        playback_url = video_info.get('videostats_playback_base_url', [None])[0]
+    def _mark_watched(self, video_id, video_info, player_response):
+        playback_url = url_or_none(try_get(
+            player_response,
+            lambda x: x['playbackTracking']['videostatsPlaybackUrl']['baseUrl']) or try_get(
+            video_info, lambda x: x['videostats_playback_base_url'][0]))
         if not playback_url:
             return
         parsed_playback_url = compat_urlparse.urlparse(playback_url)
@@ -2122,7 +2126,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
 
         self._sort_formats(formats)
 
-        self.mark_watched(video_id, video_info)
+        self.mark_watched(video_id, video_info, player_response)
 
         return {
             'id': video_id,
