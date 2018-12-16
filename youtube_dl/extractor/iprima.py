@@ -12,7 +12,7 @@ from ..utils import (
 
 
 class IPrimaIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:play|prima|zoom|krimi|cool|love|autosalon|www)\.iprima\.cz/(?:[^/]+/)*(?P<id>[^/?#&]+)'
+    _VALID_URL = r'https?://(?:[^/]+)\.iprima\.cz/(?:[^/]+/)*(?P<id>[^/?#&]+)'
     _GEO_BYPASS = False
 
     _TESTS = [{
