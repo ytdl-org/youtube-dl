@@ -56,6 +56,10 @@ class ARDMediathekIE(InfoExtractor):
         'only_matching': True,
     }]
 
+    @classmethod
+    def suitable(cls, url):
+        return False if ARDBetaMediathekIE.suitable(url) else super(ARDMediathekIE, cls).suitable(url)
+
     def _extract_media_info(self, media_info_url, webpage, video_id):
         media_info = self._download_json(
             media_info_url, video_id, 'Downloading media JSON')
@@ -296,7 +300,7 @@ class ARDIE(InfoExtractor):
 
 
 class ARDBetaMediathekIE(InfoExtractor):
-    _VALID_URL = r'https://beta\.ardmediathek\.de/[a-z]+/player/(?P<video_id>[a-zA-Z0-9]+)/(?P<display_id>[^/?#]+)'
+    _VALID_URL = r'https://(?:beta|www)\.ardmediathek\.de/[^/]+/(?:player|live)/(?P<video_id>[a-zA-Z0-9]+)(?:/(?P<display_id>[^/?#]+))?'
     _TESTS = [{
         'url': 'https://beta.ardmediathek.de/ard/player/Y3JpZDovL2Rhc2Vyc3RlLmRlL3RhdG9ydC9mYmM4NGM1NC0xNzU4LTRmZGYtYWFhZS0wYzcyZTIxNGEyMDE/die-robuste-roswita',
         'md5': '2d02d996156ea3c397cfc5036b5d7f8f',
@@ -310,12 +314,18 @@ class ARDBetaMediathekIE(InfoExtractor):
             'upload_date': '20180826',
             'ext': 'mp4',
         },
+    }, {
+        'url': 'https://www.ardmediathek.de/ard/player/Y3JpZDovL3N3ci5kZS9hZXgvbzEwNzE5MTU/',
+        'only_matching': True,
+    }, {
+        'url': 'https://www.ardmediathek.de/swr/live/Y3JpZDovL3N3ci5kZS8xMzQ4MTA0Mg',
+        'only_matching': True,
     }]
 
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
         video_id = mobj.group('video_id')
-        display_id = mobj.group('display_id')
+        display_id = mobj.group('display_id') or video_id
 
         webpage = self._download_webpage(url, display_id)
         data_json = self._search_regex(r'window\.__APOLLO_STATE__\s*=\s*(\{.*);\n', webpage, 'json')
