@@ -35,19 +35,7 @@ class ACastIE(InfoExtractor):
         }
     }, {
         'url': 'http://embed.acast.com/adambuxton/ep.12-adam-joeschristmaspodcast2015',
-        'md5': 'b51346d1d16885f17b6deed8061bac78',
-        'info_dict': {
-            'id': '56ce23e1-7920-4692-910d-9aee5979b651',
-            'ext': 'mp3',
-            'title': 'EP.12 - ADAM & JOE\'S CHRISTMAS PODCAST 2015',
-            'description': 'md5:94e5e6a63b3c9c57f1a47285a5c4c998',
-            'timestamp': 1451005979,
-            'upload_date': '20151225',
-            'duration': 4692.118063,
-            'creator': 'ADAM BUXTON',
-            'series': 'THE ADAM BUXTON PODCAST',
-            'episode': 'EP.12 - ADAM & JOE\'S CHRISTMAS PODCAST 2015',
-        }
+        'only_matching': True,
     }]
 
     def _real_extract(self, url):
