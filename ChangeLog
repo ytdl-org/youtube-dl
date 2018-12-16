@@ -1,4 +1,4 @@
-version <unreleased>
+version 2018.12.17
 
 Extractors
 * [ard:beta] Improve geo restricted videos extraction
