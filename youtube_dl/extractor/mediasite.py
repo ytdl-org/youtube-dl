@@ -21,7 +21,7 @@ from ..utils import (
 
 
 class MediasiteIE(InfoExtractor):
-    _VALID_URL = r'(?xi)https?://[^/]+/Mediasite/(Play|Showcase/livebroadcast/Presentation)/(?P<id>[0-9a-f]{32,34})(?P<query>\?[^#]+|)'
+    _VALID_URL = r'(?xi)https?://[^/]+/Mediasite/(?:Play|Showcase/livebroadcast/Presentation)/(?P<id>[0-9a-f]{32,34})(?P<query>\?[^#]+|)'
     _TESTS = [
         {
             'url': 'https://hitsmediaweb.h-its.org/mediasite/Play/2db6c271681e4f199af3c60d1f82869b1d',
@@ -84,7 +84,20 @@ class MediasiteIE(InfoExtractor):
                 'timestamp': 1333983600,
                 'duration': 7794,
             }
-        }
+        },
+        {
+            'url': 'https://collegerama.tudelft.nl/Mediasite/Showcase/livebroadcast/Presentation/ada7020854f743c49fbb45c9ec7dbb351d',
+            'info_dict': {
+                'id': 'ada7020854f743c49fbb45c9ec7dbb351d',
+                'ext': 'mp4',
+                'title': 'Nachtelijk weer: een koud kunstje?',
+                'description': '',
+                'thumbnail': r're:^https?://.*\.jpg(?:\?.*?)?$',
+                'duration': 4000,
+                'timestamp': 1542981600,
+                'upload_date': '20181123',
+            },
+        },
     ]
 
     # look in Mediasite.Core.js (Mediasite.ContentStreamType[*])
