@@ -136,9 +136,15 @@ class LecturioIE(LecturioBaseIE):
             cc_url = url_or_none(cc_url)
             if not cc_url:
                 continue
-            sub_dict = automatic_captions if 'auto-translated' in cc_label else subtitles
             lang = self._search_regex(
-                r'/([a-z]{2})_', cc_url, 'lang', default=cc_label.split()[0])
+                r'/([a-z]{2})_', cc_url, 'lang',
+                default=cc_label.split()[0] if cc_label else 'en')
+            original_lang = self._search_regex(
+                r'/[a-z]{2}_([a-z]{2})_', cc_url, 'original lang',
+                default=None)
+            sub_dict = (automatic_captions
+                        if 'auto-translated' in cc_label or original_lang
+                        else subtitles)
             sub_dict.setdefault(self._CC_LANGS.get(lang, lang), []).append({
                 'url': cc_url,
             })

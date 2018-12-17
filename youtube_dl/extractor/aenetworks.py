@@ -22,18 +22,19 @@ class AENetworksBaseIE(ThePlatformIE):
 
 class AENetworksIE(AENetworksBaseIE):
     IE_NAME = 'aenetworks'
-    IE_DESC = 'A+E Networks: A&E, Lifetime, History.com, FYI Network'
+    IE_DESC = 'A+E Networks: A&E, Lifetime, History.com, FYI Network and History Vault'
     _VALID_URL = r'''(?x)
                     https?://
                         (?:www\.)?
                         (?P<domain>
-                            (?:history|aetv|mylifetime|lifetimemovieclub)\.com|
+                            (?:history(?:vault)?|aetv|mylifetime|lifetimemovieclub)\.com|
                             fyi\.tv
                         )/
                         (?:
                             shows/(?P<show_path>[^/]+(?:/[^/]+){0,2})|
                             movies/(?P<movie_display_id>[^/]+)(?:/full-movie)?|
-                            specials/(?P<special_display_id>[^/]+)/full-special
+                            specials/(?P<special_display_id>[^/]+)/full-special|
+                            collections/[^/]+/(?P<collection_display_id>[^/]+)
                         )
                     '''
     _TESTS = [{
@@ -80,6 +81,9 @@ class AENetworksIE(AENetworksBaseIE):
     }, {
         'url': 'http://www.history.com/specials/sniper-into-the-kill-zone/full-special',
         'only_matching': True
+    }, {
+        'url': 'https://www.historyvault.com/collections/america-the-story-of-us/westward',
+        'only_matching': True
     }]
     _DOMAIN_TO_REQUESTOR_ID = {
         'history.com': 'HISTORY',
@@ -90,9 +94,9 @@ class AENetworksIE(AENetworksBaseIE):
     }
 
     def _real_extract(self, url):
-        domain, show_path, movie_display_id, special_display_id = re.match(self._VALID_URL, url).groups()
-        display_id = show_path or movie_display_id or special_display_id
-        webpage = self._download_webpage(url, display_id)
+        domain, show_path, movie_display_id, special_display_id, collection_display_id = re.match(self._VALID_URL, url).groups()
+        display_id = show_path or movie_display_id or special_display_id or collection_display_id
+        webpage = self._download_webpage(url, display_id, headers=self.geo_verification_headers())
         if show_path:
             url_parts = show_path.split('/')
             url_parts_len = len(url_parts)
