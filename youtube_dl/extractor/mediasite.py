@@ -87,16 +87,7 @@ class MediasiteIE(InfoExtractor):
         },
         {
             'url': 'https://collegerama.tudelft.nl/Mediasite/Showcase/livebroadcast/Presentation/ada7020854f743c49fbb45c9ec7dbb351d',
-            'info_dict': {
-                'id': 'ada7020854f743c49fbb45c9ec7dbb351d',
-                'ext': 'mp4',
-                'title': 'Nachtelijk weer: een koud kunstje?',
-                'description': '',
-                'thumbnail': r're:^https?://.*\.jpg(?:\?.*?)?$',
-                'duration': 4000,
-                'timestamp': 1542981600,
-                'upload_date': '20181123',
-            },
+            'only_matching': True,
         },
     ]
 
