@@ -19,7 +19,7 @@ class ScrippsNetworksWatchIE(AWSIE):
     _VALID_URL = r'''(?x)
                     https?://
                         watch\.
-                        (?P<site>hgtv|foodnetwork|travelchannel|diynetwork|cookingchanneltv|geniuskitchen)\.com/
+                        (?P<site>geniuskitchen)\.com/
                         (?:
                             player\.[A-Z0-9]+\.html\#|
                             show/(?:[^/]+/){2}|
@@ -28,38 +28,23 @@ class ScrippsNetworksWatchIE(AWSIE):
                         (?P<id>\d+)
                     '''
     _TESTS = [{
-        'url': 'http://watch.hgtv.com/show/HGTVE/Best-Ever-Treehouses/2241515/Best-Ever-Treehouses/',
-        'md5': '26545fd676d939954c6808274bdb905a',
+        'url': 'http://watch.geniuskitchen.com/player/3787617/Ample-Hills-Ice-Cream-Bike/',
         'info_dict': {
-            'id': '4173834',
+            'id': '4194875',
             'ext': 'mp4',
-            'title': 'Best Ever Treehouses',
-            'description': "We're searching for the most over the top treehouses.",
+            'title': 'Ample Hills Ice Cream Bike',
+            'description': 'Courtney Rada churns up a signature GK Now ice cream with The Scoopmaster.',
             'uploader': 'ANV',
-            'upload_date': '20170922',
-            'timestamp': 1506056400,
+            'upload_date': '20171011',
+            'timestamp': 1507698000,
         },
         'params': {
             'skip_download': True,
         },
         'add_ie': [AnvatoIE.ie_key()],
-    }, {
-        'url': 'http://watch.diynetwork.com/show/DSAL/Salvage-Dawgs/2656646/Covington-Church/',
-        'only_matching': True,
-    }, {
-        'url': 'http://watch.diynetwork.com/player.HNT.html#2656646',
-        'only_matching': True,
-    }, {
-        'url': 'http://watch.geniuskitchen.com/player/3787617/Ample-Hills-Ice-Cream-Bike/',
-        'only_matching': True,
     }]
 
     _SNI_TABLE = {
-        'hgtv': 'hgtv',
-        'diynetwork': 'diy',
-        'foodnetwork': 'food',
-        'cookingchanneltv': 'cook',
-        'travelchannel': 'trav',
         'geniuskitchen': 'genius',
     }
 
