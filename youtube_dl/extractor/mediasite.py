@@ -21,7 +21,7 @@ from ..utils import (
 
 
 class MediasiteIE(InfoExtractor):
-    _VALID_URL = r'(?xi)https?://[^/]+/Mediasite/Play/(?P<id>[0-9a-f]{32,34})(?P<query>\?[^#]+|)'
+    _VALID_URL = r'(?xi)https?://[^/]+/Mediasite/(Play|Showcase/livebroadcast/Presentation)/(?P<id>[0-9a-f]{32,34})(?P<query>\?[^#]+|)'
     _TESTS = [
         {
             'url': 'https://hitsmediaweb.h-its.org/mediasite/Play/2db6c271681e4f199af3c60d1f82869b1d',
