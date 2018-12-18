@@ -1,5 +1,6 @@
 from __future__ import unicode_literals
 
+from youtube_dl.extractor import YoutubeIE
 from .common import InfoExtractor
 
 
@@ -27,8 +28,4 @@ class FreespeechIE(InfoExtractor):
             r'data-video-url="([^"]+)"',
             webpage, 'youtube url')
 
-        return {
-            '_type': 'url',
-            'url': youtube_url,
-            'ie_key': 'Youtube',
-        }
+        return self.url_result(youtube_url, YoutubeIE.ie_key())
