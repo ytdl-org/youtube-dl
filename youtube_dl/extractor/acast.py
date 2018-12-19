@@ -17,25 +17,15 @@ from ..utils import (
 
 class ACastIE(InfoExtractor):
     IE_NAME = 'acast'
-    _VALID_URL = r'https?://(?:www\.)?acast\.com/(?P<channel>[^/]+)/(?P<id>[^/#?]+)'
+    _VALID_URL = r'''(?x)
+                    https?://
+                        (?:
+                            (?:(?:embed|www)\.)?acast\.com/|
+                            play\.acast\.com/s/
+                        )
+                        (?P<channel>[^/]+)/(?P<id>[^/#?]+)
+                    '''
     _TESTS = [{
-        # test with one bling
-        'url': 'https://www.acast.com/condenasttraveler/-where-are-you-taipei-101-taiwan',
-        'md5': 'ada3de5a1e3a2a381327d749854788bb',
-        'info_dict': {
-            'id': '57de3baa-4bb0-487e-9418-2692c1277a34',
-            'ext': 'mp3',
-            'title': '"Where Are You?": Taipei 101, Taiwan',
-            'description': 'md5:a0b4ef3634e63866b542e5b1199a1a0e',
-            'timestamp': 1196172000,
-            'upload_date': '20071127',
-            'duration': 211,
-            'creator': 'Concierge',
-            'series': 'Condé Nast Traveler Podcast',
-            'episode': '"Where Are You?": Taipei 101, Taiwan',
-        }
-    }, {
-        # test with multiple blings
         'url': 'https://www.acast.com/sparpodcast/2.raggarmordet-rosterurdetforflutna',
         'md5': 'a02393c74f3bdb1801c3ec2695577ce0',
         'info_dict': {
@@ -50,6 +40,12 @@ class ACastIE(InfoExtractor):
             'series': 'Spår',
             'episode': '2. Raggarmordet - Röster ur det förflutna',
         }
+    }, {
+        'url': 'http://embed.acast.com/adambuxton/ep.12-adam-joeschristmaspodcast2015',
+        'only_matching': True,
+    }, {
+        'url': 'https://play.acast.com/s/rattegangspodden/s04e09-styckmordet-i-helenelund-del-22',
+        'only_matching': True,
     }]
 
     def _real_extract(self, url):

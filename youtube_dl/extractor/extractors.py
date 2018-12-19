@@ -483,6 +483,7 @@ from .imdb import (
 from .imgur import (
     ImgurIE,
     ImgurAlbumIE,
+    ImgurGalleryIE,
 )
 from .ina import InaIE
 from .inc import IncIE
@@ -553,6 +554,11 @@ from .lcp import (
 )
 from .learnr import LearnrIE
 from .lecture2go import Lecture2GoIE
+from .lecturio import (
+    LecturioIE,
+    LecturioCourseIE,
+    LecturioDeCourseIE,
+)
 from .leeco import (
     LeIE,
     LePlaylistIE,
@@ -1086,6 +1092,10 @@ from .tass import TassIE
 from .tastytrade import TastyTradeIE
 from .tbs import TBSIE
 from .tdslifeway import TDSLifewayIE
+from .teachable import (
+    TeachableIE,
+    TeachableCourseIE,
+)
 from .teachertube import (
     TeacherTubeIE,
     TeacherTubeUserIE,
@@ -1234,10 +1244,6 @@ from .uol import UOLIE
 from .uplynk import (
     UplynkIE,
     UplynkPreplayIE,
-)
-from .upskill import (
-    UpskillIE,
-    UpskillCourseIE,
 )
 from .urort import UrortIE
 from .urplay import URPlayIE

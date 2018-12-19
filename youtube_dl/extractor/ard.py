@@ -8,20 +8,23 @@ from .generic import GenericIE
 from ..utils import (
     determine_ext,
     ExtractorError,
-    qualities,
     int_or_none,
     parse_duration,
+    qualities,
+    str_or_none,
+    try_get,
     unified_strdate,
-    xpath_text,
+    unified_timestamp,
     update_url_query,
     url_or_none,
+    xpath_text,
 )
 from ..compat import compat_etree_fromstring
 
 
 class ARDMediathekIE(InfoExtractor):
     IE_NAME = 'ARD:mediathek'
-    _VALID_URL = r'^https?://(?:(?:www\.)?ardmediathek\.de|mediathek\.(?:daserste|rbb-online)\.de|one\.ard\.de)/(?:.*/)(?P<video_id>[0-9]+|[^0-9][^/\?]+)[^/\?]*(?:\?.*)?'
+    _VALID_URL = r'^https?://(?:(?:(?:www|classic)\.)?ardmediathek\.de|mediathek\.(?:daserste|rbb-online)\.de|one\.ard\.de)/(?:.*/)(?P<video_id>[0-9]+|[^0-9][^/\?]+)[^/\?]*(?:\?.*)?'
 
     _TESTS = [{
         # available till 26.07.2022
@@ -51,7 +54,14 @@ class ARDMediathekIE(InfoExtractor):
         # audio
         'url': 'http://mediathek.rbb-online.de/radio/Hörspiel/Vor-dem-Fest/kulturradio/Audio?documentId=30796318&topRessort=radio&bcastId=9839158',
         'only_matching': True,
+    }, {
+        'url': 'https://classic.ardmediathek.de/tv/Panda-Gorilla-Co/Panda-Gorilla-Co-Folge-274/Das-Erste/Video?bcastId=16355486&documentId=58234698',
+        'only_matching': True,
     }]
+
+    @classmethod
+    def suitable(cls, url):
+        return False if ARDBetaMediathekIE.suitable(url) else super(ARDMediathekIE, cls).suitable(url)
 
     def _extract_media_info(self, media_info_url, webpage, video_id):
         media_info = self._download_json(
@@ -173,13 +183,18 @@ class ARDMediathekIE(InfoExtractor):
         title = self._html_search_regex(
             [r'<h1(?:\s+class="boxTopHeadline")?>(.*?)</h1>',
              r'<meta name="dcterms\.title" content="(.*?)"/>',
-             r'<h4 class="headline">(.*?)</h4>'],
+             r'<h4 class="headline">(.*?)</h4>',
+             r'<title[^>]*>(.*?)</title>'],
             webpage, 'title')
         description = self._html_search_meta(
             'dcterms.abstract', webpage, 'description', default=None)
         if description is None:
             description = self._html_search_meta(
-                'description', webpage, 'meta description')
+                'description', webpage, 'meta description', default=None)
+        if description is None:
+            description = self._html_search_regex(
+                r'<p\s+class="teasertext">(.+?)</p>',
+                webpage, 'teaser text', default=None)
 
         # Thumbnail is sometimes not present.
         # It is in the mobile version, but that seems to use a different URL
@@ -288,7 +303,7 @@ class ARDIE(InfoExtractor):
 
 
 class ARDBetaMediathekIE(InfoExtractor):
-    _VALID_URL = r'https://beta\.ardmediathek\.de/[a-z]+/player/(?P<video_id>[a-zA-Z0-9]+)/(?P<display_id>[^/?#]+)'
+    _VALID_URL = r'https://(?:beta|www)\.ardmediathek\.de/[^/]+/(?:player|live)/(?P<video_id>[a-zA-Z0-9]+)(?:/(?P<display_id>[^/?#]+))?'
     _TESTS = [{
         'url': 'https://beta.ardmediathek.de/ard/player/Y3JpZDovL2Rhc2Vyc3RlLmRlL3RhdG9ydC9mYmM4NGM1NC0xNzU4LTRmZGYtYWFhZS0wYzcyZTIxNGEyMDE/die-robuste-roswita',
         'md5': '2d02d996156ea3c397cfc5036b5d7f8f',
@@ -302,12 +317,18 @@ class ARDBetaMediathekIE(InfoExtractor):
             'upload_date': '20180826',
             'ext': 'mp4',
         },
+    }, {
+        'url': 'https://www.ardmediathek.de/ard/player/Y3JpZDovL3N3ci5kZS9hZXgvbzEwNzE5MTU/',
+        'only_matching': True,
+    }, {
+        'url': 'https://www.ardmediathek.de/swr/live/Y3JpZDovL3N3ci5kZS8xMzQ4MTA0Mg',
+        'only_matching': True,
     }]
 
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
         video_id = mobj.group('video_id')
-        display_id = mobj.group('display_id')
+        display_id = mobj.group('display_id') or video_id
 
         webpage = self._download_webpage(url, display_id)
         data_json = self._search_regex(r'window\.__APOLLO_STATE__\s*=\s*(\{.*);\n', webpage, 'json')
@@ -318,43 +339,62 @@ class ARDBetaMediathekIE(InfoExtractor):
             'display_id': display_id,
         }
         formats = []
+        subtitles = {}
+        geoblocked = False
         for widget in data.values():
-            if widget.get('_geoblocked'):
-                raise ExtractorError('This video is not available due to geoblocking', expected=True)
-
+            if widget.get('_geoblocked') is True:
+                geoblocked = True
             if '_duration' in widget:
-                res['duration'] = widget['_duration']
+                res['duration'] = int_or_none(widget['_duration'])
             if 'clipTitle' in widget:
                 res['title'] = widget['clipTitle']
             if '_previewImage' in widget:
                 res['thumbnail'] = widget['_previewImage']
             if 'broadcastedOn' in widget:
-                res['upload_date'] = unified_strdate(widget['broadcastedOn'])
+                res['timestamp'] = unified_timestamp(widget['broadcastedOn'])
             if 'synopsis' in widget:
                 res['description'] = widget['synopsis']
-            if '_subtitleUrl' in widget:
-                res['subtitles'] = {'de': [{
+            subtitle_url = url_or_none(widget.get('_subtitleUrl'))
+            if subtitle_url:
+                subtitles.setdefault('de', []).append({
                     'ext': 'ttml',
-                    'url': widget['_subtitleUrl'],
-                }]}
+                    'url': subtitle_url,
+                })
             if '_quality' in widget:
-                format_url = widget['_stream']['json'][0]
-
-                if format_url.endswith('.f4m'):
+                format_url = url_or_none(try_get(
+                    widget, lambda x: x['_stream']['json'][0]))
+                if not format_url:
+                    continue
+                ext = determine_ext(format_url)
+                if ext == 'f4m':
                     formats.extend(self._extract_f4m_formats(
                         format_url + '?hdcore=3.11.0',
                         video_id, f4m_id='hds', fatal=False))
-                elif format_url.endswith('m3u8'):
+                elif ext == 'm3u8':
                     formats.extend(self._extract_m3u8_formats(
-                        format_url, video_id, 'mp4', m3u8_id='hls', fatal=False))
+                        format_url, video_id, 'mp4', m3u8_id='hls',
+                        fatal=False))
                 else:
+                    # HTTP formats are not available when geoblocked is True,
+                    # other formats are fine though
+                    if geoblocked:
+                        continue
+                    quality = str_or_none(widget.get('_quality'))
                     formats.append({
-                        'format_id': 'http-' + widget['_quality'],
+                        'format_id': ('http-' + quality) if quality else 'http',
                         'url': format_url,
                         'preference': 10,  # Plain HTTP, that's nice
                     })
 
+        if not formats and geoblocked:
+            self.raise_geo_restricted(
+                msg='This video is not available due to geoblocking',
+                countries=['DE'])
+
         self._sort_formats(formats)
-        res['formats'] = formats
+        res.update({
+            'subtitles': subtitles,
+            'formats': formats,
+        })
 
         return res
