@@ -420,8 +420,6 @@ from .gamespot import GameSpotIE
 from .gamestar import GameStarIE
 from .gaana import (
     GaanaIE,
-    GaanaAlbumIE,
-    GaanaArtistIE,
 )
 from .gaskrank import GaskrankIE
 from .gazeta import GazetaIE
