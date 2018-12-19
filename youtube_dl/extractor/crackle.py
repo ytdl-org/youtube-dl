@@ -48,6 +48,21 @@ class CrackleIE(InfoExtractor):
         'only_matching': True,
     }]
 
+    _MEDIA_FILE_SLOTS = {
+        '360p.mp4': {
+            'width': 640,
+            'height': 360,
+        },
+        '480p.mp4': {
+            'width': 768,
+            'height': 432,
+        },
+        '480p_1mbps.mp4': {
+            'width': 852,
+            'height': 480,
+        },
+    }
+
     def _real_extract(self, url):
         video_id = self._match_id(url)
 
@@ -95,6 +110,20 @@ class CrackleIE(InfoExtractor):
                 elif ext == 'mpd':
                     formats.extend(self._extract_mpd_formats(
                         format_url, video_id, mpd_id='dash', fatal=False))
+                elif format_url.endswith('.ism/Manifest'):
+                    formats.extend(self._extract_ism_formats(
+                        format_url, video_id, ism_id='mss', fatal=False))
+                else:
+                    mfs_path = e.get('Type')
+                    mfs_info = self._MEDIA_FILE_SLOTS.get(mfs_path)
+                    if not mfs_info:
+                        continue
+                    formats.append({
+                        'url': format_url,
+                        'format_id': 'http-' + mfs_path.split('.')[0],
+                        'width': mfs_info['width'],
+                        'height': mfs_info['height'],
+                    })
             self._sort_formats(formats)
 
             description = media.get('Description')
