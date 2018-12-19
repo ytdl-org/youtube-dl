@@ -64,7 +64,7 @@ class SixPlayIE(InfoExtractor):
         for asset in clip_data['assets']:
             asset_url = asset.get('full_physical_path')
             protocol = asset.get('protocol')
-            if not asset_url or protocol == 'primetime' or asset_url in urls:
+            if not asset_url or protocol == 'primetime' or asset.get('type') == 'usp_hlsfp_h264' or asset_url in urls:
                 continue
             urls.append(asset_url)
             container = asset.get('video_container')
@@ -81,19 +81,17 @@ class SixPlayIE(InfoExtractor):
                         if not urlh:
                             continue
                         asset_url = urlh.geturl()
-                    asset_url = re.sub(r'/([^/]+)\.ism/[^/]*\.m3u8', r'/\1.ism/\1.m3u8', asset_url)
-                    formats.extend(self._extract_m3u8_formats(
-                        asset_url, video_id, 'mp4', 'm3u8_native',
-                        m3u8_id='hls', fatal=False))
-                    formats.extend(self._extract_f4m_formats(
-                        asset_url.replace('.m3u8', '.f4m'),
-                        video_id, f4m_id='hds', fatal=False))
-                    formats.extend(self._extract_mpd_formats(
-                        asset_url.replace('.m3u8', '.mpd'),
-                        video_id, mpd_id='dash', fatal=False))
-                    formats.extend(self._extract_ism_formats(
-                        re.sub(r'/[^/]+\.m3u8', '/Manifest', asset_url),
-                        video_id, ism_id='mss', fatal=False))
+                    for i in range(3, 0, -1):
+                        asset_url = asset_url = asset_url.replace('_sd1/', '_sd%d/' % i)
+                        m3u8_formats = self._extract_m3u8_formats(
+                            asset_url, video_id, 'mp4', 'm3u8_native',
+                            m3u8_id='hls', fatal=False)
+                        formats.extend(m3u8_formats)
+                        formats.extend(self._extract_mpd_formats(
+                            asset_url.replace('.m3u8', '.mpd'),
+                            video_id, mpd_id='dash', fatal=False))
+                        if m3u8_formats:
+                            break
                 else:
                     formats.extend(self._extract_m3u8_formats(
                         asset_url, video_id, 'mp4', 'm3u8_native',

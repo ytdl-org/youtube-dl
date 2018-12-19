@@ -43,10 +43,6 @@ class AmericasTestKitchenIE(InfoExtractor):
 
         webpage = self._download_webpage(url, video_id)
 
-        partner_id = self._search_regex(
-            r'src=["\'](?:https?:)?//(?:[^/]+\.)kaltura\.com/(?:[^/]+/)*(?:p|partner_id)/(\d+)',
-            webpage, 'kaltura partner id')
-
         video_data = self._parse_json(
             self._search_regex(
                 r'window\.__INITIAL_STATE__\s*=\s*({.+?})\s*;\s*</script>',
@@ -58,7 +54,18 @@ class AmericasTestKitchenIE(InfoExtractor):
             (lambda x: x['episodeDetail']['content']['data'],
              lambda x: x['videoDetail']['content']['data']), dict)
         ep_meta = ep_data.get('full_video', {})
-        external_id = ep_data.get('external_id') or ep_meta['external_id']
+
+        zype_id = ep_meta.get('zype_id')
+        if zype_id:
+            embed_url = 'https://player.zype.com/embed/%s.js?api_key=jZ9GUhRmxcPvX7M3SlfejB6Hle9jyHTdk2jVxG7wOHPLODgncEKVdPYBhuz9iWXQ' % zype_id
+            ie_key = 'Zype'
+        else:
+            partner_id = self._search_regex(
+                r'src=["\'](?:https?:)?//(?:[^/]+\.)kaltura\.com/(?:[^/]+/)*(?:p|partner_id)/(\d+)',
+                webpage, 'kaltura partner id')
+            external_id = ep_data.get('external_id') or ep_meta['external_id']
+            embed_url = 'kaltura:%s:%s' % (partner_id, external_id)
+            ie_key = 'Kaltura'
 
         title = ep_data.get('title') or ep_meta.get('title')
         description = clean_html(ep_meta.get('episode_description') or ep_data.get(
@@ -72,8 +79,8 @@ class AmericasTestKitchenIE(InfoExtractor):
 
         return {
             '_type': 'url_transparent',
-            'url': 'kaltura:%s:%s' % (partner_id, external_id),
-            'ie_key': 'Kaltura',
+            'url': embed_url,
+            'ie_key': ie_key,
             'title': title,
             'description': description,
             'thumbnail': thumbnail,

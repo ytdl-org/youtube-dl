@@ -109,11 +109,13 @@ from .vice import ViceIE
 from .xfileshare import XFileShareIE
 from .cloudflarestream import CloudflareStreamIE
 from .peertube import PeerTubeIE
+from .teachable import TeachableIE
 from .indavideo import IndavideoEmbedIE
 from .apa import APAIE
 from .foxnews import FoxNewsIE
 from .viqeo import ViqeoIE
 from .expressen import ExpressenIE
+from .zype import ZypeIE
 
 
 class GenericIE(InfoExtractor):
@@ -2071,6 +2073,20 @@ class GenericIE(InfoExtractor):
             'playlist_count': 6,
         },
         {
+            # Zype embed
+            'url': 'https://www.cookscountry.com/episode/554-smoky-barbecue-favorites',
+            'info_dict': {
+                'id': '5b400b834b32992a310622b9',
+                'ext': 'mp4',
+                'title': 'Smoky Barbecue Favorites',
+                'thumbnail': r're:^https?://.*\.jpe?g',
+            },
+            'add_ie': [ZypeIE.ie_key()],
+            'params': {
+                'skip_download': True,
+            },
+        },
+        {
             # videojs embed
             'url': 'https://video.sibnet.ru/shell.php?videoid=3422904',
             'info_dict': {
@@ -3097,6 +3113,10 @@ class GenericIE(InfoExtractor):
             return self.playlist_from_matches(
                 peertube_urls, video_id, video_title, ie=PeerTubeIE.ie_key())
 
+        teachable_url = TeachableIE._extract_url(webpage, url)
+        if teachable_url:
+            return self.url_result(teachable_url)
+
         indavideo_urls = IndavideoEmbedIE._extract_urls(webpage)
         if indavideo_urls:
             return self.playlist_from_matches(
@@ -3128,6 +3148,11 @@ class GenericIE(InfoExtractor):
         if expressen_urls:
             return self.playlist_from_matches(
                 expressen_urls, video_id, video_title, ie=ExpressenIE.ie_key())
+
+        zype_urls = ZypeIE._extract_urls(webpage)
+        if zype_urls:
+            return self.playlist_from_matches(
+                zype_urls, video_id, video_title, ie=ZypeIE.ie_key())
 
         # Look for HTML5 media
         entries = self._parse_html5_media_entries(url, webpage, video_id, m3u8_id='hls')
