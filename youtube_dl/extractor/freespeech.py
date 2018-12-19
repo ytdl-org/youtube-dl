@@ -1,7 +1,7 @@
 from __future__ import unicode_literals
 
-from youtube_dl.extractor import YoutubeIE
 from .common import InfoExtractor
+from .youtube import YoutubeIE
 
 
 class FreespeechIE(InfoExtractor):
