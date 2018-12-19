@@ -1143,6 +1143,7 @@ from .tv2hu import TV2HuIE
 from .tv3 import TV3IE
 from .tv4 import TV4IE
 from .tv5mondeplus import TV5MondePlusIE
+from .tv8 import TV8IE
 from .tva import TVAIE
 from .tvanouvelles import (
     TVANouvellesIE,
