@@ -8,7 +8,7 @@ from .common import InfoExtractor
 
 class SoundgasmIE(InfoExtractor):
     IE_NAME = 'soundgasm'
-    _VALID_URL = r'(?P<archive>https?://web\.archive\.org/web/\d+/)?' + \
+    _VALID_URL = r'(?P<archive>https?://web\.archive\.org/web/\d+(?:if_)?/)?' + \
                  r'https?://(?:www\.)?soundgasm\.net(?::80)?/u/' + \
                  r'(?P<user>[0-9a-zA-Z_-]+)/(?P<display_id>[0-9a-zA-Z_-]+)'
     _TESTS = [{
@@ -74,7 +74,7 @@ class SoundgasmIE(InfoExtractor):
 
 class SoundgasmProfileIE(InfoExtractor):
     IE_NAME = 'soundgasm:profile'
-    _VALID_URL = r'(?P<archive>https?://web\.archive\.org/web/\d+/)?' + \
+    _VALID_URL = r'(?P<archive>https?://web\.archive\.org/web/\d+(?:if_)?/)?' + \
                  r'https?://(?:www\.)?soundgasm\.net/u/' + \
                  r'(?P<id>[^/]+)/?(?:\#.*)?$'
     _TESTS = [{
