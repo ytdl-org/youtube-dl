@@ -294,7 +294,7 @@ class FFmpegFD(ExternalFD):
             if live:
                 args += ['-rtmp_live', 'live']
 
-        args += ['-i', url, '-c', 'copy']
+        args += ['-i', url]
 
         if self.params.get('test', False):
             args += ['-fs', compat_str(self._TEST_FILE_SIZE)]
