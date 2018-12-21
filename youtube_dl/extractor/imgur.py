@@ -12,7 +12,7 @@ from ..utils import (
 
 
 class ImgurIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:i\.)?imgur\.com/(?:(?:gallery|(?:topic|r)/[^/]+)/)?(?P<id>[a-zA-Z0-9]{6,})(?:[/?#&]+|\.[a-z0-9]+)?$'
+    _VALID_URL = r'https?://(?:i\.)?imgur\.com/(?!(?:a|gallery|(?:t(?:opic)?|r)/[^/]+)/)(?P<id>[a-zA-Z0-9]+)'
 
     _TESTS = [{
         'url': 'https://i.imgur.com/A61SaA1.gifv',
@@ -20,28 +20,9 @@ class ImgurIE(InfoExtractor):
             'id': 'A61SaA1',
             'ext': 'mp4',
             'title': 're:Imgur GIF$|MRW gifv is up and running without any bugs$',
-            'description': 'Imgur: The magic of the Internet',
         },
     }, {
         'url': 'https://imgur.com/A61SaA1',
-        'info_dict': {
-            'id': 'A61SaA1',
-            'ext': 'mp4',
-            'title': 're:Imgur GIF$|MRW gifv is up and running without any bugs$',
-            'description': 'Imgur: The magic of the Internet',
-        },
-    }, {
-        'url': 'https://imgur.com/gallery/YcAQlkx',
-        'info_dict': {
-            'id': 'YcAQlkx',
-            'ext': 'mp4',
-            'title': 'Classic Steve Carell gif...cracks me up everytime....damn the repost downvotes....',
-        }
-    }, {
-        'url': 'http://imgur.com/topic/Funny/N8rOudd',
-        'only_matching': True,
-    }, {
-        'url': 'http://imgur.com/r/aww/VQcQPhM',
         'only_matching': True,
     }, {
         'url': 'https://i.imgur.com/crGpqCV.mp4',
@@ -50,8 +31,8 @@ class ImgurIE(InfoExtractor):
 
     def _real_extract(self, url):
         video_id = self._match_id(url)
-        gifv_url = 'https://i.imgur.com/{id}.gifv'.format(id=video_id)
-        webpage = self._download_webpage(gifv_url, video_id)
+        webpage = self._download_webpage(
+            'https://i.imgur.com/{id}.gifv'.format(id=video_id), video_id)
 
         width = int_or_none(self._og_search_property(
             'video:width', webpage, default=None))
@@ -72,7 +53,6 @@ class ImgurIE(InfoExtractor):
                 'format_id': m.group('type').partition('/')[2],
                 'url': self._proto_relative_url(m.group('src')),
                 'ext': mimetype2ext(m.group('type')),
-                'acodec': 'none',
                 'width': width,
                 'height': height,
                 'http_headers': {
@@ -107,44 +87,64 @@ class ImgurIE(InfoExtractor):
         return {
             'id': video_id,
             'formats': formats,
-            'description': self._og_search_description(webpage, default=None),
             'title': self._og_search_title(webpage),
         }
 
 
-class ImgurAlbumIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:i\.)?imgur\.com/(?:(?:a|gallery|topic/[^/]+)/)?(?P<id>[a-zA-Z0-9]{5})(?:[/?#&]+)?$'
+class ImgurGalleryIE(InfoExtractor):
+    IE_NAME = 'imgur:gallery'
+    _VALID_URL = r'https?://(?:i\.)?imgur\.com/(?:gallery|(?:t(?:opic)?|r)/[^/]+)/(?P<id>[a-zA-Z0-9]+)'
 
     _TESTS = [{
         'url': 'http://imgur.com/gallery/Q95ko',
         'info_dict': {
             'id': 'Q95ko',
+            'title': 'Adding faces make every GIF better',
         },
         'playlist_count': 25,
     }, {
-        'url': 'http://imgur.com/a/j6Orj',
+        'url': 'http://imgur.com/topic/Aww/ll5Vk',
         'only_matching': True,
     }, {
-        'url': 'http://imgur.com/topic/Aww/ll5Vk',
+        'url': 'https://imgur.com/gallery/YcAQlkx',
+        'info_dict': {
+            'id': 'YcAQlkx',
+            'ext': 'mp4',
+            'title': 'Classic Steve Carell gif...cracks me up everytime....damn the repost downvotes....',
+        }
+    }, {
+        'url': 'http://imgur.com/topic/Funny/N8rOudd',
+        'only_matching': True,
+    }, {
+        'url': 'http://imgur.com/r/aww/VQcQPhM',
         'only_matching': True,
     }]
 
     def _real_extract(self, url):
-        album_id = self._match_id(url)
+        gallery_id = self._match_id(url)
 
-        album_images = self._download_json(
-            'http://imgur.com/gallery/%s/album_images/hit.json?all=true' % album_id,
-            album_id, fatal=False)
+        data = self._download_json(
+            'https://imgur.com/gallery/%s.json' % gallery_id,
+            gallery_id)['data']['image']
 
-        if album_images:
-            data = album_images.get('data')
-            if data and isinstance(data, dict):
-                images = data.get('images')
-                if images and isinstance(images, list):
-                    entries = [
-                        self.url_result('http://imgur.com/%s' % image['hash'])
-                        for image in images if image.get('hash')]
-                    return self.playlist_result(entries, album_id)
+        if data.get('is_album'):
+            entries = [
+                self.url_result('http://imgur.com/%s' % image['hash'], ImgurIE.ie_key(), image['hash'])
+                for image in data['album_images']['images'] if image.get('hash')]
+            return self.playlist_result(entries, gallery_id, data.get('title'), data.get('description'))
 
-        # Fallback to single video
-        return self.url_result('http://imgur.com/%s' % album_id, ImgurIE.ie_key())
+        return self.url_result('http://imgur.com/%s' % gallery_id, ImgurIE.ie_key(), gallery_id)
+
+
+class ImgurAlbumIE(ImgurGalleryIE):
+    IE_NAME = 'imgur:album'
+    _VALID_URL = r'https?://(?:i\.)?imgur\.com/a/(?P<id>[a-zA-Z0-9]+)'
+
+    _TESTS = [{
+        'url': 'http://imgur.com/a/j6Orj',
+        'info_dict': {
+            'id': 'j6Orj',
+            'title': 'A Literary Analysis of "Star Wars: The Force Awakens"',
+        },
+        'playlist_count': 12,
+    }]

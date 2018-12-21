@@ -61,7 +61,7 @@ class UOLIE(InfoExtractor):
             'height': 360,
         },
         '5': {
-            'width': 1080,
+            'width': 1280,
             'height': 720,
         },
         '6': {
@@ -80,6 +80,10 @@ class UOLIE(InfoExtractor):
             'width': 568,
             'height': 320,
         },
+        '11': {
+            'width': 640,
+            'height': 360,
+        }
     }
 
     def _real_extract(self, url):
@@ -111,19 +115,31 @@ class UOLIE(InfoExtractor):
             'ver': video_data.get('numRevision', 2),
             'r': 'http://mais.uol.com.br',
         }
+        for k in ('token', 'sign'):
+            v = video_data.get(k)
+            if v:
+                query[k] = v
+
         formats = []
         for f in video_data.get('formats', []):
             f_url = f.get('url') or f.get('secureUrl')
             if not f_url:
                 continue
+            f_url = update_url_query(f_url, query)
             format_id = str_or_none(f.get('id'))
+            if format_id == '10':
+                formats.extend(self._extract_m3u8_formats(
+                    f_url, video_id, 'mp4', 'm3u8_native',
+                    m3u8_id='hls', fatal=False))
+                continue
             fmt = {
                 'format_id': format_id,
-                'url': update_url_query(f_url, query),
+                'url': f_url,
+                'source_preference': 1,
             }
             fmt.update(self._FORMATS.get(format_id, {}))
             formats.append(fmt)
-        self._sort_formats(formats)
+        self._sort_formats(formats, ('height', 'width', 'source_preference', 'tbr', 'ext'))
 
         tags = []
         for tag in video_data.get('tags', []):

@@ -35,7 +35,7 @@ class NovaEmbedIE(InfoExtractor):
 
         bitrates = self._parse_json(
             self._search_regex(
-                r'(?s)bitrates\s*=\s*({.+?})\s*;', webpage, 'formats'),
+                r'(?s)(?:src|bitrates)\s*=\s*({.+?})\s*;', webpage, 'formats'),
             video_id, transform_source=js_to_json)
 
         QUALITIES = ('lq', 'mq', 'hq', 'hd')

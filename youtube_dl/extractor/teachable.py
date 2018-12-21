@@ -14,20 +14,38 @@ from ..utils import (
 )
 
 
-class UpskillBaseIE(InfoExtractor):
-    _LOGIN_URL = 'http://upskillcourses.com/sign_in'
-    _NETRC_MACHINE = 'upskill'
+class TeachableBaseIE(InfoExtractor):
+    _NETRC_MACHINE = 'teachable'
+    _URL_PREFIX = 'teachable:'
+
+    _SITES = {
+        # Only notable ones here
+        'upskillcourses.com': 'upskill',
+        'academy.gns3.com': 'gns3',
+        'academyhacker.com': 'academyhacker',
+        'stackskills.com': 'stackskills',
+        'market.saleshacker.com': 'saleshacker',
+        'learnability.org': 'learnability',
+        'edurila.com': 'edurila',
+    }
+
+    _VALID_URL_SUB_TUPLE = (_URL_PREFIX, '|'.join(re.escape(site) for site in _SITES.keys()))
 
     def _real_initialize(self):
-        self._login()
+        self._logged_in = False
 
-    def _login(self):
-        username, password = self._get_login_info()
+    def _login(self, site):
+        if self._logged_in:
+            return
+
+        username, password = self._get_login_info(
+            netrc_machine=self._SITES.get(site, site))
         if username is None:
             return
 
         login_page, urlh = self._download_webpage_handle(
-            self._LOGIN_URL, None, 'Downloading login page')
+            'https://%s/sign_in' % site, None,
+            'Downloading %s login page' % site)
 
         login_url = compat_str(urlh.geturl())
 
@@ -46,18 +64,24 @@ class UpskillBaseIE(InfoExtractor):
             post_url = urljoin(login_url, post_url)
 
         response = self._download_webpage(
-            post_url, None, 'Logging in',
+            post_url, None, 'Logging in to %s' % site,
             data=urlencode_postdata(login_form),
             headers={
                 'Content-Type': 'application/x-www-form-urlencoded',
                 'Referer': login_url,
             })
 
+        if '>I accept the new Privacy Policy<' in response:
+            raise ExtractorError(
+                'Unable to login: %s asks you to accept new Privacy Policy. '
+                'Go to https://%s/ and accept.' % (site, site), expected=True)
+
         # Successful login
         if any(re.search(p, response) for p in (
                 r'class=["\']user-signout',
                 r'<a[^>]+\bhref=["\']/sign_out',
                 r'>\s*Log out\s*<')):
+            self._logged_in = True
             return
 
         message = get_element_by_class('alert', response)
@@ -68,8 +92,14 @@ class UpskillBaseIE(InfoExtractor):
         raise ExtractorError('Unable to log in')
 
 
-class UpskillIE(UpskillBaseIE):
-    _VALID_URL = r'https?://(?:www\.)?upskillcourses\.com/courses/[^/]+/lectures/(?P<id>\d+)'
+class TeachableIE(TeachableBaseIE):
+    _VALID_URL = r'''(?x)
+                    (?:
+                        %shttps?://(?P<site_t>[^/]+)|
+                        https?://(?:www\.)?(?P<site>%s)
+                    )
+                    /courses/[^/]+/lectures/(?P<id>\d+)
+                    ''' % TeachableBaseIE._VALID_URL_SUB_TUPLE
 
     _TESTS = [{
         'url': 'http://upskillcourses.com/courses/essential-web-developer-course/lectures/1747100',
@@ -77,7 +107,7 @@ class UpskillIE(UpskillBaseIE):
             'id': 'uzw6zw58or',
             'ext': 'mp4',
             'title': 'Welcome to the Course!',
-            'description': 'md5:8d66c13403783370af62ca97a7357bdd',
+            'description': 'md5:65edb0affa582974de4625b9cdea1107',
             'duration': 138.763,
             'timestamp': 1479846621,
             'upload_date': '20161122',
@@ -88,10 +118,37 @@ class UpskillIE(UpskillBaseIE):
     }, {
         'url': 'http://upskillcourses.com/courses/119763/lectures/1747100',
         'only_matching': True,
+    }, {
+        'url': 'https://academy.gns3.com/courses/423415/lectures/6885939',
+        'only_matching': True,
+    }, {
+        'url': 'teachable:https://upskillcourses.com/courses/essential-web-developer-course/lectures/1747100',
+        'only_matching': True,
     }]
 
+    @staticmethod
+    def _is_teachable(webpage):
+        return 'teachableTracker.linker:autoLink' in webpage and re.search(
+            r'<link[^>]+href=["\']https?://process\.fs\.teachablecdn\.com',
+            webpage)
+
+    @staticmethod
+    def _extract_url(webpage, source_url):
+        if not TeachableIE._is_teachable(webpage):
+            return
+        if re.match(r'https?://[^/]+/(?:courses|p)', source_url):
+            return '%s%s' % (TeachableBaseIE._URL_PREFIX, source_url)
+
     def _real_extract(self, url):
-        video_id = self._match_id(url)
+        mobj = re.match(self._VALID_URL, url)
+        site = mobj.group('site') or mobj.group('site_t')
+        video_id = mobj.group('id')
+
+        self._login(site)
+
+        prefixed = url.startswith(self._URL_PREFIX)
+        if prefixed:
+            url = url[len(self._URL_PREFIX):]
 
         webpage = self._download_webpage(url, video_id)
 
@@ -113,12 +170,18 @@ class UpskillIE(UpskillBaseIE):
         }
 
 
-class UpskillCourseIE(UpskillBaseIE):
-    _VALID_URL = r'https?://(?:www\.)?upskillcourses\.com/courses/(?:enrolled/)?(?P<id>[^/?#&]+)'
+class TeachableCourseIE(TeachableBaseIE):
+    _VALID_URL = r'''(?x)
+                        (?:
+                            %shttps?://(?P<site_t>[^/]+)|
+                            https?://(?:www\.)?(?P<site>%s)
+                        )
+                        /(?:courses|p)/(?:enrolled/)?(?P<id>[^/?#&]+)
+                    ''' % TeachableBaseIE._VALID_URL_SUB_TUPLE
     _TESTS = [{
         'url': 'http://upskillcourses.com/courses/essential-web-developer-course/',
         'info_dict': {
-            'id': '119763',
+            'id': 'essential-web-developer-course',
             'title': 'The Essential Web Developer Course (Free)',
         },
         'playlist_count': 192,
@@ -128,21 +191,37 @@ class UpskillCourseIE(UpskillBaseIE):
     }, {
         'url': 'http://upskillcourses.com/courses/enrolled/119763',
         'only_matching': True,
+    }, {
+        'url': 'https://academy.gns3.com/courses/enrolled/423415',
+        'only_matching': True,
+    }, {
+        'url': 'teachable:https://learn.vrdev.school/p/gear-vr-developer-mini',
+        'only_matching': True,
+    }, {
+        'url': 'teachable:https://filmsimplified.com/p/davinci-resolve-15-crash-course',
+        'only_matching': True,
     }]
 
     @classmethod
     def suitable(cls, url):
-        return False if UpskillIE.suitable(url) else super(
-            UpskillCourseIE, cls).suitable(url)
+        return False if TeachableIE.suitable(url) else super(
+            TeachableCourseIE, cls).suitable(url)
 
     def _real_extract(self, url):
-        course_id = self._match_id(url)
+        mobj = re.match(self._VALID_URL, url)
+        site = mobj.group('site') or mobj.group('site_t')
+        course_id = mobj.group('id')
+
+        self._login(site)
+
+        prefixed = url.startswith(self._URL_PREFIX)
+        if prefixed:
+            prefix = self._URL_PREFIX
+            url = url[len(prefix):]
 
         webpage = self._download_webpage(url, course_id)
 
-        course_id = self._search_regex(
-            r'data-course-id=["\'](\d+)', webpage, 'course id',
-            default=course_id)
+        url_base = 'https://%s/' % site
 
         entries = []
 
@@ -162,10 +241,13 @@ class UpskillCourseIE(UpskillBaseIE):
             title = self._html_search_regex(
                 r'<span[^>]+class=["\']lecture-name[^>]+>([^<]+)', li,
                 'title', default=None)
+            entry_url = urljoin(url_base, lecture_url)
+            if prefixed:
+                entry_url = self._URL_PREFIX + entry_url
             entries.append(
                 self.url_result(
-                    urljoin('http://upskillcourses.com/', lecture_url),
-                    ie=UpskillIE.ie_key(), video_id=lecture_id,
+                    entry_url,
+                    ie=TeachableIE.ie_key(), video_id=lecture_id,
                     video_title=clean_html(title)))
 
         course_title = self._html_search_regex(
