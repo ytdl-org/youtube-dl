@@ -67,8 +67,10 @@ class RadioCanadaIE(InfoExtractor):
             el = find_xpath_attr(metadata, './/Meta', 'name', name)
             return el.text if el is not None else None
 
+        # IsDrm does not necessarily mean the video is DRM protected (see
+        # https://github.com/rg3/youtube-dl/issues/13994).
         if get_meta('protectionType'):
-            raise ExtractorError('This video is DRM protected.', expected=True)
+            self.report_warning('This video is probably DRM protected.')
 
         device_types = ['ipad']
         if not smuggled_data:
