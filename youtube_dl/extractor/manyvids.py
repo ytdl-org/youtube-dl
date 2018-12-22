@@ -28,8 +28,8 @@ class ManyVidsIE(InfoExtractor):
             r'data-(?:video-filepath|meta-video)\s*=s*(["\'])(?P<url>(?:(?!\1).)+)\1',
             webpage, 'video URL', group='url')
 
-        title = '%s (Preview)' % self._html_search_regex(
-            r'<h2[^>]+class="m-a-0"[^>]*>([^<]+)', webpage, 'title')
+        title = '%s' % self._html_search_regex(
+            r'<span[^>]+class="item-title"[^>]*>([^<]+)', webpage, 'title')
 
         like_count = int_or_none(self._search_regex(
             r'data-likes=["\'](\d+)', webpage, 'like count', default=None))
