@@ -14,6 +14,7 @@ class YourPornIE(InfoExtractor):
             'ext': 'mp4',
             'title': 'md5:c9f43630bd968267672651ba905a7d35',
             'thumbnail': r're:^https?://.*\.jpg$',
+            'age_limit': 18
         },
     }
 
@@ -38,4 +39,5 @@ class YourPornIE(InfoExtractor):
             'url': video_url,
             'title': title,
             'thumbnail': thumbnail,
+            'age_limit': 18
         }
