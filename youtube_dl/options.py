@@ -742,6 +742,10 @@ def parseOpts(overrideArguments=None):
         action='store_true', dest='writeinfojson', default=False,
         help='Write video metadata to a .info.json file')
     filesystem.add_option(
+        '--skip-empty-annotations',
+        action='store_true', dest='writefullannotations', default=False,
+        help='Used with --write-annotations. Will not save annotation file if there are no annotations')
+    filesystem.add_option(
         '--write-annotations',
         action='store_true', dest='writeannotations', default=False,
         help='Write video annotations to a .annotations.xml file')

@@ -1,3 +1,4 @@
+
 #!/usr/bin/env python
 # coding: utf-8
 
@@ -314,7 +315,8 @@ class YoutubeDL(object):
     The following options are used by the Youtube extractor:
     youtube_include_dash_manifest: If True (default), DASH manifests and related
                         data will be downloaded and processed by extractor.
-                        You can reduce network I/O by disabling it if you don't
+
+                       You can reduce network I/O by disabling it if you don't
                         care about DASH.
     """
 
@@ -1777,6 +1779,8 @@ class YoutubeDL(object):
             annofn = replace_extension(filename, 'annotations.xml', info_dict.get('ext'))
             if self.params.get('nooverwrites', False) and os.path.exists(encodeFilename(annofn)):
                 self.to_screen('[info] Video annotations are already present')
+            elif not '<annotation id=' in info_dict['annotations'] and self.params.get('writefullannotations', False):
+                    self.to_screen('[info] Annotation file is empty. Skipping')
             else:
                 try:
                     self.to_screen('[info] Writing video annotations to: ' + annofn)
