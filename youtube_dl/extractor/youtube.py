@@ -1834,7 +1834,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                             else:
                                 player_version = self._search_regex(
                                     [r'html5player-([^/]+?)(?:/html5player(?:-new)?)?\.js',
-                                     r'(?:www|player)-([^/]+)(?:/[a-z]{2}_[A-Z]{2})?/base\.js'],
+                                     r'(?:www|player(?:_ias)?)-([^/]+)(?:/[a-z]{2}_[A-Z]{2})?/base\.js'],
                                     player_url,
                                     'html5 player', fatal=False)
                                 player_desc = 'html5 player %s' % player_version
