@@ -1,3 +1,62 @@
+version 2018.12.17
+
+Extractors
+* [ard:beta] Improve geo restricted videos extraction
+* [ard:beta] Fix subtitles extraction
+* [ard:beta] Improve extraction robustness
+* [ard:beta] Relax URL regular expression (#18441)
+* [acast] Add support for embed.acast.com and play.acast.com (#18483)
+* [iprima] Relax URL regular expression (#18515, #18540)
+* [vrv] Fix initial state extraction (#18553)
+* [youtube] Fix mark watched (#18546)
++ [safari] Add support for learning.oreilly.com (#18510)
+* [youtube] Fix multifeed extraction (#18531)
+* [lecturio] Improve subtitles extraction (#18488)
+* [uol] Fix format URL extraction (#18480)
++ [ard:mediathek] Add support for classic.ardmediathek.de (#18473)
+
+
+version 2018.12.09
+
+Core
+* [YoutubeDL] Keep session cookies in cookie file between runs
+* [YoutubeDL] Recognize session cookies with expired set to 0 (#12929)
+
+Extractors
++ [teachable] Add support for teachable platform sites (#5451, #18150, #18272)
++ [aenetworks] Add support for historyvault.com (#18460)
+* [imgur] Improve gallery and album detection and extraction (#9133, #16577,
+  #17223, #18404)
+* [iprima] Relax URL regular expression (#18453)
+* [hotstar] Fix video data extraction (#18386)
+* [ard:mediathek] Fix title and description extraction (#18349, #18371)
+* [xvideos] Switch to HTTPS (#18422, #18427)
++ [lecturio] Add support for lecturio.com (#18405)
++ [nrktv:series] Add support for extra materials
+* [nrktv:season,series] Fix extraction (#17159, #17258)
+* [nrktv] Relax URL regular expression (#18304, #18387)
+* [yourporn] Fix extraction (#18424, #18425)
+* [tbs] Fix info extraction (#18403)
++ [gamespot] Add support for review URLs
+
+
+version 2018.12.03
+
+Core
+* [utils] Fix random_birthday to generate existing dates only (#18284)
+
+Extractors
++ [tiktok] Add support for tiktok.com (#18108, #18135)
+* [pornhub] Use actual URL host for requests (#18359)
+* [lynda] Fix authentication (#18158, #18217)
+* [gfycat] Update API endpoint (#18333, #18343)
++ [hotstar] Add support for alternative app state layout (#18320)
+* [azmedien] Fix extraction (#18334, #18336)
++ [vimeo] Add support for VHX (Vimeo OTT) (#14835)
+* [joj] Fix extraction (#18280, #18281)
++ [wistia] Add support for fast.wistia.com (#18287)
+
+
 version 2018.11.23
 
 Core

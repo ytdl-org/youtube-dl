@@ -48,6 +48,7 @@ from ..utils import (
     unified_strdate,
     unsmuggle_url,
     uppercase_escape,
+    url_or_none,
     urlencode_postdata,
 )
 
@@ -1104,7 +1105,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
 
     def _extract_signature_function(self, video_id, player_url, example_sig):
         id_m = re.match(
-            r'.*?-(?P<id>[a-zA-Z0-9_-]+)(?:/watch_as3|/html5player(?:-new)?|(?:/[a-z]{2}_[A-Z]{2})?/base)?\.(?P<ext>[a-z]+)$',
+            r'.*?-(?P<id>[a-zA-Z0-9_-]+)(?:/watch_as3|/html5player(?:-new)?|(?:/[a-z]{2,3}_[A-Z]{2})?/base)?\.(?P<ext>[a-z]+)$',
             player_url)
         if not id_m:
             raise ExtractorError('Cannot identify player %r' % player_url)
@@ -1386,8 +1387,11 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
             self._downloader.report_warning(err_msg)
             return {}
 
-    def _mark_watched(self, video_id, video_info):
-        playback_url = video_info.get('videostats_playback_base_url', [None])[0]
+    def _mark_watched(self, video_id, video_info, player_response):
+        playback_url = url_or_none(try_get(
+            player_response,
+            lambda x: x['playbackTracking']['videostatsPlaybackUrl']['baseUrl']) or try_get(
+            video_info, lambda x: x['videostats_playback_base_url'][0]))
         if not playback_url:
             return
         parsed_playback_url = compat_urlparse.urlparse(playback_url)
@@ -1712,30 +1716,36 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
             else:
                 video_description = ''
 
-        if 'multifeed_metadata_list' in video_info and not smuggled_data.get('force_singlefeed', False):
+        if not smuggled_data.get('force_singlefeed', False):
             if not self._downloader.params.get('noplaylist'):
-                entries = []
-                feed_ids = []
-                multifeed_metadata_list = video_info['multifeed_metadata_list'][0]
-                for feed in multifeed_metadata_list.split(','):
-                    # Unquote should take place before split on comma (,) since textual
-                    # fields may contain comma as well (see
-                    # https://github.com/rg3/youtube-dl/issues/8536)
-                    feed_data = compat_parse_qs(compat_urllib_parse_unquote_plus(feed))
-                    entries.append({
-                        '_type': 'url_transparent',
-                        'ie_key': 'Youtube',
-                        'url': smuggle_url(
-                            '%s://www.youtube.com/watch?v=%s' % (proto, feed_data['id'][0]),
-                            {'force_singlefeed': True}),
-                        'title': '%s (%s)' % (video_title, feed_data['title'][0]),
-                    })
-                    feed_ids.append(feed_data['id'][0])
-                self.to_screen(
-                    'Downloading multifeed video (%s) - add --no-playlist to just download video %s'
-                    % (', '.join(feed_ids), video_id))
-                return self.playlist_result(entries, video_id, video_title, video_description)
-            self.to_screen('Downloading just video %s because of --no-playlist' % video_id)
+                multifeed_metadata_list = try_get(
+                    player_response,
+                    lambda x: x['multicamera']['playerLegacyMulticameraRenderer']['metadataList'],
+                    compat_str) or try_get(
+                    video_info, lambda x: x['multifeed_metadata_list'][0], compat_str)
+                if multifeed_metadata_list:
+                    entries = []
+                    feed_ids = []
+                    for feed in multifeed_metadata_list.split(','):
+                        # Unquote should take place before split on comma (,) since textual
+                        # fields may contain comma as well (see
+                        # https://github.com/rg3/youtube-dl/issues/8536)
+                        feed_data = compat_parse_qs(compat_urllib_parse_unquote_plus(feed))
+                        entries.append({
+                            '_type': 'url_transparent',
+                            'ie_key': 'Youtube',
+                            'url': smuggle_url(
+                                '%s://www.youtube.com/watch?v=%s' % (proto, feed_data['id'][0]),
+                                {'force_singlefeed': True}),
+                            'title': '%s (%s)' % (video_title, feed_data['title'][0]),
+                        })
+                        feed_ids.append(feed_data['id'][0])
+                    self.to_screen(
+                        'Downloading multifeed video (%s) - add --no-playlist to just download video %s'
+                        % (', '.join(feed_ids), video_id))
+                    return self.playlist_result(entries, video_id, video_title, video_description)
+            else:
+                self.to_screen('Downloading just video %s because of --no-playlist' % video_id)
 
         if view_count is None:
             view_count = extract_view_count(video_info)
@@ -1824,7 +1834,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                             else:
                                 player_version = self._search_regex(
                                     [r'html5player-([^/]+?)(?:/html5player(?:-new)?)?\.js',
-                                     r'(?:www|player)-([^/]+)(?:/[a-z]{2}_[A-Z]{2})?/base\.js'],
+                                     r'(?:www|player(?:_ias)?)-([^/]+)(?:/[a-z]{2,3}_[A-Z]{2})?/base\.js'],
                                     player_url,
                                     'html5 player', fatal=False)
                                 player_desc = 'html5 player %s' % player_version
@@ -2116,7 +2126,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
 
         self._sort_formats(formats)
 
-        self.mark_watched(video_id, video_info)
+        self.mark_watched(video_id, video_info, player_response)
 
         return {
             'id': video_id,
