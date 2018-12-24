@@ -17,6 +17,7 @@ from ..utils import (
     unified_timestamp,
     update_url_query,
     url_or_none,
+    xpath_attr,
     xpath_text,
 )
 from ..compat import compat_etree_fromstring
@@ -383,6 +384,12 @@ class ARDIE(ARDBaseIE):
             video_node, './broadcastDate'))
         thumbnail = xpath_text(video_node, './/teaserImage//variant/url')
 
+        subtitles = []
+        for variant, ext in (('dataTimedTextNoOffset', 'ttml'), ('dataTimedTextVtt', 'vtt')):
+            url = xpath_attr(video_node, './%s' % variant, 'url')
+            if url:
+                subtitles.append({'ext': ext, 'url': url})
+
         formats = []
         format_ids = {}
         for a in video_node.findall('.//asset'):
@@ -430,6 +437,7 @@ class ARDIE(ARDBaseIE):
         return {
             'id': mobj.group('id'),
             'formats': formats,
+            'subtitles': {'de': subtitles} if subtitles else None,
             'display_id': display_id,
             'title': video_node.find('./title').text,
             'duration': parse_duration(video_node.find('./duration').text),
