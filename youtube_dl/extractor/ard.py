@@ -478,7 +478,6 @@ class ARDBetaMediathekIE(ARDBaseIE):
         subtitles = {}
         geoblocked = False
         for widget in data.values():
-
             if widget.get('_geoblocked') is True:
                 geoblocked = True
             if '_duration' in widget:
@@ -512,10 +511,6 @@ class ARDBetaMediathekIE(ARDBaseIE):
                         format_url, video_id, 'mp4', m3u8_id='hls',
                         fatal=False))
                 else:
-                    # HTTP formats are not available when geoblocked is True,
-                    # other formats are fine though
-                    if geoblocked:
-                        continue
                     m = re.search(r'.*/([0-9]+)-[0-9]\..*$', format_url)
                     width = int_or_none(m.group(1)) if m else None
                     if width and width in self._FORMATS:
