@@ -438,8 +438,7 @@ class ARDIE(ARDBaseIE):
         }
 
 
-
-class ARDBetaMediathekIE(InfoExtractor):
+class ARDBetaMediathekIE(ARDBaseIE):
     _VALID_URL = r'https://(?:beta|www)\.ardmediathek\.de/[^/]+/(?:player|live)/(?P<video_id>[a-zA-Z0-9]+)(?:/(?P<display_id>[^/?#]+))?'
     _TESTS = [{
         'url': 'https://beta.ardmediathek.de/ard/player/Y3JpZDovL2Rhc2Vyc3RlLmRlL3RhdG9ydC9mYmM4NGM1NC0xNzU4LTRmZGYtYWFhZS0wYzcyZTIxNGEyMDE/die-robuste-roswita',
