@@ -4,6 +4,7 @@ from .common import InfoExtractor
 from ..compat import (
     compat_chr,
     compat_ord,
+    compat_str,
     compat_urllib_parse_unquote,
 )
 from ..utils import (
@@ -17,7 +18,7 @@ class BeegIE(InfoExtractor):
     _VALID_URL = r'https?://(?:www\.)?beeg\.com/(?P<id>\d+)'
     _TEST = {
         'url': 'http://beeg.com/5416503',
-        'md5': 'a1a1b1a8bc70a89e49ccfd113aed0820',
+        'md5': '43fe6b54e305915aafdcd5541ae81bdb',
         'info_dict': {
             'id': '5416503',
             'ext': 'mp4',
@@ -108,14 +109,14 @@ class BeegIE(InfoExtractor):
             if not height:
                 continue
             formats.append({
-                'url': decrypt_url(video_url),
+                'url': video_url.replace('{DATA_MARKERS}', 'data=pc_XX__%s_' % beeg_version),
                 'format_id': format_id,
                 'height': int(height),
             })
         self._sort_formats(formats)
 
         title = video['title']
-        video_id = video.get('id') or video_id
+        video_id = compat_str(video.get('id') or video_id)
         display_id = video.get('code')
         description = video.get('desc')
 
