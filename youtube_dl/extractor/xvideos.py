@@ -45,7 +45,7 @@ class XVideosIE(InfoExtractor):
         video_id = self._match_id(url)
 
         webpage = self._download_webpage(
-            'http://www.xvideos.com/video%s/' % video_id, video_id)
+            'https://www.xvideos.com/video%s/' % video_id, video_id)
 
         mobj = re.search(r'<h1 class="inlineError">(.+?)</h1>', webpage)
         if mobj:

@@ -88,6 +88,7 @@ from .utils import (
     version_tuple,
     write_json_file,
     write_string,
+    YoutubeDLCookieJar,
     YoutubeDLCookieProcessor,
     YoutubeDLHandler,
 )
@@ -558,7 +559,7 @@ class YoutubeDL(object):
         self.restore_console_title()
 
         if self.params.get('cookiefile') is not None:
-            self.cookiejar.save()
+            self.cookiejar.save(ignore_discard=True, ignore_expires=True)
 
     def trouble(self, message=None, tb=None):
         """Determine action to take when a download problem appears.
@@ -2297,10 +2298,9 @@ class YoutubeDL(object):
             self.cookiejar = compat_cookiejar.CookieJar()
         else:
             opts_cookiefile = expand_path(opts_cookiefile)
-            self.cookiejar = compat_cookiejar.MozillaCookieJar(
-                opts_cookiefile)
+            self.cookiejar = YoutubeDLCookieJar(opts_cookiefile)
             if os.access(opts_cookiefile, os.R_OK):
-                self.cookiejar.load()
+                self.cookiejar.load(ignore_discard=True, ignore_expires=True)
 
         cookie_processor = YoutubeDLCookieProcessor(self.cookiejar)
         if opts_proxy is not None:

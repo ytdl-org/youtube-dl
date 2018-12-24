@@ -18,8 +18,9 @@ from ..utils import (
 class TNAFlixNetworkBaseIE(InfoExtractor):
     # May be overridden in descendants if necessary
     _CONFIG_REGEX = [
-        r'flashvars\.config\s*=\s*escape\("([^"]+)"',
-        r'<input[^>]+name="config\d?" value="([^"]+)"',
+        r'flashvars\.config\s*=\s*escape\("(?P<url>[^"]+)"',
+        r'<input[^>]+name="config\d?" value="(?P<url>[^"]+)"',
+        r'config\s*=\s*(["\'])(?P<url>(?:https?:)?//(?:(?!\1).)+)\1',
     ]
     _HOST = 'tna'
     _VKEY_SUFFIX = ''
@@ -85,7 +86,8 @@ class TNAFlixNetworkBaseIE(InfoExtractor):
         webpage = self._download_webpage(url, display_id)
 
         cfg_url = self._proto_relative_url(self._html_search_regex(
-            self._CONFIG_REGEX, webpage, 'flashvars.config', default=None), 'http:')
+            self._CONFIG_REGEX, webpage, 'flashvars.config', default=None,
+            group='url'), 'http:')
 
         if not cfg_url:
             inputs = self._hidden_inputs(webpage)
