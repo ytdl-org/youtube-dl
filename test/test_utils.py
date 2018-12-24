@@ -1196,18 +1196,15 @@ The first line
         srt_data = '''1
 00:00:02,080 --> 00:00:05,839
 <font color="white" face="sansSerif" size="16">default style<font color="red">custom style</font></font>
-
-2
-00:00:02,080 --> 00:00:05,839
 <b><font color="cyan" face="sansSerif" size="16"><font color="lime">part 1
 </font>part 2</font></b>
 
-3
+2
 00:00:05,839 --> 00:00:09,560
 <u><font color="lime">line 3
 part 3</font></u>
 
-4
+3
 00:00:09,560 --> 00:00:12,359
 <i><u><font color="yellow"><font color="lime">inner
  </font>style</font></u></i>
