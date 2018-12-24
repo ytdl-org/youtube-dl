@@ -40,9 +40,14 @@ class CanvasIE(InfoExtractor):
         mobj = re.match(self._VALID_URL, url)
         site_id, video_id = mobj.group('site_id'), mobj.group('id')
 
+        token = self._download_json('https://media-services-public.vrt.be/vualto-video-aggregator-web/'
+                                    'rest/external/v1/tokens', None, data={},
+                                    headers={"accept": "*/*", "content-type": "application/json", "method": "POST"})
+        vrtPlayerToken = token.get('vrtPlayerToken')
+
         data = self._download_json(
-            'https://mediazone.vrt.be/api/v1/%s/assets/%s'
-            % (site_id, video_id), video_id)
+            'https://media-services-public.vrt.be/vualto-video-aggregator-web/rest/external/v1/videos/%s?vrtPlayerToken=%s&client=vrtvideo'
+            % (video_id, vrtPlayerToken), video_id)
 
         title = data['title']
         description = data.get('description')
