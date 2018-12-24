@@ -16,7 +16,7 @@ from ..utils import (
 
 
 class TBSIE(TurnerBaseIE):
-    _VALID_URL = r'https?://(?:www\.)?(?P<site>tbs|tntdrama)\.com/(?:movies|shows/[^/]+/(?:clips|season-\d+/episode-\d+))/(?P<id>[^/?#]+)'
+    _VALID_URL = r'https?://(?:www\.)?(?P<site>tbs|tntdrama)\.com(?P<path>/(?:movies|shows/[^/]+/(?:clips|season-\d+/episode-\d+))/(?P<id>[^/?#]+))'
     _TESTS = [{
         'url': 'http://www.tntdrama.com/shows/the-alienist/clips/monster',
         'info_dict': {
@@ -40,12 +40,12 @@ class TBSIE(TurnerBaseIE):
     }]
 
     def _real_extract(self, url):
-        site, display_id = re.match(self._VALID_URL, url).groups()
+        site, path, display_id = re.match(self._VALID_URL, url).groups()
         webpage = self._download_webpage(url, display_id)
         drupal_settings = self._parse_json(self._search_regex(
             r'<script[^>]+?data-drupal-selector="drupal-settings-json"[^>]*?>({.+?})</script>',
             webpage, 'drupal setting'), display_id)
-        video_data = drupal_settings['turner_playlist'][0]
+        video_data = next(v for v in drupal_settings['turner_playlist'] if v.get('url') == path)
 
         media_id = video_data['mediaID']
         title = video_data['title']

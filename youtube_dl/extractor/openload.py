@@ -243,7 +243,18 @@ class PhantomJSwrapper(object):
 
 
 class OpenloadIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:www\.)?(?:openload\.(?:co|io|link)|oload\.(?:tv|stream|site|xyz|win|download|cloud))/(?:f|embed)/(?P<id>[a-zA-Z0-9-_]+)'
+    _VALID_URL = r'''(?x)
+                    https?://
+                        (?P<host>
+                            (?:www\.)?
+                            (?:
+                                openload\.(?:co|io|link)|
+                                oload\.(?:tv|stream|site|xyz|win|download|cloud|cc|icu|fun)
+                            )
+                        )/
+                        (?:f|embed)/
+                        (?P<id>[a-zA-Z0-9-_]+)
+                    '''
 
     _TESTS = [{
         'url': 'https://openload.co/f/kUEfGclsU9o',
@@ -314,6 +325,15 @@ class OpenloadIE(InfoExtractor):
         # Its title has not got its extension but url has it
         'url': 'https://oload.download/f/N4Otkw39VCw/Tomb.Raider.2018.HDRip.XviD.AC3-EVO.avi.mp4',
         'only_matching': True,
+    }, {
+        'url': 'https://oload.cc/embed/5NEAbI2BDSk',
+        'only_matching': True,
+    }, {
+        'url': 'https://oload.icu/f/-_i4y_F_Hs8',
+        'only_matching': True,
+    }, {
+        'url': 'https://oload.fun/f/gb6G1H4sHXY',
+        'only_matching': True,
     }]
 
     _USER_AGENT = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/56.0.2924.87 Safari/537.36'
@@ -325,8 +345,11 @@ class OpenloadIE(InfoExtractor):
             webpage)
 
     def _real_extract(self, url):
-        video_id = self._match_id(url)
-        url_pattern = 'https://openload.co/%%s/%s/' % video_id
+        mobj = re.match(self._VALID_URL, url)
+        host = mobj.group('host')
+        video_id = mobj.group('id')
+
+        url_pattern = 'https://%s/%%s/%s/' % (host, video_id)
         headers = {
             'User-Agent': self._USER_AGENT,
         }
@@ -359,7 +382,7 @@ class OpenloadIE(InfoExtractor):
                            r'>\s*([\w~-]+~[a-f0-9:]+~[\w~-]+)'), webpage,
                           'stream URL'))
 
-        video_url = 'https://openload.co/stream/%s?mime=true' % decoded_id
+        video_url = 'https://%s/stream/%s?mime=true' % (host, decoded_id)
 
         title = self._og_search_title(webpage, default=None) or self._search_regex(
             r'<span[^>]+class=["\']title["\'][^>]*>([^<]+)', webpage,
@@ -370,7 +393,7 @@ class OpenloadIE(InfoExtractor):
         entry = entries[0] if entries else {}
         subtitles = entry.get('subtitles')
 
-        info_dict = {
+        return {
             'id': video_id,
             'title': title,
             'thumbnail': entry.get('thumbnail') or self._og_search_thumbnail(webpage, default=None),
@@ -379,4 +402,3 @@ class OpenloadIE(InfoExtractor):
             'subtitles': subtitles,
             'http_headers': headers,
         }
-        return info_dict

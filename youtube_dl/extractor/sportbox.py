@@ -8,20 +8,24 @@ from ..utils import (
     determine_ext,
     int_or_none,
     js_to_json,
+    merge_dicts,
 )
 
 
-class SportBoxEmbedIE(InfoExtractor):
-    _VALID_URL = r'https?://news\.sportbox\.ru/vdl/player(?:/[^/]+/|\?.*?\bn?id=)(?P<id>\d+)'
+class SportBoxIE(InfoExtractor):
+    _VALID_URL = r'https?://(?:news\.sportbox|matchtv)\.ru/vdl/player(?:/[^/]+/|\?.*?\bn?id=)(?P<id>\d+)'
     _TESTS = [{
         'url': 'http://news.sportbox.ru/vdl/player/ci/211355',
         'info_dict': {
-            'id': '211355',
+            'id': '109158',
             'ext': 'mp4',
-            'title': '211355',
+            'title': 'В Новороссийске прошел детский турнир «Поле славы боевой»',
+            'description': 'В Новороссийске прошел детский турнир «Поле славы боевой»',
             'thumbnail': r're:^https?://.*\.jpg$',
             'duration': 292,
             'view_count': int,
+            'timestamp': 1426237001,
+            'upload_date': '20150313',
         },
         'params': {
             # m3u8 download
@@ -33,12 +37,18 @@ class SportBoxEmbedIE(InfoExtractor):
     }, {
         'url': 'https://news.sportbox.ru/vdl/player/media/193095',
         'only_matching': True,
+    }, {
+        'url': 'https://news.sportbox.ru/vdl/player/media/109158',
+        'only_matching': True,
+    }, {
+        'url': 'https://matchtv.ru/vdl/player/media/109158',
+        'only_matching': True,
     }]
 
     @staticmethod
     def _extract_urls(webpage):
         return re.findall(
-            r'<iframe[^>]+src="(https?://news\.sportbox\.ru/vdl/player[^"]+)"',
+            r'<iframe[^>]+src="(https?://(?:news\.sportbox|matchtv)\.ru/vdl/player[^"]+)"',
             webpage)
 
     def _real_extract(self, url):
@@ -46,13 +56,14 @@ class SportBoxEmbedIE(InfoExtractor):
 
         webpage = self._download_webpage(url, video_id)
 
-        wjplayer_data = self._parse_json(
+        sources = self._parse_json(
             self._search_regex(
-                r'(?s)wjplayer\(({.+?})\);', webpage, 'wjplayer settings'),
+                r'(?s)playerOptions\.sources(?:WithRes)?\s*=\s*(\[.+?\])\s*;\s*\n',
+                webpage, 'sources'),
             video_id, transform_source=js_to_json)
 
         formats = []
-        for source in wjplayer_data['sources']:
+        for source in sources:
             src = source.get('src')
             if not src:
                 continue
@@ -66,14 +77,23 @@ class SportBoxEmbedIE(InfoExtractor):
                 })
         self._sort_formats(formats)
 
+        player = self._parse_json(
+            self._search_regex(
+                r'(?s)playerOptions\s*=\s*({.+?})\s*;\s*\n', webpage,
+                'player options', default='{}'),
+            video_id, transform_source=js_to_json)
+        media_id = player['mediaId']
+
+        info = self._search_json_ld(webpage, media_id, default={})
+
         view_count = int_or_none(self._search_regex(
             r'Просмотров\s*:\s*(\d+)', webpage, 'view count', default=None))
 
-        return {
-            'id': video_id,
-            'title': video_id,
-            'thumbnail': wjplayer_data.get('poster'),
-            'duration': int_or_none(wjplayer_data.get('duration')),
+        return merge_dicts(info, {
+            'id': media_id,
+            'title': self._og_search_title(webpage, default=None) or media_id,
+            'thumbnail': player.get('poster'),
+            'duration': int_or_none(player.get('duration')),
             'view_count': view_count,
             'formats': formats,
-        }
+        })

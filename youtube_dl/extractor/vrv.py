@@ -120,8 +120,10 @@ class VRVIE(VRVBaseIE):
             url, video_id,
             headers=self.geo_verification_headers())
         media_resource = self._parse_json(self._search_regex(
-            r'window\.__INITIAL_STATE__\s*=\s*({.+?})</script>',
-            webpage, 'inital state'), video_id).get('watch', {}).get('mediaResource') or {}
+            [
+                r'window\.__INITIAL_STATE__\s*=\s*({.+?})(?:</script>|;)',
+                r'window\.__INITIAL_STATE__\s*=\s*({.+})'
+            ], webpage, 'inital state'), video_id).get('watch', {}).get('mediaResource') or {}
 
         video_data = media_resource.get('json')
         if not video_data:

@@ -192,6 +192,8 @@ class KalturaIE(InfoExtractor):
                 'entryId': video_id,
                 'service': 'baseentry',
                 'ks': '{1:result:ks}',
+                'responseProfile:fields': 'createdAt,dataUrl,duration,name,plays,thumbnailUrl,userId',
+                'responseProfile:type': 1,
             },
             {
                 'action': 'getbyentryid',

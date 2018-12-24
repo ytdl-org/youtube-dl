@@ -65,7 +65,8 @@ class RuutuIE(InfoExtractor):
         video_id = self._match_id(url)
 
         video_xml = self._download_xml(
-            'http://gatling.ruutu.fi/media-xml-cache?id=%s' % video_id, video_id)
+            'https://gatling.nelonenmedia.fi/media-xml-cache', video_id,
+            query={'id': video_id})
 
         formats = []
         processed_urls = []
