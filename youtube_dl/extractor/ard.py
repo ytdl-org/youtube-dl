@@ -93,7 +93,7 @@ class ARDBaseIE(InfoExtractor):
                 url = '%s/%s-1.mp4' % (base_url, width)
                 if self._is_valid_url(url, video_id):
                     format_info = self._FORMATS[width]
-                    format_id = '%s-%s' % (determine_ext(url), format_info['vbr'] + format_info['abr'])
+                    format_id = 'http-%s-%s' % (determine_ext(url), format_info['vbr'] + format_info['abr'])
                     format_info.update({
                         'url': url,
                         'format_id': format_id,
