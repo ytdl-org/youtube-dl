@@ -1,6 +1,8 @@
 # coding: utf-8
 from __future__ import unicode_literals
 
+import base64
+import json
 import re
 import time
 import xml.etree.ElementTree as etree
@@ -59,6 +61,9 @@ MSO_INFO = {
         'name': 'Verizon FiOS',
         'username_field': 'IDToken1',
         'password_field': 'IDToken2',
+    },
+    'Fubo': {
+        'name': 'FuboTV',
     },
     'thr030': {
         'name': '3 Rivers Communications'
@@ -1422,11 +1427,11 @@ class AdobePassIE(InfoExtractor):
                         'domain_name': 'adobe.com',
                         'redirect_url': url,
                     })
+                provider_redirect_page, urlh = provider_redirect_page_res
 
                 if mso_id == 'Comcast_SSO':
                     # Comcast page flow varies by video site and whether you
                     # are on Comcast's network.
-                    provider_redirect_page, urlh = provider_redirect_page_res
                     if 'automatically signing you in' in provider_redirect_page:
                         oauth_redirect_url = self._html_search_regex(
                             r'window\.location\s*=\s*[\'"]([^\'"]+)',
@@ -1458,7 +1463,6 @@ class AdobePassIE(InfoExtractor):
                 elif mso_id == 'Verizon':
                     # In general, if you're connecting from a Verizon-assigned IP,
                     # you will not actually pass your credentials.
-                    provider_redirect_page, urlh = provider_redirect_page_res
                     if 'Please wait ...' in provider_redirect_page:
                         saml_redirect_url = self._html_search_regex(
                             r'self\.parent\.location=(["\'])(?P<url>.+?)\1',
@@ -1492,21 +1496,44 @@ class AdobePassIE(InfoExtractor):
                             'Content-Type': 'application/x-www-form-urlencoded'
                         })
                 else:
-                    # Some providers (e.g. DIRECTV NOW) have another meta refresh
-                    # based redirect that should be followed.
-                    provider_redirect_page, urlh = provider_redirect_page_res
-                    provider_refresh_redirect_url = extract_redirect_url(
-                        provider_redirect_page, url=urlh.geturl())
-                    if provider_refresh_redirect_url:
-                        provider_redirect_page_res = self._download_webpage_handle(
-                            provider_refresh_redirect_url, video_id,
-                            'Downloading Provider Redirect Page (meta refresh)')
-                    provider_login_page_res = post_form(
-                        provider_redirect_page_res, self._DOWNLOADING_LOGIN_PAGE)
-                    mvpd_confirm_page_res = post_form(provider_login_page_res, 'Logging in', {
-                        mso_info.get('username_field', 'username'): username,
-                        mso_info.get('password_field', 'password'): password,
-                    })
+                    if mso_id == 'Fubo':
+                        config_b64 = self._html_search_regex(r"window.atob\('(.*)'\)\)\)\);",
+                            provider_redirect_page, 'client id', fatal=True)
+                        config_json = base64.b64decode(config_b64.encode()).decode('ascii')
+                        config = json.loads(config_json)
+
+                        post_data = {
+                            'username': username,
+                            'password': password,
+                            'client_id': config['clientID'],
+                            'tenant': config['auth0Tenant'],
+                            'sso': True,
+                            'connection': 'Username-Password-Authentication',
+                            'redirect_uri': config['callbackURL'],
+                        }
+                        post_data.update(config['extraParams'])
+                        base_url = config.get('authorizationServer', {}).get(url, 'https://fubo.auth0.com')
+
+                        mvpd_confirm_page_res = self._download_webpage_handle(
+                            base_url + '/usernamepassword/login', video_id, 'Logging in',
+                            data=json.dumps(post_data).encode(),
+                            headers={'Content-Type': 'application/json'})
+                    else:
+                        # Some providers (e.g. DIRECTV NOW) have another meta refresh
+                        # based redirect that should be followed.
+                        provider_refresh_redirect_url = extract_redirect_url(
+                            provider_redirect_page, url=urlh.geturl())
+                        if provider_refresh_redirect_url:
+                            provider_redirect_page_res = self._download_webpage_handle(
+                                provider_refresh_redirect_url, video_id,
+                                'Downloading Provider Redirect Page (meta refresh)')
+                        provider_login_page_res = post_form(
+                            provider_redirect_page_res, self._DOWNLOADING_LOGIN_PAGE)
+                        mvpd_confirm_page_res = post_form(provider_login_page_res, 'Logging in', {
+                            mso_info.get('username_field', 'username'): username,
+                            mso_info.get('password_field', 'password'): password,
+                        })
+
                     if mso_id != 'Rogers':
                         post_form(mvpd_confirm_page_res, 'Confirming Login')
 
