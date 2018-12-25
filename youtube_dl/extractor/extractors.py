@@ -1098,6 +1098,10 @@ from .streetvoice import StreetVoiceIE
 from .stretchinternet import StretchInternetIE
 from .stv import STVPlayerIE
 from .sunporno import SunPornoIE
+from .sverigesradio import (
+    SverigesRadioEpisodeIE,
+    SverigesRadioPublicationIE,
+)
 from .svt import (
     SVTIE,
     SVTPageIE,
