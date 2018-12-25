@@ -24,7 +24,7 @@ class KinoPoiskIE(InfoExtractor):
             'info_dict': {
                 'id': '81041',
                 'ext': 'mp4',
-                'title': 'Алеша попович и тугарин змей',
+                'title': 'Алеша Попович и Тугарин Змей',
                 'alt_title': 'Алеша Попович и Тугарин Змей',
                 'description': 'md5:43787e673d68b805d0aa1df5a5aea701',
                 'thumbnail': r're:^https?://.*',
@@ -66,7 +66,7 @@ class KinoPoiskIE(InfoExtractor):
         },
         {
             'url': 'https://www.kinopoisk.ru/film/1111911/watch/1/2',
-            'md5': 'f808539a7fd71d4beca08a5495877d4c',
+            'md5': 'a9dc2173f659882687e8b2c6df0063ac',
             'info_dict': {
                 'id': '1111911/1/2',
                 'ext': 'mp4',
@@ -138,7 +138,7 @@ class KinoPoiskIE(InfoExtractor):
         series = None
         if season_number and episode_number:
             for season in film.get('items', []):
-                if season_number == season.get('tvseries_season'):
+                if season_number == int(season.get('export_content_id')):
                     release_year = int_or_none(season.get('year')) or release_year
                     for episode in season.get('items', []):
                         if episode_number == episode.get('tvseries_episode'):
