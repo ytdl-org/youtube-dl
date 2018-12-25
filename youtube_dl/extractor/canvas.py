@@ -57,7 +57,7 @@ class CanvasIE(InfoExtractor):
             format_url, format_type = target.get('url'), target.get('type')
             if not format_url or not format_type:
                 continue
-            if format_type == 'HLS':
+            if format_type == 'HLS' or format_type == 'hls':
                 formats.extend(self._extract_m3u8_formats(
                     format_url, video_id, 'mp4', entry_protocol='m3u8_native',
                     m3u8_id=format_type, fatal=False))
