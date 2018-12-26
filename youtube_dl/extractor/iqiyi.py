@@ -344,7 +344,13 @@ class IqiyiIE(InfoExtractor):
         # Sometimes there are playlist links in individual videos, so treat it
         # as a single video first
         tvid = self._search_regex(
-            r'data-(?:player|shareplattrigger)-tvid\s*=\s*[\'"](\d+)', webpage, 'tvid', default=None)
+                r'param\[\'tvid\'\] = \"(.*)";', webpage, 'tvid', default=None)
+
+        if tvid is None: # if tw iqiyi
+            tvid = self._search_regex(
+                    r'"tvid":\"(\d+)",', webpage, 'tvid', default=None)
+                   
+
         if tvid is None:
             playlist_result = self._extract_playlist(webpage)
             if playlist_result:
@@ -352,7 +358,13 @@ class IqiyiIE(InfoExtractor):
             raise ExtractorError('Can\'t find any video')
 
         video_id = self._search_regex(
-            r'data-(?:player|shareplattrigger)-videoid\s*=\s*[\'"]([a-f\d]+)', webpage, 'video_id')
+                r'param\[\'vid\'\] = \"(.*)";', webpage, 'video_id', default=None)
+
+        if video_id is None: # if tw iqiyi
+            video_id = self._search_regex(
+                    r'"vid":\"([0-9a-z]+)",', webpage, 'video_id')
+                    
+            
 
         formats = []
         for _ in range(5):
@@ -383,9 +395,15 @@ class IqiyiIE(InfoExtractor):
             self._sleep(5, video_id)
 
         self._sort_formats(formats)
-        title = (get_element_by_id('widget-videotitle', webpage) or
-                 clean_html(get_element_by_attribute('class', 'mod-play-tit', webpage)) or
-                 self._html_search_regex(r'<span[^>]+data-videochanged-title="word"[^>]*>([^<]+)</span>', webpage, 'title'))
+
+        title_link = get_element_by_attribute('class', 'title-link', webpage) or \
+                get_element_by_attribute('v-text', 'props.videoAlbumName', webpage) or ''
+
+        title_txt = get_element_by_attribute('class', 'title-txt', webpage) or \
+                get_element_by_attribute('v-text', 'props.videoSubTitle', webpage) or \
+                get_element_by_attribute('class', 'fontColor-link', webpage)
+
+        title = title_link + title_txt
 
         return {
             'id': video_id,
