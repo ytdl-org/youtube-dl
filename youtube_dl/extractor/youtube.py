@@ -1794,6 +1794,25 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                                 'height': int_or_none(width_height[1]),
                             }
             q = qualities(['small', 'medium', 'hd720'])
+            streaming_formats = try_get(player_response, lambda x: x['streamingData']['formats'], list)
+            if streaming_formats:
+                for fmt in streaming_formats:
+                    itag = str_or_none(fmt.get('itag'))
+                    if not itag:
+                        continue
+                    quality = fmt.get('quality')
+                    quality_label = fmt.get('qualityLabel') or quality
+                    formats_spec[itag] = {
+                        'asr': int_or_none(fmt.get('audioSampleRate')),
+                        'filesize': int_or_none(fmt.get('contentLength')),
+                        'format_note': quality_label,
+                        'fps': int_or_none(fmt.get('fps')),
+                        'height': int_or_none(fmt.get('height')),
+                        'quality': q(quality),
+                        # bitrate for itag 43 is always 2147483647
+                        'tbr': float_or_none(fmt.get('averageBitrate') or fmt.get('bitrate'), 1000) if itag != '43' else None,
+                        'width': int_or_none(fmt.get('width')),
+                    }
             formats = []
             for url_data_str in encoded_url_map.split(','):
                 url_data = compat_parse_qs(url_data_str)
@@ -1876,7 +1895,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                 filesize = int_or_none(url_data.get(
                     'clen', [None])[0]) or _extract_filesize(url)
 
-                quality = url_data.get('quality_label', [None])[0] or url_data.get('quality', [None])[0]
+                quality = url_data.get('quality', [None])[0]
 
                 more_fields = {
                     'filesize': filesize,
@@ -1884,7 +1903,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                     'width': width,
                     'height': height,
                     'fps': int_or_none(url_data.get('fps', [None])[0]),
-                    'format_note': quality,
+                    'format_note': url_data.get('quality_label', [None])[0] or quality,
                     'quality': q(quality),
                 }
                 for key, value in more_fields.items():
