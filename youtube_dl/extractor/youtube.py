@@ -1077,6 +1077,11 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
             'url': 'https://invidio.us/watch?v=BaW_jenozKc',
             'only_matching': True,
         },
+        {
+            # DRM protected
+            'url': 'https://www.youtube.com/watch?v=s7_qI6_mIXc',
+            'only_matching': True,
+        }
     ]
 
     def __init__(self, *args, **kwargs):
@@ -1672,6 +1677,9 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                 raise ExtractorError(
                     '"token" parameter not in video info for unknown reason',
                     video_id=video_id)
+
+        if video_info.get('license_info'):
+            raise ExtractorError('This video is DRM protected.', expected=True)
 
         video_details = try_get(
             player_response, lambda x: x['videoDetails'], dict) or {}
