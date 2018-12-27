@@ -177,7 +177,7 @@ class OdnoklassnikiIE(InfoExtractor):
                 r'vp-layer-info_date">(?P<date>.*?)<\/span>',
                 webpage, 'upload date', group='date')
             if upload_date_str:
-                from datetime import datetime
+                from datetime import datetime, timedelta
                 upload_date_time = None
                 try:
                     upload_date_time = datetime.strptime(upload_date_str, '%d %b %Y')
@@ -189,9 +189,15 @@ class OdnoklassnikiIE(InfoExtractor):
                 except:
                     pass
                 try:
-                    upload_date_time = datetime.strptime(upload_date_str, '%H:%M')
+                    if upload_date_str.find(':') >=0:
+                        hour_and_minutes = upload_date_str.split(' ')[-1]
+                    else:
+                        hour_and_minutes = upload_date_str
+                    upload_date_time = datetime.strptime(hour_and_minutes, '%H:%M')
                     upload_date_time = upload_date_time.replace(year=datetime.utcnow().year)
                     upload_date_time = upload_date_time.replace(day=datetime.utcnow().day)
+                    if upload_date_str.find('yesterday') ==0:
+                        upload_date_time = upload_date_time - timedelta(days=1)
                 except:
                     pass
 
