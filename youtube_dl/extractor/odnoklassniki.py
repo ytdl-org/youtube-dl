@@ -127,8 +127,8 @@ class OdnoklassnikiIE(InfoExtractor):
             'http://ok.ru/video/%s' % video_id, video_id)
 
         error = self._search_regex(
-            r'[^>]+class="vp_video_stub_txt"[^>]*>([^<]+)<',
-            webpage, 'error', default=None)
+            r'<div class="vp_video_stub_txt">(?P<error>.*?)<\/div>',
+            webpage, name='error',group='error', default=None)
         if error:
             raise ExtractorError(error, expected=True)
 
@@ -171,6 +171,32 @@ class OdnoklassnikiIE(InfoExtractor):
 
         upload_date = unified_strdate(self._html_search_meta(
             'ya:ovs:upload_date', webpage, 'upload date', default=None))
+
+        if upload_date is None:
+            upload_date_str = self._search_regex(
+                r'vp-layer-info_date">(?P<date>.*?)<\/span>',
+                webpage, 'upload date', group='date')
+            if upload_date_str:
+                from datetime import datetime
+                upload_date_time = None
+                try:
+                    upload_date_time = datetime.strptime(upload_date_str, '%d %b %Y')
+                except:
+                    pass
+                try:
+                    upload_date_time = datetime.strptime(upload_date_str, '%d %b')
+                    upload_date_time = upload_date_time.replace(year=datetime.utcnow().year)
+                except:
+                    pass
+                try:
+                    upload_date_time = datetime.strptime(upload_date_str, '%H:%M')
+                    upload_date_time = upload_date_time.replace(year=datetime.utcnow().year)
+                    upload_date_time = upload_date_time.replace(day=datetime.utcnow().day)
+                except:
+                    pass
+
+                if upload_date_time:
+                    upload_date = upload_date_time.strftime('%Y%m%d')
 
         age_limit = None
         adult = self._html_search_meta(
