@@ -305,7 +305,8 @@ class FFmpegFD(ExternalFD):
             else:
                 args += ['-f', 'mp4']
                 if tmpfilename == '-':
-                    args += ["-movflags", "frag_keyframe+empty_moov"]
+                    args += ['-movflags', 'frag_keyframe+empty_moov', '-c:v', 'libx264', '-c:a', 'aac', '-ac', '2', '-ab', '128000']
+                    args += ['-bsf:a', 'aac_adtstoasc', '-tune', 'zerolatency', '-preset', 'ultrafast', '-level', '31', '-pix_fmt', 'yuv420p']
                 if (ffpp.basename == 'ffmpeg' and is_outdated_version(ffpp._versions['ffmpeg'], '3.2', False)) and (not info_dict.get('acodec') or info_dict['acodec'].split('.')[0] in ('aac', 'mp4a')):
                     args += ['-bsf:a', 'aac_adtstoasc']
         elif protocol == 'rtmp':
