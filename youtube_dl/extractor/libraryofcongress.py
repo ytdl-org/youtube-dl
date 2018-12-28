@@ -83,8 +83,9 @@ class LibraryOfCongressIE(InfoExtractor):
         derivative = data['derivatives'][0]
         media_url = derivative['derivativeUrl']
 
-        title = derivative.get('shortName') or data.get('shortName') or self._og_search_title(
-            webpage)
+        title = derivative.get('shortName')
+        if (not title) or (title == "128 Bit Derivative"):
+            title = data.get('shortName') or self._og_search_title(webpage)
 
         # Following algorithm was extracted from setAVSource js function
         # found in webpage
