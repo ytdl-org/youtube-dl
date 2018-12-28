@@ -207,8 +207,9 @@ class VrtNUIE(GigyaBaseIE):
 
     def _login(self):
         username, password = self._get_login_info()
-        if username is None:
-            return
+
+        if username is None or password is None:
+            self.raise_login_required()
 
         auth_data = {
             'APIKey': self._APIKEY,
