@@ -50,6 +50,10 @@ class CanvasIE(InfoExtractor):
         formats = []
         for target in data['targetUrls']:
             format_url, format_type = target.get('url'), target.get('type')
+
+            # VRT seems to be providing invalid URLS
+            format_url = format_url.replace('https://remix.aka', 'https://remix-aka')
+
             if not format_url or not format_type:
                 continue
             if format_type == 'HLS':
