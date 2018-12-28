@@ -18,6 +18,15 @@ class LibraryOfCongressIE(InfoExtractor):
     IE_DESC = 'Library of Congress'
     _VALID_URL = r'https?://(?:www\.)?loc\.gov/(?:item/|jukebox/recordings/detail/id/|today/cyberlc/feature_wdesc\.php\?.*\brec=)(?P<id>[0-9a-z_.]+)'
     _TESTS = [{
+        # national jukebox
+        'url': 'https://www.loc.gov/jukebox/recordings/detail/id/824',
+        'md5': '0263fed2c1cd62d733037c20c81e9e0e',
+        'info_dict': {
+            'id': '824',
+            'ext': 'mp3',
+            'title': 'Bring back my Bonnie to me'
+        },
+    }, {
         # embedded via <div class="media-player"
         'url': 'http://loc.gov/item/90716351/',
         'md5': '6ec0ae8f07f86731b1b2ff70f046210a',
