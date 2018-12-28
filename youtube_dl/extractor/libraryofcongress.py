@@ -16,7 +16,7 @@ from ..utils import (
 class LibraryOfCongressIE(InfoExtractor):
     IE_NAME = 'loc'
     IE_DESC = 'Library of Congress'
-    _VALID_URL = r'https?://(?:www\.)?loc\.gov/(?:item/|today/cyberlc/feature_wdesc\.php\?.*\brec=)(?P<id>[0-9a-z_.]+)'
+    _VALID_URL = r'https?://(?:www\.)?loc\.gov/(?:item/|jukebox/recordings/detail/id/|today/cyberlc/feature_wdesc\.php\?.*\brec=)(?P<id>[0-9a-z_.]+)'
     _TESTS = [{
         # embedded via <div class="media-player"
         'url': 'http://loc.gov/item/90716351/',
@@ -72,7 +72,7 @@ class LibraryOfCongressIE(InfoExtractor):
             (r'id=(["\'])media-player-(?P<id>.+?)\1',
              r'<video[^>]+id=(["\'])uuid-(?P<id>.+?)\1',
              r'<video[^>]+data-uuid=(["\'])(?P<id>.+?)\1',
-             r'mediaObjectId\s*:\s*(["\'])(?P<id>.+?)\1',
+             r'"?mediaObjectId"?\s*:\s*(["\'])(?P<id>.+?)\1',
              r'data-tab="share-media-(?P<id>[0-9A-F]{32})"'),
             webpage, 'media id', group='id')
 
