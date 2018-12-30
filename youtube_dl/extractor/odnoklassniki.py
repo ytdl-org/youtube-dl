@@ -177,6 +177,7 @@ class OdnoklassnikiIE(InfoExtractor):
                 r'vp-layer-info_date">(?P<date>.*?)<\/span>',
                 webpage, 'upload date', group='date')
             if upload_date_str:
+                upload_date_str = upload_date_str.replace('Sept', 'Sep')
                 from datetime import datetime, timedelta
                 upload_date_time = None
                 try:
