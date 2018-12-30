@@ -189,6 +189,12 @@ class OdnoklassnikiIE(InfoExtractor):
                 except:
                     pass
                 try:
+                    upload_date_time = datetime.strptime(upload_date_str, '%d %B')
+                    upload_date_time = upload_date_time.replace(year=datetime.utcnow().year)
+                except:
+                    pass
+
+                try:
                     if upload_date_str.find(':') >=0:
                         hour_and_minutes = upload_date_str.split(' ')[-1]
                     else:
