@@ -93,10 +93,28 @@ class Vbox7IE(InfoExtractor):
                 webpage.replace('"/*@context"', '"@context"'), video_id,
                 fatal=False)
 
+        formats = []
+        if 'videoIsHD' in video:
+            resolution = 720
+        else:
+            resolution = 480
+        for resolution in video.get('resolutions', [resolution]):
+            if 0 == resolution:
+                continue
+            format_url = video_url.replace('.mpd', '_' + str(resolution) + '.mp4')
+            formats.append({
+                'url': format_url,
+                'format_id': '%s' % str(resolution),
+                'height': int(resolution),
+                'ext': 'mp4'
+            })
+
+        self._sort_formats(formats, field_preference=('height'))
+
         info.update({
             'id': video_id,
             'title': title,
-            'url': video_url,
+            'formats': formats,
             'uploader': uploader,
             'thumbnail': self._proto_relative_url(
                 info.get('thumbnail') or self._og_search_thumbnail(webpage),
