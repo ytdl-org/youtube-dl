@@ -6,7 +6,6 @@ import re
 from .common import InfoExtractor
 from ..utils import (
     int_or_none,
-    js_to_json,
     urlencode_postdata,
     extract_attributes,
     smuggle_url,
@@ -46,14 +45,13 @@ class TouTvIE(InfoExtractor):
         email, password = self._get_login_info()
         if email is None:
             return
-        state = 'http://ici.tou.tv/'
-        webpage = self._download_webpage(state, None, 'Downloading homepage')
-        toutvlogin = self._parse_json(self._search_regex(
-            r'(?s)toutvlogin\s*=\s*({.+?});', webpage, 'toutvlogin'), None, js_to_json)
-        authorize_url = toutvlogin['host'] + '/auth/oauth/v2/authorize'
+        state = 'http://ici.tou.tv/app.js'
+        webpage = self._download_webpage(state, None, 'Downloading app.js script')
+        client_id = self._search_regex(r'document\.URL:{clientId:"(.+?)"', webpage, 'toutvclientid')
+        authorize_url = 'https://services.radio-canada.ca/auth/oauth/v2/authorize'
         login_webpage = self._download_webpage(
             authorize_url, None, 'Downloading login page', query={
-                'client_id': toutvlogin['clientId'],
+                'client_id': client_id,
                 'redirect_uri': 'https://ici.tou.tv/login/loginCallback',
                 'response_type': 'token',
                 'scope': 'media-drmt openid profile email id.write media-validation.read.privileged',
