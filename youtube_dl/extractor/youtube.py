@@ -2043,7 +2043,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
             r'<div[^>]+id="watch7-headline"[^>]*>\s*<span[^>]*>.*?>(?P<series>[^<]+)</a></b>\s*S(?P<season>\d+)\s*•\s*E(?P<episode>\d+)</span>',
             video_webpage)
         if m_episode:
-            series = m_episode.group('series')
+            series = unescapeHTML(m_episode.group('series'))
             season_number = int(m_episode.group('season'))
             episode_number = int(m_episode.group('episode'))
         else:
