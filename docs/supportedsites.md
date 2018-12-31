@@ -438,6 +438,7 @@
  - **Lecture2Go**
  - **Lecturio**
  - **LecturioCourse**
+ - **LecturioDeCourse**
  - **LEGO**
  - **Lemonde**
  - **Lenta**
