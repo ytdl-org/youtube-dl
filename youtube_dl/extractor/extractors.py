@@ -232,6 +232,7 @@ from .commonprotocols import (
     MmsIE,
     RtmpIE,
 )
+from .compoundmedia import CompoundMediaIE
 from .condenast import CondeNastIE
 from .corus import CorusIE
 from .cracked import CrackedIE
