@@ -506,7 +506,7 @@ class NicovideoIE(SearchInfoExtractor):
     def _get_entries_for_date(self, url, query, date, pageNumber=1):
         while True:
             link = url + "?page=" + str(pageNumber) + "&start=" + str(date) + "&end=" + str(date)
-            results = self._download_webpage(link, "None", note='Extracting results from page %s for date %s' % (pageNumber, date))
+            results = self._download_webpage(link, "None", query={"Search_key": query}, note='Extracting results from page %s for date %s' % (pageNumber, date))
             entries = []
             r = re.findall(r'(?<=data-video-id=)["\']?(?P<videoid>.*?)(?=["\'])', results)
 
