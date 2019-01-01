@@ -18,16 +18,6 @@ class CompoundMediaIE(InfoExtractor):
     _METADATA_URL_PREFIX = 'https://www.compoundmedia.com/api/video/'
     _NETRC_MACHINE = 'compoundmedia'
 
-    # No tests because all videos require authentication
-    # _TEST = {
-    #     'url': 'https://www.compoundmedia.com/shows/tacs/1851',
-    #     'md5': '756a17ea88a671d9faafc6aa406abdb0',
-    #     'info_dict': {
-    #         'id': '1851',
-    #         'title': 'TACS 001 - The First Episode',
-    #     }
-    # }
-
     def _real_extract(self, url):
         video_id = self._match_id(url)
 
@@ -69,10 +59,5 @@ class CompoundMediaIE(InfoExtractor):
         url = metadata['m3u8']
         url = url.replace(
             "https://livestreamapis.com/v3", "https://livestream.com")
-        url = url.replace(".m3u8", "/player")
-        title = metadata['title']
-
-        self.to_screen("Title: " + title)
-        self.to_screen("Requesting " + url)
 
         return self.url_result(url, 'Livestream')
