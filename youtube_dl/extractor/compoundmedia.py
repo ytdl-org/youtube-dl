@@ -3,9 +3,6 @@ from __future__ import unicode_literals
 
 from .common import InfoExtractor
 
-import re
-import sys
-
 from ..utils import (
     ExtractorError,
     urlencode_postdata,
@@ -39,19 +36,6 @@ class CompoundMediaIE(InfoExtractor):
 
         if login_page.get('token') is None:
             raise ExtractorError('Invalid username or password', expected=True)
-
-        for header, cookies in url_handle.headers.items():
-            if header.lower() != 'set-cookie':
-                continue
-            if sys.version_info[0] >= 3:
-                cookies = cookies.encode('iso-8859-1')
-            cookies = cookies.decode('utf-8')
-            cfduid = re.search(
-                r'__cfduid=(.+?);.*?\bdomain=(.+?)(?:[,;]|$)', cookies)
-            if cfduid:
-                value, domain = cfduid.groups()
-                self._set_cookie(domain, '__cfduid', value)
-                break
 
         metadata = self._download_json(
             self._METADATA_URL_PREFIX + video_id, None, 'Requesting Metadata')
