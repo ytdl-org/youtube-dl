@@ -58,6 +58,6 @@ class CompoundMediaIE(InfoExtractor):
 
         url = metadata['m3u8']
         url = url.replace(
-            "https://livestreamapis.com/v3", "https://livestream.com")
+            'https://livestreamapis.com/v3', 'https://livestream.com')
 
         return self.url_result(url, 'Livestream')
