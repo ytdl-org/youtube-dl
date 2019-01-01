@@ -483,7 +483,7 @@ class NicovideoIE(SearchInfoExtractor):
         currDate = datetime.datetime.now().date()
 
         while True:
-            search_url = "http://www.nicovideo.jp/search/%s?sort=f&order=d" % (query)
+            search_url = "http://www.nicovideo.jp/search/%s" % query
             r = self._get_entries_for_date(search_url, query, currDate)
 
             # did we gather more entries in the last few pages than were asked for? If so, only add as many as are needed to reach the desired number.
@@ -504,17 +504,21 @@ class NicovideoIE(SearchInfoExtractor):
         }
 
     def _get_entries_for_date(self, url, query, date, pageNumber=1):
-        link = url + "&page=" + str(pageNumber) + "&start=" + str(date) + "&end=" + str(date)
-        results = self._download_webpage(link, query, note='Extracting results from page %s for date %s' % (pageNumber, date))
-        entries = []
-        r = re.findall(r'''<li.*(?!</li>) data-video-id=['|"](..[0-9]{1,8})''', results)
+        while True:
+            link = url + "?page=" + str(pageNumber) + "&start=" + str(date) + "&end=" + str(date)
+            results = self._download_webpage(link, "None", note='Extracting results from page %s for date %s' % (pageNumber, date))
+            entries = []
+            r = re.findall(r'(?<=data-video-id=)["\']?(?P<videoid>.*?)(?=["\'])', results)
 
-        for item in r:
-            e = self.url_result("http://www.nicovideo.jp/watch/" + str(item), 'Niconico')
-            entries.append(e)
+            for item in r:
+                e = self.url_result("http://www.nicovideo.jp/watch/" + item, 'Niconico')
+                entries.append(e)
 
-        # each page holds a maximum of 32 entries. If we've seen 32 entries on the current page,
-        # it's possible there may be another, so we can check. It's a little awkward, but it works.
-        if(len(r) >= 32):
-            entries += self._get_entries_for_date(url, query, date, pageNumber + 1)
+            # each page holds a maximum of 32 entries. If we've seen 32 entries on the current page,
+            # it's possible there may be another, so we can check. It's a little awkward, but it works.
+            if(len(r) < 32):
+                break
+
+            pageNumber += 1
+
         return entries
