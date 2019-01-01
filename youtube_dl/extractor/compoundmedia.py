@@ -11,8 +11,6 @@ from ..utils import (
     urlencode_postdata,
 )
 
-from .livestream import LivestreamIE
-
 
 class CompoundMediaIE(InfoExtractor):
     _VALID_URL = r'https?://(?:www\.)?compoundmedia\.com/shows/[^/]+/(?P<id>[0-9]+)'
@@ -72,16 +70,9 @@ class CompoundMediaIE(InfoExtractor):
         url = url.replace(
             "https://livestreamapis.com/v3", "https://livestream.com")
         url = url.replace(".m3u8", "/player")
-
         title = metadata['title']
 
         self.to_screen("Title: " + title)
         self.to_screen("Requesting " + url)
 
-        livestreamie = LivestreamIE()
-        livestreamie.set_downloader(self._downloader)
-        livestreamdata = livestreamie._real_extract(url)
-        livestreamdata['id'] = video_id
-        livestreamdata['title'] = title
-
-        return livestreamdata
+        return self.url_result(url, 'Livestream')
