@@ -5,7 +5,10 @@ import itertools
 import re
 
 from .common import InfoExtractor
-from ..utils import urlencode_postdata
+from ..utils import (
+    orderedSet,
+    urlencode_postdata,
+)
 
 
 class BitChuteIE(InfoExtractor):
@@ -43,10 +46,15 @@ class BitChuteIE(InfoExtractor):
             'description', webpage, 'title',
             default=None) or self._og_search_description(webpage)
 
+        format_urls = []
+        for mobj in re.finditer(
+                r'addWebSeed\s*\(\s*(["\'])(?P<url>(?:(?!\1).)+)\1', webpage):
+            format_urls.append(mobj.group('url'))
+        format_urls.extend(re.findall(r'as=(https?://[^&"\']+)', webpage))
+
         formats = [
-            {'url': mobj.group('url')}
-            for mobj in re.finditer(
-                r'addWebSeed\s*\(\s*(["\'])(?P<url>(?:(?!\1).)+)\1', webpage)]
+            {'url': format_url}
+            for format_url in orderedSet(format_urls)]
         self._sort_formats(formats)
 
         description = self._html_search_regex(
