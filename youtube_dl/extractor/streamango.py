@@ -14,7 +14,7 @@ from ..utils import (
 
 
 class StreamangoIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:www\.)?(streamango|fruithosts)\.(com|net)/(?:f|embed)/(?P<id>[^/?#&]+)'
+    _VALID_URL = r'https?://(?:www\.)?(streamango\.com|fruithosts\.net)/(?:f|embed)/(?P<id>[^/?#&]+)'
     _TESTS = [{
         'url': 'https://streamango.com/f/clapasobsptpkdfe/20170315_150006_mp4',
         'md5': 'e992787515a182f55e38fc97588d802a',
