@@ -33,23 +33,13 @@ class GramofonOnlineIE(InfoExtractor):
     }]
 
     def _get_entry(self, obj):
-        id1 = obj.get("id")
-        source = obj.get("source")
-        name = obj.get("name")
-        artist = obj.get("artist")
-        # subname = obj.get("subname")
-        # paralelname = obj.get("paralelname")
-        # record = obj.get("record")
-        # long1 = obj.get("long")
-        # genre = obj.get("genre")
-        # author = obj.get("author")
-        # state = obj.get("state")
-        # matrica = obj.get("matrica")
-        # publisher = obj.get("publisher")
-        # img = obj.get("img")
+        id1 = obj.get('id')
+        source = obj.get('source')
+        title = obj.get('name')
+        artist = obj.get('artist')
         return {
             'id': id1,
-            'title': name,
+            'title': title,
             'http_headers': {'Referer': 'https://gramofononline.hu/' + id1},
             'artist': artist,
             'thumbnail': 'https://gramofononline.hu/getImage.php?id=' + source,
@@ -66,18 +56,10 @@ class GramofonOnlineIE(InfoExtractor):
         video_id = self._match_id(url)
         webpage = self._download_webpage(url, video_id)
 
-        for line in webpage.split("\n"):
-            m = re.search(r'var\s+trackList\s*=\s*(\[.*\]);?\s*', line)
-            if m:
-                break
+        m = re.search(r'var\s+trackList\s*=\s*(\[.*\]);', webpage)
         lineobjs = json.loads(m.group(1))
 
-        if len(lineobjs) > 1:
-            result = {
-                '_type': 'playlist',
-                'entries': [self._get_entry(obj) for obj in lineobjs]
-            }
-        else:
-            result = self._get_entry(lineobjs[0])
-
-        return result
+        return {
+            '_type': 'playlist',
+            'entries': [self._get_entry(obj) for obj in lineobjs]
+        }
