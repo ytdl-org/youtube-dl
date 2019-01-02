@@ -13,7 +13,6 @@ from ..utils import (
     try_get,
     unified_strdate,
     urlencode_postdata,
-    urljoin,
 )
 
 
@@ -59,9 +58,10 @@ class HKETVIE(InfoExtractor):
     def _real_extract(self, url):
         video_id = self._match_id(url)
         webpage = self._download_webpage(url, video_id)
+        title = self._html_search_meta('ed_title', webpage, fatal=True)
 
-        file_id = self._html_search_regex(r'post_var\["file_id"\] = ([0-9]+);', webpage, 'file ID')
-        curr_url = self._html_search_regex(r'post_var\["curr_url"\] = "(.+?)";', webpage, 'curr URL')
+        file_id = self._html_search_regex(r'post_var\["file_id"\]\s*=\s*(.+?);', webpage, 'file ID')
+        curr_url = self._html_search_regex(r'post_var\["curr_url"\]\s*=\s*"(.+?)";', webpage, 'curr URL')
         data = {
             'action': 'get_info',
             'curr_url': curr_url,
@@ -69,7 +69,7 @@ class HKETVIE(InfoExtractor):
             'video_url': file_id,
         }
         _APPS_BASE_URL = 'https://apps.hkedcity.net'
-        handler_url = urljoin(_APPS_BASE_URL, '/media/play/handler.php')
+        handler_url = _APPS_BASE_URL + '/media/play/handler.php'
 
         response = self._download_json(
             handler_url, video_id,
@@ -77,14 +77,10 @@ class HKETVIE(InfoExtractor):
             headers=merge_dicts({'Content-Type': 'application/x-www-form-urlencoded'},
                                 self.geo_verification_headers()))
 
-        result = try_get(response, lambda x: x['result'], dict)
+        result = response.get('result')
 
         formats = []
         subtitles = {}
-
-        thumbnail_php = urljoin(_APPS_BASE_URL, result.get('image'))
-        thumbnail_urlh = self._downloader.urlopen(thumbnail_php)
-        thumbnail = thumbnail_urlh.geturl()
 
         if response.get('success') and response.get('access'):
             width = str_to_int(result.get('width'))
@@ -99,7 +95,7 @@ class HKETVIE(InfoExtractor):
                 elif label == 'SD':
                     h = 360
                 w = h * width // height
-                urlh = self._downloader.urlopen(urljoin(_APPS_BASE_URL, fmt.get('file')))
+                urlh = self._downloader.urlopen(_APPS_BASE_URL + fmt.get('file'))
                 formats.append({
                     'format_id': label,
                     'ext': fmt.get('type'),
@@ -117,7 +113,7 @@ class HKETVIE(InfoExtractor):
                     continue
                 if track_kind.lower() not in ('captions', 'subtitles'):
                     continue
-                track_url = urljoin(_APPS_BASE_URL, track.get('file'))
+                track_url = _APPS_BASE_URL + track.get('file')
                 if not track_url:
                     continue
                 track_label = track.get('label')
@@ -128,7 +124,7 @@ class HKETVIE(InfoExtractor):
 
         else:
             error = clean_html(response.get('access_err_msg'))
-            if error.find('Video streaming is not available in your country'):
+            if 'Video streaming is not available in your country' in error:
                 raise GeoRestrictedError(error)
             else:
                 raise ExtractorError(error)
@@ -142,19 +138,20 @@ class HKETVIE(InfoExtractor):
                 'data[bucket_id]': 'etv',
                 'data[identifier]': video_id,
             }),
-            headers={'Content-Type': 'application/x-www-form-urlencoded'})
+            headers={'Content-Type': 'application/x-www-form-urlencoded'},
+            fatal=False)
         if emotion.get('result'):
             like_count = str_to_int(try_get(emotion, lambda x: x['data']['emotion_data'][0]['count'], str))
 
         return {
             'id': video_id,
-            'title': self._html_search_meta('ed_title', webpage),
+            'title': title,
             'description': self._html_search_meta('description', webpage, fatal=False),
             'upload_date': unified_strdate(self._html_search_meta('ed_date', webpage, fatal=False), day_first=False),
             'duration': int_or_none(result.get('length')),
             'formats': formats,
             'subtitles': subtitles,
-            'thumbnail': thumbnail,
+            'thumbnail': _APPS_BASE_URL + result.get('image'),
             'view_count': str_to_int(result.get('view_count')),
             'like_count': like_count,
         }
