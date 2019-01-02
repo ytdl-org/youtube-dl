@@ -39,7 +39,6 @@ class DNBIE(InfoExtractor):
     def _real_extract(self, url):
         video_id = self._match_id(url)
         url = 'https://portal.dnb.de/audioplayer/do/show/' + video_id
-        print('url', url)
         webpage = self._download_webpage(url, video_id)
 
         m = re.search(r'fdnbpl.media\s*=\s*(\[.*\]);', webpage)
