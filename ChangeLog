@@ -1,4 +1,4 @@
-version <unreleased>
+version 2019.01.02
 
 Extractors
 * [discovery] Use geo verification headers (#17838)
