@@ -49,6 +49,14 @@ class RadioCanadaIE(InfoExtractor):
                 # m3u8 download
                 'skip_download': True,
             },
+        },
+        {
+            'url': 'radiocanada:toutv:140872',
+            'info_dict': {
+                'id': '140872',
+                'title': 'Épisode 1',
+                'series': 'District 31'
+            }
         }
     ]
 
