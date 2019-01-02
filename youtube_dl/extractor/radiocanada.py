@@ -51,12 +51,14 @@ class RadioCanadaIE(InfoExtractor):
             },
         },
         {
+            # url from toutv that triggers false DRM validation
             'url': 'radiocanada:toutv:140872',
             'info_dict': {
                 'id': '140872',
                 'title': 'Épisode 1',
-                'series': 'District 31'
-            }
+                'series': 'District 31',
+            },
+            'only_matching': True,
         }
     ]
 
@@ -75,7 +77,7 @@ class RadioCanadaIE(InfoExtractor):
             el = find_xpath_attr(metadata, './/Meta', 'name', name)
             return el.text if el is not None else None
 
-        # IsDrm does not necessarily mean the video is DRM protected (see
+        # protectionType does not necessarily mean the video is DRM protected (see
         # https://github.com/rg3/youtube-dl/issues/13994).
         if get_meta('protectionType'):
             self.report_warning('This video is probably DRM protected.')
