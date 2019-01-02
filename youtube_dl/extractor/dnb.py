@@ -7,7 +7,7 @@ import json
 
 
 class DNBIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:portal\.dnb\.de/audioplayer/do/show/|d-nb\.info/)(?P<id>[0-9]+)'
+    _VALID_URL = r'https?://(?:portal\.dnb\.de/audioplayer/do/show/|d-nb\.info/)(?P<id>\w+)[/&]?'
     _TESTS = [{
         'url': 'https://portal.dnb.de/audioplayer/do/show/1077188552#dcId=1546432571580&p=1',
         'md5': 'cdef1faf339db9978b27c70ef4c0516b',
@@ -39,6 +39,7 @@ class DNBIE(InfoExtractor):
     def _real_extract(self, url):
         video_id = self._match_id(url)
         url = 'https://portal.dnb.de/audioplayer/do/show/' + video_id
+        print('url', url)
         webpage = self._download_webpage(url, video_id)
 
         m = re.search(r'fdnbpl.media\s*=\s*(\[.*\]);', webpage)
