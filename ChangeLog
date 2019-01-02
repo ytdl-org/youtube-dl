@@ -1,3 +1,18 @@
+version <unreleased>
+
+Extractors
+* [discovery] Use geo verification headers (#17838)
++ [packtpub] Add support for subscription.packtpub.com (#18718)
+* [yourporn] Fix extraction (#18583)
++ [acast:channel] Add support for play.acast.com (#18587)
++ [extractors] Add missing age limits (#18621)
++ [rmcdecouverte] Add support for live stream
+* [rmcdecouverte] Bypass geo restriction
+* [rmcdecouverte] Update URL regular expression (#18595, 18697)
+* [manyvids] Fix extraction (#18604, #18614)
+* [bitchute] Fix extraction (#18567)
+
+
 version 2018.12.31
 
 Extractors
