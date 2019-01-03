@@ -497,8 +497,8 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                 'uploader_url': r're:https?://(?:www\.)?youtube\.com/user/phihag',
                 'channel_id': 'UCLqxVugv74EIW3VWh2NOa3Q',
                 'channel_url': r're:https?://(?:www\.)?youtube\.com/channel/UCLqxVugv74EIW3VWh2NOa3Q',
+                'channel_verified': False,
                 'upload_date': '20121002',
-                'license': 'Standard YouTube License',
                 'description': 'test chars:  "\'/\\ä↭𝕐\ntest URL: https://github.com/rg3/youtube-dl/issues/1892\n\nThis is a test video for youtube-dl.\n\nFor more information, contact phihag@phihag.de .',
                 'categories': ['Science & Technology'],
                 'tags': ['youtube-dl'],
@@ -527,10 +527,10 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                 'uploader': 'Icona Pop',
                 'uploader_id': 'IconaPop',
                 'uploader_url': r're:https?://(?:www\.)?youtube\.com/user/IconaPop',
-                'license': 'Standard YouTube License',
                 'creator': 'Icona Pop',
                 'track': 'I Love It (feat. Charli XCX)',
                 'artist': 'Icona Pop',
+                'channel_verified': True,
             }
         },
         {
@@ -540,14 +540,14 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                 'id': '07FYdnEawAQ',
                 'ext': 'mp4',
                 'upload_date': '20130703',
-                'title': 'Justin Timberlake - Tunnel Vision (Explicit)',
+                'title': 'Justin Timberlake - Tunnel Vision (Official Music Video) (Explicit)',
                 'alt_title': 'Tunnel Vision',
-                'description': 'md5:64249768eec3bc4276236606ea996373',
+                'description': 'md5:07dab3356cde4199048e4c7cd93471e1',
                 'duration': 419,
                 'uploader': 'justintimberlakeVEVO',
                 'uploader_id': 'justintimberlakeVEVO',
                 'uploader_url': r're:https?://(?:www\.)?youtube\.com/user/justintimberlakeVEVO',
-                'license': 'Standard YouTube License',
+                'channel_verified': True,
                 'creator': 'Justin Timberlake',
                 'track': 'Tunnel Vision',
                 'artist': 'Justin Timberlake',
@@ -581,7 +581,6 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                 'uploader_id': 'phihag',
                 'uploader_url': r're:https?://(?:www\.)?youtube\.com/user/phihag',
                 'upload_date': '20121002',
-                'license': 'Standard YouTube License',
                 'description': 'test chars:  "\'/\\ä↭𝕐\ntest URL: https://github.com/rg3/youtube-dl/issues/1892\n\nThis is a test video for youtube-dl.\n\nFor more information, contact phihag@phihag.de .',
                 'categories': ['Science & Technology'],
                 'tags': ['youtube-dl'],
@@ -620,13 +619,13 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
             'info_dict': {
                 'id': 'IB3lcPjvWLA',
                 'ext': 'm4a',
-                'title': 'Afrojack, Spree Wilson - The Spark ft. Spree Wilson',
-                'description': 'md5:1900ed86ee514927b9e00fbead6969a5',
+                'title': 'Afrojack, Spree Wilson - The Spark (Official Music Video) ft. Spree Wilson',
+                'description': 'md5:8f5e2b82460520b619ccac1f509d43bf',
                 'duration': 244,
                 'uploader': 'AfrojackVEVO',
                 'uploader_id': 'AfrojackVEVO',
                 'upload_date': '20131011',
-                'license': 'Standard YouTube License',
+                'channel_verified': True,
             },
             'params': {
                 'youtube_include_dash_manifest': True,
@@ -1981,6 +1980,10 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
         channel_id = self._html_search_meta(
             'channelId', video_webpage, 'channel id')
         channel_url = 'http://www.youtube.com/channel/%s' % channel_id if channel_id else None
+        channel_verified = re.search(
+            r'<span.*(?:data-tooltip-text="Verified"|class=".*yt-channel-title-icon-verified[^"]+")',
+            video_webpage
+        ) is not None
 
         # thumbnail image
         # We try first to get a high quality image:
@@ -2162,6 +2165,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
             'uploader_url': video_uploader_url,
             'channel_id': channel_id,
             'channel_url': channel_url,
+            'channel_verified': channel_verified,
             'upload_date': upload_date,
             'license': video_license,
             'creator': video_creator or artist,
