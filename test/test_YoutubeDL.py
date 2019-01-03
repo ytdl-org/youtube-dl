@@ -605,7 +605,9 @@ class TestYoutubeDL(unittest.TestCase):
             def run(self, info):
                 with open(audiofile, 'wt') as f:
                     f.write('EXAMPLE')
-                return [info['filepath']], info
+                old_file = info['filepath']
+                info['filepath'] = audiofile
+                return [old_file], info
 
         def run_pp(params, PP):
             with open(filename, 'wt') as f:
