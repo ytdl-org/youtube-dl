@@ -2050,11 +2050,13 @@ class YoutubeDL(object):
                 self.report_error(e.msg)
             if files_to_delete and not self.params.get('keepvideo', False):
                 for old_filename in files_to_delete:
-                    self.to_screen('Deleting original file %s (pass -k to keep)' % old_filename)
-                    try:
-                        os.remove(encodeFilename(old_filename))
-                    except (IOError, OSError):
-                        self.report_warning('Unable to remove downloaded original file')
+                    # don't delete the processed file if it happens to be in the same format
+                    if old_filename != info['filepath']:
+                        self.to_screen('Deleting original file %s (pass -k to keep)' % old_filename)
+                        try:
+                            os.remove(encodeFilename(old_filename))
+                        except (IOError, OSError):
+                            self.report_warning('Unable to remove downloaded original file')
 
     def _make_archive_id(self, info_dict):
         # Future-proof against any change in case
