@@ -627,6 +627,16 @@ class TestYoutubeDL(unittest.TestCase):
         self.assertTrue(os.path.exists(audiofile), '%s doesn\'t exist' % audiofile)
         os.unlink(audiofile)
 
+        class SameFilePP(PostProcessor):
+            def run(self, info):
+                with open(info['filepath'], 'wt') as f:
+                    f.write('EXAMPLE')
+                return [info['filepath']], info
+
+        run_pp({'keepvideo': False}, SameFilePP)
+        self.assertTrue(os.path.exists(filename), '%s doesn\'t exist' % filename)
+        os.unlink(filename)
+
         class ModifierPP(PostProcessor):
             def run(self, info):
                 with open(info['filepath'], 'wt') as f:
