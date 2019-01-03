@@ -325,7 +325,8 @@ class FFmpegVideoConvertorPP(FFmpegPostProcessor):
 
     def run(self, information):
         path = information['filepath']
-        if information['ext'] == self._preferedformat:
+        # if the ext is the same and there are no additional postprocessor args
+        if information['ext'] == self._preferedformat and not self._configuration_args():
             self._downloader.to_screen('[ffmpeg] Not converting video file %s - already is in target format %s' % (path, self._preferedformat))
             return [], information
         options = []
