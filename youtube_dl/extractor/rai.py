@@ -71,13 +71,16 @@ class RaiBaseIE(InfoExtractor):
                 continue
 
             ext = determine_ext(media_url)
-            if (ext == 'm3u8' and platform != 'mon') or (ext == 'f4m' and platform != 'flash'):
+            if (ext in ['m3u8', 'mpd'] and platform != 'mon') or (ext == 'f4m' and platform != 'flash'):
                 continue
 
             if ext == 'm3u8':
                 formats.extend(self._extract_m3u8_formats(
                     media_url, video_id, 'mp4', 'm3u8_native',
                     m3u8_id='hls', fatal=False))
+            elif ext == 'mpd':
+                formats.extend(self._extract_mpd_formats(
+                    media_url, video_id, mpd_id='dash', fatal=False))
             elif ext == 'f4m':
                 manifest_url = update_url_query(
                     media_url.replace('manifest#live_hds.f4m', 'manifest.f4m'),
