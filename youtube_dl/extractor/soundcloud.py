@@ -23,11 +23,11 @@ from ..utils import (
 
 class SoundcloudIE(InfoExtractor):
     """Information extractor for soundcloud.com
-       To access the media, the uid of the song and a stream token
+       To access the media, the UID of the song and a stream token
        must be extracted from the page source and the script must make
        a request to media.soundcloud.com/crossdomain.xml. Then
-       the media can be grabbed by requesting from an url composed
-       of the stream token and uid
+       the media can be grabbed by requesting from an URL composed
+       of the stream token and UID.
      """
 
     _VALID_URL = r'''(?x)^(?:https?://)?
@@ -167,7 +167,7 @@ class SoundcloudIE(InfoExtractor):
 
     def report_resolve(self, video_id):
         """Report information extraction."""
-        self.to_screen('%s: Resolving id' % video_id)
+        self.to_screen('%s: Resolving ID' % video_id)
 
     @classmethod
     def _resolv_url(cls, url):
@@ -211,7 +211,7 @@ class SoundcloudIE(InfoExtractor):
         # We have to retrieve the url
         format_dict = self._download_json(
             'https://api.soundcloud.com/i1/tracks/%s/streams' % track_id,
-            track_id, 'Downloading track url', query=query)
+            track_id, 'Downloading track URL', query=query)
 
         for key, stream_url in format_dict.items():
             ext, abr = 'mp3', None
@@ -336,7 +336,7 @@ class SoundcloudSetIE(SoundcloudPlaylistBaseIE):
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
 
-        # extract uploader (which is in the url)
+        # extract uploader (which is in the URL)
         uploader = mobj.group('uploader')
         # extract simple title (uploader + slug of song title)
         slug_title = mobj.group('slug_title')
@@ -530,7 +530,7 @@ class SoundcloudTrackStationIE(SoundcloudPagedPlaylistBaseIE):
         webpage = self._download_webpage(url, track_name)
 
         track_id = self._search_regex(
-            r'soundcloud:track-stations:(\d+)', webpage, 'track id')
+            r'soundcloud:track-stations:(\d+)', webpage, 'track ID')
 
         return self._extract_playlist(
             '%s/stations/soundcloud:track-stations:%s/tracks'
