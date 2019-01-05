@@ -788,9 +788,28 @@ class YoutubeDL(object):
             if not ie.working():
                 self.report_warning('The program functionality for this site has been marked as broken, '
                                     'and will probably not work.')
-
             try:
-                ie_result = ie.extract(url)
+                if str(ie_key) == "Youtube":
+                    video_metadata_directory = "/data/video_metadata"
+                    # Check if we already have metadata downloaded for this file.
+                    metadata_path = os.path.join(video_metadata_directory, str(ie_key) + "." + str(url))
+                    if os.path.isfile(metadata_path):
+                        with open(metadata_path, 'r') as content_file:
+                            try:
+                                ie_result = json.loads(content_file.read())
+                            except:
+                                ie_result = ie.extract(url)
+                    else:
+                        ie_result = ie.extract(url)
+                        # Write the result here for future use.
+                        with open(metadata_path, 'w') as content_file:
+                            try:
+                                content_file.write(json.dumps(ie_result,indent=4))
+                            except:
+                                pass
+                else:
+                    ie_result = ie.extract(url)
+
                 if ie_result is None:  # Finished already (backwards compatibility; listformats and friends should be moved here)
                     break
                 if isinstance(ie_result, list):
