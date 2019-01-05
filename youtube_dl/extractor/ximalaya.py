@@ -106,15 +106,9 @@ class XimalayaIE(XimalayaBaseIE):
     ]
 
     def _real_extract(self, url):
-
-        is_m = 'm.ximalaya' in url
         scheme = 'https' if url.startswith('https') else 'http'
 
         audio_id = self._match_id(url)
-        webpage = self._download_webpage(url, audio_id,
-                                         note='Download sound page for %s' % audio_id,
-                                         errnote='Unable to get sound page')
-
         audio_info_file = '%s://m.ximalaya.com/tracks/%s.json' % (scheme, audio_id)
         audio_info = self._download_json(audio_info_file, audio_id,
                                          'Downloading info json %s' % audio_info_file,
@@ -140,20 +134,8 @@ class XimalayaIE(XimalayaBaseIE):
 
         audio_uploader_id = audio_info.get('uid')
 
-        if is_m:
-            audio_description = self._html_search_regex(r'(?s)<section\s+class=["\']content[^>]+>(.+?)</section>',
-                                                        webpage, 'audio_description', fatal=False)
-        else:
-            audio_description = self._html_search_regex(r'(?s)<div\s+class=["\']rich_intro[^>]*>(.+?</article>)',
-                                                        webpage, 'audio_description', fatal=False)
-
-        if not audio_description:
-            audio_description_file = '%s://www.ximalaya.com/sounds/%s/rich_intro' % (scheme, audio_id)
-            audio_description = self._download_webpage(audio_description_file, audio_id,
-                                                       note='Downloading description file %s' % audio_description_file,
-                                                       errnote='Unable to download descrip file',
-                                                       fatal=False)
-            audio_description = audio_description.strip() if audio_description else None
+        audio_description = audio_info.get('intro')
+        audio_description = audio_description.strip() if audio_description else None
 
         return {
             'id': audio_id,
@@ -171,63 +153,80 @@ class XimalayaIE(XimalayaBaseIE):
         }
 
 
-class XimalayaAlbumIE(XimalayaBaseIE):
+class XimalayaAlbumBaseIE(XimalayaBaseIE):
+    _TEMPLATE_URL = '%s://www.ximalaya.com/revision/play/album?albumId=%s&pageNum=%d'
+    _BASE_URL_TEMPL = '%s://www.ximalaya.com/%s/sound/%s/'
+
+    def _get_album_json(self, valid_url, url):
+        self.scheme = 'https' if url.startswith('https') else 'http'
+
+        mobj = re.match(valid_url, url)
+        album_id = mobj.group('album_id')
+
+        page_json = self._download_json(self._TEMPLATE_URL % (self.scheme, album_id, 1), album_id,
+                                        note='Download album page for %s' % album_id,
+                                        errnote='Unable to get album info')
+
+        title = page_json['data']['tracksAudioPlay'][0]['albumName']
+
+        return self.playlist_result(self._get_entries(page_json), album_id, title)
+
+    def _get_entries(self, page_json):
+        album_id = page_json['data']['albumId']
+
+        for page_num in itertools.count(1):
+            for entry in self._process_page(page_json['data']['tracksAudioPlay']):
+                yield entry
+
+            if not page_json['data']['hasMore']:
+                break
+
+            next_full_url = self._TEMPLATE_URL % (self.scheme, album_id, int(page_json['data']['pageNum']) + 1)
+            page_json = self._download_json(next_full_url, album_id)
+
+    def _process_page(self, tracks_json):
+        for s in tracks_json:
+            id = s['trackId']
+            anchorId = s['anchorId']
+            title = s['trackName']
+            url = self._BASE_URL_TEMPL % (self.scheme, anchorId, id)
+            yield self.url_result(url,
+                                  XimalayaIE.ie_key(),
+                                  id,
+                                  title)
+
+
+class XimalayaAlbumIE(XimalayaAlbumBaseIE):
     IE_NAME = 'ximalaya:album'
     IE_DESC = '喜马拉雅FM 专辑'
-    _VALID_URL = r'https?://(?:www\.|m\.)?ximalaya\.com/(?P<uid>[0-9]+)/album/(?P<id>[0-9]+)'
-    _TEMPLATE_URL = '%s://www.ximalaya.com/%s/album/%s/'
-    _BASE_URL_TEMPL = '%s://www.ximalaya.com%s'
-    _LIST_VIDEO_RE = r'<a[^>]+?href="(?P<url>/%s/sound/(?P<id>\d+)/?)"[^>]+?title="(?P<title>[^>]+)">'
+    _VALID_URL = r'https?://(?:www\.|m\.)?ximalaya\.com/(?P<catelog>[a-zA-Z]+)/(?P<album_id>[0-9]+)'
     _TESTS = [{
-        'url': 'http://www.ximalaya.com/61425525/album/5534601/',
+        'url': 'https://www.ximalaya.com/renwen/5534601/',
         'info_dict': {
             'title': '唐诗三百首（含赏析）',
             'id': '5534601',
         },
         'playlist_count': 312,
-    }, {
+    }
+    ]
+
+    def _real_extract(self, url):
+        return self._get_album_json(self._VALID_URL, url)
+
+
+class XimalayaAlbumMobileIE(XimalayaAlbumBaseIE):
+    IE_NAME = 'ximalaya:album_mobile'
+    IE_DESC = '喜马拉雅FM 专辑手机页面'
+    _VALID_URL = r'https?://(www\.|m\.)?ximalaya\.com/[0-9]+/album/(?P<album_id>[0-9]+)'
+    _TESTS = [{
         'url': 'http://m.ximalaya.com/61425525/album/5534601',
         'info_dict': {
             'title': '唐诗三百首（含赏析）',
             'id': '5534601',
         },
         'playlist_count': 312,
-    },
+    }
     ]
 
     def _real_extract(self, url):
-        self.scheme = scheme = 'https' if url.startswith('https') else 'http'
-
-        mobj = re.match(self._VALID_URL, url)
-        uid, playlist_id = mobj.group('uid'), mobj.group('id')
-
-        webpage = self._download_webpage(self._TEMPLATE_URL % (scheme, uid, playlist_id), playlist_id,
-                                         note='Download album page for %s' % playlist_id,
-                                         errnote='Unable to get album info')
-
-        title = self._html_search_regex(r'detailContent_title[^>]*><h1(?:[^>]+)?>([^<]+)</h1>',
-                                        webpage, 'title', fatal=False)
-
-        return self.playlist_result(self._entries(webpage, playlist_id, uid), playlist_id, title)
-
-    def _entries(self, page, playlist_id, uid):
-        html = page
-        for page_num in itertools.count(1):
-            for entry in self._process_page(html, uid):
-                yield entry
-
-            next_url = self._search_regex(r'<a\s+href=(["\'])(?P<more>[\S]+)\1[^>]+rel=(["\'])next\3',
-                                          html, 'list_next_url', default=None, group='more')
-            if not next_url:
-                break
-
-            next_full_url = self._BASE_URL_TEMPL % (self.scheme, next_url)
-            html = self._download_webpage(next_full_url, playlist_id)
-
-    def _process_page(self, html, uid):
-        find_from = html.index('album_soundlist')
-        for mobj in re.finditer(self._LIST_VIDEO_RE % uid, html[find_from:]):
-            yield self.url_result(self._BASE_URL_TEMPL % (self.scheme, mobj.group('url')),
-                                  XimalayaIE.ie_key(),
-                                  mobj.group('id'),
-                                  mobj.group('title'))
+        return self._get_album_json(self._VALID_URL, url)
