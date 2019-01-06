@@ -81,7 +81,7 @@ class GramofonOnlineIE(InfoExtractor):
 
 
 class GramofonOnlinePlaylistIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:www\.)?gramofononline\.hu(?:/hu|/en|/de)?(?:/index.php?.*playradio)?'
+    _VALID_URL = r'https?://(?:www\.)?gramofononline\.hu(?:/(?:hu/|en/|de/)?(?:index.php?.*playradio.*)?)?$'
 
     _TESTS = [{
         'url': 'https://gramofononline.hu',
