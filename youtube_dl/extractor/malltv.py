@@ -9,57 +9,47 @@ class MallTVIE(InfoExtractor):
     _VALID_URL = r'https?://(?:www\.)?mall\.tv/(?:.+/)?(?P<id>.+)'
     _TESTS = [
         {
-            'url': ('https://www.mall.tv/18-miliard-pro-neziskovky'
-                    '-opravdu-jsou-sportovci-nebo-clovek-v-tisni-pijavice'),
-            'md5': '5235290504d20a27a19dd3915b1167b4',
+            'url': ('https://www.mall.tv/18-miliard-pro-neziskovky-opravdu-jsou-sportovci-nebo-clovek-v-tisni-pijavice'),
             'info_dict': {
-                'id': ('18-miliard-pro-neziskovky-opravdu-jsou-sportovci-nebo-'
-                       'clovek-v-tisni-pijavice'),
+                'id': ('18-miliard-pro-neziskovky-opravdu-jsou-sportovci-nebo-clovek-v-tisni-pijavice'),
                 'ext': 'mp4',
-                'title': ('18 miliard pro neziskovky. Opravdu jsou sportovci '
-                          'nebo Člověk v tísni pijavice?'),
+                'title': ('18 miliard pro neziskovky. Opravdu jsou sportovci nebo Člověk v tísni pijavice?'),
                 'description': ('Pokud někdo hospodaří s penězmi daňových '
                                 'poplatníků, pak logicky chceme vědět, jak s '
                                 'nimi nakládá. Objem dotací pro neziskovky '
                                 'roste, ale opravdu jsou tyto organizace '
                                 '„pijavice", jak o nich hovoří And')
                 },
+            'params': {
+                'skip_download': True
+            }
         },
         {
-            'url': ('https://www.mall.tv/kdo-to-plati/18-miliard-pro-neziskovky'
-                    '-opravdu-jsou-sportovci-nebo-clovek-v-tisni-pijavice'),
-            'md5': '5235290504d20a27a19dd3915b1167b4',
+            'url': ('https://www.mall.tv/kdo-to-plati/18-miliard-pro-neziskovky-opravdu-jsou-sportovci-nebo-clovek-v-tisni-pijavice'),
             'info_dict': {
-                'id': ('18-miliard-pro-neziskovky-opravdu-jsou-sportovci-nebo-'
-                       'clovek-v-tisni-pijavice'),
+                'id': ('18-miliard-pro-neziskovky-opravdu-jsou-sportovci-nebo-clovek-v-tisni-pijavice'),
                 'ext': 'mp4',
-                'title': ('18 miliard pro neziskovky. Opravdu jsou sportovci '
-                          'nebo Člověk v tísni pijavice?'),
+                'title': ('18 miliard pro neziskovky. Opravdu jsou sportovci nebo Člověk v tísni pijavice?'),
                 'description': ('Pokud někdo hospodaří s penězmi daňových '
                                 'poplatníků, pak logicky chceme vědět, jak s '
                                 'nimi nakládá. Objem dotací pro neziskovky '
                                 'roste, ale opravdu jsou tyto organizace '
                                 '„pijavice", jak o nich hovoří And')
-                }
+                },
+            'params': {
+                'skip_download': True
+            }
         },
     ]
 
     def _real_extract(self, url):
         video_id = self._match_id(url)
         webpage = self._download_webpage(url, video_id)
-        JSON_LD_RE = (r'(?is)<script[^>]+type=([\"\'])?application/ld\+json>.*'
-                      '(?P<json_ld>{.+}).*</script>')
-        json_ld = self._search_regex(JSON_LD_RE, webpage, 'JSON_LD',
-                                     group='json_ld')
-        if not json_ld:
-            info = {}
-        else:
-            info = self._json_ld(json_ld, video_id)
+        info = self._search_json_ld(webpage, video_id, default={})
 
         format_url = self._html_search_regex(
-            r'<source src=([\"\'])?(.+index)\s',
-            webpage,
-            'm3u8 URL')
+            r'<source src=([\"\'])?(?P<src>.+?index)\1?[^>]*?>',
+            webpage, 'm3u8 URL', group='src')
         formats = self._extract_m3u8_formats(format_url+'.m3u8',
                                              video_id, 'mp4')
         self._sort_formats(formats)
