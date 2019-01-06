@@ -439,7 +439,10 @@ from .googleplus import GooglePlusIE
 from .googlesearch import GoogleSearchIE
 from .goshgay import GoshgayIE
 from .gputechconf import GPUTechConfIE
-from .gramofononline import GramofonOnlineIE
+from .gramofononline import (
+    GramofonOnlineIE,
+    GramofonOnlinePlaylistIE,
+)
 from .groupon import GrouponIE
 from .hark import HarkIE
 from .hbo import (
