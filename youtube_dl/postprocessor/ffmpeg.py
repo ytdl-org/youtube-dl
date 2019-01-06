@@ -384,9 +384,8 @@ class FFmpegEmbedSubtitlePP(FFmpegPostProcessor):
             opts += ['-c:s', 'mov_text']
         for (i, lang) in enumerate(sub_langs):
             opts.extend(['-map', '%d:0' % (i + 1)])
-            lang_code = ISO639Utils.short2long(lang)
-            if lang_code is not None:
-                opts.extend(['-metadata:s:s:%d' % i, 'language=%s' % lang_code])
+            lang_code = ISO639Utils.short2long(lang) or lang
+            opts.extend(['-metadata:s:s:%d' % i, 'language=%s' % lang_code])
 
         temp_filename = prepend_extension(filename, 'temp')
         self._downloader.to_screen('[ffmpeg] Embedding subtitles in \'%s\'' % filename)
