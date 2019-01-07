@@ -469,6 +469,7 @@ from .hrti import (
 )
 from .huajiao import HuajiaoIE
 from .huffpost import HuffPostIE
+from .hungama import HungamaIE
 from .hypem import HypemIE
 from .iconosquare import IconosquareIE
 from .ign import (
