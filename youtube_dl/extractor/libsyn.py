@@ -44,7 +44,8 @@ class LibsynIE(InfoExtractor):
         webpage = self._download_webpage(url, video_id)
 
         podcast_title = self._search_regex(
-            r'<h3>([^<]+)</h3>', webpage, 'podcast title', default=None)
+            r'(?:<div class="[^"]*podcast-title[^"]*">|<h3>)([^<]+)<', webpage,
+            'podcast title', default=None, flags=re.MULTILINE)
         if podcast_title:
             podcast_title = podcast_title.strip()
         episode_title = self._search_regex(
