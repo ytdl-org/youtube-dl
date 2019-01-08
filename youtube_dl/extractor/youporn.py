@@ -68,13 +68,7 @@ class YouPornIE(InfoExtractor):
         request.add_header('Cookie', 'age_verified=1')
         webpage = self._download_webpage(request, display_id)
 
-        title = self._search_regex([
-                r'[=:]\s*(["\'])video[\._-]titles?\1[^>]*>\s*<\s*h1[^>]+class=["\']heading\d?["\'][^>]*>(?P<title>[^<]+)<',
-                r'(?:video_titles|videoTitle)\s*[:=]\s*(["\'])(?P<title>(?:(?!\1).)+)\1',
-                #r'<h1[^>]+class=["\']heading\d?["\'][^>]*>(?P<title>[^<]+)<',
-            ], webpage, 'title', group='title', default=None) \
-            or self._og_search_title(webpage, default=None) \
-            or self._html_search_meta('title', webpage, fatal=True)
+        title = self._og_search_title(webpage, default=None) or self._html_search_meta('title', webpage, fatal=True)
 
         links = []
 
