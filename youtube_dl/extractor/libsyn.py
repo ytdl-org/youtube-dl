@@ -58,6 +58,9 @@ class LibsynIE(InfoExtractor):
         description = self._html_search_regex(
             r'<p\s+id="info_text_body">(.+?)</p>', webpage,
             'description', default=None)
+        if not description:
+            details = self._download_json('https://html5-player.libsyn.com/embed/getitemdetails?item_id=' + video_id, video_id)
+            description = self._html_search_regex(r'<p>(.+?)</p>', details.get('item_body'), 'description', default=None)
         if description:
             # Strip non-breaking and normal spaces
             description = description.replace('\u00A0', ' ').strip()
