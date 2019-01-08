@@ -48,7 +48,7 @@ class LibsynIE(InfoExtractor):
         if podcast_title:
             podcast_title = podcast_title.strip()
         episode_title = self._search_regex(
-            r'(?:<div class="episode-title">|<h4>)([^<]+)</', webpage, 'episode title')
+            r'(?:<div class="[^"]*episode-title[^"]*">|<h4>)([^<]+)</', webpage, 'episode title')
         if episode_title:
             episode_title = episode_title.strip()
 
