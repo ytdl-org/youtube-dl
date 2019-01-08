@@ -61,7 +61,7 @@ class LibsynIE(InfoExtractor):
             # Strip non-breaking and normal spaces
             description = description.replace('\u00A0', ' ').strip()
 
-        data_json = self._search_regex(r'var\s+playlistItem\s*=\s*(\{.*?\});\n', webpage, 'JSON data block')
+        data_json = self._search_regex(r'var\s+playlistItem\s*=\s*(\{.*?\});', webpage, 'JSON data block')
         data = json.loads(data_json)
 
         formats = [{
