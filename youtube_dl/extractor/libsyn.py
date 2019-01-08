@@ -60,8 +60,6 @@ class LibsynIE(InfoExtractor):
         if description:
             # Strip non-breaking and normal spaces
             description = description.replace('\u00A0', ' ').strip()
-        release_date = unified_strdate(self._search_regex(
-            r'<div class="release_date">Released: ([^<]+)<', webpage, 'release date', fatal=False))
 
         data_json = self._search_regex(r'var\s+playlistItem\s*=\s*(\{.*?\});\n', webpage, 'JSON data block')
         data = json.loads(data_json)
@@ -75,6 +73,7 @@ class LibsynIE(InfoExtractor):
         }]
         thumbnail = data.get('thumbnail_url')
         duration = parse_duration(data.get('duration'))
+        release_date = unified_strdate(data['release_date'])
 
         return {
             'id': video_id,
