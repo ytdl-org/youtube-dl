@@ -48,7 +48,7 @@ class DTubeIE(InfoExtractor):
         def canonical_url(h):
             if not h:
                 return None
-            return 'https://ipfs.io/ipfs/' + h
+            return 'https://video.dtube.top/ipfs/' + h
 
         formats = []
         for q in ('240', '480', '720', '1080', ''):
