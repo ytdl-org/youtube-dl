@@ -1239,11 +1239,14 @@ class InfoExtractor(object):
                 if expected_type is not None and expected_type != item_type:
                     return info
                 if item_type in ('TVEpisode', 'Episode'):
+                    episode_name = unescapeHTML(e.get('name'))
                     info.update({
-                        'episode': unescapeHTML(e.get('name')),
+                        'episode': episode_name,
                         'episode_number': int_or_none(e.get('episodeNumber')),
                         'description': unescapeHTML(e.get('description')),
                     })
+                    if not info.get('title') and episode_name:
+                        info['title'] = episode_name
                     part_of_season = e.get('partOfSeason')
                     if isinstance(part_of_season, dict) and part_of_season.get('@type') in ('TVSeason', 'Season', 'CreativeWorkSeason'):
                         info['season_number'] = int_or_none(part_of_season.get('seasonNumber'))
