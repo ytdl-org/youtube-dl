@@ -1067,6 +1067,7 @@ class YoutubeDL(object):
                 '^=': lambda attr, value: attr.startswith(value),
                 '$=': lambda attr, value: attr.endswith(value),
                 '*=': lambda attr, value: value in attr,
+                '*!': lambda attr, value: value not in attr,
             }
             str_operator_rex = re.compile(r'''(?x)
                 \s*(?P<key>ext|acodec|vcodec|container|protocol|format_id)
