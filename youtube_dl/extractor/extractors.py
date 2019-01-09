@@ -411,6 +411,7 @@ from .funk import (
 from .funnyordie import FunnyOrDieIE
 from .fusion import FusionIE
 from .fxnetworks import FXNetworksIE
+from .gaia import GaiaIE
 from .gameinformer import GameInformerIE
 from .gameone import (
     GameOneIE,
