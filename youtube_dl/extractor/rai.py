@@ -1,3 +1,4 @@
+# coding: utf-8
 from __future__ import unicode_literals
 
 import re
@@ -125,16 +126,15 @@ class RaiPlayIE(RaiBaseIE):
     _VALID_URL = r'(?P<url>https?://(?:www\.)?raiplay\.it/.+?-(?P<id>%s)\.html)' % RaiBaseIE._UUID_RE
     _TESTS = [{
         'url': 'http://www.raiplay.it/video/2016/10/La-Casa-Bianca-e06118bb-59a9-4636-b914-498e4cfd2c66.html?source=twitter',
-        'md5': '340aa3b7afb54bfd14a8c11786450d76',
+        'md5': '070dff592600bf065b7829984569644b',
         'info_dict': {
             'id': 'e06118bb-59a9-4636-b914-498e4cfd2c66',
             'ext': 'mp4',
             'title': 'La Casa Bianca',
-            'alt_title': 'S2016 - Puntata del 23/10/2016',
+            'alt_title': 'St2016 - Puntata del 23/10/2016',
             'description': 'md5:a09d45890850458077d1f68bb036e0a5',
             'thumbnail': r're:^https?://.*\.jpg$',
             'uploader': 'Rai 3',
-            'creator': 'Rai 3',
             'duration': 3278,
             'timestamp': 1477764300,
             'upload_date': '20161029',
@@ -143,19 +143,20 @@ class RaiPlayIE(RaiBaseIE):
         },
     }, {
         'url': 'http://www.raiplay.it/video/2014/04/Report-del-07042014-cb27157f-9dd0-4aee-b788-b1f67643a391.html',
-        'md5': '8970abf8caf8aef4696e7b1f2adfc696',
+        'md5': 'bffcba071ebcb2b90418ca71f636d989',
         'info_dict': {
             'id': 'cb27157f-9dd0-4aee-b788-b1f67643a391',
             'ext': 'mp4',
             'title': 'Report del 07/04/2014',
-            'alt_title': 'S2013/14 - Puntata del 07/04/2014',
-            'description': 'md5:f27c544694cacb46a078db84ec35d2d9',
+            'alt_title': 'St2013/14 - Espresso nel caffè - 07/04/2014',
+            'description': 'md5:d730c168a58f4bb35600fc2f881ec04e',
             'thumbnail': r're:^https?://.*\.jpg$',
-            'uploader': 'Rai 5',
-            'creator': 'Rai 5',
+            'uploader': 'Rai Gulp',
             'duration': 6160,
+            'upload_date': '20100101',
+            'timestamp': 1262304000,
             'series': 'Report',
-            'season_number': 5,
+            'season_number': 7,
             'season': '2013/14',
         },
         'params': {
@@ -228,6 +229,8 @@ class RaiPlayLiveIE(RaiBaseIE):
             'description': 'md5:6eca31500550f9376819f174e5644754',
             'uploader': 'Rai News 24',
             'creator': 'Rai News 24',
+            'upload_date': '20100101',
+            'timestamp': 1262304000,
             'is_live': True,
         },
         'params': {
@@ -260,9 +263,9 @@ class RaiPlayPlaylistIE(InfoExtractor):
         'info_dict': {
             'id': 'nondirloalmiocapo',
             'title': 'Non dirlo al mio capo',
-            'description': 'md5:9f3d603b2947c1c7abb098f3b14fac86',
+            'description': 'md5:98ab6b98f7f44c2843fd7d6f045f153b',
         },
-        'playlist_mincount': 12,
+        'playlist_mincount': 11,
     }]
 
     def _real_extract(self, url):
@@ -316,7 +319,7 @@ class RaiIE(RaiBaseIE):
     }, {
         # with ContentItem in og:url
         'url': 'http://www.rai.it/dl/RaiTV/programmi/media/ContentItem-efb17665-691c-45d5-a60c-5301333cbb0c.html',
-        'md5': '11959b4e44fa74de47011b5799490adf',
+        'md5': '6865dd00cf0bbf5772fdd89d59bd768a',
         'info_dict': {
             'id': 'efb17665-691c-45d5-a60c-5301333cbb0c',
             'ext': 'mp4',
@@ -329,7 +332,7 @@ class RaiIE(RaiBaseIE):
     }, {
         # drawMediaRaiTV(...)
         'url': 'http://www.report.rai.it/dl/Report/puntata/ContentItem-0c7a664b-d0f4-4b2c-8835-3f82e46f433e.html',
-        'md5': '2dd727e61114e1ee9c47f0da6914e178',
+        'md5': '8e1aabe6f632ee7209369ad607242562',
         'info_dict': {
             'id': '59d69d28-6bb6-409d-a4b5-ed44096560af',
             'ext': 'mp4',
