@@ -15,7 +15,7 @@ from ..utils import (
 
 
 class PlayPlusTVIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:www\.)?playplus\.tv/VOD/(?P<project_id>[0-9]+)/(?P<id>[0-9a-f]{32})'
+    _VALID_URL = r'https?://(?:www\.)?playplus\.(?:com|tv)/VOD/(?P<project_id>[0-9]+)/(?P<id>[0-9a-f]{32})'
     _TEST = {
         'url': 'https://www.playplus.tv/VOD/7572/db8d274a5163424e967f35a30ddafb8e',
         'md5': 'd078cb89d7ab6b9df37ce23c647aef72',
