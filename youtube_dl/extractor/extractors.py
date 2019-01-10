@@ -829,6 +829,7 @@ from .orf import (
     ORFOE1IE,
     ORFIPTVIE,
 )
+from .outsidetv import OutsideTVIE
 from .packtpub import (
     PacktPubIE,
     PacktPubCourseIE,
