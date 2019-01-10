@@ -1,4 +1,4 @@
-version <unreleased>
+version 2019.01.10
 
 Core
 * [extractor/common] Use episode name as title in _json_ld
