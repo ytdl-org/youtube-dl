@@ -1,3 +1,29 @@
+version <unreleased>
+
+Core
+* [extractor/common] Use episode name as title in _json_ld
++ [extractor/common] Add support for movies in _json_ld
+* [postprocessor/ffmpeg] Embed subtitles with non-standard language codes
+  (#18765)
++ [utils] Add language codes replaced in 1989 revision of ISO 639
+  to ISO639Utils (#18765)
+
+Extractors
+* [youtube] Extract live HLS URL from player response (#18799)
++ [outsidetv] Add support for outsidetv.com (#18774)
+* [jwplatform] Use JW Platform Delivery API V2 and add support for more URLs
++ [fox] Add support National Geographic (#17985, #15333, #14698)
++ [playplustv] Add support for playplus.tv (#18789)
+* [globo] Set GLBID cookie manually (#17346)
++ [gaia] Add support for gaia.com (#14605)
+* [youporn] Fix title and description extraction (#18748)
++ [hungama] Add support for hungama.com (#17402, #18771)
+* [dtube] Fix extraction (#18741)
+* [tvnow] Fix and rework extractors and prepare for a switch to the new API
+  (#17245, #18499)
+* [carambatv:page] Fix extraction (#18739)
+
+
 version 2019.01.02
 
 Extractors
