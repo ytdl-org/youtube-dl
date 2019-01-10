@@ -667,7 +667,7 @@ The following numeric meta fields can be used with comparisons `<`, `<=`, `>`, `
  - `asr`: Audio sampling rate in Hertz
  - `fps`: Frame rate
 
-Also filtering work for comparisons `=` (equals), `!=` (not equals), `^=` (begins with), `$=` (ends with), `*=` (contains) and following string meta fields:
+Also filtering work for comparisons `=` (equals), `!=` (not equals), `^=` (begins with), `$=` (ends with), `*=` (contains), `*!` (does not contain) and following string meta fields:
  - `ext`: File extension
  - `acodec`: Name of the audio codec in use
  - `vcodec`: Name of the video codec in use
