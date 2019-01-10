@@ -687,11 +687,7 @@ from .myvi import (
     MyviEmbedIE,
 )
 from .myvidster import MyVidsterIE
-from .nationalgeographic import (
-    NationalGeographicVideoIE,
-    NationalGeographicIE,
-    NationalGeographicEpisodeGuideIE,
-)
+from .nationalgeographic import NationalGeographicVideoIE
 from .naver import NaverIE
 from .nba import NBAIE
 from .nbc import (
