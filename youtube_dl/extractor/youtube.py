@@ -1931,31 +1931,38 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                         'http_chunk_size': 10485760,
                     }
                 formats.append(dct)
-        elif video_info.get('hlsvp'):
-            manifest_url = video_info['hlsvp'][0]
-            formats = []
-            m3u8_formats = self._extract_m3u8_formats(
-                manifest_url, video_id, 'mp4', fatal=False)
-            for a_format in m3u8_formats:
-                itag = self._search_regex(
-                    r'/itag/(\d+)/', a_format['url'], 'itag', default=None)
-                if itag:
-                    a_format['format_id'] = itag
-                    if itag in self._formats:
-                        dct = self._formats[itag].copy()
-                        dct.update(a_format)
-                        a_format = dct
-                a_format['player_url'] = player_url
-                # Accept-Encoding header causes failures in live streams on Youtube and Youtube Gaming
-                a_format.setdefault('http_headers', {})['Youtubedl-no-compression'] = 'True'
-                formats.append(a_format)
         else:
-            error_message = clean_html(video_info.get('reason', [None])[0])
-            if not error_message:
-                error_message = extract_unavailable_message()
-            if error_message:
-                raise ExtractorError(error_message, expected=True)
-            raise ExtractorError('no conn, hlsvp or url_encoded_fmt_stream_map information found in video info')
+            manifest_url = (
+                url_or_none(try_get(
+                    player_response,
+                    lambda x: x['streamingData']['hlsManifestUrl'],
+                    compat_str)) or
+                url_or_none(try_get(
+                    video_info, lambda x: x['hlsvp'][0], compat_str)))
+            if manifest_url:
+                formats = []
+                m3u8_formats = self._extract_m3u8_formats(
+                    manifest_url, video_id, 'mp4', fatal=False)
+                for a_format in m3u8_formats:
+                    itag = self._search_regex(
+                        r'/itag/(\d+)/', a_format['url'], 'itag', default=None)
+                    if itag:
+                        a_format['format_id'] = itag
+                        if itag in self._formats:
+                            dct = self._formats[itag].copy()
+                            dct.update(a_format)
+                            a_format = dct
+                    a_format['player_url'] = player_url
+                    # Accept-Encoding header causes failures in live streams on Youtube and Youtube Gaming
+                    a_format.setdefault('http_headers', {})['Youtubedl-no-compression'] = 'True'
+                    formats.append(a_format)
+            else:
+                error_message = clean_html(video_info.get('reason', [None])[0])
+                if not error_message:
+                    error_message = extract_unavailable_message()
+                if error_message:
+                    raise ExtractorError(error_message, expected=True)
+                raise ExtractorError('no conn, hlsvp, hlsManifestUrl or url_encoded_fmt_stream_map information found in video info')
 
         # uploader
         video_uploader = try_get(
