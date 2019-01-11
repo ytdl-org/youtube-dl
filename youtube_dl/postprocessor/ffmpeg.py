@@ -83,8 +83,8 @@ class FFmpegPostProcessor(PostProcessor):
             ver = get_exe_version(path, args=['-version'])
             if ver:
                 regexs = [
-                    r'([0-9.]+)-0ubuntu0\.[0-9.]+$', # Ubuntu
-                    r'n([0-9.]+)$', # Arch Linux
+                    r'([0-9.]+)-0ubuntu0\.[0-9.]+$',  # Ubuntu
+                    r'n([0-9.]+)$',  # Arch Linux
                 ]
                 for regex in regexs:
                     mobj = re.match(regex, ver)
