@@ -5,6 +5,9 @@ import re
 
 from .turner import TurnerBaseIE
 
+from ..utils import (
+    int_or_none,
+)
 
 class CartoonNetworkIE(TurnerBaseIE):
     _VALID_URL = r'https?://(?:www\.)?cartoonnetwork\.com/video/(?:[^/]+/)+(?P<id>[^/?#]+)-(?:clip|episode)\.html'
@@ -28,6 +31,10 @@ class CartoonNetworkIE(TurnerBaseIE):
         video_id = self._html_search_regex(r'[^>]+.mediaId = "(.+?)"', webpage, 'video_id')	
         title = self._html_search_regex(r'[^>]+.episodeTitle = "(.+?)"', webpage, 'title')
         description = self._html_search_regex(r'[^>]+description[^>]*>(.+?)<', webpage, 'description', default=None)
+        propertyName = self._html_search_regex(r'[^>]+.propertyName = "(.+?)"', webpage, 'propertyName', default=None)
+        seriesId = self._html_search_regex(r'[^>]+.seriesId = "(.+?)"', webpage, 'seriesId', default=None)
+        seasonNumber = self._html_search_regex(r'[^>]+.seasonNumber = "(.+?)"', webpage, 'seasonNumber', default=None)
+        episodeNumber = self._html_search_regex(r'[^>]+.episodeNumber = "(.+?)"', webpage, 'episodeNumber', default=None)
         info = self._extract_ngtv_info(
             video_id,
             {'networkId': 'cartoonnetwork'},
@@ -43,5 +50,9 @@ class CartoonNetworkIE(TurnerBaseIE):
             'id': video_id,
             'title': title,
             'description': description,
+            'series': propertyName,
+            'season_number': int_or_none(seasonNumber),
+            'season_id': int_or_none(seriesId),
+            'episode_number': int_or_none(episodeNumber),
         })
         return info
