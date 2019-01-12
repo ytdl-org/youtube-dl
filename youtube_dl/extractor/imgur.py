@@ -20,6 +20,7 @@ class ImgurIE(InfoExtractor):
             'id': 'A61SaA1',
             'ext': 'mp4',
             'title': 're:Imgur GIF$|MRW gifv is up and running without any bugs$',
+            'description': 're:\d+ views on Imgur',
         },
     }, {
         'url': 'https://imgur.com/A61SaA1',
@@ -27,6 +28,27 @@ class ImgurIE(InfoExtractor):
     }, {
         'url': 'https://i.imgur.com/crGpqCV.mp4',
         'only_matching': True,
+    }, {
+        'url': 'https://i.imgur.com/izwXDmU.png',
+        'md5': '6ae4cd4d3ffb9bbdca2d5ddc42aae2d3',
+        'info_dict': {
+            'id': 'izwXDmU',
+            'ext': 'png',
+            'title': 'IT IS!',
+            'description': 'md5:804be704ef3cb8415388c50f32717642'
+        }
+    }, {
+        'url': 'https://imgur.com/izwXDmU',
+        'only_matching': True
+    }, {
+        'url': 'https://i.imgur.com/2ixBxKK.jpg',
+        'md5': 'fa0c3284c3acc6f91ce376f170556da8',
+        'info_dict': {
+            'id': '2ixBxKK',
+            'ext': 'jpg',
+            'title': 'Ye be warned!',
+            'description': 'md5:eaae51de310374fd4dfd136cd1cd1367'
+        }
     }]
 
     def _real_extract(self, url):
@@ -42,45 +64,59 @@ class ImgurIE(InfoExtractor):
         video_elements = self._search_regex(
             r'(?s)<div class="video-elements">(.*?)</div>',
             webpage, 'video elements', default=None)
-        if not video_elements:
-            raise ExtractorError(
-                'No sources found for video %s. Maybe an image?' % video_id,
-                expected=True)
-
         formats = []
-        for m in re.finditer(r'<source\s+src="(?P<src>[^"]+)"\s+type="(?P<type>[^"]+)"', video_elements):
+        if not video_elements:
+            # It's probably an image
+            width = int_or_none(self._og_search_property("image:width", webpage, default=None))
+            height = int_or_none(self._og_search_property("image:height", webpage, default=None))
+            if width is None or height is None:
+                raise ExtractorError('No image dimensions found for %s' % video_id)
+            url = self._search_regex(r'<img src="([^"]+)".*itemprop="contentURL" \/>', webpage, "image url")
             formats.append({
-                'format_id': m.group('type').partition('/')[2],
-                'url': self._proto_relative_url(m.group('src')),
-                'ext': mimetype2ext(m.group('type')),
+                'format_id': url[-3:],
+                'url': url,
+                'ext': url[-3:],
                 'width': width,
                 'height': height,
                 'http_headers': {
                     'User-Agent': 'youtube-dl (like wget)',
                 },
+                'acodec': 'none'
             })
+        else:
+            for m in re.finditer(r'<source\s+src="(?P<src>[^"]+)"\s+type="(?P<type>[^"]+)"', video_elements):
+                formats.append({
+                    'format_id': m.group('type').partition('/')[2],
+                    'url': self._proto_relative_url(m.group('src')),
+                    'ext': mimetype2ext(m.group('type')),
+                    'width': width,
+                    'height': height,
+                    'http_headers': {
+                        'User-Agent': 'youtube-dl (like wget)',
+                    },
+                })
 
-        gif_json = self._search_regex(
-            r'(?s)var\s+videoItem\s*=\s*(\{.*?\})',
-            webpage, 'GIF code', fatal=False)
-        if gif_json:
-            gifd = self._parse_json(
-                gif_json, video_id, transform_source=js_to_json)
-            formats.append({
-                'format_id': 'gif',
-                'preference': -10,
-                'width': width,
-                'height': height,
-                'ext': 'gif',
-                'acodec': 'none',
-                'vcodec': 'gif',
-                'container': 'gif',
-                'url': self._proto_relative_url(gifd['gifUrl']),
-                'filesize': gifd.get('size'),
-                'http_headers': {
-                    'User-Agent': 'youtube-dl (like wget)',
-                },
-            })
+            gif_json = self._search_regex(
+                r'(?s)var\s+videoItem\s*=\s*(\{.*?\})',
+                webpage, 'GIF code', fatal=False)
+            if gif_json:
+                gifd = self._parse_json(
+                    gif_json, video_id, transform_source=js_to_json)
+                formats.append({
+                    'format_id': 'gif',
+                    'preference': -10,
+                    'width': width,
+                    'height': height,
+                    'ext': 'gif',
+                    'acodec': 'none',
+                    'vcodec': 'gif',
+                    'container': 'gif',
+                    'url': self._proto_relative_url(gifd['gifUrl']),
+                    'filesize': gifd.get('size'),
+                    'http_headers': {
+                        'User-Agent': 'youtube-dl (like wget)',
+                    },
+                })
 
         self._sort_formats(formats)
 
@@ -88,6 +124,7 @@ class ImgurIE(InfoExtractor):
             'id': video_id,
             'formats': formats,
             'title': self._og_search_title(webpage),
+            'description': self._og_search_description(webpage),
         }
 
 
@@ -111,6 +148,7 @@ class ImgurGalleryIE(InfoExtractor):
             'id': 'YcAQlkx',
             'ext': 'mp4',
             'title': 'Classic Steve Carell gif...cracks me up everytime....damn the repost downvotes....',
+            'description': 're:\d+ views and \d+ votes on Imgur',
         }
     }, {
         'url': 'http://imgur.com/topic/Funny/N8rOudd',
@@ -118,22 +156,28 @@ class ImgurGalleryIE(InfoExtractor):
     }, {
         'url': 'http://imgur.com/r/aww/VQcQPhM',
         'only_matching': True,
+    }, {
+        'url': 'https://imgur.com/gallery/j6Orj',
+        'info_dict': {
+            'id': 'j6Orj',
+            'title': 'A Literary Analysis of "Star Wars: The Force Awakens"',
+        },
+        'playlist_count': 12,
     }]
 
     def _real_extract(self, url):
         gallery_id = self._match_id(url)
 
-        data = self._download_json(
-            'https://imgur.com/gallery/%s.json' % gallery_id,
-            gallery_id)['data']['image']
+        data = self._download_webpage(url, gallery_id)
+        data = self._search_regex(r'item: (.*)\s*};', data, "gallery metadata")
+        data = self._parse_json(data, gallery_id)
 
         if data.get('is_album'):
             entries = [
-                self.url_result('http://imgur.com/%s' % image['hash'], ImgurIE.ie_key(), image['hash'])
+                self.url_result('https://imgur.com/%s' % image['hash'], ImgurIE.ie_key(), image['hash'])
                 for image in data['album_images']['images'] if image.get('hash')]
             return self.playlist_result(entries, gallery_id, data.get('title'), data.get('description'))
-
-        return self.url_result('http://imgur.com/%s' % gallery_id, ImgurIE.ie_key(), gallery_id)
+        return self.url_result('https://imgur.com/%s' % gallery_id, ImgurIE.ie_key(), gallery_id)
 
 
 class ImgurAlbumIE(ImgurGalleryIE):
@@ -147,4 +191,10 @@ class ImgurAlbumIE(ImgurGalleryIE):
             'title': 'A Literary Analysis of "Star Wars: The Force Awakens"',
         },
         'playlist_count': 12,
+    }, {
+        'url': 'https://imgur.com/a/hb4sS',
+        'info_dict': {
+            'id': 'hb4sS',
+        },
+        'playlist_count': 5,
     }]
