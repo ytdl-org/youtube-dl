@@ -3,6 +3,7 @@ from __future__ import unicode_literals
 
 import hashlib
 import re
+import json
 
 from .common import InfoExtractor
 from ..compat import (
@@ -25,7 +26,42 @@ from ..utils import (
 class BiliBiliIE(InfoExtractor):
     _VALID_URL = r'https?://(?:www\.|bangumi\.|)bilibili\.(?:tv|com)/(?:video/av|anime/(?P<anime_id>\d+)/play#)(?P<id>\d+)'
 
+    # url like:
+    # + https://www.bilibili.com/video/av28152675
+    # + https://www.bilibili.com/video/av28152675/?p=2
+    _VALID_MULTI_P_URL = r'https?://(?:www\.|bangumi\.|)bilibili\.(?:tv|com)/video/av(?P<id>\d+)(/\?p=(?P<p_id>\d+))?'
+
     _TESTS = [{
+        'url': 'https://www.bilibili.com/video/av28152675/?p=1',
+        'md5': '3d0af4158af2e628eb2fc2cad2390da2',
+        'info_dict': {
+            'id': '28152675_p1',
+            'ext': 'flv',
+            'title': '【2020宏观系列-Ray Dalio】 桥水 达里奥的观点汇总__RAY DALIO- US economy looks like 1937 and we need to be careful',
+            'description': 'YouTube2020宏观系列一代传奇桥水达里奥的观点汇总。1.美国经济就像1937年 US economy looks like 19372.有70%的概率2020前美国经济陷入衰退3.我们正处于一生一见的长债务周期末端持续补充',
+            'duration': 222.791,
+            'timestamp': 1533037003,
+            'upload_date': '20180731',
+            'thumbnail': r're:^https?://.+\.jpg',
+            'uploader': 'RaymondWarrior',
+            'uploader_id': '599478',
+        },
+    }, {
+        'url': 'https://www.bilibili.com/video/av28152675/?p=2',
+        'md5': '2ebe1cc8ed1ff74d6c0871b54369ec83',
+        'info_dict': {
+            'id': '28152675_p2',
+            'ext': 'flv',
+            'title': '【2020宏观系列-Ray Dalio】 桥水 达里奥的观点汇总__Ray Dalio- 70% Chance Of Recession By 2020',
+            'description': 'YouTube2020宏观系列一代传奇桥水达里奥的观点汇总。1.美国经济就像1937年 US economy looks like 19372.有70%的概率2020前美国经济陷入衰退3.我们正处于一生一见的长债务周期末端持续补充',
+            'duration': 237.481,
+            'timestamp': 1533037003,
+            'upload_date': '20180731',
+            'thumbnail': r're:^https?://.+\.jpg',
+            'uploader': 'RaymondWarrior',
+            'uploader_id': '599478',
+        },
+    }, {
         'url': 'http://www.bilibili.tv/video/av1074402/',
         'md5': '5f7d29e1a2872f3df0cf76b1f87d3788',
         'info_dict': {
@@ -104,24 +140,66 @@ class BiliBiliIE(InfoExtractor):
         else:
             raise ExtractorError('Can\'t extract Bangumi episode ID')
 
+    def _extract_pages_info(self, pages_array_json_str, page_id):
+        why_wrong_msg = "This may be caused by: 1. Your url is not correct.  " + \
+                        "2. Bilibili has change the format (someone needs to update this tool for the change.)"
+
+        try:
+            pages_array = json.loads(pages_array_json_str)
+        except Exception:
+            raise ExtractorError(
+                "Failed to parse \"pages\" info as JSON for your Bilibili url. " + why_wrong_msg
+            )
+
+        if not isinstance(pages_array, type([])):
+            raise ExtractorError(
+                "\"pages\" info JSON object is not an Array for your Bilibili url. " + why_wrong_msg
+            )
+        for page_obj in pages_array:
+            if not isinstance(page_obj, type({})):
+                raise ExtractorError(
+                    "\"page\" object in \"pages\" JSON Array is not an Map for your Bilibili url. " + why_wrong_msg
+                )
+            if page_id == str(page_obj["page"]):
+                return (page_obj["cid"], page_obj["part"])
+
+        raise ExtractorError(
+            "We can't find page {} in \"pages\" Object from your Bilibili url. ".format(page_id) + why_wrong_msg
+        )
+
     def _real_extract(self, url):
         url, smuggled_data = unsmuggle_url(url, {})
 
-        mobj = re.match(self._VALID_URL, url)
-        video_id = mobj.group('id')
-        anime_id = mobj.group('anime_id')
-        webpage = self._download_webpage(url, video_id)
-
+        page_name = None
         if 'anime/' not in url:
-            cid = self._search_regex(
-                r'\bcid(?:["\']:|=)(\d+)', webpage, 'cid',
-                default=None
-            ) or compat_parse_qs(self._search_regex(
-                [r'EmbedPlayer\([^)]+,\s*"([^"]+)"\)',
-                 r'EmbedPlayer\([^)]+,\s*\\"([^"]+)\\"\)',
-                 r'<iframe[^>]+src="https://secure\.bilibili\.com/secure,([^"]+)"'],
-                webpage, 'player parameters'))['cid'][0]
+            mobj = re.match(self._VALID_MULTI_P_URL, url)
+            video_id = mobj.group('id')
+            anime_id = None
+            page_id = mobj.group('p_id')
+            webpage = self._download_webpage(url, video_id)
+
+            if page_id is None:
+                cid = self._search_regex(
+                    r'\bcid(?:["\']:|=)(\d+)', webpage, 'cid',
+                    default=None
+                ) or compat_parse_qs(self._search_regex(
+                    [r'EmbedPlayer\([^)]+,\s*"([^"]+)"\)',
+                     r'EmbedPlayer\([^)]+,\s*\\"([^"]+)\\"\)',
+                     r'<iframe[^>]+src="https://secure\.bilibili\.com/secure,([^"]+)"'],
+                    webpage, 'player parameters'))['cid'][0]
+            else:
+                pages_array_json_str = self._search_regex(
+                    r'(?:"pages":)(\[[^\[\]]*\])', webpage, 'pages',
+                    default=None
+                )
+                (cid, page_name) = self._extract_pages_info(pages_array_json_str, page_id)
+
         else:
+            mobj = re.match(self._VALID_URL, url)
+            video_id = mobj.group('id')
+            anime_id = mobj.group('anime_id')
+            webpage = self._download_webpage(url, video_id)
+
             if 'no_bangumi_tip' not in smuggled_data:
                 self.to_screen('Downloading episode %s. To download all videos in anime %s, re-run youtube-dl with %s' % (
                     video_id, anime_id, compat_urlparse.urljoin(url, '//bangumi.bilibili.com/anime/%s' % anime_id)))
@@ -227,7 +305,11 @@ class BiliBiliIE(InfoExtractor):
             entry.update(info)
 
         if len(entries) == 1:
+            if page_name is not None:
+                entries[0]['id'] += "_p{}".format(page_id)
+                entries[0]['title'] += "__{}".format(page_name)
             return entries[0]
+
         else:
             for idx, entry in enumerate(entries):
                 entry['id'] = '%s_part%d' % (video_id, (idx + 1))
