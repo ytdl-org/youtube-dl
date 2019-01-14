@@ -458,8 +458,11 @@ class FacebookIE(InfoExtractor):
         thumbnail = self._og_search_thumbnail(webpage)
 
         view_count = parse_count(self._search_regex(
-            r'\bviewCount\s*:\s*["\']([\d,.]+)', webpage, 'view count',
-            default=None))
+            r'\bpostViewCount\s*:\s*["\']([\d,.]+)', webpage, 'view count',
+            default=None) or self._search_regex(
+            r'\"postViewCount\"\s*:\s*(\d+)', tahoe_secondary_data, 'view count',
+            default=None)
+        )
 
         info_dict = {
             'id': video_id,
