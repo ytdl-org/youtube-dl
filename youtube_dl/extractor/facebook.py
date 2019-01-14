@@ -442,7 +442,7 @@ class FacebookIE(InfoExtractor):
         uploader = clean_html(get_element_by_id(
             'fbPhotoPageAuthorName', webpage)) or self._search_regex(
             r'ownerName\s*:\s*"([^"]+)"', webpage, 'uploader',
-            fatal=False) or self._og_search_title(webpage, fatal=False, default=None) or self._search_regex(
+            fatal=False, default=None) or self._og_search_title(webpage, fatal=False, default=None) or self._search_regex(
             r'\"ownerName\":"(.*?)"', tahoe_secondary_data,
             'uploader_id')
         timestamp = int_or_none(self._search_regex(
