@@ -14,6 +14,7 @@ class YourPornIE(InfoExtractor):
             'ext': 'mp4',
             'title': 'md5:c9f43630bd968267672651ba905a7d35',
             'thumbnail': r're:^https?://.*\.jpg$',
+            'age_limit': 18
         },
     }
 
@@ -26,7 +27,7 @@ class YourPornIE(InfoExtractor):
             self._search_regex(
                 r'data-vnfo=(["\'])(?P<data>{.+?})\1', webpage, 'data info',
                 group='data'),
-            video_id)[video_id]).replace('/cdn/', '/cdn2/')
+            video_id)[video_id]).replace('/cdn/', '/cdn3/')
 
         title = (self._search_regex(
             r'<[^>]+\bclass=["\']PostEditTA[^>]+>([^<]+)', webpage, 'title',
@@ -38,4 +39,5 @@ class YourPornIE(InfoExtractor):
             'url': video_url,
             'title': title,
             'thumbnail': thumbnail,
+            'age_limit': 18
         }

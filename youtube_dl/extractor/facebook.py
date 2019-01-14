@@ -57,7 +57,8 @@ class FacebookIE(InfoExtractor):
     _CHROME_USER_AGENT = 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/48.0.2564.97 Safari/537.36'
 
     _VIDEO_PAGE_TEMPLATE = 'https://www.facebook.com/video/video.php?v=%s'
-    _VIDEO_PAGE_TAHOE_TEMPLATE = 'https://www.facebook.com/video/tahoe/async/%s/?chain=true&isvideo=true&payloadtype=primary'
+    _VIDEO_PAGE_TAHOE_TEMPLATE = 'https://www.facebook.com/video/tahoe/async/%s/?chain=true&isvideo=true&payloadtype=%s'
+
 
     _TESTS = [{
         'url': 'https://www.facebook.com/video.php?v=637842556329505&fref=nf',
@@ -222,6 +223,10 @@ class FacebookIE(InfoExtractor):
         'params': {
             'skip_download': True,
         },
+    }, {
+        # no timestamp
+        'url': 'https://www.facebook.com/ChickenShow1996/videos/2289288568020072/',
+        'only_matching': True,
     }]
 
     @staticmethod
@@ -339,6 +344,7 @@ class FacebookIE(InfoExtractor):
                 video_id, transform_source=js_to_json, fatal=False)
             video_data = extract_from_jsmods_instances(server_js_data)
 
+        tahoe_secondary_data = ''
         if not video_data:
             if not fatal_if_no_video:
                 return webpage, False
@@ -352,9 +358,7 @@ class FacebookIE(InfoExtractor):
 
             # Video info not in first request, do a secondary request using
             # tahoe player specific URL
-            tahoe_data = self._download_webpage(
-                self._VIDEO_PAGE_TAHOE_TEMPLATE % video_id, video_id,
-                data=urlencode_postdata({
+            tahoe_request_data = urlencode_postdata({
                     '__a': 1,
                     '__pc': self._search_regex(
                         r'pkg_cohort["\']\s*:\s*["\'](.+?)["\']', webpage,
@@ -365,15 +369,29 @@ class FacebookIE(InfoExtractor):
                     'fb_dtsg': self._search_regex(
                         r'"DTSGInitialData"\s*,\s*\[\]\s*,\s*{\s*"token"\s*:\s*"([^"]+)"',
                         webpage, 'dtsg token', default=''),
-                }),
-                headers={
-                    'Content-Type': 'application/x-www-form-urlencoded',
                 })
+            tahoe_request_headers = {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                }
+
+            tahoe_primary_data = self._download_webpage(
+                self._VIDEO_PAGE_TAHOE_TEMPLATE % (video_id, 'primary'), video_id,
+                data=tahoe_request_data,
+                headers=tahoe_request_headers
+            )
+
+            tahoe_secondary_data = self._download_webpage(
+                self._VIDEO_PAGE_TAHOE_TEMPLATE % (video_id, 'secondary'), video_id,
+                data=tahoe_request_data,
+                headers=tahoe_request_headers
+            )
+
             tahoe_js_data = self._parse_json(
                 self._search_regex(
-                    r'for\s+\(\s*;\s*;\s*\)\s*;(.+)', tahoe_data,
+                    r'for\s+\(\s*;\s*;\s*\)\s*;(.+)', tahoe_primary_data,
                     'tahoe js data', default='{}'),
                 video_id, fatal=False)
+
             video_data = extract_from_jsmods_instances(tahoe_js_data)
 
         if not video_data:
@@ -427,7 +445,10 @@ class FacebookIE(InfoExtractor):
             fatal=False) or self._og_search_title(webpage, fatal=False)
         timestamp = int_or_none(self._search_regex(
             r'<abbr[^>]+data-utime=["\'](\d+)', webpage,
+            'timestamp', default=None) or self._search_regex(
+            r'data-utime=\\\"(\d+)\\\"', tahoe_secondary_data,
             'timestamp', default=None))
+
         thumbnail = self._og_search_thumbnail(webpage)
 
         view_count = parse_count(self._search_regex(

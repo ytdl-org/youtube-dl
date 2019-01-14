@@ -2968,6 +2968,7 @@ class ISO639Utils(object):
         'gv': 'glv',
         'ha': 'hau',
         'he': 'heb',
+        'iw': 'heb',  # Replaced by he in 1989 revision
         'hi': 'hin',
         'ho': 'hmo',
         'hr': 'hrv',
@@ -2977,6 +2978,7 @@ class ISO639Utils(object):
         'hz': 'her',
         'ia': 'ina',
         'id': 'ind',
+        'in': 'ind',  # Replaced by id in 1989 revision
         'ie': 'ile',
         'ig': 'ibo',
         'ii': 'iii',
@@ -3091,6 +3093,7 @@ class ISO639Utils(object):
         'wo': 'wol',
         'xh': 'xho',
         'yi': 'yid',
+        'ji': 'yid',  # Replaced by yi in 1989 revision
         'yo': 'yor',
         'za': 'zha',
         'zh': 'zho',
