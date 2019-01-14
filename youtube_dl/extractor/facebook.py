@@ -461,6 +461,10 @@ class FacebookIE(InfoExtractor):
             r'\bpostViewCount\s*:\s*["\']([\d,.]+)', webpage, 'view count',
             default=None) or self._search_regex(
             r'\"postViewCount\"\s*:\s*(\d+)', tahoe_secondary_data, 'view count',
+            default=None) or self._search_regex(
+            r'\bviewCount\s*:\s*["\']([\d,.]+)', webpage, 'view count',
+            default=None) or self._search_regex(
+            r'\"viewCount\"\s*:\s*(\d+)', tahoe_secondary_data, 'view count',
             default=None)
         )
 
