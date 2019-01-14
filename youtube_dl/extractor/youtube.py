@@ -1077,6 +1077,11 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
             'url': 'https://invidio.us/watch?v=BaW_jenozKc',
             'only_matching': True,
         },
+        {
+            # DRM protected
+            'url': 'https://www.youtube.com/watch?v=s7_qI6_mIXc',
+            'only_matching': True,
+        }
     ]
 
     def __init__(self, *args, **kwargs):
@@ -1105,7 +1110,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
 
     def _extract_signature_function(self, video_id, player_url, example_sig):
         id_m = re.match(
-            r'.*?-(?P<id>[a-zA-Z0-9_-]+)(?:/watch_as3|/html5player(?:-new)?|(?:/[a-z]{2}_[A-Z]{2})?/base)?\.(?P<ext>[a-z]+)$',
+            r'.*?-(?P<id>[a-zA-Z0-9_-]+)(?:/watch_as3|/html5player(?:-new)?|(?:/[a-z]{2,3}_[A-Z]{2})?/base)?\.(?P<ext>[a-z]+)$',
             player_url)
         if not id_m:
             raise ExtractorError('Cannot identify player %r' % player_url)
@@ -1673,6 +1678,9 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                     '"token" parameter not in video info for unknown reason',
                     video_id=video_id)
 
+        if video_info.get('license_info'):
+            raise ExtractorError('This video is DRM protected.', expected=True)
+
         video_details = try_get(
             player_response, lambda x: x['videoDetails'], dict) or {}
 
@@ -1786,6 +1794,25 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                                 'height': int_or_none(width_height[1]),
                             }
             q = qualities(['small', 'medium', 'hd720'])
+            streaming_formats = try_get(player_response, lambda x: x['streamingData']['formats'], list)
+            if streaming_formats:
+                for fmt in streaming_formats:
+                    itag = str_or_none(fmt.get('itag'))
+                    if not itag:
+                        continue
+                    quality = fmt.get('quality')
+                    quality_label = fmt.get('qualityLabel') or quality
+                    formats_spec[itag] = {
+                        'asr': int_or_none(fmt.get('audioSampleRate')),
+                        'filesize': int_or_none(fmt.get('contentLength')),
+                        'format_note': quality_label,
+                        'fps': int_or_none(fmt.get('fps')),
+                        'height': int_or_none(fmt.get('height')),
+                        'quality': q(quality),
+                        # bitrate for itag 43 is always 2147483647
+                        'tbr': float_or_none(fmt.get('averageBitrate') or fmt.get('bitrate'), 1000) if itag != '43' else None,
+                        'width': int_or_none(fmt.get('width')),
+                    }
             formats = []
             for url_data_str in encoded_url_map.split(','):
                 url_data = compat_parse_qs(url_data_str)
@@ -1834,7 +1861,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                             else:
                                 player_version = self._search_regex(
                                     [r'html5player-([^/]+?)(?:/html5player(?:-new)?)?\.js',
-                                     r'(?:www|player)-([^/]+)(?:/[a-z]{2}_[A-Z]{2})?/base\.js'],
+                                     r'(?:www|player(?:_ias)?)-([^/]+)(?:/[a-z]{2,3}_[A-Z]{2})?/base\.js'],
                                     player_url,
                                     'html5 player', fatal=False)
                                 player_desc = 'html5 player %s' % player_version
@@ -1868,7 +1895,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                 filesize = int_or_none(url_data.get(
                     'clen', [None])[0]) or _extract_filesize(url)
 
-                quality = url_data.get('quality_label', [None])[0] or url_data.get('quality', [None])[0]
+                quality = url_data.get('quality', [None])[0]
 
                 more_fields = {
                     'filesize': filesize,
@@ -1876,7 +1903,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                     'width': width,
                     'height': height,
                     'fps': int_or_none(url_data.get('fps', [None])[0]),
-                    'format_note': quality,
+                    'format_note': url_data.get('quality_label', [None])[0] or quality,
                     'quality': q(quality),
                 }
                 for key, value in more_fields.items():
@@ -1904,31 +1931,38 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                         'http_chunk_size': 10485760,
                     }
                 formats.append(dct)
-        elif video_info.get('hlsvp'):
-            manifest_url = video_info['hlsvp'][0]
-            formats = []
-            m3u8_formats = self._extract_m3u8_formats(
-                manifest_url, video_id, 'mp4', fatal=False)
-            for a_format in m3u8_formats:
-                itag = self._search_regex(
-                    r'/itag/(\d+)/', a_format['url'], 'itag', default=None)
-                if itag:
-                    a_format['format_id'] = itag
-                    if itag in self._formats:
-                        dct = self._formats[itag].copy()
-                        dct.update(a_format)
-                        a_format = dct
-                a_format['player_url'] = player_url
-                # Accept-Encoding header causes failures in live streams on Youtube and Youtube Gaming
-                a_format.setdefault('http_headers', {})['Youtubedl-no-compression'] = 'True'
-                formats.append(a_format)
         else:
-            error_message = clean_html(video_info.get('reason', [None])[0])
-            if not error_message:
-                error_message = extract_unavailable_message()
-            if error_message:
-                raise ExtractorError(error_message, expected=True)
-            raise ExtractorError('no conn, hlsvp or url_encoded_fmt_stream_map information found in video info')
+            manifest_url = (
+                url_or_none(try_get(
+                    player_response,
+                    lambda x: x['streamingData']['hlsManifestUrl'],
+                    compat_str)) or
+                url_or_none(try_get(
+                    video_info, lambda x: x['hlsvp'][0], compat_str)))
+            if manifest_url:
+                formats = []
+                m3u8_formats = self._extract_m3u8_formats(
+                    manifest_url, video_id, 'mp4', fatal=False)
+                for a_format in m3u8_formats:
+                    itag = self._search_regex(
+                        r'/itag/(\d+)/', a_format['url'], 'itag', default=None)
+                    if itag:
+                        a_format['format_id'] = itag
+                        if itag in self._formats:
+                            dct = self._formats[itag].copy()
+                            dct.update(a_format)
+                            a_format = dct
+                    a_format['player_url'] = player_url
+                    # Accept-Encoding header causes failures in live streams on Youtube and Youtube Gaming
+                    a_format.setdefault('http_headers', {})['Youtubedl-no-compression'] = 'True'
+                    formats.append(a_format)
+            else:
+                error_message = clean_html(video_info.get('reason', [None])[0])
+                if not error_message:
+                    error_message = extract_unavailable_message()
+                if error_message:
+                    raise ExtractorError(error_message, expected=True)
+                raise ExtractorError('no conn, hlsvp, hlsManifestUrl or url_encoded_fmt_stream_map information found in video info')
 
         # uploader
         video_uploader = try_get(
@@ -2016,7 +2050,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
             r'<div[^>]+id="watch7-headline"[^>]*>\s*<span[^>]*>.*?>(?P<series>[^<]+)</a></b>\s*S(?P<season>\d+)\s*•\s*E(?P<episode>\d+)</span>',
             video_webpage)
         if m_episode:
-            series = m_episode.group('series')
+            series = unescapeHTML(m_episode.group('series'))
             season_number = int(m_episode.group('season'))
             episode_number = int(m_episode.group('episode'))
         else:

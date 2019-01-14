@@ -94,11 +94,12 @@ class DiscoveryIE(DiscoveryGoBaseIE):
                 })['access_token']
 
         try:
+            headers = self.geo_verification_headers()
+            headers['Authorization'] = 'Bearer ' + access_token
+
             stream = self._download_json(
                 'https://api.discovery.com/v1/streaming/video/' + video_id,
-                display_id, headers={
-                    'Authorization': 'Bearer ' + access_token,
-                })
+                display_id, headers=headers)
         except ExtractorError as e:
             if isinstance(e.cause, compat_HTTPError) and e.cause.code in (401, 403):
                 e_description = self._parse_json(

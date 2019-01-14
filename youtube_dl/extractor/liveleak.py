@@ -87,7 +87,7 @@ class LiveLeakIE(InfoExtractor):
     @staticmethod
     def _extract_urls(webpage):
         return re.findall(
-            r'<iframe[^>]+src="(https?://(?:\w+\.)?liveleak\.com/ll_embed\?[^"]*[if]=[\w_]+[^"]+)"',
+            r'<iframe[^>]+src="(https?://(?:\w+\.)?liveleak\.com/ll_embed\?[^"]*[ift]=[\w_]+[^"]+)"',
             webpage)
 
     def _real_extract(self, url):
@@ -120,13 +120,27 @@ class LiveLeakIE(InfoExtractor):
             }
 
         for idx, info_dict in enumerate(entries):
+            formats = []
             for a_format in info_dict['formats']:
                 if not a_format.get('height'):
                     a_format['height'] = int_or_none(self._search_regex(
                         r'([0-9]+)p\.mp4', a_format['url'], 'height label',
                         default=None))
+                formats.append(a_format)
 
-            self._sort_formats(info_dict['formats'])
+                # Removing '.*.mp4' gives the raw video, which is essentially
+                # the same video without the LiveLeak logo at the top (see
+                # https://github.com/rg3/youtube-dl/pull/4768)
+                orig_url = re.sub(r'\.mp4\.[^.]+', '', a_format['url'])
+                if a_format['url'] != orig_url:
+                    format_id = a_format.get('format_id')
+                    formats.append({
+                        'format_id': 'original' + ('-' + format_id if format_id else ''),
+                        'url': orig_url,
+                        'preference': 1,
+                    })
+            self._sort_formats(formats)
+            info_dict['formats'] = formats
 
             # Don't append entry ID for one-video pages to keep backward compatibility
             if len(entries) > 1:
@@ -146,7 +160,7 @@ class LiveLeakIE(InfoExtractor):
 
 
 class LiveLeakEmbedIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:www\.)?liveleak\.com/ll_embed\?.*?\b(?P<kind>[if])=(?P<id>[\w_]+)'
+    _VALID_URL = r'https?://(?:www\.)?liveleak\.com/ll_embed\?.*?\b(?P<kind>[ift])=(?P<id>[\w_]+)'
 
     # See generic.py for actual test cases
     _TESTS = [{
@@ -158,15 +172,14 @@ class LiveLeakEmbedIE(InfoExtractor):
     }]
 
     def _real_extract(self, url):
-        mobj = re.match(self._VALID_URL, url)
-        kind, video_id = mobj.group('kind', 'id')
+        kind, video_id = re.match(self._VALID_URL, url).groups()
 
         if kind == 'f':
             webpage = self._download_webpage(url, video_id)
             liveleak_url = self._search_regex(
-                r'logourl\s*:\s*(?P<q1>[\'"])(?P<url>%s)(?P=q1)' % LiveLeakIE._VALID_URL,
+                r'(?:logourl\s*:\s*|window\.open\()(?P<q1>[\'"])(?P<url>%s)(?P=q1)' % LiveLeakIE._VALID_URL,
                 webpage, 'LiveLeak URL', group='url')
-        elif kind == 'i':
-            liveleak_url = 'http://www.liveleak.com/view?i=%s' % video_id
+        else:
+            liveleak_url = 'http://www.liveleak.com/view?%s=%s' % (kind, video_id)
 
         return self.url_result(liveleak_url, ie=LiveLeakIE.ie_key())
