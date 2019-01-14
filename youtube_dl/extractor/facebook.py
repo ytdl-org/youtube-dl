@@ -449,6 +449,12 @@ class FacebookIE(InfoExtractor):
             r'data-utime=\\\"(\d+)\\\"', tahoe_secondary_data,
             'timestamp', default=None))
 
+        uploader_id = self._search_regex(
+            r'ownerid:"([\d]+)', webpage,
+            'uploader_id', default=None) or self._search_regex(
+            r'\"ownerid\":"(\d+)"', tahoe_secondary_data,
+            'uploader_id', default=None)
+
         thumbnail = self._og_search_thumbnail(webpage)
 
         view_count = parse_count(self._search_regex(
@@ -463,6 +469,7 @@ class FacebookIE(InfoExtractor):
             'timestamp': timestamp,
             'thumbnail': thumbnail,
             'view_count': view_count,
+            'uploader_id': uploader_id
         }
 
         return webpage, info_dict
