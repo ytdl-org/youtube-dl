@@ -59,7 +59,6 @@ class FacebookIE(InfoExtractor):
     _VIDEO_PAGE_TEMPLATE = 'https://www.facebook.com/video/video.php?v=%s'
     _VIDEO_PAGE_TAHOE_TEMPLATE = 'https://www.facebook.com/video/tahoe/async/%s/?chain=true&isvideo=true&payloadtype=%s'
 
-
     _TESTS = [{
         'url': 'https://www.facebook.com/video.php?v=637842556329505&fref=nf',
         'md5': '6a40d33c0eccbb1af76cf0485a052659',
@@ -358,7 +357,8 @@ class FacebookIE(InfoExtractor):
 
             # Video info not in first request, do a secondary request using
             # tahoe player specific URL
-            tahoe_request_data = urlencode_postdata({
+            tahoe_request_data = urlencode_postdata(
+                {
                     '__a': 1,
                     '__pc': self._search_regex(
                         r'pkg_cohort["\']\s*:\s*["\'](.+?)["\']', webpage,
@@ -371,8 +371,8 @@ class FacebookIE(InfoExtractor):
                         webpage, 'dtsg token', default=''),
                 })
             tahoe_request_headers = {
-                    'Content-Type': 'application/x-www-form-urlencoded',
-                }
+                'Content-Type': 'application/x-www-form-urlencoded',
+            }
 
             tahoe_primary_data = self._download_webpage(
                 self._VIDEO_PAGE_TAHOE_TEMPLATE % (video_id, 'primary'), video_id,
