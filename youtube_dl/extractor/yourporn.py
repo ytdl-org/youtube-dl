@@ -27,7 +27,7 @@ class YourPornIE(InfoExtractor):
             self._search_regex(
                 r'data-vnfo=(["\'])(?P<data>{.+?})\1', webpage, 'data info',
                 group='data'),
-            video_id)[video_id]).replace('/cdn/', '/cdn3/')
+            video_id)[video_id]).replace('/cdn/', '/cdn4/')
 
         title = (self._search_regex(
             r'<[^>]+\bclass=["\']PostEditTA[^>]+>([^<]+)', webpage, 'title',
