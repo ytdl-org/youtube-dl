@@ -1827,6 +1827,10 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                 url_data = compat_parse_qs(url_data_str)
                 if 'itag' not in url_data or 'url' not in url_data:
                     continue
+                stream_type = int_or_none(try_get(url_data, lambda x: x['stream_type'][0]))
+                # Unsupported FORMAT_STREAM_TYPE_OTF
+                if stream_type == 3:
+                    continue
                 format_id = url_data['itag'][0]
                 url = url_data['url'][0]
 
