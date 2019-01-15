@@ -1278,9 +1278,11 @@ class YoutubeDL(object):
                     elif format_spec == 'bestvideo':
                         video_formats = [
                             f for f in formats
-                            if f.get('acodec') == 'none']
+                            if (f.get('acodec') == 'none' and f.get('filesize') != None)]
                         if video_formats:
                             yield video_formats[-1]
+#                            print(video_formats[-1])
+#                            print(video_formats[-1].get('filesize'))
                     elif format_spec == 'worstvideo':
                         video_formats = [
                             f for f in formats
