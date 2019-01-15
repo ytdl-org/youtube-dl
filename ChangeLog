@@ -1,4 +1,4 @@
-version <unreleased>
+version 2019.01.16
 
 Core
 + [test/helper] Add support for maxcount and count collection len checkers
