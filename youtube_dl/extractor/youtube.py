@@ -1545,6 +1545,13 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
             if dash_mpd and dash_mpd[0] not in dash_mpds:
                 dash_mpds.append(dash_mpd[0])
 
+        def add_dash_mpd_pr(pl_response):
+            dash_mpd = url_or_none(try_get(
+                pl_response, lambda x: x['streamingData']['dashManifestUrl'],
+                compat_str))
+            if dash_mpd and dash_mpd not in dash_mpds:
+                dash_mpds.append(dash_mpd)
+
         is_live = None
         view_count = None
 
@@ -1602,6 +1609,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                         if isinstance(pl_response, dict):
                             player_response = pl_response
             if not video_info or self._downloader.params.get('youtube_include_dash_manifest', True):
+                add_dash_mpd_pr(player_response)
                 # We also try looking in get_video_info since it may contain different dashmpd
                 # URL that points to a DASH manifest with possibly different itag set (some itags
                 # are missing from DASH manifest pointed by webpage's dashmpd, some - from DASH
@@ -1633,6 +1641,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                         pl_response = get_video_info.get('player_response', [None])[0]
                         if isinstance(pl_response, dict):
                             player_response = pl_response
+                            add_dash_mpd_pr(player_response)
                     add_dash_mpd(get_video_info)
                     if view_count is None:
                         view_count = extract_view_count(get_video_info)
