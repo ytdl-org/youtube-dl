@@ -116,6 +116,7 @@ from .foxnews import FoxNewsIE
 from .viqeo import ViqeoIE
 from .expressen import ExpressenIE
 from .zype import ZypeIE
+from .podlovepublisher import PodlovePublisherIE
 
 
 class GenericIE(InfoExtractor):
@@ -3124,6 +3125,10 @@ class GenericIE(InfoExtractor):
             return self.playlist_from_matches(
                 apa_urls, video_id, video_title, ie=APAIE.ie_key())
 
+        podlove_url = PodlovePublisherIE._extract_url(webpage)
+        if podlove_url:
+            return self.url_result(podlove_url)
+			
         foxnews_urls = FoxNewsIE._extract_urls(webpage)
         if foxnews_urls:
             return self.playlist_from_matches(
