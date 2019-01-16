@@ -224,8 +224,19 @@ class FacebookIE(InfoExtractor):
         },
     }, {
         # no timestamp
-        'url': 'https://www.facebook.com/ChickenShow1996/videos/2289288568020072/',
-        'only_matching': True,
+        'url': 'https://www.facebook.com/SuperNewsGames/videos/642255722780473/',
+        'info_dict': {
+            'timestamp': 1521221400,
+            'uploader': 'Super News Games',
+            'uploader_id': '229550157384367',
+            'id': '642255722780473',
+            'ext': 'mp4',
+            'upload_date': '20180316',
+            'title': 'The Voice of Nick is trying Fortnite after 100 hours of PLAYERUNKNOWN\'S BATTL...',
+        },
+        'params': {
+            'skip_download': True,
+        },
     }]
 
     @staticmethod
@@ -383,7 +394,7 @@ class FacebookIE(InfoExtractor):
             tahoe_secondary_data = self._download_webpage(
                 self._VIDEO_PAGE_TAHOE_TEMPLATE % (video_id, 'secondary'), video_id,
                 data=tahoe_request_data,
-                headers=tahoe_request_headers
+                headers=tahoe_request_headers, fatal=False
             )
 
             tahoe_js_data = self._parse_json(
@@ -441,10 +452,11 @@ class FacebookIE(InfoExtractor):
             video_title = 'Facebook video #%s' % video_id
         uploader = clean_html(get_element_by_id(
             'fbPhotoPageAuthorName', webpage)) or self._search_regex(
-            r'ownerName\s*:\s*"([^"]+)"', webpage, 'uploader',
-            fatal=False, default=None) or self._og_search_title(webpage, fatal=False, default=None) or self._search_regex(
-            r'\"ownerName\":"(.*?)"', tahoe_secondary_data,
-            'uploader_id')
+            r'ownerName\s*:\s*"([^"]+)"', webpage, 'uploader',default=None) or \
+                   self._og_search_title(webpage, default=None) or self._search_regex(
+                        r'\"ownerName\":"(.+?)"', tahoe_secondary_data,
+                        'uploader_id', fatal=False)
+
         timestamp = int_or_none(self._search_regex(
             r'<abbr[^>]+data-utime=["\'](\d+)', webpage,
             'timestamp', default=None) or self._search_regex(
@@ -455,7 +467,7 @@ class FacebookIE(InfoExtractor):
             r'ownerid:"([\d]+)', webpage,
             'uploader_id', default=None) or self._search_regex(
             r'\"ownerid\":"(\d+)"', tahoe_secondary_data,
-            'uploader_id', default=None)
+            'uploader_id', fatal=False)
 
         thumbnail = self._og_search_thumbnail(webpage)
 
