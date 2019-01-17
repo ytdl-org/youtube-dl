@@ -1,6 +1,7 @@
 # coding: utf-8
 from __future__ import unicode_literals
 
+import base64
 import json
 import re
 import itertools
@@ -393,6 +394,22 @@ class VimeoIE(VimeoBaseInfoExtractor):
             },
         },
         {
+            'url': 'http://player.vimeo.com/video/68375962',
+            'md5': 'aaf896bdb7ddd6476df50007a0ac0ae7',
+            'info_dict': {
+                'id': '68375962',
+                'ext': 'mp4',
+                'title': 'youtube-dl password protected test video',
+                'uploader_url': r're:https?://(?:www\.)?vimeo\.com/user18948128',
+                'uploader_id': 'user18948128',
+                'uploader': 'Jaime Marquínez Ferrándiz',
+                'duration': 10,
+            },
+            'params': {
+                'videopassword': 'youtube-dl',
+            },
+        },
+        {
             'url': 'http://vimeo.com/moogaloop.swf?clip_id=2539741',
             'only_matching': True,
         },
@@ -452,7 +469,9 @@ class VimeoIE(VimeoBaseInfoExtractor):
         password = self._downloader.params.get('videopassword')
         if password is None:
             raise ExtractorError('This video is protected by a password, use the --video-password option')
-        data = urlencode_postdata({'password': password})
+        data = urlencode_postdata({
+            'password': base64.b64encode(password.encode()),
+        })
         pass_url = url + '/check-password'
         password_request = sanitized_Request(pass_url, data)
         password_request.add_header('Content-Type', 'application/x-www-form-urlencoded')
