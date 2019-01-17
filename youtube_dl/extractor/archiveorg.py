@@ -48,7 +48,7 @@ class ArchiveOrgIE(InfoExtractor):
 
         def get_optional(metadata, field):
             return metadata.get(field, [None])[0]
-        
+
         def convert_relative_to_absolute_thumbnail(metadata):
             if not metadata['thumbnail'].startswith('http'):
                 metadata.update({'thumbnail': ''.join(('http://archive.org', metadata.get('thumbnail')))})
