@@ -1,3 +1,10 @@
+version <unreleased>
+
+Extractors
+* [youtube] Extend JS player signature function name regular expressions
+  (#18890, #18891, #18893)
+
+
 version 2019.01.16
 
 Core
