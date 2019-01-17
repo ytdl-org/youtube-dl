@@ -1,6 +1,7 @@
 # coding: utf-8
 from __future__ import unicode_literals
 
+import base64
 import json
 import re
 import itertools
@@ -352,6 +353,7 @@ class VimeoIE(VimeoBaseInfoExtractor):
                 'timestamp': 1324343742,
                 'upload_date': '20111220',
                 'description': 'md5:ae23671e82d05415868f7ad1aec21147',
+                'view_count': int,
             },
         },
         {
@@ -390,6 +392,22 @@ class VimeoIE(VimeoBaseInfoExtractor):
             },
             'params': {
                 'skip_download': True,
+            },
+        },
+        {
+            'url': 'http://player.vimeo.com/video/68375962',
+            'md5': 'aaf896bdb7ddd6476df50007a0ac0ae7',
+            'info_dict': {
+                'id': '68375962',
+                'ext': 'mp4',
+                'title': 'youtube-dl password protected test video',
+                'uploader_url': r're:https?://(?:www\.)?vimeo\.com/user18948128',
+                'uploader_id': 'user18948128',
+                'uploader': 'Jaime Marquínez Ferrándiz',
+                'duration': 10,
+            },
+            'params': {
+                'videopassword': 'youtube-dl',
             },
         },
         {
@@ -452,7 +470,9 @@ class VimeoIE(VimeoBaseInfoExtractor):
         password = self._downloader.params.get('videopassword')
         if password is None:
             raise ExtractorError('This video is protected by a password, use the --video-password option')
-        data = urlencode_postdata({'password': password})
+        data = urlencode_postdata({
+            'password': base64.b64encode(password.encode()),
+        })
         pass_url = url + '/check-password'
         password_request = sanitized_Request(pass_url, data)
         password_request.add_header('Content-Type', 'application/x-www-form-urlencoded')
@@ -622,12 +642,17 @@ class VimeoIE(VimeoBaseInfoExtractor):
                 'timestamp', default=None)
 
         try:
-            view_count = int(self._search_regex(r'UserPlays:(\d+)', webpage, 'view count'))
+            # When userInteractionCount does not exist views is 0
+            view_count = int_or_none(
+                self._search_regex(
+                    r'"interactionType":"http:\/\/schema\.org\/WatchAction","userInteractionCount":(.+?)}',
+                    webpage, 'view count', default=0
+                )
+            )
             like_count = int(self._search_regex(r'UserLikes:(\d+)', webpage, 'like count'))
             comment_count = int(self._search_regex(r'UserComments:(\d+)', webpage, 'comment count'))
         except RegexNotFoundError:
             # This info is only available in vimeo.com/{id} urls
-            view_count = None
             like_count = None
             comment_count = None
 
