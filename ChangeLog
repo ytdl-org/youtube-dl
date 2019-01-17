@@ -1,4 +1,4 @@
-version <unreleased>
+version 2019.01.17
 
 Extractors
 * [youtube] Extend JS player signature function name regular expressions
