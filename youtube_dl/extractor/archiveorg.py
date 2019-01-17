@@ -4,6 +4,7 @@ from .common import InfoExtractor
 from ..utils import (
     unified_strdate,
     clean_html,
+    urljoin,
 )
 
 
@@ -51,7 +52,7 @@ class ArchiveOrgIE(InfoExtractor):
 
         def convert_relative_to_absolute_thumbnail(metadata):
             if not metadata['thumbnail'].startswith('http'):
-                metadata.update({'thumbnail': ''.join(('http://archive.org', metadata.get('thumbnail')))})
+                metadata.update({'thumbnail': urljoin('http://archive.org', metadata.get('thumbnail'))})
 
         metadata = self._download_json(
             'http://archive.org/details/' + video_id, video_id, query={
