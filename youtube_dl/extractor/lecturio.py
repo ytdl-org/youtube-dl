@@ -64,8 +64,14 @@ class LecturioBaseIE(InfoExtractor):
 
 
 class LecturioIE(LecturioBaseIE):
-    _VALID_URL = r'https://app\.lecturio\.com/[^/]+/(?P<id>[^/?#&]+)\.lecture'
-    _TEST = {
+    _VALID_URL = r'''(?x)
+                    https://
+                        (?:
+                            app\.lecturio\.com/[^/]+/(?P<id>[^/?#&]+)\.lecture|
+                            (?:www\.)?lecturio\.de/[^/]+/(?P<id_de>[^/?#&]+)\.vortrag
+                        )
+                    '''
+    _TESTS = [{
         'url': 'https://app.lecturio.com/medical-courses/important-concepts-and-terms-introduction-to-microbiology.lecture#tab/videos',
         'md5': 'f576a797a5b7a5e4e4bbdfc25a6a6870',
         'info_dict': {
@@ -74,7 +80,10 @@ class LecturioIE(LecturioBaseIE):
             'title': 'Important Concepts and Terms – Introduction to Microbiology',
         },
         'skip': 'Requires lecturio account credentials',
-    }
+    }, {
+        'url': 'https://www.lecturio.de/jura/oeffentliches-recht-staatsexamen.vortrag',
+        'only_matching': True,
+    }]
 
     _CC_LANGS = {
         'German': 'de',
@@ -86,7 +95,8 @@ class LecturioIE(LecturioBaseIE):
     }
 
     def _real_extract(self, url):
-        display_id = self._match_id(url)
+        mobj = re.match(self._VALID_URL, url)
+        display_id = mobj.group('id') or mobj.group('id_de')
 
         webpage = self._download_webpage(
             'https://app.lecturio.com/en/lecture/%s/player.html' % display_id,
@@ -188,5 +198,32 @@ class LecturioCourseIE(LecturioBaseIE):
         title = self._search_regex(
             r'<span[^>]+class=["\']content-title[^>]+>([^<]+)', webpage,
             'title', default=None)
+
+        return self.playlist_result(entries, display_id, title)
+
+
+class LecturioDeCourseIE(LecturioBaseIE):
+    _VALID_URL = r'https://(?:www\.)?lecturio\.de/[^/]+/(?P<id>[^/?#&]+)\.kurs'
+    _TEST = {
+        'url': 'https://www.lecturio.de/jura/grundrechte.kurs',
+        'only_matching': True,
+    }
+
+    def _real_extract(self, url):
+        display_id = self._match_id(url)
+
+        webpage = self._download_webpage(url, display_id)
+
+        entries = []
+        for mobj in re.finditer(
+                r'(?s)<td[^>]+\bdata-lecture-id=["\'](?P<id>\d+).+?\bhref=(["\'])(?P<url>(?:(?!\2).)+\.vortrag)\b[^>]+>',
+                webpage):
+            lecture_url = urljoin(url, mobj.group('url'))
+            lecture_id = mobj.group('id')
+            entries.append(self.url_result(
+                lecture_url, ie=LecturioIE.ie_key(), video_id=lecture_id))
+
+        title = self._search_regex(
+            r'<h1[^>]*>([^<]+)', webpage, 'title', default=None)
 
         return self.playlist_result(entries, display_id, title)

@@ -12,7 +12,7 @@ from ..utils import (
 
 
 class WistiaIE(InfoExtractor):
-    _VALID_URL = r'(?:wistia:|https?://(?:fast\.)?wistia\.(?:net|com)/embed/iframe/)(?P<id>[a-z0-9]+)'
+    _VALID_URL = r'(?:wistia:|https?://(?:fast\.)?wistia\.(?:net|com)/embed/(?:iframe|medias)/)(?P<id>[a-z0-9]+)'
     _API_URL = 'http://fast.wistia.com/embed/medias/%s.json'
     _IFRAME_URL = 'http://fast.wistia.net/embed/iframe/%s'
 
@@ -37,6 +37,9 @@ class WistiaIE(InfoExtractor):
         'only_matching': True,
     }, {
         'url': 'http://fast.wistia.com/embed/iframe/sh7fpupwlt',
+        'only_matching': True,
+    }, {
+        'url': 'http://fast.wistia.net/embed/medias/sh7fpupwlt.json',
         'only_matching': True,
     }]
 

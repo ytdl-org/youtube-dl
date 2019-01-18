@@ -79,17 +79,27 @@ class ACastIE(InfoExtractor):
 
 class ACastChannelIE(InfoExtractor):
     IE_NAME = 'acast:channel'
-    _VALID_URL = r'https?://(?:www\.)?acast\.com/(?P<id>[^/#?]+)'
-    _TEST = {
-        'url': 'https://www.acast.com/condenasttraveler',
+    _VALID_URL = r'''(?x)
+                    https?://
+                        (?:
+                            (?:www\.)?acast\.com/|
+                            play\.acast\.com/s/
+                        )
+                        (?P<id>[^/#?]+)
+                    '''
+    _TESTS = [{
+        'url': 'https://www.acast.com/todayinfocus',
         'info_dict': {
-            'id': '50544219-29bb-499e-a083-6087f4cb7797',
-            'title': 'Condé Nast Traveler Podcast',
-            'description': 'md5:98646dee22a5b386626ae31866638fbd',
+            'id': '4efc5294-5385-4847-98bd-519799ce5786',
+            'title': 'Today in Focus',
+            'description': 'md5:9ba5564de5ce897faeb12963f4537a64',
         },
-        'playlist_mincount': 20,
-    }
-    _API_BASE_URL = 'https://www.acast.com/api/'
+        'playlist_mincount': 35,
+    }, {
+        'url': 'http://play.acast.com/s/ft-banking-weekly',
+        'only_matching': True,
+    }]
+    _API_BASE_URL = 'https://play.acast.com/api/'
     _PAGE_SIZE = 10
 
     @classmethod
@@ -102,7 +112,7 @@ class ACastChannelIE(InfoExtractor):
             channel_slug, note='Download page %d of channel data' % page)
         for cast in casts:
             yield self.url_result(
-                'https://www.acast.com/%s/%s' % (channel_slug, cast['url']),
+                'https://play.acast.com/s/%s/%s' % (channel_slug, cast['url']),
                 'ACast', cast['id'])
 
     def _real_extract(self, url):
