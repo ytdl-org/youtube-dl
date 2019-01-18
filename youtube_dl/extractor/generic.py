@@ -3128,7 +3128,7 @@ class GenericIE(InfoExtractor):
         podlove_url = PodlovePublisherIE._extract_url(webpage)
         if podlove_url:
             return self.url_result(podlove_url)
-			
+
         foxnews_urls = FoxNewsIE._extract_urls(webpage)
         if foxnews_urls:
             return self.playlist_from_matches(
