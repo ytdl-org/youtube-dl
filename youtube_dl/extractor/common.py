@@ -1668,7 +1668,7 @@ class InfoExtractor(object):
             rendition = stream_group[0]
             return rendition.get('NAME') or stream_group_id
 
-        # parse EXT-X-MEDIA tags before EXT-X-STREAM-INF inorder to have the
+        # parse EXT-X-MEDIA tags before EXT-X-STREAM-INF in order to have the
         # chance to detect video only formats when EXT-X-STREAM-INF tags
         # precede EXT-X-MEDIA tags in HLS manifest such as [3].
         for line in m3u8_doc.splitlines():
