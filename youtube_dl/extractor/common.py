@@ -1596,6 +1596,7 @@ class InfoExtractor(object):
         # References:
         # 1. https://tools.ietf.org/html/draft-pantos-http-live-streaming-21
         # 2. https://github.com/rg3/youtube-dl/issues/12211
+        # 3. https://github.com/rg3/youtube-dl/issues/18923
 
         # We should try extracting formats only from master playlists [1, 4.3.4],
         # i.e. playlists that describe available qualities. On the other hand
@@ -1667,11 +1668,16 @@ class InfoExtractor(object):
             rendition = stream_group[0]
             return rendition.get('NAME') or stream_group_id
 
+        # parse EXT-X-MEDIA tags before EXT-X-STREAM-INF inorder to have the
+        # chance to detect video only formats when EXT-X-STREAM-INF tags
+        # precede EXT-X-MEDIA tags in HLS manifest such as [3].
+        for line in m3u8_doc.splitlines():
+            if line.startswith('#EXT-X-MEDIA:'):
+                extract_media(line)
+
         for line in m3u8_doc.splitlines():
             if line.startswith('#EXT-X-STREAM-INF:'):
                 last_stream_inf = parse_m3u8_attributes(line)
-            elif line.startswith('#EXT-X-MEDIA:'):
-                extract_media(line)
             elif line.startswith('#') or not line.strip():
                 continue
             else:
