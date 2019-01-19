@@ -20,6 +20,7 @@ test_partial = {
         'upload_date': '20100116',
         'uploader': 'mothy_悪ノＰ',
         'uploader_url': r're:https?://piapro\.jp/mothy',
+        'url': 'https://cdn.piapro.jp/mp3_a/es/es7uj48x6bvcbtgy_20100116020522_audition.mp3',
     }
 }
 
@@ -41,21 +42,20 @@ class PiaproIE(InfoExtractor):
         create_date = self._search_regex(r'''createDate\s*:\s*['"]([0-9]{14})['"]''', webpage, 'create_date', fatal=False) or \
             self._search_regex(r'''["']https?://songle\.jp/songs/piapro\.jp.*([0-9]{14})['"]''', webpage, 'create_date')
 
-        cls_userbar_name = get_element_by_class("userbar-name", webpage)
-
-        uploader = self._search_regex(r'<a.*?>(.+?)</a>', cls_userbar_name, 'uploader', fatal=False)
+        uploader = get_element_by_class("cd_user-name", webpage)
         try:
             uploader_without_honorific = re.match('.+(?=さん)', uploader).group(0)
         except IndexError:
             uploader_without_honorific = None
+
         return {
             'artist':       uploader_without_honorific or uploader,
-            'description':  get_element_by_class("dtl_cap", webpage),
+            'description':  get_element_by_class("cd_dtl_cap", webpage),
             'id':           content_id,
             'thumbnail':    self._search_regex(r'(https?://c1\.piapro\.jp/timg/.+?_1440\.jpg)', webpage, 'thumbnail', fatal=False),
             'timestamp':    int(datetime.strptime(create_date, '%Y%m%d%H%M%S').strftime("%s")),
             'title':        get_element_by_class("works-title", webpage) or self._html_search_regex(r'<title>[^<]*「(.*?)」<', webpage, 'title', fatal=False),
             'uploader':     uploader_without_honorific or uploader,
-            'uploader_url': self._search_regex(r'<a\s+.*?href="(https?://piapro\.jp/.+?)"', cls_userbar_name, 'uploader_url', fatal=False),
-            'url':          'http://c1.piapro.jp/amp3/{}_{}_audition.mp3'.format(content_id, create_date)
+            # 'uploader_url': self._search_regex(r'<a\s+.*?href="(https?://piapro\.jp/.+?)"', cls_userbar_name, 'uploader_url', fatal=False),  # FIXME
+            'url':          'http://cdn.piapro.jp/mp3_a/{}/{}_{}_audition.mp3'.format(content_id[:2], content_id, create_date)
         }
