@@ -119,8 +119,7 @@ class OdnoklassnikiIE(InfoExtractor):
         # Paid video
         'url': 'https://ok.ru/video/954886983203',
         'only_matching': True,
-    }
-    ]
+    }]
 
     def _real_extract(self, url):
         start_time = int_or_none(compat_parse_qs(
@@ -255,5 +254,6 @@ class OdnoklassnikiIE(InfoExtractor):
                 raise ExtractorError('This video is paid, subscribe to download it', expected=True)
 
         self._sort_formats(formats)
+
         info['formats'] = formats
         return info
