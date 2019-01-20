@@ -354,7 +354,6 @@ class FacebookIE(InfoExtractor):
                 video_id, transform_source=js_to_json, fatal=False)
             video_data = extract_from_jsmods_instances(server_js_data)
 
-
         if not video_data:
             if not fatal_if_no_video:
                 return webpage, False
@@ -398,7 +397,7 @@ class FacebookIE(InfoExtractor):
             )
             if not tahoe_secondary_data:
                 tahoe_secondary_data = ''
-                
+
             tahoe_js_data = self._parse_json(
                 self._search_regex(
                     r'for\s+\(\s*;\s*;\s*\)\s*;(.+)', tahoe_primary_data,
