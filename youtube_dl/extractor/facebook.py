@@ -354,7 +354,6 @@ class FacebookIE(InfoExtractor):
                 video_id, transform_source=js_to_json, fatal=False)
             video_data = extract_from_jsmods_instances(server_js_data)
 
-        tahoe_secondary_data = ''
         if not video_data:
             if not fatal_if_no_video:
                 return webpage, False
@@ -396,6 +395,8 @@ class FacebookIE(InfoExtractor):
                 data=tahoe_request_data,
                 headers=tahoe_request_headers, fatal=False
             )
+            if not tahoe_secondary_data:
+                tahoe_secondary_data = ''
 
             tahoe_js_data = self._parse_json(
                 self._search_regex(
@@ -466,7 +467,7 @@ class FacebookIE(InfoExtractor):
         uploader_id = self._search_regex(
             r'ownerid:"([\d]+)', webpage,
             'uploader_id', default=None) or self._search_regex(
-            r'\"ownerid\":"(\d+)"', tahoe_secondary_data,
+            r'[\'\"]ownerid[\'\"]\s*:\s*[\'\"](\d+)[\'\"]', tahoe_secondary_data,
             'uploader_id', fatal=False)
 
         thumbnail = self._og_search_thumbnail(webpage)
@@ -474,11 +475,11 @@ class FacebookIE(InfoExtractor):
         view_count = parse_count(self._search_regex(
             r'\bpostViewCount\s*:\s*["\']([\d,.]+)', webpage, 'view count',
             default=None) or self._search_regex(
-            r'\"postViewCount\"\s*:\s*(\d+)', tahoe_secondary_data, 'view count',
+            r'[\'\"]postViewCount[\'\"]\s*:\s*(\d+)', tahoe_secondary_data, 'view count',
             default=None) or self._search_regex(
             r'\bviewCount\s*:\s*["\']([\d,.]+)', webpage, 'view count',
             default=None) or self._search_regex(
-            r'\"viewCount\"\s*:\s*(\d+)', tahoe_secondary_data, 'view count',
+            r'[\'\"]viewCount[\'\"]\s*:\s*(\d+)', tahoe_secondary_data, 'view count',
             default=None)
         )
 
