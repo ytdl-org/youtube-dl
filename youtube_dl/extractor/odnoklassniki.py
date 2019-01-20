@@ -158,10 +158,6 @@ class OdnoklassnikiIE(InfoExtractor):
                 video_id, 'Downloading metadata JSON',
                 data=urlencode_postdata(data))
 
-        paymentInfo = metadata.get('paymentInfo')
-        if paymentInfo:
-            raise ExtractorError('This is Paid video. you need to subscribe in order to watch it', expected=True)
-
         movie = metadata['movie']
 
         # Some embedded videos may not contain title in movie dict (e.g.
@@ -254,6 +250,11 @@ class OdnoklassnikiIE(InfoExtractor):
             })
 
         self._sort_formats(formats)
+
+        if not formats:
+            payment_info = metadata.get('paymentInfo')
+            if payment_info:
+                raise ExtractorError('This video is paid, subscribe to download it', expected=True)
 
         info['formats'] = formats
         return info
