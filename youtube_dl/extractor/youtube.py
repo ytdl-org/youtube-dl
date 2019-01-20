@@ -1886,7 +1886,10 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
 
                     signature = self._decrypt_signature(
                         encrypted_sig, video_id, player_url, age_gate)
-                    url += '&signature=' + signature
+                    if 'sp' in url_data:
+                        url += '&' + url_data['sp'][0] + '=' + signature
+                    else:
+                        url += '&signature=' + signature
                 if 'ratebypass' not in url:
                     url += '&ratebypass=yes'
 
