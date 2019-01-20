@@ -248,8 +248,8 @@ class OpenloadIE(InfoExtractor):
                         (?P<host>
                             (?:www\.)?
                             (?:
-                                openload\.(?:co|io|link)|
-                                oload\.(?:tv|stream|site|xyz|win|download|cloud|cc|icu|fun)
+                                openload\.(?:co|io|link|pw)|
+                                oload\.(?:tv|stream|site|xyz|win|download|cloud|cc|icu|fun|pw)
                             )
                         )/
                         (?:f|embed)/
