@@ -119,8 +119,7 @@ class OdnoklassnikiIE(InfoExtractor):
         # Paid video
         'url': 'https://ok.ru/video/954886983203',
         'only_matching': True,
-    }
-    ]
+    }]
 
     def _real_extract(self, url):
         start_time = int_or_none(compat_parse_qs(
@@ -157,10 +156,6 @@ class OdnoklassnikiIE(InfoExtractor):
                 compat_urllib_parse_unquote(flashvars['metadataUrl']),
                 video_id, 'Downloading metadata JSON',
                 data=urlencode_postdata(data))
-
-        paymentInfo = metadata.get('paymentInfo')
-        if paymentInfo:
-            raise ExtractorError('This is Paid video. you need to subscribe in order to watch it', expected=True)
 
         movie = metadata['movie']
 
@@ -291,6 +286,11 @@ class OdnoklassnikiIE(InfoExtractor):
                 'format_id': 'rtmp',
                 'ext': 'flv',
             })
+
+        if not formats:
+            payment_info = metadata.get('paymentInfo')
+            if payment_info:
+                raise ExtractorError('This video is paid, subscribe to download it', expected=True)
 
         self._sort_formats(formats)
 
