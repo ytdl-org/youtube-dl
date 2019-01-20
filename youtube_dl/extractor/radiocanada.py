@@ -78,7 +78,7 @@ class RadioCanadaIE(InfoExtractor):
             return el.text if el is not None else None
 
         # protectionType does not necessarily mean the video is DRM protected (see
-        # https://github.com/rg3/youtube-dl/issues/13994).
+        # https://github.com/rg3/youtube-dl/pull/18609).
         if get_meta('protectionType'):
             self.report_warning('This video is probably DRM protected.')
 
