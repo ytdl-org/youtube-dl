@@ -233,12 +233,12 @@ class InstagramPlaylistIE(InfoExtractor):
 
     _gis_tmpl = None  # used to cache GIS request type
 
-    def _parse_graphql(self, webpage, id):
+    def _parse_graphql(self, webpage, item_id):
         # Reads a webpage and returns its GraphQL data.
         return self._parse_json(
             self._search_regex(
                 r'sharedData\s*=\s*({.+?})\s*;\s*[<\n]', webpage, 'data'),
-            id)
+            item_id)
 
     def _extract_graphql(self, data, url):
         # Parses GraphQL queries containing videos and generates a playlist.
