@@ -51,7 +51,7 @@ class RadioCanadaIE(InfoExtractor):
             },
         },
         {
-            # url from toutv that triggers false DRM validation
+            # with protectionType but not actually DRM protected
             'url': 'radiocanada:toutv:140872',
             'info_dict': {
                 'id': '140872',
