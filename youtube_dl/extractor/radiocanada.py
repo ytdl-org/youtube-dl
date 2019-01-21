@@ -118,8 +118,15 @@ class RadioCanadaIE(InfoExtractor):
                 continue
             ext = determine_ext(v_url)
             if ext == 'm3u8':
-                formats.extend(self._extract_m3u8_formats(
-                    v_url, video_id, 'mp4', m3u8_id='hls', fatal=False))
+                m3u8_formats = self._extract_m3u8_formats(
+                    v_url, video_id, 'mp4', m3u8_id='hls', fatal=False)
+                if not m3u8_formats:
+                    bitrates = map(lambda url: url.get("bitrate"), xpath_element(v_data, "bitrates").findall("url"))
+                    for bitrate in bitrates:
+                        bitrate_url = re.sub(r"(?<=_\,).+?(?=\,\.mp4)", bitrate, v_url)
+                        m3u8_formats.extend(self._extract_m3u8_formats(
+                            bitrate_url, video_id, 'mp4', m3u8_id='hls', fatal=False))
+                formats.extend(m3u8_formats)
             elif ext == 'f4m':
                 formats.extend(self._extract_f4m_formats(
                     v_url, video_id, f4m_id='hds', fatal=False))
