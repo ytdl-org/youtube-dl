@@ -4,13 +4,16 @@ from __future__ import unicode_literals
 import re
 
 from .common import InfoExtractor
+from ..compat import (
+    compat_HTTPError,
+)
 from ..utils import (
     determine_ext,
     int_or_none,
     unescapeHTML,
     unified_timestamp,
+    ExtractorError,
 )
-
 
 class ExpressenIE(InfoExtractor):
     _VALID_URL = r'''(?x)
@@ -44,6 +47,25 @@ class ExpressenIE(InfoExtractor):
         'only_matching': True,
     }, {
         'url': 'https://www.di.se/videoplayer/embed/tv/ditv/borsmorgon/implantica-rusar-70--under-borspremiaren-hor-styrelsemedlemmen/?embed=true&external=true&autoplay=true&startVolume=0&partnerId=di',
+    }, {
+        'url': 'https://www.expressen.se/tv/livsstil/halsoliv/5-harliga-fakta-om-kaffe/',
+        'md5': '4d4572e17d2bec5fa2c144bb63857934',
+        'info_dict': {
+            'id': '8790448',
+            'ext': 'mp4',
+            'title': '5 härliga fakta om kaffe',
+            'description': 'md5:b7faa986d02765cdd7ccaa0db4673258',
+            'thumbnail': r're:^https?://.*\.jpg$',
+            'duration': 56,
+            'timestamp': 1531986096,
+            'upload_date': '20180719'
+
+        }
+    }, {
+        'url': 'https://www.expressen.se/videoplayer/embed/tv/livsstil/halsoliv/5-harliga-fakta-om-kaffe',
+        'only_matching': True,
+    }, {
+        'url': 'https://www.expressen.se/tv/livsstil/halsoliv/har-gifter-de-sig-pa-10-000-meters-hojd/',
         'only_matching': True,
     }]
 
@@ -57,7 +79,10 @@ class ExpressenIE(InfoExtractor):
     def _real_extract(self, url):
         display_id = self._match_id(url)
 
-        webpage = self._download_webpage(url, display_id)
+        original_url = url
+        embed_url = url.replace('expressen.se/tv/', 'expressen.se/videoplayer/embed/tv/')
+
+        urls = (embed_url, original_url)
 
         def extract_data(name):
             return self._parse_json(
@@ -66,20 +91,42 @@ class ExpressenIE(InfoExtractor):
                     webpage, 'info', group='value'),
                 display_id, transform_source=unescapeHTML)
 
-        info = extract_data('video-tracking-info')
-        video_id = info['videoId']
+        for url in urls:
+            last = url == urls[len(urls) - 1]
 
-        data = extract_data('article-data')
-        stream = data['stream']
+            try:
+                webpage = self._download_webpage(url, display_id)
 
-        if determine_ext(stream) == 'm3u8':
-            formats = self._extract_m3u8_formats(
-                stream, display_id, 'mp4', entry_protocol='m3u8_native',
-                m3u8_id='hls')
-        else:
-            formats = [{
-                'url': stream,
-            }]
+            except ExtractorError as e:
+                if isinstance(e.cause, compat_HTTPError) and e.cause.code == 404:
+                    if not last:
+                        continue
+                    raise ExtractorError('Video not found', expected=True)
+
+            try:
+                info = extract_data('video-tracking-info')
+                video_id = info['videoId']
+
+                data = extract_data('article-data')
+                stream = data['stream']
+
+                if determine_ext(stream) == 'm3u8':
+                    formats = self._extract_m3u8_formats(
+                        stream, display_id, 'mp4', entry_protocol='m3u8_native',
+                        m3u8_id='hls')
+                else:
+                    formats = [{
+                        'url': stream,
+                    }]
+
+            except (ExtractorError, KeyError) as e:
+                formats = None
+
+            if formats:
+                break
+            elif last:
+                raise ExtractorError('Video not found', expected=True)
+
         self._sort_formats(formats)
 
         title = info.get('titleRaw') or data['title']
