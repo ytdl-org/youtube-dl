@@ -1,6 +1,7 @@
 # coding: utf-8
 from __future__ import unicode_literals
 
+import base64
 import json
 import re
 import itertools
@@ -393,6 +394,22 @@ class VimeoIE(VimeoBaseInfoExtractor):
             },
         },
         {
+            'url': 'http://player.vimeo.com/video/68375962',
+            'md5': 'aaf896bdb7ddd6476df50007a0ac0ae7',
+            'info_dict': {
+                'id': '68375962',
+                'ext': 'mp4',
+                'title': 'youtube-dl password protected test video',
+                'uploader_url': r're:https?://(?:www\.)?vimeo\.com/user18948128',
+                'uploader_id': 'user18948128',
+                'uploader': 'Jaime Marquínez Ferrándiz',
+                'duration': 10,
+            },
+            'params': {
+                'videopassword': 'youtube-dl',
+            },
+        },
+        {
             'url': 'http://vimeo.com/moogaloop.swf?clip_id=2539741',
             'only_matching': True,
         },
@@ -418,6 +435,8 @@ class VimeoIE(VimeoBaseInfoExtractor):
             'url': 'https://vimeo.com/160743502/abd0e13fb4',
             'only_matching': True,
         }
+        # https://gettingthingsdone.com/workflowmap/
+        # vimeo embed with check-password page protected by Referer header
     ]
 
     @staticmethod
@@ -448,18 +467,22 @@ class VimeoIE(VimeoBaseInfoExtractor):
         urls = VimeoIE._extract_urls(url, webpage)
         return urls[0] if urls else None
 
-    def _verify_player_video_password(self, url, video_id):
+    def _verify_player_video_password(self, url, video_id, headers):
         password = self._downloader.params.get('videopassword')
         if password is None:
             raise ExtractorError('This video is protected by a password, use the --video-password option')
-        data = urlencode_postdata({'password': password})
-        pass_url = url + '/check-password'
-        password_request = sanitized_Request(pass_url, data)
-        password_request.add_header('Content-Type', 'application/x-www-form-urlencoded')
-        password_request.add_header('Referer', url)
-        return self._download_json(
-            password_request, video_id,
-            'Verifying the password', 'Wrong password')
+        data = urlencode_postdata({
+            'password': base64.b64encode(password.encode()),
+        })
+        headers = merge_dicts(headers, {
+            'Content-Type': 'application/x-www-form-urlencoded',
+        })
+        checked = self._download_json(
+            url + '/check-password', video_id,
+            'Verifying the password', data=data, headers=headers)
+        if checked is False:
+            raise ExtractorError('Wrong video password', expected=True)
+        return checked
 
     def _real_initialize(self):
         self._login()
@@ -572,7 +595,7 @@ class VimeoIE(VimeoBaseInfoExtractor):
                                      cause=e)
         else:
             if config.get('view') == 4:
-                config = self._verify_player_video_password(redirect_url, video_id)
+                config = self._verify_player_video_password(redirect_url, video_id, headers)
 
         vod = config.get('video', {}).get('vod', {})
 

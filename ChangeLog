@@ -1,3 +1,89 @@
+version 2019.01.17
+
+Extractors
+* [youtube] Extend JS player signature function name regular expressions
+  (#18890, #18891, #18893)
+
+
+version 2019.01.16
+
+Core
++ [test/helper] Add support for maxcount and count collection len checkers
+* [downloader/hls] Fix uplynk ad skipping (#18824)
+* [postprocessor/ffmpeg] Improve ffmpeg version parsing (#18813)
+
+Extractors
+* [youtube] Skip unsupported adaptive stream type (#18804)
++ [youtube] Extract DASH formats from player response (#18804)
+* [funimation] Fix extraction (#14089)
+* [skylinewebcams] Fix extraction (#18853)
++ [curiositystream] Add support for non app URLs
++ [bitchute] Check formats (#18833)
+* [wistia] Extend URL regular expression (#18823)
++ [playplustv] Add support for playplus.com (#18789)
+
+
+version 2019.01.10
+
+Core
+* [extractor/common] Use episode name as title in _json_ld
++ [extractor/common] Add support for movies in _json_ld
+* [postprocessor/ffmpeg] Embed subtitles with non-standard language codes
+  (#18765)
++ [utils] Add language codes replaced in 1989 revision of ISO 639
+  to ISO639Utils (#18765)
+
+Extractors
+* [youtube] Extract live HLS URL from player response (#18799)
++ [outsidetv] Add support for outsidetv.com (#18774)
+* [jwplatform] Use JW Platform Delivery API V2 and add support for more URLs
++ [fox] Add support National Geographic (#17985, #15333, #14698)
++ [playplustv] Add support for playplus.tv (#18789)
+* [globo] Set GLBID cookie manually (#17346)
++ [gaia] Add support for gaia.com (#14605)
+* [youporn] Fix title and description extraction (#18748)
++ [hungama] Add support for hungama.com (#17402, #18771)
+* [dtube] Fix extraction (#18741)
+* [tvnow] Fix and rework extractors and prepare for a switch to the new API
+  (#17245, #18499)
+* [carambatv:page] Fix extraction (#18739)
+
+
+version 2019.01.02
+
+Extractors
+* [discovery] Use geo verification headers (#17838)
++ [packtpub] Add support for subscription.packtpub.com (#18718)
+* [yourporn] Fix extraction (#18583)
++ [acast:channel] Add support for play.acast.com (#18587)
++ [extractors] Add missing age limits (#18621)
++ [rmcdecouverte] Add support for live stream
+* [rmcdecouverte] Bypass geo restriction
+* [rmcdecouverte] Update URL regular expression (#18595, 18697)
+* [manyvids] Fix extraction (#18604, #18614)
+* [bitchute] Fix extraction (#18567)
+
+
+version 2018.12.31
+
+Extractors
++ [bbc] Add support for another embed pattern (#18643)
++ [npo:live] Add support for npostart.nl (#18644)
+* [beeg] Fix extraction (#18610, #18626)
+* [youtube] Unescape HTML for series (#18641)
++ [youtube] Extract more format metadata
+* [youtube] Detect DRM protected videos (#1774)
+* [youtube] Relax HTML5 player regular expressions (#18465, #18466)
+* [youtube] Extend HTML5 player regular expression (#17516)
++ [liveleak] Add support for another embed type and restore original
+  format extraction
++ [crackle] Extract ISM and HTTP formats
++ [twitter] Pass Referer with card request (#18579)
+* [mediasite] Extend URL regular expression (#18558)
++ [lecturio] Add support for lecturio.de (#18562)
++ [discovery] Add support for Scripps Networks watch domains (#17947)
+
+
 version 2018.12.17
 
 Extractors

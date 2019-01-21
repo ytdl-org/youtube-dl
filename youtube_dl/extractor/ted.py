@@ -203,10 +203,8 @@ class TEDIE(InfoExtractor):
                 ext_url = None
                 if service.lower() == 'youtube':
                     ext_url = external.get('code')
-                return {
-                    '_type': 'url',
-                    'url': ext_url or external['uri'],
-                }
+
+                return self.url_result(ext_url or external['uri'])
 
         resources_ = player_talk.get('resources') or talk_info.get('resources')
 
@@ -267,6 +265,8 @@ class TEDIE(InfoExtractor):
                     'format_id': m3u8_format['format_id'].replace('hls', 'http'),
                     'protocol': 'http',
                 })
+                if f.get('acodec') == 'none':
+                    del f['acodec']
                 formats.append(f)
 
         audio_download = talk_info.get('audioDownload')
