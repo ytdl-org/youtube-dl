@@ -674,7 +674,7 @@ from .myvi import (
 from .myvidster import MyVidsterIE
 from .narando import (
     NarandoIE,
-    NarandoPlayerIE,
+    NarandoArticleIE,
 )
 from .nationalgeographic import (
     NationalGeographicVideoIE,
