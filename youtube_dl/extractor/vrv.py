@@ -32,14 +32,14 @@ class VRVBaseIE(InfoExtractor):
     def _call_api(self, path, video_id, note, data=None):
         # https://tools.ietf.org/html/rfc5849#section-3
         base_url = self._API_DOMAIN + '/core/' + path
-        query = {
-            'oauth_consumer_key': self._API_PARAMS['oAuthKey'],
-            'oauth_nonce': ''.join([random.choice(string.ascii_letters) for _ in range(32)]),
-            'oauth_signature_method': 'HMAC-SHA1',
-            'oauth_timestamp': int(time.time()),
-        }
+        query = [
+            ('oauth_consumer_key', self._API_PARAMS['oAuthKey']),
+            ('oauth_nonce', ''.join([random.choice(string.ascii_letters) for _ in range(32)])),
+            ('oauth_signature_method', 'HMAC-SHA1'),
+            ('oauth_timestamp', int(time.time())),
+        ]
         if self._TOKEN:
-            query['oauth_token'] = self._TOKEN
+            query.append(('oauth_token', self._TOKEN))
         encoded_query = compat_urllib_parse_urlencode(query)
         headers = self.geo_verification_headers()
         if data:
