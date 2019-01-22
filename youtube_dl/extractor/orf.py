@@ -325,32 +325,46 @@ class ORFFM4StoryIE(InfoExtractor):
     IE_DESC = 'fm4.orf.at stories'
     _VALID_URL = r'https?://fm4\.orf\.at/stories/(?P<id>\d+)'
 
-    _TEST = {
-        'url': 'http://fm4.orf.at/stories/2865738/',
-        'playlist': [{
-            'md5': 'e1c2c706c45c7b34cf478bbf409907ca',
-            'info_dict': {
-                'id': '547792',
-                'ext': 'flv',
-                'title': 'Manu Delago und Inner Tongue live',
-                'description': 'Manu Delago und Inner Tongue haben bei der FM4 Soundpark Session live alles gegeben. Hier gibt es Fotos und die gesamte Session als Video.',
-                'duration': 1748.52,
-                'thumbnail': r're:^https?://.*\.jpg$',
-                'upload_date': '20170913',
-            },
+    _TESTS = [{
+            'url': 'http://fm4.orf.at/stories/2865738/',
+            'playlist': [{
+                'md5': 'e1c2c706c45c7b34cf478bbf409907ca',
+                'info_dict': {
+                    'id': '547792',
+                    'ext': 'flv',
+                    'title': 'Manu Delago und Inner Tongue live',
+                    'description': 'Manu Delago und Inner Tongue haben bei der FM4 Soundpark Session live alles gegeben. Hier gibt es Fotos und die gesamte Session als Video.',
+                    'duration': 1748.52,
+                    'thumbnail': r're:^https?://.*\.jpg$',
+                    'upload_date': '20170913',
+                },
+            }, {
+                'md5': 'c6dd2179731f86f4f55a7b49899d515f',
+                'info_dict': {
+                    'id': '547798',
+                    'ext': 'flv',
+                    'title': 'Manu Delago und Inner Tongue live (2)',
+                    'duration': 1504.08,
+                    'thumbnail': r're:^https?://.*\.jpg$',
+                    'upload_date': '20170913',
+                    'description': 'Manu Delago und Inner Tongue haben bei der FM4 Soundpark Session live alles gegeben. Hier gibt es Fotos und die gesamte Session als Video.',
+                },
+            }],
         }, {
-            'md5': 'c6dd2179731f86f4f55a7b49899d515f',
-            'info_dict': {
-                'id': '547798',
-                'ext': 'flv',
-                'title': 'Manu Delago und Inner Tongue live (2)',
-                'duration': 1504.08,
-                'thumbnail': r're:^https?://.*\.jpg$',
-                'upload_date': '20170913',
-                'description': 'Manu Delago und Inner Tongue haben bei der FM4 Soundpark Session live alles gegeben. Hier gibt es Fotos und die gesamte Session als Video.',
-            },
-        }],
-    }
+            'url': 'https://fm4.orf.at/stories/2959300/',
+            'playlist': [{
+                'md5': 'f8d9b519d3f2714822f27736e636d02c',
+                'info_dict': {
+                    'id': '641511',
+                    'ext': 'flv',
+                    'title': '"Lots of Miserable Songs by Scottish People"',
+                    'duration': 252.52,
+                    'thumbnail': r're:^https?://.*\.jpg$',
+                    'upload_date': '20190117',
+                    'description': 'The Twilight Sad aus Schottland veröffentlichen mit „It Won’t Be Like This All The Time“ ihre direkteste und roheste Platte und waren für eine Acoustic Session bei FM4 zu Gast.',
+                }
+            }]
+        }]
 
     def _real_extract(self, url):
         story_id = self._match_id(url)
@@ -365,7 +379,8 @@ class ORFFM4StoryIE(InfoExtractor):
 
             duration = float_or_none(data['duration'], 1000)
 
-            video = data['sources']['q8c']
+            sources = data['sources']
+            video = sources.get('default') or data['sources']['q8c']
             load_balancer_url = video['loadBalancerUrl']
             abr = int_or_none(video.get('audioBitrate'))
             vbr = int_or_none(video.get('bitrate'))
