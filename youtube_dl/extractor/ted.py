@@ -265,6 +265,8 @@ class TEDIE(InfoExtractor):
                     'format_id': m3u8_format['format_id'].replace('hls', 'http'),
                     'protocol': 'http',
                 })
+                if f.get('acodec') == 'none':
+                    del f['acodec']
                 formats.append(f)
 
         audio_download = talk_info.get('audioDownload')
