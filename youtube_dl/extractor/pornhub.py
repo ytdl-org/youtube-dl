@@ -24,7 +24,29 @@ from ..utils import (
 )
 
 
-class PornHubIE(InfoExtractor):
+class PornHubBaseIE(InfoExtractor):
+    def _download_webpage_handle(self, *args, **kwargs):
+        def dl(*args, **kwargs):
+            return super(PornHubBaseIE, self)._download_webpage_handle(*args, **kwargs)
+
+        webpage, urlh = dl(*args, **kwargs)
+
+        if any(re.search(p, webpage) for p in (
+                r'<body\b[^>]+\bonload=["\']go\(\)',
+                r'document\.cookie\s*=\s*["\']RNKEY=',
+                r'document\.location\.reload\(true\)')):
+            url_or_request = args[0]
+            url = (url_or_request.get_full_url()
+                   if isinstance(url_or_request, compat_urllib_request.Request)
+                   else url_or_request)
+            phantom = PhantomJSwrapper(self, required_version='2.0')
+            phantom.get(url, html=webpage)
+            webpage, urlh = dl(*args, **kwargs)
+
+        return webpage, urlh
+
+
+class PornHubIE(PornHubBaseIE):
     IE_DESC = 'PornHub and Thumbzilla'
     _VALID_URL = r'''(?x)
                     https?://
@@ -127,26 +149,6 @@ class PornHubIE(InfoExtractor):
         'url': 'https://www.pornhub.net/view_video.php?viewkey=203640933',
         'only_matching': True,
     }]
-
-    def _download_webpage_handle(self, *args, **kwargs):
-        def dl(*args, **kwargs):
-            return super(PornHubIE, self)._download_webpage_handle(*args, **kwargs)
-
-        webpage, urlh = dl(*args, **kwargs)
-
-        if any(re.search(p, webpage) for p in (
-                r'<body\b[^>]+\bonload=["\']go\(\)',
-                r'document\.cookie\s*=\s*["\']RNKEY=',
-                r'document\.location\.reload\(true\)')):
-            url_or_request = args[0]
-            url = (url_or_request.get_full_url()
-                   if isinstance(url_or_request, compat_urllib_request.Request)
-                   else url_or_request)
-            phantom = PhantomJSwrapper(self, required_version='2.0')
-            phantom.get(url, html=webpage)
-            webpage, urlh = dl(*args, **kwargs)
-
-        return webpage, urlh
 
     @staticmethod
     def _extract_urls(webpage):
@@ -329,7 +331,7 @@ class PornHubIE(InfoExtractor):
         }
 
 
-class PornHubPlaylistBaseIE(InfoExtractor):
+class PornHubPlaylistBaseIE(PornHubBaseIE):
     def _extract_entries(self, webpage, host):
         # Only process container div with main playlist content skipping
         # drop-down menu that uses similar pattern for videos (see
