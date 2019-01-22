@@ -1,4 +1,4 @@
-version <unreleased>
+version 2019.01.23
 
 Core
 * [utils] Fix urljoin for paths with non-http(s) schemes
