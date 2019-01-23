@@ -1,3 +1,9 @@
+version <unreleased>
+
+Core
+* [YoutubeDL] Fix negation for string operators in format selection (#18961)
+
+
 version 2019.01.23
 
 Core
