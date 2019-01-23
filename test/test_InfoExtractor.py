@@ -497,7 +497,64 @@ jwplayer("mediaplayer").setup({"abouttext":"Visit Indie DB","aboutlink":"http:\/
                     'width': 1280,
                     'height': 720,
                 }]
-            )
+            ),
+            (
+                # https://github.com/rg3/youtube-dl/issues/18923
+                # https://www.ted.com/talks/boris_hesser_a_grassroots_healthcare_revolution_in_africa
+                'ted_18923',
+                'http://hls.ted.com/talks/31241.m3u8',
+                [{
+                    'url': 'http://hls.ted.com/videos/BorisHesser_2018S/audio/600k.m3u8?nobumpers=true&uniqueId=76011e2b',
+                    'format_id': '600k-Audio',
+                    'vcodec': 'none',
+                }, {
+                    'url': 'http://hls.ted.com/videos/BorisHesser_2018S/audio/600k.m3u8?nobumpers=true&uniqueId=76011e2b',
+                    'format_id': '68',
+                    'vcodec': 'none',
+                }, {
+                    'url': 'http://hls.ted.com/videos/BorisHesser_2018S/video/64k.m3u8?nobumpers=true&uniqueId=76011e2b',
+                    'format_id': '163',
+                    'acodec': 'none',
+                    'width': 320,
+                    'height': 180,
+                }, {
+                    'url': 'http://hls.ted.com/videos/BorisHesser_2018S/video/180k.m3u8?nobumpers=true&uniqueId=76011e2b',
+                    'format_id': '481',
+                    'acodec': 'none',
+                    'width': 512,
+                    'height': 288,
+                }, {
+                    'url': 'http://hls.ted.com/videos/BorisHesser_2018S/video/320k.m3u8?nobumpers=true&uniqueId=76011e2b',
+                    'format_id': '769',
+                    'acodec': 'none',
+                    'width': 512,
+                    'height': 288,
+                }, {
+                    'url': 'http://hls.ted.com/videos/BorisHesser_2018S/video/450k.m3u8?nobumpers=true&uniqueId=76011e2b',
+                    'format_id': '984',
+                    'acodec': 'none',
+                    'width': 512,
+                    'height': 288,
+                }, {
+                    'url': 'http://hls.ted.com/videos/BorisHesser_2018S/video/600k.m3u8?nobumpers=true&uniqueId=76011e2b',
+                    'format_id': '1255',
+                    'acodec': 'none',
+                    'width': 640,
+                    'height': 360,
+                }, {
+                    'url': 'http://hls.ted.com/videos/BorisHesser_2018S/video/950k.m3u8?nobumpers=true&uniqueId=76011e2b',
+                    'format_id': '1693',
+                    'acodec': 'none',
+                    'width': 853,
+                    'height': 480,
+                }, {
+                    'url': 'http://hls.ted.com/videos/BorisHesser_2018S/video/1500k.m3u8?nobumpers=true&uniqueId=76011e2b',
+                    'format_id': '2462',
+                    'acodec': 'none',
+                    'width': 1280,
+                    'height': 720,
+                }]
+            ),
         ]
 
         for m3u8_file, m3u8_url, expected_formats in _TEST_CASES:

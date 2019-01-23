@@ -96,7 +96,7 @@ class TNAFlixNetworkBaseIE(InfoExtractor):
 
         cfg_xml = self._download_xml(
             cfg_url, display_id, 'Downloading metadata',
-            transform_source=fix_xml_ampersands)
+            transform_source=fix_xml_ampersands, headers={'Referer': url})
 
         formats = []
 

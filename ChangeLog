@@ -1,3 +1,32 @@
+version 2019.01.23
+
+Core
+* [utils] Fix urljoin for paths with non-http(s) schemes
+* [extractor/common] Improve jwplayer relative URL handling (#18892)
++ [YoutubeDL] Add negation support for string comparisons in format selection
+  expressions (#18600, #18805)
+* [extractor/common] Improve HLS video-only format detection (#18923)
+
+Extractors
+* [crunchyroll] Extend URL regular expression (#18955)
+* [pornhub] Bypass scrape detection (#4822, #5930, #7074, #10175, #12722,
+  #17197, #18338 #18842, #18899)
++ [vrv] Add support for authentication (#14307)
+* [videomore:season] Fix extraction
+* [videomore] Improve extraction (#18908)
++ [tnaflix] Pass Referer in metadata request (#18925)
+* [radiocanada] Relax DRM check (#18608, #18609)
+* [vimeo] Fix video password verification for videos protected by
+  Referer HTTP header
++ [hketv] Add support for hkedcity.net (#18696)
++ [streamango] Add support for fruithosts.net (#18710)
++ [instagram] Add support for tags (#18757)
++ [odnoklassniki] Detect paid videos (#18876)
+* [ted] Correct acodec for HTTP formats (#18923)
+* [cartoonnetwork] Fix extraction (#15664, #17224)
+* [vimeo] Fix extraction for password protected player URLs (#18889)
+
+
 version 2019.01.17
 
 Extractors
