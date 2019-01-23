@@ -23,7 +23,7 @@ class YourPornIE(InfoExtractor):
             'id': '5c2d2fde03bc5',
             'ext': 'mp4',
             'title': 'Busty 7 - Nubile Films (2018) - Chanel Preston, '
-                     + 'Crystal Swift, Jennifer Amton, Shay Evan',
+            'Crystal Swift, Jennifer Amton, Shay Evan',
             'thumbnail': r're:^https?://.*\.jpg$',
             'age_limit': 18,
             'duration': 5403
@@ -47,15 +47,17 @@ class YourPornIE(InfoExtractor):
         if '#' in title:
             title = title[0:title.index('#')].strip()
         thumbnail = self._og_search_thumbnail(webpage)
-        durationraw = self._search_regex(r'Video Info -> duration:<b>([0-9:]+)</b>',
-                                         webpage, 'duration')
-        if len(durationraw.split(":")) == 3:
-            duration = int((durationraw.split(":")[0])) * 3600 + \
-                       int((durationraw.split(":")[1])) * 60 + int((durationraw.split(":")[2]))
-        elif len(durationraw.split(":")) == 2:
-            duration = int((durationraw.split(":")[0])) * 60 + int((durationraw.split(":")[1]))
+        duration_raw = self._search_regex(r'Video Info -> duration:<b>([0-9:]+)</b>',
+                                          webpage, 'duration')
+        if len(duration_raw.split(":")) == 3:
+            duration = int((duration_raw.split(":")[0])) * 3600 + \
+                int((duration_raw.split(":")[1])) * 60 + \
+                int((duration_raw.split(":")[2]))
+        elif len(duration_raw.split(":")) == 2:
+            duration = int((duration_raw.split(":")[0])) * 60 + \
+                int((duration_raw.split(":")[1]))
         else:
-            duration = int((durationraw.split(":")[1]))
+            duration = int((duration_raw.split(":")[1]))
 
         return {
             'id': video_id,
