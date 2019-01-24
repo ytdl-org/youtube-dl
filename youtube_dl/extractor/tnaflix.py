@@ -10,7 +10,7 @@ from ..utils import (
     int_or_none,
     parse_duration,
     str_to_int,
-    unescapeHTML,
+    unescape_html,
     xpath_text,
 )
 
@@ -102,7 +102,7 @@ class TNAFlixNetworkBaseIE(InfoExtractor):
 
         def extract_video_url(vl):
             # Any URL modification now results in HTTP Error 403: Forbidden
-            return unescapeHTML(vl.text)
+            return unescape_html(vl.text)
 
         video_link = cfg_xml.find('./videoLink')
         if video_link is not None:

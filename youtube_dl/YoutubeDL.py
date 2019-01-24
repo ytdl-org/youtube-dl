@@ -53,19 +53,19 @@ from .utils import (
     determine_protocol,
     DownloadError,
     encode_compat_str,
-    encodeFilename,
+    encode_filename,
     error_to_compat_str,
     expand_path,
     ExtractorError,
     format_bytes,
-    formatSeconds,
+    format_seconds,
     GeoRestrictedError,
     int_or_none,
     ISO3166Utils,
     locked_file,
-    make_HTTPS_handler,
+    make_https_handler,
     MaxDownloadsReached,
-    orderedSet,
+    ordered_set,
     PagedList,
     parse_filesize,
     PerRequestProxyHandler,
@@ -710,7 +710,7 @@ class YoutubeDL(object):
             # 'Treat' all problem characters by passing filename through preferredencoding
             # to workaround encoding issues with subprocess on python2 @ Windows
             if sys.version_info < (3, 0) and sys.platform == 'win32':
-                filename = encodeFilename(filename, True).decode(preferredencoding())
+                filename = encode_filename(filename, True).decode(preferredencoding())
             return sanitize_path(filename)
         except ValueError as err:
             self.report_error('Error in output template: ' + str(err) + ' (encoding: ' + repr(preferredencoding()) + ')')
@@ -918,7 +918,7 @@ class YoutubeDL(object):
                                 yield int(item)
                         else:
                             yield int(string_segment)
-                playlistitems = orderedSet(iter_playlistitems(playlistitems_str))
+                playlistitems = ordered_set(iter_playlistitems(playlistitems_str))
 
             ie_entries = ie_result['entries']
 
@@ -1735,7 +1735,7 @@ class YoutubeDL(object):
         if self.params.get('forcefilename', False) and filename is not None:
             self.to_stdout(filename)
         if self.params.get('forceduration', False) and info_dict.get('duration') is not None:
-            self.to_stdout(formatSeconds(info_dict['duration']))
+            self.to_stdout(format_seconds(info_dict['duration']))
         if self.params.get('forceformat', False):
             self.to_stdout(info_dict['format'])
         if self.params.get('forcejson', False):
@@ -1758,19 +1758,19 @@ class YoutubeDL(object):
                 self.report_error('unable to create directory ' + error_to_compat_str(err))
                 return False
 
-        if not ensure_dir_exists(sanitize_path(encodeFilename(filename))):
+        if not ensure_dir_exists(sanitize_path(encode_filename(filename))):
             return
 
         if self.params.get('writedescription', False):
             descfn = replace_extension(filename, 'description', info_dict.get('ext'))
-            if self.params.get('nooverwrites', False) and os.path.exists(encodeFilename(descfn)):
+            if self.params.get('nooverwrites', False) and os.path.exists(encode_filename(descfn)):
                 self.to_screen('[info] Video description is already present')
             elif info_dict.get('description') is None:
                 self.report_warning('There\'s no description to write.')
             else:
                 try:
                     self.to_screen('[info] Writing video description to: ' + descfn)
-                    with io.open(encodeFilename(descfn), 'w', encoding='utf-8') as descfile:
+                    with io.open(encode_filename(descfn), 'w', encoding='utf-8') as descfile:
                         descfile.write(info_dict['description'])
                 except (OSError, IOError):
                     self.report_error('Cannot write description file ' + descfn)
@@ -1778,12 +1778,12 @@ class YoutubeDL(object):
 
         if self.params.get('writeannotations', False):
             annofn = replace_extension(filename, 'annotations.xml', info_dict.get('ext'))
-            if self.params.get('nooverwrites', False) and os.path.exists(encodeFilename(annofn)):
+            if self.params.get('nooverwrites', False) and os.path.exists(encode_filename(annofn)):
                 self.to_screen('[info] Video annotations are already present')
             else:
                 try:
                     self.to_screen('[info] Writing video annotations to: ' + annofn)
-                    with io.open(encodeFilename(annofn), 'w', encoding='utf-8') as annofile:
+                    with io.open(encode_filename(annofn), 'w', encoding='utf-8') as annofile:
                         annofile.write(info_dict['annotations'])
                 except (KeyError, TypeError):
                     self.report_warning('There are no annotations to write.')
@@ -1802,7 +1802,7 @@ class YoutubeDL(object):
             for sub_lang, sub_info in subtitles.items():
                 sub_format = sub_info['ext']
                 sub_filename = subtitles_filename(filename, sub_lang, sub_format)
-                if self.params.get('nooverwrites', False) and os.path.exists(encodeFilename(sub_filename)):
+                if self.params.get('nooverwrites', False) and os.path.exists(encode_filename(sub_filename)):
                     self.to_screen('[info] Video subtitle %s.%s is already present' % (sub_lang, sub_format))
                 else:
                     self.to_screen('[info] Writing video subtitles to: ' + sub_filename)
@@ -1810,7 +1810,7 @@ class YoutubeDL(object):
                         try:
                             # Use newline='' to prevent conversion of newline characters
                             # See https://github.com/rg3/youtube-dl/issues/10268
-                            with io.open(encodeFilename(sub_filename), 'w', encoding='utf-8', newline='') as subfile:
+                            with io.open(encode_filename(sub_filename), 'w', encoding='utf-8', newline='') as subfile:
                                 subfile.write(sub_info['data'])
                         except (OSError, IOError):
                             self.report_error('Cannot write subtitles file ' + sub_filename)
@@ -1819,7 +1819,7 @@ class YoutubeDL(object):
                         try:
                             sub_data = ie._request_webpage(
                                 sub_info['url'], info_dict['id'], note=False).read()
-                            with io.open(encodeFilename(sub_filename), 'wb') as subfile:
+                            with io.open(encode_filename(sub_filename), 'wb') as subfile:
                                 subfile.write(sub_data)
                         except (ExtractorError, IOError, OSError, ValueError) as err:
                             self.report_warning('Unable to download subtitle for "%s": %s' %
@@ -1828,7 +1828,7 @@ class YoutubeDL(object):
 
         if self.params.get('writeinfojson', False):
             infofn = replace_extension(filename, 'info.json', info_dict.get('ext'))
-            if self.params.get('nooverwrites', False) and os.path.exists(encodeFilename(infofn)):
+            if self.params.get('nooverwrites', False) and os.path.exists(encode_filename(infofn)):
                 self.to_screen('[info] Video description metadata is already present')
             else:
                 self.to_screen('[info] Writing video description metadata as JSON to: ' + infofn)
@@ -1889,7 +1889,7 @@ class YoutubeDL(object):
                             'Requested formats are incompatible for merge and will be merged into mkv.')
                     # Ensure filename always has a correct extension for successful merge
                     filename = '%s.%s' % (filename_wo_ext, info_dict['ext'])
-                    if os.path.exists(encodeFilename(filename)):
+                    if os.path.exists(encode_filename(filename)):
                         self.to_screen(
                             '[download] %s has already been downloaded and '
                             'merged' % filename)
@@ -2055,7 +2055,7 @@ class YoutubeDL(object):
                 for old_filename in files_to_delete:
                     self.to_screen('Deleting original file %s (pass -k to keep)' % old_filename)
                     try:
-                        os.remove(encodeFilename(old_filename))
+                        os.remove(encode_filename(old_filename))
                     except (IOError, OSError):
                         self.report_warning('Unable to remove downloaded original file')
 
@@ -2319,7 +2319,7 @@ class YoutubeDL(object):
         proxy_handler = PerRequestProxyHandler(proxies)
 
         debuglevel = 1 if self.params.get('debug_printtraffic') else 0
-        https_handler = make_HTTPS_handler(self.params, debuglevel=debuglevel)
+        https_handler = make_https_handler(self.params, debuglevel=debuglevel)
         ydlh = YoutubeDLHandler(self.params, debuglevel=debuglevel)
         data_handler = compat_urllib_request_DataHandler()
 
@@ -2378,7 +2378,7 @@ class YoutubeDL(object):
             thumb_display_id = '%s ' % t['id'] if len(thumbnails) > 1 else ''
             t['filename'] = thumb_filename = os.path.splitext(filename)[0] + suffix + '.' + thumb_ext
 
-            if self.params.get('nooverwrites', False) and os.path.exists(encodeFilename(thumb_filename)):
+            if self.params.get('nooverwrites', False) and os.path.exists(encode_filename(thumb_filename)):
                 self.to_screen('[%s] %s: Thumbnail %sis already present' %
                                (info_dict['extractor'], info_dict['id'], thumb_display_id))
             else:
@@ -2386,7 +2386,7 @@ class YoutubeDL(object):
                                (info_dict['extractor'], info_dict['id'], thumb_display_id))
                 try:
                     uf = self.urlopen(t['url'])
-                    with open(encodeFilename(thumb_filename), 'wb') as thumbf:
+                    with open(encode_filename(thumb_filename), 'wb') as thumbf:
                         shutil.copyfileobj(uf, thumbf)
                     self.to_screen('[%s] %s: Writing thumbnail %sto: %s' %
                                    (info_dict['extractor'], info_dict['id'], thumb_display_id, thumb_filename))

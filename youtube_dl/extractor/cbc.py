@@ -17,7 +17,7 @@ from ..utils import (
     xpath_element,
     xpath_with_ns,
     find_xpath_attr,
-    orderedSet,
+    ordered_set,
     parse_duration,
     parse_iso8601,
     parse_age_limit,
@@ -145,7 +145,7 @@ class CBCIE(InfoExtractor):
             media_ids.extend(re.findall(media_id_re, webpage))
         entries.extend([
             self.url_result('cbcplayer:%s' % media_id, 'CBCPlayer', media_id)
-            for media_id in orderedSet(media_ids)])
+            for media_id in ordered_set(media_ids)])
         return self.playlist_result(
             entries, display_id, strip_or_none(title),
             self._og_search_description(webpage))

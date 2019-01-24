@@ -13,7 +13,7 @@ from ..utils import (
     ExtractorError,
     float_or_none,
     mimetype2ext,
-    unescapeHTML,
+    unescape_html,
     unsmuggle_url,
     url_or_none,
     urljoin,
@@ -107,7 +107,7 @@ class MediasiteIE(InfoExtractor):
     @staticmethod
     def _extract_urls(webpage):
         return [
-            unescapeHTML(mobj.group('url'))
+            unescape_html(mobj.group('url'))
             for mobj in re.finditer(
                 r'(?xi)<iframe\b[^>]+\bsrc=(["\'])(?P<url>(?:(?:https?:)?//[^/]+)?/Mediasite/Play/[0-9a-f]{32,34}(?:\?.*?)?)\1',
                 webpage)]

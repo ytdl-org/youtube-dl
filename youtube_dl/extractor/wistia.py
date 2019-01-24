@@ -7,7 +7,7 @@ from ..utils import (
     ExtractorError,
     int_or_none,
     float_or_none,
-    unescapeHTML,
+    unescape_html,
 )
 
 
@@ -48,7 +48,7 @@ class WistiaIE(InfoExtractor):
         match = re.search(
             r'<(?:meta[^>]+?content|iframe[^>]+?src)=(["\'])(?P<url>(?:https?:)?//(?:fast\.)?wistia\.(?:net|com)/embed/iframe/.+?)\1', webpage)
         if match:
-            return unescapeHTML(match.group('url'))
+            return unescape_html(match.group('url'))
 
         match = re.search(r'(?:id=["\']wistia_|data-wistia-?id=["\']|Wistia\.embed\(["\'])(?P<id>[^"\']+)', webpage)
         if match:

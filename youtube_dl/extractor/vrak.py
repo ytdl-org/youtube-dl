@@ -9,7 +9,7 @@ from ..utils import (
     int_or_none,
     parse_age_limit,
     smuggle_url,
-    unescapeHTML,
+    unescape_html,
 )
 
 
@@ -49,7 +49,7 @@ class VrakIE(InfoExtractor):
             self._search_regex(
                 r'data-player-options-content=(["\'])(?P<content>{.+?})\1',
                 webpage, 'content', default='{}', group='content'),
-            video_id, transform_source=unescapeHTML)
+            video_id, transform_source=unescape_html)
 
         ref_id = content.get('refId') or self._search_regex(
             r'refId&quot;:&quot;([^&]+)&quot;', webpage, 'ref id')

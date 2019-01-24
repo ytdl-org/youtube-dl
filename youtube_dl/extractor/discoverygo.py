@@ -10,7 +10,7 @@ from ..utils import (
     int_or_none,
     parse_age_limit,
     remove_end,
-    unescapeHTML,
+    unescape_html,
     url_or_none,
 )
 
@@ -158,7 +158,7 @@ class DiscoveryGoPlaylistIE(DiscoveryGoBaseIE):
         for mobj in re.finditer(r'data-json=(["\'])(?P<json>{.+?})\1', webpage):
             data = self._parse_json(
                 mobj.group('json'), display_id,
-                transform_source=unescapeHTML, fatal=False)
+                transform_source=unescape_html, fatal=False)
             if not isinstance(data, dict) or data.get('type') != 'episode':
                 continue
             episode_url = data.get('socialUrl')

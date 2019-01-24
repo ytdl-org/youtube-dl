@@ -4,7 +4,7 @@ from __future__ import unicode_literals
 import re
 
 from .common import InfoExtractor
-from ..utils import unescapeHTML
+from ..utils import unescape_html
 
 
 class BaiduVideoIE(InfoExtractor):
@@ -43,7 +43,7 @@ class BaiduVideoIE(InfoExtractor):
             'xqinfo', category, playlist_id, 'Download playlist JSON metadata')
 
         playlist_title = playlist_detail['title']
-        playlist_description = unescapeHTML(playlist_detail.get('intro'))
+        playlist_description = unescape_html(playlist_detail.get('intro'))
 
         episodes_detail = self._call_api(
             'xqsingle', category, playlist_id, 'Download episodes JSON metadata')

@@ -9,7 +9,7 @@ from ..utils import (
     int_or_none,
     determine_protocol,
     try_get,
-    unescapeHTML,
+    unescape_html,
 )
 
 
@@ -40,7 +40,7 @@ class DailyMailIE(InfoExtractor):
         webpage = self._download_webpage(url, video_id)
         video_data = self._parse_json(self._search_regex(
             r"data-opts='({.+?})'", webpage, 'video data'), video_id)
-        title = unescapeHTML(video_data['title'])
+        title = unescape_html(video_data['title'])
 
         sources_url = (try_get(
             video_data,
@@ -78,7 +78,7 @@ class DailyMailIE(InfoExtractor):
         return {
             'id': video_id,
             'title': title,
-            'description': unescapeHTML(video_data.get('descr')),
+            'description': unescape_html(video_data.get('descr')),
             'thumbnail': video_data.get('poster') or video_data.get('thumbnail'),
             'formats': formats,
         }

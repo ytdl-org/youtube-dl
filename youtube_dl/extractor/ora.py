@@ -7,7 +7,7 @@ from ..compat import compat_urlparse
 from ..utils import (
     get_element_by_attribute,
     qualities,
-    unescapeHTML,
+    unescape_html,
 )
 
 
@@ -66,7 +66,7 @@ class OraTVIE(InfoExtractor):
             'id': self._search_regex(
                 r'"id"\s*:\s*(\d+)', video_data, 'video id', default=display_id),
             'display_id': display_id,
-            'title': unescapeHTML(self._og_search_title(webpage)),
+            'title': unescape_html(self._og_search_title(webpage)),
             'description': get_element_by_attribute(
                 'class', 'video_txt_decription', webpage),
             'thumbnail': self._proto_relative_url(self._search_regex(

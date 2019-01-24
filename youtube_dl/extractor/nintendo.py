@@ -5,7 +5,7 @@ import re
 
 from .common import InfoExtractor
 from .ooyala import OoyalaIE
-from ..utils import unescapeHTML
+from ..utils import unescape_html
 
 
 class NintendoIE(InfoExtractor):
@@ -43,4 +43,4 @@ class NintendoIE(InfoExtractor):
                 webpage)]
 
         return self.playlist_result(
-            entries, page_id, unescapeHTML(self._og_search_title(webpage, fatal=False)))
+            entries, page_id, unescape_html(self._og_search_title(webpage, fatal=False)))

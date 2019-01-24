@@ -10,7 +10,7 @@ from ..utils import (
     xpath_attr,
     xpath_text,
     xpath_element,
-    unescapeHTML,
+    unescape_html,
     unified_timestamp,
 )
 
@@ -70,7 +70,7 @@ class SpringboardPlatformIE(InfoExtractor):
         content = xpath_element(
             item, './{http://search.yahoo.com/mrss/}content', 'content',
             fatal=True)
-        title = unescapeHTML(xpath_text(item, './title', 'title', fatal=True))
+        title = unescape_html(xpath_text(item, './title', 'title', fatal=True))
 
         video_url = content.attrib['url']
 
@@ -84,7 +84,7 @@ class SpringboardPlatformIE(InfoExtractor):
         width = int_or_none(content.get('width'))
         height = int_or_none(content.get('height'))
 
-        description = unescapeHTML(xpath_text(
+        description = unescape_html(xpath_text(
             item, './description', 'description'))
         thumbnail = xpath_attr(
             item, './{http://search.yahoo.com/mrss/}thumbnail', 'url',

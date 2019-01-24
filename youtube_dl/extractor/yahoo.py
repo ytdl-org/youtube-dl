@@ -18,7 +18,7 @@ from ..utils import (
     int_or_none,
     mimetype2ext,
     smuggle_url,
-    unescapeHTML,
+    unescape_html,
 )
 
 from .brightcove import (
@@ -415,7 +415,7 @@ class YahooIE(InfoExtractor):
         return {
             'id': video_id,
             'display_id': display_id,
-            'title': unescapeHTML(meta['title']),
+            'title': unescape_html(meta['title']),
             'formats': formats,
             'description': clean_html(meta['description']),
             'thumbnail': meta['thumbnail'] if meta.get('thumbnail') else self._og_search_thumbnail(webpage),

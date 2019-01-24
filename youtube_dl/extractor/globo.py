@@ -16,7 +16,7 @@ from ..utils import (
     ExtractorError,
     float_or_none,
     int_or_none,
-    orderedSet,
+    ordered_set,
     str_or_none,
 )
 
@@ -218,7 +218,7 @@ class GloboArticleIE(InfoExtractor):
             video_ids.extend(re.findall(video_regex, webpage))
         entries = [
             self.url_result('globo:%s' % video_id, GloboIE.ie_key())
-            for video_id in orderedSet(video_ids)]
+            for video_id in ordered_set(video_ids)]
         title = self._og_search_title(webpage, fatal=False)
         description = self._html_search_meta('description', webpage)
         return self.playlist_result(entries, display_id, title, description)

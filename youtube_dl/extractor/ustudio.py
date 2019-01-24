@@ -6,7 +6,7 @@ from .common import InfoExtractor
 from ..utils import (
     int_or_none,
     unified_strdate,
-    unescapeHTML,
+    unescape_html,
 )
 
 
@@ -37,7 +37,7 @@ class UstudioIE(InfoExtractor):
 
         def extract(kind):
             return [{
-                'url': unescapeHTML(item.attrib['url']),
+                'url': unescape_html(item.attrib['url']),
                 'width': int_or_none(item.get('width')),
                 'height': int_or_none(item.get('height')),
             } for item in config.findall('./qualities/quality/%s' % kind) if item.get('url')]

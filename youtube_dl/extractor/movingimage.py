@@ -2,7 +2,7 @@ from __future__ import unicode_literals
 
 from .common import InfoExtractor
 from ..utils import (
-    unescapeHTML,
+    unescape_html,
     parse_duration,
 )
 
@@ -36,8 +36,8 @@ class MovingImageIE(InfoExtractor):
                 r'<span\s+class="field_title">%s:</span>\s*<span\s+class="field_content">([^<]+)</span>' % field_name,
                 webpage, 'title', fatal=fatal)
 
-        title = unescapeHTML(search_field('Title', fatal=True)).strip('()[]')
-        description = unescapeHTML(search_field('Description'))
+        title = unescape_html(search_field('Title', fatal=True)).strip('()[]')
+        description = unescape_html(search_field('Description'))
         duration = parse_duration(search_field('Running time'))
         thumbnail = self._search_regex(
             r"image\s*:\s*'([^']+)'", webpage, 'thumbnail', fatal=False)

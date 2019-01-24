@@ -7,7 +7,7 @@ from ..utils import (
     determine_ext,
     int_or_none,
     js_to_json,
-    unescapeHTML,
+    unescape_html,
 )
 
 
@@ -59,7 +59,7 @@ class StitcherIE(InfoExtractor):
                 r'(?s)var\s+stitcher(?:Config)?\s*=\s*({.+?});\n', webpage, 'episode config')),
             display_id)['config']['episode']
 
-        title = unescapeHTML(episode['title'])
+        title = unescape_html(episode['title'])
         formats = [{
             'url': episode[episode_key],
             'ext': determine_ext(episode[episode_key]) or 'mp3',

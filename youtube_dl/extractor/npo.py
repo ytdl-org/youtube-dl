@@ -12,7 +12,7 @@ from ..utils import (
     ExtractorError,
     fix_xml_ampersands,
     int_or_none,
-    orderedSet,
+    ordered_set,
     parse_duration,
     qualities,
     strip_jsonp,
@@ -546,7 +546,7 @@ class NPOPlaylistBaseIE(NPOIE):
 
         entries = [
             self.url_result('npo:%s' % video_id if not video_id.startswith('http') else video_id)
-            for video_id in orderedSet(re.findall(self._PLAYLIST_ENTRY_RE, webpage))
+            for video_id in ordered_set(re.findall(self._PLAYLIST_ENTRY_RE, webpage))
         ]
 
         playlist_title = self._html_search_regex(

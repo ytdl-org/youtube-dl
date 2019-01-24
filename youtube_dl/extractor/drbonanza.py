@@ -6,7 +6,7 @@ from .common import InfoExtractor
 from ..utils import (
     js_to_json,
     parse_duration,
-    unescapeHTML,
+    unescape_html,
 )
 
 
@@ -41,7 +41,7 @@ class DRBonanzaIE(InfoExtractor):
                 r'(?s)currentAsset\s*=\s*({.+?})\s*</script', webpage, 'asset'),
             display_id, transform_source=js_to_json)
 
-        title = unescapeHTML(asset['AssetTitle']).strip()
+        title = unescape_html(asset['AssetTitle']).strip()
 
         def extract(field):
             return self._search_regex(

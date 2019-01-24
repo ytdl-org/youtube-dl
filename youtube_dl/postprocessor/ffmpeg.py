@@ -13,8 +13,8 @@ from ..compat import (
     compat_subprocess_get_DEVNULL,
 )
 from ..utils import (
-    encodeArgument,
-    encodeFilename,
+    encode_argument,
+    encode_filename,
     get_exe_version,
     is_outdated_version,
     PostProcessingError,
@@ -169,9 +169,9 @@ class FFmpegPostProcessor(PostProcessor):
             raise PostProcessingError('ffprobe or avprobe not found. Please install one.')
         try:
             cmd = [
-                encodeFilename(self.probe_executable, True),
-                encodeArgument('-show_streams'),
-                encodeFilename(self._ffmpeg_filename_argument(path), True)]
+                encode_filename(self.probe_executable, True),
+                encode_argument('-show_streams'),
+                encode_filename(self._ffmpeg_filename_argument(path), True)]
             if self._downloader.params.get('verbose', False):
                 self._downloader.to_screen('[debug] %s command line: %s' % (self.basename, shell_quote(cmd)))
             handle = subprocess.Popen(cmd, stderr=compat_subprocess_get_DEVNULL(), stdout=subprocess.PIPE, stdin=subprocess.PIPE)
@@ -192,20 +192,20 @@ class FFmpegPostProcessor(PostProcessor):
         self.check_version()
 
         oldest_mtime = min(
-            os.stat(encodeFilename(path)).st_mtime for path in input_paths)
+            os.stat(encode_filename(path)).st_mtime for path in input_paths)
 
         opts += self._configuration_args()
 
         files_cmd = []
         for path in input_paths:
             files_cmd.extend([
-                encodeArgument('-i'),
-                encodeFilename(self._ffmpeg_filename_argument(path), True)
+                encode_argument('-i'),
+                encode_filename(self._ffmpeg_filename_argument(path), True)
             ])
-        cmd = ([encodeFilename(self.executable, True), encodeArgument('-y')] +
+        cmd = ([encode_filename(self.executable, True), encode_argument('-y')] +
                files_cmd +
-               [encodeArgument(o) for o in opts] +
-               [encodeFilename(self._ffmpeg_filename_argument(out_path), True)])
+               [encode_argument(o) for o in opts] +
+               [encode_filename(self._ffmpeg_filename_argument(out_path), True)])
 
         if self._downloader.params.get('verbose', False):
             self._downloader.to_screen('[debug] ffmpeg command line: %s' % shell_quote(cmd))
@@ -309,7 +309,7 @@ class FFmpegExtractAudioPP(FFmpegPostProcessor):
 
         # If we download foo.mp3 and convert it to... foo.mp3, then don't delete foo.mp3, silly.
         if (new_path == path or
-                (self._nopostoverwrites and os.path.exists(encodeFilename(new_path)))):
+                (self._nopostoverwrites and os.path.exists(encode_filename(new_path)))):
             self._downloader.to_screen('[ffmpeg] Post-process file %s exists, skipping' % new_path)
             return [], information
 
@@ -403,8 +403,8 @@ class FFmpegEmbedSubtitlePP(FFmpegPostProcessor):
         temp_filename = prepend_extension(filename, 'temp')
         self._downloader.to_screen('[ffmpeg] Embedding subtitles in \'%s\'' % filename)
         self.run_ffmpeg_multiple_files(input_files, temp_filename, opts)
-        os.remove(encodeFilename(filename))
-        os.rename(encodeFilename(temp_filename), encodeFilename(filename))
+        os.remove(encode_filename(filename))
+        os.rename(encode_filename(temp_filename), encode_filename(filename))
 
         return sub_filenames, information
 
@@ -477,8 +477,8 @@ class FFmpegMetadataPP(FFmpegPostProcessor):
         self.run_ffmpeg_multiple_files(in_filenames, temp_filename, options)
         if chapters:
             os.remove(metadata_filename)
-        os.remove(encodeFilename(filename))
-        os.rename(encodeFilename(temp_filename), encodeFilename(filename))
+        os.remove(encode_filename(filename))
+        os.rename(encode_filename(temp_filename), encode_filename(filename))
         return [], info
 
 
@@ -489,7 +489,7 @@ class FFmpegMergerPP(FFmpegPostProcessor):
         args = ['-c', 'copy', '-map', '0:v:0', '-map', '1:a:0']
         self._downloader.to_screen('[ffmpeg] Merging formats into "%s"' % filename)
         self.run_ffmpeg_multiple_files(info['__files_to_merge'], temp_filename, args)
-        os.rename(encodeFilename(temp_filename), encodeFilename(filename))
+        os.rename(encode_filename(temp_filename), encode_filename(filename))
         return info['__files_to_merge'], info
 
     def can_merge(self):
@@ -523,8 +523,8 @@ class FFmpegFixupStretchedPP(FFmpegPostProcessor):
         self._downloader.to_screen('[ffmpeg] Fixing aspect ratio in "%s"' % filename)
         self.run_ffmpeg(filename, temp_filename, options)
 
-        os.remove(encodeFilename(filename))
-        os.rename(encodeFilename(temp_filename), encodeFilename(filename))
+        os.remove(encode_filename(filename))
+        os.rename(encode_filename(temp_filename), encode_filename(filename))
 
         return [], info
 
@@ -541,8 +541,8 @@ class FFmpegFixupM4aPP(FFmpegPostProcessor):
         self._downloader.to_screen('[ffmpeg] Correcting container in "%s"' % filename)
         self.run_ffmpeg(filename, temp_filename, options)
 
-        os.remove(encodeFilename(filename))
-        os.rename(encodeFilename(temp_filename), encodeFilename(filename))
+        os.remove(encode_filename(filename))
+        os.rename(encode_filename(temp_filename), encode_filename(filename))
 
         return [], info
 
@@ -557,8 +557,8 @@ class FFmpegFixupM3u8PP(FFmpegPostProcessor):
             self._downloader.to_screen('[ffmpeg] Fixing malformed AAC bitstream in "%s"' % filename)
             self.run_ffmpeg(filename, temp_filename, options)
 
-            os.remove(encodeFilename(filename))
-            os.rename(encodeFilename(temp_filename), encodeFilename(filename))
+            os.remove(encode_filename(filename))
+            os.rename(encode_filename(temp_filename), encode_filename(filename))
         return [], info
 
 

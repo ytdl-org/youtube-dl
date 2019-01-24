@@ -11,7 +11,7 @@ from ..utils import (
     get_element_by_class,
     int_or_none,
     smuggle_url,
-    unescapeHTML,
+    unescape_html,
 )
 from .senateisvp import SenateISVPIE
 from .ustream import UstreamIE
@@ -154,12 +154,12 @@ class CSpanIE(InfoExtractor):
             for quality in f.get('qualities', []):
                 formats.append({
                     'format_id': '%s-%sp' % (get_text_attr(quality, 'bitrate'), get_text_attr(quality, 'height')),
-                    'url': unescapeHTML(get_text_attr(quality, 'file')),
+                    'url': unescape_html(get_text_attr(quality, 'file')),
                     'height': int_or_none(get_text_attr(quality, 'height')),
                     'tbr': int_or_none(get_text_attr(quality, 'bitrate')),
                 })
             if not formats:
-                path = unescapeHTML(get_text_attr(f, 'path'))
+                path = unescape_html(get_text_attr(f, 'path'))
                 if not path:
                     continue
                 formats = self._extract_m3u8_formats(

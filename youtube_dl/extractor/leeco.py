@@ -18,7 +18,7 @@ from ..utils import (
     encode_data_uri,
     ExtractorError,
     int_or_none,
-    orderedSet,
+    ordered_set,
     parse_iso8601,
     str_or_none,
     url_basename,
@@ -243,7 +243,7 @@ class LePlaylistIE(InfoExtractor):
         page = self._download_webpage(url, playlist_id)
 
         # Currently old domain names are still used in playlists
-        media_ids = orderedSet(re.findall(
+        media_ids = ordered_set(re.findall(
             r'<a[^>]+href="http://www\.letv\.com/ptv/vplay/(\d+)\.html', page))
         entries = [self.url_result(LeIE._URL_TEMPLATE % media_id, ie='Le')
                    for media_id in media_ids]

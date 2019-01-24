@@ -16,7 +16,7 @@ from ..utils import (
     parse_duration,
     parse_iso8601,
     try_get,
-    unescapeHTML,
+    unescape_html,
     urlencode_postdata,
     urljoin,
 )
@@ -895,7 +895,7 @@ class BBCIE(BBCCoUkIE):
         if data_playables:
             for _, data_playable_json in data_playables:
                 data_playable = self._parse_json(
-                    unescapeHTML(data_playable_json), playlist_id, fatal=False)
+                    unescape_html(data_playable_json), playlist_id, fatal=False)
                 if not data_playable:
                     continue
                 settings = data_playable.get('settings', {})

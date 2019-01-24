@@ -8,7 +8,7 @@ import re
 from .common import InfoExtractor
 from ..utils import (
     ExtractorError,
-    unescapeHTML,
+    unescape_html,
     unified_strdate,
     urljoin,
 )
@@ -105,7 +105,7 @@ class DouyuTVIE(InfoExtractor):
                 'aid': 'pcclient'
             })['data']['live_url']
 
-        title = self._live_title(unescapeHTML(room['room_name']))
+        title = self._live_title(unescape_html(room['room_name']))
         description = room.get('show_details')
         thumbnail = room.get('room_src')
         uploader = room.get('nickname')

@@ -9,8 +9,8 @@ from .common import FileDownloader
 from ..compat import compat_str
 from ..utils import (
     check_executable,
-    encodeFilename,
-    encodeArgument,
+    encode_filename,
+    encode_argument,
     get_exe_version,
 )
 
@@ -156,7 +156,7 @@ class RtmpFD(FileDownloader):
         if not live and continue_dl:
             args += ['--skip', '1']
 
-        args = [encodeArgument(a) for a in args]
+        args = [encode_argument(a) for a in args]
 
         self._debug_cmd(args, exe='rtmpdump')
 
@@ -180,15 +180,15 @@ class RtmpFD(FileDownloader):
             return False
 
         while retval in (RD_INCOMPLETE, RD_FAILED) and not test and not live:
-            prevsize = os.path.getsize(encodeFilename(tmpfilename))
+            prevsize = os.path.getsize(encode_filename(tmpfilename))
             self.to_screen('[rtmpdump] Downloaded %s bytes' % prevsize)
             time.sleep(5.0)  # This seems to be needed
             args = basic_args + ['--resume']
             if retval == RD_FAILED:
                 args += ['--skip', '1']
-            args = [encodeArgument(a) for a in args]
+            args = [encode_argument(a) for a in args]
             retval = run_rtmpdump(args)
-            cursize = os.path.getsize(encodeFilename(tmpfilename))
+            cursize = os.path.getsize(encode_filename(tmpfilename))
             if prevsize == cursize and retval == RD_FAILED:
                 break
             # Some rtmp streams seem abort after ~ 99.8%. Don't complain for those
@@ -197,7 +197,7 @@ class RtmpFD(FileDownloader):
                 retval = RD_SUCCESS
                 break
         if retval == RD_SUCCESS or (test and retval == RD_INCOMPLETE):
-            fsize = os.path.getsize(encodeFilename(tmpfilename))
+            fsize = os.path.getsize(encode_filename(tmpfilename))
             self.to_screen('[rtmpdump] Downloaded %s bytes' % fsize)
             self.try_rename(tmpfilename, filename)
             self._hook_progress({

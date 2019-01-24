@@ -4,7 +4,7 @@ from __future__ import unicode_literals
 import re
 
 from .common import InfoExtractor
-from ..utils import orderedSet
+from ..utils import ordered_set
 
 
 class CTVNewsIE(InfoExtractor):
@@ -63,6 +63,6 @@ class CTVNewsIE(InfoExtractor):
                 'ot': 'example.AjaxPageLayout.ot',
                 'maxItemsPerPage': 1000000,
             })
-            entries = [ninecninemedia_url_result(clip_id) for clip_id in orderedSet(
+            entries = [ninecninemedia_url_result(clip_id) for clip_id in ordered_set(
                 re.findall(r'clip\.id\s*=\s*(\d+);', webpage))]
             return self.playlist_result(entries, page_id)

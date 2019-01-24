@@ -7,7 +7,7 @@ from ..utils import (
     int_or_none,
     sanitized_Request,
     str_to_int,
-    unescapeHTML,
+    unescape_html,
     unified_strdate,
     url_or_none,
 )
@@ -112,7 +112,7 @@ class YouPornIE(InfoExtractor):
             links.append(aes_decrypt_text(encrypted_link, title, 32).decode('utf-8'))
 
         formats = []
-        for video_url in set(unescapeHTML(link) for link in links):
+        for video_url in set(unescape_html(link) for link in links):
             f = {
                 'url': video_url,
             }

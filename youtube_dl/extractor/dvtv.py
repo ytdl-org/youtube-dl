@@ -10,7 +10,7 @@ from ..utils import (
     int_or_none,
     js_to_json,
     mimetype2ext,
-    unescapeHTML,
+    unescape_html,
 )
 
 
@@ -99,7 +99,7 @@ class DVTVIE(InfoExtractor):
             data.update(self._parse_json(
                 live_js, video_id, transform_source=js_to_json))
 
-        title = unescapeHTML(data['title'])
+        title = unescape_html(data['title'])
 
         formats = []
         for video in data['sources']:

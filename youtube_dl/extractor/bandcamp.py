@@ -17,7 +17,7 @@ from ..utils import (
     parse_filesize,
     str_or_none,
     try_get,
-    unescapeHTML,
+    unescape_html,
     update_url_query,
     unified_strdate,
     unified_timestamp,
@@ -141,7 +141,7 @@ class BandcampIE(InfoExtractor):
                 self._search_regex(
                     r'data-blob=(["\'])(?P<blob>{.+?})\1', download_webpage,
                     'blob', group='blob'),
-                track_id, transform_source=unescapeHTML)
+                track_id, transform_source=unescape_html)
 
             info = try_get(
                 blob, (lambda x: x['digital_items'][0],
@@ -359,7 +359,7 @@ class BandcampWeeklyIE(InfoExtractor):
             self._search_regex(
                 r'data-blob=(["\'])(?P<blob>{.+?})\1', webpage,
                 'blob', group='blob'),
-            video_id, transform_source=unescapeHTML)
+            video_id, transform_source=unescape_html)
 
         show = blob['bcw_show']
 

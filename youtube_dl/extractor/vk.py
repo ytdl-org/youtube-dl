@@ -15,11 +15,11 @@ from ..utils import (
     ExtractorError,
     get_element_by_class,
     int_or_none,
-    orderedSet,
+    ordered_set,
     remove_start,
     str_or_none,
     str_to_int,
-    unescapeHTML,
+    unescape_html,
     unified_timestamp,
     url_or_none,
     urlencode_postdata,
@@ -422,7 +422,7 @@ class VKIE(VKBaseIE):
                     'player params'),
                 video_id)['params'][0]
 
-        title = unescapeHTML(data['md_title'])
+        title = unescape_html(data['md_title'])
 
         # 2 = live
         # 3 = post live (finished live)
@@ -514,9 +514,9 @@ class VKUserVideosIE(VKBaseIE):
         entries = [
             self.url_result(
                 'http://vk.com/video' + video_id, 'VK', video_id=video_id)
-            for video_id in orderedSet(re.findall(r'href="/video(-?[0-9_]+)"', webpage))]
+            for video_id in ordered_set(re.findall(r'href="/video(-?[0-9_]+)"', webpage))]
 
-        title = unescapeHTML(self._search_regex(
+        title = unescape_html(self._search_regex(
             r'<title>\s*([^<]+?)\s+\|\s+\d+\s+videos',
             webpage, 'title', default=page_id))
 
@@ -623,7 +623,7 @@ class VKWallPostIE(VKBaseIE):
                 audios = self._parse_json(
                     self._search_regex(
                         r'<!json>(.+?)<!>', al_audio, 'audios', default='[]'),
-                    post_id, fatal=False, transform_source=unescapeHTML)
+                    post_id, fatal=False, transform_source=unescape_html)
                 if isinstance(audios, list):
                     for audio in audios:
                         a = Audio._make(audio[:6])
@@ -646,6 +646,6 @@ class VKWallPostIE(VKBaseIE):
         title = 'Wall post %s' % post_id
 
         return self.playlist_result(
-            orderedSet(entries), post_id,
+            ordered_set(entries), post_id,
             '%s - %s' % (uploader, title) if uploader else title,
             description)

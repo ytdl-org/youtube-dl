@@ -26,7 +26,7 @@ from youtube_dl.utils import (
     determine_ext,
     dict_get,
     encode_compat_str,
-    encodeFilename,
+    encode_filename,
     escape_rfc3986,
     escape_url,
     extract_attributes,
@@ -48,7 +48,7 @@ from youtube_dl.utils import (
     multipart_encode,
     ohdave_rsa_encrypt,
     OnDemandPagedList,
-    orderedSet,
+    ordered_set,
     parse_age_limit,
     parse_duration,
     parse_filesize,
@@ -71,7 +71,7 @@ from youtube_dl.utils import (
     str_to_int,
     strip_jsonp,
     timeconvert,
-    unescapeHTML,
+    unescape_html,
     unified_strdate,
     unified_timestamp,
     unsmuggle_url,
@@ -277,21 +277,21 @@ class TestUtil(unittest.TestCase):
         self.assertEqual(remove_quotes('";"'), ';')
 
     def test_ordered_set(self):
-        self.assertEqual(orderedSet([1, 1, 2, 3, 4, 4, 5, 6, 7, 3, 5]), [1, 2, 3, 4, 5, 6, 7])
-        self.assertEqual(orderedSet([]), [])
-        self.assertEqual(orderedSet([1]), [1])
+        self.assertEqual(ordered_set([1, 1, 2, 3, 4, 4, 5, 6, 7, 3, 5]), [1, 2, 3, 4, 5, 6, 7])
+        self.assertEqual(ordered_set([]), [])
+        self.assertEqual(ordered_set([1]), [1])
         # keep the list ordered
-        self.assertEqual(orderedSet([135, 1, 1, 1]), [135, 1])
+        self.assertEqual(ordered_set([135, 1, 1, 1]), [135, 1])
 
     def test_unescape_html(self):
-        self.assertEqual(unescapeHTML('%20;'), '%20;')
-        self.assertEqual(unescapeHTML('&#x2F;'), '/')
-        self.assertEqual(unescapeHTML('&#47;'), '/')
-        self.assertEqual(unescapeHTML('&eacute;'), 'é')
-        self.assertEqual(unescapeHTML('&#2013266066;'), '&#2013266066;')
-        self.assertEqual(unescapeHTML('&a&quot;'), '&a"')
+        self.assertEqual(unescape_html('%20;'), '%20;')
+        self.assertEqual(unescape_html('&#x2F;'), '/')
+        self.assertEqual(unescape_html('&#47;'), '/')
+        self.assertEqual(unescape_html('&eacute;'), 'é')
+        self.assertEqual(unescape_html('&#2013266066;'), '&#2013266066;')
+        self.assertEqual(unescape_html('&a&quot;'), '&a"')
         # HTML5 entities
-        self.assertEqual(unescapeHTML('&period;&apos;'), '.\'')
+        self.assertEqual(unescape_html('&period;&apos;'), '.\'')
 
     def test_date_from_str(self):
         self.assertEqual(date_from_str('yesterday'), date_from_str('now-1day'))
@@ -462,7 +462,7 @@ class TestUtil(unittest.TestCase):
         self.assertEqual(res_data, {'a': 'b', 'c': 'd'})
 
     def test_shell_quote(self):
-        args = ['ffmpeg', '-i', encodeFilename('ñ€ß\'.mp4')]
+        args = ['ffmpeg', '-i', encode_filename('ñ€ß\'.mp4')]
         self.assertEqual(
             shell_quote(args),
             """ffmpeg -i 'ñ€ß'"'"'.mp4'""" if compat_os_name != 'nt' else '''ffmpeg -i "ñ€ß'.mp4"''')

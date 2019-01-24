@@ -6,7 +6,7 @@ import re
 
 from .common import InfoExtractor
 from ..utils import (
-    orderedSet,
+    ordered_set,
     urlencode_postdata,
 )
 
@@ -54,7 +54,7 @@ class BitChuteIE(InfoExtractor):
 
         formats = [
             {'url': format_url}
-            for format_url in orderedSet(format_urls)]
+            for format_url in ordered_set(format_urls)]
         self._check_formats(formats, video_id)
         self._sort_formats(formats)
 

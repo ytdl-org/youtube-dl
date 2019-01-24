@@ -11,7 +11,7 @@ from ..compat import (
     compat_urlparse,
 )
 from ..utils import (
-    unescapeHTML,
+    unescape_html,
     urlencode_postdata,
     unified_timestamp,
     ExtractorError,
@@ -1385,7 +1385,7 @@ class AdobePassIE(InfoExtractor):
             if not redirect_url:
                 return None
             if url:
-                redirect_url = compat_urlparse.urljoin(url, unescapeHTML(redirect_url))
+                redirect_url = compat_urlparse.urljoin(url, unescape_html(redirect_url))
             return redirect_url
 
         mvpd_headers = {
@@ -1520,7 +1520,7 @@ class AdobePassIE(InfoExtractor):
                     self._downloader.cache.store(self._MVPD_CACHE, requestor_id, {})
                     count += 1
                     continue
-                authn_token = unescapeHTML(xml_text(session, 'authnToken'))
+                authn_token = unescape_html(xml_text(session, 'authnToken'))
                 requestor_info['authn_token'] = authn_token
                 self._downloader.cache.store(self._MVPD_CACHE, requestor_id, requestor_info)
 
@@ -1543,7 +1543,7 @@ class AdobePassIE(InfoExtractor):
                     continue
                 if '<error' in authorize:
                     raise ExtractorError(xml_text(authorize, 'details'), expected=True)
-                authz_token = unescapeHTML(xml_text(authorize, 'authzToken'))
+                authz_token = unescape_html(xml_text(authorize, 'authzToken'))
                 requestor_info[guid] = authz_token
                 self._downloader.cache.store(self._MVPD_CACHE, requestor_id, requestor_info)
 

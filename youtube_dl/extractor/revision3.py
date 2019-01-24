@@ -8,7 +8,7 @@ from ..compat import compat_str
 from ..utils import (
     int_or_none,
     parse_iso8601,
-    unescapeHTML,
+    unescape_html,
     qualities,
 )
 
@@ -59,8 +59,8 @@ class Revision3EmbedIE(InfoExtractor):
 
         return {
             'id': playlist_id,
-            'title': unescapeHTML(video_data['title']),
-            'description': unescapeHTML(video_data.get('summary')),
+            'title': unescape_html(video_data['title']),
+            'description': unescape_html(video_data.get('summary')),
             'uploader': video_data.get('show', {}).get('name'),
             'uploader_id': video_data.get('show', {}).get('slug'),
             'duration': int_or_none(video_data.get('duration')),
@@ -120,8 +120,8 @@ class Revision3IE(InfoExtractor):
             info = {
                 'id': page_id,
                 'display_id': display_id,
-                'title': unescapeHTML(page_data['name']),
-                'description': unescapeHTML(page_data.get('summary')),
+                'title': unescape_html(page_data['name']),
+                'description': unescape_html(page_data.get('summary')),
                 'timestamp': parse_iso8601(page_data.get('publishTime'), ' '),
                 'author': page_data.get('author'),
                 'uploader': show_data.get('name'),

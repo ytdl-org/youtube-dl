@@ -7,7 +7,7 @@ from .common import InfoExtractor
 from ..utils import (
     js_to_json,
     int_or_none,
-    unescapeHTML,
+    unescape_html,
 )
 
 
@@ -34,7 +34,7 @@ class ReutersIE(InfoExtractor):
         def get_json_value(key, fatal=False):
             return self._search_regex(r'"%s"\s*:\s*"([^"]+)"' % key, video_data, key, fatal=fatal)
 
-        title = unescapeHTML(get_json_value('title', fatal=True))
+        title = unescape_html(get_json_value('title', fatal=True))
         mmid, fid = re.search(r',/(\d+)\?f=(\d+)', get_json_value('flv', fatal=True)).groups()
 
         mas_data = self._download_json(

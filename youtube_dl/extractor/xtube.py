@@ -7,7 +7,7 @@ from .common import InfoExtractor
 from ..utils import (
     int_or_none,
     js_to_json,
-    orderedSet,
+    ordered_set,
     parse_duration,
     sanitized_Request,
     str_to_int,
@@ -167,7 +167,7 @@ class XTubeUserIE(InfoExtractor):
             if not html:
                 break
 
-            for video_id in orderedSet([video_id for _, video_id in re.findall(
+            for video_id in ordered_set([video_id for _, video_id in re.findall(
                     r'data-plid=(["\'])(.+?)\1', html)]):
                 entries.append(self.url_result('xtube:%s' % video_id, XTubeIE.ie_key()))
 

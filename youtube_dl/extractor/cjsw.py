@@ -6,7 +6,7 @@ import re
 from .common import InfoExtractor
 from ..utils import (
     determine_ext,
-    unescapeHTML,
+    unescape_html,
 )
 
 
@@ -36,7 +36,7 @@ class CJSWIE(InfoExtractor):
 
         webpage = self._download_webpage(url, episode_id)
 
-        title = unescapeHTML(self._search_regex(
+        title = unescape_html(self._search_regex(
             (r'<h1[^>]+class=["\']episode-header__title["\'][^>]*>(?P<title>[^<]+)',
              r'data-audio-title=(["\'])(?P<title>(?:(?!\1).)+)\1'),
             webpage, 'title', group='title'))

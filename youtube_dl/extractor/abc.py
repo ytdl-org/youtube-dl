@@ -13,7 +13,7 @@ from ..utils import (
     int_or_none,
     parse_iso8601,
     try_get,
-    unescapeHTML,
+    unescape_html,
     update_url_query,
 )
 
@@ -131,7 +131,7 @@ class ABCIViewIE(InfoExtractor):
         video_id = self._match_id(url)
         video_params = self._download_json(
             'https://iview.abc.net.au/api/programs/' + video_id, video_id)
-        title = unescapeHTML(video_params.get('title') or video_params['seriesTitle'])
+        title = unescape_html(video_params.get('title') or video_params['seriesTitle'])
         stream = next(s for s in video_params['playlist'] if s.get('type') in ('program', 'livestream'))
 
         house_number = video_params.get('episodeHouseNumber') or video_id
@@ -179,7 +179,7 @@ class ABCIViewIE(InfoExtractor):
             'thumbnail': video_params.get('thumbnail'),
             'duration': int_or_none(video_params.get('eventDuration')),
             'timestamp': parse_iso8601(video_params.get('pubDate'), ' '),
-            'series': unescapeHTML(video_params.get('seriesTitle')),
+            'series': unescape_html(video_params.get('seriesTitle')),
             'series_id': video_params.get('seriesHouseNumber') or video_id[:7],
             'season_number': int_or_none(self._search_regex(
                 r'\bSeries\s+(\d+)\b', title, 'season number', default=None)),

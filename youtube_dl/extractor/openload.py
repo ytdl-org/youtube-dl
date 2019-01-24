@@ -15,7 +15,7 @@ from ..compat import (
 from ..utils import (
     check_executable,
     determine_ext,
-    encodeArgument,
+    encode_argument,
     ExtractorError,
     get_element_by_id,
     get_exe_version,
@@ -233,13 +233,13 @@ class PhantomJSwrapper(object):
         out, err = p.communicate()
         if p.returncode != 0:
             raise ExtractorError(
-                'Executing JS failed\n:' + encodeArgument(err))
+                'Executing JS failed\n:' + encode_argument(err))
         with open(self._TMP_FILES['html'].name, 'rb') as f:
             html = f.read().decode('utf-8')
 
         self._load_cookies()
 
-        return (html, encodeArgument(out))
+        return (html, encode_argument(out))
 
 
 class OpenloadIE(InfoExtractor):

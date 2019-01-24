@@ -205,7 +205,7 @@ def preferredencoding():
 def write_json_file(obj, fn):
     """ Encode obj as JSON and write it to fn, atomically if possible """
 
-    fn = encodeFilename(fn)
+    fn = encode_filename(fn)
     if sys.version_info < (3, 0) and sys.platform != 'win32':
         encoding = get_filesystem_encoding()
         # os.path.basename returns a bytes object, but NamedTemporaryFile
@@ -381,7 +381,7 @@ def get_elements_by_attribute(attribute, value, html, escape_value=True):
         if res.startswith('"') or res.startswith("'"):
             res = res[1:-1]
 
-        retlist.append(unescapeHTML(res))
+        retlist.append(unescape_html(res))
 
     return retlist
 
@@ -435,7 +435,7 @@ def clean_html(html):
     # Strip html tags
     html = re.sub('<.*?>', '', html)
     # Replace html entities
-    html = unescapeHTML(html)
+    html = unescape_html(html)
     return html.strip()
 
 
@@ -455,7 +455,7 @@ def sanitize_open(filename, open_mode):
                 import msvcrt
                 msvcrt.setmode(sys.stdout.fileno(), os.O_BINARY)
             return (sys.stdout.buffer if hasattr(sys.stdout, 'buffer') else sys.stdout, filename)
-        stream = open(encodeFilename(filename), open_mode)
+        stream = open(encode_filename(filename), open_mode)
         return (stream, filename)
     except (IOError, OSError) as err:
         if err.errno in (errno.EACCES,):
@@ -467,7 +467,7 @@ def sanitize_open(filename, open_mode):
             raise
         else:
             # An exception here should be caught in the caller
-            stream = open(encodeFilename(alt_filename), open_mode)
+            stream = open(encode_filename(alt_filename), open_mode)
             return (stream, alt_filename)
 
 
@@ -566,7 +566,7 @@ def expand_path(s):
     return os.path.expandvars(compat_expanduser(s))
 
 
-def orderedSet(iterable):
+def ordered_set(iterable):
     """ Remove all duplicates from the input iterable """
     res = []
     for el in iterable:
@@ -606,7 +606,7 @@ def _htmlentity_transform(entity_with_semicolon):
     return '&%s;' % entity
 
 
-def unescapeHTML(s):
+def unescape_html(s):
     if s is None:
         return None
     assert type(s) == compat_str
@@ -627,7 +627,7 @@ def get_subprocess_encoding():
     return encoding
 
 
-def encodeFilename(s, for_subprocess=False):
+def encode_filename(s, for_subprocess=False):
     """
     @param s The name of the file
     """
@@ -651,7 +651,7 @@ def encodeFilename(s, for_subprocess=False):
     return s.encode(get_subprocess_encoding(), 'ignore')
 
 
-def decodeFilename(b, for_subprocess=False):
+def decode_filename(b, for_subprocess=False):
 
     if sys.version_info >= (3, 0):
         return b
@@ -662,20 +662,20 @@ def decodeFilename(b, for_subprocess=False):
     return b.decode(get_subprocess_encoding(), 'ignore')
 
 
-def encodeArgument(s):
+def encode_argument(s):
     if not isinstance(s, compat_str):
         # Legacy code that uses byte strings
         # Uncomment the following line after fixing all post processors
         # assert False, 'Internal error: %r should be of type %r, is %r' % (s, compat_str, type(s))
         s = s.decode('ascii')
-    return encodeFilename(s, True)
+    return encode_filename(s, True)
 
 
-def decodeArgument(b):
-    return decodeFilename(b, True)
+def decode_argument(b):
+    return decode_filename(b, True)
 
 
-def decodeOption(optval):
+def decode_option(optval):
     if optval is None:
         return optval
     if isinstance(optval, bytes):
@@ -685,7 +685,7 @@ def decodeOption(optval):
     return optval
 
 
-def formatSeconds(secs):
+def format_seconds(secs):
     if secs > 3600:
         return '%d:%02d:%02d' % (secs // 3600, (secs % 3600) // 60, secs % 60)
     elif secs > 60:
@@ -694,7 +694,7 @@ def formatSeconds(secs):
         return '%d' % secs
 
 
-def make_HTTPS_handler(params, **kwargs):
+def make_https_handler(params, **kwargs):
     opts_no_check_certificate = params.get('nocheckcertificate', False)
     if hasattr(ssl, 'create_default_context'):  # Python >= 3.4 or 2.7.9
         context = ssl.create_default_context(ssl.Purpose.SERVER_AUTH)
@@ -1618,7 +1618,7 @@ def shell_quote(args):
     encoding = get_filesystem_encoding()
     for a in args:
         if isinstance(a, bytes):
-            # We may get a filename encoded with 'encodeFilename'
+            # We may get a filename encoded with 'encode_filename'
             a = a.decode(encoding)
         quoted_args.append(compat_shlex_quote(a))
     return ' '.join(quoted_args)
@@ -2030,7 +2030,7 @@ def get_exe_version(exe, args=['--version'],
         # SIGTTOU if youtube-dl is run in the background.
         # See https://github.com/rg3/youtube-dl/issues/955#issuecomment-209789656
         out, _ = subprocess.Popen(
-            [encodeArgument(exe)] + args,
+            [encode_argument(exe)] + args,
             stdin=subprocess.PIPE,
             stdout=subprocess.PIPE, stderr=subprocess.STDOUT).communicate()
     except OSError:
@@ -3949,9 +3949,9 @@ def write_xattr(path, key, value):
                     executable = 'xattr'
                     opts = ['-w', key, value]
 
-                cmd = ([encodeFilename(executable, True)] +
-                       [encodeArgument(o) for o in opts] +
-                       [encodeFilename(path, True)])
+                cmd = ([encode_filename(executable, True)] +
+                       [encode_argument(o) for o in opts] +
+                       [encode_filename(path, True)])
 
                 try:
                     p = subprocess.Popen(

@@ -11,7 +11,7 @@ from ..utils import (
     int_or_none,
     float_or_none,
     js_to_json,
-    orderedSet,
+    ordered_set,
     strip_jsonp,
     strip_or_none,
     unified_strdate,
@@ -458,7 +458,7 @@ class PBSIE(InfoExtractor):
                 r'<a[^>]+href=["\']#(?:video-|part)\d+["\'][^>]+data-cove[Ii]d=["\'](\d+)',
             )
             for p in MULTI_PART_REGEXES:
-                tabbed_videos = orderedSet(re.findall(p, webpage))
+                tabbed_videos = ordered_set(re.findall(p, webpage))
                 if tabbed_videos:
                     return tabbed_videos, presumptive_id, upload_date, description
 

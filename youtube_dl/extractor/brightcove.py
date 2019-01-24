@@ -27,7 +27,7 @@ from ..utils import (
     js_to_json,
     int_or_none,
     parse_iso8601,
-    unescapeHTML,
+    unescape_html,
     unsmuggle_url,
     update_url_query,
     clean_html,
@@ -259,7 +259,7 @@ class BrightcoveLegacyIE(InfoExtractor):
                     content=([\'"])(?P<url>https?://(?:secure|c)\.brightcove.com/(?:(?!\2).)+)\2
             ''', webpage)
         if url_m:
-            url = unescapeHTML(url_m.group('url'))
+            url = unescape_html(url_m.group('url'))
             # Some sites don't add it, we can't download with this url, for example:
             # http://www.ktvu.com/videos/news/raw-video-caltrain-releases-video-of-man-almost/vCTZdY/
             if 'playerKey' in url or 'videoId' in url or 'idVideo' in url:

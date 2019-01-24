@@ -10,7 +10,7 @@ from ..utils import (
     parse_iso8601,
     str_or_none,
     try_get,
-    unescapeHTML,
+    unescape_html,
     url_or_none,
     ExtractorError,
 )
@@ -48,8 +48,8 @@ class RteBaseIE(InfoExtractor):
                 continue
 
             if not info_dict:
-                title = unescapeHTML(show['title'])
-                description = unescapeHTML(show.get('description'))
+                title = unescape_html(show['title'])
+                description = unescape_html(show.get('description'))
                 thumbnail = show.get('thumbnail')
                 duration = float_or_none(show.get('duration'), 1000)
                 timestamp = parse_iso8601(show.get('published'))

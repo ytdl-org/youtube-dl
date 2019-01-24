@@ -9,7 +9,7 @@ from ..utils import (
     ExtractorError,
     dict_get,
     int_or_none,
-    unescapeHTML,
+    unescape_html,
     parse_iso8601,
 )
 
@@ -103,7 +103,7 @@ class PikselIE(InfoExtractor):
 
             formats.append({
                 'format_id': '-'.join(format_id),
-                'url': unescapeHTML(http_url),
+                'url': unescape_html(http_url),
                 'vbr': vbr,
                 'abr': abr,
                 'width': int_or_none(asset_file.get('videoWidth')),

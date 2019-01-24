@@ -8,7 +8,7 @@ from .common import FileDownloader
 from .http import HttpFD
 from ..utils import (
     error_to_compat_str,
-    encodeFilename,
+    encode_filename,
     sanitize_open,
     sanitized_Request,
 )
@@ -117,7 +117,7 @@ class FragmentFD(FileDownloader):
             if self.__do_ytdl_file(ctx):
                 self._write_ytdl_file(ctx)
             if not self.params.get('keep_fragments', False):
-                os.remove(encodeFilename(ctx['fragment_filename_sanitized']))
+                os.remove(encode_filename(ctx['fragment_filename_sanitized']))
             del ctx['fragment_filename_sanitized']
 
     def _prepare_frag_download(self, ctx):
@@ -150,9 +150,9 @@ class FragmentFD(FileDownloader):
         resume_len = 0
 
         # Establish possible resume length
-        if os.path.isfile(encodeFilename(tmpfilename)):
+        if os.path.isfile(encode_filename(tmpfilename)):
             open_mode = 'ab'
-            resume_len = os.path.getsize(encodeFilename(tmpfilename))
+            resume_len = os.path.getsize(encode_filename(tmpfilename))
 
         # Should be initialized before ytdl file check
         ctx.update({
@@ -161,7 +161,7 @@ class FragmentFD(FileDownloader):
         })
 
         if self.__do_ytdl_file(ctx):
-            if os.path.isfile(encodeFilename(self.ytdl_filename(ctx['filename']))):
+            if os.path.isfile(encode_filename(self.ytdl_filename(ctx['filename']))):
                 self._read_ytdl_file(ctx)
                 is_corrupt = ctx.get('ytdl_corrupt') is True
                 is_inconsistent = ctx['fragment_index'] > 0 and resume_len == 0
@@ -248,7 +248,7 @@ class FragmentFD(FileDownloader):
     def _finish_frag_download(self, ctx):
         ctx['dest_stream'].close()
         if self.__do_ytdl_file(ctx):
-            ytdl_filename = encodeFilename(self.ytdl_filename(ctx['filename']))
+            ytdl_filename = encode_filename(self.ytdl_filename(ctx['filename']))
             if os.path.isfile(ytdl_filename):
                 os.remove(ytdl_filename)
         elapsed = time.time() - ctx['started']
@@ -257,7 +257,7 @@ class FragmentFD(FileDownloader):
             downloaded_bytes = ctx['complete_frags_downloaded_bytes']
         else:
             self.try_rename(ctx['tmpfilename'], ctx['filename'])
-            downloaded_bytes = os.path.getsize(encodeFilename(ctx['filename']))
+            downloaded_bytes = os.path.getsize(encode_filename(ctx['filename']))
 
         self._hook_progress({
             'downloaded_bytes': downloaded_bytes,

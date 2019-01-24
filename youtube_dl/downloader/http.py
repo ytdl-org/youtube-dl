@@ -14,7 +14,7 @@ from ..compat import (
 )
 from ..utils import (
     ContentTooShortError,
-    encodeFilename,
+    encode_filename,
     int_or_none,
     sanitize_open,
     sanitized_Request,
@@ -58,9 +58,9 @@ class HttpFD(FileDownloader):
 
         if self.params.get('continuedl', True):
             # Establish possible resume length
-            if os.path.isfile(encodeFilename(ctx.tmpfilename)):
+            if os.path.isfile(encode_filename(ctx.tmpfilename)):
                 ctx.resume_len = os.path.getsize(
-                    encodeFilename(ctx.tmpfilename))
+                    encode_filename(ctx.tmpfilename))
 
         ctx.is_resume = ctx.resume_len > 0
 
@@ -221,7 +221,7 @@ class HttpFD(FileDownloader):
                 if not to_stdout:
                     ctx.stream.close()
                 ctx.stream = None
-                ctx.resume_len = byte_counter if to_stdout else os.path.getsize(encodeFilename(ctx.tmpfilename))
+                ctx.resume_len = byte_counter if to_stdout else os.path.getsize(encode_filename(ctx.tmpfilename))
                 raise RetryDownload(e)
 
             while True:

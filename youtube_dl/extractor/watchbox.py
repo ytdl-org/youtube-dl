@@ -10,7 +10,7 @@ from ..utils import (
     js_to_json,
     strip_or_none,
     try_get,
-    unescapeHTML,
+    unescape_html,
     unified_timestamp,
 )
 
@@ -72,7 +72,7 @@ class WatchBoxIE(InfoExtractor):
             self._search_regex(
                 r'data-player-conf=(["\'])(?P<data>{.+?})\1', webpage,
                 'player config', default='{}', group='data'),
-            video_id, transform_source=unescapeHTML, fatal=False)
+            video_id, transform_source=unescape_html, fatal=False)
 
         if not player_config:
             player_config = self._parse_json(

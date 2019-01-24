@@ -6,7 +6,7 @@ import re
 from .common import InfoExtractor
 from ..utils import (
     parse_iso8601,
-    unescapeHTML,
+    unescape_html,
 )
 
 
@@ -129,7 +129,7 @@ class PeriscopeUserIE(PeriscopeBaseIE):
         webpage = self._download_webpage(url, user_name)
 
         data_store = self._parse_json(
-            unescapeHTML(self._search_regex(
+            unescape_html(self._search_regex(
                 r'data-store=(["\'])(?P<data>.+?)\1',
                 webpage, 'data store', default='{}', group='data')),
             user_name)

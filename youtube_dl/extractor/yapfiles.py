@@ -8,7 +8,7 @@ from ..utils import (
     ExtractorError,
     int_or_none,
     qualities,
-    unescapeHTML,
+    unescape_html,
     url_or_none,
 )
 
@@ -35,7 +35,7 @@ class YapFilesIE(InfoExtractor):
 
     @staticmethod
     def _extract_urls(webpage):
-        return [unescapeHTML(mobj.group('url')) for mobj in re.finditer(
+        return [unescape_html(mobj.group('url')) for mobj in re.finditer(
             r'<iframe\b[^>]+\bsrc=(["\'])(?P<url>(?:https?:)?%s.*?)\1'
             % YapFilesIE._YAPFILES_URL, webpage)]
 

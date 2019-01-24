@@ -10,7 +10,7 @@ from ..utils import (
     int_or_none,
     merge_dicts,
     try_get,
-    unescapeHTML,
+    unescape_html,
     unified_timestamp,
     urljoin,
 )
@@ -99,7 +99,7 @@ class RayWenderlichIE(InfoExtractor):
                 self._search_regex(
                     r'data-collection=(["\'])(?P<data>{.+?})\1', webpage,
                     'data collection', default='{}', group='data'),
-                display_id, transform_source=unescapeHTML, fatal=False)
+                display_id, transform_source=unescape_html, fatal=False)
             video_id = self._extract_video_id(
                 data, lesson_id) or self._search_regex(
                 r'/videos/(\d+)/', thumbnail, 'video id')

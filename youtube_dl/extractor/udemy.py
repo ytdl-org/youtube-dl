@@ -19,7 +19,7 @@ from ..utils import (
     js_to_json,
     sanitized_Request,
     try_get,
-    unescapeHTML,
+    unescape_html,
     url_or_none,
     urlencode_postdata,
 )
@@ -68,7 +68,7 @@ class UdemyIE(InfoExtractor):
 
     def _extract_course_info(self, webpage, video_id):
         course = self._parse_json(
-            unescapeHTML(self._search_regex(
+            unescape_html(self._search_regex(
                 r'ng-init=["\'].*\bcourse=({.+?})[;"\']',
                 webpage, 'course', default='{}')),
             video_id, fatal=False) or {}
@@ -80,7 +80,7 @@ class UdemyIE(InfoExtractor):
         def combine_url(base_url, url):
             return compat_urlparse.urljoin(base_url, url) if not url.startswith('http') else url
 
-        checkout_url = unescapeHTML(self._search_regex(
+        checkout_url = unescape_html(self._search_regex(
             r'href=(["\'])(?P<url>(?:https?://(?:www\.)?udemy\.com)?/(?:payment|cart)/checkout/.+?)\1',
             webpage, 'checkout url', group='url', default=None))
         if checkout_url:
@@ -90,7 +90,7 @@ class UdemyIE(InfoExtractor):
                 % (course_id, combine_url(base_url, checkout_url)),
                 expected=True)
 
-        enroll_url = unescapeHTML(self._search_regex(
+        enroll_url = unescape_html(self._search_regex(
             r'href=(["\'])(?P<url>(?:https?://(?:www\.)?udemy\.com)?/course/subscribe/.+?)\1',
             webpage, 'enroll url', group='url', default=None))
         if enroll_url:
@@ -365,7 +365,7 @@ class UdemyIE(InfoExtractor):
                 self._search_regex(
                     r'videojs-setup-data=(["\'])(?P<data>{.+?})\1', view_html,
                     'setup data', default='{}', group='data'), video_id,
-                transform_source=unescapeHTML, fatal=False)
+                transform_source=unescape_html, fatal=False)
             if data and isinstance(data, dict):
                 extract_formats(data.get('sources'))
                 if not duration:
@@ -377,7 +377,7 @@ class UdemyIE(InfoExtractor):
                     self._search_regex(
                         r'text-tracks=(["\'])(?P<data>\[.+?\])\1', view_html,
                         'text tracks', default='{}', group='data'), video_id,
-                    transform_source=lambda s: js_to_json(unescapeHTML(s)),
+                    transform_source=lambda s: js_to_json(unescape_html(s)),
                     fatal=False)
                 extract_subtitles(text_tracks)
 

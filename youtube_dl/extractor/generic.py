@@ -25,10 +25,10 @@ from ..utils import (
     KNOWN_EXTENSIONS,
     merge_dicts,
     mimetype2ext,
-    orderedSet,
+    ordered_set,
     sanitized_Request,
     smuggle_url,
-    unescapeHTML,
+    unescape_html,
     unified_strdate,
     unsmuggle_url,
     UnsupportedError,
@@ -2486,7 +2486,7 @@ class GenericIE(InfoExtractor):
             r'<iframe[^>]+?src=(["\'])(?P<url>(?:https?:)?//(?:www\.)?dailymotion\.[a-z]{2,3}/widget/jukebox\?.+?)\1', webpage)
         if m:
             playlists = re.findall(
-                r'list\[\]=/playlist/([^/]+)/', unescapeHTML(m.group('url')))
+                r'list\[\]=/playlist/([^/]+)/', unescape_html(m.group('url')))
             if playlists:
                 return self.playlist_from_matches(
                     playlists, video_id, video_title, lambda p: '//dailymotion.com/playlist/%s' % p)
@@ -2515,7 +2515,7 @@ class GenericIE(InfoExtractor):
         # Look for Bandcamp pages with custom domain
         mobj = re.search(r'<meta property="og:url"[^>]*?content="(.*?bandcamp\.com.*?)"', webpage)
         if mobj is not None:
-            burl = unescapeHTML(mobj.group(1))
+            burl = unescape_html(mobj.group(1))
             # Don't set the extractor because it can be a track url or an album
             return self.url_result(burl)
 
@@ -2631,7 +2631,7 @@ class GenericIE(InfoExtractor):
         matches = re.findall(r'<iframe[^>]+?src="(https?://(?:www\.)?funnyordie\.com/embed/[^"]+)"', webpage)
         if matches:
             return self.playlist_from_matches(
-                matches, video_id, video_title, getter=unescapeHTML, ie='FunnyOrDie')
+                matches, video_id, video_title, getter=unescape_html, ie='FunnyOrDie')
 
         # Look for BBC iPlayer embed
         matches = re.findall(r'setPlaylist\("(https?://www\.bbc\.co\.uk/iplayer/[^/]+/[\da-z]{8})"\)', webpage)
@@ -2727,7 +2727,7 @@ class GenericIE(InfoExtractor):
         # Look for embedded soundcloud player
         soundcloud_urls = SoundcloudIE._extract_urls(webpage)
         if soundcloud_urls:
-            return self.playlist_from_matches(soundcloud_urls, video_id, video_title, getter=unescapeHTML, ie=SoundcloudIE.ie_key())
+            return self.playlist_from_matches(soundcloud_urls, video_id, video_title, getter=unescape_html, ie=SoundcloudIE.ie_key())
 
         # Look for tunein player
         tunein_urls = TuneInBaseIE._extract_urls(webpage)
@@ -2918,7 +2918,7 @@ class GenericIE(InfoExtractor):
             webpage)
         if mobj is not None:
             return self.url_result(
-                self._proto_relative_url(unescapeHTML(mobj.group(1))),
+                self._proto_relative_url(unescape_html(mobj.group(1))),
                 'AdobeTVVideo')
 
         # Look for Vine embeds
@@ -2927,7 +2927,7 @@ class GenericIE(InfoExtractor):
             webpage)
         if mobj is not None:
             return self.url_result(
-                self._proto_relative_url(unescapeHTML(mobj.group(1))), 'Vine')
+                self._proto_relative_url(unescape_html(mobj.group(1))), 'Vine')
 
         # Look for VODPlatform embeds
         mobj = re.search(
@@ -2935,7 +2935,7 @@ class GenericIE(InfoExtractor):
             webpage)
         if mobj is not None:
             return self.url_result(
-                self._proto_relative_url(unescapeHTML(mobj.group('url'))), 'VODPlatform')
+                self._proto_relative_url(unescape_html(mobj.group('url'))), 'VODPlatform')
 
         # Look for Mangomolo embeds
         mobj = re.search(
@@ -2947,7 +2947,7 @@ class GenericIE(InfoExtractor):
         if mobj is not None:
             info = {
                 '_type': 'url_transparent',
-                'url': self._proto_relative_url(unescapeHTML(mobj.group('url'))),
+                'url': self._proto_relative_url(unescape_html(mobj.group('url'))),
                 'title': video_title,
                 'description': video_description,
                 'thumbnail': video_thumbnail,
@@ -3298,7 +3298,7 @@ class GenericIE(InfoExtractor):
                         refresh_header = refresh_header.decode('iso-8859-1')
                     found = re.search(REDIRECT_REGEX, refresh_header)
             if found:
-                new_url = compat_urlparse.urljoin(url, unescapeHTML(found.group(1)))
+                new_url = compat_urlparse.urljoin(url, unescape_html(found.group(1)))
                 if new_url != url:
                     self.report_following_redirect(new_url)
                     return {
@@ -3320,8 +3320,8 @@ class GenericIE(InfoExtractor):
             raise UnsupportedError(url)
 
         entries = []
-        for video_url in orderedSet(found):
-            video_url = unescapeHTML(video_url)
+        for video_url in ordered_set(found):
+            video_url = unescape_html(video_url)
             video_url = video_url.replace('\\/', '/')
             video_url = compat_urlparse.urljoin(url, video_url)
             video_id = compat_urllib_parse_unquote(os.path.basename(video_url))

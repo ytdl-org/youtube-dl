@@ -2,7 +2,7 @@
 from __future__ import unicode_literals
 
 from .common import InfoExtractor
-from ..utils import unescapeHTML
+from ..utils import unescape_html
 
 
 class VODPlatformIE(InfoExtractor):
@@ -22,7 +22,7 @@ class VODPlatformIE(InfoExtractor):
         video_id = self._match_id(url)
         webpage = self._download_webpage(url, video_id)
 
-        title = unescapeHTML(self._og_search_title(webpage))
+        title = unescape_html(self._og_search_title(webpage))
         hidden_inputs = self._hidden_inputs(webpage)
 
         formats = self._extract_wowza_formats(

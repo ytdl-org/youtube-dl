@@ -12,7 +12,7 @@ from ..utils import (
     ExtractorError,
     float_or_none,
     sanitized_Request,
-    unescapeHTML,
+    unescape_html,
     update_url_query,
     urlencode_postdata,
     USER_AGENTS,
@@ -277,7 +277,7 @@ class CeskaTelevizePoradyIE(InfoExtractor):
 
         webpage = self._download_webpage(url, video_id)
 
-        data_url = update_url_query(unescapeHTML(self._search_regex(
+        data_url = update_url_query(unescape_html(self._search_regex(
             (r'<span[^>]*\bdata-url=(["\'])(?P<url>(?:(?!\1).)+)\1',
              r'<iframe[^>]+\bsrc=(["\'])(?P<url>(?:https?:)?//(?:www\.)?ceskatelevize\.cz/ivysilani/embed/iFramePlayer\.php.*?)\1'),
             webpage, 'iframe player url', group='url')), query={

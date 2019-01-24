@@ -5,8 +5,8 @@ import re
 from .common import InfoExtractor
 from ..utils import (
     ExtractorError,
-    orderedSet,
-    unescapeHTML,
+    ordered_set,
+    unescape_html,
 )
 
 
@@ -66,9 +66,9 @@ class StanfordOpenClassroomIE(InfoExtractor):
                 r'(?s)<description>([^<]+)</description>',
                 coursepage, 'description', fatal=False)
 
-            links = orderedSet(re.findall(r'<a href="(VideoPage\.php\?[^"]+)">', coursepage))
+            links = ordered_set(re.findall(r'<a href="(VideoPage\.php\?[^"]+)">', coursepage))
             info['entries'] = [self.url_result(
-                'http://openclassroom.stanford.edu/MainFolder/%s' % unescapeHTML(l)
+                'http://openclassroom.stanford.edu/MainFolder/%s' % unescape_html(l)
             ) for l in links]
             return info
         else:  # Root page
@@ -84,8 +84,8 @@ class StanfordOpenClassroomIE(InfoExtractor):
             rootpage = self._download_webpage(rootURL, info['id'],
                                               errnote='Unable to download course info page')
 
-            links = orderedSet(re.findall(r'<a href="(CoursePage\.php\?[^"]+)">', rootpage))
+            links = ordered_set(re.findall(r'<a href="(CoursePage\.php\?[^"]+)">', rootpage))
             info['entries'] = [self.url_result(
-                'http://openclassroom.stanford.edu/MainFolder/%s' % unescapeHTML(l)
+                'http://openclassroom.stanford.edu/MainFolder/%s' % unescape_html(l)
             ) for l in links]
             return info

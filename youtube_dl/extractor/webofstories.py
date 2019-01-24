@@ -6,7 +6,7 @@ import re
 from .common import InfoExtractor
 from ..utils import (
     int_or_none,
-    orderedSet,
+    ordered_set,
 )
 
 
@@ -139,7 +139,7 @@ class WebOfStoriesPlaylistIE(InfoExtractor):
             self.url_result(
                 'http://www.webofstories.com/play/%s' % video_id,
                 'WebOfStories', video_id=video_id)
-            for video_id in orderedSet(re.findall(r'\bid=["\']td_(\d+)', webpage))
+            for video_id in ordered_set(re.findall(r'\bid=["\']td_(\d+)', webpage))
         ]
 
         title = self._search_regex(

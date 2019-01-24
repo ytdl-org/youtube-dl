@@ -17,8 +17,8 @@ from ..utils import (
     cli_valueless_option,
     cli_bool_option,
     cli_configuration_args,
-    encodeFilename,
-    encodeArgument,
+    encode_filename,
+    encode_argument,
     handle_youtubedl_headers,
     check_executable,
     is_outdated_version,
@@ -49,7 +49,7 @@ class ExternalFD(FileDownloader):
                 'elapsed': time.time() - started,
             }
             if filename != '-':
-                fsize = os.path.getsize(encodeFilename(tmpfilename))
+                fsize = os.path.getsize(encode_filename(tmpfilename))
                 self.to_screen('\r[%s] Downloaded %s bytes' % (self.get_basename(), fsize))
                 self.try_rename(tmpfilename, filename)
                 status.update({
@@ -98,7 +98,7 @@ class ExternalFD(FileDownloader):
 
     def _call_downloader(self, tmpfilename, info_dict):
         """ Either overwrite this or implement _make_cmd """
-        cmd = [encodeArgument(a) for a in self._make_cmd(tmpfilename, info_dict)]
+        cmd = [encode_argument(a) for a in self._make_cmd(tmpfilename, info_dict)]
 
         self._debug_cmd(cmd)
 
@@ -131,7 +131,7 @@ class CurlFD(ExternalFD):
         return cmd
 
     def _call_downloader(self, tmpfilename, info_dict):
-        cmd = [encodeArgument(a) for a in self._make_cmd(tmpfilename, info_dict)]
+        cmd = [encode_argument(a) for a in self._make_cmd(tmpfilename, info_dict)]
 
         self._debug_cmd(cmd)
 
@@ -311,8 +311,8 @@ class FFmpegFD(ExternalFD):
         else:
             args += ['-f', EXT_TO_OUT_FORMATS.get(info_dict['ext'], info_dict['ext'])]
 
-        args = [encodeArgument(opt) for opt in args]
-        args.append(encodeFilename(ffpp._ffmpeg_filename_argument(tmpfilename), True))
+        args = [encode_argument(opt) for opt in args]
+        args.append(encode_filename(ffpp._ffmpeg_filename_argument(tmpfilename), True))
 
         self._debug_cmd(args)
 

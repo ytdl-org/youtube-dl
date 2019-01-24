@@ -7,7 +7,7 @@ from .common import InfoExtractor
 from ..utils import (
     determine_ext,
     int_or_none,
-    unescapeHTML,
+    unescape_html,
     unified_timestamp,
 )
 
@@ -61,7 +61,7 @@ class ExpressenIE(InfoExtractor):
                 self._search_regex(
                     r'data-%s=(["\'])(?P<value>(?:(?!\1).)+)\1' % name,
                     webpage, 'info', group='value'),
-                display_id, transform_source=unescapeHTML)
+                display_id, transform_source=unescape_html)
 
         info = extract_data('video-tracking-info')
         video_id = info['videoId']

@@ -5,7 +5,7 @@ from .common import InfoExtractor
 from ..utils import (
     determine_ext,
     int_or_none,
-    unescapeHTML,
+    unescape_html,
 )
 
 
@@ -27,7 +27,7 @@ class ATVAtIE(InfoExtractor):
     def _real_extract(self, url):
         display_id = self._match_id(url)
         webpage = self._download_webpage(url, display_id)
-        video_data = self._parse_json(unescapeHTML(self._search_regex(
+        video_data = self._parse_json(unescape_html(self._search_regex(
             [r'flashPlayerOptions\s*=\s*(["\'])(?P<json>(?:(?!\1).)+)\1',
              r'class="[^"]*jsb_video/FlashPlayer[^"]*"[^>]+data-jsb="(?P<json>[^"]+)"'],
             webpage, 'player data', group='json')),

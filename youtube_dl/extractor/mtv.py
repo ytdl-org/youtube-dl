@@ -18,7 +18,7 @@ from ..utils import (
     strip_or_none,
     timeconvert,
     try_get,
-    unescapeHTML,
+    unescape_html,
     update_url_query,
     url_basename,
     xpath_text,
@@ -59,7 +59,7 @@ class MTVServicesInfoExtractor(InfoExtractor):
         req.add_header('User-Agent', 'curl/7')
         webpage = self._download_webpage(req, mtvn_id,
                                          'Downloading mobile page')
-        metrics_url = unescapeHTML(self._search_regex(r'<a href="(http://metrics.+?)"', webpage, 'url'))
+        metrics_url = unescape_html(self._search_regex(r'<a href="(http://metrics.+?)"', webpage, 'url'))
         req = HEADRequest(metrics_url)
         response = self._request_webpage(req, mtvn_id, 'Resolving url')
         url = response.geturl()

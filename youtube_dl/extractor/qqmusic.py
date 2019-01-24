@@ -10,7 +10,7 @@ from ..utils import (
     clean_html,
     ExtractorError,
     strip_jsonp,
-    unescapeHTML,
+    unescape_html,
 )
 
 
@@ -365,5 +365,5 @@ class QQMusicPlaylistIE(QQPlaylistBaseIE):
             for song in cdlist['songlist']]
 
         list_name = cdlist.get('dissname')
-        list_description = clean_html(unescapeHTML(cdlist.get('desc')))
+        list_description = clean_html(unescape_html(cdlist.get('desc')))
         return self.playlist_result(entries, list_id, list_name, list_description)

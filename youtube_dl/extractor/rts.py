@@ -9,7 +9,7 @@ from ..utils import (
     int_or_none,
     parse_duration,
     parse_iso8601,
-    unescapeHTML,
+    unescape_html,
     determine_ext,
 )
 
@@ -226,5 +226,5 @@ class RTSIE(SRGSSRIE):
             'view_count': int_or_none(info.get('plays')),
             'uploader': info.get('programName'),
             'timestamp': parse_iso8601(info.get('broadcast_date')),
-            'thumbnail': unescapeHTML(info.get('preview_image_url')),
+            'thumbnail': unescape_html(info.get('preview_image_url')),
         }

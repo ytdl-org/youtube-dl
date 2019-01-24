@@ -19,7 +19,7 @@ from ..utils import (
     ExtractorError,
     float_or_none,
     int_or_none,
-    orderedSet,
+    ordered_set,
     parse_duration,
     parse_iso8601,
     qualities,
@@ -389,7 +389,7 @@ class TwitchPlaylistBaseIE(TwitchBaseIE):
                 break
             offset += limit
         return self.playlist_result(
-            [self._make_url_result(entry) for entry in orderedSet(entries)],
+            [self._make_url_result(entry) for entry in ordered_set(entries)],
             channel_id, channel_name)
 
     def _make_url_result(self, url):

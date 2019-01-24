@@ -9,7 +9,7 @@ from ..utils import (
     int_or_none,
     parse_iso8601,
     qualities,
-    unescapeHTML,
+    unescape_html,
 )
 
 
@@ -108,7 +108,7 @@ class Channel9IE(InfoExtractor):
         episode_data = self._search_regex(
             r"data-episode='([^']+)'", webpage, 'episode data', default=None)
         if episode_data:
-            episode_data = self._parse_json(unescapeHTML(
+            episode_data = self._parse_json(unescape_html(
                 episode_data), content_path)
             content_id = episode_data['contentId']
             is_session = '/Sessions(' in episode_data['api']

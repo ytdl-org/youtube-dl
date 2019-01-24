@@ -6,7 +6,7 @@ import re
 from .common import InfoExtractor
 from ..utils import (
     int_or_none,
-    unescapeHTML,
+    unescape_html,
     url_or_none,
 )
 
@@ -97,7 +97,7 @@ class TVNetIE(InfoExtractor):
         else:
             is_live = None
 
-        data_file = unescapeHTML(self._search_regex(
+        data_file = unescape_html(self._search_regex(
             r'data-file=(["\'])(?P<url>(?:https?:)?//.+?)\1', webpage,
             'data file', group='url'))
 
@@ -125,7 +125,7 @@ class TVNetIE(InfoExtractor):
                 })
 
         thumbnail = self._og_search_thumbnail(
-            webpage, default=None) or unescapeHTML(
+            webpage, default=None) or unescape_html(
             self._search_regex(
                 r'data-image=(["\'])(?P<url>(?:https?:)?//.+?)\1', webpage,
                 'thumbnail', default=None, group='url'))

@@ -8,7 +8,7 @@ from ..utils import (
     determine_ext,
     int_or_none,
     qualities,
-    unescapeHTML,
+    unescape_html,
 )
 
 
@@ -39,7 +39,7 @@ class GiantBombIE(InfoExtractor):
         description = self._og_search_description(webpage)
         thumbnail = self._og_search_thumbnail(webpage)
 
-        video = json.loads(unescapeHTML(self._search_regex(
+        video = json.loads(unescape_html(self._search_regex(
             r'data-video="([^"]+)"', webpage, 'data-video')))
 
         duration = int_or_none(video.get('lengthSeconds'))

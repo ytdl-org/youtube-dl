@@ -13,7 +13,7 @@ from ..utils import (
     unified_strdate,
     int_or_none,
     qualities,
-    unescapeHTML,
+    unescape_html,
     urlencode_postdata,
 )
 
@@ -137,7 +137,7 @@ class OdnoklassnikiIE(InfoExtractor):
             raise ExtractorError(error, expected=True)
 
         player = self._parse_json(
-            unescapeHTML(self._search_regex(
+            unescape_html(self._search_regex(
                 r'data-options=(?P<quote>["\'])(?P<player>{.+?%s.+?})(?P=quote)' % video_id,
                 webpage, 'player', group='player')),
             video_id)

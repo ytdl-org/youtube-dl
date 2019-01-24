@@ -6,7 +6,7 @@ import re
 from .common import InfoExtractor
 from ..compat import compat_str
 from ..utils import (
-    orderedSet,
+    ordered_set,
     parse_duration,
     try_get,
 )
@@ -118,7 +118,7 @@ class MarkizaPageIE(InfoExtractor):
 
         entries = [
             self.url_result('http://videoarchiv.markiza.sk/video/%s' % video_id)
-            for video_id in orderedSet(re.findall(
+            for video_id in ordered_set(re.findall(
                 r'(?:initPlayer_|data-entity=["\']|id=["\']player_)(\d+)',
                 webpage))]
 

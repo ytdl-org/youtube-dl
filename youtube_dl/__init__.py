@@ -22,7 +22,7 @@ from .compat import (
 )
 from .utils import (
     DateRange,
-    decodeOption,
+    decode_option,
     DEFAULT_OUTTMPL,
     DownloadError,
     expand_path,
@@ -375,8 +375,8 @@ def _real_main(argv=None):
         'listsubtitles': opts.listsubtitles,
         'subtitlesformat': opts.subtitlesformat,
         'subtitleslangs': opts.subtitleslangs,
-        'matchtitle': decodeOption(opts.matchtitle),
-        'rejecttitle': decodeOption(opts.rejecttitle),
+        'matchtitle': decode_option(opts.matchtitle),
+        'rejecttitle': decode_option(opts.rejecttitle),
         'max_downloads': opts.max_downloads,
         'prefer_free_formats': opts.prefer_free_formats,
         'verbose': opts.verbose,

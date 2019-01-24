@@ -7,7 +7,7 @@ from ..compat import (
     compat_urllib_parse_unquote,
 )
 from ..utils import (
-    unescapeHTML,
+    unescape_html,
     url_basename,
     dict_get,
 )
@@ -51,7 +51,7 @@ class GameSpotIE(OnceIE):
         webpage = self._download_webpage(url, page_id)
         data_video_json = self._search_regex(
             r'data-video=["\'](.*?)["\']', webpage, 'data video')
-        data_video = self._parse_json(unescapeHTML(data_video_json), page_id)
+        data_video = self._parse_json(unescape_html(data_video_json), page_id)
         streams = data_video['videoStreams']
 
         manifest_url = None
@@ -111,7 +111,7 @@ class GameSpotIE(OnceIE):
         onceux_json = self._search_regex(
             r'data-onceux-options=["\'](.*?)["\']', webpage, 'data video', default=None)
         if onceux_json:
-            onceux_url = self._parse_json(unescapeHTML(onceux_json), page_id).get('metadataUri')
+            onceux_url = self._parse_json(unescape_html(onceux_json), page_id).get('metadataUri')
             if onceux_url:
                 formats.extend(self._extract_once_formats(re.sub(
                     r'https?://[^/]+', 'http://once.unicornmedia.com', onceux_url),

@@ -17,7 +17,7 @@ from ..utils import (
     parse_duration,
     strip_or_none,
     try_get,
-    unescapeHTML,
+    unescape_html,
     unified_strdate,
     unified_timestamp,
     update_url_query,
@@ -272,7 +272,7 @@ class RaiPlayPlaylistIE(InfoExtractor):
 
         title = self._html_search_meta(
             ('programma', 'nomeProgramma'), webpage, 'title')
-        description = unescapeHTML(self._html_search_meta(
+        description = unescape_html(self._html_search_meta(
             ('description', 'og:description'), webpage, 'description'))
 
         entries = []

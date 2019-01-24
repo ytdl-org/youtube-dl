@@ -9,7 +9,7 @@ from ..utils import (
     determine_ext,
     int_or_none,
     NO_DEFAULT,
-    orderedSet,
+    ordered_set,
     parse_codecs,
     qualities,
     try_get,
@@ -267,7 +267,7 @@ class ZDFChannelIE(ZDFBaseIE):
 
         entries = [
             self.url_result(item_url, ie=ZDFIE.ie_key())
-            for item_url in orderedSet(re.findall(
+            for item_url in ordered_set(re.findall(
                 r'data-plusbar-url=["\'](http.+?\.html)', webpage))]
 
         return self.playlist_result(

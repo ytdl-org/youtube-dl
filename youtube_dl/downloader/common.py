@@ -8,8 +8,8 @@ import random
 
 from ..compat import compat_os_name
 from ..utils import (
-    decodeArgument,
-    encodeFilename,
+    decode_argument,
+    encode_filename,
     error_to_compat_str,
     format_bytes,
     shell_quote,
@@ -181,7 +181,7 @@ class FileDownloader(object):
     def temp_name(self, filename):
         """Returns a temporary filename for the given filename."""
         if self.params.get('nopart', False) or filename == '-' or \
-                (os.path.exists(encodeFilename(filename)) and not os.path.isfile(encodeFilename(filename))):
+                (os.path.exists(encode_filename(filename)) and not os.path.isfile(encode_filename(filename))):
             return filename
         return filename + '.part'
 
@@ -197,7 +197,7 @@ class FileDownloader(object):
         try:
             if old_filename == new_filename:
                 return
-            os.rename(encodeFilename(old_filename), encodeFilename(new_filename))
+            os.rename(encode_filename(old_filename), encode_filename(new_filename))
         except (IOError, OSError) as err:
             self.report_error('unable to rename file: %s' % error_to_compat_str(err))
 
@@ -205,7 +205,7 @@ class FileDownloader(object):
         """Try to set the last-modified time of the given file."""
         if last_modified_hdr is None:
             return
-        if not os.path.isfile(encodeFilename(filename)):
+        if not os.path.isfile(encode_filename(filename)):
             return
         timestr = last_modified_hdr
         if timestr is None:
@@ -331,14 +331,14 @@ class FileDownloader(object):
 
         nooverwrites_and_exists = (
             self.params.get('nooverwrites', False) and
-            os.path.exists(encodeFilename(filename))
+            os.path.exists(encode_filename(filename))
         )
 
         if not hasattr(filename, 'write'):
             continuedl_and_exists = (
-                self.params.get('continuedl', True) and
-                os.path.isfile(encodeFilename(filename)) and
-                not self.params.get('nopart', False)
+                    self.params.get('continuedl', True) and
+                    os.path.isfile(encode_filename(filename)) and
+                    not self.params.get('nopart', False)
             )
 
             # Check file already present
@@ -347,7 +347,7 @@ class FileDownloader(object):
                 self._hook_progress({
                     'filename': filename,
                     'status': 'finished',
-                    'total_bytes': os.path.getsize(encodeFilename(filename)),
+                    'total_bytes': os.path.getsize(encode_filename(filename)),
                 })
                 return True
 
@@ -380,7 +380,7 @@ class FileDownloader(object):
         if not self.params.get('verbose', False):
             return
 
-        str_args = [decodeArgument(a) for a in args]
+        str_args = [decode_argument(a) for a in args]
 
         if exe is None:
             exe = os.path.basename(str_args[0])

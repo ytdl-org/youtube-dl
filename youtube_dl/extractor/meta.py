@@ -4,7 +4,7 @@ from __future__ import unicode_literals
 from .common import InfoExtractor
 from .pladform import PladformIE
 from ..utils import (
-    unescapeHTML,
+    unescape_html,
     int_or_none,
     ExtractorError,
 )
@@ -46,7 +46,7 @@ class METAIE(InfoExtractor):
             json_str = ''
             for i in range(0, len(st_html5), 3):
                 json_str += '&#x0%s;' % st_html5[i:i + 3]
-            uppod_data = self._parse_json(unescapeHTML(json_str), video_id)
+            uppod_data = self._parse_json(unescape_html(json_str), video_id)
             error = uppod_data.get('customnotfound')
             if error:
                 raise ExtractorError('%s said: %s' % (self.IE_NAME, error), expected=True)

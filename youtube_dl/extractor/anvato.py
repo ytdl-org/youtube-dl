@@ -17,7 +17,7 @@ from ..utils import (
     intlist_to_bytes,
     int_or_none,
     strip_jsonp,
-    unescapeHTML,
+    unescape_html,
     unsmuggle_url,
 )
 
@@ -272,7 +272,7 @@ class AnvatoIE(InfoExtractor):
         entries = []
         for mobj in re.finditer(AnvatoIE._ANVP_RE, webpage):
             anvplayer_data = ie._parse_json(
-                mobj.group('anvp'), video_id, transform_source=unescapeHTML,
+                mobj.group('anvp'), video_id, transform_source=unescape_html,
                 fatal=False)
             if not anvplayer_data:
                 continue

@@ -5,7 +5,7 @@ from .common import InfoExtractor
 from ..compat import compat_urlparse
 from ..utils import (
     int_or_none,
-    orderedSet,
+    ordered_set,
     parse_duration,
     qualities,
     unified_strdate,
@@ -56,7 +56,7 @@ class EuropaIE(InfoExtractor):
         query = compat_urlparse.parse_qs(compat_urlparse.urlparse(url).query)
         preferred_lang = query.get('sitelang', ('en', ))[0]
 
-        preferred_langs = orderedSet((preferred_lang, 'en', 'int'))
+        preferred_langs = ordered_set((preferred_lang, 'en', 'int'))
 
         title = get_item('title', preferred_langs) or video_id
         description = get_item('description', preferred_langs)

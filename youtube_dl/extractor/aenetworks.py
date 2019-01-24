@@ -6,7 +6,7 @@ from .theplatform import ThePlatformIE
 from ..utils import (
     smuggle_url,
     update_url_query,
-    unescapeHTML,
+    unescape_html,
     extract_attributes,
     get_element_by_attribute,
 )
@@ -219,7 +219,7 @@ class HistoryTopicIE(AENetworksBaseIE):
         if video_display_id:
             webpage = self._download_webpage(url, video_display_id)
             release_url, video_id = re.search(r"_videoPlayer.play\('([^']+)'\s*,\s*'[^']+'\s*,\s*'(\d+)'\)", webpage).groups()
-            release_url = unescapeHTML(release_url)
+            release_url = unescape_html(release_url)
 
             return self.theplatform_url_result(
                 release_url, video_id, {

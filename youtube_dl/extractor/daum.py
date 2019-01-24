@@ -16,7 +16,7 @@ from ..utils import (
     int_or_none,
     str_to_int,
     xpath_text,
-    unescapeHTML,
+    unescape_html,
 )
 
 
@@ -162,7 +162,7 @@ class DaumClipIE(InfoExtractor):
             '_type': 'url_transparent',
             'id': video_id,
             'url': 'http://tvpot.daum.net/v/%s' % clip_info['vid'],
-            'title': unescapeHTML(clip_info['title']),
+            'title': unescape_html(clip_info['title']),
             'thumbnail': clip_info.get('thumb_url'),
             'description': clip_info.get('contents'),
             'duration': int_or_none(clip_info.get('duration')),

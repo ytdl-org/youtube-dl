@@ -6,7 +6,7 @@ import re
 from .common import InfoExtractor
 from ..compat import compat_str
 from ..utils import (
-    unescapeHTML,
+    unescape_html,
     parse_duration,
     get_element_by_class,
 )
@@ -68,7 +68,7 @@ class LEGOIE(InfoExtractor):
                     default='http://www.lego.com/%s/mediaplayer/video/' % locale))
                 player_url = base_url + video_id
             player_webpage = self._download_webpage(player_url, video_id)
-            video_data = self._parse_json(unescapeHTML(self._search_regex(
+            video_data = self._parse_json(unescape_html(self._search_regex(
                 r"video='([^']+)'", player_webpage, 'video data')), video_id)
             progressive_base = self._search_regex(
                 r'data-video-progressive-url="([^"]+)"',

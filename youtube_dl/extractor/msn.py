@@ -9,7 +9,7 @@ from ..utils import (
     determine_ext,
     ExtractorError,
     int_or_none,
-    unescapeHTML,
+    unescape_html,
 )
 
 
@@ -53,10 +53,10 @@ class MSNIE(InfoExtractor):
             self._search_regex(
                 r'data-metadata\s*=\s*(["\'])(?P<data>.+?)\1',
                 webpage, 'video data', default='{}', group='data'),
-            display_id, transform_source=unescapeHTML)
+            display_id, transform_source=unescape_html)
 
         if not video:
-            error = unescapeHTML(self._search_regex(
+            error = unescape_html(self._search_regex(
                 r'data-error=(["\'])(?P<error>.+?)\1',
                 webpage, 'error', group='error'))
             raise ExtractorError('%s said: %s' % (self.IE_NAME, error), expected=True)

@@ -10,7 +10,7 @@ from ..utils import (
     update_url_query,
     int_or_none,
     determine_protocol,
-    unescapeHTML,
+    unescape_html,
 )
 
 
@@ -95,7 +95,7 @@ class SendtoNewsIE(InfoExtractor):
                 })
             info_dict.update({
                 'title': video['S_headLine'].strip(),
-                'description': unescapeHTML(video.get('S_fullStory')),
+                'description': unescape_html(video.get('S_fullStory')),
                 'thumbnails': thumbnails,
                 'duration': float_or_none(video.get('SM_length')),
                 'timestamp': parse_iso8601(video.get('S_sysDate'), delimiter=' '),

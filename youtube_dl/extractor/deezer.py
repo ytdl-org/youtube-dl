@@ -7,7 +7,7 @@ from .common import InfoExtractor
 from ..utils import (
     ExtractorError,
     int_or_none,
-    orderedSet,
+    ordered_set,
 )
 
 
@@ -70,7 +70,7 @@ class DeezerPlaylistIE(InfoExtractor):
             }]
             self._sort_formats(formats)
             artists = ', '.join(
-                orderedSet(a['ART_NAME'] for a in s['ARTISTS']))
+                ordered_set(a['ART_NAME'] for a in s['ARTISTS']))
             entries.append({
                 'id': s['SNG_ID'],
                 'duration': int_or_none(s.get('DURATION')),

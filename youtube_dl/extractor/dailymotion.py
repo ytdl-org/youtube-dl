@@ -23,7 +23,7 @@ from ..utils import (
     sanitized_Request,
     str_to_int,
     try_get,
-    unescapeHTML,
+    unescape_html,
     update_url_query,
     url_or_none,
     urlencode_postdata,
@@ -140,7 +140,7 @@ class DailymotionIE(DailymotionBaseInfoExtractor):
         # Look for embedded Dailymotion player
         matches = re.findall(
             r'<(?:(?:embed|iframe)[^>]+?src=|input[^>]+id=[\'"]dmcloudUrlEmissionSelect[\'"][^>]+value=)(["\'])(?P<url>(?:https?:)?//(?:www\.)?dailymotion\.com/(?:embed|swf)/video/.+?)\1', webpage)
-        return list(map(lambda m: unescapeHTML(m[1]), matches))
+        return list(map(lambda m: unescape_html(m[1]), matches))
 
     def _real_extract(self, url):
         video_id = self._match_id(url)
@@ -481,7 +481,7 @@ class DailymotionUserIE(DailymotionBaseInfoExtractor):
         user = mobj.group('user')
         webpage = self._download_webpage(
             'https://www.dailymotion.com/user/%s' % user, user)
-        full_user = unescapeHTML(self._html_search_regex(
+        full_user = unescape_html(self._html_search_regex(
             r'<a class="nav-image" title="([^"]+)" href="/%s">' % re.escape(user),
             webpage, 'user'))
 

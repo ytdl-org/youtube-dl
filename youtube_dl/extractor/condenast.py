@@ -14,7 +14,7 @@ from ..utils import (
     int_or_none,
     js_to_json,
     mimetype2ext,
-    orderedSet,
+    ordered_set,
     parse_iso8601,
 )
 
@@ -111,7 +111,7 @@ class CondeNastIE(InfoExtractor):
         base_url = '%s://%s' % (url_object.scheme, url_object.netloc)
         m_paths = re.finditer(
             r'(?s)<p class="cne-thumb-title">.*?<a href="(/watch/.+?)["\?]', webpage)
-        paths = orderedSet(m.group(1) for m in m_paths)
+        paths = ordered_set(m.group(1) for m in m_paths)
         build_url = lambda path: compat_urlparse.urljoin(base_url, path)
         entries = [self.url_result(build_url(path), 'CondeNast') for path in paths]
         return self.playlist_result(entries, playlist_title=title)

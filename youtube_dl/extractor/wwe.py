@@ -6,7 +6,7 @@ from .common import InfoExtractor
 from ..compat import compat_str
 from ..utils import (
     try_get,
-    unescapeHTML,
+    unescape_html,
     url_or_none,
     urljoin,
 )
@@ -123,7 +123,7 @@ class WWEPlaylistIE(WWEBaseIE):
         for mobj in re.finditer(
                 r'data-video\s*=\s*(["\'])(?P<data>{.+?})\1', webpage):
             video = self._parse_json(
-                mobj.group('data'), display_id, transform_source=unescapeHTML,
+                mobj.group('data'), display_id, transform_source=unescape_html,
                 fatal=False)
             if not video:
                 continue

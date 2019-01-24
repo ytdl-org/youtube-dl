@@ -13,7 +13,7 @@ from ..utils import (
     xpath_attr,
     xpath_with_ns,
     xpath_text,
-    orderedSet,
+    ordered_set,
     update_url_query,
     int_or_none,
     float_or_none,
@@ -305,7 +305,7 @@ class LivestreamOriginalIE(InfoExtractor):
 
     def _extract_folder(self, url, folder_id):
         webpage = self._download_webpage(url, folder_id)
-        paths = orderedSet(re.findall(
+        paths = ordered_set(re.findall(
             r'''(?x)(?:
                 <li\s+class="folder">\s*<a\s+href="|
                 <a\s+href="(?=https?://livestre\.am/)

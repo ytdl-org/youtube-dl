@@ -30,7 +30,7 @@ from ..utils import (
     unified_timestamp,
     unsmuggle_url,
     urlencode_postdata,
-    unescapeHTML,
+    unescape_html,
 )
 
 
@@ -450,7 +450,7 @@ class VimeoIE(VimeoBaseInfoExtractor):
         for mobj in re.finditer(
                 r'<iframe[^>]+?src=(["\'])(?P<url>(?:https?:)?//player\.vimeo\.com/video/\d+.*?)\1',
                 webpage):
-            urls.append(VimeoIE._smuggle_referrer(unescapeHTML(mobj.group('url')), url))
+            urls.append(VimeoIE._smuggle_referrer(unescape_html(mobj.group('url')), url))
         PLAIN_EMBED_RE = (
             # Look for embedded (swf embed) Vimeo player
             r'<embed[^>]+?src=(["\'])(?P<url>(?:https?:)?//(?:www\.)?vimeo\.com/moogaloop\.swf.+?)\1',

@@ -10,10 +10,10 @@ from ..utils import (
     float_or_none,
     HEADRequest,
     int_or_none,
-    orderedSet,
+    ordered_set,
     remove_end,
     strip_jsonp,
-    unescapeHTML,
+    unescape_html,
     unified_strdate,
     url_or_none,
 )
@@ -67,7 +67,7 @@ class ORFTVthekIE(InfoExtractor):
             self._search_regex(
                 r'<div[^>]+class=(["\']).*?VideoPlaylist.*?\1[^>]+data-jsb=(["\'])(?P<json>.+?)\2',
                 webpage, 'playlist', group='json'),
-            playlist_id, transform_source=unescapeHTML)['playlist']['videos']
+            playlist_id, transform_source=unescape_html)['playlist']['videos']
 
         entries = []
         for sd in data_jsb:
@@ -357,7 +357,7 @@ class ORFFM4StoryIE(InfoExtractor):
         webpage = self._download_webpage(url, story_id)
 
         entries = []
-        all_ids = orderedSet(re.findall(r'data-video(?:id)?="(\d+)"', webpage))
+        all_ids = ordered_set(re.findall(r'data-video(?:id)?="(\d+)"', webpage))
         for idx, video_id in enumerate(all_ids):
             data = self._download_json(
                 'http://bits.orf.at/filehandler/static-api/json/current/data.json?file=%s' % video_id,

@@ -8,7 +8,7 @@ from ..compat import compat_urlparse
 from ..utils import (
     ExtractorError,
     InAdvancePagedList,
-    orderedSet,
+    ordered_set,
     str_to_int,
     unified_strdate,
 )
@@ -169,7 +169,7 @@ class MotherlessGroupIE(InfoExtractor):
                 self.url_result(
                     compat_urlparse.urljoin(base, '/' + entry_id),
                     ie=MotherlessIE.ie_key(), video_id=entry_id)
-                for entry_id in orderedSet(re.findall(
+                for entry_id in ordered_set(re.findall(
                     r'data-codename=["\']([A-Z0-9]+)', webpage))]
         return entries
 

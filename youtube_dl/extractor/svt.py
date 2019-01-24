@@ -12,7 +12,7 @@ from ..utils import (
     determine_ext,
     dict_get,
     int_or_none,
-    orderedSet,
+    ordered_set,
     strip_or_none,
     try_get,
     urljoin,
@@ -363,7 +363,7 @@ class SVTPageIE(InfoExtractor):
         entries = [
             self.url_result(
                 'svt:%s' % video_id, ie=SVTPlayIE.ie_key(), video_id=video_id)
-            for video_id in orderedSet(re.findall(
+            for video_id in ordered_set(re.findall(
                 r'data-video-id=["\'](\d+)', webpage))]
 
         title = strip_or_none(self._og_search_title(webpage, default=None))

@@ -8,7 +8,7 @@ from ..utils import (
     ExtractorError,
     int_or_none,
     strip_or_none,
-    unescapeHTML,
+    unescape_html,
     urlencode_postdata,
 )
 
@@ -92,7 +92,7 @@ class RoosterTeethIE(InfoExtractor):
 
         webpage = self._download_webpage(url, display_id)
 
-        episode = strip_or_none(unescapeHTML(self._search_regex(
+        episode = strip_or_none(unescape_html(self._search_regex(
             (r'videoTitle\s*=\s*(["\'])(?P<title>(?:(?!\1).)+)\1',
              r'<title>(?P<title>[^<]+)</title>'), webpage, 'title',
             default=None, group='title')))

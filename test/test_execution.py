@@ -10,7 +10,7 @@ import os
 import subprocess
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from youtube_dl.utils import encodeArgument
+from youtube_dl.utils import encode_argument
 
 rootDir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
@@ -34,7 +34,7 @@ class TestExecution(unittest.TestCase):
 
     def test_cmdline_umlauts(self):
         p = subprocess.Popen(
-            [sys.executable, 'youtube_dl/__main__.py', encodeArgument('ä'), '--version'],
+            [sys.executable, 'youtube_dl/__main__.py', encode_argument('ä'), '--version'],
             cwd=rootDir, stdout=_DEV_NULL, stderr=subprocess.PIPE)
         _, stderr = p.communicate()
         self.assertFalse(stderr)

@@ -21,7 +21,7 @@ from youtube_dl.compat import (
     compat_urllib_request,
 )
 from youtube_dl.utils import (
-    make_HTTPS_handler,
+    make_https_handler,
     sanitized_Request,
 )
 
@@ -33,7 +33,7 @@ class GitHubReleaser(object):
 
     def __init__(self, debuglevel=0):
         self._init_github_account()
-        https_handler = make_HTTPS_handler({}, debuglevel=debuglevel)
+        https_handler = make_https_handler({}, debuglevel=debuglevel)
         self._opener = compat_urllib_request.build_opener(https_handler)
 
     def _init_github_account(self):

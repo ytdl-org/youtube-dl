@@ -34,7 +34,7 @@ from ..utils import (
     get_element_by_id,
     int_or_none,
     mimetype2ext,
-    orderedSet,
+    ordered_set,
     parse_codecs,
     parse_duration,
     qualities,
@@ -44,7 +44,7 @@ from ..utils import (
     str_or_none,
     str_to_int,
     try_get,
-    unescapeHTML,
+    unescape_html,
     unified_strdate,
     unsmuggle_url,
     uppercase_escape,
@@ -312,7 +312,7 @@ class YoutubePlaylistBaseInfoExtractor(YoutubeEntryListBaseInfoExtractor):
             if 'index' in mobj.groupdict() and mobj.group('id') == '0':
                 continue
             video_id = mobj.group('id')
-            video_title = unescapeHTML(mobj.group('title'))
+            video_title = unescape_html(mobj.group('title'))
             if video_title:
                 video_title = video_title.strip()
             try:
@@ -327,7 +327,7 @@ class YoutubePlaylistBaseInfoExtractor(YoutubeEntryListBaseInfoExtractor):
 
 class YoutubePlaylistsBaseInfoExtractor(YoutubeEntryListBaseInfoExtractor):
     def _process_page(self, content):
-        for playlist_id in orderedSet(re.findall(
+        for playlist_id in ordered_set(re.findall(
                 r'<h3[^>]+class="[^"]*yt-lockup-title[^"]*"[^>]*><a[^>]+href="/?playlist\?list=([0-9A-Za-z-_]{10,})"',
                 content)):
             yield self.url_result(
@@ -1423,7 +1423,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
     def _extract_urls(webpage):
         # Embedded YouTube player
         entries = [
-            unescapeHTML(mobj.group('url'))
+            unescape_html(mobj.group('url'))
             for mobj in re.finditer(r'''(?x)
             (?:
                 <iframe[^>]+?src=|
@@ -1440,7 +1440,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
 
         # lazyYT YouTube embed
         entries.extend(list(map(
-            unescapeHTML,
+            unescape_html,
             re.findall(r'class="lazyYT" data-youtube-id="([^"]+)"', webpage))))
 
         # Wordpress "YouTube Video Importer" plugin
@@ -1730,7 +1730,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
         else:
             fd_mobj = re.search(r'<meta name="description" content="([^"]+)"', video_webpage)
             if fd_mobj:
-                video_description = unescapeHTML(fd_mobj.group(1))
+                video_description = unescape_html(fd_mobj.group(1))
             else:
                 video_description = ''
 
@@ -2047,7 +2047,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
             ''',
             video_webpage)
         if m_music:
-            video_alt_title = remove_quotes(unescapeHTML(m_music.group('title')))
+            video_alt_title = remove_quotes(unescape_html(m_music.group('title')))
             video_creator = clean_html(m_music.group('creator'))
         else:
             video_alt_title = video_creator = None
@@ -2064,7 +2064,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
             r'<div[^>]+id="watch7-headline"[^>]*>\s*<span[^>]*>.*?>(?P<series>[^<]+)</a></b>\s*S(?P<season>\d+)\s*•\s*E(?P<episode>\d+)</span>',
             video_webpage)
         if m_episode:
-            series = unescapeHTML(m_episode.group('series'))
+            series = unescape_html(m_episode.group('series'))
             season_number = int(m_episode.group('season'))
             episode_number = int(m_episode.group('episode'))
         else:
@@ -2082,7 +2082,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
             video_categories = None
 
         video_tags = [
-            unescapeHTML(m.group('content'))
+            unescape_html(m.group('content'))
             for m in re.finditer(self._meta_regex('og:video:tag'), video_webpage)]
 
         def _extract_count(count_name):
@@ -2394,7 +2394,7 @@ class YoutubePlaylistIE(YoutubePlaylistBaseInfoExtractor):
             url = 'https://youtube.com/watch?v=%s&list=%s' % (last_id, playlist_id)
             webpage = self._download_webpage(
                 url, playlist_id, 'Downloading page {0} of Youtube mix'.format(n))
-            new_ids = orderedSet(re.findall(
+            new_ids = ordered_set(re.findall(
                 r'''(?xs)data-video-username=".*?".*?
                            href="/watch\?v=([0-9A-Za-z_-]{11})&amp;[^"]*?list=%s''' % re.escape(playlist_id),
                 webpage))
@@ -2875,7 +2875,7 @@ class YoutubeFeedsInfoExtractor(YoutubeBaseInfoExtractor):
             # 'recommended' feed has infinite 'load more' and each new portion spins
             # the same videos in (sometimes) slightly different order, so we'll check
             # for unicity and break when portion has no new videos
-            new_ids = list(filter(lambda video_id: video_id not in ids, orderedSet(matches)))
+            new_ids = list(filter(lambda video_id: video_id not in ids, ordered_set(matches)))
             if not new_ids:
                 break
 

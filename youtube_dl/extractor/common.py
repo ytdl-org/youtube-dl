@@ -54,7 +54,7 @@ from ..utils import (
     js_to_json,
     JSON_LD_RE,
     mimetype2ext,
-    orderedSet,
+    ordered_set,
     parse_codecs,
     parse_duration,
     parse_iso8601,
@@ -62,7 +62,7 @@ from ..utils import (
     RegexNotFoundError,
     sanitized_Request,
     sanitize_filename,
-    unescapeHTML,
+    unescape_html,
     unified_strdate,
     unified_timestamp,
     update_Request,
@@ -932,7 +932,7 @@ class InfoExtractor(object):
         return video_info
 
     def playlist_from_matches(self, matches, playlist_id=None, playlist_title=None, getter=None, ie=None):
-        urls = orderedSet(
+        urls = ordered_set(
             self.url_result(self._proto_relative_url(getter(m) if getter else m), ie)
             for m in matches)
         return self.playlist_result(
@@ -1083,7 +1083,7 @@ class InfoExtractor(object):
         escaped = self._search_regex(og_regexes, html, name, flags=re.DOTALL, **kargs)
         if escaped is None:
             return None
-        return unescapeHTML(escaped)
+        return unescape_html(escaped)
 
     def _og_search_thumbnail(self, html, **kargs):
         return self._og_search_property('image', html, 'thumbnail URL', fatal=False, **kargs)
@@ -1220,8 +1220,8 @@ class InfoExtractor(object):
             assert e['@type'] == 'VideoObject'
             info.update({
                 'url': url_or_none(e.get('contentUrl')),
-                'title': unescapeHTML(e.get('name')),
-                'description': unescapeHTML(e.get('description')),
+                'title': unescape_html(e.get('name')),
+                'description': unescape_html(e.get('description')),
                 'thumbnail': url_or_none(e.get('thumbnailUrl') or e.get('thumbnailURL')),
                 'duration': parse_duration(e.get('duration')),
                 'timestamp': unified_timestamp(e.get('uploadDate')),
@@ -1239,11 +1239,11 @@ class InfoExtractor(object):
                 if expected_type is not None and expected_type != item_type:
                     return info
                 if item_type in ('TVEpisode', 'Episode'):
-                    episode_name = unescapeHTML(e.get('name'))
+                    episode_name = unescape_html(e.get('name'))
                     info.update({
                         'episode': episode_name,
                         'episode_number': int_or_none(e.get('episodeNumber')),
-                        'description': unescapeHTML(e.get('description')),
+                        'description': unescape_html(e.get('description')),
                     })
                     if not info.get('title') and episode_name:
                         info['title'] = episode_name
@@ -1252,19 +1252,19 @@ class InfoExtractor(object):
                         info['season_number'] = int_or_none(part_of_season.get('seasonNumber'))
                     part_of_series = e.get('partOfSeries') or e.get('partOfTVSeries')
                     if isinstance(part_of_series, dict) and part_of_series.get('@type') in ('TVSeries', 'Series', 'CreativeWorkSeries'):
-                        info['series'] = unescapeHTML(part_of_series.get('name'))
+                        info['series'] = unescape_html(part_of_series.get('name'))
                 elif item_type == 'Movie':
                     info.update({
-                        'title': unescapeHTML(e.get('name')),
-                        'description': unescapeHTML(e.get('description')),
+                        'title': unescape_html(e.get('name')),
+                        'description': unescape_html(e.get('description')),
                         'duration': parse_duration(e.get('duration')),
                         'timestamp': unified_timestamp(e.get('dateCreated')),
                     })
                 elif item_type in ('Article', 'NewsArticle'):
                     info.update({
                         'timestamp': parse_iso8601(e.get('datePublished')),
-                        'title': unescapeHTML(e.get('headline')),
-                        'description': unescapeHTML(e.get('articleBody')),
+                        'title': unescape_html(e.get('headline')),
+                        'description': unescape_html(e.get('articleBody')),
                     })
                 elif item_type == 'VideoObject':
                     extract_video_object(e)
@@ -2628,7 +2628,7 @@ class InfoExtractor(object):
 
             entry = {
                 'id': this_video_id,
-                'title': unescapeHTML(video_data['title'] if require_title else video_data.get('title')),
+                'title': unescape_html(video_data['title'] if require_title else video_data.get('title')),
                 'description': video_data.get('description'),
                 'thumbnail': urljoin(base_url, self._proto_relative_url(video_data.get('image'))),
                 'timestamp': int_or_none(video_data.get('pubdate')),

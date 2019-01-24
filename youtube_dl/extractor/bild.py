@@ -4,7 +4,7 @@ from __future__ import unicode_literals
 from .common import InfoExtractor
 from ..utils import (
     int_or_none,
-    unescapeHTML,
+    unescape_html,
 )
 
 
@@ -32,8 +32,8 @@ class BildIE(InfoExtractor):
 
         return {
             'id': video_id,
-            'title': unescapeHTML(video_data['title']).strip(),
-            'description': unescapeHTML(video_data.get('description')),
+            'title': unescape_html(video_data['title']).strip(),
+            'description': unescape_html(video_data.get('description')),
             'url': video_data['clipList'][0]['srces'][0]['src'],
             'thumbnail': video_data.get('poster'),
             'duration': int_or_none(video_data.get('durationSec')),

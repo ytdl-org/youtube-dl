@@ -4,7 +4,7 @@ from __future__ import unicode_literals
 from .common import InfoExtractor
 from ..utils import (
     int_or_none,
-    unescapeHTML,
+    unescape_html,
 )
 
 
@@ -46,7 +46,7 @@ class TVN24IE(InfoExtractor):
                 self._search_regex(
                     r'\b%s=(["\'])(?P<json>(?!\1).+?)\1' % attr, webpage,
                     name, group='json', fatal=fatal) or '{}',
-                video_id, transform_source=unescapeHTML, fatal=fatal)
+                video_id, transform_source=unescape_html, fatal=fatal)
 
         quality_data = extract_json('data-quality', 'formats')
 

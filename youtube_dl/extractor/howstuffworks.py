@@ -5,7 +5,7 @@ from ..utils import (
     find_xpath_attr,
     int_or_none,
     js_to_json,
-    unescapeHTML,
+    unescape_html,
     determine_ext,
 )
 
@@ -82,8 +82,8 @@ class HowStuffWorksIE(InfoExtractor):
         return {
             'id': '%s' % video_id,
             'display_id': display_id,
-            'title': unescapeHTML(clip_info['clip_title']),
-            'description': unescapeHTML(clip_info.get('caption')),
+            'title': unescape_html(clip_info['clip_title']),
+            'description': unescape_html(clip_info.get('caption')),
             'thumbnail': clip_info.get('video_still_url'),
             'duration': int_or_none(clip_info.get('duration')),
             'formats': formats,

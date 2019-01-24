@@ -15,7 +15,7 @@ from ..utils import (
     ExtractorError,
     int_or_none,
     js_to_json,
-    orderedSet,
+    ordered_set,
     remove_quotes,
     str_to_int,
     url_or_none,
@@ -320,7 +320,7 @@ class PornHubPlaylistBaseIE(InfoExtractor):
             self.url_result(
                 'http://www.%s/%s' % (host, video_url),
                 PornHubIE.ie_key(), video_title=title)
-            for video_url, title in orderedSet(re.findall(
+            for video_url, title in ordered_set(re.findall(
                 r'href="/?(view_video\.php\?.*\bviewkey=[\da-z]+[^"]*)"[^>]*\s+title="([^"]+)"',
                 container))
         ]
