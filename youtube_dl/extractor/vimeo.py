@@ -78,6 +78,7 @@ class VimeoBaseInfoExtractor(InfoExtractor):
         data = urlencode_postdata({
             'password': password,
             'token': token,
+            'is_review': 1 if '/review/' in url else 0
         })
         if url.startswith('http://'):
             # vimeo only supports https now, but the user can give an http url
