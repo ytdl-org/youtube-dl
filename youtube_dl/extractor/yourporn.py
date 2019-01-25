@@ -1,5 +1,7 @@
 from __future__ import unicode_literals
 
+from youtube_dl import utils
+
 from .common import InfoExtractor
 from ..utils import urljoin
 
@@ -30,15 +32,6 @@ class YourPornIE(InfoExtractor):
         }
     }]
 
-    def _parse_duration(self, s):
-        duration = 0
-        size = len(s.split(":"))
-        j = size - 1
-        for i in range(size):
-            duration += int(s.split(":")[i]) * (60 ** j)
-            j = j - 1
-        return duration
-
     def _real_extract(self, url):
         video_id = self._match_id(url)
 
@@ -53,15 +46,11 @@ class YourPornIE(InfoExtractor):
         title = (self._search_regex(
             r'<[^>]+\bclass=["\']PostEditTA[^>]+>([^<]+)', webpage, 'title',
             default=None) or self._og_search_description(webpage)).strip()
-        if '#' in title:
-            title = title[0:title.index('#')].strip()
 
         thumbnail = self._og_search_thumbnail(webpage)
 
-        duration = self._parse_duration(self._search_regex(
-                        r'Video Info -> duration:<b>([0-9:]+)</b>',
-                        webpage, 'duration'))
-
+        duration = utils.parse_duration(self._search_regex(r'Video Info -> duration:<b>([0-9:]+)</b>',
+                                                           webpage, 'duration'))
         return {
             'id': video_id,
             'url': video_url,
