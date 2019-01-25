@@ -119,11 +119,7 @@ class CNNBlogsIE(InfoExtractor):
     def _real_extract(self, url):
         webpage = self._download_webpage(url, url_basename(url))
         cnn_url = self._html_search_regex(r'data-url="(.+?)"', webpage, 'cnn url')
-        return {
-            '_type': 'url',
-            'url': cnn_url,
-            'ie_key': CNNIE.ie_key(),
-        }
+        return self.url_result(cnn_url, CNNIE.ie_key())
 
 
 class CNNArticleIE(InfoExtractor):
@@ -145,8 +141,4 @@ class CNNArticleIE(InfoExtractor):
     def _real_extract(self, url):
         webpage = self._download_webpage(url, url_basename(url))
         cnn_url = self._html_search_regex(r"video:\s*'([^']+)'", webpage, 'cnn url')
-        return {
-            '_type': 'url',
-            'url': 'http://cnn.com/video/?/video/' + cnn_url,
-            'ie_key': CNNIE.ie_key(),
-        }
+        return self.url_result('http://cnn.com/video/?/video/' + cnn_url, CNNIE.ie_key())

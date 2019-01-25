@@ -363,7 +363,7 @@ class NPOIE(NPOBaseIE):
 
 class NPOLiveIE(NPOBaseIE):
     IE_NAME = 'npo.nl:live'
-    _VALID_URL = r'https?://(?:www\.)?npo\.nl/live(?:/(?P<id>[^/?#&]+))?'
+    _VALID_URL = r'https?://(?:www\.)?npo(?:start)?\.nl/live(?:/(?P<id>[^/?#&]+))?'
 
     _TESTS = [{
         'url': 'http://www.npo.nl/live/npo-1',
@@ -379,6 +379,9 @@ class NPOLiveIE(NPOBaseIE):
         }
     }, {
         'url': 'http://www.npo.nl/live',
+        'only_matching': True,
+    }, {
+        'url': 'https://www.npostart.nl/live/npo-1',
         'only_matching': True,
     }]
 

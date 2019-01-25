@@ -507,6 +507,8 @@ class TestUtil(unittest.TestCase):
         self.assertEqual(urljoin('http://foo.de/', ''), None)
         self.assertEqual(urljoin('http://foo.de/', ['foobar']), None)
         self.assertEqual(urljoin('http://foo.de/a/b/c.txt', '.././../d.txt'), 'http://foo.de/d.txt')
+        self.assertEqual(urljoin('http://foo.de/a/b/c.txt', 'rtmp://foo.de'), 'rtmp://foo.de')
+        self.assertEqual(urljoin(None, 'rtmp://foo.de'), 'rtmp://foo.de')
 
     def test_url_or_none(self):
         self.assertEqual(url_or_none(None), None)

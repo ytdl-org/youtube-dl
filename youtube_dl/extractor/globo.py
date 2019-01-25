@@ -72,7 +72,7 @@ class GloboIE(InfoExtractor):
             return
 
         try:
-            self._download_json(
+            glb_id = (self._download_json(
                 'https://login.globo.com/api/authentication', None, data=json.dumps({
                     'payload': {
                         'email': email,
@@ -81,7 +81,9 @@ class GloboIE(InfoExtractor):
                     },
                 }).encode(), headers={
                     'Content-Type': 'application/json; charset=utf-8',
-                })
+                }) or {}).get('glbId')
+            if glb_id:
+                self._set_cookie('.globo.com', 'GLBID', glb_id)
         except ExtractorError as e:
             if isinstance(e.cause, compat_HTTPError) and e.cause.code == 401:
                 resp = self._parse_json(e.cause.read(), None)
