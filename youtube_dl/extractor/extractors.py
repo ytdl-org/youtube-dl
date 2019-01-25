@@ -1266,6 +1266,7 @@ from .ustudio import (
 )
 from .varzesh3 import Varzesh3IE
 from .vbox7 import Vbox7IE
+from .vdocipher import VdoCipherIE
 from .veehd import VeeHDIE
 from .veoh import VeohIE
 from .vessel import VesselIE

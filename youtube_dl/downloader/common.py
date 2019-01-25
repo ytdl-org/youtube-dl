@@ -55,7 +55,7 @@ class FileDownloader(object):
     Subclasses of this one must re-define the real_download method.
     """
 
-    _TEST_FILE_SIZE = 10241
+    _TEST_FILE_SIZE = 10240
     params = None
 
     def __init__(self, ydl, params):

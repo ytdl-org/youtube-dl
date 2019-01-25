@@ -12,6 +12,7 @@ from .fragment import FragmentFD
 from .external import FFmpegFD
 
 from ..compat import (
+    compat_b64decode,
     compat_urllib_error,
     compat_urlparse,
     compat_struct_pack,
@@ -167,8 +168,11 @@ class HlsFD(FragmentFD):
                             'giving up after %s fragment retries' % fragment_retries)
                         return False
                     if decrypt_info['METHOD'] == 'AES-128':
+                        info_key = info_dict.get('hls_aes128_key')
+                        if info_key:
+                            info_key = compat_b64decode(info_key)
                         iv = decrypt_info.get('IV') or compat_struct_pack('>8xq', media_sequence)
-                        decrypt_info['KEY'] = decrypt_info.get('KEY') or self.ydl.urlopen(
+                        decrypt_info['KEY'] = decrypt_info.get('KEY') or info_key or self.ydl.urlopen(
                             self._prepare_url(info_dict, decrypt_info['URI'])).read()
                         frag_content = AES.new(
                             decrypt_info['KEY'], AES.MODE_CBC, iv).decrypt(frag_content)
