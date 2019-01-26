@@ -1,9 +1,7 @@
 from __future__ import unicode_literals
 
-from youtube_dl import utils
-
 from .common import InfoExtractor
-from ..utils import urljoin
+from ..utils import (urljoin, parse_duration)
 
 
 class YourPornIE(InfoExtractor):
@@ -49,8 +47,8 @@ class YourPornIE(InfoExtractor):
 
         thumbnail = self._og_search_thumbnail(webpage)
 
-        duration = utils.parse_duration(self._search_regex(r'Video Info -> duration:<b>([0-9:]+)</b>',
-                                                           webpage, 'duration'))
+        duration = parse_duration(self._search_regex(r'Video Info -> duration:<b>([0-9:]+)</b>',
+                                                     webpage, 'duration'))
         return {
             'id': video_id,
             'url': video_url,
