@@ -8,7 +8,6 @@ import re
 from .common import InfoExtractor
 from ..compat import (
     compat_str,
-    compat_urllib_parse_urlparse,
     compat_HTTPError,
 )
 from ..utils import (
@@ -228,44 +227,37 @@ class InstagramIE(InfoExtractor):
         }
 
 
-class InstagramUserIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:www\.)?instagram\.com/(?P<id>[^/]{2,})/?(?:saved/?)(?:$|[?#])'
-    IE_DESC = 'Instagram user profile'
-    IE_NAME = 'instagram:user'
-    _TEST = {
-        'url': 'https://instagram.com/porsche',
-        'info_dict': {
-            'id': 'porsche',
-            'title': 'porsche',
-        },
-        'playlist_count': 5,
-        'params': {
-            'extract_flat': True,
-            'skip_download': True,
-            'playlistend': 5,
-        }
-    }
+class InstagramPlaylistIE(InfoExtractor):
+    # A superclass for handling any kind of query based on GraphQL which
+    # results in a playlist.
 
-    _gis_tmpl = None
+    _gis_tmpl = None  # used to cache GIS request type
 
-    def _entries(self, data):
+    def _parse_graphql(self, webpage, item_id):
+        # Reads a webpage and returns its GraphQL data.
+        return self._parse_json(
+            self._search_regex(
+                r'sharedData\s*=\s*({.+?})\s*;\s*[<\n]', webpage, 'data'),
+            item_id)
+
+    def _extract_graphql(self, data, url):
+        # Parses GraphQL queries containing videos and generates a playlist.
         def get_count(suffix):
             return int_or_none(try_get(
                 node, lambda x: x['edge_media_' + suffix]['count']))
 
-        uploader_id = data['entry_data']['ProfilePage'][0]['graphql']['user']['id']
+        uploader_id = self._match_id(url)
         csrf_token = data['config']['csrf_token']
         rhx_gis = data.get('rhx_gis') or '3c7ca9dcefcf966d11dacf1f151335e8'
 
-        self._set_cookie('instagram.com', 'ig_pr', '1')
-
         cursor = ''
         for page_num in itertools.count(1):
-            variables = json.dumps({
-                'id': uploader_id,
+            variables = {
                 'first': 12,
                 'after': cursor,
-            })
+            }
+            variables.update(self._query_vars_for(data))
+            variables = json.dumps(variables)
 
             if self._gis_tmpl:
                 gis_tmpls = [self._gis_tmpl]
@@ -277,21 +269,26 @@ class InstagramUserIE(InfoExtractor):
                     '%s:%s:%s' % (rhx_gis, csrf_token, std_headers['User-Agent']),
                 ]
 
+            # try all of the ways to generate a GIS query, and not only use the
+            # first one that works, but cache it for future requests
             for gis_tmpl in gis_tmpls:
                 try:
-                    media = self._download_json(
+                    json_data = self._download_json(
                         'https://www.instagram.com/graphql/query/', uploader_id,
                         'Downloading JSON page %d' % page_num, headers={
                             'X-Requested-With': 'XMLHttpRequest',
                             'X-Instagram-GIS': hashlib.md5(
                                 ('%s:%s' % (gis_tmpl, variables)).encode('utf-8')).hexdigest(),
                         }, query={
-                            'query_hash': '42323d64886122307be10013ad2dcc44',
+                            'query_hash': self._QUERY_HASH,
                             'variables': variables,
-                        })['data']['user']['edge_owner_to_timeline_media']
+                        })
+                    media = self._parse_timeline_from(json_data)
                     self._gis_tmpl = gis_tmpl
                     break
                 except ExtractorError as e:
+                    # if it's an error caused by a bad query, and there are
+                    # more GIS templates to try, ignore it and keep trying
                     if isinstance(e.cause, compat_HTTPError) and e.cause.code == 403:
                         if gis_tmpl != gis_tmpls[-1]:
                             continue
@@ -348,68 +345,99 @@ class InstagramUserIE(InfoExtractor):
             if not cursor or not isinstance(cursor, compat_str):
                 break
 
-    def _saved_entries(self, username):
-        cookies = self._get_cookies('https://www.instagram.com/%s/saved/' % username)
-        cursor = ''
-        has_next_page = True
-
-        while has_next_page:
-            query = {
-                'query_hash': '8c86fed24fa03a8a2eea2a70a80c7b6b',
-                'variables': json.dumps({
-                    'id': cookies.get('ds_user_id').value,
-                    'first': 12,
-                    'after': cursor,
-                })
-            }
-            resp = self._download_json('https://www.instagram.com/graphql/query/',
-                                       username,
-                                       query=query)
-            media = try_get(resp,
-                            lambda x: x['data']['user']['edge_saved_media'])
-
-            for edge in media.get('edges', []):
-                node = try_get(edge, lambda x: x['node'], dict)
-                if not node:
-                    continue
-                if node.get('__typename') != 'GraphVideo' and node.get('is_video') is not True:
-                    continue
-                video_id = node.get('shortcode')
-                if not video_id:
-                    continue
-                info = self.url_result(
-                    'https://instagram.com/p/%s/' % video_id,
-                    ie=InstagramIE.ie_key(), video_id=video_id)
-
-                yield info
-
-            page_info = try_get(media, lambda x: x['page_info'], dict)
-            if not page_info:
-                break
-
-            has_next_page = page_info.get('has_next_page')
-            if not has_next_page:
-                break
-
-            cursor = try_get(page_info, lambda x: x['end_cursor'], compat_str)
-            if not cursor:
-                break
-
     def _real_extract(self, url):
-        username = self._match_id(url)
+        user_or_tag = self._match_id(url)
+        webpage = self._download_webpage(url, user_or_tag)
+        data = self._parse_graphql(webpage, user_or_tag)
 
-        webpage = self._download_webpage(url, username)
-        last = filter(lambda x: len(x) > 0,
-                      compat_urllib_parse_urlparse(url).path.split('/'))[-1]
-        if last == 'saved':
-            return self.playlist_result(
-                self._saved_entries(username),
-                username, '%s - Saved media' % username)
-
-        data = self._parse_json(
-            self._search_regex(
-                r'sharedData\s*=\s*({.+?})\s*;\s*[<\n]', webpage, 'data'),
-            username)
+        self._set_cookie('instagram.com', 'ig_pr', '1')
 
         return self.playlist_result(
-            self._entries(data), username, username)
+            self._extract_graphql(data, url), user_or_tag, user_or_tag)
+
+
+class InstagramSavedIE(InstagramPlaylistIE):
+    _VALID_URL = r'https?://(?:www\.)?instagram\.com/(?P<id>[^/]{2,})/saved/?(?:$|[?#])'
+    IE_DESC = 'Instagram saved media'
+    IE_NAME = 'instagram:saved'
+
+    _QUERY_HASH = '8c86fed24fa03a8a2eea2a70a80c7b6b'
+
+    @staticmethod
+    def _parse_timeline_from(data):
+        return data['data']['user']['edge_saved_media']
+
+    @staticmethod
+    def _query_vars_for(data):
+        return {
+            'id': data['entry_data']['ProfilePage'][0]['graphql']['user']['id']
+        }
+
+
+class InstagramUserIE(InstagramPlaylistIE):
+    _VALID_URL = r'https?://(?:www\.)?instagram\.com/(?P<id>[^/]{2,})/?(?:$|[?#])'
+    IE_DESC = 'Instagram user profile'
+    IE_NAME = 'instagram:user'
+    _TEST = {
+        'url': 'https://instagram.com/porsche',
+        'info_dict': {
+            'id': 'porsche',
+            'title': 'porsche',
+        },
+        'playlist_count': 5,
+        'params': {
+            'extract_flat': True,
+            'skip_download': True,
+            'playlistend': 5,
+        }
+    }
+
+    _QUERY_HASH = '42323d64886122307be10013ad2dcc44',
+
+    @staticmethod
+    def _parse_timeline_from(data):
+        # extracts the media timeline data from a GraphQL result
+        return data['data']['user']['edge_owner_to_timeline_media']
+
+    @staticmethod
+    def _query_vars_for(data):
+        # returns a dictionary of variables to add to the timeline query based
+        # on the GraphQL of the original page
+        return {
+            'id': data['entry_data']['ProfilePage'][0]['graphql']['user']['id']
+        }
+
+
+class InstagramTagIE(InstagramPlaylistIE):
+    _VALID_URL = r'https?://(?:www\.)?instagram\.com/explore/tags/(?P<id>[^/]+)'
+    IE_DESC = 'Instagram hashtag search'
+    IE_NAME = 'instagram:tag'
+    _TEST = {
+        'url': 'https://instagram.com/explore/tags/lolcats',
+        'info_dict': {
+            'id': 'lolcats',
+            'title': 'lolcats',
+        },
+        'playlist_count': 50,
+        'params': {
+            'extract_flat': True,
+            'skip_download': True,
+            'playlistend': 50,
+        }
+    }
+
+    _QUERY_HASH = 'f92f56d47dc7a55b606908374b43a314',
+
+    @staticmethod
+    def _parse_timeline_from(data):
+        # extracts the media timeline data from a GraphQL result
+        return data['data']['hashtag']['edge_hashtag_to_media']
+
+    @staticmethod
+    def _query_vars_for(data):
+        # returns a dictionary of variables to add to the timeline query based
+        # on the GraphQL of the original page
+        return {
+            'tag_name':
+                data['entry_data']['TagPage'][0]['graphql']['hashtag']['name']
+        }

@@ -4,6 +4,7 @@ import collections
 import json
 import os
 import random
+import re
 
 from .common import InfoExtractor
 from ..compat import (
@@ -196,7 +197,10 @@ query viewClip {
         if error:
             raise ExtractorError('Unable to login: %s' % error, expected=True)
 
-        if all(p not in response for p in ('__INITIAL_STATE__', '"currentUser"')):
+        if all(not re.search(p, response) for p in (
+                r'__INITIAL_STATE__', r'["\']currentUser["\']',
+                # new layout?
+                r'>\s*Sign out\s*<')):
             BLOCKED = 'Your account has been blocked due to suspicious activity'
             if BLOCKED in response:
                 raise ExtractorError(
@@ -210,18 +214,26 @@ query viewClip {
 
             raise ExtractorError('Unable to log in')
 
-    def _get_subtitles(self, author, clip_idx, lang, name, duration, video_id):
-        captions_post = {
-            'a': author,
-            'cn': clip_idx,
-            'lc': lang,
-            'm': name,
-        }
-        captions = self._download_json(
-            '%s/player/retrieve-captions' % self._API_BASE, video_id,
-            'Downloading captions JSON', 'Unable to download captions JSON',
-            fatal=False, data=json.dumps(captions_post).encode('utf-8'),
-            headers={'Content-Type': 'application/json;charset=utf-8'})
+    def _get_subtitles(self, author, clip_idx, clip_id, lang, name, duration, video_id):
+        captions = None
+        if clip_id:
+            captions = self._download_json(
+                '%s/transcript/api/v1/caption/json/%s/%s'
+                % (self._API_BASE, clip_id, lang), video_id,
+                'Downloading captions JSON', 'Unable to download captions JSON',
+                fatal=False)
+        if not captions:
+            captions_post = {
+                'a': author,
+                'cn': int(clip_idx),
+                'lc': lang,
+                'm': name,
+            }
+            captions = self._download_json(
+                '%s/player/retrieve-captions' % self._API_BASE, video_id,
+                'Downloading captions JSON', 'Unable to download captions JSON',
+                fatal=False, data=json.dumps(captions_post).encode('utf-8'),
+                headers={'Content-Type': 'application/json;charset=utf-8'})
         if captions:
             return {
                 lang: [{
@@ -413,7 +425,7 @@ query viewClip {
 
         # TODO: other languages?
         subtitles = self.extract_subtitles(
-            author, clip_idx, 'en', name, duration, display_id)
+            author, clip_idx, clip.get('clipId'), 'en', name, duration, display_id)
 
         return {
             'id': clip_id,

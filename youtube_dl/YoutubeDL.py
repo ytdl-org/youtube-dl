@@ -88,6 +88,7 @@ from .utils import (
     version_tuple,
     write_json_file,
     write_string,
+    YoutubeDLCookieJar,
     YoutubeDLCookieProcessor,
     YoutubeDLHandler,
 )
@@ -558,7 +559,7 @@ class YoutubeDL(object):
         self.restore_console_title()
 
         if self.params.get('cookiefile') is not None:
-            self.cookiejar.save()
+            self.cookiejar.save(ignore_discard=True, ignore_expires=True)
 
     def trouble(self, message=None, tb=None):
         """Determine action to take when a download problem appears.
@@ -1062,21 +1063,24 @@ class YoutubeDL(object):
         if not m:
             STR_OPERATORS = {
                 '=': operator.eq,
-                '!=': operator.ne,
                 '^=': lambda attr, value: attr.startswith(value),
                 '$=': lambda attr, value: attr.endswith(value),
                 '*=': lambda attr, value: value in attr,
             }
             str_operator_rex = re.compile(r'''(?x)
                 \s*(?P<key>ext|acodec|vcodec|container|protocol|format_id)
-                \s*(?P<op>%s)(?P<none_inclusive>\s*\?)?
+                \s*(?P<negation>!\s*)?(?P<op>%s)(?P<none_inclusive>\s*\?)?
                 \s*(?P<value>[a-zA-Z0-9._-]+)
                 \s*$
                 ''' % '|'.join(map(re.escape, STR_OPERATORS.keys())))
             m = str_operator_rex.search(filter_spec)
             if m:
                 comparison_value = m.group('value')
-                op = STR_OPERATORS[m.group('op')]
+                str_op = STR_OPERATORS[m.group('op')]
+                if m.group('negation'):
+                    op = lambda attr, value: not str_op(attr, value)
+                else:
+                    op = str_op
 
         if not m:
             raise ValueError('Invalid filter specification %r' % filter_spec)
@@ -2297,10 +2301,9 @@ class YoutubeDL(object):
             self.cookiejar = compat_cookiejar.CookieJar()
         else:
             opts_cookiefile = expand_path(opts_cookiefile)
-            self.cookiejar = compat_cookiejar.MozillaCookieJar(
-                opts_cookiefile)
+            self.cookiejar = YoutubeDLCookieJar(opts_cookiefile)
             if os.access(opts_cookiefile, os.R_OK):
-                self.cookiejar.load()
+                self.cookiejar.load(ignore_discard=True, ignore_expires=True)
 
         cookie_processor = YoutubeDLCookieProcessor(self.cookiejar)
         if opts_proxy is not None:

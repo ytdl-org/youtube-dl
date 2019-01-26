@@ -53,7 +53,7 @@ class GfycatIE(InfoExtractor):
         video_id = self._match_id(url)
 
         gfy = self._download_json(
-            'http://gfycat.com/cajax/get/%s' % video_id,
+            'https://api.gfycat.com/v1/gfycats/%s' % video_id,
             video_id, 'Downloading video info')
         if 'error' in gfy:
             raise ExtractorError('Gfycat said: ' + gfy['error'], expected=True)

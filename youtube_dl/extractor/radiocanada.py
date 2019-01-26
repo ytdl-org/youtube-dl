@@ -49,6 +49,16 @@ class RadioCanadaIE(InfoExtractor):
                 # m3u8 download
                 'skip_download': True,
             },
+        },
+        {
+            # with protectionType but not actually DRM protected
+            'url': 'radiocanada:toutv:140872',
+            'info_dict': {
+                'id': '140872',
+                'title': 'Épisode 1',
+                'series': 'District 31',
+            },
+            'only_matching': True,
         }
     ]
 
@@ -67,8 +77,10 @@ class RadioCanadaIE(InfoExtractor):
             el = find_xpath_attr(metadata, './/Meta', 'name', name)
             return el.text if el is not None else None
 
+        # protectionType does not necessarily mean the video is DRM protected (see
+        # https://github.com/rg3/youtube-dl/pull/18609).
         if get_meta('protectionType'):
-            raise ExtractorError('This video is DRM protected.', expected=True)
+            self.report_warning('This video is probably DRM protected.')
 
         device_types = ['ipad']
         if not smuggled_data:

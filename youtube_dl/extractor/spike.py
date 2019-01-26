@@ -44,3 +44,10 @@ class ParamountNetworkIE(MTVServicesInfoExtractor):
 
     _FEED_URL = 'http://www.paramountnetwork.com/feeds/mrss/'
     _GEO_COUNTRIES = ['US']
+
+    def _extract_mgid(self, webpage):
+        cs = self._parse_json(self._search_regex(
+            r'window\.__DATA__\s*=\s*({.+})',
+            webpage, 'data'), None)['children']
+        c = next(c for c in cs if c.get('type') == 'VideoPlayer')
+        return c['props']['media']['video']['config']['uri']

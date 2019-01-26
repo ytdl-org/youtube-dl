@@ -130,16 +130,16 @@ class ViewsterIE(InfoExtractor):
             def concat(suffix, sep='-'):
                 return (base_format_id + '%s%s' % (sep, suffix)) if base_format_id else suffix
 
-            for media_type in ('application/f4m+xml', 'application/x-mpegURL', 'video/mp4'):
-                media = self._download_json(
-                    'https://public-api.viewster.com/movies/%s/video' % entry_id,
-                    video_id, 'Downloading %s JSON' % concat(media_type, ' '), fatal=False, query={
-                        'mediaType': media_type,
-                        'language': audio,
-                        'subtitle': subtitle,
-                    })
-                if not media:
-                    continue
+            medias = self._download_json(
+                'https://public-api.viewster.com/movies/%s/videos' % entry_id,
+                video_id, fatal=False, query={
+                    'mediaTypes': ['application/f4m+xml', 'application/x-mpegURL', 'video/mp4'],
+                    'language': audio,
+                    'subtitle': subtitle,
+                })
+            if not medias:
+                continue
+            for media in medias:
                 video_url = media.get('Uri')
                 if not video_url:
                     continue

@@ -39,7 +39,7 @@ class TestCompat(unittest.TestCase):
 
     def test_compat_expanduser(self):
         old_home = os.environ.get('HOME')
-        test_str = 'C:\Documents and Settings\тест\Application Data'
+        test_str = r'C:\Documents and Settings\тест\Application Data'
         compat_setenv('HOME', test_str)
         self.assertEqual(compat_expanduser('~'), test_str)
         compat_setenv('HOME', old_home or '')
