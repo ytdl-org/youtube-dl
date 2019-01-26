@@ -48,7 +48,7 @@ class YourPornIE(InfoExtractor):
         thumbnail = self._og_search_thumbnail(webpage)
 
         duration = parse_duration(self._search_regex(r'Video Info -> duration:<b>([0-9:]+)</b>',
-                                                     webpage, 'duration'))
+                                                     webpage, 'duration', default=None))
         return {
             'id': video_id,
             'url': video_url,
