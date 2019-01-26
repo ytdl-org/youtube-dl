@@ -1249,7 +1249,10 @@ class InfoExtractor(object):
                         info['title'] = episode_name
                     part_of_season = e.get('partOfSeason')
                     if isinstance(part_of_season, dict) and part_of_season.get('@type') in ('TVSeason', 'Season', 'CreativeWorkSeason'):
-                        info['season_number'] = int_or_none(part_of_season.get('seasonNumber'))
+                        info.update({
+                            'season': unescapeHTML(part_of_season.get('name')),
+                            'season_number': int_or_none(part_of_season.get('seasonNumber')),
+                        })
                     part_of_series = e.get('partOfSeries') or e.get('partOfTVSeries')
                     if isinstance(part_of_series, dict) and part_of_series.get('@type') in ('TVSeries', 'Series', 'CreativeWorkSeries'):
                         info['series'] = unescapeHTML(part_of_series.get('name'))
