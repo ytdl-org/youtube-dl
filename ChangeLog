@@ -1,4 +1,4 @@
-version <unreleased>
+version 2019.01.27
 
 Core
 + [extractor/common] Extract season in _json_ld
