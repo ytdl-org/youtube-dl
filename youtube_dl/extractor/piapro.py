@@ -47,6 +47,8 @@ class PiaproIE(InfoExtractor):
             uploader_without_honorific = re.match('.+(?=さん)', uploader).group(0)
         except IndexError:
             uploader_without_honorific = None
+        except AttributeError:
+            uploader_without_honorific = uploader
 
         return {
             'artist':       uploader_without_honorific or uploader,
