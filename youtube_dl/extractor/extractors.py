@@ -1497,6 +1497,7 @@ from .zattoo import (
     QuantumTVIE,
     QuicklineIE,
     QuicklineLiveIE,
+    SaltIE,
     SAKTVIE,
     VTXTVIE,
     WalyTVIE,
