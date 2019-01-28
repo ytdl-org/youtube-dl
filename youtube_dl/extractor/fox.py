@@ -1,10 +1,11 @@
 # coding: utf-8
 from __future__ import unicode_literals
 
-# import json
-# import uuid
+import json
+import uuid
 
 from .adobepass import AdobePassIE
+from ..compat import compat_str
 from ..utils import (
     int_or_none,
     parse_age_limit,
@@ -47,38 +48,31 @@ class FOXIE(AdobePassIE):
         'url': 'https://www.nationalgeographic.com/tv/watch/f690e05ebbe23ab79747becd0cc223d1/',
         'only_matching': True,
     }]
-    # _access_token = None
+    _access_token = None
 
-    # def _call_api(self, path, video_id, data=None):
-    #     headers = {
-    #         'X-Api-Key': '238bb0a0c2aba67922c48709ce0c06fd',
-    #     }
-    #     if self._access_token:
-    #         headers['Authorization'] = 'Bearer ' + self._access_token
-    #     return self._download_json(
-    #         'https://api2.fox.com/v2.0/' + path, video_id, data=data, headers=headers)
+    def _call_api(self, path, video_id, data=None):
+        headers = {
+            'X-Api-Key': '238bb0a0c2aba67922c48709ce0c06fd',
+        }
+        if self._access_token:
+            headers['Authorization'] = 'Bearer ' + self._access_token
+        return self._download_json(
+            'https://api2.fox.com/v2.0/' + path,
+            video_id, data=data, headers=headers)
 
-    # def _real_initialize(self):
-    #     self._access_token = self._call_api(
-    #         'login', None, json.dumps({
-    #             'deviceId': compat_str(uuid.uuid4()),
-    #         }).encode())['accessToken']
+    def _real_initialize(self):
+        self._access_token = self._call_api(
+            'login', None, json.dumps({
+                'deviceId': compat_str(uuid.uuid4()),
+            }).encode())['accessToken']
 
     def _real_extract(self, url):
         video_id = self._match_id(url)
 
-        video = self._download_json(
-            'https://api.fox.com/fbc-content/v1_5/video/%s' % video_id,
-            video_id, headers={
-                'apikey': 'abdcbed02c124d393b39e818a4312055',
-                'Content-Type': 'application/json',
-                'Referer': url,
-            })
-        # video = self._call_api('vodplayer/' + video_id, video_id)
+        video = self._call_api('vodplayer/' + video_id, video_id)
 
         title = video['name']
-        release_url = video['videoRelease']['url']
-        # release_url = video['url']
+        release_url = video['url']
 
         data = try_get(
             video, lambda x: x['trackingData']['properties'], dict) or {}
