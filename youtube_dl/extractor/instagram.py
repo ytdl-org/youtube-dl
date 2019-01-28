@@ -360,6 +360,18 @@ class InstagramSavedIE(InstagramPlaylistIE):
     _VALID_URL = r'https?://(?:www\.)?instagram\.com/(?P<id>[^/]{2,})/saved/?(?:$|[?#])'
     IE_DESC = 'Instagram saved media'
     IE_NAME = 'instagram:saved'
+    _TEST = {
+        'url': 'https://www.instagram.com/tatsh2dx/saved/',
+        'info_dict': {
+            'id': 'tatsh2dx',
+            'title': 'tatsh2dx',
+        },
+        'playlist_count': 5,
+        'params': {
+            'skip_download': True,
+            'playlistend': 5,
+        }
+    }
 
     _QUERY_HASH = '8c86fed24fa03a8a2eea2a70a80c7b6b'
 
