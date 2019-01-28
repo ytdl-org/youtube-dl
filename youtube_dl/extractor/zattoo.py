@@ -422,8 +422,8 @@ class EinsUndEinsTVIE(ZattooIE):
     }]
 
 
-class SaltIE(ZattooIE):
-    _NETRC_MACHINE = 'salt'
+class SaltTVIE(ZattooIE):
+    _NETRC_MACHINE = 'salttv'
     _HOST = 'tv.salt.ch'
     _VALID_URL = _make_valid_url(ZattooIE._VALID_URL_TEMPLATE, _HOST)
 
