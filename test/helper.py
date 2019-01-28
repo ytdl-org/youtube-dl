@@ -153,15 +153,27 @@ def expect_value(self, got, expected, field):
                 isinstance(got, compat_str),
                 'Expected field %s to be a unicode object, but got value %r of type %r' % (field, got, type(got)))
             got = 'md5:' + md5(got)
-        elif isinstance(expected, compat_str) and expected.startswith('mincount:'):
+        elif isinstance(expected, compat_str) and re.match(r'^(?:min|max)?count:\d+', expected):
             self.assertTrue(
                 isinstance(got, (list, dict)),
                 'Expected field %s to be a list or a dict, but it is of type %s' % (
                     field, type(got).__name__))
-            expected_num = int(expected.partition(':')[2])
-            assertGreaterEqual(
+            op, _, expected_num = expected.partition(':')
+            expected_num = int(expected_num)
+            if op == 'mincount':
+                assert_func = assertGreaterEqual
+                msg_tmpl = 'Expected %d items in field %s, but only got %d'
+            elif op == 'maxcount':
+                assert_func = assertLessEqual
+                msg_tmpl = 'Expected maximum %d items in field %s, but got %d'
+            elif op == 'count':
+                assert_func = assertEqual
+                msg_tmpl = 'Expected exactly %d items in field %s, but got %d'
+            else:
+                assert False
+            assert_func(
                 self, len(got), expected_num,
-                'Expected %d items in field %s, but only got %d' % (expected_num, field, len(got)))
+                msg_tmpl % (expected_num, field, len(got)))
             return
         self.assertEqual(
             expected, got,
@@ -235,6 +247,20 @@ def assertGreaterEqual(self, got, expected, msg=None):
         if msg is None:
             msg = '%r not greater than or equal to %r' % (got, expected)
         self.assertTrue(got >= expected, msg)
+
+
+def assertLessEqual(self, got, expected, msg=None):
+    if not (got <= expected):
+        if msg is None:
+            msg = '%r not less than or equal to %r' % (got, expected)
+        self.assertTrue(got <= expected, msg)
+
+
+def assertEqual(self, got, expected, msg=None):
+    if not (got == expected):
+        if msg is None:
+            msg = '%r not equal to %r' % (got, expected)
+        self.assertTrue(got == expected, msg)
 
 
 def expect_warnings(ydl, warnings_re):

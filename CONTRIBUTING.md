@@ -339,13 +339,15 @@ Incorrect:
 'PLMYEtVRpaqY00V9W81Cwmzp6N6vZqfUKD4'
 ```
 
-### Use safe conversion functions
+### Use convenience conversion and parsing functions
 
 Wrap all extracted numeric data into safe functions from [`youtube_dl/utils.py`](https://github.com/rg3/youtube-dl/blob/master/youtube_dl/utils.py): `int_or_none`, `float_or_none`. Use them for string to number conversions as well.
 
 Use `url_or_none` for safe URL processing.
 
 Use `try_get` for safe metadata extraction from parsed JSON.
+
+Use `unified_strdate` for uniform `upload_date` or any `YYYYMMDD` meta field extraction, `unified_timestamp` for uniform `timestamp` extraction, `parse_filesize` for `filesize` extraction, `parse_count` for count meta fields extraction, `parse_resolution`, `parse_duration` for `duration` extraction, `parse_age_limit` for `age_limit` extraction. 
 
 Explore [`youtube_dl/utils.py`](https://github.com/rg3/youtube-dl/blob/master/youtube_dl/utils.py) for more useful convenience functions.
 

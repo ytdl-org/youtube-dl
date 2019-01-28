@@ -411,6 +411,7 @@ from .funk import (
 from .funnyordie import FunnyOrDieIE
 from .fusion import FusionIE
 from .fxnetworks import FXNetworksIE
+from .gaia import GaiaIE
 from .gameinformer import GameInformerIE
 from .gameone import (
     GameOneIE,
@@ -451,6 +452,7 @@ from .hellporno import HellPornoIE
 from .helsinki import HelsinkiIE
 from .hentaistigma import HentaiStigmaIE
 from .hgtv import HGTVComShowIE
+from .hketv import HKETVIE
 from .hidive import HiDiveIE
 from .historicfilms import HistoricFilmsIE
 from .hitbox import HitboxIE, HitboxLiveIE
@@ -469,6 +471,10 @@ from .hrti import (
 )
 from .huajiao import HuajiaoIE
 from .huffpost import HuffPostIE
+from .hungama import (
+    HungamaIE,
+    HungamaSongIE,
+)
 from .hypem import HypemIE
 from .iconosquare import IconosquareIE
 from .ign import (
@@ -489,7 +495,11 @@ from .ina import InaIE
 from .inc import IncIE
 from .indavideo import IndavideoEmbedIE
 from .infoq import InfoQIE
-from .instagram import InstagramIE, InstagramUserIE
+from .instagram import (
+    InstagramIE,
+    InstagramUserIE,
+    InstagramTagIE,
+)
 from .internazionale import InternazionaleIE
 from .internetvideoarchive import InternetVideoArchiveIE
 from .iprima import IPrimaIE
@@ -682,11 +692,7 @@ from .myvi import (
     MyviEmbedIE,
 )
 from .myvidster import MyVidsterIE
-from .nationalgeographic import (
-    NationalGeographicVideoIE,
-    NationalGeographicIE,
-    NationalGeographicEpisodeGuideIE,
-)
+from .nationalgeographic import NationalGeographicVideoIE
 from .naver import NaverIE
 from .nba import NBAIE
 from .nbc import (
@@ -828,6 +834,7 @@ from .orf import (
     ORFOE1IE,
     ORFIPTVIE,
 )
+from .outsidetv import OutsideTVIE
 from .packtpub import (
     PacktPubIE,
     PacktPubCourseIE,
@@ -856,6 +863,7 @@ from .piksel import PikselIE
 from .pinkbike import PinkbikeIE
 from .pladform import PladformIE
 from .playfm import PlayFMIE
+from .playplustv import PlayPlusTVIE
 from .plays import PlaysTVIE
 from .playtvak import PlaytvakIE
 from .playvid import PlayvidIE
@@ -1193,7 +1201,9 @@ from .tvnet import TVNetIE
 from .tvnoe import TVNoeIE
 from .tvnow import (
     TVNowIE,
-    TVNowListIE,
+    TVNowNewIE,
+    TVNowSeasonIE,
+    TVNowAnnualIE,
     TVNowShowIE,
 )
 from .tvp import (
@@ -1363,6 +1373,7 @@ from .vuclip import VuClipIE
 from .vvvvid import VVVVIDIE
 from .vyborymos import VyboryMosIE
 from .vzaar import VzaarIE
+from .wakanim import WakanimIE
 from .walla import WallaIE
 from .washingtonpost import (
     WashingtonPostIE,
