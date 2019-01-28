@@ -407,7 +407,7 @@ class FFmpegEmbedSubtitlePP(FFmpegPostProcessor):
             # Don't copy the existing subtitles, we may be running the
             # postprocessor a second time
             '-map', '-0:s',
-            # Don't copy Apple TV chapters track, bin_data
+            # Don't copy Apple TV chapters track, bin_data (see #19042, #19024)
             '-map', '-0:d',
         ]
         if information['ext'] == 'mp4':
