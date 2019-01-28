@@ -77,10 +77,9 @@ class DRTVIE(InfoExtractor):
                 r'data-resource="[^>"]+mu/programcard/expanded/([^"]+)"'),
             webpage, 'video id')
 
-        programcard = self._download_json(
-            'http://www.dr.dk/mu/programcard/expanded/%s' % video_id,
-            video_id, 'Downloading video JSON')
-        data = programcard['Data'][0]
+        data = self._download_json(
+            'https://www.dr.dk/mu-online/api/1.4/programcard/%s' % video_id,
+            video_id, 'Downloading video JSON', query={'expanded': 'true'})
 
         title = remove_end(self._og_search_title(
             webpage, default=None), ' | TV | DR') or data['Title']
@@ -97,7 +96,7 @@ class DRTVIE(InfoExtractor):
         formats = []
         subtitles = {}
 
-        for asset in data['Assets']:
+        for asset in [data['PrimaryAsset']]:
             kind = asset.get('Kind')
             if kind == 'Image':
                 thumbnail = asset.get('Uri')

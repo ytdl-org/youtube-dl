@@ -1078,7 +1078,7 @@ class YoutubeDL(object):
                 comparison_value = m.group('value')
                 str_op = STR_OPERATORS[m.group('op')]
                 if m.group('negation'):
-                    op = lambda attr, value: not str_op
+                    op = lambda attr, value: not str_op(attr, value)
                 else:
                     op = str_op
 
