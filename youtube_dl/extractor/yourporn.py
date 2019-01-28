@@ -1,7 +1,10 @@
 from __future__ import unicode_literals
 
 from .common import InfoExtractor
-from ..utils import urljoin
+from ..utils import (
+    parse_duration,
+    urljoin
+)
 
 
 class YourPornIE(InfoExtractor):
@@ -27,17 +30,21 @@ class YourPornIE(InfoExtractor):
             self._search_regex(
                 r'data-vnfo=(["\'])(?P<data>{.+?})\1', webpage, 'data info',
                 group='data'),
-            video_id)[video_id]).replace('/cdn/', '/cdn3/')
+            video_id)[video_id]).replace('/cdn/', '/cdn4/')
 
         title = (self._search_regex(
             r'<[^>]+\bclass=["\']PostEditTA[^>]+>([^<]+)', webpage, 'title',
             default=None) or self._og_search_description(webpage)).strip()
+
         thumbnail = self._og_search_thumbnail(webpage)
 
+        duration = parse_duration(self._search_regex(r'duration:[^0-9]*([0-9:]+)',
+                                                     webpage, 'duration', default=None))
         return {
             'id': video_id,
             'url': video_url,
             'title': title,
+            'duration': duration,
             'thumbnail': thumbnail,
             'age_limit': 18
         }
