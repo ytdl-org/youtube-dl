@@ -218,7 +218,7 @@ class FFmpegPostProcessor(PostProcessor):
                 encodeFilename(self._ffmpeg_filename_argument(path), True)
             ])
         cmd = ([encodeFilename(self.executable, True), encodeArgument('-y')] +
-               ['-loglevel', 'repeat+info'] +
+               [encodeArgument('-loglevel'), encodeArgument('repeat+info')] +
                files_cmd +
                [encodeArgument(o) for o in opts] +
                [encodeFilename(self._ffmpeg_filename_argument(out_path), True)])
