@@ -1,4 +1,4 @@
-version <unreleased>
+version 2019.01.30
 
 Core
 * [postprocessor/ffmpeg] Do not copy Apple TV chapter tracks while embedding
