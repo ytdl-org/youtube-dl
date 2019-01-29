@@ -40,11 +40,7 @@ class WimpIE(InfoExtractor):
              r'data-id=["\']([0-9A-Za-z_-]{11})'),
             webpage, 'video URL', default=None)
         if youtube_id:
-            return {
-                '_type': 'url',
-                'url': youtube_id,
-                'ie_key': YoutubeIE.ie_key(),
-            }
+            return self.url_result(youtube_id, YoutubeIE.ie_key())
 
         info_dict = self._extract_jwplayer_data(
             webpage, video_id, require_title=False)

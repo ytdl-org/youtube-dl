@@ -320,6 +320,7 @@
  - **Fusion**
  - **Fux**
  - **FXNetworks**
+ - **Gaia**
  - **GameInformer**
  - **GameOne**
  - **gameone:playlist**
@@ -360,6 +361,7 @@
  - **hitbox**
  - **hitbox:live**
  - **HitRecord**
+ - **hketv**: 香港教育局教育電視 (HKETV) Educational Television, Hong Kong Educational Bureau
  - **HornBunny**
  - **HotNewHipHop**
  - **hotstar**
@@ -370,6 +372,8 @@
  - **HRTiPlaylist**
  - **Huajiao**: 花椒直播
  - **HuffPost**: Huffington Post
+ - **Hungama**
+ - **HungamaSong**
  - **Hypem**
  - **Iconosquare**
  - **ign.com**
@@ -383,6 +387,7 @@
  - **IndavideoEmbed**
  - **InfoQ**
  - **Instagram**
+ - **instagram:tag**: Instagram hashtag search
  - **instagram:user**: Instagram user profile
  - **Internazionale**
  - **InternetVideoArchive**
@@ -438,6 +443,7 @@
  - **Lecture2Go**
  - **Lecturio**
  - **LecturioCourse**
+ - **LecturioDeCourse**
  - **LEGO**
  - **Lemonde**
  - **Lenta**
@@ -539,8 +545,6 @@
  - **MyviEmbed**
  - **MyVisionTV**
  - **n-tv.de**
- - **natgeo**
- - **natgeo:episodeguide**
  - **natgeo:video**
  - **Naver**
  - **NBA**
@@ -641,6 +645,7 @@
  - **orf:oe1**: Radio Österreich 1
  - **orf:tvthek**: ORF TVthek
  - **OsnatelTV**
+ - **OutsideTV**
  - **PacktPub**
  - **PacktPubCourse**
  - **PandaTV**: 熊猫TV
@@ -665,6 +670,7 @@
  - **Pinkbike**
  - **Pladform**
  - **play.fm**
+ - **PlayPlusTV**
  - **PlaysTV**
  - **Playtvak**: Playtvak.cz, iDNES.cz and Lidovky.cz
  - **Playvid**
@@ -933,7 +939,9 @@
  - **TVNet**
  - **TVNoe**
  - **TVNow**
- - **TVNowList**
+ - **TVNowAnnual**
+ - **TVNowNew**
+ - **TVNowSeason**
  - **TVNowShow**
  - **tvp**: Telewizja Polska
  - **tvp:embed**: Telewizja Polska
@@ -1061,6 +1069,7 @@
  - **VVVVID**
  - **VyboryMos**
  - **Vzaar**
+ - **Wakanim**
  - **Walla**
  - **WalyTV**
  - **washingtonpost**

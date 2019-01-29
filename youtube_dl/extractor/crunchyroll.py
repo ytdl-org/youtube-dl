@@ -144,7 +144,7 @@ class CrunchyrollBaseIE(InfoExtractor):
 
 class CrunchyrollIE(CrunchyrollBaseIE, VRVIE):
     IE_NAME = 'crunchyroll'
-    _VALID_URL = r'https?://(?:(?P<prefix>www|m)\.)?(?P<url>crunchyroll\.(?:com|fr)/(?:media(?:-|/\?id=)|[^/]*/[^/?&]*?)(?P<video_id>[0-9]+))(?:[/?&]|$)'
+    _VALID_URL = r'https?://(?:(?P<prefix>www|m)\.)?(?P<url>crunchyroll\.(?:com|fr)/(?:media(?:-|/\?id=)|(?:[^/]*/){1,2}[^/?&]*?)(?P<video_id>[0-9]+))(?:[/?&]|$)'
     _TESTS = [{
         'url': 'http://www.crunchyroll.com/wanna-be-the-strongest-in-the-world/episode-1-an-idol-wrestler-is-born-645513',
         'info_dict': {
@@ -268,6 +268,9 @@ class CrunchyrollIE(CrunchyrollBaseIE, VRVIE):
         },
     }, {
         'url': 'http://www.crunchyroll.com/media-723735',
+        'only_matching': True,
+    }, {
+        'url': 'https://www.crunchyroll.com/en-gb/mob-psycho-100/episode-2-urban-legends-encountering-rumors-780921',
         'only_matching': True,
     }]
 

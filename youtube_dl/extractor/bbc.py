@@ -795,6 +795,15 @@ class BBCIE(BBCCoUkIE):
             'uploader': 'Radio 3',
             'uploader_id': 'bbc_radio_three',
         },
+    }, {
+        'url': 'http://www.bbc.co.uk/learningenglish/chinese/features/lingohack/ep-181227',
+        'info_dict': {
+            'id': 'p06w9tws',
+            'ext': 'mp4',
+            'title': 'md5:2fabf12a726603193a2879a055f72514',
+            'description': 'Learn English words and phrases from this story',
+        },
+        'add_ie': [BBCCoUkIE.ie_key()],
     }]
 
     @classmethod
@@ -944,6 +953,15 @@ class BBCIE(BBCCoUkIE):
 
         if entries:
             return self.playlist_result(entries, playlist_id, playlist_title, playlist_description)
+
+        # http://www.bbc.co.uk/learningenglish/chinese/features/lingohack/ep-181227
+        group_id = self._search_regex(
+            r'<div[^>]+\bclass=["\']video["\'][^>]+\bdata-pid=["\'](%s)' % self._ID_REGEX,
+            webpage, 'group id', default=None)
+        if playlist_id:
+            return self.url_result(
+                'https://www.bbc.co.uk/programmes/%s' % group_id,
+                ie=BBCCoUkIE.ie_key())
 
         # single video story (e.g. http://www.bbc.com/travel/story/20150625-sri-lankas-spicy-secret)
         programme_id = self._search_regex(
