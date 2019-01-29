@@ -3,7 +3,7 @@ from __future__ import unicode_literals
 from .common import InfoExtractor
 from ..utils import (
     parse_duration,
-    urljoin
+    urljoin,
 )
 
 
@@ -17,7 +17,11 @@ class YourPornIE(InfoExtractor):
             'ext': 'mp4',
             'title': 'md5:c9f43630bd968267672651ba905a7d35',
             'thumbnail': r're:^https?://.*\.jpg$',
-            'age_limit': 18
+            'duration': 165,
+            'age_limit': 18,
+        },
+        'params': {
+            'skip_download': True,
         },
     }
 
@@ -35,16 +39,16 @@ class YourPornIE(InfoExtractor):
         title = (self._search_regex(
             r'<[^>]+\bclass=["\']PostEditTA[^>]+>([^<]+)', webpage, 'title',
             default=None) or self._og_search_description(webpage)).strip()
-
         thumbnail = self._og_search_thumbnail(webpage)
+        duration = parse_duration(self._search_regex(
+            r'duration\s*:\s*<[^>]+>([\d:]+)', webpage, 'duration',
+            default=None))
 
-        duration = parse_duration(self._search_regex(r'duration:[^0-9]*([0-9:]+)',
-                                                     webpage, 'duration', default=None))
         return {
             'id': video_id,
             'url': video_url,
             'title': title,
-            'duration': duration,
             'thumbnail': thumbnail,
-            'age_limit': 18
+            'duration': duration,
+            'age_limit': 18,
         }
