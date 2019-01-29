@@ -246,6 +246,7 @@ from .cspan import CSpanIE
 from .ctsnews import CtsNewsIE
 from .ctvnews import CTVNewsIE
 from .cultureunplugged import CultureUnpluggedIE
+from .cumlouder import CumlouderIE
 from .curiositystream import (
     CuriosityStreamIE,
     CuriosityStreamCollectionIE,
