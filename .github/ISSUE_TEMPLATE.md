@@ -6,8 +6,8 @@
 
 ---
 
-### Make sure you are using the *latest* version: run `youtube-dl --version` and ensure your version is *2019.01.30*. If it's not, read [this FAQ entry](https://github.com/rg3/youtube-dl/blob/master/README.md#how-do-i-update-youtube-dl) and update. Issues with outdated version will be rejected.
-- [ ] I've **verified** and **I assure** that I'm running youtube-dl **2019.01.30**
+### Make sure you are using the *latest* version: run `youtube-dl --version` and ensure your version is *2019.01.30.1*. If it's not, read [this FAQ entry](https://github.com/rg3/youtube-dl/blob/master/README.md#how-do-i-update-youtube-dl) and update. Issues with outdated version will be rejected.
+- [ ] I've **verified** and **I assure** that I'm running youtube-dl **2019.01.30.1**
 
 ### Before submitting an *issue* make sure you have:
 - [ ] At least skimmed through the [README](https://github.com/rg3/youtube-dl/blob/master/README.md), **most notably** the [FAQ](https://github.com/rg3/youtube-dl#faq) and [BUGS](https://github.com/rg3/youtube-dl#bugs) sections
@@ -36,7 +36,7 @@ Add the `-v` flag to **your command line** you run youtube-dl with (`youtube-dl 
 [debug] User config: []
 [debug] Command-line args: [u'-v', u'http://www.youtube.com/watch?v=BaW_jenozKcj']
 [debug] Encodings: locale cp1251, fs mbcs, out cp866, pref cp1251
-[debug] youtube-dl version 2019.01.30
+[debug] youtube-dl version 2019.01.30.1
 [debug] Python version 2.7.11 - Windows-2003Server-5.2.3790-SP2
 [debug] exe versions: ffmpeg N-75573-g1d0487f, ffprobe N-75573-g1d0487f, rtmpdump 2.4
 [debug] Proxy map: {}
