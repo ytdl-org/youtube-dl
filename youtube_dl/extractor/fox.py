@@ -6,12 +6,10 @@ import uuid
 
 from .adobepass import AdobePassIE
 from ..compat import (
-    compat_HTTPError,
     compat_str,
     compat_urllib_parse_unquote,
 )
 from ..utils import (
-    ExtractorError,
     int_or_none,
     parse_age_limit,
     parse_duration,
