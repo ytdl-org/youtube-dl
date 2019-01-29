@@ -233,6 +233,12 @@ from .commonprotocols import (
     RtmpIE,
 )
 from .condenast import CondeNastIE
+from .contar import (
+    ContarIE, 
+    ContarSerieIE,
+    ContarChannelIE,
+    ContarBrowseIE
+)
 from .corus import CorusIE
 from .cracked import CrackedIE
 from .crackle import CrackleIE
