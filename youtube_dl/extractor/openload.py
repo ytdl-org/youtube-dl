@@ -248,8 +248,8 @@ class OpenloadIE(InfoExtractor):
                         (?P<host>
                             (?:www\.)?
                             (?:
-                                openload\.(?:co|io|link)|
-                                oload\.(?:tv|stream|site|xyz|win|download|cloud|cc|icu|fun|club|info)
+                                openload\.(?:co|io|link|pw)|
+                                oload\.(?:tv|stream|site|xyz|win|download|cloud|cc|icu|fun|club|info|pw)
                             )
                         )/
                         (?:f|embed)/
@@ -339,6 +339,12 @@ class OpenloadIE(InfoExtractor):
         'only_matching': True,
     }, {
         'url': 'https://oload.info/f/5NEAbI2BDSk',
+        'only_matching': True,
+    }, {
+        'url': 'https://openload.pw/f/WyKgK8s94N0',
+        'only_matching': True,
+    }, {
+        'url': 'https://oload.pw/f/WyKgK8s94N0',
         'only_matching': True,
     }]
 
