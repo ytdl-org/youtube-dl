@@ -337,6 +337,9 @@ class OpenloadIE(InfoExtractor):
     }, {
         'url': 'https://oload.club/f/Nr1L-aZ2dbQ',
         'only_matching': True,
+    }, {
+        'url': 'https://oload.info/f/5NEAbI2BDSk',
+        'only_matching': True,
     }]
 
     _USER_AGENT = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/56.0.2924.87 Safari/537.36'
