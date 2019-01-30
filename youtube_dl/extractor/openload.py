@@ -249,7 +249,7 @@ class OpenloadIE(InfoExtractor):
                             (?:www\.)?
                             (?:
                                 openload\.(?:co|io|link)|
-                                oload\.(?:tv|stream|site|xyz|win|download|cloud|cc|icu|fun|club)
+                                oload\.(?:tv|stream|site|xyz|win|download|cloud|cc|icu|fun|club|info)
                             )
                         )/
                         (?:f|embed)/
