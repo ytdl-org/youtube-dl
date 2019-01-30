@@ -74,11 +74,12 @@ class IPrimaIE(InfoExtractor):
             webpage, 'real id')
 
         playerpage = self._download_webpage(
-            'http://play.iprima.cz/prehravac/init',
+            'https://api.play-backend.iprima.cz/prehravac/init-embed',
             video_id, note='Downloading player', query={
                 '_infuse': 1,
                 '_ts': round(time.time()),
                 'productId': video_id,
+                'embed': True,
             }, headers={'Referer': url})
 
         formats = []
