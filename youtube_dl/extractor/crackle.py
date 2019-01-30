@@ -1,7 +1,10 @@
 # coding: utf-8
 from __future__ import unicode_literals, division
 
+import hashlib
+import hmac
 import re
+import time
 
 from .common import InfoExtractor
 from ..compat import compat_HTTPError
@@ -74,13 +77,16 @@ class CrackleIE(InfoExtractor):
 
         for country in countries:
             try:
+                # Authorization generation algorithm is reverse engineered from:
+                # https://www.sonycrackle.com/static/js/main.ea93451f.chunk.js
+                media_detail_url = 'https://web-api-us.crackle.com/Service.svc/details/media/%s/%s?disableProtocols=true' % (video_id, country)
+                timestamp = time.strftime('%Y%m%d%H%M', time.gmtime())
+                h = hmac.new(b'IGSLUQCBDFHEOIFM', '|'.join([media_detail_url, timestamp]).encode(), hashlib.sha1).hexdigest().upper()
                 media = self._download_json(
-                    'https://web-api-us.crackle.com/Service.svc/details/media/%s/%s'
-                    % (video_id, country), video_id,
-                    'Downloading media JSON as %s' % country,
-                    'Unable to download media JSON', query={
-                        'disableProtocols': 'true',
-                        'format': 'json'
+                    media_detail_url, video_id, 'Downloading media JSON as %s' % country,
+                    'Unable to download media JSON', headers={
+                        'Accept': 'application/json',
+                        'Authorization': '|'.join([h, timestamp, '117', '1']),
                     })
             except ExtractorError as e:
                 # 401 means geo restriction, trying next country
