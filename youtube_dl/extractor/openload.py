@@ -249,7 +249,7 @@ class OpenloadIE(InfoExtractor):
                             (?:www\.)?
                             (?:
                                 openload\.(?:co|io|link)|
-                                oload\.(?:tv|stream|site|xyz|win|download|cloud|cc|icu|fun|club)
+                                oload\.(?:tv|stream|site|xyz|win|download|cloud|cc|icu|fun|club|info)
                             )
                         )/
                         (?:f|embed)/
@@ -336,6 +336,9 @@ class OpenloadIE(InfoExtractor):
         'only_matching': True,
     }, {
         'url': 'https://oload.club/f/Nr1L-aZ2dbQ',
+        'only_matching': True,
+    }, {
+        'url': 'https://oload.info/f/5NEAbI2BDSk',
         'only_matching': True,
     }]
 
