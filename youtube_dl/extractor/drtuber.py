@@ -65,6 +65,8 @@ class DrTuberIE(InfoExtractor):
                 })
         self._sort_formats(formats)
 
+        duration = str_to_int(video_data.get('duration')) or None
+
         title = self._html_search_regex(
             (r'<h1[^>]+class=["\']title[^>]+>([^<]+)',
              r'<title>([^<]+)\s*@\s+DrTuber',
@@ -103,4 +105,5 @@ class DrTuberIE(InfoExtractor):
             'comment_count': comment_count,
             'categories': categories,
             'age_limit': self._rta_search(webpage),
+            'duration': duration,
         }
