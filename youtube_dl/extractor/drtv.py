@@ -171,10 +171,13 @@ class DRTVIE(InfoExtractor):
                         continue
                     target = link.get('Target')
                     format_id = target or ''
-                    preference = None
-                    if asset_target in ('SpokenSubtitles', 'SignLanguage'):
+                    if asset_target in ('SpokenSubtitles', 'SignLanguage', 'VisuallyInterpreted'):
                         preference = -1
                         format_id += '-%s' % asset_target
+                    elif asset_target == 'Default':
+                        preference = 1
+                    else:
+                        preference = None
                     if target == 'HDS':
                         f4m_formats = self._extract_f4m_formats(
                             uri + '?hdcore=3.3.0&plugin=aasp-3.3.0.99.43',
