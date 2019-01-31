@@ -201,39 +201,14 @@ class CeskaTelevizeIE(InfoExtractor):
         return self.playlist_result(entries, playlist_id, playlist_title, playlist_description)
 
     def _get_subtitles(self, episode_id, subs):
-        original_subtitles = self._download_webpage(
+        vtt_subs = self._download_webpage(
             subs[0]['url'], episode_id, 'Downloading subtitles')
-        srt_subs = self._fix_subtitles(original_subtitles)
         return {
             'cs': [{
-                'ext': 'srt',
-                'data': srt_subs,
+                'ext': 'vtt',
+                'data': vtt_subs,
             }]
         }
-
-    @staticmethod
-    def _fix_subtitles(subtitles):
-        """ Convert millisecond-based subtitles to SRT """
-
-        def _msectotimecode(msec):
-            """ Helper utility to convert milliseconds to timecode """
-            components = []
-            for divider in [1000, 60, 60, 100]:
-                components.append(msec % divider)
-                msec //= divider
-            return '{3:02}:{2:02}:{1:02},{0:03}'.format(*components)
-
-        def _fix_subtitle(subtitle):
-            for line in subtitle.splitlines():
-                m = re.match(r'^\s*([0-9]+);\s*([0-9]+)\s+([0-9]+)\s*$', line)
-                if m:
-                    yield m.group(1)
-                    start, stop = (_msectotimecode(int(t)) for t in m.groups()[1:])
-                    yield '{0} --> {1}'.format(start, stop)
-                else:
-                    yield line
-
-        return '\r\n'.join(_fix_subtitle(subtitles))
 
 
 class CeskaTelevizePoradyIE(InfoExtractor):
