@@ -46,13 +46,16 @@ class ContarBaseIE(InfoExtractor):
         self._handle_errors(result)
         self._auth_token = result['token']
         
-    def _get_video_info(self, video, video_id):
+    def _get_video_info(self, video, video_id, base = {}):
         #print(json.dumps(video, indent=4, sort_keys=True))
         #print "id = %s S%sE%s" % (video.get('id'), season.get('name') , video.get('episode'))
-        episode_number = int_or_none(video.get('episode'))
         
         formats = self._get_formats(video.get('streams', []), video.get('id'))
         subtitles = self._get_subtitles(video['subtitles'].get('data', []), video.get('id'))
+        
+        serie_info = base.get('serie_info') or self._get_serie_info(video.get('serie'))
+        season_number = base.get('season_number') or self._get_season_number(serie_info, video.get('id'));
+        episode_number = video.get('episode')
         
         info = {
             'id': video.get('id'),
@@ -60,12 +63,13 @@ class ContarBaseIE(InfoExtractor):
             'description': video.get('synopsis'),
             'series': video.get('serie_name'),
             'episode': video.get('name'),
-            'episode_number': int_or_none(video.get('episode')),
-            'season_number': int_or_none(video.get('serie')),
-            'season_id': video.get('season'),
+            'episode_number': int_or_none(episode_number),
+            'season_number': int_or_none(season_number),
+            'season_id': video.get('serie'),
             'episode_id': video.get('id'),
             'duration': int_or_none(video.get('length')),
             'thumbnail': video.get('posterImage'),
+            'release_year': int_or_none(serie_info.get('year')),
             #'timestamp': timestamp,
             'formats': formats,
             'subtitles': subtitles,
