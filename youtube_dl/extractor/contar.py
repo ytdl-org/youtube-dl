@@ -164,23 +164,26 @@ class ContarSerieIE(ContarBaseIE):
     }
         
     def _real_extract(self, url):
-        video_id = self._match_id(url)
+        serie_id = self._match_id(url)
         
-        video = self._call_api('serie/' + video_id, video_id, headers={'Referer': url})
-        import json
+        serie_info = self._get_serie_info(serie_id, headers={'Referer': url})
         
         seasons = []
         entries = []
-        for season in video['seasons'].get('data', []):
+        
+        base = {}
+        base['serie_info'] = serie_info
+
+        for season in serie_info['seasons'].get('data', []):
             #print(json.dumps(season, indent=4, sort_keys=True))
-            season_number = season.get('name')
+            base['season_number'] = season.get('name')
             for episode in season['videos'].get('data', []):
-                info = self._get_video_info(video, video_id);
+                info = self._get_video_info(episode, serie_id, base);
                 entries.append(info)
         
         return self.playlist_result(
-            entries, video_id,
-            video.get('title'), video.get('synopsis'))  
+            entries, serie_id,
+            serie_info.get('name'), serie_info.get('story_large'))  
         
 
 class ContarChannelIE(ContarBaseIE):
