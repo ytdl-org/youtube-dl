@@ -22,12 +22,12 @@ class ContarBaseIE(InfoExtractor):
             raise ExtractorError(
                 '%s said: %s' % (self.IE_NAME, error), expected=True)
 
-    def _call_api(self, path, video_id, headers = {}):
+    def _call_api(self, path, video_id, headers = {}, note='Downloading JSON metadata'):
         if self._auth_token:
             headers['Authorization'] = 'Bearer ' + self._auth_token
         
         result = self._download_json(
-            self._API_BASE + path, video_id, headers=headers)
+            self._API_BASE + path, video_id, headers=headers, note=note)
         
         self._handle_errors(result)
         return result['data']
