@@ -208,8 +208,8 @@ class ContarChannelIE(ContarBaseIE):
     
     def _real_extract(self, url):
         list_id = self._match_id(url)
-        
-        list = self._call_api('channel/series/' + list_id, list_id, headers={'Referer': url})
+        channel_info = self._call_api('channel/info/' + list_id, list_id, headers={'Referer': url}, note='Downloading Channel Info JSON metadata')
+        list = self._call_api('channel/series/' + list_id, list_id, headers={'Referer': url}, note='Downloading Channel List JSON metadata')
         entries = [] 
         
         for video in list:
@@ -218,7 +218,7 @@ class ContarChannelIE(ContarBaseIE):
                 entries.append(self.url_result(url, video_id=video.get('uuid'), video_title=video.get('name')))
         
         return self.playlist_result(
-            entries, list_id)  
+            entries, list_id, channel_info.get('name'), channel_info.get('description'))  
 
 class ContarBrowseIE(ContarBaseIE):
     
