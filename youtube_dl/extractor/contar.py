@@ -72,7 +72,11 @@ class ContarBaseIE(InfoExtractor):
         }
         
         return info
-    
+        
+    def _get_serie_info(self, serie_id, headers={}):
+        serie = self._call_api('serie/' + serie_id, serie_id, headers=headers, note='Downloading Serie JSON metadata')
+        return serie
+        
     def _get_subtitles(self, subtitles, video_id):
         subs = {}
         for sub in subtitles:
