@@ -39,15 +39,16 @@ class FacebookIE(InfoExtractor):
                                 photo\.php|
                                 video\.php|
                                 video/embed|
-                                story\.php
-                            )\?(?:.*?)(?:v|video_id|story_fbid)=|
+                                story\.php|
+                                flx/warn/
+                            )\?(?:.*?)(?:u|v|video_id|story_fbid)=|
                             [^/]+/videos/(?:[^/]+/)?|
                             [^/]+/posts/|
                             groups/[^/]+/permalink/
                         )|
                     facebook:
                 )
-                (?P<id>[0-9]+)
+                (?P<id>[0-9]+|https://.*)
                 '''
     _LOGIN_URL = 'https://www.facebook.com/login.php?next=http%3A%2F%2Ffacebook.com%2Fhome.php&login_attempt=1'
     _CHECKPOINT_URL = 'https://www.facebook.com/checkpoint/?next=http%3A%2F%2Ffacebook.com%2Fhome.php&_fb_noscript=1'
@@ -454,6 +455,13 @@ class FacebookIE(InfoExtractor):
 
         if info_dict:
             return info_dict
+
+        # In case the url is a redirect and contains an external link.
+        if video_id.startswith("https://"):
+            return {
+                        '_type': 'url',
+                        'url': video_id,
+                    }
 
         if '/posts/' in url:
             entries = [
