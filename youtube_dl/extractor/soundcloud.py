@@ -406,14 +406,10 @@ class SoundcloudPagedPlaylistBaseIE(SoundcloudPlaylistBaseIE):
                     (e, e.get('track'), e.get('playlist')))
 
                 if permalink_url:
-                    extractor = None
-                    if SoundcloudIE.suitable(permalink_url):
-                        # if entry has track data, attach extractor key
-                        extractor = SoundcloudIE.ie_key()
-
                     entry_data = self.url_result(
                         permalink_url,
-                        ie=extractor, video_id=entry_id, video_title=entry_title)
+                        ie=SoundcloudIE.ie_key() if SoundcloudIE.suitable(permalink_url) else None,
+                        video_id=entry_id, video_title=entry_title)
 
                     entries.append(entry_data)
 
