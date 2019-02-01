@@ -4,7 +4,9 @@ import re
 
 from .common import InfoExtractor
 from ..utils import (
+    int_or_none,
     NO_DEFAULT,
+    parse_duration,
     str_to_int,
 )
 
@@ -65,7 +67,8 @@ class DrTuberIE(InfoExtractor):
                 })
         self._sort_formats(formats)
 
-        duration = str_to_int(video_data.get('duration')) or None
+        duration = int_or_none(video_data.get('duration')) or parse_duration(
+            video_data.get('duration_format'))
 
         title = self._html_search_regex(
             (r'<h1[^>]+class=["\']title[^>]+>([^<]+)',
