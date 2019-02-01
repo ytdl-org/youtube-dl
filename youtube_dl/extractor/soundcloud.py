@@ -402,14 +402,15 @@ class SoundcloudPagedPlaylistBaseIE(SoundcloudPlaylistBaseIE):
                             return permalink_url, entry_id, title
 
             for e in collection:
-                extractor = None
-                if isinstance(e.get('track'), dict):
-                    # if entry has track data, attach extractor key
-                    extractor = SoundcloudIE.ie_key()
-
                 permalink_url, entry_id, entry_title = resolve_permalink_url(
                     (e, e.get('track'), e.get('playlist')))
+
                 if permalink_url:
+                    extractor = None
+                    if SoundcloudIE.suitable(permalink_url):
+                        # if entry has track data, attach extractor key
+                        extractor = SoundcloudIE.ie_key()
+
                     entry_data = self.url_result(
                         permalink_url,
                         ie=extractor, video_id=entry_id, video_title=entry_title)
