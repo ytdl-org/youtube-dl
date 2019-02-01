@@ -406,12 +406,10 @@ class SoundcloudPagedPlaylistBaseIE(SoundcloudPlaylistBaseIE):
                     (e, e.get('track'), e.get('playlist')))
 
                 if permalink_url:
-                    entry_data = self.url_result(
+                    entries.append(self.url_result(
                         permalink_url,
                         ie=SoundcloudIE.ie_key() if SoundcloudIE.suitable(permalink_url) else None,
-                        video_id=entry_id, video_title=entry_title)
-
-                    entries.append(entry_data)
+                        video_id=entry_id, video_title=entry_title))
 
             next_href = response.get('next_href')
             if not next_href:
