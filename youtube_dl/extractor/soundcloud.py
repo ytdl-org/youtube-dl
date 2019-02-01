@@ -438,40 +438,47 @@ class SoundcloudUserIE(SoundcloudPagedPlaylistBaseIE):
                     '''
     IE_NAME = 'soundcloud:user'
     _TESTS = [{
-        'url': 'https://soundcloud.com/the-akashic-chronicler',
+        'url': 'https://soundcloud.com/soft-cell-official',
         'info_dict': {
-            'id': '114582580',
-            'title': 'The Akashic Chronicler (All)',
+            'id': '207965082',
+            'title': 'Soft Cell (All)',
         },
-        'playlist_mincount': 74,
+        'playlist_mincount': 28,
     }, {
-        'url': 'https://soundcloud.com/the-akashic-chronicler/tracks',
+        'url': 'https://soundcloud.com/soft-cell-official/tracks',
         'info_dict': {
-            'id': '114582580',
-            'title': 'The Akashic Chronicler (Tracks)',
+            'id': '207965082',
+            'title': 'Soft Cell (Tracks)',
         },
-        'playlist_mincount': 37,
+        'playlist_mincount': 27,
     }, {
-        'url': 'https://soundcloud.com/the-akashic-chronicler/sets',
+        'url': 'https://soundcloud.com/soft-cell-official/albums',
         'info_dict': {
-            'id': '114582580',
-            'title': 'The Akashic Chronicler (Playlists)',
+            'id': '207965082',
+            'title': 'Soft Cell (Albums)',
+        },
+        'playlist_mincount': 1,
+    }, {
+        'url': 'https://soundcloud.com/jcv246/sets',
+        'info_dict': {
+            'id': '12982173',
+            'title': 'Jordi / cv (Playlists)',
         },
         'playlist_mincount': 2,
     }, {
-        'url': 'https://soundcloud.com/the-akashic-chronicler/reposts',
+        'url': 'https://soundcloud.com/jcv246/reposts',
         'info_dict': {
-            'id': '114582580',
-            'title': 'The Akashic Chronicler (Reposts)',
+            'id': '12982173',
+            'title': 'Jordi / cv (Reposts)',
         },
-        'playlist_mincount': 7,
+        'playlist_mincount': 6,
     }, {
-        'url': 'https://soundcloud.com/the-akashic-chronicler/likes',
+        'url': 'https://soundcloud.com/clalberg/likes',
         'info_dict': {
-            'id': '114582580',
-            'title': 'The Akashic Chronicler (Likes)',
+            'id': '11817582',
+            'title': 'clalberg (Likes)',
         },
-        'playlist_mincount': 321,
+        'playlist_mincount': 5,
     }, {
         'url': 'https://soundcloud.com/grynpyret/spotlight',
         'info_dict': {
@@ -479,9 +486,6 @@ class SoundcloudUserIE(SoundcloudPagedPlaylistBaseIE):
             'title': 'Grynpyret (Spotlight)',
         },
         'playlist_mincount': 1,
-    }, {
-        'url': 'https://soundcloud.com/soft-cell-official/albums',
-        'only_matching': True,
     }]
 
     _BASE_URL_MAP = {
