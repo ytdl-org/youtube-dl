@@ -392,24 +392,20 @@ class SoundcloudPagedPlaylistBaseIE(SoundcloudPlaylistBaseIE):
             if not collection:
                 break
 
-            def resolve_permalink_url(candidates):
-                for cand in candidates:
+            def append_url_result(entries, item):
+                for cand in (item, item.get('track'), item.get('playlist')):
                     if isinstance(cand, dict):
                         permalink_url = cand.get('permalink_url')
-                        entry_id = self._extract_id(cand)
-                        title = cand.get('title')
                         if permalink_url and permalink_url.startswith('http'):
-                            return permalink_url, entry_id, title
+                            return entries.append(
+                                self.url_result(
+                                    permalink_url,
+                                    ie=SoundcloudIE.ie_key() if SoundcloudIE.suitable(permalink_url) else None,
+                                    video_id=self._extract_id(cand),
+                                    video_title=cand.get('title')))
 
             for e in collection:
-                permalink_url, entry_id, entry_title = resolve_permalink_url(
-                    (e, e.get('track'), e.get('playlist')))
-
-                if permalink_url:
-                    entries.append(self.url_result(
-                        permalink_url,
-                        ie=SoundcloudIE.ie_key() if SoundcloudIE.suitable(permalink_url) else None,
-                        video_id=entry_id, video_title=entry_title))
+                append_url_result(entries, e)
 
             next_href = response.get('next_href')
             if not next_href:
