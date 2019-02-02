@@ -673,6 +673,7 @@ from .motorsport import MotorsportIE
 from .movieclips import MovieClipsIE
 from .moviezine import MoviezineIE
 from .movingimage import MovingImageIE
+from .mp4upload import MP4UploadIE
 from .msn import MSNIE
 from .mtv import (
     MTVIE,
