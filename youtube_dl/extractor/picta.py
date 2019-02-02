@@ -1,14 +1,39 @@
 # coding: utf-8
 from __future__ import unicode_literals
+from ..compat import compat_str
 from ..utils import (
     int_or_none,
     unified_timestamp,
+    try_get,
     ExtractorError
 )
 from .common import InfoExtractor
 
 
-class PictaIE(InfoExtractor):
+class PictaBaseIE(InfoExtractor):
+    def _extract_video(self, video, video_id=None, require_title=True):
+        title = video['results'][0]['nombre'] if require_title else video.get('results')[0].get('nombre')
+        description = try_get(video, lambda x: x['results'][0]['descripcion'], compat_str)
+        uploader = try_get(video, lambda x: x['results'][0]['usuario'], compat_str)
+        add_date = try_get(video, lambda x: x['results'][0]['fecha_creacion'])
+        timestamp = int_or_none(unified_timestamp(add_date))
+        thumbnail = try_get(video, lambda x: x['results'][0]['url_imagen'])
+        manifest_url = try_get(video, lambda x: x['results'][0]['url_manifiesto'])
+        category = try_get(video, lambda x: x['results'][0]['canal'], compat_str)
+
+        return {
+            'id': try_get(video, lambda x: x['results'][0]['id'], compat_str) or video_id,
+            'title': title,
+            'description': description,
+            'thumbnail': thumbnail,
+            'uploader': uploader,
+            'timestamp': timestamp,
+            'category': [category] if category else None,
+            'manifest_url': manifest_url,
+        }
+
+
+class PictaIE(PictaBaseIE):
     _VALID_URL = r'https?://(?:www\.)?picta\.cu/medias/(?P<id>[0-9]+)'
     _TEST = {
         'url': 'https://www.picta.cu/medias/818',
@@ -24,38 +49,22 @@ class PictaIE(InfoExtractor):
 
     def _real_extract(self, url):
         video_id = self._match_id(url)
-        webpage = self._download_webpage(url, video_id)
-        # https://www.picta.cu/api/v1/publicacion/?id_publicacion=818&tipo=publicacion
-        # https://www.picta.cu/api/v1/publicacion/?format=json&id_publicacion=818&tipo=publicacion
-        json_url = 'https://www.picta.cu/api/v1/publicacion/?format=json&id_publicacion=' + \
-                   str(video_id) + '&tipo=publicacion'
-        # JSON MetaFields
-        meta = self._download_json(json_url, video_id)
-        # Fields
-        title = meta.get('results')[0].get('nombre') or self._search_regex(
-            r'<h5[^>]+class="post-video-title"[^>]*>([^<]+)', webpage, 'title')
-        description = meta.get('results')[0].get('descripcion')
-        uploader = meta.get('results')[0].get('usuario')
-        add_date = meta.get('results')[0].get('fecha_creacion')
-        timestamp = int_or_none(unified_timestamp(add_date))
-        thumbnail = meta.get('results')[0].get('url_imagen')
-        manifest_url = meta.get('results')[0].get('url_manifiesto')
-        # Formats
+
+        api_url = 'https://www.picta.cu/api/v1/publicacion/'
+        json_url = api_url + '?format=json&id_publicacion=%s&tipo=publicacion' % video_id
+
+        video = self._download_json(json_url, video_id, 'Downloading video JSON')
+
+        info = self._extract_video(video, video_id)
+
         formats = []
         # MPD manifest
-        if manifest_url:
-            formats.extend(self._extract_mpd_formats(manifest_url, video_id))
+        if info.get('manifest_url'):
+            formats.extend(self._extract_mpd_formats(info.get('manifest_url'), video_id))
         if not formats:
             raise ExtractorError('Cannot find video formats')
 
         self._sort_formats(formats)
 
-        return {
-            'id': video_id,
-            'title': title,
-            'formats': formats,
-            'description': description,
-            'uploader': uploader,
-            'timestamp': timestamp,
-            'thumbnail': thumbnail,
-        }
+        info['formats'] = formats
+        return info
