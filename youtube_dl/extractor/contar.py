@@ -122,17 +122,12 @@ class ContarIE(ContarBaseIE):
         'info_dict': {
             'id': 'd2815f05-f52f-499f-90d0-5671e9e71ce8',
             'ext': 'mp4',
-            'title': 'Matilde todos los d\u00edas',
+            'title': 'md5:305bc22419c1f4c3ce596e03e725498b',
             'duration': 648,
             'release_year': 2016,
-            'description': 'Matilde llega a la casa de su abuelo Barbacrespa y en ella accidentalmente rompe un coco m\u00e1gico que la dota de poder.',
+            'description': 'md5:fb359bdf6ab3d4c01330b4d31d715403',
             'season_number': 1,
             'episode_number': 1,
-            # TODO more properties, either as:
-            # * A value
-            # * MD5 checksum; start the string with md5:
-            # * A regular expression; start the string with re:
-            # * Any Python type (for example int or float)
         },
         'params': {
             'usenetrc': True,
@@ -156,14 +151,8 @@ class ContarSerieIE(ContarBaseIE):
         'url': 'https://www.cont.ar/serie/353247d5-da97-4cb6-8571-c4fbab28c643',
         'info_dict': {
             'id': '353247d5-da97-4cb6-8571-c4fbab28c643',
-            'title': 'Vidas de Radio',
-            'description': 'Ana Gerschenson conduce el ciclo que repasa historias de grandes personalidades que le dieron vida al medio; marcaron una época de la Argentina y de tu vida, esas voces amigas que estuvieron siempre y son Vidas De Radio.'
-            # 'thumbnail': r're:^https?://.*\.jpg$',
-            # TODO more properties, either as:
-            # * A value
-            # * MD5 checksum; start the string with md5:
-            # * A regular expression; start the string with re:
-            # * Any Python type (for example int or float)
+            'title': 'md5:a387a67af353212f7499ce3a045a86de',
+            'description': 'md5:fb14968784f8d6ba0a50a53218ad0538'
         },
         'playlist_count': 11,
         'playlist': [{
@@ -171,10 +160,10 @@ class ContarSerieIE(ContarBaseIE):
             'info_dict': {
                 'id': '3414c62f-7b40-439e-b74d-1dd9b0190808',
                 'ext': 'mp4',
-                'title': 'Julio Lagos',
+                'title': 'md5:d5c7d8adf4223d7856d0f8d959f6bff7',
                 'duration': 3185,
                 'release_year': 2018,
-                'description': 'Ana Gerschenson conduce el ciclo que repasa historias de grandes personalidades que le dieron vida al medio. En esta emisi\u00f3n recibi\u00f3 a Julio Lagos para repasar su trayectoria y v\u00ednculo con la radio.',
+                'description': 'md5:94ccc2f57721514ce04e514116e914fa',
                 'season_number': 1,
                 'episode_number': 11,
             },
@@ -187,10 +176,10 @@ class ContarSerieIE(ContarBaseIE):
             'info_dict': {
                 'id': '5972ae9a-43fe-4056-81bc-ab963c057cc6',
                 'ext': 'mp4',
-                'title': 'Cacho Fontana',
+                'title': 'md5:64f243a753953726ddc39336e1c2f361',
                 'release_year': 2018,
                 'duration': 3052,
-                'description': 'Cacho Fontana: \u201cMi primer amor fue la Radio\u201d',
+                'description': 'md5:87e1bfbd5ed02808b73f63f2c9a0722d',
                 'season_number': 1,
                 'episode_number': 3
             },
@@ -233,14 +222,9 @@ class ContarChannelIE(ContarBaseIE):
         'url': 'https://www.cont.ar/channel/242',
         'info_dict': {
             'id': '242',
-            'title': 'PAKAPAKA',
-            'description': '\xa0PAKAPAKA'
-            # TODO more properties, either as:
-            # * A value
-            # * MD5 checksum; start the string with md5:
-            # * A regular expression; start the string with re:
-            # * Any Python type (for example int or float)
-        },
+            'title': 'md5:352d30d8fa7896eec02f65b2c7299d27',
+            'description': 'md5:ac4e1f02201cffb86ac8ed4bcba4a593'
+            },
         'playlist_mincount': 68,
         'params': {
             'usenetrc': True,
@@ -271,12 +255,7 @@ class ContarBrowseIE(ContarBaseIE):
         'url': 'https://www.cont.ar/browse/genre/46',
         'info_dict': {
             'id': '46',
-            'title': 'Infantil',
-            # TODO more properties, either as:
-            # * A value
-            # * MD5 checksum; start the string with md5:
-            # * A regular expression; start the string with re:
-            # * Any Python type (for example int or float)
+            'title': 'md5:41dd5b7c28b8b53c32341151e750d367',
         },
         'playlist_mincount': 65,
         'params': {
