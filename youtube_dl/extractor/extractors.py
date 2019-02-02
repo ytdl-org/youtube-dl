@@ -859,6 +859,7 @@ from .picarto import (
     PicartoIE,
     PicartoVodIE,
 )
+from .picta import PictaIE
 from .piksel import PikselIE
 from .pinkbike import PinkbikeIE
 from .pladform import PladformIE
