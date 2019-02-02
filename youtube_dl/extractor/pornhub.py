@@ -302,14 +302,17 @@ class PornHubIE(PornHubBaseIE):
         comment_count = self._extract_count(
             r'All Comments\s*<span>\(([\d,.]+)\)', webpage, 'comment')
 
-        def _get_text(class_name, page):
-            div = re.search(
-                r'<div class="' + class_name + '">\s+[^\n]+\s+([^\n]+)\s+[^\n]+\s+</div>', page)
+        def _get_items(class_name):
+            div = self._search_regex(
+                r'<div class="' + class_name + '">([\S\s]+?)</div>',
+                webpage, class_name, default=None)
             if div:
-                return [a for a in re.findall(r'<a href=[^>]+>([^<]+)', div.group(1))]
+                return [a for a in re.findall(r'<a href=[^>]+>([^<]+)', div)]
+            else:
+                return None
 
-        categories = _get_text('categoriesWrapper', webpage)
-        tags = _get_text('tagsWrapper', webpage)
+        categories = _get_items('categoriesWrapper')
+        tags = _get_items('tagsWrapper')
 
         return {
             'id': video_id,
