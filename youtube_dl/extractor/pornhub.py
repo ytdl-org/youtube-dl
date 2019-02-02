@@ -307,10 +307,13 @@ class PornHubIE(PornHubBaseIE):
             r'page_params\.zoneDetails\[([\'"])[^\'"]+\1\]\s*=\s*(?P<data>{[^}]+})',
             webpage, 'page parameters', group='data', default='{}'),
             video_id, transform_source=js_to_json, fatal=False)
-        tags = categories = None
+        tags = None
         if page_params:
             tags = page_params.get('tags', '').split(',')
-            categories = page_params.get('categories', '').split(',')
+
+        categories = []
+        for mobj in re.finditer(r'<a href=[^>]+Category[^>]*>([^<]+)', webpage):
+            categories.append(mobj.group(1))
 
         return {
             'id': video_id,
