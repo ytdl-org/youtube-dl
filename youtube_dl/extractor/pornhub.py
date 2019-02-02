@@ -161,7 +161,7 @@ class PornHubIE(PornHubBaseIE):
 
     def _get_text(self, str, page):
         l = []
-        div = re.search(r'<div class="categoriesWrapper">\s+[^\n]+\s+([^\n]+)', page)
+        div = re.search(r'<div class="'+str+'">\s+[^\n]+\s+([^\n]+)', page)
         if div:
             for a in re.finditer(r'<a href=[^>]+>([^<]+)', div.group(1)):
                 l.append(a.group(1))
