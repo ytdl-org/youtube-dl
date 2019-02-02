@@ -48,6 +48,7 @@ from ..utils import (
     unified_strdate,
     unsmuggle_url,
     uppercase_escape,
+    url_or_none,
     urlencode_postdata,
 )
 
@@ -497,7 +498,6 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                 'channel_id': 'UCLqxVugv74EIW3VWh2NOa3Q',
                 'channel_url': r're:https?://(?:www\.)?youtube\.com/channel/UCLqxVugv74EIW3VWh2NOa3Q',
                 'upload_date': '20121002',
-                'license': 'Standard YouTube License',
                 'description': 'test chars:  "\'/\\ä↭𝕐\ntest URL: https://github.com/rg3/youtube-dl/issues/1892\n\nThis is a test video for youtube-dl.\n\nFor more information, contact phihag@phihag.de .',
                 'categories': ['Science & Technology'],
                 'tags': ['youtube-dl'],
@@ -526,7 +526,6 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                 'uploader': 'Icona Pop',
                 'uploader_id': 'IconaPop',
                 'uploader_url': r're:https?://(?:www\.)?youtube\.com/user/IconaPop',
-                'license': 'Standard YouTube License',
                 'creator': 'Icona Pop',
                 'track': 'I Love It (feat. Charli XCX)',
                 'artist': 'Icona Pop',
@@ -539,14 +538,13 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                 'id': '07FYdnEawAQ',
                 'ext': 'mp4',
                 'upload_date': '20130703',
-                'title': 'Justin Timberlake - Tunnel Vision (Explicit)',
+                'title': 'Justin Timberlake - Tunnel Vision (Official Music Video) (Explicit)',
                 'alt_title': 'Tunnel Vision',
-                'description': 'md5:64249768eec3bc4276236606ea996373',
+                'description': 'md5:07dab3356cde4199048e4c7cd93471e1',
                 'duration': 419,
                 'uploader': 'justintimberlakeVEVO',
                 'uploader_id': 'justintimberlakeVEVO',
                 'uploader_url': r're:https?://(?:www\.)?youtube\.com/user/justintimberlakeVEVO',
-                'license': 'Standard YouTube License',
                 'creator': 'Justin Timberlake',
                 'track': 'Tunnel Vision',
                 'artist': 'Justin Timberlake',
@@ -565,7 +563,6 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                 'uploader': 'SET India',
                 'uploader_id': 'setindia',
                 'uploader_url': r're:https?://(?:www\.)?youtube\.com/user/setindia',
-                'license': 'Standard YouTube License',
                 'age_limit': 18,
             }
         },
@@ -580,7 +577,6 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                 'uploader_id': 'phihag',
                 'uploader_url': r're:https?://(?:www\.)?youtube\.com/user/phihag',
                 'upload_date': '20121002',
-                'license': 'Standard YouTube License',
                 'description': 'test chars:  "\'/\\ä↭𝕐\ntest URL: https://github.com/rg3/youtube-dl/issues/1892\n\nThis is a test video for youtube-dl.\n\nFor more information, contact phihag@phihag.de .',
                 'categories': ['Science & Technology'],
                 'tags': ['youtube-dl'],
@@ -604,7 +600,6 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                 'uploader_url': r're:https?://(?:www\.)?youtube\.com/user/8KVIDEO',
                 'description': '',
                 'uploader': '8KVIDEO',
-                'license': 'Standard YouTube License',
                 'title': 'UHDTV TEST 8K VIDEO.mp4'
             },
             'params': {
@@ -619,13 +614,12 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
             'info_dict': {
                 'id': 'IB3lcPjvWLA',
                 'ext': 'm4a',
-                'title': 'Afrojack, Spree Wilson - The Spark ft. Spree Wilson',
-                'description': 'md5:1900ed86ee514927b9e00fbead6969a5',
+                'title': 'Afrojack, Spree Wilson - The Spark (Official Music Video) ft. Spree Wilson',
+                'description': 'md5:8f5e2b82460520b619ccac1f509d43bf',
                 'duration': 244,
                 'uploader': 'AfrojackVEVO',
                 'uploader_id': 'AfrojackVEVO',
                 'upload_date': '20131011',
-                'license': 'Standard YouTube License',
             },
             'params': {
                 'youtube_include_dash_manifest': True,
@@ -639,13 +633,11 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                 'id': 'nfWlot6h_JM',
                 'ext': 'm4a',
                 'title': 'Taylor Swift - Shake It Off',
-                'alt_title': 'Shake It Off',
-                'description': 'md5:95f66187cd7c8b2c13eb78e1223b63c3',
+                'description': 'md5:bec2185232c05479482cb5a9b82719bf',
                 'duration': 242,
                 'uploader': 'TaylorSwiftVEVO',
                 'uploader_id': 'TaylorSwiftVEVO',
                 'upload_date': '20140818',
-                'license': 'Standard YouTube License',
                 'creator': 'Taylor Swift',
             },
             'params': {
@@ -661,10 +653,9 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                 'ext': 'mp4',
                 'duration': 219,
                 'upload_date': '20100909',
-                'uploader': 'TJ Kirk',
+                'uploader': 'Amazing Atheist',
                 'uploader_id': 'TheAmazingAtheist',
                 'uploader_url': r're:https?://(?:www\.)?youtube\.com/user/TheAmazingAtheist',
-                'license': 'Standard YouTube License',
                 'title': 'Burning Everyone\'s Koran',
                 'description': 'SUBSCRIBE: http://www.youtube.com/saturninefilms\n\nEven Obama has taken a stand against freedom on this issue: http://www.huffingtonpost.com/2010/09/09/obama-gma-interview-quran_n_710282.html',
             }
@@ -682,7 +673,6 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                 'uploader_id': 'WitcherGame',
                 'uploader_url': r're:https?://(?:www\.)?youtube\.com/user/WitcherGame',
                 'upload_date': '20140605',
-                'license': 'Standard YouTube License',
                 'age_limit': 18,
             },
         },
@@ -691,7 +681,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
             'url': 'https://www.youtube.com/watch?v=6kLq3WMV1nU',
             'info_dict': {
                 'id': '6kLq3WMV1nU',
-                'ext': 'webm',
+                'ext': 'mp4',
                 'title': 'Dedication To My Ex (Miss That) (Lyric Video)',
                 'description': 'md5:33765bb339e1b47e7e72b5490139bb41',
                 'duration': 246,
@@ -699,7 +689,6 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                 'uploader_id': 'LloydVEVO',
                 'uploader_url': r're:https?://(?:www\.)?youtube\.com/user/LloydVEVO',
                 'upload_date': '20110629',
-                'license': 'Standard YouTube License',
                 'age_limit': 18,
             },
         },
@@ -717,7 +706,6 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                 'creator': 'deadmau5',
                 'description': 'md5:12c56784b8032162bb936a5f76d55360',
                 'uploader': 'deadmau5',
-                'license': 'Standard YouTube License',
                 'title': 'Deadmau5 - Some Chords (HD)',
                 'alt_title': 'Some Chords',
             },
@@ -735,7 +723,6 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                 'upload_date': '20150827',
                 'uploader_id': 'olympic',
                 'uploader_url': r're:https?://(?:www\.)?youtube\.com/user/olympic',
-                'license': 'Standard YouTube License',
                 'description': 'HO09  - Women -  GER-AUS - Hockey - 31 July 2012 - London 2012 Olympic Games',
                 'uploader': 'Olympic',
                 'title': 'Hockey - Women -  GER-AUS - London 2012 Olympic Games',
@@ -757,7 +744,6 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                 'uploader_url': r're:https?://(?:www\.)?youtube\.com/user/AllenMeow',
                 'description': 'made by Wacom from Korea | 字幕&加油添醋 by TY\'s Allen | 感謝heylisa00cavey1001同學熱情提供梗及翻譯',
                 'uploader': '孫ᄋᄅ',
-                'license': 'Standard YouTube License',
                 'title': '[A-made] 變態妍字幕版 太妍 我就是這樣的人',
             },
         },
@@ -791,7 +777,6 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                 'uploader_id': 'dorappi2000',
                 'uploader_url': r're:https?://(?:www\.)?youtube\.com/user/dorappi2000',
                 'uploader': 'dorappi2000',
-                'license': 'Standard YouTube License',
                 'formats': 'mincount:31',
             },
             'skip': 'not actual anymore',
@@ -807,7 +792,6 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                 'uploader': 'Airtek',
                 'description': 'Retransmisión en directo de la XVIII media maratón de Zaragoza.',
                 'uploader_id': 'UCzTzUmjXxxacNnL8I3m4LnQ',
-                'license': 'Standard YouTube License',
                 'title': 'Retransmisión XVIII Media maratón Zaragoza 2015',
             },
             'params': {
@@ -880,6 +864,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
             'params': {
                 'skip_download': True,
             },
+            'skip': 'This video is not available.',
         },
         {
             # Multifeed video with comma in title (see https://github.com/rg3/youtube-dl/issues/8536)
@@ -916,7 +901,6 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                 'uploader_id': 'IronSoulElf',
                 'uploader_url': r're:https?://(?:www\.)?youtube\.com/user/IronSoulElf',
                 'uploader': 'IronSoulElf',
-                'license': 'Standard YouTube License',
                 'creator': 'Todd Haberman,  Daniel Law Heath and Aaron Kaplan',
                 'track': 'Dark Walk - Position Music',
                 'artist': 'Todd Haberman,  Daniel Law Heath and Aaron Kaplan',
@@ -1020,13 +1004,12 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                 'id': 'iqKdEhx-dD4',
                 'ext': 'mp4',
                 'title': 'Isolation - Mind Field (Ep 1)',
-                'description': 'md5:25b78d2f64ae81719f5c96319889b736',
+                'description': 'md5:46a29be4ceffa65b92d277b93f463c0f',
                 'duration': 2085,
                 'upload_date': '20170118',
                 'uploader': 'Vsauce',
                 'uploader_id': 'Vsauce',
                 'uploader_url': r're:https?://(?:www\.)?youtube\.com/user/Vsauce',
-                'license': 'Standard YouTube License',
                 'series': 'Mind Field',
                 'season_number': 1,
                 'episode_number': 1,
@@ -1052,7 +1035,6 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                 'uploader': 'New Century Foundation',
                 'uploader_id': 'UCEJYpZGqgUob0zVVEaLhvVg',
                 'uploader_url': r're:https?://(?:www\.)?youtube\.com/channel/UCEJYpZGqgUob0zVVEaLhvVg',
-                'license': 'Standard YouTube License',
             },
             'params': {
                 'skip_download': True,
@@ -1076,6 +1058,31 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
             'url': 'https://invidio.us/watch?v=BaW_jenozKc',
             'only_matching': True,
         },
+        {
+            # DRM protected
+            'url': 'https://www.youtube.com/watch?v=s7_qI6_mIXc',
+            'only_matching': True,
+        },
+        {
+            # Video with unsupported adaptive stream type formats
+            'url': 'https://www.youtube.com/watch?v=Z4Vy8R84T1U',
+            'info_dict': {
+                'id': 'Z4Vy8R84T1U',
+                'ext': 'mp4',
+                'title': 'saman SMAN 53 Jakarta(Sancety) opening COFFEE4th at SMAN 53 Jakarta',
+                'description': 'md5:d41d8cd98f00b204e9800998ecf8427e',
+                'duration': 433,
+                'upload_date': '20130923',
+                'uploader': 'Amelia Putri Harwita',
+                'uploader_id': 'UCpOxM49HJxmC1qCalXyB3_Q',
+                'uploader_url': r're:https?://(?:www\.)?youtube\.com/channel/UCpOxM49HJxmC1qCalXyB3_Q',
+                'formats': 'maxcount:10',
+            },
+            'params': {
+                'skip_download': True,
+                'youtube_include_dash_manifest': False,
+            },
+        }
     ]
 
     def __init__(self, *args, **kwargs):
@@ -1104,7 +1111,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
 
     def _extract_signature_function(self, video_id, player_url, example_sig):
         id_m = re.match(
-            r'.*?-(?P<id>[a-zA-Z0-9_-]+)(?:/watch_as3|/html5player(?:-new)?|(?:/[a-z]{2}_[A-Z]{2})?/base)?\.(?P<ext>[a-z]+)$',
+            r'.*?-(?P<id>[a-zA-Z0-9_-]+)(?:/watch_as3|/html5player(?:-new)?|(?:/[a-z]{2,3}_[A-Z]{2})?/base)?\.(?P<ext>[a-z]+)$',
             player_url)
         if not id_m:
             raise ExtractorError('Cannot identify player %r' % player_url)
@@ -1191,8 +1198,8 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
         funcname = self._search_regex(
             (r'(["\'])signature\1\s*,\s*(?P<sig>[a-zA-Z0-9$]+)\(',
              r'\.sig\|\|(?P<sig>[a-zA-Z0-9$]+)\(',
-             r'yt\.akamaized\.net/\)\s*\|\|\s*.*?\s*c\s*&&\s*d\.set\([^,]+\s*,\s*(?P<sig>[a-zA-Z0-9$]+)\(',
-             r'\bc\s*&&\s*d\.set\([^,]+\s*,\s*(?P<sig>[a-zA-Z0-9$]+)\(',
+             r'yt\.akamaized\.net/\)\s*\|\|\s*.*?\s*c\s*&&\s*d\.set\([^,]+\s*,\s*(?:encodeURIComponent\s*\()?(?P<sig>[a-zA-Z0-9$]+)\(',
+             r'\bc\s*&&\s*d\.set\([^,]+\s*,\s*(?:encodeURIComponent\s*\()?\s*(?P<sig>[a-zA-Z0-9$]+)\(',
              r'\bc\s*&&\s*d\.set\([^,]+\s*,\s*\([^)]*\)\s*\(\s*(?P<sig>[a-zA-Z0-9$]+)\('),
             jscode, 'Initial JS player signature function name', group='sig')
 
@@ -1386,8 +1393,11 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
             self._downloader.report_warning(err_msg)
             return {}
 
-    def _mark_watched(self, video_id, video_info):
-        playback_url = video_info.get('videostats_playback_base_url', [None])[0]
+    def _mark_watched(self, video_id, video_info, player_response):
+        playback_url = url_or_none(try_get(
+            player_response,
+            lambda x: x['playbackTracking']['videostatsPlaybackUrl']['baseUrl']) or try_get(
+            video_info, lambda x: x['videostats_playback_base_url'][0]))
         if not playback_url:
             return
         parsed_playback_url = compat_urlparse.urlparse(playback_url)
@@ -1536,6 +1546,13 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
             if dash_mpd and dash_mpd[0] not in dash_mpds:
                 dash_mpds.append(dash_mpd[0])
 
+        def add_dash_mpd_pr(pl_response):
+            dash_mpd = url_or_none(try_get(
+                pl_response, lambda x: x['streamingData']['dashManifestUrl'],
+                compat_str))
+            if dash_mpd and dash_mpd not in dash_mpds:
+                dash_mpds.append(dash_mpd)
+
         is_live = None
         view_count = None
 
@@ -1593,6 +1610,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                         if isinstance(pl_response, dict):
                             player_response = pl_response
             if not video_info or self._downloader.params.get('youtube_include_dash_manifest', True):
+                add_dash_mpd_pr(player_response)
                 # We also try looking in get_video_info since it may contain different dashmpd
                 # URL that points to a DASH manifest with possibly different itag set (some itags
                 # are missing from DASH manifest pointed by webpage's dashmpd, some - from DASH
@@ -1624,6 +1642,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                         pl_response = get_video_info.get('player_response', [None])[0]
                         if isinstance(pl_response, dict):
                             player_response = pl_response
+                            add_dash_mpd_pr(player_response)
                     add_dash_mpd(get_video_info)
                     if view_count is None:
                         view_count = extract_view_count(get_video_info)
@@ -1669,6 +1688,9 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                     '"token" parameter not in video info for unknown reason',
                     video_id=video_id)
 
+        if video_info.get('license_info'):
+            raise ExtractorError('This video is DRM protected.', expected=True)
+
         video_details = try_get(
             player_response, lambda x: x['videoDetails'], dict) or {}
 
@@ -1712,30 +1734,36 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
             else:
                 video_description = ''
 
-        if 'multifeed_metadata_list' in video_info and not smuggled_data.get('force_singlefeed', False):
+        if not smuggled_data.get('force_singlefeed', False):
             if not self._downloader.params.get('noplaylist'):
-                entries = []
-                feed_ids = []
-                multifeed_metadata_list = video_info['multifeed_metadata_list'][0]
-                for feed in multifeed_metadata_list.split(','):
-                    # Unquote should take place before split on comma (,) since textual
-                    # fields may contain comma as well (see
-                    # https://github.com/rg3/youtube-dl/issues/8536)
-                    feed_data = compat_parse_qs(compat_urllib_parse_unquote_plus(feed))
-                    entries.append({
-                        '_type': 'url_transparent',
-                        'ie_key': 'Youtube',
-                        'url': smuggle_url(
-                            '%s://www.youtube.com/watch?v=%s' % (proto, feed_data['id'][0]),
-                            {'force_singlefeed': True}),
-                        'title': '%s (%s)' % (video_title, feed_data['title'][0]),
-                    })
-                    feed_ids.append(feed_data['id'][0])
-                self.to_screen(
-                    'Downloading multifeed video (%s) - add --no-playlist to just download video %s'
-                    % (', '.join(feed_ids), video_id))
-                return self.playlist_result(entries, video_id, video_title, video_description)
-            self.to_screen('Downloading just video %s because of --no-playlist' % video_id)
+                multifeed_metadata_list = try_get(
+                    player_response,
+                    lambda x: x['multicamera']['playerLegacyMulticameraRenderer']['metadataList'],
+                    compat_str) or try_get(
+                    video_info, lambda x: x['multifeed_metadata_list'][0], compat_str)
+                if multifeed_metadata_list:
+                    entries = []
+                    feed_ids = []
+                    for feed in multifeed_metadata_list.split(','):
+                        # Unquote should take place before split on comma (,) since textual
+                        # fields may contain comma as well (see
+                        # https://github.com/rg3/youtube-dl/issues/8536)
+                        feed_data = compat_parse_qs(compat_urllib_parse_unquote_plus(feed))
+                        entries.append({
+                            '_type': 'url_transparent',
+                            'ie_key': 'Youtube',
+                            'url': smuggle_url(
+                                '%s://www.youtube.com/watch?v=%s' % (proto, feed_data['id'][0]),
+                                {'force_singlefeed': True}),
+                            'title': '%s (%s)' % (video_title, feed_data['title'][0]),
+                        })
+                        feed_ids.append(feed_data['id'][0])
+                    self.to_screen(
+                        'Downloading multifeed video (%s) - add --no-playlist to just download video %s'
+                        % (', '.join(feed_ids), video_id))
+                    return self.playlist_result(entries, video_id, video_title, video_description)
+            else:
+                self.to_screen('Downloading just video %s because of --no-playlist' % video_id)
 
         if view_count is None:
             view_count = extract_view_count(video_info)
@@ -1776,10 +1804,33 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                                 'height': int_or_none(width_height[1]),
                             }
             q = qualities(['small', 'medium', 'hd720'])
+            streaming_formats = try_get(player_response, lambda x: x['streamingData']['formats'], list)
+            if streaming_formats:
+                for fmt in streaming_formats:
+                    itag = str_or_none(fmt.get('itag'))
+                    if not itag:
+                        continue
+                    quality = fmt.get('quality')
+                    quality_label = fmt.get('qualityLabel') or quality
+                    formats_spec[itag] = {
+                        'asr': int_or_none(fmt.get('audioSampleRate')),
+                        'filesize': int_or_none(fmt.get('contentLength')),
+                        'format_note': quality_label,
+                        'fps': int_or_none(fmt.get('fps')),
+                        'height': int_or_none(fmt.get('height')),
+                        'quality': q(quality),
+                        # bitrate for itag 43 is always 2147483647
+                        'tbr': float_or_none(fmt.get('averageBitrate') or fmt.get('bitrate'), 1000) if itag != '43' else None,
+                        'width': int_or_none(fmt.get('width')),
+                    }
             formats = []
             for url_data_str in encoded_url_map.split(','):
                 url_data = compat_parse_qs(url_data_str)
                 if 'itag' not in url_data or 'url' not in url_data:
+                    continue
+                stream_type = int_or_none(try_get(url_data, lambda x: x['stream_type'][0]))
+                # Unsupported FORMAT_STREAM_TYPE_OTF
+                if stream_type == 3:
                     continue
                 format_id = url_data['itag'][0]
                 url = url_data['url'][0]
@@ -1824,7 +1875,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                             else:
                                 player_version = self._search_regex(
                                     [r'html5player-([^/]+?)(?:/html5player(?:-new)?)?\.js',
-                                     r'(?:www|player)-([^/]+)(?:/[a-z]{2}_[A-Z]{2})?/base\.js'],
+                                     r'(?:www|player(?:_ias)?)-([^/]+)(?:/[a-z]{2,3}_[A-Z]{2})?/base\.js'],
                                     player_url,
                                     'html5 player', fatal=False)
                                 player_desc = 'html5 player %s' % player_version
@@ -1858,7 +1909,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                 filesize = int_or_none(url_data.get(
                     'clen', [None])[0]) or _extract_filesize(url)
 
-                quality = url_data.get('quality_label', [None])[0] or url_data.get('quality', [None])[0]
+                quality = url_data.get('quality', [None])[0]
 
                 more_fields = {
                     'filesize': filesize,
@@ -1866,7 +1917,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                     'width': width,
                     'height': height,
                     'fps': int_or_none(url_data.get('fps', [None])[0]),
-                    'format_note': quality,
+                    'format_note': url_data.get('quality_label', [None])[0] or quality,
                     'quality': q(quality),
                 }
                 for key, value in more_fields.items():
@@ -1894,31 +1945,38 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                         'http_chunk_size': 10485760,
                     }
                 formats.append(dct)
-        elif video_info.get('hlsvp'):
-            manifest_url = video_info['hlsvp'][0]
-            formats = []
-            m3u8_formats = self._extract_m3u8_formats(
-                manifest_url, video_id, 'mp4', fatal=False)
-            for a_format in m3u8_formats:
-                itag = self._search_regex(
-                    r'/itag/(\d+)/', a_format['url'], 'itag', default=None)
-                if itag:
-                    a_format['format_id'] = itag
-                    if itag in self._formats:
-                        dct = self._formats[itag].copy()
-                        dct.update(a_format)
-                        a_format = dct
-                a_format['player_url'] = player_url
-                # Accept-Encoding header causes failures in live streams on Youtube and Youtube Gaming
-                a_format.setdefault('http_headers', {})['Youtubedl-no-compression'] = 'True'
-                formats.append(a_format)
         else:
-            error_message = clean_html(video_info.get('reason', [None])[0])
-            if not error_message:
-                error_message = extract_unavailable_message()
-            if error_message:
-                raise ExtractorError(error_message, expected=True)
-            raise ExtractorError('no conn, hlsvp or url_encoded_fmt_stream_map information found in video info')
+            manifest_url = (
+                url_or_none(try_get(
+                    player_response,
+                    lambda x: x['streamingData']['hlsManifestUrl'],
+                    compat_str)) or
+                url_or_none(try_get(
+                    video_info, lambda x: x['hlsvp'][0], compat_str)))
+            if manifest_url:
+                formats = []
+                m3u8_formats = self._extract_m3u8_formats(
+                    manifest_url, video_id, 'mp4', fatal=False)
+                for a_format in m3u8_formats:
+                    itag = self._search_regex(
+                        r'/itag/(\d+)/', a_format['url'], 'itag', default=None)
+                    if itag:
+                        a_format['format_id'] = itag
+                        if itag in self._formats:
+                            dct = self._formats[itag].copy()
+                            dct.update(a_format)
+                            a_format = dct
+                    a_format['player_url'] = player_url
+                    # Accept-Encoding header causes failures in live streams on Youtube and Youtube Gaming
+                    a_format.setdefault('http_headers', {})['Youtubedl-no-compression'] = 'True'
+                    formats.append(a_format)
+            else:
+                error_message = clean_html(video_info.get('reason', [None])[0])
+                if not error_message:
+                    error_message = extract_unavailable_message()
+                if error_message:
+                    raise ExtractorError(error_message, expected=True)
+                raise ExtractorError('no conn, hlsvp, hlsManifestUrl or url_encoded_fmt_stream_map information found in video info')
 
         # uploader
         video_uploader = try_get(
@@ -2006,7 +2064,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
             r'<div[^>]+id="watch7-headline"[^>]*>\s*<span[^>]*>.*?>(?P<series>[^<]+)</a></b>\s*S(?P<season>\d+)\s*•\s*E(?P<episode>\d+)</span>',
             video_webpage)
         if m_episode:
-            series = m_episode.group('series')
+            series = unescapeHTML(m_episode.group('series'))
             season_number = int(m_episode.group('season'))
             episode_number = int(m_episode.group('episode'))
         else:
@@ -2116,7 +2174,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
 
         self._sort_formats(formats)
 
-        self.mark_watched(video_id, video_info)
+        self.mark_watched(video_id, video_info, player_response)
 
         return {
             'id': video_id,

@@ -109,6 +109,7 @@ from .vice import ViceIE
 from .xfileshare import XFileShareIE
 from .cloudflarestream import CloudflareStreamIE
 from .peertube import PeerTubeIE
+from .teachable import TeachableIE
 from .indavideo import IndavideoEmbedIE
 from .apa import APAIE
 from .foxnews import FoxNewsIE
@@ -2196,10 +2197,7 @@ class GenericIE(InfoExtractor):
 
     def _real_extract(self, url):
         if url.startswith('//'):
-            return {
-                '_type': 'url',
-                'url': self.http_scheme() + url,
-            }
+            return self.url_result(self.http_scheme() + url)
 
         parsed_url = compat_urlparse.urlparse(url)
         if not parsed_url.scheme:
@@ -3111,6 +3109,10 @@ class GenericIE(InfoExtractor):
         if peertube_urls:
             return self.playlist_from_matches(
                 peertube_urls, video_id, video_title, ie=PeerTubeIE.ie_key())
+
+        teachable_url = TeachableIE._extract_url(webpage, url)
+        if teachable_url:
+            return self.url_result(teachable_url)
 
         indavideo_urls = IndavideoEmbedIE._extract_urls(webpage)
         if indavideo_urls:

@@ -5,8 +5,8 @@ from ..utils import ExtractorError
 
 
 class NhkVodIE(InfoExtractor):
-    _VALID_URL = r'https?://www3\.nhk\.or\.jp/nhkworld/en/vod/(?P<id>[^/]+/[^/?#&]+)'
-    _TEST = {
+    _VALID_URL = r'https?://www3\.nhk\.or\.jp/nhkworld/en/(?:vod|ondemand)/(?P<id>[^/]+/[^/?#&]+)'
+    _TESTS = [{
         # Videos available only for a limited period of time. Visit
         # http://www3.nhk.or.jp/nhkworld/en/vod/ for working samples.
         'url': 'http://www3.nhk.or.jp/nhkworld/en/vod/tokyofashion/20160815',
@@ -19,7 +19,10 @@ class NhkVodIE(InfoExtractor):
             'episode': 'The Kimono as Global Fashion',
         },
         'skip': 'Videos available only for a limited period of time',
-    }
+    }, {
+        'url': 'https://www3.nhk.or.jp/nhkworld/en/ondemand/video/2015173/',
+        'only_matching': True,
+    }]
     _API_URL = 'http://api.nhk.or.jp/nhkworld/vodesdlist/v1/all/all/all.json?apikey=EJfK8jdS57GqlupFgAfAAwr573q01y6k'
 
     def _real_extract(self, url):

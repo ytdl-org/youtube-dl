@@ -1,6 +1,7 @@
 # coding: utf-8
 from __future__ import unicode_literals
 
+import base64
 import json
 import re
 import itertools
@@ -14,10 +15,13 @@ from ..compat import (
 from ..utils import (
     determine_ext,
     ExtractorError,
+    js_to_json,
     InAdvancePagedList,
     int_or_none,
     merge_dicts,
     NO_DEFAULT,
+    parse_filesize,
+    qualities,
     RegexNotFoundError,
     sanitized_Request,
     smuggle_url,
@@ -27,7 +31,6 @@ from ..utils import (
     unsmuggle_url,
     urlencode_postdata,
     unescapeHTML,
-    parse_filesize,
 )
 
 
@@ -391,6 +394,22 @@ class VimeoIE(VimeoBaseInfoExtractor):
             },
         },
         {
+            'url': 'http://player.vimeo.com/video/68375962',
+            'md5': 'aaf896bdb7ddd6476df50007a0ac0ae7',
+            'info_dict': {
+                'id': '68375962',
+                'ext': 'mp4',
+                'title': 'youtube-dl password protected test video',
+                'uploader_url': r're:https?://(?:www\.)?vimeo\.com/user18948128',
+                'uploader_id': 'user18948128',
+                'uploader': 'Jaime Marquínez Ferrándiz',
+                'duration': 10,
+            },
+            'params': {
+                'videopassword': 'youtube-dl',
+            },
+        },
+        {
             'url': 'http://vimeo.com/moogaloop.swf?clip_id=2539741',
             'only_matching': True,
         },
@@ -416,6 +435,8 @@ class VimeoIE(VimeoBaseInfoExtractor):
             'url': 'https://vimeo.com/160743502/abd0e13fb4',
             'only_matching': True,
         }
+        # https://gettingthingsdone.com/workflowmap/
+        # vimeo embed with check-password page protected by Referer header
     ]
 
     @staticmethod
@@ -446,18 +467,22 @@ class VimeoIE(VimeoBaseInfoExtractor):
         urls = VimeoIE._extract_urls(url, webpage)
         return urls[0] if urls else None
 
-    def _verify_player_video_password(self, url, video_id):
+    def _verify_player_video_password(self, url, video_id, headers):
         password = self._downloader.params.get('videopassword')
         if password is None:
             raise ExtractorError('This video is protected by a password, use the --video-password option')
-        data = urlencode_postdata({'password': password})
-        pass_url = url + '/check-password'
-        password_request = sanitized_Request(pass_url, data)
-        password_request.add_header('Content-Type', 'application/x-www-form-urlencoded')
-        password_request.add_header('Referer', url)
-        return self._download_json(
-            password_request, video_id,
-            'Verifying the password', 'Wrong password')
+        data = urlencode_postdata({
+            'password': base64.b64encode(password.encode()),
+        })
+        headers = merge_dicts(headers, {
+            'Content-Type': 'application/x-www-form-urlencoded',
+        })
+        checked = self._download_json(
+            url + '/check-password', video_id,
+            'Verifying the password', data=data, headers=headers)
+        if checked is False:
+            raise ExtractorError('Wrong video password', expected=True)
+        return checked
 
     def _real_initialize(self):
         self._login()
@@ -570,7 +595,7 @@ class VimeoIE(VimeoBaseInfoExtractor):
                                      cause=e)
         else:
             if config.get('view') == 4:
-                config = self._verify_player_video_password(redirect_url, video_id)
+                config = self._verify_player_video_password(redirect_url, video_id, headers)
 
         vod = config.get('video', {}).get('vod', {})
 
@@ -1062,4 +1087,97 @@ class VimeoLikesIE(InfoExtractor):
             'title': title,
             'description': description,
             'entries': pl,
+        }
+
+
+class VHXEmbedIE(InfoExtractor):
+    IE_NAME = 'vhx:embed'
+    _VALID_URL = r'https?://embed\.vhx\.tv/videos/(?P<id>\d+)'
+
+    def _call_api(self, video_id, access_token, path='', query=None):
+        return self._download_json(
+            'https://api.vhx.tv/videos/' + video_id + path, video_id, headers={
+                'Authorization': 'Bearer ' + access_token,
+            }, query=query)
+
+    def _real_extract(self, url):
+        video_id = self._match_id(url)
+        webpage = self._download_webpage(url, video_id)
+        credentials = self._parse_json(self._search_regex(
+            r'(?s)credentials\s*:\s*({.+?}),', webpage,
+            'config'), video_id, js_to_json)
+        access_token = credentials['access_token']
+
+        query = {}
+        for k, v in credentials.items():
+            if k in ('authorization', 'authUserToken', 'ticket') and v and v != 'undefined':
+                if k == 'authUserToken':
+                    query['auth_user_token'] = v
+                else:
+                    query[k] = v
+        files = self._call_api(video_id, access_token, '/files', query)
+
+        formats = []
+        for f in files:
+            href = try_get(f, lambda x: x['_links']['source']['href'])
+            if not href:
+                continue
+            method = f.get('method')
+            if method == 'hls':
+                formats.extend(self._extract_m3u8_formats(
+                    href, video_id, 'mp4', 'm3u8_native',
+                    m3u8_id='hls', fatal=False))
+            elif method == 'dash':
+                formats.extend(self._extract_mpd_formats(
+                    href, video_id, mpd_id='dash', fatal=False))
+            else:
+                fmt = {
+                    'filesize': int_or_none(try_get(f, lambda x: x['size']['bytes'])),
+                    'format_id': 'http',
+                    'preference': 1,
+                    'url': href,
+                    'vcodec': f.get('codec'),
+                }
+                quality = f.get('quality')
+                if quality:
+                    fmt.update({
+                        'format_id': 'http-' + quality,
+                        'height': int_or_none(self._search_regex(r'(\d+)p', quality, 'height', default=None)),
+                    })
+                formats.append(fmt)
+        self._sort_formats(formats)
+
+        video_data = self._call_api(video_id, access_token)
+        title = video_data.get('title') or video_data['name']
+
+        subtitles = {}
+        for subtitle in try_get(video_data, lambda x: x['tracks']['subtitles'], list) or []:
+            lang = subtitle.get('srclang') or subtitle.get('label')
+            for _link in subtitle.get('_links', {}).values():
+                href = _link.get('href')
+                if not href:
+                    continue
+                subtitles.setdefault(lang, []).append({
+                    'url': href,
+                })
+
+        q = qualities(['small', 'medium', 'large', 'source'])
+        thumbnails = []
+        for thumbnail_id, thumbnail_url in video_data.get('thumbnail', {}).items():
+            thumbnails.append({
+                'id': thumbnail_id,
+                'url': thumbnail_url,
+                'preference': q(thumbnail_id),
+            })
+
+        return {
+            'id': video_id,
+            'title': title,
+            'description': video_data.get('description'),
+            'duration': int_or_none(try_get(video_data, lambda x: x['duration']['seconds'])),
+            'formats': formats,
+            'subtitles': subtitles,
+            'thumbnails': thumbnails,
+            'timestamp': unified_timestamp(video_data.get('created_at')),
+            'view_count': int_or_none(video_data.get('plays_count')),
         }

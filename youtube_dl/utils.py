@@ -39,6 +39,7 @@ from .compat import (
     compat_HTMLParser,
     compat_basestring,
     compat_chr,
+    compat_cookiejar,
     compat_ctypes_WINFUNCTYPE,
     compat_etree_fromstring,
     compat_expanduser,
@@ -1139,6 +1140,33 @@ class YoutubeDLHTTPSHandler(compat_urllib_request.HTTPSHandler):
             req, **kwargs)
 
 
+class YoutubeDLCookieJar(compat_cookiejar.MozillaCookieJar):
+    def save(self, filename=None, ignore_discard=False, ignore_expires=False):
+        # Store session cookies with `expires` set to 0 instead of an empty
+        # string
+        for cookie in self:
+            if cookie.expires is None:
+                cookie.expires = 0
+        compat_cookiejar.MozillaCookieJar.save(self, filename, ignore_discard, ignore_expires)
+
+    def load(self, filename=None, ignore_discard=False, ignore_expires=False):
+        compat_cookiejar.MozillaCookieJar.load(self, filename, ignore_discard, ignore_expires)
+        # Session cookies are denoted by either `expires` field set to
+        # an empty string or 0. MozillaCookieJar only recognizes the former
+        # (see [1]). So we need force the latter to be recognized as session
+        # cookies on our own.
+        # Session cookies may be important for cookies-based authentication,
+        # e.g. usually, when user does not check 'Remember me' check box while
+        # logging in on a site, some important cookies are stored as session
+        # cookies so that not recognizing them will result in failed login.
+        # 1. https://bugs.python.org/issue17164
+        for cookie in self:
+            # Treat `expires=0` cookies as session cookies
+            if cookie.expires == 0:
+                cookie.expires = None
+                cookie.discard = True
+
+
 class YoutubeDLCookieProcessor(compat_urllib_request.HTTPCookieProcessor):
     def __init__(self, cookiejar=None):
         compat_urllib_request.HTTPCookieProcessor.__init__(self, cookiejar)
@@ -1840,7 +1868,7 @@ def urljoin(base, path):
         path = path.decode('utf-8')
     if not isinstance(path, compat_str) or not path:
         return None
-    if re.match(r'^(?:https?:)?//', path):
+    if re.match(r'^(?:[a-zA-Z][a-zA-Z0-9+-.]*:)?//', path):
         return path
     if isinstance(base, bytes):
         base = base.decode('utf-8')
@@ -2940,6 +2968,7 @@ class ISO639Utils(object):
         'gv': 'glv',
         'ha': 'hau',
         'he': 'heb',
+        'iw': 'heb',  # Replaced by he in 1989 revision
         'hi': 'hin',
         'ho': 'hmo',
         'hr': 'hrv',
@@ -2949,6 +2978,7 @@ class ISO639Utils(object):
         'hz': 'her',
         'ia': 'ina',
         'id': 'ind',
+        'in': 'ind',  # Replaced by id in 1989 revision
         'ie': 'ile',
         'ig': 'ibo',
         'ii': 'iii',
@@ -3063,6 +3093,7 @@ class ISO639Utils(object):
         'wo': 'wol',
         'xh': 'xho',
         'yi': 'yid',
+        'ji': 'yid',  # Replaced by yi in 1989 revision
         'yo': 'yor',
         'za': 'zha',
         'zh': 'zho',
@@ -3948,8 +3979,12 @@ def write_xattr(path, key, value):
 
 
 def random_birthday(year_field, month_field, day_field):
+    start_date = datetime.date(1950, 1, 1)
+    end_date = datetime.date(1995, 12, 31)
+    offset = random.randint(0, (end_date - start_date).days)
+    random_date = start_date + datetime.timedelta(offset)
     return {
-        year_field: str(random.randint(1950, 1995)),
-        month_field: str(random.randint(1, 12)),
-        day_field: str(random.randint(1, 31)),
+        year_field: str(random_date.year),
+        month_field: str(random_date.month),
+        day_field: str(random_date.day),
     }
