@@ -159,13 +159,13 @@ class PornHubIE(PornHubBaseIE):
         return str_to_int(self._search_regex(
             pattern, webpage, '%s count' % name, fatal=False))
 
-    def _get_text(self, str, page):
-        l = []
-        div = re.search(r'<div class="'+str+'">\s+[^\n]+\s+([^\n]+)', page)
+    @staticmethod
+    def _get_text(class_name, page):
+        div = re.search(r'<div class="' + class_name + '">\s+[^\n]+\s+([^\n]+)', page)
         if div:
-            for a in re.finditer(r'<a href=[^>]+>([^<]+)', div.group(1)):
-                l.append(a.group(1))
-        return l
+            return [a.group(1) for a in re.finditer(r'<a href=[^>]+>([^<]+)', div.group(1))]
+        else:
+            return []
 
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
