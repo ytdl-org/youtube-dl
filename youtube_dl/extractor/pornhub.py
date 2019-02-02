@@ -16,7 +16,6 @@ from .openload import PhantomJSwrapper
 from ..utils import (
     ExtractorError,
     int_or_none,
-    js_to_json,
     orderedSet,
     remove_quotes,
     str_to_int,
@@ -303,17 +302,15 @@ class PornHubIE(PornHubBaseIE):
         comment_count = self._extract_count(
             r'All Comments\s*<span>\(([\d,.]+)\)', webpage, 'comment')
 
-        page_params = self._parse_json(self._search_regex(
-            r'page_params\.zoneDetails\[([\'"])[^\'"]+\1\]\s*=\s*(?P<data>{[^}]+})',
-            webpage, 'page parameters', group='data', default='{}'),
-            video_id, transform_source=js_to_json, fatal=False)
-        tags = None
-        if page_params:
-            tags = page_params.get('tags', '').split(',')
-
         categories = []
-        for mobj in re.finditer(r'<a href=[^>]+Category[^>]*>([^<]+)', webpage):
-            categories.append(mobj.group(1))
+        cat_div = re.search(r'<div class="categoriesWrapper">\s+Categories:&nbsp;\s+([^\n]+)', webpage)
+        for a in re.finditer(r'<a href=[^>]+Category[^>]*>([^<]+)', cat_div.group(1)):
+            categories.append(a.group(1))
+
+        tags = []
+        tag_div = re.search(r'<div class="tagsWrapper">\s+Tags:&nbsp;\s+([^\n]+)', webpage)
+        for a in re.finditer(r'<a href=[^>]+>([^<]+)', tag_div.group(1)):
+            tags.append(a.group(1))
 
         return {
             'id': video_id,
