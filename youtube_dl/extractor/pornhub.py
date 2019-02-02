@@ -159,14 +159,6 @@ class PornHubIE(PornHubBaseIE):
         return str_to_int(self._search_regex(
             pattern, webpage, '%s count' % name, fatal=False))
 
-    @staticmethod
-    def _get_text(class_name, page):
-        div = re.findall(r'<div class="' + class_name + '">\s+[^\n]+\s+([^\n]+)', page)
-        if div:
-            return [a for a in re.findall(r'<a href=[^>]+>([^<]+)', div[0])]
-        else:
-            return []
-
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
         host = mobj.group('host') or 'pornhub.com'
@@ -310,8 +302,14 @@ class PornHubIE(PornHubBaseIE):
         comment_count = self._extract_count(
             r'All Comments\s*<span>\(([\d,.]+)\)', webpage, 'comment')
 
-        categories = self._get_text("categoriesWrapper", webpage)
-        tags = self._get_text("tagsWrapper", webpage)
+        def _get_text(class_name, page):
+            div = re.search(
+                r'<div class="' + class_name + '">\s+[^\n]+\s+([^\n]+)\s+[^\n]+\s+</div>', page)
+            if div:
+                return [a for a in re.findall(r'<a href=[^>]+>([^<]+)', div.group(1))]
+
+        categories = _get_text('categoriesWrapper', webpage)
+        tags = _get_text('tagsWrapper', webpage)
 
         return {
             'id': video_id,
