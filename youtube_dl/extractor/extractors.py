@@ -350,6 +350,9 @@ from .facebook import (
     FacebookIE,
     FacebookPluginsVideoIE,
 )
+from .facebookExternal import (
+    FacebookExternalExtractorIE
+)
 from .faz import FazIE
 from .fc2 import (
     FC2IE,
