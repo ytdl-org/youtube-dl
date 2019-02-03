@@ -1,3 +1,27 @@
+version 2019.01.30.1
+
+Core
+* [postprocessor/ffmpeg] Fix avconv processing broken in #19025 (#19067)
+
+
+version 2019.01.30
+
+Core
+* [postprocessor/ffmpeg] Do not copy Apple TV chapter tracks while embedding
+  subtitles (#19024, #19042)
+* [postprocessor/ffmpeg] Disable "Last message repeated" messages (#19025)
+
+Extractors
+* [yourporn] Fix extraction and extract duration (#18815, #18852, #19061)
+* [drtv] Improve extraction (#19039)
+    + Add support for EncryptedUri videos
+    + Extract more metadata
+    * Fix subtitles extraction
++ [fox] Add support for locked videos using cookies (#19060)
+* [fox] Fix extraction for free videos (#19060)
++ [zattoo] Add support for tv.salt.ch (#19059)
+
+
 version 2019.01.27
 
 Core

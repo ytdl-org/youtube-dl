@@ -546,6 +546,7 @@
  - **MyVisionTV**
  - **n-tv.de**
  - **natgeo:video**
+ - **NationalGeographicTV**
  - **Naver**
  - **NBA**
  - **NBC**
@@ -776,6 +777,7 @@
  - **safari:api**
  - **safari:course**: safaribooksonline.com online courses
  - **SAKTV**
+ - **SaltTV**
  - **Sapo**: SAPO Vídeos
  - **savefrom.net**
  - **SBS**: sbs.com.au
