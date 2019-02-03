@@ -361,6 +361,7 @@
  - **hitbox**
  - **hitbox:live**
  - **HitRecord**
+ - **hketv**: 香港教育局教育電視 (HKETV) Educational Television, Hong Kong Educational Bureau
  - **HornBunny**
  - **HotNewHipHop**
  - **hotstar**
@@ -386,6 +387,7 @@
  - **IndavideoEmbed**
  - **InfoQ**
  - **Instagram**
+ - **instagram:tag**: Instagram hashtag search
  - **instagram:user**: Instagram user profile
  - **Internazionale**
  - **InternetVideoArchive**
@@ -544,6 +546,7 @@
  - **MyVisionTV**
  - **n-tv.de**
  - **natgeo:video**
+ - **NationalGeographicTV**
  - **Naver**
  - **NBA**
  - **NBC**
@@ -774,6 +777,7 @@
  - **safari:api**
  - **safari:course**: safaribooksonline.com online courses
  - **SAKTV**
+ - **SaltTV**
  - **Sapo**: SAPO Vídeos
  - **savefrom.net**
  - **SBS**: sbs.com.au
@@ -1067,6 +1071,7 @@
  - **VVVVID**
  - **VyboryMos**
  - **Vzaar**
+ - **Wakanim**
  - **Walla**
  - **WalyTV**
  - **washingtonpost**

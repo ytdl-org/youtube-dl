@@ -1249,7 +1249,10 @@ class InfoExtractor(object):
                         info['title'] = episode_name
                     part_of_season = e.get('partOfSeason')
                     if isinstance(part_of_season, dict) and part_of_season.get('@type') in ('TVSeason', 'Season', 'CreativeWorkSeason'):
-                        info['season_number'] = int_or_none(part_of_season.get('seasonNumber'))
+                        info.update({
+                            'season': unescapeHTML(part_of_season.get('name')),
+                            'season_number': int_or_none(part_of_season.get('seasonNumber')),
+                        })
                     part_of_series = e.get('partOfSeries') or e.get('partOfTVSeries')
                     if isinstance(part_of_series, dict) and part_of_series.get('@type') in ('TVSeries', 'Series', 'CreativeWorkSeries'):
                         info['series'] = unescapeHTML(part_of_series.get('name'))
@@ -1596,6 +1599,7 @@ class InfoExtractor(object):
         # References:
         # 1. https://tools.ietf.org/html/draft-pantos-http-live-streaming-21
         # 2. https://github.com/rg3/youtube-dl/issues/12211
+        # 3. https://github.com/rg3/youtube-dl/issues/18923
 
         # We should try extracting formats only from master playlists [1, 4.3.4],
         # i.e. playlists that describe available qualities. On the other hand
@@ -1667,11 +1671,16 @@ class InfoExtractor(object):
             rendition = stream_group[0]
             return rendition.get('NAME') or stream_group_id
 
+        # parse EXT-X-MEDIA tags before EXT-X-STREAM-INF in order to have the
+        # chance to detect video only formats when EXT-X-STREAM-INF tags
+        # precede EXT-X-MEDIA tags in HLS manifest such as [3].
+        for line in m3u8_doc.splitlines():
+            if line.startswith('#EXT-X-MEDIA:'):
+                extract_media(line)
+
         for line in m3u8_doc.splitlines():
             if line.startswith('#EXT-X-STREAM-INF:'):
                 last_stream_inf = parse_m3u8_attributes(line)
-            elif line.startswith('#EXT-X-MEDIA:'):
-                extract_media(line)
             elif line.startswith('#') or not line.strip():
                 continue
             else:
@@ -2624,7 +2633,7 @@ class InfoExtractor(object):
                 'id': this_video_id,
                 'title': unescapeHTML(video_data['title'] if require_title else video_data.get('title')),
                 'description': video_data.get('description'),
-                'thumbnail': self._proto_relative_url(video_data.get('image')),
+                'thumbnail': urljoin(base_url, self._proto_relative_url(video_data.get('image'))),
                 'timestamp': int_or_none(video_data.get('pubdate')),
                 'duration': float_or_none(jwplayer_data.get('duration') or video_data.get('duration')),
                 'subtitles': subtitles,
@@ -2651,12 +2660,9 @@ class InfoExtractor(object):
         for source in jwplayer_sources_data:
             if not isinstance(source, dict):
                 continue
-            source_url = self._proto_relative_url(source.get('file'))
-            if not source_url:
-                continue
-            if base_url:
-                source_url = compat_urlparse.urljoin(base_url, source_url)
-            if source_url in urls:
+            source_url = urljoin(
+                base_url, self._proto_relative_url(source.get('file')))
+            if not source_url or source_url in urls:
                 continue
             urls.append(source_url)
             source_type = source.get('type') or ''

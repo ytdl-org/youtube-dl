@@ -667,13 +667,15 @@ The following numeric meta fields can be used with comparisons `<`, `<=`, `>`, `
  - `asr`: Audio sampling rate in Hertz
  - `fps`: Frame rate
 
-Also filtering work for comparisons `=` (equals), `!=` (not equals), `^=` (begins with), `$=` (ends with), `*=` (contains) and following string meta fields:
+Also filtering work for comparisons `=` (equals), `^=` (starts with), `$=` (ends with), `*=` (contains) and following string meta fields:
  - `ext`: File extension
  - `acodec`: Name of the audio codec in use
  - `vcodec`: Name of the video codec in use
  - `container`: Name of the container format
  - `protocol`: The protocol that will be used for the actual download, lower-case (`http`, `https`, `rtsp`, `rtmp`, `rtmpe`, `mms`, `f4m`, `ism`, `http_dash_segments`, `m3u8`, or `m3u8_native`)
  - `format_id`: A short description of the format
+
+Any string comparison may be prefixed with negation `!` in order to produce an opposite comparison, e.g. `!*=` (does not contain).
 
 Note that none of the aforementioned meta fields are guaranteed to be present since this solely depends on the metadata obtained by particular extractor, i.e. the metadata offered by the video hoster.
 
@@ -1211,13 +1213,15 @@ Incorrect:
 'PLMYEtVRpaqY00V9W81Cwmzp6N6vZqfUKD4'
 ```
 
-### Use safe conversion functions
+### Use convenience conversion and parsing functions
 
 Wrap all extracted numeric data into safe functions from [`youtube_dl/utils.py`](https://github.com/rg3/youtube-dl/blob/master/youtube_dl/utils.py): `int_or_none`, `float_or_none`. Use them for string to number conversions as well.
 
 Use `url_or_none` for safe URL processing.
 
 Use `try_get` for safe metadata extraction from parsed JSON.
+
+Use `unified_strdate` for uniform `upload_date` or any `YYYYMMDD` meta field extraction, `unified_timestamp` for uniform `timestamp` extraction, `parse_filesize` for `filesize` extraction, `parse_count` for count meta fields extraction, `parse_resolution`, `parse_duration` for `duration` extraction, `parse_age_limit` for `age_limit` extraction. 
 
 Explore [`youtube_dl/utils.py`](https://github.com/rg3/youtube-dl/blob/master/youtube_dl/utils.py) for more useful convenience functions.
 

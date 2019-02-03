@@ -1,3 +1,106 @@
+version 2019.01.30.1
+
+Core
+* [postprocessor/ffmpeg] Fix avconv processing broken in #19025 (#19067)
+
+
+version 2019.01.30
+
+Core
+* [postprocessor/ffmpeg] Do not copy Apple TV chapter tracks while embedding
+  subtitles (#19024, #19042)
+* [postprocessor/ffmpeg] Disable "Last message repeated" messages (#19025)
+
+Extractors
+* [yourporn] Fix extraction and extract duration (#18815, #18852, #19061)
+* [drtv] Improve extraction (#19039)
+    + Add support for EncryptedUri videos
+    + Extract more metadata
+    * Fix subtitles extraction
++ [fox] Add support for locked videos using cookies (#19060)
+* [fox] Fix extraction for free videos (#19060)
++ [zattoo] Add support for tv.salt.ch (#19059)
+
+
+version 2019.01.27
+
+Core
++ [extractor/common] Extract season in _json_ld
+* [postprocessor/ffmpeg] Fallback to ffmpeg/avconv for audio codec detection
+  (#681)
+
+Extractors
+* [vice] Fix extraction for locked videos (#16248)
++ [wakanim] Detect DRM protected videos
++ [wakanim] Add support for wakanim.tv (#14374)
+* [usatoday] Fix extraction for videos with custom brightcove partner id
+  (#18990)
+* [drtv] Fix extraction (#18989)
+* [nhk] Extend URL regular expression (#18968)
+* [go] Fix Adobe Pass requests for Disney Now (#18901)
++ [openload] Add support for oload.club (#18969)
+
+
+version 2019.01.24
+
+Core
+* [YoutubeDL] Fix negation for string operators in format selection (#18961)
+
+
+version 2019.01.23
+
+Core
+* [utils] Fix urljoin for paths with non-http(s) schemes
+* [extractor/common] Improve jwplayer relative URL handling (#18892)
++ [YoutubeDL] Add negation support for string comparisons in format selection
+  expressions (#18600, #18805)
+* [extractor/common] Improve HLS video-only format detection (#18923)
+
+Extractors
+* [crunchyroll] Extend URL regular expression (#18955)
+* [pornhub] Bypass scrape detection (#4822, #5930, #7074, #10175, #12722,
+  #17197, #18338 #18842, #18899)
++ [vrv] Add support for authentication (#14307)
+* [videomore:season] Fix extraction
+* [videomore] Improve extraction (#18908)
++ [tnaflix] Pass Referer in metadata request (#18925)
+* [radiocanada] Relax DRM check (#18608, #18609)
+* [vimeo] Fix video password verification for videos protected by
+  Referer HTTP header
++ [hketv] Add support for hkedcity.net (#18696)
++ [streamango] Add support for fruithosts.net (#18710)
++ [instagram] Add support for tags (#18757)
++ [odnoklassniki] Detect paid videos (#18876)
+* [ted] Correct acodec for HTTP formats (#18923)
+* [cartoonnetwork] Fix extraction (#15664, #17224)
+* [vimeo] Fix extraction for password protected player URLs (#18889)
+
+
+version 2019.01.17
+
+Extractors
+* [youtube] Extend JS player signature function name regular expressions
+  (#18890, #18891, #18893)
+
+
+version 2019.01.16
+
+Core
++ [test/helper] Add support for maxcount and count collection len checkers
+* [downloader/hls] Fix uplynk ad skipping (#18824)
+* [postprocessor/ffmpeg] Improve ffmpeg version parsing (#18813)
+
+Extractors
+* [youtube] Skip unsupported adaptive stream type (#18804)
++ [youtube] Extract DASH formats from player response (#18804)
+* [funimation] Fix extraction (#14089)
+* [skylinewebcams] Fix extraction (#18853)
++ [curiositystream] Add support for non app URLs
++ [bitchute] Check formats (#18833)
+* [wistia] Extend URL regular expression (#18823)
++ [playplustv] Add support for playplus.com (#18789)
+
+
 version 2019.01.10
 
 Core

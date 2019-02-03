@@ -239,6 +239,76 @@ class TestFormatSelection(unittest.TestCase):
         downloaded = ydl.downloaded_info_dicts[0]
         self.assertEqual(downloaded['format_id'], 'vid-vcodec-dot')
 
+    def test_format_selection_string_ops(self):
+        formats = [
+            {'format_id': 'abc-cba', 'ext': 'mp4', 'url': TEST_URL},
+            {'format_id': 'zxc-cxz', 'ext': 'webm', 'url': TEST_URL},
+        ]
+        info_dict = _make_result(formats)
+
+        # equals (=)
+        ydl = YDL({'format': '[format_id=abc-cba]'})
+        ydl.process_ie_result(info_dict.copy())
+        downloaded = ydl.downloaded_info_dicts[0]
+        self.assertEqual(downloaded['format_id'], 'abc-cba')
+
+        # does not equal (!=)
+        ydl = YDL({'format': '[format_id!=abc-cba]'})
+        ydl.process_ie_result(info_dict.copy())
+        downloaded = ydl.downloaded_info_dicts[0]
+        self.assertEqual(downloaded['format_id'], 'zxc-cxz')
+
+        ydl = YDL({'format': '[format_id!=abc-cba][format_id!=zxc-cxz]'})
+        self.assertRaises(ExtractorError, ydl.process_ie_result, info_dict.copy())
+
+        # starts with (^=)
+        ydl = YDL({'format': '[format_id^=abc]'})
+        ydl.process_ie_result(info_dict.copy())
+        downloaded = ydl.downloaded_info_dicts[0]
+        self.assertEqual(downloaded['format_id'], 'abc-cba')
+
+        # does not start with (!^=)
+        ydl = YDL({'format': '[format_id!^=abc]'})
+        ydl.process_ie_result(info_dict.copy())
+        downloaded = ydl.downloaded_info_dicts[0]
+        self.assertEqual(downloaded['format_id'], 'zxc-cxz')
+
+        ydl = YDL({'format': '[format_id!^=abc][format_id!^=zxc]'})
+        self.assertRaises(ExtractorError, ydl.process_ie_result, info_dict.copy())
+
+        # ends with ($=)
+        ydl = YDL({'format': '[format_id$=cba]'})
+        ydl.process_ie_result(info_dict.copy())
+        downloaded = ydl.downloaded_info_dicts[0]
+        self.assertEqual(downloaded['format_id'], 'abc-cba')
+
+        # does not end with (!$=)
+        ydl = YDL({'format': '[format_id!$=cba]'})
+        ydl.process_ie_result(info_dict.copy())
+        downloaded = ydl.downloaded_info_dicts[0]
+        self.assertEqual(downloaded['format_id'], 'zxc-cxz')
+
+        ydl = YDL({'format': '[format_id!$=cba][format_id!$=cxz]'})
+        self.assertRaises(ExtractorError, ydl.process_ie_result, info_dict.copy())
+
+        # contains (*=)
+        ydl = YDL({'format': '[format_id*=bc-cb]'})
+        ydl.process_ie_result(info_dict.copy())
+        downloaded = ydl.downloaded_info_dicts[0]
+        self.assertEqual(downloaded['format_id'], 'abc-cba')
+
+        # does not contain (!*=)
+        ydl = YDL({'format': '[format_id!*=bc-cb]'})
+        ydl.process_ie_result(info_dict.copy())
+        downloaded = ydl.downloaded_info_dicts[0]
+        self.assertEqual(downloaded['format_id'], 'zxc-cxz')
+
+        ydl = YDL({'format': '[format_id!*=abc][format_id!*=zxc]'})
+        self.assertRaises(ExtractorError, ydl.process_ie_result, info_dict.copy())
+
+        ydl = YDL({'format': '[format_id!*=-]'})
+        self.assertRaises(ExtractorError, ydl.process_ie_result, info_dict.copy())
+
     def test_youtube_format_selection(self):
         order = [
             '38', '37', '46', '22', '45', '35', '44', '18', '34', '43', '6', '5', '17', '36', '13',

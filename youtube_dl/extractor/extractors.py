@@ -452,6 +452,7 @@ from .hellporno import HellPornoIE
 from .helsinki import HelsinkiIE
 from .hentaistigma import HentaiStigmaIE
 from .hgtv import HGTVComShowIE
+from .hketv import HKETVIE
 from .hidive import HiDiveIE
 from .historicfilms import HistoricFilmsIE
 from .hitbox import HitboxIE, HitboxLiveIE
@@ -494,7 +495,11 @@ from .ina import InaIE
 from .inc import IncIE
 from .indavideo import IndavideoEmbedIE
 from .infoq import InfoQIE
-from .instagram import InstagramIE, InstagramUserIE
+from .instagram import (
+    InstagramIE,
+    InstagramUserIE,
+    InstagramTagIE,
+)
 from .internazionale import InternazionaleIE
 from .internetvideoarchive import InternetVideoArchiveIE
 from .iprima import IPrimaIE
@@ -687,7 +692,10 @@ from .myvi import (
     MyviEmbedIE,
 )
 from .myvidster import MyVidsterIE
-from .nationalgeographic import NationalGeographicVideoIE
+from .nationalgeographic import (
+    NationalGeographicVideoIE,
+    NationalGeographicTVIE,
+)
 from .naver import NaverIE
 from .nba import NBAIE
 from .nbc import (
@@ -1354,7 +1362,6 @@ from .voxmedia import (
     VoxMediaVolumeIE,
     VoxMediaIE,
 )
-from .vporn import VpornIE
 from .vrt import VRTIE
 from .vrak import VrakIE
 from .vrv import (
@@ -1368,6 +1375,7 @@ from .vuclip import VuClipIE
 from .vvvvid import VVVVIDIE
 from .vyborymos import VyboryMosIE
 from .vzaar import VzaarIE
+from .wakanim import WakanimIE
 from .walla import WallaIE
 from .washingtonpost import (
     WashingtonPostIE,
@@ -1491,6 +1499,7 @@ from .zattoo import (
     QuantumTVIE,
     QuicklineIE,
     QuicklineLiveIE,
+    SaltTVIE,
     SAKTVIE,
     VTXTVIE,
     WalyTVIE,

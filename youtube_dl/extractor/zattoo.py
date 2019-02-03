@@ -420,3 +420,14 @@ class EinsUndEinsTVIE(ZattooIE):
         'url': 'https://www.1und1.tv/watch/abc/123-abc',
         'only_matching': True,
     }]
+
+
+class SaltTVIE(ZattooIE):
+    _NETRC_MACHINE = 'salttv'
+    _HOST = 'tv.salt.ch'
+    _VALID_URL = _make_valid_url(ZattooIE._VALID_URL_TEMPLATE, _HOST)
+
+    _TESTS = [{
+        'url': 'https://tv.salt.ch/watch/abc/123-abc',
+        'only_matching': True,
+    }]

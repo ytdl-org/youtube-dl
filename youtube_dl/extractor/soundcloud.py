@@ -18,6 +18,7 @@ from ..utils import (
     int_or_none,
     unified_strdate,
     update_url_query,
+    url_or_none,
 )
 
 
@@ -34,7 +35,7 @@ class SoundcloudIE(InfoExtractor):
                     (?:(?:(?:www\.|m\.)?soundcloud\.com/
                             (?!stations/track)
                             (?P<uploader>[\w\d-]+)/
-                            (?!(?:tracks|sets(?:/.+?)?|reposts|likes|spotlight)/?(?:$|[?#]))
+                            (?!(?:tracks|albums|sets(?:/.+?)?|reposts|likes|spotlight)/?(?:$|[?#]))
                             (?P<title>[\w\d-]+)/?
                             (?P<token>[^?]+?)?(?:[?].*)?$)
                        |(?:api\.soundcloud\.com/tracks/(?P<track_id>\d+)
@@ -157,7 +158,7 @@ class SoundcloudIE(InfoExtractor):
         },
     ]
 
-    _CLIENT_ID = 'LvWovRaJZlWCHql0bISuum8Bd2KX79mb'
+    _CLIENT_ID = 'NmW1FlPaiL94ueEu7oziOWjYEzZzQDcK'
 
     @staticmethod
     def _extract_urls(webpage):
@@ -368,7 +369,6 @@ class SoundcloudSetIE(SoundcloudPlaylistBaseIE):
 
 
 class SoundcloudPagedPlaylistBaseIE(SoundcloudPlaylistBaseIE):
-    _API_BASE = 'https://api.soundcloud.com'
     _API_V2_BASE = 'https://api-v2.soundcloud.com'
 
     def _extract_playlist(self, base_url, playlist_id, playlist_title):
@@ -389,21 +389,30 @@ class SoundcloudPagedPlaylistBaseIE(SoundcloudPlaylistBaseIE):
                 next_href, playlist_id, 'Downloading track page %s' % (i + 1))
 
             collection = response['collection']
-            if not collection:
-                break
 
-            def resolve_permalink_url(candidates):
+            if not isinstance(collection, list):
+                collection = []
+
+            # Empty collection may be returned, in this case we proceed
+            # straight to next_href
+
+            def resolve_entry(candidates):
                 for cand in candidates:
-                    if isinstance(cand, dict):
-                        permalink_url = cand.get('permalink_url')
-                        entry_id = self._extract_id(cand)
-                        if permalink_url and permalink_url.startswith('http'):
-                            return permalink_url, entry_id
+                    if not isinstance(cand, dict):
+                        continue
+                    permalink_url = url_or_none(cand.get('permalink_url'))
+                    if not permalink_url:
+                        continue
+                    return self.url_result(
+                        permalink_url,
+                        ie=SoundcloudIE.ie_key() if SoundcloudIE.suitable(permalink_url) else None,
+                        video_id=self._extract_id(cand),
+                        video_title=cand.get('title'))
 
             for e in collection:
-                permalink_url, entry_id = resolve_permalink_url((e, e.get('track'), e.get('playlist')))
-                if permalink_url:
-                    entries.append(self.url_result(permalink_url, video_id=entry_id))
+                entry = resolve_entry((e, e.get('track'), e.get('playlist')))
+                if entry:
+                    entries.append(entry)
 
             next_href = response.get('next_href')
             if not next_href:
@@ -429,46 +438,53 @@ class SoundcloudUserIE(SoundcloudPagedPlaylistBaseIE):
                             (?:(?:www|m)\.)?soundcloud\.com/
                             (?P<user>[^/]+)
                             (?:/
-                                (?P<rsrc>tracks|sets|reposts|likes|spotlight)
+                                (?P<rsrc>tracks|albums|sets|reposts|likes|spotlight)
                             )?
                             /?(?:[?#].*)?$
                     '''
     IE_NAME = 'soundcloud:user'
     _TESTS = [{
-        'url': 'https://soundcloud.com/the-akashic-chronicler',
+        'url': 'https://soundcloud.com/soft-cell-official',
         'info_dict': {
-            'id': '114582580',
-            'title': 'The Akashic Chronicler (All)',
+            'id': '207965082',
+            'title': 'Soft Cell (All)',
         },
-        'playlist_mincount': 74,
+        'playlist_mincount': 28,
     }, {
-        'url': 'https://soundcloud.com/the-akashic-chronicler/tracks',
+        'url': 'https://soundcloud.com/soft-cell-official/tracks',
         'info_dict': {
-            'id': '114582580',
-            'title': 'The Akashic Chronicler (Tracks)',
+            'id': '207965082',
+            'title': 'Soft Cell (Tracks)',
         },
-        'playlist_mincount': 37,
+        'playlist_mincount': 27,
     }, {
-        'url': 'https://soundcloud.com/the-akashic-chronicler/sets',
+        'url': 'https://soundcloud.com/soft-cell-official/albums',
         'info_dict': {
-            'id': '114582580',
-            'title': 'The Akashic Chronicler (Playlists)',
+            'id': '207965082',
+            'title': 'Soft Cell (Albums)',
+        },
+        'playlist_mincount': 1,
+    }, {
+        'url': 'https://soundcloud.com/jcv246/sets',
+        'info_dict': {
+            'id': '12982173',
+            'title': 'Jordi / cv (Playlists)',
         },
         'playlist_mincount': 2,
     }, {
-        'url': 'https://soundcloud.com/the-akashic-chronicler/reposts',
+        'url': 'https://soundcloud.com/jcv246/reposts',
         'info_dict': {
-            'id': '114582580',
-            'title': 'The Akashic Chronicler (Reposts)',
+            'id': '12982173',
+            'title': 'Jordi / cv (Reposts)',
         },
-        'playlist_mincount': 7,
+        'playlist_mincount': 6,
     }, {
-        'url': 'https://soundcloud.com/the-akashic-chronicler/likes',
+        'url': 'https://soundcloud.com/clalberg/likes',
         'info_dict': {
-            'id': '114582580',
-            'title': 'The Akashic Chronicler (Likes)',
+            'id': '11817582',
+            'title': 'clalberg (Likes)',
         },
-        'playlist_mincount': 321,
+        'playlist_mincount': 5,
     }, {
         'url': 'https://soundcloud.com/grynpyret/spotlight',
         'info_dict': {
@@ -479,10 +495,11 @@ class SoundcloudUserIE(SoundcloudPagedPlaylistBaseIE):
     }]
 
     _BASE_URL_MAP = {
-        'all': '%s/profile/soundcloud:users:%%s' % SoundcloudPagedPlaylistBaseIE._API_V2_BASE,
-        'tracks': '%s/users/%%s/tracks' % SoundcloudPagedPlaylistBaseIE._API_BASE,
+        'all': '%s/stream/users/%%s' % SoundcloudPagedPlaylistBaseIE._API_V2_BASE,
+        'tracks': '%s/users/%%s/tracks' % SoundcloudPagedPlaylistBaseIE._API_V2_BASE,
+        'albums': '%s/users/%%s/albums' % SoundcloudPagedPlaylistBaseIE._API_V2_BASE,
         'sets': '%s/users/%%s/playlists' % SoundcloudPagedPlaylistBaseIE._API_V2_BASE,
-        'reposts': '%s/profile/soundcloud:users:%%s/reposts' % SoundcloudPagedPlaylistBaseIE._API_V2_BASE,
+        'reposts': '%s/stream/users/%%s/reposts' % SoundcloudPagedPlaylistBaseIE._API_V2_BASE,
         'likes': '%s/users/%%s/likes' % SoundcloudPagedPlaylistBaseIE._API_V2_BASE,
         'spotlight': '%s/users/%%s/spotlight' % SoundcloudPagedPlaylistBaseIE._API_V2_BASE,
     }
@@ -490,6 +507,7 @@ class SoundcloudUserIE(SoundcloudPagedPlaylistBaseIE):
     _TITLE_MAP = {
         'all': 'All',
         'tracks': 'Tracks',
+        'albums': 'Albums',
         'sets': 'Playlists',
         'reposts': 'Reposts',
         'likes': 'Likes',

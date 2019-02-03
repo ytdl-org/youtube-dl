@@ -9,9 +9,6 @@ import re
 
 from .common import AudioConversionError, PostProcessor
 
-from ..compat import (
-    compat_subprocess_get_DEVNULL,
-)
 from ..utils import (
     encodeArgument,
     encodeFilename,
@@ -165,27 +162,45 @@ class FFmpegPostProcessor(PostProcessor):
         return self._paths[self.probe_basename]
 
     def get_audio_codec(self, path):
-        if not self.probe_available:
-            raise PostProcessingError('ffprobe or avprobe not found. Please install one.')
+        if not self.probe_available and not self.available:
+            raise PostProcessingError('ffprobe/avprobe and ffmpeg/avconv not found. Please install one.')
         try:
-            cmd = [
-                encodeFilename(self.probe_executable, True),
-                encodeArgument('-show_streams'),
-                encodeFilename(self._ffmpeg_filename_argument(path), True)]
+            if self.probe_available:
+                cmd = [
+                    encodeFilename(self.probe_executable, True),
+                    encodeArgument('-show_streams')]
+            else:
+                cmd = [
+                    encodeFilename(self.executable, True),
+                    encodeArgument('-i')]
+            cmd.append(encodeFilename(self._ffmpeg_filename_argument(path), True))
             if self._downloader.params.get('verbose', False):
-                self._downloader.to_screen('[debug] %s command line: %s' % (self.basename, shell_quote(cmd)))
-            handle = subprocess.Popen(cmd, stderr=compat_subprocess_get_DEVNULL(), stdout=subprocess.PIPE, stdin=subprocess.PIPE)
-            output = handle.communicate()[0]
-            if handle.wait() != 0:
+                self._downloader.to_screen(
+                    '[debug] %s command line: %s' % (self.basename, shell_quote(cmd)))
+            handle = subprocess.Popen(
+                cmd, stderr=subprocess.PIPE,
+                stdout=subprocess.PIPE, stdin=subprocess.PIPE)
+            stdout_data, stderr_data = handle.communicate()
+            expected_ret = 0 if self.probe_available else 1
+            if handle.wait() != expected_ret:
                 return None
         except (IOError, OSError):
             return None
-        audio_codec = None
-        for line in output.decode('ascii', 'ignore').split('\n'):
-            if line.startswith('codec_name='):
-                audio_codec = line.split('=')[1].strip()
-            elif line.strip() == 'codec_type=audio' and audio_codec is not None:
-                return audio_codec
+        output = (stdout_data if self.probe_available else stderr_data).decode('ascii', 'ignore')
+        if self.probe_available:
+            audio_codec = None
+            for line in output.split('\n'):
+                if line.startswith('codec_name='):
+                    audio_codec = line.split('=')[1].strip()
+                elif line.strip() == 'codec_type=audio' and audio_codec is not None:
+                    return audio_codec
+        else:
+            # Stream #FILE_INDEX:STREAM_INDEX[STREAM_ID](LANGUAGE): CODEC_TYPE: CODEC_NAME
+            mobj = re.search(
+                r'Stream\s*#\d+:\d+(?:\[0x[0-9a-f]+\])?(?:\([a-z]{3}\))?:\s*Audio:\s*([0-9a-z]+)',
+                output)
+            if mobj:
+                return mobj.group(1)
         return None
 
     def run_ffmpeg_multiple_files(self, input_paths, out_path, opts):
@@ -202,10 +217,13 @@ class FFmpegPostProcessor(PostProcessor):
                 encodeArgument('-i'),
                 encodeFilename(self._ffmpeg_filename_argument(path), True)
             ])
-        cmd = ([encodeFilename(self.executable, True), encodeArgument('-y')] +
-               files_cmd +
-               [encodeArgument(o) for o in opts] +
-               [encodeFilename(self._ffmpeg_filename_argument(out_path), True)])
+        cmd = [encodeFilename(self.executable, True), encodeArgument('-y')]
+        # avconv does not have repeat option
+        if self.basename == 'ffmpeg':
+            cmd += [encodeArgument('-loglevel'), encodeArgument('repeat+info')]
+        cmd += (files_cmd +
+                [encodeArgument(o) for o in opts] +
+                [encodeFilename(self._ffmpeg_filename_argument(out_path), True)])
 
         if self._downloader.params.get('verbose', False):
             self._downloader.to_screen('[debug] ffmpeg command line: %s' % shell_quote(cmd))
@@ -392,6 +410,9 @@ class FFmpegEmbedSubtitlePP(FFmpegPostProcessor):
             # Don't copy the existing subtitles, we may be running the
             # postprocessor a second time
             '-map', '-0:s',
+            # Don't copy Apple TV chapters track, bin_data (see #19042, #19024,
+            # https://trac.ffmpeg.org/ticket/6016)
+            '-map', '-0:d',
         ]
         if information['ext'] == 'mp4':
             opts += ['-c:s', 'mov_text']
