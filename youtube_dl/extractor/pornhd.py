@@ -4,9 +4,11 @@ import re
 
 from .common import InfoExtractor
 from ..utils import (
+    determine_ext,
     ExtractorError,
     int_or_none,
     js_to_json,
+    urljoin,
 )
 
 
@@ -14,7 +16,7 @@ class PornHdIE(InfoExtractor):
     _VALID_URL = r'https?://(?:www\.)?pornhd\.com/(?:[a-z]{2,4}/)?videos/(?P<id>\d+)(?:/(?P<display_id>.+))?'
     _TESTS = [{
         'url': 'http://www.pornhd.com/videos/9864/selfie-restroom-masturbation-fun-with-chubby-cutie-hd-porn-video',
-        'md5': 'c8b964b1f0a4b5f7f28ae3a5c9f86ad5',
+        'md5': '87f1540746c1d32ec7a2305c12b96b25',
         'info_dict': {
             'id': '9864',
             'display_id': 'selfie-restroom-masturbation-fun-with-chubby-cutie-hd-porn-video',
@@ -67,12 +69,14 @@ class PornHdIE(InfoExtractor):
 
         formats = []
         for format_id, video_url in sources.items():
+            video_url = urljoin(url, video_url)
             if not video_url:
                 continue
             height = int_or_none(self._search_regex(
                 r'^(\d+)[pP]', format_id, 'height', default=None))
             formats.append({
                 'url': video_url,
+                'ext': determine_ext(video_url, 'mp4'),
                 'format_id': format_id,
                 'height': height,
             })
