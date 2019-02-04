@@ -86,7 +86,7 @@ class PornHdIE(InfoExtractor):
             'thumbnail', fatal=False, group='url')
 
         like_count = int_or_none(self._search_regex(
-            r'class="save-count">(\d+)<', webpage, 'like_count', fatal=False))
+            r'save-count[\'"]>(\d+)', webpage, 'like count', fatal=False))
 
         return {
             'id': video_id,
@@ -95,7 +95,7 @@ class PornHdIE(InfoExtractor):
             'description': description,
             'thumbnail': thumbnail,
             'view_count': view_count,
+            'like_count': like_count,
             'formats': formats,
             'age_limit': 18,
-            'like_count': like_count,
         }
