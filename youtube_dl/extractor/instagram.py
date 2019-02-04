@@ -215,7 +215,7 @@ class InstagramIE(InfoExtractor):
             'id': video_id,
             'formats': formats,
             'ext': 'mp4',
-            'title': 'Video by %s' % uploader_id,
+            'title': description,
             'description': description,
             'thumbnail': thumbnail,
             'timestamp': timestamp,
