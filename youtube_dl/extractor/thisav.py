@@ -9,20 +9,20 @@ from ..utils import urljoin, xpath_text
 
 class ThisAVIE(InfoExtractor):
     _VALID_URL = r'https?://(?:www\.)?thisav\.com/video/(?P<id>[0-9]+)/.*'
+
+    # all videos are now html5 videos
     _TESTS = [{
-        # jwplayer
-        'url': 'http://www.thisav.com/video/47734/%98%26sup1%3B%83%9E%83%82---just-fit.html',
-        'md5': '0480f1ef3932d901f0e0e719f188f19b',
+        'url': 'https://www.thisav.com/video/47734/%98%26sup1%3B%83%9E%83%82---just-fit.html',
+        'md5': 'adad2d2e989b4524698b4fb856d6719f',
         'info_dict': {
             'id': '47734',
-            'ext': 'flv',
+            'ext': 'mp4',
             'title': '高樹マリア - Just fit',
             'uploader': 'dj7970',
             'uploader_id': 'dj7970'
         }
     }, {
-        # html5 media
-        'url': 'http://www.thisav.com/video/242352/nerdy-18yo-big-ass-tattoos-and-glasses.html',
+        'url': 'https://www.thisav.com/video/242352/nerdy-18yo-big-ass-tattoos-and-glasses.html',
         'md5': 'ba90c076bd0f80203679e5b60bf523ee',
         'info_dict': {
             'id': '242352',
