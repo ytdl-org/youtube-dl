@@ -23,6 +23,7 @@ class PornHdIE(InfoExtractor):
             'description': 'md5:3748420395e03e31ac96857a8f125b2b',
             'thumbnail': r're:^https?://.*\.jpg',
             'view_count': int,
+            'like_count': int,
             'age_limit': 18,
         }
     }, {
@@ -37,6 +38,7 @@ class PornHdIE(InfoExtractor):
             'description': 'md5:8ff0523848ac2b8f9b065ba781ccf294',
             'thumbnail': r're:^https?://.*\.jpg',
             'view_count': int,
+            'like_count': int,
             'age_limit': 18,
         },
         'skip': 'Not available anymore',
@@ -85,6 +87,11 @@ class PornHdIE(InfoExtractor):
             r"poster'?\s*:\s*([\"'])(?P<url>(?:(?!\1).)+)\1", webpage,
             'thumbnail', fatal=False, group='url')
 
+        like_count = int_or_none(self._search_regex(
+            (r'(\d+)\s*</11[^>]+>(?:&nbsp;|\s)*\blikes',
+             r'class=["\']save-count["\'][^>]*>\s*(\d+)'),
+            webpage, 'like count', fatal=False))
+
         return {
             'id': video_id,
             'display_id': display_id,
@@ -92,6 +99,7 @@ class PornHdIE(InfoExtractor):
             'description': description,
             'thumbnail': thumbnail,
             'view_count': view_count,
+            'like_count': like_count,
             'formats': formats,
             'age_limit': 18,
         }
