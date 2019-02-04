@@ -16,7 +16,6 @@ from .openload import PhantomJSwrapper
 from ..utils import (
     ExtractorError,
     int_or_none,
-    js_to_json,
     orderedSet,
     remove_quotes,
     str_to_int,
@@ -303,14 +302,17 @@ class PornHubIE(PornHubBaseIE):
         comment_count = self._extract_count(
             r'All Comments\s*<span>\(([\d,.]+)\)', webpage, 'comment')
 
-        page_params = self._parse_json(self._search_regex(
-            r'page_params\.zoneDetails\[([\'"])[^\'"]+\1\]\s*=\s*(?P<data>{[^}]+})',
-            webpage, 'page parameters', group='data', default='{}'),
-            video_id, transform_source=js_to_json, fatal=False)
-        tags = categories = None
-        if page_params:
-            tags = page_params.get('tags', '').split(',')
-            categories = page_params.get('categories', '').split(',')
+        def _get_items(class_name):
+            div = self._search_regex(
+                r'<div class="' + class_name + '">([\S\s]+?)</div>',
+                webpage, class_name, default=None)
+            if div:
+                return [a for a in re.findall(r'<a href=[^>]+>([^<]+)', div)]
+            else:
+                return None
+
+        categories = _get_items('categoriesWrapper')
+        tags = _get_items('tagsWrapper')
 
         return {
             'id': video_id,
