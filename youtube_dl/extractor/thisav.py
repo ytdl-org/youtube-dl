@@ -4,7 +4,7 @@ from __future__ import unicode_literals
 import re
 
 from .common import InfoExtractor
-from ..utils import remove_end
+from ..utils import urljoin, xpath_text
 
 
 class ThisAVIE(InfoExtractor):
@@ -38,11 +38,16 @@ class ThisAVIE(InfoExtractor):
 
         video_id = mobj.group('id')
         webpage = self._download_webpage(url, video_id)
-        title = remove_end(self._html_search_regex(
-            r'<title>([^<]+)</title>', webpage, 'title'),
-            ' - 視頻 - ThisAV.com-世界第一中文成人娛樂網站')
-        video_url = self._html_search_regex(
-            r"addVariable\('file','([^']+)'\);", webpage, 'video url', default=None)
+        title = self._html_search_regex(r'<title>(?:([^<]+)-\s*視頻\s*-\s*ThisAV.com\s*-\s*世界第一中文成人娛樂網站\s*|([^<]+))</title>', webpage, 'title')
+
+        mpd_url = self._html_search_regex(
+            r'"(https?://[^"]+\.mpd)"', webpage, 'MPD URL')
+        mpd_root = self._download_xml(mpd_url, video_id)
+        mpd_ns = self._search_regex(
+            r'\{([^}]+)\}', mpd_root.tag, 'MPD namespace', default=None)
+        base_url = xpath_text(mpd_root, self._xpath_ns('.//BaseURL', mpd_ns))
+        video_url = urljoin(mpd_url, base_url)
+
         if video_url:
             info_dict = {
                 'formats': [{
