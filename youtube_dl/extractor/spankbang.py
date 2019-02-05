@@ -12,7 +12,7 @@ from ..utils import (
 
 
 class SpankBangIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:(?:www|m|[a-z]{2})\.)?spankbang\.com/(?P<id>[\da-z]+)/video'
+    _VALID_URL = r'https?://(?:(?:www|m|[a-z]{2})\.)?spankbang\.com/(?P<id>[\da-z-]+)/(?:video|playlist)'
     _TESTS = [{
         'url': 'http://spankbang.com/3vvn/video/fantasy+solo',
         'md5': '1cc433e1d6aa14bc376535b8679302f7',
@@ -94,3 +94,34 @@ class SpankBangIE(InfoExtractor):
             'formats': formats,
             'age_limit': age_limit,
         }
+
+
+class SpankBangPlaylistIE(InfoExtractor):
+    _VALID_URL = r'https?://(?:(?:www|m|[a-z]{2})\.)?spankbang\.com/(?P<id>[\da-z]+)/playlist'
+    _TEST = {
+        'url': 'https://spankbang.com/ug0k/playlist/big+ass+titties',
+        'info_dict': {
+            'id': 'ug0k',
+            'title': 'Big Ass Titties playlist',
+        },
+        'playlist_mincount': 2,
+    }
+
+    def _extract_entries(self, webpage):
+        return [
+            self.url_result(
+                'http://www.%s/%s' % ('spankbang.com', video_url),
+                SpankBangIE.ie_key())
+            for video_url in re.findall(
+                r'href="/?([\da-z-]+/playlist/[^"]+)', webpage)
+        ]
+
+    def _real_extract(self, url):
+        mobj = re.match(self._VALID_URL, url)
+        playlist_id = mobj.group('id')
+        webpage = self._download_webpage(url, playlist_id)
+
+        entries = self._extract_entries(webpage)
+        title = self._search_regex(r'<h1>(.+)</h1>', webpage, 'playlist_title')
+
+        return self.playlist_result(entries, playlist_id, title)
