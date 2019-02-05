@@ -8,11 +8,12 @@ from ..utils import (
     parse_duration,
     parse_resolution,
     str_to_int,
+    urljoin,
 )
 
 
 class SpankBangIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:(?:www|m|[a-z]{2})\.)?spankbang\.com/(?P<id>[\da-z-]+)/(?:video|playlist)'
+    _VALID_URL = r'https?://(?:(?:www|m|[a-z]{2})\.)?spankbang\.com/(?P<id>[\da-z]+)/video'
     _TESTS = [{
         'url': 'http://spankbang.com/3vvn/video/fantasy+solo',
         'md5': '1cc433e1d6aa14bc376535b8679302f7',
@@ -107,21 +108,27 @@ class SpankBangPlaylistIE(InfoExtractor):
         'playlist_mincount': 2,
     }
 
-    def _extract_entries(self, webpage):
-        return [
-            self.url_result(
-                'http://www.%s/%s' % ('spankbang.com', video_url),
-                SpankBangIE.ie_key())
-            for video_url in re.findall(
-                r'href="/?([\da-z-]+/playlist/[^"]+)', webpage)
-        ]
+    def _extract_entries(self, webpage, id):
+        video_items = re.findall(r'<div[^>]+class=[\'"].*?video-item[^>]*>\s*(.+?)>', webpage)
+
+        entries = []
+        if video_items:
+            for div in video_items:
+                page_url = self._search_regex(
+                    r'href="/?(' + id + '-[\da-z]+/playlist/[^"]+)', div, 'page url', default=None)
+
+                if page_url:
+                    page = self._download_webpage(urljoin('http://spankbang.com', page_url), id)
+                    canonical_url = self._search_regex(
+                        r'link rel="canonical" href="(.+?)"', page, 'canonical_url')
+                    entries.append(self.url_result(canonical_url, SpankBangIE.ie_key()))
+            return entries
 
     def _real_extract(self, url):
-        mobj = re.match(self._VALID_URL, url)
-        playlist_id = mobj.group('id')
+        playlist_id = self._match_id(url)
         webpage = self._download_webpage(url, playlist_id)
 
-        entries = self._extract_entries(webpage)
-        title = self._search_regex(r'<h1>(.+)</h1>', webpage, 'playlist_title')
+        entries = self._extract_entries(webpage, playlist_id)
+        title = self._search_regex(r'<h1>(.+)</h1>', webpage, 'playlist_title', fatal=False)
 
         return self.playlist_result(entries, playlist_id, title)
