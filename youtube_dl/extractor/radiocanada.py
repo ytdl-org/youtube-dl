@@ -4,12 +4,12 @@ from __future__ import unicode_literals
 import re
 
 from .common import InfoExtractor
+from ..compat import compat_HTTPError
 from ..utils import (
     determine_ext,
     ExtractorError,
     int_or_none,
     unified_strdate,
-    unsmuggle_url,
 )
 
 
@@ -58,23 +58,35 @@ class RadioCanadaIE(InfoExtractor):
         }
     ]
     _GEO_COUNTRIES = ['CA']
+    _access_token = None
+    _claims = None
 
-    def _call_api(self, path, video_id, app_code, query):
+    def _call_api(self, path, video_id=None, app_code=None, query=None):
+        if not query:
+            query = {}
         query.update({
-            'appCode': app_code,
-            'idMedia': video_id,
+            'client_key': '773aea60-0e80-41bb-9c7f-e6d7c3ad17fb',
             'output': 'json',
         })
-        return self._download_json(
-            'https://services.radio-canada.ca/media/' + path, video_id, headers={
-                'Authorization': 'Client-Key 773aea60-0e80-41bb-9c7f-e6d7c3ad17fb'
-            }, query=query)
+        if video_id:
+            query.update({
+                'appCode': app_code,
+                'idMedia': video_id,
+            })
+        if self._access_token:
+            query['access_token'] = self._access_token
+        try:
+            return self._download_json(
+                'https://services.radio-canada.ca/media/' + path, video_id, query=query)
+        except ExtractorError as e:
+            if isinstance(e.cause, compat_HTTPError) and e.cause.code in (401, 422):
+                data = self._parse_json(e.cause.read().decode(), None)
+                error = data.get('error_description') or data['errorMessage']['text']
+                raise ExtractorError(error, expected=True)
+            raise
 
-    def _real_extract(self, url):
-        url, smuggled_data = unsmuggle_url(url, {})
-        app_code, video_id = re.match(self._VALID_URL, url).groups()
-
-        metas = self._call_api('meta/v1/index.ashx', video_id, app_code, {})['Metas']
+    def _extract_info(self, app_code, video_id):
+        metas = self._call_api('meta/v1/index.ashx', video_id, app_code)['Metas']
 
         def get_meta(name):
             for meta in metas:
@@ -93,14 +105,16 @@ class RadioCanadaIE(InfoExtractor):
             'deviceType': 'ipad',
             'multibitrate': 'true',
         }
-        if smuggled_data:
-            query.update(smuggled_data)
+        if self._claims:
+            query['claims'] = self._claims
         v_data = self._call_api('validation/v2/', video_id, app_code, query)
         v_url = v_data.get('url')
         if not v_url:
             error = v_data['message']
             if error == "Le contenu sélectionné n'est pas disponible dans votre pays":
                 raise self.raise_geo_restricted(error, self._GEO_COUNTRIES)
+            if error == 'Le contenu sélectionné est disponible seulement en premium':
+                self.raise_login_required(error)
             raise ExtractorError(
                 '%s said: %s' % (self.IE_NAME, error), expected=True)
         formats = self._extract_m3u8_formats(v_url, video_id, 'mp4')
@@ -127,6 +141,9 @@ class RadioCanadaIE(InfoExtractor):
             'subtitles': subtitles,
             'formats': formats,
         }
+
+    def _real_extract(self, url):
+        return self._extract_info(*re.match(self._VALID_URL, url).groups())
 
 
 class RadioCanadaAudioVideoIE(InfoExtractor):
