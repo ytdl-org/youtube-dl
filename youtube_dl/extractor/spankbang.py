@@ -108,21 +108,20 @@ class SpankBangPlaylistIE(InfoExtractor):
         'playlist_mincount': 2,
     }
 
-    def _extract_entries(self, webpage, id):
+    def _extract_entries(self, webpage, p_id):
         video_items = re.findall(r'<div[^>]+class=[\'"].*?video-item[^>]*>\s*(.+?)>', webpage)
 
         entries = []
-        if video_items:
-            for div in video_items:
-                page_url = self._search_regex(
-                    r'href="/?(' + id + '-[\da-z]+/playlist/[^"]+)', div, 'page url', default=None)
+        for div in video_items:
+            page_url = self._search_regex(
+                r'href="/?(' + p_id + '-[\da-z]+/playlist/[^"]+)', div, 'page url', default=None)
 
-                if page_url:
-                    page = self._download_webpage(urljoin('http://spankbang.com', page_url), id)
-                    canonical_url = self._search_regex(
-                        r'link rel="canonical" href="(.+?)"', page, 'canonical_url')
-                    entries.append(self.url_result(canonical_url, SpankBangIE.ie_key()))
-            return entries
+            if page_url:
+                page = self._download_webpage(urljoin('http://spankbang.com', page_url), p_id)
+                canonical_url = self._search_regex(
+                    r'link rel="canonical" href="(.+?)"', page, 'canonical url')
+                entries.append(self.url_result(canonical_url, SpankBangIE.ie_key()))
+        return entries
 
     def _real_extract(self, url):
         playlist_id = self._match_id(url)
