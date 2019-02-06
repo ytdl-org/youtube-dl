@@ -795,6 +795,10 @@ def parseOpts(overrideArguments=None):
         metavar='FORMAT', dest='recodevideo', default=None,
         help='Encode the video to another format if necessary (currently supported: mp4|flv|ogg|webm|mkv|avi)')
     postproc.add_option(
+        '--force-recode-video',
+        action='store_true', dest='force_recode_video', default=False,
+        help='Force recoding a video if it is already in the target format')
+    postproc.add_option(
         '--postprocessor-args',
         dest='postprocessor_args', metavar='ARGS',
         help='Give these arguments to the postprocessor')

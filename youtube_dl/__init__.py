@@ -263,6 +263,7 @@ def _real_main(argv=None):
         postprocessors.append({
             'key': 'FFmpegVideoConvertor',
             'preferedformat': opts.recodevideo,
+            'force_recode': opts.force_recode_video
         })
     # FFmpegMetadataPP should be run after FFmpegVideoConvertorPP and
     # FFmpegExtractAudioPP as containers before conversion may not support
