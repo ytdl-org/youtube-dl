@@ -357,16 +357,22 @@ class FFmpegVideoConvertorPP(FFmpegPostProcessor):
 
     def run(self, information):
         path = information['filepath']
-        if self._force_recode:
-            self._downloader.to_screen('[ffmpeg] Forcing video file recoding as %s' % (self._preferedformat))
-        if information['ext'] == self._preferedformat and not self._force_recode:
-            self._downloader.to_screen('[ffmpeg] Not converting video file %s - already is in target format %s' % (path, self._preferedformat))
-            return [], information
+        if information['ext'] == self._preferedformat:
+            if self._force_recode:
+                self._downloader.to_screen('[ffmpeg] Forcing video file recoding as %s' % (self._preferedformat))
+                # ffmpeg cannot read and write to the same file, we add a suffix to write to a new one
+                suffix = '.recoded'
+            else:
+                self._downloader.to_screen('[ffmpeg] Not converting video file %s - already is in target format %s' % (path, self._preferedformat))
+                return [], information
+        else:
+            # no need for a suffix if the output path is not the same
+            suffix = ''
         options = []
         if self._preferedformat == 'avi':
             options.extend(['-c:v', 'libxvid', '-vtag', 'XVID'])
         prefix, sep, ext = path.rpartition('.')
-        outpath = prefix + sep + self._preferedformat
+        outpath = prefix + suffix + sep + self._preferedformat
         self._downloader.to_screen('[ffmpeg] Converting video from %s to %s, Destination: ' % (information['ext'], self._preferedformat) + outpath)
         self.run_ffmpeg(path, outpath, options)
         information['filepath'] = outpath
