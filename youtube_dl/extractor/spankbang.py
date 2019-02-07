@@ -12,7 +12,7 @@ from ..utils import (
 
 
 class SpankBangIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:(?:www|m|[a-z]{2})\.)?spankbang\.com/(?P<id>[\da-z]+)/video'
+    _VALID_URL = r'https?://(?:[^/]+\.)?spankbang\.com/(?P<id>[\da-z]+)/(?:video|play|embed)'
     _TESTS = [{
         'url': 'http://spankbang.com/3vvn/video/fantasy+solo',
         'md5': '1cc433e1d6aa14bc376535b8679302f7',
@@ -41,13 +41,22 @@ class SpankBangIE(InfoExtractor):
         # 4k
         'url': 'https://spankbang.com/1vwqx/video/jade+kush+solo+4k',
         'only_matching': True,
+    }, {
+        'url': 'https://m.spankbang.com/3vvn/play/fantasy+solo/480p/',
+        'only_matching': True,
+    }, {
+        'url': 'https://m.spankbang.com/3vvn/play',
+        'only_matching': True,
+    }, {
+        'url': 'https://spankbang.com/2y3td/embed/',
+        'only_matching': True,
     }]
 
     def _real_extract(self, url):
         video_id = self._match_id(url)
-        webpage = self._download_webpage(url, video_id, headers={
-            'Cookie': 'country=US'
-        })
+        webpage = self._download_webpage(
+            url.replace('/%s/embed' % video_id, '/%s/video' % video_id),
+            video_id, headers={'Cookie': 'country=US'})
 
         if re.search(r'<[^>]+\bid=["\']video_removed', webpage):
             raise ExtractorError(
