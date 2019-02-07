@@ -2,57 +2,52 @@
 from __future__ import unicode_literals
 
 import re
+
 from .common import InfoExtractor
-from ..utils import parse_duration, merge_dicts
+from ..utils import merge_dicts
 
 
 class MallTVIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:www\.)?mall\.tv/(?:.+/)?(?P<id>.+)(?:\?.*$|$)'
-    _TESTS = [
-        {
-            'url': 'https://www.mall.tv/18-miliard-pro-neziskovky-opravdu-jsou-sportovci-nebo-clovek-v-tisni-pijavice',
-            'md5': '9ced0de056534410837077e23bfba796',
-            'info_dict': {
-                'id': 't0zzt0',
-                'ext': 'mp4',
-                'title': '18 miliard pro neziskovky. Opravdu jsou sportovci nebo Člověk v tísni pijavice?',
-                'description': 'Pokud někdo hospodaří s penězmi daňových poplatníků, pak logicky chceme vědět, jak s nimi nakládá. Objem dotací pro neziskovky roste, ale opravdu jsou tyto organizace „pijavice", jak o nich hovoří And',
-                'upload_date': '20181007',
-                'timestamp': 1538870400
-                }
-        },
-        {
-            'url': 'https://www.mall.tv/kdo-to-plati/18-miliard-pro-neziskovky-opravdu-jsou-sportovci-nebo-clovek-v-tisni-pijavice',
-            'md5': '9ced0de056534410837077e23bfba796',
-            'only_matching': 1,
-            'info_dict': {
-                'id': 't0zzt0',
-                'ext': 'mp4',
-                'title': '18 miliard pro neziskovky. Opravdu jsou sportovci nebo Člověk v tísni pijavice?',
-                'description': 'Pokud někdo hospodaří s penězmi daňových poplatníků, pak logicky chceme vědět, jak s nimi nakládá. Objem dotací pro neziskovky roste, ale opravdu jsou tyto organizace „pijavice", jak o nich hovoří And',
-                'upload_date': '20181007',
-                'timestamp': 1538870400
-                }
+    _VALID_URL = r'https?://(?:www\.)?mall\.tv/(?:[^/]+/)*(?P<id>[^/?#&]+)'
+    _TESTS = [{
+        'url': 'https://www.mall.tv/18-miliard-pro-neziskovky-opravdu-jsou-sportovci-nebo-clovek-v-tisni-pijavice',
+        'md5': '1c4a37f080e1f3023103a7b43458e518',
+        'info_dict': {
+            'id': 't0zzt0',
+            'display_id': '18-miliard-pro-neziskovky-opravdu-jsou-sportovci-nebo-clovek-v-tisni-pijavice',
+            'ext': 'mp4',
+            'title': '18 miliard pro neziskovky. Opravdu jsou sportovci nebo Člověk v tísni pijavice?',
+            'description': 'md5:25fc0ec42a72ba602b602c683fa29deb',
+            'duration': 216,
+            'timestamp': 1538870400,
+            'upload_date': '20181007',
+            'view_count': int,
         }
-    ]
+    }, {
+        'url': 'https://www.mall.tv/kdo-to-plati/18-miliard-pro-neziskovky-opravdu-jsou-sportovci-nebo-clovek-v-tisni-pijavice',
+        'only_matching': True,
+    }]
 
     def _real_extract(self, url):
         display_id = self._match_id(url)
-        webpage = self._download_webpage(url, display_id)
-        src_id_regex = r'(?P<src><source src=([\"\'])?.+?/(?P<id>\w{6,}?)/index)(?P<after>\1?[^>]*?>)'
-        video_id = self._search_regex(src_id_regex, webpage, 'ID',
-                                           group='id')
-        info = self._search_json_ld(webpage, video_id, default={})
-        html = re.sub(src_id_regex, r'\g<src>.m3u8\g<after>', webpage)
-        media = self._parse_html5_media_entries(url, html, video_id)
-        thumbnail = info.get('thumbnail', self._og_search_thumbnail(webpage))
-        duration = parse_duration(info.get('duration'))
-        result = {
-            'id': video_id,
-            'title': info.get('title', self._og_search_title(webpage)),
-            'description': self._og_search_description(webpage)
-        }
-        result.update({'thumbnail': thumbnail})
-        result.update({'duration': duration})
 
-        return merge_dicts(media[0], info, result)
+        webpage = self._download_webpage(
+            url, display_id, headers=self.geo_verification_headers())
+
+        SOURCE_RE = r'(<source[^>]+\bsrc=(?:(["\'])(?:(?!\2).)+|[^\s]+)/(?P<id>[\da-z]+)/index)\b'
+        video_id = self._search_regex(
+            SOURCE_RE, webpage, 'video id', group='id')
+
+        media = self._parse_html5_media_entries(
+            url, re.sub(SOURCE_RE, r'\1.m3u8', webpage), video_id,
+            m3u8_id='hls', m3u8_entry_protocol='m3u8_native')[0]
+
+        info = self._search_json_ld(webpage, video_id, default={})
+
+        return merge_dicts(media, info, {
+            'id': video_id,
+            'display_id': display_id,
+            'title': self._og_search_title(webpage, default=None) or display_id,
+            'description': self._og_search_description(webpage, default=None),
+            'thumbnail': self._og_search_thumbnail(webpage, default=None),
+        })
