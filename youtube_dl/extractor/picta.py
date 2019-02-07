@@ -34,8 +34,11 @@ class PictaBaseIE(InfoExtractor):
 
 
 class PictaIE(PictaBaseIE):
-    _VALID_URL = r'https?://(?:www\.)?picta\.cu/medias/(?P<id>[0-9]+)'
-    _TEST = {
+    IE_NAME = 'picta'
+    IE_DESC = 'Picta videos'
+    _VALID_URL = r'https?://(?:www\.)?picta\.cu/(?:medias|embed)/(?:\?v=)?(?P<id>[0-9]+)'
+
+    _TESTS = [{
         'url': 'https://www.picta.cu/medias/818',
         'file': 'Orishas - Everyday-818.webm',
         'md5': 'ebd10d5a34f23059e08419aa123aebdb',
@@ -45,7 +48,10 @@ class PictaIE(PictaBaseIE):
             'title': 'Orishas - Everyday',
             'thumbnail': r're:^https?://.*imagen/img.*\.png$',
         }
-    }
+    }, {
+        'url': 'https://www.picta.cu/embed/?v=818',
+        'only_matching': True,
+    }]
 
     def _real_extract(self, url):
         video_id = self._match_id(url)
@@ -68,3 +74,26 @@ class PictaIE(PictaBaseIE):
 
         info['formats'] = formats
         return info
+
+
+class PictaEmbedIE(InfoExtractor):
+    IE_NAME = 'picta:embed'
+    IE_DESC = 'Picta embedded videos'
+    _VALID_URL = r'https?://www\.picta\.cu/embed/\?v=(?P<id>[0-9]+)'
+
+    _TEST = {
+        'url': 'https://www.picta.cu/embed/?v=818',
+        'file': 'Orishas - Everyday-818.webm',
+        'md5': 'ebd10d5a34f23059e08419aa123aebdb',
+        'info_dict': {
+            'id': '818',
+            'ext': 'webm',
+            'title': 'Orishas - Everyday',
+            'thumbnail': r're:^https?://.*imagen/img.*\.png$',
+        }
+    }
+
+    def _real_extract(self, url):
+        embed_id = self._match_id(url)
+        video_url = 'https://www.picta.cu/medias/%s' % embed_id
+        return self.url_result(video_url, PictaIE.ie_key())
