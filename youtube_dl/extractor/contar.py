@@ -216,8 +216,7 @@ class ContarSerieIE(ContarBaseIE):
 
 class ContarChannelIE(ContarBaseIE):
 
-    _UUID_RE = r'\d+'
-    _VALID_URL = r'https?://(?:www\.)?cont\.ar/channel/(?P<id>%s)' % _UUID_RE
+    _VALID_URL = r'https?://(?:www\.)?cont\.ar/channel/(?P<id>\d+)' 
     _TEST = {
         'url': 'https://www.cont.ar/channel/242',
         'info_dict': {
@@ -249,8 +248,7 @@ class ContarChannelIE(ContarBaseIE):
 
 class ContarBrowseIE(ContarBaseIE):
 
-    _UUID_RE = r'\d+'
-    _VALID_URL = r'https?://(?:www\.)?cont\.ar/browse/genre/(?P<id>%s)' % _UUID_RE
+    _VALID_URL = r'https?://(?:www\.)?cont\.ar/browse/genre/(?P<id>\d+)' 
     _TEST = {
         'url': 'https://www.cont.ar/browse/genre/46',
         'info_dict': {
