@@ -1,4 +1,4 @@
-version <unreleased>
+version 2019.02.08
 
 Core
 * [utils] Improve JSON-LD regular expression (#18058)
