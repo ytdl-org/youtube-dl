@@ -11,6 +11,7 @@ from ..utils import (
 
 class ContarBaseIE(InfoExtractor):
 
+    _UUID_RE = r'[\da-fA-F]{8}-[\da-fA-F]{4}-[\da-fA-F]{4}-[\da-fA-F]{4}-[\da-fA-F]{12}'
     _NETRC_MACHINE = 'contar'
     _API_BASE = 'https://api.cont.ar/api/v2/'
 
@@ -114,8 +115,7 @@ class ContarBaseIE(InfoExtractor):
 
 class ContarIE(ContarBaseIE):
 
-    _UUID_RE = r'[\da-fA-F]{8}-[\da-fA-F]{4}-[\da-fA-F]{4}-[\da-fA-F]{4}-[\da-fA-F]{12}'
-    _VALID_URL = r'https?://(?:www\.)?cont\.ar/watch/(?P<id>%s)' % _UUID_RE
+    _VALID_URL = r'https?://(?:www\.)?cont\.ar/watch/(?P<id>%s)' % ContarBaseIE._UUID_RE
     _TEST = {
         'url': 'https://www.cont.ar/watch/d2815f05-f52f-499f-90d0-5671e9e71ce8',
         'md5': '72cfee8799d964291433004c557d0b2b',
@@ -145,8 +145,7 @@ class ContarIE(ContarBaseIE):
 
 class ContarSerieIE(ContarBaseIE):
 
-    _UUID_RE = r'[\da-fA-F]{8}-[\da-fA-F]{4}-[\da-fA-F]{4}-[\da-fA-F]{4}-[\da-fA-F]{12}'
-    _VALID_URL = r'https?://(?:www\.)?cont\.ar/serie/(?P<id>%s)' % _UUID_RE
+    _VALID_URL = r'https?://(?:www\.)?cont\.ar/serie/(?P<id>%s)' % ContarBaseIE._UUID_RE
     _TEST = {
         'url': 'https://www.cont.ar/serie/353247d5-da97-4cb6-8571-c4fbab28c643',
         'info_dict': {
