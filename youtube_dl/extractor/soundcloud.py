@@ -227,10 +227,13 @@ class SoundcloudIE(InfoExtractor):
                 acodec = 'opus'
                 ext = 'ogg'
                 abr = 64
-            elif stream['preset'] == 'aac_1_0':
+            elif stream['preset'] in ('aac_1_0', 'aac_hq'):
                 acodec = 'aac'
                 ext = 'm4a'
                 abr = 256
+            else:
+                self.to_screen('Stream type %s not recognised' % stream['preset'])
+                continue
 
             format_id = ('%s-%s-%s' % (stream['format']['protocol'], acodec, abr))
 
