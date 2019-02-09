@@ -1171,6 +1171,7 @@ from .toutv import TouTvIE
 from .toypics import ToypicsUserIE, ToypicsIE
 from .traileraddict import TrailerAddictIE
 from .trilulilu import TriluliluIE
+from .trunews import TruNewsIE
 from .trutv import TruTVIE
 from .tube8 import Tube8IE
 from .tubitv import TubiTvIE
