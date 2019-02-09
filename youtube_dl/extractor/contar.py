@@ -130,7 +130,8 @@ class ContarIE(ContarBaseIE):
             'episode_number': 1,
         },
         'params': {
-            'usenetrc': True,
+            'username': 'ytdl@yt-dl.org',
+            'password': '(snip)',
             'format': 'hls-4755-1'
         }
     }
@@ -167,7 +168,8 @@ class ContarSerieIE(ContarBaseIE):
                 'episode_number': 11,
             },
             'params': {
-                'usenetrc': True,
+                'username': 'ytdl@yt-dl.org',
+                'password': '(snip)',
                 'format': 'bestvideo',
             }
         }, {
@@ -187,7 +189,8 @@ class ContarSerieIE(ContarBaseIE):
             },
         }],
         'params': {
-            'usenetrc': True,
+            'username': 'ytdl@yt-dl.org',
+            'password': '(snip)',
             'format': 'bestvideo',
         }
     }
@@ -225,7 +228,8 @@ class ContarChannelIE(ContarBaseIE):
             },
         'playlist_mincount': 68,
         'params': {
-            'usenetrc': True,
+            'username': 'ytdl@yt-dl.org',
+            'password': '(snip)',
             'skip_download': True
         }
     }
@@ -256,7 +260,8 @@ class ContarBrowseIE(ContarBaseIE):
         },
         'playlist_mincount': 65,
         'params': {
-            'usenetrc': True,
+            'username': 'ytdl@yt-dl.org',
+            'password': '(snip)',
             'skip_download': True
         }
     }
