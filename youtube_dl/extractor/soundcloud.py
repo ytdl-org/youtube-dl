@@ -12,6 +12,7 @@ from ..compat import (
     compat_str,
     compat_urlparse,
     compat_urllib_parse_urlencode,
+    compat_HTTPError
 )
 from ..utils import (
     ExtractorError,
@@ -209,56 +210,79 @@ class SoundcloudIE(InfoExtractor):
                 'preference': 10,
             })
 
-        # We have to retrieve the url
+        # Retrieve dict of streams for this track
         format_dict = self._download_json(
-            'https://api.soundcloud.com/i1/tracks/%s/streams' % track_id,
+            'https://api-v2.soundcloud.com/tracks/%s' % track_id,
             track_id, 'Downloading track url', query=query)
 
-        for key, stream_url in format_dict.items():
-            ext, abr = 'mp3', None
-            mobj = re.search(r'_([^_]+)_(\d+)_url', key)
-            if mobj:
-                ext, abr = mobj.groups()
-                abr = int(abr)
-            if key.startswith('http'):
-                stream_formats = [{
-                    'format_id': key,
-                    'ext': ext,
-                    'url': stream_url,
-                }]
-            elif key.startswith('rtmp'):
-                # The url doesn't have an rtmp app, we have to extract the playpath
-                url, path = stream_url.split('mp3:', 1)
-                stream_formats = [{
-                    'format_id': key,
-                    'url': url,
-                    'play_path': 'mp3:' + path,
-                    'ext': 'flv',
-                }]
-            elif key.startswith('hls'):
-                stream_formats = self._extract_m3u8_formats(
-                    stream_url, track_id, ext, entry_protocol='m3u8_native',
-                    m3u8_id=key, fatal=False)
+        streams = format_dict.get('media').get('transcodings')
+        for stream in streams:
+            # Average bitrate isn't given in the metadata for this API endpoint
+            # These values are known to be correct at the time of writing
+            if stream['preset'] == 'mp3_0':
+                acodec = 'mp3'
+                ext = 'mp3'
+                abr = 128
+            elif stream['preset'] == 'opus_0':
+                acodec = 'opus'
+                ext = 'ogg'
+                abr = 64
+            elif stream['preset'] == 'aac_1_0':
+                acodec = 'aac'
+                ext = 'm4a'
+                abr = 256
+
+            format_id = ('%s-%s-%s' % (stream['format']['protocol'], acodec, abr))
+
+            # For each stream, get the link to the track or HLS manifest
+            try:
+                format_dl_url = self._download_json(
+                    stream['url'],
+                    track_id,
+                    'Retrieving %s asset URL' % (format_id), query=query)
+
+            except ExtractorError as e:
+                if isinstance(e.cause, compat_HTTPError) and e.cause.code == 404:
+                    self.to_screen('Asset for %s not found' % format_id)
+                    continue
+                else:
+                    raise
+
+            if stream['format']['protocol'] is not None:
+                if stream['format']['protocol'] == 'hls':
+                    stream_format = self._extract_m3u8_formats(
+                        format_dl_url['url'], track_id, ext, entry_protocol='m3u8_native',
+                        m3u8_id=format_id, fatal=False)
+
+                elif stream['format']['protocol'] == 'progressive':
+                    stream_format = [{
+                        'format_id': format_id,
+                        'ext': ext,
+                        'url': format_dl_url['url'],
+                        'duration': int_or_none(stream['duration'], 1000),
+                        'protocol': 'https'
+                    }]
+
+                additional_metadata = {
+                    'vcodec': 'none',
+                    'acodec': acodec,
+                    'abr': abr,
+                    'container': ext
+                }
+                stream_format[0].update(additional_metadata)
             else:
                 continue
 
-            if abr:
-                for f in stream_formats:
-                    f['abr'] = abr
+            formats.extend(stream_format)
 
-            formats.extend(stream_formats)
-
+        # Worst cast, fallback to the stream_url in the original info, this
+        # cannot be always used, sometimes it can give an HTTP 404 error
         if not formats:
-            # We fallback to the stream_url in the original info, this
-            # cannot be always used, sometimes it can give an HTTP 404 error
             formats.append({
                 'format_id': 'fallback',
                 'url': update_url_query(info['stream_url'], query),
-                'ext': 'mp3',
+                'ext': 'mp3'
             })
-
-        for f in formats:
-            f['vcodec'] = 'none'
 
         self._check_formats(formats, track_id)
         self._sort_formats(formats)
