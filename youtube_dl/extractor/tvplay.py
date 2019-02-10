@@ -493,10 +493,9 @@ class TVPlayHomeIE(InfoExtractor):
         webpage = self._download_webpage(url, video_id)
 
         video_id = self._search_regex(
-            r'data-asset-id\s*=\s*["\'](\d{5,7})\b', webpage, 'video id',
-            default=None)
+            r'data-asset-id\s*=\s*["\'](\d{5,})\b', webpage, 'video id')
 
-        if video_id:
+        if len(video_id) < 8:
             return self.url_result(
                 'mtg:%s' % video_id, ie=TVPlayIE.ie_key(), video_id=video_id)
 
