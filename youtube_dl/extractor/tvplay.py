@@ -537,8 +537,9 @@ class TVPlayHomeIE(InfoExtractor):
             r'(\d+)(?:[.\s]+sezona|\s+HOOAEG)', season or '', 'season number',
             default=None))
         episode = self._search_regex(
-            r'(["\'])(?P<value>(?:(?!\1).)+)\1', webpage, 'episode',
-            default=None, group='value')
+            (r'\bepisode\s*:\s*(["\'])(?P<value>(?:(?!\1).)+)\1',
+             r'data-subtitle\s*=\s*(["\'])(?P<value>(?:(?!\1).)+)\1'), webpage,
+            'episode', default=None, group='value')
         episode_number = int_or_none(self._search_regex(
             r'(?:S[eē]rija|Osa)\s+(\d+)', episode or '', 'episode number',
             default=None))
