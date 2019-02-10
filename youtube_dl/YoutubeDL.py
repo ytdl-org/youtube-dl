@@ -354,6 +354,7 @@ class YoutubeDL(object):
         self.params = {
             # Default parameters
             'nocheckcertificate': False,
+            'ciphers': None,
         }
         self.params.update(params)
         self.cache = Cache(self)
