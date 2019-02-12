@@ -87,7 +87,7 @@ class ImgurIE(InfoExtractor):
         return {
             'id': video_id,
             'formats': formats,
-            'title': self._og_search_title(webpage),
+            'title': self._og_search_title(webpage, default='untitled'),
         }
 
 
