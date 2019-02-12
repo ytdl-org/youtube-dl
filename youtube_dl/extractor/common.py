@@ -1092,7 +1092,7 @@ class InfoExtractor(object):
         return self._og_search_property('description', html, fatal=False, **kargs)
 
     def _og_search_title(self, html, **kargs):
-        return self._og_search_property('title', html, **kargs)
+        return self._og_search_property('title', html, default='untitled', **kargs)
 
     def _og_search_video_url(self, html, name='video url', secure=True, **kargs):
         regexes = self._og_regexes('video') + self._og_regexes('video:url')
