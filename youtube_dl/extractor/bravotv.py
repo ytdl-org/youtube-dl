@@ -12,16 +12,16 @@ from ..utils import (
 class BravoTVIE(AdobePassIE):
     _VALID_URL = r'https?://(?:www\.)?bravotv\.com/(?:[^/]+/)+(?P<id>[^/?#]+)'
     _TESTS = [{
-        'url': 'http://www.bravotv.com/last-chance-kitchen/season-5/videos/lck-ep-12-fishy-finale',
-        'md5': '9086d0b7ef0ea2aabc4781d75f4e5863',
+        'url': 'https://www.bravotv.com/the-real-housewives-of-beverly-hills/season-9/episode-1/videos/lisa-rinna-thinks-denise-richards',
+        'md5': 'f8098a7c034fcb1b52ec8b3631803589',
         'info_dict': {
-            'id': 'zHyk1_HU_mPy',
+            'id': 'PPhoit2pxdh0',
             'ext': 'mp4',
-            'title': 'LCK Ep 12: Fishy Finale',
-            'description': 'S13/E12: Two eliminated chefs have just 12 minutes to cook up a delicious fish dish.',
+            'title': 'Lisa Rinna Thinks Denise Richards Will Fit in Well With This Group',
+            'description': 'Denise goes back a long way with Rinna, and now the other ladies have a chance to meet her.',
             'uploader': 'NBCU-BRAV',
-            'upload_date': '20160302',
-            'timestamp': 1456945320,
+            'upload_date': '20190204',
+            'timestamp': 1549302120,
         }
     }, {
         'url': 'http://www.bravotv.com/below-deck/season-3/ep-14-reunion-part-1',
