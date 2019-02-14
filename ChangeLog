@@ -1,3 +1,32 @@
+version 2019.02.08
+
+Core
+* [utils] Improve JSON-LD regular expression (#18058)
+* [YoutubeDL] Fallback to ie_key of matching extractor while making
+  download archive id when no explicit ie_key is provided (#19022)
+
+Extractors
++ [malltv] Add support for mall.tv (#18058, #17856)
++ [spankbang:playlist] Add support for playlists (#19145)
+* [spankbang] Extend URL regular expression
+* [trutv] Fix extraction (#17336)
+* [toutv] Fix authentication (#16398, #18700)
+* [pornhub] Fix tags and categories extraction (#13720, #19135)
+* [pornhd] Fix formats extraction
++ [pornhd] Extract like count (#19123, #19125)
+* [radiocanada] Switch to the new media requests (#19115)
++ [teachable] Add support for courses.workitdaily.com (#18871)
+- [vporn] Remove extractor (#16276)
++ [soundcloud:pagedplaylist] Add ie and title to entries (#19022, #19086)
++ [drtuber] Extract duration (#19078)
+* [soundcloud] Fix paged playlists extraction, add support for albums and update client id
+* [soundcloud] Update client id
+* [drtv] Improve preference (#19079)
++ [openload] Add support for openload.pw and oload.pw (#18930)
++ [openload] Add support for oload.info (#19073)
+* [crackle] Authorize media detail request (#16931)
+
+
 version 2019.01.30.1
 
 Core

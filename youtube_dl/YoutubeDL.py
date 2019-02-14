@@ -82,6 +82,7 @@ from .utils import (
     sanitize_url,
     sanitized_Request,
     std_headers,
+    str_or_none,
     subtitles_filename,
     UnavailableVideoError,
     url_basename,
@@ -2067,9 +2068,12 @@ class YoutubeDL(object):
         # and backwards compatibility with prior versions
         extractor = info_dict.get('extractor_key') or info_dict.get('ie_key')  # key in a playlist
         if extractor is None:
+            url = str_or_none(info_dict.get('url'))
+            if not url:
+                return
             # Try to find matching extractor for the URL and take its ie_key
             for ie in self._ies:
-                if ie.suitable(info_dict['url']):
+                if ie.suitable(url):
                     extractor = ie.ie_key()
                     break
             else:
