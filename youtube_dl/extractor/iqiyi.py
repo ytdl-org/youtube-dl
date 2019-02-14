@@ -307,13 +307,15 @@ class IqiyiIE(InfoExtractor):
         PAGE_SIZE = 50
 
         links = re.findall(
-            r'<a[^>]+class="site-piclist_pic_link"[^>]+href="(http://www\.iqiyi\.com/.+\.html)"',
+            r'<a[^>]+class="site-piclist_pic_link"[^>]+href="(//www\.iqiyi\.com/.+\.html)"',
             webpage)
+        # add https prefix
+        links = ['https:{}'.format(link) for link in links]
         if not links:
             return
 
         album_id = self._search_regex(
-            r'albumId\s*:\s*(\d+),', webpage, 'album ID')
+            r'albumId\s*:\s*"(\d+)",', webpage, 'album ID')
         album_title = self._search_regex(
             r'data-share-title="([^"]+)"', webpage, 'album title', fatal=False)
 
