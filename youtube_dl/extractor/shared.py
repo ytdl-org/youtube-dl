@@ -2,16 +2,15 @@ from __future__ import unicode_literals
 
 import re
 
-from .common import (
-    InfoExtractor,
-    unescapeHTML
-)
+from .common import InfoExtractor
 from ..compat import compat_b64decode
 from ..utils import (
     ExtractorError,
     int_or_none,
     url_or_none,
     urlencode_postdata,
+    unescapeHTML,
+    extract_attributes,
 )
 
 
@@ -95,12 +94,10 @@ class VivoIE(SharedBaseIE):
     }
 
     def _extract_title(self, webpage):
-        data_title = self._search_regex(
-            r'data-name\s*=\s*(["\'])(?P<title>(?:.(?!\1))*.)\1', webpage,
-            'title', default=None, group='title')
-        if data_title:
-            return unescapeHTML(re.sub(r"\.[a-z0-9]{3,4}$", "", data_title))
-        return None
+        stream_content = extract_attributes(self._search_regex(
+            r'(<div[^>]+class="[^"]*stream-content[^"]*"[^>]*>)',
+            webpage, 'stream-content element'))
+        return stream_content['data-name'] or self._og_search_title(webpage)
 
     def _extract_video_url(self, webpage, video_id, *args):
         def decode_url(encoded_url):
