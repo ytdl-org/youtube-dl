@@ -40,6 +40,19 @@ class PictaIE(PictaBaseIE):
     IE_NAME = 'picta'
     IE_DESC = 'Picta videos'
     _VALID_URL = r'https?://(?:www\.)?picta\.cu/(?:medias|embed)/(?:\?v=)?(?P<id>[\da-z-]+)'
+    _formats = {
+        # Dash webm
+        '0': {'ext': 'webm', 'height': 144, 'format_note': 'DASH video', 'container': 'webm', 'vcodec': 'vp9'},
+        '1': {'ext': 'webm', 'height': 240, 'format_note': 'DASH video', 'vcodec': 'vp9'},
+        '2': {'ext': 'webm', 'height': 360, 'format_note': 'DASH video', 'vcodec': 'vp9'},
+        '3': {'ext': 'webm', 'height': 480, 'format_note': 'DASH video', 'vcodec': 'vp9'},
+        '4': {'ext': 'webm', 'height': 720, 'format_note': 'DASH video', 'vcodec': 'vp9'},
+
+        # Dash webm audio with opus inside
+        '5': {'ext': 'webm', 'format_note': 'DASH audio', 'acodec': 'opus', 'abr': 128},
+        '6': {'ext': 'webm', 'format_note': 'DASH audio', 'acodec': 'opus', 'abr': 134},
+
+    }
 
     _TESTS = [{
         'url': 'https://www.picta.cu/medias/orishas-everyday-2019-01-16-16-36-42-443003',
@@ -50,7 +63,7 @@ class PictaIE(PictaBaseIE):
             'ext': 'webm',
             'title': 'Orishas - Everyday',
             'thumbnail': r're:^https?://.*imagen/img.*\.png$',
-        }
+        },
     }, {
         'url': 'https://www.picta.cu/embed/?v=818',
         'only_matching': True,
@@ -70,7 +83,7 @@ class PictaIE(PictaBaseIE):
         formats = []
         # MPD manifest
         if info.get('manifest_url'):
-            formats.extend(self._extract_mpd_formats(info.get('manifest_url'), video_id))
+            formats.extend(self._extract_mpd_formats(info.get('manifest_url'), video_id, formats_dict=self._formats))
         if not formats:
             raise ExtractorError('Cannot find video formats')
 
