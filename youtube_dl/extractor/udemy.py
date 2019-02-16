@@ -123,10 +123,22 @@ class UdemyIE(InfoExtractor):
 
     def _download_webpage_handle(self, *args, **kwargs):
         headers = kwargs.get('headers', {}).copy()
-        headers['User-Agent'] = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_5) AppleWebKit/603.2.4 (KHTML, like Gecko) Version/10.1.1 Safari/603.2.4'
+        headers['User-Agent'] = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/72.0.3626.109 Safari/537.36'
         kwargs['headers'] = headers
-        return super(UdemyIE, self)._download_webpage_handle(
+        ret = super(UdemyIE, self)._download_webpage_handle(
             *args, **compat_kwargs(kwargs))
+        if not ret:
+            return ret
+        webpage, _ = ret
+        if any(p in webpage for p in (
+                '>Please verify you are a human',
+                'Access to this page has been denied because we believe you are using automation tools to browse the website',
+                '"_pxCaptcha"')):
+            raise ExtractorError(
+                'Udemy asks you to solve a CAPTCHA. Login with browser, '
+                'solve CAPTCHA, then export cookies and pass cookie file to '
+                'youtube-dl with --cookies.', expected=True)
+        return ret
 
     def _download_json(self, url_or_request, *args, **kwargs):
         headers = {
