@@ -5,12 +5,15 @@ from ..utils import (
     int_or_none,
     unified_timestamp,
     try_get,
+    base_url,
     ExtractorError
 )
 from .common import InfoExtractor
 
 
 class PictaBaseIE(InfoExtractor):
+    API_BASE_URL = 'https://www.picta.cu/api/v1/'
+
     def _extract_video(self, video, video_id=None, require_title=True):
         title = video['results'][0]['nombre'] if require_title else video.get('results')[0].get('nombre')
         description = try_get(video, lambda x: x['results'][0]['descripcion'], compat_str)
@@ -36,11 +39,11 @@ class PictaBaseIE(InfoExtractor):
 class PictaIE(PictaBaseIE):
     IE_NAME = 'picta'
     IE_DESC = 'Picta videos'
-    _VALID_URL = r'https?://(?:www\.)?picta\.cu/(?:medias|embed)/(?:\?v=)?(?P<id>[0-9]+)'
+    _VALID_URL = r'https?://(?:www\.)?picta\.cu/(?:medias|embed)/(?:\?v=)?(?P<id>[\da-z-]+)'
 
     _TESTS = [{
-        'url': 'https://www.picta.cu/medias/818',
-        'file': 'Orishas - Everyday-818.webm',
+        'url': 'https://www.picta.cu/medias/orishas-everyday-2019-01-16-16-36-42-443003',
+        'file': 'Orishas - Everyday-orishas-everyday-2019-01-16-16-36-42-443003.webm',
         'md5': 'ebd10d5a34f23059e08419aa123aebdb',
         'info_dict': {
             'id': '818',
@@ -55,9 +58,10 @@ class PictaIE(PictaBaseIE):
 
     def _real_extract(self, url):
         video_id = self._match_id(url)
-
-        api_url = 'https://www.picta.cu/api/v1/publicacion/'
-        json_url = api_url + '?format=json&id_publicacion=%s&tipo=publicacion' % video_id
+        if base_url(url).find('medias') != -1:
+            json_url = self.API_BASE_URL + 'publicacion/?format=json&slug_url=%s&tipo=publicacion' % video_id
+        else:
+            json_url = self.API_BASE_URL + 'publicacion/?format=json&id_publicacion=%s&tipo=publicacion' % video_id
 
         video = self._download_json(json_url, video_id, 'Downloading video JSON')
 
@@ -83,7 +87,7 @@ class PictaEmbedIE(InfoExtractor):
 
     _TEST = {
         'url': 'https://www.picta.cu/embed/?v=818',
-        'file': 'Orishas - Everyday-818.webm',
+        'file': 'Orishas - Everyday-orishas-everyday-2019-01-16-16-36-42-443003.webm',
         'md5': 'ebd10d5a34f23059e08419aa123aebdb',
         'info_dict': {
             'id': '818',
@@ -94,6 +98,4 @@ class PictaEmbedIE(InfoExtractor):
     }
 
     def _real_extract(self, url):
-        embed_id = self._match_id(url)
-        video_url = 'https://www.picta.cu/medias/%s' % embed_id
-        return self.url_result(video_url, PictaIE.ie_key())
+        return self.url_result(url, PictaIE.ie_key())
