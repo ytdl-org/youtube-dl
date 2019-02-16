@@ -29,7 +29,7 @@ class UdemyIE(InfoExtractor):
     IE_NAME = 'udemy'
     _VALID_URL = r'''(?x)
                     https?://
-                        www\.udemy\.com/
+                        (?:[^/]+\.)?udemy\.com/
                         (?:
                             [^#]+\#/lecture/|
                             lecture/view/?\?lectureId=|
@@ -63,6 +63,9 @@ class UdemyIE(InfoExtractor):
     }, {
         # only outputs rendition
         'url': 'https://www.udemy.com/how-you-can-help-your-local-community-5-amazing-examples/learn/v4/t/lecture/3225750?start=0',
+        'only_matching': True,
+    }, {
+        'url': 'https://wipro.udemy.com/java-tutorial/#/lecture/172757',
         'only_matching': True,
     }]
 
@@ -415,8 +418,14 @@ class UdemyIE(InfoExtractor):
 
 class UdemyCourseIE(UdemyIE):
     IE_NAME = 'udemy:course'
-    _VALID_URL = r'https?://(?:www\.)?udemy\.com/(?P<id>[^/?#&]+)'
-    _TESTS = []
+    _VALID_URL = r'https?://(?:[^/]+\.)?udemy\.com/(?P<id>[^/?#&]+)'
+    _TESTS = [{
+        'url': 'https://www.udemy.com/java-tutorial/',
+        'only_matching': True,
+    }, {
+        'url': 'https://wipro.udemy.com/java-tutorial/',
+        'only_matching': True,
+    }]
 
     @classmethod
     def suitable(cls, url):
