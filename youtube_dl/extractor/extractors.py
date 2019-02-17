@@ -593,6 +593,7 @@ from .linkedin import (
     LinkedInLearningIE,
     LinkedInLearningCourseIE,
 )
+from .linuxacademy import LinuxAcademyIE
 from .litv import LiTVIE
 from .liveleak import (
     LiveLeakIE,
