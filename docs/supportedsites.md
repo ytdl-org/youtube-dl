@@ -458,6 +458,7 @@
  - **LineTV**
  - **linkedin:learning**
  - **linkedin:learning:course**
+ - **LinuxAcademy**
  - **LiTV**
  - **LiveLeak**
  - **LiveLeakEmbed**
@@ -915,6 +916,7 @@
  - **ToypicsUser**: Toypics user profile
  - **TrailerAddict** (Currently broken)
  - **Trilulilu**
+ - **TruNews**
  - **TruTV**
  - **Tube8**
  - **TubiTv**
