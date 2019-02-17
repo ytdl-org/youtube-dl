@@ -98,6 +98,7 @@ class TVPEmbedIE(InfoExtractor):
             'title': 'Czas honoru, odc. 13 – Władek',
         },
     }, {
+        # not available
         'url': 'http://www.tvp.pl/sess/tvplayer.php?object_id=22670268',
         'md5': '8c9cd59d16edabf39331f93bf8a766c7',
         'info_dict': {
@@ -105,6 +106,7 @@ class TVPEmbedIE(InfoExtractor):
             'ext': 'mp4',
             'title': 'Panorama, 07.12.2015, 15:40',
         },
+        'skip': 'Transmisja została zakończona lub materiał niedostępny',
     }, {
         'url': 'tvp:22670268',
         'only_matching': True,
@@ -116,10 +118,13 @@ class TVPEmbedIE(InfoExtractor):
         webpage = self._download_webpage(
             'http://www.tvp.pl/sess/tvplayer.php?object_id=%s' % video_id, video_id)
 
-        error_massage = get_element_by_attribute('class', 'msg error', webpage)
-        if error_massage:
+        error = self._html_search_regex(
+            r'(?s)<p[^>]+\bclass=["\']notAvailable__text["\'][^>]*>(.+?)</p>',
+            webpage, 'error', default=None) or clean_html(
+            get_element_by_attribute('class', 'msg error', webpage))
+        if error:
             raise ExtractorError('%s said: %s' % (
-                self.IE_NAME, clean_html(error_massage)), expected=True)
+                self.IE_NAME, clean_html(error)), expected=True)
 
         title = self._search_regex(
             r'name\s*:\s*([\'"])Title\1\s*,\s*value\s*:\s*\1(?P<title>.+?)\1',
