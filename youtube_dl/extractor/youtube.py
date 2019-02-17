@@ -2025,6 +2025,10 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                 video_webpage, 'upload date', default=None)
         upload_date = unified_strdate(upload_date)
 
+        # release date
+        # YouTube doesn't provide a release date, so reuse upload date
+        release_date = upload_date
+
         video_license = self._html_search_regex(
             r'<h4[^>]+class="title"[^>]*>\s*License\s*</h4>\s*<ul[^>]*>\s*<li>(.+?)</li',
             video_webpage, 'license', default=None)
@@ -2184,6 +2188,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
             'channel_id': channel_id,
             'channel_url': channel_url,
             'upload_date': upload_date,
+            'release_date': release_date,
             'license': video_license,
             'creator': video_creator or artist,
             'title': video_title,
