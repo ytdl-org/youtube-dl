@@ -57,12 +57,19 @@ class PictaIE(PictaBaseIE):
     _TESTS = [{
         'url': 'https://www.picta.cu/medias/orishas-everyday-2019-01-16-16-36-42-443003',
         'file': 'Orishas - Everyday-orishas-everyday-2019-01-16-16-36-42-443003.webm',
-        'md5': 'ebd10d5a34f23059e08419aa123aebdb',
+        'md5': '7ffdeb0043500c4bb660c04e74e90f7a',
         'info_dict': {
-            'id': '818',
+            'id': 'orishas-everyday-2019-01-16-16-36-42-443003',
             'ext': 'webm',
             'title': 'Orishas - Everyday',
             'thumbnail': r're:^https?://.*imagen/img.*\.png$',
+            'upload_date': '20190116',
+            'description': 'Orishas - Everyday (Video Oficial)',
+            'uploader': 'admin',
+            'timestamp': 1547656602,
+        },
+        'params': {
+            'format': '4',
         },
     }, {
         'url': 'https://www.picta.cu/embed/?v=818',
@@ -101,13 +108,20 @@ class PictaEmbedIE(InfoExtractor):
     _TEST = {
         'url': 'https://www.picta.cu/embed/?v=818',
         'file': 'Orishas - Everyday-orishas-everyday-2019-01-16-16-36-42-443003.webm',
-        'md5': 'ebd10d5a34f23059e08419aa123aebdb',
+        'md5': '7ffdeb0043500c4bb660c04e74e90f7a',
         'info_dict': {
-            'id': '818',
+            'id': 'orishas-everyday-2019-01-16-16-36-42-443003',
             'ext': 'webm',
             'title': 'Orishas - Everyday',
             'thumbnail': r're:^https?://.*imagen/img.*\.png$',
-        }
+            'upload_date': '20190116',
+            'description': 'Orishas - Everyday (Video Oficial)',
+            'uploader': 'admin',
+            'timestamp': 1547656602,
+        },
+        'params': {
+            'format': '4',
+        },
     }
 
     def _real_extract(self, url):
