@@ -1,14 +1,16 @@
 # coding: utf-8
 from __future__ import unicode_literals
 
+import itertools
 import re
 
 from .common import InfoExtractor
 from ..utils import (
-    determine_ext,
     clean_html,
-    get_element_by_attribute,
+    determine_ext,
     ExtractorError,
+    get_element_by_attribute,
+    orderedSet,
 )
 
 
@@ -198,46 +200,35 @@ class TVPEmbedIE(InfoExtractor):
 
 class TVPSeriesIE(InfoExtractor):
     IE_NAME = 'tvp:series'
-    _VALID_URL = r'https?://vod\.tvp\.pl/(?:[^/]+/){2}(?P<id>[^/]+)/?$'
+    _VALID_URL = r'https?://vod\.tvp\.pl/website/(?P<display_id>[^,]+),(?P<id>\d+)/video'
 
     _TESTS = [{
-        'url': 'http://vod.tvp.pl/filmy-fabularne/filmy-za-darmo/ogniem-i-mieczem',
+        'url': 'https://vod.tvp.pl/website/lzy-cennet,38678312/video',
         'info_dict': {
-            'title': 'Ogniem i mieczem',
-            'id': '4278026',
+            'id': '38678312',
         },
-        'playlist_count': 4,
-    }, {
-        'url': 'http://vod.tvp.pl/audycje/podroze/boso-przez-swiat',
-        'info_dict': {
-            'title': 'Boso przez świat',
-            'id': '9329207',
-        },
-        'playlist_count': 86,
+        'playlist_count': 115,
     }]
 
+    def _entries(self, url, display_id):
+        for page_num in itertools.count(1):
+            page = self._download_webpage(
+                url, display_id, 'Downloading page %d' % page_num,
+                query={'page': page_num})
+
+            video_ids = orderedSet(re.findall(
+                r'<a[^>]+\bhref=["\']/video/%s,[^,]+,(\d+)' % display_id,
+                page))
+
+            if not video_ids:
+                break
+
+            for video_id in video_ids:
+                yield self.url_result(
+                    'tvp:%s' % video_id, ie=TVPEmbedIE.ie_key(),
+                    video_id=video_id)
+
     def _real_extract(self, url):
-        display_id = self._match_id(url)
-        webpage = self._download_webpage(url, display_id, tries=5)
-
-        title = self._html_search_regex(
-            r'(?s) id=[\'"]path[\'"]>(?:.*? / ){2}(.*?)</span>', webpage, 'series')
-        playlist_id = self._search_regex(r'nodeId:\s*(\d+)', webpage, 'playlist id')
-        playlist = self._download_webpage(
-            'http://vod.tvp.pl/vod/seriesAjax?type=series&nodeId=%s&recommend'
-            'edId=0&sort=&page=0&pageSize=10000' % playlist_id, display_id, tries=5,
-            note='Downloading playlist')
-
-        videos_paths = re.findall(
-            '(?s)class="shortTitle">.*?href="(/[^"]+)', playlist)
-        entries = [
-            self.url_result('http://vod.tvp.pl%s' % v_path, ie=TVPIE.ie_key())
-            for v_path in videos_paths]
-
-        return {
-            '_type': 'playlist',
-            'id': playlist_id,
-            'display_id': display_id,
-            'title': title,
-            'entries': entries,
-        }
+        mobj = re.match(self._VALID_URL, url)
+        display_id, playlist_id = mobj.group('display_id', 'id')
+        return self.playlist_result(self._entries(url, display_id), playlist_id)
