@@ -1,3 +1,28 @@
+version <unreleased>
+
+Extractors
+* [tvp:website] Fix and improve extraction
++ [tvp] Detect unavailable videos
+* [tvp] Fix description extraction and make thumbnail optional
++ [linuxacademy] Add support for linuxacademy.com (#12207)
+* [bilibili] Update keys (#19233)
+* [udemy] Extend URL regular expressions (#14330, #15883)
+* [udemy] Update User-Agent and detect captcha (#14713, #15839, #18126)
+* [noovo] Fix extraction (#19230)
+* [rai] Relax URL regular expression (#19232)
++ [vshare] Pass Referer to download request (#19205, #19221)
++ [openload] Add support for oload.live (#19222)
+* [imgur] Use video id as title fallback (#18590)
++ [twitch] Add new source format detection approach (#19193)
+* [tvplayhome] Fix video id extraction (#19190)
+* [tvplayhome] Fix episode metadata extraction (#19190)
+* [rutube:embed] Fix extraction (#19163)
++ [rutube:embed] Add support private videos (#19163)
++ [soundcloud] Extract more metadata
++ [trunews] Add support for trunews.com (#19153)
++ [linkedin:learning] Extract chapter_number and chapter_id (#19162)
+
+
 version 2019.02.08
 
 Core
