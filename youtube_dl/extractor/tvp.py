@@ -198,19 +198,36 @@ class TVPEmbedIE(InfoExtractor):
         }
 
 
-class TVPSeriesIE(InfoExtractor):
+class TVPWebsiteIE(InfoExtractor):
     IE_NAME = 'tvp:series'
-    _VALID_URL = r'https?://vod\.tvp\.pl/website/(?P<display_id>[^,]+),(?P<id>\d+)/video'
+    _VALID_URL = r'https?://vod\.tvp\.pl/website/(?P<display_id>[^,]+),(?P<id>\d+)'
 
     _TESTS = [{
+        # series
         'url': 'https://vod.tvp.pl/website/lzy-cennet,38678312/video',
         'info_dict': {
             'id': '38678312',
         },
         'playlist_count': 115,
+    }, {
+        # film
+        'url': 'https://vod.tvp.pl/website/gloria,35139666',
+        'info_dict': {
+            'id': '36637049',
+            'ext': 'mp4',
+            'title': 'Gloria, Gloria',
+        },
+        'params': {
+            'skip_download': True,
+        },
+        'add_ie': ['TVPEmbed'],
+    }, {
+        'url': 'https://vod.tvp.pl/website/lzy-cennet,38678312',
+        'only_matching': True,
     }]
 
-    def _entries(self, url, display_id):
+    def _entries(self, display_id, playlist_id):
+        url = 'https://vod.tvp.pl/website/%s,%s/video' % (display_id, playlist_id)
         for page_num in itertools.count(1):
             page = self._download_webpage(
                 url, display_id, 'Downloading page %d' % page_num,
@@ -231,4 +248,5 @@ class TVPSeriesIE(InfoExtractor):
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
         display_id, playlist_id = mobj.group('display_id', 'id')
-        return self.playlist_result(self._entries(url, display_id), playlist_id)
+        return self.playlist_result(
+            self._entries(display_id, playlist_id), playlist_id)
