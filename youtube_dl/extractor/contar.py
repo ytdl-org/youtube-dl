@@ -31,7 +31,7 @@ class ContarBaseIE(InfoExtractor):
             self._API_BASE + path, video_id, headers=headers, note=note)
 
         self._handle_errors(result)
-        return result['data']
+        return result.get('data', [])
 
     def _real_initialize(self):
         email, password = self._get_login_info()
@@ -45,12 +45,12 @@ class ContarBaseIE(InfoExtractor):
             }))
 
         self._handle_errors(result)
-        self._auth_token = result['token']
+        self._auth_token = result.get('token')
 
     def _get_video_info(self, video, video_id, base={}):
 
         formats = self._get_formats(video.get('streams', []), video.get('id'))
-        subtitles = self._get_subtitles(video['subtitles'].get('data', []), video.get('id'))
+        subtitles = self._get_subtitles(video.get('subtitles', []).get('data', []), video.get('id'))
 
         serie_info = base.get('serie_info') or self._get_serie_info(video.get('serie'))
         season_number = base.get('season_number') or self._get_season_number(serie_info, video.get('id'))
@@ -81,9 +81,9 @@ class ContarBaseIE(InfoExtractor):
         return serie
 
     def _get_season_number(self, serie_info, video_id):
-        for season in serie_info['seasons'].get('data', []):
+        for season in serie_info.get('seasons', []).get('data', []):
             season_number = season.get('name')
-            for episode in season['videos'].get('data', []):
+            for episode in season.get('videos',[]).get('data', []):
                 if episode.get('id') == video_id:
                     return season_number
         return None
@@ -205,9 +205,9 @@ class ContarSerieIE(ContarBaseIE):
         base = {}
         base['serie_info'] = serie_info
 
-        for season in serie_info['seasons'].get('data', []):
+        for season in serie_info.get('seasons', []).get('data', []):
             base['season_number'] = season.get('name')
-            for episode in season['videos'].get('data', []):
+            for episode in season.get('videos', []).get('data', []):
                 info = self._get_video_info(episode, serie_id, base)
                 entries.append(info)
 
@@ -272,7 +272,7 @@ class ContarBrowseIE(ContarBaseIE):
         list = self._call_api('full/section/' + list_id, list_id, headers={'Referer': url})
         entries = []
 
-        for video in list['videos'].get('data', []):
+        for video in list.get('videos', []).get('data', []):
             if (video.get('type') == 'SERIE'):
                 url = 'www.cont.ar/serie/%s' % video.get('uuid')
                 entries.append(self.url_result(url, video_id=video.get('uuid'), video_title=video.get('name')))
