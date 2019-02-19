@@ -809,6 +809,7 @@ from .nrk import (
 )
 from .ntvde import NTVDeIE
 from .ntvru import NTVRuIE
+from .nxload import NxLoadIE
 from .nytimes import (
     NYTimesIE,
     NYTimesArticleIE,
@@ -1405,7 +1406,7 @@ from .webofstories import (
     WebOfStoriesPlaylistIE,
 )
 from .weibo import (
-    WeiboIE, 
+    WeiboIE,
     WeiboMobileIE
 )
 from .weiqitv import WeiqiTVIE
