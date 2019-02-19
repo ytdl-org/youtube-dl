@@ -7,24 +7,22 @@ from ..utils import (js_to_json)
 
 
 class NxLoadIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:www\.)?nxload\.com/(?:embed-)?(?P<id>\w+)\.html'
+    _VALID_URL = r'https?://(?:www\.)?nxload\.com/(?:embed-)?(?P<id>\w+)'
 
     _TESTS = [
         {
             'url': 'https://nxload.com/embed-w9uwujpk2na7.html',
-            'file': 'pso-kkk-1080p-w9uwujpk2na7.mp4',
             'md5': '955afd4f8f2c019bc4f116897346e3f9',
             'info_dict': {
                 'id': 'w9uwujpk2na7',
                 'ext': 'mp4',
-                'title': 'pso-firstman web 1080p',
+                'title': 'pso firstman web 1080p mkv',
                 'thumbnail': 're:^https://\w+.nxload.com/i/\d{2}/\d{5}/\w+.jpg$',
                 'url': 're:^https://\w+.nxload.com/[,\w]+/v.mp4$'
             }
         },
         {
             'url': 'https://nxload.com/qhwxcxj5ah56.html',
-            'file': 'pso kkk 1080p mkv-qhwxcxj5ah56.mp4',
             'md5': '983814ba610cd26ddd0819cd6d26ab68',
             'info_dict': {
                 'id': 'qhwxcxj5ah56',
@@ -36,19 +34,6 @@ class NxLoadIE(InfoExtractor):
         },
         {
             'url': 'https://nxload.com/embed-ig0ud2p3h57l.html',
-            'file': 'ig0ud2p3h57l-ig0ud2p3h57l.mp4',
-            'md5': 'ab3a79c831fccfd8a34c77775082c694',
-            'info_dict': {
-                'id': 'ig0ud2p3h57l',
-                'ext': 'mp4',
-                'title': 'ig0ud2p3h57l',
-                'thumbnail': 're:^https://\w+.nxload.com/i/\d{2}/\d{5}/\w+.jpg',
-                'url': 're:^https://\w+.nxload.com/[,\w]+/v.mp4$'
-            }
-        },
-        {
-            'url': 'https://nxload.com/ig0ud2p3h57l.html',
-            'file': 'streams org Noragami S1E01 German DTS 1080p Blu Ray x264 mkv-ig0ud2p3h57l.mp4',
             'md5': 'ab3a79c831fccfd8a34c77775082c694',
             'info_dict': {
                 'id': 'ig0ud2p3h57l',
@@ -62,7 +47,7 @@ class NxLoadIE(InfoExtractor):
 
     def _real_extract(self, url):
         video_id = self._match_id(url)
-        webpage = self._download_webpage(url, video_id)
+        webpage = self._download_webpage('https://nxload.com/' + video_id, video_id)
 
         title = self._html_search_regex(r'<title>Watch ([^<]+)</title>', webpage, 'title', '')
         alt_title = self._html_search_regex(r'<div class="filename">([^<]+)', webpage, 'title', video_id)
