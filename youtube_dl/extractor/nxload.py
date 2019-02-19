@@ -53,7 +53,7 @@ class NxLoadIE(InfoExtractor):
         alt_title = self._html_search_regex(r'<div class="filename">([^<]+)', webpage, 'title', video_id)
         title = title or alt_title
 
-        json = self._search_regex(r'new Clappr\.Player\(((?:.|\s)+?})\);', webpage, u'video URL').replace('function() {  }', '0').replace('3*1024*1024', '3145728')
+        json = self._search_regex(r'new Clappr\.Player\(((?:.|\s)+?})\);', webpage, 'json').replace('function() {  }', '0').replace('3*1024*1024', '3145728')
         jsonObj = self._parse_json(json, video_id, transform_source=js_to_json)
 
         self.report_extraction(video_id)
