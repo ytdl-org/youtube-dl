@@ -27,6 +27,7 @@ class TeachableBaseIE(InfoExtractor):
         'market.saleshacker.com': 'saleshacker',
         'learnability.org': 'learnability',
         'edurila.com': 'edurila',
+        'courses.workitdaily.com': 'workitdaily',
     }
 
     _VALID_URL_SUB_TUPLE = (_URL_PREFIX, '|'.join(re.escape(site) for site in _SITES.keys()))

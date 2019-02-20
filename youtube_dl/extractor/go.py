@@ -25,15 +25,15 @@ class GoIE(AdobePassIE):
         },
         'watchdisneychannel': {
             'brand': '004',
-            'requestor_id': 'Disney',
+            'resource_id': 'Disney',
         },
         'watchdisneyjunior': {
             'brand': '008',
-            'requestor_id': 'DisneyJunior',
+            'resource_id': 'DisneyJunior',
         },
         'watchdisneyxd': {
             'brand': '009',
-            'requestor_id': 'DisneyXD',
+            'resource_id': 'DisneyXD',
         }
     }
     _VALID_URL = r'https?://(?:(?P<sub_domain>%s)\.)?go\.com/(?:(?:[^/]+/)*(?P<id>vdka\w+)|(?:[^/]+/)*(?P<display_id>[^/?#]+))'\
@@ -130,8 +130,8 @@ class GoIE(AdobePassIE):
                     'device': '001',
                 }
                 if video_data.get('accesslevel') == '1':
-                    requestor_id = site_info['requestor_id']
-                    resource = self._get_mvpd_resource(
+                    requestor_id = site_info.get('requestor_id', 'DisneyChannels')
+                    resource = site_info.get('resource_id') or self._get_mvpd_resource(
                         requestor_id, title, video_id, None)
                     auth = self._extract_mvpd_auth(
                         url, video_id, requestor_id, resource)
