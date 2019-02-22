@@ -121,7 +121,11 @@ class CurlFD(ExternalFD):
         cmd += self._valueless_option('--silent', 'noprogress')
         cmd += self._valueless_option('--verbose', 'verbose')
         cmd += self._option('--limit-rate', 'ratelimit')
-        cmd += self._option('--retry', 'retries')
+        retry = self._option('--retry', 'retries')
+        if len(retry) == 2:
+            if retry[1] in ('inf', 'infinite'):
+                retry[1] = '2147483647'
+            cmd += retry
         cmd += self._option('--max-filesize', 'max_filesize')
         cmd += self._option('--interface', 'source_address')
         cmd += self._option('--proxy', 'proxy')
