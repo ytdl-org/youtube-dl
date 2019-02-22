@@ -3,6 +3,7 @@ from __future__ import unicode_literals
 
 import functools
 import itertools
+import math
 import operator
 import re
 
@@ -28,19 +29,151 @@ class PornHubBaseIE(InfoExtractor):
         def dl(*args, **kwargs):
             return super(PornHubBaseIE, self)._download_webpage_handle(*args, **kwargs)
 
+        def rnkey_is_required(webpage):
+            """Check if a RNKEY cookie is required to access the real page."""
+            return any(re.search(p, webpage)
+                       for p in (r'<body\b[^>]+\bonload=["\']go\(\)',
+                                 r'document\.cookie\s*=\s*["\']RNKEY=',
+                                 r'document\.location\.reload\(true\)'))
+
+        re_opts = re.ASCII | re.DOTALL | re.VERBOSE
+
+        def product(nums):
+            return functools.reduce(operator.mul, nums, 1)
+
+        def compose(*funcs):
+            """Compose sequence of unary functions `funcs`."""
+            def compose2(g, f):
+                return lambda x: g(f(x))
+
+            return functools.reduce(compose2, funcs, lambda x: x)
+
+        def fermat_factor(n):
+            """
+            Use Fermat's factorization method to factorize `n` into `c``d`
+            where `n` >= 1 and `c` <= `d`.
+            The factorization is proper whenever `n` is composite.
+            """
+            if n == 2:
+                return 1, 2
+            elif n % 2 == 0:
+                return 2, n // 2
+            else:
+                for a in range(math.ceil(math.sqrt(n)), n + 1):
+                    b = math.sqrt(a ** 2 - n)
+                    if b.is_integer():
+                        return a - int(b), a + int(b)
+
+        def find_func(name, string):
+            """Extract function `name` from `string`."""
+            match, = re.findall(r'function \s+ %s \s* \( \s* \) \s* \{ (.+) \}'
+                                % re.escape(name),
+                                string,
+                                re_opts)
+            return match
+
+        def strip_comments(string):
+            """Strip away /* ... */ and // ... \n comments from `string`."""
+            return re.sub(r'/\* (?: \*+ [^*/] | [^*])* \** \*/ | // [^\n]* \n',
+                          '\n',
+                          string,
+                          flags=re_opts)
+
+        def find_init_val(name, string):
+            """
+            Extract initial value for integer variable `name`
+            from `string`.
+            """
+            match, = re.findall(r'var \s+ %s \s* = \s* (\d+)'
+                                % re.escape(name),
+                                string,
+                                re_opts)
+            return int(match)
+
+        def plus_minus_product(sign, *nums):
+            """
+            Create a unary function which takes an integer and
+            adds / substracts product of `nums` to it according to `sign`.
+            """
+            n = product(map(int, nums))
+            if sign == '+':
+                return lambda k: k + n
+            elif sign == '-':
+                return lambda k: k - n
+
+        def parse_if_else_actions(s, string):
+            """
+            Create a list of unary functions which takes an integer and
+            adds / substracts to it according to bits of `s`
+            and actions in `string`.
+            """
+            def process_match(bit, sign_1, n_11, n_12, sign_2, n_21, n_22):
+                if (s >> int(bit)) & 1 == 1:
+                    return plus_minus_product(sign_1, n_11, n_12)
+                else:
+                    return plus_minus_product(sign_2, n_21, n_22)
+
+            matches = re.findall(r'''
+            if [^>]+ s \s* >> \s* (\d+) [^=]+
+            p \s* ([-+])= \s* (\d+) \s* \* \s* (\d+) [^=]+
+            else \s+
+            p \s* ([-+])= \s* (\d+) \s* \* \s* (\d+)''',
+                                 string,
+                                 re_opts)
+            return [process_match(*match) for match in matches]
+
+        def parse_last_action(string):
+            """
+            Create a unary function which takes an integer and
+            adds / substracts to it according to the last action in `string`.
+            """
+            match, = re.findall(r'.+ p \s* ([-+])= \s* (\d+)', string, re_opts)
+            return plus_minus_product(*match)
+
+        def find_magic_number(string):
+            """Extract colon enclosed magic number from `string`."""
+            match, = re.findall(r':(\d+):1', string, re_opts)
+            return int(match)
+
+        def generate_rnkey_cookie(string):
+            """Extract relevant data from `string` to generate RNKEY cookie."""
+            go = strip_comments(find_func('go', string))
+
+            p = find_init_val('p', go)
+            s = find_init_val('s', go)
+
+            if_else_actions = parse_if_else_actions(s, go)
+            last_action = parse_last_action(go)
+            # actions are commutative, we can compose in whatever order we wish
+            composite_action = compose(last_action, *if_else_actions)
+            smaller_factor, larger_factor = fermat_factor(composite_action(p))
+
+            magic_num = find_magic_number(go)
+
+            return {'domain': 'pornhub.com',
+                    'name': 'RNKEY',
+                    'value': '%s*%s:%s:%s:1'
+                    % (smaller_factor, larger_factor, s, magic_num)}
+
         webpage, urlh = dl(*args, **kwargs)
 
-        if any(re.search(p, webpage) for p in (
-                r'<body\b[^>]+\bonload=["\']go\(\)',
-                r'document\.cookie\s*=\s*["\']RNKEY=',
-                r'document\.location\.reload\(true\)')):
-            url_or_request = args[0]
-            url = (url_or_request.get_full_url()
-                   if isinstance(url_or_request, compat_urllib_request.Request)
-                   else url_or_request)
-            phantom = PhantomJSwrapper(self, required_version='2.0')
-            phantom.get(url, html=webpage)
-            webpage, urlh = dl(*args, **kwargs)
+        if rnkey_is_required(webpage):
+            try:
+                # try to generate a RNKEY cookie and re-download the page
+                self._set_cookie(**generate_rnkey_cookie(webpage))
+                webpage, urlh = dl(*args, **kwargs)
+                assert(not rnkey_is_required(webpage))
+            except Exception as e:
+                self.report_warning('Unable to generate RNKEY cookie: %s' % e)
+                # only invoke phantumjs as a last resort
+                url_or_request = args[0]
+                url = (url_or_request.get_full_url()
+                       if isinstance(url_or_request,
+                                     compat_urllib_request.Request)
+                       else url_or_request)
+                phantom = PhantomJSwrapper(self, required_version='2.0')
+                phantom.get(url, html=webpage)
+                webpage, urlh = dl(*args, **kwargs)
 
         return webpage, urlh
 
