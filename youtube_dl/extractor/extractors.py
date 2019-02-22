@@ -1088,6 +1088,7 @@ from .streamable import StreamableIE
 from .streamango import StreamangoIE
 from .streamcloud import StreamcloudIE
 from .streamcz import StreamCZIE
+from .streamme import StreamMeIE
 from .streetvoice import StreetVoiceIE
 from .stretchinternet import StretchInternetIE
 from .sunporno import SunPornoIE
