@@ -63,6 +63,7 @@ class EmbedThumbnailPP(FFmpegPostProcessor):
 
             options = [
                 '-c', 'copy',
+                '-map', '0',
                 '-attach', thumbnail_filename,
                 # https://matroska.org/technical/cover_art/index.html as pointed in #6046
                 # No orientation detection nor dimensions checking/convertion
