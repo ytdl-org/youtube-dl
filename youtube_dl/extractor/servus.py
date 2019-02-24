@@ -3,6 +3,7 @@ from __future__ import unicode_literals
 
 from .common import InfoExtractor
 
+import re
 
 class ServusIE(InfoExtractor):
     _VALID_URL = r'https?://(?:www\.)?servus\.com/tv/videos/(?P<id>aa-\w+|\d+-\d+)'
@@ -12,7 +13,7 @@ class ServusIE(InfoExtractor):
         'info_dict': {
             'id': 'AA-1T6VBU5PW1W12',
             'ext': 'mp4',
-            'title': r're:^Die Grünen aus Sicht des Volkes.*',
+            'title': 'Die Grünen aus Sicht des Volkes',
             'description': 'md5:1247204d85783afe3682644398ff2ec4',
             'thumbnail': r're:^https?://.*1080$',
         }
@@ -23,7 +24,8 @@ class ServusIE(InfoExtractor):
 
         webpage = self._download_webpage(url, video_id)
         
-        title = self._og_search_title(webpage)
+        title = re.search(r'videoLabel="(.*?)"', webpage).group(1)
+
         description = self._og_search_description(webpage)
         thumbnail = self._og_search_thumbnail(webpage)
 
