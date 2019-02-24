@@ -12,7 +12,7 @@ class ServusIE(InfoExtractor):
         'info_dict': {
             'id': 'AA-1T6VBU5PW1W12',
             'ext': 'mp4',
-            'title': 'Die Grünen aus Sicht des Volkes - Servus TV',
+            'title': r're:^Die Grünen aus Sicht des Volkes.*',
             'description': 'md5:1247204d85783afe3682644398ff2ec4',
             'thumbnail': r're:^https?://.*1080$',
         }
