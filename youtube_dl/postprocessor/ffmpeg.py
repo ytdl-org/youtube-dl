@@ -304,31 +304,19 @@ class FFmpegExtractAudioPP(FFmpegPostProcessor):
             extension = self._preferredcodec
             more_opts = []
             if self._preferredquality is not None:
+                preferredquality = int(self._preferredquality)
                 # The opus codec doesn't support the -aq option
-                if int(self._preferredquality) < 10 and extension != 'opus':
+                if preferredquality < 10 and extension != 'opus':
                     more_opts += ['-q:a', self._preferredquality]
-                elif int(self._preferredquality) < 10:
+                elif preferredquality < 10 and preferredquality >= 0:
                     # Handle opus quality/bitrate using Xiph.org's Recommended Settings
-                    if int(self._preferredquality) == 9:
-                        more_opts += ['-b:a', '450k']
-                    elif int(self._preferredquality) == 8:
-                        more_opts += ['-b:a', '256k']
-                    elif int(self._preferredquality) == 7:
-                        more_opts += ['-b:a', '128k']
-                    elif int(self._preferredquality) == 6:
-                        more_opts += ['-b:a', '96k']
-                    elif int(self._preferredquality) == 5:
-                        more_opts += ['-b:a', '64k']
-                    elif int(self._preferredquality) == 4:
-                        more_opts += ['-b:a', '32k']
-                    elif int(self._preferredquality) == 3:
-                        more_opts += ['-b:a', '24k']
-                    elif int(self._preferredquality) == 2:
-                        more_opts += ['-b:a', '10k']
-                    else:
-                        more_opts += ['-b:a', '6k']
+                    opus_bitrate_list = [
+                        '6k', '6k', '10k', '24k', '32k', '64k', '96k', '128k', '256k', '450k'
+                    ]
+                    more_opts += ['-b:a', opus_bitrate_list[preferredquality]]
                 else:
                     more_opts += ['-b:a', self._preferredquality + 'k']
+
             if self._preferredcodec == 'aac':
                 more_opts += ['-f', 'adts']
             if self._preferredcodec == 'm4a':
