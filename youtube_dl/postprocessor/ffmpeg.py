@@ -311,7 +311,7 @@ class FFmpegExtractAudioPP(FFmpegPostProcessor):
                 elif preferredquality < 10 and preferredquality >= 0:
                     # Handle opus quality/bitrate using Xiph.org's Recommended Settings
                     opus_bitrate_list = [
-                        '6k', '6k', '10k', '24k', '32k', '64k', '96k', '128k', '256k', '450k'
+                        '450k', '256k', '160k', '128k', '96k', '64k', '32k', '24k', '10k', '6k'
                     ]
                     more_opts += ['-b:a', opus_bitrate_list[preferredquality]]
                 else:
