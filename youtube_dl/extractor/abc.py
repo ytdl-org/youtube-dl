@@ -198,21 +198,13 @@ class ABCIViewShowIE(ABCIViewIE):
 
     # ABC iview programs are normally available for 14 days only.
     _TESTS = [{
-        'url': 'https://iview.abc.net.au/show/ben-and-hollys-little-kingdom/series/0/video/ZX9371A050S00',
-        'md5': 'cde42d728b3b7c2b32b1b94b4a548afc',
+        'url': 'https://iview.abc.net.au/show/play-school-story-time',
         'info_dict': {
-            'id': 'ZX9371A050S00',
-            'ext': 'mp4',
-            'title': "Gaston's Birthday",
-            'series': "Ben And Holly's Little Kingdom",
-            'description': 'md5:f9de914d02f226968f598ac76f105bcf',
-            'upload_date': '20180604',
+            'title': "Play School Story Time",
+            'description': 'md5:384ca6867e84e3aa2f5ef48e1b982e83',
             'uploader_id': 'abc4kids',
-            'timestamp': 1528140219,
         },
-        'params': {
-            'skip_download': True,
-        },
+        'playlist_count': 17
     }]
 
 
