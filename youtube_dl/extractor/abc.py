@@ -131,8 +131,11 @@ class ABCIViewIE(InfoExtractor):
         video_id = self._match_id(url)
         video_params = self._download_json(
             'https://iview.abc.net.au/api/programs/' + video_id, video_id)
-        title = unescapeHTML(video_params.get('title') or video_params['seriesTitle'])
+        return self._extract_from_video_params(video_id, video_params)
 
+    def _extract_from_video_params(self, video_id, video_params):
+        title = unescapeHTML(video_params.get('title') or video_params['seriesTitle'])
+        stream = next(s for s in video_params['playlist'] if s.get('type') in ('program', 'livestream'))
         house_number = video_params.get('episodeHouseNumber') or video_id
         path = '/auth/hls/sign?ts={0}&hn={1}&d=android-tablet'.format(
             int(time.time()), house_number)
@@ -142,116 +145,32 @@ class ABCIViewIE(InfoExtractor):
         token = self._download_webpage(
             'http://iview.abc.net.au{0}&sig={1}'.format(path, sig), video_id)
 
-        try:
-            stream = next(s for s in video_params['playlist'] if s.get('type') in ('program', 'livestream'))
-            
-            def tokenize_url(url, token):
-                return update_url_query(url, {
-                    'hdnea': token,
-                })
-            
-            for sd in ('sd', 'sd-low'):
-                sd_url = try_get(
-                    stream, lambda x: x['streams']['hls'][sd], compat_str)
-                if not sd_url:
-                    continue
-                formats = self._extract_m3u8_formats(
-                    tokenize_url(sd_url, token), video_id, 'mp4',
-                    entry_protocol='m3u8_native', m3u8_id='hls', fatal=False)
-                if formats:
-                    break
-            self._sort_formats(formats)
-            
-            # import pprint
-            # pp = pprint.PrettyPrinter(indent=4)
-            # pp.pprint(formats)
-            
-            subtitles = {}
-            src_vtt = stream.get('captions', {}).get('src-vtt')
-            if src_vtt:
-                subtitles['en'] = [{
-                    'url': src_vtt,
-                    'ext': 'vtt',
-                }]                    
+        def tokenize_url(url, token):
+            return update_url_query(url, {
+                'hdnea': token,
+            })
 
-        except:
-            subtitles = {}
-            formats = [{
-                u'acodec': u'mp4a.40.2',
-                u'ext': u'mp4',
-                u'format_id': u'hls-64',
-                u'fps': None,
-                u'manifest_url': u'http://iviewhls-i.akamaihd.net/i/playback/_definst_/_video/ch1/CH1612H002S00MA1D1_20171215125703_,1500000,1000000,650000,500000,220000,.mp4.csmil/master.m3u8?hdnea=st%3D1528898229%7Eexp%3D1528905429%7Eacl%3D%2F%2A%7Ehmac%3D7c0049dda233b54c3b960b3f56a00809756fe3d7cc69f53befcd1eca7a5eb44f',
-                u'preference': None,
-                u'protocol': u'm3u8_native',
-                u'tbr': 64.0,
-                u'url': u'http://iviewhls-i.akamaihd.net/i/playback/_definst_/_video/ch1/CH1612H002S00MA1D1_20171215125703_,1500000,1000000,650000,500000,220000,.mp4.csmil/index_4_a.m3u8?null=0&id=AgDKn6iplmWlDfIiIVsJw%2fXW7PIsPqRgUMPQ978Sc8JvT18NlaqB9baSiasj4ERXPiwUGmBe0ROqCQ%3d%3d',
-                u'vcodec': u'none'},
-            {   u'acodec': u'mp4a.40.2',
-                u'ext': u'mp4',
-                u'format_id': u'hls-234',
-                u'fps': None,
-                u'height': 180,
-                u'manifest_url': u'http://iviewhls-i.akamaihd.net/i/playback/_definst_/_video/ch1/CH1612H002S00MA1D1_20171215125703_,1500000,1000000,650000,500000,220000,.mp4.csmil/master.m3u8?hdnea=st%3D1528898229%7Eexp%3D1528905429%7Eacl%3D%2F%2A%7Ehmac%3D7c0049dda233b54c3b960b3f56a00809756fe3d7cc69f53befcd1eca7a5eb44f',
-                u'preference': None,
-                u'protocol': u'm3u8_native',
-                u'tbr': 234.0,
-                u'url': u'http://iviewhls-i.akamaihd.net/i/playback/_definst_/_video/ch1/CH1612H002S00MA1D1_20171215125703_,1500000,1000000,650000,500000,220000,.mp4.csmil/index_4_av.m3u8?null=0&id=AgDKn6iplmWlDfIiIVsJw%2fXW7PIsPqRgUMPQ978Sc8JvT18NlaqB9baSiasj4ERXPiwUGmBe0ROqCQ%3d%3d',
-                u'vcodec': u'avc1.77.30',
-                u'width': 320},
-            {   u'acodec': u'mp4a.40.2',
-                u'ext': u'mp4',
-                u'format_id': u'hls-508',
-                u'fps': None,
-                u'height': 288,
-                u'manifest_url': u'http://iviewhls-i.akamaihd.net/i/playback/_definst_/_video/ch1/CH1612H002S00MA1D1_20171215125703_,1500000,1000000,650000,500000,220000,.mp4.csmil/master.m3u8?hdnea=st%3D1528898229%7Eexp%3D1528905429%7Eacl%3D%2F%2A%7Ehmac%3D7c0049dda233b54c3b960b3f56a00809756fe3d7cc69f53befcd1eca7a5eb44f',
-                u'preference': None,
-                u'protocol': u'm3u8_native',
-                u'tbr': 508.0,
-                u'url': u'http://iviewhls-i.akamaihd.net/i/playback/_definst_/_video/ch1/CH1612H002S00MA1D1_20171215125703_,1500000,1000000,650000,500000,220000,.mp4.csmil/index_3_av.m3u8?null=0&id=AgDKn6iplmWlDfIiIVsJw%2fXW7PIsPqRgUMPQ978Sc8JvT18NlaqB9baSiasj4ERXPiwUGmBe0ROqCQ%3d%3d',
-                u'vcodec': u'avc1.77.30',
-                u'width': 512},
-            {   u'acodec': u'mp4a.40.2',
-                u'ext': u'mp4',
-                u'format_id': u'hls-630',
-                u'fps': None,
-                u'height': 360,
-                u'manifest_url': u'http://iviewhls-i.akamaihd.net/i/playback/_definst_/_video/ch1/CH1612H002S00MA1D1_20171215125703_,1500000,1000000,650000,500000,220000,.mp4.csmil/master.m3u8?hdnea=st%3D1528898229%7Eexp%3D1528905429%7Eacl%3D%2F%2A%7Ehmac%3D7c0049dda233b54c3b960b3f56a00809756fe3d7cc69f53befcd1eca7a5eb44f',
-                u'preference': None,
-                u'protocol': u'm3u8_native',
-                u'tbr': 630.0,
-                u'url': u'http://iviewhls-i.akamaihd.net/i/playback/_definst_/_video/ch1/CH1612H002S00MA1D1_20171215125703_,1500000,1000000,650000,500000,220000,.mp4.csmil/index_2_av.m3u8?null=0&id=AgDKn6iplmWlDfIiIVsJw%2fXW7PIsPqRgUMPQ978Sc8JvT18NlaqB9baSiasj4ERXPiwUGmBe0ROqCQ%3d%3d',
-                u'vcodec': u'avc1.77.30',
-                u'width': 640},
-            {   u'acodec': u'mp4a.40.2',
-                u'ext': u'mp4',
-                u'format_id': u'hls-993',
-                u'fps': None,
-                u'height': 450,
-                u'manifest_url': u'http://iviewhls-i.akamaihd.net/i/playback/_definst_/_video/ch1/CH1612H002S00MA1D1_20171215125703_,1500000,1000000,650000,500000,220000,.mp4.csmil/master.m3u8?hdnea=st%3D1528898229%7Eexp%3D1528905429%7Eacl%3D%2F%2A%7Ehmac%3D7c0049dda233b54c3b960b3f56a00809756fe3d7cc69f53befcd1eca7a5eb44f',
-                u'preference': None,
-                u'protocol': u'm3u8_native',
-                u'tbr': 993.0,
-                u'url': u'http://iviewhls-i.akamaihd.net/i/playback/_definst_/_video/ch1/CH1612H002S00MA1D1_20171215125703_,1500000,1000000,650000,500000,220000,.mp4.csmil/index_1_av.m3u8?null=0&id=AgDKn6iplmWlDfIiIVsJw%2fXW7PIsPqRgUMPQ978Sc8JvT18NlaqB9baSiasj4ERXPiwUGmBe0ROqCQ%3d%3d',
-                u'vcodec': u'avc1.640028',
-                u'width': 800},
-            {   u'acodec': u'mp4a.40.2',
-                u'ext': u'mp4',
-                u'format_id': u'hls-1458',
-                u'fps': None,
-                u'height': 576,
-                u'manifest_url': u'http://iviewhls-i.akamaihd.net/i/playback/_definst_/_video/ch1/CH1612H002S00MA1D1_20171215125703_,1500000,1000000,650000,500000,220000,.mp4.csmil/master.m3u8?hdnea=st%3D1528898229%7Eexp%3D1528905429%7Eacl%3D%2F%2A%7Ehmac%3D7c0049dda233b54c3b960b3f56a00809756fe3d7cc69f53befcd1eca7a5eb44f',
-                u'preference': None,
-                u'protocol': u'm3u8_native',
-                u'tbr': 1458.0,
-                u'url': u'http://iviewhls-i.akamaihd.net/i/playback/_definst_/_video/ch1/CH1612H002S00MA1D1_20171215125703_,1500000,1000000,650000,500000,220000,.mp4.csmil/index_0_av.m3u8?null=0&id=AgDKn6iplmWlDfIiIVsJw%2fXW7PIsPqRgUMPQ978Sc8JvT18NlaqB9baSiasj4ERXPiwUGmBe0ROqCQ%3d%3d',
-                u'vcodec': u'avc1.640028',
-                u'width': 1024}]
-
+        for sd in ('sd', 'sd-low'):
+            sd_url = try_get(
+                stream, lambda x: x['streams']['hls'][sd], compat_str)
+            if not sd_url:
+                continue
+            formats = self._extract_m3u8_formats(
+                tokenize_url(sd_url, token), video_id, 'mp4',
+                entry_protocol='m3u8_native', m3u8_id='hls', fatal=False)
+            if formats:
+                break
+        self._sort_formats(formats)
+        subtitles = {}
+        src_vtt = stream.get('captions', {}).get('src-vtt')
+        if src_vtt:
+            subtitles['en'] = [{
+                'url': src_vtt,
+                'ext': 'vtt',
+            }]
         is_live = video_params.get('livestream') == '1'
         if is_live:
             title = self._live_title(title)
-
         return {
             'id': video_id,
             'title': title,
@@ -271,3 +190,60 @@ class ABCIViewIE(InfoExtractor):
             'subtitles': subtitles,
             'is_live': is_live,
         }
+
+
+class ABCIViewShowIE(ABCIViewIE):
+    IE_NAME = 'abc.net.au:iview:show'
+    _VALID_URL = r'https?://iview\.abc\.net\.au/show/(?P<id>[^/?#]+)'
+
+    # ABC iview programs are normally available for 14 days only.
+    _TESTS = [{
+        'url': 'https://iview.abc.net.au/show/ben-and-hollys-little-kingdom/series/0/video/ZX9371A050S00',
+        'md5': 'cde42d728b3b7c2b32b1b94b4a548afc',
+        'info_dict': {
+            'id': 'ZX9371A050S00',
+            'ext': 'mp4',
+            'title': "Gaston's Birthday",
+            'series': "Ben And Holly's Little Kingdom",
+            'description': 'md5:f9de914d02f226968f598ac76f105bcf',
+            'upload_date': '20180604',
+            'uploader_id': 'abc4kids',
+            'timestamp': 1528140219,
+        },
+        'params': {
+            'skip_download': True,
+        },
+    }]
+
+
+    def _real_extract(self, url):
+        show_id = self._match_id(url)
+        # This ends up getting the video_params for the initial entry
+        # However just taking the next episode data keeps the Downloading JSON metadata, webpage, m3u8 information
+        # more consistent.
+        show_params = self._download_json(
+            'https://iview.abc.net.au/api/programs/' + show_id, show_id)
+
+        next_href = show_params.get('nextEpisode').get('href')
+        seen_hrefs = set()
+        entries = []
+
+        while next_href and next_href not in seen_hrefs:
+            seen_hrefs.add(next_href)
+
+            video_id = next_href.rsplit('/', 1)[-1]
+            video_params = self._download_json(
+                'https://iview.abc.net.au/api/' + next_href, video_id)
+            entries.append(self._extract_from_video_params(video_id, video_params))
+
+            next_href = video_params.get('nextEpisode').get('href')
+
+        return {
+            '_type': 'playlist',
+            'title': entries[0].get('series'),
+            'description': entries[0].get('description'),
+            'uploader_id': entries[0].get('uploader_id'),
+            'entries': entries
+        }
+
+
