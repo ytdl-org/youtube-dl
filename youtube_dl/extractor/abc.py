@@ -192,48 +192,114 @@ class ABCIViewIE(InfoExtractor):
         }
 
 
-class ABCIViewShowIE(ABCIViewIE):
+class ABCIViewSeriesIE(ABCIViewIE):
     IE_NAME = 'abc.net.au:iview:show'
     _VALID_URL = r'https?://iview\.abc\.net\.au/show/(?P<id>[^/?#]+)'
 
-    # ABC iview programs are normally available for 14 days only.
     _TESTS = [{
+        'url': 'https://iview.abc.net.au/show/play-school-celebrity-covers',
+        'info_dict': {
+            'title': "Play School Celebrity Covers",
+            'description': 'md5:5cf7b4e466b72ee1b930fc95b2a80ed7',
+            'uploader_id': 'abc4kids',
+        },
+        'playlist_count': 31
+    },
+    {
         'url': 'https://iview.abc.net.au/show/play-school-story-time',
         'info_dict': {
             'title': "Play School Story Time",
-            'description': 'md5:384ca6867e84e3aa2f5ef48e1b982e83',
+            'description': 'md5:2763b35f418d334d72e3d7f7fc7afb82',
             'uploader_id': 'abc4kids',
         },
-        'playlist_count': 17
+        'playlist_count': 24
+    },
+    {
+        'url': 'https://iview.abc.net.au/show/play-school-story-time-languages',
+        'info_dict': {
+            'title': "Play School Story Time: Languages",
+            'description': 'md5:cca001fadcf1cb1508a9301c4fb0343a',
+            'uploader_id': 'abc4kids',
+        },
+        'playlist_count': 5
+    },
+    {
+        'url': 'https://iview.abc.net.au/show/big-teds-big-adventure',
+        'info_dict': {
+            'title': "Big Ted's Big Adventure",
+            'description': 'md5:77f30f44f632f0f4d312e3b9af1869f6',
+            'uploader_id': 'abc4kids',
+        },
+        'playlist_count': 20
+    },
+    {
+        'url': 'https://iview.abc.net.au/show/humptys-big-adventure',
+        'info_dict': {
+            'title': "Humpty's Big Adventure",
+            'description': 'md5:65c4335e1576ec92426f5d05a52c04f6',
+            'uploader_id': 'abc4kids',
+        },
+        'playlist_count': 16
+    },
+    {
+        'url': 'https://iview.abc.net.au/show/jemimas-big-adventure',
+        'info_dict': {
+            'title': "Jemima's Big Adventure",
+            'description': 'md5:be79641bb70f329ca40b924c25a7f293',
+            'uploader_id': 'abc4kids',
+        },
+        'playlist_count': 10
+    },
+    {
+        'url': 'https://iview.abc.net.au/show/joeys-big-adventure',
+        'info_dict': {
+            'title': "Joey's Big Adventure",
+            'description': 'md5:e3529b28bc25de54bceb96f0f4dbee7a',
+            'uploader_id': 'abc4kids',
+        },
+        'playlist_count': 13
+    },
+    {
+        'url': 'https://iview.abc.net.au/show/little-teds-big-adventure',
+        'info_dict': {
+            'title': "Little Ted's Big Adventure",
+            'description': 'md5:8d064998070bfafeec142547ab48982c',
+            'uploader_id': 'abc4kids',
+        },
+        'playlist_count': 20
+    },
+    {
+        'url': 'https://iview.abc.net.au/show/maurices-big-adventure',
+        'info_dict': {
+            'title': "Maurice's Big Adventure",
+            'description': 'md5:a41d7b9b0c87ef610c117a679f3efd5e',
+            'uploader_id': 'abc4kids',
+        },
+        'playlist_count': 12
     }]
 
 
     def _real_extract(self, url):
-        show_id = self._match_id(url)
-        # This ends up getting the video_params for the initial entry
-        # However just taking the next episode data keeps the Downloading JSON metadata, webpage, m3u8 information
-        # more consistent.
-        show_params = self._download_json(
-            'https://iview.abc.net.au/api/programs/' + show_id, show_id)
+        series_id = self._match_id(url)
+        series_params = self._download_json(
+            'https://iview.abc.net.au/api/series/' + series_id, series_id)
 
-        next_href = show_params.get('nextEpisode').get('href')
-        seen_hrefs = set()
+        # Sometimes the episodes are listed in reverse order, with the most recently uploaded ones first.
+        # This is normally for time-limited series. Others appear oldest to newest
+        episodes = series_params.get('episodes')
         entries = []
 
-        while next_href and next_href not in seen_hrefs:
-            seen_hrefs.add(next_href)
-
-            video_id = next_href.rsplit('/', 1)[-1]
+        for episode in episodes:
+            href = episode.get('href')
+            video_id = episode.get('episodeHouseNumber')
             video_params = self._download_json(
-                'https://iview.abc.net.au/api/' + next_href, video_id)
+                'https://iview.abc.net.au/api/' + href, video_id)
             entries.append(self._extract_from_video_params(video_id, video_params))
-
-            next_href = video_params.get('nextEpisode').get('href')
 
         return {
             '_type': 'playlist',
-            'title': entries[0].get('series'),
-            'description': entries[0].get('description'),
+            'title': series_params.get('seriesTitle'),
+            'description': series_params.get('seriesDescription'),
             'uploader_id': entries[0].get('uploader_id'),
             'entries': entries
         }
