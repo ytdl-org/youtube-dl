@@ -287,7 +287,8 @@ def _real_main(argv=None):
         already_have_thumbnail = opts.writethumbnail or opts.write_all_thumbnails
         postprocessors.append({
             'key': 'EmbedThumbnail',
-            'already_have_thumbnail': already_have_thumbnail
+            'already_have_thumbnail': already_have_thumbnail,
+            'crop_thumbnail': opts.cropthumbnail,
         })
         if not already_have_thumbnail:
             opts.writethumbnail = True

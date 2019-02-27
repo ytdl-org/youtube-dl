@@ -815,6 +815,10 @@ def parseOpts(overrideArguments=None):
         action='store_true', dest='embedthumbnail', default=False,
         help='Embed thumbnail in the audio as cover art')
     postproc.add_option(
+        '--crop-thumbnail',
+        action='store_true', dest='cropthumbnail', default=False,
+        help='Crop the thumbnail to an square; No effect without --embed-thumbnail')
+    postproc.add_option(
         '--add-metadata',
         action='store_true', dest='addmetadata', default=False,
         help='Write metadata to the video file')

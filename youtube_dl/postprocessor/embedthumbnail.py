@@ -22,9 +22,10 @@ class EmbedThumbnailPPError(PostProcessingError):
 
 
 class EmbedThumbnailPP(FFmpegPostProcessor):
-    def __init__(self, downloader=None, already_have_thumbnail=False):
+    def __init__(self, downloader=None, already_have_thumbnail=False, crop_thumbnail=False):
         super(EmbedThumbnailPP, self).__init__(downloader)
         self._already_have_thumbnail = already_have_thumbnail
+        self._crop_thumbnail = crop_thumbnail
 
     def run(self, info):
         filename = info['filepath']
@@ -42,8 +43,17 @@ class EmbedThumbnailPP(FFmpegPostProcessor):
             return [], info
 
         if info['ext'] == 'mp3':
-            options = [
-                '-c', 'copy', '-map', '0', '-map', '1',
+            options = []
+            if self._crop_thumbnail:
+                options.append(
+                    '-c:a', 'copy', '-c:v', 'mjpeg',  # Copy audio stream, re-encode resulting thumb
+                    '-vf', 'crop="\'if(gt(ih,iw),iw,ih)\':\'if(gt(iw,ih),ih,iw)\'"'  # Use the crop filter on the image
+                )
+            else:
+                options.append('-c', 'copy')  # Copy both streams instead
+
+            options += [
+                '-map', '0', '-map', '1',
                 '-metadata:s:v', 'title="Album cover"', '-metadata:s:v', 'comment="Cover (Front)"']
 
             self._downloader.to_screen('[ffmpeg] Adding thumbnail to "%s"' % filename)
