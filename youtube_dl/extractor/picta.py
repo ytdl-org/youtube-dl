@@ -12,7 +12,7 @@ from .common import InfoExtractor
 
 
 class PictaBaseIE(InfoExtractor):
-    API_BASE_URL = 'https://www.picta.cu/api/v1/'
+    API_BASE_URL = 'https://api.picta.cu/api/v1/'
 
     def _extract_video(self, video, video_id=None, require_title=True):
         title = video['results'][0]['nombre'] if require_title else video.get('results')[0].get('nombre')
