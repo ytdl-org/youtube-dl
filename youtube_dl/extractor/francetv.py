@@ -271,7 +271,7 @@ class FranceTVSiteIE(FranceTVBaseInfoExtractor):
 
         catalogue = None
         video_id = self._search_regex(
-            r'data-main-video=(["\'])(?P<id>(?:(?!\1).)+)\1',
+            r'videoId:\s*(["\'])(?P<id>(?:(?!\1).)+)\1',
             webpage, 'video id', default=None, group='id')
 
         if not video_id:
