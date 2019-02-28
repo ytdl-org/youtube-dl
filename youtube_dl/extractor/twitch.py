@@ -4,10 +4,10 @@ from __future__ import unicode_literals
 import itertools
 import re
 import random
+import json
 
 from .common import InfoExtractor
 from ..compat import (
-    compat_HTTPError,
     compat_kwargs,
     compat_parse_qs,
     compat_str,
@@ -26,7 +26,7 @@ from ..utils import (
     try_get,
     unified_timestamp,
     update_url_query,
-    urlencode_postdata,
+    url_or_none,
     urljoin,
 )
 
@@ -36,8 +36,9 @@ class TwitchBaseIE(InfoExtractor):
 
     _API_BASE = 'https://api.twitch.tv'
     _USHER_BASE = 'https://usher.ttvnw.net'
-    _LOGIN_URL = 'https://www.twitch.tv/login'
-    _CLIENT_ID = 'jzkbprff40iqj646a697cyrvl0zt2m6'
+    _LOGIN_FORM_URL = 'https://www.twitch.tv/login'
+    _LOGIN_POST_URL = 'https://passport.twitch.tv/login'
+    _CLIENT_ID = 'kimne78kx3ncx6brgo4mv6wki5h1ko'
     _NETRC_MACHINE = 'twitch'
 
     def _handle_error(self, response):
@@ -50,7 +51,9 @@ class TwitchBaseIE(InfoExtractor):
                 expected=True)
 
     def _call_api(self, path, item_id, *args, **kwargs):
-        kwargs.setdefault('headers', {})['Client-ID'] = self._CLIENT_ID
+        headers = kwargs.get('headers', {}).copy()
+        headers['Client-ID'] = self._CLIENT_ID
+        kwargs['headers'] = headers
         response = self._download_json(
             '%s/%s' % (self._API_BASE, path), item_id,
             *args, **compat_kwargs(kwargs))
@@ -76,22 +79,21 @@ class TwitchBaseIE(InfoExtractor):
             page_url = urlh.geturl()
             post_url = self._search_regex(
                 r'<form[^>]+action=(["\'])(?P<url>.+?)\1', page,
-                'post url', default=page_url, group='url')
+                'post url', default=self._LOGIN_POST_URL, group='url')
             post_url = urljoin(page_url, post_url)
 
-            headers = {'Referer': page_url}
+            headers = {
+                'Referer': page_url,
+                'Origin': page_url,
+                'Content-Type': 'text/plain;charset=UTF-8',
+            }
 
-            try:
-                response = self._download_json(
-                    post_url, None, note,
-                    data=urlencode_postdata(form),
-                    headers=headers)
-            except ExtractorError as e:
-                if isinstance(e.cause, compat_HTTPError) and e.cause.code == 400:
-                    response = self._parse_json(
-                        e.cause.read().decode('utf-8'), None)
-                    fail(response.get('message') or response['errors'][0])
-                raise
+            response = self._download_json(
+                post_url, None, note, data=json.dumps(form).encode(),
+                headers=headers, expected_status=400)
+            error = response.get('error_description') or response.get('error_code')
+            if error:
+                fail(error)
 
             if 'Authenticated successfully' in response.get('message', ''):
                 return None, None
@@ -104,7 +106,7 @@ class TwitchBaseIE(InfoExtractor):
                 headers=headers)
 
         login_page, handle = self._download_webpage_handle(
-            self._LOGIN_URL, None, 'Downloading login page')
+            self._LOGIN_FORM_URL, None, 'Downloading login page')
 
         # Some TOR nodes and public proxies are blocked completely
         if 'blacklist_message' in login_page:
@@ -114,6 +116,7 @@ class TwitchBaseIE(InfoExtractor):
             login_page, handle, 'Logging in', {
                 'username': username,
                 'password': password,
+                'client_id': self._CLIENT_ID,
             })
 
         # Successful login
@@ -133,7 +136,12 @@ class TwitchBaseIE(InfoExtractor):
             source = next(f for f in formats if f['format_id'] == 'Source')
             source['preference'] = 10
         except StopIteration:
-            pass  # No Source stream present
+            for f in formats:
+                if '/chunked/' in f['url']:
+                    f.update({
+                        'source_preference': 10,
+                        'format_note': 'Source',
+                    })
         self._sort_formats(formats)
 
 
@@ -239,7 +247,7 @@ class TwitchVodIE(TwitchItemBaseIE):
     _VALID_URL = r'''(?x)
                     https?://
                         (?:
-                            (?:(?:www|go|m)\.)?twitch\.tv/(?:[^/]+/v|videos)/|
+                            (?:(?:www|go|m)\.)?twitch\.tv/(?:[^/]+/v(?:ideo)?|videos)/|
                             player\.twitch\.tv/\?.*?\bvideo=v
                         )
                         (?P<id>\d+)
@@ -294,6 +302,9 @@ class TwitchVodIE(TwitchItemBaseIE):
         'only_matching': True,
     }, {
         'url': 'https://m.twitch.tv/beagsandjam/v/247478721',
+        'only_matching': True,
+    }, {
+        'url': 'https://www.twitch.tv/northernlion/video/291940395',
         'only_matching': True,
     }]
 
@@ -555,7 +566,8 @@ class TwitchStreamIE(TwitchBaseIE):
                     TwitchAllVideosIE,
                     TwitchUploadsIE,
                     TwitchPastBroadcastsIE,
-                    TwitchHighlightsIE))
+                    TwitchHighlightsIE,
+                    TwitchClipsIE))
                 else super(TwitchStreamIE, cls).suitable(url))
 
     def _real_extract(self, url):
@@ -629,7 +641,7 @@ class TwitchStreamIE(TwitchBaseIE):
 
 class TwitchClipsIE(TwitchBaseIE):
     IE_NAME = 'twitch:clips'
-    _VALID_URL = r'https?://clips\.twitch\.tv/(?:[^/]+/)*(?P<id>[^/?#&]+)'
+    _VALID_URL = r'https?://(?:clips\.twitch\.tv/(?:[^/]+/)*|(?:www\.)?twitch\.tv/[^/]+/clip/)(?P<id>[^/?#&]+)'
 
     _TESTS = [{
         'url': 'https://clips.twitch.tv/FaintLightGullWholeWheat',
@@ -649,6 +661,9 @@ class TwitchClipsIE(TwitchBaseIE):
         # multiple formats
         'url': 'https://clips.twitch.tv/rflegendary/UninterestedBeeDAESuppy',
         'only_matching': True,
+    }, {
+        'url': 'https://www.twitch.tv/sergeynixon/clip/StormyThankfulSproutFutureMan',
+        'only_matching': True,
     }]
 
     def _real_extract(self, url):
@@ -663,8 +678,8 @@ class TwitchClipsIE(TwitchBaseIE):
         for option in status['quality_options']:
             if not isinstance(option, dict):
                 continue
-            source = option.get('source')
-            if not source or not isinstance(source, compat_str):
+            source = url_or_none(option.get('source'))
+            if not source:
                 continue
             formats.append({
                 'url': source,

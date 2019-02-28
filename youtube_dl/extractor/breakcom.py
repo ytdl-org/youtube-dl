@@ -4,8 +4,10 @@ import re
 
 from .common import InfoExtractor
 from .youtube import YoutubeIE
-from ..compat import compat_str
-from ..utils import int_or_none
+from ..utils import (
+    int_or_none,
+    url_or_none,
+)
 
 
 class BreakIE(InfoExtractor):
@@ -55,8 +57,8 @@ class BreakIE(InfoExtractor):
 
         formats = []
         for video in content:
-            video_url = video.get('url')
-            if not video_url or not isinstance(video_url, compat_str):
+            video_url = url_or_none(video.get('url'))
+            if not video_url:
                 continue
             bitrate = int_or_none(self._search_regex(
                 r'(\d+)_kbps', video_url, 'tbr', default=None))

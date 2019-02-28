@@ -1,19 +1,20 @@
 # coding: utf-8
 from __future__ import unicode_literals, division
 
+import hashlib
+import hmac
 import re
+import time
 
 from .common import InfoExtractor
-from ..compat import (
-    compat_str,
-    compat_HTTPError,
-)
+from ..compat import compat_HTTPError
 from ..utils import (
     determine_ext,
     float_or_none,
     int_or_none,
     parse_age_limit,
     parse_duration,
+    url_or_none,
     ExtractorError
 )
 
@@ -50,6 +51,21 @@ class CrackleIE(InfoExtractor):
         'only_matching': True,
     }]
 
+    _MEDIA_FILE_SLOTS = {
+        '360p.mp4': {
+            'width': 640,
+            'height': 360,
+        },
+        '480p.mp4': {
+            'width': 768,
+            'height': 432,
+        },
+        '480p_1mbps.mp4': {
+            'width': 852,
+            'height': 480,
+        },
+    }
+
     def _real_extract(self, url):
         video_id = self._match_id(url)
 
@@ -61,13 +77,16 @@ class CrackleIE(InfoExtractor):
 
         for country in countries:
             try:
+                # Authorization generation algorithm is reverse engineered from:
+                # https://www.sonycrackle.com/static/js/main.ea93451f.chunk.js
+                media_detail_url = 'https://web-api-us.crackle.com/Service.svc/details/media/%s/%s?disableProtocols=true' % (video_id, country)
+                timestamp = time.strftime('%Y%m%d%H%M', time.gmtime())
+                h = hmac.new(b'IGSLUQCBDFHEOIFM', '|'.join([media_detail_url, timestamp]).encode(), hashlib.sha1).hexdigest().upper()
                 media = self._download_json(
-                    'https://web-api-us.crackle.com/Service.svc/details/media/%s/%s'
-                    % (video_id, country), video_id,
-                    'Downloading media JSON as %s' % country,
-                    'Unable to download media JSON', query={
-                        'disableProtocols': 'true',
-                        'format': 'json'
+                    media_detail_url, video_id, 'Downloading media JSON as %s' % country,
+                    'Unable to download media JSON', headers={
+                        'Accept': 'application/json',
+                        'Authorization': '|'.join([h, timestamp, '117', '1']),
                     })
             except ExtractorError as e:
                 # 401 means geo restriction, trying next country
@@ -86,8 +105,8 @@ class CrackleIE(InfoExtractor):
             for e in media['MediaURLs']:
                 if e.get('UseDRM') is True:
                     continue
-                format_url = e.get('Path')
-                if not format_url or not isinstance(format_url, compat_str):
+                format_url = url_or_none(e.get('Path'))
+                if not format_url:
                     continue
                 ext = determine_ext(format_url)
                 if ext == 'm3u8':
@@ -97,6 +116,20 @@ class CrackleIE(InfoExtractor):
                 elif ext == 'mpd':
                     formats.extend(self._extract_mpd_formats(
                         format_url, video_id, mpd_id='dash', fatal=False))
+                elif format_url.endswith('.ism/Manifest'):
+                    formats.extend(self._extract_ism_formats(
+                        format_url, video_id, ism_id='mss', fatal=False))
+                else:
+                    mfs_path = e.get('Type')
+                    mfs_info = self._MEDIA_FILE_SLOTS.get(mfs_path)
+                    if not mfs_info:
+                        continue
+                    formats.append({
+                        'url': format_url,
+                        'format_id': 'http-' + mfs_path.split('.')[0],
+                        'width': mfs_info['width'],
+                        'height': mfs_info['height'],
+                    })
             self._sort_formats(formats)
 
             description = media.get('Description')
@@ -124,8 +157,8 @@ class CrackleIE(InfoExtractor):
                 for cc_file in cc_files:
                     if not isinstance(cc_file, dict):
                         continue
-                    cc_url = cc_file.get('Path')
-                    if not cc_url or not isinstance(cc_url, compat_str):
+                    cc_url = url_or_none(cc_file.get('Path'))
+                    if not cc_url:
                         continue
                     lang = cc_file.get('Locale') or 'en'
                     subtitles.setdefault(lang, []).append({'url': cc_url})

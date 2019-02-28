@@ -20,6 +20,7 @@ from ..utils import (
     sanitized_Request,
     try_get,
     unescapeHTML,
+    url_or_none,
     urlencode_postdata,
 )
 
@@ -28,7 +29,7 @@ class UdemyIE(InfoExtractor):
     IE_NAME = 'udemy'
     _VALID_URL = r'''(?x)
                     https?://
-                        www\.udemy\.com/
+                        (?:[^/]+\.)?udemy\.com/
                         (?:
                             [^#]+\#/lecture/|
                             lecture/view/?\?lectureId=|
@@ -62,6 +63,9 @@ class UdemyIE(InfoExtractor):
     }, {
         # only outputs rendition
         'url': 'https://www.udemy.com/how-you-can-help-your-local-community-5-amazing-examples/learn/v4/t/lecture/3225750?start=0',
+        'only_matching': True,
+    }, {
+        'url': 'https://wipro.udemy.com/java-tutorial/#/lecture/172757',
         'only_matching': True,
     }]
 
@@ -121,9 +125,23 @@ class UdemyIE(InfoExtractor):
             raise ExtractorError(error_str, expected=True)
 
     def _download_webpage_handle(self, *args, **kwargs):
-        kwargs.setdefault('headers', {})['User-Agent'] = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_5) AppleWebKit/603.2.4 (KHTML, like Gecko) Version/10.1.1 Safari/603.2.4'
-        return super(UdemyIE, self)._download_webpage_handle(
+        headers = kwargs.get('headers', {}).copy()
+        headers['User-Agent'] = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/72.0.3626.109 Safari/537.36'
+        kwargs['headers'] = headers
+        ret = super(UdemyIE, self)._download_webpage_handle(
             *args, **compat_kwargs(kwargs))
+        if not ret:
+            return ret
+        webpage, _ = ret
+        if any(p in webpage for p in (
+                '>Please verify you are a human',
+                'Access to this page has been denied because we believe you are using automation tools to browse the website',
+                '"_pxCaptcha"')):
+            raise ExtractorError(
+                'Udemy asks you to solve a CAPTCHA. Login with browser, '
+                'solve CAPTCHA, then export cookies and pass cookie file to '
+                'youtube-dl with --cookies.', expected=True)
+        return ret
 
     def _download_json(self, url_or_request, *args, **kwargs):
         headers = {
@@ -265,8 +283,8 @@ class UdemyIE(InfoExtractor):
             if not isinstance(source_list, list):
                 return
             for source in source_list:
-                video_url = source.get('file') or source.get('src')
-                if not video_url or not isinstance(video_url, compat_str):
+                video_url = url_or_none(source.get('file') or source.get('src'))
+                if not video_url:
                     continue
                 if source.get('type') == 'application/x-mpegURL' or determine_ext(video_url) == 'm3u8':
                     formats.extend(self._extract_m3u8_formats(
@@ -293,8 +311,8 @@ class UdemyIE(InfoExtractor):
                     continue
                 if track.get('kind') != 'captions':
                     continue
-                src = track.get('src')
-                if not src or not isinstance(src, compat_str):
+                src = url_or_none(track.get('src'))
+                if not src:
                     continue
                 lang = track.get('language') or track.get(
                     'srclang') or track.get('label')
@@ -314,8 +332,8 @@ class UdemyIE(InfoExtractor):
             for cc in captions:
                 if not isinstance(cc, dict):
                     continue
-                cc_url = cc.get('url')
-                if not cc_url or not isinstance(cc_url, compat_str):
+                cc_url = url_or_none(cc.get('url'))
+                if not cc_url:
                     continue
                 lang = try_get(cc, lambda x: x['locale']['locale'], compat_str)
                 sub_dict = (automatic_captions if cc.get('source') == 'auto'
@@ -400,8 +418,14 @@ class UdemyIE(InfoExtractor):
 
 class UdemyCourseIE(UdemyIE):
     IE_NAME = 'udemy:course'
-    _VALID_URL = r'https?://(?:www\.)?udemy\.com/(?P<id>[^/?#&]+)'
-    _TESTS = []
+    _VALID_URL = r'https?://(?:[^/]+\.)?udemy\.com/(?P<id>[^/?#&]+)'
+    _TESTS = [{
+        'url': 'https://www.udemy.com/java-tutorial/',
+        'only_matching': True,
+    }, {
+        'url': 'https://wipro.udemy.com/java-tutorial/',
+        'only_matching': True,
+    }]
 
     @classmethod
     def suitable(cls, url):

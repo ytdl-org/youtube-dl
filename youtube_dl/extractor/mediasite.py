@@ -15,12 +15,13 @@ from ..utils import (
     mimetype2ext,
     unescapeHTML,
     unsmuggle_url,
+    url_or_none,
     urljoin,
 )
 
 
 class MediasiteIE(InfoExtractor):
-    _VALID_URL = r'(?xi)https?://[^/]+/Mediasite/Play/(?P<id>[0-9a-f]{32,34})(?P<query>\?[^#]+|)'
+    _VALID_URL = r'(?xi)https?://[^/]+/Mediasite/(?:Play|Showcase/(?:default|livebroadcast)/Presentation)/(?P<id>[0-9a-f]{32,34})(?P<query>\?[^#]+|)'
     _TESTS = [
         {
             'url': 'https://hitsmediaweb.h-its.org/mediasite/Play/2db6c271681e4f199af3c60d1f82869b1d',
@@ -83,7 +84,15 @@ class MediasiteIE(InfoExtractor):
                 'timestamp': 1333983600,
                 'duration': 7794,
             }
-        }
+        },
+        {
+            'url': 'https://collegerama.tudelft.nl/Mediasite/Showcase/livebroadcast/Presentation/ada7020854f743c49fbb45c9ec7dbb351d',
+            'only_matching': True,
+        },
+        {
+            'url': 'https://mediasite.ntnu.no/Mediasite/Showcase/default/Presentation/7d8b913259334b688986e970fae6fcb31d',
+            'only_matching': True,
+        },
     ]
 
     # look in Mediasite.Core.js (Mediasite.ContentStreamType[*])
@@ -156,8 +165,8 @@ class MediasiteIE(InfoExtractor):
 
             stream_formats = []
             for unum, VideoUrl in enumerate(video_urls):
-                video_url = VideoUrl.get('Location')
-                if not video_url or not isinstance(video_url, compat_str):
+                video_url = url_or_none(VideoUrl.get('Location'))
+                if not video_url:
                     continue
                 # XXX: if Stream.get('CanChangeScheme', False), switch scheme to HTTP/HTTPS
 

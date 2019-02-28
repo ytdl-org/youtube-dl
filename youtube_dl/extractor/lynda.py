@@ -4,7 +4,6 @@ import re
 
 from .common import InfoExtractor
 from ..compat import (
-    compat_HTTPError,
     compat_str,
     compat_urlparse,
 )
@@ -16,7 +15,7 @@ from ..utils import (
 
 
 class LyndaBaseIE(InfoExtractor):
-    _SIGNIN_URL = 'https://www.lynda.com/signin'
+    _SIGNIN_URL = 'https://www.lynda.com/signin/lynda'
     _PASSWORD_URL = 'https://www.lynda.com/signin/password'
     _USER_URL = 'https://www.lynda.com/signin/user'
     _ACCOUNT_CREDENTIALS_HINT = 'Use --username and --password options to provide lynda.com account credentials.'
@@ -44,21 +43,15 @@ class LyndaBaseIE(InfoExtractor):
         form_data = self._hidden_inputs(form_html)
         form_data.update(extra_form_data)
 
-        try:
-            response = self._download_json(
-                action_url, None, note,
-                data=urlencode_postdata(form_data),
-                headers={
-                    'Referer': referrer_url,
-                    'X-Requested-With': 'XMLHttpRequest',
-                })
-        except ExtractorError as e:
-            if isinstance(e.cause, compat_HTTPError) and e.cause.code == 500:
-                response = self._parse_json(e.cause.read().decode('utf-8'), None)
-                self._check_error(response, ('email', 'password'))
-            raise
+        response = self._download_json(
+            action_url, None, note,
+            data=urlencode_postdata(form_data),
+            headers={
+                'Referer': referrer_url,
+                'X-Requested-With': 'XMLHttpRequest',
+            }, expected_status=(418, 500, ))
 
-        self._check_error(response, 'ErrorMessage')
+        self._check_error(response, ('email', 'password', 'ErrorMessage'))
 
         return response, action_url
 

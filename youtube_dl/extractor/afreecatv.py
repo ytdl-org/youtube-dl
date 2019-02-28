@@ -9,6 +9,7 @@ from ..utils import (
     determine_ext,
     ExtractorError,
     int_or_none,
+    url_or_none,
     urlencode_postdata,
     xpath_text,
 )
@@ -304,7 +305,7 @@ class AfreecaTVIE(InfoExtractor):
             file_elements = video_element.findall(compat_xpath('./file'))
             one = len(file_elements) == 1
             for file_num, file_element in enumerate(file_elements, start=1):
-                file_url = file_element.text
+                file_url = url_or_none(file_element.text)
                 if not file_url:
                     continue
                 key = file_element.get('key', '')

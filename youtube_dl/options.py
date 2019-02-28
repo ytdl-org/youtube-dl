@@ -841,11 +841,11 @@ def parseOpts(overrideArguments=None):
     postproc.add_option(
         '--prefer-avconv',
         action='store_false', dest='prefer_ffmpeg',
-        help='Prefer avconv over ffmpeg for running the postprocessors (default)')
+        help='Prefer avconv over ffmpeg for running the postprocessors')
     postproc.add_option(
         '--prefer-ffmpeg',
         action='store_true', dest='prefer_ffmpeg',
-        help='Prefer ffmpeg over avconv for running the postprocessors')
+        help='Prefer ffmpeg over avconv for running the postprocessors (default)')
     postproc.add_option(
         '--ffmpeg-location', '--avconv-location', metavar='PATH',
         dest='ffmpeg_location',

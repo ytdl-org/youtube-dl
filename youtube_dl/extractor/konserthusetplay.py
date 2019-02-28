@@ -2,11 +2,11 @@
 from __future__ import unicode_literals
 
 from .common import InfoExtractor
-from ..compat import compat_str
 from ..utils import (
     determine_ext,
     float_or_none,
     int_or_none,
+    url_or_none,
 )
 
 
@@ -109,7 +109,8 @@ class KonserthusetPlayIE(InfoExtractor):
         captions = source.get('captionsAvailableLanguages')
         if isinstance(captions, dict):
             for lang, subtitle_url in captions.items():
-                if lang != 'none' and isinstance(subtitle_url, compat_str):
+                subtitle_url = url_or_none(subtitle_url)
+                if lang != 'none' and subtitle_url:
                     subtitles.setdefault(lang, []).append({'url': subtitle_url})
 
         return {

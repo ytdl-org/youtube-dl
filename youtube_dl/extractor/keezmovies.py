@@ -4,16 +4,14 @@ import re
 
 from .common import InfoExtractor
 from ..aes import aes_decrypt_text
-from ..compat import (
-    compat_str,
-    compat_urllib_parse_unquote,
-)
+from ..compat import compat_urllib_parse_unquote
 from ..utils import (
     determine_ext,
     ExtractorError,
     int_or_none,
     str_to_int,
     strip_or_none,
+    url_or_none,
 )
 
 
@@ -55,7 +53,8 @@ class KeezMoviesIE(InfoExtractor):
         encrypted = False
 
         def extract_format(format_url, height=None):
-            if not isinstance(format_url, compat_str) or not format_url.startswith(('http', '//')):
+            format_url = url_or_none(format_url)
+            if not format_url or not format_url.startswith(('http', '//')):
                 return
             if format_url in format_urls:
                 return

@@ -24,13 +24,12 @@ class RtmpFD(FileDownloader):
     def real_download(self, filename, info_dict):
         def run_rtmpdump(args):
             start = time.time()
+            resume_percent = None
+            resume_downloaded_data_len = None
             proc = subprocess.Popen(args, stderr=subprocess.PIPE)
             cursor_in_new_line = True
-
-            def dl():
-                resume_percent = None
-                resume_downloaded_data_len = None
-                proc_stderr_closed = False
+            proc_stderr_closed = False
+            try:
                 while not proc_stderr_closed:
                     # read line from stderr
                     line = ''
@@ -90,12 +89,8 @@ class RtmpFD(FileDownloader):
                                 self.to_screen('')
                             cursor_in_new_line = True
                             self.to_screen('[rtmpdump] ' + line)
-
-            try:
-                dl()
             finally:
                 proc.wait()
-
             if not cursor_in_new_line:
                 self.to_screen('')
             return proc.returncode

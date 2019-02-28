@@ -24,6 +24,7 @@ class VGTVIE(XstreamIE):
         'aftenposten.no/webtv': 'aptv',
         'ap.vgtv.no/webtv': 'aptv',
         'tv.aftonbladet.se/abtv': 'abtv',
+        'www.aftonbladet.se/tv': 'abtv',
     }
 
     _APP_NAME_TO_VENDOR = {
@@ -44,7 +45,7 @@ class VGTVIE(XstreamIE):
                     (?:
                         (?:\#!/)?(?:video|live)/|
                         embed?.*id=|
-                        articles/
+                        a(?:rticles)?/
                     )|
                     (?P<appname>
                         %s
@@ -144,6 +145,10 @@ class VGTVIE(XstreamIE):
             'only_matching': True,
         },
         {
+            'url': 'https://www.aftonbladet.se/tv/a/36015',
+            'only_matching': True,
+        },
+        {
             'url': 'abtv:140026',
             'only_matching': True,
         },
@@ -178,13 +183,15 @@ class VGTVIE(XstreamIE):
 
         streams = data['streamUrls']
         stream_type = data.get('streamType')
-
+        is_live = stream_type == 'live'
         formats = []
 
         hls_url = streams.get('hls')
         if hls_url:
             formats.extend(self._extract_m3u8_formats(
-                hls_url, video_id, 'mp4', m3u8_id='hls', fatal=False))
+                hls_url, video_id, 'mp4',
+                entry_protocol='m3u8' if is_live else 'm3u8_native',
+                m3u8_id='hls', fatal=False))
 
         hds_url = streams.get('hds')
         if hds_url:
@@ -229,13 +236,13 @@ class VGTVIE(XstreamIE):
 
         info.update({
             'id': video_id,
-            'title': self._live_title(data['title']) if stream_type == 'live' else data['title'],
+            'title': self._live_title(data['title']) if is_live else data['title'],
             'description': data['description'],
             'thumbnail': data['images']['main'] + '?t[]=900x506q80',
             'timestamp': data['published'],
             'duration': float_or_none(data['duration'], 1000),
             'view_count': data['displays'],
-            'is_live': True if stream_type == 'live' else False,
+            'is_live': is_live,
         })
         return info
 

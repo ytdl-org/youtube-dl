@@ -6,6 +6,7 @@ from ..compat import compat_str
 from ..utils import (
     determine_ext,
     int_or_none,
+    url_or_none,
 )
 
 
@@ -37,8 +38,8 @@ class RENTVIE(InfoExtractor):
         title = config['title']
         formats = []
         for video in config['src']:
-            src = video.get('src')
-            if not src or not isinstance(src, compat_str):
+            src = url_or_none(video.get('src'))
+            if not src:
                 continue
             ext = determine_ext(src)
             if ext == 'm3u8':

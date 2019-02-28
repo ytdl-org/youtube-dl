@@ -2787,6 +2787,12 @@ except NameError:  # Python 3
     compat_numeric_types = (int, float, complex)
 
 
+try:
+    compat_integer_types = (int, long)
+except NameError:  # Python 3
+    compat_integer_types = (int, )
+
+
 if sys.version_info < (2, 7):
     def compat_socket_create_connection(address, timeout, source_address=None):
         host, port = address
@@ -2974,6 +2980,7 @@ __all__ = [
     'compat_http_client',
     'compat_http_server',
     'compat_input',
+    'compat_integer_types',
     'compat_itertools_count',
     'compat_kwargs',
     'compat_numeric_types',

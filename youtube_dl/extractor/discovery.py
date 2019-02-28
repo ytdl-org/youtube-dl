@@ -17,16 +17,29 @@ from ..compat import compat_HTTPError
 
 
 class DiscoveryIE(DiscoveryGoBaseIE):
-    _VALID_URL = r'''(?x)https?://(?:www\.)?(?P<site>
-            discovery|
-            investigationdiscovery|
-            discoverylife|
-            animalplanet|
-            ahctv|
-            destinationamerica|
-            sciencechannel|
-            tlc|
-            velocity
+    _VALID_URL = r'''(?x)https?://
+        (?P<site>
+            (?:www\.)?
+                (?:
+                    discovery|
+                    investigationdiscovery|
+                    discoverylife|
+                    animalplanet|
+                    ahctv|
+                    destinationamerica|
+                    sciencechannel|
+                    tlc|
+                    velocity
+                )|
+            watch\.
+                (?:
+                    hgtv|
+                    foodnetwork|
+                    travelchannel|
+                    diynetwork|
+                    cookingchanneltv|
+                    motortrend
+                )
         )\.com(?P<path>/tv-shows/[^/]+/(?:video|full-episode)s/(?P<id>[^./?#]+))'''
     _TESTS = [{
         'url': 'https://www.discovery.com/tv-shows/cash-cab/videos/dave-foley',
@@ -71,7 +84,7 @@ class DiscoveryIE(DiscoveryGoBaseIE):
 
         if not access_token:
             access_token = self._download_json(
-                'https://www.%s.com/anonymous' % site, display_id, query={
+                'https://%s.com/anonymous' % site, display_id, query={
                     'authRel': 'authorization',
                     'client_id': try_get(
                         react_data, lambda x: x['application']['apiClientId'],
@@ -81,11 +94,12 @@ class DiscoveryIE(DiscoveryGoBaseIE):
                 })['access_token']
 
         try:
+            headers = self.geo_verification_headers()
+            headers['Authorization'] = 'Bearer ' + access_token
+
             stream = self._download_json(
                 'https://api.discovery.com/v1/streaming/video/' + video_id,
-                display_id, headers={
-                    'Authorization': 'Bearer ' + access_token,
-                })
+                display_id, headers=headers)
         except ExtractorError as e:
             if isinstance(e.cause, compat_HTTPError) and e.cause.code in (401, 403):
                 e_description = self._parse_json(

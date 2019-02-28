@@ -82,12 +82,14 @@ from .utils import (
     sanitize_url,
     sanitized_Request,
     std_headers,
+    str_or_none,
     subtitles_filename,
     UnavailableVideoError,
     url_basename,
     version_tuple,
     write_json_file,
     write_string,
+    YoutubeDLCookieJar,
     YoutubeDLCookieProcessor,
     YoutubeDLHandler,
 )
@@ -305,8 +307,8 @@ class YoutubeDL(object):
     http_chunk_size.
 
     The following options are used by the post processors:
-    prefer_ffmpeg:     If True, use ffmpeg instead of avconv if both are available,
-                       otherwise prefer avconv.
+    prefer_ffmpeg:     If False, use avconv instead of ffmpeg if both are available,
+                       otherwise prefer ffmpeg.
     postprocessor_args: A list of additional command-line arguments for the
                         postprocessor.
 
@@ -558,7 +560,7 @@ class YoutubeDL(object):
         self.restore_console_title()
 
         if self.params.get('cookiefile') is not None:
-            self.cookiejar.save()
+            self.cookiejar.save(ignore_discard=True, ignore_expires=True)
 
     def trouble(self, message=None, tb=None):
         """Determine action to take when a download problem appears.
@@ -1062,21 +1064,24 @@ class YoutubeDL(object):
         if not m:
             STR_OPERATORS = {
                 '=': operator.eq,
-                '!=': operator.ne,
                 '^=': lambda attr, value: attr.startswith(value),
                 '$=': lambda attr, value: attr.endswith(value),
                 '*=': lambda attr, value: value in attr,
             }
             str_operator_rex = re.compile(r'''(?x)
                 \s*(?P<key>ext|acodec|vcodec|container|protocol|format_id)
-                \s*(?P<op>%s)(?P<none_inclusive>\s*\?)?
+                \s*(?P<negation>!\s*)?(?P<op>%s)(?P<none_inclusive>\s*\?)?
                 \s*(?P<value>[a-zA-Z0-9._-]+)
                 \s*$
                 ''' % '|'.join(map(re.escape, STR_OPERATORS.keys())))
             m = str_operator_rex.search(filter_spec)
             if m:
                 comparison_value = m.group('value')
-                op = STR_OPERATORS[m.group('op')]
+                str_op = STR_OPERATORS[m.group('op')]
+                if m.group('negation'):
+                    op = lambda attr, value: not str_op(attr, value)
+                else:
+                    op = str_op
 
         if not m:
             raise ValueError('Invalid filter specification %r' % filter_spec)
@@ -2056,15 +2061,24 @@ class YoutubeDL(object):
                         self.report_warning('Unable to remove downloaded original file')
 
     def _make_archive_id(self, info_dict):
+        video_id = info_dict.get('id')
+        if not video_id:
+            return
         # Future-proof against any change in case
         # and backwards compatibility with prior versions
-        extractor = info_dict.get('extractor_key')
+        extractor = info_dict.get('extractor_key') or info_dict.get('ie_key')  # key in a playlist
         if extractor is None:
-            if 'id' in info_dict:
-                extractor = info_dict.get('ie_key')  # key in a playlist
-        if extractor is None:
-            return None  # Incomplete video information
-        return extractor.lower() + ' ' + info_dict['id']
+            url = str_or_none(info_dict.get('url'))
+            if not url:
+                return
+            # Try to find matching extractor for the URL and take its ie_key
+            for ie in self._ies:
+                if ie.suitable(url):
+                    extractor = ie.ie_key()
+                    break
+            else:
+                return
+        return extractor.lower() + ' ' + video_id
 
     def in_download_archive(self, info_dict):
         fn = self.params.get('download_archive')
@@ -2072,7 +2086,7 @@ class YoutubeDL(object):
             return False
 
         vid_id = self._make_archive_id(info_dict)
-        if vid_id is None:
+        if not vid_id:
             return False  # Incomplete video information
 
         try:
@@ -2297,10 +2311,9 @@ class YoutubeDL(object):
             self.cookiejar = compat_cookiejar.CookieJar()
         else:
             opts_cookiefile = expand_path(opts_cookiefile)
-            self.cookiejar = compat_cookiejar.MozillaCookieJar(
-                opts_cookiefile)
+            self.cookiejar = YoutubeDLCookieJar(opts_cookiefile)
             if os.access(opts_cookiefile, os.R_OK):
-                self.cookiejar.load()
+                self.cookiejar.load(ignore_discard=True, ignore_expires=True)
 
         cookie_processor = YoutubeDLCookieProcessor(self.cookiejar)
         if opts_proxy is not None:

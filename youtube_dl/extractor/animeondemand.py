@@ -8,6 +8,7 @@ from ..utils import (
     determine_ext,
     extract_attributes,
     ExtractorError,
+    url_or_none,
     urlencode_postdata,
     urljoin,
 )
@@ -165,7 +166,7 @@ class AnimeOnDemandIE(InfoExtractor):
                         }, fatal=False)
                     if not playlist:
                         continue
-                    stream_url = playlist.get('streamurl')
+                    stream_url = url_or_none(playlist.get('streamurl'))
                     if stream_url:
                         rtmp = re.search(
                             r'^(?P<url>rtmpe?://(?P<host>[^/]+)/(?P<app>.+/))(?P<playpath>mp[34]:.+)',

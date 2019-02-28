@@ -75,9 +75,13 @@ class HlsFD(FragmentFD):
                 fd.add_progress_hook(ph)
             return fd.real_download(filename, info_dict)
 
-        def is_ad_fragment(s):
+        def is_ad_fragment_start(s):
             return (s.startswith('#ANVATO-SEGMENT-INFO') and 'type=ad' in s or
                     s.startswith('#UPLYNK-SEGMENT') and s.endswith(',ad'))
+
+        def is_ad_fragment_end(s):
+            return (s.startswith('#ANVATO-SEGMENT-INFO') and 'type=master' in s or
+                    s.startswith('#UPLYNK-SEGMENT') and s.endswith(',segment'))
 
         media_frags = 0
         ad_frags = 0
@@ -87,12 +91,13 @@ class HlsFD(FragmentFD):
             if not line:
                 continue
             if line.startswith('#'):
-                if is_ad_fragment(line):
-                    ad_frags += 1
+                if is_ad_fragment_start(line):
                     ad_frag_next = True
+                elif is_ad_fragment_end(line):
+                    ad_frag_next = False
                 continue
             if ad_frag_next:
-                ad_frag_next = False
+                ad_frags += 1
                 continue
             media_frags += 1
 
@@ -123,7 +128,6 @@ class HlsFD(FragmentFD):
             if line:
                 if not line.startswith('#'):
                     if ad_frag_next:
-                        ad_frag_next = False
                         continue
                     frag_index += 1
                     if frag_index <= ctx['fragment_index']:
@@ -196,8 +200,10 @@ class HlsFD(FragmentFD):
                         'start': sub_range_start,
                         'end': sub_range_start + int(splitted_byte_range[0]),
                     }
-                elif is_ad_fragment(line):
+                elif is_ad_fragment_start(line):
                     ad_frag_next = True
+                elif is_ad_fragment_end(line):
+                    ad_frag_next = False
 
         self._finish_frag_download(ctx)
 

@@ -7,6 +7,7 @@ from ..utils import (
     int_or_none,
     mimetype2ext,
     remove_end,
+    url_or_none,
 )
 
 
@@ -73,11 +74,14 @@ class IwaraIE(InfoExtractor):
 
         formats = []
         for a_format in video_data:
+            format_uri = url_or_none(a_format.get('uri'))
+            if not format_uri:
+                continue
             format_id = a_format.get('resolution')
             height = int_or_none(self._search_regex(
                 r'(\d+)p', format_id, 'height', default=None))
             formats.append({
-                'url': a_format['uri'],
+                'url': self._proto_relative_url(format_uri, 'https:'),
                 'format_id': format_id,
                 'ext': mimetype2ext(a_format.get('mime')) or 'mp4',
                 'height': height,

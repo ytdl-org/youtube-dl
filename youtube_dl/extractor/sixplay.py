@@ -19,29 +19,37 @@ from ..utils import (
 
 class SixPlayIE(InfoExtractor):
     IE_NAME = '6play'
-    _VALID_URL = r'(?:6play:|https?://(?:www\.)?6play\.fr/.+?-c_)(?P<id>[0-9]+)'
-    _TEST = {
-        'url': 'http://www.6play.fr/le-meilleur-patissier-p_1807/le-meilleur-patissier-special-fetes-mercredi-a-21-00-sur-m6-c_11638450',
-        'md5': '42310bffe4ba3982db112b9cd3467328',
+    _VALID_URL = r'(?:6play:|https?://(?:www\.)?(?P<domain>6play\.fr|rtlplay\.be|play\.rtl\.hr)/.+?-c_)(?P<id>[0-9]+)'
+    _TESTS = [{
+        'url': 'https://www.6play.fr/minute-par-minute-p_9533/le-but-qui-a-marque-lhistoire-du-football-francais-c_12041051',
+        'md5': '31fcd112637baa0c2ab92c4fcd8baf27',
         'info_dict': {
-            'id': '11638450',
+            'id': '12041051',
             'ext': 'mp4',
-            'title': 'Le Meilleur Pâtissier, spécial fêtes mercredi à 21:00 sur M6',
-            'description': 'md5:308853f6a5f9e2d55a30fc0654de415f',
-            'duration': 39,
-            'series': 'Le meilleur pâtissier',
+            'title': 'Le but qui a marqué l\'histoire du football français !',
+            'description': 'md5:b59e7e841d646ef1eb42a7868eb6a851',
         },
-        'params': {
-            'skip_download': True,
-        },
-    }
+    }, {
+        'url': 'https://www.rtlplay.be/rtl-info-13h-p_8551/les-titres-du-rtlinfo-13h-c_12045869',
+        'only_matching': True,
+    }, {
+        'url': 'https://play.rtl.hr/pj-masks-p_9455/epizoda-34-sezona-1-catboyevo-cudo-na-dva-kotaca-c_11984989',
+        'only_matching': True,
+    }]
 
     def _real_extract(self, url):
-        video_id = self._match_id(url)
+        domain, video_id = re.search(self._VALID_URL, url).groups()
+        service, consumer_name = {
+            '6play.fr': ('6play', 'm6web'),
+            'rtlplay.be': ('rtlbe_rtl_play', 'rtlbe'),
+            'play.rtl.hr': ('rtlhr_rtl_play', 'rtlhr'),
+        }.get(domain, ('6play', 'm6web'))
 
         data = self._download_json(
-            'https://pc.middleware.6play.fr/6play/v2/platforms/m6group_web/services/6play/videos/clip_%s' % video_id,
-            video_id, query={
+            'https://pc.middleware.6play.fr/6play/v2/platforms/m6group_web/services/%s/videos/clip_%s' % (service, video_id),
+            video_id, headers={
+                'x-customer-name': consumer_name
+            }, query={
                 'csa': 5,
                 'with': 'clips',
             })
@@ -56,7 +64,7 @@ class SixPlayIE(InfoExtractor):
         for asset in clip_data['assets']:
             asset_url = asset.get('full_physical_path')
             protocol = asset.get('protocol')
-            if not asset_url or protocol == 'primetime' or asset_url in urls:
+            if not asset_url or protocol == 'primetime' or asset.get('type') == 'usp_hlsfp_h264' or asset_url in urls:
                 continue
             urls.append(asset_url)
             container = asset.get('video_container')
@@ -65,20 +73,25 @@ class SixPlayIE(InfoExtractor):
                 subtitles.setdefault('fr', []).append({'url': asset_url})
                 continue
             if container == 'm3u8' or ext == 'm3u8':
-                if protocol == 'usp' and not compat_parse_qs(compat_urllib_parse_urlparse(asset_url).query).get('token', [None])[0]:
-                    asset_url = re.sub(r'/([^/]+)\.ism/[^/]*\.m3u8', r'/\1.ism/\1.m3u8', asset_url)
-                    formats.extend(self._extract_m3u8_formats(
-                        asset_url, video_id, 'mp4', 'm3u8_native',
-                        m3u8_id='hls', fatal=False))
-                    formats.extend(self._extract_f4m_formats(
-                        asset_url.replace('.m3u8', '.f4m'),
-                        video_id, f4m_id='hds', fatal=False))
-                    formats.extend(self._extract_mpd_formats(
-                        asset_url.replace('.m3u8', '.mpd'),
-                        video_id, mpd_id='dash', fatal=False))
-                    formats.extend(self._extract_ism_formats(
-                        re.sub(r'/[^/]+\.m3u8', '/Manifest', asset_url),
-                        video_id, ism_id='mss', fatal=False))
+                if protocol == 'usp':
+                    if compat_parse_qs(compat_urllib_parse_urlparse(asset_url).query).get('token', [None])[0]:
+                        urlh = self._request_webpage(
+                            asset_url, video_id, fatal=False,
+                            headers=self.geo_verification_headers())
+                        if not urlh:
+                            continue
+                        asset_url = urlh.geturl()
+                    for i in range(3, 0, -1):
+                        asset_url = asset_url = asset_url.replace('_sd1/', '_sd%d/' % i)
+                        m3u8_formats = self._extract_m3u8_formats(
+                            asset_url, video_id, 'mp4', 'm3u8_native',
+                            m3u8_id='hls', fatal=False)
+                        formats.extend(m3u8_formats)
+                        formats.extend(self._extract_mpd_formats(
+                            asset_url.replace('.m3u8', '.mpd'),
+                            video_id, mpd_id='dash', fatal=False))
+                        if m3u8_formats:
+                            break
                 else:
                     formats.extend(self._extract_m3u8_formats(
                         asset_url, video_id, 'mp4', 'm3u8_native',

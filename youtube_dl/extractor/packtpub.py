@@ -24,9 +24,9 @@ class PacktPubBaseIE(InfoExtractor):
 
 
 class PacktPubIE(PacktPubBaseIE):
-    _VALID_URL = r'https?://(?:www\.)?packtpub\.com/mapt/video/[^/]+/(?P<course_id>\d+)/(?P<chapter_id>\d+)/(?P<id>\d+)'
+    _VALID_URL = r'https?://(?:(?:www\.)?packtpub\.com/mapt|subscription\.packtpub\.com)/video/[^/]+/(?P<course_id>\d+)/(?P<chapter_id>\d+)/(?P<id>\d+)'
 
-    _TEST = {
+    _TESTS = [{
         'url': 'https://www.packtpub.com/mapt/video/web-development/9781787122215/20528/20530/Project+Intro',
         'md5': '1e74bd6cfd45d7d07666f4684ef58f70',
         'info_dict': {
@@ -37,7 +37,10 @@ class PacktPubIE(PacktPubBaseIE):
             'timestamp': 1490918400,
             'upload_date': '20170331',
         },
-    }
+    }, {
+        'url': 'https://subscription.packtpub.com/video/web_development/9781787122215/20528/20530/project-intro',
+        'only_matching': True,
+    }]
     _NETRC_MACHINE = 'packtpub'
     _TOKEN = None
 
@@ -110,15 +113,18 @@ class PacktPubIE(PacktPubBaseIE):
 
 
 class PacktPubCourseIE(PacktPubBaseIE):
-    _VALID_URL = r'(?P<url>https?://(?:www\.)?packtpub\.com/mapt/video/[^/]+/(?P<id>\d+))'
-    _TEST = {
+    _VALID_URL = r'(?P<url>https?://(?:(?:www\.)?packtpub\.com/mapt|subscription\.packtpub\.com)/video/[^/]+/(?P<id>\d+))'
+    _TESTS = [{
         'url': 'https://www.packtpub.com/mapt/video/web-development/9781787122215',
         'info_dict': {
             'id': '9781787122215',
             'title': 'Learn Nodejs by building 12 projects [Video]',
         },
         'playlist_count': 90,
-    }
+    }, {
+        'url': 'https://subscription.packtpub.com/video/web_development/9781787122215',
+        'only_matching': True,
+    }]
 
     @classmethod
     def suitable(cls, url):

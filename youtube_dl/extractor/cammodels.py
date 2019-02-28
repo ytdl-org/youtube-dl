@@ -2,10 +2,10 @@
 from __future__ import unicode_literals
 
 from .common import InfoExtractor
-from ..compat import compat_str
 from ..utils import (
     ExtractorError,
     int_or_none,
+    url_or_none,
 )
 
 
@@ -14,6 +14,7 @@ class CamModelsIE(InfoExtractor):
     _TESTS = [{
         'url': 'https://www.cammodels.com/cam/AutumnKnight/',
         'only_matching': True,
+        'age_limit': 18
     }]
 
     def _real_extract(self, url):
@@ -56,8 +57,8 @@ class CamModelsIE(InfoExtractor):
             for media in encodings:
                 if not isinstance(media, dict):
                     continue
-                media_url = media.get('location')
-                if not media_url or not isinstance(media_url, compat_str):
+                media_url = url_or_none(media.get('location'))
+                if not media_url:
                     continue
 
                 format_id_list = [format_id]
@@ -93,4 +94,5 @@ class CamModelsIE(InfoExtractor):
             'title': self._live_title(user_id),
             'is_live': True,
             'formats': formats,
+            'age_limit': 18
         }

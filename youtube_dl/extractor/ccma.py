@@ -4,13 +4,13 @@ from __future__ import unicode_literals
 import re
 
 from .common import InfoExtractor
-from ..compat import compat_str
 from ..utils import (
     clean_html,
     int_or_none,
     parse_duration,
     parse_iso8601,
     parse_resolution,
+    url_or_none,
 )
 
 
@@ -53,8 +53,8 @@ class CCMAIE(InfoExtractor):
         media_url = media['media']['url']
         if isinstance(media_url, list):
             for format_ in media_url:
-                format_url = format_.get('file')
-                if not format_url or not isinstance(format_url, compat_str):
+                format_url = url_or_none(format_.get('file'))
+                if not format_url:
                     continue
                 label = format_.get('label')
                 f = parse_resolution(label)
