@@ -1,4 +1,4 @@
-version <unreleased>
+version 2019.03.01
 
 Core
 + [downloader/external] Add support for rate limit and retries for wget
