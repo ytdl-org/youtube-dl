@@ -108,6 +108,7 @@ class OoyalaBaseIE(InfoExtractor):
 
 class OoyalaIE(OoyalaBaseIE):
     _VALID_URL = r'(?:ooyala:|https?://.+?\.ooyala\.com/.*?(?:embedCode|ec)=)(?P<id>.+?)(&|$)'
+    IE_NAME = 'ooyala'
 
     _TESTS = [
         {
@@ -186,6 +187,7 @@ class OoyalaExternalIE(OoyalaBaseIE):
                     (?P<pcode>.+?)
                     (?:&|$)
                     '''
+    IE_NAME = 'ooyalaexternal'
 
     _TEST = {
         'url': 'https://player.ooyala.com/player.js?externalId=espn:10365079&pcode=1kNG061cgaoolOncv54OAO1ceO-I&adSetCode=91cDU6NuXTGKz3OdjOxFdAgJVtQcKJnI&callback=handleEvents&hasModuleParams=1&height=968&playerBrandingId=7af3bd04449c444c964f347f11873075&targetReplaceId=videoPlayer&width=1656&wmode=opaque&allowScriptAccess=always',

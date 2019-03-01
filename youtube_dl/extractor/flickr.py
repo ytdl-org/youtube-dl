@@ -14,6 +14,7 @@ from ..utils import (
 
 class FlickrIE(InfoExtractor):
     _VALID_URL = r'https?://(?:www\.|secure\.)?flickr\.com/photos/[\w\-_@]+/(?P<id>\d+)'
+    IE_NAME = 'flickr'
     _TEST = {
         'url': 'http://www.flickr.com/photos/forestwander-nature-pictures/5645318632/in/photostream/',
         'md5': '164fe3fa6c22e18d448d4d5af2330f31',

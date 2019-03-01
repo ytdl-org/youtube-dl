@@ -34,6 +34,7 @@ class KalturaIE(InfoExtractor):
                         )(?:/(?P<path>[^?]+))?(?:\?(?P<query>.*))?
                 )
                 '''
+    IE_NAME = 'kaltura'
     _SERVICE_URL = 'http://cdnapi.kaltura.com'
     _SERVICE_BASE = '/api_v3/index.php'
     # See https://github.com/kaltura/server/blob/master/plugins/content/caption/base/lib/model/enums/CaptionType.php

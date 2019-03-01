@@ -11,6 +11,7 @@ from ..utils import (
 
 class GodTubeIE(InfoExtractor):
     _VALID_URL = r'https?://(?:www\.)?godtube\.com/watch/\?v=(?P<id>[\da-zA-Z]+)'
+    IE_NAME = 'godtube'
     _TESTS = [
         {
             'url': 'https://www.godtube.com/watch/?v=0C0CNNNU',
