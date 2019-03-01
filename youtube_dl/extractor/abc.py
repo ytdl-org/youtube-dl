@@ -105,22 +105,53 @@ class ABCIE(InfoExtractor):
 
 class ABCIViewIE(InfoExtractor):
     IE_NAME = 'abc.net.au:iview'
-    _VALID_URL = r'https?://iview\.abc\.net\.au/((?:[^/]+/)*video/|programs/(?:[^/]+/))(?P<id>[^/?#]+)'
+    _VALID_URL = r'https?://iview\.abc\.net\.au/((?:[^/]+/)*video/|programs/(?:[^/]+/)*)(?P<id>[A-Z0-9]+)'
     _GEO_COUNTRIES = ['AU']
 
     # ABC iview programs are normally available for 14 days only.
     _TESTS = [{
-        'url': 'https://iview.abc.net.au/show/ben-and-hollys-little-kingdom/series/0/video/ZX9371A050S00',
-        'md5': 'cde42d728b3b7c2b32b1b94b4a548afc',
+        'url': 'https://iview.abc.net.au/show/ben-and-holly-s-little-kingdom/series/0/video/ZX9371A011S00',
         'info_dict': {
-            'id': 'ZX9371A050S00',
+            'id': 'ZX9371A011S00',
             'ext': 'mp4',
-            'title': "Gaston's Birthday",
+            'title': "Dolly Plum",
             'series': "Ben And Holly's Little Kingdom",
-            'description': 'md5:f9de914d02f226968f598ac76f105bcf',
-            'upload_date': '20180604',
+            'description': 'md5:7d5d426d28814ac97b7c98e33f37193c',
+            'upload_date': '20190301',
             'uploader_id': 'abc4kids',
-            'timestamp': 1528140219,
+            'timestamp': 1551466585,
+        },
+        'params': {
+            'skip_download': True,
+        },
+    },
+    {
+        'url': 'https://iview.abc.net.au/programs/CK1752H001S00',
+        'info_dict': {
+            'id': 'CK1752H001S00',
+            'ext': 'mp4',
+            'title': "Emma Alberici: Guess How Much I Love You (Italian)",
+            'series': "Play School Story Time: Languages",
+            'description': 'md5:b61ce34edc946e109e76c7432db5d91f',
+            'upload_date': '20171204',
+            'uploader_id': 'abc4kids',
+            'timestamp': 1512414300,
+        },
+        'params': {
+            'skip_download': True,
+        },
+    },
+    {
+        'url': 'https://iview.abc.net.au/programs/play-school-story-time-languages/CK1752H001S00',
+        'info_dict': {
+            'id': 'CK1752H001S00',
+            'ext': 'mp4',
+            'title': "Emma Alberici: Guess How Much I Love You (Italian)",
+            'series': "Play School Story Time: Languages",
+            'description': 'md5:b61ce34edc946e109e76c7432db5d91f',
+            'upload_date': '20171204',
+            'uploader_id': 'abc4kids',
+            'timestamp': 1512414300,
         },
         'params': {
             'skip_download': True,
@@ -195,9 +226,18 @@ class ABCIViewIE(InfoExtractor):
 
 class ABCIViewSeriesIE(ABCIViewIE):
     IE_NAME = 'abc.net.au:iview:series'
-    _VALID_URL = r'https?://iview\.abc\.net\.au/show/(?P<id>[^/?#]+)'
+    _VALID_URL = r'https?://iview\.abc\.net\.au/(show|programs)/(?P<id>[a-z0-9\-]+)/?$'
 
     _TESTS = [
+        {
+            'url': 'https://iview.abc.net.au/programs/play-school-celebrity-covers',
+            'info_dict': {
+                'title': "Play School Celebrity Covers",
+                'description': 'md5:5cf7b4e466b72ee1b930fc95b2a80ed7',
+                'uploader_id': 'abc4kids',
+            },
+            'playlist_count': 31
+        },
         {
             'url': 'https://iview.abc.net.au/show/play-school-story-time',
             'info_dict': {
