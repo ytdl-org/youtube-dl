@@ -1,8 +1,9 @@
 # coding: utf-8
 from __future__ import unicode_literals
 
-import re
 import itertools
+import re
+import xml
 
 from .common import InfoExtractor
 from ..utils import (
@@ -17,6 +18,7 @@ from ..utils import (
     parse_iso8601,
     try_get,
     unescapeHTML,
+    url_or_none,
     urlencode_postdata,
     urljoin,
 )
@@ -310,7 +312,13 @@ class BBCCoUkIE(InfoExtractor):
     def _get_subtitles(self, media, programme_id):
         subtitles = {}
         for connection in self._extract_connections(media):
-            captions = self._download_xml(connection.get('href'), programme_id, 'Downloading captions')
+            cc_url = url_or_none(connection.get('href'))
+            if not cc_url:
+                continue
+            captions = self._download_xml(
+                cc_url, programme_id, 'Downloading captions', fatal=False)
+            if not isinstance(captions, xml.etree.ElementTree.Element):
+                continue
             lang = captions.get('{http://www.w3.org/XML/1998/namespace}lang', 'en')
             subtitles[lang] = [
                 {

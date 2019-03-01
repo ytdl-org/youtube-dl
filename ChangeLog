@@ -1,3 +1,18 @@
+version 2019.03.01
+
+Core
++ [downloader/external] Add support for rate limit and retries for wget
+* [downloader/external] Fix infinite retries for curl (#19303)
+
+Extractors
+* [npo] Fix extraction (#20084)
+* [francetv:site] Extend video id regex (#20029, #20071)
++ [periscope] Extract width and height (#20015)
+* [servus] Fix extraction (#19297)
+* [bbccouk] Make subtitles non fatal (#19651)
+* [metacafe] Fix family filter bypass (#19287)
+
+
 version 2019.02.18
 
 Extractors
