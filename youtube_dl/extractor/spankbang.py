@@ -9,6 +9,8 @@ from ..utils import (
     parse_duration,
     parse_resolution,
     str_to_int,
+    url_or_none,
+    urlencode_postdata,
 )
 
 
@@ -64,16 +66,49 @@ class SpankBangIE(InfoExtractor):
                 'Video %s is not available' % video_id, expected=True)
 
         formats = []
-        for mobj in re.finditer(
-                r'stream_url_(?P<id>[^\s=]+)\s*=\s*(["\'])(?P<url>(?:(?!\2).)+)\2',
-                webpage):
-            format_id, format_url = mobj.group('id', 'url')
+
+        def extract_format(format_id, format_url):
+            f_url = url_or_none(format_url)
+            if not f_url:
+                return
             f = parse_resolution(format_id)
             f.update({
-                'url': format_url,
+                'url': f_url,
                 'format_id': format_id,
             })
             formats.append(f)
+
+        STREAM_URL_PREFIX = 'stream_url_'
+
+        for mobj in re.finditer(
+                r'%s(?P<id>[^\s=]+)\s*=\s*(["\'])(?P<url>(?:(?!\2).)+)\2'
+                % STREAM_URL_PREFIX, webpage):
+            extract_format(mobj.group('id', 'url'))
+
+        if not formats:
+            stream_key = self._search_regex(
+                r'data-streamkey\s*=\s*(["\'])(?P<value>(?:(?!\1).)+)\1',
+                webpage, 'stream key', group='value')
+
+            sb_csrf_session = self._get_cookies(
+                'https://spankbang.com')['sb_csrf_session'].value
+
+            stream = self._download_json(
+                'https://spankbang.com/api/videos/stream', video_id,
+                'Downloading stream JSON', data=urlencode_postdata({
+                    'id': stream_key,
+                    'data': 0,
+                    'sb_csrf_session': sb_csrf_session,
+                }), headers={
+                    'Referer': url,
+                    'X-CSRFToken': sb_csrf_session,
+                })
+
+            for format_id, format_url in stream.items():
+                if format_id.startswith(STREAM_URL_PREFIX):
+                    extract_format(
+                        format_id[len(STREAM_URL_PREFIX):], format_url)
+
         self._sort_formats(formats)
 
         title = self._html_search_regex(
