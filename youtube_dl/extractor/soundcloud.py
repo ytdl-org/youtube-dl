@@ -16,7 +16,8 @@ from ..compat import (
 from ..utils import (
     ExtractorError,
     int_or_none,
-    unified_strdate,
+    try_get,
+    unified_timestamp,
     update_url_query,
     url_or_none,
 )
@@ -51,12 +52,17 @@ class SoundcloudIE(InfoExtractor):
             'info_dict': {
                 'id': '62986583',
                 'ext': 'mp3',
-                'upload_date': '20121011',
+                'title': 'Lostin Powers - She so Heavy (SneakPreview) Adrian Ackers Blueprint 1',
                 'description': 'No Downloads untill we record the finished version this weekend, i was too pumped n i had to post it , earl is prolly gonna b hella p.o\'d',
                 'uploader': 'E.T. ExTerrestrial Music',
-                'title': 'Lostin Powers - She so Heavy (SneakPreview) Adrian Ackers Blueprint 1',
+                'timestamp': 1349920598,
+                'upload_date': '20121011',
                 'duration': 143,
                 'license': 'all-rights-reserved',
+                'view_count': int,
+                'like_count': int,
+                'comment_count': int,
+                'repost_count': int,
             }
         },
         # not streamable song
@@ -68,9 +74,14 @@ class SoundcloudIE(InfoExtractor):
                 'title': 'Goldrushed',
                 'description': 'From Stockholm Sweden\r\nPovel / Magnus / Filip / David\r\nwww.theroyalconcept.com',
                 'uploader': 'The Royal Concept',
+                'timestamp': 1337635207,
                 'upload_date': '20120521',
-                'duration': 227,
+                'duration': 30,
                 'license': 'all-rights-reserved',
+                'view_count': int,
+                'like_count': int,
+                'comment_count': int,
+                'repost_count': int,
             },
             'params': {
                 # rtmp
@@ -85,11 +96,16 @@ class SoundcloudIE(InfoExtractor):
                 'id': '123998367',
                 'ext': 'mp3',
                 'title': 'Youtube - Dl Test Video \'\' Ä↭',
-                'uploader': 'jaimeMF',
                 'description': 'test chars:  \"\'/\\ä↭',
+                'uploader': 'jaimeMF',
+                'timestamp': 1386604920,
                 'upload_date': '20131209',
                 'duration': 9,
                 'license': 'all-rights-reserved',
+                'view_count': int,
+                'like_count': int,
+                'comment_count': int,
+                'repost_count': int,
             },
         },
         # private link (alt format)
@@ -100,11 +116,16 @@ class SoundcloudIE(InfoExtractor):
                 'id': '123998367',
                 'ext': 'mp3',
                 'title': 'Youtube - Dl Test Video \'\' Ä↭',
-                'uploader': 'jaimeMF',
                 'description': 'test chars:  \"\'/\\ä↭',
+                'uploader': 'jaimeMF',
+                'timestamp': 1386604920,
                 'upload_date': '20131209',
                 'duration': 9,
                 'license': 'all-rights-reserved',
+                'view_count': int,
+                'like_count': int,
+                'comment_count': int,
+                'repost_count': int,
             },
         },
         # downloadable song
@@ -117,9 +138,14 @@ class SoundcloudIE(InfoExtractor):
                 'title': 'Bus Brakes',
                 'description': 'md5:0053ca6396e8d2fd7b7e1595ef12ab66',
                 'uploader': 'oddsamples',
+                'timestamp': 1389232924,
                 'upload_date': '20140109',
                 'duration': 17,
                 'license': 'cc-by-sa',
+                'view_count': int,
+                'like_count': int,
+                'comment_count': int,
+                'repost_count': int,
             },
         },
         # private link, downloadable format
@@ -132,9 +158,14 @@ class SoundcloudIE(InfoExtractor):
                 'title': 'Uplifting Only 238 [No Talking] (incl. Alex Feed Guestmix) (Aug 31, 2017) [wav]',
                 'description': 'md5:fa20ee0fca76a3d6df8c7e57f3715366',
                 'uploader': 'Ori Uplift Music',
+                'timestamp': 1504206263,
                 'upload_date': '20170831',
                 'duration': 7449,
                 'license': 'all-rights-reserved',
+                'view_count': int,
+                'like_count': int,
+                'comment_count': int,
+                'repost_count': int,
             },
         },
         # no album art, use avatar pic for thumbnail
@@ -147,10 +178,15 @@ class SoundcloudIE(InfoExtractor):
                 'title': 'Sideways (Prod. Mad Real)',
                 'description': 'md5:d41d8cd98f00b204e9800998ecf8427e',
                 'uploader': 'garyvee',
+                'timestamp': 1488152409,
                 'upload_date': '20170226',
                 'duration': 207,
                 'thumbnail': r're:https?://.*\.jpg',
                 'license': 'all-rights-reserved',
+                'view_count': int,
+                'like_count': int,
+                'comment_count': int,
+                'repost_count': int,
             },
             'params': {
                 'skip_download': True,
@@ -176,22 +212,33 @@ class SoundcloudIE(InfoExtractor):
 
     def _extract_info_dict(self, info, full_title=None, quiet=False, secret_token=None):
         track_id = compat_str(info['id'])
+        title = info['title']
         name = full_title or track_id
         if quiet:
             self.report_extraction(name)
         thumbnail = info.get('artwork_url') or info.get('user', {}).get('avatar_url')
         if isinstance(thumbnail, compat_str):
             thumbnail = thumbnail.replace('-large', '-t500x500')
+        username = try_get(info, lambda x: x['user']['username'], compat_str)
+
+        def extract_count(key):
+            return int_or_none(info.get('%s_count' % key))
+
         result = {
             'id': track_id,
-            'uploader': info.get('user', {}).get('username'),
-            'upload_date': unified_strdate(info.get('created_at')),
-            'title': info['title'],
+            'uploader': username,
+            'timestamp': unified_timestamp(info.get('created_at')),
+            'title': title,
             'description': info.get('description'),
             'thumbnail': thumbnail,
             'duration': int_or_none(info.get('duration'), 1000),
             'webpage_url': info.get('permalink_url'),
             'license': info.get('license'),
+            'view_count': extract_count('playback'),
+            'like_count': extract_count('favoritings'),
+            'comment_count': extract_count('comment'),
+            'repost_count': extract_count('reposts'),
+            'genre': info.get('genre'),
         }
         formats = []
         query = {'client_id': self._CLIENT_ID}

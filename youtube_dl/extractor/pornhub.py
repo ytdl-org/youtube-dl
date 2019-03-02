@@ -16,7 +16,6 @@ from .openload import PhantomJSwrapper
 from ..utils import (
     ExtractorError,
     int_or_none,
-    js_to_json,
     orderedSet,
     remove_quotes,
     str_to_int,
@@ -303,14 +302,12 @@ class PornHubIE(PornHubBaseIE):
         comment_count = self._extract_count(
             r'All Comments\s*<span>\(([\d,.]+)\)', webpage, 'comment')
 
-        page_params = self._parse_json(self._search_regex(
-            r'page_params\.zoneDetails\[([\'"])[^\'"]+\1\]\s*=\s*(?P<data>{[^}]+})',
-            webpage, 'page parameters', group='data', default='{}'),
-            video_id, transform_source=js_to_json, fatal=False)
-        tags = categories = None
-        if page_params:
-            tags = page_params.get('tags', '').split(',')
-            categories = page_params.get('categories', '').split(',')
+        def extract_list(meta_key):
+            div = self._search_regex(
+                r'(?s)<div[^>]+\bclass=["\'].*?\b%sWrapper[^>]*>(.+?)</div>'
+                % meta_key, webpage, meta_key, default=None)
+            if div:
+                return re.findall(r'<a[^>]+\bhref=[^>]+>([^<]+)', div)
 
         return {
             'id': video_id,
@@ -325,8 +322,8 @@ class PornHubIE(PornHubBaseIE):
             'comment_count': comment_count,
             'formats': formats,
             'age_limit': 18,
-            'tags': tags,
-            'categories': categories,
+            'tags': extract_list('tags'),
+            'categories': extract_list('categories'),
             'subtitles': subtitles,
         }
 

@@ -593,6 +593,7 @@ from .linkedin import (
     LinkedInLearningIE,
     LinkedInLearningCourseIE,
 )
+from .linuxacademy import LinuxAcademyIE
 from .litv import LiTVIE
 from .liveleak import (
     LiveLeakIE,
@@ -619,6 +620,7 @@ from .mailru import (
     MailRuMusicSearchIE,
 )
 from .makertv import MakerTVIE
+from .malltv import MallTVIE
 from .mangomolo import (
     MangomoloVideoIE,
     MangomoloLiveIE,
@@ -1058,7 +1060,10 @@ from .southpark import (
     SouthParkEsIE,
     SouthParkNlIE
 )
-from .spankbang import SpankBangIE
+from .spankbang import (
+    SpankBangIE,
+    SpankBangPlaylistIE,
+)
 from .spankwire import SpankwireIE
 from .spiegel import SpiegelIE, SpiegelArticleIE
 from .spiegeltv import SpiegeltvIE
@@ -1167,6 +1172,7 @@ from .toutv import TouTvIE
 from .toypics import ToypicsUserIE, ToypicsIE
 from .traileraddict import TrailerAddictIE
 from .trilulilu import TriluliluIE
+from .trunews import TruNewsIE
 from .trutv import TruTVIE
 from .tube8 import Tube8IE
 from .tubitv import TubiTvIE
@@ -1212,7 +1218,7 @@ from .tvnow import (
 from .tvp import (
     TVPEmbedIE,
     TVPIE,
-    TVPSeriesIE,
+    TVPWebsiteIE,
 )
 from .tvplay import (
     TVPlayIE,

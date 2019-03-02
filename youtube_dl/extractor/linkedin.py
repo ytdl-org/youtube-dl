@@ -34,12 +34,15 @@ class LinkedInLearningBaseIE(InfoExtractor):
                 'Csrf-Token': self._get_cookies(api_url)['JSESSIONID'].value,
             }, query=query)['elements'][0]
 
-    def _get_video_id(self, urn, course_slug, video_slug):
+    def _get_urn_id(self, video_data):
+        urn = video_data.get('urn')
         if urn:
             mobj = re.search(r'urn:li:lyndaCourse:\d+,(\d+)', urn)
             if mobj:
                 return mobj.group(1)
-        return '%s/%s' % (course_slug, video_slug)
+
+    def _get_video_id(self, video_data, course_slug, video_slug):
+        return self._get_urn_id(video_data) or '%s/%s' % (course_slug, video_slug)
 
     def _real_initialize(self):
         email, password = self._get_login_info()
@@ -123,7 +126,7 @@ class LinkedInLearningIE(LinkedInLearningBaseIE):
         self._sort_formats(formats, ('width', 'height', 'source_preference', 'tbr', 'abr'))
 
         return {
-            'id': self._get_video_id(video_data.get('urn'), course_slug, video_slug),
+            'id': self._get_video_id(video_data, course_slug, video_slug),
             'title': title,
             'formats': formats,
             'thumbnail': video_data.get('defaultThumbnail'),
@@ -154,18 +157,21 @@ class LinkedInLearningCourseIE(LinkedInLearningBaseIE):
         course_data = self._call_api(course_slug, 'chapters,description,title')
 
         entries = []
-        for chapter in course_data.get('chapters', []):
+        for chapter_number, chapter in enumerate(course_data.get('chapters', []), 1):
             chapter_title = chapter.get('title')
+            chapter_id = self._get_urn_id(chapter)
             for video in chapter.get('videos', []):
                 video_slug = video.get('slug')
                 if not video_slug:
                     continue
                 entries.append({
                     '_type': 'url_transparent',
-                    'id': self._get_video_id(video.get('urn'), course_slug, video_slug),
+                    'id': self._get_video_id(video, course_slug, video_slug),
                     'title': video.get('title'),
                     'url': 'https://www.linkedin.com/learning/%s/%s' % (course_slug, video_slug),
                     'chapter': chapter_title,
+                    'chapter_number': chapter_number,
+                    'chapter_id': chapter_id,
                     'ie_key': LinkedInLearningIE.ie_key(),
                 })
 
