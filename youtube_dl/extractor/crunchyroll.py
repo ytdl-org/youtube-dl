@@ -60,7 +60,7 @@ class CrunchyrollBaseIE(InfoExtractor):
             self._LOGIN_URL, None, 'Downloading login page')
 
         def is_logged(webpage):
-            return '<title>Redirecting' in webpage
+            return 'href="/logout"' in webpage
 
         # Already logged in
         if is_logged(login_page):
