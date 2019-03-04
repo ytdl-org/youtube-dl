@@ -21,7 +21,17 @@ from ..utils import (
 
 
 class RutubeBaseIE(InfoExtractor):
-    def _extract_video(self, video, video_id=None, require_title=True):
+    def _download_api_info(self, video_id, query=None):
+        if not query:
+            query = {}
+        query['format'] = 'json'
+        return self._download_json(
+            'http://rutube.ru/api/video/%s/' % video_id,
+            video_id, 'Downloading video JSON',
+            'Unable to download video JSON', query=query)
+
+    @staticmethod
+    def _extract_info(video, video_id=None, require_title=True):
         title = video['title'] if require_title else video.get('title')
 
         age_limit = video.get('is_adult')
@@ -32,7 +42,7 @@ class RutubeBaseIE(InfoExtractor):
         category = try_get(video, lambda x: x['category']['name'])
 
         return {
-            'id': video.get('id') or video_id,
+            'id': video.get('id') or video_id if video_id else video['id'],
             'title': title,
             'description': video.get('description'),
             'thumbnail': video.get('thumbnail_url'),
@@ -47,6 +57,42 @@ class RutubeBaseIE(InfoExtractor):
             'is_live': bool_or_none(video.get('is_livestream')),
         }
 
+    def _download_and_extract_info(self, video_id, query=None):
+        return self._extract_info(
+            self._download_api_info(video_id, query=query), video_id)
+
+    def _download_api_options(self, video_id, query=None):
+        if not query:
+            query = {}
+        query['format'] = 'json'
+        return self._download_json(
+            'http://rutube.ru/api/play/options/%s/' % video_id,
+            video_id, 'Downloading options JSON',
+            'Unable to download options JSON',
+            headers=self.geo_verification_headers(), query=query)
+
+    def _extract_formats(self, options, video_id):
+        formats = []
+        for format_id, format_url in options['video_balancer'].items():
+            ext = determine_ext(format_url)
+            if ext == 'm3u8':
+                formats.extend(self._extract_m3u8_formats(
+                    format_url, video_id, 'mp4', m3u8_id=format_id, fatal=False))
+            elif ext == 'f4m':
+                formats.extend(self._extract_f4m_formats(
+                    format_url, video_id, f4m_id=format_id, fatal=False))
+            else:
+                formats.append({
+                    'url': format_url,
+                    'format_id': format_id,
+                })
+        self._sort_formats(formats)
+        return formats
+
+    def _download_and_extract_formats(self, video_id, query=None):
+        return self._extract_formats(
+            self._download_api_options(video_id, query=query), video_id)
+
 
 class RutubeIE(RutubeBaseIE):
     IE_NAME = 'rutube'
@@ -55,13 +101,13 @@ class RutubeIE(RutubeBaseIE):
 
     _TESTS = [{
         'url': 'http://rutube.ru/video/3eac3b4561676c17df9132a9a1e62e3e/',
-        'md5': '79938ade01294ef7e27574890d0d3769',
+        'md5': '1d24f180fac7a02f3900712e5a5764d6',
         'info_dict': {
             'id': '3eac3b4561676c17df9132a9a1e62e3e',
-            'ext': 'flv',
+            'ext': 'mp4',
             'title': 'Раненный кенгуру забежал в аптеку',
             'description': 'http://www.ntdtv.ru ',
-            'duration': 80,
+            'duration': 81,
             'uploader': 'NTDRussian',
             'uploader_id': '29790',
             'timestamp': 1381943602,
@@ -94,39 +140,12 @@ class RutubeIE(RutubeBaseIE):
 
     def _real_extract(self, url):
         video_id = self._match_id(url)
-
-        video = self._download_json(
-            'http://rutube.ru/api/video/%s/?format=json' % video_id,
-            video_id, 'Downloading video JSON')
-
-        info = self._extract_video(video, video_id)
-
-        options = self._download_json(
-            'http://rutube.ru/api/play/options/%s/?format=json' % video_id,
-            video_id, 'Downloading options JSON',
-            headers=self.geo_verification_headers())
-
-        formats = []
-        for format_id, format_url in options['video_balancer'].items():
-            ext = determine_ext(format_url)
-            if ext == 'm3u8':
-                formats.extend(self._extract_m3u8_formats(
-                    format_url, video_id, 'mp4', m3u8_id=format_id, fatal=False))
-            elif ext == 'f4m':
-                formats.extend(self._extract_f4m_formats(
-                    format_url, video_id, f4m_id=format_id, fatal=False))
-            else:
-                formats.append({
-                    'url': format_url,
-                    'format_id': format_id,
-                })
-        self._sort_formats(formats)
-
-        info['formats'] = formats
+        info = self._download_and_extract_info(video_id)
+        info['formats'] = self._download_and_extract_formats(video_id)
         return info
 
 
-class RutubeEmbedIE(InfoExtractor):
+class RutubeEmbedIE(RutubeBaseIE):
     IE_NAME = 'rutube:embed'
     IE_DESC = 'Rutube embedded videos'
     _VALID_URL = r'https?://rutube\.ru/(?:video|play)/embed/(?P<id>[0-9]+)'
@@ -135,7 +154,7 @@ class RutubeEmbedIE(InfoExtractor):
         'url': 'http://rutube.ru/video/embed/6722881?vk_puid37=&vk_puid38=',
         'info_dict': {
             'id': 'a10e53b86e8f349080f718582ce4c661',
-            'ext': 'flv',
+            'ext': 'mp4',
             'timestamp': 1387830582,
             'upload_date': '20131223',
             'uploader_id': '297833',
@@ -149,16 +168,26 @@ class RutubeEmbedIE(InfoExtractor):
     }, {
         'url': 'http://rutube.ru/play/embed/8083783',
         'only_matching': True,
+    }, {
+        # private video
+        'url': 'https://rutube.ru/play/embed/10631925?p=IbAigKqWd1do4mjaM5XLIQ',
+        'only_matching': True,
     }]
 
     def _real_extract(self, url):
         embed_id = self._match_id(url)
-        webpage = self._download_webpage(url, embed_id)
-
-        canonical_url = self._html_search_regex(
-            r'<link\s+rel="canonical"\s+href="([^"]+?)"', webpage,
-            'Canonical URL')
-        return self.url_result(canonical_url, RutubeIE.ie_key())
+        # Query may contain private videos token and should be passed to API
+        # requests (see #19163)
+        query = compat_parse_qs(compat_urllib_parse_urlparse(url).query)
+        options = self._download_api_options(embed_id, query)
+        video_id = options['effective_video']
+        formats = self._extract_formats(options, video_id)
+        info = self._download_and_extract_info(video_id, query)
+        info.update({
+            'extractor_key': 'Rutube',
+            'formats': formats,
+        })
+        return info
 
 
 class RutubePlaylistBaseIE(RutubeBaseIE):
@@ -181,7 +210,7 @@ class RutubePlaylistBaseIE(RutubeBaseIE):
                 video_url = url_or_none(result.get('video_url'))
                 if not video_url:
                     continue
-                entry = self._extract_video(result, require_title=False)
+                entry = self._extract_info(result, require_title=False)
                 entry.update({
                     '_type': 'url',
                     'url': video_url,

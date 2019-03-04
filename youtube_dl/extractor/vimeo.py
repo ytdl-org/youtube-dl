@@ -502,7 +502,11 @@ class VimeoIE(VimeoBaseInfoExtractor):
         mobj = re.match(self._VALID_URL, url)
         video_id = mobj.group('id')
         orig_url = url
-        if mobj.group('pro') or mobj.group('player'):
+        if mobj.group('pro'):
+            # some videos require portfolio_id to be present in player url
+            # https://github.com/rg3/youtube-dl/issues/20070
+            url = self._extract_url(url, self._download_webpage(url, video_id))
+        elif mobj.group('player'):
             url = 'https://player.vimeo.com/video/' + video_id
         elif any(p in url for p in ('play_redirect_hls', 'moogaloop.swf')):
             url = 'https://vimeo.com/' + video_id

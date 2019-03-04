@@ -1,12 +1,13 @@
 from __future__ import unicode_literals
 
+import json
 import re
 
 from .common import InfoExtractor
 from ..compat import (
     compat_parse_qs,
+    compat_urllib_parse,
     compat_urllib_parse_unquote,
-    compat_urllib_parse_urlencode,
 )
 from ..utils import (
     determine_ext,
@@ -144,7 +145,7 @@ class MetacafeIE(InfoExtractor):
 
         headers = {
             # Disable family filter
-            'Cookie': 'user=%s; ' % compat_urllib_parse_urlencode({'ffilter': False})
+            'Cookie': 'user=%s; ' % compat_urllib_parse.quote(json.dumps({'ffilter': False}))
         }
 
         # AnyClip videos require the flashversion cookie so that we get the link

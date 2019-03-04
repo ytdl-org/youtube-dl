@@ -288,7 +288,7 @@ class RaiPlayPlaylistIE(InfoExtractor):
 
 
 class RaiIE(RaiBaseIE):
-    _VALID_URL = r'https?://[^/]+\.(?:rai\.(?:it|tv)|rainews\.it)/dl/.+?-(?P<id>%s)(?:-.+?)?\.html' % RaiBaseIE._UUID_RE
+    _VALID_URL = r'https?://[^/]+\.(?:rai\.(?:it|tv)|rainews\.it)/.+?-(?P<id>%s)(?:-.+?)?\.html' % RaiBaseIE._UUID_RE
     _TESTS = [{
         # var uniquename = "ContentItem-..."
         # data-id="ContentItem-..."
@@ -374,6 +374,9 @@ class RaiIE(RaiBaseIE):
     }, {
         # Direct MMS URL
         'url': 'http://www.rai.it/dl/RaiTV/programmi/media/ContentItem-b63a4089-ac28-48cf-bca5-9f5b5bc46df5.html',
+        'only_matching': True,
+    }, {
+        'url': 'https://www.rainews.it/tgr/marche/notiziari/video/2019/02/ContentItem-6ba945a2-889c-4a80-bdeb-8489c70a8db9.html',
         'only_matching': True,
     }]
 

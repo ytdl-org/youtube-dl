@@ -29,7 +29,7 @@ class UdemyIE(InfoExtractor):
     IE_NAME = 'udemy'
     _VALID_URL = r'''(?x)
                     https?://
-                        www\.udemy\.com/
+                        (?:[^/]+\.)?udemy\.com/
                         (?:
                             [^#]+\#/lecture/|
                             lecture/view/?\?lectureId=|
@@ -63,6 +63,9 @@ class UdemyIE(InfoExtractor):
     }, {
         # only outputs rendition
         'url': 'https://www.udemy.com/how-you-can-help-your-local-community-5-amazing-examples/learn/v4/t/lecture/3225750?start=0',
+        'only_matching': True,
+    }, {
+        'url': 'https://wipro.udemy.com/java-tutorial/#/lecture/172757',
         'only_matching': True,
     }]
 
@@ -123,10 +126,22 @@ class UdemyIE(InfoExtractor):
 
     def _download_webpage_handle(self, *args, **kwargs):
         headers = kwargs.get('headers', {}).copy()
-        headers['User-Agent'] = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_5) AppleWebKit/603.2.4 (KHTML, like Gecko) Version/10.1.1 Safari/603.2.4'
+        headers['User-Agent'] = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/72.0.3626.109 Safari/537.36'
         kwargs['headers'] = headers
-        return super(UdemyIE, self)._download_webpage_handle(
+        ret = super(UdemyIE, self)._download_webpage_handle(
             *args, **compat_kwargs(kwargs))
+        if not ret:
+            return ret
+        webpage, _ = ret
+        if any(p in webpage for p in (
+                '>Please verify you are a human',
+                'Access to this page has been denied because we believe you are using automation tools to browse the website',
+                '"_pxCaptcha"')):
+            raise ExtractorError(
+                'Udemy asks you to solve a CAPTCHA. Login with browser, '
+                'solve CAPTCHA, then export cookies and pass cookie file to '
+                'youtube-dl with --cookies.', expected=True)
+        return ret
 
     def _download_json(self, url_or_request, *args, **kwargs):
         headers = {
@@ -403,8 +418,14 @@ class UdemyIE(InfoExtractor):
 
 class UdemyCourseIE(UdemyIE):
     IE_NAME = 'udemy:course'
-    _VALID_URL = r'https?://(?:www\.)?udemy\.com/(?P<id>[^/?#&]+)'
-    _TESTS = []
+    _VALID_URL = r'https?://(?:[^/]+\.)?udemy\.com/(?P<id>[^/?#&]+)'
+    _TESTS = [{
+        'url': 'https://www.udemy.com/java-tutorial/',
+        'only_matching': True,
+    }, {
+        'url': 'https://wipro.udemy.com/java-tutorial/',
+        'only_matching': True,
+    }]
 
     @classmethod
     def suitable(cls, url):
