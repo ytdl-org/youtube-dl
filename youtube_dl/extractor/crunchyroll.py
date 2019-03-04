@@ -56,22 +56,11 @@ class CrunchyrollBaseIE(InfoExtractor):
         if username is None:
             return
 
-        self._download_webpage(
-            'https://www.crunchyroll.com/?a=formhandler',
-            None, 'Logging in', 'Wrong login info',
-            data=urlencode_postdata({
-                'formname': 'RpcApiUser_Login',
-                'next_url': 'https://www.crunchyroll.com/acct/membership',
-                'name': username,
-                'password': password,
-            }))
-
-        '''
         login_page = self._download_webpage(
             self._LOGIN_URL, None, 'Downloading login page')
 
         def is_logged(webpage):
-            return '<title>Redirecting' in webpage
+            return 'href="/logout"' in webpage
 
         # Already logged in
         if is_logged(login_page):
@@ -110,7 +99,6 @@ class CrunchyrollBaseIE(InfoExtractor):
             raise ExtractorError('Unable to login: %s' % error, expected=True)
 
         raise ExtractorError('Unable to log in')
-        '''
 
     def _real_initialize(self):
         self._login()
