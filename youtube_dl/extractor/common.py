@@ -102,10 +102,20 @@ class InfoExtractor(object):
                     from worst to best quality.
 
                     Potential fields:
-                    * url        Mandatory. The URL of the video file
+                    * url        The mandatory URL representing the media:
+                                   for plain file media - HTTP URL of this file,
+                                   for RTMP - RTMP URL,
+                                   for HLS - URL of the M3U8 media playlist,
+                                   for HDS - URL of the F4M manifest,
+                                   for DASH - URL of the MPD manifest,
+                                   for MSS - URL of the ISM manifest.
                     * manifest_url
                                  The URL of the manifest file in case of
-                                 fragmented media (DASH, hls, hds)
+                                 fragmented media:
+                                   for HLS - URL of the M3U8 master playlist,
+                                   for HDS - URL of the F4M manifest,
+                                   for DASH - URL of the MPD manifest,
+                                   for MSS - URL of the ISM manifest.
                     * ext        Will be calculated from URL if missing
                     * format     A human-readable description of the format
                                  ("mp4 container with h264/opus").
