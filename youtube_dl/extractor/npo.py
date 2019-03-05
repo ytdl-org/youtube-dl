@@ -238,7 +238,7 @@ class NPOIE(NPOBaseIE):
                 formats.extend(self._extract_m3u8_formats(
                     stream_url, video_id, ext='mp4',
                     entry_protocol='m3u8_native', m3u8_id='hls', fatal=False))
-            elif '.ism/Manifest' in stream_url:
+            elif re.search(r'\.isml?/Manifest', stream_url):
                 formats.extend(self._extract_ism_formats(
                     stream_url, video_id, ism_id='mss', fatal=False))
             else:
