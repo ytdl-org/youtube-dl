@@ -349,7 +349,8 @@ Alternatively, refer to the [developer instructions](#developer-instructions) fo
     --merge-output-format FORMAT     If a merge is required (e.g.
                                      bestvideo+bestaudio), output to given
                                      container format. One of mkv, mp4, ogg,
-                                     webm, flv. Ignored if no merge is required
+                                     webm, flv. Ignored if no merge is required                  
+Note: Want to make typing -f and -F commands shorter? https://pastebin.com/w13bhrSw
 
 ## Subtitle Options:
     --write-sub                      Write subtitle file
