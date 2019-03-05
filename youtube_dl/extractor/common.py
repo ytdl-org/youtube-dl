@@ -13,11 +13,11 @@ import socket
 import sys
 import time
 import math
-import xml
 
 from ..compat import (
     compat_cookiejar,
     compat_cookies,
+    compat_etree_Element,
     compat_etree_fromstring,
     compat_getpass,
     compat_integer_types,
@@ -802,7 +802,7 @@ class InfoExtractor(object):
             fatal=True, encoding=None, data=None, headers={}, query={},
             expected_status=None):
         """
-        Return a tuple (xml as an xml.etree.ElementTree.Element, URL handle).
+        Return a tuple (xml as an compat_etree_Element, URL handle).
 
         See _download_webpage docstring for arguments specification.
         """
@@ -823,7 +823,7 @@ class InfoExtractor(object):
             transform_source=None, fatal=True, encoding=None,
             data=None, headers={}, query={}, expected_status=None):
         """
-        Return the xml as an xml.etree.ElementTree.Element.
+        Return the xml as an compat_etree_Element.
 
         See _download_webpage docstring for arguments specification.
         """
@@ -1468,7 +1468,7 @@ class InfoExtractor(object):
     def _parse_f4m_formats(self, manifest, manifest_url, video_id, preference=None, f4m_id=None,
                            transform_source=lambda s: fix_xml_ampersands(s).strip(),
                            fatal=True, m3u8_id=None):
-        if not isinstance(manifest, xml.etree.ElementTree.Element) and not fatal:
+        if not isinstance(manifest, compat_etree_Element) and not fatal:
             return []
 
         # currently youtube-dl cannot decode the playerVerificationChallenge as Akamai uses Adobe Alchemy

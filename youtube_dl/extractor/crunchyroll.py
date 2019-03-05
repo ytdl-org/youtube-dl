@@ -3,7 +3,6 @@ from __future__ import unicode_literals
 
 import re
 import json
-import xml.etree.ElementTree as etree
 import zlib
 
 from hashlib import sha1
@@ -12,6 +11,7 @@ from .common import InfoExtractor
 from .vrv import VRVIE
 from ..compat import (
     compat_b64decode,
+    compat_etree_Element,
     compat_etree_fromstring,
     compat_urllib_parse_urlencode,
     compat_urllib_request,
@@ -390,7 +390,7 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
                 'Downloading subtitles for ' + sub_name, data={
                     'subtitle_script_id': sub_id,
                 })
-            if not isinstance(sub_doc, etree.Element):
+            if not isinstance(sub_doc, compat_etree_Element):
                 continue
             sid = sub_doc.get('id')
             iv = xpath_text(sub_doc, 'iv', 'subtitle iv')
@@ -507,7 +507,7 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
                         'video_quality': stream_quality,
                         'current_page': url,
                     })
-                if isinstance(streamdata, etree.Element):
+                if isinstance(streamdata, compat_etree_Element):
                     stream_info = streamdata.find('./{default}preload/stream_info')
                     if stream_info is not None:
                         stream_infos.append(stream_info)
@@ -518,7 +518,7 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
                         'video_format': stream_format,
                         'video_encode_quality': stream_quality,
                     })
-                if isinstance(stream_info, etree.Element):
+                if isinstance(stream_info, compat_etree_Element):
                     stream_infos.append(stream_info)
                 for stream_info in stream_infos:
                     video_encode_id = xpath_text(stream_info, './video_encode_id')
@@ -593,7 +593,7 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
 
         season = episode = episode_number = duration = thumbnail = None
 
-        if isinstance(metadata, etree.Element):
+        if isinstance(metadata, compat_etree_Element):
             season = xpath_text(metadata, 'series_title')
             episode = xpath_text(metadata, 'episode_title')
             episode_number = int_or_none(xpath_text(metadata, 'episode_number'))
