@@ -2508,6 +2508,15 @@ class _TreeBuilder(etree.TreeBuilder):
         pass
 
 
+try:
+    # xml.etree.ElementTree.Element is a method in Python <=2.6 and
+    # the following will crash with:
+    #  TypeError: isinstance() arg 2 must be a class, type, or tuple of classes and types
+    isinstance(None, xml.etree.ElementTree.Element)
+    from xml.etree.ElementTree import Element as compat_etree_Element
+except TypeError:  # Python <=2.6
+    from xml.etree.ElementTree import _ElementInterface as compat_etree_Element
+
 if sys.version_info[0] >= 3:
     def compat_etree_fromstring(text):
         return etree.XML(text, parser=etree.XMLParser(target=_TreeBuilder()))
@@ -2969,6 +2978,7 @@ __all__ = [
     'compat_cookiejar',
     'compat_cookies',
     'compat_ctypes_WINFUNCTYPE',
+    'compat_etree_Element',
     'compat_etree_fromstring',
     'compat_etree_register_namespace',
     'compat_expanduser',
