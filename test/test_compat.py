@@ -93,7 +93,7 @@ class TestCompat(unittest.TestCase):
 
     def test_compat_etree_Element(self):
         try:
-            compat_etree_Element.text
+            compat_etree_Element.items
         except AttributeError:
             self.fail('compat_etree_Element is not a type')
 
