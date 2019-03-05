@@ -105,7 +105,7 @@ class ABCIE(InfoExtractor):
 
 class ABCIViewShowIE(InfoExtractor):
     IE_NAME = 'abc.net.au:iview:show'
-    _VALID_URL = r'https?://iview\.abc\.net\.au/(?:[^/]+/)*show/(?P<id>[^/?#]+)/?'
+    _VALID_URL = r'https?://iview\.abc\.net\.au/(?:[^/]+/)*show/(?P<id>[^/?#]+)/?$'
     _GEO_COUNTRIES = ['AU']
 
     # ABC iview programs are normally available for 14 days only.
