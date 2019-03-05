@@ -108,7 +108,10 @@ class InfoExtractor(object):
                                    for RTMP - RTMP URL,
                                    for HLS - URL of the M3U8 media playlist,
                                    for HDS - URL of the F4M manifest,
-                                   for DASH - URL of the MPD manifest,
+                                   for DASH - URL of the MPD manifest or
+                                              base URL representing the media
+                                              if MPD manifest is parsed from
+                                              a string,
                                    for MSS - URL of the ISM manifest.
                     * manifest_url
                                  The URL of the manifest file in case of
@@ -2134,7 +2137,8 @@ class InfoExtractor(object):
                         bandwidth = int_or_none(representation_attrib.get('bandwidth'))
                         f = {
                             'format_id': '%s-%s' % (mpd_id, representation_id) if mpd_id else representation_id,
-                            'url': mpd_url,
+                            # NB: mpd_url may be empty when MPD manifest is parsed from a string
+                            'url': mpd_url or base_url,
                             'manifest_url': mpd_url,
                             'ext': mimetype2ext(mime_type),
                             'width': int_or_none(representation_attrib.get('width')),
