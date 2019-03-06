@@ -4,7 +4,9 @@ from __future__ import unicode_literals
 import json
 
 from .radiocanada import RadioCanadaIE
+from ..compat import compat_HTTPError
 from ..utils import (
+    ExtractorError,
     int_or_none,
     merge_dicts,
 )
@@ -42,18 +44,24 @@ class TouTvIE(RadioCanadaIE):
         email, password = self._get_login_info()
         if email is None:
             return
-        self._access_token = self._download_json(
-            'https://services.radio-canada.ca/toutv/profiling/accounts/login',
-            None, 'Logging in', data=json.dumps({
-                'ClientId': self._CLIENT_KEY,
-                'ClientSecret': '34026772-244b-49b6-8b06-317b30ac9a20',
-                'Email': email,
-                'Password': password,
-                'Scope': 'id.write media-validation.read',
-            }).encode(), headers={
-                'Authorization': 'client-key ' + self._CLIENT_KEY,
-                'Content-Type': 'application/json;charset=utf-8',
-            })['access_token']
+        try:
+            self._access_token = self._download_json(
+                'https://services.radio-canada.ca/toutv/profiling/accounts/login',
+                None, 'Logging in', data=json.dumps({
+                    'ClientId': self._CLIENT_KEY,
+                    'ClientSecret': '34026772-244b-49b6-8b06-317b30ac9a20',
+                    'Email': email,
+                    'Password': password,
+                    'Scope': 'id.write media-validation.read',
+                }).encode(), headers={
+                    'Authorization': 'client-key ' + self._CLIENT_KEY,
+                    'Content-Type': 'application/json;charset=utf-8',
+                })['access_token']
+        except ExtractorError as e:
+            if isinstance(e.cause, compat_HTTPError) and e.cause.code == 401:
+                error = self._parse_json(e.cause.read().decode(), None)['Message']
+                raise ExtractorError(error, expected=True)
+            raise
         self._claims = self._call_api('validation/v2/getClaims')['claims']
 
     def _real_extract(self, url):
