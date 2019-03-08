@@ -19,7 +19,10 @@ class YleAreenaIE(InfoExtractor):
             'id': '1_iq074q8b',
             'ext': 'mxf',
             'title': 'Luottomies | Luottomies jouluspeciaali',
-            'description': u'Tommia harmittaa kun sukulaiset ovat tulossa pilaamaan mukavan perhejoulun. Muuttuuko mieli isosta yllätyksestä? Joulun erikoisjakson on ohjannut Jalmari Helander.',
+            'description':
+                u'Tommia harmittaa kun sukulaiset ovat tulossa pilaamaan '
+                'mukavan perhejoulun. Muuttuuko mieli isosta yllätyksestä? '
+                'Joulun erikoisjakson on ohjannut Jalmari Helander.',
             'upload_date': '20171207',
             'height': 1080,
             'width': 1920,
@@ -34,17 +37,44 @@ class YleAreenaIE(InfoExtractor):
     }
 
     def _real_extract(self, url):
+        # This extractor will fetch some basic info and then lead to Kaltura
+        # extractor.
+        props = {
+            '_type': 'url_transparent',
+            'ie_key': 'Kaltura'
+        }
+
         # Get essential data
-        video_id = self._match_id(url)
-        webpage = self._download_webpage(url, video_id)
+        props['id'] = self._match_id(url)
+        webpage = self._download_webpage(url, props['id'])
 
-        # Extract essential metadata from Areena webpage
-        title = self._og_search_title(webpage)
-        description = self._og_search_description(webpage)
+        # Try to extract title from OpenGraph metadata
+        _title = self._og_search_title(webpage, fatal=False)
 
-        # player_url is not used for the actual extraction,
-        # just for getting partner_id and entry_id for Kaltura extractor
-        # (though it is still required or else the extraction will fail)
+        # Fallback #1: try to extract title from page body
+        if _title is None:
+            _title = self._html_search_regex(
+                r'<h1>([^<]+)',
+                webpage,
+                'title',
+                fatal=False
+            )
+
+        # Fallback #2: let Kaltura extractor give the title (it should have it)
+        # If title is found from Areena page, use it
+        if _title is not None:
+            props['title'] = _title
+
+        # Same thing for description
+        _description = self._og_search_description(webpage)
+
+        # No Areena fallback here, the page layout is so ambiguous we cannot
+        # guarantee that the right description would match in series pages
+        if _description is not None:
+            props['description'] = _description
+
+        # player_url is used for getting partner_id and entry_id for Kaltura
+        # extractor
         try:
             player_url = url_or_none(
                 self._og_search_property('video:secure_url', webpage)
@@ -73,13 +103,6 @@ class YleAreenaIE(InfoExtractor):
             'Kaltura entry id'
         )
 
-        kaltura_url = 'kaltura:%s:%s' % (partner_id, entry_id)
+        props['url'] = 'kaltura:%s:%s' % (partner_id, entry_id)
 
-        return {
-            '_type': 'url_transparent',
-            'id': video_id,
-            'url': kaltura_url,
-            'ie_key': 'Kaltura',
-            'title': title,
-            'description': description
-        }
+        return props
