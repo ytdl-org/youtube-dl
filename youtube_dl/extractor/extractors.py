@@ -367,6 +367,7 @@ from .fivetv import FiveTVIE
 from .flickr import FlickrIE
 from .flipagram import FlipagramIE
 from .folketinget import FolketingetIE
+from .focusde import FocusDeIE
 from .footyroom import FootyRoomIE
 from .formula1 import Formula1IE
 from .fourtube import (
@@ -1405,7 +1406,7 @@ from .webofstories import (
     WebOfStoriesPlaylistIE,
 )
 from .weibo import (
-    WeiboIE, 
+    WeiboIE,
     WeiboMobileIE
 )
 from .weiqitv import WeiqiTVIE
