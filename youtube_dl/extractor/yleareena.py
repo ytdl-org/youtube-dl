@@ -20,7 +20,7 @@ class YleAreenaIE(InfoExtractor):
             'ext': 'mxf',
             'title': 'Luottomies | Luottomies jouluspeciaali',
             'description':
-                u'Tommia harmittaa kun sukulaiset ovat tulossa pilaamaan '
+                'Tommia harmittaa kun sukulaiset ovat tulossa pilaamaan '
                 'mukavan perhejoulun. Muuttuuko mieli isosta yllätyksestä? '
                 'Joulun erikoisjakson on ohjannut Jalmari Helander.',
             'upload_date': '20171207',
