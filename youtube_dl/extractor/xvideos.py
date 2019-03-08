@@ -58,7 +58,7 @@ class XVideosIE(InfoExtractor):
             group='title') or self._og_search_title(webpage)
 
         thumbnail = self._search_regex(
-            (r'setThumbUrl\(\s*(["\'])(?P<thumbnail>(?:(?!\1).)+)\1',
+            (r'setThumbUrl169\(\s*(["\'])(?P<thumbnail>(?:(?!\1).)+)\1',
              r'url_bigthumb=(?P<thumbnail>.+?)&amp'),
             webpage, 'thumbnail', fatal=False, group='thumbnail')
         duration = int_or_none(self._og_search_property(
