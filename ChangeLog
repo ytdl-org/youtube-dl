@@ -1,4 +1,4 @@
-version <unreleased>
+version 2019.03.09
 
 Core
 * [extractor/common] Use compat_etree_Element
