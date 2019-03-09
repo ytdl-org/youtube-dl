@@ -57,7 +57,7 @@ class NetEaseMusicBaseIE(InfoExtractor):
                     'filesize': details.get('size'),
                     'asr': details.get('sr')
                 })
-            return formats
+        return formats
 
     @classmethod
     def convert_milliseconds(cls, ms):
