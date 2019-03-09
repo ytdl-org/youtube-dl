@@ -1,5 +1,5 @@
 RewriteEngine On
 
-RewriteRule ^$ https://github.com/rg3/youtube-dl/releases
-RewriteRule latest(.*) /downloads/2016.06.03$1 [L,R=302]
+RewriteRule ^$ https://github.com/ytdl-org/youtube-dl/releases
+RewriteRule latest(.*) /downloads/2019.03.09$1 [L,R=302]
 

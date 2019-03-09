@@ -1,5 +1,5 @@
 RewriteEngine On
 
-RewriteRule ^$ https://github.com/rg3/youtube-dl/releases/tag/2016.06.03_tmp [R=302,L]
-RewriteRule ^(.+)$ https://github.com/rg3/youtube-dl/releases/download/2016.06.03_tmp/$1 [R=302,L]
+RewriteRule ^$ https://github.com/ytdl-org/youtube-dl/releases/tag/2016.06.03_tmp [R=302,L]
+RewriteRule ^(.+)$ https://github.com/ytdl-org/youtube-dl/releases/download/2016.06.03_tmp/$1 [R=302,L]
 
