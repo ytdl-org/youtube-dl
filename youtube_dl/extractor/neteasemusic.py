@@ -44,24 +44,20 @@ class NetEaseMusicBaseIE(InfoExtractor):
             song_file_path = '/%s/%s.%s' % (
                 self._encrypt(details['dfsId']), details['dfsId'], details['extension'])
 
-            # 203.130.59.9, 124.40.233.182, 115.231.74.139, etc is a reverse proxy-like feature
-            # from NetEase's CDN provider that can be used if m5.music.126.net does not
-            # work, especially for users outside of Mainland China
-            # via: https://github.com/JixunMoe/unblock-163/issues/3#issuecomment-163115880
-            for host in ('http://m5.music.126.net', 'http://115.231.74.139/m1.music.126.net',
-                         'http://124.40.233.182/m1.music.126.net', 'http://203.130.59.9/m1.music.126.net'):
-                song_url = host + song_file_path
-                if self._is_valid_url(song_url, info['id'], 'song'):
-                    formats.append({
-                        'url': song_url,
-                        'ext': details.get('extension'),
-                        'abr': float_or_none(details.get('bitrate'), scale=1000),
-                        'format_id': song_format,
-                        'filesize': details.get('size'),
-                        'asr': details.get('sr')
-                    })
-                    break
-        return formats
+            # https://github.com/JixunMoe/unblock-163 no longer works but
+            # http://music.163.com/song/media/outer/url?id={song_id}.mp3 still works in china
+            
+            song_url = 'http://music.163.com/song/media/outer/url?id=' + str(info['id']) + '.mp3'
+            if self._is_valid_url(song_url, info['id'], 'song'):
+                formats.append({
+                    'url': song_url,
+                    'ext': details.get('extension'),
+                    'abr': float_or_none(details.get('bitrate'), scale=1000),
+                    'format_id': song_format,
+                    'filesize': details.get('size'),
+                    'asr': details.get('sr')
+                })
+            return formats
 
     @classmethod
     def convert_milliseconds(cls, ms):
