@@ -1454,7 +1454,7 @@ class InfoExtractor(object):
             manifest_url, video_id, 'Downloading f4m manifest',
             'Unable to download f4m manifest',
             # Some manifests may be malformed, e.g. prosiebensat1 generated manifests
-            # (see https://github.com/rg3/youtube-dl/issues/6215#issuecomment-121704244)
+            # (see https://github.com/ytdl-org/youtube-dl/issues/6215#issuecomment-121704244)
             transform_source=transform_source,
             fatal=fatal)
 
@@ -1485,7 +1485,7 @@ class InfoExtractor(object):
             manifest_version = '2.0'
             media_nodes = manifest.findall('{http://ns.adobe.com/f4m/2.0}media')
         # Remove unsupported DRM protected media from final formats
-        # rendition (see https://github.com/rg3/youtube-dl/issues/8573).
+        # rendition (see https://github.com/ytdl-org/youtube-dl/issues/8573).
         media_nodes = remove_encrypted_media(media_nodes)
         if not media_nodes:
             return formats
@@ -1615,8 +1615,8 @@ class InfoExtractor(object):
 
         # References:
         # 1. https://tools.ietf.org/html/draft-pantos-http-live-streaming-21
-        # 2. https://github.com/rg3/youtube-dl/issues/12211
-        # 3. https://github.com/rg3/youtube-dl/issues/18923
+        # 2. https://github.com/ytdl-org/youtube-dl/issues/12211
+        # 3. https://github.com/ytdl-org/youtube-dl/issues/18923
 
         # We should try extracting formats only from master playlists [1, 4.3.4],
         # i.e. playlists that describe available qualities. On the other hand
@@ -2159,7 +2159,7 @@ class InfoExtractor(object):
                             # First of, % characters outside $...$ templates
                             # must be escaped by doubling for proper processing
                             # by % operator string formatting used further (see
-                            # https://github.com/rg3/youtube-dl/issues/16867).
+                            # https://github.com/ytdl-org/youtube-dl/issues/16867).
                             t = ''
                             in_template = False
                             for c in tmpl:
@@ -2178,7 +2178,7 @@ class InfoExtractor(object):
 
                         # @initialization is a regular template like @media one
                         # so it should be handled just the same way (see
-                        # https://github.com/rg3/youtube-dl/issues/11605)
+                        # https://github.com/ytdl-org/youtube-dl/issues/11605)
                         if 'initialization' in representation_ms_info:
                             initialization_template = prepare_template(
                                 'initialization',
@@ -2264,7 +2264,7 @@ class InfoExtractor(object):
                         elif 'segment_urls' in representation_ms_info:
                             # Segment URLs with no SegmentTimeline
                             # Example: https://www.seznam.cz/zpravy/clanek/cesko-zasahne-vitr-o-sile-vichrice-muze-byt-i-zivotu-nebezpecny-39091
-                            # https://github.com/rg3/youtube-dl/pull/14844
+                            # https://github.com/ytdl-org/youtube-dl/pull/14844
                             fragments = []
                             segment_duration = float_or_none(
                                 representation_ms_info['segment_duration'],
@@ -2294,8 +2294,8 @@ class InfoExtractor(object):
                         # According to [1, 5.3.5.2, Table 7, page 35] @id of Representation
                         # is not necessarily unique within a Period thus formats with
                         # the same `format_id` are quite possible. There are numerous examples
-                        # of such manifests (see https://github.com/rg3/youtube-dl/issues/15111,
-                        # https://github.com/rg3/youtube-dl/issues/13919)
+                        # of such manifests (see https://github.com/ytdl-org/youtube-dl/issues/15111,
+                        # https://github.com/ytdl-org/youtube-dl/issues/13919)
                         full_info = formats_dict.get(representation_id, {}).copy()
                         full_info.update(f)
                         formats.append(full_info)
@@ -2456,7 +2456,7 @@ class InfoExtractor(object):
         media_tags.extend(re.findall(
             # We only allow video|audio followed by a whitespace or '>'.
             # Allowing more characters may end up in significant slow down (see
-            # https://github.com/rg3/youtube-dl/issues/11979, example URL:
+            # https://github.com/ytdl-org/youtube-dl/issues/11979, example URL:
             # http://www.porntrex.com/maps/videositemap.xml).
             r'(?s)(<(?P<tag>(?:amp-)?(?:video|audio))(?:\s+[^>]*)?>)(.*?)</(?P=tag)>', webpage))
         for media_tag, media_type, media_content in media_tags:

@@ -50,7 +50,7 @@ class VKBaseIE(InfoExtractor):
 
         # https://new.vk.com/ serves two same remixlhk cookies in Set-Cookie header
         # and expects the first one to be set rather than second (see
-        # https://github.com/rg3/youtube-dl/issues/9841#issuecomment-227871201).
+        # https://github.com/ytdl-org/youtube-dl/issues/9841#issuecomment-227871201).
         # As of RFC6265 the newer one cookie should be set into cookie store
         # what actually happens.
         # We will workaround this VK issue by resetting the remixlhk cookie to

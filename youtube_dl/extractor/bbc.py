@@ -208,7 +208,7 @@ class BBCCoUkIE(InfoExtractor):
             },
             'skip': 'Now it\'s really geo-restricted',
         }, {
-            # compact player (https://github.com/rg3/youtube-dl/issues/8147)
+            # compact player (https://github.com/ytdl-org/youtube-dl/issues/8147)
             'url': 'http://www.bbc.co.uk/programmes/p028bfkf/player',
             'info_dict': {
                 'id': 'p028bfkj',

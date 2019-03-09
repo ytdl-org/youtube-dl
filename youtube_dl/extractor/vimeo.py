@@ -530,7 +530,7 @@ class VimeoIE(VimeoBaseInfoExtractor):
         orig_url = url
         if mobj.group('pro'):
             # some videos require portfolio_id to be present in player url
-            # https://github.com/rg3/youtube-dl/issues/20070
+            # https://github.com/ytdl-org/youtube-dl/issues/20070
             url = self._extract_url(url, self._download_webpage(url, video_id))
         elif mobj.group('player'):
             url = 'https://player.vimeo.com/video/' + video_id
@@ -585,7 +585,7 @@ class VimeoIE(VimeoBaseInfoExtractor):
                 if not config_url:
                     # Sometimes new react-based page is served instead of old one that require
                     # different config URL extraction approach (see
-                    # https://github.com/rg3/youtube-dl/pull/7209)
+                    # https://github.com/ytdl-org/youtube-dl/pull/7209)
                     vimeo_clip_page_config = self._search_regex(
                         r'vimeo\.clip_page_config\s*=\s*({.+?});', webpage,
                         'vimeo clip page config')

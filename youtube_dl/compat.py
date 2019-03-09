@@ -2364,7 +2364,7 @@ except ImportError:  # Python 2
 
     # HACK: The following are the correct unquote_to_bytes, unquote and unquote_plus
     # implementations from cpython 3.4.3's stdlib. Python 2's version
-    # is apparently broken (see https://github.com/rg3/youtube-dl/pull/6244)
+    # is apparently broken (see https://github.com/ytdl-org/youtube-dl/pull/6244)
 
     def compat_urllib_parse_unquote_to_bytes(string):
         """unquote_to_bytes('abc%20def') -> b'abc def'."""
@@ -2828,7 +2828,7 @@ else:
     compat_socket_create_connection = socket.create_connection
 
 
-# Fix https://github.com/rg3/youtube-dl/issues/4223
+# Fix https://github.com/ytdl-org/youtube-dl/issues/4223
 # See http://bugs.python.org/issue9161 for what is broken
 def workaround_optparse_bug9161():
     op = optparse.OptionParser()
@@ -2953,7 +2953,7 @@ if platform.python_implementation() == 'PyPy' and sys.pypy_version_info < (5, 4,
     # PyPy2 prior to version 5.4.0 expects byte strings as Windows function
     # names, see the original PyPy issue [1] and the youtube-dl one [2].
     # 1. https://bitbucket.org/pypy/pypy/issues/2360/windows-ctypescdll-typeerror-function-name
-    # 2. https://github.com/rg3/youtube-dl/pull/4392
+    # 2. https://github.com/ytdl-org/youtube-dl/pull/4392
     def compat_ctypes_WINFUNCTYPE(*args, **kwargs):
         real = ctypes.WINFUNCTYPE(*args, **kwargs)
 
