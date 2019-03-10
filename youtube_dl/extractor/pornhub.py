@@ -48,7 +48,7 @@ class PornHubBaseIE(InfoExtractor):
 class PornHubIE(PornHubBaseIE):
     IE_DESC = 'PornHub and Thumbzilla'
     _VALID_URL = r'''(?x)
-                    https?://
+                    (?P<protocol>https?)://
                         (?:
                             (?:[^/]+\.)?(?P<host>pornhub\.(?:com|net))/(?:(?:view_video\.php|video/show)\?viewkey=|embed/)|
                             (?:www\.)?thumbzilla\.com/video/
@@ -161,6 +161,7 @@ class PornHubIE(PornHubBaseIE):
 
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
+        protocol = mobj.group('protocol')
         host = mobj.group('host') or 'pornhub.com'
         video_id = mobj.group('id')
 
@@ -169,7 +170,7 @@ class PornHubIE(PornHubBaseIE):
         def dl_webpage(platform):
             self._set_cookie(host, 'platform', platform)
             return self._download_webpage(
-                'http://www.%s/view_video.php?viewkey=%s' % (host, video_id),
+                '%s://www.%s/view_video.php?viewkey=%s' % (protocol, host, video_id),
                 video_id, 'Downloading %s webpage' % platform)
 
         webpage = dl_webpage('pc')
@@ -329,7 +330,7 @@ class PornHubIE(PornHubBaseIE):
 
 
 class PornHubPlaylistBaseIE(PornHubBaseIE):
-    def _extract_entries(self, webpage, host):
+    def _extract_entries(self, webpage, protocol, host):
         # Only process container div with main playlist content skipping
         # drop-down menu that uses similar pattern for videos (see
         # https://github.com/ytdl-org/youtube-dl/issues/11594).
@@ -339,7 +340,7 @@ class PornHubPlaylistBaseIE(PornHubBaseIE):
 
         return [
             self.url_result(
-                'http://www.%s/%s' % (host, video_url),
+                '%s://www.%s/%s' % (protocol, host, video_url),
                 PornHubIE.ie_key(), video_title=title)
             for video_url, title in orderedSet(re.findall(
                 r'href="/?(view_video\.php\?.*\bviewkey=[\da-z]+[^"]*)"[^>]*\s+title="([^"]+)"',
@@ -348,12 +349,13 @@ class PornHubPlaylistBaseIE(PornHubBaseIE):
 
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
+        protocol = mobj.group('protocol')
         host = mobj.group('host')
         playlist_id = mobj.group('id')
 
         webpage = self._download_webpage(url, playlist_id)
 
-        entries = self._extract_entries(webpage, host)
+        entries = self._extract_entries(webpage, protocol, host)
 
         playlist = self._parse_json(
             self._search_regex(
@@ -383,7 +385,7 @@ class PornHubPlaylistIE(PornHubPlaylistBaseIE):
 
 
 class PornHubUserVideosIE(PornHubPlaylistBaseIE):
-    _VALID_URL = r'https?://(?:[^/]+\.)?(?P<host>pornhub\.(?:com|net))/(?:(?:user|channel)s|model|pornstar)/(?P<id>[^/]+)/videos'
+    _VALID_URL = r'(?P<protocol>https?)://(?:[^/]+\.)?(?P<host>pornhub\.(?:com|net))/(?:(?:user|channel)s|model|pornstar)/(?P<id>[^/]+)/videos'
     _TESTS = [{
         'url': 'http://www.pornhub.com/users/zoe_ph/videos/public',
         'info_dict': {
@@ -425,6 +427,7 @@ class PornHubUserVideosIE(PornHubPlaylistBaseIE):
 
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
+        protocol = mobj.group('protocol')
         host = mobj.group('host')
         user_id = mobj.group('id')
 
@@ -438,7 +441,7 @@ class PornHubUserVideosIE(PornHubPlaylistBaseIE):
                 if isinstance(e.cause, compat_HTTPError) and e.cause.code == 404:
                     break
                 raise
-            page_entries = self._extract_entries(webpage, host)
+            page_entries = self._extract_entries(webpage, protocol, host)
             if not page_entries:
                 break
             entries.extend(page_entries)
