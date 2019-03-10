@@ -24,12 +24,12 @@ echo '</div>';
 See the right for more resources.
 
 <table border="0" id="rgb" style="float: right;">
-    <tr><td><a class="button" id="main-homepage" href="http://ytdl-org.github.com/youtube-dl/">Homepage</a></td></tr>
-    <tr><td><a class="button" id="g" href="http://ytdl-org.github.com/youtube-dl/download.html">Download instructions</a></td></tr>
-    <tr><td><a class="button" id="r" href="http://ytdl-org.github.com/youtube-dl/documentation.html">Documentation</a></td></tr>
+    <tr><td><a class="button" id="main-homepage" href="http://ytdl-org.github.io/youtube-dl/">Homepage</a></td></tr>
+    <tr><td><a class="button" id="g" href="http://ytdl-org.github.io/youtube-dl/download.html">Download instructions</a></td></tr>
+    <tr><td><a class="button" id="r" href="http://ytdl-org.github.io/youtube-dl/documentation.html">Documentation</a></td></tr>
 	<tr><td><a class="button" id="main-support" href="https://github.com/ytdl-org/youtube-dl/issues/">Support</a></td></tr>
 	<tr><td><a class="button" id="y" href="https://github.com/ytdl-org/youtube-dl/">Develop</a></td></tr>
-	<tr><td><a class="button" id="b" href="http://ytdl-org.github.com/youtube-dl/about.html">About</a></td></tr>
+	<tr><td><a class="button" id="b" href="http://ytdl-org.github.io/youtube-dl/about.html">About</a></td></tr>
 </table>
 
 </body>
