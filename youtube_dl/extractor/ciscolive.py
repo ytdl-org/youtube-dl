@@ -65,9 +65,9 @@ class CiscoLiveBaseIE(InfoExtractor):
 
 
 class CiscoLiveSessionIE(CiscoLiveBaseIE):
-    _VALID_URL = r'https?://ciscolive\.cisco\.com/on-demand-library/\??[^#]*#/session/(?P<id>[^/?&]+)'
-    _TEST = {
-        'url': 'https://ciscolive.cisco.com/on-demand-library/?#/session/1423353499155001FoSs',
+    _VALID_URL = r'https?://(?:www\.)?ciscolive(?:\.cisco)?\.com/[^#]*#/session/(?P<id>[^/?&]+)'
+    _TESTS = [{
+        'url': 'https://ciscolive.cisco.com/global/on-demand-library/?#/session/1423353499155001FoSs',
         'md5': 'c98acf395ed9c9f766941c70f5352e22',
         'info_dict': {
             'id': '5803694304001',
@@ -79,7 +79,10 @@ class CiscoLiveSessionIE(CiscoLiveBaseIE):
             'uploader_id': '5647924234001',
             'location': '16B Mezz.',
         },
-    }
+    }, {
+        'url': 'https://www.ciscolive.com/global/on-demand-library.html?#/session/14479207924060017vKJ',
+        'only_matching': True,
+    }]
 
     def _real_extract(self, url):
         rf_id = self._match_id(url)
@@ -88,7 +91,7 @@ class CiscoLiveSessionIE(CiscoLiveBaseIE):
 
 
 class CiscoLiveSearchIE(CiscoLiveBaseIE):
-    _VALID_URL = r'https?://ciscolive\.cisco\.com/on-demand-library/'
+    _VALID_URL = r'https?://(?:www\.)?ciscolive(?:\.cisco)?\.com/[^?]*\?search'
     _TESTS = [{
         'url': 'https://ciscolive.cisco.com/on-demand-library/?search.event=ciscoliveus2018&search.technicallevel=scpsSkillLevel_aintroductory&search.focus=scpsSessionFocus_designAndDeployment#/',
         'info_dict': {
@@ -98,6 +101,9 @@ class CiscoLiveSearchIE(CiscoLiveBaseIE):
     }, {
         'url': 'https://ciscolive.cisco.com/on-demand-library/?search.technology=scpsTechnology_applicationDevelopment&search.technology=scpsTechnology_ipv6&search.focus=scpsSessionFocus_troubleshootingTroubleshooting#/',
         'only_matching': True,
+    }, {
+        'url': 'https://www.ciscolive.com/global/on-demand-library.html?search.event=ciscoliveemea2019#/',
+        'only_matching': True,   
     }]
 
     @classmethod
