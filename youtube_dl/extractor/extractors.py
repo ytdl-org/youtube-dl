@@ -901,7 +901,6 @@ from .puhutv import (
     PuhuTVSerieIE,
 )
 from .presstv import PressTVIE
-from .primesharetv import PrimeShareTVIE
 from .promptfile import PromptFileIE
 from .prosiebensat1 import ProSiebenSat1IE
 from .puls4 import Puls4IE
