@@ -977,7 +977,6 @@ from .rtvnh import RTVNHIE
 from .rtvs import RTVSIE
 from .rudo import RudoIE
 from .ruhd import RUHDIE
-from .ruleporn import RulePornIE
 from .rutube import (
     RutubeIE,
     RutubeChannelIE,
