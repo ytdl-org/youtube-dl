@@ -1,9 +1,9 @@
 from __future__ import unicode_literals
 
-from .nuevo import NuevoBaseIE
+from .common import InfoExtractor
 
 
-class RulePornIE(NuevoBaseIE):
+class RulePornIE(InfoExtractor):
     _VALID_URL = r'https?://(?:www\.)?ruleporn\.com/(?:[^/?#&]+/)*(?P<id>[^/?#&]+)'
     _TEST = {
         'url': 'http://ruleporn.com/brunette-nympho-chick-takes-her-boyfriend-in-every-angle/',
@@ -24,21 +24,19 @@ class RulePornIE(NuevoBaseIE):
 
         webpage = self._download_webpage(url, display_id)
 
-        video_id = self._search_regex(
-            r'lovehomeporn\.com/embed/(\d+)', webpage, 'video id')
+        url = self._search_regex(
+            r'<source[^>]+src="(https?://media.ruleporn.com/media/videos/[a-zA-Z0-9/]+\.mp4)[^>]+>',
+            webpage, 'url')
 
         title = self._search_regex(
-            r'<h2[^>]+title=(["\'])(?P<url>.+?)\1',
-            webpage, 'title', group='url')
+            r'<h1>(.+?)</h1>',
+            webpage, 'title')
         description = self._html_search_meta('description', webpage)
 
-        info = self._extract_nuevo(
-            'http://lovehomeporn.com/media/nuevo/econfig.php?key=%s&rp=true' % video_id,
-            video_id)
-        info.update({
-            'display_id': display_id,
+        return {
+            'id': display_id,
             'title': title,
             'description': description,
-            'age_limit': 18
-        })
-        return info
+            'age_limit': 18,
+            'url': url
+        }
