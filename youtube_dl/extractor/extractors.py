@@ -795,7 +795,10 @@ from .npo import (
     VPROIE,
     WNLIE,
 )
-from .npr import NprIE
+from .npr import (
+    NprIE,
+    NprVideoIE,
+)
 from .nrk import (
     NRKIE,
     NRKPlaylistIE,
