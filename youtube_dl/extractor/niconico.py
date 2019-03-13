@@ -438,15 +438,27 @@ class NiconicoIE(InfoExtractor):
 
 class NiconicoPlaylistIE(InfoExtractor):
     _VALID_URL = r'https?://(?:www\.)?nicovideo\.jp/mylist/(?P<id>\d+)'
+    _NETRC_MACHINE = 'niconico'
 
-    _TEST = {
+    _TESTS = [{
         'url': 'http://www.nicovideo.jp/mylist/27411728',
         'info_dict': {
             'id': '27411728',
             'title': 'AKB48のオールナイトニッポン',
         },
         'playlist_mincount': 225,
-    }
+    }, {
+        'url': 'https://www.nicovideo.jp/mylist/64988008',
+        'info_dict': {
+            'id': '64988008',
+            'title': 'Private_Mylist_Test',
+        },
+        'playlist_mincount': 2,
+    }]
+
+    #  Add support for private mylist access by owner via log-in
+    def _real_initialize(self):
+        NiconicoIE._login(self)
 
     def _real_extract(self, url):
         list_id = self._match_id(url)
