@@ -965,27 +965,41 @@ class InfoExtractor(object):
             video_info['description'] = playlist_description
         return video_info
 
-    def _search_regex(self, pattern, string, name, default=NO_DEFAULT, fatal=True, flags=0, group=None):
+    def _search_regex(self, pattern, string, name, default=NO_DEFAULT, fatal=True, flags=0, group=None, return_all=False):
         """
         Perform a regex search on the given string, using a single or a list of
         patterns returning the first matching group.
         In case of failure return a default value or raise a WARNING or a
         RegexNotFoundError, depending on fatal, specifying the field name.
         """
+        matches = []
+
         if isinstance(pattern, (str, compat_str, compiled_regex_type)):
-            mobj = re.search(pattern, string, flags)
+            if return_all:
+                matches = list(re.finditer(pattern, string, flags))
+            else:
+                mobj = re.search(pattern, string, flags)
         else:
             for p in pattern:
-                mobj = re.search(p, string, flags)
-                if mobj:
-                    break
+                if return_all:
+                    new_matches = list(re.finditer(p, string, flags))
+                    matches.extend(new_matches)
+                else:
+                    mobj = re.search(p, string, flags)
+                    if mobj:
+                        break
 
         if not self._downloader.params.get('no_color') and compat_os_name != 'nt' and sys.stderr.isatty():
             _name = '\033[0;34m%s\033[0m' % name
         else:
             _name = name
 
-        if mobj:
+        if return_all and len(matches) > 0:
+            if group is None:
+                return list(map(lambda m: next(g for g in m.groups() if g is not None), matches))
+            else:
+                return list(map(lambda m: m.group(group), matches))
+        elif mobj:
             if group is None:
                 # return the first matching group
                 return next(g for g in mobj.groups() if g is not None)
@@ -1174,16 +1188,19 @@ class InfoExtractor(object):
                                       'twitter card player')
 
     def _search_json_ld(self, html, video_id, expected_type=None, **kwargs):
-        json_ld = self._search_regex(
-            JSON_LD_RE, html, 'JSON-LD', group='json_ld', **kwargs)
+        json_lds = self._search_regex(
+            JSON_LD_RE, html, 'JSON-LD', group='json_ld', return_all=True, **kwargs)
         default = kwargs.get('default', NO_DEFAULT)
-        if not json_ld:
+        if not json_lds or len(json_lds) == 0:
             return default if default is not NO_DEFAULT else {}
         # JSON-LD may be malformed and thus `fatal` should be respected.
         # At the same time `default` may be passed that assumes `fatal=False`
         # for _search_regex. Let's simulate the same behavior here as well.
         fatal = kwargs.get('fatal', True) if default == NO_DEFAULT else False
-        return self._json_ld(json_ld, video_id, fatal=fatal, expected_type=expected_type)
+        for json_ld in json_lds:
+            found = self._json_ld(json_ld, video_id, fatal=fatal, expected_type=expected_type)
+            if found:
+                return found
 
     def _json_ld(self, json_ld, video_id, fatal=True, expected_type=None):
         if isinstance(json_ld, compat_str):
