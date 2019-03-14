@@ -65,7 +65,7 @@ class CiscoLiveBaseIE(InfoExtractor):
 
 
 class CiscoLiveSessionIE(CiscoLiveBaseIE):
-    _VALID_URL = r'https?://ciscolive\.cisco\.com/on-demand-library/\??[^#]*#/session/(?P<id>[^/?&]+)'
+    _VALID_URL = r'https?://(?:www\.)?ciscolive(?:\.cisco)?\.com/[^#]*#/session/(?P<id>[^/?&]+)'
     _TEST = {
         'url': 'https://ciscolive.cisco.com/on-demand-library/?#/session/1423353499155001FoSs',
         'md5': 'c98acf395ed9c9f766941c70f5352e22',
@@ -88,7 +88,7 @@ class CiscoLiveSessionIE(CiscoLiveBaseIE):
 
 
 class CiscoLiveSearchIE(CiscoLiveBaseIE):
-    _VALID_URL = r'https?://ciscolive\.cisco\.com/on-demand-library/'
+    _VALID_URL = r'https?://(?:www\.)?ciscolive(?:\.cisco)?\.com/[^?]*\?search'
     _TESTS = [{
         'url': 'https://ciscolive.cisco.com/on-demand-library/?search.event=ciscoliveus2018&search.technicallevel=scpsSkillLevel_aintroductory&search.focus=scpsSessionFocus_designAndDeployment#/',
         'info_dict': {
