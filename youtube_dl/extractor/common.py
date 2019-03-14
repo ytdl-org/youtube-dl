@@ -2483,7 +2483,7 @@ class InfoExtractor(object):
                         # in the wild
                         f.update({
                             'height': int_or_none(source_attributes.get('res')),
-                            'format_id': source_attributes.get('label'),
+                            'format_id': source_attributes.get('label') or source_attributes.get('title'),
                         })
                         f.update(formats[0])
                         media_info['formats'].append(f)
