@@ -66,7 +66,7 @@ class CiscoLiveBaseIE(InfoExtractor):
 
 class CiscoLiveSessionIE(CiscoLiveBaseIE):
     _VALID_URL = r'https?://(?:www\.)?ciscolive(?:\.cisco)?\.com/[^#]*#/session/(?P<id>[^/?&]+)'
-    _TEST = {
+    _TESTS = [{
         'url': 'https://ciscolive.cisco.com/on-demand-library/?#/session/1423353499155001FoSs',
         'md5': 'c98acf395ed9c9f766941c70f5352e22',
         'info_dict': {
@@ -79,7 +79,20 @@ class CiscoLiveSessionIE(CiscoLiveBaseIE):
             'uploader_id': '5647924234001',
             'location': '16B Mezz.',
         },
-    }
+    }, {
+        'url': 'https://www.ciscolive.com/global/on-demand-library.html?search.event=ciscoliveemea2019#/session/15361595531500013WOU',
+        'md5': '8e39c9ae3b56587f278710ce756b14ad',
+        'info_dict': {
+            'id': '5996480053001',
+            'ext': 'mp4',
+            'title': 'A Closer Look: Monitoring Network Policies in ACI Using Correlated, Real Time Application Performance Visibility from AppDynamics',
+            'description': 'md5:59235fa58d7015cba08cb67e3767dc7c',
+            'timestamp': 1548873245,
+            'upload_date': '20190130',
+            'uploader_id': '5647924234001',
+            'location': 'Hall 6 - The Hub, DevNet Classroom 1', 
+        },
+    }]
 
     def _real_extract(self, url):
         rf_id = self._match_id(url)
@@ -140,3 +153,4 @@ class CiscoLiveSearchIE(CiscoLiveBaseIE):
         query['type'] = 'session'
         return self.playlist_result(
             self._entries(query, url), playlist_title='Search query')
+
