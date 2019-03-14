@@ -574,7 +574,8 @@ jwplayer("mediaplayer").setup({"abouttext":"Visit Indie DB","aboutlink":"http:\/
                 # Also tests duplicate representation ids, see
                 # https://github.com/ytdl-org/youtube-dl/issues/15111
                 'float_duration',
-                'http://unknown/manifest.mpd',
+                'http://unknown/manifest.mpd',  # mpd_url
+                None,  # mpd_base_url
                 [{
                     'manifest_url': 'http://unknown/manifest.mpd',
                     'ext': 'm4a',
@@ -654,7 +655,8 @@ jwplayer("mediaplayer").setup({"abouttext":"Visit Indie DB","aboutlink":"http:\/
             ), (
                 # https://github.com/ytdl-org/youtube-dl/pull/14844
                 'urls_only',
-                'http://unknown/manifest.mpd',
+                'http://unknown/manifest.mpd',  # mpd_url
+                None,  # mpd_base_url
                 [{
                     'manifest_url': 'http://unknown/manifest.mpd',
                     'ext': 'mp4',
@@ -733,15 +735,61 @@ jwplayer("mediaplayer").setup({"abouttext":"Visit Indie DB","aboutlink":"http:\/
                     'width': 1920,
                     'height': 1080,
                 }]
+            ), (
+                # https://github.com/ytdl-org/youtube-dl/issues/20346
+                # Media considered unfragmented even though it contains
+                # Initialization tag
+                'unfragmented',
+                'https://v.redd.it/hw1x7rcg7zl21/DASHPlaylist.mpd',  # mpd_url
+                'https://v.redd.it/hw1x7rcg7zl21',  # mpd_base_url
+                [{
+                    'url': 'https://v.redd.it/hw1x7rcg7zl21/audio',
+                    'manifest_url': 'https://v.redd.it/hw1x7rcg7zl21/DASHPlaylist.mpd',
+                    'ext': 'm4a',
+                    'format_id': 'AUDIO-1',
+                    'format_note': 'DASH audio',
+                    'container': 'm4a_dash',
+                    'acodec': 'mp4a.40.2',
+                    'vcodec': 'none',
+                    'tbr': 129.87,
+                    'asr': 48000,
+
+                }, {
+                    'url': 'https://v.redd.it/hw1x7rcg7zl21/DASH_240',
+                    'manifest_url': 'https://v.redd.it/hw1x7rcg7zl21/DASHPlaylist.mpd',
+                    'ext': 'mp4',
+                    'format_id': 'VIDEO-2',
+                    'format_note': 'DASH video',
+                    'container': 'mp4_dash',
+                    'acodec': 'none',
+                    'vcodec': 'avc1.4d401e',
+                    'tbr': 608.0,
+                    'width': 240,
+                    'height': 240,
+                    'fps': 30,
+                }, {
+                    'url': 'https://v.redd.it/hw1x7rcg7zl21/DASH_360',
+                    'manifest_url': 'https://v.redd.it/hw1x7rcg7zl21/DASHPlaylist.mpd',
+                    'ext': 'mp4',
+                    'format_id': 'VIDEO-1',
+                    'format_note': 'DASH video',
+                    'container': 'mp4_dash',
+                    'acodec': 'none',
+                    'vcodec': 'avc1.4d401e',
+                    'tbr': 804.261,
+                    'width': 360,
+                    'height': 360,
+                    'fps': 30,
+                }]
             )
         ]
 
-        for mpd_file, mpd_url, expected_formats in _TEST_CASES:
+        for mpd_file, mpd_url, mpd_base_url, expected_formats in _TEST_CASES:
             with io.open('./test/testdata/mpd/%s.mpd' % mpd_file,
                          mode='r', encoding='utf-8') as f:
                 formats = self.ie._parse_mpd_formats(
                     compat_etree_fromstring(f.read().encode('utf-8')),
-                    mpd_url=mpd_url)
+                    mpd_base_url=mpd_base_url, mpd_url=mpd_url)
                 self.ie._sort_formats(formats)
                 expect_value(self, formats, expected_formats, None)
 
