@@ -90,8 +90,11 @@ class CiscoLiveSessionIE(CiscoLiveBaseIE):
             'timestamp': 1548873245,
             'upload_date': '20190130',
             'uploader_id': '5647924234001',
-            'location': 'Hall 6 - The Hub, DevNet Classroom 1', 
+            'location': 'Hall 6 - The Hub, DevNet Classroom 1',
         },
+    }, {
+        'url': 'https://www.ciscolive.com/global/on-demand-library.html?#/session/1490051371645001kNaS',
+        'only_matching': True,
     }]
 
     def _real_extract(self, url):
@@ -101,7 +104,7 @@ class CiscoLiveSessionIE(CiscoLiveBaseIE):
 
 
 class CiscoLiveSearchIE(CiscoLiveBaseIE):
-    _VALID_URL = r'https?://(?:www\.)?ciscolive(?:\.cisco)?\.com/[^?]*\?search'
+    _VALID_URL = r'https?://(?:www\.)?ciscolive(?:\.cisco)?\.com/(?:global/)?on-demand-library(?:\.html|/)'
     _TESTS = [{
         'url': 'https://ciscolive.cisco.com/on-demand-library/?search.event=ciscoliveus2018&search.technicallevel=scpsSkillLevel_aintroductory&search.focus=scpsSessionFocus_designAndDeployment#/',
         'info_dict': {
@@ -110,6 +113,9 @@ class CiscoLiveSearchIE(CiscoLiveBaseIE):
         'playlist_count': 5,
     }, {
         'url': 'https://ciscolive.cisco.com/on-demand-library/?search.technology=scpsTechnology_applicationDevelopment&search.technology=scpsTechnology_ipv6&search.focus=scpsSessionFocus_troubleshootingTroubleshooting#/',
+        'only_matching': True,
+    }, {
+        'url': 'https://www.ciscolive.com/global/on-demand-library.html?search.technicallevel=scpsSkillLevel_aintroductory&search.event=ciscoliveemea2019&search.technology=scpsTechnology_dataCenter&search.focus=scpsSessionFocus_bestPractices#/',
         'only_matching': True,
     }]
 
@@ -153,4 +159,3 @@ class CiscoLiveSearchIE(CiscoLiveBaseIE):
         query['type'] = 'session'
         return self.playlist_result(
             self._entries(query, url), playlist_title='Search query')
-
