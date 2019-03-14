@@ -2101,6 +2101,19 @@ class GenericIE(InfoExtractor):
             },
             'expected_warnings': ['Failed to download MPD manifest'],
         },
+        {
+            # page with multiple LD-JSON objects
+            'url': 'https://www.antena3.com/noticias/sociedad/grupo-personas-descuelga-pancarta-lazo-amarillo-ayuntamiento-barcelona-video_201903145c8a02c70cf2b779bc2dca9b.html',
+            'md5': '5a9a0d6c788f0a4cee05d2c077b3637c',
+            'info_dict': {
+                'id': 'grupo-personas-descuelga-pancarta-lazo-amarillo-ayuntamiento-barcelona-video_201903145c8a02c70cf2b779bc2dca9b',
+                'ext': 'mp4',
+                'title': 'Un grupo de personas descuelga una pancarta con un lazo amarillo del Ayuntamiento de Barcelona y operarios la vuelven a colocar',
+                'timestamp': 1552548539,
+                'description': 'La retirada de la pancarta con el lazo amarillo en la fachada del Ayuntamiento de Barcelona ha durado poco. Tras su retirada por parte de un grupo de personas esta madrugada un grupo de operarios ha vuelto a colocarla. ',
+                'upload_date': '20190314',
+            },
+        },
         # {
         #     # TODO: find another test
         #     # http://schema.org/VideoObject
