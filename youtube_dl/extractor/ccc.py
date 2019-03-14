@@ -1,9 +1,11 @@
+# coding: utf-8
 from __future__ import unicode_literals
 
 from .common import InfoExtractor
 from ..utils import (
     int_or_none,
     parse_iso8601,
+    try_get,
 )
 
 
@@ -18,15 +20,26 @@ class CCCIE(InfoExtractor):
             'id': '1839',
             'ext': 'mp4',
             'title': 'Introduction to Processor Design',
+            'creator': 'byterazor',
             'description': 'md5:df55f6d073d4ceae55aae6f2fd98a0ac',
             'thumbnail': r're:^https?://.*\.jpg$',
             'upload_date': '20131228',
             'timestamp': 1388188800,
             'duration': 3710,
+            'tags': list,
         }
     }, {
         'url': 'https://media.ccc.de/v/32c3-7368-shopshifting#download',
-        'only_matching': True,
+        'info_dict': {
+            'id': '2835',
+            'ext': 'mp4',
+            'title': 'Shopshifting',
+            'creator': 'Karsten Nohl, Fabian Bräunlein, dexter',
+            'description': 'md5:0fade0535e9dc3076d0cbda4958a18eb',
+            'upload_date': '20151227',
+            'timestamp': 1451249100,
+            'tags': list,
+        }
     }]
 
     def _real_extract(self, url):
@@ -68,6 +81,7 @@ class CCCIE(InfoExtractor):
             'id': event_id,
             'display_id': display_id,
             'title': event_data['title'],
+            'creator': try_get(event_data, lambda x: ', '.join(x['persons'])),
             'description': event_data.get('description'),
             'thumbnail': event_data.get('thumb_url'),
             'timestamp': parse_iso8601(event_data.get('date')),
