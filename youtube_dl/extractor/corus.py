@@ -13,7 +13,7 @@ class CorusIE(ThePlatformFeedIE):
                         (?:www\.)?
                         (?P<domain>
                             (?:globaltv|etcanada)\.com|
-                            (?:hgtv|foodnetwork|slice|history|showcase)\.ca
+                            (?:hgtv|foodnetwork|slice|history|showcase|bigbrothercanada)\.ca
                         )
                         /(?:video/|(?:[^/]+/)+(?:videos/[a-z0-9-]+-|video\.html\?.*?\bv=))
                         (?P<id>\d+)
@@ -72,6 +72,10 @@ class CorusIE(ThePlatformFeedIE):
         'showcase': {
             'feed_id': '9H6qyshBZU3E',
             'account_id': 2414426607,
+        },
+        'bigbrothercanada': {
+            'feed_id': 'ChQqrem0lNUp',
+            'account_id': 2269680845,
         },
     }
 
