@@ -19,6 +19,8 @@ from ..utils import (
     ExtractorError,
     float_or_none,
     int_or_none,
+    url_or_none,
+    try_get
 )
 
 
@@ -181,10 +183,10 @@ class VRVIE(VRVBaseIE):
             })
 
         thumbnails = []
-        thumbnails_list = video_data.get('images', {}).get('thumbnail', [])
+        thumbnails_list = try_get(video_data, lambda x: x['images']['thumbnail'][0], list)
         if thumbnails_list:
-            for thumbnail in thumbnails_list[0]:
-                thumbnail_url = thumbnail.get('source')
+            for thumbnail in thumbnails_list:
+                thumbnail_url = url_or_none(thumbnail.get('source'))
                 if not thumbnail_url:
                     continue
                 thumbnails.append({
