@@ -181,15 +181,17 @@ class VRVIE(VRVBaseIE):
             })
 
         thumbnails = []
-        for thumbnail in video_data.get('images', {}).get('thumbnails', []):
-            thumbnail_url = thumbnail.get('source')
-            if not thumbnail_url:
-                continue
-            thumbnails.append({
-                'url': thumbnail_url,
-                'width': int_or_none(thumbnail.get('width')),
-                'height': int_or_none(thumbnail.get('height')),
-            })
+        thumbnails_list = video_data.get('images', {}).get('thumbnail', [])
+        if thumbnails_list:
+            for thumbnail in thumbnails_list[0]:
+                thumbnail_url = thumbnail.get('source')
+                if not thumbnail_url:
+                    continue
+                thumbnails.append({
+                    'url': thumbnail_url,
+                    'width': int_or_none(thumbnail.get('width')),
+                    'height': int_or_none(thumbnail.get('height')),
+                })
 
         return {
             'id': video_id,
