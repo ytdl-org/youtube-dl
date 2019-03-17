@@ -15,7 +15,7 @@ class CorusIE(ThePlatformFeedIE):
                             (?:globaltv|etcanada)\.com|
                             (?:hgtv|foodnetwork|slice|history|showcase|bigbrothercanada)\.ca
                         )
-                        /(?:video/|(?:[^/]+/)+(?:videos/[a-z0-9-]+-|video\.html\?.*?\bv=))
+                        /(?:(?:video/[a-z0-9-]+/)|video/|(?:[^/]+/)+(?:videos/[a-z0-9-]+-|video\.html\?.*?\bv=))
                         (?P<id>\d+)
                     '''
     _TESTS = [{
@@ -44,6 +44,9 @@ class CorusIE(ThePlatformFeedIE):
         'only_matching': True,
     }, {
         'url': 'http://www.bigbrothercanada.ca/video/1457812035894/',
+        'only_matching': True
+    }, {
+        'url': 'https://www.bigbrothercanada.ca/video/big-brother-canada-704/1457812035894/',
         'only_matching': True
     }]
 
