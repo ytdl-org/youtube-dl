@@ -351,7 +351,8 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                             (?:www\.)?hooktube\.com/|
                             (?:www\.)?yourepeat\.com/|
                             tube\.majestyc\.net/|
-                            (?:www\.)?invidio\.us/|
+                            (?:(?:www|dev)\.)?invidio\.us/|
+                            (?:www\.)?invidiou\.sh/|
                             (?:www\.)?invidious\.snopyta\.org/|
                             (?:www\.)?invidious\.kabi\.tk/|
                             (?:www\.)?vid\.wxzm\.sx/|
@@ -430,7 +431,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
         '135': {'ext': 'mp4', 'height': 480, 'format_note': 'DASH video', 'vcodec': 'h264'},
         '136': {'ext': 'mp4', 'height': 720, 'format_note': 'DASH video', 'vcodec': 'h264'},
         '137': {'ext': 'mp4', 'height': 1080, 'format_note': 'DASH video', 'vcodec': 'h264'},
-        '138': {'ext': 'mp4', 'format_note': 'DASH video', 'vcodec': 'h264'},  # Height can vary (https://github.com/rg3/youtube-dl/issues/4559)
+        '138': {'ext': 'mp4', 'format_note': 'DASH video', 'vcodec': 'h264'},  # Height can vary (https://github.com/ytdl-org/youtube-dl/issues/4559)
         '160': {'ext': 'mp4', 'height': 144, 'format_note': 'DASH video', 'vcodec': 'h264'},
         '212': {'ext': 'mp4', 'height': 480, 'format_note': 'DASH video', 'vcodec': 'h264'},
         '264': {'ext': 'mp4', 'height': 1440, 'format_note': 'DASH video', 'vcodec': 'h264'},
@@ -695,7 +696,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                 'age_limit': 18,
             },
         },
-        # video_info is None (https://github.com/rg3/youtube-dl/issues/4421)
+        # video_info is None (https://github.com/ytdl-org/youtube-dl/issues/4421)
         # YouTube Red ad is not captured for creator
         {
             'url': '__2ABJjxzNo',
@@ -716,7 +717,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                 'DASH manifest missing',
             ]
         },
-        # Olympics (https://github.com/rg3/youtube-dl/issues/4431)
+        # Olympics (https://github.com/ytdl-org/youtube-dl/issues/4431)
         {
             'url': 'lqQg6PlCWgI',
             'info_dict': {
@@ -767,7 +768,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
             },
             'skip': 'This live event has ended.',
         },
-        # Extraction from multiple DASH manifests (https://github.com/rg3/youtube-dl/pull/6097)
+        # Extraction from multiple DASH manifests (https://github.com/ytdl-org/youtube-dl/pull/6097)
         {
             'url': 'https://www.youtube.com/watch?v=FIl7x6_3R5Y',
             'info_dict': {
@@ -870,7 +871,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
             'skip': 'This video is not available.',
         },
         {
-            # Multifeed video with comma in title (see https://github.com/rg3/youtube-dl/issues/8536)
+            # Multifeed video with comma in title (see https://github.com/ytdl-org/youtube-dl/issues/8536)
             'url': 'https://www.youtube.com/watch?v=gVfLd0zydlo',
             'info_dict': {
                 'id': 'gVfLd0zydlo',
@@ -888,10 +889,10 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
             'only_matching': True,
         },
         {
-            # Title with JS-like syntax "};" (see https://github.com/rg3/youtube-dl/issues/7468)
+            # Title with JS-like syntax "};" (see https://github.com/ytdl-org/youtube-dl/issues/7468)
             # Also tests cut-off URL expansion in video description (see
-            # https://github.com/rg3/youtube-dl/issues/1892,
-            # https://github.com/rg3/youtube-dl/issues/8164)
+            # https://github.com/ytdl-org/youtube-dl/issues/1892,
+            # https://github.com/ytdl-org/youtube-dl/issues/8164)
             'url': 'https://www.youtube.com/watch?v=lsguqyKfVQg',
             'info_dict': {
                 'id': 'lsguqyKfVQg',
@@ -913,7 +914,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
             },
         },
         {
-            # Tags with '};' (see https://github.com/rg3/youtube-dl/issues/7468)
+            # Tags with '};' (see https://github.com/ytdl-org/youtube-dl/issues/7468)
             'url': 'https://www.youtube.com/watch?v=Ms7iBXnlUO8',
             'only_matching': True,
         },
@@ -977,7 +978,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
             'only_matching': True,
         },
         {
-            # YouTube Red paid video (https://github.com/rg3/youtube-dl/issues/10059)
+            # YouTube Red paid video (https://github.com/ytdl-org/youtube-dl/issues/10059)
             'url': 'https://www.youtube.com/watch?v=i1Ko8UG-Tdo',
             'only_matching': True,
         },
@@ -1283,8 +1284,8 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
             # regex won't capture the whole JSON. Yet working around by trying more
             # concrete regex first keeping in mind proper quoted string handling
             # to be implemented in future that will replace this workaround (see
-            # https://github.com/rg3/youtube-dl/issues/7468,
-            # https://github.com/rg3/youtube-dl/pull/7599)
+            # https://github.com/ytdl-org/youtube-dl/issues/7468,
+            # https://github.com/ytdl-org/youtube-dl/pull/7599)
             r';ytplayer\.config\s*=\s*({.+?});ytplayer',
             r';ytplayer\.config\s*=\s*({.+?});',
         )
@@ -1599,7 +1600,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                     add_dash_mpd(video_info)
                 # Rental video is not rented but preview is available (e.g.
                 # https://www.youtube.com/watch?v=yYr8q0y5Jfg,
-                # https://github.com/rg3/youtube-dl/issues/10532)
+                # https://github.com/ytdl-org/youtube-dl/issues/10532)
                 if not video_info and args.get('ypc_vid'):
                     return self.url_result(
                         args['ypc_vid'], YoutubeIE.ie_key(), video_id=args['ypc_vid'])
@@ -1619,7 +1620,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                 # are missing from DASH manifest pointed by webpage's dashmpd, some - from DASH
                 # manifest pointed by get_video_info's dashmpd).
                 # The general idea is to take a union of itags of both DASH manifests (for example
-                # video with such 'manifest behavior' see https://github.com/rg3/youtube-dl/issues/6093)
+                # video with such 'manifest behavior' see https://github.com/ytdl-org/youtube-dl/issues/6093)
                 self.report_video_info_webpage_download(video_id)
                 for el in ('info', 'embedded', 'detailpage', 'vevo', ''):
                     query = {
@@ -1654,7 +1655,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                     if 'token' in get_video_info:
                         # Different get_video_info requests may report different results, e.g.
                         # some may report video unavailability, but some may serve it without
-                        # any complaint (see https://github.com/rg3/youtube-dl/issues/7362,
+                        # any complaint (see https://github.com/ytdl-org/youtube-dl/issues/7362,
                         # the original webpage as well as el=info and el=embedded get_video_info
                         # requests report video unavailability due to geo restriction while
                         # el=detailpage succeeds and returns valid data). This is probably
@@ -1750,7 +1751,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                     for feed in multifeed_metadata_list.split(','):
                         # Unquote should take place before split on comma (,) since textual
                         # fields may contain comma as well (see
-                        # https://github.com/rg3/youtube-dl/issues/8536)
+                        # https://github.com/ytdl-org/youtube-dl/issues/8536)
                         feed_data = compat_parse_qs(compat_urllib_parse_unquote_plus(feed))
                         entries.append({
                             '_type': 'url_transparent',
@@ -1775,7 +1776,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
 
         # Check for "rental" videos
         if 'ypc_video_rental_bar_text' in video_info and 'author' not in video_info:
-            raise ExtractorError('"rental" videos not supported. See https://github.com/rg3/youtube-dl/issues/359 for more information.', expected=True)
+            raise ExtractorError('"rental" videos not supported. See https://github.com/ytdl-org/youtube-dl/issues/359 for more information.', expected=True)
 
         def _extract_filesize(media_url):
             return int_or_none(self._search_regex(
@@ -1792,7 +1793,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
         elif not is_live and (len(video_info.get('url_encoded_fmt_stream_map', [''])[0]) >= 1 or len(video_info.get('adaptive_fmts', [''])[0]) >= 1):
             encoded_url_map = video_info.get('url_encoded_fmt_stream_map', [''])[0] + ',' + video_info.get('adaptive_fmts', [''])[0]
             if 'rtmpe%3Dyes' in encoded_url_map:
-                raise ExtractorError('rtmpe downloads are not supported, see https://github.com/rg3/youtube-dl/issues/343 for more information.', expected=True)
+                raise ExtractorError('rtmpe downloads are not supported, see https://github.com/ytdl-org/youtube-dl/issues/343 for more information.', expected=True)
             formats_spec = {}
             fmt_list = video_info.get('fmt_list', [''])[0]
             if fmt_list:
@@ -1904,7 +1905,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                     dct.update(formats_spec[format_id])
 
                 # Some itags are not included in DASH manifest thus corresponding formats will
-                # lack metadata (see https://github.com/rg3/youtube-dl/pull/5993).
+                # lack metadata (see https://github.com/ytdl-org/youtube-dl/pull/5993).
                 # Trying to extract metadata from url_encoded_fmt_stream_map entry.
                 mobj = re.search(r'^(?P<width>\d+)[xX](?P<height>\d+)$', url_data.get('size', [''])[0])
                 width, height = (int(mobj.group('width')), int(mobj.group('height'))) if mobj else (None, None)
@@ -2155,7 +2156,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                     # Remove the formats we found through non-DASH, they
                     # contain less info and it can be wrong, because we use
                     # fixed values (for example the resolution). See
-                    # https://github.com/rg3/youtube-dl/issues/5774 for an
+                    # https://github.com/ytdl-org/youtube-dl/issues/5774 for an
                     # example.
                     formats = [f for f in formats if f['format_id'] not in dash_formats.keys()]
                     formats.extend(dash_formats.values())
@@ -2424,7 +2425,7 @@ class YoutubePlaylistIE(YoutubePlaylistBaseInfoExtractor):
         url = self._TEMPLATE_URL % playlist_id
         page = self._download_webpage(url, playlist_id)
 
-        # the yt-alert-message now has tabindex attribute (see https://github.com/rg3/youtube-dl/issues/11604)
+        # the yt-alert-message now has tabindex attribute (see https://github.com/ytdl-org/youtube-dl/issues/11604)
         for match in re.findall(r'<div class="yt-alert-message"[^>]*>([^<]+)</div>', page):
             match = match.strip()
             # Check if the playlist exists or is private
@@ -2517,7 +2518,7 @@ class YoutubePlaylistIE(YoutubePlaylistBaseInfoExtractor):
             return playlist
 
         # Some playlist URLs don't actually serve a playlist (see
-        # https://github.com/rg3/youtube-dl/issues/10537).
+        # https://github.com/ytdl-org/youtube-dl/issues/10537).
         # Fallback to plain video extraction if there is a video id
         # along with playlist id.
         return self.url_result(video_id, 'Youtube', video_id=video_id)

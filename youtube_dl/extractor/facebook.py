@@ -427,6 +427,7 @@ class FacebookIE(InfoExtractor):
                         r'\"ownerName\":"(.+?)"', tahoe_data.secondary,
                         'uploader_id', fatal=False)
 
+
         timestamp = int_or_none(self._search_regex(
             r'<abbr[^>]+data-utime=["\'](\d+)', webpage,
             'timestamp', default=None) or self._search_regex(

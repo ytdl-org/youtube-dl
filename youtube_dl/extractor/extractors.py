@@ -38,9 +38,7 @@ from .alphaporno import AlphaPornoIE
 from .amcnetworks import AMCNetworksIE
 from .americastestkitchen import AmericasTestKitchenIE
 from .animeondemand import AnimeOnDemandIE
-from .anitube import AnitubeIE
 from .anvato import AnvatoIE
-from .anysex import AnySexIE
 from .aol import AolIE
 from .allocine import AllocineIE
 from .aliexpress import AliExpressLiveIE
@@ -901,7 +899,6 @@ from .puhutv import (
     PuhuTVSerieIE,
 )
 from .presstv import PressTVIE
-from .primesharetv import PrimeShareTVIE
 from .promptfile import PromptFileIE
 from .prosiebensat1 import ProSiebenSat1IE
 from .puls4 import Puls4IE
@@ -978,7 +975,6 @@ from .rtvnh import RTVNHIE
 from .rtvs import RTVSIE
 from .rudo import RudoIE
 from .ruhd import RUHDIE
-from .ruleporn import RulePornIE
 from .rutube import (
     RutubeIE,
     RutubeChannelIE,
@@ -1299,7 +1295,6 @@ from .viddler import ViddlerIE
 from .videa import VideaIE
 from .videodetective import VideoDetectiveIE
 from .videofyme import VideofyMeIE
-from .videomega import VideoMegaIE
 from .videomore import (
     VideomoreIE,
     VideomoreVideoIE,
@@ -1405,7 +1400,7 @@ from .webofstories import (
     WebOfStoriesPlaylistIE,
 )
 from .weibo import (
-    WeiboIE, 
+    WeiboIE,
     WeiboMobileIE
 )
 from .weiqitv import WeiqiTVIE
@@ -1449,12 +1444,13 @@ from .yahoo import (
     YahooIE,
     YahooSearchIE,
 )
+from .yandexdisk import YandexDiskIE
 from .yandexmusic import (
     YandexMusicTrackIE,
     YandexMusicAlbumIE,
     YandexMusicPlaylistIE,
 )
-from .yandexdisk import YandexDiskIE
+from .yandexvideo import YandexVideoIE
 from .yapfiles import YapFilesIE
 from .yesjapan import YesJapanIE
 from .yinyuetai import YinYueTaiIE

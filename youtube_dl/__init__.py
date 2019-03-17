@@ -48,7 +48,7 @@ from .YoutubeDL import YoutubeDL
 def _real_main(argv=None):
     # Compatibility fixes for Windows
     if sys.platform == 'win32':
-        # https://github.com/rg3/youtube-dl/issues/820
+        # https://github.com/ytdl-org/youtube-dl/issues/820
         codecs.register(lambda name: codecs.lookup('utf-8') if name == 'cp65001' else None)
 
     workaround_optparse_bug9161()

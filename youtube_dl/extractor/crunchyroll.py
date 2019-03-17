@@ -3,7 +3,6 @@ from __future__ import unicode_literals
 
 import re
 import json
-import xml.etree.ElementTree as etree
 import zlib
 
 from hashlib import sha1
@@ -12,6 +11,7 @@ from .common import InfoExtractor
 from .vrv import VRVIE
 from ..compat import (
     compat_b64decode,
+    compat_etree_Element,
     compat_etree_fromstring,
     compat_urllib_parse_urlencode,
     compat_urllib_request,
@@ -107,7 +107,7 @@ class CrunchyrollBaseIE(InfoExtractor):
         request = (url_or_request if isinstance(url_or_request, compat_urllib_request.Request)
                    else sanitized_Request(url_or_request))
         # Accept-Language must be set explicitly to accept any language to avoid issues
-        # similar to https://github.com/rg3/youtube-dl/issues/6797.
+        # similar to https://github.com/ytdl-org/youtube-dl/issues/6797.
         # Along with IP address Crunchyroll uses Accept-Language to guess whether georestriction
         # should be imposed or not (from what I can see it just takes the first language
         # ignoring the priority and requires it to correspond the IP). By the way this causes
@@ -124,7 +124,7 @@ class CrunchyrollBaseIE(InfoExtractor):
         # > This content may be inappropriate for some people.
         # > Are you sure you want to continue?
         # since it's not disabled by default in crunchyroll account's settings.
-        # See https://github.com/rg3/youtube-dl/issues/7202.
+        # See https://github.com/ytdl-org/youtube-dl/issues/7202.
         qs['skip_wall'] = ['1']
         return compat_urlparse.urlunparse(
             parsed_url._replace(query=compat_urllib_parse_urlencode(qs, True)))
@@ -390,7 +390,7 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
                 'Downloading subtitles for ' + sub_name, data={
                     'subtitle_script_id': sub_id,
                 })
-            if not isinstance(sub_doc, etree.Element):
+            if not isinstance(sub_doc, compat_etree_Element):
                 continue
             sid = sub_doc.get('id')
             iv = xpath_text(sub_doc, 'iv', 'subtitle iv')
@@ -507,7 +507,7 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
                         'video_quality': stream_quality,
                         'current_page': url,
                     })
-                if isinstance(streamdata, etree.Element):
+                if isinstance(streamdata, compat_etree_Element):
                     stream_info = streamdata.find('./{default}preload/stream_info')
                     if stream_info is not None:
                         stream_infos.append(stream_info)
@@ -518,7 +518,7 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
                         'video_format': stream_format,
                         'video_encode_quality': stream_quality,
                     })
-                if isinstance(stream_info, etree.Element):
+                if isinstance(stream_info, compat_etree_Element):
                     stream_infos.append(stream_info)
                 for stream_info in stream_infos:
                     video_encode_id = xpath_text(stream_info, './video_encode_id')
@@ -593,7 +593,7 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
 
         season = episode = episode_number = duration = thumbnail = None
 
-        if isinstance(metadata, etree.Element):
+        if isinstance(metadata, compat_etree_Element):
             season = xpath_text(metadata, 'series_title')
             episode = xpath_text(metadata, 'episode_title')
             episode_number = int_or_none(xpath_text(metadata, 'episode_number'))

@@ -44,7 +44,7 @@ class LiveLeakIE(InfoExtractor):
         },
         'skip': 'Video is dead',
     }, {
-        # Covers https://github.com/rg3/youtube-dl/pull/5983
+        # Covers https://github.com/ytdl-org/youtube-dl/pull/5983
         # Multiple resolutions
         'url': 'http://www.liveleak.com/view?i=801_1409392012',
         'md5': 'c3a449dbaca5c0d1825caecd52a57d7b',
@@ -57,7 +57,7 @@ class LiveLeakIE(InfoExtractor):
             'thumbnail': r're:^https?://.*\.jpg$'
         }
     }, {
-        # Covers https://github.com/rg3/youtube-dl/pull/10664#issuecomment-247439521
+        # Covers https://github.com/ytdl-org/youtube-dl/pull/10664#issuecomment-247439521
         'url': 'http://m.liveleak.com/view?i=763_1473349649',
         'add_ie': ['Youtube'],
         'info_dict': {
@@ -130,7 +130,7 @@ class LiveLeakIE(InfoExtractor):
 
                 # Removing '.*.mp4' gives the raw video, which is essentially
                 # the same video without the LiveLeak logo at the top (see
-                # https://github.com/rg3/youtube-dl/pull/4768)
+                # https://github.com/ytdl-org/youtube-dl/pull/4768)
                 orig_url = re.sub(r'\.mp4\.[^.]+', '', a_format['url'])
                 if a_format['url'] != orig_url:
                     format_id = a_format.get('format_id')
