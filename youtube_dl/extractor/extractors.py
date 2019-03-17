@@ -1444,12 +1444,13 @@ from .yahoo import (
     YahooIE,
     YahooSearchIE,
 )
+from .yandexdisk import YandexDiskIE
 from .yandexmusic import (
     YandexMusicTrackIE,
     YandexMusicAlbumIE,
     YandexMusicPlaylistIE,
 )
-from .yandexdisk import YandexDiskIE
+from .yandexvideo import YandexVideoIE
 from .yapfiles import YapFilesIE
 from .yesjapan import YesJapanIE
 from .yinyuetai import YinYueTaiIE
