@@ -81,17 +81,7 @@ class CiscoLiveSessionIE(CiscoLiveBaseIE):
         },
     }, {
         'url': 'https://www.ciscolive.com/global/on-demand-library.html?search.event=ciscoliveemea2019#/session/15361595531500013WOU',
-        'md5': '8e39c9ae3b56587f278710ce756b14ad',
-        'info_dict': {
-            'id': '5996480053001',
-            'ext': 'mp4',
-            'title': 'A Closer Look: Monitoring Network Policies in ACI Using Correlated, Real Time Application Performance Visibility from AppDynamics',
-            'description': 'md5:59235fa58d7015cba08cb67e3767dc7c',
-            'timestamp': 1548873245,
-            'upload_date': '20190130',
-            'uploader_id': '5647924234001',
-            'location': 'Hall 6 - The Hub, DevNet Classroom 1',
-        },
+        'only_matching': True,
     }, {
         'url': 'https://www.ciscolive.com/global/on-demand-library.html?#/session/1490051371645001kNaS',
         'only_matching': True,
