@@ -15,7 +15,7 @@ class CorusIE(ThePlatformFeedIE):
                             (?:globaltv|etcanada)\.com|
                             (?:hgtv|foodnetwork|slice|history|showcase|bigbrothercanada)\.ca
                         )
-                        /(?:video/(?:[a-z0-9-]+/)?|(?:[^/]+/)+(?:videos/[a-z0-9-]+-|video\.html\?.*?\bv=))
+                        /(?:video/(?:[^/]+/)?|(?:[^/]+/)+(?:videos/[a-z0-9-]+-|video\.html\?.*?\bv=))
                         (?P<id>\d+)
                     '''
     _TESTS = [{
