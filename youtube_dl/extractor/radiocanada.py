@@ -147,7 +147,7 @@ class RadioCanadaIE(InfoExtractor):
 
 
 class RadioCanadaAudioVideoIE(InfoExtractor):
-    'radiocanada:audiovideo'
+    IE_NAME = 'radiocanada:audiovideo'
     _VALID_URL = r'https?://ici\.radio-canada\.ca/([^/]+/)*media-(?P<id>[0-9]+)'
     _TESTS = [{
         'url': 'http://ici.radio-canada.ca/audio-video/media-7527184/barack-obama-au-vietnam',
