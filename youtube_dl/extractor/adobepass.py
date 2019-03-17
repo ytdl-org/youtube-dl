@@ -135,6 +135,9 @@ MSO_INFO = {
     'ara010': {
         'name': 'ATC Communications'
     },
+    'auth_atlanticbb_net': {
+        'name': 'Atlantic Broadband'
+    },
     'she030-02': {
         'name': 'Ayersville Communications'
     },
@@ -1491,6 +1494,51 @@ class AdobePassIE(InfoExtractor):
                         }), headers={
                             'Content-Type': 'application/x-www-form-urlencoded'
                         })
+                elif mso_id == 'auth_atlanticbb_net':
+                    provider_redirect_page, urlh = provider_redirect_page_res
+                    provider_refresh_redirect_url = extract_redirect_url(
+                        provider_redirect_page, url=urlh.geturl())
+                    provider_refresh_redirect_url = "%s&history=4" % urlh.geturl()
+                    provider_redirect_page_res = self._download_webpage_handle(
+                        provider_refresh_redirect_url, video_id,
+                        'Downloading Provider Redirect Page (meta refresh)')
+                    provider_redirect_page, urlh = provider_redirect_page_res
+                    provider_refresh_redirect_url = "%s&history=4" % urlh.geturl()
+                    provider_redirect_page_res = self._download_webpage_handle(
+                        provider_refresh_redirect_url, video_id,
+                        'Downloading Provider Redirect Page (meta refresh 2)')
+                    provider_login_page_res = post_form(
+                        provider_redirect_page_res, self._DOWNLOADING_LOGIN_PAGE)
+                    mvpd_confirm_page_res = post_form(provider_login_page_res, 'Logging in', {
+                        mso_info.get('username_field', 'username'): username,
+                        mso_info.get('password_field', 'password'): password,
+                    })
+                    mvpd_confirm_page, urlh = mvpd_confirm_page_res
+                    provider_refresh_redirect_url = self._search_regex(r'url=([^"]+)',mvpd_confirm_page,'after login redirect')
+                    provider_redirect_page_res = self._download_webpage_handle(
+                        provider_refresh_redirect_url, video_id,
+                        'Downloading Provider Redirect Page (meta refresh 3)')
+                    provider_redirect_page, urlh = provider_redirect_page_res
+                    provider_refresh_redirect_url = "%s&history=8" % urlh.geturl()
+                    provider_redirect_page_res = self._download_webpage_handle(
+                        provider_refresh_redirect_url, video_id,
+                        'Downloading Provider Redirect Page (meta refresh 4)')
+                    provider_redirect_page, urlh = provider_redirect_page_res
+                    provider_redirect_page_res = post_form(
+                        provider_redirect_page_res, 'After login saml post')
+                    provider_redirect_page, urlh = provider_redirect_page_res
+                    provider_refresh_redirect_url = self._search_regex(r'url=([^"]+)',provider_redirect_page,'after login redirect 2')
+                    provider_redirect_page_res = self._download_webpage_handle(
+                        provider_refresh_redirect_url, video_id,
+                        'Downloading Provider Redirect Page (meta refresh 5)')
+                    provider_redirect_page, urlh = provider_redirect_page_res
+                    provider_refresh_redirect_url = "%s&history=9" % urlh.geturl()
+                    provider_redirect_page_res = self._download_webpage_handle(
+                        provider_refresh_redirect_url, video_id,
+                        'Downloading Provider Redirect Page (meta refresh 6)')
+                    provider_redirect_page_res = post_form(
+                        provider_redirect_page_res, 'After login saml post 2')
+                    provider_redirect_page, urlh = provider_redirect_page_res
                 else:
                     # Some providers (e.g. DIRECTV NOW) have another meta refresh
                     # based redirect that should be followed.
