@@ -351,7 +351,8 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                             (?:www\.)?hooktube\.com/|
                             (?:www\.)?yourepeat\.com/|
                             tube\.majestyc\.net/|
-                            (?:www\.)?invidio\.us/|
+                            (?:(?:www|dev)\.)?invidio\.us/|
+                            (?:www\.)?invidiou\.sh/|
                             (?:www\.)?invidious\.snopyta\.org/|
                             (?:www\.)?invidious\.kabi\.tk/|
                             (?:www\.)?vid\.wxzm\.sx/|
