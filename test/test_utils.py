@@ -55,6 +55,7 @@ from youtube_dl.utils import (
     parse_count,
     parse_iso8601,
     parse_resolution,
+    parse_bitrate,
     pkcs1pad,
     read_batch_urls,
     sanitize_filename,
@@ -1029,6 +1030,13 @@ class TestUtil(unittest.TestCase):
         self.assertEqual(parse_resolution('720p'), {'height': 720})
         self.assertEqual(parse_resolution('4k'), {'height': 2160})
         self.assertEqual(parse_resolution('8K'), {'height': 4320})
+
+    def test_parse_bitrate(self):
+        self.assertEqual(parse_bitrate(None), None)
+        self.assertEqual(parse_bitrate(''), None)
+        self.assertEqual(parse_bitrate('300kbps'), 300)
+        self.assertEqual(parse_bitrate('1500kbps'), 1500)
+        self.assertEqual(parse_bitrate('300 kbps'), 300)
 
     def test_version_tuple(self):
         self.assertEqual(version_tuple('1'), (1,))
