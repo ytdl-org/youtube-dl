@@ -107,6 +107,184 @@ class TestInfoExtractor(unittest.TestCase):
         self.assertRaises(ExtractorError, self.ie._download_json, uri, None)
         self.assertEqual(self.ie._download_json(uri, None, fatal=False), None)
 
+    def test_parse_html5_media_entries(self):
+        # from https://www.r18.com/
+        # with kpbs in label
+        expect_dict(
+            self,
+            self.ie._parse_html5_media_entries(
+                'https://www.r18.com/',
+                r'''
+                <video id="samplevideo_amateur" class="js-samplevideo video-js vjs-default-skin vjs-big-play-centered" controls preload="auto" width="400" height="225" poster="//pics.r18.com/digital/amateur/mgmr105/mgmr105jp.jpg">
+                    <source id="video_source" src="https://awscc3001.r18.com/litevideo/freepv/m/mgm/mgmr105/mgmr105_sm_w.mp4" type="video/mp4"  res="240" label="300kbps">
+                    <source id="video_source" src="https://awscc3001.r18.com/litevideo/freepv/m/mgm/mgmr105/mgmr105_dm_w.mp4" type="video/mp4"  res="480" label="1000kbps">
+                    <source id="video_source" src="https://awscc3001.r18.com/litevideo/freepv/m/mgm/mgmr105/mgmr105_dmb_w.mp4" type="video/mp4"  res="740" label="1500kbps">
+                    <p>Your browser does not support the video tag.</p>
+                </video>
+                ''', None)[0],
+            {
+                'formats': [{
+                    'url': 'https://awscc3001.r18.com/litevideo/freepv/m/mgm/mgmr105/mgmr105_sm_w.mp4',
+                    'ext': 'mp4',
+                    'format_id': '300kbps',
+                    'height': 240,
+                    'tbr': 300,
+                }, {
+                    'url': 'https://awscc3001.r18.com/litevideo/freepv/m/mgm/mgmr105/mgmr105_dm_w.mp4',
+                    'ext': 'mp4',
+                    'format_id': '1000kbps',
+                    'height': 480,
+                    'tbr': 1000,
+                }, {
+                    'url': 'https://awscc3001.r18.com/litevideo/freepv/m/mgm/mgmr105/mgmr105_dmb_w.mp4',
+                    'ext': 'mp4',
+                    'format_id': '1500kbps',
+                    'height': 740,
+                    'tbr': 1500,
+                }],
+                'thumbnail': '//pics.r18.com/digital/amateur/mgmr105/mgmr105jp.jpg'
+            })
+
+        # from https://www.csfd.cz/
+        # with width and height
+        expect_dict(
+            self,
+            self.ie._parse_html5_media_entries(
+                'https://www.csfd.cz/',
+                r'''
+                <video width="770" height="328" preload="none" controls  poster="https://img.csfd.cz/files/images/film/video/preview/163/344/163344118_748d20.png?h360" >
+                    <source src="https://video.csfd.cz/files/videos/157/750/157750813/163327358_eac647.mp4" type="video/mp4" width="640" height="360">
+                    <source src="https://video.csfd.cz/files/videos/157/750/157750813/163327360_3d2646.mp4" type="video/mp4" width="1280" height="720">
+                    <source src="https://video.csfd.cz/files/videos/157/750/157750813/163327356_91f258.mp4" type="video/mp4" width="1920" height="1080">
+                    <source src="https://video.csfd.cz/files/videos/157/750/157750813/163327359_962b4a.webm" type="video/webm" width="640" height="360">
+                    <source src="https://video.csfd.cz/files/videos/157/750/157750813/163327361_6feee0.webm" type="video/webm" width="1280" height="720">
+                    <source src="https://video.csfd.cz/files/videos/157/750/157750813/163327357_8ab472.webm" type="video/webm" width="1920" height="1080">
+                    <track src="https://video.csfd.cz/files/subtitles/163/344/163344115_4c388b.srt" type="text/x-srt" kind="subtitles" srclang="cs" label="cs">
+                </video>
+                ''', None)[0],
+            {
+                'formats': [{
+                    'url': 'https://video.csfd.cz/files/videos/157/750/157750813/163327358_eac647.mp4',
+                    'ext': 'mp4',
+                    'width': 640,
+                    'height': 360,
+                }, {
+                    'url': 'https://video.csfd.cz/files/videos/157/750/157750813/163327360_3d2646.mp4',
+                    'ext': 'mp4',
+                    'width': 1280,
+                    'height': 720,
+                }, {
+                    'url': 'https://video.csfd.cz/files/videos/157/750/157750813/163327356_91f258.mp4',
+                    'ext': 'mp4',
+                    'width': 1920,
+                    'height': 1080,
+                }, {
+                    'url': 'https://video.csfd.cz/files/videos/157/750/157750813/163327359_962b4a.webm',
+                    'ext': 'webm',
+                    'width': 640,
+                    'height': 360,
+                }, {
+                    'url': 'https://video.csfd.cz/files/videos/157/750/157750813/163327361_6feee0.webm',
+                    'ext': 'webm',
+                    'width': 1280,
+                    'height': 720,
+                }, {
+                    'url': 'https://video.csfd.cz/files/videos/157/750/157750813/163327357_8ab472.webm',
+                    'ext': 'webm',
+                    'width': 1920,
+                    'height': 1080,
+                }],
+                'subtitles': {
+                    'cs': [{'url': 'https://video.csfd.cz/files/subtitles/163/344/163344115_4c388b.srt'}]
+                },
+                'thumbnail': 'https://img.csfd.cz/files/images/film/video/preview/163/344/163344118_748d20.png?h360'
+            })
+
+        # from https://tamasha.com/v/Kkdjw
+        # with height in label
+        expect_dict(
+            self,
+            self.ie._parse_html5_media_entries(
+                'https://tamasha.com/v/Kkdjw',
+                r'''
+                <video crossorigin="anonymous">
+                        <source src="https://s-v2.tamasha.com/statics/videos_file/19/8f/Kkdjw_198feff8577d0057536e905cce1fb61438dd64e0_n_240.mp4" type="video/mp4" label="AUTO" res="0"/>
+                                <source src="https://s-v2.tamasha.com/statics/videos_file/19/8f/Kkdjw_198feff8577d0057536e905cce1fb61438dd64e0_n_240.mp4" type="video/mp4"
+                                        label="240p" res="240"/>
+                                <source src="https://s-v2.tamasha.com/statics/videos_file/20/00/Kkdjw_200041c66f657fc967db464d156eafbc1ed9fe6f_n_144.mp4" type="video/mp4"
+                                        label="144p" res="144"/>
+                </video>
+                ''', None)[0],
+            {
+                'formats': [{
+                    'url': 'https://s-v2.tamasha.com/statics/videos_file/19/8f/Kkdjw_198feff8577d0057536e905cce1fb61438dd64e0_n_240.mp4',
+                }, {
+                    'url': 'https://s-v2.tamasha.com/statics/videos_file/19/8f/Kkdjw_198feff8577d0057536e905cce1fb61438dd64e0_n_240.mp4',
+                    'ext': 'mp4',
+                    'format_id': '240p',
+                    'height': 240,
+                }, {
+                    'url': 'https://s-v2.tamasha.com/statics/videos_file/20/00/Kkdjw_200041c66f657fc967db464d156eafbc1ed9fe6f_n_144.mp4',
+                    'ext': 'mp4',
+                    'format_id': '144p',
+                    'height': 144,
+                }]
+            })
+
+        # from https://www.directvnow.com
+        # with data-src
+        expect_dict(
+            self,
+            self.ie._parse_html5_media_entries(
+                'https://www.directvnow.com',
+                r'''
+                <video id="vid1" class="header--video-masked active" muted playsinline>
+                    <source data-src="https://cdn.directv.com/content/dam/dtv/prod/website_directvnow-international/videos/DTVN_hdr_HBO_v3.mp4" type="video/mp4" />
+                </video>
+                ''', None)[0],
+            {
+                'formats': [{
+                    'ext': 'mp4',
+                    'url': 'https://cdn.directv.com/content/dam/dtv/prod/website_directvnow-international/videos/DTVN_hdr_HBO_v3.mp4',
+                }]
+            })
+
+        # from https://www.directvnow.com
+        # with data-src
+        expect_dict(
+            self,
+            self.ie._parse_html5_media_entries(
+                'https://www.directvnow.com',
+                r'''
+                <video id="vid1" class="header--video-masked active" muted playsinline>
+                    <source data-src="https://cdn.directv.com/content/dam/dtv/prod/website_directvnow-international/videos/DTVN_hdr_HBO_v3.mp4" type="video/mp4" />
+                </video>
+                ''', None)[0],
+            {
+                'formats': [{
+                    'url': 'https://cdn.directv.com/content/dam/dtv/prod/website_directvnow-international/videos/DTVN_hdr_HBO_v3.mp4',
+                    'ext': 'mp4',
+                }]
+            })
+
+        # from https://www.klarna.com/uk/
+        # with data-video-src
+        expect_dict(
+            self,
+            self.ie._parse_html5_media_entries(
+                'https://www.directvnow.com',
+                r'''
+                <video loop autoplay muted class="responsive-video block-kl__video video-on-medium">
+                    <source src="" data-video-desktop data-video-src="https://www.klarna.com/uk/wp-content/uploads/sites/11/2019/01/KL062_Smooth3_0_DogWalking_5s_920x080_.mp4" type="video/mp4" />
+                </video>
+                ''', None)[0],
+            {
+                'formats': [{
+                    'url': 'https://www.klarna.com/uk/wp-content/uploads/sites/11/2019/01/KL062_Smooth3_0_DogWalking_5s_920x080_.mp4',
+                    'ext': 'mp4',
+                }],
+            })
+
     def test_extract_jwplayer_data_realworld(self):
         # from http://www.suffolk.edu/sjc/
         expect_dict(
