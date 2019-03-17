@@ -387,22 +387,8 @@ class CBCWatchIE(CBCWatchBaseIE):
         },
         'playlist_mincount': 30,
     }, {
-        # geo-restricted to Canada, bypassable
         'url': 'https://gem.cbc.ca/media/this-hour-has-22-minutes/season-26/episode-20/38e815a-0108c6c6a42',
-        'info_dict': {
-            'id': 'abad9fcd-d341-4717-b723-45bd05979400',
-            'ext': 'mp4',
-            'title': 'Border Bud - (March 11, 2019)',
-            'description': 'md5:670513924b0ada950b3f5975af97fc58',
-            'timestamp': 1552348800,
-            'upload_date': '20190312',
-            'age_limit': 10,
-        },
-        'params': {
-            # m3u8 download
-            'skip_download': True,
-            'format': 'bestvideo',
-        },
+        'only_matching': True,
     }]
 
     def _real_extract(self, url):
