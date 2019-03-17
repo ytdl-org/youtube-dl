@@ -1,4 +1,4 @@
-version <unreleased>
+version 2019.03.18
 
 Core
 * [extractor/common] Improve HTML5 entries extraction
