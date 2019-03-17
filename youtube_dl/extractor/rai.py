@@ -74,11 +74,11 @@ class RaiBaseIE(InfoExtractor):
             if (ext == 'm3u8' and platform != 'mon') or (ext == 'f4m' and platform != 'flash'):
                 continue
 
-            if ext == 'm3u8':
+            if ext == 'm3u8' or 'format=m3u8' in media_url or platform == 'mon':
                 formats.extend(self._extract_m3u8_formats(
                     media_url, video_id, 'mp4', 'm3u8_native',
                     m3u8_id='hls', fatal=False))
-            elif ext == 'f4m':
+            elif ext == 'f4m' or platform == 'flash':
                 manifest_url = update_url_query(
                     media_url.replace('manifest#live_hds.f4m', 'manifest.f4m'),
                     {'hdcore': '3.7.0', 'plugin': 'aasp-3.7.0.39.44'})
@@ -288,7 +288,7 @@ class RaiPlayPlaylistIE(InfoExtractor):
 
 
 class RaiIE(RaiBaseIE):
-    _VALID_URL = r'https?://[^/]+\.(?:rai\.(?:it|tv)|rainews\.it)/dl/.+?-(?P<id>%s)(?:-.+?)?\.html' % RaiBaseIE._UUID_RE
+    _VALID_URL = r'https?://[^/]+\.(?:rai\.(?:it|tv)|rainews\.it)/.+?-(?P<id>%s)(?:-.+?)?\.html' % RaiBaseIE._UUID_RE
     _TESTS = [{
         # var uniquename = "ContentItem-..."
         # data-id="ContentItem-..."
@@ -374,6 +374,9 @@ class RaiIE(RaiBaseIE):
     }, {
         # Direct MMS URL
         'url': 'http://www.rai.it/dl/RaiTV/programmi/media/ContentItem-b63a4089-ac28-48cf-bca5-9f5b5bc46df5.html',
+        'only_matching': True,
+    }, {
+        'url': 'https://www.rainews.it/tgr/marche/notiziari/video/2019/02/ContentItem-6ba945a2-889c-4a80-bdeb-8489c70a8db9.html',
         'only_matching': True,
     }]
 

@@ -239,7 +239,7 @@ class VLiveChannelIE(InfoExtractor):
                     # Large values of maxNumOfRows (~300 or above) may cause
                     # empty responses (see [1]), e.g. this happens for [2] that
                     # has more than 300 videos.
-                    # 1. https://github.com/rg3/youtube-dl/issues/13830
+                    # 1. https://github.com/ytdl-org/youtube-dl/issues/13830
                     # 2. http://channels.vlive.tv/EDBF.
                     'maxNumOfRows': 100,
                     '_': int(time.time()),

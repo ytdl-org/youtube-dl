@@ -121,7 +121,11 @@ class CurlFD(ExternalFD):
         cmd += self._valueless_option('--silent', 'noprogress')
         cmd += self._valueless_option('--verbose', 'verbose')
         cmd += self._option('--limit-rate', 'ratelimit')
-        cmd += self._option('--retry', 'retries')
+        retry = self._option('--retry', 'retries')
+        if len(retry) == 2:
+            if retry[1] in ('inf', 'infinite'):
+                retry[1] = '2147483647'
+            cmd += retry
         cmd += self._option('--max-filesize', 'max_filesize')
         cmd += self._option('--interface', 'source_address')
         cmd += self._option('--proxy', 'proxy')
@@ -160,6 +164,12 @@ class WgetFD(ExternalFD):
         cmd = [self.exe, '-O', tmpfilename, '-nv', '--no-cookies']
         for key, val in info_dict['http_headers'].items():
             cmd += ['--header', '%s: %s' % (key, val)]
+        cmd += self._option('--limit-rate', 'ratelimit')
+        retry = self._option('--tries', 'retries')
+        if len(retry) == 2:
+            if retry[1] in ('inf', 'infinite'):
+                retry[1] = '0'
+            cmd += retry
         cmd += self._option('--bind-address', 'source_address')
         cmd += self._option('--proxy', 'proxy')
         cmd += self._valueless_option('--no-check-certificate', 'nocheckcertificate')
@@ -229,7 +239,7 @@ class FFmpegFD(ExternalFD):
             # setting -seekable prevents ffmpeg from guessing if the server
             # supports seeking(by adding the header `Range: bytes=0-`), which
             # can cause problems in some cases
-            # https://github.com/rg3/youtube-dl/issues/11800#issuecomment-275037127
+            # https://github.com/ytdl-org/youtube-dl/issues/11800#issuecomment-275037127
             # http://trac.ffmpeg.org/ticket/6125#comment:10
             args += ['-seekable', '1' if seekable else '0']
 
@@ -324,7 +334,7 @@ class FFmpegFD(ExternalFD):
             # mp4 file couldn't be played, but if we ask ffmpeg to quit it
             # produces a file that is playable (this is mostly useful for live
             # streams). Note that Windows is not affected and produces playable
-            # files (see https://github.com/rg3/youtube-dl/issues/8300).
+            # files (see https://github.com/ytdl-org/youtube-dl/issues/8300).
             if sys.platform != 'win32':
                 proc.communicate(b'q')
             raise

@@ -209,7 +209,7 @@ class ThePlatformIE(ThePlatformBaseIE, AdobePassIE):
             return [m.group('url')]
 
         # Are whitesapces ignored in URLs?
-        # https://github.com/rg3/youtube-dl/issues/12044
+        # https://github.com/ytdl-org/youtube-dl/issues/12044
         matches = re.findall(
             r'(?s)<(?:iframe|script)[^>]+src=(["\'])((?:https?:)?//player\.theplatform\.com/p/.+?)\1', webpage)
         if matches:
@@ -271,7 +271,7 @@ class ThePlatformIE(ThePlatformBaseIE, AdobePassIE):
 
         if smuggled_data.get('force_smil_url', False):
             smil_url = url
-        # Explicitly specified SMIL (see https://github.com/rg3/youtube-dl/issues/7385)
+        # Explicitly specified SMIL (see https://github.com/ytdl-org/youtube-dl/issues/7385)
         elif '/guid/' in url:
             headers = {}
             source_url = smuggled_data.get('source_url')

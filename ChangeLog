@@ -1,3 +1,74 @@
+version 2019.03.09
+
+Core
+* [extractor/common] Use compat_etree_Element
++ [compat] Introduce compat_etree_Element
+* [extractor/common] Fallback url to base URL for DASH formats
+* [extractor/common] Do not fail on invalid data while parsing F4M manifest
+  in non fatal mode
+* [extractor/common] Return MPD manifest as format's url meta field (#20242)
+* [utils] Strip #HttpOnly_ prefix from cookies files (#20219)
+
+Extractors
+* [francetv:site] Relax video id regular expression (#20268)
+* [toutv] Detect invalid login error
+* [toutv] Fix authentication (#20261)
++ [urplay] Extract timestamp (#20235)
++ [openload] Add support for oload.space (#20246)
+* [facebook] Improve uploader extraction (#20250)
+* [bbc] Use compat_etree_Element
+* [crunchyroll] Use compat_etree_Element
+* [npo] Improve ISM extraction
+* [rai] Improve extraction (#20253)
+* [paramountnetwork] Fix mgid extraction (#20241)
+* [libsyn] Improve extraction (#20229)
++ [youtube] Add more invidious instances to URL regular expression (#20228)
+* [spankbang] Fix extraction (#20023)
+* [espn] Extend URL regular expression (#20013)
+* [sixplay] Handle videos with empty assets (#20016)
++ [vimeo] Add support for Vimeo Pro portfolio protected videos (#20070)
+
+
+version 2019.03.01
+
+Core
++ [downloader/external] Add support for rate limit and retries for wget
+* [downloader/external] Fix infinite retries for curl (#19303)
+
+Extractors
+* [npo] Fix extraction (#20084)
+* [francetv:site] Extend video id regex (#20029, #20071)
++ [periscope] Extract width and height (#20015)
+* [servus] Fix extraction (#19297)
+* [bbccouk] Make subtitles non fatal (#19651)
+* [metacafe] Fix family filter bypass (#19287)
+
+
+version 2019.02.18
+
+Extractors
+* [tvp:website] Fix and improve extraction
++ [tvp] Detect unavailable videos
+* [tvp] Fix description extraction and make thumbnail optional
++ [linuxacademy] Add support for linuxacademy.com (#12207)
+* [bilibili] Update keys (#19233)
+* [udemy] Extend URL regular expressions (#14330, #15883)
+* [udemy] Update User-Agent and detect captcha (#14713, #15839, #18126)
+* [noovo] Fix extraction (#19230)
+* [rai] Relax URL regular expression (#19232)
++ [vshare] Pass Referer to download request (#19205, #19221)
++ [openload] Add support for oload.live (#19222)
+* [imgur] Use video id as title fallback (#18590)
++ [twitch] Add new source format detection approach (#19193)
+* [tvplayhome] Fix video id extraction (#19190)
+* [tvplayhome] Fix episode metadata extraction (#19190)
+* [rutube:embed] Fix extraction (#19163)
++ [rutube:embed] Add support private videos (#19163)
++ [soundcloud] Extract more metadata
++ [trunews] Add support for trunews.com (#19153)
++ [linkedin:learning] Extract chapter_number and chapter_id (#19162)
+
+
 version 2019.02.08
 
 Core

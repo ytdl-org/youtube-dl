@@ -61,7 +61,8 @@ class SixPlayIE(InfoExtractor):
         quality_key = qualities(['lq', 'sd', 'hq', 'hd'])
         formats = []
         subtitles = {}
-        for asset in clip_data['assets']:
+        assets = clip_data.get('assets') or []
+        for asset in assets:
             asset_url = asset.get('full_physical_path')
             protocol = asset.get('protocol')
             if not asset_url or protocol == 'primetime' or asset.get('type') == 'usp_hlsfp_h264' or asset_url in urls:
