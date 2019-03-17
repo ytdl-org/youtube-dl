@@ -243,18 +243,16 @@ class PhantomJSwrapper(object):
 
 
 class OpenloadIE(InfoExtractor):
+    _DOMAINS = r'(?:openload\.(?:co|io|link|pw)|oload\.(?:tv|stream|site|xyz|win|download|cloud|cc|icu|fun|club|info|pw|live|space))'
     _VALID_URL = r'''(?x)
                     https?://
                         (?P<host>
                             (?:www\.)?
-                            (?:
-                                openload\.(?:co|io|link|pw)|
-                                oload\.(?:tv|stream|site|xyz|win|download|cloud|cc|icu|fun|club|info|pw|live|space)
-                            )
+                            %s
                         )/
                         (?:f|embed)/
                         (?P<id>[a-zA-Z0-9-_]+)
-                    '''
+                    ''' % _DOMAINS
 
     _TESTS = [{
         'url': 'https://openload.co/f/kUEfGclsU9o',
@@ -359,8 +357,8 @@ class OpenloadIE(InfoExtractor):
     @staticmethod
     def _extract_urls(webpage):
         return re.findall(
-            r'<iframe[^>]+src=["\']((?:https?://)?(?:openload\.(?:co|io)|oload\.tv)/embed/[a-zA-Z0-9-_]+)',
-            webpage)
+            r'<iframe[^>]+src=["\']((?:https?://)?%s/embed/[a-zA-Z0-9-_]+)'
+            % OpenloadIE._DOMAINS, webpage)
 
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
