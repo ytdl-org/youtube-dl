@@ -42,6 +42,9 @@ class CorusIE(ThePlatformFeedIE):
     }, {
         'url': 'http://www.showcase.ca/eyewitness/video/eyewitness++106/video.html?v=955070531919&p=1&s=da#video',
         'only_matching': True,
+    }, {
+        'url': 'http://www.bigbrothercanada.ca/video/1457812035894/',
+        'only_matching': True
     }]
 
     _TP_FEEDS = {
