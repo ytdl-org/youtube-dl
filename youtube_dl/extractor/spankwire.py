@@ -55,12 +55,11 @@ class SpankwireIE(InfoExtractor):
         req = sanitized_Request('http://www.' + mobj.group('url'))
         req.add_header('Cookie', 'age_verified=1')
         webpage = self._download_webpage(req, video_id)
-        json_req = sanitized_Request('https://www.spankwire.com/api/video/' + video_id + '.json')
-        video_data = self._download_json(json_req, video_id)
+        video_data = self._download_json(sanitized_Request('https://www.spankwire.com/api/video/' + video_id + '.json'), video_id)
 
-        title = video_data['title']
-        description = video_data['description']
-        thumbnail = video_data['poster']
+        title = video_data.get('title')
+        description = video_data.get('description')
+        thumbnail = video_data.get('poster')
 
         uploader = self._search_regex(
             r'<a[^>]+class="uploaded__by"[^>]*>(.+?)</a>',
@@ -73,12 +72,11 @@ class SpankwireIE(InfoExtractor):
             r'</span>(.+?) at \d+:\d+ (AM|PM) by',
             webpage, 'upload date', fatal=False))
 
-        view_count = int_or_none(video_data['viewed'])
-        comment_count = int_or_none(video_data['comments'])
+        view_count = int_or_none(video_data.get('viewed'))
+        comment_count = int_or_none(video_data.get('comments'))
 
         formats = []
-        videos = video_data['videos']
-        for quality, video_url in videos.items():
+        for quality, video_url in video_data.get('videos').items():
             height = quality.split('_')[1].replace('p', '')
             self.to_screen(height)
             formats.append({
