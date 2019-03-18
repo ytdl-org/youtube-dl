@@ -10,6 +10,7 @@ from ..compat import (
 from ..utils import (
     sanitized_Request,
     str_to_int,
+    int_or_none,
     unified_strdate,
 )
 from ..aes import aes_decrypt_text
@@ -54,62 +55,40 @@ class SpankwireIE(InfoExtractor):
         req = sanitized_Request('http://www.' + mobj.group('url'))
         req.add_header('Cookie', 'age_verified=1')
         webpage = self._download_webpage(req, video_id)
+        
+        json_req = sanitized_Request('https://www.spankwire.com/api/video/'+video_id+'.json')
+        video_data = self._download_json(json_req, video_id)
 
-        title = self._html_search_regex(
-            r'<h1>([^<]+)', webpage, 'title')
-        description = self._html_search_regex(
-            r'(?s)<div\s+id="descriptionContent">(.+?)</div>',
-            webpage, 'description', fatal=False)
-        thumbnail = self._html_search_regex(
-            r'playerData\.screenShot\s*=\s*["\']([^"\']+)["\']',
-            webpage, 'thumbnail', fatal=False)
+        title = video_data['title']
+        description = video_data['description']
+        thumbnail = video_data['poster']
 
-        uploader = self._html_search_regex(
-            r'by:\s*<a [^>]*>(.+?)</a>',
-            webpage, 'uploader', fatal=False)
+        uploader = self._search_regex(
+            r'<a[^>]+class="uploaded__by"[^>]*>(.+?)</a>',
+            webpage, 'uploader', flags=re.DOTALL, fatal=False)
         uploader_id = self._html_search_regex(
-            r'by:\s*<a href="/(?:user/viewProfile|Profile\.aspx)\?.*?UserId=(\d+).*?"',
+            r'by\s*<a href="/(?:user/viewProfile|Profile\.aspx)\?.*?UserId=(\d+).*?"',
             webpage, 'uploader id', fatal=False)
         upload_date = unified_strdate(self._html_search_regex(
-            r'</a> on (.+?) at \d+:\d+',
+            # r'</a> on (.+?) at \d+:\d+',
+            r'</span>(.+?) at \d+:\d+ (AM|PM) by',
             webpage, 'upload date', fatal=False))
 
-        view_count = str_to_int(self._html_search_regex(
-            r'<div id="viewsCounter"><span>([\d,\.]+)</span> views</div>',
-            webpage, 'view count', fatal=False))
-        comment_count = str_to_int(self._html_search_regex(
-            r'<span\s+id="spCommentCount"[^>]*>([\d,\.]+)</span>',
-            webpage, 'comment count', fatal=False))
+        view_count = int_or_none(video_data['viewed'])
+        comment_count = int_or_none(video_data['comments'])
 
-        videos = re.findall(
-            r'playerData\.cdnPath([0-9]{3,})\s*=\s*(?:encodeURIComponent\()?["\']([^"\']+)["\']', webpage)
-        heights = [int(video[0]) for video in videos]
-        video_urls = list(map(compat_urllib_parse_unquote, [video[1] for video in videos]))
-        if webpage.find(r'flashvars\.encrypted = "true"') != -1:
-            password = self._search_regex(
-                r'flashvars\.video_title = "([^"]+)',
-                webpage, 'password').replace('+', ' ')
-            video_urls = list(map(
-                lambda s: aes_decrypt_text(s, password, 32).decode('utf-8'),
-                video_urls))
-
+       
         formats = []
-        for height, video_url in zip(heights, video_urls):
-            path = compat_urllib_parse_urlparse(video_url).path
-            m = re.search(r'/(?P<height>\d+)[pP]_(?P<tbr>\d+)[kK]', path)
-            if m:
-                tbr = int(m.group('tbr'))
-                height = int(m.group('height'))
-            else:
-                tbr = None
+        videos = video_data['videos']
+        for quality, video_url in videos.items():
+            height = quality.split('_')[1].replace('p','')
+            self.to_screen(height)
             formats.append({
                 'url': video_url,
-                'format_id': '%dp' % height,
-                'height': height,
-                'tbr': tbr,
+                'format_id': quality,
+                'height': int_or_none(height),
+                'tbr': None
             })
-        self._sort_formats(formats)
-
         age_limit = self._rta_search(webpage)
 
         return {
