@@ -23,9 +23,41 @@ from ..utils import (
 
 
 class BiliBiliIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:www\.|bangumi\.|)bilibili\.(?:tv|com)/(?:video/av|anime/(?P<anime_id>\d+)/play#)(?P<id>\d+)'
+    _VALID_URL = r'https?://(?:www\.|bangumi\.|)bilibili\.(?:tv|com)/(?:video/av|anime/(?P<anime_id>\d+)/play#)(?P<id>\d+)(?:/?\?p=(?P<page>\d+))?'
 
     _TESTS = [{
+        'url': 'https://www.bilibili.com/video/av41213189?p=1',
+        'md5': '166c3e684970fbb4f834f24ddd19b275',
+        'info_dict': {
+            'id': '41213189_p1',
+            'cid': '72383807',
+            'ext': 'flv',
+            'title': '【春晚鬼畜】宋丹丹：我就是念诗女王！【改革春风吹进门】_p1',
+            'description': 'md5:a29fb90e0aff106d062a38658b0b75e2',
+            'duration': 152.024,
+            'timestamp': 1548014429,
+            'upload_date': '20190120',
+            'thumbnail': r're:^https?://.+\.jpg',
+            'uploader': '吃素的狮子',
+            'uploader_id': '808171',
+        },
+    }, {
+        'url': 'https://www.bilibili.com/video/av41213189?p=2',
+        'md5': 'bda0939f327f2ead942e89d7f028ecc3',
+        'info_dict': {
+            'id': '41213189_p2',
+            'cid': '72387898',
+            'ext': 'flv',
+            'title': '【春晚鬼畜】宋丹丹：我就是念诗女王！【改革春风吹进门】_p2',
+            'description': 'md5:a29fb90e0aff106d062a38658b0b75e2',
+            'duration': 152.024,
+            'timestamp': 1548014429,
+            'upload_date': '20190120',
+            'thumbnail': r're:^https?://.+\.jpg',
+            'uploader': '吃素的狮子',
+            'uploader_id': '808171',
+        },
+    }, {
         'url': 'http://www.bilibili.tv/video/av1074402/',
         'md5': '5f7d29e1a2872f3df0cf76b1f87d3788',
         'info_dict': {
@@ -110,16 +142,20 @@ class BiliBiliIE(InfoExtractor):
         mobj = re.match(self._VALID_URL, url)
         video_id = mobj.group('id')
         anime_id = mobj.group('anime_id')
+        page_id = mobj.group('page')
         webpage = self._download_webpage(url, video_id)
 
         if 'anime/' not in url:
             cid = self._search_regex(
+                r'\bcid(?:["\']:|=)(\d+),["\']page(?:["\']:|=)' + str(page_id), webpage, 'cid',
+                default=None
+            ) or self._search_regex(
                 r'\bcid(?:["\']:|=)(\d+)', webpage, 'cid',
                 default=None
             ) or compat_parse_qs(self._search_regex(
                 [r'EmbedPlayer\([^)]+,\s*"([^"]+)"\)',
-                 r'EmbedPlayer\([^)]+,\s*\\"([^"]+)\\"\)',
-                 r'<iframe[^>]+src="https://secure\.bilibili\.com/secure,([^"]+)"'],
+                r'EmbedPlayer\([^)]+,\s*\\"([^"]+)\\"\)',
+                r'<iframe[^>]+src="https://secure\.bilibili\.com/secure,([^"]+)"'],
                 webpage, 'player parameters'))['cid'][0]
         else:
             if 'no_bangumi_tip' not in smuggled_data:
@@ -193,7 +229,7 @@ class BiliBiliIE(InfoExtractor):
         title = self._html_search_regex(
             ('<h1[^>]+\btitle=(["\'])(?P<title>(?:(?!\1).)+)\1',
              '(?s)<h1[^>]*>(?P<title>.+?)</h1>'), webpage, 'title',
-            group='title')
+            group='title') + ('_p' + str(page_id) if page_id is not None else '')
         description = self._html_search_meta('description', webpage)
         timestamp = unified_timestamp(self._html_search_regex(
             r'<time[^>]+datetime="([^"]+)"', webpage, 'upload time',
@@ -203,7 +239,8 @@ class BiliBiliIE(InfoExtractor):
 
         # TODO 'view_count' requires deobfuscating Javascript
         info = {
-            'id': video_id,
+            'id': video_id if page_id is None else str(video_id) + '_p' + str(page_id),
+            'cid': cid,
             'title': title,
             'description': description,
             'timestamp': timestamp,
