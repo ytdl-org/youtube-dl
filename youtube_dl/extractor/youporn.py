@@ -57,6 +57,20 @@ class YouPornIE(InfoExtractor):
         'params': {
             'skip_download': True,
         },
+    }, {
+        # Different URL (videoUrl) structure, has file extension in path
+        'url': 'https://www.youporn.com/watch/13922959/femdom-principal/',
+        'info_dict': {
+            'id': '13822959',
+            'display_id': 'femdom-principal',
+            'ext': 'mp4',
+            'format': '720p-4000k - 720p',
+            'height': 720,
+            'tbr': 4000
+        },
+        'params': {
+            'skip_download': True,
+        },
     }]
 
     def _real_extract(self, url):
@@ -119,8 +133,9 @@ class YouPornIE(InfoExtractor):
             # Video URL's path looks like this:
             #  /201012/17/505835/720p_1500k_505835/YouPorn%20-%20Sex%20Ed%20Is%20It%20Safe%20To%20Masturbate%20Daily.mp4
             #  /201012/17/505835/vl_240p_240k_505835/YouPorn%20-%20Sex%20Ed%20Is%20It%20Safe%20To%20Masturbate%20Daily.mp4
+            #  /videos/201703/11/109285532/720P_4000K_109285532.mp4?rate=248k&burst=1400k&validfrom=1553107800&validto=1553122200&hash=NzBS4CUWB2RpgA9thDRS0Ouw5PM%3D
             # We will benefit from it by extracting some metadata
-            mobj = re.search(r'(?P<height>\d{3,4})[pP]_(?P<bitrate>\d+)[kK]_\d+/', video_url)
+            mobj = re.search(r'(?P<height>\d{3,4})[pP]_(?P<bitrate>\d+)[kK]_\d+', video_url)
             if mobj:
                 height = int(mobj.group('height'))
                 bitrate = int(mobj.group('bitrate'))
