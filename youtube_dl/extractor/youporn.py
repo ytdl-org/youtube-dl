@@ -145,9 +145,8 @@ class YouPornIE(InfoExtractor):
             r'(?s)<div[^>]+class=["\']submitByLink["\'][^>]*>(.+?)</div>',
             webpage, 'uploader', fatal=False)
         upload_date = unified_strdate(self._html_search_regex(
-            [r'Date\s+[Aa]dded:\s*<span>([^<]+)',
-             r'(?s)<div[^>]+class=["\']videoInfo(?:Date|Time)["\'][^>]*>(.+?)</div>'],
-            webpage, 'upload date', fatal=False))
+                r'<div[^>]+class=["\']video-uploaded["\'][^>]*>[^<]+<span>([^<]+)</span></div>',
+                webpage, 'upload date', fatal=False))
 
         age_limit = self._rta_search(webpage)
 
@@ -158,9 +157,7 @@ class YouPornIE(InfoExtractor):
         view_count = str_to_int(self._search_regex(
             r'(?s)<div[^>]+class=(["\']).*?\bvideoInfoViews\b.*?\1[^>]*>.*?(?P<count>[\d,.]+)<',
             webpage, 'view count', fatal=False, group='count'))
-        comment_count = str_to_int(self._search_regex(
-            r'>All [Cc]omments? \(([\d,.]+)\)',
-            webpage, 'comment count', fatal=False))
+        comment_count = len(re.findall(r'<div[^>]+class=([\"\']).*?videoComment\b.*?\1', webpage))
 
         def extract_tag_box(regex, title):
             tag_box = self._search_regex(regex, webpage, title, default=None)
