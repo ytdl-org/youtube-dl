@@ -166,6 +166,8 @@ def _real_main(argv=None):
     if opts.max_sleep_interval is not None:
         if opts.max_sleep_interval < 0:
             parser.error('max sleep interval must be positive or 0')
+        if opts.sleep_interval is None:
+            parser.error('min sleep interval must be specified, use --min-sleep-interval')
         if opts.max_sleep_interval < opts.sleep_interval:
             parser.error('max sleep interval must be greater than or equal to min sleep interval')
     else:
