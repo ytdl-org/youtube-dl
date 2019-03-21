@@ -3,17 +3,12 @@ from __future__ import unicode_literals
 import re
 
 from .common import InfoExtractor
-from ..compat import (
-    compat_urllib_parse_unquote,
-    compat_urllib_parse_urlparse,
-)
 from ..utils import (
     sanitized_Request,
-    str_to_int,
     int_or_none,
+    str_to_int,
     unified_strdate,
 )
-from ..aes import aes_decrypt_text
 
 
 class SpankwireIE(InfoExtractor):
@@ -48,6 +43,25 @@ class SpankwireIE(InfoExtractor):
         },
     }]
 
+    _MEDIA_FILE_SLOTS = {
+        'quality_180p': {
+            'width': 320,
+            'height': 180,
+        },
+        'quality_240p': {
+            'width': 426,
+            'height': 240,
+        },
+        'quality_480p': {
+            'width': 854,
+            'height': 480,
+        },
+        'quality_720p': {
+            'width': 1280,
+            'height': 720,
+        },
+    }
+
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
         video_id = mobj.group('id')
@@ -55,15 +69,15 @@ class SpankwireIE(InfoExtractor):
         req = sanitized_Request('http://www.' + mobj.group('url'))
         req.add_header('Cookie', 'age_verified=1')
         webpage = self._download_webpage(req, video_id)
-        video_data = self._download_json(sanitized_Request('https://www.spankwire.com/api/video/' + video_id + '.json'), video_id)
+        video_data = self._download_json('https://www.spankwire.com/api/video/' + video_id + '.json', video_id)
 
-        title = video_data.get('title')
+        title = video_data['title']
         description = video_data.get('description')
         thumbnail = video_data.get('poster')
 
-        uploader = self._search_regex(
-            r'<a[^>]+class="uploaded__by"[^>]*>(.+?)</a>',
-            webpage, 'uploader', flags=re.DOTALL, fatal=False)
+        uploader = self._html_search_regex(
+            r'(?s)<a[^>]+class="uploaded__by"[^>]*>(.+?)</a>',
+            webpage, 'uploader', fatal=False)
         uploader_id = self._html_search_regex(
             r'by\s*<a href="/(?:user/viewProfile|Profile\.aspx)\?.*?UserId=(\d+).*?"',
             webpage, 'uploader id', fatal=False)
@@ -71,18 +85,20 @@ class SpankwireIE(InfoExtractor):
             r'</span>(.+?) at \d+:\d+ (AM|PM) by',
             webpage, 'upload date', fatal=False))
 
-        view_count = int_or_none(video_data.get('viewed'))
+        view_count = str_to_int(video_data.get('viewed'))
         comment_count = int_or_none(video_data.get('comments'))
 
         formats = []
-        for quality, video_url in video_data.get('videos').items():
-            height = quality.split('_')[1].replace('p', '')
-            self.to_screen(height)
+        for quality, video_url in video_data['videos'].items():
+            resolution = self._MEDIA_FILE_SLOTS.get(quality)
+            if not resolution:
+                continue
+
             formats.append({
                 'url': video_url,
                 'format_id': quality,
-                'height': int_or_none(height),
-                'tbr': None
+                'height': resolution.get('height'),
+                'width': resolution.get('width'),
             })
         age_limit = self._rta_search(webpage)
 
