@@ -95,7 +95,7 @@ class TuneInStationIE(TuneInBaseIE):
         'url': 'http://tunein.com/radio/Jazz24-885-s34682/',
         'info_dict': {
             'id': '34682',
-            'title': 're:.*Jazz24.*',
+            'title': 're:Jazz24',
             'description': 'md5:c94dad268809130da5c91b0760f366a1',
             'ext': 'mp3'
         },
@@ -156,8 +156,9 @@ class TuneInProgramIE(TuneInBaseIE):
             for entry in self._process_page(page):
                 yield entry
 
-            has_more = try_get(page,
-                               lambda p: p['Paging']['Next'], compat_str) is not None
+            has_more = try_get(
+                page,
+                lambda p: p['Paging']['Next'], compat_str) is not None
 
             if has_more:
                 offset += page['Paging']['ItemCount']
@@ -201,7 +202,7 @@ class TuneInShortenerIE(InfoExtractor):
         'url': 'http://tun.in/ser7s',
         'info_dict': {
             'id': '34682',
-            'title': 're:.*Jazz24.*',
+            'title': 're:Jazz24',
             'description': 'md5:c94dad268809130da5c91b0760f366a1',
             'ext': 'mp3'
         },

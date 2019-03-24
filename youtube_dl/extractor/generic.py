@@ -1020,8 +1020,8 @@ class GenericIE(InfoExtractor):
             'info_dict': {
                 'id': '204146',
                 'ext': 'mp3',
-                'title': 'CNRV',
-                'location': 'Paris, France',
+                'title': 're:CNRV',
+                'description': 'md5:298ece12650f386bebdf3c3499a4f846',
                 'is_live': True,
             },
             'params': {
