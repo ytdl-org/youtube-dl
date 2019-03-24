@@ -276,12 +276,12 @@ class VLivePlaylistIE(InfoExtractor):
     IE_NAME = 'vlive:playlist'
     _VALID_URL = r'https?://(?:(?:www|m)\.)?vlive\.tv/video/(?P<video_id>[0-9]+)/playlist/(?P<id>[0-9]+)'
     _TEST = {
-        'url': 'http://www.vlive.tv/video/22867/playlist/22912',
+        'url': 'https://www.vlive.tv/video/117956/playlist/117963',
         'info_dict': {
-            'id': '22912',
-            'title': 'Valentine Day Message from TWICE'
+            'id': '117963',
+            'title': '아이돌룸(IDOL ROOM) 41회 - (여자)아이들'
         },
-        'playlist_mincount': 9
+        'playlist_mincount': 10
     }
 
     def _real_extract(self, url):
