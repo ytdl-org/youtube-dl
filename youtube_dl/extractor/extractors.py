@@ -326,6 +326,7 @@ from .ellentube import (
     EllenTubeVideoIE,
     EllenTubePlaylistIE,
 )
+from .elib360 import Elib360IE
 from .elpais import ElPaisIE
 from .embedly import EmbedlyIE
 from .engadget import EngadgetIE
