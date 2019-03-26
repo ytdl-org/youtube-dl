@@ -4,7 +4,7 @@ from __future__ import unicode_literals
 import re
 
 from .common import InfoExtractor
-
+from ..utils import js_to_json
 
 class RTPIE(InfoExtractor):
     _VALID_URL = r'https?://(?:www\.)?rtp\.pt/play/p(?P<program_id>[0-9]+)/(?P<id>[^/?#]+)/?'
@@ -35,18 +35,17 @@ class RTPIE(InfoExtractor):
             'twitter:title', webpage, display_name='title', fatal=True)
         description = self._html_search_meta('description', webpage)
         thumbnail = self._og_search_thumbnail(webpage)
-
         player_config = self._search_regex(
-            r'(?s)RTPPLAY\.player\.newPlayer\(\s*(\{.*?\})\s*\)', webpage, 'player config')
+            r'(?s)RTPPlayer\(({.*?})', webpage, 'player config')
+        player_config = js_to_json(player_config)
         config = self._parse_json(player_config, video_id)
-
         path, ext = config.get('file').rsplit('.', 1)
         formats = [{
             'format_id': 'rtmp',
             'ext': ext,
-            'vcodec': config.get('type') == 'audio' and 'none' or None,
+            #'vcodec': config.get('type') =  = 'audio' and 'none' or None,
             'preference': -2,
-            'url': 'rtmp://{streamer:s}/{application:s}'.format(**config),
+            'url': '{file}'.format(**config),
             'app': config.get('application'),
             'play_path': '{ext:s}:{path:s}'.format(ext=ext, path=path),
             'page_url': url,
@@ -70,6 +69,7 @@ class RTPIE(InfoExtractor):
                 'vcodec': 'h264',
             },
         }
+        '''
         r = replacements[config['type']]
         if re.match(r['pattern'], config['file']) is not None:
             formats.append({
@@ -77,6 +77,7 @@ class RTPIE(InfoExtractor):
                 'url': re.sub(r['pattern'], r['repl'], config['file']),
                 'vcodec': r['vcodec'],
             })
+        '''
 
         self._sort_formats(formats)
 
