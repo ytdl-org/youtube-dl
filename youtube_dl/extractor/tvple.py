@@ -19,7 +19,7 @@ class TvPleIE(InfoExtractor):
     def _real_extract(self, url):
         video_id = re.findall('\d.+', url)
         webpage = self._download_webpage(url, video_id)
-        title = re.findall(u'<title>(.+)<\/title>', webpage)
+        title = re.findall(r'<title>(.+)<\/title>', webpage)
         api_request_url = re.findall(r'(http:\/\/api\.tvple\.com\/v1.*?)"', webpage)
         api_page = self._download_webpage(api_request_url[0], video_id)
         urlh = re.findall(r'(http:\/\/media.*?)"', api_page)
