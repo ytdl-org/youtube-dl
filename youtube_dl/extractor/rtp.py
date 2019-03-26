@@ -1,10 +1,9 @@
 # coding: utf-8
 from __future__ import unicode_literals
 
-import re
-
 from .common import InfoExtractor
 from ..utils import js_to_json
+
 
 class RTPIE(InfoExtractor):
     _VALID_URL = r'https?://(?:www\.)?rtp\.pt/play/p(?P<program_id>[0-9]+)/(?P<id>[^/?#]+)/?'
@@ -43,42 +42,14 @@ class RTPIE(InfoExtractor):
         formats = [{
             'format_id': 'rtmp',
             'ext': ext,
-            #'vcodec': config.get('type') =  = 'audio' and 'none' or None,
             'preference': -2,
             'url': '{file}'.format(**config),
             'app': config.get('application'),
             'play_path': '{ext:s}:{path:s}'.format(ext=ext, path=path),
             'page_url': url,
-            'rtmp_live': config.get('live', False),
             'player_url': 'http://programas.rtp.pt/play/player.swf?v3',
             'rtmp_real_time': True,
         }]
-
-        # Construct regular HTTP download URLs
-        replacements = {
-            'audio': {
-                'format_id': 'mp3',
-                'pattern': r'^nas2\.share/wavrss/',
-                'repl': 'http://rsspod.rtp.pt/podcasts/',
-                'vcodec': 'none',
-            },
-            'video': {
-                'format_id': 'mp4_h264',
-                'pattern': r'^nas2\.share/h264/',
-                'repl': 'http://rsspod.rtp.pt/videocasts/',
-                'vcodec': 'h264',
-            },
-        }
-        '''
-        r = replacements[config['type']]
-        if re.match(r['pattern'], config['file']) is not None:
-            formats.append({
-                'format_id': r['format_id'],
-                'url': re.sub(r['pattern'], r['repl'], config['file']),
-                'vcodec': r['vcodec'],
-            })
-        '''
-
         self._sort_formats(formats)
 
         return {
