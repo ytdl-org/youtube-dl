@@ -3,6 +3,7 @@ from __future__ import unicode_literals
 
 from .common import InfoExtractor
 from ..utils import (
+    determine_ext,
     int_or_none,
     strip_or_none,
     xpath_attr,
@@ -11,7 +12,7 @@ from ..utils import (
 
 
 class InaIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:www\.)?ina\.fr/video/(?P<id>[A-Z0-9_]+)'
+    _VALID_URL = r'https?://(?:www\.)?ina\.fr/(?:video|audio)/(?P<id>[A-Z0-9_]+)'
     _TESTS = [{
         'url': 'http://www.ina.fr/video/I12055569/francois-hollande-je-crois-que-c-est-clair-video.html',
         'md5': 'a667021bf2b41f8dc6049479d9bb38a3',
@@ -23,6 +24,12 @@ class InaIE(InfoExtractor):
         }
     }, {
         'url': 'https://www.ina.fr/video/S806544_001/don-d-organes-des-avancees-mais-d-importants-besoins-video.html',
+        'only_matching': True,
+    }, {
+        'url': 'https://www.ina.fr/audio/P16173408',
+        'only_matching': True,
+    }, {
+        'url': 'https://www.ina.fr/video/P16173408-video.html',
         'only_matching': True,
     }]
 
@@ -48,8 +55,12 @@ class InaIE(InfoExtractor):
                 'height': h,
             })
         if not formats:
+            furl = get_furl('player') or content.attrib['url']
+            ext = determine_ext(furl)
             formats = [{
-                'url': get_furl('player') or content.attrib['url'],
+                'url': furl,
+                'vcodec': 'none' if ext == 'mp3' else None,
+                'ext': ext,
             }]
 
         thumbnails = []
