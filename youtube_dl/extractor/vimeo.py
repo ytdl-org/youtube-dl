@@ -482,10 +482,15 @@ class VimeoIE(VimeoBaseInfoExtractor):
             r'<embed[^>]+?src=(["\'])(?P<url>(?:https?:)?//(?:www\.)?vimeo\.com/moogaloop\.swf.+?)\1',
             # Look more for non-standard embedded Vimeo player
             r'<video[^>]+src=(["\'])(?P<url>(?:https?:)?//(?:www\.)?vimeo\.com/[0-9]+)\1',
+            # Look for JS embedded Vimeo player
+            r'<video-player[^>]+vimeo-id="(?P<id>\d+)"',
         )
         for embed_re in PLAIN_EMBED_RE:
             for mobj in re.finditer(embed_re, webpage):
-                urls.append(mobj.group('url'))
+                if mobj.group('id'):
+                    urls.append('https://player.vimeo.com/video/' + mobj.group('id'))
+                else:
+                    urls.append(mobj.group('url'))
         return urls
 
     @staticmethod
