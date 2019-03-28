@@ -185,7 +185,7 @@ class SVTPlayIE(SVTPlayBaseIE):
 
     def _extract_by_video_id(self, video_id, webpage=None):
         data = self._download_json(
-            'https://api.svt.se/videoplayer-api/video/%s' % video_id,
+            'https://api.svt.se/video/%s' % video_id,
             video_id, headers=self.geo_verification_headers())
         info_dict = self._extract_video(data, video_id)
         if not info_dict.get('title'):
