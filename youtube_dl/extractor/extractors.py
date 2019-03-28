@@ -1114,6 +1114,7 @@ from .teachertube import (
 )
 from .teachingchannel import TeachingChannelIE
 from .teamcoco import TeamcocoIE
+from .teamtreehouse import TeamTreeHouseIE
 from .techtalks import TechTalksIE
 from .ted import TEDIE
 from .tele5 import Tele5IE
