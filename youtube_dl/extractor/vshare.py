@@ -48,7 +48,7 @@ class VShareIE(InfoExtractor):
 
         webpage = self._download_webpage(
             'https://vshare.io/v/%s/width-650/height-430/1' % video_id,
-            video_id)
+            video_id, headers={'Referer': url})
 
         title = self._html_search_regex(
             r'<title>([^<]+)</title>', webpage, 'title')

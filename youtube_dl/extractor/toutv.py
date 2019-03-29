@@ -1,24 +1,21 @@
 # coding: utf-8
 from __future__ import unicode_literals
 
-import re
+import json
 
-from .common import InfoExtractor
+from .radiocanada import RadioCanadaIE
+from ..compat import compat_HTTPError
 from ..utils import (
+    ExtractorError,
     int_or_none,
-    js_to_json,
-    urlencode_postdata,
-    extract_attributes,
-    smuggle_url,
+    merge_dicts,
 )
 
 
-class TouTvIE(InfoExtractor):
+class TouTvIE(RadioCanadaIE):
     _NETRC_MACHINE = 'toutv'
     IE_NAME = 'tou.tv'
     _VALID_URL = r'https?://ici\.tou\.tv/(?P<id>[a-zA-Z0-9_-]+(?:/S[0-9]+[EC][0-9]+)?)'
-    _access_token = None
-    _claims = None
 
     _TESTS = [{
         'url': 'http://ici.tou.tv/garfield-tout-court/S2015E17',
@@ -41,80 +38,45 @@ class TouTvIE(InfoExtractor):
         'url': 'https://ici.tou.tv/l-age-adulte/S01C501',
         'only_matching': True,
     }]
+    _CLIENT_KEY = '4dd36440-09d5-4468-8923-b6d91174ad36'
 
     def _real_initialize(self):
         email, password = self._get_login_info()
         if email is None:
             return
-        state = 'http://ici.tou.tv/'
-        webpage = self._download_webpage(state, None, 'Downloading homepage')
-        toutvlogin = self._parse_json(self._search_regex(
-            r'(?s)toutvlogin\s*=\s*({.+?});', webpage, 'toutvlogin'), None, js_to_json)
-        authorize_url = toutvlogin['host'] + '/auth/oauth/v2/authorize'
-        login_webpage = self._download_webpage(
-            authorize_url, None, 'Downloading login page', query={
-                'client_id': toutvlogin['clientId'],
-                'redirect_uri': 'https://ici.tou.tv/login/loginCallback',
-                'response_type': 'token',
-                'scope': 'media-drmt openid profile email id.write media-validation.read.privileged',
-                'state': state,
-            })
-
-        def extract_form_url_and_data(wp, default_form_url, form_spec_re=''):
-            form, form_elem = re.search(
-                r'(?s)((<form[^>]+?%s[^>]*?>).+?</form>)' % form_spec_re, wp).groups()
-            form_data = self._hidden_inputs(form)
-            form_url = extract_attributes(form_elem).get('action') or default_form_url
-            return form_url, form_data
-
-        post_url, form_data = extract_form_url_and_data(
-            login_webpage,
-            'https://services.radio-canada.ca/auth/oauth/v2/authorize/login',
-            r'(?:id|name)="Form-login"')
-        form_data.update({
-            'login-email': email,
-            'login-password': password,
-        })
-        consent_webpage = self._download_webpage(
-            post_url, None, 'Logging in', data=urlencode_postdata(form_data))
-        post_url, form_data = extract_form_url_and_data(
-            consent_webpage,
-            'https://services.radio-canada.ca/auth/oauth/v2/authorize/consent')
-        _, urlh = self._download_webpage_handle(
-            post_url, None, 'Following Redirection',
-            data=urlencode_postdata(form_data))
-        self._access_token = self._search_regex(
-            r'access_token=([\da-f]{8}-[\da-f]{4}-[\da-f]{4}-[\da-f]{4}-[\da-f]{12})',
-            urlh.geturl(), 'access token')
-        self._claims = self._download_json(
-            'https://services.radio-canada.ca/media/validation/v2/getClaims',
-            None, 'Extracting Claims', query={
-                'token': self._access_token,
-                'access_token': self._access_token,
-            })['claims']
+        try:
+            self._access_token = self._download_json(
+                'https://services.radio-canada.ca/toutv/profiling/accounts/login',
+                None, 'Logging in', data=json.dumps({
+                    'ClientId': self._CLIENT_KEY,
+                    'ClientSecret': '34026772-244b-49b6-8b06-317b30ac9a20',
+                    'Email': email,
+                    'Password': password,
+                    'Scope': 'id.write media-validation.read',
+                }).encode(), headers={
+                    'Authorization': 'client-key ' + self._CLIENT_KEY,
+                    'Content-Type': 'application/json;charset=utf-8',
+                })['access_token']
+        except ExtractorError as e:
+            if isinstance(e.cause, compat_HTTPError) and e.cause.code == 401:
+                error = self._parse_json(e.cause.read().decode(), None)['Message']
+                raise ExtractorError(error, expected=True)
+            raise
+        self._claims = self._call_api('validation/v2/getClaims')['claims']
 
     def _real_extract(self, url):
         path = self._match_id(url)
         metadata = self._download_json('http://ici.tou.tv/presentation/%s' % path, path)
         # IsDrm does not necessarily mean the video is DRM protected (see
-        # https://github.com/rg3/youtube-dl/issues/13994).
+        # https://github.com/ytdl-org/youtube-dl/issues/13994).
         if metadata.get('IsDrm'):
             self.report_warning('This video is probably DRM protected.', path)
         video_id = metadata['IdMedia']
         details = metadata['Details']
-        title = details['OriginalTitle']
-        video_url = 'radiocanada:%s:%s' % (metadata.get('AppCode', 'toutv'), video_id)
-        if self._access_token and self._claims:
-            video_url = smuggle_url(video_url, {
-                'access_token': self._access_token,
-                'claims': self._claims,
-            })
 
-        return {
-            '_type': 'url_transparent',
-            'url': video_url,
+        return merge_dicts({
             'id': video_id,
-            'title': title,
+            'title': details.get('OriginalTitle'),
             'thumbnail': details.get('ImageUrl'),
             'duration': int_or_none(details.get('LengthInSeconds')),
-        }
+        }, self._extract_info(metadata.get('AppCode', 'toutv'), video_id))

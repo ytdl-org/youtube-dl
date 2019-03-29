@@ -50,7 +50,7 @@ class VKBaseIE(InfoExtractor):
 
         # https://new.vk.com/ serves two same remixlhk cookies in Set-Cookie header
         # and expects the first one to be set rather than second (see
-        # https://github.com/rg3/youtube-dl/issues/9841#issuecomment-227871201).
+        # https://github.com/ytdl-org/youtube-dl/issues/9841#issuecomment-227871201).
         # As of RFC6265 the newer one cookie should be set into cookie store
         # what actually happens.
         # We will workaround this VK issue by resetting the remixlhk cookie to
@@ -293,8 +293,12 @@ class VKIE(VKBaseIE):
             # This video is no longer available, because its author has been blocked.
             'url': 'https://vk.com/video-10639516_456240611',
             'only_matching': True,
-        }
-    ]
+        },
+        {
+            # The video is not available in your region.
+            'url': 'https://vk.com/video-51812607_171445436',
+            'only_matching': True,
+        }]
 
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
@@ -354,6 +358,9 @@ class VKIE(VKBaseIE):
 
             r'<!>This video is no longer available, because it has been deleted.':
             'Video %s is no longer available, because it has been deleted.',
+
+            r'<!>The video .+? is not available in your region.':
+            'Video %s is not available in your region.',
         }
 
         for error_re, error_msg in ERRORS.items():

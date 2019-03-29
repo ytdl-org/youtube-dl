@@ -243,7 +243,16 @@ class PhantomJSwrapper(object):
 
 
 class OpenloadIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:www\.)?(?:openload\.(?:co|io|link)|oload\.(?:tv|stream|site|xyz|win|download))/(?:f|embed)/(?P<id>[a-zA-Z0-9-_]+)'
+    _DOMAINS = r'(?:openload\.(?:co|io|link|pw)|oload\.(?:tv|stream|site|xyz|win|download|cloud|cc|icu|fun|club|info|pw|live|space))'
+    _VALID_URL = r'''(?x)
+                    https?://
+                        (?P<host>
+                            (?:www\.)?
+                            %s
+                        )/
+                        (?:f|embed)/
+                        (?P<id>[a-zA-Z0-9-_]+)
+                    ''' % _DOMAINS
 
     _TESTS = [{
         'url': 'https://openload.co/f/kUEfGclsU9o',
@@ -308,8 +317,38 @@ class OpenloadIE(InfoExtractor):
         'url': 'https://oload.download/f/kUEfGclsU9o',
         'only_matching': True,
     }, {
+        'url': 'https://oload.cloud/f/4ZDnBXRWiB8',
+        'only_matching': True,
+    }, {
         # Its title has not got its extension but url has it
         'url': 'https://oload.download/f/N4Otkw39VCw/Tomb.Raider.2018.HDRip.XviD.AC3-EVO.avi.mp4',
+        'only_matching': True,
+    }, {
+        'url': 'https://oload.cc/embed/5NEAbI2BDSk',
+        'only_matching': True,
+    }, {
+        'url': 'https://oload.icu/f/-_i4y_F_Hs8',
+        'only_matching': True,
+    }, {
+        'url': 'https://oload.fun/f/gb6G1H4sHXY',
+        'only_matching': True,
+    }, {
+        'url': 'https://oload.club/f/Nr1L-aZ2dbQ',
+        'only_matching': True,
+    }, {
+        'url': 'https://oload.info/f/5NEAbI2BDSk',
+        'only_matching': True,
+    }, {
+        'url': 'https://openload.pw/f/WyKgK8s94N0',
+        'only_matching': True,
+    }, {
+        'url': 'https://oload.pw/f/WyKgK8s94N0',
+        'only_matching': True,
+    }, {
+        'url': 'https://oload.live/f/-Z58UZ-GR4M',
+        'only_matching': True,
+    }, {
+        'url': 'https://oload.space/f/IY4eZSst3u8/',
         'only_matching': True,
     }]
 
@@ -318,12 +357,15 @@ class OpenloadIE(InfoExtractor):
     @staticmethod
     def _extract_urls(webpage):
         return re.findall(
-            r'<iframe[^>]+src=["\']((?:https?://)?(?:openload\.(?:co|io)|oload\.tv)/embed/[a-zA-Z0-9-_]+)',
-            webpage)
+            r'<iframe[^>]+src=["\']((?:https?://)?%s/embed/[a-zA-Z0-9-_]+)'
+            % OpenloadIE._DOMAINS, webpage)
 
     def _real_extract(self, url):
-        video_id = self._match_id(url)
-        url_pattern = 'https://openload.co/%%s/%s/' % video_id
+        mobj = re.match(self._VALID_URL, url)
+        host = mobj.group('host')
+        video_id = mobj.group('id')
+
+        url_pattern = 'https://%s/%%s/%s/' % (host, video_id)
         headers = {
             'User-Agent': self._USER_AGENT,
         }
@@ -356,7 +398,7 @@ class OpenloadIE(InfoExtractor):
                            r'>\s*([\w~-]+~[a-f0-9:]+~[\w~-]+)'), webpage,
                           'stream URL'))
 
-        video_url = 'https://openload.co/stream/%s?mime=true' % decoded_id
+        video_url = 'https://%s/stream/%s?mime=true' % (host, decoded_id)
 
         title = self._og_search_title(webpage, default=None) or self._search_regex(
             r'<span[^>]+class=["\']title["\'][^>]*>([^<]+)', webpage,
@@ -367,7 +409,7 @@ class OpenloadIE(InfoExtractor):
         entry = entries[0] if entries else {}
         subtitles = entry.get('subtitles')
 
-        info_dict = {
+        return {
             'id': video_id,
             'title': title,
             'thumbnail': entry.get('thumbnail') or self._og_search_thumbnail(webpage, default=None),
@@ -376,4 +418,3 @@ class OpenloadIE(InfoExtractor):
             'subtitles': subtitles,
             'http_headers': headers,
         }
-        return info_dict
