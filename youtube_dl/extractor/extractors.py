@@ -632,7 +632,10 @@ from .massengeschmacktv import MassengeschmackTVIE
 from .matchtv import MatchTVIE
 from .mdr import MDRIE
 from .mediaset import MediasetIE
-from .mediasite import MediasiteIE
+from .mediasite import (
+    MediasiteIE,
+    MediasiteCatalogIE,
+)
 from .medici import MediciIE
 from .megaphone import MegaphoneIE
 from .meipai import MeipaiIE
