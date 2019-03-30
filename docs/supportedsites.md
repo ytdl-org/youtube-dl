@@ -1,4 +1,5 @@
 # Supported sites
+ - **13tv.co.il**
  - **1tv**: Первый канал
  - **1up.com**
  - **20min**
