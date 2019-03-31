@@ -1492,7 +1492,7 @@ class AdobePassIE(InfoExtractor):
                             'Content-Type': 'application/x-www-form-urlencoded'
                         })
                 elif mso_id == 'ATTOTT':
-                    provider_login_page, urlTest = post_form(provider_redirect_page_res,'Pressing Continuing', {'submit': 'Continue'})
+                    provider_login_page, provider_login_url = post_form(provider_redirect_page_res,'Pressing Continuing', {'submit': 'Continue'})
                     login_widget_data_json = self._html_search_regex(
                         "var LoginWidgetAdditionalAttr = (.*)//-->",
                         provider_login_page,
@@ -1505,7 +1505,7 @@ class AdobePassIE(InfoExtractor):
                     post_url = login_widget_data['TGuardAuthPostUrl']
                         
                     if not re.match(r'https?://', post_url):
-                        post_url = compat_urlparse.urljoin(urlTest.geturl(), post_url)
+                        post_url = compat_urlparse.urljoin(provider_login_url.geturl(), post_url)
                     form_data = login_widget_data['formSubmitParams']
                     form_data.update({
                         mso_info.get('username_field', 'username'): username,
@@ -1517,8 +1517,8 @@ class AdobePassIE(InfoExtractor):
                         post_url, video_id, 'Submit User/Password', data=urlencode_postdata(form_data), headers={
                             'Content-Type': 'application/x-www-form-urlencoded',
                         })
-                    mvpd_auth_page = post_form(mvpd_confirm_page_res,'Authenticate')
-                    post_form(mvpd_auth_page,'Call SAMLAssert')
+                    mvpd_auth_page_res = post_form(mvpd_confirm_page_res,'Authenticate')
+                    post_form(mvpd_auth_page_res,'Call SAMLAssert')
                 else:
                     # Some providers have another meta refresh
                     # based redirect that should be followed.
