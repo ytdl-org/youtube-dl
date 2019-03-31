@@ -12,83 +12,34 @@ from ..utils import (
 
 
 class VRTIE(InfoExtractor):
-    IE_DESC = 'vrt.be, sporza.be, cobra.be and cobra.canvas.be'
-    _VALID_URL = r'https?://(?:www\.)?(?:vrt|sporza|cobra(?:\.canvas)?)\.be/(?:[^/]+/)+(?P<id>[^/]+)/*'
+    IE_DESC = 'vrt.be, sporza.be'
+    _VALID_URL = r'https?://(?:www\.)?(?:vrt|sporza)\.be/(?!(?:vrtnu))(?:[^/]+/)+(?P<id>[^/]+)/*'
     _TESTS = [
-        # deredactie.be
+        # vrt.be
         {
-            'url': 'http://deredactie.be/cm/vrtnieuws/videozone/programmas/journaal/EP_141025_JOL',
-            'md5': '4cebde1eb60a53782d4f3992cbd46ec8',
+            'url': 'https://www.vrt.be/vrtnws/nl/2019/03/29/cyberbeveiliging-164-studenten-nemen-deel-aan-wedstrijd-die-oo/',
+            'md5': 'b965693d0cb2c7ca5c0acbecd15d9442',
             'info_dict': {
-                'id': '2129880',
-                'ext': 'flv',
-                'title': 'Het journaal L - 25/10/14',
-                'description': None,
-                'timestamp': 1414271750.949,
-                'upload_date': '20141025',
-                'duration': 929,
+                'id': 'vid-c65417a1-c725-47b2-8692-4c77234119cd',
+                'ext': 'mp4',
+                'title': 'Cyberbeveiliging - 164 studenten nemen deel aan wedstrijd, die ook een soort jobbeurs is',
+                'description': 'Het tekort aan computerwetenschappers is een oud zeer. Voor hen zijn er zo maar eventjes 16.000 vacatures.',
+                'duration': 88.19,
             },
             'skip': 'HTTP Error 404: Not Found',
         },
         # sporza.be
         {
-            'url': 'http://sporza.be/cm/sporza/videozone/programmas/extratime/EP_141020_Extra_time',
-            'md5': '11f53088da9bf8e7cfc42456697953ff',
+            'url': 'https://sporza.be/nl/2019/03/31/sterke-alexander-kristoff-wint-gent-wevelgem-in-de-sprint/',
+            'md5': 'fb5eb1716e2d451d5f3abcf3c9fcab58',
             'info_dict': {
-                'id': '2124639',
-                'ext': 'flv',
-                'title': 'Bekijk Extra Time van 20 oktober',
-                'description': 'md5:83ac5415a4f1816c6a93f8138aef2426',
-                'timestamp': 1413835980.560,
-                'upload_date': '20141020',
-                'duration': 3238,
+                'id': 'vid-0eb67979-227a-42b0-ab6d-1a5836779d7e',
+                'ext': 'mp4',
+                'title': 'Sterke Alexander Kristoff wint Gent-Wevelgem in de sprint',
+                'description': '...',
+                'duration': 334.05,
             },
             'skip': 'HTTP Error 404: Not Found',
-        },
-        # cobra.be
-        {
-            'url': 'http://cobra.be/cm/cobra/videozone/rubriek/film-videozone/141022-mv-ellis-cafecorsari',
-            'md5': '78a2b060a5083c4f055449a72477409d',
-            'info_dict': {
-                'id': '2126050',
-                'ext': 'flv',
-                'title': 'Bret Easton Ellis in Café Corsari',
-                'description': 'md5:f699986e823f32fd6036c1855a724ee9',
-                'timestamp': 1413967500.494,
-                'upload_date': '20141022',
-                'duration': 661,
-            },
-            'skip': 'HTTP Error 404: Not Found',
-        },
-        {
-            # YouTube video
-            'url': 'http://deredactie.be/cm/vrtnieuws/videozone/nieuws/cultuurenmedia/1.2622957',
-            'md5': 'b8b93da1df1cea6c8556255a796b7d61',
-            'info_dict': {
-                'id': 'Wji-BZ0oCwg',
-                'ext': 'mp4',
-                'title': 'ROGUE ONE: A STAR WARS STORY Official Teaser Trailer',
-                'description': 'md5:8e468944dce15567a786a67f74262583',
-                'uploader': 'Star Wars',
-                'uploader_id': 'starwars',
-                'upload_date': '20160407',
-            },
-            'add_ie': ['Youtube'],
-        },
-        {
-            'url': 'http://cobra.canvas.be/cm/cobra/videozone/rubriek/film-videozone/1.2377055',
-            'info_dict': {
-                'id': '2377055',
-                'ext': 'mp4',
-                'title': 'Cafe Derby',
-                'description': 'Lenny Van Wesemael debuteert met de langspeelfilm Café Derby. Een waar gebeurd maar ook verzonnen verhaal.',
-                'upload_date': '20150626',
-                'timestamp': 1435305240.769,
-            },
-            'params': {
-                # m3u8 download
-                'skip_download': True,
-            }
         }
     ]
 
@@ -116,7 +67,6 @@ class VRTIE(InfoExtractor):
             headers=headers, data={})
 
         vrtPlayerToken = result['vrtPlayerToken']
-        print(vrtPlayerToken)
 
         formats = []
 
@@ -127,13 +77,10 @@ class VRTIE(InfoExtractor):
             headers=headers)
 
         for t in targetUrls['targetUrls']:
-            if t['url'].endswith('m3u8'):
+            if '.m3u8' in t['url']:
                 formats.extend(self._extract_m3u8_formats(t['url'], video_id))
-            elif t['url'].endswith('mpd'):
+            elif '.mpd' in t['url']:
                 formats.extend(self._extract_mpd_formats(t['url'], video_id))
-
-        if not formats and 'data-video-geoblocking="true"' in webpage:
-            self.raise_geo_restricted('This video is only available in Belgium')
 
         self._sort_formats(formats)
 

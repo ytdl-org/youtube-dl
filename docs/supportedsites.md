@@ -1058,7 +1058,7 @@
  - **VoxMediaVolume**
  - **vpro**: npo.nl, ntr.nl, omroepwnl.nl, zapp.nl and npo3.nl
  - **Vrak**
- - **VRT**: deredactie.be, sporza.be, cobra.be and cobra.canvas.be
+ - **VRT**: vrt.be, sporza.be
  - **VrtNU**: VrtNU.be
  - **vrv**
  - **vrv:series**
