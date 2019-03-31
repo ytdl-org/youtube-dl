@@ -6,12 +6,14 @@ import re
 from .common import InfoExtractor
 from ..utils import (
     float_or_none,
+    int_or_none,
+    try_get,
 )
 
 
 class VRTIE(InfoExtractor):
-    IE_DESC = 'deredactie.be, sporza.be, cobra.be and cobra.canvas.be'
-    _VALID_URL = r'https?://(?:deredactie|sporza|cobra(?:\.canvas)?)\.be/cm/(?:[^/]+/)+(?P<id>[^/]+)/*'
+    IE_DESC = 'vrt.be, sporza.be, cobra.be and cobra.canvas.be'
+    _VALID_URL = r'https?://(?:www\.)?(?:vrt|sporza|cobra(?:\.canvas)?)\.be/(?:[^/]+/)+(?P<id>[^/]+)/*'
     _TESTS = [
         # deredactie.be
         {
@@ -96,39 +98,39 @@ class VRTIE(InfoExtractor):
         webpage = self._download_webpage(url, video_id)
 
         video_id = self._search_regex(
-            r'data-video-id="([^"]+)_[^"]+"', webpage, 'video id', fatal=False)
+            r'data-videoid="([^"]+)"', webpage, 'video id')
 
-        src = self._search_regex(
-            r'data-video-src="([^"]+)"', webpage, 'video src', default=None)
+        publication_id = self._search_regex(
+            r'data-publicationid="([^"]+)"', webpage, 'publication id')
 
-        video_type = self._search_regex(
-            r'data-video-type="([^"]+)"', webpage, 'video type', default=None)
+        media_url = self._search_regex(
+            r'data-mediaapiurl="([^"]+)"', webpage, 'media url')
 
-        if video_type == 'YouTubeVideo':
-            return self.url_result(src, 'Youtube')
+        client = self._search_regex(
+            r'data-client="([^"]+)"', webpage, 'client')
+
+        headers = {'Content-Type': 'application/json'}
+        result = self._download_json(
+            '%s/tokens' % (media_url), video_id,
+            'Downloading player token',
+            headers=headers, data={})
+
+        vrtPlayerToken = result['vrtPlayerToken']
+        print(vrtPlayerToken)
 
         formats = []
 
-        mobj = re.search(
-            r'data-video-iphone-server="(?P<server>[^"]+)"\s+data-video-iphone-path="(?P<path>[^"]+)"',
-            webpage)
-        if mobj:
-            formats.extend(self._extract_m3u8_formats(
-                '%s/%s' % (mobj.group('server'), mobj.group('path')),
-                video_id, 'mp4', m3u8_id='hls', fatal=False))
+        targetUrls = self._download_json(
+            '%s/videos/%s$%s?vrtPlayerToken=%s&client=%s' % (media_url, publication_id, video_id, vrtPlayerToken, client),
+            video_id,
+            'Downloading target url data',
+            headers=headers)
 
-        if src:
-            formats = self._extract_wowza_formats(src, video_id)
-            if 'data-video-geoblocking="true"' not in webpage:
-                for f in formats:
-                    if f['url'].startswith('rtsp://'):
-                        http_format = f.copy()
-                        http_format.update({
-                            'url': f['url'].replace('rtsp://', 'http://').replace('vod.', 'download.').replace('/_definst_/', '/').replace('mp4:', ''),
-                            'format_id': f['format_id'].replace('rtsp', 'http'),
-                            'protocol': 'http',
-                        })
-                        formats.append(http_format)
+        for t in targetUrls['targetUrls']:
+            if t['url'].endswith('m3u8'):
+                formats.extend(self._extract_m3u8_formats(t['url'], video_id))
+            elif t['url'].endswith('mpd'):
+                formats.extend(self._extract_mpd_formats(t['url'], video_id))
 
         if not formats and 'data-video-geoblocking="true"' in webpage:
             self.raise_geo_restricted('This video is only available in Belgium')
@@ -141,8 +143,8 @@ class VRTIE(InfoExtractor):
         timestamp = float_or_none(self._search_regex(
             r'data-video-sitestat-pubdate="(\d+)"', webpage, 'timestamp', fatal=False), 1000)
         duration = float_or_none(self._search_regex(
-            r'data-video-duration="(\d+)"', webpage, 'duration', fatal=False), 1000)
-
+            r'data-duration="(\d+)"', webpage, 'duration', fatal=False), 1000)
+        
         return {
             'id': video_id,
             'title': title,
