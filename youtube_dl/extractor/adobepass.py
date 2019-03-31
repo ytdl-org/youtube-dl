@@ -27,8 +27,8 @@ MSO_INFO = {
     },
     'ATTOTT': {
         'name': 'DIRECTV NOW',
-        'username_field': 'email',
-        'password_field': 'loginpassword',
+        'username_field': 'userid',
+        'password_field': 'password',
     },
     'Rogers': {
         'name': 'Rogers',
@@ -1491,31 +1491,64 @@ class AdobePassIE(InfoExtractor):
                         }), headers={
                             'Content-Type': 'application/x-www-form-urlencoded'
                         })
+                elif mso_id == 'ATTOTT':
+                    provider_login_page, urlTest = post_form(provider_redirect_page_res,'Pressing Continuing', {'submit': 'Continue'})
+                    login_widget_data_json = self._html_search_regex(
+                        "var LoginWidgetAdditionalAttr = (.*)//-->",
+                        provider_login_page,
+                        'login form data json',
+                        flags=re.DOTALL)
+                        
+                    login_widget_data = self._parse_json(login_widget_data_json, 'login form data')
+                    login_widget_data = login_widget_data['LoginWidgetSetting']
+                        
+                    post_url = login_widget_data['TGuardAuthPostUrl']
+                        
+                    if not re.match(r'https?://', post_url):
+                        post_url = compat_urlparse.urljoin(urlTest.geturl(), post_url)
+                    form_data = login_widget_data['formSubmitParams']
+                    form_data.update({
+                        mso_info.get('username_field', 'username'): username,
+                        mso_info.get('password_field', 'password'): password,
+                        'remember_me': 'Y',
+                    })
+                        
+                    mvpd_confirm_page_res = self._download_webpage_handle(
+                        post_url, video_id, 'Submit User/Password', data=urlencode_postdata(form_data), headers={
+                            'Content-Type': 'application/x-www-form-urlencoded',
+                        })
+                    mvpd_auth_page = post_form(mvpd_confirm_page_res,'Authenticate')
+                    post_form(mvpd_auth_page,'Call SAMLAssert')
                 else:
-                    # Some providers (e.g. DIRECTV NOW) have another meta refresh
+                    # Some providers have another meta refresh
                     # based redirect that should be followed.
                     provider_redirect_page, urlh = provider_redirect_page_res
                     provider_refresh_redirect_url = extract_redirect_url(
                         provider_redirect_page, url=urlh.geturl())
+
                     if provider_refresh_redirect_url:
                         provider_redirect_page_res = self._download_webpage_handle(
                             provider_refresh_redirect_url, video_id,
                             'Downloading Provider Redirect Page (meta refresh)')
+
                     provider_login_page_res = post_form(
                         provider_redirect_page_res, self._DOWNLOADING_LOGIN_PAGE)
+                        
                     mvpd_confirm_page_res = post_form(provider_login_page_res, 'Logging in', {
                         mso_info.get('username_field', 'username'): username,
                         mso_info.get('password_field', 'password'): password,
                     })
+
                     if mso_id != 'Rogers':
                         post_form(mvpd_confirm_page_res, 'Confirming Login')
-
+                
                 session = self._download_webpage(
                     self._SERVICE_PROVIDER_TEMPLATE % 'session', video_id,
                     'Retrieving Session', data=urlencode_postdata({
                         '_method': 'GET',
                         'requestor_id': requestor_id,
                     }), headers=mvpd_headers)
+                
                 if '<pendingLogout' in session:
                     self._downloader.cache.store(self._MVPD_CACHE, requestor_id, {})
                     count += 1
