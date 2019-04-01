@@ -1,3 +1,23 @@
+version <unreleased>
+
+Core
+* [utils] Improve int_or_none and float_or_none (#20403)
+* Check for valid --min-sleep-interval when --max-sleep-interval is specified
+  (#20435)
+
+Extractors
++ [weibo] Extend URL regular expression (#20496)
++ [xhamster] Add support for xhamster.one (#20508)
++ [mediasite] Add support for catalogs (#20507)
++ [teamtreehouse] Add support for teamtreehouse.com (#9836)
++ [ina] Add support for audio URLs
+* [ina] Improve extraction
+* [cwtv] Fix episode number extraction (#20461)
+* [npo] Improve DRM detection
++ [pornhub] Add support for DASH formats (#20403)
+* [svtplay] Update API endpoint (#20430)
+
+
 version 2019.03.18
 
 Core
