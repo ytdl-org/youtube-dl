@@ -40,6 +40,7 @@ class TwitchBaseIE(InfoExtractor):
     _LOGIN_POST_URL = 'https://passport.twitch.tv/login'
     _CLIENT_ID = 'kimne78kx3ncx6brgo4mv6wki5h1ko'
     _NETRC_MACHINE = 'twitch'
+    _AUTHY_ERROR_CODE = 3011
 
     def _handle_error(self, response):
         if not isinstance(response, dict):
@@ -92,7 +93,19 @@ class TwitchBaseIE(InfoExtractor):
                 post_url, None, note, data=json.dumps(form).encode(),
                 headers=headers, expected_status=400)
             error = response.get('error_description') or response.get('error_code')
-            if error:
+
+            if response.get('error_code') == self._AUTHY_ERROR_CODE:
+                # Authy code request
+                tfa_token = self._get_tfa_info('two-factor authentication token')
+                response = self._download_json(
+                    post_url, None, note, data=json.dumps({
+                        'username': username,
+                        'password': password,
+                        'client_id': self._CLIENT_ID,
+                        'authy_token': tfa_token,
+                        'remember_2fa': 'true',
+                    }).encode(), headers=headers, expected_status=400)
+            else:
                 fail(error)
 
             if 'Authenticated successfully' in response.get('message', ''):
@@ -122,14 +135,6 @@ class TwitchBaseIE(InfoExtractor):
         # Successful login
         if not redirect_page:
             return
-
-        if re.search(r'(?i)<form[^>]+id="two-factor-submit"', redirect_page) is not None:
-            # TODO: Add mechanism to request an SMS or phone call
-            tfa_token = self._get_tfa_info('two-factor authentication token')
-            login_step(redirect_page, handle, 'Submitting TFA token', {
-                'authy_token': tfa_token,
-                'remember_2fa': 'true',
-            })
 
     def _prefer_source(self, formats):
         try:
