@@ -488,6 +488,7 @@
  - **Medialaan**
  - **Mediaset**
  - **Mediasite**
+ - **MediasiteCatalog**
  - **Medici**
  - **megaphone.fm**: megaphone.fm embedded players
  - **Meipai**: 美拍
@@ -869,6 +870,7 @@
  - **teachertube:user:collection**: teachertube.com user and collection videos
  - **TeachingChannel**
  - **Teamcoco**
+ - **TeamTreeHouse**
  - **TechTalks**
  - **techtv.mit.edu**
  - **ted**
