@@ -644,9 +644,15 @@ class InfoExtractor(object):
                             tokens = scraper.get_tokens(err.geturl(), std_headers['User-Agent'], cookies=cookies)
                         except ValueError as e:
                             raise ExtractorError('cfscrape error: %s' % e, expected=True)
-                        cookie = url_or_request.get_header('Cookie')
-                        cookie += '; cf_clearance=' + tokens[0]['cf_clearance']
-                        url_or_request = update_Request(url_or_request, headers={'Cookie': cookie})
+
+                        cookie = 'cf_clearance=' + tokens[0]['cf_clearance']
+                        for c in self._downloader.cookiejar:
+                            cookie += '; %s=%s' % (c.name, c.value)
+                        if not isinstance(url_or_request, compat_urllib_request.Request):
+                            self._set_cookie(compat_urlparse.urlparse(err.geturl()).netloc, 'cf_clearance', tokens[0]['cf_clearance'])
+                            url_or_request = sanitized_Request(url_or_request, data, {'Cookie': cookie})
+                        else:
+                            url_or_request = update_Request(url_or_request, headers={'Cookie': cookie})
                         self.to_screen('Redownload webpage')
                         try:
                             return self._downloader.urlopen(url_or_request)

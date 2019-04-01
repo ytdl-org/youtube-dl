@@ -18,7 +18,7 @@ from ..utils import (
 
 class CDAIE(InfoExtractor):
     _VALID_URL = r'https?://(?:(?:www\.)?cda\.pl/video|ebd\.cda\.pl/[0-9]+x[0-9]+)/(?P<id>[0-9a-z]+)'
-    _BASE_URL = 'http://www.cda.pl/'
+    _BASE_URL = 'https://www.cda.pl'
     _TESTS = [{
         'url': 'http://www.cda.pl/video/5749950c',
         'md5': '6f844bf51b15f31fae165365707ae970',
