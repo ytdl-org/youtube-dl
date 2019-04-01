@@ -96,6 +96,7 @@ class TwitchBaseIE(InfoExtractor):
 
             if response.get('error_code') == self._AUTHY_ERROR_CODE:
                 # Authy code request
+                # TODO: Add mechanism to request an SMS or phone call
                 tfa_token = self._get_tfa_info('two-factor authentication token')
                 response = self._download_json(
                     post_url, None, note, data=json.dumps({
