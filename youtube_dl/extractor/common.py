@@ -52,6 +52,7 @@ from ..utils import (
     float_or_none,
     GeoRestrictedError,
     GeoUtils,
+    HEADRequest,
     int_or_none,
     js_to_json,
     JSON_LD_RE,
@@ -66,6 +67,7 @@ from ..utils import (
     RegexNotFoundError,
     sanitized_Request,
     sanitize_filename,
+    std_headers,
     str_or_none,
     unescapeHTML,
     unified_strdate,
@@ -79,6 +81,11 @@ from ..utils import (
     xpath_text,
     xpath_with_ns,
 )
+try:
+    import cfscrape
+    cfscrape_available = True
+except ImportError:
+    cfscrape_available = False
 
 
 class InfoExtractor(object):
@@ -625,6 +632,26 @@ class InfoExtractor(object):
         try:
             return self._downloader.urlopen(url_or_request)
         except (compat_urllib_error.URLError, compat_http_client.HTTPException, socket.error) as err:
+            if isinstance(err, compat_urllib_error.HTTPError) and not isinstance(url_or_request, HEADRequest):
+                if err.code == 503 and err.headers.get('Server').startswith('cloudflare'):
+                    if not cfscrape_available:
+                        raise ExtractorError('Cloudflare challenge found. Provide cookies or install cfscrape.', expected=True)
+                    else:
+                        self.to_screen('Solving Cloudflare challenge (~7s)')
+                        scraper = cfscrape.create_scraper()
+                        cookies = dict((cookie.name, cookie.value) for cookie in self._downloader.cookiejar)
+                        try:
+                            tokens = scraper.get_tokens(err.geturl(), std_headers['User-Agent'], cookies=cookies)
+                        except ValueError as e:
+                            raise ExtractorError('cfscrape error: %s' % e, expected=True)
+                        cookie = url_or_request.get_header('Cookie')
+                        cookie += '; cf_clearance=' + tokens[0]['cf_clearance']
+                        url_or_request = update_Request(url_or_request, headers={'Cookie': cookie})
+                        self.to_screen('Redownload webpage')
+                        try:
+                            return self._downloader.urlopen(url_or_request)
+                        except (compat_urllib_error.URLError, compat_http_client.HTTPException, socket.error) as new_err:
+                            err = new_err
             if isinstance(err, compat_urllib_error.HTTPError):
                 if self.__can_accept_status_code(err, expected_status):
                     # Retain reference to error to prevent file object from
