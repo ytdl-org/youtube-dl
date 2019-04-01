@@ -309,6 +309,8 @@ class YoutubeDL(object):
     The following options are used by the post processors:
     prefer_ffmpeg:     If False, use avconv instead of ffmpeg if both are available,
                        otherwise prefer ffmpeg.
+    ffmpeg_location:   Location of the ffmpeg/avconv binary; either the path
+                       to the binary or its containing directory.
     postprocessor_args: A list of additional command-line arguments for the
                         postprocessor.
 
