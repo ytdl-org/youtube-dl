@@ -639,17 +639,19 @@ class InfoExtractor(object):
                     else:
                         self.to_screen('Solving Cloudflare challenge (~7s)')
                         scraper = cfscrape.create_scraper()
-                        cookies = dict((cookie.name, cookie.value) for cookie in self._downloader.cookiejar)
                         try:
-                            tokens = scraper.get_tokens(err.geturl(), std_headers['User-Agent'], cookies=cookies)
+                            tokens = scraper.get_tokens(err.geturl(), std_headers['User-Agent'])
                         except ValueError as e:
                             raise ExtractorError('cfscrape error: %s' % e, expected=True)
 
-                        cookie = 'cf_clearance=' + tokens[0]['cf_clearance']
+                        cookie = 'cf_clearance=' + tokens[0]['cf_clearance'] + '; __cfduid=' + tokens[0]['__cfduid']
                         for c in self._downloader.cookiejar:
-                            cookie += '; %s=%s' % (c.name, c.value)
+                            if c.name != '__cfduid' and c.name != 'cf_clearance':
+                                cookie += '; %s=%s' % (c.name, c.value)
+                        domain = '.' + compat_urlparse.urlparse(err.geturl()).netloc.replace('www.', '')
+                        self._set_cookie(domain, 'cf_clearance', tokens[0]['cf_clearance'])
+                        self._set_cookie(domain, '__cfduid', tokens[0]['__cfduid'])
                         if not isinstance(url_or_request, compat_urllib_request.Request):
-                            self._set_cookie(compat_urlparse.urlparse(err.geturl()).netloc, 'cf_clearance', tokens[0]['cf_clearance'])
                             url_or_request = sanitized_Request(url_or_request, data, {'Cookie': cookie})
                         else:
                             url_or_request = update_Request(url_or_request, headers={'Cookie': cookie})
