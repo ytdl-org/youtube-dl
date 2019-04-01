@@ -635,6 +635,7 @@ from .mediaset import MediasetIE
 from .mediasite import (
     MediasiteIE,
     MediasiteCatalogIE,
+    MediasiteNamedCatalogIE,
 )
 from .medici import MediciIE
 from .megaphone import MegaphoneIE

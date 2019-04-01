@@ -22,7 +22,7 @@ from ..utils import (
 )
 
 
-_ID_RE = r'[0-9a-f]{32,34}'
+_ID_RE = r'(?:[0-9a-f]{32,34}|[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12,14})'
 
 
 class MediasiteIE(InfoExtractor):
@@ -98,6 +98,11 @@ class MediasiteIE(InfoExtractor):
             'url': 'https://mediasite.ntnu.no/Mediasite/Showcase/default/Presentation/7d8b913259334b688986e970fae6fcb31d',
             'only_matching': True,
         },
+        {
+            # dashed id
+            'url': 'https://hitsmediaweb.h-its.org/mediasite/Play/2db6c271-681e-4f19-9af3-c60d1f82869b1d',
+            'only_matching': True,
+        }
     ]
 
     # look in Mediasite.Core.js (Mediasite.ContentStreamType[*])
@@ -264,6 +269,10 @@ class MediasiteCatalogIE(InfoExtractor):
     }, {
         'url': 'https://medaudio.medicine.iu.edu/Mediasite/Catalog/Full/9518c4a6c5cf4993b21cbd53e828a92521/97a9db45f7ab47428c77cd2ed74bb98f14/9518c4a6c5cf4993b21cbd53e828a92521',
         'only_matching': True,
+    }, {
+        # dashed id
+        'url': 'http://events7.mediasite.com/Mediasite/Catalog/Full/631f9e48-530d-4543-8154-9f955d08c75e',
+        'only_matching': True,
     }]
 
     def _real_extract(self, url):
@@ -333,3 +342,25 @@ class MediasiteCatalogIE(InfoExtractor):
             catalog, lambda x: x['CurrentFolder']['Name'], compat_str)
 
         return self.playlist_result(entries, catalog_id, title,)
+
+
+class MediasiteNamedCatalogIE(InfoExtractor):
+    _VALID_URL = r'(?xi)(?P<url>https?://[^/]+/Mediasite)/Catalog/catalogs/(?P<catalog_name>[^/?#&]+)'
+    _TESTS = [{
+        'url': 'https://msite.misis.ru/Mediasite/Catalog/catalogs/2016-industrial-management-skriabin-o-o',
+        'only_matching': True,
+    }]
+
+    def _real_extract(self, url):
+        mobj = re.match(self._VALID_URL, url)
+        mediasite_url = mobj.group('url')
+        catalog_name = mobj.group('catalog_name')
+
+        webpage = self._download_webpage(url, catalog_name)
+
+        catalog_id = self._search_regex(
+            r'CatalogId\s*:\s*["\'](%s)' % _ID_RE, webpage, 'catalog id')
+
+        return self.url_result(
+            '%s/Catalog/Full/%s' % (mediasite_url, catalog_id),
+            ie=MediasiteCatalogIE.ie_key(), video_id=catalog_id)
