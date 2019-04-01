@@ -1,13 +1,8 @@
 # coding: utf-8
 from __future__ import unicode_literals
-
-import re
-
 from .common import InfoExtractor
 from ..utils import (
     float_or_none,
-    int_or_none,
-    try_get,
 )
 
 
@@ -91,7 +86,7 @@ class VRTIE(InfoExtractor):
             r'data-video-sitestat-pubdate="(\d+)"', webpage, 'timestamp', fatal=False), 1000)
         duration = float_or_none(self._search_regex(
             r'data-duration="(\d+)"', webpage, 'duration', fatal=False), 1000)
-        
+
         return {
             'id': video_id,
             'title': title,
