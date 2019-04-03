@@ -21,7 +21,7 @@ from ..utils import (
 
 class RTL2IE(InfoExtractor):
     IE_NAME = 'rtl2'
-    _VALID_URL = r'http?://(?:www\.)?rtl2\.de/[^?#]*?/(?P<id>[^?#/]*?)(?:$|/(?:$|[?#]))'
+    _VALID_URL = r'https?://(?:www\.)?rtl2\.de/sendung/[^/]+/(?:video/(?P<vico_id>\d+)[^/]+/(?P<vivi_id>\d+)-|folge/)(?P<id>[^/?#]+)'
     _TESTS = [{
         'url': 'http://www.rtl2.de/sendung/grip-das-motormagazin/folge/folge-203-0',
         'info_dict': {
@@ -34,10 +34,11 @@ class RTL2IE(InfoExtractor):
             # rtmp download
             'skip_download': True,
         },
+        'expected_warnings': ['Unable to download f4m manifest', 'Failed to download m3u8 information'],
     }, {
         'url': 'http://www.rtl2.de/sendung/koeln-50667/video/5512-anna/21040-anna-erwischt-alex/',
         'info_dict': {
-            'id': '21040-anna-erwischt-alex',
+            'id': 'anna-erwischt-alex',
             'ext': 'mp4',
             'title': 'Anna erwischt Alex!',
             'description': 'Anna nimmt ihrem Vater nicht ab, dass er nicht spielt. Und tatsächlich erwischt sie ihn auf frischer Tat.'
@@ -46,31 +47,29 @@ class RTL2IE(InfoExtractor):
             # rtmp download
             'skip_download': True,
         },
+        'expected_warnings': ['Unable to download f4m manifest', 'Failed to download m3u8 information'],
     }]
 
     def _real_extract(self, url):
-        # Some rtl2 urls have no slash at the end, so append it.
-        if not url.endswith('/'):
-            url += '/'
+        vico_id, vivi_id, display_id = re.match(self._VALID_URL, url).groups()
+        if not vico_id:
+            webpage = self._download_webpage(url, display_id)
 
-        video_id = self._match_id(url)
-        webpage = self._download_webpage(url, video_id)
-
-        mobj = re.search(
-            r'<div[^>]+data-collection="(?P<vico_id>\d+)"[^>]+data-video="(?P<vivi_id>\d+)"',
-            webpage)
-        if mobj:
-            vico_id = mobj.group('vico_id')
-            vivi_id = mobj.group('vivi_id')
-        else:
-            vico_id = self._html_search_regex(
-                r'vico_id\s*:\s*([0-9]+)', webpage, 'vico_id')
-            vivi_id = self._html_search_regex(
-                r'vivi_id\s*:\s*([0-9]+)', webpage, 'vivi_id')
+            mobj = re.search(
+                r'data-collection="(?P<vico_id>\d+)"[^>]+data-video="(?P<vivi_id>\d+)"',
+                webpage)
+            if mobj:
+                vico_id = mobj.group('vico_id')
+                vivi_id = mobj.group('vivi_id')
+            else:
+                vico_id = self._html_search_regex(
+                    r'vico_id\s*:\s*([0-9]+)', webpage, 'vico_id')
+                vivi_id = self._html_search_regex(
+                    r'vivi_id\s*:\s*([0-9]+)', webpage, 'vivi_id')
 
         info = self._download_json(
-            'http://www.rtl2.de/sites/default/modules/rtl2/mediathek/php/get_video_jw.php',
-            video_id, query={
+            'https://service.rtl2.de/api-player-vipo/video.php',
+            display_id, query={
                 'vico_id': vico_id,
                 'vivi_id': vivi_id,
             })
@@ -99,12 +98,12 @@ class RTL2IE(InfoExtractor):
 
         m3u8_url = video_info.get('streamurl_hls')
         if m3u8_url:
-            formats.extend(self._extract_akamai_formats(m3u8_url, video_id))
+            formats.extend(self._extract_akamai_formats(m3u8_url, display_id))
 
         self._sort_formats(formats)
 
         return {
-            'id': video_id,
+            'id': display_id,
             'title': title,
             'thumbnail': video_info.get('image'),
             'description': video_info.get('beschreibung'),
