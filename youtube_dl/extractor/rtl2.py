@@ -88,7 +88,7 @@ class RTL2IE(InfoExtractor):
                 'format_id': 'rtmp',
                 'url': rtmp_url,
                 'play_path': stream_url,
-                'player_url': 'http://www.rtl2.de/flashplayer/vipo_player.swf',
+                'player_url': 'https://www.rtl2.de/sites/default/modules/rtl2/jwplayer/jwplayer-7.6.0/jwplayer.flash.swf',
                 'page_url': url,
                 'flash_version': 'LNX 11,2,202,429',
                 'rtmp_conn': rtmp_conn,
