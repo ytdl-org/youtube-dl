@@ -72,11 +72,11 @@ class UdemyIE(InfoExtractor):
     def _extract_course_info(self, webpage, video_id):
         course = self._parse_json(
             unescapeHTML(self._search_regex(
-                r'ng-init=["\'].*\bcourse=({.+?})[;"\']',
+                r'data-module-args=["\'](.*)["\']',
                 webpage, 'course', default='{}')),
             video_id, fatal=False) or {}
-        course_id = course.get('id') or self._search_regex(
-            r'data-course-id=["\'](\d+)', webpage, 'course id')
+        course_id = course.get('courseId') or self._search_regex(
+            r'courseId&quot;:(\d+),', webpage, 'course id')
         return course_id, course.get('title')
 
     def _enroll_course(self, base_url, webpage, course_id):
