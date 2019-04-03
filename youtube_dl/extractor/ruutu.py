@@ -96,7 +96,9 @@ class RuutuIE(InfoExtractor):
                             video_url, video_id, mpd_id='dash', fatal=False))
                     else:
                         proto = compat_urllib_parse_urlparse(video_url).scheme
-                        if not child.tag.startswith('HTTP') and proto != 'rtmp':
+                        if (not child.tag.startswith('HTTP') and
+                                not child.tag == 'AudioMediaFile' and
+                                proto != 'rtmp'):
                             continue
                         preference = -1 if proto == 'rtmp' else 1
                         label = child.get('label')
