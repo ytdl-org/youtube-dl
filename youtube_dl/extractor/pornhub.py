@@ -14,6 +14,7 @@ from ..compat import (
 )
 from .openload import PhantomJSwrapper
 from ..utils import (
+    determine_ext,
     ExtractorError,
     int_or_none,
     orderedSet,
@@ -275,6 +276,10 @@ class PornHubIE(PornHubBaseIE):
                     r'/(\d{6}/\d{2})/', video_url, 'upload data', default=None)
                 if upload_date:
                     upload_date = upload_date.replace('/', '')
+            if determine_ext(video_url) == 'mpd':
+                formats.extend(self._extract_mpd_formats(
+                    video_url, video_id, mpd_id='dash', fatal=False))
+                continue
             tbr = None
             mobj = re.search(r'(?P<height>\d+)[pP]?_(?P<tbr>\d+)[kK]', video_url)
             if mobj:
@@ -332,7 +337,7 @@ class PornHubPlaylistBaseIE(PornHubBaseIE):
     def _extract_entries(self, webpage, host):
         # Only process container div with main playlist content skipping
         # drop-down menu that uses similar pattern for videos (see
-        # https://github.com/rg3/youtube-dl/issues/11594).
+        # https://github.com/ytdl-org/youtube-dl/issues/11594).
         container = self._search_regex(
             r'(?s)(<div[^>]+class=["\']container.+)', webpage,
             'container', default=webpage)

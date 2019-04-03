@@ -200,7 +200,7 @@ class VevoIE(VevoBaseIE):
             fatal=False)
 
         # Some videos are only available via webpage (e.g.
-        # https://github.com/rg3/youtube-dl/issues/9366)
+        # https://github.com/ytdl-org/youtube-dl/issues/9366)
         if not video_versions:
             webpage = self._download_webpage(url, video_id)
             json_data = self._extract_json(webpage, video_id)

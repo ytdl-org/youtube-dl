@@ -9,7 +9,6 @@ python:
   - "3.6"
   - "pypy"
   - "pypy3"
-sudo: false
 env:
   - YTDL_TEST_SET=core
   - YTDL_TEST_SET=download

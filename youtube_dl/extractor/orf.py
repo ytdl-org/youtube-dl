@@ -176,7 +176,8 @@ class ORFRadioIE(InfoExtractor):
                 'description': subtitle,
                 'duration': (info['end'] - info['start']) / 1000,
                 'timestamp': info['start'] / 1000,
-                'ext': 'mp3'
+                'ext': 'mp3',
+                'series': data.get('programTitle')
             }
 
         entries = [extract_entry_dict(t, data['title'], data['subtitle']) for t in data['streams']]

@@ -76,7 +76,7 @@ class YandexMusicTrackIE(YandexMusicBaseIE):
             track_id, 'Downloading track location JSON')
 
         # Each string is now wrapped in a list, this is probably only temporarily thus
-        # supporting both scenarios (see https://github.com/rg3/youtube-dl/issues/10193)
+        # supporting both scenarios (see https://github.com/ytdl-org/youtube-dl/issues/10193)
         for k, v in data.items():
             if v and isinstance(v, list):
                 data[k] = v[0]
@@ -200,7 +200,7 @@ class YandexMusicPlaylistIE(YandexMusicPlaylistBaseIE):
         'skip': 'Travis CI servers blocked by YandexMusic',
     }, {
         # playlist exceeding the limit of 150 tracks shipped with webpage (see
-        # https://github.com/rg3/youtube-dl/issues/6666)
+        # https://github.com/ytdl-org/youtube-dl/issues/6666)
         'url': 'https://music.yandex.ru/users/ya.playlist/playlists/1036',
         'info_dict': {
             'id': '1036',

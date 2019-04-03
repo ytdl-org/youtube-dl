@@ -3,7 +3,6 @@ from __future__ import unicode_literals
 
 import itertools
 import re
-import xml
 
 from .common import InfoExtractor
 from ..utils import (
@@ -23,6 +22,7 @@ from ..utils import (
     urljoin,
 )
 from ..compat import (
+    compat_etree_Element,
     compat_HTTPError,
     compat_urlparse,
 )
@@ -208,7 +208,7 @@ class BBCCoUkIE(InfoExtractor):
             },
             'skip': 'Now it\'s really geo-restricted',
         }, {
-            # compact player (https://github.com/rg3/youtube-dl/issues/8147)
+            # compact player (https://github.com/ytdl-org/youtube-dl/issues/8147)
             'url': 'http://www.bbc.co.uk/programmes/p028bfkf/player',
             'info_dict': {
                 'id': 'p028bfkj',
@@ -317,7 +317,7 @@ class BBCCoUkIE(InfoExtractor):
                 continue
             captions = self._download_xml(
                 cc_url, programme_id, 'Downloading captions', fatal=False)
-            if not isinstance(captions, xml.etree.ElementTree.Element):
+            if not isinstance(captions, compat_etree_Element):
                 continue
             lang = captions.get('{http://www.w3.org/XML/1998/namespace}lang', 'en')
             subtitles[lang] = [

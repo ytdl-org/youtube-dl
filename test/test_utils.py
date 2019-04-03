@@ -33,11 +33,13 @@ from youtube_dl.utils import (
     ExtractorError,
     find_xpath_attr,
     fix_xml_ampersands,
+    float_or_none,
     get_element_by_class,
     get_element_by_attribute,
     get_elements_by_class,
     get_elements_by_attribute,
     InAdvancePagedList,
+    int_or_none,
     intlist_to_bytes,
     is_html,
     js_to_json,
@@ -55,6 +57,7 @@ from youtube_dl.utils import (
     parse_count,
     parse_iso8601,
     parse_resolution,
+    parse_bitrate,
     pkcs1pad,
     read_batch_urls,
     sanitize_filename,
@@ -466,6 +469,21 @@ class TestUtil(unittest.TestCase):
         self.assertEqual(
             shell_quote(args),
             """ffmpeg -i 'ñ€ß'"'"'.mp4'""" if compat_os_name != 'nt' else '''ffmpeg -i "ñ€ß'.mp4"''')
+
+    def test_float_or_none(self):
+        self.assertEqual(float_or_none('42.42'), 42.42)
+        self.assertEqual(float_or_none('42'), 42.0)
+        self.assertEqual(float_or_none(''), None)
+        self.assertEqual(float_or_none(None), None)
+        self.assertEqual(float_or_none([]), None)
+        self.assertEqual(float_or_none(set()), None)
+
+    def test_int_or_none(self):
+        self.assertEqual(int_or_none('42'), 42)
+        self.assertEqual(int_or_none(''), None)
+        self.assertEqual(int_or_none(None), None)
+        self.assertEqual(int_or_none([]), None)
+        self.assertEqual(int_or_none(set()), None)
 
     def test_str_to_int(self):
         self.assertEqual(str_to_int('123,456'), 123456)
@@ -1029,6 +1047,13 @@ class TestUtil(unittest.TestCase):
         self.assertEqual(parse_resolution('720p'), {'height': 720})
         self.assertEqual(parse_resolution('4k'), {'height': 2160})
         self.assertEqual(parse_resolution('8K'), {'height': 4320})
+
+    def test_parse_bitrate(self):
+        self.assertEqual(parse_bitrate(None), None)
+        self.assertEqual(parse_bitrate(''), None)
+        self.assertEqual(parse_bitrate('300kbps'), 300)
+        self.assertEqual(parse_bitrate('1500kbps'), 1500)
+        self.assertEqual(parse_bitrate('300 kbps'), 300)
 
     def test_version_tuple(self):
         self.assertEqual(version_tuple('1'), (1,))

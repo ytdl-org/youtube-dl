@@ -21,7 +21,7 @@ class OnceIE(InfoExtractor):
         progressive_formats = []
         for adaptive_format in formats:
             # Prevent advertisement from embedding into m3u8 playlist (see
-            # https://github.com/rg3/youtube-dl/issues/8893#issuecomment-199912684)
+            # https://github.com/ytdl-org/youtube-dl/issues/8893#issuecomment-199912684)
             adaptive_format['url'] = re.sub(
                 r'\badsegmentlength=\d+', r'adsegmentlength=0', adaptive_format['url'])
             rendition_id = self._search_regex(

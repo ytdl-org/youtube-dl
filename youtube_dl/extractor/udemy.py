@@ -375,7 +375,7 @@ class UdemyIE(InfoExtractor):
                     }, res))
 
             # react rendition since 2017.04.15 (see
-            # https://github.com/rg3/youtube-dl/issues/12744)
+            # https://github.com/ytdl-org/youtube-dl/issues/12744)
             data = self._parse_json(
                 self._search_regex(
                     r'videojs-setup-data=(["\'])(?P<data>{.+?})\1', view_html,

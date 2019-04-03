@@ -239,7 +239,7 @@ class FFmpegFD(ExternalFD):
             # setting -seekable prevents ffmpeg from guessing if the server
             # supports seeking(by adding the header `Range: bytes=0-`), which
             # can cause problems in some cases
-            # https://github.com/rg3/youtube-dl/issues/11800#issuecomment-275037127
+            # https://github.com/ytdl-org/youtube-dl/issues/11800#issuecomment-275037127
             # http://trac.ffmpeg.org/ticket/6125#comment:10
             args += ['-seekable', '1' if seekable else '0']
 
@@ -289,6 +289,7 @@ class FFmpegFD(ExternalFD):
             tc_url = info_dict.get('tc_url')
             flash_version = info_dict.get('flash_version')
             live = info_dict.get('rtmp_live', False)
+            conn = info_dict.get('rtmp_conn')
             if player_url is not None:
                 args += ['-rtmp_swfverify', player_url]
             if page_url is not None:
@@ -303,6 +304,11 @@ class FFmpegFD(ExternalFD):
                 args += ['-rtmp_flashver', flash_version]
             if live:
                 args += ['-rtmp_live', 'live']
+            if isinstance(conn, list):
+                for entry in conn:
+                    args += ['-rtmp_conn', entry]
+            elif isinstance(conn, compat_str):
+                args += ['-rtmp_conn', conn]
 
         args += ['-i', url, '-c', 'copy']
 
@@ -334,7 +340,7 @@ class FFmpegFD(ExternalFD):
             # mp4 file couldn't be played, but if we ask ffmpeg to quit it
             # produces a file that is playable (this is mostly useful for live
             # streams). Note that Windows is not affected and produces playable
-            # files (see https://github.com/rg3/youtube-dl/issues/8300).
+            # files (see https://github.com/ytdl-org/youtube-dl/issues/8300).
             if sys.platform != 'win32':
                 proc.communicate(b'q')
             raise

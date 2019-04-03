@@ -20,7 +20,7 @@ from ..utils import (
 class XHamsterIE(InfoExtractor):
     _VALID_URL = r'''(?x)
                     https?://
-                        (?:.+?\.)?xhamster\.com/
+                        (?:.+?\.)?xhamster\.(?:com|one)/
                         (?:
                             movies/(?P<id>\d+)/(?P<display_id>[^/]*)\.html|
                             videos/(?P<display_id_2>[^/]*)-(?P<id_2>\d+)
@@ -90,6 +90,9 @@ class XHamsterIE(InfoExtractor):
     }, {
         # new URL schema
         'url': 'https://pt.xhamster.com/videos/euro-pedal-pumping-7937821',
+        'only_matching': True,
+    }, {
+        'url': 'https://xhamster.one/videos/femaleagent-shy-beauty-takes-the-bait-1509445',
         'only_matching': True,
     }]
 
