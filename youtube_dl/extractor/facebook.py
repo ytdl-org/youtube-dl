@@ -218,6 +218,7 @@ class FacebookIE(InfoExtractor):
             'ext': 'mp4',
             'title': '#ESLOne VoD - Birmingham Finals Day#1 Fnatic vs. @Evil Geniuses',
             'uploader': 'ESL One Dota 2',
+            'is_live': False
         },
         'params': {
             'skip_download': True,
@@ -378,6 +379,8 @@ class FacebookIE(InfoExtractor):
         if not video_data:
             raise ExtractorError('Cannot parse data')
 
+        is_live = video_data[0].get('is_broadcast', False) and video_data[0].get('is_live_stream', False)
+
         formats = []
         for f in video_data:
             format_id = f['stream_type']
@@ -462,6 +465,7 @@ class FacebookIE(InfoExtractor):
             'thumbnail': thumbnail,
             'view_count': view_count,
             'uploader_id': uploader_id
+            'is_live': is_live
         }
 
         return webpage, info_dict

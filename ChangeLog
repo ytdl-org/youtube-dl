@@ -1,3 +1,37 @@
+version 2019.03.18
+
+Core
+* [extractor/common] Improve HTML5 entries extraction
++ [utils] Introduce parse_bitrate
+* [update] Hide update URLs behind redirect
+* [extractor/common] Fix url meta field for unfragmented DASH formats (#20346)
+
+Extractors
++ [yandexvideo] Add extractor
+* [openload] Improve embed detection
++ [corus] Add support for bigbrothercanada.ca (#20357)
++ [orf:radio] Extract series (#20012)
++ [cbc:watch] Add support for gem.cbc.ca (#20251, #20359)
+- [anysex] Remove extractor (#19279)
++ [ciscolive] Add support for new URL schema (#20320, #20351)
++ [youtube] Add support for invidiou.sh (#20309)
+- [anitube] Remove extractor (#20334)
+- [ruleporn] Remove extractor (#15344, #20324)
+* [npr] Fix extraction (#10793, #13440)
+* [biqle] Fix extraction (#11471, #15313)
+* [viddler] Modernize
+* [moevideo] Fix extraction
+* [primesharetv] Remove extractor
+* [hypem] Modernize and extract more metadata (#15320)
+* [veoh] Fix extraction
+* [escapist] Modernize
+- [videomega] Remove extractor (#10108)
++ [beeg] Add support for beeg.porn (#20306)
+* [vimeo:review] Improve config url extraction and extract original format
+  (#20305)
+* [fox] Detect geo restriction and authentication errors (#20208)
+
+
 version 2019.03.09
 
 Core
