@@ -103,7 +103,7 @@ class VKIE(VKBaseIE):
             'url': 'http://vk.com/videos-77521?z=video-77521_162222515%2Fclub77521',
             'md5': '7babad3b85ea2e91948005b1b8b0cb84',
             'info_dict': {
-                'id': '162222515',
+                'id': '-77521_162222515',
                 'ext': 'mp4',
                 'title': 'ProtivoGunz - Хуёвая песня',
                 'uploader': 're:(?:Noize MC|Alexander Ilyashenko).*',
@@ -117,7 +117,7 @@ class VKIE(VKBaseIE):
             'url': 'http://vk.com/video205387401_165548505',
             'md5': '6c0aeb2e90396ba97035b9cbde548700',
             'info_dict': {
-                'id': '165548505',
+                'id': '205387401_165548505',
                 'ext': 'mp4',
                 'title': 'No name',
                 'uploader': 'Tom Cruise',
@@ -132,7 +132,7 @@ class VKIE(VKBaseIE):
             'url': 'http://vk.com/video_ext.php?oid=32194266&id=162925554&hash=7d8c2e0d5e05aeaa&hd=1',
             'md5': 'c7ce8f1f87bec05b3de07fdeafe21a0a',
             'info_dict': {
-                'id': '162925554',
+                'id': '32194266_162925554',
                 'ext': 'mp4',
                 'uploader': 'Vladimir Gavrin',
                 'title': 'Lin Dan',
@@ -149,7 +149,7 @@ class VKIE(VKBaseIE):
             'md5': 'a590bcaf3d543576c9bd162812387666',
             'note': 'Only available for registered users',
             'info_dict': {
-                'id': '164049491',
+                'id': '-8871596_164049491',
                 'ext': 'mp4',
                 'uploader': 'Триллеры',
                 'title': '► Бойцовский клуб / Fight Club 1999 [HD 720]',
@@ -163,7 +163,7 @@ class VKIE(VKBaseIE):
             'url': 'http://vk.com/hd_kino_mania?z=video-43215063_168067957%2F15c66b9b533119788d',
             'md5': '4d7a5ef8cf114dfa09577e57b2993202',
             'info_dict': {
-                'id': '168067957',
+                'id': '-43215063_168067957',
                 'ext': 'mp4',
                 'uploader': 'Киномания - лучшее из мира кино',
                 'title': ' ',
@@ -177,7 +177,7 @@ class VKIE(VKBaseIE):
             'md5': '0c45586baa71b7cb1d0784ee3f4e00a6',
             'note': 'ivi.ru embed',
             'info_dict': {
-                'id': '60690',
+                'id': '-43215063_169084319',
                 'ext': 'mp4',
                 'title': 'Книга Илая',
                 'duration': 6771,
@@ -191,7 +191,7 @@ class VKIE(VKBaseIE):
             'url': 'https://vk.com/video30481095_171201961?list=8764ae2d21f14088d4',
             'md5': '091287af5402239a1051c37ec7b92913',
             'info_dict': {
-                'id': '171201961',
+                'id': '30481095_171201961',
                 'ext': 'mp4',
                 'title': 'ТюменцевВВ_09.07.2015',
                 'uploader': 'Anton Ivanov',
@@ -206,10 +206,10 @@ class VKIE(VKBaseIE):
             'url': 'https://vk.com/video276849682_170681728',
             'info_dict': {
                 'id': 'V3K4mi0SYkc',
-                'ext': 'webm',
+                'ext': 'mp4',
                 'title': "DSWD Awards 'Children's Joy Foundation, Inc.' Certificate of Registration and License to Operate",
                 'description': 'md5:bf9c26cfa4acdfb146362682edd3827a',
-                'duration': 179,
+                'duration': 178,
                 'upload_date': '20130116',
                 'uploader': "Children's Joy Foundation Inc.",
                 'uploader_id': 'thecjf',
@@ -239,7 +239,7 @@ class VKIE(VKBaseIE):
             'url': 'http://vk.com/video-110305615_171782105',
             'md5': 'e13fcda136f99764872e739d13fac1d1',
             'info_dict': {
-                'id': '171782105',
+                'id': '-110305615_171782105',
                 'ext': 'mp4',
                 'title': 'S-Dance, репетиции к The way show',
                 'uploader': 'THE WAY SHOW | 17 апреля',
@@ -254,14 +254,17 @@ class VKIE(VKBaseIE):
         {
             # finished live stream, postlive_mp4
             'url': 'https://vk.com/videos-387766?z=video-387766_456242764%2Fpl_-387766_-2',
-            'md5': '90d22d051fccbbe9becfccc615be6791',
             'info_dict': {
-                'id': '456242764',
+                'id': '-387766_456242764',
                 'ext': 'mp4',
-                'title': 'ИгроМир 2016 — день 1',
+                'title': 'ИгроМир 2016 День 1 — Игромания Утром',
                 'uploader': 'Игромания',
                 'duration': 5239,
-                'view_count': int,
+                # TODO: use act=show to extract view_count
+                # 'view_count': int,
+                'upload_date': '20160929',
+                'uploader_id': '-387766',
+                'timestamp': 1475137527,
             },
         },
         {
@@ -465,7 +468,7 @@ class VKIE(VKBaseIE):
         self._sort_formats(formats)
 
         return {
-            'id': compat_str(data.get('vid') or video_id),
+            'id': video_id,
             'formats': formats,
             'title': title,
             'thumbnail': data.get('jpg'),
