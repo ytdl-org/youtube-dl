@@ -72,7 +72,7 @@ class UdemyIE(InfoExtractor):
     def _extract_course_info(self, webpage, video_id):
         course = self._parse_json(
             unescapeHTML(self._search_regex(
-                r'data-module-args=["\'](.*)["\']',
+                r'data-module-args=["\'](.*)["\']>',
                 webpage, 'course', default='{}')),
             video_id, fatal=False) or {}
         course_id = course.get('courseId') or self._search_regex(
