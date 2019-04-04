@@ -642,6 +642,7 @@ The simplest case is requesting a specific format, for example with `-f 22` you 
 You can also use a file extension (currently `3gp`, `aac`, `flv`, `m4a`, `mp3`, `mp4`, `ogg`, `wav`, `webm` are supported) to download the best quality format of a particular file extension served as a single file, e.g. `-f webm` will download the best quality format with the `webm` extension served as a single file.
 
 You can also use special names to select particular edge case formats:
+
  - `best`: Select the best quality format represented by a single file with video and audio.
  - `worst`: Select the worst quality format represented by a single file with video and audio.
  - `bestvideo`: Select the best quality video-only format (e.g. DASH video). May not be available.
@@ -658,6 +659,7 @@ If you want to download several formats of the same video use a comma as a separ
 You can also filter the video formats by putting a condition in brackets, as in `-f "best[height=720]"` (or `-f "[filesize>10M]"`).
 
 The following numeric meta fields can be used with comparisons `<`, `<=`, `>`, `>=`, `=` (equals), `!=` (not equals):
+
  - `filesize`: The number of bytes, if known in advance
  - `width`: Width of the video, if known
  - `height`: Height of the video, if known
@@ -668,6 +670,7 @@ The following numeric meta fields can be used with comparisons `<`, `<=`, `>`, `
  - `fps`: Frame rate
 
 Also filtering work for comparisons `=` (equals), `^=` (starts with), `$=` (ends with), `*=` (contains) and following string meta fields:
+
  - `ext`: File extension
  - `acodec`: Name of the audio codec in use
  - `vcodec`: Name of the video codec in use
