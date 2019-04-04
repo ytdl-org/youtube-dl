@@ -68,6 +68,9 @@ class TeamcocoIE(TurnerBaseIE):
             },
             'skip': 'This video is no longer available.',
         }, {
+            'url': 'http://teamcoco.com/comiccon/andy-finds-the-infinity-gauntlet?playlist=x;eyJ0eXBlIjoidGFnIiwiaWQiOjF9',
+            'only_matching': True,
+        }, {
             'url': 'http://teamcoco.com/video/the-conan-audiencey-awards-for-04/25/18',
             'only_matching': True,
         }, {
@@ -83,11 +86,17 @@ class TeamcocoIE(TurnerBaseIE):
     ]
 
     def _graphql_call(self, query_template, object_type, object_id):
-        find_object = 'find' + object_type
-        return self._download_json(
-            'http://teamcoco.com/graphql/', object_id, data=json.dumps({
-                'query': query_template % (find_object, object_id)
-            }))['data'][find_object]
+        if not isinstance(object_type, (list, tuple)):
+            object_type = [object_type]
+        for find_object in object_type:
+            find_object = 'find' + find_object
+            try:
+                return self._download_json(
+                    'http://teamcoco.com/graphql/', object_id, data=json.dumps({
+                        'query': query_template % (find_object, object_id)
+                    }), fatal=False)['data'][find_object]
+            except (AttributeError, KeyError, TypeError, IndexError):
+                pass
 
     def _real_extract(self, url):
         display_id = self._match_id(url)
@@ -149,7 +158,7 @@ class TeamcocoIE(TurnerBaseIE):
   %s(id: "%s") {
     src
   }
-}''', 'RecordVideoSource', video_id) or {}
+}''', ('Record', 'RecordVideoSource'), video_id) or {}
 
             formats = []
             get_quality = qualities(['low', 'sd', 'hd', 'uhd'])
