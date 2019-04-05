@@ -484,7 +484,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
         # RTMP (unnamed)
         '_rtmp': {'protocol': 'rtmp'},
     }
-    _SUBTITLE_FORMATS = ('ttml', 'vtt')
+    _SUBTITLE_FORMATS = ('srv1', 'srv2', 'srv3', 'ttml', 'vtt')
 
     _GEO_BYPASS = False
 
