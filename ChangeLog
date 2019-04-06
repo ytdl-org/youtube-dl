@@ -1,4 +1,4 @@
-version <unreleased>
+version 2019.04.07
 
 Core
 + [downloader/external] Pass rtmp_conn to ffmpeg
