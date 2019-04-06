@@ -19,9 +19,7 @@ from ..utils import (
 class DVTVIE(InfoExtractor):
     IE_NAME = 'dvtv'
     IE_DESC = 'http://video.aktualne.cz/'
-
     _VALID_URL = r'https?://video\.aktualne\.cz/(?:[^/]+/)+r~(?P<id>[0-9a-f]{32})'
-
     _TESTS = [{
         'url': 'http://video.aktualne.cz/dvtv/vondra-o-ceskem-stoleti-pri-pohledu-na-havla-mi-bylo-trapne/r~e5efe9ca855511e4833a0025900fea04/',
         'md5': '67cb83e4a955d36e1b5d31993134a0c2',
@@ -36,7 +34,7 @@ class DVTVIE(InfoExtractor):
     }, {
         'url': 'http://video.aktualne.cz/dvtv/dvtv-16-12-2014-utok-talibanu-boj-o-kliniku-uprchlici/r~973eb3bc854e11e498be002590604f2e/',
         'info_dict': {
-            'title': r're:^DVTV 16\. 12\. 2014: útok Talibanu, boj o kliniku, uprchlíci',
+            'title': r'DVTV 16. 12. 2014: útok Talibanu, boj o kliniku, uprchlíci',
             'id': '973eb3bc854e11e498be002590604f2e',
         },
         'playlist': [{
@@ -115,17 +113,14 @@ class DVTVIE(InfoExtractor):
     }]
 
     def _parse_video_metadata(self, js, video_id, timestamp):
-
         data = self._parse_json(js, video_id, transform_source=js_to_json)
+        title = unescapeHTML(data['title'])
 
         live_starter = try_get(data, lambda x: x['plugins']['liveStarter'], dict)
         if live_starter:
             data.update(live_starter)
 
-        title = unescapeHTML(data['title'])
-
         formats = []
-
         for tracks in data.get('tracks', {}).values():
             for video in tracks:
                 video_url = video.get('src')
@@ -167,36 +162,23 @@ class DVTVIE(InfoExtractor):
 
     def _real_extract(self, url):
         video_id = self._match_id(url)
-
         webpage = self._download_webpage(url, video_id)
-
         timestamp = parse_iso8601(self._html_search_meta(
             'article:published_time', webpage, 'published time', default=None))
 
-        # playlist
-        items = re.findall(
-            r"(?s)playlist\.push\(({.+?})\);",
-            webpage)
-
+        items = re.findall(r'(?s)playlist\.push\(({.+?})\);', webpage)
         if items:
-            return {
-                '_type': 'playlist',
-                'id': video_id,
-                'title': self._og_search_title(webpage),
-                'entries': [self._parse_video_metadata(i, video_id, timestamp) for i in items]
-            }
+            return self.playlist_result(
+                [self._parse_video_metadata(i, video_id, timestamp) for i in items],
+                video_id, self._html_search_meta('twitter:title', webpage))
 
-        # single video
         item = self._search_regex(
-            r'(?s)BBXPlayer.setup\((.+?)\);',
+            r'(?s)BBXPlayer\.setup\((.+?)\);',
             webpage, 'video', default=None)
-
         if item:
             # remove function calls (ex. htmldeentitize)
             # TODO this should be fixed in a general way in the js_to_json
             item = re.sub(r'\w+?\((.+)\)', r'\1', item)
-
-        if item:
             return self._parse_video_metadata(item, video_id, timestamp)
 
         raise ExtractorError('Could not find neither video nor playlist')
