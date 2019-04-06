@@ -91,6 +91,11 @@ class PictaIE(PictaBaseIE):
         # MPD manifest
         if info.get('manifest_url'):
             formats.extend(self._extract_mpd_formats(info.get('manifest_url'), video_id, formats_dict=self._formats))
+            # Fix some Picta DASH video vp09.00.[dd].08 for 'vcodec': 'vp9', 'acodec':'none'
+            for f in formats:
+                if f.get('acodec') is None and f.get('vcodec') == 'none':
+                    f.update({'vcodec':'vp9'})
+                    f.update({'acodec':'none'})
         if not formats:
             raise ExtractorError('Cannot find video formats')
 
