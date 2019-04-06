@@ -6,10 +6,7 @@ import re
 import sys
 
 from .common import InfoExtractor
-from ..compat import (
-    compat_str,
-    compat_urlparse,
-)
+from ..compat import compat_urlparse
 from ..utils import (
     clean_html,
     ExtractorError,
