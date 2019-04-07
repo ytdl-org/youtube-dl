@@ -27,7 +27,7 @@ install: youtube-dl youtube-dl.1 youtube-dl.bash-completion youtube-dl.zsh youtu
 	install -d $(DESTDIR)$(SHAREDIR)/zsh/site-functions
 	install -m 644 youtube-dl.zsh $(DESTDIR)$(SHAREDIR)/zsh/site-functions/_youtube-dl
 	install -d $(DESTDIR)$(SYSCONFDIR)/fish/completions
-	install -m 644 youtube-dl.fish $(DESTDIR)$(SYSCONFDIR)/fish/completions/youtube-dl.fish
+	install -m 644 youtube-dl.fish $(DESTDIR)$(SYSCONFDIR)/fish/vendor_completions.d/youtube-dl.fish
 
 codetest:
 	flake8 .
