@@ -65,8 +65,15 @@ class TikTokBaseIE(InfoExtractor):
 
 
 class TikTokIE(TikTokBaseIE):
-    _VALID_URL = r'https?://(?:m\.)?tiktok\.com/v/(?P<id>\d+)'
-    _TEST = {
+    _VALID_URL = r'''(?x)
+                        https?://
+                            (?:
+                                (?:m\.)?tiktok\.com/v|
+                                (?:www\.)?tiktok\.com/share/video
+                            )
+                            /(?P<id>\d+)
+                    '''
+    _TESTS = [{
         'url': 'https://m.tiktok.com/v/6606727368545406213.html',
         'md5': 'd584b572e92fcd48888051f238022420',
         'info_dict': {
@@ -81,25 +88,39 @@ class TikTokIE(TikTokBaseIE):
             'comment_count': int,
             'repost_count': int,
         }
-    }
+    }, {
+        'url': 'https://www.tiktok.com/share/video/6606727368545406213',
+        'only_matching': True,
+    }]
 
     def _real_extract(self, url):
         video_id = self._match_id(url)
-        webpage = self._download_webpage(url, video_id)
+        webpage = self._download_webpage(
+            'https://m.tiktok.com/v/%s.html' % video_id, video_id)
         data = self._parse_json(self._search_regex(
             r'\bdata\s*=\s*({.+?})\s*;', webpage, 'data'), video_id)
         return self._extract_aweme(data)
 
 
 class TikTokUserIE(TikTokBaseIE):
-    _VALID_URL = r'https?://(?:m\.)?tiktok\.com/h5/share/usr/(?P<id>\d+)'
-    _TEST = {
+    _VALID_URL = r'''(?x)
+                        https?://
+                            (?:
+                                (?:m\.)?tiktok\.com/h5/share/usr|
+                                (?:www\.)?tiktok\.com/share/user
+                            )
+                            /(?P<id>\d+)
+                    '''
+    _TESTS = [{
         'url': 'https://m.tiktok.com/h5/share/usr/188294915489964032.html',
         'info_dict': {
             'id': '188294915489964032',
         },
         'playlist_mincount': 24,
-    }
+    }, {
+        'url': 'https://www.tiktok.com/share/user/188294915489964032',
+        'only_matching': True,
+    }]
 
     def _real_extract(self, url):
         user_id = self._match_id(url)

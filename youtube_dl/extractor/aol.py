@@ -4,6 +4,10 @@ from __future__ import unicode_literals
 import re
 
 from .common import InfoExtractor
+from ..compat import (
+    compat_parse_qs,
+    compat_urllib_parse_urlparse,
+)
 from ..utils import (
     ExtractorError,
     int_or_none,
@@ -12,12 +16,12 @@ from ..utils import (
 
 
 class AolIE(InfoExtractor):
-    IE_NAME = 'on.aol.com'
-    _VALID_URL = r'(?:aol-video:|https?://(?:(?:www|on)\.)?aol\.com/(?:[^/]+/)*(?:[^/?#&]+-)?)(?P<id>[^/?#&]+)'
+    IE_NAME = 'aol.com'
+    _VALID_URL = r'(?:aol-video:|https?://(?:www\.)?aol\.com/video/(?:[^/]+/)*)(?P<id>[0-9a-f]+)'
 
     _TESTS = [{
         # video with 5min ID
-        'url': 'http://on.aol.com/video/u-s--official-warns-of-largest-ever-irs-phone-scam-518167793?icid=OnHomepageC2Wide_MustSee_Img',
+        'url': 'https://www.aol.com/video/view/u-s--official-warns-of-largest-ever-irs-phone-scam/518167793/',
         'md5': '18ef68f48740e86ae94b98da815eec42',
         'info_dict': {
             'id': '518167793',
@@ -34,7 +38,7 @@ class AolIE(InfoExtractor):
         }
     }, {
         # video with vidible ID
-        'url': 'http://www.aol.com/video/view/netflix-is-raising-rates/5707d6b8e4b090497b04f706/',
+        'url': 'https://www.aol.com/video/view/netflix-is-raising-rates/5707d6b8e4b090497b04f706/',
         'info_dict': {
             'id': '5707d6b8e4b090497b04f706',
             'ext': 'mp4',
@@ -49,16 +53,16 @@ class AolIE(InfoExtractor):
             'skip_download': True,
         }
     }, {
-        'url': 'http://on.aol.com/partners/abc-551438d309eab105804dbfe8/sneak-peek-was-haley-really-framed-570eaebee4b0448640a5c944',
+        'url': 'https://www.aol.com/video/view/park-bench-season-2-trailer/559a1b9be4b0c3bfad3357a7/',
         'only_matching': True,
     }, {
-        'url': 'http://on.aol.com/shows/park-bench-shw518173474-559a1b9be4b0c3bfad3357a7?context=SH:SHW518173474:PL4327:1460619712763',
-        'only_matching': True,
-    }, {
-        'url': 'http://on.aol.com/video/519442220',
+        'url': 'https://www.aol.com/video/view/donald-trump-spokeswoman-tones-down-megyn-kelly-attacks/519442220/',
         'only_matching': True,
     }, {
         'url': 'aol-video:5707d6b8e4b090497b04f706',
+        'only_matching': True,
+    }, {
+        'url': 'https://www.aol.com/video/playlist/PL8245/5ca79d19d21f1a04035db606/',
         'only_matching': True,
     }]
 
@@ -73,7 +77,7 @@ class AolIE(InfoExtractor):
 
         video_data = response['data']
         formats = []
-        m3u8_url = video_data.get('videoMasterPlaylist')
+        m3u8_url = url_or_none(video_data.get('videoMasterPlaylist'))
         if m3u8_url:
             formats.extend(self._extract_m3u8_formats(
                 m3u8_url, video_id, 'mp4', m3u8_id='hls', fatal=False))
@@ -95,6 +99,12 @@ class AolIE(InfoExtractor):
                     f.update({
                         'width': int(mobj.group(1)),
                         'height': int(mobj.group(2)),
+                    })
+                else:
+                    qs = compat_parse_qs(compat_urllib_parse_urlparse(video_url).query)
+                    f.update({
+                        'width': int_or_none(qs.get('w', [None])[0]),
+                        'height': int_or_none(qs.get('h', [None])[0]),
                     })
                 formats.append(f)
         self._sort_formats(formats, ('width', 'height', 'tbr', 'format_id'))

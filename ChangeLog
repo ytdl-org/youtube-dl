@@ -1,3 +1,49 @@
+version 2019.04.07
+
+Core
++ [downloader/external] Pass rtmp_conn to ffmpeg
+
+Extractors
++ [ruutu] Add support for audio podcasts (#20473, #20545)
++ [xvideos] Extract all thumbnails (#20432)
++ [platzi] Add support for platzi.com (#20562)
+* [dvtv] Fix extraction (#18514, #19174)
++ [vrv] Add basic support for individual movie links (#19229)
++ [bfi:player] Add support for player.bfi.org.uk (#19235)
+* [hbo] Fix extraction and extract subtitles (#14629, #13709)
+* [youtube] Extract srv[1-3] subtitle formats (#20566)
+* [adultswim] Fix extraction (#18025)
+* [teamcoco] Fix extraction and add suport for subdomains (#17099, #20339)
+* [adn] Fix subtitle compatibility with ffmpeg
+* [adn] Fix extraction and add support for positioning styles (#20549)
+* [vk] Use unique video id (#17848)
+* [newstube] Fix extraction
+* [rtl2] Actualize extraction
++ [adobeconnect] Add support for adobeconnect.com (#20283)
++ [gaia] Add support for authentication (#14605)
++ [mediasite] Add support for dashed ids and named catalogs (#20531)
+
+
+version 2019.04.01
+
+Core
+* [utils] Improve int_or_none and float_or_none (#20403)
+* Check for valid --min-sleep-interval when --max-sleep-interval is specified
+  (#20435)
+
+Extractors
++ [weibo] Extend URL regular expression (#20496)
++ [xhamster] Add support for xhamster.one (#20508)
++ [mediasite] Add support for catalogs (#20507)
++ [teamtreehouse] Add support for teamtreehouse.com (#9836)
++ [ina] Add support for audio URLs
+* [ina] Improve extraction
+* [cwtv] Fix episode number extraction (#20461)
+* [npo] Improve DRM detection
++ [pornhub] Add support for DASH formats (#20403)
+* [svtplay] Update API endpoint (#20430)
+
+
 version 2019.03.18
 
 Core

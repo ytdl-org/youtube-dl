@@ -57,10 +57,17 @@ class XVideosIE(InfoExtractor):
             webpage, 'title', default=None,
             group='title') or self._og_search_title(webpage)
 
-        thumbnail = self._search_regex(
-            (r'setThumbUrl\(\s*(["\'])(?P<thumbnail>(?:(?!\1).)+)\1',
-             r'url_bigthumb=(?P<thumbnail>.+?)&amp'),
-            webpage, 'thumbnail', fatal=False, group='thumbnail')
+        thumbnails = []
+        for preference, thumbnail in enumerate(('', '169')):
+            thumbnail_url = self._search_regex(
+                r'setThumbUrl%s\(\s*(["\'])(?P<thumbnail>(?:(?!\1).)+)\1' % thumbnail,
+                webpage, 'thumbnail', default=None, group='thumbnail')
+            if thumbnail_url:
+                thumbnails.append({
+                    'url': thumbnail_url,
+                    'preference': preference,
+                })
+
         duration = int_or_none(self._og_search_property(
             'duration', webpage, default=None)) or parse_duration(
             self._search_regex(
@@ -98,6 +105,6 @@ class XVideosIE(InfoExtractor):
             'formats': formats,
             'title': title,
             'duration': duration,
-            'thumbnail': thumbnail,
+            'thumbnails': thumbnails,
             'age_limit': 18,
         }

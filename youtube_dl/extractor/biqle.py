@@ -28,7 +28,7 @@ class BIQLEIE(InfoExtractor):
         'url': 'http://biqle.org/watch/-44781847_168547604',
         'md5': '7f24e72af1db0edf7c1aaba513174f97',
         'info_dict': {
-            'id': '168547604',
+            'id': '-44781847_168547604',
             'ext': 'mp4',
             'title': 'Ребенок в шоке от автоматической мойки',
             'timestamp': 1396633454,

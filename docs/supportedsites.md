@@ -28,6 +28,7 @@
  - **acast:channel**
  - **AddAnime**
  - **ADN**: Anime Digital Network
+ - **AdobeConnect**
  - **AdobeTV**
  - **AdobeTVChannel**
  - **AdobeTVShow**
@@ -101,6 +102,7 @@
  - **Bellator**
  - **BellMedia**
  - **Bet**
+ - **bfi:player**
  - **Bigflix**
  - **Bild**: Bild.de
  - **BiliBili**
@@ -345,7 +347,6 @@
  - **Groupon**
  - **Hark**
  - **hbo**
- - **hbo:episode**
  - **HearThisAt**
  - **Heise**
  - **HellPorno**
@@ -488,6 +489,8 @@
  - **Medialaan**
  - **Mediaset**
  - **Mediasite**
+ - **MediasiteCatalog**
+ - **MediasiteNamedCatalog**
  - **Medici**
  - **megaphone.fm**: megaphone.fm embedded players
  - **Meipai**: 美拍
@@ -670,6 +673,8 @@
  - **Piksel**
  - **Pinkbike**
  - **Pladform**
+ - **Platzi**
+ - **PlatziCourse**
  - **play.fm**
  - **PlayPlusTV**
  - **PlaysTV**
@@ -869,6 +874,7 @@
  - **teachertube:user:collection**: teachertube.com user and collection videos
  - **TeachingChannel**
  - **Teamcoco**
+ - **TeamTreeHouse**
  - **TechTalks**
  - **techtv.mit.edu**
  - **ted**

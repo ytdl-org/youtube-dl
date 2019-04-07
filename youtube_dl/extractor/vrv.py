@@ -150,9 +150,10 @@ class VRVIE(VRVBaseIE):
     def _real_extract(self, url):
         video_id = self._match_id(url)
 
-        episode_path = self._get_cms_resource(
-            'cms:/episodes/' + video_id, video_id)
-        video_data = self._call_cms(episode_path, video_id, 'video')
+        object_data = self._call_cms(self._get_cms_resource(
+            'cms:/objects/' + video_id, video_id), video_id, 'object')['items'][0]
+        resource_path = object_data['__links__']['resource']['href']
+        video_data = self._call_cms(resource_path, video_id, 'video')
         title = video_data['title']
 
         streams_path = video_data['__links__'].get('streams', {}).get('href')

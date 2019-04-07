@@ -10,16 +10,16 @@ from ..utils import (
     int_or_none,
     js_to_json,
     mimetype2ext,
+    try_get,
     unescapeHTML,
+    parse_iso8601,
 )
 
 
 class DVTVIE(InfoExtractor):
     IE_NAME = 'dvtv'
     IE_DESC = 'http://video.aktualne.cz/'
-
     _VALID_URL = r'https?://video\.aktualne\.cz/(?:[^/]+/)+r~(?P<id>[0-9a-f]{32})'
-
     _TESTS = [{
         'url': 'http://video.aktualne.cz/dvtv/vondra-o-ceskem-stoleti-pri-pohledu-na-havla-mi-bylo-trapne/r~e5efe9ca855511e4833a0025900fea04/',
         'md5': '67cb83e4a955d36e1b5d31993134a0c2',
@@ -28,11 +28,13 @@ class DVTVIE(InfoExtractor):
             'ext': 'mp4',
             'title': 'Vondra o Českém století: Při pohledu na Havla mi bylo trapně',
             'duration': 1484,
+            'upload_date': '20141217',
+            'timestamp': 1418792400,
         }
     }, {
         'url': 'http://video.aktualne.cz/dvtv/dvtv-16-12-2014-utok-talibanu-boj-o-kliniku-uprchlici/r~973eb3bc854e11e498be002590604f2e/',
         'info_dict': {
-            'title': r're:^DVTV 16\. 12\. 2014: útok Talibanu, boj o kliniku, uprchlíci',
+            'title': r'DVTV 16. 12. 2014: útok Talibanu, boj o kliniku, uprchlíci',
             'id': '973eb3bc854e11e498be002590604f2e',
         },
         'playlist': [{
@@ -84,6 +86,8 @@ class DVTVIE(InfoExtractor):
             'ext': 'mp4',
             'title': 'Zeman si jen léčí mindráky, Sobotku nenávidí a Babiš se mu teď hodí, tvrdí Kmenta',
             'duration': 1103,
+            'upload_date': '20170511',
+            'timestamp': 1494514200,
         },
         'params': {
             'skip_download': True,
@@ -91,43 +95,59 @@ class DVTVIE(InfoExtractor):
     }, {
         'url': 'http://video.aktualne.cz/v-cechach-poprve-zazni-zelenkova-zrestaurovana-mse/r~45b4b00483ec11e4883b002590604f2e/',
         'only_matching': True,
+    }, {
+        # Test live stream video (liveStarter) parsing
+        'url': 'https://video.aktualne.cz/dvtv/zive-mistryne-sveta-eva-samkova-po-navratu-ze-sampionatu/r~182654c2288811e990fd0cc47ab5f122/',
+        'md5': '2e552e483f2414851ca50467054f9d5d',
+        'info_dict': {
+            'id': '8d116360288011e98c840cc47ab5f122',
+            'ext': 'mp4',
+            'title': 'Živě: Mistryně světa Eva Samková po návratu ze šampionátu',
+            'upload_date': '20190204',
+            'timestamp': 1549289591,
+        },
+        'params': {
+            # Video content is no longer available
+            'skip_download': True,
+        },
     }]
 
-    def _parse_video_metadata(self, js, video_id, live_js=None):
+    def _parse_video_metadata(self, js, video_id, timestamp):
         data = self._parse_json(js, video_id, transform_source=js_to_json)
-        if live_js:
-            data.update(self._parse_json(
-                live_js, video_id, transform_source=js_to_json))
-
         title = unescapeHTML(data['title'])
 
+        live_starter = try_get(data, lambda x: x['plugins']['liveStarter'], dict)
+        if live_starter:
+            data.update(live_starter)
+
         formats = []
-        for video in data['sources']:
-            video_url = video.get('file')
-            if not video_url:
-                continue
-            video_type = video.get('type')
-            ext = determine_ext(video_url, mimetype2ext(video_type))
-            if video_type == 'application/vnd.apple.mpegurl' or ext == 'm3u8':
-                formats.extend(self._extract_m3u8_formats(
-                    video_url, video_id, 'mp4', entry_protocol='m3u8_native',
-                    m3u8_id='hls', fatal=False))
-            elif video_type == 'application/dash+xml' or ext == 'mpd':
-                formats.extend(self._extract_mpd_formats(
-                    video_url, video_id, mpd_id='dash', fatal=False))
-            else:
-                label = video.get('label')
-                height = self._search_regex(
-                    r'^(\d+)[pP]', label or '', 'height', default=None)
-                format_id = ['http']
-                for f in (ext, label):
-                    if f:
-                        format_id.append(f)
-                formats.append({
-                    'url': video_url,
-                    'format_id': '-'.join(format_id),
-                    'height': int_or_none(height),
-                })
+        for tracks in data.get('tracks', {}).values():
+            for video in tracks:
+                video_url = video.get('src')
+                if not video_url:
+                    continue
+                video_type = video.get('type')
+                ext = determine_ext(video_url, mimetype2ext(video_type))
+                if video_type == 'application/vnd.apple.mpegurl' or ext == 'm3u8':
+                    formats.extend(self._extract_m3u8_formats(
+                        video_url, video_id, 'mp4', entry_protocol='m3u8_native',
+                        m3u8_id='hls', fatal=False))
+                elif video_type == 'application/dash+xml' or ext == 'mpd':
+                    formats.extend(self._extract_mpd_formats(
+                        video_url, video_id, mpd_id='dash', fatal=False))
+                else:
+                    label = video.get('label')
+                    height = self._search_regex(
+                        r'^(\d+)[pP]', label or '', 'height', default=None)
+                    format_id = ['http']
+                    for f in (ext, label):
+                        if f:
+                            format_id.append(f)
+                    formats.append({
+                        'url': video_url,
+                        'format_id': '-'.join(format_id),
+                        'height': int_or_none(height),
+                    })
         self._sort_formats(formats)
 
         return {
@@ -136,41 +156,29 @@ class DVTVIE(InfoExtractor):
             'description': data.get('description'),
             'thumbnail': data.get('image'),
             'duration': int_or_none(data.get('duration')),
-            'timestamp': int_or_none(data.get('pubtime')),
+            'timestamp': int_or_none(timestamp),
             'formats': formats
         }
 
     def _real_extract(self, url):
         video_id = self._match_id(url)
-
         webpage = self._download_webpage(url, video_id)
+        timestamp = parse_iso8601(self._html_search_meta(
+            'article:published_time', webpage, 'published time', default=None))
 
-        # live content
-        live_item = self._search_regex(
-            r'(?s)embedData[0-9a-f]{32}\.asset\.liveStarter\s*=\s*(\{.+?\});',
-            webpage, 'video', default=None)
-
-        # single video
-        item = self._search_regex(
-            r'(?s)embedData[0-9a-f]{32}\[["\']asset["\']\]\s*=\s*(\{.+?\});',
-            webpage, 'video', default=None)
-
-        if item:
-            return self._parse_video_metadata(item, video_id, live_item)
-
-        # playlist
-        items = re.findall(
-            r"(?s)BBX\.context\.assets\['[0-9a-f]{32}'\]\.push\(({.+?})\);",
-            webpage)
-        if not items:
-            items = re.findall(r'(?s)var\s+asset\s*=\s*({.+?});\n', webpage)
-
+        items = re.findall(r'(?s)playlist\.push\(({.+?})\);', webpage)
         if items:
-            return {
-                '_type': 'playlist',
-                'id': video_id,
-                'title': self._og_search_title(webpage),
-                'entries': [self._parse_video_metadata(i, video_id) for i in items]
-            }
+            return self.playlist_result(
+                [self._parse_video_metadata(i, video_id, timestamp) for i in items],
+                video_id, self._html_search_meta('twitter:title', webpage))
+
+        item = self._search_regex(
+            r'(?s)BBXPlayer\.setup\((.+?)\);',
+            webpage, 'video', default=None)
+        if item:
+            # remove function calls (ex. htmldeentitize)
+            # TODO this should be fixed in a general way in the js_to_json
+            item = re.sub(r'\w+?\((.+)\)', r'\1', item)
+            return self._parse_video_metadata(item, video_id, timestamp)
 
         raise ExtractorError('Could not find neither video nor playlist')
