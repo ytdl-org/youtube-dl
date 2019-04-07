@@ -9,9 +9,7 @@ from ..utils import (
     int_or_none,
     url_or_none,
 )
-from urllib.parse import urlparse
 from urllib.request import urlopen
-import lxml.html
 
 
 class AolIE(InfoExtractor):
@@ -69,27 +67,15 @@ class AolIE(InfoExtractor):
         return urlopen(url).read()
 
     def _download_and_extract_video_id_from_page(self, url):
-        page_bytes = self._download_page(url)
-        tree = lxml.html.fromstring(page_bytes)
-        src_xpath = tree.xpath("//script[contains(@src, "
-                               "'delivery.vidible.tv')]")
-        src_tag = src_xpath[0].attrib.get('src')
-        parsed_vid_url = urlparse(src_tag)
-        vid_url_path = parsed_vid_url.path
-        vid_url_params = vid_url_path.split('/')
-        return self._find_vid_param(vid_url_params)
-
-    def _find_vid_param(self, vid_url_params: [str]):
-        for param in vid_url_params:
-            if param.startswith('vid='):
-                return param.split('=')[1]
-        return None
+        video_id_regex = r'<script [^>]*src="[^"]*vid=(?P<vid>[^?/]*)'
+        page_bytes = self._download_page(url).decode()
+        mobj = re.search(video_id_regex, page_bytes)
+        return mobj.group('vid')
 
     def _real_extract(self, url):
-        # video_id = self._match_id(url)
-        print(f'getting video_id')
         video_id = self._download_and_extract_video_id_from_page(url)
-        print(f'video_id: {video_id}')
+        if video_id is None:
+            raise ExtractorError('Could not find video_id')
 
         response = self._download_json(
             'https://feedapi.b2c.on.aol.com/v1.0/app/videos/aolon/%s/details' % video_id,
