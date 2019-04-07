@@ -1093,6 +1093,7 @@ from .streamcloud import StreamcloudIE
 from .streamcz import StreamCZIE
 from .streetvoice import StreetVoiceIE
 from .stretchinternet import StretchInternetIE
+from .stv import STVPlayerIE
 from .sunporno import SunPornoIE
 from .svt import (
     SVTIE,
