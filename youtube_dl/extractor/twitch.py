@@ -575,6 +575,7 @@ class TwitchStreamIE(TwitchBaseIE):
                             (?:(?:www|go|m)\.)?twitch\.tv/|
                             player\.twitch\.tv/\?.*?\bchannel=
                         )
+                        (?!collections)
                         (?P<id>[^/#?]+)
                     '''
 
