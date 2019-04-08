@@ -109,7 +109,7 @@ class RoosterTeethIE(InfoExtractor):
                                           display_id, note='m3u8', headers=headers)
         m3u8_url = stream_info['data'][0]['attributes']['url']
         title = video_info['data'][0]['attributes']['title']
-        season = video_info['data'][0]['attributes']['season_number']
+        season_number = video_info['data'][0]['attributes']['season_number']
         episode = video_info['data'][0]['attributes']['number']
         description = video_info['data'][0]['attributes']['description']
         series = video_info['data'][0]['attributes']['show_title']
@@ -131,6 +131,7 @@ class RoosterTeethIE(InfoExtractor):
             'description': description,
             'thumbnail': thumbnail,
             'series': series,
+            'season_number': season_number,
             'episode': str(episode),
             'comment_count': comment_count,
             'formats': formats,
