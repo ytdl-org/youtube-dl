@@ -1241,6 +1241,7 @@ from .twitch import (
     TwitchChapterIE,
     TwitchVodIE,
     TwitchProfileIE,
+    TwitchCollectionsIE,
     TwitchAllVideosIE,
     TwitchUploadsIE,
     TwitchPastBroadcastsIE,

@@ -435,6 +435,62 @@ class TwitchVideosBaseIE(TwitchPlaylistBaseIE):
     _PLAYLIST_PATH = TwitchPlaylistBaseIE._PLAYLIST_PATH + '&broadcast_type='
 
 
+class TwitchCollectionsIE(TwitchBaseIE):
+    IE_NAME = 'twitch:collections'
+    _VALID_URL = r'%s/collections/(?P<id>[\w\d]+)' % TwitchBaseIE._VALID_URL_BASE
+
+    _TESTS = [{
+        'url': 'https://www.twitch.tv/collections/myIbIFkZphQSbQ',
+        'info_dict': {
+            'id': 'myIbIFkZphQSbQ',
+            'title': 'Fanboys - LIVE every Tuesday at 1 pm PT '
+        },
+        'playlist_mincount': 28,
+    }, {
+        'url': 'https://m.twitch.tv/collections/KFti877JixXiHQ',
+        'info_dict': {
+            'id': 'KFti877JixXiHQ',
+            'title': 'CORSAIR DreamLeague Season 11 - The Stockholm Major - Studio'
+        },
+        'playlist_mincount': 57,
+    }]
+
+    def _extract_collection(self, collection_id):
+        # Get collection metadata
+        info = self._call_api(
+            'kraken/collections/%s' % collection_id,
+            collection_id, 'Downloading collection info JSON',
+            headers={
+                'Accept': 'application/vnd.twitchtv.v5+json',
+            }
+        )
+
+        # Get collection items (videos)
+        collection = self._call_api(
+            'kraken/collections/%s/items' % collection_id,
+            collection_id, 'Downloading collection items JSON',
+            headers={
+                'Accept': 'application/vnd.twitchtv.v5+json',
+            }
+        )
+
+        # Collection JSON contains item_id values, need to turn these into URLs
+        urls = [self._make_url_result(item.get('item_id')) for item in collection.get('items')]
+
+        return self.playlist_result(
+            urls, collection_id, info.get('title')
+        )
+
+    def _make_url_result(self, item_id):
+        video_id = 'v%s' % item_id
+        url = 'https://www.twitch.tv/videos/%s' % item_id
+        return self.url_result(url, TwitchVodIE.ie_key(), video_id=video_id)
+
+    def _real_extract(self, url):
+        collection_id = self._match_id(url)
+        return self._extract_collection(collection_id)
+
+
 class TwitchAllVideosIE(TwitchVideosBaseIE):
     IE_NAME = 'twitch:videos:all'
     _VALID_URL = r'%s/all' % TwitchVideosBaseIE._VALID_URL_VIDEOS_BASE
