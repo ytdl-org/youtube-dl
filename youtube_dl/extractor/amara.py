@@ -4,7 +4,7 @@ from __future__ import unicode_literals
 from .common import InfoExtractor
 from .youtube import YoutubeIE
 from .vimeo import VimeoIE
-from ..utils import ExtractorError
+from .generic import GenericIE
 
 
 class AmaraIE(InfoExtractor):
@@ -39,7 +39,7 @@ class AmaraIE(InfoExtractor):
         elif video_type == 'V':
             IE = VimeoIE
         else:
-            raise ExtractorError('Could not find extractor for Amara video type %s.' % video_type)
+            IE = GenericIE
 
         ie_info = IE(downloader=self._downloader).extract(video_url)
 
