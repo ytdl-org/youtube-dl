@@ -2831,11 +2831,7 @@ def dfxp2srt(dfxp_data):
                     self._applied_styles.pop()
 
         def data(self, data):
-<<<<<<< HEAD
-            self._out += data.strip()
-=======
             self._out += data
->>>>>>> [streamango] add support for streamcherry.com (#20592)
 
         def close(self):
             return self._out.strip()
