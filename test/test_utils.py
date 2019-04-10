@@ -1154,6 +1154,8 @@ ffmpeg version 2.4.4 Copyright (c) 2000-2014 the FFmpeg ...'''), '2.4.4')
         self.assertEqual(parse_dfxp_time_expr('00:00:01'), 1.0)
         self.assertEqual(parse_dfxp_time_expr('00:00:01.100'), 1.1)
         self.assertEqual(parse_dfxp_time_expr('00:00:01:100'), 1.1)
+        self.assertEqual(parse_dfxp_time_expr('00:00:01:10'), 1.01) # [nrk]
+        self.assertEqual(parse_dfxp_time_expr('00:00:01:1'), 1.001) # [nrk]
 
     def test_dfxp2srt(self):
         dfxp_data = '''<?xml version="1.0" encoding="UTF-8"?>
