@@ -2831,7 +2831,7 @@ def dfxp2srt(dfxp_data):
                     self._applied_styles.pop()
 
         def data(self, data):
-            self._out += data
+            self._out += data.strip()
 
         def close(self):
             return self._out.strip()
