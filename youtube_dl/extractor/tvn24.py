@@ -4,6 +4,7 @@ from __future__ import unicode_literals
 from .common import InfoExtractor
 from ..utils import (
     int_or_none,
+    remove_end,
     unescapeHTML,
 )
 
@@ -36,6 +37,7 @@ class TVN24IE(InfoExtractor):
 
     def _real_extract(self, url):
         video_id = self._match_id(url)
+        video_id = remove_end(video_id, '.html')
 
         webpage = self._download_webpage(url, video_id)
 
