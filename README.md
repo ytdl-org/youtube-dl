@@ -53,7 +53,7 @@ Alternatively, refer to the [developer instructions](#developer-instructions) fo
 
 # DOCKER 
 
-If you don't want to download plug-in for your company. You can ues docker image.
+If you don't want to download plug-in for your computer. You can ues docker image.
 
 ### build docker images
  
