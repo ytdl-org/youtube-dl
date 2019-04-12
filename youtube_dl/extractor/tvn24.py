@@ -18,7 +18,7 @@ class TVN24IE(InfoExtractor):
             'id': '1584444',
             'ext': 'mp4',
             'title': '"Święta mają być wesołe, dlatego, ludziska, wszyscy pod jemiołę"',
-            'description': 'Wyjątkowe orędzie Artura Andrusa, jednego z gości "Szkła kontaktowego".',
+            'description': 'Wyjątkowe orędzie Artura Andrusa, jednego z gości Szkła kontaktowego.',
             'thumbnail': 're:https?://.*[.]jpeg',
         }
     }, {
