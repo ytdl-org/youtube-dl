@@ -63,7 +63,7 @@ If you don't want to download plug-in for your company. You can ues docker image
 
 It will execute the `download.sh` script in the current directory
 
-    docker run -d -v `pwd`/:/app xushikuan/youtube-download:1.0
+    docker run -d -v `pwd`/:/app youtube-download:latest
 
 ### download.sh
 
