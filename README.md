@@ -4,6 +4,7 @@ youtube-dl - download videos from youtube.com or other video platforms
 
 - [INSTALLATION](#installation)
 - [DESCRIPTION](#description)
+- [DOCKER](#docker)
 - [OPTIONS](#options)
 - [CONFIGURATION](#configuration)
 - [OUTPUT TEMPLATE](#output-template)
@@ -49,6 +50,24 @@ Alternatively, refer to the [developer instructions](#developer-instructions) fo
 **youtube-dl** is a command-line program to download videos from YouTube.com and a few more sites. It requires the Python interpreter, version 2.6, 2.7, or 3.2+, and it is not platform specific. It should work on your Unix box, on Windows or on macOS. It is released to the public domain, which means you can modify it, redistribute it or use it however you like.
 
     youtube-dl [OPTIONS] URL [URL...]
+
+# DOCKER 
+
+If you don't want to download plug-in for your company. You can ues docker image.
+
+### build docker images
+ 
+    docker build -t youtube-dl .
+
+### docker run 
+
+It will execute the `download.sh` script in the current directory
+
+    docker run -d -v `pwd`/:/app xushikuan/youtube-download:1.0
+
+### download.sh
+
+    youtube-dl -i -r 1M -o '/app/%(uploader)s/%(playlist)s/%(playlist_index)s - %(title)s.%(ext)s' https://www.youtube.com/channel/xxxxxxxxxxxxxxxxx/playlists
 
 # OPTIONS
     -h, --help                       Print this help text and exit
