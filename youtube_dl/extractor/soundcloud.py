@@ -221,9 +221,9 @@ class SoundcloudIE(InfoExtractor):
         if isinstance(thumbnail, compat_str):
             thumbnail = thumbnail.replace('-large', '-original')
             thumbnails.append({
-                    'url': thumbnail.replace('-original', '-t500x500'),
-                    'width': 500,
-                    'height': 500
+                'url': thumbnail.replace('-original', '-t500x500'),
+                'width': 500,
+                'height': 500
             })
             thumbnails.append({'url': thumbnail})
         username = try_get(info, lambda x: x['user']['username'], compat_str)
