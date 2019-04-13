@@ -2729,9 +2729,9 @@ def parse_dfxp_time_expr(time_expr):
     if mobj:
         return float(mobj.group('time_offset'))
 
-    mobj = re.match(r'^(\d+):(\d\d):(\d\d)\.(\d{1,3})$', time_expr)
+    mobj = re.match(r'^(\d+):(\d\d):(\d\d(?:(?:\.|:)\d+)?)$', time_expr)
     if mobj:
-        return 3600 * int(mobj.group(1)) + 60 * int(mobj.group(2)) + int(mobj.group(3)) + float("%03d" % int(mobj.group(4))) / 1000
+        return 3600 * int(mobj.group(1)) + 60 * int(mobj.group(2)) + float(mobj.group(3).replace(':', '.'))
 
 
 def srt_subtitles_timecode(seconds):
@@ -2831,7 +2831,11 @@ def dfxp2srt(dfxp_data):
                     self._applied_styles.pop()
 
         def data(self, data):
+<<<<<<< HEAD
             self._out += data.strip()
+=======
+            self._out += data
+>>>>>>> [streamango] add support for streamcherry.com (#20592)
 
         def close(self):
             return self._out.strip()
