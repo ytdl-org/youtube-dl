@@ -730,6 +730,11 @@ from .neteasemusic import (
     NetEaseMusicProgramIE,
     NetEaseMusicDjRadioIE,
 )
+from .neteaseopencourse import (
+    NeteaseOpenCourseVideoIE,
+    NeteaseOpenCourseVideoH5IE,
+    NeteaseOpenCoursePlaylistIE
+)
 from .newgrounds import (
     NewgroundsIE,
     NewgroundsPlaylistIE,
