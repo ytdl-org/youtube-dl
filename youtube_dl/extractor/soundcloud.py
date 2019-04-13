@@ -219,13 +219,19 @@ class SoundcloudIE(InfoExtractor):
         thumbnail = info.get('artwork_url') or info.get('user', {}).get('avatar_url')
         thumbnails = []
         if isinstance(thumbnail, compat_str):
-            thumbnail = thumbnail.replace('-large', '-original')
             thumbnails.append({
-                'url': thumbnail.replace('-original', '-t500x500'),
+                'url': thumbnail,
+                'width': 100,
+                'height': 100
+            })
+            thumbnails.append({
+                'url': thumbnail.replace('-large', '-t500x500'),
                 'width': 500,
                 'height': 500
             })
-            thumbnails.append({'url': thumbnail})
+            thumbnails.append({
+                'url': thumbnail.replace('-large', '-original'),
+            })
         username = try_get(info, lambda x: x['user']['username'], compat_str)
 
         def extract_count(key):
@@ -237,7 +243,6 @@ class SoundcloudIE(InfoExtractor):
             'timestamp': unified_timestamp(info.get('created_at')),
             'title': title,
             'description': info.get('description'),
-            'thumbnail': thumbnail,
             'thumbnails': thumbnails,
             'duration': int_or_none(info.get('duration'), 1000),
             'webpage_url': info.get('permalink_url'),
