@@ -14,7 +14,7 @@ from ..utils import (
 
 
 class StreamangoIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:www\.)?(?:streamango\.com|fruithosts\.net)/(?:f|embed)/(?P<id>[^/?#&]+)'
+    _VALID_URL = r'https?://(?:www\.)?(?:streamango\.com|fruithosts\.net|streamcherry\.com)/(?:f|embed)/(?P<id>[^/?#&]+)'
     _TESTS = [{
         'url': 'https://streamango.com/f/clapasobsptpkdfe/20170315_150006_mp4',
         'md5': 'e992787515a182f55e38fc97588d802a',
@@ -40,6 +40,9 @@ class StreamangoIE(InfoExtractor):
         'only_matching': True,
     }, {
         'url': 'https://fruithosts.net/f/mreodparcdcmspsm/w1f1_r4lph_2018_brrs_720p_latino_mp4',
+        'only_matching': True,
+    }, {
+        'url': 'https://streamcherry.com/f/clapasobsptpkdfe/',
         'only_matching': True,
     }]
 
