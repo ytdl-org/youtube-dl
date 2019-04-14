@@ -437,7 +437,7 @@ class TwitchVideosBaseIE(TwitchPlaylistBaseIE):
 
 class TwitchCollectionsIE(TwitchBaseIE):
     IE_NAME = 'twitch:collections'
-    _VALID_URL = r'%s/collections/(?P<id>[\w\d]+)' % TwitchBaseIE._VALID_URL_BASE
+    _VALID_URL = r'%s/collections/(?P<id>[\w\d\-]+)' % TwitchBaseIE._VALID_URL_BASE
 
     _TESTS = [{
         'url': 'https://www.twitch.tv/collections/myIbIFkZphQSbQ',
