@@ -7,7 +7,7 @@ from .common import InfoExtractor
 
 
 class JWPlatformIE(InfoExtractor):
-    _VALID_URL = r'(?:https?://(?:content\.jwplatform|cdn\.jwplayer)\.com/(?:(?:feed|player|thumb|preview|video|manifest)s|jw6|v2/media)/|jwplatform:)(?P<id>[a-zA-Z0-9]{8})'
+    _VALID_URL = r'(?:https?://(?:content\.jwplatform|cdn\.jwplayer)\.com/(?:(?:feed|player|thumb|preview|video)s|jw6|v2/media)/|jwplatform:)(?P<id>[a-zA-Z0-9]{8})'
     _TESTS = [{
         'url': 'http://content.jwplatform.com/players/nPripu9l-ALJ3XQCI.js',
         'md5': 'fa8899fa601eb7c83a64e9d568bdf325',

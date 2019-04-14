@@ -1,22 +1,32 @@
 # coding: utf-8
 from __future__ import unicode_literals
 
+import base64
+import time
+import uuid
+
 from .common import InfoExtractor
-from ..compat import compat_str
-from ..utils import int_or_none
+from ..compat import (
+    compat_HTTPError,
+    compat_str,
+)
+from ..utils import (
+    ExtractorError,
+    int_or_none,
+)
 
 
 class MGTVIE(InfoExtractor):
     _VALID_URL = r'https?://(?:www\.)?mgtv\.com/(v|b)/(?:[^/]+/)*(?P<id>\d+)\.html'
     IE_DESC = '芒果TV'
+    _GEO_COUNTRIES = ['CN']
 
     _TESTS = [{
         'url': 'http://www.mgtv.com/v/1/290525/f/3116640.html',
-        'md5': 'b1ffc0fc163152acf6beaa81832c9ee7',
         'info_dict': {
             'id': '3116640',
             'ext': 'mp4',
-            'title': '我是歌手第四季双年巅峰会：韩红李玟“双王”领军对抗',
+            'title': '我是歌手 第四季',
             'description': '我是歌手第四季双年巅峰会',
             'duration': 7461,
             'thumbnail': r're:^https?://.*\.jpg$',
@@ -28,16 +38,30 @@ class MGTVIE(InfoExtractor):
 
     def _real_extract(self, url):
         video_id = self._match_id(url)
-        api_data = self._download_json(
-            'http://pcweb.api.mgtv.com/player/video', video_id,
-            query={'video_id': video_id},
-            headers=self.geo_verification_headers())['data']
+        try:
+            api_data = self._download_json(
+                'https://pcweb.api.mgtv.com/player/video', video_id, query={
+                    'tk2': base64.urlsafe_b64encode(b'did=%s|pno=1030|ver=0.3.0301|clit=%d' % (compat_str(uuid.uuid4()).encode(), time.time()))[::-1],
+                    'video_id': video_id,
+                }, headers=self.geo_verification_headers())['data']
+        except ExtractorError as e:
+            if isinstance(e.cause, compat_HTTPError) and e.cause.code == 401:
+                error = self._parse_json(e.cause.read().decode(), None)
+                if error.get('code') == 40005:
+                    self.raise_geo_restricted(countries=self._GEO_COUNTRIES)
+                raise ExtractorError(error['msg'], expected=True)
+            raise
         info = api_data['info']
         title = info['title'].strip()
-        stream_domain = api_data['stream_domain'][0]
+        stream_data = self._download_json(
+            'https://pcweb.api.mgtv.com/player/getSource', video_id, query={
+                'pm2': api_data['atc']['pm2'],
+                'video_id': video_id,
+            }, headers=self.geo_verification_headers())['data']
+        stream_domain = stream_data['stream_domain'][0]
 
         formats = []
-        for idx, stream in enumerate(api_data['stream']):
+        for idx, stream in enumerate(stream_data['stream']):
             stream_path = stream.get('url')
             if not stream_path:
                 continue
@@ -47,7 +71,7 @@ class MGTVIE(InfoExtractor):
             format_url = format_data.get('info')
             if not format_url:
                 continue
-            tbr = int_or_none(self._search_regex(
+            tbr = int_or_none(stream.get('filebitrate') or self._search_regex(
                 r'_(\d+)_mp4/', format_url, 'tbr', default=None))
             formats.append({
                 'format_id': compat_str(tbr or idx),
