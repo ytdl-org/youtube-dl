@@ -481,8 +481,8 @@ class YahooSearchIE(SearchInfoExtractor):
 
 class YahooGyaOPlayerIE(InfoExtractor):
     IE_NAME = 'yahoo:gyao:player'
-    _VALID_URL = r'https?://gyao\.yahoo\.co\.jp/player/(?P<id>\d+/v\d+/v\d+)'
-    _TEST = {
+    _VALID_URL = r'https?://(?:gyao\.yahoo\.co\.jp/player|streaming\.yahoo\.co\.jp/c/y)/(?P<id>\d+/v\d+/v\d+)'
+    _TESTS = [{
         'url': 'https://gyao.yahoo.co.jp/player/00998/v00818/v0000000000000008564/',
         'info_dict': {
             'id': '5993125228001',
@@ -497,7 +497,10 @@ class YahooGyaOPlayerIE(InfoExtractor):
             # m3u8 download
             'skip_download': True,
         },
-    }
+    }, {
+        'url': 'https://streaming.yahoo.co.jp/c/y/01034/v00133/v0000000000000000706/',
+        'only_matching': True,
+    }]
 
     def _real_extract(self, url):
         video_id = self._match_id(url).replace('/', ':')
@@ -518,14 +521,17 @@ class YahooGyaOPlayerIE(InfoExtractor):
 
 class YahooGyaOIE(InfoExtractor):
     IE_NAME = 'yahoo:gyao'
-    _VALID_URL = r'https?://gyao\.yahoo\.co\.jp/p/(?P<id>\d+/v\d+)'
-    _TEST = {
+    _VALID_URL = r'https?://(?:gyao\.yahoo\.co\.jp/p|streaming\.yahoo\.co\.jp/p/y)/(?P<id>\d+/v\d+)'
+    _TESTS = [{
         'url': 'https://gyao.yahoo.co.jp/p/00449/v03102/',
         'info_dict': {
             'id': '00449:v03102',
         },
         'playlist_count': 2,
-    }
+    }, {
+        'url': 'https://streaming.yahoo.co.jp/p/y/01034/v00133/',
+        'only_matching': True,
+    }]
 
     def _real_extract(self, url):
         program_id = self._match_id(url).replace('/', ':')
