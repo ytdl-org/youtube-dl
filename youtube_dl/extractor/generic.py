@@ -2272,7 +2272,7 @@ class GenericIE(InfoExtractor):
 
         # Check for direct link to a video
         content_type = head_response.headers.get('Content-Type', '').lower()
-        m = re.match(r'^(?P<type>audio|video|application(?=/(?:ogg$|(?:vnd\.apple\.|x-)?mpegurl)))/(?P<format_id>[^;\s]+)', content_type)
+        m = re.match(r'^(?P<type>audio|video|application(?=/(?:ogg$|(?:vnd\.apple\.|x-)?mpegurl)))/(?P<format_id>[^;\s,]+)', content_type)
         if m:
             format_id = compat_str(m.group('format_id'))
             if format_id.endswith('mpegurl'):
