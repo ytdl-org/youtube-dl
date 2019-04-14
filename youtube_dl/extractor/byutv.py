@@ -3,7 +3,10 @@ from __future__ import unicode_literals
 import re
 
 from .common import InfoExtractor
-from ..utils import url_basename
+from ..utils import (
+    ExtractorError,
+    url_basename,
+)
 
 
 class BYUtvIE(InfoExtractor):
@@ -30,16 +33,6 @@ class BYUtvIE(InfoExtractor):
             'display_id': 'byu-soccer-w-argentina-vs-byu-4419',
             'ext': 'mp4',
             'title': 'Argentina vs. BYU (4/4/19)',
-            'length': '02:05:43',
-        },
-    }, {
-        'url': 'https://www.byutv.org/player/a5467e14-c7f2-46f9-b3c2-cb31a56749c6/byu-soccer-w-argentina-vs-byu-4419',
-        'info_dict': {
-            'id': 'a5467e14-c7f2-46f9-b3c2-cb31a56749c6',
-            'display_id': 'byu-soccer-w-argentina-vs-byu-4419',
-            'ext': 'mp4',
-            'title': 'Argentina vs. BYU (4/4/19)',
-            'length': '02:05:43',
         },
         'params': {
             'skip_download': True
@@ -67,7 +60,7 @@ class BYUtvIE(InfoExtractor):
                 'x-byutv-platformkey': 'xsaaw9c7y5',
             })
 
-        if 'ooyalaVOD' in info:
+        if info.get('ooyalaVOD'):
             ep = info['ooyalaVOD']
             return {
                 '_type': 'url_transparent',
@@ -75,11 +68,11 @@ class BYUtvIE(InfoExtractor):
                 'url': 'ooyala:%s' % ep['providerId'],
                 'id': video_id,
                 'display_id': mobj.group('display_id') or video_id,
-                'title': ep.get('title'),
+                'title': ep['title'],
                 'description': ep.get('description'),
                 'thumbnail': ep.get('imageThumbnail'),
             }
-        elif 'dvr' in info:
+        elif info.get('dvr'):
             ep = info['dvr']
             formats = self._extract_m3u8_formats(
                 ep['videoUrl'], video_id, 'mp4', entry_protocol='m3u8_native'
@@ -88,8 +81,9 @@ class BYUtvIE(InfoExtractor):
                 'formats': formats,
                 'id': video_id,
                 'display_id': url_basename(url),
-                'title': ep.get('title'),
+                'title': ep['title'],
                 'description': ep.get('description'),
                 'thumbnail': ep.get('imageThumbnail'),
-                'length': ep.get('length'),
             }
+        else:
+            raise ExtractorError('Unrecognized VOD type.')
