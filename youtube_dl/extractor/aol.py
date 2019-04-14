@@ -17,7 +17,7 @@ from ..utils import (
 
 class AolIE(InfoExtractor):
     IE_NAME = 'aol.com'
-    _VALID_URL = r'(?:aol-video:|https?://(?:www\.)?aol\.com/video/(?:[^/]+/)*)(?P<id>[0-9a-f]+)'
+    _VALID_URL = r'(?:aol-video:|https?://(?:www\.)?aol\.(?:com|ca|co\.uk|de|jp)/video/(?:[^/]+/)*)(?P<id>[0-9a-f]+)'
 
     _TESTS = [{
         # video with 5min ID
@@ -63,6 +63,18 @@ class AolIE(InfoExtractor):
         'only_matching': True,
     }, {
         'url': 'https://www.aol.com/video/playlist/PL8245/5ca79d19d21f1a04035db606/',
+        'only_matching': True,
+    }, {
+        'url': 'https://www.aol.ca/video/view/u-s-woman-s-family-arrested-for-murder-first-pinned-on-panhandler-police/5c7ccf45bc03931fa04b2fe1/',
+        'only_matching': True,
+    }, {
+        'url': 'https://www.aol.co.uk/video/view/-one-dead-and-22-hurt-in-bus-crash-/5cb3a6f3d21f1a072b457347/',
+        'only_matching': True,
+    }, {
+        'url': 'https://www.aol.de/video/view/eva-braun-privataufnahmen-von-hitlers-geliebter-werden-digitalisiert/5cb2d49de98ab54c113d3d5d/',
+        'only_matching': True,
+    }, {
+        'url': 'https://www.aol.jp/video/playlist/5a28e936a1334d000137da0c/5a28f3151e642219fde19831/',
         'only_matching': True,
     }]
 
