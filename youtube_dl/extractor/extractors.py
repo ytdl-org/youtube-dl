@@ -1452,6 +1452,8 @@ from .xxxymovies import XXXYMoviesIE
 from .yahoo import (
     YahooIE,
     YahooSearchIE,
+    YahooGyaOPlayerIE,
+    YahooGyaOIE,
 )
 from .yandexdisk import YandexDiskIE
 from .yandexmusic import (

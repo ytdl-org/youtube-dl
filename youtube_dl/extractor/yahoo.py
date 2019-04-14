@@ -477,3 +477,66 @@ class YahooSearchIE(SearchInfoExtractor):
             'id': query,
             'entries': entries,
         }
+
+
+class YahooGyaOPlayerIE(InfoExtractor):
+    IE_NAME = 'yahoo:gyao:player'
+    _VALID_URL = r'https?://gyao\.yahoo\.co\.jp/player/(?P<id>\d+/v\d+/v\d+)'
+    _TEST = {
+        'url': 'https://gyao.yahoo.co.jp/player/00998/v00818/v0000000000000008564/',
+        'info_dict': {
+            'id': '5993125228001',
+            'ext': 'mp4',
+            'title': 'フューリー　【字幕版】',
+            'description': 'md5:21e691c798a15330eda4db17a8fe45a5',
+            'uploader_id': '4235717419001',
+            'upload_date': '20190124',
+            'timestamp': 1548294365,
+        },
+        'params': {
+            # m3u8 download
+            'skip_download': True,
+        },
+    }
+
+    def _real_extract(self, url):
+        video_id = self._match_id(url).replace('/', ':')
+        video = self._download_json(
+            'https://gyao.yahoo.co.jp/dam/v1/videos/' + video_id,
+            video_id, query={
+                'fields': 'longDescription,title,videoId',
+            })
+        return {
+            '_type': 'url_transparent',
+            'id': video_id,
+            'title': video['title'],
+            'url': 'http://players.brightcove.net/4235717419001/default_default/index.html?videoId=' + video['videoId'],
+            'description': video.get('longDescription'),
+            'ie_key': BrightcoveNewIE.ie_key(),
+        }
+
+
+class YahooGyaOIE(InfoExtractor):
+    IE_NAME = 'yahoo:gyao'
+    _VALID_URL = r'https?://gyao\.yahoo\.co\.jp/p/(?P<id>\d+/v\d+)'
+    _TEST = {
+        'url': 'https://gyao.yahoo.co.jp/p/00449/v03102/',
+        'info_dict': {
+            'id': '00449:v03102',
+        },
+        'playlist_count': 2,
+    }
+
+    def _real_extract(self, url):
+        program_id = self._match_id(url).replace('/', ':')
+        videos = self._download_json(
+            'https://gyao.yahoo.co.jp/api/programs/%s/videos' % program_id, program_id)['videos']
+        entries = []
+        for video in videos:
+            video_id = video.get('id')
+            if not video_id:
+                continue
+            entries.append(self.url_result(
+                'https://gyao.yahoo.co.jp/player/%s/' % '/'.join(video_id.split(':')),
+                YahooGyaOPlayerIE.ie_key(), video_id))
+        return self.playlist_result(entries, program_id)
