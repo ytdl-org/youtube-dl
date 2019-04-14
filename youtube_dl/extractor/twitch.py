@@ -453,6 +453,9 @@ class TwitchCollectionsIE(TwitchBaseIE):
             'title': 'CORSAIR DreamLeague Season 11 - The Stockholm Major - Studio'
         },
         'playlist_mincount': 57,
+    }, {
+        'url': 'https://www.twitch.tv/collections/HgTD8zFrghUb-Q',
+        'only_matching': True,
     }]
 
     def _extract_collection(self, collection_id):
