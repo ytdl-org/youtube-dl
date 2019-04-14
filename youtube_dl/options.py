@@ -148,7 +148,7 @@ def parseOpts(overrideArguments=None):
     general.add_option(
         '--abort-on-error',
         action='store_false', dest='ignoreerrors',
-        help='Abort downloading of further videos (in the playlist or the command line) if an error occurs')
+        help='Abort downloading of further videos (in the playlist or the command line) if an error occurs. youtube-dl aborts on errors by default.')
     general.add_option(
         '--dump-user-agent',
         action='store_true', dest='dump_user_agent', default=False,
@@ -335,7 +335,7 @@ def parseOpts(overrideArguments=None):
     selection.add_option(
         '--yes-playlist',
         action='store_false', dest='noplaylist', default=False,
-        help='Download the playlist, if the URL refers to a video and a playlist.')
+        help='Download the playlist, if the URL refers to a video and a playlist. This is the default.')
     selection.add_option(
         '--age-limit',
         metavar='YEARS', dest='age_limit', default=None, type=int,
@@ -674,7 +674,7 @@ def parseOpts(overrideArguments=None):
     verbosity.add_option(
         '--no-call-home',
         dest='call_home', action='store_false', default=False,
-        help='Do NOT contact the youtube-dl server for debugging')
+        help='Do NOT contact the youtube-dl server for debugging. This is the default.')
 
     filesystem = optparse.OptionGroup(parser, 'Filesystem Options')
     filesystem.add_option(

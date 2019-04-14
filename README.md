@@ -60,7 +60,8 @@ Alternatively, refer to the [developer instructions](#developer-instructions) fo
                                      skip unavailable videos in a playlist
     --abort-on-error                 Abort downloading of further videos (in the
                                      playlist or the command line) if an error
-                                     occurs
+                                     occurs. youtube-dl aborts on errors by
+                                     default.
     --dump-user-agent                Display the current browser identification
     --list-extractors                List all supported extractors
     --extractor-descriptions         Output descriptions of all supported
@@ -170,7 +171,7 @@ Alternatively, refer to the [developer instructions](#developer-instructions) fo
     --no-playlist                    Download only the video, if the URL refers
                                      to a video and a playlist.
     --yes-playlist                   Download the playlist, if the URL refers to
-                                     a video and a playlist.
+                                     a video and a playlist. This is the default
     --age-limit YEARS                Download only videos suitable for the given
                                      age
     --download-archive FILE          Download only videos not listed in the
@@ -308,7 +309,7 @@ Alternatively, refer to the [developer instructions](#developer-instructions) fo
     --print-traffic                  Display sent and read HTTP traffic
     -C, --call-home                  Contact the youtube-dl server for debugging
     --no-call-home                   Do NOT contact the youtube-dl server for
-                                     debugging
+                                     debugging. This is the default.
 
 ## Workarounds:
     --encoding ENCODING              Force the specified encoding (experimental)
