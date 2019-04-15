@@ -4,7 +4,6 @@ import re
 
 from .common import InfoExtractor
 from ..utils import (
-    ExtractorError,
     url_basename,
     parse_duration,
 )
@@ -75,7 +74,6 @@ class BYUtvIE(InfoExtractor):
                 'thumbnail': ep.get('imageThumbnail'),
             }
         else:
-            info = {}
             ep = info['dvr']
             formats = self._extract_m3u8_formats(
                 ep['videoUrl'], video_id, 'mp4', entry_protocol='m3u8_native'
@@ -88,5 +86,5 @@ class BYUtvIE(InfoExtractor):
                 'title': ep['title'],
                 'description': ep.get('description'),
                 'thumbnail': ep.get('imageThumbnail'),
-                'duration': parse_duration(ep.get('length'))
+                'duration': parse_duration(ep.get('length')),
             }
