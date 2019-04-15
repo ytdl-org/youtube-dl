@@ -2,6 +2,7 @@
 from __future__ import unicode_literals
 
 import re
+import json
 
 from .common import InfoExtractor
 from ..utils import (
@@ -83,6 +84,16 @@ class PornTrexIE(InfoExtractor):
                             })
 
         self._sort_formats(formats)
+
+        flashvars_regex = re.compile(
+            r'flashvars.*?(\{.*?\})', 
+            flags=re.DOTALL
+        )
+
+        flashvars = json.loads(
+            re.findall(flashvars_regex, webpage)[0]
+        )
+        print(flashvars)
 
         return {
             'id': video_id,
