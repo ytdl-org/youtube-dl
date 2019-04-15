@@ -30,6 +30,24 @@ class ChangbaIE(InfoExtractor):
             'ext': 'mp3',
             'title': '下雪 ',
         }
+    },
+    {
+        'url': 'http://changba.com/s/CPiNWbAa1qy0po0llqIJbg',
+        'md5': '',
+        'info_dict': {
+            'id': '136918054',
+            'ext': 'mp3',
+            'title': '红豆 ',
+        }
+    },
+    {
+        'url': 'http://changba.com/s/-N00JJ30YruunrER5eBcWw',
+        'md5': 'cd68f8da8d8c69afbb8e4dbbbfa8b277',
+        'info_dict': {
+            'id': '172671761',
+            'ext': 'mp3',
+            'title': '天与地 ',
+        }
     }]
 
     def _real_extract(self, url):
