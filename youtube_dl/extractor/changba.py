@@ -39,18 +39,14 @@ class ChangbaIE(InfoExtractor):
         isvideo = self._search_regex(r'&isvideo=([0-9])', webpage, 'isvideo')
         title = self._search_regex(r'<div[^>]+class="title"[^>]*>([^<]+)', webpage, 'title')
 
+        ext = ".mp4"
         if int(isvideo) == 0:
-            ext = 'mp3'
-            try:
-                url = self._search_regex(r'([a-z]+:\/\/[0-9a-z]+\.changba\.com\/[a-z]+\/[a-z]+\/[0-9]+\/[0-9]+\.mp3)', webpage, 'url')
-            except:
-                url = "http://lzscuw.changba.com/" + str(id) + ".mp3"
-        else:
-            ext = 'mp4'
-            try:
-                url = self._search_regex(r'([a-z]+:\/\/[0-9a-z]+\.changba\.com\/[a-z]+\/[a-z]+\/[0-9]+\/[0-9]+\.mp4)', webpage, 'url')
-            except:
-                url = "http://lzscuw.changba.com/" + str(id) + ".mp4"
+            ext = ".mp3"
+        
+        try:
+            url = self._search_regex(r'([a-z]+:\/\/[0-9a-z]+\.changba\.com\/[a-z]+\/[a-z]+\/[0-9]+\/[0-9]+\.mp[3-4])', webpage, 'url')
+        except:
+            url = "http://lzscuw.changba.com/" + str(id) + ext
 
         return {
             'url': url,
