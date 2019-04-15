@@ -7,21 +7,30 @@ import re
 
 class ChangbaIE(InfoExtractor):
     _VALID_URL = r'https?://(?:www\.)?changba\.com/s/(?P<id>[0-9A-Za-z-_]+)'
-    _TEST = {
+    _TESTS = [{
         'url': 'https://changba.com/s/0GHVw6vyXv9N2FhaFi2WJg',
-        'md5': 'TODO: md5 sum of the first 10241 bytes of the video file (use --test)',
+        'md5': 'ea55d17e939f3e2dabf483e47e8e5693',
         'info_dict': {
             'id': '1152860688',
             'ext': 'mp4',
-            'title': 'Video title goes here',
-            'thumbnail': r're:^https?://.*\.jpg$',
+            'title': '对你爱不完【炫酷慢摇】 ',
+            # 'thumbnail': r're:^https?://.*\.jpg$',
             # TODO more properties, either as:
             # * A value
             # * MD5 checksum; start the string with md5:
             # * A regular expression; start the string with re:
             # * Any Python type (for example int or float)
         }
-    }
+    },
+    {
+        'url': 'http://changba.com/s/nZqfbS_vCnieNNjJ7UiEGw?',
+        'md5': 'e401463ffb03ed8900a0bccc641335e1',
+        'info_dict': {
+            'id': '1091968526',
+            'ext': 'mp3',
+            'title': '下雪 ',
+        }
+    }]
 
     def _real_extract(self, url):
         video_id = self._match_id(url)
