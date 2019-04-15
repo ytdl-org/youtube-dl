@@ -6,6 +6,7 @@ from .common import InfoExtractor
 from ..utils import (
     ExtractorError,
     url_basename,
+    parse_duration,
 )
 
 
@@ -33,6 +34,7 @@ class BYUtvIE(InfoExtractor):
             'display_id': 'byu-soccer-w-argentina-vs-byu-4419',
             'ext': 'mp4',
             'title': 'Argentina vs. BYU (4/4/19)',
+            'duration': 7543.0,
         },
         'params': {
             'skip_download': True
@@ -60,23 +62,25 @@ class BYUtvIE(InfoExtractor):
                 'x-byutv-platformkey': 'xsaaw9c7y5',
             })
 
-        if info.get('ooyalaVOD'):
-            ep = info['ooyalaVOD']
+        ep = info.get('ooyalaVOD')
+        if ep:
             return {
                 '_type': 'url_transparent',
                 'ie_key': 'Ooyala',
                 'url': 'ooyala:%s' % ep['providerId'],
                 'id': video_id,
                 'display_id': mobj.group('display_id') or video_id,
-                'title': ep['title'],
+                'title': ep.get('title'),
                 'description': ep.get('description'),
                 'thumbnail': ep.get('imageThumbnail'),
             }
-        elif info.get('dvr'):
+        else:
+            info = {}
             ep = info['dvr']
             formats = self._extract_m3u8_formats(
                 ep['videoUrl'], video_id, 'mp4', entry_protocol='m3u8_native'
             )
+            self._sort_formats(formats)
             return {
                 'formats': formats,
                 'id': video_id,
@@ -84,6 +88,5 @@ class BYUtvIE(InfoExtractor):
                 'title': ep['title'],
                 'description': ep.get('description'),
                 'thumbnail': ep.get('imageThumbnail'),
+                'duration': parse_duration(ep.get('length'))
             }
-        else:
-            raise ExtractorError('Unrecognized VOD type.')
