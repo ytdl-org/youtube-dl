@@ -14,12 +14,6 @@ class ChangbaIE(InfoExtractor):
             'id': '1152860688',
             'ext': 'mp4',
             'title': '对你爱不完【炫酷慢摇】 ',
-            # 'thumbnail': r're:^https?://.*\.jpg$',
-            # TODO more properties, either as:
-            # * A value
-            # * MD5 checksum; start the string with md5:
-            # * A regular expression; start the string with re:
-            # * Any Python type (for example int or float)
         }
     },
     {
@@ -33,7 +27,7 @@ class ChangbaIE(InfoExtractor):
     },
     {
         'url': 'http://changba.com/s/CPiNWbAa1qy0po0llqIJbg',
-        'md5': '',
+        'md5': '7adcc9afb85ace8ff854bdd0e8567f50',
         'info_dict': {
             'id': '136918054',
             'ext': 'mp3',
@@ -54,21 +48,18 @@ class ChangbaIE(InfoExtractor):
         video_id = self._match_id(url)
         webpage = self._download_webpage(url, video_id)
         id = self._search_regex(r'workid=([0-9]+)', webpage, 'id')
-        isvideo = self._search_regex(r'&isvideo=([0-9])', webpage, 'isvideo')
         title = self._search_regex(r'<div[^>]+class="title"[^>]*>([^<]+)', webpage, 'title')
+        isvideo = self._search_regex(r'&isvideo=([0-9])', webpage, 'isvideo')
+        ext = 'mp3' if int(isvideo) == 0 else 'mp4'
 
-        ext = "mp4"
-        if int(isvideo) == 0:
-            ext = "mp3"
-        
         try:
             url = self._search_regex(r'([a-z]+:\/\/[0-9a-z]+\.changba\.com\/[a-z]+\/[a-z]+\/[0-9]+\/[0-9]+\.mp[3-4])', webpage, 'url')
         except:
-            url = "http://lzscuw.changba.com/" + str(id) + "." + ext
+            url = 'http://lzscuw.changba.com/{}.{}'.format(str(id), ext)
 
         return {
             'url': url,
             'id': id,
             'ext': ext,
-            'title': title
+            'title': title,
         }
