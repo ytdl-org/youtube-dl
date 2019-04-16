@@ -125,7 +125,7 @@ class XimalayaIE(XimalayaBaseIE):
         thumbnails = []
         for k in audio_info.keys():
             # cover pics kyes like: cover_url', 'cover_url_142'
-            if k.startswith('cover_url'):
+            if k.startswith('cover_url') and audio_info[k]:
                 thumbnail = {'name': k, 'url': audio_info[k]}
                 if k == 'cover_url_142':
                     thumbnail['width'] = 180
