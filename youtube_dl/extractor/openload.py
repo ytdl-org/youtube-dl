@@ -360,6 +360,9 @@ class OpenloadIE(InfoExtractor):
     }, {
         'url': 'https://oladblock.me/f/b8NWEgkqNLI/',
         'only_matching': True,
+    }, {
+        'url': 'https://openloed.co/f/b8NWEgkqNLI/',
+        'only_matching': True,
     }]
 
     _USER_AGENT_TPL = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/{major}.0.{build}.{patch} Safari/537.36'
