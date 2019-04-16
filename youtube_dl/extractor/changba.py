@@ -49,12 +49,12 @@ class ChangbaIE(InfoExtractor):
         ext = 'mp3' if int(isvideo) == 0 else 'mp4'
 
         try:
-            url = self._search_regex(r'([a-z]+:\/\/[0-9a-z]+\.changba\.com\/[a-z]+\/[a-z]+\/[0-9]+\/[0-9]+\.mp[3-4])', webpage, 'url')
+            src_url = self._search_regex(r'var a="([^"]*)', webpage, 'url')
         except:
-            url = 'http://lzscuw.changba.com/{}.{}'.format(str(id), ext)
+            src_url = 'http://lzscuw.changba.com/{}.{}'.format(str(id), ext)
 
         return {
-            'url': url,
+            'url': src_url,
             'id': id,
             'ext': ext,
             'title': title,
