@@ -2,6 +2,7 @@
 from __future__ import unicode_literals
 
 from .common import InfoExtractor
+from ..utils import int_or_none
 
 
 class ChangbaIE(InfoExtractor):
@@ -44,14 +45,30 @@ class ChangbaIE(InfoExtractor):
         video_id = self._match_id(url)
         webpage = self._download_webpage(url, video_id)
         id = self._search_regex(r'workid=([0-9]+)', webpage, 'id')
-        title = self._search_regex(r'<div[^>]+class="title"[^>]*>([^<]+)', webpage, 'title')
+        title = self._search_regex(
+            r'<div[^>]+class="title"[^>]*>([^<]+)', webpage, 'title'
+        )
         isvideo = self._search_regex(r'&isvideo=([0-9])', webpage, 'isvideo')
-        ext = 'mp3' if int(isvideo) == 0 else 'mp4'
+        ext = 'mp3' if int_or_none(isvideo) == 0 else 'mp4'
+
+        SITE_SUBDOMAINS = [
+            'lzscuw',
+            'upscuw',
+            'aliuwmp3',
+            'upuwmp3',
+            'qiniuuwmp3'
+        ]
 
         try:
             src_url = self._search_regex(r'var a="([^"]*)', webpage, 'url')
         except:
-            src_url = 'http://lzscuw.changba.com/{}.{}'.format(str(id), ext)
+            for subdomain in SITE_SUBDOMAINS:
+                try:
+                    src_url = 'http://{}.changba.com/{}.{}'.format(
+                        subdomain, str(id), ext
+                    )
+                except:
+                    continue
 
         return {
             'url': src_url,
