@@ -89,6 +89,7 @@ from .awaan import (
 )
 from .azmedien import AZMedienIE
 from .baidu import BaiduVideoIE
+from .bajeczki import BajeczkiIE
 from .bambuser import BambuserIE, BambuserChannelIE
 from .bandcamp import BandcampIE, BandcampAlbumIE, BandcampWeeklyIE
 from .bbc import (
