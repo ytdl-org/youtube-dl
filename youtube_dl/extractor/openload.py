@@ -244,7 +244,7 @@ class PhantomJSwrapper(object):
 
 
 class OpenloadIE(InfoExtractor):
-    _DOMAINS = r'(?:openload\.(?:co|io|link|pw)|oload\.(?:tv|stream|site|xyz|win|download|cloud|cc|icu|fun|club|info|pw|live|space)|oladblock\.(?:services|xyz|me))'
+    _DOMAINS = r'(?:openload\.(?:co|io|link|pw)|oload\.(?:tv|stream|site|xyz|win|download|cloud|cc|icu|fun|club|info|pw|live|space)|oladblock\.(?:services|xyz|me)|openloed\.(?:co))'
     _VALID_URL = r'''(?x)
                     https?://
                         (?P<host>
