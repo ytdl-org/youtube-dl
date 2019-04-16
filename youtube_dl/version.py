@@ -1,3 +1,3 @@
 from __future__ import unicode_literals
 
-__version__ = '2019.04.07'
+__version__ = '2019.04.17'
