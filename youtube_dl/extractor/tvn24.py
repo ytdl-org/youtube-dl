@@ -1,6 +1,9 @@
 # coding: utf-8
 from __future__ import unicode_literals
 
+import itertools
+import re
+
 from .common import InfoExtractor
 from ..utils import (
     int_or_none,
@@ -22,6 +25,22 @@ class TVN24IE(InfoExtractor):
             'thumbnail': 're:https?://.*[.]jpeg',
         }
     }, {
+        'url': 'https://www.tvn24.pl/superwizjer-w-tvn24,149,m/farma-trolli-zarabiaja-na-falszywych-informacjach-i-hejcie,923108.html',
+        'md5': 'fbdec753d7bc29d96036808275f2130c',
+        'info_dict': {
+            'title': '"Ludzie to jest, jakby nie patrzeć, też pieniądz". Farmy trolli zarabiają na fake newsach i hejcie',
+            'description': 'Ponad połowa Polaków wierzy w informacje, które znajduje w mediach społecznościowych. Ten fakt wykorzystują anonimowi twórcy tak zwanych fake newsów, czyli...',
+        },
+        'playlist_count': 4,
+        'playlist': [{
+            'md5': '8b1001e576a81e22fbb605a9e5ca9d65',
+            'info_dict': {
+                'id': '1831060',
+                'ext': 'mp4',
+                'title': 'Farma trolli. Pierwsza część reportażu',
+            },
+        }],
+    }, {
         'url': 'http://fakty.tvn24.pl/ogladaj-online,60/53-konferencja-bezpieczenstwa-w-monachium,716431.html',
         'only_matching': True,
     }, {
@@ -36,46 +55,79 @@ class TVN24IE(InfoExtractor):
     }]
 
     def _real_extract(self, url):
-        video_id = self._match_id(url)
-        video_id = remove_end(video_id, '.html')
+        page_id = self._match_id(url)
+        page_id = remove_end(page_id, '.html')
 
-        webpage = self._download_webpage(url, video_id)
+        webpage = self._download_webpage(url, page_id)
 
-        title = self._og_search_title(webpage)
+        VIDEO_ELT_REGEX = r'(?P<video><div\b[^>]+\bclass="[^"]*\bvideoPlayer\b[^"]*"[^>]+>)'
 
-        def extract_json(attr, name, fatal=True):
-            return self._parse_json(
-                self._search_regex(
-                    r'\b%s=(["\'])(?P<json>(?!\1).+?)\1' % attr, webpage,
-                    name, group='json', fatal=fatal) or '{}',
-                video_id, transform_source=unescapeHTML, fatal=fatal)
+        def extract_videos(regex=VIDEO_ELT_REGEX, single=False):
 
-        quality_data = extract_json('data-quality', 'formats')
+            def extract_value(attr, name, fatal=True):
+                return self._html_search_regex(
+                    r'\bdata-%s=(["\'])(?P<val>(?!\1).+?)\1' % attr, video_elt,
+                    name, group='val', fatal=fatal)
 
-        formats = []
-        for format_id, url in quality_data.items():
-            formats.append({
-                'url': url,
-                'format_id': format_id,
-                'height': int_or_none(format_id.rstrip('p')),
-            })
-        self._sort_formats(formats)
+            def extract_json(attr, name, fatal=True):
+                value = extract_value(attr, name, fatal=fatal) or '{}'
+                return self._parse_json(value, video_id or page_id, fatal=fatal)
 
-        description = self._og_search_description(webpage)
-        thumbnail = self._og_search_thumbnail(
-            webpage, default=None) or self._html_search_regex(
-            r'\bdata-poster=(["\'])(?P<url>(?!\1).+?)\1', webpage,
-            'thumbnail', group='url')
+            entries = []
+            iterator = re.finditer(regex, webpage)
+            if single:
+                iterator = itertools.islice(iterator, 0, 1)
+            for match in iterator:
+                video_elt = match.group('video')
+                video_id = None
+                share_params = extract_json('share-params', 'share params', fatal=False)
+                if share_params:
+                    video_id = share_params['id']
+                else:
+                    video_id = extract_value('video-id', 'video id')
+                try:
+                    title = match.group('title')
+                except IndexError:
+                    title = None
+                title = unescapeHTML(title)
+                thumbnail = extract_value('poster', 'thumbnail', fatal=False)
+                quality_data = extract_json('quality', 'formats')
+                formats = []
+                for format_id, url in quality_data.items():
+                    formats.append({
+                        'url': url,
+                        'format_id': format_id,
+                        'height': int_or_none(format_id.rstrip('p')),
+                    })
+                self._sort_formats(formats)
+                entries.append({
+                    'id': video_id,
+                    'thumbnail': thumbnail,
+                    'formats': formats,
+                    'title': title,
+                })
+            if not entries:
+                # provoke RegexNotFoundError
+                self._search_regex('x', '', 'video elements')
+            return entries
 
-        share_params = extract_json(
-            'data-share-params', 'share params', fatal=False)
-        if isinstance(share_params, dict):
-            video_id = share_params.get('id') or video_id
+        if '/superwizjer-w-tvn24,' in url:
+            regex = r'<a\b[^>]*\btitle="(?P<title>[^"]+)"[^>]*\bclass="playVideo">\s*</a>\s*(<[^/][^>]*>\s*)+' + VIDEO_ELT_REGEX
+            entries = extract_videos(regex=regex)
+        else:
+            entries = extract_videos(single=True)
 
-        return {
-            'id': video_id,
-            'title': title,
-            'description': description,
-            'thumbnail': thumbnail,
-            'formats': formats,
-        }
+        if len(entries) == 1:
+            info = entries[0]
+        else:
+            info = {
+                'video_id': page_id,
+                '_type': 'multi_video',
+                'entries': entries,
+            }
+
+        if not info.get('title'):
+            info['title'] = self._og_search_title(webpage)
+        info['description'] = self._og_search_description(webpage)
+
+        return info
