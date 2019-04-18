@@ -1,3 +1,28 @@
+version 2019.04.17
+
+Extractors
+* [openload] Randomize User-Agent (closes #20688)
++ [openload] Add support for oladblock domains (#20471)
+* [adn] Fix subtitle extraction (#12724)
++ [aol] Add support for localized websites
++ [yahoo] Add support GYAO episode URLs
++ [yahoo] Add support for streaming.yahoo.co.jp (#5811, #7098)
++ [yahoo] Add support for gyao.yahoo.co.jp
+* [aenetworks] Fix history topic extraction and extract more formats
++ [cbs] Extract smpte and vtt subtitles
++ [streamango] Add support for streamcherry.com (#20592)
++ [yourporn] Add support for sxyprn.com (#20646)
+* [mgtv] Fix extraction (#20650)
+* [linkedin:learning] Use urljoin for form action URL (#20431)
++ [gdc] Add support for kaltura embeds (#20575)
+* [dispeak] Improve mp4 bitrate extraction
+* [kaltura] Sanitize embed URLs
+* [jwplatfom] Do not match manifest URLs (#20596)
+* [aol] Restrict URL regular expression and improve format extraction
++ [tiktok] Add support for new URL schema (#20573)
++ [stv:player] Add support for player.stv.tv (#20586)
+
+
 version 2019.04.07
 
 Core

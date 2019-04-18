@@ -60,14 +60,19 @@ class ADNIE(InfoExtractor):
 
         enc_subtitles = self._download_webpage(
             urljoin(self._BASE_URL, sub_path),
-            video_id, 'Downloading subtitles data', fatal=False)
+            video_id, 'Downloading subtitles location', fatal=False) or '{}'
+        subtitle_location = (self._parse_json(enc_subtitles, video_id, fatal=False) or {}).get('location')
+        if subtitle_location:
+            enc_subtitles = self._download_webpage(
+                urljoin(self._BASE_URL, subtitle_location),
+                video_id, 'Downloading subtitles data', fatal=False)
         if not enc_subtitles:
             return None
 
         # http://animedigitalnetwork.fr/components/com_vodvideo/videojs/adn-vjs.min.js
         dec_subtitles = intlist_to_bytes(aes_cbc_decrypt(
             bytes_to_intlist(compat_b64decode(enc_subtitles[24:])),
-            bytes_to_intlist(binascii.unhexlify(self._K + '083db5aebd9353b4')),
+            bytes_to_intlist(binascii.unhexlify(self._K + '4421de0a5f0814ba')),
             bytes_to_intlist(compat_b64decode(enc_subtitles[:24]))
         ))
         subtitles_json = self._parse_json(
