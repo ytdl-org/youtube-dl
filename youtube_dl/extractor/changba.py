@@ -2,7 +2,10 @@
 from __future__ import unicode_literals
 
 from .common import InfoExtractor
-from ..utils import int_or_none
+from ..utils import (
+    int_or_none,
+    RegexNotFoundError,
+)
 
 
 class ChangbaIE(InfoExtractor):
@@ -46,7 +49,7 @@ class ChangbaIE(InfoExtractor):
 
         try:
             src_url = self._search_regex(r'var a="([^"]*)', webpage, 'url')
-        except:
+        except RegexNotFoundError:
             src_url = 'http://lzscuw.changba.com/' + str(id) + '.' + ext
 
         return {
