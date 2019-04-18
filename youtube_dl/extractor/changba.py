@@ -1,6 +1,8 @@
 # coding: utf-8
 from __future__ import unicode_literals
 
+import base64
+
 from .common import InfoExtractor
 from ..utils import (
     int_or_none,
@@ -50,7 +52,15 @@ class ChangbaIE(InfoExtractor):
         try:
             src_url = self._search_regex(r'var a="([^"]*)', webpage, 'url')
         except RegexNotFoundError:
-            src_url = 'http://lzscuw.changba.com/' + str(id) + '.' + ext
+            encoded = self._search_regex(
+                r'video_url: \'([0-9A-Za-z]+)', webpage, 'video url'
+            )
+            src_url = base64.b64decode(encoded).decode('utf-8')
+
+            # src_url = self._og_search_url(webpage)
+            # src_url = self._og_search_property(
+            #     'video_url', webpage, fatal=True)
+
 
         return {
             'url': src_url,
