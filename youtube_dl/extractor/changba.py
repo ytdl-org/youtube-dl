@@ -31,14 +31,6 @@ class ChangbaIE(InfoExtractor):
             'ext': 'mp3',
             'title': '红豆 ',
         }
-    }, {
-        'url': 'http://changba.com/s/-N00JJ30YruunrER5eBcWw',
-        'md5': 'cd68f8da8d8c69afbb8e4dbbbfa8b277',
-        'info_dict': {
-            'id': '172671761',
-            'ext': 'mp3',
-            'title': '天与地 ',
-        }
     }]
 
     def _real_extract(self, url):
@@ -48,27 +40,14 @@ class ChangbaIE(InfoExtractor):
         title = self._search_regex(
             r'<div[^>]+class="title"[^>]*>([^<]+)', webpage, 'title'
         )
-        isvideo = self._search_regex(r'&isvideo=([0-9])', webpage, 'isvideo')
-        ext = 'mp3' if int_or_none(isvideo) == 0 else 'mp4'
-
-        SITE_SUBDOMAINS = [
-            'lzscuw',
-            'upscuw',
-            'aliuwmp3',
-            'upuwmp3',
-            'qiniuuwmp3'
-        ]
+        # title = self._og_search_title(webpage)
+        is_video = self._search_regex(r'&isvideo=([0-9])', webpage, 'isvideo')
+        ext = 'mp3' if int_or_none(is_video) == 0 else 'mp4'
 
         try:
             src_url = self._search_regex(r'var a="([^"]*)', webpage, 'url')
         except:
-            for subdomain in SITE_SUBDOMAINS:
-                try:
-                    src_url = 'http://{}.changba.com/{}.{}'.format(
-                        subdomain, str(id), ext
-                    )
-                except:
-                    continue
+            src_url = 'http://lzscuw.changba.com/' + str(id) + '.' + ext
 
         return {
             'url': src_url,
