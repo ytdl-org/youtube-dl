@@ -2,7 +2,6 @@
 from __future__ import unicode_literals
 
 import re
-import json
 
 from .common import InfoExtractor
 from ..utils import (
@@ -15,13 +14,14 @@ class PornTrexIE(InfoExtractor):
     _NETRC_MACHINE = 'porntrex'
     _VALID_URL = r'https?://(?:www\.)?porntrex\.com/video/(?P<id>[0-9]+)/'
     _TEST = {
-        'url': 'https://www.porntrex.com/video/519351/be-ariyana-adin-breaking-and-entering-this-pussy',
+        'url': 'https://www.porntrex.com/video/350451/naomi-woods-the-list',
         'info_dict': {
-            'id': '519351',
+            'id': '350451',
             'ext': 'mp4',
-            'title': 'BE - Ariyana Adin - Breaking And Entering This Pussy',
-            'uploader': 'brand95',
-            'description': 'BE - Ariyana Adin - Breaking And Entering This Pussy',
+            'title': 'Naomi Woods - The List in 4k',
+            'uploader': 'delman',
+            'description': 'Naomi Woods The List',
+            'url': 'https://www.porntrex.com/get_file/7/5223e8c2d6a378f22eccc8fd8e881746005ebc9d40/350000/350451/350451_2160p.mp4'
         }
     }
 
@@ -82,18 +82,7 @@ class PornTrexIE(InfoExtractor):
                             'ext': url2[x].split('.')[-1],
                             'protocol': url2[x].split(':')[0],
                             })
-
         self._sort_formats(formats)
-
-        flashvars_regex = re.compile(
-            r'flashvars.*?(\{.*?\})', 
-            flags=re.DOTALL
-        )
-
-        flashvars = json.loads(
-            re.findall(flashvars_regex, webpage)[0]
-        )
-        print(flashvars)
 
         return {
             'id': video_id,
@@ -130,7 +119,7 @@ class PornTrexPlayListIE(InfoExtractor):
         entries = []
         for this_url in all_urls:
             entries.append({'_type': 'url',
-                            'id': 'PornTrex',
+                            'id': this_url.split('/')[4],
                             'url': this_url,
                             })
 
