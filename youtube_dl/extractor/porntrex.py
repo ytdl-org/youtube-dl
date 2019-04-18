@@ -99,15 +99,46 @@ class PornTrexPlayListIE(InfoExtractor):
     _VALID_URL = \
         r'https?://(?:www\.)?porntrex\.com/playlists/(?P<id>[0-9]+)/'
     _TEST = {
-        'url': 'https://www.porntrex.com/playlists/60671/les45/',
+        'url': 'https://www.porntrex.com/playlists/31075/2016-collection/',
+        'id': '31075',
+        'title': 'FTVGirls 2016 Collection',
         'info_dict': {
-            'id': '477697',
+            'id': '345462',
             'ext': 'mp4',
-            'uploader': 'tarpi',
-            'title': '4.  Kelly Divine, Tiffany Minx  (1080p)',
-            'description': '4.  Kelly Divine, Tiffany Minx  (1080p)'
+            'uploader': 'publicgirls',
+            'title': 'FTVGirls.16.05 - Adria Part 2',
+            'description': 'https://www.indexxx.com/models/121033/adria-rae/',
         }
     }
+
+    def _login(self):
+        username, password = self._get_login_info()
+        if username is None:
+            return
+
+        login_page = self._download_webpage(
+            'https://www.porntrex.com/login/', None, 'Downloading login page')
+
+        login_form = self._hidden_inputs(login_page)
+
+        login_form.update({
+            'username': username.encode('utf-8'),
+            'pass': password.encode('utf-8'),
+            'remember_me': str(1).encode('utf-8'),
+        })
+
+        login_page = self._download_webpage(
+            'https://www.porntrex.com/ajax-login/', None,
+            note='Logging in',
+            data=urlencode_postdata(login_form))
+
+        if re.search(r'generic-error hidden', login_page):
+            raise ExtractorError(
+                'Unable to login, incorrect username and/or password',
+                expected=True)
+
+    def _real_initialize(self):
+        self._login()
 
     def _real_extract(self, url):
         playlist_id = self._match_id(url)
@@ -125,7 +156,7 @@ class PornTrexPlayListIE(InfoExtractor):
 
         return {
             '_type': 'playlist',
-            'id': playlist_id,
+            'id': url.split('/')[4],
             'title': self._html_search_regex(
                 r'<title>(.+?)</title>',
                 webpage,
