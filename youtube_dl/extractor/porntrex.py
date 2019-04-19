@@ -21,7 +21,6 @@ class PornTrexIE(InfoExtractor):
             'title': 'Naomi Woods - The List in 4k',
             'uploader': 'delman',
             'description': 'Naomi Woods The List',
-            'url': 'https://www.porntrex.com/get_file/7/5223e8c2d6a378f22eccc8fd8e881746005ebc9d40/350000/350451/350451_2160p.mp4'
         }
     }
 
