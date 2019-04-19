@@ -19,6 +19,7 @@ class ChangbaIE(InfoExtractor):
             'id': '1146278955',
             'ext': 'mp4',
             'title': ' ',
+            'vcodec': None
         }
     }, {
         'url': 'http://changba.com/s/nZqfbS_vCnieNNjJ7UiEGw?',
@@ -27,23 +28,24 @@ class ChangbaIE(InfoExtractor):
             'id': '1091968526',
             'ext': 'mp3',
             'title': '下雪 ',
+            'vcodec': 'none'
         }
     }]
 
     def _real_extract(self, url):
         video_id = self._match_id(url)
         webpage = self._download_webpage(url, video_id)
-        # print(webpage)
         id = self._search_regex(r'workid=([0-9]+)', webpage, 'id')
         title = self._search_regex(
             r'<div[^>]+class="title"[^>]*>([^<]+)', webpage, 'title'
         )
-        print(title)
-        # title = self._og_search_title(webpage)
         ext = None
+        vcodec = None
+
         try:
             src_url = self._search_regex(r'var a="([^"]*)', webpage, 'url')
             ext = 'mp3'
+            vcodec = 'none'
         except RegexNotFoundError:
             encoded = self._search_regex(
                 r'video_url: \'([0-9A-Za-z]+=*)', webpage, 'video url'
@@ -51,10 +53,10 @@ class ChangbaIE(InfoExtractor):
             src_url = base64.b64decode(encoded).decode('utf-8')
             ext = 'mp4'
 
-
         return {
             'url': src_url,
             'id': id,
             'ext': ext,
             'title': title,
+            'vcodec': vcodec
         }
