@@ -94,8 +94,8 @@ class PictaIE(PictaBaseIE):
             # Fix some Picta DASH video vp09.00.[dd].08 for 'vcodec': 'vp9', 'acodec':'none'
             for f in formats:
                 if f.get('acodec') is None and f.get('vcodec') == 'none':
-                    f.update({'vcodec':'vp9'})
-                    f.update({'acodec':'none'})
+                    f.update({'vcodec': 'vp9'})
+                    f.update({'acodec': 'none'})
         if not formats:
             raise ExtractorError('Cannot find video formats')
 
