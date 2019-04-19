@@ -4,10 +4,7 @@ from __future__ import unicode_literals
 import base64
 
 from .common import InfoExtractor
-from ..utils import (
-    int_or_none,
-    RegexNotFoundError,
-)
+from ..utils import RegexNotFoundError
 
 
 class ChangbaIE(InfoExtractor):
