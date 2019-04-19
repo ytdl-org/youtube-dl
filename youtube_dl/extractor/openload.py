@@ -3,6 +3,7 @@ from __future__ import unicode_literals
 
 import json
 import os
+import random
 import re
 import subprocess
 import tempfile
@@ -243,7 +244,7 @@ class PhantomJSwrapper(object):
 
 
 class OpenloadIE(InfoExtractor):
-    _DOMAINS = r'(?:openload\.(?:co|io|link|pw)|oload\.(?:tv|stream|site|xyz|win|download|cloud|cc|icu|fun|club|info|pw|live|space))'
+    _DOMAINS = r'(?:openload\.(?:co|io|link|pw)|oload\.(?:tv|stream|site|xyz|win|download|cloud|cc|icu|fun|club|info|pw|live|space|services)|oladblock\.(?:services|xyz|me)|openloed\.co)'
     _VALID_URL = r'''(?x)
                     https?://
                         (?P<host>
@@ -350,9 +351,24 @@ class OpenloadIE(InfoExtractor):
     }, {
         'url': 'https://oload.space/f/IY4eZSst3u8/',
         'only_matching': True,
+    }, {
+        'url': 'https://oload.services/embed/bs1NWj1dCag/',
+        'only_matching': True,
+    }, {
+        'url': 'https://oladblock.services/f/b8NWEgkqNLI/',
+        'only_matching': True,
+    }, {
+        'url': 'https://oladblock.xyz/f/b8NWEgkqNLI/',
+        'only_matching': True,
+    }, {
+        'url': 'https://oladblock.me/f/b8NWEgkqNLI/',
+        'only_matching': True,
+    }, {
+        'url': 'https://openloed.co/f/b8NWEgkqNLI/',
+        'only_matching': True,
     }]
 
-    _USER_AGENT = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/56.0.2924.87 Safari/537.36'
+    _USER_AGENT_TPL = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/{major}.0.{build}.{patch} Safari/537.36'
 
     @staticmethod
     def _extract_urls(webpage):
@@ -367,7 +383,11 @@ class OpenloadIE(InfoExtractor):
 
         url_pattern = 'https://%s/%%s/%s/' % (host, video_id)
         headers = {
-            'User-Agent': self._USER_AGENT,
+            'User-Agent': self._USER_AGENT_TPL % {
+                'major': random.randint(63, 73),
+                'build': random.randint(3239, 3683),
+                'patch': random.randint(0, 100),
+            },
         }
 
         for path in ('embed', 'f'):
