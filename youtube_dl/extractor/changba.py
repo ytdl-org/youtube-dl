@@ -13,12 +13,12 @@ from ..utils import (
 class ChangbaIE(InfoExtractor):
     _VALID_URL = r'https?://(?:www\.)?changba\.com/s/(?P<id>[0-9A-Za-z-_]+)'
     _TESTS = [{
-        'url': 'https://changba.com/s/0GHVw6vyXv9N2FhaFi2WJg',
-        'md5': 'ea55d17e939f3e2dabf483e47e8e5693',
+        'url': 'https://changba.com/s/PBZkNLjjPmuE_nW7EuUNpg?&cbcode=Kxhsv6044ik&from=pcrecommend',
+        'md5': '88aa70b832c4071cffd7e06d759bc7e8',
         'info_dict': {
-            'id': '1152860688',
+            'id': '1146278955',
             'ext': 'mp4',
-            'title': '对你爱不完【炫酷慢摇】 ',
+            'title': ' ',
         }
     }, {
         'url': 'http://changba.com/s/nZqfbS_vCnieNNjJ7UiEGw?',
@@ -28,38 +28,28 @@ class ChangbaIE(InfoExtractor):
             'ext': 'mp3',
             'title': '下雪 ',
         }
-    }, {
-        'url': 'http://changba.com/s/CPiNWbAa1qy0po0llqIJbg',
-        'md5': '7adcc9afb85ace8ff854bdd0e8567f50',
-        'info_dict': {
-            'id': '136918054',
-            'ext': 'mp3',
-            'title': '红豆 ',
-        }
     }]
 
     def _real_extract(self, url):
         video_id = self._match_id(url)
         webpage = self._download_webpage(url, video_id)
+        # print(webpage)
         id = self._search_regex(r'workid=([0-9]+)', webpage, 'id')
         title = self._search_regex(
             r'<div[^>]+class="title"[^>]*>([^<]+)', webpage, 'title'
         )
+        print(title)
         # title = self._og_search_title(webpage)
-        is_video = self._search_regex(r'&isvideo=([0-9])', webpage, 'isvideo')
-        ext = 'mp3' if int_or_none(is_video) == 0 else 'mp4'
-
+        ext = None
         try:
             src_url = self._search_regex(r'var a="([^"]*)', webpage, 'url')
+            ext = 'mp3'
         except RegexNotFoundError:
             encoded = self._search_regex(
-                r'video_url: \'([0-9A-Za-z]+)', webpage, 'video url'
+                r'video_url: \'([0-9A-Za-z]+=*)', webpage, 'video url'
             )
             src_url = base64.b64decode(encoded).decode('utf-8')
-
-            # src_url = self._og_search_url(webpage)
-            # src_url = self._og_search_property(
-            #     'video_url', webpage, fatal=True)
+            ext = 'mp4'
 
 
         return {
