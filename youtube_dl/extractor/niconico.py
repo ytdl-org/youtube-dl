@@ -453,7 +453,7 @@ class NiconicoPlaylistIE(InfoExtractor):
             'id': '64988008',
             'title': 'Private_Mylist_Test',
         },
-        'playlist_mincount': 2,
+        'playlist_count': 2,
         'skip': 'Requires an account',
     }]
 
