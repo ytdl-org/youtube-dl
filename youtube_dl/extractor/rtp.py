@@ -59,3 +59,7 @@ class RTPIE(InfoExtractor):
             'description': description,
             'thumbnail': thumbnail,
         }
+
+class RTPPlaylistIE(RTPIE):
+    _VALID_URL = r'https?://(?:www\.)?rtp\.pt/play/p(?P<program_id>[0-9]+)/(?P<id>[^/?#]+)/?'
+
