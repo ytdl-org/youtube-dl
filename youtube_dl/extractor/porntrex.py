@@ -57,6 +57,7 @@ class PornTrexIE(InfoExtractor):
         video_id = self._match_id(url)
         webpage = self._download_webpage(url, video_id)
 
+        self.report_extraction(video_id)
         private_string = 'Only active members can watch private videos.'
         is_video_private_regex = re.compile(private_string)
         if re.findall(is_video_private_regex, webpage):
