@@ -28,7 +28,6 @@ class RTPIE(InfoExtractor):
 
     def _real_extract(self, url):
         video_id = self._match_id(url)
-
         webpage = self._download_webpage(url, video_id)
         title = self._html_search_meta(
             'twitter:title', webpage, display_name='title', fatal=True)
@@ -61,5 +60,8 @@ class RTPIE(InfoExtractor):
         }
 
 class RTPPlaylistIE(RTPIE):
-    _VALID_URL = r'https?://(?:www\.)?rtp\.pt/play/p(?P<program_id>[0-9]+)/(?P<id>[^/?#]+)/?'
-
+    _VALID_URL = r'https://www.rtp.pt/play/p510/e401638/aleixo-fm'
+    def _real_extract(self, url):
+        return {
+            'entries': [{'id':'hello1', 'url':'https://cdn-ondemand.rtp.pt/nas2.share/wavrss/at3/1904/5786802_292886-1904170925.mp3'}]
+        }
