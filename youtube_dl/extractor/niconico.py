@@ -454,6 +454,7 @@ class NiconicoPlaylistIE(InfoExtractor):
             'title': 'Private_Mylist_Test',
         },
         'playlist_mincount': 2,
+        'skip': 'Requires an account',
     }]
 
     #  Add support for private mylist access by owner via log-in
