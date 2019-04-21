@@ -832,6 +832,7 @@ from .ooyala import (
     OoyalaExternalIE,
 )
 from .openload import OpenloadIE
+from .verystream import VerystreamIE
 from .ora import OraTVIE
 from .orf import (
     ORFTVthekIE,
