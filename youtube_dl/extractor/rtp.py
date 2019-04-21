@@ -1,5 +1,8 @@
 # coding: utf-8
+
 from __future__ import unicode_literals
+
+import re
 
 from .common import InfoExtractor
 from ..utils import js_to_json
@@ -7,6 +10,7 @@ from ..utils import js_to_json
 
 class RTPIE(InfoExtractor):
     _VALID_URL = r'https?://(?:www\.)?rtp\.pt/play/p(?P<program_id>[0-9]+)/(?P<id>[^/?#]+)/?'
+
     _TESTS = [{
         'url': 'http://www.rtp.pt/play/p405/e174042/paixoes-cruzadas',
         'md5': 'e736ce0c665e459ddb818546220b4ef8',
@@ -59,12 +63,31 @@ class RTPIE(InfoExtractor):
             'thumbnail': thumbnail,
         }
 
-class RTPPlaylistIE(RTPIE):
-    #_VALID_URL = r'https?://(?:www\.)?rtp\.pt/play/p(?P<program_id>[0-9]+)/(?P<id>[^/?#]+)/?'
-    _VALID_URL = r'1234'
-    def _real_extract(self, url):
 
-        return {
-            '_type': 'playlist',
-            'entries':[{'_type':'url', 'url':'https://www.rtp.pt/play/p510/e400299/aleixo-fm'}]
-        }
+class RTPPlaylistIE(InfoExtractor):
+    _VALID_URL = r'https?://(?:www\.)?rtp\.pt/play/p(?P<program_id>[0-9]+)'
+
+    def _get_program_id(self, url):
+        mobj = re.match(self._VALID_URL, url)
+        program_id = mobj.group('program_id')
+        return program_id
+
+    def _extract_entries(self, url, program_id, page):
+        entry_url = "https://www.rtp.pt/play/bg_l_ep/?&listProgram=%s&listcategory=&listchannel=&type=radio&page=%s" % (
+            program_id, page
+        )
+        webpage = self._download_webpage(entry_url, program_id)
+        return [self.url_result('https://www.rtp.pt/play/p%s/%s/' % (program_id, episode), 'RTP')
+                for episode in re.findall(r'e\d+', webpage)]
+
+    def _real_extract(self, url):
+        page = 1
+        program_id = self._get_program_id(url)
+
+        entry = self._extract_entries(url, program_id, page)
+        new_entry = self._extract_entries(url, program_id, page + 1)
+        while new_entry != []:
+            new_entry = self._extract_entries(url, program_id, page + 1)
+            entry += new_entry
+            page += 1
+        return self.playlist_result(entry, playlist_id=program_id)
