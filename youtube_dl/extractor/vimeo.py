@@ -110,7 +110,8 @@ class VimeoBaseInfoExtractor(InfoExtractor):
     def _parse_config(self, config, video_id):
         video_data = config['video']
         video_title = video_data['title']
-        is_live = try_get(video_data, lambda x: x['live_event']['status']) == 'started'
+        live_event = video_data.get('live_event') or {}
+        is_live = live_event.get('status') == 'started'
 
         formats = []
         config_files = video_data.get('files') or config['request'].get('files', {})
@@ -127,6 +128,7 @@ class VimeoBaseInfoExtractor(InfoExtractor):
                 'tbr': int_or_none(f.get('bitrate')),
             })
 
+        # TODO: fix handling of 308 status code returned for live archive manifest requests
         for files_type in ('hls', 'dash'):
             for cdn_name, cdn_data in config_files.get(files_type, {}).get('cdns', {}).items():
                 manifest_url = cdn_data.get('url')
@@ -163,6 +165,15 @@ class VimeoBaseInfoExtractor(InfoExtractor):
                             elif f.get('acodec') == 'none':
                                 f['preference'] = -40
                         formats.extend(mpd_formats)
+
+        live_archive = live_event.get('archive') or {}
+        live_archive_source_url = live_archive.get('source_url')
+        if live_archive_source_url and live_archive.get('status') == 'done':
+            formats.append({
+                'format_id': 'live-archive-source',
+                'url': live_archive_source_url,
+                'preference': 1,
+            })
 
         subtitles = {}
         text_tracks = config['request'].get('text_tracks')
