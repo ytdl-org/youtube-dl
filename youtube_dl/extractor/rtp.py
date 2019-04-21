@@ -60,8 +60,11 @@ class RTPIE(InfoExtractor):
         }
 
 class RTPPlaylistIE(RTPIE):
-    _VALID_URL = r'https://www.rtp.pt/play/p510/e401638/aleixo-fm'
+    #_VALID_URL = r'https?://(?:www\.)?rtp\.pt/play/p(?P<program_id>[0-9]+)/(?P<id>[^/?#]+)/?'
+    _VALID_URL = r'1234'
     def _real_extract(self, url):
+
         return {
-            'entries': [{'id':'hello1', 'url':'https://cdn-ondemand.rtp.pt/nas2.share/wavrss/at3/1904/5786802_292886-1904170925.mp3'}]
+            '_type': 'playlist',
+            'entries':[{'_type':'url', 'url':'https://www.rtp.pt/play/p510/e400299/aleixo-fm'}]
         }
