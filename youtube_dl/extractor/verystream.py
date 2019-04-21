@@ -34,7 +34,7 @@ class VerystreamIE(InfoExtractor):
                             (?:www\.)?
                             %s
                         )/
-                        (?:e|embed)/
+                        (?:e|stream)/
                         (?P<id>[a-zA-Z0-9-_]+)
                     ''' % _DOMAINS
 
@@ -48,7 +48,7 @@ class VerystreamIE(InfoExtractor):
     @staticmethod
     def _extract_urls(webpage):
         return re.findall(
-            r'<iframe[^>]+src=["\']((?:https?://)?%s/embed/[a-zA-Z0-9-_]+)'
+            r'<iframe[^>]+src=["\']((?:https?://)?%s/stream/[a-zA-Z0-9-_]+)'
             % VerystreamIE._DOMAINS, webpage)
 
     def _real_extract(self, url):
@@ -65,7 +65,7 @@ class VerystreamIE(InfoExtractor):
             },
         }
 
-        for path in ('e', 'embed'):
+        for path in ('e', 'stream'):
             page_url = url_pattern % path
             last = path == 'f'
             webpage = self._download_webpage(
