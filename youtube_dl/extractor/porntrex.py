@@ -10,19 +10,7 @@ from ..utils import (
 )
 
 
-class PornTrexIE(InfoExtractor):
-    _NETRC_MACHINE = 'porntrex'
-    _VALID_URL = r'https?://(?:www\.)?porntrex\.com/video/(?P<id>[0-9]+)/'
-    _TEST = {
-        'url': 'https://www.porntrex.com/video/350451/naomi-woods-the-list',
-        'info_dict': {
-            'id': '350451',
-            'ext': 'mp4',
-            'title': 'Naomi Woods - The List in 4k',
-            'uploader': 'delman',
-            'description': 'Naomi Woods The List',
-        }
-    }
+class PornTrexBaseIE(InfoExtractor):
 
     def _login(self):
         username, password = self._get_login_info()
@@ -52,6 +40,21 @@ class PornTrexIE(InfoExtractor):
 
     def _real_initialize(self):
         self._login()
+
+
+class PornTrexIE(PornTrexBaseIE):
+    _NETRC_MACHINE = 'porntrex'
+    _VALID_URL = r'https?://(?:www\.)?porntrex\.com/video/(?P<id>[0-9]+)/'
+    _TEST = {
+        'url': 'https://www.porntrex.com/video/350451/naomi-woods-the-list',
+        'info_dict': {
+            'id': '350451',
+            'ext': 'mp4',
+            'title': 'Naomi Woods - The List in 4k',
+            'uploader': 'delman',
+            'description': 'Naomi Woods The List',
+        }
+    }
 
     def _real_extract(self, url):
         video_id = self._match_id(url)
@@ -94,7 +97,7 @@ class PornTrexIE(InfoExtractor):
         }
 
 
-class PornTrexPlayListIE(InfoExtractor):
+class PornTrexPlayListIE(PornTrexBaseIE):
     _NETRC_MACHINE = 'porntrex'
     _VALID_URL = \
         r'https?://(?:www\.)?porntrex\.com/playlists/(?P<id>[0-9]+)/'
@@ -110,35 +113,6 @@ class PornTrexPlayListIE(InfoExtractor):
             'description': 'https://www.indexxx.com/models/121033/adria-rae/',
         }
     }
-
-    def _login(self):
-        username, password = self._get_login_info()
-        if username is None:
-            return
-
-        login_page = self._download_webpage(
-            'https://www.porntrex.com/login/', None, 'Downloading login page')
-
-        login_form = self._hidden_inputs(login_page)
-
-        login_form.update({
-            'username': username.encode('utf-8'),
-            'pass': password.encode('utf-8'),
-            'remember_me': str(1).encode('utf-8'),
-        })
-
-        login_page = self._download_webpage(
-            'https://www.porntrex.com/ajax-login/', None,
-            note='Logging in',
-            data=urlencode_postdata(login_form))
-
-        if re.search(r'generic-error hidden', login_page):
-            raise ExtractorError(
-                'Unable to login, incorrect username and/or password',
-                expected=True)
-
-    def _real_initialize(self):
-        self._login()
 
     def _real_extract(self, url):
         playlist_id = self._match_id(url)
