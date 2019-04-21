@@ -109,23 +109,8 @@ class VimeoBaseInfoExtractor(InfoExtractor):
 
     def _parse_config(self, config, video_id):
         video_data = config['video']
-        # Extract title
         video_title = video_data['title']
-
-        # Extract uploader, uploader_url and uploader_id
-        video_uploader = video_data.get('owner', {}).get('name')
-        video_uploader_url = video_data.get('owner', {}).get('url')
-        video_uploader_id = video_uploader_url.split('/')[-1] if video_uploader_url else None
-
-        # Extract video thumbnail
-        video_thumbnail = video_data.get('thumbnail')
-        if video_thumbnail is None:
-            video_thumbs = video_data.get('thumbs')
-            if video_thumbs and isinstance(video_thumbs, dict):
-                _, video_thumbnail = sorted((int(width if width.isdigit() else 0), t_url) for (width, t_url) in video_thumbs.items())[-1]
-
-        # Extract video duration
-        video_duration = int_or_none(video_data.get('duration'))
+        is_live = try_get(video_data, lambda x: x['live_event']['status']) == 'started'
 
         formats = []
         config_files = video_data.get('files') or config['request'].get('files', {})
@@ -151,7 +136,7 @@ class VimeoBaseInfoExtractor(InfoExtractor):
                 if files_type == 'hls':
                     formats.extend(self._extract_m3u8_formats(
                         manifest_url, video_id, 'mp4',
-                        'm3u8_native', m3u8_id=format_id,
+                        'm3u8' if is_live else 'm3u8_native', m3u8_id=format_id,
                         note='Downloading %s m3u8 information' % cdn_name,
                         fatal=False))
                 elif files_type == 'dash':
@@ -164,6 +149,10 @@ class VimeoBaseInfoExtractor(InfoExtractor):
                     else:
                         mpd_manifest_urls = [(format_id, manifest_url)]
                     for f_id, m_url in mpd_manifest_urls:
+                        if 'json=1' in m_url:
+                            real_m_url = (self._download_json(m_url, video_id, fatal=False) or {}).get('url')
+                            if real_m_url:
+                                m_url = real_m_url
                         mpd_formats = self._extract_mpd_formats(
                             m_url.replace('/master.json', '/master.mpd'), video_id, f_id,
                             'Downloading %s MPD information' % cdn_name,
@@ -184,15 +173,33 @@ class VimeoBaseInfoExtractor(InfoExtractor):
                     'url': 'https://vimeo.com' + tt['url'],
                 }]
 
+        thumbnails = []
+        if not is_live:
+            for key, thumb in video_data.get('thumbs', {}).items():
+                thumbnails.append({
+                    'id': key,
+                    'width': int_or_none(key),
+                    'url': thumb,
+                })
+            thumbnail = video_data.get('thumbnail')
+            if thumbnail:
+                thumbnails.append({
+                    'url': thumbnail,
+                })
+
+        owner = video_data.get('owner') or {}
+        video_uploader_url = owner.get('url')
+
         return {
-            'title': video_title,
-            'uploader': video_uploader,
-            'uploader_id': video_uploader_id,
+            'title': self._live_title(video_title) if is_live else video_title,
+            'uploader': owner.get('name'),
+            'uploader_id': video_uploader_url.split('/')[-1] if video_uploader_url else None,
             'uploader_url': video_uploader_url,
-            'thumbnail': video_thumbnail,
-            'duration': video_duration,
+            'thumbnails': thumbnails,
+            'duration': int_or_none(video_data.get('duration')),
             'formats': formats,
             'subtitles': subtitles,
+            'is_live': is_live,
         }
 
     def _extract_original_format(self, url, video_id):
