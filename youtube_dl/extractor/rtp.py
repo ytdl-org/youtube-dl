@@ -65,7 +65,7 @@ class RTPIE(InfoExtractor):
 
 
 class RTPPlaylistIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:www\.)?rtp\.pt/play/p(?P<program_id>[0-9]+)'
+    _VALID_URL = r'https?://(?:www\.)?rtp\.pt/play/p(?P<program_id>[0-9]+)]+)(?!.)'
 
     def _get_program_id(self, url):
         mobj = re.match(self._VALID_URL, url)
