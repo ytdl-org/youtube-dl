@@ -808,6 +808,8 @@ from .nrk import (
     NRKTVSeasonIE,
     NRKTVSeriesIE,
 )
+from .nrl import NRLTVIE
+from .ntvcojp import NTVCoJpCUIE
 from .ntvde import NTVDeIE
 from .ntvru import NTVRuIE
 from .nytimes import (

@@ -2019,6 +2019,8 @@ class InfoExtractor(object):
         if res is False:
             return []
         mpd_doc, urlh = res
+        if mpd_doc is None:
+            return []
         mpd_base_url = base_url(urlh.geturl())
 
         return self._parse_mpd_formats(
