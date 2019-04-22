@@ -153,6 +153,11 @@ class SeznamZpravyArticleIE(InfoExtractor):
         'playlist_count': 1,
     }]
 
+    def _extract_urls(self, webpage):
+        return [mobj.group('url') for mobj in re.finditer(
+            r'<video\b[^>]+\bsrc=(["\'])(?P<url>(?:https?:)?//.*video.*)\1',
+            webpage)]
+
     def _real_extract(self, url):
         article_id = self._match_id(url)
 
@@ -164,6 +169,19 @@ class SeznamZpravyArticleIE(InfoExtractor):
         description = info.get('description') or self._og_search_description(webpage)
 
         return self.playlist_result([
-            self.url_result(entry_url, ie=SeznamZpravyIE.ie_key())
-            for entry_url in SeznamZpravyIE._extract_urls(webpage)],
+            {
+                'formats': [
+                    {
+                        'protocol': 'm3u8',
+                        'ext': 'mp4',
+                        'url': "%shlsp2,h264_aac_%ip_ts,4,VOD" % (entry_url, quality),
+                        'height': quality,
+                        'width': 16 * quality // 9
+                    }
+                    for quality in [360, 480, 720, 1080]
+                ],
+                'id': "%s-%i" % (article_id, i),
+                'title': title
+            }
+            for i, entry_url in enumerate(self._extract_urls(webpage))],
             article_id, title, description)
