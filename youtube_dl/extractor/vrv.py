@@ -102,6 +102,15 @@ class VRVIE(VRVBaseIE):
             # m3u8 download
             'skip_download': True,
         },
+    }, {
+        # movie listing
+        'url': 'https://vrv.co/watch/G6NQXZ1J6/Lily-CAT',
+        'info_dict': {
+            'id': 'G6NQXZ1J6',
+            'title': 'Lily C.A.T',
+            'description': 'md5:988b031e7809a6aeb60968be4af7db07',
+        },
+        'playlist_count': 2,
     }]
     _NETRC_MACHINE = 'vrv'
 
@@ -123,23 +132,23 @@ class VRVIE(VRVBaseIE):
     def _extract_vrv_formats(self, url, video_id, stream_format, audio_lang, hardsub_lang):
         if not url or stream_format not in ('hls', 'dash'):
             return []
-        assert audio_lang or hardsub_lang
         stream_id_list = []
         if audio_lang:
             stream_id_list.append('audio-%s' % audio_lang)
         if hardsub_lang:
             stream_id_list.append('hardsub-%s' % hardsub_lang)
-        stream_id = '-'.join(stream_id_list)
-        format_id = '%s-%s' % (stream_format, stream_id)
+        format_id = stream_format
+        if stream_id_list:
+            format_id += '-' + '-'.join(stream_id_list)
         if stream_format == 'hls':
             adaptive_formats = self._extract_m3u8_formats(
                 url, video_id, 'mp4', m3u8_id=format_id,
-                note='Downloading %s m3u8 information' % stream_id,
+                note='Downloading %s information' % format_id,
                 fatal=False)
         elif stream_format == 'dash':
             adaptive_formats = self._extract_mpd_formats(
                 url, video_id, mpd_id=format_id,
-                note='Downloading %s MPD information' % stream_id,
+                note='Downloading %s information' % format_id,
                 fatal=False)
         if audio_lang:
             for f in adaptive_formats:
@@ -155,6 +164,23 @@ class VRVIE(VRVBaseIE):
         resource_path = object_data['__links__']['resource']['href']
         video_data = self._call_cms(resource_path, video_id, 'video')
         title = video_data['title']
+        description = video_data.get('description')
+
+        if video_data.get('__class__') == 'movie_listing':
+            items = self._call_cms(
+                video_data['__links__']['movie_listing/movies']['href'],
+                video_id, 'movie listing').get('items') or []
+            if len(items) != 1:
+                entries = []
+                for item in items:
+                    item_id = item.get('id')
+                    if not item_id:
+                        continue
+                    entries.append(self.url_result(
+                        'https://vrv.co/watch/' + item_id,
+                        self.ie_key(), item_id, item.get('title')))
+                return self.playlist_result(entries, video_id, title, description)
+            video_data = items[0]
 
         streams_path = video_data['__links__'].get('streams', {}).get('href')
         if not streams_path:
@@ -198,7 +224,7 @@ class VRVIE(VRVBaseIE):
             'formats': formats,
             'subtitles': subtitles,
             'thumbnails': thumbnails,
-            'description': video_data.get('description'),
+            'description': description,
             'duration': float_or_none(video_data.get('duration_ms'), 1000),
             'uploader_id': video_data.get('channel_id'),
             'series': video_data.get('series_title'),
