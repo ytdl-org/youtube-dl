@@ -1671,6 +1671,13 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                 r'(?s)<h1[^>]+id="unavailable-message"[^>]*>(.+?)</h1>',
                 video_webpage, 'unavailable message', default=None)
 
+        if not video_info:
+            unavailable_message = extract_unavailable_message()
+            if not unavailable_message:
+                unavailable_message = 'Unable to extract video data'
+            raise ExtractorError(
+                'YouTube said: %s' % unavailable_message, expected=True, video_id=video_id)
+
         if 'token' not in video_info:
             if 'reason' in video_info:
                 if 'The uploader has not made this video available in your country.' in video_info['reason']:
