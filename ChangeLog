@@ -1,4 +1,4 @@
-version <unreleased>
+version 2019.04.24
 
 Extractors
 * [youtube] Fix extraction (#20758, #20759, #20761, #20762, #20764, #20766,

@@ -201,6 +201,7 @@
  - **CSpan**: C-SPAN
  - **CtsNews**: 華視新聞
  - **CTVNews**
+ - **cu.ntv.co.jp**: Nippon Television Network
  - **Culturebox**
  - **CultureUnplugged**
  - **curiositystream**
@@ -624,6 +625,7 @@
  - **NRKTVEpisodes**
  - **NRKTVSeason**
  - **NRKTVSeries**
+ - **NRLTV**
  - **ntv.ru**
  - **Nuvid**
  - **NYTimes**
