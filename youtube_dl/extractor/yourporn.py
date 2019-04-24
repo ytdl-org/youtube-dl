@@ -8,8 +8,8 @@ from ..utils import (
 
 
 class YourPornIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:www\.)?yourporn\.sexy/post/(?P<id>[^/?#&.]+)'
-    _TEST = {
+    _VALID_URL = r'https?://(?:www\.)?(?:yourporn\.sexy|sxyprn\.com)/post/(?P<id>[^/?#&.]+)'
+    _TESTS = [{
         'url': 'https://yourporn.sexy/post/57ffcb2e1179b.html',
         'md5': '6f8682b6464033d87acaa7a8ff0c092e',
         'info_dict': {
@@ -23,7 +23,10 @@ class YourPornIE(InfoExtractor):
         'params': {
             'skip_download': True,
         },
-    }
+    }, {
+        'url': 'https://sxyprn.com/post/57ffcb2e1179b.html',
+        'only_matching': True,
+    }]
 
     def _real_extract(self, url):
         video_id = self._match_id(url)

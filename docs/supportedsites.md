@@ -28,6 +28,7 @@
  - **acast:channel**
  - **AddAnime**
  - **ADN**: Anime Digital Network
+ - **AdobeConnect**
  - **AdobeTV**
  - **AdobeTVChannel**
  - **AdobeTVShow**
@@ -45,6 +46,7 @@
  - **anderetijden**: npo.nl, ntr.nl, omroepwnl.nl, zapp.nl and npo3.nl
  - **AnimeOnDemand**
  - **Anvato**
+ - **aol.com**
  - **APA**
  - **Aparat**
  - **AppleConnect**
@@ -101,6 +103,7 @@
  - **Bellator**
  - **BellMedia**
  - **Bet**
+ - **bfi:player**
  - **Bigflix**
  - **Bild**: Bild.de
  - **BiliBili**
@@ -198,6 +201,7 @@
  - **CSpan**: C-SPAN
  - **CtsNews**: 華視新聞
  - **CTVNews**
+ - **cu.ntv.co.jp**: Nippon Television Network
  - **Culturebox**
  - **CultureUnplugged**
  - **curiositystream**
@@ -345,7 +349,6 @@
  - **Groupon**
  - **Hark**
  - **hbo**
- - **hbo:episode**
  - **HearThisAt**
  - **Heise**
  - **HellPorno**
@@ -488,6 +491,8 @@
  - **Medialaan**
  - **Mediaset**
  - **Mediasite**
+ - **MediasiteCatalog**
+ - **MediasiteNamedCatalog**
  - **Medici**
  - **megaphone.fm**: megaphone.fm embedded players
  - **Meipai**: 美拍
@@ -620,6 +625,7 @@
  - **NRKTVEpisodes**
  - **NRKTVSeason**
  - **NRKTVSeries**
+ - **NRLTV**
  - **ntv.ru**
  - **Nuvid**
  - **NYTimes**
@@ -629,7 +635,6 @@
  - **OdaTV**
  - **Odnoklassniki**
  - **OktoberfestTV**
- - **on.aol.com**
  - **OnDemandKorea**
  - **onet.pl**
  - **onet.tv**
@@ -670,6 +675,8 @@
  - **Piksel**
  - **Pinkbike**
  - **Pladform**
+ - **Platzi**
+ - **PlatziCourse**
  - **play.fm**
  - **PlayPlusTV**
  - **PlaysTV**
@@ -848,6 +855,7 @@
  - **StreamCZ**
  - **StreetVoice**
  - **StretchInternet**
+ - **stv:player**
  - **SunPorno**
  - **SVT**
  - **SVTPage**
@@ -869,6 +877,7 @@
  - **teachertube:user:collection**: teachertube.com user and collection videos
  - **TeachingChannel**
  - **Teamcoco**
+ - **TeamTreeHouse**
  - **TechTalks**
  - **techtv.mit.edu**
  - **ted**
@@ -1118,6 +1127,8 @@
  - **XVideos**
  - **XXXYMovies**
  - **Yahoo**: Yahoo screen and movies
+ - **yahoo:gyao**
+ - **yahoo:gyao:player**
  - **YandexDisk**
  - **yandexmusic:album**: Яндекс.Музыка - Альбом
  - **yandexmusic:playlist**: Яндекс.Музыка - Плейлист

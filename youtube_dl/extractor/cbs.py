@@ -13,13 +13,17 @@ from ..utils import (
 
 class CBSBaseIE(ThePlatformFeedIE):
     def _parse_smil_subtitles(self, smil, namespace=None, subtitles_lang='en'):
-        closed_caption_e = find_xpath_attr(smil, self._xpath_ns('.//param', namespace), 'name', 'ClosedCaptionURL')
-        return {
-            'en': [{
-                'ext': 'ttml',
-                'url': closed_caption_e.attrib['value'],
-            }]
-        } if closed_caption_e is not None and closed_caption_e.attrib.get('value') else []
+        subtitles = {}
+        for k, ext in [('sMPTE-TTCCURL', 'tt'), ('ClosedCaptionURL', 'ttml'), ('webVTTCaptionURL', 'vtt')]:
+            cc_e = find_xpath_attr(smil, self._xpath_ns('.//param', namespace), 'name', k)
+            if cc_e is not None:
+                cc_url = cc_e.get('value')
+                if cc_url:
+                    subtitles.setdefault(subtitles_lang, []).append({
+                        'ext': ext,
+                        'url': cc_url,
+                    })
+        return subtitles
 
 
 class CBSIE(CBSBaseIE):

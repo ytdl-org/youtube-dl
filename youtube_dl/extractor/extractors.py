@@ -20,6 +20,7 @@ from .acast import (
 )
 from .addanime import AddAnimeIE
 from .adn import ADNIE
+from .adobeconnect import AdobeConnectIE
 from .adobetv import (
     AdobeTVIE,
     AdobeTVShowIE,
@@ -106,6 +107,7 @@ from .behindkink import BehindKinkIE
 from .bellmedia import BellMediaIE
 from .beatport import BeatportIE
 from .bet import BetIE
+from .bfi import BFIPlayerIE
 from .bigflix import BigflixIE
 from .bild import BildIE
 from .bilibili import (
@@ -440,10 +442,7 @@ from .goshgay import GoshgayIE
 from .gputechconf import GPUTechConfIE
 from .groupon import GrouponIE
 from .hark import HarkIE
-from .hbo import (
-    HBOIE,
-    HBOEpisodeIE,
-)
+from .hbo import HBOIE
 from .hearthisat import HearThisAtIE
 from .heise import HeiseIE
 from .hellporno import HellPornoIE
@@ -635,6 +634,7 @@ from .mediaset import MediasetIE
 from .mediasite import (
     MediasiteIE,
     MediasiteCatalogIE,
+    MediasiteNamedCatalogIE,
 )
 from .medici import MediciIE
 from .megaphone import MegaphoneIE
@@ -808,6 +808,8 @@ from .nrk import (
     NRKTVSeasonIE,
     NRKTVSeriesIE,
 )
+from .nrl import NRLTVIE
+from .ntvcojp import NTVCoJpCUIE
 from .ntvde import NTVDeIE
 from .ntvru import NTVRuIE
 from .nytimes import (
@@ -868,6 +870,10 @@ from .picarto import (
 from .piksel import PikselIE
 from .pinkbike import PinkbikeIE
 from .pladform import PladformIE
+from .platzi import (
+    PlatziIE,
+    PlatziCourseIE,
+)
 from .playfm import PlayFMIE
 from .playplustv import PlayPlusTVIE
 from .plays import PlaysTVIE
@@ -1089,6 +1095,7 @@ from .streamcloud import StreamcloudIE
 from .streamcz import StreamCZIE
 from .streetvoice import StreetVoiceIE
 from .stretchinternet import StretchInternetIE
+from .stv import STVPlayerIE
 from .sunporno import SunPornoIE
 from .svt import (
     SVTIE,
@@ -1447,6 +1454,8 @@ from .xxxymovies import XXXYMoviesIE
 from .yahoo import (
     YahooIE,
     YahooSearchIE,
+    YahooGyaOPlayerIE,
+    YahooGyaOIE,
 )
 from .yandexdisk import YandexDiskIE
 from .yandexmusic import (

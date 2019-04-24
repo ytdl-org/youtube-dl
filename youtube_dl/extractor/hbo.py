@@ -4,16 +4,28 @@ from __future__ import unicode_literals
 import re
 
 from .common import InfoExtractor
-from ..compat import compat_str
 from ..utils import (
     xpath_text,
     xpath_element,
     int_or_none,
     parse_duration,
+    urljoin,
 )
 
 
-class HBOBaseIE(InfoExtractor):
+class HBOIE(InfoExtractor):
+    IE_NAME = 'hbo'
+    _VALID_URL = r'https?://(?:www\.)?hbo\.com/(?:video|embed)(?:/[^/]+)*/(?P<id>[^/?#]+)'
+    _TEST = {
+        'url': 'https://www.hbo.com/video/game-of-thrones/seasons/season-8/videos/trailer',
+        'md5': '8126210656f433c452a21367f9ad85b3',
+        'info_dict': {
+            'id': '22113301',
+            'ext': 'mp4',
+            'title': 'Game of Thrones - Trailer',
+        },
+        'expected_warnings': ['Unknown MIME type application/mp4 in DASH manifest'],
+    }
     _FORMATS_INFO = {
         'pro7': {
             'width': 1280,
@@ -53,10 +65,17 @@ class HBOBaseIE(InfoExtractor):
         },
     }
 
-    def _extract_from_id(self, video_id):
-        video_data = self._download_xml(
-            'http://render.lv3.hbo.com/data/content/global/videos/data/%s.xml' % video_id, video_id)
-        title = xpath_text(video_data, 'title', 'title', True)
+    def _real_extract(self, url):
+        display_id = self._match_id(url)
+        webpage = self._download_webpage(url, display_id)
+        location_path = self._parse_json(self._html_search_regex(
+            r'data-state="({.+?})"', webpage, 'state'), display_id)['video']['locationUrl']
+        video_data = self._download_xml(urljoin(url, location_path), display_id)
+        video_id = xpath_text(video_data, 'id', fatal=True)
+        episode_title = title = xpath_text(video_data, 'title', fatal=True)
+        series = xpath_text(video_data, 'program')
+        if series:
+            title = '%s - %s' % (series, title)
 
         formats = []
         for source in xpath_element(video_data, 'videos', 'sources', True):
@@ -128,68 +147,23 @@ class HBOBaseIE(InfoExtractor):
                     'width': width,
                 })
 
+        subtitles = None
+        caption_url = xpath_text(video_data, 'captionUrl')
+        if caption_url:
+            subtitles = {
+                'en': [{
+                    'url': caption_url,
+                    'ext': 'ttml'
+                }],
+            }
+
         return {
             'id': video_id,
             'title': title,
             'duration': parse_duration(xpath_text(video_data, 'duration/tv14')),
+            'series': series,
+            'episode': episode_title,
             'formats': formats,
             'thumbnails': thumbnails,
+            'subtitles': subtitles,
         }
-
-
-class HBOIE(HBOBaseIE):
-    IE_NAME = 'hbo'
-    _VALID_URL = r'https?://(?:www\.)?hbo\.com/video/video\.html\?.*vid=(?P<id>[0-9]+)'
-    _TEST = {
-        'url': 'http://www.hbo.com/video/video.html?autoplay=true&g=u&vid=1437839',
-        'md5': '2c6a6bc1222c7e91cb3334dad1746e5a',
-        'info_dict': {
-            'id': '1437839',
-            'ext': 'mp4',
-            'title': 'Ep. 64 Clip: Encryption',
-            'thumbnail': r're:https?://.*\.jpg$',
-            'duration': 1072,
-        }
-    }
-
-    def _real_extract(self, url):
-        video_id = self._match_id(url)
-        return self._extract_from_id(video_id)
-
-
-class HBOEpisodeIE(HBOBaseIE):
-    IE_NAME = 'hbo:episode'
-    _VALID_URL = r'https?://(?:www\.)?hbo\.com/(?P<path>(?!video)(?:(?:[^/]+/)+video|watch-free-episodes)/(?P<id>[0-9a-z-]+))(?:\.html)?'
-
-    _TESTS = [{
-        'url': 'http://www.hbo.com/girls/episodes/5/52-i-love-you-baby/video/ep-52-inside-the-episode.html?autoplay=true',
-        'md5': '61ead79b9c0dfa8d3d4b07ef4ac556fb',
-        'info_dict': {
-            'id': '1439518',
-            'display_id': 'ep-52-inside-the-episode',
-            'ext': 'mp4',
-            'title': 'Ep. 52: Inside the Episode',
-            'thumbnail': r're:https?://.*\.jpg$',
-            'duration': 240,
-        },
-    }, {
-        'url': 'http://www.hbo.com/game-of-thrones/about/video/season-5-invitation-to-the-set.html?autoplay=true',
-        'only_matching': True,
-    }, {
-        'url': 'http://www.hbo.com/watch-free-episodes/last-week-tonight-with-john-oliver',
-        'only_matching': True,
-    }]
-
-    def _real_extract(self, url):
-        path, display_id = re.match(self._VALID_URL, url).groups()
-
-        content = self._download_json(
-            'http://www.hbo.com/api/content/' + path, display_id)['content']
-
-        video_id = compat_str((content.get('parsed', {}).get(
-            'common:FullBleedVideo', {}) or content['selectedEpisode'])['videoId'])
-
-        info_dict = self._extract_from_id(video_id)
-        info_dict['display_id'] = display_id
-
-        return info_dict

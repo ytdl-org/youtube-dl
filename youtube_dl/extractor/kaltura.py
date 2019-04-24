@@ -145,6 +145,8 @@ class KalturaIE(InfoExtractor):
         )
         if mobj:
             embed_info = mobj.groupdict()
+            for k, v in embed_info.items():
+                embed_info[k] = v.strip()
             url = 'kaltura:%(partner_id)s:%(id)s' % embed_info
             escaped_pid = re.escape(embed_info['partner_id'])
             service_url = re.search(
