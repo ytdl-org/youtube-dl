@@ -1678,8 +1678,12 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
             raise ExtractorError(
                 'YouTube said: %s' % unavailable_message, expected=True, video_id=video_id)
 
-        if 'token' not in video_info:
-            if 'reason' in video_info:
+        # patch in the token if it is elsewhere
+        if not video_info.get('token'):
+          video_info['token'] = video_info.get('account_playback_token')
+
+        if not video_info.get('token'):
+            if video_info.get('reason'):
                 if 'The uploader has not made this video available in your country.' in video_info['reason']:
                     regions_allowed = self._html_search_meta(
                         'regionsAllowed', video_webpage, default=None)
@@ -1687,7 +1691,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                     self.raise_geo_restricted(
                         msg=video_info['reason'][0], countries=countries)
                 reason = video_info['reason'][0]
-                if 'Invalid parameters' in reason:
+                if reason.get('Invalid parameters'):
                     unavailable_message = extract_unavailable_message()
                     if unavailable_message:
                         reason = unavailable_message
