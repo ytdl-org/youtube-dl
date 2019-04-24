@@ -76,7 +76,10 @@ class UdemyIE(InfoExtractor):
                 webpage, 'course', default='{}')),
             video_id, fatal=False) or {}
         course_id = course.get('id') or self._search_regex(
-            r'data-course-id=["\'](\d+)', webpage, 'course id')
+            [
+                r'data-course-id=["\'](\d+)',
+                r'&quot;courseId&quot;\s*:\s*(\d+)'
+            ], webpage, 'course id')
         return course_id, course.get('title')
 
     def _enroll_course(self, base_url, webpage, course_id):
@@ -375,7 +378,7 @@ class UdemyIE(InfoExtractor):
                     }, res))
 
             # react rendition since 2017.04.15 (see
-            # https://github.com/rg3/youtube-dl/issues/12744)
+            # https://github.com/ytdl-org/youtube-dl/issues/12744)
             data = self._parse_json(
                 self._search_regex(
                     r'videojs-setup-data=(["\'])(?P<data>{.+?})\1', view_html,

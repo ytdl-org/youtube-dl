@@ -9,8 +9,8 @@ from ..utils import (
 
 
 class BeegIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:www\.)?beeg\.com/(?P<id>\d+)'
-    _TEST = {
+    _VALID_URL = r'https?://(?:www\.)?beeg\.(?:com|porn(?:/video)?)/(?P<id>\d+)'
+    _TESTS = [{
         'url': 'http://beeg.com/5416503',
         'md5': 'a1a1b1a8bc70a89e49ccfd113aed0820',
         'info_dict': {
@@ -24,7 +24,13 @@ class BeegIE(InfoExtractor):
             'tags': list,
             'age_limit': 18,
         }
-    }
+    }, {
+        'url': 'https://beeg.porn/video/5416503',
+        'only_matching': True,
+    }, {
+        'url': 'https://beeg.porn/5416503',
+        'only_matching': True,
+    }]
 
     def _real_extract(self, url):
         video_id = self._match_id(url)

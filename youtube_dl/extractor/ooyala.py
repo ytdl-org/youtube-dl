@@ -36,7 +36,7 @@ class OoyalaBaseIE(InfoExtractor):
                 'domain': domain,
                 'supportedFormats': supportedformats or 'mp4,rtmp,m3u8,hds,dash,smooth',
                 'embedToken': embed_token,
-            }), video_id)
+            }), video_id, headers=self.geo_verification_headers())
 
         cur_auth_data = auth_data['authorization_data'][embed_code]
 

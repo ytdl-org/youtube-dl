@@ -411,7 +411,7 @@ class TestFormatSelection(unittest.TestCase):
         # For extractors with incomplete formats (all formats are audio-only or
         # video-only) best and worst should fallback to corresponding best/worst
         # video-only or audio-only formats (as per
-        # https://github.com/rg3/youtube-dl/pull/5556)
+        # https://github.com/ytdl-org/youtube-dl/pull/5556)
         formats = [
             {'format_id': 'low', 'ext': 'mp3', 'preference': 1, 'vcodec': 'none', 'url': TEST_URL},
             {'format_id': 'high', 'ext': 'mp3', 'preference': 2, 'vcodec': 'none', 'url': TEST_URL},
@@ -442,7 +442,7 @@ class TestFormatSelection(unittest.TestCase):
         self.assertRaises(ExtractorError, ydl.process_ie_result, info_dict.copy())
 
     def test_format_selection_issue_10083(self):
-        # See https://github.com/rg3/youtube-dl/issues/10083
+        # See https://github.com/ytdl-org/youtube-dl/issues/10083
         formats = [
             {'format_id': 'regular', 'height': 360, 'url': TEST_URL},
             {'format_id': 'video', 'height': 720, 'acodec': 'none', 'url': TEST_URL},
@@ -853,7 +853,7 @@ class TestYoutubeDL(unittest.TestCase):
         self.assertEqual(result, [2, 3, 4])
 
     def test_urlopen_no_file_protocol(self):
-        # see https://github.com/rg3/youtube-dl/issues/8227
+        # see https://github.com/ytdl-org/youtube-dl/issues/8227
         ydl = YDL()
         self.assertRaises(compat_urllib_error.URLError, ydl.urlopen, 'file:///etc/passwd')
 

@@ -181,10 +181,7 @@ class NPOIE(NPOBaseIE):
 
     def _real_extract(self, url):
         video_id = self._match_id(url)
-        try:
-            return self._get_info(url, video_id)
-        except ExtractorError:
-            return self._get_old_info(video_id)
+        return self._get_info(url, video_id) or self._get_old_info(video_id)
 
     def _get_info(self, url, video_id):
         token = self._download_json(
@@ -206,6 +203,7 @@ class NPOIE(NPOBaseIE):
 
         player_token = player['token']
 
+        drm = False
         format_urls = set()
         formats = []
         for profile in ('hls', 'dash-widevine', 'dash-playready', 'smooth'):
@@ -227,7 +225,8 @@ class NPOIE(NPOBaseIE):
             if not stream_url or stream_url in format_urls:
                 continue
             format_urls.add(stream_url)
-            if stream.get('protection') is not None:
+            if stream.get('protection') is not None or stream.get('keySystemOptions') is not None:
+                drm = True
                 continue
             stream_type = stream.get('type')
             stream_ext = determine_ext(stream_url)
@@ -238,13 +237,18 @@ class NPOIE(NPOBaseIE):
                 formats.extend(self._extract_m3u8_formats(
                     stream_url, video_id, ext='mp4',
                     entry_protocol='m3u8_native', m3u8_id='hls', fatal=False))
-            elif '.ism/Manifest' in stream_url:
+            elif re.search(r'\.isml?/Manifest', stream_url):
                 formats.extend(self._extract_ism_formats(
                     stream_url, video_id, ism_id='mss', fatal=False))
             else:
                 formats.append({
                     'url': stream_url,
                 })
+
+        if not formats:
+            if drm:
+                raise ExtractorError('This video is DRM protected.', expected=True)
+            return
 
         self._sort_formats(formats)
 

@@ -46,8 +46,12 @@ class ParamountNetworkIE(MTVServicesInfoExtractor):
     _GEO_COUNTRIES = ['US']
 
     def _extract_mgid(self, webpage):
-        cs = self._parse_json(self._search_regex(
+        root_data = self._parse_json(self._search_regex(
             r'window\.__DATA__\s*=\s*({.+})',
-            webpage, 'data'), None)['children']
-        c = next(c for c in cs if c.get('type') == 'VideoPlayer')
+            webpage, 'data'), None)
+
+        def find_sub_data(data, data_type):
+            return next(c for c in data['children'] if c.get('type') == data_type)
+
+        c = find_sub_data(find_sub_data(root_data, 'MainContainer'), 'VideoPlayer')
         return c['props']['media']['video']['config']['uri']

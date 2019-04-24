@@ -6,12 +6,12 @@
 
 ---
 
-### Make sure you are using the *latest* version: run `youtube-dl --version` and ensure your version is *2019.03.01*. If it's not, read [this FAQ entry](https://github.com/rg3/youtube-dl/blob/master/README.md#how-do-i-update-youtube-dl) and update. Issues with outdated version will be rejected.
-- [ ] I've **verified** and **I assure** that I'm running youtube-dl **2019.03.01**
+### Make sure you are using the *latest* version: run `youtube-dl --version` and ensure your version is *2019.04.24*. If it's not, read [this FAQ entry](https://github.com/ytdl-org/youtube-dl/blob/master/README.md#how-do-i-update-youtube-dl) and update. Issues with outdated version will be rejected.
+- [ ] I've **verified** and **I assure** that I'm running youtube-dl **2019.04.24**
 
 ### Before submitting an *issue* make sure you have:
-- [ ] At least skimmed through the [README](https://github.com/rg3/youtube-dl/blob/master/README.md), **most notably** the [FAQ](https://github.com/rg3/youtube-dl#faq) and [BUGS](https://github.com/rg3/youtube-dl#bugs) sections
-- [ ] [Searched](https://github.com/rg3/youtube-dl/search?type=Issues) the bugtracker for similar issues including closed ones
+- [ ] At least skimmed through the [README](https://github.com/ytdl-org/youtube-dl/blob/master/README.md), **most notably** the [FAQ](https://github.com/ytdl-org/youtube-dl#faq) and [BUGS](https://github.com/ytdl-org/youtube-dl#bugs) sections
+- [ ] [Searched](https://github.com/ytdl-org/youtube-dl/search?type=Issues) the bugtracker for similar issues including closed ones
 - [ ] Checked that provided video/audio/playlist URLs (if any) are alive and playable in a browser
 
 ### What is the purpose of your *issue*?
@@ -36,7 +36,7 @@ Add the `-v` flag to **your command line** you run youtube-dl with (`youtube-dl 
 [debug] User config: []
 [debug] Command-line args: [u'-v', u'http://www.youtube.com/watch?v=BaW_jenozKcj']
 [debug] Encodings: locale cp1251, fs mbcs, out cp866, pref cp1251
-[debug] youtube-dl version 2019.03.01
+[debug] youtube-dl version 2019.04.24
 [debug] Python version 2.7.11 - Windows-2003Server-5.2.3790-SP2
 [debug] exe versions: ffmpeg N-75573-g1d0487f, ffprobe N-75573-g1d0487f, rtmpdump 2.4
 [debug] Proxy map: {}
@@ -51,11 +51,11 @@ Add the `-v` flag to **your command line** you run youtube-dl with (`youtube-dl 
 - Single video: https://youtu.be/BaW_jenozKc
 - Playlist: https://www.youtube.com/playlist?list=PL4lCao7KL_QFVb7Iudeipvc2BCavECqzc
 
-Note that **youtube-dl does not support sites dedicated to [copyright infringement](https://github.com/rg3/youtube-dl#can-you-add-support-for-this-anime-video-site-or-site-which-shows-current-movies-for-free)**. In order for site support request to be accepted all provided example URLs should not violate any copyrights.
+Note that **youtube-dl does not support sites dedicated to [copyright infringement](https://github.com/ytdl-org/youtube-dl#can-you-add-support-for-this-anime-video-site-or-site-which-shows-current-movies-for-free)**. In order for site support request to be accepted all provided example URLs should not violate any copyrights.
 
 ---
 
 ### Description of your *issue*, suggested solution and other information
 
-Explanation of your *issue* in arbitrary form goes here. Please make sure the [description is worded well enough to be understood](https://github.com/rg3/youtube-dl#is-the-description-of-the-issue-itself-sufficient). Provide as much context and examples as possible.
+Explanation of your *issue* in arbitrary form goes here. Please make sure the [description is worded well enough to be understood](https://github.com/ytdl-org/youtube-dl#is-the-description-of-the-issue-itself-sufficient). Provide as much context and examples as possible.
 If work on your *issue* requires account credentials please provide them or explain how one can obtain them.

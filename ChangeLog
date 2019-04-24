@@ -1,3 +1,161 @@
+version 2019.04.24
+
+Extractors
+* [youtube] Fix extraction (#20758, #20759, #20761, #20762, #20764, #20766,
+  #20767, #20769, #20771, #20768, #20770)
+* [toutv] Fix extraction and extract series info (#20757)
++ [vrv] Add support for movie listings (#19229)
++ [youtube] Print error when no data is available (#20737)
++ [soundcloud] Add support for new rendition and improve extraction (#20699)
++ [ooyala] Add support for geo verification proxy
++ [nrl] Add support for nrl.com (#15991)
++ [vimeo] Extract live archive source format (#19144)
++ [vimeo] Add support for live streams and improve info extraction (#19144)
++ [ntvcojp] Add support for cu.ntv.co.jp
++ [nhk] Extract RTMPT format
++ [nhk] Add support for audio URLs
++ [udemy] Add another course id extraction pattern (#20491)
++ [openload] Add support for oload.services (#20691)
++ [openload] Add support for openloed.co (#20691, #20693)
+* [bravotv] Fix extraction (#19213)
+
+
+version 2019.04.17
+
+Extractors
+* [openload] Randomize User-Agent (closes #20688)
++ [openload] Add support for oladblock domains (#20471)
+* [adn] Fix subtitle extraction (#12724)
++ [aol] Add support for localized websites
++ [yahoo] Add support GYAO episode URLs
++ [yahoo] Add support for streaming.yahoo.co.jp (#5811, #7098)
++ [yahoo] Add support for gyao.yahoo.co.jp
+* [aenetworks] Fix history topic extraction and extract more formats
++ [cbs] Extract smpte and vtt subtitles
++ [streamango] Add support for streamcherry.com (#20592)
++ [yourporn] Add support for sxyprn.com (#20646)
+* [mgtv] Fix extraction (#20650)
+* [linkedin:learning] Use urljoin for form action URL (#20431)
++ [gdc] Add support for kaltura embeds (#20575)
+* [dispeak] Improve mp4 bitrate extraction
+* [kaltura] Sanitize embed URLs
+* [jwplatfom] Do not match manifest URLs (#20596)
+* [aol] Restrict URL regular expression and improve format extraction
++ [tiktok] Add support for new URL schema (#20573)
++ [stv:player] Add support for player.stv.tv (#20586)
+
+
+version 2019.04.07
+
+Core
++ [downloader/external] Pass rtmp_conn to ffmpeg
+
+Extractors
++ [ruutu] Add support for audio podcasts (#20473, #20545)
++ [xvideos] Extract all thumbnails (#20432)
++ [platzi] Add support for platzi.com (#20562)
+* [dvtv] Fix extraction (#18514, #19174)
++ [vrv] Add basic support for individual movie links (#19229)
++ [bfi:player] Add support for player.bfi.org.uk (#19235)
+* [hbo] Fix extraction and extract subtitles (#14629, #13709)
+* [youtube] Extract srv[1-3] subtitle formats (#20566)
+* [adultswim] Fix extraction (#18025)
+* [teamcoco] Fix extraction and add suport for subdomains (#17099, #20339)
+* [adn] Fix subtitle compatibility with ffmpeg
+* [adn] Fix extraction and add support for positioning styles (#20549)
+* [vk] Use unique video id (#17848)
+* [newstube] Fix extraction
+* [rtl2] Actualize extraction
++ [adobeconnect] Add support for adobeconnect.com (#20283)
++ [gaia] Add support for authentication (#14605)
++ [mediasite] Add support for dashed ids and named catalogs (#20531)
+
+
+version 2019.04.01
+
+Core
+* [utils] Improve int_or_none and float_or_none (#20403)
+* Check for valid --min-sleep-interval when --max-sleep-interval is specified
+  (#20435)
+
+Extractors
++ [weibo] Extend URL regular expression (#20496)
++ [xhamster] Add support for xhamster.one (#20508)
++ [mediasite] Add support for catalogs (#20507)
++ [teamtreehouse] Add support for teamtreehouse.com (#9836)
++ [ina] Add support for audio URLs
+* [ina] Improve extraction
+* [cwtv] Fix episode number extraction (#20461)
+* [npo] Improve DRM detection
++ [pornhub] Add support for DASH formats (#20403)
+* [svtplay] Update API endpoint (#20430)
+
+
+version 2019.03.18
+
+Core
+* [extractor/common] Improve HTML5 entries extraction
++ [utils] Introduce parse_bitrate
+* [update] Hide update URLs behind redirect
+* [extractor/common] Fix url meta field for unfragmented DASH formats (#20346)
+
+Extractors
++ [yandexvideo] Add extractor
+* [openload] Improve embed detection
++ [corus] Add support for bigbrothercanada.ca (#20357)
++ [orf:radio] Extract series (#20012)
++ [cbc:watch] Add support for gem.cbc.ca (#20251, #20359)
+- [anysex] Remove extractor (#19279)
++ [ciscolive] Add support for new URL schema (#20320, #20351)
++ [youtube] Add support for invidiou.sh (#20309)
+- [anitube] Remove extractor (#20334)
+- [ruleporn] Remove extractor (#15344, #20324)
+* [npr] Fix extraction (#10793, #13440)
+* [biqle] Fix extraction (#11471, #15313)
+* [viddler] Modernize
+* [moevideo] Fix extraction
+* [primesharetv] Remove extractor
+* [hypem] Modernize and extract more metadata (#15320)
+* [veoh] Fix extraction
+* [escapist] Modernize
+- [videomega] Remove extractor (#10108)
++ [beeg] Add support for beeg.porn (#20306)
+* [vimeo:review] Improve config url extraction and extract original format
+  (#20305)
+* [fox] Detect geo restriction and authentication errors (#20208)
+
+
+version 2019.03.09
+
+Core
+* [extractor/common] Use compat_etree_Element
++ [compat] Introduce compat_etree_Element
+* [extractor/common] Fallback url to base URL for DASH formats
+* [extractor/common] Do not fail on invalid data while parsing F4M manifest
+  in non fatal mode
+* [extractor/common] Return MPD manifest as format's url meta field (#20242)
+* [utils] Strip #HttpOnly_ prefix from cookies files (#20219)
+
+Extractors
+* [francetv:site] Relax video id regular expression (#20268)
+* [toutv] Detect invalid login error
+* [toutv] Fix authentication (#20261)
++ [urplay] Extract timestamp (#20235)
++ [openload] Add support for oload.space (#20246)
+* [facebook] Improve uploader extraction (#20250)
+* [bbc] Use compat_etree_Element
+* [crunchyroll] Use compat_etree_Element
+* [npo] Improve ISM extraction
+* [rai] Improve extraction (#20253)
+* [paramountnetwork] Fix mgid extraction (#20241)
+* [libsyn] Improve extraction (#20229)
++ [youtube] Add more invidious instances to URL regular expression (#20228)
+* [spankbang] Fix extraction (#20023)
+* [espn] Extend URL regular expression (#20013)
+* [sixplay] Handle videos with empty assets (#20016)
++ [vimeo] Add support for Vimeo Pro portfolio protected videos (#20070)
+
+
 version 2019.03.01
 
 Core

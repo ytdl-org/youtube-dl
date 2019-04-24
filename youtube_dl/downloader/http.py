@@ -111,7 +111,7 @@ class HttpFD(FileDownloader):
                 # to match the value of requested Range HTTP header. This is due to a webservers
                 # that don't support resuming and serve a whole file with no Content-Range
                 # set in response despite of requested Range (see
-                # https://github.com/rg3/youtube-dl/issues/6057#issuecomment-126129799)
+                # https://github.com/ytdl-org/youtube-dl/issues/6057#issuecomment-126129799)
                 if has_range:
                     content_range = ctx.data.headers.get('Content-Range')
                     if content_range:
