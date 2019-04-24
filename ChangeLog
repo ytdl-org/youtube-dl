@@ -1,3 +1,25 @@
+version 2019.04.24
+
+Extractors
+* [youtube] Fix extraction (#20758, #20759, #20761, #20762, #20764, #20766,
+  #20767, #20769, #20771, #20768, #20770)
+* [toutv] Fix extraction and extract series info (#20757)
++ [vrv] Add support for movie listings (#19229)
++ [youtube] Print error when no data is available (#20737)
++ [soundcloud] Add support for new rendition and improve extraction (#20699)
++ [ooyala] Add support for geo verification proxy
++ [nrl] Add support for nrl.com (#15991)
++ [vimeo] Extract live archive source format (#19144)
++ [vimeo] Add support for live streams and improve info extraction (#19144)
++ [ntvcojp] Add support for cu.ntv.co.jp
++ [nhk] Extract RTMPT format
++ [nhk] Add support for audio URLs
++ [udemy] Add another course id extraction pattern (#20491)
++ [openload] Add support for oload.services (#20691)
++ [openload] Add support for openloed.co (#20691, #20693)
+* [bravotv] Fix extraction (#19213)
+
+
 version 2019.04.17
 
 Extractors
