@@ -105,7 +105,7 @@ class ABCIE(InfoExtractor):
 
 class ABCIViewIE(InfoExtractor):
     IE_NAME = 'abc.net.au:iview'
-    _VALID_URL = r'https?://iview\.abc\.net\.au/((?:[^/]+/)*video/|programs/(?:[^/]+/)*)(?P<id>[A-Z0-9]+)'
+    _VALID_URL = r'https?://iview\.abc\.net\.au/(?:(?:[^/]+/)*video/|programs/(?:[^/]+/)*)(?P<id>[^/?#]+)'
     _GEO_COUNTRIES = ['AU']
 
     # ABC iview programs are normally available for 14 days only.
@@ -158,6 +158,26 @@ class ABCIViewIE(InfoExtractor):
         },
     }]
 
+    def _make_result(self, video_id, title, house_number, video_params, **kwargs):
+        res = {
+            'id': video_id,
+            'title': title,
+            'description': video_params.get('description'),
+            'thumbnail': video_params.get('thumbnail'),
+            'duration': int_or_none(video_params.get('duration')),
+            'timestamp': parse_iso8601(video_params.get('pubDate'), ' '),
+            'series': unescapeHTML(video_params.get('seriesTitle')),
+            'series_id': video_params.get('seriesHouseNumber') or video_id[:7],
+            'season_number': int_or_none(self._search_regex(
+                r'\bSeries\s+(\d+)\b', title, 'season number', default=None)),
+            'episode_number': int_or_none(self._search_regex(
+                r'\bEp\s+(\d+)\b', title, 'episode number', default=None)),
+            'episode_id': house_number,
+            'uploader_id': video_params.get('channel'),
+        }
+        res.update(**kwargs)
+        return res
+
     def _real_extract(self, url):
         video_id = self._match_id(url)
         video_params = self._download_json(
@@ -203,30 +223,15 @@ class ABCIViewIE(InfoExtractor):
         if is_live:
             title = self._live_title(title)
 
-        return {
-            'id': video_id,
-            'title': title,
-            'description': video_params.get('description'),
-            'thumbnail': video_params.get('thumbnail'),
-            'duration': int_or_none(video_params.get('eventDuration')),
-            'timestamp': parse_iso8601(video_params.get('pubDate'), ' '),
-            'series': unescapeHTML(video_params.get('seriesTitle')),
-            'series_id': video_params.get('seriesHouseNumber') or video_id[:7],
-            'season_number': int_or_none(self._search_regex(
-                r'\bSeries\s+(\d+)\b', title, 'season number', default=None)),
-            'episode_number': int_or_none(self._search_regex(
-                r'\bEp\s+(\d+)\b', title, 'episode number', default=None)),
-            'episode_id': house_number,
-            'uploader_id': video_params.get('channel'),
-            'formats': formats,
-            'subtitles': subtitles,
-            'is_live': is_live,
-        }
+        return self._make_result(video_id, title, house_number, video_params,
+                            formats=formats,
+                            subtitles=subtitles,
+                            is_live=is_live)
 
 
 class ABCIViewSeriesIE(ABCIViewIE):
     IE_NAME = 'abc.net.au:iview:series'
-    _VALID_URL = r'https?://iview\.abc\.net\.au/(show|programs)/(?P<id>[a-z0-9\-]+)/?'
+    _VALID_URL = r'https?://iview\.abc\.net\.au/(show|programs)/(?P<id>[^/?#]+)/?'
 
     _TESTS = [
         {
@@ -266,31 +271,16 @@ class ABCIViewSeriesIE(ABCIViewIE):
         for episode in episodes:
             video_id = house_number = episode.get('episodeHouseNumber')
             title = unescapeHTML(episode.get('title') or episode['seriesTitle'])
-            entry = {
-                '_type': 'url',
-                'url': 'https://iview.abc.net.au/' + episode.get('href'),
-                'ie_key': ABCIViewIE.ie_key(),
-                'id': video_id,
-                'title': episode.get('title'),
-                'description': episode.get('description'),
-                'thumbnail': episode.get('thumbnail'),
-                'duration': int_or_none(episode.get('duration')),
-                'timestamp': parse_iso8601(episode.get('pubDate'), ' '),
-                'series': unescapeHTML(episode.get('seriesTitle')),
-                'series_id': episode.get('seriesHouseNumber') or video_id[:7],
-                'season_number': int_or_none(self._search_regex(
-                    r'\bSeries\s+(\d+)\b', title, 'season number', default=None)),
-                'episode_number': int_or_none(self._search_regex(
-                    r'\bEp\s+(\d+)\b', title, 'episode number', default=None)),
-                'episode_id': house_number,
-                'uploader_id': episode.get('channel'),
-            }
+            entry = self._make_result(video_id, episode.get('title'), house_number, episode,
+                                 _type='url',
+                                 url='https://iview.abc.net.au/' + episode.get('href'),
+                                 ie_key=ABCIViewIE.ie_key())
             entries.append(entry)
 
         return {
             '_type': 'playlist',
             'title': series_params.get('seriesTitle'),
             'description': series_params.get('seriesDescription'),
-            'uploader_id': entries[0].get('uploader_id'),
+            'uploader_id': entries[0].get('uploader_id') if entries else None,
             'entries': entries
         }
