@@ -263,7 +263,7 @@ class ABCIViewShowIE(ABCIViewIE):
         show_data = self._download_json(
             'https://iview.abc.net.au/api/series/' + show_id, show_id)
 
-        title = show_data.get('seriesDescription') or show_id
+        title = show_data.get('seriesTitle') or show_id
         description = show_data.get('seriesDescription')
 
         # Sometimes the episodes are listed in reverse order, with the most recently uploaded ones first.
