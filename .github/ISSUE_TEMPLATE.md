@@ -13,6 +13,7 @@
 - [ ] At least skimmed through the [README](https://github.com/ytdl-org/youtube-dl/blob/master/README.md), **most notably** the [FAQ](https://github.com/ytdl-org/youtube-dl#faq) and [BUGS](https://github.com/ytdl-org/youtube-dl#bugs) sections
 - [ ] [Searched](https://github.com/ytdl-org/youtube-dl/search?type=Issues) the bugtracker for similar issues including closed ones
 - [ ] Checked that provided video/audio/playlist URLs (if any) are alive and playable in a browser
+- [ ] Checked that all URLs and arguments with special characters are [properly quoted or escaped](https://github.com/ytdl-org/youtube-dl#video-url-contains-an-ampersand-and-im-getting-some-strange-output-1-2839-or-v-is-not-recognized-as-an-internal-or-external-command)
 
 ### What is the purpose of your *issue*?
 - [ ] Bug report (encountered problems with youtube-dl)
