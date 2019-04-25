@@ -229,8 +229,8 @@ class ABCIViewIE(InfoExtractor):
                             is_live=is_live)
 
 
-class ABCIViewSeriesIE(ABCIViewIE):
-    IE_NAME = 'abc.net.au:iview:series'
+class ABCIViewShowIE(ABCIViewIE):
+    IE_NAME = 'abc.net.au:iview:show'
     _VALID_URL = r'https?://iview\.abc\.net\.au/(show|programs)/(?P<id>[^/?#]+)/?'
 
     _TESTS = [
@@ -256,16 +256,19 @@ class ABCIViewSeriesIE(ABCIViewIE):
 
     @classmethod
     def suitable(cls, url):
-        return False if ABCIViewIE.suitable(url) else super(ABCIViewSeriesIE, cls).suitable(url)
+        return False if ABCIViewIE.suitable(url) else super(ABCIViewShowIE, cls).suitable(url)
 
     def _real_extract(self, url):
-        series_id = self._match_id(url)
-        series_params = self._download_json(
-            'https://iview.abc.net.au/api/series/' + series_id, series_id)
+        show_id = self._match_id(url)
+        show_data = self._download_json(
+            'https://iview.abc.net.au/api/series/' + show_id, show_id)
+
+        title = show_data.get('seriesDescription') or show_id
+        description = show_data.get('seriesDescription')
 
         # Sometimes the episodes are listed in reverse order, with the most recently uploaded ones first.
         # This is normally for time-limited series. Others appear oldest to newest
-        episodes = series_params.get('episodes')
+        episodes = show_data.get('episodes')
         entries = []
 
         for episode in episodes:
@@ -279,8 +282,9 @@ class ABCIViewSeriesIE(ABCIViewIE):
 
         return {
             '_type': 'playlist',
-            'title': series_params.get('seriesTitle'),
-            'description': series_params.get('seriesDescription'),
+            'id': show_id,
+            'title': title,
+            'description': description,
             'uploader_id': entries[0].get('uploader_id') if entries else None,
             'entries': entries
         }
