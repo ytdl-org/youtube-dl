@@ -11,7 +11,7 @@ from ..utils import (
 
 
 class EarthCamsIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:www\.)?earthcam\.com/.*?cam=(?P<id>\w+)'
+    _VALID_URL = r'https?://(?:www\.)?earthcam\.com/.*\?.*cam=(?P<id>\w+)'
     _TEST = {
         'url': 'https://www.earthcam.com/usa/newyork/timessquare/?cam=tsrobo1',
         'info_dict': {
@@ -21,7 +21,7 @@ class EarthCamsIE(InfoExtractor):
             'description': 'EarthCam  brings you an HD, panoramic view of Times Square looking up, down, and across 7th Avenue and Broadway. See why Times Square is called the "Crossroads of the World!"',
             'view_count': int,
             'is_live': True,
-            'thumbnail': r're:^https?://.*\.jpg$',
+            'thumbnail': r're:^https?://.*\.(jpg|png)$',
         },
     }
 
