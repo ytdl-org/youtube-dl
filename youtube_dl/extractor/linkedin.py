@@ -2,6 +2,7 @@
 from __future__ import unicode_literals
 
 import re
+from itertools import zip_longest
 
 from .common import InfoExtractor
 from ..utils import (
@@ -126,14 +127,36 @@ class LinkedInLearningIE(LinkedInLearningBaseIE):
 
         self._sort_formats(formats, ('width', 'height', 'source_preference', 'tbr', 'abr'))
 
+        duration = int_or_none(video_data.get('durationInSeconds'))
+        subtitles = self.extract_subtitles(video_data['transcript'], duration)
+
         return {
             'id': self._get_video_id(video_data, course_slug, video_slug),
             'title': title,
             'formats': formats,
+            'subtitles': subtitles,
             'thumbnail': video_data.get('defaultThumbnail'),
             'timestamp': float_or_none(video_data.get('publishedOn'), 1000),
-            'duration': int_or_none(video_data.get('durationInSeconds')),
+            'duration': duration,
         }
+
+    def _get_subtitles(self, transcript, duration):
+        counter = 0
+        records = []
+        if transcript and 'lines' in transcript:
+            lines = transcript['lines']
+            for curr, next in zip_longest(lines, lines[1:], fillvalue={"transcriptStartAt": duration*1000, "caption": "THE END"}):
+                text = curr["caption"].strip()
+                if text:
+                    counter += 1
+                    show = curr["transcriptStartAt"]
+                    hide = next["transcriptStartAt"]
+                    show = "{:02d}:{:02d}:{:02d},{:03d}".format(show//3600000, show%3600000//60000, show%60000//1000, show%1000)
+                    hide = "{:02d}:{:02d}:{:02d},{:03d}".format(hide//3600000, hide%3600000//60000, hide%60000//1000, hide%1000)
+                    records.append('%s\r\n%s --> %s\r\n%s\r\n' % (counter, show, hide, text))
+            return {'en': [{'ext': 'srt', 'data': '\r\n'.join(records)}]}
+        else:
+            return {}
 
 
 class LinkedInLearningCourseIE(LinkedInLearningBaseIE):
