@@ -2,7 +2,6 @@
 
 from __future__ import unicode_literals
 
-
 import itertools
 import json
 import os.path
@@ -1662,6 +1661,8 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                         # due to YouTube measures against IP ranges of hosting providers.
                         # Working around by preferring the first succeeded video_info containing
                         # the token if no such video_info yet was found.
+                        token = video_info.get('token') or video_info.get('account_playback_token')
+
                         if 'token' not in video_info:
                             video_info = get_video_info
                         break
@@ -1670,8 +1671,15 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
             return self._html_search_regex(
                 r'(?s)<h1[^>]+id="unavailable-message"[^>]*>(.+?)</h1>',
                 video_webpage, 'unavailable message', default=None)
+        if not video_info:
+            unavailable_message = extract_unavailable_message()
+            if not unavailable_message:
+                unavailable_message = 'Unable to extract video data'
+            raise ExtractorError(
+                'YouTube said: %s' % unavailable_message, expected=True, video_id=video_id)
 
-        if 'token' not in video_info:
+        token = video_info.get('token') or video_info.get('account_playback_token')
+        if not token:
             if 'reason' in video_info:
                 if 'The uploader has not made this video available in your country.' in video_info['reason']:
                     regions_allowed = self._html_search_meta(
@@ -2176,6 +2184,22 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                     if f.get('vcodec') != 'none':
                         f['stretched_ratio'] = ratio
 
+        # Getting Album and Release Data for Music Downloads
+        # Extracts information from Youtube Auto-Generated Description
+        album = None
+        release_date = None
+
+        if 'Music' in video_categories:
+            # Capturing Album based on the Youtube-Auto Generated Description
+            album_check = re.compile(u'\u2117').split(video_description)
+            if len(album_check) > 1:
+                album = str_or_none(re.compile(u'\n').split(album_check[0])[-3])
+
+            # Capturing Release Date based on the Youtube-Auto Generated Description
+            release_check = re.compile(u'Released on: ').split(video_description)
+            if len(release_check) > 1:
+                release_date = str_or_none(re.compile(u'\n').split(release_check[1])[0])
+
         self._sort_formats(formats)
 
         self.mark_watched(video_id, video_info, player_response)
@@ -2216,6 +2240,8 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
             'episode_number': episode_number,
             'track': track,
             'artist': artist,
+            'album': album,
+            'release_date': release_date,
         }
 
 
@@ -2270,6 +2296,7 @@ class YoutubePlaylistIE(YoutubePlaylistBaseInfoExtractor):
         'info_dict': {
             'title': '29C3: Not my department',
             'id': 'PLwP_SiAcdui0KVebT0mU9Apz359a4ubsC',
+
         },
         'playlist_count': 95,
     }, {
@@ -2286,6 +2313,8 @@ class YoutubePlaylistIE(YoutubePlaylistBaseInfoExtractor):
         'info_dict': {
             'title': 'Uploads from Cauchemar',
             'id': 'UUBABnxM4Ar9ten8Mdjj1j0Q',
+            'uploader': 'Cauchemar',
+            'uploader_id': 'Cauchemar89',
         },
         'playlist_mincount': 799,
     }, {
@@ -2351,24 +2380,15 @@ class YoutubePlaylistIE(YoutubePlaylistBaseInfoExtractor):
         },
         'add_ie': [YoutubeIE.ie_key()],
     }, {
-        'url': 'https://youtu.be/yeWKywCrFtk?list=PL2qgrgXsNUG5ig9cat4ohreBjYLAPC0J5',
+        'url': 'https://music.youtube.com/playlist?list=OLAK5uy_n1nDgpbd8vbIVjM2c_gYPvyjEn8LiEeHc',
         'info_dict': {
-            'id': 'yeWKywCrFtk',
+            'title': 'Lindsey Sterling',
+            'id': 'KjjexAtzXgk',
             'ext': 'mp4',
-            'title': 'Small Scale Baler and Braiding Rugs',
-            'uploader': 'Backus-Page House Museum',
-            'uploader_id': 'backuspagemuseum',
-            'uploader_url': r're:https?://(?:www\.)?youtube\.com/user/backuspagemuseum',
-            'upload_date': '20161008',
-            'license': 'Standard YouTube License',
-            'description': 'md5:800c0c78d5eb128500bffd4f0b4f2e8a',
-            'categories': ['Nonprofits & Activism'],
-            'tags': list,
-            'like_count': int,
-            'dislike_count': int,
+            'uploader': 'prjkaur',
+            'uploader_id': 'UCANssrR25dhClbF335TfBew',
         },
         'params': {
-            'noplaylist': True,
             'skip_download': True,
         },
     }, {
@@ -2475,12 +2495,12 @@ class YoutubePlaylistIE(YoutubePlaylistBaseInfoExtractor):
 
         playlist = self.playlist_result(
             self._entries(page, playlist_id), playlist_id, playlist_title)
+
         playlist.update({
             'uploader': uploader,
             'uploader_id': uploader_id,
             'uploader_url': uploader_url,
         })
-
         return has_videos, playlist
 
     def _check_download_just_video(self, url, playlist_id):
