@@ -313,6 +313,7 @@ from .dw import (
     DWArticleIE,
 )
 from .eagleplatform import EaglePlatformIE
+from .earthcams import EarthCamsIE
 from .ebaumsworld import EbaumsWorldIE
 from .echomsk import EchoMskIE
 from .egghead import (
