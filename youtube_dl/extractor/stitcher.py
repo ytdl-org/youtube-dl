@@ -15,6 +15,19 @@ class StitcherIE(InfoExtractor):
     _VALID_URL = r'https?://(?:www\.)?stitcher\.com/podcast/(?:[^/]+/)+e/(?:(?P<display_id>[^/#?&]+?)-)?(?P<id>\d+)(?:[/#?&]|$)'
     _TESTS = [{
         'url': 'http://www.stitcher.com/podcast/the-talking-machines/e/40789481?autoplay=true',
+        'md5': '730312cac3a909c9732747b66962eb74',
+        'info_dict': {
+            'id': '40789481',
+            'ext': 'mp3',
+            'title': 'Machine Learning Mastery and Cancer Clusters',
+            'show_name': 'Talking Machines',
+            'description': 'md5:50da9e5ec6d37867069c480edbcf8b94',
+            'publication_date': 'Oct 8, 2015',
+            'duration': 1604,
+            'thumbnail': r're:^https?://.*\.jpg',
+        },
+    }, {
+        'url': 'http://www.stitcher.com/podcast/the-talking-machines/e/40789481?autoplay=true',
         'md5': '391dd4e021e6edeb7b8e68fbf2e9e940',
         'info_dict': {
             'id': '40789481',
@@ -54,10 +67,16 @@ class StitcherIE(InfoExtractor):
 
         webpage = self._download_webpage(url, display_id)
 
-        episode = self._parse_json(
-            js_to_json(self._search_regex(
-                r'(?s)var\s+stitcher(?:Config)?\s*=\s*({.+?});\n', webpage, 'episode config')),
-            display_id)['config']['episode']
+        # Safe grab 'config' json data using get()
+        config = self._parse_json(
+            js_to_json(self._search_regex(r'(?s)var\s+stitcher(?:Config)?\s*=\s*({.+?});\n', webpage, 'episode config')),
+            display_id).get('config')
+
+        # Safe grab 'episode' json data using get()
+        episode = config.get('episode')
+
+        # Safe grab 'episode' json data using get()
+        feed = config.get('feed')
 
         title = unescapeHTML(episode['title'])
         formats = [{
@@ -69,12 +88,16 @@ class StitcherIE(InfoExtractor):
             r'Episode Info:\s*</span>([^<]+)<', webpage, 'description', fatal=False)
         duration = int_or_none(episode.get('duration'))
         thumbnail = episode.get('episodeImage')
+        pub_date = episode.get('pubDate')
+        show_name = feed.get('name')
 
         return {
             'id': audio_id,
             'display_id': display_id,
             'title': title,
+            'show_name': show_name,
             'description': description,
+            'publication_date': pub_date,
             'duration': duration,
             'thumbnail': thumbnail,
             'formats': formats,
