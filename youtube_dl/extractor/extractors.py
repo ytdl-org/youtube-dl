@@ -4,7 +4,7 @@ from __future__ import unicode_literals
 from .abc import (
     ABCIE,
     ABCIViewIE,
-    ABCIViewSeriesIE,
+    ABCIViewShowIE,
 )
 from .abcnews import (
     AbcNewsIE,
