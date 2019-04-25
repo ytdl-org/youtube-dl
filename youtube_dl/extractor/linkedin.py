@@ -145,14 +145,14 @@ class LinkedInLearningIE(LinkedInLearningBaseIE):
         records = []
         if transcript and 'lines' in transcript:
             lines = transcript['lines']
-            for curr, next in zip_longest(lines, lines[1:], fillvalue={"transcriptStartAt": duration*1000, "caption": "THE END"}):
+            for curr, next in zip_longest(lines, lines[1:], fillvalue={"transcriptStartAt": duration * 1000, "caption": "THE END"}):
                 text = curr["caption"].strip()
                 if text:
                     counter += 1
                     show = curr["transcriptStartAt"]
                     hide = next["transcriptStartAt"]
-                    show = "{:02d}:{:02d}:{:02d},{:03d}".format(show//3600000, show%3600000//60000, show%60000//1000, show%1000)
-                    hide = "{:02d}:{:02d}:{:02d},{:03d}".format(hide//3600000, hide%3600000//60000, hide%60000//1000, hide%1000)
+                    show = "{:02d}:{:02d}:{:02d},{:03d}".format(show // 3600000, show % 3600000 // 60000, show % 60000 // 1000, show % 1000)
+                    hide = "{:02d}:{:02d}:{:02d},{:03d}".format(hide // 3600000, hide % 3600000 // 60000, hide % 60000 // 1000, hide % 1000)
                     records.append('%s\r\n%s --> %s\r\n%s\r\n' % (counter, show, hide, text))
             return {'en': [{'ext': 'srt', 'data': '\r\n'.join(records)}]}
         else:
