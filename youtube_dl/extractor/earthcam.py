@@ -10,7 +10,7 @@ from ..utils import (
 )
 
 
-class EarthCamsIE(InfoExtractor):
+class EarthCamIE(InfoExtractor):
     _VALID_URL = r'https?://(?:www\.)?earthcam\.com/.*\?.*cam=(?P<id>\w+)'
     _TEST = {
         'url': 'https://www.earthcam.com/usa/newyork/timessquare/?cam=tsrobo1',
