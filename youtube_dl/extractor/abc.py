@@ -226,7 +226,7 @@ class ABCIViewIE(InfoExtractor):
 
 class ABCIViewSeriesIE(ABCIViewIE):
     IE_NAME = 'abc.net.au:iview:series'
-    _VALID_URL = r'https?://iview\.abc\.net\.au/(show|programs)/(?P<id>[a-z0-9\-]+)/?$'
+    _VALID_URL = r'https?://iview\.abc\.net\.au/(show|programs)/(?P<id>[a-z0-9\-]+)/?'
 
     _TESTS = [
         {
@@ -248,6 +248,10 @@ class ABCIViewSeriesIE(ABCIViewIE):
             'playlist_count': 24
         },
     ]
+
+    @classmethod
+    def suitable(cls, url):
+        return False if ABCIViewIE.suitable(url) else super(ABCIViewSeriesIE, cls).suitable(url)
 
     def _real_extract(self, url):
         series_id = self._match_id(url)
