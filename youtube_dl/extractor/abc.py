@@ -105,7 +105,7 @@ class ABCIE(InfoExtractor):
 
 class ABCIViewIE(InfoExtractor):
     IE_NAME = 'abc.net.au:iview'
-    _VALID_URL = r'https?://iview\.abc\.net\.au/(?:(?:[^/]+/)*video/|programs/(?:[^/]+/)*)(?P<id>[^/?#]+)'
+    _VALID_URL = r'https?://iview\.abc\.net\.au/(?:(?:[^/]+/)*video/|programs/(?:[^/]+/)*)(?P<id>[A-Z0-9]+)'
     _GEO_COUNTRIES = ['AU']
 
     # ABC iview programs are normally available for 14 days only.
@@ -231,7 +231,7 @@ class ABCIViewIE(InfoExtractor):
 
 class ABCIViewShowIE(ABCIViewIE):
     IE_NAME = 'abc.net.au:iview:show'
-    _VALID_URL = r'https?://iview\.abc\.net\.au/(show|programs)/(?P<id>[^/?#]+)/?'
+    _VALID_URL = r'https?://iview\.abc\.net\.au/(?:show|programs)/(?P<id>[a-z0-9\-]+)/?'
 
     _TESTS = [
         {
