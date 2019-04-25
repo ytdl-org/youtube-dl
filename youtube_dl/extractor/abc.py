@@ -273,8 +273,8 @@ class ABCIViewShowIE(ABCIViewIE):
 
         for episode in episodes:
             video_id = house_number = episode.get('episodeHouseNumber')
-            title = unescapeHTML(episode.get('title') or episode['seriesTitle'])
-            entry = self._make_result(video_id, episode.get('title'), house_number, episode,
+            episode_title = unescapeHTML(episode.get('title') or episode['seriesTitle'])
+            entry = self._make_result(video_id, episode_title, house_number, episode,
                                  _type='url',
                                  url='https://iview.abc.net.au/' + episode.get('href'),
                                  ie_key=ABCIViewIE.ie_key())
