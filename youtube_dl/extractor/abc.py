@@ -105,7 +105,7 @@ class ABCIE(InfoExtractor):
 
 class ABCIViewShowIE(InfoExtractor):
     IE_NAME = 'abc.net.au:iview:show'
-    _VALID_URL = r'https?://iview\.abc\.net\.au/(?:[^/]+/)*show/(?P<id>[^/?#]+)/?$'
+    _VALID_URL = r'https?://iview\.abc\.net\.au/(?:[^/]+/)*show/(?P<id>[^/?#]+)/?'
     _GEO_COUNTRIES = ['AU']
 
     # ABC iview programs are normally available for 14 days only.
@@ -121,6 +121,10 @@ class ABCIViewShowIE(InfoExtractor):
             'skip_download': True,
         },
     }]
+
+@classmethod
+def suitable(cls, url):
+    return False if ABCIViewIE.suitable(url) else super(ABCIViewShowIE, cls).suitable(url)
 
     def _real_extract(self, url):
         show_id = self._match_id(url)
