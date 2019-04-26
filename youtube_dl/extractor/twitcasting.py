@@ -2,9 +2,7 @@
 from __future__ import unicode_literals
 
 from .common import InfoExtractor
-from ..utils import (
-    urlencode_postdata,
-)
+from ..utils import urlencode_postdata
 
 import re
 
