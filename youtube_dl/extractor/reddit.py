@@ -68,6 +68,17 @@ class RedditRIE(InfoExtractor):
             'skip_download': True,
         },
     }, {
+        'url': 'https://www.reddit.com/r/gifs/comments/au27kt/not_today/',
+        'info_dict': {
+            'id': 'xl0duc2uvei21',
+            'ext': 'mp4',
+            'upload_date': '20190224',
+            'title': 'NOT TODAY',
+            'timestamp': 1550968443.0,
+            'uploader': 'dfghjk231',
+            'thumbnail': None,
+        }
+    }, {
         'url': 'https://www.reddit.com/r/videos/comments/6rrwyj',
         'only_matching': True,
     }, {
@@ -115,11 +126,15 @@ class RedditRIE(InfoExtractor):
         else:
             age_limit = None
 
+        thumbnail = data.get('thumbnail')
+        if thumbnail == 'default':
+            thumbnail = None
+
         return {
             '_type': 'url_transparent',
             'url': video_url,
             'title': data.get('title'),
-            'thumbnail': data.get('thumbnail'),
+            'thumbnail': thumbnail,
             'timestamp': float_or_none(data.get('created_utc')),
             'uploader': data.get('author'),
             'like_count': int_or_none(data.get('ups')),
