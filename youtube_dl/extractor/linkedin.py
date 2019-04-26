@@ -2,7 +2,12 @@
 from __future__ import unicode_literals
 
 import re
-from itertools import zip_longest
+
+try:
+    from itertools import zip_longest
+except ImportError:
+    from itertools import izip_longest as zip_longest
+
 
 from .common import InfoExtractor
 from ..utils import (
