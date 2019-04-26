@@ -4,9 +4,11 @@ RewriteEngine On
 RewriteRule ^ip/?$ ip.php
 
 RewriteRule ^bugs?/? https://github.com/ytdl-org/youtube-dl/issues [R=302,L]
+RewriteRule ^readme/?$ https://github.com/ytdl-org/youtube-dl/blob/master/README.md [R=302,L,NE]
 RewriteRule ^reporting/? https://github.com/ytdl-org/youtube-dl/blob/master/README.md#bugs [R=302,L,NE]
 RewriteRule ^update/?$ https://github.com/ytdl-org/youtube-dl/blob/master/README.md#how-do-i-update-youtube-dl [R=302,L,NE]
 RewriteRule ^donat(e|ions)/?$ https://ytdl-org.github.io/youtube-dl/donations.html [R=302,L]
+RewriteRule ^faq/?$ https://github.com/ytdl-org/youtube-dl/blob/master/README.md#faq [R=302,L,NE]
 RewriteRule ^(faq-)?anime/?$ https://github.com/ytdl-org/youtube-dl/blob/master/README.md#can-you-add-support-for-this-anime-video-site-or-site-which-shows-current-movies-for-free [R=302,L,NE]
 RewriteRule ^(faq-)?citw/?$ https://github.com/ytdl-org/youtube-dl/blob/master/README.md#do-i-always-have-to-pass-in---max-quality-format-or--citw [R=302,L,NE]
 RewriteRule ^(?:example-url|questions)/?$ https://github.com/ytdl-org/youtube-dl/blob/master/CONTRIBUTING.md#is-the-description-of-the-issue-itself-sufficient [R=302,L,NE]
