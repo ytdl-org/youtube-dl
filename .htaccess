@@ -14,6 +14,7 @@ RewriteRule ^g403/?$ https://github.com/ytdl-org/youtube-dl/blob/master/README.m
 RewriteRule ^format-selection/?$ https://github.com/ytdl-org/youtube-dl#format-selection [R=302,L,NE]
 RewriteRule ^output-template/?$ https://github.com/ytdl-org/youtube-dl#output-template [R=302,L,NE]
 RewriteRule ^escape/?$ https://github.com/ytdl-org/youtube-dl#video-url-contains-an-ampersand-and-im-getting-some-strange-output-1-2839-or-v-is-not-recognized-as-an-internal-or-external-command [R=302,L,NE]
+RewriteRule ^search-issues/?$ https://github.com/ytdl-org/youtube-dl/issues?q=is:issue [R=302,L,NE]
 
 RewriteRule ^update/LATEST_VERSION$ https://ytdl-org.github.io/youtube-dl/update/LATEST_VERSION [R=302,L]
 RewriteRule ^update/versions.json https://ytdl-org.github.io/youtube-dl/update/versions.json [R=302,L]
