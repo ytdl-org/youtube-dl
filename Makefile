@@ -78,12 +78,12 @@ README.md: youtube_dl/*.py youtube_dl/*/*.py
 CONTRIBUTING.md: README.md
 	$(PYTHON) devscripts/make_contributing.py README.md CONTRIBUTING.md
 
-issuetemplates: devscripts/make_issue_template.py .github/ISSUE_TEMPLATE/1_broken_site_tmpl.md .github/ISSUE_TEMPLATE/2_site_support_request_tmpl.md .github/ISSUE_TEMPLATE/3_site_feature_request_tmpl.md .github/ISSUE_TEMPLATE/4_bug_report_tmpl.md .github/ISSUE_TEMPLATE/5_feature_request_tmpl.md youtube_dl/version.py
-	$(PYTHON) devscripts/make_issue_template.py .github/ISSUE_TEMPLATE/1_broken_site_tmpl.md .github/ISSUE_TEMPLATE/1_broken_site.md
-	$(PYTHON) devscripts/make_issue_template.py .github/ISSUE_TEMPLATE/2_site_support_request_tmpl.md .github/ISSUE_TEMPLATE/2_site_support_request.md
-	$(PYTHON) devscripts/make_issue_template.py .github/ISSUE_TEMPLATE/3_site_feature_request_tmpl.md .github/ISSUE_TEMPLATE/3_site_feature_request.md
-	$(PYTHON) devscripts/make_issue_template.py .github/ISSUE_TEMPLATE/4_bug_report_tmpl.md .github/ISSUE_TEMPLATE/4_bug_report.md
-	$(PYTHON) devscripts/make_issue_template.py .github/ISSUE_TEMPLATE/5_feature_request_tmpl.md .github/ISSUE_TEMPLATE/5_feature_request.md
+issuetemplates: devscripts/make_issue_template.py .github/ISSUE_TEMPLATE_tmpl/1_broken_site.md .github/ISSUE_TEMPLATE_tmpl/2_site_support_request.md .github/ISSUE_TEMPLATE_tmpl/3_site_feature_request.md .github/ISSUE_TEMPLATE_tmpl/4_bug_report.md .github/ISSUE_TEMPLATE_tmpl/5_feature_request.md youtube_dl/version.py
+	$(PYTHON) devscripts/make_issue_template.py .github/ISSUE_TEMPLATE_tmpl/1_broken_site.md .github/ISSUE_TEMPLATE/1_broken_site.md
+	$(PYTHON) devscripts/make_issue_template.py .github/ISSUE_TEMPLATE_tmpl/2_site_support_request.md .github/ISSUE_TEMPLATE/2_site_support_request.md
+	$(PYTHON) devscripts/make_issue_template.py .github/ISSUE_TEMPLATE_tmpl/3_site_feature_request.md .github/ISSUE_TEMPLATE/3_site_feature_request.md
+	$(PYTHON) devscripts/make_issue_template.py .github/ISSUE_TEMPLATE_tmpl/4_bug_report.md .github/ISSUE_TEMPLATE/4_bug_report.md
+	$(PYTHON) devscripts/make_issue_template.py .github/ISSUE_TEMPLATE_tmpl/5_feature_request.md .github/ISSUE_TEMPLATE/5_feature_request.md
 
 supportedsites:
 	$(PYTHON) devscripts/make_supportedsites.py docs/supportedsites.md
