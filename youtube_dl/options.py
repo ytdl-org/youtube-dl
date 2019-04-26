@@ -603,6 +603,10 @@ def parseOpts(overrideArguments=None):
         action='store_true', dest='getid', default=False,
         help='Simulate, quiet but print id')
     verbosity.add_option(
+        '--dump-video-list-only',
+        action='store_true', dest='dump_video_list_only', default=False,
+        help='Just dump the list of videos in a channel/playlist and do not perform other requests. Use together with -i and -q to obtain parseable JSON Lines format.')
+    verbosity.add_option(
         '--get-thumbnail',
         action='store_true', dest='getthumbnail', default=False,
         help='Simulate, quiet but print thumbnail URL')

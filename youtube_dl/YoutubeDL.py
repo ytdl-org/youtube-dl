@@ -925,6 +925,11 @@ class YoutubeDL(object):
 
             ie_entries = ie_result['entries']
 
+            if self.params.get("dump_video_list_only", False):
+                # ie_entries is a generator, so it depletes when we iterate through it and no videos remain for download
+                for entry in ie_entries:
+                    print(entry)
+
             def make_playlistitems_entries(list_ie_entries):
                 num_entries = len(list_ie_entries)
                 return [

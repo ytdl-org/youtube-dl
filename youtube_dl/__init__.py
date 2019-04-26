@@ -335,6 +335,7 @@ def _real_main(argv=None):
         'forceformat': opts.getformat,
         'forcejson': opts.dumpjson or opts.print_json,
         'dump_single_json': opts.dump_single_json,
+        'dump_video_list_only': opts.dump_video_list_only,
         'simulate': opts.simulate or any_getting,
         'skip_download': opts.skip_download,
         'format': opts.format,
