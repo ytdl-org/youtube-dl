@@ -14,7 +14,7 @@ class TwitCastingIE(InfoExtractor):
         'info_dict': {
             'id': '2357609',
             'ext': 'mp4',
-            'title': 'Recorded Live #2357609',
+            'title': 'Live #2357609',
             'uploader_id': 'ivetesangalo',
             'description': "Moi! I'm live on TwitCasting from my iPhone.",
             'thumbnail': r're:^https?://.*\.jpg$',
