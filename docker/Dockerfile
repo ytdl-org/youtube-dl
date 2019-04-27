@@ -47,5 +47,5 @@ RUN apk update && \
     rm -rf /var/cache/apk/*
 # Copy init script, set workdir & entrypoint
 COPY init /init
-WORKDIR /home/dockeruser
+WORKDIR /workdir
 ENTRYPOINT ["/init"]
