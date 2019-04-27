@@ -842,6 +842,7 @@ from .orf import (
     ORFOE1IE,
     ORFIPTVIE,
 )
+from .otomads import OtomadsIE
 from .outsidetv import OutsideTVIE
 from .packtpub import (
     PacktPubIE,
