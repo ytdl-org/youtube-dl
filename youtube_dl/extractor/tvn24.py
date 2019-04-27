@@ -41,6 +41,15 @@ class TVN24IE(InfoExtractor):
             },
         }],
     }, {
+        # no OpenGraph title or description
+        'url': 'https://tvnmeteo.tvn24.pl/magazyny/maja-w-ogrodzie,13/odcinki-online,1,1,1,0/zielona-wstazka-wsrod-pagorkow-odc-705-hgtv-odc-5-serii-2019,1831029.html',
+        'md5': '6fc1cdb118e429dd05c7111305caee83',
+        'info_dict': {
+            'id': '1831029',
+            'ext': 'mp4',
+            'title': 'Zielona wstążka wśród pagórków (odc. 705 /HGTV odc. 5 serii 2019) - Maja w Ogrodzie',
+        }
+    }, {
         'url': 'https://toteraz.pl/zakaz-wyprowadzania-psow-nielegalny-decyzja-sadu-administracyjnego,1838704.html',
         'md5': '46d127c478834e942b196d584b3ed747',
         'info_dict': {
