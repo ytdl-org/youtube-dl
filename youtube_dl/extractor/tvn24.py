@@ -88,15 +88,9 @@ class TVN24IE(InfoExtractor):
                 iterator = itertools.islice(iterator, 0, 1)
             for match in iterator:
                 video_elt = match.group('video')
-                video_id = None
-                share_params = extract_json('share-params', 'share params', fatal=False)
-                if share_params:
-                    video_id = share_params['id']
-                    if video_id == '[id]':
-                        # toteraz.pl videos have bogus share-params
-                        video_id = None
-                if video_id is None:
-                    video_id = extract_value('video-id', 'video id')
+                video_id = self._search_regex(
+                    r'^(\d{6,})($|_)',
+                    extract_value('video-id', 'video id'), 'video id')
                 try:
                     title = match.group('title')
                 except IndexError:
