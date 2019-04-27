@@ -65,7 +65,7 @@ class SixPlayIE(InfoExtractor):
         for asset in assets:
             asset_url = asset.get('full_physical_path')
             protocol = asset.get('protocol')
-            if not asset_url or (protocol == 'primetime' or asset.get('type') == 'usp_hlsfp_h264') and not ('_drmnp.ism/' in asset_url or '_unpnp.ism/' in asset_url) or asset_url in urls:
+            if not asset_url or ((protocol == 'primetime' or asset.get('type') == 'usp_hlsfp_h264') and not ('_drmnp.ism/' in asset_url or '_unpnp.ism/' in asset_url)) or asset_url in urls:
                 continue
             urls.append(asset_url)
             container = asset.get('video_container')
