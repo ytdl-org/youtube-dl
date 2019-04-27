@@ -194,6 +194,7 @@ from .chirbit import (
     ChirbitProfileIE,
 )
 from .cinchcast import CinchcastIE
+from .cinemax import CinemaxIE
 from .ciscolive import (
     CiscoLiveSessionIE,
     CiscoLiveSearchIE,
