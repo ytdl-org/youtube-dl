@@ -1,3 +1,5 @@
+# Builder container for pandoc, prerequisite for building youtube-dl
+# (so build environment isn't in final container, to save space)
 FROM alpine:3.9 as builder_pandoc
 RUN apk update && \
     apk add cabal \ 
@@ -8,6 +10,8 @@ RUN apk update && \
     cabal update && \
     cabal install --upgrade-dependencies --enable-per-component -j --force-reinstalls pandoc
 
+# Builder container for youtube-dl
+# (so build environment isn't in final container, to save space)
 FROM alpine:3.9 as builder_ytdl
 COPY --from=builder_pandoc /root/.cabal /root/.cabal
 RUN apk update && \
@@ -26,9 +30,12 @@ RUN apk update && \
     make -j && \
     make install
 
+# Final container
 FROM alpine:3.9 as final
+# Copy youtube-dl binary and manpage into container from builder container
 COPY --from=builder_ytdl /usr/local/bin/youtube-dl /usr/local/bin/youtube-dl
 COPY --from=builder_ytdl /usr/local/man/man1/youtube-dl.1 /usr/local/man/man1/youtube-dl.1
+# Install & configure prerequisites for youtube-dl
 RUN apk update && \
     apk add ffmpeg \
             rtmpdump \
@@ -38,8 +45,7 @@ RUN apk update && \
     ln -s /usr/bin/python3 /usr/bin/python && \
     youtube-dl --version && \
     rm -rf /var/cache/apk/*
-
+# Copy init script, set workdir & entrypoint
 COPY init /init
 WORKDIR /home/dockeruser
 ENTRYPOINT ["/init"]
-
