@@ -133,7 +133,8 @@ class TVN24IE(InfoExtractor):
             }
 
         if not info.get('title'):
-            info['title'] = self._og_search_title(webpage)
+            info['title'] = (self._og_search_title(webpage, default=None) or
+                             self._html_search_regex(r'<title>([^<]+)', webpage, 'title'))
         info['description'] = self._og_search_description(webpage)
 
         return info
