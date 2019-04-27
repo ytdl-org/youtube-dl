@@ -182,6 +182,12 @@ class ABCIViewIE(InfoExtractor):
         video_id = self._match_id(url)
         video_params = self._download_json(
             'https://iview.abc.net.au/api/programs/' + video_id, video_id)
+        if 'playlist' not in video_params:
+            error_message = video_params.get('statusMessage')
+            if error_message:
+                error_message = error_message.splitlines()[0]
+                raise ExtractorError(error_message, expected=True)
+            raise ExtractorError('no playlist information found in video params')
         title = unescapeHTML(video_params.get('title') or video_params['seriesTitle'])
         stream = next(s for s in video_params['playlist'] if s.get('type') in ('program', 'livestream'))
 
