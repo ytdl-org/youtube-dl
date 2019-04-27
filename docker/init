@@ -1,16 +1,17 @@
-#!/bin/sh
+#!/bin/bash
+
+export YOUTUBEDLARGS=$@
+
+YOUTUBEDLPGID=${PGID:-1000}
+YOUTUBEDLPUID=${PUID:-1000}
 
 # Create dockeruser user/group
-addgroup -g $PGID dockeruser
-adduser -D -u $PUID -G dockeruser -h /home/dockeruser dockeruser
-chown $PUID:$PGID /home/dockeruser
-
-# Change ownership of youtube-dl and set sticky bit so youtube-dl runs as dockeruser (rootless operation)
-chown $PUID:$PGID `which youtube-dl`
-chmod u+s,g+s `which youtube-dl`
-
-# Ensure .netrc has correct permissions (if present)
-chown root:root /root/.netrc
+addgroup -g $YOUTUBEDLPGID dockeruser
+adduser -D -u $YOUTUBEDLPUID -G dockeruser -h /home/dockeruser dockeruser
+chown $YOUTUBEDLPUID:$YOUTUBEDLPGID /home/dockeruser
+export HOME=/home/dockeruser
 
 # Run youtube-dl with remainder of command line arguments
-youtube-dl $@
+su -m dockeruser <<'EOF'
+youtube-dl $YOUTUBEDLARGS
+EOF

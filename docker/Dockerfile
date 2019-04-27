@@ -35,16 +35,17 @@ FROM alpine:3.9 as final
 # Copy youtube-dl binary and manpage into container from builder container
 COPY --from=builder_ytdl /usr/local/bin/youtube-dl /usr/local/bin/youtube-dl
 COPY --from=builder_ytdl /usr/local/man/man1/youtube-dl.1 /usr/local/man/man1/youtube-dl.1
-# Install & configure prerequisites for youtube-dl
+# Install & configure s6 overlay, then prerequisites for youtube-dl
 RUN apk update && \
     apk add ffmpeg \
             rtmpdump \
             mplayer \
             mpv \
-            python3 && \
+            python3 \
+            bash && \
     ln -s /usr/bin/python3 /usr/bin/python && \
     youtube-dl --version && \
-    rm -rf /var/cache/apk/*
+    rm -rf /var/cache/apk/* /tmp/*
 # Copy init script, set workdir & entrypoint
 COPY init /init
 WORKDIR /workdir
