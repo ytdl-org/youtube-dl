@@ -104,7 +104,7 @@ docker run \
     :ytsubscriptions \
     --dateafter now-5days \
     --download-archive /workdir/.youtube-dl-archive \
-    --cookies /workdir/cookiejar.dat \
+    --cookies /workdir/.youtube-dl-cookiejar \
     --netrc \
     --limit-rate 5000 2>> /path/to/logs/youtube-dl.err >> /path/to/logs/youtube-dl.log
 ```
