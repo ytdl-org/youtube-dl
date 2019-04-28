@@ -6,6 +6,7 @@ from ..utils import (
     int_or_none,
     parse_iso8601,
     try_get,
+    url_or_none,
 )
 
 
@@ -30,16 +31,7 @@ class CCCIE(InfoExtractor):
         }
     }, {
         'url': 'https://media.ccc.de/v/32c3-7368-shopshifting#download',
-        'info_dict': {
-            'id': '2835',
-            'ext': 'mp4',
-            'title': 'Shopshifting',
-            'creator': 'Karsten Nohl, Fabian Bräunlein, dexter',
-            'description': 'md5:0fade0535e9dc3076d0cbda4958a18eb',
-            'upload_date': '20151227',
-            'timestamp': 1451249100,
-            'tags': list,
-        }
+        'only_matching': True,
     }]
 
     def _real_extract(self, url):
@@ -104,12 +96,16 @@ class CCCPlaylistIE(InfoExtractor):
     }]
 
     def _real_extract(self, url):
-        acronym = self._match_id(url).lower()
+        playlist_id = self._match_id(url).lower()
 
-        conf = self._download_json('https://media.ccc.de/public/conferences/' + acronym, acronym)
+        conf = self._download_json(
+            'https://media.ccc.de/public/conferences/' + playlist_id,
+            playlist_id)
 
-        return self.playlist_result(
-            [self.url_result(event['frontend_link']) for event in conf['events']],
-            acronym,
-            conf['title'],
-        )
+        entries = []
+        for e in conf['events']:
+            event_url = url_or_none(e.get('frontend_link'))
+            if event_url:
+                entries.append(self.url_result(event_url, ie=CCCIE.ie_key()))
+
+        return self.playlist_result(entries, playlist_id, conf.get('title'))
