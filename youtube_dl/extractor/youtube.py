@@ -908,6 +908,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                 'creator': 'Todd Haberman,  Daniel Law Heath and Aaron Kaplan',
                 'track': 'Dark Walk - Position Music',
                 'artist': 'Todd Haberman,  Daniel Law Heath and Aaron Kaplan',
+                'album': 'Position Music - Production Music Vol. 143 - Dark Walk',
             },
             'params': {
                 'skip_download': True,
@@ -2161,9 +2162,10 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
 
         track = extract_meta('Song')
         artist = extract_meta('Artist')
+        album = extract_meta('Album')
 
         # Youtube Music Auto-generated description
-        album = release_date = release_year = None
+        release_date = release_year = None
         if video_description:
             mobj = re.search(r'(?s)Provided to YouTube by [^\n]+\n+(?P<track>[^·]+)·(?P<artist>[^\n]+)\n+(?P<album>[^\n]+)(?:.+?℗\s*(?P<release_year>\d{4})(?!\d))?(?:.+?Released on\s*:\s*(?P<release_date>\d{4}-\d{2}-\d{2}))?(.+?\nArtist\s*:\s*(?P<clean_artist>[^\n]+))?', video_description)
             if mobj:
@@ -2171,7 +2173,8 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                     track = mobj.group('track').strip()
                 if not artist:
                     artist = mobj.group('clean_artist') or ', '.join(a.strip() for a in mobj.group('artist').split('·'))
-                album = mobj.group('album'.strip())
+                if not album:
+                    album = mobj.group('album'.strip())
                 release_year = mobj.group('release_year')
                 release_date = mobj.group('release_date')
                 if release_date:
