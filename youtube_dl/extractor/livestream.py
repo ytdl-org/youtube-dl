@@ -1,9 +1,8 @@
 from __future__ import unicode_literals
 
+import json
 import re
 import itertools
-
-import requests
 
 from .common import InfoExtractor
 from ..compat import (
@@ -226,13 +225,15 @@ class LivestreamIE(InfoExtractor):
         video_password = downloader_params.get("videopassword")
         if video_password:
             # use the given video password to unlock livestream.com event
-            self.to_screen("Using video password")
             password_request_url = api_new_url + "/password_tokens"
-            r = requests.post(password_request_url, {
-                "password": video_password
-            })
-            r.raise_for_status()
-            password_token = r.json()["password_token"]
+            r = self._download_json(
+                password_request_url, video_id,
+                note="Getting video token",
+                errnote="Unable to get token. Is your password correct?",
+                data=json.dumps({"password": video_password}).encode(),
+                headers={"Content-Type": "application/json"}
+            )
+            password_token = r["password_token"]
             event_key = event + ":pt:" + password_token
             api_url = self._API_URL_TEMPLATE % (account, event_key)
 
