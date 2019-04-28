@@ -28,7 +28,7 @@ class EarthCamIE(InfoExtractor):
     def _real_extract(self, url):
         video_id = self._match_id(url)
         webpage = self._download_webpage(url, video_id)
-        json_str = self._search_regex(r'var\s+json_base\s*=\s*(?P<jstr>{\s*"cam"\s*:\s*{.*}.*});', webpage, 'jstr')
+        json_str = self._html_search_regex(r'var\s+json_base\s*=\s*(?P<jstr>{\s*"cam"\s*:\s*{.*}.*});', webpage, 'json', group='jstr')
         json_base = self._parse_json(json_str, video_id)
         video_info = try_get(json_base, lambda x: x['cam'][video_id], dict) or {}
         title = video_info.get("long_title")
