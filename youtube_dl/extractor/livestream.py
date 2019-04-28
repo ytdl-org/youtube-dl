@@ -222,20 +222,19 @@ class LivestreamIE(InfoExtractor):
         api_url = self._API_URL_TEMPLATE % (account, event)
         api_new_url = self._API_NEW_URL_TEMPLATE % (account, event)
 
-        if self._downloader is not None:
-            downloader_params = self._downloader.params
-            video_password = downloader_params.get("videopassword")
-            if video_password:
-                # use the given video password to unlock livestream.com event
-                self.to_screen("Using video password")
-                password_request_url = api_new_url + "/password_tokens"
-                r = requests.post(password_request_url, {
-                    "password": video_password
-                })
-                r.raise_for_status()
-                password_token = r.json()["password_token"]
-                event_key = event + ":pt:" + password_token
-                api_url = self._API_URL_TEMPLATE % (account, event_key)
+        downloader_params = self._downloader.params
+        video_password = downloader_params.get("videopassword")
+        if video_password:
+            # use the given video password to unlock livestream.com event
+            self.to_screen("Using video password")
+            password_request_url = api_new_url + "/password_tokens"
+            r = requests.post(password_request_url, {
+                "password": video_password
+            })
+            r.raise_for_status()
+            password_token = r.json()["password_token"]
+            event_key = event + ":pt:" + password_token
+            api_url = self._API_URL_TEMPLATE % (account, event_key)
 
         if video_id:
             video_data = self._download_json(
