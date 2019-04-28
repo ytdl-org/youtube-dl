@@ -1086,7 +1086,95 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                 'skip_download': True,
                 'youtube_include_dash_manifest': False,
             },
-        }
+        },
+        {
+            # Youtube Music Auto-generated description
+            'url': 'https://music.youtube.com/watch?v=MgNrAu2pzNs',
+            'info_dict': {
+                'id': 'MgNrAu2pzNs',
+                'ext': 'mp4',
+                'title': 'Voyeur Girl',
+                'description': 'md5:7ae382a65843d6df2685993e90a8628f',
+                'upload_date': '20190312',
+                'uploader': 'Various Artists - Topic',
+                'uploader_id': 'UCVWKBi1ELZn0QX2CBLSkiyw',
+                'artist': 'Stephen',
+                'track': 'Voyeur Girl',
+                'album': 'it\'s too much love to know my dear',
+                'release_date': '20190313',
+                'release_year': 2019,
+            },
+            'params': {
+                'skip_download': True,
+            },
+        },
+        {
+            # Youtube Music Auto-generated description
+            # Retrieve 'artist' field from 'Artist:' in video description
+            # when it is present on youtube music video
+            'url': 'https://www.youtube.com/watch?v=k0jLE7tTwjY',
+            'info_dict': {
+                'id': 'k0jLE7tTwjY',
+                'ext': 'mp4',
+                'title': 'Latch Feat. Sam Smith',
+                'description': 'md5:3cb1e8101a7c85fcba9b4fb41b951335',
+                'upload_date': '20150110',
+                'uploader': 'Various Artists - Topic',
+                'uploader_id': 'UCNkEcmYdjrH4RqtNgh7BZ9w',
+                'artist': 'Disclosure',
+                'track': 'Latch Feat. Sam Smith',
+                'album': 'Latch Featuring Sam Smith',
+                'release_date': '20121008',
+                'release_year': 2012,
+            },
+            'params': {
+                'skip_download': True,
+            },
+        },
+        {
+            # Youtube Music Auto-generated description
+            # handle multiple artists on youtube music video
+            'url': 'https://www.youtube.com/watch?v=74qn0eJSjpA',
+            'info_dict': {
+                'id': '74qn0eJSjpA',
+                'ext': 'mp4',
+                'title': 'Eastside',
+                'description': 'md5:290516bb73dcbfab0dcc4efe6c3de5f2',
+                'upload_date': '20180710',
+                'uploader': 'Benny Blanco - Topic',
+                'uploader_id': 'UCzqz_ksRu_WkIzmivMdIS7A',
+                'artist': 'benny blanco, Halsey, Khalid',
+                'track': 'Eastside',
+                'album': 'Eastside',
+                'release_date': '20180713',
+                'release_year': 2018,
+            },
+            'params': {
+                'skip_download': True,
+            },
+        },
+        {
+            # Youtube Music Auto-generated description
+            # handle youtube music video with release_year and no release_date
+            'url': 'https://www.youtube.com/watch?v=-hcAI0g-f5M',
+            'info_dict': {
+                'id': '-hcAI0g-f5M',
+                'ext': 'mp4',
+                'title': 'Put It On Me',
+                'description': 'md5:93c55acc682ae7b0c668f2e34e1c069e',
+                'upload_date': '20180426',
+                'uploader': 'Matt Maeson - Topic',
+                'uploader_id': 'UCnEkIGqtGcQMLk73Kp-Q5LQ',
+                'artist': 'Matt Maeson',
+                'track': 'Put It On Me',
+                'album': 'The Hearse',
+                'release_date': None,
+                'release_year': 2018,
+            },
+            'params': {
+                'skip_download': True,
+            },
+        },
     ]
 
     def __init__(self, *args, **kwargs):
@@ -2074,6 +2162,25 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
         track = extract_meta('Song')
         artist = extract_meta('Artist')
 
+        # Youtube Music Auto-generated description
+        album = release_date = release_year = None
+        if video_description:
+            mobj = re.search(r'(?s)Provided to YouTube by [^\n]+\n+(?P<track>[^·]+)·(?P<artist>[^\n]+)\n+(?P<album>[^\n]+)(?:.+?℗\s*(?P<release_year>\d{4})(?!\d))?(?:.+?Released on\s*:\s*(?P<release_date>\d{4}-\d{2}-\d{2}))?(.+?\nArtist\s*:\s*(?P<clean_artist>[^\n]+))?', video_description)
+            if mobj:
+                if not track:
+                    track = mobj.group('track').strip()
+                if not artist:
+                    artist = mobj.group('clean_artist') or ', '.join(a.strip() for a in mobj.group('artist').split('·'))
+                album = mobj.group('album'.strip())
+                release_year = mobj.group('release_year')
+                release_date = mobj.group('release_date')
+                if release_date:
+                    release_date = release_date.replace('-', '')
+                    if not release_year:
+                        release_year = int(release_date[:4])
+                if release_year:
+                    release_year = int(release_year)
+
         m_episode = re.search(
             r'<div[^>]+id="watch7-headline"[^>]*>\s*<span[^>]*>.*?>(?P<series>[^<]+)</a></b>\s*S(?P<season>\d+)\s*•\s*E(?P<episode>\d+)</span>',
             video_webpage)
@@ -2226,6 +2333,9 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
             'episode_number': episode_number,
             'track': track,
             'artist': artist,
+            'album': album,
+            'release_date': release_date,
+            'release_year': release_year,
         }
 
 
