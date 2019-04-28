@@ -287,10 +287,6 @@ from .dplay import (
     DPlayIE,
     DPlayItIE,
 )
-from .dramafever import (
-    DramaFeverIE,
-    DramaFeverSeriesIE,
-)
 from .dreisat import DreiSatIE
 from .drbonanza import DRBonanzaIE
 from .drtuber import DrTuberIE
