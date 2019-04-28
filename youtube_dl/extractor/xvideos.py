@@ -39,7 +39,10 @@ class XVideosIE(InfoExtractor):
             'title': 'Biker Takes his Girl',
             'duration': 108,
             'age_limit': 18,
-            'uploader': "Kandys Kisses"
+            'uploader': 'Kandys Kisses',
+            'uploader_id': 'kandyskisses',
+            'categories': list,
+            'tags': list
         },
     }, {
         'url': 'https://www.xvideos.com/video43548989/petite_brooke_haze_is_so_cute',
@@ -50,45 +53,10 @@ class XVideosIE(InfoExtractor):
             'title': 'Petite Brooke Haze is so cute',
             'duration': 521,
             'uploader': 'Amkempire',
-            'uploader_channel': 'amkempire',
-            'performers': [
-                'Brooke Haze'
-            ],
-            'performer_channels': [
-                'brooke-haze'
-            ],
-            'related_categories': list,
+            'uploader_id': 'amkempire',
+            'categories': list,
             'tags': list,
-            'sponsor': [{
-                'name': 'AMKEmpire',
-                'desc': ('AMKingdom caters to a plethora of niches, while offering high-end, quality content. '
-                         'ATK/AMK features Hairy, Natural, Mature, and other Fetish categories, since 1996!')
-                }
-            ],
-            'age_limit': 18,
-        },
-    }, {
-        # multiple performers
-        'url': 'https://www.xvideos.com/video721515/simon_says_fuck_4',
-        'md5': '68f64996a6a53ab834e14a36f2357038',
-        'info_dict': {
-            'id': '721515',
-            'ext': 'mp4',
-            'title': 'Simon says fuck! 4',
-            'duration': 310,
-            'uploader': 'Latgpxxx',
-            'uploader_channel': 'latgpxxx',
-            'performers': [
-                'Jenna Haze',
-                'Billy Glide'
-            ],
-            'performer_channels': [
-                'jenna-haze',
-                'billy-glide-1'
-            ],
-            'related_categories': list,
-            'tags': list,
-            'sponsor': list,
+            'creator': 'AMKEmpire',
             'age_limit': 18,
         },
     }, {
@@ -101,16 +69,9 @@ class XVideosIE(InfoExtractor):
             'title': '3 young school girls',
             'duration': 35,
             'uploader': None,
-            'uploader_channel': None,
-            'performers': [
-                'Alisha Klass'
-            ],
-            'performer_channels': [
-                'alisha-klass'
-            ],
-            'related_categories': list,
+            'uploader_id': None,
+            'categories': list,
             'tags': list,
-            'sponsor': list,
             'age_limit': 18,
         },
     }, {
@@ -182,27 +143,16 @@ class XVideosIE(InfoExtractor):
 
         metadata_node = get_element_by_class("video-metadata", webpage)
         uploader_node = get_element_by_class("uploader-tag", metadata_node)
-        performer_nodes = get_elements_by_class("profile", metadata_node)
-        base_pattern = r'<span[^>]+class=["\']name["\'][^>]*>.*?(?P<name>[^<]+)'
 
         uploader = None
         if uploader_node is not None:
             uploader = self._search_regex(
-                base_pattern, uploader_node, 'name', default=None, group='name', fatal=False)
+                r'<span[^>]+class=["\']name["\'][^>]*>.*?(?P<name>[^<]+)', uploader_node,
+                'name', default=None, group='name', fatal=False)
 
-        performers = []
-        if performer_nodes is not None:
-            for node in performer_nodes:
-                performer = self._search_regex(base_pattern, node, 'name', default=None, group='name', fatal=False)
-                if performer is not None:
-                    performers.append(performer)
-
-        uploader_channel = self._search_regex(
+        uploader_id = self._search_regex(
             r'<a[^>]+href=["\']/?(?:profiles|channels)/(?P<channel>[^"]+)', metadata_node,
             'channel', default=None, group='channel', fatal=False)
-
-        performer_channels = re.findall(
-            r'<a[^>]+href=["\']/?(?:pornstar-channels|models|pornstars)/(?P<channel>[^"]+)', metadata_node)
 
         tags = [item.replace("-", " ") for item in re.findall(r'<a[^>]+href=["\']/?tags/(?P<tags>[^"]+)',
                                                               metadata_node)]
@@ -215,11 +165,10 @@ class XVideosIE(InfoExtractor):
 
         rc_list = try_get(parsed_conf, lambda x: x['data']['related_keywords']) or []
         rc_list_alt = try_get(parsed_conf, lambda x: x['dyn']['ads']['categories'], compat_str) or None
-        related_categories = rc_list or [item.replace('_', ' ') for item in rc_list_alt.split(',')]
+        categories = rc_list or [item.replace('_', ' ') for item in rc_list_alt.split(',')]
 
-        sponsor_dict = try_get(parsed_conf, lambda x: x['data']['sponsors']) or {}
-        sponsor = [{'name': sponsor.get('n'), 'desc': sponsor.get('d')}
-                   for sponsor in sponsor_dict]
+        sponsor_dict = try_get(parsed_conf, lambda x: x['data']['sponsors'][0]) or {}
+        creator = sponsor_dict.get('n')
 
         return {
             'id': video_id,
@@ -228,11 +177,10 @@ class XVideosIE(InfoExtractor):
             'duration': duration,
             'thumbnails': thumbnails,
             'uploader': uploader,
-            'performers': performers,
-            'uploader_channel': uploader_channel,
-            'performer_channels': performer_channels,
-            'related_categories': related_categories,
+            'uploader_id': uploader_id,
+            'categories': categories,
             'tags': tags,
-            'sponsor': sponsor,
+            'creator': creator,
             'age_limit': 18,
         }
+
