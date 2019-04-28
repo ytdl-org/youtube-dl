@@ -14,7 +14,6 @@ from ..utils import (
     int_or_none,
     parse_duration,
     get_element_by_class,
-    get_elements_by_class,
     js_to_json,
     try_get
 )
