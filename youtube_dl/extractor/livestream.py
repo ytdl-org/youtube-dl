@@ -3,6 +3,8 @@ from __future__ import unicode_literals
 import re
 import itertools
 
+import requests
+
 from .common import InfoExtractor
 from ..compat import (
     compat_str,
@@ -61,6 +63,7 @@ class LivestreamIE(InfoExtractor):
         'only_matching': True,
     }]
     _API_URL_TEMPLATE = 'http://livestream.com/api/accounts/%s/events/%s'
+    _API_NEW_URL_TEMPLATE = 'https://api.new.livestream.com/accounts/%s/events/%s'
 
     def _parse_smil_formats(self, smil, smil_url, video_id, namespace=None, f4m_params=None, transform_rtmp_url=None):
         base_ele = find_xpath_attr(
@@ -217,6 +220,23 @@ class LivestreamIE(InfoExtractor):
         event = mobj.group('event_id') or mobj.group('event_name')
         account = mobj.group('account_id') or mobj.group('account_name')
         api_url = self._API_URL_TEMPLATE % (account, event)
+        api_new_url = self._API_NEW_URL_TEMPLATE % (account, event)
+
+        if self._downloader is not None:
+            downloader_params = self._downloader.params
+            video_password = downloader_params.get("videopassword")
+            if video_password:
+                # use the given video password to unlock livestream.com event
+                self.to_screen("Using video password")
+                password_request_url = api_new_url + "/password_tokens"
+                r = requests.post(password_request_url, {
+                    "password": video_password
+                })
+                r.raise_for_status()
+                password_token = r.json()["password_token"]
+                event_key = event + ":pt:" + password_token
+                api_url = self._API_URL_TEMPLATE % (account, event_key)
+
         if video_id:
             video_data = self._download_json(
                 api_url + '/videos/%s' % video_id, video_id)
