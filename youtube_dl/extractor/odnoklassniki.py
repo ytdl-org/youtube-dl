@@ -94,21 +94,6 @@ class OdnoklassnikiIE(InfoExtractor):
             'skip_download': True,
         },
         'skip': 'Video has not been found',
-    },{
-        # live video
-        'url': 'https://www.ok.ru/video/1050794925929',
-        'info_dict': {
-            'id': '1050794925929',
-            'title': 're:^Поиск репертуара [0-9]{4}-[0-9]{2}-[0-9]{2} [0-9]{2}:[0-9]{2}$',
-            'ext': 'mp4',
-            'upload_date': u'20190428',
-            'uploader': u'(((((КнЯзЬ ))))',
-            'uploader_id': u'557343776873',
-            'is_live': True
-        },
-        'params': {
-            'skip_download': True,
-        }
     }, {
         'url': 'http://ok.ru/web-api/video/moviePlayer/20079905452',
         'only_matching': True,
@@ -261,7 +246,6 @@ class OdnoklassnikiIE(InfoExtractor):
         assert title
         if provider == 'LIVE_TV_APP':
             info['title'] = self._live_title(title)
-            info['is_live'] = True
 
         quality = qualities(('4', '0', '1', '2', '3', '5'))
 
