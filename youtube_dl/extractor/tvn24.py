@@ -50,6 +50,16 @@ class TVN24IE(InfoExtractor):
             'title': 'Zielona wstążka wśród pagórków (odc. 705 /HGTV odc. 5 serii 2019) - Maja w Ogrodzie',
         }
     }, {
+        # no data-quality
+        'url': 'https://tvnmeteo.tvn24.pl/informacje-pogoda/swiat,27/kotka-przyjela-cztery-wiewiorki-zaczely-po-niej-biegac-i-skakac,289746,1,0.html',
+        'md5': '691d604adc807a84c769c487762fc1ea',
+        'info_dict': {
+            'id': '1840073',
+            'ext': 'mp4',
+            'title': 'Kotka przyjęła cztery wiewiórki. "Zaczęły po niej biegać i skakać"',
+            'description': 'Kotka o imieniu Pusza, żyjąca w Parku Miniatur w krymskim mieście Bakczysaraj to idealny przykład na to, że matczyna miłość nie zna granic. Zwierzę zao...',
+        }
+    }, {
         'url': 'https://toteraz.pl/zakaz-wyprowadzania-psow-nielegalny-decyzja-sadu-administracyjnego,1838704.html',
         'md5': '46d127c478834e942b196d584b3ed747',
         'info_dict': {
@@ -107,20 +117,29 @@ class TVN24IE(InfoExtractor):
                 title = unescapeHTML(title)
                 thumbnail = extract_value('poster', 'thumbnail', fatal=False)
                 quality_data = extract_json('quality', 'formats')
-                formats = []
-                for format_id, url in quality_data.items():
-                    formats.append({
-                        'url': url,
-                        'format_id': format_id,
-                        'height': int_or_none(format_id.rstrip('p')),
-                    })
-                self._sort_formats(formats)
-                entries.append({
+                info = {
                     'id': video_id,
                     'thumbnail': thumbnail,
-                    'formats': formats,
                     'title': title,
-                })
+                }
+                if quality_data:
+                    info['formats'] = formats = []
+                    for format_id, url in quality_data.items():
+                        formats.append({
+                            'url': url,
+                            'format_id': format_id,
+                            'height': int_or_none(format_id.rstrip('p')),
+                        })
+                    self._sort_formats(formats)
+                else:
+                    info['url'] = url = extract_value('src', 'video URL')
+                    height = self._search_regex('-([0-9]+)p[.]', url, 'format id', default=None)
+                    if height:
+                        info.update({
+                            'format_id': height + 'p',
+                            'height': int_or_none(height),
+                        })
+                entries.append(info)
             if not entries:
                 # provoke RegexNotFoundError
                 self._search_regex('x', '', 'video elements')
