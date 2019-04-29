@@ -1715,7 +1715,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                 # The general idea is to take a union of itags of both DASH manifests (for example
                 # video with such 'manifest behavior' see https://github.com/ytdl-org/youtube-dl/issues/6093)
                 self.report_video_info_webpage_download(video_id)
-                for el in ('info', 'embedded', 'detailpage', 'vevo', ''):
+                for el in ('embedded', 'detailpage', 'vevo', ''):
                     query = {
                         'video_id': video_id,
                         'ps': 'default',
