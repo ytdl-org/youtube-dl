@@ -1,4 +1,4 @@
-version <unreleased>
+version 2019.04.30
 
 Extractors
 * [openload] Use real Chrome versions (#20902)
