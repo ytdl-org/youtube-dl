@@ -85,8 +85,20 @@ class XVideosIE(InfoExtractor):
         video_id = self._match_id(url)
 
         webpage = self._download_webpage(
-            'https://www.xvideos.com/video%s/' % video_id, video_id)
+            'https://www.xvideos.com/video%s/' % video_id, video_id, expected_status=404)
 
+        status_404 = get_element_by_class("status-404", webpage) or get_element_by_class("http-error-page", webpage)
+        if status_404:
+            reg_not_found = r'<div[^>]+id=["\']content["\']>[\r\n]*?<h1[^>]*>(?P<reason>[^<]*)'
+            deleted = get_element_by_class("text-danger", status_404)
+            not_found = self._search_regex(reg_not_found, status_404, 'reason', default=None, group='reason')
+            reason = deleted or not_found or None
+            if reason:
+                raise ExtractorError('%s said: %s' % (self.IE_NAME, reason), expected=True, video_id=video_id)
+
+        mobj = re.search(r'<h1 class="inlineError">(.+?)</h1>', webpage)
+        if mobj:
+            raise ExtractorError('%s said: %s' % (self.IE_NAME, clean_html(mobj.group(1))), expected=True)
         mobj = re.search(r'<h1 class="inlineError">(.+?)</h1>', webpage)
         if mobj:
             raise ExtractorError('%s said: %s' % (self.IE_NAME, clean_html(mobj.group(1))), expected=True)
