@@ -27,6 +27,7 @@ from ..compat import (
 )
 from ..utils import (
     clean_html,
+    dict_get,
     error_to_compat_str,
     ExtractorError,
     float_or_none,
@@ -1652,6 +1653,9 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
         def extract_view_count(v_info):
             return int_or_none(try_get(v_info, lambda x: x['view_count'][0]))
 
+        def extract_token(v_info):
+            return dict_get(v_info, ('account_playback_token', 'accountPlaybackToken', 'token'))
+
         player_response = {}
 
         # Get video info
@@ -1711,7 +1715,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                 # The general idea is to take a union of itags of both DASH manifests (for example
                 # video with such 'manifest behavior' see https://github.com/ytdl-org/youtube-dl/issues/6093)
                 self.report_video_info_webpage_download(video_id)
-                for el in ('info', 'embedded', 'detailpage', 'vevo', ''):
+                for el in ('embedded', 'detailpage', 'vevo', ''):
                     query = {
                         'video_id': video_id,
                         'ps': 'default',
@@ -1741,7 +1745,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                         view_count = extract_view_count(get_video_info)
                     if not video_info:
                         video_info = get_video_info
-                    get_token = get_video_info.get('token') or get_video_info.get('account_playback_token')
+                    get_token = extract_token(get_video_info)
                     if get_token:
                         # Different get_video_info requests may report different results, e.g.
                         # some may report video unavailability, but some may serve it without
@@ -1752,7 +1756,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                         # due to YouTube measures against IP ranges of hosting providers.
                         # Working around by preferring the first succeeded video_info containing
                         # the token if no such video_info yet was found.
-                        token = video_info.get('token') or video_info.get('account_playback_token')
+                        token = extract_token(video_info)
                         if not token:
                             video_info = get_video_info
                         break
@@ -1768,28 +1772,6 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                 unavailable_message = 'Unable to extract video data'
             raise ExtractorError(
                 'YouTube said: %s' % unavailable_message, expected=True, video_id=video_id)
-
-        token = video_info.get('token') or video_info.get('account_playback_token')
-        if not token:
-            if 'reason' in video_info:
-                if 'The uploader has not made this video available in your country.' in video_info['reason']:
-                    regions_allowed = self._html_search_meta(
-                        'regionsAllowed', video_webpage, default=None)
-                    countries = regions_allowed.split(',') if regions_allowed else None
-                    self.raise_geo_restricted(
-                        msg=video_info['reason'][0], countries=countries)
-                reason = video_info['reason'][0]
-                if 'Invalid parameters' in reason:
-                    unavailable_message = extract_unavailable_message()
-                    if unavailable_message:
-                        reason = unavailable_message
-                raise ExtractorError(
-                    'YouTube said: %s' % reason,
-                    expected=True, video_id=video_id)
-            else:
-                raise ExtractorError(
-                    '"token" parameter not in video info for unknown reason',
-                    video_id=video_id)
 
         if video_info.get('license_info'):
             raise ExtractorError('This video is DRM protected.', expected=True)
@@ -2295,6 +2277,29 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                 for f in formats:
                     if f.get('vcodec') != 'none':
                         f['stretched_ratio'] = ratio
+
+        if not formats:
+            token = extract_token(video_info)
+            if not token:
+                if 'reason' in video_info:
+                    if 'The uploader has not made this video available in your country.' in video_info['reason']:
+                        regions_allowed = self._html_search_meta(
+                            'regionsAllowed', video_webpage, default=None)
+                        countries = regions_allowed.split(',') if regions_allowed else None
+                        self.raise_geo_restricted(
+                            msg=video_info['reason'][0], countries=countries)
+                    reason = video_info['reason'][0]
+                    if 'Invalid parameters' in reason:
+                        unavailable_message = extract_unavailable_message()
+                        if unavailable_message:
+                            reason = unavailable_message
+                    raise ExtractorError(
+                        'YouTube said: %s' % reason,
+                        expected=True, video_id=video_id)
+                else:
+                    raise ExtractorError(
+                        '"token" parameter not in video info for unknown reason',
+                        video_id=video_id)
 
         self._sort_formats(formats)
 
