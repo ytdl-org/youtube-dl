@@ -6,9 +6,9 @@ from ..utils import int_or_none
 
 
 class ParamountIE(InfoExtractor):
-    IE_NAME = 'paramountnetwork.it'
+    IE_NAME = 'paramountnetwork'
     IE_DESC = 'Paramount Channel'
-    _VALID_URL = r'http://(www\.)?paramountnetwork\.it/.*/[0-9a-z]{6}'
+    _VALID_URL = r'http(s)?://(www\.)?paramountnetwork\.(it|es)/.*/[0-9a-z]{6}($|/)'
 
     _TEST = {
         'url': 'http://www.paramountnetwork.it/playlist/speciali-paramount-channel/o3gr12/speciale-stephen-king/x0xj9k',
@@ -42,6 +42,10 @@ class ParamountIE(InfoExtractor):
         webpage = self._download_webpage(url, 'webpage')
 
         id = self._html_search_regex(
+            r'mgid:arc:content:paramount(?:network|channel)\.(?:it|es):([0-9a-f-]+)',
+            webpage, 'id', fatal=False) \
+	    or \
+            self._html_search_regex(
             r'data-mtv-id="([0-9a-f-]*)"',
             webpage, 'id', fatal=False) \
             or \
@@ -51,10 +55,12 @@ class ParamountIE(InfoExtractor):
         self.to_screen('id = %s' % (id))
 
         uri = self._html_search_regex(
-            r'data-mtv-uri="([0-9a-z:\.-]*)"',
+            r'(mgid:arc:content:paramount(?:network|channel)\.(?:it|es):(?:[0-9a-f-]+))',
             webpage, 'uri', fatal=False) \
             or \
-            'mgid:arc:video:paramountchannel.it:' + id
+            self._html_search_regex(
+            r'data-mtv-uri="([0-9a-z:\.-]*)"',
+            webpage, 'uri')
         self.to_screen('uri = %s' % (uri))
 
         title = self._og_search_title(webpage)
