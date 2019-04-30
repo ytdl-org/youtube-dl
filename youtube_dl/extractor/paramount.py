@@ -6,17 +6,18 @@ from ..utils import int_or_none
 
 
 class ParamountIE(InfoExtractor):
+    IE_NAME = 'paramountnetwork.it'
     IE_DESC = 'Paramount Channel'
-    _VALID_URL = r'http://(www\.)?paramountchannel\.it/.*/[0-9a-z]{6}'
+    _VALID_URL = r'http://(www\.)?paramountnetwork\.it/.*/[0-9a-z]{6}'
 
     _TEST = {
-        'url': 'http://www.paramountchannel.it/playlist/speciali-paramount-channel/o3gr12/backstage-sigla-paramount/tqvbxd',
-        'md5': '433666e341a57bb76dc50b6ff87e5c63',
+        'url': 'http://www.paramountnetwork.it/playlist/speciali-paramount-channel/o3gr12/speciale-stephen-king/x0xj9k',
+        'md5': '4079336559ea61e24eb08b1b1adf2523',
         'info_dict': {
-            'id': '9cb5ad60-9d34-4a9a-99df-157fdd1a5310',
+            'id': 'dbf6d5d5-1a95-41ac-b17b-b5caca227b25',
             'ext': 'mp4',
-            'title': 'Speciali video, Paramount Channel',
-            'description': 'Tutti gli speciali di Paramount Channel: curiosità, approfondimenti e aggiornamenti su film, serie tv e personaggi del cinema.'
+            'title': 'SPECIALE STEPHEN KING - Speciali video, Paramount Network',
+	    'description': 'Tutti gli speciali di Paramount Network curiosità, approfondimenti e aggiornamenti su film, serie tv e personaggi del cinema.'
         }
     }
 
