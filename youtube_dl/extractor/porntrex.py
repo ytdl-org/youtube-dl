@@ -46,13 +46,13 @@ class PornTrexIE(PornTrexBaseIE):
     _NETRC_MACHINE = 'porntrex'
     _VALID_URL = r'https?://(?:www\.)?porntrex\.com/video/(?P<id>[0-9]+)/'
     _TEST = {
-        'url': 'https://www.porntrex.com/video/350451/naomi-woods-the-list',
+        'url': 'https://www.porntrex.com/video/311136/naomi-gets-fingered-before-the-fucking',
         'info_dict': {
-            'id': '350451',
+            'id': '311136',
             'ext': 'mp4',
-            'title': 'Naomi Woods - The List in 4k',
-            'uploader': 'delman',
-            'description': 'Naomi Woods The List',
+            'title': 'Naomi gets fingered before the fucking',
+            'uploader': 'cumberland',
+            'description': 'Sexy brunette babe likes to get her tight cunt slammed in hardcore fashion.',
         }
     }
 
