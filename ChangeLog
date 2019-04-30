@@ -1,3 +1,24 @@
+version 2019.04.30
+
+Extractors
+* [openload] Use real Chrome versions (#20902)
+- [youtube] Remove info el for get_video_info request
+* [youtube] Improve extraction robustness
+- [dramafever] Remove extractor (#20868)
+* [adn] Fix subtitle extraction (#12724)
++ [ccc] Extract creator (#20355)
++ [ccc:playlist] Add support for media.ccc.de playlists (#14601, #20355)
++ [sverigesradio] Add support for sverigesradio.se (#18635)
++ [cinemax] Add support for cinemax.com
+* [sixplay] Try extracting non-DRM protected manifests (#20849)
++ [youtube] Extract Youtube Music Auto-generated metadata (#20599, #20742)
+- [wrzuta] Remove extractor (#20684, #20801)
+* [twitch] Prefer source format (#20850)
++ [twitcasting] Add support for private videos (#20843)
+* [reddit] Validate thumbnail URL (#20030)
+* [yandexmusic] Fix track URL extraction (#20820)
+
+
 version 2019.04.24
 
 Extractors
