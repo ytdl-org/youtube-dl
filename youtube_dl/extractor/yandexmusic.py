@@ -69,25 +69,28 @@ class YandexMusicTrackIE(YandexMusicBaseIE):
         'skip': 'Travis CI servers blocked by YandexMusic',
     }
 
-    def _get_track_url(self, storage_dir, track_id):
-        data = self._download_json(
-            'http://music.yandex.ru/api/v1.5/handlers/api-jsonp.jsx?action=getTrackSrc&p=download-info/%s'
-            % storage_dir,
-            track_id, 'Downloading track location JSON')
+    def _real_extract(self, url):
+        mobj = re.match(self._VALID_URL, url)
+        album_id, track_id = mobj.group('album_id'), mobj.group('id')
 
-        # Each string is now wrapped in a list, this is probably only temporarily thus
-        # supporting both scenarios (see https://github.com/ytdl-org/youtube-dl/issues/10193)
-        for k, v in data.items():
-            if v and isinstance(v, list):
-                data[k] = v[0]
+        track = self._download_json(
+            'http://music.yandex.ru/handlers/track.jsx?track=%s:%s' % (track_id, album_id),
+            track_id, 'Downloading track JSON')['track']
+        track_title = track['title']
 
-        key = hashlib.md5(('XGRlBW9FXlekgbPrRHuSiA' + data['path'][1:] + data['s']).encode('utf-8')).hexdigest()
-        storage = storage_dir.split('.')
+        download_data = self._download_json(
+            'https://music.yandex.ru/api/v2.1/handlers/track/%s:%s/web-album_track-track-track-main/download/m' % (track_id, album_id),
+            track_id, 'Downloading track location url JSON',
+            headers={'X-Retpath-Y': url})
 
-        return ('http://%s/get-mp3/%s/%s?track-id=%s&from=service-10-track&similarities-experiment=default'
-                % (data['host'], key, data['ts'] + data['path'], storage[1]))
+        fd_data = self._download_json(
+            download_data['src'], track_id,
+            'Downloading track location JSON',
+            query={'format': 'json'})
+        key = hashlib.md5(('XGRlBW9FXlekgbPrRHuSiA' + fd_data['path'][1:] + fd_data['s']).encode('utf-8')).hexdigest()
+        storage = track['storageDir'].split('.')
+        f_url = 'http://%s/get-mp3/%s/%s?track-id=%s ' % (fd_data['host'], key, fd_data['ts'] + fd_data['path'], storage[1])
 
-    def _get_track_info(self, track):
         thumbnail = None
         cover_uri = track.get('albums', [{}])[0].get('coverUri')
         if cover_uri:
@@ -95,15 +98,16 @@ class YandexMusicTrackIE(YandexMusicBaseIE):
             if not thumbnail.startswith('http'):
                 thumbnail = 'http://' + thumbnail
 
-        track_title = track['title']
         track_info = {
-            'id': track['id'],
+            'id': track_id,
             'ext': 'mp3',
-            'url': self._get_track_url(track['storageDir'], track['id']),
+            'url': f_url,
             'filesize': int_or_none(track.get('fileSize')),
             'duration': float_or_none(track.get('durationMs'), 1000),
             'thumbnail': thumbnail,
             'track': track_title,
+            'acodec': download_data.get('codec'),
+            'abr': int_or_none(download_data.get('bitrate')),
         }
 
         def extract_artist(artist_list):
@@ -131,17 +135,8 @@ class YandexMusicTrackIE(YandexMusicBaseIE):
             })
         else:
             track_info['title'] = track_title
+
         return track_info
-
-    def _real_extract(self, url):
-        mobj = re.match(self._VALID_URL, url)
-        album_id, track_id = mobj.group('album_id'), mobj.group('id')
-
-        track = self._download_json(
-            'http://music.yandex.ru/handlers/track.jsx?track=%s:%s' % (track_id, album_id),
-            track_id, 'Downloading track JSON')['track']
-
-        return self._get_track_info(track)
 
 
 class YandexMusicPlaylistBaseIE(YandexMusicBaseIE):

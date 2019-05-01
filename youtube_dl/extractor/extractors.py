@@ -177,7 +177,10 @@ from .cbsnews import (
     CBSNewsLiveVideoIE,
 )
 from .cbssports import CBSSportsIE
-from .ccc import CCCIE
+from .ccc import (
+    CCCIE,
+    CCCPlaylistIE,
+)
 from .ccma import CCMAIE
 from .cctv import CCTVIE
 from .cda import CDAIE
@@ -194,6 +197,7 @@ from .chirbit import (
     ChirbitProfileIE,
 )
 from .cinchcast import CinchcastIE
+from .cinemax import CinemaxIE
 from .ciscolive import (
     CiscoLiveSessionIE,
     CiscoLiveSearchIE,
@@ -282,10 +286,6 @@ from .douyutv import (
 from .dplay import (
     DPlayIE,
     DPlayItIE,
-)
-from .dramafever import (
-    DramaFeverIE,
-    DramaFeverSeriesIE,
 )
 from .dreisat import DreiSatIE
 from .drbonanza import DRBonanzaIE
@@ -1097,6 +1097,10 @@ from .streetvoice import StreetVoiceIE
 from .stretchinternet import StretchInternetIE
 from .stv import STVPlayerIE
 from .sunporno import SunPornoIE
+from .sverigesradio import (
+    SverigesRadioEpisodeIE,
+    SverigesRadioPublicationIE,
+)
 from .svt import (
     SVTIE,
     SVTPageIE,
@@ -1418,10 +1422,6 @@ from .weiqitv import WeiqiTVIE
 from .wimp import WimpIE
 from .wistia import WistiaIE
 from .worldstarhiphop import WorldStarHipHopIE
-from .wrzuta import (
-    WrzutaIE,
-    WrzutaPlaylistIE,
-)
 from .wsj import (
     WSJIE,
     WSJArticleIE,
