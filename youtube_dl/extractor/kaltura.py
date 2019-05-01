@@ -6,8 +6,9 @@ import base64
 
 from .common import InfoExtractor
 from ..compat import (
-    compat_urlparse,
     compat_parse_qs,
+    compat_str,
+    compat_urlparse,
 )
 from ..utils import (
     clean_html,
@@ -317,10 +318,23 @@ class KalturaIE(InfoExtractor):
             if f.get('isOriginal') is True and not self._is_valid_url(
                     video_url, entry_id, format_id):
                 continue
-            # audio-only has no videoCodecId (e.g. kaltura:1926081:0_c03e1b5g
+            # audio-only has no or empty videoCodecId (e.g. kaltura:1926081:0_c03e1b5g
             # -f mp4-56)
-            vcodec = 'none' if 'videoCodecId' not in f and f.get(
+            vcodec = 'none' if not f.get('videoCodecId') and f.get(
                 'frameRate') == 0 else f.get('videoCodecId')
+
+            tags = f.get('tags')
+            language = None
+            language_preference = -1
+            format_note = None
+            if tags and isinstance(tags, compat_str):
+                language = self._search_regex(r'(?:^|,)lang([a-z]{2})(?:$|,)',
+                                              tags, 'language', default=None)
+                if 'defaultlang' in tags:
+                    language_preference = 10
+                format_note = self._search_regex(r'(?:^|,)label([^,]+)(?:$|,)',
+                                                 tags, 'label', default=None)
+
             formats.append({
                 'format_id': format_id,
                 'ext': f.get('fileExt'),
@@ -331,6 +345,9 @@ class KalturaIE(InfoExtractor):
                 'vcodec': vcodec,
                 'height': int_or_none(f.get('height')),
                 'width': int_or_none(f.get('width')),
+                'language': language,
+                'language_preference': language_preference,
+                'format_note': format_note,
                 'url': video_url,
             })
         if '/playManifest/' in data_url:
