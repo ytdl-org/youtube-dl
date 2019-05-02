@@ -110,16 +110,16 @@ class ABCIViewIE(InfoExtractor):
 
     # ABC iview programs are normally available for 14 days only.
     _TESTS = [{
-        'url': 'https://iview.abc.net.au/show/ben-and-holly-s-little-kingdom/series/0/video/ZX9371A011S00',
+        'url': 'https://iview.abc.net.au/show/big-ted-s-big-adventure/series/0/video/CH1307H001S00',
         'info_dict': {
-            'id': 'ZX9371A011S00',
+            'id': 'CH1307H001S00',
             'ext': 'mp4',
-            'title': "Dolly Plum",
-            'series': "Ben And Holly's Little Kingdom",
-            'description': 'md5:7d5d426d28814ac97b7c98e33f37193c',
-            'upload_date': '20190301',
+            'title': "Otters",
+            'series': "Big Ted's Big Adventure",
+            'description': 'md5:74b89063ffb40eaf0ac95cd9486e645c',
+            'upload_date': '20180923',
             'uploader_id': 'abc4kids',
-            'timestamp': 1551466585,
+            'timestamp': 1537682400,
         },
         'params': {
             'skip_download': True,
@@ -230,6 +230,7 @@ class ABCIViewShowIE(ABCIViewIE):
                 'title': "Play School Story Time",
                 'description': 'md5:2763b35f418d334d72e3d7f7fc7afb82',
                 'uploader_id': 'abc4kids',
+                'id': 'play-school-story-time'
             },
             'playlist_count': 24
         },
