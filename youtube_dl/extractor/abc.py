@@ -122,9 +122,9 @@ class ABCIViewShowIE(InfoExtractor):
         },
     }]
 
-@classmethod
-def suitable(cls, url):
-    return False if ABCIViewIE.suitable(url) else super(ABCIViewShowIE, cls).suitable(url)
+    @classmethod
+    def suitable(cls, url):
+        return False if ABCIViewIE.suitable(url) else super(ABCIViewShowIE, cls).suitable(url)
 
     def _real_extract(self, url):
         show_id = self._match_id(url)
