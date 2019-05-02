@@ -100,7 +100,7 @@ class FOXIE(AdobePassIE):
         try:
             m3u8_url = self._download_json(release_url, video_id)['playURL']
         except ExtractorError as e:
-            if isinstance(e.cause, compat_HTTPError) and e.cause.status == 403:
+            if isinstance(e.cause, compat_HTTPError) and e.cause.code == 403:
                 error = self._parse_json(e.cause.read().decode(), video_id)
                 if error.get('exception') == 'GeoLocationBlocked':
                     self.raise_geo_restricted(countries=['US'])
