@@ -13,19 +13,7 @@ from ..utils import (
 )
 
 
-class HBOIE(InfoExtractor):
-    IE_NAME = 'hbo'
-    _VALID_URL = r'https?://(?:www\.)?hbo\.com/(?:video|embed)(?:/[^/]+)*/(?P<id>[^/?#]+)'
-    _TEST = {
-        'url': 'https://www.hbo.com/video/game-of-thrones/seasons/season-8/videos/trailer',
-        'md5': '8126210656f433c452a21367f9ad85b3',
-        'info_dict': {
-            'id': '22113301',
-            'ext': 'mp4',
-            'title': 'Game of Thrones - Trailer',
-        },
-        'expected_warnings': ['Unknown MIME type application/mp4 in DASH manifest'],
-    }
+class HBOBaseIE(InfoExtractor):
     _FORMATS_INFO = {
         'pro7': {
             'width': 1280,
@@ -65,12 +53,8 @@ class HBOIE(InfoExtractor):
         },
     }
 
-    def _real_extract(self, url):
-        display_id = self._match_id(url)
-        webpage = self._download_webpage(url, display_id)
-        location_path = self._parse_json(self._html_search_regex(
-            r'data-state="({.+?})"', webpage, 'state'), display_id)['video']['locationUrl']
-        video_data = self._download_xml(urljoin(url, location_path), display_id)
+    def _extract_info(self, url, display_id):
+        video_data = self._download_xml(url, display_id)
         video_id = xpath_text(video_data, 'id', fatal=True)
         episode_title = title = xpath_text(video_data, 'title', fatal=True)
         series = xpath_text(video_data, 'program')
@@ -167,3 +151,25 @@ class HBOIE(InfoExtractor):
             'thumbnails': thumbnails,
             'subtitles': subtitles,
         }
+
+
+class HBOIE(HBOBaseIE):
+    IE_NAME = 'hbo'
+    _VALID_URL = r'https?://(?:www\.)?hbo\.com/(?:video|embed)(?:/[^/]+)*/(?P<id>[^/?#]+)'
+    _TEST = {
+        'url': 'https://www.hbo.com/video/game-of-thrones/seasons/season-8/videos/trailer',
+        'md5': '8126210656f433c452a21367f9ad85b3',
+        'info_dict': {
+            'id': '22113301',
+            'ext': 'mp4',
+            'title': 'Game of Thrones - Trailer',
+        },
+        'expected_warnings': ['Unknown MIME type application/mp4 in DASH manifest'],
+    }
+
+    def _real_extract(self, url):
+        display_id = self._match_id(url)
+        webpage = self._download_webpage(url, display_id)
+        location_path = self._parse_json(self._html_search_regex(
+            r'data-state="({.+?})"', webpage, 'state'), display_id)['video']['locationUrl']
+        return self._extract_info(urljoin(url, location_path), display_id)
