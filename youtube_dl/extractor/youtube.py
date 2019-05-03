@@ -27,6 +27,7 @@ from ..compat import (
 )
 from ..utils import (
     clean_html,
+    dict_get,
     error_to_compat_str,
     ExtractorError,
     float_or_none,
@@ -908,6 +909,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                 'creator': 'Todd Haberman,  Daniel Law Heath and Aaron Kaplan',
                 'track': 'Dark Walk - Position Music',
                 'artist': 'Todd Haberman,  Daniel Law Heath and Aaron Kaplan',
+                'album': 'Position Music - Production Music Vol. 143 - Dark Walk',
             },
             'params': {
                 'skip_download': True,
@@ -1086,7 +1088,95 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                 'skip_download': True,
                 'youtube_include_dash_manifest': False,
             },
-        }
+        },
+        {
+            # Youtube Music Auto-generated description
+            'url': 'https://music.youtube.com/watch?v=MgNrAu2pzNs',
+            'info_dict': {
+                'id': 'MgNrAu2pzNs',
+                'ext': 'mp4',
+                'title': 'Voyeur Girl',
+                'description': 'md5:7ae382a65843d6df2685993e90a8628f',
+                'upload_date': '20190312',
+                'uploader': 'Various Artists - Topic',
+                'uploader_id': 'UCVWKBi1ELZn0QX2CBLSkiyw',
+                'artist': 'Stephen',
+                'track': 'Voyeur Girl',
+                'album': 'it\'s too much love to know my dear',
+                'release_date': '20190313',
+                'release_year': 2019,
+            },
+            'params': {
+                'skip_download': True,
+            },
+        },
+        {
+            # Youtube Music Auto-generated description
+            # Retrieve 'artist' field from 'Artist:' in video description
+            # when it is present on youtube music video
+            'url': 'https://www.youtube.com/watch?v=k0jLE7tTwjY',
+            'info_dict': {
+                'id': 'k0jLE7tTwjY',
+                'ext': 'mp4',
+                'title': 'Latch Feat. Sam Smith',
+                'description': 'md5:3cb1e8101a7c85fcba9b4fb41b951335',
+                'upload_date': '20150110',
+                'uploader': 'Various Artists - Topic',
+                'uploader_id': 'UCNkEcmYdjrH4RqtNgh7BZ9w',
+                'artist': 'Disclosure',
+                'track': 'Latch Feat. Sam Smith',
+                'album': 'Latch Featuring Sam Smith',
+                'release_date': '20121008',
+                'release_year': 2012,
+            },
+            'params': {
+                'skip_download': True,
+            },
+        },
+        {
+            # Youtube Music Auto-generated description
+            # handle multiple artists on youtube music video
+            'url': 'https://www.youtube.com/watch?v=74qn0eJSjpA',
+            'info_dict': {
+                'id': '74qn0eJSjpA',
+                'ext': 'mp4',
+                'title': 'Eastside',
+                'description': 'md5:290516bb73dcbfab0dcc4efe6c3de5f2',
+                'upload_date': '20180710',
+                'uploader': 'Benny Blanco - Topic',
+                'uploader_id': 'UCzqz_ksRu_WkIzmivMdIS7A',
+                'artist': 'benny blanco, Halsey, Khalid',
+                'track': 'Eastside',
+                'album': 'Eastside',
+                'release_date': '20180713',
+                'release_year': 2018,
+            },
+            'params': {
+                'skip_download': True,
+            },
+        },
+        {
+            # Youtube Music Auto-generated description
+            # handle youtube music video with release_year and no release_date
+            'url': 'https://www.youtube.com/watch?v=-hcAI0g-f5M',
+            'info_dict': {
+                'id': '-hcAI0g-f5M',
+                'ext': 'mp4',
+                'title': 'Put It On Me',
+                'description': 'md5:93c55acc682ae7b0c668f2e34e1c069e',
+                'upload_date': '20180426',
+                'uploader': 'Matt Maeson - Topic',
+                'uploader_id': 'UCnEkIGqtGcQMLk73Kp-Q5LQ',
+                'artist': 'Matt Maeson',
+                'track': 'Put It On Me',
+                'album': 'The Hearse',
+                'release_date': None,
+                'release_year': 2018,
+            },
+            'params': {
+                'skip_download': True,
+            },
+        },
     ]
 
     def __init__(self, *args, **kwargs):
@@ -1563,6 +1653,9 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
         def extract_view_count(v_info):
             return int_or_none(try_get(v_info, lambda x: x['view_count'][0]))
 
+        def extract_token(v_info):
+            return dict_get(v_info, ('account_playback_token', 'accountPlaybackToken', 'token'))
+
         player_response = {}
 
         # Get video info
@@ -1622,7 +1715,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                 # The general idea is to take a union of itags of both DASH manifests (for example
                 # video with such 'manifest behavior' see https://github.com/ytdl-org/youtube-dl/issues/6093)
                 self.report_video_info_webpage_download(video_id)
-                for el in ('info', 'embedded', 'detailpage', 'vevo', ''):
+                for el in ('embedded', 'detailpage', 'vevo', ''):
                     query = {
                         'video_id': video_id,
                         'ps': 'default',
@@ -1652,7 +1745,8 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                         view_count = extract_view_count(get_video_info)
                     if not video_info:
                         video_info = get_video_info
-                    if 'token' in get_video_info:
+                    get_token = extract_token(get_video_info)
+                    if get_token:
                         # Different get_video_info requests may report different results, e.g.
                         # some may report video unavailability, but some may serve it without
                         # any complaint (see https://github.com/ytdl-org/youtube-dl/issues/7362,
@@ -1662,7 +1756,8 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                         # due to YouTube measures against IP ranges of hosting providers.
                         # Working around by preferring the first succeeded video_info containing
                         # the token if no such video_info yet was found.
-                        if 'token' not in video_info:
+                        token = extract_token(video_info)
+                        if not token:
                             video_info = get_video_info
                         break
 
@@ -1671,26 +1766,12 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                 r'(?s)<h1[^>]+id="unavailable-message"[^>]*>(.+?)</h1>',
                 video_webpage, 'unavailable message', default=None)
 
-        if 'token' not in video_info:
-            if 'reason' in video_info:
-                if 'The uploader has not made this video available in your country.' in video_info['reason']:
-                    regions_allowed = self._html_search_meta(
-                        'regionsAllowed', video_webpage, default=None)
-                    countries = regions_allowed.split(',') if regions_allowed else None
-                    self.raise_geo_restricted(
-                        msg=video_info['reason'][0], countries=countries)
-                reason = video_info['reason'][0]
-                if 'Invalid parameters' in reason:
-                    unavailable_message = extract_unavailable_message()
-                    if unavailable_message:
-                        reason = unavailable_message
-                raise ExtractorError(
-                    'YouTube said: %s' % reason,
-                    expected=True, video_id=video_id)
-            else:
-                raise ExtractorError(
-                    '"token" parameter not in video info for unknown reason',
-                    video_id=video_id)
+        if not video_info:
+            unavailable_message = extract_unavailable_message()
+            if not unavailable_message:
+                unavailable_message = 'Unable to extract video data'
+            raise ExtractorError(
+                'YouTube said: %s' % unavailable_message, expected=True, video_id=video_id)
 
         if video_info.get('license_info'):
             raise ExtractorError('This video is DRM protected.', expected=True)
@@ -2063,6 +2144,27 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
 
         track = extract_meta('Song')
         artist = extract_meta('Artist')
+        album = extract_meta('Album')
+
+        # Youtube Music Auto-generated description
+        release_date = release_year = None
+        if video_description:
+            mobj = re.search(r'(?s)Provided to YouTube by [^\n]+\n+(?P<track>[^·]+)·(?P<artist>[^\n]+)\n+(?P<album>[^\n]+)(?:.+?℗\s*(?P<release_year>\d{4})(?!\d))?(?:.+?Released on\s*:\s*(?P<release_date>\d{4}-\d{2}-\d{2}))?(.+?\nArtist\s*:\s*(?P<clean_artist>[^\n]+))?', video_description)
+            if mobj:
+                if not track:
+                    track = mobj.group('track').strip()
+                if not artist:
+                    artist = mobj.group('clean_artist') or ', '.join(a.strip() for a in mobj.group('artist').split('·'))
+                if not album:
+                    album = mobj.group('album'.strip())
+                release_year = mobj.group('release_year')
+                release_date = mobj.group('release_date')
+                if release_date:
+                    release_date = release_date.replace('-', '')
+                    if not release_year:
+                        release_year = int(release_date[:4])
+                if release_year:
+                    release_year = int(release_year)
 
         m_episode = re.search(
             r'<div[^>]+id="watch7-headline"[^>]*>\s*<span[^>]*>.*?>(?P<series>[^<]+)</a></b>\s*S(?P<season>\d+)\s*•\s*E(?P<episode>\d+)</span>',
@@ -2176,6 +2278,29 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                     if f.get('vcodec') != 'none':
                         f['stretched_ratio'] = ratio
 
+        if not formats:
+            token = extract_token(video_info)
+            if not token:
+                if 'reason' in video_info:
+                    if 'The uploader has not made this video available in your country.' in video_info['reason']:
+                        regions_allowed = self._html_search_meta(
+                            'regionsAllowed', video_webpage, default=None)
+                        countries = regions_allowed.split(',') if regions_allowed else None
+                        self.raise_geo_restricted(
+                            msg=video_info['reason'][0], countries=countries)
+                    reason = video_info['reason'][0]
+                    if 'Invalid parameters' in reason:
+                        unavailable_message = extract_unavailable_message()
+                        if unavailable_message:
+                            reason = unavailable_message
+                    raise ExtractorError(
+                        'YouTube said: %s' % reason,
+                        expected=True, video_id=video_id)
+                else:
+                    raise ExtractorError(
+                        '"token" parameter not in video info for unknown reason',
+                        video_id=video_id)
+
         self._sort_formats(formats)
 
         self.mark_watched(video_id, video_info, player_response)
@@ -2216,6 +2341,9 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
             'episode_number': episode_number,
             'track': track,
             'artist': artist,
+            'album': album,
+            'release_date': release_date,
+            'release_year': release_year,
         }
 
 
