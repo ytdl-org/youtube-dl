@@ -14,8 +14,10 @@ from ..utils import (
     int_or_none,
     parse_duration,
     get_element_by_class,
+    get_element_by_id,
     js_to_json,
-    try_get
+    try_get,
+    str_to_int
 )
 
 
@@ -37,11 +39,15 @@ class XVideosIE(InfoExtractor):
             'ext': 'mp4',
             'title': 'Biker Takes his Girl',
             'duration': 108,
-            'age_limit': 18,
             'uploader': 'Kandys Kisses',
             'uploader_id': 'kandyskisses',
             'categories': list,
-            'tags': list
+            'tags': list,
+            'view_count': int,
+            'like_count': int,
+            'dislike_count': int,
+            'comment_count': int,
+            'age_limit': 18,
         },
     }, {
         'url': 'https://www.xvideos.com/video43548989/petite_brooke_haze_is_so_cute',
@@ -56,6 +62,10 @@ class XVideosIE(InfoExtractor):
             'categories': list,
             'tags': list,
             'creator': 'AMKEmpire',
+            'view_count': int,
+            'like_count': int,
+            'dislike_count': int,
+            'comment_count': int,
             'age_limit': 18,
         },
     }, {
@@ -71,6 +81,10 @@ class XVideosIE(InfoExtractor):
             'uploader_id': None,
             'categories': list,
             'tags': list,
+            'view_count': int,
+            'like_count': int,
+            'dislike_count': int,
+            'comment_count': int,
             'age_limit': 18,
         },
     }, {
@@ -87,7 +101,7 @@ class XVideosIE(InfoExtractor):
         webpage = self._download_webpage(
             'https://www.xvideos.com/video%s/' % video_id, video_id, expected_status=404)
 
-        status_404 = get_element_by_class("status-404", webpage) or get_element_by_class("http-error-page", webpage)
+        status_404 = get_element_by_class("status-404", webpage)
         if status_404:
             reg_not_found = r'<div[^>]+id=["\']content["\']>[\r\n]*?<h1[^>]*>(?P<reason>[^<]*)'
             deleted = get_element_by_class("text-danger", status_404)
@@ -96,9 +110,6 @@ class XVideosIE(InfoExtractor):
             if reason:
                 raise ExtractorError('%s said: %s' % (self.IE_NAME, reason), expected=True, video_id=video_id)
 
-        mobj = re.search(r'<h1 class="inlineError">(.+?)</h1>', webpage)
-        if mobj:
-            raise ExtractorError('%s said: %s' % (self.IE_NAME, clean_html(mobj.group(1))), expected=True)
         mobj = re.search(r'<h1 class="inlineError">(.+?)</h1>', webpage)
         if mobj:
             raise ExtractorError('%s said: %s' % (self.IE_NAME, clean_html(mobj.group(1))), expected=True)
@@ -178,8 +189,17 @@ class XVideosIE(InfoExtractor):
         rc_list_alt = try_get(parsed_conf, lambda x: x['dyn']['ads']['categories'], compat_str) or None
         categories = rc_list or [item.replace('_', ' ') for item in rc_list_alt.split(',')]
 
-        sponsor_dict = try_get(parsed_conf, lambda x: x['data']['sponsors'][0]) or {}
-        creator = sponsor_dict.get('n')
+        creator = try_get(parsed_conf, lambda x: x['data']['sponsors'][0]['n']) or {}
+
+        like_wk = get_element_by_class('rating-inbtn', get_element_by_class('vote-action-good', webpage))
+        like_count = (int(float(like_wk[:-1]) * 1000) if 'k' in like_wk else int(like_wk))
+
+        dislike_wk = get_element_by_class('rating-inbtn', get_element_by_class('vote-action-bad', webpage))
+        dislike_count = (int(float(dislike_wk[:-1]) * 1000) if 'k' in dislike_wk else int(dislike_wk))
+
+        view_count = get_element_by_id('nb-views-number', webpage).replace(',', '')
+
+        comment_count = get_element_by_class('navbadge', get_element_by_id('tabComments_btn', webpage))
 
         return {
             'id': video_id,
@@ -192,6 +212,9 @@ class XVideosIE(InfoExtractor):
             'categories': categories,
             'tags': tags,
             'creator': creator,
+            'view_count': str_to_int(view_count),
+            'comment_count': str_to_int(comment_count),
+            'like_count': like_count,
+            'dislike_count': dislike_count,
             'age_limit': 18,
         }
-
