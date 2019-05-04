@@ -60,6 +60,29 @@ class TVN24IE(InfoExtractor):
             'description': 'Kotka o imieniu Pusza, żyjąca w Parku Miniatur w krymskim mieście Bakczysaraj to idealny przykład na to, że matczyna miłość nie zna granic. Zwierzę zao...',
         }
     }, {
+        'url': 'https://szklokontaktowe.tvn24.pl/lenin-czyli-kto,932164.html',
+        'info_dict': {
+            'title': 'Lenin, czyli kto?',
+            'description': 'Jarosław Kaczyński zdradził w Nowym Sączu pewną tajemnicę. Teraz już wszyscy wiemy, na którego z przedstawicieli PiS ludzie są tak źli na niego, że go nazy...',
+        },
+        'playlist_count': 3,
+        'playlist': [{
+            'md5': '014222e9a6261b424cd3474fd94ffeeb',
+            'info_dict': {
+                'id': '1841329',
+                'ext': 'mp4',
+                'title': 'Lenin, czyli kto? - część 1',
+            },
+        }],
+    }, {
+        'url': 'https://szklokontaktowe.tvn24.pl/rumba-szuka-domu,931617.html',
+        'info_dict': {
+            'id': '1840681',
+            'ext': 'mp4',
+            'title': 'Rumba szuka domu',
+            'description': 'RUMBA - wspaniała, ok czteroletnia suczka w typie owczarka uratowana z paskudnego schroniska wypatruje domu. Odznacza się wielką inteligencją i bardzo pozy...',
+        }
+    }, {
         'url': 'https://toteraz.pl/zakaz-wyprowadzania-psow-nielegalny-decyzja-sadu-administracyjnego,1838704.html',
         'md5': '46d127c478834e942b196d584b3ed747',
         'info_dict': {
@@ -148,6 +171,13 @@ class TVN24IE(InfoExtractor):
         if '/superwizjer-w-tvn24,' in url:
             regex = r'<a\b[^>]*\btitle="(?P<title>[^"]+)"[^>]*\bclass="playVideo">\s*</a>\s*(<[^/][^>]*>\s*)+' + VIDEO_ELT_REGEX
             entries = extract_videos(regex=regex)
+        elif '//szklokontaktowe.tvn24.pl/' in url:
+            regex = VIDEO_ELT_REGEX + r'(\s*</div>)+\s*<figcaption>'
+            entries = extract_videos(regex=regex)
+            if len(entries) > 1:
+                title = self._og_search_title(webpage)
+                for n, entry in enumerate(entries, start=1):
+                    entry['title'] = '{title} - część {n}'.format(title=title, n=n)
         else:
             entries = extract_videos(single=True)
 
