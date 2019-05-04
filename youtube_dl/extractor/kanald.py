@@ -73,7 +73,7 @@ class KanaldIE(InfoExtractor):
 
 
 class KanaldSerieIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:www\.)?kanald\.com\.tr/(?P<id>.*)/(?:bolum|bolumler)'
+    _VALID_URL = r'https?://(?:www\.)?kanald\.com\.tr/(?P<id>.*)/(?:bolum|bolumler)$'
     IE_NAME = 'Kanal D:serie'
     _TESTS = [{
         'url': 'https://www.kanald.com.tr/kuzeyguney/bolum',
