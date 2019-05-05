@@ -3,9 +3,14 @@
 from __future__ import unicode_literals
 
 import re
+import itertools
 
 from .common import InfoExtractor
-from ..utils import js_to_json
+from ..utils import (
+    determine_ext,
+    js_to_json,
+    update_url_query
+)
 
 
 class RTPIE(InfoExtractor):
@@ -41,18 +46,24 @@ class RTPIE(InfoExtractor):
             r'(?s)RTPPlayer\(({.*?})', webpage, 'player config')
         player_config = js_to_json(player_config)
         config = self._parse_json(player_config, video_id)
-        path, ext = config.get('file').rsplit('.', 1)
+        path = config.get('file')
+        ext = determine_ext(path)
+
         formats = [{
-            'format_id': 'rtmp',
             'ext': ext,
             'preference': -2,
-            'url': '{file}'.format(**config),
+            'url': path,
             'app': config.get('application'),
-            'play_path': '{ext:s}:{path:s}'.format(ext=ext, path=path),
             'page_url': url,
             'player_url': 'http://programas.rtp.pt/play/player.swf?v3',
-            'rtmp_real_time': True,
         }]
+
+        if ext == 'm3u8':
+            m3u8_formats = self._extract_m3u8_formats(path, video_id)
+            for i in m3u8_formats:
+                i.update(formats[0])
+                i['ext'] = 'mp4'
+            formats = m3u8_formats
         self._sort_formats(formats)
 
         return {
@@ -65,29 +76,27 @@ class RTPIE(InfoExtractor):
 
 
 class RTPPlaylistIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:www\.)?rtp\.pt/play/p(?P<program_id>[0-9]+)(?!.+)'
+    _VALID_URL = r'https?://(?:www\.)?rtp\.pt/play/p(?P<program_id>[0-9]+)'
 
     def _get_program_id(self, url):
         mobj = re.match(self._VALID_URL, url)
         program_id = mobj.group('program_id')
         return program_id
 
-    def _extract_entries(self, url, program_id, page):
-        entry_url = "https://www.rtp.pt/play/bg_l_ep/?&listProgram=%s&listcategory=&listchannel=&type=radio&page=%s" % (
-            program_id, page
-        )
-        webpage = self._download_webpage(entry_url, program_id)
-        return [self.url_result('https://www.rtp.pt/play/p%s/%s/' % (program_id, episode), 'RTP')
-                for episode in re.findall(r'e\d+', webpage)]
+    def _extract_entries(self, url, program_id):
+        for page in itertools.count(1):
+            query = update_url_query("https://www.rtp.pt/play/bg_l_ep/", {
+                'listProgram': program_id,
+                'type': 'radio',
+                'page': page
+            })
+            webpage = self._download_webpage(query, program_id, 'Downloading page %d' % page)
+            if not webpage:
+                break
+            for episode in re.findall(r'p%s/e(\d+)' % program_id, webpage):
+                yield self.url_result('https://www.rtp.pt/play/p%s/e%s/' % (program_id, episode), 'RTP')
 
     def _real_extract(self, url):
-        page = 1
         program_id = self._get_program_id(url)
-
-        entry = self._extract_entries(url, program_id, page)
-        new_entry = self._extract_entries(url, program_id, page + 1)
-        while new_entry != []:
-            new_entry = self._extract_entries(url, program_id, page + 1)
-            entry += new_entry
-            page += 1
+        entry = self._extract_entries(url, program_id)
         return self.playlist_result(entry, playlist_id=program_id)
