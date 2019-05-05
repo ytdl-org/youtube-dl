@@ -94,7 +94,7 @@ class OdnoklassnikiIE(InfoExtractor):
             'skip_download': True,
         },
         'skip': 'Video has not been found',
-    },{
+    }, {
         # live video
         'url': 'https://www.ok.ru/video/1050794925929',
         'info_dict': {
@@ -147,7 +147,7 @@ class OdnoklassnikiIE(InfoExtractor):
 
         error = self._search_regex(
             r'<div class="vp_video_stub_txt">(?P<error>.*?)<\/div>',
-            webpage, name='error',group='error', default=None)
+            webpage, name='error', group='error', default=None)
         if error:
             raise ExtractorError(error, expected=True)
 
