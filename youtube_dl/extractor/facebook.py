@@ -382,7 +382,19 @@ class FacebookIE(InfoExtractor):
         if not video_data:
             raise ExtractorError('Cannot parse data')
 
-        is_live = video_data[0].get('is_broadcast', False) and video_data[0].get('is_live_stream', False)
+        is_scheduled = '"isScheduledLive":true' in tahoe_data.secondary
+        is_live_stream = video_data[0].get('is_live_stream', False)
+        is_broadcast = video_data[0].get('is_broadcast', False)
+
+        live_status = 'not_live'
+        if is_broadcast:
+            live_status = 'completed'
+            if is_live_stream:
+                live_status = 'live'
+                if is_scheduled:
+                    live_status = 'upcoming'
+
+        is_live = live_status == 'live'
 
         formats = []
         for f in video_data:
@@ -468,7 +480,8 @@ class FacebookIE(InfoExtractor):
             'thumbnail': thumbnail,
             'view_count': view_count,
             'uploader_id': uploader_id,
-            'is_live': is_live
+            'is_live': is_live,
+            'live_status': live_status
         }
 
         return webpage, info_dict
