@@ -96,7 +96,7 @@ git push origin "$version"
 REV=$(git rev-parse HEAD)
 make youtube-dl youtube-dl.tar.gz
 read -p "VM running? (y/n) " -n 1
-wget "http://$buildserver/build/rg3/youtube-dl/youtube-dl.exe?rev=$REV" -O youtube-dl.exe
+wget "http://$buildserver/build/ytdl-org/youtube-dl/youtube-dl.exe?rev=$REV" -O youtube-dl.exe
 mkdir -p "build/$version"
 mv youtube-dl youtube-dl.exe "build/$version"
 mv youtube-dl.tar.gz "build/$version/youtube-dl-$version.tar.gz"

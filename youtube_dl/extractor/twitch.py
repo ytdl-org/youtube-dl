@@ -51,7 +51,9 @@ class TwitchBaseIE(InfoExtractor):
                 expected=True)
 
     def _call_api(self, path, item_id, *args, **kwargs):
-        kwargs.setdefault('headers', {})['Client-ID'] = self._CLIENT_ID
+        headers = kwargs.get('headers', {}).copy()
+        headers['Client-ID'] = self._CLIENT_ID
+        kwargs['headers'] = headers
         response = self._download_json(
             '%s/%s' % (self._API_BASE, path), item_id,
             *args, **compat_kwargs(kwargs))
@@ -134,7 +136,12 @@ class TwitchBaseIE(InfoExtractor):
             source = next(f for f in formats if f['format_id'] == 'Source')
             source['preference'] = 10
         except StopIteration:
-            pass  # No Source stream present
+            for f in formats:
+                if '/chunked/' in f['url']:
+                    f.update({
+                        'source_preference': 10,
+                        'format_note': 'Source',
+                    })
         self._sort_formats(formats)
 
 
@@ -559,7 +566,8 @@ class TwitchStreamIE(TwitchBaseIE):
                     TwitchAllVideosIE,
                     TwitchUploadsIE,
                     TwitchPastBroadcastsIE,
-                    TwitchHighlightsIE))
+                    TwitchHighlightsIE,
+                    TwitchClipsIE))
                 else super(TwitchStreamIE, cls).suitable(url))
 
     def _real_extract(self, url):
@@ -633,7 +641,7 @@ class TwitchStreamIE(TwitchBaseIE):
 
 class TwitchClipsIE(TwitchBaseIE):
     IE_NAME = 'twitch:clips'
-    _VALID_URL = r'https?://clips\.twitch\.tv/(?:[^/]+/)*(?P<id>[^/?#&]+)'
+    _VALID_URL = r'https?://(?:clips\.twitch\.tv/(?:[^/]+/)*|(?:www\.)?twitch\.tv/[^/]+/clip/)(?P<id>[^/?#&]+)'
 
     _TESTS = [{
         'url': 'https://clips.twitch.tv/FaintLightGullWholeWheat',
@@ -652,6 +660,9 @@ class TwitchClipsIE(TwitchBaseIE):
     }, {
         # multiple formats
         'url': 'https://clips.twitch.tv/rflegendary/UninterestedBeeDAESuppy',
+        'only_matching': True,
+    }, {
+        'url': 'https://www.twitch.tv/sergeynixon/clip/StormyThankfulSproutFutureMan',
         'only_matching': True,
     }]
 

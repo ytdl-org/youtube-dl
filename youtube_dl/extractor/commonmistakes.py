@@ -36,7 +36,7 @@ class UnicodeBOMIE(InfoExtractor):
         _VALID_URL = r'(?P<bom>\ufeff)(?P<id>.*)$'
 
         # Disable test for python 3.2 since BOM is broken in re in this version
-        # (see https://github.com/rg3/youtube-dl/issues/9751)
+        # (see https://github.com/ytdl-org/youtube-dl/issues/9751)
         _TESTS = [] if (3, 0) < sys.version_info <= (3, 3) else [{
             'url': '\ufeffhttp://www.youtube.com/watch?v=BaW_jenozKc',
             'only_matching': True,

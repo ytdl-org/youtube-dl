@@ -48,7 +48,7 @@ from .YoutubeDL import YoutubeDL
 def _real_main(argv=None):
     # Compatibility fixes for Windows
     if sys.platform == 'win32':
-        # https://github.com/rg3/youtube-dl/issues/820
+        # https://github.com/ytdl-org/youtube-dl/issues/820
         codecs.register(lambda name: codecs.lookup('utf-8') if name == 'cp65001' else None)
 
     workaround_optparse_bug9161()
@@ -166,6 +166,8 @@ def _real_main(argv=None):
     if opts.max_sleep_interval is not None:
         if opts.max_sleep_interval < 0:
             parser.error('max sleep interval must be positive or 0')
+        if opts.sleep_interval is None:
+            parser.error('min sleep interval must be specified, use --min-sleep-interval')
         if opts.max_sleep_interval < opts.sleep_interval:
             parser.error('max sleep interval must be greater than or equal to min sleep interval')
     else:

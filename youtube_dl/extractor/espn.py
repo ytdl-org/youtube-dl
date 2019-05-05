@@ -29,7 +29,8 @@ class ESPNIE(OnceIE):
                                     (?:
                                         .*?\?.*?\bid=|
                                         /_/id/
-                                    )
+                                    )|
+                                    [^/]+/video/
                                 )
                             )|
                             (?:www\.)espnfc\.(?:com|us)/(?:video/)?[^/]+/\d+/video/
@@ -93,6 +94,9 @@ class ESPNIE(OnceIE):
         'only_matching': True,
     }, {
         'url': 'http://www.espnfc.com/english-premier-league/23/video/3324163/premier-league-in-90-seconds-golden-tweets',
+        'only_matching': True,
+    }, {
+        'url': 'http://www.espn.com/espnw/video/26066627/arkansas-gibson-completes-hr-cycle-four-innings',
         'only_matching': True,
     }]
 

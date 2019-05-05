@@ -5,6 +5,7 @@ from ..compat import compat_b64decode
 from ..utils import (
     ExtractorError,
     int_or_none,
+    url_or_none,
     urlencode_postdata,
 )
 
@@ -86,9 +87,16 @@ class VivoIE(SharedBaseIE):
     }
 
     def _extract_video_url(self, webpage, video_id, *args):
+        def decode_url(encoded_url):
+            return compat_b64decode(encoded_url).decode('utf-8')
+
+        stream_url = url_or_none(decode_url(self._search_regex(
+            r'data-stream\s*=\s*(["\'])(?P<url>(?:(?!\1).)+)\1', webpage,
+            'stream url', default=None, group='url')))
+        if stream_url:
+            return stream_url
         return self._parse_json(
             self._search_regex(
                 r'InitializeStream\s*\(\s*(["\'])(?P<url>(?:(?!\1).)+)\1',
                 webpage, 'stream', group='url'),
-            video_id,
-            transform_source=lambda x: compat_b64decode(x).decode('utf-8'))[0]
+            video_id, transform_source=decode_url)[0]

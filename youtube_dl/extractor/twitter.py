@@ -171,7 +171,8 @@ class TwitterCardIE(TwitterBaseIE):
             urls.append('https://twitter.com/i/videos/' + video_id)
 
         for u in urls:
-            webpage = self._download_webpage(u, video_id)
+            webpage = self._download_webpage(
+                u, video_id, headers={'Referer': 'https://twitter.com/'})
 
             iframe_url = self._html_search_regex(
                 r'<iframe[^>]+src="((?:https?:)?//(?:www\.youtube\.com/embed/[^"]+|(?:www\.)?vine\.co/v/\w+/card))"',
