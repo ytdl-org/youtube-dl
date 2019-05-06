@@ -4,9 +4,15 @@ import re
 
 from .common import InfoExtractor
 from ..utils import (
+    ExtractorError,
     int_or_none,
     sanitized_Request,
     unified_strdate,
+)
+from youtube_dl.aes import aes_decrypt_text
+from youtube_dl.compat import (
+    compat_urllib_parse_urlparse,
+    compat_urllib_parse_unquote,
 )
 
 
@@ -48,9 +54,9 @@ class SpankwireIE(InfoExtractor):
 
         req = sanitized_Request('http://www.' + mobj.group('url'))
         req.add_header('Cookie', 'age_verified=1')
-        webpage = self._download_webpage(req, video_id)
-        video_data = self._download_json(
-            sanitized_Request('https://www.spankwire.com/api/video/' + video_id + '.json'), video_id)
+        webpage = self._download_webpage(req, video_id, fatal=False)
+        video_data = self._download_json('https://www.spankwire.com/api/video/' +
+                                         video_id + '.json', video_id)
 
         title = video_data.get('title') or self._html_search_regex(
             r'<h1>([^<]+)', webpage, 'title')
@@ -58,8 +64,9 @@ class SpankwireIE(InfoExtractor):
         description = video_data.get('description')
 
         uploader = self._search_regex(
-            r'<a[^>]+class="uploaded__by"[^>]*>(.+?)</a>',
-            webpage, 'uploader', flags=re.DOTALL, fatal=False)
+            re.compile(r'<a[^>]+class="uploaded__by"[^>]*>(.+?)</a>', re.DOTALL),
+            webpage, 'uploader', fatal=False)
+
         uploader_id = self._html_search_regex(
             r'by\s*<a href="/(?:user/viewProfile|Profile\.aspx)\?.*?UserId=(\d+).*?"',
             webpage, 'uploader id', fatal=False)
@@ -73,24 +80,51 @@ class SpankwireIE(InfoExtractor):
 
         def extract_list(arr):
             names = []
-            for i in arr:
-                names.append(i.get('name'))
+            if arr:
+                for i in arr:
+                    names.append(i.get('name'))
             return names
 
         categories = extract_list(video_data.get('categories'))
         tags = extract_list(video_data.get('tags'))
 
-        videos = video_data.get('videos').items()
-        videos.sort()
         formats = []
-        for quality, video_url in videos:
-            height = quality.replace('quality_', '').replace('p', '')
-            formats.append({
-                'url': video_url,
-                'format_id': quality,
-                'height': int_or_none(height),
-                'tbr': None
-            })
+        videos = re.findall(
+            r'playerData\.cdnPath([0-9]{3,})\s*=\s*(?:encodeURIComponent\()?["\']([^"\']+)["\']', webpage)
+        if videos:
+            heights = [int(video[0]) for video in videos]
+            video_urls = list(map(compat_urllib_parse_unquote, [video[1] for video in videos]))
+            if webpage.find(r'flashvars\.encrypted = "true"') != -1:
+                password = self._search_regex(
+                    r'flashvars\.video_title = "([^"]+)',
+                    webpage, 'password').replace('+', ' ')
+                video_urls = list(map(
+                    lambda s: aes_decrypt_text(s, password, 32).decode('utf-8'),
+                    video_urls))
+
+            for height, video_url in zip(heights, video_urls):
+                path = compat_urllib_parse_urlparse(video_url).path
+                m = re.search(r'/(?P<height>\d+)[pP]_(?P<tbr>\d+)[kK]', path)
+                if m:
+                    tbr = int(m.group('tbr'))
+                    height = int(m.group('height'))
+                else:
+                    tbr = None
+                formats.append({
+                    'url': video_url,
+                    'format_id': '%dp' % height,
+                    'height': height,
+                    'tbr': tbr,
+                })
+        else:
+            for quality, video_url in video_data.get('videos').items():
+                height = quality.replace('quality_', '').replace('p', '')
+                formats.append({
+                    'url': video_url,
+                    'format_id': quality,
+                    'height': int_or_none(height),
+                })
+        self._sort_formats(formats)
 
         age_limit = self._rta_search(webpage)
 
