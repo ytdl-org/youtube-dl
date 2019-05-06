@@ -1,80 +1,95 @@
 # coding: utf-8
 from __future__ import unicode_literals
 
-from re import findall
+import re
 
 from .common import InfoExtractor
-from ..compat import compat_str
+from ..utils import merge_dicts
 
 
-class KanaldIE(InfoExtractor):
-    "Kanal D TV Website extractor"
-    IE_NAME = 'Kanal D'
-    _VALID_URL = r'https?://(?:www\.)?kanald\.com\.tr/(?:.*)/(?P<id>.*\d+.*bolum(?!ler).*)/?'
-    _TESTS = [{
-        'url': 'https://www.kanald.com.tr/kuzeyguney/1-bolum/10115',
-        'md5': '88d518f7803b53e9e6187b05fe0f1a63',
-        'info_dict': {
-            'id': '1-bolum/10115',
-            'ext': 'm3u8',
-            'title': '1.Bölüm',
-            'release_date': '20110907',
-            'thumbnail': r're:^https?://.*\.jpg$',
-            'uploader': 'Kanal D',
-            'description': '1.Bölüm'
-        }
-    }, {
-        'url':
-        'https://www.kanald.com.tr/sevdanin-bahcesi/bolumler/sevdanin-bahcesi-2-bolum',
-        'only_matching': True
-    }, {
-        'url':
-        'https://www.kanald.com.tr/yarim-elma/bolum/yarim-elma-36-bolum',
-        'only_matching': True
-    }, {
-        'url':
-        'https://www.kanald.com.tr/ask-ve-gunah/bolumler/ask-ve-gunah-120-bolum-final',
-        'only_matching': True
-    }]
+class KanaldBaseIE(InfoExtractor):
 
     def _real_extract(self, url):
         video_id = self._match_id(url)
-        webpage = self._download_webpage(url, video_id)
-        title = self._html_search_regex(r'<h1>(.+?)</h1>', webpage, 'title')
-        video_url = "https://soledge13.dogannet.tv/" + self._search_regex(
-            r'["\']contentUrl["\']:["\'](?P<video_url>.*)["\']', webpage,
-            'video_url')
-        formats = self._extract_m3u8_formats(video_url, video_id)
-        thumbnail = self._search_regex(
-            r'<meta itemprop=["\']thumbnailUrl["\'] content=["\'](?P<thumbnail>.*)["\'].*',
-            webpage, 'thumbnail')
-        description = self._og_search_description(webpage)
-        year = self._search_regex(
-            r'["\']uploadDate["\']:["\'](?P<year>\d{4}).*["\']', webpage,
-            'year')
-        month = self._search_regex(
-            r'["\']uploadDate["\']:["\']\d{4}-(?P<month>\d\d).*["\']', webpage,
-            'month')
-        day = self._search_regex(
-            r'["\']uploadDate["\']:["\']\d{4}-\d\d-(?P<day>\d\d).*["\']',
-            webpage, 'day')
-        release_date = year + month + day
 
-        return {
+        webpage = self._download_webpage(url, video_id)
+
+        info = {
             'id': video_id,
-            'title': title,
-            'formats': formats,
-            'thumbnail': thumbnail,
-            'description': description,
-            'url': video_url,
-            'uploader': compat_str('Kanal D'),
-            'release_date': release_date
         }
+
+        """FIXME: https://www.kanald.com.tr/kuzeyguney/80-bolum-izle/19364 -> Invalid control character at: line 5 column 146 (char 255)"""
+
+        json_ld = self._search_regex(
+            r'(?is)<script[^>]+type=(["\'])application/ld\+json\1[^>]*>(?:\s+)?(?P<json_ld>{[^<]+VideoObject[^<]+})(?:\s+)?</script>', webpage, 'JSON-LD', group='json_ld')
+        ld_info = self._json_ld(json_ld, video_id)
+
+        if not re.match(r'dogannet\.tv', ld_info['url']):
+            ld_info.update({
+                'url': 'https://soledge13.dogannet.tv/%s' % ld_info['url']
+            })
+
+        return merge_dicts(ld_info, info)
+
+
+class KanaldIE(KanaldBaseIE):
+    _VALID_URL = r'''(?x)
+                    https?://(?:www\.)?kanald\.com\.tr/(?:[a-zA-Z0-9-]+)/
+                    (?:
+                        (?:[0-9]+)-bolum|
+                        (?:[0-9]+)-bolum-izle|
+                        bolumler|
+                        bolum
+                    )/
+                    (?P<id>[a-zA-Z0-9-]+)
+                '''
+
+    _TESTS = [{
+        'url': 'https://www.kanald.com.tr/kuzeyguney/1-bolum/10115',
+        'md5': '8a32b6e894d45d618360b8b01173de9a',
+        'info_dict': {
+            'id': '10115',
+            'title': '1.Bölüm',
+            'description': 'md5:64edbdd153b7eefdf92c31bf5a6e5c1b',
+            'upload_date': '20110907',
+            'timestamp': 1315426815,
+            'ext': 'm3u8',
+        }
+    }, {
+        'url': 'https://www.kanald.com.tr/kuzeyguney/79-bolum-izle/19270',
+        'only_matching': True
+    }, {
+        'url': 'https://www.kanald.com.tr/sevdanin-bahcesi/bolumler/sevdanin-bahcesi-2-bolum',
+        'only_matching': True
+    }, {
+        'url': 'https://www.kanald.com.tr/yarim-elma/bolum/yarim-elma-36-bolum',
+        'only_matching': True
+    }, {
+        'url': 'https://www.kanald.com.tr/ask-ve-gunah/bolumler/ask-ve-gunah-120-bolum-final',
+        'only_matching': True
+    }]
+
+
+class KanaldEmbedIE(KanaldBaseIE):
+    _VALID_URL = r'https?://(?:www\.)?kanald\.com\.tr/embed/(?P<id>[a-zA-Z0-9]+)'
+
+    _TESTS = [{
+        'url': 'https://www.kanald.com.tr/embed/5465f0d2cf45af1064b73077',
+        'md5': '8a32b6e894d45d618360b8b01173de9a',
+        'info_dict': {
+            'id': '5465f0d2cf45af1064b73077',
+            'title': '1.Bölüm',
+            'description': 'md5:64edbdd153b7eefdf92c31bf5a6e5c1b',
+            'upload_date': '20110907',
+            'timestamp': 1315426815,
+            'ext': 'm3u8',
+        }
+    }]
 
 
 class KanaldSerieIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:www\.)?kanald\.com\.tr/(?P<id>.*)/(?:bolum|bolumler)$'
-    IE_NAME = 'Kanal D:serie'
+    _VALID_URL = r'https?://(?:www\.)?kanald\.com\.tr/(?P<id>[a-zA-Z0-9-]+)/(?:bolum|bolumler)$'
+
     _TESTS = [{
         'url': 'https://www.kanald.com.tr/kuzeyguney/bolum',
         'info_dict': {
@@ -86,37 +101,33 @@ class KanaldSerieIE(InfoExtractor):
         'only_matching': True
     }]
 
-    def _real_extract(self, url):
-        playlist_id = self._match_id(url)
-        next_page = url
-        webpage = None
+    def extract_episodes(self, url, playlist_id):
         page = 1
         has_more = True
-        entries = []
 
         while has_more:
-            webpage = self._download_webpage(next_page,
-                                             playlist_id,
-                                             note='Downloading page %s' % page)
+            webpage = self._download_webpage(
+                url, playlist_id, 'Downloading page %s' % page, query={
+                    'page': page,
+                })
 
-            try:
-                next_page = 'https://www.kanald.com.tr' + self._search_regex(
-                    r'class=["\']next["\']><a href=["\'](?P<hasmore>.*)["\']>.*</a>',
-                    webpage,
-                    'hasmore',
-                    default=None,
-                    fatal=False)
-                page += 1
-            except TypeError:
+            episode_urls = re.findall(r'<a class=(["\'])title\1 href=\1/(?P<url>' + re.escape(playlist_id) + r'[a-zA-Z0-9-/]+)\1[^>]*>', webpage)
+
+            if len(episode_urls) is 0:
                 has_more = False
+                continue
 
-            page_entries = findall(
-                r'<a.*class=["\']title["\'].*href=["\'](?P<relative>.*)["\'].*',
-                webpage)
+            for episode_url in episode_urls:
+                episode_url = episode_url[1]
+                if not episode_url:
+                    continue
+                yield self.url_result(
+                    'https://www.kanald.com.tr/%s' % episode_url,
+                    ie=KanaldIE.ie_key())
 
-            for entry in page_entries:
-                entries.append(
-                    self.url_result('https://www.kanald.com.tr%s' % entry,
-                                    ie=KanaldIE.ie_key()))
+            page += 1
 
-        return self.playlist_result(entries, playlist_id)
+    def _real_extract(self, url):
+        playlist_id = self._match_id(url)
+
+        return self.playlist_result(self.extract_episodes(url, playlist_id), playlist_id)
