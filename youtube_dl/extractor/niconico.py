@@ -252,7 +252,7 @@ class NiconicoIE(InfoExtractor):
                     },
                     'timing_constraint': 'unlimited'
                 }
-            }))
+            }).encode())
 
         resolution = video_quality.get('resolution', {})
 

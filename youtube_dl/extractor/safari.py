@@ -15,10 +15,10 @@ from ..utils import (
 
 
 class SafariBaseIE(InfoExtractor):
-    _LOGIN_URL = 'https://www.safaribooksonline.com/accounts/login/'
+    _LOGIN_URL = 'https://learning.oreilly.com/accounts/login/'
     _NETRC_MACHINE = 'safari'
 
-    _API_BASE = 'https://www.safaribooksonline.com/api/v1'
+    _API_BASE = 'https://learning.oreilly.com/api/v1'
     _API_FORMAT = 'json'
 
     LOGGED_IN = False
@@ -76,7 +76,7 @@ class SafariIE(SafariBaseIE):
     IE_DESC = 'safaribooksonline.com online video'
     _VALID_URL = r'''(?x)
                         https?://
-                            (?:www\.)?safaribooksonline\.com/
+                            (?:www\.)?(?:safaribooksonline|learning\.oreilly)\.com/
                             (?:
                                 library/view/[^/]+/(?P<course_id>[^/]+)/(?P<part>[^/?\#&]+)\.html|
                                 videos/[^/]+/[^/]+/(?P<reference_id>[^-]+-[^/?\#&]+)
@@ -103,6 +103,9 @@ class SafariIE(SafariBaseIE):
         'only_matching': True,
     }, {
         'url': 'https://www.safaribooksonline.com/videos/python-programming-language/9780134217314/9780134217314-PYMC_13_00',
+        'only_matching': True,
+    }, {
+        'url': 'https://learning.oreilly.com/videos/hadoop-fundamentals-livelessons/9780133392838/9780133392838-00_SeriesIntro',
         'only_matching': True,
     }]
 
@@ -160,7 +163,7 @@ class SafariIE(SafariBaseIE):
 
 class SafariApiIE(SafariBaseIE):
     IE_NAME = 'safari:api'
-    _VALID_URL = r'https?://(?:www\.)?safaribooksonline\.com/api/v1/book/(?P<course_id>[^/]+)/chapter(?:-content)?/(?P<part>[^/?#&]+)\.html'
+    _VALID_URL = r'https?://(?:www\.)?(?:safaribooksonline|learning\.oreilly)\.com/api/v1/book/(?P<course_id>[^/]+)/chapter(?:-content)?/(?P<part>[^/?#&]+)\.html'
 
     _TESTS = [{
         'url': 'https://www.safaribooksonline.com/api/v1/book/9780133392838/chapter/part00.html',
@@ -185,7 +188,7 @@ class SafariCourseIE(SafariBaseIE):
     _VALID_URL = r'''(?x)
                     https?://
                         (?:
-                            (?:www\.)?safaribooksonline\.com/
+                            (?:www\.)?(?:safaribooksonline|learning\.oreilly)\.com/
                             (?:
                                 library/view/[^/]+|
                                 api/v1/book|
@@ -212,6 +215,9 @@ class SafariCourseIE(SafariBaseIE):
         'only_matching': True,
     }, {
         'url': 'https://www.safaribooksonline.com/videos/python-programming-language/9780134217314',
+        'only_matching': True,
+    }, {
+        'url': 'https://learning.oreilly.com/videos/hadoop-fundamentals-livelessons/9780133392838',
         'only_matching': True,
     }]
 

@@ -1,15 +1,25 @@
 # coding: utf-8
 from __future__ import unicode_literals
 
+import binascii
+import hashlib
+import re
+
+
 from .common import InfoExtractor
+from ..aes import aes_cbc_decrypt
+from ..compat import compat_urllib_parse_unquote
 from ..utils import (
+    bytes_to_intlist,
     ExtractorError,
     int_or_none,
+    intlist_to_bytes,
     float_or_none,
     mimetype2ext,
-    parse_iso8601,
-    remove_end,
+    str_or_none,
+    unified_timestamp,
     update_url_query,
+    url_or_none,
 )
 
 
@@ -20,23 +30,31 @@ class DRTVIE(InfoExtractor):
     IE_NAME = 'drtv'
     _TESTS = [{
         'url': 'https://www.dr.dk/tv/se/boern/ultra/klassen-ultra/klassen-darlig-taber-10',
-        'md5': '7ae17b4e18eb5d29212f424a7511c184',
+        'md5': '25e659cccc9a2ed956110a299fdf5983',
         'info_dict': {
             'id': 'klassen-darlig-taber-10',
             'ext': 'mp4',
             'title': 'Klassen - Dårlig taber (10)',
             'description': 'md5:815fe1b7fa656ed80580f31e8b3c79aa',
-            'timestamp': 1471991907,
-            'upload_date': '20160823',
+            'timestamp': 1539085800,
+            'upload_date': '20181009',
             'duration': 606.84,
+            'series': 'Klassen',
+            'season': 'Klassen I',
+            'season_number': 1,
+            'season_id': 'urn:dr:mu:bundle:57d7e8216187a4031cfd6f6b',
+            'episode': 'Episode 10',
+            'episode_number': 10,
+            'release_year': 2016,
         },
+        'expected_warnings': ['Unable to download f4m manifest'],
     }, {
         # embed
         'url': 'https://www.dr.dk/nyheder/indland/live-christianias-rydning-af-pusher-street-er-i-gang',
         'info_dict': {
-            'id': 'christiania-pusher-street-ryddes-drdkrjpo',
+            'id': 'urn:dr:mu:programcard:57c926176187a50a9c6e83c6',
             'ext': 'mp4',
-            'title': 'LIVE Christianias rydning af Pusher Street er i gang',
+            'title': 'christiania pusher street ryddes drdkrjpo',
             'description': 'md5:2a71898b15057e9b97334f61d04e6eb5',
             'timestamp': 1472800279,
             'upload_date': '20160902',
@@ -45,17 +63,18 @@ class DRTVIE(InfoExtractor):
         'params': {
             'skip_download': True,
         },
+        'expected_warnings': ['Unable to download f4m manifest'],
     }, {
         # with SignLanguage formats
         'url': 'https://www.dr.dk/tv/se/historien-om-danmark/-/historien-om-danmark-stenalder',
         'info_dict': {
             'id': 'historien-om-danmark-stenalder',
             'ext': 'mp4',
-            'title': 'Historien om Danmark: Stenalder (1)',
+            'title': 'Historien om Danmark: Stenalder',
             'description': 'md5:8c66dcbc1669bbc6f873879880f37f2a',
-            'timestamp': 1490401996,
-            'upload_date': '20170325',
-            'duration': 3502.04,
+            'timestamp': 1546628400,
+            'upload_date': '20190104',
+            'duration': 3502.56,
             'formats': 'mincount:20',
         },
         'params': {
@@ -74,20 +93,26 @@ class DRTVIE(InfoExtractor):
 
         video_id = self._search_regex(
             (r'data-(?:material-identifier|episode-slug)="([^"]+)"',
-                r'data-resource="[^>"]+mu/programcard/expanded/([^"]+)"'),
-            webpage, 'video id')
+             r'data-resource="[^>"]+mu/programcard/expanded/([^"]+)"'),
+            webpage, 'video id', default=None)
 
-        programcard = self._download_json(
-            'http://www.dr.dk/mu/programcard/expanded/%s' % video_id,
-            video_id, 'Downloading video JSON')
-        data = programcard['Data'][0]
+        if not video_id:
+            video_id = compat_urllib_parse_unquote(self._search_regex(
+                r'(urn(?:%3A|:)dr(?:%3A|:)mu(?:%3A|:)programcard(?:%3A|:)[\da-f]+)',
+                webpage, 'urn'))
 
-        title = remove_end(self._og_search_title(
-            webpage, default=None), ' | TV | DR') or data['Title']
+        data = self._download_json(
+            'https://www.dr.dk/mu-online/api/1.4/programcard/%s' % video_id,
+            video_id, 'Downloading video JSON', query={'expanded': 'true'})
+
+        title = str_or_none(data.get('Title')) or re.sub(
+            r'\s*\|\s*(?:TV\s*\|\s*DR|DRTV)$', '',
+            self._og_search_title(webpage))
         description = self._og_search_description(
             webpage, default=None) or data.get('Description')
 
-        timestamp = parse_iso8601(data.get('CreatedTime'))
+        timestamp = unified_timestamp(
+            data.get('PrimaryBroadcastStartTime') or data.get('SortDateTime'))
 
         thumbnail = None
         duration = None
@@ -97,10 +122,34 @@ class DRTVIE(InfoExtractor):
         formats = []
         subtitles = {}
 
-        for asset in data['Assets']:
+        assets = []
+        primary_asset = data.get('PrimaryAsset')
+        if isinstance(primary_asset, dict):
+            assets.append(primary_asset)
+        secondary_assets = data.get('SecondaryAssets')
+        if isinstance(secondary_assets, list):
+            for secondary_asset in secondary_assets:
+                if isinstance(secondary_asset, dict):
+                    assets.append(secondary_asset)
+
+        def hex_to_bytes(hex):
+            return binascii.a2b_hex(hex.encode('ascii'))
+
+        def decrypt_uri(e):
+            n = int(e[2:10], 16)
+            a = e[10 + n:]
+            data = bytes_to_intlist(hex_to_bytes(e[10:10 + n]))
+            key = bytes_to_intlist(hashlib.sha256(
+                ('%s:sRBzYNXBzkKgnjj8pGtkACch' % a).encode('utf-8')).digest())
+            iv = bytes_to_intlist(hex_to_bytes(a))
+            decrypted = aes_cbc_decrypt(data, key, iv)
+            return intlist_to_bytes(
+                decrypted[:-decrypted[-1]]).decode('utf-8').split('?')[0]
+
+        for asset in assets:
             kind = asset.get('Kind')
             if kind == 'Image':
-                thumbnail = asset.get('Uri')
+                thumbnail = url_or_none(asset.get('Uri'))
             elif kind in ('VideoResource', 'AudioResource'):
                 duration = float_or_none(asset.get('DurationInMilliseconds'), 1000)
                 restricted_to_denmark = asset.get('RestrictedToDenmark')
@@ -108,13 +157,27 @@ class DRTVIE(InfoExtractor):
                 for link in asset.get('Links', []):
                     uri = link.get('Uri')
                     if not uri:
+                        encrypted_uri = link.get('EncryptedUri')
+                        if not encrypted_uri:
+                            continue
+                        try:
+                            uri = decrypt_uri(encrypted_uri)
+                        except Exception:
+                            self.report_warning(
+                                'Unable to decrypt EncryptedUri', video_id)
+                            continue
+                    uri = url_or_none(uri)
+                    if not uri:
                         continue
                     target = link.get('Target')
                     format_id = target or ''
-                    preference = None
-                    if asset_target in ('SpokenSubtitles', 'SignLanguage'):
+                    if asset_target in ('SpokenSubtitles', 'SignLanguage', 'VisuallyInterpreted'):
                         preference = -1
                         format_id += '-%s' % asset_target
+                    elif asset_target == 'Default':
+                        preference = 1
+                    else:
+                        preference = None
                     if target == 'HDS':
                         f4m_formats = self._extract_f4m_formats(
                             uri + '?hdcore=3.3.0&plugin=aasp-3.3.0.99.43',
@@ -140,19 +203,22 @@ class DRTVIE(InfoExtractor):
                             'vcodec': 'none' if kind == 'AudioResource' else None,
                             'preference': preference,
                         })
-                subtitles_list = asset.get('SubtitlesList')
-                if isinstance(subtitles_list, list):
-                    LANGS = {
-                        'Danish': 'da',
-                    }
-                    for subs in subtitles_list:
-                        if not subs.get('Uri'):
-                            continue
-                        lang = subs.get('Language') or 'da'
-                        subtitles.setdefault(LANGS.get(lang, lang), []).append({
-                            'url': subs['Uri'],
-                            'ext': mimetype2ext(subs.get('MimeType')) or 'vtt'
-                        })
+            subtitles_list = asset.get('SubtitlesList') or asset.get('Subtitleslist')
+            if isinstance(subtitles_list, list):
+                LANGS = {
+                    'Danish': 'da',
+                }
+                for subs in subtitles_list:
+                    if not isinstance(subs, dict):
+                        continue
+                    sub_uri = url_or_none(subs.get('Uri'))
+                    if not sub_uri:
+                        continue
+                    lang = subs.get('Language') or 'da'
+                    subtitles.setdefault(LANGS.get(lang, lang), []).append({
+                        'url': sub_uri,
+                        'ext': mimetype2ext(subs.get('MimeType')) or 'vtt'
+                    })
 
         if not formats and restricted_to_denmark:
             self.raise_geo_restricted(
@@ -170,6 +236,13 @@ class DRTVIE(InfoExtractor):
             'duration': duration,
             'formats': formats,
             'subtitles': subtitles,
+            'series': str_or_none(data.get('SeriesTitle')),
+            'season': str_or_none(data.get('SeasonTitle')),
+            'season_number': int_or_none(data.get('SeasonNumber')),
+            'season_id': str_or_none(data.get('SeasonUrn')),
+            'episode': str_or_none(data.get('EpisodeTitle')),
+            'episode_number': int_or_none(data.get('EpisodeNumber')),
+            'release_year': int_or_none(data.get('ProductionYear')),
         }
 
 

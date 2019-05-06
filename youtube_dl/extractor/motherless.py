@@ -167,9 +167,9 @@ class MotherlessGroupIE(InfoExtractor):
         if not entries:
             entries = [
                 self.url_result(
-                    compat_urlparse.urljoin(base, '/' + video_id),
-                    ie=MotherlessIE.ie_key(), video_id=video_id)
-                for video_id in orderedSet(re.findall(
+                    compat_urlparse.urljoin(base, '/' + entry_id),
+                    ie=MotherlessIE.ie_key(), video_id=entry_id)
+                for entry_id in orderedSet(re.findall(
                     r'data-codename=["\']([A-Z0-9]+)', webpage))]
         return entries
 

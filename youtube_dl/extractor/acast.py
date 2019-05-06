@@ -17,25 +17,15 @@ from ..utils import (
 
 class ACastIE(InfoExtractor):
     IE_NAME = 'acast'
-    _VALID_URL = r'https?://(?:www\.)?acast\.com/(?P<channel>[^/]+)/(?P<id>[^/#?]+)'
+    _VALID_URL = r'''(?x)
+                    https?://
+                        (?:
+                            (?:(?:embed|www)\.)?acast\.com/|
+                            play\.acast\.com/s/
+                        )
+                        (?P<channel>[^/]+)/(?P<id>[^/#?]+)
+                    '''
     _TESTS = [{
-        # test with one bling
-        'url': 'https://www.acast.com/condenasttraveler/-where-are-you-taipei-101-taiwan',
-        'md5': 'ada3de5a1e3a2a381327d749854788bb',
-        'info_dict': {
-            'id': '57de3baa-4bb0-487e-9418-2692c1277a34',
-            'ext': 'mp3',
-            'title': '"Where Are You?": Taipei 101, Taiwan',
-            'description': 'md5:a0b4ef3634e63866b542e5b1199a1a0e',
-            'timestamp': 1196172000,
-            'upload_date': '20071127',
-            'duration': 211,
-            'creator': 'Concierge',
-            'series': 'Condé Nast Traveler Podcast',
-            'episode': '"Where Are You?": Taipei 101, Taiwan',
-        }
-    }, {
-        # test with multiple blings
         'url': 'https://www.acast.com/sparpodcast/2.raggarmordet-rosterurdetforflutna',
         'md5': 'a02393c74f3bdb1801c3ec2695577ce0',
         'info_dict': {
@@ -50,6 +40,12 @@ class ACastIE(InfoExtractor):
             'series': 'Spår',
             'episode': '2. Raggarmordet - Röster ur det förflutna',
         }
+    }, {
+        'url': 'http://embed.acast.com/adambuxton/ep.12-adam-joeschristmaspodcast2015',
+        'only_matching': True,
+    }, {
+        'url': 'https://play.acast.com/s/rattegangspodden/s04e09-styckmordet-i-helenelund-del-22',
+        'only_matching': True,
     }]
 
     def _real_extract(self, url):
@@ -83,17 +79,27 @@ class ACastIE(InfoExtractor):
 
 class ACastChannelIE(InfoExtractor):
     IE_NAME = 'acast:channel'
-    _VALID_URL = r'https?://(?:www\.)?acast\.com/(?P<id>[^/#?]+)'
-    _TEST = {
-        'url': 'https://www.acast.com/condenasttraveler',
+    _VALID_URL = r'''(?x)
+                    https?://
+                        (?:
+                            (?:www\.)?acast\.com/|
+                            play\.acast\.com/s/
+                        )
+                        (?P<id>[^/#?]+)
+                    '''
+    _TESTS = [{
+        'url': 'https://www.acast.com/todayinfocus',
         'info_dict': {
-            'id': '50544219-29bb-499e-a083-6087f4cb7797',
-            'title': 'Condé Nast Traveler Podcast',
-            'description': 'md5:98646dee22a5b386626ae31866638fbd',
+            'id': '4efc5294-5385-4847-98bd-519799ce5786',
+            'title': 'Today in Focus',
+            'description': 'md5:9ba5564de5ce897faeb12963f4537a64',
         },
-        'playlist_mincount': 20,
-    }
-    _API_BASE_URL = 'https://www.acast.com/api/'
+        'playlist_mincount': 35,
+    }, {
+        'url': 'http://play.acast.com/s/ft-banking-weekly',
+        'only_matching': True,
+    }]
+    _API_BASE_URL = 'https://play.acast.com/api/'
     _PAGE_SIZE = 10
 
     @classmethod
@@ -106,7 +112,7 @@ class ACastChannelIE(InfoExtractor):
             channel_slug, note='Download page %d of channel data' % page)
         for cast in casts:
             yield self.url_result(
-                'https://www.acast.com/%s/%s' % (channel_slug, cast['url']),
+                'https://play.acast.com/s/%s/%s' % (channel_slug, cast['url']),
                 'ACast', cast['id'])
 
     def _real_extract(self, url):

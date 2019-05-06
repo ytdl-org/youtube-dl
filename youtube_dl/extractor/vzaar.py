@@ -4,15 +4,19 @@ from __future__ import unicode_literals
 import re
 
 from .common import InfoExtractor
+from ..compat import compat_str
 from ..utils import (
     int_or_none,
     float_or_none,
+    unified_timestamp,
+    url_or_none,
 )
 
 
 class VzaarIE(InfoExtractor):
     _VALID_URL = r'https?://(?:(?:www|view)\.)?vzaar\.com/(?:videos/)?(?P<id>\d+)'
     _TESTS = [{
+        # HTTP and HLS
         'url': 'https://vzaar.com/videos/1152805',
         'md5': 'bde5ddfeb104a6c56a93a06b04901dbf',
         'info_dict': {
@@ -40,24 +44,48 @@ class VzaarIE(InfoExtractor):
         video_id = self._match_id(url)
         video_data = self._download_json(
             'http://view.vzaar.com/v2/%s/video' % video_id, video_id)
-        source_url = video_data['sourceUrl']
 
-        info = {
+        title = video_data['videoTitle']
+
+        formats = []
+
+        source_url = url_or_none(video_data.get('sourceUrl'))
+        if source_url:
+            f = {
+                'url': source_url,
+                'format_id': 'http',
+            }
+            if 'audio' in source_url:
+                f.update({
+                    'vcodec': 'none',
+                    'ext': 'mp3',
+                })
+            else:
+                f.update({
+                    'width': int_or_none(video_data.get('width')),
+                    'height': int_or_none(video_data.get('height')),
+                    'ext': 'mp4',
+                    'fps': float_or_none(video_data.get('fps')),
+                })
+            formats.append(f)
+
+        video_guid = video_data.get('guid')
+        usp = video_data.get('usp')
+        if isinstance(video_guid, compat_str) and isinstance(usp, dict):
+            m3u8_url = ('http://fable.vzaar.com/v4/usp/%s/%s.ism/.m3u8?'
+                        % (video_guid, video_id)) + '&'.join(
+                '%s=%s' % (k, v) for k, v in usp.items())
+            formats.extend(self._extract_m3u8_formats(
+                m3u8_url, video_id, 'mp4', entry_protocol='m3u8_native',
+                m3u8_id='hls', fatal=False))
+
+        self._sort_formats(formats)
+
+        return {
             'id': video_id,
-            'title': video_data['videoTitle'],
-            'url': source_url,
+            'title': title,
             'thumbnail': self._proto_relative_url(video_data.get('poster')),
             'duration': float_or_none(video_data.get('videoDuration')),
+            'timestamp': unified_timestamp(video_data.get('ts')),
+            'formats': formats,
         }
-        if 'audio' in source_url:
-            info.update({
-                'vcodec': 'none',
-                'ext': 'mp3',
-            })
-        else:
-            info.update({
-                'width': int_or_none(video_data.get('width')),
-                'height': int_or_none(video_data.get('height')),
-                'ext': 'mp4',
-            })
-        return info

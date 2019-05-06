@@ -1,17 +1,22 @@
 # coding: utf-8
 from __future__ import unicode_literals
 
+import json
+import uuid
+
 from .adobepass import AdobePassIE
-from .uplynk import UplynkPreplayIE
-from ..compat import compat_str
+from ..compat import (
+    compat_HTTPError,
+    compat_str,
+    compat_urllib_parse_unquote,
+)
 from ..utils import (
-    HEADRequest,
+    ExtractorError,
     int_or_none,
     parse_age_limit,
     parse_duration,
     try_get,
     unified_timestamp,
-    update_url_query,
 )
 
 
@@ -31,6 +36,7 @@ class FOXIE(AdobePassIE):
             'upload_date': '20170901',
             'creator': 'FOX',
             'series': 'Gotham',
+            'age_limit': 14,
         },
         'params': {
             'skip_download': True,
@@ -44,48 +50,76 @@ class FOXIE(AdobePassIE):
         'url': 'https://www.fox.com/watch/30056b295fb57f7452aeeb4920bc3024/',
         'only_matching': True,
     }]
+    _GEO_BYPASS = False
+    _HOME_PAGE_URL = 'https://www.fox.com/'
+    _API_KEY = 'abdcbed02c124d393b39e818a4312055'
+    _access_token = None
+
+    def _call_api(self, path, video_id, data=None):
+        headers = {
+            'X-Api-Key': self._API_KEY,
+        }
+        if self._access_token:
+            headers['Authorization'] = 'Bearer ' + self._access_token
+        try:
+            return self._download_json(
+                'https://api2.fox.com/v2.0/' + path,
+                video_id, data=data, headers=headers)
+        except ExtractorError as e:
+            if isinstance(e.cause, compat_HTTPError) and e.cause.status == 403:
+                entitlement_issues = self._parse_json(
+                    e.cause.read().decode(), video_id)['entitlementIssues']
+                for e in entitlement_issues:
+                    if e.get('errorCode') == 1005:
+                        raise ExtractorError(
+                            'This video is only available via cable service provider '
+                            'subscription. You may want to use --cookies.', expected=True)
+                messages = ', '.join([e['message'] for e in entitlement_issues])
+                raise ExtractorError(messages, expected=True)
+            raise
+
+    def _real_initialize(self):
+        if not self._access_token:
+            mvpd_auth = self._get_cookies(self._HOME_PAGE_URL).get('mvpd-auth')
+            if mvpd_auth:
+                self._access_token = (self._parse_json(compat_urllib_parse_unquote(
+                    mvpd_auth.value), None, fatal=False) or {}).get('accessToken')
+            if not self._access_token:
+                self._access_token = self._call_api(
+                    'login', None, json.dumps({
+                        'deviceId': compat_str(uuid.uuid4()),
+                    }).encode())['accessToken']
 
     def _real_extract(self, url):
         video_id = self._match_id(url)
 
-        video = self._download_json(
-            'https://api.fox.com/fbc-content/v1_4/video/%s' % video_id,
-            video_id, headers={
-                'apikey': 'abdcbed02c124d393b39e818a4312055',
-                'Content-Type': 'application/json',
-                'Referer': url,
-            })
+        video = self._call_api('vodplayer/' + video_id, video_id)
 
         title = video['name']
-        release_url = video['videoRelease']['url']
-
-        description = video.get('description')
-        duration = int_or_none(video.get('durationInSeconds')) or int_or_none(
-            video.get('duration')) or parse_duration(video.get('duration'))
-        timestamp = unified_timestamp(video.get('datePublished'))
-        rating = video.get('contentRating')
-        age_limit = parse_age_limit(rating)
+        release_url = video['url']
+        try:
+            m3u8_url = self._download_json(release_url, video_id)['playURL']
+        except ExtractorError as e:
+            if isinstance(e.cause, compat_HTTPError) and e.cause.status == 403:
+                error = self._parse_json(e.cause.read().decode(), video_id)
+                if error.get('exception') == 'GeoLocationBlocked':
+                    self.raise_geo_restricted(countries=['US'])
+                raise ExtractorError(error['description'], expected=True)
+            raise
+        formats = self._extract_m3u8_formats(
+            m3u8_url, video_id, 'mp4',
+            entry_protocol='m3u8_native', m3u8_id='hls')
+        self._sort_formats(formats)
 
         data = try_get(
             video, lambda x: x['trackingData']['properties'], dict) or {}
 
+        duration = int_or_none(video.get('durationInSeconds')) or int_or_none(
+            video.get('duration')) or parse_duration(video.get('duration'))
+        timestamp = unified_timestamp(video.get('datePublished'))
         creator = data.get('brand') or data.get('network') or video.get('network')
-
         series = video.get('seriesName') or data.get(
             'seriesName') or data.get('show')
-        season_number = int_or_none(video.get('seasonNumber'))
-        episode = video.get('name')
-        episode_number = int_or_none(video.get('episodeNumber'))
-        release_year = int_or_none(video.get('releaseYear'))
-
-        if data.get('authRequired'):
-            resource = self._get_mvpd_resource(
-                'fbc-fox', title, video.get('guid'), rating)
-            release_url = update_url_query(
-                release_url, {
-                    'auth': self._extract_mvpd_auth(
-                        url, video_id, 'fbc-fox', resource)
-                })
 
         subtitles = {}
         for doc_rel in video.get('documentReleases', []):
@@ -98,36 +132,19 @@ class FOXIE(AdobePassIE):
             }]
             break
 
-        info = {
+        return {
             'id': video_id,
             'title': title,
-            'description': description,
+            'formats': formats,
+            'description': video.get('description'),
             'duration': duration,
             'timestamp': timestamp,
-            'age_limit': age_limit,
+            'age_limit': parse_age_limit(video.get('contentRating')),
             'creator': creator,
             'series': series,
-            'season_number': season_number,
-            'episode': episode,
-            'episode_number': episode_number,
-            'release_year': release_year,
+            'season_number': int_or_none(video.get('seasonNumber')),
+            'episode': video.get('name'),
+            'episode_number': int_or_none(video.get('episodeNumber')),
+            'release_year': int_or_none(video.get('releaseYear')),
             'subtitles': subtitles,
         }
-
-        urlh = self._request_webpage(HEADRequest(release_url), video_id)
-        video_url = compat_str(urlh.geturl())
-
-        if UplynkPreplayIE.suitable(video_url):
-            info.update({
-                '_type': 'url_transparent',
-                'url': video_url,
-                'ie_key': UplynkPreplayIE.ie_key(),
-            })
-        else:
-            m3u8_url = self._download_json(release_url, video_id)['playURL']
-            formats = self._extract_m3u8_formats(
-                m3u8_url, video_id, 'mp4',
-                entry_protocol='m3u8_native', m3u8_id='hls')
-            self._sort_formats(formats)
-            info['formats'] = formats
-        return info

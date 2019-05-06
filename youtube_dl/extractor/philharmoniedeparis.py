@@ -2,31 +2,38 @@
 from __future__ import unicode_literals
 
 from .common import InfoExtractor
+from ..compat import compat_str
 from ..utils import (
-    float_or_none,
-    int_or_none,
-    parse_iso8601,
-    xpath_text,
+    try_get,
+    urljoin,
 )
 
 
 class PhilharmonieDeParisIE(InfoExtractor):
     IE_DESC = 'Philharmonie de Paris'
-    _VALID_URL = r'https?://live\.philharmoniedeparis\.fr/(?:[Cc]oncert/|misc/Playlist\.ashx\?id=)(?P<id>\d+)'
+    _VALID_URL = r'''(?x)
+                    https?://
+                        (?:
+                            live\.philharmoniedeparis\.fr/(?:[Cc]oncert/|misc/Playlist\.ashx\?id=)|
+                            pad\.philharmoniedeparis\.fr/doc/CIMU/
+                        )
+                        (?P<id>\d+)
+                    '''
     _TESTS = [{
+        'url': 'http://pad.philharmoniedeparis.fr/doc/CIMU/1086697/jazz-a-la-villette-knower',
+        'md5': 'a0a4b195f544645073631cbec166a2c2',
+        'info_dict': {
+            'id': '1086697',
+            'ext': 'mp4',
+            'title': 'Jazz à la Villette : Knower',
+        },
+    }, {
         'url': 'http://live.philharmoniedeparis.fr/concert/1032066.html',
         'info_dict': {
             'id': '1032066',
-            'ext': 'flv',
-            'title': 'md5:d1f5585d87d041d07ce9434804bc8425',
-            'timestamp': 1428179400,
-            'upload_date': '20150404',
-            'duration': 6592.278,
+            'title': 'md5:0a031b81807b3593cffa3c9a87a167a0',
         },
-        'params': {
-            # rtmp download
-            'skip_download': True,
-        }
+        'playlist_mincount': 2,
     }, {
         'url': 'http://live.philharmoniedeparis.fr/Concert/1030324.html',
         'only_matching': True,
@@ -34,45 +41,60 @@ class PhilharmonieDeParisIE(InfoExtractor):
         'url': 'http://live.philharmoniedeparis.fr/misc/Playlist.ashx?id=1030324&track=&lang=fr',
         'only_matching': True,
     }]
+    _LIVE_URL = 'https://live.philharmoniedeparis.fr'
 
     def _real_extract(self, url):
         video_id = self._match_id(url)
 
-        concert = self._download_xml(
-            'http://live.philharmoniedeparis.fr/misc/Playlist.ashx?id=%s' % video_id,
-            video_id).find('./concert')
+        config = self._download_json(
+            '%s/otoPlayer/config.ashx' % self._LIVE_URL, video_id, query={
+                'id': video_id,
+                'lang': 'fr-FR',
+            })
 
-        formats = []
-        info_dict = {
-            'id': video_id,
-            'title': xpath_text(concert, './titre', 'title', fatal=True),
-            'formats': formats,
-        }
-
-        fichiers = concert.find('./fichiers')
-        stream = fichiers.attrib['serveurstream']
-        for fichier in fichiers.findall('./fichier'):
-            info_dict['duration'] = float_or_none(fichier.get('timecodefin'))
-            for quality, (format_id, suffix) in enumerate([('lq', ''), ('hq', '_hd')]):
-                format_url = fichier.get('url%s' % suffix)
-                if not format_url:
+        def extract_entry(source):
+            if not isinstance(source, dict):
+                return
+            title = source.get('title')
+            if not title:
+                return
+            files = source.get('files')
+            if not isinstance(files, dict):
+                return
+            format_urls = set()
+            formats = []
+            for format_id in ('mobile', 'desktop'):
+                format_url = try_get(
+                    files, lambda x: x[format_id]['file'], compat_str)
+                if not format_url or format_url in format_urls:
                     continue
-                formats.append({
-                    'url': stream,
-                    'play_path': format_url,
-                    'ext': 'flv',
-                    'format_id': format_id,
-                    'width': int_or_none(concert.get('largeur%s' % suffix)),
-                    'height': int_or_none(concert.get('hauteur%s' % suffix)),
-                    'quality': quality,
-                })
-        self._sort_formats(formats)
+                format_urls.add(format_url)
+                m3u8_url = urljoin(self._LIVE_URL, format_url)
+                formats.extend(self._extract_m3u8_formats(
+                    m3u8_url, video_id, 'mp4', entry_protocol='m3u8_native',
+                    m3u8_id='hls', fatal=False))
+            if not formats:
+                return
+            self._sort_formats(formats)
+            return {
+                'title': title,
+                'formats': formats,
+            }
 
-        date, hour = concert.get('date'), concert.get('heure')
-        if date and hour:
-            info_dict['timestamp'] = parse_iso8601(
-                '%s-%s-%sT%s:00' % (date[0:4], date[4:6], date[6:8], hour))
-        elif date:
-            info_dict['upload_date'] = date
+        thumbnail = urljoin(self._LIVE_URL, config.get('image'))
 
-        return info_dict
+        info = extract_entry(config)
+        if info:
+            info.update({
+                'id': video_id,
+                'thumbnail': thumbnail,
+            })
+            return info
+
+        entries = []
+        for num, chapter in enumerate(config['chapters'], start=1):
+            entry = extract_entry(chapter)
+            entry['id'] = '%s-%d' % (video_id, num)
+            entries.append(entry)
+
+        return self.playlist_result(entries, video_id, config.get('title'))

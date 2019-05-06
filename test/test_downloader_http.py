@@ -9,24 +9,14 @@ import sys
 import unittest
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from test.helper import try_rm
+from test.helper import http_server_port, try_rm
 from youtube_dl import YoutubeDL
 from youtube_dl.compat import compat_http_server
 from youtube_dl.downloader.http import HttpFD
 from youtube_dl.utils import encodeFilename
-import ssl
 import threading
 
 TEST_DIR = os.path.dirname(os.path.abspath(__file__))
-
-
-def http_server_port(httpd):
-    if os.name == 'java' and isinstance(httpd.socket, ssl.SSLSocket):
-        # In Jython SSLSocket is not a subclass of socket.socket
-        sock = httpd.socket.sock
-    else:
-        sock = httpd.socket
-    return sock.getsockname()[1]
 
 
 TEST_SIZE = 10 * 1024

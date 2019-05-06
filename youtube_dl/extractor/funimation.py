@@ -1,6 +1,9 @@
 # coding: utf-8
 from __future__ import unicode_literals
 
+import random
+import string
+
 from .common import InfoExtractor
 from ..compat import compat_HTTPError
 from ..utils import (
@@ -87,7 +90,7 @@ class FunimationIE(InfoExtractor):
 
         video_id = title_data.get('id') or self._search_regex([
             r"KANE_customdimensions.videoID\s*=\s*'(\d+)';",
-            r'<iframe[^>]+src="/player/(\d+)"',
+            r'<iframe[^>]+src="/player/(\d+)',
         ], webpage, 'video_id', default=None)
         if not video_id:
             player_url = self._html_search_meta([
@@ -108,8 +111,10 @@ class FunimationIE(InfoExtractor):
             if self._TOKEN:
                 headers['Authorization'] = 'Token %s' % self._TOKEN
             sources = self._download_json(
-                'https://prod-api-funimationnow.dadcdigital.com/api/source/catalog/video/%s/signed/' % video_id,
-                video_id, headers=headers)['items']
+                'https://www.funimation.com/api/showexperience/%s/' % video_id,
+                video_id, headers=headers, query={
+                    'pinst_id': ''.join([random.choice(string.digits + string.ascii_letters) for _ in range(8)]),
+                })['items']
         except ExtractorError as e:
             if isinstance(e.cause, compat_HTTPError) and e.cause.code == 403:
                 error = self._parse_json(e.cause.read(), video_id)['errors'][0]

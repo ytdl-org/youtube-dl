@@ -10,8 +10,9 @@ from ..utils import (
     int_or_none,
     parse_iso8601,
     parse_duration,
-    try_get,
+    str_or_none,
     update_url_query,
+    urljoin,
 )
 
 
@@ -24,8 +25,7 @@ class TVNowBaseIE(InfoExtractor):
 
     def _call_api(self, path, video_id, query):
         return self._download_json(
-            'https://api.tvnow.de/v3/' + path,
-            video_id, query=query)
+            'https://api.tvnow.de/v3/' + path, video_id, query=query)
 
     def _extract_video(self, info, display_id):
         video_id = compat_str(info['id'])
@@ -108,6 +108,11 @@ class TVNowIE(TVNowBaseIE):
                         (?!(?:list|jahr)(?:/|$))(?P<id>[^/?\#&]+)
                     '''
 
+    @classmethod
+    def suitable(cls, url):
+        return (False if TVNowNewIE.suitable(url) or TVNowSeasonIE.suitable(url) or TVNowAnnualIE.suitable(url) or TVNowShowIE.suitable(url)
+                else super(TVNowIE, cls).suitable(url))
+
     _TESTS = [{
         'url': 'https://www.tvnow.de/rtl2/grip-das-motormagazin/der-neue-porsche-911-gt-3/player',
         'info_dict': {
@@ -116,7 +121,6 @@ class TVNowIE(TVNowBaseIE):
             'ext': 'mp4',
             'title': 'Der neue Porsche 911 GT 3',
             'description': 'md5:6143220c661f9b0aae73b245e5d898bb',
-            'thumbnail': r're:^https?://.*\.jpg$',
             'timestamp': 1495994400,
             'upload_date': '20170528',
             'duration': 5283,
@@ -161,136 +165,314 @@ class TVNowIE(TVNowBaseIE):
         info = self._call_api(
             'movies/' + display_id, display_id, query={
                 'fields': ','.join(self._VIDEO_FIELDS),
-                'station': mobj.group(1),
             })
 
         return self._extract_video(info, display_id)
 
 
-class TVNowListBaseIE(TVNowBaseIE):
-    _SHOW_VALID_URL = r'''(?x)
-                    (?P<base_url>
-                        https?://
-                            (?:www\.)?tvnow\.(?:de|at|ch)/[^/]+/
-                            (?P<show_id>[^/]+)
-                    )
+class TVNowNewIE(InfoExtractor):
+    _VALID_URL = r'''(?x)
+                    (?P<base_url>https?://
+                        (?:www\.)?tvnow\.(?:de|at|ch)/
+                        (?:shows|serien))/
+                        (?P<show>[^/]+)-\d+/
+                        [^/]+/
+                        episode-\d+-(?P<episode>[^/?$&]+)-(?P<id>\d+)
                     '''
 
-    def _extract_list_info(self, display_id, show_id):
-        fields = list(self._SHOW_FIELDS)
-        fields.extend('formatTabs.%s' % field for field in self._SEASON_FIELDS)
-        fields.extend(
-            'formatTabs.formatTabPages.container.movies.%s' % field
-            for field in self._VIDEO_FIELDS)
-        return self._call_api(
-            'formats/seo', display_id, query={
-                'fields': ','.join(fields),
-                'name': show_id + '.php'
-            })
-
-
-class TVNowListIE(TVNowListBaseIE):
-    _VALID_URL = r'%s/(?:list|jahr)/(?P<id>[^?\#&]+)' % TVNowListBaseIE._SHOW_VALID_URL
-
-    _SHOW_FIELDS = ('title', )
-    _SEASON_FIELDS = ('id', 'headline', 'seoheadline', )
-    _VIDEO_FIELDS = ('id', 'headline', 'seoUrl', )
-
     _TESTS = [{
-        'url': 'https://www.tvnow.de/rtl/30-minuten-deutschland/list/aktuell',
-        'info_dict': {
-            'id': '28296',
-            'title': '30 Minuten Deutschland - Aktuell',
-        },
-        'playlist_mincount': 1,
-    }, {
-        'url': 'https://www.tvnow.de/vox/ab-ins-beet/list/staffel-14',
-        'only_matching': True,
-    }, {
-        'url': 'https://www.tvnow.de/rtl2/grip-das-motormagazin/jahr/2018/3',
+        'url': 'https://www.tvnow.de/shows/grip-das-motormagazin-1669/2017-05/episode-405-der-neue-porsche-911-gt-3-331082',
         'only_matching': True,
     }]
 
-    @classmethod
-    def suitable(cls, url):
-        return (False if TVNowIE.suitable(url)
-                else super(TVNowListIE, cls).suitable(url))
+    def _real_extract(self, url):
+        mobj = re.match(self._VALID_URL, url)
+        base_url = re.sub(r'(?:shows|serien)', '_', mobj.group('base_url'))
+        show, episode = mobj.group('show', 'episode')
+        return self.url_result(
+            # Rewrite new URLs to the old format and use extraction via old API
+            # at api.tvnow.de as a loophole for bypassing premium content checks
+            '%s/%s/%s' % (base_url, show, episode),
+            ie=TVNowIE.ie_key(), video_id=mobj.group('id'))
+
+
+class TVNowNewBaseIE(InfoExtractor):
+    def _call_api(self, path, video_id, query={}):
+        result = self._download_json(
+            'https://apigw.tvnow.de/module/' + path, video_id, query=query)
+        error = result.get('error')
+        if error:
+            raise ExtractorError(
+                '%s said: %s' % (self.IE_NAME, error), expected=True)
+        return result
+
+
+"""
+TODO: new apigw.tvnow.de based version of TVNowIE. Replace old TVNowIE with it
+when api.tvnow.de is shut down. This version can't bypass premium checks though.
+class TVNowIE(TVNowNewBaseIE):
+    _VALID_URL = r'''(?x)
+                    https?://
+                        (?:www\.)?tvnow\.(?:de|at|ch)/
+                        (?:shows|serien)/[^/]+/
+                        (?:[^/]+/)+
+                        (?P<display_id>[^/?$&]+)-(?P<id>\d+)
+                    '''
+
+    _TESTS = [{
+        # episode with annual navigation
+        'url': 'https://www.tvnow.de/shows/grip-das-motormagazin-1669/2017-05/episode-405-der-neue-porsche-911-gt-3-331082',
+        'info_dict': {
+            'id': '331082',
+            'display_id': 'grip-das-motormagazin/der-neue-porsche-911-gt-3',
+            'ext': 'mp4',
+            'title': 'Der neue Porsche 911 GT 3',
+            'description': 'md5:6143220c661f9b0aae73b245e5d898bb',
+            'thumbnail': r're:^https?://.*\.jpg$',
+            'timestamp': 1495994400,
+            'upload_date': '20170528',
+            'duration': 5283,
+            'series': 'GRIP - Das Motormagazin',
+            'season_number': 14,
+            'episode_number': 405,
+            'episode': 'Der neue Porsche 911 GT 3',
+        },
+    }, {
+        # rtl2, episode with season navigation
+        'url': 'https://www.tvnow.de/shows/armes-deutschland-11471/staffel-3/episode-14-bernd-steht-seit-der-trennung-von-seiner-frau-allein-da-526124',
+        'only_matching': True,
+    }, {
+        # rtlnitro
+        'url': 'https://www.tvnow.de/serien/alarm-fuer-cobra-11-die-autobahnpolizei-1815/staffel-13/episode-5-auf-eigene-faust-pilot-366822',
+        'only_matching': True,
+    }, {
+        # superrtl
+        'url': 'https://www.tvnow.de/shows/die-lustigsten-schlamassel-der-welt-1221/staffel-2/episode-14-u-a-ketchup-effekt-364120',
+        'only_matching': True,
+    }, {
+        # ntv
+        'url': 'https://www.tvnow.de/shows/startup-news-10674/staffel-2/episode-39-goetter-in-weiss-387630',
+        'only_matching': True,
+    }, {
+        # vox
+        'url': 'https://www.tvnow.de/shows/auto-mobil-174/2017-11/episode-46-neues-vom-automobilmarkt-2017-11-19-17-00-00-380072',
+        'only_matching': True,
+    }, {
+        'url': 'https://www.tvnow.de/shows/grip-das-motormagazin-1669/2017-05/episode-405-der-neue-porsche-911-gt-3-331082',
+        'only_matching': True,
+    }]
+
+    def _extract_video(self, info, url, display_id):
+        config = info['config']
+        source = config['source']
+
+        video_id = compat_str(info.get('id') or source['videoId'])
+        title = source['title'].strip()
+
+        paths = []
+        for manifest_url in (info.get('manifest') or {}).values():
+            if not manifest_url:
+                continue
+            manifest_url = update_url_query(manifest_url, {'filter': ''})
+            path = self._search_regex(r'https?://[^/]+/(.+?)\.ism/', manifest_url, 'path')
+            if path in paths:
+                continue
+            paths.append(path)
+
+            def url_repl(proto, suffix):
+                return re.sub(
+                    r'(?:hls|dash|hss)([.-])', proto + r'\1', re.sub(
+                        r'\.ism/(?:[^.]*\.(?:m3u8|mpd)|[Mm]anifest)',
+                        '.ism/' + suffix, manifest_url))
+
+            formats = self._extract_mpd_formats(
+                url_repl('dash', '.mpd'), video_id,
+                mpd_id='dash', fatal=False)
+            formats.extend(self._extract_ism_formats(
+                url_repl('hss', 'Manifest'),
+                video_id, ism_id='mss', fatal=False))
+            formats.extend(self._extract_m3u8_formats(
+                url_repl('hls', '.m3u8'), video_id, 'mp4',
+                'm3u8_native', m3u8_id='hls', fatal=False))
+            if formats:
+                break
+        else:
+            if try_get(info, lambda x: x['rights']['isDrm']):
+                raise ExtractorError(
+                    'Video %s is DRM protected' % video_id, expected=True)
+            if try_get(config, lambda x: x['boards']['geoBlocking']['block']):
+                raise self.raise_geo_restricted()
+            if not info.get('free', True):
+                raise ExtractorError(
+                    'Video %s is not available for free' % video_id, expected=True)
+        self._sort_formats(formats)
+
+        description = source.get('description')
+        thumbnail = url_or_none(source.get('poster'))
+        timestamp = unified_timestamp(source.get('previewStart'))
+        duration = parse_duration(source.get('length'))
+
+        series = source.get('format')
+        season_number = int_or_none(self._search_regex(
+            r'staffel-(\d+)', url, 'season number', default=None))
+        episode_number = int_or_none(self._search_regex(
+            r'episode-(\d+)', url, 'episode number', default=None))
+
+        return {
+            'id': video_id,
+            'display_id': display_id,
+            'title': title,
+            'description': description,
+            'thumbnail': thumbnail,
+            'timestamp': timestamp,
+            'duration': duration,
+            'series': series,
+            'season_number': season_number,
+            'episode_number': episode_number,
+            'episode': title,
+            'formats': formats,
+        }
 
     def _real_extract(self, url):
-        base_url, show_id, season_id = re.match(self._VALID_URL, url).groups()
+        display_id, video_id = re.match(self._VALID_URL, url).groups()
+        info = self._call_api('player/' + video_id, video_id)
+        return self._extract_video(info, video_id, display_id)
+"""
 
-        list_info = self._extract_list_info(season_id, show_id)
 
-        season = next(
-            season for season in list_info['formatTabs']['items']
-            if season.get('seoheadline') == season_id)
+class TVNowListBaseIE(TVNowNewBaseIE):
+    _SHOW_VALID_URL = r'''(?x)
+                    (?P<base_url>
+                        https?://
+                            (?:www\.)?tvnow\.(?:de|at|ch)/(?:shows|serien)/
+                            [^/?#&]+-(?P<show_id>\d+)
+                    )
+                    '''
 
-        title = list_info.get('title')
-        headline = season.get('headline')
-        if title and headline:
-            title = '%s - %s' % (title, headline)
-        else:
-            title = headline or title
+    @classmethod
+    def suitable(cls, url):
+        return (False if TVNowNewIE.suitable(url)
+                else super(TVNowListBaseIE, cls).suitable(url))
+
+    def _extract_items(self, url, show_id, list_id, query):
+        items = self._call_api(
+            'teaserrow/format/episode/' + show_id, list_id,
+            query=query)['items']
 
         entries = []
-        for container in season['formatTabPages']['items']:
-            items = try_get(
-                container, lambda x: x['container']['movies']['items'],
-                list) or []
-            for info in items:
-                seo_url = info.get('seoUrl')
-                if not seo_url:
-                    continue
-                video_id = info.get('id')
-                entries.append(self.url_result(
-                    '%s/%s/player' % (base_url, seo_url), TVNowIE.ie_key(),
-                    compat_str(video_id) if video_id else None))
+        for item in items:
+            if not isinstance(item, dict):
+                continue
+            item_url = urljoin(url, item.get('url'))
+            if not item_url:
+                continue
+            video_id = str_or_none(item.get('id') or item.get('videoId'))
+            item_title = item.get('subheadline') or item.get('text')
+            entries.append(self.url_result(
+                item_url, ie=TVNowNewIE.ie_key(), video_id=video_id,
+                video_title=item_title))
 
-        return self.playlist_result(
-            entries, compat_str(season.get('id') or season_id), title)
+        return self.playlist_result(entries, '%s/%s' % (show_id, list_id))
+
+
+class TVNowSeasonIE(TVNowListBaseIE):
+    _VALID_URL = r'%s/staffel-(?P<id>\d+)' % TVNowListBaseIE._SHOW_VALID_URL
+    _TESTS = [{
+        'url': 'https://www.tvnow.de/serien/alarm-fuer-cobra-11-die-autobahnpolizei-1815/staffel-13',
+        'info_dict': {
+            'id': '1815/13',
+        },
+        'playlist_mincount': 22,
+    }]
+
+    def _real_extract(self, url):
+        _, show_id, season_id = re.match(self._VALID_URL, url).groups()
+        return self._extract_items(
+            url, show_id, season_id, {'season': season_id})
+
+
+class TVNowAnnualIE(TVNowListBaseIE):
+    _VALID_URL = r'%s/(?P<year>\d{4})-(?P<month>\d{2})' % TVNowListBaseIE._SHOW_VALID_URL
+    _TESTS = [{
+        'url': 'https://www.tvnow.de/shows/grip-das-motormagazin-1669/2017-05',
+        'info_dict': {
+            'id': '1669/2017-05',
+        },
+        'playlist_mincount': 2,
+    }]
+
+    def _real_extract(self, url):
+        _, show_id, year, month = re.match(self._VALID_URL, url).groups()
+        return self._extract_items(
+            url, show_id, '%s-%s' % (year, month), {
+                'year': int(year),
+                'month': int(month),
+            })
 
 
 class TVNowShowIE(TVNowListBaseIE):
     _VALID_URL = TVNowListBaseIE._SHOW_VALID_URL
-
-    _SHOW_FIELDS = ('id', 'title', )
-    _SEASON_FIELDS = ('id', 'headline', 'seoheadline', )
-    _VIDEO_FIELDS = ()
-
     _TESTS = [{
-        'url': 'https://www.tvnow.at/vox/ab-ins-beet',
+        # annual navigationType
+        'url': 'https://www.tvnow.de/shows/grip-das-motormagazin-1669',
         'info_dict': {
-            'id': 'ab-ins-beet',
-            'title': 'Ab ins Beet!',
+            'id': '1669',
         },
-        'playlist_mincount': 7,
+        'playlist_mincount': 73,
     }, {
-        'url': 'https://www.tvnow.at/vox/ab-ins-beet/list',
-        'only_matching': True,
-    }, {
-        'url': 'https://www.tvnow.de/rtl2/grip-das-motormagazin/jahr/',
-        'only_matching': True,
+        # season navigationType
+        'url': 'https://www.tvnow.de/shows/armes-deutschland-11471',
+        'info_dict': {
+            'id': '11471',
+        },
+        'playlist_mincount': 3,
     }]
 
     @classmethod
     def suitable(cls, url):
-        return (False if TVNowIE.suitable(url) or TVNowListIE.suitable(url)
+        return (False if TVNowNewIE.suitable(url) or TVNowSeasonIE.suitable(url) or TVNowAnnualIE.suitable(url)
                 else super(TVNowShowIE, cls).suitable(url))
 
     def _real_extract(self, url):
         base_url, show_id = re.match(self._VALID_URL, url).groups()
 
-        list_info = self._extract_list_info(show_id, show_id)
+        result = self._call_api(
+            'teaserrow/format/navigation/' + show_id, show_id)
+
+        items = result['items']
 
         entries = []
-        for season_info in list_info['formatTabs']['items']:
-            season_url = season_info.get('seoheadline')
-            if not season_url:
-                continue
-            season_id = season_info.get('id')
-            entries.append(self.url_result(
-                '%s/list/%s' % (base_url, season_url), TVNowListIE.ie_key(),
-                compat_str(season_id) if season_id else None,
-                season_info.get('headline')))
+        navigation = result.get('navigationType')
+        if navigation == 'annual':
+            for item in items:
+                if not isinstance(item, dict):
+                    continue
+                year = int_or_none(item.get('year'))
+                if year is None:
+                    continue
+                months = item.get('months')
+                if not isinstance(months, list):
+                    continue
+                for month_dict in months:
+                    if not isinstance(month_dict, dict) or not month_dict:
+                        continue
+                    month_number = int_or_none(list(month_dict.keys())[0])
+                    if month_number is None:
+                        continue
+                    entries.append(self.url_result(
+                        '%s/%04d-%02d' % (base_url, year, month_number),
+                        ie=TVNowAnnualIE.ie_key()))
+        elif navigation == 'season':
+            for item in items:
+                if not isinstance(item, dict):
+                    continue
+                season_number = int_or_none(item.get('season'))
+                if season_number is None:
+                    continue
+                entries.append(self.url_result(
+                    '%s/staffel-%d' % (base_url, season_number),
+                    ie=TVNowSeasonIE.ie_key()))
+        else:
+            raise ExtractorError('Unknown navigationType')
 
-        return self.playlist_result(entries, show_id, list_info.get('title'))
+        return self.playlist_result(entries, show_id)
