@@ -474,6 +474,7 @@ from .hungama import (
 )
 from .hypem import HypemIE
 from .iconosquare import IconosquareIE
+from .iai import IaiIE
 from .ign import (
     IGNIE,
     OneUPIE,
