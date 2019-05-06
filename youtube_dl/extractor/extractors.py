@@ -1529,4 +1529,3 @@ from .zattoo import (
 from .zdf import ZDFIE, ZDFChannelIE
 from .zingmp3 import ZingMp3IE
 from .zype import ZypeIE
-from .kanald import KanaldIE, KanaldSerieIE
