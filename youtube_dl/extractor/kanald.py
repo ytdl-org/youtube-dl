@@ -4,7 +4,10 @@ from __future__ import unicode_literals
 import re
 
 from .common import InfoExtractor
-from ..utils import merge_dicts
+from ..utils import (
+    merge_dicts,
+    try_get,
+)
 
 
 class KanaldBaseIE(InfoExtractor):
@@ -20,14 +23,16 @@ class KanaldBaseIE(InfoExtractor):
 
         """FIXME: https://www.kanald.com.tr/kuzeyguney/80-bolum-izle/19364 -> Invalid control character at: line 5 column 146 (char 255)"""
 
-        json_ld = self._search_regex(
+        search_json_ld = self._search_regex(
             r'(?is)<script[^>]+type=(["\'])application/ld\+json\1[^>]*>(?:\s+)?(?P<json_ld>{[^<]+VideoObject[^<]+})(?:\s+)?</script>', webpage, 'JSON-LD', group='json_ld')
-        ld_info = self._json_ld(json_ld, video_id)
+        json_ld = self._parse_json(search_json_ld, video_id)
 
-        if not re.match(r'dogannet\.tv', ld_info['url']):
-            ld_info.update({
-                'url': 'https://soledge13.dogannet.tv/%s' % ld_info['url']
+        if not re.match(r'dogannet\.tv', json_ld['contentUrl']):
+            json_ld.update({
+                'contentUrl': 'https://soledge13.dogannet.tv/%s' % json_ld['contentUrl']
             })
+
+        ld_info = self._json_ld(json_ld, video_id)
 
         return merge_dicts(ld_info, info)
 
@@ -118,7 +123,7 @@ class KanaldSerieIE(InfoExtractor):
                 continue
 
             for episode_url in episode_urls:
-                episode_url = episode_url[1]
+                episode_url = try_get(episode_url, lambda x: x[1])
                 if not episode_url:
                     continue
                 yield self.url_result(
