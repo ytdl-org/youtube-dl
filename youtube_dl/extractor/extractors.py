@@ -843,6 +843,10 @@ from .orf import (
     ORFIPTVIE,
 )
 from .outsidetv import OutsideTVIE
+from .p3 import (
+    P3IE,
+    P3HomeIE,
+)
 from .packtpub import (
     PacktPubIE,
     PacktPubCourseIE,
