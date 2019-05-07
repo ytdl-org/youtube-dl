@@ -2,9 +2,11 @@
 from __future__ import unicode_literals
 
 import re
+import json
 
 from .common import InfoExtractor
 from ..utils import (
+    ExtractorError,
     merge_dicts,
     try_get,
 )
@@ -21,11 +23,14 @@ class KanaldBaseIE(InfoExtractor):
             'id': video_id,
         }
 
-        """FIXME: https://www.kanald.com.tr/kuzeyguney/80-bolum-izle/19364 -> Invalid control character at: line 5 column 146 (char 255)"""
-
         search_json_ld = self._search_regex(
             r'(?is)<script[^>]+type=(["\'])application/ld\+json\1[^>]*>(?:\s+)?(?P<json_ld>{[^<]+VideoObject[^<]+})(?:\s+)?</script>', webpage, 'JSON-LD', group='json_ld')
-        json_ld = self._parse_json(search_json_ld, video_id)
+
+        # https://stackoverflow.com/questions/22394235/invalid-control-character-with-python-json-loads
+        try:
+            json_ld = json.loads(search_json_ld, strict=False)
+        except ValueError as ve:
+            raise ExtractorError('%s: Failed to parse JSON ' % video_id, cause=ve)
 
         if not re.match(r'dogannet\.tv', json_ld['contentUrl']):
             json_ld.update({
@@ -93,7 +98,7 @@ class KanaldEmbedIE(KanaldBaseIE):
 
 
 class KanaldSerieIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:www\.)?kanald\.com\.tr/(?P<id>[a-zA-Z0-9-]+)/(?:bolum|bolumler)$'
+    _VALID_URL = r'https?://(?:www\.)?kanald\.com\.tr/(?P<id>[a-zA-Z0-9-]+)/(?:bolum|bolumler)'
 
     _TESTS = [{
         'url': 'https://www.kanald.com.tr/kuzeyguney/bolum',
