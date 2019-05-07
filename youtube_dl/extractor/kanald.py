@@ -98,7 +98,7 @@ class KanaldEmbedIE(KanaldBaseIE):
 
 
 class KanaldSerieIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:www\.)?kanald\.com\.tr/(?P<id>[a-zA-Z0-9-]+)/(?:bolum|bolumler)$'
+    _VALID_URL = r'https?://(?:www\.)?kanald\.com\.tr/(?P<id>[a-zA-Z0-9-]+)/(?:bolum|bolumler)'
 
     _TESTS = [{
         'url': 'https://www.kanald.com.tr/kuzeyguney/bolum',
