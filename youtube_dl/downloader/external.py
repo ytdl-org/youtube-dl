@@ -229,10 +229,12 @@ class FFmpegFD(ExternalFD):
 
         args = [ffpp.executable, '-y']
 
-        for log_level in ('quiet', 'verbose'):
-            if self.params.get(log_level, False):
-                args += ['-loglevel', log_level]
-                break
+        if self.params.get('quiet', False):
+            args += ['-loglevel', 'quiet']
+        elif self.params.get('verbose', False):
+            args += ['-loglevel', 'verbose']
+        else:
+            args += ['-loglevel', 'warning', '-stats']
 
         seekable = info_dict.get('_seekable')
         if seekable is not None:
