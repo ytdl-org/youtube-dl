@@ -16,6 +16,7 @@ from ..jsinterp import JSInterpreter
 from ..swfinterp import SWFInterpreter
 from ..compat import (
     compat_chr,
+    compat_HTTPError,
     compat_kwargs,
     compat_parse_qs,
     compat_urllib_parse_unquote,
@@ -288,10 +289,25 @@ class YoutubeEntryListBaseInfoExtractor(YoutubeBaseInfoExtractor):
             if not mobj:
                 break
 
-            more = self._download_json(
-                'https://youtube.com/%s' % mobj.group('more'), playlist_id,
-                'Downloading page #%s' % page_num,
-                transform_source=uppercase_escape)
+            count = 0
+            retries = 3
+            while count <= retries:
+                try:
+                    # Downloading page may result in intermittent 5xx HTTP error
+                    # that is usually worked around with a retry
+                    more = self._download_json(
+                        'https://youtube.com/%s' % mobj.group('more'), playlist_id,
+                        'Downloading page #%s%s'
+                        % (page_num, ' (retry #%d)' % count if count else ''),
+                        transform_source=uppercase_escape)
+                    break
+                except ExtractorError as e:
+                    if isinstance(e.cause, compat_HTTPError) and e.cause.code in (500, 503):
+                        count += 1
+                        if count <= retries:
+                            continue
+                    raise
+
             content_html = more['content_html']
             if not content_html.strip():
                 # Some webpages show a "Load more" button but they don't
