@@ -5,6 +5,8 @@ from .common import InfoExtractor
 from ..utils import (
     try_get,
     url_or_none,
+    ExtractorError,
+    js_to_json,
 )
 
 
@@ -53,8 +55,8 @@ class OtomadsIE(InfoExtractor):
         video_id = self._match_id(url)
         webpage = self._download_webpage(url, video_id)
         json_data = self._search_regex(r'<script>[^<]*__NEXT_DATA__\s*=\s*({[^<]*});[^<]*</script>', webpage, 'json')
-        json_info = self._parse_json(json_data, video_id)
-        video_info = try_get(json_info, lambda x: x['props']['pageProps']['initialState']['video']['video'], dict) or {}
+        json_info = self._parse_json(js_to_json(json_data), video_id)
+        video_info = json_info['props']['pageProps']['initialState']['video']['video']
 
         video_qualities = video_info.get('qualities') or []
         video_qualities.sort()
@@ -62,10 +64,13 @@ class OtomadsIE(InfoExtractor):
         for quality in video_qualities:
             api_url = self._API_BASE_URL_ + video_info['_id'] + '/url/{0}'.format(quality)
             video_url = self._download_json(api_url, video_id, fatal=False).get('data')
-            if video_url is None:
+            if url_or_none(video_url) is None:
                 continue
             video_quality = 1 if quality == 999 else 2
             video_formats.append({ 'url': video_url, quality: video_quality })
+
+        if len(video_formats) == 0:
+            raise ExtractorError('Unable to extract video urls')
 
         title = self._html_search_meta('title', webpage, default=None)
         author = self._html_search_meta('author', webpage, default=None)
