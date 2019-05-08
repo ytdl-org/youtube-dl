@@ -19,6 +19,7 @@ from ..utils import (
     shell_quote,
     subtitles_filename,
     dfxp2srt,
+    dc2srt,
     ISO639Utils,
     replace_extension,
 )
@@ -610,7 +611,7 @@ class FFmpegSubtitlesConvertorPP(FFmpegPostProcessor):
             sub_filenames.append(old_file)
             new_file = subtitles_filename(filename, lang, new_ext)
 
-            if ext in ('dfxp', 'ttml', 'tt'):
+            if ext in ('dfxp', 'ttml', 'tt', 'xml'):
                 self._downloader.report_warning(
                     'You have requested to convert dfxp (TTML) subtitles into another format, '
                     'which results in style information loss')
@@ -619,7 +620,12 @@ class FFmpegSubtitlesConvertorPP(FFmpegPostProcessor):
                 srt_file = subtitles_filename(filename, lang, 'srt')
 
                 with open(dfxp_file, 'rb') as f:
-                    srt_data = dfxp2srt(f.read())
+                    file = f.read()
+
+                if ext == 'xml':
+                    srt_data = dc2srt(file)
+                else:
+                    srt_data = dfxp2srt(file)
 
                 with io.open(srt_file, 'wt', encoding='utf-8') as f:
                     f.write(srt_data)

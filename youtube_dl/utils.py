@@ -2721,6 +2721,35 @@ def match_filter_func(filter_str):
     return _match_func
 
 
+def dc_time_to_srt_time(dc_time):
+    return '{0:}:{1:}:{2:},{3:}'.format(*dc_time.split(':'))
+
+
+def parse_dc_subtitles(dc):
+    subs = []
+    root = xml.etree.ElementTree.fromstring(dc)
+    font = root.find('Font')
+    for subtitle in font.findall('Subtitle'):
+        subs.append({
+            'number': subtitle.attrib['SpotNumber'],
+            'start': subtitle.attrib['TimeIn'],
+            'end': subtitle.attrib['TimeOut'],
+            'text': '\n'.join([text.text for text in subtitle.findall('Text')]),
+        })
+    return subs
+
+
+def dc2srt(dc):
+    subs = parse_dc_subtitles(dc)
+    srt = []
+    for sub in subs:
+        srt.append(sub['number'])
+        srt.append(dc_time_to_srt_time(sub['start']) + ' --> ' + dc_time_to_srt_time(sub['end']))
+        srt.append(sub['text'])
+        srt.append('')
+    return '\n'.join(srt)
+
+
 def parse_dfxp_time_expr(time_expr):
     if not time_expr:
         return
