@@ -15,12 +15,12 @@ from ..utils import (
 
 
 class TV2IE(InfoExtractor):
-    _VALID_URL = r'https?://(?:www\.)?tv2\.no/v/(?P<id>\d+)'
+    _VALID_URL = r'https?://(?:www\.)?tv2\.no/.*/(?P<id>\d+)/?$'
     _TEST = {
         'url': 'http://www.tv2.no/v/916509/',
         'info_dict': {
             'id': '916509',
-            'ext': 'mp4',
+            'ext': 'flv',
             'title': 'Se Frode Gryttens hyllest av Steven Gerrard',
             'description': 'TV 2 Sportens huspoet tar avskjed med Liverpools kaptein Steven Gerrard.',
             'timestamp': 1431715610,
@@ -37,14 +37,19 @@ class TV2IE(InfoExtractor):
 
     def _real_extract(self, url):
         video_id = self._match_id(url)
+        webpage = self._download_webpage(url, video_id)
+        assets = re.findall(r'assetId\s*:\s*(\d+)', webpage)
 
         formats = []
         format_urls = []
         for protocol in ('HDS', 'HLS'):
-            data = self._download_json(
-                'http://sumo.tv2.no/api/web/asset/%s/play.json?protocol=%s&videoFormat=SMIL+ISMUSP' % (video_id, protocol),
-                video_id, 'Downloading play JSON')['playback']
-            for item in data['items']['item']:
+            items = self._download_json(
+                'http://sumo.tv2.no/api/web/asset/%s/play.json?protocol=%s&videoFormat=SMIL+ISMUSP' % (assets[0], protocol),
+                video_id, 'Downloading play JSON')['playback']['items']['item']
+            # the item/items elements have a non-intuitive, non-reliable layout
+            if not isinstance(items, list):
+                items = [items]
+            for item in items:
                 video_url = item.get('url')
                 if not video_url or video_url in format_urls:
                     continue
@@ -72,7 +77,7 @@ class TV2IE(InfoExtractor):
         self._sort_formats(formats)
 
         asset = self._download_json(
-            'http://sumo.tv2.no/api/web/asset/%s.json' % video_id,
+            'http://sumo.tv2.no/api/web/asset/%s.json' % assets[0],
             video_id, 'Downloading metadata JSON')['asset']
 
         title = asset['title']
@@ -108,7 +113,7 @@ class TV2ArticleIE(InfoExtractor):
         'info_dict': {
             'id': '6930542',
             'title': 'Russen hetses etter pingvintyveri - innrømmer å ha åpnet luken på buret',
-            'description': 'md5:339573779d3eea3542ffe12006190954',
+            'description': 'De fire siktede nekter fortsatt for å ha stjålet pingvinbabyene, men innrømmer å ha åpnet luken til de små kyllingene.',
         },
         'playlist_count': 2,
     }, {
@@ -121,8 +126,7 @@ class TV2ArticleIE(InfoExtractor):
 
         webpage = self._download_webpage(url, playlist_id)
 
-        # Old embed pattern (looks unused nowadays)
-        assets = re.findall(r'data-assetid=["\'](\d+)', webpage)
+        assets = re.findall(r'assetId\s*:\s*(\d+)', webpage)
 
         if not assets:
             # New embed pattern
