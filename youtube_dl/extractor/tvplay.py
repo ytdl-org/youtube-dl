@@ -46,7 +46,7 @@ class TVPlayIE(InfoExtractor):
     _TESTS = [
         {
             'url': 'http://www.tvplay.lv/parraides/vinas-melo-labak/418113?autostart=true',
-            'md5': 'a1612fe0849455423ad8718fe049be21',
+            'md5': '31d1b748174f65c3d294721df890f402',
             'info_dict': {
                 'id': '418113',
                 'ext': 'mp4',
@@ -81,53 +81,6 @@ class TVPlayIE(InfoExtractor):
             },
         },
         {
-            'url': 'http://www.tv3play.ee/sisu/kodu-keset-linna/238551?autostart=true',
-            'info_dict': {
-                'id': '238551',
-                'ext': 'flv',
-                'title': 'Kodu keset linna 398537',
-                'description': 'md5:7df175e3c94db9e47c0d81ffa5d68701',
-                'duration': 1257,
-                'timestamp': 1292449761,
-                'upload_date': '20101215',
-            },
-            'params': {
-                # rtmp download
-                'skip_download': True,
-            },
-        },
-        {
-            'url': 'http://www.tv3play.se/program/husraddarna/395385?autostart=true',
-            'info_dict': {
-                'id': '395385',
-                'ext': 'mp4',
-                'title': 'Husräddarna S02E07',
-                'description': 'md5:f210c6c89f42d4fc39faa551be813777',
-                'duration': 2574,
-                'timestamp': 1400596321,
-                'upload_date': '20140520',
-            },
-            'params': {
-                'skip_download': True,
-            },
-        },
-        {
-            'url': 'http://www.tv6play.se/program/den-sista-dokusapan/266636?autostart=true',
-            'info_dict': {
-                'id': '266636',
-                'ext': 'mp4',
-                'title': 'Den sista dokusåpan S01E08',
-                'description': 'md5:295be39c872520221b933830f660b110',
-                'duration': 1492,
-                'timestamp': 1330522854,
-                'upload_date': '20120229',
-                'age_limit': 18,
-            },
-            'params': {
-                'skip_download': True,
-            },
-        },
-        {
             'url': 'http://www.tv8play.se/program/antikjakten/282756?autostart=true',
             'info_dict': {
                 'id': '282756',
@@ -137,21 +90,6 @@ class TVPlayIE(InfoExtractor):
                 'duration': 2646,
                 'timestamp': 1348575868,
                 'upload_date': '20120925',
-            },
-            'params': {
-                'skip_download': True,
-            },
-        },
-        {
-            'url': 'http://www.tv3play.no/programmer/anna-anka-soker-assistent/230898?autostart=true',
-            'info_dict': {
-                'id': '230898',
-                'ext': 'mp4',
-                'title': 'Anna Anka søker assistent - Ep. 8',
-                'description': 'md5:f80916bf5bbe1c5f760d127f8dd71474',
-                'duration': 2656,
-                'timestamp': 1277720005,
-                'upload_date': '20100628',
             },
             'params': {
                 'skip_download': True,
@@ -173,25 +111,10 @@ class TVPlayIE(InfoExtractor):
             },
         },
         {
-            'url': 'http://www.tv6play.no/programmer/hotelinspektor-alex-polizzi/361883?autostart=true',
-            'info_dict': {
-                'id': '361883',
-                'ext': 'mp4',
-                'title': 'Hotelinspektør Alex Polizzi - Ep. 10',
-                'description': 'md5:3ecf808db9ec96c862c8ecb3a7fdaf81',
-                'duration': 2594,
-                'timestamp': 1393236292,
-                'upload_date': '20140224',
-            },
-            'params': {
-                'skip_download': True,
-            },
-        },
-        {
             'url': 'http://play.novatv.bg/programi/zdravei-bulgariya/624952?autostart=true',
             'info_dict': {
                 'id': '624952',
-                'ext': 'flv',
+                'ext': 'mp4',
                 'title': 'Здравей, България (12.06.2015 г.) ',
                 'description': 'md5:99f3700451ac5bb71a260268b8daefd7',
                 'duration': 8838,
