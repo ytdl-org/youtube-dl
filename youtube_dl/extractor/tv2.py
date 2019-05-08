@@ -8,32 +8,45 @@ from ..utils import (
     determine_ext,
     int_or_none,
     float_or_none,
-    js_to_json,
     parse_iso8601,
-    remove_end,
 )
 
 
 class TV2IE(InfoExtractor):
     _VALID_URL = r'https?://(?:www\.)?tv2\.no/.*/(?P<id>\d+)/?$'
-    _TEST = {
-        'url': 'http://www.tv2.no/v/916509/',
-        'info_dict': {
-            'id': '916509',
-            'ext': 'flv',
-            'title': 'Se Frode Gryttens hyllest av Steven Gerrard',
-            'description': 'TV 2 Sportens huspoet tar avskjed med Liverpools kaptein Steven Gerrard.',
-            'timestamp': 1431715610,
-            'upload_date': '20150515',
-            'duration': 156.967,
-            'view_count': int,
-            'categories': list,
+    _TESTS = [
+        {
+            'url': 'http://www.tv2.no/v/916509/',
+            'info_dict': {
+                'id': '916509',
+                'ext': 'flv',
+                'title': 'Se Frode Gryttens hyllest av Steven Gerrard',
+                'description': 'TV 2 Sportens huspoet tar avskjed med Liverpools kaptein Steven Gerrard.',
+                'timestamp': 1431715610,
+                'upload_date': '20150515',
+                'duration': 156.967,
+                'view_count': int,
+                'categories': list,
+            },
+            'params': {
+                'skip_download': True,
+            },
         },
-        'params': {
-            # m3u8 download
-            'skip_download': True,
-        },
-    }
+        {
+            'url': 'http://www.tv2.no/2015/05/16/nyheter/alesund/krim/pingvin/6930542',
+            'info_dict': {
+                'id': '6930542',
+                'title': 'Russen hetset etter pingvintyveriet',
+                'description': 'Etter at fire russ er siktet for pinvintyveriet i Atlandethavsparken i Ålesund opplever resten av byens russ å bli hetset på åpen gate.',
+                'upload_date': '20150516',
+                'timestamp': 1431803333,
+                'ext': 'flv',
+            },
+            'params': {
+                'skip_download': True,
+            },
+        }
+    ]
 
     def _real_extract(self, url):
         video_id = self._match_id(url)
@@ -104,46 +117,3 @@ class TV2IE(InfoExtractor):
             'categories': categories,
             'formats': formats,
         }
-
-
-class TV2ArticleIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:www\.)?tv2\.no/(?:a|\d{4}/\d{2}/\d{2}(/[^/]+)+)/(?P<id>\d+)'
-    _TESTS = [{
-        'url': 'http://www.tv2.no/2015/05/16/nyheter/alesund/krim/pingvin/6930542',
-        'info_dict': {
-            'id': '6930542',
-            'title': 'Russen hetses etter pingvintyveri - innrømmer å ha åpnet luken på buret',
-            'description': 'De fire siktede nekter fortsatt for å ha stjålet pingvinbabyene, men innrømmer å ha åpnet luken til de små kyllingene.',
-        },
-        'playlist_count': 2,
-    }, {
-        'url': 'http://www.tv2.no/a/6930542',
-        'only_matching': True,
-    }]
-
-    def _real_extract(self, url):
-        playlist_id = self._match_id(url)
-
-        webpage = self._download_webpage(url, playlist_id)
-
-        assets = re.findall(r'assetId\s*:\s*(\d+)', webpage)
-
-        if not assets:
-            # New embed pattern
-            for v in re.findall(r'TV2ContentboxVideo\(({.+?})\)', webpage):
-                video = self._parse_json(
-                    v, playlist_id, transform_source=js_to_json, fatal=False)
-                if not video:
-                    continue
-                asset = video.get('assetId')
-                if asset:
-                    assets.append(asset)
-
-        entries = [
-            self.url_result('http://www.tv2.no/v/%s' % asset_id, 'TV2')
-            for asset_id in assets]
-
-        title = remove_end(self._og_search_title(webpage), ' - TV2.no')
-        description = remove_end(self._og_search_description(webpage), ' - TV2.no')
-
-        return self.playlist_result(entries, playlist_id, title, description)
