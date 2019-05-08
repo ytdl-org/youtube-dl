@@ -271,7 +271,10 @@ from .daum import (
     DaumPlaylistIE,
     DaumUserIE,
 )
-from .dbtv import DBTVIE
+from .dbtv import (
+    DBTVIE,
+    DBYTIE,
+)
 from .dctp import DctpTvIE
 from .deezer import DeezerPlaylistIE
 from .democracynow import DemocracynowIE
