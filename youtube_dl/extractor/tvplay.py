@@ -414,10 +414,10 @@ class ViafreeIE(InfoExtractor):
 
         data = self._parse_json(
             self._search_regex(
-                r'(?s)window\.App\s*=\s*({.+?})\s*;\s*</script',
+                r'(?s)window\.App\s*=\s*({.+?});\s*window\.',
                 webpage, 'data', default='{}'),
             video_id, transform_source=lambda x: re.sub(
-                r'(?s)function\s+[a-zA-Z_][\da-zA-Z_]*\s*\([^)]*\)\s*{[^}]*}\s*',
+                r'(?s)(?<=":)function.+?}(?=,")',
                 'null', x), fatal=False)
 
         video_id = None
