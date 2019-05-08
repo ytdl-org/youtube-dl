@@ -1237,7 +1237,7 @@ part 3</font></u>
 4
 00:00:09,560 --> 00:00:12,359
 <i><u><font color="yellow"><font color="lime">inner
- </font>style</font></u></i>
+</font>style</font></u></i>
 
 '''
         self.assertEqual(dfxp2srt(dfxp_data_with_style), srt_data)
