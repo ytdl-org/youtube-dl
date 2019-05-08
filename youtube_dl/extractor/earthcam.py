@@ -3,7 +3,6 @@ from __future__ import unicode_literals
 
 from .common import InfoExtractor
 from ..utils import (
-    ExtractorError,
     urljoin,
     int_or_none,
     url_or_none,
@@ -43,8 +42,8 @@ class EarthCamIE(InfoExtractor):
         webpage = self._download_webpage(url, video_id)
         json_str = self._html_search_regex(r'var\s+json_base\s*=\s*(?P<json_str>{\s*"cam"\s*:\s*{.*}.*});', webpage, 'json', group='json_str', default='{}')
         json_base = self._parse_json(js_to_json(json_str), video_id)
-        
-        video_info = jsonn_base['cam'][video_id]
+
+        video_info = json_base['cam'][video_id]
         domain = video_info['html5_streamingdomain']
         path = video_info['html5_streampath']
         m3u8_url = urljoin(domain, path)
