@@ -2100,8 +2100,12 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
         else:
             self._downloader.report_warning('unable to extract uploader nickname')
 
-        channel_id = self._html_search_meta(
-            'channelId', video_webpage, 'channel id')
+        channel_id = None
+        if video_details:
+            channel_id = str_or_none(video_details.get('channelId'))
+        if channel_id is None:
+            channel_id = self._html_search_meta(
+                'channelId', video_webpage, 'channel id')
         channel_url = 'http://www.youtube.com/channel/%s' % channel_id if channel_id else None
 
         # thumbnail image
