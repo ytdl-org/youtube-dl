@@ -110,7 +110,7 @@ class TestAllURLsMatching(unittest.TestCase):
         self.assertMatch('https://vimeo.com/user7108434/videos', ['vimeo:user'])
         self.assertMatch('https://vimeo.com/user21297594/review/75524534/3c257a1b5d', ['vimeo:review'])
 
-    # https://github.com/rg3/youtube-dl/issues/1930
+    # https://github.com/ytdl-org/youtube-dl/issues/1930
     def test_soundcloud_not_matching_sets(self):
         self.assertMatch('http://soundcloud.com/floex/sets/gone-ep', ['soundcloud:set'])
 
@@ -119,12 +119,12 @@ class TestAllURLsMatching(unittest.TestCase):
         self.assertMatch('http://tatianamaslanydaily.tumblr.com/post/54196191430', ['Tumblr'])
 
     def test_pbs(self):
-        # https://github.com/rg3/youtube-dl/issues/2350
+        # https://github.com/ytdl-org/youtube-dl/issues/2350
         self.assertMatch('http://video.pbs.org/viralplayer/2365173446/', ['pbs'])
         self.assertMatch('http://video.pbs.org/widget/partnerplayer/980042464/', ['pbs'])
 
     def test_yahoo_https(self):
-        # https://github.com/rg3/youtube-dl/issues/2701
+        # https://github.com/ytdl-org/youtube-dl/issues/2701
         self.assertMatch(
             'https://screen.yahoo.com/smartwatches-latest-wearable-gadgets-163745379-cbs.html',
             ['Yahoo'])

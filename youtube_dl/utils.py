@@ -184,7 +184,7 @@ DATE_FORMATS_MONTH_FIRST.extend([
 ])
 
 PACKED_CODES_RE = r"}\('(.+)',(\d+),(\d+),'([^']+)'\.split\('\|'\)"
-JSON_LD_RE = r'(?is)<script[^>]+type=(["\'])application/ld\+json\1[^>]*>(?P<json_ld>.+?)</script>'
+JSON_LD_RE = r'(?is)<script[^>]+type=(["\']?)application/ld\+json\1[^>]*>(?P<json_ld>.+?)</script>'
 
 
 def preferredencoding():
@@ -546,7 +546,7 @@ def sanitize_url(url):
         return 'http:%s' % url
     # Fix some common typos seen so far
     COMMON_TYPOS = (
-        # https://github.com/rg3/youtube-dl/issues/15649
+        # https://github.com/ytdl-org/youtube-dl/issues/15649
         (r'^httpss://', r'https://'),
         # https://bx1.be/lives/direct-tv/
         (r'^rmtp([es]?)://', r'rtmp\1://'),
@@ -596,7 +596,7 @@ def _htmlentity_transform(entity_with_semicolon):
             numstr = '0%s' % numstr
         else:
             base = 10
-        # See https://github.com/rg3/youtube-dl/issues/7518
+        # See https://github.com/ytdl-org/youtube-dl/issues/7518
         try:
             return compat_chr(int(numstr, base))
         except ValueError:
@@ -877,7 +877,7 @@ class XAttrUnavailableError(YoutubeDLError):
 def _create_http_connection(ydl_handler, http_class, is_https, *args, **kwargs):
     # Working around python 2 bug (see http://bugs.python.org/issue17849) by limiting
     # expected HTTP responses to meet HTTP/1.0 or later (see also
-    # https://github.com/rg3/youtube-dl/issues/6727)
+    # https://github.com/ytdl-org/youtube-dl/issues/6727)
     if sys.version_info < (3, 0):
         kwargs['strict'] = True
     hc = http_class(*args, **compat_kwargs(kwargs))
@@ -1051,7 +1051,7 @@ class YoutubeDLHandler(compat_urllib_request.HTTPHandler):
             resp.msg = old_resp.msg
             del resp.headers['Content-encoding']
         # Percent-encode redirect URL of Location HTTP header to satisfy RFC 3986 (see
-        # https://github.com/rg3/youtube-dl/issues/6457).
+        # https://github.com/ytdl-org/youtube-dl/issues/6457).
         if 300 <= resp.code < 400:
             location = resp.headers.get('Location')
             if location:
@@ -1141,6 +1141,8 @@ class YoutubeDLHTTPSHandler(compat_urllib_request.HTTPSHandler):
 
 
 class YoutubeDLCookieJar(compat_cookiejar.MozillaCookieJar):
+    _HTTPONLY_PREFIX = '#HttpOnly_'
+
     def save(self, filename=None, ignore_discard=False, ignore_expires=False):
         # Store session cookies with `expires` set to 0 instead of an empty
         # string
@@ -1150,7 +1152,21 @@ class YoutubeDLCookieJar(compat_cookiejar.MozillaCookieJar):
         compat_cookiejar.MozillaCookieJar.save(self, filename, ignore_discard, ignore_expires)
 
     def load(self, filename=None, ignore_discard=False, ignore_expires=False):
-        compat_cookiejar.MozillaCookieJar.load(self, filename, ignore_discard, ignore_expires)
+        """Load cookies from a file."""
+        if filename is None:
+            if self.filename is not None:
+                filename = self.filename
+            else:
+                raise ValueError(compat_cookiejar.MISSING_FILENAME_TEXT)
+
+        cf = io.StringIO()
+        with open(filename) as f:
+            for line in f:
+                if line.startswith(self._HTTPONLY_PREFIX):
+                    line = line[len(self._HTTPONLY_PREFIX):]
+                cf.write(compat_str(line))
+        cf.seek(0)
+        self._really_load(cf, filename, ignore_discard, ignore_expires)
         # Session cookies are denoted by either `expires` field set to
         # an empty string or 0. MozillaCookieJar only recognizes the former
         # (see [1]). So we need force the latter to be recognized as session
@@ -1174,7 +1190,7 @@ class YoutubeDLCookieProcessor(compat_urllib_request.HTTPCookieProcessor):
     def http_response(self, request, response):
         # Python 2 will choke on next HTTP request in row if there are non-ASCII
         # characters in Set-Cookie HTTP header of last response (see
-        # https://github.com/rg3/youtube-dl/issues/6769).
+        # https://github.com/ytdl-org/youtube-dl/issues/6769).
         # In order to at least prevent crashing we will percent encode Set-Cookie
         # header before HTTPCookieProcessor starts processing it.
         # if sys.version_info < (3, 0) and response.headers:
@@ -1782,6 +1798,14 @@ def parse_resolution(s):
     return {}
 
 
+def parse_bitrate(s):
+    if not isinstance(s, compat_str):
+        return
+    mobj = re.search(r'\b(\d+)\s*kbps', s)
+    if mobj:
+        return int(mobj.group(1))
+
+
 def month_by_name(name, lang='en'):
     """ Return the number of a month by (locale-independently) English name """
 
@@ -1868,7 +1892,7 @@ def urljoin(base, path):
         path = path.decode('utf-8')
     if not isinstance(path, compat_str) or not path:
         return None
-    if re.match(r'^(?:https?:)?//', path):
+    if re.match(r'^(?:[a-zA-Z][a-zA-Z0-9+-.]*:)?//', path):
         return path
     if isinstance(base, bytes):
         base = base.decode('utf-8')
@@ -1898,7 +1922,7 @@ def int_or_none(v, scale=1, default=None, get_attr=None, invscale=1):
         return default
     try:
         return int(v) * invscale // scale
-    except ValueError:
+    except (ValueError, TypeError):
         return default
 
 
@@ -1919,7 +1943,7 @@ def float_or_none(v, scale=1, invscale=1, default=None):
         return default
     try:
         return float(v) * invscale / scale
-    except ValueError:
+    except (ValueError, TypeError):
         return default
 
 
@@ -2028,7 +2052,7 @@ def get_exe_version(exe, args=['--version'],
     try:
         # STDIN should be redirected too. On UNIX-like systems, ffmpeg triggers
         # SIGTTOU if youtube-dl is run in the background.
-        # See https://github.com/rg3/youtube-dl/issues/955#issuecomment-209789656
+        # See https://github.com/ytdl-org/youtube-dl/issues/955#issuecomment-209789656
         out, _ = subprocess.Popen(
             [encodeArgument(exe)] + args,
             stdin=subprocess.PIPE,
@@ -2638,7 +2662,7 @@ def _match_one(filter_part, dct):
             # If the original field is a string and matching comparisonvalue is
             # a number we should respect the origin of the original field
             # and process comparison value as a string (see
-            # https://github.com/rg3/youtube-dl/issues/11082).
+            # https://github.com/ytdl-org/youtube-dl/issues/11082).
             actual_value is not None and m.group('intval') is not None and
                 isinstance(actual_value, compat_str)):
             if m.group('op') not in ('=', '!='):
@@ -2968,6 +2992,7 @@ class ISO639Utils(object):
         'gv': 'glv',
         'ha': 'hau',
         'he': 'heb',
+        'iw': 'heb',  # Replaced by he in 1989 revision
         'hi': 'hin',
         'ho': 'hmo',
         'hr': 'hrv',
@@ -2977,6 +3002,7 @@ class ISO639Utils(object):
         'hz': 'her',
         'ia': 'ina',
         'id': 'ind',
+        'in': 'ind',  # Replaced by id in 1989 revision
         'ie': 'ile',
         'ig': 'ibo',
         'ii': 'iii',
@@ -3091,6 +3117,7 @@ class ISO639Utils(object):
         'wo': 'wol',
         'xh': 'xho',
         'yi': 'yid',
+        'ji': 'yid',  # Replaced by yi in 1989 revision
         'yo': 'yor',
         'za': 'zha',
         'zh': 'zho',
@@ -3785,7 +3812,7 @@ def urshift(val, n):
 
 
 # Based on png2str() written by @gdkchan and improved by @yokrysty
-# Originally posted at https://github.com/rg3/youtube-dl/issues/9706
+# Originally posted at https://github.com/ytdl-org/youtube-dl/issues/9706
 def decode_png(png_data):
     # Reference: https://www.w3.org/TR/PNG/
     header = png_data[8:]
@@ -3900,7 +3927,7 @@ def write_xattr(path, key, value):
         if hasattr(xattr, 'set'):  # pyxattr
             # Unicode arguments are not supported in python-pyxattr until
             # version 0.5.0
-            # See https://github.com/rg3/youtube-dl/issues/5498
+            # See https://github.com/ytdl-org/youtube-dl/issues/5498
             pyxattr_required_version = '0.5.0'
             if version_tuple(xattr.__version__) < version_tuple(pyxattr_required_version):
                 # TODO: fallback to CLI tools

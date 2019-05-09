@@ -15,16 +15,16 @@ from ..utils import (
 class DTubeIE(InfoExtractor):
     _VALID_URL = r'https?://(?:www\.)?d\.tube/(?:#!/)?v/(?P<uploader_id>[0-9a-z.-]+)/(?P<id>[0-9a-z]{8})'
     _TEST = {
-        'url': 'https://d.tube/#!/v/benswann/zqd630em',
-        'md5': 'a03eaa186618ffa7a3145945543a251e',
+        'url': 'https://d.tube/#!/v/broncnutz/x380jtr1',
+        'md5': '9f29088fa08d699a7565ee983f56a06e',
         'info_dict': {
-            'id': 'zqd630em',
+            'id': 'x380jtr1',
             'ext': 'mp4',
-            'title': 'Reality Check: FDA\'s Disinformation Campaign on Kratom',
-            'description': 'md5:700d164e066b87f9eac057949e4227c2',
-            'uploader_id': 'benswann',
-            'upload_date': '20180222',
-            'timestamp': 1519328958,
+            'title': 'Lefty 3-Rings is Back Baby!! NCAA Picks',
+            'description': 'md5:60be222088183be3a42f196f34235776',
+            'uploader_id': 'broncnutz',
+            'upload_date': '20190107',
+            'timestamp': 1546854054,
         },
         'params': {
             'format': '480p',
@@ -48,7 +48,7 @@ class DTubeIE(InfoExtractor):
         def canonical_url(h):
             if not h:
                 return None
-            return 'https://ipfs.io/ipfs/' + h
+            return 'https://video.dtube.top/ipfs/' + h
 
         formats = []
         for q in ('240', '480', '720', '1080', ''):

@@ -16,7 +16,7 @@ from ..utils import (
 
 
 class TeamcocoIE(TurnerBaseIE):
-    _VALID_URL = r'https?://teamcoco\.com/(?P<id>([^/]+/)*[^/?#]+)'
+    _VALID_URL = r'https?://(?:\w+\.)?teamcoco\.com/(?P<id>([^/]+/)*[^/?#]+)'
     _TESTS = [
         {
             'url': 'http://teamcoco.com/video/mary-kay-remote',
@@ -79,15 +79,20 @@ class TeamcocoIE(TurnerBaseIE):
         }, {
             'url': 'http://teamcoco.com/israel/conan-hits-the-streets-beaches-of-tel-aviv',
             'only_matching': True,
+        }, {
+            'url': 'https://conan25.teamcoco.com/video/ice-cube-kevin-hart-conan-share-lyft',
+            'only_matching': True,
         }
     ]
 
     def _graphql_call(self, query_template, object_type, object_id):
         find_object = 'find' + object_type
         return self._download_json(
-            'http://teamcoco.com/graphql/', object_id, data=json.dumps({
+            'https://teamcoco.com/graphql', object_id, data=json.dumps({
                 'query': query_template % (find_object, object_id)
-            }))['data'][find_object]
+            }).encode(), headers={
+                'Content-Type': 'application/json',
+            })['data'][find_object]
 
     def _real_extract(self, url):
         display_id = self._match_id(url)
@@ -145,7 +150,12 @@ class TeamcocoIE(TurnerBaseIE):
                 'accessTokenType': 'jws',
             }))
         else:
-            video_sources = self._graphql_call('''{
+            d = self._download_json(
+                'https://teamcoco.com/_truman/d/' + video_id,
+                video_id, fatal=False) or {}
+            video_sources = d.get('meta') or {}
+            if not video_sources:
+                video_sources = self._graphql_call('''{
   %s(id: "%s") {
     src
   }

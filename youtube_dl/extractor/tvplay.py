@@ -493,10 +493,9 @@ class TVPlayHomeIE(InfoExtractor):
         webpage = self._download_webpage(url, video_id)
 
         video_id = self._search_regex(
-            r'data-asset-id\s*=\s*["\'](\d{5,7})\b', webpage, 'video id',
-            default=None)
+            r'data-asset-id\s*=\s*["\'](\d{5,})\b', webpage, 'video id')
 
-        if video_id:
+        if len(video_id) < 8:
             return self.url_result(
                 'mtg:%s' % video_id, ie=TVPlayIE.ie_key(), video_id=video_id)
 
@@ -537,8 +536,9 @@ class TVPlayHomeIE(InfoExtractor):
             r'(\d+)(?:[.\s]+sezona|\s+HOOAEG)', season or '', 'season number',
             default=None))
         episode = self._search_regex(
-            r'(["\'])(?P<value>(?:(?!\1).)+)\1', webpage, 'episode',
-            default=None, group='value')
+            (r'\bepisode\s*:\s*(["\'])(?P<value>(?:(?!\1).)+)\1',
+             r'data-subtitle\s*=\s*(["\'])(?P<value>(?:(?!\1).)+)\1'), webpage,
+            'episode', default=None, group='value')
         episode_number = int_or_none(self._search_regex(
             r'(?:S[eē]rija|Osa)\s+(\d+)', episode or '', 'episode number',
             default=None))

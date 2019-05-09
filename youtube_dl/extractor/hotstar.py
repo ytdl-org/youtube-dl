@@ -4,39 +4,58 @@ from __future__ import unicode_literals
 import hashlib
 import hmac
 import time
+import uuid
 
 from .common import InfoExtractor
-from ..compat import compat_HTTPError
+from ..compat import (
+    compat_HTTPError,
+    compat_str,
+)
 from ..utils import (
     determine_ext,
     ExtractorError,
     int_or_none,
+    str_or_none,
     try_get,
+    url_or_none,
 )
 
 
 class HotStarBaseIE(InfoExtractor):
     _AKAMAI_ENCRYPTION_KEY = b'\x05\xfc\x1a\x01\xca\xc9\x4b\xc4\x12\xfc\x53\x12\x07\x75\xf9\xee'
 
-    def _call_api(self, path, video_id, query_name='contentId'):
+    def _call_api_impl(self, path, video_id, query):
         st = int(time.time())
         exp = st + 6000
         auth = 'st=%d~exp=%d~acl=/*' % (st, exp)
         auth += '~hmac=' + hmac.new(self._AKAMAI_ENCRYPTION_KEY, auth.encode(), hashlib.sha256).hexdigest()
         response = self._download_json(
-            'https://api.hotstar.com/' + path,
-            video_id, headers={
+            'https://api.hotstar.com/' + path, video_id, headers={
                 'hotstarauth': auth,
                 'x-country-code': 'IN',
                 'x-platform-code': 'JIO',
-            }, query={
-                query_name: video_id,
-                'tas': 10000,
-            })
+            }, query=query)
         if response['statusCode'] != 'OK':
             raise ExtractorError(
                 response['body']['message'], expected=True)
         return response['body']['results']
+
+    def _call_api(self, path, video_id, query_name='contentId'):
+        return self._call_api_impl(path, video_id, {
+            query_name: video_id,
+            'tas': 10000,
+        })
+
+    def _call_api_v2(self, path, video_id):
+        return self._call_api_impl(
+            '%s/in/contents/%s' % (path, video_id), video_id, {
+                'desiredConfig': 'encryption:plain;ladder:phone,tv;package:hls,dash',
+                'client': 'mweb',
+                'clientVersion': '6.18.0',
+                'deviceId': compat_str(uuid.uuid4()),
+                'osName': 'Windows',
+                'osVersion': '10',
+            })
 
 
 class HotStarIE(HotStarBaseIE):
@@ -68,6 +87,10 @@ class HotStarIE(HotStarBaseIE):
     }, {
         'url': 'http://www.hotstar.com/1000000515',
         'only_matching': True,
+    }, {
+        # only available via api v2
+        'url': 'https://www.hotstar.com/tv/ek-bhram-sarvagun-sampanna/s-2116/janhvi-targets-suman/1000234847',
+        'only_matching': True,
     }]
     _GEO_BYPASS = False
 
@@ -95,26 +118,40 @@ class HotStarIE(HotStarBaseIE):
             raise ExtractorError('This video is DRM protected.', expected=True)
 
         formats = []
-        format_data = self._call_api('h/v1/play', video_id)['item']
-        format_url = format_data['playbackUrl']
-        ext = determine_ext(format_url)
-        if ext == 'm3u8':
+        geo_restricted = False
+        playback_sets = self._call_api_v2('h/v2/play', video_id)['playBackSets']
+        for playback_set in playback_sets:
+            if not isinstance(playback_set, dict):
+                continue
+            format_url = url_or_none(playback_set.get('playbackUrl'))
+            if not format_url:
+                continue
+            tags = str_or_none(playback_set.get('tagsCombination')) or ''
+            if tags and 'encryption:plain' not in tags:
+                continue
+            ext = determine_ext(format_url)
             try:
-                formats.extend(self._extract_m3u8_formats(
-                    format_url, video_id, 'mp4', m3u8_id='hls'))
+                if 'package:hls' in tags or ext == 'm3u8':
+                    formats.extend(self._extract_m3u8_formats(
+                        format_url, video_id, 'mp4', m3u8_id='hls'))
+                elif 'package:dash' in tags or ext == 'mpd':
+                    formats.extend(self._extract_mpd_formats(
+                        format_url, video_id, mpd_id='dash'))
+                elif ext == 'f4m':
+                    # produce broken files
+                    pass
+                else:
+                    formats.append({
+                        'url': format_url,
+                        'width': int_or_none(playback_set.get('width')),
+                        'height': int_or_none(playback_set.get('height')),
+                    })
             except ExtractorError as e:
                 if isinstance(e.cause, compat_HTTPError) and e.cause.code == 403:
-                    self.raise_geo_restricted(countries=['IN'])
-                raise
-        elif ext == 'f4m':
-            # produce broken files
-            pass
-        else:
-            formats.append({
-                'url': format_url,
-                'width': int_or_none(format_data.get('width')),
-                'height': int_or_none(format_data.get('height')),
-            })
+                    geo_restricted = True
+                continue
+        if not formats and geo_restricted:
+            self.raise_geo_restricted(countries=['IN'])
         self._sort_formats(formats)
 
         return {

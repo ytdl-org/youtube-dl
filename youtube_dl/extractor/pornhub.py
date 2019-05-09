@@ -10,11 +10,13 @@ from .common import InfoExtractor
 from ..compat import (
     compat_HTTPError,
     compat_str,
+    compat_urllib_request,
 )
+from .openload import PhantomJSwrapper
 from ..utils import (
+    determine_ext,
     ExtractorError,
     int_or_none,
-    js_to_json,
     orderedSet,
     remove_quotes,
     str_to_int,
@@ -22,7 +24,29 @@ from ..utils import (
 )
 
 
-class PornHubIE(InfoExtractor):
+class PornHubBaseIE(InfoExtractor):
+    def _download_webpage_handle(self, *args, **kwargs):
+        def dl(*args, **kwargs):
+            return super(PornHubBaseIE, self)._download_webpage_handle(*args, **kwargs)
+
+        webpage, urlh = dl(*args, **kwargs)
+
+        if any(re.search(p, webpage) for p in (
+                r'<body\b[^>]+\bonload=["\']go\(\)',
+                r'document\.cookie\s*=\s*["\']RNKEY=',
+                r'document\.location\.reload\(true\)')):
+            url_or_request = args[0]
+            url = (url_or_request.get_full_url()
+                   if isinstance(url_or_request, compat_urllib_request.Request)
+                   else url_or_request)
+            phantom = PhantomJSwrapper(self, required_version='2.0')
+            phantom.get(url, html=webpage)
+            webpage, urlh = dl(*args, **kwargs)
+
+        return webpage, urlh
+
+
+class PornHubIE(PornHubBaseIE):
     IE_DESC = 'PornHub and Thumbzilla'
     _VALID_URL = r'''(?x)
                     https?://
@@ -252,6 +276,10 @@ class PornHubIE(InfoExtractor):
                     r'/(\d{6}/\d{2})/', video_url, 'upload data', default=None)
                 if upload_date:
                     upload_date = upload_date.replace('/', '')
+            if determine_ext(video_url) == 'mpd':
+                formats.extend(self._extract_mpd_formats(
+                    video_url, video_id, mpd_id='dash', fatal=False))
+                continue
             tbr = None
             mobj = re.search(r'(?P<height>\d+)[pP]?_(?P<tbr>\d+)[kK]', video_url)
             if mobj:
@@ -279,14 +307,12 @@ class PornHubIE(InfoExtractor):
         comment_count = self._extract_count(
             r'All Comments\s*<span>\(([\d,.]+)\)', webpage, 'comment')
 
-        page_params = self._parse_json(self._search_regex(
-            r'page_params\.zoneDetails\[([\'"])[^\'"]+\1\]\s*=\s*(?P<data>{[^}]+})',
-            webpage, 'page parameters', group='data', default='{}'),
-            video_id, transform_source=js_to_json, fatal=False)
-        tags = categories = None
-        if page_params:
-            tags = page_params.get('tags', '').split(',')
-            categories = page_params.get('categories', '').split(',')
+        def extract_list(meta_key):
+            div = self._search_regex(
+                r'(?s)<div[^>]+\bclass=["\'].*?\b%sWrapper[^>]*>(.+?)</div>'
+                % meta_key, webpage, meta_key, default=None)
+            if div:
+                return re.findall(r'<a[^>]+\bhref=[^>]+>([^<]+)', div)
 
         return {
             'id': video_id,
@@ -301,17 +327,17 @@ class PornHubIE(InfoExtractor):
             'comment_count': comment_count,
             'formats': formats,
             'age_limit': 18,
-            'tags': tags,
-            'categories': categories,
+            'tags': extract_list('tags'),
+            'categories': extract_list('categories'),
             'subtitles': subtitles,
         }
 
 
-class PornHubPlaylistBaseIE(InfoExtractor):
+class PornHubPlaylistBaseIE(PornHubBaseIE):
     def _extract_entries(self, webpage, host):
         # Only process container div with main playlist content skipping
         # drop-down menu that uses similar pattern for videos (see
-        # https://github.com/rg3/youtube-dl/issues/11594).
+        # https://github.com/ytdl-org/youtube-dl/issues/11594).
         container = self._search_regex(
             r'(?s)(<div[^>]+class=["\']container.+)', webpage,
             'container', default=webpage)

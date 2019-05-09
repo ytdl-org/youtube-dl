@@ -82,6 +82,7 @@ from .utils import (
     sanitize_url,
     sanitized_Request,
     std_headers,
+    str_or_none,
     subtitles_filename,
     UnavailableVideoError,
     url_basename,
@@ -308,6 +309,8 @@ class YoutubeDL(object):
     The following options are used by the post processors:
     prefer_ffmpeg:     If False, use avconv instead of ffmpeg if both are available,
                        otherwise prefer ffmpeg.
+    ffmpeg_location:   Location of the ffmpeg/avconv binary; either the path
+                       to the binary or its containing directory.
     postprocessor_args: A list of additional command-line arguments for the
                         postprocessor.
 
@@ -888,7 +891,7 @@ class YoutubeDL(object):
             # url_transparent. In such cases outer metadata (from ie_result)
             # should be propagated to inner one (info). For this to happen
             # _type of info should be overridden with url_transparent. This
-            # fixes issue from https://github.com/rg3/youtube-dl/pull/11163.
+            # fixes issue from https://github.com/ytdl-org/youtube-dl/pull/11163.
             if new_result.get('_type') == 'url':
                 new_result['_type'] = 'url_transparent'
 
@@ -1063,21 +1066,24 @@ class YoutubeDL(object):
         if not m:
             STR_OPERATORS = {
                 '=': operator.eq,
-                '!=': operator.ne,
                 '^=': lambda attr, value: attr.startswith(value),
                 '$=': lambda attr, value: attr.endswith(value),
                 '*=': lambda attr, value: value in attr,
             }
             str_operator_rex = re.compile(r'''(?x)
                 \s*(?P<key>ext|acodec|vcodec|container|protocol|format_id)
-                \s*(?P<op>%s)(?P<none_inclusive>\s*\?)?
+                \s*(?P<negation>!\s*)?(?P<op>%s)(?P<none_inclusive>\s*\?)?
                 \s*(?P<value>[a-zA-Z0-9._-]+)
                 \s*$
                 ''' % '|'.join(map(re.escape, STR_OPERATORS.keys())))
             m = str_operator_rex.search(filter_spec)
             if m:
                 comparison_value = m.group('value')
-                op = STR_OPERATORS[m.group('op')]
+                str_op = STR_OPERATORS[m.group('op')]
+                if m.group('negation'):
+                    op = lambda attr, value: not str_op(attr, value)
+                else:
+                    op = str_op
 
         if not m:
             raise ValueError('Invalid filter specification %r' % filter_spec)
@@ -1602,7 +1608,7 @@ class YoutubeDL(object):
         # by extractor are incomplete or not (i.e. whether extractor provides only
         # video-only or audio-only formats) for proper formats selection for
         # extractors with such incomplete formats (see
-        # https://github.com/rg3/youtube-dl/pull/5556).
+        # https://github.com/ytdl-org/youtube-dl/pull/5556).
         # Since formats may be filtered during format selection and may not match
         # the original formats the results may be incorrect. Thus original formats
         # or pre-calculated metrics should be passed to format selection routines
@@ -1610,7 +1616,7 @@ class YoutubeDL(object):
         # We will pass a context object containing all necessary additional data
         # instead of just formats.
         # This fixes incorrect format selection issue (see
-        # https://github.com/rg3/youtube-dl/issues/10083).
+        # https://github.com/ytdl-org/youtube-dl/issues/10083).
         incomplete_formats = (
             # All formats are video-only or
             all(f.get('vcodec') != 'none' and f.get('acodec') == 'none' for f in formats) or
@@ -1806,7 +1812,7 @@ class YoutubeDL(object):
                     if sub_info.get('data') is not None:
                         try:
                             # Use newline='' to prevent conversion of newline characters
-                            # See https://github.com/rg3/youtube-dl/issues/10268
+                            # See https://github.com/ytdl-org/youtube-dl/issues/10268
                             with io.open(encodeFilename(sub_filename), 'w', encoding='utf-8', newline='') as subfile:
                                 subfile.write(sub_info['data'])
                         except (OSError, IOError):
@@ -2057,15 +2063,24 @@ class YoutubeDL(object):
                         self.report_warning('Unable to remove downloaded original file')
 
     def _make_archive_id(self, info_dict):
+        video_id = info_dict.get('id')
+        if not video_id:
+            return
         # Future-proof against any change in case
         # and backwards compatibility with prior versions
-        extractor = info_dict.get('extractor_key')
+        extractor = info_dict.get('extractor_key') or info_dict.get('ie_key')  # key in a playlist
         if extractor is None:
-            if 'id' in info_dict:
-                extractor = info_dict.get('ie_key')  # key in a playlist
-        if extractor is None:
-            return None  # Incomplete video information
-        return extractor.lower() + ' ' + info_dict['id']
+            url = str_or_none(info_dict.get('url'))
+            if not url:
+                return
+            # Try to find matching extractor for the URL and take its ie_key
+            for ie in self._ies:
+                if ie.suitable(url):
+                    extractor = ie.ie_key()
+                    break
+            else:
+                return
+        return extractor.lower() + ' ' + video_id
 
     def in_download_archive(self, info_dict):
         fn = self.params.get('download_archive')
@@ -2073,7 +2088,7 @@ class YoutubeDL(object):
             return False
 
         vid_id = self._make_archive_id(info_dict)
-        if vid_id is None:
+        if not vid_id:
             return False  # Incomplete video information
 
         try:
@@ -2216,7 +2231,7 @@ class YoutubeDL(object):
             return
 
         if type('') is not compat_str:
-            # Python 2.6 on SLES11 SP1 (https://github.com/rg3/youtube-dl/issues/3326)
+            # Python 2.6 on SLES11 SP1 (https://github.com/ytdl-org/youtube-dl/issues/3326)
             self.report_warning(
                 'Your Python is broken! Update to a newer and supported version')
 
@@ -2310,7 +2325,7 @@ class YoutubeDL(object):
                 proxies = {'http': opts_proxy, 'https': opts_proxy}
         else:
             proxies = compat_urllib_request.getproxies()
-            # Set HTTPS proxy to HTTP one if given (https://github.com/rg3/youtube-dl/issues/805)
+            # Set HTTPS proxy to HTTP one if given (https://github.com/ytdl-org/youtube-dl/issues/805)
             if 'http' in proxies and 'https' not in proxies:
                 proxies['https'] = proxies['http']
         proxy_handler = PerRequestProxyHandler(proxies)
@@ -2323,7 +2338,7 @@ class YoutubeDL(object):
         # When passing our own FileHandler instance, build_opener won't add the
         # default FileHandler and allows us to disable the file protocol, which
         # can be used for malicious purposes (see
-        # https://github.com/rg3/youtube-dl/issues/8227)
+        # https://github.com/ytdl-org/youtube-dl/issues/8227)
         file_handler = compat_urllib_request.FileHandler()
 
         def file_open(*args, **kwargs):
@@ -2335,7 +2350,7 @@ class YoutubeDL(object):
 
         # Delete the default user-agent header, which would otherwise apply in
         # cases where our custom HTTP handler doesn't come into play
-        # (See https://github.com/rg3/youtube-dl/issues/1309 for details)
+        # (See https://github.com/ytdl-org/youtube-dl/issues/1309 for details)
         opener.addheaders = []
         self._opener = opener
 

@@ -13,9 +13,9 @@ class CorusIE(ThePlatformFeedIE):
                         (?:www\.)?
                         (?P<domain>
                             (?:globaltv|etcanada)\.com|
-                            (?:hgtv|foodnetwork|slice|history|showcase)\.ca
+                            (?:hgtv|foodnetwork|slice|history|showcase|bigbrothercanada)\.ca
                         )
-                        /(?:video/|(?:[^/]+/)+(?:videos/[a-z0-9-]+-|video\.html\?.*?\bv=))
+                        /(?:video/(?:[^/]+/)?|(?:[^/]+/)+(?:videos/[a-z0-9-]+-|video\.html\?.*?\bv=))
                         (?P<id>\d+)
                     '''
     _TESTS = [{
@@ -42,6 +42,12 @@ class CorusIE(ThePlatformFeedIE):
     }, {
         'url': 'http://www.showcase.ca/eyewitness/video/eyewitness++106/video.html?v=955070531919&p=1&s=da#video',
         'only_matching': True,
+    }, {
+        'url': 'http://www.bigbrothercanada.ca/video/1457812035894/',
+        'only_matching': True
+    }, {
+        'url': 'https://www.bigbrothercanada.ca/video/big-brother-canada-704/1457812035894/',
+        'only_matching': True
     }]
 
     _TP_FEEDS = {
@@ -72,6 +78,10 @@ class CorusIE(ThePlatformFeedIE):
         'showcase': {
             'feed_id': '9H6qyshBZU3E',
             'account_id': 2414426607,
+        },
+        'bigbrothercanada': {
+            'feed_id': 'ChQqrem0lNUp',
+            'account_id': 2269680845,
         },
     }
 

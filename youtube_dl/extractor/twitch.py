@@ -134,9 +134,14 @@ class TwitchBaseIE(InfoExtractor):
     def _prefer_source(self, formats):
         try:
             source = next(f for f in formats if f['format_id'] == 'Source')
-            source['preference'] = 10
+            source['quality'] = 10
         except StopIteration:
-            pass  # No Source stream present
+            for f in formats:
+                if '/chunked/' in f['url']:
+                    f.update({
+                        'quality': 10,
+                        'format_note': 'Source',
+                    })
         self._sort_formats(formats)
 
 

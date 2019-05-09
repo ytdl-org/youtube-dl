@@ -1,14 +1,15 @@
+# coding: utf-8
 from __future__ import unicode_literals
 
 import re
 
 from .theplatform import ThePlatformIE
 from ..utils import (
+    extract_attributes,
+    ExtractorError,
+    int_or_none,
     smuggle_url,
     update_url_query,
-    unescapeHTML,
-    extract_attributes,
-    get_element_by_attribute,
 )
 from ..compat import (
     compat_urlparse,
@@ -18,6 +19,43 @@ from ..compat import (
 class AENetworksBaseIE(ThePlatformIE):
     _THEPLATFORM_KEY = 'crazyjava'
     _THEPLATFORM_SECRET = 's3cr3t'
+
+    def _extract_aen_smil(self, smil_url, video_id, auth=None):
+        query = {'mbr': 'true'}
+        if auth:
+            query['auth'] = auth
+        TP_SMIL_QUERY = [{
+            'assetTypes': 'high_video_ak',
+            'switch': 'hls_high_ak'
+        }, {
+            'assetTypes': 'high_video_s3'
+        }, {
+            'assetTypes': 'high_video_s3',
+            'switch': 'hls_ingest_fastly'
+        }]
+        formats = []
+        subtitles = {}
+        last_e = None
+        for q in TP_SMIL_QUERY:
+            q.update(query)
+            m_url = update_url_query(smil_url, q)
+            m_url = self._sign_url(m_url, self._THEPLATFORM_KEY, self._THEPLATFORM_SECRET)
+            try:
+                tp_formats, tp_subtitles = self._extract_theplatform_smil(
+                    m_url, video_id, 'Downloading %s SMIL data' % (q.get('switch') or q['assetTypes']))
+            except ExtractorError as e:
+                last_e = e
+                continue
+            formats.extend(tp_formats)
+            subtitles = self._merge_subtitles(subtitles, tp_subtitles)
+        if last_e and not formats:
+            raise last_e
+        self._sort_formats(formats)
+        return {
+            'id': video_id,
+            'formats': formats,
+            'subtitles': subtitles,
+        }
 
 
 class AENetworksIE(AENetworksBaseIE):
@@ -33,21 +71,24 @@ class AENetworksIE(AENetworksBaseIE):
                         (?:
                             shows/(?P<show_path>[^/]+(?:/[^/]+){0,2})|
                             movies/(?P<movie_display_id>[^/]+)(?:/full-movie)?|
-                            specials/(?P<special_display_id>[^/]+)/full-special|
+                            specials/(?P<special_display_id>[^/]+)/(?:full-special|preview-)|
                             collections/[^/]+/(?P<collection_display_id>[^/]+)
                         )
                     '''
     _TESTS = [{
         'url': 'http://www.history.com/shows/mountain-men/season-1/episode-1',
-        'md5': 'a97a65f7e823ae10e9244bc5433d5fe6',
         'info_dict': {
             'id': '22253814',
             'ext': 'mp4',
-            'title': 'Winter Is Coming',
+            'title': 'Winter is Coming',
             'description': 'md5:641f424b7a19d8e24f26dea22cf59d74',
             'timestamp': 1338306241,
             'upload_date': '20120529',
             'uploader': 'AENE-NEW',
+        },
+        'params': {
+            # m3u8 download
+            'skip_download': True,
         },
         'add_ie': ['ThePlatform'],
     }, {
@@ -83,6 +124,9 @@ class AENetworksIE(AENetworksBaseIE):
         'only_matching': True
     }, {
         'url': 'https://www.historyvault.com/collections/america-the-story-of-us/westward',
+        'only_matching': True
+    }, {
+        'url': 'https://www.aetv.com/specials/hunting-jonbenets-killer-the-untold-story/preview-hunting-jonbenets-killer-the-untold-story',
         'only_matching': True
     }]
     _DOMAIN_TO_REQUESTOR_ID = {
@@ -124,11 +168,6 @@ class AENetworksIE(AENetworksBaseIE):
                 return self.playlist_result(
                     entries, self._html_search_meta('aetn:SeasonId', webpage))
 
-        query = {
-            'mbr': 'true',
-            'assetTypes': 'high_video_ak',
-            'switch': 'hls_high_ak',
-        }
         video_id = self._html_search_meta('aetn:VideoID', webpage)
         media_url = self._search_regex(
             [r"media_url\s*=\s*'(?P<url>[^']+)'",
@@ -138,64 +177,39 @@ class AENetworksIE(AENetworksBaseIE):
         theplatform_metadata = self._download_theplatform_metadata(self._search_regex(
             r'https?://link\.theplatform\.com/s/([^?]+)', media_url, 'theplatform_path'), video_id)
         info = self._parse_theplatform_metadata(theplatform_metadata)
+        auth = None
         if theplatform_metadata.get('AETN$isBehindWall'):
             requestor_id = self._DOMAIN_TO_REQUESTOR_ID[domain]
             resource = self._get_mvpd_resource(
                 requestor_id, theplatform_metadata['title'],
                 theplatform_metadata.get('AETN$PPL_pplProgramId') or theplatform_metadata.get('AETN$PPL_pplProgramId_OLD'),
                 theplatform_metadata['ratings'][0]['rating'])
-            query['auth'] = self._extract_mvpd_auth(
+            auth = self._extract_mvpd_auth(
                 url, video_id, requestor_id, resource)
         info.update(self._search_json_ld(webpage, video_id, fatal=False))
-        media_url = update_url_query(media_url, query)
-        media_url = self._sign_url(media_url, self._THEPLATFORM_KEY, self._THEPLATFORM_SECRET)
-        formats, subtitles = self._extract_theplatform_smil(media_url, video_id)
-        self._sort_formats(formats)
-        info.update({
-            'id': video_id,
-            'formats': formats,
-            'subtitles': subtitles,
-        })
+        info.update(self._extract_aen_smil(media_url, video_id, auth))
         return info
 
 
 class HistoryTopicIE(AENetworksBaseIE):
     IE_NAME = 'history:topic'
     IE_DESC = 'History.com Topic'
-    _VALID_URL = r'https?://(?:www\.)?history\.com/topics/(?:[^/]+/)?(?P<topic_id>[^/]+)(?:/[^/]+(?:/(?P<video_display_id>[^/?#]+))?)?'
+    _VALID_URL = r'https?://(?:www\.)?history\.com/topics/[^/]+/(?P<id>[\w+-]+?)-video'
     _TESTS = [{
-        'url': 'http://www.history.com/topics/valentines-day/history-of-valentines-day/videos/bet-you-didnt-know-valentines-day?m=528e394da93ae&s=undefined&f=1&free=false',
+        'url': 'https://www.history.com/topics/valentines-day/history-of-valentines-day-video',
         'info_dict': {
             'id': '40700995724',
             'ext': 'mp4',
-            'title': "Bet You Didn't Know: Valentine's Day",
+            'title': "History of Valentine’s Day",
             'description': 'md5:7b57ea4829b391995b405fa60bd7b5f7',
             'timestamp': 1375819729,
             'upload_date': '20130806',
-            'uploader': 'AENE-NEW',
         },
         'params': {
             # m3u8 download
             'skip_download': True,
         },
         'add_ie': ['ThePlatform'],
-    }, {
-        'url': 'http://www.history.com/topics/world-war-i/world-war-i-history/videos',
-        'info_dict':
-        {
-            'id': 'world-war-i-history',
-            'title': 'World War I History',
-        },
-        'playlist_mincount': 23,
-    }, {
-        'url': 'http://www.history.com/topics/world-war-i-history/videos',
-        'only_matching': True,
-    }, {
-        'url': 'http://www.history.com/topics/world-war-i/world-war-i-history',
-        'only_matching': True,
-    }, {
-        'url': 'http://www.history.com/topics/world-war-i/world-war-i-history/speeches',
-        'only_matching': True,
     }]
 
     def theplatform_url_result(self, theplatform_url, video_id, query):
@@ -215,27 +229,19 @@ class HistoryTopicIE(AENetworksBaseIE):
         }
 
     def _real_extract(self, url):
-        topic_id, video_display_id = re.match(self._VALID_URL, url).groups()
-        if video_display_id:
-            webpage = self._download_webpage(url, video_display_id)
-            release_url, video_id = re.search(r"_videoPlayer.play\('([^']+)'\s*,\s*'[^']+'\s*,\s*'(\d+)'\)", webpage).groups()
-            release_url = unescapeHTML(release_url)
-
-            return self.theplatform_url_result(
-                release_url, video_id, {
-                    'mbr': 'true',
-                    'switch': 'hls',
-                    'assetTypes': 'high_video_ak',
-                })
-        else:
-            webpage = self._download_webpage(url, topic_id)
-            entries = []
-            for episode_item in re.findall(r'<a.+?data-release-url="[^"]+"[^>]*>', webpage):
-                video_attributes = extract_attributes(episode_item)
-                entries.append(self.theplatform_url_result(
-                    video_attributes['data-release-url'], video_attributes['data-id'], {
-                        'mbr': 'true',
-                        'switch': 'hls',
-                        'assetTypes': 'high_video_ak',
-                    }))
-            return self.playlist_result(entries, topic_id, get_element_by_attribute('class', 'show-title', webpage))
+        display_id = self._match_id(url)
+        webpage = self._download_webpage(url, display_id)
+        video_id = self._search_regex(
+            r'<phoenix-iframe[^>]+src="[^"]+\btpid=(\d+)', webpage, 'tpid')
+        result = self._download_json(
+            'https://feeds.video.aetnd.com/api/v2/history/videos',
+            video_id, query={'filter[id]': video_id})['results'][0]
+        title = result['title']
+        info = self._extract_aen_smil(result['publicUrl'], video_id)
+        info.update({
+            'title': title,
+            'description': result.get('description'),
+            'duration': int_or_none(result.get('duration')),
+            'timestamp': int_or_none(result.get('added'), 1000),
+        })
+        return info

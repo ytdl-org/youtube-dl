@@ -17,6 +17,7 @@ import math
 from ..compat import (
     compat_cookiejar,
     compat_cookies,
+    compat_etree_Element,
     compat_etree_fromstring,
     compat_getpass,
     compat_integer_types,
@@ -43,6 +44,7 @@ from ..utils import (
     compiled_regex_type,
     determine_ext,
     determine_protocol,
+    dict_get,
     error_to_compat_str,
     ExtractorError,
     extract_attributes,
@@ -55,13 +57,16 @@ from ..utils import (
     JSON_LD_RE,
     mimetype2ext,
     orderedSet,
+    parse_bitrate,
     parse_codecs,
     parse_duration,
     parse_iso8601,
     parse_m3u8_attributes,
+    parse_resolution,
     RegexNotFoundError,
     sanitized_Request,
     sanitize_filename,
+    str_or_none,
     unescapeHTML,
     unified_strdate,
     unified_timestamp,
@@ -102,10 +107,26 @@ class InfoExtractor(object):
                     from worst to best quality.
 
                     Potential fields:
-                    * url        Mandatory. The URL of the video file
+                    * url        The mandatory URL representing the media:
+                                   for plain file media - HTTP URL of this file,
+                                   for RTMP - RTMP URL,
+                                   for HLS - URL of the M3U8 media playlist,
+                                   for HDS - URL of the F4M manifest,
+                                   for DASH
+                                     - HTTP URL to plain file media (in case of
+                                       unfragmented media)
+                                     - URL of the MPD manifest or base URL
+                                       representing the media if MPD manifest
+                                       is parsed froma string (in case of
+                                       fragmented media)
+                                   for MSS - URL of the ISM manifest.
                     * manifest_url
                                  The URL of the manifest file in case of
-                                 fragmented media (DASH, hls, hds)
+                                 fragmented media:
+                                   for HLS - URL of the M3U8 master playlist,
+                                   for HDS - URL of the F4M manifest,
+                                   for DASH - URL of the MPD manifest,
+                                   for MSS - URL of the ISM manifest.
                     * ext        Will be calculated from URL if missing
                     * format     A human-readable description of the format
                                  ("mp4 container with h264/opus").
@@ -788,7 +809,7 @@ class InfoExtractor(object):
             fatal=True, encoding=None, data=None, headers={}, query={},
             expected_status=None):
         """
-        Return a tuple (xml as an xml.etree.ElementTree.Element, URL handle).
+        Return a tuple (xml as an compat_etree_Element, URL handle).
 
         See _download_webpage docstring for arguments specification.
         """
@@ -809,7 +830,7 @@ class InfoExtractor(object):
             transform_source=None, fatal=True, encoding=None,
             data=None, headers={}, query={}, expected_status=None):
         """
-        Return the xml as an xml.etree.ElementTree.Element.
+        Return the xml as an compat_etree_Element.
 
         See _download_webpage docstring for arguments specification.
         """
@@ -1058,7 +1079,7 @@ class InfoExtractor(object):
     @staticmethod
     def _og_regexes(prop):
         content_re = r'content=(?:"([^"]+?)"|\'([^\']+?)\'|\s*([^\s"\'=<>`]+?))'
-        property_re = (r'(?:name|property)=(?:\'og:%(prop)s\'|"og:%(prop)s"|\s*og:%(prop)s\b)'
+        property_re = (r'(?:name|property)=(?:\'og[:-]%(prop)s\'|"og[:-]%(prop)s"|\s*og[:-]%(prop)s\b)'
                        % {'prop': re.escape(prop)})
         template = r'<meta[^>]+?%s[^>]+?%s'
         return [
@@ -1239,17 +1260,30 @@ class InfoExtractor(object):
                 if expected_type is not None and expected_type != item_type:
                     return info
                 if item_type in ('TVEpisode', 'Episode'):
+                    episode_name = unescapeHTML(e.get('name'))
                     info.update({
-                        'episode': unescapeHTML(e.get('name')),
+                        'episode': episode_name,
                         'episode_number': int_or_none(e.get('episodeNumber')),
                         'description': unescapeHTML(e.get('description')),
                     })
+                    if not info.get('title') and episode_name:
+                        info['title'] = episode_name
                     part_of_season = e.get('partOfSeason')
                     if isinstance(part_of_season, dict) and part_of_season.get('@type') in ('TVSeason', 'Season', 'CreativeWorkSeason'):
-                        info['season_number'] = int_or_none(part_of_season.get('seasonNumber'))
+                        info.update({
+                            'season': unescapeHTML(part_of_season.get('name')),
+                            'season_number': int_or_none(part_of_season.get('seasonNumber')),
+                        })
                     part_of_series = e.get('partOfSeries') or e.get('partOfTVSeries')
                     if isinstance(part_of_series, dict) and part_of_series.get('@type') in ('TVSeries', 'Series', 'CreativeWorkSeries'):
                         info['series'] = unescapeHTML(part_of_series.get('name'))
+                elif item_type == 'Movie':
+                    info.update({
+                        'title': unescapeHTML(e.get('name')),
+                        'description': unescapeHTML(e.get('description')),
+                        'duration': parse_duration(e.get('duration')),
+                        'timestamp': unified_timestamp(e.get('dateCreated')),
+                    })
                 elif item_type in ('Article', 'NewsArticle'):
                     info.update({
                         'timestamp': parse_iso8601(e.get('datePublished')),
@@ -1427,7 +1461,7 @@ class InfoExtractor(object):
             manifest_url, video_id, 'Downloading f4m manifest',
             'Unable to download f4m manifest',
             # Some manifests may be malformed, e.g. prosiebensat1 generated manifests
-            # (see https://github.com/rg3/youtube-dl/issues/6215#issuecomment-121704244)
+            # (see https://github.com/ytdl-org/youtube-dl/issues/6215#issuecomment-121704244)
             transform_source=transform_source,
             fatal=fatal)
 
@@ -1441,6 +1475,9 @@ class InfoExtractor(object):
     def _parse_f4m_formats(self, manifest, manifest_url, video_id, preference=None, f4m_id=None,
                            transform_source=lambda s: fix_xml_ampersands(s).strip(),
                            fatal=True, m3u8_id=None):
+        if not isinstance(manifest, compat_etree_Element) and not fatal:
+            return []
+
         # currently youtube-dl cannot decode the playerVerificationChallenge as Akamai uses Adobe Alchemy
         akamai_pv = manifest.find('{http://ns.adobe.com/f4m/1.0}pv-2.0')
         if akamai_pv is not None and ';' in akamai_pv.text:
@@ -1455,7 +1492,7 @@ class InfoExtractor(object):
             manifest_version = '2.0'
             media_nodes = manifest.findall('{http://ns.adobe.com/f4m/2.0}media')
         # Remove unsupported DRM protected media from final formats
-        # rendition (see https://github.com/rg3/youtube-dl/issues/8573).
+        # rendition (see https://github.com/ytdl-org/youtube-dl/issues/8573).
         media_nodes = remove_encrypted_media(media_nodes)
         if not media_nodes:
             return formats
@@ -1585,7 +1622,8 @@ class InfoExtractor(object):
 
         # References:
         # 1. https://tools.ietf.org/html/draft-pantos-http-live-streaming-21
-        # 2. https://github.com/rg3/youtube-dl/issues/12211
+        # 2. https://github.com/ytdl-org/youtube-dl/issues/12211
+        # 3. https://github.com/ytdl-org/youtube-dl/issues/18923
 
         # We should try extracting formats only from master playlists [1, 4.3.4],
         # i.e. playlists that describe available qualities. On the other hand
@@ -1657,11 +1695,16 @@ class InfoExtractor(object):
             rendition = stream_group[0]
             return rendition.get('NAME') or stream_group_id
 
+        # parse EXT-X-MEDIA tags before EXT-X-STREAM-INF in order to have the
+        # chance to detect video only formats when EXT-X-STREAM-INF tags
+        # precede EXT-X-MEDIA tags in HLS manifest such as [3].
+        for line in m3u8_doc.splitlines():
+            if line.startswith('#EXT-X-MEDIA:'):
+                extract_media(line)
+
         for line in m3u8_doc.splitlines():
             if line.startswith('#EXT-X-STREAM-INF:'):
                 last_stream_inf = parse_m3u8_attributes(line)
-            elif line.startswith('#EXT-X-MEDIA:'):
-                extract_media(line)
             elif line.startswith('#') or not line.strip():
                 continue
             else:
@@ -1976,6 +2019,8 @@ class InfoExtractor(object):
         if res is False:
             return []
         mpd_doc, urlh = res
+        if mpd_doc is None:
+            return []
         mpd_base_url = base_url(urlh.geturl())
 
         return self._parse_mpd_formats(
@@ -2101,7 +2146,6 @@ class InfoExtractor(object):
                         bandwidth = int_or_none(representation_attrib.get('bandwidth'))
                         f = {
                             'format_id': '%s-%s' % (mpd_id, representation_id) if mpd_id else representation_id,
-                            'url': base_url,
                             'manifest_url': mpd_url,
                             'ext': mimetype2ext(mime_type),
                             'width': int_or_none(representation_attrib.get('width')),
@@ -2122,7 +2166,7 @@ class InfoExtractor(object):
                             # First of, % characters outside $...$ templates
                             # must be escaped by doubling for proper processing
                             # by % operator string formatting used further (see
-                            # https://github.com/rg3/youtube-dl/issues/16867).
+                            # https://github.com/ytdl-org/youtube-dl/issues/16867).
                             t = ''
                             in_template = False
                             for c in tmpl:
@@ -2141,7 +2185,7 @@ class InfoExtractor(object):
 
                         # @initialization is a regular template like @media one
                         # so it should be handled just the same way (see
-                        # https://github.com/rg3/youtube-dl/issues/11605)
+                        # https://github.com/ytdl-org/youtube-dl/issues/11605)
                         if 'initialization' in representation_ms_info:
                             initialization_template = prepare_template(
                                 'initialization',
@@ -2227,7 +2271,7 @@ class InfoExtractor(object):
                         elif 'segment_urls' in representation_ms_info:
                             # Segment URLs with no SegmentTimeline
                             # Example: https://www.seznam.cz/zpravy/clanek/cesko-zasahne-vitr-o-sile-vichrice-muze-byt-i-zivotu-nebezpecny-39091
-                            # https://github.com/rg3/youtube-dl/pull/14844
+                            # https://github.com/ytdl-org/youtube-dl/pull/14844
                             fragments = []
                             segment_duration = float_or_none(
                                 representation_ms_info['segment_duration'],
@@ -2240,10 +2284,14 @@ class InfoExtractor(object):
                                     fragment['duration'] = segment_duration
                                 fragments.append(fragment)
                             representation_ms_info['fragments'] = fragments
-                        # NB: MPD manifest may contain direct URLs to unfragmented media.
-                        # No fragments key is present in this case.
+                        # If there is a fragments key available then we correctly recognized fragmented media.
+                        # Otherwise we will assume unfragmented media with direct access. Technically, such
+                        # assumption is not necessarily correct since we may simply have no support for
+                        # some forms of fragmented media renditions yet, but for now we'll use this fallback.
                         if 'fragments' in representation_ms_info:
                             f.update({
+                                # NB: mpd_url may be empty when MPD manifest is parsed from a string
+                                'url': mpd_url or base_url,
                                 'fragment_base_url': base_url,
                                 'fragments': [],
                                 'protocol': 'http_dash_segments',
@@ -2254,11 +2302,15 @@ class InfoExtractor(object):
                                     f['url'] = initialization_url
                                 f['fragments'].append({location_key(initialization_url): initialization_url})
                             f['fragments'].extend(representation_ms_info['fragments'])
+                        else:
+                            # Assuming direct URL to unfragmented media.
+                            f['url'] = base_url
+
                         # According to [1, 5.3.5.2, Table 7, page 35] @id of Representation
                         # is not necessarily unique within a Period thus formats with
                         # the same `format_id` are quite possible. There are numerous examples
-                        # of such manifests (see https://github.com/rg3/youtube-dl/issues/15111,
-                        # https://github.com/rg3/youtube-dl/issues/13919)
+                        # of such manifests (see https://github.com/ytdl-org/youtube-dl/issues/15111,
+                        # https://github.com/ytdl-org/youtube-dl/issues/13919)
                         full_info = formats_dict.get(representation_id, {}).copy()
                         full_info.update(f)
                         formats.append(full_info)
@@ -2419,7 +2471,7 @@ class InfoExtractor(object):
         media_tags.extend(re.findall(
             # We only allow video|audio followed by a whitespace or '>'.
             # Allowing more characters may end up in significant slow down (see
-            # https://github.com/rg3/youtube-dl/issues/11979, example URL:
+            # https://github.com/ytdl-org/youtube-dl/issues/11979, example URL:
             # http://www.porntrex.com/maps/videositemap.xml).
             r'(?s)(<(?P<tag>(?:amp-)?(?:video|audio))(?:\s+[^>]*)?>)(.*?)</(?P=tag)>', webpage))
         for media_tag, media_type, media_content in media_tags:
@@ -2435,18 +2487,43 @@ class InfoExtractor(object):
             media_info['thumbnail'] = absolute_url(media_attributes.get('poster'))
             if media_content:
                 for source_tag in re.findall(r'<source[^>]+>', media_content):
-                    source_attributes = extract_attributes(source_tag)
-                    src = source_attributes.get('src')
+                    s_attr = extract_attributes(source_tag)
+                    # data-video-src and data-src are non standard but seen
+                    # several times in the wild
+                    src = dict_get(s_attr, ('src', 'data-video-src', 'data-src'))
                     if not src:
                         continue
-                    f = parse_content_type(source_attributes.get('type'))
+                    f = parse_content_type(s_attr.get('type'))
                     is_plain_url, formats = _media_formats(src, media_type, f)
                     if is_plain_url:
-                        # res attribute is not standard but seen several times
-                        # in the wild
+                        # width, height, res, label and title attributes are
+                        # all not standard but seen several times in the wild
+                        labels = [
+                            s_attr.get(lbl)
+                            for lbl in ('label', 'title')
+                            if str_or_none(s_attr.get(lbl))
+                        ]
+                        width = int_or_none(s_attr.get('width'))
+                        height = (int_or_none(s_attr.get('height')) or
+                                  int_or_none(s_attr.get('res')))
+                        if not width or not height:
+                            for lbl in labels:
+                                resolution = parse_resolution(lbl)
+                                if not resolution:
+                                    continue
+                                width = width or resolution.get('width')
+                                height = height or resolution.get('height')
+                        for lbl in labels:
+                            tbr = parse_bitrate(lbl)
+                            if tbr:
+                                break
+                        else:
+                            tbr = None
                         f.update({
-                            'height': int_or_none(source_attributes.get('res')),
-                            'format_id': source_attributes.get('label'),
+                            'width': width,
+                            'height': height,
+                            'tbr': tbr,
+                            'format_id': s_attr.get('label') or s_attr.get('title'),
                         })
                         f.update(formats[0])
                         media_info['formats'].append(f)
@@ -2614,7 +2691,7 @@ class InfoExtractor(object):
                 'id': this_video_id,
                 'title': unescapeHTML(video_data['title'] if require_title else video_data.get('title')),
                 'description': video_data.get('description'),
-                'thumbnail': self._proto_relative_url(video_data.get('image')),
+                'thumbnail': urljoin(base_url, self._proto_relative_url(video_data.get('image'))),
                 'timestamp': int_or_none(video_data.get('pubdate')),
                 'duration': float_or_none(jwplayer_data.get('duration') or video_data.get('duration')),
                 'subtitles': subtitles,
@@ -2641,12 +2718,9 @@ class InfoExtractor(object):
         for source in jwplayer_sources_data:
             if not isinstance(source, dict):
                 continue
-            source_url = self._proto_relative_url(source.get('file'))
-            if not source_url:
-                continue
-            if base_url:
-                source_url = compat_urlparse.urljoin(base_url, source_url)
-            if source_url in urls:
+            source_url = urljoin(
+                base_url, self._proto_relative_url(source.get('file')))
+            if not source_url or source_url in urls:
                 continue
             urls.append(source_url)
             source_type = source.get('type') or ''
