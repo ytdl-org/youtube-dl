@@ -11,7 +11,7 @@ class CloudflareStreamIE(InfoExtractor):
                     https?://
                         (?:
                             (?:watch\.)?cloudflarestream\.com/|
-                            embed\.cloudflarestream\.com/embed/[^/]+\.js\?.*?\bvideo=
+                            embed\.(?:cloudflarestream\.com|videodelivery\.net)/embed/[^/]+\.js\?.*?\bvideo=
                         )
                         (?P<id>[\da-f]+)
                     '''
@@ -31,6 +31,9 @@ class CloudflareStreamIE(InfoExtractor):
     }, {
         'url': 'https://cloudflarestream.com/31c9291ab41fac05471db4e73aa11717/manifest/video.mpd',
         'only_matching': True,
+    }, {
+        'url': 'https://embed.videodelivery.net/embed/r4xu.fla9.latest.js?video=81d80727f3022488598f68d323c1ad5e',
+        'only_matching': True,
     }]
 
     @staticmethod
@@ -38,7 +41,7 @@ class CloudflareStreamIE(InfoExtractor):
         return [
             mobj.group('url')
             for mobj in re.finditer(
-                r'<script[^>]+\bsrc=(["\'])(?P<url>(?:https?:)?//embed\.cloudflarestream\.com/embed/[^/]+\.js\?.*?\bvideo=[\da-f]+?.*?)\1',
+                r'<script[^>]+\bsrc=(["\'])(?P<url>(?:https?:)?//embed\.(?:cloudflarestream\.com|videodelivery\.net)/embed/[^/]+\.js\?.*?\bvideo=[\da-f]+?.*?)\1',
                 webpage)]
 
     def _real_extract(self, url):
