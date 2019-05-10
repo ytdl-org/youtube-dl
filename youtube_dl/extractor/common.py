@@ -117,7 +117,7 @@ class InfoExtractor(object):
                                        unfragmented media)
                                      - URL of the MPD manifest or base URL
                                        representing the media if MPD manifest
-                                       is parsed froma string (in case of
+                                       is parsed from a string (in case of
                                        fragmented media)
                                    for MSS - URL of the ISM manifest.
                     * manifest_url
