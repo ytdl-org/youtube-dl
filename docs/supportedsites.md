@@ -805,6 +805,7 @@
  - **ShowRoomLive**
  - **Sina**
  - **SkylineWebcams**
+ - **SkyNews**
  - **skynewsarabia:article**
  - **skynewsarabia:video**
  - **SkySports**
@@ -999,6 +1000,7 @@
  - **Vbox7**
  - **VeeHD**
  - **Veoh**
+ - **verystream**
  - **Vessel**
  - **Vesti**: Вести.Ru
  - **Vevo**

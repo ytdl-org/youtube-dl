@@ -1,4 +1,4 @@
-version <unreleased>
+version 2019.05.11
 
 Core
 * [utils] Transliterate "þ" as "th" (#20897)
