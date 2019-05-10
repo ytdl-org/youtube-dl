@@ -1959,7 +1959,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                         player_url = json.loads(player_url_json)
 
                 if 'sig' in url_data:
-                    url += '&signature=' + url_data['sig'][0]
+                    url += '&sig=' + url_data['sig'][0]
                 elif 's' in url_data:
                     encrypted_sig = url_data['s'][0]
 
