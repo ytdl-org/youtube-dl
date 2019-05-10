@@ -3,15 +3,13 @@ from __future__ import unicode_literals
 import re
 
 from .common import InfoExtractor
-from ..utils import (
-    url_basename,
-    parse_duration,
-)
+from ..utils import parse_duration
 
 
 class BYUtvIE(InfoExtractor):
     _VALID_URL = r'https?://(?:www\.)?byutv\.org/(?:watch|player)/(?!event/)(?P<id>[0-9a-f-]+)(?:/(?P<display_id>[^/?#&]+))?'
     _TESTS = [{
+        # ooyalaVOD
         'url': 'http://www.byutv.org/watch/6587b9a3-89d2-42a6-a7f7-fd2f81840a7d/studio-c-season-5-episode-5',
         'info_dict': {
             'id': 'ZvanRocTpW-G5_yZFeltTAMv6jxOU9KH',
@@ -27,13 +25,15 @@ class BYUtvIE(InfoExtractor):
         },
         'add_ie': ['Ooyala'],
     }, {
-        'url': 'https://www.byutv.org/player/a5467e14-c7f2-46f9-b3c2-cb31a56749c6/byu-soccer-w-argentina-vs-byu-4419',
+        # dvr
+        'url': 'https://www.byutv.org/player/8f1dab9b-b243-47c8-b525-3e2d021a3451/byu-softball-pacific-vs-byu-41219---game-2',
         'info_dict': {
-            'id': 'a5467e14-c7f2-46f9-b3c2-cb31a56749c6',
-            'display_id': 'byu-soccer-w-argentina-vs-byu-4419',
+            'id': '8f1dab9b-b243-47c8-b525-3e2d021a3451',
+            'display_id': 'byu-softball-pacific-vs-byu-41219---game-2',
             'ext': 'mp4',
-            'title': 'Argentina vs. BYU (4/4/19)',
-            'duration': 7543.0,
+            'title': 'Pacific vs. BYU (4/12/19)',
+            'description': 'md5:1ac7b57cb9a78015910a4834790ce1f3',
+            'duration': 11645,
         },
         'params': {
             'skip_download': True
@@ -49,10 +49,11 @@ class BYUtvIE(InfoExtractor):
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
         video_id = mobj.group('id')
+        display_id = mobj.group('display_id') or video_id
 
         info = self._download_json(
-            'https://api.byutv.org/api3/catalog/getvideosforcontent', video_id,
-            query={
+            'https://api.byutv.org/api3/catalog/getvideosforcontent',
+            display_id, query={
                 'contentid': video_id,
                 'channel': 'byutv',
                 'x-byutv-context': 'web$US',
@@ -68,23 +69,24 @@ class BYUtvIE(InfoExtractor):
                 'ie_key': 'Ooyala',
                 'url': 'ooyala:%s' % ep['providerId'],
                 'id': video_id,
-                'display_id': mobj.group('display_id') or video_id,
+                'display_id': display_id,
                 'title': ep.get('title'),
                 'description': ep.get('description'),
                 'thumbnail': ep.get('imageThumbnail'),
             }
-        else:
-            ep = info['dvr']
-            formats = self._extract_m3u8_formats(
-                ep['videoUrl'], video_id, 'mp4', entry_protocol='m3u8_native'
-            )
-            self._sort_formats(formats)
-            return {
-                'formats': formats,
-                'id': video_id,
-                'display_id': url_basename(url),
-                'title': ep['title'],
-                'description': ep.get('description'),
-                'thumbnail': ep.get('imageThumbnail'),
-                'duration': parse_duration(ep.get('length')),
-            }
+
+        ep = info['dvr']
+        title = ep['title']
+        formats = self._extract_m3u8_formats(
+            ep['videoUrl'], video_id, 'mp4', entry_protocol='m3u8_native',
+            m3u8_id='hls')
+        self._sort_formats(formats)
+        return {
+            'id': video_id,
+            'display_id': display_id,
+            'title': title,
+            'description': ep.get('description'),
+            'thumbnail': ep.get('imageThumbnail'),
+            'duration': parse_duration(ep.get('length')),
+            'formats': formats,
+        }
