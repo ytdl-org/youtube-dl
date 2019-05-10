@@ -1987,7 +1987,8 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
 
                     signature = self._decrypt_signature(
                         encrypted_sig, video_id, player_url, age_gate)
-                    url += '&signature=' + signature
+                    sp = try_get(url_data, lambda x: x['sp'][0], compat_str) or 'signature'
+                    url += '&%s=%s' % (sp, signature)
                 if 'ratebypass' not in url:
                     url += '&ratebypass=yes'
 
@@ -2100,8 +2101,13 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
         else:
             self._downloader.report_warning('unable to extract uploader nickname')
 
-        channel_id = self._html_search_meta(
-            'channelId', video_webpage, 'channel id')
+        channel_id = (
+            str_or_none(video_details.get('channelId')) or
+            self._html_search_meta(
+                'channelId', video_webpage, 'channel id', default=None) or
+            self._search_regex(
+                r'data-channel-external-id=(["\'])(?P<id>(?:(?!\1).)+)\1',
+                video_webpage, 'channel id', default=None, group='id'))
         channel_url = 'http://www.youtube.com/channel/%s' % channel_id if channel_id else None
 
         # thumbnail image
