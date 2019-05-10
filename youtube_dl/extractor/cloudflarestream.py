@@ -29,12 +29,6 @@ class CloudflareStreamIE(InfoExtractor):
         'url': 'https://watch.cloudflarestream.com/9df17203414fd1db3e3ed74abbe936c1',
         'only_matching': True,
     }, {
-        'url': 'https://watch.videodelivery.net/9df17203414fd1db3e3ed74abbe936c1',
-        'only_matching': True,
-    }, {
-        'url': 'https://videodelivery.net/9df17203414fd1db3e3ed74abbe936c1',
-        'only_matching': True,
-    }, {
         'url': 'https://cloudflarestream.com/31c9291ab41fac05471db4e73aa11717/manifest/video.mpd',
         'only_matching': True,
     }, {
