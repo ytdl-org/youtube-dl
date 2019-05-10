@@ -2052,8 +2052,8 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                 url_or_none(try_get(
                     player_response,
                     lambda x: x['streamingData']['hlsManifestUrl'],
-                    compat_str)) or
-                url_or_none(try_get(
+                    compat_str))
+                or url_or_none(try_get(
                     video_info, lambda x: x['hlsvp'][0], compat_str)))
             if manifest_url:
                 formats = []
@@ -2102,10 +2102,10 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
             self._downloader.report_warning('unable to extract uploader nickname')
 
         channel_id = (
-            str_or_none(video_details.get('channelId')) or
-            self._html_search_meta(
-                'channelId', video_webpage, 'channel id', default=None) or
-            self._search_regex(
+            str_or_none(video_details.get('channelId'))
+            or self._html_search_meta(
+                'channelId', video_webpage, 'channel id', default=None)
+            or self._search_regex(
                 r'data-channel-external-id=(["\'])(?P<id>(?:(?!\1).)+)\1',
                 video_webpage, 'channel id', default=None, group='id'))
         channel_url = 'http://www.youtube.com/channel/%s' % channel_id if channel_id else None
@@ -2564,9 +2564,9 @@ class YoutubePlaylistIE(YoutubePlaylistBaseInfoExtractor):
 
         search_title = lambda class_name: get_element_by_attribute('class', class_name, webpage)
         title_span = (
-            search_title('playlist-title') or
-            search_title('title long-title') or
-            search_title('title'))
+            search_title('playlist-title')
+            or search_title('title long-title')
+            or search_title('title'))
         title = clean_html(title_span)
 
         return self.playlist_result(url_results, playlist_id, title)

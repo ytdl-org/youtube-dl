@@ -275,8 +275,8 @@ class VevoIE(VevoBaseIE):
 
         genres = video_info.get('genres')
         genre = (
-            genres[0] if genres and isinstance(genres, list) and
-            isinstance(genres[0], compat_str) else None)
+            genres[0] if genres and isinstance(genres, list)
+            and isinstance(genres[0], compat_str) else None)
 
         is_explicit = video_info.get('isExplicit')
         if is_explicit is True:

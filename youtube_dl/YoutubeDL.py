@@ -400,9 +400,9 @@ class YoutubeDL(object):
                 else:
                     raise
 
-        if (sys.platform != 'win32' and
-                sys.getfilesystemencoding() in ['ascii', 'ANSI_X3.4-1968'] and
-                not params.get('restrictfilenames', False)):
+        if (sys.platform != 'win32'
+                and sys.getfilesystemencoding() in ['ascii', 'ANSI_X3.4-1968']
+                and not params.get('restrictfilenames', False)):
             # Unicode filesystem API will throw errors (#1474, #13027)
             self.report_warning(
                 'Assuming --restrict-filenames since file system encoding '
@@ -440,9 +440,9 @@ class YoutubeDL(object):
             if re.match(r'^-[0-9A-Za-z_-]{10}$', a)]
         if idxs:
             correct_argv = (
-                ['youtube-dl'] +
-                [a for i, a in enumerate(argv) if i not in idxs] +
-                ['--'] + [argv[i] for i in idxs]
+                ['youtube-dl']
+                + [a for i, a in enumerate(argv) if i not in idxs]
+                + ['--'] + [argv[i] for i in idxs]
             )
             self.report_warning(
                 'Long argument string detected. '
@@ -850,8 +850,8 @@ class YoutubeDL(object):
         if result_type in ('url', 'url_transparent'):
             ie_result['url'] = sanitize_url(ie_result['url'])
             extract_flat = self.params.get('extract_flat', False)
-            if ((extract_flat == 'in_playlist' and 'playlist' in extra_info) or
-                    extract_flat is True):
+            if ((extract_flat == 'in_playlist' and 'playlist' in extra_info)
+                    or extract_flat is True):
                 if self.params.get('forcejson', False):
                     self.to_stdout(json.dumps(ie_result))
                 return ie_result
@@ -1619,9 +1619,9 @@ class YoutubeDL(object):
         # https://github.com/ytdl-org/youtube-dl/issues/10083).
         incomplete_formats = (
             # All formats are video-only or
-            all(f.get('vcodec') != 'none' and f.get('acodec') == 'none' for f in formats) or
+            all(f.get('vcodec') != 'none' and f.get('acodec') == 'none' for f in formats)
             # all formats are audio-only
-            all(f.get('vcodec') == 'none' and f.get('acodec') != 'none' for f in formats))
+            or all(f.get('vcodec') == 'none' and f.get('acodec') != 'none' for f in formats))
 
         ctx = {
             'formats': formats,
@@ -1947,8 +1947,8 @@ class YoutubeDL(object):
                     else:
                         assert fixup_policy in ('ignore', 'never')
 
-                if (info_dict.get('requested_formats') is None and
-                        info_dict.get('container') == 'm4a_dash'):
+                if (info_dict.get('requested_formats') is None
+                        and info_dict.get('container') == 'm4a_dash'):
                     if fixup_policy == 'warn':
                         self.report_warning(
                             '%s: writing DASH m4a. '
@@ -1967,9 +1967,9 @@ class YoutubeDL(object):
                     else:
                         assert fixup_policy in ('ignore', 'never')
 
-                if (info_dict.get('protocol') == 'm3u8_native' or
-                        info_dict.get('protocol') == 'm3u8' and
-                        self.params.get('hls_prefer_native')):
+                if (info_dict.get('protocol') == 'm3u8_native'
+                        or info_dict.get('protocol') == 'm3u8'
+                        and self.params.get('hls_prefer_native')):
                     if fixup_policy == 'warn':
                         self.report_warning('%s: malformed AAC bitstream detected.' % (
                             info_dict['id']))
@@ -1995,10 +1995,10 @@ class YoutubeDL(object):
     def download(self, url_list):
         """Download a given list of URLs."""
         outtmpl = self.params.get('outtmpl', DEFAULT_OUTTMPL)
-        if (len(url_list) > 1 and
-                outtmpl != '-' and
-                '%' not in outtmpl and
-                self.params.get('max_downloads') != 1):
+        if (len(url_list) > 1
+                and outtmpl != '-'
+                and '%' not in outtmpl
+                and self.params.get('max_downloads') != 1):
             raise SameFileError(outtmpl)
 
         for url in url_list:
@@ -2143,8 +2143,8 @@ class YoutubeDL(object):
             if res:
                 res += ', '
             res += '%s container' % fdict['container']
-        if (fdict.get('vcodec') is not None and
-                fdict.get('vcodec') != 'none'):
+        if (fdict.get('vcodec') is not None
+                and fdict.get('vcodec') != 'none'):
             if res:
                 res += ', '
             res += fdict['vcodec']

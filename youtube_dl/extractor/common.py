@@ -542,11 +542,11 @@ class InfoExtractor(object):
             raise ExtractorError('An extractor error has occurred.', cause=e)
 
     def __maybe_fake_ip_and_retry(self, countries):
-        if (not self._downloader.params.get('geo_bypass_country', None) and
-                self._GEO_BYPASS and
-                self._downloader.params.get('geo_bypass', True) and
-                not self._x_forwarded_for_ip and
-                countries):
+        if (not self._downloader.params.get('geo_bypass_country', None)
+                and self._GEO_BYPASS
+                and self._downloader.params.get('geo_bypass', True)
+                and not self._x_forwarded_for_ip
+                and countries):
             country_code = random.choice(countries)
             self._x_forwarded_for_ip = GeoUtils.random_ipv4(country_code)
             if self._x_forwarded_for_ip:
@@ -682,8 +682,8 @@ class InfoExtractor(object):
 
     def __check_blocked(self, content):
         first_block = content[:512]
-        if ('<title>Access to this site is blocked</title>' in content and
-                'Websense' in first_block):
+        if ('<title>Access to this site is blocked</title>' in content
+                and 'Websense' in first_block):
             msg = 'Access to this webpage has been blocked by Websense filtering software in your network.'
             blocked_iframe = self._html_search_regex(
                 r'<iframe src="([^"]+)"', content,
@@ -701,8 +701,8 @@ class InfoExtractor(object):
             if block_msg:
                 msg += ' (Message: "%s")' % block_msg.replace('\n', ' ')
             raise ExtractorError(msg, expected=True)
-        if ('<title>TTK :: Доступ к ресурсу ограничен</title>' in content and
-                'blocklist.rkn.gov.ru' in content):
+        if ('<title>TTK :: Доступ к ресурсу ограничен</title>' in content
+                and 'blocklist.rkn.gov.ru' in content):
             raise ExtractorError(
                 'Access to this webpage has been blocked by decision of the Russian government. '
                 'Visit http://blocklist.rkn.gov.ru/ for a block reason.',
@@ -1709,8 +1709,8 @@ class InfoExtractor(object):
                 continue
             else:
                 tbr = float_or_none(
-                    last_stream_inf.get('AVERAGE-BANDWIDTH') or
-                    last_stream_inf.get('BANDWIDTH'), scale=1000)
+                    last_stream_inf.get('AVERAGE-BANDWIDTH')
+                    or last_stream_inf.get('BANDWIDTH'), scale=1000)
                 format_id = []
                 if m3u8_id:
                     format_id.append(m3u8_id)
@@ -2504,8 +2504,8 @@ class InfoExtractor(object):
                             if str_or_none(s_attr.get(lbl))
                         ]
                         width = int_or_none(s_attr.get('width'))
-                        height = (int_or_none(s_attr.get('height')) or
-                                  int_or_none(s_attr.get('res')))
+                        height = (int_or_none(s_attr.get('height'))
+                                  or int_or_none(s_attr.get('res')))
                         if not width or not height:
                             for lbl in labels:
                                 resolution = parse_resolution(lbl)
@@ -2847,8 +2847,8 @@ class InfoExtractor(object):
         return not any_restricted
 
     def extract_subtitles(self, *args, **kwargs):
-        if (self._downloader.params.get('writesubtitles', False) or
-                self._downloader.params.get('listsubtitles')):
+        if (self._downloader.params.get('writesubtitles', False)
+                or self._downloader.params.get('listsubtitles')):
             return self._get_subtitles(*args, **kwargs)
         return {}
 
@@ -2873,8 +2873,8 @@ class InfoExtractor(object):
         return ret
 
     def extract_automatic_captions(self, *args, **kwargs):
-        if (self._downloader.params.get('writeautomaticsub', False) or
-                self._downloader.params.get('listsubtitles')):
+        if (self._downloader.params.get('writeautomaticsub', False)
+                or self._downloader.params.get('listsubtitles')):
             return self._get_automatic_captions(*args, **kwargs)
         return {}
 
@@ -2882,9 +2882,9 @@ class InfoExtractor(object):
         raise NotImplementedError('This method must be implemented by subclasses')
 
     def mark_watched(self, *args, **kwargs):
-        if (self._downloader.params.get('mark_watched', False) and
-                (self._get_login_info()[0] is not None or
-                    self._downloader.params.get('cookiefile') is not None)):
+        if (self._downloader.params.get('mark_watched', False)
+                and (self._get_login_info()[0] is not None
+                     or self._downloader.params.get('cookiefile') is not None)):
             self._mark_watched(*args, **kwargs)
 
     def _mark_watched(self, *args, **kwargs):
