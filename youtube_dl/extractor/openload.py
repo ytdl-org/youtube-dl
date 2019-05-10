@@ -254,7 +254,10 @@ class OpenloadIE(InfoExtractor):
                         (?:f|embed)/
                         (?P<id>[a-zA-Z0-9-_]+)
                     ''' % _DOMAINS
-
+    _EMBED_WORD = 'embed'
+    _STREAM_WORD = 'f'
+    _REDIR_WORD = 'stream'
+    _URL_IDS = ('streamurl', 'streamuri', 'streamurj')
     _TESTS = [{
         'url': 'https://openload.co/f/kUEfGclsU9o',
         'md5': 'bf1c059b004ebc7a256f89408e65c36e',
@@ -1948,11 +1951,16 @@ class OpenloadIE(InfoExtractor):
         '69.0.3497.28',
     )
 
-    @staticmethod
-    def _extract_urls(webpage):
+    @classmethod
+    def _extract_urls(cls, webpage):
         return re.findall(
-            r'<iframe[^>]+src=["\']((?:https?://)?%s/embed/[a-zA-Z0-9-_]+)'
-            % OpenloadIE._DOMAINS, webpage)
+            r'<iframe[^>]+src=["\']((?:https?://)?%s/%s/[a-zA-Z0-9-_]+)'
+            % (cls._DOMAINS, cls._EMBED_WORD), webpage)
+
+    def _extract_decrypted_page(self, page_url, webpage, video_id, headers):
+        phantom = PhantomJSwrapper(self, required_version='2.0')
+        webpage, _ = phantom.get(page_url, html=webpage, video_id=video_id, headers=headers)
+        return webpage
 
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
@@ -1964,9 +1972,9 @@ class OpenloadIE(InfoExtractor):
             'User-Agent': self._USER_AGENT_TPL % random.choice(self._CHROME_VERSIONS),
         }
 
-        for path in ('embed', 'f'):
+        for path in (self._EMBED_WORD, self._STREAM_WORD):
             page_url = url_pattern % path
-            last = path == 'f'
+            last = path == self._STREAM_WORD
             webpage = self._download_webpage(
                 page_url, video_id, 'Downloading %s webpage' % path,
                 headers=headers, fatal=last)
@@ -1978,21 +1986,20 @@ class OpenloadIE(InfoExtractor):
                 raise ExtractorError('File not found', expected=True, video_id=video_id)
             break
 
-        phantom = PhantomJSwrapper(self, required_version='2.0')
-        webpage, _ = phantom.get(page_url, html=webpage, video_id=video_id, headers=headers)
-
-        decoded_id = (get_element_by_id('streamurl', webpage) or
-                      get_element_by_id('streamuri', webpage) or
-                      get_element_by_id('streamurj', webpage) or
-                      self._search_regex(
-                          (r'>\s*([\w-]+~\d{10,}~\d+\.\d+\.0\.0~[\w-]+)\s*<',
-                           r'>\s*([\w~-]+~\d+\.\d+\.\d+\.\d+~[\w~-]+)',
-                           r'>\s*([\w-]+~\d{10,}~(?:[a-f\d]+:){2}:~[\w-]+)\s*<',
-                           r'>\s*([\w~-]+~[a-f0-9:]+~[\w~-]+)\s*<',
-                           r'>\s*([\w~-]+~[a-f0-9:]+~[\w~-]+)'), webpage,
-                          'stream URL'))
-
-        video_url = 'https://%s/stream/%s?mime=true' % (host, decoded_id)
+        webpage = self._extract_decrypted_page(page_url, webpage, video_id, headers)
+        for element_id in self._URL_IDS:
+            decoded_id = get_element_by_id(element_id, webpage)
+            if decoded_id:
+                break
+        if not decoded_id:
+            decoded_id = self._search_regex(
+                (r'>\s*([\w-]+~\d{10,}~\d+\.\d+\.0\.0~[\w-]+)\s*<',
+                 r'>\s*([\w~-]+~\d+\.\d+\.\d+\.\d+~[\w~-]+)',
+                 r'>\s*([\w-]+~\d{10,}~(?:[a-f\d]+:){2}:~[\w-]+)\s*<',
+                 r'>\s*([\w~-]+~[a-f0-9:]+~[\w~-]+)\s*<',
+                 r'>\s*([\w~-]+~[a-f0-9:]+~[\w~-]+)'), webpage,
+                'stream URL')
+        video_url = 'https://%s/%s/%s?mime=true' % (host, self._REDIR_WORD, decoded_id)
 
         title = self._og_search_title(webpage, default=None) or self._search_regex(
             r'<span[^>]+class=["\']title["\'][^>]*>([^<]+)', webpage,
@@ -2012,3 +2019,38 @@ class OpenloadIE(InfoExtractor):
             'subtitles': subtitles,
             'http_headers': headers,
         }
+
+
+class VerystreamIE(OpenloadIE):
+    IE_NAME = 'verystream'
+
+    _DOMAINS = r'(?:verystream\.com)'
+    _VALID_URL = r'''(?x)
+                    https?://
+                        (?P<host>
+                            (?:www\.)?
+                            %s
+                        )/
+                        (?:stream|e)/
+                        (?P<id>[a-zA-Z0-9-_]+)
+                    ''' % _DOMAINS
+    _EMBED_WORD = 'e'
+    _STREAM_WORD = 'stream'
+    _REDIR_WORD = 'gettoken'
+    _URL_IDS = ('videolink', )
+    _TESTS = [{
+        'url': 'https://verystream.com/stream/c1GWQ9ngBBx/',
+        'md5': 'd3e8c5628ccb9970b65fd65269886795',
+        'info_dict': {
+            'id': 'c1GWQ9ngBBx',
+            'ext': 'mp4',
+            'title': 'Big Buck Bunny.mp4',
+            'thumbnail': r're:^https?://.*\.jpg$',
+        },
+    }, {
+        'url': 'https://verystream.com/e/c1GWQ9ngBBx/',
+        'only_matching': True,
+    }]
+
+    def _extract_decrypted_page(self, page_url, webpage, video_id, headers):
+        return webpage  # for Verystream, the webpage is already decrypted
