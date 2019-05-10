@@ -1951,11 +1951,11 @@ class OpenloadIE(InfoExtractor):
         '69.0.3497.28',
     )
 
-    @staticmethod
-    def _extract_urls(webpage):
+    @classmethod
+    def _extract_urls(cls, webpage):
         return re.findall(
-            r'<iframe[^>]+src=["\']((?:https?://)?%s/embed/[a-zA-Z0-9-_]+)'
-            % OpenloadIE._DOMAINS, webpage)
+            r'<iframe[^>]+src=["\']((?:https?://)?%s/%s/[a-zA-Z0-9-_]+)'
+            % (cls._DOMAINS, cls._EMBED_WORD), webpage)
 
     def _extract_decrypted_page(self, page_url, webpage, video_id, headers):
         phantom = PhantomJSwrapper(self, required_version='2.0')
@@ -2024,7 +2024,7 @@ class OpenloadIE(InfoExtractor):
 class VerystreamIE(OpenloadIE):
     IE_NAME = 'verystream'
 
-    _DOMAINS = r'(verystream\.com)'
+    _DOMAINS = r'(?:verystream\.com)'
     _VALID_URL = r'''(?x)
                     https?://
                         (?P<host>
@@ -2054,9 +2054,3 @@ class VerystreamIE(OpenloadIE):
 
     def _extract_decrypted_page(self, page_url, webpage, video_id, headers):
         return webpage  # for Verystream, the webpage is already decrypted
-
-    @staticmethod
-    def _extract_urls(webpage):
-        return re.findall(
-            r'<iframe[^>]+src=["\']((?:https?://)?%s/e/[a-zA-Z0-9-_]+)'
-            % VerystreamIE._DOMAINS, webpage)
