@@ -42,10 +42,10 @@ class RadioJavanIE(InfoExtractor):
             'ext': 'mp3',
             'thumbnail': r're:^https?://.*\.jpe?g$',
         }
-    },{
+    }, {
         'url': 'https://www.radiojavan.com/mp3s/mp3/Sirvan-Khosravi-Dorost-Nemisham',
         'md5': '3fe3d839617ab3d41348bd4f1af04e70',
-        'info_dict':{
+        'info_dict': {
             'upload_date': '20190506',
             'dislike_count': int,
             'like_count': int,
@@ -168,8 +168,6 @@ class RadioJavanIE(InfoExtractor):
         return url
 
     def get_playlist_urls(self, url, content_id):
-        webpage = self._download_webpage("https://www.radiojavan.com/mp3s/playlist_start?id=" + content_id, content_id)
-        title = self._og_search_title(webpage)
         infopage = self._download_webpage("https://www.radiojavan.com/mp3s/playlist_start?id=" + content_id, content_id)
         urls = []
         mp3s = str(self._search_regex(
