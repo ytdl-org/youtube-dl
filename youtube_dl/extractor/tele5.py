@@ -7,7 +7,7 @@ from ..compat import compat_urlparse
 
 
 class Tele5IE(InfoExtractor):
-    _VALID_URL = r'https?://(?:www\.)?tele5\.de/(?:mediathek|tv)/(?P<id>[^?#&]+)'
+    _VALID_URL = r'https?://(?:www\.)?tele5\.de/(?:.*?/?.*?|filme)/(?P<id>[^?#&]+)'
     _TESTS = [{
         'url': 'https://www.tele5.de/mediathek/filme-online/videos?vid=1549416',
         'info_dict': {
