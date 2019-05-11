@@ -172,11 +172,13 @@ class RadioJavanIE(InfoExtractor):
         title = self._og_search_title(webpage)
         infopage = self._download_webpage("https://www.radiojavan.com/mp3s/playlist_start?id=" + content_id, content_id)
         urls = []
-        for mp3s in re.findall(r'RJ.relatedMP3\s*=\s*(?P<mp3s>\[.+\]);', infopage):
-            mp3s_info = json.loads(mp3s)
-            for mp3_info in mp3s_info:
-                url = self.get_mp3_urls("https://www.radiojavan.com/mp3s/mp3/" + mp3_info['next'], mp3_info['next'])
-                urls.append(url)
+        mp3s = str(self._search_regex(
+            r'RJ.relatedMP3\s*=\s*(?P<mp3s>\[.+\]);',
+            infopage, 'mp3s', fatal=False))
+        mp3s_info = json.loads(mp3s)
+        for mp3_info in mp3s_info:
+            url = self.get_mp3_urls("https://www.radiojavan.com/mp3s/mp3/" + mp3_info['next'], mp3_info['next'])
+            urls.append(url)
         return urls
 
     def get_podcast_urls(self, url, content_id):
