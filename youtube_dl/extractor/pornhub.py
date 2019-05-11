@@ -170,7 +170,7 @@ class PornHubIE(PornHubBaseIE):
         def dl_webpage(platform):
             self._set_cookie(host, 'platform', platform)
             return self._download_webpage(
-                'http://www.%s/view_video.php?viewkey=%s' % (host, video_id),
+                'https://www.%s/view_video.php?viewkey=%s' % (host, video_id),
                 video_id, 'Downloading %s webpage' % platform)
 
         webpage = dl_webpage('pc')
