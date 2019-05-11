@@ -15,7 +15,7 @@ from ..utils import (
 
 class RadioJavanIE(InfoExtractor):
     _VALID_URL = r'https?:\/\/(?:www\.)?radiojavan\.com\/(?P<type>videos\/video|mp3s\/mp3|playlists\/playlist\/mp3|podcasts\/podcast)\/(?P<id>[^\/]+)\/?'
-    _TEST = {
+    _TESTS = [{
         'url': 'http://www.radiojavan.com/videos/video/chaartaar-ashoobam',
         'md5': 'e85208ffa3ca8b83534fca9fe19af95b',
         'info_dict': {
@@ -28,7 +28,34 @@ class RadioJavanIE(InfoExtractor):
             'like_count': int,
             'dislike_count': int,
         }
-    }
+    },
+        {
+        'url': 'https://www.radiojavan.com/podcasts/podcast/Mohsens-House-92',
+        'md5': '6ccde3249f86ede1dcbde0a441a6dc91',
+        'info_dict': {
+            'upload_date': '20190421',
+            'id': 'Mohsens-House-92',
+            'title': "Mohsen's House Podcast (Episode 92)",
+            'dislike_count': int,
+            'like_count': int,
+            'view_count': int,
+            'ext': 'mp3',
+            'thumbnail': r're:^https?://.*\.jpe?g$',
+        }
+    },{
+        'url': 'https://www.radiojavan.com/mp3s/mp3/Sirvan-Khosravi-Dorost-Nemisham',
+        'md5': '3fe3d839617ab3d41348bd4f1af04e70',
+        'info_dict':{
+            'upload_date': '20190506',
+            'dislike_count': int,
+            'like_count': int,
+            'view_count': int,
+            'ext': 'mp3',
+            'thumbnail': r're:^https?://.*\.jpe?g$',
+            'title': 'Sirvan Khosravi - Dorost Nemisham',
+            'id': 'Sirvan-Khosravi-Dorost-Nemisham'
+        }
+    }]
 
     def _real_extract(self, url):
         content_id = self._match_id(url)
@@ -37,7 +64,7 @@ class RadioJavanIE(InfoExtractor):
 
         if media_type == "videos/video":
             return self.get_video_urls(url, content_id)
-        elif  media_type == "mp3s/mp3":
+        elif media_type == "mp3s/mp3":
             return self.get_mp3_urls(url, content_id)
         elif media_type == "podcasts/podcast":
             return self.get_podcast_urls(url, content_id)
@@ -63,7 +90,7 @@ class RadioJavanIE(InfoExtractor):
                 webpage):
             f = parse_resolution(format_id)
             f.update({
-                'url': urljoin(download_host, "media", media_path+".mp3"),
+                'url': urljoin(download_host, media_path),
                 'format_id': format_id,
             })
             formats.append(f)
@@ -96,7 +123,6 @@ class RadioJavanIE(InfoExtractor):
             'dislike_count': dislike_count,
             'formats': formats,
         }
-        print(url)
         return url
 
     def get_mp3_urls(self, url, content_id):
@@ -139,19 +165,20 @@ class RadioJavanIE(InfoExtractor):
             'dislike_count': dislike_count,
             'formats': formats,
         }
-        print(url)
         return url
 
     def get_playlist_urls(self, url, content_id):
-        webpage = self._download_webpage("https://www.radiojavan.com/mp3s/playlist_start?id="+content_id, content_id)
+        webpage = self._download_webpage("https://www.radiojavan.com/mp3s/playlist_start?id=" + content_id, content_id)
+        title = self._og_search_title(webpage)
+        infopage = self._download_webpage("https://www.radiojavan.com/mp3s/playlist_start?id=" + content_id, content_id)
         urls = []
-        for mp3s in re.findall(r'RJ.relatedMP3\s*=\s*(?P<mp3s>\[.+\]);', webpage):
+        for mp3s in re.findall(r'RJ.relatedMP3\s*=\s*(?P<mp3s>\[.+\]);', infopage):
             mp3s_info = json.loads(mp3s)
-            for mp3_info in  mp3s_info:
-                url = self.get_mp3_urls("https://www.radiojavan.com/mp3s/mp3/"+mp3_info['next'], mp3_info['next'])
+            for mp3_info in mp3s_info:
+                url = self.get_mp3_urls("https://www.radiojavan.com/mp3s/mp3/" + mp3_info['next'], mp3_info['next'])
                 urls.append(url)
-        print(urls)
         return urls
+
     def get_podcast_urls(self, url, content_id):
         download_host = self.get_download_host(url, 'https://www.radiojavan.com/podcasts/podcast_host', content_id)
         webpage = self._download_webpage(url, content_id)
@@ -160,7 +187,7 @@ class RadioJavanIE(InfoExtractor):
                 r'RJ.currentMP3Url\s*=\s*["\'](?P<url>.+)["\'];',
                 webpage):
             f = {
-                'url': urljoin(download_host, "media/"+media_path+".mp3"),
+                'url': urljoin(download_host, "media/" + media_path + ".mp3"),
                 'vcodec': 'none',
             }
             formats.append(f)
@@ -192,5 +219,4 @@ class RadioJavanIE(InfoExtractor):
             'dislike_count': dislike_count,
             'formats': formats,
         }
-        print(url)
         return url
