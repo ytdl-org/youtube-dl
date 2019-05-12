@@ -68,22 +68,20 @@ class PornTrexIE(PornTrexBaseIE):
 
         title = self._html_search_regex(
             r'<title>(.+?)</title>', webpage, 'title',)
-        url2_regex = re.compile("'(https://www.porntrex.com/get_file/.*?)/'")
-        url2 = re.findall(url2_regex, webpage)
-        uploader_regex = re.compile(
-            r'<a href="https://www.porntrex.com/members/[0-9]+?/">(.+?)</a>',
-            re.DOTALL)
-        uploader = re.findall(uploader_regex, webpage)[0].strip()
+        movie_urls_regex = re.compile("'(https://www.porntrex.com/get_file/.*?)/'")
+        movie_urls = re.findall(movie_urls_regex, webpage)
+        uploader = self._search_regex(r'/members/\d+?/["\']>\s+(.+?)\s+</a>', webpage, 'new_uploader').strip()
         thumbnails_regex = re.compile(r'href="(http.*?/screenshots/\d+.jpg/)"')
         thumbnails_list = re.findall(thumbnails_regex, webpage)
         thumbnails = []
         for thumbs in thumbnails_list:
             thumbnails.append({'url': thumbs})
         formats = []
-        for x, _ in enumerate(url2):
-            formats.append({'url': url2[x],
-                            'ext': url2[x].split('.')[-1],
-                            'protocol': url2[x].split(':')[0],
+        for movie_url in movie_urls:
+            formats.append({'url': movie_url,
+                            'ext': movie_url.split('.')[-1],
+                            'protocol': movie_url.split(':')[0],
+                            'height': int(self._search_regex(r'_(\d+)p.', movie_url.split('/')[8], 'height', default='480')),
                             })
         self._sort_formats(formats)
 
@@ -94,6 +92,7 @@ class PornTrexIE(PornTrexBaseIE):
             'uploader': uploader,
             'thumbnails': thumbnails,
             'formats': formats,
+            'age_limit': 18,
         }
 
 
