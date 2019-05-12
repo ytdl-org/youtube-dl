@@ -7,7 +7,7 @@ from ..compat import compat_urlparse
 
 
 class Tele5IE(InfoExtractor):
-    _VALID_URL = r'https?://(?:www\.)?tele5\.de/(?:mediathek|tv)/(?P<id>[^?#&]+)'
+    _VALID_URL = r'https?://(?:www\.)?tele5\.de/(?:[^/]+/)*(?P<id>[^/?#&]+)'
     _TESTS = [{
         'url': 'https://www.tele5.de/mediathek/filme-online/videos?vid=1549416',
         'info_dict': {
@@ -21,10 +21,22 @@ class Tele5IE(InfoExtractor):
             'skip_download': True,
         },
     }, {
-        'url': 'https://www.tele5.de/tv/kalkofes-mattscheibe/video-clips/politik-und-gesellschaft?ve_id=1551191',
+        'url': 'https://www.tele5.de/kalkofes-mattscheibe/video-clips/politik-und-gesellschaft?ve_id=1551191',
         'only_matching': True,
     }, {
-        'url': 'https://www.tele5.de/tv/dark-matter/videos',
+        'url': 'https://www.tele5.de/video-clip/?ve_id=1609440',
+        'only_matching': True,
+    }, {
+        'url': 'https://www.tele5.de/filme/schlefaz-dragon-crusaders/',
+        'only_matching': True,
+    }, {
+        'url': 'https://www.tele5.de/filme/making-of/avengers-endgame/',
+        'only_matching': True,
+    }, {
+        'url': 'https://www.tele5.de/star-trek/raumschiff-voyager/ganze-folge/das-vinculum/',
+        'only_matching': True,
+    }, {
+        'url': 'https://www.tele5.de/anders-ist-sevda/',
         'only_matching': True,
     }]
 
