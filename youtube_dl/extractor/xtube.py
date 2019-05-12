@@ -106,16 +106,17 @@ class XTubeIE(InfoExtractor):
             (r'<h1>\s*(?P<title>[^<]+?)\s*</h1>', r'videoTitle\s*:\s*(["\'])(?P<title>.+?)\1'),
             webpage, 'title', group='title')
         description = self._search_regex(
-            r'</h1>\s*<p>([^<]+)', webpage, 'description', fatal=False)
+            r'<span class="fullDescription[^"]+">\s*(?P<description>[^<]+)\s*</span>',
+            webpage, 'description', fatal=False)
         uploader = self._search_regex(
             (r'<input[^>]+name="contentOwnerId"[^>]+value="([^"]+)"',
              r'<span[^>]+class="nickname"[^>]*>([^<]+)'),
             webpage, 'uploader', fatal=False)
         duration = parse_duration(self._search_regex(
-            r'<dt>Runtime:?</dt>\s*<dd>([^<]+)</dd>',
+            r',"duration":(?P<duration>\d+)(,|})',
             webpage, 'duration', fatal=False))
         view_count = str_to_int(self._search_regex(
-            r'<dt>Views:?</dt>\s*<dd>([\d,\.]+)</dd>',
+            (r'<div class="viewsWrapper">\s*<span class="viewsCount">\s*(\d+)\s*views'),
             webpage, 'view count', fatal=False))
         comment_count = str_to_int(self._html_search_regex(
             r'>Comments? \(([\d,\.]+)\)<',
