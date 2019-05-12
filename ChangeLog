@@ -1,3 +1,26 @@
+version 2019.05.11
+
+Core
+* [utils] Transliterate "þ" as "th" (#20897)
+
+Extractors
++ [cloudflarestream] Add support for videodelivery.net (#21049)
++ [byutv] Add support for DVR videos (#20574, #20676)
++ [gfycat] Add support for URLs with tags (#20696, #20731)
++ [openload] Add support for verystream.com (#20701, #20967)
+* [youtube] Use sp field value for signature field name (#18841, #18927,
+  #21028)
++ [yahoo:gyao] Extend URL regular expression (#21008)
+* [youtube] Fix channel id extraction (#20982, #21003)
++ [sky] Add support for news.sky.com (#13055)
++ [youtube:entrylistbase] Retry on 5xx HTTP errors (#20965)
++ [francetvinfo] Extend video id extraction (#20619, #20740)
+* [4tube] Update token hosts (#20918)
+* [hotstar] Move to API v2 (#20931)
+* [fox] Fix API error handling under python 2 (#20925)
++ [redbulltv] Extend URL regular expression (#20922)
+
+
 version 2019.04.30
 
 Extractors

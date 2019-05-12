@@ -443,8 +443,8 @@ class VKIE(VKBaseIE):
             format_url = url_or_none(format_url)
             if not format_url or not format_url.startswith(('http', '//', 'rtmp')):
                 continue
-            if (format_id.startswith(('url', 'cache')) or
-                    format_id in ('extra_data', 'live_mp4', 'postlive_mp4')):
+            if (format_id.startswith(('url', 'cache'))
+                    or format_id in ('extra_data', 'live_mp4', 'postlive_mp4')):
                 height = int_or_none(self._search_regex(
                     r'^(?:url|cache)(\d+)', format_id, 'height', default=None))
                 formats.append({

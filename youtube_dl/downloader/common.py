@@ -330,15 +330,15 @@ class FileDownloader(object):
         """
 
         nooverwrites_and_exists = (
-            self.params.get('nooverwrites', False) and
-            os.path.exists(encodeFilename(filename))
+            self.params.get('nooverwrites', False)
+            and os.path.exists(encodeFilename(filename))
         )
 
         if not hasattr(filename, 'write'):
             continuedl_and_exists = (
-                self.params.get('continuedl', True) and
-                os.path.isfile(encodeFilename(filename)) and
-                not self.params.get('nopart', False)
+                self.params.get('continuedl', True)
+                and os.path.isfile(encodeFilename(filename))
+                and not self.params.get('nopart', False)
             )
 
             # Check file already present

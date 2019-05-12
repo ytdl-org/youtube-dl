@@ -94,8 +94,8 @@ class FrontendMastersPageBaseIE(FrontendMastersBaseIE):
         chapter_number = None
         index = lesson.get('index')
         element_index = lesson.get('elementIndex')
-        if (isinstance(index, int) and isinstance(element_index, int) and
-                index < element_index):
+        if (isinstance(index, int) and isinstance(element_index, int)
+                and index < element_index):
             chapter_number = element_index - index
         chapter = (chapters[chapter_number - 1]
                    if chapter_number - 1 < len(chapters) else None)
