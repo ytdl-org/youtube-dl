@@ -772,13 +772,6 @@ from .nova import (
     NovaEmbedIE,
     NovaIE,
 )
-from .novamov import (
-    AuroraVidIE,
-    CloudTimeIE,
-    NowVideoIE,
-    VideoWeedIE,
-    WholeCloudIE,
-)
 from .nowness import (
     NownessIE,
     NownessPlaylistIE,
