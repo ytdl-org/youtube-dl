@@ -1,8 +1,6 @@
 # coding: utf-8
 from __future__ import unicode_literals
 
-import re
-
 from .common import InfoExtractor
 from ..utils import (
     smuggle_url,
@@ -12,23 +10,9 @@ from ..utils import (
 
 class SBSIE(InfoExtractor):
     IE_DESC = 'sbs.com.au'
-    _VALID_URL = r'https?://(?:www\.)?sbs\.com\.au/(?:ondemand|news)/(?:video/)?(?:single/)?([0-9]+|[0-9a-z-]+)'
+    _VALID_URL = r'https?://(?:www\.)?sbs\.com\.au/(?:ondemand|news)/video/(?:single/)?(?P<id>[0-9]+)'
 
     _TESTS = [{
-        'url': 'https://www.sbs.com.au/news/are-the-campaigns-working-voters-speak-out',
-        'md5': '2b73ddcbb597f24a87167826c47398f8',
-        'info_dict': {
-            'id': 'Vznr2YGb83mF',
-            'ext': 'mp4',
-            'title': 'Are the campaigns cutting through?',
-            'description': 'md5:d41d8cd98f00b204e9800998ecf8427e',
-            'thumbnail': r're:http://.*\.jpg',
-            'duration': 146,
-            'timestamp': 1557552900,
-            'upload_date': '20190511',
-            'uploader': 'SBSC',
-        }
-    }, {
         # Original URL is handled by the generic IE which finds the iframe:
         # http://www.sbs.com.au/thefeed/blog/2014/08/21/dingo-conservation
         'url': 'http://www.sbs.com.au/ondemand/video/single/320403011771/?source=drupal&vertical=thefeed',
@@ -52,21 +36,8 @@ class SBSIE(InfoExtractor):
         'only_matching': True,
     }]
 
-    def video_id_from_page_contents(self, url):
-        page_contents = self._download_webpage(url, None)
-        video_id = self._search_regex(r'id="video-(\d+)"', page_contents, 'video id')
-        return video_id
-
-    def video_id(self, url):
-        ID_BEARING_URL = r'https?://(?:www\.)?sbs\.com\.au/(?:ondemand|news)/video/(?:single/)?(?P<id>[0-9]+)'
-        match = re.match(ID_BEARING_URL, url)
-        if match:
-            return match.group('id')
-        else:
-            return self.video_id_from_page_contents(url)
-
     def _real_extract(self, url):
-        video_id = self.video_id(url)
+        video_id = self._video_id(url)
         player_params = self._download_json(
             'http://www.sbs.com.au/api/video_pdkvars/id/%s?form=json' % video_id, video_id)
 
@@ -93,3 +64,35 @@ class SBSIE(InfoExtractor):
             'id': video_id,
             'url': smuggle_url(self._proto_relative_url(theplatform_url), {'force_smil_url': True}),
         }
+
+    def _video_id(self, url):
+        return self._match_id(url)
+
+
+class SBSNewsIE(SBSIE):
+    _VALID_URL = r'https?://(?:www\.)?sbs\.com\.au/news/(?P<id>[0-9a-z-]+)'
+
+    _TESTS = [{
+        'url': 'https://www.sbs.com.au/news/are-the-campaigns-working-voters-speak-out',
+        'only_matching': True,
+        'md5': '2b73ddcbb597f24a87167826c47398f8',
+        'info_dict': {
+            'id': 'Vznr2YGb83mF',
+            'ext': 'mp4',
+            'title': 'Are the campaigns cutting through?',
+            'description': 'md5:d41d8cd98f00b204e9800998ecf8427e',
+            'thumbnail': r're:http://.*\.jpg',
+            'duration': 146,
+            'timestamp': 1557552900,
+            'upload_date': '20190511',
+            'uploader': 'SBSC',
+        },
+    }, {
+        'url': 'https://www.sbs.com.au/news/sbs-world-news-bulletin-may-11',
+        'only_matching': True,
+    }]
+
+    def _video_id(self, url):
+        slug = self._match_id(url)
+        page_contents = self._download_webpage(url, slug)
+        return self._search_regex(r'id="video-(\d+)"', page_contents, 'video id')

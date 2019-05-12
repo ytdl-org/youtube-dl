@@ -1005,7 +1005,10 @@ from .safari import (
 )
 from .sapo import SapoIE
 from .savefrom import SaveFromIE
-from .sbs import SBSIE
+from .sbs import (
+    SBSIE,
+    SBSNewsIE,
+)
 from .screencast import ScreencastIE
 from .screencastomatic import ScreencastOMaticIE
 from .scrippsnetworks import ScrippsNetworksWatchIE
