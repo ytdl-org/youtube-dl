@@ -219,8 +219,8 @@ class FragmentFD(FileDownloader):
             frag_total_bytes = s.get('total_bytes') or 0
             if not ctx['live']:
                 estimated_size = (
-                    (ctx['complete_frags_downloaded_bytes'] + frag_total_bytes) /
-                    (state['fragment_index'] + 1) * total_frags)
+                    (ctx['complete_frags_downloaded_bytes'] + frag_total_bytes)
+                    / (state['fragment_index'] + 1) * total_frags)
                 state['total_bytes_estimate'] = estimated_size
 
             if s['status'] == 'finished':

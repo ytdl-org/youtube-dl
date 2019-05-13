@@ -207,7 +207,7 @@ class TVNowNewBaseIE(InfoExtractor):
         return result
 
 
-"""
+r"""
 TODO: new apigw.tvnow.de based version of TVNowIE. Replace old TVNowIE with it
 when api.tvnow.de is shut down. This version can't bypass premium checks though.
 class TVNowIE(TVNowNewBaseIE):

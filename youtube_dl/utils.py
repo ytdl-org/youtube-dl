@@ -861,8 +861,8 @@ class XAttrMetadataError(YoutubeDLError):
         self.msg = msg
 
         # Parsing code and msg
-        if (self.code in (errno.ENOSPC, errno.EDQUOT) or
-                'No space left' in self.msg or 'Disk quota excedded' in self.msg):
+        if (self.code in (errno.ENOSPC, errno.EDQUOT)
+                or 'No space left' in self.msg or 'Disk quota excedded' in self.msg):
             self.reason = 'NO_SPACE'
         elif self.code == errno.E2BIG or 'Argument list too long' in self.msg:
             self.reason = 'VALUE_TOO_LONG'
@@ -1453,8 +1453,8 @@ def _windows_write_string(s, out):
     def not_a_console(handle):
         if handle == INVALID_HANDLE_VALUE or handle is None:
             return True
-        return ((GetFileType(handle) & ~FILE_TYPE_REMOTE) != FILE_TYPE_CHAR or
-                GetConsoleMode(handle, ctypes.byref(ctypes.wintypes.DWORD())) == 0)
+        return ((GetFileType(handle) & ~FILE_TYPE_REMOTE) != FILE_TYPE_CHAR
+                or GetConsoleMode(handle, ctypes.byref(ctypes.wintypes.DWORD())) == 0)
 
     if not_a_console(h):
         return False
@@ -1490,8 +1490,8 @@ def write_string(s, out=None, encoding=None):
         if _windows_write_string(s, out):
             return
 
-    if ('b' in getattr(out, 'mode', '') or
-            sys.version_info[0] < 3):  # Python 2 lies about mode of sys.stderr
+    if ('b' in getattr(out, 'mode', '')
+            or sys.version_info[0] < 3):  # Python 2 lies about mode of sys.stderr
         byt = s.encode(encoding or preferredencoding(), 'ignore')
         out.write(byt)
     elif hasattr(out, 'buffer'):
@@ -2328,10 +2328,10 @@ def merge_dicts(*dicts):
         for k, v in a_dict.items():
             if v is None:
                 continue
-            if (k not in merged or
-                    (isinstance(v, compat_str) and v and
-                        isinstance(merged[k], compat_str) and
-                        not merged[k])):
+            if (k not in merged
+                    or (isinstance(v, compat_str) and v
+                        and isinstance(merged[k], compat_str)
+                        and not merged[k])):
                 merged[k] = v
     return merged
 
@@ -2657,14 +2657,14 @@ def _match_one(filter_part, dct):
     if m:
         op = COMPARISON_OPERATORS[m.group('op')]
         actual_value = dct.get(m.group('key'))
-        if (m.group('quotedstrval') is not None or
-            m.group('strval') is not None or
+        if (m.group('quotedstrval') is not None
+            or m.group('strval') is not None
             # If the original field is a string and matching comparisonvalue is
             # a number we should respect the origin of the original field
             # and process comparison value as a string (see
             # https://github.com/ytdl-org/youtube-dl/issues/11082).
-            actual_value is not None and m.group('intval') is not None and
-                isinstance(actual_value, compat_str)):
+            or actual_value is not None and m.group('intval') is not None
+                and isinstance(actual_value, compat_str)):
             if m.group('op') not in ('=', '!='):
                 raise ValueError(
                     'Operator %s does not support string values!' % m.group('op'))
@@ -3973,9 +3973,9 @@ def write_xattr(path, key, value):
                     executable = 'xattr'
                     opts = ['-w', key, value]
 
-                cmd = ([encodeFilename(executable, True)] +
-                       [encodeArgument(o) for o in opts] +
-                       [encodeFilename(path, True)])
+                cmd = ([encodeFilename(executable, True)]
+                       + [encodeArgument(o) for o in opts]
+                       + [encodeFilename(path, True)])
 
                 try:
                     p = subprocess.Popen(

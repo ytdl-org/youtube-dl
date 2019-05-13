@@ -43,9 +43,9 @@ def cookie_to_dict(cookie):
     if cookie.discard is not None:
         cookie_dict['discard'] = cookie.discard
     try:
-        if (cookie.has_nonstandard_attr('httpOnly') or
-                cookie.has_nonstandard_attr('httponly') or
-                cookie.has_nonstandard_attr('HttpOnly')):
+        if (cookie.has_nonstandard_attr('httpOnly')
+                or cookie.has_nonstandard_attr('httponly')
+                or cookie.has_nonstandard_attr('HttpOnly')):
             cookie_dict['httponly'] = True
     except TypeError:
         pass
