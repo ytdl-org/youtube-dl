@@ -32,6 +32,14 @@ class DigitallySpeakingIE(InfoExtractor):
         # From http://www.gdcvault.com/play/1013700/Advanced-Material
         'url': 'http://sevt.dispeak.com/ubm/gdc/eur10/xml/11256_1282118587281VNIT.xml',
         'only_matching': True,
+    }, {
+        # From https://gdcvault.com/play/1016624
+        'url': 'https://sevt.dispeak.com/ubm/gdc/online12/xml/201210-822101_1349794556671DDDD.xml',
+        'info_dict': {
+            'id': '201210-822101_1349794556671DDDD',
+            'ext': 'flv',
+            'title': 'Pre-launch - Preparing to Take the Plunge',
+        },
     }]
 
     def _parse_mp4(self, metadata):
