@@ -84,26 +84,28 @@ class DigitallySpeakingIE(InfoExtractor):
                 'vcodec': 'none',
                 'format_id': audio.get('code'),
             })
-        slide_video_path = xpath_text(metadata, './slideVideo', fatal=True)
-        formats.append({
-            'url': 'rtmp://%s/ondemand?ovpfv=1.1' % akamai_url,
-            'play_path': remove_end(slide_video_path, '.flv'),
-            'ext': 'flv',
-            'format_note': 'slide deck video',
-            'quality': -2,
-            'preference': -2,
-            'format_id': 'slides',
-        })
-        speaker_video_path = xpath_text(metadata, './speakerVideo', fatal=True)
-        formats.append({
-            'url': 'rtmp://%s/ondemand?ovpfv=1.1' % akamai_url,
-            'play_path': remove_end(speaker_video_path, '.flv'),
-            'ext': 'flv',
-            'format_note': 'speaker video',
-            'quality': -1,
-            'preference': -1,
-            'format_id': 'speaker',
-        })
+        slide_video_path = xpath_text(metadata, './slideVideo')
+        if slide_video_path:
+            formats.append({
+                'url': 'rtmp://%s/ondemand?ovpfv=1.1' % akamai_url,
+                'play_path': remove_end(slide_video_path, '.flv'),
+                'ext': 'flv',
+                'format_note': 'slide deck video',
+                'quality': -2,
+                'preference': -2,
+                'format_id': 'slides',
+            })
+        speaker_video_path = xpath_text(metadata, './speakerVideo')
+        if speaker_video_path:
+            formats.append({
+                'url': 'rtmp://%s/ondemand?ovpfv=1.1' % akamai_url,
+                'play_path': remove_end(speaker_video_path, '.flv'),
+                'ext': 'flv',
+                'format_note': 'speaker video',
+                'quality': -1,
+                'preference': -1,
+                'format_id': 'speaker',
+            })
         return formats
 
     def _real_extract(self, url):
