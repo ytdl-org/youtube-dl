@@ -103,7 +103,21 @@ class KalturaIE(InfoExtractor):
         {
             'url': 'https://www.kaltura.com:443/index.php/extwidget/preview/partner_id/1770401/uiconf_id/37307382/entry_id/0_58u8kme7/embed/iframe?&flashvars[streamerType]=auto',
             'only_matching': True,
-        }
+        },
+        {
+            'url': 'https://www.gdcvault.com/play/1025699',
+            'info_dict': {
+                'id': '0_zagynv0a',
+                'ext': 'mp4',
+                'title': 'Tech Toolbox',
+                'upload_date': '20190408',
+                'uploader_id': 'joe@blazestreaming.com',
+                'timestamp': 1554764629,
+            },
+            'params': {
+                'skip_download': True,
+            },
+        },
     ]
 
     @staticmethod
