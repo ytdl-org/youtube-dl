@@ -81,7 +81,7 @@ class PornTrexIE(PornTrexBaseIE):
             formats.append({'url': movie_url,
                             'ext': movie_url.split('.')[-1],
                             'protocol': movie_url.split(':')[0],
-                            'height': int(self._search_regex(r'_(\d+)p.', movie_url.split('/')[8], 'height', default='480')),
+                            'height': int(self._search_regex(r'_(\d+)p.', movie_url.split('/')[-1], 'height', default='480')),
                             })
         self._sort_formats(formats)
 
@@ -129,7 +129,7 @@ class PornTrexPlayListIE(PornTrexBaseIE):
 
         return {
             '_type': 'playlist',
-            'id': url.split('/')[4],
+            'id': playlist_id,
             'title': self._html_search_regex(
                 r'<title>(.+?)</title>',
                 webpage,
