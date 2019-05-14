@@ -53,6 +53,7 @@ class PornTrexIE(PornTrexBaseIE):
             'title': 'Naomi gets fingered before the fucking',
             'uploader': 'cumberland',
             'description': 'Sexy brunette babe likes to get her tight cunt slammed in hardcore fashion.',
+            'age_limit': 18,
         }
     }
 
@@ -110,6 +111,7 @@ class PornTrexPlayListIE(PornTrexBaseIE):
             'uploader': 'publicgirls',
             'title': 'FTVGirls.16.05 - Adria Part 2',
             'description': 'https://www.indexxx.com/models/121033/adria-rae/',
+            'age_limit': 18,
         }
     }
 
