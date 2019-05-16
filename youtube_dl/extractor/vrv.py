@@ -198,14 +198,15 @@ class VRVIE(VRVBaseIE):
         self._sort_formats(formats)
 
         subtitles = {}
-        for subtitle in streams_json.get('subtitles', {}).values():
-            subtitle_url = subtitle.get('url')
-            if not subtitle_url:
-                continue
-            subtitles.setdefault(subtitle.get('locale', 'en-US'), []).append({
-                'url': subtitle_url,
-                'ext': subtitle.get('format', 'ass'),
-            })
+        for k in ('captions', 'subtitles'):
+            for subtitle in streams_json.get(k, {}).values():
+                subtitle_url = subtitle.get('url')
+                if not subtitle_url:
+                    continue
+                subtitles.setdefault(subtitle.get('locale', 'en-US'), []).append({
+                    'url': subtitle_url,
+                    'ext': subtitle.get('format', 'ass'),
+                })
 
         thumbnails = []
         for thumbnail in video_data.get('images', {}).get('thumbnails', []):
