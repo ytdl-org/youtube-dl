@@ -238,8 +238,8 @@ def write_metadata_tag(stream, metadata):
 
 
 def remove_encrypted_media(media):
-    return list(filter(lambda e: 'drmAdditionalHeaderId' not in e.attrib and
-                                 'drmAdditionalHeaderSetId' not in e.attrib,
+    return list(filter(lambda e: 'drmAdditionalHeaderId' not in e.attrib
+                                 and 'drmAdditionalHeaderSetId' not in e.attrib,
                        media))
 
 
@@ -267,8 +267,8 @@ class F4mFD(FragmentFD):
         media = doc.findall(_add_ns('media'))
         if not media:
             self.report_error('No media found')
-        for e in (doc.findall(_add_ns('drmAdditionalHeader')) +
-                  doc.findall(_add_ns('drmAdditionalHeaderSet'))):
+        for e in (doc.findall(_add_ns('drmAdditionalHeader'))
+                  + doc.findall(_add_ns('drmAdditionalHeaderSet'))):
             # If id attribute is missing it's valid for all media nodes
             # without drmAdditionalHeaderId or drmAdditionalHeaderSetId attribute
             if 'id' not in e.attrib:

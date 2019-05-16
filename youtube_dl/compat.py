@@ -2649,9 +2649,9 @@ else:
 
 try:
     args = shlex.split('中文')
-    assert (isinstance(args, list) and
-            isinstance(args[0], compat_str) and
-            args[0] == '中文')
+    assert (isinstance(args, list)
+            and isinstance(args[0], compat_str)
+            and args[0] == '中文')
     compat_shlex_split = shlex.split
 except (AssertionError, UnicodeEncodeError):
     # Working around shlex issue with unicode strings on some python 2

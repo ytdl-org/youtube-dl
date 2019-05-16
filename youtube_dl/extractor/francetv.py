@@ -371,12 +371,13 @@ class FranceTVInfoIE(FranceTVBaseInfoExtractor):
                 self.url_result(dailymotion_url, DailymotionIE.ie_key())
                 for dailymotion_url in dailymotion_urls])
 
-        video_id, catalogue = self._search_regex(
-            (r'id-video=([^@]+@[^"]+)',
+        video_id = self._search_regex(
+            (r'player\.load[^;]+src:\s*["\']([^"\']+)',
+             r'id-video=([^@]+@[^"]+)',
              r'<a[^>]+href="(?:https?:)?//videos\.francetv\.fr/video/([^@]+@[^"]+)"'),
-            webpage, 'video id').split('@')
+            webpage, 'video id')
 
-        return self._make_url_result(video_id, catalogue)
+        return self._make_url_result(video_id)
 
 
 class FranceTVInfoSportIE(FranceTVBaseInfoExtractor):

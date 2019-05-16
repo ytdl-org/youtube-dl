@@ -177,7 +177,10 @@ from .cbsnews import (
     CBSNewsLiveVideoIE,
 )
 from .cbssports import CBSSportsIE
-from .ccc import CCCIE
+from .ccc import (
+    CCCIE,
+    CCCPlaylistIE,
+)
 from .ccma import CCMAIE
 from .cctv import CCTVIE
 from .cda import CDAIE
@@ -283,10 +286,6 @@ from .douyutv import (
 from .dplay import (
     DPlayIE,
     DPlayItIE,
-)
-from .dramafever import (
-    DramaFeverIE,
-    DramaFeverSeriesIE,
 )
 from .dreisat import DreiSatIE
 from .drbonanza import DRBonanzaIE
@@ -834,7 +833,10 @@ from .ooyala import (
     OoyalaIE,
     OoyalaExternalIE,
 )
-from .openload import OpenloadIE
+from .openload import (
+    OpenloadIE,
+    VerystreamIE,
+)
 from .ora import OraTVIE
 from .orf import (
     ORFTVthekIE,
@@ -1034,7 +1036,10 @@ from .skynewsarabia import (
     SkyNewsArabiaIE,
     SkyNewsArabiaArticleIE,
 )
-from .skysports import SkySportsIE
+from .sky import (
+    SkyNewsIE,
+    SkySportsIE,
+)
 from .slideshare import SlideshareIE
 from .slideslive import SlidesLiveIE
 from .slutload import SlutloadIE

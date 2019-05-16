@@ -164,6 +164,7 @@
  - **chirbit**
  - **chirbit:profile**
  - **Cinchcast**
+ - **Cinemax**
  - **CiscoLiveSearch**
  - **CiscoLiveSession**
  - **CJSW**
@@ -237,8 +238,6 @@
  - **DouyuTV**: 斗鱼
  - **DPlay**
  - **DPlayIt**
- - **dramafever**
- - **dramafever:series**
  - **DRBonanza**
  - **Dropbox**
  - **DrTuber**
@@ -488,6 +487,7 @@
  - **MatchTV**
  - **MDR**: MDR.DE and KiKA
  - **media.ccc.de**
+ - **media.ccc.de:lists**
  - **Medialaan**
  - **Mediaset**
  - **Mediasite**
@@ -805,6 +805,7 @@
  - **ShowRoomLive**
  - **Sina**
  - **SkylineWebcams**
+ - **SkyNews**
  - **skynewsarabia:article**
  - **skynewsarabia:video**
  - **SkySports**
@@ -857,6 +858,8 @@
  - **StretchInternet**
  - **stv:player**
  - **SunPorno**
+ - **sverigesradio:episode**
+ - **sverigesradio:publication**
  - **SVT**
  - **SVTPage**
  - **SVTPlay**: SVT Play and Öppet arkiv
@@ -997,6 +1000,7 @@
  - **Vbox7**
  - **VeeHD**
  - **Veoh**
+ - **verystream**
  - **Vessel**
  - **Vesti**: Вести.Ru
  - **Vevo**
@@ -1102,8 +1106,6 @@
  - **Wistia**
  - **wnl**: npo.nl, ntr.nl, omroepwnl.nl, zapp.nl and npo3.nl
  - **WorldStarHipHop**
- - **wrzuta.pl**
- - **wrzuta.pl:playlist**
  - **WSJ**: Wall Street Journal
  - **WSJArticle**
  - **WWE**

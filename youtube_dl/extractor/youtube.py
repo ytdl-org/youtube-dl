@@ -16,6 +16,7 @@ from ..jsinterp import JSInterpreter
 from ..swfinterp import SWFInterpreter
 from ..compat import (
     compat_chr,
+    compat_HTTPError,
     compat_kwargs,
     compat_parse_qs,
     compat_urllib_parse_unquote,
@@ -27,6 +28,7 @@ from ..compat import (
 )
 from ..utils import (
     clean_html,
+    dict_get,
     error_to_compat_str,
     ExtractorError,
     float_or_none,
@@ -287,10 +289,25 @@ class YoutubeEntryListBaseInfoExtractor(YoutubeBaseInfoExtractor):
             if not mobj:
                 break
 
-            more = self._download_json(
-                'https://youtube.com/%s' % mobj.group('more'), playlist_id,
-                'Downloading page #%s' % page_num,
-                transform_source=uppercase_escape)
+            count = 0
+            retries = 3
+            while count <= retries:
+                try:
+                    # Downloading page may result in intermittent 5xx HTTP error
+                    # that is usually worked around with a retry
+                    more = self._download_json(
+                        'https://youtube.com/%s' % mobj.group('more'), playlist_id,
+                        'Downloading page #%s%s'
+                        % (page_num, ' (retry #%d)' % count if count else ''),
+                        transform_source=uppercase_escape)
+                    break
+                except ExtractorError as e:
+                    if isinstance(e.cause, compat_HTTPError) and e.cause.code in (500, 503):
+                        count += 1
+                        if count <= retries:
+                            continue
+                    raise
+
             content_html = more['content_html']
             if not content_html.strip():
                 # Some webpages show a "Load more" button but they don't
@@ -908,6 +925,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                 'creator': 'Todd Haberman,  Daniel Law Heath and Aaron Kaplan',
                 'track': 'Dark Walk - Position Music',
                 'artist': 'Todd Haberman,  Daniel Law Heath and Aaron Kaplan',
+                'album': 'Position Music - Production Music Vol. 143 - Dark Walk',
             },
             'params': {
                 'skip_download': True,
@@ -1651,6 +1669,9 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
         def extract_view_count(v_info):
             return int_or_none(try_get(v_info, lambda x: x['view_count'][0]))
 
+        def extract_token(v_info):
+            return dict_get(v_info, ('account_playback_token', 'accountPlaybackToken', 'token'))
+
         player_response = {}
 
         # Get video info
@@ -1710,7 +1731,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                 # The general idea is to take a union of itags of both DASH manifests (for example
                 # video with such 'manifest behavior' see https://github.com/ytdl-org/youtube-dl/issues/6093)
                 self.report_video_info_webpage_download(video_id)
-                for el in ('info', 'embedded', 'detailpage', 'vevo', ''):
+                for el in ('embedded', 'detailpage', 'vevo', ''):
                     query = {
                         'video_id': video_id,
                         'ps': 'default',
@@ -1740,7 +1761,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                         view_count = extract_view_count(get_video_info)
                     if not video_info:
                         video_info = get_video_info
-                    get_token = get_video_info.get('token') or get_video_info.get('account_playback_token')
+                    get_token = extract_token(get_video_info)
                     if get_token:
                         # Different get_video_info requests may report different results, e.g.
                         # some may report video unavailability, but some may serve it without
@@ -1751,7 +1772,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                         # due to YouTube measures against IP ranges of hosting providers.
                         # Working around by preferring the first succeeded video_info containing
                         # the token if no such video_info yet was found.
-                        token = video_info.get('token') or video_info.get('account_playback_token')
+                        token = extract_token(video_info)
                         if not token:
                             video_info = get_video_info
                         break
@@ -1767,28 +1788,6 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                 unavailable_message = 'Unable to extract video data'
             raise ExtractorError(
                 'YouTube said: %s' % unavailable_message, expected=True, video_id=video_id)
-
-        token = video_info.get('token') or video_info.get('account_playback_token')
-        if not token:
-            if 'reason' in video_info:
-                if 'The uploader has not made this video available in your country.' in video_info['reason']:
-                    regions_allowed = self._html_search_meta(
-                        'regionsAllowed', video_webpage, default=None)
-                    countries = regions_allowed.split(',') if regions_allowed else None
-                    self.raise_geo_restricted(
-                        msg=video_info['reason'][0], countries=countries)
-                reason = video_info['reason'][0]
-                if 'Invalid parameters' in reason:
-                    unavailable_message = extract_unavailable_message()
-                    if unavailable_message:
-                        reason = unavailable_message
-                raise ExtractorError(
-                    'YouTube said: %s' % reason,
-                    expected=True, video_id=video_id)
-            else:
-                raise ExtractorError(
-                    '"token" parameter not in video info for unknown reason',
-                    video_id=video_id)
 
         if video_info.get('license_info'):
             raise ExtractorError('This video is DRM protected.', expected=True)
@@ -1988,7 +1987,8 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
 
                     signature = self._decrypt_signature(
                         encrypted_sig, video_id, player_url, age_gate)
-                    url += '&signature=' + signature
+                    sp = try_get(url_data, lambda x: x['sp'][0], compat_str) or 'signature'
+                    url += '&%s=%s' % (sp, signature)
                 if 'ratebypass' not in url:
                     url += '&ratebypass=yes'
 
@@ -2052,8 +2052,8 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                 url_or_none(try_get(
                     player_response,
                     lambda x: x['streamingData']['hlsManifestUrl'],
-                    compat_str)) or
-                url_or_none(try_get(
+                    compat_str))
+                or url_or_none(try_get(
                     video_info, lambda x: x['hlsvp'][0], compat_str)))
             if manifest_url:
                 formats = []
@@ -2101,8 +2101,13 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
         else:
             self._downloader.report_warning('unable to extract uploader nickname')
 
-        channel_id = self._html_search_meta(
-            'channelId', video_webpage, 'channel id')
+        channel_id = (
+            str_or_none(video_details.get('channelId'))
+            or self._html_search_meta(
+                'channelId', video_webpage, 'channel id', default=None)
+            or self._search_regex(
+                r'data-channel-external-id=(["\'])(?P<id>(?:(?!\1).)+)\1',
+                video_webpage, 'channel id', default=None, group='id'))
         channel_url = 'http://www.youtube.com/channel/%s' % channel_id if channel_id else None
 
         # thumbnail image
@@ -2161,9 +2166,10 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
 
         track = extract_meta('Song')
         artist = extract_meta('Artist')
+        album = extract_meta('Album')
 
         # Youtube Music Auto-generated description
-        album = release_date = release_year = None
+        release_date = release_year = None
         if video_description:
             mobj = re.search(r'(?s)Provided to YouTube by [^\n]+\n+(?P<track>[^·]+)·(?P<artist>[^\n]+)\n+(?P<album>[^\n]+)(?:.+?℗\s*(?P<release_year>\d{4})(?!\d))?(?:.+?Released on\s*:\s*(?P<release_date>\d{4}-\d{2}-\d{2}))?(.+?\nArtist\s*:\s*(?P<clean_artist>[^\n]+))?', video_description)
             if mobj:
@@ -2171,7 +2177,8 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                     track = mobj.group('track').strip()
                 if not artist:
                     artist = mobj.group('clean_artist') or ', '.join(a.strip() for a in mobj.group('artist').split('·'))
-                album = mobj.group('album'.strip())
+                if not album:
+                    album = mobj.group('album'.strip())
                 release_year = mobj.group('release_year')
                 release_date = mobj.group('release_date')
                 if release_date:
@@ -2292,6 +2299,29 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                 for f in formats:
                     if f.get('vcodec') != 'none':
                         f['stretched_ratio'] = ratio
+
+        if not formats:
+            token = extract_token(video_info)
+            if not token:
+                if 'reason' in video_info:
+                    if 'The uploader has not made this video available in your country.' in video_info['reason']:
+                        regions_allowed = self._html_search_meta(
+                            'regionsAllowed', video_webpage, default=None)
+                        countries = regions_allowed.split(',') if regions_allowed else None
+                        self.raise_geo_restricted(
+                            msg=video_info['reason'][0], countries=countries)
+                    reason = video_info['reason'][0]
+                    if 'Invalid parameters' in reason:
+                        unavailable_message = extract_unavailable_message()
+                        if unavailable_message:
+                            reason = unavailable_message
+                    raise ExtractorError(
+                        'YouTube said: %s' % reason,
+                        expected=True, video_id=video_id)
+                else:
+                    raise ExtractorError(
+                        '"token" parameter not in video info for unknown reason',
+                        video_id=video_id)
 
         self._sort_formats(formats)
 
@@ -2534,9 +2564,9 @@ class YoutubePlaylistIE(YoutubePlaylistBaseInfoExtractor):
 
         search_title = lambda class_name: get_element_by_attribute('class', class_name, webpage)
         title_span = (
-            search_title('playlist-title') or
-            search_title('title long-title') or
-            search_title('title'))
+            search_title('playlist-title')
+            or search_title('title long-title')
+            or search_title('title'))
         title = clean_html(title_span)
 
         return self.playlist_result(url_results, playlist_id, title)
