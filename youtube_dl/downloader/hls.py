@@ -76,12 +76,12 @@ class HlsFD(FragmentFD):
             return fd.real_download(filename, info_dict)
 
         def is_ad_fragment_start(s):
-            return (s.startswith('#ANVATO-SEGMENT-INFO') and 'type=ad' in s or
-                    s.startswith('#UPLYNK-SEGMENT') and s.endswith(',ad'))
+            return (s.startswith('#ANVATO-SEGMENT-INFO') and 'type=ad' in s
+                    or s.startswith('#UPLYNK-SEGMENT') and s.endswith(',ad'))
 
         def is_ad_fragment_end(s):
-            return (s.startswith('#ANVATO-SEGMENT-INFO') and 'type=master' in s or
-                    s.startswith('#UPLYNK-SEGMENT') and s.endswith(',segment'))
+            return (s.startswith('#ANVATO-SEGMENT-INFO') and 'type=master' in s
+                    or s.startswith('#UPLYNK-SEGMENT') and s.endswith(',segment'))
 
         media_frags = 0
         ad_frags = 0
@@ -152,8 +152,8 @@ class HlsFD(FragmentFD):
                         except compat_urllib_error.HTTPError as err:
                             # Unavailable (possibly temporary) fragments may be served.
                             # First we try to retry then either skip or abort.
-                            # See https://github.com/rg3/youtube-dl/issues/10165,
-                            # https://github.com/rg3/youtube-dl/issues/10448).
+                            # See https://github.com/ytdl-org/youtube-dl/issues/10165,
+                            # https://github.com/ytdl-org/youtube-dl/issues/10448).
                             count += 1
                             if count <= fragment_retries:
                                 self.report_retry_fragment(err, frag_index, count, fragment_retries)

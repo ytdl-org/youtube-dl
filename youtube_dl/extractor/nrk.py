@@ -45,8 +45,8 @@ class NRKBaseIE(InfoExtractor):
         entries = []
 
         conviva = data.get('convivaStatistics') or {}
-        live = (data.get('mediaElementType') == 'Live' or
-                data.get('isLive') is True or conviva.get('isLive'))
+        live = (data.get('mediaElementType') == 'Live'
+                or data.get('isLive') is True or conviva.get('isLive'))
 
         def make_title(t):
             return self._live_title(t) if live else t

@@ -118,8 +118,8 @@ class KalturaIE(InfoExtractor):
                         (?P<q2>['"])_?(?P<partner_id>(?:(?!(?P=q2)).)+)(?P=q2),.*?
                         (?P<q3>['"])entry_?[Ii]d(?P=q3)\s*:\s*
                         (?P<q4>['"])(?P<id>(?:(?!(?P=q4)).)+)(?P=q4)(?:,|\s*\})
-                """, webpage) or
-            re.search(
+                """, webpage)
+            or re.search(
                 r'''(?xs)
                     (?P<q1>["'])
                         (?:https?:)?//cdnapi(?:sec)?\.kaltura\.com(?::\d+)?/(?:(?!(?P=q1)).)*\b(?:p|partner_id)/(?P<partner_id>\d+)(?:(?!(?P=q1)).)*
@@ -132,8 +132,8 @@ class KalturaIE(InfoExtractor):
                         \[\s*(?P<q2_1>["'])entry_?[Ii]d(?P=q2_1)\s*\]\s*=\s*
                     )
                     (?P<q3>["'])(?P<id>(?:(?!(?P=q3)).)+)(?P=q3)
-                ''', webpage) or
-            re.search(
+                ''', webpage)
+            or re.search(
                 r'''(?xs)
                     <(?:iframe[^>]+src|meta[^>]+\bcontent)=(?P<q1>["'])
                       (?:https?:)?//(?:(?:www|cdnapi(?:sec)?)\.)?kaltura\.com/(?:(?!(?P=q1)).)*\b(?:p|partner_id)/(?P<partner_id>\d+)
@@ -145,6 +145,8 @@ class KalturaIE(InfoExtractor):
         )
         if mobj:
             embed_info = mobj.groupdict()
+            for k, v in embed_info.items():
+                embed_info[k] = v.strip()
             url = 'kaltura:%(partner_id)s:%(id)s' % embed_info
             escaped_pid = re.escape(embed_info['partner_id'])
             service_url = re.search(

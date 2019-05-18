@@ -89,7 +89,10 @@ from .piksel import PikselIE
 from .videa import VideaIE
 from .twentymin import TwentyMinutenIE
 from .ustream import UstreamIE
-from .openload import OpenloadIE
+from .openload import (
+    OpenloadIE,
+    VerystreamIE,
+)
 from .videopress import VideoPressIE
 from .rutube import RutubeIE
 from .limelight import LimelightBaseIE
@@ -430,7 +433,7 @@ class GenericIE(InfoExtractor):
             },
         },
         {
-            # https://github.com/rg3/youtube-dl/issues/2253
+            # https://github.com/ytdl-org/youtube-dl/issues/2253
             'url': 'http://bcove.me/i6nfkrc3',
             'md5': '0ba9446db037002366bab3b3eb30c88c',
             'info_dict': {
@@ -455,7 +458,7 @@ class GenericIE(InfoExtractor):
             },
         },
         {
-            # https://github.com/rg3/youtube-dl/issues/3541
+            # https://github.com/ytdl-org/youtube-dl/issues/3541
             'add_ie': ['BrightcoveLegacy'],
             'url': 'http://www.kijk.nl/sbs6/leermijvrouwenkennen/videos/jqMiXKAYan2S/aflevering-1',
             'info_dict': {
@@ -919,7 +922,7 @@ class GenericIE(InfoExtractor):
             }
         },
         # Multiple brightcove videos
-        # https://github.com/rg3/youtube-dl/issues/2283
+        # https://github.com/ytdl-org/youtube-dl/issues/2283
         {
             'url': 'http://www.newyorker.com/online/blogs/newsdesk/2014/01/always-never-nuclear-command-and-control.html',
             'info_dict': {
@@ -2371,7 +2374,7 @@ class GenericIE(InfoExtractor):
             return camtasia_res
 
         # Sometimes embedded video player is hidden behind percent encoding
-        # (e.g. https://github.com/rg3/youtube-dl/issues/2448)
+        # (e.g. https://github.com/ytdl-org/youtube-dl/issues/2448)
         # Unescaping the whole page allows to handle those cases in a generic way
         webpage = compat_urllib_parse_unquote(webpage)
 
@@ -2546,11 +2549,11 @@ class GenericIE(InfoExtractor):
             return self.url_result(mobj.group('url'))
 
         # Look for Ooyala videos
-        mobj = (re.search(r'player\.ooyala\.com/[^"?]+[?#][^"]*?(?:embedCode|ec)=(?P<ec>[^"&]+)', webpage) or
-                re.search(r'OO\.Player\.create\([\'"].*?[\'"],\s*[\'"](?P<ec>.{32})[\'"]', webpage) or
-                re.search(r'OO\.Player\.create\.apply\(\s*OO\.Player\s*,\s*op\(\s*\[\s*[\'"][^\'"]*[\'"]\s*,\s*[\'"](?P<ec>.{32})[\'"]', webpage) or
-                re.search(r'SBN\.VideoLinkset\.ooyala\([\'"](?P<ec>.{32})[\'"]\)', webpage) or
-                re.search(r'data-ooyala-video-id\s*=\s*[\'"](?P<ec>.{32})[\'"]', webpage))
+        mobj = (re.search(r'player\.ooyala\.com/[^"?]+[?#][^"]*?(?:embedCode|ec)=(?P<ec>[^"&]+)', webpage)
+                or re.search(r'OO\.Player\.create\([\'"].*?[\'"],\s*[\'"](?P<ec>.{32})[\'"]', webpage)
+                or re.search(r'OO\.Player\.create\.apply\(\s*OO\.Player\s*,\s*op\(\s*\[\s*[\'"][^\'"]*[\'"]\s*,\s*[\'"](?P<ec>.{32})[\'"]', webpage)
+                or re.search(r'SBN\.VideoLinkset\.ooyala\([\'"](?P<ec>.{32})[\'"]\)', webpage)
+                or re.search(r'data-ooyala-video-id\s*=\s*[\'"](?P<ec>.{32})[\'"]', webpage))
         if mobj is not None:
             embed_token = self._search_regex(
                 r'embedToken[\'"]?\s*:\s*[\'"]([^\'"]+)',
@@ -3017,6 +3020,12 @@ class GenericIE(InfoExtractor):
             return self.playlist_from_matches(
                 openload_urls, video_id, video_title, ie=OpenloadIE.ie_key())
 
+        # Look for Verystream embeds
+        verystream_urls = VerystreamIE._extract_urls(webpage)
+        if verystream_urls:
+            return self.playlist_from_matches(
+                verystream_urls, video_id, video_title, ie=VerystreamIE.ie_key())
+
         # Look for VideoPress embeds
         videopress_urls = VideoPressIE._extract_urls(webpage)
         if videopress_urls:
@@ -3177,7 +3186,7 @@ class GenericIE(InfoExtractor):
                     jwplayer_data, video_id, require_title=False, base_url=url)
                 return merge_dicts(info, info_dict)
             except ExtractorError:
-                # See https://github.com/rg3/youtube-dl/pull/16735
+                # See https://github.com/ytdl-org/youtube-dl/pull/16735
                 pass
 
         # Video.js embed
@@ -3212,8 +3221,8 @@ class GenericIE(InfoExtractor):
                 else:
                     formats.append({
                         'url': src,
-                        'ext': (mimetype2ext(src_type) or
-                                ext if ext in KNOWN_EXTENSIONS else 'mp4'),
+                        'ext': (mimetype2ext(src_type)
+                                or ext if ext in KNOWN_EXTENSIONS else 'mp4'),
                     })
             if formats:
                 self._sort_formats(formats)

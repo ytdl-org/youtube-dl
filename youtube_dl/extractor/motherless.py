@@ -80,8 +80,8 @@ class MotherlessIE(InfoExtractor):
         video_url = (self._html_search_regex(
             (r'setup\(\{\s*["\']file["\']\s*:\s*(["\'])(?P<url>(?:(?!\1).)+)\1',
              r'fileurl\s*=\s*(["\'])(?P<url>(?:(?!\1).)+)\1'),
-            webpage, 'video URL', default=None, group='url') or
-            'http://cdn4.videos.motherlessmedia.com/videos/%s.mp4?fs=opencloud' % video_id)
+            webpage, 'video URL', default=None, group='url')
+            or 'http://cdn4.videos.motherlessmedia.com/videos/%s.mp4?fs=opencloud' % video_id)
         age_limit = self._rta_search(webpage)
         view_count = str_to_int(self._html_search_regex(
             r'<strong>Views</strong>\s+([^<]+)<',

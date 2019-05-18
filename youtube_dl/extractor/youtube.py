@@ -16,6 +16,7 @@ from ..jsinterp import JSInterpreter
 from ..swfinterp import SWFInterpreter
 from ..compat import (
     compat_chr,
+    compat_HTTPError,
     compat_kwargs,
     compat_parse_qs,
     compat_urllib_parse_unquote,
@@ -27,6 +28,7 @@ from ..compat import (
 )
 from ..utils import (
     clean_html,
+    dict_get,
     error_to_compat_str,
     ExtractorError,
     float_or_none,
@@ -287,10 +289,25 @@ class YoutubeEntryListBaseInfoExtractor(YoutubeBaseInfoExtractor):
             if not mobj:
                 break
 
-            more = self._download_json(
-                'https://youtube.com/%s' % mobj.group('more'), playlist_id,
-                'Downloading page #%s' % page_num,
-                transform_source=uppercase_escape)
+            count = 0
+            retries = 3
+            while count <= retries:
+                try:
+                    # Downloading page may result in intermittent 5xx HTTP error
+                    # that is usually worked around with a retry
+                    more = self._download_json(
+                        'https://youtube.com/%s' % mobj.group('more'), playlist_id,
+                        'Downloading page #%s%s'
+                        % (page_num, ' (retry #%d)' % count if count else ''),
+                        transform_source=uppercase_escape)
+                    break
+                except ExtractorError as e:
+                    if isinstance(e.cause, compat_HTTPError) and e.cause.code in (500, 503):
+                        count += 1
+                        if count <= retries:
+                            continue
+                    raise
+
             content_html = more['content_html']
             if not content_html.strip():
                 # Some webpages show a "Load more" button but they don't
@@ -351,7 +368,11 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                             (?:www\.)?hooktube\.com/|
                             (?:www\.)?yourepeat\.com/|
                             tube\.majestyc\.net/|
-                            (?:www\.)?invidio\.us/|
+                            (?:(?:www|dev)\.)?invidio\.us/|
+                            (?:www\.)?invidiou\.sh/|
+                            (?:www\.)?invidious\.snopyta\.org/|
+                            (?:www\.)?invidious\.kabi\.tk/|
+                            (?:www\.)?vid\.wxzm\.sx/|
                             youtube\.googleapis\.com/)                        # the various hostnames, with wildcard subdomains
                          (?:.*?\#/)?                                          # handle anchor (#/) redirect urls
                          (?:                                                  # the various things that can precede the ID:
@@ -427,7 +448,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
         '135': {'ext': 'mp4', 'height': 480, 'format_note': 'DASH video', 'vcodec': 'h264'},
         '136': {'ext': 'mp4', 'height': 720, 'format_note': 'DASH video', 'vcodec': 'h264'},
         '137': {'ext': 'mp4', 'height': 1080, 'format_note': 'DASH video', 'vcodec': 'h264'},
-        '138': {'ext': 'mp4', 'format_note': 'DASH video', 'vcodec': 'h264'},  # Height can vary (https://github.com/rg3/youtube-dl/issues/4559)
+        '138': {'ext': 'mp4', 'format_note': 'DASH video', 'vcodec': 'h264'},  # Height can vary (https://github.com/ytdl-org/youtube-dl/issues/4559)
         '160': {'ext': 'mp4', 'height': 144, 'format_note': 'DASH video', 'vcodec': 'h264'},
         '212': {'ext': 'mp4', 'height': 480, 'format_note': 'DASH video', 'vcodec': 'h264'},
         '264': {'ext': 'mp4', 'height': 1440, 'format_note': 'DASH video', 'vcodec': 'h264'},
@@ -480,7 +501,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
         # RTMP (unnamed)
         '_rtmp': {'protocol': 'rtmp'},
     }
-    _SUBTITLE_FORMATS = ('ttml', 'vtt')
+    _SUBTITLE_FORMATS = ('srv1', 'srv2', 'srv3', 'ttml', 'vtt')
 
     _GEO_BYPASS = False
 
@@ -692,7 +713,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                 'age_limit': 18,
             },
         },
-        # video_info is None (https://github.com/rg3/youtube-dl/issues/4421)
+        # video_info is None (https://github.com/ytdl-org/youtube-dl/issues/4421)
         # YouTube Red ad is not captured for creator
         {
             'url': '__2ABJjxzNo',
@@ -713,7 +734,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                 'DASH manifest missing',
             ]
         },
-        # Olympics (https://github.com/rg3/youtube-dl/issues/4431)
+        # Olympics (https://github.com/ytdl-org/youtube-dl/issues/4431)
         {
             'url': 'lqQg6PlCWgI',
             'info_dict': {
@@ -764,7 +785,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
             },
             'skip': 'This live event has ended.',
         },
-        # Extraction from multiple DASH manifests (https://github.com/rg3/youtube-dl/pull/6097)
+        # Extraction from multiple DASH manifests (https://github.com/ytdl-org/youtube-dl/pull/6097)
         {
             'url': 'https://www.youtube.com/watch?v=FIl7x6_3R5Y',
             'info_dict': {
@@ -867,7 +888,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
             'skip': 'This video is not available.',
         },
         {
-            # Multifeed video with comma in title (see https://github.com/rg3/youtube-dl/issues/8536)
+            # Multifeed video with comma in title (see https://github.com/ytdl-org/youtube-dl/issues/8536)
             'url': 'https://www.youtube.com/watch?v=gVfLd0zydlo',
             'info_dict': {
                 'id': 'gVfLd0zydlo',
@@ -885,10 +906,10 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
             'only_matching': True,
         },
         {
-            # Title with JS-like syntax "};" (see https://github.com/rg3/youtube-dl/issues/7468)
+            # Title with JS-like syntax "};" (see https://github.com/ytdl-org/youtube-dl/issues/7468)
             # Also tests cut-off URL expansion in video description (see
-            # https://github.com/rg3/youtube-dl/issues/1892,
-            # https://github.com/rg3/youtube-dl/issues/8164)
+            # https://github.com/ytdl-org/youtube-dl/issues/1892,
+            # https://github.com/ytdl-org/youtube-dl/issues/8164)
             'url': 'https://www.youtube.com/watch?v=lsguqyKfVQg',
             'info_dict': {
                 'id': 'lsguqyKfVQg',
@@ -904,13 +925,14 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                 'creator': 'Todd Haberman,  Daniel Law Heath and Aaron Kaplan',
                 'track': 'Dark Walk - Position Music',
                 'artist': 'Todd Haberman,  Daniel Law Heath and Aaron Kaplan',
+                'album': 'Position Music - Production Music Vol. 143 - Dark Walk',
             },
             'params': {
                 'skip_download': True,
             },
         },
         {
-            # Tags with '};' (see https://github.com/rg3/youtube-dl/issues/7468)
+            # Tags with '};' (see https://github.com/ytdl-org/youtube-dl/issues/7468)
             'url': 'https://www.youtube.com/watch?v=Ms7iBXnlUO8',
             'only_matching': True,
         },
@@ -974,7 +996,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
             'only_matching': True,
         },
         {
-            # YouTube Red paid video (https://github.com/rg3/youtube-dl/issues/10059)
+            # YouTube Red paid video (https://github.com/ytdl-org/youtube-dl/issues/10059)
             'url': 'https://www.youtube.com/watch?v=i1Ko8UG-Tdo',
             'only_matching': True,
         },
@@ -1082,7 +1104,95 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                 'skip_download': True,
                 'youtube_include_dash_manifest': False,
             },
-        }
+        },
+        {
+            # Youtube Music Auto-generated description
+            'url': 'https://music.youtube.com/watch?v=MgNrAu2pzNs',
+            'info_dict': {
+                'id': 'MgNrAu2pzNs',
+                'ext': 'mp4',
+                'title': 'Voyeur Girl',
+                'description': 'md5:7ae382a65843d6df2685993e90a8628f',
+                'upload_date': '20190312',
+                'uploader': 'Various Artists - Topic',
+                'uploader_id': 'UCVWKBi1ELZn0QX2CBLSkiyw',
+                'artist': 'Stephen',
+                'track': 'Voyeur Girl',
+                'album': 'it\'s too much love to know my dear',
+                'release_date': '20190313',
+                'release_year': 2019,
+            },
+            'params': {
+                'skip_download': True,
+            },
+        },
+        {
+            # Youtube Music Auto-generated description
+            # Retrieve 'artist' field from 'Artist:' in video description
+            # when it is present on youtube music video
+            'url': 'https://www.youtube.com/watch?v=k0jLE7tTwjY',
+            'info_dict': {
+                'id': 'k0jLE7tTwjY',
+                'ext': 'mp4',
+                'title': 'Latch Feat. Sam Smith',
+                'description': 'md5:3cb1e8101a7c85fcba9b4fb41b951335',
+                'upload_date': '20150110',
+                'uploader': 'Various Artists - Topic',
+                'uploader_id': 'UCNkEcmYdjrH4RqtNgh7BZ9w',
+                'artist': 'Disclosure',
+                'track': 'Latch Feat. Sam Smith',
+                'album': 'Latch Featuring Sam Smith',
+                'release_date': '20121008',
+                'release_year': 2012,
+            },
+            'params': {
+                'skip_download': True,
+            },
+        },
+        {
+            # Youtube Music Auto-generated description
+            # handle multiple artists on youtube music video
+            'url': 'https://www.youtube.com/watch?v=74qn0eJSjpA',
+            'info_dict': {
+                'id': '74qn0eJSjpA',
+                'ext': 'mp4',
+                'title': 'Eastside',
+                'description': 'md5:290516bb73dcbfab0dcc4efe6c3de5f2',
+                'upload_date': '20180710',
+                'uploader': 'Benny Blanco - Topic',
+                'uploader_id': 'UCzqz_ksRu_WkIzmivMdIS7A',
+                'artist': 'benny blanco, Halsey, Khalid',
+                'track': 'Eastside',
+                'album': 'Eastside',
+                'release_date': '20180713',
+                'release_year': 2018,
+            },
+            'params': {
+                'skip_download': True,
+            },
+        },
+        {
+            # Youtube Music Auto-generated description
+            # handle youtube music video with release_year and no release_date
+            'url': 'https://www.youtube.com/watch?v=-hcAI0g-f5M',
+            'info_dict': {
+                'id': '-hcAI0g-f5M',
+                'ext': 'mp4',
+                'title': 'Put It On Me',
+                'description': 'md5:93c55acc682ae7b0c668f2e34e1c069e',
+                'upload_date': '20180426',
+                'uploader': 'Matt Maeson - Topic',
+                'uploader_id': 'UCnEkIGqtGcQMLk73Kp-Q5LQ',
+                'artist': 'Matt Maeson',
+                'track': 'Put It On Me',
+                'album': 'The Hearse',
+                'release_date': None,
+                'release_year': 2018,
+            },
+            'params': {
+                'skip_download': True,
+            },
+        },
     ]
 
     def __init__(self, *args, **kwargs):
@@ -1280,8 +1390,8 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
             # regex won't capture the whole JSON. Yet working around by trying more
             # concrete regex first keeping in mind proper quoted string handling
             # to be implemented in future that will replace this workaround (see
-            # https://github.com/rg3/youtube-dl/issues/7468,
-            # https://github.com/rg3/youtube-dl/pull/7599)
+            # https://github.com/ytdl-org/youtube-dl/issues/7468,
+            # https://github.com/ytdl-org/youtube-dl/pull/7599)
             r';ytplayer\.config\s*=\s*({.+?});ytplayer',
             r';ytplayer\.config\s*=\s*({.+?});',
         )
@@ -1559,6 +1669,9 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
         def extract_view_count(v_info):
             return int_or_none(try_get(v_info, lambda x: x['view_count'][0]))
 
+        def extract_token(v_info):
+            return dict_get(v_info, ('account_playback_token', 'accountPlaybackToken', 'token'))
+
         player_response = {}
 
         # Get video info
@@ -1596,7 +1709,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                     add_dash_mpd(video_info)
                 # Rental video is not rented but preview is available (e.g.
                 # https://www.youtube.com/watch?v=yYr8q0y5Jfg,
-                # https://github.com/rg3/youtube-dl/issues/10532)
+                # https://github.com/ytdl-org/youtube-dl/issues/10532)
                 if not video_info and args.get('ypc_vid'):
                     return self.url_result(
                         args['ypc_vid'], YoutubeIE.ie_key(), video_id=args['ypc_vid'])
@@ -1616,9 +1729,9 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                 # are missing from DASH manifest pointed by webpage's dashmpd, some - from DASH
                 # manifest pointed by get_video_info's dashmpd).
                 # The general idea is to take a union of itags of both DASH manifests (for example
-                # video with such 'manifest behavior' see https://github.com/rg3/youtube-dl/issues/6093)
+                # video with such 'manifest behavior' see https://github.com/ytdl-org/youtube-dl/issues/6093)
                 self.report_video_info_webpage_download(video_id)
-                for el in ('info', 'embedded', 'detailpage', 'vevo', ''):
+                for el in ('embedded', 'detailpage', 'vevo', ''):
                     query = {
                         'video_id': video_id,
                         'ps': 'default',
@@ -1648,17 +1761,19 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                         view_count = extract_view_count(get_video_info)
                     if not video_info:
                         video_info = get_video_info
-                    if 'token' in get_video_info:
+                    get_token = extract_token(get_video_info)
+                    if get_token:
                         # Different get_video_info requests may report different results, e.g.
                         # some may report video unavailability, but some may serve it without
-                        # any complaint (see https://github.com/rg3/youtube-dl/issues/7362,
+                        # any complaint (see https://github.com/ytdl-org/youtube-dl/issues/7362,
                         # the original webpage as well as el=info and el=embedded get_video_info
                         # requests report video unavailability due to geo restriction while
                         # el=detailpage succeeds and returns valid data). This is probably
                         # due to YouTube measures against IP ranges of hosting providers.
                         # Working around by preferring the first succeeded video_info containing
                         # the token if no such video_info yet was found.
-                        if 'token' not in video_info:
+                        token = extract_token(video_info)
+                        if not token:
                             video_info = get_video_info
                         break
 
@@ -1667,26 +1782,12 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                 r'(?s)<h1[^>]+id="unavailable-message"[^>]*>(.+?)</h1>',
                 video_webpage, 'unavailable message', default=None)
 
-        if 'token' not in video_info:
-            if 'reason' in video_info:
-                if 'The uploader has not made this video available in your country.' in video_info['reason']:
-                    regions_allowed = self._html_search_meta(
-                        'regionsAllowed', video_webpage, default=None)
-                    countries = regions_allowed.split(',') if regions_allowed else None
-                    self.raise_geo_restricted(
-                        msg=video_info['reason'][0], countries=countries)
-                reason = video_info['reason'][0]
-                if 'Invalid parameters' in reason:
-                    unavailable_message = extract_unavailable_message()
-                    if unavailable_message:
-                        reason = unavailable_message
-                raise ExtractorError(
-                    'YouTube said: %s' % reason,
-                    expected=True, video_id=video_id)
-            else:
-                raise ExtractorError(
-                    '"token" parameter not in video info for unknown reason',
-                    video_id=video_id)
+        if not video_info:
+            unavailable_message = extract_unavailable_message()
+            if not unavailable_message:
+                unavailable_message = 'Unable to extract video data'
+            raise ExtractorError(
+                'YouTube said: %s' % unavailable_message, expected=True, video_id=video_id)
 
         if video_info.get('license_info'):
             raise ExtractorError('This video is DRM protected.', expected=True)
@@ -1747,7 +1848,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                     for feed in multifeed_metadata_list.split(','):
                         # Unquote should take place before split on comma (,) since textual
                         # fields may contain comma as well (see
-                        # https://github.com/rg3/youtube-dl/issues/8536)
+                        # https://github.com/ytdl-org/youtube-dl/issues/8536)
                         feed_data = compat_parse_qs(compat_urllib_parse_unquote_plus(feed))
                         entries.append({
                             '_type': 'url_transparent',
@@ -1772,7 +1873,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
 
         # Check for "rental" videos
         if 'ypc_video_rental_bar_text' in video_info and 'author' not in video_info:
-            raise ExtractorError('"rental" videos not supported. See https://github.com/rg3/youtube-dl/issues/359 for more information.', expected=True)
+            raise ExtractorError('"rental" videos not supported. See https://github.com/ytdl-org/youtube-dl/issues/359 for more information.', expected=True)
 
         def _extract_filesize(media_url):
             return int_or_none(self._search_regex(
@@ -1789,7 +1890,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
         elif not is_live and (len(video_info.get('url_encoded_fmt_stream_map', [''])[0]) >= 1 or len(video_info.get('adaptive_fmts', [''])[0]) >= 1):
             encoded_url_map = video_info.get('url_encoded_fmt_stream_map', [''])[0] + ',' + video_info.get('adaptive_fmts', [''])[0]
             if 'rtmpe%3Dyes' in encoded_url_map:
-                raise ExtractorError('rtmpe downloads are not supported, see https://github.com/rg3/youtube-dl/issues/343 for more information.', expected=True)
+                raise ExtractorError('rtmpe downloads are not supported, see https://github.com/ytdl-org/youtube-dl/issues/343 for more information.', expected=True)
             formats_spec = {}
             fmt_list = video_info.get('fmt_list', [''])[0]
             if fmt_list:
@@ -1886,7 +1987,8 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
 
                     signature = self._decrypt_signature(
                         encrypted_sig, video_id, player_url, age_gate)
-                    url += '&signature=' + signature
+                    sp = try_get(url_data, lambda x: x['sp'][0], compat_str) or 'signature'
+                    url += '&%s=%s' % (sp, signature)
                 if 'ratebypass' not in url:
                     url += '&ratebypass=yes'
 
@@ -1901,7 +2003,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                     dct.update(formats_spec[format_id])
 
                 # Some itags are not included in DASH manifest thus corresponding formats will
-                # lack metadata (see https://github.com/rg3/youtube-dl/pull/5993).
+                # lack metadata (see https://github.com/ytdl-org/youtube-dl/pull/5993).
                 # Trying to extract metadata from url_encoded_fmt_stream_map entry.
                 mobj = re.search(r'^(?P<width>\d+)[xX](?P<height>\d+)$', url_data.get('size', [''])[0])
                 width, height = (int(mobj.group('width')), int(mobj.group('height'))) if mobj else (None, None)
@@ -1950,8 +2052,8 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                 url_or_none(try_get(
                     player_response,
                     lambda x: x['streamingData']['hlsManifestUrl'],
-                    compat_str)) or
-                url_or_none(try_get(
+                    compat_str))
+                or url_or_none(try_get(
                     video_info, lambda x: x['hlsvp'][0], compat_str)))
             if manifest_url:
                 formats = []
@@ -1999,8 +2101,13 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
         else:
             self._downloader.report_warning('unable to extract uploader nickname')
 
-        channel_id = self._html_search_meta(
-            'channelId', video_webpage, 'channel id')
+        channel_id = (
+            str_or_none(video_details.get('channelId'))
+            or self._html_search_meta(
+                'channelId', video_webpage, 'channel id', default=None)
+            or self._search_regex(
+                r'data-channel-external-id=(["\'])(?P<id>(?:(?!\1).)+)\1',
+                video_webpage, 'channel id', default=None, group='id'))
         channel_url = 'http://www.youtube.com/channel/%s' % channel_id if channel_id else None
 
         # thumbnail image
@@ -2059,6 +2166,27 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
 
         track = extract_meta('Song')
         artist = extract_meta('Artist')
+        album = extract_meta('Album')
+
+        # Youtube Music Auto-generated description
+        release_date = release_year = None
+        if video_description:
+            mobj = re.search(r'(?s)Provided to YouTube by [^\n]+\n+(?P<track>[^·]+)·(?P<artist>[^\n]+)\n+(?P<album>[^\n]+)(?:.+?℗\s*(?P<release_year>\d{4})(?!\d))?(?:.+?Released on\s*:\s*(?P<release_date>\d{4}-\d{2}-\d{2}))?(.+?\nArtist\s*:\s*(?P<clean_artist>[^\n]+))?', video_description)
+            if mobj:
+                if not track:
+                    track = mobj.group('track').strip()
+                if not artist:
+                    artist = mobj.group('clean_artist') or ', '.join(a.strip() for a in mobj.group('artist').split('·'))
+                if not album:
+                    album = mobj.group('album'.strip())
+                release_year = mobj.group('release_year')
+                release_date = mobj.group('release_date')
+                if release_date:
+                    release_date = release_date.replace('-', '')
+                    if not release_year:
+                        release_year = int(release_date[:4])
+                if release_year:
+                    release_year = int(release_year)
 
         m_episode = re.search(
             r'<div[^>]+id="watch7-headline"[^>]*>\s*<span[^>]*>.*?>(?P<series>[^<]+)</a></b>\s*S(?P<season>\d+)\s*•\s*E(?P<episode>\d+)</span>',
@@ -2152,7 +2280,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                     # Remove the formats we found through non-DASH, they
                     # contain less info and it can be wrong, because we use
                     # fixed values (for example the resolution). See
-                    # https://github.com/rg3/youtube-dl/issues/5774 for an
+                    # https://github.com/ytdl-org/youtube-dl/issues/5774 for an
                     # example.
                     formats = [f for f in formats if f['format_id'] not in dash_formats.keys()]
                     formats.extend(dash_formats.values())
@@ -2171,6 +2299,29 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                 for f in formats:
                     if f.get('vcodec') != 'none':
                         f['stretched_ratio'] = ratio
+
+        if not formats:
+            token = extract_token(video_info)
+            if not token:
+                if 'reason' in video_info:
+                    if 'The uploader has not made this video available in your country.' in video_info['reason']:
+                        regions_allowed = self._html_search_meta(
+                            'regionsAllowed', video_webpage, default=None)
+                        countries = regions_allowed.split(',') if regions_allowed else None
+                        self.raise_geo_restricted(
+                            msg=video_info['reason'][0], countries=countries)
+                    reason = video_info['reason'][0]
+                    if 'Invalid parameters' in reason:
+                        unavailable_message = extract_unavailable_message()
+                        if unavailable_message:
+                            reason = unavailable_message
+                    raise ExtractorError(
+                        'YouTube said: %s' % reason,
+                        expected=True, video_id=video_id)
+                else:
+                    raise ExtractorError(
+                        '"token" parameter not in video info for unknown reason',
+                        video_id=video_id)
 
         self._sort_formats(formats)
 
@@ -2212,6 +2363,9 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
             'episode_number': episode_number,
             'track': track,
             'artist': artist,
+            'album': album,
+            'release_date': release_date,
+            'release_year': release_year,
         }
 
 
@@ -2410,9 +2564,9 @@ class YoutubePlaylistIE(YoutubePlaylistBaseInfoExtractor):
 
         search_title = lambda class_name: get_element_by_attribute('class', class_name, webpage)
         title_span = (
-            search_title('playlist-title') or
-            search_title('title long-title') or
-            search_title('title'))
+            search_title('playlist-title')
+            or search_title('title long-title')
+            or search_title('title'))
         title = clean_html(title_span)
 
         return self.playlist_result(url_results, playlist_id, title)
@@ -2421,7 +2575,7 @@ class YoutubePlaylistIE(YoutubePlaylistBaseInfoExtractor):
         url = self._TEMPLATE_URL % playlist_id
         page = self._download_webpage(url, playlist_id)
 
-        # the yt-alert-message now has tabindex attribute (see https://github.com/rg3/youtube-dl/issues/11604)
+        # the yt-alert-message now has tabindex attribute (see https://github.com/ytdl-org/youtube-dl/issues/11604)
         for match in re.findall(r'<div class="yt-alert-message"[^>]*>([^<]+)</div>', page):
             match = match.strip()
             # Check if the playlist exists or is private
@@ -2514,7 +2668,7 @@ class YoutubePlaylistIE(YoutubePlaylistBaseInfoExtractor):
             return playlist
 
         # Some playlist URLs don't actually serve a playlist (see
-        # https://github.com/rg3/youtube-dl/issues/10537).
+        # https://github.com/ytdl-org/youtube-dl/issues/10537).
         # Fallback to plain video extraction if there is a video id
         # along with playlist id.
         return self.url_result(video_id, 'Youtube', video_id=video_id)
