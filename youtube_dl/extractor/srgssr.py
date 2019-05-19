@@ -106,7 +106,7 @@ class SRGSSRIE(InfoExtractor):
 
 class SRGSSRPlayIE(InfoExtractor):
     IE_DESC = 'srf.ch, rts.ch, rsi.ch, rtr.ch and swissinfo.ch play sites'
-    _VALID_URL = r'https?://(?:(?:www|play)\.)?(?P<bu>srf|rts|rsi|rtr|swissinfo)\.ch/play/(?:tv|radio)/[^/]+/(?P<type>video|audio)/[^?]+\?id=(?P<id>[0-9a-f\-]{36}|\d+)'
+    _VALID_URL = r'https?://(?:(?:www|play)\.)?(?P<bu>srf|rts|rsi|rtr|swissinfo)\.ch/play/(?:tv|radio)/(?:[^/]+/|popup)(?P<type>video|audio)(?:/[^?]+|player)\?id=(?P<id>[0-9a-f\-]{36}|\d+)'
 
     _TESTS = [{
         'url': 'http://www.srf.ch/play/tv/10vor10/video/snowden-beantragt-asyl-in-russland?id=28e1a57d-5b76-4399-8ab3-9097f071e6c5',
@@ -162,6 +162,17 @@ class SRGSSRPlayIE(InfoExtractor):
         'params': {
             # m3u8 download
             'skip_download': True,
+        }
+    }, {
+        'url': 'https://www.srf.ch/play/tv/popupvideoplayer?id=c4dba0ca-e75b-43b2-a34f-f708a4932e01',
+        'md5': 'f6247aa7c905b81c9ba7f50fb22e2fbd',
+        'info_dict': {
+            'id': 'c4dba0ca-e75b-43b2-a34f-f708a4932e01',
+            'ext': 'mp4',
+            'upload_date': '20190122',
+            'title': 'Erster Selfie-Stick (1983)',
+            'description': 'md5:23a6b40024e583137e4137f5946543c1',
+            'timestamp': 1548155133,
         }
     }]
 
