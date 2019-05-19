@@ -92,11 +92,10 @@ class RuutuIE(InfoExtractor):
             Returns original video url with authentication token
             appended. Required for most videos since early 2019.
             """
-            authenticated_url = self._download_webpage(
+            return self._download_webpage(
                 'https://gatling.nelonenmedia.fi/auth/access/v2',
                 video_id, query={'stream': url},
                 note='Authenticating video url', fatal=False)
-            return authenticated_url
 
         def extract_formats(node):
             for child in node:
@@ -112,8 +111,7 @@ class RuutuIE(InfoExtractor):
                     if not self._request_webpage(
                             video_url, video_id,
                             note='Checking if video is available without authentication',
-                            errnote='Authentication required',
-                            fatal=False):
+                            errnote='Authentication required', fatal=False):
                         video_url = authenticate_video_url(video_url)
                         if not video_url:
                             continue
@@ -177,8 +175,7 @@ class RuutuIE(InfoExtractor):
                 raise ExtractorError(
                     ("Probably a Ruutu+ video, authentication required. "
                      "Consider sending PR for proper handling of Ruutu+ "
-                     "videos with credentials."),
-                    expected=True)
+                     "videos with credentials."), expected=True)
 
         self._sort_formats(formats)
 
