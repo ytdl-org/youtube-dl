@@ -216,6 +216,32 @@ class CBCWatchBaseIE(InfoExtractor):
         'clearleap': 'http://www.clearleap.com/namespace/clearleap/1.0/',
     }
     _GEO_COUNTRIES = ['CA']
+    _LOGIN_URL = 'https://api.loginradius.com/identity/v2/auth/login'
+    _TOKEN_URL = 'https://cloud-api.loginradius.com/sso/jwt/api/token'
+    _API_KEY = '3f4beddd-2061-49b0-ae80-6f1f2ed65b37'
+    _NETRC_MACHINE = 'cbcwatch'
+
+    def _signature(self):
+        email, password = self._get_login_info()
+        if email is None:
+            return
+        data = json.dumps({
+            'email': email,
+            'password': password,
+        }).encode()
+        headers = {'content-type': 'application/json'}
+        query = {'apikey': self._API_KEY}
+        resp = self._download_json(self._LOGIN_URL, None, data=data, headers=headers, query=query)
+        access_token = resp['access_token']
+
+        # token
+        query = {
+            'access_token': access_token,
+            'apikey': self._API_KEY,
+            'jwtapp': 'jwt',
+        }
+        resp = self._download_json(self._TOKEN_URL, None, headers=headers, query=query)
+        return resp['signature']
 
     def _call_api(self, path, video_id):
         url = path if path.startswith('http') else self._API_BASE_URL + path
@@ -249,6 +275,7 @@ class CBCWatchBaseIE(InfoExtractor):
         return self._device_id and self._device_token
 
     def _register_device(self):
+        signature = self._signature()
         self._device_id = self._device_token = None
         result = self._download_xml(
             self._API_BASE_URL + 'device/register',
@@ -256,6 +283,11 @@ class CBCWatchBaseIE(InfoExtractor):
             data=b'<device><type>web</type></device>')
         self._device_id = xpath_text(result, 'deviceId', fatal=True)
         self._device_token = xpath_text(result, 'deviceToken', fatal=True)
+        if signature:
+            data = '<login><token>{0}</token><device><deviceId>{1}</deviceId><type>web</type></device></login>'.format(signature, self._device_id).encode()
+            url = self._API_BASE_URL + 'device/login'
+            result = self._download_xml(url, None, data=data, headers={'content-type': 'application/xml'})
+            self._device_token = xpath_text(result, 'token', fatal=True)
         self._downloader.cache.store(
             'cbcwatch', 'device', {
                 'id': self._device_id,
