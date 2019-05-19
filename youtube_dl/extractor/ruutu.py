@@ -6,6 +6,7 @@ from ..compat import compat_urllib_parse_urlparse
 from ..utils import (
     determine_ext,
     ExtractorError,
+    find_xpath_attr,
     int_or_none,
     xpath_attr,
     xpath_text,
@@ -85,6 +86,18 @@ class RuutuIE(InfoExtractor):
         formats = []
         processed_urls = []
 
+        def authenticate_video_url(url):
+            """Authenticate video url
+
+            Returns original video url with authentication token
+            appended. Required for most videos since early 2019.
+            """
+            authenticated_url = self._download_webpage(
+                'https://gatling.nelonenmedia.fi/auth/access/v2',
+                video_id, query={'stream': url},
+                note='Authenticating video url', fatal=False)
+            return authenticated_url
+
         def extract_formats(node):
             for child in node:
                 if child.tag.endswith('Files'):
@@ -95,6 +108,15 @@ class RuutuIE(InfoExtractor):
                             or any(p in video_url for p in ('NOT_USED', 'NOT-USED'))):
                         continue
                     processed_urls.append(video_url)
+                    # Authentication may not be needed for some videos
+                    if not self._request_webpage(
+                            video_url, video_id,
+                            note='Checking if video is available without authentication',
+                            errnote='Authentication required',
+                            fatal=False):
+                        video_url = authenticate_video_url(video_url)
+                        if not video_url:
+                            continue
                     ext = determine_ext(video_url)
                     if ext == 'm3u8':
                         formats.extend(self._extract_m3u8_formats(
@@ -136,9 +158,27 @@ class RuutuIE(InfoExtractor):
 
         extract_formats(video_xml.find('./Clip'))
 
+        # If there are no formats, it's probably a Ruutu+ video
+        # Nevertheless, try to guess Ruutu+ status from xml
+        # to avoid false error messages
+        paid_tag = find_xpath_attr(
+            video_xml, './Clip/PassthroughVariables/variable', 'name',
+            val='paid')
+        if paid_tag is not None:
+            ruutuplus = int_or_none(xpath_attr(paid_tag, '.', 'value'))
+        else:
+            ruutuplus = None
         drm = xpath_text(video_xml, './Clip/DRM', default=None)
-        if not formats and drm:
-            raise ExtractorError('This video is DRM protected.', expected=True)
+        if not formats:
+            if drm:
+                raise ExtractorError(
+                    'This video is DRM protected.', expected=True)
+            elif ruutuplus:
+                raise ExtractorError(
+                    ("Probably a Ruutu+ video, authentication required. "
+                     "Consider sending PR for proper handling of Ruutu+ "
+                     "videos with credentials."),
+                    expected=True)
 
         self._sort_formats(formats)
 
