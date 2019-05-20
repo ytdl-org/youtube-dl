@@ -1,21 +1,40 @@
 # coding: utf-8
 from __future__ import unicode_literals
 
+import re
+
 from .common import InfoExtractor
-from ..compat import (
-    compat_parse_qs,
-    compat_str,
-)
 from ..utils import (
     int_or_none,
-    try_get,
     unified_timestamp,
+    unified_strdate,
+    parse_duration,
+    str_to_int,
 )
 
 
 class PornFlipIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:www\.)?pornflip\.com/(?:v|embed)/(?P<id>[^/?#&]+)'
+    _VALID_URL = r'https?://(?:www\.)?pornflip\.com(?:/v||/embed)/(?P<id>[^/?#&]+)'
     _TESTS = [{
+        'url': 'https://www.pornflip.com/k27gGfg7cqt/green-hair',
+        'info_dict': {
+            'id': 'k27gGfg7cqt',
+            'ext': 'mp4',
+            'title': 'Green hair',
+            'thumbnail': r're:^https?://.*\.jpg$',
+            'duration': 992,
+            'timestamp': 1555970182,
+            'upload_date': '20190422',
+            'uploader_id': '402056',
+            'uploader': 'berserk993',
+            'view_count': int,
+            'age_limit': 18,
+            'only_matching': True
+        },
+        'params': {
+            'skip_download': False,
+        }
+    }, {
         'url': 'https://www.pornflip.com/v/wz7DfNhMmep',
         'md5': '98c46639849145ae1fd77af532a9278c',
         'info_dict': {
@@ -30,6 +49,10 @@ class PornFlipIE(InfoExtractor):
             'uploader': 'figifoto',
             'view_count': int,
             'age_limit': 18,
+            'only_matching': True
+        },
+        'params': {
+            'skip_download': True,
         }
     }, {
         'url': 'https://www.pornflip.com/embed/wz7DfNhMmep',
@@ -51,51 +74,35 @@ class PornFlipIE(InfoExtractor):
         webpage = self._download_webpage(
             'https://www.pornflip.com/v/%s' % video_id, video_id)
 
-        flashvars = compat_parse_qs(self._search_regex(
-            r'<embed[^>]+flashvars=(["\'])(?P<flashvars>(?:(?!\1).)+)\1',
-            webpage, 'flashvars', group='flashvars'))
-
-        title = flashvars['video_vars[title]'][0]
-
-        def flashvar(kind):
-            return try_get(
-                flashvars, lambda x: x['video_vars[%s]' % kind][0], compat_str)
-
-        formats = []
-        for key, value in flashvars.items():
-            if not (value and isinstance(value, list)):
-                continue
-            format_url = value[0]
-            if key == 'video_vars[hds_manifest]':
-                formats.extend(self._extract_mpd_formats(
-                    format_url, video_id, mpd_id='dash', fatal=False))
-                continue
-            height = self._search_regex(
-                r'video_vars\[video_urls\]\[(\d+)', key, 'height', default=None)
-            if not height:
-                continue
-            formats.append({
-                'url': format_url,
-                'format_id': 'http-%s' % height,
-                'height': int_or_none(height),
-            })
+        mpd_url = self._search_regex(r'data-src=[\'\"](.*?)[\'\"]', webpage, 'mpd_url', fatal=False).replace(r'&amp;', r'&')
+        mpd_id = (mpd_url.split('/')[4] or 'DASH')
+        formats = list()
+        formats.extend(self._extract_mpd_formats(mpd_url, video_id, mpd_id=mpd_id,))
         self._sort_formats(formats)
 
-        uploader = self._html_search_regex(
-            (r'<span[^>]+class="name"[^>]*>\s*<a[^>]+>\s*<strong>(?P<uploader>[^<]+)',
-             r'<meta[^>]+content=(["\'])[^>]*\buploaded by (?P<uploader>.+?)\1'),
-            webpage, 'uploader', fatal=False, group='uploader')
+        title, uploader = self._search_regex('<title>(.*?)</title>', webpage, 'title').rsplit(',', 1)
+        title = title.strip()
+        uploader = uploader.strip()
+
+        thumbnail = self._search_regex(r'background:\s*?url\((.*?)\)', webpage, 'thumbnail', default=None)
+
+        views = str_to_int(self._search_regex(r'<strong class=\"views\">\s*?<span>(.*?)</span>', webpage, 'views'))
+        uploader_id_regex = re.compile(r'item=(\d+?)\&')
+        uploader_id = re.findall(uploader_id_regex, webpage)[0]
+        upload_date = self._html_search_meta('uploadDate', webpage, 'upload_date')
 
         return {
             'id': video_id,
             'formats': formats,
             'title': title,
-            'thumbnail': flashvar('big_thumb'),
-            'duration': int_or_none(flashvar('duration')),
-            'timestamp': unified_timestamp(self._html_search_meta(
-                'uploadDate', webpage, 'timestamp')),
-            'uploader_id': flashvar('author_id'),
+            'url': mpd_url,
+            'thumbnail': thumbnail,
+            'duration': int_or_none(parse_duration(self._html_search_meta(
+                'duration', webpage, 'duration'))),
+            'timestamp': unified_timestamp(upload_date),
+            'upload_date': unified_strdate(upload_date),
+            'uploader_id': uploader_id,
             'uploader': uploader,
-            'view_count': int_or_none(flashvar('views')),
+            'view_count': int_or_none(views),
             'age_limit': 18,
         }
