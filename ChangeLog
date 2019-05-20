@@ -1,4 +1,4 @@
-version <unreleased>
+version 2019.05.20
 
 Core
 + [extractor/common] Move workaround for applying first Set-Cookie header
