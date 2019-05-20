@@ -2818,15 +2818,19 @@ class InfoExtractor(object):
         return compat_cookies.SimpleCookie(req.get_header('Cookie'))
 
     def _apply_first_set_cookie_header(self, url_handle, cookie):
-        # Some sites (e.g. [1-3]) may serve two cookies under the same name
-        # in Set-Cookie header and expect the first (old) one to be set rather
-        # than second (new). However, as of RFC6265 the newer one cookie
-        # should be set into cookie store what actually happens.
-        # We will workaround this issue by resetting the cookie to
-        # the first one manually.
-        # 1. https://new.vk.com/
-        # 2. https://github.com/ytdl-org/youtube-dl/issues/9841#issuecomment-227871201
-        # 3. https://learning.oreilly.com/
+        """
+        Apply first Set-Cookie header instead of the last. Experimental.
+
+        Some sites (e.g. [1-3]) may serve two cookies under the same name
+        in Set-Cookie header and expect the first (old) one to be set rather
+        than second (new). However, as of RFC6265 the newer one cookie
+        should be set into cookie store what actually happens.
+        We will workaround this issue by resetting the cookie to
+        the first one manually.
+        1. https://new.vk.com/
+        2. https://github.com/ytdl-org/youtube-dl/issues/9841#issuecomment-227871201
+        3. https://learning.oreilly.com/
+        """
         for header, cookies in url_handle.headers.items():
             if header.lower() != 'set-cookie':
                 continue
