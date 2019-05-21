@@ -262,17 +262,16 @@ class AmaraIE(InfoExtractor):
         video_id = self._match_id(url)
         meta = self._download_json('https://amara.org/api/videos/%s/?extra=player_urls&format=json' % video_id, video_id)
 
-        video_type = meta.get('video_type')
-        video_url = meta.get('all_urls')[0]
+        video_urls = meta.get('all_urls')
+        youtube_urls = filter(YoutubeIE.suitable, video_urls)
+        vimeo_urls = filter(VimeoIE.suitable, video_urls)
 
-        if video_type == 'Y':
-            IE = YoutubeIE
-        elif video_type == 'V':
-            IE = VimeoIE
+        if len(youtube_urls) > 0:
+            ie_info = YoutubeIE(downloader=self._downloader).extract(youtube_urls[0])
+        elif len(vimeo_urls) > 0:
+            ie_info = VimeoIE(downloader=self._downloader).extract(vimeo_urls[0])
         else:
-            IE = GenericIE
-
-        ie_info = IE(downloader=self._downloader).extract(video_url)
+            ie_info = GenericIE(downloader=self._downloader).extract(video_urls[0])
 
         subtitles = ie_info.get('subtitles', {}).copy()
         subtitles.update(dict(map(lambda language: [
