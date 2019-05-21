@@ -1,8 +1,6 @@
 # coding: utf-8
 from __future__ import unicode_literals
 
-import re
-
 from .common import InfoExtractor
 from ..utils import (
     int_or_none,
@@ -75,7 +73,7 @@ class PornFlipIE(InfoExtractor):
             'https://www.pornflip.com/v/%s' % video_id, video_id)
 
         mpd_url = self._search_regex(r'data-src=[\'\"](.*?)[\'\"]', webpage, 'mpd_url', fatal=False).replace(r'&amp;', r'&')
-        mpd_id = (mpd_url.split('/')[4] or 'DASH')
+        mpd_id = (mpd_url.split('/')[-2] or 'DASH')
         formats = list()
         formats.extend(self._extract_mpd_formats(mpd_url, video_id, mpd_id=mpd_id,))
         self._sort_formats(formats)
@@ -86,10 +84,10 @@ class PornFlipIE(InfoExtractor):
 
         thumbnail = self._search_regex(r'background:\s*?url\((.*?)\)', webpage, 'thumbnail', default=None)
 
-        views = str_to_int(self._search_regex(r'<strong class=\"views\">\s*?<span>(.*?)</span>', webpage, 'views'))
-        uploader_id_regex = re.compile(r'item=(\d+?)\&')
-        uploader_id = re.findall(uploader_id_regex, webpage)[0]
-        upload_date = self._html_search_meta('uploadDate', webpage, 'upload_date')
+        view_count = str_to_int(self._search_regex(r'class=[\'\"]views[\'\"]>\s*?<span>(.*?)</span>', webpage, 'view_count'))
+        uploader_id = int_or_none(self._search_regex(r'item=(\d+?)\&', webpage, 'uploader_id'))
+        iso_8601_datetime_extended = self._html_search_meta('uploadDate', webpage, 'iso_8601_datetime_extended')
+        '''http://support.sas.com/documentation/cdl/en/lrdict/64316/HTML/default/viewer.htm#a003169814.htm'''
 
         return {
             'id': video_id,
@@ -99,10 +97,10 @@ class PornFlipIE(InfoExtractor):
             'thumbnail': thumbnail,
             'duration': int_or_none(parse_duration(self._html_search_meta(
                 'duration', webpage, 'duration'))),
-            'timestamp': unified_timestamp(upload_date),
-            'upload_date': unified_strdate(upload_date),
+            'timestamp': unified_timestamp(iso_8601_datetime_extended),
+            'upload_date': unified_strdate(iso_8601_datetime_extended),
             'uploader_id': uploader_id,
             'uploader': uploader,
-            'view_count': int_or_none(views),
+            'view_count': int_or_none(view_count),
             'age_limit': 18,
         }
