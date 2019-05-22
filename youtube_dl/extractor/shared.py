@@ -1,15 +1,15 @@
 from __future__ import unicode_literals
 
-import re
-
 from .common import InfoExtractor
 from ..compat import compat_b64decode
 from ..utils import (
+    determine_ext,
     ExtractorError,
     int_or_none,
+    KNOWN_EXTENSIONS,
+    parse_filesize,
     url_or_none,
     urlencode_postdata,
-    unescapeHTML,
 )
 
 
@@ -26,8 +26,7 @@ class SharedBaseIE(InfoExtractor):
         video_url = self._extract_video_url(webpage, video_id, url)
 
         title = self._extract_title(webpage)
-        filesize = int_or_none(self._html_search_meta(
-            'full:size', webpage, 'file size', fatal=False))
+        filesize = int_or_none(self._extract_filesize(webpage))
 
         return {
             'id': video_id,
@@ -40,6 +39,10 @@ class SharedBaseIE(InfoExtractor):
     def _extract_title(self, webpage):
         return compat_b64decode(self._html_search_meta(
             'full:title', webpage, 'title')).decode('utf-8')
+
+    def _extract_filesize(self, webpage):
+        return self._html_search_meta(
+            'full:size', webpage, 'file size', fatal=False)
 
 
 class SharedIE(SharedBaseIE):
@@ -88,19 +91,27 @@ class VivoIE(SharedBaseIE):
             'id': 'd7ddda0e78',
             'ext': 'mp4',
             'title': 'Chicken',
-            'filesize': 528031,
+            'filesize': 515659,
         },
     }
 
     def _extract_title(self, webpage):
-        data_title = self._search_regex(
+        title = self._html_search_regex(
             r'data-name\s*=\s*(["\'])(?P<title>(?:(?!\1).)+)\1', webpage,
             'title', default=None, group='title')
-        if data_title:
-            return unescapeHTML(re.sub(r"\.[a-z0-9]{3,4}$", "", data_title))
+        if title:
+            ext = determine_ext(title)
+            if ext.lower() in KNOWN_EXTENSIONS:
+                title = title.rpartition('.' + ext)[0]
+            return title
         return self._og_search_title(webpage)
 
-    def _extract_video_url(self, webpage, video_id, *args):
+    def _extract_filesize(self, webpage):
+        return parse_filesize(self._search_regex(
+            r'data-type=["\']video["\'][^>]*>Watch.*?<strong>\s*\((.+?)\)',
+            webpage, 'filesize', fatal=False))
+
+    def _extract_video_url(self, webpage, video_id, url):
         def decode_url(encoded_url):
             return compat_b64decode(encoded_url).decode('utf-8')
 
