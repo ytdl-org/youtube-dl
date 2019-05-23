@@ -10,6 +10,7 @@ from ..utils import (
     try_get,
     url_or_none,
 )
+from .vimeo import VimeoBaseInfoExtractor as VimeoBaseIE
 
 
 class CriterionIE(InfoExtractor):
@@ -165,7 +166,7 @@ class CriterionIE(InfoExtractor):
                 elif src in nonstream_types:
                     formats.extend(self._extract_formats_from_other(src, src_data))
 
-            self._sort_formats(formats)
+            VimeoBaseIE._vimeo_sort_formats(self, formats)
 
         thumb_data = try_get(data, lambda x: x['video']['thumbs'], dict)
         thumbnails = []
