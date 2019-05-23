@@ -240,7 +240,6 @@ from .condenast import CondeNastIE
 from .corus import CorusIE
 from .cracked import CrackedIE
 from .crackle import CrackleIE
-from .criterion import CriterionIE
 from .crooksandliars import CrooksAndLiarsIE
 from .crunchyroll import (
     CrunchyrollIE,
@@ -771,13 +770,6 @@ from .nosvideo import NosVideoIE
 from .nova import (
     NovaEmbedIE,
     NovaIE,
-)
-from .novamov import (
-    AuroraVidIE,
-    CloudTimeIE,
-    NowVideoIE,
-    VideoWeedIE,
-    WholeCloudIE,
 )
 from .nowness import (
     NownessIE,
