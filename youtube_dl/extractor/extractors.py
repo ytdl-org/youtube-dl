@@ -240,7 +240,6 @@ from .condenast import CondeNastIE
 from .corus import CorusIE
 from .cracked import CrackedIE
 from .crackle import CrackleIE
-from .criterion import CriterionIE
 from .crooksandliars import CrooksAndLiarsIE
 from .crunchyroll import (
     CrunchyrollIE,
