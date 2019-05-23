@@ -1951,8 +1951,8 @@ def bool_or_none(v, default=None):
     return v if isinstance(v, bool) else default
 
 
-def strip_or_none(v):
-    return None if v is None else v.strip()
+def strip_or_none(v, default=None):
+    return v.strip() if isinstance(v, compat_str) else default
 
 
 def url_or_none(url):
