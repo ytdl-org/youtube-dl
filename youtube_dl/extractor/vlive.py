@@ -24,6 +24,7 @@ from ..utils import (
 class VLiveIE(InfoExtractor):
     IE_NAME = 'vlive'
     _VALID_URL = r'https?://(?:(?:www|m)\.)?vlive\.tv/video/(?P<id>[0-9]+)'
+    _NETRC_MACHINE = 'vlive'
     _TESTS = [{
         'url': 'http://www.vlive.tv/video/1326',
         'md5': 'cc7314812855ce56de70a06a27314983',
@@ -47,11 +48,58 @@ class VLiveIE(InfoExtractor):
         'params': {
             'skip_download': True,
         },
+    }, {
+        'url': 'https://www.vlive.tv/video/129100',
+        'md5': 'ca2569453b79d66e5b919e5d308bff6b',
+        'info_dict': {
+            'id': '129100',
+            'ext': 'mp4',
+            'title': "[V LIVE] [BTS+] Run BTS! 2019 - EP.71 :: Behind the scene",
+            'creator': "BTS+",
+            'view_count': int,
+            'subtitles': 'mincount:10',
+        },
+        'skip': 'This video is only available for CH+ subscribers',
     }]
 
     @classmethod
     def suitable(cls, url):
         return False if VLivePlaylistIE.suitable(url) else super(VLiveIE, cls).suitable(url)
+
+    def _real_initialize(self):
+        self._login()
+
+    def _login(self):
+        email, password = self._get_login_info()
+        if None in (email, password):
+            return
+
+        def is_logged_in():
+            login_info = self._download_json(
+                'https://www.vlive.tv/auth/loginInfo', None,
+                note='Downloading login info',
+                headers={'Referer': 'https://www.vlive.tv/home'})
+
+            return try_get(login_info,
+                           lambda x: x['message']['login'], bool) or False
+
+        if is_logged_in():
+            return
+
+        LOGIN_URL = 'https://www.vlive.tv/auth/email/login'
+        self._request_webpage(LOGIN_URL, None,
+                              note='Downloading login cookies')
+
+        self._download_webpage(
+            LOGIN_URL, None, note='Logging in',
+            data=urlencode_postdata({'email': email, 'pwd': password}),
+            headers={
+                'Referer': LOGIN_URL,
+                'Content-Type': 'application/x-www-form-urlencoded'
+            })
+
+        if not is_logged_in():
+            raise ExtractorError('Unable to log in', expected=True)
 
     def _real_extract(self, url):
         video_id = self._match_id(url)
@@ -77,10 +125,7 @@ class VLiveIE(InfoExtractor):
         if status in ('LIVE_ON_AIR', 'BIG_EVENT_ON_AIR'):
             return self._live(video_id, webpage)
         elif status in ('VOD_ON_AIR', 'BIG_EVENT_INTRO'):
-            if long_video_id and key:
-                return self._replay(video_id, webpage, long_video_id, key)
-            else:
-                status = 'COMING_SOON'
+            return self._replay(video_id, webpage, long_video_id, key)
 
         if status == 'LIVE_END':
             raise ExtractorError('Uploading for replay. Please wait...',
@@ -91,13 +136,15 @@ class VLiveIE(InfoExtractor):
             raise ExtractorError('We are sorry, '
                                  'but the live broadcast has been canceled.',
                                  expected=True)
+        elif status == 'ONLY_APP':
+            raise ExtractorError('Unsupported video type', expected=True)
         else:
             raise ExtractorError('Unknown status %s' % status)
 
     def _get_common_fields(self, webpage):
         title = self._og_search_title(webpage)
         creator = self._html_search_regex(
-            r'<div[^>]+class="info_area"[^>]*>\s*<a\s+[^>]*>([^<]+)',
+            r'<div[^>]+class="info_area"[^>]*>\s*(?:<em[^>]*>.*</em\s*>\s*)?<a\s+[^>]*>([^<]+)',
             webpage, 'creator', fatal=False)
         thumbnail = self._og_search_thumbnail(webpage)
         return {
@@ -107,14 +154,7 @@ class VLiveIE(InfoExtractor):
         }
 
     def _live(self, video_id, webpage):
-        init_page = self._download_webpage(
-            'https://www.vlive.tv/video/init/view',
-            video_id, note='Downloading live webpage',
-            data=urlencode_postdata({'videoSeq': video_id}),
-            headers={
-                'Referer': 'https://www.vlive.tv/video/%s' % video_id,
-                'Content-Type': 'application/x-www-form-urlencoded'
-            })
+        init_page = self._download_init_page(video_id)
 
         live_params = self._search_regex(
             r'"liveStreamInfo"\s*:\s*(".*"),',
@@ -140,6 +180,16 @@ class VLiveIE(InfoExtractor):
         return info
 
     def _replay(self, video_id, webpage, long_video_id, key):
+        if '' in (long_video_id, key):
+            init_page = self._download_init_page(video_id)
+            video_info = self._parse_json(self._search_regex(
+                r'(?s)oVideoStatus\s*=\s*({.*})', init_page, 'video info'),
+                video_id)
+            if video_info['status'] == 'NEED_CHANNEL_PLUS':
+                self.raise_login_required(
+                    'This video is only available for CH+ subscribers')
+            long_video_id, key = video_info['vid'], video_info['inkey']
+
         playinfo = self._download_json(
             'http://global.apis.naver.com/rmcnmv/rmcnmv/vod_play_videoInfo.json?%s'
             % compat_urllib_parse_urlencode({
@@ -179,6 +229,16 @@ class VLiveIE(InfoExtractor):
             'subtitles': subtitles,
         })
         return info
+
+    def _download_init_page(self, video_id):
+        return self._download_webpage(
+            'https://www.vlive.tv/video/init/view',
+            video_id, note='Downloading live webpage',
+            data=urlencode_postdata({'videoSeq': video_id}),
+            headers={
+                'Referer': 'https://www.vlive.tv/video/%s' % video_id,
+                'Content-Type': 'application/x-www-form-urlencoded'
+            })
 
 
 class VLiveChannelIE(InfoExtractor):
