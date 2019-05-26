@@ -82,8 +82,8 @@ class ExpressenIE(InfoExtractor):
         title = info.get('titleRaw') or data['title']
         description = info.get('descriptionRaw')
         thumbnail = info.get('socialMediaImage') or data.get('image')
-        duration = int_or_none(info.get('videoTotalSecondsDuration') or
-                               data.get('totalSecondsDuration'))
+        duration = int_or_none(info.get('videoTotalSecondsDuration')
+                               or data.get('totalSecondsDuration'))
         timestamp = unified_timestamp(info.get('publishDate'))
 
         return {

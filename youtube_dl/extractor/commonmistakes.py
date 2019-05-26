@@ -32,19 +32,19 @@ class CommonMistakesIE(InfoExtractor):
 
 
 class UnicodeBOMIE(InfoExtractor):
-        IE_DESC = False
-        _VALID_URL = r'(?P<bom>\ufeff)(?P<id>.*)$'
+    IE_DESC = False
+    _VALID_URL = r'(?P<bom>\ufeff)(?P<id>.*)$'
 
-        # Disable test for python 3.2 since BOM is broken in re in this version
-        # (see https://github.com/ytdl-org/youtube-dl/issues/9751)
-        _TESTS = [] if (3, 0) < sys.version_info <= (3, 3) else [{
-            'url': '\ufeffhttp://www.youtube.com/watch?v=BaW_jenozKc',
-            'only_matching': True,
-        }]
+    # Disable test for python 3.2 since BOM is broken in re in this version
+    # (see https://github.com/ytdl-org/youtube-dl/issues/9751)
+    _TESTS = [] if (3, 0) < sys.version_info <= (3, 3) else [{
+        'url': '\ufeffhttp://www.youtube.com/watch?v=BaW_jenozKc',
+        'only_matching': True,
+    }]
 
-        def _real_extract(self, url):
-            real_url = self._match_id(url)
-            self.report_warning(
-                'Your URL starts with a Byte Order Mark (BOM). '
-                'Removing the BOM and looking for "%s" ...' % real_url)
-            return self.url_result(real_url)
+    def _real_extract(self, url):
+        real_url = self._match_id(url)
+        self.report_warning(
+            'Your URL starts with a Byte Order Mark (BOM). '
+            'Removing the BOM and looking for "%s" ...' % real_url)
+        return self.url_result(real_url)

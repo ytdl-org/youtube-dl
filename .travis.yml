@@ -9,6 +9,7 @@ python:
   - "3.6"
   - "pypy"
   - "pypy3"
+dist: trusty
 env:
   - YTDL_TEST_SET=core
   - YTDL_TEST_SET=download

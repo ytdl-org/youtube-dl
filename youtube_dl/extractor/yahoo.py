@@ -511,6 +511,8 @@ class YahooGyaOPlayerIE(InfoExtractor):
             'https://gyao.yahoo.co.jp/dam/v1/videos/' + video_id,
             video_id, query={
                 'fields': 'longDescription,title,videoId',
+            }, headers={
+                'X-User-Agent': 'Unknown Pc GYAO!/2.0.0 Web',
             })
         return {
             '_type': 'url_transparent',
@@ -526,7 +528,7 @@ class YahooGyaOPlayerIE(InfoExtractor):
 
 class YahooGyaOIE(InfoExtractor):
     IE_NAME = 'yahoo:gyao'
-    _VALID_URL = r'https?://(?:gyao\.yahoo\.co\.jp/p|streaming\.yahoo\.co\.jp/p/y)/(?P<id>\d+/v\d+)'
+    _VALID_URL = r'https?://(?:gyao\.yahoo\.co\.jp/(?:p|title/[^/]+)|streaming\.yahoo\.co\.jp/p/y)/(?P<id>\d+/v\d+|[\da-f]{8}-[\da-f]{4}-[\da-f]{4}-[\da-f]{4}-[\da-f]{12})'
     _TESTS = [{
         'url': 'https://gyao.yahoo.co.jp/p/00449/v03102/',
         'info_dict': {
@@ -535,6 +537,9 @@ class YahooGyaOIE(InfoExtractor):
         'playlist_count': 2,
     }, {
         'url': 'https://streaming.yahoo.co.jp/p/y/01034/v00133/',
+        'only_matching': True,
+    }, {
+        'url': 'https://gyao.yahoo.co.jp/title/%E3%81%97%E3%82%83%E3%81%B9%E3%81%8F%E3%82%8A007/5b025a49-b2e5-4dc7-945c-09c6634afacf',
         'only_matching': True,
     }]
 

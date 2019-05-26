@@ -65,8 +65,9 @@ class BitChuteIE(InfoExtractor):
             webpage, default=None) or self._html_search_meta(
             'twitter:image:src', webpage, 'thumbnail')
         uploader = self._html_search_regex(
-            r'(?s)<p\b[^>]+\bclass=["\']video-author[^>]+>(.+?)</p>', webpage,
-            'uploader', fatal=False)
+            (r'(?s)<div class=["\']channel-banner.*?<p\b[^>]+\bclass=["\']name[^>]+>(.+?)</p>',
+             r'(?s)<p\b[^>]+\bclass=["\']video-author[^>]+>(.+?)</p>'),
+            webpage, 'uploader', fatal=False)
 
         return {
             'id': video_id,
