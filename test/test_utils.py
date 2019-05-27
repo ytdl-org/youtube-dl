@@ -73,6 +73,7 @@ from youtube_dl.utils import (
     smuggle_url,
     str_to_int,
     strip_jsonp,
+    strip_or_none,
     timeconvert,
     unescapeHTML,
     unified_strdate,
@@ -751,6 +752,18 @@ class TestUtil(unittest.TestCase):
         stripped = strip_jsonp('({"status": "success"});')
         d = json.loads(stripped)
         self.assertEqual(d, {'status': 'success'})
+
+    def test_strip_or_none(self):
+        self.assertEqual(strip_or_none(' abc'), 'abc')
+        self.assertEqual(strip_or_none('abc '), 'abc')
+        self.assertEqual(strip_or_none(' abc '), 'abc')
+        self.assertEqual(strip_or_none('\tabc\t'), 'abc')
+        self.assertEqual(strip_or_none('\n\tabc\n\t'), 'abc')
+        self.assertEqual(strip_or_none('abc'), 'abc')
+        self.assertEqual(strip_or_none(''), '')
+        self.assertEqual(strip_or_none(None), None)
+        self.assertEqual(strip_or_none(42), None)
+        self.assertEqual(strip_or_none([]), None)
 
     def test_uppercase_escape(self):
         self.assertEqual(uppercase_escape('aä'), 'aä')
