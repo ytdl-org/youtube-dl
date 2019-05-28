@@ -138,9 +138,10 @@ class LiveLeakIE(InfoExtractor):
                 orig_url = re.sub(r'\.mp4\.[^.]+', '', a_format['url'])
                 if a_format['url'] != orig_url:
                     format_id = a_format.get('format_id')
+                    format_id = 'original' + ('-' + format_id if format_id else '')
                     if self._is_valid_url(orig_url, video_id, format_id):
                         formats.append({
-                            'format_id': 'original' + ('-' + format_id if format_id else ''),
+                            'format_id': format_id,
                             'url': orig_url,
                             'preference': 1,
                         })
