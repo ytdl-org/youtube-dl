@@ -67,6 +67,7 @@ from ..utils import (
     sanitized_Request,
     sanitize_filename,
     str_or_none,
+    strip_or_none,
     unescapeHTML,
     unified_strdate,
     unified_timestamp,
@@ -2480,7 +2481,7 @@ class InfoExtractor(object):
                 'subtitles': {},
             }
             media_attributes = extract_attributes(media_tag)
-            src = media_attributes.get('src')
+            src = strip_or_none(media_attributes.get('src'))
             if src:
                 _, formats = _media_formats(src, media_type)
                 media_info['formats'].extend(formats)
@@ -2490,7 +2491,7 @@ class InfoExtractor(object):
                     s_attr = extract_attributes(source_tag)
                     # data-video-src and data-src are non standard but seen
                     # several times in the wild
-                    src = dict_get(s_attr, ('src', 'data-video-src', 'data-src'))
+                    src = strip_or_none(dict_get(s_attr, ('src', 'data-video-src', 'data-src')))
                     if not src:
                         continue
                     f = parse_content_type(s_attr.get('type'))
@@ -2533,7 +2534,7 @@ class InfoExtractor(object):
                     track_attributes = extract_attributes(track_tag)
                     kind = track_attributes.get('kind')
                     if not kind or kind in ('subtitles', 'captions'):
-                        src = track_attributes.get('src')
+                        src = strip_or_none(track_attributes.get('src'))
                         if not src:
                             continue
                         lang = track_attributes.get('srclang') or track_attributes.get('lang') or track_attributes.get('label')

@@ -1789,9 +1789,6 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
             raise ExtractorError(
                 'YouTube said: %s' % unavailable_message, expected=True, video_id=video_id)
 
-        if video_info.get('license_info'):
-            raise ExtractorError('This video is DRM protected.', expected=True)
-
         video_details = try_get(
             player_response, lambda x: x['videoDetails'], dict) or {}
 
@@ -1927,7 +1924,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
             formats = []
             for url_data_str in encoded_url_map.split(','):
                 url_data = compat_parse_qs(url_data_str)
-                if 'itag' not in url_data or 'url' not in url_data:
+                if 'itag' not in url_data or 'url' not in url_data or url_data.get('drm_families'):
                     continue
                 stream_type = int_or_none(try_get(url_data, lambda x: x['stream_type'][0]))
                 # Unsupported FORMAT_STREAM_TYPE_OTF
@@ -2322,6 +2319,9 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                     raise ExtractorError(
                         '"token" parameter not in video info for unknown reason',
                         video_id=video_id)
+
+        if not formats and (video_info.get('license_info') or try_get(player_response, lambda x: x['streamingData']['licenseInfos'])):
+            raise ExtractorError('This video is DRM protected.', expected=True)
 
         self._sort_formats(formats)
 
