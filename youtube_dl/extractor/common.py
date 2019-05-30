@@ -2481,7 +2481,7 @@ class InfoExtractor(object):
                 'subtitles': {},
             }
             media_attributes = extract_attributes(media_tag)
-            src = strip_or_none(media_attributes.get('src'))
+            src = strip_or_none(dict_get(media_attributes, ('data-src', 'src')))
             if src:
                 _, formats = _media_formats(src, media_type)
                 media_info['formats'].extend(formats)
