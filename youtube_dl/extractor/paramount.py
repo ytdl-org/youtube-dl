@@ -6,8 +6,8 @@ from ..utils import int_or_none
 
 
 class ParamountIE(InfoExtractor):
-    IE_NAME = 'paramountnetwork'
-    IE_DESC = 'Paramount Channel'
+    IE_NAME = 'paramount'
+    IE_DESC = 'Paramount Network'
     _VALID_URL = r'http(s)?://(www\.)?paramountnetwork\.(it|es)/.*/[0-9a-z]{6}($|/)'
 
     _TEST = {
