@@ -1,3 +1,22 @@
+version 2019.05.20
+
+Core
++ [extractor/common] Move workaround for applying first Set-Cookie header
+  into a separate _apply_first_set_cookie_header method
+
+Extractors
+* [safari] Fix authentication (#21090)
+* [vk] Use _apply_first_set_cookie_header
+* [vrt] Fix extraction (#20527)
++ [canvas] Add support for vrtnieuws and sporza site ids and extract
+  AES HLS formats
++ [vrv] Extract captions (#19238)
+* [tele5] Improve video id extraction
+* [tele5] Relax URL regular expression (#21020, #21063)
+* [svtplay] Update API URL (#21075)
++ [yahoo:gyao] Add X-User-Agent header to dam proxy requests (#21071)
+
+
 version 2019.05.11
 
 Core
