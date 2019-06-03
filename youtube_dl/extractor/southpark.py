@@ -78,10 +78,6 @@ class SouthParkDeIE(SouthParkIE):
         'only_matching': True,
     }]
 
-    def _real_initialize(self):
-        lang = self._get_cookies('http://www.southpark.de/alle-episoden/').get('SPS_video_language')
-        self._LANG = lang.value if lang else 'de'
-
 
 class SouthParkNlIE(SouthParkIE):
     IE_NAME = 'southpark.nl'
