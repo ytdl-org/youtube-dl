@@ -75,8 +75,6 @@ class UnauthorizedTvIE(InfoExtractor):
         return {
             'id': video_id,
             'title': video_title,
-            'formats': [{
-                'url': video_url,
-                'ext': 'mp4',
-            }],
+            'url': video_url,
+            'ext': 'mp4',
         }
