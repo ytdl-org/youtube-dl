@@ -1246,6 +1246,7 @@ from .dlive import (
     DLiveStreamIE,
 )
 from .umg import UMGDeIE
+from .unauthorizedtv import UnauthorizedTvIE
 from .unistra import UnistraIE
 from .unity import UnityIE
 from .uol import UOLIE
