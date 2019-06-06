@@ -1266,6 +1266,7 @@ from .ufctv import UFCTVIE
 from .uktvplay import UKTVPlayIE
 from .digiteka import DigitekaIE
 from .umg import UMGDeIE
+from .unauthorizedtv import UnauthorizedTvIE
 from .unistra import UnistraIE
 from .unity import UnityIE
 from .uol import UOLIE
