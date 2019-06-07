@@ -54,8 +54,8 @@ class VLiveIE(InfoExtractor):
         'info_dict': {
             'id': '129100',
             'ext': 'mp4',
-            'title': "[V LIVE] [BTS+] Run BTS! 2019 - EP.71 :: Behind the scene",
-            'creator': "BTS+",
+            'title': '[V LIVE] [BTS+] Run BTS! 2019 - EP.71 :: Behind the scene',
+            'creator': 'BTS+',
             'view_count': int,
             'subtitles': 'mincount:10',
         },
@@ -334,6 +334,7 @@ class VLivePlaylistIE(InfoExtractor):
     _VALID_URL = r'https?://(?:(?:www|m)\.)?vlive\.tv/video/(?P<video_id>[0-9]+)/playlist/(?P<id>[0-9]+)'
     _VIDEO_URL_TEMPLATE = 'http://www.vlive.tv/video/%s'
     _TESTS = [{
+        # regular working playlist
         'url': 'https://www.vlive.tv/video/117956/playlist/117963',
         'info_dict': {
             'id': '117963',
@@ -341,12 +342,13 @@ class VLivePlaylistIE(InfoExtractor):
         },
         'playlist_mincount': 10
     }, {
+        # playlist with no playlistVideoSeqs
         'url': 'http://www.vlive.tv/video/22867/playlist/22912',
         'info_dict': {
             'id': '22867',
             'ext': 'mp4',
             'title': '[V LIVE] Valentine Day Message from MINA',
-            'creator': "TWICE",
+            'creator': 'TWICE',
             'view_count': int
         },
         'params': {
