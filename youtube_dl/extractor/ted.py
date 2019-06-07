@@ -157,16 +157,19 @@ class TEDIE(InfoExtractor):
                                          'Downloading playlist webpage')
 
         playlist_entries = []
-        for entry in re.findall(r'(?s)<[^>]+data-ga-context="playlist"[^>]*>', webpage):
+        for entry in re.findall(r'(?s)<[^>]+data-ga-context=["\']playlist["\'][^>]*>', webpage):
             attrs = extract_attributes(entry)
             entry_url = compat_urlparse.urljoin(url, attrs['href'])
             playlist_entries.append(self.url_result(entry_url, self.ie_key()))
 
-        final_url = self._og_search_url(webpage)
+        final_url = self._og_search_url(webpage, fatal=False)
+        playlist_id = (
+            re.match(self._VALID_URL, final_url).group('playlist_id')
+            if final_url else None)
+
         return self.playlist_result(
-            playlist_entries,
-            playlist_id=re.match(self._VALID_URL, final_url, re.VERBOSE).group('playlist_id'),
-            playlist_title=self._og_search_title(webpage),
+            playlist_entries, playlist_id=playlist_id,
+            playlist_title=self._og_search_title(webpage, fatal=False),
             playlist_description=self._og_search_description(webpage))
 
     def _talk_info(self, url, video_name):
