@@ -332,26 +332,43 @@ class VLiveChannelIE(InfoExtractor):
 class VLivePlaylistIE(InfoExtractor):
     IE_NAME = 'vlive:playlist'
     _VALID_URL = r'https?://(?:(?:www|m)\.)?vlive\.tv/video/(?P<video_id>[0-9]+)/playlist/(?P<id>[0-9]+)'
-    _TEST = {
+    _VIDEO_URL_TEMPLATE = 'http://www.vlive.tv/video/%s'
+    _TESTS = [{
+        'url': 'https://www.vlive.tv/video/117956/playlist/117963',
+        'info_dict': {
+            'id': '117963',
+            'title': '아이돌룸(IDOL ROOM) 41회 - (여자)아이들'
+        },
+        'playlist_mincount': 10
+    }, {
         'url': 'http://www.vlive.tv/video/22867/playlist/22912',
         'info_dict': {
-            'id': '22912',
-            'title': 'Valentine Day Message from TWICE'
+            'id': '22867',
+            'ext': 'mp4',
+            'title': '[V LIVE] Valentine Day Message from MINA',
+            'creator': "TWICE",
+            'view_count': int
         },
-        'playlist_mincount': 9
-    }
+        'params': {
+            'skip_download': True,
+        }
+    }]
+
+    def _build_video_result(self, video_id, message):
+        self.to_screen(message)
+        return self.url_result(
+            self._VIDEO_URL_TEMPLATE % video_id,
+            ie=VLiveIE.ie_key(), video_id=video_id)
 
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
         video_id, playlist_id = mobj.group('video_id', 'id')
 
-        VIDEO_URL_TEMPLATE = 'http://www.vlive.tv/video/%s'
         if self._downloader.params.get('noplaylist'):
-            self.to_screen(
-                'Downloading just video %s because of --no-playlist' % video_id)
-            return self.url_result(
-                VIDEO_URL_TEMPLATE % video_id,
-                ie=VLiveIE.ie_key(), video_id=video_id)
+            return self._build_video_result(
+                video_id,
+                'Downloading just video %s because of --no-playlist'
+                % video_id)
 
         self.to_screen(
             'Downloading playlist %s - add --no-playlist to just download video'
@@ -361,15 +378,21 @@ class VLivePlaylistIE(InfoExtractor):
             'http://www.vlive.tv/video/%s/playlist/%s'
             % (video_id, playlist_id), playlist_id)
 
-        item_ids = self._parse_json(
-            self._search_regex(
-                r'playlistVideoSeqs\s*=\s*(\[[^]]+\])', webpage,
-                'playlist video seqs'),
-            playlist_id)
+        raw_item_ids = self._search_regex(
+            r'playlistVideoSeqs\s*=\s*(\[[^]]+\])', webpage,
+            'playlist video seqs', default=None, fatal=False)
+
+        if not raw_item_ids:
+            return self._build_video_result(
+                video_id,
+                'Downloading just video %s because no playlist was found'
+                % video_id)
+
+        item_ids = self._parse_json(raw_item_ids, playlist_id)
 
         entries = [
             self.url_result(
-                VIDEO_URL_TEMPLATE % item_id, ie=VLiveIE.ie_key(),
+                self._VIDEO_URL_TEMPLATE % item_id, ie=VLiveIE.ie_key(),
                 video_id=compat_str(item_id))
             for item_id in item_ids]
 
