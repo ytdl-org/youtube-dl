@@ -1,4 +1,4 @@
-version <unreleased>
+version 2019.06.08
 
 Core
 * [downloader/common] Improve rate limit (#21301)
