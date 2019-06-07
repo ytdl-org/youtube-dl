@@ -568,55 +568,34 @@ class YahooJapanNewsIE(InfoExtractor):
     _VALID_URL = r'https?://(?P<host>(?:news|headlines)\.yahoo\.co\.jp)(/[^\d]*(?P<id>\d[\d-]*\d))?'
     _TESTS = [
         {
-            'url': 'https://headlines.yahoo.co.jp/videonews/nnn?a=20190531-00000180-nnn-int',
+            'url': 'https://headlines.yahoo.co.jp/videonews/fnn?a=20190719-00421051-fnn-soci',
             'info_dict': {
-                'id': '20190531-00000180',
+                'id': '20190719-00421051',
                 'ext': 'mp4',
-                'title': '北“対米担当特別代表を銃殺”韓国紙報じる（日本テレビ系（NNN）） - Yahoo!ニュース',
-                'description': '韓国の主要紙である朝鮮日報は、２回目の米朝首脳会談が決裂した責任を問われ、北朝鮮 - Yahoo!ニュース(日本テレビ系（NNN）)',
-                'thumbnail': r're:^https?://.*\.[a-zA-Z\d]{3,4}$',
-            },
-            'params': {'skip_download': True},
-        },
-        {
-            'url': 'https://headlines.yahoo.co.jp/hl?a=20190529-00010015-houdoukvq-soci',
-            'info_dict': {
-                'id': '20190529-00010015',
-                'ext': 'mp4',
-                'title': '高校屋上から男子高校生 転落\u3000目撃 女子生徒パニックで搬送（FNN.jpプライムオンライン） - Yahoo!ニュース',
-                'description': '29日午後、宮崎市の高校の屋上から男子高校生が転落し、重傷となっている。29日午後2 - Yahoo!ニュース(FNN.jpプライムオンライン)',
+                'title': '15階から2歳女児転落死\u3000母は台所「目を離した隙に」（フジテレビ系（FNN）） - Yahoo!ニュース',
+                'description': '大阪市で18日夜、マンションの15階から2歳の女の子が転落し病院に運ばれたが、まもな - Yahoo!ニュース(フジテレビ系（FNN）)',
                 'thumbnail': r're:^https?://.*\.[a-zA-Z\d]{3,4}$',
             },
             'params': {'skip_download': True},
         },
         {
             'url': 'https://headlines.yahoo.co.jp/videonews/',
-            'info_dict': {
-                'id': 'headlines.yahoo.co.jp',
-                'ext': 'mp4',
-                'title': '映像ニュース - Yahoo!ニュース',
-                'description': 'テレビ局などが配信する映像ニュースを掲載。',
-            },
-            'params': {'skip_download': True},
+            'only_matching': True,
         },
         {
             'url': 'https://news.yahoo.co.jp',
-            'info_dict': {
-                'id': 'news.yahoo.co.jp',
-                'ext': 'mp4',
-                'title': 'Yahoo!ニュース',
-                'description': 'Yahoo!ニュースは、新聞・通信社が配信するニュースのほか、映像、雑誌や個人の書き手が執筆する記事など多種多様なニュースを掲載しています。',
-            },
-            'params': {'skip_download': True},
-        },
-        {
-            'url': 'https://news.yahoo.co.jp/byline/fujitatakanori/20190528-00127666/',
             'only_matching': True,
         },
-        {'url': 'https://news.yahoo.co.jp/pickup/6325141', 'only_matching': True},
+        {
+            'url': 'https://news.yahoo.co.jp/byline/hashimotojunji/20190628-00131977/',
+            'only_matching': True,
+        },
+        {
+            'url': 'https://news.yahoo.co.jp/feature/1356',
+            'only_matching': True
+        },
     ]
     _USER_AGENT = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_13_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/74.0.3729.169 Safari/537.36'
-    _ORIGIN = 'https://s.yimg.jp'
 
     def _extract_formats(self, json_data, content_id):
         formats = []
@@ -626,57 +605,29 @@ class YahooJapanNewsIE(InfoExtractor):
             lambda x: x['ResultSet']['Result'][0]['VideoUrlSet']['VideoUrl'],
             list,
         )
-        if video_data:
-            # Article page
-            for vid in video_data:
-                delivery = vid.get('delivery')
-                url = url_or_none(vid.get('Url'))
-                if not delivery or not url:
-                    continue
-                elif delivery == 'hls':
-                    formats.extend(
-                        self._extract_m3u8_formats(
-                            url,
-                            content_id,
-                            'mp4',
-                            entry_protocol='m3u8_native',
-                            m3u8_id='hls',
-                            fatal=False,
-                        )
+        for vid in video_data or []:
+            delivery = vid.get('delivery')
+            url = url_or_none(vid.get('Url'))
+            if not delivery or not url:
+                continue
+            elif delivery == 'hls':
+                formats.extend(
+                    self._extract_m3u8_formats(
+                        url, content_id, 'mp4', 'm3u8_native',
+                        m3u8_id='hls', fatal=False,
                     )
-                elif delivery == 'progressive':
-                    formats.append(
-                        {
-                            'url': url,
-                            'format_id': 'http-%s' % compat_str(vid.get('bitrate', '')),
-                            'ext': determine_ext(url),
-                            'height': int_or_none(vid.get('height')),
-                            'width': int_or_none(vid.get('width')),
-                            'btr': int_or_none(vid.get('bitrate')),
-                        }
-                    )
-        else:
-            # Headline page with multiple videos
-            for vid in json_data.get('videos', []):
-                for src in vid.get('sources', []):
-                    url = url_or_none(src.get('src'))
-                    ext = determine_ext(url)
-                    if not url:
-                        continue
-                    if ext == 'm3u8':
-                        formats.extend(
-                            self._extract_m3u8_formats(
-                                url,
-                                content_id,
-                                'mp4',
-                                entry_protocol='m3u8_native',
-                                m3u8_id='hls',
-                                fatal=False,
-                            )
-                        )
-                    else:
-                        formats.append({'url': url, 'ext': ext})
-
+                )
+            else:
+                formats.append(
+                    {
+                        'url': url,
+                        'format_id': 'http-%s' % compat_str(vid.get('bitrate', '')),
+                        'ext': determine_ext(url),
+                        'height': int_or_none(vid.get('height')),
+                        'width': int_or_none(vid.get('width')),
+                        'btr': int_or_none(vid.get('bitrate')),
+                    }
+                )
         self._remove_duplicate_formats(formats)
         self._sort_formats(formats)
 
@@ -689,7 +640,7 @@ class YahooJapanNewsIE(InfoExtractor):
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
         host = mobj.group('host')
-        # Headline page without `displayid` defaults to `host`.
+        # Headline pages without `displayid` default to `host`.
         display_id = mobj.group('id') or host
         webpage = self._download_webpage(url, display_id)
 
@@ -706,20 +657,27 @@ class YahooJapanNewsIE(InfoExtractor):
         thumbnail = self._og_search_thumbnail(
             webpage, default=None
         ) or self._html_search_meta('twitter:image', webpage, default=None)
+        space_id = (
+            self._search_regex(
+                r'<script[^>]+class=(["\'])yvpub-player\1[^>]+spaceid=(?P<spaceid>[^&"\']+)',
+                webpage, 'spaceid', group='spaceid', default=None,
+            )
+            or self._search_regex(
+                r'YAHOO\.JP\.srch\.\w+link\.onLoad[^;]+spaceID["\' ]*:["\' ]+([^"\']+)',
+                webpage, 'spaceid', default=None,
+            )
+            or self._search_regex(r'<!--\s+SpaceID=(\d+)', webpage, 'spaceid')
+        )
+        formats = []
 
         if display_id == host:
-            # Headline page with playlist of videos
-            formats = []
-
-            # No single useful `contentid` on page
-            content_id = display_id
-
+            # Headline page (w/ multiple BC playlists)
             stream_urls_plists = re.findall(
                 r'YJNEWS\.LIVESTREAM\.SRC.+=(?:\s+)?["\'](?P<streamurl>[^"\']+plist=(?P<plist>\d+)[^"\']+)',
                 webpage,
             )
             if not stream_urls_plists:
-                # Manually build stream urls ('news.yahoo.co.jp', ...)
+                # Manually build ('news.yahoo.co.jp', ...)
                 sbase_url = 'https://s.yimg.jp/images/media/video/player/html/embed_1.2.5.html?service=news&service_type=video&plist=%s&poster=%s&sp=%s&country=JP'
 
                 params = re.findall(
@@ -729,6 +687,8 @@ class YahooJapanNewsIE(InfoExtractor):
                 for p in params:
                     stream_urls_plists.append((sbase_url % p, p[0]))
 
+            bc_url = 'http://players.brightcove.net/%s/%s_%s/index.html?playlistId=%s'
+            entries = []
             for url, plist_id in stream_urls_plists:
                 embed_page = self._download_webpage(
                     'https://s.yimg.jp/images/media/video/player/js/embed_1.0.9.min.js',
@@ -742,72 +702,26 @@ class YahooJapanNewsIE(InfoExtractor):
                 )
                 account = self._search_regex(
                     r'\w+\.video_attr\[(["\'])data-account\1\]\s*=\s*\1(?P<accountid>[\d]+)',
-                    embed_page,
-                    'account id',
-                    group='accountid',
+                    embed_page, 'account id', group='accountid',
                 )
                 player = self._search_regex(
                     r'\w+\.video_attr\[(["\'])data-player\1\]\s*=\s*\1(?P<playerid>[^"\']+)',
-                    embed_page,
-                    'player id',
-                    group='playerid',
+                    embed_page, 'player id', group='playerid',
                 )
                 embed = self._search_regex(
                     r'(["\'])data-embed\1\s*:\s*\1(?P<embed>[^"\']+)',
-                    embed_page,
-                    'embed',
-                    group='embed',
+                    embed_page, 'embed', group='embed',
                 )
-                indexjs_page = self._download_webpage(
-                    'https://players.brightcove.net/%s/%s_%s/index.min.js'
-                    % (account, player, embed),
-                    plist_id,
-                    headers={'Referer': url, 'User-Agent': self._USER_AGENT},
-                )
-                policy_key = self._search_regex(
-                    r'policyKey:\s*["\']([^"\']+)', indexjs_page, 'policy key'
-                )
+                entries.append(bc_url % (account, player, embed, plist_id))
 
-                json_data = self._download_json(
-                    'https://edge.api.brightcove.com/playback/v1/accounts/%s/playlists/%s'
-                    % (account, plist_id),
-                    plist_id,
-                    headers={
-                        'Accept': 'application/json;pk=%s' % policy_key,
-                        'Origin': self._ORIGIN,
-                        'Referer': url,
-                        'User-Agent': self._USER_AGENT,
-                    },
-                    fatal=False,
-                )
-
-                formats.extend(self._extract_formats(json_data, content_id))
+            return self.playlist_from_matches(entries, space_id, title, ie='BrightcoveNew')
 
         else:
             # Article page
             app_id = 'dj0zaiZpPVZMTVFJR0FwZWpiMyZzPWNvbnN1bWVyc2VjcmV0Jng9YjU-'
-            space_id = (
-                self._search_regex(
-                    r'<script[^>]+class=(["\'])yvpub-player\1[^>]+spaceid=(?P<spaceid>[^&"\']+)',
-                    webpage,
-                    'spaceid',
-                    group='spaceid',
-                    default=None,
-                )
-                or self._search_regex(
-                    r'YAHOO\.JP\.srch\.\w+link\.onLoad[^;]+spaceID["\' ]*:["\' ]+([^"\']+)',
-                    webpage,
-                    'spaceid',
-                    default=None,
-                )
-                or self._search_regex(r'<!--\s+SpaceID=(\d+)', webpage, 'spaceid')
-            )
             content_id = self._search_regex(
                 r'<script[^>]+class=(["\'])yvpub-player\1[^>]+contentid=(?P<contentid>[^&"\']+)',
-                webpage,
-                'contentid',
-                group='contentid',
-                default=space_id,
+                webpage, 'contentid', group='contentid', default=space_id,
             )
             # md5 hash of space_id + '_headlines.yahoo.co.jp'
             ak = YahooJapanNewsIE._get_md5('_'.join((space_id, host)))
@@ -817,7 +731,7 @@ class YahooJapanNewsIE(InfoExtractor):
                 content_id,
                 headers={
                     'Accept': 'application/json, text/javascript, */*; q=0.01',
-                    'Origin': self._ORIGIN,
+                    'Origin': 'https://s.yimg.jp',
                     'Host': 'feapi-yvpub.yahooapis.jp',
                     'User-Agent': self._USER_AGENT,
                     'Referer': 'https://s.yimg.jp/images/yvpub/player/vamos/pc/latest/player.html',
@@ -832,7 +746,6 @@ class YahooJapanNewsIE(InfoExtractor):
                 },
                 fatal=False,
             )
-
             formats = self._extract_formats(json_data, content_id)
 
         return {
