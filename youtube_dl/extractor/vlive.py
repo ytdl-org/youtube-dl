@@ -79,16 +79,12 @@ class VLiveIE(InfoExtractor):
                 'https://www.vlive.tv/auth/loginInfo', None,
                 note='Downloading login info',
                 headers={'Referer': 'https://www.vlive.tv/home'})
-
-            return try_get(login_info,
-                           lambda x: x['message']['login'], bool) or False
-
-        if is_logged_in():
-            return
+            return try_get(
+                login_info, lambda x: x['message']['login'], bool) or False
 
         LOGIN_URL = 'https://www.vlive.tv/auth/email/login'
-        self._request_webpage(LOGIN_URL, None,
-                              note='Downloading login cookies')
+        self._request_webpage(
+            LOGIN_URL, None, note='Downloading login cookies')
 
         self._download_webpage(
             LOGIN_URL, None, note='Logging in',
@@ -144,7 +140,7 @@ class VLiveIE(InfoExtractor):
     def _get_common_fields(self, webpage):
         title = self._og_search_title(webpage)
         creator = self._html_search_regex(
-            r'<div[^>]+class="info_area"[^>]*>\s*(?:<em[^>]*>.*</em\s*>\s*)?<a\s+[^>]*>([^<]+)',
+            r'<div[^>]+class="info_area"[^>]*>\s*(?:<em[^>]*>.*?</em\s*>\s*)?<a\s+[^>]*>([^<]+)',
             webpage, 'creator', fatal=False)
         thumbnail = self._og_search_thumbnail(webpage)
         return {
@@ -183,9 +179,10 @@ class VLiveIE(InfoExtractor):
         if '' in (long_video_id, key):
             init_page = self._download_init_page(video_id)
             video_info = self._parse_json(self._search_regex(
-                r'(?s)oVideoStatus\s*=\s*({.*})', init_page, 'video info'),
+                (r'(?s)oVideoStatus\s*=\s*({.+?})\s*</script',
+                 r'(?s)oVideoStatus\s*=\s*({.+})'), init_page, 'video info'),
                 video_id)
-            if video_info['status'] == 'NEED_CHANNEL_PLUS':
+            if video_info.get('status') == 'NEED_CHANNEL_PLUS':
                 self.raise_login_required(
                     'This video is only available for CH+ subscribers')
             long_video_id, key = video_info['vid'], video_info['inkey']
