@@ -55,6 +55,11 @@ class BitChuteIE(InfoExtractor):
         formats = [
             {'url': format_url}
             for format_url in orderedSet(format_urls)]
+
+        if not formats:
+            formats = self._parse_html5_media_entries(
+                url, webpage, video_id)[0]['formats']
+
         self._check_formats(formats, video_id)
         self._sort_formats(formats)
 
