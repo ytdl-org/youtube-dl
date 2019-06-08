@@ -41,7 +41,7 @@ class LiTVIE(InfoExtractor):
         'skip': 'Georestricted to Taiwan',
     }, {
         'url': 'https://www.litv.tv/promo/miyuezhuan/?content_id=VOD00044841&',
-        'md5': '88322ea132f848d6e3e18b32a832b918',
+        'md5': 'cc8d39510469700d8b7a7bdf675ea33e',
         'info_dict': {
             'id': 'VOD00044841',
             'ext': 'mp4',
@@ -112,7 +112,7 @@ class LiTVIE(InfoExtractor):
                 'contentType': program_info['contentType'],
             }
             video_data = self._download_json(
-                'https://www.litv.tv/vod/getMainUrl', video_id,
+                'https://www.litv.tv/vod/ajax/getMainUrlNoAuth', video_id,
                 data=json.dumps(payload).encode('utf-8'),
                 headers={'Content-Type': 'application/json'})
 
