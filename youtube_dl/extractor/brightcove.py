@@ -32,6 +32,7 @@ from ..utils import (
     update_url_query,
     clean_html,
     mimetype2ext,
+    url_or_none,
 )
 
 
@@ -483,7 +484,7 @@ class BrightcoveLegacyIE(InfoExtractor):
 
 class BrightcoveNewIE(AdobePassIE):
     IE_NAME = 'brightcove:new'
-    _VALID_URL = r'https?://players\.brightcove\.net/(?P<account_id>\d+)/(?P<player_id>[^/]+)_(?P<embed>[^/]+)/index\.html\?.*videoId=(?P<video_id>\d+|ref:[^&]+)'
+    _VALID_URL = r'https?://players\.brightcove\.net/(?P<account_id>\d+)/(?P<player_id>[^/]+)_(?P<embed>[^/]+)/index\.html\?.*(?P<content_type>video|playlist)Id=(?P<video_id>\d+|ref:[^&]+)'
     _TESTS = [{
         'url': 'http://players.brightcove.net/929656772001/e41d32dc-ec74-459e-a845-6c69f7b724ea_default/index.html?videoId=4463358922001',
         'md5': 'c8100925723840d4b0d243f7025703be',
@@ -511,6 +512,19 @@ class BrightcoveNewIE(AdobePassIE):
             'upload_date': '20150606',
             'uploader_id': '4036320279001',
             'formats': 'mincount:39',
+        },
+        'params': {
+            # m3u8 download
+            'skip_download': True,
+        }
+    }, {
+        # playlist streams
+        'url': 'http://players.brightcove.net/5690807595001/HyZNerRl7_default/index.html?playlistId=5743160747001',
+        'info_dict': {
+            'id': '5743160747001',
+            'ext': 'mp4',
+            'title': 'prod ntv',
+            'uploader_id': '5690807595001',
         },
         'params': {
             # m3u8 download
@@ -600,68 +614,70 @@ class BrightcoveNewIE(AdobePassIE):
         title = json_data['name'].strip()
 
         formats = []
-        for source in json_data.get('sources', []):
-            container = source.get('container')
-            ext = mimetype2ext(source.get('type'))
-            src = source.get('src')
-            # https://support.brightcove.com/playback-api-video-fields-reference#key_systems_object
-            if ext == 'ism' or container == 'WVM' or source.get('key_systems'):
-                continue
-            elif ext == 'm3u8' or container == 'M2TS':
-                if not src:
+        # playlistId data starts from `videos`, videoId from `sources`
+        for vid in json_data.get('videos', [json_data]):
+            for source in vid.get('sources', []):
+                container = source.get('container')
+                ext = mimetype2ext(source.get('type'))
+                src = source.get('src')
+                # https://support.brightcove.com/playback-api-video-fields-reference#key_systems_object
+                if ext == 'ism' or container == 'WVM' or source.get('key_systems'):
                     continue
-                formats.extend(self._extract_m3u8_formats(
-                    src, video_id, 'mp4', 'm3u8_native', m3u8_id='hls', fatal=False))
-            elif ext == 'mpd':
-                if not src:
-                    continue
-                formats.extend(self._extract_mpd_formats(src, video_id, 'dash', fatal=False))
-            else:
-                streaming_src = source.get('streaming_src')
-                stream_name, app_name = source.get('stream_name'), source.get('app_name')
-                if not src and not streaming_src and (not stream_name or not app_name):
-                    continue
-                tbr = float_or_none(source.get('avg_bitrate'), 1000)
-                height = int_or_none(source.get('height'))
-                width = int_or_none(source.get('width'))
-                f = {
-                    'tbr': tbr,
-                    'filesize': int_or_none(source.get('size')),
-                    'container': container,
-                    'ext': ext or container.lower(),
-                }
-                if width == 0 and height == 0:
-                    f.update({
-                        'vcodec': 'none',
-                    })
+                elif ext == 'm3u8' or container == 'M2TS':
+                    if not src:
+                        continue
+                    formats.extend(self._extract_m3u8_formats(
+                        src, video_id, 'mp4', 'm3u8_native', m3u8_id='hls', fatal=False))
+                elif ext == 'mpd':
+                    if not src:
+                        continue
+                    formats.extend(self._extract_mpd_formats(src, video_id, 'dash', fatal=False))
                 else:
-                    f.update({
-                        'width': width,
-                        'height': height,
-                        'vcodec': source.get('codec'),
-                    })
+                    streaming_src = source.get('streaming_src')
+                    stream_name, app_name = source.get('stream_name'), source.get('app_name')
+                    if not src and not streaming_src and (not stream_name or not app_name):
+                        continue
+                    tbr = float_or_none(source.get('avg_bitrate'), 1000)
+                    height = int_or_none(source.get('height'))
+                    width = int_or_none(source.get('width'))
+                    f = {
+                        'tbr': tbr,
+                        'filesize': int_or_none(source.get('size')),
+                        'container': container,
+                        'ext': ext or container.lower(),
+                    }
+                    if width == 0 and height == 0:
+                        f.update({
+                            'vcodec': 'none',
+                        })
+                    else:
+                        f.update({
+                            'width': width,
+                            'height': height,
+                            'vcodec': source.get('codec'),
+                        })
 
-                def build_format_id(kind):
-                    format_id = kind
-                    if tbr:
-                        format_id += '-%dk' % int(tbr)
-                    if height:
-                        format_id += '-%dp' % height
-                    return format_id
+                    def build_format_id(kind):
+                        format_id = kind
+                        if tbr:
+                            format_id += '-%dk' % int(tbr)
+                        if height:
+                            format_id += '-%dp' % height
+                        return format_id
 
-                if src or streaming_src:
-                    f.update({
-                        'url': src or streaming_src,
-                        'format_id': build_format_id('http' if src else 'http-streaming'),
-                        'source_preference': 0 if src else -1,
-                    })
-                else:
-                    f.update({
-                        'url': app_name,
-                        'play_path': stream_name,
-                        'format_id': build_format_id('rtmp'),
-                    })
-                formats.append(f)
+                    if src or streaming_src:
+                        f.update({
+                            'url': src or streaming_src,
+                            'format_id': build_format_id('http' if src else 'http-streaming'),
+                            'source_preference': 0 if src else -1,
+                        })
+                    else:
+                        f.update({
+                            'url': app_name,
+                            'play_path': stream_name,
+                            'format_id': build_format_id('rtmp'),
+                        })
+                    formats.append(f)
         if not formats:
             # for sonyliv.com DRM protected videos
             s3_source_url = json_data.get('custom_fields', {}).get('s3sourceurl')
@@ -715,7 +731,7 @@ class BrightcoveNewIE(AdobePassIE):
             'ip_blocks': smuggled_data.get('geo_ip_blocks'),
         })
 
-        account_id, player_id, embed, video_id = re.match(self._VALID_URL, url).groups()
+        account_id, player_id, embed, content_type, video_id = re.match(self._VALID_URL, url).groups()
 
         webpage = self._download_webpage(
             'http://players.brightcove.net/%s/%s_%s/index.min.js'
@@ -736,7 +752,7 @@ class BrightcoveNewIE(AdobePassIE):
                 r'policyKey\s*:\s*(["\'])(?P<pk>.+?)\1',
                 webpage, 'policy key', group='pk')
 
-        api_url = 'https://edge.api.brightcove.com/playback/v1/accounts/%s/videos/%s' % (account_id, video_id)
+        api_url = 'https://edge.api.brightcove.com/playback/v1/accounts/%s/%ss/%s' % (account_id, content_type, video_id)
         headers = {
             'Accept': 'application/json;pk=%s' % policy_key,
         }
