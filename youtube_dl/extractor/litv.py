@@ -15,24 +15,24 @@ from ..utils import (
 class LiTVIE(InfoExtractor):
     _VALID_URL = r'https?://(?:www\.)?litv\.tv/(?:vod|promo)/[^/]+/(?:content\.do)?\?.*?\b(?:content_)?id=(?P<id>[^&]+)'
 
-    _URL_TEMPLATE = 'https://www.litv.tv/vod/%s/content.do?id=%s'
+    _URL_TEMPLATE = 'https://www.litv.tv/vod/%s/content.do?content_id=%s'
 
     _TESTS = [{
-        'url': 'https://www.litv.tv/vod/drama/content.do?brc_id=root&id=VOD00041610&isUHEnabled=true&autoPlay=1',
+        'url': 'https://www.litv.tv/vod/drama/content.do?content_id=VOD00037490',
         'info_dict': {
-            'id': 'VOD00041606',
-            'title': '花千骨',
+            'id': 'VOD00037490',
+            'title': '他們在畢業的前一天爆炸',
         },
-        'playlist_count': 50,
+        'playlist_count': 5,
     }, {
-        'url': 'https://www.litv.tv/vod/drama/content.do?brc_id=root&id=VOD00041610&isUHEnabled=true&autoPlay=1',
-        'md5': '969e343d9244778cb29acec608e53640',
+        'url': 'https://www.litv.tv/vod/drama/content.do?content_id=VOD00037490',
+        'md5': '28955f865ed7ee4f572f54a16eedbf56',
         'info_dict': {
-            'id': 'VOD00041610',
+            'id': 'VOD00037490',
             'ext': 'mp4',
-            'title': '花千骨第1集',
+            'title': '他們在畢業的前一天爆炸第1集',
             'thumbnail': r're:https?://.*\.jpg$',
-            'description': 'md5:c7017aa144c87467c4fb2909c4b05d6f',
+            'description': '本劇為公視2010擁抱青春靈魂最深處的第三部曲，由電影《陽陽》導演鄭有傑執導，將透過劇情探討青少年在即將跨越成人世界的重要時刻，內心所遭遇的矛盾與掙扎。本片召集一批極具潛力的明日之星共同演出，包括巫建和、黃遠、紀培慧等，堪稱2010最具話題的超級偶像劇。',
             'episode_number': 1,
         },
         'params': {
@@ -51,18 +51,18 @@ class LiTVIE(InfoExtractor):
         'skip': 'Georestricted to Taiwan',
     }]
 
-    def _extract_playlist(self, season_list, video_id, program_info, prompt=True):
+    def _extract_playlist(self, episodes_list, video_id, program_info, prompt=True):
         episode_title = program_info['title']
-        content_id = season_list['contentId']
+        content_id = program_info['contentId']
 
         if prompt:
             self.to_screen('Downloading playlist %s - add --no-playlist to just download video %s' % (content_id, video_id))
 
         all_episodes = [
             self.url_result(smuggle_url(
-                self._URL_TEMPLATE % (program_info['contentType'], episode['contentId']),
+                episode['url'],
                 {'force_noplaylist': True}))  # To prevent infinite recursion
-            for episode in season_list['episode']]
+            for episode in episodes_list]
 
         return self.playlist_result(all_episodes, content_id, episode_title)
 
@@ -83,11 +83,14 @@ class LiTVIE(InfoExtractor):
             r'var\s+programInfo\s*=\s*([^;]+)', webpage, 'VOD data', default='{}'),
             video_id)
 
-        season_list = list(program_info.get('seasonList', {}).values())
-        if season_list:
+        episodes_list = self._search_regex(
+            r'"@type":\s+"ItemList",\s+"itemListElement":\s+(\[[^\]]+\])',
+            webpage, 'Season list', default='[]')
+        episodes_list = self._parse_json(episodes_list, video_id)
+        if episodes_list:
             if not noplaylist:
                 return self._extract_playlist(
-                    season_list[0], video_id, program_info,
+                    episodes_list, video_id, program_info,
                     prompt=noplaylist_prompt)
 
             if noplaylist_prompt:
