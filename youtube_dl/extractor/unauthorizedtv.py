@@ -14,7 +14,7 @@ class UnauthorizedTvIE(InfoExtractor):
         'url': 'https://www.unauthorized.tv/programs/owens-shorts?cid=231148',
         'md5': 'dd9a5b81b9704c68942c2584086dd73f',
         'info_dict': {
-            'id': 'owens-shorts?cid=231148',
+            'id': '231148',
             'ext': 'mp4',
             'title': 'Millennials',
         }
