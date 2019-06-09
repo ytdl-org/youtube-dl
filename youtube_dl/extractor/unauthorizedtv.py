@@ -3,6 +3,10 @@ from __future__ import unicode_literals
 
 from .common import InfoExtractor
 
+from ..compat import (
+    compat_str,
+)
+
 
 class UnauthorizedTvIE(InfoExtractor):
     _VALID_URL = r'https?://(?:www\.)?unauthorized\.tv/programs/(?P<id>.+)'
@@ -39,7 +43,7 @@ class UnauthorizedTvIE(InfoExtractor):
             headers=headers
         )
 
-        chapters = '&ids[]='.join([str(x) for x in chaptersJson['chapters']])
+        chapters = '&ids[]='.join([compat_str(x) for x in chaptersJson['chapters']])
 
         metadata = self._download_json(
             'https://www.unauthorized.tv/api/chapters?ids[]=%s' % chapters,
