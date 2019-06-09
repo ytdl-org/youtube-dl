@@ -3,10 +3,6 @@ from __future__ import unicode_literals
 
 from .common import InfoExtractor
 
-from ..compat import (
-    compat_str,
-)
-
 
 class UnauthorizedTvIE(InfoExtractor):
     _VALID_URL = r'https?://(?:www\.)?unauthorized\.tv/programs/.*?cid=(?P<id>\d+)'
@@ -22,8 +18,6 @@ class UnauthorizedTvIE(InfoExtractor):
 
     def _real_extract(self, url):
         video_id = self._match_id(url)
-        
-        program = url[url.rfind("/")+1:url.find("?cid=")]
 
         html = self._download_webpage(url, video_id)
 
