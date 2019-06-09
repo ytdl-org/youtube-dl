@@ -78,7 +78,6 @@
  - **AudioBoom**
  - **audiomack**
  - **audiomack:album**
- - **auroravid**: AuroraVid
  - **AWAAN**
  - **awaan:live**
  - **awaan:season**
@@ -150,6 +149,7 @@
  - **CBSInteractive**
  - **CBSLocal**
  - **cbsnews**: CBS News
+ - **cbsnews:embed**
  - **cbsnews:livevideo**: CBS News Live Videos
  - **CBSSports**
  - **CCMA**
@@ -174,7 +174,6 @@
  - **Clipsyndicate**
  - **CloserToTruth**
  - **CloudflareStream**
- - **cloudtime**: CloudTime
  - **Cloudy**
  - **Clubic**
  - **Clyp**
@@ -194,7 +193,6 @@
  - **Coub**
  - **Cracked**
  - **Crackle**
- - **Criterion**
  - **CrooksAndLiars**
  - **crunchyroll**
  - **crunchyroll:playlist**
@@ -609,7 +607,6 @@
  - **nowness**
  - **nowness:playlist**
  - **nowness:series**
- - **nowvideo**: NowVideo
  - **Noz**
  - **npo**: npo.nl, ntr.nl, omroepwnl.nl, zapp.nl and npo3.nl
  - **npo.nl:live**
@@ -693,7 +690,6 @@
  - **PopcornTV**
  - **PornCom**
  - **PornerBros**
- - **PornFlip**
  - **PornHd**
  - **PornHub**: PornHub and Thumbzilla
  - **PornHubPlaylist**
@@ -734,6 +730,7 @@
  - **RBMARadio**
  - **RDS**: RDS.ca
  - **RedBullTV**
+ - **RedBullTVRrnContent**
  - **Reddit**
  - **RedditR**
  - **RedTube**
@@ -1024,7 +1021,6 @@
  - **videomore:video**
  - **VideoPremium**
  - **VideoPress**
- - **videoweed**: VideoWeed
  - **Vidio**
  - **VidLii**
  - **vidme**
@@ -1101,7 +1097,6 @@
  - **Weibo**
  - **WeiboMobile**
  - **WeiqiTV**: WQTV
- - **wholecloud**: WholeCloud
  - **Wimp**
  - **Wistia**
  - **wnl**: npo.nl, ntr.nl, omroepwnl.nl, zapp.nl and npo3.nl

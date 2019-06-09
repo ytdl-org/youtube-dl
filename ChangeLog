@@ -1,3 +1,41 @@
+version 2019.06.08
+
+Core
+* [downloader/common] Improve rate limit (#21301)
+* [utils] Improve strip_or_none
+* [extractor/common] Strip src attribute for HTML5 entries code (#18485,
+  #21169)
+
+Extractors
+* [ted] Fix playlist extraction (#20844, #21032)
+* [vlive:playlist] Fix video extraction when no playlist is found (#20590)
++ [vlive] Add CH+ support (#16887, #21209)
++ [openload] Add support for oload.website (#21329)
++ [tvnow] Extract HD formats (#21201)
++ [redbulltv] Add support for rrn:content URLs (#21297)
+* [youtube] Fix average rating extraction (#21304)
++ [bitchute] Extract HTML5 formats (#21306)
+* [cbsnews] Fix extraction (#9659, #15397)
+* [vvvvid] Relax URL regular expression (#21299)
++ [prosiebensat1] Add support for new API (#21272)
++ [vrv] Extract adaptive_hls formats (#21243)
+* [viki] Switch to HTTPS (#21001)
+* [LiveLeak] Check if the original videos exist (#21206, #21208)
+* [rtp] Fix extraction (#15099)
+* [youtube] Improve DRM protected videos detection (#1774)
++ [srgssrplay] Add support for popupvideoplayer URLs (#21155)
++ [24video] Add support for porno.24video.net (#21194)
++ [24video] Add support for 24video.site (#21193)
+- [pornflip] Remove extractor
+- [criterion] Remove extractor (#21195)
+* [pornhub] Use HTTPS (#21061)
+* [bitchute] Fix uploader extraction (#21076)
+* [streamcloud] Reduce waiting time to 6 seconds (#21092)
+- [novamov] Remove extractors (#21077)
++ [openload] Add support for oload.press (#21135)
+* [vivo] Fix extraction (#18906, #19217)
+
+
 version 2019.05.20
 
 Core

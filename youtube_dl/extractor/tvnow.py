@@ -47,15 +47,23 @@ class TVNowBaseIE(InfoExtractor):
                         r'\.ism/(?:[^.]*\.(?:m3u8|mpd)|[Mm]anifest)',
                         '.ism/' + suffix, manifest_url))
 
-            formats = self._extract_mpd_formats(
-                url_repl('dash', '.mpd'), video_id,
-                mpd_id='dash', fatal=False)
-            formats.extend(self._extract_ism_formats(
-                url_repl('hss', 'Manifest'),
-                video_id, ism_id='mss', fatal=False))
-            formats.extend(self._extract_m3u8_formats(
-                url_repl('hls', '.m3u8'), video_id, 'mp4',
-                'm3u8_native', m3u8_id='hls', fatal=False))
+            def make_urls(proto, suffix):
+                urls = [url_repl(proto, suffix)]
+                hd_url = urls[0].replace('/manifest/', '/ngvod/')
+                if hd_url != urls[0]:
+                    urls.append(hd_url)
+                return urls
+
+            for man_url in make_urls('dash', '.mpd'):
+                formats = self._extract_mpd_formats(
+                    man_url, video_id, mpd_id='dash', fatal=False)
+            for man_url in make_urls('hss', 'Manifest'):
+                formats.extend(self._extract_ism_formats(
+                    man_url, video_id, ism_id='mss', fatal=False))
+            for man_url in make_urls('hls', '.m3u8'):
+                formats.extend(self._extract_m3u8_formats(
+                    man_url, video_id, 'mp4', 'm3u8_native', m3u8_id='hls',
+                    fatal=False))
             if formats:
                 break
         else:
