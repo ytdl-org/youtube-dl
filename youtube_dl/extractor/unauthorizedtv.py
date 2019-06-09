@@ -21,7 +21,7 @@ class UnauthorizedTvIE(InfoExtractor):
 
         html = self._download_webpage(url, video_id)
 
-        csrf_token = self._html_search_meta('csrf-token', html, 'csrf token', default=None)
+        csrf_token = self._html_search_meta('csrf-token', html, 'csrf token', fatal=True)
 
         headers = {
             'Referer': url,
