@@ -23,9 +23,6 @@ class UnauthorizedTvIE(InfoExtractor):
         if "?cid=" in video_id:
             cid = int(video_id[video_id.find('=') + 1:])
 
-        if self._downloader.params.get('verbose', False):
-            print(video_id)
-
         html = self._download_webpage(url, video_id)
 
         csrf_token = self._html_search_meta(
@@ -47,9 +44,6 @@ class UnauthorizedTvIE(InfoExtractor):
             headers=headers
         )
 
-        if self._downloader.params.get('verbose', False):
-            print(chaptersJson)
-
         chapters = '&ids[]='.join([str(x) for x in chaptersJson['chapters']])
 
         metadata = self._download_json(
@@ -66,11 +60,6 @@ class UnauthorizedTvIE(InfoExtractor):
                 if item["id"] == cid:
                     video_title = item['title']
                     video_url = item['subject']['versions']['hls']
-
-        if self._downloader.params.get('verbose', False):
-            print(metadata)
-            print(video_title)
-            print(video_url)
 
         return {
             'id': video_id,
