@@ -2583,19 +2583,6 @@ class GenericIE(InfoExtractor):
         if mobj is not None:
             return self.url_result(mobj.group(1), 'Mpora')
 
-        # Look for embedded NovaMov-based player
-        mobj = re.search(
-            r'''(?x)<(?:pagespeed_)?iframe[^>]+?src=(["\'])
-                    (?P<url>http://(?:(?:embed|www)\.)?
-                        (?:novamov\.com|
-                           nowvideo\.(?:ch|sx|eu|at|ag|co)|
-                           videoweed\.(?:es|com)|
-                           movshare\.(?:net|sx|ag)|
-                           divxstage\.(?:eu|net|ch|co|at|ag))
-                        /embed\.php.+?)\1''', webpage)
-        if mobj is not None:
-            return self.url_result(mobj.group('url'))
-
         # Look for embedded Facebook player
         facebook_urls = FacebookIE._extract_urls(webpage)
         if facebook_urls:

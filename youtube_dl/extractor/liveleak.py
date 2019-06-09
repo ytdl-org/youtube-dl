@@ -82,6 +82,10 @@ class LiveLeakIE(InfoExtractor):
     }, {
         'url': 'https://www.liveleak.com/view?t=HvHi_1523016227',
         'only_matching': True,
+    }, {
+        # No original video
+        'url': 'https://www.liveleak.com/view?t=C26ZZ_1558612804',
+        'only_matching': True,
     }]
 
     @staticmethod
@@ -134,11 +138,13 @@ class LiveLeakIE(InfoExtractor):
                 orig_url = re.sub(r'\.mp4\.[^.]+', '', a_format['url'])
                 if a_format['url'] != orig_url:
                     format_id = a_format.get('format_id')
-                    formats.append({
-                        'format_id': 'original' + ('-' + format_id if format_id else ''),
-                        'url': orig_url,
-                        'preference': 1,
-                    })
+                    format_id = 'original' + ('-' + format_id if format_id else '')
+                    if self._is_valid_url(orig_url, video_id, format_id):
+                        formats.append({
+                            'format_id': format_id,
+                            'url': orig_url,
+                            'preference': 1,
+                        })
             self._sort_formats(formats)
             info_dict['formats'] = formats
 

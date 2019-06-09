@@ -67,6 +67,7 @@ from ..utils import (
     sanitized_Request,
     sanitize_filename,
     str_or_none,
+    strip_or_none,
     unescapeHTML,
     unified_strdate,
     unified_timestamp,
@@ -2480,7 +2481,7 @@ class InfoExtractor(object):
                 'subtitles': {},
             }
             media_attributes = extract_attributes(media_tag)
-            src = media_attributes.get('src')
+            src = strip_or_none(media_attributes.get('src'))
             if src:
                 _, formats = _media_formats(src, media_type)
                 media_info['formats'].extend(formats)
@@ -2490,7 +2491,7 @@ class InfoExtractor(object):
                     s_attr = extract_attributes(source_tag)
                     # data-video-src and data-src are non standard but seen
                     # several times in the wild
-                    src = dict_get(s_attr, ('src', 'data-video-src', 'data-src'))
+                    src = strip_or_none(dict_get(s_attr, ('src', 'data-video-src', 'data-src')))
                     if not src:
                         continue
                     f = parse_content_type(s_attr.get('type'))
@@ -2533,7 +2534,7 @@ class InfoExtractor(object):
                     track_attributes = extract_attributes(track_tag)
                     kind = track_attributes.get('kind')
                     if not kind or kind in ('subtitles', 'captions'):
-                        src = track_attributes.get('src')
+                        src = strip_or_none(track_attributes.get('src'))
                         if not src:
                             continue
                         lang = track_attributes.get('srclang') or track_attributes.get('lang') or track_attributes.get('label')
@@ -2816,6 +2817,33 @@ class InfoExtractor(object):
         req = sanitized_Request(url)
         self._downloader.cookiejar.add_cookie_header(req)
         return compat_cookies.SimpleCookie(req.get_header('Cookie'))
+
+    def _apply_first_set_cookie_header(self, url_handle, cookie):
+        """
+        Apply first Set-Cookie header instead of the last. Experimental.
+
+        Some sites (e.g. [1-3]) may serve two cookies under the same name
+        in Set-Cookie header and expect the first (old) one to be set rather
+        than second (new). However, as of RFC6265 the newer one cookie
+        should be set into cookie store what actually happens.
+        We will workaround this issue by resetting the cookie to
+        the first one manually.
+        1. https://new.vk.com/
+        2. https://github.com/ytdl-org/youtube-dl/issues/9841#issuecomment-227871201
+        3. https://learning.oreilly.com/
+        """
+        for header, cookies in url_handle.headers.items():
+            if header.lower() != 'set-cookie':
+                continue
+            if sys.version_info[0] >= 3:
+                cookies = cookies.encode('iso-8859-1')
+            cookies = cookies.decode('utf-8')
+            cookie_value = re.search(
+                r'%s=(.+?);.*?\b[Dd]omain=(.+?)(?:[,;]|$)' % cookie, cookies)
+            if cookie_value:
+                value, domain = cookie_value.groups()
+                self._set_cookie(domain, cookie, value)
+                break
 
     def get_testcases(self, include_onlymatching=False):
         t = getattr(self, '_TEST', None)
