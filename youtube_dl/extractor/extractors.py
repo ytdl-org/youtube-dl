@@ -287,6 +287,7 @@ from .dplay import (
     DPlayIE,
     DPlayItIE,
 )
+from .dreisat import DreiSatIE
 from .drbonanza import DRBonanzaIE
 from .drtuber import DrTuberIE
 from .drtv import (
@@ -1521,6 +1522,6 @@ from .zattoo import (
     ZattooIE,
     ZattooLiveIE,
 )
-from .zdf3sat import ZDFIE, ZDFChannelIE
+from .zdf import ZDFIE, ZDFChannelIE
 from .zingmp3 import ZingMp3IE
 from .zype import ZypeIE
