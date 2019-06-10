@@ -1522,6 +1522,6 @@ from .zattoo import (
     ZattooIE,
     ZattooLiveIE,
 )
-from .zdf import ZDFIE, ZDFChannelIE
+from .zdf3sat import ZDFIE, ZDFChannelIE
 from .zingmp3 import ZingMp3IE
 from .zype import ZypeIE

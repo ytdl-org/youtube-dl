@@ -39,7 +39,7 @@ class ZDFBaseIE(InfoExtractor):
 
 
 class ZDFIE(ZDFBaseIE):
-    _VALID_URL = r'https?://www\.zdf\.de/(?:[^/]+/)*(?P<id>[^/?]+)\.html'
+    _VALID_URL = r'https?://www\.(?:zdf|3sat)\.de/(?:[^/]+/)*(?P<id>[^/?]+)\.html'
     _QUALITIES = ('auto', 'low', 'med', 'high', 'veryhigh')
 
     _TESTS = [{
@@ -53,6 +53,9 @@ class ZDFIE(ZDFBaseIE):
             'timestamp': 1465021200,
             'upload_date': '20160604',
         },
+    }, {
+        'url': 'https://www.3sat.de/kultur/kulturdoku/der-gugelhupf-koenig-der-kuchen-100.html',
+        'only_matching': True,
     }, {
         'url': 'https://www.zdf.de/service-und-hilfe/die-neue-zdf-mediathek/zdfmediathek-trailer-100.html',
         'only_matching': True,
