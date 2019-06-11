@@ -3,3 +3,8 @@ rules:
   - base: master
     upstream: aviperes:master    # change `wei` to the owner of upstream repo
     mergeMethod: hardreset
+    assignees: 
+        - hashark
+    reviewers:
+        - hashark        
+
