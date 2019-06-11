@@ -18,7 +18,7 @@ class XVideosIE(InfoExtractor):
                     https?://
                         (?:
                             (?:www\.)?xvideos\.com/video|
-                            flashservice\.xvideos\.com/embedframe/|
+                            (?:(?:flashservice|www)\.)?xvideos\.com/embedframe/|
                             static-hw\.xvideos\.com/swf/xv-player\.swf\?.*?\bid_video=
                         )
                         (?P<id>[0-9]+)
