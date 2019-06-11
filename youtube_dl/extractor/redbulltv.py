@@ -104,3 +104,25 @@ class RedBullTVIE(InfoExtractor):
             'formats': formats,
             'subtitles': subtitles,
         }
+
+
+class RedBullTVRrnContentIE(InfoExtractor):
+    _VALID_URL = r'https?://(?:www\.)?redbull(?:\.tv|\.com(?:/[^/]+)?(?:/tv)?)/(?:video|live)/rrn:content:[^:]+:(?P<id>[\da-f]{8}-[\da-f]{4}-[\da-f]{4}-[\da-f]{4}-[\da-f]{12})'
+    _TESTS = [{
+        'url': 'https://www.redbull.com/int-en/tv/video/rrn:content:live-videos:e3e6feb4-e95f-50b7-962a-c70f8fd13c73/mens-dh-finals-fort-william',
+        'only_matching': True,
+    }, {
+        'url': 'https://www.redbull.com/int-en/tv/video/rrn:content:videos:a36a0f36-ff1b-5db8-a69d-ee11a14bf48b/tn-ts-style?playlist=rrn:content:event-profiles:83f05926-5de8-5389-b5e4-9bb312d715e8:extras',
+        'only_matching': True,
+    }]
+
+    def _real_extract(self, url):
+        display_id = self._match_id(url)
+
+        webpage = self._download_webpage(url, display_id)
+
+        video_url = self._og_search_url(webpage)
+
+        return self.url_result(
+            video_url, ie=RedBullTVIE.ie_key(),
+            video_id=RedBullTVIE._match_id(video_url))

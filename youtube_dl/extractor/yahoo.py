@@ -511,6 +511,8 @@ class YahooGyaOPlayerIE(InfoExtractor):
             'https://gyao.yahoo.co.jp/dam/v1/videos/' + video_id,
             video_id, query={
                 'fields': 'longDescription,title,videoId',
+            }, headers={
+                'X-User-Agent': 'Unknown Pc GYAO!/2.0.0 Web',
             })
         return {
             '_type': 'url_transparent',

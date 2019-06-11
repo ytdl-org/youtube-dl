@@ -70,9 +70,9 @@ class YandexVideoIE(InfoExtractor):
 
         description = content.get('description')
         thumbnail = content.get('thumbnail')
-        timestamp = (int_or_none(content.get('release_date')) or
-                     int_or_none(content.get('release_date_ut')) or
-                     int_or_none(content.get('start_time')))
+        timestamp = (int_or_none(content.get('release_date'))
+                     or int_or_none(content.get('release_date_ut'))
+                     or int_or_none(content.get('start_time')))
         duration = int_or_none(content.get('duration'))
         series = content.get('program_title')
         age_limit = int_or_none(content.get('restriction_age'))

@@ -369,14 +369,14 @@ class NiconicoIE(InfoExtractor):
         video_detail = watch_api_data.get('videoDetail', {})
 
         thumbnail = (
-            get_video_info(['thumbnail_url', 'thumbnailURL']) or
-            self._html_search_meta('image', webpage, 'thumbnail', default=None) or
-            video_detail.get('thumbnail'))
+            get_video_info(['thumbnail_url', 'thumbnailURL'])
+            or self._html_search_meta('image', webpage, 'thumbnail', default=None)
+            or video_detail.get('thumbnail'))
 
         description = get_video_info('description')
 
-        timestamp = (parse_iso8601(get_video_info('first_retrieve')) or
-                     unified_timestamp(get_video_info('postedDateTime')))
+        timestamp = (parse_iso8601(get_video_info('first_retrieve'))
+                     or unified_timestamp(get_video_info('postedDateTime')))
         if not timestamp:
             match = self._html_search_meta('datePublished', webpage, 'date published', default=None)
             if match:
@@ -395,9 +395,9 @@ class NiconicoIE(InfoExtractor):
                 view_count = int_or_none(match.replace(',', ''))
         view_count = view_count or video_detail.get('viewCount')
 
-        comment_count = (int_or_none(get_video_info('comment_num')) or
-                         video_detail.get('commentCount') or
-                         try_get(api_data, lambda x: x['thread']['commentCount']))
+        comment_count = (int_or_none(get_video_info('comment_num'))
+                         or video_detail.get('commentCount')
+                         or try_get(api_data, lambda x: x['thread']['commentCount']))
         if not comment_count:
             match = self._html_search_regex(
                 r'>Comments: <strong[^>]*>([^<]+)</strong>',
@@ -406,11 +406,11 @@ class NiconicoIE(InfoExtractor):
                 comment_count = int_or_none(match.replace(',', ''))
 
         duration = (parse_duration(
-            get_video_info('length') or
-            self._html_search_meta(
-                'video:duration', webpage, 'video duration', default=None)) or
-            video_detail.get('length') or
-            get_video_info('duration'))
+            get_video_info('length')
+            or self._html_search_meta(
+                'video:duration', webpage, 'video duration', default=None))
+            or video_detail.get('length')
+            or get_video_info('duration'))
 
         webpage_url = get_video_info('watch_url') or url
 

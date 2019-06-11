@@ -3,7 +3,6 @@ from __future__ import unicode_literals
 
 import collections
 import re
-import sys
 
 from .common import InfoExtractor
 from ..compat import compat_urlparse
@@ -45,24 +44,9 @@ class VKBaseIE(InfoExtractor):
             'pass': password.encode('cp1251'),
         })
 
-        # https://new.vk.com/ serves two same remixlhk cookies in Set-Cookie header
-        # and expects the first one to be set rather than second (see
-        # https://github.com/ytdl-org/youtube-dl/issues/9841#issuecomment-227871201).
-        # As of RFC6265 the newer one cookie should be set into cookie store
-        # what actually happens.
-        # We will workaround this VK issue by resetting the remixlhk cookie to
-        # the first one manually.
-        for header, cookies in url_handle.headers.items():
-            if header.lower() != 'set-cookie':
-                continue
-            if sys.version_info[0] >= 3:
-                cookies = cookies.encode('iso-8859-1')
-            cookies = cookies.decode('utf-8')
-            remixlhk = re.search(r'remixlhk=(.+?);.*?\bdomain=(.+?)(?:[,;]|$)', cookies)
-            if remixlhk:
-                value, domain = remixlhk.groups()
-                self._set_cookie(domain, 'remixlhk', value)
-                break
+        # vk serves two same remixlhk cookies in Set-Cookie header and expects
+        # first one to be actually set
+        self._apply_first_set_cookie_header(url_handle, 'remixlhk')
 
         login_page = self._download_webpage(
             'https://login.vk.com/?act=login', None,
@@ -443,8 +427,8 @@ class VKIE(VKBaseIE):
             format_url = url_or_none(format_url)
             if not format_url or not format_url.startswith(('http', '//', 'rtmp')):
                 continue
-            if (format_id.startswith(('url', 'cache')) or
-                    format_id in ('extra_data', 'live_mp4', 'postlive_mp4')):
+            if (format_id.startswith(('url', 'cache'))
+                    or format_id in ('extra_data', 'live_mp4', 'postlive_mp4')):
                 height = int_or_none(self._search_regex(
                     r'^(?:url|cache)(\d+)', format_id, 'height', default=None))
                 formats.append({

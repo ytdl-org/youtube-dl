@@ -130,7 +130,7 @@ class VRVIE(VRVBaseIE):
         self._TOKEN_SECRET = token_credentials['oauth_token_secret']
 
     def _extract_vrv_formats(self, url, video_id, stream_format, audio_lang, hardsub_lang):
-        if not url or stream_format not in ('hls', 'dash'):
+        if not url or stream_format not in ('hls', 'dash', 'adaptive_hls'):
             return []
         stream_id_list = []
         if audio_lang:
@@ -140,7 +140,7 @@ class VRVIE(VRVBaseIE):
         format_id = stream_format
         if stream_id_list:
             format_id += '-' + '-'.join(stream_id_list)
-        if stream_format == 'hls':
+        if 'hls' in stream_format:
             adaptive_formats = self._extract_m3u8_formats(
                 url, video_id, 'mp4', m3u8_id=format_id,
                 note='Downloading %s information' % format_id,
@@ -198,14 +198,15 @@ class VRVIE(VRVBaseIE):
         self._sort_formats(formats)
 
         subtitles = {}
-        for subtitle in streams_json.get('subtitles', {}).values():
-            subtitle_url = subtitle.get('url')
-            if not subtitle_url:
-                continue
-            subtitles.setdefault(subtitle.get('locale', 'en-US'), []).append({
-                'url': subtitle_url,
-                'ext': subtitle.get('format', 'ass'),
-            })
+        for k in ('captions', 'subtitles'):
+            for subtitle in streams_json.get(k, {}).values():
+                subtitle_url = subtitle.get('url')
+                if not subtitle_url:
+                    continue
+                subtitles.setdefault(subtitle.get('locale', 'en-US'), []).append({
+                    'url': subtitle_url,
+                    'ext': subtitle.get('format', 'ass'),
+                })
 
         thumbnails = []
         for thumbnail in video_data.get('images', {}).get('thumbnails', []):

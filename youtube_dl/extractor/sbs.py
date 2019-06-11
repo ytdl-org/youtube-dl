@@ -55,8 +55,8 @@ class SBSIE(InfoExtractor):
             raise ExtractorError('%s said: %s' % (self.IE_NAME, error_message), expected=True)
 
         urls = player_params['releaseUrls']
-        theplatform_url = (urls.get('progressive') or urls.get('html') or
-                           urls.get('standard') or player_params['relatedItemsURL'])
+        theplatform_url = (urls.get('progressive') or urls.get('html')
+                           or urls.get('standard') or player_params['relatedItemsURL'])
 
         return {
             '_type': 'url_transparent',

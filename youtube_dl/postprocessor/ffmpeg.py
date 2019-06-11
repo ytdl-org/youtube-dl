@@ -221,9 +221,9 @@ class FFmpegPostProcessor(PostProcessor):
         # avconv does not have repeat option
         if self.basename == 'ffmpeg':
             cmd += [encodeArgument('-loglevel'), encodeArgument('repeat+info')]
-        cmd += (files_cmd +
-                [encodeArgument(o) for o in opts] +
-                [encodeFilename(self._ffmpeg_filename_argument(out_path), True)])
+        cmd += (files_cmd
+                + [encodeArgument(o) for o in opts]
+                + [encodeFilename(self._ffmpeg_filename_argument(out_path), True)])
 
         if self._downloader.params.get('verbose', False):
             self._downloader.to_screen('[debug] ffmpeg command line: %s' % shell_quote(cmd))
@@ -326,8 +326,8 @@ class FFmpegExtractAudioPP(FFmpegPostProcessor):
         information['ext'] = extension
 
         # If we download foo.mp3 and convert it to... foo.mp3, then don't delete foo.mp3, silly.
-        if (new_path == path or
-                (self._nopostoverwrites and os.path.exists(encodeFilename(new_path)))):
+        if (new_path == path
+                or (self._nopostoverwrites and os.path.exists(encodeFilename(new_path)))):
             self._downloader.to_screen('[ffmpeg] Post-process file %s exists, skipping' % new_path)
             return [], information
 
