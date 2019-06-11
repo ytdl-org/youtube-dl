@@ -1,5 +1,0 @@
-version: "1"
-rules:
-  - base: master
-    upstream: aviperes:Fix.25.12.2018    # change `wei` to the owner of upstream repo
-    mergeMethod: hardreset
