@@ -46,8 +46,8 @@ class HttpFD(FileDownloader):
 
         is_test = self.params.get('test', False)
         chunk_size = self._TEST_FILE_SIZE if is_test else (
-            info_dict.get('downloader_options', {}).get('http_chunk_size') or
-            self.params.get('http_chunk_size') or 0)
+            info_dict.get('downloader_options', {}).get('http_chunk_size')
+            or self.params.get('http_chunk_size') or 0)
 
         ctx.open_mode = 'wb'
         ctx.resume_len = 0
@@ -123,11 +123,11 @@ class HttpFD(FileDownloader):
                                 content_len = int_or_none(content_range_m.group(3))
                                 accept_content_len = (
                                     # Non-chunked download
-                                    not ctx.chunk_size or
+                                    not ctx.chunk_size
                                     # Chunked download and requested piece or
                                     # its part is promised to be served
-                                    content_range_end == range_end or
-                                    content_len < range_end)
+                                    or content_range_end == range_end
+                                    or content_len < range_end)
                                 if accept_content_len:
                                     ctx.data_len = content_len
                                     return
@@ -152,8 +152,8 @@ class HttpFD(FileDownloader):
                             raise
                     else:
                         # Examine the reported length
-                        if (content_length is not None and
-                                (ctx.resume_len - 100 < int(content_length) < ctx.resume_len + 100)):
+                        if (content_length is not None
+                                and (ctx.resume_len - 100 < int(content_length) < ctx.resume_len + 100)):
                             # The file had already been fully downloaded.
                             # Explanation to the above condition: in issue #175 it was revealed that
                             # YouTube sometimes adds or removes a few bytes from the end of the file,

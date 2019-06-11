@@ -76,12 +76,12 @@ class HlsFD(FragmentFD):
             return fd.real_download(filename, info_dict)
 
         def is_ad_fragment_start(s):
-            return (s.startswith('#ANVATO-SEGMENT-INFO') and 'type=ad' in s or
-                    s.startswith('#UPLYNK-SEGMENT') and s.endswith(',ad'))
+            return (s.startswith('#ANVATO-SEGMENT-INFO') and 'type=ad' in s
+                    or s.startswith('#UPLYNK-SEGMENT') and s.endswith(',ad'))
 
         def is_ad_fragment_end(s):
-            return (s.startswith('#ANVATO-SEGMENT-INFO') and 'type=master' in s or
-                    s.startswith('#UPLYNK-SEGMENT') and s.endswith(',segment'))
+            return (s.startswith('#ANVATO-SEGMENT-INFO') and 'type=master' in s
+                    or s.startswith('#UPLYNK-SEGMENT') and s.endswith(',segment'))
 
         media_frags = 0
         ad_frags = 0

@@ -106,7 +106,16 @@ class SRGSSRIE(InfoExtractor):
 
 class SRGSSRPlayIE(InfoExtractor):
     IE_DESC = 'srf.ch, rts.ch, rsi.ch, rtr.ch and swissinfo.ch play sites'
-    _VALID_URL = r'https?://(?:(?:www|play)\.)?(?P<bu>srf|rts|rsi|rtr|swissinfo)\.ch/play/(?:tv|radio)/[^/]+/(?P<type>video|audio)/[^?]+\?id=(?P<id>[0-9a-f\-]{36}|\d+)'
+    _VALID_URL = r'''(?x)
+                    https?://
+                        (?:(?:www|play)\.)?
+                        (?P<bu>srf|rts|rsi|rtr|swissinfo)\.ch/play/(?:tv|radio)/
+                        (?:
+                            [^/]+/(?P<type>video|audio)/[^?]+|
+                            popup(?P<type_2>video|audio)player
+                        )
+                        \?id=(?P<id>[0-9a-f\-]{36}|\d+)
+                    '''
 
     _TESTS = [{
         'url': 'http://www.srf.ch/play/tv/10vor10/video/snowden-beantragt-asyl-in-russland?id=28e1a57d-5b76-4399-8ab3-9097f071e6c5',
@@ -163,9 +172,15 @@ class SRGSSRPlayIE(InfoExtractor):
             # m3u8 download
             'skip_download': True,
         }
+    }, {
+        'url': 'https://www.srf.ch/play/tv/popupvideoplayer?id=c4dba0ca-e75b-43b2-a34f-f708a4932e01',
+        'only_matching': True,
     }]
 
     def _real_extract(self, url):
-        bu, media_type, media_id = re.match(self._VALID_URL, url).groups()
+        mobj = re.match(self._VALID_URL, url)
+        bu = mobj.group('bu')
+        media_type = mobj.group('type') or mobj.group('type_2')
+        media_id = mobj.group('id')
         # other info can be extracted from url + '&layout=json'
         return self.url_result('srgssr:%s:%s:%s' % (bu[:3], media_type, media_id), 'SRGSSR')

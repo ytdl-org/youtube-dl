@@ -34,8 +34,8 @@ def _make_testfunc(testfile):
     def test_func(self):
         as_file = os.path.join(TEST_DIR, testfile)
         swf_file = os.path.join(TEST_DIR, test_id + '.swf')
-        if ((not os.path.exists(swf_file)) or
-                os.path.getmtime(swf_file) < os.path.getmtime(as_file)):
+        if ((not os.path.exists(swf_file))
+                or os.path.getmtime(swf_file) < os.path.getmtime(as_file)):
             # Recompile
             try:
                 subprocess.check_call([

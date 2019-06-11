@@ -5,8 +5,12 @@ import re
 
 from .common import InfoExtractor
 
-from ..compat import compat_str
+from ..compat import (
+    compat_str,
+    compat_urlparse
+)
 from ..utils import (
+    extract_attributes,
     float_or_none,
     int_or_none,
     try_get,
@@ -20,7 +24,7 @@ class TEDIE(InfoExtractor):
         (?P<proto>https?://)
         (?P<type>www|embed(?:-ssl)?)(?P<urlmain>\.ted\.com/
         (
-            (?P<type_playlist>playlists(?:/\d+)?) # We have a playlist
+            (?P<type_playlist>playlists(?:/(?P<playlist_id>\d+))?) # We have a playlist
             |
             ((?P<type_talk>talks)) # We have a simple talk
             |
@@ -84,6 +88,7 @@ class TEDIE(InfoExtractor):
         'info_dict': {
             'id': '10',
             'title': 'Who are the hackers?',
+            'description': 'md5:49a0dbe8fb76d81a0e64b4a80af7f15a'
         },
         'playlist_mincount': 6,
     }, {
@@ -150,22 +155,22 @@ class TEDIE(InfoExtractor):
 
         webpage = self._download_webpage(url, name,
                                          'Downloading playlist webpage')
-        info = self._extract_info(webpage)
 
-        playlist_info = try_get(
-            info, lambda x: x['__INITIAL_DATA__']['playlist'],
-            dict) or info['playlist']
+        playlist_entries = []
+        for entry in re.findall(r'(?s)<[^>]+data-ga-context=["\']playlist["\'][^>]*>', webpage):
+            attrs = extract_attributes(entry)
+            entry_url = compat_urlparse.urljoin(url, attrs['href'])
+            playlist_entries.append(self.url_result(entry_url, self.ie_key()))
 
-        playlist_entries = [
-            self.url_result('http://www.ted.com/talks/' + talk['slug'], self.ie_key())
-            for talk in try_get(
-                info, lambda x: x['__INITIAL_DATA__']['talks'],
-                dict) or info['talks']
-        ]
+        final_url = self._og_search_url(webpage, fatal=False)
+        playlist_id = (
+            re.match(self._VALID_URL, final_url).group('playlist_id')
+            if final_url else None)
+
         return self.playlist_result(
-            playlist_entries,
-            playlist_id=compat_str(playlist_info['id']),
-            playlist_title=playlist_info['title'])
+            playlist_entries, playlist_id=playlist_id,
+            playlist_title=self._og_search_title(webpage, fatal=False),
+            playlist_description=self._og_search_description(webpage))
 
     def _talk_info(self, url, video_name):
         webpage = self._download_webpage(url, video_name)

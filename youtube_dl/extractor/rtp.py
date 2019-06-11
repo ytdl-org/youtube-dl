@@ -1,9 +1,11 @@
 # coding: utf-8
 from __future__ import unicode_literals
 
-import re
-
 from .common import InfoExtractor
+from ..utils import (
+    determine_ext,
+    js_to_json,
+)
 
 
 class RTPIE(InfoExtractor):
@@ -18,10 +20,6 @@ class RTPIE(InfoExtractor):
             'description': 'As paixões musicais de António Cartaxo e António Macedo',
             'thumbnail': r're:^https?://.*\.jpg',
         },
-        'params': {
-            # rtmp download
-            'skip_download': True,
-        },
     }, {
         'url': 'http://www.rtp.pt/play/p831/a-quimica-das-coisas',
         'only_matching': True,
@@ -33,57 +31,36 @@ class RTPIE(InfoExtractor):
         webpage = self._download_webpage(url, video_id)
         title = self._html_search_meta(
             'twitter:title', webpage, display_name='title', fatal=True)
-        description = self._html_search_meta('description', webpage)
-        thumbnail = self._og_search_thumbnail(webpage)
 
-        player_config = self._search_regex(
-            r'(?s)RTPPLAY\.player\.newPlayer\(\s*(\{.*?\})\s*\)', webpage, 'player config')
-        config = self._parse_json(player_config, video_id)
-
-        path, ext = config.get('file').rsplit('.', 1)
-        formats = [{
-            'format_id': 'rtmp',
-            'ext': ext,
-            'vcodec': config.get('type') == 'audio' and 'none' or None,
-            'preference': -2,
-            'url': 'rtmp://{streamer:s}/{application:s}'.format(**config),
-            'app': config.get('application'),
-            'play_path': '{ext:s}:{path:s}'.format(ext=ext, path=path),
-            'page_url': url,
-            'rtmp_live': config.get('live', False),
-            'player_url': 'http://programas.rtp.pt/play/player.swf?v3',
-            'rtmp_real_time': True,
-        }]
-
-        # Construct regular HTTP download URLs
-        replacements = {
-            'audio': {
-                'format_id': 'mp3',
-                'pattern': r'^nas2\.share/wavrss/',
-                'repl': 'http://rsspod.rtp.pt/podcasts/',
-                'vcodec': 'none',
-            },
-            'video': {
-                'format_id': 'mp4_h264',
-                'pattern': r'^nas2\.share/h264/',
-                'repl': 'http://rsspod.rtp.pt/videocasts/',
-                'vcodec': 'h264',
-            },
-        }
-        r = replacements[config['type']]
-        if re.match(r['pattern'], config['file']) is not None:
-            formats.append({
-                'format_id': r['format_id'],
-                'url': re.sub(r['pattern'], r['repl'], config['file']),
-                'vcodec': r['vcodec'],
-            })
-
-        self._sort_formats(formats)
+        config = self._parse_json(self._search_regex(
+            r'(?s)RTPPlayer\(({.+?})\);', webpage,
+            'player config'), video_id, js_to_json)
+        file_url = config['file']
+        ext = determine_ext(file_url)
+        if ext == 'm3u8':
+            file_key = config.get('fileKey')
+            formats = self._extract_m3u8_formats(
+                file_url, video_id, 'mp4', 'm3u8_native',
+                m3u8_id='hls', fatal=file_key)
+            if file_key:
+                formats.append({
+                    'url': 'https://cdn-ondemand.rtp.pt' + file_key,
+                    'preference': 1,
+                })
+            self._sort_formats(formats)
+        else:
+            formats = [{
+                'url': file_url,
+                'ext': ext,
+            }]
+        if config.get('mediaType') == 'audio':
+            for f in formats:
+                f['vcodec'] = 'none'
 
         return {
             'id': video_id,
             'title': title,
             'formats': formats,
-            'description': description,
-            'thumbnail': thumbnail,
+            'description': self._html_search_meta(['description', 'twitter:description'], webpage),
+            'thumbnail': config.get('poster') or self._og_search_thumbnail(webpage),
         }

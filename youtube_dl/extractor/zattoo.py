@@ -86,8 +86,8 @@ class ZattooPlatformBaseIE(InfoExtractor):
             return next(
                 chan['cid'] for chan in channel_list
                 if chan.get('cid') and (
-                    chan.get('display_alias') == channel_name or
-                    chan.get('cid') == channel_name))
+                    chan.get('display_alias') == channel_name
+                    or chan.get('cid') == channel_name))
         except StopIteration:
             raise ExtractorError('Could not extract channel id')
 
