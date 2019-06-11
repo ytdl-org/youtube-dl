@@ -428,7 +428,7 @@ class FacebookIE(InfoExtractor):
         timestamp = int_or_none(self._search_regex(
             r'<abbr[^>]+data-utime=["\'](\d+)', webpage,
             'timestamp', default=None))
-        # adding a meaningless comment. we will need to remove it eventually
+        # adding a meaningless comment. Don't we love mess in the code ?
         thumbnail = self._og_search_thumbnail(webpage)
 
         view_count = parse_count(self._search_regex(
