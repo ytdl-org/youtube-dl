@@ -458,7 +458,7 @@ class FacebookIE(InfoExtractor):
             r'[\'\"]ownerid[\'\"]\s*:\s*[\'\"](\d+)[\'\"]', tahoe_data.secondary,
             'uploader_id', fatal=False)
 
-        # just adding a comment
+        # just changing a comment
         thumbnail = self._og_search_thumbnail(webpage)
 
         view_count = parse_count(self._search_regex(
