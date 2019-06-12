@@ -3,6 +3,8 @@ from __future__ import unicode_literals
 
 from .common import InfoExtractor
 
+from ..utils import js_to_json
+
 
 class TF1IE(InfoExtractor):
     """TF1 uses the wat.tv player."""
@@ -43,12 +45,40 @@ class TF1IE(InfoExtractor):
     }, {
         'url': 'http://www.tf1.fr/hd1/documentaire/videos/mylene-farmer-d-une-icone.html',
         'only_matching': True,
+    }, {
+        'url': 'https://www.tf1.fr/tmc/quotidien-avec-yann-barthes/videos/quotidien-premiere-partie-11-juin-2019.html',
+        'info_dict': {
+            'id': '13641379',
+            'ext': 'mp4',
+            'title': 'md5:f392bc52245dc5ad43771650c96fb620',
+            'description': 'md5:44bc54f0a21322f5b91d68e76a544eae',
+            'upload_date': '20190611',
+        },
+        'params': {
+            # Sometimes wat serves the whole file with the --test option
+            'skip_download': True,
+        },
     }]
 
     def _real_extract(self, url):
         video_id = self._match_id(url)
         webpage = self._download_webpage(url, video_id)
-        wat_id = self._html_search_regex(
-            r'(["\'])(?:https?:)?//www\.wat\.tv/embedframe/.*?(?P<id>\d{8})\1',
-            webpage, 'wat id', group='id')
+        vids_data_string = self._html_search_regex(
+            r'<script>\s*window\.__APOLLO_STATE__\s*=\s*(?P<vids_data_string>\{.*?\})\s*;?\s*</script>',
+            webpage, 'videos data string', group='vids_data_string', default=None)
+        wat_id = None
+        if vids_data_string is not None:
+            vids_data = self._parse_json(
+                vids_data_string, video_id,
+                transform_source=js_to_json)
+            video_data = [v for v in vids_data.values()
+                          if 'slug' in v and v['slug'] == video_id]
+            if len(video_data) > 0 and 'streamId' in video_data[0]:
+                wat_id = video_data[0]['streamId']
+        if wat_id is None:
+            wat_id = self._html_search_regex(
+                [r'(["\'])(?:https?:)?//www\.wat\.tv/embedframe/.*?(?P<id>\d{8})\1',
+                 r'(["\']?)streamId\1\s*:\s*(["\']?)(?P<id>\d+)\2'
+                 ],
+                webpage, 'wat id', group='id')
         return self.url_result('wat:%s' % wat_id, 'Wat')
