@@ -3,9 +3,6 @@ from __future__ import unicode_literals
 
 from .common import InfoExtractor
 
-from youtube_dl.utils import (
-    RegexNotFoundError,
-)
 
 class TF1IE(InfoExtractor):
     """TF1 uses the wat.tv player."""
