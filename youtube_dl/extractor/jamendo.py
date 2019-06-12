@@ -35,6 +35,19 @@ class JamendoIE(JamendoBaseIE):
                         /track/(?P<id>[0-9]+)/(?P<display_id>[^/?#&]+)
                     '''
     _TESTS = [{
+        'url': 'https://www.jamendo.com/track/1311140/221',
+        'md5': '9a73cd099a5453244bf73044442c8330',
+        'info_dict': {
+            'id': '1311140',
+            'display_id': '221',
+            'ext': 'flac',
+            'title': 'Duration of life - 221',
+            'artist': 'Duration of life',
+            'track': '221',
+            'duration': 141,
+            'thumbnail': r're:^https?://.*\.jpg'
+        }
+    }, {
         'url': 'https://www.jamendo.com/track/196219/stories-from-emona-i',
         'md5': '6e9e82ed6db98678f171c25a8ed09ffd',
         'info_dict': {
@@ -80,7 +93,7 @@ class JamendoIE(JamendoBaseIE):
         thumbnail = self._html_search_meta(
             'image', webpage, 'thumbnail', fatal=False)
         duration = parse_duration(self._search_regex(
-            r'<span[^>]+itemprop=["\']duration["\'][^>]+content=["\'](.+?)["\']',
+            r'data-bundled-models=["\']{[^}]+{[^{*}]+duration&quot;:(.+?),',
             webpage, 'duration', fatal=False))
 
         return {
