@@ -48,8 +48,8 @@ class TF1IE(InfoExtractor):
         'info_dict': {
             'id': '13641379',
             'ext': 'mp4',
-            'title': 'Quotidien, première partie du 11 juin 2019',
-            'description': 'Retrouvez l’intégralité du replay de la première partie de Quotidien du 11 juin. On parle des enfants français rapatriés de Syrie avec Salhia Brakhlia, de la décision du New York Times d’arrêter les dessins politiques avec Lilia Hassaine, on part voir les Bleues à J-1 de leur rencontre avec la ...',
+            'title': 'md5:f392bc52245dc5ad43771650c96fb620',
+            'description': 'md5:44bc54f0a21322f5b91d68e76a544eae',
             'upload_date': '20190611',
         },
         'params': {
