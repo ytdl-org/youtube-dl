@@ -3,6 +3,9 @@ from __future__ import unicode_literals
 
 from .common import InfoExtractor
 
+from youtube_dl.utils import (
+    RegexNotFoundError,
+)
 
 class TF1IE(InfoExtractor):
     """TF1 uses the wat.tv player."""
@@ -61,7 +64,13 @@ class TF1IE(InfoExtractor):
     def _real_extract(self, url):
         video_id = self._match_id(url)
         webpage = self._download_webpage(url, video_id)
-        wat_id = self._html_search_regex(
-            r'\bstreamId\W+(?P<id>\d+)',
-            webpage, 'wat id', group='id')
+        try:
+            wat_id = self._html_search_regex(
+                # the old pattern. Should no longer work as of 2019-06-12
+                r'(["\'])(?:https?:)?//www\.wat\.tv/embedframe/.*?(?P<id>\d{8})\1',
+                webpage, 'wat id', group='id')
+        except RegexNotFoundError:
+            wat_id = self._html_search_regex(
+                r'\bstreamId\W+(?P<id>\d+)',
+                webpage, 'wat id', group='id')
         return self.url_result('wat:%s' % wat_id, 'Wat')
