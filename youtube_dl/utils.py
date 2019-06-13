@@ -2529,7 +2529,7 @@ def parse_codecs(codecs_str):
     vcodec, acodec = None, None
     for full_codec in splited_codecs:
         codec = full_codec.split('.')[0]
-        if codec in ('avc1', 'avc2', 'avc3', 'avc4', 'vp9', 'vp8', 'hev1', 'hev2', 'h263', 'h264', 'mp4v', 'hvc1', 'av01'):
+        if codec in ('avc1', 'avc2', 'avc3', 'avc4', 'vp9', 'vp8', 'hev1', 'hev2', 'h263', 'h264', 'mp4v', 'hvc1', 'av01', 'theora'):
             if not vcodec:
                 vcodec = full_codec
         elif codec in ('mp4a', 'opus', 'vorbis', 'mp3', 'aac', 'ac-3', 'ec-3', 'eac3', 'dtsc', 'dtse', 'dtsh', 'dtsl'):
@@ -2540,13 +2540,8 @@ def parse_codecs(codecs_str):
     if not vcodec and not acodec:
         if len(splited_codecs) == 2:
             return {
-                'vcodec': vcodec,
-                'acodec': acodec,
-            }
-        elif len(splited_codecs) == 1:
-            return {
-                'vcodec': 'none',
-                'acodec': vcodec,
+                'vcodec': splited_codecs[0],
+                'acodec': splited_codecs[1],
             }
     else:
         return {

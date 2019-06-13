@@ -822,6 +822,15 @@ class TestUtil(unittest.TestCase):
             'vcodec': 'av01.0.05M.08',
             'acodec': 'none',
         })
+        self.assertEqual(parse_codecs('theora, vorbis'), {
+            'vcodec': 'theora',
+            'acodec': 'vorbis',
+        })
+        self.assertEqual(parse_codecs('unknownvcodec, unknownacodec'), {
+            'vcodec': 'unknownvcodec',
+            'acodec': 'unknownacodec',
+        })
+        self.assertEqual(parse_codecs('unknown'), {})
 
     def test_escape_rfc3986(self):
         reserved = "!*'();:@&=+$,/?#[]"
