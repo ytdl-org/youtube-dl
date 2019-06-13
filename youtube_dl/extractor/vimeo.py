@@ -397,6 +397,7 @@ class VimeoIE(VimeoBaseInfoExtractor):
                 'timestamp': 1324343742,
                 'upload_date': '20111220',
                 'description': 'md5:ae23671e82d05415868f7ad1aec21147',
+                'view_count': int,
             },
         },
         {
@@ -693,12 +694,17 @@ class VimeoIE(VimeoBaseInfoExtractor):
                 'timestamp', default=None)
 
         try:
-            view_count = int(self._search_regex(r'UserPlays:(\d+)', webpage, 'view count'))
+            # When userInteractionCount does not exist views is 0
+            view_count = int_or_none(
+                self._search_regex(
+                    r'"interactionType":"http:\/\/schema\.org\/WatchAction","userInteractionCount":(.+?)}',
+                    webpage, 'view count', default=0
+                )
+            )
             like_count = int(self._search_regex(r'UserLikes:(\d+)', webpage, 'like count'))
             comment_count = int(self._search_regex(r'UserComments:(\d+)', webpage, 'comment count'))
         except RegexNotFoundError:
             # This info is only available in vimeo.com/{id} urls
-            view_count = None
             like_count = None
             comment_count = None
 

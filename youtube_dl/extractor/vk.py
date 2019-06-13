@@ -282,7 +282,13 @@ class VKIE(VKBaseIE):
             # The video is not available in your region.
             'url': 'https://vk.com/video-51812607_171445436',
             'only_matching': True,
-        }]
+        },
+        {
+            # Video %s is not available.
+            'url': 'https://vk.com/video-173478245_456239188',
+            'only_matching': True,
+        },
+    ]
 
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
@@ -345,6 +351,9 @@ class VKIE(VKBaseIE):
 
             r'<!>The video .+? is not available in your region.':
             'Video %s is not available in your region.',
+
+            r'<!>The video .+? is unavailable':
+                'Video %s is not available.',
         }
 
         for error_re, error_msg in ERRORS.items():

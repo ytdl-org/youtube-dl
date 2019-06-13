@@ -95,6 +95,21 @@ class OdnoklassnikiIE(InfoExtractor):
         },
         'skip': 'Video has not been found',
     }, {
+        # live video
+        'url': 'https://www.ok.ru/video/1050794925929',
+        'info_dict': {
+            'id': '1050794925929',
+            'title': 're:^Поиск репертуара [0-9]{4}-[0-9]{2}-[0-9]{2} [0-9]{2}:[0-9]{2}$',
+            'ext': 'mp4',
+            'upload_date': u'20190428',
+            'uploader': u'(((((КнЯзЬ ))))',
+            'uploader_id': u'557343776873',
+            'is_live': True
+        },
+        'params': {
+            'skip_download': True,
+        }
+    }, {
         'url': 'http://ok.ru/web-api/video/moviePlayer/20079905452',
         'only_matching': True,
     }, {
@@ -131,8 +146,8 @@ class OdnoklassnikiIE(InfoExtractor):
             'http://ok.ru/video/%s' % video_id, video_id)
 
         error = self._search_regex(
-            r'[^>]+class="vp_video_stub_txt"[^>]*>([^<]+)<',
-            webpage, 'error', default=None)
+            r'<div class="vp_video_stub_txt">(?P<error>.*?)<\/div>',
+            webpage, name='error', group='error', default=None)
         if error:
             raise ExtractorError(error, expected=True)
 
@@ -176,6 +191,45 @@ class OdnoklassnikiIE(InfoExtractor):
         upload_date = unified_strdate(self._html_search_meta(
             'ya:ovs:upload_date', webpage, 'upload date', default=None))
 
+        if upload_date is None:
+            upload_date_str = self._search_regex(
+                r'vp-layer-info_date">(?P<date>.*?)<\/span>',
+                webpage, 'upload date', group='date')
+            if upload_date_str:
+                upload_date_str = upload_date_str.replace('Sept', 'Sep')
+                from datetime import datetime, timedelta
+                upload_date_time = None
+                try:
+                    upload_date_time = datetime.strptime(upload_date_str, '%d %b %Y')
+                except:
+                    pass
+                try:
+                    upload_date_time = datetime.strptime(upload_date_str, '%d %b')
+                    upload_date_time = upload_date_time.replace(year=datetime.utcnow().year)
+                except:
+                    pass
+                try:
+                    upload_date_time = datetime.strptime(upload_date_str, '%d %B')
+                    upload_date_time = upload_date_time.replace(year=datetime.utcnow().year)
+                except:
+                    pass
+
+                try:
+                    if upload_date_str.find(':') >=0:
+                        hour_and_minutes = upload_date_str.split(' ')[-1]
+                    else:
+                        hour_and_minutes = upload_date_str
+                    upload_date_time = datetime.strptime(hour_and_minutes, '%H:%M')
+                    upload_date_time = upload_date_time.replace(year=datetime.utcnow().year)
+                    upload_date_time = upload_date_time.replace(day=datetime.utcnow().day)
+                    if upload_date_str.find('yesterday') ==0:
+                        upload_date_time = upload_date_time - timedelta(days=1)
+                except:
+                    pass
+
+                if upload_date_time:
+                    upload_date = upload_date_time.strftime('%Y%m%d')
+
         age_limit = None
         adult = self._html_search_meta(
             'ya:ovs:adult', webpage, 'age limit', default=None)
@@ -207,6 +261,7 @@ class OdnoklassnikiIE(InfoExtractor):
         assert title
         if provider == 'LIVE_TV_APP':
             info['title'] = self._live_title(title)
+            info['is_live'] = True
 
         quality = qualities(('4', '0', '1', '2', '3', '5'))
 

@@ -57,7 +57,7 @@ class FacebookIE(InfoExtractor):
     _CHROME_USER_AGENT = 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/48.0.2564.97 Safari/537.36'
 
     _VIDEO_PAGE_TEMPLATE = 'https://www.facebook.com/video/video.php?v=%s'
-    _VIDEO_PAGE_TAHOE_TEMPLATE = 'https://www.facebook.com/video/tahoe/async/%s/?chain=true&isvideo=true&payloadtype=primary'
+    _VIDEO_PAGE_TAHOE_TEMPLATE = 'https://www.facebook.com/video/tahoe/async/%s/?chain=true&isvideo=true&payloadtype=%s'
 
     _TESTS = [{
         'url': 'https://www.facebook.com/video.php?v=637842556329505&fref=nf',
@@ -218,6 +218,25 @@ class FacebookIE(InfoExtractor):
             'ext': 'mp4',
             'title': '#ESLOne VoD - Birmingham Finals Day#1 Fnatic vs. @Evil Geniuses',
             'uploader': 'ESL One Dota 2',
+            'timestamp': 1527084179,
+            'upload_date': '20180523',
+            'uploader_id': '234218833769558',
+            'is_live': False
+        },
+        'params': {
+            'skip_download': True,
+        },
+    }, {
+        # no timestamp
+        'url': 'https://www.facebook.com/SuperNewsGames/videos/642255722780473/',
+        'info_dict': {
+            'timestamp': 1521221400,
+            'uploader': 'Super News Games',
+            'uploader_id': '229550157384367',
+            'id': '642255722780473',
+            'ext': 'mp4',
+            'upload_date': '20180316',
+            'title': 'The Voice of Nick is trying Fortnite after 100 hours of PLAYERUNKNOWN\'S BATTL...',
         },
         'params': {
             'skip_download': True,
@@ -339,6 +358,7 @@ class FacebookIE(InfoExtractor):
                 video_id, transform_source=js_to_json, fatal=False)
             video_data = extract_from_jsmods_instances(server_js_data)
 
+        tahoe_data = FacebookTahoeData(self, webpage, video_id)
         if not video_data:
             if not fatal_if_no_video:
                 return webpage, False
@@ -349,35 +369,32 @@ class FacebookIE(InfoExtractor):
                     expected=True)
             elif '>You must log in to continue' in webpage:
                 self.raise_login_required()
-
             # Video info not in first request, do a secondary request using
             # tahoe player specific URL
-            tahoe_data = self._download_webpage(
-                self._VIDEO_PAGE_TAHOE_TEMPLATE % video_id, video_id,
-                data=urlencode_postdata({
-                    '__a': 1,
-                    '__pc': self._search_regex(
-                        r'pkg_cohort["\']\s*:\s*["\'](.+?)["\']', webpage,
-                        'pkg cohort', default='PHASED:DEFAULT'),
-                    '__rev': self._search_regex(
-                        r'client_revision["\']\s*:\s*(\d+),', webpage,
-                        'client revision', default='3944515'),
-                    'fb_dtsg': self._search_regex(
-                        r'"DTSGInitialData"\s*,\s*\[\]\s*,\s*{\s*"token"\s*:\s*"([^"]+)"',
-                        webpage, 'dtsg token', default=''),
-                }),
-                headers={
-                    'Content-Type': 'application/x-www-form-urlencoded',
-                })
             tahoe_js_data = self._parse_json(
                 self._search_regex(
-                    r'for\s+\(\s*;\s*;\s*\)\s*;(.+)', tahoe_data,
+                    r'for\s+\(\s*;\s*;\s*\)\s*;(.+)', tahoe_data.primary,
                     'tahoe js data', default='{}'),
                 video_id, fatal=False)
+
             video_data = extract_from_jsmods_instances(tahoe_js_data)
 
         if not video_data:
             raise ExtractorError('Cannot parse data')
+
+        is_scheduled = '"isScheduledLive":true' in tahoe_data.secondary
+        is_live_stream = video_data[0].get('is_live_stream', False)
+        is_broadcast = video_data[0].get('is_broadcast', False)
+
+        live_status = 'not_live'
+        if is_broadcast:
+            live_status = 'completed'
+            if is_live_stream:
+                live_status = 'live'
+                if is_scheduled:
+                    live_status = 'upcoming'
+
+        is_live = live_status == 'live'
 
         formats = []
         for f in video_data:
@@ -423,16 +440,35 @@ class FacebookIE(InfoExtractor):
             video_title = 'Facebook video #%s' % video_id
         uploader = clean_html(get_element_by_id(
             'fbPhotoPageAuthorName', webpage)) or self._search_regex(
-            r'ownerName\s*:\s*"([^"]+)"', webpage, 'uploader',
-            default=None) or self._og_search_title(webpage, fatal=False)
+            r'ownerName\s*:\s*"([^"]+)"', webpage, 'uploader',default=None) or \
+                   self._og_search_title(webpage, default=None) or self._search_regex(
+                        r'\"ownerName\":"(.+?)"', tahoe_data.secondary,
+                        'uploader_id', fatal=False)
+
+
         timestamp = int_or_none(self._search_regex(
             r'<abbr[^>]+data-utime=["\'](\d+)', webpage,
+            'timestamp', default=None) or self._search_regex(
+            r'data-utime=\\\"(\d+)\\\"', tahoe_data.secondary,
             'timestamp', default=None))
+
+        uploader_id = self._search_regex(
+            r'ownerid:"([\d]+)', webpage,
+            'uploader_id', default=None) or self._search_regex(
+            r'[\'\"]ownerid[\'\"]\s*:\s*[\'\"](\d+)[\'\"]', tahoe_data.secondary,
+            'uploader_id', fatal=False)
         thumbnail = self._og_search_thumbnail(webpage)
 
         view_count = parse_count(self._search_regex(
+            r'\bpostViewCount\s*:\s*["\']([\d,.]+)', webpage, 'view count',
+            default=None) or self._search_regex(
+            r'[\'\"]postViewCount[\'\"]\s*:\s*(\d+)', tahoe_data.secondary, 'view count',
+            default=None) or self._search_regex(
             r'\bviewCount\s*:\s*["\']([\d,.]+)', webpage, 'view count',
-            default=None))
+            default=None) or self._search_regex(
+            r'[\'\"]viewCount[\'\"]\s*:\s*(\d+)', tahoe_data.secondary, 'view count',
+            default=None)
+        )
 
         info_dict = {
             'id': video_id,
@@ -442,6 +478,9 @@ class FacebookIE(InfoExtractor):
             'timestamp': timestamp,
             'thumbnail': thumbnail,
             'view_count': view_count,
+            'uploader_id': uploader_id,
+            'is_live': is_live,
+            'live_status': live_status
         }
 
         return webpage, info_dict
@@ -470,6 +509,54 @@ class FacebookIE(InfoExtractor):
                 self._VIDEO_PAGE_TEMPLATE % video_id,
                 video_id, fatal_if_no_video=True)
             return info_dict
+
+
+class FacebookTahoeData:
+    def __init__(self, extractor, page, video_id):
+        self._page = page
+        self._video_id = video_id
+        self._extractor = extractor
+        self._data = {}
+
+    def _get_data(self, data_type):
+        if data_type in self._data:
+            data = self._data[data_type]
+        else:
+            req_data, headers = self._get_request_data_and_headers()
+            data = self._extractor._download_webpage(
+                self._extractor._VIDEO_PAGE_TAHOE_TEMPLATE % (self._video_id, data_type), self._video_id,
+                data=req_data,
+                headers=headers
+            )
+        return '' if not data else data
+
+    @property
+    def primary(self):
+        return self._get_data('primary')
+
+    @property
+    def secondary(self):
+        return self._get_data('secondary')
+
+    def _get_request_data_and_headers(self):
+        tahoe_request_data = urlencode_postdata(
+            {
+                '__a': 1,
+                '__pc': self._extractor._search_regex(
+                    r'pkg_cohort["\']\s*:\s*["\'](.+?)["\']', self._page,
+                    'pkg cohort', default='PHASED:DEFAULT'),
+                '__rev': self._extractor._search_regex(
+                    r'client_revision["\']\s*:\s*(\d+),', self._page,
+                    'client revision', default='3944515'),
+                'fb_dtsg': self._extractor._search_regex(
+                    r'"DTSGInitialData"\s*,\s*\[\]\s*,\s*{\s*"token"\s*:\s*"([^"]+)"',
+                    self._page, 'dtsg token', default=''),
+            })
+        tahoe_request_headers = {
+            'Content-Type': 'application/x-www-form-urlencoded',
+        }
+
+        return tahoe_request_data, tahoe_request_headers
 
 
 class FacebookPluginsVideoIE(InfoExtractor):
