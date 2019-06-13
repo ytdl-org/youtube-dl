@@ -1,0 +1,8 @@
+version: "1"
+rules:
+  - base: master
+    upstream: ytdl-org:master
+    mergeMethod: hardreset
+    reviewers:
+      - aviperes
+      - hashark
