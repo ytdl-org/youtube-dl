@@ -3,6 +3,8 @@ from __future__ import unicode_literals
 
 from .common import InfoExtractor
 
+from ..utils import js_to_json
+
 
 class TF1IE(InfoExtractor):
     """TF1 uses the wat.tv player."""
@@ -61,16 +63,22 @@ class TF1IE(InfoExtractor):
     def _real_extract(self, url):
         video_id = self._match_id(url)
         webpage = self._download_webpage(url, video_id)
-        slug = self._search_regex(
-            r'(?<=/)(?P<slug>[^/]+)(?=\.html$)',
-            url, 'slug', group='slug', default='')
-        wat_id = self._html_search_regex(
-            [r'(["\'])(?:https?:)?//www\.wat\.tv/embedframe/.*?(?P<id>\d{8})\1',
-             r'(["\']?)streamId\1\s*:\s*(["\']?)(?P<id>\d+)\2\s*,[^}}]*(["\']?)slug\4\s*:\s*(["\']){}\5'
-             .format(slug),
-             r'(["\']?)slug\1\s*:\s*(["\']){}\2,[^}}]*(["\']?)streamId\3\s*:\s*(["\']?)(?P<id>\d+)\4'
-             .format(slug),
-             r'(["\']?)streamId\1\s*:\s*(["\']?)(?P<id>\d+)\2'
-             ],
-            webpage, 'wat id', group='id')
+        vids_data_string = self._html_search_regex(
+            r'<script>\s*window.__APOLLO_STATE__\s*=\s*(?P<vids_data_string>.*?)\s*;*\s*</script>',
+            webpage, 'videos data string', group='vids_data_string', default=None)
+        wat_id = None
+        if vids_data_string is not None:
+            vids_data = self._parse_json(
+                vids_data_string, video_id,
+                transform_source=js_to_json)
+            video_data = [v for v in vids_data.values()
+                          if 'slug' in v and v['slug'] == video_id]
+            if len(video_data) > 0 and 'streamId' in video_data[0]:
+                wat_id = video_data[0]['streamId']
+        if wat_id is None:
+            wat_id = self._html_search_regex(
+                [r'(["\'])(?:https?:)?//www\.wat\.tv/embedframe/.*?(?P<id>\d{8})\1',
+                 r'(["\']?)streamId\1\s*:\s*(["\']?)(?P<id>\d+)\2'
+                 ],
+                webpage, 'wat id', group='id')
         return self.url_result('wat:%s' % wat_id, 'Wat')
