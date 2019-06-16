@@ -152,7 +152,7 @@ class YandexMusicAlbumIE(YandexMusicPlaylistBaseIE):
     IE_DESC = 'Яндекс.Музыка - Альбом'
     _VALID_URL = r'https?://music\.yandex\.(?:ru|kz|ua|by)/album/(?P<id>\d+)/?(\?|$)'
 
-    _TEST = {
+    _TESTS = [{
         'url': 'http://music.yandex.ru/album/540508',
         'info_dict': {
             'id': '540508',
@@ -160,7 +160,15 @@ class YandexMusicAlbumIE(YandexMusicPlaylistBaseIE):
         },
         'playlist_count': 50,
         'skip': 'Travis CI servers blocked by YandexMusic',
-    }
+    }, {
+        'url': 'https://music.yandex.ru/album/3840501',
+        'info_dict': {
+            'id': '3840501',
+            'title': 'Hooverphonic - The Best of Hooverphonic (2016)',
+        },
+        'playlist_count': 33,
+        'skip': 'Travis CI servers blocked by YandexMusic',
+    }]
 
     def _real_extract(self, url):
         album_id = self._match_id(url)
@@ -169,7 +177,7 @@ class YandexMusicAlbumIE(YandexMusicPlaylistBaseIE):
             'http://music.yandex.ru/handlers/album.jsx?album=%s' % album_id,
             album_id, 'Downloading album JSON')
 
-        entries = self._build_playlist(album['volumes'][0])
+        entries = self._build_playlist([track for volume in album['volumes'] for track in volume])
 
         title = '%s - %s' % (album['artists'][0]['name'], album['title'])
         year = album.get('year')
