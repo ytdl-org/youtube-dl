@@ -64,7 +64,7 @@ class TF1IE(InfoExtractor):
         video_id = self._match_id(url)
         webpage = self._download_webpage(url, video_id)
         vids_data_string = self._html_search_regex(
-            r'<script>\s*window.__APOLLO_STATE__\s*=\s*(?P<vids_data_string>.*?)\s*;*\s*</script>',
+            r'<script>\s*window\.__APOLLO_STATE__\s*=\s*(?P<vids_data_string>\{.*?\})\s*;?\s*</script>',
             webpage, 'videos data string', group='vids_data_string', default=None)
         wat_id = None
         if vids_data_string is not None:
