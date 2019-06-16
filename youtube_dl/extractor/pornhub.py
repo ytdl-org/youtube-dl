@@ -20,6 +20,7 @@ from ..utils import (
     orderedSet,
     remove_quotes,
     str_to_int,
+    urlencode_postdata,
     url_or_none,
 )
 
@@ -48,15 +49,39 @@ class PornHubBaseIE(InfoExtractor):
 
 class PornHubIE(PornHubBaseIE):
     IE_DESC = 'PornHub and Thumbzilla'
+    _NETRC_MACHINE = 'pornhubpremium'
+    _LOGIN_URL = 'https://www.pornhubpremium.com/premium/login'
     _VALID_URL = r'''(?x)
                     https?://
                         (?:
-                            (?:[^/]+\.)?(?P<host>pornhub\.(?:com|net))/(?:(?:view_video\.php|video/show)\?viewkey=|embed/)|
+                            (?:[^/]+\.)?(?P<host>(pornhub|pornhubpremium)\.(?:com|net))/(?:(?:view_video\.php|video/show)\?viewkey=|embed/)|
                             (?:www\.)?thumbzilla\.com/video/
                         )
                         (?P<id>[\da-z]+)
                     '''
     _TESTS = [{
+        'url': 'https://fr.pornhubpremium.com/view_video.php?viewkey=ph5cd051fa7a6fc',
+        'md5': '42a65f5b095445ce2089954990fd7515',
+        'info_dict': {
+            'id': 'ph5cd051fa7a6fc',
+            'ext': 'mp4',
+            'title': 'Big Booty French Teen Dirty Young Slut',
+            'uploader': 'Porn Land Videos',
+            'upload_date': '20190506',
+            'duration': 1516,
+            'view_count': int,
+            'like_count': int,
+            'dislike_count': int,
+            'comment_count': int,
+            'age_limit': 18,
+            'tags': list,
+            'categories': list,
+        },
+        'params': {
+            'username': "",
+            'password': "",
+        },
+    }, {
         'url': 'http://www.pornhub.com/view_video.php?viewkey=648719015',
         'md5': '1e19b41231a02eba417839222ac9d58e',
         'info_dict': {
@@ -159,6 +184,41 @@ class PornHubIE(PornHubBaseIE):
     def _extract_count(self, pattern, webpage, name):
         return str_to_int(self._search_regex(
             pattern, webpage, '%s count' % name, fatal=False))
+
+    def _login(self):
+        username, password = self._get_login_info()
+        if username is None:
+            return
+
+        login_page = self._download_webpage(
+            self._LOGIN_URL, None, 'Downloading login page')
+
+        login_form = self._hidden_inputs(login_page)
+
+        login_form.update({
+            'username': username,
+            'password': password,
+        })
+
+        self._TOKEN = login_form['token']
+
+        response = self._download_json(
+            "https://www.pornhubpremium.com/front/authenticate", None, 'Logging in',
+            data=urlencode_postdata(login_form), headers={
+                'Content-Type': 'application/x-www-form-urlencoded',
+                'Referer': self._LOGIN_URL,
+            })
+
+        # Successful login
+        if response.get("success") == '1':
+            return
+
+        login_error = response.get("message")
+        if login_error:
+            raise ExtractorError(
+                'Unable to login: %s' % login_error, expected=True)
+
+        self.report_warning('Login has probably failed')
 
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
@@ -331,6 +391,9 @@ class PornHubIE(PornHubBaseIE):
             'categories': extract_list('categories'),
             'subtitles': subtitles,
         }
+
+    def _real_initialize(self):
+        self._login()
 
 
 class PornHubPlaylistBaseIE(PornHubBaseIE):
