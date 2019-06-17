@@ -310,7 +310,6 @@ class TVPlayIE(InfoExtractor):
 
         self._sort_formats(formats)
 
-        # TODO: webvtt in m3u8
         subtitles = {}
         sami_path = video.get('sami_path')
         if sami_path:
@@ -319,6 +318,24 @@ class TVPlayIE(InfoExtractor):
                 default=compat_urlparse.urlparse(url).netloc.rsplit('.', 1)[-1])
             subtitles[lang] = [{
                 'url': sami_path,
+            }]
+
+        subtitles_webvtt = video.get('subtitles_webvtt')
+        if subtitles_webvtt:
+            lang = self._search_regex(
+                r'_([a-z]{2})\.vtt', subtitles_webvtt, 'lang',
+                default=compat_urlparse.urlparse(url).netloc.rsplit('.', 1)[-1])
+            subtitles[lang] = [{
+                'url': subtitles_webvtt,
+            }]
+
+        subtitles_for_hearing_impaired = video.get('subtitles_for_hearing_impaired')
+        if subtitles_for_hearing_impaired:
+            lang = self._search_regex(
+                r'_([a-z]{2})_', subtitles_for_hearing_impaired, 'lang',
+                default=compat_urlparse.urlparse(url).netloc.rsplit('.', 1)[-1])
+            subtitles[lang + '_sdh'] = [{
+                'url': subtitles_for_hearing_impaired,
             }]
 
         series = video.get('format_title')
