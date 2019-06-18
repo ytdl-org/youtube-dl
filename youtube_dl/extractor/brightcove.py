@@ -32,7 +32,6 @@ from ..utils import (
     update_url_query,
     clean_html,
     mimetype2ext,
-    url_or_none,
 )
 
 
@@ -614,70 +613,68 @@ class BrightcoveNewIE(AdobePassIE):
         title = json_data['name'].strip()
 
         formats = []
-        # playlistId data starts from `videos`, videoId from `sources`
-        for vid in json_data.get('videos', [json_data]):
-            for source in vid.get('sources', []):
-                container = source.get('container')
-                ext = mimetype2ext(source.get('type'))
-                src = source.get('src')
-                # https://support.brightcove.com/playback-api-video-fields-reference#key_systems_object
-                if ext == 'ism' or container == 'WVM' or source.get('key_systems'):
+        for source in json_data.get('sources', []):
+            container = source.get('container')
+            ext = mimetype2ext(source.get('type'))
+            src = source.get('src')
+            # https://support.brightcove.com/playback-api-video-fields-reference#key_systems_object
+            if ext == 'ism' or container == 'WVM' or source.get('key_systems'):
+                continue
+            elif ext == 'm3u8' or container == 'M2TS':
+                if not src:
                     continue
-                elif ext == 'm3u8' or container == 'M2TS':
-                    if not src:
-                        continue
-                    formats.extend(self._extract_m3u8_formats(
-                        src, video_id, 'mp4', 'm3u8_native', m3u8_id='hls', fatal=False))
-                elif ext == 'mpd':
-                    if not src:
-                        continue
-                    formats.extend(self._extract_mpd_formats(src, video_id, 'dash', fatal=False))
+                formats.extend(self._extract_m3u8_formats(
+                    src, video_id, 'mp4', 'm3u8_native', m3u8_id='hls', fatal=False))
+            elif ext == 'mpd':
+                if not src:
+                    continue
+                formats.extend(self._extract_mpd_formats(src, video_id, 'dash', fatal=False))
+            else:
+                streaming_src = source.get('streaming_src')
+                stream_name, app_name = source.get('stream_name'), source.get('app_name')
+                if not src and not streaming_src and (not stream_name or not app_name):
+                    continue
+                tbr = float_or_none(source.get('avg_bitrate'), 1000)
+                height = int_or_none(source.get('height'))
+                width = int_or_none(source.get('width'))
+                f = {
+                    'tbr': tbr,
+                    'filesize': int_or_none(source.get('size')),
+                    'container': container,
+                    'ext': ext or container.lower(),
+                }
+                if width == 0 and height == 0:
+                    f.update({
+                        'vcodec': 'none',
+                    })
                 else:
-                    streaming_src = source.get('streaming_src')
-                    stream_name, app_name = source.get('stream_name'), source.get('app_name')
-                    if not src and not streaming_src and (not stream_name or not app_name):
-                        continue
-                    tbr = float_or_none(source.get('avg_bitrate'), 1000)
-                    height = int_or_none(source.get('height'))
-                    width = int_or_none(source.get('width'))
-                    f = {
-                        'tbr': tbr,
-                        'filesize': int_or_none(source.get('size')),
-                        'container': container,
-                        'ext': ext or container.lower(),
-                    }
-                    if width == 0 and height == 0:
-                        f.update({
-                            'vcodec': 'none',
-                        })
-                    else:
-                        f.update({
-                            'width': width,
-                            'height': height,
-                            'vcodec': source.get('codec'),
-                        })
+                    f.update({
+                        'width': width,
+                        'height': height,
+                        'vcodec': source.get('codec'),
+                    })
 
-                    def build_format_id(kind):
-                        format_id = kind
-                        if tbr:
-                            format_id += '-%dk' % int(tbr)
-                        if height:
-                            format_id += '-%dp' % height
-                        return format_id
+                def build_format_id(kind):
+                    format_id = kind
+                    if tbr:
+                        format_id += '-%dk' % int(tbr)
+                    if height:
+                        format_id += '-%dp' % height
+                    return format_id
 
-                    if src or streaming_src:
-                        f.update({
-                            'url': src or streaming_src,
-                            'format_id': build_format_id('http' if src else 'http-streaming'),
-                            'source_preference': 0 if src else -1,
-                        })
-                    else:
-                        f.update({
-                            'url': app_name,
-                            'play_path': stream_name,
-                            'format_id': build_format_id('rtmp'),
-                        })
-                    formats.append(f)
+                if src or streaming_src:
+                    f.update({
+                        'url': src or streaming_src,
+                        'format_id': build_format_id('http' if src else 'http-streaming'),
+                        'source_preference': 0 if src else -1,
+                    })
+                else:
+                    f.update({
+                        'url': app_name,
+                        'play_path': stream_name,
+                        'format_id': build_format_id('rtmp'),
+                    })
+                formats.append(f)
         if not formats:
             # for sonyliv.com DRM protected videos
             s3_source_url = json_data.get('custom_fields', {}).get('s3sourceurl')
@@ -723,6 +720,17 @@ class BrightcoveNewIE(AdobePassIE):
             'tags': json_data.get('tags', []),
             'is_live': is_live,
         }
+
+    def _extract_playlist(self, json_data, headers):
+        playlist_id = json_data.get('id')
+        playlist_title = json_data.get('name')
+        playlist_description = json_data.get('description')
+        playlist_vids = json_data.get('videos', [])
+
+        return self.playlist_result(
+            [self._parse_brightcove_metadata(vid, vid.get('id'), headers) for vid in playlist_vids],
+            playlist_id, playlist_title, playlist_description,
+        )
 
     def _real_extract(self, url):
         url, smuggled_data = unsmuggle_url(url, {})
@@ -786,6 +794,9 @@ class BrightcoveNewIE(AdobePassIE):
                 }, query={
                     'tveToken': tve_token,
                 })
+
+        if content_type == 'playlist':
+            return self._extract_playlist(json_data, headers)
 
         return self._parse_brightcove_metadata(
             json_data, video_id, headers=headers)
