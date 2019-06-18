@@ -51,3 +51,8 @@ venv/
 
 # VS Code related files
 .vscode
+AtomicParsley.exe
+ffmpeg.exe
+ffprobe.exe
+test_fork.py
+venv.bat

@@ -900,11 +900,11 @@ from .pornhub import (
     PornHubPlaylistIE,
     PornHubUserVideosIE,
 )
-from .pornhubpremium import (
-    PornHubPremiumIE,
-    PornHubPremiumPlaylistIE,
-    PornHubPremiumUserVideosIE,
-)
+#from .pornhubpremium import (
+#    PornHubPremiumIE,
+#    PornHubPremiumPlaylistIE,
+#    PornHubPremiumUserVideosIE,
+#)
 from .pornotube import PornotubeIE
 from .pornovoisines import PornoVoisinesIE
 from .pornoxo import PornoXOIE
@@ -1529,4 +1529,3 @@ from .zattoo import (
 from .zdf import ZDFIE, ZDFChannelIE
 from .zingmp3 import ZingMp3IE
 from .zype import ZypeIE
-from .yourextractor import YourExtractorIE
