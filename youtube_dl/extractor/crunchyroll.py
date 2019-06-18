@@ -662,7 +662,7 @@ class CrunchyrollShowPlaylistIE(CrunchyrollBaseIE):
             self._add_skip_wall(url), show_id,
             headers=self.geo_verification_headers())
         title = self._html_search_regex(
-            r'(?s)<h1[^>]*>\s*<span itemprop="name">(.*?)</span>',
+            r'(?s)<meta content="(.*?)" itemprop="name">',
             webpage, 'title')
         episode_paths = re.findall(
             r'(?s)<li id="showview_videos_media_(\d+)"[^>]+>.*?<a href="([^"]+)"',
