@@ -49,8 +49,8 @@ class PornHubBaseIE(InfoExtractor):
 
 class PornHubIE(PornHubBaseIE):
     IE_DESC = 'PornHub and Thumbzilla'
-    _NETRC_MACHINE = 'pornhubpremium'
-    _LOGIN_URL = 'https://www.pornhubpremium.com/premium/login'
+    #_NETRC_MACHINE = 'pornhubpremium'
+    #_LOGIN_URL = 'https://www.pornhubpremium.com/premium/login'
     _VALID_URL = r'''(?x)
                     https?://
                         (?:
@@ -78,36 +78,13 @@ class PornHubIE(PornHubBaseIE):
             'categories': list,
         },
     }, {
-        'url': 'https://fr.pornhubpremium.com/view_video.php?viewkey=ph5cd051fa7a6fc',
-        'md5': '42a65f5b095445ce2089954990fd7515',
-        'info_dict': {
-            'id': 'ph5cd051fa7a6fc',
-            'ext': 'mp4',
-            'title': 'Big Booty French Teen Dirty Young Slut',
-            'uploader': 'Porn Land Videos',
-            'upload_date': '20190506',
-            'duration': 1516,
-            'view_count': int,
-            'like_count': int,
-            'dislike_count': int,
-            'comment_count': int,
-            'age_limit': 18,
-            'tags': list,
-            'categories': list,
-        },
-        'params': {
-            'username': "tdsist",
-            'password': "ZtOUktu0QP",
-            'skip_download': True,
-        },
-    }, {
         # non-ASCII title
         'url': 'http://www.pornhub.com/view_video.php?viewkey=1331683002',
         'info_dict': {
             'id': '1331683002',
             'ext': 'mp4',
             'title': '重庆婷婷女王足交',
-            'uploader': 'unknown',
+            'uploader': 'Unknown',
             'upload_date': '20150213',
             'duration': 1753,
             'view_count': int,
@@ -123,14 +100,13 @@ class PornHubIE(PornHubBaseIE):
         },
     }, {
         # subtitles
-        'url': 'https://fr.pornhub.com/view_video.php?viewkey=ph5a73f8c84d1a9',
+        'url': 'https://www.pornhub.com/view_video.php?viewkey=ph5af5fef7c2aa7',
         'info_dict': {
-            'id': 'ph5a73f8c84d1a9',
+            'id': 'ph5af5fef7c2aa7',
             'ext': 'mp4',
-            'title': 'Watching Porn With step Sister',
-            'uploader': 'MissaX',
-            'upload_date': '20180202',
-            'duration': 1481,
+            'title': 'BFFS - Cute Teen Girls Share Cock On the Floor',
+            'uploader': 'BFFs',
+            'duration': 622,
             'view_count': int,
             'like_count': int,
             'dislike_count': int,
@@ -140,8 +116,7 @@ class PornHubIE(PornHubBaseIE):
             'categories': list,
             'subtitles': {
                 'en': [{
-                    'url': 'https://www.pornhub.com/video/caption?id=152944181',
-                    'ext': 'srt'
+                    "ext": 'srt'
                 }]
             },
         },
@@ -188,7 +163,7 @@ class PornHubIE(PornHubBaseIE):
         return str_to_int(self._search_regex(
             pattern, webpage, '%s count' % name, fatal=False))
 
-    def _login(self):
+    """def _login(self):
         username, password = self._get_login_info()
         if username is None:
             return
@@ -221,7 +196,7 @@ class PornHubIE(PornHubBaseIE):
             raise ExtractorError(
                 'Unable to login: %s' % login_error, expected=True)
 
-        self.report_warning('Login has probably failed')
+        self.report_warning('Login has probably failed')"""
 
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
@@ -395,8 +370,8 @@ class PornHubIE(PornHubBaseIE):
             'subtitles': subtitles,
         }
 
-    def _real_initialize(self):
-        self._login()
+    #def _real_initialize(self):
+    #    self._login()
 
 
 class PornHubPlaylistBaseIE(PornHubBaseIE):
