@@ -1408,8 +1408,6 @@ class YoutubeDL(object):
         return pr.get_header('Cookie')
 
     def process_video_result(self, info_dict, download=True):
-        print(info_dict)
-
         assert info_dict.get('_type', 'video') == 'video'
 
         if 'id' not in info_dict:
