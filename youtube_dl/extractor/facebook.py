@@ -432,6 +432,8 @@ class FacebookIE(InfoExtractor):
                 r'(?s)<span class="fbPhotosPhotoCaption".*?id="fbPhotoPageCaption"><span class="hasCaption">(.*?)</span>',
                 webpage, 'alternative title', default=None)
         if not video_title:
+            video_title = self._og_search_title(webpage, default=None)
+        if not video_title:
             video_title = self._html_search_meta(
                 'description', webpage, 'title', default=None)
         if video_title:
