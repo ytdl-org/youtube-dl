@@ -51,7 +51,7 @@ class YandexMusicTrackIE(YandexMusicBaseIE):
     IE_DESC = 'Яндекс.Музыка - Трек'
     _VALID_URL = r'https?://music\.yandex\.(?:ru|kz|ua|by)/album/(?P<album_id>\d+)/track/(?P<id>\d+)'
 
-    _TEST = {
+    _TESTS = [{
         'url': 'http://music.yandex.ru/album/540508/track/4878838',
         'md5': 'f496818aa2f60b6c0062980d2e00dc20',
         'info_dict': {
@@ -67,7 +67,26 @@ class YandexMusicTrackIE(YandexMusicBaseIE):
             'release_year': 2009,
         },
         'skip': 'Travis CI servers blocked by YandexMusic',
-    }
+    }, {
+        'url': 'http://music.yandex.ru/album/3840501/track/705105',
+        'md5': 'ebe7b4e2ac7ac03fe11c19727ca6153e',
+        'info_dict': {
+            'id': '705105',
+            'ext': 'mp3',
+            'title': 'Hooverphonic - Sometimes',
+            'filesize': 5743386,
+            'duration': 239.27,
+            'track': 'Sometimes',
+            'album': 'The Best of Hooverphonic',
+            'album_artist': 'Hooverphonic',
+            'artist': 'Hooverphonic',
+            'release_year': 2016,
+            'genre': 'pop',
+            'disc_number': 2,
+            'track_number': 9,
+        },
+        'skip': 'Travis CI servers blocked by YandexMusic',
+    }]
 
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
@@ -121,10 +140,16 @@ class YandexMusicTrackIE(YandexMusicBaseIE):
             album = albums[0]
             if isinstance(album, dict):
                 year = album.get('year')
+                track_position = album.get('trackPosition') or {}
+                disc_number = track_position.get('volume')
+                track_number = track_position.get('index')
                 track_info.update({
                     'album': album.get('title'),
                     'album_artist': extract_artist(album.get('artists')),
                     'release_year': int_or_none(year),
+                    'genre': album.get('genre'),
+                    'disc_number': int_or_none(disc_number),
+                    'track_number': int_or_none(track_number),
                 })
 
         track_artist = extract_artist(track.get('artists'))
