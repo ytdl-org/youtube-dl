@@ -5,7 +5,10 @@ import re
 import hashlib
 
 from .common import InfoExtractor
-from ..compat import compat_str
+from ..compat import (
+    compat_str,
+    compat_basestring,
+)
 from ..utils import (
     ExtractorError,
     int_or_none,
@@ -57,13 +60,13 @@ class YandexMusicTrackIE(YandexMusicBaseIE):
         'info_dict': {
             'id': '4878838',
             'ext': 'mp3',
-            'title': 'Carlo Ambrosio, Carlo Ambrosio & Fabio Di Bari - Gypsy Eyes 1',
+            'title': 'Carlo Ambrosio & Fabio Di Bari - Gypsy Eyes 1',
             'filesize': 4628061,
             'duration': 193.04,
             'track': 'Gypsy Eyes 1',
             'album': 'Gypsy Soul',
             'album_artist': 'Carlo Ambrosio',
-            'artist': 'Carlo Ambrosio, Carlo Ambrosio & Fabio Di Bari',
+            'artist': 'Carlo Ambrosio & Fabio Di Bari',
             'release_year': 2009,
         },
         'skip': 'Travis CI servers blocked by YandexMusic',
@@ -129,9 +132,21 @@ class YandexMusicTrackIE(YandexMusicBaseIE):
             'abr': int_or_none(download_data.get('bitrate')),
         }
 
+        def extract_artist_name(artist):
+            decomposed = artist.get('decomposed')
+            if not isinstance(decomposed, list):
+                return artist['name']
+            parts = [artist['name']]
+            for element in decomposed:
+                if isinstance(element, dict) and element.get('name'):
+                    parts.append(element['name'])
+                elif isinstance(element, compat_basestring):
+                    parts.append(element)
+            return ''.join(parts)
+
         def extract_artist(artist_list):
             if artist_list and isinstance(artist_list, list):
-                artists_names = [a['name'] for a in artist_list if a.get('name')]
+                artists_names = [extract_artist_name(a) for a in artist_list if a.get('name')]
                 if artists_names:
                     return ', '.join(artists_names)
 
