@@ -1581,8 +1581,15 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
         return video_id
 
     def _extract_annotations(self, video_id):
-        url = 'https://www.youtube.com/annotations_invideo?features=1&legacy=1&video_id=%s' % video_id
-        return self._download_webpage(url, video_id, note='Searching for annotations.', errnote='Unable to download video annotations.')
+        return self._download_webpage(
+            'https://www.youtube.com/annotations_invideo', video_id,
+            note='Downloading annotations',
+            errnote='Unable to download video annotations', fatal=False,
+            query={
+                'features': 1,
+                'legacy': 1,
+                'video_id': video_id,
+            })
 
     @staticmethod
     def _extract_chapters(description, duration):
