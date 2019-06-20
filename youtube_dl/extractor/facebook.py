@@ -460,18 +460,12 @@ class FacebookIE(InfoExtractor):
             'uploader_id', default=None) or self._search_regex(
             r'[\'\"]ownerid[\'\"]\s*:\s*[\'\"](\d+)[\'\"]', tahoe_data.secondary,
             'uploader_id', fatal=False)
+
         thumbnail = self._og_search_thumbnail(webpage)
 
-        view_count = parse_count(self._search_regex(
-            r'\bpostViewCount\s*:\s*["\']([\d,.]+)', webpage, 'view count',
-            default=None) or self._search_regex(
-            r'[\'\"]postViewCount[\'\"]\s*:\s*(\d+)', tahoe_data.secondary, 'view count',
-            default=None) or self._search_regex(
-            r'\bviewCount\s*:\s*["\']([\d,.]+)', webpage, 'view count',
-            default=None) or self._search_regex(
-            r'[\'\"]viewCount[\'\"]\s*:\s*(\d+)', tahoe_data.secondary, 'view count',
-            default=None)
-        )
+        view_count = parse_count(self._extract_meta_count(['postViewCount', 'viewCount'], webpage, tahoe_data, 'likes'))
+        likes_count = parse_count(self._extract_likes(webpage, tahoe_data))
+        shares_count = parse_count(self._extract_meta_count(['sharecount'], webpage, tahoe_data, 'shares'))
 
         info_dict = {
             'id': video_id,
@@ -483,10 +477,41 @@ class FacebookIE(InfoExtractor):
             'view_count': view_count,
             'uploader_id': uploader_id,
             'is_live': is_live,
-            'live_status': live_status
+            'live_status': live_status,
+            'likes': likes_count,
+            'shares': shares_count
         }
 
         return webpage, info_dict
+
+    def _extract_meta_count(self, fields, webpage, tahoe_data, name, ):
+        value = None
+
+        for f in fields:
+            if value:
+                break
+            value = self._search_regex(
+                    r'\b%s\s*:\s*["\']([\d,.]+)' % f, webpage, name,
+                    default=None
+            )
+            if value:
+                break
+
+            value = self._search_regex(
+                r'[\'\"]%s[\'\"]\s*:\s*(\d+)' % f, tahoe_data.secondary, name,
+                default=None)
+
+        return value
+
+    def _extract_likes(self, webpage, tahoe_data):
+        values = re.findall(r'\blikecount\s*:\s*["\']([\d,.]+)', webpage)
+        if values:
+            return values[-1]
+
+
+        values = re.findall(r'[\'\"]\blikecount[\'\"]\s*:\s*(\d+)', tahoe_data.secondary)
+        if values:
+            return values[-1]
 
     def _real_extract(self, url):
         video_id = self._match_id(url)
