@@ -478,8 +478,8 @@ class FacebookIE(InfoExtractor):
             'uploader_id': uploader_id,
             'is_live': is_live,
             'live_status': live_status,
-            'likes': likes_count,
-            'shares': shares_count
+            'like_count': likes_count,
+            'share_count': shares_count
         }
 
         return webpage, info_dict
