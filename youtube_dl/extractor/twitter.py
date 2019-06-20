@@ -14,6 +14,7 @@ from ..utils import (
     remove_end,
     try_get,
     xpath_text,
+    parse_count
 )
 
 from .periscope import PeriscopeIE
@@ -165,6 +166,7 @@ class TwitterCardIE(TwitterBaseIE):
         config = None
         formats = []
         duration = None
+        view_count = None
 
         urls = [url]
         if path.startswith('cards/'):
@@ -265,6 +267,7 @@ class TwitterCardIE(TwitterBaseIE):
             title = 'Twitter web player'
             thumbnail = config.get('posterImage')
             duration = float_or_none(track.get('durationMs'), scale=1000)
+            view_count = parse_count(track.get('viewCount'))
 
         self._remove_duplicate_formats(formats)
         self._sort_formats(formats)
@@ -275,6 +278,7 @@ class TwitterCardIE(TwitterBaseIE):
             'thumbnail': thumbnail,
             'duration': duration,
             'formats': formats,
+            'view_count': view_count
         }
 
 
