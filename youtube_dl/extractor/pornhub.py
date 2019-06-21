@@ -409,14 +409,14 @@ class PornHubUserIE(PornHubPlaylistBaseIE):
     @classmethod
     def suitable(cls, url):
         return (False
-                if PornHubUserVideosIE.suitable(url) or PornHubUserVideosUploadIE.suitable(url)
+                if PornHubPagedVideosIE.suitable(url) or PornHubUserVideosUploadIE.suitable(url)
                 else super(PornHubUserIE, cls).suitable(url))
 
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
         user_id = mobj.group('id')
         return self.url_result(
-            '%s/videos' % mobj.group('url'), ie=PornHubUserVideosIE.ie_key(),
+            '%s/videos' % mobj.group('url'), ie=PornHubPagedVideosIE.ie_key(),
             video_id=user_id)
 
 
@@ -426,10 +426,13 @@ class PornHubPagedPlaylistBaseIE(PornHubPlaylistBaseIE):
         host = mobj.group('host')
         user_id = mobj.group('id')
 
+        page = int_or_none(self._search_regex(
+            r'\bpage=(\d+)', url, 'page', default=None))
+
         page_url = self._make_page_url(url)
 
         entries = []
-        for page_num in itertools.count(1):
+        for page_num in (page, ) if page is not None else itertools.count(1):
             try:
                 webpage = self._download_webpage(
                     page_url, user_id, 'Downloading page %d' % page_num,
@@ -448,10 +451,17 @@ class PornHubPagedPlaylistBaseIE(PornHubPlaylistBaseIE):
         return self.playlist_result(orderedSet(entries), user_id)
 
 
-class PornHubUserVideosIE(PornHubPagedPlaylistBaseIE):
-    _VALID_URL = r'https?://(?:[^/]+\.)?(?P<host>pornhub\.(?:com|net))/(?:(?:user|channel)s|model|pornstar)/(?P<id>[^/]+)/videos'
+class PornHubPagedVideosIE(PornHubPagedPlaylistBaseIE):
+    _VALID_URL = r'''(?x)
+                    https?://
+                        (?:[^/]+\.)?(?P<host>pornhub\.(?:com|net))/
+                        (?:
+                            (?:(?:user|channel)s|model|pornstar)/(?P<id>[^/]+)/videos|
+                            video/search
+                        )
+                    '''
     _TESTS = [{
-        'url': 'https://www.pornhub.com/model/zoe_ph/videos/upload',
+        'url': 'https://www.pornhub.com/model/zoe_ph/videos',
         'only_matching': True,
     }, {
         'url': 'http://www.pornhub.com/users/rushandlia/videos',
@@ -462,6 +472,12 @@ class PornHubUserVideosIE(PornHubPagedPlaylistBaseIE):
             'id': 'jenny-blighe',
         },
         'playlist_mincount': 149,
+    }, {
+        'url': 'https://www.pornhub.com/pornstar/jenny-blighe/videos?page=3',
+        'info_dict': {
+            'id': 'jenny-blighe',
+        },
+        'playlist_mincount': 40,
     }, {
         # default sorting as Top Rated Videos
         'url': 'https://www.pornhub.com/channels/povd/videos',
@@ -485,12 +501,6 @@ class PornHubUserVideosIE(PornHubPagedPlaylistBaseIE):
         'url': 'http://www.pornhub.com/users/zoe_ph/videos/public',
         'only_matching': True,
     }, {
-        'url': 'https://www.pornhub.com/model/jayndrea/videos/upload',
-        'only_matching': True,
-    }, {
-        'url': 'https://www.pornhub.com/pornstar/jenny-blighe/videos/upload',
-        'only_matching': True,
-    }, {
         # Most Viewed Videos
         'url': 'https://www.pornhub.com/pornstar/liz-vicious/videos?o=mv',
         'only_matching': True,
@@ -507,9 +517,6 @@ class PornHubUserVideosIE(PornHubPagedPlaylistBaseIE):
         'url': 'https://www.pornhub.com/pornstar/liz-vicious/videos?o=cm',
         'only_matching': True,
     }, {
-        'url': 'https://www.pornhub.com/pornstar/liz-vicious/videos/upload',
-        'only_matching': True,
-    }, {
         'url': 'https://www.pornhub.com/pornstar/liz-vicious/videos/paid',
         'only_matching': True,
     }, {
@@ -521,7 +528,7 @@ class PornHubUserVideosIE(PornHubPagedPlaylistBaseIE):
     def suitable(cls, url):
         return (False
                 if PornHubUserVideosUploadIE.suitable(url)
-                else super(PornHubUserVideosIE, cls).suitable(url))
+                else super(PornHubPagedVideosIE, cls).suitable(url))
 
     def _make_page_url(self, url):
         return url
