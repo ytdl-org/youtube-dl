@@ -522,8 +522,12 @@ def sanitize_filename(s, restricted=False, is_id=False):
 
 
 def sanitize_path(s):
-    """Sanitizes and normalizes path on Windows"""
     if sys.platform != 'win32':
+        nm = os.statvfs("/").f_namemax
+        (f, e) = os.path.splitext(s)
+        while(sys.getsizeof(f) > (nm - sys.getsizeof(e))):
+            f = f[0:-1]
+        s = f + e
         return s
     drive_or_unc, _ = os.path.splitdrive(s)
     if sys.version_info < (2, 7) and not drive_or_unc:
