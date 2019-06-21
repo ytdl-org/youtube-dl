@@ -2,8 +2,7 @@
 from __future__ import unicode_literals
 
 from .common import InfoExtractor
-
-from ..utils import js_to_json
+from ..compat import compat_str
 
 
 class TF1IE(InfoExtractor):
@@ -62,23 +61,32 @@ class TF1IE(InfoExtractor):
 
     def _real_extract(self, url):
         video_id = self._match_id(url)
+
         webpage = self._download_webpage(url, video_id)
-        vids_data_string = self._html_search_regex(
-            r'<script>\s*window\.__APOLLO_STATE__\s*=\s*(?P<vids_data_string>\{.*?\})\s*;?\s*</script>',
-            webpage, 'videos data string', group='vids_data_string', default=None)
+
         wat_id = None
-        if vids_data_string is not None:
-            vids_data = self._parse_json(
-                vids_data_string, video_id,
-                transform_source=js_to_json)
-            video_data = [v for v in vids_data.values()
-                          if 'slug' in v and v['slug'] == video_id]
-            if len(video_data) > 0 and 'streamId' in video_data[0]:
-                wat_id = video_data[0]['streamId']
-        if wat_id is None:
+
+        data = self._parse_json(
+            self._search_regex(
+                r'__APOLLO_STATE__\s*=\s*({.+?})\s*(?:;|</script>)', webpage,
+                'data', default='{}'), video_id, fatal=False)
+
+        if data:
+            try:
+                wat_id = next(
+                    video.get('streamId')
+                    for key, video in data.items()
+                    if isinstance(video, dict)
+                    and video.get('slug') == video_id)
+                if not isinstance(wat_id, compat_str) or not wat_id.isdigit():
+                    wat_id = None
+            except StopIteration:
+                pass
+
+        if not wat_id:
             wat_id = self._html_search_regex(
-                [r'(["\'])(?:https?:)?//www\.wat\.tv/embedframe/.*?(?P<id>\d{8})\1',
-                 r'(["\']?)streamId\1\s*:\s*(["\']?)(?P<id>\d+)\2'
-                 ],
+                (r'(["\'])(?:https?:)?//www\.wat\.tv/embedframe/.*?(?P<id>\d{8})\1',
+                 r'(["\']?)streamId\1\s*:\s*(["\']?)(?P<id>\d+)\2'),
                 webpage, 'wat id', group='id')
+
         return self.url_result('wat:%s' % wat_id, 'Wat')
