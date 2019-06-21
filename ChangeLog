@@ -1,4 +1,4 @@
-version <unreleased>
+version 2019.06.21
 
 Core
 * [utils] Restrict parse_codecs and add theora as known vcodec (#21381)
