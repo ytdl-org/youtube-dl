@@ -661,9 +661,8 @@ class CrunchyrollShowPlaylistIE(CrunchyrollBaseIE):
         webpage = self._download_webpage(
             self._add_skip_wall(url), show_id,
             headers=self.geo_verification_headers())
-        title = self._html_search_regex(
-            r'(?s)<h1[^>]*>\s*<span itemprop="name">(.*?)</span>',
-            webpage, 'title')
+        title = self._html_search_meta('name', webpage, default=None)
+
         episode_paths = re.findall(
             r'(?s)<li id="showview_videos_media_(\d+)"[^>]+>.*?<a href="([^"]+)"',
             webpage)
