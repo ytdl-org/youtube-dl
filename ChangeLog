@@ -1,3 +1,18 @@
+version <unreleased>
+
+Core
+* [utils] Restrict parse_codecs and add theora as known vcodec (#21381)
+
+Extractors
+* [youtube] Update signature function patterns (#21469, #21476)
+* [youtube] Make --write-annotations non fatal (#21452)
++ [sixplay] Add support for rtlmost.hu (#21405)
+* [youtube] Hardcode codec metadata for av01 video only formats (#21381)
+* [toutv] Update client key (#21370)
++ [biqle] Add support for new embed domain
+* [cbs] Improve DRM protected videos detection (#21339)
+
+
 version 2019.06.08
 
 Core
