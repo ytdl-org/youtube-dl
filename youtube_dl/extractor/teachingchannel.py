@@ -1,35 +1,30 @@
+# coding: utf-8
 from __future__ import unicode_literals
 
-import re
-
 from .common import InfoExtractor
-from .ooyala import OoyalaIE
 
 
 class TeachingChannelIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:www\.)?teachingchannel\.org/videos/(?P<title>.+)'
-
+    _VALID_URL = r'https?://(?:www\.)?teachingchannel\.org/video/(?P<id>[^/?#]+)'
     _TEST = {
-        'url': 'https://www.teachingchannel.org/videos/teacher-teaming-evolution',
-        'md5': '3d6361864d7cac20b57c8784da17166f',
+        'url': 'https://www.teachingchannel.org/video/teacher-teaming-evolution',
+        'md5': 'ce11b12f58d87e02e6d3c1f5fd788c07',
         'info_dict': {
-            'id': 'F3bnlzbToeI6pLEfRyrlfooIILUjz4nM',
+            'id': '3swwlzkT',
             'ext': 'mp4',
             'title': 'A History of Teaming',
             'description': 'md5:2a9033db8da81f2edffa4c99888140b3',
-            'duration': 422.255,
-        },
-        'params': {
-            'skip_download': True,
-        },
-        'add_ie': ['Ooyala'],
+            'upload_date': '20170316',
+            'timestamp': 1489691297,
+            'duration': 422.0,
+        }
     }
 
     def _real_extract(self, url):
-        mobj = re.match(self._VALID_URL, url)
-        title = mobj.group('title')
-        webpage = self._download_webpage(url, title)
-        ooyala_code = self._search_regex(
-            r'data-embed-code=\'(.+?)\'', webpage, 'ooyala code')
-
-        return OoyalaIE._build_url_result(ooyala_code)
+        display_id = self._match_id(url)
+        webpage = self._download_webpage(url, display_id)
+        video_id = self._search_regex(
+            (r'data-mid=(["\'])(?P<id>(?:(?!\1).)+)\1',
+             r'id=(["\'])jw-video-player-(?P<id>(?:(?!\1).)+)\1'),
+            webpage, 'video_id', group='id')
+        return self.url_result('jwplatform:' + video_id, 'JWPlatform', video_id)
