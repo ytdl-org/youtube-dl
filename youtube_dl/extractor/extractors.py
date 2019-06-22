@@ -892,8 +892,9 @@ from .porncom import PornComIE
 from .pornhd import PornHdIE
 from .pornhub import (
     PornHubIE,
-    PornHubPlaylistIE,
-    PornHubUserVideosIE,
+    PornHubUserIE,
+    PornHubPagedVideoListIE,
+    PornHubUserVideosUploadIE,
 )
 from .pornotube import PornotubeIE
 from .pornovoisines import PornoVoisinesIE
