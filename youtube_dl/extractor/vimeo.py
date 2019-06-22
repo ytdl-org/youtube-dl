@@ -813,7 +813,8 @@ class VimeoChannelIE(VimeoBaseInfoExtractor):
         return '%s/videos/page:%d/' % (base_url, pagenum)
 
     def _extract_list_title(self, webpage):
-        return self._TITLE or self._html_search_regex(self._TITLE_RE, webpage, 'list title')
+        return self._TITLE or self._html_search_regex(
+            self._TITLE_RE, webpage, 'list title', fatal=False)
 
     def _login_list_password(self, page_url, list_id, webpage):
         login_form = self._search_regex(
@@ -954,7 +955,7 @@ class VimeoGroupsIE(VimeoAlbumIE):
     }]
 
     def _extract_list_title(self, webpage):
-        return self._og_search_title(webpage)
+        return self._og_search_title(webpage, fatal=False)
 
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
