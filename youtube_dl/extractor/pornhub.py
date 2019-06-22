@@ -54,7 +54,7 @@ class PornHubIE(PornHubBaseIE):
     _VALID_URL = r'''(?x)
                     https?://
                         (?:
-                            (?:[^/]+\.)?(?P<host>(pornhub|pornhubpremium)\.(?:com|net))/(?:(?:view_video\.php|video/show)\?viewkey=|embed/)|
+                            (?:[^/]+\.)?(?P<host>(?:pornhub|pornhubpremium)\.(?:com|net))/(?:(?:view_video\.php|video/show)\?viewkey=|embed/)|
                             (?:www\.)?thumbzilla\.com/video/
                         )
                         (?P<id>[\da-z]+)
@@ -96,8 +96,6 @@ class PornHubIE(PornHubBaseIE):
             'categories': list,
         },
         'params': {
-            'username': "tdsist",
-            'password': "ZtOUktu0QP",
             'skip_download': True,
         },
     }, {
@@ -203,10 +201,8 @@ class PornHubIE(PornHubBaseIE):
             'password': password,
         })
 
-        self._TOKEN = login_form['token']
-
         response = self._download_json(
-            "https://www.pornhubpremium.com/front/authenticate", None, 'Logging in',
+            'https://www.pornhubpremium.com/front/authenticate', None, 'Logging in',
             data=urlencode_postdata(login_form), headers={
                 'Content-Type': 'application/x-www-form-urlencoded',
                 'Referer': self._LOGIN_URL,
