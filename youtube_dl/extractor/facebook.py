@@ -614,10 +614,13 @@ class FacebookAjax:
 
     @property
     def page_likes(self):
-        return parse_count(
-            self._extractor._search_regex(r'\/span>([\d,]+) likes', self.hover, 'uploader_likes', default=None)
-        )
-
+        try:
+            return parse_count(
+                self._extractor._search_regex(r'\/span>([\d,]+) likes', self.hover, 'uploader_likes', default=None)
+            )
+        except:
+            return None
+        
     def _get_request_url(self, page_id):
         return update_url_query(self.HOVER_URL_TEMPLATE,
             {
