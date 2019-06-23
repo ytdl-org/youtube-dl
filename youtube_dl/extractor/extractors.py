@@ -173,6 +173,7 @@ from .cbs import CBSIE
 from .cbslocal import CBSLocalIE
 from .cbsinteractive import CBSInteractiveIE
 from .cbsnews import (
+    CBSNewsEmbedIE,
     CBSNewsIE,
     CBSNewsLiveVideoIE,
 )
@@ -891,8 +892,9 @@ from .porncom import PornComIE
 from .pornhd import PornHdIE
 from .pornhub import (
     PornHubIE,
-    PornHubPlaylistIE,
-    PornHubUserVideosIE,
+    PornHubUserIE,
+    PornHubPagedVideoListIE,
+    PornHubUserVideosUploadIE,
 )
 from .pornotube import PornotubeIE
 from .pornovoisines import PornoVoisinesIE
@@ -941,7 +943,10 @@ from .raywenderlich import (
 )
 from .rbmaradio import RBMARadioIE
 from .rds import RDSIE
-from .redbulltv import RedBullTVIE
+from .redbulltv import (
+    RedBullTVIE,
+    RedBullTVRrnContentIE,
+)
 from .reddit import (
     RedditIE,
     RedditRIE,
