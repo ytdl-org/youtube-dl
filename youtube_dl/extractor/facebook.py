@@ -618,9 +618,9 @@ class FacebookAjax:
             return parse_count(
                 self._extractor._search_regex(r'\/span>([\d,]+) likes', self.hover, 'uploader_likes', default=None)
             )
-        except:
-            return None
-        
+        except Exception as e:
+            self._extractor.report_warning(self._page_id + str(e))
+
     def _get_request_url(self, page_id):
         return update_url_query(self.HOVER_URL_TEMPLATE,
             {
