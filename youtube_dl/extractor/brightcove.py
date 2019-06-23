@@ -788,9 +788,10 @@ class BrightcoveNewIE(AdobePassIE):
 
         if content_type == 'playlist':
             return self.playlist_result(
-                [self._parse_brightcove_metadata(vid, vid.get('id'), headers) for vid in json_data.get('videos', []) if vid.get('id')],
-                json_data.get('id'), json_data.get('name'), json_data.get('description'),
-            )
+                [self._parse_brightcove_metadata(vid, vid.get('id'), headers)
+                 for vid in json_data.get('videos', []) if vid.get('id')],
+                json_data.get('id'), json_data.get('name'),
+                json_data.get('description'))
 
         return self._parse_brightcove_metadata(
             json_data, video_id, headers=headers)
