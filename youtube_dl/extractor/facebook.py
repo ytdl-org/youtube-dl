@@ -432,18 +432,21 @@ class FacebookIE(InfoExtractor):
                 r'(?s)<span class="fbPhotosPhotoCaption".*?id="fbPhotoPageCaption"><span class="hasCaption">(.*?)</span>',
                 webpage, 'alternative title', default=None)
         if not video_title:
+            video_title = self._og_search_title(webpage, default=None)
+        if not video_title:
             video_title = self._html_search_meta(
                 'description', webpage, 'title', default=None)
         if video_title:
             video_title = limit_length(video_title, 80)
         else:
             video_title = 'Facebook video #%s' % video_id
+
         uploader = clean_html(get_element_by_id(
             'fbPhotoPageAuthorName', webpage)) or self._search_regex(
             r'ownerName\s*:\s*"([^"]+)"', webpage, 'uploader',default=None) or \
-                   self._og_search_title(webpage, default=None) or self._search_regex(
+                   self._search_regex(
                         r'\"ownerName\":"(.+?)"', tahoe_data.secondary,
-                        'uploader_id', fatal=False)
+                        'uploader_id', fatal=False) or self._og_search_title(webpage, default=None)
 
 
         timestamp = int_or_none(self._search_regex(
@@ -457,18 +460,12 @@ class FacebookIE(InfoExtractor):
             'uploader_id', default=None) or self._search_regex(
             r'[\'\"]ownerid[\'\"]\s*:\s*[\'\"](\d+)[\'\"]', tahoe_data.secondary,
             'uploader_id', fatal=False)
+
         thumbnail = self._og_search_thumbnail(webpage)
 
-        view_count = parse_count(self._search_regex(
-            r'\bpostViewCount\s*:\s*["\']([\d,.]+)', webpage, 'view count',
-            default=None) or self._search_regex(
-            r'[\'\"]postViewCount[\'\"]\s*:\s*(\d+)', tahoe_data.secondary, 'view count',
-            default=None) or self._search_regex(
-            r'\bviewCount\s*:\s*["\']([\d,.]+)', webpage, 'view count',
-            default=None) or self._search_regex(
-            r'[\'\"]viewCount[\'\"]\s*:\s*(\d+)', tahoe_data.secondary, 'view count',
-            default=None)
-        )
+        view_count = parse_count(self._extract_meta_count(['postViewCount', 'viewCount'], webpage, tahoe_data, 'likes'))
+        likes_count = parse_count(self._extract_likes(webpage, tahoe_data))
+        shares_count = parse_count(self._extract_meta_count(['sharecount'], webpage, tahoe_data, 'shares'))
 
         info_dict = {
             'id': video_id,
@@ -480,10 +477,41 @@ class FacebookIE(InfoExtractor):
             'view_count': view_count,
             'uploader_id': uploader_id,
             'is_live': is_live,
-            'live_status': live_status
+            'live_status': live_status,
+            'like_count': likes_count,
+            'share_count': shares_count
         }
 
         return webpage, info_dict
+
+    def _extract_meta_count(self, fields, webpage, tahoe_data, name, ):
+        value = None
+
+        for f in fields:
+            if value:
+                break
+            value = self._search_regex(
+                    r'\b%s\s*:\s*["\']([\d,.]+)' % f, webpage, name,
+                    default=None
+            )
+            if value:
+                break
+
+            value = self._search_regex(
+                r'[\'\"]%s[\'\"]\s*:\s*(\d+)' % f, tahoe_data.secondary, name,
+                default=None)
+
+        return value
+
+    def _extract_likes(self, webpage, tahoe_data):
+        values = re.findall(r'\blikecount\s*:\s*["\']([\d,.]+)', webpage)
+        if values:
+            return values[-1]
+
+
+        values = re.findall(r'[\'\"]\blikecount[\'\"]\s*:\s*(\d+)', tahoe_data.secondary)
+        if values:
+            return values[-1]
 
     def _real_extract(self, url):
         video_id = self._match_id(url)

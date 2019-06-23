@@ -2816,7 +2816,7 @@ class InfoExtractor(object):
         """ Return a compat_cookies.SimpleCookie with the cookies for the url """
         req = sanitized_Request(url)
         self._downloader.cookiejar.add_cookie_header(req)
-        return compat_cookies.SimpleCookie(req.get_header('Cookie'))
+        return compat_cookies.SimpleCookie(str(req.get_header('Cookie')))
 
     def _apply_first_set_cookie_header(self, url_handle, cookie):
         """

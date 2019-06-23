@@ -243,8 +243,6 @@ class FFmpegFD(ExternalFD):
             # http://trac.ffmpeg.org/ticket/6125#comment:10
             args += ['-seekable', '1' if seekable else '0']
 
-        args += self._configuration_args()
-
         # start_time = info_dict.get('start_time') or 0
         # if start_time:
         #     args += ['-ss', compat_str(start_time)]
@@ -311,6 +309,8 @@ class FFmpegFD(ExternalFD):
                 args += ['-rtmp_conn', conn]
 
         args += ['-i', url, '-c', 'copy']
+        
+        args += self._configuration_args()
 
         if self.params.get('test', False):
             args += ['-fs', compat_str(self._TEST_FILE_SIZE)]

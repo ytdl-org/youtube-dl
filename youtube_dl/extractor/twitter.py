@@ -14,6 +14,7 @@ from ..utils import (
     remove_end,
     try_get,
     xpath_text,
+    parse_count
 )
 
 from .periscope import PeriscopeIE
@@ -165,6 +166,7 @@ class TwitterCardIE(TwitterBaseIE):
         config = None
         formats = []
         duration = None
+        view_count = None
 
         urls = [url]
         if path.startswith('cards/'):
@@ -239,12 +241,18 @@ class TwitterCardIE(TwitterBaseIE):
             ct0 = self._get_cookies(url).get('ct0')
             if ct0:
                 headers['csrf_token'] = ct0.value
-            guest_token = self._download_json(
-                '%s/guest/activate.json' % self._API_BASE, video_id,
-                'Downloading guest token', data=b'',
-                headers=headers)['guest_token']
+            guest_token_c = self._get_cookies('http://api.twitter.com/').get('gt')
+            if not guest_token_c:
+                guest_token = self._download_json(
+                    '%s/guest/activate.json' % self._API_BASE, video_id,
+                    'Downloading guest token', data=b'',
+                    headers=headers)['guest_token']
+                self._set_cookie('api.twitter.com', 'gt', guest_token)
+            else:
+                guest_token = guest_token_c.value
+
             headers['x-guest-token'] = guest_token
-            self._set_cookie('api.twitter.com', 'gt', guest_token)
+
             config = self._download_json(
                 '%s/videos/tweet/config/%s.json' % (self._API_BASE, video_id),
                 video_id, headers=headers)
@@ -265,6 +273,7 @@ class TwitterCardIE(TwitterBaseIE):
             title = 'Twitter web player'
             thumbnail = config.get('posterImage')
             duration = float_or_none(track.get('durationMs'), scale=1000)
+            view_count = parse_count(track.get('viewCount'))
 
         self._remove_duplicate_formats(formats)
         self._sort_formats(formats)
@@ -275,6 +284,7 @@ class TwitterCardIE(TwitterBaseIE):
             'thumbnail': thumbnail,
             'duration': duration,
             'formats': formats,
+            'view_count': view_count
         }
 
 
