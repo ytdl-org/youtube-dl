@@ -517,18 +517,20 @@ class BrightcoveNewIE(AdobePassIE):
             'skip_download': True,
         }
     }, {
-        # playlist streams
-        'url': 'http://players.brightcove.net/5690807595001/HyZNerRl7_default/index.html?playlistId=5743160747001',
+        # playlist stream
+        'url': 'https://players.brightcove.net/1752604059001/S13cJdUBz_default/index.html?playlistId=5718313430001',
         'info_dict': {
-            'id': '5743160747001',
-            'ext': 'mp4',
-            'title': 'prod ntv',
-            'uploader_id': '5690807595001',
+            'id': '5718313430001',
+            'title': 'No Audio Playlist',
         },
+        'playlist_count': 7,
         'params': {
             # m3u8 download
             'skip_download': True,
         }
+    }, {
+        'url': 'http://players.brightcove.net/5690807595001/HyZNerRl7_default/index.html?playlistId=5743160747001',
+        'only_matching': True,
     }, {
         # ref: prefixed video id
         'url': 'http://players.brightcove.net/3910869709001/21519b5c-4b3b-4363-accb-bdc8f358f823_default/index.html?videoId=ref:7069442',
@@ -721,17 +723,6 @@ class BrightcoveNewIE(AdobePassIE):
             'is_live': is_live,
         }
 
-    def _extract_playlist(self, json_data, headers):
-        playlist_id = json_data.get('id')
-        playlist_title = json_data.get('name')
-        playlist_description = json_data.get('description')
-        playlist_vids = json_data.get('videos', [])
-
-        return self.playlist_result(
-            [self._parse_brightcove_metadata(vid, vid.get('id'), headers) for vid in playlist_vids],
-            playlist_id, playlist_title, playlist_description,
-        )
-
     def _real_extract(self, url):
         url, smuggled_data = unsmuggle_url(url, {})
         self._initialize_geo_bypass({
@@ -796,7 +787,10 @@ class BrightcoveNewIE(AdobePassIE):
                 })
 
         if content_type == 'playlist':
-            return self._extract_playlist(json_data, headers)
+            return self.playlist_result(
+                [self._parse_brightcove_metadata(vid, vid.get('id'), headers) for vid in json_data.get('videos', []) if vid.get('id')],
+                json_data.get('id'), json_data.get('name'), json_data.get('description'),
+            )
 
         return self._parse_brightcove_metadata(
             json_data, video_id, headers=headers)
