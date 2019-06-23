@@ -96,14 +96,14 @@ class OdnoklassnikiIE(InfoExtractor):
         'skip': 'Video has not been found',
     }, {
         # live video
-        'url': 'https://www.ok.ru/video/1050794925929',
+        'url': 'https://www.ok.ru/live/1385317932687',
         'info_dict': {
-            'id': '1050794925929',
-            'title': 're:^Поиск репертуара [0-9]{4}-[0-9]{2}-[0-9]{2} [0-9]{2}:[0-9]{2}$',
+            'id': u'1385317932687',
+            'title': u're:АНДРЕЙ МАЛАХОВ. ПРЯМОЙ ЭФИР [0-9]{4}-[0-9]{2}-[0-9]{2} [0-9]{2}:[0-9]{2}$',
             'ext': 'mp4',
-            'upload_date': u'20190428',
-            'uploader': u'(((((КнЯзЬ ))))',
-            'uploader_id': u'557343776873',
+            'upload_date': u'20190603',
+            'uploader': u'Светлана Соколенко',
+            'uploader_id': u'575511609483',
             'is_live': True
         },
         'params': {
@@ -259,7 +259,7 @@ class OdnoklassnikiIE(InfoExtractor):
             return info
 
         assert title
-        if provider == 'LIVE_TV_APP':
+        if 'LIVE_TV' in provider:
             info['title'] = self._live_title(title)
             info['is_live'] = True
 
