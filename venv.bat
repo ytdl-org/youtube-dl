@@ -1,0 +1,3 @@
+
+
+@call ".\venv\Scripts\activate"
