@@ -61,10 +61,6 @@ class PornTrexIE(PornTrexBaseIE):
         video_id = self._match_id(url)
         webpage = self._download_webpage(url, video_id)
 
-        # print(self._html_search_meta('description', webpage, 'description', fatal=False))
-        # print(self._og_search_description(webpage))
-        # quit()
-
         if re.findall(r'Only active members can watch private videos.', webpage):
             self.raise_login_required()
 
