@@ -96,6 +96,8 @@ class PornHubIE(PornHubBaseIE):
             'categories': list,
         },
         'params': {
+            'username': 'tdsist',
+            'password': 'ZtOUktu0QP',
             'skip_download': True,
         },
     }, {
