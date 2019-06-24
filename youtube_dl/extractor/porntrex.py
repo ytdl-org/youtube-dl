@@ -11,6 +11,7 @@ from ..utils import (
 
 
 class PornTrexBaseIE(InfoExtractor):
+    _NETRC_MACHINE = 'porntrex'
 
     def _login(self):
         username, password = self._get_login_info()
@@ -23,9 +24,9 @@ class PornTrexBaseIE(InfoExtractor):
         login_form = self._hidden_inputs(login_page)
 
         login_form.update({
-            'username': username.encode('utf-8'),
-            'pass': password.encode('utf-8'),
-            'remember_me': str(1).encode('utf-8'),
+            'username': username,
+            'pass': password,
+            'remember_me': 1,
         })
 
         login_page = self._download_webpage(
@@ -43,7 +44,6 @@ class PornTrexBaseIE(InfoExtractor):
 
 
 class PornTrexIE(PornTrexBaseIE):
-    _NETRC_MACHINE = 'porntrex'
     _VALID_URL = r'https?://(?:www\.)?porntrex\.com/video/(?P<id>[0-9]+)/'
     _TEST = {
         'url': 'https://www.porntrex.com/video/311136/naomi-gets-fingered-before-the-fucking',
@@ -61,28 +61,36 @@ class PornTrexIE(PornTrexBaseIE):
         video_id = self._match_id(url)
         webpage = self._download_webpage(url, video_id)
 
-        self.report_extraction(video_id)
-        private_string = 'Only active members can watch private videos.'
-        is_video_private_regex = re.compile(private_string)
-        if re.findall(is_video_private_regex, webpage):
+        # print(self._html_search_meta('description', webpage, 'description', fatal=False))
+        # print(self._og_search_description(webpage))
+        # quit()
+
+        if re.findall(r'Only active members can watch private videos.', webpage):
             self.raise_login_required()
 
-        title = self._html_search_regex(
-            r'<title>(.+?)</title>', webpage, 'title',)
-        movie_urls_regex = re.compile("'(https://www.porntrex.com/get_file/.*?)/'")
-        movie_urls = re.findall(movie_urls_regex, webpage)
-        uploader = self._search_regex(r'/members/\d+?/["\']>\s+(.+?)\s+</a>', webpage, 'new_uploader').strip()
-        thumbnails_regex = re.compile(r'href="(http.*?/screenshots/\d+.jpg/)"')
-        thumbnails_list = re.findall(thumbnails_regex, webpage)
+        title = self._html_search_regex(r'<title>(.+?)</title>',
+                                        webpage,
+                                        'title',
+                                        fatal=False)
+
+        uploader = self._search_regex(r'(?m)/members/\d+?/["\']>\s+(.+?)\s+</a>',
+                                      webpage,
+                                      'new_uploader',
+                                      fatal=False).strip()
+
+        thumbnails_list = re.findall(r'href="(http.*?/screenshots/\d+.jpg/)["\']', webpage)
         thumbnails = []
         for thumbs in thumbnails_list:
             thumbnails.append({'url': thumbs})
+
         formats = []
+        movie_urls = re.findall(r"['\"](https://www.porntrex.com/get_file/.*?)/['\"]", webpage)
         for movie_url in movie_urls:
             formats.append({'url': movie_url,
-                            'ext': movie_url.split('.')[-1],
-                            'protocol': movie_url.split(':')[0],
-                            'height': int(self._search_regex(r'_(\d+)p.', movie_url.split('/')[-1], 'height', default='480')),
+                            'height': int(self._search_regex(r'_(\d+)p\.',
+                                                             movie_url,
+                                                             'height',
+                                                             default='480')),
                             })
         self._sort_formats(formats)
 
@@ -98,43 +106,40 @@ class PornTrexIE(PornTrexBaseIE):
 
 
 class PornTrexPlayListIE(PornTrexBaseIE):
-    _NETRC_MACHINE = 'porntrex'
-    _VALID_URL = \
-        r'https?://(?:www\.)?porntrex\.com/playlists/(?P<id>[0-9]+)/'
-    _TEST = {
-        'url': 'https://www.porntrex.com/playlists/31075/2016-collection/',
-        'id': '31075',
-        'title': 'FTVGirls 2016 Collection',
+    _VALID_URL = r'https?://(?:www\.)?porntrex\.com/playlists/(?P<id>[0-9]+)/'
+    _TESTS = [{
+        'url': 'https://www.porntrex.com/playlists/13598/tushy32/',
         'info_dict': {
-            'id': '345462',
-            'ext': 'mp4',
-            'uploader': 'publicgirls',
-            'title': 'FTVGirls.16.05 - Adria Part 2',
-            'description': 'https://www.indexxx.com/models/121033/adria-rae/',
-            'age_limit': 18,
-        }
-    }
+            'id': '13598',
+            'title': 'Tushy',
+            'description': 'Huge collection of free hd porn videos. Tons of amateur sex and professional hd movies. Daily updated videos of hot busty teen, latina, amateur & more...',
+        },
+        'playlist_mincount': 74,
+    }, {
+        'url': 'https://www.porntrex.com/playlists/31075/2016-collection/',
+        'info_dict': {
+            'id': '31075',
+            'title': 'FTVGirls 2016 Collection',
+            'description': 'FTVGirls 2016  Complete Collection (122 videos)',
+        },
+        'playlist_mincount': 3,
+    }]
 
     def _real_extract(self, url):
         playlist_id = self._match_id(url)
         webpage = self._download_webpage(url, playlist_id)
 
-        get_all_urls_regex = re.compile('data-playlist-item="(.*?)"')
-        all_urls = re.findall(get_all_urls_regex, webpage)
+        all_urls = re.findall(r'data-playlist-item="(.*?)"', webpage)
 
         entries = []
         for this_url in all_urls:
-            entries.append({'_type': 'url',
-                            'id': this_url.split('/')[4],
-                            'url': this_url,
-                            })
+            entries.append(self.url_result(this_url))
 
-        return {
-            '_type': 'playlist',
-            'id': playlist_id,
-            'title': self._html_search_regex(
-                r'<title>(.+?)</title>',
-                webpage,
-                'title',),
-            'entries': entries,
-        }
+        playlist_description = self._html_search_meta('description', webpage, 'description', fatal=False)
+
+        playlist_title = self._html_search_regex(r'<title>(.+?)</title>', webpage, 'title', fatal=False)
+
+        return self.playlist_result(entries,
+                                    playlist_id=playlist_id,
+                                    playlist_title=playlist_title,
+                                    playlist_description=playlist_description)
