@@ -463,7 +463,10 @@ class FacebookIE(InfoExtractor):
 
         thumbnail = self._og_search_thumbnail(webpage)
 
-        view_count = parse_count(self._extract_meta_count(['postViewCount', 'viewCount'], webpage, tahoe_data, 'likes'))
+        if is_live:
+            view_count = parse_count(self._search_regex(r'viewerCount:([\d]+)', webpage, 'views', fatal=False))
+        else:
+            view_count = parse_count(self._extract_meta_count(['postViewCount', 'viewCount'], webpage, tahoe_data, 'likes'))
         likes_count = parse_count(self._extract_likes(webpage, tahoe_data))
         shares_count = parse_count(self._extract_meta_count(['sharecount'], webpage, tahoe_data, 'shares'))
 
