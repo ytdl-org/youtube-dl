@@ -24,6 +24,7 @@ from ..utils import (
     sanitized_Request,
     try_get,
     urlencode_postdata,
+    update_url_query
 )
 
 
@@ -484,6 +485,8 @@ class FacebookIE(InfoExtractor):
             'like_count': likes_count,
             'share_count': shares_count
         }
+        if uploader_id:
+            info_dict['uploader_like_count'] = FacebookAjax(self, webpage, uploader_id).page_likes
 
         return webpage, info_dict
 
@@ -588,6 +591,56 @@ class FacebookTahoeData:
         }
 
         return tahoe_request_data, tahoe_request_headers
+
+
+class FacebookAjax:
+    HOVER_URL_TEMPLATE = 'https://www.facebook.com/ajax/hovercard/user.php?id=111&fb_dtsg_ag=x&endpoint=%2Fajax%2Fhovercard%2Fuser.php%3Fid%3D111&__a=1'
+
+    def __init__(self, extractor, page, page_id):
+        self._page = page
+        self._page_id = page_id
+        self._extractor = extractor
+        self._hover_data = None
+
+    def _get_hover_data(self):
+        if self._hover_data:
+            data = self._hover_data
+        else:
+            data = self._extractor._download_webpage(
+                self._get_request_url(self._page_id), self._page_id
+            )
+        return '' if not data else data
+
+    @property
+    def hover(self):
+        return self._get_hover_data()
+
+    @property
+    def page_likes(self):
+        try:
+            return parse_count(
+                self._extractor._search_regex(r'\/span>([\d,]+) likes', self.hover, 'uploader_likes', default=None)
+            )
+        except Exception as e:
+            self._extractor.report_warning(self._page_id + str(e))
+
+    def _get_request_url(self, page_id):
+        return update_url_query(self.HOVER_URL_TEMPLATE,
+            {
+
+                'id': page_id,
+                'endpoint': '/ajax/hovercard/user.php?id=%s' % page_id,
+                '__a': 1,
+                '__pc': self._extractor._search_regex(
+                    r'pkg_cohort["\']\s*:\s*["\'](.+?)["\']', self._page,
+                    'pkg cohort', default='PHASED:DEFAULT'),
+                '__rev': self._extractor._search_regex(
+                    r'client_revision["\']\s*:\s*(\d+),', self._page,
+                    'client revision', default='3944515'),
+                'fb_dtsg': self._extractor._search_regex(
+                    r'"DTSGInitialData"\s*,\s*\[\]\s*,\s*{\s*"token"\s*:\s*"([^"]+)"',
+                    self._page, 'dtsg token', default=''),
+            })
 
 
 class FacebookPluginsVideoIE(InfoExtractor):
