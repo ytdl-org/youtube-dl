@@ -99,27 +99,33 @@ class BeamProLiveIE(BeamProBaseIE):
 
 class BeamProVodIE(BeamProBaseIE):
     IE_NAME = 'Mixer:vod'
-    _VALID_URL = r'https?://(?:\w+\.)?(?:beam\.pro|mixer\.com)/[^/?#&]+\?.*?\bvod=(?P<id>\d+)'
-    _TEST = {
-        'url': 'https://mixer.com/willow8714?vod=2259830',
-        'md5': 'b2431e6e8347dc92ebafb565d368b76b',
-        'info_dict': {
-            'id': '2259830',
-            'ext': 'mp4',
-            'title': 'willow8714\'s Channel',
-            'duration': 6828.15,
-            'thumbnail': r're:https://.*source\.png$',
-            'timestamp': 1494046474,
-            'upload_date': '20170506',
-            'uploader': 'willow8714',
-            'uploader_id': '6085379',
-            'age_limit': 13,
-            'view_count': int,
+    _VALID_URL = r'https?://(?:\w+\.)?(?:beam\.pro|mixer\.com)/[^/?#&]+\?.*?\bvod=(?P<id>\w+)'
+    _TESTS = [
+        {
+            'url': 'https://mixer.com/willow8714?vod=2259830',
+            'md5': 'b2431e6e8347dc92ebafb565d368b76b',
+            'info_dict': {
+                'id': '2259830',
+                'ext': 'mp4',
+                'title': 'willow8714\'s Channel',
+                'duration': 6828.15,
+                'thumbnail': r're:https://.*source\.png$',
+                'timestamp': 1494046474,
+                'upload_date': '20170506',
+                'uploader': 'willow8714',
+                'uploader_id': '6085379',
+                'age_limit': 13,
+                'view_count': int,
+            },
+            'params': {
+                'skip_download': True,
+            },
         },
-        'params': {
-            'skip_download': True,
+        {
+            'url': 'https://mixer.com/streamer?vod=IxFno1rqC0S_XJ1a2yGgNw',
+            'only_matching': True,
         },
-    }
+    ]
 
     @staticmethod
     def _extract_format(vod, vod_type):
