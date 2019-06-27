@@ -125,7 +125,7 @@ class PornTrexPlayListIE(PornTrexBaseIE):
         playlist_id = self._match_id(url)
         webpage = self._download_webpage(url, playlist_id)
 
-        all_urls = re.findall(r'data-playlist-item="(.*?)"', webpage)
+        all_urls = re.findall(r'data-playlist-item=["\'](https?://www\.porntrex\.com/[^\'"]+)', webpage)
 
         entries = []
         for this_url in all_urls:
