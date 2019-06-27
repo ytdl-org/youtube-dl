@@ -1,4 +1,4 @@
-version <unreleased>
+version 2019.06.27
 
 Extractors
 + [go] Add support for disneynow.com (#21528)
