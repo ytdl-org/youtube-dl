@@ -631,7 +631,7 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
 
 class CrunchyrollShowPlaylistIE(CrunchyrollBaseIE):
     IE_NAME = 'crunchyroll:playlist'
-    _VALID_URL = r'https?://(?:(?P<prefix>www|m)\.)?(?P<url>crunchyroll\.com/(?!(?:news|anime-news|library|forum|launchcalendar|lineup|store|comics|freetrial|login|media-\d+))(?P<id>[\w\-]+))/?(?:\?|$)'
+    _VALID_URL = r'https?://(?:(?P<prefix>www|m)\.)?(?P<url>crunchyroll\.com/(?!(?:news|anime-news|library|forum|launchcalendar|lineup|store|comics|freetrial|login|media-\d+))(?:(?:en-gb|es|es-es|pt-br|pt-pt|fr|de|ar|it|ru)/)?(?P<id>[\w\-]+))/?(?:\?|$)'
 
     _TESTS = [{
         'url': 'http://www.crunchyroll.com/a-bridge-to-the-starry-skies-hoshizora-e-kakaru-hashi',
@@ -653,6 +653,14 @@ class CrunchyrollShowPlaylistIE(CrunchyrollBaseIE):
         # geo-restricted (US), 18+ maturity wall, non-premium will be available since 2015.11.14
         'url': 'http://www.crunchyroll.com/ladies-versus-butlers?skip_wall=1',
         'only_matching': True,
+    }, {
+        # test for other languages
+        'url': 'https://www.crunchyroll.com/de/that-time-i-got-reincarnated-as-a-slime',
+        'info_dict': {
+            'id': 'that-time-i-got-reincarnated-as-a-slime',
+            'title': 'That Time I Got Reincarnated as a Slime'
+        },
+        'playlist_count': 25,
     }]
 
     def _real_extract(self, url):
