@@ -80,7 +80,7 @@ class PornTrexIE(PornTrexBaseIE):
             thumbnails.append({'url': thumbs})
 
         formats = []
-        movie_urls = re.findall(r"['\"](https://www.porntrex.com/get_file/.*?)/['\"]", webpage)
+        movie_urls = re.findall(r"'(https://www.porntrex.com/get_file/.*?)/'", webpage)
         for movie_url in movie_urls:
             formats.append({'url': movie_url,
                             'height': int(self._search_regex(r'_(\d+)p\.',
