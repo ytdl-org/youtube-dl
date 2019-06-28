@@ -1,7 +1,10 @@
 from __future__ import unicode_literals
 
 from .common import InfoExtractor
-from ..compat import compat_str
+from ..compat import (
+    compat_str,
+    compat_urlparse,
+)
 from ..utils import (
     int_or_none,
     unified_timestamp,
@@ -11,6 +14,7 @@ from ..utils import (
 class BeegIE(InfoExtractor):
     _VALID_URL = r'https?://(?:www\.)?beeg\.(?:com|porn(?:/video)?)/(?P<id>\d+)'
     _TESTS = [{
+        # api/v6 v1
         'url': 'http://beeg.com/5416503',
         'md5': 'a1a1b1a8bc70a89e49ccfd113aed0820',
         'info_dict': {
@@ -24,6 +28,10 @@ class BeegIE(InfoExtractor):
             'tags': list,
             'age_limit': 18,
         }
+    }, {
+        # api/v6 v2
+        'url': 'https://beeg.com/1941093077?t=911-1391',
+        'only_matching': True,
     }, {
         'url': 'https://beeg.porn/video/5416503',
         'only_matching': True,
@@ -41,11 +49,22 @@ class BeegIE(InfoExtractor):
             r'beeg_version\s*=\s*([\da-zA-Z_-]+)', webpage, 'beeg version',
             default='1546225636701')
 
+        qs = compat_urlparse.parse_qs(compat_urlparse.urlparse(url).query)
+        t = qs.get('t', [''])[0].split('-')
+        if len(t) > 1:
+            query = {
+                'v': 2,
+                's': t[0],
+                'e': t[1],
+            }
+        else:
+            query = {'v': 1}
+
         for api_path in ('', 'api.'):
             video = self._download_json(
                 'https://%sbeeg.com/api/v6/%s/video/%s'
                 % (api_path, beeg_version, video_id), video_id,
-                fatal=api_path == 'api.')
+                fatal=api_path == 'api.', query=query)
             if video:
                 break
 

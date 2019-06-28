@@ -16,7 +16,6 @@ from ..utils import (
     determine_ext,
     ExtractorError,
     js_to_json,
-    InAdvancePagedList,
     int_or_none,
     merge_dicts,
     NO_DEFAULT,
@@ -814,7 +813,8 @@ class VimeoChannelIE(VimeoBaseInfoExtractor):
         return '%s/videos/page:%d/' % (base_url, pagenum)
 
     def _extract_list_title(self, webpage):
-        return self._TITLE or self._html_search_regex(self._TITLE_RE, webpage, 'list title')
+        return self._TITLE or self._html_search_regex(
+            self._TITLE_RE, webpage, 'list title', fatal=False)
 
     def _login_list_password(self, page_url, list_id, webpage):
         login_form = self._search_regex(
@@ -955,7 +955,7 @@ class VimeoGroupsIE(VimeoAlbumIE):
     }]
 
     def _extract_list_title(self, webpage):
-        return self._og_search_title(webpage)
+        return self._og_search_title(webpage, fatal=False)
 
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
@@ -1065,7 +1065,7 @@ class VimeoWatchLaterIE(VimeoChannelIE):
         return self._extract_videos('watchlater', 'https://vimeo.com/watchlater')
 
 
-class VimeoLikesIE(InfoExtractor):
+class VimeoLikesIE(VimeoChannelIE):
     _VALID_URL = r'https://(?:www\.)?vimeo\.com/(?P<id>[^/]+)/likes/?(?:$|[?#]|sort:)'
     IE_NAME = 'vimeo:likes'
     IE_DESC = 'Vimeo user likes'
@@ -1073,55 +1073,20 @@ class VimeoLikesIE(InfoExtractor):
         'url': 'https://vimeo.com/user755559/likes/',
         'playlist_mincount': 293,
         'info_dict': {
-            'id': 'user755559_likes',
-            'description': 'See all the videos urza likes',
-            'title': 'Videos urza likes',
+            'id': 'user755559',
+            'title': 'urza’s Likes',
         },
     }, {
         'url': 'https://vimeo.com/stormlapse/likes',
         'only_matching': True,
     }]
 
+    def _page_url(self, base_url, pagenum):
+        return '%s/page:%d/' % (base_url, pagenum)
+
     def _real_extract(self, url):
         user_id = self._match_id(url)
-        webpage = self._download_webpage(url, user_id)
-        page_count = self._int(
-            self._search_regex(
-                r'''(?x)<li><a\s+href="[^"]+"\s+data-page="([0-9]+)">
-                    .*?</a></li>\s*<li\s+class="pagination_next">
-                ''', webpage, 'page count', default=1),
-            'page count', fatal=True)
-        PAGE_SIZE = 12
-        title = self._html_search_regex(
-            r'(?s)<h1>(.+?)</h1>', webpage, 'title', fatal=False)
-        description = self._html_search_meta('description', webpage)
-
-        def _get_page(idx):
-            page_url = 'https://vimeo.com/%s/likes/page:%d/sort:date' % (
-                user_id, idx + 1)
-            webpage = self._download_webpage(
-                page_url, user_id,
-                note='Downloading page %d/%d' % (idx + 1, page_count))
-            video_list = self._search_regex(
-                r'(?s)<ol class="js-browse_list[^"]+"[^>]*>(.*?)</ol>',
-                webpage, 'video content')
-            paths = re.findall(
-                r'<li[^>]*>\s*<a\s+href="([^"]+)"', video_list)
-            for path in paths:
-                yield {
-                    '_type': 'url',
-                    'url': compat_urlparse.urljoin(page_url, path),
-                }
-
-        pl = InAdvancePagedList(_get_page, page_count, PAGE_SIZE)
-
-        return {
-            '_type': 'playlist',
-            'id': '%s_likes' % user_id,
-            'title': title,
-            'description': description,
-            'entries': pl,
-        }
+        return self._extract_videos(user_id, 'https://vimeo.com/%s/likes' % user_id)
 
 
 class VHXEmbedIE(InfoExtractor):
