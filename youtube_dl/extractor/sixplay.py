@@ -19,7 +19,7 @@ from ..utils import (
 
 class SixPlayIE(InfoExtractor):
     IE_NAME = '6play'
-    _VALID_URL = r'(?:6play:|https?://(?:www\.)?(?P<domain>6play\.fr|rtlplay\.be|play\.rtl\.hr)/.+?-c_)(?P<id>[0-9]+)'
+    _VALID_URL = r'(?:6play:|https?://(?:www\.)?(?P<domain>6play\.fr|rtlplay\.be|play\.rtl\.hr|rtlmost\.hu)/.+?-c_)(?P<id>[0-9]+)'
     _TESTS = [{
         'url': 'https://www.6play.fr/minute-par-minute-p_9533/le-but-qui-a-marque-lhistoire-du-football-francais-c_12041051',
         'md5': '31fcd112637baa0c2ab92c4fcd8baf27',
@@ -35,6 +35,9 @@ class SixPlayIE(InfoExtractor):
     }, {
         'url': 'https://play.rtl.hr/pj-masks-p_9455/epizoda-34-sezona-1-catboyevo-cudo-na-dva-kotaca-c_11984989',
         'only_matching': True,
+    }, {
+        'url': 'https://www.rtlmost.hu/megtorve-p_14167/megtorve-6-resz-c_12397787',
+        'only_matching': True,
     }]
 
     def _real_extract(self, url):
@@ -43,6 +46,7 @@ class SixPlayIE(InfoExtractor):
             '6play.fr': ('6play', 'm6web'),
             'rtlplay.be': ('rtlbe_rtl_play', 'rtlbe'),
             'play.rtl.hr': ('rtlhr_rtl_play', 'rtlhr'),
+            'rtlmost.hu': ('rtlhu_rtl_most', 'rtlhu'),
         }.get(domain, ('6play', 'm6web'))
 
         data = self._download_json(

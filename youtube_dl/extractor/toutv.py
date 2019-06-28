@@ -38,7 +38,7 @@ class TouTvIE(RadioCanadaIE):
         'url': 'https://ici.tou.tv/l-age-adulte/S01C501',
         'only_matching': True,
     }]
-    _CLIENT_KEY = '4dd36440-09d5-4468-8923-b6d91174ad36'
+    _CLIENT_KEY = '90505c8d-9c34-4f34-8da1-3a85bdc6d4f4'
 
     def _real_initialize(self):
         email, password = self._get_login_info()

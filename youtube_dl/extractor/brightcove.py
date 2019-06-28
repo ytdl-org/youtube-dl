@@ -483,7 +483,7 @@ class BrightcoveLegacyIE(InfoExtractor):
 
 class BrightcoveNewIE(AdobePassIE):
     IE_NAME = 'brightcove:new'
-    _VALID_URL = r'https?://players\.brightcove\.net/(?P<account_id>\d+)/(?P<player_id>[^/]+)_(?P<embed>[^/]+)/index\.html\?.*videoId=(?P<video_id>\d+|ref:[^&]+)'
+    _VALID_URL = r'https?://players\.brightcove\.net/(?P<account_id>\d+)/(?P<player_id>[^/]+)_(?P<embed>[^/]+)/index\.html\?.*(?P<content_type>video|playlist)Id=(?P<video_id>\d+|ref:[^&]+)'
     _TESTS = [{
         'url': 'http://players.brightcove.net/929656772001/e41d32dc-ec74-459e-a845-6c69f7b724ea_default/index.html?videoId=4463358922001',
         'md5': 'c8100925723840d4b0d243f7025703be',
@@ -516,6 +516,21 @@ class BrightcoveNewIE(AdobePassIE):
             # m3u8 download
             'skip_download': True,
         }
+    }, {
+        # playlist stream
+        'url': 'https://players.brightcove.net/1752604059001/S13cJdUBz_default/index.html?playlistId=5718313430001',
+        'info_dict': {
+            'id': '5718313430001',
+            'title': 'No Audio Playlist',
+        },
+        'playlist_count': 7,
+        'params': {
+            # m3u8 download
+            'skip_download': True,
+        }
+    }, {
+        'url': 'http://players.brightcove.net/5690807595001/HyZNerRl7_default/index.html?playlistId=5743160747001',
+        'only_matching': True,
     }, {
         # ref: prefixed video id
         'url': 'http://players.brightcove.net/3910869709001/21519b5c-4b3b-4363-accb-bdc8f358f823_default/index.html?videoId=ref:7069442',
@@ -715,7 +730,7 @@ class BrightcoveNewIE(AdobePassIE):
             'ip_blocks': smuggled_data.get('geo_ip_blocks'),
         })
 
-        account_id, player_id, embed, video_id = re.match(self._VALID_URL, url).groups()
+        account_id, player_id, embed, content_type, video_id = re.match(self._VALID_URL, url).groups()
 
         webpage = self._download_webpage(
             'http://players.brightcove.net/%s/%s_%s/index.min.js'
@@ -736,7 +751,7 @@ class BrightcoveNewIE(AdobePassIE):
                 r'policyKey\s*:\s*(["\'])(?P<pk>.+?)\1',
                 webpage, 'policy key', group='pk')
 
-        api_url = 'https://edge.api.brightcove.com/playback/v1/accounts/%s/videos/%s' % (account_id, video_id)
+        api_url = 'https://edge.api.brightcove.com/playback/v1/accounts/%s/%ss/%s' % (account_id, content_type, video_id)
         headers = {
             'Accept': 'application/json;pk=%s' % policy_key,
         }
@@ -770,6 +785,13 @@ class BrightcoveNewIE(AdobePassIE):
                 }, query={
                     'tveToken': tve_token,
                 })
+
+        if content_type == 'playlist':
+            return self.playlist_result(
+                [self._parse_brightcove_metadata(vid, vid.get('id'), headers)
+                 for vid in json_data.get('videos', []) if vid.get('id')],
+                json_data.get('id'), json_data.get('name'),
+                json_data.get('description'))
 
         return self._parse_brightcove_metadata(
             json_data, video_id, headers=headers)
