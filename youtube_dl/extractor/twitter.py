@@ -2,7 +2,7 @@
 from __future__ import unicode_literals
 
 import re
-
+import time
 from .common import InfoExtractor
 from ..compat import compat_urlparse
 from ..utils import (
@@ -247,7 +247,7 @@ class TwitterCardIE(TwitterBaseIE):
                     '%s/guest/activate.json' % self._API_BASE, video_id,
                     'Downloading guest token', data=b'',
                     headers=headers)['guest_token']
-                self._set_cookie('api.twitter.com', 'gt', guest_token)
+                self._set_cookie('api.twitter.com', 'gt', guest_token, expire_time=time.time() + 3000)
             else:
                 guest_token = guest_token_c.value
 
