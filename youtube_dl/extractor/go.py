@@ -36,7 +36,7 @@ class GoIE(AdobePassIE):
             'resource_id': 'DisneyXD',
         }
     }
-    _VALID_URL = r'https?://(?:(?P<sub_domain>%s)\.)?go\.com/(?:(?:[^/]+/)*(?P<id>vdka\w+)|(?:[^/]+/)*(?P<display_id>[^/?#]+))'\
+    _VALID_URL = r'https?://(?:(?:(?P<sub_domain>%s)\.)?go|disneynow)\.com/(?:(?:[^/]+/)*(?P<id>vdka\w+)|(?:[^/]+/)*(?P<display_id>[^/?#]+))'\
                  % '|'.join(list(_SITE_INFO.keys()) + ['disneynow'])
     _TESTS = [{
         'url': 'http://abc.go.com/shows/designated-survivor/video/most-recent/VDKA3807643',
@@ -71,6 +71,9 @@ class GoIE(AdobePassIE):
         # brand 008
         'url': 'http://disneynow.go.com/shows/minnies-bow-toons/video/happy-campers/vdka4872013',
         'only_matching': True,
+    }, {
+        'url': 'https://disneynow.com/shows/minnies-bow-toons/video/happy-campers/vdka4872013',
+        'only_matching': True,
     }]
 
     def _extract_videos(self, brand, video_id='-1', show_id='-1'):
@@ -89,7 +92,7 @@ class GoIE(AdobePassIE):
                 # There may be inner quotes, e.g. data-video-id="'VDKA3609139'"
                 # from http://freeform.go.com/shows/shadowhunters/episodes/season-2/1-this-guilty-blood
                 r'data-video-id=["\']*(VDKA\w+)', webpage, 'video id',
-                default=None)
+                default=video_id)
             if not site_info:
                 brand = self._search_regex(
                     (r'data-brand=\s*["\']\s*(\d+)',
