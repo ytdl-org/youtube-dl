@@ -1,3 +1,18 @@
+version <unreleased>
+
+Core
++ [utils] Introduce random_user_agent and use as default User-Agent (#21546)
+
+Extractors
++ [vevo] Add support for embed.vevo.com URLs (#21565)
++ [openload] Add support for oload.biz (#21574)
+* [xiami] Update API base URL (#21575)
+* [yourporn] Fix extraction (#21585)
++ [acast] Add support for URLs with episode id (#21444)
++ [dailymotion] Add support for DM.player embeds
+* [soundcloud] Update client id
+
+
 version 2019.06.27
 
 Extractors
