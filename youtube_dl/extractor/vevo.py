@@ -34,7 +34,7 @@ class VevoIE(VevoBaseIE):
         (?:https?://(?:www\.)?vevo\.com/watch/(?!playlist|genre)(?:[^/]+/(?:[^/]+/)?)?|
            https?://cache\.vevo\.com/m/html/embed\.html\?video=|
            https?://videoplayer\.vevo\.com/embed/embedded\?videoId=|
-           https?://embed\.vevo\.com/.*[?&]isrc=|
+           https?://embed\.vevo\.com/.*?[?&]isrc=|
            vevo:)
         (?P<id>[^&?#]+)'''
 
