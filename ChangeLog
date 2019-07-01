@@ -1,4 +1,4 @@
-version <unreleased>
+version 2019.07.02
 
 Core
 + [utils] Introduce random_user_agent and use as default User-Agent (#21546)
