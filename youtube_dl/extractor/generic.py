@@ -2104,6 +2104,23 @@ class GenericIE(InfoExtractor):
             },
             'expected_warnings': ['Failed to download MPD manifest'],
         },
+        {
+            # DailyMotion embed with DM.player
+            'url': 'https://www.beinsports.com/us/copa-del-rey/video/the-locker-room-valencia-beat-barca-in-copa/1203804',
+            'info_dict': {
+                'id': 'k6aKkGHd9FJs4mtJN39',
+                'ext': 'mp4',
+                'title': 'The Locker Room: Valencia Beat Barca In Copa del Rey Final',
+                'description': 'This video is private.',
+                'uploader_id': 'x1jf30l',
+                'uploader': 'beIN SPORTS USA',
+                'upload_date': '20190528',
+                'timestamp': 1559062971,
+            },
+            'params': {
+                'skip_download': True,
+            },
+        },
         # {
         #     # TODO: find another test
         #     # http://schema.org/VideoObject
