@@ -1480,6 +1480,7 @@ from .younow import (
     YouNowMomentIE,
 )
 from .youporn import YouPornIE
+from .porntrex import PornTrexIE
 from .yourporn import YourPornIE
 from .yourupload import YourUploadIE
 from .youtube import (
