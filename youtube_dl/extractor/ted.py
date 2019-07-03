@@ -133,7 +133,7 @@ class TEDIE(InfoExtractor):
 
     def _extract_info(self, webpage):
         info_json = self._search_regex(
-            r'(?s)q\(\s*"\w+.init"\s*,\s*({.+})\)\s*</script>',
+            r'(?s)q\(\s*"\w+.init"\s*,\s*({.+?})\)\s*</script>',
             webpage, 'info json')
         return json.loads(info_json)
 
