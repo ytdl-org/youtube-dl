@@ -1,0 +1,5 @@
+
+{{commands}}
+
+
+complete --command youtube-dl --arguments ":ytfavorites :ytrecommended :ytsubscriptions :ytwatchlater :ythistory"
