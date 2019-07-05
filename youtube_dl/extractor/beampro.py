@@ -122,6 +122,9 @@ class BeamProVodIE(BeamProBaseIE):
     }, {
         'url': 'https://mixer.com/streamer?vod=IxFno1rqC0S_XJ1a2yGgNw',
         'only_matching': True,
+    }, {
+        'url': 'https://mixer.com/streamer?vod=Rh3LY0VAqkGpEQUe2pN-ig',
+        'only_matching': True,
     }]
 
     @staticmethod
