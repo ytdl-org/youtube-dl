@@ -99,7 +99,7 @@ class BeamProLiveIE(BeamProBaseIE):
 
 class BeamProVodIE(BeamProBaseIE):
     IE_NAME = 'Mixer:vod'
-    _VALID_URL = r'https?://(?:\w+\.)?(?:beam\.pro|mixer\.com)/[^/?#&]+\?.*?\bvod=(?P<id>[\w\-]+)'
+    _VALID_URL = r'https?://(?:\w+\.)?(?:beam\.pro|mixer\.com)/[^/?#&]+\?.*?\bvod=(?P<id>[^?#&]+)'
     _TESTS = [{
         'url': 'https://mixer.com/willow8714?vod=2259830',
         'md5': 'b2431e6e8347dc92ebafb565d368b76b',
