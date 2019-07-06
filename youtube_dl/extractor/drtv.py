@@ -24,7 +24,7 @@ from ..utils import (
 
 
 class DRTVIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:www\.)?dr\.dk/(?:tv/se|nyheder|radio/ondemand)/(?:[^/]+/)*(?P<id>[\da-z-]+)(?:[/#?]|$)'
+    _VALID_URL = r'https?://(?:www\.)?dr\.dk/(?:tv/se|nyheder|radio(?:/ondemand)?)/(?:[^/]+/)*(?P<id>[\da-z-]+)(?:[/#?]|$)'
     _GEO_BYPASS = False
     _GEO_COUNTRIES = ['DK']
     IE_NAME = 'drtv'
@@ -80,6 +80,9 @@ class DRTVIE(InfoExtractor):
         'params': {
             'skip_download': True,
         },
+    }, {
+        'url': 'https://www.dr.dk/radio/p4kbh/regionale-nyheder-kh4/p4-nyheder-2019-06-26-17-30-9',
+        'only_matching': True,
     }]
 
     def _real_extract(self, url):

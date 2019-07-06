@@ -700,7 +700,7 @@ Note that on Windows you may need to use double quotes instead of single.
 # Download best mp4 format available or any other best if no mp4 available
 $ youtube-dl -f 'bestvideo[ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]/best'
 
-# Download best format available but not better that 480p
+# Download best format available but no better than 480p
 $ youtube-dl -f 'bestvideo[height<=480]+bestaudio/best[height<=480]'
 
 # Download best video only format but no bigger than 50 MB
