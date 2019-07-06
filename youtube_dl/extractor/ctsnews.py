@@ -3,7 +3,7 @@ from __future__ import unicode_literals
 
 from .common import InfoExtractor
 from ..utils import unified_timestamp
-
+from .youtube import YoutubeIE
 
 class CtsNewsIE(InfoExtractor):
     IE_DESC = '華視新聞'
@@ -14,8 +14,8 @@ class CtsNewsIE(InfoExtractor):
         'info_dict': {
             'id': '201501291578109',
             'ext': 'mp4',
-            'title': '以色列.真主黨交火 3人死亡',
-            'description': '以色列和黎巴嫩真主黨，爆發五年最嚴重衝突，雙方砲轟交火，兩名以軍死亡，還有一名西班牙籍的聯合國維和人...',
+            'title': '以色列.真主黨交火 3人死亡 - 華視新聞網',
+            'description': '以色列和黎巴嫩真主黨，爆發五年最嚴重衝突，雙方砲轟交火，兩名以軍死亡，還有一名西班牙籍的聯合國維和人員也不幸罹難。大陸陝西、河南、安徽、江蘇和湖北五個省份出現大暴雪，嚴重影響陸空交通，不過九華山卻出現...',
             'timestamp': 1422528540,
             'upload_date': '20150129',
         }
@@ -26,7 +26,7 @@ class CtsNewsIE(InfoExtractor):
         'info_dict': {
             'id': '201309031304098',
             'ext': 'mp4',
-            'title': '韓國31歲童顏男 貌如十多歲小孩',
+            'title': '韓國31歲童顏男 貌如十多歲小孩 - 華視新聞網',
             'description': '越有年紀的人，越希望看起來年輕一點，而南韓卻有一位31歲的男子，看起來像是11、12歲的小孩，身...',
             'thumbnail': r're:^https?://.*\.jpg$',
             'timestamp': 1378205880,
@@ -62,8 +62,7 @@ class CtsNewsIE(InfoExtractor):
             video_url = mp4_feed['source_url']
         else:
             self.to_screen('Not CTSPlayer video, trying Youtube...')
-            youtube_url = self._search_regex(
-                r'src="(//www\.youtube\.com/embed/[^"]+)"', page, 'youtube url')
+            youtube_url = YoutubeIE._extract_url(page)
 
             return self.url_result(youtube_url, ie='Youtube')
 
