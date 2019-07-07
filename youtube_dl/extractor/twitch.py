@@ -317,7 +317,7 @@ class TwitchVodIE(TwitchItemBaseIE):
             'Downloading %s access token' % self._ITEM_TYPE)
 
         formats = self._extract_m3u8_formats(
-            '%s/vod/%s?%s' % (
+            '%s/vod/%s.m3u8?%s' % (
                 self._USHER_BASE, item_id,
                 compat_urllib_parse_urlencode({
                     'allow_source': 'true',
