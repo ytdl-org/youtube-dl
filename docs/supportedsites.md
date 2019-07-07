@@ -997,6 +997,7 @@
  - **Vbox7**
  - **VeeHD**
  - **Veoh**
+ - **Vera**
  - **verystream**
  - **Vessel**
  - **Vesti**: Вести.Ru
