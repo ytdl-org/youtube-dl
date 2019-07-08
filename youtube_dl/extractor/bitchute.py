@@ -73,6 +73,12 @@ class BitChuteIE(InfoExtractor):
             (r'(?s)<div class=["\']channel-banner.*?<p\b[^>]+\bclass=["\']name[^>]+>(.+?)</p>',
              r'(?s)<p\b[^>]+\bclass=["\']video-author[^>]+>(.+?)</p>'),
             webpage, 'uploader', fatal=False)
+        magnet_link = self._html_search_regex(
+                r'(?s)<div class="video-actions">.*<a href=["\'](magnet:.+?)["\'][^>][^>]+>', webpage,
+            'magnet_link', fatal=False)
+
+
+
 
         return {
             'id': video_id,
@@ -81,6 +87,7 @@ class BitChuteIE(InfoExtractor):
             'thumbnail': thumbnail,
             'uploader': uploader,
             'formats': formats,
+            'magnet_link': magnet_link,
         }
 
 
