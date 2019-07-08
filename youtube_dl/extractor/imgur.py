@@ -132,9 +132,15 @@ class ImgurGalleryIE(InfoExtractor):
             gallery_id)['data']['image']
 
         if data.get('is_album'):
-            entries = [
-                self.url_result('http://imgur.com/%s' % image['hash'], ImgurIE.ie_key(), image['hash'])
-                for image in data['album_images']['images'] if image.get('hash')]
+            entries = []
+            for image in data['album_images']['images']:
+                entries.append({
+                    'id': image['hash'],
+                    'url': 'http://imgur.com/%s%s' % (image['hash'], image['ext']),
+                    'ext': image['ext'],
+                    'title': image['title'],
+                    'description': image.get('description')
+                })
             return self.playlist_result(entries, gallery_id, data.get('title'), data.get('description'))
 
         return self.url_result('http://imgur.com/%s' % gallery_id, ImgurIE.ie_key(), gallery_id)
@@ -151,4 +157,35 @@ class ImgurAlbumIE(ImgurGalleryIE):
             'title': 'A Literary Analysis of "Star Wars: The Force Awakens"',
         },
         'playlist_count': 12,
+    }, {
+        'url': 'https://imgur.com/a/iX265HX',
+        'info_dict': {
+            'id': 'iX265HX',
+            'title': 'enen-no-shouboutai'
+        },
+        'playlist_count': 2,
+    }, {
+        'url': 'https://imgur.com/a/8pih2Ed',
+        'info_dict': {
+            'id': '8pih2Ed'
+        }
     }]
+
+    def _real_extract(self, url):
+        album_id = self._match_id(url)
+        webpage = self._download_webpage(url, album_id)
+        data_string = re.search('item: (.)+\n( ){12}};', webpage).group(0)[5:-2]
+        data = self._parse_json(data_string, album_id)
+        if data.get('is_album'):
+            entries = []
+            for image in data['album_images']['images']:
+                entries.append({
+                    'id': image['hash'],
+                    'url': 'http://imgur.com/%s%s' % (image['hash'], image['ext']),
+                    'ext': image['ext'],
+                    'title': image['title'],
+                    'description': image.get('description')
+                })
+            return self.playlist_result(entries, album_id, data.get('title'), data.get('description'))
+
+        return self.url_result('http://imgur.com/%s' % album_id, ImgurIE.ie_key(), album_id)
