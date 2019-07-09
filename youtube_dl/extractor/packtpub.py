@@ -25,7 +25,7 @@ class PacktPubBaseIE(InfoExtractor):
 
 
 class PacktPubIE(PacktPubBaseIE):
-    _VALID_URL = r'https?://(?:(?:www\.)?packtpub\.com/mapt|subscription\.packtpub\.com)/video/[^/]+/(?P<course_id>\d+)/(?P<chapter_id>\d+)/(?P<id>\d+)(?:/(?P<display_id>[^/?&#]+))?'
+    _VALID_URL = r'https?://(?:(?:www\.)?packtpub\.com/mapt|subscription\.packtpub\.com)/video/[^/]+/(?P<course_id>\d+)/(?P<chapter_id>[^/]+)/(?P<id>[^/]+)(?:/(?P<display_id>[^/?&#]+))?'
 
     _TESTS = [{
         'url': 'https://www.packtpub.com/mapt/video/web-development/9781787122215/20528/20530/Project+Intro',
@@ -40,6 +40,9 @@ class PacktPubIE(PacktPubBaseIE):
         },
     }, {
         'url': 'https://subscription.packtpub.com/video/web_development/9781787122215/20528/20530/project-intro',
+        'only_matching': True,
+    }, {
+        'url': 'https://subscription.packtpub.com/video/programming/9781838988906/p1/video1_1/business-card-project',
         'only_matching': True,
     }]
     _NETRC_MACHINE = 'packtpub'
