@@ -369,9 +369,12 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                             (?:www\.)?yourepeat\.com/|
                             tube\.majestyc\.net/|
                             (?:(?:www|dev)\.)?invidio\.us/|
-                            (?:www\.)?invidiou\.sh/|
-                            (?:www\.)?invidious\.snopyta\.org/|
+                            (?:(?:www|no)\.)?invidiou\.sh/|
+                            (?:(?:www|fi|de)\.)?invidious\.snopyta\.org/|
                             (?:www\.)?invidious\.kabi\.tk/|
+                            (?:www\.)?invidious\.enkirton\.net/|
+                            (?:www\.)?invidious\.13ad\.de/|
+                            (?:www\.)?tube\.poal\.co/|
                             (?:www\.)?vid\.wxzm\.sx/|
                             youtube\.googleapis\.com/)                        # the various hostnames, with wildcard subdomains
                          (?:.*?\#/)?                                          # handle anchor (#/) redirect urls
