@@ -522,6 +522,10 @@ from .karrierevideos import KarriereVideosIE
 from .keezmovies import KeezMoviesIE
 from .ketnet import KetnetIE
 from .khanacademy import KhanAcademyIE
+from .khinsider import (
+    KhinsiderTrackIE,
+    KhinsiderAlbumIE,
+)
 from .kickstarter import KickStarterIE
 from .kinopoisk import KinoPoiskIE
 from .keek import KeekIE
