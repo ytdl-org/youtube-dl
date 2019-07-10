@@ -105,9 +105,6 @@ class TwitterCardIE(TwitterBaseIE):
         }, {
             'url': 'https://twitter.com/i/videos/752274308186120192',
             'only_matching': True,
-        }, {
-            'url': 'https://twitter.com/-/status/1087791357756956680',
-            'only_matching': True,
         },
     ]
 
@@ -431,6 +428,9 @@ class TwitterIE(InfoExtractor):
         'params': {
             'skip_download': True,  # requires ffmpeg
         },
+    }, {
+        'url': 'https://twitter.com/-/status/1087791357756956680',
+        'only_matching': True,
     }]
 
     def _real_extract(self, url):
