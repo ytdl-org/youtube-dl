@@ -280,7 +280,7 @@ class TwitterCardIE(TwitterBaseIE):
 
 class TwitterIE(InfoExtractor):
     IE_NAME = 'twitter'
-    _VALID_URL = r'https?://(?:www\.|m\.|mobile\.)?twitter\.com/(?:i/web|-|(?P<user_id>[^/]+))/status/(?P<id>\d+)'
+    _VALID_URL = r'https?://(?:www\.|m\.|mobile\.)?twitter\.com/(?:i/web|(?P<user_id>[^/]+))/status/(?P<id>\d+)'
     _TEMPLATE_URL = 'https://twitter.com/%s/status/%s'
     _TEMPLATE_STATUSES_URL = 'https://twitter.com/statuses/%s'
 
@@ -444,7 +444,7 @@ class TwitterIE(InfoExtractor):
         if 'twitter.com/account/suspended' in urlh.geturl():
             raise ExtractorError('Account suspended by Twitter.', expected=True)
 
-        if user_id is None:
+        if user_id is None or user_id == '-':
             mobj = re.match(self._VALID_URL, urlh.geturl())
             user_id = mobj.group('user_id')
 
