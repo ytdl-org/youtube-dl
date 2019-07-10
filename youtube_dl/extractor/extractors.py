@@ -396,7 +396,6 @@ from .frontendmasters import (
 )
 from .funimation import FunimationIE
 from .funk import FunkIE
-from .funnyordie import FunnyOrDieIE
 from .fusion import FusionIE
 from .fxnetworks import FXNetworksIE
 from .gaia import GaiaIE
