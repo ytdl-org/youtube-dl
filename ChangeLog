@@ -1,3 +1,56 @@
+version 2019.07.02
+
+Core
++ [utils] Introduce random_user_agent and use as default User-Agent (#21546)
+
+Extractors
++ [vevo] Add support for embed.vevo.com URLs (#21565)
++ [openload] Add support for oload.biz (#21574)
+* [xiami] Update API base URL (#21575)
+* [yourporn] Fix extraction (#21585)
++ [acast] Add support for URLs with episode id (#21444)
++ [dailymotion] Add support for DM.player embeds
+* [soundcloud] Update client id
+
+
+version 2019.06.27
+
+Extractors
++ [go] Add support for disneynow.com (#21528)
+* [mixer:vod] Relax URL regular expression (#21531, #21536)
+* [drtv] Relax URL regular expression
+* [fusion] Fix extraction (#17775, #21269)
+- [nfb] Remove extractor (#21518)
++ [beeg] Add support for api/v6 v2 URLs (#21511)
++ [brightcove:new] Add support for playlists (#21331)
++ [openload] Add support for oload.life (#21495)
+* [vimeo:channel,group] Make title extraction non fatal
+* [vimeo:likes] Implement extrator in terms of channel extractor (#21493)
++ [pornhub] Add support for more paged video sources
++ [pornhub] Add support for downloading single pages and search pages (#15570)
+* [pornhub] Rework extractors (#11922, #16078, #17454, #17936)
++ [youtube] Add another signature function pattern
+* [tf1] Fix extraction (#21365, #21372)
+* [crunchyroll] Move Accept-Language workaround to video extractor since
+  it causes playlists not to list any videos
+* [crunchyroll:playlist] Fix and relax title extraction (#21291, #21443)
+
+
+version 2019.06.21
+
+Core
+* [utils] Restrict parse_codecs and add theora as known vcodec (#21381)
+
+Extractors
+* [youtube] Update signature function patterns (#21469, #21476)
+* [youtube] Make --write-annotations non fatal (#21452)
++ [sixplay] Add support for rtlmost.hu (#21405)
+* [youtube] Hardcode codec metadata for av01 video only formats (#21381)
+* [toutv] Update client key (#21370)
++ [biqle] Add support for new embed domain
+* [cbs] Improve DRM protected videos detection (#21339)
+
+
 version 2019.06.08
 
 Core
