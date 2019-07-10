@@ -395,10 +395,7 @@ from .frontendmasters import (
     FrontendMastersCourseIE
 )
 from .funimation import FunimationIE
-from .funk import (
-    FunkMixIE,
-    FunkChannelIE,
-)
+from .funk import FunkIE
 from .funnyordie import FunnyOrDieIE
 from .fusion import FusionIE
 from .fxnetworks import FXNetworksIE
