@@ -34,9 +34,13 @@ class GoIE(AdobePassIE):
         'watchdisneyxd': {
             'brand': '009',
             'resource_id': 'DisneyXD',
+        },
+        'disneynow': {
+            'brand': '011',
+            'resource_id': 'Disney',
         }
     }
-    _VALID_URL = r'https?://(?:(?:(?P<sub_domain>%s)\.)?go|disneynow)\.com/(?:(?:[^/]+/)*(?P<id>vdka\w+)|(?:[^/]+/)*(?P<display_id>[^/?#]+))'\
+    _VALID_URL = r'https?://(?:(?:(?P<sub_domain>%s)\.)?go|(?P<sub_domain_2>disneynow))\.com/(?:(?:[^/]+/)*(?P<id>vdka\w+)|(?:[^/]+/)*(?P<display_id>[^/?#]+))'\
                  % '|'.join(list(_SITE_INFO.keys()) + ['disneynow'])
     _TESTS = [{
         'url': 'http://abc.go.com/shows/designated-survivor/video/most-recent/VDKA3807643',
@@ -83,7 +87,9 @@ class GoIE(AdobePassIE):
             display_id)['video']
 
     def _real_extract(self, url):
-        sub_domain, video_id, display_id = re.match(self._VALID_URL, url).groups()
+        mobj = re.match(self._VALID_URL, url)
+        sub_domain = mobj.group('sub_domain') or mobj.group('sub_domain_2')
+        video_id, display_id = mobj.group('id', 'display_id')
         site_info = self._SITE_INFO.get(sub_domain, {})
         brand = site_info.get('brand')
         if not video_id or not site_info:
