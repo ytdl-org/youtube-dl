@@ -105,6 +105,9 @@ class TwitterCardIE(TwitterBaseIE):
         }, {
             'url': 'https://twitter.com/i/videos/752274308186120192',
             'only_matching': True,
+        }, {
+            'url': 'https://twitter.com/-/status/1087791357756956680',
+            'only_matching': True,
         },
     ]
 
@@ -280,7 +283,7 @@ class TwitterCardIE(TwitterBaseIE):
 
 class TwitterIE(InfoExtractor):
     IE_NAME = 'twitter'
-    _VALID_URL = r'https?://(?:www\.|m\.|mobile\.)?twitter\.com/(?:i/web|(?P<user_id>[^/]+))/status/(?P<id>\d+)'
+    _VALID_URL = r'https?://(?:www\.|m\.|mobile\.)?twitter\.com/(?:i/web|-|(?P<user_id>[^/]+))/status/(?P<id>\d+)'
     _TEMPLATE_URL = 'https://twitter.com/%s/status/%s'
     _TEMPLATE_STATUSES_URL = 'https://twitter.com/statuses/%s'
 
