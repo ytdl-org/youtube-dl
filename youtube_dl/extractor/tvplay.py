@@ -313,11 +313,10 @@ class TVPlayIE(InfoExtractor):
         # TODO: webvtt in m3u8
         subtitles = {}
         sub_paths = [video.get(key) for key in ['sami_path', 'subtitles_webvtt', 'subtitles_for_hearing_impaired']]
+        default = compat_urlparse.urlparse(url).netloc.rsplit('.', 1)[-1]
         for path in sub_paths:
             if path:
-                lang = self._search_regex(
-                    r'_(.*)(\.)', path, 'lang',
-                    default=compat_urlparse.urlparse(url).netloc.rsplit('.', 1)[-1])
+                lang = self._search_regex(r'_(.*)(\.)', path, 'lang', default)
                 subtitles[lang] = [{
                     'url': path,
                 }]
