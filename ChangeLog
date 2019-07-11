@@ -1,3 +1,29 @@
+version <unreleased>
+
+Core
++ [adobepass] Add support for AT&T U-verse (mso ATT) (#13938, #21016)
+
+Extractors
++ [mgtv] Pass Referer HTTP header for format URLs (#21726)
++ [beeg] Add support for api/v6 v2 URLs without t argument (#21701)
+* [voxmedia:volume] Improvevox embed extraction (#16846)
+* [funnyordie] Move extraction to VoxMedia extractor (#16846)
+* [gameinformer] Fix extraction (#8895, #15363, #17206)
+* [funk] Fix extraction (#17915)
+* [packtpub] Relax lesson URL regular expression (#21695)
+* [packtpub] Fix extraction (#21268)
+* [philharmoniedeparis] Relax URL regular expression (#21672)
+* [peertube] Detect embed URLs in generic extraction (#21666)
+* [mixer:vod] Relax URL regular expression (#21657, #21658)
++ [lecturio] Add support id based URLs (#21630)
++ [go] Add site info for disneynow (#21613)
+* [ted] Restrict info regular expression (#21631)
+* [twitch:vod] Actualize m3u8 URL (#21538, #21607)
+* [vzaar] Fix videos with empty title (#21606)
+* [tvland] Fix extraction (#21384)
+* [arte] Clean extractor (#15583, #21614)
+
+
 version 2019.07.02
 
 Core
