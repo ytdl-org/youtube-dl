@@ -27,6 +27,7 @@ from ..compat import (
     compat_str,
 )
 from ..utils import (
+    bool_or_none,
     clean_html,
     dict_get,
     error_to_compat_str,
@@ -1889,6 +1890,11 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
             view_count = extract_view_count(video_info)
         if view_count is None and video_details:
             view_count = int_or_none(video_details.get('viewCount'))
+
+        if is_live is None:
+            is_live = bool_or_none(dict_get(
+                video_details, ('isLive', 'isLiveContent'),
+                skip_false_values=False))
 
         # Check for "rental" videos
         if 'ypc_video_rental_bar_text' in video_info and 'author' not in video_info:
