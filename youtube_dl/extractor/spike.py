@@ -22,7 +22,7 @@ class BellatorIE(MTVServicesInfoExtractor):
         'only_matching': True,
     }]
 
-    _FEED_URL = 'http://www.spike.com/feeds/mrss/'
+    _FEED_URL = 'http://www.bellator.com/feeds/mrss/'
     _GEO_COUNTRIES = ['US']
 
 
