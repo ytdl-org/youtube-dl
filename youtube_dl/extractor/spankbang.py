@@ -106,8 +106,9 @@ class SpankBangIE(InfoExtractor):
 
             for format_id, format_url in stream.items():
                 if format_id.startswith(STREAM_URL_PREFIX):
-                    extract_format(
-                        format_id[len(STREAM_URL_PREFIX):], format_url)
+                    if format_url:
+                        extract_format(
+                            format_id[len(STREAM_URL_PREFIX):], format_url[0])
 
         self._sort_formats(formats)
 
