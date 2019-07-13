@@ -68,6 +68,7 @@ class YandexMusicTrackIE(YandexMusicBaseIE):
         },
         'skip': 'Travis CI servers blocked by YandexMusic',
     }, {
+        # multiple disks
         'url': 'http://music.yandex.ru/album/3840501/track/705105',
         'md5': 'ebe7b4e2ac7ac03fe11c19727ca6153e',
         'info_dict': {
