@@ -106,6 +106,8 @@ class SpankBangIE(InfoExtractor):
 
             for format_id, format_url in stream.items():
                 if format_id.startswith(STREAM_URL_PREFIX):
+                    if format_url and isinstance(format_url, list):
+                        format_url = format_url[0]
                     extract_format(
                         format_id[len(STREAM_URL_PREFIX):], format_url)
 
