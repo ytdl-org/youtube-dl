@@ -153,16 +153,17 @@ class YandexMusicTrackIE(YandexMusicBaseIE):
             album = albums[0]
             if isinstance(album, dict):
                 year = album.get('year')
-                track_position = album.get('trackPosition') or {}
-                disc_number = track_position.get('volume')
-                track_number = track_position.get('index')
+                disc_number = int_or_none(try_get(
+                    album, lambda x: x['trackPosition']['volume']))
+                track_number = int_or_none(try_get(
+                    album, lambda x: x['trackPosition']['index']))
                 track_info.update({
                     'album': album.get('title'),
                     'album_artist': extract_artist(album.get('artists')),
                     'release_year': int_or_none(year),
                     'genre': album.get('genre'),
-                    'disc_number': int_or_none(disc_number),
-                    'track_number': int_or_none(track_number),
+                    'disc_number': disc_number,
+                    'track_number': track_number,
                 })
 
         track_artist = extract_artist(track.get('artists'))
