@@ -5,10 +5,7 @@ import re
 import hashlib
 
 from .common import InfoExtractor
-from ..compat import (
-    compat_str,
-    compat_basestring,
-)
+from ..compat import compat_str
 from ..utils import (
     ExtractorError,
     int_or_none,
@@ -140,7 +137,7 @@ class YandexMusicTrackIE(YandexMusicBaseIE):
             for element in decomposed:
                 if isinstance(element, dict) and element.get('name'):
                     parts.append(element['name'])
-                elif isinstance(element, compat_basestring):
+                elif isinstance(element, compat_str):
                     parts.append(element)
             return ''.join(parts)
 
