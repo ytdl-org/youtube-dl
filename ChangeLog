@@ -1,3 +1,28 @@
+version 2019.07.14
+
+Extractors
+* [porn91] Fix extraction (#21312)
++ [yandexmusic] Extract track number and disk number (#21421)
++ [yandexmusic] Add support for multi disk albums (#21420, #21421)
+* [lynda] Handle missing subtitles (#20490, #20513)
++ [youtube] Add more invidious instances to URL regular expression (#21694)
+* [twitter] Improve uploader id extraction (#21705)
+* [spankbang] Fix and improve metadata extraction
+* [spankbang] Fix extraction (#21763, #21764)
++ [dlive] Add support for dlive.tv (#18080)
++ [livejournal] Add support for livejournal.com (#21526)
+* [roosterteeth] Fix free episode extraction (#16094)
+* [dbtv] Fix extraction
+* [bellator] Fix extraction
+- [rudo] Remove extractor (#18430, #18474)
+* [facebook] Fallback to twitter:image meta for thumbnail extraction (#21224)
+* [bleacherreport] Fix Bleacher Report CMS extraction
+* [espn] Fix fivethirtyeight.com extraction
+* [5tv] Relax video URL regular expression and support https URLs
+* [youtube] Fix is_live extraction (#21734)
+* [youtube] Fix authentication (#11270)
+
+
 version 2019.07.12
 
 Core

@@ -462,8 +462,8 @@ class FacebookIE(InfoExtractor):
             r'[\'\"]ownerid[\'\"]\s*:\s*[\'\"](\d+)[\'\"]', tahoe_data.secondary,
             'uploader_id', fatal=False)
 
-        thumbnail = self._og_search_thumbnail(webpage)
 
+        thumbnail = self._html_search_meta(['og:image', 'twitter:image'], webpage)
         if is_live:
             view_count = parse_count(
                 self._search_regex(r'viewerCount:([\d]+)', webpage, 'views', fatal=False) or \
