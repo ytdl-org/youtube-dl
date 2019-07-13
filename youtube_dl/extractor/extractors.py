@@ -1110,6 +1110,7 @@ from .telequebec import (
     TeleQuebecLiveIE,
 )
 from .teletask import TeleTaskIE
+from .televizeseznam import TelevizeSeznamIE
 from .telewebion import TelewebionIE
 from .tennistv import TennisTVIE
 from .tenplay import TenPlayIE
