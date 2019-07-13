@@ -40,8 +40,8 @@ class Porn91IE(InfoExtractor):
         title = title.replace('\n', '')
 
         video_link_url = self._search_regex(
-            r'<textarea[^>]+id=(["\'])fm-video_link\1[^>]*>(?P<video_link_url>[^<]+)</textarea>',
-            webpage, 'video_link_url', group='video_link_url')
+            r'<textarea[^>]+id=["\']fm-video_link[^>]+>([^<]+)</textarea>',
+            webpage, 'video link')
         videopage = self._download_webpage(video_link_url, video_id)
 
         info_dict = self._parse_html5_media_entries(url, videopage, video_id)[0]
