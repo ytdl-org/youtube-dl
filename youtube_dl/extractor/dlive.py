@@ -55,7 +55,7 @@ class DLiveVODIE(InfoExtractor):
 
 class DLiveStreamIE(InfoExtractor):
     IE_NAME = 'dlive:stream'
-    _VALID_URL = r'https?://(?:www\.)?dlive\.tv/(?P<id>[\w.-]+)'
+    _VALID_URL = r'https?://(?:www\.)?dlive\.tv/(?!p/)(?P<id>[\w.-]+)'
 
     def _real_extract(self, url):
         display_name = self._match_id(url)
