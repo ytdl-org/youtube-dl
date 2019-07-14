@@ -378,6 +378,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                             (?:www\.)?invidious\.kabi\.tk/|
                             (?:www\.)?invidious\.enkirton\.net/|
                             (?:www\.)?invidious\.13ad\.de/|
+                            (?:www\.)?invidious\.mastodon\.host/|
                             (?:www\.)?tube\.poal\.co/|
                             (?:www\.)?vid\.wxzm\.sx/|
                             youtube\.googleapis\.com/)                        # the various hostnames, with wildcard subdomains
