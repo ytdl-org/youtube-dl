@@ -1896,9 +1896,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
             view_count = int_or_none(video_details.get('viewCount'))
 
         if is_live is None:
-            is_live = bool_or_none(dict_get(
-                video_details, ('isLive', 'isLiveContent'),
-                skip_false_values=False))
+            is_live = bool_or_none(video_details.get('isLive'))
 
         # Check for "rental" videos
         if 'ypc_video_rental_bar_text' in video_info and 'author' not in video_info:
