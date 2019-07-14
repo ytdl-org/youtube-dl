@@ -19,7 +19,7 @@ from ..utils import (
 
 
 class EinthusanIE(InfoExtractor):
-    _VALID_URL = r'https?://einthusan\.(?P<tld>tv|com)/movie/watch/(?P<id>[^/?#&]+)'
+    _VALID_URL = r'https?://(?P<host>einthusan\.(tv|com))/movie/watch/(?P<id>[^/?#&]+)'
     _TESTS = [{
         'url': 'https://einthusan.tv/movie/watch/9097/',
         'md5': 'ff0f7f2065031b8a2cf13a933731c035',
@@ -43,7 +43,7 @@ class EinthusanIE(InfoExtractor):
 
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
-        tld = mobj.group('tld')
+        host = mobj.group('host')
         video_id = mobj.group('id')
 
         webpage = self._download_webpage(url, video_id)
@@ -56,7 +56,7 @@ class EinthusanIE(InfoExtractor):
         page_id = self._html_search_regex(
             '<html[^>]+data-pageid="([^"]+)"', webpage, 'page ID')
         video_data = self._download_json(
-            'https://einthusan.%s/ajax/movie/watch/%s/' % (tld, video_id), video_id,
+            'https://%s/ajax/movie/watch/%s/' % (host, video_id), video_id,
             data=urlencode_postdata({
                 'xEvent': 'UIVideoPlayer.PingOutcome',
                 'xJson': json.dumps({
