@@ -10,8 +10,7 @@ from ..utils import extract_attributes
 
 class AsianCrushIE(InfoExtractor):
     IE_NAME = 'asiancrush'
-    _DOMAINS = r'(?:asiancrush\.com|yuyutv\.com|midnightpulp\.com)'
-    _VALID_URL = r'https?://(?:www\.)?(?P<host>%s)/video/(?:[^/]+/)?0+(?P<id>\d+)v\b' % _DOMAINS
+    _VALID_URL = r'https?://(?:www\.)?(?P<host>(?:asiancrush\.com|yuyutv\.com|midnightpulp\.com))/video/(?:[^/]+/)?0+(?P<id>\d+)v\b'
     _TESTS = [{
         'url': 'https://www.asiancrush.com/video/012869v/women-who-flirt/',
         'md5': 'c3b740e48d0ba002a42c0b72857beae6',
@@ -93,7 +92,8 @@ class AsianCrushIE(InfoExtractor):
                 r'/p(?:artner_id)?/(\d+)', player, 'partner id',
                 default='513551')
 
-        description = self._html_search_regex(r'<div class="description">(.+?)</div>', webpage, 'description', fatal=False, flags=re.DOTALL)
+        description = self._html_search_regex(
+            r'<div class="description">(.+?)</div>', webpage, 'description', fatal=False, flags=re.DOTALL)
 
         return {
             '_type': 'url_transparent',
@@ -106,9 +106,7 @@ class AsianCrushIE(InfoExtractor):
 
 
 class AsianCrushPlaylistIE(InfoExtractor):
-    _VIDEO_IE = AsianCrushIE
-    _DOMAINS = r'(?:asiancrush\.com|yuyutv\.com|midnightpulp\.com)'
-    _VALID_URL = r'https?://(?:www\.)?(?P<host>%s)/series/0+(?P<id>\d+)s\b' % _DOMAINS
+    _VALID_URL = r'https?://(?:www\.)?(?P<host>(?:asiancrush\.com|yuyutv\.com|midnightpulp\.com))/series/0+(?P<id>\d+)s\b'
     _TESTS = [{
         'url': 'https://www.asiancrush.com/series/012481s/scholar-walks-night/',
         'info_dict': {
@@ -143,22 +141,23 @@ class AsianCrushPlaylistIE(InfoExtractor):
         entries = []
 
         for mobj in re.finditer(
-                r'<a[^>]+href=(["\'])(?P<url>%s.*?)\1[^>]*>' % self._VIDEO_IE._VALID_URL,
+                r'<a[^>]+href=(["\'])(?P<url>%s.*?)\1[^>]*>' % AsianCrushIE._VALID_URL,
                 webpage):
             attrs = extract_attributes(mobj.group(0))
             if attrs.get('class') == 'clearfix':
                 entries.append(self.url_result(
-                    mobj.group('url'), ie=self._VIDEO_IE.ie_key()))
+                    mobj.group('url'), ie=AsianCrushIE.ie_key()))
 
-        title = re.sub(r'\s*\|\s*.+?$', '',
-                       self._html_search_regex(
-                           r'(?s)<h1\b[^>]\bid=["\']movieTitle[^>]+>(.+?)</h1>', webpage,
-                           'title', default=None) or self._og_search_title(
-                           webpage, default=None) or self._html_search_meta(
-                           'twitter:title', webpage, 'title',
-                           default=None) or self._search_regex(
-                           r'<title>([^<]+)</title>', webpage, 'title', fatal=False)
-                       )
+        title = re.sub(
+            r'\s*\|\s*.+?$', '',
+            self._html_search_regex(
+                r'(?s)<h1\b[^>]\bid=["\']movieTitle[^>]+>(.+?)</h1>', webpage,
+                'title', default=None) or self._og_search_title(
+                webpage, default=None) or self._html_search_meta(
+                'twitter:title', webpage, 'title',
+                default=None) or self._search_regex(
+                r'<title>([^<]+)</title>', webpage, 'title', fatal=False)
+        )
 
         description = self._og_search_description(
             webpage, default=None) or self._html_search_meta(
