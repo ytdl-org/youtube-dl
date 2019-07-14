@@ -1390,7 +1390,6 @@ from .washingtonpost import (
     WashingtonPostArticleIE,
 )
 from .wat import WatIE
-from .watchbox import WatchBoxIE
 from .watchindianporn import WatchIndianPornIE
 from .wdr import (
     WDRIE,
