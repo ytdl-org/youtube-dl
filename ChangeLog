@@ -1,3 +1,16 @@
+version <unreleased>
+
+Extractors
++ [asiancrush] Add support for yuyutv.com, midnightpulp.com and cocoro.tv
+  (#21281, #21290)
+* [kaltura] Check source format URL (#21290)
+* [ctsnews] Fix YouTube embeds extraction (#21678)
++ [einthusan] Add support for einthusan.com (#21748, #21775)
++ [youtube] Add support for invidious.mastodon.host (#21777)
++ [gfycat] Extend URL regular expression (#21779, #21780)
+* [youtube] Restrict is_live extraction (#21782)
+
+
 version 2019.07.14
 
 Extractors
