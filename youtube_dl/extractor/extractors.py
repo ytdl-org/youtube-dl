@@ -62,6 +62,10 @@ from .arte import (
     ArteTVEmbedIE,
     ArteTVPlaylistIE,
 )
+from .arteradio import (
+    ArteRadioIE,
+    ArteRadioSerieIE,
+)
 from .asiancrush import (
     AsianCrushIE,
     AsianCrushPlaylistIE,
