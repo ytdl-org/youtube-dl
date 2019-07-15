@@ -19,7 +19,7 @@ from ..utils import (
 
 
 class EinthusanIE(InfoExtractor):
-    _VALID_URL = r'https?://(?P<host>einthusan\.(tv|com))/movie/watch/(?P<id>[^/?#&]+)'
+    _VALID_URL = r'https?://(?P<host>einthusan\.(?:tv|com))/movie/watch/(?P<id>[^/?#&]+)'
     _TESTS = [{
         'url': 'https://einthusan.tv/movie/watch/9097/',
         'md5': 'ff0f7f2065031b8a2cf13a933731c035',
@@ -32,6 +32,9 @@ class EinthusanIE(InfoExtractor):
         }
     }, {
         'url': 'https://einthusan.tv/movie/watch/51MZ/?lang=hindi',
+        'only_matching': True,
+    }, {
+        'url': 'https://einthusan.com/movie/watch/9097/',
         'only_matching': True,
     }]
 
