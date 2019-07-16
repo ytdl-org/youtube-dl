@@ -1558,13 +1558,14 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
             for mobj in re.finditer(r'''(?x)
             (?:
                 <iframe[^>]+?src=|
+                &lt;iframe[^>]+?src=|
                 data-video-url=|
                 <embed[^>]+?src=|
                 embedSWF\(?:\s*|
                 <object[^>]+data=|
                 new\s+SWFObject\(
             )
-            (["\'])
+            (["\']|\&quot;)
                 (?P<url>(?:https?:)?//(?:www\.)?youtube(?:-nocookie)?\.com/
                 (?:embed|v|p)/[0-9A-Za-z_-]{11}.*?)
             \1''', webpage)]
