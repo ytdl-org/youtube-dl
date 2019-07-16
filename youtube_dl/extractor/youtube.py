@@ -1557,8 +1557,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
             unescapeHTML(mobj.group('url'))
             for mobj in re.finditer(r'''(?x)
             (?:
-                <iframe[^>]+?src=|
-                &lt;iframe[^>]+?src=|
+                (?:<|&lt;)iframe[^>]+?src=|
                 data-video-url=|
                 <embed[^>]+?src=|
                 embedSWF\(?:\s*|
