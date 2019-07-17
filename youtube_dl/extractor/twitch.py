@@ -456,58 +456,49 @@ class TwitchAllVideosIE(TwitchVideosBaseIE):
 
 class TwitchUploadsIE(TwitchVideosBaseIE):
     IE_NAME = 'twitch:videos:uploads'
-    _VALID_URL = r'%s/uploads' % TwitchVideosBaseIE._VALID_URL_VIDEOS_BASE
+    _VALID_URL = r'%s\/?\?.*filter=uploads.*' % TwitchVideosBaseIE._VALID_URL_VIDEOS_BASE
     _PLAYLIST_PATH = TwitchVideosBaseIE._PLAYLIST_PATH + 'upload'
     _PLAYLIST_TYPE = 'uploads'
 
     _TESTS = [{
-        'url': 'https://www.twitch.tv/spamfish/videos/uploads',
+        'url': 'https://www.twitch.tv/spamfish/videos?filter=uploads',
         'info_dict': {
             'id': 'spamfish',
             'title': 'Spamfish',
         },
         'playlist_mincount': 0,
-    }, {
-        'url': 'https://m.twitch.tv/spamfish/videos/uploads',
-        'only_matching': True,
     }]
 
 
 class TwitchPastBroadcastsIE(TwitchVideosBaseIE):
     IE_NAME = 'twitch:videos:past-broadcasts'
-    _VALID_URL = r'%s/past-broadcasts' % TwitchVideosBaseIE._VALID_URL_VIDEOS_BASE
+    _VALID_URL = r'%s\/?\?.*filter=archives.*' % TwitchVideosBaseIE._VALID_URL_VIDEOS_BASE
     _PLAYLIST_PATH = TwitchVideosBaseIE._PLAYLIST_PATH + 'archive'
     _PLAYLIST_TYPE = 'past broadcasts'
 
     _TESTS = [{
-        'url': 'https://www.twitch.tv/spamfish/videos/past-broadcasts',
+        'url': 'https://www.twitch.tv/spamfish/videos?filter=archives',
         'info_dict': {
             'id': 'spamfish',
             'title': 'Spamfish',
         },
         'playlist_mincount': 0,
-    }, {
-        'url': 'https://m.twitch.tv/spamfish/videos/past-broadcasts',
-        'only_matching': True,
     }]
 
 
 class TwitchHighlightsIE(TwitchVideosBaseIE):
     IE_NAME = 'twitch:videos:highlights'
-    _VALID_URL = r'%s/highlights' % TwitchVideosBaseIE._VALID_URL_VIDEOS_BASE
+    _VALID_URL = r'%s\/?\?.*filter=highlights.*' % TwitchVideosBaseIE._VALID_URL_VIDEOS_BASE
     _PLAYLIST_PATH = TwitchVideosBaseIE._PLAYLIST_PATH + 'highlight'
     _PLAYLIST_TYPE = 'highlights'
 
     _TESTS = [{
-        'url': 'https://www.twitch.tv/spamfish/videos/highlights',
+        'url': 'https://www.twitch.tv/spamfish/videos?filter=highlights',
         'info_dict': {
             'id': 'spamfish',
             'title': 'Spamfish',
         },
         'playlist_mincount': 805,
-    }, {
-        'url': 'https://m.twitch.tv/spamfish/videos/highlights',
-        'only_matching': True,
     }]
 
 
