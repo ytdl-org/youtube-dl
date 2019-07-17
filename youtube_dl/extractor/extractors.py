@@ -238,6 +238,7 @@ from .crunchyroll import (
     CrunchyrollShowPlaylistIE
 )
 from .cspan import CSpanIE
+from .cspanlive import CSpanLiveIE
 from .ctsnews import CtsNewsIE
 from .ctvnews import CTVNewsIE
 from .cultureunplugged import CultureUnpluggedIE
