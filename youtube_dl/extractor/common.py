@@ -220,7 +220,7 @@ class InfoExtractor(object):
                         * "preference" (optional, int) - quality of the image
                         * "width" (optional, int)
                         * "height" (optional, int)
-                        * "resolution" (optional, string "{width}x{height"},
+                        * "resolution" (optional, string "{width}x{height}",
                                         deprecated)
                         * "filesize" (optional, int)
     thumbnail:      Full URL to a video thumbnail image.
