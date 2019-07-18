@@ -621,6 +621,7 @@
         "duration": {
           "type": [
             "string",
+            "number",
             "null"
           ]
         },
@@ -705,6 +706,7 @@
         "preference": {
           "type": [
             "string",
+            "integer",
             "null"
           ]
         },
