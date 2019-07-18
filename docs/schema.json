@@ -1,4 +1,5 @@
 {
+  "$schema": "http://json-schema.org/schema#",
   "title": "Youtube-dl JSON output schema",
   "description": "This schema is produced when youtube-dl -J is invoked",
   "definitions": {
@@ -26,26 +27,13 @@
     },
     "playlist": {
       "type": "object",
+      "required": [
+        "id",
+        "title",
+        "entries"
+      ],
       "properties": {
-        "uploader_url": {
-          "type": [
-            "string",
-            "null"
-          ]
-        },
-        "uploader": {
-          "type": [
-            "string",
-            "null"
-          ]
-        },
-        "extractor_key": {
-          "type": [
-            "string",
-            "null"
-          ]
-        },
-        "extractor": {
+        "id": {
           "type": [
             "string",
             "null"
@@ -57,7 +45,7 @@
             "null"
           ]
         },
-        "uploader_id": {
+        "webpage_url": {
           "type": [
             "string",
             "null"
@@ -69,13 +57,31 @@
             "null"
           ]
         },
-        "id": {
+        "uploader": {
           "type": [
             "string",
             "null"
           ]
         },
-        "webpage_url": {
+        "uploader_id": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "uploader_url": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "extractor": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "extractor_key": {
           "type": [
             "string",
             "null"
