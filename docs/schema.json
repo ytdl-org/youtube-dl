@@ -1,0 +1,481 @@
+{
+  "$schema": "http://json-schema.org/schema#",
+  "title": "Youtube-dl JSON output schema",
+  "description": "This schema is produced when youtube-dl -J is invoked",
+  "definitions": {
+    "json-output": {
+      "type": "object",
+      "id": "urn:jsonschema:youtube-dl-json-output",
+      "properties": {
+        "id": {
+          "type": "string",
+          "$comment": "video ID"
+        },
+        "title": {
+          "type": "string"
+        },
+        "duration": {
+          "type": "string"
+        },
+        "formats": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/format"
+          }
+        },
+        "creator": {
+          "type": "string"
+        },
+        "timestamp": {
+          "type": "integer"
+        },
+        "uploader": {
+          "type": "string"
+        },
+        "channel": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        },
+        "categories": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "tags": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "thumbnails": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/thumbnail"
+          }
+        },
+        "thumbnail": {
+          "type": "string"
+        },
+        "chapters": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/chapter"
+          }
+        },
+        "subtitles": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "array",
+            "items": {
+              "$ref": "#/definitions/subtitle"
+            }
+          }
+        },
+        "playlist": {
+          "type": "string"
+        },
+        "comments": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/comment"
+          }
+        },
+        "chapter": {
+          "type": "string"
+        },
+        "series": {
+          "type": "string"
+        },
+        "season": {
+          "type": "string"
+        },
+        "episode": {
+          "type": "string"
+        },
+        "track": {
+          "type": "string"
+        },
+        "artist": {
+          "type": "string"
+        },
+        "genre": {
+          "type": "string"
+        },
+        "album": {
+          "type": "string"
+        },
+        "extractor": {
+          "type": "string"
+        },
+        "license": {
+          "type": "string"
+        },
+        "location": {
+          "type": "string"
+        },
+        "webpage_url": {
+          "type": "string"
+        },
+        "release_date": {
+          "type": "string"
+        },
+        "upload_date": {
+          "type": "string"
+        },
+        "uploader_id": {
+          "type": "string"
+        },
+        "uploader_url": {
+          "type": "string"
+        },
+        "channel_id": {
+          "type": "string"
+        },
+        "channel_url": {
+          "type": "string"
+        },
+        "requested_subtitles": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "array",
+            "$ref": "#/definitions/subtitle"
+          }
+        },
+        "automatic_captions": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "array",
+            "$ref": "#/definitions/subtitle"
+          }
+        },
+        "playlist_index": {
+          "type": "string"
+        },
+        "playlist_id": {
+          "type": "string"
+        },
+        "playlist_title": {
+          "type": "string"
+        },
+        "playlist_uploader": {
+          "type": "string"
+        },
+        "playlist_uploader_id": {
+          "type": "string"
+        },
+        "view_count": {
+          "type": "integer"
+        },
+        "average_rating": {
+          "type": "string"
+        },
+        "like_count": {
+          "type": "integer"
+        },
+        "dislike_count": {
+          "type": "integer"
+        },
+        "repost_count": {
+          "type": "integer"
+        },
+        "comment_count": {
+          "type": "integer"
+        },
+        "chapter_number": {
+          "type": "string"
+        },
+        "chapter_id": {
+          "type": "string"
+        },
+        "season_number": {
+          "type": "string"
+        },
+        "season_id": {
+          "type": "string"
+        },
+        "episode_number": {
+          "type": "string"
+        },
+        "episode_id": {
+          "type": "string"
+        },
+        "track_number": {
+          "type": "string"
+        },
+        "track_id": {
+          "type": "string"
+        },
+        "album_type": {
+          "type": "string"
+        },
+        "album_artist": {
+          "type": "string"
+        },
+        "disc_number": {
+          "type": "integer"
+        },
+        "release_year": {
+          "type": "integer"
+        },
+        "start_time": {
+          "type": "string"
+        },
+        "end_time": {
+          "type": "string"
+        },
+        "extractor_key": {
+          "type": "string"
+        },
+        "display_id": {
+          "type": "string"
+        },
+        "is_live": {
+          "type": "boolean"
+        },
+        "age_limit": {
+          "type": "integer"
+        },
+        "alt_title": {
+          "type": "string"
+        }
+      }
+    },
+    "chapter": {
+      "type": "object",
+      "id": "urn:jsonschema:youtube-dl-chapter",
+      "properties": {
+        "title": {
+          "type": "string"
+        },
+        "start_time": {
+          "type": "string"
+        },
+        "end_time": {
+          "type": "string"
+        }
+      }
+    },
+    "comment": {
+      "type": "object",
+      "id": "urn:jsonschema:youtube-dl-comment",
+      "properties": {
+        "author": {
+          "type": "string"
+        },
+        "id": {
+          "type": "string"
+        },
+        "html": {
+          "type": "string"
+        },
+        "text": {
+          "type": "string"
+        },
+        "timestamp": {
+          "type": "integer"
+        },
+        "parent": {
+          "type": "string"
+        },
+        "author_id": {
+          "type": "string"
+        }
+      }
+    },
+    "protocol": {
+      "type": "string",
+      "enum": [
+        "http",
+        "https",
+        "rtsp",
+        "rtmp",
+        "rtmpe",
+        "mms",
+        "f4m",
+        "ism",
+        "m3u8",
+        "m3u8_native",
+        "http_dash_segments"
+      ]
+    },
+    "subtitle": {
+      "type": "object",
+      "id": "urn:jsonschema:youtube-dl-subtitle",
+      "properties": {
+        "url": {
+          "type": "string"
+        },
+        "data": {
+          "type": "string"
+        },
+        "ext": {
+          "type": "string"
+        }
+      }
+    },
+    "thumbnail": {
+      "type": "object",
+      "id": "urn:jsonschema:youtube-dl-thumbnail",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "url": {
+          "type": "string"
+        },
+        "preference": {
+          "type": "integer"
+        },
+        "width": {
+          "type": "integer"
+        },
+        "height": {
+          "type": "integer"
+        },
+        "filesize": {
+          "type": "integer"
+        }
+      }
+    },
+    "fragment": {
+      "type": "object",
+      "id": "urn:jsonschema:youtube-dl-fragment",
+      "properties": {
+        "url": {
+          "type": "string"
+        },
+        "path": {
+          "type": "string"
+        },
+        "duration": {
+          "type": "string"
+        },
+        "filesize": {
+          "type": "integer"
+        }
+      }
+    },
+    "format": {
+      "type": "object",
+      "id": "urn:jsonschema:youtube-dl-format",
+      "properties": {
+        "url": {
+          "type": "string"
+        },
+        "ext": {
+          "type": "string"
+        },
+        "format": {
+          "type": "string"
+        },
+        "width": {
+          "type": "integer"
+        },
+        "height": {
+          "type": "integer"
+        },
+        "resolution": {
+          "type": "string"
+        },
+        "fps": {
+          "type": "integer"
+        },
+        "container": {
+          "type": "string"
+        },
+        "filesize": {
+          "type": "integer"
+        },
+        "protocol": {
+          "$ref": "#/definitions/protocol"
+        },
+        "fragments": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/fragment"
+          }
+        },
+        "preference": {
+          "type": "string"
+        },
+        "language": {
+          "type": "string"
+        },
+        "quality": {
+          "type": "integer"
+        },
+        "manifest_url": {
+          "type": "string"
+        },
+        "format_id": {
+          "type": "string"
+        },
+        "format_note": {
+          "type": "string"
+        },
+        "tbr": {
+          "type": "integer"
+        },
+        "abr": {
+          "type": "integer"
+        },
+        "acodec": {
+          "type": "string"
+        },
+        "asr": {
+          "type": "integer"
+        },
+        "vbr": {
+          "type": "integer"
+        },
+        "vcodec": {
+          "type": "string"
+        },
+        "filesize_approx": {
+          "type": "string"
+        },
+        "player_url": {
+          "type": "string"
+        },
+        "fragment_base_url": {
+          "type": "string"
+        },
+        "language_preference": {
+          "type": "integer"
+        },
+        "source_preference": {
+          "type": "integer"
+        },
+        "http_headers": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          }
+        },
+        "stretched_ratio": {
+          "type": "number"
+        },
+        "no_resume": {
+          "type": "boolean"
+        },
+        "downloader_options": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          }
+        }
+      }
+    }
+  },
+  "anyOf": [
+    {
+      "$ref": "#/definitions/json-output"
+    },
+    {
+      "$ref": "#/definitions/format"
+    }
+  ]
+}
