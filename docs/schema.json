@@ -244,23 +244,22 @@
           ]
         },
         "requested_subtitles": {
-          "type": "object",
+          "type": [
+            "object",
+            "null"
+          ],
           "additionalProperties": {
-            "type": [
-              "array",
-              "null"
-            ],
+            "type": "object",
             "$ref": "#/definitions/subtitle"
           }
         },
         "automatic_captions": {
           "type": "object",
           "additionalProperties": {
-            "type": [
-              "array",
-              "null"
-            ],
-            "$ref": "#/definitions/subtitle"
+            "type": "array",
+            "items": {
+              "$ref": "#/definitions/subtitle"
+            }
           }
         },
         "playlist_index": {
@@ -636,9 +635,6 @@
     "format": {
       "type": "object",
       "id": "urn:jsonschema:youtube-dl-format",
-      "required": [
-        "url"
-      ],
       "properties": {
         "url": {
           "type": [
@@ -818,7 +814,10 @@
           }
         },
         "stretched_ratio": {
-          "type": "number"
+          "type": [
+            "number",
+            "null"
+          ]
         },
         "no_resume": {
           "type": [
@@ -830,8 +829,10 @@
           "type": "object",
           "additionalProperties": {
             "type": [
+              "object",
               "string",
-              "null"
+              "number",
+              "boolean"
             ]
           }
         }
