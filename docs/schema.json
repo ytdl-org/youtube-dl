@@ -1,11 +1,104 @@
 {
-  "$schema": "http://json-schema.org/schema#",
   "title": "Youtube-dl JSON output schema",
   "description": "This schema is produced when youtube-dl -J is invoked",
   "definitions": {
+    "single-video": {
+      "anyOf": [
+        {
+          "required": [
+            "formats"
+          ]
+        },
+        {
+          "required": [
+            "url"
+          ]
+        }
+      ],
+      "allOf": [
+        {
+          "$ref": "#/definitions/json-output"
+        },
+        {
+          "$ref": "#/definitions/format"
+        }
+      ]
+    },
+    "playlist": {
+      "type": "object",
+      "properties": {
+        "uploader_url": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "uploader": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "extractor_key": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "extractor": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "title": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "uploader_id": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "webpage_url_basename": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "id": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "webpage_url": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "entries": {
+          "type": [
+            "array",
+            "null"
+          ],
+          "items": {
+            "$ref": "#/definitions/single-video"
+          }
+        }
+      }
+    },
     "json-output": {
       "type": "object",
       "id": "urn:jsonschema:youtube-dl-json-output",
+      "required": [
+        "id",
+        "title"
+      ],
       "properties": {
         "id": {
           "type": "string",
@@ -265,6 +358,7 @@
         "playlist_index": {
           "type": [
             "string",
+            "integer",
             "null"
           ]
         },
@@ -841,12 +935,12 @@
       }
     }
   },
-  "allOf": [
+  "anyOf": [
     {
-      "$ref": "#/definitions/json-output"
+      "$ref": "#/definitions/single-video"
     },
     {
-      "$ref": "#/definitions/format"
+      "$ref": "#/definitions/playlist"
     }
   ]
 }
