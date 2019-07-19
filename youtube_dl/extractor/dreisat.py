@@ -1,234 +1,193 @@
-# coding: utf-8
 from __future__ import unicode_literals
 
 import re
 
 from .common import InfoExtractor
-from ..compat import compat_str
 from ..utils import (
-    determine_ext,
     int_or_none,
-    NO_DEFAULT,
-    orderedSet,
-    parse_codecs,
-    qualities,
-    try_get,
-    unified_timestamp,
-    update_url_query,
-    url_or_none,
-    urljoin,
+    unified_strdate,
+    xpath_text,
+    determine_ext,
+    float_or_none,
+    ExtractorError,
 )
 
 
-class DreiSatBaseIE(InfoExtractor):
-    def _call_api(self, url, player, referrer, video_id, item):
-        return self._download_json(
-            url, video_id, 'Downloading JSON %s' % item,
-            headers={
-                'Referer': referrer,
-                'Api-Auth': 'Bearer %s' % player['apiToken'],
-            })
-
-    def _extract_player(self, webpage, video_id, fatal=True):
-        return self._parse_json(
-            self._search_regex(
-                r'(?s)data-zdfplayer-jsb=(["\'])(?P<json>{.+?})\1', webpage,
-                'player JSON', default='{}' if not fatal else NO_DEFAULT,
-                group='json'),
-            video_id)
-
-
-class DreiSatIE(DreiSatBaseIE):
-    _VALID_URL = r'https?://www\.3sat\.de/(?:[^/]+/)*(?P<id>[^/?]+)\.html'
-    _QUALITIES = ('auto', 'low', 'med', 'high', 'veryhigh')
-
-    _TESTS = [{
-        'url': 'https://www.3sat.de/dokumentation/natur/dolomiten-sagenhaftes-juwel-der-alpen-100.html',
-        'info_dict': {
-            'id': 'dolomiten-sagenhaftes-juwel-der-alpen-100',
-            'ext': 'mp4',
-            'title': 'Dolomiten - Sagenhaftes Juwel der Alpen',
-            'description': 'md5:a4fa13cae91b8044353c1d56f3a8fc77',
-            'duration': 2618,
-            'timestamp': 1561397400,
-            'upload_date': '20190624',
+class DreiSatIE(InfoExtractor):
+    IE_NAME = '3sat'
+    _GEO_COUNTRIES = ['DE']
+    _VALID_URL = r'https?://(?:www\.)?3sat\.de/mediathek/(?:(?:index|mediathek)\.php)?\?(?:(?:mode|display)=[^&]+&)*obj=(?P<id>[0-9]+)'
+    _TESTS = [
+        {
+            'url': 'http://www.3sat.de/mediathek/index.php?mode=play&obj=45918',
+            'md5': 'be37228896d30a88f315b638900a026e',
+            'info_dict': {
+                'id': '45918',
+                'ext': 'mp4',
+                'title': 'Waidmannsheil',
+                'description': 'md5:cce00ca1d70e21425e72c86a98a56817',
+                'uploader': 'SCHWEIZWEIT',
+                'uploader_id': '100000210',
+                'upload_date': '20140913'
+            },
+            'params': {
+                'skip_download': True,  # m3u8 downloads
+            }
         },
-    }, {
-        'url': 'https://www.3sat.de/kultur/kulturdoku/der-gugelhupf-koenig-der-kuchen-100.html',
-        'only_matching': True,
-    }, {
-        'url': 'https://www.3sat.de/dokumentation/natur/karnische-alpen-100.html',
-        'only_matching': True,
-    }]
+        {
+            'url': 'http://www.3sat.de/mediathek/mediathek.php?mode=play&obj=51066',
+            'only_matching': True,
+        },
+    ]
 
-    @staticmethod
-    def _extract_subtitles(src):
-        subtitles = {}
-        for caption in try_get(src, lambda x: x['captions'], list) or []:
-            subtitle_url = url_or_none(caption.get('uri'))
-            if subtitle_url:
-                lang = caption.get('language', 'deu')
-                subtitles.setdefault(lang, []).append({
-                    'url': subtitle_url,
-                })
-        return subtitles
-
-    def _extract_format(self, video_id, formats, format_urls, meta):
-        format_url = url_or_none(meta.get('url'))
-        if not format_url:
-            return
-        if format_url in format_urls:
-            return
-        format_urls.add(format_url)
-        mime_type = meta.get('mimeType')
-        ext = determine_ext(format_url)
-        if mime_type == 'application/x-mpegURL' or ext == 'm3u8':
-            formats.extend(self._extract_m3u8_formats(
-                format_url, video_id, 'mp4', m3u8_id='hls',
-                entry_protocol='m3u8_native', fatal=False))
-        elif mime_type == 'application/f4m+xml' or ext == 'f4m':
-            formats.extend(self._extract_f4m_formats(
-                update_url_query(format_url, {'hdcore': '3.7.0'}), video_id, f4m_id='hds', fatal=False))
-        else:
-            f = parse_codecs(meta.get('mimeCodec'))
-            format_id = ['http']
-            for p in (meta.get('type'), meta.get('quality')):
-                if p and isinstance(p, compat_str):
-                    format_id.append(p)
-            f.update({
-                'url': format_url,
-                'format_id': '-'.join(format_id),
-                'format_note': meta.get('quality'),
-                'language': meta.get('language'),
-                'quality': qualities(self._QUALITIES)(meta.get('quality')),
-                'preference': -10,
-            })
-            formats.append(f)
-
-    def _extract_entry(self, url, player, content, video_id):
-        title = content.get('title') or content['teaserHeadline']
-
-        t = content['mainVideoContent']['http://zdf.de/rels/target']
-
-        ptmd_path = t.get('http://zdf.de/rels/streams/ptmd')
-
-        if not ptmd_path:
-            ptmd_path = t[
-                'http://zdf.de/rels/streams/ptmd-template'].replace(
-                '{playerId}', 'portal')
-
-        ptmd = self._call_api(
-            urljoin(url, ptmd_path), player, url, video_id, 'metadata')
+    def _parse_smil_formats(self, smil, smil_url, video_id, namespace=None, f4m_params=None, transform_rtmp_url=None):
+        param_groups = {}
+        for param_group in smil.findall(self._xpath_ns('./head/paramGroup', namespace)):
+            group_id = param_group.get(self._xpath_ns(
+                'id', 'http://www.w3.org/XML/1998/namespace'))
+            params = {}
+            for param in param_group:
+                params[param.get('name')] = param.get('value')
+            param_groups[group_id] = params
 
         formats = []
-        track_uris = set()
-        for p in ptmd['priorityList']:
-            formitaeten = p.get('formitaeten')
-            if not isinstance(formitaeten, list):
+        for video in smil.findall(self._xpath_ns('.//video', namespace)):
+            src = video.get('src')
+            if not src:
                 continue
-            for f in formitaeten:
-                f_qualities = f.get('qualities')
-                if not isinstance(f_qualities, list):
-                    continue
-                for quality in f_qualities:
-                    tracks = try_get(quality, lambda x: x['audio']['tracks'], list)
-                    if not tracks:
-                        continue
-                    for track in tracks:
-                        self._extract_format(
-                            video_id, formats, track_uris, {
-                                'url': track.get('uri'),
-                                'type': f.get('type'),
-                                'mimeType': f.get('mimeType'),
-                                'quality': quality.get('quality'),
-                                'language': track.get('language'),
-                            })
+            bitrate = int_or_none(self._search_regex(r'_(\d+)k', src, 'bitrate', None)) or float_or_none(video.get('system-bitrate') or video.get('systemBitrate'), 1000)
+            group_id = video.get('paramGroup')
+            param_group = param_groups[group_id]
+            for proto in param_group['protocols'].split(','):
+                formats.append({
+                    'url': '%s://%s' % (proto, param_group['host']),
+                    'app': param_group['app'],
+                    'play_path': src,
+                    'ext': 'flv',
+                    'format_id': '%s-%d' % (proto, bitrate),
+                    'tbr': bitrate,
+                })
         self._sort_formats(formats)
+        return formats
 
-        thumbnails = []
-        layouts = try_get(
-            content, lambda x: x['teaserImageRef']['layouts'], dict)
-        if layouts:
-            for layout_key, layout_url in layouts.items():
-                layout_url = url_or_none(layout_url)
-                if not layout_url:
-                    continue
-                thumbnail = {
-                    'url': layout_url,
-                    'format_id': layout_key,
-                }
-                mobj = re.search(r'(?P<width>\d+)x(?P<height>\d+)', layout_key)
-                if mobj:
-                    thumbnail.update({
-                        'width': int(mobj.group('width')),
-                        'height': int(mobj.group('height')),
-                    })
-                thumbnails.append(thumbnail)
+    def extract_from_xml_url(self, video_id, xml_url):
+        doc = self._download_xml(
+            xml_url, video_id,
+            note='Downloading video info',
+            errnote='Failed to download video info')
 
-        return {
-            'id': video_id,
-            'title': title,
-            'description': content.get('leadParagraph') or content.get('teasertext'),
-            'duration': int_or_none(t.get('duration')),
-            'timestamp': unified_timestamp(content.get('editorialDate')),
-            'thumbnails': thumbnails,
-            'subtitles': self._extract_subtitles(ptmd),
-            'formats': formats,
-        }
+        status_code = xpath_text(doc, './status/statuscode')
+        if status_code and status_code != 'ok':
+            if status_code == 'notVisibleAnymore':
+                message = 'Video %s is not available' % video_id
+            else:
+                message = '%s returned error: %s' % (self.IE_NAME, status_code)
+            raise ExtractorError(message, expected=True)
 
-    def _extract_regular(self, url, player, video_id):
-        content = self._call_api(
-            player['content'], player, url, video_id, 'content')
-        return self._extract_entry(player['content'], player, content, video_id)
+        title = xpath_text(doc, './/information/title', 'title', True)
 
-    def _extract_mobile(self, video_id):
-        document = self._download_json(
-            'https://zdf-cdn.live.cellular.de/mediathekV2/document/%s' % video_id,
-            video_id)['document']
-
-        title = document['titel']
-
+        urls = []
         formats = []
-        format_urls = set()
-        for f in document['formitaeten']:
-            self._extract_format(video_id, formats, format_urls, f)
+        for fnode in doc.findall('.//formitaeten/formitaet'):
+            video_url = xpath_text(fnode, 'url')
+            if not video_url or video_url in urls:
+                continue
+            urls.append(video_url)
+
+            is_available = 'http://www.metafilegenerator' not in video_url
+            geoloced = 'static_geoloced_online' in video_url
+            if not is_available or geoloced:
+                continue
+
+            format_id = fnode.attrib['basetype']
+            format_m = re.match(r'''(?x)
+                (?P<vcodec>[^_]+)_(?P<acodec>[^_]+)_(?P<container>[^_]+)_
+                (?P<proto>[^_]+)_(?P<index>[^_]+)_(?P<indexproto>[^_]+)
+            ''', format_id)
+
+            ext = determine_ext(video_url, None) or format_m.group('container')
+
+            if ext == 'meta':
+                continue
+            elif ext == 'smil':
+                formats.extend(self._extract_smil_formats(
+                    video_url, video_id, fatal=False))
+            elif ext == 'm3u8':
+                # the certificates are misconfigured (see
+                # https://github.com/ytdl-org/youtube-dl/issues/8665)
+                if video_url.startswith('https://'):
+                    continue
+                formats.extend(self._extract_m3u8_formats(
+                    video_url, video_id, 'mp4', 'm3u8_native',
+                    m3u8_id=format_id, fatal=False))
+            elif ext == 'f4m':
+                formats.extend(self._extract_f4m_formats(
+                    video_url, video_id, f4m_id=format_id, fatal=False))
+            else:
+                quality = xpath_text(fnode, './quality')
+                if quality:
+                    format_id += '-' + quality
+
+                abr = int_or_none(xpath_text(fnode, './audioBitrate'), 1000)
+                vbr = int_or_none(xpath_text(fnode, './videoBitrate'), 1000)
+
+                tbr = int_or_none(self._search_regex(
+                    r'_(\d+)k', video_url, 'bitrate', None))
+                if tbr and vbr and not abr:
+                    abr = tbr - vbr
+
+                formats.append({
+                    'format_id': format_id,
+                    'url': video_url,
+                    'ext': ext,
+                    'acodec': format_m.group('acodec'),
+                    'vcodec': format_m.group('vcodec'),
+                    'abr': abr,
+                    'vbr': vbr,
+                    'tbr': tbr,
+                    'width': int_or_none(xpath_text(fnode, './width')),
+                    'height': int_or_none(xpath_text(fnode, './height')),
+                    'filesize': int_or_none(xpath_text(fnode, './filesize')),
+                    'protocol': format_m.group('proto').lower(),
+                })
+
+        geolocation = xpath_text(doc, './/details/geolocation')
+        if not formats and geolocation and geolocation != 'none':
+            self.raise_geo_restricted(countries=self._GEO_COUNTRIES)
+
         self._sort_formats(formats)
 
         thumbnails = []
-        teaser_bild = document.get('teaserBild')
-        if isinstance(teaser_bild, dict):
-            for thumbnail_key, thumbnail in teaser_bild.items():
-                thumbnail_url = try_get(
-                    thumbnail, lambda x: x['url'], compat_str)
-                if thumbnail_url:
-                    thumbnails.append({
-                        'url': thumbnail_url,
-                        'id': thumbnail_key,
-                        'width': int_or_none(thumbnail.get('width')),
-                        'height': int_or_none(thumbnail.get('height')),
-                    })
+        for node in doc.findall('.//teaserimages/teaserimage'):
+            thumbnail_url = node.text
+            if not thumbnail_url:
+                continue
+            thumbnail = {
+                'url': thumbnail_url,
+            }
+            thumbnail_key = node.get('key')
+            if thumbnail_key:
+                m = re.match('^([0-9]+)x([0-9]+)$', thumbnail_key)
+                if m:
+                    thumbnail['width'] = int(m.group(1))
+                    thumbnail['height'] = int(m.group(2))
+            thumbnails.append(thumbnail)
+
+        upload_date = unified_strdate(xpath_text(doc, './/details/airtime'))
 
         return {
             'id': video_id,
             'title': title,
-            'description': document.get('beschreibung'),
-            'duration': int_or_none(document.get('length')),
-            'timestamp': unified_timestamp(try_get(
-                document, lambda x: x['meta']['editorialDate'], compat_str)),
+            'description': xpath_text(doc, './/information/detail'),
+            'duration': int_or_none(xpath_text(doc, './/details/lengthSec')),
             'thumbnails': thumbnails,
-            'subtitles': self._extract_subtitles(document),
+            'uploader': xpath_text(doc, './/details/originChannelTitle'),
+            'uploader_id': xpath_text(doc, './/details/originChannelId'),
+            'upload_date': upload_date,
             'formats': formats,
         }
 
     def _real_extract(self, url):
         video_id = self._match_id(url)
-
-        webpage = self._download_webpage(url, video_id, fatal=False)
-        if webpage:
-            player = self._extract_player(webpage, url, fatal=False)
-            if player:
-                return self._extract_regular(url, player, video_id)
-
-        return self._extract_mobile(video_id)
-
-
+        details_url = 'http://www.3sat.de/mediathek/xmlservice/web/beitragsDetails?id=%s' % video_id
+        return self.extract_from_xml_url(video_id, details_url)
