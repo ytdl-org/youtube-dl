@@ -19,9 +19,9 @@ from ..compat import compat_HTTPError
 class DiscoveryIE(DiscoveryGoBaseIE):
     _VALID_URL = r'''(?x)https?://
         (?P<site>
+            (?:(?:www|go)\.)?discovery|
             (?:www\.)?
                 (?:
-                    discovery|
                     investigationdiscovery|
                     discoverylife|
                     animalplanet|
@@ -55,6 +55,9 @@ class DiscoveryIE(DiscoveryGoBaseIE):
         }
     }, {
         'url': 'https://www.investigationdiscovery.com/tv-shows/final-vision/full-episodes/final-vision',
+        'only_matching': True,
+    }, {
+        'url': 'https://go.discovery.com/tv-shows/alaskan-bush-people/videos/follow-your-own-road',
         'only_matching': True,
     }]
     _GEO_COUNTRIES = ['US']
