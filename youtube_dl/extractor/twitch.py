@@ -205,6 +205,43 @@ class TwitchItemBaseIE(TwitchBaseIE):
         return self._extract_media(self._match_id(url))
 
 
+class TwitchVideoIE(TwitchItemBaseIE):
+    IE_NAME = 'twitch:video'
+    _VALID_URL = r'%s/[^/]+/b/(?P<id>\d+)' % TwitchBaseIE._VALID_URL_BASE
+    _ITEM_TYPE = 'video'
+    _ITEM_SHORTCUT = 'a'
+
+    _TEST = {
+        'url': 'http://www.twitch.tv/riotgames/b/577357806',
+        'info_dict': {
+            'id': 'a577357806',
+            'title': 'Worlds Semifinals - Star Horn Royal Club vs. OMG',
+        },
+        'playlist_mincount': 12,
+        'skip': 'HTTP Error 404: Not Found',
+    }
+
+
+class TwitchChapterIE(TwitchItemBaseIE):
+    IE_NAME = 'twitch:chapter'
+    _VALID_URL = r'%s/[^/]+/c/(?P<id>\d+)' % TwitchBaseIE._VALID_URL_BASE
+    _ITEM_TYPE = 'chapter'
+    _ITEM_SHORTCUT = 'c'
+
+    _TESTS = [{
+        'url': 'http://www.twitch.tv/acracingleague/c/5285812',
+        'info_dict': {
+            'id': 'c5285812',
+            'title': 'ACRL Off Season - Sports Cars @ Nordschleife',
+        },
+        'playlist_mincount': 3,
+        'skip': 'HTTP Error 404: Not Found',
+    }, {
+        'url': 'http://www.twitch.tv/tsm_theoddone/c/2349361',
+        'only_matching': True,
+    }]
+
+
 class TwitchVodIE(TwitchItemBaseIE):
     IE_NAME = 'twitch:vod'
     _VALID_URL = r'''(?x)
@@ -510,6 +547,8 @@ class TwitchStreamIE(TwitchBaseIE):
     def suitable(cls, url):
         return (False
                 if any(ie.suitable(url) for ie in (
+                    TwitchVideoIE,
+                    TwitchChapterIE,
                     TwitchVodIE,
                     TwitchProfileIE,
                     TwitchAllVideosIE,
