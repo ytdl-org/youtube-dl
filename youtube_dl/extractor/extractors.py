@@ -919,6 +919,8 @@ from .rai import (
     RaiPlayLiveIE,
     RaiPlayPlaylistIE,
     RaiIE,
+    RaiPlayRadioIE,
+    RaiPlayRadioPlaylistIE,
 )
 from .raywenderlich import (
     RayWenderlichIE,
