@@ -575,29 +575,27 @@ class YahooJapanNewsIE(InfoExtractor):
             'title': 'ムン大統領が対日批判を強化“現金化”効果は？（テレビ朝日系（ANN）） - Yahoo!ニュース',
             'description': '韓国の元徴用工らを巡る裁判の原告が弁護士が差し押さえた三菱重工業の資産を売却して - Yahoo!ニュース(テレビ朝日系（ANN）)',
             'thumbnail': r're:^https?://.*\.[a-zA-Z\d]{3,4}$',
-        }, 'params': {'skip_download': True}
-        }, {
+        },
+        'params': {
+            'skip_download': True,
+        },
+    }, {
+        # geo restricted
         'url': 'https://headlines.yahoo.co.jp/hl?a=20190721-00000001-oxv-l04',
-        'info_dict': {
-            'id': '1750855',
-            'ext': 'mp4',
-            'title': '200ｍ引きずられたか\u3000路上で女性死亡\u3000ひき逃げ事件として捜査\u3000仙台（仙台放送） - Yahoo!ニュース',
-            'description': '倒れている女性が見つかったのは、仙台市泉区松陵１丁目の路上です。21日午前4時40分 - Yahoo!ニュース(仙台放送)',
-            'thumbnail': r're:^https?://.*\.[a-zA-Z\d]{3,4}$',
-        }, 'params': {'skip_download': True}
-        }, {
-            'url': 'https://headlines.yahoo.co.jp/videonews/',
-            'only_matching': True,
-        }, {
-            'url': 'https://news.yahoo.co.jp',
-            'only_matching': True,
-        }, {
-            'url': 'https://news.yahoo.co.jp/byline/hashimotojunji/20190628-00131977/',
-            'only_matching': True,
-        }, {
-            'url': 'https://news.yahoo.co.jp/feature/1356',
-            'only_matching': True
-        }]
+        'only_matching': True,
+    }, {
+        'url': 'https://headlines.yahoo.co.jp/videonews/',
+        'only_matching': True,
+    }, {
+        'url': 'https://news.yahoo.co.jp',
+        'only_matching': True,
+    }, {
+        'url': 'https://news.yahoo.co.jp/byline/hashimotojunji/20190628-00131977/',
+        'only_matching': True,
+    }, {
+        'url': 'https://news.yahoo.co.jp/feature/1356',
+        'only_matching': True
+    }]
 
     def _extract_formats(self, json_data, content_id):
         formats = []
@@ -621,7 +619,8 @@ class YahooJapanNewsIE(InfoExtractor):
                     'url': url,
                     'format_id': 'http-%s' % compat_str(vid.get('bitrate', '')),
                     'height': int_or_none(vid.get('height')),
-                    'width': int_or_none(vid.get('width'))
+                    'width': int_or_none(vid.get('width')),
+                    'tbr': int_or_none(vid.get('bitrate')),
                 })
         self._remove_duplicate_formats(formats)
         self._sort_formats(formats)
@@ -631,8 +630,8 @@ class YahooJapanNewsIE(InfoExtractor):
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
         host = mobj.group('host')
-        # Headline pages without `displayid` default to `host`.
         display_id = mobj.group('id') or host
+
         webpage = self._download_webpage(url, display_id)
 
         title = self._html_search_meta(
@@ -642,41 +641,41 @@ class YahooJapanNewsIE(InfoExtractor):
         if display_id == host:
             # Headline page (w/ multiple BC playlists) ('news.yahoo.co.jp', 'headlines.yahoo.co.jp/videonews/', ...)
             stream_plists = re.findall(r'plist=(\d+)', webpage) or re.findall(r'plist["\']:\s*["\']([^"\']+)', webpage)
-
-            bc_url = 'http://players.brightcove.net/5690807595001/HyZNerRl7_default/index.html?playlistId=%s'
-            entries = [bc_url % plist_id for plist_id in stream_plists]
-
-            return self.playlist_from_matches(entries, playlist_title=title, ie='BrightcoveNew')
+            entries = [
+                self.url_result(
+                    smuggle_url(
+                        'http://players.brightcove.net/5690807595001/HyZNerRl7_default/index.html?playlistId=%s' % plist_id,
+                        {'geo_countries': ['JP']}),
+                    ie='BrightcoveNew', video_id=plist_id)
+                for plist_id in stream_plists]
+            return self.playlist_result(entries, playlist_title=title)
 
         # Article page
-        description = self._html_search_meta([
-            'og:description', 'description', 'twitter:description'
-        ], webpage, 'description', default=None)
+        description = self._html_search_meta(
+            ['og:description', 'description', 'twitter:description'],
+            webpage, 'description', default=None)
         thumbnail = self._og_search_thumbnail(
-            webpage, default=None
-        ) or self._html_search_meta('twitter:image', webpage, 'thumbnail', default=None)
+            webpage, default=None) or self._html_search_meta(
+            'twitter:image', webpage, 'thumbnail', default=None)
         space_id = self._search_regex([
             r'<script[^>]+class=["\']yvpub-player["\'][^>]+spaceid=([^&"\']+)',
             r'YAHOO\.JP\.srch\.\w+link\.onLoad[^;]+spaceID["\' ]*:["\' ]+([^"\']+)',
             r'<!--\s+SpaceID=(\d+)'
         ], webpage, 'spaceid')
 
-        app_id = 'dj0zaiZpPVZMTVFJR0FwZWpiMyZzPWNvbnN1bWVyc2VjcmV0Jng9YjU-'
         content_id = self._search_regex(
             r'<script[^>]+class=["\']yvpub-player["\'][^>]+contentid=(?P<contentid>[^&"\']+)',
             webpage, 'contentid', group='contentid')
-        # md5 hash of space_id + '_' + host
-        ak = hashlib.md5('_'.join((space_id, host)).encode()).hexdigest()
 
         json_data = self._download_json(
             'https://feapi-yvpub.yahooapis.jp/v1/content/%s' % content_id,
             content_id,
             query={
-                'appid': app_id,
+                'appid': 'dj0zaiZpPVZMTVFJR0FwZWpiMyZzPWNvbnN1bWVyc2VjcmV0Jng9YjU-',
                 'output': 'json',
                 'space_id': space_id,
                 'domain': host,
-                'ak': ak,
+                'ak': hashlib.md5('_'.join((space_id, host)).encode()).hexdigest(),
                 'device_type': '1100',
             })
         formats = self._extract_formats(json_data, content_id)
