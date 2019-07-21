@@ -5,6 +5,7 @@ from .common import InfoExtractor
 from ..utils import unified_timestamp
 from .youtube import YoutubeIE
 
+
 class CtsNewsIE(InfoExtractor):
     IE_DESC = '華視新聞'
     _VALID_URL = r'https?://news\.cts\.com\.tw/[a-z]+/[a-z]+/\d+/(?P<id>\d+)\.html'
