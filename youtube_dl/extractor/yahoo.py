@@ -565,7 +565,7 @@ class YahooGyaOIE(InfoExtractor):
 class YahooJapanNewsIE(InfoExtractor):
     IE_NAME = 'yahoo:japannews'
     IE_DESC = 'Yahoo! Japan News'
-    _VALID_URL = r'https?://(?P<host>(?:news|headlines)\.yahoo\.co\.jp)(/[^\d]*(?P<id>\d[\d-]*\d))?'
+    _VALID_URL = r'https?://(?P<host>(?:news|headlines)\.yahoo\.co\.jp)[^\d]*(?P<id>\d[\d-]*\d)?'
     _TESTS = [{
             'url': 'https://headlines.yahoo.co.jp/videonews/ann?a=20190716-00000071-ann-int',
             'info_dict': {
@@ -610,10 +610,8 @@ class YahooJapanNewsIE(InfoExtractor):
                 formats.append({
                     'url': url,
                     'format_id': 'http-%s' % compat_str(vid.get('bitrate', '')),
-                    'ext': determine_ext(url),
                     'height': int_or_none(vid.get('height')),
-                    'width': int_or_none(vid.get('width')),
-                    'btr': int_or_none(vid.get('bitrate'))
+                    'width': int_or_none(vid.get('width'))
                 })
         self._remove_duplicate_formats(formats)
         self._sort_formats(formats)
@@ -630,18 +628,6 @@ class YahooJapanNewsIE(InfoExtractor):
         title = self._html_search_meta(
             ['og:title', 'twitter:title'], webpage, 'title', default=None
         ) or self._html_search_regex('<title>([^<]+)</title>', webpage, 'title')
-        description = self._html_search_meta([
-            'og:description', 'description', 'twitter:description'
-        ], webpage, 'description', default=None)
-        thumbnail = self._og_search_thumbnail(
-            webpage, default=None
-        ) or self._html_search_meta('twitter:image', webpage, 'thumbnail', default=None)
-        space_id = self._search_regex([
-            r'<script[^>]+class=["\']yvpub-player["\'][^>]+spaceid=([^&"\']+)',
-            r'YAHOO\.JP\.srch\.\w+link\.onLoad[^;]+spaceID["\' ]*:["\' ]+([^"\']+)',
-            r'<!--\s+SpaceID=(\d+)'
-        ], webpage, 'spaceid')
-        formats = []
 
         if display_id == host:
             # Headline page (w/ multiple BC playlists)
@@ -678,29 +664,35 @@ class YahooJapanNewsIE(InfoExtractor):
                 embed = self._search_regex(
                     r'(["\'])data-embed\1\s*:\s*\1(?P<embed>[^"\']+)',
                     embed_page, 'embed', group='embed', fatal=False)
-                if not all([embed_page, account, player,  embed]):
+                if not all([embed_page, account, player, embed]):
                     continue
                 entries.append(bc_url % (account, player, embed, plist_id))
 
-            return self.playlist_from_matches(entries, space_id, title, ie='BrightcoveNew')
+            return self.playlist_from_matches(entries, playlist_title=title, ie='BrightcoveNew')
 
         # Article page
+        description = self._html_search_meta([
+            'og:description', 'description', 'twitter:description'
+        ], webpage, 'description', default=None)
+        thumbnail = self._og_search_thumbnail(
+            webpage, default=None
+        ) or self._html_search_meta('twitter:image', webpage, 'thumbnail', default=None)
+        space_id = self._search_regex([
+            r'<script[^>]+class=["\']yvpub-player["\'][^>]+spaceid=([^&"\']+)',
+            r'YAHOO\.JP\.srch\.\w+link\.onLoad[^;]+spaceID["\' ]*:["\' ]+([^"\']+)',
+            r'<!--\s+SpaceID=(\d+)'
+        ], webpage, 'spaceid')
+
         app_id = 'dj0zaiZpPVZMTVFJR0FwZWpiMyZzPWNvbnN1bWVyc2VjcmV0Jng9YjU-'
         content_id = self._search_regex(
-            r'<script[^>]+class=(["\'])yvpub-player\1[^>]+contentid=(?P<contentid>[^&"\']+)',
-            webpage, 'contentid', group='contentid', default=space_id)
+            r'<script[^>]+class=["\']yvpub-player["\'][^>]+contentid=(?P<contentid>[^&"\']+)',
+            webpage, 'contentid', group='contentid')
         # md5 hash of space_id + '_headlines.yahoo.co.jp'
         ak = hashlib.md5('_'.join((space_id, host)).encode()).hexdigest()
 
         json_data = self._download_json(
             'https://feapi-yvpub.yahooapis.jp/v1/content/%s' % content_id,
             content_id,
-            headers={
-                'Accept': 'application/json, text/javascript, */*; q=0.01',
-                'Origin': 'https://s.yimg.jp',
-                'Host': 'feapi-yvpub.yahooapis.jp',
-                'Referer': 'https://s.yimg.jp/images/yvpub/player/vamos/pc/latest/player.html',
-            },
             query={
                 'appid': app_id,
                 'output': 'json',
