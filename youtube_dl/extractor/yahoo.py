@@ -640,34 +640,11 @@ class YahooJapanNewsIE(InfoExtractor):
         ) or self._html_search_regex('<title>([^<]+)</title>', webpage, 'title')
 
         if display_id == host:
-            # Headline page (w/ multiple BC playlists)
-            stream_urls_plists = re.findall(
-                r'YJNEWS\.LIVESTREAM\.SRC.+=(?:\s+)?["\'](?P<streamurl>[^"\']+plist=(?P<plist>\d+)[^"\']+)',
-                webpage)
-            if not stream_urls_plists:
-                # Manually build ('news.yahoo.co.jp', ...)
-                sbase_url = 'https://s.yimg.jp/images/media/video/player/html/embed_1.2.5.html?service=news&service_type=video&plist=%s&poster=%s&sp=%s&country=JP'
-
-                params = re.findall(
-                    r'["\']plist["\']:\s*["\'](?P<plist>[^"\']+)[^;]+?["\']poster["\']:\s*["\'](?P<poster>[^"\']+)[^;]+?["\']spaceId["\']:\s*["\'](?P<spaceid>[^"\']+)',
-                    webpage)
-                for p in params:
-                    stream_urls_plists.append((sbase_url % p, p[0]))
+            # Headline page (w/ multiple BC playlists) ('news.yahoo.co.jp', 'headlines.yahoo.co.jp/videonews/', ...)
+            stream_plists = re.findall(r'plist=(\d+)', webpage) or re.findall(r'plist["\']:\s*["\']([^"\']+)', webpage)
 
             bc_url = 'http://players.brightcove.net/5690807595001/HyZNerRl7_default/index.html?playlistId=%s'
-            entries = []
-            for url, plist_id in stream_urls_plists:
-                embed_page = self._download_webpage(
-                    'https://s.yimg.jp/images/media/video/player/js/embed_1.0.9.min.js',
-                    plist_id,
-                    headers={
-                        'Authority': 's.yimg.jp',
-                        'Path': '/images/media/video/player/js/embed_1.0.9.min.js',
-                        'Referer': url,
-                    }, fatal=False)
-                if not embed_page:
-                    continue
-                entries.append(bc_url % plist_id)
+            entries = [bc_url % plist_id for plist_id in stream_plists]
 
             return self.playlist_from_matches(entries, playlist_title=title, ie='BrightcoveNew')
 
