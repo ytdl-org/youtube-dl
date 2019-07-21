@@ -252,11 +252,14 @@ class OdnoklassnikiIE(InfoExtractor):
         }
 
         if provider == 'USER_YOUTUBE':
+            """
             info.update({
                 '_type': 'url_transparent',
                 'url': movie['contentId'],
             })
             return info
+            """
+            raise ExtractorError('This video is embedded from YouTube.', expected=True)
 
         assert title
         if 'LIVE_TV' in provider:
