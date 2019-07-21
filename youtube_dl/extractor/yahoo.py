@@ -577,12 +577,12 @@ class YahooJapanNewsIE(InfoExtractor):
             'thumbnail': r're:^https?://.*\.[a-zA-Z\d]{3,4}$',
         }, 'params': {'skip_download': True}
         }, {
-        'url': 'https://news.yahoo.co.jp/pickup/6330725',
+        'url': 'https://headlines.yahoo.co.jp/hl?a=20190721-00000001-oxv-l04',
         'info_dict': {
             'id': '1750855',
             'ext': 'mp4',
-            'title': 'ひき逃げか 200m引きずった痕 | 2019/7/21(日) - Yahoo!ニュース',
-            'description': '21日午前4時40分ごろ、仙台市泉区で、倒れていた女性（39）が見つかり、病院で死亡が確認された。路上に女…',
+            'title': '200ｍ引きずられたか\u3000路上で女性死亡\u3000ひき逃げ事件として捜査\u3000仙台（仙台放送） - Yahoo!ニュース',
+            'description': '倒れている女性が見つかったのは、仙台市泉区松陵１丁目の路上です。21日午前4時40分 - Yahoo!ニュース(仙台放送)',
             'thumbnail': r're:^https?://.*\.[a-zA-Z\d]{3,4}$',
         }, 'params': {'skip_download': True}
         }, {
