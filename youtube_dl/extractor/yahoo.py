@@ -688,7 +688,7 @@ class YahooJapanNewsIE(InfoExtractor):
         content_id = self._search_regex(
             r'<script[^>]+class=["\']yvpub-player["\'][^>]+contentid=(?P<contentid>[^&"\']+)',
             webpage, 'contentid', group='contentid')
-        # md5 hash of space_id + '_headlines.yahoo.co.jp'
+        # md5 hash of space_id + '_' + host
         ak = hashlib.md5('_'.join((space_id, host)).encode()).hexdigest()
 
         json_data = self._download_json(
