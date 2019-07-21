@@ -867,6 +867,7 @@ class YoutubeDL(object):
                                      ie_key=ie_result.get('ie_key'),
                                      extra_info=extra_info)
         elif result_type == 'url_transparent':
+
             # Use the information from the embedding page
             info = self.extract_info(
                 ie_result['url'], ie_key=ie_result.get('ie_key'),

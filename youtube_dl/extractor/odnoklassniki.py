@@ -254,9 +254,10 @@ class OdnoklassnikiIE(InfoExtractor):
         if provider == 'USER_YOUTUBE':
             info.update({
                 '_type': 'url_transparent',
-                'url': movie['contentId'],
+                'url': 'https://www.youtube.com/watch?v=%s' % movie['contentId'],
             })
             return info
+
 
         assert title
         if 'LIVE_TV' in provider:
