@@ -566,15 +566,25 @@ class YahooJapanNewsIE(InfoExtractor):
     IE_NAME = 'yahoo:japannews'
     IE_DESC = 'Yahoo! Japan News'
     _VALID_URL = r'https?://(?P<host>(?:news|headlines)\.yahoo\.co\.jp)[^\d]*(?P<id>\d[\d-]*\d)?'
+    _GEO_COUNTRIES = ['JP']
     _TESTS = [{
-            'url': 'https://headlines.yahoo.co.jp/videonews/ann?a=20190716-00000071-ann-int',
-            'info_dict': {
-                'id': '1736242',
-                'ext': 'mp4',
-                'title': 'ムン大統領が対日批判を強化“現金化”効果は？（テレビ朝日系（ANN）） - Yahoo!ニュース',
-                'description': '韓国の元徴用工らを巡る裁判の原告が弁護士が差し押さえた三菱重工業の資産を売却して - Yahoo!ニュース(テレビ朝日系（ANN）)',
-                'thumbnail': r're:^https?://.*\.[a-zA-Z\d]{3,4}$',
-            }, 'params': {'skip_download': True},
+        'url': 'https://headlines.yahoo.co.jp/videonews/ann?a=20190716-00000071-ann-int',
+        'info_dict': {
+            'id': '1736242',
+            'ext': 'mp4',
+            'title': 'ムン大統領が対日批判を強化“現金化”効果は？（テレビ朝日系（ANN）） - Yahoo!ニュース',
+            'description': '韓国の元徴用工らを巡る裁判の原告が弁護士が差し押さえた三菱重工業の資産を売却して - Yahoo!ニュース(テレビ朝日系（ANN）)',
+            'thumbnail': r're:^https?://.*\.[a-zA-Z\d]{3,4}$',
+        }, 'params': {'skip_download': True}
+        }, {
+        'url': 'https://news.yahoo.co.jp/pickup/6330725',
+        'info_dict': {
+            'id': '1750855',
+            'ext': 'mp4',
+            'title': 'ひき逃げか 200m引きずった痕 | 2019/7/21(日) - Yahoo!ニュース',
+            'description': '21日午前4時40分ごろ、仙台市泉区で、倒れていた女性（39）が見つかり、病院で死亡が確認された。路上に女…',
+            'thumbnail': r're:^https?://.*\.[a-zA-Z\d]{3,4}$',
+        }, 'params': {'skip_download': True}
         }, {
             'url': 'https://headlines.yahoo.co.jp/videonews/',
             'only_matching': True,
@@ -644,7 +654,7 @@ class YahooJapanNewsIE(InfoExtractor):
                 for p in params:
                     stream_urls_plists.append((sbase_url % p, p[0]))
 
-            bc_url = 'http://players.brightcove.net/%s/%s_%s/index.html?playlistId=%s'
+            bc_url = 'http://players.brightcove.net/5690807595001/HyZNerRl7_default/index.html?playlistId=%s'
             entries = []
             for url, plist_id in stream_urls_plists:
                 embed_page = self._download_webpage(
@@ -655,18 +665,9 @@ class YahooJapanNewsIE(InfoExtractor):
                         'Path': '/images/media/video/player/js/embed_1.0.9.min.js',
                         'Referer': url,
                     }, fatal=False)
-                account = self._search_regex(
-                    r'\w+\.video_attr\[(["\'])data-account\1\]\s*=\s*\1(?P<accountid>[\d]+)',
-                    embed_page, 'account id', group='accountid', fatal=False)
-                player = self._search_regex(
-                    r'\w+\.video_attr\[(["\'])data-player\1\]\s*=\s*\1(?P<playerid>[^"\']+)',
-                    embed_page, 'player id', group='playerid', fatal=False)
-                embed = self._search_regex(
-                    r'(["\'])data-embed\1\s*:\s*\1(?P<embed>[^"\']+)',
-                    embed_page, 'embed', group='embed', fatal=False)
-                if not all([embed_page, account, player, embed]):
+                if not embed_page:
                     continue
-                entries.append(bc_url % (account, player, embed, plist_id))
+                entries.append(bc_url % plist_id)
 
             return self.playlist_from_matches(entries, playlist_title=title, ie='BrightcoveNew')
 
