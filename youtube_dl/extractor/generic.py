@@ -2076,6 +2076,17 @@ class GenericIE(InfoExtractor):
             'playlist_count': 6,
         },
         {
+            # Squarespace video embed, 2019-08-28
+            'url': 'http://ootboxford.com',
+            'info_dict': {
+                'id': 'Tc7b_JGdZfw',
+                'title': 'Out of the Blue, at Childish Things 10',
+            },
+            'params': {
+                'skip_download': True,
+            },
+        },
+        {
             # Zype embed
             'url': 'https://www.cookscountry.com/episode/554-smoky-barbecue-favorites',
             'info_dict': {
@@ -2394,6 +2405,13 @@ class GenericIE(InfoExtractor):
         # (e.g. https://github.com/ytdl-org/youtube-dl/issues/2448)
         # Unescaping the whole page allows to handle those cases in a generic way
         webpage = compat_urllib_parse_unquote(webpage)
+
+        # unescape re.sub replacement
+        def unescape_resub(m):
+            return unescapeHTML(m.group(0))
+
+        # unescape squarespace video embeds
+        webpage = re.sub(r'<div[^>]+class=[^>]*?sqs-video-wrapper[^>]*>', unescape_resub, webpage)
 
         # it's tempting to parse this further, but you would
         # have to take into account all the variations like
