@@ -41,8 +41,7 @@ class TVN24IE(InfoExtractor):
 
         title = self._html_search_regex(
             r'<span[^>]+class="standardHeader1[^"]*"[^>]*>\s*(.+?)\s*</span>',
-            webpage, 'title', default=None)
-
+            webpage, 'title')
 
         def extract_json(attr, name, fatal=True):
             return self._parse_json(
