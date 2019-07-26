@@ -55,7 +55,7 @@ class PicartoIE(InfoExtractor):
             'token': token,
         }
 
-        preferred_edge = cdn_data.get('preferredEdge')
+        prefered_edge = cdn_data.get('preferedEdge')
         formats = []
 
         for edge in cdn_data['edges']:
@@ -67,7 +67,7 @@ class PicartoIE(InfoExtractor):
                 tech_label = tech.get('label')
                 tech_type = tech.get('type')
                 preference = 0
-                if edge_id == preferred_edge:
+                if edge_id == prefered_edge:
                     preference += 1
                 format_id = []
                 if edge_id:
