@@ -32,7 +32,7 @@ class RtlNlIE(InfoExtractor):
             'duration': 1167.96,
         },
     }, {
-        # best format avaialble a3t
+        # best format available a3t
         'url': 'http://www.rtl.nl/system/videoplayer/derden/rtlnieuws/video_embed.html#uuid=84ae5571-ac25-4225-ae0c-ef8d9efb2aed/autoplay=false',
         'md5': 'dea7474214af1271d91ef332fb8be7ea',
         'info_dict': {
