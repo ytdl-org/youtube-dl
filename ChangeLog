@@ -1,3 +1,14 @@
+version 2019.07.27
+
+Extractors
++ [yahoo:japannews] Add support for yahoo.co.jp (#21698, #21265)
++ [discovery] Add support go.discovery.com URLs
+* [youtube:playlist] Relax video regular expression (#21844)
+* [generic] Restrict --default-search schemeless URLs detection pattern
+  (#21842)
+* [vrv] Fix CMS signing query extraction (#21809)
+
+
 version 2019.07.16
 
 Extractors
