@@ -1,4 +1,4 @@
-version <unreleased>
+version 2019.07.27
 
 Extractors
 + [yahoo:japannews] Add support for yahoo.co.jp (#21698, #21265)
