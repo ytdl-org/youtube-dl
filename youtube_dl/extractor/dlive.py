@@ -9,7 +9,7 @@ from ..utils import int_or_none
 
 class DLiveVODIE(InfoExtractor):
     IE_NAME = 'dlive:vod'
-    _VALID_URL = r'https?://(?:www\.)?dlive\.tv/p/(?P<uploader_id>.+?)\+(?P<id>[a-zA-Z0-9]+)'
+    _VALID_URL = r'https?://(?:www\.)?dlive\.tv/p/(?P<uploader_id>.+?)\+(?P<id>[a-zA-Z0-9-]+)'
     _TEST = {
         'url': 'https://dlive.tv/p/pdp+3mTzOl4WR',
         'info_dict': {
