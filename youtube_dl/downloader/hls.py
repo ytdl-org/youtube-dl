@@ -105,6 +105,7 @@ class HlsFD(FragmentFD):
             'filename': filename,
             'total_frags': media_frags,
             'ad_frags': ad_frags,
+            'hls': '#EXT-X-KEY:METHOD=AES-128' in s,
         }
 
         self._prepare_and_start_frag_download(ctx)
@@ -113,10 +114,15 @@ class HlsFD(FragmentFD):
         skip_unavailable_fragments = self.params.get('skip_unavailable_fragments', True)
         test = self.params.get('test', False)
 
-        extra_query = None
+        extra_segment_query = None
+        extra_key_query = None
         extra_param_to_segment_url = info_dict.get('extra_param_to_segment_url')
         if extra_param_to_segment_url:
-            extra_query = compat_urlparse.parse_qs(extra_param_to_segment_url)
+            extra_segment_query = compat_urlparse.parse_qs(extra_param_to_segment_url)
+            extra_key_query = compat_urlparse.parse_qs(extra_param_to_segment_url)
+        extra_param_to_key_url = info_dict.get('extra_param_to_key_url')
+        if extra_param_to_key_url:
+            extra_key_query = compat_urlparse.parse_qs(extra_param_to_key_url)
         i = 0
         media_sequence = 0
         decrypt_info = {'METHOD': 'NONE'}
@@ -136,8 +142,8 @@ class HlsFD(FragmentFD):
                         line
                         if re.match(r'^https?://', line)
                         else compat_urlparse.urljoin(man_url, line))
-                    if extra_query:
-                        frag_url = update_url_query(frag_url, extra_query)
+                    if extra_segment_query:
+                        frag_url = update_url_query(frag_url, extra_segment_query)
                     count = 0
                     headers = info_dict.get('http_headers', {})
                     if byte_range:
@@ -187,8 +193,8 @@ class HlsFD(FragmentFD):
                         if not re.match(r'^https?://', decrypt_info['URI']):
                             decrypt_info['URI'] = compat_urlparse.urljoin(
                                 man_url, decrypt_info['URI'])
-                        if extra_query:
-                            decrypt_info['URI'] = update_url_query(decrypt_info['URI'], extra_query)
+                        if extra_key_query:
+                            decrypt_info['URI'] = update_url_query(decrypt_info['URI'], extra_key_query)
                         if decrypt_url != decrypt_info['URI']:
                             decrypt_info['KEY'] = None
                 elif line.startswith('#EXT-X-MEDIA-SEQUENCE'):

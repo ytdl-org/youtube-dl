@@ -45,7 +45,8 @@ class HttpFD(FileDownloader):
             headers.update(add_headers)
 
         is_test = self.params.get('test', False)
-        chunk_size = self._TEST_FILE_SIZE if is_test else (
+        is_hls = self.params.get('hls', False)
+        chunk_size = self._TEST_FILE_SIZE if is_test and not is_hls else (
             info_dict.get('downloader_options', {}).get('http_chunk_size')
             or self.params.get('http_chunk_size') or 0)
 
@@ -194,7 +195,8 @@ class HttpFD(FileDownloader):
             # However, for a test we still would like to download just a piece of a file.
             # To achieve this we limit data_len to _TEST_FILE_SIZE and manually control
             # block size when downloading a file.
-            if is_test and (data_len is None or int(data_len) > self._TEST_FILE_SIZE):
+            # If we are using HLS we cannot cut the fragment because it will break the decryption.
+            if is_test and not is_hls and (data_len is None or int(data_len) > self._TEST_FILE_SIZE):
                 data_len = self._TEST_FILE_SIZE
 
             if data_len is not None:

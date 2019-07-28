@@ -119,6 +119,7 @@ from .expressen import ExpressenIE
 from .zype import ZypeIE
 from .odnoklassniki import OdnoklassnikiIE
 from .kinja import KinjaEmbedIE
+from .sproutvideo import SproutVideoIE
 
 
 class GenericIE(InfoExtractor):
@@ -2142,6 +2143,18 @@ class GenericIE(InfoExtractor):
                 'skip_download': True,
             },
         },
+        {
+            # SproutVideo iframe in page
+            'url': 'https://www.solidarum.org/vivre-ensemble/adrien-labaeye-berlin-des-communautes-aux-communs',
+            'info_dict': {
+                'id': '4c9dddb01910e3c9c4',
+                'ext': 'mp4',
+                'title': 'Adrien Labaeye : Berlin, des communautés aux communs',
+            },
+            'params': {
+                'skip_download': True,
+            },
+        },
         # {
         #     # TODO: find another test
         #     # http://schema.org/VideoObject
@@ -3200,6 +3213,10 @@ class GenericIE(InfoExtractor):
         if zype_urls:
             return self.playlist_from_matches(
                 zype_urls, video_id, video_title, ie=ZypeIE.ie_key())
+
+        sproutvideo_url = SproutVideoIE._extract_url(webpage)
+        if sproutvideo_url:
+            return self.url_result(sproutvideo_url)
 
         # Look for HTML5 media
         entries = self._parse_html5_media_entries(url, webpage, video_id, m3u8_id='hls')
