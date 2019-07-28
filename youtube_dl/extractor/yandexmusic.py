@@ -98,6 +98,7 @@ class YandexMusicTrackIE(YandexMusicBaseIE):
             'http://music.yandex.ru/handlers/track.jsx?track=%s:%s' % (track_id, album_id),
             track_id, 'Downloading track JSON')['track']
         track_title = track['title']
+        if 'version' in track: track_title += ' (%s)' % track['version']
 
         download_data = self._download_json(
             'https://music.yandex.ru/api/v2.1/handlers/track/%s:%s/web-album_track-track-track-main/download/m' % (track_id, album_id),
@@ -288,22 +289,24 @@ class YandexMusicPlaylistIE(YandexMusicPlaylistBaseIE):
                 for track in tracks if track.get('id')])
             missing_track_ids = [
                 track_id for track_id in track_ids
-                if track_id not in present_track_ids]
-            missing_tracks = self._download_json(
-                'https://music.yandex.%s/handlers/track-entries.jsx' % tld,
-                playlist_id, 'Downloading missing tracks JSON',
-                fatal=False,
-                headers={
-                    'Referer': url,
-                    'X-Requested-With': 'XMLHttpRequest',
-                },
-                query={
-                    'entries': ','.join(missing_track_ids),
-                    'lang': tld,
-                    'external-domain': 'music.yandex.%s' % tld,
-                    'overembed': 'false',
-                    'strict': 'true',
-                })
+                if track_id.split(':')[0] not in present_track_ids]
+            missing_tracks = []
+            for i in range(0, len(missing_track_ids), 500):
+                missing_tracks += self._download_json(
+                    'https://music.yandex.%s/handlers/track-entries.jsx' % tld,
+                    playlist_id, 'Downloading missing tracks JSON',
+                    fatal=False,
+                    headers={
+                        'Referer': url,
+                        'X-Requested-With': 'XMLHttpRequest',
+                    },
+                    query={
+                        'entries': ','.join(missing_track_ids[i:i+500]),
+                        'lang': tld,
+                        'external-domain': 'music.yandex.%s' % tld,
+                        'overembed': 'false',
+                        'strict': 'true',
+                    })
             if missing_tracks:
                 tracks.extend(missing_tracks)
 
