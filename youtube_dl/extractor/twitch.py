@@ -438,7 +438,7 @@ class TwitchVideosBaseIE(TwitchPlaylistBaseIE):
 
 class TwitchAllVideosIE(TwitchVideosBaseIE):
     IE_NAME = 'twitch:videos:all'
-    _VALID_URL = '%s(?:/?(?:%s)|[^/?]+?/?)?' % (
+    _VALID_URL = '%s/?(?:(?:%s)|$)' % (
         TwitchVideosBaseIE._VALID_URL_VIDEOS_BASE,
         TwitchVideosBaseIE._VALID_URL_VIDEOS_FILTERS % 'all'
     )
