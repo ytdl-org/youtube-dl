@@ -10,31 +10,20 @@ from ..utils import int_or_none
 class DLiveVODIE(InfoExtractor):
     IE_NAME = 'dlive:vod'
     _VALID_URL = r'https?://(?:www\.)?dlive\.tv/p/(?P<uploader_id>.+?)\+(?P<id>[a-zA-Z0-9-]+)'
-    _TESTS = [
-        {
-            'url': 'https://dlive.tv/p/pdp+3mTzOl4WR',
-            'info_dict': {
-                'id': '3mTzOl4WR',
-                'ext': 'mp4',
-                'title': 'Minecraft with james charles epic',
-                'upload_date': '20190701',
-                'timestamp': 1562011015,
-                'uploader_id': 'pdp',
-            }
-        },
-        {
-            'url': 'https://dlive.tv/p/pdpreplay+D-RD-xSZg',
-            'info_dict': {
-                'id': 'D-RD-xSZg',
-                'title': 'Past Broadcast on July 1st, 2019 - Minecraft with james charles epic',
-                'uploader_id': 'pdpreplay',
-                'upload_date': '20190711',
-                'thumbnail': 'https://images.prd.dlivecdn.com/thumbnail/eceb2161-8984-11e9-9b13-f6d36f09ac29',
-                'timestamp': 1562826006,
-                'ext': 'mp4',
-            }
+    _TESTS = [{
+        'url': 'https://dlive.tv/p/pdp+3mTzOl4WR',
+        'info_dict': {
+            'id': '3mTzOl4WR',
+            'ext': 'mp4',
+            'title': 'Minecraft with james charles epic',
+            'upload_date': '20190701',
+            'timestamp': 1562011015,
+            'uploader_id': 'pdp',
         }
-    ]
+    }, {
+        'url': 'https://dlive.tv/p/pdpreplay+D-RD-xSZg',
+        'only_matching': True,
+    }]
 
     def _real_extract(self, url):
         uploader_id, vod_id = re.match(self._VALID_URL, url).groups()
