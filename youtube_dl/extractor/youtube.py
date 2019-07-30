@@ -1700,6 +1700,15 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
         def extract_token(v_info):
             return dict_get(v_info, ('account_playback_token', 'accountPlaybackToken', 'token'))
 
+        def extract_player_response(player_response, video_id):
+            pl_response = str_or_none(player_response)
+            if not pl_response:
+                return
+            pl_response = self._parse_json(pl_response, video_id, fatal=False)
+            if isinstance(pl_response, dict):
+                add_dash_mpd_pr(pl_response)
+                return pl_response
+
         player_response = {}
 
         # Get video info
@@ -1722,7 +1731,10 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                 note='Refetching age-gated info webpage',
                 errnote='unable to download video info webpage')
             video_info = compat_parse_qs(video_info_webpage)
+            pl_response = video_info.get('player_response', [None])[0]
+            player_response = extract_player_response(pl_response, video_id)
             add_dash_mpd(video_info)
+            view_count = extract_view_count(video_info)
         else:
             age_gate = False
             video_info = None
@@ -1745,11 +1757,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                     is_live = True
                 sts = ytplayer_config.get('sts')
                 if not player_response:
-                    pl_response = str_or_none(args.get('player_response'))
-                    if pl_response:
-                        pl_response = self._parse_json(pl_response, video_id, fatal=False)
-                        if isinstance(pl_response, dict):
-                            player_response = pl_response
+                    player_response = extract_player_response(args.get('player_response'), video_id)
             if not video_info or self._downloader.params.get('youtube_include_dash_manifest', True):
                 add_dash_mpd_pr(player_response)
                 # We also try looking in get_video_info since it may contain different dashmpd
@@ -1781,9 +1789,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                     get_video_info = compat_parse_qs(video_info_webpage)
                     if not player_response:
                         pl_response = get_video_info.get('player_response', [None])[0]
-                        if isinstance(pl_response, dict):
-                            player_response = pl_response
-                            add_dash_mpd_pr(player_response)
+                        player_response = extract_player_response(pl_response, video_id)
                     add_dash_mpd(get_video_info)
                     if view_count is None:
                         view_count = extract_view_count(get_video_info)
