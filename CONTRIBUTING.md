@@ -366,3 +366,79 @@ duration = float_or_none(video.get('durationMs'), scale=1000)
 view_count = int_or_none(video.get('views'))
 ```
 
+### Inline values
+
+ Always inline values.
+
+#### Example
+
+A good rule of thumb is not to create variables that will only be used once.
+
+Correct:
+
+```python
+return self.playlist_result(
+    [self._parse_brightcove_metadata(vid, vid.get('id'), headers)
+	for vid in json_data.get('videos', []) if vid.get('id')],
+    json_data.get('id'), json_data.get('name'),
+    json_data.get('description'))
+```
+
+Incorrect:
+
+```python
+playlist_vids = json_data.get('videos', [])
+playlist_id = json_data.get('id')
+playlist_title = json_data.get('name')
+playlist_description = json_data.get('description')
+
+return self.playlist_result(
+    [self._parse_brightcove_metadata(vid, vid.get('id'), headers)
+	for vid in playlist_vids if vid.get('id')],
+    playlist_id, playlist_title, playlist_description)
+```
+
+### Collapse fallbacks
+
+Multiple fallback values can quickly become unwieldy. Collapse multiple fallback values into a single expression via a list of meta values.
+
+#### Example
+
+Good:
+
+```python
+description = self._html_search_meta(
+    ['og:description', 'description', 'twitter:description'],
+    webpage, 'description', default=None)
+```
+
+Unwieldy:
+
+```python
+description = (
+    self._og_search_description(webpage, default=None)
+    or self._html_search_meta('description', webpage, default=None)
+    or self._html_search_meta('twitter:description', webpage, default=None))
+```
+
+### Trailing parentheses
+
+Always move trailing parentheses after the last argument.
+
+#### Example
+
+Correct:
+
+```python
+    lambda x: x['ResultSet']['Result'][0]['VideoUrlSet']['VideoUrl'],
+    list)
+```
+
+Incorrect:
+
+```python
+    lambda x: x['ResultSet']['Result'][0]['VideoUrlSet']['VideoUrl'],
+    list,
+)
+```
+
