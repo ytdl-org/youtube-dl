@@ -395,11 +395,7 @@ from .frontendmasters import (
     FrontendMastersCourseIE
 )
 from .funimation import FunimationIE
-from .funk import (
-    FunkMixIE,
-    FunkChannelIE,
-)
-from .funnyordie import FunnyOrDieIE
+from .funk import FunkIE
 from .fusion import FusionIE
 from .fxnetworks import FXNetworksIE
 from .gaia import GaiaIE
@@ -583,6 +579,7 @@ from .linkedin import (
 )
 from .linuxacademy import LinuxAcademyIE
 from .litv import LiTVIE
+from .livejournal import LiveJournalIE
 from .liveleak import (
     LiveLeakIE,
     LiveLeakEmbedIE,
@@ -971,7 +968,6 @@ from .rts import RTSIE
 from .rtve import RTVEALaCartaIE, RTVELiveIE, RTVEInfantilIE, RTVELiveIE, RTVETelevisionIE
 from .rtvnh import RTVNHIE
 from .rtvs import RTVSIE
-from .rudo import RudoIE
 from .ruhd import RUHDIE
 from .rutube import (
     RutubeIE,
@@ -1259,6 +1255,10 @@ from .udn import UDNEmbedIE
 from .ufctv import UFCTVIE
 from .uktvplay import UKTVPlayIE
 from .digiteka import DigitekaIE
+from .dlive import (
+    DLiveVODIE,
+    DLiveStreamIE,
+)
 from .umg import UMGDeIE
 from .unistra import UnistraIE
 from .unity import UnityIE
@@ -1448,6 +1448,7 @@ from .yahoo import (
     YahooSearchIE,
     YahooGyaOPlayerIE,
     YahooGyaOIE,
+    YahooJapanNewsIE,
 )
 from .yandexdisk import YandexDiskIE
 from .yandexmusic import (

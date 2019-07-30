@@ -79,6 +79,9 @@ class MGTVIE(InfoExtractor):
                 'ext': 'mp4',
                 'tbr': tbr,
                 'protocol': 'm3u8_native',
+                'http_headers': {
+                    'Referer': url,
+                },
             })
         self._sort_formats(formats)
 
