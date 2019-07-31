@@ -368,18 +368,16 @@ view_count = int_or_none(video.get('views'))
 
 ### Inline values
 
- Always inline values.
+Extracting variables is acceptable for reducing code duplication and improving readability of complex expressions. However, you should avoid extracting variables used only once and moving them to opposite parts of the extractor file, which makes reading the linear flow difficult.
 
 #### Example
-
-A good rule of thumb is not to create variables that will only be used once.
 
 Correct:
 
 ```python
 return self.playlist_result(
     [self._parse_brightcove_metadata(vid, vid.get('id'), headers)
-	for vid in json_data.get('videos', []) if vid.get('id')],
+        for vid in json_data.get('videos', []) if vid.get('id')],
     json_data.get('id'), json_data.get('name'),
     json_data.get('description'))
 ```
@@ -387,15 +385,12 @@ return self.playlist_result(
 Incorrect:
 
 ```python
-playlist_vids = json_data.get('videos', [])
-playlist_id = json_data.get('id')
-playlist_title = json_data.get('name')
-playlist_description = json_data.get('description')
+id = json_data.get('id')
 
 return self.playlist_result(
     [self._parse_brightcove_metadata(vid, vid.get('id'), headers)
-	for vid in playlist_vids if vid.get('id')],
-    playlist_id, playlist_title, playlist_description)
+        for vid in json_data.get('videos', []) if vid.get('id')],
+    id, json_data.get('name'), json_data.get('description'))
 ```
 
 ### Collapse fallbacks
