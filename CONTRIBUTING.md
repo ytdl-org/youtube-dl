@@ -375,22 +375,15 @@ Extracting variables is acceptable for reducing code duplication and improving r
 Correct:
 
 ```python
-return self.playlist_result(
-    [self._parse_brightcove_metadata(vid, vid.get('id'), headers)
-        for vid in json_data.get('videos', []) if vid.get('id')],
-    json_data.get('id'), json_data.get('name'),
-    json_data.get('description'))
+title = self._html_search_regex(r'<title>([^<]+)</title>', webpage, 'title')
 ```
 
 Incorrect:
 
 ```python
-id = json_data.get('id')
-
-return self.playlist_result(
-    [self._parse_brightcove_metadata(vid, vid.get('id'), headers)
-        for vid in json_data.get('videos', []) if vid.get('id')],
-    id, json_data.get('name'), json_data.get('description'))
+TITLE_RE = r'<title>([^<]+)</title>'
+# ...some lines of code...
+title = self._html_search_regex(TITLE_RE, webpage, 'title')
 ```
 
 ### Collapse fallbacks
