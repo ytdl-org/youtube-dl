@@ -1,4 +1,4 @@
-version <unreleased>
+version 2019.08.02
 
 Extractors
 + [tvigle] Add support for HLS and DASH formats (#21967)
