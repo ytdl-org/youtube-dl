@@ -1,3 +1,17 @@
+version 2019.08.02
+
+Extractors
++ [tvigle] Add support for HLS and DASH formats (#21967)
+* [tvigle] Fix extraction (#21967)
++ [yandexvideo] Add support for DASH formats (#21971)
+* [discovery] Use API call for video data extraction (#21808)
++ [mgtv] Extract format_note (#21881)
+* [tvn24] Fix metadata extraction (#21833, #21834)
+* [dlive] Relax URL regular expression (#21909)
++ [openload] Add support for oload.best (#21913)
+* [youtube] Improve metadata extraction for age gate content (#21943)
+
+
 version 2019.07.30
 
 Extractors
