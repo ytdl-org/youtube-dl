@@ -34,7 +34,7 @@ class DiscoveryIE(DiscoveryGoBaseIE):
                     cookingchanneltv|
                     motortrend
                 )
-        )\.com/tv-shows/[^/]+/(?:video|full-episode)s/(?P<id>[^./?#]+)'''
+        )\.com/tv-shows/(?P<show_slug>[^/]+)/(?:video|full-episode)s/(?P<id>[^./?#]+)'''
     _TESTS = [{
         'url': 'https://go.discovery.com/tv-shows/cash-cab/videos/riding-with-matthew-perry',
         'info_dict': {
@@ -53,13 +53,17 @@ class DiscoveryIE(DiscoveryGoBaseIE):
     }, {
         'url': 'https://go.discovery.com/tv-shows/alaskan-bush-people/videos/follow-your-own-road',
         'only_matching': True,
+    }, {
+        # using `show_slug` is important to get the correct video data
+        'url': 'https://www.sciencechannel.com/tv-shows/mythbusters-on-science/full-episodes/christmas-special',
+        'only_matching': True,
     }]
     _GEO_COUNTRIES = ['US']
     _GEO_BYPASS = False
     _API_BASE_URL = 'https://api.discovery.com/v1/'
 
     def _real_extract(self, url):
-        site, display_id = re.match(self._VALID_URL, url).groups()
+        site, show_slug, display_id = re.match(self._VALID_URL, url).groups()
 
         access_token = None
         cookies = self._get_cookies(url)
@@ -91,6 +95,7 @@ class DiscoveryIE(DiscoveryGoBaseIE):
                 display_id, 'Downloading content JSON metadata',
                 headers=headers, query={
                     'slug': display_id,
+                    'show_slug': show_slug,
                 })[0]
             video_id = video['id']
             stream = self._download_json(
