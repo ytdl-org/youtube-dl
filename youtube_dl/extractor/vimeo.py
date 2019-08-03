@@ -2,12 +2,14 @@
 from __future__ import unicode_literals
 
 import base64
+import functools
 import json
 import re
 import itertools
 
 from .common import InfoExtractor
 from ..compat import (
+    compat_kwargs,
     compat_HTTPError,
     compat_str,
     compat_urlparse,
@@ -19,6 +21,7 @@ from ..utils import (
     int_or_none,
     merge_dicts,
     NO_DEFAULT,
+    OnDemandPagedList,
     parse_filesize,
     qualities,
     RegexNotFoundError,
@@ -97,6 +100,13 @@ class VimeoBaseInfoExtractor(InfoExtractor):
             r'["\']vuid["\']\s*:\s*(["\'])(?P<vuid>.+?)\1',
             webpage, 'vuid', group='vuid')
         return xsrft, vuid
+
+    def _extract_vimeo_config(self, webpage, video_id, *args, **kwargs):
+        vimeo_config = self._search_regex(
+            r'vimeo\.config\s*=\s*(?:({.+?})|_extend\([^,]+,\s+({.+?})\));',
+            webpage, 'vimeo config', *args, **compat_kwargs(kwargs))
+        if vimeo_config:
+            return self._parse_json(vimeo_config, video_id)
 
     def _set_vimeo_cookie(self, name, value):
         self._set_cookie('vimeo.com', name, value)
@@ -253,7 +263,7 @@ class VimeoIE(VimeoBaseInfoExtractor):
                             \.
                         )?
                         vimeo(?P<pro>pro)?\.com/
-                        (?!(?:channels|album)/[^/?#]+/?(?:$|[?#])|[^/]+/review/|ondemand/)
+                        (?!(?:channels|album|showcase)/[^/?#]+/?(?:$|[?#])|[^/]+/review/|ondemand/)
                         (?:.*?/)?
                         (?:
                             (?:
@@ -580,11 +590,9 @@ class VimeoIE(VimeoBaseInfoExtractor):
         # and latter we extract those that are Vimeo specific.
         self.report_extraction(video_id)
 
-        vimeo_config = self._search_regex(
-            r'vimeo\.config\s*=\s*(?:({.+?})|_extend\([^,]+,\s+({.+?})\));', webpage,
-            'vimeo config', default=None)
+        vimeo_config = self._extract_vimeo_config(webpage, video_id, default=None)
         if vimeo_config:
-            seed_status = self._parse_json(vimeo_config, video_id).get('seed_status', {})
+            seed_status = vimeo_config.get('seed_status', {})
             if seed_status.get('state') == 'failed':
                 raise ExtractorError(
                     '%s said: %s' % (self.IE_NAME, seed_status['title']),
@@ -905,7 +913,7 @@ class VimeoUserIE(VimeoChannelIE):
 
 class VimeoAlbumIE(VimeoChannelIE):
     IE_NAME = 'vimeo:album'
-    _VALID_URL = r'https://vimeo\.com/album/(?P<id>\d+)(?:$|[?#]|/(?!video))'
+    _VALID_URL = r'https://vimeo\.com/(?:album|showcase)/(?P<id>\d+)(?:$|[?#]|/(?!video))'
     _TITLE_RE = r'<header id="page_header">\n\s*<h1>(.*?)</h1>'
     _TESTS = [{
         'url': 'https://vimeo.com/album/2632481',
@@ -925,21 +933,39 @@ class VimeoAlbumIE(VimeoChannelIE):
         'params': {
             'videopassword': 'youtube-dl',
         }
-    }, {
-        'url': 'https://vimeo.com/album/2632481/sort:plays/format:thumbnail',
-        'only_matching': True,
-    }, {
-        # TODO: respect page number
-        'url': 'https://vimeo.com/album/2632481/page:2/sort:plays/format:thumbnail',
-        'only_matching': True,
     }]
+    _PAGE_SIZE = 100
 
-    def _page_url(self, base_url, pagenum):
-        return '%s/page:%d/' % (base_url, pagenum)
+    def _fetch_page(self, album_id, authorizaion, hashed_pass, page):
+        api_page = page + 1
+        query = {
+            'fields': 'link',
+            'page': api_page,
+            'per_page': self._PAGE_SIZE,
+        }
+        if hashed_pass:
+            query['_hashed_pass'] = hashed_pass
+        videos = self._download_json(
+            'https://api.vimeo.com/albums/%s/videos' % album_id,
+            album_id, 'Downloading page %d' % api_page, query=query, headers={
+                'Authorization': 'jwt ' + authorizaion,
+            })['data']
+        for video in videos:
+            link = video.get('link')
+            if not link:
+                continue
+            yield self.url_result(link, VimeoIE.ie_key(), VimeoIE._match_id(link))
 
     def _real_extract(self, url):
         album_id = self._match_id(url)
-        return self._extract_videos(album_id, 'https://vimeo.com/album/%s' % album_id)
+        webpage = self._download_webpage(url, album_id)
+        webpage = self._login_list_password(url, album_id, webpage)
+        api_config = self._extract_vimeo_config(webpage, album_id)['api']
+        entries = OnDemandPagedList(functools.partial(
+            self._fetch_page, album_id, api_config['jwt'],
+            api_config.get('hashed_pass')), self._PAGE_SIZE)
+        return self.playlist_result(entries, album_id, self._html_search_regex(
+            r'<title>\s*(.+?)(?:\s+on Vimeo)?</title>', webpage, 'title', fatal=False))
 
 
 class VimeoGroupsIE(VimeoAlbumIE):
