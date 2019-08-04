@@ -58,17 +58,8 @@ from .ard import (
     ARDMediathekIE,
 )
 from .arte import (
-    ArteTvIE,
     ArteTVPlus7IE,
-    ArteTVCreativeIE,
-    ArteTVConcertIE,
-    ArteTVInfoIE,
-    ArteTVFutureIE,
-    ArteTVCinemaIE,
-    ArteTVDDCIE,
-    ArteTVMagazineIE,
     ArteTVEmbedIE,
-    TheOperaPlatformIE,
     ArteTVPlaylistIE,
 )
 from .asiancrush import (
@@ -173,6 +164,7 @@ from .cbs import CBSIE
 from .cbslocal import CBSLocalIE
 from .cbsinteractive import CBSInteractiveIE
 from .cbsnews import (
+    CBSNewsEmbedIE,
     CBSNewsIE,
     CBSNewsLiveVideoIE,
 )
@@ -240,7 +232,6 @@ from .condenast import CondeNastIE
 from .corus import CorusIE
 from .cracked import CrackedIE
 from .crackle import CrackleIE
-from .criterion import CriterionIE
 from .crooksandliars import CrooksAndLiarsIE
 from .crunchyroll import (
     CrunchyrollIE,
@@ -404,11 +395,7 @@ from .frontendmasters import (
     FrontendMastersCourseIE
 )
 from .funimation import FunimationIE
-from .funk import (
-    FunkMixIE,
-    FunkChannelIE,
-)
-from .funnyordie import FunnyOrDieIE
+from .funk import FunkIE
 from .fusion import FusionIE
 from .fxnetworks import FXNetworksIE
 from .gaia import GaiaIE
@@ -592,6 +579,7 @@ from .linkedin import (
 )
 from .linuxacademy import LinuxAcademyIE
 from .litv import LiTVIE
+from .livejournal import LiveJournalIE
 from .liveleak import (
     LiveLeakIE,
     LiveLeakEmbedIE,
@@ -745,7 +733,6 @@ from .nexx import (
     NexxIE,
     NexxEmbedIE,
 )
-from .nfb import NFBIE
 from .nfl import NFLIE
 from .nhk import NhkVodIE
 from .nhl import NHLIE
@@ -771,13 +758,6 @@ from .nosvideo import NosVideoIE
 from .nova import (
     NovaEmbedIE,
     NovaIE,
-)
-from .novamov import (
-    AuroraVidIE,
-    CloudTimeIE,
-    NowVideoIE,
-    VideoWeedIE,
-    WholeCloudIE,
 )
 from .nowness import (
     NownessIE,
@@ -896,12 +876,12 @@ from .polskieradio import (
 from .popcorntv import PopcornTVIE
 from .porn91 import Porn91IE
 from .porncom import PornComIE
-from .pornflip import PornFlipIE
 from .pornhd import PornHdIE
 from .pornhub import (
     PornHubIE,
-    PornHubPlaylistIE,
-    PornHubUserVideosIE,
+    PornHubUserIE,
+    PornHubPagedVideoListIE,
+    PornHubUserVideosUploadIE,
 )
 from .pornotube import PornotubeIE
 from .pornovoisines import PornoVoisinesIE
@@ -946,7 +926,10 @@ from .raywenderlich import (
 )
 from .rbmaradio import RBMARadioIE
 from .rds import RDSIE
-from .redbulltv import RedBullTVIE
+from .redbulltv import (
+    RedBullTVIE,
+    RedBullTVRrnContentIE,
+)
 from .reddit import (
     RedditIE,
     RedditRIE,
@@ -985,7 +968,6 @@ from .rts import RTSIE
 from .rtve import RTVEALaCartaIE, RTVELiveIE, RTVEInfantilIE, RTVELiveIE, RTVETelevisionIE
 from .rtvnh import RTVNHIE
 from .rtvs import RTVSIE
-from .rudo import RudoIE
 from .ruhd import RUHDIE
 from .rutube import (
     RutubeIE,
@@ -1273,6 +1255,10 @@ from .udn import UDNEmbedIE
 from .ufctv import UFCTVIE
 from .uktvplay import UKTVPlayIE
 from .digiteka import DigitekaIE
+from .dlive import (
+    DLiveVODIE,
+    DLiveStreamIE,
+)
 from .umg import UMGDeIE
 from .unistra import UnistraIE
 from .unity import UnityIE
@@ -1462,6 +1448,7 @@ from .yahoo import (
     YahooSearchIE,
     YahooGyaOPlayerIE,
     YahooGyaOIE,
+    YahooJapanNewsIE,
 )
 from .yandexdisk import YandexDiskIE
 from .yandexmusic import (

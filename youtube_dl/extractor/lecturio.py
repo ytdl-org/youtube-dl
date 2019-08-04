@@ -6,8 +6,8 @@ import re
 from .common import InfoExtractor
 from ..compat import compat_str
 from ..utils import (
+    clean_html,
     determine_ext,
-    extract_attributes,
     ExtractorError,
     float_or_none,
     int_or_none,
@@ -19,6 +19,7 @@ from ..utils import (
 
 
 class LecturioBaseIE(InfoExtractor):
+    _API_BASE_URL = 'https://app.lecturio.com/api/en/latest/html5/'
     _LOGIN_URL = 'https://app.lecturio.com/en/login'
     _NETRC_MACHINE = 'lecturio'
 
@@ -67,51 +68,56 @@ class LecturioIE(LecturioBaseIE):
     _VALID_URL = r'''(?x)
                     https://
                         (?:
-                            app\.lecturio\.com/[^/]+/(?P<id>[^/?#&]+)\.lecture|
-                            (?:www\.)?lecturio\.de/[^/]+/(?P<id_de>[^/?#&]+)\.vortrag
+                            app\.lecturio\.com/([^/]+/(?P<nt>[^/?#&]+)\.lecture|(?:\#/)?lecture/c/\d+/(?P<id>\d+))|
+                            (?:www\.)?lecturio\.de/[^/]+/(?P<nt_de>[^/?#&]+)\.vortrag
                         )
                     '''
     _TESTS = [{
         'url': 'https://app.lecturio.com/medical-courses/important-concepts-and-terms-introduction-to-microbiology.lecture#tab/videos',
-        'md5': 'f576a797a5b7a5e4e4bbdfc25a6a6870',
+        'md5': '9a42cf1d8282a6311bf7211bbde26fde',
         'info_dict': {
             'id': '39634',
             'ext': 'mp4',
-            'title': 'Important Concepts and Terms – Introduction to Microbiology',
+            'title': 'Important Concepts and Terms — Introduction to Microbiology',
         },
         'skip': 'Requires lecturio account credentials',
     }, {
         'url': 'https://www.lecturio.de/jura/oeffentliches-recht-staatsexamen.vortrag',
         'only_matching': True,
+    }, {
+        'url': 'https://app.lecturio.com/#/lecture/c/6434/39634',
+        'only_matching': True,
     }]
 
     _CC_LANGS = {
+        'Arabic': 'ar',
+        'Bulgarian': 'bg',
         'German': 'de',
         'English': 'en',
         'Spanish': 'es',
+        'Persian': 'fa',
         'French': 'fr',
+        'Japanese': 'ja',
         'Polish': 'pl',
+        'Pashto': 'ps',
         'Russian': 'ru',
     }
 
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
-        display_id = mobj.group('id') or mobj.group('id_de')
-
-        webpage = self._download_webpage(
-            'https://app.lecturio.com/en/lecture/%s/player.html' % display_id,
-            display_id)
-
-        lecture_id = self._search_regex(
-            r'lecture_id\s*=\s*(?:L_)?(\d+)', webpage, 'lecture id')
-
-        api_url = self._search_regex(
-            r'lectureDataLink\s*:\s*(["\'])(?P<url>(?:(?!\1).)+)\1', webpage,
-            'api url', group='url')
-
-        video = self._download_json(api_url, display_id)
-
+        nt = mobj.group('nt') or mobj.group('nt_de')
+        lecture_id = mobj.group('id')
+        display_id = nt or lecture_id
+        api_path = 'lectures/' + lecture_id if lecture_id else 'lecture/' + nt + '.json'
+        video = self._download_json(
+            self._API_BASE_URL + api_path, display_id)
         title = video['title'].strip()
+        if not lecture_id:
+            pid = video.get('productId') or video.get('uid')
+            if pid:
+                spid = pid.split('_')
+                if spid and len(spid) == 2:
+                    lecture_id = spid[1]
 
         formats = []
         for format_ in video['content']['media']:
@@ -129,24 +135,30 @@ class LecturioIE(LecturioBaseIE):
                 continue
             label = str_or_none(format_.get('label'))
             filesize = int_or_none(format_.get('fileSize'))
-            formats.append({
+            f = {
                 'url': file_url,
                 'format_id': label,
                 'filesize': float_or_none(filesize, invscale=1000)
-            })
+            }
+            if label:
+                mobj = re.match(r'(\d+)p\s*\(([^)]+)\)', label)
+                if mobj:
+                    f.update({
+                        'format_id': mobj.group(2),
+                        'height': int(mobj.group(1)),
+                    })
+            formats.append(f)
         self._sort_formats(formats)
 
         subtitles = {}
         automatic_captions = {}
-        cc = self._parse_json(
-            self._search_regex(
-                r'subtitleUrls\s*:\s*({.+?})\s*,', webpage, 'subtitles',
-                default='{}'), display_id, fatal=False)
-        for cc_label, cc_url in cc.items():
-            cc_url = url_or_none(cc_url)
+        captions = video.get('captions') or []
+        for cc in captions:
+            cc_url = cc.get('url')
             if not cc_url:
                 continue
-            lang = self._search_regex(
+            cc_label = cc.get('translatedCode')
+            lang = cc.get('languageCode') or self._search_regex(
                 r'/([a-z]{2})_', cc_url, 'lang',
                 default=cc_label.split()[0] if cc_label else 'en')
             original_lang = self._search_regex(
@@ -160,7 +172,7 @@ class LecturioIE(LecturioBaseIE):
             })
 
         return {
-            'id': lecture_id,
+            'id': lecture_id or nt,
             'title': title,
             'formats': formats,
             'subtitles': subtitles,
@@ -169,37 +181,40 @@ class LecturioIE(LecturioBaseIE):
 
 
 class LecturioCourseIE(LecturioBaseIE):
-    _VALID_URL = r'https://app\.lecturio\.com/[^/]+/(?P<id>[^/?#&]+)\.course'
-    _TEST = {
+    _VALID_URL = r'https://app\.lecturio\.com/(?:[^/]+/(?P<nt>[^/?#&]+)\.course|(?:#/)?course/c/(?P<id>\d+))'
+    _TESTS = [{
         'url': 'https://app.lecturio.com/medical-courses/microbiology-introduction.course#/',
         'info_dict': {
             'id': 'microbiology-introduction',
             'title': 'Microbiology: Introduction',
+            'description': 'md5:13da8500c25880c6016ae1e6d78c386a',
         },
         'playlist_count': 45,
         'skip': 'Requires lecturio account credentials',
-    }
+    }, {
+        'url': 'https://app.lecturio.com/#/course/c/6434',
+        'only_matching': True,
+    }]
 
     def _real_extract(self, url):
-        display_id = self._match_id(url)
-
-        webpage = self._download_webpage(url, display_id)
-
+        nt, course_id = re.match(self._VALID_URL, url).groups()
+        display_id = nt or course_id
+        api_path = 'courses/' + course_id if course_id else 'course/content/' + nt + '.json'
+        course = self._download_json(
+            self._API_BASE_URL + api_path, display_id)
         entries = []
-        for mobj in re.finditer(
-                r'(?s)<[^>]+\bdata-url=(["\'])(?:(?!\1).)+\.lecture\b[^>]+>',
-                webpage):
-            params = extract_attributes(mobj.group(0))
-            lecture_url = urljoin(url, params.get('data-url'))
-            lecture_id = params.get('data-id')
+        for lecture in course.get('lectures', []):
+            lecture_id = str_or_none(lecture.get('id'))
+            lecture_url = lecture.get('url')
+            if lecture_url:
+                lecture_url = urljoin(url, lecture_url)
+            else:
+                lecture_url = 'https://app.lecturio.com/#/lecture/c/%s/%s' % (course_id, lecture_id)
             entries.append(self.url_result(
                 lecture_url, ie=LecturioIE.ie_key(), video_id=lecture_id))
-
-        title = self._search_regex(
-            r'<span[^>]+class=["\']content-title[^>]+>([^<]+)', webpage,
-            'title', default=None)
-
-        return self.playlist_result(entries, display_id, title)
+        return self.playlist_result(
+            entries, display_id, course.get('title'),
+            clean_html(course.get('description')))
 
 
 class LecturioDeCourseIE(LecturioBaseIE):

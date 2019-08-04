@@ -2104,6 +2104,23 @@ class GenericIE(InfoExtractor):
             },
             'expected_warnings': ['Failed to download MPD manifest'],
         },
+        {
+            # DailyMotion embed with DM.player
+            'url': 'https://www.beinsports.com/us/copa-del-rey/video/the-locker-room-valencia-beat-barca-in-copa/1203804',
+            'info_dict': {
+                'id': 'k6aKkGHd9FJs4mtJN39',
+                'ext': 'mp4',
+                'title': 'The Locker Room: Valencia Beat Barca In Copa del Rey Final',
+                'description': 'This video is private.',
+                'uploader_id': 'x1jf30l',
+                'uploader': 'beIN SPORTS USA',
+                'upload_date': '20190528',
+                'timestamp': 1559062971,
+            },
+            'params': {
+                'skip_download': True,
+            },
+        },
         # {
         #     # TODO: find another test
         #     # http://schema.org/VideoObject
@@ -2209,7 +2226,7 @@ class GenericIE(InfoExtractor):
                 default_search = 'fixup_error'
 
             if default_search in ('auto', 'auto_warning', 'fixup_error'):
-                if '/' in url:
+                if re.match(r'^[^\s/]+\.[^\s/]+/', url):
                     self._downloader.report_warning('The url doesn\'t specify the protocol, trying with http')
                     return self.url_result('http://' + url)
                 elif default_search != 'fixup_error':
@@ -2582,19 +2599,6 @@ class GenericIE(InfoExtractor):
         mobj = re.search(r'<iframe .*?src="(http://mpora\.(?:com|de)/videos/[^"]+)"', webpage)
         if mobj is not None:
             return self.url_result(mobj.group(1), 'Mpora')
-
-        # Look for embedded NovaMov-based player
-        mobj = re.search(
-            r'''(?x)<(?:pagespeed_)?iframe[^>]+?src=(["\'])
-                    (?P<url>http://(?:(?:embed|www)\.)?
-                        (?:novamov\.com|
-                           nowvideo\.(?:ch|sx|eu|at|ag|co)|
-                           videoweed\.(?:es|com)|
-                           movshare\.(?:net|sx|ag)|
-                           divxstage\.(?:eu|net|ch|co|at|ag))
-                        /embed\.php.+?)\1''', webpage)
-        if mobj is not None:
-            return self.url_result(mobj.group('url'))
 
         # Look for embedded Facebook player
         facebook_urls = FacebookIE._extract_urls(webpage)

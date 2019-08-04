@@ -168,7 +168,7 @@ class PeerTubeIE(InfoExtractor):
     @staticmethod
     def _extract_peertube_url(webpage, source_url):
         mobj = re.match(
-            r'https?://(?P<host>[^/]+)/videos/watch/(?P<id>%s)'
+            r'https?://(?P<host>[^/]+)/videos/(?:watch|embed)/(?P<id>%s)'
             % PeerTubeIE._UUID_RE, source_url)
         if mobj and any(p in webpage for p in (
                 '<title>PeerTube<',
