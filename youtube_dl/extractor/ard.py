@@ -7,6 +7,7 @@ from .common import InfoExtractor
 from .generic import GenericIE
 from ..utils import (
     determine_ext,
+    dict_get,
     ExtractorError,
     int_or_none,
     parse_duration,
@@ -17,6 +18,7 @@ from ..utils import (
     unified_timestamp,
     update_url_query,
     url_or_none,
+    url_basename,
     xpath_text,
 )
 from ..compat import compat_etree_fromstring
@@ -325,6 +327,151 @@ class ARDBetaMediathekIE(InfoExtractor):
         'only_matching': True,
     }]
 
+    _format_url_templates = [
+        # Das Erste
+        {
+            'pattern': r'^.+/(?P<width>\d+)-[^/]+_[^/]+\..{3,4}$',
+            'format_id_suffix': 'width',
+        },
+
+        # SWR / SR / NDR
+        {
+            'pattern': r'^.+/[^/]+\.(?P<width_key>[a-z]+)\..{3,4}$',
+            'format_id_suffix': 'width_key',
+            'width_dict': {
+                # SWR / SR
+                'xxl': 1920,
+                'xl': 1280,
+                'l': 960,
+                'ml': 640,
+                'm': 512,
+                'sm': 480,
+                's': 320,
+
+                # NDR
+                'hd': 1280,
+                'hq': 960,
+                'ln': 640,
+                'hi': 512,
+                'mn': 480,
+                'lo': 320,
+            },
+        },
+
+        # BR / ARD-alpha / SR
+        {
+            'pattern': r'^.+/[^/]+_(?P<width_key>[A-Z0-9])\..{3,4}$',
+            'format_id_suffix': 'width_key',
+            'width_dict': {
+                # BR, ARD-alpha
+                'X': 1280,
+                'C': 960,
+                'E': 640,
+                'B': 512,
+                '2': 480,
+                'A': 480,
+                '0': 320,
+
+                # SR
+                'P': 1280,
+                'L': 960,
+                'N': 640,
+                'M': 512,
+                'K': 480,
+                'S': 320,
+            },
+        },
+
+        # HR
+        {
+            'pattern': r'^.+/[^/]+?(?P<width>[0-9]+)x(?P<height>[0-9]+)-(?P<fps>[0-9]+)[pi]-(?P<tbr>[0-9]+)kbit\..{3,4}$',
+            'format_id_suffix': 'tbr',
+        },
+
+        # Radio Bremen
+        {
+            'pattern': r'^.+/[^/]+_(?P<height>\d+)p\..{3,4}$',
+            'format_id_suffix': 'height',
+        },
+
+        # RBB
+        {
+            'pattern': r'^.+/[^/]+_(?P<vbr>\d+)k\..{3,4}$',
+            'format_id_suffix': 'vbr',
+        },
+
+        # tagesschau24
+        {
+            'pattern': r'^.+/[^/]+\.(?P<width_key>[a-z]+)\.[^/]+\..{3,4}$',
+            'format_id_suffix': 'width_key',
+            'width_dict': {
+                'webxl': 1280,
+                'webl': 960,
+                'webml': 640,
+                'webm': 512,
+                'websm': 480,
+                'webs': 256,
+            },
+        },
+
+        # MDR
+        {
+            'pattern': r'^.+/[^/]+-(?P<width_key>[a-z0-9]+)_[^/]+\..{3,4}$',
+            'format_id_suffix': 'width_key',
+            'width_dict': {
+                'be7c2950aac6': 1280,
+                '730aae549c28': 960,
+                '41dd60577440': 640,
+                '9a4bb04739be': 512,
+                '39c393010ca9': 480,
+                'd1ceaa57a495': 320,
+            },
+        },
+
+        # TODO Find out format data for videos from WDR and ONE.
+    ]
+
+    def _get_format_from_url(self, format_url, quality):
+        """Extract as much format data from the format_url as possible.
+
+        Use the templates listed in _format_url_templates to do so.
+        """
+
+        result = {
+            'url': format_url,
+            'preference': 10,  # Plain HTTP, that's nice
+        }
+
+        format_id_suffix = None
+
+        for template in self._format_url_templates:
+            m = re.match(template['pattern'], format_url)
+            if m:
+                groupdict = m.groupdict()
+                result['width'] = int_or_none(groupdict.get('width'))
+                result['height'] = int_or_none(groupdict.get('height'))
+                result['fps'] = int_or_none(groupdict.get('fps'))
+                result['tbr'] = int_or_none(groupdict.get('tbr'))
+                result['vbr'] = int_or_none(groupdict.get('vbr'))
+
+                width_dict = template.get('width_dict')
+                if width_dict:
+                    result['width'] = width_dict.get(groupdict.get('width_key'))
+
+                format_id_suffix = groupdict.get(template.get('format_id_suffix'))
+                break
+
+        if result.get('width') and not result.get('height'):
+            result['height'] = int((result['width'] / 16) * 9)
+
+        if result.get('height') and not result.get('width'):
+            result['width'] = int((result['height'] / 9) * 16)
+
+        result['format_id'] = (('http-' + quality) if quality else 'http') + ('-' + format_id_suffix if format_id_suffix else '')
+
+        return result
+
+
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
         video_id = mobj.group('video_id')
@@ -333,6 +480,8 @@ class ARDBetaMediathekIE(InfoExtractor):
         webpage = self._download_webpage(url, display_id)
         data_json = self._search_regex(r'window\.__APOLLO_STATE__\s*=\s*(\{.*);\n', webpage, 'json')
         data = self._parse_json(data_json, display_id)
+        #import json
+        #print(json.dumps(data, indent=2))
 
         res = {
             'id': video_id,
@@ -361,36 +510,45 @@ class ARDBetaMediathekIE(InfoExtractor):
                     'url': subtitle_url,
                 })
             if '_quality' in widget:
-                format_url = url_or_none(try_get(
-                    widget, lambda x: x['_stream']['json'][0]))
-                if not format_url:
+                # Read format URLs from a MediaStreamArray
+                stream_array = try_get(widget,
+                                       lambda x: x['_stream']['json'])
+                if not stream_array:
                     continue
-                ext = determine_ext(format_url)
-                if ext == 'f4m':
-                    formats.extend(self._extract_f4m_formats(
-                        format_url + '?hdcore=3.11.0',
-                        video_id, f4m_id='hds', fatal=False))
-                elif ext == 'm3u8':
-                    formats.extend(self._extract_m3u8_formats(
-                        format_url, video_id, 'mp4', m3u8_id='hls',
-                        fatal=False))
-                else:
-                    # HTTP formats are not available when geoblocked is True,
-                    # other formats are fine though
-                    if geoblocked:
+
+                for format_url in stream_array:
+                    format_url = url_or_none(format_url)
+                    if not format_url:
                         continue
-                    quality = str_or_none(widget.get('_quality'))
-                    formats.append({
-                        'format_id': ('http-' + quality) if quality else 'http',
-                        'url': format_url,
-                        'preference': 10,  # Plain HTTP, that's nice
-                    })
+
+                    # Make sure this format isn't already in our list.
+                    # Occassionally, there are duplicate files from
+                    # different servers.
+                    duplicate = next((x for x in formats
+                        if url_basename(x['url']) == url_basename(format_url)), None)
+                    if duplicate:
+                        continue
+
+                    ext = determine_ext(format_url)
+                    if ext == 'f4m':
+                        formats.extend(self._extract_f4m_formats(
+                            format_url + '?hdcore=3.11.0',
+                            video_id, f4m_id='hds', fatal=False))
+                    elif ext == 'm3u8':
+                        formats.extend(self._extract_m3u8_formats(
+                            format_url, video_id, 'mp4', m3u8_id='hls',
+                            fatal=False))
+                    else:
+                        quality = str_or_none(widget.get('_quality'))
+                        formats.append(self._get_format_from_url(format_url, quality))
 
         if not formats and geoblocked:
             self.raise_geo_restricted(
                 msg='This video is not available due to geoblocking',
                 countries=['DE'])
 
+        # TODO Improve error handling when video is only unavailable at
+        #      certain times due to age restrictions.
         self._sort_formats(formats)
         res.update({
             'subtitles': subtitles,
