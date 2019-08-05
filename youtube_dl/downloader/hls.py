@@ -107,7 +107,6 @@ class HlsFD(FragmentFD):
             'filename': filename,
             'total_frags': media_frags,
             'ad_frags': ad_frags,
-            'hls': '#EXT-X-KEY:METHOD=AES-128' in s,
         }
 
         self._prepare_and_start_frag_download(ctx)

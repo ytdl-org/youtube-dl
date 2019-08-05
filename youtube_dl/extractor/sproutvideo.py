@@ -12,10 +12,11 @@ from ..compat import (
 
 
 class SproutVideoIE(InfoExtractor):
-    _VALID_URL = r'(?:https?:|)//videos.sproutvideo.com/embed/(?P<id>[a-f0-9]+)/[a-f0-9]+\??.*'
+    _NOSCHEMA_URL = r'//videos.sproutvideo.com/embed/(?P<id>[a-f0-9]+)/[a-f0-9]+'
+    _VALID_URL = r'https?:%s' % _NOSCHEMA_URL
     _TEST = {
         'url': 'https://videos.sproutvideo.com/embed/4c9dddb01910e3c9c4/0fc24387c4f24ee3',
-        'md5': '1343ce1a6cb39d67889bfa07c7b02b0e',
+        'md5': 'fbc675bb97437e797d11d14d99563f50',
         'info_dict': {
             'id': '4c9dddb01910e3c9c4',
             'ext': 'mp4',
@@ -26,9 +27,14 @@ class SproutVideoIE(InfoExtractor):
     @staticmethod
     def _extract_url(webpage):
         sproutvideo = re.search(
-            r'(?:<iframe\s+class=[\'\"]sproutvideo-player.*src|href)=[\'\"](?P<url>%s)[\'\"]' % SproutVideoIE._VALID_URL, webpage)
+            r'(?:<iframe\s+class=[\'\"]sproutvideo-player.*src|href)=[\'\"](?P<url>(?:https?:|)%s[^\'\"]+)[\'\"]' % SproutVideoIE._NOSCHEMA_URL, webpage)
         if sproutvideo:
-            return sproutvideo.group('url')
+            video_url = sproutvideo.group('url')
+            # Fix the video URL if the iframe doesn't have a defined schema
+            if video_url[:2] == '//':
+                video_url = 'https:' + video_url
+            return video_url
+
 
     def _real_extract(self, url):
         video_id = self._match_id(url)
@@ -42,30 +48,31 @@ class SproutVideoIE(InfoExtractor):
         # signature->m for manifests
         # signature->k for keys
         # signature->t for segments
-        m_sig = self._policy_to_qs(parsed_data, 'm')
-        k_sig = self._policy_to_qs(parsed_data, 'k')
-        t_sig = self._policy_to_qs(parsed_data, 't')
+        m_sign = self._policy_to_qs(parsed_data, 'm')
+        k_sign = self._policy_to_qs(parsed_data, 'k')
+        t_sign = self._policy_to_qs(parsed_data, 't')
 
-        url = "https://{0}.videos.sproutvideo.com/{1}/{2}/video/index.m3u8?{3}"
-        url = url.format(parsed_data['base'],
-                         parsed_data['s3_user_hash'],
-                         parsed_data['s3_video_hash'],
-                         m_sig)
+        resource_url = 'https://{0}.videos.sproutvideo.com/{1}/{2}/video/index.m3u8?{3}'
+        resource_url = resource_url.format(parsed_data['base'],
+                                           parsed_data['s3_user_hash'],
+                                           parsed_data['s3_video_hash'],
+                                           m_sign)
 
-        formats = self._extract_m3u8_formats(url, video_id, 'mp4', 'm3u8_native',
+        formats = self._extract_m3u8_formats(resource_url, video_id, 'mp4', entry_protocol='m3u8_native',
                                              m3u8_id='hls', fatal=False)
         self._sort_formats(formats)
 
-        for i in range(len(formats)):
-            formats[i]['url'] = "{}?{}".format(formats[i]['url'], m_sig)
+        for entry in formats:
+            entry.update({
+                'url': '{0}?{1}'.format(entry['url'], m_sign),
+                'extra_param_to_segment_url': t_sign,
+                'extra_param_to_key_url': k_sign,
+            })
 
         return {
             'id': video_id,
             'title': parsed_data['title'],
             'formats': formats,
-            'force_hlsdl': True,  # currently FFmpeg is not supported
-            'extra_param_to_segment_url': t_sig,
-            'extra_param_to_key_url': k_sig
         }
 
     def _format_qsdata(self, qs_data):
@@ -75,6 +82,6 @@ class SproutVideoIE(InfoExtractor):
         return parsed_dict
 
     def _policy_to_qs(self, policy, key):
-        sig = self._format_qsdata(policy['signatures'][key])
-        sig['sessionID'] = policy['sessionID']
-        return compat_urllib_parse_urlencode(sig, doseq=True)
+        sign = self._format_qsdata(policy['signatures'][key])
+        sign['sessionID'] = policy['sessionID']
+        return compat_urllib_parse_urlencode(sign, doseq=True)

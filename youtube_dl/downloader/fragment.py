@@ -124,8 +124,6 @@ class FragmentFD(FileDownloader):
             del ctx['fragment_filename_sanitized']
 
     def _prepare_frag_download(self, ctx):
-        if 'hls' not in ctx:
-            ctx['hls'] = False
         if 'live' not in ctx:
             ctx['live'] = False
         if not ctx['live']:
@@ -148,7 +146,6 @@ class FragmentFD(FileDownloader):
                 'retries': self.params.get('retries', 0),
                 'nopart': self.params.get('nopart', False),
                 'test': self.params.get('test', False),
-                'hls': ctx['hls'],
             }
         )
         tmpfilename = self.temp_name(ctx['filename'])
