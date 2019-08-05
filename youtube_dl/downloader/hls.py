@@ -105,7 +105,6 @@ class HlsFD(FragmentFD):
             'filename': filename,
             'total_frags': media_frags,
             'ad_frags': ad_frags,
-            'hls': '#EXT-X-KEY:METHOD=AES-128' in s,
         }
 
         self._prepare_and_start_frag_download(ctx)
@@ -176,8 +175,10 @@ class HlsFD(FragmentFD):
                         iv = decrypt_info.get('IV') or compat_struct_pack('>8xq', media_sequence)
                         decrypt_info['KEY'] = decrypt_info.get('KEY') or self.ydl.urlopen(
                             self._prepare_url(info_dict, info_dict.get('_decryption_key_url') or decrypt_info['URI'])).read()
-                        frag_content = AES.new(
-                            decrypt_info['KEY'], AES.MODE_CBC, iv).decrypt(frag_content)
+                        # We don't decrypt fragments during the test
+                        if not test:
+                            frag_content = AES.new(
+                                decrypt_info['KEY'], AES.MODE_CBC, iv).decrypt(frag_content)
                     self._append_fragment(ctx, frag_content)
                     # We only download the first fragment during the test
                     if test:

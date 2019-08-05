@@ -43,9 +43,6 @@ def get_suitable_downloader(info_dict, params={}):
         if ed.can_download(info_dict):
             return ed
 
-    if info_dict.get('force_hlsdl') is True:
-        return HlsFD
-
     if protocol.startswith('m3u8') and info_dict.get('is_live'):
         return FFmpegFD
 
