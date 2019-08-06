@@ -25,16 +25,11 @@ class SproutVideoIE(InfoExtractor):
     }
 
     @staticmethod
-    def _extract_url(webpage):
-        sproutvideo = re.search(
-            r'(?:<iframe\s+class=[\'\"]sproutvideo-player.*src|href)=[\'\"](?P<url>(?:https?:|)%s[^\'\"]+)[\'\"]' % SproutVideoIE._NOSCHEMA_URL, webpage)
-        if sproutvideo:
-            video_url = sproutvideo.group('url')
-            # Fix the video URL if the iframe doesn't have a defined schema
-            if video_url[:2] == '//':
-                video_url = 'https:' + video_url
-            return video_url
-
+    def _extract_urls(webpage):
+        # Fix the video URL if the iframe doesn't have a defined schema
+        return [sprout.group('url') for sprout in re.finditer(
+            r'(?:<iframe\s+class=[\'\"]sproutvideo-player.*src|href)=[\'\"](?P<url>(?:https?:|)%s[^\'\"]+)[\'\"]' % SproutVideoIE._NOSCHEMA_URL,
+            webpage)]
 
     def _real_extract(self, url):
         video_id = self._match_id(url)

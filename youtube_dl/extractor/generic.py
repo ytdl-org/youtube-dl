@@ -3214,9 +3214,10 @@ class GenericIE(InfoExtractor):
             return self.playlist_from_matches(
                 zype_urls, video_id, video_title, ie=ZypeIE.ie_key())
 
-        sproutvideo_url = SproutVideoIE._extract_url(webpage)
-        if sproutvideo_url:
-            return self.url_result(sproutvideo_url)
+        sproutvideo_urls = SproutVideoIE._extract_urls(webpage)
+        if sproutvideo_urls:
+            return self.playlist_from_matches(
+                sproutvideo_urls, video_id, video_title, ie=SproutVideoIE.ie_key())
 
         # Look for HTML5 media
         entries = self._parse_html5_media_entries(url, webpage, video_id, m3u8_id='hls')
