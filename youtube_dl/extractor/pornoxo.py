@@ -11,7 +11,7 @@ from ..utils import (
 class PornoXOIE(InfoExtractor):
     _VALID_URL = r'https?://(?:www\.)?pornoxo\.com/videos/(?P<id>\d+)/(?P<display_id>[^/]+)/'
     _TEST = {
-        'url': 'http://www.pornoxo.com/videos/7564/striptease-from-sexy-secretary.html',
+        'url': 'https://www.pornoxo.com/videos/7564/striptease-from-sexy-secretary/',
         'md5': '582f28ecbaa9e6e24cb90f50f524ce87',
         'info_dict': {
             'id': '7564',
