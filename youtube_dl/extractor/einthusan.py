@@ -19,7 +19,7 @@ from ..utils import (
 
 
 class EinthusanIE(InfoExtractor):
-    _VALID_URL = r'https?://(?P<host>einthusan\.(?:tv|com))/movie/watch/(?P<id>[^/?#&]+)'
+    _VALID_URL = r'https?://(?P<host>einthusan\.(?:tv|com|ca))/movie/watch/(?P<id>[^/?#&]+)'
     _TESTS = [{
         'url': 'https://einthusan.tv/movie/watch/9097/',
         'md5': 'ff0f7f2065031b8a2cf13a933731c035',
