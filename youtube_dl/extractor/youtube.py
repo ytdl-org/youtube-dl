@@ -1813,7 +1813,8 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
 
         def extract_unavailable_message():
             return self._html_search_regex(
-                r'(?s)<h1[^>]+id="unavailable-message"[^>]*>(.+?)</h1>',
+                (r'(?s)<div[^>]+id=["\']unavailable-submessage["\'][^>]+>(.+?)</div',
+                 r'(?s)<h1[^>]+id=["\']unavailable-message["\'][^>]*>(.+?)</h1>'),
                 video_webpage, 'unavailable message', default=None)
 
         if not video_info:
@@ -2098,9 +2099,14 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                     a_format.setdefault('http_headers', {})['Youtubedl-no-compression'] = 'True'
                     formats.append(a_format)
             else:
-                error_message = clean_html(video_info.get('reason', [None])[0])
+                error_message = extract_unavailable_message()
                 if not error_message:
-                    error_message = extract_unavailable_message()
+                    error_message = clean_html(try_get(
+                        player_response, lambda x: x['playabilityStatus']['reason'],
+                        compat_str))
+                if not error_message:
+                    error_message = clean_html(
+                        try_get(video_info, lambda x: x['reason'][0], compat_str))
                 if error_message:
                     raise ExtractorError(error_message, expected=True)
                 raise ExtractorError('no conn, hlsvp, hlsManifestUrl or url_encoded_fmt_stream_map information found in video info')
