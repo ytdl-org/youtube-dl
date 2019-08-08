@@ -94,6 +94,8 @@ class DiscoveryIE(DiscoveryGoBaseIE):
                 self._API_BASE_URL + 'content/videos',
                 display_id, 'Downloading content JSON metadata',
                 headers=headers, query={
+                    'embed': 'show.name',
+                    'fields': 'authenticated,description.detailed,duration,episodeNumber,id,name,parental.rating,season.number,show,tags',
                     'slug': display_id,
                     'show_slug': show_slug,
                 })[0]
