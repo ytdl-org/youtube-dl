@@ -32,6 +32,10 @@ class VzaarIE(InfoExtractor):
             'ext': 'mp3',
             'title': 'MP3',
         },
+    }, {
+        # with null videoTitle
+        'url': 'https://view.vzaar.com/20313539/download',
+        'only_matching': True,
     }]
 
     @staticmethod
@@ -45,7 +49,7 @@ class VzaarIE(InfoExtractor):
         video_data = self._download_json(
             'http://view.vzaar.com/v2/%s/video' % video_id, video_id)
 
-        title = video_data['videoTitle']
+        title = video_data.get('videoTitle') or video_id
 
         formats = []
 

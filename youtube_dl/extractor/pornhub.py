@@ -372,37 +372,92 @@ class PornHubPlaylistBaseIE(PornHubBaseIE):
             entries, playlist_id, title, playlist.get('description'))
 
 
-class PornHubPlaylistIE(PornHubPlaylistBaseIE):
-    _VALID_URL = r'https?://(?:[^/]+\.)?(?P<host>pornhub\.(?:com|net))/playlist/(?P<id>\d+)'
+class PornHubUserIE(PornHubPlaylistBaseIE):
+    _VALID_URL = r'(?P<url>https?://(?:[^/]+\.)?pornhub\.(?:com|net)/(?:(?:user|channel)s|model|pornstar)/(?P<id>[^/?#&]+))(?:[?#&]|/(?!videos)|$)'
     _TESTS = [{
-        'url': 'http://www.pornhub.com/playlist/4667351',
-        'info_dict': {
-            'id': '4667351',
-            'title': 'Nataly Hot',
-        },
-        'playlist_mincount': 2,
+        'url': 'https://www.pornhub.com/model/zoe_ph',
+        'playlist_mincount': 118,
     }, {
-        'url': 'https://de.pornhub.com/playlist/4667351',
+        'url': 'https://www.pornhub.com/pornstar/liz-vicious',
+        'info_dict': {
+            'id': 'liz-vicious',
+        },
+        'playlist_mincount': 118,
+    }, {
+        'url': 'https://www.pornhub.com/users/russianveet69',
+        'only_matching': True,
+    }, {
+        'url': 'https://www.pornhub.com/channels/povd',
+        'only_matching': True,
+    }, {
+        'url': 'https://www.pornhub.com/model/zoe_ph?abc=1',
         'only_matching': True,
     }]
 
+    def _real_extract(self, url):
+        mobj = re.match(self._VALID_URL, url)
+        user_id = mobj.group('id')
+        return self.url_result(
+            '%s/videos' % mobj.group('url'), ie=PornHubPagedVideoListIE.ie_key(),
+            video_id=user_id)
 
-class PornHubUserVideosIE(PornHubPlaylistBaseIE):
-    _VALID_URL = r'https?://(?:[^/]+\.)?(?P<host>pornhub\.(?:com|net))/(?:(?:user|channel)s|model|pornstar)/(?P<id>[^/]+)/videos'
+
+class PornHubPagedPlaylistBaseIE(PornHubPlaylistBaseIE):
+    def _real_extract(self, url):
+        mobj = re.match(self._VALID_URL, url)
+        host = mobj.group('host')
+        item_id = mobj.group('id')
+
+        page = int_or_none(self._search_regex(
+            r'\bpage=(\d+)', url, 'page', default=None))
+
+        page_url = self._make_page_url(url)
+
+        entries = []
+        for page_num in (page, ) if page is not None else itertools.count(1):
+            try:
+                webpage = self._download_webpage(
+                    page_url, item_id, 'Downloading page %d' % page_num,
+                    query={'page': page_num})
+            except ExtractorError as e:
+                if isinstance(e.cause, compat_HTTPError) and e.cause.code == 404:
+                    break
+                raise
+            page_entries = self._extract_entries(webpage, host)
+            if not page_entries:
+                break
+            entries.extend(page_entries)
+            if not self._has_more(webpage):
+                break
+
+        return self.playlist_result(orderedSet(entries), item_id)
+
+
+class PornHubPagedVideoListIE(PornHubPagedPlaylistBaseIE):
+    _VALID_URL = r'https?://(?:[^/]+\.)?(?P<host>pornhub\.(?:com|net))/(?P<id>(?:[^/]+/)*[^/?#&]+)'
     _TESTS = [{
-        'url': 'http://www.pornhub.com/users/zoe_ph/videos/public',
-        'info_dict': {
-            'id': 'zoe_ph',
-        },
-        'playlist_mincount': 171,
+        'url': 'https://www.pornhub.com/model/zoe_ph/videos',
+        'only_matching': True,
     }, {
         'url': 'http://www.pornhub.com/users/rushandlia/videos',
         'only_matching': True,
     }, {
+        'url': 'https://www.pornhub.com/pornstar/jenny-blighe/videos',
+        'info_dict': {
+            'id': 'pornstar/jenny-blighe/videos',
+        },
+        'playlist_mincount': 149,
+    }, {
+        'url': 'https://www.pornhub.com/pornstar/jenny-blighe/videos?page=3',
+        'info_dict': {
+            'id': 'pornstar/jenny-blighe/videos',
+        },
+        'playlist_mincount': 40,
+    }, {
         # default sorting as Top Rated Videos
         'url': 'https://www.pornhub.com/channels/povd/videos',
         'info_dict': {
-            'id': 'povd',
+            'id': 'channels/povd/videos',
         },
         'playlist_mincount': 293,
     }, {
@@ -421,31 +476,107 @@ class PornHubUserVideosIE(PornHubPlaylistBaseIE):
         'url': 'http://www.pornhub.com/users/zoe_ph/videos/public',
         'only_matching': True,
     }, {
-        'url': 'https://www.pornhub.com/model/jayndrea/videos/upload',
+        # Most Viewed Videos
+        'url': 'https://www.pornhub.com/pornstar/liz-vicious/videos?o=mv',
         'only_matching': True,
     }, {
-        'url': 'https://www.pornhub.com/pornstar/jenny-blighe/videos/upload',
+        # Top Rated Videos
+        'url': 'https://www.pornhub.com/pornstar/liz-vicious/videos?o=tr',
+        'only_matching': True,
+    }, {
+        # Longest Videos
+        'url': 'https://www.pornhub.com/pornstar/liz-vicious/videos?o=lg',
+        'only_matching': True,
+    }, {
+        # Newest Videos
+        'url': 'https://www.pornhub.com/pornstar/liz-vicious/videos?o=cm',
+        'only_matching': True,
+    }, {
+        'url': 'https://www.pornhub.com/pornstar/liz-vicious/videos/paid',
+        'only_matching': True,
+    }, {
+        'url': 'https://www.pornhub.com/pornstar/liz-vicious/videos/fanonly',
+        'only_matching': True,
+    }, {
+        'url': 'https://www.pornhub.com/video',
+        'only_matching': True,
+    }, {
+        'url': 'https://www.pornhub.com/video?page=3',
+        'only_matching': True,
+    }, {
+        'url': 'https://www.pornhub.com/video/search?search=123',
+        'only_matching': True,
+    }, {
+        'url': 'https://www.pornhub.com/categories/teen',
+        'only_matching': True,
+    }, {
+        'url': 'https://www.pornhub.com/categories/teen?page=3',
+        'only_matching': True,
+    }, {
+        'url': 'https://www.pornhub.com/hd',
+        'only_matching': True,
+    }, {
+        'url': 'https://www.pornhub.com/hd?page=3',
+        'only_matching': True,
+    }, {
+        'url': 'https://www.pornhub.com/described-video',
+        'only_matching': True,
+    }, {
+        'url': 'https://www.pornhub.com/described-video?page=2',
+        'only_matching': True,
+    }, {
+        'url': 'https://www.pornhub.com/video/incategories/60fps-1/hd-porn',
+        'only_matching': True,
+    }, {
+        'url': 'https://www.pornhub.com/playlist/44121572',
+        'info_dict': {
+            'id': 'playlist/44121572',
+        },
+        'playlist_mincount': 132,
+    }, {
+        'url': 'https://www.pornhub.com/playlist/4667351',
+        'only_matching': True,
+    }, {
+        'url': 'https://de.pornhub.com/playlist/4667351',
         'only_matching': True,
     }]
 
-    def _real_extract(self, url):
+    @classmethod
+    def suitable(cls, url):
+        return (False
+                if PornHubIE.suitable(url) or PornHubUserIE.suitable(url) or PornHubUserVideosUploadIE.suitable(url)
+                else super(PornHubPagedVideoListIE, cls).suitable(url))
+
+    def _make_page_url(self, url):
+        return url
+
+    @staticmethod
+    def _has_more(webpage):
+        return re.search(
+            r'''(?x)
+                <li[^>]+\bclass=["\']page_next|
+                <link[^>]+\brel=["\']next|
+                <button[^>]+\bid=["\']moreDataBtn
+            ''', webpage) is not None
+
+
+class PornHubUserVideosUploadIE(PornHubPagedPlaylistBaseIE):
+    _VALID_URL = r'(?P<url>https?://(?:[^/]+\.)?(?P<host>pornhub\.(?:com|net))/(?:(?:user|channel)s|model|pornstar)/(?P<id>[^/]+)/videos/upload)'
+    _TESTS = [{
+        'url': 'https://www.pornhub.com/pornstar/jenny-blighe/videos/upload',
+        'info_dict': {
+            'id': 'jenny-blighe',
+        },
+        'playlist_mincount': 129,
+    }, {
+        'url': 'https://www.pornhub.com/model/zoe_ph/videos/upload',
+        'only_matching': True,
+    }]
+
+    def _make_page_url(self, url):
         mobj = re.match(self._VALID_URL, url)
-        host = mobj.group('host')
-        user_id = mobj.group('id')
+        return '%s/ajax' % mobj.group('url')
 
-        entries = []
-        for page_num in itertools.count(1):
-            try:
-                webpage = self._download_webpage(
-                    url, user_id, 'Downloading page %d' % page_num,
-                    query={'page': page_num})
-            except ExtractorError as e:
-                if isinstance(e.cause, compat_HTTPError) and e.cause.code == 404:
-                    break
-                raise
-            page_entries = self._extract_entries(webpage, host)
-            if not page_entries:
-                break
-            entries.extend(page_entries)
-
-        return self.playlist_result(entries, user_id)
+    @staticmethod
+    def _has_more(webpage):
+        return True
