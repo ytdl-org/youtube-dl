@@ -1595,17 +1595,6 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
         video_id = mobj.group(2)
         return video_id
 
-    def _extract_annotations(self, video_id):
-        return self._download_webpage(
-            'https://www.youtube.com/annotations_invideo', video_id,
-            note='Downloading annotations',
-            errnote='Unable to download video annotations', fatal=False,
-            query={
-                'features': 1,
-                'legacy': 1,
-                'video_id': video_id,
-            })
-
     @staticmethod
     def _extract_chapters(description, duration):
         if not description:
@@ -2277,7 +2266,21 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
         # annotations
         video_annotations = None
         if self._downloader.params.get('writeannotations', False):
-            video_annotations = self._extract_annotations(video_id)
+            xsrf_token = self._search_regex(
+                r'([\'"])XSRF_TOKEN\1\s*:\s*([\'"])(?P<xsrf_token>[A-Za-z0-9+/=]+)\2',
+                video_webpage, 'xsrf token', group='xsrf_token', fatal=False)
+            invideo_url = try_get(
+                player_response, lambda x: x['annotations'][0]['playerAnnotationsUrlsRenderer']['invideoUrl'], compat_str)
+            if xsrf_token and invideo_url:
+                xsrf_field_name = self._search_regex(
+                    r'([\'"])XSRF_FIELD_NAME\1\s*:\s*([\'"])(?P<xsrf_field_name>\w+)\2',
+                    video_webpage, 'xsrf field name',
+                    group='xsrf_field_name', default='session_token')
+                video_annotations = self._download_webpage(
+                    self._proto_relative_url(invideo_url),
+                    video_id, note='Downloading annotations',
+                    errnote='Unable to download video annotations', fatal=False,
+                    data=urlencode_postdata({xsrf_field_name: xsrf_token}))
 
         chapters = self._extract_chapters(description_original, video_duration)
 
