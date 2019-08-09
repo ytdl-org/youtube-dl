@@ -10,7 +10,7 @@ from ..utils import (
 
 
 class RedBullTVIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:www\.)?redbull(?:\.tv|\.com(?:/[^/]+)?(?:/tv)?)(?:/events/[^/]+)?/(?:videos?|live)/(?P<id>AP-\w+)'
+    _VALID_URL = r'https?://(?:www\.)?redbull\.com/[^/]+/(?:videos|recap-videos|events|episodes|films)/(?P<id>AP-\w+)'
     _TESTS = [{
         # film
         'url': 'https://www.redbull.tv/video/AP-1Q6XCDTAN1W11',
@@ -75,6 +75,12 @@ class RedBullTVIE(InfoExtractor):
             raise
 
         title = video['title'].strip()
+
+        # use an 'rrn:...' ID instead of an 'AP-...' ID if necessary
+        content_path = video.get('status', {}).get('play')
+        if content_path:
+            # trim '/content/' from '/content/rrn:...'
+            video_id = content_path[9:]
 
         formats = self._extract_m3u8_formats(
             'https://dms.redbull.tv/v3/%s/%s/playlist.m3u8' % (video_id, token),
