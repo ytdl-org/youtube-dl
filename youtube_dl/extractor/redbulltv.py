@@ -90,11 +90,11 @@ class RedBullTVIE(InfoExtractor):
         video_id = self._match_id(url)
 
         # Try downloading the webpage multiple times in order to get a repsonse
-        # cache which will contain the result of a query to 
+        # cache which will contain the result of a query to
         # 'https://www.redbull.com/v3/api/composition/v3/query/en-INT?rb3Schema=v1:pageConfig&filter[uriSlug]=%s' % video_id
         # We use the response cache to get the rrn ID and other metadata. We do
         # this instead of simply querying the API in order to preserve the
-        # provided URL's locale. (Annoyingly, the locale in the input URL 
+        # provided URL's locale. (Annoyingly, the locale in the input URL
         # ('en-us', for example) is of a different format than the locale
         # required for the API request.)
         tries = 3
@@ -103,8 +103,8 @@ class RedBullTVIE(InfoExtractor):
                 if i == 0:
                     webpage = self._download_webpage(url, video_id)
                 else:
-                    webpage = self._download_webpage(url, video_id,
-                        note='Redownloading webpage')
+                    webpage = self._download_webpage(
+                        url, video_id, note='Redownloading webpage')
                 # extract response cache
                 response_cache = json.loads(self._html_search_regex(
                     r'<script type="application/json" id="response-cache">(.+?)</script>',
@@ -121,10 +121,10 @@ class RedBullTVIE(InfoExtractor):
 
         # select the key that includes the string 'pageConfig'
         metadata = json.loads(
-                response_cache[
-                    [key for key in response_cache.keys() if 'pageConfig' in key][0]
-                ]['response']
-            )['data']
+            response_cache[
+                [key for key in response_cache.keys() if 'pageConfig' in key][0]
+            ]['response']
+        )['data']
 
         # extract rrn ID
         rrn_id_ext = metadata['analytics']['asset']['trackingDimensions']['masterID']
@@ -167,24 +167,29 @@ class RedBullTVIE(InfoExtractor):
             title += ' - %s' % subheading
 
         long_description = try_get(metadata2, lambda x: x['long_description'], compat_str)
-        short_description = try_get(metadata2, lambda x: x['short_description'], compat_str) or \
-            try_get(metadata, lambda x: x['pageMeta']['og:description'],
-                compat_str)
+        short_description = try_get(
+            metadata2, lambda x: x['short_description'], compat_str) or \
+            try_get(
+            metadata, lambda x: x['pageMeta']['og:description'], compat_str)
 
-        duration = float_or_none(try_get(metadata2, lambda x: x['duration'], int),
-            scale=1000)
+        duration = float_or_none(
+            try_get(metadata2, lambda x: x['duration'], int), scale=1000)
 
-        release_dates = [try_get(metadata,
-            lambda x: x['analytics']['asset']['publishDate'], compat_str)]
-        release_dates.append(try_get(metadata,
+        release_dates = [try_get(
+            metadata,
+            lambda x: x['analytics']['asset']['publishDate'],
+            compat_str)]
+        release_dates.append(try_get(
+            metadata,
             lambda x: x['analytics']['asset']['trackingDimensions']['originalPublishingDate'],
             compat_str))
-        release_dates.append(try_get(metadata,
+        release_dates.append(try_get(
+            metadata,
             lambda x: x['analytics']['asset']['trackingDimensions']['publishingDate'],
             compat_str))
 
-        release_date = unified_strdate(release_dates[0] or release_dates[1] or \
-            release_dates[2])
+        release_date = unified_strdate(
+            release_dates[0] or release_dates[1] or release_dates[2])
 
         return {
             'id': video_id,
