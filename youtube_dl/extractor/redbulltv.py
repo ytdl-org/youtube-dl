@@ -5,6 +5,7 @@ from .common import InfoExtractor
 from ..compat import compat_str
 from ..utils import (
     RegexNotFoundError,
+    ExtractorError,
     try_get,
     float_or_none,
     unified_strdate,
