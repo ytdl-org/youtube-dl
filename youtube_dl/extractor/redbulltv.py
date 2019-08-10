@@ -101,6 +101,7 @@ class RedBullTVIE(InfoExtractor):
                     self.to_screen('Waiting before redownloading webpage')
                     time.sleep(2)
                 else:
+                    self.to_screen('Failed to download/locate response cache. Wait a few seconds and try running the command again.')
                     raise
 
         # select the key that includes the string 'pageConfig'
