@@ -99,9 +99,12 @@ class RedBullTVIE(InfoExtractor):
                 if i == 0:
                     webpage = self._download_webpage(url, video_id)
                 else:
-                    webpage = self._download_webpage(url, video_id, note='Redownloading webpage')
+                    webpage = self._download_webpage(url, video_id,
+                        note='Redownloading webpage')
                 # extract response cache
-                response_cache = json.loads(self._html_search_regex(r'<script type="application/json" id="response-cache">(.+?)</script>', webpage, 'response-cache'))
+                response_cache = json.loads(self._html_search_regex(
+                    r'<script type="application/json" id="response-cache">(.+?)</script>',
+                    webpage, 'response-cache'))
             except RegexNotFoundError:
                 if i < tries - 1:
                     self.to_screen('Waiting before redownloading webpage')
