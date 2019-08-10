@@ -2,7 +2,10 @@
 from __future__ import unicode_literals
 
 from .common import InfoExtractor
-from ..utils import RegexNotFoundError
+from ..utils import (
+    RegexNotFoundError,
+    float_or_none,
+)
 import json
 import time
 
@@ -16,8 +19,10 @@ class RedBullTVIE(InfoExtractor):
         'info_dict': {
             'id': 'AP-1YM911N612111',
             'ext': 'mp4',
-            'title': 'Preview the Lenzerheide DH course with Gee Atherton\'s POV',
-            'description': 'md5:99b46ed1e2abb02c4c6f6113cff13ba4',
+            'title': 'md5:fa027630eb511593fe91e4323762e95d',
+            'description': 'md5:7f769874c63e45f9b6f43315a99094c7',
+            'duration': 255.0,
+            'release_date': '20190809',
         },
     }, {
         # recap-videos
@@ -26,8 +31,10 @@ class RedBullTVIE(InfoExtractor):
         'info_dict': {
             'id': 'AP-1YM8YXTC52111',
             'ext': 'mp4',
-            'title': 'Val di Sole DH recap',
-            'description': 'md5:df0fd44b4d1a396a692998fc395b75b8',
+            'title': 'md5:dc9aec63e687a534a6bb13adbb86571c',
+            'description': 'md5:3774af48bf6fbc5fb6c8ebad6891f728',
+            'duration': 1560.0,
+            'release_date': '20190808',
         },
     }, {
         # events
@@ -36,8 +43,10 @@ class RedBullTVIE(InfoExtractor):
         'info_dict': {
             'id': 'AP-1ZYQN7WNW2111',
             'ext': 'mp4',
-            'title': 'Jokkis Race',
-            'description': 'md5:dc2be9d7b3e7048967468d39a889a5e1',
+            'title': 'md5:c2a490a9db25823c2c9790093e3563ab',
+            'description': 'md5:fb7e7a8cfaa72f7dc139238186d69800',
+            'duration': 933.0,
+            'release_date': '20190727',
         },
     }, {
         # episodes
@@ -46,8 +55,10 @@ class RedBullTVIE(InfoExtractor):
         'info_dict': {
             'id': 'AP-1PMHKJFCW1W11',
             'ext': 'mp4',
-            'title': 'Grime',
-            'description': 'md5:7b4bdf2edd53d6c0c5e2e336c02e6fbb',
+            'title': 'md5:f767c9809c12c3411632cb7de9d30608',
+            'description': 'md5:b5f522b89b72e1e23216e5018810bb25',
+            'duration': 904.0,
+            'release_date': '20170221',
         },
     }, {
         # films
@@ -56,13 +67,15 @@ class RedBullTVIE(InfoExtractor):
         'info_dict': {
             'id': 'AP-1ZSMAW8FH2111',
             'ext': 'mp4',
-            'title': 'Against the Odds',
-            'description': 'md5:6db1cf4c4f85442a91f4d9cd03b7f4e3',
+            'title': 'md5:47478de1e62dadcda748c2b58ae7e343',
+            'description': 'md5:9a885f6f5344b98c684f8aaf6bdfbc38',
+            'duration': 4837.0,
+            'release_date': '20190801',
         },
     }]
 
     def _real_extract(self, url):
-        # video_id is "AP-..." ID
+        # video_id is 'AP-...' ID
         video_id = self._match_id(url)
 
         # Try downloading the webpage multiple times in order to get a repsonse
@@ -102,11 +115,6 @@ class RedBullTVIE(InfoExtractor):
         # trim locale from the end of rrn_id_ext
         rrn_id = ':'.join(rrn_id_ext.split(':')[:-1])
 
-        # extract metadata
-        title = metadata['analytics']['asset']['title']
-        short_description = metadata['pageMeta']['og:title']
-        long_description = metadata['pageMeta']['og:description']
-
         # get access token for download
         session = self._download_json(
             'https://api.redbull.tv/v3/session', video_id,
@@ -119,14 +127,37 @@ class RedBullTVIE(InfoExtractor):
                 self.IE_NAME, session['message']))
         token = session['token']
 
+        # extract formats from m3u8
+        # subtitle tracks are also listed in this m3u8, but yt-dl does not
+        # currently implement an easy way to download m3u8 VTT subtitles
         formats = self._extract_m3u8_formats(
             'https://dms.redbull.tv/v3/%s/%s/playlist.m3u8' % (rrn_id, token),
             video_id, 'mp4', entry_protocol='m3u8_native', m3u8_id='hls')
         self._sort_formats(formats)
 
+        # download more metadata
+        metadata2 = self._download_json(
+            'https://api.redbull.tv/v3/products/%s' % rrn_id,
+            video_id, note='Downloading video information',
+            headers={'Authorization': token}
+        )
+
+        # extract metadata
+        title = metadata2['title'].strip()
+        subheading = metadata2.get('subheading')
+        if subheading:
+            title += ' - %s' % subheading
+        long_description = metadata2.get('long_description')
+        short_description = metadata2.get('short_description')
+        duration = float_or_none(metadata2.get('duration'), scale=1000)
+        release_date = metadata['analytics']['asset']['publishDate'][:10] \
+            .replace('-', '')
+
         return {
             'id': video_id,
             'title': title,
             'description': long_description or short_description,
+            'duration': duration,
+            'release_date': release_date,
             'formats': formats,
         }
