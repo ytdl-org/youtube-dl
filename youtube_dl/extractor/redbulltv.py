@@ -148,11 +148,15 @@ class RedBullTVIE(InfoExtractor):
         subheading = metadata2.get('subheading')
         if subheading:
             title += ' - %s' % subheading
+
         long_description = metadata2.get('long_description')
         short_description = metadata2.get('short_description')
+
         duration = float_or_none(metadata2.get('duration'), scale=1000)
-        release_date = metadata['analytics']['asset']['publishDate'][:10] \
-            .replace('-', '')
+
+        release_date = metadata.get('analytics', {}).get('asset', {}).get('publishDate')
+        if release_date:
+            release_date = release_date[:10].replace('-', '')
 
         return {
             'id': video_id,
