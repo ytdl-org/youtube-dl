@@ -2,8 +2,10 @@
 from __future__ import unicode_literals
 
 from .common import InfoExtractor
+from ..compat import compat_str
 from ..utils import (
     RegexNotFoundError,
+    try_get,
     float_or_none,
 )
 import json
@@ -155,28 +157,35 @@ class RedBullTVIE(InfoExtractor):
         )
 
         # extract metadata
-        title = metadata2.get('title').strip() or \
-            metadata.get('analytics', {}).get('asset', {}).get(['title'])
+        title = try_get(metadata2, lambda x: x['title'], compat_str) or \
+            try_get(metadata, lambda x: x['analytics']['asset']['title'], compat_str)
 
-        subheading = metadata2.get('subheading')
+        subheading = try_get(metadata2, lambda x: x['subheading'], compat_str)
         if subheading:
             title += ' - %s' % subheading
 
-        long_description = metadata2.get('long_description')
-        short_description = metadata2.get('short_description') or \
-            metadata['pageMeta']['og:description']
+        long_description = try_get(metadata2, lambda x: x['long_description'], compat_str)
+        short_description = try_get(metadata2, lambda x: x['short_description'], compat_str) or \
+            try_get(metadata, lambda x: x['pageMeta']['og:description'],
+                compat_str)
 
-        duration = float_or_none(metadata2.get('duration'), scale=1000)
+        duration = float_or_none(try_get(metadata2, lambda x: x['duration'], int),
+            scale=1000)
 
-        release_dates = [metadata.get('analytics', {}).get('asset', {}) \
-            .get('publishDate')]
-        release_dates.append(metadata.get('analytics', {}).get('asset', {}) \
-            .get('trackingDimensions', {}).get('publishingDate'))
+        release_dates = [try_get(metadata,
+            lambda x: x['analytics']['asset']['publishDate'], compat_str)]
+        release_dates.append(try_get(metadata,
+            lambda x: x['analytics']['asset']['trackingDimensions']['originalPublishingDate'],
+            compat_str))
+        release_dates.append(try_get(metadata,
+            lambda x: x['analytics']['asset']['trackingDimensions']['publishingDate'],
+            compat_str))
 
         if release_dates[0]:
             release_date = release_dates[0][:10].replace('-', '')
-        elif release_dates[1]:
-            release_date = ''.join(release_dates[1].split('-')[::-1])
+        elif release_dates[1] or release_dates[2]:
+            release_date = ''.join((release_dates[1] or release_dates[2])
+                .split('-')[::-1])
         else:
             release_date = None
 
