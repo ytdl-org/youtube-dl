@@ -8,40 +8,57 @@ import time
 
 
 class RedBullTVIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:www\.)?redbull\.com/[^/]+/(?:videos|recap-videos|events|episodes|films)/(?P<id>AP-\w+)'
+    _VALID_URL = r'https?://(?:www\.)?redbull\.com/[^/]+/(?:videos|recap-videos|events|episodes|films)/(?P<id>AP-\w+)(?:/live/AP-\w+)?(?:\?playlist)?(?:\?playlistId=rrn:content:collections:[\da-f]{8}-[\da-f]{4}-[\da-f]{4}-[\da-f]{4}-[\da-f]{12}:[\w-]+)?'
     _TESTS = [{
-        # film
-        'url': 'https://www.redbull.tv/video/AP-1Q6XCDTAN1W11',
-        'md5': 'fb0445b98aa4394e504b413d98031d1f',
+        # videos
+        'url': 'https://www.redbull.com/int-en/videos/AP-1YM911N612111',
+        'md5': 'e2d92baecce184ecd521fa3d72f36aa8',
         'info_dict': {
-            'id': 'AP-1Q6XCDTAN1W11',
+            'id': 'AP-1YM911N612111',
             'ext': 'mp4',
-            'title': 'ABC of... WRC - ABC of... S1E6',
-            'description': 'md5:5c7ed8f4015c8492ecf64b6ab31e7d31',
-            'duration': 1582.04,
+            'title': 'Preview the Lenzerheide DH course with Gee Atherton\'s POV',
+            'description': 'md5:99b46ed1e2abb02c4c6f6113cff13ba4',
         },
     }, {
-        # episode
-        'url': 'https://www.redbull.tv/video/AP-1PMHKJFCW1W11',
+        # recap-videos
+        'url': 'https://www.redbull.com/int-en/recap-videos/AP-1YM8YXTC52111?playlistId=rrn:content:collections:e916768e-7b47-413d-a254-bc97d7f808f7:en-INT',
+        'md5': 'aa7c6ab92ea6103f61d5fc5cbb85fd53',
+        'info_dict': {
+            'id': 'AP-1YM8YXTC52111',
+            'ext': 'mp4',
+            'title': 'Val di Sole DH recap',
+            'description': 'md5:df0fd44b4d1a396a692998fc395b75b8',
+        },
+    }, {
+        # events
+        'url': 'https://www.redbull.com/int-en/recap-videos/AP-1ZYQN7WNW2111',
+        'md5': '0f2043deef92405249c8ca96ba197901',
+        'info_dict': {
+            'id': 'AP-1ZYQN7WNW2111',
+            'ext': 'mp4',
+            'title': 'Jokkis Race',
+            'description': 'md5:dc2be9d7b3e7048967468d39a889a5e1',
+        },
+    }, {
+        # episodes
+        'url': 'https://www.redbull.com/int-en/episodes/AP-1PMHKJFCW1W11',
+        'md5': 'db8271a7200d40053a1809ed0dd574ff',
         'info_dict': {
             'id': 'AP-1PMHKJFCW1W11',
             'ext': 'mp4',
-            'title': 'Grime - Hashtags S2E4',
-            'description': 'md5:b5f522b89b72e1e23216e5018810bb25',
-            'duration': 904.6,
-        },
-        'params': {
-            'skip_download': True,
+            'title': 'Grime',
+            'description': 'md5:7b4bdf2edd53d6c0c5e2e336c02e6fbb',
         },
     }, {
-        'url': 'https://www.redbull.com/int-en/tv/video/AP-1UWHCAR9S1W11/rob-meets-sam-gaze?playlist=playlists::3f81040a-2f31-4832-8e2e-545b1d39d173',
-        'only_matching': True,
-    }, {
-        'url': 'https://www.redbull.com/us-en/videos/AP-1YM9QCYE52111',
-        'only_matching': True,
-    }, {
-        'url': 'https://www.redbull.com/us-en/events/AP-1XV2K61Q51W11/live/AP-1XUJ86FDH1W11',
-        'only_matching': True,
+        # films
+        'url': 'https://www.redbull.com/int-en/films/AP-1ZSMAW8FH2111',
+        'md5': '3a753f7c3c1f9966ae660e05c3c7862b',
+        'info_dict': {
+            'id': 'AP-1ZSMAW8FH2111',
+            'ext': 'mp4',
+            'title': 'Against the Odds',
+            'description': 'md5:6db1cf4c4f85442a91f4d9cd03b7f4e3',
+        },
     }]
 
     def _real_extract(self, url):
