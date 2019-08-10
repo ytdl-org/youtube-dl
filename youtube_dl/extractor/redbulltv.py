@@ -7,6 +7,7 @@ from ..utils import (
     RegexNotFoundError,
     try_get,
     float_or_none,
+    unified_strdate,
 )
 import json
 import time
@@ -181,13 +182,8 @@ class RedBullTVIE(InfoExtractor):
             lambda x: x['analytics']['asset']['trackingDimensions']['publishingDate'],
             compat_str))
 
-        if release_dates[0]:
-            release_date = release_dates[0][:10].replace('-', '')
-        elif release_dates[1] or release_dates[2]:
-            release_date = ''.join((release_dates[1] or release_dates[2])
-                .split('-')[::-1])
-        else:
-            release_date = None
+        release_date = unified_strdate(release_dates[0] or release_dates[1] or \
+            release_dates[2])
 
         return {
             'id': video_id,
