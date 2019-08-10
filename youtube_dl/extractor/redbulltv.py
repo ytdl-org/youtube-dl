@@ -95,14 +95,15 @@ class RedBullTVIE(InfoExtractor):
                     webpage = self._download_webpage(url, video_id, note='Redownloading webpage')
                 # extract response cache
                 response_cache = json.loads(self._html_search_regex(r'<script type="application/json" id="response-cache">(.+?)</script>', webpage, 'response-cache'))
-                break
             except RegexNotFoundError:
                 if i < tries - 1:
                     self.to_screen('Waiting before redownloading webpage')
                     time.sleep(2)
+                    continue
                 else:
                     self.to_screen('Failed to download/locate response cache. Wait a few seconds and try running the command again.')
                     raise
+            break
 
         # select the key that includes the string 'pageConfig'
         metadata = json.loads(
