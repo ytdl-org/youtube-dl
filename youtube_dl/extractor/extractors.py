@@ -926,10 +926,7 @@ from .raywenderlich import (
 )
 from .rbmaradio import RBMARadioIE
 from .rds import RDSIE
-from .redbulltv import (
-    RedBullTVIE,
-    RedBullTVRrnContentIE,
-)
+from .redbulltv import RedBullTVIE
 from .reddit import (
     RedditIE,
     RedditRIE,
