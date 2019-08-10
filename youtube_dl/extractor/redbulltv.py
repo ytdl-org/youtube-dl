@@ -11,7 +11,14 @@ import time
 
 
 class RedBullTVIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:www\.)?redbull\.com/[^/]+/(?:videos|recap-videos|events|episodes|films)/(?P<id>AP-\w+)(?:/live/AP-\w+)?(?:\?playlist)?(?:\?playlistId=rrn:content:collections:[\da-f]{8}-[\da-f]{4}-[\da-f]{4}-[\da-f]{4}-[\da-f]{12}:[\w-]+)?'
+    _VALID_URL = r"""(?x)^
+                     https?://
+                     (?:www\.)?redbull\.com/
+                     [^/]+/                                                   # locale/language code
+                     (?:videos|recap-videos|events|episodes|films)/
+                     (?P<id>AP-\w{13})(?:/live/AP-\w{13})?
+                     (?:\?playlist)?(?:\?playlistId=rrn:content:collections:[\da-f]{8}-[\da-f]{4}-[\da-f]{4}-[\da-f]{4}-[\da-f]{12}:[\w-]+)?
+                     $"""
     _TESTS = [{
         # videos
         'url': 'https://www.redbull.com/int-en/videos/AP-1YM911N612111',
