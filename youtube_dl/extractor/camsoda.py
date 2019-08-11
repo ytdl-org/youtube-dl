@@ -29,7 +29,7 @@ class CamsodaIE(InfoExtractor):
             'https://www.camsoda.com/api/v1/user/%s' % video_id,
             'Downloading user data', video_id)
 
-        if (not user_data.get('status')) or user_data.get('status') == 0:
+        if not user_data.get('status'):
             raise ExtractorError('No broadcaster found', expected=True)
 
         user = user_data.get('user')
