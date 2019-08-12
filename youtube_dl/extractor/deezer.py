@@ -18,11 +18,10 @@ class DeezerPlaylistIE(InfoExtractor):
         'info_dict': {
             'id': '176747451',
             'title': 'Best!',
-            'uploader': 'Anonymous',
-            'thumbnail': r're:^https?://cdn-images\.deezer\.com/images/cover/.*\.jpg$',
+            'uploader': 'anonymous',
+            'thumbnail': r're:^https?://e-cdns-images\.dzcdn\.net/images/cover/.*\.jpg$',
         },
-        'playlist_count': 30,
-        'skip': 'Only available in .de',
+        'playlist_count': 29,
     }
 
     def _real_extract(self, url):
@@ -46,25 +45,17 @@ class DeezerPlaylistIE(InfoExtractor):
             webpage, 'data JSON')
         data = json.loads(data_json)
 
-        playlist_title = data.get('DATA', {}).get('TITLE')
-        playlist_uploader = data.get('DATA', {}).get('PARENT_USERNAME')
+        playlist_title = data['DATA']['TITLE']
+        playlist_uploader = data['DATA']['PARENT_USERNAME']
         playlist_thumbnail = self._search_regex(
             r'<img id="naboo_playlist_image".*?src="([^"]+)"', webpage,
             'playlist thumbnail')
 
-        preview_pattern = self._search_regex(
-            r"var SOUND_PREVIEW_GATEWAY\s*=\s*'([^']+)';", webpage,
-            'preview URL pattern', fatal=False)
         entries = []
         for s in data['SONGS']['data']:
-            puid = s['MD5_ORIGIN']
-            preview_video_url = preview_pattern.\
-                replace('{0}', puid[0]).\
-                replace('{1}', puid).\
-                replace('{2}', s['MEDIA_VERSION'])
             formats = [{
                 'format_id': 'preview',
-                'url': preview_video_url,
+                'url': s['MEDIA'][0]['HREF'],
                 'preference': -100,  # Only the first 30 seconds
                 'ext': 'mp3',
             }]
