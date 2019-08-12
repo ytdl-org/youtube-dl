@@ -31,6 +31,7 @@ from ..utils import (
     clean_html,
     dict_get,
     error_to_compat_str,
+    extract_attributes,
     ExtractorError,
     float_or_none,
     get_element_by_attribute,
@@ -324,17 +325,18 @@ class YoutubePlaylistBaseInfoExtractor(YoutubeEntryListBaseInfoExtractor):
         for video_id, video_title in self.extract_videos_from_page(content):
             yield self.url_result(video_id, 'Youtube', video_id, video_title)
 
-    def extract_videos_from_page(self, page):
-        ids_in_page = []
-        titles_in_page = []
-        for mobj in re.finditer(self._VIDEO_RE, page):
+    def extract_videos_from_page_impl(self, video_re, page, ids_in_page, titles_in_page):
+        for mobj in re.finditer(video_re, page):
             # The link with index 0 is not the first video of the playlist (not sure if still actual)
             if 'index' in mobj.groupdict() and mobj.group('id') == '0':
                 continue
             video_id = mobj.group('id')
-            video_title = unescapeHTML(mobj.group('title'))
+            video_title = unescapeHTML(
+                mobj.group('title')) if 'title' in mobj.groupdict() else None
             if video_title:
                 video_title = video_title.strip()
+            if video_title == '► Play all':
+                video_title = None
             try:
                 idx = ids_in_page.index(video_id)
                 if video_title and not titles_in_page[idx]:
@@ -342,6 +344,12 @@ class YoutubePlaylistBaseInfoExtractor(YoutubeEntryListBaseInfoExtractor):
             except ValueError:
                 ids_in_page.append(video_id)
                 titles_in_page.append(video_title)
+
+    def extract_videos_from_page(self, page):
+        ids_in_page = []
+        titles_in_page = []
+        self.extract_videos_from_page_impl(
+            self._VIDEO_RE, page, ids_in_page, titles_in_page)
         return zip(ids_in_page, titles_in_page)
 
 
@@ -2438,7 +2446,8 @@ class YoutubePlaylistIE(YoutubePlaylistBaseInfoExtractor):
                         (%(playlist_id)s)
                      )""" % {'playlist_id': YoutubeBaseInfoExtractor._PLAYLIST_ID_RE}
     _TEMPLATE_URL = 'https://www.youtube.com/playlist?list=%s'
-    _VIDEO_RE = r'href="\s*/watch\?v=(?P<id>[0-9A-Za-z_-]{11})(?:&amp;(?:[^"]*?index=(?P<index>\d+))?(?:[^>]+>(?P<title>[^<]+))?)?'
+    _VIDEO_RE_TPL = r'href="\s*/watch\?v=%s(?:&amp;(?:[^"]*?index=(?P<index>\d+))?(?:[^>]+>(?P<title>[^<]+))?)?'
+    _VIDEO_RE = _VIDEO_RE_TPL % r'(?P<id>[0-9A-Za-z_-]{11})'
     IE_NAME = 'youtube:playlist'
     _TESTS = [{
         'url': 'https://www.youtube.com/playlist?list=PLwiyx1dc3P2JR9N8gQaQN_BCvlSlap7re',
@@ -2602,6 +2611,34 @@ class YoutubePlaylistIE(YoutubePlaylistBaseInfoExtractor):
 
     def _real_initialize(self):
         self._login()
+
+    def extract_videos_from_page(self, page):
+        ids_in_page = []
+        titles_in_page = []
+
+        for item in re.findall(
+                r'(<[^>]*\bdata-video-id\s*=\s*["\'][0-9A-Za-z_-]{11}[^>]+>)', page):
+            attrs = extract_attributes(item)
+            video_id = attrs['data-video-id']
+            video_title = unescapeHTML(attrs.get('data-title'))
+            if video_title:
+                video_title = video_title.strip()
+            ids_in_page.append(video_id)
+            titles_in_page.append(video_title)
+
+        # Fallback with old _VIDEO_RE
+        self.extract_videos_from_page_impl(
+            self._VIDEO_RE, page, ids_in_page, titles_in_page)
+
+        # Relaxed fallbacks
+        self.extract_videos_from_page_impl(
+            r'href="\s*/watch\?v\s*=\s*(?P<id>[0-9A-Za-z_-]{11})', page,
+            ids_in_page, titles_in_page)
+        self.extract_videos_from_page_impl(
+            r'data-video-ids\s*=\s*["\'](?P<id>[0-9A-Za-z_-]{11})', page,
+            ids_in_page, titles_in_page)
+
+        return zip(ids_in_page, titles_in_page)
 
     def _extract_mix(self, playlist_id):
         # The mixes are generated from a single video
