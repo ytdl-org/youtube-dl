@@ -6,7 +6,6 @@ import re
 from .common import InfoExtractor
 from ..compat import compat_str
 from ..utils import (
-    determine_ext,
     int_or_none,
     unified_timestamp,
 )
@@ -74,15 +73,9 @@ class VineIE(InfoExtractor):
                     return format_url
 
         formats = []
-        for quality, format_id in enumerate(('low', '', 'dash')):
+        for quality, format_id in enumerate(('low', '')):
             format_url = video_url(format_id.capitalize())
-            if not format_url:
-                continue
-            # DASH link returns plain mp4
-            if format_id == 'dash' and determine_ext(format_url) == 'mpd':
-                formats.extend(self._extract_mpd_formats(
-                    format_url, video_id, mpd_id='dash', fatal=False))
-            else:
+            if format_url:
                 formats.append({
                     'url': format_url,
                     'format_id': format_id or 'standard',
