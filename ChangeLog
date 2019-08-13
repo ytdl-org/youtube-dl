@@ -1,4 +1,4 @@
-version <unreleased>
+version 2019.08.13
 
 Core
 * [downloader/fragment] Fix ETA calculation of resumed download (#21992)
