@@ -1,3 +1,19 @@
+version 2019.08.13
+
+Core
+* [downloader/fragment] Fix ETA calculation of resumed download (#21992)
+* [YoutubeDL] Check annotations availability (#18582)
+
+Extractors
+* [youtube:playlist] Improve flat extraction (#21927)
+* [youtube] Fix annotations extraction (#22045)
++ [discovery] Extract series meta field (#21808)
+* [youtube] Improve error detection (#16445)
+* [vimeo] Fix album extraction (#1933, #15704, #15855, #18967, #21986)
++ [roosterteeth] Add support for watch URLs
+* [discovery] Limit video data by show slug (#21980)
+
+
 version 2019.08.02
 
 Extractors
