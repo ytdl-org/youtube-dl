@@ -45,29 +45,29 @@ class DeezerPlaylistIE(InfoExtractor):
             webpage, 'data JSON')
         data = json.loads(data_json)
 
-        playlist_title = data['DATA']['TITLE']
-        playlist_uploader = data['DATA']['PARENT_USERNAME']
+        playlist_title = data.get('DATA').get('TITLE')
+        playlist_uploader = data.get('DATA').get('PARENT_USERNAME')
         playlist_thumbnail = self._search_regex(
             r'<img id="naboo_playlist_image".*?src="([^"]+)"', webpage,
             'playlist thumbnail')
 
         entries = []
-        for s in data['SONGS']['data']:
+        for s in data.get('SONGS').get('data'):
             formats = [{
                 'format_id': 'preview',
-                'url': s['MEDIA'][0]['HREF'],
+                'url': s.get('MEDIA')[0].get('HREF'),
                 'preference': -100,  # Only the first 30 seconds
                 'ext': 'mp3',
             }]
             self._sort_formats(formats)
             artists = ', '.join(
-                orderedSet(a['ART_NAME'] for a in s['ARTISTS']))
+                orderedSet(a.get('ART_NAME') for a in s.get('ARTISTS')))
             entries.append({
-                'id': s['SNG_ID'],
+                'id': s.get('SNG_ID'),
                 'duration': int_or_none(s.get('DURATION')),
-                'title': '%s - %s' % (artists, s['SNG_TITLE']),
-                'uploader': s['ART_NAME'],
-                'uploader_id': s['ART_ID'],
+                'title': '%s - %s' % (artists, s.get('SNG_TITLE')),
+                'uploader': s.get('ART_NAME'),
+                'uploader_id': s.get('ART_ID'),
                 'age_limit': 16 if s.get('EXPLICIT_LYRICS') == '1' else 0,
                 'formats': formats,
             })
