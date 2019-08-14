@@ -398,6 +398,9 @@ from .funimation import FunimationIE
 from .funk import FunkIE
 from .fusion import FusionIE
 from .fxnetworks import FXNetworksIE
+from .gaana import (
+    GaanaIE,
+)
 from .gaia import GaiaIE
 from .gameinformer import GameInformerIE
 from .gameone import (
