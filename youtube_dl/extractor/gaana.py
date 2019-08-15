@@ -181,14 +181,23 @@ class GaanaIE(GaanaBaseIE):
         self._set_cookie(self._BASE_URL, 'PHPSESSID', 'val')
         webpage = self._download_webpage(url, video_id)
 
+        data = re.findall(r'id="parent-row-(?:song|album|artist|playlist)\d+">(.*?)</span>', webpage)
+        if len(data):
+            data = self._parse_json(data[0], video_id)
+
+        entries = []
         matchobj = re.findall(r'class="parentnode sourcelist_\d+">(.*?)</span>', webpage)
         matchobj = [self._parse_json(g, video_id) for g in matchobj]
-        entries = []
+
         if len(matchobj) > 1:
             for g in matchobj:
                 entries.append(self._create_entry(g, g['id']))
-            data = re.findall(r'id="parent-row-(?:album|artist|playlist)\d+">(.*?)</span>', webpage)
-            data = self._parse_json(data[0], video_id)
             return self.playlist_result(entries, data['id'], data['title'])
-        else:
+        elif len(matchobj) == 1:
             return self._create_entry(matchobj[0], matchobj[0]['id'])
+        elif data and not matchobj:
+            return self._create_entry(data, data['id'])
+        else:
+            for mess in re.findall(r'<div.*?class="no-data-message".*?>(.*?)</div>', webpage):
+                print("[WARNING]: %s" % mess)
+            print("Could not download this song.")
