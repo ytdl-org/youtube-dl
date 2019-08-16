@@ -11,6 +11,7 @@ from ..utils import (
     ExtractorError,
     js_to_json,
     int_or_none,
+    url_or_none,
     parse_iso8601,
     try_get,
     unescapeHTML,
@@ -116,7 +117,7 @@ class ABCIViewShowIE(InfoExtractor):
             'title': 'Sarah And Duck',
             'description': 'Sarah is a 7 year old girl with big eyes and a green hat, who lives with her quacky, flappy, slightly manic, but endearing best friend, Duck.',
         },
-        'playlist_count': 14,
+        'playlist_count': 15,
         'params': {
             'skip_download': True,
         },
@@ -148,10 +149,10 @@ class ABCIViewShowIE(InfoExtractor):
 
                 for series in group_list:
                     for ep in try_get(series, lambda x: x['_embedded']['videoEpisodes'], list):
-                        path = url_or_none(ep.get('_links', {}).get('deeplink', {}).get('href'))
+                        path = url_or_none('https://iview.abc.net.au' + ep.get('_links', {}).get('deeplink', {}).get('href'))
                         if path:
                             entries.append(self.url_result(
-                                'https://iview.abc.net.au' + path, ie="ABCIViewShow", video_id="series_id"))
+                                path, ie="ABCIViewShow", video_id="series_id"))
 
         return {
             '_type': 'playlist',
