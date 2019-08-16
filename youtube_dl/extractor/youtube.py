@@ -1809,10 +1809,15 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                         break
 
         def extract_unavailable_message():
-            return self._html_search_regex(
-                (r'(?s)<div[^>]+id=["\']unavailable-submessage["\'][^>]+>(.+?)</div',
-                 r'(?s)<h1[^>]+id=["\']unavailable-message["\'][^>]*>(.+?)</h1>'),
-                video_webpage, 'unavailable message', default=None)
+            messages = []
+            for tag, kind in (('h1', 'message'), ('div', 'submessage')):
+                msg = self._html_search_regex(
+                    r'(?s)<{tag}[^>]+id=["\']unavailable-{kind}["\'][^>]*>(.+?)</{tag}>'.format(tag=tag, kind=kind),
+                    video_webpage, 'unavailable %s' % kind, default=None)
+                if msg:
+                    messages.append(msg)
+            if messages:
+                return '\n'.join(messages)
 
         if not video_info:
             unavailable_message = extract_unavailable_message()
