@@ -128,7 +128,8 @@ class ABCIViewShowIE(InfoExtractor):
 
     def _real_extract(self, url):
         show_id = self._match_id(url)
-        show_data = self._download_json('https://api.iview.abc.net.au/v2/show/' + show_id, show_id)
+        show_data = self._download_json(
+            'https://api.iview.abc.net.au/v2/show/' + show_id, show_id)
 
         title = show_data.get('displayTitle') or show_data.get('title') or show_id
         description = show_data.get('description')
@@ -137,21 +138,20 @@ class ABCIViewShowIE(InfoExtractor):
         for s in show_data['_embedded']['seriesList']:
             series_id = s.get('id')
             if series_id:
-                url = 'https://api.iview.abc.net.au/v2/series/' + show_id + '/' + series_id
-                groupList = self._download_json(
-                    url,
-                    series_id,
-                    fatal=False,
-                    errnote="Failed to fetch series ID '%s' from '%s'" % (series_id, url)
+                series_url = 'https://api.iview.abc.net.au/v2/series/' + show_id + '/' + series_id
+                group_list = self._download_json(
+                    series_url, series_id, fatal=False,
+                    errnote="Failed to fetch series ID '%s' from '%s'" % (series_id, series_url)
                 )
-                if type(groupList) is not list:
-                    groupList = [groupList]
+                if type(group_list) is not list:
+                    group_list = [group_list]
 
-                for series in groupList:
-                    for ep in series.get('_embedded', {}).get('videoEpisodes'):
-                        path = ep.get('_links', {}).get('deeplink', {}).get('href')
+                for series in group_list:
+                    for ep in try_get(series, lambda x: x['_embedded']['videoEpisodes'], list):
+                        path = url_or_none(ep.get('_links', {}).get('deeplink', {}).get('href'))
                         if path:
-                            entries.append(self.url_result('https://iview.abc.net.au' + path))
+                            entries.append(self.url_result(
+                                'https://iview.abc.net.au' + path, ie="ABCIViewShow", video_id="series_id"))
 
         return {
             '_type': 'playlist',
