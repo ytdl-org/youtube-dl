@@ -52,6 +52,20 @@ class ESPNIE(OnceIE):
             'skip_download': True,
         },
     }, {
+        'url': 'https://broadband.espn.go.com/video/clip?id=18910086',
+        'info_dict': {
+            'id': '18910086',
+            'ext': 'mp4',
+            'title': 'Kyrie spins around defender for two',
+            'description': 'md5:2b0f5bae9616d26fba8808350f0d2b9b',
+            'timestamp': 1489539155,
+            'upload_date': '20170315',
+        },
+        'params': {
+            'skip_download': True,
+        },
+        'expected_warnings': ['Unable to download f4m manifest'],
+    }, {
         'url': 'http://nonredline.sports.espn.go.com/video/clip?id=19744672',
         'only_matching': True,
     }, {
@@ -89,29 +103,27 @@ class ESPNIE(OnceIE):
     def _real_extract(self, url):
         video_id = self._match_id(url)
 
-        webpage = self._download_webpage(url, video_id)
+        clip = self._download_json(
+            'http://api-app.espn.com/v1/video/clips/%s' % video_id,
+            video_id)['videos'][0]
 
-        data_id=self._search_regex(r'data-cerebro-id="(.*?)"',webpage,'data_id',group=1)
-
-        request_url = 'https://watch.auth.api.espn.com/video/auth/getclip/%s?apikey=5p8m6dw513q716wt2os04mec3' % data_id
-
-        clip = self._download_xml(
-            request_url,            
-            video_id).findall('clip')[0]
-
-
-        title = clip.findall('headline')[0].text
+        title = clip['headline']
 
         format_urls = set()
         formats = []
 
-        
-        def traverse_source(source):
-            for element in source.iter():
-                if element.tag == 'transcodes':
+        def traverse_source(source, base_source_id=None):
+            for source_id, source in source.items():
+                if source_id == 'alert':
                     continue
-               
-                extract_source(element.text, element.tag)
+                elif isinstance(source, compat_str):
+                    extract_source(source, base_source_id)
+                elif isinstance(source, dict):
+                    traverse_source(
+                        source,
+                        '%s-%s' % (base_source_id, source_id)
+                        if base_source_id else source_id)
+
         def extract_source(source_url, source_id=None):
             if source_url in format_urls:
                 return
@@ -122,6 +134,9 @@ class ESPNIE(OnceIE):
             elif ext == 'smil':
                 formats.extend(self._extract_smil_formats(
                     source_url, video_id, fatal=False))
+            elif ext == 'f4m':
+                formats.extend(self._extract_f4m_formats(
+                    source_url, video_id, f4m_id=source_id, fatal=False))
             elif ext == 'm3u8':
                 formats.extend(self._extract_m3u8_formats(
                     source_url, video_id, 'mp4', entry_protocol='m3u8_native',
@@ -142,18 +157,21 @@ class ESPNIE(OnceIE):
                     f['preference'] = 1
                 formats.append(f)
 
-        links = clip.findall('transcodes')[0]
-        traverse_source(links)
+        links = clip.get('links', {})
+        traverse_source(links.get('source', {}))
+        traverse_source(links.get('mobile', {}))
         self._sort_formats(formats)
 
-        description = clip.findall('caption')[0].text
-        duration = int_or_none(clip.findall('durationSeconds')[0].text)
-        timestamp = unified_timestamp(clip.findall('publishDate')[0].text)
+        description = clip.get('caption') or clip.get('description')
+        thumbnail = clip.get('thumbnail')
+        duration = int_or_none(clip.get('duration'))
+        timestamp = unified_timestamp(clip.get('originalPublishDate'))
 
         return {
             'id': video_id,
             'title': title,
             'description': description,
+            'thumbnail': thumbnail,
             'timestamp': timestamp,
             'duration': duration,
             'formats': formats,
