@@ -471,6 +471,34 @@ class ARDBetaMediathekIE(InfoExtractor):
 
         return result
 
+    def _extract_episode_info(self, title):
+        patterns = [
+            r'.*(?P<ep_info> \(S(?P<season_number>\d+)/E(?P<episode_number>\d+)\)).*',
+            r'.*(?P<ep_info> \((?:Folge |Teil )?(?P<episode_number>\d+)(?:/\d+)?\)).*',
+            r'.*(?P<ep_info>Folge (?P<episode_number>\d+)(?:\:| -|) )\"(?P<episode>.+)\".*',
+            r'.*(?P<ep_info>Folge (?P<episode_number>\d+)(?:\:| -|) ).*',
+        ]
+        res = {}
+
+        for pattern in patterns:
+            m = re.match(pattern, title)
+            if m:
+                groupdict = m.groupdict()
+                for int_entry in ['season_number', 'episode_number']:
+                    res[int_entry] = int_or_none(groupdict.get(int_entry))
+
+                for str_entry in ['episode']:
+                    res[str_entry] = str_or_none(groupdict.get(str_entry))
+
+                if groupdict.get('ep_info') and not res['episode']:
+                    res['episode'] = str_or_none(title.replace(groupdict.get('ep_info'), ''))
+
+                if res['episode']:
+                    res['episode'] = res['episode'].strip()
+
+                break
+
+        return res
 
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
@@ -480,6 +508,8 @@ class ARDBetaMediathekIE(InfoExtractor):
         webpage = self._download_webpage(url, display_id)
         data_json = self._search_regex(r'window\.__APOLLO_STATE__\s*=\s*(\{.*);\n', webpage, 'json')
         data = self._parse_json(data_json, display_id)
+        #import json
+        #print(json.dumps(data, indent=2))
 
         res = {
             'id': video_id,
@@ -559,13 +589,15 @@ class ARDBetaMediathekIE(InfoExtractor):
 
         if not formats and blocked_by_fsk:
             raise ExtractorError(
-                msg = 'This video is currently not available due to age restrictions (FSK %d). Try again from %02d:00 to 06:00.' % (res['age_limit'], 22 if res['age_limit'] < 18 else 23),
-                expected = True)
+                msg='This video is currently not available due to age restrictions (FSK %d). Try again from %02d:00 to 06:00.' % (res['age_limit'], 22 if res['age_limit'] < 18 else 23),
+                expected=True)
 
         self._sort_formats(formats)
         res.update({
             'subtitles': subtitles,
             'formats': formats,
         })
+
+        res.update(self._extract_episode_info(res.get('title')))
 
         return res
