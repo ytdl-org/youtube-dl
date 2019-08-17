@@ -4,7 +4,6 @@ import re
 
 from .common import InfoExtractor
 from .once import OnceIE
-from ..compat import compat_str
 from ..utils import (
     determine_ext,
     int_or_none,
@@ -91,27 +90,25 @@ class ESPNIE(OnceIE):
 
         webpage = self._download_webpage(url, video_id)
 
-        data_id=self._search_regex(r'data-cerebro-id="(.*?)"',webpage,'data_id',group=1)
+        data_id = self._search_regex(r'data-cerebro-id="(.*?)"', webpage, 'data_id', group=1)
 
         request_url = 'https://watch.auth.api.espn.com/video/auth/getclip/%s?apikey=5p8m6dw513q716wt2os04mec3' % data_id
 
         clip = self._download_xml(
-            request_url,            
+            request_url,
             video_id).findall('clip')[0]
-
 
         title = clip.findall('headline')[0].text
 
         format_urls = set()
         formats = []
 
-        
         def traverse_source(source):
             for element in source.iter():
                 if element.tag == 'transcodes':
                     continue
-               
                 extract_source(element.text, element.tag)
+
         def extract_source(source_url, source_id=None):
             if source_url in format_urls:
                 return
