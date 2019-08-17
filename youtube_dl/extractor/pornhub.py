@@ -21,6 +21,7 @@ from ..utils import (
     remove_quotes,
     str_to_int,
     url_or_none,
+    urlencode_postdata,
 )
 
 
@@ -47,11 +48,13 @@ class PornHubBaseIE(InfoExtractor):
 
 
 class PornHubIE(PornHubBaseIE):
-    IE_DESC = 'PornHub and Thumbzilla'
+    IE_DESC = 'PornHub, Premium, and Thumbzilla'
+    _NETRC_MACHINE = 'pornhub'
+    _LOGIN_URL = 'https://www.pornhubpremium.com/premium/login'
     _VALID_URL = r'''(?x)
                     https?://
                         (?:
-                            (?:[^/]+\.)?(?P<host>pornhub\.(?:com|net))/(?:(?:view_video\.php|video/show)\?viewkey=|embed/)|
+                            (?:[^/]+\.)?(?P<host>pornhub(?:premium)?\.(?:com|net))/(?:(?:view_video\.php|video/show)\?viewkey=|embed/)|
                             (?:www\.)?thumbzilla\.com/video/
                         )
                         (?P<id>[\da-z]+)
@@ -81,7 +84,7 @@ class PornHubIE(PornHubBaseIE):
             'id': '1331683002',
             'ext': 'mp4',
             'title': '重庆婷婷女王足交',
-            'uploader': 'Unknown',
+            'uploader': 'unknown',
             'upload_date': '20150213',
             'duration': 1753,
             'view_count': int,
@@ -150,10 +153,52 @@ class PornHubIE(PornHubBaseIE):
         'only_matching': True,
     }]
 
+    def _real_initialize(self):
+        self._login()
+
+    def _login(self):
+        username, password = self._get_login_info()
+        if username is None:
+            return
+
+        login_page = self._download_webpage(
+            self._LOGIN_URL, None, 'Downloading login page')
+
+        def is_logged(webpage):
+            return 'href="/user/logout"' in webpage
+
+        # Already logged in
+        if is_logged(login_page):
+            return
+
+        login_form = self._hidden_inputs(login_page)
+
+        login_form.update({
+            'username': username,
+            'password': password
+        })
+
+        response = self._download_json(
+            'https://www.pornhubpremium.com/front/authenticate', None, 'Logging in',
+            data=urlencode_postdata(login_form), headers={
+                'Content-Type': 'application/x-www-form-urlencoded',
+                'Referer': self._LOGIN_URL,
+            })
+
+        # Success
+        if response.get('success') == '1':
+            return
+
+        login_error = response.get('message')
+        if login_error:
+            raise ExtractorError('Unable to login: %s' % login_error, expected=True)
+
+        self.report_warning('Login has probably failed')
+
     @staticmethod
     def _extract_urls(webpage):
         return re.findall(
-            r'<iframe[^>]+?src=["\'](?P<url>(?:https?:)?//(?:www\.)?pornhub\.(?:com|net)/embed/[\da-z]+)',
+            r'<iframe[^>]+?src=["\'](?P<url>(?:https?:)?//(?:www\.)?pornhub(?:premium)?\.(?:com|net)/embed/[\da-z]+)',
             webpage)
 
     def _extract_count(self, pattern, webpage, name):
@@ -174,6 +219,12 @@ class PornHubIE(PornHubBaseIE):
                 video_id, 'Downloading %s webpage' % platform)
 
         webpage = dl_webpage('pc')
+
+        if 'Log In And Access Premium Porn Videos' in webpage:
+            self.raise_login_required()
+
+        if 'Upgrade now to enjoy this video' in webpage:
+            self.raise_login_required()
 
         error_msg = self._html_search_regex(
             r'(?s)<div[^>]+class=(["\'])(?:(?!\1).)*\b(?:removed|userMessageSection)\b(?:(?!\1).)*\1[^>]*>(?P<error>.+?)</div>',
@@ -373,7 +424,7 @@ class PornHubPlaylistBaseIE(PornHubBaseIE):
 
 
 class PornHubUserIE(PornHubPlaylistBaseIE):
-    _VALID_URL = r'(?P<url>https?://(?:[^/]+\.)?pornhub\.(?:com|net)/(?:(?:user|channel)s|model|pornstar)/(?P<id>[^/?#&]+))(?:[?#&]|/(?!videos)|$)'
+    _VALID_URL = r'(?P<url>https?://(?:[^/]+\.)?pornhub(?:premium)?\.(?:com|net)/(?:(?:user|channel)s|model|pornstar)/(?P<id>[^/?#&]+))(?:[?#&]|/(?!videos)|$)'
     _TESTS = [{
         'url': 'https://www.pornhub.com/model/zoe_ph',
         'playlist_mincount': 118,
@@ -434,7 +485,7 @@ class PornHubPagedPlaylistBaseIE(PornHubPlaylistBaseIE):
 
 
 class PornHubPagedVideoListIE(PornHubPagedPlaylistBaseIE):
-    _VALID_URL = r'https?://(?:[^/]+\.)?(?P<host>pornhub\.(?:com|net))/(?P<id>(?:[^/]+/)*[^/?#&]+)'
+    _VALID_URL = r'https?://(?:[^/]+\.)?(?P<host>pornhub(?:premium)?\.(?:com|net))/(?P<id>(?:[^/]+/)*[^/?#&]+)'
     _TESTS = [{
         'url': 'https://www.pornhub.com/model/zoe_ph/videos',
         'only_matching': True,
@@ -561,7 +612,7 @@ class PornHubPagedVideoListIE(PornHubPagedPlaylistBaseIE):
 
 
 class PornHubUserVideosUploadIE(PornHubPagedPlaylistBaseIE):
-    _VALID_URL = r'(?P<url>https?://(?:[^/]+\.)?(?P<host>pornhub\.(?:com|net))/(?:(?:user|channel)s|model|pornstar)/(?P<id>[^/]+)/videos/upload)'
+    _VALID_URL = r'(?P<url>https?://(?:[^/]+\.)?(?P<host>pornhub(?:premium)?\.(?:com|net))/(?:(?:user|channel)s|model|pornstar)/(?P<id>[^/]+)/videos/upload)'
     _TESTS = [{
         'url': 'https://www.pornhub.com/pornstar/jenny-blighe/videos/upload',
         'info_dict': {
