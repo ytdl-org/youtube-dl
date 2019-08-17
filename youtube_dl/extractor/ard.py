@@ -480,8 +480,6 @@ class ARDBetaMediathekIE(InfoExtractor):
         webpage = self._download_webpage(url, display_id)
         data_json = self._search_regex(r'window\.__APOLLO_STATE__\s*=\s*(\{.*);\n', webpage, 'json')
         data = self._parse_json(data_json, display_id)
-        #import json
-        #print(json.dumps(data, indent=2))
 
         res = {
             'id': video_id,
@@ -490,9 +488,12 @@ class ARDBetaMediathekIE(InfoExtractor):
         formats = []
         subtitles = {}
         geoblocked = False
+        blocked_by_fsk = False
         for widget in data.values():
             if widget.get('_geoblocked') is True:
                 geoblocked = True
+            if widget.get('blockedByFsk') is True:
+                blocked_by_fsk = True
             if '_duration' in widget:
                 res['duration'] = int_or_none(widget['_duration'])
             if 'clipTitle' in widget:
@@ -503,6 +504,15 @@ class ARDBetaMediathekIE(InfoExtractor):
                 res['timestamp'] = unified_timestamp(widget['broadcastedOn'])
             if 'synopsis' in widget:
                 res['description'] = widget['synopsis']
+            if 'maturityContentRating' in widget:
+                fsk_str = str_or_none(widget['maturityContentRating'])
+                if fsk_str:
+                    m = re.match(r'(?:FSK|fsk|Fsk)(\d+)', fsk_str)
+                    if m and m.group(1):
+                        res['age_limit'] = int_or_none(m.group(1))
+                    else:
+                        res['age_limit'] = 0
+
             subtitle_url = url_or_none(widget.get('_subtitleUrl'))
             if subtitle_url:
                 subtitles.setdefault('de', []).append({
@@ -547,8 +557,11 @@ class ARDBetaMediathekIE(InfoExtractor):
                 msg='This video is not available due to geoblocking',
                 countries=['DE'])
 
-        # TODO Improve error handling when video is only unavailable at
-        #      certain times due to age restrictions.
+        if not formats and blocked_by_fsk:
+            raise ExtractorError(
+                msg = 'This video is currently not available due to age restrictions (FSK %d). Try again from %02d:00 to 06:00.' % (res['age_limit'], 22 if res['age_limit'] < 18 else 23),
+                expected = True)
+
         self._sort_formats(formats)
         res.update({
             'subtitles': subtitles,
