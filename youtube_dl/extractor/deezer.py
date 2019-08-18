@@ -85,3 +85,62 @@ class DeezerPlaylistIE(DeezerBaseInfoExtractor):
             'thumbnail': playlist_thumbnail,
             'entries': entries,
         }
+
+class DeezerAlbumIE(DeezerBaseInfoExtractor):
+    _VALID_URL = r'https?://(?:www\.)?deezer\.com/(../)?album/(?P<id>[0-9]+)'
+    _TEST = {
+        'url': 'https://www.deezer.com/fr/album/67505622',
+        'info_dict': {
+            'id': '67505622',
+            'title': 'Last Week',
+            'uploader': 'Home Brew',
+            'thumbnail': r're:^https?://(e-)?cdns-images\.dzcdn\.net/images/cover/.*\.jpg$',
+        },
+        'playlist_count': 7,
+    }
+
+    def _real_extract(self, url):
+        album_id, webpage, data = self.get_data(url)
+
+        album_title = data.get('DATA').get('ALB_TITLE')
+        album_uploader = data.get('DATA').get('ART_NAME')
+        album_thumbnail = self._search_regex(
+            r'<img id="naboo_album_image".*?src="([^"]+)"', webpage,
+            'album thumbnail')
+
+        entries = []
+        for s in data.get('SONGS').get('data'):
+            formats = [{
+                'format_id': 'preview',
+                'url': s.get('MEDIA')[0].get('HREF'),
+                'preference': -100,  # Only the first 30 seconds
+                'ext': 'mp3',
+            }]
+            self._sort_formats(formats)
+            artists = ', '.join(
+                orderedSet(a.get('ART_NAME') for a in s.get('ARTISTS')))
+            entries.append({
+                'id': s.get('SNG_ID'),
+                'duration': int_or_none(s.get('DURATION')),
+                'title': '%s - %s' % (artists, s.get('SNG_TITLE')),
+                'uploader': s.get('ART_NAME'),
+                'uploader_id': s.get('ART_ID'),
+                'age_limit': 16 if s.get('EXPLICIT_LYRICS') == '1' else 0,
+                'formats': formats,
+                'track' : s.get('SNG_TITLE'),
+                'track_number' : int(s.get('TRACK_NUMBER')),
+                'track_id' : s.get('SNG_ID'),
+                'artist' : album_uploader,
+                'album' : album_title,
+                'album_artist' : album_uploader,
+
+            })
+
+        return {
+            '_type': 'playlist',
+            'id': album_id,
+            'title': album_title,
+            'uploader': album_uploader,
+            'thumbnail': album_thumbnail,
+            'entries': entries,
+        }
