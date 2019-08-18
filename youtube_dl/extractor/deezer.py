@@ -10,7 +10,31 @@ from ..utils import (
     orderedSet,
 )
 
-class DeezerPlaylistIE(InfoExtractor):
+class DeezerBaseInfoExtractor(InfoExtractor):
+
+    def get_data(self, url):
+        if 'test' not in self._downloader.params:
+            self._downloader.report_warning('For now, this extractor only supports the 30 second previews. Patches welcome!')
+
+        mobj = re.match(self._VALID_URL, url)
+        id = mobj.group('id')
+
+        webpage = self._download_webpage(url, id)
+        geoblocking_msg = self._html_search_regex(
+            r'<p class="soon-txt">(.*?)</p>', webpage, 'geoblocking message',
+            default=None)
+        if geoblocking_msg is not None:
+            raise ExtractorError(
+                'Deezer said: %s' % geoblocking_msg, expected=True)
+
+        data_json = self._search_regex(
+            (r'__DZR_APP_STATE__\s*=\s*({.+?})\s*</script>',
+             r'naboo\.display\(\'[^\']+\',\s*(.*?)\);\n'),
+            webpage, 'data JSON')
+        data = json.loads(data_json)
+        return id, webpage, data
+
+class DeezerPlaylistIE(DeezerBaseInfoExtractor):
     _VALID_URL = r'https?://(?:www\.)?deezer\.com/(../)?playlist/(?P<id>[0-9]+)'
     _TEST = {
         'url': 'http://www.deezer.com/playlist/176747451',
@@ -24,25 +48,7 @@ class DeezerPlaylistIE(InfoExtractor):
     }
 
     def _real_extract(self, url):
-        if 'test' not in self._downloader.params:
-            self._downloader.report_warning('For now, this extractor only supports the 30 second previews. Patches welcome!')
-
-        mobj = re.match(self._VALID_URL, url)
-        playlist_id = mobj.group('id')
-
-        webpage = self._download_webpage(url, playlist_id)
-        geoblocking_msg = self._html_search_regex(
-            r'<p class="soon-txt">(.*?)</p>', webpage, 'geoblocking message',
-            default=None)
-        if geoblocking_msg is not None:
-            raise ExtractorError(
-                'Deezer said: %s' % geoblocking_msg, expected=True)
-
-        data_json = self._search_regex(
-            (r'__DZR_APP_STATE__\s*=\s*({.+?})\s*</script>',
-             r'naboo\.display\(\'[^\']+\',\s*(.*?)\);\n'),
-            webpage, 'data JSON')
-        data = json.loads(data_json)
+        playlist_id, webpage, data = self.get_data(url)
 
         playlist_title = data.get('DATA').get('TITLE')
         playlist_uploader = data.get('DATA').get('PARENT_USERNAME')
