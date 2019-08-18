@@ -10,8 +10,8 @@ from ..utils import (
     orderedSet,
 )
 
-class DeezerBaseInfoExtractor(InfoExtractor):
 
+class DeezerBaseInfoExtractor(InfoExtractor):
     def get_data(self, url):
         if not self._downloader.params.get('test'):
             self._downloader.report_warning('For now, this extractor only supports the 30 second previews. Patches welcome!')
@@ -33,6 +33,7 @@ class DeezerBaseInfoExtractor(InfoExtractor):
             webpage, 'data JSON')
         data = json.loads(data_json)
         return id, webpage, data
+
 
 class DeezerPlaylistIE(DeezerBaseInfoExtractor):
     _VALID_URL = r'https?://(?:www\.)?deezer\.com/(../)?playlist/(?P<id>[0-9]+)'
@@ -86,6 +87,7 @@ class DeezerPlaylistIE(DeezerBaseInfoExtractor):
             'entries': entries,
         }
 
+
 class DeezerAlbumIE(DeezerBaseInfoExtractor):
     _VALID_URL = r'https?://(?:www\.)?deezer\.com/(../)?album/(?P<id>[0-9]+)'
     _TEST = {
@@ -127,13 +129,12 @@ class DeezerAlbumIE(DeezerBaseInfoExtractor):
                 'uploader_id': s.get('ART_ID'),
                 'age_limit': 16 if s.get('EXPLICIT_LYRICS') == '1' else 0,
                 'formats': formats,
-                'track' : s.get('SNG_TITLE'),
-                'track_number' : int(s.get('TRACK_NUMBER')),
-                'track_id' : s.get('SNG_ID'),
-                'artist' : album_uploader,
-                'album' : album_title,
-                'album_artist' : album_uploader,
-
+                'track': s.get('SNG_TITLE'),
+                'track_number': int(s.get('TRACK_NUMBER')),
+                'track_id': s.get('SNG_ID'),
+                'artist': album_uploader,
+                'album': album_title,
+                'album_artist': album_uploader,
             })
 
         return {
