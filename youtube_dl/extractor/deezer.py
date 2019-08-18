@@ -10,16 +10,15 @@ from ..utils import (
     orderedSet,
 )
 
-
 class DeezerPlaylistIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:www\.)?deezer\.com/playlist/(?P<id>[0-9]+)'
+    _VALID_URL = r'https?://(?:www\.)?deezer\.com/(../)?playlist/(?P<id>[0-9]+)'
     _TEST = {
         'url': 'http://www.deezer.com/playlist/176747451',
         'info_dict': {
             'id': '176747451',
             'title': 'Best!',
             'uploader': 'anonymous',
-            'thumbnail': r're:^https?://e-cdns-images\.dzcdn\.net/images/cover/.*\.jpg$',
+            'thumbnail': r're:^https?://(e-)?cdns-images\.dzcdn\.net/images/cover/.*\.jpg$',
         },
         'playlist_count': 29,
     }
