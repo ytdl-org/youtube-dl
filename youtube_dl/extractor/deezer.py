@@ -130,7 +130,7 @@ class DeezerAlbumIE(DeezerBaseInfoExtractor):
                 'age_limit': 16 if s.get('EXPLICIT_LYRICS') == '1' else 0,
                 'formats': formats,
                 'track': s.get('SNG_TITLE'),
-                'track_number': int(s.get('TRACK_NUMBER')),
+                'track_number': int_or_none(s.get('TRACK_NUMBER')),
                 'track_id': s.get('SNG_ID'),
                 'artist': album_uploader,
                 'album': album_title,
