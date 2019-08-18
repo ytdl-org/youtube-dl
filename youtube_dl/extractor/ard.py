@@ -471,16 +471,59 @@ class ARDBetaMediathekIE(InfoExtractor):
 
         return result
 
+    def _get_player_page(self, data):
+        if not data:
+           return None
+
+        root = data.get('ROOT_QUERY')
+        if root:
+            for val in root.values():
+                if val.get('typename') == 'PlayerPage':
+                    return data.get(val.get('id'))
+        return None
+
+    def _get_player_page_element(self, data, player_page, entry, key=None):
+        element = player_page.get(entry)
+        if element == None or key == None:
+            return element
+
+        element_id = element.get('id')
+        if not element_id:
+            return None
+
+        data_element = data.get(element_id)
+        if not data_element:
+            return None
+
+        return data_element.get(key)
+
+    def _is_flag_set(self, data, flag):
+        player_page = self._get_player_page(data)
+
+        if not player_page:
+            return False
+
+        return self._get_player_page_element(data, player_page, flag)
+
+    def _extract_age_limit(self, fsk_str):
+        m = re.match(r'(?:FSK|fsk|Fsk)(\d+)', fsk_str)
+        if m and m.group(1):
+            return int_or_none(m.group(1))
+        else:
+            return 0
+
     def _extract_episode_info(self, title):
-        patterns = [
+        res = {}
+        if not title:
+            return res
+
+        # Try to read episode data from the title.
+        for pattern in [
             r'.*(?P<ep_info> \(S(?P<season_number>\d+)/E(?P<episode_number>\d+)\)).*',
             r'.*(?P<ep_info> \((?:Folge |Teil )?(?P<episode_number>\d+)(?:/\d+)?\)).*',
             r'.*(?P<ep_info>Folge (?P<episode_number>\d+)(?:\:| -|) )\"(?P<episode>.+)\".*',
-            r'.*(?P<ep_info>Folge (?P<episode_number>\d+)(?:\:| -|) ).*',
-        ]
-        res = {}
-
-        for pattern in patterns:
+            r'.*(?P<ep_info>Folge (?P<episode_number>\d+)(?:/\d+)?(?:\:| -|) ).*',
+        ]:
             m = re.match(pattern, title)
             if m:
                 groupdict = m.groupdict()
@@ -490,6 +533,8 @@ class ARDBetaMediathekIE(InfoExtractor):
                 for str_entry in ['episode']:
                     res[str_entry] = str_or_none(groupdict.get(str_entry))
 
+                # Build the episode title by removing numeric episode
+                # information.
                 if groupdict.get('ep_info') and not res['episode']:
                     res['episode'] = str_or_none(title.replace(groupdict.get('ep_info'), ''))
 
@@ -497,6 +542,66 @@ class ARDBetaMediathekIE(InfoExtractor):
                     res['episode'] = res['episode'].strip()
 
                 break
+
+        return res
+
+    def _extract_metadata(self, data):
+        res = {}
+
+        player_page = self._get_player_page(data)
+        
+        if player_page:
+            for template in [
+                { 'dict_key': 'channel',
+                  'entry': 'publicationService',
+                  'key': 'name' },
+
+                { 'dict_key': 'series',
+                  'entry': 'show',
+                  'key': 'title' },
+
+                { 'dict_key': 'title',
+                  'entry': 'title' },
+
+                { 'dict_key': 'description',
+                  'entry': 'synopsis' },
+
+                { 'dict_key': 'thumbnail',
+                  'entry': 'image',
+                  'key': 'src',
+                  'filter': lambda image_url: image_url.replace('{width}', '1920') },
+
+                { 'dict_key': 'timestamp',
+                  'entry': 'broadcastedOn',
+                  'filter': unified_timestamp },
+
+                { 'dict_key': 'release_date',
+                  'entry': 'broadcastedOn',
+                  'filter': unified_strdate },
+
+                { 'dict_key': 'age_limit',
+                  'entry': 'maturityContentRating',
+                  'filter': self._extract_age_limit },
+
+                { 'dict_key': 'duration',
+                  'entry': 'mediaCollection',
+                  'key': '_duration',
+                  'filter': int_or_none },
+
+                { 'dict_key': 'subtitles',
+                  'entry': 'mediaCollection',
+                  'key': '_subtitleUrl',
+                  'filter': lambda subtitle_url: { 'de': [ { 'ext': 'ttml', 'url': subtitle_url } ]} },
+            ]:
+                value = self._get_player_page_element(data,
+                                                      player_page,
+                                                      template.get('entry'),
+                                                      template.get('key'))
+                if value != None:
+                    filter_func = template.get('filter', str_or_none)
+                    res[template['dict_key']] = filter_func(value)
+
+            res.update(self._extract_episode_info(res.get('title')))
 
         return res
 
@@ -508,47 +613,21 @@ class ARDBetaMediathekIE(InfoExtractor):
         webpage = self._download_webpage(url, display_id)
         data_json = self._search_regex(r'window\.__APOLLO_STATE__\s*=\s*(\{.*);\n', webpage, 'json')
         data = self._parse_json(data_json, display_id)
-        #import json
-        #print(json.dumps(data, indent=2))
+
+        if not data:
+            raise ExtractorError(
+                msg='Did not find any video data to extract', expected=True)
 
         res = {
             'id': video_id,
             'display_id': display_id,
         }
-        formats = []
-        subtitles = {}
-        geoblocked = False
-        blocked_by_fsk = False
-        for widget in data.values():
-            if widget.get('_geoblocked') is True:
-                geoblocked = True
-            if widget.get('blockedByFsk') is True:
-                blocked_by_fsk = True
-            if '_duration' in widget:
-                res['duration'] = int_or_none(widget['_duration'])
-            if 'clipTitle' in widget:
-                res['title'] = widget['clipTitle']
-            if '_previewImage' in widget:
-                res['thumbnail'] = widget['_previewImage']
-            if 'broadcastedOn' in widget:
-                res['timestamp'] = unified_timestamp(widget['broadcastedOn'])
-            if 'synopsis' in widget:
-                res['description'] = widget['synopsis']
-            if 'maturityContentRating' in widget:
-                fsk_str = str_or_none(widget['maturityContentRating'])
-                if fsk_str:
-                    m = re.match(r'(?:FSK|fsk|Fsk)(\d+)', fsk_str)
-                    if m and m.group(1):
-                        res['age_limit'] = int_or_none(m.group(1))
-                    else:
-                        res['age_limit'] = 0
 
-            subtitle_url = url_or_none(widget.get('_subtitleUrl'))
-            if subtitle_url:
-                subtitles.setdefault('de', []).append({
-                    'ext': 'ttml',
-                    'url': subtitle_url,
-                })
+        res.update(self._extract_metadata(data))
+
+        # Extract video formats
+        formats = []
+        for widget in data.values():
             if '_quality' in widget:
                 # Read format URLs from a MediaStreamArray
                 stream_array = try_get(widget,
@@ -582,22 +661,20 @@ class ARDBetaMediathekIE(InfoExtractor):
                         quality = str_or_none(widget.get('_quality'))
                         formats.append(self._get_format_from_url(format_url, quality))
 
-        if not formats and geoblocked:
+        if not formats and self._is_flag_set(data, 'geoblocked'):
             self.raise_geo_restricted(
                 msg='This video is not available due to geoblocking',
                 countries=['DE'])
 
-        if not formats and blocked_by_fsk:
+        if not formats and self._is_flag_set(data, 'blockedByFsk'):
             raise ExtractorError(
                 msg='This video is currently not available due to age restrictions (FSK %d). Try again from %02d:00 to 06:00.' % (res['age_limit'], 22 if res['age_limit'] < 18 else 23),
                 expected=True)
 
-        self._sort_formats(formats)
-        res.update({
-            'subtitles': subtitles,
-            'formats': formats,
-        })
-
-        res.update(self._extract_episode_info(res.get('title')))
+        if formats:
+            self._sort_formats(formats)
+            res.update({
+                'formats': formats,
+            })
 
         return res
