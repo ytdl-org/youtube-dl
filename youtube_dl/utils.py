@@ -3532,7 +3532,7 @@ def str_to_int(int_str):
     if isinstance(int_str, compat_integer_types):
         return int_str
     elif isinstance(int_str, compat_str):
-        int_str = re.sub(r'[,\.\+]', '', int_str)
+        int_str = re.sub(r'[,\.\s\+]', '', int_str)
         return int_or_none(int_str)
 
 
