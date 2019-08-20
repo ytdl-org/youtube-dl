@@ -17,7 +17,7 @@ from ..utils import (
 
 
 class RoosterTeethIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:.+?\.)?roosterteeth\.com/episode/(?P<id>[^/?#&]+)'
+    _VALID_URL = r'https?://(?:.+?\.)?roosterteeth\.com/(?:episode|watch)/(?P<id>[^/?#&]+)'
     _LOGIN_URL = 'https://roosterteeth.com/login'
     _NETRC_MACHINE = 'roosterteeth'
     _TESTS = [{
@@ -48,6 +48,9 @@ class RoosterTeethIE(InfoExtractor):
     }, {
         # only available for FIRST members
         'url': 'http://roosterteeth.com/episode/rt-docs-the-world-s-greatest-head-massage-the-world-s-greatest-head-massage-an-asmr-journey-part-one',
+        'only_matching': True,
+    }, {
+        'url': 'https://roosterteeth.com/watch/million-dollars-but-season-2-million-dollars-but-the-game-announcement',
         'only_matching': True,
     }]
 

@@ -31,6 +31,7 @@ from ..utils import (
     clean_html,
     dict_get,
     error_to_compat_str,
+    extract_attributes,
     ExtractorError,
     float_or_none,
     get_element_by_attribute,
@@ -324,17 +325,18 @@ class YoutubePlaylistBaseInfoExtractor(YoutubeEntryListBaseInfoExtractor):
         for video_id, video_title in self.extract_videos_from_page(content):
             yield self.url_result(video_id, 'Youtube', video_id, video_title)
 
-    def extract_videos_from_page(self, page):
-        ids_in_page = []
-        titles_in_page = []
-        for mobj in re.finditer(self._VIDEO_RE, page):
+    def extract_videos_from_page_impl(self, video_re, page, ids_in_page, titles_in_page):
+        for mobj in re.finditer(video_re, page):
             # The link with index 0 is not the first video of the playlist (not sure if still actual)
             if 'index' in mobj.groupdict() and mobj.group('id') == '0':
                 continue
             video_id = mobj.group('id')
-            video_title = unescapeHTML(mobj.group('title'))
+            video_title = unescapeHTML(
+                mobj.group('title')) if 'title' in mobj.groupdict() else None
             if video_title:
                 video_title = video_title.strip()
+            if video_title == '► Play all':
+                video_title = None
             try:
                 idx = ids_in_page.index(video_id)
                 if video_title and not titles_in_page[idx]:
@@ -342,6 +344,12 @@ class YoutubePlaylistBaseInfoExtractor(YoutubeEntryListBaseInfoExtractor):
             except ValueError:
                 ids_in_page.append(video_id)
                 titles_in_page.append(video_title)
+
+    def extract_videos_from_page(self, page):
+        ids_in_page = []
+        titles_in_page = []
+        self.extract_videos_from_page_impl(
+            self._VIDEO_RE, page, ids_in_page, titles_in_page)
         return zip(ids_in_page, titles_in_page)
 
 
@@ -1595,17 +1603,6 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
         video_id = mobj.group(2)
         return video_id
 
-    def _extract_annotations(self, video_id):
-        return self._download_webpage(
-            'https://www.youtube.com/annotations_invideo', video_id,
-            note='Downloading annotations',
-            errnote='Unable to download video annotations', fatal=False,
-            query={
-                'features': 1,
-                'legacy': 1,
-                'video_id': video_id,
-            })
-
     @staticmethod
     def _extract_chapters(description, duration):
         if not description:
@@ -1700,6 +1697,15 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
         def extract_token(v_info):
             return dict_get(v_info, ('account_playback_token', 'accountPlaybackToken', 'token'))
 
+        def extract_player_response(player_response, video_id):
+            pl_response = str_or_none(player_response)
+            if not pl_response:
+                return
+            pl_response = self._parse_json(pl_response, video_id, fatal=False)
+            if isinstance(pl_response, dict):
+                add_dash_mpd_pr(pl_response)
+                return pl_response
+
         player_response = {}
 
         # Get video info
@@ -1722,7 +1728,10 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                 note='Refetching age-gated info webpage',
                 errnote='unable to download video info webpage')
             video_info = compat_parse_qs(video_info_webpage)
+            pl_response = video_info.get('player_response', [None])[0]
+            player_response = extract_player_response(pl_response, video_id)
             add_dash_mpd(video_info)
+            view_count = extract_view_count(video_info)
         else:
             age_gate = False
             video_info = None
@@ -1745,11 +1754,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                     is_live = True
                 sts = ytplayer_config.get('sts')
                 if not player_response:
-                    pl_response = str_or_none(args.get('player_response'))
-                    if pl_response:
-                        pl_response = self._parse_json(pl_response, video_id, fatal=False)
-                        if isinstance(pl_response, dict):
-                            player_response = pl_response
+                    player_response = extract_player_response(args.get('player_response'), video_id)
             if not video_info or self._downloader.params.get('youtube_include_dash_manifest', True):
                 add_dash_mpd_pr(player_response)
                 # We also try looking in get_video_info since it may contain different dashmpd
@@ -1781,9 +1786,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                     get_video_info = compat_parse_qs(video_info_webpage)
                     if not player_response:
                         pl_response = get_video_info.get('player_response', [None])[0]
-                        if isinstance(pl_response, dict):
-                            player_response = pl_response
-                            add_dash_mpd_pr(player_response)
+                        player_response = extract_player_response(pl_response, video_id)
                     add_dash_mpd(get_video_info)
                     if view_count is None:
                         view_count = extract_view_count(get_video_info)
@@ -1806,9 +1809,15 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                         break
 
         def extract_unavailable_message():
-            return self._html_search_regex(
-                r'(?s)<h1[^>]+id="unavailable-message"[^>]*>(.+?)</h1>',
-                video_webpage, 'unavailable message', default=None)
+            messages = []
+            for tag, kind in (('h1', 'message'), ('div', 'submessage')):
+                msg = self._html_search_regex(
+                    r'(?s)<{tag}[^>]+id=["\']unavailable-{kind}["\'][^>]*>(.+?)</{tag}>'.format(tag=tag, kind=kind),
+                    video_webpage, 'unavailable %s' % kind, default=None)
+                if msg:
+                    messages.append(msg)
+            if messages:
+                return '\n'.join(messages)
 
         if not video_info:
             unavailable_message = extract_unavailable_message()
@@ -2092,9 +2101,14 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                     a_format.setdefault('http_headers', {})['Youtubedl-no-compression'] = 'True'
                     formats.append(a_format)
             else:
-                error_message = clean_html(video_info.get('reason', [None])[0])
+                error_message = extract_unavailable_message()
                 if not error_message:
-                    error_message = extract_unavailable_message()
+                    error_message = clean_html(try_get(
+                        player_response, lambda x: x['playabilityStatus']['reason'],
+                        compat_str))
+                if not error_message:
+                    error_message = clean_html(
+                        try_get(video_info, lambda x: x['reason'][0], compat_str))
                 if error_message:
                     raise ExtractorError(error_message, expected=True)
                 raise ExtractorError('no conn, hlsvp, hlsManifestUrl or url_encoded_fmt_stream_map information found in video info')
@@ -2265,7 +2279,21 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
         # annotations
         video_annotations = None
         if self._downloader.params.get('writeannotations', False):
-            video_annotations = self._extract_annotations(video_id)
+            xsrf_token = self._search_regex(
+                r'([\'"])XSRF_TOKEN\1\s*:\s*([\'"])(?P<xsrf_token>[A-Za-z0-9+/=]+)\2',
+                video_webpage, 'xsrf token', group='xsrf_token', fatal=False)
+            invideo_url = try_get(
+                player_response, lambda x: x['annotations'][0]['playerAnnotationsUrlsRenderer']['invideoUrl'], compat_str)
+            if xsrf_token and invideo_url:
+                xsrf_field_name = self._search_regex(
+                    r'([\'"])XSRF_FIELD_NAME\1\s*:\s*([\'"])(?P<xsrf_field_name>\w+)\2',
+                    video_webpage, 'xsrf field name',
+                    group='xsrf_field_name', default='session_token')
+                video_annotations = self._download_webpage(
+                    self._proto_relative_url(invideo_url),
+                    video_id, note='Downloading annotations',
+                    errnote='Unable to download video annotations', fatal=False,
+                    data=urlencode_postdata({xsrf_field_name: xsrf_token}))
 
         chapters = self._extract_chapters(description_original, video_duration)
 
@@ -2423,7 +2451,8 @@ class YoutubePlaylistIE(YoutubePlaylistBaseInfoExtractor):
                         (%(playlist_id)s)
                      )""" % {'playlist_id': YoutubeBaseInfoExtractor._PLAYLIST_ID_RE}
     _TEMPLATE_URL = 'https://www.youtube.com/playlist?list=%s'
-    _VIDEO_RE = r'href="\s*/watch\?v=(?P<id>[0-9A-Za-z_-]{11})(?:&amp;(?:[^"]*?index=(?P<index>\d+))?(?:[^>]+>(?P<title>[^<]+))?)?'
+    _VIDEO_RE_TPL = r'href="\s*/watch\?v=%s(?:&amp;(?:[^"]*?index=(?P<index>\d+))?(?:[^>]+>(?P<title>[^<]+))?)?'
+    _VIDEO_RE = _VIDEO_RE_TPL % r'(?P<id>[0-9A-Za-z_-]{11})'
     IE_NAME = 'youtube:playlist'
     _TESTS = [{
         'url': 'https://www.youtube.com/playlist?list=PLwiyx1dc3P2JR9N8gQaQN_BCvlSlap7re',
@@ -2587,6 +2616,34 @@ class YoutubePlaylistIE(YoutubePlaylistBaseInfoExtractor):
 
     def _real_initialize(self):
         self._login()
+
+    def extract_videos_from_page(self, page):
+        ids_in_page = []
+        titles_in_page = []
+
+        for item in re.findall(
+                r'(<[^>]*\bdata-video-id\s*=\s*["\'][0-9A-Za-z_-]{11}[^>]+>)', page):
+            attrs = extract_attributes(item)
+            video_id = attrs['data-video-id']
+            video_title = unescapeHTML(attrs.get('data-title'))
+            if video_title:
+                video_title = video_title.strip()
+            ids_in_page.append(video_id)
+            titles_in_page.append(video_title)
+
+        # Fallback with old _VIDEO_RE
+        self.extract_videos_from_page_impl(
+            self._VIDEO_RE, page, ids_in_page, titles_in_page)
+
+        # Relaxed fallbacks
+        self.extract_videos_from_page_impl(
+            r'href="\s*/watch\?v\s*=\s*(?P<id>[0-9A-Za-z_-]{11})', page,
+            ids_in_page, titles_in_page)
+        self.extract_videos_from_page_impl(
+            r'data-video-ids\s*=\s*["\'](?P<id>[0-9A-Za-z_-]{11})', page,
+            ids_in_page, titles_in_page)
+
+        return zip(ids_in_page, titles_in_page)
 
     def _extract_mix(self, playlist_id):
         # The mixes are generated from a single video
