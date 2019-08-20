@@ -411,6 +411,8 @@ class ARDBetaMediathekIE(InfoExtractor):
                 'webm': 512,
                 'websm': 480,
                 'webs': 256,
+                # tagesschau24 uses a width of 256 instead of 320 for its
+                # smallest videos
             },
         },
 
@@ -428,10 +430,11 @@ class ARDBetaMediathekIE(InfoExtractor):
             },
         },
 
-        # TODO Find out format data for videos from WDR and ONE.
+        # There is no format information in the URLs of videos from
+        # WDR and ONE.
     ]
 
-    def _get_format_from_url(self, format_url, quality):
+    def _build_format_from_http_url(self, format_url, suffix, width_from_json_pos):
         """Extract as much format data from the format_url as possible.
 
         Use the templates listed in _format_url_templates to do so.
@@ -439,6 +442,7 @@ class ARDBetaMediathekIE(InfoExtractor):
 
         result = {
             'url': format_url,
+            'width': width_from_json_pos,
             'preference': 10,  # Plain HTTP, that's nice
         }
 
@@ -448,7 +452,7 @@ class ARDBetaMediathekIE(InfoExtractor):
             m = re.match(template['pattern'], format_url)
             if m:
                 groupdict = m.groupdict()
-                result['width'] = int_or_none(groupdict.get('width'))
+                result['width'] = int_or_none(groupdict.get('width', width_from_json_pos))
                 result['height'] = int_or_none(groupdict.get('height'))
                 result['fps'] = int_or_none(groupdict.get('fps'))
                 result['tbr'] = int_or_none(groupdict.get('tbr'))
@@ -467,50 +471,24 @@ class ARDBetaMediathekIE(InfoExtractor):
         if result.get('height') and not result.get('width'):
             result['width'] = int((result['height'] / 9) * 16)
 
-        result['format_id'] = (('http-' + quality) if quality else 'http') + ('-' + format_id_suffix if format_id_suffix else '')
+        result['format_id'] = ((('http-' + suffix) if suffix else 'http') +
+                               ('-' + format_id_suffix if format_id_suffix else ''))
 
         return result
 
     def _get_player_page(self, data):
-        if not data:
+        if not isinstance(data, dict):
            return None
 
         root = data.get('ROOT_QUERY')
-        if root:
+        if isinstance(root, dict):
             for val in root.values():
-                if val.get('typename') == 'PlayerPage':
+                if isinstance(val, dict) and val.get('typename') == 'PlayerPage':
                     return data.get(val.get('id'))
         return None
 
-    def _get_player_page_element(self, data, player_page, entry, key=None):
-        element = player_page.get(entry)
-        if element == None or key == None:
-            return element
-
-        element_id = element.get('id')
-        if not element_id:
-            return None
-
-        data_element = data.get(element_id)
-        if not data_element:
-            return None
-
-        return data_element.get(key)
-
     def _is_flag_set(self, data, flag):
-        player_page = self._get_player_page(data)
-
-        if not player_page:
-            return False
-
-        return self._get_player_page_element(data, player_page, flag)
-
-    def _extract_age_limit(self, fsk_str):
-        m = re.match(r'(?:FSK|fsk|Fsk)(\d+)', fsk_str)
-        if m and m.group(1):
-            return int_or_none(m.group(1))
-        else:
-            return 0
+        return self._get_elements_from_path(data, [flag])
 
     def _extract_episode_info(self, title):
         res = {}
@@ -543,100 +521,144 @@ class ARDBetaMediathekIE(InfoExtractor):
 
                 break
 
+        # Fallback
+        if not res.get('episode'):
+            res['episode'] = title.strip()
+
         return res
+
+    def _extract_age_limit(self, fsk_str):
+        m = re.match(r'(?:FSK|fsk|Fsk)(\d+)', fsk_str)
+        if m and m.group(1):
+            return int_or_none(m.group(1))
+        else:
+            return 0
 
     def _extract_metadata(self, data):
         res = {}
 
-        player_page = self._get_player_page(data)
-        
-        if player_page:
-            for template in [
-                { 'dict_key': 'channel',
-                  'entry': 'publicationService',
-                  'key': 'name' },
+        for template in [
+            { 'dict_key': 'channel',
+              'path': ['publicationService', 'name'] },
 
-                { 'dict_key': 'series',
-                  'entry': 'show',
-                  'key': 'title' },
+            { 'dict_key': 'series',
+              'path': ['show', 'title'] },
 
-                { 'dict_key': 'title',
-                  'entry': 'title' },
+            { 'dict_key': 'title',
+              'path': ['title'] },
 
-                { 'dict_key': 'description',
-                  'entry': 'synopsis' },
+            { 'dict_key': 'description',
+              'path': ['synopsis'] },
 
-                { 'dict_key': 'thumbnail',
-                  'entry': 'image',
-                  'key': 'src',
-                  'filter': lambda image_url: image_url.replace('{width}', '1920') },
+            { 'dict_key': 'thumbnail',
+              'path': ['image', 'src'],
+              'filter': lambda image_url: image_url.replace('{width}', '1920') },
 
-                { 'dict_key': 'timestamp',
-                  'entry': 'broadcastedOn',
-                  'filter': unified_timestamp },
+            { 'dict_key': 'timestamp',
+              'path': ['broadcastedOn'],
+              'filter': unified_timestamp },
 
-                { 'dict_key': 'release_date',
-                  'entry': 'broadcastedOn',
-                  'filter': unified_strdate },
+            { 'dict_key': 'release_date',
+              'path': ['broadcastedOn'],
+              'filter': unified_strdate },
 
-                { 'dict_key': 'age_limit',
-                  'entry': 'maturityContentRating',
-                  'filter': self._extract_age_limit },
+            { 'dict_key': 'age_limit',
+              'path': ['maturityContentRating'],
+              'filter': self._extract_age_limit },
 
-                { 'dict_key': 'duration',
-                  'entry': 'mediaCollection',
-                  'key': '_duration',
-                  'filter': int_or_none },
+            { 'dict_key': 'duration',
+              'path': ['mediaCollection', '_duration'],
+              'filter': int_or_none },
 
-                { 'dict_key': 'subtitles',
-                  'entry': 'mediaCollection',
-                  'key': '_subtitleUrl',
-                  'filter': lambda subtitle_url: { 'de': [ { 'ext': 'ttml', 'url': subtitle_url } ]} },
-            ]:
-                value = self._get_player_page_element(data,
-                                                      player_page,
-                                                      template.get('entry'),
-                                                      template.get('key'))
-                if value != None:
-                    filter_func = template.get('filter', str_or_none)
-                    res[template['dict_key']] = filter_func(value)
+            { 'dict_key': 'subtitles',
+              'path': ['mediaCollection', '_subtitleUrl'],
+              'filter': lambda subtitle_url: { 'de': [ { 'ext': 'ttml', 'url': subtitle_url } ]} },
+        ]:
+            value = self._get_elements_from_path(data, template.get('path'))
+            if value != None:
+                filter_func = template.get('filter', str_or_none)
+                res[template['dict_key']] = filter_func(value)
 
-            res.update(self._extract_episode_info(res.get('title')))
+        res.update(self._extract_episode_info(res.get('title')))
 
         return res
 
-    def _real_extract(self, url):
-        mobj = re.match(self._VALID_URL, url)
-        video_id = mobj.group('video_id')
-        display_id = mobj.group('display_id') or video_id
+    def _resolve_element(self, data, element):
+        """Return the actual element if the given element links to another
+           element by id."""
+        if element == None:
+            return None
 
-        webpage = self._download_webpage(url, display_id)
-        data_json = self._search_regex(r'window\.__APOLLO_STATE__\s*=\s*(\{.*);\n', webpage, 'json')
-        data = self._parse_json(data_json, display_id)
+        if isinstance(element, dict) and element.get('type') == 'id':
+            # This element refers to another element.
+            # Retrieve the actual element.
+            if not data:
+                return None
+            return data.get(element.get('id'))
+
+        return element
+
+    def _get_elements_from_path(self, data, path, parent=None):
+        if parent == None:
+            parent = self._get_player_page(data)
+
+        if (not isinstance(parent, dict) or
+                not isinstance(path, list) or
+                len(path) == 0):
+            return None
+
+        element = self._resolve_element(data, parent.get(path[0]))
+        res = element
+        if isinstance(element, list):
+           res = []
+           for entry in element:
+               entry = self._resolve_element(data, entry)
+               if len(path[1:]) > 0:
+                   res.append(self._get_elements_from_path(data, path[1:], entry))
+               else:
+                   res.append(entry)
+        elif len(path[1:]) > 0:
+            res = self._get_elements_from_path(data, path[1:], element)
+
+        return res
+            
+
+    def _extract_video_formats(self, video_id, data):
+        formats = []
 
         if not data:
-            raise ExtractorError(
-                msg='Did not find any video data to extract', expected=True)
+            return formats
 
-        res = {
-            'id': video_id,
-            'display_id': display_id,
-        }
 
-        res.update(self._extract_metadata(data))
+        qualities = self._get_elements_from_path(data, ['mediaCollection',
+                                                        '_mediaArray',
+                                                        '_mediaStreamArray',
+                                                        '_quality'])
+        streams = self._get_elements_from_path(data, ['mediaCollection', 
+                                                      '_mediaArray',
+                                                      '_mediaStreamArray',
+                                                      '_stream',
+                                                      'json'])
+        if not streams:
+            return formats
 
-        # Extract video formats
-        formats = []
-        for widget in data.values():
-            if '_quality' in widget:
-                # Read format URLs from a MediaStreamArray
-                stream_array = try_get(widget,
-                                       lambda x: x['_stream']['json'])
-                if not stream_array:
-                    continue
+        # The streams are ordered by their size in the JSON data.
+        # Use this to set the format's width.
+        # The first index is the _mediaStreamArray index, the second one is
+        # the _stream.json index.
+        widths = [
+            [], # At index 0 there's an m3u8 playlist ('quality' = 'auto')
+            [320],
+            [512, 480, 480],
+            [640, 960],
+            [1280],
+            [1920],
+        ]
 
-                for format_url in stream_array:
-                    format_url = url_or_none(format_url)
+        for media_array_i, media_stream_arrays in enumerate(streams):
+            for media_stream_array_i, streams in enumerate(media_stream_arrays):
+                for stream_i, stream in enumerate(streams):
+                    format_url = url_or_none(stream)
                     if not format_url:
                         continue
 
@@ -658,8 +680,51 @@ class ARDBetaMediathekIE(InfoExtractor):
                             format_url, video_id, 'mp4', m3u8_id='hls',
                             fatal=False))
                     else:
-                        quality = str_or_none(widget.get('_quality'))
-                        formats.append(self._get_format_from_url(format_url, quality))
+                        # This is a video file for direct HTTP download
+
+                        if (qualities and
+                                media_array_i < len(qualities) and
+                                media_stream_array_i < len(qualities[media_array_i])):
+                            quality = str_or_none(qualities[media_array_i][media_stream_array_i])
+                        else:
+                            quality = None
+
+                        suffix = '-'.join(map(str, [media_array_i, media_stream_array_i, stream_i]))
+                        if quality != None:
+                            suffix = suffix + '-q' + quality
+
+                        # Infer the video's size from it's position within
+                        # the JSON arrays.
+                        width = None
+                        if media_stream_array_i < len(widths):
+                            if stream_i < len(widths[media_stream_array_i]):
+                                width = widths[media_stream_array_i][stream_i]
+
+                        formats.append(self._build_format_from_http_url(format_url, suffix, width))
+
+        return formats
+
+    def _real_extract(self, url):
+        mobj = re.match(self._VALID_URL, url)
+        video_id = mobj.group('video_id')
+        display_id = mobj.group('display_id') or video_id
+
+        webpage = self._download_webpage(url, display_id)
+        data_json = self._search_regex(r'window\.__APOLLO_STATE__\s*=\s*(\{.*);\n', webpage, 'json')
+        data = self._parse_json(data_json, display_id)
+
+        if not data:
+            raise ExtractorError(
+                msg='Did not find any video data to extract', expected=True)
+
+        res = {
+            'id': video_id,
+            'display_id': display_id,
+        }
+
+        res.update(self._extract_metadata(data))
+
+        formats = self._extract_video_formats(video_id, data)
 
         if not formats and self._is_flag_set(data, 'geoblocked'):
             self.raise_geo_restricted(
@@ -667,14 +732,18 @@ class ARDBetaMediathekIE(InfoExtractor):
                 countries=['DE'])
 
         if not formats and self._is_flag_set(data, 'blockedByFsk'):
-            raise ExtractorError(
-                msg='This video is currently not available due to age restrictions (FSK %d). Try again from %02d:00 to 06:00.' % (res['age_limit'], 22 if res['age_limit'] < 18 else 23),
-                expected=True)
+            age_limit = res.get('age_limit')
+            if age_limit != None:
+                raise ExtractorError(
+                    msg='This video is currently not available due to age restrictions (FSK %d). Try again from %02d:00 to 06:00.' % (age_limit, 22 if age_limit < 18 else 23),
+                    expected=True)
+            else:
+                raise ExtractorError(
+                    msg='This video is currently not available due to age restrictions. Try again later.',
+                    expected=True)
 
         if formats:
             self._sort_formats(formats)
-            res.update({
-                'formats': formats,
-            })
+            res['formats'] = formats
 
         return res
