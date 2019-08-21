@@ -41,8 +41,6 @@ class EinthusanIE(InfoExtractor):
         'only_matching': True,
     }]
 
-    
-
     # reversed from jsoncrypto.prototype.decrypt() in einthusan-PGMovieWatcher.js
     def _decrypt(self, encrypted_data, video_id):
         return self._parse_json(compat_b64decode((
