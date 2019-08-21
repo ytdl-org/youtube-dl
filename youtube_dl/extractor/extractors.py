@@ -994,6 +994,7 @@ from .screencast import ScreencastIE
 from .screencastomatic import ScreencastOMaticIE
 from .scrippsnetworks import ScrippsNetworksWatchIE
 from .seeker import SeekerIE
+from .senatefloor import SenateFloorGranicusIE
 from .senateisvp import SenateISVPIE
 from .sendtonews import SendtoNewsIE
 from .servus import ServusIE
