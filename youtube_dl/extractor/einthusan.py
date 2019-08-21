@@ -36,7 +36,12 @@ class EinthusanIE(InfoExtractor):
     }, {
         'url': 'https://einthusan.com/movie/watch/9097/',
         'only_matching': True,
+    }, {
+        'url': 'https://einthusan.ca/movie/watch/4E9n/?lang=hindi',
+        'only_matching': True,
     }]
+
+    
 
     # reversed from jsoncrypto.prototype.decrypt() in einthusan-PGMovieWatcher.js
     def _decrypt(self, encrypted_data, video_id):
