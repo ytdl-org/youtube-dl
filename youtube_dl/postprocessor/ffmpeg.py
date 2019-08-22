@@ -445,8 +445,8 @@ class FFmpegMetadataPP(FFmpegPostProcessor):
                     if info_obj.get(info_f) is not None:
                         for meta_f in meta_list:
                             metadata[meta_f] = info_obj[info_f]
-                        return True
-            return False
+                        return info_f
+            return None
 
         def add(meta_list, info_list=None):
             if not info_list:
@@ -455,8 +455,12 @@ class FFmpegMetadataPP(FFmpegPostProcessor):
                 meta_list = (meta_list,)
             if not isinstance(info_list, (list, tuple)):
                 info_list = (info_list,)
-            if not add_info(meta_list, info_list, metadata, self._preferredinfo):
+            preferred_key = add_info(meta_list, info_list, metadata, self._preferredinfo)
+            if preferred_key is None:
                 add_info(meta_list, info_list, metadata, info)
+            else:
+                for info_f in info_list:
+                    info[info_f] = self._preferredinfo[preferred_key]
 
         add('title', ('track', 'title'))
         add('date', 'upload_date')
