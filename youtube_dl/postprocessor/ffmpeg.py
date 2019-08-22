@@ -431,8 +431,22 @@ class FFmpegEmbedSubtitlePP(FFmpegPostProcessor):
 
 
 class FFmpegMetadataPP(FFmpegPostProcessor):
+
+    def __init__(self, downloader=None, preferredinfo=None):
+        super(FFmpegMetadataPP, self).__init__(downloader)
+        self._preferredinfo = preferredinfo if isinstance(preferredinfo, dict) else None
+
     def run(self, info):
         metadata = {}
+
+        def add_info(meta_list, info_list, metadata, info_obj):
+            if info_obj is not None:
+                for info_f in info_list:
+                    if info_obj.get(info_f) is not None:
+                        for meta_f in meta_list:
+                            metadata[meta_f] = info_obj[info_f]
+                        return True
+            return False
 
         def add(meta_list, info_list=None):
             if not info_list:
@@ -441,11 +455,8 @@ class FFmpegMetadataPP(FFmpegPostProcessor):
                 meta_list = (meta_list,)
             if not isinstance(info_list, (list, tuple)):
                 info_list = (info_list,)
-            for info_f in info_list:
-                if info.get(info_f) is not None:
-                    for meta_f in meta_list:
-                        metadata[meta_f] = info[info_f]
-                    break
+            if not add_info(meta_list, info_list, metadata, self._preferredinfo):
+                add_info(meta_list, info_list, metadata, info)
 
         add('title', ('track', 'title'))
         add('date', 'upload_date')
