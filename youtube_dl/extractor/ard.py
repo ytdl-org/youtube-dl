@@ -7,13 +7,12 @@ from .common import InfoExtractor
 from .generic import GenericIE
 from ..utils import (
     determine_ext,
-    dict_get,
     ExtractorError,
     int_or_none,
+    orderedSet,
     parse_duration,
     qualities,
     str_or_none,
-    try_get,
     unified_strdate,
     unified_timestamp,
     update_url_query,
@@ -21,7 +20,10 @@ from ..utils import (
     url_basename,
     xpath_text,
 )
-from ..compat import compat_etree_fromstring
+from ..compat import (
+    compat_etree_fromstring,
+    compat_urllib_parse_urlencode,
+)
 
 
 class ARDMediathekIE(InfoExtractor):
@@ -304,7 +306,72 @@ class ARDIE(InfoExtractor):
         }
 
 
-class ARDBetaMediathekIE(InfoExtractor):
+class ARDMediathekBaseIE(InfoExtractor):
+
+    def _get_page(self, data):
+        if not isinstance(data, dict):
+            return None
+
+        root = data.get('ROOT_QUERY')
+        if isinstance(root, dict):
+            for val in root.values():
+                if (isinstance(val, dict) and
+                        val.get('typename') == self._page_type):
+                    return data.get(val.get('id'))
+        else:
+            root = data.get('data')
+            if isinstance(root, dict):
+                for val in root.values():
+                    if (isinstance(val, dict) and
+                            val.get('__typename') == self._page_type):
+                        return val
+        return None
+
+    def _is_flag_set(self, data, flag):
+        return self._get_elements_from_path(data, [flag])
+
+    def _resolve_element(self, data, element):
+        """Return the element either directly or linked by ID."""
+        if element is None:
+            return None
+
+        if isinstance(element, dict) and element.get('type') == 'id':
+            # This element refers to another element.
+            # Retrieve the actual element.
+            if not data:
+                return None
+            return data.get(element.get('id'))
+
+        return element
+
+    def _get_elements_from_path(self, data, path, parent=None):
+        if parent is None:
+            parent = self._get_page(data)
+
+        if (not isinstance(parent, dict) or
+                not isinstance(path, list) or
+                len(path) == 0):
+            return None
+
+        element = self._resolve_element(data, parent.get(path[0]))
+        res = element
+        if isinstance(element, list):
+            res = []
+            for entry in element:
+                entry = self._resolve_element(data, entry)
+                if len(path[1:]) > 0:
+                    res.append(self._get_elements_from_path(data,
+                                                            path[1:],
+                                                            entry))
+                else:
+                    res.append(entry)
+        elif len(path[1:]) > 0:
+            res = self._get_elements_from_path(data, path[1:], element)
+
+        return res
+
+
+class ARDBetaMediathekIE(ARDMediathekBaseIE):
     _VALID_URL = r'https://(?:beta|www)\.ardmediathek\.de/[^/]+/(?:player|live)/(?P<video_id>[a-zA-Z0-9]+)(?:/(?P<display_id>[^/?#]+))?'
     _TESTS = [{
         'url': 'https://beta.ardmediathek.de/ard/player/Y3JpZDovL2Rhc2Vyc3RlLmRlL3RhdG9ydC9mYmM4NGM1NC0xNzU4LTRmZGYtYWFhZS0wYzcyZTIxNGEyMDE/die-robuste-roswita',
@@ -327,10 +394,12 @@ class ARDBetaMediathekIE(InfoExtractor):
         'only_matching': True,
     }]
 
+    _page_type = "PlayerPage"
+
     _format_url_templates = [
         # Das Erste
         {
-            'pattern': r'^.+/(?P<width>\d+)-[^/]+_[^/]+\..{3,4}$',
+            'pattern': r'^.+/(?P<width>\d{1,4})-[^/]+_[^/]+\..{3,4}$',
             'format_id_suffix': 'width',
         },
 
@@ -384,19 +453,19 @@ class ARDBetaMediathekIE(InfoExtractor):
 
         # HR
         {
-            'pattern': r'^.+/[^/]+?(?P<width>[0-9]+)x(?P<height>[0-9]+)-(?P<fps>[0-9]+)[pi]-(?P<tbr>[0-9]+)kbit\..{3,4}$',
+            'pattern': r'^.+/[^/]+?(?P<width>[0-9]{1,4})x(?P<height>[0-9]{1,4})-(?P<fps>[0-9]{1,3})[pi]-(?P<tbr>[0-9]{1,5})kbit\..{3,4}$',
             'format_id_suffix': 'tbr',
         },
 
         # Radio Bremen
         {
-            'pattern': r'^.+/[^/]+_(?P<height>\d+)p\..{3,4}$',
+            'pattern': r'^.+/[^/]+_(?P<height>\d{1,4})p\..{3,4}$',
             'format_id_suffix': 'height',
         },
 
         # RBB
         {
-            'pattern': r'^.+/[^/]+_(?P<vbr>\d+)k\..{3,4}$',
+            'pattern': r'^.+/[^/]+_(?P<vbr>\d{1,5})k\..{3,4}$',
             'format_id_suffix': 'vbr',
         },
 
@@ -434,12 +503,11 @@ class ARDBetaMediathekIE(InfoExtractor):
         # WDR and ONE.
     ]
 
-    def _build_format_from_http_url(self, format_url, suffix, width_from_json_pos):
+    def _extract_format_from_url(self, format_url, suffix, width_from_json_pos):
         """Extract as much format data from the format_url as possible.
 
         Use the templates listed in _format_url_templates to do so.
         """
-
         result = {
             'url': format_url,
             'width': width_from_json_pos,
@@ -452,7 +520,8 @@ class ARDBetaMediathekIE(InfoExtractor):
             m = re.match(template['pattern'], format_url)
             if m:
                 groupdict = m.groupdict()
-                result['width'] = int_or_none(groupdict.get('width', width_from_json_pos))
+                result['width'] = int_or_none(groupdict.get(
+                    'width', width_from_json_pos))
                 result['height'] = int_or_none(groupdict.get('height'))
                 result['fps'] = int_or_none(groupdict.get('fps'))
                 result['tbr'] = int_or_none(groupdict.get('tbr'))
@@ -462,7 +531,8 @@ class ARDBetaMediathekIE(InfoExtractor):
                 if width_dict:
                     result['width'] = width_dict.get(groupdict.get('width_key'))
 
-                format_id_suffix = groupdict.get(template.get('format_id_suffix'))
+                format_id_suffix = groupdict.get(
+                    template.get('format_id_suffix'))
                 break
 
         if result.get('width') and not result.get('height'):
@@ -471,24 +541,60 @@ class ARDBetaMediathekIE(InfoExtractor):
         if result.get('height') and not result.get('width'):
             result['width'] = int((result['height'] / 9) * 16)
 
-        result['format_id'] = ((('http-' + suffix) if suffix else 'http') +
-                               ('-' + format_id_suffix if format_id_suffix else ''))
+        result['format_id'] = ((('http-' + suffix)
+                                if suffix else 'http') +
+                               ('-' + format_id_suffix
+                                if format_id_suffix else ''))
 
         return result
 
-    def _get_player_page(self, data):
-        if not isinstance(data, dict):
-           return None
+    def _extract_format_from_index_pos(self,
+                                       data,
+                                       format_url,
+                                       media_array_i,
+                                       media_stream_array_i,
+                                       stream_i):
+        if not data:
+            return None
 
-        root = data.get('ROOT_QUERY')
-        if isinstance(root, dict):
-            for val in root.values():
-                if isinstance(val, dict) and val.get('typename') == 'PlayerPage':
-                    return data.get(val.get('id'))
-        return None
+        qualities = self._get_elements_from_path(data, ['mediaCollection',
+                                                        '_mediaArray',
+                                                        '_mediaStreamArray',
+                                                        '_quality'])
 
-    def _is_flag_set(self, data, flag):
-        return self._get_elements_from_path(data, [flag])
+        if (qualities and
+                media_array_i < len(qualities) and
+                media_stream_array_i < len(
+                    qualities[media_array_i])):
+            quality = str_or_none(
+                qualities[media_array_i][media_stream_array_i])
+        else:
+            quality = None
+
+        suffix = '-'.join(map(
+            str,
+            [media_array_i, media_stream_array_i, stream_i]))
+        if quality is not None:
+            suffix = suffix + '-q' + quality
+
+        # The streams are ordered by their size in the JSON data.
+        # Infer the video's size from its position within the JSON arrays.
+        # The first index is the _mediaStreamArray index, the second one is
+        # the _stream.json index.
+        widths = [
+            [],  # At index 0 there's an m3u8 playlist ('quality' = 'auto')
+            [320],
+            [512, 480, 480],
+            [640, 960],
+            [1280],
+            [1920],
+        ]
+        width = None
+        if media_stream_array_i < len(widths):
+            if stream_i < len(widths[media_stream_array_i]):
+                width = widths[media_stream_array_i][stream_i]
+
+        return self._extract_format_from_url(format_url, suffix, width)
 
     def _extract_episode_info(self, title):
         res = {}
@@ -514,7 +620,8 @@ class ARDBetaMediathekIE(InfoExtractor):
                 # Build the episode title by removing numeric episode
                 # information.
                 if groupdict.get('ep_info') and not res['episode']:
-                    res['episode'] = str_or_none(title.replace(groupdict.get('ep_info'), ''))
+                    res['episode'] = str_or_none(
+                        title.replace(groupdict.get('ep_info'), ''))
 
                 if res['episode']:
                     res['episode'] = res['episode'].strip()
@@ -538,90 +645,51 @@ class ARDBetaMediathekIE(InfoExtractor):
         res = {}
 
         for template in [
-            { 'dict_key': 'channel',
-              'path': ['publicationService', 'name'] },
+            {'key': 'channel',
+             'path': ['publicationService', 'name']},
 
-            { 'dict_key': 'series',
-              'path': ['show', 'title'] },
+            {'key': 'series',
+             'path': ['show', 'title']},
 
-            { 'dict_key': 'title',
-              'path': ['title'] },
+            {'key': 'title',
+             'path': ['title']},
 
-            { 'dict_key': 'description',
-              'path': ['synopsis'] },
+            {'key': 'description',
+             'path': ['synopsis']},
 
-            { 'dict_key': 'thumbnail',
-              'path': ['image', 'src'],
-              'filter': lambda image_url: image_url.replace('{width}', '1920') },
+            {'key': 'thumbnail',
+             'path': ['image', 'src'],
+             'filter': lambda image_url: image_url.replace('{width}', '1920')},
 
-            { 'dict_key': 'timestamp',
-              'path': ['broadcastedOn'],
-              'filter': unified_timestamp },
+            {'key': 'timestamp',
+             'path': ['broadcastedOn'],
+             'filter': unified_timestamp},
 
-            { 'dict_key': 'release_date',
-              'path': ['broadcastedOn'],
-              'filter': unified_strdate },
+            {'key': 'release_date',
+             'path': ['broadcastedOn'],
+             'filter': unified_strdate},
 
-            { 'dict_key': 'age_limit',
-              'path': ['maturityContentRating'],
-              'filter': self._extract_age_limit },
+            {'key': 'age_limit',
+             'path': ['maturityContentRating'],
+             'filter': self._extract_age_limit},
 
-            { 'dict_key': 'duration',
-              'path': ['mediaCollection', '_duration'],
-              'filter': int_or_none },
+            {'key': 'duration',
+             'path': ['mediaCollection', '_duration'],
+             'filter': int_or_none},
 
-            { 'dict_key': 'subtitles',
-              'path': ['mediaCollection', '_subtitleUrl'],
-              'filter': lambda subtitle_url: { 'de': [ { 'ext': 'ttml', 'url': subtitle_url } ]} },
+            {'key': 'subtitles',
+             'path': ['mediaCollection', '_subtitleUrl'],
+             'filter': lambda subtitle_url: {'de': [{'ext': 'ttml',
+                                                     'url': subtitle_url}]}},
         ]:
             value = self._get_elements_from_path(data, template.get('path'))
-            if value != None:
+            if value is not None:
                 filter_func = template.get('filter', str_or_none)
-                res[template['dict_key']] = filter_func(value)
+                res[template['key']] = filter_func(value)
 
         res.update(self._extract_episode_info(res.get('title')))
 
         return res
-
-    def _resolve_element(self, data, element):
-        """Return the actual element if the given element links to another
-           element by id."""
-        if element == None:
-            return None
-
-        if isinstance(element, dict) and element.get('type') == 'id':
-            # This element refers to another element.
-            # Retrieve the actual element.
-            if not data:
-                return None
-            return data.get(element.get('id'))
-
-        return element
-
-    def _get_elements_from_path(self, data, path, parent=None):
-        if parent == None:
-            parent = self._get_player_page(data)
-
-        if (not isinstance(parent, dict) or
-                not isinstance(path, list) or
-                len(path) == 0):
-            return None
-
-        element = self._resolve_element(data, parent.get(path[0]))
-        res = element
-        if isinstance(element, list):
-           res = []
-           for entry in element:
-               entry = self._resolve_element(data, entry)
-               if len(path[1:]) > 0:
-                   res.append(self._get_elements_from_path(data, path[1:], entry))
-               else:
-                   res.append(entry)
-        elif len(path[1:]) > 0:
-            res = self._get_elements_from_path(data, path[1:], element)
-
-        return res
-            
 
     def _extract_video_formats(self, video_id, data):
         formats = []
@@ -629,31 +697,13 @@ class ARDBetaMediathekIE(InfoExtractor):
         if not data:
             return formats
 
-
-        qualities = self._get_elements_from_path(data, ['mediaCollection',
-                                                        '_mediaArray',
-                                                        '_mediaStreamArray',
-                                                        '_quality'])
-        streams = self._get_elements_from_path(data, ['mediaCollection', 
+        streams = self._get_elements_from_path(data, ['mediaCollection',
                                                       '_mediaArray',
                                                       '_mediaStreamArray',
                                                       '_stream',
                                                       'json'])
         if not streams:
             return formats
-
-        # The streams are ordered by their size in the JSON data.
-        # Use this to set the format's width.
-        # The first index is the _mediaStreamArray index, the second one is
-        # the _stream.json index.
-        widths = [
-            [], # At index 0 there's an m3u8 playlist ('quality' = 'auto')
-            [320],
-            [512, 480, 480],
-            [640, 960],
-            [1280],
-            [1920],
-        ]
 
         for media_array_i, media_stream_arrays in enumerate(streams):
             for media_stream_array_i, streams in enumerate(media_stream_arrays):
@@ -666,7 +716,9 @@ class ARDBetaMediathekIE(InfoExtractor):
                     # Occassionally, there are duplicate files from
                     # different servers.
                     duplicate = next((x for x in formats
-                        if url_basename(x['url']) == url_basename(format_url)), None)
+                                      if url_basename(x['url']) == url_basename(
+                                        format_url)),
+                                     None)
                     if duplicate:
                         continue
 
@@ -681,26 +733,9 @@ class ARDBetaMediathekIE(InfoExtractor):
                             fatal=False))
                     else:
                         # This is a video file for direct HTTP download
-
-                        if (qualities and
-                                media_array_i < len(qualities) and
-                                media_stream_array_i < len(qualities[media_array_i])):
-                            quality = str_or_none(qualities[media_array_i][media_stream_array_i])
-                        else:
-                            quality = None
-
-                        suffix = '-'.join(map(str, [media_array_i, media_stream_array_i, stream_i]))
-                        if quality != None:
-                            suffix = suffix + '-q' + quality
-
-                        # Infer the video's size from it's position within
-                        # the JSON arrays.
-                        width = None
-                        if media_stream_array_i < len(widths):
-                            if stream_i < len(widths[media_stream_array_i]):
-                                width = widths[media_stream_array_i][stream_i]
-
-                        formats.append(self._build_format_from_http_url(format_url, suffix, width))
+                        formats.append(self._extract_format_from_index_pos(
+                            data, format_url,
+                            media_array_i, media_stream_array_i, stream_i))
 
         return formats
 
@@ -710,7 +745,10 @@ class ARDBetaMediathekIE(InfoExtractor):
         display_id = mobj.group('display_id') or video_id
 
         webpage = self._download_webpage(url, display_id)
-        data_json = self._search_regex(r'window\.__APOLLO_STATE__\s*=\s*(\{.*);\n', webpage, 'json')
+        data_json = self._search_regex(
+            r'window\.__APOLLO_STATE__\s*=\s*(\{.*);\n',
+            webpage,
+            'json')
         data = self._parse_json(data_json, display_id)
 
         if not data:
@@ -733,13 +771,17 @@ class ARDBetaMediathekIE(InfoExtractor):
 
         if not formats and self._is_flag_set(data, 'blockedByFsk'):
             age_limit = res.get('age_limit')
-            if age_limit != None:
+            if age_limit is not None:
                 raise ExtractorError(
-                    msg='This video is currently not available due to age restrictions (FSK %d). Try again from %02d:00 to 06:00.' % (age_limit, 22 if age_limit < 18 else 23),
+                    msg='This video is currently not available due to age '
+                        'restrictions (FSK %d). '
+                        'Try again from %02d:00 to 06:00.' % (
+                            age_limit, 22 if age_limit < 18 else 23),
                     expected=True)
             else:
                 raise ExtractorError(
-                    msg='This video is currently not available due to age restrictions. Try again later.',
+                    msg='This video is currently not available due to age '
+                        'restrictions. Try again later.',
                     expected=True)
 
         if formats:
@@ -747,3 +789,182 @@ class ARDBetaMediathekIE(InfoExtractor):
             res['formats'] = formats
 
         return res
+
+
+class ARDBetaMediathekPlaylistIE(ARDMediathekBaseIE):
+    _VALID_URL = r'https://(?:beta|www)\.ardmediathek\.de/(?P<channel>[^/]+)/(?P<playlist_type>shows|more)/(?P<video_id>[a-zA-Z0-9]+)(?:/(?P<display_id>[^/?#]+))?'
+    _TESTS = [{
+        'url': 'https://www.ardmediathek.de/daserste/shows/Y3JpZDovL2Rhc2Vyc3RlLmRlL3N0dXJtIGRlciBsaWViZQ/sturm-der-liebe',
+        'info_dict': {
+            'id': '4e55c4bGxyuGq2gig0Q4WU',
+            'display_id': 'menschen-und-leben',
+            'title': 'Menschen & Leben',
+        }
+    }, {
+        'url': 'https://www.ardmediathek.de/alpha/shows/Y3JpZDovL2JyLmRlL2Jyb2FkY2FzdFNlcmllcy82YmM4YzFhMS1mYWQxLTRiMmYtOGRjYi0wZjk5YTk4YzU3ZTA/bob-ross-the-joy-of-painting',
+        'info_dict': {
+            'id': 'Y3JpZDovL2JyLmRlL2Jyb2FkY2FzdFNlcmllcy82YmM4YzFhMS1mYWQxLTRiMmYtOGRjYi0wZjk5YTk4YzU3ZTA',
+            'display_id': 'bob-ross-the-joy-of-painting',
+            'title': 'Bob Ross - The Joy of Painting',
+        }
+    }, {
+        'url': 'https://www.ardmediathek.de/ard/more/4e55c4bGxyuGq2gig0Q4WU/menschen-und-leben',
+        'info_dict': {
+            'id': '4e55c4bGxyuGq2gig0Q4WU',
+            'display_id': 'menschen-und-leben',
+            'title': 'Menschen & Leben',
+            }
+    },
+    ]
+
+    _configurations = {
+        'shows': {
+            'page_type': 'ShowPage',
+            'playlist_id_name': 'showId',
+            'persisted_query_hash':
+            '1801f782ce062a81d19465b059e6147671da882c510cca99e9a9ade8e542922e',
+            'total_elements_path': ['pagination', 'totalElements'],
+            'video_ids_path': ['teasers', 'links', 'target', 'id'],
+        },
+        'more': {
+            'page_type': 'MorePage',
+            'playlist_id_name': 'compilationId',
+            'persisted_query_hash':
+            '0aa6f77b1d2400b94b9f92e6dbd0fabf652903ecf7c9e74d1367458d079f0810',
+            'total_elements_path': ['widget', 'pagination', 'totalElements'],
+            'video_ids_path': ['widget', 'teasers', 'links', 'target', 'id'],
+        },
+    }
+
+    def _build_query_str(self, client, playlist_id, page_number):
+        query_variables = '{{"client":"{}","{}":"{}","pageNumber":{}}}'.format(
+            client,
+            self._conf.get('playlist_id_name'),
+            playlist_id,
+            page_number)
+
+        # The order of the parameters is important. It only works like this.
+        return compat_urllib_parse_urlencode([
+            ('variables', query_variables),
+            ('extensions', '{"persistedQuery":{"version":1,"sha256Hash":"' +
+             self._conf.get('persisted_query_hash') + '"}}'), ])
+
+    def _download_page(self,
+                       video_id, referer, client, playlist_id, page_number):
+        api_url = 'https://api.ardmediathek.de/public-gateway'
+
+        m = re.match(r'(?P<origin>https?://[^/]+)/[^/]*', referer)
+        origin = m.group('origin')
+        headers = {'Referer': referer, 'Origin': origin,
+                   # The following headers are necessary to get a proper
+                   # response.
+                   'Content-type': 'application/json',
+                   'Accept': '*/*', }
+        query_str = self._build_query_str(client, playlist_id,  page_number)
+
+        try:
+            note = 'Downloading video IDs (page {})'.format(page_number)
+            page_data = self._download_json(api_url + '?' + query_str,
+                                            video_id,
+                                            headers=headers,
+                                            note=note)
+            page = self._get_page(page_data)
+        except ExtractorError:
+            return None, None
+
+        return page_data, page
+
+    def _real_extract(self, url):
+        mobj = re.match(self._VALID_URL, url)
+        video_id = mobj.group('video_id')
+        display_id = mobj.group('display_id') or video_id
+        channel = mobj.group('channel')
+        playlist_type = mobj.group('playlist_type')
+
+        self._conf = self._configurations.get(playlist_type)
+        self._page_type = self._conf.get('page_type')
+
+        webpage = self._download_webpage(url, display_id)
+        data_json = self._search_regex(
+            r'window\.__APOLLO_STATE__\s*=\s*(\{.*);\n', webpage, 'json')
+        data = self._parse_json(data_json, display_id)
+        page = self._get_page(data)
+        if not isinstance(page, dict):
+            raise ExtractorError(msg='No playlist data available',
+                                 expected=True)
+
+        title = self._get_elements_from_path(data, ['title'], page)
+        description = self._get_elements_from_path(data, ['synopsis'], page)
+        description = None
+
+        page_number = 0
+
+        ep_data, page = self._download_page(display_id, url, channel,
+                                            video_id, page_number)
+        if not isinstance(page, dict):
+            raise ExtractorError(msg='No playlist data available',
+                                 expected=True)
+
+        total_elements = self._get_elements_from_path(
+            ep_data, self._conf.get('total_elements_path'), page) or 0
+        self.to_screen('{}: There are supposed to be {} videos.'.format(
+            display_id, total_elements))
+
+        page_size = 0
+        num_skipped_ids = 0
+        skipped_previous_page = False
+
+        urls = []
+        while True:
+            ids_on_page = self._get_elements_from_path(
+                ep_data, self._conf.get('video_ids_path'), page)
+            if ids_on_page:
+                urls.extend(['https://www.ardmediathek.de/{}/player/{}'.format(
+                    channel, x) for x in ids_on_page])
+                page_size = max(page_size, len(ids_on_page))
+            elif not skipped_previous_page:
+                # We're receiving data but it doesn't contain any
+                # video IDs. This might happen if the number of reported
+                # elements is higher than the actual number of videos
+                # in this collection.
+                break
+
+            if len(urls) + num_skipped_ids >= total_elements:
+                break
+
+            page_number = page_number + 1
+            ep_data, page = self._download_page(display_id, url, channel,
+                                                video_id, page_number)
+            skipped_previous_page = False
+
+            if not isinstance(page, dict):
+                self.report_warning(
+                    'Could not download page {} with video IDs. '
+                    'Skipping {} videos.'.format(
+                        page_number,
+                        min(page_size,
+                            total_elements - len(urls) - num_skipped_ids)),
+                    display_id)
+                num_skipped_ids = num_skipped_ids + page_size
+                skipped_previous_page = True
+
+        # Remove duplicates
+        urls = orderedSet(urls)
+
+        if total_elements > len(urls):
+            msg = 'Only received {} video IDs'.format(len(urls))
+            if num_skipped_ids > 0:
+                # We had to skip pages because they could not be downloaded
+                msg = msg + '. Had to skip {} of {} vidoes'.format(
+                    total_elements - len(urls), total_elements)
+            else:
+                # The API reported the wrong number of videos and/or there
+                # might have been duplicate entries
+                msg = msg + ' of {} reported videos.'.format(total_elements)
+            self.report_warning(msg)
+
+        entries = [
+            self.url_result(item_url, ie=ARDBetaMediathekIE.ie_key())
+            for item_url in urls]
+
+        return self.playlist_result(entries, video_id, title, description)

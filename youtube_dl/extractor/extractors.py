@@ -54,8 +54,9 @@ from .archiveorg import ArchiveOrgIE
 from .arkena import ArkenaIE
 from .ard import (
     ARDBetaMediathekIE,
+    ARDBetaMediathekPlaylistIE,
     ARDIE,
-    ARDMediathekIE,
+#    ARDMediathekIE,
 )
 from .arte import (
     ArteTVPlus7IE,
