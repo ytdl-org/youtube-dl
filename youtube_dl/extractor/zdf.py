@@ -39,11 +39,23 @@ class ZDFBaseIE(InfoExtractor):
 
 
 class ZDFIE(ZDFBaseIE):
-    _VALID_URL = r'https?://www\.zdf\.de/(?:[^/]+/)*(?P<id>[^/?]+)\.html'
+    IE_NAME = "ZDF-3sat"
+    _VALID_URL = r'https?://www\.(zdf|3sat)\.de/(?:[^/]+/)*(?P<id>[^/?]+)\.html'
     _QUALITIES = ('auto', 'low', 'med', 'high', 'veryhigh')
     _GEO_COUNTRIES = ['DE']
 
     _TESTS = [{
+        'url': 'https://www.3sat.de/wissen/wissenschaftsdoku/luxusgut-lebensraum-100.html',
+        'info_dict': {
+            'id': 'luxusgut-lebensraum-100',
+            'ext': 'mp4',
+            'title': 'Luxusgut Lebensraum',
+            'description': 'md5:5c09b2f45ac3bc5233d1b50fc543d061',
+            'duration': 2601,
+            'timestamp': 1566497700,
+            'upload_date': '20190822',
+        }
+    }, {
         'url': 'https://www.zdf.de/dokumentation/terra-x/die-magie-der-farben-von-koenigspurpur-und-jeansblau-100.html',
         'info_dict': {
             'id': 'die-magie-der-farben-von-koenigspurpur-und-jeansblau-100',
