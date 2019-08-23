@@ -11,7 +11,7 @@ from ..utils import (
 
 
 class GfycatIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:www\.)?gfycat\.com/(?:ifr/|gifs/detail/)?(?P<id>[^-/?#]+)'
+    _VALID_URL = r'https?://(?:www\.)?gfycat\.com/(?:ru/|ifr/|gifs/detail/)?(?P<id>[^-/?#]+)'
     _TESTS = [{
         'url': 'http://gfycat.com/DeadlyDecisiveGermanpinscher',
         'info_dict': {
@@ -44,6 +44,9 @@ class GfycatIE(InfoExtractor):
             'categories': list,
             'age_limit': 0,
         }
+    }, {
+        'url': 'https://gfycat.com/ru/RemarkableDrearyAmurstarfish',
+        'only_matching': True
     }, {
         'url': 'https://gfycat.com/gifs/detail/UnconsciousLankyIvorygull',
         'only_matching': True
