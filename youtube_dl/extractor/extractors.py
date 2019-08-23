@@ -293,7 +293,6 @@ from .dplay import (
     DiscoveryPlusIE,
     HGTVDeIE,
 )
-from .dreisat import DreiSatIE
 from .drbonanza import DRBonanzaIE
 from .drtuber import DrTuberIE
 from .drtv import (
