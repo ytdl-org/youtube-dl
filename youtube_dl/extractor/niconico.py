@@ -3,6 +3,7 @@ from __future__ import unicode_literals
 
 import json
 import datetime
+import re
 
 from .common import InfoExtractor
 from ..compat import (
@@ -468,3 +469,33 @@ class NiconicoPlaylistIE(InfoExtractor):
             'id': list_id,
             'entries': entries,
         }
+class NiconicoSeriesIE(InfoExtractor):
+    _VALID_URL = r'https?://(?:www\.)?nicovideo\.jp/series/(?P<id>\d+)'
+
+    _TEST = {
+        'url': 'https://www.nicovideo.jp/series/8253',
+        'info_dict': {
+            'id': '8253',
+            'title' : '弦巻マキと結月ゆかりの未確認ゲーム日和',
+        },
+        'playlist_mincount':49,
+    }
+    def _real_extract(self, url):
+        series_id=url.split('/')[-1]
+        webpage=self._download_webpage(url, series_id)
+        entries=re.findall(r'(?<=<a href="\/watch\/)[^"]*',webpage)
+        entries=[{
+            '_type':'url',
+            'ie_key':NiconicoIE.ie_key(),
+
+'url':('https://www.nicovideo.jp/watch/sm%s' %
+                entry),
+        } for entry in entries]
+        return {
+            '_type': 'playlist',
+            'id': u'8253',
+            'entries': entries,
+            'title': self._search_regex(r'bodyTitle">(.*?)</div>',webpage,'title'),
+        }
+
+
