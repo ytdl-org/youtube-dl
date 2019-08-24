@@ -491,7 +491,7 @@ class NiconicoSeriesIE(InfoExtractor):
         } for entry in entries]
         return {
             '_type': 'playlist',
-            'id': u'8253',
+            'id': series_id,
             'entries': entries,
             'title': self._search_regex(r'bodyTitle">(.*?)</div>', webpage, 'title'),
         }
