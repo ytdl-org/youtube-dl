@@ -53,10 +53,10 @@ from .appletrailers import (
 from .archiveorg import ArchiveOrgIE
 from .arkena import ArkenaIE
 from .ard import (
-    ARDBetaMediathekIE,
-    ARDBetaMediathekPlaylistIE,
+    ARDMediathekIE,
+    ARDMediathekPlaylistIE,
     ARDIE,
-#    ARDMediathekIE,
+    ARDMediathekClassicIE,
 )
 from .arte import (
     ArteTVPlus7IE,

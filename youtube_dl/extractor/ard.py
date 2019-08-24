@@ -26,9 +26,48 @@ from ..compat import (
 )
 
 
-class ARDMediathekIE(InfoExtractor):
-    IE_NAME = 'ARD:mediathek'
-    _VALID_URL = r'^https?://(?:(?:(?:www|classic)\.)?ardmediathek\.de|mediathek\.(?:daserste|rbb-online)\.de|one\.ard\.de)/(?:.*/)(?P<video_id>[0-9]+|[^0-9][^/\?]+)[^/\?]*(?:\?.*)?'
+def _extract_episode_info(title):
+    """Try to extract episode data from the title."""
+    res = {}
+    if not title:
+        return res
+
+    for pattern in [
+        r'.*(?P<ep_info> \(S(?P<season_number>\d+)/E(?P<episode_number>\d+)\)).*',
+        r'.*(?P<ep_info> \((?:Folge |Teil )?(?P<episode_number>\d+)(?:/\d+)?\)).*',
+        r'.*(?P<ep_info>Folge (?P<episode_number>\d+)(?:\:| -|) )\"(?P<episode>.+)\".*',
+        r'.*(?P<ep_info>Folge (?P<episode_number>\d+)(?:/\d+)?(?:\:| -|) ).*',
+    ]:
+        m = re.match(pattern, title)
+        if m:
+            groupdict = m.groupdict()
+            for int_entry in ['season_number', 'episode_number']:
+                res[int_entry] = int_or_none(groupdict.get(int_entry))
+
+            for str_entry in ['episode']:
+                res[str_entry] = str_or_none(groupdict.get(str_entry))
+
+            # Build the episode title by removing numeric episode
+            # information.
+            if groupdict.get('ep_info') and not res['episode']:
+                res['episode'] = str_or_none(
+                    title.replace(groupdict.get('ep_info'), ''))
+
+            if res['episode']:
+                res['episode'] = res['episode'].strip()
+
+            break
+
+    # As a fallback use the whole title as the episode name
+    if not res.get('episode'):
+        res['episode'] = title.strip()
+
+    return res
+
+
+class ARDMediathekClassicIE(InfoExtractor):
+    IE_NAME = 'ARD:mediathek classic'
+    _VALID_URL = r'^https?://(?:(?:(?:classic)\.)?ardmediathek\.de|mediathek\.(?:daserste|rbb-online)\.de|one\.ard\.de)/(?:.*/)(?P<video_id>[0-9]+|[^0-9][^/\?]+)[^/\?]*(?:\?.*)?'
 
     _TESTS = [{
         # available till 26.07.2022
@@ -65,7 +104,7 @@ class ARDMediathekIE(InfoExtractor):
 
     @classmethod
     def suitable(cls, url):
-        return False if ARDBetaMediathekIE.suitable(url) else super(ARDMediathekIE, cls).suitable(url)
+        return False if ARDMediathekIE.suitable(url) else super(ARDMediathekClassicIE, cls).suitable(url)
 
     def _extract_media_info(self, media_info_url, webpage, video_id):
         media_info = self._download_json(
@@ -235,17 +274,20 @@ class ARDMediathekIE(InfoExtractor):
                 'http://www.ardmediathek.de/play/media/%s' % video_id,
                 webpage, video_id)
 
+        title = self._live_title(title) if info.get('is_live') else title
         info.update({
             'id': video_id,
-            'title': self._live_title(title) if info.get('is_live') else title,
+            'title': title,
             'description': description,
             'thumbnail': thumbnail,
         })
+        info.update(_extract_episode_info(title))
 
         return info
 
 
 class ARDIE(InfoExtractor):
+    IE_NAME = 'Das Erste'
     _VALID_URL = r'(?P<mainurl>https?://(www\.)?daserste\.de/[^?#]+/videos/(?P<display_id>[^/?#]+)-(?P<id>[0-9]+))\.html'
     _TESTS = [{
         # available till 14.02.2019
@@ -295,15 +337,22 @@ class ARDIE(InfoExtractor):
             formats.append(f)
         self._sort_formats(formats)
 
-        return {
+        res = {
             'id': mobj.group('id'),
             'formats': formats,
             'display_id': display_id,
             'title': video_node.find('./title').text,
+            'description': video_node.find('./desc').text,
+            'channel': 'Das Erste',
+            'series': video_node.find('./broadcast').text,
             'duration': parse_duration(video_node.find('./duration').text),
             'upload_date': upload_date,
             'thumbnail': thumbnail,
         }
+
+        res.update(_extract_episode_info(res.get('title')))
+
+        return res
 
 
 class ARDMediathekBaseIE(InfoExtractor):
@@ -371,7 +420,7 @@ class ARDMediathekBaseIE(InfoExtractor):
         return res
 
 
-class ARDBetaMediathekIE(ARDMediathekBaseIE):
+class ARDMediathekIE(ARDMediathekBaseIE):
     _VALID_URL = r'https://(?:beta|www)\.ardmediathek\.de/[^/]+/(?:player|live)/(?P<video_id>[a-zA-Z0-9]+)(?:/(?P<display_id>[^/?#]+))?'
     _TESTS = [{
         'url': 'https://beta.ardmediathek.de/ard/player/Y3JpZDovL2Rhc2Vyc3RlLmRlL3RhdG9ydC9mYmM4NGM1NC0xNzU4LTRmZGYtYWFhZS0wYzcyZTIxNGEyMDE/die-robuste-roswita',
@@ -596,44 +645,6 @@ class ARDBetaMediathekIE(ARDMediathekBaseIE):
 
         return self._extract_format_from_url(format_url, suffix, width)
 
-    def _extract_episode_info(self, title):
-        res = {}
-        if not title:
-            return res
-
-        # Try to read episode data from the title.
-        for pattern in [
-            r'.*(?P<ep_info> \(S(?P<season_number>\d+)/E(?P<episode_number>\d+)\)).*',
-            r'.*(?P<ep_info> \((?:Folge |Teil )?(?P<episode_number>\d+)(?:/\d+)?\)).*',
-            r'.*(?P<ep_info>Folge (?P<episode_number>\d+)(?:\:| -|) )\"(?P<episode>.+)\".*',
-            r'.*(?P<ep_info>Folge (?P<episode_number>\d+)(?:/\d+)?(?:\:| -|) ).*',
-        ]:
-            m = re.match(pattern, title)
-            if m:
-                groupdict = m.groupdict()
-                for int_entry in ['season_number', 'episode_number']:
-                    res[int_entry] = int_or_none(groupdict.get(int_entry))
-
-                for str_entry in ['episode']:
-                    res[str_entry] = str_or_none(groupdict.get(str_entry))
-
-                # Build the episode title by removing numeric episode
-                # information.
-                if groupdict.get('ep_info') and not res['episode']:
-                    res['episode'] = str_or_none(
-                        title.replace(groupdict.get('ep_info'), ''))
-
-                if res['episode']:
-                    res['episode'] = res['episode'].strip()
-
-                break
-
-        # Fallback
-        if not res.get('episode'):
-            res['episode'] = title.strip()
-
-        return res
-
     def _extract_age_limit(self, fsk_str):
         m = re.match(r'(?:FSK|fsk|Fsk)(\d+)', fsk_str)
         if m and m.group(1):
@@ -687,7 +698,7 @@ class ARDBetaMediathekIE(ARDMediathekBaseIE):
                 filter_func = template.get('filter', str_or_none)
                 res[template['key']] = filter_func(value)
 
-        res.update(self._extract_episode_info(res.get('title')))
+        res.update(_extract_episode_info(res.get('title')))
 
         return res
 
@@ -791,7 +802,7 @@ class ARDBetaMediathekIE(ARDMediathekBaseIE):
         return res
 
 
-class ARDBetaMediathekPlaylistIE(ARDMediathekBaseIE):
+class ARDMediathekPlaylistIE(ARDMediathekBaseIE):
     _VALID_URL = r'https://(?:beta|www)\.ardmediathek\.de/(?P<channel>[^/]+)/(?P<playlist_type>shows|more)/(?P<video_id>[a-zA-Z0-9]+)(?:/(?P<display_id>[^/?#]+))?'
     _TESTS = [{
         'url': 'https://www.ardmediathek.de/daserste/shows/Y3JpZDovL2Rhc2Vyc3RlLmRlL3N0dXJtIGRlciBsaWViZQ/sturm-der-liebe',
@@ -964,7 +975,7 @@ class ARDBetaMediathekPlaylistIE(ARDMediathekBaseIE):
             self.report_warning(msg)
 
         entries = [
-            self.url_result(item_url, ie=ARDBetaMediathekIE.ie_key())
+            self.url_result(item_url, ie=ARDMediathekIE.ie_key())
             for item_url in urls]
 
         return self.playlist_result(entries, video_id, title, description)
