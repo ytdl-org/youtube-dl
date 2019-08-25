@@ -1761,6 +1761,7 @@ DATE_FORMATS_DAY_FIRST.extend([
 DATE_FORMATS_MONTH_FIRST = list(DATE_FORMATS)
 DATE_FORMATS_MONTH_FIRST.extend([
     '%m-%d-%Y',
+    '%m-%d-%y',
     '%m.%d.%Y',
     '%m/%d/%Y',
     '%m/%d/%y',
