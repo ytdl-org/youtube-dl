@@ -20,6 +20,7 @@ from youtube_dl.utils import (
     args_to_str,
     encode_base_n,
     clean_html,
+    clean_html_markdown,
     date_from_str,
     DateRange,
     detect_exe_version,
@@ -1024,6 +1025,33 @@ class TestUtil(unittest.TestCase):
         self.assertEqual(clean_html('a:\nb'), 'a: b')
         self.assertEqual(clean_html('a:\n   "b"'), 'a:    "b"')
         self.assertEqual(clean_html('a<br>\xa0b'), 'a\nb')
+
+    def test_clean_html_markdown(self):
+        self.assertEqual(clean_html_markdown(
+            '<div id="out" class="markdown-body"><h1>Happy Text</h1>\n'
+            '<p>When you do it your way you can go <em>anywhere</em> you choose. And just raise cain. I thought today we would make a happy little stream that\'s just running through the woods here. I was <strong>blessed</strong> with a very steady hand; and it comes in very handy when you\'re doing these little delicate things. You have to allow the paint to break to <strong><em>make it beautiful</em></strong>. Let\'s do it again then, what the heck.</p>\n'
+            '<h2>This is your creation - and it\'s just as unique and special as you are.</h2>\n'
+            '<p>Paint <b>anything</b> you want on the canvas. Create your own world. By now you should be quite happy about what\'s happening here. You can\'t have light without dark. You can\'t know <i>happiness</i> unless you\'ve known <em>sorrow</em>. Let\'s get crazy.</p>\n'
+            '<ul>\n'
+            '<li>You can spend all day playing with mountains.</li>\n'
+            '<li>We\'ll put a happy little sky in here.</li>\n'
+            '</ul>\n'
+            '<p>I like to beat the brush. There we go.<br>\n'
+            'We don\'t need any guidelines or formats. All we need to do is just let it flow right out of us. Trees live in your fan brush, but you have to scare them out.</p>\n'
+            '</div>'),
+            "# Happy Text\n"
+            "\n"
+            "When you do it your way you can go *anywhere* you choose. And just raise cain. I thought today we would make a happy little stream that's just running through the woods here. I was **blessed** with a very steady hand; and it comes in very handy when you're doing these little delicate things. You have to allow the paint to break to ***make it beautiful***. Let's do it again then, what the heck.\n"
+            "\n"
+            "## This is your creation - and it's just as unique and special as you are.\n"
+            "\n"
+            "Paint **anything** you want on the canvas. Create your own world. By now you should be quite happy about what's happening here. You can't have light without dark. You can't know *happiness* unless you've known *sorrow*. Let's get crazy.\n"
+            "\n"
+            "- You can spend all day playing with mountains. \n"
+            "- We'll put a happy little sky in here. \n"
+            "\n"
+            "I like to beat the brush. There we go.  \n"
+            "We don't need any guidelines or formats. All we need to do is just let it flow right out of us. Trees live in your fan brush, but you have to scare them out.")
 
     def test_intlist_to_bytes(self):
         self.assertEqual(

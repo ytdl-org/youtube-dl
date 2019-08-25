@@ -2023,6 +2023,59 @@ def clean_html(html):
     return html.strip()
 
 
+def clean_html_markdown(html):
+    """Clean an HTML snippet into readable markdown"""
+
+    if html is None:  # Convenience for sanitizing descriptions etc.
+        return html
+
+    # Remove Newlines
+    html = html.replace('\n', ' ')
+
+    # Paragraphs and Line Breaks
+    html = re.sub(r'(?u)<\s*br\s*/?\s*>\s*', '  \n', html)
+    html = re.sub(r'(?u)<\s*/?\s*p\b[^>]*>', '\n\n', html)
+
+    # Headings
+    html = re.sub(r'(?u)<\s*h1\b[^>]*>', '\n\n# ', html)
+    html = re.sub(r'(?u)<\s*h2\b[^>]*>', '\n\n## ', html)
+    html = re.sub(r'(?u)<\s*h3\b[^>]*>', '\n\n### ', html)
+    html = re.sub(r'(?u)<\s*h4\b[^>]*>', '\n\n#### ', html)
+    html = re.sub(r'(?u)<\s*h5\b[^>]*>', '\n\n##### ', html)
+    html = re.sub(r'(?u)<\s*h6\b[^>]*>', '\n\n###### ', html)
+    html = re.sub(r'(?u)<\s*/\s*h[123456]\b[^>]*>', '\n\n', html)
+
+    # Lists
+    html = re.sub(r'(?u)<\s*/?\s*(ul|ol)\b[^>]*>', '\n\n', html)
+    html = re.sub(r'(?u)<\s*li\b[^>]*>', '\n- ', html)
+
+    # Emphasis
+    html = re.sub(r'(?u)<\s*/?\s*(i|em)\b[^>]*>', '*', html)
+    html = re.sub(r'(?u)<\s*/?\s*(b|strong)\b[^>]*>', '**', html)
+
+    # Strip html tags
+    html = re.sub('<.*?>', '', html)
+    # Replace html entities
+    html = unescapeHTML(html)
+
+    # remove duplicate blank lines
+    cleaned_text = ''
+    sequential_blank_lines = 0
+    for line in html.splitlines():
+        line = line.lstrip()
+        if not line:
+            sequential_blank_lines += 1
+            if sequential_blank_lines <= 1:
+                cleaned_text += '\n'
+            continue
+        else:
+            sequential_blank_lines = 0
+
+        cleaned_text += line + '\n'
+
+    return cleaned_text.strip()
+
+
 def sanitize_open(filename, open_mode):
     """Try to open the given filename, and slightly tweak it if this fails.
 
