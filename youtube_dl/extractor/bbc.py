@@ -40,6 +40,7 @@ class BBCCoUkIE(InfoExtractor):
                             iplayer(?:/[^/]+)?/(?:episode/|playlist/)|
                             music/(?:clips|audiovideo/popular)[/#]|
                             radio/player/|
+                            sounds/play/|
                             events/[^/]+/play/[^/]+/
                         )
                         (?P<id>%s)(?!/(?:episodes|broadcasts|clips))
@@ -220,6 +221,20 @@ class BBCCoUkIE(InfoExtractor):
                 # rtmp download
                 'skip_download': True,
             },
+        }, {
+            'url': 'https://www.bbc.co.uk/sounds/play/m0007jzb',
+            'note': 'Audio',
+            'info_dict': {
+                'id': 'm0007jz9',
+                'ext': 'mp4',
+                'title': 'BBC Proms, 2019, Prom 34: West–Eastern Divan Orchestra',
+                'description': "Live BBC Proms. West–Eastern Divan Orchestra with Daniel Barenboim and Martha Argerich.",
+                'duration': 9840,
+            },
+            'params': {
+                # rtmp download
+                'skip_download': True,
+            }
         }, {
             'url': 'http://www.bbc.co.uk/iplayer/playlist/p01dvks4',
             'only_matching': True,
