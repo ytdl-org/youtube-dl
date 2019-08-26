@@ -23,6 +23,7 @@ from ..utils import (
     unified_timestamp,
     urlencode_postdata,
     xpath_text,
+    urljoin,
 )
 
 
@@ -481,17 +482,18 @@ class NiconicoSeriesIE(InfoExtractor):
         'playlist_mincount': 49,
     }
     def _real_extract(self, url):
-        series_id = url.split('/')[-1]
+        series_id = self._match_id(url)
         webpage = self._download_webpage(url, series_id)
-        entries = re.findall(r'<a href=["\'](\/watch\/[^"\']*)', webpage)
+        entries = re.findall(r'<a href=["\'](/watch/[^"\']+)', webpage)
         entries = [{
             '_type': 'url',
             'ie_key': NiconicoIE.ie_key(),
-            'url': ('https://www.nicovideo.jp%s' % entry),
+            'url': urljoin('https://www.nicovideo.jp', entry),
         } for entry in entries]
+        print(entries)
         return {
             '_type': 'playlist',
             'id': series_id,
             'entries': entries,
-            'title': self._search_regex(r'bodyTitle">(.*?)</div>', webpage, 'title'),
+            'title': self._search_regex(r'bodyTitle">(.*?)</div>', webpage, 'title', fatal=False),
         }
