@@ -71,7 +71,7 @@ class BBCCoUkIE(InfoExtractor):
             'info_dict': {
                 'id': 'b039d07m',
                 'ext': 'flv',
-                'title': 'Leonard Cohen, Kaleidoscope - BBC Radio 4',
+                'title': 'Kaleidoscope, Leonard Cohen',
                 'description': 'The Canadian poet and songwriter reflects on his musical career.',
             },
             'params': {
@@ -624,7 +624,7 @@ class BBCIE(BBCCoUkIE):
         'url': 'http://www.bbc.com/news/world-europe-32668511',
         'info_dict': {
             'id': 'world-europe-32668511',
-            'title': 'Russia stages massive WW2 parade despite Western boycott',
+            'title': 'Russia stages massive WW2 parade',
             'description': 'md5:00ff61976f6081841f759a08bf78cc9c',
         },
         'playlist_count': 2,
