@@ -68,10 +68,8 @@ class SafariBaseIE(InfoExtractor):
             raise ExtractorError(
                 'Unable to login: %s' % credentials, expected=True)
 
-        # oreilly serves two same groot_sessionid cookies in Set-Cookie header
-        # and expects first one to be actually set
-        # Fix issue #22161
-        # We need 2 more cookies to be able to login to oreilly
+        # oreilly serves two same instances of the following cookies
+        # in Set-Cookie header and expects first one to be actually set
         for cookie in ('groot_sessionid', 'orm-jwt', 'orm-rt'):
             self._apply_first_set_cookie_header(urlh, cookie)
 
