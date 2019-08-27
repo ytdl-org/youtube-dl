@@ -72,8 +72,7 @@ class SafariBaseIE(InfoExtractor):
         # and expects first one to be actually set
         # Fix issue #22161
         # We need 2 more cookies to be able to login to oreilly
-        cookies = ['groot_sessionid', 'orm-jwt', 'orm-rt']
-        for cookie in cookies:
+        for cookie in ('groot_sessionid', 'orm-jwt', 'orm-rt'):
             self._apply_first_set_cookie_header(urlh, cookie)
 
         _, urlh = self._download_webpage_handle(
