@@ -387,8 +387,10 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                             (?:www\.)?invidious\.enkirton\.net/|
                             (?:www\.)?invidious\.13ad\.de/|
                             (?:www\.)?invidious\.mastodon\.host/|
+                            (?:www\.)?invidious\.nixnet\.xyz/|
                             (?:www\.)?tube\.poal\.co/|
                             (?:www\.)?vid\.wxzm\.sx/|
+                            (?:www\.)?yt\.elukerio\.org/|
                             youtube\.googleapis\.com/)                        # the various hostnames, with wildcard subdomains
                          (?:.*?\#/)?                                          # handle anchor (#/) redirect urls
                          (?:                                                  # the various things that can precede the ID:

@@ -40,6 +40,7 @@ class BBCCoUkIE(InfoExtractor):
                             iplayer(?:/[^/]+)?/(?:episode/|playlist/)|
                             music/(?:clips|audiovideo/popular)[/#]|
                             radio/player/|
+                            sounds/play/|
                             events/[^/]+/play/[^/]+/
                         )
                         (?P<id>%s)(?!/(?:episodes|broadcasts|clips))
@@ -70,7 +71,7 @@ class BBCCoUkIE(InfoExtractor):
             'info_dict': {
                 'id': 'b039d07m',
                 'ext': 'flv',
-                'title': 'Leonard Cohen, Kaleidoscope - BBC Radio 4',
+                'title': 'Kaleidoscope, Leonard Cohen',
                 'description': 'The Canadian poet and songwriter reflects on his musical career.',
             },
             'params': {
@@ -220,6 +221,20 @@ class BBCCoUkIE(InfoExtractor):
                 # rtmp download
                 'skip_download': True,
             },
+        }, {
+            'url': 'https://www.bbc.co.uk/sounds/play/m0007jzb',
+            'note': 'Audio',
+            'info_dict': {
+                'id': 'm0007jz9',
+                'ext': 'mp4',
+                'title': 'BBC Proms, 2019, Prom 34: West–Eastern Divan Orchestra',
+                'description': "Live BBC Proms. West–Eastern Divan Orchestra with Daniel Barenboim and Martha Argerich.",
+                'duration': 9840,
+            },
+            'params': {
+                # rtmp download
+                'skip_download': True,
+            }
         }, {
             'url': 'http://www.bbc.co.uk/iplayer/playlist/p01dvks4',
             'only_matching': True,
@@ -609,7 +624,7 @@ class BBCIE(BBCCoUkIE):
         'url': 'http://www.bbc.com/news/world-europe-32668511',
         'info_dict': {
             'id': 'world-europe-32668511',
-            'title': 'Russia stages massive WW2 parade despite Western boycott',
+            'title': 'Russia stages massive WW2 parade',
             'description': 'md5:00ff61976f6081841f759a08bf78cc9c',
         },
         'playlist_count': 2,

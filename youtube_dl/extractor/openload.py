@@ -243,7 +243,12 @@ class PhantomJSwrapper(object):
 
 
 class OpenloadIE(InfoExtractor):
-    _DOMAINS = r'(?:openload\.(?:co|io|link|pw)|oload\.(?:tv|best|biz|stream|site|xyz|win|download|cloud|cc|icu|fun|club|info|press|pw|life|live|space|services|website)|oladblock\.(?:services|xyz|me)|openloed\.co)'
+    _DOMAINS = r'''(?x)
+                    (?:
+                        openload\.(?:co|io|link|pw)|
+                        oload\.(?:tv|best|biz|stream|site|xyz|win|download|cloud|cc|icu|fun|club|info|press|pw|life|live|space|services|website|vip)|
+                        oladblock\.(?:services|xyz|me)|openloed\.co)
+                    '''
     _VALID_URL = r'''(?x)
                     https?://
                         (?P<host>
@@ -382,6 +387,9 @@ class OpenloadIE(InfoExtractor):
         'only_matching': True,
     }, {
         'url': 'https://openloed.co/f/b8NWEgkqNLI/',
+        'only_matching': True,
+    }, {
+        'url': 'https://oload.vip/f/kUEfGclsU9o',
         'only_matching': True,
     }]
 
