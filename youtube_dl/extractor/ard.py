@@ -71,7 +71,7 @@ class ARDMediathekClassicIE(InfoExtractor):
 
     _TESTS = [{
         # available till 26.07.2022
-        'url': 'http://www.ardmediathek.de/tv/S%C3%9CDLICHT/Was-ist-die-Kunst-der-Zukunft-liebe-Ann/BR-Fernsehen/Video?bcastId=34633636&documentId=44726822',
+        'url': 'http://classic.ardmediathek.de/tv/S%C3%9CDLICHT/Was-ist-die-Kunst-der-Zukunft-liebe-Ann/BR-Fernsehen/Video?bcastId=34633636&documentId=44726822',
         'info_dict': {
             'id': '44726822',
             'ext': 'mp4',
@@ -80,7 +80,6 @@ class ARDMediathekClassicIE(InfoExtractor):
             'duration': 1740,
         },
         'params': {
-            # m3u8 download
             'skip_download': True,
         }
     }, {
@@ -88,7 +87,7 @@ class ARDMediathekClassicIE(InfoExtractor):
         'only_matching': True,
     }, {
         # audio
-        'url': 'http://www.ardmediathek.de/tv/WDR-H%C3%B6rspiel-Speicher/Tod-eines-Fu%C3%9Fballers/WDR-3/Audio-Podcast?documentId=28488308&bcastId=23074086',
+        'url': 'http://classic.ardmediathek.de/tv/WDR-H%C3%B6rspiel-Speicher/Tod-eines-Fu%C3%9Fballers/WDR-3/Audio-Podcast?documentId=28488308&bcastId=23074086',
         'only_matching': True,
     }, {
         'url': 'http://mediathek.daserste.de/sendungen_a-z/328454_anne-will/22429276_vertrauen-ist-gut-spionieren-ist-besser-geht',
@@ -290,17 +289,17 @@ class ARDIE(InfoExtractor):
     IE_NAME = 'Das Erste'
     _VALID_URL = r'(?P<mainurl>https?://(www\.)?daserste\.de/[^?#]+/videos/(?P<display_id>[^/?#]+)-(?P<id>[0-9]+))\.html'
     _TESTS = [{
-        # available till 14.02.2019
-        'url': 'http://www.daserste.de/information/talk/maischberger/videos/das-groko-drama-zerlegen-sich-die-volksparteien-video-102.html',
-        'md5': '8e4ec85f31be7c7fc08a26cdbc5a1f49',
+        # available till 25.08.2020
+        'url': 'https://www.daserste.de/information/talk/presseclub/videos/gewitterwolken-am-konjunkturhimmel-ist-unser-wohlstand-in-gefahr-102.html',
         'info_dict': {
-            'display_id': 'das-groko-drama-zerlegen-sich-die-volksparteien-video',
+            'display_id': 'gewitterwolken-am-konjunkturhimmel-ist-unser-wohlstand-in-gefahr',
             'id': '102',
             'ext': 'mp4',
-            'duration': 4435.0,
-            'title': 'Das GroKo-Drama: Zerlegen sich die Volksparteien?',
-            'upload_date': '20180214',
+            'duration': 3501,
+            'title': 'Gewitterwolken am Konjunkturhimmel: Ist unser Wohlstand in Gefahr?',
+            'upload_date': '20190825',
             'thumbnail': r're:^https?://.*\.jpg$',
+            'description': r're:^Der immer aggressivere Handelskrieg zwischen China und den USA hinterlässt seine Spuren.*',
         },
     }, {
         'url': 'http://www.daserste.de/information/reportage-dokumentation/dokus/videos/die-story-im-ersten-mission-unter-falscher-flagge-100.html',
@@ -423,20 +422,37 @@ class ARDMediathekBaseIE(InfoExtractor):
 class ARDMediathekIE(ARDMediathekBaseIE):
     _VALID_URL = r'https://(?:beta|www)\.ardmediathek\.de/[^/]+/(?:player|live)/(?P<video_id>[a-zA-Z0-9]+)(?:/(?P<display_id>[^/?#]+))?'
     _TESTS = [{
-        'url': 'https://beta.ardmediathek.de/ard/player/Y3JpZDovL2Rhc2Vyc3RlLmRlL3RhdG9ydC9mYmM4NGM1NC0xNzU4LTRmZGYtYWFhZS0wYzcyZTIxNGEyMDE/die-robuste-roswita',
-        'md5': '2d02d996156ea3c397cfc5036b5d7f8f',
+        # available till 26.07.2022
+        'url': 'https://www.ardmediathek.de/ard/player/Y3JpZDovL2JyLmRlL3ZpZGVvLzUwY2YzZTVhLTk0NjYtNGFiMS04NjAzLTFjM2VkNWFjYjM0YQ/',
         'info_dict': {
-            'display_id': 'die-robuste-roswita',
-            'id': 'Y3JpZDovL2Rhc2Vyc3RlLmRlL3RhdG9ydC9mYmM4NGM1NC0xNzU4LTRmZGYtYWFhZS0wYzcyZTIxNGEyMDE',
-            'title': 'Tatort: Die robuste Roswita',
-            'description': r're:^Der Mord.*trüber ist als die Ilm.',
-            'duration': 5316,
-            'thumbnail': 'https://img.ardmediathek.de/standard/00/55/43/59/34/-1774185891/16x9/960?mandant=ard',
-            'upload_date': '20180826',
+            'id': 'Y3JpZDovL2JyLmRlL3ZpZGVvLzUwY2YzZTVhLTk0NjYtNGFiMS04NjAzLTFjM2VkNWFjYjM0YQ',
+            'ext': 'mp4',
+            'title': 'Was ist die Kunst der Zukunft, liebe Anna McCarthy?',
+            'description': 'md5:4ada28b3e3b5df01647310e41f3a62f5',
+            'upload_date': '20170726',
+            'timestamp': 1501101900,
+            'duration': 1740,
+        },
+        'params': {
+            'skip_download': True,
+        }
+    }, {
+        # available till 23.02.2020
+        'url': 'https://beta.ardmediathek.de/daserste/player/Y3JpZDovL2Rhc2Vyc3RlLmRlL3RhdG9ydC85MjQwZmJkZC0xMGNkLTQxOWUtYTE3Zi00NzJkYTE2ZTI0MmM/freigang',
+        'info_dict': {
+            'display_id': 'freigang',
+            'id': 'Y3JpZDovL2Rhc2Vyc3RlLmRlL3RhdG9ydC85MjQwZmJkZC0xMGNkLTQxOWUtYTE3Zi00NzJkYTE2ZTI0MmM',
+            'title': 'Freigang',
+            'description': r're:^Das perfekte Alibi.*etwas faul.',
+            'timestamp': 1566590400,
+            'upload_date': '20190823',
             'ext': 'mp4',
         },
+        'params': {
+            'skip_download': True,
+        }
     }, {
-        'url': 'https://www.ardmediathek.de/ard/player/Y3JpZDovL3N3ci5kZS9hZXgvbzEwNzE5MTU/',
+        'url': 'https://beta.ardmediathek.de/daserste/player/Y3JpZDovL2Rhc2Vyc3RlLmRlL3BvbGl6ZWlydWYgMTEwL2M0NWMwZThlLTIwZDUtNDJiNC04MDY5LWQ5ODVhOWIyMzE2MQ/moerderische-dorfgemeinschaft',
         'only_matching': True,
     }, {
         'url': 'https://www.ardmediathek.de/swr/live/Y3JpZDovL3N3ci5kZS8xMzQ4MTA0Mg',
@@ -807,26 +823,32 @@ class ARDMediathekPlaylistIE(ARDMediathekBaseIE):
     _TESTS = [{
         'url': 'https://www.ardmediathek.de/daserste/shows/Y3JpZDovL2Rhc2Vyc3RlLmRlL3N0dXJtIGRlciBsaWViZQ/sturm-der-liebe',
         'info_dict': {
-            'id': '4e55c4bGxyuGq2gig0Q4WU',
-            'display_id': 'menschen-und-leben',
-            'title': 'Menschen & Leben',
-        }
+            'id': 'Y3JpZDovL2Rhc2Vyc3RlLmRlL3N0dXJtIGRlciBsaWViZQ',
+            'title': 'Sturm der Liebe',
+        },
+        'playlist_mincount': 1,
     }, {
         'url': 'https://www.ardmediathek.de/alpha/shows/Y3JpZDovL2JyLmRlL2Jyb2FkY2FzdFNlcmllcy82YmM4YzFhMS1mYWQxLTRiMmYtOGRjYi0wZjk5YTk4YzU3ZTA/bob-ross-the-joy-of-painting',
         'info_dict': {
             'id': 'Y3JpZDovL2JyLmRlL2Jyb2FkY2FzdFNlcmllcy82YmM4YzFhMS1mYWQxLTRiMmYtOGRjYi0wZjk5YTk4YzU3ZTA',
-            'display_id': 'bob-ross-the-joy-of-painting',
             'title': 'Bob Ross - The Joy of Painting',
-        }
+        },
+        'playlist_mincount': 1,
     }, {
         'url': 'https://www.ardmediathek.de/ard/more/4e55c4bGxyuGq2gig0Q4WU/menschen-und-leben',
         'info_dict': {
             'id': '4e55c4bGxyuGq2gig0Q4WU',
-            'display_id': 'menschen-und-leben',
             'title': 'Menschen & Leben',
-            }
-    },
-    ]
+        },
+        'playlist_mincount': 1,
+    }, {
+        'url': 'https://www.ardmediathek.de/daserste/shows/Y3JpZDovL2Rhc2Vyc3RlLmRlL3RhZ2Vzc2NoYXU/tagesschau',
+        'info_dict': {
+            'id': 'Y3JpZDovL2Rhc2Vyc3RlLmRlL3RhZ2Vzc2NoYXU',
+            'title': 'Tagesschau',
+        },
+        'only_matching': True,
+    }, ]
 
     _configurations = {
         'shows': {
@@ -972,7 +994,7 @@ class ARDMediathekPlaylistIE(ARDMediathekBaseIE):
                 # The API reported the wrong number of videos and/or there
                 # might have been duplicate entries
                 msg = msg + ' of {} reported videos.'.format(total_elements)
-            self.report_warning(msg)
+            self.to_screen(msg)
 
         entries = [
             self.url_result(item_url, ie=ARDMediathekIE.ie_key())
