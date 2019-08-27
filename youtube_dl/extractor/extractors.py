@@ -894,6 +894,7 @@ from .presstv import PressTVIE
 from .promptfile import PromptFileIE
 from .prosiebensat1 import ProSiebenSat1IE
 from .puls4 import Puls4IE
+from .putio import PutIoIE
 from .pyvideo import PyvideoIE
 from .qqmusic import (
     QQMusicIE,
