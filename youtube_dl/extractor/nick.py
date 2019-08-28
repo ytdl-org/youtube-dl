@@ -103,7 +103,7 @@ class NickBrIE(MTVServicesInfoExtractor):
         'url': 'http://www.nickjr.de/blaze-und-die-monster-maschinen/videos/f6caaf8f-e4e8-4cc1-b489-9380d6dcd059/',
         'only_matching': True,
     }, {
-        'url' : 'http://www.nickelodeonjunior.fr/paw-patrol-la-pat-patrouille/videos/episode-401-entier-paw-patrol/',
+        'url': 'http://www.nickelodeonjunior.fr/paw-patrol-la-pat-patrouille/videos/episode-401-entier-paw-patrol/',
         'only_matching': True,
     }]
 
