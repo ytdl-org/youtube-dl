@@ -22,8 +22,6 @@ from ..utils import (
 
 
 class FourTubeBaseIE(InfoExtractor):
-    _TKN_HOST = 'tkn.kodicdn.com'
-
     def _extract_formats(self, url, video_id, media_id, sources):
         token_url = 'https://%s/%s/desktop/%s' % (
             self._TKN_HOST, media_id, '+'.join(sources))
@@ -120,6 +118,7 @@ class FourTubeIE(FourTubeBaseIE):
     IE_NAME = '4tube'
     _VALID_URL = r'https?://(?:(?P<kind>www|m)\.)?4tube\.com/(?:videos|embed)/(?P<id>\d+)(?:/(?P<display_id>[^/?#&]+))?'
     _URL_TEMPLATE = 'https://www.4tube.com/videos/%s/video'
+    _TKN_HOST = 'token.4tube.com'
     _TESTS = [{
         'url': 'http://www.4tube.com/videos/209733/hot-babe-holly-michaels-gets-her-ass-stuffed-by-black',
         'md5': '6516c8ac63b03de06bc8eac14362db4f',
@@ -149,6 +148,7 @@ class FourTubeIE(FourTubeBaseIE):
 class FuxIE(FourTubeBaseIE):
     _VALID_URL = r'https?://(?:(?P<kind>www|m)\.)?fux\.com/(?:video|embed)/(?P<id>\d+)(?:/(?P<display_id>[^/?#&]+))?'
     _URL_TEMPLATE = 'https://www.fux.com/video/%s/video'
+    _TKN_HOST = 'token.fux.com'
     _TESTS = [{
         'url': 'https://www.fux.com/video/195359/awesome-fucking-kitchen-ends-cum-swallow',
         'info_dict': {
@@ -280,6 +280,7 @@ class PornTubeIE(FourTubeBaseIE):
 class PornerBrosIE(FourTubeBaseIE):
     _VALID_URL = r'https?://(?:(?P<kind>www|m)\.)?pornerbros\.com/(?:videos/(?P<display_id>[^/]+)_|embed/)(?P<id>\d+)'
     _URL_TEMPLATE = 'https://www.pornerbros.com/videos/video_%s'
+    _TKN_HOST = 'token.pornerbros.com'
     _TESTS = [{
         'url': 'https://www.pornerbros.com/videos/skinny-brunette-takes-big-cock-down-her-anal-hole_181369',
         'md5': '6516c8ac63b03de06bc8eac14362db4f',

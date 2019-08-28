@@ -68,11 +68,9 @@ class YouPornIE(InfoExtractor):
         request.add_header('Cookie', 'age_verified=1')
         webpage = self._download_webpage(request, display_id)
 
-        title = self._search_regex(
-            [r'(?:video_titles|videoTitle)\s*[:=]\s*(["\'])(?P<title>(?:(?!\1).)+)\1',
-             r'<h1[^>]+class=["\']heading\d?["\'][^>]*>(?P<title>[^<]+)<'],
-            webpage, 'title', group='title',
-            default=None) or self._og_search_title(
+        title = self._html_search_regex(
+            r'(?s)<div[^>]+class=["\']watchVideoTitle[^>]+>(.+?)</div>',
+            webpage, 'title', default=None) or self._og_search_title(
             webpage, default=None) or self._html_search_meta(
             'title', webpage, fatal=True)
 
@@ -134,7 +132,11 @@ class YouPornIE(InfoExtractor):
             formats.append(f)
         self._sort_formats(formats)
 
-        description = self._og_search_description(webpage, default=None)
+        description = self._html_search_regex(
+            r'(?s)<div[^>]+\bid=["\']description["\'][^>]*>(.+?)</div>',
+            webpage, 'description',
+            default=None) or self._og_search_description(
+            webpage, default=None)
         thumbnail = self._search_regex(
             r'(?:imageurl\s*=|poster\s*:)\s*(["\'])(?P<thumbnail>.+?)\1',
             webpage, 'thumbnail', fatal=False, group='thumbnail')
