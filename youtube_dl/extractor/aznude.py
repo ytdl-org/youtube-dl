@@ -99,14 +99,14 @@ class AZNudeCollectionIE(InfoExtractor):
         'url': 'http://www.aznude.com/view/celeb/m/marisatomei.html',
         'info_dict': {
             'title': 'Marisa Tomei Nude - Aznude ',
-            'id': 'view/celeb/m/marisatomei.html',
+            'id': 'marisatomei',
         },
         'playlist_mincount': 33,
     }, {
         'url': 'https://www.aznude.com/view/movie/l/loiteringwithintent.html',
         'info_dict': {
             'title': 'Loitering With Intent Nude Scenes - Aznude',
-            'id': 'view/movie/l/loiteringwithintent.html',
+            'id': 'loiteringwithintent',
         },
         'playlist_mincount': 2,
     } ]
@@ -117,11 +117,11 @@ class AZNudeCollectionIE(InfoExtractor):
         title = self._search_regex(r'(?:<title>)(?P<thetitle>.+)(?:</title>)', webpage, 'title', default=None).title()
 
         parse_result = urlparse(url)
-        url_prefix = parse_result.scheme + '://' + parse_result.netloc
+        base_url = '%s://%s' % (parse_result.scheme, parse_result.netloc)
 
         entries = []
-        for path in re.findall(r'(?:<a[^>]+href=")(?P<url>[^"]+)(?:"[^>]+class="(?:[^"]+ )?show-clip(?:"| [^"]+")[^>]*>)', webpage):
-            if not path.startswith("//"):
-                entries.append( self.url_result(urljoin(url_prefix, path), AZNudeIE.ie_key()) )
+        for path in re.findall(r'(?:<a[^>]+href=")(?P<url>[^"]+)(?:"[^>]+class="(?:[^"]+ )?show-clip(?:"| [^"]+")[^"]+lightbox=[^>]*>)', webpage):
+            entries.append( self.url_result(urljoin(base_url, path), AZNudeIE.ie_key()) )
 
         return self.playlist_result(entries, page_id, title)
+

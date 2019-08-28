@@ -81,8 +81,7 @@ from .awaan import (
 from .azmedien import AZMedienIE
 from .aznude import (
     AZNudeIE,
-    AZNudeCelebIE,
-    AZNudeMovieIE,
+    AZNudeCollectionIE,
 )
 from .baidu import BaiduVideoIE
 from .bambuser import BambuserIE, BambuserChannelIE
