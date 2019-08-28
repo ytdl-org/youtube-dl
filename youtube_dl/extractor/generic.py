@@ -2164,10 +2164,19 @@ class GenericIE(InfoExtractor):
             if not next_url:
                 continue
 
+            description = None
+            for tag in ('description', 'content:encoded', 'itunes:summary', 'itunes:subtitle'):
+                try:
+                    description = it.find(tag).text
+                    break
+                except AttributeError:
+                    pass
+
             entries.append({
                 '_type': 'url_transparent',
                 'url': next_url,
                 'title': it.find('title').text,
+                'description': description
             })
 
         return {
