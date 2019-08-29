@@ -1096,6 +1096,7 @@ from .svt import (
     SVTSeriesIE,
 )
 from .swrmediathek import SWRMediathekIE
+from .sxyprn import SxyPrnIE
 from .syfy import SyfyIE
 from .sztvhu import SztvHuIE
 from .tagesschau import (
