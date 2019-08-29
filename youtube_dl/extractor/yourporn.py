@@ -2,15 +2,14 @@ from __future__ import unicode_literals
 
 from .common import InfoExtractor
 from ..utils import (
-    parse_duration,
-    urljoin,
+    parse_duration
 )
 
 
 class YourPornIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:www\.)?(?:yourporn\.sexy|sxyprn\.com)/post/(?P<id>[^/?#&.]+)'
+    _VALID_URL = r'https?://(?:www\.)?sxyprn\.com/post/(?P<id>[^/?#&.]+)'
     _TESTS = [{
-        'url': 'https://yourporn.sexy/post/57ffcb2e1179b.html',
+        'url': 'https://sxyprn.com/post/57ffcb2e1179b.html',
         'md5': '6f8682b6464033d87acaa7a8ff0c092e',
         'info_dict': {
             'id': '57ffcb2e1179b',
@@ -33,11 +32,13 @@ class YourPornIE(InfoExtractor):
 
         webpage = self._download_webpage(url, video_id)
 
-        video_url = urljoin(url, self._parse_json(
-            self._search_regex(
-                r'data-vnfo=(["\'])(?P<data>{.+?})\1', webpage, 'data info',
-                group='data'),
-            video_id)[video_id]).replace('/cdn/', '/cdn5/')
+        url_parts = self._parse_json(self._search_regex(
+            r'data-vnfo=(["\'])(?P<data>{.+?})\1', webpage, 'data info', group='data'), video_id)[video_id].split("/")
+
+        aid = self._search_regex(r'data-aid=\'(.*?)\'', webpage, 'aid')
+
+        video_url = 'https://' + url_parts[2] + '.trafficdeposit.com/video/' + url_parts[3] + '/' + url_parts[
+            4] + '/' + url_parts[5] + '/' + aid + '/' + video_id + '.mp4'
 
         title = (self._search_regex(
             r'<[^>]+\bclass=["\']PostEditTA[^>]+>([^<]+)', webpage, 'title',
