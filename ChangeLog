@@ -1,4 +1,4 @@
-version <unreleased>
+version 2019.09.01
 
 Core
 + [extractor/generic] Add support for squarespace embeds (#21294, #21802,
