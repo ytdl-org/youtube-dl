@@ -2081,6 +2081,11 @@ class GenericIE(InfoExtractor):
             'info_dict': {
                 'id': 'Tc7b_JGdZfw',
                 'title': 'Out of the Blue, at Childish Things 10',
+                'ext': 'mp4',
+                'description': 'md5:a83d0026666cf5ee970f8bd1cfd69c7f',
+                'uploader_id': 'helendouglashouse',
+                'uploader': 'Helen & Douglas House',
+                'upload_date': '20140328',
             },
             'params': {
                 'skip_download': True,
@@ -2406,12 +2411,11 @@ class GenericIE(InfoExtractor):
         # Unescaping the whole page allows to handle those cases in a generic way
         webpage = compat_urllib_parse_unquote(webpage)
 
-        # unescape re.sub replacement
-        def unescape_resub(m):
-            return unescapeHTML(m.group(0))
-
-        # unescape squarespace video embeds
-        webpage = re.sub(r'<div[^>]+class=[^>]*?sqs-video-wrapper[^>]*>', unescape_resub, webpage)
+        # Unescape squarespace embeds to be detected by generic extractor,
+        # see https://github.com/ytdl-org/youtube-dl/issues/21294
+        webpage = re.sub(
+            r'<div[^>]+class=[^>]*?\bsqs-video-wrapper\b[^>]*>',
+            lambda x: unescapeHTML(x.group(0)), webpage)
 
         # it's tempting to parse this further, but you would
         # have to take into account all the variations like
