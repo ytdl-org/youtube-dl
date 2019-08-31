@@ -1,6 +1,6 @@
 {
-    "latest": "2019.08.13",
-    "signature": "4e9af4d02e0c8126bc54687624fffa1c4413be769db3cb006b38875af440efc8368ea184c89a1b9b78155a7f8fb64ed237145db4ee92aeb6f546f385b16de65178f5dcfb2c27ad308cb66dd0a16143f7aa48b0d8cb05229a502a172192b56f490b9cb64ec0ad49e26fe8ef1c556e9d976b094e4fcab6e388c91fec543e4c961c",
+    "latest": "2019.09.01",
+    "signature": "9125ef8fdce0e7aeb799abb4099e71adc445d401cf477e116e8d19f29a6f33541479182c264a12f9c4a0a33a27b417684a9f490874ce0676659cad22535242421e3d0b8f41c1fe4ff117d627c1f2973317fd1ac4645aac5d82873fde7adf20ccf0aee8c1585244f79692701e8cdcfc5bd1f5138f53c29c961487412af95b2742",
     "versions": {
         "2012.02.22": {
             "bin": [
@@ -12732,6 +12732,20 @@
             "tar": [
                 "https://yt-dl.org/downloads/2019.08.13/youtube-dl-2019.08.13.tar.gz",
                 "b23d59df96f9dccf34d9c48b65e7bc93532f1ebc4bf71b9285f228bc6086242d"
+            ]
+        },
+        "2019.09.01": {
+            "bin": [
+                "https://yt-dl.org/downloads/2019.09.01/youtube-dl",
+                "a5016ee492198a5f1f8a45d18229b7ab33ed4ecf0252a9addb8e6386b5512d75"
+            ],
+            "exe": [
+                "https://yt-dl.org/downloads/2019.09.01/youtube-dl.exe",
+                "9a93249d341998477c8675d3b26958c535b9b22876218ba45851801cbb8b4a78"
+            ],
+            "tar": [
+                "https://yt-dl.org/downloads/2019.09.01/youtube-dl-2019.09.01.tar.gz",
+                "19374ff7ea794c934f75d65be98dac5837f078adb063c4980a9ce7593af06b49"
             ]
         }
     }
