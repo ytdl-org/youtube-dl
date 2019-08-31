@@ -1,5 +1,6 @@
 from __future__ import unicode_literals
 
+import itertools
 import re
 
 from .common import InfoExtractor
@@ -8,6 +9,7 @@ from ..utils import (
     clean_html,
     determine_ext,
     dict_get,
+    extract_attributes,
     ExtractorError,
     int_or_none,
     parse_duration,
@@ -331,3 +333,49 @@ class XHamsterEmbedIE(InfoExtractor):
             video_url = dict_get(vars, ('downloadLink', 'homepageLink', 'commentsLink', 'shareUrl'))
 
         return self.url_result(video_url, 'XHamster')
+
+
+class XHamsterUserIE(InfoExtractor):
+    _VALID_URL = r'https?://(?:.+?\.)?%s/users/(?P<id>[^/?#&]+)' % XHamsterIE._DOMAINS
+    _TESTS = [{
+        # Paginated user profile
+        'url': 'https://xhamster.com/users/netvideogirls/videos',
+        'info_dict': {
+            'id': 'netvideogirls',
+        },
+        'playlist_mincount': 267,
+    }, {
+        # Non-paginated user profile
+        'url': 'https://xhamster.com/users/firatkaan/videos',
+        'info_dict': {
+            'id': 'firatkaan',
+        },
+        'playlist_mincount': 1,
+    }]
+
+    def _entries(self, user_id):
+        next_page_url = 'https://xhamster.com/users/%s/videos/1' % user_id
+        for pagenum in itertools.count(1):
+            page = self._download_webpage(
+                next_page_url, user_id, 'Downloading page %s' % pagenum)
+            for video_tag in re.findall(
+                    r'(<a[^>]+class=["\'].*?\bvideo-thumb__image-container[^>]+>)',
+                    page):
+                video = extract_attributes(video_tag)
+                video_url = url_or_none(video.get('href'))
+                if not video_url or not XHamsterIE.suitable(video_url):
+                    continue
+                video_id = XHamsterIE._match_id(video_url)
+                yield self.url_result(
+                    video_url, ie=XHamsterIE.ie_key(), video_id=video_id)
+            mobj = re.search(r'<a[^>]+data-page=["\']next[^>]+>', page)
+            if not mobj:
+                break
+            next_page = extract_attributes(mobj.group(0))
+            next_page_url = url_or_none(next_page.get('href'))
+            if not next_page_url:
+                break
+
+    def _real_extract(self, url):
+        user_id = self._match_id(url)
+        return self.playlist_result(self._entries(user_id), user_id)
