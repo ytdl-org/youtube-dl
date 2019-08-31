@@ -213,6 +213,20 @@ class GenericIE(InfoExtractor):
             },
             'playlist_mincount': 100,
         },
+        # Podcast RSS feed with episode descriptions
+        {
+            'url': 'http://friendsatthetable.net/rss',
+            'info_dict': {
+                'id': 'http://friendsatthetable.net/rss',
+                'description': 'Friends at the Table is an actual play podcast about critical worldbuilding, smart characterization, and fun interaction between good friends. Find us (and a listener guide) @Friends_Table on Twitter.',
+                'title': 'Friends at the Table',
+                '_type': 'playlist',
+            },
+            'playlist_mincount': 200,
+            'entries': [{
+                'description': True,
+            }],
+        },
         # SMIL from http://videolectures.net/promogram_igor_mekjavic_eng
         {
             'url': 'http://videolectures.net/promogram_igor_mekjavic_eng/video/1/smil.xml',
