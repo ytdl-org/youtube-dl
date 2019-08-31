@@ -243,12 +243,13 @@ class PhantomJSwrapper(object):
 
 
 class OpenloadIE(InfoExtractor):
-    _DOMAINS = r'''(?x)
+    _DOMAINS = r'''
                     (?:
                         openload\.(?:co|io|link|pw)|
                         oload\.(?:tv|best|biz|stream|site|xyz|win|download|cloud|cc|icu|fun|club|info|press|pw|life|live|space|services|website|vip)|
-                        oladblock\.(?:services|xyz|me)|openloed\.co)
-                    '''
+                        oladblock\.(?:services|xyz|me)|openloed\.co
+                    )
+                '''
     _VALID_URL = r'''(?x)
                     https?://
                         (?P<host>
@@ -396,7 +397,7 @@ class OpenloadIE(InfoExtractor):
     @classmethod
     def _extract_urls(cls, webpage):
         return re.findall(
-            r'<iframe[^>]+src=["\']((?:https?://)?%s/%s/[a-zA-Z0-9-_]+)'
+            r'(?x)<iframe[^>]+src=["\']((?:https?://)?%s/%s/[a-zA-Z0-9-_]+)'
             % (cls._DOMAINS, cls._EMBED_WORD), webpage)
 
     def _extract_decrypted_page(self, page_url, webpage, video_id):
