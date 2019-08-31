@@ -11,7 +11,7 @@ from ..utils import (
 
 
 class GfycatIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:(www|giant|thumbs)\.)?gfycat\.com/(?:ru/|ifr/|gifs/detail/)?(?P<id>[^-/?#\.]+)'
+    _VALID_URL = r'https?://(?:(?:www|giant|thumbs)\.)?gfycat\.com/(?:ru/|ifr/|gifs/detail/)?(?P<id>[^-/?#\.]+)'
     _TESTS = [{
         'url': 'http://gfycat.com/DeadlyDecisiveGermanpinscher',
         'info_dict': {
