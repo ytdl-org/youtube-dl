@@ -462,7 +462,7 @@ class OpenloadIE(InfoExtractor):
 class VerystreamIE(OpenloadIE):
     IE_NAME = 'verystream'
 
-    _DOMAINS = r'(?:verystream\.com)'
+    _DOMAINS = r'(?:verystream\.com|woof\.tube)'
     _VALID_URL = r'''(?x)
                     https?://
                         (?P<host>
