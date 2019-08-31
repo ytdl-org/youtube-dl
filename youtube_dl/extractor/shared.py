@@ -1,7 +1,10 @@
 from __future__ import unicode_literals
 
 from .common import InfoExtractor
-from ..compat import compat_b64decode
+from ..compat import (
+    compat_b64decode,
+    compat_urllib_parse_unquote_plus
+)
 from ..utils import (
     determine_ext,
     ExtractorError,
@@ -10,6 +13,7 @@ from ..utils import (
     parse_filesize,
     url_or_none,
     urlencode_postdata,
+    rot47
 )
 
 
@@ -85,13 +89,13 @@ class VivoIE(SharedBaseIE):
     _FILE_NOT_FOUND = '>The file you have requested does not exists or has been removed'
 
     _TEST = {
-        'url': 'http://vivo.sx/d7ddda0e78',
-        'md5': '15b3af41be0b4fe01f4df075c2678b2c',
+        'url': 'https://vivo.sx/5ec5b4cd00',
+        'md5': 'b95282602513086f5b71aae4cd043a0c',
         'info_dict': {
-            'id': 'd7ddda0e78',
+            'id': '5ec5b4cd00',
             'ext': 'mp4',
-            'title': 'Chicken',
-            'filesize': 515659,
+            'title': 'big_buck_bunny_480p_surround-fix',
+            'filesize': 68270000,
         },
     }
 
@@ -113,15 +117,12 @@ class VivoIE(SharedBaseIE):
 
     def _extract_video_url(self, webpage, video_id, url):
         def decode_url(encoded_url):
-            return compat_b64decode(encoded_url).decode('utf-8')
+            return rot47(compat_urllib_parse_unquote_plus(encoded_url))
 
-        stream_url = url_or_none(decode_url(self._search_regex(
-            r'data-stream\s*=\s*(["\'])(?P<url>(?:(?!\1).)+)\1', webpage,
-            'stream url', default=None, group='url')))
+        stream_url = self._search_regex(
+            r'InitializeStream\s*\(\{[\s\S]*(source\:[\s]\')(?P<url>[\s\S\:]+?)(\',\s*)', webpage,
+            'stream url', default=None, group='url')
+
         if stream_url:
-            return stream_url
-        return self._parse_json(
-            self._search_regex(
-                r'InitializeStream\s*\(\s*(["\'])(?P<url>(?:(?!\1).)+)\1',
-                webpage, 'stream', group='url'),
-            video_id, transform_source=decode_url)[0]
+            return url_or_none(decode_url(stream_url))
+        return None

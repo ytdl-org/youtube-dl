@@ -5594,3 +5594,15 @@ def random_birthday(year_field, month_field, day_field):
         month_field: str(random_date.month),
         day_field: str(random_date.day),
     }
+
+
+# source: https://rot47.net/_py/rot47.txt
+def rot47(s):
+    x = []
+    for i in range(len(s)):
+        j = ord(s[i])
+        if j >= 33 and j <= 126:
+            x.append(chr(33 + ((j + 14) % 94)))
+        else:
+            x.append(s[i])
+    return ''.join(x)
