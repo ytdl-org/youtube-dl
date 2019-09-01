@@ -86,7 +86,7 @@ class NickBrIE(MTVServicesInfoExtractor):
                         (?:
                             (?P<domain>(?:www\.)?nickjr|mundonick\.uol)\.com\.br|
                             (?:www\.)?nickjr\.[a-z]{2}|
-                            (?:www\.)?nickelodeonjunior\.[a-z]{2}
+                            (?:www\.)?nickelodeonjunior\.fr
                         )
                         /(?:programas/)?[^/]+/videos/(?:episodios/)?(?P<id>[^/?\#.]+)
                     '''
