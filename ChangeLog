@@ -1,3 +1,25 @@
+version 2019.09.01
+
+Core
++ [extractor/generic] Add support for squarespace embeds (#21294, #21802,
+  #21859)
++ [downloader/external] Respect mtime option for aria2c (#22242)
+
+Extractors
++ [xhamster:user] Add support for user pages (#16330, #18454)
++ [xhamster] Add support for more domains
++ [verystream] Add support for woof.tube (#22217)
++ [dailymotion] Add support for lequipe.fr (#21328, #22152)
++ [openload] Add support for oload.vip (#22205)
++ [bbccouk] Extend URL regular expression (#19200)
++ [youtube] Add support for invidious.nixnet.xyz and yt.elukerio.org (#22223)
+* [safari] Fix authentication (#22161, #22184)
+* [usanetwork] Fix extraction (#22105)
++ [einthusan] Add support for einthusan.ca (#22171)
+* [youtube] Improve unavailable message extraction (#22117)
++ [piksel] Extract subtitles (#20506)
+
+
 version 2019.08.13
 
 Core
