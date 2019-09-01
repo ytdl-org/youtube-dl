@@ -311,3 +311,24 @@ class YandexMusicPlaylistIE(YandexMusicPlaylistBaseIE):
             self._build_playlist(tracks),
             compat_str(playlist_id),
             playlist.get('title'), playlist.get('description'))
+
+
+class YandexMusicArtistIE(YandexMusicPlaylistBaseIE):
+    IE_NAME = 'yandexmusic:artist'
+    IE_DESC = 'Яндекс.Музыка - Артист'
+    _VALID_URL = r'https?://music\.yandex\.(?:ru|kz|ua|by)/artist/(?P<id>\d+)/?(\?|$)'
+
+    def _real_extract(self, url):
+        artist_id = self._match_id(url)
+
+        artist = self._download_json(
+            'http://music.yandex.ru/handlers/artist.jsx?artist=%s' % artist_id,
+            artist_id, 'Downloading artist JSON')
+
+        entries = [
+            self.url_result(
+                'http://music.yandex.ru/album/%s' % (album['id'])
+            ) for album in artist['albums']
+        ]
+
+        return self.playlist_result(entries)

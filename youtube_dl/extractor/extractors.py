@@ -1456,6 +1456,7 @@ from .yandexmusic import (
     YandexMusicTrackIE,
     YandexMusicAlbumIE,
     YandexMusicPlaylistIE,
+    YandexMusicArtistIE,
 )
 from .yandexvideo import YandexVideoIE
 from .yapfiles import YapFilesIE
