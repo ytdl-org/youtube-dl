@@ -744,7 +744,7 @@ class ARDMediathekIE(ARDMediathekBaseIE):
                     # different servers.
                     duplicate = next((x for x in formats
                                       if url_basename(x['url']) == url_basename(
-                                        format_url)),
+                                          format_url)),
                                      None)
                     if duplicate:
                         continue
@@ -893,7 +893,7 @@ class ARDMediathekPlaylistIE(ARDMediathekBaseIE):
                    # response.
                    'Content-type': 'application/json',
                    'Accept': '*/*', }
-        query_str = self._build_query_str(client, playlist_id,  page_number)
+        query_str = self._build_query_str(client, playlist_id, page_number)
 
         try:
             note = 'Downloading video IDs (page {})'.format(page_number)
