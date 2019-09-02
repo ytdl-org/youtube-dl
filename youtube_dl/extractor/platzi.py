@@ -18,42 +18,9 @@ from ..utils import (
 )
 
 
-class PlatziIE(InfoExtractor):
-    _VALID_URL = r'''(?x)
-                    https?://
-                        (?:
-                            platzi\.com/clases|           # es version
-                            courses\.platzi\.com/classes  # en version
-                        )/[^/]+/(?P<id>\d+)-[^/?\#&]+
-                    '''
+class PlatziBaseIE(InfoExtractor):
     _LOGIN_URL = 'https://platzi.com/login/'
     _NETRC_MACHINE = 'platzi'
-
-    _TESTS = [{
-        'url': 'https://platzi.com/clases/1311-next-js/12074-creando-nuestra-primera-pagina/',
-        'md5': '8f56448241005b561c10f11a595b37e3',
-        'info_dict': {
-            'id': '12074',
-            'ext': 'mp4',
-            'title': 'Creando nuestra primera página',
-            'description': 'md5:4c866e45034fc76412fbf6e60ae008bc',
-            'duration': 420,
-        },
-        'skip': 'Requires platzi account credentials',
-    }, {
-        'url': 'https://courses.platzi.com/classes/1367-communication-codestream/13430-background/',
-        'info_dict': {
-            'id': '13430',
-            'ext': 'mp4',
-            'title': 'Background',
-            'description': 'md5:49c83c09404b15e6e71defaf87f6b305',
-            'duration': 360,
-        },
-        'skip': 'Requires platzi account credentials',
-        'params': {
-            'skip_download': True,
-        },
-    }]
 
     def _real_initialize(self):
         self._login()
@@ -96,6 +63,42 @@ class PlatziIE(InfoExtractor):
                 raise ExtractorError(
                     'Unable to login: %s' % error, expected=True)
         raise ExtractorError('Unable to log in')
+
+
+class PlatziIE(PlatziBaseIE):
+    _VALID_URL = r'''(?x)
+                    https?://
+                        (?:
+                            platzi\.com/clases|           # es version
+                            courses\.platzi\.com/classes  # en version
+                        )/[^/]+/(?P<id>\d+)-[^/?\#&]+
+                    '''
+
+    _TESTS = [{
+        'url': 'https://platzi.com/clases/1311-next-js/12074-creando-nuestra-primera-pagina/',
+        'md5': '8f56448241005b561c10f11a595b37e3',
+        'info_dict': {
+            'id': '12074',
+            'ext': 'mp4',
+            'title': 'Creando nuestra primera página',
+            'description': 'md5:4c866e45034fc76412fbf6e60ae008bc',
+            'duration': 420,
+        },
+        'skip': 'Requires platzi account credentials',
+    }, {
+        'url': 'https://courses.platzi.com/classes/1367-communication-codestream/13430-background/',
+        'info_dict': {
+            'id': '13430',
+            'ext': 'mp4',
+            'title': 'Background',
+            'description': 'md5:49c83c09404b15e6e71defaf87f6b305',
+            'duration': 360,
+        },
+        'skip': 'Requires platzi account credentials',
+        'params': {
+            'skip_download': True,
+        },
+    }]
 
     def _real_extract(self, url):
         lecture_id = self._match_id(url)
@@ -146,7 +149,7 @@ class PlatziIE(InfoExtractor):
         }
 
 
-class PlatziCourseIE(InfoExtractor):
+class PlatziCourseIE(PlatziBaseIE):
     _VALID_URL = r'''(?x)
                     https?://
                         (?:
