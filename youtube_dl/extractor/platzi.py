@@ -107,7 +107,11 @@ class PlatziIE(PlatziBaseIE):
 
         data = self._parse_json(
             self._search_regex(
-                r'client_data\s*=\s*({.+?})\s*;', webpage, 'client data'),
+                # client_data may contain "};" so that we have to try more
+                # strict regex first
+                (r'client_data\s*=\s*({.+?})\s*;\s*\n',
+                 r'client_data\s*=\s*({.+?})\s*;'),
+                webpage, 'client data'),
             lecture_id)
 
         material = data['initialState']['material']
