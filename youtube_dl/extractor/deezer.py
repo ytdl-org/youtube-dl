@@ -17,9 +17,9 @@ class DeezerBaseInfoExtractor(InfoExtractor):
             self._downloader.report_warning('For now, this extractor only supports the 30 second previews. Patches welcome!')
 
         mobj = re.match(self._VALID_URL, url)
-        id = mobj.group('id')
+        data_id = mobj.group('id')
 
-        webpage = self._download_webpage(url, id)
+        webpage = self._download_webpage(url, data_id)
         geoblocking_msg = self._html_search_regex(
             r'<p class="soon-txt">(.*?)</p>', webpage, 'geoblocking message',
             default=None)
@@ -32,7 +32,7 @@ class DeezerBaseInfoExtractor(InfoExtractor):
              r'naboo\.display\(\'[^\']+\',\s*(.*?)\);\n'),
             webpage, 'data JSON')
         data = json.loads(data_json)
-        return id, webpage, data
+        return data_id, webpage, data
 
 
 class DeezerPlaylistIE(DeezerBaseInfoExtractor):
@@ -51,17 +51,17 @@ class DeezerPlaylistIE(DeezerBaseInfoExtractor):
     def _real_extract(self, url):
         playlist_id, webpage, data = self.get_data(url)
 
-        playlist_title = data.get('DATA').get('TITLE')
-        playlist_uploader = data.get('DATA').get('PARENT_USERNAME')
+        playlist_title = data.get('DATA', {}).get('TITLE')
+        playlist_uploader = data.get('DATA', {}).get('PARENT_USERNAME')
         playlist_thumbnail = self._search_regex(
             r'<img id="naboo_playlist_image".*?src="([^"]+)"', webpage,
             'playlist thumbnail')
 
         entries = []
-        for s in data.get('SONGS').get('data'):
+        for s in data.get('SONGS', {}).get('data'):
             formats = [{
                 'format_id': 'preview',
-                'url': s.get('MEDIA')[0].get('HREF'),
+                'url': s.get('MEDIA', [{}])[0].get('HREF'),
                 'preference': -100,  # Only the first 30 seconds
                 'ext': 'mp3',
             }]
@@ -104,17 +104,17 @@ class DeezerAlbumIE(DeezerBaseInfoExtractor):
     def _real_extract(self, url):
         album_id, webpage, data = self.get_data(url)
 
-        album_title = data.get('DATA').get('ALB_TITLE')
-        album_uploader = data.get('DATA').get('ART_NAME')
+        album_title = data.get('DATA', {}).get('ALB_TITLE')
+        album_uploader = data.get('DATA', {}).get('ART_NAME')
         album_thumbnail = self._search_regex(
             r'<img id="naboo_album_image".*?src="([^"]+)"', webpage,
             'album thumbnail')
 
         entries = []
-        for s in data.get('SONGS').get('data'):
+        for s in data.get('SONGS', {}).get('data'):
             formats = [{
                 'format_id': 'preview',
-                'url': s.get('MEDIA')[0].get('HREF'),
+                'url': s.get('MEDIA', [{}])[0].get('HREF'),
                 'preference': -100,  # Only the first 30 seconds
                 'ext': 'mp3',
             }]
