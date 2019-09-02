@@ -403,10 +403,16 @@ class PornHubUserIE(PornHubPlaylistBaseIE):
 
 
 class PornHubPagedPlaylistBaseIE(PornHubPlaylistBaseIE):
+
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
         host = mobj.group('host')
         item_id = mobj.group('id')
+        
+        mobj = re.match(self._VALID_URL, url)
+        host = mobj.group('host')
+        playlist_id = mobj.group('id')
+        title = ""
 
         page = int_or_none(self._search_regex(
             r'\bpage=(\d+)', url, 'page', default=None))
@@ -423,14 +429,25 @@ class PornHubPagedPlaylistBaseIE(PornHubPlaylistBaseIE):
                 if isinstance(e.cause, compat_HTTPError) and e.cause.code == 404:
                     break
                 raise
+            
             page_entries = self._extract_entries(webpage, host)
+
+            if title == "":
+                playlist = self._parse_json(
+                    self._search_regex(
+                        r'(?:playlistObject|PLAYLIST_VIEW)\s*=\s*({.+?});', webpage,
+                        'playlist', default='{}'),
+                    playlist_id, fatal=False)
+                title = playlist.get('title') or self._search_regex(
+                    r'>Videos\s+in\s+(.+?)\s+[Pp]laylist<', webpage, 'title', fatal=False)
+
             if not page_entries:
                 break
             entries.extend(page_entries)
-            if not self._has_more(webpage):
+            if not self._has_more(webpage): 
                 break
 
-        return self.playlist_result(orderedSet(entries), item_id)
+        return self.playlist_result(orderedSet(entries), item_id, title)
 
 
 class PornHubPagedVideoListIE(PornHubPagedPlaylistBaseIE):
