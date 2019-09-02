@@ -33,12 +33,15 @@ class YourPornIE(InfoExtractor):
         webpage = self._download_webpage(url, video_id)
 
         url_parts = self._parse_json(self._search_regex(
-            r'data-vnfo=(["\'])(?P<data>{.+?})\1', webpage, 'data info', group='data'), video_id)[video_id].split("/")
+            r'data-vnfo=(["\'])(?P<data>{.+?})\1', webpage, 'data info',
+            group='data'), video_id)[video_id].split('/')
 
-        aid = self._search_regex(r'data-aid=\'(.*?)\'', webpage, 'aid')
+        aid = self._search_regex(r'data-aid=["\'](?P<aid>.+?)["\']',
+                                 webpage, 'aid')
 
-        video_url = 'https://' + url_parts[2] + '.trafficdeposit.com/video/' + url_parts[3] + '/' + url_parts[
-            4] + '/' + url_parts[5] + '/' + aid + '/' + video_id + '.mp4'
+        video_url = 'https://' + url_parts[2] + '.trafficdeposit.com/video/'\
+                    + url_parts[3] + '/' + url_parts[4] + '/' + url_parts[5]\
+                    + '/' + aid + '/' + video_id + '.mp4'
 
         title = (self._search_regex(
             r'<[^>]+\bclass=["\']PostEditTA[^>]+>([^<]+)', webpage, 'title',
