@@ -420,7 +420,7 @@ class ARDMediathekBaseIE(InfoExtractor):
 
 
 class ARDMediathekIE(ARDMediathekBaseIE):
-    _VALID_URL = r'https://(?:beta|www)\.ardmediathek\.de/[^/]+/(?:player|live)/(?P<video_id>[a-zA-Z0-9]+)(?:/(?P<display_id>[^/?#]+))?'
+    _VALID_URL = r'https://(?:beta|www)\.ardmediathek\.de/[^/]+/(?P<mode>player|live)/(?P<video_id>[a-zA-Z0-9]+)(?:/(?P<display_id>[^/?#]+))?'
     _TESTS = [{
         # available till 26.07.2022
         'url': 'https://www.ardmediathek.de/ard/player/Y3JpZDovL2JyLmRlL3ZpZGVvLzUwY2YzZTVhLTk0NjYtNGFiMS04NjAzLTFjM2VkNWFjYjM0YQ/',
@@ -785,6 +785,7 @@ class ARDMediathekIE(ARDMediathekBaseIE):
         res = {
             'id': video_id,
             'display_id': display_id,
+            'is_live': mobj.group('mode') == 'live',
         }
 
         res.update(self._extract_metadata(data))
