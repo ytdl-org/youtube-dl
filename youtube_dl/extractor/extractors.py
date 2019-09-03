@@ -57,6 +57,10 @@ from .ard import (
     ARDIE,
     ARDMediathekIE,
 )
+from .ardaudiothek import (
+    ARDAudiothekIE,
+    ARDAudiothekPlaylistIE,
+)
 from .arte import (
     ArteTVPlus7IE,
     ArteTVEmbedIE,
