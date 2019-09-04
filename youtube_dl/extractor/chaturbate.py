@@ -7,7 +7,7 @@ from ..utils import ExtractorError
 
 
 class ChaturbateIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:[^/]+\.)?chaturbate\.com/(?P<id>[^/?#]+)'
+    _VALID_URL = r'^https?://(?:[^/]+\.)?chaturbate\.com/(?:fullvideo/\?b=)?(?P<id>[^/?&#]+)'
     _TESTS = [{
         'url': 'https://www.chaturbate.com/siswet19/',
         'info_dict': {
@@ -22,6 +22,9 @@ class ChaturbateIE(InfoExtractor):
         },
         'skip': 'Room is offline',
     }, {
+        'url': 'https://chaturbate.com/fullvideo/?b=caylin',
+        'only_matching': True,
+    }, {
         'url': 'https://en.chaturbate.com/siswet19/',
         'only_matching': True,
     }]
@@ -30,6 +33,7 @@ class ChaturbateIE(InfoExtractor):
 
     def _real_extract(self, url):
         video_id = self._match_id(url)
+        url = 'https://chaturbate.com/%s/' % video_id
 
         webpage = self._download_webpage(
             url, video_id, headers=self.geo_verification_headers())
