@@ -98,6 +98,21 @@ class TVPlayIE(InfoExtractor):
             },
         },
         {
+            'url': 'https://www.viafree.fi/ohjelmat/urheilu/huuhkajat/kausi-2/998873',
+            'info_dict': {
+                'id': '998873',
+                'ext': 'mp4',
+                'title': 'Päivän maalit 11.6.',
+                'description': 'md5:d41d8cd98f00b204e9800998ecf8427e',
+                'duration': 922,
+                'timestamp': 1560294193,
+                'upload_date': '20190611',
+            },
+            'params': {
+                'skip_download': True,
+            },
+        },
+        {
             'url': 'http://www.tv3play.se/program/husraddarna/395385?autostart=true',
             'info_dict': {
                 'id': '395385',
@@ -357,6 +372,24 @@ class ViafreeIE(InfoExtractor):
                         /(?:[^/]+/)+(?P<id>[^/?#&]+)
                     '''
     _TESTS = [{
+        'url': 'https://www.viafree.fi/ohjelmat/kotimaiset/tyhmat-kysymykset-viisaat-vastaukset/kausi-2/jakso-1',
+        'info_dict': {
+            'id': '866877',
+            'ext': 'mp4',
+            'title': 'Pasi & Ville MayMac 1',
+            'description': 'md5:d41d8cd98f00b204e9800998ecf8427e',
+            'series': 'Tyhmät Kysymykset / Viisaat Vastaukset',
+            'season': 'Mayweather vs McGregor',
+            'season_number': 2,
+            'duration': 178,
+            'timestamp': 1503560313,
+            'upload_date': '20170824',
+        },
+        'params': {
+            'skip_download': True,
+        },
+        'add_ie': [TVPlayIE.ie_key()],
+    }, {
         'url': 'http://www.viafree.se/program/livsstil/husraddarna/sasong-2/avsnitt-2',
         'info_dict': {
             'id': '395375',
