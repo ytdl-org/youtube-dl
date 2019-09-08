@@ -1,5 +1,7 @@
 from __future__ import unicode_literals
 
+import time
+
 from .common import InfoExtractor
 from ..utils import (
     parse_duration
@@ -39,9 +41,11 @@ class YourPornIE(InfoExtractor):
         aid = self._search_regex(r'data-aid=["\'](?P<aid>.+?)["\']',
                                  webpage, 'aid')
 
-        video_url = 'https://' + url_parts[2] + '.trafficdeposit.com/video/'\
-                    + url_parts[3] + '/' + url_parts[4] + '/' + url_parts[5]\
-                    + '/' + aid + '/' + video_id + '.mp4'
+        epoch = int(time.time() + 3600)
+
+        video_url = 'https://' + url_parts[2] + '.trafficdeposit.com/vidi/' \
+                    + url_parts[3] + '/' + url_parts[4] + '/' + str(epoch) \
+                    + '/' + aid + '/' + video_id + '.vid'
 
         title = (self._search_regex(
             r'<[^>]+\bclass=["\']PostEditTA[^>]+>([^<]+)', webpage, 'title',
@@ -58,4 +62,5 @@ class YourPornIE(InfoExtractor):
             'thumbnail': thumbnail,
             'duration': duration,
             'age_limit': 18,
+            'ext': 'mp4',
         }
