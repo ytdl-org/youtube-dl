@@ -3,6 +3,14 @@ from __future__ import unicode_literals
 
 import re
 
+try:
+    from urllib.parse import unquote as _unquote_compat
+except ImportError:
+    from urllib import unquote
+
+    def _unquote_compat(str):
+        return unquote(str.encode('utf-8')).decode('utf-8')
+
 from .common import InfoExtractor
 from ..utils import (
     compat_str,
@@ -76,7 +84,7 @@ class ARDAudiothekBaseIE(InfoExtractor):
             lambda x: x['guid'],
         ], compat_str)
         if not res['url']:
-            raise ExtractorError(msg='Could not find any downloads',
+            raise ExtractorError(msg='Could not find a URL to download',
                                  expected=True)
 
         res['format_note'] = try_get(
@@ -228,54 +236,131 @@ class ARDAudiothekPlaylistIE(ARDAudiothekBaseIE):
         'playlist_mincount': 5,
     }]
 
-    def _extract_episodes(self, podcast_id, n_entries):
-        # items_per_page works from 1 up to 2147483647 (2^31 - 1).
-        # The website calls the API with items_per_page set to 24. Setting it
-        # to 500 or 1000 would download the data of all episodes in one or two
-        # pages. Increasing this value might however trigger server errors in
-        # the future. So to avoid any problems we will keep using the default
-        # value and just download a few more pages.
-        items_per_page = 24
+    def _get_page_str(self, page):
+        # The API sometimes returns 404s for page=1. So only add that
+        # parameter if we actually are past the first page
+        return '&page=' + compat_str(page) if page > 1 else ''
 
+    def _get_episode_from_array_entry(self, array_entry):
+        # The array entry already is a an 'episode' dict.
+        return array_entry
+
+    def _extract_episodes(
+            self, display_id, api_url_template, default_items_per_page):
+        """
+        Extract episodes by calling a web API end point.
+
+        Sometimes the server does not respond properly when requesting a page.
+        This also happens on the website. It sometimes hangs when trying to
+        load more search results, for instance. Thus the number of entries
+        reported by the API is often wrong and we do not solely rely on that
+        number to stop reading episodes.
+
+        This function handles paginated content in a robust way by skipping
+        over faulty server responses. In this case it reduces the page size to
+        get as many episodes as possible. It also removes duplicate entries
+        from the result.
+
+        Args:
+            display_id: Only used for user feedback.
+            api_url_template: This is the URL of the API to download JSON data
+                from. It is a format string expected to have the following
+                fields:
+                    - {items_per_page}
+                    - {page_str}
+            default_items_per_page: The number of items to fetch per page.
+                It is best to set this to the same value that is used by the
+                website when accessing the API. This function automatically
+                reduces the number of items per page when the server responds
+                with errors or missing data.
+
+        Returns:
+            A list of extracted episode dicts to be used as playlist entries.
+
+        Raises:
+            ExtractorError: Might be raised when extracting episode data.
+
+        """
+        items_per_page = default_items_per_page
         page = 1
 
-        api_url_template = 'https://www.ardaudiothek.de/api/podcasts/{}/episodes?items_per_page={}{}'
         entries = []
-        while True:
-            # The API sometimes returns 404s for page=1. So only add that
-            # parameter if we actually have paginated content.
-            page_str = '&page=' + compat_str(page) if page > 1 else ''
-            api_url = api_url_template.format(podcast_id,
-                                              items_per_page,
-                                              page_str)
-            result_data = self._download_json(api_url, podcast_id, fatal=False)
 
+        # The number of entries as reported by the API
+        n_entries = None
+
+        # The API sometimes returns an empty page without any episodes. In this
+        # case the next page often has episodes. This, however, throws off
+        # the total number of entries and it no longer becomes a reliable
+        # stopping condition when comparing it with the number of entries
+        # reported by the API. So we deal with this by not stopping at the
+        # first occurance of an empty page. We skip over a certain number of
+        # empty pages before giving up.
+        max_n_skipped_pages = default_items_per_page + 3
+        n_skipped_pages = 0
+
+        while True:
+            # We need this to check if we actually added any entries
+            n_entries_before_this_page = len(entries)
+
+            # Fetch data
+            api_url = api_url_template.format(
+                page_str=self._get_page_str(page),
+                items_per_page=items_per_page)
+            result_data = self._download_json(api_url, display_id, fatal=False)
             episodes = try_get(result_data,
                                lambda x: x['result']['episodes'],
                                list)
-            if episodes is None:
+
+            # Add entries
+            for episode in episodes or []:
+                entry = self._extract_episode(
+                    self._get_episode_from_array_entry(episode))
+                if entry not in entries:
+                    entries.append(entry)
+
+            # Fetch how many episodes the API says it has (it's enough to
+            # read it once)
+            n_entries = n_entries if n_entries is not None else try_get(
+                result_data,
+                lambda x: x['result']['meta']['episodes']['total'],
+                int)
+
+            # Check if we have read the reported number of episodes
+            if n_entries is not None and len(entries) >= n_entries:
                 break
 
-            for episode in episodes:
-                entries.append(self._extract_episode(episode))
+            # Check if we actually added any entries
+            if n_entries_before_this_page == len(entries):
+                # This was an empty page so we have to skip it
+                n_skipped_pages += 1
+                if n_skipped_pages >= max_n_skipped_pages:
+                    # Enough skipping, give up
+                    break
 
-            # Check if we're done
-            if len(entries) >= n_entries:
-                break
+                # Throttle by reading only half as many entries as before
+                if items_per_page > 1:
+                    new_items_per_page = int(max(1, items_per_page / 2))
+                    page = int((page - 1) * items_per_page /
+                               new_items_per_page)
+                    items_per_page = new_items_per_page
+            else:
+                # This page had episodes, so we're no longer skipping
+                n_skipped_pages = 0
 
-            # Sanity check, just in case
-            meta_total = try_get(result_data,
-                                 lambda x:
-                                 x['result']['meta']['episodes']['total'],
-                                 (int, float))
-            meta_pages = try_get(result_data,
-                                 lambda x:
-                                 x['result']['meta']['episodes']['pages'],
-                                 (int, float))
-            if not meta_total or not meta_pages:
-                break
+                # Try to go back to full speed by going back to the default
+                # items_per_page value if possible.
+                if items_per_page * page % default_items_per_page == 0:
+                    page = int(page * items_per_page /
+                               default_items_per_page)
+                    items_per_page = default_items_per_page
 
             page += 1
+
+        # Tell the user if we received less entries than the API reported
+        if n_entries is not None and len(entries) < n_entries:
+            self.to_screen('Received {} of {} reported episodes'.format(
+                len(entries), n_entries))
 
         return entries
 
@@ -290,16 +375,65 @@ class ARDAudiothekPlaylistIE(ARDAudiothekBaseIE):
             raise ExtractorError(msg="Could not find any playlist data",
                                  expected=True)
 
-        n_entries = try_get(pc_data,
-                            lambda x: x['number_of_elements'],
-                            (int, float))
-
         res = self._extract_id_title_desc(pc_data)
         res['_type'] = 'playlist'
-        res['entries'] = self._extract_episodes(podcast_id, n_entries)
 
-        if n_entries > len(res['entries']):
-            self.to_screen('Only received {} of {} reported episode IDs'
-                           .format(len(res['entries']), n_entries))
+        # items_per_page works from 1 up to 2147483647 (2^31 - 1).
+        # The website calls the API with items_per_page set to 24. Setting it
+        # to 500 or 1000 would download the data of all episodes in one or two
+        # pages. Increasing this value might however trigger server errors in
+        # the future. So to avoid any problems we will keep using the default
+        # value and just download a few more pages.
+        res['entries'] = self._extract_episodes(
+            podcast_id,
+            'https://www.ardaudiothek.de/api/podcasts/%s/episodes?items_per_page={items_per_page}{page_str}' % podcast_id,
+            24)
 
         return res
+
+
+class ARDAudiothekSearchIE(ARDAudiothekPlaylistIE):
+    _VALID_URL = r'https?://(?:www\.|beta\.)?ardaudiothek\.de/suche\?(?:(?!q=).*&)?q=(?P<id>[^&]+)(?:&.*)?'
+    _TESTS = [{
+        'url': 'https://www.ardaudiothek.de/suche?q=Sommer',
+        'info_dict': {
+            'id': 'Sommer',
+            'title': 'Sommer',
+            'description': compat_str,
+        },
+        'playlist_mincount': 5,
+    }, {
+        'url': 'https://www.ardaudiothek.de/suche?q=Angela%20Merkel',
+        'info_dict': {
+            'id': 'Angela%20Merkel',
+            'title': 'Angela Merkel',
+            'description': compat_str,
+        },
+        'playlist_mincount': 5,
+    }]
+
+    def _get_page_str(self, page):
+        # The search API always works with a page number
+        return '&page=' + compat_str(page)
+
+    def _get_episode_from_array_entry(self, array_entry):
+        # The array entry is a dict with an 'episode' and a 'search_meta' entry
+        return try_get(array_entry, lambda x: x['episode'], dict)
+
+    def _real_extract(self, url):
+        search_str = self._match_id(url)
+        display_str = _unquote_compat(search_str)
+
+        return {
+            '_type': 'playlist',
+            'id': search_str,
+            'display_id': display_str,
+            'title': display_str,
+            'description': 'ARD Audiothek-Suche nach "' + display_str + '"',
+            # Searching on the website calls the API with items_per_page set
+            # to 8. Other values sometimes cause server errors.
+            'entries': self._extract_episodes(
+                display_str,
+                'https://www.ardaudiothek.de/api/search/%s?focus=episodes{page_str}&items_per_page={items_per_page}' % search_str,
+                8),
+        }

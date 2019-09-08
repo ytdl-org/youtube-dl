@@ -60,6 +60,7 @@ from .ard import (
 from .ardaudiothek import (
     ARDAudiothekIE,
     ARDAudiothekPlaylistIE,
+    ARDAudiothekSearchIE,
 )
 from .arte import (
     ArteTVPlus7IE,
