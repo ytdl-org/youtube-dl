@@ -35,6 +35,7 @@ class TVPlayIE(InfoExtractor):
                                 tvplay(?:\.skaties)?\.lv(?:/parraides)?|
                                 (?:tv3play|play\.tv3)\.lt(?:/programos)?|
                                 tv3play(?:\.tv3)?\.ee/sisu|
+                                (?:viafree)\.fi/ohjelmat|
                                 (?:tv(?:3|6|8|10)play|viafree)\.se/program|
                                 (?:(?:tv3play|viasat4play|tv6play|viafree)\.no|(?:tv3play|viafree)\.dk)/programmer|
                                 play\.nova(?:tv)?\.bg/programi
@@ -350,6 +351,7 @@ class ViafreeIE(InfoExtractor):
                         viafree\.
                         (?:
                             (?:dk|no)/programmer|
+                            fi/ohjelmat|
                             se/program
                         )
                         /(?:[^/]+/)+(?P<id>[^/?#&]+)
