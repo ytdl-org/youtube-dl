@@ -59,7 +59,7 @@ if len(sys.argv) >= 2 and sys.argv[1] == 'py2exe':
     params = py2exe_params
 else:
     files_spec = [
-        ('etc/bash_completion.d', ['youtube-dl.bash-completion']),
+        ('share/bash-completion/completions', ['bash-completion/youtube-dl']),
         ('etc/fish/completions', ['youtube-dl.fish']),
         ('share/doc/youtube_dl', ['README.txt']),
         ('share/man/man1', ['youtube-dl.1'])

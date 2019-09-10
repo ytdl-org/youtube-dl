@@ -8,7 +8,7 @@ import sys
 sys.path.insert(0, dirn(dirn((os.path.abspath(__file__)))))
 import youtube_dl
 
-BASH_COMPLETION_FILE = "youtube-dl.bash-completion"
+BASH_COMPLETION_FILE = "bash-completion/youtube-dl"
 BASH_COMPLETION_TEMPLATE = "devscripts/bash-completion.in"
 
 

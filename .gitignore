@@ -11,7 +11,7 @@ dist/
 MANIFEST
 README.txt
 youtube-dl.1
-youtube-dl.bash-completion
+bash-completion/youtube-dl
 youtube-dl.fish
 youtube_dl/extractor/lazy_extractors.py
 youtube-dl
