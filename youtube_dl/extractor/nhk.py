@@ -20,6 +20,7 @@ class NhkVodIE(InfoExtractor):
         'only_matching': True,
     }]
     _API_URL_TEMPLATE = 'https://api.nhk.or.jp/nhkworld/%sodesdlist/v7/episode/%s/%s/all%s.json'
+    _API_PIKSEL_BASE_TEMPLATE = 'https://movie-s.nhk.or.jp/v/refid/nhkworld/prefid/%s'
 
     def _real_extract(self, url):
         lang, m_type, episode_id = re.match(self._VALID_URL, url).groups()
@@ -57,11 +58,19 @@ class NhkVodIE(InfoExtractor):
             'series': series,
             'episode': title,
         }
+
         if is_video:
+            vod_id = episode['vod_id']
+            metadata_page = self._download_webpage(self._API_PIKSEL_BASE_TEMPLATE % vod_id, vod_id)
+            video_uuid = self._html_search_regex(
+                r'data-de-program-uuid="(.+?)"',
+                metadata_page,
+                'video_uuid'
+            )
             info.update({
                 '_type': 'url_transparent',
-                'ie_key': 'Ooyala',
-                'url': 'ooyala:' + episode['vod_id'],
+                'ie_key': 'Piksel',
+                'url': 'https://player.piksel.com/v/%s' % video_uuid
             })
         else:
             audio = episode['audio']
