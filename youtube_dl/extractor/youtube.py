@@ -41,7 +41,6 @@ from ..utils import (
     orderedSet,
     parse_codecs,
     parse_duration,
-    qualities,
     remove_quotes,
     remove_start,
     smuggle_url,
@@ -1944,7 +1943,6 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                                 'width': int_or_none(width_height[0]),
                                 'height': int_or_none(width_height[1]),
                             }
-            q = qualities(['small', 'medium', 'hd720'])
             for fmt in streaming_formats:
                 itag = str_or_none(fmt.get('itag'))
                 if not itag:
@@ -1957,7 +1955,6 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                     'format_note': quality_label,
                     'fps': int_or_none(fmt.get('fps')),
                     'height': int_or_none(fmt.get('height')),
-                    'quality': q(quality),
                     # bitrate for itag 43 is always 2147483647
                     'tbr': float_or_none(fmt.get('averageBitrate') or fmt.get('bitrate'), 1000) if itag != '43' else None,
                     'width': int_or_none(fmt.get('width')),
@@ -2074,7 +2071,8 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                 quality = url_data.get('quality', [None])[0] or fmt.get('quality')
                 quality_label = url_data.get('quality_label', [None])[0] or fmt.get('qualityLabel')
 
-                tbr = float_or_none(url_data.get('bitrate', [None])[0], 1000) or float_or_none(fmt.get('bitrate'), 1000)
+                tbr = (float_or_none(url_data.get('bitrate', [None])[0], 1000)
+                       or float_or_none(fmt.get('bitrate'), 1000)) if format_id != '43' else None
                 fps = int_or_none(url_data.get('fps', [None])[0]) or int_or_none(fmt.get('fps'))
 
                 more_fields = {
@@ -2084,7 +2082,6 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                     'height': height,
                     'fps': fps,
                     'format_note': quality_label or quality,
-                    'quality': q(quality),
                 }
                 for key, value in more_fields.items():
                     if value:

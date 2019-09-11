@@ -1,3 +1,9 @@
+version 2019.09.12.1
+
+Extractors
+* [youtube] Remove quality and tbr for itag 43 (#22372)
+
+
 version 2019.09.12
 
 Extractors
