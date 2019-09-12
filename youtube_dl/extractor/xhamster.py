@@ -1,5 +1,6 @@
 from __future__ import unicode_literals
 
+import itertools
 import re
 
 from .common import InfoExtractor
@@ -8,6 +9,7 @@ from ..utils import (
     clean_html,
     determine_ext,
     dict_get,
+    extract_attributes,
     ExtractorError,
     int_or_none,
     parse_duration,
@@ -18,21 +20,21 @@ from ..utils import (
 
 
 class XHamsterIE(InfoExtractor):
+    _DOMAINS = r'(?:xhamster\.(?:com|one|desi)|xhms\.pro|xhamster[27]\.com)'
     _VALID_URL = r'''(?x)
                     https?://
-                        (?:.+?\.)?xhamster\.(?:com|one)/
+                        (?:.+?\.)?%s/
                         (?:
                             movies/(?P<id>\d+)/(?P<display_id>[^/]*)\.html|
                             videos/(?P<display_id_2>[^/]*)-(?P<id_2>\d+)
                         )
-                    '''
-
+                    ''' % _DOMAINS
     _TESTS = [{
-        'url': 'http://xhamster.com/movies/1509445/femaleagent_shy_beauty_takes_the_bait.html',
-        'md5': '8281348b8d3c53d39fffb377d24eac4e',
+        'url': 'https://xhamster.com/videos/femaleagent-shy-beauty-takes-the-bait-1509445',
+        'md5': '98b4687efb1ffd331c4197854dc09e8f',
         'info_dict': {
             'id': '1509445',
-            'display_id': 'femaleagent_shy_beauty_takes_the_bait',
+            'display_id': 'femaleagent-shy-beauty-takes-the-bait',
             'ext': 'mp4',
             'title': 'FemaleAgent Shy beauty takes the bait',
             'timestamp': 1350194821,
@@ -40,13 +42,12 @@ class XHamsterIE(InfoExtractor):
             'uploader': 'Ruseful2011',
             'duration': 893,
             'age_limit': 18,
-            'categories': ['Fake Hub', 'Amateur', 'MILFs', 'POV', 'Beauti', 'Beauties', 'Beautiful', 'Boss', 'Office', 'Oral', 'Reality', 'Sexy', 'Taking'],
         },
     }, {
-        'url': 'http://xhamster.com/movies/2221348/britney_spears_sexy_booty.html?hd',
+        'url': 'https://xhamster.com/videos/britney-spears-sexy-booty-2221348?hd=',
         'info_dict': {
             'id': '2221348',
-            'display_id': 'britney_spears_sexy_booty',
+            'display_id': 'britney-spears-sexy-booty',
             'ext': 'mp4',
             'title': 'Britney Spears  Sexy Booty',
             'timestamp': 1379123460,
@@ -54,13 +55,12 @@ class XHamsterIE(InfoExtractor):
             'uploader': 'jojo747400',
             'duration': 200,
             'age_limit': 18,
-            'categories': ['Britney Spears', 'Celebrities', 'HD Videos', 'Sexy', 'Sexy Booty'],
         },
         'params': {
             'skip_download': True,
         },
     }, {
-        # empty seo
+        # empty seo, unavailable via new URL schema
         'url': 'http://xhamster.com/movies/5667973/.html',
         'info_dict': {
             'id': '5667973',
@@ -71,7 +71,6 @@ class XHamsterIE(InfoExtractor):
             'uploader': 'parejafree',
             'duration': 72,
             'age_limit': 18,
-            'categories': ['Amateur', 'Blowjobs'],
         },
         'params': {
             'skip_download': True,
@@ -93,6 +92,18 @@ class XHamsterIE(InfoExtractor):
         'only_matching': True,
     }, {
         'url': 'https://xhamster.one/videos/femaleagent-shy-beauty-takes-the-bait-1509445',
+        'only_matching': True,
+    }, {
+        'url': 'https://xhamster.desi/videos/femaleagent-shy-beauty-takes-the-bait-1509445',
+        'only_matching': True,
+    }, {
+        'url': 'https://xhamster2.com/videos/femaleagent-shy-beauty-takes-the-bait-1509445',
+        'only_matching': True,
+    }, {
+        'url': 'http://xhamster.com/movies/1509445/femaleagent_shy_beauty_takes_the_bait.html',
+        'only_matching': True,
+    }, {
+        'url': 'http://xhamster.com/movies/2221348/britney_spears_sexy_booty.html?hd',
         'only_matching': True,
     }]
 
@@ -285,7 +296,7 @@ class XHamsterIE(InfoExtractor):
 
 
 class XHamsterEmbedIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:.+?\.)?xhamster\.com/xembed\.php\?video=(?P<id>\d+)'
+    _VALID_URL = r'https?://(?:.+?\.)?%s/xembed\.php\?video=(?P<id>\d+)' % XHamsterIE._DOMAINS
     _TEST = {
         'url': 'http://xhamster.com/xembed.php?video=3328539',
         'info_dict': {
@@ -322,3 +333,49 @@ class XHamsterEmbedIE(InfoExtractor):
             video_url = dict_get(vars, ('downloadLink', 'homepageLink', 'commentsLink', 'shareUrl'))
 
         return self.url_result(video_url, 'XHamster')
+
+
+class XHamsterUserIE(InfoExtractor):
+    _VALID_URL = r'https?://(?:.+?\.)?%s/users/(?P<id>[^/?#&]+)' % XHamsterIE._DOMAINS
+    _TESTS = [{
+        # Paginated user profile
+        'url': 'https://xhamster.com/users/netvideogirls/videos',
+        'info_dict': {
+            'id': 'netvideogirls',
+        },
+        'playlist_mincount': 267,
+    }, {
+        # Non-paginated user profile
+        'url': 'https://xhamster.com/users/firatkaan/videos',
+        'info_dict': {
+            'id': 'firatkaan',
+        },
+        'playlist_mincount': 1,
+    }]
+
+    def _entries(self, user_id):
+        next_page_url = 'https://xhamster.com/users/%s/videos/1' % user_id
+        for pagenum in itertools.count(1):
+            page = self._download_webpage(
+                next_page_url, user_id, 'Downloading page %s' % pagenum)
+            for video_tag in re.findall(
+                    r'(<a[^>]+class=["\'].*?\bvideo-thumb__image-container[^>]+>)',
+                    page):
+                video = extract_attributes(video_tag)
+                video_url = url_or_none(video.get('href'))
+                if not video_url or not XHamsterIE.suitable(video_url):
+                    continue
+                video_id = XHamsterIE._match_id(video_url)
+                yield self.url_result(
+                    video_url, ie=XHamsterIE.ie_key(), video_id=video_id)
+            mobj = re.search(r'<a[^>]+data-page=["\']next[^>]+>', page)
+            if not mobj:
+                break
+            next_page = extract_attributes(mobj.group(0))
+            next_page_url = url_or_none(next_page.get('href'))
+            if not next_page_url:
+                break
+
+    def _real_extract(self, url):
+        user_id = self._match_id(url)
+        return self.playlist_result(self._entries(user_id), user_id)

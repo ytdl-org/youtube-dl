@@ -48,7 +48,14 @@ class DailymotionBaseInfoExtractor(InfoExtractor):
 
 
 class DailymotionIE(DailymotionBaseInfoExtractor):
-    _VALID_URL = r'(?i)https?://(?:(www|touch)\.)?dailymotion\.[a-z]{2,3}/(?:(?:(?:embed|swf|#)/)?video|swf)/(?P<id>[^/?_]+)'
+    _VALID_URL = r'''(?ix)
+                    https?://
+                        (?:
+                            (?:(?:www|touch)\.)?dailymotion\.[a-z]{2,3}/(?:(?:(?:embed|swf|\#)/)?video|swf)|
+                            (?:www\.)?lequipe\.fr/video
+                        )
+                        /(?P<id>[^/?_]+)
+                    '''
     IE_NAME = 'dailymotion'
 
     _FORMATS = [
@@ -132,6 +139,12 @@ class DailymotionIE(DailymotionBaseInfoExtractor):
         'only_matching': True,
     }, {
         'url': 'http://www.dailymotion.com/swf/x3ss1m_funny-magic-trick-barry-and-stuart_fun',
+        'only_matching': True,
+    }, {
+        'url': 'https://www.lequipe.fr/video/x791mem',
+        'only_matching': True,
+    }, {
+        'url': 'https://www.lequipe.fr/video/k7MtHciueyTcrFtFKA2',
         'only_matching': True,
     }]
 
