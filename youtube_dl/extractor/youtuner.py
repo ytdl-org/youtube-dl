@@ -24,7 +24,7 @@ class YoutunerIE(InfoExtractor):
         webpage = self._download_webpage(url, video_id)
         thumbnail = "{0.scheme}://{0.netloc}/{1}".format(compat_urlparse.urlsplit(url), self._search_regex(r"<hgroup[^>]*>[^<]+<div[^>]+style=\"[^']+'([^']+)'", webpage, 'thumbnail'))
         title = self._html_search_regex(r'<h1>(.+?)</h1>', webpage, 'title')
-        url = self._html_search_regex(r'<a[^>]+href=\"([^>]*)\"[^>]*>Baixar', webpage, 'url')
+        url = self._html_search_regex(r'<audio[^>]*>[^<]+<source[^>]+src=\"([^\"]+)\"', webpage, 'url')
         return {
             'id': video_id,
             'title': title,
