@@ -413,6 +413,8 @@ class FFmpegEmbedSubtitlePP(FFmpegPostProcessor):
             # Don't copy Apple TV chapters track, bin_data (see #19042, #19024,
             # https://trac.ffmpeg.org/ticket/6016)
             '-map', '-0:d',
+            # always set a default subtitle (https://trac.ffmpeg.org/ticket/2402)
+            '-disposition:s:0 default',
         ]
         if information['ext'] == 'mp4':
             opts += ['-c:s', 'mov_text']
