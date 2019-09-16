@@ -423,7 +423,7 @@ class PeerTubeIE(InfoExtractor):
                     (?P<id>%s)
                     ''' % (_INSTANCES_RE, _UUID_RE)
     _TESTS = [{
-        'url': 'https://peertube.moe/videos/watch/2790feb0-8120-4e63-9af3-c943c69f5e6c',
+        'url': 'https://peertube.cpy.re/videos/watch/2790feb0-8120-4e63-9af3-c943c69f5e6c',
         'md5': '80f24ff364cc9d333529506a263e7feb',
         'info_dict': {
             'id': '2790feb0-8120-4e63-9af3-c943c69f5e6c',
