@@ -38,10 +38,10 @@ class LRTIE(InfoExtractor):
         'info_dict': {
             'id': '2000078895',
             'ext': 'mp4',
-            'title': u'Loterija \u201eKeno Loto\u201c',
-            'description': u'Tira\u017eo nr.: 7993.',
+            'title': 'Loterija \u201eKeno Loto\u201c',
+            'description': 'Tira\u017eo nr.: 7993.',
             'timestamp': 1568658420,
-            'tags': [u'Loterija \u201eKeno Loto\u201c', u'LRT TELEVIZIJA'],
+            'tags': ['Loterija \u201eKeno Loto\u201c', 'LRT TELEVIZIJA'],
             'upload_date': '20190916',
 >>>>>>> [lrt] fixing broken extractor
         },
@@ -53,10 +53,10 @@ class LRTIE(InfoExtractor):
         'info_dict': {
             'id': '2000068931',
             'ext': 'm4a',
-            'title': u'Vakaro pasaka. Bebriukas',
-            'description': u'Est\u0173 pasaka \u201eBebriukas\u201d. Skaito aktorius Antanas \u0160urna.',
+            'title': 'Vakaro pasaka. Bebriukas',
+            'description': 'Est\u0173 pasaka \u201eBebriukas\u201d. Skaito aktorius Antanas \u0160urna.',
             'timestamp': 1558461780,
-            'tags': [u'LRT RADIJAS', u'Vakaro pasaka', u'Bebriukas'],
+            'tags': ['LRT RADIJAS', 'Vakaro pasaka', 'Bebriukas'],
             'upload_date': '20190521',
         },
     }]
