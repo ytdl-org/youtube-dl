@@ -3,6 +3,7 @@ from __future__ import unicode_literals
 
 import hashlib
 import hmac
+import re
 import time
 import uuid
 
@@ -126,6 +127,8 @@ class HotStarIE(HotStarBaseIE):
             format_url = url_or_none(playback_set.get('playbackUrl'))
             if not format_url:
                 continue
+            format_url = re.sub(
+                r'(?<=//staragvod)(\d)', r'web\1', format_url)
             tags = str_or_none(playback_set.get('tagsCombination')) or ''
             if tags and 'encryption:plain' not in tags:
                 continue
