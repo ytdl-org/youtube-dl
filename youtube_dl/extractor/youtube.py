@@ -387,6 +387,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                             (?:www\.)?invidious\.13ad\.de/|
                             (?:www\.)?invidious\.mastodon\.host/|
                             (?:www\.)?invidious\.nixnet\.xyz/|
+                            (?:www\.)?invidious\.drycat\.fr/|
                             (?:www\.)?tube\.poal\.co/|
                             (?:www\.)?vid\.wxzm\.sx/|
                             (?:www\.)?yt\.elukerio\.org/|
