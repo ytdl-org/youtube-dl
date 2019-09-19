@@ -4,7 +4,10 @@ import json
 import re
 
 from .common import InfoExtractor
-from ..utils import int_or_none
+from ..utils import (
+    int_or_none,
+    ExtractorError,
+)
 
 
 class DLiveVODIE(InfoExtractor):
@@ -76,7 +79,14 @@ class DLiveStreamIE(InfoExtractor):
     username
   }
 }''' % display_name}).encode())['data']['userByDisplayName']
+
         livestream = user['livestream']
+
+        if(livestream is None):
+            raise ExtractorError(
+                "The requested stream is offline!",
+                expected=True)
+
         title = livestream['title']
         username = user['username']
         formats = self._extract_m3u8_formats(
