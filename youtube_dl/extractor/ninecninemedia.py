@@ -4,7 +4,6 @@ from __future__ import unicode_literals
 import re
 
 from .common import InfoExtractor
-from ..compat import compat_str
 from ..utils import (
     parse_iso8601,
     float_or_none,
@@ -13,38 +12,11 @@ from ..utils import (
 )
 
 
-class NineCNineMediaBaseIE(InfoExtractor):
-    _API_BASE_TEMPLATE = 'http://capi.9c9media.com/destinations/%s/platforms/desktop/contents/%s/'
-
-
-class NineCNineMediaStackIE(NineCNineMediaBaseIE):
-    IE_NAME = '9c9media:stack'
-    _GEO_COUNTRIES = ['CA']
-    _VALID_URL = r'9c9media:stack:(?P<destination_code>[^:]+):(?P<content_id>\d+):(?P<content_package>\d+):(?P<id>\d+)'
-
-    def _real_extract(self, url):
-        destination_code, content_id, package_id, stack_id = re.match(self._VALID_URL, url).groups()
-        stack_base_url_template = self._API_BASE_TEMPLATE + 'contentpackages/%s/stacks/%s/manifest.'
-        stack_base_url = stack_base_url_template % (destination_code, content_id, package_id, stack_id)
-
-        formats = []
-        formats.extend(self._extract_m3u8_formats(
-            stack_base_url + 'm3u8', stack_id, 'mp4',
-            'm3u8_native', m3u8_id='hls', fatal=False))
-        formats.extend(self._extract_f4m_formats(
-            stack_base_url + 'f4m', stack_id,
-            f4m_id='hds', fatal=False))
-        self._sort_formats(formats)
-
-        return {
-            'id': stack_id,
-            'formats': formats,
-        }
-
-
-class NineCNineMediaIE(NineCNineMediaBaseIE):
+class NineCNineMediaIE(InfoExtractor):
     IE_NAME = '9c9media'
+    _GEO_COUNTRIES = ['CA']
     _VALID_URL = r'9c9media:(?P<destination_code>[^:]+):(?P<id>\d+)'
+    _API_BASE_TEMPLATE = 'http://capi.9c9media.com/destinations/%s/platforms/desktop/contents/%s/'
 
     def _real_extract(self, url):
         destination_code, content_id = re.match(self._VALID_URL, url).groups()
@@ -58,13 +30,26 @@ class NineCNineMediaIE(NineCNineMediaBaseIE):
         content_package = content['ContentPackages'][0]
         package_id = content_package['Id']
         content_package_url = api_base_url + 'contentpackages/%s/' % package_id
-        content_package = self._download_json(content_package_url, content_id)
+        content_package = self._download_json(
+            content_package_url, content_id, query={
+                '$include': '[HasClosedCaptions]',
+            })
 
-        if content_package.get('Constraints', {}).get('Security', {}).get('Type') == 'adobe-drm':
+        if content_package.get('Constraints', {}).get('Security', {}).get('Type'):
             raise ExtractorError('This video is DRM protected.', expected=True)
 
-        stacks = self._download_json(content_package_url + 'stacks/', package_id)['Items']
-        multistacks = len(stacks) > 1
+        manifest_base_url = content_package_url + 'manifest.'
+        formats = []
+        formats.extend(self._extract_m3u8_formats(
+            manifest_base_url + 'm3u8', content_id, 'mp4',
+            'm3u8_native', m3u8_id='hls', fatal=False))
+        formats.extend(self._extract_f4m_formats(
+            manifest_base_url + 'f4m', content_id,
+            f4m_id='hds', fatal=False))
+        formats.extend(self._extract_mpd_formats(
+            manifest_base_url + 'mpd', content_id,
+            mpd_id='dash', fatal=False))
+        self._sort_formats(formats)
 
         thumbnails = []
         for image in content.get('Images', []):
@@ -85,10 +70,12 @@ class NineCNineMediaIE(NineCNineMediaBaseIE):
                     continue
                 container.append(e_name)
 
-        description = content.get('Desc') or content.get('ShortDesc')
         season = content.get('Season', {})
-        base_info = {
-            'description': description,
+
+        info = {
+            'id': content_id,
+            'title': title,
+            'description': content.get('Desc') or content.get('ShortDesc'),
             'timestamp': parse_iso8601(content.get('BroadcastDateTime')),
             'episode_number': int_or_none(content.get('Episode')),
             'season': season.get('Name'),
@@ -97,26 +84,19 @@ class NineCNineMediaIE(NineCNineMediaBaseIE):
             'series': content.get('Media', {}).get('Name'),
             'tags': tags,
             'categories': categories,
+            'duration': float_or_none(content_package.get('Duration')),
+            'formats': formats,
         }
 
-        entries = []
-        for stack in stacks:
-            stack_id = compat_str(stack['Id'])
-            entry = {
-                '_type': 'url_transparent',
-                'url': '9c9media:stack:%s:%s:%s:%s' % (destination_code, content_id, package_id, stack_id),
-                'id': stack_id,
-                'title': '%s_part%s' % (title, stack['Name']) if multistacks else title,
-                'duration': float_or_none(stack.get('Duration')),
-                'ie_key': 'NineCNineMediaStack',
+        if content_package.get('HasClosedCaptions'):
+            info['subtitles'] = {
+                'en': [{
+                    'url': manifest_base_url + 'vtt',
+                    'ext': 'vtt',
+                }, {
+                    'url': manifest_base_url + 'srt',
+                    'ext': 'srt',
+                }]
             }
-            entry.update(base_info)
-            entries.append(entry)
 
-        return {
-            '_type': 'multi_video',
-            'id': content_id,
-            'title': title,
-            'description': description,
-            'entries': entries,
-        }
+        return info

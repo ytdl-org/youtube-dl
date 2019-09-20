@@ -64,8 +64,8 @@ class XAttrMetadataPP(PostProcessor):
         except XAttrMetadataError as e:
             if e.reason == 'NO_SPACE':
                 self._downloader.report_warning(
-                    'There\'s no disk space left, disk quota exceeded or filesystem xattr limit exceeded. ' +
-                    (('Some ' if num_written else '') + 'extended attributes are not written.').capitalize())
+                    'There\'s no disk space left, disk quota exceeded or filesystem xattr limit exceeded. '
+                    + (('Some ' if num_written else '') + 'extended attributes are not written.').capitalize())
             elif e.reason == 'VALUE_TOO_LONG':
                 self._downloader.report_warning(
                     'Unable to write extended attributes due to too long values.')

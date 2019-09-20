@@ -9,9 +9,6 @@ import re
 
 from .common import AudioConversionError, PostProcessor
 
-from ..compat import (
-    compat_subprocess_get_DEVNULL,
-)
 from ..utils import (
     encodeArgument,
     encodeFilename,
@@ -77,7 +74,21 @@ class FFmpegPostProcessor(PostProcessor):
 
     def _determine_executables(self):
         programs = ['avprobe', 'avconv', 'ffmpeg', 'ffprobe']
-        prefer_ffmpeg = False
+        prefer_ffmpeg = True
+
+        def get_ffmpeg_version(path):
+            ver = get_exe_version(path, args=['-version'])
+            if ver:
+                regexs = [
+                    r'(?:\d+:)?([0-9.]+)-[0-9]+ubuntu[0-9.]+$',  # Ubuntu, see [1]
+                    r'n([0-9.]+)$',  # Arch Linux
+                    # 1. http://www.ducea.com/2006/06/17/ubuntu-package-version-naming-explanation/
+                ]
+                for regex in regexs:
+                    mobj = re.match(regex, ver)
+                    if mobj:
+                        ver = mobj.group(1)
+            return ver
 
         self.basename = None
         self.probe_basename = None
@@ -85,7 +96,7 @@ class FFmpegPostProcessor(PostProcessor):
         self._paths = None
         self._versions = None
         if self._downloader:
-            prefer_ffmpeg = self._downloader.params.get('prefer_ffmpeg', False)
+            prefer_ffmpeg = self._downloader.params.get('prefer_ffmpeg', True)
             location = self._downloader.params.get('ffmpeg_location')
             if location is not None:
                 if not os.path.exists(location):
@@ -110,26 +121,25 @@ class FFmpegPostProcessor(PostProcessor):
                 self._paths = dict(
                     (p, os.path.join(location, p)) for p in programs)
                 self._versions = dict(
-                    (p, get_exe_version(self._paths[p], args=['-version']))
-                    for p in programs)
+                    (p, get_ffmpeg_version(self._paths[p])) for p in programs)
         if self._versions is None:
             self._versions = dict(
-                (p, get_exe_version(p, args=['-version'])) for p in programs)
+                (p, get_ffmpeg_version(p)) for p in programs)
             self._paths = dict((p, p) for p in programs)
 
-        if prefer_ffmpeg:
-            prefs = ('ffmpeg', 'avconv')
-        else:
+        if prefer_ffmpeg is False:
             prefs = ('avconv', 'ffmpeg')
+        else:
+            prefs = ('ffmpeg', 'avconv')
         for p in prefs:
             if self._versions[p]:
                 self.basename = p
                 break
 
-        if prefer_ffmpeg:
-            prefs = ('ffprobe', 'avprobe')
-        else:
+        if prefer_ffmpeg is False:
             prefs = ('avprobe', 'ffprobe')
+        else:
+            prefs = ('ffprobe', 'avprobe')
         for p in prefs:
             if self._versions[p]:
                 self.probe_basename = p
@@ -152,27 +162,45 @@ class FFmpegPostProcessor(PostProcessor):
         return self._paths[self.probe_basename]
 
     def get_audio_codec(self, path):
-        if not self.probe_available:
-            raise PostProcessingError('ffprobe or avprobe not found. Please install one.')
+        if not self.probe_available and not self.available:
+            raise PostProcessingError('ffprobe/avprobe and ffmpeg/avconv not found. Please install one.')
         try:
-            cmd = [
-                encodeFilename(self.probe_executable, True),
-                encodeArgument('-show_streams'),
-                encodeFilename(self._ffmpeg_filename_argument(path), True)]
+            if self.probe_available:
+                cmd = [
+                    encodeFilename(self.probe_executable, True),
+                    encodeArgument('-show_streams')]
+            else:
+                cmd = [
+                    encodeFilename(self.executable, True),
+                    encodeArgument('-i')]
+            cmd.append(encodeFilename(self._ffmpeg_filename_argument(path), True))
             if self._downloader.params.get('verbose', False):
-                self._downloader.to_screen('[debug] %s command line: %s' % (self.basename, shell_quote(cmd)))
-            handle = subprocess.Popen(cmd, stderr=compat_subprocess_get_DEVNULL(), stdout=subprocess.PIPE, stdin=subprocess.PIPE)
-            output = handle.communicate()[0]
-            if handle.wait() != 0:
+                self._downloader.to_screen(
+                    '[debug] %s command line: %s' % (self.basename, shell_quote(cmd)))
+            handle = subprocess.Popen(
+                cmd, stderr=subprocess.PIPE,
+                stdout=subprocess.PIPE, stdin=subprocess.PIPE)
+            stdout_data, stderr_data = handle.communicate()
+            expected_ret = 0 if self.probe_available else 1
+            if handle.wait() != expected_ret:
                 return None
         except (IOError, OSError):
             return None
-        audio_codec = None
-        for line in output.decode('ascii', 'ignore').split('\n'):
-            if line.startswith('codec_name='):
-                audio_codec = line.split('=')[1].strip()
-            elif line.strip() == 'codec_type=audio' and audio_codec is not None:
-                return audio_codec
+        output = (stdout_data if self.probe_available else stderr_data).decode('ascii', 'ignore')
+        if self.probe_available:
+            audio_codec = None
+            for line in output.split('\n'):
+                if line.startswith('codec_name='):
+                    audio_codec = line.split('=')[1].strip()
+                elif line.strip() == 'codec_type=audio' and audio_codec is not None:
+                    return audio_codec
+        else:
+            # Stream #FILE_INDEX:STREAM_INDEX[STREAM_ID](LANGUAGE): CODEC_TYPE: CODEC_NAME
+            mobj = re.search(
+                r'Stream\s*#\d+:\d+(?:\[0x[0-9a-f]+\])?(?:\([a-z]{3}\))?:\s*Audio:\s*([0-9a-z]+)',
+                output)
+            if mobj:
+                return mobj.group(1)
         return None
 
     def run_ffmpeg_multiple_files(self, input_paths, out_path, opts):
@@ -189,10 +217,13 @@ class FFmpegPostProcessor(PostProcessor):
                 encodeArgument('-i'),
                 encodeFilename(self._ffmpeg_filename_argument(path), True)
             ])
-        cmd = ([encodeFilename(self.executable, True), encodeArgument('-y')] +
-               files_cmd +
-               [encodeArgument(o) for o in opts] +
-               [encodeFilename(self._ffmpeg_filename_argument(out_path), True)])
+        cmd = [encodeFilename(self.executable, True), encodeArgument('-y')]
+        # avconv does not have repeat option
+        if self.basename == 'ffmpeg':
+            cmd += [encodeArgument('-loglevel'), encodeArgument('repeat+info')]
+        cmd += (files_cmd
+                + [encodeArgument(o) for o in opts]
+                + [encodeFilename(self._ffmpeg_filename_argument(out_path), True)])
 
         if self._downloader.params.get('verbose', False):
             self._downloader.to_screen('[debug] ffmpeg command line: %s' % shell_quote(cmd))
@@ -295,8 +326,8 @@ class FFmpegExtractAudioPP(FFmpegPostProcessor):
         information['ext'] = extension
 
         # If we download foo.mp3 and convert it to... foo.mp3, then don't delete foo.mp3, silly.
-        if (new_path == path or
-                (self._nopostoverwrites and os.path.exists(encodeFilename(new_path)))):
+        if (new_path == path
+                or (self._nopostoverwrites and os.path.exists(encodeFilename(new_path)))):
             self._downloader.to_screen('[ffmpeg] Post-process file %s exists, skipping' % new_path)
             return [], information
 
@@ -379,14 +410,16 @@ class FFmpegEmbedSubtitlePP(FFmpegPostProcessor):
             # Don't copy the existing subtitles, we may be running the
             # postprocessor a second time
             '-map', '-0:s',
+            # Don't copy Apple TV chapters track, bin_data (see #19042, #19024,
+            # https://trac.ffmpeg.org/ticket/6016)
+            '-map', '-0:d',
         ]
         if information['ext'] == 'mp4':
             opts += ['-c:s', 'mov_text']
         for (i, lang) in enumerate(sub_langs):
             opts.extend(['-map', '%d:0' % (i + 1)])
-            lang_code = ISO639Utils.short2long(lang)
-            if lang_code is not None:
-                opts.extend(['-metadata:s:s:%d' % i, 'language=%s' % lang_code])
+            lang_code = ISO639Utils.short2long(lang) or lang
+            opts.extend(['-metadata:s:s:%d' % i, 'language=%s' % lang_code])
 
         temp_filename = prepend_extension(filename, 'temp')
         self._downloader.to_screen('[ffmpeg] Embedding subtitles in \'%s\'' % filename)

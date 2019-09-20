@@ -60,13 +60,13 @@ class HRTiBaseIE(InfoExtractor):
             language=self._APP_LANGUAGE,
             application_id=self._APP_PUBLICATION_ID)
 
-        self._login_url = (modules['user']['resources']['login']['uri'] +
-                           '/format/json').format(session_id=self._session_id)
+        self._login_url = (modules['user']['resources']['login']['uri']
+                           + '/format/json').format(session_id=self._session_id)
 
         self._logout_url = modules['user']['resources']['logout']['uri']
 
     def _login(self):
-        (username, password) = self._get_login_info()
+        username, password = self._get_login_info()
         # TODO: figure out authentication with cookies
         if username is None or password is None:
             self.raise_login_required()

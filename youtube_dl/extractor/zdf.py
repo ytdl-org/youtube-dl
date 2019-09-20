@@ -15,6 +15,7 @@ from ..utils import (
     try_get,
     unified_timestamp,
     update_url_query,
+    url_or_none,
     urljoin,
 )
 
@@ -40,6 +41,7 @@ class ZDFBaseIE(InfoExtractor):
 class ZDFIE(ZDFBaseIE):
     _VALID_URL = r'https?://www\.zdf\.de/(?:[^/]+/)*(?P<id>[^/?]+)\.html'
     _QUALITIES = ('auto', 'low', 'med', 'high', 'veryhigh')
+    _GEO_COUNTRIES = ['DE']
 
     _TESTS = [{
         'url': 'https://www.zdf.de/dokumentation/terra-x/die-magie-der-farben-von-koenigspurpur-und-jeansblau-100.html',
@@ -67,8 +69,8 @@ class ZDFIE(ZDFBaseIE):
     def _extract_subtitles(src):
         subtitles = {}
         for caption in try_get(src, lambda x: x['captions'], list) or []:
-            subtitle_url = caption.get('uri')
-            if subtitle_url and isinstance(subtitle_url, compat_str):
+            subtitle_url = url_or_none(caption.get('uri'))
+            if subtitle_url:
                 lang = caption.get('language', 'deu')
                 subtitles.setdefault(lang, []).append({
                     'url': subtitle_url,
@@ -76,8 +78,8 @@ class ZDFIE(ZDFBaseIE):
         return subtitles
 
     def _extract_format(self, video_id, formats, format_urls, meta):
-        format_url = meta.get('url')
-        if not format_url or not isinstance(format_url, compat_str):
+        format_url = url_or_none(meta.get('url'))
+        if not format_url:
             return
         if format_url in format_urls:
             return
@@ -152,7 +154,8 @@ class ZDFIE(ZDFBaseIE):
             content, lambda x: x['teaserImageRef']['layouts'], dict)
         if layouts:
             for layout_key, layout_url in layouts.items():
-                if not isinstance(layout_url, compat_str):
+                layout_url = url_or_none(layout_url)
+                if not layout_url:
                     continue
                 thumbnail = {
                     'url': layout_url,

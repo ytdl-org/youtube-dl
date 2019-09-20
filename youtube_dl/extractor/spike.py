@@ -1,55 +1,57 @@
 from __future__ import unicode_literals
 
-import re
-
 from .mtv import MTVServicesInfoExtractor
 
 
-class SpikeIE(MTVServicesInfoExtractor):
-    _VALID_URL = r'https?://(?:[^/]+\.)?spike\.com/[^/]+/[\da-z]{6}(?:[/?#&]|$)'
+class BellatorIE(MTVServicesInfoExtractor):
+    _VALID_URL = r'https?://(?:www\.)?bellator\.com/[^/]+/[\da-z]{6}(?:[/?#&]|$)'
     _TESTS = [{
-        'url': 'http://www.spike.com/video-clips/lhtu8m/auction-hunters-can-allen-ride-a-hundred-year-old-motorcycle',
-        'md5': '1a9265f32b0c375793d6c4ce45255256',
+        'url': 'http://www.bellator.com/fight/atwr7k/bellator-158-michael-page-vs-evangelista-cyborg',
         'info_dict': {
-            'id': 'b9c8221a-4e50-479a-b86d-3333323e38ba',
+            'id': 'b55e434e-fde1-4a98-b7cc-92003a034de4',
             'ext': 'mp4',
-            'title': 'Auction Hunters|December 27, 2013|4|414|Can Allen Ride A Hundred Year-Old Motorcycle?',
-            'description': 'md5:fbed7e82ed5fad493615b3094a9499cb',
-            'timestamp': 1388120400,
-            'upload_date': '20131227',
+            'title': 'Douglas Lima vs. Paul Daley - Round 1',
+            'description': 'md5:805a8dd29310fd611d32baba2f767885',
+        },
+        'params': {
+            # m3u8 download
+            'skip_download': True,
         },
     }, {
-        'url': 'http://www.spike.com/full-episodes/j830qm/lip-sync-battle-joel-mchale-vs-jim-rash-season-2-ep-209',
-        'md5': 'b25c6f16418aefb9ad5a6cae2559321f',
+        'url': 'http://www.bellator.com/video-clips/bw6k7n/bellator-158-foundations-michael-venom-page',
+        'only_matching': True,
+    }]
+
+    _FEED_URL = 'http://www.bellator.com/feeds/mrss/'
+    _GEO_COUNTRIES = ['US']
+
+
+class ParamountNetworkIE(MTVServicesInfoExtractor):
+    _VALID_URL = r'https?://(?:www\.)?paramountnetwork\.com/[^/]+/[\da-z]{6}(?:[/?#&]|$)'
+    _TESTS = [{
+        'url': 'http://www.paramountnetwork.com/episodes/j830qm/lip-sync-battle-joel-mchale-vs-jim-rash-season-2-ep-13',
         'info_dict': {
             'id': '37ace3a8-1df6-48be-85b8-38df8229e241',
             'ext': 'mp4',
             'title': 'Lip Sync Battle|April 28, 2016|2|209|Joel McHale Vs. Jim Rash|Act 1',
             'description': 'md5:a739ca8f978a7802f67f8016d27ce114',
         },
-    }, {
-        'url': 'http://www.spike.com/video-clips/lhtu8m/',
-        'only_matching': True,
-    }, {
-        'url': 'http://www.spike.com/video-clips/lhtu8m',
-        'only_matching': True,
-    }, {
-        'url': 'http://bellator.spike.com/fight/atwr7k/bellator-158-michael-page-vs-evangelista-cyborg',
-        'only_matching': True,
-    }, {
-        'url': 'http://bellator.spike.com/video-clips/bw6k7n/bellator-158-foundations-michael-venom-page',
-        'only_matching': True,
+        'params': {
+            # m3u8 download
+            'skip_download': True,
+        },
     }]
 
-    _FEED_URL = 'http://www.spike.com/feeds/mrss/'
-    _MOBILE_TEMPLATE = 'http://m.spike.com/videos/video.rbml?id=%s'
-    _CUSTOM_URL_REGEX = re.compile(r'spikenetworkapp://([^/]+/[-a-fA-F0-9]+)')
+    _FEED_URL = 'http://www.paramountnetwork.com/feeds/mrss/'
     _GEO_COUNTRIES = ['US']
 
     def _extract_mgid(self, webpage):
-        mgid = super(SpikeIE, self)._extract_mgid(webpage)
-        if mgid is None:
-            url_parts = self._search_regex(self._CUSTOM_URL_REGEX, webpage, 'episode_id')
-            video_type, episode_id = url_parts.split('/', 1)
-            mgid = 'mgid:arc:{0}:spike.com:{1}'.format(video_type, episode_id)
-        return mgid
+        root_data = self._parse_json(self._search_regex(
+            r'window\.__DATA__\s*=\s*({.+})',
+            webpage, 'data'), None)
+
+        def find_sub_data(data, data_type):
+            return next(c for c in data['children'] if c.get('type') == data_type)
+
+        c = find_sub_data(find_sub_data(root_data, 'MainContainer'), 'VideoPlayer')
+        return c['props']['media']['video']['config']['uri']

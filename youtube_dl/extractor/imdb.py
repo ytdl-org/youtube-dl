@@ -4,24 +4,26 @@ import re
 
 from .common import InfoExtractor
 from ..utils import (
+    determine_ext,
     mimetype2ext,
+    parse_duration,
     qualities,
-    remove_end,
+    url_or_none,
 )
 
 
 class ImdbIE(InfoExtractor):
     IE_NAME = 'imdb'
     IE_DESC = 'Internet Movie Database trailers'
-    _VALID_URL = r'https?://(?:www|m)\.imdb\.com/(?:video|title).+?[/-]vi(?P<id>\d+)'
+    _VALID_URL = r'https?://(?:www|m)\.imdb\.com/(?:video|title|list).+?[/-]vi(?P<id>\d+)'
 
     _TESTS = [{
         'url': 'http://www.imdb.com/video/imdb/vi2524815897',
         'info_dict': {
             'id': '2524815897',
             'ext': 'mp4',
-            'title': 'Ice Age: Continental Drift Trailer (No. 2)',
-            'description': 'md5:9061c2219254e5d14e03c25c98e96a81',
+            'title': 'No. 2 from Ice Age: Continental Drift (2012)',
+            'description': 'md5:87bd0bdc61e351f21f20d2d7441cb4e7',
         }
     }, {
         'url': 'http://www.imdb.com/video/_/vi2524815897',
@@ -38,76 +40,68 @@ class ImdbIE(InfoExtractor):
     }, {
         'url': 'http://www.imdb.com/title/tt4218696/videoplayer/vi2608641561',
         'only_matching': True,
+    }, {
+        'url': 'https://www.imdb.com/list/ls009921623/videoplayer/vi260482329',
+        'only_matching': True,
     }]
 
     def _real_extract(self, url):
         video_id = self._match_id(url)
-        webpage = self._download_webpage('http://www.imdb.com/video/imdb/vi%s' % video_id, video_id)
-        descr = self._html_search_regex(
-            r'(?s)<span itemprop="description">(.*?)</span>',
-            webpage, 'description', fatal=False)
-        player_url = 'http://www.imdb.com/video/imdb/vi%s/imdb/single' % video_id
-        player_page = self._download_webpage(
-            player_url, video_id, 'Downloading player page')
-        # the player page contains the info for the default format, we have to
-        # fetch other pages for the rest of the formats
-        extra_formats = re.findall(r'href="(?P<url>%s.*?)".*?>(?P<name>.*?)<' % re.escape(player_url), player_page)
-        format_pages = [
-            self._download_webpage(
-                f_url, video_id, 'Downloading info for %s format' % f_name)
-            for f_url, f_name in extra_formats]
-        format_pages.append(player_page)
+        webpage = self._download_webpage(
+            'https://www.imdb.com/videoplayer/vi' + video_id, video_id)
+        video_metadata = self._parse_json(self._search_regex(
+            r'window\.IMDbReactInitialState\.push\(({.+?})\);', webpage,
+            'video metadata'), video_id)['videos']['videoMetadata']['vi' + video_id]
+        title = self._html_search_meta(
+            ['og:title', 'twitter:title'], webpage) or self._html_search_regex(
+            r'<title>(.+?)</title>', webpage, 'title', fatal=False) or video_metadata['title']
 
         quality = qualities(('SD', '480p', '720p', '1080p'))
         formats = []
-        for format_page in format_pages:
-            json_data = self._search_regex(
-                r'<script[^>]+class="imdb-player-data"[^>]*?>(.*?)</script>',
-                format_page, 'json data', flags=re.DOTALL)
-            info = self._parse_json(json_data, video_id, fatal=False)
-            if not info:
+        for encoding in video_metadata.get('encodings', []):
+            if not encoding or not isinstance(encoding, dict):
                 continue
-            format_info = info.get('videoPlayerObject', {}).get('video', {})
-            if not format_info:
-                continue
-            video_info_list = format_info.get('videoInfoList')
-            if not video_info_list or not isinstance(video_info_list, list):
-                continue
-            video_info = video_info_list[0]
-            if not video_info or not isinstance(video_info, dict):
-                continue
-            video_url = video_info.get('videoUrl')
+            video_url = url_or_none(encoding.get('videoUrl'))
             if not video_url:
                 continue
-            format_id = format_info.get('ffname')
+            ext = mimetype2ext(encoding.get(
+                'mimeType')) or determine_ext(video_url)
+            if ext == 'm3u8':
+                formats.extend(self._extract_m3u8_formats(
+                    video_url, video_id, 'mp4', entry_protocol='m3u8_native',
+                    m3u8_id='hls', fatal=False))
+                continue
+            format_id = encoding.get('definition')
             formats.append({
                 'format_id': format_id,
                 'url': video_url,
-                'ext': mimetype2ext(video_info.get('videoMimeType')),
+                'ext': ext,
                 'quality': quality(format_id),
             })
         self._sort_formats(formats)
 
         return {
             'id': video_id,
-            'title': remove_end(self._og_search_title(webpage), ' - IMDb'),
+            'title': title,
             'formats': formats,
-            'description': descr,
-            'thumbnail': format_info.get('slate'),
+            'description': video_metadata.get('description'),
+            'thumbnail': video_metadata.get('slate', {}).get('url'),
+            'duration': parse_duration(video_metadata.get('duration')),
         }
 
 
 class ImdbListIE(InfoExtractor):
     IE_NAME = 'imdb:list'
     IE_DESC = 'Internet Movie Database lists'
-    _VALID_URL = r'https?://(?:www\.)?imdb\.com/list/(?P<id>[\da-zA-Z_-]{11})'
+    _VALID_URL = r'https?://(?:www\.)?imdb\.com/list/ls(?P<id>\d{9})(?!/videoplayer/vi\d+)'
     _TEST = {
-        'url': 'http://www.imdb.com/list/JFs9NWw6XI0',
+        'url': 'https://www.imdb.com/list/ls009921623/',
         'info_dict': {
-            'id': 'JFs9NWw6XI0',
-            'title': 'March 23, 2012 Releases',
+            'id': '009921623',
+            'title': 'The Bourne Legacy',
+            'description': 'A list of trailers, clips, and more from The Bourne Legacy, starring Jeremy Renner and Rachel Weisz.',
         },
-        'playlist_count': 7,
+        'playlist_count': 8,
     }
 
     def _real_extract(self, url):
@@ -115,9 +109,13 @@ class ImdbListIE(InfoExtractor):
         webpage = self._download_webpage(url, list_id)
         entries = [
             self.url_result('http://www.imdb.com' + m, 'Imdb')
-            for m in re.findall(r'href="(/video/imdb/vi[^"]+)"\s+data-type="playlist"', webpage)]
+            for m in re.findall(r'href="(/list/ls%s/videoplayer/vi[^"]+)"' % list_id, webpage)]
 
         list_title = self._html_search_regex(
-            r'<h1 class="header">(.*?)</h1>', webpage, 'list title')
+            r'<h1[^>]+class="[^"]*header[^"]*"[^>]*>(.*?)</h1>',
+            webpage, 'list title')
+        list_description = self._html_search_regex(
+            r'<div[^>]+class="[^"]*list-description[^"]*"[^>]*><p>(.*?)</p>',
+            webpage, 'list description')
 
-        return self.playlist_result(entries, list_id, list_title)
+        return self.playlist_result(entries, list_id, list_title, list_description)

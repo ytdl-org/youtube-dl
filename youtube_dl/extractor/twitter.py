@@ -63,7 +63,7 @@ class TwitterCardIE(TwitterBaseIE):
                 'id': '623160978427936768',
                 'ext': 'mp4',
                 'title': 'Twitter web player',
-                'thumbnail': r're:^https?://.*(?:\bformat=|\.)jpg',
+                'thumbnail': r're:^https?://.*$',
             },
         },
         {
@@ -108,6 +108,8 @@ class TwitterCardIE(TwitterBaseIE):
         },
     ]
 
+    _API_BASE = 'https://api.twitter.com/1.1'
+
     def _parse_media_info(self, media_info, video_id):
         formats = []
         for media_variant in media_info.get('variants', []):
@@ -149,7 +151,7 @@ class TwitterCardIE(TwitterBaseIE):
             main_script, 'bearer token')
         # https://developer.twitter.com/en/docs/tweets/post-and-engage/api-reference/get-statuses-show-id
         api_data = self._download_json(
-            'https://api.twitter.com/1.1/statuses/show/%s.json' % video_id,
+            '%s/statuses/show/%s.json' % (self._API_BASE, video_id),
             video_id, 'Downloading API data',
             headers={
                 'Authorization': 'Bearer ' + bearer_token,
@@ -169,7 +171,8 @@ class TwitterCardIE(TwitterBaseIE):
             urls.append('https://twitter.com/i/videos/' + video_id)
 
         for u in urls:
-            webpage = self._download_webpage(u, video_id)
+            webpage = self._download_webpage(
+                u, video_id, headers={'Referer': 'https://twitter.com/'})
 
             iframe_url = self._html_search_regex(
                 r'<iframe[^>]+src="((?:https?:)?//(?:www\.youtube\.com/embed/[^"]+|(?:www\.)?vine\.co/v/\w+/card))"',
@@ -223,14 +226,48 @@ class TwitterCardIE(TwitterBaseIE):
                 formats.extend(self._extract_mobile_formats(username, video_id))
 
             if formats:
+                title = self._search_regex(r'<title>([^<]+)</title>', webpage, 'title')
+                thumbnail = config.get('posterImageUrl') or config.get('image_src')
+                duration = float_or_none(config.get('duration'), scale=1000) or duration
                 break
+
+        if not formats:
+            headers = {
+                'Authorization': 'Bearer AAAAAAAAAAAAAAAAAAAAAPYXBAAAAAAACLXUNDekMxqa8h%2F40K4moUkGsoc%3DTYfbDKbT3jJPCEVnMYqilB28NHfOPqkca3qaAxGfsyKCs0wRbw',
+                'Referer': url,
+            }
+            ct0 = self._get_cookies(url).get('ct0')
+            if ct0:
+                headers['csrf_token'] = ct0.value
+            guest_token = self._download_json(
+                '%s/guest/activate.json' % self._API_BASE, video_id,
+                'Downloading guest token', data=b'',
+                headers=headers)['guest_token']
+            headers['x-guest-token'] = guest_token
+            self._set_cookie('api.twitter.com', 'gt', guest_token)
+            config = self._download_json(
+                '%s/videos/tweet/config/%s.json' % (self._API_BASE, video_id),
+                video_id, headers=headers)
+            track = config['track']
+            vmap_url = track.get('vmapUrl')
+            if vmap_url:
+                formats = self._extract_formats_from_vmap_url(vmap_url, video_id)
+            else:
+                playback_url = track['playbackUrl']
+                if determine_ext(playback_url) == 'm3u8':
+                    formats = self._extract_m3u8_formats(
+                        playback_url, video_id, 'mp4',
+                        entry_protocol='m3u8_native', m3u8_id='hls')
+                else:
+                    formats = [{
+                        'url': playback_url,
+                    }]
+            title = 'Twitter web player'
+            thumbnail = config.get('posterImage')
+            duration = float_or_none(track.get('durationMs'), scale=1000)
 
         self._remove_duplicate_formats(formats)
         self._sort_formats(formats)
-
-        title = self._search_regex(r'<title>([^<]+)</title>', webpage, 'title')
-        thumbnail = config.get('posterImageUrl') or config.get('image_src')
-        duration = float_or_none(config.get('duration'), scale=1000) or duration
 
         return {
             'id': video_id,
@@ -375,11 +412,38 @@ class TwitterIE(InfoExtractor):
         'params': {
             'skip_download': True,  # requires ffmpeg
         },
+    }, {
+        # card via api.twitter.com/1.1/videos/tweet/config
+        'url': 'https://twitter.com/LisPower1/status/1001551623938805763',
+        'info_dict': {
+            'id': '1001551623938805763',
+            'ext': 'mp4',
+            'title': 're:.*?Shep is on a roll today.*?',
+            'thumbnail': r're:^https?://.*\.jpg',
+            'description': 'md5:63b036c228772523ae1924d5f8e5ed6b',
+            'uploader': 'Lis Power',
+            'uploader_id': 'LisPower1',
+            'duration': 111.278,
+        },
+        'params': {
+            'skip_download': True,  # requires ffmpeg
+        },
+    }, {
+        'url': 'https://twitter.com/foobar/status/1087791357756956680',
+        'info_dict': {
+            'id': '1087791357756956680',
+            'ext': 'mp4',
+            'title': 'Twitter - A new is coming.  Some of you got an opt-in to try it now. Check out the emoji button, quick keyboard shortcuts, upgraded trends, advanced search, and more. Let us know your thoughts!',
+            'thumbnail': r're:^https?://.*\.jpg',
+            'description': 'md5:66d493500c013e3e2d434195746a7f78',
+            'uploader': 'Twitter',
+            'uploader_id': 'Twitter',
+            'duration': 61.567,
+        },
     }]
 
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
-        user_id = mobj.group('user_id')
         twid = mobj.group('id')
 
         webpage, urlh = self._download_webpage_handle(
@@ -388,8 +452,13 @@ class TwitterIE(InfoExtractor):
         if 'twitter.com/account/suspended' in urlh.geturl():
             raise ExtractorError('Account suspended by Twitter.', expected=True)
 
-        if user_id is None:
-            mobj = re.match(self._VALID_URL, urlh.geturl())
+        user_id = None
+
+        redirect_mobj = re.match(self._VALID_URL, urlh.geturl())
+        if redirect_mobj:
+            user_id = redirect_mobj.group('user_id')
+
+        if not user_id:
             user_id = mobj.group('user_id')
 
         username = remove_end(self._og_search_title(webpage), ' on Twitter')

@@ -1,7 +1,7 @@
 all: youtube-dl README.md CONTRIBUTING.md README.txt youtube-dl.1 youtube-dl.bash-completion youtube-dl.zsh youtube-dl.fish supportedsites
 
 clean:
-	rm -rf youtube-dl.1.temp.md youtube-dl.1 youtube-dl.bash-completion README.txt MANIFEST build/ dist/ .coverage cover/ youtube-dl.tar.gz youtube-dl.zsh youtube-dl.fish youtube_dl/extractor/lazy_extractors.py *.dump *.part* *.ytdl *.info.json *.mp4 *.m4a *.flv *.mp3 *.avi *.mkv *.webm *.3gp *.wav *.ape *.swf *.jpg *.png CONTRIBUTING.md.tmp ISSUE_TEMPLATE.md.tmp youtube-dl youtube-dl.exe
+	rm -rf youtube-dl.1.temp.md youtube-dl.1 youtube-dl.bash-completion README.txt MANIFEST build/ dist/ .coverage cover/ youtube-dl.tar.gz youtube-dl.zsh youtube-dl.fish youtube_dl/extractor/lazy_extractors.py *.dump *.part* *.ytdl *.info.json *.mp4 *.m4a *.flv *.mp3 *.avi *.mkv *.webm *.3gp *.wav *.ape *.swf *.jpg *.png CONTRIBUTING.md.tmp youtube-dl youtube-dl.exe
 	find . -name "*.pyc" -delete
 	find . -name "*.class" -delete
 
@@ -13,6 +13,9 @@ PYTHON ?= /usr/bin/env python
 
 # set SYSCONFDIR to /etc if PREFIX=/usr or PREFIX=/usr/local
 SYSCONFDIR = $(shell if [ $(PREFIX) = /usr -o $(PREFIX) = /usr/local ]; then echo /etc; else echo $(PREFIX)/etc; fi)
+
+# set markdown input format to "markdown-smart" for pandoc version 2 and to "markdown" for pandoc prior to version 2
+MARKDOWN = $(shell if [ `pandoc -v | head -n1 | cut -d" " -f2 | head -c1` = "2" ]; then echo markdown-smart; else echo markdown; fi)
 
 install: youtube-dl youtube-dl.1 youtube-dl.bash-completion youtube-dl.zsh youtube-dl.fish
 	install -d $(DESTDIR)$(BINDIR)
@@ -75,18 +78,22 @@ README.md: youtube_dl/*.py youtube_dl/*/*.py
 CONTRIBUTING.md: README.md
 	$(PYTHON) devscripts/make_contributing.py README.md CONTRIBUTING.md
 
-.github/ISSUE_TEMPLATE.md: devscripts/make_issue_template.py .github/ISSUE_TEMPLATE_tmpl.md  youtube_dl/version.py
-	$(PYTHON) devscripts/make_issue_template.py .github/ISSUE_TEMPLATE_tmpl.md .github/ISSUE_TEMPLATE.md
+issuetemplates: devscripts/make_issue_template.py .github/ISSUE_TEMPLATE_tmpl/1_broken_site.md .github/ISSUE_TEMPLATE_tmpl/2_site_support_request.md .github/ISSUE_TEMPLATE_tmpl/3_site_feature_request.md .github/ISSUE_TEMPLATE_tmpl/4_bug_report.md .github/ISSUE_TEMPLATE_tmpl/5_feature_request.md youtube_dl/version.py
+	$(PYTHON) devscripts/make_issue_template.py .github/ISSUE_TEMPLATE_tmpl/1_broken_site.md .github/ISSUE_TEMPLATE/1_broken_site.md
+	$(PYTHON) devscripts/make_issue_template.py .github/ISSUE_TEMPLATE_tmpl/2_site_support_request.md .github/ISSUE_TEMPLATE/2_site_support_request.md
+	$(PYTHON) devscripts/make_issue_template.py .github/ISSUE_TEMPLATE_tmpl/3_site_feature_request.md .github/ISSUE_TEMPLATE/3_site_feature_request.md
+	$(PYTHON) devscripts/make_issue_template.py .github/ISSUE_TEMPLATE_tmpl/4_bug_report.md .github/ISSUE_TEMPLATE/4_bug_report.md
+	$(PYTHON) devscripts/make_issue_template.py .github/ISSUE_TEMPLATE_tmpl/5_feature_request.md .github/ISSUE_TEMPLATE/5_feature_request.md
 
 supportedsites:
 	$(PYTHON) devscripts/make_supportedsites.py docs/supportedsites.md
 
 README.txt: README.md
-	pandoc -f markdown -t plain README.md -o README.txt
+	pandoc -f $(MARKDOWN) -t plain README.md -o README.txt
 
 youtube-dl.1: README.md
 	$(PYTHON) devscripts/prepare_manpage.py youtube-dl.1.temp.md
-	pandoc -s -f markdown -t man youtube-dl.1.temp.md -o youtube-dl.1
+	pandoc -s -f $(MARKDOWN) -t man youtube-dl.1.temp.md -o youtube-dl.1
 	rm -f youtube-dl.1.temp.md
 
 youtube-dl.bash-completion: youtube_dl/*.py youtube_dl/*/*.py devscripts/bash-completion.in

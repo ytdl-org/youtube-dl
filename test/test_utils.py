@@ -33,15 +33,18 @@ from youtube_dl.utils import (
     ExtractorError,
     find_xpath_attr,
     fix_xml_ampersands,
+    float_or_none,
     get_element_by_class,
     get_element_by_attribute,
     get_elements_by_class,
     get_elements_by_attribute,
     InAdvancePagedList,
+    int_or_none,
     intlist_to_bytes,
     is_html,
     js_to_json,
     limit_length,
+    merge_dicts,
     mimetype2ext,
     month_by_name,
     multipart_encode,
@@ -54,6 +57,7 @@ from youtube_dl.utils import (
     parse_count,
     parse_iso8601,
     parse_resolution,
+    parse_bitrate,
     pkcs1pad,
     read_batch_urls,
     sanitize_filename,
@@ -69,6 +73,7 @@ from youtube_dl.utils import (
     smuggle_url,
     str_to_int,
     strip_jsonp,
+    strip_or_none,
     timeconvert,
     unescapeHTML,
     unified_strdate,
@@ -77,6 +82,7 @@ from youtube_dl.utils import (
     uppercase_escape,
     lowercase_escape,
     url_basename,
+    url_or_none,
     base_url,
     urljoin,
     urlencode_postdata,
@@ -178,7 +184,7 @@ class TestUtil(unittest.TestCase):
 
         self.assertEqual(sanitize_filename(
             'ÂÃÄÀÁÅÆÇÈÉÊËÌÍÎÏÐÑÒÓÔÕÖŐØŒÙÚÛÜŰÝÞßàáâãäåæçèéêëìíîïðñòóôõöőøœùúûüűýþÿ', restricted=True),
-            'AAAAAAAECEEEEIIIIDNOOOOOOOOEUUUUUYPssaaaaaaaeceeeeiiiionooooooooeuuuuuypy')
+            'AAAAAAAECEEEEIIIIDNOOOOOOOOEUUUUUYTHssaaaaaaaeceeeeiiiionooooooooeuuuuuythy')
 
     def test_sanitize_ids(self):
         self.assertEqual(sanitize_filename('_n_cd26wFpw', is_id=True), '_n_cd26wFpw')
@@ -360,6 +366,7 @@ class TestUtil(unittest.TestCase):
         self.assertEqual(determine_ext('http://example.com/foo/bar.nonext/?download', None), None)
         self.assertEqual(determine_ext('http://example.com/foo/bar/mp4?download', None), None)
         self.assertEqual(determine_ext('http://example.com/foo/bar.m3u8//?download'), 'm3u8')
+        self.assertEqual(determine_ext('foobar', None), None)
 
     def test_find_xpath_attr(self):
         testxml = '''<root>
@@ -464,6 +471,21 @@ class TestUtil(unittest.TestCase):
             shell_quote(args),
             """ffmpeg -i 'ñ€ß'"'"'.mp4'""" if compat_os_name != 'nt' else '''ffmpeg -i "ñ€ß'.mp4"''')
 
+    def test_float_or_none(self):
+        self.assertEqual(float_or_none('42.42'), 42.42)
+        self.assertEqual(float_or_none('42'), 42.0)
+        self.assertEqual(float_or_none(''), None)
+        self.assertEqual(float_or_none(None), None)
+        self.assertEqual(float_or_none([]), None)
+        self.assertEqual(float_or_none(set()), None)
+
+    def test_int_or_none(self):
+        self.assertEqual(int_or_none('42'), 42)
+        self.assertEqual(int_or_none(''), None)
+        self.assertEqual(int_or_none(None), None)
+        self.assertEqual(int_or_none([]), None)
+        self.assertEqual(int_or_none(set()), None)
+
     def test_str_to_int(self):
         self.assertEqual(str_to_int('123,456'), 123456)
         self.assertEqual(str_to_int('123.456'), 123456)
@@ -504,6 +526,18 @@ class TestUtil(unittest.TestCase):
         self.assertEqual(urljoin('http://foo.de/', ''), None)
         self.assertEqual(urljoin('http://foo.de/', ['foobar']), None)
         self.assertEqual(urljoin('http://foo.de/a/b/c.txt', '.././../d.txt'), 'http://foo.de/d.txt')
+        self.assertEqual(urljoin('http://foo.de/a/b/c.txt', 'rtmp://foo.de'), 'rtmp://foo.de')
+        self.assertEqual(urljoin(None, 'rtmp://foo.de'), 'rtmp://foo.de')
+
+    def test_url_or_none(self):
+        self.assertEqual(url_or_none(None), None)
+        self.assertEqual(url_or_none(''), None)
+        self.assertEqual(url_or_none('foo'), None)
+        self.assertEqual(url_or_none('http://foo.de'), 'http://foo.de')
+        self.assertEqual(url_or_none('https://foo.de'), 'https://foo.de')
+        self.assertEqual(url_or_none('http$://foo.de'), None)
+        self.assertEqual(url_or_none('http://foo.de'), 'http://foo.de')
+        self.assertEqual(url_or_none('//foo.de'), '//foo.de')
 
     def test_parse_age_limit(self):
         self.assertEqual(parse_age_limit(None), None)
@@ -518,6 +552,8 @@ class TestUtil(unittest.TestCase):
         self.assertEqual(parse_age_limit('PG-13'), 13)
         self.assertEqual(parse_age_limit('TV-14'), 14)
         self.assertEqual(parse_age_limit('TV-MA'), 17)
+        self.assertEqual(parse_age_limit('TV14'), 14)
+        self.assertEqual(parse_age_limit('TV_G'), 0)
 
     def test_parse_duration(self):
         self.assertEqual(parse_duration(None), None)
@@ -669,6 +705,17 @@ class TestUtil(unittest.TestCase):
             self.assertEqual(dict_get(d, ('b', 'c', key, )), None)
             self.assertEqual(dict_get(d, ('b', 'c', key, ), skip_false_values=False), false_value)
 
+    def test_merge_dicts(self):
+        self.assertEqual(merge_dicts({'a': 1}, {'b': 2}), {'a': 1, 'b': 2})
+        self.assertEqual(merge_dicts({'a': 1}, {'a': 2}), {'a': 1})
+        self.assertEqual(merge_dicts({'a': 1}, {'a': None}), {'a': 1})
+        self.assertEqual(merge_dicts({'a': 1}, {'a': ''}), {'a': 1})
+        self.assertEqual(merge_dicts({'a': 1}, {}), {'a': 1})
+        self.assertEqual(merge_dicts({'a': None}, {'a': 1}), {'a': 1})
+        self.assertEqual(merge_dicts({'a': ''}, {'a': 1}), {'a': ''})
+        self.assertEqual(merge_dicts({'a': ''}, {'a': 'abc'}), {'a': 'abc'})
+        self.assertEqual(merge_dicts({'a': None}, {'a': ''}, {'a': 'abc'}), {'a': 'abc'})
+
     def test_encode_compat_str(self):
         self.assertEqual(encode_compat_str(b'\xd1\x82\xd0\xb5\xd1\x81\xd1\x82', 'utf-8'), 'тест')
         self.assertEqual(encode_compat_str('тест', 'utf-8'), 'тест')
@@ -701,6 +748,22 @@ class TestUtil(unittest.TestCase):
         stripped = strip_jsonp('window.cb && cb({"status": "success"});')
         d = json.loads(stripped)
         self.assertEqual(d, {'status': 'success'})
+
+        stripped = strip_jsonp('({"status": "success"});')
+        d = json.loads(stripped)
+        self.assertEqual(d, {'status': 'success'})
+
+    def test_strip_or_none(self):
+        self.assertEqual(strip_or_none(' abc'), 'abc')
+        self.assertEqual(strip_or_none('abc '), 'abc')
+        self.assertEqual(strip_or_none(' abc '), 'abc')
+        self.assertEqual(strip_or_none('\tabc\t'), 'abc')
+        self.assertEqual(strip_or_none('\n\tabc\n\t'), 'abc')
+        self.assertEqual(strip_or_none('abc'), 'abc')
+        self.assertEqual(strip_or_none(''), '')
+        self.assertEqual(strip_or_none(None), None)
+        self.assertEqual(strip_or_none(42), None)
+        self.assertEqual(strip_or_none([]), None)
 
     def test_uppercase_escape(self):
         self.assertEqual(uppercase_escape('aä'), 'aä')
@@ -755,6 +818,19 @@ class TestUtil(unittest.TestCase):
             'vcodec': 'h264',
             'acodec': 'aac',
         })
+        self.assertEqual(parse_codecs('av01.0.05M.08'), {
+            'vcodec': 'av01.0.05M.08',
+            'acodec': 'none',
+        })
+        self.assertEqual(parse_codecs('theora, vorbis'), {
+            'vcodec': 'theora',
+            'acodec': 'vorbis',
+        })
+        self.assertEqual(parse_codecs('unknownvcodec, unknownacodec'), {
+            'vcodec': 'unknownvcodec',
+            'acodec': 'unknownacodec',
+        })
+        self.assertEqual(parse_codecs('unknown'), {})
 
     def test_escape_rfc3986(self):
         reserved = "!*'();:@&=+$,/?#[]"
@@ -994,6 +1070,13 @@ class TestUtil(unittest.TestCase):
         self.assertEqual(parse_resolution('4k'), {'height': 2160})
         self.assertEqual(parse_resolution('8K'), {'height': 4320})
 
+    def test_parse_bitrate(self):
+        self.assertEqual(parse_bitrate(None), None)
+        self.assertEqual(parse_bitrate(''), None)
+        self.assertEqual(parse_bitrate('300kbps'), 300)
+        self.assertEqual(parse_bitrate('1500kbps'), 1500)
+        self.assertEqual(parse_bitrate('300 kbps'), 300)
+
     def test_version_tuple(self):
         self.assertEqual(version_tuple('1'), (1,))
         self.assertEqual(version_tuple('10.23.344'), (10, 23, 344))
@@ -1072,6 +1155,18 @@ ffmpeg version 2.4.4 Copyright (c) 2000-2014 the FFmpeg ...'''), '2.4.4')
         self.assertFalse(match_str(
             'like_count > 100 & dislike_count <? 50 & description',
             {'like_count': 190, 'dislike_count': 10}))
+        self.assertTrue(match_str('is_live', {'is_live': True}))
+        self.assertFalse(match_str('is_live', {'is_live': False}))
+        self.assertFalse(match_str('is_live', {'is_live': None}))
+        self.assertFalse(match_str('is_live', {}))
+        self.assertFalse(match_str('!is_live', {'is_live': True}))
+        self.assertTrue(match_str('!is_live', {'is_live': False}))
+        self.assertTrue(match_str('!is_live', {'is_live': None}))
+        self.assertTrue(match_str('!is_live', {}))
+        self.assertTrue(match_str('title', {'title': 'abc'}))
+        self.assertTrue(match_str('title', {'title': ''}))
+        self.assertFalse(match_str('!title', {'title': 'abc'}))
+        self.assertFalse(match_str('!title', {'title': ''}))
 
     def test_parse_dfxp_time_expr(self):
         self.assertEqual(parse_dfxp_time_expr(None), None)

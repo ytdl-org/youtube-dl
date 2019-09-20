@@ -7,6 +7,7 @@ from ..utils import (
     ExtractorError,
     int_or_none,
     float_or_none,
+    url_or_none,
 )
 
 
@@ -47,7 +48,7 @@ class RedditIE(InfoExtractor):
 
 
 class RedditRIE(InfoExtractor):
-    _VALID_URL = r'(?P<url>https?://(?:www\.)?reddit\.com/r/[^/]+/comments/(?P<id>[^/?#&]+))'
+    _VALID_URL = r'(?P<url>https?://(?:[^/]+\.)?reddit\.com/r/[^/]+/comments/(?P<id>[^/?#&]+))'
     _TESTS = [{
         'url': 'https://www.reddit.com/r/videos/comments/6rrwyj/that_small_heart_attack/',
         'info_dict': {
@@ -75,12 +76,20 @@ class RedditRIE(InfoExtractor):
         'url': 'https://www.reddit.com/r/MadeMeSmile/comments/6t7wi5/wait_for_it/',
         'only_matching': True,
     }, {
+        # imgur @ old reddit
+        'url': 'https://old.reddit.com/r/MadeMeSmile/comments/6t7wi5/wait_for_it/',
+        'only_matching': True,
+    }, {
         # streamable
         'url': 'https://www.reddit.com/r/videos/comments/6t7sg9/comedians_hilarious_joke_about_the_guam_flag/',
         'only_matching': True,
     }, {
         # youtube
         'url': 'https://www.reddit.com/r/videos/comments/6t75wq/southern_man_tries_to_speak_without_an_accent/',
+        'only_matching': True,
+    }, {
+        # reddit video @ nm reddit
+        'url': 'https://nm.reddit.com/r/Cricket/comments/8idvby/lousy_cameraman_finds_himself_in_cairns_line_of/',
         'only_matching': True,
     }]
 
@@ -111,7 +120,7 @@ class RedditRIE(InfoExtractor):
             '_type': 'url_transparent',
             'url': video_url,
             'title': data.get('title'),
-            'thumbnail': data.get('thumbnail'),
+            'thumbnail': url_or_none(data.get('thumbnail')),
             'timestamp': float_or_none(data.get('created_utc')),
             'uploader': data.get('author'),
             'like_count': int_or_none(data.get('ups')),

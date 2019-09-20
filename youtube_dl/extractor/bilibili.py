@@ -93,8 +93,8 @@ class BiliBiliIE(InfoExtractor):
         }]
     }]
 
-    _APP_KEY = '84956560bc028eb7'
-    _BILIBILI_KEY = '94aba54af9065f71de72f5508f1cd42e'
+    _APP_KEY = 'iVGUTjsxvpLeuDCf'
+    _BILIBILI_KEY = 'aHRmhWMLkdeMuILqORnYZocwMBpMEOdt'
 
     def _report_error(self, result):
         if 'message' in result:
@@ -114,7 +114,7 @@ class BiliBiliIE(InfoExtractor):
 
         if 'anime/' not in url:
             cid = self._search_regex(
-                r'cid(?:["\']:|=)(\d+)', webpage, 'cid',
+                r'\bcid(?:["\']:|=)(\d+)', webpage, 'cid',
                 default=None
             ) or compat_parse_qs(self._search_regex(
                 [r'EmbedPlayer\([^)]+,\s*"([^"]+)"\)',

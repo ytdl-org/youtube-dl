@@ -108,7 +108,7 @@ class CeskaTelevizeIE(InfoExtractor):
 
         for user_agent in (None, USER_AGENTS['Safari']):
             req = sanitized_Request(
-                'http://www.ceskatelevize.cz/ivysilani/ajax/get-client-playlist',
+                'https://www.ceskatelevize.cz/ivysilani/ajax/get-client-playlist',
                 data=urlencode_postdata(data))
 
             req.add_header('Content-type', 'application/x-www-form-urlencoded')
@@ -155,7 +155,7 @@ class CeskaTelevizeIE(InfoExtractor):
                         stream_formats = self._extract_mpd_formats(
                             stream_url, playlist_id,
                             mpd_id='dash-%s' % format_id, fatal=False)
-                    # See https://github.com/rg3/youtube-dl/issues/12119#issuecomment-280037031
+                    # See https://github.com/ytdl-org/youtube-dl/issues/12119#issuecomment-280037031
                     if format_id == 'audioDescription':
                         for f in stream_formats:
                             f['source_preference'] = -10

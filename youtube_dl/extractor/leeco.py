@@ -130,7 +130,7 @@ class LeIE(InfoExtractor):
             media_id, 'Downloading flash playJson data', query={
                 'id': media_id,
                 'platid': 1,
-                'splatid': 101,
+                'splatid': 105,
                 'format': 1,
                 'source': 1000,
                 'tkey': self.calc_time_key(int(time.time())),
@@ -326,7 +326,7 @@ class LetvCloudIE(InfoExtractor):
             elif play_json.get('code'):
                 raise ExtractorError('Letv cloud returned error %d' % play_json['code'], expected=True)
             else:
-                raise ExtractorError('Letv cloud returned an unknwon error')
+                raise ExtractorError('Letv cloud returned an unknown error')
 
         def b64decode(s):
             return compat_b64decode(s).decode('utf-8')

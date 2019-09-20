@@ -17,9 +17,11 @@ from ..utils import (
     xpath_element,
     xpath_with_ns,
     find_xpath_attr,
+    orderedSet,
     parse_duration,
     parse_iso8601,
     parse_age_limit,
+    strip_or_none,
     int_or_none,
     ExtractorError,
 )
@@ -129,15 +131,23 @@ class CBCIE(InfoExtractor):
     def _real_extract(self, url):
         display_id = self._match_id(url)
         webpage = self._download_webpage(url, display_id)
+        title = self._og_search_title(webpage, default=None) or self._html_search_meta(
+            'twitter:title', webpage, 'title', default=None) or self._html_search_regex(
+                r'<title>([^<]+)</title>', webpage, 'title', fatal=False)
         entries = [
             self._extract_player_init(player_init, display_id)
             for player_init in re.findall(r'CBC\.APP\.Caffeine\.initInstance\(({.+?})\);', webpage)]
+        media_ids = []
+        for media_id_re in (
+                r'<iframe[^>]+src="[^"]+?mediaId=(\d+)"',
+                r'<div[^>]+\bid=["\']player-(\d+)',
+                r'guid["\']\s*:\s*["\'](\d+)'):
+            media_ids.extend(re.findall(media_id_re, webpage))
         entries.extend([
             self.url_result('cbcplayer:%s' % media_id, 'CBCPlayer', media_id)
-            for media_id in re.findall(r'<iframe[^>]+src="[^"]+?mediaId=(\d+)"', webpage)])
+            for media_id in orderedSet(media_ids)])
         return self.playlist_result(
-            entries, display_id,
-            self._og_search_title(webpage, fatal=False),
+            entries, display_id, strip_or_none(title),
             self._og_search_description(webpage))
 
 
@@ -350,7 +360,7 @@ class CBCWatchVideoIE(CBCWatchBaseIE):
 
 class CBCWatchIE(CBCWatchBaseIE):
     IE_NAME = 'cbc.ca:watch'
-    _VALID_URL = r'https?://watch\.cbc\.ca/(?:[^/]+/)+(?P<id>[0-9a-f-]+)'
+    _VALID_URL = r'https?://(?:gem|watch)\.cbc\.ca/(?:[^/]+/)+(?P<id>[0-9a-f-]+)'
     _TESTS = [{
         # geo-restricted to Canada, bypassable
         'url': 'http://watch.cbc.ca/doc-zone/season-6/customer-disservice/38e815a-009e3ab12e4',
@@ -376,6 +386,9 @@ class CBCWatchIE(CBCWatchBaseIE):
             'description': 'Arthur, the sweetest 8-year-old aardvark, and his pals solve all kinds of problems with humour, kindness and teamwork.',
         },
         'playlist_mincount': 30,
+    }, {
+        'url': 'https://gem.cbc.ca/media/this-hour-has-22-minutes/season-26/episode-20/38e815a-0108c6c6a42',
+        'only_matching': True,
     }]
 
     def _real_extract(self, url):

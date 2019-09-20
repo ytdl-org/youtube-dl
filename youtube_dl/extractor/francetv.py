@@ -16,6 +16,7 @@ from ..utils import (
     int_or_none,
     parse_duration,
     try_get,
+    url_or_none,
 )
 from .dailymotion import DailymotionIE
 
@@ -115,14 +116,13 @@ class FranceTVIE(InfoExtractor):
 
         def sign(manifest_url, manifest_id):
             for host in ('hdfauthftv-a.akamaihd.net', 'hdfauth.francetv.fr'):
-                signed_url = self._download_webpage(
+                signed_url = url_or_none(self._download_webpage(
                     'https://%s/esi/TA' % host, video_id,
                     'Downloading signed %s manifest URL' % manifest_id,
                     fatal=False, query={
                         'url': manifest_url,
-                    })
-                if (signed_url and isinstance(signed_url, compat_str) and
-                        re.search(r'^(?:https?:)?//', signed_url)):
+                    }))
+                if signed_url:
                     return signed_url
             return manifest_url
 
@@ -143,7 +143,7 @@ class FranceTVIE(InfoExtractor):
             ext = determine_ext(video_url)
             if ext == 'f4m':
                 if georestricted:
-                    # See https://github.com/rg3/youtube-dl/issues/3963
+                    # See https://github.com/ytdl-org/youtube-dl/issues/3963
                     # m3u8 urls work fine
                     continue
                 formats.extend(self._extract_f4m_formats(
@@ -215,7 +215,7 @@ class FranceTVSiteIE(FranceTVBaseInfoExtractor):
     _TESTS = [{
         'url': 'https://www.france.tv/france-2/13h15-le-dimanche/140921-les-mysteres-de-jesus.html',
         'info_dict': {
-            'id': '162311093',
+            'id': 'ec217ecc-0733-48cf-ac06-af1347b849d1',
             'ext': 'mp4',
             'title': '13h15, le dimanche... - Les mystères de Jésus',
             'description': 'md5:75efe8d4c0a8205e5904498ffe1e1a42',
@@ -271,7 +271,7 @@ class FranceTVSiteIE(FranceTVBaseInfoExtractor):
 
         catalogue = None
         video_id = self._search_regex(
-            r'data-main-video=(["\'])(?P<id>(?:(?!\1).)+)\1',
+            r'(?:data-main-video\s*=|videoId["\']?\s*[:=])\s*(["\'])(?P<id>(?:(?!\1).)+)\1',
             webpage, 'video id', default=None, group='id')
 
         if not video_id:
@@ -371,12 +371,38 @@ class FranceTVInfoIE(FranceTVBaseInfoExtractor):
                 self.url_result(dailymotion_url, DailymotionIE.ie_key())
                 for dailymotion_url in dailymotion_urls])
 
-        video_id, catalogue = self._search_regex(
-            (r'id-video=([^@]+@[^"]+)',
+        video_id = self._search_regex(
+            (r'player\.load[^;]+src:\s*["\']([^"\']+)',
+             r'id-video=([^@]+@[^"]+)',
              r'<a[^>]+href="(?:https?:)?//videos\.francetv\.fr/video/([^@]+@[^"]+)"'),
-            webpage, 'video id').split('@')
+            webpage, 'video id')
 
-        return self._make_url_result(video_id, catalogue)
+        return self._make_url_result(video_id)
+
+
+class FranceTVInfoSportIE(FranceTVBaseInfoExtractor):
+    IE_NAME = 'sport.francetvinfo.fr'
+    _VALID_URL = r'https?://sport\.francetvinfo\.fr/(?:[^/]+/)*(?P<id>[^/?#&]+)'
+    _TESTS = [{
+        'url': 'https://sport.francetvinfo.fr/les-jeux-olympiques/retour-sur-les-meilleurs-moments-de-pyeongchang-2018',
+        'info_dict': {
+            'id': '6e49080e-3f45-11e8-b459-000d3a2439ea',
+            'ext': 'mp4',
+            'title': 'Retour sur les meilleurs moments de Pyeongchang 2018',
+            'timestamp': 1523639962,
+            'upload_date': '20180413',
+        },
+        'params': {
+            'skip_download': True,
+        },
+        'add_ie': [FranceTVIE.ie_key()],
+    }]
+
+    def _real_extract(self, url):
+        display_id = self._match_id(url)
+        webpage = self._download_webpage(url, display_id)
+        video_id = self._search_regex(r'data-video="([^"]+)"', webpage, 'video_id')
+        return self._make_url_result(video_id, 'Sport-web')
 
 
 class GenerationWhatIE(InfoExtractor):

@@ -65,7 +65,7 @@ class NocoIE(InfoExtractor):
         self._login()
 
     def _login(self):
-        (username, password) = self._get_login_info()
+        username, password = self._get_login_info()
         if username is None:
             return
 
@@ -115,7 +115,7 @@ class NocoIE(InfoExtractor):
 
         # Timestamp adjustment offset between server time and local time
         # must be calculated in order to use timestamps closest to server's
-        # in all API requests (see https://github.com/rg3/youtube-dl/issues/7864)
+        # in all API requests (see https://github.com/ytdl-org/youtube-dl/issues/7864)
         webpage = self._download_webpage(url, video_id)
 
         player_url = self._search_regex(

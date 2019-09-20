@@ -10,6 +10,7 @@ from ..utils import (
     js_to_json,
     strip_or_none,
     try_get,
+    unescapeHTML,
     unified_timestamp,
 )
 
@@ -67,11 +68,20 @@ class WatchBoxIE(InfoExtractor):
 
         webpage = self._download_webpage(url, video_id)
 
-        source = self._parse_json(
+        player_config = self._parse_json(
             self._search_regex(
-                r'(?s)source\s*:\s*({.+?})\s*,\s*\n', webpage, 'source',
-                default='{}'),
-            video_id, transform_source=js_to_json, fatal=False) or {}
+                r'data-player-conf=(["\'])(?P<data>{.+?})\1', webpage,
+                'player config', default='{}', group='data'),
+            video_id, transform_source=unescapeHTML, fatal=False)
+
+        if not player_config:
+            player_config = self._parse_json(
+                self._search_regex(
+                    r'playerConf\s*=\s*({.+?})\s*;', webpage, 'player config',
+                    default='{}'),
+                video_id, transform_source=js_to_json, fatal=False) or {}
+
+        source = player_config.get('source') or {}
 
         video_id = compat_str(source.get('videoId') or video_id)
 

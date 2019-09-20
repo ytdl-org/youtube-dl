@@ -4,6 +4,7 @@ from __future__ import unicode_literals
 import re
 
 from .common import InfoExtractor
+from ..compat import compat_str
 from ..utils import (
     ExtractorError,
     determine_ext,
@@ -14,6 +15,7 @@ from ..utils import (
     strip_jsonp,
     strip_or_none,
     unified_strdate,
+    url_or_none,
     US_RATINGS,
 )
 
@@ -303,7 +305,7 @@ class PBSIE(InfoExtractor):
         {
             # Video embedded in iframe containing angle brackets as attribute's value (e.g.
             # "<iframe style='position: absolute;<br />\ntop: 0; left: 0;' ...", see
-            # https://github.com/rg3/youtube-dl/issues/7059)
+            # https://github.com/ytdl-org/youtube-dl/issues/7059)
             'url': 'http://www.pbs.org/food/features/a-chefs-life-season-3-episode-5-prickly-business/',
             'md5': '59b0ef5009f9ac8a319cc5efebcd865e',
             'info_dict': {
@@ -346,7 +348,7 @@ class PBSIE(InfoExtractor):
             },
         },
         {
-            # https://github.com/rg3/youtube-dl/issues/13801
+            # https://github.com/ytdl-org/youtube-dl/issues/13801
             'url': 'https://www.pbs.org/video/pbs-newshour-full-episode-july-31-2017-1501539057/',
             'info_dict': {
                 'id': '3003333873',
@@ -359,6 +361,50 @@ class PBSIE(InfoExtractor):
             'params': {
                 'skip_download': True,
             },
+        },
+        {
+            'url': 'http://www.pbs.org/wgbh/roadshow/watch/episode/2105-indianapolis-hour-2/',
+            'info_dict': {
+                'id': '2365936247',
+                'ext': 'mp4',
+                'title': 'Antiques Roadshow - Indianapolis, Hour 2',
+                'description': 'md5:524b32249db55663e7231b6b8d1671a2',
+                'duration': 3180,
+                'thumbnail': r're:^https?://.*\.jpg$',
+            },
+            'params': {
+                'skip_download': True,
+            },
+            'expected_warnings': ['HTTP Error 403: Forbidden'],
+        },
+        {
+            'url': 'https://www.pbs.org/wgbh/masterpiece/episodes/victoria-s2-e1/',
+            'info_dict': {
+                'id': '3007193718',
+                'ext': 'mp4',
+                'title': "Victoria - A Soldier's Daughter / The Green-Eyed Monster",
+                'description': 'md5:37efbac85e0c09b009586523ec143652',
+                'duration': 6292,
+                'thumbnail': r're:^https?://.*\.(?:jpg|JPG)$',
+            },
+            'params': {
+                'skip_download': True,
+            },
+            'expected_warnings': ['HTTP Error 403: Forbidden'],
+        },
+        {
+            'url': 'https://player.pbs.org/partnerplayer/tOz9tM5ljOXQqIIWke53UA==/',
+            'info_dict': {
+                'id': '3011407934',
+                'ext': 'mp4',
+                'title': 'Stories from the Stage - Road Trip',
+                'duration': 1619,
+                'thumbnail': r're:^https?://.*\.(?:jpg|JPG)$',
+            },
+            'params': {
+                'skip_download': True,
+            },
+            'expected_warnings': ['HTTP Error 403: Forbidden'],
         },
         {
             'url': 'http://player.pbs.org/widget/partnerplayer/2365297708/?start=0&end=0&chapterbar=false&endscreen=false&topbar=true',
@@ -422,6 +468,8 @@ class PBSIE(InfoExtractor):
                 r'<section[^>]+data-coveid="(\d+)"',                    # coveplayer from http://www.pbs.org/wgbh/frontline/film/real-csi/
                 r'<input type="hidden" id="pbs_video_id_[0-9]+" value="([0-9]+)"/>',  # jwplayer
                 r"(?s)window\.PBS\.playerConfig\s*=\s*{.*?id\s*:\s*'([0-9]+)',",
+                r'<div[^>]+\bdata-cove-id=["\'](\d+)"',  # http://www.pbs.org/wgbh/roadshow/watch/episode/2105-indianapolis-hour-2/
+                r'<iframe[^>]+\bsrc=["\'](?:https?:)?//video\.pbs\.org/widget/partnerplayer/(\d+)',  # https://www.pbs.org/wgbh/masterpiece/episodes/victoria-s2-e1/
             ]
 
             media_id = self._search_regex(
@@ -456,7 +504,8 @@ class PBSIE(InfoExtractor):
             if not url:
                 url = self._og_search_url(webpage)
 
-            mobj = re.match(self._VALID_URL, url)
+            mobj = re.match(
+                self._VALID_URL, self._proto_relative_url(url.strip()))
 
         player_id = mobj.group('player_id')
         if not display_id:
@@ -466,12 +515,26 @@ class PBSIE(InfoExtractor):
                 url, display_id, note='Downloading player page',
                 errnote='Could not download player page')
             video_id = self._search_regex(
-                r'<div\s+id="video_([0-9]+)"', player_page, 'video ID')
+                r'<div\s+id=["\']video_(\d+)', player_page, 'video ID',
+                default=None)
+            if not video_id:
+                video_info = self._extract_video_data(
+                    player_page, 'video data', display_id)
+                video_id = compat_str(
+                    video_info.get('id') or video_info['contentID'])
         else:
             video_id = mobj.group('id')
             display_id = video_id
 
         return video_id, display_id, None, description
+
+    def _extract_video_data(self, string, name, video_id, fatal=True):
+        return self._parse_json(
+            self._search_regex(
+                [r'(?s)PBS\.videoData\s*=\s*({.+?});\n',
+                 r'window\.videoBridge\s*=\s*({.+?});'],
+                string, name, default='{}'),
+            video_id, transform_source=js_to_json, fatal=fatal)
 
     def _real_extract(self, url):
         video_id, display_id, upload_date, description = self._extract_webpage(url)
@@ -495,6 +558,13 @@ class PBSIE(InfoExtractor):
                 if redirect_url and redirect_url not in redirect_urls:
                     redirects.append(redirect)
                     redirect_urls.add(redirect_url)
+            encodings = info.get('encodings')
+            if isinstance(encodings, list):
+                for encoding in encodings:
+                    encoding_url = url_or_none(encoding)
+                    if encoding_url and encoding_url not in redirect_urls:
+                        redirects.append({'url': encoding_url})
+                        redirect_urls.add(encoding_url)
 
         chapters = []
         # Player pages may also serve different qualities
@@ -503,20 +573,21 @@ class PBSIE(InfoExtractor):
                 'http://player.pbs.org/%s/%s' % (page, video_id),
                 display_id, 'Downloading %s page' % page, fatal=False)
             if player:
-                video_info = self._parse_json(
-                    self._search_regex(
-                        r'(?s)PBS\.videoData\s*=\s*({.+?});\n',
-                        player, '%s video data' % page, default='{}'),
-                    display_id, transform_source=js_to_json, fatal=False)
+                video_info = self._extract_video_data(
+                    player, '%s video data' % page, display_id, fatal=False)
                 if video_info:
                     extract_redirect_urls(video_info)
                     if not info:
                         info = video_info
                 if not chapters:
-                    for chapter_data in re.findall(r'(?s)chapters\.push\(({.*?})\)', player):
-                        chapter = self._parse_json(chapter_data, video_id, js_to_json, fatal=False)
-                        if not chapter:
-                            continue
+                    raw_chapters = video_info.get('chapters') or []
+                    if not raw_chapters:
+                        for chapter_data in re.findall(r'(?s)chapters\.push\(({.*?})\)', player):
+                            chapter = self._parse_json(chapter_data, video_id, js_to_json, fatal=False)
+                            if not chapter:
+                                continue
+                            raw_chapters.append(chapter)
+                    for chapter in raw_chapters:
                         start_time = float_or_none(chapter.get('start_time'), 1000)
                         duration = float_or_none(chapter.get('duration'), 1000)
                         if start_time is None or duration is None:
@@ -571,7 +642,7 @@ class PBSIE(InfoExtractor):
                 # we won't try extracting them.
                 # Since summer 2016 higher quality formats (4500k and 6500k) are also available
                 # albeit they are not documented in [2].
-                # 1. https://github.com/rg3/youtube-dl/commit/cbc032c8b70a038a69259378c92b4ba97b42d491#commitcomment-17313656
+                # 1. https://github.com/ytdl-org/youtube-dl/commit/cbc032c8b70a038a69259378c92b4ba97b42d491#commitcomment-17313656
                 # 2. https://projects.pbs.org/confluence/display/coveapi/COVE+Video+Specifications
                 if not bitrate or int(bitrate) < 400:
                     continue

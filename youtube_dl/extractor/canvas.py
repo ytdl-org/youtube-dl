@@ -11,12 +11,13 @@ from ..utils import (
     strip_or_none,
     float_or_none,
     int_or_none,
+    merge_dicts,
     parse_iso8601,
 )
 
 
 class CanvasIE(InfoExtractor):
-    _VALID_URL = r'https?://mediazone\.vrt\.be/api/v1/(?P<site_id>canvas|een|ketnet|vrtvideo)/assets/(?P<id>[^/?#&]+)'
+    _VALID_URL = r'https?://mediazone\.vrt\.be/api/v1/(?P<site_id>canvas|een|ketnet|vrt(?:video|nieuws)|sporza)/assets/(?P<id>[^/?#&]+)'
     _TESTS = [{
         'url': 'https://mediazone.vrt.be/api/v1/ketnet/assets/md-ast-4ac54990-ce66-4d00-a8ca-9eac86f4c475',
         'md5': '90139b746a0a9bd7bb631283f6e2a64e',
@@ -34,6 +35,10 @@ class CanvasIE(InfoExtractor):
         'url': 'https://mediazone.vrt.be/api/v1/canvas/assets/mz-ast-5e5f90b6-2d72-4c40-82c2-e134f884e93e',
         'only_matching': True,
     }]
+    _HLS_ENTRY_PROTOCOLS_MAP = {
+        'HLS': 'm3u8_native',
+        'HLS_AES': 'm3u8',
+    }
 
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
@@ -51,9 +56,9 @@ class CanvasIE(InfoExtractor):
             format_url, format_type = target.get('url'), target.get('type')
             if not format_url or not format_type:
                 continue
-            if format_type == 'HLS':
+            if format_type in self._HLS_ENTRY_PROTOCOLS_MAP:
                 formats.extend(self._extract_m3u8_formats(
-                    format_url, video_id, 'mp4', entry_protocol='m3u8_native',
+                    format_url, video_id, 'mp4', self._HLS_ENTRY_PROTOCOLS_MAP[format_type],
                     m3u8_id=format_type, fatal=False))
             elif format_type == 'HDS':
                 formats.extend(self._extract_f4m_formats(
@@ -248,9 +253,13 @@ class VrtNUIE(GigyaBaseIE):
 
         webpage, urlh = self._download_webpage_handle(url, display_id)
 
-        title = self._html_search_regex(
+        info = self._search_json_ld(webpage, display_id, default={})
+
+        # title is optional here since it may be extracted by extractor
+        # that is delegated from here
+        title = strip_or_none(self._html_search_regex(
             r'(?ms)<h1 class="content__heading">(.+?)</h1>',
-            webpage, 'title').strip()
+            webpage, 'title', default=None))
 
         description = self._html_search_regex(
             r'(?ms)<div class="content__description">(.+?)</div>',
@@ -295,7 +304,7 @@ class VrtNUIE(GigyaBaseIE):
         # the first one
         video_id = list(video.values())[0].get('videoid')
 
-        return {
+        return merge_dicts(info, {
             '_type': 'url_transparent',
             'url': 'https://mediazone.vrt.be/api/v1/vrtvideo/assets/%s' % video_id,
             'ie_key': CanvasIE.ie_key(),
@@ -307,4 +316,4 @@ class VrtNUIE(GigyaBaseIE):
             'season_number': season_number,
             'episode_number': episode_number,
             'release_date': release_date,
-        }
+        })

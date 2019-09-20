@@ -5,10 +5,16 @@ import re
 
 from .common import InfoExtractor
 
-from ..compat import compat_str
+from ..compat import (
+    compat_str,
+    compat_urlparse
+)
 from ..utils import (
+    extract_attributes,
+    float_or_none,
     int_or_none,
     try_get,
+    url_or_none,
 )
 
 
@@ -18,7 +24,7 @@ class TEDIE(InfoExtractor):
         (?P<proto>https?://)
         (?P<type>www|embed(?:-ssl)?)(?P<urlmain>\.ted\.com/
         (
-            (?P<type_playlist>playlists(?:/\d+)?) # We have a playlist
+            (?P<type_playlist>playlists(?:/(?P<playlist_id>\d+))?) # We have a playlist
             |
             ((?P<type_talk>talks)) # We have a simple talk
             |
@@ -30,7 +36,7 @@ class TEDIE(InfoExtractor):
         '''
     _TESTS = [{
         'url': 'http://www.ted.com/talks/dan_dennett_on_our_consciousness.html',
-        'md5': '0de43ac406aa3e4ea74b66c9c7789b13',
+        'md5': 'b0ce2b05ca215042124fbc9e3886493a',
         'info_dict': {
             'id': '102',
             'ext': 'mp4',
@@ -42,24 +48,30 @@ class TEDIE(InfoExtractor):
             'uploader': 'Dan Dennett',
             'width': 853,
             'duration': 1308,
-        }
-    }, {
-        'url': 'http://www.ted.com/watch/ted-institute/ted-bcg/vishal-sikka-the-beauty-and-power-of-algorithms',
-        'md5': 'b899ac15e345fb39534d913f7606082b',
-        'info_dict': {
-            'id': 'tSVI8ta_P4w',
-            'ext': 'mp4',
-            'title': 'Vishal Sikka: The beauty and power of algorithms',
-            'thumbnail': r're:^https?://.+\.jpg',
-            'description': 'md5:6261fdfe3e02f4f579cbbfc00aff73f4',
-            'upload_date': '20140122',
-            'uploader_id': 'TEDInstitute',
-            'uploader': 'TED Institute',
+            'view_count': int,
+            'comment_count': int,
+            'tags': list,
         },
-        'add_ie': ['Youtube'],
+        'params': {
+            'skip_download': True,
+        },
+    }, {
+        # missing HTTP bitrates
+        'url': 'https://www.ted.com/talks/vishal_sikka_the_beauty_and_power_of_algorithms',
+        'info_dict': {
+            'id': '6069',
+            'ext': 'mp4',
+            'title': 'The beauty and power of algorithms',
+            'thumbnail': r're:^https?://.+\.jpg',
+            'description': 'md5:734e352710fb00d840ab87ae31aaf688',
+            'uploader': 'Vishal Sikka',
+        },
+        'params': {
+            'skip_download': True,
+        },
     }, {
         'url': 'http://www.ted.com/talks/gabby_giffords_and_mark_kelly_be_passionate_be_courageous_be_your_best',
-        'md5': '71b3ab2f4233012dce09d515c9c39ce2',
+        'md5': 'e6b9617c01a7970ceac8bb2c92c346c0',
         'info_dict': {
             'id': '1972',
             'ext': 'mp4',
@@ -68,11 +80,15 @@ class TEDIE(InfoExtractor):
             'description': 'md5:5174aed4d0f16021b704120360f72b92',
             'duration': 1128,
         },
+        'params': {
+            'skip_download': True,
+        },
     }, {
         'url': 'http://www.ted.com/playlists/who_are_the_hackers',
         'info_dict': {
             'id': '10',
             'title': 'Who are the hackers?',
+            'description': 'md5:49a0dbe8fb76d81a0e64b4a80af7f15a'
         },
         'playlist_mincount': 6,
     }, {
@@ -92,17 +108,17 @@ class TEDIE(InfoExtractor):
             'skip_download': True,
         },
     }, {
-        # YouTube video
-        'url': 'http://www.ted.com/talks/jeffrey_kluger_the_sibling_bond',
-        'add_ie': ['Youtube'],
+        # no nativeDownloads
+        'url': 'https://www.ted.com/talks/tom_thum_the_orchestra_in_my_mouth',
         'info_dict': {
-            'id': 'aFBIPO-P7LM',
+            'id': '1792',
             'ext': 'mp4',
-            'title': 'The hidden power of siblings: Jeff Kluger at TEDxAsheville',
-            'description': 'md5:3d7a4f50d95ca5dd67104e2a20f43fe1',
-            'uploader': 'TEDx Talks',
-            'uploader_id': 'TEDxTalks',
-            'upload_date': '20111216',
+            'title': 'The orchestra in my mouth',
+            'description': 'md5:5d1d78650e2f8dfcbb8ebee2951ac29a',
+            'uploader': 'Tom Thum',
+            'view_count': int,
+            'comment_count': int,
+            'tags': list,
         },
         'params': {
             'skip_download': True,
@@ -117,7 +133,7 @@ class TEDIE(InfoExtractor):
 
     def _extract_info(self, webpage):
         info_json = self._search_regex(
-            r'(?s)q\(\s*"\w+.init"\s*,\s*({.+})\)\s*</script>',
+            r'(?s)q\(\s*"\w+.init"\s*,\s*({.+?})\)\s*</script>',
             webpage, 'info json')
         return json.loads(info_json)
 
@@ -139,49 +155,38 @@ class TEDIE(InfoExtractor):
 
         webpage = self._download_webpage(url, name,
                                          'Downloading playlist webpage')
-        info = self._extract_info(webpage)
 
-        playlist_info = try_get(
-            info, lambda x: x['__INITIAL_DATA__']['playlist'],
-            dict) or info['playlist']
+        playlist_entries = []
+        for entry in re.findall(r'(?s)<[^>]+data-ga-context=["\']playlist["\'][^>]*>', webpage):
+            attrs = extract_attributes(entry)
+            entry_url = compat_urlparse.urljoin(url, attrs['href'])
+            playlist_entries.append(self.url_result(entry_url, self.ie_key()))
 
-        playlist_entries = [
-            self.url_result('http://www.ted.com/talks/' + talk['slug'], self.ie_key())
-            for talk in try_get(
-                info, lambda x: x['__INITIAL_DATA__']['talks'],
-                dict) or info['talks']
-        ]
+        final_url = self._og_search_url(webpage, fatal=False)
+        playlist_id = (
+            re.match(self._VALID_URL, final_url).group('playlist_id')
+            if final_url else None)
+
         return self.playlist_result(
-            playlist_entries,
-            playlist_id=compat_str(playlist_info['id']),
-            playlist_title=playlist_info['title'])
+            playlist_entries, playlist_id=playlist_id,
+            playlist_title=self._og_search_title(webpage, fatal=False),
+            playlist_description=self._og_search_description(webpage))
 
     def _talk_info(self, url, video_name):
         webpage = self._download_webpage(url, video_name)
 
         info = self._extract_info(webpage)
 
-        talk_info = try_get(
-            info, lambda x: x['__INITIAL_DATA__']['talks'][0],
-            dict) or info['talks'][0]
+        data = try_get(info, lambda x: x['__INITIAL_DATA__'], dict) or info
+        talk_info = data['talks'][0]
 
         title = talk_info['title'].strip()
 
-        external = talk_info.get('external')
-        if external:
-            service = external['service']
-            self.to_screen('Found video from %s' % service)
-            ext_url = None
-            if service.lower() == 'youtube':
-                ext_url = external.get('code')
-            return {
-                '_type': 'url',
-                'url': ext_url or external['uri'],
-            }
-
         native_downloads = try_get(
-            talk_info, lambda x: x['downloads']['nativeDownloads'],
-            dict) or talk_info['nativeDownloads']
+            talk_info,
+            (lambda x: x['downloads']['nativeDownloads'],
+             lambda x: x['nativeDownloads']),
+            dict) or {}
 
         formats = [{
             'url': format_url,
@@ -195,6 +200,16 @@ class TEDIE(InfoExtractor):
                     f.update(finfo)
 
         player_talk = talk_info['player_talks'][0]
+
+        external = player_talk.get('external')
+        if isinstance(external, dict):
+            service = external.get('service')
+            if isinstance(service, compat_str):
+                ext_url = None
+                if service.lower() == 'youtube':
+                    ext_url = external.get('code')
+
+                return self.url_result(ext_url or external['uri'])
 
         resources_ = player_talk.get('resources') or talk_info.get('resources')
 
@@ -228,8 +243,14 @@ class TEDIE(InfoExtractor):
                         'tbr': int_or_none(resource.get('bitrate')),
                     })
             elif format_id == 'hls':
+                if not isinstance(resources, dict):
+                    continue
+                stream_url = url_or_none(resources.get('stream'))
+                if not stream_url:
+                    continue
                 formats.extend(self._extract_m3u8_formats(
-                    resources.get('stream'), video_name, 'mp4', m3u8_id=format_id, fatal=False))
+                    stream_url, video_name, 'mp4', m3u8_id=format_id,
+                    fatal=False))
 
         m3u8_formats = list(filter(
             lambda f: f.get('protocol') == 'm3u8' and f.get('vcodec') != 'none',
@@ -239,12 +260,18 @@ class TEDIE(InfoExtractor):
                 bitrate = self._search_regex(r'(\d+k)', m3u8_format['url'], 'bitrate', default=None)
                 if not bitrate:
                     continue
+                bitrate_url = re.sub(r'\d+k', bitrate, http_url)
+                if not self._is_valid_url(
+                        bitrate_url, video_name, '%s bitrate' % bitrate):
+                    continue
                 f = m3u8_format.copy()
                 f.update({
-                    'url': re.sub(r'\d+k', bitrate, http_url),
+                    'url': bitrate_url,
                     'format_id': m3u8_format['format_id'].replace('hls', 'http'),
                     'protocol': 'http',
                 })
+                if f.get('acodec') == 'none':
+                    del f['acodec']
                 formats.append(f)
 
         audio_download = talk_info.get('audioDownload')
@@ -267,7 +294,11 @@ class TEDIE(InfoExtractor):
             'description': self._og_search_description(webpage),
             'subtitles': self._get_subtitles(video_id, talk_info),
             'formats': formats,
-            'duration': talk_info.get('duration'),
+            'duration': float_or_none(talk_info.get('duration')),
+            'view_count': int_or_none(data.get('viewed_count')),
+            'comment_count': int_or_none(
+                try_get(data, lambda x: x['comments']['count'])),
+            'tags': try_get(talk_info, lambda x: x['tags'], list),
         }
 
     def _get_subtitles(self, video_id, talk_info):

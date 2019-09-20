@@ -19,7 +19,7 @@ class RDSIE(InfoExtractor):
         'info_dict': {
             'id': '604333',
             'display_id': 'fowler-jr-prend-la-direction-de-jacksonville',
-            'ext': 'mp4',
+            'ext': 'flv',
             'title': 'Fowler Jr. prend la direction de Jacksonville',
             'description': 'Dante Fowler Jr. est le troisième choix du repêchage 2015 de la NFL. ',
             'timestamp': 1430397346,

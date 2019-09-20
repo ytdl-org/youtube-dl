@@ -4,10 +4,11 @@ from __future__ import unicode_literals
 import itertools
 import re
 import random
+import json
 
 from .common import InfoExtractor
 from ..compat import (
-    compat_HTTPError,
+    compat_kwargs,
     compat_parse_qs,
     compat_str,
     compat_urllib_parse_urlencode,
@@ -16,13 +17,16 @@ from ..compat import (
 from ..utils import (
     clean_html,
     ExtractorError,
+    float_or_none,
     int_or_none,
-    js_to_json,
     orderedSet,
     parse_duration,
     parse_iso8601,
+    qualities,
+    try_get,
+    unified_timestamp,
     update_url_query,
-    urlencode_postdata,
+    url_or_none,
     urljoin,
 )
 
@@ -32,8 +36,9 @@ class TwitchBaseIE(InfoExtractor):
 
     _API_BASE = 'https://api.twitch.tv'
     _USHER_BASE = 'https://usher.ttvnw.net'
-    _LOGIN_URL = 'https://www.twitch.tv/login'
-    _CLIENT_ID = 'jzkbprff40iqj646a697cyrvl0zt2m6'
+    _LOGIN_FORM_URL = 'https://www.twitch.tv/login'
+    _LOGIN_POST_URL = 'https://passport.twitch.tv/login'
+    _CLIENT_ID = 'kimne78kx3ncx6brgo4mv6wki5h1ko'
     _NETRC_MACHINE = 'twitch'
 
     def _handle_error(self, response):
@@ -45,10 +50,13 @@ class TwitchBaseIE(InfoExtractor):
                 '%s returned error: %s - %s' % (self.IE_NAME, error, response.get('message')),
                 expected=True)
 
-    def _call_api(self, path, item_id, note):
+    def _call_api(self, path, item_id, *args, **kwargs):
+        headers = kwargs.get('headers', {}).copy()
+        headers['Client-ID'] = self._CLIENT_ID
+        kwargs['headers'] = headers
         response = self._download_json(
-            '%s/%s' % (self._API_BASE, path), item_id, note,
-            headers={'Client-ID': self._CLIENT_ID})
+            '%s/%s' % (self._API_BASE, path), item_id,
+            *args, **compat_kwargs(kwargs))
         self._handle_error(response)
         return response
 
@@ -56,7 +64,7 @@ class TwitchBaseIE(InfoExtractor):
         self._login()
 
     def _login(self):
-        (username, password) = self._get_login_info()
+        username, password = self._get_login_info()
         if username is None:
             return
 
@@ -71,22 +79,21 @@ class TwitchBaseIE(InfoExtractor):
             page_url = urlh.geturl()
             post_url = self._search_regex(
                 r'<form[^>]+action=(["\'])(?P<url>.+?)\1', page,
-                'post url', default=page_url, group='url')
+                'post url', default=self._LOGIN_POST_URL, group='url')
             post_url = urljoin(page_url, post_url)
 
-            headers = {'Referer': page_url}
+            headers = {
+                'Referer': page_url,
+                'Origin': page_url,
+                'Content-Type': 'text/plain;charset=UTF-8',
+            }
 
-            try:
-                response = self._download_json(
-                    post_url, None, note,
-                    data=urlencode_postdata(form),
-                    headers=headers)
-            except ExtractorError as e:
-                if isinstance(e.cause, compat_HTTPError) and e.cause.code == 400:
-                    response = self._parse_json(
-                        e.cause.read().decode('utf-8'), None)
-                    fail(response.get('message') or response['errors'][0])
-                raise
+            response = self._download_json(
+                post_url, None, note, data=json.dumps(form).encode(),
+                headers=headers, expected_status=400)
+            error = response.get('error_description') or response.get('error_code')
+            if error:
+                fail(error)
 
             if 'Authenticated successfully' in response.get('message', ''):
                 return None, None
@@ -99,7 +106,7 @@ class TwitchBaseIE(InfoExtractor):
                 headers=headers)
 
         login_page, handle = self._download_webpage_handle(
-            self._LOGIN_URL, None, 'Downloading login page')
+            self._LOGIN_FORM_URL, None, 'Downloading login page')
 
         # Some TOR nodes and public proxies are blocked completely
         if 'blacklist_message' in login_page:
@@ -109,6 +116,7 @@ class TwitchBaseIE(InfoExtractor):
             login_page, handle, 'Logging in', {
                 'username': username,
                 'password': password,
+                'client_id': self._CLIENT_ID,
             })
 
         # Successful login
@@ -126,9 +134,14 @@ class TwitchBaseIE(InfoExtractor):
     def _prefer_source(self, formats):
         try:
             source = next(f for f in formats if f['format_id'] == 'Source')
-            source['preference'] = 10
+            source['quality'] = 10
         except StopIteration:
-            pass  # No Source stream present
+            for f in formats:
+                if '/chunked/' in f['url']:
+                    f.update({
+                        'quality': 10,
+                        'format_note': 'Source',
+                    })
         self._sort_formats(formats)
 
 
@@ -168,6 +181,13 @@ class TwitchItemBaseIE(TwitchBaseIE):
         return self.playlist_result(entries, info['id'], info['title'])
 
     def _extract_info(self, info):
+        status = info.get('status')
+        if status == 'recording':
+            is_live = True
+        elif status == 'recorded':
+            is_live = False
+        else:
+            is_live = None
         return {
             'id': info['_id'],
             'title': info.get('title') or 'Untitled Broadcast',
@@ -178,6 +198,7 @@ class TwitchItemBaseIE(TwitchBaseIE):
             'uploader_id': info.get('channel', {}).get('name'),
             'timestamp': parse_iso8601(info.get('recorded_at')),
             'view_count': int_or_none(info.get('views')),
+            'is_live': is_live,
         }
 
     def _real_extract(self, url):
@@ -226,7 +247,7 @@ class TwitchVodIE(TwitchItemBaseIE):
     _VALID_URL = r'''(?x)
                     https?://
                         (?:
-                            (?:(?:www|go|m)\.)?twitch\.tv/(?:[^/]+/v|videos)/|
+                            (?:(?:www|go|m)\.)?twitch\.tv/(?:[^/]+/v(?:ideo)?|videos)/|
                             player\.twitch\.tv/\?.*?\bvideo=v
                         )
                         (?P<id>\d+)
@@ -282,6 +303,9 @@ class TwitchVodIE(TwitchItemBaseIE):
     }, {
         'url': 'https://m.twitch.tv/beagsandjam/v/247478721',
         'only_matching': True,
+    }, {
+        'url': 'https://www.twitch.tv/northernlion/video/291940395',
+        'only_matching': True,
     }]
 
     def _real_extract(self, url):
@@ -293,7 +317,7 @@ class TwitchVodIE(TwitchItemBaseIE):
             'Downloading %s access token' % self._ITEM_TYPE)
 
         formats = self._extract_m3u8_formats(
-            '%s/vod/%s?%s' % (
+            '%s/vod/%s.m3u8?%s' % (
                 self._USHER_BASE, item_id,
                 compat_urllib_parse_urlencode({
                     'allow_source': 'true',
@@ -542,7 +566,8 @@ class TwitchStreamIE(TwitchBaseIE):
                     TwitchAllVideosIE,
                     TwitchUploadsIE,
                     TwitchPastBroadcastsIE,
-                    TwitchHighlightsIE))
+                    TwitchHighlightsIE,
+                    TwitchClipsIE))
                 else super(TwitchStreamIE, cls).suitable(url))
 
     def _real_extract(self, url):
@@ -614,59 +639,93 @@ class TwitchStreamIE(TwitchBaseIE):
         }
 
 
-class TwitchClipsIE(InfoExtractor):
+class TwitchClipsIE(TwitchBaseIE):
     IE_NAME = 'twitch:clips'
-    _VALID_URL = r'https?://clips\.twitch\.tv/(?:[^/]+/)*(?P<id>[^/?#&]+)'
+    _VALID_URL = r'https?://(?:clips\.twitch\.tv/(?:[^/]+/)*|(?:www\.)?twitch\.tv/[^/]+/clip/)(?P<id>[^/?#&]+)'
 
     _TESTS = [{
-        'url': 'https://clips.twitch.tv/ea/AggressiveCobraPoooound',
+        'url': 'https://clips.twitch.tv/FaintLightGullWholeWheat',
         'md5': '761769e1eafce0ffebfb4089cb3847cd',
         'info_dict': {
-            'id': 'AggressiveCobraPoooound',
+            'id': '42850523',
             'ext': 'mp4',
             'title': 'EA Play 2016 Live from the Novo Theatre',
             'thumbnail': r're:^https?://.*\.jpg',
+            'timestamp': 1465767393,
+            'upload_date': '20160612',
             'creator': 'EA',
             'uploader': 'stereotype_',
-            'uploader_id': 'stereotype_',
+            'uploader_id': '43566419',
         },
     }, {
         # multiple formats
         'url': 'https://clips.twitch.tv/rflegendary/UninterestedBeeDAESuppy',
+        'only_matching': True,
+    }, {
+        'url': 'https://www.twitch.tv/sergeynixon/clip/StormyThankfulSproutFutureMan',
         'only_matching': True,
     }]
 
     def _real_extract(self, url):
         video_id = self._match_id(url)
 
-        webpage = self._download_webpage(url, video_id)
+        status = self._download_json(
+            'https://clips.twitch.tv/api/v2/clips/%s/status' % video_id,
+            video_id)
 
-        clip = self._parse_json(
-            self._search_regex(
-                r'(?s)clipInfo\s*=\s*({.+?});', webpage, 'clip info'),
-            video_id, transform_source=js_to_json)
+        formats = []
 
-        title = clip.get('title') or clip.get('channel_title') or self._og_search_title(webpage)
-
-        formats = [{
-            'url': option['source'],
-            'format_id': option.get('quality'),
-            'height': int_or_none(option.get('quality')),
-        } for option in clip.get('quality_options', []) if option.get('source')]
-
-        if not formats:
-            formats = [{
-                'url': clip['clip_video_url'],
-            }]
+        for option in status['quality_options']:
+            if not isinstance(option, dict):
+                continue
+            source = url_or_none(option.get('source'))
+            if not source:
+                continue
+            formats.append({
+                'url': source,
+                'format_id': option.get('quality'),
+                'height': int_or_none(option.get('quality')),
+                'fps': int_or_none(option.get('frame_rate')),
+            })
 
         self._sort_formats(formats)
 
-        return {
-            'id': video_id,
-            'title': title,
-            'thumbnail': self._og_search_thumbnail(webpage),
-            'creator': clip.get('broadcaster_display_name') or clip.get('broadcaster_login'),
-            'uploader': clip.get('curator_login'),
-            'uploader_id': clip.get('curator_display_name'),
+        info = {
             'formats': formats,
         }
+
+        clip = self._call_api(
+            'kraken/clips/%s' % video_id, video_id, fatal=False, headers={
+                'Accept': 'application/vnd.twitchtv.v5+json',
+            })
+
+        if clip:
+            quality_key = qualities(('tiny', 'small', 'medium'))
+            thumbnails = []
+            thumbnails_dict = clip.get('thumbnails')
+            if isinstance(thumbnails_dict, dict):
+                for thumbnail_id, thumbnail_url in thumbnails_dict.items():
+                    thumbnails.append({
+                        'id': thumbnail_id,
+                        'url': thumbnail_url,
+                        'preference': quality_key(thumbnail_id),
+                    })
+
+            info.update({
+                'id': clip.get('tracking_id') or video_id,
+                'title': clip.get('title') or video_id,
+                'duration': float_or_none(clip.get('duration')),
+                'views': int_or_none(clip.get('views')),
+                'timestamp': unified_timestamp(clip.get('created_at')),
+                'thumbnails': thumbnails,
+                'creator': try_get(clip, lambda x: x['broadcaster']['display_name'], compat_str),
+                'uploader': try_get(clip, lambda x: x['curator']['display_name'], compat_str),
+                'uploader_id': try_get(clip, lambda x: x['curator']['id'], compat_str),
+            })
+        else:
+            info.update({
+                'title': video_id,
+                'id': video_id,
+            })
+
+        return info

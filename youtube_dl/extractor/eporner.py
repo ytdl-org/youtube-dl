@@ -9,8 +9,10 @@ from ..utils import (
     encode_base_n,
     ExtractorError,
     int_or_none,
+    merge_dicts,
     parse_duration,
     str_to_int,
+    url_or_none,
 )
 
 
@@ -24,10 +26,16 @@ class EpornerIE(InfoExtractor):
             'display_id': 'Infamous-Tiffany-Teen-Strip-Tease-Video',
             'ext': 'mp4',
             'title': 'Infamous Tiffany Teen Strip Tease Video',
+            'description': 'md5:764f39abf932daafa37485eb46efa152',
+            'timestamp': 1232520922,
+            'upload_date': '20090121',
             'duration': 1838,
             'view_count': int,
             'age_limit': 18,
         },
+        'params': {
+            'proxy': '127.0.0.1:8118'
+        }
     }, {
         # New (May 2016) URL layout
         'url': 'http://www.eporner.com/hd-porn/3YRUtzMcWn0/Star-Wars-XXX-Parody/',
@@ -82,8 +90,8 @@ class EpornerIE(InfoExtractor):
             for format_id, format_dict in formats_dict.items():
                 if not isinstance(format_dict, dict):
                     continue
-                src = format_dict.get('src')
-                if not isinstance(src, compat_str) or not src.startswith('http'):
+                src = url_or_none(format_dict.get('src'))
+                if not src or not src.startswith('http'):
                     continue
                 if kind == 'hls':
                     formats.extend(self._extract_m3u8_formats(
@@ -103,12 +111,15 @@ class EpornerIE(InfoExtractor):
                     })
         self._sort_formats(formats)
 
-        duration = parse_duration(self._html_search_meta('duration', webpage))
+        json_ld = self._search_json_ld(webpage, display_id, default={})
+
+        duration = parse_duration(self._html_search_meta(
+            'duration', webpage, default=None))
         view_count = str_to_int(self._search_regex(
             r'id="cinemaviews">\s*([0-9,]+)\s*<small>views',
             webpage, 'view count', fatal=False))
 
-        return {
+        return merge_dicts(json_ld, {
             'id': video_id,
             'display_id': display_id,
             'title': title,
@@ -116,4 +127,4 @@ class EpornerIE(InfoExtractor):
             'view_count': view_count,
             'formats': formats,
             'age_limit': 18,
-        }
+        })

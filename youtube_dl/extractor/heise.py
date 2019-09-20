@@ -155,8 +155,8 @@ class HeiseIE(InfoExtractor):
             'id': video_id,
             'title': title,
             'description': description,
-            'thumbnail': (xpath_text(doc, './/{http://rss.jwpcdn.com/}image') or
-                          self._og_search_thumbnail(webpage)),
+            'thumbnail': (xpath_text(doc, './/{http://rss.jwpcdn.com/}image')
+                          or self._og_search_thumbnail(webpage)),
             'timestamp': parse_iso8601(
                 self._html_search_meta('date', webpage)),
             'formats': formats,

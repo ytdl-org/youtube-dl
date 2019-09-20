@@ -1,15 +1,16 @@
 from __future__ import unicode_literals
 
-import re
 import base64
+import json
+import re
 
 from .common import InfoExtractor
 from .theplatform import ThePlatformIE
 from .adobepass import AdobePassIE
+from ..compat import compat_urllib_parse_unquote
 from ..utils import (
-    find_xpath_attr,
     smuggle_url,
-    unescapeHTML,
+    try_get,
     update_url_query,
     int_or_none,
 )
@@ -73,15 +74,24 @@ class NBCIE(AdobePassIE):
             'url': 'https://www.nbc.com/classic-tv/charles-in-charge/video/charles-in-charge-pilot/n3310',
             'only_matching': True,
         },
+        {
+            # Percent escaped url
+            'url': 'https://www.nbc.com/up-all-night/video/day-after-valentine%27s-day/n2189',
+            'only_matching': True,
+        }
     ]
 
     def _real_extract(self, url):
         permalink, video_id = re.match(self._VALID_URL, url).groups()
-        permalink = 'http' + permalink
-        video_data = self._download_json(
+        permalink = 'http' + compat_urllib_parse_unquote(permalink)
+        response = self._download_json(
             'https://api.nbc.com/v3/videos', video_id, query={
                 'filter[permalink]': permalink,
-            })['data'][0]['attributes']
+                'fields[videos]': 'description,entitlement,episodeNumber,guid,keywords,seasonNumber,title,vChipRating',
+                'fields[shows]': 'shortTitle',
+                'include': 'show.shortTitle',
+            })
+        video_data = response['data'][0]['attributes']
         query = {
             'mbr': 'true',
             'manifest': 'm3u',
@@ -103,10 +113,11 @@ class NBCIE(AdobePassIE):
             'title': title,
             'url': theplatform_url,
             'description': video_data.get('description'),
-            'keywords': video_data.get('keywords'),
+            'tags': video_data.get('keywords'),
             'season_number': int_or_none(video_data.get('seasonNumber')),
             'episode_number': int_or_none(video_data.get('episodeNumber')),
-            'series': video_data.get('showName'),
+            'episode': title,
+            'series': try_get(response, lambda x: x['included'][0]['attributes']['shortTitle']),
             'ie_key': 'ThePlatform',
         }
 
@@ -169,6 +180,65 @@ class NBCSportsIE(InfoExtractor):
             NBCSportsVPlayerIE._extract_url(webpage), 'NBCSportsVPlayer')
 
 
+class NBCSportsStreamIE(AdobePassIE):
+    _VALID_URL = r'https?://stream\.nbcsports\.com/.+?\bpid=(?P<id>\d+)'
+    _TEST = {
+        'url': 'http://stream.nbcsports.com/nbcsn/generic?pid=206559',
+        'info_dict': {
+            'id': '206559',
+            'ext': 'mp4',
+            'title': 'Amgen Tour of California Women\'s Recap',
+            'description': 'md5:66520066b3b5281ada7698d0ea2aa894',
+        },
+        'params': {
+            # m3u8 download
+            'skip_download': True,
+        },
+        'skip': 'Requires Adobe Pass Authentication',
+    }
+
+    def _real_extract(self, url):
+        video_id = self._match_id(url)
+        live_source = self._download_json(
+            'http://stream.nbcsports.com/data/live_sources_%s.json' % video_id,
+            video_id)
+        video_source = live_source['videoSources'][0]
+        title = video_source['title']
+        source_url = None
+        for k in ('source', 'msl4source', 'iossource', 'hlsv4'):
+            sk = k + 'Url'
+            source_url = video_source.get(sk) or video_source.get(sk + 'Alt')
+            if source_url:
+                break
+        else:
+            source_url = video_source['ottStreamUrl']
+        is_live = video_source.get('type') == 'live' or video_source.get('status') == 'Live'
+        resource = self._get_mvpd_resource('nbcsports', title, video_id, '')
+        token = self._extract_mvpd_auth(url, video_id, 'nbcsports', resource)
+        tokenized_url = self._download_json(
+            'https://token.playmakerservices.com/cdn',
+            video_id, data=json.dumps({
+                'requestorId': 'nbcsports',
+                'pid': video_id,
+                'application': 'NBCSports',
+                'version': 'v1',
+                'platform': 'desktop',
+                'cdn': 'akamai',
+                'url': video_source['sourceUrl'],
+                'token': base64.b64encode(token.encode()).decode(),
+                'resourceId': base64.b64encode(resource.encode()).decode(),
+            }).encode())['tokenizedUrl']
+        formats = self._extract_m3u8_formats(tokenized_url, video_id, 'mp4')
+        self._sort_formats(formats)
+        return {
+            'id': video_id,
+            'title': self._live_title(title) if is_live else title,
+            'description': live_source.get('description'),
+            'formats': formats,
+            'is_live': is_live,
+        }
+
+
 class CSNNEIE(InfoExtractor):
     _VALID_URL = r'https?://(?:www\.)?csnne\.com/video/(?P<id>[0-9a-z-]+)'
 
@@ -197,27 +267,14 @@ class CSNNEIE(InfoExtractor):
 
 
 class NBCNewsIE(ThePlatformIE):
-    _VALID_URL = r'''(?x)https?://(?:www\.)?(?:nbcnews|today|msnbc)\.com/
-        (?:video/.+?/(?P<id>\d+)|
-        ([^/]+/)*(?:.*-)?(?P<mpx_id>[^/?]+))
-        '''
+    _VALID_URL = r'(?x)https?://(?:www\.)?(?:nbcnews|today|msnbc)\.com/([^/]+/)*(?:.*-)?(?P<id>[^/?]+)'
 
     _TESTS = [
-        {
-            'url': 'http://www.nbcnews.com/video/nbc-news/52753292',
-            'md5': '47abaac93c6eaf9ad37ee6c4463a5179',
-            'info_dict': {
-                'id': '52753292',
-                'ext': 'flv',
-                'title': 'Crew emerges after four-month Mars food study',
-                'description': 'md5:24e632ffac72b35f8b67a12d1b6ddfc1',
-            },
-        },
         {
             'url': 'http://www.nbcnews.com/watch/nbcnews-com/how-twitter-reacted-to-the-snowden-interview-269389891880',
             'md5': 'af1adfa51312291a017720403826bb64',
             'info_dict': {
-                'id': 'p_tweet_snow_140529',
+                'id': '269389891880',
                 'ext': 'mp4',
                 'title': 'How Twitter Reacted To The Snowden Interview',
                 'description': 'md5:65a0bd5d76fe114f3c2727aa3a81fe64',
@@ -241,7 +298,7 @@ class NBCNewsIE(ThePlatformIE):
             'url': 'http://www.nbcnews.com/nightly-news/video/nightly-news-with-brian-williams-full-broadcast-february-4-394064451844',
             'md5': '73135a2e0ef819107bbb55a5a9b2a802',
             'info_dict': {
-                'id': 'nn_netcast_150204',
+                'id': '394064451844',
                 'ext': 'mp4',
                 'title': 'Nightly News with Brian Williams Full Broadcast (February 4)',
                 'description': 'md5:1c10c1eccbe84a26e5debb4381e2d3c5',
@@ -254,7 +311,7 @@ class NBCNewsIE(ThePlatformIE):
             'url': 'http://www.nbcnews.com/business/autos/volkswagen-11-million-vehicles-could-have-suspect-software-emissions-scandal-n431456',
             'md5': 'a49e173825e5fcd15c13fc297fced39d',
             'info_dict': {
-                'id': 'x_lon_vwhorn_150922',
+                'id': '529953347624',
                 'ext': 'mp4',
                 'title': 'Volkswagen U.S. Chief:\xa0 We Have Totally Screwed Up',
                 'description': 'md5:c8be487b2d80ff0594c005add88d8351',
@@ -267,7 +324,7 @@ class NBCNewsIE(ThePlatformIE):
             'url': 'http://www.today.com/video/see-the-aurora-borealis-from-space-in-stunning-new-nasa-video-669831235788',
             'md5': '118d7ca3f0bea6534f119c68ef539f71',
             'info_dict': {
-                'id': 'tdy_al_space_160420',
+                'id': '669831235788',
                 'ext': 'mp4',
                 'title': 'See the aurora borealis from space in stunning new NASA video',
                 'description': 'md5:74752b7358afb99939c5f8bb2d1d04b1',
@@ -280,7 +337,7 @@ class NBCNewsIE(ThePlatformIE):
             'url': 'http://www.msnbc.com/all-in-with-chris-hayes/watch/the-chaotic-gop-immigration-vote-314487875924',
             'md5': '6d236bf4f3dddc226633ce6e2c3f814d',
             'info_dict': {
-                'id': 'n_hayes_Aimm_140801_272214',
+                'id': '314487875924',
                 'ext': 'mp4',
                 'title': 'The chaotic GOP immigration vote',
                 'description': 'The Republican House votes on a border bill that has no chance of getting through the Senate or signed by the President and is drawing criticism from all sides.',
@@ -302,60 +359,22 @@ class NBCNewsIE(ThePlatformIE):
     ]
 
     def _real_extract(self, url):
-        mobj = re.match(self._VALID_URL, url)
-        video_id = mobj.group('id')
-        if video_id is not None:
-            all_info = self._download_xml('http://www.nbcnews.com/id/%s/displaymode/1219' % video_id, video_id)
-            info = all_info.find('video')
-
-            return {
-                'id': video_id,
-                'title': info.find('headline').text,
-                'ext': 'flv',
-                'url': find_xpath_attr(info, 'media', 'type', 'flashVideo').text,
-                'description': info.find('caption').text,
-                'thumbnail': find_xpath_attr(info, 'media', 'type', 'thumbnail').text,
-            }
-        else:
-            # "feature" and "nightly-news" pages use theplatform.com
-            video_id = mobj.group('mpx_id')
+        video_id = self._match_id(url)
+        if not video_id.isdigit():
             webpage = self._download_webpage(url, video_id)
 
-            filter_param = 'byId'
-            bootstrap_json = self._search_regex(
-                [r'(?m)(?:var\s+(?:bootstrapJson|playlistData)|NEWS\.videoObj)\s*=\s*({.+});?\s*$',
-                 r'videoObj\s*:\s*({.+})', r'data-video="([^"]+)"',
-                 r'jQuery\.extend\(Drupal\.settings\s*,\s*({.+?})\);'],
-                webpage, 'bootstrap json', default=None)
-            if bootstrap_json:
-                bootstrap = self._parse_json(
-                    bootstrap_json, video_id, transform_source=unescapeHTML)
+            data = self._parse_json(self._search_regex(
+                r'window\.__data\s*=\s*({.+});', webpage,
+                'bootstrap json'), video_id)
+            video_id = data['article']['content'][0]['primaryMedia']['video']['mpxMetadata']['id']
 
-                info = None
-                if 'results' in bootstrap:
-                    info = bootstrap['results'][0]['video']
-                elif 'video' in bootstrap:
-                    info = bootstrap['video']
-                elif 'msnbcVideoInfo' in bootstrap:
-                    info = bootstrap['msnbcVideoInfo']['meta']
-                elif 'msnbcThePlatform' in bootstrap:
-                    info = bootstrap['msnbcThePlatform']['videoPlayer']['video']
-                else:
-                    info = bootstrap
-
-                if 'guid' in info:
-                    video_id = info['guid']
-                    filter_param = 'byGuid'
-                elif 'mpxId' in info:
-                    video_id = info['mpxId']
-
-            return {
-                '_type': 'url_transparent',
-                'id': video_id,
-                # http://feed.theplatform.com/f/2E2eJC/nbcnews also works
-                'url': update_url_query('http://feed.theplatform.com/f/2E2eJC/nnd_NBCNews', {filter_param: video_id}),
-                'ie_key': 'ThePlatformFeed',
-            }
+        return {
+            '_type': 'url_transparent',
+            'id': video_id,
+            # http://feed.theplatform.com/f/2E2eJC/nbcnews also works
+            'url': update_url_query('http://feed.theplatform.com/f/2E2eJC/nnd_NBCNews', {'byId': video_id}),
+            'ie_key': 'ThePlatformFeed',
+        }
 
 
 class NBCOlympicsIE(InfoExtractor):
