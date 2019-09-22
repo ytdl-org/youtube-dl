@@ -2740,7 +2740,7 @@ class YoutubePlaylistIE(YoutubePlaylistBaseInfoExtractor):
             page, 'title', default=None)
 
         _UPLOADER_BASE = r'class=["\']pl-header-details[^>]+>\s*<li>\s*<a[^>]+\bhref='
-        uploader = self._search_regex(
+        uploader = self._html_search_regex(
             r'%s["\']/(?:user|channel)/[^>]+>([^<]+)' % _UPLOADER_BASE,
             page, 'uploader', default=None)
         mobj = re.search(
