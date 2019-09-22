@@ -15,6 +15,7 @@ from ..utils import (
     float_or_none,
     parse_iso8601,
     smuggle_url,
+    str_or_none,
     strip_jsonp,
     unified_timestamp,
     unsmuggle_url,
@@ -306,3 +307,115 @@ class BiliBiliBangumiIE(InfoExtractor):
         return self.playlist_result(
             entries, bangumi_id,
             season_info.get('bangumi_title'), season_info.get('evaluate'))
+
+
+class BilibiliAudioBaseIE(InfoExtractor):
+    def _call_api(self, path, sid, query=None):
+        if not query:
+            query = {'sid': sid}
+        return self._download_json(
+            'https://www.bilibili.com/audio/music-service-c/web/' + path,
+            sid, query=query)['data']
+
+
+class BilibiliAudioIE(BilibiliAudioBaseIE):
+    _VALID_URL = r'https?://(?:www\.)?bilibili\.com/audio/au(?P<id>\d+)'
+    _TEST = {
+        'url': 'https://www.bilibili.com/audio/au1003142',
+        'md5': 'fec4987014ec94ef9e666d4d158ad03b',
+        'info_dict': {
+            'id': '1003142',
+            'ext': 'm4a',
+            'title': '【tsukimi】YELLOW / 神山羊',
+            'artist': 'tsukimi',
+            'comment_count': int,
+            'description': 'YELLOW的mp3版！',
+            'duration': 183,
+            'subtitles': {
+                'origin': [{
+                    'ext': 'lrc',
+                }],
+            },
+            'thumbnail': r're:^https?://.+\.jpg',
+            'timestamp': 1564836614,
+            'upload_date': '20190803',
+            'uploader': 'tsukimi-つきみぐー',
+            'view_count': int,
+        },
+    }
+
+    def _real_extract(self, url):
+        au_id = self._match_id(url)
+
+        play_data = self._call_api('url', au_id)
+        formats = [{
+            'url': play_data['cdns'][0],
+            'filesize': int_or_none(play_data.get('size')),
+        }]
+
+        song = self._call_api('song/info', au_id)
+        title = song['title']
+        statistic = song.get('statistic') or {}
+
+        subtitles = None
+        lyric = song.get('lyric')
+        if lyric:
+            subtitles = {
+                'origin': [{
+                    'url': lyric,
+                }]
+            }
+
+        return {
+            'id': au_id,
+            'title': title,
+            'formats': formats,
+            'artist': song.get('author'),
+            'comment_count': int_or_none(statistic.get('comment')),
+            'description': song.get('intro'),
+            'duration': int_or_none(song.get('duration')),
+            'subtitles': subtitles,
+            'thumbnail': song.get('cover'),
+            'timestamp': int_or_none(song.get('passtime')),
+            'uploader': song.get('uname'),
+            'view_count': int_or_none(statistic.get('play')),
+        }
+
+
+class BilibiliAudioAlbumIE(BilibiliAudioBaseIE):
+    _VALID_URL = r'https?://(?:www\.)?bilibili\.com/audio/am(?P<id>\d+)'
+    _TEST = {
+        'url': 'https://www.bilibili.com/audio/am10624',
+        'info_dict': {
+            'id': '10624',
+            'title': '每日新曲推荐（每日11:00更新）',
+            'description': '每天11:00更新，为你推送最新音乐',
+        },
+        'playlist_count': 19,
+    }
+
+    def _real_extract(self, url):
+        am_id = self._match_id(url)
+
+        songs = self._call_api(
+            'song/of-menu', am_id, {'sid': am_id, 'pn': 1, 'ps': 100})['data']
+
+        entries = []
+        for song in songs:
+            sid = str_or_none(song.get('id'))
+            if not sid:
+                continue
+            entries.append(self.url_result(
+                'https://www.bilibili.com/audio/au' + sid,
+                BilibiliAudioIE.ie_key(), sid))
+
+        if entries:
+            album_data = self._call_api('menu/info', am_id) or {}
+            album_title = album_data.get('title')
+            if album_title:
+                for entry in entries:
+                    entry['album'] = album_title
+                return self.playlist_result(
+                    entries, am_id, album_title, album_data.get('intro'))
+
+        return self.playlist_result(entries, am_id)
