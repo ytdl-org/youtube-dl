@@ -18,15 +18,14 @@ class PikselIE(InfoExtractor):
     _VALID_URL = r'https?://player\.piksel\.com/v/(?P<id>[a-z0-9]+)'
     _TESTS = [
         {
-            'url': 'http://player.piksel.com/v/nv60p12f',
-            'md5': 'd9c17bbe9c3386344f9cfd32fad8d235',
+            'url': 'http://player.piksel.com/v/ums2867l',
+            'md5': '34e34c8d89dc2559976a6079db531e85',
             'info_dict': {
-                'id': 'nv60p12f',
+                'id': 'ums2867l',
                 'ext': 'mp4',
-                'title': 'فن الحياة  - الحلقة 1',
-                'description': 'احدث برامج الداعية الاسلامي " مصطفي حسني " فى رمضان 2016علي النهار نور',
-                'timestamp': 1465231790,
-                'upload_date': '20160606',
+                'title': 'GX-005 with Caption',
+                'timestamp': 1481335659,
+                'upload_date': '20161210'
             }
         },
         {
@@ -39,7 +38,7 @@ class PikselIE(InfoExtractor):
                 'title': 'WAW- State of Washington vs. Donald J. Trump, et al',
                 'description': 'State of Washington vs. Donald J. Trump, et al, Case Number 17-CV-00141-JLR, TRO Hearing, Civil Rights Case, 02/3/2017, 1:00 PM (PST), Seattle Federal Courthouse, Seattle, WA, Judge James L. Robart presiding.',
                 'timestamp': 1486171129,
-                'upload_date': '20170204',
+                'upload_date': '20170204'
             }
         }
     ]
@@ -113,6 +112,13 @@ class PikselIE(InfoExtractor):
             })
         self._sort_formats(formats)
 
+        subtitles = {}
+        for caption in video_data.get('captions', []):
+            caption_url = caption.get('url')
+            if caption_url:
+                subtitles.setdefault(caption.get('locale', 'en'), []).append({
+                    'url': caption_url})
+
         return {
             'id': video_id,
             'title': title,
@@ -120,4 +126,5 @@ class PikselIE(InfoExtractor):
             'thumbnail': video_data.get('thumbnailUrl'),
             'timestamp': parse_iso8601(video_data.get('dateadd')),
             'formats': formats,
+            'subtitles': subtitles,
         }

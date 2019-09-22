@@ -1,12 +1,14 @@
 # coding: utf-8
 from __future__ import unicode_literals
 
+import hashlib
 import itertools
 import json
 import re
 
 from .common import InfoExtractor, SearchInfoExtractor
 from ..compat import (
+    compat_str,
     compat_urllib_parse,
     compat_urlparse,
 )
@@ -18,7 +20,9 @@ from ..utils import (
     int_or_none,
     mimetype2ext,
     smuggle_url,
+    try_get,
     unescapeHTML,
+    url_or_none,
 )
 
 from .brightcove import (
@@ -476,4 +480,210 @@ class YahooSearchIE(SearchInfoExtractor):
             '_type': 'playlist',
             'id': query,
             'entries': entries,
+        }
+
+
+class YahooGyaOPlayerIE(InfoExtractor):
+    IE_NAME = 'yahoo:gyao:player'
+    _VALID_URL = r'https?://(?:gyao\.yahoo\.co\.jp/(?:player|episode/[^/]+)|streaming\.yahoo\.co\.jp/c/y)/(?P<id>\d+/v\d+/v\d+|[\da-f]{8}-[\da-f]{4}-[\da-f]{4}-[\da-f]{4}-[\da-f]{12})'
+    _TESTS = [{
+        'url': 'https://gyao.yahoo.co.jp/player/00998/v00818/v0000000000000008564/',
+        'info_dict': {
+            'id': '5993125228001',
+            'ext': 'mp4',
+            'title': 'フューリー　【字幕版】',
+            'description': 'md5:21e691c798a15330eda4db17a8fe45a5',
+            'uploader_id': '4235717419001',
+            'upload_date': '20190124',
+            'timestamp': 1548294365,
+        },
+        'params': {
+            # m3u8 download
+            'skip_download': True,
+        },
+    }, {
+        'url': 'https://streaming.yahoo.co.jp/c/y/01034/v00133/v0000000000000000706/',
+        'only_matching': True,
+    }, {
+        'url': 'https://gyao.yahoo.co.jp/episode/%E3%81%8D%E3%81%AE%E3%81%86%E4%BD%95%E9%A3%9F%E3%81%B9%E3%81%9F%EF%BC%9F%20%E7%AC%AC2%E8%A9%B1%202019%2F4%2F12%E6%94%BE%E9%80%81%E5%88%86/5cb02352-b725-409e-9f8d-88f947a9f682',
+        'only_matching': True,
+    }]
+
+    def _real_extract(self, url):
+        video_id = self._match_id(url).replace('/', ':')
+        video = self._download_json(
+            'https://gyao.yahoo.co.jp/dam/v1/videos/' + video_id,
+            video_id, query={
+                'fields': 'longDescription,title,videoId',
+            }, headers={
+                'X-User-Agent': 'Unknown Pc GYAO!/2.0.0 Web',
+            })
+        return {
+            '_type': 'url_transparent',
+            'id': video_id,
+            'title': video['title'],
+            'url': smuggle_url(
+                'http://players.brightcove.net/4235717419001/default_default/index.html?videoId=' + video['videoId'],
+                {'geo_countries': ['JP']}),
+            'description': video.get('longDescription'),
+            'ie_key': BrightcoveNewIE.ie_key(),
+        }
+
+
+class YahooGyaOIE(InfoExtractor):
+    IE_NAME = 'yahoo:gyao'
+    _VALID_URL = r'https?://(?:gyao\.yahoo\.co\.jp/(?:p|title/[^/]+)|streaming\.yahoo\.co\.jp/p/y)/(?P<id>\d+/v\d+|[\da-f]{8}-[\da-f]{4}-[\da-f]{4}-[\da-f]{4}-[\da-f]{12})'
+    _TESTS = [{
+        'url': 'https://gyao.yahoo.co.jp/p/00449/v03102/',
+        'info_dict': {
+            'id': '00449:v03102',
+        },
+        'playlist_count': 2,
+    }, {
+        'url': 'https://streaming.yahoo.co.jp/p/y/01034/v00133/',
+        'only_matching': True,
+    }, {
+        'url': 'https://gyao.yahoo.co.jp/title/%E3%81%97%E3%82%83%E3%81%B9%E3%81%8F%E3%82%8A007/5b025a49-b2e5-4dc7-945c-09c6634afacf',
+        'only_matching': True,
+    }]
+
+    def _real_extract(self, url):
+        program_id = self._match_id(url).replace('/', ':')
+        videos = self._download_json(
+            'https://gyao.yahoo.co.jp/api/programs/%s/videos' % program_id, program_id)['videos']
+        entries = []
+        for video in videos:
+            video_id = video.get('id')
+            if not video_id:
+                continue
+            entries.append(self.url_result(
+                'https://gyao.yahoo.co.jp/player/%s/' % video_id.replace(':', '/'),
+                YahooGyaOPlayerIE.ie_key(), video_id))
+        return self.playlist_result(entries, program_id)
+
+
+class YahooJapanNewsIE(InfoExtractor):
+    IE_NAME = 'yahoo:japannews'
+    IE_DESC = 'Yahoo! Japan News'
+    _VALID_URL = r'https?://(?P<host>(?:news|headlines)\.yahoo\.co\.jp)[^\d]*(?P<id>\d[\d-]*\d)?'
+    _GEO_COUNTRIES = ['JP']
+    _TESTS = [{
+        'url': 'https://headlines.yahoo.co.jp/videonews/ann?a=20190716-00000071-ann-int',
+        'info_dict': {
+            'id': '1736242',
+            'ext': 'mp4',
+            'title': 'ムン大統領が対日批判を強化“現金化”効果は？（テレビ朝日系（ANN）） - Yahoo!ニュース',
+            'description': '韓国の元徴用工らを巡る裁判の原告が弁護士が差し押さえた三菱重工業の資産を売却して - Yahoo!ニュース(テレビ朝日系（ANN）)',
+            'thumbnail': r're:^https?://.*\.[a-zA-Z\d]{3,4}$',
+        },
+        'params': {
+            'skip_download': True,
+        },
+    }, {
+        # geo restricted
+        'url': 'https://headlines.yahoo.co.jp/hl?a=20190721-00000001-oxv-l04',
+        'only_matching': True,
+    }, {
+        'url': 'https://headlines.yahoo.co.jp/videonews/',
+        'only_matching': True,
+    }, {
+        'url': 'https://news.yahoo.co.jp',
+        'only_matching': True,
+    }, {
+        'url': 'https://news.yahoo.co.jp/byline/hashimotojunji/20190628-00131977/',
+        'only_matching': True,
+    }, {
+        'url': 'https://news.yahoo.co.jp/feature/1356',
+        'only_matching': True
+    }]
+
+    def _extract_formats(self, json_data, content_id):
+        formats = []
+
+        video_data = try_get(
+            json_data,
+            lambda x: x['ResultSet']['Result'][0]['VideoUrlSet']['VideoUrl'],
+            list)
+        for vid in video_data or []:
+            delivery = vid.get('delivery')
+            url = url_or_none(vid.get('Url'))
+            if not delivery or not url:
+                continue
+            elif delivery == 'hls':
+                formats.extend(
+                    self._extract_m3u8_formats(
+                        url, content_id, 'mp4', 'm3u8_native',
+                        m3u8_id='hls', fatal=False))
+            else:
+                formats.append({
+                    'url': url,
+                    'format_id': 'http-%s' % compat_str(vid.get('bitrate', '')),
+                    'height': int_or_none(vid.get('height')),
+                    'width': int_or_none(vid.get('width')),
+                    'tbr': int_or_none(vid.get('bitrate')),
+                })
+        self._remove_duplicate_formats(formats)
+        self._sort_formats(formats)
+
+        return formats
+
+    def _real_extract(self, url):
+        mobj = re.match(self._VALID_URL, url)
+        host = mobj.group('host')
+        display_id = mobj.group('id') or host
+
+        webpage = self._download_webpage(url, display_id)
+
+        title = self._html_search_meta(
+            ['og:title', 'twitter:title'], webpage, 'title', default=None
+        ) or self._html_search_regex('<title>([^<]+)</title>', webpage, 'title')
+
+        if display_id == host:
+            # Headline page (w/ multiple BC playlists) ('news.yahoo.co.jp', 'headlines.yahoo.co.jp/videonews/', ...)
+            stream_plists = re.findall(r'plist=(\d+)', webpage) or re.findall(r'plist["\']:\s*["\']([^"\']+)', webpage)
+            entries = [
+                self.url_result(
+                    smuggle_url(
+                        'http://players.brightcove.net/5690807595001/HyZNerRl7_default/index.html?playlistId=%s' % plist_id,
+                        {'geo_countries': ['JP']}),
+                    ie='BrightcoveNew', video_id=plist_id)
+                for plist_id in stream_plists]
+            return self.playlist_result(entries, playlist_title=title)
+
+        # Article page
+        description = self._html_search_meta(
+            ['og:description', 'description', 'twitter:description'],
+            webpage, 'description', default=None)
+        thumbnail = self._og_search_thumbnail(
+            webpage, default=None) or self._html_search_meta(
+            'twitter:image', webpage, 'thumbnail', default=None)
+        space_id = self._search_regex([
+            r'<script[^>]+class=["\']yvpub-player["\'][^>]+spaceid=([^&"\']+)',
+            r'YAHOO\.JP\.srch\.\w+link\.onLoad[^;]+spaceID["\' ]*:["\' ]+([^"\']+)',
+            r'<!--\s+SpaceID=(\d+)'
+        ], webpage, 'spaceid')
+
+        content_id = self._search_regex(
+            r'<script[^>]+class=["\']yvpub-player["\'][^>]+contentid=(?P<contentid>[^&"\']+)',
+            webpage, 'contentid', group='contentid')
+
+        json_data = self._download_json(
+            'https://feapi-yvpub.yahooapis.jp/v1/content/%s' % content_id,
+            content_id,
+            query={
+                'appid': 'dj0zaiZpPVZMTVFJR0FwZWpiMyZzPWNvbnN1bWVyc2VjcmV0Jng9YjU-',
+                'output': 'json',
+                'space_id': space_id,
+                'domain': host,
+                'ak': hashlib.md5('_'.join((space_id, host)).encode()).hexdigest(),
+                'device_type': '1100',
+            })
+        formats = self._extract_formats(json_data, content_id)
+
+        return {
+            'id': content_id,
+            'title': title,
+            'description': description,
+            'thumbnail': thumbnail,
+            'formats': formats,
         }

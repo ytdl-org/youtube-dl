@@ -11,7 +11,7 @@ from ..utils import (
 
 
 class GfycatIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:www\.)?gfycat\.com/(?:ifr/|gifs/detail/)?(?P<id>[^/?#]+)'
+    _VALID_URL = r'https?://(?:www\.)?gfycat\.com/(?:ru/|ifr/|gifs/detail/)?(?P<id>[^-/?#]+)'
     _TESTS = [{
         'url': 'http://gfycat.com/DeadlyDecisiveGermanpinscher',
         'info_dict': {
@@ -45,7 +45,13 @@ class GfycatIE(InfoExtractor):
             'age_limit': 0,
         }
     }, {
+        'url': 'https://gfycat.com/ru/RemarkableDrearyAmurstarfish',
+        'only_matching': True
+    }, {
         'url': 'https://gfycat.com/gifs/detail/UnconsciousLankyIvorygull',
+        'only_matching': True
+    }, {
+        'url': 'https://gfycat.com/acceptablehappygoluckyharborporpoise-baseball',
         'only_matching': True
     }]
 
@@ -53,7 +59,7 @@ class GfycatIE(InfoExtractor):
         video_id = self._match_id(url)
 
         gfy = self._download_json(
-            'http://gfycat.com/cajax/get/%s' % video_id,
+            'https://api.gfycat.com/v1/gfycats/%s' % video_id,
             video_id, 'Downloading video info')
         if 'error' in gfy:
             raise ExtractorError('Gfycat said: ' + gfy['error'], expected=True)

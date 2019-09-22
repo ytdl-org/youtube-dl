@@ -70,7 +70,7 @@ class MSNIE(InfoExtractor):
                 continue
             if 'm3u8' in format_url:
                 # m3u8_native should not be used here until
-                # https://github.com/rg3/youtube-dl/issues/9913 is fixed
+                # https://github.com/ytdl-org/youtube-dl/issues/9913 is fixed
                 m3u8_formats = self._extract_m3u8_formats(
                     format_url, display_id, 'mp4',
                     m3u8_id='hls', fatal=False)

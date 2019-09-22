@@ -25,18 +25,22 @@ class GoIE(AdobePassIE):
         },
         'watchdisneychannel': {
             'brand': '004',
-            'requestor_id': 'Disney',
+            'resource_id': 'Disney',
         },
         'watchdisneyjunior': {
             'brand': '008',
-            'requestor_id': 'DisneyJunior',
+            'resource_id': 'DisneyJunior',
         },
         'watchdisneyxd': {
             'brand': '009',
-            'requestor_id': 'DisneyXD',
+            'resource_id': 'DisneyXD',
+        },
+        'disneynow': {
+            'brand': '011',
+            'resource_id': 'Disney',
         }
     }
-    _VALID_URL = r'https?://(?:(?P<sub_domain>%s)\.)?go\.com/(?:(?:[^/]+/)*(?P<id>vdka\w+)|(?:[^/]+/)*(?P<display_id>[^/?#]+))'\
+    _VALID_URL = r'https?://(?:(?:(?P<sub_domain>%s)\.)?go|(?P<sub_domain_2>disneynow))\.com/(?:(?:[^/]+/)*(?P<id>vdka\w+)|(?:[^/]+/)*(?P<display_id>[^/?#]+))'\
                  % '|'.join(list(_SITE_INFO.keys()) + ['disneynow'])
     _TESTS = [{
         'url': 'http://abc.go.com/shows/designated-survivor/video/most-recent/VDKA3807643',
@@ -71,6 +75,9 @@ class GoIE(AdobePassIE):
         # brand 008
         'url': 'http://disneynow.go.com/shows/minnies-bow-toons/video/happy-campers/vdka4872013',
         'only_matching': True,
+    }, {
+        'url': 'https://disneynow.com/shows/minnies-bow-toons/video/happy-campers/vdka4872013',
+        'only_matching': True,
     }]
 
     def _extract_videos(self, brand, video_id='-1', show_id='-1'):
@@ -80,7 +87,9 @@ class GoIE(AdobePassIE):
             display_id)['video']
 
     def _real_extract(self, url):
-        sub_domain, video_id, display_id = re.match(self._VALID_URL, url).groups()
+        mobj = re.match(self._VALID_URL, url)
+        sub_domain = mobj.group('sub_domain') or mobj.group('sub_domain_2')
+        video_id, display_id = mobj.group('id', 'display_id')
         site_info = self._SITE_INFO.get(sub_domain, {})
         brand = site_info.get('brand')
         if not video_id or not site_info:
@@ -89,7 +98,7 @@ class GoIE(AdobePassIE):
                 # There may be inner quotes, e.g. data-video-id="'VDKA3609139'"
                 # from http://freeform.go.com/shows/shadowhunters/episodes/season-2/1-this-guilty-blood
                 r'data-video-id=["\']*(VDKA\w+)', webpage, 'video id',
-                default=None)
+                default=video_id)
             if not site_info:
                 brand = self._search_regex(
                     (r'data-brand=\s*["\']\s*(\d+)',
@@ -130,8 +139,8 @@ class GoIE(AdobePassIE):
                     'device': '001',
                 }
                 if video_data.get('accesslevel') == '1':
-                    requestor_id = site_info['requestor_id']
-                    resource = self._get_mvpd_resource(
+                    requestor_id = site_info.get('requestor_id', 'DisneyChannels')
+                    resource = site_info.get('resource_id') or self._get_mvpd_resource(
                         requestor_id, title, video_id, None)
                     auth = self._extract_mvpd_auth(
                         url, video_id, requestor_id, resource)

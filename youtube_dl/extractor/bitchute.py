@@ -5,7 +5,10 @@ import itertools
 import re
 
 from .common import InfoExtractor
-from ..utils import urlencode_postdata
+from ..utils import (
+    orderedSet,
+    urlencode_postdata,
+)
 
 
 class BitChuteIE(InfoExtractor):
@@ -37,16 +40,27 @@ class BitChuteIE(InfoExtractor):
                 'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_0) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/69.0.3497.57 Safari/537.36',
             })
 
-        title = self._search_regex(
+        title = self._html_search_regex(
             (r'<[^>]+\bid=["\']video-title[^>]+>([^<]+)', r'<title>([^<]+)'),
             webpage, 'title', default=None) or self._html_search_meta(
             'description', webpage, 'title',
             default=None) or self._og_search_description(webpage)
 
+        format_urls = []
+        for mobj in re.finditer(
+                r'addWebSeed\s*\(\s*(["\'])(?P<url>(?:(?!\1).)+)\1', webpage):
+            format_urls.append(mobj.group('url'))
+        format_urls.extend(re.findall(r'as=(https?://[^&"\']+)', webpage))
+
         formats = [
-            {'url': mobj.group('url')}
-            for mobj in re.finditer(
-                r'addWebSeed\s*\(\s*(["\'])(?P<url>(?:(?!\1).)+)\1', webpage)]
+            {'url': format_url}
+            for format_url in orderedSet(format_urls)]
+
+        if not formats:
+            formats = self._parse_html5_media_entries(
+                url, webpage, video_id)[0]['formats']
+
+        self._check_formats(formats, video_id)
         self._sort_formats(formats)
 
         description = self._html_search_regex(
@@ -56,8 +70,9 @@ class BitChuteIE(InfoExtractor):
             webpage, default=None) or self._html_search_meta(
             'twitter:image:src', webpage, 'thumbnail')
         uploader = self._html_search_regex(
-            r'(?s)<p\b[^>]+\bclass=["\']video-author[^>]+>(.+?)</p>', webpage,
-            'uploader', fatal=False)
+            (r'(?s)<div class=["\']channel-banner.*?<p\b[^>]+\bclass=["\']name[^>]+>(.+?)</p>',
+             r'(?s)<p\b[^>]+\bclass=["\']video-author[^>]+>(.+?)</p>'),
+            webpage, 'uploader', fatal=False)
 
         return {
             'id': video_id,

@@ -22,7 +22,10 @@ from ..utils import (
     parse_iso8601,
     sanitized_Request,
     str_to_int,
+    try_get,
     unescapeHTML,
+    update_url_query,
+    url_or_none,
     urlencode_postdata,
 )
 
@@ -45,7 +48,14 @@ class DailymotionBaseInfoExtractor(InfoExtractor):
 
 
 class DailymotionIE(DailymotionBaseInfoExtractor):
-    _VALID_URL = r'(?i)https?://(?:(www|touch)\.)?dailymotion\.[a-z]{2,3}/(?:(?:(?:embed|swf|#)/)?video|swf)/(?P<id>[^/?_]+)'
+    _VALID_URL = r'''(?ix)
+                    https?://
+                        (?:
+                            (?:(?:www|touch)\.)?dailymotion\.[a-z]{2,3}/(?:(?:(?:embed|swf|\#)/)?video|swf)|
+                            (?:www\.)?lequipe\.fr/video
+                        )
+                        /(?P<id>[^/?_]+)
+                    '''
     IE_NAME = 'dailymotion'
 
     _FORMATS = [
@@ -130,14 +140,26 @@ class DailymotionIE(DailymotionBaseInfoExtractor):
     }, {
         'url': 'http://www.dailymotion.com/swf/x3ss1m_funny-magic-trick-barry-and-stuart_fun',
         'only_matching': True,
+    }, {
+        'url': 'https://www.lequipe.fr/video/x791mem',
+        'only_matching': True,
+    }, {
+        'url': 'https://www.lequipe.fr/video/k7MtHciueyTcrFtFKA2',
+        'only_matching': True,
     }]
 
     @staticmethod
     def _extract_urls(webpage):
+        urls = []
         # Look for embedded Dailymotion player
-        matches = re.findall(
-            r'<(?:(?:embed|iframe)[^>]+?src=|input[^>]+id=[\'"]dmcloudUrlEmissionSelect[\'"][^>]+value=)(["\'])(?P<url>(?:https?:)?//(?:www\.)?dailymotion\.com/(?:embed|swf)/video/.+?)\1', webpage)
-        return list(map(lambda m: unescapeHTML(m[1]), matches))
+        # https://developer.dailymotion.com/player#player-parameters
+        for mobj in re.finditer(
+                r'<(?:(?:embed|iframe)[^>]+?src=|input[^>]+id=[\'"]dmcloudUrlEmissionSelect[\'"][^>]+value=)(["\'])(?P<url>(?:https?:)?//(?:www\.)?dailymotion\.com/(?:embed|swf)/video/.+?)\1', webpage):
+            urls.append(unescapeHTML(mobj.group('url')))
+        for mobj in re.finditer(
+                r'(?s)DM\.player\([^,]+,\s*{.*?video[\'"]?\s*:\s*["\']?(?P<id>[0-9a-zA-Z]+).+?}\s*\);', webpage):
+            urls.append('https://www.dailymotion.com/embed/video/' + mobj.group('id'))
+        return urls
 
     def _real_extract(self, url):
         video_id = self._match_id(url)
@@ -163,18 +185,33 @@ class DailymotionIE(DailymotionBaseInfoExtractor):
             webpage, 'comment count', default=None))
 
         player_v5 = self._search_regex(
-            [r'buildPlayer\(({.+?})\);\n',  # See https://github.com/rg3/youtube-dl/issues/7826
+            [r'buildPlayer\(({.+?})\);\n',  # See https://github.com/ytdl-org/youtube-dl/issues/7826
              r'playerV5\s*=\s*dmp\.create\([^,]+?,\s*({.+?})\);',
              r'buildPlayer\(({.+?})\);',
              r'var\s+config\s*=\s*({.+?});',
-             # New layout regex (see https://github.com/rg3/youtube-dl/issues/13580)
+             # New layout regex (see https://github.com/ytdl-org/youtube-dl/issues/13580)
              r'__PLAYER_CONFIG__\s*=\s*({.+?});'],
             webpage, 'player v5', default=None)
         if player_v5:
-            player = self._parse_json(player_v5, video_id)
-            metadata = player['metadata']
+            player = self._parse_json(player_v5, video_id, fatal=False) or {}
+            metadata = try_get(player, lambda x: x['metadata'], dict)
+            if not metadata:
+                metadata_url = url_or_none(try_get(
+                    player, lambda x: x['context']['metadata_template_url1']))
+                if metadata_url:
+                    metadata_url = metadata_url.replace(':videoId', video_id)
+                else:
+                    metadata_url = update_url_query(
+                        'https://www.dailymotion.com/player/metadata/video/%s'
+                        % video_id, {
+                            'embedder': url,
+                            'integration': 'inline',
+                            'GK_PV5_NEON': '1',
+                        })
+                metadata = self._download_json(
+                    metadata_url, video_id, 'Downloading metadata JSON')
 
-            if metadata.get('error', {}).get('type') == 'password_protected':
+            if try_get(metadata, lambda x: x['error']['type']) == 'password_protected':
                 password = self._downloader.params.get('videopassword')
                 if password:
                     r = int(metadata['id'][1:], 36)

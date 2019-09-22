@@ -31,12 +31,12 @@ class OoyalaBaseIE(InfoExtractor):
         title = metadata['title']
 
         auth_data = self._download_json(
-            self._AUTHORIZATION_URL_TEMPLATE % (pcode, embed_code) +
-            compat_urllib_parse_urlencode({
+            self._AUTHORIZATION_URL_TEMPLATE % (pcode, embed_code)
+            + compat_urllib_parse_urlencode({
                 'domain': domain,
                 'supportedFormats': supportedformats or 'mp4,rtmp,m3u8,hds,dash,smooth',
                 'embedToken': embed_token,
-            }), video_id)
+            }), video_id, headers=self.geo_verification_headers())
 
         cur_auth_data = auth_data['authorization_data'][embed_code]
 

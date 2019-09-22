@@ -21,6 +21,8 @@ from ..utils import (
 
 class ZDFIE(InfoExtractor):
     _VALID_URL = r'https?://www\.zdf\.de/(?:[^/]+/)*(?P<id>[^/?]+)\.html'
+    _QUALITIES = ('auto', 'low', 'med', 'high', 'veryhigh')
+    _GEO_COUNTRIES = ['DE']
 
     _TESTS = [{
         'url': 'https://www.zdf.de/dokumentation/terra-x/die-magie-der-farben-von-koenigspurpur-und-jeansblau-100.html',

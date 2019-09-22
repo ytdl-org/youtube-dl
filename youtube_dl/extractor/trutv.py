@@ -4,44 +4,72 @@ from __future__ import unicode_literals
 import re
 
 from .turner import TurnerBaseIE
+from ..utils import (
+    int_or_none,
+    parse_iso8601,
+)
 
 
 class TruTVIE(TurnerBaseIE):
-    _VALID_URL = r'https?://(?:www\.)?trutv\.com(?:(?P<path>/shows/[^/]+/videos/[^/?#]+?)\.html|/full-episodes/[^/]+/(?P<id>\d+))'
+    _VALID_URL = r'https?://(?:www\.)?trutv\.com/(?:shows|full-episodes)/(?P<series_slug>[0-9A-Za-z-]+)/(?:videos/(?P<clip_slug>[0-9A-Za-z-]+)|(?P<id>\d+))'
     _TEST = {
-        'url': 'http://www.trutv.com/shows/10-things/videos/you-wont-believe-these-sports-bets.html',
-        'md5': '2cdc844f317579fed1a7251b087ff417',
+        'url': 'https://www.trutv.com/shows/the-carbonaro-effect/videos/sunlight-activated-flower.html',
         'info_dict': {
-            'id': '/shows/10-things/videos/you-wont-believe-these-sports-bets',
+            'id': 'f16c03beec1e84cd7d1a51f11d8fcc29124cc7f1',
             'ext': 'mp4',
-            'title': 'You Won\'t Believe These Sports Bets',
-            'description': 'Jamie Lee sits down with a bookie to discuss the bizarre world of illegal sports betting.',
-            'upload_date': '20130305',
-        }
+            'title': 'Sunlight-Activated Flower',
+            'description': "A customer is stunned when he sees Michael's sunlight-activated flower.",
+        },
+        'params': {
+            # m3u8 download
+            'skip_download': True,
+        },
     }
 
     def _real_extract(self, url):
-        path, video_id = re.match(self._VALID_URL, url).groups()
-        auth_required = False
-        if path:
-            data_src = 'http://www.trutv.com/video/cvp/v2/xml/content.xml?id=%s.xml' % path
+        series_slug, clip_slug, video_id = re.match(self._VALID_URL, url).groups()
+
+        if video_id:
+            path = 'episode'
+            display_id = video_id
         else:
-            webpage = self._download_webpage(url, video_id)
-            video_id = self._search_regex(
-                r"TTV\.TVE\.episodeId\s*=\s*'([^']+)';",
-                webpage, 'video id', default=video_id)
-            auth_required = self._search_regex(
-                r'TTV\.TVE\.authRequired\s*=\s*(true|false);',
-                webpage, 'auth required', default='false') == 'true'
-            data_src = 'http://www.trutv.com/tveverywhere/services/cvpXML.do?titleId=' + video_id
-        return self._extract_cvp_info(
-            data_src, path, {
-                'secure': {
-                    'media_src': 'http://androidhls-secure.cdn.turner.com/trutv/big',
-                    'tokenizer_src': 'http://www.trutv.com/tveverywhere/processors/services/token_ipadAdobe.do',
-                },
-            }, {
+            path = 'series/clip'
+            display_id = clip_slug
+
+        data = self._download_json(
+            'https://api.trutv.com/v2/web/%s/%s/%s' % (path, series_slug, display_id),
+            display_id)
+        video_data = data['episode'] if video_id else data['info']
+        media_id = video_data['mediaId']
+        title = video_data['title'].strip()
+
+        info = self._extract_ngtv_info(
+            media_id, {}, {
                 'url': url,
                 'site_name': 'truTV',
-                'auth_required': auth_required,
+                'auth_required': video_data.get('isAuthRequired'),
             })
+
+        thumbnails = []
+        for image in video_data.get('images', []):
+            image_url = image.get('srcUrl')
+            if not image_url:
+                continue
+            thumbnails.append({
+                'url': image_url,
+                'width': int_or_none(image.get('width')),
+                'height': int_or_none(image.get('height')),
+            })
+
+        info.update({
+            'id': media_id,
+            'display_id': display_id,
+            'title': title,
+            'description': video_data.get('description'),
+            'thumbnails': thumbnails,
+            'timestamp': parse_iso8601(video_data.get('publicationDate')),
+            'series': video_data.get('showTitle'),
+            'season_number': int_or_none(video_data.get('seasonNum')),
+            'episode_number': int_or_none(video_data.get('episodeNum')),
+        })
+        return info
