@@ -60,8 +60,8 @@ class NhkVodIE(InfoExtractor):
         if is_video:
             info.update({
                 '_type': 'url_transparent',
-                'ie_key': 'Ooyala',
-                'url': 'ooyala:' + episode['vod_id'],
+                'ie_key': 'Piksel',
+                'url': 'https://player.piksel.com/v/refid/nhkworld/prefid/' + episode['vod_id'],
             })
         else:
             audio = episode['audio']
