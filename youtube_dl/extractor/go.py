@@ -78,13 +78,17 @@ class GoIE(AdobePassIE):
 
     def _extract_videos(self, brand, video_id='-1', show_id='-1'):
         display_id = video_id if video_id != '-1' else show_id
+        foo = 'http://api.contents.watchabc.go.com/vp2/ws/contents/3000/videos/%s/001/-1/%s/-1/%s/-1/-1.json' % (brand, show_id, video_id)
+        print("Foo is:", foo)
         return self._download_json(
             'http://api.contents.watchabc.go.com/vp2/ws/contents/3000/videos/%s/001/-1/%s/-1/%s/-1/-1.json' % (brand, show_id, video_id),
             display_id)['video']
 
     def _real_extract(self, url):
         sub_domain, video_id, display_id = re.match(self._VALID_URL, url).groups()
+        print("sub_domain:",sub_domain)
         site_info = self._SITE_INFO.get(sub_domain, {})
+        print("site_info:", site_info)
         brand = site_info.get('brand')
         if not video_id or not site_info:
             webpage = self._download_webpage(url, display_id or video_id)
@@ -97,7 +101,8 @@ class GoIE(AdobePassIE):
                 brand = self._search_regex(
                     (r'data-brand=\s*["\']\s*(\d+)',
                      r'data-page-brand=\s*["\']\s*(\d+)'), webpage, 'brand',
-                    default='004')
+                    default='008')
+                print("Brand 100:", brand)
                 site_info = next(
                     si for _, si in self._SITE_INFO.items()
                     if si.get('brand') == brand)
