@@ -362,7 +362,7 @@ class OpenloadIE(InfoExtractor):
     }, {
         'url': 'https://oload.services/embed/bs1NWj1dCag/',
         'only_matching': True,
-}, {
+    }, {
         'url': 'https://oload.online/f/W8o2UfN1vNY/',
         'only_matching': True,
     }, {
