@@ -305,6 +305,7 @@ class VKIE(VKBaseIE):
             video_id = '%s_%s' % (mobj.group('oid'), mobj.group('id'))
 
         info_page = self._download_webpage(info_url, video_id)
+        url_page = self._download_webpage(url, video_id)
 
         error_message = self._html_search_regex(
             [r'(?s)<!><div[^>]+class="video_layer_message"[^>]*>(.+?)</div>',
@@ -354,11 +355,15 @@ class VKIE(VKBaseIE):
 
             r'<!>The video .+? is unavailable':
                 'Video %s is not available.',
+
+            r'You need to be a member of this group to view':
+                'Video %s is for group members only.',
         }
 
         for error_re, error_msg in ERRORS.items():
-            if re.search(error_re, info_page):
-                raise ExtractorError(error_msg % video_id, expected=True)
+            for page in [info_page, url_page]:
+                if re.search(error_re, page):
+                    raise ExtractorError(error_msg % video_id, expected=True)
 
         youtube_url = YoutubeIE._extract_url(info_page)
         if youtube_url:
