@@ -11,7 +11,6 @@ from ..compat import (
     compat_urlparse,
 )
 from ..utils import (
-    ExtractorError,
     sanitized_Request,
     urlencode_postdata,
 )
