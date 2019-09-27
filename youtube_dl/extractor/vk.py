@@ -403,8 +403,17 @@ class VKIE(VKBaseIE):
             data = self._parse_json(
                 self._search_regex(
                     r'var\s+playerParams\s*=\s*({.+?})\s*;\s*\n', info_page,
-                    'player params'),
-                video_id)['params'][0]
+                    'player params', default='{}'),
+                video_id)
+            if data:
+                data = data['params'][0]
+
+        # <!--{...}
+        if not data:
+            data = self._parse_json(
+                self._search_regex(
+                    r'<!--\s*({.+})', info_page, 'payload'),
+                video_id)['payload'][-1][-1]['player']['params'][0]
 
         title = unescapeHTML(data['md_title'])
 
