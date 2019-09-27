@@ -107,11 +107,11 @@ class FC2IE(InfoExtractor):
         if title_info:
             title = title_info[0]
 
-        response = self._download_json(
+        meta = self._download_json(
             video_info_url,
             video_id,
         )
-        video_url = 'https://video.fc2.com' + response['playlist']['nq']
+        video_url = 'https://video.fc2.com' + meta.get('playlist').get('nq')
 
         return {
             'id': video_id,
