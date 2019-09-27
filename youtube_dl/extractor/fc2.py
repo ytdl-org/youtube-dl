@@ -98,15 +98,11 @@ class FC2IE(InfoExtractor):
         info_webpage = self._download_webpage(
             info_url, video_id, note='Downloading info page')
         info = compat_urlparse.parse_qs(info_webpage)
-
-        video_info_url = 'https://video.fc2.com/api/v3/videoplaylist/{}?sh=1&fs=0'.format(video_id)
-        info_webpage = self._download_webpage(
-            info_url, video_id, note='Downloading info page')
-        info = compat_urlparse.parse_qs(info_webpage)
         title_info = info.get('title')
         if title_info:
             title = title_info[0]
 
+        video_info_url = 'https://video.fc2.com/api/v3/videoplaylist/{}?sh=1&fs=0'.format(video_id)
         meta = self._download_json(
             video_info_url,
             video_id,
