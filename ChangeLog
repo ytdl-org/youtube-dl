@@ -1,4 +1,4 @@
-version <unreleased>
+version 2019.09.28
 
 Core
 * [YoutubeDL] Honour all --get-* options with --flat-playlist (#22493)
