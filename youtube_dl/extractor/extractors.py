@@ -5,6 +5,7 @@ from .abc import (
     ABCIE,
     ABCIViewIE,
 )
+from .abcclassicfm import ABCClassicFMIE
 from .abcnews import (
     AbcNewsIE,
     AbcNewsVideoIE,
