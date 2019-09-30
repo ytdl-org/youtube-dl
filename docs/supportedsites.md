@@ -272,6 +272,7 @@
  - **Expressen**
  - **ExtremeTube**
  - **EyedoTV**
+ - **F1TV**
  - **facebook**
  - **FacebookPluginsVideo**
  - **faz.net**

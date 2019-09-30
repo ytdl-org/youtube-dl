@@ -361,7 +361,10 @@ from .flickr import FlickrIE
 from .flipagram import FlipagramIE
 from .folketinget import FolketingetIE
 from .footyroom import FootyRoomIE
-from .formula1 import Formula1IE
+from .formula1 import (
+    Formula1IE,
+    F1TVIE,
+)
 from .fourtube import (
     FourTubeIE,
     PornTubeIE,
