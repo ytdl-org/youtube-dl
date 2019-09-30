@@ -4,20 +4,34 @@ from __future__ import unicode_literals
 import re
 
 from .common import InfoExtractor
-from ..compat import compat_b64decode
 from ..utils import (
+    ExtractorError,
     qualities,
     sanitized_Request,
 )
 
 
 class DumpertIE(InfoExtractor):
-    _VALID_URL = r'(?P<protocol>https?)://(?:www\.)?dumpert\.nl/(?:mediabase|embed)/(?P<id>[0-9]+/[0-9a-zA-Z]+)'
+    _VALID_URL = r'https?://(?:www\.)?dumpert\.nl/(?:mediabase|embed|item)/(?P<id>[0-9]+[/_][0-9a-zA-Z]+)'
     _TESTS = [{
+        # This is an old-style URL. Note that the video ID consists of two
+        # parts.
         'url': 'http://www.dumpert.nl/mediabase/6646981/951bc60f/',
         'md5': '1b9318d7d5054e7dcb9dc7654f21d643',
         'info_dict': {
-            'id': '6646981/951bc60f',
+            'id': '6646981_951bc60f',
+            'ext': 'mp4',
+            'title': 'Ik heb nieuws voor je',
+            'description': 'Niet schrikken hoor',
+            'thumbnail': r're:^https?://.*\.jpg$',
+        }
+    }, {
+        # This is a new-style URL. Note that the two parts of the video ID are
+        # now separated by _ instead of /.
+        'url': 'https://www.dumpert.nl/item/6646981_951bc60f/',
+        'md5': '1b9318d7d5054e7dcb9dc7654f21d643',
+        'info_dict': {
+            'id': '6646981_951bc60f',
             'ext': 'mp4',
             'title': 'Ik heb nieuws voor je',
             'description': 'Niet schrikken hoor',
@@ -30,35 +44,47 @@ class DumpertIE(InfoExtractor):
 
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
-        video_id = mobj.group('id')
-        protocol = mobj.group('protocol')
+        video_id = mobj.group('id').replace('/', '_')
 
-        url = '%s://www.dumpert.nl/mediabase/%s' % (protocol, video_id)
+        url = 'https://www.dumpert.nl/item/%s' % (video_id)
         req = sanitized_Request(url)
-        req.add_header('Cookie', 'nsfw=1; cpc=10')
+        req.add_header('Cookie', 'filterNsfw=true; cpc=10')
         webpage = self._download_webpage(req, video_id)
 
-        files_base64 = self._search_regex(
-            r'data-files="([^"]+)"', webpage, 'data files')
+        state = self._parse_json(self._parse_json(self._search_regex(
+            r'__DUMPERT_STATE__\s*=\s*JSON\.parse\s*\(\s*(".+?")\s*\)\s*;',
+            webpage, 'state'
+        ), video_id), video_id)
 
-        files = self._parse_json(
-            compat_b64decode(files_base64).decode('utf-8'),
-            video_id)
+        item = state.get('items', {}).get('item', {}).get('item')
+        if not item:
+            raise ExtractorError('Unable to find item on page')
+
+        video = None
+        for media_item in item.get('media', []):
+            if media_item.get('mediatype') == 'VIDEO':
+                video = media_item
+
+        if not video:
+            raise ExtractorError('Unable to find video on page')
+
+        variants = video.get('variants', [])
+        if not variants:
+            raise ExtractorError('Unable to find video variants on page')
 
         quality = qualities(['flv', 'mobile', 'tablet', '720p'])
 
         formats = [{
-            'url': video_url,
-            'format_id': format_id,
-            'quality': quality(format_id),
-        } for format_id, video_url in files.items() if format_id != 'still']
+            'url': variant.get('uri'),
+            'format_id': variant.get('version'),
+            'quality': quality(variant.get('version')),
+        } for variant in variants if 'uri' in variant and 'version' in variant]
         self._sort_formats(formats)
 
-        title = self._html_search_meta(
-            'title', webpage) or self._og_search_title(webpage)
-        description = self._html_search_meta(
-            'description', webpage) or self._og_search_description(webpage)
-        thumbnail = files.get('still') or self._og_search_thumbnail(webpage)
+        title = item.get('title') or self._og_search_title(webpage)
+        description = item.get(
+            'description') or self._og_search_description(webpage)
+        thumbnail = item.get('still') or self._og_search_thumbnail(webpage)
 
         return {
             'id': video_id,
