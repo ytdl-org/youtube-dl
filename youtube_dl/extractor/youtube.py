@@ -387,6 +387,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                             (?:www\.)?invidious\.13ad\.de/|
                             (?:www\.)?invidious\.mastodon\.host/|
                             (?:www\.)?invidious\.nixnet\.xyz/|
+                            (?:www\.)?invidious\.drycat\.fr/|
                             (?:www\.)?tube\.poal\.co/|
                             (?:www\.)?vid\.wxzm\.sx/|
                             (?:www\.)?yt\.elukerio\.org/|
@@ -396,6 +397,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                             (?:www\.)?c7hqkpkpemu6e7emz5b4vyz7idjgdvgaaa3dyimmeojqbgpea3xqjoid\.onion/|
                             (?:www\.)?fz253lmuao3strwbfbmx46yu7acac2jz27iwtorgmbqlkurlclmancad\.onion/|
                             (?:www\.)?invidious\.l4qlywnpwqsluw65ts7md3khrivpirse744un3x7mlskqauz5pyuzgqd\.onion/|
+                            (?:www\.)?owxfohz4kjyv25fvlqilyxast7inivgiktls3th44jhk3ej3i7ya\.b32\.i2p/|
                             youtube\.googleapis\.com/)                        # the various hostnames, with wildcard subdomains
                          (?:.*?\#/)?                                          # handle anchor (#/) redirect urls
                          (?:                                                  # the various things that can precede the ID:
@@ -2740,7 +2742,7 @@ class YoutubePlaylistIE(YoutubePlaylistBaseInfoExtractor):
             page, 'title', default=None)
 
         _UPLOADER_BASE = r'class=["\']pl-header-details[^>]+>\s*<li>\s*<a[^>]+\bhref='
-        uploader = self._search_regex(
+        uploader = self._html_search_regex(
             r'%s["\']/(?:user|channel)/[^>]+>([^<]+)' % _UPLOADER_BASE,
             page, 'uploader', default=None)
         mobj = re.search(

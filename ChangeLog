@@ -1,3 +1,34 @@
+version 2019.09.28
+
+Core
+* [YoutubeDL] Honour all --get-* options with --flat-playlist (#22493)
+
+Extractors
+* [vk] Fix extraction (#22522)
+* [heise] Fix kaltura embeds extraction (#22514)
+* [ted] Check for resources validity and extract subtitled downloads (#22513)
++ [youtube] Add support for
+  owxfohz4kjyv25fvlqilyxast7inivgiktls3th44jhk3ej3i7ya.b32.i2p (#22292)
++ [nhk] Add support for clips
+* [nhk] Fix video extraction (#22249, #22353)
+* [byutv] Fix extraction (#22070)
++ [openload] Add support for oload.online (#22304)
++ [youtube] Add support for invidious.drycat.fr (#22451)
+* [jwplatfom] Do not match video URLs (#20596, #22148)
+* [youtube:playlist] Unescape playlist uploader (#22483)
++ [bilibili] Add support audio albums and songs (#21094)
++ [instagram] Add support for tv URLs
++ [mixcloud] Allow uppercase letters in format URLs (#19280)
+* [brightcove] Delegate all supported legacy URLs to new extractor (#11523,
+  #12842, #13912, #15669, #16303)
+* [hotstar] Use native HLS downloader by default
++ [hotstar] Extract more formats (#22323)
+* [9now] Fix extraction (#22361)
+* [zdf] Bypass geo restriction
++ [tv4] Extract series metadata
+* [tv4] Fix extraction (#22443)
+
+
 version 2019.09.12.1
 
 Extractors

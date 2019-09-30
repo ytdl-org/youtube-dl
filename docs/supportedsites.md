@@ -98,6 +98,8 @@
  - **Bigflix**
  - **Bild**: Bild.de
  - **BiliBili**
+ - **BilibiliAudio**
+ - **BilibiliAudioAlbum**
  - **BioBioChileTV**
  - **BIQLE**
  - **BitChute**
