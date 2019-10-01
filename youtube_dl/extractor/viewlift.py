@@ -179,6 +179,10 @@ class ViewLiftIE(ViewLiftBaseIE):
         'only_matching': True,
     }]
 
+    @classmethod
+    def suitable(cls, url):
+        return False if ViewLiftEmbedIE.suitable(url) else super(ViewLiftIE, cls).suitable(url)
+
     def _real_extract(self, url):
         domain, display_id = re.match(self._VALID_URL, url).groups()
 
