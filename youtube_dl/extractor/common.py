@@ -1424,12 +1424,10 @@ class InfoExtractor(object):
         try:
             self._request_webpage(url, video_id, 'Checking %s URL' % item, headers=headers)
             return True
-        except ExtractorError as e:
-            if isinstance(e.cause, compat_urllib_error.URLError):
-                self.to_screen(
-                    '%s: %s URL is invalid, skipping' % (video_id, item))
-                return False
-            raise
+        except ExtractorError:
+            self.to_screen(
+                '%s: %s URL is invalid, skipping' % (video_id, item))
+            return False
 
     def http_scheme(self):
         """ Either "http:" or "https:", depending on the user's preferences """
