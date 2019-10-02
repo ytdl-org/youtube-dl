@@ -3,9 +3,7 @@
 
 from __future__ import print_function
 
-import os.path
-import warnings
-import sys
+import os.path, warnings, sys
 
 try:
     from setuptools import setup, Command
