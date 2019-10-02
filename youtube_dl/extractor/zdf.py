@@ -17,6 +17,8 @@ from ..utils import (
     update_url_query,
     url_or_none,
     urljoin,
+    ExtractorError,
+    bool_or_none
 )
 
 
@@ -194,6 +196,11 @@ class ZDFIE(ZDFBaseIE):
 
         formats = []
         format_urls = set()
+
+        hasVideo = bool_or_none(document.get('hasVideo'))
+        if not hasVideo:
+            raise ExtractorError('The video ID %s does not contain any videos.' % video_id, expected=True)
+
         for f in document['formitaeten']:
             self._extract_format(video_id, formats, format_urls, f)
         self._sort_formats(formats)
