@@ -25,6 +25,7 @@ from ..utils import (
     xpath_text,
 )
 
+from datetime import date
 
 class RaiBaseIE(InfoExtractor):
     _UUID_RE = r'[\da-f]{8}-[\da-f]{4}-[\da-f]{4}-[\da-f]{4}-[\da-f]{12}'
@@ -210,6 +211,7 @@ class RaiPlayIE(RaiBaseIE):
                 media, lambda x: x['isPartOf']['numeroStagioni'])),
             'season': media.get('stagione') or None,
             'subtitles': subtitles,
+            'upload_date': media.get('datePublished') or date.today().strftime("%Y%m%d"),
         }
 
         info.update(relinker_info)
