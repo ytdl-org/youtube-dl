@@ -2,7 +2,9 @@
 from __future__ import unicode_literals
 
 from .common import InfoExtractor
-from ..utils import js_to_json, RegexNotFoundError, urljoin
+from ..utils import (
+    js_to_json, RegexNotFoundError, urljoin, get_element_by_id, unified_strdate
+)
 
 import json
 import re
@@ -18,7 +20,18 @@ class HHUIE(InfoExtractor):
             'ext': 'mp4',
             'title': 'Das Multimediazentrum',
             'description': '',
+            'categories': ['Imagefilme'],
+            'tags': [
+                'MMZ', 'Multimediazentrum', 'Heinrich-Heine-Universität',
+                'UKD', 'eLearning', 'Abstimmsysteme', 'Portale',
+                'Studierendenportal', 'Lehrfilme', 'Lehrfilm',
+                'Operationsfilme', 'Vorlesungsaufzeichnung', 'Multimedia',
+                'ZIM', 'HHU', 'Ute', 'Clames',  # yes, that's incorrect
+            ],
+            'uploader': 'clames',
             'uploader_id': 'clames',
+            'license': 'CC BY 3.0 DE',
+            'upload_date': '20150126',
             'thumbnail': 'https://mediathek.hhu.de/thumbs/2dd05982-ea45-4108-9620-0c36e6ed8df5/thumb_000.jpg',
         }
     }
@@ -100,13 +113,53 @@ class HHUIE(InfoExtractor):
             r'<a id="mt_content_placeholder_videoinfo_createdby" class="author" href=".+">(.+?)<\/a>',
             webpage, 'uploader', fatal=False
         )
-
+        uploader_id = self._html_search_regex(
+            r'<a id="mt_content_placeholder_videoinfo_createdby" class="author" href="/user/(.+)">.+?<\/a>',
+            webpage, 'uploader_id', fatal=False
+        )
+        # CC licenses get a image with an appropriate alt text
+        license_img = get_element_by_id('mt_watch_license', webpage)
+        if license_img:
+            license = self._search_regex(
+                r'alt="(.+)"', license_img, 'license_img', fatal=False
+            )
+        if not license_img or not license:
+            # other licenses are just text
+            license = self._html_search_regex(
+                r'<div id="mt_content_placeholder_videotabs_mt_videotabs_formview_video_license" class="video-license">(.+)<\/div>',
+                webpage, 'license_text', fatal=False
+            )
+        upload_date = _date(self._html_search_regex(
+            r'<span class="watch-information-date added">(.+?)<\/span>',
+            webpage, 'upload_date', fatal=False
+        ))
+        category = self._html_search_regex(
+            r'<a href="/category/.+">(.+)</a>', webpage, 'category', fatal=False
+        )
+        tags_html = get_element_by_id('mt_watch_info_tag_list', webpage)
+        tags = _tags(tags_html)
 
         return {
             'id': video_id,
             'title': title,
             'description': description,
+            'license': license,
+            'categories': [category],  # there's just one category per video
+            'tags': tags,
             'uploader': uploader,
+            'uploader_id': uploader_id,
+            'upload_date': upload_date,
             'thumbnail': thumbnail,
             'formats': formats,
         }
+
+
+def _date(str_containing_date):
+    """Parse the string 'at (M)M/(D)D/YYYY' to YYYYMMDD."""
+    return unified_strdate(str_containing_date.split(' ')[1], day_first=False)
+
+
+def _tags(tags_html):
+    """Parse the HTML markup containing the tags."""
+    matches = re.findall(r'<a.+>(.+)<\/a>', tags_html)
+    return [match.rstrip(',') for match in matches]
