@@ -7,11 +7,13 @@ import re
 from .common import InfoExtractor
 from ..compat import (
     compat_parse_qs,
+    compat_str,
     compat_urllib_request,
     compat_urlparse,
 )
 from ..utils import (
     sanitized_Request,
+    try_get,
     urlencode_postdata,
 )
 
@@ -86,7 +88,6 @@ class FC2IE(InfoExtractor):
         thumbnail = None
         if webpage is not None:
             thumbnail = self._og_search_thumbnail(webpage)
-
         refer = url.replace('/content/', '/a/content/') if '/a/content/' not in url else url
 
         mimi = hashlib.md5((video_id + '_gGddgPfeaf_gzyr').encode('utf-8')).hexdigest()
@@ -102,12 +103,8 @@ class FC2IE(InfoExtractor):
         if title_info:
             title = title_info[0]
 
-        video_info_url = 'https://video.fc2.com/api/v3/videoplaylist/{}?sh=1&fs=0'.format(video_id)
-        meta = self._download_json(
-            video_info_url,
-            video_id,
-        )
-        video_url = 'https://video.fc2.com' + meta.get('playlist').get('nq')
+        meta = self._download_json('https://video.fc2.com/api/v3/videoplaylist/%s?sh=1&fs=0' % video_id, video_id)
+        video_url = 'https://video.fc2.com' + try_get(meta, lambda x: x['playlist']['nq'], compat_str)
 
         return {
             'id': video_id,
