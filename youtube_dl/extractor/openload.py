@@ -246,7 +246,7 @@ class OpenloadIE(InfoExtractor):
     _DOMAINS = r'''
                     (?:
                         openload\.(?:co|io|link|pw)|
-                        oload\.(?:tv|best|biz|stream|site|xyz|win|download|cloud|cc|icu|fun|club|info|online|press|pw|life|live|space|services|website|vip)|
+                        oload\.(?:tv|best|biz|stream|site|xyz|win|download|cloud|cc|icu|fun|club|info|online|monster|press|pw|life|live|space|services|website|vip)|
                         oladblock\.(?:services|xyz|me)|openloed\.co
                     )
                 '''
@@ -364,6 +364,9 @@ class OpenloadIE(InfoExtractor):
         'only_matching': True,
     }, {
         'url': 'https://oload.online/f/W8o2UfN1vNY/',
+        'only_matching': True,
+    }, {
+        'url': 'https://oload.monster/f/W8o2UfN1vNY/',
         'only_matching': True,
     }, {
         'url': 'https://oload.press/embed/drTBl1aOTvk/',
