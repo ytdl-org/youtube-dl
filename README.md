@@ -1,5 +1,5 @@
 [![Build Status](https://travis-ci.org/ytdl-org/youtube-dl.svg?branch=master)](https://travis-ci.org/ytdl-org/youtube-dl) 
-[![code helpers](https://www.codetriage.com/rg3/youtube-dl/badges/users.svg)](https://github.com/S-ayanide/youtube-dl/issues)
+[![Open Source Helpers](https://www.codetriage.com/rg3/youtube-dl/badges/users.svg)](https://www.codetriage.com/rg3/youtube-dl)
 
 youtube-dl - download videos from youtube.com or other video platforms
 
