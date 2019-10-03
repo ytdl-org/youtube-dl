@@ -1599,7 +1599,7 @@ class YoutubeDL(object):
         if req_format is None:
             req_format = self._default_format_spec(info_dict, download=download)
             if self.params.get('verbose'):
-                self.to_stdout('[debug] Default format spec: %s' % req_format)
+                self.to_stderr('[debug] Default format spec: %s' % req_format)
 
         format_selector = self.build_format_selector(req_format)
 
@@ -1860,7 +1860,7 @@ class YoutubeDL(object):
                     for ph in self._progress_hooks:
                         fd.add_progress_hook(ph)
                     if self.params.get('verbose'):
-                        self.to_stdout('[debug] Invoking downloader on %r' % info.get('url'))
+                        self.to_stderr('[debug] Invoking downloader on %r' % info.get('url'))
                     return fd.download(name, info)
 
                 if info_dict.get('requested_formats') is not None:
