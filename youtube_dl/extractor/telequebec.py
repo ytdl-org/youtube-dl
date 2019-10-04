@@ -7,6 +7,7 @@ from ..utils import (
     int_or_none,
     smuggle_url,
     try_get,
+    unified_timestamp,
 )
 
 
@@ -68,6 +69,52 @@ class TeleQuebecIE(TeleQuebecBaseIE):
                 media_data.get('durationInMilliseconds'), 1000),
         })
         return info
+
+
+class TeleQuebecSquatIE(InfoExtractor):
+    _VALID_URL = r'https://squat\.telequebec\.tv/videos/(?P<id>\d+)'
+    _TESTS = [{
+        'url': 'https://squat.telequebec.tv/videos/9314',
+        'info_dict': {
+            'id': 'd59ae78112d542e793d83cc9d3a5b530',
+            'ext': 'mp4',
+            'title': 'Poupeflekta',
+            'description': 'md5:2f0718f8d2f8fece1646ee25fb7bce75',
+            'duration': 1351,
+            'timestamp': 1569057600,
+            'upload_date': '20190921',
+            'series': 'Miraculous : Les Aventures de Ladybug et Chat Noir',
+            'season': 'Saison 3',
+            'season_number': 3,
+            'episode_number': 57,
+        },
+        'params': {
+            'skip_download': True,
+        },
+    }]
+
+    def _real_extract(self, url):
+        video_id = self._match_id(url)
+
+        video = self._download_json(
+            'https://squat.api.telequebec.tv/v1/videos/%s' % video_id,
+            video_id)
+
+        media_id = video['sourceId']
+
+        return {
+            '_type': 'url_transparent',
+            'url': 'http://zonevideo.telequebec.tv/media/%s' % media_id,
+            'ie_key': TeleQuebecIE.ie_key(),
+            'id': media_id,
+            'title': video.get('titre'),
+            'description': video.get('description'),
+            'timestamp': unified_timestamp(video.get('datePublication')),
+            'series': video.get('container'),
+            'season': video.get('saison'),
+            'season_number': int_or_none(video.get('noSaison')),
+            'episode_number': int_or_none(video.get('episode')),
+        }
 
 
 class TeleQuebecEmissionIE(TeleQuebecBaseIE):

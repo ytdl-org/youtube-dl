@@ -1129,6 +1129,7 @@ from .telegraaf import TelegraafIE
 from .telemb import TeleMBIE
 from .telequebec import (
     TeleQuebecIE,
+    TeleQuebecSquatIE,
     TeleQuebecEmissionIE,
     TeleQuebecLiveIE,
 )
