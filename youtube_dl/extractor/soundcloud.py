@@ -197,7 +197,7 @@ class SoundcloudIE(InfoExtractor):
                 'skip_download': True,
             },
         },
-        # not avaialble via api.soundcloud.com/i1/tracks/id/streams
+        # not available via api.soundcloud.com/i1/tracks/id/streams
         {
             'url': 'https://soundcloud.com/giovannisarani/mezzo-valzer',
             'md5': 'e22aecd2bc88e0e4e432d7dcc0a1abf7',
@@ -221,7 +221,7 @@ class SoundcloudIE(InfoExtractor):
         }
     ]
 
-    _CLIENT_ID = 'FweeGBOOEOYJWLJN3oEyToGLKhmSz0I7'
+    _CLIENT_ID = 'BeGVhOrGmfboy1LtiHTQF6Ejpt9ULJCI'
 
     @staticmethod
     def _extract_urls(webpage):

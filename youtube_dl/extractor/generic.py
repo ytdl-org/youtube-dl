@@ -2076,6 +2076,22 @@ class GenericIE(InfoExtractor):
             'playlist_count': 6,
         },
         {
+            # Squarespace video embed, 2019-08-28
+            'url': 'http://ootboxford.com',
+            'info_dict': {
+                'id': 'Tc7b_JGdZfw',
+                'title': 'Out of the Blue, at Childish Things 10',
+                'ext': 'mp4',
+                'description': 'md5:a83d0026666cf5ee970f8bd1cfd69c7f',
+                'uploader_id': 'helendouglashouse',
+                'uploader': 'Helen & Douglas House',
+                'upload_date': '20140328',
+            },
+            'params': {
+                'skip_download': True,
+            },
+        },
+        {
             # Zype embed
             'url': 'https://www.cookscountry.com/episode/554-smoky-barbecue-favorites',
             'info_dict': {
@@ -2103,6 +2119,23 @@ class GenericIE(InfoExtractor):
                 'skip_download': True,
             },
             'expected_warnings': ['Failed to download MPD manifest'],
+        },
+        {
+            # DailyMotion embed with DM.player
+            'url': 'https://www.beinsports.com/us/copa-del-rey/video/the-locker-room-valencia-beat-barca-in-copa/1203804',
+            'info_dict': {
+                'id': 'k6aKkGHd9FJs4mtJN39',
+                'ext': 'mp4',
+                'title': 'The Locker Room: Valencia Beat Barca In Copa del Rey Final',
+                'description': 'This video is private.',
+                'uploader_id': 'x1jf30l',
+                'uploader': 'beIN SPORTS USA',
+                'upload_date': '20190528',
+                'timestamp': 1559062971,
+            },
+            'params': {
+                'skip_download': True,
+            },
         },
         # {
         #     # TODO: find another test
@@ -2209,7 +2242,7 @@ class GenericIE(InfoExtractor):
                 default_search = 'fixup_error'
 
             if default_search in ('auto', 'auto_warning', 'fixup_error'):
-                if '/' in url:
+                if re.match(r'^[^\s/]+\.[^\s/]+/', url):
                     self._downloader.report_warning('The url doesn\'t specify the protocol, trying with http')
                     return self.url_result('http://' + url)
                 elif default_search != 'fixup_error':
@@ -2377,6 +2410,12 @@ class GenericIE(InfoExtractor):
         # (e.g. https://github.com/ytdl-org/youtube-dl/issues/2448)
         # Unescaping the whole page allows to handle those cases in a generic way
         webpage = compat_urllib_parse_unquote(webpage)
+
+        # Unescape squarespace embeds to be detected by generic extractor,
+        # see https://github.com/ytdl-org/youtube-dl/issues/21294
+        webpage = re.sub(
+            r'<div[^>]+class=[^>]*?\bsqs-video-wrapper\b[^>]*>',
+            lambda x: unescapeHTML(x.group(0)), webpage)
 
         # it's tempting to parse this further, but you would
         # have to take into account all the variations like

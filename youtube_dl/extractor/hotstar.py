@@ -3,6 +3,7 @@ from __future__ import unicode_literals
 
 import hashlib
 import hmac
+import re
 import time
 import uuid
 
@@ -126,6 +127,8 @@ class HotStarIE(HotStarBaseIE):
             format_url = url_or_none(playback_set.get('playbackUrl'))
             if not format_url:
                 continue
+            format_url = re.sub(
+                r'(?<=//staragvod)(\d)', r'web\1', format_url)
             tags = str_or_none(playback_set.get('tagsCombination')) or ''
             if tags and 'encryption:plain' not in tags:
                 continue
@@ -133,7 +136,8 @@ class HotStarIE(HotStarBaseIE):
             try:
                 if 'package:hls' in tags or ext == 'm3u8':
                     formats.extend(self._extract_m3u8_formats(
-                        format_url, video_id, 'mp4', m3u8_id='hls'))
+                        format_url, video_id, 'mp4',
+                        entry_protocol='m3u8_native', m3u8_id='hls'))
                 elif 'package:dash' in tags or ext == 'mpd':
                     formats.extend(self._extract_mpd_formats(
                         format_url, video_id, mpd_id='dash'))

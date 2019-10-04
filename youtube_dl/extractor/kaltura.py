@@ -103,6 +103,11 @@ class KalturaIE(InfoExtractor):
         {
             'url': 'https://www.kaltura.com:443/index.php/extwidget/preview/partner_id/1770401/uiconf_id/37307382/entry_id/0_58u8kme7/embed/iframe?&flashvars[streamerType]=auto',
             'only_matching': True,
+        },
+        {
+            # unavailable source format
+            'url': 'kaltura:513551:1_66x4rg7o',
+            'only_matching': True,
         }
     ]
 
@@ -306,12 +311,17 @@ class KalturaIE(InfoExtractor):
                     f['fileExt'] = 'mp4'
             video_url = sign_url(
                 '%s/flavorId/%s' % (data_url, f['id']))
+            format_id = '%(fileExt)s-%(bitrate)s' % f
+            # Source format may not be available (e.g. kaltura:513551:1_66x4rg7o)
+            if f.get('isOriginal') is True and not self._is_valid_url(
+                    video_url, entry_id, format_id):
+                continue
             # audio-only has no videoCodecId (e.g. kaltura:1926081:0_c03e1b5g
             # -f mp4-56)
             vcodec = 'none' if 'videoCodecId' not in f and f.get(
                 'frameRate') == 0 else f.get('videoCodecId')
             formats.append({
-                'format_id': '%(fileExt)s-%(bitrate)s' % f,
+                'format_id': format_id,
                 'ext': f.get('fileExt'),
                 'tbr': int_or_none(f['bitrate']),
                 'fps': int_or_none(f.get('frameRate')),

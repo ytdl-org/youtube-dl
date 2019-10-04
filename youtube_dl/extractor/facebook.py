@@ -428,7 +428,7 @@ class FacebookIE(InfoExtractor):
         timestamp = int_or_none(self._search_regex(
             r'<abbr[^>]+data-utime=["\'](\d+)', webpage,
             'timestamp', default=None))
-        thumbnail = self._og_search_thumbnail(webpage)
+        thumbnail = self._html_search_meta(['og:image', 'twitter:image'], webpage)
 
         view_count = parse_count(self._search_regex(
             r'\bviewCount\s*:\s*["\']([\d,.]+)', webpage, 'view count',

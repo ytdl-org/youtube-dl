@@ -58,16 +58,8 @@
  - **ARD:mediathek**
  - **ARDBetaMediathek**
  - **Arkena**
- - **arte.tv**
  - **arte.tv:+7**
- - **arte.tv:cinema**
- - **arte.tv:concert**
- - **arte.tv:creative**
- - **arte.tv:ddc**
  - **arte.tv:embed**
- - **arte.tv:future**
- - **arte.tv:info**
- - **arte.tv:magazine**
  - **arte.tv:playlist**
  - **AsianCrush**
  - **AsianCrushPlaylist**
@@ -231,6 +223,8 @@
  - **DiscoveryNetworksDe**
  - **DiscoveryVR**
  - **Disney**
+ - **dlive:stream**
+ - **dlive:vod**
  - **Dotsub**
  - **DouyuShow**
  - **DouyuTV**: 斗鱼
@@ -313,9 +307,7 @@
  - **FrontendMastersCourse**
  - **FrontendMastersLesson**
  - **Funimation**
- - **FunkChannel**
- - **FunkMix**
- - **FunnyOrDie**
+ - **Funk**
  - **Fusion**
  - **Fux**
  - **FXNetworks**
@@ -458,6 +450,7 @@
  - **linkedin:learning:course**
  - **LinuxAcademy**
  - **LiTV**
+ - **LiveJournal**
  - **LiveLeak**
  - **LiveLeakEmbed**
  - **livestream**
@@ -764,7 +757,6 @@
  - **rtve.es:television**
  - **RTVNH**
  - **RTVS**
- - **Rudo**
  - **RUHD**
  - **rutube**: Rutube videos
  - **rutube:channel**: Rutube channels
@@ -896,7 +888,6 @@
  - **TF1**
  - **TFO**
  - **TheIntercept**
- - **theoperaplatform**
  - **ThePlatform**
  - **ThePlatformFeed**
  - **TheScene**
@@ -1109,6 +1100,7 @@
  - **XFileShare**: XFileShare based sites: DaClips, FileHoot, GorillaVid, MovPod, PowerWatch, Rapidvideo.ws, TheVideoBee, Vidto, Streamin.To, XVIDSTAGE, Vid ABC, VidBom, vidlo, RapidVideo.TV, FastVideo.me
  - **XHamster**
  - **XHamsterEmbed**
+ - **XHamsterUser**
  - **xiami:album**: 虾米音乐 - 专辑
  - **xiami:artist**: 虾米音乐 - 歌手
  - **xiami:collection**: 虾米音乐 - 精选集
@@ -1126,6 +1118,7 @@
  - **Yahoo**: Yahoo screen and movies
  - **yahoo:gyao**
  - **yahoo:gyao:player**
+ - **yahoo:japannews**: Yahoo! Japan News
  - **YandexDisk**
  - **yandexmusic:album**: Яндекс.Музыка - Альбом
  - **yandexmusic:playlist**: Яндекс.Музыка - Плейлист

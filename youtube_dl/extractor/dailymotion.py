@@ -48,7 +48,14 @@ class DailymotionBaseInfoExtractor(InfoExtractor):
 
 
 class DailymotionIE(DailymotionBaseInfoExtractor):
-    _VALID_URL = r'(?i)https?://(?:(www|touch)\.)?dailymotion\.[a-z]{2,3}/(?:(?:(?:embed|swf|#)/)?video|swf)/(?P<id>[^/?_]+)'
+    _VALID_URL = r'''(?ix)
+                    https?://
+                        (?:
+                            (?:(?:www|touch)\.)?dailymotion\.[a-z]{2,3}/(?:(?:(?:embed|swf|\#)/)?video|swf)|
+                            (?:www\.)?lequipe\.fr/video
+                        )
+                        /(?P<id>[^/?_]+)
+                    '''
     IE_NAME = 'dailymotion'
 
     _FORMATS = [
@@ -133,14 +140,26 @@ class DailymotionIE(DailymotionBaseInfoExtractor):
     }, {
         'url': 'http://www.dailymotion.com/swf/x3ss1m_funny-magic-trick-barry-and-stuart_fun',
         'only_matching': True,
+    }, {
+        'url': 'https://www.lequipe.fr/video/x791mem',
+        'only_matching': True,
+    }, {
+        'url': 'https://www.lequipe.fr/video/k7MtHciueyTcrFtFKA2',
+        'only_matching': True,
     }]
 
     @staticmethod
     def _extract_urls(webpage):
+        urls = []
         # Look for embedded Dailymotion player
-        matches = re.findall(
-            r'<(?:(?:embed|iframe)[^>]+?src=|input[^>]+id=[\'"]dmcloudUrlEmissionSelect[\'"][^>]+value=)(["\'])(?P<url>(?:https?:)?//(?:www\.)?dailymotion\.com/(?:embed|swf)/video/.+?)\1', webpage)
-        return list(map(lambda m: unescapeHTML(m[1]), matches))
+        # https://developer.dailymotion.com/player#player-parameters
+        for mobj in re.finditer(
+                r'<(?:(?:embed|iframe)[^>]+?src=|input[^>]+id=[\'"]dmcloudUrlEmissionSelect[\'"][^>]+value=)(["\'])(?P<url>(?:https?:)?//(?:www\.)?dailymotion\.com/(?:embed|swf)/video/.+?)\1', webpage):
+            urls.append(unescapeHTML(mobj.group('url')))
+        for mobj in re.finditer(
+                r'(?s)DM\.player\([^,]+,\s*{.*?video[\'"]?\s*:\s*["\']?(?P<id>[0-9a-zA-Z]+).+?}\s*\);', webpage):
+            urls.append('https://www.dailymotion.com/embed/video/' + mobj.group('id'))
+        return urls
 
     def _real_extract(self, url):
         video_id = self._match_id(url)
