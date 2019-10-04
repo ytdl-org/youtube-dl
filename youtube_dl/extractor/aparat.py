@@ -46,13 +46,12 @@ class AparatIE(InfoExtractor):
                 'http://www.aparat.com/video/video/embed/vt/frame/showvideo/yes/videohash/' + video_id,
                 video_id)
 
-        options = self._parse_json(
+        player = self._parse_json(
             self._search_regex(
                 r'options\s*=\s*JSON\.parse\(\s*(["\'])(?P<value>(?:(?!\1).)+)\1\s*\)',
                 webpage, 'options', group='value'),
             video_id)
 
-        player = options['plugins']['sabaPlayerPlugin']
 
         formats = []
         for sources in player['multiSRC']:
@@ -89,7 +88,8 @@ class AparatIE(InfoExtractor):
 
         return merge_dicts(info, {
             'id': video_id,
-            'thumbnail': url_or_none(options.get('poster')),
+            'thumbnail': url_or_none(player.get('poster')),
             'duration': int_or_none(player.get('duration')),
             'formats': formats,
         })
+ 
