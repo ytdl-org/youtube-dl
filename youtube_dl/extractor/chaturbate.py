@@ -7,7 +7,7 @@ from ..utils import ExtractorError
 
 
 class ChaturbateIE(InfoExtractor):
-    _VALID_URL = r'^https?://(?:[^/]+\.)?chaturbate\.com/(?:fullvideo/\?b=)?(?P<id>[^/?&#]+)'
+    _VALID_URL = r'https?://(?:[^/]+\.)?chaturbate\.com/(?:fullvideo/?\?.*?\bb=)?(?P<id>[^/?&#]+)'
     _TESTS = [{
         'url': 'https://www.chaturbate.com/siswet19/',
         'info_dict': {
