@@ -22,7 +22,13 @@ class TeleQuebecBaseIE(InfoExtractor):
 
 
 class TeleQuebecIE(TeleQuebecBaseIE):
-    _VALID_URL = r'https?://(?:coucou|zonevideo)\.telequebec\.tv/(?:media|videos)/(?P<id>\d+)'
+    _VALID_URL = r'''(?x)
+                    https?://
+                        (?:
+                            zonevideo\.telequebec\.tv/media|
+                            coucou\.telequebec\.tv/videos
+                        )/(?P<id>\d+)
+                    '''
     _TESTS = [{
         # available till 01.01.2023
         'url': 'http://zonevideo.telequebec.tv/media/37578/un-petit-choc-et-puis-repart/un-chef-a-la-cabane',
@@ -42,19 +48,8 @@ class TeleQuebecIE(TeleQuebecBaseIE):
         'url': 'http://zonevideo.telequebec.tv/media/30261',
         'only_matching': True,
     }, {
-        # coucou variant
         'url': 'https://coucou.telequebec.tv/videos/41788/idee-de-genie/l-heure-du-bain',
-        'info_dict': {
-            'id': '350796a9f4ca4010a8fd51e418dc3449',
-            'ext': 'mp4',
-            'title': 'L\'heure du bain',
-            'description': 'md5:d41d8cd98f00b204e9800998ecf8427e',
-            'upload_date': '20181108',
-            'timestamp': 1541705154,
-        },
-        'params': {
-            'skip_download': True,
-        },
+        'only_matching': True,
     }]
 
     def _real_extract(self, url):
