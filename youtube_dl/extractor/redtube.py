@@ -88,15 +88,13 @@ class RedTubeIE(InfoExtractor):
 
         thumbnail = self._og_search_thumbnail(webpage)
         upload_date = unified_strdate(self._search_regex(
-            r'<span[^>]+>ADDED ([^<]+)<',
+            r'"uploadDate":"([^"]+)"',
             webpage, 'upload date', fatal=False))
         duration = int_or_none(self._og_search_property(
             'video:duration', webpage, default=None) or self._search_regex(
                 r'videoDuration\s*:\s*(\d+)', webpage, 'duration', default=None))
         view_count = str_to_int(self._search_regex(
-            (r'<div[^>]*>Views</div>\s*<div[^>]*>\s*([\d,.]+)',
-             r'<span[^>]*>VIEWS</span>\s*</td>\s*<td>\s*([\d,.]+)'),
-            webpage, 'view count', fatal=False))
+            r'"interactionCount":(\d+)', webpage, 'view count', fatal=False))
 
         # No self-labeling, but they describe themselves as
         # "Home of Videos Porno"
