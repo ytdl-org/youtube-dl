@@ -2733,6 +2733,7 @@ class YoutubeDLCookieJar(compat_cookiejar.MozillaCookieJar):
         for cookie in self:
             if cookie.expires is None:
                 cookie.expires = 0
+        compat_cookiejar.MozillaCookieJar.load(self, filename, ignore_discard, ignore_expires)
         compat_cookiejar.MozillaCookieJar.save(self, filename, ignore_discard, ignore_expires)
 
     def load(self, filename=None, ignore_discard=False, ignore_expires=False):
