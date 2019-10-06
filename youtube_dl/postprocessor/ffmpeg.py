@@ -459,9 +459,6 @@ class FFmpegMetadataPP(FFmpegPostProcessor):
             preferred_key = add_info(meta_list, info_list, metadata, self._preferredinfo)
             if preferred_key is None:
                 add_info(meta_list, info_list, metadata, info)
-            else:
-                for info_f in info_list:
-                    info[info_f] = self._preferredinfo[preferred_key]
 
         add('title', ('track', 'title'))
         add('date', 'upload_date')
