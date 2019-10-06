@@ -431,7 +431,6 @@ class FFmpegEmbedSubtitlePP(FFmpegPostProcessor):
 
 
 class FFmpegMetadataPP(FFmpegPostProcessor):
-
     def __init__(self, downloader=None, preferredinfo=None):
         super(FFmpegMetadataPP, self).__init__(downloader)
         self._preferredinfo = preferredinfo if isinstance(preferredinfo, dict) else None
