@@ -27,7 +27,7 @@ class FC2IE(InfoExtractor):
         'md5': 'a6ebe8ebe0396518689d963774a54eb7',
         'info_dict': {
             'id': '20121103kUan1KHs',
-            'ext': 'flv',
+            'ext': 'mp4',
             'title': 'Boxing again with Puff',
         },
     }, {
@@ -103,7 +103,13 @@ class FC2IE(InfoExtractor):
         if title_info:
             title = title_info[0]
 
-        meta = self._download_json('https://video.fc2.com/api/v3/videoplaylist/%s?sh=1&fs=0' % video_id, video_id)
+        meta = self._download_json(
+            'https://video.fc2.com/api/v3/videoplaylist/%s' % video_id,
+            video_id,
+            query={
+                'sh': 1,
+                'fs': 0,
+            })
         video_url = 'https://video.fc2.com' + try_get(meta, lambda x: x['playlist']['nq'], compat_str)
 
         return {
