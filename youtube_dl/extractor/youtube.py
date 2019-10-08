@@ -383,7 +383,6 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                             (?:(?:www|no)\.)?invidiou\.sh/|
                             (?:(?:www|fi|de)\.)?invidious\.snopyta\.org/|
                             (?:www\.)?invidious\.kabi\.tk/|
-                            (?:www\.)?invidious\.enkirton\.net/|
                             (?:www\.)?invidious\.13ad\.de/|
                             (?:www\.)?invidious\.mastodon\.host/|
                             (?:www\.)?invidious\.nixnet\.xyz/|
@@ -391,6 +390,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                             (?:www\.)?tube\.poal\.co/|
                             (?:www\.)?vid\.wxzm\.sx/|
                             (?:www\.)?yt\.elukerio\.org/|
+                            (?:www\.)?yt\.lelux\.fi/|
                             (?:www\.)?kgg2m7yk5aybusll\.onion/|
                             (?:www\.)?qklhadlycap4cnod\.onion/|
                             (?:www\.)?axqzx4s6s54s32yentfqojs3x5i7faxza6xo3ehd4bzzsg2ii4fv2iid\.onion/|

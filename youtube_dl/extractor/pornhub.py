@@ -403,6 +403,15 @@ class PornHubUserIE(PornHubPlaylistBaseIE):
 
 
 class PornHubPagedPlaylistBaseIE(PornHubPlaylistBaseIE):
+    @staticmethod
+    def _has_more(webpage):
+        return re.search(
+            r'''(?x)
+                <li[^>]+\bclass=["\']page_next|
+                <link[^>]+\brel=["\']next|
+                <button[^>]+\bid=["\']moreDataBtn
+            ''', webpage) is not None
+
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
         host = mobj.group('host')
@@ -411,13 +420,11 @@ class PornHubPagedPlaylistBaseIE(PornHubPlaylistBaseIE):
         page = int_or_none(self._search_regex(
             r'\bpage=(\d+)', url, 'page', default=None))
 
-        page_url = self._make_page_url(url)
-
         entries = []
         for page_num in (page, ) if page is not None else itertools.count(1):
             try:
                 webpage = self._download_webpage(
-                    page_url, item_id, 'Downloading page %d' % page_num,
+                    url, item_id, 'Downloading page %d' % page_num,
                     query={'page': page_num})
             except ExtractorError as e:
                 if isinstance(e.cause, compat_HTTPError) and e.cause.code == 404:
@@ -547,18 +554,6 @@ class PornHubPagedVideoListIE(PornHubPagedPlaylistBaseIE):
                 if PornHubIE.suitable(url) or PornHubUserIE.suitable(url) or PornHubUserVideosUploadIE.suitable(url)
                 else super(PornHubPagedVideoListIE, cls).suitable(url))
 
-    def _make_page_url(self, url):
-        return url
-
-    @staticmethod
-    def _has_more(webpage):
-        return re.search(
-            r'''(?x)
-                <li[^>]+\bclass=["\']page_next|
-                <link[^>]+\brel=["\']next|
-                <button[^>]+\bid=["\']moreDataBtn
-            ''', webpage) is not None
-
 
 class PornHubUserVideosUploadIE(PornHubPagedPlaylistBaseIE):
     _VALID_URL = r'(?P<url>https?://(?:[^/]+\.)?(?P<host>pornhub\.(?:com|net))/(?:(?:user|channel)s|model|pornstar)/(?P<id>[^/]+)/videos/upload)'
@@ -572,11 +567,3 @@ class PornHubUserVideosUploadIE(PornHubPagedPlaylistBaseIE):
         'url': 'https://www.pornhub.com/model/zoe_ph/videos/upload',
         'only_matching': True,
     }]
-
-    def _make_page_url(self, url):
-        mobj = re.match(self._VALID_URL, url)
-        return '%s/ajax' % mobj.group('url')
-
-    @staticmethod
-    def _has_more(webpage):
-        return True
