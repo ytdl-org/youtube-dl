@@ -2750,7 +2750,7 @@ class InfoExtractor(object):
                     # Often no height is provided but there is a label in
                     # format like "1080p", "720p SD", or 1080.
                     height = int_or_none(self._search_regex(
-                        r'^(\d{3,4})[pP]?(?:\b|$)', compat_str(source.get('label') or ''),
+                        r'(\d{3,4})[pP]?(?:\b|$)', compat_str(source.get('label') or ''),
                         'height', default=None))
                 a_format = {
                     'url': source_url,
