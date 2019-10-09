@@ -55,10 +55,10 @@ class EmbedThumbnailPP(FFmpegPostProcessor):
             os.remove(encodeFilename(filename))
             os.rename(encodeFilename(temp_filename), encodeFilename(filename))
 
-		if info['ext'] == 'mkv':
-			options = [
-				'-c', 'copy', '-attach', thumbnail_filename, '-metadata:s:t', 'mimetype=image/jpeg']
-			
+        if info['ext'] == 'mkv':
+            options = [
+                '-c', 'copy', '-attach', thumbnail_filename, '-metadata:s:t', 'mimetype=image/jpeg']
+
             self._downloader.to_screen('[ffmpeg] Adding thumbnail to "%s"' % filename)
 
             self.run_ffmpeg_multiple_files([filename], temp_filename, options)
