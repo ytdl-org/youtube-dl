@@ -1,6 +1,7 @@
 [![Build Status](https://travis-ci.org/ytdl-org/youtube-dl.svg?branch=master)](https://travis-ci.org/ytdl-org/youtube-dl)
 [![Open Source Helpers](https://www.codetriage.com/rg3/youtube-dl/badges/users.svg)](https://www.codetriage.com/rg3/youtube-dl)
 
+# Youtube-dl
 
 - [INSTALLATION](#installation)
 - [DESCRIPTION](#description)
