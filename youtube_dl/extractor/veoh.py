@@ -51,6 +51,21 @@ class VeohIE(InfoExtractor):
     }, {
         'url': 'http://www.veoh.com/watch/e152215AJxZktGS',
         'only_matching': True,
+    }, {
+        'url': 'https://www.veoh.com/videos/v16374379WA437rMH',
+        'md5': 'cceb73f3909063d64f4b93d4defca1b3',
+        'info_dict': {
+            'id': 'v16374379WA437rMH',
+            'ext': 'mp4',
+            'title': 'Phantasmagoria 2, pt. 1-3',
+            'description': 'Phantasmagoria: a Puzzle of Flesh',
+            'thumbnail': 'https://fcache.veoh.com/file/f/th16374379.jpg?h=b87b6851eaa47c9421c95ee8d9ffa7ff',
+            'uploader': 'davidspackage',
+            'duration': 968,
+            'age_limit': 18,
+            'categories': ['technology_and_gaming', 'gaming'],
+            'tags': ['puzzle', 'of', 'flesh'],
+        },
     }]
 
     def _extract_video(self, source):
