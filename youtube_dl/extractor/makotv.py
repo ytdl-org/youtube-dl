@@ -5,7 +5,7 @@ from .common import InfoExtractor
 
 from ..utils import (
     update_url_query,
-    urljoin
+    urljoin,
 )
 
 
@@ -29,7 +29,8 @@ class MakoTVIE(InfoExtractor):
         video_id = self._match_id(url)
         webpage = self._download_webpage(url, video_id)
 
-        service = self._download_json(update_url_query(url, {'type': 'service'}), video_id)
+        service_query = {'type': 'service'}
+        service = self._download_json(update_url_query(url, service_query), video_id)
         video = service['root']['video']
 
         config_new = self._download_xml('https://rcs.mako.co.il/flash_swf/players/makoPlayer/configNew.xml', video_id)
@@ -41,7 +42,13 @@ class MakoTVIE(InfoExtractor):
 
         formats = []
         for media in playlist.get('media', []):
-            tickets = self._download_json('https://mass.mako.co.il/ClicksStatistics/entitlementsServicesV2.jsp', video_id, fatal=False, query={'et': 'gt', 'lp': media['url'], 'rv': media['cdn']})
+            tickets_url = 'https://mass.mako.co.il/ClicksStatistics/entitlementsServicesV2.jsp'
+            tickets_query = {
+                'et': 'gt',
+                'lp': media['url'],
+                'rv': media['cdn'],
+            }
+            tickets = self._download_json(tickets_url, video_id, query=tickets_query, fatal=False)
             if tickets is None or tickets.get('status') != 'success':
                 continue
             for ticket in tickets.get('tickets', {}):
@@ -50,7 +57,9 @@ class MakoTVIE(InfoExtractor):
 
         self._sort_formats(formats)
 
-        info = self._search_json_ld(webpage, video_id)
+        info = self._search_json_ld(webpage, video_id, fatal=False)
+        if info is None:
+            info = {}
         info.update({
             'id': video_id,
             'title': self._og_search_title(webpage),
