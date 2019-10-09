@@ -96,6 +96,8 @@ class GloboIE(InfoExtractor):
         video = self._download_json(
             'http://api.globovideos.com/videos/%s/playlist' % video_id,
             video_id)['videos'][0]
+        if video.get('encrypted') is True:
+            raise ExtractorError('This video is DRM protected.', expected=True)
 
         title = video['title']
 
@@ -109,8 +111,8 @@ class GloboIE(InfoExtractor):
             security = self._download_json(
                 'http://security.video.globo.com/videos/%s/hash' % video_id,
                 video_id, 'Downloading security hash for %s' % resource_id, query={
-                    'player': 'flash',
-                    'version': '17.0.0.132',
+                    'player': 'desktop',
+                    'version': '5.19.1',
                     'resource_id': resource_id,
                 })
 
@@ -122,19 +124,18 @@ class GloboIE(InfoExtractor):
                         '%s returned error: %s' % (self.IE_NAME, message), expected=True)
                 continue
 
-            hash_code = security_hash[:2]
-            received_time = security_hash[2:12]
-            received_random = security_hash[12:22]
-            received_md5 = security_hash[22:]
+            assert security_hash[:2] in ('04', '14')
+            received_time = security_hash[3:13]
+            received_md5 = security_hash[24:]
 
             sign_time = compat_str(int(received_time) + 86400)
             padding = '%010d' % random.randint(1, 10000000000)
 
-            md5_data = (received_md5 + sign_time + padding + '0xFF01DD').encode()
+            md5_data = (received_md5 + sign_time + padding + '0xAC10FD').encode()
             signed_md5 = base64.urlsafe_b64encode(hashlib.md5(md5_data).digest()).decode().strip('=')
-            signed_hash = hash_code + received_time + received_random + sign_time + padding + signed_md5
+            signed_hash = security_hash[:23] + sign_time + padding + signed_md5
 
-            signed_url = '%s?h=%s&k=%s' % (resource_url, signed_hash, 'flash')
+            signed_url = '%s?h=%s&k=html5&a=%s&u=%s' % (resource_url, signed_hash, 'F' if video.get('subscriber_only') else 'A', security.get('user') or '')
             if resource_id.endswith('m3u8') or resource_url.endswith('.m3u8'):
                 formats.extend(self._extract_m3u8_formats(
                     signed_url, resource_id, 'mp4', entry_protocol='m3u8_native',
