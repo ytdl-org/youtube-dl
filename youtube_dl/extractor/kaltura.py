@@ -155,11 +155,11 @@ class KalturaIE(InfoExtractor):
                     embed_info[k] = v.strip()
             url = 'kaltura:%(partner_id)s:%(id)s' % embed_info
             escaped_pid = re.escape(embed_info['partner_id'])
-            service_url = re.search(
-                r'<script[^>]+src=["\']((?:https?:)?//.+?)/p/%s/sp/%s00/embedIframeJs' % (escaped_pid, escaped_pid),
+            service_mobj = re.search(
+                r'<script[^>]+src=(["\'])(?P<id>(?:https?:)?//(?:(?!\1).)+)/p/%s/sp/%s00/embedIframeJs' % (escaped_pid, escaped_pid),
                 webpage)
-            if service_url:
-                url = smuggle_url(url, {'service_url': service_url.group(1)})
+            if service_mobj:
+                url = smuggle_url(url, {'service_url': service_mobj.group('id')})
             return url
 
     def _kaltura_api_call(self, video_id, actions, service_url=None, *args, **kwargs):
