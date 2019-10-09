@@ -412,7 +412,8 @@ Alternatively, refer to the [developer instructions](#developer-instructions) fo
     --preferred-info                 References a JSON file that contains the
                                      metadata that will be used preferentially
                                      over the extracted metadata and upated onto
-                                     the output file
+                                     the output file. This argument will only be
+                                     utilized when add-metadata is used
     --metadata-from-title FORMAT     Parse additional metadata like song title /
                                      artist from the video title. The format
                                      syntax is the same as --output. Regular
