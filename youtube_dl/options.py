@@ -819,6 +819,10 @@ def parseOpts(overrideArguments=None):
         action='store_true', dest='addmetadata', default=False,
         help='Write metadata to the video file')
     postproc.add_option(
+        '--preferred-info',
+        dest='preferredinfo', metavar='FILE',
+        help='Override metadata on the outputted file')
+    postproc.add_option(
         '--metadata-from-title',
         metavar='FORMAT', dest='metafromtitle',
         help='Parse additional metadata like song title / artist from the video title. '
