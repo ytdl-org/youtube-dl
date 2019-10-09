@@ -13,7 +13,7 @@ class MakoTVIE(InfoExtractor):
     _VALID_URL = r'https?://(?:www\.)?mako\.co\.il/mako-vod-.+/VOD-(?P<id>[0-9a-f]{18})\.htm'
     _TEST = {
         'url': 'https://www.mako.co.il/mako-vod-keshet/parliament-s1/VOD-5df5a86c1966831006.htm',
-        'md5': 'cd8cdff75390f8521831ec5049841764',
+        'md5': 'd826489500d23d122055a30df0d59cb5',
         'info_dict': {
             'id': '5df5a86c1966831006',
             'ext': 'm3u8',
@@ -49,7 +49,7 @@ class MakoTVIE(InfoExtractor):
                 'rv': media['cdn'],
             }
             tickets = self._download_json(tickets_url, video_id, query=tickets_query, fatal=False)
-            if tickets is None or tickets.get('status') != 'success':
+            if tickets is None or tickets.get('status', '').lower() != 'success':
                 continue
             for ticket in tickets.get('tickets', {}):
                 ticket_url = urljoin('https://makostore-hd.ctedgecdn.net', ticket['url']) + "?" + ticket['ticket']
@@ -65,7 +65,7 @@ class MakoTVIE(InfoExtractor):
             'title': self._og_search_title(webpage),
             'thumbnail': self._og_search_thumbnail(webpage),
             'description': self._og_search_description(webpage),
-            'formats': formats
+            'formats': formats,
         })
 
         return info
