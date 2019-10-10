@@ -4,7 +4,6 @@ from __future__ import unicode_literals
 from .common import InfoExtractor
 from ..utils import (
     js_to_json,
-    smuggle_url,
 )
 
 
@@ -49,14 +48,20 @@ class LA7IE(InfoExtractor):
         webpage = self._download_webpage(url, video_id)
 
         player_data = self._parse_json(
-            self._search_regex(r'videoLa7\(({[^;]+})\);', webpage, 'player data'),
+            self._search_regex(
+                [r'(?s)videoParams\s*=\s*({.+?});', r'videoLa7\(({[^;]+})\);'],
+                webpage, 'player data'),
             video_id, transform_source=js_to_json)
 
+        url = player_data['src']['m3u8']
+        url = url.replace('http://la7-vh.akamaihd.net/i/',
+                          'https://vodpkg.iltrovatore.it/local/dash/')
+        url = url.replace('csmil/master.m3u8', 'urlset/manifest.mpd')
+
+        formats = self._extract_mpd_formats(url, video_id)
+
         return {
-            '_type': 'url_transparent',
-            'url': smuggle_url('kaltura:103:%s' % player_data['vid'], {
-                'service_url': 'http://kdam.iltrovatore.it',
-            }),
+            'formats': formats,
             'id': video_id,
             'title': player_data['title'],
             'description': self._og_search_description(webpage, default=None),
