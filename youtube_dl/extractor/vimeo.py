@@ -68,7 +68,7 @@ class VimeoBaseInfoExtractor(InfoExtractor):
         except ExtractorError as e:
             if isinstance(e.cause, compat_HTTPError) and e.cause.code == 418:
                 raise ExtractorError(
-                    'Unable to log in: bad username or password',
+                    'Unable to log in: bad username or password, use the --video-password option for password protected videos',
                     expected=True)
             raise ExtractorError('Unable to log in')
 
