@@ -6,16 +6,16 @@ from ..compat import compat_urllib_parse_unquote
 
 class EHowIE(InfoExtractor):
     IE_NAME = 'eHow'
-    _VALID_URL = r'https?://(?:www\.)?ehow\.com/[^/_?]*_(?P<id>[0-9]+)'
+    _VALID_URL = r'https?://(?:www\.)?ehow\.com/(?P<id>[0-9]+)'
     _TEST = {
-        'url': 'http://www.ehow.com/video_12245069_hardwood-flooring-basics.html',
+        'url': 'https://www.ehow.com/13718302/diy-colorful-abstract-art-coasters',
         'md5': '9809b4e3f115ae2088440bcb4efbf371',
         'info_dict': {
-            'id': '12245069',
+            'id': '13718302',
             'ext': 'flv',
-            'title': 'Hardwood Flooring Basics',
-            'description': 'Hardwood flooring may be time consuming, but its ultimately a pretty straightforward concept. Learn about hardwood flooring basics with help from a hardware flooring business owner in this free video...',
-            'uploader': 'Erick Nathan',
+            'title': 'DIY Colorful Abstract Art Coasters',
+            'description': 'Not only are these colorful DIY polymer clay coasters super fun to make and practical to have around the house, they\'ll definitely exercise your artistic skills...',
+            'uploader': 'Maya Marin',
         }
     }
 
