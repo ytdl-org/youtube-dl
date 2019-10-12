@@ -50,7 +50,7 @@ class FoxComTrIE(InfoExtractor):
 
         webpage = self._download_webpage(url, video_id)
 
-        title = self._og_search_title(webpage, default=None).strip()
+        title = self._og_search_title(webpage).strip()
 
         m3u8_url = self._html_search_regex(r"videoSrc : '(.*)'",
                                            webpage, 'root_url')
