@@ -370,6 +370,7 @@ from .fourtube import (
 )
 from .fox import FOXIE
 from .fox9 import FOX9IE
+from .foxcomtr import FoxComTrIE
 from .foxgay import FoxgayIE
 from .foxnews import (
     FoxNewsIE,
