@@ -1,8 +1,6 @@
 # coding: utf-8
 from __future__ import unicode_literals
 
-import re
-
 from .common import InfoExtractor
 from ..compat import (
     compat_HTTPError,
@@ -11,6 +9,7 @@ from ..compat import (
 from ..utils import (
     ExtractorError,
     int_or_none,
+    try_get,
     str_or_none,
     urlencode_postdata,
 )
@@ -18,7 +17,8 @@ from ..utils import (
 
 class RoosterTeethIE(InfoExtractor):
     _VALID_URL = r'https?://(?:.+?\.)?roosterteeth\.com/(?:episode|watch)/(?P<id>[^/?#&]+)'
-    _LOGIN_URL = 'https://roosterteeth.com/login'
+    _LOGIN_URL = 'https://auth.roosterteeth.com/oauth/token'
+    _ACCESS_TOKEN = None
     _NETRC_MACHINE = 'roosterteeth'
     _TESTS = [{
         'url': 'http://roosterteeth.com/episode/million-dollars-but-season-2-million-dollars-but-the-game-announcement',
@@ -59,35 +59,31 @@ class RoosterTeethIE(InfoExtractor):
         if username is None:
             return
 
-        login_page = self._download_webpage(
-            self._LOGIN_URL, None,
-            note='Downloading login page',
-            errnote='Unable to download login page')
+        cookie = self._get_cookie('rt_access_token')
+        if cookie and not cookie.is_expired():
+            self._ACCESS_TOKEN = cookie.value
+            return
 
-        login_form = self._hidden_inputs(login_page)
-
-        login_form.update({
-            'username': username,
-            'password': password,
-        })
-
-        login_request = self._download_webpage(
+        response = self._download_json(
             self._LOGIN_URL, None,
             note='Logging in',
-            data=urlencode_postdata(login_form),
-            headers={
-                'Referer': self._LOGIN_URL,
+            errnote='Unable to log in',
+            data=urlencode_postdata({
+                'username': username,
+                'password': password,
+                'client_id': '4338d2b4bdc8db1239360f28e72f0d9ddb1fd01e7a38fbb07b4b1f4ba4564cc5',
+                'grant_type': 'password',
             })
+        )
 
-        if not any(re.search(p, login_request) for p in (
-                r'href=["\']https?://(?:www\.)?roosterteeth\.com/logout"',
-                r'>Sign Out<')):
-            error = self._html_search_regex(
-                r'(?s)<div[^>]+class=(["\']).*?\balert-danger\b.*?\1[^>]*>(?:\s*<button[^>]*>.*?</button>)?(?P<error>.+?)</div>',
-                login_request, 'alert', default=None, group='error')
-            if error:
-                raise ExtractorError('Unable to login: %s' % error, expected=True)
+        self._ACCESS_TOKEN = response.get('access_token')
+        if not self._ACCESS_TOKEN:
             raise ExtractorError('Unable to log in')
+
+        created_at = response.get('created_at', 0)
+        expires_in = response.get('expires_in', 0)
+
+        self._set_cookie('.roosterteeth.com', 'rt_access_token', self._ACCESS_TOKEN, created_at + expires_in)
 
     def _real_initialize(self):
         self._login()
@@ -96,10 +92,14 @@ class RoosterTeethIE(InfoExtractor):
         display_id = self._match_id(url)
         api_episode_url = 'https://svod-be.roosterteeth.com/api/v1/episodes/%s' % display_id
 
+        headers = {}
+        if self._ACCESS_TOKEN:
+            headers['Authorization'] = 'Bearer ' + self._ACCESS_TOKEN
+
         try:
             m3u8_url = self._download_json(
                 api_episode_url + '/videos', display_id,
-                'Downloading video JSON metadata')['data'][0]['attributes']['url']
+                'Downloading video JSON metadata', headers=headers)['data'][0]['attributes']['url']
         except ExtractorError as e:
             if isinstance(e.cause, compat_HTTPError) and e.cause.code == 403:
                 if self._parse_json(e.cause.read().decode(), display_id).get('access') is False:
@@ -113,22 +113,16 @@ class RoosterTeethIE(InfoExtractor):
 
         episode = self._download_json(
             api_episode_url, display_id,
-            'Downloading episode JSON metadata')['data'][0]
+            'Downloading episode JSON metadata', headers=headers)['data'][0]
         attributes = episode['attributes']
         title = attributes.get('title') or attributes['display_title']
         video_id = compat_str(episode['id'])
 
         thumbnails = []
-        for image in episode.get('included', {}).get('images', []):
-            if image.get('type') == 'episode_image':
-                img_attributes = image.get('attributes') or {}
-                for k in ('thumb', 'small', 'medium', 'large'):
-                    img_url = img_attributes.get(k)
-                    if img_url:
-                        thumbnails.append({
-                            'id': k,
-                            'url': img_url,
-                        })
+        for i, size in enumerate(['thumb', 'small', 'medium', 'large']):
+            thumbnail = try_get(episode, lambda x: x['included']['images'][0]['attributes'][size], compat_str)
+            if thumbnail:
+                thumbnails.append({'url': thumbnail, 'id': i})
 
         return {
             'id': video_id,
@@ -146,3 +140,9 @@ class RoosterTeethIE(InfoExtractor):
             'channel_id': attributes.get('channel_id'),
             'duration': int_or_none(attributes.get('length')),
         }
+
+    def _get_cookie(self, name):
+        for cookie in self._downloader.cookiejar:
+            if cookie.name == name:
+                return cookie
+        return None
