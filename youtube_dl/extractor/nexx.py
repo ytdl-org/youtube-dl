@@ -364,6 +364,13 @@ class NexxIE(InfoExtractor):
                     'X-Request-Token': request_token,
                 })
 
+        # some videos have 'bumpers' (ads), the API returns a list in that case
+        if isinstance(video, list):
+            for v in video:
+                if compat_str(v['general']['ID']) == video_id:
+                    # the bumpers have differing IDs
+                    video = v
+                    break
         general = video['general']
         title = general['title']
 

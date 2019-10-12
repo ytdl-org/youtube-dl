@@ -9,13 +9,13 @@ from ..compat import compat_urlparse
 class Tele5IE(InfoExtractor):
     _VALID_URL = r'https?://(?:www\.)?tele5\.de/(?:[^/]+/)*(?P<id>[^/?#&]+)'
     _TESTS = [{
-        'url': 'https://www.tele5.de/mediathek/filme-online/videos?vid=1549416',
+        'url': 'https://www.tele5.de/sea-patrol/ganze-folge/lebenswege/',
         'info_dict': {
-            'id': '1549416',
+            'id': '1630238',
             'ext': 'mp4',
-            'upload_date': '20180814',
-            'timestamp': 1534290623,
-            'title': 'Pandorum',
+            'upload_date': '20190915',
+            'timestamp': 1568553091,
+            'title': 'Lebenswege'
         },
         'params': {
             'skip_download': True,
