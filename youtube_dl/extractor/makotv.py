@@ -8,6 +8,7 @@ from ..utils import (
     urljoin,
     parse_duration,
     int_or_none,
+    merge_dicts,
 )
 
 
@@ -87,29 +88,27 @@ class MakoTVIE(InfoExtractor):
             'formats': formats,
         }
 
+        video_details = playlist.get('videoDetails', {})
+        video_info = {
+            'url': video_details.get('directLink'),
+            'duration': parse_duration(video_details.get('duration')),
+            'view_count': video_details.get('numViews'),
+            'average_rating': video_details.get('rank'),
+            'episode': video_details.get('title'),
+            'episode_number': int_or_none(video_details.get('episodeNumber')),
+            'season': video_details.get('season'),
+        }
+
+        og_info = {
+            'url': self._og_search_url(webpage, fatal=False),
+            'title': self._og_search_title(webpage, fatal=False),
+            'thumbnail': self._og_search_thumbnail(webpage),
+            'description': self._og_search_description(webpage),
+        }
+
         try:
             json_ld = self._search_json_ld(webpage, video_id, fatal=False)
         except ExtractorError:
-            json_ld = None
-        if json_ld is not None:
-            info.update(json_ld)
+            json_ld = {}
 
-        info.update({
-            'url': self._og_search_url(webpage),
-            'title': self._og_search_title(webpage),
-            'thumbnail': self._og_search_thumbnail(webpage),
-            'description': self._og_search_description(webpage),
-        })
-
-        video_details = playlist['videoDetails']
-        info.update({
-            'url': video_details['directLink'],
-            'duration': parse_duration(video_details['duration']),
-            'view_count': video_details['numViews'],
-            'average_rating': video_details['rank'],
-            'episode': video_details['title'],
-            'episode_number': int_or_none(video_details['episodeNumber']),
-            'season': video_details['season'],
-        })
-
-        return info
+        return merge_dicts(info, video_info, og_info, json_ld)
