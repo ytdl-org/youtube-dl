@@ -7,6 +7,7 @@ from ..utils import (
     ExtractorError,
     urljoin,
     parse_duration,
+    int_or_none,
 )
 
 
@@ -107,11 +108,8 @@ class MakoTVIE(InfoExtractor):
             'view_count': video_details['numViews'],
             'average_rating': video_details['rank'],
             'episode': video_details['title'],
+            'episode_number': int_or_none(video_details['episodeNumber']),
             'season': video_details['season'],
         })
-        try:
-            info.update({'episode_number': int(video_details['episodeNumber'])})
-        except ValueError:
-            pass
 
         return info
