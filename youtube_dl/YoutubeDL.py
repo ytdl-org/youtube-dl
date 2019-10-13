@@ -166,6 +166,7 @@ class YoutubeDL(object):
     restrictfilenames: Do not allow "&" and spaces in file names
     ignoreerrors:      Do not stop on download errors.
     force_generic_extractor: Force downloader to use the generic extractor
+    overwrites:        Overwrite all video and metadata files.
     nooverwrites:      Prevent overwriting files.
     playliststart:     Playlist item to start at.
     playlistend:       Playlist item to end at.
@@ -630,6 +631,13 @@ class YoutubeDL(object):
             self.to_screen('[download] %s has already been downloaded' % file_name)
         except UnicodeEncodeError:
             self.to_screen('[download] The file has already been downloaded')
+
+    def report_file_delete(self, file_name):
+        """Report that existing file will be deleted."""
+        try:
+            self.to_screen('Deleting already existent file %s' % file_name)
+        except UnicodeEncodeError:
+            self.to_screen('Deleting already existent file')
 
     def prepare_filename(self, info_dict):
         """Generate the output filename."""
@@ -1903,11 +1911,15 @@ class YoutubeDL(object):
                             'Requested formats are incompatible for merge and will be merged into mkv.')
                     # Ensure filename always has a correct extension for successful merge
                     filename = '%s.%s' % (filename_wo_ext, info_dict['ext'])
-                    if os.path.exists(encodeFilename(filename)):
+                    file_exists = os.path.exists(encodeFilename(filename))
+                    if not self.params.get('overwrites', False) and file_exists:
                         self.to_screen(
                             '[download] %s has already been downloaded and '
                             'merged' % filename)
                     else:
+                        if file_exists:
+                            self.report_file_delete(filename)
+                            os.remove(encodeFilename(filename))
                         for f in requested_formats:
                             new_info = dict(info_dict)
                             new_info.update(f)
@@ -1922,6 +1934,11 @@ class YoutubeDL(object):
                         info_dict['__postprocessors'] = postprocessors
                         info_dict['__files_to_merge'] = downloaded
                 else:
+                    # Delete existing file with --yes-overwrites
+                    if self.params.get('overwrites', False):
+                        if os.path.exists(encodeFilename(filename)):
+                            self.report_file_delete(filename)
+                            os.remove(encodeFilename(filename))
                     # Just a single file
                     success = dl(filename, info_dict)
             except (compat_urllib_error.URLError, compat_http_client.HTTPException, socket.error) as err:

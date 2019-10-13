@@ -237,6 +237,8 @@ Alternatively, refer to the [developer instructions](#developer-instructions) fo
                                      characters, and avoid "&" and spaces in
                                      filenames
     -w, --no-overwrites              Do not overwrite files
+    --yes-overwrites                 Overwrite all video and metadata files.
+                                     This option includes --no-continue.
     -c, --continue                   Force resume of partially downloaded files.
                                      By default, youtube-dl will resume
                                      downloads if possible.

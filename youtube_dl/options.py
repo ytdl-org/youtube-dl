@@ -718,6 +718,10 @@ def parseOpts(overrideArguments=None):
         action='store_true', dest='nooverwrites', default=False,
         help='Do not overwrite files')
     filesystem.add_option(
+        '--yes-overwrites',
+        action='store_true', dest='overwrites', default=False,
+        help='Overwrite all video and metadata files. This option includes --no-continue.')
+    filesystem.add_option(
         '-c', '--continue',
         action='store_true', dest='continue_dl', default=True,
         help='Force resume of partially downloaded files. By default, youtube-dl will resume downloads if possible.')
