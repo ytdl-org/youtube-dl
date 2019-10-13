@@ -85,7 +85,9 @@ class NBCIE(AdobePassIE):
         permalink, video_id = re.match(self._VALID_URL, url).groups()
         permalink = 'http' + compat_urllib_parse_unquote(permalink)
         response = self._download_json(
-            'https://api.nbc.com/v3/videos', video_id, query={
+            # Hardcode the latest v3 API, because 'v3' aliases to v3.0.0 which
+            # does not return metadata for new programs until hours/days later.
+            'https://api.nbc.com/v3.14/videos', video_id, query={
                 'filter[permalink]': permalink,
                 'fields[videos]': 'description,entitlement,episodeNumber,guid,keywords,seasonNumber,title,vChipRating',
                 'fields[shows]': 'shortTitle',
