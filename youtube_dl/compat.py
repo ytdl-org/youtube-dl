@@ -2358,9 +2358,22 @@ try:
     from urllib.parse import unquote_to_bytes as compat_urllib_parse_unquote_to_bytes
     from urllib.parse import unquote as compat_urllib_parse_unquote
     from urllib.parse import unquote_plus as compat_urllib_parse_unquote_plus
+    from urllib.parse import quote as _compat_urllib_parse_quote
+
+    def compat_urllib_parse_quote(string, safe='~/', encoding=None, errors=None):
+        return _compat_urllib_parse_quote(string, safe, encoding, errors)
+
 except ImportError:  # Python 2
     _asciire = (compat_urllib_parse._asciire if hasattr(compat_urllib_parse, '_asciire')
                 else re.compile(r'([\x00-\x7f]+)'))
+
+    _always_safe = ('ABCDEFGHIJKLMNOPQRSTUVWXYZ'
+                   'abcdefghijklmnopqrstuvwxyz'
+                   '0123456789' '_.-')
+    _safe_map = {}
+    for i, c in zip(xrange(256), str(bytearray(xrange(256)))):
+        _safe_map[c] = c if (i < 128 and c in _always_safe) else '%{0:02X}'.format(i)
+    _safe_quoters = {}
 
     # HACK: The following are the correct unquote_to_bytes, unquote and unquote_plus
     # implementations from cpython 3.4.3's stdlib. Python 2's version
@@ -2423,6 +2436,45 @@ except ImportError:  # Python 2
         """
         string = string.replace('+', ' ')
         return compat_urllib_parse_unquote(string, encoding, errors)
+
+    def compat_urllib_parse_quote(s, safe='~/'):
+        """quote('abc def') -> 'abc%20def'
+
+        Each part of a URL, e.g. the path info, the query, etc., has a
+        different set of reserved characters that must be quoted.
+
+        RFC 2396 Uniform Resource Identifiers (URI): Generic Syntax lists
+        the following reserved characters.
+
+        reserved    = ";" | "/" | "?" | ":" | "@" | "&" | "=" | "+" |
+                      "$" | ","
+
+        Each of these characters is reserved in some component of a URL,
+        but not necessarily in all of them.
+
+        By default, the quote function is intended for quoting the path
+        section of a URL.  Thus, it will not encode '/'.  This character
+        is reserved, but in typical usage the quote function is being
+        called on a path where the existing slash characters are used as
+        reserved characters.
+        """
+        # fastpath
+        if not s:
+            if s is None:
+                raise TypeError('None object cannot be quoted')
+            return s
+        cachekey = (safe, _always_safe)
+        try:
+            (quoter, safe) = _safe_quoters[cachekey]
+        except KeyError:
+            safe_map = _safe_map.copy()
+            safe_map.update([(c, c) for c in safe])
+            quoter = safe_map.__getitem__
+            safe = _always_safe + safe
+            _safe_quoters[cachekey] = (quoter, safe)
+        if not s.rstrip(safe):
+            return s
+        return ''.join(map(quoter, s))
 
 try:
     from urllib.parse import urlencode as compat_urllib_parse_urlencode
@@ -3009,6 +3061,7 @@ __all__ = [
     'compat_tokenize_tokenize',
     'compat_urllib_error',
     'compat_urllib_parse',
+    'compat_urllib_parse_quote',
     'compat_urllib_parse_unquote',
     'compat_urllib_parse_unquote_plus',
     'compat_urllib_parse_unquote_to_bytes',

@@ -21,6 +21,7 @@ from youtube_dl.compat import (
     compat_struct_unpack,
     compat_urllib_parse_unquote,
     compat_urllib_parse_unquote_plus,
+    compat_urllib_parse_quote,
     compat_urllib_parse_urlencode,
 )
 
@@ -75,6 +76,15 @@ class TestCompat(unittest.TestCase):
     def test_compat_urllib_parse_unquote_plus(self):
         self.assertEqual(compat_urllib_parse_unquote_plus('abc%20def'), 'abc def')
         self.assertEqual(compat_urllib_parse_unquote_plus('%7e/abc+def'), '~/abc def')
+
+    def test_compat_urllib_parse_quote(self):
+        self.assertEqual(compat_urllib_parse_quote('abc def'), 'abc%20def')
+        self.assertEqual(compat_urllib_parse_quote('~/abc+def'), '~/abc%2Bdef')
+        self.assertEqual(compat_urllib_parse_quote(''), '')
+        self.assertEqual(compat_urllib_parse_quote('%'), '%25')
+        self.assertEqual(compat_urllib_parse_quote('%%'), '%25%25')
+        self.assertEqual(compat_urllib_parse_quote('%%%'), '%25%25%25')
+        self.assertEqual(compat_urllib_parse_quote('/'), '/')
 
     def test_compat_urllib_parse_urlencode(self):
         self.assertEqual(compat_urllib_parse_urlencode({'abc': 'def'}), 'abc=def')

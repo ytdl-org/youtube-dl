@@ -12,6 +12,7 @@ from ..compat import (
     compat_etree_fromstring,
     compat_str,
     compat_urllib_parse_unquote,
+    compat_urllib_parse_quote,
     compat_urlparse,
     compat_xml_parse_error,
 )
@@ -2405,6 +2406,13 @@ class GenericIE(InfoExtractor):
         if camtasia_res is not None:
             return camtasia_res
 
+        # We don't want strings to be unescaped, so escape them
+        # in order to transparently pass through the next unquote
+        # see https://github.com/ytdl-org/youtube-dl/issues/22704
+        webpage = re.sub(
+            "\"(.*?)\"",
+            lambda x: "\"" + compat_urllib_parse_quote(x.group(1)) + "\"",
+            webpage)
         # Sometimes embedded video player is hidden behind percent encoding
         # (e.g. https://github.com/ytdl-org/youtube-dl/issues/2448)
         # Unescaping the whole page allows to handle those cases in a generic way
