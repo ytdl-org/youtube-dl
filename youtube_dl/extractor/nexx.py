@@ -295,13 +295,23 @@ class NexxIE(InfoExtractor):
 
         video = None
 
+        def find_video(result):
+            if isinstance(result, dict):
+                return result
+            elif isinstance(result, list):
+                vid = int(video_id)
+                for v in result:
+                    if try_get(v, lambda x: x['general']['ID'], int) == vid:
+                        return v
+            return None
+
         response = self._download_json(
             'https://arc.nexx.cloud/api/video/%s.json' % video_id,
             video_id, fatal=False)
         if response and isinstance(response, dict):
             result = response.get('result')
-            if result and isinstance(result, dict):
-                video = result
+            if result:
+                video = find_video(result)
 
         # not all videos work via arc, e.g. nexx:741:1269984
         if not video:
@@ -348,7 +358,7 @@ class NexxIE(InfoExtractor):
             request_token = hashlib.md5(
                 ''.join((op, domain_id, secret)).encode('utf-8')).hexdigest()
 
-            video = self._call_api(
+            result = self._call_api(
                 domain_id, 'videos/%s/%s' % (op, video_id), video_id, data={
                     'additionalfields': 'language,channel,actors,studio,licenseby,slug,subtitle,teaser,description',
                     'addInteractionOptions': '1',
@@ -363,6 +373,7 @@ class NexxIE(InfoExtractor):
                     'X-Request-CID': cid,
                     'X-Request-Token': request_token,
                 })
+            video = find_video(result)
 
         general = video['general']
         title = general['title']
