@@ -23,7 +23,6 @@ from ..utils import (
     NO_DEFAULT,
     OnDemandPagedList,
     parse_filesize,
-    qualities,
     RegexNotFoundError,
     sanitized_Request,
     smuggle_url,
@@ -211,6 +210,7 @@ class VimeoBaseInfoExtractor(InfoExtractor):
         video_uploader_url = owner.get('url')
 
         return {
+            'id': video_id,
             'title': self._live_title(video_title) if is_live else video_title,
             'uploader': owner.get('name'),
             'uploader_id': video_uploader_url.split('/')[-1] if video_uploader_url else None,
@@ -730,7 +730,6 @@ class VimeoIE(VimeoBaseInfoExtractor):
         channel_url = 'https://vimeo.com/channels/%s' % channel_id if channel_id else None
 
         info_dict = {
-            'id': video_id,
             'formats': formats,
             'timestamp': unified_timestamp(timestamp),
             'description': video_description,
@@ -1061,7 +1060,6 @@ class VimeoReviewIE(VimeoBaseInfoExtractor):
         if source_format:
             info_dict['formats'].append(source_format)
         self._vimeo_sort_formats(info_dict['formats'])
-        info_dict['id'] = video_id
         return info_dict
 
 
@@ -1115,94 +1113,17 @@ class VimeoLikesIE(VimeoChannelIE):
         return self._extract_videos(user_id, 'https://vimeo.com/%s/likes' % user_id)
 
 
-class VHXEmbedIE(InfoExtractor):
+class VHXEmbedIE(VimeoBaseInfoExtractor):
     IE_NAME = 'vhx:embed'
     _VALID_URL = r'https?://embed\.vhx\.tv/videos/(?P<id>\d+)'
-
-    def _call_api(self, video_id, access_token, path='', query=None):
-        return self._download_json(
-            'https://api.vhx.tv/videos/' + video_id + path, video_id, headers={
-                'Authorization': 'Bearer ' + access_token,
-            }, query=query)
 
     def _real_extract(self, url):
         video_id = self._match_id(url)
         webpage = self._download_webpage(url, video_id)
-        credentials = self._parse_json(self._search_regex(
-            r'(?s)credentials\s*:\s*({.+?}),', webpage,
-            'config'), video_id, js_to_json)
-        access_token = credentials['access_token']
-
-        query = {}
-        for k, v in credentials.items():
-            if k in ('authorization', 'authUserToken', 'ticket') and v and v != 'undefined':
-                if k == 'authUserToken':
-                    query['auth_user_token'] = v
-                else:
-                    query[k] = v
-        files = self._call_api(video_id, access_token, '/files', query)
-
-        formats = []
-        for f in files:
-            href = try_get(f, lambda x: x['_links']['source']['href'])
-            if not href:
-                continue
-            method = f.get('method')
-            if method == 'hls':
-                formats.extend(self._extract_m3u8_formats(
-                    href, video_id, 'mp4', 'm3u8_native',
-                    m3u8_id='hls', fatal=False))
-            elif method == 'dash':
-                formats.extend(self._extract_mpd_formats(
-                    href, video_id, mpd_id='dash', fatal=False))
-            else:
-                fmt = {
-                    'filesize': int_or_none(try_get(f, lambda x: x['size']['bytes'])),
-                    'format_id': 'http',
-                    'preference': 1,
-                    'url': href,
-                    'vcodec': f.get('codec'),
-                }
-                quality = f.get('quality')
-                if quality:
-                    fmt.update({
-                        'format_id': 'http-' + quality,
-                        'height': int_or_none(self._search_regex(r'(\d+)p', quality, 'height', default=None)),
-                    })
-                formats.append(fmt)
-        self._sort_formats(formats)
-
-        video_data = self._call_api(video_id, access_token)
-        title = video_data.get('title') or video_data['name']
-
-        subtitles = {}
-        for subtitle in try_get(video_data, lambda x: x['tracks']['subtitles'], list) or []:
-            lang = subtitle.get('srclang') or subtitle.get('label')
-            for _link in subtitle.get('_links', {}).values():
-                href = _link.get('href')
-                if not href:
-                    continue
-                subtitles.setdefault(lang, []).append({
-                    'url': href,
-                })
-
-        q = qualities(['small', 'medium', 'large', 'source'])
-        thumbnails = []
-        for thumbnail_id, thumbnail_url in video_data.get('thumbnail', {}).items():
-            thumbnails.append({
-                'id': thumbnail_id,
-                'url': thumbnail_url,
-                'preference': q(thumbnail_id),
-            })
-
-        return {
-            'id': video_id,
-            'title': title,
-            'description': video_data.get('description'),
-            'duration': int_or_none(try_get(video_data, lambda x: x['duration']['seconds'])),
-            'formats': formats,
-            'subtitles': subtitles,
-            'thumbnails': thumbnails,
-            'timestamp': unified_timestamp(video_data.get('created_at')),
-            'view_count': int_or_none(video_data.get('plays_count')),
-        }
+        config_url = self._parse_json(self._search_regex(
+            r'window\.OTTData\s*=\s*({.+})', webpage,
+            'ott data'), video_id, js_to_json)['config_url']
+        config = self._download_json(config_url, video_id)
+        info = self._parse_config(config, video_id)
+        self._vimeo_sort_formats(info['formats'])
+        return info
