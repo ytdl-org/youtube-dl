@@ -195,6 +195,7 @@ class Aria2cFD(ExternalFD):
         cmd += self._option('--all-proxy', 'proxy')
         cmd += self._bool_option('--check-certificate', 'nocheckcertificate', 'false', 'true', '=')
         cmd += self._bool_option('--remote-time', 'updatetime', 'true', 'false', '=')
+        cmd += self._valueless_option('--quiet', 'noprogress')
         cmd += ['--', info_dict['url']]
         return cmd
 
