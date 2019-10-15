@@ -45,9 +45,18 @@ class WDRIE(InfoExtractor):
         media_resource = metadata['mediaResource']
 
         formats = []
+        subtitles = {}
 
         # check if the metadata contains a direct URL to a file
         for kind, media_resource in media_resource.items():
+            if kind == 'captionsHash':
+                for ext, url in media_resource.items():
+                    subtitles.setdefault('de', []).append({
+                        'url': url,
+                        'ext': ext,
+                    })
+                continue
+
             if kind not in ('dflt', 'alt'):
                 continue
 
@@ -80,14 +89,6 @@ class WDRIE(InfoExtractor):
                     formats.append(a_format)
 
         self._sort_formats(formats)
-
-        subtitles = {}
-        caption_url = media_resource.get('captionURL')
-        if caption_url:
-            subtitles['de'] = [{
-                'url': caption_url,
-                'ext': 'ttml',
-            }]
 
         title = tracker_data['trackerClipTitle']
 
