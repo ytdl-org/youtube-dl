@@ -1,3 +1,39 @@
+version 2019.10.16
+
+Core
+* [extractor/common] Make _is_valid_url more relaxed
+
+Extractors
+* [vimeo] Improve album videos id extraction (#22599)
++ [globo] Extract subtitles (#22713)
+* [bokecc] Improve player params extraction (#22638)
+* [nexx] Handle result list (#22666)
+* [vimeo] Fix VHX embed extraction
+* [nbc] Switch to graphql API (#18581, #22693, #22701)
+- [vessel] Remove extractor
+- [promptfile] Remove extractor (#6239)
+* [kaltura] Fix service URL extraction (#22658)
+* [kaltura] Fix embed info strip (#22658)
+* [globo] Fix format extraction (#20319)
+* [redtube] Improve metadata extraction (#22492, #22615)
+* [pornhub:uservideos:upload] Fix extraction (#22619)
++ [telequebec:squat] Add support for squat.telequebec.tv (#18503)
+- [wimp] Remove extractor (#22088, #22091)
++ [gfycat] Extend URL regular expression (#22225)
++ [chaturbate] Extend URL regular expression (#22309)
+* [peertube] Update instances (#22414)
++ [telequebec] Add support for coucou.telequebec.tv (#22482)
++ [xvideos] Extend URL regular expression (#22471)
+- [youtube] Remove support for invidious.enkirton.net (#22543)
++ [openload] Add support for oload.monster (#22592)
+* [nrktv:seriebase] Fix extraction (#22596)
++ [youtube] Add support for yt.lelux.fi (#22597)
+* [orf:tvthek] Make manifest requests non fatal (#22578)
+* [teachable] Skip login when already logged in (#22572)
+* [viewlift] Improve extraction (#22545)
+* [nonktube] Fix extraction (#22544)
+
+
 version 2019.09.28
 
 Core
