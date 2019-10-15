@@ -938,7 +938,7 @@ class VimeoAlbumIE(VimeoChannelIE):
     def _fetch_page(self, album_id, authorizaion, hashed_pass, page):
         api_page = page + 1
         query = {
-            'fields': 'link',
+            'fields': 'link,uri',
             'page': api_page,
             'per_page': self._PAGE_SIZE,
         }
@@ -953,7 +953,9 @@ class VimeoAlbumIE(VimeoChannelIE):
             link = video.get('link')
             if not link:
                 continue
-            yield self.url_result(link, VimeoIE.ie_key(), VimeoIE._match_id(link))
+            uri = video.get('uri')
+            video_id = self._search_regex(r'/videos/(\d+)', uri, 'video_id', default=None) if uri else None
+            yield self.url_result(link, VimeoIE.ie_key(), video_id)
 
     def _real_extract(self, url):
         album_id = self._match_id(url)
