@@ -102,10 +102,18 @@ class GloboIE(InfoExtractor):
         title = video['title']
 
         formats = []
+        subtitles = {}
         for resource in video['resources']:
             resource_id = resource.get('_id')
             resource_url = resource.get('url')
-            if not resource_id or not resource_url:
+            resource_type = resource.get('type')
+            if not resource_url or (resource_type == 'media' and not resource_id) or resource_type not in ('subtitle', 'media'):
+                continue
+
+            if resource_type == 'subtitle':
+                subtitles.setdefault(resource.get('language') or 'por', []).append({
+                    'url': resource_url,
+                })
                 continue
 
             security = self._download_json(
@@ -165,7 +173,8 @@ class GloboIE(InfoExtractor):
             'duration': duration,
             'uploader': uploader,
             'uploader_id': uploader_id,
-            'formats': formats
+            'formats': formats,
+            'subtitles': subtitles,
         }
 
 
