@@ -65,30 +65,6 @@ class TechTVMITIE(InfoExtractor):
         }
 
 
-class MITIE(TechTVMITIE):
-    IE_NAME = 'video.mit.edu'
-    _VALID_URL = r'https?://video\.mit\.edu/watch/(?P<title>[^/]+)'
-
-    _TEST = {
-        'url': 'http://video.mit.edu/watch/the-government-is-profiling-you-13222/',
-        'md5': '7db01d5ccc1895fc5010e9c9e13648da',
-        'info_dict': {
-            'id': '21783',
-            'ext': 'mp4',
-            'title': 'The Government is Profiling You',
-            'description': 'md5:ad5795fe1e1623b73620dbfd47df9afd',
-        },
-    }
-
-    def _real_extract(self, url):
-        mobj = re.match(self._VALID_URL, url)
-        page_title = mobj.group('title')
-        webpage = self._download_webpage(url, page_title)
-        embed_url = self._search_regex(
-            r'<iframe .*?src="(.+?)"', webpage, 'embed url')
-        return self.url_result(embed_url)
-
-
 class OCWMITIE(InfoExtractor):
     IE_NAME = 'ocw.mit.edu'
     _VALID_URL = r'^https?://ocw\.mit\.edu/courses/(?P<topic>[a-z0-9\-]+)'
