@@ -248,7 +248,7 @@ class TwitchVodIE(TwitchItemBaseIE):
                     https?://
                         (?:
                             (?:(?:www|go|m)\.)?twitch\.tv/(?:[^/]+/v(?:ideo)?|videos)/|
-                            player\.twitch\.tv/\?.*?\bvideo=v
+                            player\.twitch\.tv/\?.*?\bvideo=v?
                         )
                         (?P<id>\d+)
                     '''
@@ -305,6 +305,9 @@ class TwitchVodIE(TwitchItemBaseIE):
         'only_matching': True,
     }, {
         'url': 'https://www.twitch.tv/northernlion/video/291940395',
+        'only_matching': True,
+    }, {
+        'url': 'https://player.twitch.tv/?video=480452374',
         'only_matching': True,
     }]
 
