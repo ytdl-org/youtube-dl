@@ -1814,7 +1814,7 @@ class YoutubeDL(object):
             ie = self.get_info_extractor(info_dict['extractor_key'])
             for sub_lang, sub_info in subtitles.items():
                 sub_format = sub_info['ext']
-                sub_filename = subtitles_filename(filename, sub_lang, sub_format)
+                sub_filename = subtitles_filename(filename, sub_lang, sub_format, info_dict.get('ext'))
                 if self.params.get('nooverwrites', False) and os.path.exists(encodeFilename(sub_filename)):
                     self.to_screen('[info] Video subtitle %s.%s is already present' % (sub_lang, sub_format))
                 else:

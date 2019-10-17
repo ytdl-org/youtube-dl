@@ -2906,8 +2906,8 @@ def determine_ext(url, default_ext='unknown_video'):
         return default_ext
 
 
-def subtitles_filename(filename, sub_lang, sub_format):
-    return filename.rsplit('.', 1)[0] + '.' + sub_lang + '.' + sub_format
+def subtitles_filename(filename, sub_lang, sub_format, expected_real_ext=None):
+    return replace_extension(filename, sub_lang + '.' + sub_format, expected_real_ext)
 
 
 def date_from_str(date_str):
