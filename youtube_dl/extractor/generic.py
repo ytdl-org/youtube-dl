@@ -2962,10 +2962,14 @@ class GenericIE(InfoExtractor):
 
         # Look for Mangomolo embeds
         mobj = re.search(
-            r'''(?x)<iframe[^>]+src=(["\'])(?P<url>(?:https?:)?//(?:www\.)?admin\.mangomolo\.com/analytics/index\.php/customers/embed/
+            r'''(?x)<iframe[^>]+src=(["\'])(?P<url>(?:https?:)?//
+                (?:
+                    admin\.mangomolo\.com/analytics/index\.php/customers/embed|
+                    player\.mangomolo\.com/v1
+                )/
                 (?:
                     video\?.*?\bid=(?P<video_id>\d+)|
-                    index\?.*?\bchannelid=(?P<channel_id>(?:[A-Za-z0-9+/=]|%2B|%2F|%3D)+)
+                    (?:index|live)\?.*?\bchannelid=(?P<channel_id>(?:[A-Za-z0-9+/=]|%2B|%2F|%3D)+)
                 ).+?)\1''', webpage)
         if mobj is not None:
             info = {
