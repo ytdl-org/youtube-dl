@@ -23,7 +23,7 @@ class VRTIE(InfoExtractor):
             'id': 'pbs-pub-7855fc7b-1448-49bc-b073-316cb60caa71$vid-2ca50305-c38a-4762-9890-65cbd098b7bd',
             'ext': 'mp4',
             'title': 'Beelden van binnenkant Notre-Dame, één maand na de brand',
-            'description': 'Op maandagavond 15 april ging een deel van het dakgebinte van de Parijse kathedraal in vlammen op.',
+            'description': 'Intussen is overigens gebleken dat een groot deel van het geld voor de herstelling nog altijd niet binnen is.',
             'timestamp': 1557924660,
             'upload_date': '20190515',
             'duration': 31.2,
@@ -55,7 +55,7 @@ class VRTIE(InfoExtractor):
         site, display_id = re.match(self._VALID_URL, url).groups()
         webpage = self._download_webpage(url, display_id)
         attrs = extract_attributes(self._search_regex(
-            r'(<[^>]+class="vrtvideo"[^>]*>)', webpage, 'vrt video'))
+            r'(<[^>]+class="vrtvideo[^>]*>)', webpage, 'vrt video'))
 
         asset_id = attrs['data-videoid']
         publication_id = attrs.get('data-publicationid')
