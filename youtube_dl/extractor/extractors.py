@@ -231,6 +231,7 @@ from .commonprotocols import (
     RtmpIE,
 )
 from .condenast import CondeNastIE
+from .contv import CONtvIE
 from .corus import CorusIE
 from .cracked import CrackedIE
 from .crackle import CrackleIE
@@ -1322,7 +1323,6 @@ from .viewlift import (
     ViewLiftIE,
     ViewLiftEmbedIE,
 )
-from .viewster import ViewsterIE
 from .viidea import ViideaIE
 from .vimeo import (
     VimeoIE,
