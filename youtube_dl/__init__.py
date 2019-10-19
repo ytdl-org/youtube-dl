@@ -297,6 +297,11 @@ def _real_main(argv=None):
     # contents
     if opts.xattrs:
         postprocessors.append({'key': 'XAttrMetadata'})
+    # Print the final file name close to the end
+    if opts.print_final_file:
+        postprocessors.append({
+            'key': 'PrintFilePath'
+        })
     # Please keep ExecAfterDownload towards the bottom as it allows the user to modify the final file in any way.
     # So if the user is able to remove the file before your postprocessor runs it might cause a few problems.
     if opts.exec_cmd:

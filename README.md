@@ -439,6 +439,8 @@ Alternatively, refer to the [developer instructions](#developer-instructions) fo
                                      /sdcard/Music/ && rm {}'
     --convert-subs FORMAT            Convert the subtitles to other format
                                      (currently supported: srt|ass|vtt|lrc)
+    --print-final-file               Print the final output file name after
+                                     post-processing.
 
 # CONFIGURATION
 

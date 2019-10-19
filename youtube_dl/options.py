@@ -858,6 +858,10 @@ def parseOpts(overrideArguments=None):
         '--convert-subs', '--convert-subtitles',
         metavar='FORMAT', dest='convertsubtitles', default=None,
         help='Convert the subtitles to other format (currently supported: srt|ass|vtt|lrc)')
+    postproc.add_option(
+        '--print-final-file',
+        action='store_true', dest='print_final_file', default=False,
+        help='Print the final output file name after post-processing.')
 
     parser.add_option_group(general)
     parser.add_option_group(network)
