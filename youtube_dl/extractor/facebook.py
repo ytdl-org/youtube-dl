@@ -405,6 +405,11 @@ class FacebookIE(InfoExtractor):
         if not formats:
             raise ExtractorError('Cannot find video formats')
 
+        # Downloads with browser's User-Agent are rate limited. Working around
+        # with non-browser User-Agent.
+        for f in formats:
+            f.setdefault('http_headers', {})['User-Agent'] = 'facebookexternalhit/1.1'
+
         self._sort_formats(formats)
 
         video_title = self._html_search_regex(
