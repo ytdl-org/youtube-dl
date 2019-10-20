@@ -1922,6 +1922,18 @@ class YoutubeDL(object):
                         info_dict['__files_to_merge'] = downloaded
                 else:
                     # Just a single file
+                    if self.params.get('nooverwrites', False) and self.params['postprocessors']:
+                        # check if the postprocessed files already exists
+                        filename_real_ext = os.path.splitext(filename)[1][1:]
+                        filename_wo_ext = (
+                            os.path.splitext(filename)[0]
+                            if filename_real_ext == info_dict['ext']
+                            else filename)
+                        files = ['%s.%s' % (filename_wo_ext, pp['preferredcodec']) for pp in self.params['postprocessors']]
+                        files = [f for f in files if os.path.exists(f)]
+                        if files:
+                            self.to_screen('[info] File(s) %s already present' % ", ".join(repr(f) for f in files))
+                            return
                     success = dl(filename, info_dict)
             except (compat_urllib_error.URLError, compat_http_client.HTTPException, socket.error) as err:
                 self.report_error('unable to download video data: %s' % error_to_compat_str(err))
