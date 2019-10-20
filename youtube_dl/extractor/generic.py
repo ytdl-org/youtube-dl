@@ -2183,6 +2183,7 @@ class GenericIE(InfoExtractor):
                 '_type': 'url_transparent',
                 'url': next_url,
                 'title': it.find('title').text,
+                'publish_date': unified_strdate(it.find('pubDate').text),
             })
 
         return {
