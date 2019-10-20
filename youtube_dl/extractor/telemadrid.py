@@ -9,18 +9,44 @@ from ..utils import int_or_none
 
 class TelemadridIE(InfoExtractor):
     _VALID_URL = r'https?://(?:www\.)?telemadrid\.es/[^/]+/[^/]+/(?P<display_id>.+?)--\d+.html'
-    _TEST = {
-        'url': 'http://www.telemadrid.es/programas/120-minutos/minutos-Parte-uno-2-2165803426--20191008033109.html',
-        'info_dict': {
-            'id': '6093135605001',
-            'ext': 'mp4',
-            'title': '120 minutos 08.10.2019 (Parte 1)',
-            'description': 'md5:eea20844c4aef07638b53d8f40fe8e23',
-            'thumbnail': r're:^https?://images.telemadrid.es/2019/10/08/programas/120-minutos/minutos-Parte-uno_2165803426_7312298_1920x1080.jpg$',
-            'timestamp': 1570541701,
-            'upload_date': '20191008'
+    _TESTS = [
+        {
+            'url': 'http://www.telemadrid.es/programas/telenoticias-fin-de-semana/cerca-lejos-nuevo-Klapisch-2-2169403070--20191020083747.html',
+            'info_dict': {
+                'id': '6096258464001',
+                'ext': 'mp4',
+                'title': '&#039;Tan cerca, tan lejos&#039;, lo nuevo de Klapisch',
+                'description': 'md5:10ac0514bdbdeeea9de495ae0720c6ff',
+                'thumbnail': r're:^https?://images.telemadrid.es/2019/10/20/programas/telenoticias-fin-de-semana/cerca-lejos-nuevo-Klapisch_2169403070_7342970_1300x813.png$',
+                'timestamp': 1571596692,
+                'upload_date': '20191020'
+            }
+        },
+        {
+            'url': 'http://www.telemadrid.es/programas/telenoticias-fin-de-semana/Doce-detenidos-altercados-registrados-Madrid-2-2169403042--20191020100828.html',
+            'info_dict': {
+                'id': '6096226698001',
+                'ext': 'mp4',
+                'title': 'Doce detenidos en los altercados registrados en el centro de Madrid',
+                'description': 'md5:77a37a10cfe8b8cd595d11bf762e90da',
+                'thumbnail': r're:^https?://images.telemadrid.es/2019/10/20/programas/telenoticias-fin-de-semana/Doce-detenidos-altercados-registrados-Madrid_2169403042_7342376_4000x2666.jpg$',
+                'timestamp': 1571573534,
+                'upload_date': '20191020'
+            }
+        },
+        {
+            'url': 'http://www.telemadrid.es/programas/120-minutos/minutos-Parte-uno-2-2165803426--20191008033109.html',
+            'info_dict': {
+                'id': '6093135605001',
+                'ext': 'mp4',
+                'title': '120 minutos 08.10.2019 (Parte 1)',
+                'description': 'md5:eea20844c4aef07638b53d8f40fe8e23',
+                'thumbnail': r're:^https?://images.telemadrid.es/2019/10/08/programas/120-minutos/minutos-Parte-uno_2165803426_7312298_1920x1080.jpg$',
+                'timestamp': 1570541701,
+                'upload_date': '20191008'
+            }
         }
-    }
+    ]
 
     _VIDEO_BASE = 'http://c.brightcove.com/services/mobile/streaming/index/master.m3u8?videoId='
 
