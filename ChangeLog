@@ -1,3 +1,26 @@
+version 2019.10.22
+
+Core
+* [utils] Improve subtitles_filename (#22753)
+
+Extractors
+* [facebook] Bypass download rate limits (#21018)
++ [contv] Add support for contv.com
+- [viewster] Remove extractor
+* [xfileshare] Improve extractor (#17032, #17906, #18237, #18239)
+    * Update the list of domains
+    + Add support for aa-encoded video data
+    * Improve jwplayer format extraction
+    + Add support for Clappr sources
+* [mangomolo] Fix video format extraction and add support for player URLs
+* [audioboom] Improve metadata extraction
+* [twitch] Update VOD URL matching (#22395, #22727)
+- [mit] Remove support for video.mit.edu (#22403)
+- [servingsys] Remove extractor (#22639)
+* [dumpert] Fix extraction (#22428, #22564)
+* [atresplayer] Fix extraction (#16277, #16716)
+
+
 version 2019.10.16
 
 Core

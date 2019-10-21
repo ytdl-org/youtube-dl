@@ -183,6 +183,7 @@
  - **ComedyCentralShortname**
  - **ComedyCentralTV**
  - **CondeNast**: Condé Nast media group: Allure, Architectural Digest, Ars Technica, Bon Appétit, Brides, Condé Nast, Condé Nast Traveler, Details, Epicurious, GQ, Glamour, Golf Digest, SELF, Teen Vogue, The New Yorker, Vanity Fair, Vogue, W Magazine, WIRED
+ - **CONtv**
  - **Corus**
  - **Coub**
  - **Cracked**
@@ -784,7 +785,6 @@
  - **Seeker**
  - **SenateISVP**
  - **SendtoNews**
- - **ServingSys**
  - **Servus**
  - **Sexu**
  - **SeznamZpravy**
@@ -1005,7 +1005,6 @@
  - **Viddler**
  - **Videa**
  - **video.google:search**: Google Video search
- - **video.mit.edu**
  - **VideoDetective**
  - **videofy.me**
  - **videomore**
@@ -1023,7 +1022,6 @@
  - **vier:videos**
  - **ViewLift**
  - **ViewLiftEmbed**
- - **Viewster**
  - **Viidea**
  - **viki**
  - **viki:channel**
@@ -1097,7 +1095,7 @@
  - **WWE**
  - **XBef**
  - **XboxClips**
- - **XFileShare**: XFileShare based sites: DaClips, FileHoot, GorillaVid, MovPod, PowerWatch, Rapidvideo.ws, TheVideoBee, Vidto, Streamin.To, XVIDSTAGE, Vid ABC, VidBom, vidlo, RapidVideo.TV, FastVideo.me
+ - **XFileShare**: XFileShare based sites: ClipWatching, GoUnlimited, GoVid, HolaVid, Streamty, TheVideoBee, Uqload, VidBom, vidlo, VidLocker, VidShare, VUp, XVideoSharing
  - **XHamster**
  - **XHamsterEmbed**
  - **XHamsterUser**
