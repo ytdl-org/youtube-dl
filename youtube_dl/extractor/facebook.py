@@ -456,9 +456,9 @@ class FacebookIE(InfoExtractor):
 
 
         timestamp = int_or_none(self._search_regex(
-            r'<abbr[^>]+data-utime=["\'](\d+)', webpage,
-            'timestamp', default=None) or self._search_regex(
             r'data-utime=\\\"(\d+)\\\"', tahoe_data.secondary,
+            'timestamp', default=None) or self._search_regex(
+            r'<abbr[^>]+data-utime=["\'](\d+)', webpage,
             'timestamp', default=None))
 
         uploader_id = self._search_regex(
