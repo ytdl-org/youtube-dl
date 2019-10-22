@@ -132,18 +132,24 @@ class GloboIE(InfoExtractor):
                         '%s returned error: %s' % (self.IE_NAME, message), expected=True)
                 continue
 
-            assert security_hash[:2] in ('04', '14')
-            received_time = security_hash[3:13]
-            received_md5 = security_hash[24:]
-
-            sign_time = compat_str(int(received_time) + 86400)
+            hash_code = security_hash[:2]
             padding = '%010d' % random.randint(1, 10000000000)
+            if hash_code in ('04', '14'):
+                received_time = security_hash[3:13]
+                received_md5 = security_hash[24:]
+                hash_prefix = security_hash[:23]
+            elif hash_code in ('02', '12', '03', '13'):
+                received_time = security_hash[2:12]
+                received_md5 = security_hash[22:]
+                padding += '1'
+                hash_prefix = '05' + security_hash[:22]
 
-            md5_data = (received_md5 + sign_time + padding + '0xAC10FD').encode()
+            padded_sign_time = compat_str(int(received_time) + 86400) + padding
+            md5_data = (received_md5 + padded_sign_time + '0xAC10FD').encode()
             signed_md5 = base64.urlsafe_b64encode(hashlib.md5(md5_data).digest()).decode().strip('=')
-            signed_hash = security_hash[:23] + sign_time + padding + signed_md5
-
+            signed_hash = hash_prefix + padded_sign_time + signed_md5
             signed_url = '%s?h=%s&k=html5&a=%s&u=%s' % (resource_url, signed_hash, 'F' if video.get('subscriber_only') else 'A', security.get('user') or '')
+
             if resource_id.endswith('m3u8') or resource_url.endswith('.m3u8'):
                 formats.extend(self._extract_m3u8_formats(
                     signed_url, resource_id, 'mp4', entry_protocol='m3u8_native',
