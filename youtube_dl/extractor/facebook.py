@@ -397,6 +397,7 @@ class FacebookIE(InfoExtractor):
 
         is_live = live_status == 'live'
 
+        subtitles = {}
         formats = []
         for f in video_data:
             format_id = f['stream_type']
@@ -420,6 +421,9 @@ class FacebookIE(InfoExtractor):
             if dash_manifest:
                 formats.extend(self._parse_mpd_formats(
                     compat_etree_fromstring(compat_urllib_parse_unquote_plus(dash_manifest))))
+            subtitles_src = f[0].get('subtitles_src')
+            if subtitles_src:
+                subtitles.setdefault('en', []).append({'url': subtitles_src})
         if not formats:
             raise ExtractorError('Cannot find video formats')
 
@@ -492,7 +496,8 @@ class FacebookIE(InfoExtractor):
             'is_live': is_live,
             'live_status': live_status,
             'like_count': likes_count,
-            'share_count': shares_count
+            'share_count': shares_count,
+            'subtitles': subtitles,
         }
         if uploader_id:
             info_dict['uploader_like_count'] = FacebookAjax(self, webpage, uploader_id).page_likes
