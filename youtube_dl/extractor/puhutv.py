@@ -25,21 +25,21 @@ class PuhuTVIE(InfoExtractor):
     _TESTS = [{
         # film
         'url': 'https://puhutv.com/sut-kardesler-izle',
-        'md5': 'fbd8f2d8e7681f8bcd51b592475a6ae7',
+        'md5': 'a347470371d56e1585d1b2c8dab01c96',
         'info_dict': {
             'id': '5085',
             'display_id': 'sut-kardesler',
             'ext': 'mp4',
             'title': 'Süt Kardeşler',
-            'description': 'md5:405fd024df916ca16731114eb18e511a',
+            'description': 'md5:ca09da25b7e57cbb5a9280d6e48d17aa',
             'thumbnail': r're:^https?://.*\.jpg$',
             'duration': 4832.44,
             'creator': 'Arzu Film',
-            'timestamp': 1469778212,
-            'upload_date': '20160729',
+            'timestamp': 1561062602,
+            'upload_date': '20190620',
             'release_year': 1976,
             'view_count': int,
-            'tags': ['Aile', 'Komedi', 'Klasikler'],
+            'tags': list,
         },
     }, {
         # episode, geo restricted, bypassable with --geo-verification-proxy
@@ -64,9 +64,10 @@ class PuhuTVIE(InfoExtractor):
             display_id)['data']
 
         video_id = compat_str(info['id'])
-        title = info.get('name') or info['title']['name']
+        show = info.get('title') or {}
+        title = info.get('name') or show['name']
         if info.get('display_name'):
-            title = '%s %s' % (title, info.get('display_name'))
+            title = '%s %s' % (title, info['display_name'])
 
         try:
             videos = self._download_json(
@@ -78,17 +79,36 @@ class PuhuTVIE(InfoExtractor):
                 self.raise_geo_restricted()
             raise
 
+        urls = []
         formats = []
+
+        def add_http_from_hls(m3u8_f):
+            http_url = m3u8_f['url'].replace('/hls/', '/mp4/').replace('/chunklist.m3u8', '.mp4')
+            if http_url != m3u8_f['url']:
+                f = m3u8_f.copy()
+                f.update({
+                    'format_id': f['format_id'].replace('hls', 'http'),
+                    'protocol': 'http',
+                    'url': http_url,
+                })
+                formats.append(f)
+
         for video in videos['data']['videos']:
             media_url = url_or_none(video.get('url'))
-            if not media_url:
+            if not media_url or media_url in urls:
                 continue
+            urls.append(media_url)
+
             playlist = video.get('is_playlist')
-            if video.get('stream_type') == 'hls' and playlist is True:
-                formats.extend(self._extract_m3u8_formats(
+            if (video.get('stream_type') == 'hls' and playlist is True) or 'playlist.m3u8' in media_url:
+                m3u8_formats = self._extract_m3u8_formats(
                     media_url, video_id, 'mp4', entry_protocol='m3u8_native',
-                    m3u8_id='hls', fatal=False))
+                    m3u8_id='hls', fatal=False)
+                for m3u8_f in m3u8_formats:
+                    formats.append(m3u8_f)
+                    add_http_from_hls(m3u8_f)
                 continue
+
             quality = int_or_none(video.get('quality'))
             f = {
                 'url': media_url,
@@ -96,34 +116,29 @@ class PuhuTVIE(InfoExtractor):
                 'height': quality
             }
             video_format = video.get('video_format')
-            if video_format == 'hls' and playlist is False:
+            is_hls = (video_format == 'hls' or '/hls/' in media_url or '/chunklist.m3u8' in media_url) and playlist is False
+            if is_hls:
                 format_id = 'hls'
                 f['protocol'] = 'm3u8_native'
             elif video_format == 'mp4':
                 format_id = 'http'
-
             else:
                 continue
             if quality:
                 format_id += '-%sp' % quality
             f['format_id'] = format_id
             formats.append(f)
+            if is_hls:
+                add_http_from_hls(f)
         self._sort_formats(formats)
 
-        description = try_get(
-            info, lambda x: x['title']['description'],
-            compat_str) or info.get('description')
-        timestamp = unified_timestamp(info.get('created_at'))
         creator = try_get(
-            info, lambda x: x['title']['producer']['name'], compat_str)
+            show, lambda x: x['producer']['name'], compat_str)
 
-        duration = float_or_none(
-            try_get(info, lambda x: x['content']['duration_in_ms'], int),
-            scale=1000)
-        view_count = try_get(info, lambda x: x['content']['watch_count'], int)
+        content = info.get('content') or {}
 
         images = try_get(
-            info, lambda x: x['content']['images']['wide'], dict) or {}
+            content, lambda x: x['images']['wide'], dict) or {}
         thumbnails = []
         for image_id, image_url in images.items():
             if not isinstance(image_url, compat_str):
@@ -137,14 +152,8 @@ class PuhuTVIE(InfoExtractor):
             })
             thumbnails.append(t)
 
-        release_year = try_get(info, lambda x: x['title']['released_at'], int)
-
-        season_number = int_or_none(info.get('season_number'))
-        season_id = str_or_none(info.get('season_id'))
-        episode_number = int_or_none(info.get('episode_number'))
-
         tags = []
-        for genre in try_get(info, lambda x: x['title']['genres'], list) or []:
+        for genre in show.get('genres') or []:
             if not isinstance(genre, dict):
                 continue
             genre_name = genre.get('name')
@@ -152,12 +161,11 @@ class PuhuTVIE(InfoExtractor):
                 tags.append(genre_name)
 
         subtitles = {}
-        for subtitle in try_get(
-                info, lambda x: x['content']['subtitles'], list) or []:
+        for subtitle in content.get('subtitles') or []:
             if not isinstance(subtitle, dict):
                 continue
             lang = subtitle.get('language')
-            sub_url = url_or_none(subtitle.get('url'))
+            sub_url = url_or_none(subtitle.get('url') or subtitle.get('file'))
             if not lang or not isinstance(lang, compat_str) or not sub_url:
                 continue
             subtitles[self._SUBTITLE_LANGS.get(lang, lang)] = [{
@@ -168,15 +176,15 @@ class PuhuTVIE(InfoExtractor):
             'id': video_id,
             'display_id': display_id,
             'title': title,
-            'description': description,
-            'season_id': season_id,
-            'season_number': season_number,
-            'episode_number': episode_number,
-            'release_year': release_year,
-            'timestamp': timestamp,
+            'description': info.get('description') or show.get('description'),
+            'season_id': str_or_none(info.get('season_id')),
+            'season_number': int_or_none(info.get('season_number')),
+            'episode_number': int_or_none(info.get('episode_number')),
+            'release_year': int_or_none(show.get('released_at')),
+            'timestamp': unified_timestamp(info.get('created_at')),
             'creator': creator,
-            'view_count': view_count,
-            'duration': duration,
+            'view_count': int_or_none(content.get('watch_count')),
+            'duration': float_or_none(content.get('duration_in_ms'), 1000),
             'tags': tags,
             'subtitles': subtitles,
             'thumbnails': thumbnails,
