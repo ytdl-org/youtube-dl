@@ -120,6 +120,19 @@ class RaiBaseIE(InfoExtractor):
                 })
         return subtitles
 
+    @staticmethod
+    def _extract_subtitles_from_list(subtitle_array):
+        subtitles = {}
+        if isinstance(subtitle_array, list):
+            for item in subtitle_array:
+                lang = item.get('language')
+                url = item.get('url')
+                if isinstance(url, compat_str) and '' != url and isinstance(lang, compat_str) and '' != lang:
+                    subtitles[lang.lower()] = [{
+                        'ext': url[-3:],
+                        'url': url,
+                    }]
+        return subtitles
 
 class RaiPlayIE(RaiBaseIE):
     _VALID_URL = r'(?P<url>https?://(?:www\.)?raiplay\.it/.+?-(?P<id>%s)\.html)' % RaiBaseIE._UUID_RE
@@ -142,21 +155,25 @@ class RaiPlayIE(RaiBaseIE):
             'season': '2016',
         },
     }, {
-        'url': 'http://www.raiplay.it/video/2014/04/Report-del-07042014-cb27157f-9dd0-4aee-b788-b1f67643a391.html',
+        'url': 'https://www.raiplay.it/video/2019/10/Report-del-21102019-La-fabbrica-della-paura-825ce3a7-8573-46c8-80d2-cde1b519fd01.html',
         'md5': '8970abf8caf8aef4696e7b1f2adfc696',
         'info_dict': {
-            'id': 'cb27157f-9dd0-4aee-b788-b1f67643a391',
-            'ext': 'mp4',
-            'title': 'Report del 07/04/2014',
-            'alt_title': 'S2013/14 - Puntata del 07/04/2014',
+            "id": "825ce3a7-8573-46c8-80d2-cde1b519fd01",
+            "title": "Report - La fabbrica della paura",
+            "alt_title": "St 2019/20 - La fabbrica della paura - 21/10/2019 ",
             'description': 'md5:f27c544694cacb46a078db84ec35d2d9',
-            'thumbnail': r're:^https?://.*\.jpg$',
-            'uploader': 'Rai 5',
-            'creator': 'Rai 5',
-            'duration': 6160,
-            'series': 'Report',
-            'season_number': 5,
-            'season': '2013/14',
+            "ext": "mp4",
+            "series": "Report",
+            "season_number": 7,
+            "season": "2019/20",
+            "subtitles": {
+                "it": [
+                    {
+                        "ext": "srt",
+                        "url": "http://creativemedia4-rai-it.akamaized.net/infocdn/raitre/report/Report_EP_Puntate/11217587.srt"
+                    }
+                ]
+            },
         },
         'params': {
             'skip_download': True,
@@ -191,8 +208,12 @@ class RaiPlayIE(RaiBaseIE):
         timestamp = unified_timestamp(try_get(
             media, lambda x: x['availabilities'][0]['start'], compat_str))
 
-        subtitles = self._extract_subtitles(url, video.get('subtitles'))
-
+        subtitles = {}
+        if '' != video.get('subtitles'):
+            subtitles = self._extract_subtitles(url, video.get('subtitles'))
+        else:
+            if video.get('subtitlesArray'):
+                subtitles = self._extract_subtitles_from_list(video.get('subtitlesArray'))
         info = {
             'id': video_id,
             'title': self._live_title(title) if relinker_info.get(
