@@ -1,49 +1,76 @@
 # coding: utf-8
 from __future__ import unicode_literals
 
-import json
 import re
 from socket import timeout
 
 from .common import InfoExtractor
 from ..utils import (
     int_or_none,
-    parse_iso8601,
 )
 
 
 class DTubeIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:www\.)?d\.tube/(?:#!/)?v/(?P<uploader_id>[0-9a-z.-]+)/(?P<id>[0-9a-z]{8})'
-    _TEST = {
-        'url': 'https://d.tube/#!/v/broncnutz/x380jtr1',
-        'md5': '9f29088fa08d699a7565ee983f56a06e',
+    _VALID_URL = r'https?://(?:www\.)?d\.tube/(?:#!/)?v/(?P<uploader_id>[0-9a-z.-]+)/(?P<id>[0-9a-zA-Z-_]{8,46})'
+    _TESTS = [{
+        'url': 'https://d.tube/v/anonyhack/QmXxj4j1prF5MUbFme4QVuGApeUw1MLq69Wf4GPBz2j2qL',
         'info_dict': {
-            'id': 'x380jtr1',
+            'id': 'QmXxj4j1prF5MUbFme4QVuGApeUw1MLq69Wf4GPBz2j2qL',
             'ext': 'mp4',
-            'title': 'Lefty 3-Rings is Back Baby!! NCAA Picks',
-            'description': 'md5:60be222088183be3a42f196f34235776',
-            'uploader_id': 'broncnutz',
-            'upload_date': '20190107',
-            'timestamp': 1546854054,
+            'title': 'i wont accept it',
+            'uploader_id': 'anonyhack',
         },
         'params': {
             'format': '480p',
         },
+    }, {
+        'url': 'https://d.tube/#!/v/hauptmann/QmSTw1aSk9Deu9YBVjpjYcaqV8AgsmTg4eN2tA8RYKTVeM',
+        'info_dict': {
+            'id': 'QmSTw1aSk9Deu9YBVjpjYcaqV8AgsmTg4eN2tA8RYKTVeM',
+            'ext': 'mp4',
+            'title': 'STATE OF THE DAPPS REPORT 25.10.2019 | D.tube talk#237',
+            'description': 'md5:0180ee9bdf036b7b0ab959716cd7b6b9',
+            'uploader_id': 'hauptmann',
+        },
+        'params': {
+            'format': 'Source',
+        },
+    }, {
+        'url': 'https://d.tube/v/whatstrending360/538648240276191',
+        'info_dict': {
+            'id': '538648240276191',
+            'ext': 'mp4',
+            'title': 'Funny Videos 2019',
+            'timestamp': 1569481574,
+            'upload_date': '20190926',
+            'uploader': 'Funny Videos 2019',
+        },
+    }, {
+        'url': 'https://d.tube/#!/v/jeronimorubio/XCrCtqMeywk',
+        'info_dict': {
+            'id': 'XCrCtqMeywk',
+            'ext': 'mp4',
+            'title': 'Is it Beginning to Look a lot Like Christmas in Your City?',
+            'upload_date': '20191024',
+            'description': 'md5:9323433bbe8b34a55d84761e5bf652af',
+            'uploader': 'Jeronimo Rubio',
+            'uploader_id': 'UCbbG-SIMdWSW02RYKJucddw',
+        },
     }
+    ]
 
     def _real_extract(self, url):
+        DTube_api = 'https://avalon.d.tube/content/'
         uploader_id, video_id = re.match(self._VALID_URL, url).groups()
-        result = self._download_json('https://api.steemit.com/', video_id, data=json.dumps({
-            'jsonrpc': '2.0',
-            'method': 'get_content',
-            'params': [uploader_id, video_id],
-        }).encode())['result']
 
-        metadata = json.loads(result['json_metadata'])
-        video = metadata['video']
-        content = video['content']
-        info = video.get('info', {})
-        title = info.get('title') or result['title']
+        result = self._download_json(DTube_api + uploader_id + '/' + video_id, video_id)
+
+        metadata = result.get('json')
+
+        if metadata.get('providerName') != "IPFS":
+            video_url = metadata.get('url')
+            self.to_screen('%s : video format URL %s' % (video_url, metadata.get('providerName')))
+            return self.url_result(video_url)
 
         def canonical_url(h):
             if not h:
@@ -52,7 +79,7 @@ class DTubeIE(InfoExtractor):
 
         formats = []
         for q in ('240', '480', '720', '1080', ''):
-            video_url = canonical_url(content.get('video%shash' % q))
+            video_url = canonical_url(metadata.get('ipfs').get('video%shash' % q))
             if not video_url:
                 continue
             format_id = (q + 'p') if q else 'Source'
@@ -72,12 +99,11 @@ class DTubeIE(InfoExtractor):
 
         return {
             'id': video_id,
-            'title': title,
-            'description': content.get('description'),
-            'thumbnail': canonical_url(info.get('snaphash')),
-            'tags': content.get('tags') or metadata.get('tags'),
-            'duration': info.get('duration'),
+            'title': metadata.get('title'),
+            'description': metadata.get('description'),
+            'thumbnail': metadata.get('thumbnailUrl'),
+            'tags': result.get('tags'),
+            'duration': metadata.get('duration'),
             'formats': formats,
-            'timestamp': parse_iso8601(result.get('created')),
             'uploader_id': uploader_id,
         }
