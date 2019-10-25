@@ -121,8 +121,7 @@ class BandcampIE(InfoExtractor):
         def extract(key):
             return self._search_regex(
                 r'\b%s\s*["\']?\s*:\s*(["\'])(?P<value>.+)\1' % key,
-                webpage, key, default=None, group='value'
-            )
+                webpage, key, default=None, group='value')
 
         artist = extract('artist')
         album = extract('album_title')
