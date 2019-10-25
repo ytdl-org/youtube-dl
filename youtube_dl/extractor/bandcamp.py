@@ -34,6 +34,9 @@ class BandcampIE(InfoExtractor):
             'id': '1812978515',
             'ext': 'mp3',
             'title': "youtube-dl  \"'/\\\u00e4\u21ad - youtube-dl test song \"'/\\\u00e4\u21ad",
+            'timestamp': 1354224127,
+            'uploader': 'youtube-dl  \\"\'/\\\\ä↭',
+            'upload_date': '20121129',
             'duration': 9.8485,
         },
         '_skip': 'There is a limit of 200 free downloads / month for the test song'
@@ -117,8 +120,9 @@ class BandcampIE(InfoExtractor):
 
         def extract(key):
             return self._search_regex(
-                r'\b%s\s*["\']?\s*:\s*(["\'])(?P<value>(?:(?!\1).)+)\1' % key,
-                webpage, key, default=None, group='value')
+                r'\b%s\s*["\']?\s*:\s*(["\'])(?P<value>.+)\1' % key,
+                webpage, key, default=None, group='value'
+            )
 
         artist = extract('artist')
         album = extract('album_title')
@@ -195,7 +199,7 @@ class BandcampIE(InfoExtractor):
 
         self._sort_formats(formats)
 
-        title = '%s - %s' % (artist, track) if artist else track
+        title = '%s - %s' % (artist, track) if not re.match(artist, track) else track
 
         if not duration:
             duration = float_or_none(self._html_search_meta(
