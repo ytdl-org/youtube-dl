@@ -35,7 +35,7 @@ class BandcampIE(InfoExtractor):
             'ext': 'mp3',
             'title': "youtube-dl  \"'/\\\u00e4\u21ad - youtube-dl test song \"'/\\\u00e4\u21ad",
             'timestamp': 1354224127,
-            'uploader': 'youtube-dl  \\"\'/\\\\ä↭',
+            'uploader': 'youtube-dl  \\"\'/\\\\\u00e4\u21ad',
             'upload_date': '20121129',
             'duration': 9.8485,
         },
