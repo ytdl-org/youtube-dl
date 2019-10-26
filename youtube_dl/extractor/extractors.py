@@ -277,10 +277,7 @@ from .douyutv import (
     DouyuShowIE,
     DouyuTVIE,
 )
-from .dplay import (
-    DPlayIE,
-    DPlayItIE,
-)
+from .dplay import DPlayIE
 from .dreisat import DreiSatIE
 from .drbonanza import DRBonanzaIE
 from .drtuber import DrTuberIE
