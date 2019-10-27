@@ -1133,6 +1133,7 @@ from .telequebec import (
 from .teletask import TeleTaskIE
 from .telewebion import TelewebionIE
 from .tennistv import TennisTVIE
+from .tenplay import TenPlayIE
 from .testurl import TestURLIE
 from .tf1 import TF1IE
 from .tfo import TFOIE
