@@ -40,7 +40,7 @@ class GoIE(AdobePassIE):
             'resource_id': 'Disney',
         }
     }
-    _VALID_URL = r'https?://(?:(?:(?P<sub_domain>%s)\.)?go|(?P<sub_domain_2>disneynow))\.com/(?:(?:[^/]+/)*(?P<id>vdka\w+)|(?:[^/]+/)*(?P<display_id>[^/?#]+))'\
+    _VALID_URL = r'https?://(?:(?:(?P<sub_domain>%s)(?:\.go)?)?|(?P<sub_domain_2>disneynow))\.com/(?:(?:[^/]+/)*(?P<id>vdka\w+)|(?:[^/]+/)*(?P<display_id>[^/?#]+))'\
                  % '|'.join(list(_SITE_INFO.keys()) + ['disneynow'])
     _TESTS = [{
         'url': 'http://abc.go.com/shows/designated-survivor/video/most-recent/VDKA3807643',
@@ -97,7 +97,7 @@ class GoIE(AdobePassIE):
             video_id = self._search_regex(
                 # There may be inner quotes, e.g. data-video-id="'VDKA3609139'"
                 # from http://freeform.go.com/shows/shadowhunters/episodes/season-2/1-this-guilty-blood
-                r'data-video-id=["\']*(VDKA\w+)', webpage, 'video id',
+                r'"id":["\']*(VDKA\w+)', webpage, 'video id',
                 default=video_id)
             if not site_info:
                 brand = self._search_regex(
