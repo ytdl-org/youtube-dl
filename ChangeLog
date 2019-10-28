@@ -1,4 +1,4 @@
-version <unreleased>
+version 2019.10.29
 
 Core
 * [utils] Actualize major IPv4 address blocks per country

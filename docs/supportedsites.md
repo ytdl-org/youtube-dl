@@ -232,7 +232,6 @@
  - **DouyuShow**
  - **DouyuTV**: 斗鱼
  - **DPlay**
- - **DPlayIt**
  - **DRBonanza**
  - **Dropbox**
  - **DrTuber**
@@ -339,7 +338,6 @@
  - **Goshgay**
  - **GPUTechConf**
  - **Groupon**
- - **Hark**
  - **hbo**
  - **HearThisAt**
  - **Heise**
@@ -432,7 +430,6 @@
  - **Lcp**
  - **LcpPlay**
  - **Le**: 乐视网
- - **Learnr**
  - **Lecture2Go**
  - **Lecturio**
  - **LecturioCourse**
@@ -466,11 +463,9 @@
  - **lynda**: lynda.com videos
  - **lynda:course**: lynda.com online courses
  - **m6**
- - **macgamestore**: MacGameStore trailers
  - **mailru**: Видео@Mail.Ru
  - **mailru:music**: Музыка@Mail.Ru
  - **mailru:music:search**: Музыка@Mail.Ru
- - **MakerTV**
  - **MallTV**
  - **mangomolo:live**
  - **mangomolo:video**
@@ -526,8 +521,8 @@
  - **mtg**: MTG services
  - **mtv**
  - **mtv.de**
- - **mtv81**
  - **mtv:video**
+ - **mtvjapan**
  - **mtvservices:embedded**
  - **MuenchenTV**: münchen.tv
  - **MusicPlayOn**
@@ -815,6 +810,7 @@
  - **soundcloud:set**
  - **soundcloud:trackstation**
  - **soundcloud:user**
+ - **SoundcloudEmbed**
  - **soundgasm**
  - **soundgasm:profile**
  - **southpark.cc.com**
@@ -887,6 +883,7 @@
  - **TeleTask**
  - **Telewebion**
  - **TennisTV**
+ - **TenPlay**
  - **TF1**
  - **TFO**
  - **TheIntercept**
@@ -925,7 +922,6 @@
  - **tunein:topic**
  - **TunePk**
  - **Turbo**
- - **Tutv**
  - **tv.dfb.de**
  - **TV2**
  - **tv2.hu**
