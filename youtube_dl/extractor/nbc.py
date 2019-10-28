@@ -9,9 +9,13 @@ from .theplatform import ThePlatformIE
 from .adobepass import AdobePassIE
 from ..compat import compat_urllib_parse_unquote
 from ..utils import (
-    smuggle_url,
-    update_url_query,
     int_or_none,
+    js_to_json,
+    parse_duration,
+    smuggle_url,
+    try_get,
+    unified_timestamp,
+    update_url_query,
 )
 
 
@@ -285,13 +289,12 @@ class NBCNewsIE(ThePlatformIE):
     _TESTS = [
         {
             'url': 'http://www.nbcnews.com/watch/nbcnews-com/how-twitter-reacted-to-the-snowden-interview-269389891880',
-            'md5': 'af1adfa51312291a017720403826bb64',
+            'md5': 'cf4bc9e6ce0130f00f545d80ecedd4bf',
             'info_dict': {
                 'id': '269389891880',
                 'ext': 'mp4',
                 'title': 'How Twitter Reacted To The Snowden Interview',
                 'description': 'md5:65a0bd5d76fe114f3c2727aa3a81fe64',
-                'uploader': 'NBCU-NEWS',
                 'timestamp': 1401363060,
                 'upload_date': '20140529',
             },
@@ -309,28 +312,26 @@ class NBCNewsIE(ThePlatformIE):
         },
         {
             'url': 'http://www.nbcnews.com/nightly-news/video/nightly-news-with-brian-williams-full-broadcast-february-4-394064451844',
-            'md5': '73135a2e0ef819107bbb55a5a9b2a802',
+            'md5': '8eb831eca25bfa7d25ddd83e85946548',
             'info_dict': {
                 'id': '394064451844',
                 'ext': 'mp4',
                 'title': 'Nightly News with Brian Williams Full Broadcast (February 4)',
                 'description': 'md5:1c10c1eccbe84a26e5debb4381e2d3c5',
                 'timestamp': 1423104900,
-                'uploader': 'NBCU-NEWS',
                 'upload_date': '20150205',
             },
         },
         {
             'url': 'http://www.nbcnews.com/business/autos/volkswagen-11-million-vehicles-could-have-suspect-software-emissions-scandal-n431456',
-            'md5': 'a49e173825e5fcd15c13fc297fced39d',
+            'md5': '4a8c4cec9e1ded51060bdda36ff0a5c0',
             'info_dict': {
-                'id': '529953347624',
+                'id': 'n431456',
                 'ext': 'mp4',
-                'title': 'Volkswagen U.S. Chief:\xa0 We Have Totally Screwed Up',
-                'description': 'md5:c8be487b2d80ff0594c005add88d8351',
+                'title': "Volkswagen U.S. Chief:  We 'Totally Screwed Up'",
+                'description': 'md5:d22d1281a24f22ea0880741bb4dd6301',
                 'upload_date': '20150922',
                 'timestamp': 1442917800,
-                'uploader': 'NBCU-NEWS',
             },
         },
         {
@@ -343,7 +344,6 @@ class NBCNewsIE(ThePlatformIE):
                 'description': 'md5:74752b7358afb99939c5f8bb2d1d04b1',
                 'upload_date': '20160420',
                 'timestamp': 1461152093,
-                'uploader': 'NBCU-NEWS',
             },
         },
         {
@@ -357,7 +357,6 @@ class NBCNewsIE(ThePlatformIE):
                 'thumbnail': r're:^https?://.*\.jpg$',
                 'timestamp': 1406937606,
                 'upload_date': '20140802',
-                'uploader': 'NBCU-NEWS',
             },
         },
         {
@@ -373,20 +372,61 @@ class NBCNewsIE(ThePlatformIE):
 
     def _real_extract(self, url):
         video_id = self._match_id(url)
-        if not video_id.isdigit():
-            webpage = self._download_webpage(url, video_id)
+        webpage = self._download_webpage(url, video_id)
 
-            data = self._parse_json(self._search_regex(
-                r'window\.__data\s*=\s*({.+});', webpage,
-                'bootstrap json'), video_id)
-            video_id = data['article']['content'][0]['primaryMedia']['video']['mpxMetadata']['id']
+        data = self._parse_json(self._search_regex(
+            r'window\.__data\s*=\s*({.+});', webpage,
+            'bootstrap json'), video_id, js_to_json)
+        video_data = try_get(data, lambda x: x['video']['current'], dict)
+        if not video_data:
+            video_data = data['article']['content'][0]['primaryMedia']['video']
+        title = video_data['headline']['primary']
+
+        formats = []
+        for va in video_data.get('videoAssets', []):
+            public_url = va.get('publicUrl')
+            if not public_url:
+                continue
+            if '://link.theplatform.com/' in public_url:
+                public_url = update_url_query(public_url, {'format': 'redirect'})
+            format_id = va.get('format')
+            if format_id == 'M3U':
+                formats.extend(self._extract_m3u8_formats(
+                    public_url, video_id, 'mp4', 'm3u8_native',
+                    m3u8_id=format_id, fatal=False))
+                continue
+            tbr = int_or_none(va.get('bitrate'), 1000)
+            if tbr:
+                format_id += '-%d' % tbr
+            formats.append({
+                'format_id': format_id,
+                'url': public_url,
+                'width': int_or_none(va.get('width')),
+                'height': int_or_none(va.get('height')),
+                'tbr': tbr,
+                'ext': 'mp4',
+            })
+        self._sort_formats(formats)
+
+        subtitles = {}
+        closed_captioning = video_data.get('closedCaptioning')
+        if closed_captioning:
+            for cc_url in closed_captioning.values():
+                if not cc_url:
+                    continue
+                subtitles.setdefault('en', []).append({
+                    'url': cc_url,
+                })
 
         return {
-            '_type': 'url_transparent',
             'id': video_id,
-            # http://feed.theplatform.com/f/2E2eJC/nbcnews also works
-            'url': update_url_query('http://feed.theplatform.com/f/2E2eJC/nnd_NBCNews', {'byId': video_id}),
-            'ie_key': 'ThePlatformFeed',
+            'title': title,
+            'description': try_get(video_data, lambda x: x['description']['primary']),
+            'thumbnail': try_get(video_data, lambda x: x['primaryImage']['url']['primary']),
+            'duration': parse_duration(video_data.get('duration')),
+            'timestamp': unified_timestamp(video_data.get('datePublished')),
+            'formats': formats,
+            'subtitles': subtitles,
         }
 
 
