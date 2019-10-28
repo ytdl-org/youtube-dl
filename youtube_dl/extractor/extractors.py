@@ -1183,7 +1183,6 @@ from .tunein import (
 )
 from .tunepk import TunePkIE
 from .turbo import TurboIE
-from .tutv import TutvIE
 from .tv2 import (
     TV2IE,
     TV2ArticleIE,
