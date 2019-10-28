@@ -1,5 +1,8 @@
 version <unreleased>
 
+Core
+* [utils] Actualize major IPv4 address blocks per country
+
 Extractors
 + [go] Add support for abc.com and freeform.com (#22823, #22864)
 + [mtv] Add support for mtvjapan.com
