@@ -137,6 +137,16 @@ class InstagramIE(InfoExtractor):
                 (lambda x: x['entry_data']['PostPage'][0]['graphql']['shortcode_media'],
                  lambda x: x['entry_data']['PostPage'][0]['media']),
                 dict)
+            if not media:
+                additional_data = self._parse_json(
+                    self._search_regex(r'window\.__additionalDataLoaded\(\'[^\']+\',\s*({.+?})\);',
+                                       webpage, 'additional data', default='{}'),
+                    video_id, fatal=False)
+                if additional_data:
+                    media = try_get(
+                        additional_data,
+                        lambda x: x['graphql']['shortcode_media'],
+                        dict)
             if media:
                 video_url = media.get('video_url')
                 height = int_or_none(media.get('dimensions', {}).get('height'))
