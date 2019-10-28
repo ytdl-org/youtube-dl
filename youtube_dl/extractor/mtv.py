@@ -425,14 +425,14 @@ class MTVVideoIE(MTVServicesInfoExtractor):
 
 class MTVDEIE(MTVServicesInfoExtractor):
     IE_NAME = 'mtv.de'
-    _VALID_URL = r'https?://(?:www\.)?mtv\.de/(?:artists|shows|news)/(?:[^/]+/)*(?P<id>\d+)-[^/#?]+/*(?:[#?].*)?$'
+    _VALID_URL = r'https?://(?:www\.)?mtv\.de/(?:musik/videoclips|folgen|news)/(?P<id>[0-9a-z]+)'
     _TESTS = [{
-        'url': 'http://www.mtv.de/artists/10571-cro/videos/61131-traum',
+        'url': 'http://www.mtv.de/musik/videoclips/2gpnv7/Traum',
         'info_dict': {
-            'id': 'music_video-a50bc5f0b3aa4b3190aa',
-            'ext': 'flv',
-            'title': 'MusicVideo_cro-traum',
-            'description': 'Cro - Traum',
+            'id': 'd5d472bc-f5b7-11e5-bffd-a4badb20dab5',
+            'ext': 'mp4',
+            'title': 'Traum',
+            'description': 'Traum',
         },
         'params': {
             # rtmp download
@@ -441,11 +441,12 @@ class MTVDEIE(MTVServicesInfoExtractor):
         'skip': 'Blocked at Travis CI',
     }, {
         # mediagen URL without query (e.g. http://videos.mtvnn.com/mediagen/e865da714c166d18d6f80893195fcb97)
-        'url': 'http://www.mtv.de/shows/933-teen-mom-2/staffeln/5353/folgen/63565-enthullungen',
+        'url': 'http://www.mtv.de/folgen/6b1ylu/teen-mom-2-enthuellungen-S5-F1',
         'info_dict': {
-            'id': 'local_playlist-f5ae778b9832cc837189',
-            'ext': 'flv',
-            'title': 'Episode_teen-mom-2_shows_season-5_episode-1_full-episode_part1',
+            'id': '1e5a878b-31c5-11e7-a442-0e40cf2fc285',
+            'ext': 'mp4',
+            'title': 'Teen Mom 2',
+            'description': 'md5:dc65e357ef7e1085ed53e9e9d83146a7',
         },
         'params': {
             # rtmp download
@@ -453,7 +454,7 @@ class MTVDEIE(MTVServicesInfoExtractor):
         },
         'skip': 'Blocked at Travis CI',
     }, {
-        'url': 'http://www.mtv.de/news/77491-mtv-movies-spotlight-pixels-teil-3',
+        'url': 'http://www.mtv.de/news/glolix/77491-mtv-movies-spotlight--pixels--teil-3',
         'info_dict': {
             'id': 'local_playlist-4e760566473c4c8c5344',
             'ext': 'mp4',
@@ -466,25 +467,11 @@ class MTVDEIE(MTVServicesInfoExtractor):
         },
         'skip': 'Das Video kann zur Zeit nicht abgespielt werden.',
     }]
+    _GEO_COUNTRIES = ['DE']
+    _FEED_URL = 'http://feeds.mtvnservices.com/od/feed/intl-mrss-player-feed'
 
-    def _real_extract(self, url):
-        video_id = self._match_id(url)
-
-        webpage = self._download_webpage(url, video_id)
-
-        playlist = self._parse_json(
-            self._search_regex(
-                r'window\.pagePlaylist\s*=\s*(\[.+?\]);\n', webpage, 'page playlist'),
-            video_id)
-
-        def _mrss_url(item):
-            return item['mrss'] + item.get('mrssvars', '')
-
-        # news pages contain single video in playlist with different id
-        if len(playlist) == 1:
-            return self._get_videos_info_from_url(_mrss_url(playlist[0]), video_id)
-
-        for item in playlist:
-            item_id = item.get('id')
-            if item_id and compat_str(item_id) == video_id:
-                return self._get_videos_info_from_url(_mrss_url(item), video_id)
+    def _get_feed_query(self, uri):
+        return {
+            'arcEp': 'mtv.de',
+            'mgid': uri,
+        }
