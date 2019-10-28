@@ -40,8 +40,17 @@ class GoIE(AdobePassIE):
             'resource_id': 'Disney',
         }
     }
-    _VALID_URL = r'https?://(?:(?:(?P<sub_domain>%s)\.)?go|(?P<sub_domain_2>abc|freeform|disneynow))\.com/(?:(?:[^/]+/)*(?P<id>vdka\w+)|(?:[^/]+/)*(?P<display_id>[^/?#]+))'\
-                 % '|'.join(list(_SITE_INFO.keys()))
+    _VALID_URL = r'''(?x)
+                    https?://
+                        (?:
+                            (?:(?P<sub_domain>%s)\.)?go|
+                            (?P<sub_domain_2>abc|freeform|disneynow)
+                        )\.com/
+                        (?:
+                            (?:[^/]+/)*(?P<id>[Vv][Dd][Kk][Aa]\w+)|
+                            (?:[^/]+/)*(?P<display_id>[^/?\#]+)
+                        )
+                    ''' % '|'.join(list(_SITE_INFO.keys()))
     _TESTS = [{
         'url': 'http://abc.go.com/shows/designated-survivor/video/most-recent/VDKA3807643',
         'info_dict': {
