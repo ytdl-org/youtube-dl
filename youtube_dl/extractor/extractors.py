@@ -666,7 +666,7 @@ from .mtv import (
     MTVVideoIE,
     MTVServicesEmbeddedIE,
     MTVDEIE,
-    MTV81IE,
+    MTVJapanIE,
 )
 from .muenchentv import MuenchenTVIE
 from .musicplayon import MusicPlayOnIE
