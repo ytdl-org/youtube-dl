@@ -1,3 +1,4 @@
+# coding: utf-8
 from __future__ import unicode_literals
 
 import re
@@ -349,33 +350,29 @@ class MTVIE(MTVServicesInfoExtractor):
     }]
 
 
-class MTV81IE(InfoExtractor):
-    IE_NAME = 'mtv81'
-    _VALID_URL = r'https?://(?:www\.)?mtv81\.com/videos/(?P<id>[^/?#.]+)'
+class MTVJapanIE(MTVServicesInfoExtractor):
+    IE_NAME = 'mtvjapan'
+    _VALID_URL = r'https?://(?:www\.)?mtvjapan\.com/videos/(?P<id>[0-9a-z]+)'
 
     _TEST = {
-        'url': 'http://www.mtv81.com/videos/artist-to-watch/the-godfather-of-japanese-hip-hop-segment-1/',
-        'md5': '1edbcdf1e7628e414a8c5dcebca3d32b',
+        'url': 'http://www.mtvjapan.com/videos/prayht/fresh-info-cadillac-escalade',
         'info_dict': {
-            'id': '5e14040d-18a4-47c4-a582-43ff602de88e',
+            'id': 'bc01da03-6fe5-4284-8880-f291f4e368f5',
             'ext': 'mp4',
-            'title': 'Unlocking The Truth|July 18, 2016|1|101|Trailer',
-            'description': '"Unlocking the Truth" premieres August 17th at 11/10c.',
-            'timestamp': 1468846800,
-            'upload_date': '20160718',
+            'title': '【Fresh Info】Cadillac ESCALADE Sport Edition',
+        },
+        'params': {
+            'skip_download': True,
         },
     }
+    _GEO_COUNTRIES = ['JP']
+    _FEED_URL = 'http://feeds.mtvnservices.com/od/feed/intl-mrss-player-feed'
 
-    def _extract_mgid(self, webpage):
-        return self._search_regex(
-            r'getTheVideo\((["\'])(?P<id>mgid:.+?)\1', webpage,
-            'mgid', group='id')
-
-    def _real_extract(self, url):
-        video_id = self._match_id(url)
-        webpage = self._download_webpage(url, video_id)
-        mgid = self._extract_mgid(webpage)
-        return self.url_result('http://media.mtvnservices.com/embed/%s' % mgid)
+    def _get_feed_query(self, uri):
+        return {
+            'arcEp': 'mtvjapan.com',
+            'mgid': uri,
+        }
 
 
 class MTVVideoIE(MTVServicesInfoExtractor):
