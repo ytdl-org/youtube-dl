@@ -73,17 +73,53 @@ class SenateISVPIE(InfoExtractor):
             'skip_download': True,
         },
     }, {
+        # Uses archive url for video stream
         'url': 'http://www.senate.gov/isvp/?type=arch&comm=intel&filename=intel090613&hc_location=ufi',
         # checksum differs each time
         'info_dict': {
             'id': 'intel090613',
             'ext': 'mp4',
             'title': 'Integrated Senate Video Player'
-        }
+        },
+        'params': {
+            # m3u8 download
+            'skip_download': True,
+        },
+        'expected_warnings': ['HTTP Error 404'],
     }, {
         # From http://www.c-span.org/video/?96791-1
         'url': 'http://www.senate.gov/isvp?type=live&comm=banking&filename=banking012715',
         'only_matching': True,
+    }, {
+        'url': 'https://www.armed-services.senate.gov/hearings/19-10-24-nomination_--richard',
+        'info_dict': {
+            'id': 'armedA102419',
+            'ext': 'mp4',
+            'title': 'Integrated Senate Video Player',
+            'thumbnail': r're:^https?://.*\.(?:jpg|png)$',
+        }
+    }, {
+        'url': 'https://www.commerce.senate.gov/2017/10/the-commercial-satellite-industry-what-s-up-and-what-s-on-the-horizon',
+        'info_dict': {
+            'id': 'commerce102517',
+            'ext': 'mp4',
+            'title': 'Integrated Senate Video Player',
+            'thumbnail': None,
+        },
+        'params': {
+            'skip_download': True,
+        }
+    }, {
+        'url': 'https://www.veterans.senate.gov/hearings/pending-legislation-06152017',
+        'info_dict': {
+            'id': 'vetaff061517',
+            'ext': 'mp4',
+            'title': 'Integrated Senate Video Player',
+            'thumbnail': r're:^https?://.*\.(?:jpg|png)$',
+        },
+        'params': {
+            'skip_download': True,
+        }
     }]
 
     @staticmethod
@@ -118,31 +154,35 @@ class SenateISVPIE(InfoExtractor):
         thumbnail = poster[0] if poster else None
 
         video_type = qs['type'][0]
-        committee = video_type if video_type == 'arch' else qs['comm'][0]
+        committee = qs['comm'][0]
         stream_num, domain = self._get_info_for_comm(committee)
 
         formats = []
-        if video_type == 'arch':
-            filename = video_id if '.' in video_id else video_id + '.mp4'
-            formats = [{
-                # All parameters in the query string are necessary to prevent a 403 error
-                'url': compat_urlparse.urljoin(domain, filename) + '?v=3.1.0&fp=&r=&g=',
-            }]
-        else:
-            hdcore_sign = 'hdcore=3.1.0'
-            url_params = (domain, video_id, stream_num)
-            f4m_url = '%s/z/%s_1@%s/manifest.f4m?' % url_params + hdcore_sign
-            m3u8_url = '%s/i/%s_1@%s/master.m3u8' % url_params
-            for entry in self._extract_f4m_formats(f4m_url, video_id, f4m_id='f4m'):
-                # URLs without the extra param induce an 404 error
-                entry.update({'extra_param_to_segment_url': hdcore_sign})
-                formats.append(entry)
-            for entry in self._extract_m3u8_formats(m3u8_url, video_id, ext='mp4', m3u8_id='m3u8'):
-                mobj = re.search(r'(?P<tag>(?:-p|-b)).m3u8', entry['url'])
-                if mobj:
-                    entry['format_id'] += mobj.group('tag')
-                formats.append(entry)
 
+        hdcore_sign = 'hdcore=3.1.0'
+        url_params = (domain, video_id, stream_num)
+        f4m_url = '%s/z/%s_1@%s/manifest.f4m?' % url_params + hdcore_sign
+        m3u8_url = '%s/i/%s_1@%s/master.m3u8' % url_params
+
+        for entry in self._extract_f4m_formats(f4m_url, video_id, f4m_id='f4m', fatal=False):
+            # URLs without the extra param induce an 404 error
+            entry.update({'extra_param_to_segment_url': hdcore_sign})
+            formats.append(entry)
+        for entry in self._extract_m3u8_formats(m3u8_url, video_id, ext='mp4', m3u8_id='m3u8', fatal=False):
+            mobj = re.search(r'(?P<tag>(?:-p|-b)).m3u8', entry['url'])
+            if mobj:
+                entry['format_id'] += mobj.group('tag')
+            formats.append(entry)
+
+        # If no m3u8 or f4m streams, get archive url
+        if len(formats) == 0:
+            if video_type == 'arch':
+                filename = video_id if '.' in video_id else video_id + '.mp4'
+                formats = [{
+                    # All parameters in the query string are necessary to prevent a 403 error
+                    'url': compat_urlparse.urljoin(domain, filename) + '?v=3.1.0&fp=&r=&g=',
+                }]
+        else:
             self._sort_formats(formats)
 
         return {
