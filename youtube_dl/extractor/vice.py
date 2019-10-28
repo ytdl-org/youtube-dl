@@ -94,7 +94,6 @@ class ViceIE(AdobePassIE):
         'url': 'https://www.viceland.com/en_us/video/thursday-march-1-2018/5a8f2d7ff1cdb332dd446ec1',
         'only_matching': True,
     }]
-    _PREPLAY_HOST = 'vms.vice'
 
     @staticmethod
     def _extract_urls(webpage):
@@ -158,9 +157,8 @@ class ViceIE(AdobePassIE):
         })
 
         try:
-            host = 'www.viceland' if is_locked else self._PREPLAY_HOST
             preplay = self._download_json(
-                'https://%s.com/%s/video/preplay/%s' % (host, locale, video_id),
+                'https://vms.vice.com/%s/video/preplay/%s' % (locale, video_id),
                 video_id, query=query)
         except ExtractorError as e:
             if isinstance(e.cause, compat_HTTPError) and e.cause.code in (400, 401):

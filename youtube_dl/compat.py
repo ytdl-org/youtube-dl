@@ -2364,7 +2364,7 @@ except ImportError:  # Python 2
 
     # HACK: The following are the correct unquote_to_bytes, unquote and unquote_plus
     # implementations from cpython 3.4.3's stdlib. Python 2's version
-    # is apparently broken (see https://github.com/rg3/youtube-dl/pull/6244)
+    # is apparently broken (see https://github.com/ytdl-org/youtube-dl/pull/6244)
 
     def compat_urllib_parse_unquote_to_bytes(string):
         """unquote_to_bytes('abc%20def') -> b'abc def'."""
@@ -2508,6 +2508,15 @@ class _TreeBuilder(etree.TreeBuilder):
         pass
 
 
+try:
+    # xml.etree.ElementTree.Element is a method in Python <=2.6 and
+    # the following will crash with:
+    #  TypeError: isinstance() arg 2 must be a class, type, or tuple of classes and types
+    isinstance(None, xml.etree.ElementTree.Element)
+    from xml.etree.ElementTree import Element as compat_etree_Element
+except TypeError:  # Python <=2.6
+    from xml.etree.ElementTree import _ElementInterface as compat_etree_Element
+
 if sys.version_info[0] >= 3:
     def compat_etree_fromstring(text):
         return etree.XML(text, parser=etree.XMLParser(target=_TreeBuilder()))
@@ -2640,9 +2649,9 @@ else:
 
 try:
     args = shlex.split('中文')
-    assert (isinstance(args, list) and
-            isinstance(args[0], compat_str) and
-            args[0] == '中文')
+    assert (isinstance(args, list)
+            and isinstance(args[0], compat_str)
+            and args[0] == '中文')
     compat_shlex_split = shlex.split
 except (AssertionError, UnicodeEncodeError):
     # Working around shlex issue with unicode strings on some python 2
@@ -2819,7 +2828,7 @@ else:
     compat_socket_create_connection = socket.create_connection
 
 
-# Fix https://github.com/rg3/youtube-dl/issues/4223
+# Fix https://github.com/ytdl-org/youtube-dl/issues/4223
 # See http://bugs.python.org/issue9161 for what is broken
 def workaround_optparse_bug9161():
     op = optparse.OptionParser()
@@ -2944,7 +2953,7 @@ if platform.python_implementation() == 'PyPy' and sys.pypy_version_info < (5, 4,
     # PyPy2 prior to version 5.4.0 expects byte strings as Windows function
     # names, see the original PyPy issue [1] and the youtube-dl one [2].
     # 1. https://bitbucket.org/pypy/pypy/issues/2360/windows-ctypescdll-typeerror-function-name
-    # 2. https://github.com/rg3/youtube-dl/pull/4392
+    # 2. https://github.com/ytdl-org/youtube-dl/pull/4392
     def compat_ctypes_WINFUNCTYPE(*args, **kwargs):
         real = ctypes.WINFUNCTYPE(*args, **kwargs)
 
@@ -2969,6 +2978,7 @@ __all__ = [
     'compat_cookiejar',
     'compat_cookies',
     'compat_ctypes_WINFUNCTYPE',
+    'compat_etree_Element',
     'compat_etree_fromstring',
     'compat_etree_register_namespace',
     'compat_expanduser',

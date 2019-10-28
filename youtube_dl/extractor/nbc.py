@@ -10,7 +10,6 @@ from .adobepass import AdobePassIE
 from ..compat import compat_urllib_parse_unquote
 from ..utils import (
     smuggle_url,
-    try_get,
     update_url_query,
     int_or_none,
 )
@@ -85,27 +84,41 @@ class NBCIE(AdobePassIE):
         permalink, video_id = re.match(self._VALID_URL, url).groups()
         permalink = 'http' + compat_urllib_parse_unquote(permalink)
         response = self._download_json(
-            'https://api.nbc.com/v3/videos', video_id, query={
-                'filter[permalink]': permalink,
-                'fields[videos]': 'description,entitlement,episodeNumber,guid,keywords,seasonNumber,title,vChipRating',
-                'fields[shows]': 'shortTitle',
-                'include': 'show.shortTitle',
+            'https://friendship.nbc.co/v2/graphql', video_id, query={
+                'query': '''{
+  page(name: "%s", platform: web, type: VIDEO, userId: "0") {
+    data {
+      ... on VideoPageData {
+        description
+        episodeNumber
+        keywords
+        locked
+        mpxAccountId
+        mpxGuid
+        rating
+        seasonNumber
+        secondaryTitle
+        seriesShortTitle
+      }
+    }
+  }
+}''' % permalink,
             })
-        video_data = response['data'][0]['attributes']
+        video_data = response['data']['page']['data']
         query = {
             'mbr': 'true',
             'manifest': 'm3u',
         }
-        video_id = video_data['guid']
-        title = video_data['title']
-        if video_data.get('entitlement') == 'auth':
+        video_id = video_data['mpxGuid']
+        title = video_data['secondaryTitle']
+        if video_data.get('locked'):
             resource = self._get_mvpd_resource(
                 'nbcentertainment', title, video_id,
-                video_data.get('vChipRating'))
+                video_data.get('rating'))
             query['auth'] = self._extract_mvpd_auth(
                 url, video_id, 'nbcentertainment', resource)
         theplatform_url = smuggle_url(update_url_query(
-            'http://link.theplatform.com/s/NnzsPC/media/guid/2410887629/' + video_id,
+            'http://link.theplatform.com/s/NnzsPC/media/guid/%s/%s' % (video_data.get('mpxAccountId') or '2410887629', video_id),
             query), {'force_smil_url': True})
         return {
             '_type': 'url_transparent',
@@ -117,7 +130,7 @@ class NBCIE(AdobePassIE):
             'season_number': int_or_none(video_data.get('seasonNumber')),
             'episode_number': int_or_none(video_data.get('episodeNumber')),
             'episode': title,
-            'series': try_get(response, lambda x: x['included'][0]['attributes']['shortTitle']),
+            'series': video_data.get('seriesShortTitle'),
             'ie_key': 'ThePlatform',
         }
 

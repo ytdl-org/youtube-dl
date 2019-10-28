@@ -27,6 +27,7 @@ class TeachableBaseIE(InfoExtractor):
         'market.saleshacker.com': 'saleshacker',
         'learnability.org': 'learnability',
         'edurila.com': 'edurila',
+        'courses.workitdaily.com': 'workitdaily',
     }
 
     _VALID_URL_SUB_TUPLE = (_URL_PREFIX, '|'.join(re.escape(site) for site in _SITES.keys()))
@@ -46,6 +47,16 @@ class TeachableBaseIE(InfoExtractor):
         login_page, urlh = self._download_webpage_handle(
             'https://%s/sign_in' % site, None,
             'Downloading %s login page' % site)
+
+        def is_logged(webpage):
+            return any(re.search(p, webpage) for p in (
+                r'class=["\']user-signout',
+                r'<a[^>]+\bhref=["\']/sign_out',
+                r'Log\s+[Oo]ut\s*<'))
+
+        if is_logged(login_page):
+            self._logged_in = True
+            return
 
         login_url = compat_str(urlh.geturl())
 
@@ -77,10 +88,7 @@ class TeachableBaseIE(InfoExtractor):
                 'Go to https://%s/ and accept.' % (site, site), expected=True)
 
         # Successful login
-        if any(re.search(p, response) for p in (
-                r'class=["\']user-signout',
-                r'<a[^>]+\bhref=["\']/sign_out',
-                r'>\s*Log out\s*<')):
+        if is_logged(response):
             self._logged_in = True
             return
 

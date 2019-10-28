@@ -428,11 +428,22 @@ class TwitterIE(InfoExtractor):
         'params': {
             'skip_download': True,  # requires ffmpeg
         },
+    }, {
+        'url': 'https://twitter.com/foobar/status/1087791357756956680',
+        'info_dict': {
+            'id': '1087791357756956680',
+            'ext': 'mp4',
+            'title': 'Twitter - A new is coming.  Some of you got an opt-in to try it now. Check out the emoji button, quick keyboard shortcuts, upgraded trends, advanced search, and more. Let us know your thoughts!',
+            'thumbnail': r're:^https?://.*\.jpg',
+            'description': 'md5:66d493500c013e3e2d434195746a7f78',
+            'uploader': 'Twitter',
+            'uploader_id': 'Twitter',
+            'duration': 61.567,
+        },
     }]
 
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
-        user_id = mobj.group('user_id')
         twid = mobj.group('id')
 
         webpage, urlh = self._download_webpage_handle(
@@ -441,8 +452,13 @@ class TwitterIE(InfoExtractor):
         if 'twitter.com/account/suspended' in urlh.geturl():
             raise ExtractorError('Account suspended by Twitter.', expected=True)
 
-        if user_id is None:
-            mobj = re.match(self._VALID_URL, urlh.geturl())
+        user_id = None
+
+        redirect_mobj = re.match(self._VALID_URL, urlh.geturl())
+        if redirect_mobj:
+            user_id = redirect_mobj.group('user_id')
+
+        if not user_id:
             user_id = mobj.group('user_id')
 
         username = remove_end(self._og_search_title(webpage), ' on Twitter')

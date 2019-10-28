@@ -3,7 +3,6 @@ from __future__ import unicode_literals
 
 import re
 import json
-import xml.etree.ElementTree as etree
 import zlib
 
 from hashlib import sha1
@@ -12,6 +11,7 @@ from .common import InfoExtractor
 from .vrv import VRVIE
 from ..compat import (
     compat_b64decode,
+    compat_etree_Element,
     compat_etree_fromstring,
     compat_urllib_parse_urlencode,
     compat_urllib_request,
@@ -56,22 +56,11 @@ class CrunchyrollBaseIE(InfoExtractor):
         if username is None:
             return
 
-        self._download_webpage(
-            'https://www.crunchyroll.com/?a=formhandler',
-            None, 'Logging in', 'Wrong login info',
-            data=urlencode_postdata({
-                'formname': 'RpcApiUser_Login',
-                'next_url': 'https://www.crunchyroll.com/acct/membership',
-                'name': username,
-                'password': password,
-            }))
-
-        '''
         login_page = self._download_webpage(
             self._LOGIN_URL, None, 'Downloading login page')
 
         def is_logged(webpage):
-            return '<title>Redirecting' in webpage
+            return 'href="/logout"' in webpage
 
         # Already logged in
         if is_logged(login_page):
@@ -110,23 +99,9 @@ class CrunchyrollBaseIE(InfoExtractor):
             raise ExtractorError('Unable to login: %s' % error, expected=True)
 
         raise ExtractorError('Unable to log in')
-        '''
 
     def _real_initialize(self):
         self._login()
-
-    def _download_webpage(self, url_or_request, *args, **kwargs):
-        request = (url_or_request if isinstance(url_or_request, compat_urllib_request.Request)
-                   else sanitized_Request(url_or_request))
-        # Accept-Language must be set explicitly to accept any language to avoid issues
-        # similar to https://github.com/rg3/youtube-dl/issues/6797.
-        # Along with IP address Crunchyroll uses Accept-Language to guess whether georestriction
-        # should be imposed or not (from what I can see it just takes the first language
-        # ignoring the priority and requires it to correspond the IP). By the way this causes
-        # Crunchyroll to not work in georestriction cases in some browsers that don't place
-        # the locale lang first in header. However allowing any language seems to workaround the issue.
-        request.add_header('Accept-Language', '*')
-        return super(CrunchyrollBaseIE, self)._download_webpage(request, *args, **kwargs)
 
     @staticmethod
     def _add_skip_wall(url):
@@ -136,7 +111,7 @@ class CrunchyrollBaseIE(InfoExtractor):
         # > This content may be inappropriate for some people.
         # > Are you sure you want to continue?
         # since it's not disabled by default in crunchyroll account's settings.
-        # See https://github.com/rg3/youtube-dl/issues/7202.
+        # See https://github.com/ytdl-org/youtube-dl/issues/7202.
         qs['skip_wall'] = ['1']
         return compat_urlparse.urlunparse(
             parsed_url._replace(query=compat_urllib_parse_urlencode(qs, True)))
@@ -281,6 +256,19 @@ class CrunchyrollIE(CrunchyrollBaseIE, VRVIE):
         '1080': ('80', '108'),
     }
 
+    def _download_webpage(self, url_or_request, *args, **kwargs):
+        request = (url_or_request if isinstance(url_or_request, compat_urllib_request.Request)
+                   else sanitized_Request(url_or_request))
+        # Accept-Language must be set explicitly to accept any language to avoid issues
+        # similar to https://github.com/ytdl-org/youtube-dl/issues/6797.
+        # Along with IP address Crunchyroll uses Accept-Language to guess whether georestriction
+        # should be imposed or not (from what I can see it just takes the first language
+        # ignoring the priority and requires it to correspond the IP). By the way this causes
+        # Crunchyroll to not work in georestriction cases in some browsers that don't place
+        # the locale lang first in header. However allowing any language seems to workaround the issue.
+        request.add_header('Accept-Language', '*')
+        return super(CrunchyrollBaseIE, self)._download_webpage(request, *args, **kwargs)
+
     def _decrypt_subtitles(self, data, iv, id):
         data = bytes_to_intlist(compat_b64decode(data))
         iv = bytes_to_intlist(compat_b64decode(iv))
@@ -402,7 +390,7 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
                 'Downloading subtitles for ' + sub_name, data={
                     'subtitle_script_id': sub_id,
                 })
-            if not isinstance(sub_doc, etree.Element):
+            if not isinstance(sub_doc, compat_etree_Element):
                 continue
             sid = sub_doc.get('id')
             iv = xpath_text(sub_doc, 'iv', 'subtitle iv')
@@ -519,7 +507,7 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
                         'video_quality': stream_quality,
                         'current_page': url,
                     })
-                if isinstance(streamdata, etree.Element):
+                if isinstance(streamdata, compat_etree_Element):
                     stream_info = streamdata.find('./{default}preload/stream_info')
                     if stream_info is not None:
                         stream_infos.append(stream_info)
@@ -530,7 +518,7 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
                         'video_format': stream_format,
                         'video_encode_quality': stream_quality,
                     })
-                if isinstance(stream_info, etree.Element):
+                if isinstance(stream_info, compat_etree_Element):
                     stream_infos.append(stream_info)
                 for stream_info in stream_infos:
                     video_encode_id = xpath_text(stream_info, './video_encode_id')
@@ -605,7 +593,7 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
 
         season = episode = episode_number = duration = thumbnail = None
 
-        if isinstance(metadata, etree.Element):
+        if isinstance(metadata, compat_etree_Element):
             season = xpath_text(metadata, 'series_title')
             episode = xpath_text(metadata, 'episode_title')
             episode_number = int_or_none(xpath_text(metadata, 'episode_number'))
@@ -673,9 +661,8 @@ class CrunchyrollShowPlaylistIE(CrunchyrollBaseIE):
         webpage = self._download_webpage(
             self._add_skip_wall(url), show_id,
             headers=self.geo_verification_headers())
-        title = self._html_search_regex(
-            r'(?s)<h1[^>]*>\s*<span itemprop="name">(.*?)</span>',
-            webpage, 'title')
+        title = self._html_search_meta('name', webpage, default=None)
+
         episode_paths = re.findall(
             r'(?s)<li id="showview_videos_media_(\d+)"[^>]+>.*?<a href="([^"]+)"',
             webpage)

@@ -1,15 +1,12 @@
 # coding: utf-8
 from __future__ import unicode_literals
 
-import json
 import re
 
 from .common import InfoExtractor
 from ..utils import (
-    ExtractorError,
+    clean_html,
     int_or_none,
-    sanitized_Request,
-    urlencode_postdata,
 )
 
 
@@ -17,8 +14,8 @@ class MoeVideoIE(InfoExtractor):
     IE_DESC = 'LetitBit video services: moevideo.net, playreplay.net and videochart.net'
     _VALID_URL = r'''(?x)
         https?://(?P<host>(?:www\.)?
-        (?:(?:moevideo|playreplay|videochart)\.net))/
-        (?:video|framevideo)/(?P<id>[0-9]+\.[0-9A-Za-z]+)'''
+        (?:(?:moevideo|playreplay|videochart)\.net|thesame\.tv))/
+        (?:video|framevideo|embed)/(?P<id>[0-9a-z]+\.[0-9A-Za-z]+)'''
     _API_URL = 'http://api.letitbit.net/'
     _API_KEY = 'tVL0gjqo5'
     _TESTS = [
@@ -57,58 +54,26 @@ class MoeVideoIE(InfoExtractor):
     ]
 
     def _real_extract(self, url):
-        mobj = re.match(self._VALID_URL, url)
-        video_id = mobj.group('id')
+        host, video_id = re.match(self._VALID_URL, url).groups()
 
         webpage = self._download_webpage(
-            'http://%s/video/%s' % (mobj.group('host'), video_id),
+            'http://%s/video/%s' % (host, video_id),
             video_id, 'Downloading webpage')
 
         title = self._og_search_title(webpage)
-        thumbnail = self._og_search_thumbnail(webpage)
-        description = self._og_search_description(webpage)
 
-        r = [
-            self._API_KEY,
-            [
-                'preview/flv_link',
-                {
-                    'uid': video_id,
-                },
-            ],
-        ]
-        r_json = json.dumps(r)
-        post = urlencode_postdata({'r': r_json})
-        req = sanitized_Request(self._API_URL, post)
-        req.add_header('Content-type', 'application/x-www-form-urlencoded')
-
-        response = self._download_json(req, video_id)
-        if response['status'] != 'OK':
-            raise ExtractorError(
-                '%s returned error: %s' % (self.IE_NAME, response['data']),
-                expected=True
-            )
-        item = response['data'][0]
-        video_url = item['link']
-        duration = int_or_none(item['length'])
-        width = int_or_none(item['width'])
-        height = int_or_none(item['height'])
-        filesize = int_or_none(item['convert_size'])
-
-        formats = [{
-            'format_id': 'sd',
-            'http_headers': {'Range': 'bytes=0-'},  # Required to download
-            'url': video_url,
-            'width': width,
-            'height': height,
-            'filesize': filesize,
-        }]
+        embed_webpage = self._download_webpage(
+            'http://%s/embed/%s' % (host, video_id),
+            video_id, 'Downloading embed webpage')
+        video = self._parse_json(self._search_regex(
+            r'mvplayer\("#player"\s*,\s*({.+})',
+            embed_webpage, 'mvplayer'), video_id)['video']
 
         return {
             'id': video_id,
             'title': title,
-            'thumbnail': thumbnail,
-            'description': description,
-            'duration': duration,
-            'formats': formats,
+            'thumbnail': video.get('poster') or self._og_search_thumbnail(webpage),
+            'description': clean_html(self._og_search_description(webpage)),
+            'duration': int_or_none(self._og_search_property('video:duration', webpage)),
+            'url': video['ourUrl'],
         }
