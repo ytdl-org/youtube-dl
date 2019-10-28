@@ -604,7 +604,6 @@ from .mailru import (
     MailRuMusicIE,
     MailRuMusicSearchIE,
 )
-from .makertv import MakerTVIE
 from .malltv import MallTVIE
 from .mangomolo import (
     MangomoloVideoIE,
