@@ -1189,6 +1189,7 @@ from .tv2 import (
     TV2IE,
     TV2ArticleIE,
 )
+from .tv2dk import TV2DKIE
 from .tv2hu import TV2HuIE
 from .tv4 import TV4IE
 from .tv5mondeplus import TV5MondePlusIE
