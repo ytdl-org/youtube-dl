@@ -1,3 +1,51 @@
+version 2019.10.29
+
+Core
+* [utils] Actualize major IPv4 address blocks per country
+
+Extractors
++ [go] Add support for abc.com and freeform.com (#22823, #22864)
++ [mtv] Add support for mtvjapan.com
+* [mtv] Fix extraction for mtv.de (#22113)
+* [videodetective] Fix extraction
+* [internetvideoarchive] Fix extraction
+* [nbcnews] Fix extraction (#12569, #12576, #21703, #21923)
+- [hark] Remove extractor
+- [tutv] Remove extractor
+- [learnr] Remove extractor
+- [macgamestore] Remove extractor
+* [la7] Update Kaltura service URL (#22358)
+* [thesun] Fix extraction (#16966)
+- [makertv] Remove extractor
++ [tenplay] Add support for 10play.com.au (#21446)
+* [soundcloud] Improve extraction
+    * Improve format extraction (#22123)
+    + Extract uploader_id and uploader_url (#21916)
+    + Extract all known thumbnails (#19071, #20659)
+    * Fix extration for private playlists (#20976)
+    + Add support for playlist embeds (#20976)
+    * Skip preview formats (#22806)
+* [dplay] Improve extraction
+    + Add support for dplay.fi, dplay.jp and es.dplay.com (#16969)
+    * Fix it.dplay.com extraction (#22826)
+    + Extract creator, tags and thumbnails
+    * Handle playback API call errors
++ [discoverynetworks] Add support for dplay.co.uk
+* [vk] Improve extraction
+    + Add support for Odnoklassniki embeds
+    + Extract more videos from user lists (#4470)
+    + Fix wall post audio extraction (#18332)
+    * Improve error detection (#22568)
++ [odnoklassniki] Add support for embeds
+* [puhutv] Improve extraction
+    * Fix subtitles extraction
+    * Transform HLS URLs to HTTP URLs
+    * Improve metadata extraction
+* [ceskatelevize] Skip DRM media
++ [facebook] Extract subtitles (#22777)
+* [globo] Handle alternative hash signing method
+
+
 version 2019.10.22
 
 Core
