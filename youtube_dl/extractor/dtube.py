@@ -56,20 +56,21 @@ class DTubeIE(InfoExtractor):
             'uploader': 'Jeronimo Rubio',
             'uploader_id': 'UCbbG-SIMdWSW02RYKJucddw',
         },
-    }
-    ]
+    }]
 
     def _real_extract(self, url):
-        DTube_api = 'https://avalon.d.tube/content/'
         uploader_id, video_id = re.match(self._VALID_URL, url).groups()
 
-        result = self._download_json(DTube_api + uploader_id + '/' + video_id, video_id)
+        result = self._download_json(
+            'https://avalon.d.tube/content/' + uploader_id + '/' + video_id,
+            video_id)
 
         metadata = result.get('json')
 
-        if metadata.get('providerName') != "IPFS":
+        if metadata.get('providerName') != 'IPFS':
             video_url = metadata.get('url')
-            self.to_screen('%s : video format URL %s' % (video_url, metadata.get('providerName')))
+            self.to_screen('%s : video format URL %s' % (
+                video_url, metadata.get('providerName')))
             return self.url_result(video_url)
 
         def canonical_url(h):
@@ -79,7 +80,8 @@ class DTubeIE(InfoExtractor):
 
         formats = []
         for q in ('240', '480', '720', '1080', ''):
-            video_url = canonical_url(metadata.get('ipfs').get('video%shash' % q))
+            video_url = canonical_url(
+                metadata.get('ipfs').get('video%shash' % q))
             if not video_url:
                 continue
             format_id = (q + 'p') if q else 'Source'
