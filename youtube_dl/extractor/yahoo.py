@@ -51,10 +51,10 @@ class YahooIE(InfoExtractor):
         },
     }, {
         'url': 'https://uk.screen.yahoo.com/editor-picks/cute-raccoon-freed-drain-using-091756545.html',
-        'md5': '0b51660361f0e27c9789e7037ef76f4b',
+        'md5': '71298482f7c64cbb7fa064e4553ff1c1',
         'info_dict': {
             'id': 'b3affa53-2e14-3590-852b-0e0db6cd1a58',
-            'ext': 'mp4',
+            'ext': 'webm',
             'title': 'Cute Raccoon Freed From Drain\u00a0Using Angle Grinder',
             'description': 'md5:f66c890e1490f4910a9953c941dee944',
             'duration': 97,
@@ -164,6 +164,7 @@ class YahooIE(InfoExtractor):
         'params': {
             'playlistend': 2,
         },
+        'expected_warnings': ['HTTP Error 404'],
     }, {
         'url': 'https://malaysia.news.yahoo.com/video/bystanders-help-ontario-policeman-bust-190932818.html',
         'only_matching': True,
@@ -219,7 +220,7 @@ class YahooIE(InfoExtractor):
             country = 'my'
 
         is_live = video.get('live_state') == 'live'
-        fmts = ('m3u8',) if is_live else ('web', 'mp4')
+        fmts = ('m3u8',) if is_live else ('webm', 'mp4')
 
         urls = []
         formats = []
