@@ -12,11 +12,11 @@ from ..utils import (
     determine_ext,
     dict_get,
     int_or_none,
-    orderedSet,
     strip_or_none,
     try_get,
     urljoin,
     compat_str,
+    js_to_json,
 )
 
 
@@ -320,17 +320,24 @@ class SVTSeriesIE(SVTPlayBaseIE):
 class SVTPageIE(InfoExtractor):
     _VALID_URL = r'https?://(?:www\.)?svt\.se/(?:[^/]+/)*(?P<id>[^/?&#]+)'
     _TESTS = [{
-        'url': 'https://www.svt.se/sport/oseedat/guide-sommartraningen-du-kan-gora-var-och-nar-du-vill',
+        'url': 'https://www.svt.se/nyheter/vetenskap/har-ar-klimatrapporten-i-fem-punkter',
         'info_dict': {
-            'id': 'guide-sommartraningen-du-kan-gora-var-och-nar-du-vill',
-            'title': 'GUIDE: Sommarträning du kan göra var och när du vill',
+            'id': 'har-ar-klimatrapporten-i-fem-punkter',
+            'title': 'Här är FN:s klimatrapport i fem punkter',
         },
-        'playlist_count': 7,
+        'playlist_count': 1,
     }, {
-        'url': 'https://www.svt.se/nyheter/inrikes/ebba-busch-thor-kd-har-delvis-ratt-om-no-go-zoner',
+        'url': 'https://www.svt.se/nyheter/utrikes/svenska-andrea-ar-en-mil-fran-branderna-i-kalifornien',
         'info_dict': {
-            'id': 'ebba-busch-thor-kd-har-delvis-ratt-om-no-go-zoner',
-            'title': 'Ebba Busch Thor har bara delvis rätt om ”no-go-zoner”',
+            'id': 'svenska-andrea-ar-en-mil-fran-branderna-i-kalifornien',
+            'title': 'Svenska Andrea redo att fly sitt hem i Kalifornien',
+        },
+        'playlist_count': 2,
+    }, {
+        'url': 'https://www.svt.se/nyheter/lokalt/norrbotten/komplicerat-att-stanga-mr-kameran',
+        'info_dict': {
+            'id': 'komplicerat-att-stanga-mr-kameran',
+            'title': 'MR-kameran fortfarande igång – komplicerad avstängning påbörjad',
         },
         'playlist_count': 1,
     }, {
@@ -343,9 +350,6 @@ class SVTPageIE(InfoExtractor):
             'duration': 27,
             'age_limit': 0,
         },
-    }, {
-        'url': 'https://www.svt.se/nyheter/lokalt/vast/svt-testar-tar-nagon-upp-skrapet-1',
-        'only_matching': True,
     }, {
         'url': 'https://www.svt.se/vader/manadskronikor/maj2018',
         'only_matching': True,
@@ -360,11 +364,26 @@ class SVTPageIE(InfoExtractor):
 
         webpage = self._download_webpage(url, playlist_id)
 
+        redux_state = self._parse_json(
+            self._search_regex(
+                r'\.\s*reduxState=\s*({.*})',
+                webpage,
+                'reduxState'),
+            None,
+            transform_source=js_to_json)
+
+        media = try_get(redux_state, lambda x: x['componentState']['modal']['media']['article']['media'], list) or []
+        video_ids = []
+
+        for m in media:
+            if m.get('_type') == 'VIDEOCLIP':
+                video_ids.append(int_or_none(m.get('id')))
+
+        video_ids = filter(lambda x: x is not None, video_ids)
+
         entries = [
-            self.url_result(
-                'svt:%s' % video_id, ie=SVTPlayIE.ie_key(), video_id=video_id)
-            for video_id in orderedSet(re.findall(
-                r'data-video-id=["\'](\d+)', webpage))]
+            self.url_result('svt:%s' % video_id, ie=SVTPlayIE.ie_key(), video_id=video_id)
+            for video_id in video_ids]
 
         title = strip_or_none(self._og_search_title(webpage, default=None))
 
