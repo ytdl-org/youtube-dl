@@ -753,7 +753,7 @@ Afterwards, simply follow [our manual installation instructions](https://ytdl-or
 
 ```
 sudo wget https://yt-dl.org/latest/youtube-dl -O /usr/local/bin/youtube-dl
-sudo chmod a+x /usr/local/bin/youtube-dl
+sudo chmod a+rx /usr/local/bin/youtube-dl
 hash -r
 ```
 
