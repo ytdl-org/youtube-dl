@@ -13,6 +13,23 @@ from ..utils import (
 class DTubeIE(InfoExtractor):
     _VALID_URL = r'https?://(?:www\.)?d\.tube/(?:#!/)?v/(?P<uploader_id>[0-9a-z.-]+)/(?P<id>[0-9a-zA-Z-_]{8,46})'
     _TESTS = [{
+        # old test: fail
+        'url': 'https://d.tube/#!/v/broncnutz/x380jtr1',
+        'md5': '9f29088fa08d699a7565ee983f56a06e',
+        'info_dict': {
+            'id': 'x380jtr1',
+            'ext': 'mp4',
+            'title': 'Lefty 3-Rings is Back Baby!! NCAA Picks',
+            'description': 'md5:60be222088183be3a42f196f34235776',
+            'uploader_id': 'broncnutz',
+            'upload_date': '20190107',
+            'timestamp': 1546854054,
+        },
+        'params': {
+            'format': '480p',
+        },
+    }, {
+        # ipfs
         'url': 'https://d.tube/v/anonyhack/QmXxj4j1prF5MUbFme4QVuGApeUw1MLq69Wf4GPBz2j2qL',
         'info_dict': {
             'id': 'QmXxj4j1prF5MUbFme4QVuGApeUw1MLq69Wf4GPBz2j2qL',
@@ -24,18 +41,7 @@ class DTubeIE(InfoExtractor):
             'format': '480p',
         },
     }, {
-        'url': 'https://d.tube/#!/v/hauptmann/QmSTw1aSk9Deu9YBVjpjYcaqV8AgsmTg4eN2tA8RYKTVeM',
-        'info_dict': {
-            'id': 'QmSTw1aSk9Deu9YBVjpjYcaqV8AgsmTg4eN2tA8RYKTVeM',
-            'ext': 'mp4',
-            'title': 'STATE OF THE DAPPS REPORT 25.10.2019 | D.tube talk#237',
-            'description': 'md5:0180ee9bdf036b7b0ab959716cd7b6b9',
-            'uploader_id': 'hauptmann',
-        },
-        'params': {
-            'format': 'Source',
-        },
-    }, {
+        # facebook
         'url': 'https://d.tube/v/whatstrending360/538648240276191',
         'info_dict': {
             'id': '538648240276191',
@@ -46,6 +52,7 @@ class DTubeIE(InfoExtractor):
             'uploader': 'Funny Videos 2019',
         },
     }, {
+        # youtube
         'url': 'https://d.tube/#!/v/jeronimorubio/XCrCtqMeywk',
         'info_dict': {
             'id': 'XCrCtqMeywk',
@@ -62,15 +69,14 @@ class DTubeIE(InfoExtractor):
         uploader_id, video_id = re.match(self._VALID_URL, url).groups()
 
         result = self._download_json(
-            'https://avalon.d.tube/content/' + uploader_id + '/' + video_id,
+            'https://avalon.d.tube/content/%s/%s' % (uploader_id, video_id),
             video_id)
 
         metadata = result.get('json')
+        title = metadata.get('title') or result['title']
 
         if metadata.get('providerName') != 'IPFS':
             video_url = metadata.get('url')
-            self.to_screen('%s : video format URL %s' % (
-                video_url, metadata.get('providerName')))
             return self.url_result(video_url)
 
         def canonical_url(h):
@@ -101,7 +107,7 @@ class DTubeIE(InfoExtractor):
 
         return {
             'id': video_id,
-            'title': metadata.get('title'),
+            'title': title,
             'description': metadata.get('description'),
             'thumbnail': metadata.get('thumbnailUrl'),
             'tags': result.get('tags'),
