@@ -25,7 +25,7 @@ from .brightcove import BrightcoveNewIE
 
 class YahooIE(InfoExtractor):
     IE_DESC = 'Yahoo screen and movies'
-    _VALID_URL = r'(?P<url>https?://(?:(?P<country>[a-zA-Z]{2}(?:-[a-zA-Z]{2})?|malaysia)\.)?(?:[\da-zA-Z_-]+\.)?yahoo\.com/(?:[^/]+/)*(?P<id>[^?&#]*-[0-9]+)\.html)'
+    _VALID_URL = r'(?P<url>https?://(?:(?P<country>[a-zA-Z]{2}(?:-[a-zA-Z]{2})?|malaysia)\.)?(?:[\da-zA-Z_-]+\.)?yahoo\.com/(?:[^/]+/)*(?P<id>[^?&#]*-[0-9]+(?:-[a-z]+)?)\.html)'
     _TESTS = [{
         'url': 'http://screen.yahoo.com/julian-smith-travis-legg-watch-214727115.html',
         'info_dict': {
@@ -170,6 +170,9 @@ class YahooIE(InfoExtractor):
         'only_matching': True,
     }, {
         'url': 'https://es-us.noticias.yahoo.com/es-la-puerta-irrompible-que-110539379.html',
+        'only_matching': True,
+    }, {
+        'url': 'https://www.yahoo.com/entertainment/v/longtime-cbs-news-60-minutes-032036500-cbs.html',
         'only_matching': True,
     }]
 
