@@ -69,7 +69,8 @@ class KakaoIE(InfoExtractor):
                 '-*', 'tid', 'clipLink', 'displayTitle', 'clip', 'title',
                 'description', 'channelId', 'createTime', 'duration', 'playCount',
                 'likeCount', 'commentCount', 'tagList', 'channel', 'name',
-                'clipChapterThumbnailList', 'thumbnailUrl', 'timeInSec', 'isDefault'])
+                'clipChapterThumbnailList', 'thumbnailUrl', 'timeInSec', 'isDefault',
+                'videoOutputList', 'width', 'height', 'kbps', 'profile', 'label'])
         }
 
         impress = self._download_json(
@@ -81,21 +82,14 @@ class KakaoIE(InfoExtractor):
 
         title = clip.get('title') or clip_link.get('displayTitle')
 
-        tid = impress.get('tid', '')
-
-        query.update({
-            'fields': '-*,outputList,profile,width,height,label,filesize',
-            'tid': tid,
-            'profile': 'HIGH',
-        })
-        raw = self._download_json(
-            api_base + 'raw', display_id, 'Downloading video formats info',
-            query=query, headers=player_header)
+        query['tid'] = impress.get('tid', '')
 
         formats = []
-        for fmt in raw.get('outputList', []):
+        for fmt in clip.get('videoOutputList', []):
             try:
                 profile_name = fmt['profile']
+                if profile_name == 'AUDIO':
+                    continue
                 query.update({
                     'profile': profile_name,
                     'fields': '-*,url',
@@ -115,7 +109,8 @@ class KakaoIE(InfoExtractor):
                     'width': int_or_none(fmt.get('width')),
                     'height': int_or_none(fmt.get('height')),
                     'format_note': fmt.get('label'),
-                    'filesize': int_or_none(fmt.get('filesize'))
+                    'filesize': int_or_none(fmt.get('filesize')),
+                    'tbr': int_or_none(fmt.get('kbps')),
                 })
             except KeyError:
                 pass
