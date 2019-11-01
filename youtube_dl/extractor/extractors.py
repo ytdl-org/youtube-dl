@@ -422,7 +422,6 @@ from .globo import (
     GloboArticleIE,
 )
 from .go import GoIE
-from .go90 import Go90IE
 from .godtube import GodTubeIE
 from .golem import GolemIE
 from .googledrive import GoogleDriveIE
