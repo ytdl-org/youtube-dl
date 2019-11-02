@@ -401,10 +401,6 @@ from .fusion import FusionIE
 from .fxnetworks import FXNetworksIE
 from .gaia import GaiaIE
 from .gameinformer import GameInformerIE
-from .gameone import (
-    GameOneIE,
-    GameOnePlaylistIE,
-)
 from .gamespot import GameSpotIE
 from .gamestar import GameStarIE
 from .gaskrank import GaskrankIE
@@ -519,7 +515,6 @@ from .ketnet import KetnetIE
 from .khanacademy import KhanAcademyIE
 from .kickstarter import KickStarterIE
 from .kinopoisk import KinoPoiskIE
-from .keek import KeekIE
 from .konserthusetplay import KonserthusetPlayIE
 from .kontrtube import KontrTubeIE
 from .krasview import KrasViewIE
