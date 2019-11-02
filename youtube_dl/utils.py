@@ -3976,6 +3976,23 @@ def js_to_json(code):
         (r'(?s)^(0[xX][0-9a-fA-F]+){skip}:?$'.format(skip=SKIP_RE), 16),
         (r'(?s)^(0+[0-7]+){skip}:?$'.format(skip=SKIP_RE), 8),
     )
+    
+    def convert_escapes(m):
+        # convert Javascript's octal escape sequences (and '\0')
+        # into valid JSON escape sequences ( e.g '\347' => '\u00e7', '\0' => '\u0000' 
+        if m.group(1):
+            return "\\u%04x" % int(m.group(1), 8)
+        
+        # convert the remaining escape sequences
+        # into valid JSON
+        return {
+            '"': '\\"',
+            "\\'": "'",
+            '\\\n': '',
+            '\\x': '\\u00',
+        }.get(m.group(0), m.group(0))
+        
+        
 
     def fix_kv(m):
         v = m.group(0)
@@ -3986,20 +4003,7 @@ def js_to_json(code):
             return ""
 
         if v[0] in ("'", '"'):
-
-            v = v[1:-1]
-
-            # convert Javascript's octal escape sequences (and '\0')
-            # into valid JSON escape sequences ( e.g '\347' => '\u00e7', '\0' => '\u0000' )
-            # regex based on https://mathiasbynens.be/notes/javascript-escapes
-            v = re.sub(r'\\([0-7]{1,3})', lambda x: "\\u%04x" % int(x.group(1), 8), v)
-
-            v = re.sub(r'(?s)\\.|"', lambda m: {
-                '"': '\\"',
-                "\\'": "'",
-                '\\\n': '',
-                '\\x': '\\u00',
-            }.get(m.group(0), m.group(0)), v)
+            v = re.sub(r'(?s)\\(?:([0-7]{1,3})|.)|"', convert_escapes, v[1:-1])
 
         for regex, base in INTEGER_TABLE:
             im = re.match(regex, v)
