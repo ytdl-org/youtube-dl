@@ -379,6 +379,7 @@ class FacebookIE(InfoExtractor):
         if not video_data:
             raise ExtractorError('Cannot parse data')
 
+        subtitles = {}
         formats = []
         for f in video_data:
             format_id = f['stream_type']
@@ -402,8 +403,16 @@ class FacebookIE(InfoExtractor):
             if dash_manifest:
                 formats.extend(self._parse_mpd_formats(
                     compat_etree_fromstring(compat_urllib_parse_unquote_plus(dash_manifest))))
+            subtitles_src = f[0].get('subtitles_src')
+            if subtitles_src:
+                subtitles.setdefault('en', []).append({'url': subtitles_src})
         if not formats:
             raise ExtractorError('Cannot find video formats')
+
+        # Downloads with browser's User-Agent are rate limited. Working around
+        # with non-browser User-Agent.
+        for f in formats:
+            f.setdefault('http_headers', {})['User-Agent'] = 'facebookexternalhit/1.1'
 
         self._sort_formats(formats)
 
@@ -442,6 +451,7 @@ class FacebookIE(InfoExtractor):
             'timestamp': timestamp,
             'thumbnail': thumbnail,
             'view_count': view_count,
+            'subtitles': subtitles,
         }
 
         return webpage, info_dict

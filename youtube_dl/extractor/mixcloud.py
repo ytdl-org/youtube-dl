@@ -86,9 +86,10 @@ class MixcloudIE(InfoExtractor):
                 r'<script id="relay-data" type="text/x-mixcloud">([^<]+)</script>',
                 webpage, 'play info'), 'play info')
             for item in full_info_json:
-                item_data = try_get(
-                    item, lambda x: x['cloudcast']['data']['cloudcastLookup'],
-                    dict)
+                item_data = try_get(item, [
+                    lambda x: x['cloudcast']['data']['cloudcastLookup'],
+                    lambda x: x['cloudcastLookup']['data']['cloudcastLookup'],
+                ], dict)
                 if try_get(item_data, lambda x: x['streamInfo']['url']):
                     info_json = item_data
                     break
