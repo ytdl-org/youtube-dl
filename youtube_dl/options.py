@@ -819,9 +819,12 @@ def parseOpts(overrideArguments=None):
         action='store_true', dest='addmetadata', default=False,
         help='Write metadata to the video file')
     postproc.add_option(
-        '--preferred-info',
-        dest='preferredinfo', metavar='FILE',
+        '--preferred-metadata-to-embed',
+        dest='preferredmetadatatoembed', metavar='JSON', type=str,
         help='Override metadata on the outputted file')
+    postproc.add_option(
+        '--preferred-metadata-json'
+    )
     postproc.add_option(
         '--metadata-from-title',
         metavar='FORMAT', dest='metafromtitle',

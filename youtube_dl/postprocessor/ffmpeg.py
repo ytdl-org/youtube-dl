@@ -431,11 +431,13 @@ class FFmpegEmbedSubtitlePP(FFmpegPostProcessor):
 
 
 class FFmpegMetadataPP(FFmpegPostProcessor):
-    def __init__(self, downloader=None, preferredinfo=None):
+    def __init__(self, downloader=None, preferredmetadatatoembed=None):
         super(FFmpegMetadataPP, self).__init__(downloader)
-        if not (isinstance(preferredinfo, dict) or preferredinfo == None):
-            raise TypeError('preferredinfo must be a dictionary, if provided')
-        self._preferredinfo = preferredinfo
+        assert (
+            (isinstance(preferredmetadatatoembed, dict) or
+            preferredmetadatatoembed != None)
+            ), 'preferredmetadatatoembed must be a dictionary, if provided'
+        self._preferredmetadatatoembed = preferredmetadatatoembed
 
     def run(self, info):
         metadata = {}
@@ -456,7 +458,7 @@ class FFmpegMetadataPP(FFmpegPostProcessor):
                 meta_list = (meta_list,)
             if not isinstance(info_list, (list, tuple)):
                 info_list = (info_list,)
-            preferred_key = add_info(meta_list, info_list, metadata, self._preferredinfo)
+            preferred_key = add_info(meta_list, info_list, metadata, self._preferredmetadatatoembed)
             if preferred_key is None:
                 add_info(meta_list, info_list, metadata, info)
 

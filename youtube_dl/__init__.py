@@ -276,12 +276,11 @@ def _real_main(argv=None):
     # source and target containers. From this point the container won't change,
     # so metadata can be added here.
     if opts.addmetadata:
-        if hasattr(opts, 'preferredinfo'):
-            with open(opts.preferredinfo) as read_file:
-                preferredinfo = json.load(read_file)
+        if hasattr(opts, 'preferredmetadatatoembed'):
+            preferredmetadatatoembed = json.loads(opts.preferredmetadatatoembed)
             postprocessors.append({
                 'key': 'FFmpegMetadata',
-                'preferredinfo': preferredinfo,
+                'preferredmetadatatoembed': preferredmetadatatoembed,
                 })
         else:
             postprocessors.append({
