@@ -467,7 +467,7 @@ class FFmpegMetadataPP(FFmpegPostProcessor):
         super(FFmpegMetadataPP, self).__init__(downloader)
         assert (
             (isinstance(preferredmetadatatoembed, dict)
-                or preferredmetadatatoembed is not None)
+                or preferredmetadatatoembed is None)
         ), 'preferredmetadatatoembed must be a dictionary, if provided'
         self._preferredmetadatatoembed = preferredmetadatatoembed
 
