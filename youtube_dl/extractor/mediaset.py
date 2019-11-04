@@ -27,7 +27,7 @@ class MediasetIE(ThePlatformBaseIE):
                                 (?:video|on-demand)/(?:[^/]+/)+[^/]+_|
                                 player/index\.html\?.*?\bprogramGuid=
                             )
-                    )(?P<id>[0-9A-Z]{16})
+                    )(?P<id>[0-9A-Z]{16,})
                     '''
     _TESTS = [{
         # full episode
@@ -76,6 +76,18 @@ class MediasetIE(ThePlatformBaseIE):
         'only_matching': True,
     }, {
         'url': 'mediaset:FAFU000000665924',
+        'only_matching': True,
+    }, {
+        'url': 'https://www.mediasetplay.mediaset.it/video/mediasethaacuoreilfuturo/palmieri-alicudi-lisola-dei-tre-bambini-felici--un-decreto-per-alicudi-e-tutte-le-microscuole_FD00000000102295',
+        'only_matching': True,
+    }, {
+        'url': 'https://www.mediasetplay.mediaset.it/video/cherryseason/anticipazioni-degli-episodi-del-23-ottobre_F306837101005C02',
+        'only_matching': True,
+    }, {
+        'url': 'https://www.mediasetplay.mediaset.it/video/tg5/ambiente-onda-umana-per-salvare-il-pianeta_F309453601079D01',
+        'only_matching': True,
+    }, {
+        'url': 'https://www.mediasetplay.mediaset.it/video/grandefratellovip/benedetta-una-doccia-gelata_F309344401044C135',
         'only_matching': True,
     }]
 
