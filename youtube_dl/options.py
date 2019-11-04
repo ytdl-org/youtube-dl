@@ -13,6 +13,9 @@ from .compat import (
     compat_kwargs,
     compat_shlex_split,
 )
+from .postprocessor.ffmpeg import (
+    get_metadata_override_elements
+)
 from .utils import (
     preferredencoding,
     write_string,
@@ -821,7 +824,14 @@ def parseOpts(overrideArguments=None):
     postproc.add_option(
         '--preferred-metadata-to-embed',
         dest='preferredmetadatatoembed', metavar='JSON', type=str,
-        help='Override metadata on the outputted file')
+        help='Override metadata on the outputted file. Pass in a JSON string '
+             'with one element from the info_list in order to override all '
+             'elements from the meta_list. Note, if multiple values are '
+             'inputted from the info_list, only one will be used. Fields '
+             'curently supported for metadata override are '
+             '((info_list) => (meta_list)):\n {}'.format(',\n'.join(
+                 ['({}) => ({})'.format(*[', '.join(a) for a in reversed(x)]) for x in get_metadata_override_elements()]
+                 )))
     postproc.add_option(
         '--preferred-metadata-json'
     )

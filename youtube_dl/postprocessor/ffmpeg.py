@@ -47,6 +47,35 @@ ACODECS = {
 }
 
 
+METADATA_TO_INFO_LIST_ELEMENTS = [
+    ['title', ('track','title')]
+    , ['date', 'upload_date']
+    , [('description','comment'), 'description']
+    , ['purl','webpage_url']
+    , ['track','track_number']
+    , ['artist', ('artist', 'creator', 'uploader', 'uploader_id')]
+    , ['genre']
+    , ['album']
+    , ['album_artists']
+    , ['disc', 'disc_number']
+]
+
+def get_meta_and_info_lists(meta_to_info_list):
+    convert_to_tuple = lambda x: tuple(x) if isinstance(x, (list, tuple)) else tuple([x])
+    if any(isinstance(x, (list, tuple)) for x in meta_to_info_list):
+        meta_list = convert_to_tuple(meta_to_info_list[0])
+        info_list = convert_to_tuple(meta_to_info_list[1])
+    else:
+        meta_list = tuple((meta_to_info_list))
+        info_list = meta_list
+    return (meta_list, info_list)
+
+def get_metadata_override_elements():
+    elements = []
+    for metadata_to_info_lists in METADATA_TO_INFO_LIST_ELEMENTS:
+        elements.append(get_meta_and_info_lists(metadata_to_info_lists))
+    return elements
+
 class FFmpegPostProcessorError(PostProcessingError):
     pass
 
@@ -451,27 +480,13 @@ class FFmpegMetadataPP(FFmpegPostProcessor):
                         return info_f
             return None
 
-        def add(meta_list, info_list=None):
-            if not info_list:
-                info_list = meta_list
-            if not isinstance(meta_list, (list, tuple)):
-                meta_list = (meta_list,)
-            if not isinstance(info_list, (list, tuple)):
-                info_list = (info_list,)
+        def add(meta_list, info_list):
             preferred_key = add_info(meta_list, info_list, metadata, self._preferredmetadatatoembed)
             if preferred_key is None:
                 add_info(meta_list, info_list, metadata, info)
 
-        add('title', ('track', 'title'))
-        add('date', 'upload_date')
-        add(('description', 'comment'), 'description')
-        add('purl', 'webpage_url')
-        add('track', 'track_number')
-        add('artist', ('artist', 'creator', 'uploader', 'uploader_id'))
-        add('genre')
-        add('album')
-        add('album_artist')
-        add('disc', 'disc_number')
+        for meta_info_lists in METADATA_TO_INFO_LIST_ELEMENTS:
+            add(*get_meta_and_info_lists(meta_info_lists))
 
         if not metadata:
             self._downloader.to_screen('[ffmpeg] There isn\'t any metadata to add')
