@@ -76,8 +76,6 @@
  - **awaan:video**
  - **AZMedien**: AZ Medien videos
  - **BaiduVideo**: 百度视频
- - **bambuser**
- - **bambuser:channel**
  - **Bandcamp**
  - **Bandcamp:album**
  - **Bandcamp:weekly**
@@ -284,12 +282,12 @@
  - **FiveThirtyEight**
  - **FiveTV**
  - **Flickr**
- - **Flipagram**
  - **Folketinget**: Folketinget (ft.dk; Danish parliament)
  - **FootyRoom**
  - **Formula1**
  - **FOX**
  - **FOX9**
+ - **FOX9News**
  - **Foxgay**
  - **foxnews**: Fox News and Fox Business Video
  - **foxnews:article**
@@ -315,8 +313,6 @@
  - **FXNetworks**
  - **Gaia**
  - **GameInformer**
- - **GameOne**
- - **gameone:playlist**
  - **GameSpot**
  - **GameStar**
  - **Gaskrank**
@@ -331,7 +327,6 @@
  - **Globo**
  - **GloboArticle**
  - **Go**
- - **Go90**
  - **GodTube**
  - **Golem**
  - **GoogleDrive**
@@ -366,7 +361,6 @@
  - **Hungama**
  - **HungamaSong**
  - **Hypem**
- - **Iconosquare**
  - **ign.com**
  - **imdb**: Internet Movie Database trailers
  - **imdb:list**: Internet Movie Database lists
@@ -406,7 +400,6 @@
  - **Kankan**
  - **Karaoketv**
  - **KarriereVideos**
- - **keek**
  - **KeezMovies**
  - **Ketnet**
  - **KhanAcademy**
@@ -777,6 +770,8 @@
  - **Screencast**
  - **ScreencastOMatic**
  - **scrippsnetworks:watch**
+ - **SCTE**
+ - **SCTECourse**
  - **Seeker**
  - **SenateISVP**
  - **SendtoNews**
@@ -926,6 +921,7 @@
  - **TV2**
  - **tv2.hu**
  - **TV2Article**
+ - **TV2DK**
  - **TV4**: tv4.se and tv4play.se
  - **TV5MondePlus**: TV5MONDE+
  - **TVA**

@@ -1,4 +1,4 @@
-version <unreleased>
+version 2019.11.05
 
 Extractors
 + [scte] Add support for learning.scte.org (#22975)
