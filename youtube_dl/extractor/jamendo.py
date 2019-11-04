@@ -44,7 +44,8 @@ class JamendoIE(InfoExtractor):
 
     def _real_extract(self, url):
         track_id, display_id = self._VALID_URL_RE.match(url).groups()
-        webpage = self._download_webpage(url, track_id)
+        webpage = self._download_webpage(
+            'https://www.jamendo.com/track/' + track_id, track_id)
         models = self._parse_json(self._html_search_regex(
             r"data-bundled-models='([^']+)",
             webpage, 'bundled models'), track_id)
