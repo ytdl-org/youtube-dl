@@ -62,7 +62,6 @@ class MediasetIE(ThePlatformBaseIE):
             'uploader': 'Canale 5',
             'uploader_id': 'C5',
         },
-        'expected_warnings': ['HTTP Error 403: Forbidden'],
     }, {
         # clip
         'url': 'https://www.mediasetplay.mediaset.it/video/gogglebox/un-grande-classico-della-commedia-sexy_FAFU000000661680',
@@ -109,6 +108,11 @@ class MediasetIE(ThePlatformBaseIE):
                 entries.append(embed_url)
         return entries
 
+    def _parse_smil_formats(self, smil, smil_url, video_id, namespace=None, f4m_params=None, transform_rtmp_url=None):
+        for video in smil.findall(self._xpath_ns('.//video', namespace)):
+            video.attrib['src'] = re.sub(r'(https?://vod05)t(-mediaset-it\.akamaized\.net/.+?.mpd)\?.+', r'\1\2', video.attrib['src'])
+        return super()._parse_smil_formats(smil, smil_url, video_id, namespace, f4m_params, transform_rtmp_url)
+
     def _real_extract(self, url):
         guid = self._match_id(url)
         tp_path = 'PR1GhC/media/guid/2702976343/' + guid
@@ -118,14 +122,15 @@ class MediasetIE(ThePlatformBaseIE):
         subtitles = {}
         first_e = None
         for asset_type in ('SD', 'HD'):
-            for f in ('MPEG4', 'MPEG-DASH', 'M3U', 'ISM'):
+            # TODO: fixup ISM+none manifest URLs
+            for f in ('MPEG4', 'MPEG-DASH+none', 'M3U+none'):
                 try:
                     tp_formats, tp_subtitles = self._extract_theplatform_smil(
                         update_url_query('http://link.theplatform.%s/s/%s' % (self._TP_TLD, tp_path), {
                             'mbr': 'true',
                             'formats': f,
                             'assetTypes': asset_type,
-                        }), guid, 'Downloading %s %s SMIL data' % (f, asset_type))
+                        }), guid, 'Downloading %s %s SMIL data' % (f.split('+')[0], asset_type))
                 except ExtractorError as e:
                     if not first_e:
                         first_e = e
