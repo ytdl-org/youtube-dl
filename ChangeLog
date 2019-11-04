@@ -1,3 +1,47 @@
+version 2019.11.05
+
+Extractors
++ [scte] Add support for learning.scte.org (#22975)
++ [msn] Add support for Vidible and AOL embeds (#22195, #22227)
+* [myspass] Fix video URL extraction and improve metadata extraction (#22448)
+* [jamendo] Improve extraction
+    * Fix album extraction (#18564)
+    * Improve metadata extraction (#18565, #21379)
+* [mediaset] Relax URL guid matching (#18352)
++ [mediaset] Extract unprotected M3U and MPD manifests (#17204)
+* [telegraaf] Fix extraction
++ [bellmedia] Add support for marilyn.ca videos (#22193)
+* [stv] Fix extraction (#22928)
+- [iconosquare] Remove extractor
+- [keek] Remove extractor
+- [gameone] Remove extractor (#21778)
+- [flipagram] Remove extractor
+- [bambuser] Remove extractor
+* [wistia] Reduce embed extraction false positives
++ [wistia] Add support for inline embeds (#22931)
+- [go90] Remove extractor
+* [kakao] Remove raw request
++ [kakao] Extract format total bitrate
+* [daum] Fix VOD and Clip extracton (#15015)
+* [kakao] Improve extraction
+    + Add support for embed URLs
+    + Add support for Kakao Legacy vid based embed URLs
+    * Only extract fields used for extraction
+    * Strip description and extract tags
+* [mixcloud] Fix cloudcast data extraction (#22821)
+* [yahoo] Improve extraction
+    + Add support for live streams (#3597, #3779, #22178)
+    * Bypass cookie consent page for european domains (#16948, #22576)
+    + Add generic support for embeds (#20332)
+* [tv2] Fix and improve extraction (#22787)
++ [tv2dk] Add support for TV2 DK sites
+* [onet] Improve extraction …
+    + Add support for onet100.vod.pl
+    + Extract m3u8 formats
+    * Correct audio only format info
+* [fox9] Fix extraction
+
+
 version 2019.10.29
 
 Core
