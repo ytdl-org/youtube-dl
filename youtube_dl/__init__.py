@@ -12,7 +12,6 @@ import random
 import sys
 import json
 
-
 from .options import (
     parseOpts,
 )
@@ -281,13 +280,11 @@ def _real_main(argv=None):
             postprocessors.append({
                 'key': 'FFmpegMetadata',
                 'preferredmetadatatoembed': preferredmetadatatoembed,
-                })
+            })
         else:
             postprocessors.append({
                 'key': 'FFmpegMetadata'
             })
-        
-
     if opts.convertsubtitles:
         postprocessors.append({
             'key': 'FFmpegSubtitlesConvertor',

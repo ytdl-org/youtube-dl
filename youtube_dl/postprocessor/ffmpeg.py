@@ -48,17 +48,18 @@ ACODECS = {
 
 
 METADATA_TO_INFO_LIST_ELEMENTS = [
-    ['title', ('track','title')]
-    , ['date', 'upload_date']
-    , [('description','comment'), 'description']
-    , ['purl','webpage_url']
-    , ['track','track_number']
-    , ['artist', ('artist', 'creator', 'uploader', 'uploader_id')]
-    , ['genre']
-    , ['album']
-    , ['album_artists']
-    , ['disc', 'disc_number']
+    ['title', ('track', 'title')],
+    ['date', 'upload_date'],
+    [('description', 'comment'), 'description'],
+    ['purl', 'webpage_url'],
+    ['track', 'track_number'],
+    ['artist', ('artist', 'creator', 'uploader', 'uploader_id')],
+    ['genre'],
+    ['album'],
+    ['album_artists'],
+    ['disc', 'disc_number']
 ]
+
 
 def get_meta_and_info_lists(meta_to_info_list):
     convert_to_tuple = lambda x: tuple(x) if isinstance(x, (list, tuple)) else tuple([x])
@@ -70,11 +71,13 @@ def get_meta_and_info_lists(meta_to_info_list):
         info_list = meta_list
     return (meta_list, info_list)
 
+
 def get_metadata_override_elements():
     elements = []
     for metadata_to_info_lists in METADATA_TO_INFO_LIST_ELEMENTS:
         elements.append(get_meta_and_info_lists(metadata_to_info_lists))
     return elements
+
 
 class FFmpegPostProcessorError(PostProcessingError):
     pass
@@ -463,9 +466,9 @@ class FFmpegMetadataPP(FFmpegPostProcessor):
     def __init__(self, downloader=None, preferredmetadatatoembed=None):
         super(FFmpegMetadataPP, self).__init__(downloader)
         assert (
-            (isinstance(preferredmetadatatoembed, dict) or
-            preferredmetadatatoembed != None)
-            ), 'preferredmetadatatoembed must be a dictionary, if provided'
+            (isinstance(preferredmetadatatoembed, dict)
+                or preferredmetadatatoembed is not None)
+        ), 'preferredmetadatatoembed must be a dictionary, if provided'
         self._preferredmetadatatoembed = preferredmetadatatoembed
 
     def run(self, info):

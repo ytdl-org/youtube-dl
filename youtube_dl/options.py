@@ -830,8 +830,7 @@ def parseOpts(overrideArguments=None):
              'inputted from the info_list, only one will be used. Fields '
              'curently supported for metadata override are '
              '((info_list) => (meta_list)):\n {}'.format(',\n'.join(
-                 ['({}) => ({})'.format(*[', '.join(a) for a in reversed(x)]) for x in get_metadata_override_elements()]
-                 )))
+                 ['({}) => ({})'.format(*[', '.join(a) for a in reversed(x)]) for x in get_metadata_override_elements()])))
     postproc.add_option(
         '--preferred-metadata-json'
     )
