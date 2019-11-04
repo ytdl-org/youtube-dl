@@ -41,6 +41,14 @@ class MSNIE(InfoExtractor):
     }, {
         'url': 'http://www.msn.com/en-ae/entertainment/bollywood/watch-how-salman-khan-reacted-when-asked-if-he-would-apologize-for-his-‘raped-woman’-comment/vi-AAhvzW6',
         'only_matching': True,
+    }, {
+        # Vidible(AOL) Embed
+        'url': 'https://www.msn.com/en-us/video/animals/yellowstone-park-staffers-catch-deer-engaged-in-behavior-they-cant-explain/vi-AAGfdg1',
+        'only_matching': True,
+    }, {
+        # Dailymotion Embed
+        'url': 'https://www.msn.com/es-ve/entretenimiento/watch/winston-salem-paire-refait-des-siennes-en-perdant-sa-raquette-au-service/vp-AAG704L',
+        'only_matching': True,
     }]
 
     def _real_extract(self, url):
@@ -60,6 +68,18 @@ class MSNIE(InfoExtractor):
                 r'data-error=(["\'])(?P<error>.+?)\1',
                 webpage, 'error', group='error'))
             raise ExtractorError('%s said: %s' % (self.IE_NAME, error), expected=True)
+
+        player_name = video.get('playerName')
+        if player_name:
+            provider_id = video.get('providerId')
+            if provider_id:
+                if player_name == 'AOL':
+                    return self.url_result(
+                        'aol-video:' + provider_id, 'Aol', provider_id)
+                elif player_name == 'Dailymotion':
+                    return self.url_result(
+                        'https://www.dailymotion.com/video/' + provider_id,
+                        'Dailymotion', provider_id)
 
         title = video['title']
 
