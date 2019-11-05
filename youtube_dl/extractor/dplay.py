@@ -146,6 +146,11 @@ class DPlayIE(InfoExtractor):
         video = self._download_json(
             disco_base + 'content/videos/' + display_id, display_id,
             headers=headers, query={
+                'fields[channel]': 'name',
+                'fields[image]': 'height,src,width',
+                'fields[show]': 'name',
+                'fields[tag]': 'name',
+                'fields[video]': 'description,episodeNumber,name,publishStart,seasonNumber,videoDuration',
                 'include': 'images,primaryChannel,show,tags'
             })
         video_id = video['data']['id']
@@ -226,7 +231,6 @@ class DPlayIE(InfoExtractor):
             'series': series,
             'season_number': int_or_none(info.get('seasonNumber')),
             'episode_number': int_or_none(info.get('episodeNumber')),
-            'age_limit': int_or_none(info.get('minimum_age')),
             'creator': creator,
             'tags': tags,
             'thumbnails': thumbnails,
