@@ -2014,7 +2014,7 @@ class InfoExtractor(object):
             mpd_url, video_id,
             note=note or 'Downloading MPD manifest',
             errnote=errnote or 'Failed to download MPD manifest',
-            fatal=fatal, headers=None)
+            fatal=fatal, headers=headers)
         if res is False:
             return []
         mpd_doc, urlh = res
