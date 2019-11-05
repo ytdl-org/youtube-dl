@@ -90,36 +90,6 @@ class SenateISVPIE(InfoExtractor):
         # From http://www.c-span.org/video/?96791-1
         'url': 'http://www.senate.gov/isvp?type=live&comm=banking&filename=banking012715',
         'only_matching': True,
-    }, {
-        'url': 'https://www.armed-services.senate.gov/hearings/19-10-24-nomination_--richard',
-        'info_dict': {
-            'id': 'armedA102419',
-            'ext': 'mp4',
-            'title': 'Integrated Senate Video Player',
-            'thumbnail': r're:^https?://.*\.(?:jpg|png)$',
-        }
-    }, {
-        'url': 'https://www.commerce.senate.gov/2017/10/the-commercial-satellite-industry-what-s-up-and-what-s-on-the-horizon',
-        'info_dict': {
-            'id': 'commerce102517',
-            'ext': 'mp4',
-            'title': 'Integrated Senate Video Player',
-            'thumbnail': None,
-        },
-        'params': {
-            'skip_download': True,
-        }
-    }, {
-        'url': 'https://www.veterans.senate.gov/hearings/pending-legislation-06152017',
-        'info_dict': {
-            'id': 'vetaff061517',
-            'ext': 'mp4',
-            'title': 'Integrated Senate Video Player',
-            'thumbnail': r're:^https?://.*\.(?:jpg|png)$',
-        },
-        'params': {
-            'skip_download': True,
-        }
     }]
 
     @staticmethod
