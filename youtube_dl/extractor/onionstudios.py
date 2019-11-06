@@ -4,13 +4,8 @@ from __future__ import unicode_literals
 import re
 
 from .common import InfoExtractor
-from ..utils import (
-    compat_str,
-    int_or_none,
-    js_to_json,
-    parse_iso8601,
-    try_get,
-)
+from ..compat import compat_str
+from ..utils import js_to_json
 
 
 class OnionStudiosIE(InfoExtractor):
@@ -20,7 +15,7 @@ class OnionStudiosIE(InfoExtractor):
         'url': 'http://www.onionstudios.com/videos/hannibal-charges-forward-stops-for-a-cocktail-2937',
         'md5': '5a118d466d62b5cd03647cf2c593977f',
         'info_dict': {
-            'id': '2937',
+            'id': '3459881',
             'ext': 'mp4',
             'title': 'Hannibal charges forward, stops for a cocktail',
             'description': 'md5:545299bda6abf87e5ec666548c6a9448',
@@ -53,43 +48,6 @@ class OnionStudiosIE(InfoExtractor):
         mcp_id = compat_str(self._parse_json(self._search_regex(
             r'window\.mcpMapping\s*=\s*({.+?});', webpage,
             'MCP Mapping'), video_id, js_to_json)[video_id]['mcp_id'])
-        video_data = self._download_json(
-            'https://api.vmh.univision.com/metadata/v1/content/' + mcp_id,
-            mcp_id)['videoMetadata']
-        iptc = video_data['photoVideoMetadataIPTC']
-        title = iptc['title']['en']
-        fmg = video_data.get('photoVideoMetadata_fmg') or {}
-        tvss_domain = fmg.get('tvssDomain') or 'https://auth.univision.com'
-        data = self._download_json(
-            tvss_domain + '/api/v3/video-auth/url-signature-tokens',
-            mcp_id, query={'mcpids': mcp_id})['data'][0]
-        formats = []
-
-        rendition_url = data.get('renditionUrl')
-        if rendition_url:
-            formats = self._extract_m3u8_formats(
-                rendition_url, mcp_id, 'mp4',
-                'm3u8_native', m3u8_id='hls', fatal=False)
-
-        fallback_rendition_url = data.get('fallbackRenditionUrl')
-        if fallback_rendition_url:
-            formats.append({
-                'format_id': 'fallback',
-                'tbr': int_or_none(self._search_regex(
-                    r'_(\d+)\.mp4', fallback_rendition_url,
-                    'bitrate', default=None)),
-                'url': fallback_rendition_url,
-            })
-
-        self._sort_formats(formats)
-
-        return {
-            'id': video_id,
-            'title': title,
-            'thumbnail': try_get(iptc, lambda x: x['cloudinaryLink']['link'], compat_str),
-            'uploader': fmg.get('network'),
-            'duration': int_or_none(iptc.get('fileDuration')),
-            'formats': formats,
-            'description': try_get(iptc, lambda x: x['description']['en'], compat_str),
-            'timestamp': parse_iso8601(iptc.get('dateReleased')),
-        }
+        return self.url_result(
+            'http://kinja.com/ajax/inset/iframe?id=mcp-' + mcp_id,
+            'KinjaEmbed', mcp_id)
