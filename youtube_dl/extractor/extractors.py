@@ -639,7 +639,6 @@ from .mixcloud import (
     MixcloudIE,
     MixcloudUserIE,
     MixcloudPlaylistIE,
-    MixcloudStreamIE,
 )
 from .mlb import MLBIE
 from .mnet import MnetIE
