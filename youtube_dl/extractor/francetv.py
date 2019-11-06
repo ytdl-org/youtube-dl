@@ -166,6 +166,23 @@ class FranceTVIE(InfoExtractor):
                         'url': video_url,
                         'format_id': format_id,
                     })
+
+        if not formats:
+            fallback_info = self._download_json(
+                'https://player.webservices.francetelevisions.fr/v1/videos/%s' % video_id,
+                video_id, 'Downloading fallback video JSON', query={
+                    'device_type': 'mobile',
+                    'browser': 'firefox',
+                })
+
+            video_url = fallback_info['video']['url']
+            format_id = fallback_info['video']['format']
+
+            formats.extend(self._extract_m3u8_formats(
+                sign(video_url, format_id), video_id, 'mp4',
+                entry_protocol='m3u8_native', m3u8_id=format_id,
+                fatal=False))
+
         self._sort_formats(formats)
 
         title = info['titre']
