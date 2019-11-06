@@ -1586,7 +1586,7 @@ class InfoExtractor(object):
     def _extract_m3u8_formats(self, m3u8_url, video_id, ext=None,
                               entry_protocol='m3u8', preference=None,
                               m3u8_id=None, note=None, errnote=None,
-                              fatal=True, live=False, headers=None):
+                              fatal=True, live=False, headers={}):
         res = self._download_webpage_handle(
             m3u8_url, video_id,
             note=note or 'Downloading m3u8 information',
@@ -2009,7 +2009,7 @@ class InfoExtractor(object):
             })
         return entries
 
-    def _extract_mpd_formats(self, mpd_url, video_id, mpd_id=None, note=None, errnote=None, fatal=True, formats_dict={}, headers=None):
+    def _extract_mpd_formats(self, mpd_url, video_id, mpd_id=None, note=None, errnote=None, fatal=True, formats_dict={}, headers={}):
         res = self._download_xml_handle(
             mpd_url, video_id,
             note=note or 'Downloading MPD manifest',
