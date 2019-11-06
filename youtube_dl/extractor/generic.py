@@ -119,6 +119,7 @@ from .viqeo import ViqeoIE
 from .expressen import ExpressenIE
 from .zype import ZypeIE
 from .odnoklassniki import OdnoklassnikiIE
+from .kinja import KinjaEmbedIE
 
 
 class GenericIE(InfoExtractor):
@@ -1487,16 +1488,18 @@ class GenericIE(InfoExtractor):
                 'timestamp': 1432570283,
             },
         },
-        # OnionStudios embed
+        # Kinja embed
         {
             'url': 'http://www.clickhole.com/video/dont-understand-bitcoin-man-will-mumble-explanatio-2537',
             'info_dict': {
-                'id': '2855',
+                'id': '106351',
                 'ext': 'mp4',
                 'title': 'Don’t Understand Bitcoin? This Man Will Mumble An Explanation At You',
+                'description': 'Migrated from OnionStudios',
                 'thumbnail': r're:^https?://.*\.jpe?g$',
-                'uploader': 'ClickHole',
-                'uploader_id': 'clickhole',
+                'uploader': 'clickhole',
+                'upload_date': '20150527',
+                'timestamp': 1432744860,
             }
         },
         # SnagFilms embed
@@ -2893,6 +2896,12 @@ class GenericIE(InfoExtractor):
         senate_isvp_url = SenateISVPIE._search_iframe_url(webpage)
         if senate_isvp_url:
             return self.url_result(senate_isvp_url, 'SenateISVP')
+
+        # Look for Kinja embeds
+        kinja_embed_urls = KinjaEmbedIE._extract_urls(webpage, url)
+        if kinja_embed_urls:
+            return self.playlist_from_matches(
+                kinja_embed_urls, video_id, video_title)
 
         # Look for OnionStudios embeds
         onionstudios_url = OnionStudiosIE._extract_url(webpage)
