@@ -79,7 +79,7 @@ class CWTVIE(InfoExtractor):
         season = str_or_none(video_data.get('season'))
         episode = str_or_none(video_data.get('episode'))
         if episode and season:
-            episode = episode.lstrip(season)
+            episode = episode[len(season):]
 
         return {
             '_type': 'url_transparent',

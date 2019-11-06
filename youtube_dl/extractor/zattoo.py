@@ -86,8 +86,8 @@ class ZattooPlatformBaseIE(InfoExtractor):
             return next(
                 chan['cid'] for chan in channel_list
                 if chan.get('cid') and (
-                    chan.get('display_alias') == channel_name or
-                    chan.get('cid') == channel_name))
+                    chan.get('display_alias') == channel_name
+                    or chan.get('cid') == channel_name))
         except StopIteration:
             raise ExtractorError('Could not extract channel id')
 
@@ -418,5 +418,16 @@ class EinsUndEinsTVIE(ZattooIE):
 
     _TESTS = [{
         'url': 'https://www.1und1.tv/watch/abc/123-abc',
+        'only_matching': True,
+    }]
+
+
+class SaltTVIE(ZattooIE):
+    _NETRC_MACHINE = 'salttv'
+    _HOST = 'tv.salt.ch'
+    _VALID_URL = _make_valid_url(ZattooIE._VALID_URL_TEMPLATE, _HOST)
+
+    _TESTS = [{
+        'url': 'https://tv.salt.ch/watch/abc/123-abc',
         'only_matching': True,
     }]

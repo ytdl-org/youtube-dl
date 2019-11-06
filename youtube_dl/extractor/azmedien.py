@@ -36,7 +36,6 @@ class AZMedienIE(InfoExtractor):
             'id': '1_anruz3wy',
             'ext': 'mp4',
             'title': 'Bundesrats-Vakanzen / EU-Rahmenabkommen',
-            'description': 'md5:dd9f96751ec9c35e409a698a328402f3',
             'uploader_id': 'TVOnline',
             'upload_date': '20180930',
             'timestamp': 1538328802,
@@ -53,15 +52,12 @@ class AZMedienIE(InfoExtractor):
 
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
+        host = mobj.group('host')
         video_id = mobj.group('id')
         entry_id = mobj.group('kaltura_id')
 
         if not entry_id:
-            webpage = self._download_webpage(url, video_id)
-            api_path = self._search_regex(
-                r'["\']apiPath["\']\s*:\s*["\']([^"^\']+)["\']',
-                webpage, 'api path')
-            api_url = 'https://www.%s%s' % (mobj.group('host'), api_path)
+            api_url = 'https://www.%s/api/pub/gql/%s' % (host, host.split('.')[0])
             payload = {
                 'query': '''query VideoContext($articleId: ID!) {
                     article: node(id: $articleId) {

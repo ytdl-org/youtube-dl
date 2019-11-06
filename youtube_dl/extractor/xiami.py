@@ -7,7 +7,7 @@ from ..utils import int_or_none
 
 
 class XiamiBaseIE(InfoExtractor):
-    _API_BASE_URL = 'http://www.xiami.com/song/playlist/cat/json/id'
+    _API_BASE_URL = 'https://emumo.xiami.com/song/playlist/cat/json/id'
 
     def _download_webpage_handle(self, *args, **kwargs):
         webpage = super(XiamiBaseIE, self)._download_webpage_handle(*args, **kwargs)

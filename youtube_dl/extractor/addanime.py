@@ -59,9 +59,9 @@ class AddAnimeIE(InfoExtractor):
             parsed_url = compat_urllib_parse_urlparse(url)
             av_val = av_res + len(parsed_url.netloc)
             confirm_url = (
-                parsed_url.scheme + '://' + parsed_url.netloc +
-                action + '?' +
-                compat_urllib_parse_urlencode({
+                parsed_url.scheme + '://' + parsed_url.netloc
+                + action + '?'
+                + compat_urllib_parse_urlencode({
                     'jschl_vc': vc, 'jschl_answer': compat_str(av_val)}))
             self._download_webpage(
                 confirm_url, video_id,

@@ -165,7 +165,7 @@ class UstreamIE(InfoExtractor):
         m = re.match(self._VALID_URL, url)
         video_id = m.group('id')
 
-        # some sites use this embed format (see: https://github.com/rg3/youtube-dl/issues/2990)
+        # some sites use this embed format (see: https://github.com/ytdl-org/youtube-dl/issues/2990)
         if m.group('type') == 'embed/recorded':
             video_id = m.group('id')
             desktop_url = 'http://www.ustream.tv/recorded/' + video_id

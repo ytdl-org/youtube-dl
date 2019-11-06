@@ -36,7 +36,7 @@ class GoogleDriveIE(InfoExtractor):
         }
     }, {
         # video can't be watched anonymously due to view count limit reached,
-        # but can be downloaded (see https://github.com/rg3/youtube-dl/issues/14046)
+        # but can be downloaded (see https://github.com/ytdl-org/youtube-dl/issues/14046)
         'url': 'https://drive.google.com/file/d/0B-vUyvmDLdWDcEt4WjBqcmI2XzQ/view',
         'md5': 'bfbd670d03a470bb1e6d4a257adec12e',
         'info_dict': {

@@ -86,9 +86,10 @@ class MixcloudIE(InfoExtractor):
                 r'<script id="relay-data" type="text/x-mixcloud">([^<]+)</script>',
                 webpage, 'play info'), 'play info')
             for item in full_info_json:
-                item_data = try_get(
-                    item, lambda x: x['cloudcast']['data']['cloudcastLookup'],
-                    dict)
+                item_data = try_get(item, [
+                    lambda x: x['cloudcast']['data']['cloudcastLookup'],
+                    lambda x: x['cloudcastLookup']['data']['cloudcastLookup'],
+                ], dict)
                 if try_get(item_data, lambda x: x['streamInfo']['url']):
                     info_json = item_data
                     break
@@ -161,11 +162,17 @@ class MixcloudIE(InfoExtractor):
             stream_info = info_json['streamInfo']
             formats = []
 
+            def decrypt_url(f_url):
+                for k in (key, 'IFYOUWANTTHEARTISTSTOGETPAIDDONOTDOWNLOADFROMMIXCLOUD'):
+                    decrypted_url = self._decrypt_xor_cipher(k, f_url)
+                    if re.search(r'^https?://[0-9A-Za-z.]+/[0-9A-Za-z/.?=&_-]+$', decrypted_url):
+                        return decrypted_url
+
             for url_key in ('url', 'hlsUrl', 'dashUrl'):
                 format_url = stream_info.get(url_key)
                 if not format_url:
                     continue
-                decrypted = self._decrypt_xor_cipher(key, compat_b64decode(format_url))
+                decrypted = decrypt_url(compat_b64decode(format_url))
                 if not decrypted:
                     continue
                 if url_key == 'hlsUrl':
