@@ -326,7 +326,7 @@ class OdnoklassnikiIE(InfoExtractor):
                 upload_date_hours_and_minutes = self._extract_hours_and_minutes(upload_date_str)
                 if upload_date_hours_and_minutes:
                     upload_date_time = upload_date_time + timedelta(
-                        hours=upload_date_hours_and_minutes.hour, minutes=upload_date_hours_and_minutes.minute
+                        hours=upload_date_hours_and_minutes.hour - 3, minutes=upload_date_hours_and_minutes.minute
                     )
                     timestamp = unified_timestamp(upload_date_time.isoformat())
                 if upload_date_time:
