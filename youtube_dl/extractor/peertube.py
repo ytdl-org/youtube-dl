@@ -423,17 +423,16 @@ class PeerTubeIE(InfoExtractor):
                     (?P<id>%s)
                     ''' % (_INSTANCES_RE, _UUID_RE)
     _TESTS = [{
-        'url': 'https://peertube.cpy.re/videos/watch/2790feb0-8120-4e63-9af3-c943c69f5e6c',
-        'md5': '80f24ff364cc9d333529506a263e7feb',
+        'url': 'https://framatube.org/videos/watch/9c9de5e8-0a1e-484a-b099-e80766180a6d',
+        'md5': '9bed8c0137913e17b86334e5885aacff',
         'info_dict': {
             'id': '9c9de5e8-0a1e-484a-b099-e80766180a6d',
             'ext': 'mp4',
             'title': 'What is PeerTube?',
-            'description': """**[Want to help to translate this video?](https://trad.framasoft.org/iteration/view/what-is-peertube/master)** (documentation [here](https://trad.framasoft.org))!\r\n\r\n**Take back the control of your videos! [#JoinPeertube](https://joinpeertube.org)**\r\n*A decentralized video hosting network, based on free/libre software!*\r\n\r\n**Animation Produced by:** [LILA](https://libreart.info) - [ZeMarmot Team](https://film.zemarmot.net)\r\n*Directed by* Aryeom\r\n*Assistant* Jehan\r\n**Licence**: [CC-By-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/)\r\n\r\n**Sponsored by** [Framasoft](https://framasoft.org)\r\n\r\n**Music**: [Red Step Forward](http://play.dogmazic.net/song.php?song_id=52491) - CC-By Ken Bushima\r\n\r\n**Movie Clip**: [Caminades 3: Llamigos](http://www.caminandes.com/) CC-By Blender Institute""",
+            'description': """**[Want to help to translate this video?](https://trad.framasoft.org/iteration/view/what-is-peertube/master)** (documentation [here](https://trad.framasoft.org))!\r\n\r\n**Take back the control of your videos! [#JoinPeertube](https://joinpeertube.org)**\r\n*A decentralized video hosting network, based on free/libre software!*\r\n\r\n**Animation Produced by:** [LILA](https://libreart.info) - [ZeMarmot Team](https://film.zemarmot.net)\r\n*Directed by* Aryeom\r\n*Assistant* Jehan\r\n**Licence**: [CC-By-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/)\r\n\r\n**Sponsored by** [Framasoft](https://framasoft.org)\r\n\r\n**Music**: [Red Step Forward](http://play.dogmazic.net/song.php?song_id=52491) - CC-By Ken Bushima\r\n\r\n**Movie Clip**: [Caminades 3: Llamigos](http://www.caminandes.com/) CC-By Blender Institute\r\n\r\n**Video sources**: https://gitlab.gnome.org/Jehan/what-is-peertube/""",
             'timestamp': 1538391166,
             'upload_date': '20181001',
             'uploader': 'Framasoft',
-            'uploader_id': '0a635cad-dcdb-443f-b600-6c38ffaffe1f',
             'uploader_url': 'https://framatube.org/accounts/framasoft',
             'license': 'Attribution - Share Alike',
             'duration': 113,
@@ -537,7 +536,6 @@ class PeerTubeIE(InfoExtractor):
             'thumbnail': urljoin(url, video.get('thumbnailPath')),
             'timestamp': unified_timestamp(video.get('publishedAt')),
             'uploader': account_data('displayName'),
-            'uploader_id': account_data('uuid'),
             'uploader_url': account_data('url'),
             'license': try_get(
                 video, lambda x: x['licence']['label'], compat_str),
@@ -569,7 +567,7 @@ class PeerTubeChannelIE(PeerTubeIE):
     }, {
         'url': 'https://videos.pair2jeux.tube/accounts/lecygnenoir/videos',
         'info_dict': {
-            'title': 'Default lecygnenoir channel',
+            'title': 'Stratégie et 4X',
             'id': '8a1ea992-9adf-4c3e-90b2-972d5b299be9',
         },
         'playlist_mincount': 880,
@@ -618,4 +616,5 @@ class PeerTubeChannelIE(PeerTubeIE):
         if channel is None:
             return self.playlist_result(entries)
         else:
-            return self.playlist_result(entries, channel.get('uuid'), channel.get('displayName'))
+            print(channel)
+            return self.playlist_result(entries, channel.get('name'), channel.get('displayName'))
