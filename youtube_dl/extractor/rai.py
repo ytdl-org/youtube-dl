@@ -122,7 +122,7 @@ class RaiBaseIE(InfoExtractor):
 
 
 class RaiPlayIE(RaiBaseIE):
-    _VALID_URL = r'(?P<url>https?://(?:www\.)?raiplay\.it/.+?-(?P<id>%s)\.html)' % RaiBaseIE._UUID_RE
+    _VALID_URL = r'(?P<url>https?://(?:www\.)?raiplay\.it/.+?-(?P<id>%s))\.html' % RaiBaseIE._UUID_RE
     _TESTS = [{
         'url': 'http://www.raiplay.it/video/2016/10/La-Casa-Bianca-e06118bb-59a9-4636-b914-498e4cfd2c66.html?source=twitter',
         'md5': '340aa3b7afb54bfd14a8c11786450d76',
@@ -171,13 +171,13 @@ class RaiPlayIE(RaiBaseIE):
         url, video_id = mobj.group('url', 'id')
 
         media = self._download_json(
-            '%s?json' % url, video_id, 'Downloading video JSON')
+            '%s.json' % url, video_id, 'Downloading video JSON')
 
         title = media['name']
 
         video = media['video']
 
-        relinker_info = self._extract_relinker_info(video['contentUrl'], video_id)
+        relinker_info = self._extract_relinker_info(video['content_url'], video_id)
         self._sort_formats(relinker_info['formats'])
 
         thumbnails = []
