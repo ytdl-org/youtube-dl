@@ -1,5 +1,6 @@
 from __future__ import unicode_literals
 
+import codecs
 import re
 
 from .common import InfoExtractor
@@ -41,9 +42,9 @@ class ChaturbateIE(InfoExtractor):
         m3u8_urls = []
 
         for m in re.finditer(
-                r'(["\'])(?P<url>http.+?\.m3u8.*?)\1', webpage):
-            m3u8_fast_url, m3u8_no_fast_url = m.group('url'), m.group(
-                'url').replace('_fast', '')
+                r'\\u002[27](?P<url>http.+?\.m3u8.*?)\\u002[27]', webpage):
+            url = codecs.decode(m.group('url'), 'unicode-escape')
+            m3u8_fast_url, m3u8_no_fast_url = url, url.replace('_fast', '')
             for m3u8_url in (m3u8_fast_url, m3u8_no_fast_url):
                 if m3u8_url not in m3u8_urls:
                     m3u8_urls.append(m3u8_url)
