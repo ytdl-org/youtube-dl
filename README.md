@@ -27,13 +27,23 @@ If you do not have curl, you can alternatively use a recent wget:
     sudo wget https://yt-dl.org/downloads/latest/youtube-dl -O /usr/local/bin/youtube-dl
     sudo chmod a+rx /usr/local/bin/youtube-dl
 
-Windows users can [download an .exe file](https://yt-dl.org/latest/youtube-dl.exe) and place it in any location on their [PATH](https://en.wikipedia.org/wiki/PATH_%28variable%29) except for `%SYSTEMROOT%\System32` (e.g. **do not** put in `C:\Windows\System32`).
+Windows users can [download an .exe file](https://yt-dl.org/latest/youtube-dl.exe) and place it in any location on their [PATH](https://en.wikipedia.org/wiki/PATH_%28variable%29) except for `%SYSTEMROOT%\System32` (e.g. **do not** put in `C:\Windows\System32`). To use it from anywhere add youtube-dl as an environment variable or its location as an environment variable path.
+
+It can also be installed with [Scoop](https://scoop.sh/):
+
+    scoop install youtube-dl
+    
+Alternatively [Chocolatey](https://chocolatey.org/) can be used
+
+    choco install youtube-dl
+    
+Unlike the downloading the exe file and manually adding its location to path, both Scoop and Chocolatey take care of adding environment variables during installation.
 
 You can also use pip:
 
     sudo -H pip install --upgrade youtube-dl
     
-This command will update youtube-dl if you have already installed it. See the [pypi page](https://pypi.python.org/pypi/youtube_dl) for more information.
+This command will update youtube-dl if you have already installed it. See the [pypi page](https://pypi.python.org/pypi/youtube_dl) for more information. In Windows use `pip install --upgrade youtube-dl`. To use the [sudo command in Windows use](http://blog.lukesampson.com/sudo-for-windows) use `scoop install sudo`, which will let you install it as an Administrator with `sudo pip install --upgrade youtube-dl`.
 
 macOS users can install youtube-dl with [Homebrew](https://brew.sh/):
 
