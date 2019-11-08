@@ -15,12 +15,14 @@ from ..utils import (
     GeoRestrictedError,
     int_or_none,
     parse_duration,
+    str_or_none,
     strip_or_none,
     try_get,
     unescapeHTML,
     unified_strdate,
     unified_timestamp,
     update_url_query,
+    url_or_none,
     urljoin,
     xpath_text,
 )
@@ -102,8 +104,7 @@ class RaiBaseIE(InfoExtractor):
         }.items() if v is not None)
 
     @staticmethod
-    def _extract_subtitles(url, subtitle_url):
-        subtitles = {}
+    def _extract_subtitles(url, subtitle_url, subtitles):
         if subtitle_url and isinstance(subtitle_url, compat_str):
             subtitle_url = urljoin(url, subtitle_url)
             STL_EXT = '.stl'
@@ -121,13 +122,12 @@ class RaiBaseIE(InfoExtractor):
         return subtitles
 
     @staticmethod
-    def _extract_subtitles_from_list(subtitle_array):
-        subtitles = {}
+    def _extract_subtitles_from_list(subtitle_array, subtitles):
         if isinstance(subtitle_array, list):
             for item in subtitle_array:
                 lang = item.get('language')
                 url = item.get('url')
-                if isinstance(url, compat_str) and '' != url and isinstance(lang, compat_str) and '' != lang:
+                if url_or_none(url) and str_or_none(lang):
                     subtitles[lang.lower()] = [{
                         'ext': url[-3:],
                         'url': url,
@@ -158,21 +158,16 @@ class RaiPlayIE(RaiBaseIE):
         'url': 'https://www.raiplay.it/video/2019/10/Report-del-21102019-La-fabbrica-della-paura-825ce3a7-8573-46c8-80d2-cde1b519fd01.html',
         'md5': '8970abf8caf8aef4696e7b1f2adfc696',
         'info_dict': {
-            "id": "825ce3a7-8573-46c8-80d2-cde1b519fd01",
-            "title": "Report - La fabbrica della paura",
-            "alt_title": "St 2019/20 - La fabbrica della paura - 21/10/2019 ",
+            'id': '825ce3a7-8573-46c8-80d2-cde1b519fd01',
+            'title': 'Report - La fabbrica della paura',
+            'alt_title': 'St 2019/20 - La fabbrica della paura - 21/10/2019 ',
             'description': 'md5:f27c544694cacb46a078db84ec35d2d9',
-            "ext": "mp4",
-            "series": "Report",
-            "season_number": 7,
-            "season": "2019/20",
-            "subtitles": {
-                "it": [
-                    {
-                        "ext": "srt",
-                        "url": "http://creativemedia4-rai-it.akamaized.net/infocdn/raitre/report/Report_EP_Puntate/11217587.srt"
-                    }
-                ]
+            'ext': 'mp4',
+            'series': 'Report',
+            'season_number': 7,
+            'season': '2019/20',
+            'subtitles': {
+                'it': [{'ext': 'srt'}]
             },
         },
         'params': {
@@ -187,14 +182,13 @@ class RaiPlayIE(RaiBaseIE):
         mobj = re.match(self._VALID_URL, url)
         url, video_id = mobj.group('url', 'id')
 
-        media = self._download_json(
-            '%s?json' % url, video_id, 'Downloading video JSON')
+        media = self._download_json(url.replace('.html', '.json'), video_id, 'Downloading video JSON')
 
         title = media['name']
 
         video = media['video']
 
-        relinker_info = self._extract_relinker_info(video['contentUrl'], video_id)
+        relinker_info = self._extract_relinker_info(video['content_url'], video_id)
         self._sort_formats(relinker_info['formats'])
 
         thumbnails = []
@@ -210,10 +204,9 @@ class RaiPlayIE(RaiBaseIE):
 
         subtitles = {}
         if '' != video.get('subtitles'):
-            subtitles = self._extract_subtitles(url, video.get('subtitles'))
-        else:
-            if video.get('subtitlesArray'):
-                subtitles = self._extract_subtitles_from_list(video.get('subtitlesArray'))
+            subtitles = self._extract_subtitles(url, video.get('subtitles'), subtitles)
+        if video.get('subtitlesArray'):
+            subtitles = self._extract_subtitles_from_list(video.get('subtitlesArray'), subtitles)
         info = {
             'id': video_id,
             'title': self._live_title(title) if relinker_info.get(
