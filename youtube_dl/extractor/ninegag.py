@@ -5,6 +5,9 @@ import re
 from .common import InfoExtractor
 from ..utils import (
     determine_ext,
+    url_or_none,
+    int_or_none,
+    float_or_none,
     ExtractorError
 )
 
@@ -52,14 +55,16 @@ class NineGagIE(InfoExtractor):
         video_id = self._match_id(url)
         webpage = self._download_webpage(url, video_id)
         rawJsonData = self._search_regex(
-            r'window._config\s*=\s*JSON.parse\("({.+?})"\);',
+            r'window._config\s*=\s*JSON.parse\(["\']({.+?})["\']\);',
             webpage,
             'data')
         rawJsonData = rawJsonData.replace('\\"', '"').replace('\\\\/', '/')
         data = self._parse_json(rawJsonData, video_id)['data']['post']
 
         if data['type'] != 'Animated':
-            raise ExtractorError('The given url does not contain a video', expected=True)
+            raise ExtractorError(
+                'The given url does not contain a video',
+                expected=True)
 
         duration = None
         formats = []
@@ -67,14 +72,16 @@ class NineGagIE(InfoExtractor):
         for key in data['images']:
             image = data['images'][key]
             if 'duration' in image and duration is None:
-                duration = image['duration']
-            url = image['url']
+                duration = int_or_none(image['duration'])
+            url = url_or_none(image.get('url'))
+            if url == None:
+                continue
             ext = determine_ext(url)
             if ext == 'jpg' or ext == 'png':
                 thumbnail = {
                     'url': url,
-                    'width': image['width'],
-                    'height': image['height']
+                    'width': float_or_none(image.get('width')),
+                    'height': float_or_none(image.get('height'))
                 }
                 thumbnails.append(thumbnail)
             elif ext == 'webm' or ext == 'mp4':
@@ -82,27 +89,33 @@ class NineGagIE(InfoExtractor):
                     'format_id': re.sub(r'.*_([^\.]+).(.*)', r'\1_\2', url),
                     'ext': ext,
                     'url': url,
-                    'width': image['width'],
-                    'height': image['height']
+                    'width': float_or_none(image.get('width')),
+                    'height': float_or_none(image.get('height'))
                 })
-        section = re.sub(r'\\[^\\]{5}', '', data['postSection']['name'])
+        section = None
+        postSection = data.get('postSection')
+        if postSection != None and 'name' in postSection:
+            section = re.sub(r'\\[^\\]{5}', '', postSection['name'])
+        age_limit = int_or_none(data.get('nsfw'))
+        if age_limit != None:
+            age_limit = age_limit * 18
         tags = None
         if 'tags' in data:
             tags = []
-            for tag in data['tags']:
-                tags.append(tag['key'])
+            for tag in data.get('tags') or []:
+                tags.append(tag.get('key'))
 
         return {
             'id': video_id,
             'title': data['title'],
-            'timestamp': data['creationTs'],
+            'timestamp': int_or_none(data.get('creationTs')),
             'duration': duration,
             'formats': formats,
             'thumbnails': thumbnails,
-            'like_count': data['upVoteCount'],
-            'dislike_count': data['downVoteCount'],
-            'comment_count': data['commentsCount'],
-            'age_limit': data['nsfw'] * 18,
+            'like_count': int_or_none(data.get('upVoteCount')),
+            'dislike_count': int_or_none(data.get('downVoteCount')),
+            'comment_count': int_or_none(data.get('commentsCount')),
+            'age_limit': age_limit,
             'categories': [section],
             'tags': tags,
             'is_live': False
