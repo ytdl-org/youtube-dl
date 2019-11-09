@@ -625,7 +625,6 @@ from .microsoftvirtualacademy import (
     MicrosoftVirtualAcademyIE,
     MicrosoftVirtualAcademyCourseIE,
 )
-from .minhateca import MinhatecaIE
 from .ministrygrid import MinistryGridIE
 from .minoto import MinotoIE
 from .miomio import MioMioIE
