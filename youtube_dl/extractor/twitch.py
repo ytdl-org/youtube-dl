@@ -344,9 +344,8 @@ class TwitchVodIE(TwitchItemBaseIE):
             info['subtitles'] = {
                 'rechat': [{
                     'url': update_url_query(
-                        'https://rechat.twitch.tv/rechat-messages', {
-                            'video_id': 'v%s' % item_id,
-                            'start': info['timestamp'],
+                        'https://api.twitch.tv/v5/videos/%s/comments' % item_id, {
+                            'client_id': self._CLIENT_ID,
                         }),
                     'ext': 'json',
                 }],
