@@ -18,7 +18,6 @@ from .acast import (
     ACastIE,
     ACastChannelIE,
 )
-from .addanime import AddAnimeIE
 from .adn import ADNIE
 from .adobeconnect import AdobeConnectIE
 from .adobetv import (
