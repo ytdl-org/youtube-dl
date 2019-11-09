@@ -644,7 +644,7 @@ class TwitchStreamIE(TwitchBaseIE):
 
 class TwitchClipsIE(TwitchBaseIE):
     IE_NAME = 'twitch:clips'
-    _VALID_URL = r'https?://(?:clips\.twitch\.tv/(?:[^/]+/)*|(?:www\.)?twitch\.tv/[^/]+/clip/)(?P<id>[^/?#&]+)'
+    _VALID_URL = r'https?://(?:clips\.twitch\.tv/(?:embed\?.*?\bclip=|(?:[^/]+/)*)|(?:www\.)?twitch\.tv/[^/]+/clip/)(?P<id>[^/?#&]+)'
 
     _TESTS = [{
         'url': 'https://clips.twitch.tv/FaintLightGullWholeWheat',
@@ -666,6 +666,9 @@ class TwitchClipsIE(TwitchBaseIE):
         'only_matching': True,
     }, {
         'url': 'https://www.twitch.tv/sergeynixon/clip/StormyThankfulSproutFutureMan',
+        'only_matching': True,
+    }, {
+        'url': 'https://clips.twitch.tv/embed?clip=InquisitiveBreakableYogurtJebaited',
         'only_matching': True,
     }]
 
