@@ -254,10 +254,6 @@ from .dailymotion import (
     DailymotionPlaylistIE,
     DailymotionUserIE,
 )
-from .daisuki import (
-    DaisukiMottoIE,
-    DaisukiMottoPlaylistIE,
-)
 from .daum import (
     DaumIE,
     DaumClipIE,
