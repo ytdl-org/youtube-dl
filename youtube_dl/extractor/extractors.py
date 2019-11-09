@@ -1241,6 +1241,7 @@ from .twitter import (
     TwitterCardIE,
     TwitterIE,
     TwitterAmplifyIE,
+    TwitterBroadcastIE,
 )
 from .udemy import (
     UdemyIE,
