@@ -32,7 +32,7 @@ class XboxClipsIE(InfoExtractor):
         video_url = self._html_search_regex(
             r'>(?:Link|Download): <a[^>]+href="([^"]+)"', webpage, 'video URL')
         title = self._html_search_regex(
-            r'<title>XboxClips \| ([^<]+)</title>', webpage, 'title')
+            r'<title>XboxClips \- ([^<]+)</title>', webpage, 'title')
         upload_date = unified_strdate(self._html_search_regex(
             r'>Recorded: ([^<]+)<', webpage, 'upload date', fatal=False))
         filesize = parse_filesize(self._html_search_regex(
