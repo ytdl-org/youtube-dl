@@ -40,7 +40,8 @@ class FacebookIE(InfoExtractor):
                                 photo\.php|
                                 video\.php|
                                 video/embed|
-                                story\.php
+                                story\.php|
+                                watch
                             )\?(?:.*?)(?:v|video_id|story_fbid)=|
                             [^/]+/videos/(?:[^/]+/)?|
                             [^/]+/posts/|
