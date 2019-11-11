@@ -51,6 +51,10 @@ class NineGagIE(InfoExtractor):
         }
     }]
 
+    _EXTERNAL_VIDEO_PROVIDERS = {
+        'Youtube': 'https://youtube.com/watch?v=%s'
+    }
+
     def _real_extract(self, url):
         video_id = self._match_id(url)
         webpage = self._download_webpage(url, video_id)
@@ -60,6 +64,18 @@ class NineGagIE(InfoExtractor):
             'data')
         rawJsonData = rawJsonData.replace('\\"', '"').replace('\\\\/', '/')
         data = self._parse_json(rawJsonData, video_id)['data']['post']
+
+        if data['type'] == 'Video':
+            vid = data['video']['id']
+            ie_key = data['video']['source'].capitalize()
+            return {
+                '_type': 'url_transparent',
+                'url': self._EXTERNAL_VIDEO_PROVIDERS[ie_key] % vid,
+                'ie_key': ie_key,
+                'id': vid,
+                'duration': data['video'].get('duration'),
+                'start_time': data['video'].get('startTs')
+            }
 
         if data['type'] != 'Animated':
             raise ExtractorError(
