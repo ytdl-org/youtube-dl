@@ -276,7 +276,7 @@ class SoundcloudIE(InfoExtractor):
         if secret_token:
             query['secret_token'] = secret_token
 
-        if info.get('downloadable'):
+        if info.get('downloadable') and info.get('has_downloads_left'):
             format_url = update_url_query(
                 info.get('download_url') or track_base_url + '/download', query)
             format_urls.add(format_url)
