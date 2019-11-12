@@ -57,7 +57,12 @@ class BeamProLiveIE(BeamProBaseIE):
 
     @classmethod
     def suitable(cls, url):
-        return False if BeamProVodIE.suitable(url) else super(BeamProLiveIE, cls).suitable(url)
+        if BeamProVodIE.suitable(url):
+            return False
+        elif BeamProClipIE.suitable(url):
+            return False
+        else:
+            super(BeamProLiveIE, cls).suitable(url)
 
     def _real_extract(self, url):
         channel_name = self._match_id(url)
@@ -190,5 +195,73 @@ class BeamProVodIE(BeamProBaseIE):
             'formats': formats,
         }
         info.update(self._extract_channel_info(vod_info.get('channel') or {}))
+
+        return info
+
+
+class BeamProClipIE(BeamProBaseIE):
+    IE_NAME = 'Mixer:clip'
+    _VALID_URL = r'https?://(?:\w+\.)?(?:beam\.pro|mixer\.com)/[^/?#&]+\?.*?\bclip=(?P<id>[^?#&]+)'
+    _TEST = {
+        'url': 'https://mixer.com/PermaNoob?clip=DB1mDsthm0eTtpsXv35vJw',
+        'md5': '581390e34c073251514bc825fded9d6f',
+        'info_dict': {
+            'id': 'DB1mDsthm0eTtpsXv35vJw',
+            'ext': 'mp4',
+            'title': 'Morning Shenanigans: Come Hang Out with Us!',
+            'duration': 32.0,
+            'thumbnail': r're:https://.*big\.jpg$',
+            'timestamp': 1573233791,
+            'upload_date': '20191108',
+            'view_count': int,
+        }
+    }
+
+    @staticmethod
+    def _extract_format(clip, clip_type):
+        if not clip.get('uri'):
+            return []
+
+        if clip_type == 'HlsStreaming':
+            protocol = 'm3u8_native'
+        else:
+            assert False
+
+        format_id = [clip_type]
+
+        return [{
+            'url': clip.get('uri'),
+            'format_id': '-'.join(format_id),
+            'ext': 'mp4',
+            'protocol': protocol
+        }]
+
+    def _real_extract(self, url):
+        clip_id = self._match_id(url)
+
+        clip_info = self._download_json(
+            '%s/clips/%s' % (self._API_BASE, clip_id), clip_id)
+
+        formats = []
+        thumbnail_url = None
+
+        for locator in clip_info['contentLocators']:
+            locator_type = locator.get('locatorType')
+            if locator_type == 'HlsStreaming':
+                formats.extend(self._extract_format(locator, locator_type))
+            elif locator_type == 'Thumbnail_Large':
+                thumbnail_url = locator.get('uri')
+
+        self._sort_formats(formats)
+
+        info = {
+            'id': clip_id,
+            'title': clip_info.get('title') or clip_id,
+            'duration': float_or_none(clip_info.get('durationInSeconds')),
+            'thumbnail': thumbnail_url,
+            'timestamp': parse_iso8601(clip_info.get('uploadDate')),
+            'view_count': int_or_none(clip_info.get('viewCount')),
+            'formats': formats,
+        }
 
         return info

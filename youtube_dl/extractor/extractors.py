@@ -90,6 +90,7 @@ from .bbc import (
 from .beampro import (
     BeamProLiveIE,
     BeamProVodIE,
+    BeamProClipIE,
 )
 from .beeg import BeegIE
 from .behindkink import BehindKinkIE
