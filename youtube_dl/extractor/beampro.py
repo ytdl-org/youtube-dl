@@ -57,12 +57,7 @@ class BeamProLiveIE(BeamProBaseIE):
 
     @classmethod
     def suitable(cls, url):
-        if BeamProVodIE.suitable(url):
-            return False
-        elif BeamProClipIE.suitable(url):
-            return False
-        else:
-            super(BeamProLiveIE, cls).suitable(url)
+        return False if BeamProVodIE.suitable(url) or BeamProClipIE.suitable(url) else super(BeamProLiveIE, cls).suitable(url)
 
     def _real_extract(self, url):
         channel_name = self._match_id(url)
