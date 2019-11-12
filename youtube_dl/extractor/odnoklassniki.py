@@ -1,6 +1,6 @@
 # coding: utf-8
 from __future__ import unicode_literals
-
+from datetime import datetime, timedelta
 import re
 
 from .common import InfoExtractor
@@ -17,6 +17,7 @@ from ..utils import (
     qualities,
     unescapeHTML,
     urlencode_postdata,
+    unified_timestamp
 )
 
 
@@ -199,45 +200,7 @@ class OdnoklassnikiIE(InfoExtractor):
 
         upload_date = unified_strdate(self._html_search_meta(
             'ya:ovs:upload_date', webpage, 'upload date', default=None))
-
-        if upload_date is None:
-            upload_date_str = self._search_regex(
-                r'vp-layer-info_date">(?P<date>.*?)<\/span>',
-                webpage, 'upload date', group='date')
-            if upload_date_str:
-                upload_date_str = upload_date_str.replace('Sept', 'Sep')
-                from datetime import datetime, timedelta
-                upload_date_time = None
-                try:
-                    upload_date_time = datetime.strptime(upload_date_str, '%d %b %Y')
-                except:
-                    pass
-                try:
-                    upload_date_time = datetime.strptime(upload_date_str, '%d %b')
-                    upload_date_time = upload_date_time.replace(year=datetime.utcnow().year)
-                except:
-                    pass
-                try:
-                    upload_date_time = datetime.strptime(upload_date_str, '%d %B')
-                    upload_date_time = upload_date_time.replace(year=datetime.utcnow().year)
-                except:
-                    pass
-
-                try:
-                    if upload_date_str.find(':') >=0:
-                        hour_and_minutes = upload_date_str.split(' ')[-1]
-                    else:
-                        hour_and_minutes = upload_date_str
-                    upload_date_time = datetime.strptime(hour_and_minutes, '%H:%M')
-                    upload_date_time = upload_date_time.replace(year=datetime.utcnow().year)
-                    upload_date_time = upload_date_time.replace(day=datetime.utcnow().day)
-                    if upload_date_str.find('yesterday') ==0:
-                        upload_date_time = upload_date_time - timedelta(days=1)
-                except:
-                    pass
-
-                if upload_date_time:
-                    upload_date = upload_date_time.strftime('%Y%m%d')
+        upload_date, timestamp = self.resolve_timestamp_and_upload_date(upload_date, webpage)
 
         age_limit = None
         adult = self._html_search_meta(
@@ -253,6 +216,7 @@ class OdnoklassnikiIE(InfoExtractor):
             'thumbnail': thumbnail,
             'duration': duration,
             'upload_date': upload_date,
+            'timestamp': timestamp,
             'uploader': uploader,
             'uploader_id': uploader_id,
             'like_count': like_count,
@@ -322,3 +286,62 @@ class OdnoklassnikiIE(InfoExtractor):
 
         info['formats'] = formats
         return info
+
+    def resolve_timestamp_and_upload_date(self, upload_date, webpage):
+        timestamp = None
+        upload_date_str = self._search_regex(
+            r'vp-layer-info_date">(?P<date>.*?)<\/span>',
+            webpage, 'upload date', group='date')
+        if upload_date_str:
+            if upload_date is None:
+                upload_date_time = None
+                upload_date_str = upload_date_str.replace('Sept', 'Sep')
+                try:
+                    upload_date_time = datetime.strptime(upload_date_str, '%d %b %Y')
+                except:
+                    pass
+                try:
+                    upload_date_time = datetime.strptime(upload_date_str, '%d %b')
+                    upload_date_time = upload_date_time.replace(year=datetime.utcnow().year)
+                except:
+                    pass
+                try:
+                    upload_date_time = datetime.strptime(upload_date_str, '%d %B')
+                    upload_date_time = upload_date_time.replace(year=datetime.utcnow().year)
+                except:
+                    pass
+                try:
+                    upload_date_time = self._extract_hours_and_minutes(upload_date_str)
+                    upload_date_time = upload_date_time.replace(year=datetime.utcnow().year)
+                    upload_date_time = upload_date_time.replace(day=datetime.utcnow().day)
+                    if upload_date_str.find('yesterday') == 0:
+                        upload_date_time = upload_date_time - timedelta(days=1)
+                except:
+                    pass
+
+                if upload_date_time:
+                    upload_date = upload_date_time.strftime('%Y%m%d')
+            else:
+                upload_date_time = datetime.strptime(upload_date, '%Y%m%d')
+                upload_date_hours_and_minutes = self._extract_hours_and_minutes(upload_date_str)
+                if upload_date_hours_and_minutes:
+                    upload_date_time = upload_date_time + timedelta(
+                        hours=upload_date_hours_and_minutes.hour - 3, minutes=upload_date_hours_and_minutes.minute
+                    )
+                    timestamp = unified_timestamp(upload_date_time.isoformat())
+                if upload_date_time:
+                    upload_date = upload_date_time.strftime('%Y%m%d')
+
+            return upload_date, timestamp
+
+    @staticmethod
+    def _extract_hours_and_minutes(upload_date_str):
+        try:
+            if upload_date_str.find(':') >= 0:
+                hour_and_minutes = upload_date_str.split(' ')[-1]
+            else:
+                hour_and_minutes = upload_date_str
+            upload_date_time = datetime.strptime(hour_and_minutes, '%H:%M')
+            return upload_date_time
+        except:
+            pass
