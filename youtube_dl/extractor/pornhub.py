@@ -173,6 +173,32 @@ class PornHubIE(PornHubBaseIE):
                 'https://www.%s/view_video.php?viewkey=%s' % (host, video_id),
                 video_id, 'Downloading %s webpage' % platform)
 
+        def parse_js(_webpage, _regex):
+            js_vars = {}
+            assignments = self._search_regex(
+                _regex, _webpage,
+                'encoded url').split(';')
+
+            def parse_js_value(inp):
+                inp = re.sub(r'/\*(?:(?!\*/).)*?\*/', '', inp)
+                if '+' in inp:
+                    inps = inp.split('+')
+                    return functools.reduce(
+                        operator.concat, map(parse_js_value, inps))
+                inp = inp.strip()
+                if inp in js_vars:
+                    return js_vars[inp]
+                return remove_quotes(inp)
+
+            for assn in assignments:
+                assn = assn.strip()
+                if not assn:
+                    continue
+                assn = re.sub(r'var\s+', '', assn)
+                vname, value = assn.split('=', 1)
+                js_vars[vname] = parse_js_value(value)
+            return js_vars
+
         webpage = dl_webpage('pc')
 
         error_msg = self._html_search_regex(
@@ -212,13 +238,14 @@ class PornHubIE(PornHubBaseIE):
             thumbnail = flashvars.get('image_url')
             duration = int_or_none(flashvars.get('video_duration'))
             media_definitions = flashvars.get('mediaDefinitions')
+            js_vars = parse_js(webpage, r'(var.+?rahttps.+?)\n')
             if isinstance(media_definitions, list):
                 for definition in media_definitions:
                     if not isinstance(definition, dict):
                         continue
                     video_url = definition.get('videoUrl')
                     if not video_url or not isinstance(video_url, compat_str):
-                        continue
+                        video_url = js_vars["quality_%sp" % (definition.get("quality"))]
                     if video_url in video_urls_set:
                         continue
                     video_urls_set.add(video_url)
@@ -230,30 +257,7 @@ class PornHubIE(PornHubBaseIE):
         if not video_urls:
             tv_webpage = dl_webpage('tv')
 
-            assignments = self._search_regex(
-                r'(var.+?mediastring.+?)</script>', tv_webpage,
-                'encoded url').split(';')
-
-            js_vars = {}
-
-            def parse_js_value(inp):
-                inp = re.sub(r'/\*(?:(?!\*/).)*?\*/', '', inp)
-                if '+' in inp:
-                    inps = inp.split('+')
-                    return functools.reduce(
-                        operator.concat, map(parse_js_value, inps))
-                inp = inp.strip()
-                if inp in js_vars:
-                    return js_vars[inp]
-                return remove_quotes(inp)
-
-            for assn in assignments:
-                assn = assn.strip()
-                if not assn:
-                    continue
-                assn = re.sub(r'var\s+', '', assn)
-                vname, value = assn.split('=', 1)
-                js_vars[vname] = parse_js_value(value)
+            js_vars = parse_js(tv_webpage, r'(var.+?mediastring.+?)</script>')
 
             video_url = js_vars['mediastring']
             if video_url not in video_urls_set:
