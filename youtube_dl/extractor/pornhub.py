@@ -245,7 +245,10 @@ class PornHubIE(PornHubBaseIE):
                         continue
                     video_url = definition.get('videoUrl')
                     if not video_url or not isinstance(video_url, compat_str):
-                        video_url = js_vars["quality_%sp" % (definition.get("quality"))]
+                        js_vars_qual = js_vars.get('quality_%sp' % (definition.get('quality')))
+                        if not js_vars_qual:
+                            continue
+                        video_url = js_vars_qual
                     if video_url in video_urls_set:
                         continue
                     video_urls_set.add(video_url)
