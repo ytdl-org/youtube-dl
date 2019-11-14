@@ -2689,7 +2689,7 @@ class InfoExtractor(object):
             entry = {
                 'id': this_video_id,
                 'title': unescapeHTML(video_data['title'] if require_title else video_data.get('title')),
-                'description': video_data.get('description'),
+                'description': clean_html(video_data.get('description')),
                 'thumbnail': urljoin(base_url, self._proto_relative_url(video_data.get('image'))),
                 'timestamp': int_or_none(video_data.get('pubdate')),
                 'duration': float_or_none(jwplayer_data.get('duration') or video_data.get('duration')),
