@@ -222,7 +222,6 @@ from .comedycentral import (
     ComedyCentralTVIE,
     ToshIE,
 )
-from .comcarcoff import ComCarCoffIE
 from .commonmistakes import CommonMistakesIE, UnicodeBOMIE
 from .commonprotocols import (
     MmsIE,
