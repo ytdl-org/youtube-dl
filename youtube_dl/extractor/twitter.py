@@ -2,6 +2,8 @@
 from __future__ import unicode_literals
 
 import re
+import time
+
 
 from .common import InfoExtractor
 from ..compat import (
@@ -20,6 +22,7 @@ from ..utils import (
     unified_timestamp,
     update_url_query,
     xpath_text,
+    parse_count
 )
 
 from .periscope import (
@@ -79,11 +82,20 @@ class TwitterBaseIE(InfoExtractor):
         headers = {
             'Authorization': 'Bearer AAAAAAAAAAAAAAAAAAAAAPYXBAAAAAAACLXUNDekMxqa8h%2F40K4moUkGsoc%3DTYfbDKbT3jJPCEVnMYqilB28NHfOPqkca3qaAxGfsyKCs0wRbw',
         }
+        ct0 = self._get_cookies(self._API_BASE).get('ct0')
+        if ct0:
+            headers['x-csrf-token'] = ct0.value
         if not self._GUEST_TOKEN:
-            self._GUEST_TOKEN = self._download_json(
-                self._API_BASE + 'guest/activate.json', video_id,
-                'Downloading guest token', data=b'',
-                headers=headers)['guest_token']
+            guest_token_c = self._get_cookies('http://api.twitter.com/').get('gt')
+            if guest_token_c:
+                self._GUEST_TOKEN = guest_token_c
+            else:
+                self._GUEST_TOKEN = self._download_json(
+                    self._API_BASE + 'guest/activate.json', video_id,
+                    'Downloading guest token', data=b'',
+                    headers=headers)['guest_token']
+                self._set_cookie('api.twitter.com', 'gt', self._GUEST_TOKEN, expire_time=time.time() + 3000)
+
         headers['x-guest-token'] = self._GUEST_TOKEN
         try:
             return self._download_json(
@@ -380,6 +392,12 @@ class TwitterIE(TwitterBaseIE):
 
     def _real_extract(self, url):
         twid = self._match_id(url)
+        # Download page to fetch cookies
+        self._download_webpage(url, twid)
+        config = self._call_api(
+            'videos/tweet/config/%s.json' % twid, twid
+        )
+
         status = self._call_api(
             'statuses/show/%s.json' % twid, twid, {
                 'cards_platform': 'Web-12',
@@ -388,6 +406,8 @@ class TwitterIE(TwitterBaseIE):
                 'include_user_entities': 0,
                 'tweet_mode': 'extended',
             })
+
+
 
         title = description = status['full_text'].replace('\n', ' ')
         # strip  'https -_t.co_BJYgOjSeGA' junk from filenames
@@ -447,6 +467,7 @@ class TwitterIE(TwitterBaseIE):
                 'formats': formats,
                 'thumbnails': thumbnails,
                 'duration': float_or_none(video_info.get('duration_millis'), 1000),
+                'view_count': parse_count(config.get('track', {}).get('viewCount'))
             })
         else:
             card = status.get('card')
