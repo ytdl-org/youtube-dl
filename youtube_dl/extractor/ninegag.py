@@ -77,6 +77,16 @@ class NineGagIE(InfoExtractor):
                 'start_time': data['video'].get('startTs')
             }
 
+        if data['type'] == 'EmbedVideo':
+            vid = data['video']['id']
+            ie_key = data['video']['source'].capitalize()
+            return {
+                '_type': 'url_transparent',
+                'url': data['video']['embedUrl'],
+                #'ie_key': vid,
+                'start_time': data['video'].get('startTs')
+            }
+
         if data['type'] != 'Animated':
             raise ExtractorError(
                 'The given url does not contain a video',
