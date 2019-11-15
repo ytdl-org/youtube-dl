@@ -1455,14 +1455,14 @@ class InfoExtractor(object):
 
     def _extract_f4m_formats(self, manifest_url, video_id, preference=None, f4m_id=None,
                              transform_source=lambda s: fix_xml_ampersands(s).strip(),
-                             fatal=True, m3u8_id=None):
+                             fatal=True, m3u8_id=None, data=None, headers={}, query={}):
         manifest = self._download_xml(
             manifest_url, video_id, 'Downloading f4m manifest',
             'Unable to download f4m manifest',
             # Some manifests may be malformed, e.g. prosiebensat1 generated manifests
             # (see https://github.com/ytdl-org/youtube-dl/issues/6215#issuecomment-121704244)
             transform_source=transform_source,
-            fatal=fatal)
+            fatal=fatal, data=data, headers=headers, query=query)
 
         if manifest is False:
             return []
@@ -1586,12 +1586,13 @@ class InfoExtractor(object):
     def _extract_m3u8_formats(self, m3u8_url, video_id, ext=None,
                               entry_protocol='m3u8', preference=None,
                               m3u8_id=None, note=None, errnote=None,
-                              fatal=True, live=False, headers={}):
+                              fatal=True, live=False, data=None, headers={},
+                              query={}):
         res = self._download_webpage_handle(
             m3u8_url, video_id,
             note=note or 'Downloading m3u8 information',
             errnote=errnote or 'Failed to download m3u8 information',
-            fatal=fatal, headers=headers)
+            fatal=fatal, data=data, headers=headers, query=query)
 
         if res is False:
             return []
@@ -2009,12 +2010,12 @@ class InfoExtractor(object):
             })
         return entries
 
-    def _extract_mpd_formats(self, mpd_url, video_id, mpd_id=None, note=None, errnote=None, fatal=True, formats_dict={}, headers={}):
+    def _extract_mpd_formats(self, mpd_url, video_id, mpd_id=None, note=None, errnote=None, fatal=True, formats_dict={}, data=None, headers={}, query={}):
         res = self._download_xml_handle(
             mpd_url, video_id,
             note=note or 'Downloading MPD manifest',
             errnote=errnote or 'Failed to download MPD manifest',
-            fatal=fatal, headers=headers)
+            fatal=fatal, data=data, headers=headers, query=query)
         if res is False:
             return []
         mpd_doc, urlh = res
@@ -2317,12 +2318,12 @@ class InfoExtractor(object):
                         self.report_warning('Unknown MIME type %s in DASH manifest' % mime_type)
         return formats
 
-    def _extract_ism_formats(self, ism_url, video_id, ism_id=None, note=None, errnote=None, fatal=True):
+    def _extract_ism_formats(self, ism_url, video_id, ism_id=None, note=None, errnote=None, fatal=True, data=None, headers={}, query={}):
         res = self._download_xml_handle(
             ism_url, video_id,
             note=note or 'Downloading ISM manifest',
             errnote=errnote or 'Failed to download ISM manifest',
-            fatal=fatal)
+            fatal=fatal, data=data, headers=headers, query=query)
         if res is False:
             return []
         ism_doc, urlh = res
