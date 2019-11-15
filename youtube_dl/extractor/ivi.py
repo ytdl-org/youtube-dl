@@ -80,38 +80,42 @@ class IviIE(InfoExtractor):
         'MP4-SHQ', 'MP4-HD720', 'MP4-HD1080')
 
     def _real_extract(self, url):
-        try:
-            from Crypto.Cipher import Blowfish
-            from Crypto.Hash import CMAC
-        except ImportError:
-            raise ExtractorError('pycrypto not found. Please install it.', expected=True)
-
         video_id = self._match_id(url)
-
-        timestamp = self._download_json(
-            self._LIGHT_URL, video_id,
-            'Downloading timestamp JSON', data=json.dumps({
-                'method': 'da.timestamp.get',
-                'params': []
-            }).encode())['result']
 
         data = json.dumps({
             'method': 'da.content.get',
             'params': [
                 video_id, {
-                    'site': 's353',
+                    'site': 's%d',
                     'referrer': 'http://www.ivi.ru/watch/%s' % video_id,
                     'contentid': video_id
                 }
             ]
         }).encode()
 
-        video_json = self._download_json(
-            self._LIGHT_URL, video_id,
-            'Downloading video JSON', data=data, query={
+        try:
+            from Crypto.Cipher import Blowfish
+            from Crypto.Hash import CMAC
+
+            timestamp = self._download_json(
+                self._LIGHT_URL, video_id,
+                'Downloading timestamp JSON', data=json.dumps({
+                    'method': 'da.timestamp.get',
+                    'params': []
+                }).encode())['result']
+
+            data = data % 353
+            query = {
                 'ts': timestamp,
                 'sign': CMAC.new(self._LIGHT_KEY, timestamp.encode() + data, Blowfish).hexdigest(),
-            })
+            }
+        except ImportError:
+            data = data % 183
+            query = {}
+
+        video_json = self._download_json(
+            self._LIGHT_URL, video_id,
+            'Downloading video JSON', data=data, query=query)
 
         error = video_json.get('error')
         if error:
@@ -121,6 +125,8 @@ class IviIE(InfoExtractor):
                     msg=error['message'], countries=self._GEO_COUNTRIES)
             elif origin == 'NoRedisValidData':
                 raise ExtractorError('Video %s does not exist' % video_id, expected=True)
+            elif origin == 'NotAllowedError':
+                raise ExtractorError('pycryptodome not found. Please install it.', expected=True)
             raise ExtractorError(
                 'Unable to download video %s: %s' % (video_id, error['message']),
                 expected=True)
