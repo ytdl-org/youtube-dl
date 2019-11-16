@@ -11,6 +11,7 @@ from ..utils import (
     js_to_json,
     parse_iso8601,
     remove_end,
+    try_get,
 )
 
 
@@ -44,7 +45,14 @@ class TV2IE(InfoExtractor):
             data = self._download_json(
                 'http://sumo.tv2.no/api/web/asset/%s/play.json?protocol=%s&videoFormat=SMIL+ISMUSP' % (video_id, protocol),
                 video_id, 'Downloading play JSON')['playback']
-            for item in data['items']['item']:
+            items = try_get(data, lambda x: x['items']['item'])
+            if not items:
+                continue
+            if not isinstance(items, list):
+                items = [items]
+            for item in items:
+                if not isinstance(item, dict):
+                    continue
                 video_url = item.get('url')
                 if not video_url or video_url in format_urls:
                     continue

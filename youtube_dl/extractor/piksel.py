@@ -15,7 +15,7 @@ from ..utils import (
 
 
 class PikselIE(InfoExtractor):
-    _VALID_URL = r'https?://player\.piksel\.com/v/(?P<id>[a-z0-9]+)'
+    _VALID_URL = r'https?://player\.piksel\.com/v/(?:refid/[^/]+/prefid/)?(?P<id>[a-z0-9_]+)'
     _TESTS = [
         {
             'url': 'http://player.piksel.com/v/ums2867l',
@@ -40,6 +40,11 @@ class PikselIE(InfoExtractor):
                 'timestamp': 1486171129,
                 'upload_date': '20170204'
             }
+        },
+        {
+            # https://www3.nhk.or.jp/nhkworld/en/ondemand/video/2019240/
+            'url': 'http://player.piksel.com/v/refid/nhkworld/prefid/nw_vod_v_en_2019_240_20190823233000_02_1566873477',
+            'only_matching': True,
         }
     ]
 
@@ -52,8 +57,11 @@ class PikselIE(InfoExtractor):
             return mobj.group('url')
 
     def _real_extract(self, url):
-        video_id = self._match_id(url)
-        webpage = self._download_webpage(url, video_id)
+        display_id = self._match_id(url)
+        webpage = self._download_webpage(url, display_id)
+        video_id = self._search_regex(
+            r'data-de-program-uuid=[\'"]([a-z0-9]+)',
+            webpage, 'program uuid', default=display_id)
         app_token = self._search_regex([
             r'clientAPI\s*:\s*"([^"]+)"',
             r'data-de-api-key\s*=\s*"([^"]+)"'

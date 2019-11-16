@@ -10,6 +10,18 @@ class NhkVodIE(InfoExtractor):
     # Content available only for a limited period of time. Visit
     # https://www3.nhk.or.jp/nhkworld/en/ondemand/ for working samples.
     _TESTS = [{
+        # clip
+        'url': 'https://www3.nhk.or.jp/nhkworld/en/ondemand/video/9999011/',
+        'md5': '256a1be14f48d960a7e61e2532d95ec3',
+        'info_dict': {
+            'id': 'a95j5iza',
+            'ext': 'mp4',
+            'title': "Dining with the Chef - Chef Saito's Family recipe: MENCHI-KATSU",
+            'description': 'md5:5aee4a9f9d81c26281862382103b0ea5',
+            'timestamp': 1565965194,
+            'upload_date': '20190816',
+        },
+    }, {
         'url': 'https://www3.nhk.or.jp/nhkworld/en/ondemand/video/2015173/',
         'only_matching': True,
     }, {
@@ -19,7 +31,7 @@ class NhkVodIE(InfoExtractor):
         'url': 'https://www3.nhk.or.jp/nhkworld/fr/ondemand/audio/plugin-20190404-1/',
         'only_matching': True,
     }]
-    _API_URL_TEMPLATE = 'https://api.nhk.or.jp/nhkworld/%sodesdlist/v7/episode/%s/%s/all%s.json'
+    _API_URL_TEMPLATE = 'https://api.nhk.or.jp/nhkworld/%sod%slist/v7/episode/%s/%s/all%s.json'
 
     def _real_extract(self, url):
         lang, m_type, episode_id = re.match(self._VALID_URL, url).groups()
@@ -28,7 +40,10 @@ class NhkVodIE(InfoExtractor):
 
         is_video = m_type == 'video'
         episode = self._download_json(
-            self._API_URL_TEMPLATE % ('v' if is_video else 'r', episode_id, lang, '/all' if is_video else ''),
+            self._API_URL_TEMPLATE % (
+                'v' if is_video else 'r',
+                'clip' if episode_id[:4] == '9999' else 'esd',
+                episode_id, lang, '/all' if is_video else ''),
             episode_id, query={'apikey': 'EJfK8jdS57GqlupFgAfAAwr573q01y6k'})['data']['episodes'][0]
         title = episode.get('sub_title_clean') or episode['sub_title']
 
@@ -60,8 +75,8 @@ class NhkVodIE(InfoExtractor):
         if is_video:
             info.update({
                 '_type': 'url_transparent',
-                'ie_key': 'Ooyala',
-                'url': 'ooyala:' + episode['vod_id'],
+                'ie_key': 'Piksel',
+                'url': 'https://player.piksel.com/v/refid/nhkworld/prefid/' + episode['vod_id'],
             })
         else:
             audio = episode['audio']

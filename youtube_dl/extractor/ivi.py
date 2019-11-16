@@ -18,6 +18,8 @@ class IviIE(InfoExtractor):
     _VALID_URL = r'https?://(?:www\.)?ivi\.(?:ru|tv)/(?:watch/(?:[^/]+/)?|video/player\?.*?videoId=)(?P<id>\d+)'
     _GEO_BYPASS = False
     _GEO_COUNTRIES = ['RU']
+    _LIGHT_KEY = b'\xf1\x02\x32\xb7\xbc\x5c\x7a\xe8\xf7\x96\xc1\x33\x2b\x27\xa1\x8c'
+    _LIGHT_URL = 'https://api.ivi.ru/light/'
 
     _TESTS = [
         # Single movie
@@ -80,48 +82,77 @@ class IviIE(InfoExtractor):
     def _real_extract(self, url):
         video_id = self._match_id(url)
 
-        data = {
+        data = json.dumps({
             'method': 'da.content.get',
             'params': [
                 video_id, {
-                    'site': 's183',
+                    'site': 's%d',
                     'referrer': 'http://www.ivi.ru/watch/%s' % video_id,
                     'contentid': video_id
                 }
             ]
-        }
+        }).encode()
+
+        try:
+            from Crypto.Cipher import Blowfish
+            from Crypto.Hash import CMAC
+
+            timestamp = self._download_json(
+                self._LIGHT_URL, video_id,
+                'Downloading timestamp JSON', data=json.dumps({
+                    'method': 'da.timestamp.get',
+                    'params': []
+                }).encode())['result']
+
+            data = data % 353
+            query = {
+                'ts': timestamp,
+                'sign': CMAC.new(self._LIGHT_KEY, timestamp.encode() + data, Blowfish).hexdigest(),
+            }
+        except ImportError:
+            data = data % 183
+            query = {}
 
         video_json = self._download_json(
-            'http://api.digitalaccess.ru/api/json/', video_id,
-            'Downloading video JSON', data=json.dumps(data))
+            self._LIGHT_URL, video_id,
+            'Downloading video JSON', data=data, query=query)
 
-        if 'error' in video_json:
-            error = video_json['error']
-            origin = error['origin']
+        error = video_json.get('error')
+        if error:
+            origin = error.get('origin')
+            message = error.get('message') or error.get('user_message')
+            extractor_msg = 'Unable to download video %s'
             if origin == 'NotAllowedForLocation':
-                self.raise_geo_restricted(
-                    msg=error['message'], countries=self._GEO_COUNTRIES)
+                self.raise_geo_restricted(message, self._GEO_COUNTRIES)
             elif origin == 'NoRedisValidData':
-                raise ExtractorError('Video %s does not exist' % video_id, expected=True)
-            raise ExtractorError(
-                'Unable to download video %s: %s' % (video_id, error['message']),
-                expected=True)
+                extractor_msg = 'Video %s does not exist'
+            elif message:
+                if 'недоступен для просмотра на площадке s183' in message:
+                    raise ExtractorError(
+                        'pycryptodome not found. Please install it.',
+                        expected=True)
+                extractor_msg += ': ' + message
+            raise ExtractorError(extractor_msg % video_id, expected=True)
 
         result = video_json['result']
+        title = result['title']
 
         quality = qualities(self._KNOWN_FORMATS)
 
-        formats = [{
-            'url': x['url'],
-            'format_id': x.get('content_format'),
-            'quality': quality(x.get('content_format')),
-        } for x in result['files'] if x.get('url')]
-
+        formats = []
+        for f in result.get('files', []):
+            f_url = f.get('url')
+            content_format = f.get('content_format')
+            if not f_url or '-MDRM-' in content_format or '-FPS-' in content_format:
+                continue
+            formats.append({
+                'url': f_url,
+                'format_id': content_format,
+                'quality': quality(content_format),
+                'filesize': int_or_none(f.get('size_in_bytes')),
+            })
         self._sort_formats(formats)
 
-        title = result['title']
-
-        duration = int_or_none(result.get('duration'))
         compilation = result.get('compilation')
         episode = title if compilation else None
 
@@ -158,7 +189,7 @@ class IviIE(InfoExtractor):
             'episode_number': episode_number,
             'thumbnails': thumbnails,
             'description': description,
-            'duration': duration,
+            'duration': int_or_none(result.get('duration')),
             'formats': formats,
         }
 
