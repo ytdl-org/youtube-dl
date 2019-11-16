@@ -119,17 +119,20 @@ class IviIE(InfoExtractor):
 
         error = video_json.get('error')
         if error:
-            origin = error['origin']
+            origin = error.get('origin')
+            message = error.get('message') or error.get('user_message')
+            extractor_msg = 'Unable to download video %s'
             if origin == 'NotAllowedForLocation':
-                self.raise_geo_restricted(
-                    msg=error['message'], countries=self._GEO_COUNTRIES)
+                self.raise_geo_restricted(message, self._GEO_COUNTRIES)
             elif origin == 'NoRedisValidData':
-                raise ExtractorError('Video %s does not exist' % video_id, expected=True)
-            elif origin == 'NotAllowedError':
-                raise ExtractorError('pycryptodome not found. Please install it.', expected=True)
-            raise ExtractorError(
-                'Unable to download video %s: %s' % (video_id, error['message']),
-                expected=True)
+                extractor_msg = 'Video %s does not exist'
+            elif message:
+                if 'недоступен для просмотра на площадке s183' in message:
+                    raise ExtractorError(
+                        'pycryptodome not found. Please install it.',
+                        expected=True)
+                extractor_msg += ': ' + message
+            raise ExtractorError(extractor_msg % video_id, expected=True)
 
         result = video_json['result']
         title = result['title']
