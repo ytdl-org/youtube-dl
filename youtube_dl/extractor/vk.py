@@ -634,14 +634,15 @@ class VKWallPostIE(VKBaseIE):
             if not a.url:
                 continue
             title = unescapeHTML(a.title)
+            performer = unescapeHTML(a.performer)
             entries.append({
                 'id': '%s_%s' % (a.owner_id, a.id),
                 'url': self._unmask_url(a.url, a.ads['vk_id']),
-                'title': '%s - %s' % (a.performer, title) if a.performer else title,
-                'thumbnail': a.cover_url.split(',') if a.cover_url else None,
-                'duration': a.duration,
+                'title': '%s - %s' % (performer, title) if performer else title,
+                'thumbnails': [{'url': c_url} for c_url in a.cover_url.split(',')] if a.cover_url else None,
+                'duration': int_or_none(a.duration),
                 'uploader': uploader,
-                'artist': a.performer,
+                'artist': performer,
                 'track': title,
                 'ext': 'mp4',
                 'protocol': 'm3u8',
