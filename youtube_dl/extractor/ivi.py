@@ -1,8 +1,9 @@
 # coding: utf-8
 from __future__ import unicode_literals
 
-import re
 import json
+import re
+import sys
 
 from .common import InfoExtractor
 from ..utils import (
@@ -93,9 +94,13 @@ class IviIE(InfoExtractor):
             ]
         })
 
+        bundled = hasattr(sys, 'frozen')
+
         for site in (353, 183):
             content_data = (data % site).encode()
             if site == 353:
+                if bundled:
+                    continue
                 try:
                     from Cryptodome.Cipher import Blowfish
                     from Cryptodome.Hash import CMAC
@@ -135,6 +140,10 @@ class IviIE(InfoExtractor):
                     extractor_msg = 'Video %s does not exist'
                 elif site == 353:
                     continue
+                elif bundled:
+                    raise ExtractorError(
+                        'This feature does not work from bundled exe. Run youtube-dl from sources.',
+                        expected=True)
                 elif not pycryptodomex_found:
                     raise ExtractorError(
                         'pycryptodomex not found. Please install it.',
