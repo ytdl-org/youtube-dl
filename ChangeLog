@@ -1,3 +1,49 @@
+version 2019.11.22
+
+Core
++ [extractor/common] Clean jwplayer description HTML tags
++ [extractor/common] Add data, headers and query to all major extract formats
+  methods
+
+Extractors
+* [chaturbate] Fix extraction (#23010, #23012)
++ [ntvru] Add support for non relative file URLs (#23140)
+* [vk] Fix wall audio thumbnails extraction (#23135)
+* [ivi] Fix format extraction (#21991)
+- [comcarcoff] Remove extractor
++ [drtv] Add support for new URL schema (#23059)
++ [nexx] Add support for Multi Player JS Setup (#23052)
++ [teamcoco] Add support for new videos (#23054)
+* [soundcloud] Check if the soundtrack has downloads left (#23045)
+* [facebook] Fix posts video data extraction (#22473)
+- [addanime] Remove extractor
+- [minhateca] Remove extractor
+- [daisuki] Remove extractor
+* [seeker] Fix extraction
+- [revision3] Remove extractors
+* [twitch] Fix video comments URL (#18593, #15828)
+* [twitter] Improve extraction
+    + Add support for generic embeds (#22168)
+    * Always extract http formats for native videos (#14934)
+    + Add support for Twitter Broadcasts (#21369)
+    + Extract more metadata
+    * Improve VMap format extraction
+    * Unify extraction code for both twitter statuses and cards
++ [twitch] Add support for Clip embed URLs
+* [lnkgo] Fix extraction (#16834)
+* [mixcloud] Improve extraction
+    * Improve metadata extraction (#11721)
+    * Fix playlist extraction (#22378)
+    * Fix user mixes extraction (#15197, #17865)
++ [kinja] Add support for Kinja embeds (#5756, #11282, #22237, #22384)
+* [onionstudios] Fix extraction
++ [hotstar] Pass Referer header to format requests (#22836)
+* [dplay] Minimize response size
++ [patreon] Extract uploader_id and filesize
+* [patreon] Minimize response size
+* [roosterteeth] Fix login request (#16094, #22689)
+
+
 version 2019.11.05
 
 Extractors
