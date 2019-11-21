@@ -1,4 +1,4 @@
-version <unreleased>
+version 2019.11.22
 
 Core
 + [extractor/common] Clean jwplayer description HTML tags
