@@ -3,7 +3,11 @@ from __future__ import unicode_literals
 import re
 
 from .common import InfoExtractor
-from ..utils import ExtractorError
+from ..utils import (
+    ExtractorError,
+    lowercase_escape,
+    url_or_none,
+)
 
 
 class ChaturbateIE(InfoExtractor):
@@ -38,12 +42,31 @@ class ChaturbateIE(InfoExtractor):
             'https://chaturbate.com/%s/' % video_id, video_id,
             headers=self.geo_verification_headers())
 
-        m3u8_urls = []
+        found_m3u8_urls = []
 
-        for m in re.finditer(
-                r'(["\'])(?P<url>http.+?\.m3u8.*?)\1', webpage):
-            m3u8_fast_url, m3u8_no_fast_url = m.group('url'), m.group(
-                'url').replace('_fast', '')
+        data = self._parse_json(
+            self._search_regex(
+                r'initialRoomDossier\s*=\s*(["\'])(?P<value>(?:(?!\1).)+)\1',
+                webpage, 'data', default='{}', group='value'),
+            video_id, transform_source=lowercase_escape, fatal=False)
+        if data:
+            m3u8_url = url_or_none(data.get('hls_source'))
+            if m3u8_url:
+                found_m3u8_urls.append(m3u8_url)
+
+        if not found_m3u8_urls:
+            for m in re.finditer(
+                    r'(\\u002[27])(?P<url>http.+?\.m3u8.*?)\1', webpage):
+                found_m3u8_urls.append(lowercase_escape(m.group('url')))
+
+        if not found_m3u8_urls:
+            for m in re.finditer(
+                    r'(["\'])(?P<url>http.+?\.m3u8.*?)\1', webpage):
+                found_m3u8_urls.append(m.group('url'))
+
+        m3u8_urls = []
+        for found_m3u8_url in found_m3u8_urls:
+            m3u8_fast_url, m3u8_no_fast_url = found_m3u8_url, found_m3u8_url.replace('_fast', '')
             for m3u8_url in (m3u8_fast_url, m3u8_no_fast_url):
                 if m3u8_url not in m3u8_urls:
                     m3u8_urls.append(m3u8_url)
@@ -63,7 +86,12 @@ class ChaturbateIE(InfoExtractor):
 
         formats = []
         for m3u8_url in m3u8_urls:
-            m3u8_id = 'fast' if '_fast' in m3u8_url else 'slow'
+            for known_id in ('fast', 'slow'):
+                if '_%s' % known_id in m3u8_url:
+                    m3u8_id = known_id
+                    break
+            else:
+                m3u8_id = None
             formats.extend(self._extract_m3u8_formats(
                 m3u8_url, video_id, ext='mp4',
                 # ffmpeg skips segments for fast m3u8
