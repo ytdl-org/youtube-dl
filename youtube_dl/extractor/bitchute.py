@@ -77,7 +77,7 @@ class BitChuteIE(InfoExtractor):
             webpage, 'uploader', fatal=False)
 
         upload_date = self._html_search_regex(
-            r'(?s)class="video-publish-date.*?>.*?First published at [0-9]+:[0-9]+ UTC on (.*?)\..*?</div>',
+            r'(?s)class=["\']video-publish-date.*?>\W*First published at [0-9]+:[0-9]+ UTC on (.*?)\.\W*</div>',
             webpage, 'upload_date', fatal=False)
         upload_date = unified_strdate(upload_date)
 
