@@ -216,8 +216,7 @@ class VKIE(VKBaseIE):
                 'id': 'k3lz2cmXyRuJQSjGHUv',
                 'ext': 'mp4',
                 'title': 'md5:d52606645c20b0ddbb21655adaa4f56f',
-                # TODO: fix test by fixing dailymotion description extraction
-                'description': 'md5:c651358f03c56f1150b555c26d90a0fd',
+                'description': 'md5:424b8e88cc873217f520e582ba28bb36',
                 'uploader': 'AniLibria.Tv',
                 'upload_date': '20160914',
                 'uploader_id': 'x1p5vl5',

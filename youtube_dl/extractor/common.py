@@ -1766,6 +1766,19 @@ class InfoExtractor(object):
                         # the same GROUP-ID
                         f['acodec'] = 'none'
                 formats.append(f)
+
+                # for DailyMotion
+                progressive_uri = last_stream_inf.get('PROGRESSIVE-URI')
+                if progressive_uri:
+                    http_f = f.copy()
+                    del http_f['manifest_url']
+                    http_f.update({
+                        'format_id': f['format_id'].replace('hls-', 'http-'),
+                        'protocol': 'http',
+                        'url': progressive_uri,
+                    })
+                    formats.append(http_f)
+
                 last_stream_inf = {}
         return formats
 
