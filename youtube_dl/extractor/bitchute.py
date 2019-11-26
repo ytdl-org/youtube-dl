@@ -7,8 +7,8 @@ import re
 from .common import InfoExtractor
 from ..utils import (
     orderedSet,
-    urlencode_postdata,
     unified_strdate,
+    urlencode_postdata,
 )
 
 
@@ -86,8 +86,8 @@ class BitChuteIE(InfoExtractor):
             'description': description,
             'thumbnail': thumbnail,
             'uploader': uploader,
-            'formats': formats,
             'upload_date': upload_date,
+            'formats': formats,
         }
 
 
