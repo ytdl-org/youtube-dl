@@ -19,6 +19,7 @@ from youtube_dl.utils import (
     age_restricted,
     args_to_str,
     encode_base_n,
+    caesar,
     clean_html,
     date_from_str,
     DateRange,
@@ -69,6 +70,7 @@ from youtube_dl.utils import (
     remove_start,
     remove_end,
     remove_quotes,
+    rot47,
     shell_quote,
     smuggle_url,
     str_to_int,
@@ -1368,6 +1370,20 @@ Line 1
 
         self.assertRaises(ValueError, encode_base_n, 0, 70)
         self.assertRaises(ValueError, encode_base_n, 0, 60, custom_table)
+
+    def test_caesar(self):
+        self.assertEqual(caesar('ace', 'abcdef', 2), 'cea')
+        self.assertEqual(caesar('cea', 'abcdef', -2), 'ace')
+        self.assertEqual(caesar('ace', 'abcdef', -2), 'eac')
+        self.assertEqual(caesar('eac', 'abcdef', 2), 'ace')
+        self.assertEqual(caesar('ace', 'abcdef', 0), 'ace')
+        self.assertEqual(caesar('xyz', 'abcdef', 2), 'xyz')
+        self.assertEqual(caesar('abc', 'acegik', 2), 'ebg')
+        self.assertEqual(caesar('ebg', 'acegik', -2), 'abc')
+
+    def test_rot47(self):
+        self.assertEqual(rot47('youtube-dl'), r'J@FEF36\5=')
+        self.assertEqual(rot47('YOUTUBE-DL'), r'*~&%&qt\s{')
 
     def test_urshift(self):
         self.assertEqual(urshift(3, 1), 1)

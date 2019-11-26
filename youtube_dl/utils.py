@@ -5383,6 +5383,19 @@ def decode_packed_codes(code):
         obfucasted_code)
 
 
+def caesar(s, alphabet, shift):
+    if shift == 0:
+        return s
+    l = len(alphabet)
+    return ''.join(
+        alphabet[(alphabet.index(c) + shift) % l] if c in alphabet else c
+        for c in s)
+
+
+def rot47(s):
+    return caesar(s, r'''!"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\]^_`abcdefghijklmnopqrstuvwxyz{|}~''', 47)
+
+
 def parse_m3u8_attributes(attrib):
     info = {}
     for (key, val) in re.findall(r'(?P<key>[A-Z0-9-]+)=(?P<val>"[^"]+"|[^",]+)(?:,|$)', attrib):
