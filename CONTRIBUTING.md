@@ -171,21 +171,21 @@ In any case, thank you very much for your contributions!
 
 ## youtube-dl coding conventions
 
-This section introduces a guide lines for writing idiomatic, robust and future-proof extractor code.
+This section introduces guidelines for writing idiomatic, robust and future-proof extractor code.
 
-Extractors are very fragile by nature since they depend on the layout of the source data provided by 3rd party media hosters out of your control and this layout tends to change. As an extractor implementer your task is not only to write code that will extract media links and metadata correctly but also to minimize dependency on the source's layout and even to make the code foresee potential future changes and be ready for that. This is important because it will allow the extractor not to break on minor layout changes thus keeping old youtube-dl versions working. Even though this breakage issue is easily fixed by emitting a new version of youtube-dl with a fix incorporated, all the previous versions become broken in all repositories and distros' packages that may not be so prompt in fetching the update from us. Needless to say, some non rolling release distros may never receive an update at all.
+Extractors are very fragile by nature since they depend on the layout of the source data provided by 3rd party media hosters out of your control and this layout tends to change. As an extractor implementer, your task is not only to write code that will extract media links and metadata correctly but also to minimize dependency on the source's layout and even to make the code foresee potential future changes and be ready for that. This is important because it will allow the extractor not to break on minor layout changes thus keeping old youtube-dl versions working. Even though this breakage issue is easily fixed by emitting a new version of youtube-dl with a fix incorporated, all the previous versions become broken in all repositories and distros' packages that may not be so prompt in fetching the update from us. Needless to say, some non rolling release distros may never receive an update at all.
 
 ### Mandatory and optional metafields
 
-For extraction to work youtube-dl relies on metadata your extractor extracts and provides to youtube-dl expressed by an [information dictionary](https://github.com/ytdl-org/youtube-dl/blob/7f41a598b3fba1bcab2817de64a08941200aa3c8/youtube_dl/extractor/common.py#L94-L303) or simply *info dict*. Only the following meta fields in the *info dict* are considered mandatory for a successful extraction process by youtube-dl:
+For extraction to work, youtube-dl relies on metadata that your extractor extracts and provides to youtube-dl as an [information dictionary](https://github.com/ytdl-org/youtube-dl/blob/7f41a598b3fba1bcab2817de64a08941200aa3c8/youtube_dl/extractor/common.py#L94-L303) or simply *info dict*. Only the following meta fields in the *info dict* are considered mandatory for a successful extraction process by youtube-dl:
 
  - `id` (media identifier)
  - `title` (media title)
  - `url` (media download URL) or `formats`
 
-In fact only the last option is technically mandatory (i.e. if you can't figure out the download location of the media the extraction does not make any sense). But by convention youtube-dl also treats `id` and `title` as mandatory. Thus the aforementioned metafields are the critical data that the extraction does not make any sense without and if any of them fail to be extracted then the extractor is considered completely broken.
+In fact, only the last option is technically mandatory (i.e. if you can't figure out the download location of the media, the extraction does not make any sense). But by convention, youtube-dl also treats `id` and `title` as mandatory. Thus, the aforementioned metafields are the critical data that the extraction does not make any sense without, and if any of them fail to be extracted, then the extractor is considered completely broken.
 
-[Any field](https://github.com/ytdl-org/youtube-dl/blob/7f41a598b3fba1bcab2817de64a08941200aa3c8/youtube_dl/extractor/common.py#L188-L303) apart from the aforementioned ones are considered **optional**. That means that extraction should be **tolerant** to situations when sources for these fields can potentially be unavailable (even if they are always available at the moment) and **future-proof** in order not to break the extraction of general purpose mandatory fields.
+[Any fields](https://github.com/ytdl-org/youtube-dl/blob/7f41a598b3fba1bcab2817de64a08941200aa3c8/youtube_dl/extractor/common.py#L188-L303) apart from the aforementioned ones are considered **optional**. That means that extraction should be **tolerant** to situations when sources for these fields can potentially be unavailable (even if they are always available at the moment) and **future-proof** in order not to break the extraction of general purpose mandatory fields.
 
 #### Example
 
@@ -205,7 +205,7 @@ Assume at this point `meta`'s layout is:
 }
 ```
 
-Assume you want to extract `summary` and put it into the resulting info dict as `description`. Since `description` is an optional meta field you should be ready that this key may be missing from the `meta` dict, so that you should extract it like:
+Assume you want to extract `summary` and put it into the resulting info dict as `description`. Since `description` is an optional meta field, you should be ready that this key may be missing from the `meta` dict, so that you should extract it like:
 
 ```python
 description = meta.get('summary')  # correct
@@ -217,7 +217,7 @@ and not like:
 description = meta['summary']  # incorrect
 ```
 
-The latter will break extraction process with `KeyError` if `summary` disappears from `meta` at some later time but with the former approach extraction will just go ahead with `description` set to `None` which is perfectly fine (remember `None` is equivalent to the absence of data).
+The latter will break the extraction process with `KeyError` if `summary` disappears from `meta` at some later time, but with the former approach, extraction will just go ahead with `description` set to `None`, which is perfectly fine (remember `None` is equivalent to the absence of data).
 
 Similarly, you should pass `fatal=False` when extracting optional data from a webpage with `_search_regex`, `_html_search_regex` or similar methods, for instance:
 
@@ -227,7 +227,7 @@ description = self._search_regex(
     webpage, 'description', fatal=False)
 ```
 
-With `fatal` set to `False` if `_search_regex` fails to extract `description` it will emit a warning and continue extraction.
+With `fatal` set to `False` if `_search_regex` fails to extract `description`, it will emit a warning and continue extraction.
 
 You can also pass `default=<some fallback value>`, for example:
 
@@ -237,29 +237,29 @@ description = self._search_regex(
     webpage, 'description', default=None)
 ```
 
-On failure this code will silently continue the extraction with `description` set to `None`. That is useful for metafields that may or may not be present.
+On failure, this code will silently continue the extraction with `description` set to `None`. That is useful for metafields that may or may not be present.
  
 ### Provide fallbacks
 
-When extracting metadata try to do so from multiple sources. For example if `title` is present in several places, try extracting from at least some of them. This makes it more future-proof in case some of the sources become unavailable.
+When extracting metadata, try to do so from multiple sources. For example, if `title` is present in several places, try extracting from at least some of them. This makes it more future-proof in case some of the sources become unavailable.
 
 #### Example
 
-Say `meta` from the previous example has a `title` and you are about to extract it. Since `title` is a mandatory meta field you should end up with something like:
+Say `meta` from the previous example has a `title` and you are about to extract it. Since `title` is a mandatory meta field, you should end up with something like:
 
 ```python
 title = meta['title']
 ```
 
-If `title` disappears from `meta` in future due to some changes on the hoster's side the extraction would fail since `title` is mandatory. That's expected.
+If `title` disappears from `meta` in the future due to some changes on the hoster's side, the extraction would fail, since `title` is mandatory. That's expected.
 
-Assume that you have some another source you can extract `title` from, for example `og:title` HTML meta of a `webpage`. In this case you can provide a fallback scenario:
+Assume that you have some other source you can extract `title` from, for example `og:title` HTML meta of a `webpage`. In this case, you can provide a fallback scenario:
 
 ```python
 title = meta.get('title') or self._og_search_title(webpage)
 ```
 
-This code will try to extract from `meta` first and if it fails it will try extracting `og:title` from a `webpage`.
+This code will try to extract from `meta` first and if it fails, it will try extracting `og:title` from a `webpage`.
 
 ### Regular expressions
 
@@ -285,7 +285,7 @@ r'(id|ID)=(?P<id>\d+)'
 
 #### Make regular expressions relaxed and flexible
 
-When using regular expressions try to write them fuzzy, relaxed and flexible, skipping insignificant parts that are more likely to change, allowing both single and double quotes for quoted values and so on.
+When using regular expressions, try to write them fuzzy, relaxed and flexible, skipping insignificant parts that are more likely to change, allowing both single and double quotes for quoted values and so on.
  
 ##### Example
 
@@ -382,7 +382,7 @@ description = (
     or self._html_search_meta('twitter:description', webpage, default=None))
 ```
 
-Methods supporting list of patterns are: `_search_regex`, `_html_search_regex`, `_og_search_property`, `_html_search_meta`.
+Methods supporting a list of patterns are: `_search_regex`, `_html_search_regex`, `_og_search_property`, `_html_search_meta`.
 
 ### Trailing parentheses
 
@@ -413,7 +413,7 @@ Use `url_or_none` for safe URL processing.
 
 Use `try_get` for safe metadata extraction from parsed JSON.
 
-Use `unified_strdate` for uniform `upload_date` or any `YYYYMMDD` meta field extraction, `unified_timestamp` for uniform `timestamp` extraction, `parse_filesize` for `filesize` extraction, `parse_count` for count meta fields extraction, `parse_resolution`, `parse_duration` for `duration` extraction, `parse_age_limit` for `age_limit` extraction. 
+Use `unified_strdate` for uniform `upload_date` or any `YYYYMMDD` meta field extraction, `unified_timestamp` for uniform `timestamp` extraction, `parse_filesize` for `filesize` extraction, `parse_count` for count meta fields extraction, `parse_resolution` for resolution extraction, `parse_duration` for `duration` extraction, `parse_age_limit` for `age_limit` extraction. 
 
 Explore [`youtube_dl/utils.py`](https://github.com/ytdl-org/youtube-dl/blob/master/youtube_dl/utils.py) for more useful convenience functions.
 
