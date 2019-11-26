@@ -1265,6 +1265,7 @@ from .varzesh3 import Varzesh3IE
 from .vbox7 import Vbox7IE
 from .veehd import VeeHDIE
 from .veoh import VeohIE
+from .vertiporn import VertiPornIE
 from .vesti import VestiIE
 from .vevo import (
     VevoIE,
