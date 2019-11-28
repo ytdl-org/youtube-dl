@@ -1,3 +1,36 @@
+version 2019.11.28
+
+Core
++ [utils] Add generic caesar cipher and rot47
+* [utils] Handle rd-suffixed day parts in unified_strdate (#23199)
+
+Extractors
+* [vimeo] Improve extraction
+    * Fix review extraction
+    * Fix ondemand extraction
+    * Make password protected player case as an expected error (#22896)
+    * Simplify channel based extractors code
+- [openload] Remove extractor (#11999)
+- [verystream] Remove extractor
+- [streamango] Remove extractor (#15406)
+* [dailymotion] Improve extraction
+    * Extract http formats included in m3u8 manifest
+    * Fix user extraction (#3553, #21415)
+    + Add suport for User Authentication (#11491)
+    * Fix password protected videos extraction (#23176)
+    * Respect age limit option and family filter cookie value (#18437)
+    * Handle video url playlist query param
+    * Report allowed countries for geo-restricted videos
+* [corus] Improve extraction
+    + Add support for Series Plus, W Network, YTV, ABC Spark, disneychannel.com
+      and disneylachaine.ca (#20861)
+    + Add support for self hosted videos (#22075)
+    * Detect DRM protection (#14910, #9164)
+* [vivo] Fix extraction (#22328, #22279)
++ [bitchute] Extract upload date (#22990, #23193)
+* [soundcloud] Update client id (#23214)
+
+
 version 2019.11.22
 
 Core
