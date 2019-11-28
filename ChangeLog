@@ -1,4 +1,4 @@
-version <unreleased>
+version 2019.11.28
 
 Core
 + [utils] Add generic caesar cipher and rot47

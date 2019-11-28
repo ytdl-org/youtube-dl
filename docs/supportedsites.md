@@ -618,7 +618,6 @@
  - **OnionStudios**
  - **Ooyala**
  - **OoyalaExternal**
- - **Openload**
  - **OraTV**
  - **orf:fm4**: radio FM4
  - **orf:fm4:story**: fm4.orf.at stories
@@ -825,7 +824,6 @@
  - **Steam**
  - **Stitcher**
  - **Streamable**
- - **Streamango**
  - **streamcloud.eu**
  - **StreamCZ**
  - **StreetVoice**
@@ -976,7 +974,6 @@
  - **Vbox7**
  - **VeeHD**
  - **Veoh**
- - **verystream**
  - **Vesti**: Вести.Ru
  - **Vevo**
  - **VevoPlaylist**
