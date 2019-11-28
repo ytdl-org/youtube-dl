@@ -1,8 +1,8 @@
 # coding: utf-8
 from __future__ import unicode_literals
 
-import re
 import itertools
+import re
 
 from .common import InfoExtractor
 from ..utils import (
@@ -17,10 +17,12 @@ from ..utils import (
     parse_iso8601,
     try_get,
     unescapeHTML,
+    url_or_none,
     urlencode_postdata,
     urljoin,
 )
 from ..compat import (
+    compat_etree_Element,
     compat_HTTPError,
     compat_urlparse,
 )
@@ -38,6 +40,7 @@ class BBCCoUkIE(InfoExtractor):
                             iplayer(?:/[^/]+)?/(?:episode/|playlist/)|
                             music/(?:clips|audiovideo/popular)[/#]|
                             radio/player/|
+                            sounds/play/|
                             events/[^/]+/play/[^/]+/
                         )
                         (?P<id>%s)(?!/(?:episodes|broadcasts|clips))
@@ -68,7 +71,7 @@ class BBCCoUkIE(InfoExtractor):
             'info_dict': {
                 'id': 'b039d07m',
                 'ext': 'flv',
-                'title': 'Leonard Cohen, Kaleidoscope - BBC Radio 4',
+                'title': 'Kaleidoscope, Leonard Cohen',
                 'description': 'The Canadian poet and songwriter reflects on his musical career.',
             },
             'params': {
@@ -206,7 +209,7 @@ class BBCCoUkIE(InfoExtractor):
             },
             'skip': 'Now it\'s really geo-restricted',
         }, {
-            # compact player (https://github.com/rg3/youtube-dl/issues/8147)
+            # compact player (https://github.com/ytdl-org/youtube-dl/issues/8147)
             'url': 'http://www.bbc.co.uk/programmes/p028bfkf/player',
             'info_dict': {
                 'id': 'p028bfkj',
@@ -218,6 +221,20 @@ class BBCCoUkIE(InfoExtractor):
                 # rtmp download
                 'skip_download': True,
             },
+        }, {
+            'url': 'https://www.bbc.co.uk/sounds/play/m0007jzb',
+            'note': 'Audio',
+            'info_dict': {
+                'id': 'm0007jz9',
+                'ext': 'mp4',
+                'title': 'BBC Proms, 2019, Prom 34: West–Eastern Divan Orchestra',
+                'description': "Live BBC Proms. West–Eastern Divan Orchestra with Daniel Barenboim and Martha Argerich.",
+                'duration': 9840,
+            },
+            'params': {
+                # rtmp download
+                'skip_download': True,
+            }
         }, {
             'url': 'http://www.bbc.co.uk/iplayer/playlist/p01dvks4',
             'only_matching': True,
@@ -310,7 +327,13 @@ class BBCCoUkIE(InfoExtractor):
     def _get_subtitles(self, media, programme_id):
         subtitles = {}
         for connection in self._extract_connections(media):
-            captions = self._download_xml(connection.get('href'), programme_id, 'Downloading captions')
+            cc_url = url_or_none(connection.get('href'))
+            if not cc_url:
+                continue
+            captions = self._download_xml(
+                cc_url, programme_id, 'Downloading captions', fatal=False)
+            if not isinstance(captions, compat_etree_Element):
+                continue
             lang = captions.get('{http://www.w3.org/XML/1998/namespace}lang', 'en')
             subtitles[lang] = [
                 {
@@ -601,7 +624,7 @@ class BBCIE(BBCCoUkIE):
         'url': 'http://www.bbc.com/news/world-europe-32668511',
         'info_dict': {
             'id': 'world-europe-32668511',
-            'title': 'Russia stages massive WW2 parade despite Western boycott',
+            'title': 'Russia stages massive WW2 parade',
             'description': 'md5:00ff61976f6081841f759a08bf78cc9c',
         },
         'playlist_count': 2,
@@ -795,6 +818,15 @@ class BBCIE(BBCCoUkIE):
             'uploader': 'Radio 3',
             'uploader_id': 'bbc_radio_three',
         },
+    }, {
+        'url': 'http://www.bbc.co.uk/learningenglish/chinese/features/lingohack/ep-181227',
+        'info_dict': {
+            'id': 'p06w9tws',
+            'ext': 'mp4',
+            'title': 'md5:2fabf12a726603193a2879a055f72514',
+            'description': 'Learn English words and phrases from this story',
+        },
+        'add_ie': [BBCCoUkIE.ie_key()],
     }]
 
     @classmethod
@@ -944,6 +976,15 @@ class BBCIE(BBCCoUkIE):
 
         if entries:
             return self.playlist_result(entries, playlist_id, playlist_title, playlist_description)
+
+        # http://www.bbc.co.uk/learningenglish/chinese/features/lingohack/ep-181227
+        group_id = self._search_regex(
+            r'<div[^>]+\bclass=["\']video["\'][^>]+\bdata-pid=["\'](%s)' % self._ID_REGEX,
+            webpage, 'group id', default=None)
+        if playlist_id:
+            return self.url_result(
+                'https://www.bbc.co.uk/programmes/%s' % group_id,
+                ie=BBCCoUkIE.ie_key())
 
         # single video story (e.g. http://www.bbc.com/travel/story/20150625-sri-lankas-spicy-secret)
         programme_id = self._search_regex(

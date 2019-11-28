@@ -1,32 +1,35 @@
 # coding: utf-8
 from __future__ import unicode_literals
 
-from .mtv import MTVServicesInfoExtractor
+from .spike import ParamountNetworkIE
 
 
-class TVLandIE(MTVServicesInfoExtractor):
+class TVLandIE(ParamountNetworkIE):
     IE_NAME = 'tvland.com'
     _VALID_URL = r'https?://(?:www\.)?tvland\.com/(?:video-clips|(?:full-)?episodes)/(?P<id>[^/?#.]+)'
     _FEED_URL = 'http://www.tvland.com/feeds/mrss/'
     _TESTS = [{
         # Geo-restricted. Without a proxy metadata are still there. With a
         # proxy it redirects to http://m.tvland.com/app/
-        'url': 'http://www.tvland.com/episodes/hqhps2/everybody-loves-raymond-the-invasion-ep-048',
+        'url': 'https://www.tvland.com/episodes/s04pzf/everybody-loves-raymond-the-dog-season-1-ep-19',
         'info_dict': {
-            'description': 'md5:80973e81b916a324e05c14a3fb506d29',
-            'title': 'The Invasion',
+            'description': 'md5:84928e7a8ad6649371fbf5da5e1ad75a',
+            'title': 'The Dog',
         },
-        'playlist': [],
+        'playlist_mincount': 5,
     }, {
-        'url': 'http://www.tvland.com/video-clips/zea2ev/younger-younger--hilary-duff---little-lies',
+        'url': 'https://www.tvland.com/video-clips/4n87f2/younger-a-first-look-at-younger-season-6',
         'md5': 'e2c6389401cf485df26c79c247b08713',
         'info_dict': {
-            'id': 'b8697515-4bbe-4e01-83d5-fa705ce5fa88',
+            'id': '891f7d3c-5b5b-4753-b879-b7ba1a601757',
             'ext': 'mp4',
-            'title': 'Younger|December 28, 2015|2|NO-EPISODE#|Younger: Hilary Duff - Little Lies',
-            'description': 'md5:7d192f56ca8d958645c83f0de8ef0269',
-            'upload_date': '20151228',
-            'timestamp': 1451289600,
+            'title': 'Younger|April 30, 2019|6|NO-EPISODE#|A First Look at Younger Season 6',
+            'description': 'md5:595ea74578d3a888ae878dfd1c7d4ab2',
+            'upload_date': '20190430',
+            'timestamp': 1556658000,
+        },
+        'params': {
+            'skip_download': True,
         },
     }, {
         'url': 'http://www.tvland.com/full-episodes/iu0hz6/younger-a-kiss-is-just-a-kiss-season-3-ep-301',

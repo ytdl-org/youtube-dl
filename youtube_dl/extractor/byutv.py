@@ -3,11 +3,18 @@ from __future__ import unicode_literals
 import re
 
 from .common import InfoExtractor
+from ..utils import (
+    determine_ext,
+    merge_dicts,
+    parse_duration,
+    url_or_none,
+)
 
 
 class BYUtvIE(InfoExtractor):
     _VALID_URL = r'https?://(?:www\.)?byutv\.org/(?:watch|player)/(?!event/)(?P<id>[0-9a-f-]+)(?:/(?P<display_id>[^/?#&]+))?'
     _TESTS = [{
+        # ooyalaVOD
         'url': 'http://www.byutv.org/watch/6587b9a3-89d2-42a6-a7f7-fd2f81840a7d/studio-c-season-5-episode-5',
         'info_dict': {
             'id': 'ZvanRocTpW-G5_yZFeltTAMv6jxOU9KH',
@@ -23,6 +30,20 @@ class BYUtvIE(InfoExtractor):
         },
         'add_ie': ['Ooyala'],
     }, {
+        # dvr
+        'url': 'https://www.byutv.org/player/8f1dab9b-b243-47c8-b525-3e2d021a3451/byu-softball-pacific-vs-byu-41219---game-2',
+        'info_dict': {
+            'id': '8f1dab9b-b243-47c8-b525-3e2d021a3451',
+            'display_id': 'byu-softball-pacific-vs-byu-41219---game-2',
+            'ext': 'mp4',
+            'title': 'Pacific vs. BYU (4/12/19)',
+            'description': 'md5:1ac7b57cb9a78015910a4834790ce1f3',
+            'duration': 11645,
+        },
+        'params': {
+            'skip_download': True
+        },
+    }, {
         'url': 'http://www.byutv.org/watch/6587b9a3-89d2-42a6-a7f7-fd2f81840a7d',
         'only_matching': True,
     }, {
@@ -35,24 +56,62 @@ class BYUtvIE(InfoExtractor):
         video_id = mobj.group('id')
         display_id = mobj.group('display_id') or video_id
 
-        ep = self._download_json(
-            'https://api.byutv.org/api3/catalog/getvideosforcontent', video_id,
-            query={
+        video = self._download_json(
+            'https://api.byutv.org/api3/catalog/getvideosforcontent',
+            display_id, query={
                 'contentid': video_id,
                 'channel': 'byutv',
                 'x-byutv-context': 'web$US',
             }, headers={
                 'x-byutv-context': 'web$US',
                 'x-byutv-platformkey': 'xsaaw9c7y5',
-            })['ooyalaVOD']
+            })
 
-        return {
-            '_type': 'url_transparent',
-            'ie_key': 'Ooyala',
-            'url': 'ooyala:%s' % ep['providerId'],
+        ep = video.get('ooyalaVOD')
+        if ep:
+            return {
+                '_type': 'url_transparent',
+                'ie_key': 'Ooyala',
+                'url': 'ooyala:%s' % ep['providerId'],
+                'id': video_id,
+                'display_id': display_id,
+                'title': ep.get('title'),
+                'description': ep.get('description'),
+                'thumbnail': ep.get('imageThumbnail'),
+            }
+
+        info = {}
+        formats = []
+        for format_id, ep in video.items():
+            if not isinstance(ep, dict):
+                continue
+            video_url = url_or_none(ep.get('videoUrl'))
+            if not video_url:
+                continue
+            ext = determine_ext(video_url)
+            if ext == 'm3u8':
+                formats.extend(self._extract_m3u8_formats(
+                    video_url, video_id, 'mp4', entry_protocol='m3u8_native',
+                    m3u8_id='hls', fatal=False))
+            elif ext == 'mpd':
+                formats.extend(self._extract_mpd_formats(
+                    video_url, video_id, mpd_id='dash', fatal=False))
+            else:
+                formats.append({
+                    'url': video_url,
+                    'format_id': format_id,
+                })
+            merge_dicts(info, {
+                'title': ep.get('title'),
+                'description': ep.get('description'),
+                'thumbnail': ep.get('imageThumbnail'),
+                'duration': parse_duration(ep.get('length')),
+            })
+        self._sort_formats(formats)
+
+        return merge_dicts(info, {
             'id': video_id,
             'display_id': display_id,
-            'title': ep.get('title'),
-            'description': ep.get('description'),
-            'thumbnail': ep.get('imageThumbnail'),
-        }
+            'title': display_id,
+            'formats': formats,
+        })

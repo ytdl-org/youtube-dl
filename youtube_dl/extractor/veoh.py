@@ -1,13 +1,10 @@
 from __future__ import unicode_literals
 
-import re
-import json
-
 from .common import InfoExtractor
 from ..utils import (
     int_or_none,
-    ExtractorError,
-    sanitized_Request,
+    parse_duration,
+    qualities,
 )
 
 
@@ -16,9 +13,9 @@ class VeohIE(InfoExtractor):
 
     _TESTS = [{
         'url': 'http://www.veoh.com/watch/v56314296nk7Zdmz3',
-        'md5': '620e68e6a3cff80086df3348426c9ca3',
+        'md5': '9e7ecc0fd8bbee7a69fe38953aeebd30',
         'info_dict': {
-            'id': '56314296',
+            'id': 'v56314296nk7Zdmz3',
             'ext': 'mp4',
             'title': 'Straight Backs Are Stronger',
             'uploader': 'LUMOback',
@@ -56,29 +53,6 @@ class VeohIE(InfoExtractor):
         'only_matching': True,
     }]
 
-    def _extract_formats(self, source):
-        formats = []
-        link = source.get('aowPermalink')
-        if link:
-            formats.append({
-                'url': link,
-                'ext': 'mp4',
-                'format_id': 'aow',
-            })
-        link = source.get('fullPreviewHashLowPath')
-        if link:
-            formats.append({
-                'url': link,
-                'format_id': 'low',
-            })
-        link = source.get('fullPreviewHashHighPath')
-        if link:
-            formats.append({
-                'url': link,
-                'format_id': 'high',
-            })
-        return formats
-
     def _extract_video(self, source):
         return {
             'id': source.get('videoId'),
@@ -93,38 +67,37 @@ class VeohIE(InfoExtractor):
         }
 
     def _real_extract(self, url):
-        mobj = re.match(self._VALID_URL, url)
-        video_id = mobj.group('id')
+        video_id = self._match_id(url)
+        video = self._download_json(
+            'https://www.veoh.com/watch/getVideo/' + video_id,
+            video_id)['video']
+        title = video['title']
 
-        if video_id.startswith('v'):
-            rsp = self._download_xml(
-                r'http://www.veoh.com/api/findByPermalink?permalink=%s' % video_id, video_id, 'Downloading video XML')
-            stat = rsp.get('stat')
-            if stat == 'ok':
-                return self._extract_video(rsp.find('./videoList/video'))
-            elif stat == 'fail':
-                raise ExtractorError(
-                    '%s said: %s' % (self.IE_NAME, rsp.find('./errorList/error').get('errorMessage')), expected=True)
+        thumbnail_url = None
+        q = qualities(['HQ', 'Regular'])
+        formats = []
+        for f_id, f_url in video.get('src', {}).items():
+            if not f_url:
+                continue
+            if f_id == 'poster':
+                thumbnail_url = f_url
+            else:
+                formats.append({
+                    'format_id': f_id,
+                    'quality': q(f_id),
+                    'url': f_url,
+                })
+        self._sort_formats(formats)
 
-        webpage = self._download_webpage(url, video_id)
-        age_limit = 0
-        if 'class="adultwarning-container"' in webpage:
-            self.report_age_confirmation()
-            age_limit = 18
-            request = sanitized_Request(url)
-            request.add_header('Cookie', 'confirmedAdult=true')
-            webpage = self._download_webpage(request, video_id)
-
-        m_youtube = re.search(r'http://www\.youtube\.com/v/(.*?)(\&|"|\?)', webpage)
-        if m_youtube is not None:
-            youtube_id = m_youtube.group(1)
-            self.to_screen('%s: detected Youtube video.' % video_id)
-            return self.url_result(youtube_id, 'Youtube')
-
-        info = json.loads(
-            self._search_regex(r'videoDetailsJSON = \'({.*?})\';', webpage, 'info').replace('\\\'', '\''))
-
-        video = self._extract_video(info)
-        video['age_limit'] = age_limit
-
-        return video
+        return {
+            'id': video_id,
+            'title': title,
+            'description': video.get('description'),
+            'thumbnail': thumbnail_url,
+            'uploader': video.get('author', {}).get('nickname'),
+            'duration': int_or_none(video.get('lengthBySec')) or parse_duration(video.get('length')),
+            'view_count': int_or_none(video.get('views')),
+            'formats': formats,
+            'average_rating': int_or_none(video.get('rating')),
+            'comment_count': int_or_none(video.get('numOfComments')),
+        }

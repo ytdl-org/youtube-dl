@@ -108,7 +108,7 @@ class NexxIE(InfoExtractor):
     @staticmethod
     def _extract_domain_id(webpage):
         mobj = re.search(
-            r'<script\b[^>]+\bsrc=["\'](?:https?:)?//require\.nexx(?:\.cloud|cdn\.com)/(?P<id>\d+)',
+            r'<script\b[^>]+\bsrc=["\'](?:https?:)?//(?:require|arc)\.nexx(?:\.cloud|cdn\.com)/(?:sdk/)?(?P<id>\d+)',
             webpage)
         return mobj.group('id') if mobj else None
 
@@ -123,7 +123,7 @@ class NexxIE(InfoExtractor):
         domain_id = NexxIE._extract_domain_id(webpage)
         if domain_id:
             for video_id in re.findall(
-                    r'(?is)onPLAYReady.+?_play\.init\s*\(.+?\s*,\s*["\']?(\d+)',
+                    r'(?is)onPLAYReady.+?_play\.(?:init|(?:control\.)?addPlayer)\s*\(.+?\s*,\s*["\']?(\d+)',
                     webpage):
                 entries.append(
                     'https://api.nexx.cloud/v3/%s/videos/byid/%s'
@@ -295,13 +295,23 @@ class NexxIE(InfoExtractor):
 
         video = None
 
+        def find_video(result):
+            if isinstance(result, dict):
+                return result
+            elif isinstance(result, list):
+                vid = int(video_id)
+                for v in result:
+                    if try_get(v, lambda x: x['general']['ID'], int) == vid:
+                        return v
+            return None
+
         response = self._download_json(
             'https://arc.nexx.cloud/api/video/%s.json' % video_id,
             video_id, fatal=False)
         if response and isinstance(response, dict):
             result = response.get('result')
-            if result and isinstance(result, dict):
-                video = result
+            if result:
+                video = find_video(result)
 
         # not all videos work via arc, e.g. nexx:741:1269984
         if not video:
@@ -348,7 +358,7 @@ class NexxIE(InfoExtractor):
             request_token = hashlib.md5(
                 ''.join((op, domain_id, secret)).encode('utf-8')).hexdigest()
 
-            video = self._call_api(
+            result = self._call_api(
                 domain_id, 'videos/%s/%s' % (op, video_id), video_id, data={
                     'additionalfields': 'language,channel,actors,studio,licenseby,slug,subtitle,teaser,description',
                     'addInteractionOptions': '1',
@@ -363,6 +373,7 @@ class NexxIE(InfoExtractor):
                     'X-Request-CID': cid,
                     'X-Request-Token': request_token,
                 })
+            video = find_video(result)
 
         general = video['general']
         title = general['title']
@@ -399,8 +410,8 @@ class NexxIE(InfoExtractor):
 
 
 class NexxEmbedIE(InfoExtractor):
-    _VALID_URL = r'https?://embed\.nexx(?:\.cloud|cdn\.com)/\d+/(?P<id>[^/?#&]+)'
-    _TEST = {
+    _VALID_URL = r'https?://embed\.nexx(?:\.cloud|cdn\.com)/\d+/(?:video/)?(?P<id>[^/?#&]+)'
+    _TESTS = [{
         'url': 'http://embed.nexx.cloud/748/KC1614647Z27Y7T?autoplay=1',
         'md5': '16746bfc28c42049492385c989b26c4a',
         'info_dict': {
@@ -409,7 +420,6 @@ class NexxEmbedIE(InfoExtractor):
             'title': 'Nervenkitzel Achterbahn',
             'alt_title': 'Karussellbauer in Deutschland',
             'description': 'md5:ffe7b1cc59a01f585e0569949aef73cc',
-            'release_year': 2005,
             'creator': 'SPIEGEL TV',
             'thumbnail': r're:^https?://.*\.jpg$',
             'duration': 2761,
@@ -420,7 +430,10 @@ class NexxEmbedIE(InfoExtractor):
             'format': 'bestvideo',
             'skip_download': True,
         },
-    }
+    }, {
+        'url': 'https://embed.nexx.cloud/11888/video/DSRTO7UVOX06S7',
+        'only_matching': True,
+    }]
 
     @staticmethod
     def _extract_urls(webpage):
