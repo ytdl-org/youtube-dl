@@ -485,6 +485,7 @@ class FacebookIE(InfoExtractor):
 
         likes_count = parse_count(self._extract_likes(webpage, tahoe_data))
         shares_count = parse_count(self._extract_meta_count(['sharecount'], webpage, tahoe_data, 'shares'))
+        comment_count = parse_count(self._extract_meta_count(['commentCount'], webpage, tahoe_data, 'shares'))
 
         info_dict = {
             'id': video_id,
@@ -500,6 +501,7 @@ class FacebookIE(InfoExtractor):
             'like_count': likes_count,
             'share_count': shares_count,
             'subtitles': subtitles,
+            'comment_count': comment_count
         }
         if uploader_id:
             info_dict['uploader_like_count'] = FacebookAjax(self, webpage, uploader_id).page_likes
