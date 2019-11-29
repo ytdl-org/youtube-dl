@@ -21,6 +21,7 @@ from .acast import (
 from .adn import ADNIE
 from .adobeconnect import AdobeConnectIE
 from .adobetv import (
+    AdobeTVEmbedIE,
     AdobeTVIE,
     AdobeTVShowIE,
     AdobeTVChannelIE,
