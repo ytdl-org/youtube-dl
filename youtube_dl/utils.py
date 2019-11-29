@@ -3519,8 +3519,8 @@ def str_or_none(v, default=None):
 
 def str_to_int(int_str):
     """ A more relaxed version of int_or_none """
-    if int_str is None:
-        return None
+    if not isinstance(int_str, compat_str):
+        return int_str
     int_str = re.sub(r'[,\.\+]', '', int_str)
     return int(int_str)
 
