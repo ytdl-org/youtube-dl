@@ -499,6 +499,7 @@ class TestUtil(unittest.TestCase):
     def test_str_to_int(self):
         self.assertEqual(str_to_int('123,456'), 123456)
         self.assertEqual(str_to_int('123.456'), 123456)
+        self.assertEqual(str_to_int(523), 523)
 
     def test_url_basename(self):
         self.assertEqual(url_basename('http://foo.de/'), '')
