@@ -79,9 +79,10 @@ class TV2IE(InfoExtractor):
                     formats.extend(self._extract_f4m_formats(
                         video_url, video_id, f4m_id=format_id, fatal=False))
                 elif ext == 'm3u8':
-                    formats.extend(self._extract_m3u8_formats(
-                        video_url, video_id, 'mp4', entry_protocol='m3u8_native',
-                        m3u8_id=format_id, fatal=False))
+                    if not data.get('drmProtected'):
+                        formats.extend(self._extract_m3u8_formats(
+                            video_url, video_id, 'mp4', entry_protocol='m3u8_native',
+                            m3u8_id=format_id, fatal=False))
                 elif ext == 'mpd':
                     formats.extend(self._extract_mpd_formats(
                         video_url, video_id, format_id, fatal=False))
@@ -94,6 +95,8 @@ class TV2IE(InfoExtractor):
                         'tbr': int_or_none(item.get('bitrate')),
                         'filesize': int_or_none(item.get('fileSize')),
                     })
+        if not formats and data.get('drmProtected'):
+            raise ExtractorError('This video is DRM protected.', expected=True)
         self._sort_formats(formats)
 
         asset = self._download_json(
@@ -104,7 +107,7 @@ class TV2IE(InfoExtractor):
         thumbnails = [{
             'id': thumbnail.get('@type'),
             'url': thumbnail.get('url'),
-        } for _, thumbnail in asset.get('imageVersions', {}).items()]
+        } for _, thumbnail in (asset.get('imageVersions') or {}).items()]
 
         return {
             'id': video_id,
