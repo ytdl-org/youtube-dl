@@ -1168,6 +1168,7 @@ from .turbo import TurboIE
 from .tv2 import (
     TV2IE,
     TV2ArticleIE,
+    KatsomoIE,
 )
 from .tv2dk import TV2DKIE
 from .tv2hu import TV2HuIE

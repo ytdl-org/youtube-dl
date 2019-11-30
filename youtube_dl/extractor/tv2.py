@@ -4,13 +4,16 @@ from __future__ import unicode_literals
 import re
 
 from .common import InfoExtractor
+from ..compat import compat_HTTPError
 from ..utils import (
     determine_ext,
+    ExtractorError,
     int_or_none,
     float_or_none,
     js_to_json,
     parse_iso8601,
     remove_end,
+    strip_or_none,
     try_get,
 )
 
@@ -21,7 +24,7 @@ class TV2IE(InfoExtractor):
         'url': 'http://www.tv2.no/v/916509/',
         'info_dict': {
             'id': '916509',
-            'ext': 'mp4',
+            'ext': 'flv',
             'title': 'Se Frode Gryttens hyllest av Steven Gerrard',
             'description': 'TV 2 Sportens huspoet tar avskjed med Liverpools kaptein Steven Gerrard.',
             'timestamp': 1431715610,
@@ -30,21 +33,32 @@ class TV2IE(InfoExtractor):
             'view_count': int,
             'categories': list,
         },
-        'params': {
-            # m3u8 download
-            'skip_download': True,
-        },
     }
+    _API_DOMAIN = 'sumo.tv2.no'
+    _PROTOCOLS = ('HDS', 'HLS', 'DASH')
+    _GEO_COUNTRIES = ['NO']
 
     def _real_extract(self, url):
         video_id = self._match_id(url)
+        api_base = 'http://%s/api/web/asset/%s' % (self._API_DOMAIN, video_id)
 
         formats = []
         format_urls = []
-        for protocol in ('HDS', 'HLS'):
-            data = self._download_json(
-                'http://sumo.tv2.no/api/web/asset/%s/play.json?protocol=%s&videoFormat=SMIL+ISMUSP' % (video_id, protocol),
-                video_id, 'Downloading play JSON')['playback']
+        for protocol in self._PROTOCOLS:
+            try:
+                data = self._download_json(
+                    api_base + '/play.json?protocol=%s&videoFormat=SMIL+ISMUSP' % protocol,
+                    video_id, 'Downloading play JSON')['playback']
+            except ExtractorError as e:
+                if isinstance(e.cause, compat_HTTPError) and e.cause.code == 401:
+                    error = self._parse_json(e.cause.read().decode(), video_id)['error']
+                    error_code = error.get('code')
+                    if error_code == 'ASSET_PLAYBACK_INVALID_GEO_LOCATION':
+                        self.raise_geo_restricted(countries=self._GEO_COUNTRIES)
+                    elif error_code == 'SESSION_NOT_AUTHENTICATED':
+                        self.raise_login_required()
+                    raise ExtractorError(error['description'])
+                raise
             items = try_get(data, lambda x: x['items']['item'])
             if not items:
                 continue
@@ -68,6 +82,9 @@ class TV2IE(InfoExtractor):
                     formats.extend(self._extract_m3u8_formats(
                         video_url, video_id, 'mp4', entry_protocol='m3u8_native',
                         m3u8_id=format_id, fatal=False))
+                elif ext == 'mpd':
+                    formats.extend(self._extract_mpd_formats(
+                        video_url, video_id, format_id, fatal=False))
                 elif ext == 'ism' or video_url.endswith('.ism/Manifest'):
                     pass
                 else:
@@ -80,15 +97,9 @@ class TV2IE(InfoExtractor):
         self._sort_formats(formats)
 
         asset = self._download_json(
-            'http://sumo.tv2.no/api/web/asset/%s.json' % video_id,
-            video_id, 'Downloading metadata JSON')['asset']
-
+            api_base + '.json', video_id,
+            'Downloading metadata JSON')['asset']
         title = asset['title']
-        description = asset.get('description')
-        timestamp = parse_iso8601(asset.get('createTime'))
-        duration = float_or_none(asset.get('accurateDuration') or asset.get('duration'))
-        view_count = int_or_none(asset.get('views'))
-        categories = asset.get('keywords', '').split(',')
 
         thumbnails = [{
             'id': thumbnail.get('@type'),
@@ -99,12 +110,12 @@ class TV2IE(InfoExtractor):
             'id': video_id,
             'url': video_url,
             'title': title,
-            'description': description,
+            'description': strip_or_none(asset.get('description')),
             'thumbnails': thumbnails,
-            'timestamp': timestamp,
-            'duration': duration,
-            'view_count': view_count,
-            'categories': categories,
+            'timestamp': parse_iso8601(asset.get('createTime')),
+            'duration': float_or_none(asset.get('accurateDuration') or asset.get('duration')),
+            'view_count': int_or_none(asset.get('views')),
+            'categories': asset.get('keywords', '').split(','),
             'formats': formats,
         }
 
@@ -116,7 +127,7 @@ class TV2ArticleIE(InfoExtractor):
         'info_dict': {
             'id': '6930542',
             'title': 'Russen hetses etter pingvintyveri - innrømmer å ha åpnet luken på buret',
-            'description': 'md5:339573779d3eea3542ffe12006190954',
+            'description': 'De fire siktede nekter fortsatt for å ha stjålet pingvinbabyene, men innrømmer å ha åpnet luken til de små kyllingene.',
         },
         'playlist_count': 2,
     }, {
@@ -134,7 +145,7 @@ class TV2ArticleIE(InfoExtractor):
 
         if not assets:
             # New embed pattern
-            for v in re.findall(r'TV2ContentboxVideo\(({.+?})\)', webpage):
+            for v in re.findall(r'(?s)TV2ContentboxVideo\(({.+?})\)', webpage):
                 video = self._parse_json(
                     v, playlist_id, transform_source=js_to_json, fatal=False)
                 if not video:
@@ -151,3 +162,28 @@ class TV2ArticleIE(InfoExtractor):
         description = remove_end(self._og_search_description(webpage), ' - TV2.no')
 
         return self.playlist_result(entries, playlist_id, title, description)
+
+
+class KatsomoIE(TV2IE):
+    _VALID_URL = r'https?://(?:www\.)?(?:katsomo|mtv)\.fi/(?:#!/)?(?:[^/]+/[0-9a-z-]+-\d+/[0-9a-z-]+-|[^/]+/\d+/[^/]+/)(?P<id>\d+)'
+    _TEST = {
+        'url': 'https://www.mtv.fi/sarja/mtv-uutiset-live-33001002003/lahden-pelicans-teki-kovan-ratkaisun-ville-nieminen-pihalle-1181321',
+        'info_dict': {
+            'id': '1181321',
+            'ext': 'mp4',
+            'title': 'MTV Uutiset Live',
+            'description': 'Päätöksen teki Pelicansin hallitus.',
+            'timestamp': 1575116484,
+            'upload_date': '20191130',
+            'duration': 37.12,
+            'view_count': int,
+            'categories': list,
+        },
+        'params': {
+            # m3u8 download
+            'skip_download': True,
+        },
+    }
+    _API_DOMAIN = 'api.katsomo.fi'
+    _PROTOCOLS = ('HLS', 'MPD')
+    _GEO_COUNTRIES = ['FI']
