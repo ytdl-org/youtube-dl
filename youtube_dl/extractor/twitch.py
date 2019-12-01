@@ -626,6 +626,20 @@ class TwitchStreamIE(TwitchBaseIE):
                 'height': int(m.group('height')),
             })
 
+        ## My additions ##
+
+        # TLDR: no need to fix the "real title" problem described in #22501
+        # The issue mentioned in #22501 regarding the "real" title
+        # can be resolved by specifying the 'description' output parameter
+        # i.e. youtube-dl --get-filename -o "%(description)s" https://twitch.tv/channel/
+        # which will output the name that you see under the video as opposed to
+        # the channel's name and the date (as described in #22501).
+
+        # finding fps
+        fps = stream.get('average_fps')
+        game = channel.get('game') or stream.get('game')
+        ## End List ##
+
         return {
             'id': compat_str(stream['_id']),
             'display_id': channel_id,
@@ -638,6 +652,10 @@ class TwitchStreamIE(TwitchBaseIE):
             'view_count': view_count,
             'formats': formats,
             'is_live': True,
+            ## My additions ##
+            'game': game,
+            'average_fps': fps,
+            ## End List ##
         }
 
 
