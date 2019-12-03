@@ -34,12 +34,15 @@ class VzaarIE(InfoExtractor):
         },
     }, {
         # hlsAes = true
-        'url': 'https://view.vzaar.com/10165560/player',
-        'md5': '5f66f121fb28b9d16cce3d4f3df7e72e',
+        'url': 'https://view.vzaar.com/11379930/player',
         'info_dict': {
-            'id': '10165560',
+            'id': '11379930',
             'ext': 'mp4',
-            'title': 'Video Demo vzaar Secure.mp4',
+            'title': 'Videoaula',
+        },
+        'params': {
+            # m3u8 download
+            'skip_download': True,
         },
     }, {
         # with null videoTitle
