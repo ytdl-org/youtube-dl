@@ -12,7 +12,7 @@ from ..utils import (
 
 
 class WistiaIE(InfoExtractor):
-    _VALID_URL = r'(?:wistia:|https?://(?:fast\.)?wistia\.(?:net|com)/embed/(?:iframe|medias)/)(?P<id>[a-z0-9]+)'
+    _VALID_URL = r'(?:wistia:|https?://(?:fast\.)?wistia\.(?:net|com)/embed/(?:iframe|medias)/)(?P<id>[a-z0-9]{10})'
     _API_URL = 'http://fast.wistia.com/embed/medias/%s.json'
     _IFRAME_URL = 'http://fast.wistia.net/embed/iframe/%s'
 
@@ -43,22 +43,23 @@ class WistiaIE(InfoExtractor):
         'only_matching': True,
     }]
 
+    # https://wistia.com/support/embed-and-share/video-on-your-website
     @staticmethod
     def _extract_url(webpage):
         match = re.search(
-            r'<(?:meta[^>]+?content|iframe[^>]+?src)=(["\'])(?P<url>(?:https?:)?//(?:fast\.)?wistia\.(?:net|com)/embed/iframe/.+?)\1', webpage)
+            r'<(?:meta[^>]+?content|(?:iframe|script)[^>]+?src)=["\'](?P<url>(?:https?:)?//(?:fast\.)?wistia\.(?:net|com)/embed/(?:iframe|medias)/[a-z0-9]{10})', webpage)
         if match:
             return unescapeHTML(match.group('url'))
-
-        match = re.search(r'(?:id=["\']wistia_|data-wistia-?id=["\']|Wistia\.embed\(["\'])(?P<id>[^"\']+)', webpage)
-        if match:
-            return 'wistia:%s' % match.group('id')
 
         match = re.search(
             r'''(?sx)
                 <script[^>]+src=(["'])(?:https?:)?//fast\.wistia\.com/assets/external/E-v1\.js\1[^>]*>.*?
-                <div[^>]+class=(["']).*?\bwistia_async_(?P<id>[a-z0-9]+)\b.*?\2
+                <div[^>]+class=(["']).*?\bwistia_async_(?P<id>[a-z0-9]{10})\b.*?\2
             ''', webpage)
+        if match:
+            return 'wistia:%s' % match.group('id')
+
+        match = re.search(r'(?:data-wistia-?id=["\']|Wistia\.embed\(["\']|id=["\']wistia_)(?P<id>[a-z0-9]{10})', webpage)
         if match:
             return 'wistia:%s' % match.group('id')
 

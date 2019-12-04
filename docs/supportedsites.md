@@ -26,7 +26,6 @@
  - **AcademicEarth:Course**
  - **acast**
  - **acast:channel**
- - **AddAnime**
  - **ADN**: Anime Digital Network
  - **AdobeConnect**
  - **AdobeTV**
@@ -76,8 +75,6 @@
  - **awaan:video**
  - **AZMedien**: AZ Medien videos
  - **BaiduVideo**: 百度视频
- - **bambuser**
- - **bambuser:channel**
  - **Bandcamp**
  - **Bandcamp:album**
  - **Bandcamp:weekly**
@@ -177,12 +174,12 @@
  - **CNN**
  - **CNNArticle**
  - **CNNBlogs**
- - **ComCarCoff**
  - **ComedyCentral**
  - **ComedyCentralFullEpisodes**
  - **ComedyCentralShortname**
  - **ComedyCentralTV**
  - **CondeNast**: Condé Nast media group: Allure, Architectural Digest, Ars Technica, Bon Appétit, Brides, Condé Nast, Condé Nast Traveler, Details, Epicurious, GQ, Glamour, Golf Digest, SELF, Teen Vogue, The New Yorker, Vanity Fair, Vogue, W Magazine, WIRED
+ - **CONtv**
  - **Corus**
  - **Coub**
  - **Cracked**
@@ -204,8 +201,6 @@
  - **dailymotion**
  - **dailymotion:playlist**
  - **dailymotion:user**
- - **DaisukiMotto**
- - **DaisukiMottoPlaylist**
  - **daum.net**
  - **daum.net:clip**
  - **daum.net:playlist**
@@ -231,7 +226,6 @@
  - **DouyuShow**
  - **DouyuTV**: 斗鱼
  - **DPlay**
- - **DPlayIt**
  - **DRBonanza**
  - **Dropbox**
  - **DrTuber**
@@ -284,12 +278,12 @@
  - **FiveThirtyEight**
  - **FiveTV**
  - **Flickr**
- - **Flipagram**
  - **Folketinget**: Folketinget (ft.dk; Danish parliament)
  - **FootyRoom**
  - **Formula1**
  - **FOX**
  - **FOX9**
+ - **FOX9News**
  - **Foxgay**
  - **foxnews**: Fox News and Fox Business Video
  - **foxnews:article**
@@ -315,8 +309,6 @@
  - **FXNetworks**
  - **Gaia**
  - **GameInformer**
- - **GameOne**
- - **gameone:playlist**
  - **GameSpot**
  - **GameStar**
  - **Gaskrank**
@@ -331,14 +323,12 @@
  - **Globo**
  - **GloboArticle**
  - **Go**
- - **Go90**
  - **GodTube**
  - **Golem**
  - **GoogleDrive**
  - **Goshgay**
  - **GPUTechConf**
  - **Groupon**
- - **Hark**
  - **hbo**
  - **HearThisAt**
  - **Heise**
@@ -367,7 +357,6 @@
  - **Hungama**
  - **HungamaSong**
  - **Hypem**
- - **Iconosquare**
  - **ign.com**
  - **imdb**: Internet Movie Database trailers
  - **imdb:list**: Internet Movie Database lists
@@ -407,11 +396,11 @@
  - **Kankan**
  - **Karaoketv**
  - **KarriereVideos**
- - **keek**
  - **KeezMovies**
  - **Ketnet**
  - **KhanAcademy**
  - **KickStarter**
+ - **KinjaEmbed**
  - **KinoPoisk**
  - **KonserthusetPlay**
  - **kontrtube**: KontrTube.ru - Труба зовёт
@@ -431,7 +420,6 @@
  - **Lcp**
  - **LcpPlay**
  - **Le**: 乐视网
- - **Learnr**
  - **Lecture2Go**
  - **Lecturio**
  - **LecturioCourse**
@@ -465,11 +453,9 @@
  - **lynda**: lynda.com videos
  - **lynda:course**: lynda.com online courses
  - **m6**
- - **macgamestore**: MacGameStore trailers
  - **mailru**: Видео@Mail.Ru
  - **mailru:music**: Музыка@Mail.Ru
  - **mailru:music:search**: Музыка@Mail.Ru
- - **MakerTV**
  - **MallTV**
  - **mangomolo:live**
  - **mangomolo:video**
@@ -496,14 +482,12 @@
  - **Mgoon**
  - **MGTV**: 芒果TV
  - **MiaoPai**
- - **Minhateca**
  - **MinistryGrid**
  - **Minoto**
  - **miomio.tv**
  - **MiTele**: mitele.es
  - **mixcloud**
  - **mixcloud:playlist**
- - **mixcloud:stream**
  - **mixcloud:user**
  - **Mixer:live**
  - **Mixer:vod**
@@ -525,8 +509,8 @@
  - **mtg**: MTG services
  - **mtv**
  - **mtv.de**
- - **mtv81**
  - **mtv:video**
+ - **mtvjapan**
  - **mtvservices:embedded**
  - **MuenchenTV**: münchen.tv
  - **MusicPlayOn**
@@ -634,7 +618,6 @@
  - **OnionStudios**
  - **Ooyala**
  - **OoyalaExternal**
- - **Openload**
  - **OraTV**
  - **orf:fm4**: radio FM4
  - **orf:fm4:story**: fm4.orf.at stories
@@ -694,7 +677,6 @@
  - **PornoXO**
  - **PornTube**
  - **PressTV**
- - **PromptFile**
  - **prosiebensat1**: ProSiebenSat.1 Digital
  - **puhutv**
  - **puhutv:serie**
@@ -735,8 +717,6 @@
  - **Restudy**
  - **Reuters**
  - **ReverbNation**
- - **revision**
- - **revision3:embed**
  - **RICE**
  - **RMCDecouverte**
  - **RockstarGames**
@@ -782,10 +762,11 @@
  - **Screencast**
  - **ScreencastOMatic**
  - **scrippsnetworks:watch**
+ - **SCTE**
+ - **SCTECourse**
  - **Seeker**
  - **SenateISVP**
  - **SendtoNews**
- - **ServingSys**
  - **Servus**
  - **Sexu**
  - **SeznamZpravy**
@@ -816,6 +797,7 @@
  - **soundcloud:set**
  - **soundcloud:trackstation**
  - **soundcloud:user**
+ - **SoundcloudEmbed**
  - **soundgasm**
  - **soundgasm:profile**
  - **southpark.cc.com**
@@ -842,7 +824,6 @@
  - **Steam**
  - **Stitcher**
  - **Streamable**
- - **Streamango**
  - **streamcloud.eu**
  - **StreamCZ**
  - **StreetVoice**
@@ -884,9 +865,11 @@
  - **TeleQuebec**
  - **TeleQuebecEmission**
  - **TeleQuebecLive**
+ - **TeleQuebecSquat**
  - **TeleTask**
  - **Telewebion**
  - **TennisTV**
+ - **TenPlay**
  - **TF1**
  - **TFO**
  - **TheIntercept**
@@ -925,11 +908,11 @@
  - **tunein:topic**
  - **TunePk**
  - **Turbo**
- - **Tutv**
  - **tv.dfb.de**
  - **TV2**
  - **tv2.hu**
  - **TV2Article**
+ - **TV2DK**
  - **TV4**: tv4.se and tv4play.se
  - **TV5MondePlus**: TV5MONDE+
  - **TVA**
@@ -966,6 +949,7 @@
  - **twitch:vod**
  - **twitter**
  - **twitter:amplify**
+ - **twitter:broadcast**
  - **twitter:card**
  - **udemy**
  - **udemy:course**
@@ -990,8 +974,6 @@
  - **Vbox7**
  - **VeeHD**
  - **Veoh**
- - **verystream**
- - **Vessel**
  - **Vesti**: Вести.Ru
  - **Vevo**
  - **VevoPlaylist**
@@ -1006,7 +988,6 @@
  - **Viddler**
  - **Videa**
  - **video.google:search**: Google Video search
- - **video.mit.edu**
  - **VideoDetective**
  - **videofy.me**
  - **videomore**
@@ -1024,7 +1005,6 @@
  - **vier:videos**
  - **ViewLift**
  - **ViewLiftEmbed**
- - **Viewster**
  - **Viidea**
  - **viki**
  - **viki:channel**
@@ -1090,7 +1070,6 @@
  - **Weibo**
  - **WeiboMobile**
  - **WeiqiTV**: WQTV
- - **Wimp**
  - **Wistia**
  - **wnl**: npo.nl, ntr.nl, omroepwnl.nl, zapp.nl and npo3.nl
  - **WorldStarHipHop**
@@ -1099,7 +1078,7 @@
  - **WWE**
  - **XBef**
  - **XboxClips**
- - **XFileShare**: XFileShare based sites: DaClips, FileHoot, GorillaVid, MovPod, PowerWatch, Rapidvideo.ws, TheVideoBee, Vidto, Streamin.To, XVIDSTAGE, Vid ABC, VidBom, vidlo, RapidVideo.TV, FastVideo.me
+ - **XFileShare**: XFileShare based sites: ClipWatching, GoUnlimited, GoVid, HolaVid, Streamty, TheVideoBee, Uqload, VidBom, vidlo, VidLocker, VidShare, VUp, XVideoSharing
  - **XHamster**
  - **XHamsterEmbed**
  - **XHamsterUser**

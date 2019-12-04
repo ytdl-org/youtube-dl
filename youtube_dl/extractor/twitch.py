@@ -248,7 +248,7 @@ class TwitchVodIE(TwitchItemBaseIE):
                     https?://
                         (?:
                             (?:(?:www|go|m)\.)?twitch\.tv/(?:[^/]+/v(?:ideo)?|videos)/|
-                            player\.twitch\.tv/\?.*?\bvideo=v
+                            player\.twitch\.tv/\?.*?\bvideo=v?
                         )
                         (?P<id>\d+)
                     '''
@@ -306,6 +306,9 @@ class TwitchVodIE(TwitchItemBaseIE):
     }, {
         'url': 'https://www.twitch.tv/northernlion/video/291940395',
         'only_matching': True,
+    }, {
+        'url': 'https://player.twitch.tv/?video=480452374',
+        'only_matching': True,
     }]
 
     def _real_extract(self, url):
@@ -341,9 +344,8 @@ class TwitchVodIE(TwitchItemBaseIE):
             info['subtitles'] = {
                 'rechat': [{
                     'url': update_url_query(
-                        'https://rechat.twitch.tv/rechat-messages', {
-                            'video_id': 'v%s' % item_id,
-                            'start': info['timestamp'],
+                        'https://api.twitch.tv/v5/videos/%s/comments' % item_id, {
+                            'client_id': self._CLIENT_ID,
                         }),
                     'ext': 'json',
                 }],
@@ -641,7 +643,7 @@ class TwitchStreamIE(TwitchBaseIE):
 
 class TwitchClipsIE(TwitchBaseIE):
     IE_NAME = 'twitch:clips'
-    _VALID_URL = r'https?://(?:clips\.twitch\.tv/(?:[^/]+/)*|(?:www\.)?twitch\.tv/[^/]+/clip/)(?P<id>[^/?#&]+)'
+    _VALID_URL = r'https?://(?:clips\.twitch\.tv/(?:embed\?.*?\bclip=|(?:[^/]+/)*)|(?:www\.)?twitch\.tv/[^/]+/clip/)(?P<id>[^/?#&]+)'
 
     _TESTS = [{
         'url': 'https://clips.twitch.tv/FaintLightGullWholeWheat',
@@ -663,6 +665,9 @@ class TwitchClipsIE(TwitchBaseIE):
         'only_matching': True,
     }, {
         'url': 'https://www.twitch.tv/sergeynixon/clip/StormyThankfulSproutFutureMan',
+        'only_matching': True,
+    }, {
+        'url': 'https://clips.twitch.tv/embed?clip=InquisitiveBreakableYogurtJebaited',
         'only_matching': True,
     }]
 
