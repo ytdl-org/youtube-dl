@@ -9,6 +9,7 @@ from ..compat import compat_HTTPError
 from ..utils import (
     ExtractorError,
     int_or_none,
+    str_or_none,
     try_get,
 )
 
@@ -16,13 +17,14 @@ from ..utils import (
 class ImgGamingBaseIE(InfoExtractor):
     _API_BASE = 'https://dce-frontoffice.imggaming.com/api/v2/'
     _API_KEY = '857a1e5d-e35e-4fdf-805b-a87b6f8364bf'
+    _DOMAIN = None
     _HEADERS = None
     _LOGIN_REQUIRED = True
     _LOGIN_SUFFIX = ''
     _MANIFEST_HEADERS = {'Accept-Encoding': 'identity'}
     _REALM = None
     _TOKEN = None
-    _VALID_URL_TEMPL = r'https?://%s/(?P<type>live|video)/(?P<id>\d+)'
+    _VALID_URL_TEMPL = r'https?://%s/(?P<type>live|playlist|video)/(?P<id>\d+)(?:\?.*?\bplaylistId=(?P<playlist_id>\d+))?'
 
     def _real_initialize(self):
         if not self._LOGIN_REQUIRED:
@@ -46,18 +48,22 @@ class ImgGamingBaseIE(InfoExtractor):
                 'secret': password,
             }).encode(), headers=p_headers)['authorisationToken']
 
+    def _call_api(self, path, media_id):
+        return self._download_json(
+            self._API_BASE + path + media_id, media_id, headers=self._HEADERS)
+
     def _extract_media_id(self, url, display_id):
         return display_id
 
     def _extract_dve_api_url(self, media_id, media_type):
-        url = self._API_BASE + 'stream'
+        stream_path = 'stream'
         if media_type == 'video':
-            url += '/vod/' + media_id
+            stream_path += '/vod/'
         else:
-            url += '?eventId=' + media_id
+            stream_path += '?eventId='
         try:
-            return self._download_json(
-                url, media_id, headers=self._HEADERS)['playerUrlCallback']
+            return self._call_api(
+                stream_path, media_id)['playerUrlCallback']
         except ExtractorError as e:
             if isinstance(e.cause, compat_HTTPError) and e.cause.code == 403:
                 raise ExtractorError(
@@ -66,15 +72,35 @@ class ImgGamingBaseIE(InfoExtractor):
             raise
 
     def _real_extract(self, url):
-        media_type, display_id = re.match(self._VALID_URL, url).groups()
+        media_type, display_id, playlist_id = re.match(self._VALID_URL, url).groups()
         media_id = self._extract_media_id(url, display_id)
+
+        if playlist_id:
+            if self._downloader.params.get('noplaylist'):
+                self.to_screen('Downloading just video %s because of --no-playlist' % media_id)
+            else:
+                self.to_screen('Downloading playlist %s - add --no-playlist to just download video' % playlist_id)
+                media_type, media_id = 'playlist', playlist_id
+
+        if media_type == 'playlist':
+            playlist = self._call_api('vod/playlist/', media_id)
+            entries = []
+            for video in try_get(playlist, lambda x: x['videos']['vods']) or []:
+                video_id = str_or_none(video.get('id'))
+                if not video_id:
+                    continue
+                entries.append(self.url_result(
+                    'https://%s/video/%s' % (self._DOMAIN, video_id),
+                    self.ie_key(), video_id))
+            return self.playlist_result(
+                entries, media_id, playlist.get('title'),
+                playlist.get('description'))
+
         dve_api_url = self._extract_dve_api_url(media_id, media_type)
         video_data = self._download_json(dve_api_url, media_id)
         is_live = media_type == 'live'
         if is_live:
-            title = self._live_title(self._download_json(
-                self._API_BASE + 'event/' + media_id,
-                media_id, headers=self._HEADERS)['title'])
+            title = self._live_title(self._call_api('event/', media_id)['title'])
         else:
             title = video_data['name']
 
@@ -96,6 +122,15 @@ class ImgGamingBaseIE(InfoExtractor):
                     headers=self._MANIFEST_HEADERS))
         self._sort_formats(formats)
 
+        subtitles = {}
+        for subtitle in video_data.get('subtitles', []):
+            subtitle_url = subtitle.get('url')
+            if not subtitle_url:
+                continue
+            subtitles.setdefault(subtitle.get('lang', 'en_US'), []).append({
+                'url': subtitle_url,
+            })
+
         return {
             'id': media_id,
             'display_id': display_id,
@@ -106,4 +141,5 @@ class ImgGamingBaseIE(InfoExtractor):
             'duration': int_or_none(video_data.get('duration')),
             'tags': video_data.get('tags'),
             'is_live': is_live,
+            'subtitles': subtitles,
         }
