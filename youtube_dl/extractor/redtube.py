@@ -6,6 +6,7 @@ from .common import InfoExtractor
 from ..utils import (
     ExtractorError,
     int_or_none,
+    merge_dicts,
     str_to_int,
     unified_strdate,
     url_or_none,
@@ -45,11 +46,14 @@ class RedTubeIE(InfoExtractor):
         if any(s in webpage for s in ['video-deleted-info', '>This video has been removed']):
             raise ExtractorError('Video %s has been removed' % video_id, expected=True)
 
-        title = self._html_search_regex(
-            (r'<h(\d)[^>]+class="(?:video_title_text|videoTitle)[^"]*">(?P<title>(?:(?!\1).)+)</h\1>',
-             r'(?:videoTitle|title)\s*:\s*(["\'])(?P<title>(?:(?!\1).)+)\1',),
-            webpage, 'title', group='title',
-            default=None) or self._og_search_title(webpage)
+        info = self._search_json_ld(webpage, video_id, default={})
+
+        if not info.get('title'):
+            info['title'] = self._html_search_regex(
+                (r'<h(\d)[^>]+class="(?:video_title_text|videoTitle)[^"]*">(?P<title>(?:(?!\1).)+)</h\1>',
+                 r'(?:videoTitle|title)\s*:\s*(["\'])(?P<title>(?:(?!\1).)+)\1',),
+                webpage, 'title', group='title',
+                default=None) or self._og_search_title(webpage)
 
         formats = []
         sources = self._parse_json(
@@ -88,28 +92,28 @@ class RedTubeIE(InfoExtractor):
 
         thumbnail = self._og_search_thumbnail(webpage)
         upload_date = unified_strdate(self._search_regex(
-            r'<span[^>]+>ADDED ([^<]+)<',
-            webpage, 'upload date', fatal=False))
+            r'<span[^>]+>(?:ADDED|Published on) ([^<]+)<',
+            webpage, 'upload date', default=None))
         duration = int_or_none(self._og_search_property(
             'video:duration', webpage, default=None) or self._search_regex(
                 r'videoDuration\s*:\s*(\d+)', webpage, 'duration', default=None))
         view_count = str_to_int(self._search_regex(
             (r'<div[^>]*>Views</div>\s*<div[^>]*>\s*([\d,.]+)',
-             r'<span[^>]*>VIEWS</span>\s*</td>\s*<td>\s*([\d,.]+)'),
-            webpage, 'view count', fatal=False))
+             r'<span[^>]*>VIEWS</span>\s*</td>\s*<td>\s*([\d,.]+)',
+             r'<span[^>]+\bclass=["\']video_view_count[^>]*>\s*([\d,.]+)'),
+            webpage, 'view count', default=None))
 
         # No self-labeling, but they describe themselves as
         # "Home of Videos Porno"
         age_limit = 18
 
-        return {
+        return merge_dicts(info, {
             'id': video_id,
             'ext': 'mp4',
-            'title': title,
             'thumbnail': thumbnail,
             'upload_date': upload_date,
             'duration': duration,
             'view_count': view_count,
             'age_limit': age_limit,
             'formats': formats,
-        }
+        })

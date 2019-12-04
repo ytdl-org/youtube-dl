@@ -9,8 +9,8 @@ from ..utils import int_or_none
 
 class DLiveVODIE(InfoExtractor):
     IE_NAME = 'dlive:vod'
-    _VALID_URL = r'https?://(?:www\.)?dlive\.tv/p/(?P<uploader_id>.+?)\+(?P<id>[a-zA-Z0-9]+)'
-    _TEST = {
+    _VALID_URL = r'https?://(?:www\.)?dlive\.tv/p/(?P<uploader_id>.+?)\+(?P<id>[^/?#&]+)'
+    _TESTS = [{
         'url': 'https://dlive.tv/p/pdp+3mTzOl4WR',
         'info_dict': {
             'id': '3mTzOl4WR',
@@ -20,7 +20,10 @@ class DLiveVODIE(InfoExtractor):
             'timestamp': 1562011015,
             'uploader_id': 'pdp',
         }
-    }
+    }, {
+        'url': 'https://dlive.tv/p/pdpreplay+D-RD-xSZg',
+        'only_matching': True,
+    }]
 
     def _real_extract(self, url):
         uploader_id, vod_id = re.match(self._VALID_URL, url).groups()

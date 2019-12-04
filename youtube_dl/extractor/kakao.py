@@ -6,14 +6,15 @@ from .common import InfoExtractor
 from ..compat import compat_str
 from ..utils import (
     int_or_none,
+    strip_or_none,
     unified_timestamp,
     update_url_query,
 )
 
 
 class KakaoIE(InfoExtractor):
-    _VALID_URL = r'https?://tv\.kakao\.com/channel/(?P<channel>\d+)/cliplink/(?P<id>\d+)'
-    _API_BASE = 'http://tv.kakao.com/api/v1/ft/cliplinks'
+    _VALID_URL = r'https?://(?:play-)?tv\.kakao\.com/(?:channel/\d+|embed/player)/cliplink/(?P<id>\d+|[^?#&]+@my)'
+    _API_BASE_TMPL = 'http://tv.kakao.com/api/v1/ft/cliplinks/%s/'
 
     _TESTS = [{
         'url': 'http://tv.kakao.com/channel/2671005/cliplink/301965083',
@@ -36,7 +37,7 @@ class KakaoIE(InfoExtractor):
             'description': '러블리즈 - Destiny (나의 지구) (Lovelyz - Destiny)\r\n\r\n[쇼! 음악중심] 20160611, 507회',
             'title': '러블리즈 - Destiny (나의 지구) (Lovelyz - Destiny)',
             'uploader_id': 2653210,
-            'uploader': '쇼 음악중심',
+            'uploader': '쇼! 음악중심',
             'timestamp': 1485684628,
             'upload_date': '20170129',
         }
@@ -44,6 +45,8 @@ class KakaoIE(InfoExtractor):
 
     def _real_extract(self, url):
         video_id = self._match_id(url)
+        display_id = video_id.rstrip('@my')
+        api_base = self._API_BASE_TMPL % video_id
 
         player_header = {
             'Referer': update_url_query(
@@ -55,20 +58,23 @@ class KakaoIE(InfoExtractor):
                 })
         }
 
-        QUERY_COMMON = {
+        query = {
             'player': 'monet_html5',
             'referer': url,
             'uuid': '',
             'service': 'kakao_tv',
             'section': '',
             'dteType': 'PC',
+            'fields': ','.join([
+                '-*', 'tid', 'clipLink', 'displayTitle', 'clip', 'title',
+                'description', 'channelId', 'createTime', 'duration', 'playCount',
+                'likeCount', 'commentCount', 'tagList', 'channel', 'name',
+                'clipChapterThumbnailList', 'thumbnailUrl', 'timeInSec', 'isDefault',
+                'videoOutputList', 'width', 'height', 'kbps', 'profile', 'label'])
         }
 
-        query = QUERY_COMMON.copy()
-        query['fields'] = 'clipLink,clip,channel,hasPlusFriend,-service,-tagList'
         impress = self._download_json(
-            '%s/%s/impress' % (self._API_BASE, video_id),
-            video_id, 'Downloading video info',
+            api_base + 'impress', display_id, 'Downloading video info',
             query=query, headers=player_header)
 
         clip_link = impress['clipLink']
@@ -76,32 +82,22 @@ class KakaoIE(InfoExtractor):
 
         title = clip.get('title') or clip_link.get('displayTitle')
 
-        tid = impress.get('tid', '')
-
-        query = QUERY_COMMON.copy()
-        query.update({
-            'tid': tid,
-            'profile': 'HIGH',
-        })
-        raw = self._download_json(
-            '%s/%s/raw' % (self._API_BASE, video_id),
-            video_id, 'Downloading video formats info',
-            query=query, headers=player_header)
+        query['tid'] = impress.get('tid', '')
 
         formats = []
-        for fmt in raw.get('outputList', []):
+        for fmt in clip.get('videoOutputList', []):
             try:
                 profile_name = fmt['profile']
+                if profile_name == 'AUDIO':
+                    continue
+                query.update({
+                    'profile': profile_name,
+                    'fields': '-*,url',
+                })
                 fmt_url_json = self._download_json(
-                    '%s/%s/raw/videolocation' % (self._API_BASE, video_id),
-                    video_id,
+                    api_base + 'raw/videolocation', display_id,
                     'Downloading video URL for profile %s' % profile_name,
-                    query={
-                        'service': 'kakao_tv',
-                        'section': '',
-                        'tid': tid,
-                        'profile': profile_name
-                    }, headers=player_header, fatal=False)
+                    query=query, headers=player_header, fatal=False)
 
                 if fmt_url_json is None:
                     continue
@@ -113,7 +109,8 @@ class KakaoIE(InfoExtractor):
                     'width': int_or_none(fmt.get('width')),
                     'height': int_or_none(fmt.get('height')),
                     'format_note': fmt.get('label'),
-                    'filesize': int_or_none(fmt.get('filesize'))
+                    'filesize': int_or_none(fmt.get('filesize')),
+                    'tbr': int_or_none(fmt.get('kbps')),
                 })
             except KeyError:
                 pass
@@ -134,9 +131,9 @@ class KakaoIE(InfoExtractor):
             })
 
         return {
-            'id': video_id,
+            'id': display_id,
             'title': title,
-            'description': clip.get('description'),
+            'description': strip_or_none(clip.get('description')),
             'uploader': clip_link.get('channel', {}).get('name'),
             'uploader_id': clip_link.get('channelId'),
             'thumbnails': thumbs,
@@ -146,4 +143,5 @@ class KakaoIE(InfoExtractor):
             'like_count': int_or_none(clip.get('likeCount')),
             'comment_count': int_or_none(clip.get('commentCount')),
             'formats': formats,
+            'tags': clip.get('tagList'),
         }

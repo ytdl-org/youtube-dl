@@ -23,8 +23,8 @@ class NRLTVIE(InfoExtractor):
     def _real_extract(self, url):
         display_id = self._match_id(url)
         webpage = self._download_webpage(url, display_id)
-        q_data = self._parse_json(self._search_regex(
-            r"(?s)q-data='({.+?})'", webpage, 'player data'), display_id)
+        q_data = self._parse_json(self._html_search_regex(
+            r'(?s)q-data="({.+?})"', webpage, 'player data'), display_id)
         ooyala_id = q_data['videoId']
         return self.url_result(
             'ooyala:' + ooyala_id, 'Ooyala', ooyala_id, q_data.get('title'))
