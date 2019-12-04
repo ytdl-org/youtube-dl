@@ -1234,7 +1234,10 @@ from .udemy import (
     UdemyCourseIE
 )
 from .udn import UDNEmbedIE
-from .ufctv import UFCTVIE
+from .ufctv import (
+    UFCTVIE,
+    UFCArabiaIE,
+)
 from .uktvplay import UKTVPlayIE
 from .digiteka import DigitekaIE
 from .dlive import (
