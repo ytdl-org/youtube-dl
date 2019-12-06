@@ -219,7 +219,9 @@ class YandexMusicAlbumIE(YandexMusicPlaylistBaseIE):
 
         entries = self._build_playlist([track for volume in album['volumes'] for track in volume])
 
-        title = '%s - %s' % (album['artists'][0]['name'], album['title'])
+        artists = album['artists']
+        artist_name = artists[0]['name'] if artists else "UnknownArtist"
+        title = '%s - %s' % (artist_name, album['title'])
         year = album.get('year')
         if year:
             title += ' (%s)' % year
