@@ -11,8 +11,9 @@ from ..compat import (
     compat_HTTPError,
     compat_str,
     compat_urllib_request,
+    compat_urlparse,
 )
-from .openload import PhantomJSwrapper
+from .openload import NodejsWrapper
 from ..utils import (
     determine_ext,
     ExtractorError,
@@ -31,16 +32,26 @@ class PornHubBaseIE(InfoExtractor):
 
         webpage, urlh = dl(*args, **kwargs)
 
-        if any(re.search(p, webpage) for p in (
-                r'<body\b[^>]+\bonload=["\']go\(\)',
-                r'document\.cookie\s*=\s*["\']RNKEY=',
-                r'document\.location\.reload\(true\)')):
+        if re.search(r'<body\b[^>]+\bonload=["\']go\(\)', webpage):
             url_or_request = args[0]
             url = (url_or_request.get_full_url()
                    if isinstance(url_or_request, compat_urllib_request.Request)
                    else url_or_request)
-            phantom = PhantomJSwrapper(self, required_version='2.0')
-            phantom.get(url, html=webpage)
+            domain = compat_urlparse.urlparse(url).netloc
+            jscode = self._search_regex(
+                r'<script[^>]*>(?P<script>.*?function go\(\).*?)</script>',
+                webpage, 'jscode', flags=re.DOTALL, group='script')
+            self.to_screen('Executing JS on webpage')
+            cookie = NodejsWrapper().run_in_sandbox((
+                'let document = {{location:{{reload: function() {{}}}}}};'
+                '{jscode};//*/\n'
+                'go();'
+                'document.cookie').format(jscode=jscode))
+            cookie_name = cookie.split("=")[0].strip()
+            if cookie_name != 'RNKEY':
+                raise ExtractorError('Unexpected cookie name %r' % cookie_name)
+            cookie_value = cookie[len(cookie_name) + 1:].split(";")[0].strip()
+            self._set_cookie(domain, cookie_name, cookie_value)
             webpage, urlh = dl(*args, **kwargs)
 
         return webpage, urlh
