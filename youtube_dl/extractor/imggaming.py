@@ -17,19 +17,12 @@ from ..utils import (
 class ImgGamingBaseIE(InfoExtractor):
     _API_BASE = 'https://dce-frontoffice.imggaming.com/api/v2/'
     _API_KEY = '857a1e5d-e35e-4fdf-805b-a87b6f8364bf'
-    _DOMAIN = None
     _HEADERS = None
-    _LOGIN_REQUIRED = True
-    _LOGIN_SUFFIX = ''
     _MANIFEST_HEADERS = {'Accept-Encoding': 'identity'}
     _REALM = None
-    _TOKEN = None
-    _VALID_URL_TEMPL = r'https?://%s/(?P<type>live|playlist|video)/(?P<id>\d+)(?:\?.*?\bplaylistId=(?P<playlist_id>\d+))?'
+    _VALID_URL_TEMPL = r'https?://(?P<domain>(?:(?:app|www)\.)?%s)/(?P<type>live|playlist|video)/(?P<id>\d+)(?:\?.*?\bplaylistId=(?P<playlist_id>\d+))?'
 
     def _real_initialize(self):
-        if not self._LOGIN_REQUIRED:
-            return
-
         self._HEADERS = {
             'Realm': 'dce.' + self._REALM,
             'x-api-key': self._API_KEY,
@@ -42,7 +35,7 @@ class ImgGamingBaseIE(InfoExtractor):
         p_headers = self._HEADERS.copy()
         p_headers['Content-Type'] = 'application/json'
         self._HEADERS['Authorization'] = 'Bearer ' + self._download_json(
-            self._API_BASE + 'login' + self._LOGIN_SUFFIX,
+            self._API_BASE + 'login',
             None, 'Logging in', data=json.dumps({
                 'id': email,
                 'secret': password,
@@ -51,9 +44,6 @@ class ImgGamingBaseIE(InfoExtractor):
     def _call_api(self, path, media_id):
         return self._download_json(
             self._API_BASE + path + media_id, media_id, headers=self._HEADERS)
-
-    def _extract_media_id(self, url, display_id):
-        return display_id
 
     def _extract_dve_api_url(self, media_id, media_type):
         stream_path = 'stream'
@@ -72,8 +62,7 @@ class ImgGamingBaseIE(InfoExtractor):
             raise
 
     def _real_extract(self, url):
-        media_type, display_id, playlist_id = re.match(self._VALID_URL, url).groups()
-        media_id = self._extract_media_id(url, display_id)
+        domain, media_type, media_id, playlist_id = re.match(self._VALID_URL, url).groups()
 
         if playlist_id:
             if self._downloader.params.get('noplaylist'):
@@ -90,7 +79,7 @@ class ImgGamingBaseIE(InfoExtractor):
                 if not video_id:
                     continue
                 entries.append(self.url_result(
-                    'https://%s/video/%s' % (self._DOMAIN, video_id),
+                    'https://%s/video/%s' % (domain, video_id),
                     self.ie_key(), video_id))
             return self.playlist_result(
                 entries, media_id, playlist.get('title'),
@@ -133,7 +122,6 @@ class ImgGamingBaseIE(InfoExtractor):
 
         return {
             'id': media_id,
-            'display_id': display_id,
             'title': title,
             'formats': formats,
             'thumbnail': video_data.get('thumbnailUrl'),
