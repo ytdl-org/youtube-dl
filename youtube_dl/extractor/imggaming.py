@@ -20,7 +20,7 @@ class ImgGamingBaseIE(InfoExtractor):
     _HEADERS = None
     _MANIFEST_HEADERS = {'Accept-Encoding': 'identity'}
     _REALM = None
-    _VALID_URL_TEMPL = r'https?://(?P<domain>(?:(?:app|www)\.)?%s)/(?P<type>live|playlist|video)/(?P<id>\d+)(?:\?.*?\bplaylistId=(?P<playlist_id>\d+))?'
+    _VALID_URL_TEMPL = r'https?://(?P<domain>%s)/(?P<type>live|playlist|video)/(?P<id>\d+)(?:\?.*?\bplaylistId=(?P<playlist_id>\d+))?'
 
     def _real_initialize(self):
         self._HEADERS = {
