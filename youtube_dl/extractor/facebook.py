@@ -382,7 +382,9 @@ class FacebookIE(InfoExtractor):
 
             video_data = extract_from_jsmods_instances(tahoe_js_data)
 
-        if not video_data:
+        if not video_data :
+            if self._search_regex(r'newsFeedStream.*?<h1><span class.*?>(.*?)<\/span><\/h1>', webpage, "video_title") is not None:
+                self.raise_login_required()
             raise ExtractorError('Cannot parse data')
 
         is_scheduled = '"isScheduledLive":true' in tahoe_data.secondary
