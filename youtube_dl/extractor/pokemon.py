@@ -1,15 +1,16 @@
 # coding: utf-8
 from __future__ import unicode_literals
 
+import json
 import re
-
 from .common import InfoExtractor
 from ..utils import (
+    ExtractorError,
     extract_attributes,
     int_or_none,
+    js_to_json,
+    merge_dicts,
 )
-
-
 class PokemonIE(InfoExtractor):
     _VALID_URL = r'https?://(?:www\.)?pokemon\.com/[a-z]{2}(?:.*?play=(?P<id>[a-z0-9]{32})|/(?:[^/]+/)+(?P<display_id>[^/?#&]+))'
     _TESTS = [{
@@ -24,32 +25,8 @@ class PokemonIE(InfoExtractor):
             'upload_date': '20171127',
         },
         'add_id': ['LimelightMedia'],
-    }, {
-        # no data-video-title
-        'url': 'https://www.pokemon.com/us/pokemon-episodes/pokemon-movies/pokemon-the-rise-of-darkrai-2008',
-        'info_dict': {
-            'id': '99f3bae270bf4e5097274817239ce9c8',
-            'ext': 'mp4',
-            'title': 'Pokémon: The Rise of Darkrai',
-            'description': 'md5:ea8fbbf942e1e497d54b19025dd57d9d',
-            'timestamp': 1417778347,
-            'upload_date': '20141205',
-        },
-        'add_id': ['LimelightMedia'],
-        'params': {
-            'skip_download': True,
-        },
-    }, {
-        'url': 'http://www.pokemon.com/uk/pokemon-episodes/?play=2e8b5c761f1d4a9286165d7748c1ece2',
-        'only_matching': True,
-    }, {
-        'url': 'http://www.pokemon.com/fr/episodes-pokemon/18_09-un-hiver-inattendu/',
-        'only_matching': True,
-    }, {
-        'url': 'http://www.pokemon.com/de/pokemon-folgen/01_20-bye-bye-smettbo/',
-        'only_matching': True,
     }]
-
+    
     def _real_extract(self, url):
         video_id, display_id = re.match(self._VALID_URL, url).groups()
         webpage = self._download_webpage(url, video_id or display_id)
@@ -73,3 +50,49 @@ class PokemonIE(InfoExtractor):
             'episode_number': int_or_none(video_data.get('data-video-episode')),
             'ie_key': 'LimelightMedia',
         }
+
+
+class PokemonWatchIE(InfoExtractor):
+    _VALID_URL = r'https?://watch\.pokemon\.com/[a-z]{2}-[a-z]{2}/player\.html\?id=(?P<id>[a-z0-9]{32})'
+    _API_URL = 'https://www.pokemon.com/api/pokemontv/v2/channels/{0:}'
+    _TESTS = []
+    
+    def _extract_media(self, channel_array, video_id):
+        for channel in channel_array:
+            for media in channel.get('media'):
+                if media.get('id') == video_id:
+                    return media
+        return None
+    
+    def _real_extract(self, url):
+        video_id = self._match_id(url)
+        info = {
+            '_type': 'url',
+            'id': video_id,
+            'url': 'limelight:media:%s' % video_id,
+            'ie_key': 'LimelightMedia',
+        }
+        webpage = self._download_webpage(url, video_id)
+        build_vars = self._parse_json(self._search_regex(
+            r'(?s)buildVars\s*=\s*({.*?})', webpage, 'build vars'),
+            video_id, transform_source=js_to_json)
+        region = build_vars.get('region')
+        channel_array = json.loads(
+            self._download_webpage(self._API_URL.format(region), video_id))
+        video_data = self._extract_media(channel_array, video_id)
+
+        if video_data is None:
+            raise ExtractorError(
+                'Error', expected=True)
+
+        info['_type'] = 'url_transparent'
+        images = video_data.get('images')
+        return merge_dicts(info, {
+            'title': video_data.get('title'),
+            'description': video_data.get('description'),
+            'thumbnail': images.get('medium') or images.get('small'),
+            'series': 'Pokémon',
+            'season_number': int_or_none(video_data.get('season')),
+            'episode': video_data.get('title'),
+            'episode_number': int_or_none(video_data.get('episode')),
+        })
