@@ -37,7 +37,6 @@ from .airmozilla import AirMozillaIE
 from .akvideo import AKVideoIE
 from .aljazeera import AlJazeeraIE
 from .alphaporno import AlphaPornoIE
-from .alphavoice import AlphaVoiceIE
 from .amcnetworks import AMCNetworksIE
 from .americastestkitchen import AmericasTestKitchenIE
 from .animeondemand import AnimeOnDemandIE
