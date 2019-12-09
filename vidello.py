@@ -42,4 +42,3 @@ class VidelloIE(InfoExtractor):
             'description': description,
             'url': video_url
         }
-    
