@@ -582,6 +582,7 @@ class FacebookTahoeData:
                 data=req_data,
                 headers=headers
             )
+            self._data[data_type] = data
         return '' if not data else data
 
     @property
