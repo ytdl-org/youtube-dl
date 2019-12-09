@@ -617,6 +617,8 @@ class TwitchStreamIE(TwitchBaseIE):
         title = self._live_title(channel.get('display_name') or channel.get('name'))
         description = channel.get('status')
 
+        game = stream.get('game') or channel.get('game')
+
         thumbnails = []
         for thumbnail_key, thumbnail_url in stream['preview'].items():
             m = re.search(r'(?P<width>\d+)x(?P<height>\d+)\.jpg$', thumbnail_key)
@@ -640,6 +642,7 @@ class TwitchStreamIE(TwitchBaseIE):
             'view_count': view_count,
             'formats': formats,
             'is_live': True,
+            'game': game,
         }
 
 
