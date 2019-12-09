@@ -34,8 +34,10 @@ from .aenetworks import (
 )
 from .afreecatv import AfreecaTVIE
 from .airmozilla import AirMozillaIE
+from .akvideo import AKVideoIE
 from .aljazeera import AlJazeeraIE
 from .alphaporno import AlphaPornoIE
+from .alphavoice import AlphaVoiceIE
 from .amcnetworks import AMCNetworksIE
 from .americastestkitchen import AmericasTestKitchenIE
 from .animeondemand import AnimeOnDemandIE
@@ -511,6 +513,7 @@ from .kickstarter import KickStarterIE
 from .kinja import KinjaEmbedIE
 from .kinopoisk import KinoPoiskIE
 from .konserthusetplay import KonserthusetPlayIE
+from .kontrtube import KontrTubeIE
 from .krasview import KrasViewIE
 from .ku6 import Ku6IE
 from .kusi import KUSIIE
@@ -1282,6 +1285,7 @@ from .vice import (
 from .vidbit import VidbitIE
 from .viddler import ViddlerIE
 from .videa import VideaIE
+from .vidello import VidelloIE
 from .videodetective import VideoDetectiveIE
 from .videofyme import VideofyMeIE
 from .videomore import (
@@ -1289,6 +1293,7 @@ from .videomore import (
     VideomoreVideoIE,
     VideomoreSeasonIE,
 )
+from .videopremium import VideoPremiumIE
 from .videopress import VideoPressIE
 from .vidio import VidioIE
 from .vidlii import VidLiiIE
