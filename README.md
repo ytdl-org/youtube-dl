@@ -312,6 +312,8 @@ Alternatively, refer to the [developer instructions](#developer-instructions) fo
 
 ## Workarounds:
     --encoding ENCODING              Force the specified encoding (experimental)
+                                     example: youtube-dl --encoding UTF-8 [URL]
+                                              youtube-dl --encoding ASCII [URL]
     --no-check-certificate           Suppress HTTPS certificate validation
     --prefer-insecure                Use an unencrypted connection to retrieve
                                      information about the video. (Currently
