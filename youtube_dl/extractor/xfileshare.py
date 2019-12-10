@@ -58,10 +58,12 @@ class XFileShareIE(InfoExtractor):
         (r'vidshare\.tv', 'VidShare'),
         (r'vup\.to', 'VUp'),
         (r'xvideosharing\.com', 'XVideoSharing'),
+        (r'nxload\.com', 'NxLoad'),
+
     )
 
     IE_DESC = 'XFileShare based sites: %s' % ', '.join(list(zip(*_SITES))[1])
-    _VALID_URL = (r'https?://(?:www\.)?(?P<host>%s)/(?:embed-)?(?P<id>[0-9a-zA-Z]+)'
+    _VALID_URL = (r'https?://(?:www\.)?(?P<host>%s)/(?:embed-|embed\/)?(?P<id>[0-9a-zA-Z]+)'
                   % '|'.join(site for site in list(zip(*_SITES))[0]))
 
     _FILE_NOT_FOUND_REGEXES = (
@@ -77,6 +79,15 @@ class XFileShareIE(InfoExtractor):
             'ext': 'mp4',
             'title': 'sample',
             'thumbnail': r're:http://.*\.jpg',
+        },
+    }, {
+        'url': 'https://nxload.com/embed/2Gwp2NDwHMrj',
+        'md5': 'a4e01d6623664727d9a453f212bb5b53',
+        'info_dict': {
+            'id': '2Gwp2NDwHMrj',
+            'ext': 'mp4',
+            'title': '5849.mp4',
+            'thumbnail': r're:https://.*\.jpg',
         },
     }]
 
@@ -121,6 +132,7 @@ class XFileShareIE(InfoExtractor):
              r'>Watch (.+)[ <]',
              r'<h2 class="video-page-head">([^<]+)</h2>',
              r'<h2 style="[^"]*color:#403f3d[^"]*"[^>]*>([^<]+)<',  # streamin.to
+             r'<title>([^<]+) \| Your streaming service',  # nxload
              r'title\s*:\s*"([^"]+)"'),  # govid.me
             webpage, 'title', default=None) or self._og_search_title(
             webpage, default=None) or video_id).strip()
@@ -151,7 +163,7 @@ class XFileShareIE(InfoExtractor):
         if not formats:
             urls = []
             for regex in (
-                    r'(?:file|src)\s*:\s*(["\'])(?P<url>http(?:(?!\1).)+\.(?:m3u8|mp4|flv)(?:(?!\1).)*)\1',
+                    r'(?:file|src)\s*:\s*(["\\\']{1,2})(?P<url>http(?:(?!\1).)+\.(?:m3u8|mp4|flv)(?:(?!\1).)*)\1',
                     r'file_link\s*=\s*(["\'])(?P<url>http(?:(?!\1).)+)\1',
                     r'addVariable\((\\?["\'])file\1\s*,\s*(\\?["\'])(?P<url>http(?:(?!\2).)+)\2\)',
                     r'<embed[^>]+src=(["\'])(?P<url>http(?:(?!\1).)+\.(?:m3u8|mp4|flv)(?:(?!\1).)*)\1'):
@@ -182,7 +194,7 @@ class XFileShareIE(InfoExtractor):
         thumbnail = self._search_regex(
             [
                 r'<video[^>]+poster="([^"]+)"',
-                r'(?:image|poster)\s*:\s*["\'](http[^"\']+)["\'],',
+                r'(?:image|poster)\s*[:=]\s*["\'](http[^"\']+)["\'],',
             ], webpage, 'thumbnail', default=None)
 
         return {
