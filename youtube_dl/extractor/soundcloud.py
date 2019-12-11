@@ -28,7 +28,12 @@ from ..utils import (
 
 
 class SoundcloudEmbedIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:w|player|p)\.soundcloud\.com/player/?.*?url=(?P<id>.*)'
+    _VALID_URL = r'https?://(?:w|player|p)\.soundcloud\.com/player/?.*?\burl=(?P<id>.+)'
+    _TEST = {
+        # from https://www.soundi.fi/uutiset/ennakkokuuntelussa-timo-kaukolammen-station-to-station-to-station-julkaisua-juhlitaan-tanaan-g-livelabissa/
+        'url': 'https://w.soundcloud.com/player/?visual=true&url=https%3A%2F%2Fapi.soundcloud.com%2Fplaylists%2F922213810&show_artwork=true&maxwidth=640&maxheight=960&dnt=1&secret_token=s-ziYey',
+        'only_matching': True,
+    }
 
     @staticmethod
     def _extract_urls(webpage):
@@ -37,8 +42,13 @@ class SoundcloudEmbedIE(InfoExtractor):
             webpage)]
 
     def _real_extract(self, url):
-        return self.url_result(compat_urlparse.parse_qs(
-            compat_urlparse.urlparse(url).query)['url'][0])
+        query = compat_urlparse.parse_qs(
+            compat_urlparse.urlparse(url).query)
+        api_url = query['url'][0]
+        secret_token = query.get('secret_token')
+        if secret_token:
+            api_url = update_url_query(api_url, {'secret_token': secret_token[0]})
+        return self.url_result(api_url)
 
 
 class SoundcloudIE(InfoExtractor):
@@ -245,7 +255,7 @@ class SoundcloudIE(InfoExtractor):
     _API_BASE = 'https://api.soundcloud.com/'
     _API_V2_BASE = 'https://api-v2.soundcloud.com/'
     _BASE_URL = 'https://soundcloud.com/'
-    _CLIENT_ID = 'BeGVhOrGmfboy1LtiHTQF6Ejpt9ULJCI'
+    _CLIENT_ID = 'UW9ajvMgVdMMW3cdeBi8lPfN6dvOVGji'
     _IMAGE_REPL_RE = r'-([0-9a-z]+)\.jpg'
 
     _ARTWORK_MAP = {

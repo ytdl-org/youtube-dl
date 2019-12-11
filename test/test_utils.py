@@ -19,6 +19,7 @@ from youtube_dl.utils import (
     age_restricted,
     args_to_str,
     encode_base_n,
+    caesar,
     clean_html,
     date_from_str,
     DateRange,
@@ -69,6 +70,7 @@ from youtube_dl.utils import (
     remove_start,
     remove_end,
     remove_quotes,
+    rot47,
     shell_quote,
     smuggle_url,
     str_to_int,
@@ -340,6 +342,8 @@ class TestUtil(unittest.TestCase):
         self.assertEqual(unified_strdate('July 15th, 2013'), '20130715')
         self.assertEqual(unified_strdate('September 1st, 2013'), '20130901')
         self.assertEqual(unified_strdate('Sep 2nd, 2013'), '20130902')
+        self.assertEqual(unified_strdate('November 3rd, 2019'), '20191103')
+        self.assertEqual(unified_strdate('October 23rd, 2005'), '20051023')
 
     def test_unified_timestamps(self):
         self.assertEqual(unified_timestamp('December 21, 2010'), 1292889600)
@@ -495,6 +499,7 @@ class TestUtil(unittest.TestCase):
     def test_str_to_int(self):
         self.assertEqual(str_to_int('123,456'), 123456)
         self.assertEqual(str_to_int('123.456'), 123456)
+        self.assertEqual(str_to_int(523), 523)
 
     def test_url_basename(self):
         self.assertEqual(url_basename('http://foo.de/'), '')
@@ -1366,6 +1371,20 @@ Line 1
 
         self.assertRaises(ValueError, encode_base_n, 0, 70)
         self.assertRaises(ValueError, encode_base_n, 0, 60, custom_table)
+
+    def test_caesar(self):
+        self.assertEqual(caesar('ace', 'abcdef', 2), 'cea')
+        self.assertEqual(caesar('cea', 'abcdef', -2), 'ace')
+        self.assertEqual(caesar('ace', 'abcdef', -2), 'eac')
+        self.assertEqual(caesar('eac', 'abcdef', 2), 'ace')
+        self.assertEqual(caesar('ace', 'abcdef', 0), 'ace')
+        self.assertEqual(caesar('xyz', 'abcdef', 2), 'xyz')
+        self.assertEqual(caesar('abc', 'acegik', 2), 'ebg')
+        self.assertEqual(caesar('ebg', 'acegik', -2), 'abc')
+
+    def test_rot47(self):
+        self.assertEqual(rot47('youtube-dl'), r'J@FEF36\5=')
+        self.assertEqual(rot47('YOUTUBE-DL'), r'*~&%&qt\s{')
 
     def test_urshift(self):
         self.assertEqual(urshift(3, 1), 1)

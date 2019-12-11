@@ -383,7 +383,7 @@ class YahooGyaOPlayerIE(InfoExtractor):
             'id': video_id,
             'title': video['title'],
             'url': smuggle_url(
-                'http://players.brightcove.net/4235717419001/default_default/index.html?videoId=' + video['videoId'],
+                'http://players.brightcove.net/4235717419001/SyG5P0gjb_default/index.html?videoId=' + video['videoId'],
                 {'geo_countries': ['JP']}),
             'description': video.get('longDescription'),
             'ie_key': BrightcoveNewIE.ie_key(),
