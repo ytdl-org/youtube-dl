@@ -3,7 +3,6 @@ from __future__ import unicode_literals
 
 from .common import InfoExtractor
 
-
 class GamerDVRIE(InfoExtractor):
     _VALID_URL = r'https?://(?:www\.)?gamerdvr\.com/gamer/\S+/video/(?P<id>\d+)'
     _TEST = {
