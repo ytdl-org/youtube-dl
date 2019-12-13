@@ -5,8 +5,7 @@ from .common import InfoExtractor
 
 
 class GamerDVRIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:www\.)?gamerdvr\.com' +
-    '/gamer/\S+/video/(?P<id>\d+)'
+    _VALID_URL = r'https?://(?:www\.)?gamerdvr\.com/gamer/\S+/video/(?P<id>\d+)'
     _TEST = {
         'url': 'https://gamerdvr.com/gamer/videogamer3/video/83193307',
         'md5': 'f747c74fbc7617a70d8c071927623cde',
