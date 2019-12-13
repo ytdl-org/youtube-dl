@@ -191,3 +191,57 @@ class ABCIViewIE(InfoExtractor):
             'subtitles': subtitles,
             'is_live': is_live,
         }
+
+
+class ABCIViewShowIE(InfoExtractor):
+    """
+    This is a stub extractor that looks for a canonical URL, and processes it
+    with the ABCIViewIE
+    """
+    IE_NAME = 'abc.net.au:iview:shows'
+    _VALID_URL = r'https?://iview\.abc\.net\.au/show/(?P<id>[^/?#]+)'
+    # The canonical URL to look for
+    _CANONICAL_URL = r'd_canonicalUrl\\":\\"(?P<url>https://iview.abc.net.au/video/(?P<id>[^/?#\\"]+))\\"'
+    _GEO_COUNTRIES = ['AU']
+
+    # ABC iview programs are normally available for 14 days only.
+    _TESTS = [{
+        'url': 'https://iview.abc.net.au/show/stick-man',
+        'md5': 'cde42d728b3b7c2b32b1b94b4a548afc',
+        'info_dict': {
+            'id': 'ZW0021A001S00',
+            'ext': 'mp4',
+            'title': "Stick Man",
+            'series': "Stick Man",
+            'description': 'md5:ffc3ab0c9df0255d646924dbd29fa0d5',
+            'uploader_id': 'abc4kids',
+            'timestamp': 1576249200,
+        },
+        'params': {
+            'skip_download': True,
+        },
+    }]
+
+    def _real_extract(self, url):
+        video_id = self._match_id(url)
+        webpage = self._download_webpage(url, video_id)
+        canonical_url = self._match_canonical_url(webpage)
+        self.report_canonical_url(video_id, canonical_url)
+
+        iview_ie = ABCIViewIE(self._downloader)
+
+        return iview_ie.extract(canonical_url)
+
+    # The below method may be moved to common.py if the redirection
+    # to canonical URL pattern is more widespread
+    @classmethod
+    def _match_canonical_url(cls, webpage):
+        if '_CANONICAL_URL_RE' not in cls.__dict__:
+            cls._CANONICAL_URL_RE = re.compile(cls._CANONICAL_URL)
+        m = cls._CANONICAL_URL_RE.search(webpage)
+        assert m
+        return compat_str(m.group('url'))
+
+    def report_canonical_url(self, video_id, canonical_url):
+        """Report URL redirect."""
+        self.to_screen('%s: Canonical URL: %s' % (video_id, canonical_url))
