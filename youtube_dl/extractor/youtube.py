@@ -1723,6 +1723,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
 
         # Get video info
         embed_webpage = None
+        used_dash_manifest = False
         if re.search(r'player-age-gate-content">', video_webpage) is not None:
             age_gate = True
             # We simulate the access to the video from www.youtube.com/v/{video_id}
@@ -1768,7 +1769,10 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                 sts = ytplayer_config.get('sts')
                 if not player_response:
                     player_response = extract_player_response(args.get('player_response'), video_id)
+
+
             if not video_info or self._downloader.params.get('youtube_include_dash_manifest', True):
+                used_dash_manifest = True
                 add_dash_mpd_pr(player_response)
                 # We also try looking in get_video_info since it may contain different dashmpd
                 # URL that points to a DASH manifest with possibly different itag set (some itags
@@ -2459,6 +2463,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
             'album': album,
             'release_date': release_date,
             'release_year': release_year,
+            'used_dash_manifest': used_dash_manifest
         }
 
 
