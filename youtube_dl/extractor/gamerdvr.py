@@ -13,12 +13,8 @@ class GamerDVRIE(InfoExtractor):
         'info_dict': {
             'id': '83193307',
             'ext': 'mp4',
-            'title': "videogamer3's Xbox Call of Duty®: Modern Warfare® " +
-            "clip 83193307. Find your Xbox clips on GamerDVR.com",
-            'description': "videogamer3's Xbox Call of Duty®: Modern " +
-            "Warfare® clips and gameplay playing Call of Duty®: Modern " +
-            "Warfare®. All your Xbox clips and screenshots on GamerDVR.com. " +
-            "View, manage, and share easily!",
+            'title': "videogamer3's Xbox Call of Duty®: Modern Warfare® clip 83193307. Find your Xbox clips on GamerDVR.com",
+            'description': "videogamer3's Xbox Call of Duty®: Modern Warfare® clips and gameplay playing Call of Duty®: Modern Warfare®. All your Xbox clips and screenshots on GamerDVR.com. View, manage, and share easily!",
             'uploader': 'videogamer3'
         }
     }
