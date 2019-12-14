@@ -2,7 +2,7 @@
 from __future__ import unicode_literals
 
 from .common import InfoExtractor
-from ..utils import ExtractorError
+from ..utils import smuggle_url
 
 
 class SlidesLiveIE(InfoExtractor):
@@ -24,6 +24,14 @@ class SlidesLiveIE(InfoExtractor):
         # video_service_name = youtube
         'url': 'https://slideslive.com/38903721/magic-a-scientific-resurrection-of-an-esoteric-legend',
         'only_matching': True,
+    }, {
+        # video_service_name = url
+        'url': 'https://slideslive.com/38922070/learning-transferable-skills-1',
+        'only_matching': True,
+    }, {
+        # video_service_name = vimeo
+        'url': 'https://slideslive.com/38921896/retrospectives-a-venue-for-selfreflection-in-ml-research-3',
+        'only_matching': True,
     }]
 
     def _real_extract(self, url):
@@ -31,16 +39,23 @@ class SlidesLiveIE(InfoExtractor):
         video_data = self._download_json(
             'https://ben.slideslive.com/player/' + video_id, video_id)
         service_name = video_data['video_service_name'].lower()
-        if service_name == 'youtube':
-            yt_video_id = video_data['video_service_id']
-            return {
-                '_type': 'url_transparent',
-                'ie_key': 'Youtube',
-                'id': yt_video_id,
-                'thumbnail': video_data.get('thumbnail'),
-                'title': video_data.get('title'),
-                'url': yt_video_id,
-            }
+        assert service_name in ('url', 'vimeo', 'youtube')
+        service_id = video_data['video_service_id']
+        info = {
+            'id': video_id,
+            'thumbnail': video_data.get('thumbnail'),
+            'url': service_id,
+        }
+        if service_name == 'url':
+            info['title'] = video_data['title']
         else:
-            raise ExtractorError(
-                'Unsupported service name: {0}'.format(service_name), expected=True)
+            info.update({
+                '_type': 'url_transparent',
+                'ie_key': service_name.capitalize(),
+                'title': video_data.get('title'),
+            })
+            if service_name == 'vimeo':
+                info['url'] = smuggle_url(
+                    'https://player.vimeo.com/video/' + service_id,
+                    {'http_headers': {'Referer': url}})
+        return info
