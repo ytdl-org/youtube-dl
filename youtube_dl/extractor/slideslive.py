@@ -14,9 +14,9 @@ class SlidesLiveIE(InfoExtractor):
         'info_dict': {
             'id': 'LMtgR8ba0b0',
             'ext': 'mp4',
-            'title': '38902413: external video',
-            'description': '3890241320170925-9-1yd6ech.mp4',
-            'uploader': 'SlidesLive Administrator',
+            'title': 'GCC IA16 backend',
+            'description': 'Watch full version of this video at https://slideslive.com/38902413.',
+            'uploader': 'SlidesLive Videos - A',
             'uploader_id': 'UC62SdArr41t_-_fX40QCLRw',
             'upload_date': '20170925',
         }
@@ -29,11 +29,18 @@ class SlidesLiveIE(InfoExtractor):
     def _real_extract(self, url):
         video_id = self._match_id(url)
         video_data = self._download_json(
-            url, video_id, headers={'Accept': 'application/json'})
+            'https://ben.slideslive.com/player/' + video_id, video_id)
         service_name = video_data['video_service_name'].lower()
         if service_name == 'youtube':
             yt_video_id = video_data['video_service_id']
-            return self.url_result(yt_video_id, 'Youtube', video_id=yt_video_id)
+            return {
+                '_type': 'url_transparent',
+                'ie_key': 'Youtube',
+                'id': yt_video_id,
+                'thumbnail': video_data.get('thumbnail'),
+                'title': video_data.get('title'),
+                'url': yt_video_id,
+            }
         else:
             raise ExtractorError(
                 'Unsupported service name: {0}'.format(service_name), expected=True)
