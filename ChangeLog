@@ -1,3 +1,55 @@
+version <unreleased>
+
+Core
+* [utils] Improve str_to_int
++ [downloader/hls] Add ability to override AES decryption key URL (#17521)
+
+Extractors
++ [tv2dk:bornholm:play] Add support for play.tv2bornholm.dk (#23291)
++ [slideslive] Add support for url and vimeo service names (#23414)
+* [slideslive] Fix extraction (#23413)
+* [twitch:clips] Fix extraction (#23375)
++ [soundcloud] Add support for token protected embeds (#18954)
+* [vk] Improve extraction
+    * Fix User Videos extraction (#23356)
+    * Extract all videos for lists with more than 1000 videos (#23356)
+    + Add support for video albums (#14327, #14492)
+- [kontrtube] Remove extractor
+- [videopremium] Remove extractor
+- [musicplayon] Remove extractor (#9225)
++ [ufctv] Add support for ufcfightpass.imgdge.com and
+  ufcfightpass.imggaming.com (#23343)
++ [twitch] Extract m3u8 formats frame rate (#23333)
++ [imggaming] Add support for playlists and extract subtitles
++ [ufcarabia] Add support for UFC Arabia (#23312)
+* [ufctv] Fix extraction
+* [yahoo] Fix gyao brightcove player id (#23303)
+* [vzaar] Override AES decryption key URL (#17521)
++ [vzaar] Add support for AES HLS manifests (#17521, #23299)
+* [nrl] Fix extraction
+* [teachingchannel] Fix extraction
+* [nintendo] Fix extraction and partially add support for Nintendo Direct
+  videos (#4592)
++ [ooyala] Add better fallback values for domain and streams variables
++ [youtube] Add support youtubekids.com (#23272)
+* [tv2] Detect DRM protection
++ [tv2] Add support for katsomo.fi and mtv.fi (#10543)
+* [tv2] Fix tv2.no article extraction
+* [msn] Improve extraction
+    + Add support for YouTube and NBCSports embeds
+    + Add support for articles with multiple videos
+    * Improve AOL embed support
+    * Improve format extraction
+* [abcotvs] Relax URL regular expression and improve metadata extraction
+  (#18014)
+* [channel9] Reduce response size
+* [adobetv] Improve extaction
+    * Use OnDemandPagedList for list extractors
+    * Reduce show extraction requests
+    * Extract original video format and subtitles
+    + Add support for adobe tv embeds
+
+
 version 2019.11.28
 
 Core
@@ -583,7 +635,7 @@ Extractors
 version 2019.04.17
 
 Extractors
-* [openload] Randomize User-Agent (closes #20688)
+* [openload] Randomize User-Agent (#20688)
 + [openload] Add support for oladblock domains (#20471)
 * [adn] Fix subtitle extraction (#12724)
 + [aol] Add support for localized websites
@@ -1148,7 +1200,7 @@ Extractors
 + [youtube] Extract channel meta fields (#9676, #12939)
 * [porntube] Fix extraction (#17541)
 * [asiancrush] Fix extraction (#15630)
-+ [twitch:clips] Extend URL regular expression (closes #17559)
++ [twitch:clips] Extend URL regular expression (#17559)
 + [vzaar] Add support for HLS
 * [tube8] Fix metadata extraction (#17520)
 * [eporner] Extract JSON-LD (#17519)
