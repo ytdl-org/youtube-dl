@@ -608,9 +608,10 @@ class BBCIE(BBCCoUkIE):
     _VALID_URL = r'https?://(?:www\.)?bbc\.(?:com|co\.uk)/(?:[^/]+/)+(?P<id>[^/#?]+)'
 
     _MEDIASELECTOR_URLS = [
+        'https://open.live.bbc.co.uk/mediaselector/6/select/version/2.0/mediaset/iptv-all/vpid/%s/format/xml/',
         # Provides HQ HLS streams but fails with geolocation in some cases when it's
         # even not geo restricted at all
-        'http://open.live.bbc.co.uk/mediaselector/5/select/version/2.0/mediaset/iptv-all/vpid/%s',
+        'http://open.live.bbc.co.uk/mediaselector/5/select/version/2.0/mediaset/legacy-iptv-all/vpid/%s',
         # Provides more formats, namely direct mp4 links, but fails on some videos with
         # notukerror for non UK (?) users (e.g.
         # http://www.bbc.com/travel/story/20150625-sri-lankas-spicy-secret)
@@ -977,20 +978,12 @@ class BBCIE(BBCCoUkIE):
         if entries:
             return self.playlist_result(entries, playlist_id, playlist_title, playlist_description)
 
-        # http://www.bbc.co.uk/learningenglish/chinese/features/lingohack/ep-181227
-        group_id = self._search_regex(
-            r'<div[^>]+\bclass=["\']video["\'][^>]+\bdata-pid=["\'](%s)' % self._ID_REGEX,
-            webpage, 'group id', default=None)
-        if playlist_id:
-            return self.url_result(
-                'https://www.bbc.co.uk/programmes/%s' % group_id,
-                ie=BBCCoUkIE.ie_key())
-
         # single video story (e.g. http://www.bbc.com/travel/story/20150625-sri-lankas-spicy-secret)
         programme_id = self._search_regex(
             [r'data-(?:video-player|media)-vpid="(%s)"' % self._ID_REGEX,
              r'<param[^>]+name="externalIdentifier"[^>]+value="(%s)"' % self._ID_REGEX,
-             r'videoId\s*:\s*["\'](%s)["\']' % self._ID_REGEX],
+             r'videoId\s*:\s*["\'](%s)["\']' % self._ID_REGEX,
+             r'"vpid":"(%s)"' % self._ID_REGEX],
             webpage, 'vpid', default=None)
 
         if programme_id:
@@ -1013,6 +1006,15 @@ class BBCIE(BBCCoUkIE):
                 'formats': formats,
                 'subtitles': subtitles,
             }
+
+        # http://www.bbc.co.uk/learningenglish/chinese/features/lingohack/ep-181227
+        group_id = self._search_regex(
+            r'<div[^>]+\bclass=["\']video["\'][^>]+\bdata-pid=["\'](%s)' % self._ID_REGEX,
+            webpage, 'group id', default=None)
+        if playlist_id:
+            return self.url_result(
+                'https://www.bbc.co.uk/programmes/%s' % group_id,
+                ie=BBCCoUkIE.ie_key())
 
         # Morph based embed (e.g. http://www.bbc.co.uk/sport/live/olympics/36895975)
         # There are several setPayload calls may be present but the video
