@@ -77,8 +77,8 @@ Alternatively, refer to the [developer instructions](#developer-instructions) fo
                                      repairs broken URLs, but emits an error if
                                      this is not possible instead of searching.
     --ignore-config                  Do not read configuration files. When given
-                                     in the global configuration file
-                                     /etc/youtube-dl.conf: Do not read the user
+                                     in the global configuration file /etc
+                                     /youtube-dl.conf: Do not read the user
                                      configuration in ~/.config/youtube-
                                      dl/config (%APPDATA%/youtube-dl/config.txt
                                      on Windows)
@@ -108,8 +108,8 @@ Alternatively, refer to the [developer instructions](#developer-instructions) fo
                                      proxy specified by --proxy (or none, if the
                                      option is not present) is used for the
                                      actual downloading.
-    --geo-bypass                     Bypass geographic restriction via faking
-                                     X-Forwarded-For HTTP header
+    --geo-bypass                     Bypass geographic restriction via faking X
+                                     -Forwarded-For HTTP header
     --no-geo-bypass                  Do not bypass geographic restriction via
                                      faking X-Forwarded-For HTTP header
     --geo-bypass-country CODE        Force bypass geographic restriction with
@@ -130,6 +130,8 @@ Alternatively, refer to the [developer instructions](#developer-instructions) fo
                                      specify range: "--playlist-items
                                      1-3,7,10-13", it will download the videos
                                      at index 1, 2, 3, 7, 10, 11, 12 and 13.
+    --user-music None                Downloads all the music videos of a youtube
+                                     user (doesnt work if its a channel)
     --match-title REGEX              Download only matching titles (regex or
                                      caseless sub-string)
     --reject-title REGEX             Skip download for matching titles (regex or
@@ -258,12 +260,11 @@ Alternatively, refer to the [developer instructions](#developer-instructions) fo
                                      jar in
     --cache-dir DIR                  Location in the filesystem where youtube-dl
                                      can store some downloaded information
-                                     permanently. By default
-                                     $XDG_CACHE_HOME/youtube-dl or
-                                     ~/.cache/youtube-dl . At the moment, only
-                                     YouTube player files (for videos with
-                                     obfuscated signatures) are cached, but that
-                                     may change.
+                                     permanently. By default $XDG_CACHE_HOME
+                                     /youtube-dl or ~/.cache/youtube-dl . At the
+                                     moment, only YouTube player files (for
+                                     videos with obfuscated signatures) are
+                                     cached, but that may change.
     --no-cache-dir                   Disable filesystem caching
     --rm-cache-dir                   Delete all filesystem cache files
 

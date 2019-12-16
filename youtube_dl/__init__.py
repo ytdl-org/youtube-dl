@@ -80,6 +80,11 @@ def _real_main(argv=None):
         write_string(std_headers['User-Agent'] + '\n', out=sys.stdout)
         sys.exit(0)
 
+    # When usermusic option is activated, no need for url
+    if opts.usermusic is not None:
+        url = "https://www.youtube.com/user/"+opts.usermusic+"/videos?view=64&flow=grid"
+        args.append(url)
+
     # Batch file verification
     batch_urls = []
     if opts.batchfile is not None:
