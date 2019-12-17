@@ -1384,7 +1384,7 @@ class BBCCoUkPlaylistIE(BBCCoUkPlaylistBaseIE):
             if single_page:
                 return
             next_page = self._search_regex(
-                r'<li[^>]+class=(["\'])pagination_+next\1[^>]*><a[^>]+href=(["\'])(?P<url>(?:(?!\2).)+)\2',
+                r'<li[^>]+class=(["\'])pagination_+next\1[^>]*>\s*<a[^>]+href=(["\'])(?P<url>(?:(?!\2).)+)\2',
                 webpage, 'next page url', default=None, group='url')
             if not next_page:
                 break
