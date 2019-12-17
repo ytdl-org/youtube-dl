@@ -1247,31 +1247,13 @@ class BBCCoUkArticleIE(InfoExtractor):
 
 
 class BBCCoUkPlaylistBaseIE(InfoExtractor):
-    def _entries(self, webpage, url, playlist_id):
-        single_page = 'page' in compat_urlparse.parse_qs(
-            compat_urlparse.urlparse(url).query)
-        for page_num in itertools.count(2):
-            for video_id in re.findall(
-                    self._VIDEO_ID_TEMPLATE % BBCCoUkIE._ID_REGEX, webpage):
-                yield self.url_result(
-                    self._URL_TEMPLATE % video_id, BBCCoUkIE.ie_key())
-            if single_page:
-                return
-            next_page = self._search_regex(
-                r'<li[^>]+class=(["\'])pagination_+next\1[^>]*><a[^>]+href=(["\'])(?P<url>(?:(?!\2).)+)\2',
-                webpage, 'next page url', default=None, group='url')
-            if not next_page:
-                break
-            webpage = self._download_webpage(
-                compat_urlparse.urljoin(url, next_page), playlist_id,
-                'Downloading page %d' % page_num, page_num)
-
     def _real_extract(self, url):
         playlist_id = self._match_id(url)
 
         webpage = self._download_webpage(url, playlist_id)
 
-        title, description = self._extract_title_and_description(webpage)
+        title = self._og_search_title(webpage, fatal=False)
+        description = self._og_search_description(webpage)
 
         return self.playlist_result(
             self._entries(webpage, url, playlist_id),
@@ -1282,7 +1264,6 @@ class BBCCoUkIPlayerPlaylistIE(BBCCoUkPlaylistBaseIE):
     IE_NAME = 'bbc.co.uk:iplayer:playlist'
     _VALID_URL = r'https?://(?:www\.)?bbc\.co\.uk/iplayer/(?:episodes|group)/(?P<id>%s)' % BBCCoUkIE._ID_REGEX
     _URL_TEMPLATE = 'http://www.bbc.co.uk/iplayer/episode/%s'
-    _VIDEO_ID_TEMPLATE = r'data-ip-id=["\'](%s)'
     _TESTS = [{
         'url': 'http://www.bbc.co.uk/iplayer/episodes/b05rcz9v',
         'info_dict': {
@@ -1303,12 +1284,51 @@ class BBCCoUkIPlayerPlaylistIE(BBCCoUkPlaylistBaseIE):
         'playlist_mincount': 10,
     }]
 
-    def _extract_title_and_description(self, webpage):
-        title = self._search_regex(r'<h1>([^<]+)</h1>', webpage, 'title', fatal=False)
-        description = self._search_regex(
-            r'<p[^>]+class=(["\'])subtitle\1[^>]*>(?P<value>[^<]+)</p>',
-            webpage, 'description', fatal=False, group='value')
-        return title, description
+    def _entries(self, webpage, url, playlist_id):
+        query = compat_urlparse.parse_qs(compat_urlparse.urlparse(url).query)
+        single_season = 'seriesId' in query
+        single_page = 'page' in query
+
+        redux_state = self._redux_state(webpage, playlist_id)
+        slices = redux_state.get('header', {}).get('availableSlices', [])
+        season_ids = list(map(lambda s: s.get('id'), slices))
+
+        for season in itertools.count(1):
+            while True:
+                pagination = redux_state.get('pagination')
+                page_num = pagination.get('currentPage')
+                total_pages = pagination.get('totalPages')
+
+                for entity in redux_state.get('entities'):
+                    video_id = entity.get('id')
+                    yield self.url_result(self._URL_TEMPLATE % video_id, BBCCoUkIE.ie_key())
+
+                if single_page or page_num >= total_pages:
+                    break
+
+                next_page_num = page_num + 1
+                next_page_href = pagination.get('pageUrl') % next_page_num
+                url = compat_urlparse.urljoin(url, next_page_href)
+
+                webpage = self._download_webpage(url, playlist_id,
+                                                 'Downloading season %d page %d' % (season, next_page_num),
+                                                 'season %d page %d' % (season, next_page_num))
+                redux_state = self._redux_state(webpage, playlist_id)
+
+            if single_season or season >= len(season_ids):
+                break
+
+            next_season_id = season_ids[season]
+            url = compat_urlparse.urljoin(url, '?seriesId=' + next_season_id)
+            webpage = self._download_webpage(url, playlist_id,
+                                             'Downloading season %d page 1' % (season + 1),
+                                             'season %d page 1' % (season + 1))
+            redux_state = self._redux_state(webpage, playlist_id)
+
+    def _redux_state(self, webpage, playlist_id):
+        redux_state_regex = r'<script[^>]*>\s*window.__IPLAYER_REDUX_STATE__\s*=\s*(.*?);?\s*</script>'
+        redux_state_json = self._search_regex(redux_state_regex, webpage, 'redux_state')
+        return self._parse_json(redux_state_json, playlist_id, transform_source=unescapeHTML)
 
 
 class BBCCoUkPlaylistIE(BBCCoUkPlaylistBaseIE):
@@ -1353,7 +1373,21 @@ class BBCCoUkPlaylistIE(BBCCoUkPlaylistBaseIE):
         'only_matching': True,
     }]
 
-    def _extract_title_and_description(self, webpage):
-        title = self._og_search_title(webpage, fatal=False)
-        description = self._og_search_description(webpage)
-        return title, description
+    def _entries(self, webpage, url, playlist_id):
+        single_page = 'page' in compat_urlparse.parse_qs(
+            compat_urlparse.urlparse(url).query)
+        for page_num in itertools.count(2):
+            for video_id in re.findall(
+                    self._VIDEO_ID_TEMPLATE % BBCCoUkIE._ID_REGEX, webpage):
+                yield self.url_result(
+                    self._URL_TEMPLATE % video_id, BBCCoUkIE.ie_key())
+            if single_page:
+                return
+            next_page = self._search_regex(
+                r'<li[^>]+class=(["\'])pagination_+next\1[^>]*><a[^>]+href=(["\'])(?P<url>(?:(?!\2).)+)\2',
+                webpage, 'next page url', default=None, group='url')
+            if not next_page:
+                break
+            webpage = self._download_webpage(
+                compat_urlparse.urljoin(url, next_page), playlist_id,
+                'Downloading page %d' % page_num, page_num)
