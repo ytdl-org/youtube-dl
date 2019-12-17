@@ -1291,7 +1291,10 @@ class BBCCoUkIPlayerPlaylistIE(BBCCoUkPlaylistBaseIE):
 
         redux_state = self._redux_state(webpage, playlist_id)
         slices = redux_state.get('header', {}).get('availableSlices', [])
-        season_ids = list(map(lambda s: s.get('id'), slices))
+        if slices:
+            season_ids = list(map(lambda s: s.get('id'), slices))
+        else:
+            season_ids = []
 
         for season in itertools.count(1):
             while True:
