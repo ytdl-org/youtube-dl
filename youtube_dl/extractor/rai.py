@@ -125,12 +125,17 @@ class RaiBaseIE(InfoExtractor):
     def _extract_subtitles_from_list(subtitle_array, subtitles):
         if isinstance(subtitle_array, list):
             for item in subtitle_array:
-                lang = item.get('language')
-                url = item.get('url')
-                if url_or_none(url) and str_or_none(lang):
-                    subtitles[lang.lower()] = [{
-                        'ext': url[-3:],
-                        'url': url,
+                subtitle_lang = item.get('language')
+                subtitle_url = item.get('url')
+
+                # Handle relative subtitles URL
+                if None ==  url_or_none(subtitle_url):
+                    subtitle_url = 'https://www.raiplay.it'+subtitle_url
+
+                if url_or_none(subtitle_url) and str_or_none(subtitle_lang):
+                    subtitles[subtitle_lang.lower()] = [{
+                        'ext': subtitle_url[-3:],
+                        'url': subtitle_url,
                     }]
         return subtitles
 
@@ -183,7 +188,6 @@ class RaiPlayIE(RaiBaseIE):
         url, video_id = mobj.group('url', 'id')
 
         media = self._download_json(url.replace('.html', '.json'), video_id, 'Downloading video JSON')
-
         title = media['name']
 
         video = media['video']
