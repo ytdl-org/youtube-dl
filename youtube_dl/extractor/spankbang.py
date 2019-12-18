@@ -93,18 +93,18 @@ class SpankBangIE(InfoExtractor):
                 r'data-streamkey\s*=\s*(["\'])(?P<value>(?:(?!\1).)+)\1',
                 webpage, 'stream key', group='value')
 
-            sb_csrf_session = self._get_cookies(
-                'https://spankbang.com')['sb_csrf_session'].value
+            sb__session = self._get_cookies(
+                'https://spankbang.com')['sb__session'].value
 
             stream = self._download_json(
                 'https://spankbang.com/api/videos/stream', video_id,
                 'Downloading stream JSON', data=urlencode_postdata({
                     'id': stream_key,
                     'data': 0,
-                    'sb_csrf_session': sb_csrf_session,
+                    'sb__session': sb__session,
                 }), headers={
                     'Referer': url,
-                    'X-CSRFToken': sb_csrf_session,
+                    'X-Token': sb__session,
                 })
 
             for format_id, format_url in stream.items():
