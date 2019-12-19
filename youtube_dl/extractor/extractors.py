@@ -1072,6 +1072,7 @@ from .svt import (
     SVTSeriesIE,
 )
 from .swrmediathek import SWRMediathekIE
+from .sxyprn import SxyPrnIE
 from .syfy import SyfyIE
 from .sztvhu import SztvHuIE
 from .tagesschau import (
@@ -1455,7 +1456,6 @@ from .younow import (
     YouNowMomentIE,
 )
 from .youporn import YouPornIE
-from .yourporn import YourPornIE
 from .yourupload import YourUploadIE
 from .youtube import (
     YoutubeIE,
