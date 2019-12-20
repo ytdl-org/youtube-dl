@@ -85,6 +85,9 @@ class RtlNlIE(InfoExtractor):
             uuid)
 
         material = info['material'][0]
+        abstracts = info['abstracts'][0]
+        seasons = info['seasons'][0]
+        episodes = info['episodes'][0]
         title = info['abstracts'][0]['name']
         subtitle = material.get('title')
         if subtitle:
@@ -123,4 +126,11 @@ class RtlNlIE(InfoExtractor):
             'description': description,
             'duration': parse_duration(material.get('duration')),
             'thumbnails': thumbnails,
+			'series': abstracts['name'],
+			'season': seasons['name'],
+			'season_number': seasons['volgnr'],
+			'season_id': seasons['key'],
+			'episode': episodes['name'],
+			'episode_number': episodes['volgnr'],
+			'episode_id': episodes['key'],
         }
