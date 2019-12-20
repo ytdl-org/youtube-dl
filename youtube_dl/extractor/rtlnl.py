@@ -84,11 +84,11 @@ class RtlNlIE(InfoExtractor):
             'http://www.rtl.nl/system/s4m/vfd/version=2/uuid=%s/fmt=adaptive/' % uuid,
             uuid)
 
-        material = info['material'][0]
-        abstracts = info['abstracts'][0]
-        seasons = info['seasons'][0]
-        episodes = info['episodes'][0]
-        title = info['abstracts'][0]['name']
+        material = info.get('material')[0]
+        abstracts = info.get('abstracts')[0]
+        seasons = info.get('seasons')[0]
+        episodes = info.get('episodes')[0]
+        title = info.get('abstracts')[0]['name']
         subtitle = material.get('title')
         if subtitle:
             title += ' - %s' % subtitle
@@ -122,15 +122,15 @@ class RtlNlIE(InfoExtractor):
             'id': uuid,
             'title': title,
             'formats': formats,
-            'timestamp': material['original_date'],
+            'timestamp': material.get('original_date'),
             'description': description,
             'duration': parse_duration(material.get('duration')),
             'thumbnails': thumbnails,
-            'series': abstracts['name'],
-            'season': seasons['name'],
-            'season_number': seasons['volgnr'],
-            'season_id': seasons['key'],
-            'episode': episodes['name'],
-            'episode_number': episodes['volgnr'],
-            'episode_id': episodes['key'],
+            'series': abstracts.get('name'),
+            'season': seasons.get('name'),
+            'season_number': seasons.get('volgnr'),
+            'season_id': seasons.get('key'),
+            'episode': episodes.get('name'),
+            'episode_number': episodes.get('volgnr'),
+            'episode_id': episodes.get('key'),
         }
