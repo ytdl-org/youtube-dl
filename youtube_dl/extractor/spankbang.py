@@ -112,7 +112,7 @@ class SpankBangIE(InfoExtractor):
                     if format_url and isinstance(format_url, list):
                         format_url = format_url[0]
                     extract_format(
-                        format_id[len(STREAM_URL_PREFIX):], format_url)
+                        format_id, format_url)
 
         self._sort_formats(formats)
 
