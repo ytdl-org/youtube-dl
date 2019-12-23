@@ -9,6 +9,7 @@ from ..compat import (
 from ..utils import (
     ExtractorError,
     int_or_none,
+    parse_m3u8_attributes,
     str_or_none,
     urlencode_postdata,
 )
@@ -81,6 +82,19 @@ class RoosterTeethIE(InfoExtractor):
             return
         self._login()
 
+    def _get_subtitles(self, m3u8_doc):
+        subtitles = {}
+        for line in m3u8_doc.splitlines():
+            if line.startswith('#EXT-X-MEDIA:TYPE=SUBTITLES'):
+                sub_attr = parse_m3u8_attributes(line)
+                lang = sub_attr.get('LANGUAGE')
+                sub_url = sub_attr.get('URI').replace(lang + '_manifest.m3u8', 'vtt_' + lang + '.webvtt')
+                subtitles.setdefault(lang, []).append({
+                    'url': sub_url,
+                    'ext': 'webvtt',
+                })
+        return subtitles
+
     def _real_extract(self, url):
         display_id = self._match_id(url)
         api_episode_url = self._EPISODE_BASE_URL + display_id
@@ -96,9 +110,17 @@ class RoosterTeethIE(InfoExtractor):
                         '%s is only available for FIRST members' % display_id)
             raise
 
-        formats = self._extract_m3u8_formats(
-            m3u8_url, display_id, 'mp4', 'm3u8_native', m3u8_id='hls')
+        m3u8_doc, _ = self._download_webpage_handle(
+            m3u8_url, display_id,
+            note='Downloading m3u8 information',
+            errnote='Failed to download m3u8 information')
+
+        formats = self._parse_m3u8_formats(
+            m3u8_doc, m3u8_url, ext='mp4',
+            entry_protocol='m3u8_native', m3u8_id='hls')
         self._sort_formats(formats)
+
+        subtitles = self.extract_subtitles(m3u8_doc)
 
         episode = self._download_json(
             api_episode_url, display_id,
@@ -134,4 +156,5 @@ class RoosterTeethIE(InfoExtractor):
             'formats': formats,
             'channel_id': attributes.get('channel_id'),
             'duration': int_or_none(attributes.get('length')),
+            'subtitles': subtitles,
         }
