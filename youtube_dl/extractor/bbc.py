@@ -1310,7 +1310,8 @@ class BBCCoUkIPlayerPlaylistIE(BBCCoUkPlaylistBaseIE):
                     break
 
                 next_page_num = page_num + 1
-                next_page_href = pagination.get('pageUrl') % next_page_num
+                page_url_template = pagination.get('pageUrl') or '?page=%s'
+                next_page_href = page_url_template % next_page_num
                 url = compat_urlparse.urljoin(url, next_page_href)
 
                 webpage = self._download_webpage(url, playlist_id,
