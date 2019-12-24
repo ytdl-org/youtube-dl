@@ -123,7 +123,7 @@ class MediasetIE(ThePlatformBaseIE):
     def _parse_smil_formats(self, smil, smil_url, video_id, namespace=None, f4m_params=None, transform_rtmp_url=None):
         for video in smil.findall(self._xpath_ns('.//video', namespace)):
             video.attrib['src'] = re.sub(r'(https?://vod05)t(-mediaset-it\.akamaized\.net/.+?.mpd)\?.+', r'\1\2', video.attrib['src'])
-        return super()._parse_smil_formats(smil, smil_url, video_id, namespace, f4m_params, transform_rtmp_url)
+        return super(MediasetIE, self)._parse_smil_formats(smil, smil_url, video_id, namespace, f4m_params, transform_rtmp_url)
 
     def _real_extract(self, url):
         guid = self._match_id(url)
