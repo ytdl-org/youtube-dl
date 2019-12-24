@@ -28,6 +28,7 @@ from youtube_dl.extractor import (
     RTVEALaCartaIE,
     FunnyOrDieIE,
     DemocracynowIE,
+    LinkedInLearningIE,
 )
 
 
@@ -217,6 +218,18 @@ class TestLyndaSubtitles(BaseTestSubtitles):
         subtitles = self.getSubtitles()
         self.assertEqual(set(subtitles.keys()), set(['en']))
         self.assertEqual(md5(subtitles['en']), '09bbe67222259bed60deaa26997d73a7')
+
+
+class TestLinkedInSubtitles(BaseTestSubtitles):
+    url = 'https://www.linkedin.com/learning/programming-foundations-fundamentals/welcome?autoplay=true'
+    IE = LinkedInLearningIE
+
+    def test_allsubtitles(self):
+        self.DL.params['writesubtitles'] = True
+        self.DL.params['allsubtitles'] = True
+        subtitles = self.getSubtitles()
+        self.assertEqual(set(subtitles.keys()), set(['en']))
+        self.assertEqual(md5(subtitles['en']), 'b329730e94e7fbdbac0307b3cad1221a')
 
 
 class TestNPOSubtitles(BaseTestSubtitles):
