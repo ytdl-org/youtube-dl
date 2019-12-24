@@ -28,10 +28,11 @@
  - **acast:channel**
  - **ADN**: Anime Digital Network
  - **AdobeConnect**
- - **AdobeTV**
- - **AdobeTVChannel**
- - **AdobeTVShow**
- - **AdobeTVVideo**
+ - **adobetv**
+ - **adobetv:channel**
+ - **adobetv:embed**
+ - **adobetv:show**
+ - **adobetv:video**
  - **AdultSwim**
  - **aenetworks**: A+E Networks: A&E, Lifetime, History.com, FYI Network and History Vault
  - **afreecatv**: afreecatv.com
@@ -396,6 +397,7 @@
  - **Kankan**
  - **Karaoketv**
  - **KarriereVideos**
+ - **Katsomo**
  - **KeezMovies**
  - **Ketnet**
  - **KhanAcademy**
@@ -403,7 +405,6 @@
  - **KinjaEmbed**
  - **KinoPoisk**
  - **KonserthusetPlay**
- - **kontrtube**: KontrTube.ru - Труба зовёт
  - **KrasView**: Красвью
  - **Ku6**
  - **KUSI**
@@ -513,7 +514,6 @@
  - **mtvjapan**
  - **mtvservices:embedded**
  - **MuenchenTV**: münchen.tv
- - **MusicPlayOn**
  - **mva**: Microsoft Virtual Academy videos
  - **mva:course**: Microsoft Virtual Academy courses
  - **Mwave**
@@ -913,6 +913,7 @@
  - **tv2.hu**
  - **TV2Article**
  - **TV2DK**
+ - **TV2DKBornholmPlay**
  - **TV4**: tv4.se and tv4play.se
  - **TV5MondePlus**: TV5MONDE+
  - **TVA**
@@ -954,6 +955,7 @@
  - **udemy**
  - **udemy:course**
  - **UDNEmbed**: 聯合影音
+ - **UFCArabia**
  - **UFCTV**
  - **UKTVPlay**
  - **umg:de**: Universal Music Deutschland
@@ -993,7 +995,6 @@
  - **videomore**
  - **videomore:season**
  - **videomore:video**
- - **VideoPremium**
  - **VideoPress**
  - **Vidio**
  - **VidLii**

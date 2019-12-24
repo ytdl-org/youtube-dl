@@ -1,10 +1,11 @@
-version <unreleased>
+version 2019.12.25
 
 Core
 * [utils] Improve str_to_int
 + [downloader/hls] Add ability to override AES decryption key URL (#17521)
 
 Extractors
+* [mediaset] Fix parse formats (#23508)
 + [tv2dk:bornholm:play] Add support for play.tv2bornholm.dk (#23291)
 + [slideslive] Add support for url and vimeo service names (#23414)
 * [slideslive] Fix extraction (#23413)
