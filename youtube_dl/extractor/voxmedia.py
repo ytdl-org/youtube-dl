@@ -17,9 +17,9 @@ class VoxMediaVolumeIE(OnceIE):
         video_id = self._match_id(url)
         webpage = self._download_webpage(url, video_id)
 
-        setup = self._parse_json(self._search_regex(
-            r'setup\s*=\s*({.+});', webpage, 'setup'), video_id)
-        video_data = setup.get('video') or {}
+        setup_str = self._search_regex(r'setup\s*=\s*({.+});', webpage, 'setup')
+        setup = self._parse_json(setup_str, video_id)
+        video_data = setup.get('video') or setup.get('player_setup', {}).get('video') or {}
         info = {
             'id': video_id,
             'title': video_data.get('title_short'),

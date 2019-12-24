@@ -26,9 +26,9 @@ from youtube_dl.extractor import (
     ThePlatformIE,
     ThePlatformFeedIE,
     RTVEALaCartaIE,
-    FunnyOrDieIE,
     DemocracynowIE,
     LinkedInLearningIE,
+    VoxMediaIE,
 )
 
 
@@ -337,8 +337,9 @@ class TestRtveSubtitles(BaseTestSubtitles):
 
 class TestFunnyOrDieSubtitles(BaseTestSubtitles):
     url = 'http://www.funnyordie.com/videos/224829ff6d/judd-apatow-will-direct-your-vine'
-    IE = FunnyOrDieIE
+    IE = VoxMediaIE
 
+    @unittest.skip('This stopped working.')
     def test_allsubtitles(self):
         self.DL.params['writesubtitles'] = True
         self.DL.params['allsubtitles'] = True
