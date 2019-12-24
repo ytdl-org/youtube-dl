@@ -239,7 +239,7 @@ class TikTokIE(TikTokBaseIE):
         }
         webpage = self._download_webpage(url, video_id, headers=headers, note='Downloading video webpage')
         json_string = self._search_regex(
-            r'id=\"__NEXT_DATA__\"\s+type=\"application\/json\">\s*(?P<json_string>[^<]+)',
+            r'id=\"__NEXT_DATA__\"\s+type=\"application\/json\"\s*[^>]+>\s*(?P<json_string>[^<]+)',
             webpage, 'json_string', group='json_string')
         json_data = self._parse_json(json_string, video_id)
         video_data = try_get(json_data, lambda x: x['props']['pageProps'], expected_type=dict)
