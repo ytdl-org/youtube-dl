@@ -1,4 +1,4 @@
-version <unreleased>
+version 2019.12.25
 
 Core
 * [utils] Improve str_to_int
