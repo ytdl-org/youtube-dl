@@ -5,8 +5,11 @@ from __future__ import unicode_literals
 import os
 from .ffmpeg import FFmpegPostProcessor
 
-import imghdr
-from mutagen.mp4 import MP4, MP4Cover, MP4MetadataError
+try:
+    import imghdr
+    from mutagen.mp4 import MP4, MP4Cover, MP4MetadataError
+except ImportError:
+    print("[embedthumbnail] MP4 thumbnail embedding cannot be done, mutagen is missing.")
 
 from ..utils import (
     prepend_extension,
