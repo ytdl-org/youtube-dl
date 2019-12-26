@@ -5,6 +5,10 @@ from __future__ import unicode_literals
 import os
 import subprocess
 
+import imghdr
+from mutagen.id3 import PictureType, ID3, APIC
+from mutagen.mp4 import MP4, MP4Cover
+
 from .ffmpeg import FFmpegPostProcessor
 
 from ..utils import (
@@ -28,7 +32,6 @@ class EmbedThumbnailPP(FFmpegPostProcessor):
 
     def run(self, info):
         filename = info['filepath']
-        temp_filename = prepend_extension(filename, 'temp')
 
         if not info.get('thumbnails'):
             self._downloader.to_screen('[embedthumbnail] There aren\'t any thumbnails to embed')
@@ -42,52 +45,51 @@ class EmbedThumbnailPP(FFmpegPostProcessor):
             return [], info
 
         if info['ext'] == 'mp3':
-            options = [
-                '-c', 'copy', '-map', '0', '-map', '1',
-                '-metadata:s:v', 'title="Album cover"', '-metadata:s:v', 'comment="Cover (Front)"']
-
-            self._downloader.to_screen('[ffmpeg] Adding thumbnail to "%s"' % filename)
-
-            self.run_ffmpeg_multiple_files([filename, thumbnail_filename], temp_filename, options)
-
+            try:
+               meta = ID3(filename)
+            except:
+               raise EmbedThumbnailPPError("MP3 file doesn't have a existing ID3v2 tag.")
+            
+            # Update older tags (eg. ID3v1) to a newer version,
+            # which supports embedded-thumbnails (e.g ID3v2.3).
+            # NOTE: ID3v2.4 might not be supported by programs.
+            meta.update_to_v23()
+            
+            # Appends a Cover-front thumbnail, it's the most common
+            # type of thumbnail distributed with.
+            meta.add(APIC(
+               data= open(thumbnail_filename, 'rb').read(),
+               mime= 'image/'+imghdr.what(thumbnail_filename),
+               type= PictureType.COVER_FRONT
+            ))
+            
+            meta.save() # Save the changes to file, does in-place replacement.
+            self._downloader.to_screen('[mutagen.id3] Merged Thumbnail into "%s"' % filename)
+            
             if not self._already_have_thumbnail:
-                os.remove(encodeFilename(thumbnail_filename))
-            os.remove(encodeFilename(filename))
-            os.rename(encodeFilename(temp_filename), encodeFilename(filename))
+               os.remove(encodeFilename(thumbnail_filename))
 
         elif info['ext'] in ['m4a', 'mp4']:
-            if not check_executable('AtomicParsley', ['-v']):
-                raise EmbedThumbnailPPError('AtomicParsley was not found. Please install.')
+            try:
+                meta = MP4(filename)
+            except:
+                raise EmbedThumbnailPPError("MPEG-4 file's atomic structure for embedding isn't correct!")
 
-            cmd = [encodeFilename('AtomicParsley', True),
-                   encodeFilename(filename, True),
-                   encodeArgument('--artwork'),
-                   encodeFilename(thumbnail_filename, True),
-                   encodeArgument('-o'),
-                   encodeFilename(temp_filename, True)]
+            # NOTE: the 'covr' atom is a non-standard MPEG-4 atom,
+            # Apple iTunes 'M4A' files include the 'moov.udta.meta.ilst' atom.
+            meta.tags['covr'] = [MP4Cover(
+                data= open(thumbnail_filename, 'rb').read(),
+                imageformat= MP4Cover.FORMAT_JPEG if \
+                            imghdr.what(thumbnail_filename) == 'jpeg' \
+                            else MP4Cover.FORMAT_PNG
+            )]
 
-            self._downloader.to_screen('[atomicparsley] Adding thumbnail to "%s"' % filename)
-
-            if self._downloader.params.get('verbose', False):
-                self._downloader.to_screen('[debug] AtomicParsley command line: %s' % shell_quote(cmd))
-
-            p = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-            stdout, stderr = p.communicate()
-
-            if p.returncode != 0:
-                msg = stderr.decode('utf-8', 'replace').strip()
-                raise EmbedThumbnailPPError(msg)
+            meta.save()
+            self._downloader.to_screen('[mutagen.mp4] Merged thumbnail to "%s"' % filename)
 
             if not self._already_have_thumbnail:
                 os.remove(encodeFilename(thumbnail_filename))
-            # for formats that don't support thumbnails (like 3gp) AtomicParsley
-            # won't create to the temporary file
-            if b'No changes' in stdout:
-                self._downloader.report_warning('The file format doesn\'t support embedding a thumbnail')
-            else:
-                os.remove(encodeFilename(filename))
-                os.rename(encodeFilename(temp_filename), encodeFilename(filename))
         else:
-            raise EmbedThumbnailPPError('Only mp3 and m4a/mp4 are supported for thumbnail embedding for now.')
+            raise EmbedThumbnailPPError('Only mp3, m4a/mp4 are supported for thumbnail embedding for now.')
 
         return [], info
