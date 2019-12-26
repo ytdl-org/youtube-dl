@@ -5,9 +5,12 @@ from __future__ import unicode_literals
 import os
 import subprocess
 
-import imghdr
-from mutagen.id3 import PictureType, ID3, APIC
-from mutagen.mp4 import MP4, MP4Cover
+try:
+    import imghdr
+    from mutagen.id3 import PictureType, ID3, APIC
+    from mutagen.mp4 import MP4, MP4Cover
+except ImportError:
+    raise Exception('[embedthumbnail] Mutagen isn\'t found as a dependency to embed thumbnails!')
 
 from .ffmpeg import FFmpegPostProcessor
 
