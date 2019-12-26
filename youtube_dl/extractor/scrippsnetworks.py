@@ -7,6 +7,7 @@ import re
 
 from .aws import AWSIE
 from .anvato import AnvatoIE
+from .common import InfoExtractor
 from ..utils import (
     smuggle_url,
     urlencode_postdata,
@@ -102,3 +103,46 @@ class ScrippsNetworksWatchIE(AWSIE):
                 'anvato:anvato_scripps_app_web_prod_0837996dbe373629133857ae9eb72e740424d80a:%s' % mcp_id,
                 {'geo_countries': ['US']}),
             AnvatoIE.ie_key(), video_id=mcp_id)
+
+
+class ScrippsNetworksIE(InfoExtractor):
+    _VALID_URL = r'https?://(?:www\.)?(?P<site>cookingchanneltv|(?:diy|food)network|hgtv|travelchannel)\.com/videos/[0-9a-z-]+-(?P<id>\d+)'
+    _TESTS = [{
+        'url': 'https://www.cookingchanneltv.com/videos/the-best-of-the-best-0260338',
+        'info_dict': {
+            'id': '0260338',
+            'ext': 'mp4',
+            'title': 'The Best of the Best',
+            'description': 'Catch a new episode of MasterChef Canada Tuedsay at 9/8c.',
+            'timestamp': 1475678834,
+            'upload_date': '20161005',
+            'uploader': 'SCNI-SCND',
+        },
+        'add_ie': ['ThePlatform'],
+    }, {
+        'url': 'https://www.diynetwork.com/videos/diy-barnwood-tablet-stand-0265790',
+        'only_matching': True,
+    }, {
+        'url': 'https://www.foodnetwork.com/videos/chocolate-strawberry-cake-roll-7524591',
+        'only_matching': True,
+    }, {
+        'url': 'https://www.hgtv.com/videos/cookie-decorating-101-0301929',
+        'only_matching': True,
+    }, {
+        'url': 'https://www.travelchannel.com/videos/two-climates-one-bag-5302184',
+        'only_matching': True,
+    }]
+    _ACCOUNT_MAP = {
+        'cookingchanneltv': 2433005105,
+        'diynetwork': 2433004575,
+        'foodnetwork': 2433005105,
+        'hgtv': 2433004575,
+        'travelchannel': 2433005739,
+    }
+    _TP_TEMPL = 'https://link.theplatform.com/s/ip77QC/media/guid/%d/%s?mbr=true'
+
+    def _real_extract(self, url):
+        site, guid = re.match(self._VALID_URL, url).groups()
+        return self.url_result(smuggle_url(
+            self._TP_TEMPL % (self._ACCOUNT_MAP[site], guid),
+            {'force_smil_url': True}), 'ThePlatform', guid)
