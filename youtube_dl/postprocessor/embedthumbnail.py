@@ -8,7 +8,7 @@ try:
     import imghdr
     from mutagen.mp4 import MP4, MP4Cover, MP4MetadataError
 except ImportError:
-    raise Exception('[embedthumbnail] Mutagen isn\'t found, install from PyPI.')
+    raise Warning('[embedthumbnail] Mutagen isn\'t found for M4A thumbnail embedding, install from PyPI.')
 
 from .ffmpeg import FFmpegPostProcessor
 
