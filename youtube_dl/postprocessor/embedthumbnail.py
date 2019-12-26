@@ -63,8 +63,7 @@ class EmbedThumbnailPP(FFmpegPostProcessor):
             meta.add(APIC(
                data= open(thumbnail_filename, 'rb').read(),
                mime= 'image/'+imghdr.what(thumbnail_filename),
-               type= PictureType.COVER_FRONT
-            ))
+               type= PictureType.COVER_FRONT))
             
             meta.save() # Save the changes to file, does in-place replacement.
             self._downloader.to_screen('[mutagen.id3] Merged Thumbnail into "%s"' % filename)
@@ -84,8 +83,7 @@ class EmbedThumbnailPP(FFmpegPostProcessor):
                 data= open(thumbnail_filename, 'rb').read(),
                 imageformat= MP4Cover.FORMAT_JPEG if \
                             imghdr.what(thumbnail_filename) == 'jpeg' \
-                            else MP4Cover.FORMAT_PNG
-            )]
+                            else MP4Cover.FORMAT_PNG)]
 
             meta.save()
             self._downloader.to_screen('[mutagen.mp4] Merged thumbnail to "%s"' % filename)
