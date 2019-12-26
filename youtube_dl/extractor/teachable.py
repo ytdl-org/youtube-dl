@@ -170,6 +170,7 @@ class TeachableIE(TeachableBaseIE):
                     r'class=["\'](?:inner-)?lesson-locked',
                     r'>LESSON LOCKED<')):
                 self.raise_login_required('Lecture contents locked')
+            raise ExtractorError('Unable to find video URL')
 
         title = self._og_search_title(webpage, default=None)
 
