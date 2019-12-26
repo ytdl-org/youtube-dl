@@ -6,14 +6,14 @@ import os
 
 try:
     import imghdr
-    from mutagen.id3 import PictureType, ID3, APIC, ID3NoHeaderError
     from mutagen.mp4 import MP4, MP4Cover, MP4MetadataError
 except ImportError:
-    raise Exception('[embedthumbnail] Mutagen isn\'t found as a dependency to embed thumbnails!')
+    raise Exception('[embedthumbnail] Mutagen isn\'t found, install from PyPI.')
 
 from .ffmpeg import FFmpegPostProcessor
 
 from ..utils import (
+    prepend_extension,
     encodeFilename,
     PostProcessingError
 )
@@ -30,6 +30,7 @@ class EmbedThumbnailPP(FFmpegPostProcessor):
 
     def run(self, info):
         filename = info['filepath']
+        temp_filename = prepend_extension(filename, 'temp')
 
         if not info.get('thumbnails'):
             self._downloader.to_screen('[embedthumbnail] There aren\'t any thumbnails to embed')
@@ -43,23 +44,18 @@ class EmbedThumbnailPP(FFmpegPostProcessor):
             return [], info
 
         if info['ext'] == 'mp3':
-            try:
-                meta = ID3(filename)
-            except ID3NoHeaderError:
-                raise EmbedThumbnailPPError("MP3 file doesn't have a existing ID3v2 tag.")
+            options = [
+                '-c', 'copy', '-map', '0', '-map', '1',
+                '-metadata:s:v', 'title="Album cover"', '-metadata:s:v', 'comment="Cover (Front)"']
 
-            # Appends a Cover-front thumbnail, it's the most common
-            # type of thumbnail distributed with.
-            meta.add(APIC(
-                data=open(thumbnail_filename, 'rb').read(),
-                mime='image/' + imghdr.what(thumbnail_filename),
-                type=PictureType.COVER_FRONT))
+            self._downloader.to_screen('[ffmpeg] Adding thumbnail to "%s"' % filename)
 
-            meta.save()  # Save the changes to file, does in-place replacement.
-            self._downloader.to_screen('[mutagen.id3] Merged Thumbnail into "%s"' % filename)
+            self.run_ffmpeg_multiple_files([filename, thumbnail_filename], temp_filename, options)
 
             if not self._already_have_thumbnail:
                 os.remove(encodeFilename(thumbnail_filename))
+            os.remove(encodeFilename(filename))
+            os.rename(encodeFilename(temp_filename), encodeFilename(filename))
 
         elif info['ext'] in ['m4a', 'mp4']:
             try:
