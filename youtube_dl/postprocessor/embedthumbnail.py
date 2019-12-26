@@ -3,14 +3,10 @@ from __future__ import unicode_literals
 
 
 import os
-
-try:
-    import imghdr
-    from mutagen.mp4 import MP4, MP4Cover, MP4MetadataError
-except ImportError:
-    raise Warning('[embedthumbnail] Mutagen isn\'t found for M4A thumbnail embedding, install from PyPI.')
-
 from .ffmpeg import FFmpegPostProcessor
+
+import imghdr
+from mutagen.mp4 import MP4, MP4Cover, MP4MetadataError
 
 from ..utils import (
     prepend_extension,

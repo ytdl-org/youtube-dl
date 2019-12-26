@@ -114,6 +114,9 @@ setup(
         'youtube_dl',
         'youtube_dl.extractor', 'youtube_dl.downloader',
         'youtube_dl.postprocessor'],
+    install_requires=[
+        'mutagen'
+    ],
 
     # Provokes warning on most systems (why?!)
     # test_suite = 'nose.collector',
