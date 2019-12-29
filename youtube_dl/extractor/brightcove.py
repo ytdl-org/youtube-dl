@@ -586,24 +586,26 @@ class BrightcoveNewIE(AdobePassIE):
 
         account_id, player_id, embed, content_type, video_id = re.match(self._VALID_URL, url).groups()
 
-        webpage = self._download_webpage(
-            'http://players.brightcove.net/%s/%s_%s/index.min.js'
-            % (account_id, player_id, embed), video_id)
-
-        policy_key = None
-
-        catalog = self._search_regex(
-            r'catalog\(({.+?})\);', webpage, 'catalog', default=None)
-        if catalog:
-            catalog = self._parse_json(
-                js_to_json(catalog), video_id, fatal=False)
-            if catalog:
-                policy_key = catalog.get('policyKey')
-
+        policy_key_id = '%s_%s' % (account_id, player_id)
+        policy_key = self._downloader.cache.load('brightcove', policy_key_id)
         if not policy_key:
-            policy_key = self._search_regex(
-                r'policyKey\s*:\s*(["\'])(?P<pk>.+?)\1',
-                webpage, 'policy key', group='pk')
+            webpage = self._download_webpage(
+                'http://players.brightcove.net/%s/%s_%s/index.min.js'
+                % (account_id, player_id, embed), video_id)
+
+            catalog = self._search_regex(
+                r'catalog\(({.+?})\);', webpage, 'catalog', default=None)
+            if catalog:
+                catalog = self._parse_json(
+                    js_to_json(catalog), video_id, fatal=False)
+                if catalog:
+                    policy_key = catalog.get('policyKey')
+
+            if not policy_key:
+                policy_key = self._search_regex(
+                    r'policyKey\s*:\s*(["\'])(?P<pk>.+?)\1',
+                    webpage, 'policy key', group='pk')
+            self._downloader.cache.store('brightcove', policy_key_id, policy_key)
 
         api_url = 'https://edge.api.brightcove.com/playback/v1/accounts/%s/%ss/%s' % (account_id, content_type, video_id)
         headers = {
