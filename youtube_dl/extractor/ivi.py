@@ -78,8 +78,7 @@ class IviIE(InfoExtractor):
     # Sorted by quality
     _KNOWN_FORMATS = (
         'MP4-low-mobile', 'MP4-mobile', 'FLV-lo', 'MP4-lo', 'FLV-hi', 'MP4-hi',
-        'MP4-SHQ', 'MP4-HD720', 'MP4-HD1080', 'VODDASH-MDRM-HD1080', 'VODHLS-FPS-HD1080',
-        'DASH-MDRM-HD1080')
+        'MP4-SHQ', 'MP4-HD720', 'MP4-HD1080')
 
     def _real_extract(self, url):
         video_id = self._match_id(url)
@@ -157,14 +156,18 @@ class IviIE(InfoExtractor):
         for f in result.get('files', []):
             f_url = f.get('url')
             content_format = f.get('content_format')
-            # if not f_url or '-MDRM-' in content_format or '-FPS-' in content_format:
-            #     continue
+            if not f_url or '-MDRM-' in content_format or '-FPS-' in content_format:
+                continue
             formats.append({
                 'url': f_url,
                 'format_id': content_format,
                 'quality': quality(content_format),
                 'filesize': int_or_none(f.get('size_in_bytes')),
             })
+        if len(formats) == 0:
+            raise ExtractorError(
+                'All formats are DRM-crypted. They are not supported',
+                expected=True)
         self._sort_formats(formats)
 
         compilation = result.get('compilation')
