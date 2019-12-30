@@ -256,17 +256,15 @@ class NRKTVIE(NRKBaseIE):
                     ''' % _EPISODE_RE
     _API_HOSTS = ('psapi-ne.nrk.no', 'psapi-we.nrk.no')
     _TESTS = [{
-        'url': 'https://tv.nrk.no/serie/blank/sesong/1/episode/3',
-        'md5': '22053d8a7641709940ad195853b197f0',
+        'url': 'https://tv.nrk.no/program/MDDP12000117',
+        'md5': '8270824df46ec629b66aeaa5796b36fb',
         'info_dict': {
-            'id': 'MUHH69000318AA',
+            'id': 'MDDP12000117AA',
             'ext': 'mp4',
-            'title': 'Uten mål og mening 3:9',
-            'description': 'md5:32692999accf028f406bf3bc73eb29ac',
-            'duration': 1698,
-            'series': 'Blank',
-            'episode': '3:9',
-            'age_limit': 12
+            'title': 'Alarm Trolltunga',
+            'description': 'md5:46923a6e6510eefcce23d5ef2a58f2ce',
+            'duration': 2223,
+            'age_limit': 6
         },
     }, {
         'url': 'https://tv.nrk.no/serie/20-spoersmaal-tv/MUHH48000314/23-05-2014',
