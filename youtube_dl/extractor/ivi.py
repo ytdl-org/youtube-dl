@@ -146,7 +146,6 @@ class IviIE(InfoExtractor):
                 extractor_msg += ': ' + message
             raise ExtractorError(extractor_msg % video_id, expected=True)
 
-
         result = video_json['result']
         title = result['title']
 
