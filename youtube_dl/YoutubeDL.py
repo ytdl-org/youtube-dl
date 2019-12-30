@@ -1664,7 +1664,13 @@ class YoutubeDL(object):
             requested_langs = available_subs.keys()
         else:
             if self.params.get('subtitleslangs', False):
-                requested_langs = self.params.get('subtitleslangs')
+                requested_langs = []
+                for lang in self.params.get('subtitleslangs'):
+                    if lang.endswith('*'):
+                        prefix = lang[:-1]
+                        requested_langs += [l for l in available_subs.keys() if l.startswith(prefix)]
+                    else:
+                        requested_langs.append(lang)
             elif 'en' in available_subs:
                 requested_langs = ['en']
             else:
