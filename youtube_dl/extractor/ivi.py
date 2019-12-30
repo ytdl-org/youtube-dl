@@ -78,81 +78,75 @@ class IviIE(InfoExtractor):
     # Sorted by quality
     _KNOWN_FORMATS = (
         'MP4-low-mobile', 'MP4-mobile', 'FLV-lo', 'MP4-lo', 'FLV-hi', 'MP4-hi',
-        'MP4-SHQ', 'MP4-HD720', 'MP4-HD1080')
+        'MP4-SHQ', 'MP4-HD720', 'MP4-HD1080', 'VODDASH-MDRM-HD1080', 'VODHLS-FPS-HD1080',
+        'DASH-MDRM-HD1080')
 
     def _real_extract(self, url):
         video_id = self._match_id(url)
+
+        session = self._get_cookies(url).get('sessivi')
+        if session:
+            session = session.value
 
         data = json.dumps({
             'method': 'da.content.get',
             'params': [
                 video_id, {
+                    'app_version': 5459,
+                    'session': session,
                     'site': 's%d',
-                    'referrer': 'http://www.ivi.ru/watch/%s' % video_id,
+                    '_url': 'https://www.ivi.ru/watch/%s' % video_id,
                     'contentid': video_id
                 }
             ]
         })
 
         bundled = hasattr(sys, 'frozen')
+        site = 353
 
-        for site in (353, 183):
-            content_data = (data % site).encode()
-            if site == 353:
-                if bundled:
-                    continue
-                try:
-                    from Cryptodome.Cipher import Blowfish
-                    from Cryptodome.Hash import CMAC
-                    pycryptodomex_found = True
-                except ImportError:
-                    pycryptodomex_found = False
-                    continue
+        content_data = (data % site).encode()
+        try:
+            from Cryptodome.Cipher import Blowfish
+            from Cryptodome.Hash import CMAC
+        except ImportError:
+            raise ExtractorError(
+                'pycryptodomex not found. Please install it.',
+                expected=True)
 
-                timestamp = (self._download_json(
-                    self._LIGHT_URL, video_id,
-                    'Downloading timestamp JSON', data=json.dumps({
-                        'method': 'da.timestamp.get',
-                        'params': []
-                    }).encode(), fatal=False) or {}).get('result')
-                if not timestamp:
-                    continue
+        timestamp = (self._download_json(
+            self._LIGHT_URL, video_id,
+            'Downloading timestamp JSON', data=json.dumps({
+                'method': 'da.timestamp.get',
+                'params': []
+            }).encode(), fatal=False) or {}).get('result')
 
-                query = {
-                    'ts': timestamp,
-                    'sign': CMAC.new(self._LIGHT_KEY, timestamp.encode() + content_data, Blowfish).hexdigest(),
-                }
-            else:
-                query = {}
+        query = {
+            'app_version': 5459,
+            'ts': timestamp,
+            'sign': CMAC.new(self._LIGHT_KEY, timestamp.encode() + content_data, Blowfish).hexdigest(),
+        }
 
-            video_json = self._download_json(
-                self._LIGHT_URL, video_id,
-                'Downloading video JSON', data=content_data, query=query)
+        video_json = self._download_json(
+            self._LIGHT_URL, video_id,
+            'Downloading video JSON', data=content_data, query=query)
 
-            error = video_json.get('error')
-            if error:
-                origin = error.get('origin')
-                message = error.get('message') or error.get('user_message')
-                extractor_msg = 'Unable to download video %s'
-                if origin == 'NotAllowedForLocation':
-                    self.raise_geo_restricted(message, self._GEO_COUNTRIES)
-                elif origin == 'NoRedisValidData':
-                    extractor_msg = 'Video %s does not exist'
-                elif site == 353:
-                    continue
-                elif bundled:
-                    raise ExtractorError(
-                        'This feature does not work from bundled exe. Run youtube-dl from sources.',
-                        expected=True)
-                elif not pycryptodomex_found:
-                    raise ExtractorError(
-                        'pycryptodomex not found. Please install it.',
-                        expected=True)
-                elif message:
-                    extractor_msg += ': ' + message
-                raise ExtractorError(extractor_msg % video_id, expected=True)
-            else:
-                break
+        error = video_json.get('error')
+        if error:
+            origin = error.get('origin')
+            message = error.get('message') or error.get('user_message')
+            extractor_msg = 'Unable to download video %s'
+            if origin == 'NotAllowedForLocation':
+                self.raise_geo_restricted(message, self._GEO_COUNTRIES)
+            elif origin == 'NoRedisValidData':
+                extractor_msg = 'Video %s does not exist'
+            elif bundled:
+                raise ExtractorError(
+                    'This feature does not work from bundled exe. Run youtube-dl from sources.',
+                    expected=True)
+            elif message:
+                extractor_msg += ': ' + message
+            raise ExtractorError(extractor_msg % video_id, expected=True)
+
 
         result = video_json['result']
         title = result['title']
@@ -163,8 +157,8 @@ class IviIE(InfoExtractor):
         for f in result.get('files', []):
             f_url = f.get('url')
             content_format = f.get('content_format')
-            if not f_url or '-MDRM-' in content_format or '-FPS-' in content_format:
-                continue
+            # if not f_url or '-MDRM-' in content_format or '-FPS-' in content_format:
+            #     continue
             formats.append({
                 'url': f_url,
                 'format_id': content_format,
