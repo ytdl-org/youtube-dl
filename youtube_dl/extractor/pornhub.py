@@ -17,6 +17,7 @@ from ..utils import (
     determine_ext,
     ExtractorError,
     int_or_none,
+    NO_DEFAULT,
     orderedSet,
     remove_quotes,
     str_to_int,
@@ -227,9 +228,9 @@ class PornHubIE(PornHubBaseIE):
         else:
             thumbnail, duration = [None] * 2
 
-        def extract_js_vars(webpage, pattern, fatal=True):
+        def extract_js_vars(webpage, pattern, default=NO_DEFAULT):
             assignments = self._search_regex(
-                pattern, webpage, 'encoded url', fatal=fatal)
+                pattern, webpage, 'encoded url', default=default)
             if not assignments:
                 return {}
 
@@ -270,11 +271,15 @@ class PornHubIE(PornHubBaseIE):
             FORMAT_PREFIXES = ('media', 'quality')
             js_vars = extract_js_vars(
                 webpage, r'(var\s+(?:%s)_.+)' % '|'.join(FORMAT_PREFIXES),
-                fatal=False)
+                default=None)
             if js_vars:
                 for key, format_url in js_vars.items():
                     if any(key.startswith(p) for p in FORMAT_PREFIXES):
                         add_video_url(format_url)
+            if not video_urls and re.search(
+                    r'<[^>]+\bid=["\']lockedPlayer', webpage):
+                raise ExtractorError(
+                    'Video %s is locked' % video_id, expected=True)
 
         if not video_urls:
             js_vars = extract_js_vars(
