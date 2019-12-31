@@ -20,13 +20,13 @@ class ServusIE(InfoExtractor):
             'thumbnail': r're:^https?://.*\.jpg',
         }
     }, {
-        'url': 'https://www.servus.com/at/p/Wie-das-Leben-beginnt/1309984137314-381415152/',
+        'url': 'https://www.servustv.com/at/p/Wie-das-Leben-beginnt/1309984137314-381415152/',
         'only_matching': True,
     }, {
-        'url': 'https://www.servus.com/tv/videos/aa-1t6vbu5pw1w12/',
+        'url': 'https://www.servustv.com/tv/videos/aa-1t6vbu5pw1w12/',
         'only_matching': True,
     }, {
-        'url': 'https://www.servus.com/tv/videos/1380889096408-1235196658/',
+        'url': 'https://www.servustv.com/tv/videos/1380889096408-1235196658/',
         'only_matching': True,
     }]
 
