@@ -1,4 +1,4 @@
-version <unreleased>
+version 2020.01.01
 
 Extractors
 * [brightcove] Invalidate policy key cache on failing requests
