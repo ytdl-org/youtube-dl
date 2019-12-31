@@ -65,7 +65,7 @@ class SpankBangIE(InfoExtractor):
             url.replace('/%s/embed' % video_id, '/%s/video' % video_id),
             video_id, headers={'Cookie': 'country=US'})
 
-        if re.search(r'<[^>]+\bid=["\']video_removed', webpage):
+        if re.search(r'<[^>]+\b(?:id|class)=["\']video_removed', webpage):
             raise ExtractorError(
                 'Video %s is not available' % video_id, expected=True)
 
