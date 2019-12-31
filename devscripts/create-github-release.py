@@ -15,7 +15,6 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from youtube_dl.compat import (
     compat_basestring,
-    compat_input,
     compat_getpass,
     compat_print,
     compat_urllib_request,
@@ -40,28 +39,20 @@ class GitHubReleaser(object):
         try:
             info = netrc.netrc().authenticators(self._NETRC_MACHINE)
             if info is not None:
-                self._username = info[0]
-                self._password = info[2]
+                self._token = info[2]
                 compat_print('Using GitHub credentials found in .netrc...')
                 return
             else:
                 compat_print('No GitHub credentials found in .netrc')
         except (IOError, netrc.NetrcParseError):
             compat_print('Unable to parse .netrc')
-        self._username = compat_input(
-            'Type your GitHub username or email address and press [Return]: ')
-        self._password = compat_getpass(
-            'Type your GitHub password and press [Return]: ')
+        self._token = compat_getpass(
+            'Type your GitHub PAT (personal access token) and press [Return]: ')
 
     def _call(self, req):
         if isinstance(req, compat_basestring):
             req = sanitized_Request(req)
-        # Authorizing manually since GitHub does not response with 401 with
-        # WWW-Authenticate header set (see
-        # https://developer.github.com/v3/#basic-authentication)
-        b64 = base64.b64encode(
-            ('%s:%s' % (self._username, self._password)).encode('utf-8')).decode('ascii')
-        req.add_header('Authorization', 'Basic %s' % b64)
+        req.add_header('Authorization', 'token %s' % self._token)
         response = self._opener.open(req).read().decode('utf-8')
         return json.loads(response)
 
