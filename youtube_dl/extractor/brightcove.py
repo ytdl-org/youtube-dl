@@ -589,6 +589,7 @@ class BrightcoveNewIE(AdobePassIE):
         policy_key_id = '%s_%s' % (account_id, player_id)
         policy_key = self._downloader.cache.load('brightcove', policy_key_id)
         policy_key_extracted = False
+        store_pk = lambda x: self._downloader.cache.store('brightcove', policy_key_id, x)
 
         def extract_policy_key():
             webpage = self._download_webpage(
@@ -610,7 +611,7 @@ class BrightcoveNewIE(AdobePassIE):
                     r'policyKey\s*:\s*(["\'])(?P<pk>.+?)\1',
                     webpage, 'policy key', group='pk')
 
-            self._downloader.cache.store('brightcove', policy_key_id, policy_key)
+            store_pk(policy_key)
             return policy_key
 
         api_url = 'https://edge.api.brightcove.com/playback/v1/accounts/%s/%ss/%s' % (account_id, content_type, video_id)
@@ -638,6 +639,7 @@ class BrightcoveNewIE(AdobePassIE):
                         self.raise_geo_restricted(msg=message)
                     elif json_data.get('error_code') == 'INVALID_POLICY_KEY' and not policy_key_extracted:
                         policy_key = None
+                        store_pk(None)
                         continue
                     raise ExtractorError(message, expected=True)
                 raise
