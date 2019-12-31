@@ -360,6 +360,9 @@ class VKIE(VKBaseIE):
                 r'Access denied':
                 'Access denied to video %s.',
 
+                r'You need to be a member':
+                    'Access denied to video %s.',
+
                 r'Видеозапись недоступна, так как её автор был заблокирован.':
                 'Video %s is no longer available, because its author has been blocked.',
 
