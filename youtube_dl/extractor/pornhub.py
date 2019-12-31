@@ -17,6 +17,7 @@ from ..utils import (
     determine_ext,
     ExtractorError,
     int_or_none,
+    NO_DEFAULT,
     orderedSet,
     remove_quotes,
     str_to_int,
@@ -227,12 +228,13 @@ class PornHubIE(PornHubBaseIE):
         else:
             thumbnail, duration = [None] * 2
 
-        if not video_urls:
-            tv_webpage = dl_webpage('tv')
-
+        def extract_js_vars(webpage, pattern, default=NO_DEFAULT):
             assignments = self._search_regex(
-                r'(var.+?mediastring.+?)</script>', tv_webpage,
-                'encoded url').split(';')
+                pattern, webpage, 'encoded url', default=default)
+            if not assignments:
+                return {}
+
+            assignments = assignments.split(';')
 
             js_vars = {}
 
@@ -254,11 +256,35 @@ class PornHubIE(PornHubBaseIE):
                 assn = re.sub(r'var\s+', '', assn)
                 vname, value = assn.split('=', 1)
                 js_vars[vname] = parse_js_value(value)
+            return js_vars
 
-            video_url = js_vars['mediastring']
-            if video_url not in video_urls_set:
-                video_urls.append((video_url, None))
-                video_urls_set.add(video_url)
+        def add_video_url(video_url):
+            v_url = url_or_none(video_url)
+            if not v_url:
+                return
+            if v_url in video_urls_set:
+                return
+            video_urls.append((v_url, None))
+            video_urls_set.add(v_url)
+
+        if not video_urls:
+            FORMAT_PREFIXES = ('media', 'quality')
+            js_vars = extract_js_vars(
+                webpage, r'(var\s+(?:%s)_.+)' % '|'.join(FORMAT_PREFIXES),
+                default=None)
+            if js_vars:
+                for key, format_url in js_vars.items():
+                    if any(key.startswith(p) for p in FORMAT_PREFIXES):
+                        add_video_url(format_url)
+            if not video_urls and re.search(
+                    r'<[^>]+\bid=["\']lockedPlayer', webpage):
+                raise ExtractorError(
+                    'Video %s is locked' % video_id, expected=True)
+
+        if not video_urls:
+            js_vars = extract_js_vars(
+                dl_webpage('tv'), r'(var.+?mediastring.+?)</script>')
+            add_video_url(js_vars['mediastring'])
 
         for mobj in re.finditer(
                 r'<a[^>]+\bclass=["\']downloadBtn\b[^>]+\bhref=(["\'])(?P<url>(?:(?!\1).)+)\1',
@@ -276,9 +302,15 @@ class PornHubIE(PornHubBaseIE):
                     r'/(\d{6}/\d{2})/', video_url, 'upload data', default=None)
                 if upload_date:
                     upload_date = upload_date.replace('/', '')
-            if determine_ext(video_url) == 'mpd':
+            ext = determine_ext(video_url)
+            if ext == 'mpd':
                 formats.extend(self._extract_mpd_formats(
                     video_url, video_id, mpd_id='dash', fatal=False))
+                continue
+            elif ext == 'm3u8':
+                formats.extend(self._extract_m3u8_formats(
+                    video_url, video_id, 'mp4', entry_protocol='m3u8_native',
+                    m3u8_id='hls', fatal=False))
                 continue
             tbr = None
             mobj = re.search(r'(?P<height>\d+)[pP]?_(?P<tbr>\d+)[kK]', video_url)
@@ -403,6 +435,15 @@ class PornHubUserIE(PornHubPlaylistBaseIE):
 
 
 class PornHubPagedPlaylistBaseIE(PornHubPlaylistBaseIE):
+    @staticmethod
+    def _has_more(webpage):
+        return re.search(
+            r'''(?x)
+                <li[^>]+\bclass=["\']page_next|
+                <link[^>]+\brel=["\']next|
+                <button[^>]+\bid=["\']moreDataBtn
+            ''', webpage) is not None
+
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
         host = mobj.group('host')
@@ -411,13 +452,11 @@ class PornHubPagedPlaylistBaseIE(PornHubPlaylistBaseIE):
         page = int_or_none(self._search_regex(
             r'\bpage=(\d+)', url, 'page', default=None))
 
-        page_url = self._make_page_url(url)
-
         entries = []
         for page_num in (page, ) if page is not None else itertools.count(1):
             try:
                 webpage = self._download_webpage(
-                    page_url, item_id, 'Downloading page %d' % page_num,
+                    url, item_id, 'Downloading page %d' % page_num,
                     query={'page': page_num})
             except ExtractorError as e:
                 if isinstance(e.cause, compat_HTTPError) and e.cause.code == 404:
@@ -547,18 +586,6 @@ class PornHubPagedVideoListIE(PornHubPagedPlaylistBaseIE):
                 if PornHubIE.suitable(url) or PornHubUserIE.suitable(url) or PornHubUserVideosUploadIE.suitable(url)
                 else super(PornHubPagedVideoListIE, cls).suitable(url))
 
-    def _make_page_url(self, url):
-        return url
-
-    @staticmethod
-    def _has_more(webpage):
-        return re.search(
-            r'''(?x)
-                <li[^>]+\bclass=["\']page_next|
-                <link[^>]+\brel=["\']next|
-                <button[^>]+\bid=["\']moreDataBtn
-            ''', webpage) is not None
-
 
 class PornHubUserVideosUploadIE(PornHubPagedPlaylistBaseIE):
     _VALID_URL = r'(?P<url>https?://(?:[^/]+\.)?(?P<host>pornhub\.(?:com|net))/(?:(?:user|channel)s|model|pornstar)/(?P<id>[^/]+)/videos/upload)'
@@ -572,11 +599,3 @@ class PornHubUserVideosUploadIE(PornHubPagedPlaylistBaseIE):
         'url': 'https://www.pornhub.com/model/zoe_ph/videos/upload',
         'only_matching': True,
     }]
-
-    def _make_page_url(self, url):
-        mobj = re.match(self._VALID_URL, url)
-        return '%s/ajax' % mobj.group('url')
-
-    @staticmethod
-    def _has_more(webpage):
-        return True

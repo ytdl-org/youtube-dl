@@ -17,7 +17,8 @@ class XVideosIE(InfoExtractor):
     _VALID_URL = r'''(?x)
                     https?://
                         (?:
-                            (?:www\.)?xvideos\.com/video|
+                            (?:[^/]+\.)?xvideos2?\.com/video|
+                            (?:www\.)?xvideos\.es/video|
                             flashservice\.xvideos\.com/embedframe/|
                             static-hw\.xvideos\.com/swf/xv-player\.swf\?.*?\bid_video=
                         )
@@ -39,6 +40,42 @@ class XVideosIE(InfoExtractor):
     }, {
         'url': 'http://static-hw.xvideos.com/swf/xv-player.swf?id_video=4588838',
         'only_matching': True,
+    }, {
+        'url': 'http://xvideos.com/video4588838/biker_takes_his_girl',
+        'only_matching': True
+    }, {
+        'url': 'https://xvideos.com/video4588838/biker_takes_his_girl',
+        'only_matching': True
+    }, {
+        'url': 'https://xvideos.es/video4588838/biker_takes_his_girl',
+        'only_matching': True
+    }, {
+        'url': 'https://www.xvideos.es/video4588838/biker_takes_his_girl',
+        'only_matching': True
+    }, {
+        'url': 'http://xvideos.es/video4588838/biker_takes_his_girl',
+        'only_matching': True
+    }, {
+        'url': 'http://www.xvideos.es/video4588838/biker_takes_his_girl',
+        'only_matching': True
+    }, {
+        'url': 'http://fr.xvideos.com/video4588838/biker_takes_his_girl',
+        'only_matching': True
+    }, {
+        'url': 'https://fr.xvideos.com/video4588838/biker_takes_his_girl',
+        'only_matching': True
+    }, {
+        'url': 'http://it.xvideos.com/video4588838/biker_takes_his_girl',
+        'only_matching': True
+    }, {
+        'url': 'https://it.xvideos.com/video4588838/biker_takes_his_girl',
+        'only_matching': True
+    }, {
+        'url': 'http://de.xvideos.com/video4588838/biker_takes_his_girl',
+        'only_matching': True
+    }, {
+        'url': 'https://de.xvideos.com/video4588838/biker_takes_his_girl',
+        'only_matching': True
     }]
 
     def _real_extract(self, url):

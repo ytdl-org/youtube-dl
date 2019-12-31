@@ -48,6 +48,16 @@ class TeachableBaseIE(InfoExtractor):
             'https://%s/sign_in' % site, None,
             'Downloading %s login page' % site)
 
+        def is_logged(webpage):
+            return any(re.search(p, webpage) for p in (
+                r'class=["\']user-signout',
+                r'<a[^>]+\bhref=["\']/sign_out',
+                r'Log\s+[Oo]ut\s*<'))
+
+        if is_logged(login_page):
+            self._logged_in = True
+            return
+
         login_url = compat_str(urlh.geturl())
 
         login_form = self._hidden_inputs(login_page)
@@ -78,10 +88,7 @@ class TeachableBaseIE(InfoExtractor):
                 'Go to https://%s/ and accept.' % (site, site), expected=True)
 
         # Successful login
-        if any(re.search(p, response) for p in (
-                r'class=["\']user-signout',
-                r'<a[^>]+\bhref=["\']/sign_out',
-                r'>\s*Log out\s*<')):
+        if is_logged(response):
             self._logged_in = True
             return
 
@@ -158,8 +165,12 @@ class TeachableIE(TeachableBaseIE):
             if any(re.search(p, webpage) for p in (
                     r'class=["\']lecture-contents-locked',
                     r'>\s*Lecture contents locked',
-                    r'id=["\']lecture-locked')):
+                    r'id=["\']lecture-locked',
+                    # https://academy.tailoredtutors.co.uk/courses/108779/lectures/1955313
+                    r'class=["\'](?:inner-)?lesson-locked',
+                    r'>LESSON LOCKED<')):
                 self.raise_login_required('Lecture contents locked')
+            raise ExtractorError('Unable to find video URL')
 
         title = self._og_search_title(webpage, default=None)
 

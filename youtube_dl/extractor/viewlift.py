@@ -13,11 +13,12 @@ from ..utils import (
     js_to_json,
     parse_age_limit,
     parse_duration,
+    try_get,
 )
 
 
 class ViewLiftBaseIE(InfoExtractor):
-    _DOMAINS_REGEX = r'(?:snagfilms|snagxtreme|funnyforfree|kiddovid|winnersview|(?:monumental|lax)sportsnetwork|vayafilm)\.com|hoichoi\.tv'
+    _DOMAINS_REGEX = r'(?:(?:main\.)?snagfilms|snagxtreme|funnyforfree|kiddovid|winnersview|(?:monumental|lax)sportsnetwork|vayafilm)\.com|hoichoi\.tv'
 
 
 class ViewLiftEmbedIE(ViewLiftBaseIE):
@@ -113,7 +114,7 @@ class ViewLiftEmbedIE(ViewLiftBaseIE):
 
 
 class ViewLiftIE(ViewLiftBaseIE):
-    _VALID_URL = r'https?://(?:www\.)?(?P<domain>%s)/(?:films/title|show|(?:news/)?videos?)/(?P<id>[^?#]+)' % ViewLiftBaseIE._DOMAINS_REGEX
+    _VALID_URL = r'https?://(?:www\.)?(?P<domain>%s)(?:/(?:films/title|show|(?:news/)?videos?))?/(?P<id>[^?#]+)' % ViewLiftBaseIE._DOMAINS_REGEX
     _TESTS = [{
         'url': 'http://www.snagfilms.com/films/title/lost_for_life',
         'md5': '19844f897b35af219773fd63bdec2942',
@@ -128,7 +129,7 @@ class ViewLiftIE(ViewLiftBaseIE):
             'categories': 'mincount:3',
             'age_limit': 14,
             'upload_date': '20150421',
-            'timestamp': 1429656819,
+            'timestamp': 1429656820,
         }
     }, {
         'url': 'http://www.snagfilms.com/show/the_world_cut_project/india',
@@ -141,10 +142,26 @@ class ViewLiftIE(ViewLiftBaseIE):
             'description': 'md5:5c168c5a8f4719c146aad2e0dfac6f5f',
             'thumbnail': r're:^https?://.*\.jpg',
             'duration': 979,
-            'categories': 'mincount:2',
             'timestamp': 1399478279,
             'upload_date': '20140507',
         }
+    }, {
+        'url': 'http://main.snagfilms.com/augie_alone/s_2_ep_12_love',
+        'info_dict': {
+            'id': '00000148-7b53-de26-a9fb-fbf306f70020',
+            'display_id': 'augie_alone/s_2_ep_12_love',
+            'ext': 'mp4',
+            'title': 'Augie, Alone:S. 2 Ep. 12 - Love',
+            'description': 'md5:db2a5c72d994f16a780c1eb353a8f403',
+            'thumbnail': r're:^https?://.*\.jpg',
+            'duration': 107,
+        },
+        'params': {
+            'skip_download': True,
+        },
+    }, {
+        'url': 'http://main.snagfilms.com/films/title/the_freebie',
+        'only_matching': True,
     }, {
         # Film is not playable in your area.
         'url': 'http://www.snagfilms.com/films/title/inside_mecca',
@@ -161,6 +178,10 @@ class ViewLiftIE(ViewLiftBaseIE):
         'url': 'https://www.monumentalsportsnetwork.com/videos/john-carlson-postgame-2-25-15',
         'only_matching': True,
     }]
+
+    @classmethod
+    def suitable(cls, url):
+        return False if ViewLiftEmbedIE.suitable(url) else super(ViewLiftIE, cls).suitable(url)
 
     def _real_extract(self, url):
         domain, display_id = re.match(self._VALID_URL, url).groups()
@@ -181,7 +202,21 @@ class ViewLiftIE(ViewLiftBaseIE):
             gist = content_data['gist']
             film_id = gist['id']
             title = gist['title']
-            video_assets = content_data['streamingInfo']['videoAssets']
+            video_assets = try_get(
+                content_data, lambda x: x['streamingInfo']['videoAssets'], dict)
+            if not video_assets:
+                token = self._download_json(
+                    'https://prod-api.viewlift.com/identity/anonymous-token',
+                    film_id, 'Downloading authorization token',
+                    query={'site': 'snagfilms'})['authorizationToken']
+                video_assets = self._download_json(
+                    'https://prod-api.viewlift.com/entitlement/video/status',
+                    film_id, headers={
+                        'Authorization': token,
+                        'Referer': url,
+                    }, query={
+                        'id': film_id
+                    })['video']['streamingInfo']['videoAssets']
 
             formats = []
             mpeg_video_assets = video_assets.get('mpeg') or []
@@ -241,8 +276,9 @@ class ViewLiftIE(ViewLiftBaseIE):
                         if category.get('title')]
                     break
             else:
-                title = self._search_regex(
-                    r'itemprop="title">([^<]+)<', webpage, 'title')
+                title = self._html_search_regex(
+                    (r'itemprop="title">([^<]+)<',
+                     r'(?s)itemprop="title">(.+?)<div'), webpage, 'title')
                 description = self._html_search_regex(
                     r'(?s)<div itemprop="description" class="film-synopsis-inner ">(.+?)</div>',
                     webpage, 'description', default=None) or self._og_search_description(webpage)
