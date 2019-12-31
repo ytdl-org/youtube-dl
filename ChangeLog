@@ -1,3 +1,24 @@
+version <unreleased>
+
+Extractors
+* [brightcove] Invalidate policy key cache on failing requests
+* [pornhub] Improve locked videos detection (#22449, #22780)
++ [pornhub] Add support for m3u8 formats
+* [pornhub] Fix extraction (#22749, #23082)
+* [brightcove] Update policy key on failing requests
+* [spankbang] Improve removed video detection (#23423)
+* [spankbang] Fix extraction (#23307, #23423, #23444)
+* [soundcloud] Automatically update client id on failing requests
+* [prosiebensat1] Improve geo restriction handling (#23571)
+* [brightcove] Cache brightcove player policy keys
+* [teachable] Fail with error message if no video URL found
+* [teachable] Improve locked lessons detection (#23528)
++ [scrippsnetworks] Add support for Scripps Networks sites (#19857, #22981)
+* [mitele] Fix extraction (#21354, #23456)
+* [soundcloud] Update client id (#23516)
+* [mailru] Relax URL regular expressions (#23509)
+
+
 version 2019.12.25
 
 Core
