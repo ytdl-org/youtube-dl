@@ -312,7 +312,8 @@ def parseOpts(overrideArguments=None):
         metavar='FILTER', dest='match_filter', default=None,
         help=(
             'Generic video filter. '
-            'Specify any key (see the "OUTPUT TEMPLATE" for a list of available keys) to '
+            'Specify any key (see the "OUTPUT TEMPLATE" section in README.md '
+            'for a list of available keys) to '
             'match if the key is present, '
             '!key to check if the key is not present, '
             'key > NUMBER (like "comment_count > 12", also works with '
@@ -393,7 +394,8 @@ def parseOpts(overrideArguments=None):
     video_format.add_option(
         '-f', '--format',
         action='store', dest='format', metavar='FORMAT', default=None,
-        help='Video format code, see the "FORMAT SELECTION" for all the info')
+        help='Video format code, see the "FORMAT SELECTION" section in '
+             'README.md for all the info')
     video_format.add_option(
         '--all-formats',
         action='store_const', dest='format', const='all',
@@ -625,7 +627,8 @@ def parseOpts(overrideArguments=None):
     verbosity.add_option(
         '-j', '--dump-json',
         action='store_true', dest='dumpjson', default=False,
-        help='Simulate, quiet but print JSON information. See the "OUTPUT TEMPLATE" for a description of available keys.')
+        help='Simulate, quiet but print JSON information. See the "OUTPUT '
+             'TEMPLATE" section in README.md for a description of available keys.')
     verbosity.add_option(
         '-J', '--dump-single-json',
         action='store_true', dest='dump_single_json', default=False,
@@ -688,7 +691,8 @@ def parseOpts(overrideArguments=None):
     filesystem.add_option(
         '-o', '--output',
         dest='outtmpl', metavar='TEMPLATE',
-        help=('Output filename template, see the "OUTPUT TEMPLATE" for all the info'))
+        help=('Output filename template, see the "OUTPUT TEMPLATE" section in '
+              'the README.md for all the info'))
     filesystem.add_option(
         '--autonumber-size',
         dest='autonumber_size', metavar='NUMBER', type=int,
