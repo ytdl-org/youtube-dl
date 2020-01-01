@@ -2,6 +2,7 @@
 
 from __future__ import unicode_literals
 
+import hashlib
 import os
 import re
 import sys
@@ -2272,7 +2273,7 @@ class GenericIE(InfoExtractor):
             force_videoid = smuggled_data['force_videoid']
             video_id = force_videoid
         else:
-            video_id = self._generic_id(url)
+            video_id = self._generic_id(url) + '-' + hashlib.sha1(url.encode()).hexdigest()[:8]
 
         self.to_screen('%s: Requesting header' % video_id)
 
