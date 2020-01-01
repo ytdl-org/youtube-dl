@@ -15,6 +15,7 @@ from ..compat import (
     compat_urlparse,
 )
 from ..utils import (
+    error_to_compat_str,
     ExtractorError,
     float_or_none,
     HEADRequest,
@@ -272,6 +273,9 @@ class SoundcloudIE(InfoExtractor):
         'original': 0,
     }
 
+    def _store_client_id(self, client_id):
+        self._downloader.cache.store('soundcloud', 'client_id', client_id)
+
     def _update_client_id(self):
         webpage = self._download_webpage('https://soundcloud.com/', None)
         for src in reversed(re.findall(r'<script[^>]+src="([^"]+)"', webpage)):
@@ -282,11 +286,14 @@ class SoundcloudIE(InfoExtractor):
                     script, 'client id', default=None)
                 if client_id:
                     self._CLIENT_ID = client_id
-                    self._downloader.cache.store('soundcloud', 'client_id', client_id)
+                    self._store_client_id(client_id)
                     return
         raise ExtractorError('Unable to extract client id')
 
     def _download_json(self, *args, **kwargs):
+        non_fatal = kwargs.get('fatal') is False
+        if non_fatal:
+            del kwargs['fatal']
         query = kwargs.get('query', {}).copy()
         for _ in range(2):
             query['client_id'] = self._CLIENT_ID
@@ -295,8 +302,12 @@ class SoundcloudIE(InfoExtractor):
                 return super(SoundcloudIE, self)._download_json(*args, **compat_kwargs(kwargs))
             except ExtractorError as e:
                 if isinstance(e.cause, compat_HTTPError) and e.cause.code == 401:
+                    self._store_client_id(None)
                     self._update_client_id()
                     continue
+                elif non_fatal:
+                    self._downloader.report_warning(error_to_compat_str(e))
+                    return False
                 raise
 
     def _real_initialize(self):
