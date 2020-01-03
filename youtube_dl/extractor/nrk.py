@@ -16,6 +16,7 @@ from ..utils import (
     parse_age_limit,
     parse_duration,
     try_get,
+    js_to_json,
 )
 
 
@@ -437,10 +438,11 @@ class NRKTVEpisodeIE(InfoExtractor):
 class NRKTVSerieBaseIE(InfoExtractor):
     def _extract_series(self, webpage, display_id, fatal=True):
         config = self._parse_json(
-            self._search_regex(
-                (r'INITIAL_DATA(?:_V\d)?_*\s*=\s*({.+?})\s*;',
-                 r'({.+?})\s*,\s*"[^"]+"\s*\)\s*</script>'),
-                webpage.replace("undefined", '"undefined"'), 'config', default='{}' if not fatal else NO_DEFAULT),
+            js_to_json(
+                self._search_regex(
+                    (r'INITIAL_DATA(?:_V\d)?_*\s*=\s*({.+?})\s*;',
+                     r'({.+?})\s*,\s*"[^"]+"\s*\)\s*</script>'),
+                    webpage, 'config', default='{}' if not fatal else NO_DEFAULT)),
             display_id, fatal=False)
         if not config:
             return
@@ -515,8 +517,7 @@ class NRKTVSeriesIE(NRKTVSerieBaseIE):
         'info_dict': {
             'id': 'blank',
             'title': 'Blank',
-            'description': 'Da Markus dro fra bygda var han den kuleste fyren med den fineste dama. '
-                           'Etter kort tid er han tilbake. Og ingenting er som før. Norsk dramaserie.',
+            'description': 'Da Markus dro fra bygda var han den kuleste fyren med den fineste dama. Etter kort tid er han tilbake. Og ingenting er som før. Norsk dramaserie.',
             'age_limit': None
         },
         'playlist_mincount': 30,
