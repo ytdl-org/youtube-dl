@@ -49,16 +49,14 @@ class LemondeIE(InfoExtractor):
         display_id = self._match_id(url)
         webpage = self._download_webpage(url, display_id)
 
+        digiteka_url = self._proto_relative_url(self._search_regex(r'url\s*:\s*(["\'])(?P<url>(?:https?://)?//(?:www\.)?(?:digiteka\.net|ultimedia\.com)/deliver/.+?)\1',webpage, 'digiteka url', group='url', default=None))
+        if digiteka_url:
+            return self.url_result(digiteka_url, 'Digiteka')
+
         mobj = re.search(r'data-id="(?P<id>.+)" data-provider="(?P<provider>[^ ]+)"', webpage)
-        video_id = mobj.group('id')
-        provider = mobj.group('provider')
+        video_id = mobj.group('id') if mobj else display_id
+        provider = mobj.group('provider') if mobj else ""
 
-        if(provider not in self._PROVIDERS):
-            raise ExtractorError('Unsupported provider ' % provider)
+        embeded_url = self._PROVIDERS.get(provider, "{}").format(video_id)
 
-        embeded_url = self._PROVIDERS.get(provider, "").format(video_id)
-
-        return {
-            '_type': 'url',
-            'url': embeded_url
-        }
+        return self.url_result(embeded_url, video_id=video_id)
