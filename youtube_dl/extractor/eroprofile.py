@@ -82,7 +82,7 @@ class EroProfileIE(InfoExtractor):
         title = self._html_search_regex(
             [r'<h1[^>]*>([^<]+)</h1>', r'Title:</th><td>([^<]+)</td>'],
             webpage, 'title')
-        thumbnail = self._search_regex(
+        thumbnail = self._html_search_regex(
             [r'<div class="playlistItem current">.*?<img src="([^"]+)"', r'onclick="showVideoPlayer\(\)"><img src="([^"]+)'],
             webpage, 'thumbnail', fatal=False)
 
