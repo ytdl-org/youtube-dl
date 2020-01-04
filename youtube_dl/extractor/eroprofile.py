@@ -80,9 +80,10 @@ class EroProfileIE(InfoExtractor):
         video_url = unescapeHTML(self._search_regex(
             r'<source src="([^"]+)', webpage, 'video url'))
         title = self._html_search_regex(
-            r'<h1[^>]*>([^<]+)</h1>', webpage, 'title')
+            [r'<h1[^>]*>([^<]+)</h1>', r'Title:</th><td>([^<]+)</td>'],
+            webpage, 'title')
         thumbnail = self._search_regex(
-            r'<div class="playlistItem current">.*<img src="([^"]+)"',
+            [r'<div class="playlistItem current">.*<img src="([^"]+)"', r'onclick="showVideoPlayer\(\)"><img src="([^"]+)'],
             webpage, 'thumbnail', fatal=False)
 
         return {
