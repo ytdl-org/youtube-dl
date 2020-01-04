@@ -3,7 +3,12 @@ from __future__ import unicode_literals
 
 import re
 
+from .common import InfoExtractor
 from .dplay import DPlayIE
+
+from ..utils import (
+    urljoin
+)
 
 
 class DiscoveryNetworksDeIE(DPlayIE):
@@ -38,3 +43,45 @@ class DiscoveryNetworksDeIE(DPlayIE):
         return self._get_disco_api_info(
             url, '%s/%s' % (programme, alternate_id),
             'sonic-eu1-prod.disco-api.com', realm, country)
+
+
+class DiscoveryNetworksDePlaylistIE(InfoExtractor):
+    _VALID_URL = r'https?://(?:www\.)?(?P<domain>(?:tlc|dmax)\.de|dplay\.co\.uk)/(?P<type>programme|show)/(?P<programme>[^/]+)'
+
+    _TESTS = [{
+        'url': 'https://www.dplay.co.uk/show/hairy-bikers-mississippi-adventure',
+        'only_matching': True
+    },{
+        'url': 'https://www.dmax.de/programme/naked-survival',
+        'only_matching': True
+    }]
+
+    @classmethod
+    def suitable(cls, url):
+        return False if DiscoveryNetworksDeIE.suitable(url) else super(
+            DiscoveryNetworksDePlaylistIE, cls).suitable(url)
+
+    def _extract_episodes(self, url, webpage, _type, program):
+        episodes = []
+        for episode in re.finditer(r'"path":"' + program + r'(?P<episode>/.+?)"', webpage):
+            episode_url = urljoin( url, '/' + _type + '/' + program + '/video' + episode.group('episode'))
+            if episode_url not in episodes:
+                episodes.append(episode_url)
+        return episodes
+
+    def _real_extract(self, url):
+        domain, _type, programme = re.match(self._VALID_URL, url).groups()
+        webpage = self._download_webpage(url, programme)
+
+        title = self._html_search_regex(
+            r'<div class=".*?show-header__title">(.+?)</div>', webpage,
+            'title', default=None)
+
+        if title:
+            title = re.sub(r'\s*\|\s*.+?$', '', title)
+
+        episodes = self._extract_episodes(url, webpage, _type, programme)
+
+        entries = [self.url_result(ep, ie=DiscoveryNetworksDeIE.ie_key()) for ep in episodes]
+
+        return self.playlist_result(entries, programme, title)
