@@ -277,6 +277,7 @@ from .drbonanza import DRBonanzaIE
 from .drtuber import DrTuberIE
 from .drtv import (
     DRTVIE,
+    DRTVPlaylistIE,
     DRTVLiveIE,
 )
 from .dtube import DTubeIE
@@ -288,7 +289,10 @@ from .discoverygo import (
     DiscoveryGoIE,
     DiscoveryGoPlaylistIE,
 )
-from .discoverynetworks import DiscoveryNetworksDeIE
+from .discoverynetworks import (
+    DiscoveryNetworksDeIE,
+    DiscoveryNetworksDePlaylistIE
+)
 from .discoveryvr import DiscoveryVRIE
 from .disney import DisneyIE
 from .dispeak import DigitallySpeakingIE
