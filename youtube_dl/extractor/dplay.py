@@ -183,10 +183,19 @@ class DPlayIE(InfoExtractor):
                 formats.extend(self._extract_mpd_formats(
                     format_url, display_id, mpd_id='dash', fatal=False))
             elif format_id == 'hls' or ext == 'm3u8':
-                formats.extend(self._extract_m3u8_formats(
+                temp_formats = self._extract_m3u8_formats(
                     format_url, display_id, 'mp4',
                     entry_protocol='m3u8_native', m3u8_id='hls',
-                    fatal=False))
+                    fatal=False)
+
+                for f in temp_formats:
+                    if f['ext'] == 'mp4' and f['vcodec'] == 'none' and 'mp4a' in f['format_id']:
+                        for i in f['format_id'].split('-'):
+                            if 'mp4a' in i:
+                                splitted_format = i.split('mp4a')
+                                f['acodec'] = 'mp4a' + splitted_format[1]
+                                f['tbr'] = int(splitted_format[0])/1000
+                formats.extend(temp_formats)
             else:
                 formats.append({
                     'url': format_url,
