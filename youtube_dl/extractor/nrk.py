@@ -265,7 +265,7 @@ class NRKTVIE(NRKBaseIE):
             'title': 'Alarm Trolltunga',
             'description': 'md5:46923a6e6510eefcce23d5ef2a58f2ce',
             'duration': 2223,
-            'age_limit': 6
+            'age_limit': 6,
         },
     }, {
         'url': 'https://tv.nrk.no/serie/20-spoersmaal-tv/MUHH48000314/23-05-2014',
@@ -396,7 +396,7 @@ class NRKTVEpisodeIE(InfoExtractor):
             'season_number': 1,
             'episode_number': 2,
             'episode': '2:6',
-            'age_limit': 6
+            'age_limit': 6,
         },
         'params': {
             'skip_download': True,
