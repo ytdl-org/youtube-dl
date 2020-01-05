@@ -389,7 +389,7 @@ class NRKTVEpisodeIE(InfoExtractor):
             'id': 'MUHH36005220BA',
             'ext': 'mp4',
             'title': 'Kro, krig og kjærlighet 2:6',
-            'description': 'Jan tviholder på sine prinsipper. Oddbjørn er skeptisk til Jans evne til å lede dem og bestemmer seg for å ta saken i egne hender.',
+            'description': 'md5:b32a7dc0b1ed27c8064f58b97bda4350',
             'duration': 1563,
             'series': 'Hellums kro',
             'season_number': 1,
@@ -436,12 +436,11 @@ class NRKTVEpisodeIE(InfoExtractor):
 class NRKTVSerieBaseIE(InfoExtractor):
     def _extract_series(self, webpage, display_id, fatal=True):
         config = self._parse_json(
-            js_to_json(
-                self._search_regex(
-                    (r'INITIAL_DATA(?:_V\d)?_*\s*=\s*({.+?})\s*;',
-                     r'({.+?})\s*,\s*"[^"]+"\s*\)\s*</script>'),
-                    webpage, 'config', default='{}' if not fatal else NO_DEFAULT)),
-            display_id, fatal=False)
+            self._search_regex(
+                (r'INITIAL_DATA(?:_V\d)?_*\s*=\s*({.+?})\s*;',
+                 r'({.+?})\s*,\s*"[^"]+"\s*\)\s*</script>'),
+                webpage, 'config', default='{}' if not fatal else NO_DEFAULT),
+            display_id, fatal=False, transform_source=js_to_json)
         if not config:
             return
         return try_get(
@@ -515,7 +514,7 @@ class NRKTVSeriesIE(NRKTVSerieBaseIE):
         'info_dict': {
             'id': 'blank',
             'title': 'Blank',
-            'description': 'Da Markus dro fra bygda var han den kuleste fyren med den fineste dama. Etter kort tid er han tilbake. Og ingenting er som før. Norsk dramaserie.',
+            'description': 'md5:7664b4e7e77dc6810cd3bca367c25b6e',
         },
         'playlist_mincount': 30,
     }, {
