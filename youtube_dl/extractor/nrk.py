@@ -11,12 +11,12 @@ from ..compat import (
 from ..utils import (
     ExtractorError,
     int_or_none,
+    js_to_json,
     JSON_LD_RE,
     NO_DEFAULT,
     parse_age_limit,
     parse_duration,
     try_get,
-    js_to_json,
 )
 
 
@@ -389,9 +389,7 @@ class NRKTVEpisodeIE(InfoExtractor):
             'id': 'MUHH36005220BA',
             'ext': 'mp4',
             'title': 'Kro, krig og kjærlighet 2:6',
-            'description': 'Jan tviholder på sine prinsipper. '
-                           'Oddbjørn er skeptisk til Jans evne til å lede '
-                           'dem og bestemmer seg for å ta saken i egne hender.',
+            'description': 'Jan tviholder på sine prinsipper. Oddbjørn er skeptisk til Jans evne til å lede dem og bestemmer seg for å ta saken i egne hender.',
             'duration': 1563,
             'series': 'Hellums kro',
             'season_number': 1,
@@ -518,7 +516,6 @@ class NRKTVSeriesIE(NRKTVSerieBaseIE):
             'id': 'blank',
             'title': 'Blank',
             'description': 'Da Markus dro fra bygda var han den kuleste fyren med den fineste dama. Etter kort tid er han tilbake. Og ingenting er som før. Norsk dramaserie.',
-            'age_limit': None
         },
         'playlist_mincount': 30,
     }, {
