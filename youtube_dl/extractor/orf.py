@@ -192,7 +192,7 @@ class ORFRadioIE(InfoExtractor):
 class ORFFM4IE(ORFRadioIE):
     IE_NAME = 'orf:fm4'
     IE_DESC = 'radio FM4'
-    _VALID_URL = r'https?://(?P<station>fm4)\.orf\.at/player/(?P<date>[0-9]+)/(?P<show>\w+)'
+    _VALID_URL = r'https?://(?P<station>fm4)\.orf\.at/player/(?P<date>[0-9]+)/(?P<show>4\w+)'
 
     _TEST = {
         'url': 'https://fm4.orf.at/player/20200101/4HOP',
