@@ -11,8 +11,8 @@ from ..compat import (
 from ..utils import (
     ExtractorError,
     int_or_none,
-    js_to_json,
     JSON_LD_RE,
+    js_to_json,
     NO_DEFAULT,
     parse_age_limit,
     parse_duration,
