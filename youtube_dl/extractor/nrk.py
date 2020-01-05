@@ -12,6 +12,7 @@ from ..utils import (
     ExtractorError,
     int_or_none,
     JSON_LD_RE,
+    js_to_json,
     NO_DEFAULT,
     parse_age_limit,
     parse_duration,
@@ -105,6 +106,7 @@ class NRKBaseIE(InfoExtractor):
             MESSAGES = {
                 'ProgramRightsAreNotReady': 'Du kan dessverre ikke se eller høre programmet',
                 'ProgramRightsHasExpired': 'Programmet har gått ut',
+                'NoProgramRights': 'Ikke tilgjengelig',
                 'ProgramIsGeoBlocked': 'NRK har ikke rettigheter til å vise dette programmet utenfor Norge',
             }
             message_type = data.get('messageType', '')
@@ -255,6 +257,17 @@ class NRKTVIE(NRKBaseIE):
                     ''' % _EPISODE_RE
     _API_HOSTS = ('psapi-ne.nrk.no', 'psapi-we.nrk.no')
     _TESTS = [{
+        'url': 'https://tv.nrk.no/program/MDDP12000117',
+        'md5': '8270824df46ec629b66aeaa5796b36fb',
+        'info_dict': {
+            'id': 'MDDP12000117AA',
+            'ext': 'mp4',
+            'title': 'Alarm Trolltunga',
+            'description': 'md5:46923a6e6510eefcce23d5ef2a58f2ce',
+            'duration': 2223,
+            'age_limit': 6,
+        },
+    }, {
         'url': 'https://tv.nrk.no/serie/20-spoersmaal-tv/MUHH48000314/23-05-2014',
         'md5': '9a167e54d04671eb6317a37b7bc8a280',
         'info_dict': {
@@ -266,6 +279,7 @@ class NRKTVIE(NRKBaseIE):
             'series': '20 spørsmål',
             'episode': '23.05.2014',
         },
+        'skip': 'NoProgramRights',
     }, {
         'url': 'https://tv.nrk.no/program/mdfp15000514',
         'info_dict': {
@@ -370,7 +384,24 @@ class NRKTVIE(NRKBaseIE):
 
 class NRKTVEpisodeIE(InfoExtractor):
     _VALID_URL = r'https?://tv\.nrk\.no/serie/(?P<id>[^/]+/sesong/\d+/episode/\d+)'
-    _TEST = {
+    _TESTS = [{
+        'url': 'https://tv.nrk.no/serie/hellums-kro/sesong/1/episode/2',
+        'info_dict': {
+            'id': 'MUHH36005220BA',
+            'ext': 'mp4',
+            'title': 'Kro, krig og kjærlighet 2:6',
+            'description': 'md5:b32a7dc0b1ed27c8064f58b97bda4350',
+            'duration': 1563,
+            'series': 'Hellums kro',
+            'season_number': 1,
+            'episode_number': 2,
+            'episode': '2:6',
+            'age_limit': 6,
+        },
+        'params': {
+            'skip_download': True,
+        },
+    }, {
         'url': 'https://tv.nrk.no/serie/backstage/sesong/1/episode/8',
         'info_dict': {
             'id': 'MSUI14000816AA',
@@ -386,7 +417,8 @@ class NRKTVEpisodeIE(InfoExtractor):
         'params': {
             'skip_download': True,
         },
-    }
+        'skip': 'ProgramRightsHasExpired',
+    }]
 
     def _real_extract(self, url):
         display_id = self._match_id(url)
@@ -409,7 +441,7 @@ class NRKTVSerieBaseIE(InfoExtractor):
                 (r'INITIAL_DATA(?:_V\d)?_*\s*=\s*({.+?})\s*;',
                  r'({.+?})\s*,\s*"[^"]+"\s*\)\s*</script>'),
                 webpage, 'config', default='{}' if not fatal else NO_DEFAULT),
-            display_id, fatal=False)
+            display_id, fatal=False, transform_source=js_to_json)
         if not config:
             return
         return try_get(
@@ -479,6 +511,14 @@ class NRKTVSeriesIE(NRKTVSerieBaseIE):
     _VALID_URL = r'https?://(?:tv|radio)\.nrk(?:super)?\.no/serie/(?P<id>[^/]+)'
     _ITEM_RE = r'(?:data-season=["\']|id=["\']season-)(?P<id>\d+)'
     _TESTS = [{
+        'url': 'https://tv.nrk.no/serie/blank',
+        'info_dict': {
+            'id': 'blank',
+            'title': 'Blank',
+            'description': 'md5:7664b4e7e77dc6810cd3bca367c25b6e',
+        },
+        'playlist_mincount': 30,
+    }, {
         # new layout, seasons
         'url': 'https://tv.nrk.no/serie/backstage',
         'info_dict': {
@@ -648,7 +688,7 @@ class NRKSkoleIE(InfoExtractor):
 
     _TESTS = [{
         'url': 'https://www.nrk.no/skole/?page=search&q=&mediaId=14099',
-        'md5': '6bc936b01f9dd8ed45bc58b252b2d9b6',
+        'md5': '18c12c3d071953c3bf8d54ef6b2587b7',
         'info_dict': {
             'id': '6021',
             'ext': 'mp4',
