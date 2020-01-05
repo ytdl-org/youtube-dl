@@ -268,6 +268,7 @@ class NRKTVIE(NRKBaseIE):
             'age_limit': 6
         },
     }, {
+        # NoProgramRights
         'url': 'https://tv.nrk.no/serie/20-spoersmaal-tv/MUHH48000314/23-05-2014',
         'md5': '9a167e54d04671eb6317a37b7bc8a280',
         'info_dict': {
@@ -279,6 +280,7 @@ class NRKTVIE(NRKBaseIE):
             'series': '20 spørsmål',
             'episode': '23.05.2014',
         },
+        'only_matching': True,
     }, {
         'url': 'https://tv.nrk.no/program/mdfp15000514',
         'info_dict': {
