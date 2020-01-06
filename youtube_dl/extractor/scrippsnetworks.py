@@ -132,7 +132,7 @@ class ScrippsNetworksIE(InfoExtractor):
         'url': 'https://www.travelchannel.com/videos/two-climates-one-bag-5302184',
         'only_matching': True,
     }, {
-        'url': 'https://www.travelchannel.com/videos/two-climates-one-bag-5302184',
+        'url': 'https://www.discovery.com/videos/guardians-of-the-glades-cooking-with-tom-cobb-5578368',
         'only_matching': True,
     }]
     _ACCOUNT_MAP = {
