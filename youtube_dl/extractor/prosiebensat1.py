@@ -16,7 +16,7 @@ from ..utils import (
 
 
 class ProSiebenSat1BaseIE(InfoExtractor):
-    _GEO_COUNTRIES = ['DE']
+    _GEO_BYPASS = False
     _ACCESS_ID = None
     _SUPPORTED_PROTOCOLS = 'dash:clear,hls:clear,progressive:clear'
     _V4_BASE_URL = 'https://vas-v4.p7s1video.net/4.0/get'
@@ -39,14 +39,18 @@ class ProSiebenSat1BaseIE(InfoExtractor):
         formats = []
         if self._ACCESS_ID:
             raw_ct = self._ENCRYPTION_KEY + clip_id + self._IV + self._ACCESS_ID
-            server_token = (self._download_json(
+            protocols = self._download_json(
                 self._V4_BASE_URL + 'protocols', clip_id,
                 'Downloading protocols JSON',
                 headers=self.geo_verification_headers(), query={
                     'access_id': self._ACCESS_ID,
                     'client_token': sha1((raw_ct).encode()).hexdigest(),
                     'video_id': clip_id,
-                }, fatal=False) or {}).get('server_token')
+                }, fatal=False, expected_status=(403,)) or {}
+            error = protocols.get('error') or {}
+            if error.get('title') == 'Geo check failed':
+                self.raise_geo_restricted(countries=['AT', 'CH', 'DE'])
+            server_token = protocols.get('server_token')
             if server_token:
                 urls = (self._download_json(
                     self._V4_BASE_URL + 'urls', clip_id, 'Downloading urls JSON', query={
