@@ -436,6 +436,7 @@ class PeerTubeIE(InfoExtractor):
             'uploader': 'Framasoft',
             'uploader_id': 'framasoft@framatube.org',
             'uploader_url': 'https://framatube.org/accounts/framasoft',
+            'language': 'en',
             'license': 'Attribution - Share Alike',
             'duration': 113,
             'view_count': int,
@@ -534,6 +535,8 @@ class PeerTubeIE(InfoExtractor):
             'uploader': account_data('displayName'),
             'uploader_id': '%s@%s' % (account_data('name'), account_data('host')),
             'uploader_url': account_data('url'),
+            'language': try_get(
+                video, lambda x: x['language']['id'], compat_str),
             'license': try_get(
                 video, lambda x: x['licence']['label'], compat_str),
             'duration': int_or_none(video.get('duration')),
