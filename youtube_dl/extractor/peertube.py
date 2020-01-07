@@ -496,6 +496,9 @@ class PeerTubeIE(InfoExtractor):
         video_description = self._download_json(
             'https://%s/api/v1/videos/%s/description' % (host, video_id), video_id)
 
+        video_captions = self._download_json(
+            'https://%s/api/v1/videos/%s/captions' % (host, video_id), video_id)
+
         title = video['name']
 
         formats = []
@@ -516,6 +519,13 @@ class PeerTubeIE(InfoExtractor):
             })
             formats.append(f)
         self._sort_formats(formats)
+
+        subtitles = {}
+        for entry in video_captions['data']:
+            caption_url = 'https://%s%s' % (host, entry['captionPath'])
+            subtitles[entry['language']['id']] = [{
+                'url': caption_url
+            }]
 
         def account_data(field):
             return try_get(video, lambda x: x['account'][field], compat_str)
@@ -550,4 +560,5 @@ class PeerTubeIE(InfoExtractor):
             'tags': try_get(video, lambda x: x['tags'], list),
             'categories': categories,
             'formats': formats,
+            'subtitles': subtitles
         }
