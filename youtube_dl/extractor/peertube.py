@@ -8,6 +8,7 @@ from ..compat import compat_str
 from ..utils import (
     int_or_none,
     parse_resolution,
+    str_or_none,
     try_get,
     unified_timestamp,
     url_or_none,
@@ -423,26 +424,30 @@ class PeerTubeIE(InfoExtractor):
                     (?P<id>%s)
                     ''' % (_INSTANCES_RE, _UUID_RE)
     _TESTS = [{
-        'url': 'https://peertube.cpy.re/videos/watch/2790feb0-8120-4e63-9af3-c943c69f5e6c',
-        'md5': '80f24ff364cc9d333529506a263e7feb',
+        'url': 'https://framatube.org/videos/watch/9c9de5e8-0a1e-484a-b099-e80766180a6d',
+        'md5': '9bed8c0137913e17b86334e5885aacff',
         'info_dict': {
-            'id': '2790feb0-8120-4e63-9af3-c943c69f5e6c',
+            'id': '9c9de5e8-0a1e-484a-b099-e80766180a6d',
             'ext': 'mp4',
-            'title': 'wow',
-            'description': 'wow such video, so gif',
+            'title': 'What is PeerTube?',
+            'description': '**[Want to help to translate this video?](https://weblate.framasoft.org/projects/what-is-peertube-video/)**\r\n\r\n**Take back the control of your videos! [#JoinPeertube](https://joinpeertube.org)**\r\n*A decentralized video hosting network, based on free/libre software!*\r\n\r\n**Animation Produced by:** [LILA](https://libreart.info) - [ZeMarmot Team](https://film.zemarmot.net)\r\n*Directed by* Aryeom\r\n*Assistant* Jehan\r\n**Licence**: [CC-By-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/)\r\n\r\n**Sponsored by** [Framasoft](https://framasoft.org)\r\n\r\n**Music**: [Red Step Forward](http://play.dogmazic.net/song.php?song_id=52491) - CC-By Ken Bushima\r\n\r\n**Movie Clip**: [Caminades 3: Llamigos](http://www.caminandes.com/) CC-By Blender Institute\r\n\r\n**Video sources**: https://gitlab.gnome.org/Jehan/what-is-peertube/',
             'thumbnail': r're:https?://.*\.(?:jpg|png)',
-            'timestamp': 1519297480,
-            'upload_date': '20180222',
-            'uploader': 'Luclu7',
-            'uploader_id': '7fc42640-efdb-4505-a45d-a15b1a5496f1',
-            'uploder_url': 'https://peertube.nsa.ovh/accounts/luclu7',
-            'license': 'Unknown',
-            'duration': 3,
+            'timestamp': 1538391166,
+            'upload_date': '20181001',
+            'uploader': 'Framasoft',
+            'uploader_id': '3',
+            'uploader_url': 'https://framatube.org/accounts/framasoft',
+            'channel': 'Les vidéos de Framasoft',
+            'channel_id': '2',
+            'channel_url': 'https://framatube.org/video-channels/bf54d359-cfad-4935-9d45-9d6be93f63e8',
+            'language': 'en',
+            'license': 'Attribution - Share Alike',
+            'duration': 113,
             'view_count': int,
             'like_count': int,
             'dislike_count': int,
-            'tags': list,
-            'categories': list,
+            'tags': ['framasoft', 'peertube'],
+            'categories': ['Science & Technology'],
         }
     }, {
         'url': 'https://peertube.tamanoir.foucry.net/videos/watch/0b04f13d-1e18-4f1d-814e-4979aa7c9c44',
@@ -484,6 +489,23 @@ class PeerTubeIE(InfoExtractor):
                 entries = [peertube_url]
         return entries
 
+    def _get_subtitles(self, host, video_id):
+        video_captions = self._download_json(
+            'https://%s/api/v1/videos/%s/captions' % (host, video_id), video_id, fatal=False)
+        if not isinstance(video_captions, dict):
+            return None
+
+        subtitles = {}
+        for entry in video_captions.get('data'):
+            language_id = try_get(entry, lambda x: x['language']['id'], compat_str)
+            caption_path = str_or_none(entry.get('captionPath'))
+            if language_id and caption_path:
+                caption_url = urljoin('https://%s' % host, entry.get('captionPath'))
+                subtitles.setdefault(language_id, []).append({
+                    'url': caption_url,
+                })
+        return subtitles
+
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
         host = mobj.group('host') or mobj.group('host_2')
@@ -513,10 +535,25 @@ class PeerTubeIE(InfoExtractor):
             formats.append(f)
         self._sort_formats(formats)
 
-        def account_data(field):
-            return try_get(video, lambda x: x['account'][field], compat_str)
+        video_description = self._download_json(
+            'https://%s/api/v1/videos/%s/description' % (host, video_id), video_id, fatal=False)
 
-        category = try_get(video, lambda x: x['category']['label'], compat_str)
+        description = None
+        if isinstance(video_description, dict):
+            description = str_or_none(video_description.get('description'))
+
+        subtitles = self.extract_subtitles(host, video_id)
+
+        def data(section, field, type_):
+            return try_get(video, lambda x: x[section][field], type_)
+
+        def account_data(field, type_):
+            return data('account', field, type_)
+
+        def channel_data(field, type_):
+            return data('channel', field, type_)
+
+        category = data('category', 'label', compat_str)
         categories = [category] if category else None
 
         nsfw = video.get('nsfw')
@@ -528,14 +565,17 @@ class PeerTubeIE(InfoExtractor):
         return {
             'id': video_id,
             'title': title,
-            'description': video.get('description'),
+            'description': description,
             'thumbnail': urljoin(url, video.get('thumbnailPath')),
             'timestamp': unified_timestamp(video.get('publishedAt')),
-            'uploader': account_data('displayName'),
-            'uploader_id': account_data('uuid'),
-            'uploder_url': account_data('url'),
-            'license': try_get(
-                video, lambda x: x['licence']['label'], compat_str),
+            'uploader': account_data('displayName', compat_str),
+            'uploader_id': str(account_data('id', int)),
+            'uploader_url': url_or_none(account_data('url', compat_str)),
+            'channel': channel_data('displayName', compat_str),
+            'channel_id': str(channel_data('id', int)),
+            'channel_url': url_or_none(channel_data('url', compat_str)),
+            'language': data('language', 'id', compat_str),
+            'license': data('licence', 'label', compat_str),
             'duration': int_or_none(video.get('duration')),
             'view_count': int_or_none(video.get('views')),
             'like_count': int_or_none(video.get('likes')),
@@ -544,4 +584,5 @@ class PeerTubeIE(InfoExtractor):
             'tags': try_get(video, lambda x: x['tags'], list),
             'categories': categories,
             'formats': formats,
+            'subtitles': subtitles
         }
