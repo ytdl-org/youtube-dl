@@ -70,8 +70,8 @@ class DctpTvIE(InfoExtractor):
             endpoint = next(
                 server['endpoint']
                 for server in servers
-                if url_or_none(server.get('endpoint')) and
-                'cloudfront' in server['endpoint'])
+                if url_or_none(server.get('endpoint'))
+                and 'cloudfront' in server['endpoint'])
         else:
             endpoint = 'rtmpe://s2pqqn4u96e4j8.cloudfront.net/cfx/st/'
 

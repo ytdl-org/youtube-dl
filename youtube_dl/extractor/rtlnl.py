@@ -32,7 +32,7 @@ class RtlNlIE(InfoExtractor):
             'duration': 1167.96,
         },
     }, {
-        # best format avaialble a3t
+        # best format available a3t
         'url': 'http://www.rtl.nl/system/videoplayer/derden/rtlnieuws/video_embed.html#uuid=84ae5571-ac25-4225-ae0c-ef8d9efb2aed/autoplay=false',
         'md5': 'dea7474214af1271d91ef332fb8be7ea',
         'info_dict': {
@@ -45,7 +45,7 @@ class RtlNlIE(InfoExtractor):
             'description': 'Er zijn nieuwe beelden vrijgegeven die vlak na de aanslag in Kopenhagen zijn gemaakt. Op de video is goed te zien hoe omstanders zich bekommeren om één van de slachtoffers, terwijl de eerste agenten ter plaatse komen.',
         }
     }, {
-        # empty synopsis and missing episodes (see https://github.com/rg3/youtube-dl/issues/6275)
+        # empty synopsis and missing episodes (see https://github.com/ytdl-org/youtube-dl/issues/6275)
         # best format available nettv
         'url': 'http://www.rtl.nl/system/videoplayer/derden/rtlnieuws/video_embed.html#uuid=f536aac0-1dc3-4314-920e-3bd1c5b3811a/autoplay=false',
         'info_dict': {

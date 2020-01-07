@@ -86,12 +86,13 @@ class ORFTVthekIE(InfoExtractor):
                     if value:
                         format_id_list.append(value)
                 format_id = '-'.join(format_id_list)
-                if determine_ext(fd['src']) == 'm3u8':
+                ext = determine_ext(src)
+                if ext == 'm3u8':
                     formats.extend(self._extract_m3u8_formats(
-                        fd['src'], video_id, 'mp4', m3u8_id=format_id))
-                elif determine_ext(fd['src']) == 'f4m':
+                        src, video_id, 'mp4', m3u8_id=format_id, fatal=False))
+                elif ext == 'f4m':
                     formats.extend(self._extract_f4m_formats(
-                        fd['src'], video_id, f4m_id=format_id))
+                        src, video_id, f4m_id=format_id, fatal=False))
                 else:
                     formats.append({
                         'format_id': format_id,
@@ -176,7 +177,8 @@ class ORFRadioIE(InfoExtractor):
                 'description': subtitle,
                 'duration': (info['end'] - info['start']) / 1000,
                 'timestamp': info['start'] / 1000,
-                'ext': 'mp3'
+                'ext': 'mp3',
+                'series': data.get('programTitle')
             }
 
         entries = [extract_entry_dict(t, data['title'], data['subtitle']) for t in data['streams']]

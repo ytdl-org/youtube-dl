@@ -34,6 +34,7 @@ class VevoIE(VevoBaseIE):
         (?:https?://(?:www\.)?vevo\.com/watch/(?!playlist|genre)(?:[^/]+/(?:[^/]+/)?)?|
            https?://cache\.vevo\.com/m/html/embed\.html\?video=|
            https?://videoplayer\.vevo\.com/embed/embedded\?videoId=|
+           https?://embed\.vevo\.com/.*?[?&]isrc=|
            vevo:)
         (?P<id>[^&?#]+)'''
 
@@ -144,6 +145,9 @@ class VevoIE(VevoBaseIE):
         # Geo-restricted to Netherlands/Germany
         'url': 'http://www.vevo.com/watch/boostee/pop-corn-clip-officiel/FR1A91600909',
         'only_matching': True,
+    }, {
+        'url': 'https://embed.vevo.com/?isrc=USH5V1923499&partnerId=4d61b777-8023-4191-9ede-497ed6c24647&partnerAdCode=',
+        'only_matching': True,
     }]
     _VERSIONS = {
         0: 'youtube',  # only in AuthenticateVideo videoVersions
@@ -200,7 +204,7 @@ class VevoIE(VevoBaseIE):
             fatal=False)
 
         # Some videos are only available via webpage (e.g.
-        # https://github.com/rg3/youtube-dl/issues/9366)
+        # https://github.com/ytdl-org/youtube-dl/issues/9366)
         if not video_versions:
             webpage = self._download_webpage(url, video_id)
             json_data = self._extract_json(webpage, video_id)
@@ -275,8 +279,8 @@ class VevoIE(VevoBaseIE):
 
         genres = video_info.get('genres')
         genre = (
-            genres[0] if genres and isinstance(genres, list) and
-            isinstance(genres[0], compat_str) else None)
+            genres[0] if genres and isinstance(genres, list)
+            and isinstance(genres[0], compat_str) else None)
 
         is_explicit = video_info.get('isExplicit')
         if is_explicit is True:

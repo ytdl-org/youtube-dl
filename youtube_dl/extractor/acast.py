@@ -7,6 +7,7 @@ import functools
 from .common import InfoExtractor
 from ..compat import compat_str
 from ..utils import (
+    clean_html,
     float_or_none,
     int_or_none,
     try_get,
@@ -27,7 +28,7 @@ class ACastIE(InfoExtractor):
                     '''
     _TESTS = [{
         'url': 'https://www.acast.com/sparpodcast/2.raggarmordet-rosterurdetforflutna',
-        'md5': 'a02393c74f3bdb1801c3ec2695577ce0',
+        'md5': '16d936099ec5ca2d5869e3a813ee8dc4',
         'info_dict': {
             'id': '2a92b283-1a75-4ad8-8396-499c641de0d9',
             'ext': 'mp3',
@@ -46,28 +47,37 @@ class ACastIE(InfoExtractor):
     }, {
         'url': 'https://play.acast.com/s/rattegangspodden/s04e09-styckmordet-i-helenelund-del-22',
         'only_matching': True,
+    }, {
+        'url': 'https://play.acast.com/s/sparpodcast/2a92b283-1a75-4ad8-8396-499c641de0d9',
+        'only_matching': True,
     }]
 
     def _real_extract(self, url):
         channel, display_id = re.match(self._VALID_URL, url).groups()
         s = self._download_json(
-            'https://play-api.acast.com/stitch/%s/%s' % (channel, display_id),
-            display_id)['result']
+            'https://feeder.acast.com/api/v1/shows/%s/episodes/%s' % (channel, display_id),
+            display_id)
         media_url = s['url']
+        if re.search(r'[0-9a-f]{8}-(?:[0-9a-f]{4}-){3}[0-9a-f]{12}', display_id):
+            episode_url = s.get('episodeUrl')
+            if episode_url:
+                display_id = episode_url
+            else:
+                channel, display_id = re.match(self._VALID_URL, s['link']).groups()
         cast_data = self._download_json(
             'https://play-api.acast.com/splash/%s/%s' % (channel, display_id),
             display_id)['result']
         e = cast_data['episode']
-        title = e['name']
+        title = e.get('name') or s['title']
         return {
             'id': compat_str(e['id']),
             'display_id': display_id,
             'url': media_url,
             'title': title,
-            'description': e.get('description') or e.get('summary'),
+            'description': e.get('summary') or clean_html(e.get('description') or s.get('description')),
             'thumbnail': e.get('image'),
-            'timestamp': unified_timestamp(e.get('publishingDate')),
-            'duration': float_or_none(s.get('duration') or e.get('duration')),
+            'timestamp': unified_timestamp(e.get('publishingDate') or s.get('publishDate')),
+            'duration': float_or_none(e.get('duration') or s.get('duration')),
             'filesize': int_or_none(e.get('contentLength')),
             'creator': try_get(cast_data, lambda x: x['show']['author'], compat_str),
             'series': try_get(cast_data, lambda x: x['show']['name'], compat_str),

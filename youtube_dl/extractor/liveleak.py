@@ -44,7 +44,7 @@ class LiveLeakIE(InfoExtractor):
         },
         'skip': 'Video is dead',
     }, {
-        # Covers https://github.com/rg3/youtube-dl/pull/5983
+        # Covers https://github.com/ytdl-org/youtube-dl/pull/5983
         # Multiple resolutions
         'url': 'http://www.liveleak.com/view?i=801_1409392012',
         'md5': 'c3a449dbaca5c0d1825caecd52a57d7b',
@@ -57,7 +57,7 @@ class LiveLeakIE(InfoExtractor):
             'thumbnail': r're:^https?://.*\.jpg$'
         }
     }, {
-        # Covers https://github.com/rg3/youtube-dl/pull/10664#issuecomment-247439521
+        # Covers https://github.com/ytdl-org/youtube-dl/pull/10664#issuecomment-247439521
         'url': 'http://m.liveleak.com/view?i=763_1473349649',
         'add_ie': ['Youtube'],
         'info_dict': {
@@ -81,6 +81,10 @@ class LiveLeakIE(InfoExtractor):
         'playlist_count': 3,
     }, {
         'url': 'https://www.liveleak.com/view?t=HvHi_1523016227',
+        'only_matching': True,
+    }, {
+        # No original video
+        'url': 'https://www.liveleak.com/view?t=C26ZZ_1558612804',
         'only_matching': True,
     }]
 
@@ -130,15 +134,17 @@ class LiveLeakIE(InfoExtractor):
 
                 # Removing '.*.mp4' gives the raw video, which is essentially
                 # the same video without the LiveLeak logo at the top (see
-                # https://github.com/rg3/youtube-dl/pull/4768)
+                # https://github.com/ytdl-org/youtube-dl/pull/4768)
                 orig_url = re.sub(r'\.mp4\.[^.]+', '', a_format['url'])
                 if a_format['url'] != orig_url:
                     format_id = a_format.get('format_id')
-                    formats.append({
-                        'format_id': 'original' + ('-' + format_id if format_id else ''),
-                        'url': orig_url,
-                        'preference': 1,
-                    })
+                    format_id = 'original' + ('-' + format_id if format_id else '')
+                    if self._is_valid_url(orig_url, video_id, format_id):
+                        formats.append({
+                            'format_id': format_id,
+                            'url': orig_url,
+                            'preference': 1,
+                        })
             self._sort_formats(formats)
             info_dict['formats'] = formats
 

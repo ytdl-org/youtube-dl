@@ -1,19 +1,16 @@
 from __future__ import unicode_literals
 
+import re
+
 from .common import InfoExtractor
-from ..compat import (
-    compat_urllib_parse_urlencode,
-    compat_urlparse,
-)
 from ..utils import (
     float_or_none,
     int_or_none,
-    sanitized_Request,
 )
 
 
 class ViddlerIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:www\.)?viddler\.com/(?:v|embed|player)/(?P<id>[a-z0-9]+)'
+    _VALID_URL = r'https?://(?:www\.)?viddler\.com/(?:v|embed|player)/(?P<id>[a-z0-9]+)(?:.+?\bsecret=(\d+))?'
     _TESTS = [{
         'url': 'http://www.viddler.com/v/43903784',
         'md5': '9eee21161d2c7f5b39690c3e325fab2f',
@@ -78,23 +75,18 @@ class ViddlerIE(InfoExtractor):
     }]
 
     def _real_extract(self, url):
-        video_id = self._match_id(url)
+        video_id, secret = re.match(self._VALID_URL, url).groups()
 
         query = {
             'video_id': video_id,
             'key': 'v0vhrt7bg2xq1vyxhkct',
         }
-
-        qs = compat_urlparse.parse_qs(compat_urlparse.urlparse(url).query)
-        secret = qs.get('secret', [None])[0]
         if secret:
             query['secret'] = secret
 
-        headers = {'Referer': 'http://static.cdn-ec.viddler.com/js/arpeggio/v2/embed.html'}
-        request = sanitized_Request(
-            'http://api.viddler.com/api/v2/viddler.videos.getPlaybackDetails.json?%s'
-            % compat_urllib_parse_urlencode(query), None, headers)
-        data = self._download_json(request, video_id)['video']
+        data = self._download_json(
+            'http://api.viddler.com/api/v2/viddler.videos.getPlaybackDetails.json',
+            video_id, headers={'Referer': url}, query=query)['video']
 
         formats = []
         for filed in data['files']:
