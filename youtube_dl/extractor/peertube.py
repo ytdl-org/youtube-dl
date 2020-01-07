@@ -442,7 +442,7 @@ class PeerTubeIE(InfoExtractor):
             'view_count': int,
             'like_count': int,
             'dislike_count': int,
-            'tags': ["framasoft","peertube"],
+            'tags': ["framasoft", "peertube"],
             'categories': ["Science & Technology"],
         }
     }, {
