@@ -435,7 +435,7 @@ class PeerTubeIE(InfoExtractor):
             'upload_date': '20181001',
             'uploader': 'Framasoft',
             'uploader_id': 'framasoft@framatube.org',
-            'uploder_url': 'https://framatube.org/accounts/framasoft',
+            'uploader_url': 'https://framatube.org/accounts/framasoft',
             'license': 'Attribution - Share Alike',
             'duration': 113,
             'view_count': int,
@@ -533,7 +533,7 @@ class PeerTubeIE(InfoExtractor):
             'timestamp': unified_timestamp(video.get('publishedAt')),
             'uploader': account_data('displayName'),
             'uploader_id': '%s@%s' % (account_data('name'), account_data('host')),
-            'uploder_url': account_data('url'),
+            'uploader_url': account_data('url'),
             'license': try_get(
                 video, lambda x: x['licence']['label'], compat_str),
             'duration': int_or_none(video.get('duration')),
