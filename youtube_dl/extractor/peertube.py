@@ -532,7 +532,7 @@ class PeerTubeIE(InfoExtractor):
             'thumbnail': urljoin(url, video.get('thumbnailPath')),
             'timestamp': unified_timestamp(video.get('publishedAt')),
             'uploader': account_data('displayName'),
-            'uploader_id': account_data('uuid'),
+            'uploader_id': '%s@%s' % (account_data('name'), account_data('host')),
             'uploder_url': account_data('url'),
             'license': try_get(
                 video, lambda x: x['licence']['label'], compat_str),
