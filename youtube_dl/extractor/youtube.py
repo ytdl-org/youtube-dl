@@ -41,7 +41,6 @@ from ..utils import (
     orderedSet,
     parse_codecs,
     parse_duration,
-    qualities,
     remove_quotes,
     remove_start,
     smuggle_url,
@@ -70,7 +69,7 @@ class YoutubeBaseInfoExtractor(InfoExtractor):
     # If True it will raise an error if no login info is provided
     _LOGIN_REQUIRED = False
 
-    _PLAYLIST_ID_RE = r'(?:PL|LL|EC|UU|FL|RD|UL|TL|OLAK5uy_)[0-9A-Za-z-_]{10,}'
+    _PLAYLIST_ID_RE = r'(?:PL|LL|EC|UU|FL|RD|UL|TL|PU|OLAK5uy_)[0-9A-Za-z-_]{10,}'
 
     def _set_language(self):
         self._set_cookie(
@@ -373,7 +372,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
     _VALID_URL = r"""(?x)^
                      (
                          (?:https?://|//)                                    # http(s):// or protocol-independent URL
-                         (?:(?:(?:(?:\w+\.)?[yY][oO][uU][tT][uU][bB][eE](?:-nocookie)?\.com/|
+                         (?:(?:(?:(?:\w+\.)?[yY][oO][uU][tT][uU][bB][eE](?:-nocookie|kids)?\.com/|
                             (?:www\.)?deturl\.com/www\.youtube\.com/|
                             (?:www\.)?pwnyoutube\.com/|
                             (?:www\.)?hooktube\.com/|
@@ -384,13 +383,21 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                             (?:(?:www|no)\.)?invidiou\.sh/|
                             (?:(?:www|fi|de)\.)?invidious\.snopyta\.org/|
                             (?:www\.)?invidious\.kabi\.tk/|
-                            (?:www\.)?invidious\.enkirton\.net/|
                             (?:www\.)?invidious\.13ad\.de/|
                             (?:www\.)?invidious\.mastodon\.host/|
                             (?:www\.)?invidious\.nixnet\.xyz/|
+                            (?:www\.)?invidious\.drycat\.fr/|
                             (?:www\.)?tube\.poal\.co/|
                             (?:www\.)?vid\.wxzm\.sx/|
                             (?:www\.)?yt\.elukerio\.org/|
+                            (?:www\.)?yt\.lelux\.fi/|
+                            (?:www\.)?kgg2m7yk5aybusll\.onion/|
+                            (?:www\.)?qklhadlycap4cnod\.onion/|
+                            (?:www\.)?axqzx4s6s54s32yentfqojs3x5i7faxza6xo3ehd4bzzsg2ii4fv2iid\.onion/|
+                            (?:www\.)?c7hqkpkpemu6e7emz5b4vyz7idjgdvgaaa3dyimmeojqbgpea3xqjoid\.onion/|
+                            (?:www\.)?fz253lmuao3strwbfbmx46yu7acac2jz27iwtorgmbqlkurlclmancad\.onion/|
+                            (?:www\.)?invidious\.l4qlywnpwqsluw65ts7md3khrivpirse744un3x7mlskqauz5pyuzgqd\.onion/|
+                            (?:www\.)?owxfohz4kjyv25fvlqilyxast7inivgiktls3th44jhk3ej3i7ya\.b32\.i2p/|
                             youtube\.googleapis\.com/)                        # the various hostnames, with wildcard subdomains
                          (?:.*?\#/)?                                          # handle anchor (#/) redirect urls
                          (?:                                                  # the various things that can precede the ID:
@@ -1217,6 +1224,10 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                 'skip_download': True,
             },
         },
+        {
+            'url': 'https://www.youtubekids.com/watch?v=3b8nCWDgZ6Q',
+            'only_matching': True,
+        },
     ]
 
     def __init__(self, *args, **kwargs):
@@ -1909,6 +1920,9 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
             return int_or_none(self._search_regex(
                 r'\bclen[=/](\d+)', media_url, 'filesize', default=None))
 
+        streaming_formats = try_get(player_response, lambda x: x['streamingData']['formats'], list) or []
+        streaming_formats.extend(try_get(player_response, lambda x: x['streamingData']['adaptiveFormats'], list) or [])
+
         if 'conn' in video_info and video_info['conn'][0].startswith('rtmp'):
             self.report_rtmp_download()
             formats = [{
@@ -1917,10 +1931,11 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                 'url': video_info['conn'][0],
                 'player_url': player_url,
             }]
-        elif not is_live and (len(video_info.get('url_encoded_fmt_stream_map', [''])[0]) >= 1 or len(video_info.get('adaptive_fmts', [''])[0]) >= 1):
+        elif not is_live and (streaming_formats or len(video_info.get('url_encoded_fmt_stream_map', [''])[0]) >= 1 or len(video_info.get('adaptive_fmts', [''])[0]) >= 1):
             encoded_url_map = video_info.get('url_encoded_fmt_stream_map', [''])[0] + ',' + video_info.get('adaptive_fmts', [''])[0]
             if 'rtmpe%3Dyes' in encoded_url_map:
                 raise ExtractorError('rtmpe downloads are not supported, see https://github.com/ytdl-org/youtube-dl/issues/343 for more information.', expected=True)
+            formats = []
             formats_spec = {}
             fmt_list = video_info.get('fmt_list', [''])[0]
             if fmt_list:
@@ -1934,91 +1949,104 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                                 'width': int_or_none(width_height[0]),
                                 'height': int_or_none(width_height[1]),
                             }
-            q = qualities(['small', 'medium', 'hd720'])
-            streaming_formats = try_get(player_response, lambda x: x['streamingData']['formats'], list)
-            if streaming_formats:
-                for fmt in streaming_formats:
-                    itag = str_or_none(fmt.get('itag'))
-                    if not itag:
-                        continue
-                    quality = fmt.get('quality')
-                    quality_label = fmt.get('qualityLabel') or quality
-                    formats_spec[itag] = {
-                        'asr': int_or_none(fmt.get('audioSampleRate')),
-                        'filesize': int_or_none(fmt.get('contentLength')),
-                        'format_note': quality_label,
-                        'fps': int_or_none(fmt.get('fps')),
-                        'height': int_or_none(fmt.get('height')),
-                        'quality': q(quality),
-                        # bitrate for itag 43 is always 2147483647
-                        'tbr': float_or_none(fmt.get('averageBitrate') or fmt.get('bitrate'), 1000) if itag != '43' else None,
-                        'width': int_or_none(fmt.get('width')),
-                    }
-            formats = []
-            for url_data_str in encoded_url_map.split(','):
-                url_data = compat_parse_qs(url_data_str)
-                if 'itag' not in url_data or 'url' not in url_data or url_data.get('drm_families'):
+            for fmt in streaming_formats:
+                itag = str_or_none(fmt.get('itag'))
+                if not itag:
                     continue
+                quality = fmt.get('quality')
+                quality_label = fmt.get('qualityLabel') or quality
+                formats_spec[itag] = {
+                    'asr': int_or_none(fmt.get('audioSampleRate')),
+                    'filesize': int_or_none(fmt.get('contentLength')),
+                    'format_note': quality_label,
+                    'fps': int_or_none(fmt.get('fps')),
+                    'height': int_or_none(fmt.get('height')),
+                    # bitrate for itag 43 is always 2147483647
+                    'tbr': float_or_none(fmt.get('averageBitrate') or fmt.get('bitrate'), 1000) if itag != '43' else None,
+                    'width': int_or_none(fmt.get('width')),
+                }
+
+            for fmt in streaming_formats:
+                if fmt.get('drm_families'):
+                    continue
+                url = url_or_none(fmt.get('url'))
+
+                if not url:
+                    cipher = fmt.get('cipher')
+                    if not cipher:
+                        continue
+                    url_data = compat_parse_qs(cipher)
+                    url = url_or_none(try_get(url_data, lambda x: x['url'][0], compat_str))
+                    if not url:
+                        continue
+                else:
+                    cipher = None
+                    url_data = compat_parse_qs(compat_urllib_parse_urlparse(url).query)
+
                 stream_type = int_or_none(try_get(url_data, lambda x: x['stream_type'][0]))
                 # Unsupported FORMAT_STREAM_TYPE_OTF
                 if stream_type == 3:
                     continue
-                format_id = url_data['itag'][0]
-                url = url_data['url'][0]
 
-                if 's' in url_data or self._downloader.params.get('youtube_include_dash_manifest', True):
-                    ASSETS_RE = r'"assets":.+?"js":\s*("[^"]+")'
-                    jsplayer_url_json = self._search_regex(
-                        ASSETS_RE,
-                        embed_webpage if age_gate else video_webpage,
-                        'JS player URL (1)', default=None)
-                    if not jsplayer_url_json and not age_gate:
-                        # We need the embed website after all
-                        if embed_webpage is None:
-                            embed_url = proto + '://www.youtube.com/embed/%s' % video_id
-                            embed_webpage = self._download_webpage(
-                                embed_url, video_id, 'Downloading embed webpage')
+                format_id = fmt.get('itag') or url_data['itag'][0]
+                if not format_id:
+                    continue
+                format_id = compat_str(format_id)
+
+                if cipher:
+                    if 's' in url_data or self._downloader.params.get('youtube_include_dash_manifest', True):
+                        ASSETS_RE = r'"assets":.+?"js":\s*("[^"]+")'
                         jsplayer_url_json = self._search_regex(
-                            ASSETS_RE, embed_webpage, 'JS player URL')
+                            ASSETS_RE,
+                            embed_webpage if age_gate else video_webpage,
+                            'JS player URL (1)', default=None)
+                        if not jsplayer_url_json and not age_gate:
+                            # We need the embed website after all
+                            if embed_webpage is None:
+                                embed_url = proto + '://www.youtube.com/embed/%s' % video_id
+                                embed_webpage = self._download_webpage(
+                                    embed_url, video_id, 'Downloading embed webpage')
+                            jsplayer_url_json = self._search_regex(
+                                ASSETS_RE, embed_webpage, 'JS player URL')
 
-                    player_url = json.loads(jsplayer_url_json)
-                    if player_url is None:
-                        player_url_json = self._search_regex(
-                            r'ytplayer\.config.*?"url"\s*:\s*("[^"]+")',
-                            video_webpage, 'age gate player URL')
-                        player_url = json.loads(player_url_json)
-
-                if 'sig' in url_data:
-                    url += '&signature=' + url_data['sig'][0]
-                elif 's' in url_data:
-                    encrypted_sig = url_data['s'][0]
-
-                    if self._downloader.params.get('verbose'):
+                        player_url = json.loads(jsplayer_url_json)
                         if player_url is None:
-                            player_version = 'unknown'
-                            player_desc = 'unknown'
-                        else:
-                            if player_url.endswith('swf'):
-                                player_version = self._search_regex(
-                                    r'-(.+?)(?:/watch_as3)?\.swf$', player_url,
-                                    'flash player', fatal=False)
-                                player_desc = 'flash player %s' % player_version
+                            player_url_json = self._search_regex(
+                                r'ytplayer\.config.*?"url"\s*:\s*("[^"]+")',
+                                video_webpage, 'age gate player URL')
+                            player_url = json.loads(player_url_json)
+
+                    if 'sig' in url_data:
+                        url += '&signature=' + url_data['sig'][0]
+                    elif 's' in url_data:
+                        encrypted_sig = url_data['s'][0]
+
+                        if self._downloader.params.get('verbose'):
+                            if player_url is None:
+                                player_version = 'unknown'
+                                player_desc = 'unknown'
                             else:
-                                player_version = self._search_regex(
-                                    [r'html5player-([^/]+?)(?:/html5player(?:-new)?)?\.js',
-                                     r'(?:www|player(?:_ias)?)-([^/]+)(?:/[a-z]{2,3}_[A-Z]{2})?/base\.js'],
-                                    player_url,
-                                    'html5 player', fatal=False)
-                                player_desc = 'html5 player %s' % player_version
+                                if player_url.endswith('swf'):
+                                    player_version = self._search_regex(
+                                        r'-(.+?)(?:/watch_as3)?\.swf$', player_url,
+                                        'flash player', fatal=False)
+                                    player_desc = 'flash player %s' % player_version
+                                else:
+                                    player_version = self._search_regex(
+                                        [r'html5player-([^/]+?)(?:/html5player(?:-new)?)?\.js',
+                                         r'(?:www|player(?:_ias)?)-([^/]+)(?:/[a-z]{2,3}_[A-Z]{2})?/base\.js'],
+                                        player_url,
+                                        'html5 player', fatal=False)
+                                    player_desc = 'html5 player %s' % player_version
 
-                        parts_sizes = self._signature_cache_id(encrypted_sig)
-                        self.to_screen('{%s} signature length %s, %s' %
-                                       (format_id, parts_sizes, player_desc))
+                            parts_sizes = self._signature_cache_id(encrypted_sig)
+                            self.to_screen('{%s} signature length %s, %s' %
+                                           (format_id, parts_sizes, player_desc))
 
-                    signature = self._decrypt_signature(
-                        encrypted_sig, video_id, player_url, age_gate)
-                    sp = try_get(url_data, lambda x: x['sp'][0], compat_str) or 'signature'
-                    url += '&%s=%s' % (sp, signature)
+                        signature = self._decrypt_signature(
+                            encrypted_sig, video_id, player_url, age_gate)
+                        sp = try_get(url_data, lambda x: x['sp'][0], compat_str) or 'signature'
+                        url += '&%s=%s' % (sp, signature)
                 if 'ratebypass' not in url:
                     url += '&ratebypass=yes'
 
@@ -2038,24 +2066,33 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                 mobj = re.search(r'^(?P<width>\d+)[xX](?P<height>\d+)$', url_data.get('size', [''])[0])
                 width, height = (int(mobj.group('width')), int(mobj.group('height'))) if mobj else (None, None)
 
+                if width is None:
+                    width = int_or_none(fmt.get('width'))
+                if height is None:
+                    height = int_or_none(fmt.get('height'))
+
                 filesize = int_or_none(url_data.get(
                     'clen', [None])[0]) or _extract_filesize(url)
 
-                quality = url_data.get('quality', [None])[0]
+                quality = url_data.get('quality', [None])[0] or fmt.get('quality')
+                quality_label = url_data.get('quality_label', [None])[0] or fmt.get('qualityLabel')
+
+                tbr = (float_or_none(url_data.get('bitrate', [None])[0], 1000)
+                       or float_or_none(fmt.get('bitrate'), 1000)) if format_id != '43' else None
+                fps = int_or_none(url_data.get('fps', [None])[0]) or int_or_none(fmt.get('fps'))
 
                 more_fields = {
                     'filesize': filesize,
-                    'tbr': float_or_none(url_data.get('bitrate', [None])[0], 1000),
+                    'tbr': tbr,
                     'width': width,
                     'height': height,
-                    'fps': int_or_none(url_data.get('fps', [None])[0]),
-                    'format_note': url_data.get('quality_label', [None])[0] or quality,
-                    'quality': q(quality),
+                    'fps': fps,
+                    'format_note': quality_label or quality,
                 }
                 for key, value in more_fields.items():
                     if value:
                         dct[key] = value
-                type_ = url_data.get('type', [None])[0]
+                type_ = url_data.get('type', [None])[0] or fmt.get('mimeType')
                 if type_:
                     type_split = type_.split(';')
                     kind_ext = type_split[0].split('/')
@@ -2432,7 +2469,7 @@ class YoutubePlaylistIE(YoutubePlaylistBaseInfoExtractor):
                         (?:\w+\.)?
                         (?:
                             (?:
-                                youtube\.com|
+                                youtube(?:kids)?\.com|
                                 invidio\.us
                             )
                             /
@@ -2444,7 +2481,7 @@ class YoutubePlaylistIE(YoutubePlaylistBaseInfoExtractor):
                             youtu\.be/[0-9A-Za-z_-]{11}\?.*?\blist=
                         )
                         (
-                            (?:PL|LL|EC|UU|FL|RD|UL|TL|OLAK5uy_)?[0-9A-Za-z-_]{10,}
+                            (?:PL|LL|EC|UU|FL|RD|UL|TL|PU|OLAK5uy_)?[0-9A-Za-z-_]{10,}
                             # Top tracks, they can also include dots
                             |(?:MC)[\w\.]*
                         )
@@ -2614,6 +2651,9 @@ class YoutubePlaylistIE(YoutubePlaylistBaseInfoExtractor):
     }, {
         'url': 'https://invidio.us/playlist?list=PLDIoUOhQQPlXr63I_vwF9GD8sAKh77dWU',
         'only_matching': True,
+    }, {
+        'url': 'https://www.youtubekids.com/watch?v=Agk7R8I8o5U&list=PUZ6jURNr1WQZCNHF0ao-c0g',
+        'only_matching': True,
     }]
 
     def _real_initialize(self):
@@ -2709,7 +2749,7 @@ class YoutubePlaylistIE(YoutubePlaylistBaseInfoExtractor):
             page, 'title', default=None)
 
         _UPLOADER_BASE = r'class=["\']pl-header-details[^>]+>\s*<li>\s*<a[^>]+\bhref='
-        uploader = self._search_regex(
+        uploader = self._html_search_regex(
             r'%s["\']/(?:user|channel)/[^>]+>([^<]+)' % _UPLOADER_BASE,
             page, 'uploader', default=None)
         mobj = re.search(
@@ -2784,7 +2824,7 @@ class YoutubePlaylistIE(YoutubePlaylistBaseInfoExtractor):
 
 class YoutubeChannelIE(YoutubePlaylistBaseInfoExtractor):
     IE_DESC = 'YouTube.com channels'
-    _VALID_URL = r'https?://(?:youtu\.be|(?:\w+\.)?youtube(?:-nocookie)?\.com|(?:www\.)?invidio\.us)/channel/(?P<id>[0-9A-Za-z_-]+)'
+    _VALID_URL = r'https?://(?:youtu\.be|(?:\w+\.)?youtube(?:-nocookie|kids)?\.com|(?:www\.)?invidio\.us)/channel/(?P<id>[0-9A-Za-z_-]+)'
     _TEMPLATE_URL = 'https://www.youtube.com/channel/%s/videos'
     _VIDEO_RE = r'(?:title="(?P<title>[^"]+)"[^>]+)?href="/watch\?v=(?P<id>[0-9A-Za-z_-]+)&?'
     IE_NAME = 'youtube:channel'
@@ -2811,6 +2851,9 @@ class YoutubeChannelIE(YoutubePlaylistBaseInfoExtractor):
         },
     }, {
         'url': 'https://invidio.us/channel/UC23qupoDRn9YOAVzeoxjOQA',
+        'only_matching': True,
+    }, {
+        'url': 'https://www.youtubekids.com/channel/UCyu8StPfZWapR6rfW_JgqcA',
         'only_matching': True,
     }]
 

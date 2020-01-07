@@ -1424,12 +1424,10 @@ class InfoExtractor(object):
         try:
             self._request_webpage(url, video_id, 'Checking %s URL' % item, headers=headers)
             return True
-        except ExtractorError as e:
-            if isinstance(e.cause, compat_urllib_error.URLError):
-                self.to_screen(
-                    '%s: %s URL is invalid, skipping' % (video_id, item))
-                return False
-            raise
+        except ExtractorError:
+            self.to_screen(
+                '%s: %s URL is invalid, skipping' % (video_id, item))
+            return False
 
     def http_scheme(self):
         """ Either "http:" or "https:", depending on the user's preferences """
@@ -1457,14 +1455,14 @@ class InfoExtractor(object):
 
     def _extract_f4m_formats(self, manifest_url, video_id, preference=None, f4m_id=None,
                              transform_source=lambda s: fix_xml_ampersands(s).strip(),
-                             fatal=True, m3u8_id=None):
+                             fatal=True, m3u8_id=None, data=None, headers={}, query={}):
         manifest = self._download_xml(
             manifest_url, video_id, 'Downloading f4m manifest',
             'Unable to download f4m manifest',
             # Some manifests may be malformed, e.g. prosiebensat1 generated manifests
             # (see https://github.com/ytdl-org/youtube-dl/issues/6215#issuecomment-121704244)
             transform_source=transform_source,
-            fatal=fatal)
+            fatal=fatal, data=data, headers=headers, query=query)
 
         if manifest is False:
             return []
@@ -1588,12 +1586,13 @@ class InfoExtractor(object):
     def _extract_m3u8_formats(self, m3u8_url, video_id, ext=None,
                               entry_protocol='m3u8', preference=None,
                               m3u8_id=None, note=None, errnote=None,
-                              fatal=True, live=False):
+                              fatal=True, live=False, data=None, headers={},
+                              query={}):
         res = self._download_webpage_handle(
             m3u8_url, video_id,
             note=note or 'Downloading m3u8 information',
             errnote=errnote or 'Failed to download m3u8 information',
-            fatal=fatal)
+            fatal=fatal, data=data, headers=headers, query=query)
 
         if res is False:
             return []
@@ -1767,6 +1766,19 @@ class InfoExtractor(object):
                         # the same GROUP-ID
                         f['acodec'] = 'none'
                 formats.append(f)
+
+                # for DailyMotion
+                progressive_uri = last_stream_inf.get('PROGRESSIVE-URI')
+                if progressive_uri:
+                    http_f = f.copy()
+                    del http_f['manifest_url']
+                    http_f.update({
+                        'format_id': f['format_id'].replace('hls-', 'http-'),
+                        'protocol': 'http',
+                        'url': progressive_uri,
+                    })
+                    formats.append(http_f)
+
                 last_stream_inf = {}
         return formats
 
@@ -2011,12 +2023,12 @@ class InfoExtractor(object):
             })
         return entries
 
-    def _extract_mpd_formats(self, mpd_url, video_id, mpd_id=None, note=None, errnote=None, fatal=True, formats_dict={}):
+    def _extract_mpd_formats(self, mpd_url, video_id, mpd_id=None, note=None, errnote=None, fatal=True, formats_dict={}, data=None, headers={}, query={}):
         res = self._download_xml_handle(
             mpd_url, video_id,
             note=note or 'Downloading MPD manifest',
             errnote=errnote or 'Failed to download MPD manifest',
-            fatal=fatal)
+            fatal=fatal, data=data, headers=headers, query=query)
         if res is False:
             return []
         mpd_doc, urlh = res
@@ -2319,12 +2331,12 @@ class InfoExtractor(object):
                         self.report_warning('Unknown MIME type %s in DASH manifest' % mime_type)
         return formats
 
-    def _extract_ism_formats(self, ism_url, video_id, ism_id=None, note=None, errnote=None, fatal=True):
+    def _extract_ism_formats(self, ism_url, video_id, ism_id=None, note=None, errnote=None, fatal=True, data=None, headers={}, query={}):
         res = self._download_xml_handle(
             ism_url, video_id,
             note=note or 'Downloading ISM manifest',
             errnote=errnote or 'Failed to download ISM manifest',
-            fatal=fatal)
+            fatal=fatal, data=data, headers=headers, query=query)
         if res is False:
             return []
         ism_doc, urlh = res
@@ -2691,7 +2703,7 @@ class InfoExtractor(object):
             entry = {
                 'id': this_video_id,
                 'title': unescapeHTML(video_data['title'] if require_title else video_data.get('title')),
-                'description': video_data.get('description'),
+                'description': clean_html(video_data.get('description')),
                 'thumbnail': urljoin(base_url, self._proto_relative_url(video_data.get('image'))),
                 'timestamp': int_or_none(video_data.get('pubdate')),
                 'duration': float_or_none(jwplayer_data.get('duration') or video_data.get('duration')),

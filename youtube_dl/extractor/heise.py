@@ -105,8 +105,7 @@ class HeiseIE(InfoExtractor):
             webpage, default=None) or self._html_search_meta(
             'description', webpage)
 
-        kaltura_url = KalturaIE._extract_url(webpage)
-        if kaltura_url:
+        def _make_kaltura_result(kaltura_url):
             return {
                 '_type': 'url_transparent',
                 'url': smuggle_url(kaltura_url, {'source_url': url}),
@@ -114,6 +113,16 @@ class HeiseIE(InfoExtractor):
                 'title': title,
                 'description': description,
             }
+
+        kaltura_url = KalturaIE._extract_url(webpage)
+        if kaltura_url:
+            return _make_kaltura_result(kaltura_url)
+
+        kaltura_id = self._search_regex(
+            r'entry-id=(["\'])(?P<id>(?:(?!\1).)+)\1', webpage, 'kaltura id',
+            default=None, group='id')
+        if kaltura_id:
+            return _make_kaltura_result('kaltura:2238431:%s' % kaltura_id)
 
         yt_urls = YoutubeIE._extract_urls(webpage)
         if yt_urls:
