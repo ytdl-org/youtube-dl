@@ -493,6 +493,9 @@ class PeerTubeIE(InfoExtractor):
         video = self._download_json(
             'https://%s/api/v1/videos/%s' % (host, video_id), video_id)
 
+        video_description = self._download_json(
+            'https://%s/api/v1/videos/%s/description' % (host, video_id), video_id)
+
         title = video['name']
 
         formats = []
@@ -529,7 +532,7 @@ class PeerTubeIE(InfoExtractor):
         return {
             'id': video_id,
             'title': title,
-            'description': video.get('description'),
+            'description': video_description.get('description'),
             'thumbnail': urljoin(url, video.get('thumbnailPath')),
             'timestamp': unified_timestamp(video.get('publishedAt')),
             'uploader': account_data('displayName'),
