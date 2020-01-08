@@ -79,7 +79,7 @@ class AtresPlayerIE(InfoExtractor):
 
         try:
             episode = self._download_json(
-                self._API_BASE + 'client/v1/player/episode/' + video_id, video_id)
+                self._API_BASE + 'player/v1/episode/' + video_id, video_id)
         except ExtractorError as e:
             self._handle_error(e, 403)
 
