@@ -297,6 +297,7 @@ class DRTVIE(InfoExtractor):
             'release_year': int_or_none(data.get('ProductionYear')),
         }
 
+
 class DRTVPlaylistIE(InfoExtractor):
     _VALID_URL = r'''(?x)
                     https?://
@@ -308,10 +309,10 @@ class DRTVPlaylistIE(InfoExtractor):
     _TEST = {
         'url': 'https://www.dr.dk/drtv/serie/spise-med-price_43537',
         'info_dict': {
-            'id': 'spise-med-price',
+            'id': 'spise-med-price_43537',
             'title': 'Spise med Price'
         },
-        'playlist_mincount': 6,
+        'playlist_mincount': 2,
     }
 
     @classmethod
@@ -329,7 +330,7 @@ class DRTVPlaylistIE(InfoExtractor):
             episodes = episodes + self._extract_episode_from_season(season_url)
 
         return episodes
-    
+
     def _extract_episode_from_season(self, url):
         display_id = self._match_id(url)
         webpage = self._download_webpage(url, display_id)
@@ -342,15 +343,13 @@ class DRTVPlaylistIE(InfoExtractor):
 
         return episodes
 
-
-
     def _real_extract(self, url):
         playlist_id = self._match_id(url)
         webpage = self._download_webpage(url, playlist_id)
 
         title = self._html_search_regex(
             r'<h1 class=".*?hero__title".*?>(.+?)</h1>', webpage,
-            'title', default=None) 
+            'title', default=None)
 
         if title:
             title = re.sub(r'\s*\|\s*.+?$', '', title)
