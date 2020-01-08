@@ -1,20 +1,22 @@
 # coding: utf-8
 from __future__ import unicode_literals
 
+import base64
 import re
 
 from .common import InfoExtractor
 
 
 class CloudflareStreamIE(InfoExtractor):
+    _DOMAIN_RE = r'(?:cloudflarestream\.com|(?:videodelivery|bytehighway)\.net)'
     _VALID_URL = r'''(?x)
                     https?://
                         (?:
-                            (?:watch\.)?(?:cloudflarestream\.com|videodelivery\.net)/|
-                            embed\.(?:cloudflarestream\.com|videodelivery\.net)/embed/[^/]+\.js\?.*?\bvideo=
+                            (?:watch\.)?%s/|
+                            embed\.%s/embed/[^/]+\.js\?.*?\bvideo=
                         )
-                        (?P<id>[\da-f]+)
-                    '''
+                        (?P<id>[\da-f]{32}|[\w-]+\.[\w-]+\.[\w-]+)
+                    ''' % (_DOMAIN_RE, _DOMAIN_RE)
     _TESTS = [{
         'url': 'https://embed.cloudflarestream.com/embed/we4g.fla9.latest.js?video=31c9291ab41fac05471db4e73aa11717',
         'info_dict': {
@@ -46,18 +48,23 @@ class CloudflareStreamIE(InfoExtractor):
 
     def _real_extract(self, url):
         video_id = self._match_id(url)
+        domain = 'bytehighway.net' if 'bytehighway.net/' in url else 'videodelivery.net'
+        base_url = 'https://%s/%s/' % (domain, video_id)
+        if '.' in video_id:
+            video_id = self._parse_json(base64.urlsafe_b64decode(
+                video_id.split('.')[1]), video_id)['sub']
+        manifest_base_url = base_url + 'manifest/video.'
 
         formats = self._extract_m3u8_formats(
-            'https://cloudflarestream.com/%s/manifest/video.m3u8' % video_id,
-            video_id, 'mp4', entry_protocol='m3u8_native', m3u8_id='hls',
-            fatal=False)
+            manifest_base_url + 'm3u8', video_id, 'mp4',
+            'm3u8_native', m3u8_id='hls', fatal=False)
         formats.extend(self._extract_mpd_formats(
-            'https://cloudflarestream.com/%s/manifest/video.mpd' % video_id,
-            video_id, mpd_id='dash', fatal=False))
+            manifest_base_url + 'mpd', video_id, mpd_id='dash', fatal=False))
         self._sort_formats(formats)
 
         return {
             'id': video_id,
             'title': video_id,
+            'thumbnail': base_url + 'thumbnails/thumbnail.jpg',
             'formats': formats,
         }
