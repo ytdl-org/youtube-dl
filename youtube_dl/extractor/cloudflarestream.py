@@ -9,14 +9,16 @@ from .common import InfoExtractor
 
 class CloudflareStreamIE(InfoExtractor):
     _DOMAIN_RE = r'(?:cloudflarestream\.com|(?:videodelivery|bytehighway)\.net)'
+    _EMBED_RE = r'embed\.%s/embed/[^/]+\.js\?.*?\bvideo=' % _DOMAIN_RE
+    _ID_RE = r'[\da-f]{32}|[\w-]+\.[\w-]+\.[\w-]+'
     _VALID_URL = r'''(?x)
                     https?://
                         (?:
                             (?:watch\.)?%s/|
-                            embed\.%s/embed/[^/]+\.js\?.*?\bvideo=
+                            %s
                         )
-                        (?P<id>[\da-f]{32}|[\w-]+\.[\w-]+\.[\w-]+)
-                    ''' % (_DOMAIN_RE, _DOMAIN_RE)
+                        (?P<id>%s)
+                    ''' % (_DOMAIN_RE, _EMBED_RE, _ID_RE)
     _TESTS = [{
         'url': 'https://embed.cloudflarestream.com/embed/we4g.fla9.latest.js?video=31c9291ab41fac05471db4e73aa11717',
         'info_dict': {
@@ -43,7 +45,7 @@ class CloudflareStreamIE(InfoExtractor):
         return [
             mobj.group('url')
             for mobj in re.finditer(
-                r'<script[^>]+\bsrc=(["\'])(?P<url>(?:https?:)?//embed\.(?:cloudflarestream\.com|videodelivery\.net)/embed/[^/]+\.js\?.*?\bvideo=[\da-f]+?.*?)\1',
+                r'<script[^>]+\bsrc=(["\'])(?P<url>(?:https?:)?//%s(?:%s).*?)\1' % (CloudflareStreamIE._EMBED_RE, CloudflareStreamIE._ID_RE),
                 webpage)]
 
     def _real_extract(self, url):
