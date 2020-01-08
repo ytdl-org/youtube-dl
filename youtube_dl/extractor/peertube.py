@@ -505,10 +505,10 @@ class PeerTubeIE(InfoExtractor):
         video = self._download_json(
             'https://%s/api/v1/videos/%s' % (host, video_id), video_id)
 
+        title = video['name']
+
         video_description = self._download_json(
             'https://%s/api/v1/videos/%s/description' % (host, video_id), video_id, fatal=False)
-
-        title = video['name']
 
         formats = []
         for file_ in video['files']:
