@@ -4,22 +4,18 @@ from __future__ import unicode_literals
 from .common import InfoExtractor
 from ..utils import (
     clean_html,
-    get_element_by_class,
-    js_to_json,
 )
 
 
 class TVNoeIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:www\.)?tvnoe\.cz/video/(?P<id>[0-9]+)'
+    _VALID_URL = r'https?://(?:www\.)?tvnoe\.cz/porad/(?P<id>[-0-9a-z]+)'
     _TEST = {
-        'url': 'http://www.tvnoe.cz/video/10362',
-        'md5': 'aee983f279aab96ec45ab6e2abb3c2ca',
+        'url': 'https://www.tvnoe.cz/porad/26011-terra-santa-news-13-11-2019',
         'info_dict': {
-            'id': '10362',
+            'id': '26011-terra-santa-news-13-11-2019',
             'ext': 'mp4',
-            'series': 'Noční univerzita',
-            'title': 'prof. Tomáš Halík, Th.D. - Návrat náboženství a střet civilizací',
-            'description': 'md5:f337bae384e1a531a52c55ebc50fff41',
+            'series': 'Terra Santa News',
+            'title': '13. 11. 2019',
         }
     }
 
@@ -27,22 +23,27 @@ class TVNoeIE(InfoExtractor):
         video_id = self._match_id(url)
         webpage = self._download_webpage(url, video_id)
 
-        iframe_url = self._search_regex(
-            r'<iframe[^>]+src="([^"]+)"', webpage, 'iframe URL')
+        dash_url = self._search_regex(
+            r"\s*src:\s*\'(?P<url>https?://[^\']+manifest.mpd)\',", webpage, 'mpd')
+        hls_url = self._search_regex(
+            r"\s*src:\s*\'(?P<url>https?://[^\']+playlist.m3u8)\',", webpage, 'm3u8')
 
-        ifs_page = self._download_webpage(iframe_url, video_id)
-        jwplayer_data = self._find_jwplayer_data(
-            ifs_page, video_id, transform_source=js_to_json)
-        info_dict = self._parse_jwplayer_data(
-            jwplayer_data, video_id, require_title=False, base_url=iframe_url)
+        formats = []
+        if dash_url:
+            formats.extend(self._extract_mpd_formats(
+                dash_url, video_id, mpd_id='dash', fatal=False))
+        if hls_url:
+            formats.extend(self._extract_m3u8_formats(
+                hls_url, video_id, ext='mp4', m3u8_id='hls', fatal=False))
 
-        info_dict.update({
+        self._sort_formats(formats)
+        title = clean_html(self._search_regex(
+            r"<h2>(?P<title>.*)<\/h2>", webpage, 'title'))
+        series = clean_html(self._search_regex(
+            r"<h1>(?P<series>.*)<\/h1>", webpage, 'series'))
+        return {
             'id': video_id,
-            'title': clean_html(get_element_by_class(
-                'field-name-field-podnazev', webpage)),
-            'description': clean_html(get_element_by_class(
-                'field-name-body', webpage)),
-            'series': clean_html(get_element_by_class('title', webpage))
-        })
-
-        return info_dict
+            'title': title,
+            'series': series,
+            'formats': formats
+        }
