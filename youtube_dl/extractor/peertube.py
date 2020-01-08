@@ -494,7 +494,7 @@ class PeerTubeIE(InfoExtractor):
             'https://%s/api/v1/videos/%s' % (host, video_id), video_id)
 
         video_description = self._download_json(
-            'https://%s/api/v1/videos/%s/description' % (host, video_id), video_id)
+            'https://%s/api/v1/videos/%s/description' % (host, video_id), video_id, fatal=False)
 
         video_captions = self._download_json(
             'https://%s/api/v1/videos/%s/captions' % (host, video_id), video_id)
