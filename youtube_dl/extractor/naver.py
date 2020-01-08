@@ -8,8 +8,8 @@ from ..utils import (
     clean_html,
     dict_get,
     ExtractorError,
-    get_element_by_class,
     int_or_none,
+    parse_duration,
     try_get,
     update_url_query,
 )
@@ -113,6 +113,7 @@ class NaverIE(NaverBaseIE):
             'ext': 'mp4',
             'title': '[9월 모의고사 해설강의][수학_김상희] 수학 A형 16~20번',
             'description': '메가스터디 수학 김상희 선생님이 9월 모의고사 수학A형 16번에서 20번까지 해설강의를 공개합니다.',
+            'timestamp': 1378200754,
             'upload_date': '20130903',
             'uploader': '메가스터디, 합격불변의 법칙',
             'uploader_id': 'megastudy',
@@ -125,6 +126,7 @@ class NaverIE(NaverBaseIE):
             'ext': 'mp4',
             'title': '9년이 지나도 아픈 기억, 전효성의 아버지',
             'description': 'md5:eb6aca9d457b922e43860a2a2b1984d3',
+            'timestamp': 1432030253,
             'upload_date': '20150519',
             'uploader': '4가지쇼 시즌2',
             'uploader_id': 'wrappinguser29',
@@ -138,29 +140,27 @@ class NaverIE(NaverBaseIE):
     def _real_extract(self, url):
         video_id = self._match_id(url)
         content = self._download_json(
-            'https://tv.naver.com/api/contents/json/v/' + video_id,
+            'https://tv.naver.com/api/json/v/' + video_id,
             video_id, headers=self.geo_verification_headers())
-        player_json = content.get('playerJson') or {}
+        player_info_json = content.get('playerInfoJson') or {}
+        current_clip = player_info_json.get('currentClip') or {}
 
-        vid = player_json.get('videoId')
-        in_key = player_json.get('inKey')
+        vid = current_clip.get('videoId')
+        in_key = current_clip.get('inKey')
 
         if not vid or not in_key:
-            player_auth = player_json.get('playerAuth')
+            player_auth = try_get(player_info_json, lambda x: x['playerOption']['auth'])
             if player_auth == 'notCountry':
                 self.raise_geo_restricted(countries=['KR'])
             elif player_auth == 'notLogin':
                 self.raise_login_required()
             raise ExtractorError('couldn\'t extract vid and key')
         info = self._extract_video_info(video_id, vid, in_key)
-
-        clip_info_html = content.get('clipInfoHtml')
-        if clip_info_html:
-            info['description'] = clean_html(get_element_by_class('desc', clip_info_html))
-            upload_date = self._search_regex(
-                r'<span[^>]+class="date".*?(\d{4}\.\d{2}\.\d{2})',
-                clip_info_html, 'upload date', fatal=False)
-            if upload_date:
-                info['upload_date'] = upload_date.replace('.', '')
-
+        info.update({
+            'description': clean_html(current_clip.get('description')),
+            'timestamp': int_or_none(current_clip.get('firstExposureTime'), 1000),
+            'duration': parse_duration(current_clip.get('displayPlayTime')),
+            'like_count': int_or_none(current_clip.get('recommendPoint')),
+            'age_limit': 19 if current_clip.get('adult') else None,
+        })
         return info
