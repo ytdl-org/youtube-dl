@@ -490,11 +490,16 @@ class PeerTubeIE(InfoExtractor):
             'https://%s/api/v1/videos/%s/captions' % (host, video_id), video_id)
 
         subtitles = {}
-        for entry in video_captions['data']:
-            caption_url = 'https://%s%s' % (host, entry['captionPath'])
-            subtitles[entry['language']['id']] = [{
-                'url': caption_url
-            }]
+        for entry in video_captions.get('data'):
+            captions_language = entry.get('language')
+            if captions_language is not None:
+                language_id = captions_language.get('id')
+                caption_path = entry.get('captionPath')
+                if language_id is not None and caption_path is not None:
+                    caption_url = 'https://%s%s' % (host, caption_path)
+                    subtitles[language_id] = [{
+                        'url': caption_url
+                    }]
         return subtitles
 
     def _real_extract(self, url):
