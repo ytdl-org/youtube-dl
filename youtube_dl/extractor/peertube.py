@@ -485,6 +485,18 @@ class PeerTubeIE(InfoExtractor):
                 entries = [peertube_url]
         return entries
 
+    def _get_subtitles(self, host, video_id):
+        video_captions = self._download_json(
+            'https://%s/api/v1/videos/%s/captions' % (host, video_id), video_id)
+
+        subtitles = {}
+        for entry in video_captions['data']:
+            caption_url = 'https://%s%s' % (host, entry['captionPath'])
+            subtitles[entry['language']['id']] = [{
+                'url': caption_url
+            }]
+        return subtitles
+
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
         host = mobj.group('host') or mobj.group('host_2')
@@ -495,9 +507,6 @@ class PeerTubeIE(InfoExtractor):
 
         video_description = self._download_json(
             'https://%s/api/v1/videos/%s/description' % (host, video_id), video_id, fatal=False)
-
-        video_captions = self._download_json(
-            'https://%s/api/v1/videos/%s/captions' % (host, video_id), video_id)
 
         title = video['name']
 
@@ -520,12 +529,7 @@ class PeerTubeIE(InfoExtractor):
             formats.append(f)
         self._sort_formats(formats)
 
-        subtitles = {}
-        for entry in video_captions['data']:
-            caption_url = 'https://%s%s' % (host, entry['captionPath'])
-            subtitles[entry['language']['id']] = [{
-                'url': caption_url
-            }]
+        subtitles = self.extract_subtitles(host, video_id)
 
         def account_data(field):
             return try_get(video, lambda x: x['account'][field], compat_str)
