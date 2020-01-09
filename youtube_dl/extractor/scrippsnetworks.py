@@ -106,7 +106,7 @@ class ScrippsNetworksWatchIE(AWSIE):
 
 
 class ScrippsNetworksIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:www\.)?(?P<site>cookingchanneltv|(?:diy|food)network|hgtv|travelchannel)\.com/videos/[0-9a-z-]+-(?P<id>\d+)'
+    _VALID_URL = r'https?://(?:www\.)?(?P<site>cookingchanneltv|discovery|(?:diy|food)network|hgtv|travelchannel)\.com/videos/[0-9a-z-]+-(?P<id>\d+)'
     _TESTS = [{
         'url': 'https://www.cookingchanneltv.com/videos/the-best-of-the-best-0260338',
         'info_dict': {
@@ -131,9 +131,13 @@ class ScrippsNetworksIE(InfoExtractor):
     }, {
         'url': 'https://www.travelchannel.com/videos/two-climates-one-bag-5302184',
         'only_matching': True,
+    }, {
+        'url': 'https://www.discovery.com/videos/guardians-of-the-glades-cooking-with-tom-cobb-5578368',
+        'only_matching': True,
     }]
     _ACCOUNT_MAP = {
         'cookingchanneltv': 2433005105,
+        'discovery': 2706091867,
         'diynetwork': 2433004575,
         'foodnetwork': 2433005105,
         'hgtv': 2433004575,
