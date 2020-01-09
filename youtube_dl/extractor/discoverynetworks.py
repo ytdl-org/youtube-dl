@@ -50,10 +50,18 @@ class DiscoveryNetworksDePlaylistIE(InfoExtractor):
 
     _TESTS = [{
         'url': 'https://www.dplay.co.uk/show/hairy-bikers-mississippi-adventure',
-        'only_matching': True
-    },{
+        'info_dict': {
+            'id': 'hairy-bikers-mississippi-adventure',
+            'title': 'Hairy Bikers\' Mississippi Adventure'
+        },
+        'playlist_mincount': 2
+    }, {
         'url': 'https://www.dmax.de/programme/naked-survival',
-        'only_matching': True
+        'info_dict': {
+            'id': 'naked-survival',
+            'title': 'Naked Survival'
+        },
+        'playlist_mincount': 2
     }]
 
     @classmethod
@@ -64,7 +72,7 @@ class DiscoveryNetworksDePlaylistIE(InfoExtractor):
     def _extract_episodes(self, url, webpage, _type, program):
         episodes = []
         for episode in re.finditer(r'"path":"' + program + r'(?P<episode>/.+?)"', webpage):
-            episode_url = urljoin( url, '/' + _type + '/' + program + '/video' + episode.group('episode'))
+            episode_url = urljoin(url, '/' + _type + '/' + program + '/video' + episode.group('episode'))
             if episode_url not in episodes:
                 episodes.append(episode_url)
         return episodes
