@@ -497,9 +497,14 @@ class PeerTubeIE(InfoExtractor):
                 caption_path = entry.get('captionPath')
                 if language_id is not None and caption_path is not None:
                     caption_url = 'https://%s%s' % (host, caption_path)
-                    subtitles[language_id] = [{
-                        'url': caption_url
-                    }]
+                    if language_id in subtitles:
+                        subtitles[language_id].append({
+                            'url': caption_url
+                        })
+                    else:
+                        subtitles[language_id] = [{
+                            'url': caption_url
+                        }]
         return subtitles
 
     def _real_extract(self, url):
