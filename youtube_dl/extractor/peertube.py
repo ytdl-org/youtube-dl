@@ -487,7 +487,7 @@ class PeerTubeIE(InfoExtractor):
 
     def _get_subtitles(self, host, video_id):
         video_captions = self._download_json(
-            'https://%s/api/v1/videos/%s/captions' % (host, video_id), video_id)
+            'https://%s/api/v1/videos/%s/captions' % (host, video_id), video_id, fatal=False)
 
         subtitles = {}
         for entry in video_captions.get('data'):
