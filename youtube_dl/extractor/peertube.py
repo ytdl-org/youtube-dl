@@ -7,6 +7,7 @@ from .common import InfoExtractor
 from ..compat import compat_str
 from ..utils import (
     int_or_none,
+    str_or_none,
     parse_resolution,
     try_get,
     unified_timestamp,
@@ -491,20 +492,18 @@ class PeerTubeIE(InfoExtractor):
 
         subtitles = {}
         for entry in video_captions.get('data'):
-            captions_language = entry.get('language')
-            if captions_language is not None:
-                language_id = captions_language.get('id')
-                caption_path = entry.get('captionPath')
-                if language_id is not None and caption_path is not None:
-                    caption_url = 'https://%s%s' % (host, caption_path)
-                    if language_id in subtitles:
-                        subtitles[language_id].append({
-                            'url': caption_url
-                        })
-                    else:
-                        subtitles[language_id] = [{
-                            'url': caption_url
-                        }]
+            language_id = try_get(entry, lambda x: x['language']['id'], compat_str)
+            caption_path = str_or_none(entry.get('captionPath'))
+            if language_id and caption_path:
+                caption_url = 'https://%s%s' % (host, caption_path)
+                if language_id in subtitles:
+                    subtitles[language_id].append({
+                        'url': caption_url
+                    })
+                else:
+                    subtitles[language_id] = [{
+                        'url': caption_url
+                    }]
         return subtitles
 
     def _real_extract(self, url):
@@ -515,13 +514,13 @@ class PeerTubeIE(InfoExtractor):
         video = self._download_json(
             'https://%s/api/v1/videos/%s' % (host, video_id), video_id)
 
-        title = video['name']
+        title = video.get('name')
 
         video_description = self._download_json(
             'https://%s/api/v1/videos/%s/description' % (host, video_id), video_id, fatal=False)
 
         formats = []
-        for file_ in video['files']:
+        for file_ in video.get('files'):
             if not isinstance(file_, dict):
                 continue
             file_url = url_or_none(file_.get('fileUrl'))
