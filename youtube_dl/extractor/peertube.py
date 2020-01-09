@@ -543,6 +543,9 @@ class PeerTubeIE(InfoExtractor):
         def account_data(field):
             return try_get(video, lambda x: x['account'][field], compat_str)
 
+        def channel_data(field):
+            return try_get(video, lambda x: x['channel'][field], compat_str)
+
         category = try_get(video, lambda x: x['category']['label'], compat_str)
         categories = [category] if category else None
 
@@ -561,6 +564,9 @@ class PeerTubeIE(InfoExtractor):
             'uploader': account_data('displayName'),
             'uploader_id': '%s@%s' % (account_data('name'), account_data('host')),
             'uploader_url': account_data('url'),
+            'channel': channel_data('displayName'),
+            'channel_id': '%s@%s' % (channel_data('name'), channel_data('host')),
+            'channel_url': channel_data('url'),
             'language': try_get(
                 video, lambda x: x['language']['id'], compat_str),
             'license': try_get(
