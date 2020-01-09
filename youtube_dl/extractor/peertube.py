@@ -516,9 +516,6 @@ class PeerTubeIE(InfoExtractor):
 
         title = video.get('name')
 
-        video_description = self._download_json(
-            'https://%s/api/v1/videos/%s/description' % (host, video_id), video_id, fatal=False)
-
         formats = []
         for file_ in video.get('files'):
             if not isinstance(file_, dict):
@@ -537,6 +534,13 @@ class PeerTubeIE(InfoExtractor):
             })
             formats.append(f)
         self._sort_formats(formats)
+
+        video_description = self._download_json(
+            'https://%s/api/v1/videos/%s/description' % (host, video_id), video_id, fatal=False)
+
+        description = ""
+        if video_description:
+            description = video_description.get('description')
 
         subtitles = self.extract_subtitles(host, video_id)
 
@@ -558,7 +562,7 @@ class PeerTubeIE(InfoExtractor):
         return {
             'id': video_id,
             'title': title,
-            'description': video_description.get('description'),
+            'description': description,
             'thumbnail': urljoin(url, video.get('thumbnailPath')),
             'timestamp': unified_timestamp(video.get('publishedAt')),
             'uploader': account_data('displayName'),
