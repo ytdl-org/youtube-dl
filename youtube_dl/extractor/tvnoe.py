@@ -23,18 +23,26 @@ class TVNoeIE(InfoExtractor):
         video_id = self._match_id(url)
         webpage = self._download_webpage(url, video_id)
 
-        dash_url = self._search_regex(
-            r"\s*src:\s*\'(?P<url>https?://[^\']+manifest.mpd)\',", webpage, 'mpd')
-        hls_url = self._search_regex(
-            r"\s*src:\s*\'(?P<url>https?://[^\']+playlist.m3u8)\',", webpage, 'm3u8')
-
         formats = []
+        hls_url = self._search_regex(
+            r"\s*src:\s*\'(?P<url>https?://[^\']+playlist.m3u8)\',", webpage, 'm3u8', fatal=False)
+        if hls_url:
+            dash_url = self._search_regex(
+                r"\s*src:\s*\'(?P<url>https?://[^\']+manifest.mpd)\',", webpage, 'mpd', fatal=False)
+        else:
+            dash_url = self._search_regex(
+                r"\s*src:\s*\'(?P<url>https?://[^\']+manifest.mpd)\',", webpage, 'mpd')
+
         if dash_url:
             formats.extend(self._extract_mpd_formats(
                 dash_url, video_id, mpd_id='dash', fatal=False))
         if hls_url:
-            formats.extend(self._extract_m3u8_formats(
-                hls_url, video_id, ext='mp4', m3u8_id='hls', fatal=False))
+            if formats:
+                formats.extend(self._extract_m3u8_formats(
+                    hls_url, video_id, ext='mp4', m3u8_id='hls', fatal=False))
+            else:
+                formats.extend(self._extract_m3u8_formats(
+                    hls_url, video_id, ext='mp4', m3u8_id='hls'))
 
         self._sort_formats(formats)
         title = clean_html(self._search_regex(
