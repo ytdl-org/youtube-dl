@@ -40,7 +40,6 @@ class NovaEmbedIE(InfoExtractor):
 
         QUALITIES = ('lq', 'mq', 'hq', 'hd')
         quality_key = qualities(QUALITIES)
-        
 
         formats = []
         for format_id, format_list in bitrates.items():
@@ -96,7 +95,7 @@ class NovaIE(InfoExtractor):
     _VALID_URL = r'https?://(?:[^.]+\.)?(?P<site>tv(?:noviny)?|tn|novaplus|vymena|fanda|krasna|doma|prask)\.nova\.cz/(?:[^/]+/)+(?P<id>[^/]+?)(?:\.html|/|$)'
     _TESTS = [{
         'url': 'http://tn.nova.cz/clanek/tajemstvi-ukryte-v-podzemi-specialni-nemocnice-v-prazske-krci.html#player_13260',
-        #'md5': '1dd7b9d5ea27bc361f110cd855a19bd3',
+        'md5': '1dd7b9d5ea27bc361f110cd855a19bd3',
         'info_dict': {
             'id': '1757139',
             'display_id': 'tajemstvi-ukryte-v-podzemi-specialni-nemocnice-v-prazske-krci',
@@ -111,9 +110,9 @@ class NovaIE(InfoExtractor):
             'id': 'LWVmgbBh2tR',
             'ext': 'mp4',
             'title': '2020-01-08 Televizní noviny',
-            #'description': 're:.*Sportovní noviny, Počasí Pořad je opatřen audiodeskripcí.*',
+            # 'description': 're:.*Sportovní noviny, Počasí Pořad je opatřen audiodeskripcí.*',
             'thumbnail': r're:https?://.*\.jpg(\?.*)?',
-            #'upload_date': '20200108'
+            # 'upload_date': '20200108'
         },
         'params': {
             # rtmp download
@@ -172,7 +171,6 @@ class NovaIE(InfoExtractor):
 
         webpage = self._download_webpage(url, display_id)
 
-
         description = clean_html(self._og_search_description(webpage, default=None))
         if site == 'novaplus':
             upload_date = unified_strdate(self._search_regex(
@@ -187,7 +185,7 @@ class NovaIE(InfoExtractor):
         embed_id = self._search_regex(
             r'<iframe[^>]+\bsrc=[\"\'](?:https?:)?//media\.cms\.nova\.cz/embed/([^/?#&]+)',
             webpage, 'embed url', default=None)
-        
+
         if embed_id:
             info = {
                 'description': description,
