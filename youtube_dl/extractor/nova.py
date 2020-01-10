@@ -43,6 +43,13 @@ class NovaEmbedIE(InfoExtractor):
 
         formats = []
         for format_id, format_list in bitrates.items():
+            if format_id == 'hls':
+                m3u8_url = url_or_none(format_list)
+                if not m3u8_url:
+                    continue
+                formats.extend(self._extract_m3u8_formats(
+                    m3u8_url, video_id, ext='mp4', m3u8_id='hls', fatal=False))
+
             if not isinstance(format_list, list):
                 continue
             for format_url in format_list:
