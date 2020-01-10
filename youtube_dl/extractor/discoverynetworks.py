@@ -56,6 +56,13 @@ class DiscoveryNetworksDePlaylistIE(InfoExtractor):
         },
         'playlist_mincount': 2
     }, {
+        'url': 'https://www.dplay.co.uk/show/diners-drive-ins-and-dives',
+        'info_dict': {
+            'id': 'diners-drive-ins-and-dives',
+            'title': 'Diners, Drive-Ins, And Dives'
+        },
+        'playlist_mincount': 2
+    }, {
         'url': 'https://www.dmax.de/programme/naked-survival',
         'info_dict': {
             'id': 'naked-survival',
