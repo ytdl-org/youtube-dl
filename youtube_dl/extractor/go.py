@@ -132,14 +132,21 @@ class GoIE(AdobePassIE):
         brand = site_info.get('brand')
         if not video_id or not site_info:
             webpage = self._download_webpage(url, display_id or video_id)
-            video_id = self._search_regex(
+            video_id = self._search_regex_all(
                 (
                     # There may be inner quotes, e.g. data-video-id="'VDKA3609139'"
                     # from http://freeform.go.com/shows/shadowhunters/episodes/season-2/1-this-guilty-blood
                     r'data-video-id=["\']*(VDKA\w+)',
                     # https://abc.com/shows/the-rookie/episode-guide/season-02/03-the-bet
                     r'\b(?:video)?id["\']\s*:\s*["\'](VDKA\w+)'
-                ), webpage, 'video id', default=video_id)
+                ), webpage, 'video id', default=[video_id])
+                
+            # Remove duplicates and nulls
+            if video_id:
+                tmp = []
+                [tmp.append(x) for x in video_id if x and x not in tmp]
+                video_id = tmp
+                
             if not site_info:
                 brand = self._search_regex(
                     (r'data-brand=\s*["\']\s*(\d+)',
@@ -160,6 +167,23 @@ class GoIE(AdobePassIE):
                         video['url'], 'Go', video.get('id'), video.get('title')))
                 entries.reverse()
                 return self.playlist_result(entries, show_id, show_title)
+        
+        if not isinstance(video_id, list):
+            video_id = [video_id]
+            
+        entries = []
+        for id in video_id:
+            entry = self._real_extract_single(id, site_info, brand)
+            if entry:
+                entries.append(entry)
+                
+        if len(entries) == 0:
+            return None
+        elif len(entries) == 1:
+            return entries[0]
+        return self.playlist_result(entries)
+        
+    def _real_extract_single(self, video_id, site_info, brand):
         video_data = self._extract_videos(brand, video_id)[0]
         video_id = video_data['id']
         title = video_data['title']

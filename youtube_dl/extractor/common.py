@@ -1007,6 +1007,40 @@ class InfoExtractor(object):
             self._downloader.report_warning('unable to extract %s' % _name + bug_reports_message())
             return None
 
+    def _search_regex_all(self, pattern, string, name, default=NO_DEFAULT, fatal=True, flags=0, group=None):
+        """
+        The same as _search_regex, except will return all matches for all patterns instead of just one
+        """
+        ret = []
+        if isinstance(pattern, (str, compat_str, compiled_regex_type)):
+            for match in re.finditer(pattern, string, flags):
+                if group is None:
+                    ret.append(next(g for g in match.groups() if g is not None))
+                else:
+                    ret.append(match.group(group))
+        else:
+            for p in pattern:
+                for match in re.finditer(p, string, flags):
+                    if group is None:
+                        ret.append(next(g for g in match.groups() if g is not None))
+                    else:
+                        ret.append(match.group(group))
+
+        if not self._downloader.params.get('no_color') and compat_os_name != 'nt' and sys.stderr.isatty():
+            _name = '\033[0;34m%s\033[0m' % name
+        else:
+            _name = name
+
+        if len(ret) > 0:
+            return ret
+        elif default is not NO_DEFAULT:
+            return default
+        elif fatal:
+            raise RegexNotFoundError('Unable to extract %s' % _name)
+        else:
+            self._downloader.report_warning('unable to extract %s' % _name + bug_reports_message())
+            return None
+
     def _html_search_regex(self, pattern, string, name, default=NO_DEFAULT, fatal=True, flags=0, group=None):
         """
         Like _search_regex, but strips HTML tags and unescapes entities.
