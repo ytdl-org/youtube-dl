@@ -161,9 +161,6 @@ class ORFRadioIE(InfoExtractor):
         show_date = mobj.group('date')
         show_id = mobj.group('show')
 
-        if station == 'fm4':
-            show_id = '4%s' % show_id
-
         data = self._download_json(
             'http://audioapi.orf.at/%s/api/json/current/broadcast/%s/%s' % (station, show_id, show_date),
             show_id
@@ -195,10 +192,10 @@ class ORFRadioIE(InfoExtractor):
 class ORFFM4IE(ORFRadioIE):
     IE_NAME = 'orf:fm4'
     IE_DESC = 'radio FM4'
-    _VALID_URL = r'https?://(?P<station>fm4)\.orf\.at/player/(?P<date>[0-9]+)/(?P<show>\w+)'
+    _VALID_URL = r'https?://(?P<station>fm4)\.orf\.at/player/(?P<date>[0-9]+)/(?P<show>4\w+)'
 
     _TEST = {
-        'url': 'http://fm4.orf.at/player/20170107/CC',
+        'url': 'http://fm4.orf.at/player/20170107/4CC',
         'md5': '2b0be47375432a7ef104453432a19212',
         'info_dict': {
             'id': '2017-01-07_2100_tl_54_7DaysSat18_31295',
