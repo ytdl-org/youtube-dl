@@ -195,16 +195,16 @@ class ORFFM4IE(ORFRadioIE):
     _VALID_URL = r'https?://(?P<station>fm4)\.orf\.at/player/(?P<date>[0-9]+)/(?P<show>4\w+)'
 
     _TEST = {
-        'url': 'https://fm4.orf.at/player/20200101/4HOP',
-        'md5': '643bcd94f1f08128b53656b18a6a1f14',
+        'url': 'http://fm4.orf.at/player/20170107/4CC',
+        'md5': '2b0be47375432a7ef104453432a19212',
         'info_dict': {
-            'id': '2020-01-01_2156_tl_54_7DaysWed16_90867',
+            'id': '2017-01-07_2100_tl_54_7DaysSat18_31295',
             'ext': 'mp3',
-            'title': 'House Of Pain',
-            'description': '<p>Der mittwöchige Streifzug durch die Welt der schweren Riffs und grollenden Bässe, metallischen Sounds und düsteren Elektronik. Mit Christian Fuchs und seiner Gang.</p>',
-            'duration': 7288.0,
-            'timestamp': 1577912190.0,
-            'upload_date': '20200101',
+            'title': 'Solid Steel Radioshow',
+            'description': 'Die Mixshow von Coldcut und Ninja Tune.',
+            'duration': 3599,
+            'timestamp': 1483819257,
+            'upload_date': '20170107',
         },
         'skip': 'Shows from ORF radios are only available for 7 days.'
     }
@@ -216,16 +216,15 @@ class ORFOE1IE(ORFRadioIE):
     _VALID_URL = r'https?://(?P<station>oe1)\.orf\.at/player/(?P<date>[0-9]+)/(?P<show>\w+)'
 
     _TEST = {
-        'url': 'https://oe1.orf.at/player/20191231/583045',
-        'md5': '3c37eb61909609c9e7069957c2ba453d',
+        'url': 'http://oe1.orf.at/player/20170108/456544',
+        'md5': '34d8a6e67ea888293741c86a099b745b',
         'info_dict': {
-            'id': '2019-12-31_0659_tl_51_7DaysTue6_1159893',
+            'id': '2017-01-08_0759_tl_51_7DaysSun6_256141',
             'ext': 'mp3',
-            'title': 'Ö1 Morgenjournal',
-            'description': '<p>mit Kultur aktuell</p>',
-            'duration': 1992.0,
-            'timestamp': 1577771996.0,
-            'upload_date': '20191231',
+            'title': 'Morgenjournal',
+            'duration': 609,
+            'timestamp': 1483858796,
+            'upload_date': '20170108',
         },
         'skip': 'Shows from ORF radios are only available for 7 days.'
     }
