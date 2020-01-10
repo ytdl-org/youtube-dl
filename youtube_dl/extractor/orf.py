@@ -6,12 +6,14 @@ import re
 from .common import InfoExtractor
 from ..compat import compat_str
 from ..utils import (
+    clean_html,
     determine_ext,
     float_or_none,
     HEADRequest,
     int_or_none,
     orderedSet,
     remove_end,
+    str_or_none,
     strip_jsonp,
     unescapeHTML,
     unified_strdate,
@@ -161,44 +163,48 @@ class ORFRadioIE(InfoExtractor):
         show_date = mobj.group('date')
         show_id = mobj.group('show')
 
-        if station == 'fm4':
-            show_id = '4%s' % show_id
-
         data = self._download_json(
-            'http://audioapi.orf.at/%s/api/json/current/broadcast/%s/%s' % (station, show_id, show_date),
-            show_id
-        )
+            'http://audioapi.orf.at/%s/api/json/current/broadcast/%s/%s'
+            % (station, show_id, show_date), show_id)
 
-        def extract_entry_dict(info, title, subtitle):
-            return {
-                'id': info['loopStreamId'].replace('.mp3', ''),
-                'url': 'http://loopstream01.apa.at/?channel=%s&id=%s' % (station, info['loopStreamId']),
+        entries = []
+        for info in data['streams']:
+            loop_stream_id = str_or_none(info.get('loopStreamId'))
+            if not loop_stream_id:
+                continue
+            title = str_or_none(data.get('title'))
+            if not title:
+                continue
+            start = int_or_none(info.get('start'), scale=1000)
+            end = int_or_none(info.get('end'), scale=1000)
+            duration = end - start if end and start else None
+            entries.append({
+                'id': loop_stream_id.replace('.mp3', ''),
+                'url': 'http://loopstream01.apa.at/?channel=%s&id=%s' % (station, loop_stream_id),
                 'title': title,
-                'description': subtitle,
-                'duration': (info['end'] - info['start']) / 1000,
-                'timestamp': info['start'] / 1000,
+                'description': clean_html(data.get('subtitle')),
+                'duration': duration,
+                'timestamp': start,
                 'ext': 'mp3',
-                'series': data.get('programTitle')
-            }
-
-        entries = [extract_entry_dict(t, data['title'], data['subtitle']) for t in data['streams']]
+                'series': data.get('programTitle'),
+            })
 
         return {
             '_type': 'playlist',
             'id': show_id,
-            'title': data['title'],
-            'description': data['subtitle'],
-            'entries': entries
+            'title': data.get('title'),
+            'description': clean_html(data.get('subtitle')),
+            'entries': entries,
         }
 
 
 class ORFFM4IE(ORFRadioIE):
     IE_NAME = 'orf:fm4'
     IE_DESC = 'radio FM4'
-    _VALID_URL = r'https?://(?P<station>fm4)\.orf\.at/player/(?P<date>[0-9]+)/(?P<show>\w+)'
+    _VALID_URL = r'https?://(?P<station>fm4)\.orf\.at/player/(?P<date>[0-9]+)/(?P<show>4\w+)'
 
     _TEST = {
-        'url': 'http://fm4.orf.at/player/20170107/CC',
+        'url': 'http://fm4.orf.at/player/20170107/4CC',
         'md5': '2b0be47375432a7ef104453432a19212',
         'info_dict': {
             'id': '2017-01-07_2100_tl_54_7DaysSat18_31295',
@@ -209,7 +215,8 @@ class ORFFM4IE(ORFRadioIE):
             'timestamp': 1483819257,
             'upload_date': '20170107',
         },
-        'skip': 'Shows from ORF radios are only available for 7 days.'
+        'skip': 'Shows from ORF radios are only available for 7 days.',
+        'only_matching': True,
     }
 
 
