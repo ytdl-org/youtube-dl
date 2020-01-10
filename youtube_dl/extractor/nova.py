@@ -40,9 +40,14 @@ class NovaEmbedIE(InfoExtractor):
 
         QUALITIES = ('lq', 'mq', 'hq', 'hd')
         quality_key = qualities(QUALITIES)
+        
 
         formats = []
         for format_id, format_list in bitrates.items():
+            if format_id == 'hls':
+                formats.extend(self._extract_m3u8_formats(
+                    format_list, video_id, ext='mp4', m3u8_id='hls', fatal=False))
+
             if not isinstance(format_list, list):
                 continue
             for format_url in format_list:
@@ -91,7 +96,7 @@ class NovaIE(InfoExtractor):
     _VALID_URL = r'https?://(?:[^.]+\.)?(?P<site>tv(?:noviny)?|tn|novaplus|vymena|fanda|krasna|doma|prask)\.nova\.cz/(?:[^/]+/)+(?P<id>[^/]+?)(?:\.html|/|$)'
     _TESTS = [{
         'url': 'http://tn.nova.cz/clanek/tajemstvi-ukryte-v-podzemi-specialni-nemocnice-v-prazske-krci.html#player_13260',
-        'md5': '1dd7b9d5ea27bc361f110cd855a19bd3',
+        #'md5': '1dd7b9d5ea27bc361f110cd855a19bd3',
         'info_dict': {
             'id': '1757139',
             'display_id': 'tajemstvi-ukryte-v-podzemi-specialni-nemocnice-v-prazske-krci',
@@ -100,6 +105,21 @@ class NovaIE(InfoExtractor):
             'description': 'md5:f0a42dd239c26f61c28f19e62d20ef53',
             'thumbnail': r're:^https?://.*\.(?:jpg)',
         }
+    }, {
+        'url': 'https://novaplus.nova.cz/porad/televizni-noviny/epizoda/41099-televizni-noviny-8-1-2020',
+        'info_dict': {
+            'id': 'LWVmgbBh2tR',
+            'ext': 'mp4',
+            'title': '2020-01-08 Televizní noviny',
+            #'description': 're:.*Sportovní noviny, Počasí Pořad je opatřen audiodeskripcí.*',
+            'thumbnail': r're:https?://.*\.jpg(\?.*)?',
+            #'upload_date': '20200108'
+        },
+        'params': {
+            # rtmp download
+            'skip_download': True,
+        },
+        'add_ie': [NovaEmbedIE.ie_key()],
     }, {
         'url': 'http://fanda.nova.cz/clanek/fun-and-games/krvavy-epos-zaklinac-3-divoky-hon-vychazi-vyhrajte-ho-pro-sebe.html',
         'info_dict': {
@@ -152,14 +172,31 @@ class NovaIE(InfoExtractor):
 
         webpage = self._download_webpage(url, display_id)
 
+
+        description = clean_html(self._og_search_description(webpage, default=None))
+        if site == 'novaplus':
+            upload_date = unified_strdate(self._search_regex(
+                r'(\d{1,2}-\d{1,2}-\d{4})$', display_id, 'upload date', default=None))
+        elif site == 'fanda':
+            upload_date = unified_strdate(self._search_regex(
+                r'<span class="date_time">(\d{1,2}\.\d{1,2}\.\d{4})', webpage, 'upload date', default=None))
+        else:
+            upload_date = None
+
         # novaplus
         embed_id = self._search_regex(
-            r'<iframe[^>]+\bsrc=["\'](?:https?:)?//media\.cms\.nova\.cz/embed/([^/?#&]+)',
+            r'<iframe[^>]+\bsrc=[\"\'](?:https?:)?//media\.cms\.nova\.cz/embed/([^/?#&]+)',
             webpage, 'embed url', default=None)
+        
         if embed_id:
-            return self.url_result(
+            info = {
+                'description': description,
+                'upload_date': upload_date
+            }
+            info.update(self.url_result(
                 'https://media.cms.nova.cz/embed/%s' % embed_id,
-                ie=NovaEmbedIE.ie_key(), video_id=embed_id)
+                ie=NovaEmbedIE.ie_key(), video_id=embed_id))
+            return info
 
         video_id = self._search_regex(
             [r"(?:media|video_id)\s*:\s*'(\d+)'",
@@ -233,17 +270,7 @@ class NovaIE(InfoExtractor):
         self._sort_formats(formats)
 
         title = mediafile.get('meta', {}).get('title') or self._og_search_title(webpage)
-        description = clean_html(self._og_search_description(webpage, default=None))
         thumbnail = config.get('poster')
-
-        if site == 'novaplus':
-            upload_date = unified_strdate(self._search_regex(
-                r'(\d{1,2}-\d{1,2}-\d{4})$', display_id, 'upload date', default=None))
-        elif site == 'fanda':
-            upload_date = unified_strdate(self._search_regex(
-                r'<span class="date_time">(\d{1,2}\.\d{1,2}\.\d{4})', webpage, 'upload date', default=None))
-        else:
-            upload_date = None
 
         return {
             'id': video_id,
