@@ -485,6 +485,7 @@ class FacebookIE(InfoExtractor):
         else:
             view_count = parse_count(self._extract_meta_count(['postViewCount', 'viewCount'], webpage, tahoe_data, 'likes'))
 
+        other_posts_view_count = parse_count(self._extract_meta_count(['otherPostsViewCount'], webpage, tahoe_data, 'other_post_views'))
         likes_count = parse_count(self._extract_likes(webpage, tahoe_data))
         shares_count = parse_count(self._extract_meta_count(['sharecount'], webpage, tahoe_data, 'shares'))
         comment_count = parse_count(self._extract_meta_count(['commentCount'], webpage, tahoe_data, 'shares'))
@@ -503,7 +504,8 @@ class FacebookIE(InfoExtractor):
             'like_count': likes_count,
             'share_count': shares_count,
             'subtitles': subtitles,
-            'comment_count': comment_count
+            'comment_count': comment_count,
+            'other_posts_view_count': other_posts_view_count
         }
         if uploader_id:
             info_dict['uploader_like_count'] = FacebookAjax(self, webpage, uploader_id).page_likes
@@ -691,3 +693,329 @@ class FacebookPluginsVideoIE(InfoExtractor):
         return self.url_result(
             compat_urllib_parse_unquote(self._match_id(url)),
             FacebookIE.ie_key())
+
+
+class FacebookPhotosIE(InfoExtractor):
+    _VALID_URL = r'^https?:\/\/(?:www\.|)facebook\.com\/(.*?)\/videos\/([^?&\/]*)'
+    IE_NAME = 'facebook_photos'
+
+    _CHROME_USER_AGENT = 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/48.0.2564.97 Safari/537.36'
+
+
+    @staticmethod
+    def _extract_urls(webpage):
+        urls = []
+        for mobj in re.finditer(
+                r'<iframe[^>]+?src=(["\'])(?P<url>https?://www\.facebook\.com/(?:video/embed|plugins/video\.php).+?)\1',
+                webpage):
+            urls.append(mobj.group('url'))
+        # Facebook API embed
+        # see https://developers.facebook.com/docs/plugins/embedded-video-player
+        for mobj in re.finditer(r'''(?x)<div[^>]+
+                class=(?P<q1>[\'"])[^\'"]*\bfb-(?:video|post)\b[^\'"]*(?P=q1)[^>]+
+                data-href=(?P<q2>[\'"])(?P<url>(?:https?:)?//(?:www\.)?facebook.com/.+?)(?P=q2)''', webpage):
+            urls.append(mobj.group('url'))
+        return urls
+
+    def _login(self):
+        useremail, password = self._get_login_info()
+        if useremail is None:
+            return
+
+        login_page_req = sanitized_Request(self._LOGIN_URL)
+        self._set_cookie('facebook.com', 'locale', 'en_US')
+        login_page = self._download_webpage(login_page_req, None,
+                                            note='Downloading login page',
+                                            errnote='Unable to download login page')
+        lsd = self._search_regex(
+            r'<input type="hidden" name="lsd" value="([^"]*)"',
+            login_page, 'lsd')
+        lgnrnd = self._search_regex(r'name="lgnrnd" value="([^"]*?)"', login_page, 'lgnrnd')
+
+        login_form = {
+            'email': useremail,
+            'pass': password,
+            'lsd': lsd,
+            'lgnrnd': lgnrnd,
+            'next': 'http://facebook.com/home.php',
+            'default_persistent': '0',
+            'legacy_return': '1',
+            'timezone': '-60',
+            'trynum': '1',
+        }
+        request = sanitized_Request(self._LOGIN_URL, urlencode_postdata(login_form))
+        request.add_header('Content-Type', 'application/x-www-form-urlencoded')
+        try:
+            login_results = self._download_webpage(request, None,
+                                                   note='Logging in', errnote='unable to fetch login page')
+            if re.search(r'<form(.*)name="login"(.*)</form>', login_results) is not None:
+                error = self._html_search_regex(
+                    r'(?s)<div[^>]+class=(["\']).*?login_error_box.*?\1[^>]*><div[^>]*>.*?</div><div[^>]*>(?P<error>.+?)</div>',
+                    login_results, 'login error', default=None, group='error')
+                if error:
+                    raise ExtractorError('Unable to login: %s' % error, expected=True)
+                self._downloader.report_warning('unable to log in: bad username/password, or exceeded login rate limit (~3/min). Check credentials or wait.')
+                return
+
+            fb_dtsg = self._search_regex(
+                r'name="fb_dtsg" value="(.+?)"', login_results, 'fb_dtsg', default=None)
+            h = self._search_regex(
+                r'name="h"\s+(?:\w+="[^"]+"\s+)*?value="([^"]+)"', login_results, 'h', default=None)
+
+            if not fb_dtsg or not h:
+                return
+
+            check_form = {
+                'fb_dtsg': fb_dtsg,
+                'h': h,
+                'name_action_selected': 'dont_save',
+            }
+            check_req = sanitized_Request(self._CHECKPOINT_URL, urlencode_postdata(check_form))
+            check_req.add_header('Content-Type', 'application/x-www-form-urlencoded')
+            check_response = self._download_webpage(check_req, None,
+                                                    note='Confirming login')
+            if re.search(r'id="checkpointSubmitButton"', check_response) is not None:
+                self._downloader.report_warning('Unable to confirm login, you have to login in your browser and authorize the login.')
+        except (compat_urllib_error.URLError, compat_http_client.HTTPException, socket.error) as err:
+            self._downloader.report_warning('unable to log in: %s' % error_to_compat_str(err))
+            return
+
+    def _real_initialize(self):
+        self._login()
+
+    def _extract_from_url(self, url, video_id, fatal_if_no_video=True):
+        req = sanitized_Request(url)
+        req.add_header('User-Agent', self._CHROME_USER_AGENT)
+        webpage = self._download_webpage(req, video_id)
+
+        video_data = None
+
+        def extract_video_data(instances):
+            for item in instances:
+                if item[1][0] == 'VideoConfig':
+                    video_item = item[2][0]
+                    if video_item.get('video_id'):
+                        return video_item['videoData']
+
+        server_js_data = self._parse_json(self._search_regex(
+            r'handleServerJS\(({.+})(?:\);|,")', webpage,
+            'server js data', default='{}'), video_id, fatal=False)
+
+        if server_js_data:
+            video_data = extract_video_data(server_js_data.get('instances', []))
+
+        def extract_from_jsmods_instances(js_data):
+            if js_data:
+                return extract_video_data(try_get(
+                    js_data, lambda x: x['jsmods']['instances'], list) or [])
+
+        if not video_data:
+            server_js_data = self._parse_json(
+                self._search_regex(
+                    r'bigPipe\.onPageletArrive\(({.+?})\)\s*;\s*}\s*\)\s*,\s*["\']onPageletArrive\s+(?:pagelet_group_mall|permalink_video_pagelet|hyperfeed_story_id_\d+)',
+                    webpage, 'js data', default='{}'),
+                video_id, transform_source=js_to_json, fatal=False)
+            video_data = extract_from_jsmods_instances(server_js_data)
+
+        tahoe_data = FacebookTahoeData(self, webpage, video_id)
+        if not video_data:
+            if not fatal_if_no_video:
+                return webpage, False
+            m_msg = re.search(r'class="[^"]*uiInterstitialContent[^"]*"><div>(.*?)</div>', webpage)
+            if m_msg is not None:
+                raise ExtractorError(
+                    'The video is not available, Facebook said: "%s"' % m_msg.group(1),
+                    expected=True)
+            elif '>You must log in to continue' in webpage:
+                self.raise_login_required()
+            # Video info not in first request, do a secondary request using
+            # tahoe player specific URL
+            tahoe_js_data = self._parse_json(
+                self._search_regex(
+                    r'for\s+\(\s*;\s*;\s*\)\s*;(.+)', tahoe_data.primary,
+                    'tahoe js data', default='{}'),
+                video_id, fatal=False)
+
+            video_data = extract_from_jsmods_instances(tahoe_js_data)
+
+        if not video_data :
+            if self._search_regex(r'newsFeedStream.*?<h1><span class.*?>(.*?)<\/span><\/h1>', webpage, "video_title") is not None:
+                self.raise_login_required()
+            raise ExtractorError('Cannot parse data')
+
+        is_scheduled = '"isScheduledLive":true' in tahoe_data.secondary
+        is_live_stream = video_data[0].get('is_live_stream', False)
+        is_broadcast = video_data[0].get('is_broadcast', False)
+
+        live_status = 'not_live'
+        if is_broadcast:
+            live_status = 'completed'
+            if is_live_stream:
+                live_status = 'live'
+                if is_scheduled:
+                    live_status = 'upcoming'
+
+        is_live = live_status == 'live'
+
+        subtitles = {}
+        formats = []
+        for f in video_data:
+            format_id = f['stream_type']
+            if f and isinstance(f, dict):
+                f = [f]
+            if not f or not isinstance(f, list):
+                continue
+            for quality in ('sd', 'hd'):
+                for src_type in ('src', 'src_no_ratelimit'):
+                    src = f[0].get('%s_%s' % (quality, src_type))
+                    if src:
+                        preference = -10 if format_id == 'progressive' else 0
+                        if quality == 'hd':
+                            preference += 5
+                        formats.append({
+                            'format_id': '%s_%s_%s' % (format_id, quality, src_type),
+                            'url': src,
+                            'preference': preference,
+                        })
+            dash_manifest = f[0].get('dash_manifest')
+            if dash_manifest:
+                formats.extend(self._parse_mpd_formats(
+                    compat_etree_fromstring(compat_urllib_parse_unquote_plus(dash_manifest))))
+            subtitles_src = f[0].get('subtitles_src')
+            if subtitles_src:
+                subtitles.setdefault('en', []).append({'url': subtitles_src})
+        if not formats:
+            raise ExtractorError('Cannot find video formats')
+
+        # Downloads with browser's User-Agent are rate limited. Working around
+        # with non-browser User-Agent.
+        for f in formats:
+            f.setdefault('http_headers', {})['User-Agent'] = 'facebookexternalhit/1.1'
+
+        self._sort_formats(formats)
+
+        video_title = self._html_search_regex(
+            r'<h2\s+[^>]*class="uiHeaderTitle"[^>]*>([^<]*)</h2>', webpage,
+            'title', default=None)
+        if not video_title:
+            video_title = self._html_search_regex(
+                r'(?s)<span class="fbPhotosPhotoCaption".*?id="fbPhotoPageCaption"><span class="hasCaption">(.*?)</span>',
+                webpage, 'alternative title', default=None)
+        if not video_title:
+            video_title = self._og_search_title(webpage, default=None)
+        if not video_title:
+            video_title = self._html_search_meta(
+                'description', webpage, 'title', default=None)
+        if video_title:
+            video_title = limit_length(video_title, 80)
+        else:
+            video_title = 'Facebook video #%s' % video_id
+
+        uploader = clean_html(get_element_by_id(
+            'fbPhotoPageAuthorName', webpage)) or self._search_regex(
+            r'ownerName\s*:\s*"([^"]+)"', webpage, 'uploader',default=None) or \
+                   lowercase_escape(self._search_regex(
+                        r'\"ownerName\":"(.+?)"', tahoe_data.secondary,
+                        'uploader_id', fatal=False)) or self._og_search_title(webpage, default=None)
+
+
+        timestamp = int_or_none(self._search_regex(
+            r'data-utime=\\\"(\d+)\\\"', tahoe_data.secondary,
+            'timestamp', default=None) or self._search_regex(
+            r'<abbr[^>]+data-utime=["\'](\d+)', webpage,
+            'timestamp', default=None))
+
+        uploader_id = self._search_regex(
+            r'ownerid:"([\d]+)', webpage,
+            'uploader_id', default=None) or self._search_regex(
+            r'[\'\"]ownerid[\'\"]\s*:\s*[\'\"](\d+)[\'\"]', tahoe_data.secondary,
+            'uploader_id', fatal=False)
+
+
+        thumbnail = self._html_search_meta(['og:image', 'twitter:image'], webpage)
+        if is_live:
+            view_count = parse_count(
+                self._search_regex(r'viewerCount:([\d]+)', webpage, 'views', fatal=False) or \
+                self._search_regex(r'[\'\"]viewerCount[\'\"]\s*:\s*(\d+)', tahoe_data.primary, 'views', fatal=False)
+            )
+        else:
+            view_count = parse_count(self._extract_meta_count(['postViewCount', 'viewCount'], webpage, tahoe_data, 'likes'))
+
+        likes_count = parse_count(self._extract_likes(webpage, tahoe_data))
+        shares_count = parse_count(self._extract_meta_count(['sharecount'], webpage, tahoe_data, 'shares'))
+        comment_count = parse_count(self._extract_meta_count(['commentCount'], webpage, tahoe_data, 'shares'))
+
+        info_dict = {
+            'id': video_id,
+            'title': video_title,
+            'formats': formats,
+            'uploader': uploader,
+            'timestamp': timestamp,
+            'thumbnail': thumbnail,
+            'view_count': view_count,
+            'uploader_id': uploader_id,
+            'is_live': is_live,
+            'live_status': live_status,
+            'like_count': likes_count,
+            'share_count': shares_count,
+            'subtitles': subtitles,
+            'comment_count': comment_count
+        }
+        if uploader_id:
+            info_dict['uploader_like_count'] = FacebookAjax(self, webpage, uploader_id).page_likes
+
+        return webpage, info_dict
+
+    def _extract_meta_count(self, fields, webpage, tahoe_data, name, ):
+        value = None
+
+        for f in fields:
+            if value:
+                break
+            value = self._search_regex(
+                    r'\b%s\s*:\s*["\']([\d,.]+)' % f, webpage, name,
+                    default=None
+            )
+            if value:
+                break
+
+            value = self._search_regex(
+                r'[\'\"]%s[\'\"]\s*:\s*(\d+)' % f, tahoe_data.secondary, name,
+                default=None)
+
+        return value
+
+    def _extract_likes(self, webpage, tahoe_data):
+        values = re.findall(r'\blikecount\s*:\s*["\']([\d,.]+)', webpage)
+        if values:
+            return values[-1]
+
+
+        values = re.findall(r'[\'\"]\blikecount[\'\"]\s*:\s*(\d+)', tahoe_data.secondary)
+        if values:
+            return values[-1]
+
+    def _real_extract(self, url):
+        video_id = self._match_id(url)
+
+        real_url = self._VIDEO_PAGE_TEMPLATE % video_id if url.startswith('facebook:') else url
+        webpage, info_dict = self._extract_from_url(real_url, video_id, fatal_if_no_video=False)
+
+        if info_dict:
+            return info_dict
+
+        if '/posts/' in url:
+            entries = [
+                self.url_result('facebook:%s' % vid, FacebookIE.ie_key())
+                for vid in self._parse_json(
+                    self._search_regex(
+                        r'(["\'])video_ids\1\s*:\s*(?P<ids>\[.+?\])',
+                        webpage, 'video ids', group='ids'),
+                    video_id)]
+
+            return self.playlist_result(entries, video_id)
+        else:
+            _, info_dict = self._extract_from_url(
+                self._VIDEO_PAGE_TEMPLATE % video_id,
+                video_id, fatal_if_no_video=True)
+            return info_dict
