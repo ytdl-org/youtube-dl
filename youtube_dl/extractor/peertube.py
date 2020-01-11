@@ -7,8 +7,8 @@ from .common import InfoExtractor
 from ..compat import compat_str
 from ..utils import (
     int_or_none,
-    str_or_none,
     parse_resolution,
+    str_or_none,
     try_get,
     unified_timestamp,
     url_or_none,
