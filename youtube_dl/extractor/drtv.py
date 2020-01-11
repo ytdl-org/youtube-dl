@@ -21,6 +21,8 @@ from ..utils import (
     unified_timestamp,
     update_url_query,
     url_or_none,
+    urljoin,
+    base_url
 )
 
 
@@ -294,6 +296,73 @@ class DRTVIE(InfoExtractor):
             'episode_number': int_or_none(data.get('EpisodeNumber')),
             'release_year': int_or_none(data.get('ProductionYear')),
         }
+
+
+class DRTVPlaylistIE(InfoExtractor):
+    _VALID_URL = r'''(?x)
+                    https?://
+                        (?:
+                            (?:www\.)?(?:dr\.dk)/drtv/(?:serie|saeson)/
+                        )
+                        (?P<id>[\da-z_-]+)
+                    '''
+    _TEST = {
+        'url': 'https://www.dr.dk/drtv/serie/spise-med-price_43537',
+        'info_dict': {
+            'id': 'spise-med-price_43537',
+            'title': 'Spise med Price'
+        },
+        'playlist_mincount': 2,
+    }
+
+    @classmethod
+    def suitable(cls, url):
+        return False if DRTVIE.suitable(url) else super(
+            DRTVPlaylistIE, cls).suitable(url)
+
+    def _extract_series(self, url):
+        display_id = self._match_id(url)
+        webpage = self._download_webpage(url, display_id)
+
+        episodes = []
+        for season in re.finditer(r'href="(?P<url>/drtv/saeson/.+?)"', webpage):
+            season_url = urljoin(base_url(url), season.group('url'))
+            episodes = episodes + self._extract_episode_from_season(season_url)
+
+        return episodes
+
+    def _extract_episode_from_season(self, url):
+        display_id = self._match_id(url)
+        webpage = self._download_webpage(url, display_id)
+
+        episodes = []
+
+        for episode in re.finditer(r'href="(?P<url>/drtv/se/.+?)"', webpage):
+            episode_url = urljoin(base_url(url), episode.group('url'))
+            episodes.append(episode_url)
+
+        return episodes
+
+    def _real_extract(self, url):
+        playlist_id = self._match_id(url)
+        webpage = self._download_webpage(url, playlist_id)
+
+        title = self._html_search_regex(
+            r'<h1 class=".*?hero__title".*?>(.+?)</h1>', webpage,
+            'title', default=None)
+
+        if title:
+            title = re.sub(r'\s*\|\s*.+?$', '', title)
+
+        episodes = []
+        if 'serie' in url:
+            episodes = self._extract_series(url)
+        elif 'saeson' in url:
+            episodes = self._extract_episode_from_season(url)
+
+        entries = [self.url_result(ep, ie=DRTVIE.ie_key()) for ep in episodes]
+
+        return self.playlist_result(entries, playlist_id, title)
 
 
 class DRTVLiveIE(InfoExtractor):

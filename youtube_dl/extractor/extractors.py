@@ -277,6 +277,7 @@ from .drbonanza import DRBonanzaIE
 from .drtuber import DrTuberIE
 from .drtv import (
     DRTVIE,
+    DRTVPlaylistIE,
     DRTVLiveIE,
 )
 from .dtube import DTubeIE
