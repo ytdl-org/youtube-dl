@@ -425,7 +425,7 @@ class PeerTubeIE(InfoExtractor):
                     ''' % (_INSTANCES_RE, _UUID_RE)
     _TESTS = [{
         'url': 'https://framatube.org/videos/watch/9c9de5e8-0a1e-484a-b099-e80766180a6d',
-        'md5': '9618b916a40563adfd9b04f3ec12e79b',
+        'md5': '9bed8c0137913e17b86334e5885aacff',
         'info_dict': {
             'id': '9c9de5e8-0a1e-484a-b099-e80766180a6d',
             'ext': 'mp4',
