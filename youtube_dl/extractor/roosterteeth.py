@@ -50,7 +50,7 @@ class RoosterTeethIE(InfoExtractor):
         'url': 'https://roosterteeth.com/watch/million-dollars-but-season-2-million-dollars-but-the-game-announcement',
         'only_matching': True,
     }]
-    _EPISODE_BASE_URL = 'https://svod-be.roosterteeth.com/api/v1/episodes/'
+    _EPISODE_BASE_URL = 'https://svod-be.roosterteeth.com/api/v1/watch/'
 
     def _login(self):
         username, password = self._get_login_info()
