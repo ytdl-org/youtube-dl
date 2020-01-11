@@ -514,10 +514,10 @@ class PeerTubeIE(InfoExtractor):
         video = self._download_json(
             'https://%s/api/v1/videos/%s' % (host, video_id), video_id)
 
-        title = video.get('name')
+        title = video['name']
 
         formats = []
-        for file_ in video.get('files'):
+        for file_ in video['files']:
             if not isinstance(file_, dict):
                 continue
             file_url = url_or_none(file_.get('fileUrl'))
