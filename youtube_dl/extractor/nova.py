@@ -110,9 +110,9 @@ class NovaIE(InfoExtractor):
             'id': 'LWVmgbBh2tR',
             'ext': 'mp4',
             'title': '2020-01-08 Televizní noviny',
-            # 'description': 're:.*Sportovní noviny, Počasí Pořad je opatřen audiodeskripcí.*',
+            'description': 're:.*Sportovní noviny, Počasí Pořad je opatřen audiodeskripcí.*',
             'thumbnail': r're:https?://.*\.jpg(\?.*)?',
-            # 'upload_date': '20200108'
+            'upload_date': '20200108'
         },
         'params': {
             # rtmp download
@@ -183,17 +183,18 @@ class NovaIE(InfoExtractor):
 
         # novaplus
         embed_id = self._search_regex(
-            r'<iframe[^>]+\bsrc=[\"\'](?:https?:)?//media\.cms\.nova\.cz/embed/([^/?#&]+)',
+            r'<iframe[^>]+\bsrc=["\'](?:https?:)?//media\.cms\.nova\.cz/embed/([^/?#&]+)',
             webpage, 'embed url', default=None)
 
         if embed_id:
             info = {
+                '_type': 'url_transparent',
+                'url' : 'https://media.cms.nova.cz/embed/%s' % embed_id,
+                'ie_key' : NovaEmbedIE.ie_key(),
+                'id' : embed_id,
                 'description': description,
                 'upload_date': upload_date
             }
-            info.update(self.url_result(
-                'https://media.cms.nova.cz/embed/%s' % embed_id,
-                ie=NovaEmbedIE.ie_key(), video_id=embed_id))
             return info
 
         video_id = self._search_regex(
