@@ -31,6 +31,19 @@ class RoosterTeethIE(InfoExtractor):
             'episode': 'Million Dollars, But... The Game Announcement',
         },
     }, {
+        'url': 'https://roosterteeth.com/watch/rwby-bonus-25',
+        'md5': 'fe8d9d976b272c18a24fe7f1f5830084',
+        'info_dict': {
+            'id': '31',
+            'display_id': 'rwby-bonus-25',
+            'title': 'Volume 2, World of Remnant 3',
+            'description': 'md5:8d58d3270292ea11da00ea712bbfb009',
+            'episode': 'Volume 2, World of Remnant 3',
+            'channel_id': '92b6bb21-91d2-4b1b-bf95-3268fa0d9939',
+            'thumbnail': r're:^https?://.*\.(png|jpe?g)$',
+            'ext': 'mp4',
+        },
+    }, {
         'url': 'http://achievementhunter.roosterteeth.com/episode/off-topic-the-achievement-hunter-podcast-2016-i-didn-t-think-it-would-pass-31',
         'only_matching': True,
     }, {
