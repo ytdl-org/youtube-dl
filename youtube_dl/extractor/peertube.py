@@ -489,7 +489,7 @@ class PeerTubeIE(InfoExtractor):
     def _get_subtitles(self, host, video_id):
         video_captions = self._download_json(
             'https://%s/api/v1/videos/%s/captions' % (host, video_id), video_id, fatal=False)
-        if not video_captions:
+        if not isinstance(video_captions, dict):
             return None
 
         subtitles = {}
@@ -537,10 +537,10 @@ class PeerTubeIE(InfoExtractor):
         video_description = self._download_json(
             'https://%s/api/v1/videos/%s/description' % (host, video_id), video_id, fatal=False)
 
-        description = ""
-        if video_description:
+        description = None
+        if isinstance(video_description, dict):
             description = video_description.get('description')
-
+            
         subtitles = self.extract_subtitles(host, video_id)
 
         def account_data(field):
