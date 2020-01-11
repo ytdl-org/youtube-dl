@@ -306,7 +306,14 @@ class DRTVPlaylistIE(InfoExtractor):
                         )
                         (?P<id>[\da-z_-]+)
                     '''
-    _TEST = {
+    _TESTS = [{
+        'url': 'https://www.dr.dk/drtv/serie/tv-avisen-21_00_160258',
+        'info_dict': {
+            'id': 'tv-avisen-21_00_160258',
+            'title': 'TV AVISEN 21:00'
+        },
+        'playlist_mincount': 2,
+    },{
         'url': 'https://www.dr.dk/drtv/serie/spise-med-price_43537',
         'info_dict': {
             'id': 'spise-med-price_43537',
@@ -314,6 +321,7 @@ class DRTVPlaylistIE(InfoExtractor):
         },
         'playlist_mincount': 2,
     }
+    ]
 
     @classmethod
     def suitable(cls, url):
@@ -328,6 +336,9 @@ class DRTVPlaylistIE(InfoExtractor):
         for season in re.finditer(r'href="(?P<url>/drtv/saeson/.+?)"', webpage):
             season_url = urljoin(base_url(url), season.group('url'))
             episodes = episodes + self._extract_episode_from_season(season_url)
+        
+        if len(episodes) == 0:
+            episodes = episodes + self._extract_episode_from_season(url)
 
         return episodes
 
