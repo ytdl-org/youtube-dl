@@ -499,8 +499,8 @@ class PeerTubeIE(InfoExtractor):
             if language_id and caption_path:
                 caption_url = 'https://%s%s' % (host, caption_path)
                 caption_dict = {
-                        'url': caption_url
-                    }
+                    'url': caption_url
+                }
                 if subtitles.setdefault(language_id, [caption_dict]) != [caption_dict]:
                     subtitles[language_id].append(caption_dict)
         return subtitles
@@ -540,16 +540,26 @@ class PeerTubeIE(InfoExtractor):
         description = None
         if isinstance(video_description, dict):
             description = video_description.get('description')
-            
+
         subtitles = self.extract_subtitles(host, video_id)
 
+        def try_get_second_level_data(section, field):
+            return try_get(video, lambda x: x[section][field], compat_str)
+
         def account_data(field):
-            return try_get(video, lambda x: x['account'][field], compat_str)
+            return try_get_second_level_data('account', field)
 
         def channel_data(field):
-            return try_get(video, lambda x: x['channel'][field], compat_str)
+            return try_get_second_level_data('channel', field)
 
-        category = try_get(video, lambda x: x['category']['label'], compat_str)
+        def make_id_string(name_field, host_field):
+            name = str_or_none(name_field)
+            host = str_or_none(host_field)
+            if name and host:
+                return '%s@%s' % (name, host)
+            return None
+
+        category = try_get_second_level_data('category', 'label')
         categories = [category] if category else None
 
         nsfw = video.get('nsfw')
@@ -565,15 +575,13 @@ class PeerTubeIE(InfoExtractor):
             'thumbnail': urljoin(url, video.get('thumbnailPath')),
             'timestamp': unified_timestamp(video.get('publishedAt')),
             'uploader': account_data('displayName'),
-            'uploader_id': '%s@%s' % (account_data('name'), account_data('host')),
+            'uploader_id': make_id_string(account_data('name'), account_data('host')),
             'uploader_url': account_data('url'),
             'channel': channel_data('displayName'),
-            'channel_id': '%s@%s' % (channel_data('name'), channel_data('host')),
+            'channel_id': make_id_string(channel_data('name'), channel_data('host')),
             'channel_url': channel_data('url'),
-            'language': try_get(
-                video, lambda x: x['language']['id'], compat_str),
-            'license': try_get(
-                video, lambda x: x['licence']['label'], compat_str),
+            'language': try_get_second_level_data('language', 'id'),
+            'license': try_get_second_level_data('licence', 'label'),
             'duration': int_or_none(video.get('duration')),
             'view_count': int_or_none(video.get('views')),
             'like_count': int_or_none(video.get('likes')),
