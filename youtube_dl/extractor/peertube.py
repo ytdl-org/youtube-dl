@@ -443,8 +443,8 @@ class PeerTubeIE(InfoExtractor):
             'view_count': int,
             'like_count': int,
             'dislike_count': int,
-            'tags': ["framasoft", "peertube"],
-            'categories': ["Science & Technology"],
+            'tags': ['framasoft', 'peertube'],
+            'categories': ['Science & Technology'],
         }
     }, {
         'url': 'https://peertube.tamanoir.foucry.net/videos/watch/0b04f13d-1e18-4f1d-814e-4979aa7c9c44',
