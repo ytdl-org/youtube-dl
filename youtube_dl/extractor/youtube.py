@@ -1795,7 +1795,8 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                         errnote='unable to download video info webpage',
                         fatal=False, query=query)
                     if not video_info_webpage:
-                        continue
+                        video_info = try_get(player_response, lambda x: x['videoDetails'], dict) or {}
+                        break
                     get_video_info = compat_parse_qs(video_info_webpage)
                     if not player_response:
                         pl_response = get_video_info.get('player_response', [None])[0]
