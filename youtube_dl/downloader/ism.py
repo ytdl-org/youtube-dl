@@ -146,7 +146,7 @@ def write_piff_header(stream, params):
             sps, pps = codec_private_data.split(u32.pack(1))[1:]
             avcc_payload = u8.pack(1)  # configuration version
             avcc_payload += sps[1:4]  # avc profile indication + profile compatibility + avc level indication
-            avcc_payload += u8.pack(0xfc | (params.get('nal_unit_length_field', 4) - 1))  # complete represenation (1) + reserved (11111) + length size minus one
+            avcc_payload += u8.pack(0xfc | (params.get('nal_unit_length_field', 4) - 1))  # complete representation (1) + reserved (11111) + length size minus one
             avcc_payload += u8.pack(1)  # reserved (0) + number of sps (0000001)
             avcc_payload += u16.pack(len(sps))
             avcc_payload += sps

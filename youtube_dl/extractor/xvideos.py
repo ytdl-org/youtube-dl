@@ -17,7 +17,8 @@ class XVideosIE(InfoExtractor):
     _VALID_URL = r'''(?x)
                     https?://
                         (?:
-                            (?:www\.)?xvideos\.com/video|
+                            (?:[^/]+\.)?xvideos2?\.com/video|
+                            (?:www\.)?xvideos\.es/video|
                             flashservice\.xvideos\.com/embedframe/|
                             static-hw\.xvideos\.com/swf/xv-player\.swf\?.*?\bid_video=
                         )
@@ -39,6 +40,42 @@ class XVideosIE(InfoExtractor):
     }, {
         'url': 'http://static-hw.xvideos.com/swf/xv-player.swf?id_video=4588838',
         'only_matching': True,
+    }, {
+        'url': 'http://xvideos.com/video4588838/biker_takes_his_girl',
+        'only_matching': True
+    }, {
+        'url': 'https://xvideos.com/video4588838/biker_takes_his_girl',
+        'only_matching': True
+    }, {
+        'url': 'https://xvideos.es/video4588838/biker_takes_his_girl',
+        'only_matching': True
+    }, {
+        'url': 'https://www.xvideos.es/video4588838/biker_takes_his_girl',
+        'only_matching': True
+    }, {
+        'url': 'http://xvideos.es/video4588838/biker_takes_his_girl',
+        'only_matching': True
+    }, {
+        'url': 'http://www.xvideos.es/video4588838/biker_takes_his_girl',
+        'only_matching': True
+    }, {
+        'url': 'http://fr.xvideos.com/video4588838/biker_takes_his_girl',
+        'only_matching': True
+    }, {
+        'url': 'https://fr.xvideos.com/video4588838/biker_takes_his_girl',
+        'only_matching': True
+    }, {
+        'url': 'http://it.xvideos.com/video4588838/biker_takes_his_girl',
+        'only_matching': True
+    }, {
+        'url': 'https://it.xvideos.com/video4588838/biker_takes_his_girl',
+        'only_matching': True
+    }, {
+        'url': 'http://de.xvideos.com/video4588838/biker_takes_his_girl',
+        'only_matching': True
+    }, {
+        'url': 'https://de.xvideos.com/video4588838/biker_takes_his_girl',
+        'only_matching': True
     }]
 
     def _real_extract(self, url):
@@ -57,10 +94,17 @@ class XVideosIE(InfoExtractor):
             webpage, 'title', default=None,
             group='title') or self._og_search_title(webpage)
 
-        thumbnail = self._search_regex(
-            (r'setThumbUrl\(\s*(["\'])(?P<thumbnail>(?:(?!\1).)+)\1',
-             r'url_bigthumb=(?P<thumbnail>.+?)&amp'),
-            webpage, 'thumbnail', fatal=False, group='thumbnail')
+        thumbnails = []
+        for preference, thumbnail in enumerate(('', '169')):
+            thumbnail_url = self._search_regex(
+                r'setThumbUrl%s\(\s*(["\'])(?P<thumbnail>(?:(?!\1).)+)\1' % thumbnail,
+                webpage, 'thumbnail', default=None, group='thumbnail')
+            if thumbnail_url:
+                thumbnails.append({
+                    'url': thumbnail_url,
+                    'preference': preference,
+                })
+
         duration = int_or_none(self._og_search_property(
             'duration', webpage, default=None)) or parse_duration(
             self._search_regex(
@@ -98,6 +142,6 @@ class XVideosIE(InfoExtractor):
             'formats': formats,
             'title': title,
             'duration': duration,
-            'thumbnail': thumbnail,
+            'thumbnails': thumbnails,
             'age_limit': 18,
         }

@@ -27,6 +27,10 @@ class ImgurIE(InfoExtractor):
     }, {
         'url': 'https://i.imgur.com/crGpqCV.mp4',
         'only_matching': True,
+    }, {
+        # no title
+        'url': 'https://i.imgur.com/jxBXAMC.gifv',
+        'only_matching': True,
     }]
 
     def _real_extract(self, url):
@@ -87,7 +91,7 @@ class ImgurIE(InfoExtractor):
         return {
             'id': video_id,
             'formats': formats,
-            'title': self._og_search_title(webpage),
+            'title': self._og_search_title(webpage, default=video_id),
         }
 
 

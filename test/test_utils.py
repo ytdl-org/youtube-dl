@@ -19,6 +19,7 @@ from youtube_dl.utils import (
     age_restricted,
     args_to_str,
     encode_base_n,
+    caesar,
     clean_html,
     date_from_str,
     DateRange,
@@ -33,11 +34,13 @@ from youtube_dl.utils import (
     ExtractorError,
     find_xpath_attr,
     fix_xml_ampersands,
+    float_or_none,
     get_element_by_class,
     get_element_by_attribute,
     get_elements_by_class,
     get_elements_by_attribute,
     InAdvancePagedList,
+    int_or_none,
     intlist_to_bytes,
     is_html,
     js_to_json,
@@ -55,6 +58,7 @@ from youtube_dl.utils import (
     parse_count,
     parse_iso8601,
     parse_resolution,
+    parse_bitrate,
     pkcs1pad,
     read_batch_urls,
     sanitize_filename,
@@ -66,10 +70,13 @@ from youtube_dl.utils import (
     remove_start,
     remove_end,
     remove_quotes,
+    rot47,
     shell_quote,
     smuggle_url,
     str_to_int,
     strip_jsonp,
+    strip_or_none,
+    subtitles_filename,
     timeconvert,
     unescapeHTML,
     unified_strdate,
@@ -180,7 +187,7 @@ class TestUtil(unittest.TestCase):
 
         self.assertEqual(sanitize_filename(
             'ÂÃÄÀÁÅÆÇÈÉÊËÌÍÎÏÐÑÒÓÔÕÖŐØŒÙÚÛÜŰÝÞßàáâãäåæçèéêëìíîïðñòóôõöőøœùúûüűýþÿ', restricted=True),
-            'AAAAAAAECEEEEIIIIDNOOOOOOOOEUUUUUYPssaaaaaaaeceeeeiiiionooooooooeuuuuuypy')
+            'AAAAAAAECEEEEIIIIDNOOOOOOOOEUUUUUYTHssaaaaaaaeceeeeiiiionooooooooeuuuuuythy')
 
     def test_sanitize_ids(self):
         self.assertEqual(sanitize_filename('_n_cd26wFpw', is_id=True), '_n_cd26wFpw')
@@ -257,6 +264,11 @@ class TestUtil(unittest.TestCase):
         self.assertEqual(replace_extension('.abc', 'temp'), '.abc.temp')
         self.assertEqual(replace_extension('.abc.ext', 'temp'), '.abc.temp')
 
+    def test_subtitles_filename(self):
+        self.assertEqual(subtitles_filename('abc.ext', 'en', 'vtt'), 'abc.en.vtt')
+        self.assertEqual(subtitles_filename('abc.ext', 'en', 'vtt', 'ext'), 'abc.en.vtt')
+        self.assertEqual(subtitles_filename('abc.unexpected_ext', 'en', 'vtt', 'ext'), 'abc.unexpected_ext.en.vtt')
+
     def test_remove_start(self):
         self.assertEqual(remove_start(None, 'A - '), None)
         self.assertEqual(remove_start('A - B', 'A - '), 'B')
@@ -330,6 +342,8 @@ class TestUtil(unittest.TestCase):
         self.assertEqual(unified_strdate('July 15th, 2013'), '20130715')
         self.assertEqual(unified_strdate('September 1st, 2013'), '20130901')
         self.assertEqual(unified_strdate('Sep 2nd, 2013'), '20130902')
+        self.assertEqual(unified_strdate('November 3rd, 2019'), '20191103')
+        self.assertEqual(unified_strdate('October 23rd, 2005'), '20051023')
 
     def test_unified_timestamps(self):
         self.assertEqual(unified_timestamp('December 21, 2010'), 1292889600)
@@ -467,9 +481,30 @@ class TestUtil(unittest.TestCase):
             shell_quote(args),
             """ffmpeg -i 'ñ€ß'"'"'.mp4'""" if compat_os_name != 'nt' else '''ffmpeg -i "ñ€ß'.mp4"''')
 
+    def test_float_or_none(self):
+        self.assertEqual(float_or_none('42.42'), 42.42)
+        self.assertEqual(float_or_none('42'), 42.0)
+        self.assertEqual(float_or_none(''), None)
+        self.assertEqual(float_or_none(None), None)
+        self.assertEqual(float_or_none([]), None)
+        self.assertEqual(float_or_none(set()), None)
+
+    def test_int_or_none(self):
+        self.assertEqual(int_or_none('42'), 42)
+        self.assertEqual(int_or_none(''), None)
+        self.assertEqual(int_or_none(None), None)
+        self.assertEqual(int_or_none([]), None)
+        self.assertEqual(int_or_none(set()), None)
+
     def test_str_to_int(self):
         self.assertEqual(str_to_int('123,456'), 123456)
         self.assertEqual(str_to_int('123.456'), 123456)
+        self.assertEqual(str_to_int(523), 523)
+        # Python 3 has no long
+        if sys.version_info < (3, 0):
+            eval('self.assertEqual(str_to_int(123456L), 123456)')
+        self.assertEqual(str_to_int('noninteger'), None)
+        self.assertEqual(str_to_int([]), None)
 
     def test_url_basename(self):
         self.assertEqual(url_basename('http://foo.de/'), '')
@@ -507,6 +542,8 @@ class TestUtil(unittest.TestCase):
         self.assertEqual(urljoin('http://foo.de/', ''), None)
         self.assertEqual(urljoin('http://foo.de/', ['foobar']), None)
         self.assertEqual(urljoin('http://foo.de/a/b/c.txt', '.././../d.txt'), 'http://foo.de/d.txt')
+        self.assertEqual(urljoin('http://foo.de/a/b/c.txt', 'rtmp://foo.de'), 'rtmp://foo.de')
+        self.assertEqual(urljoin(None, 'rtmp://foo.de'), 'rtmp://foo.de')
 
     def test_url_or_none(self):
         self.assertEqual(url_or_none(None), None)
@@ -732,6 +769,18 @@ class TestUtil(unittest.TestCase):
         d = json.loads(stripped)
         self.assertEqual(d, {'status': 'success'})
 
+    def test_strip_or_none(self):
+        self.assertEqual(strip_or_none(' abc'), 'abc')
+        self.assertEqual(strip_or_none('abc '), 'abc')
+        self.assertEqual(strip_or_none(' abc '), 'abc')
+        self.assertEqual(strip_or_none('\tabc\t'), 'abc')
+        self.assertEqual(strip_or_none('\n\tabc\n\t'), 'abc')
+        self.assertEqual(strip_or_none('abc'), 'abc')
+        self.assertEqual(strip_or_none(''), '')
+        self.assertEqual(strip_or_none(None), None)
+        self.assertEqual(strip_or_none(42), None)
+        self.assertEqual(strip_or_none([]), None)
+
     def test_uppercase_escape(self):
         self.assertEqual(uppercase_escape('aä'), 'aä')
         self.assertEqual(uppercase_escape('\\U0001d550'), '𝕐')
@@ -789,6 +838,15 @@ class TestUtil(unittest.TestCase):
             'vcodec': 'av01.0.05M.08',
             'acodec': 'none',
         })
+        self.assertEqual(parse_codecs('theora, vorbis'), {
+            'vcodec': 'theora',
+            'acodec': 'vorbis',
+        })
+        self.assertEqual(parse_codecs('unknownvcodec, unknownacodec'), {
+            'vcodec': 'unknownvcodec',
+            'acodec': 'unknownacodec',
+        })
+        self.assertEqual(parse_codecs('unknown'), {})
 
     def test_escape_rfc3986(self):
         reserved = "!*'();:@&=+$,/?#[]"
@@ -1027,6 +1085,13 @@ class TestUtil(unittest.TestCase):
         self.assertEqual(parse_resolution('720p'), {'height': 720})
         self.assertEqual(parse_resolution('4k'), {'height': 2160})
         self.assertEqual(parse_resolution('8K'), {'height': 4320})
+
+    def test_parse_bitrate(self):
+        self.assertEqual(parse_bitrate(None), None)
+        self.assertEqual(parse_bitrate(''), None)
+        self.assertEqual(parse_bitrate('300kbps'), 300)
+        self.assertEqual(parse_bitrate('1500kbps'), 1500)
+        self.assertEqual(parse_bitrate('300 kbps'), 300)
 
     def test_version_tuple(self):
         self.assertEqual(version_tuple('1'), (1,))
@@ -1311,6 +1376,20 @@ Line 1
 
         self.assertRaises(ValueError, encode_base_n, 0, 70)
         self.assertRaises(ValueError, encode_base_n, 0, 60, custom_table)
+
+    def test_caesar(self):
+        self.assertEqual(caesar('ace', 'abcdef', 2), 'cea')
+        self.assertEqual(caesar('cea', 'abcdef', -2), 'ace')
+        self.assertEqual(caesar('ace', 'abcdef', -2), 'eac')
+        self.assertEqual(caesar('eac', 'abcdef', 2), 'ace')
+        self.assertEqual(caesar('ace', 'abcdef', 0), 'ace')
+        self.assertEqual(caesar('xyz', 'abcdef', 2), 'xyz')
+        self.assertEqual(caesar('abc', 'acegik', 2), 'ebg')
+        self.assertEqual(caesar('ebg', 'acegik', -2), 'abc')
+
+    def test_rot47(self):
+        self.assertEqual(rot47('youtube-dl'), r'J@FEF36\5=')
+        self.assertEqual(rot47('YOUTUBE-DL'), r'*~&%&qt\s{')
 
     def test_urshift(self):
         self.assertEqual(urshift(3, 1), 1)
