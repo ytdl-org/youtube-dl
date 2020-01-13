@@ -35,7 +35,9 @@ jobs:
       env: YTDL_TEST_SET=download
     - env: JYTHON=true; YTDL_TEST_SET=core
     - env: JYTHON=true; YTDL_TEST_SET=download
-    - python: 3.8
+    - name: flake8
+      python: 3.8
+      dist: xenial
       install: pip install flake8
       script: flake8 .
   fast_finish: true
