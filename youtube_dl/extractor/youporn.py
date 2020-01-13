@@ -57,7 +57,27 @@ class YouPornIE(InfoExtractor):
         'params': {
             'skip_download': True,
         },
-    }]
+    }, {
+        # the source urls in the "formats" array of newer videos might have a new format
+        'url': 'https://www.youporn.com/watch/15573378/visit-x-unschuldiges-deutsches-luder-bekommt-hintern-versohlen/',
+        'md5': '3744d24c50438cf5b6f6d59feb5055c2',
+        'info_dict': {
+            'id': '15573378',
+            'display_id': 'visit-x-unschuldiges-deutsches-luder-bekommt-hintern-versohlen',
+            'ext': 'mp4',
+            'title': 'VISIT-X | Unschuldiges deutsches Luder bekommt Hintern versohlen',
+            'description': 'Watch VISIT-X | Unschuldiges deutsches Luder bekommt Hintern versohlen online on YouPorn.com. YouPorn is the largest Blowjob porn video site with the hottest selection of free, high quality german movies. Enjoy our HD porno videos on any device of your choosing!',
+            'thumbnail': r're:^https?://.*\.jpg$',
+            'uploader': 'Visit-X',
+            'upload_date': '20190910',
+            'average_rating': int,
+            'view_count': int,
+            'comment_count': int,
+            'categories': list,
+            'tags': list,
+            'age_limit': 18,
+        },
+   }]
 
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
@@ -147,7 +167,7 @@ class YouPornIE(InfoExtractor):
             webpage, 'uploader', fatal=False)
         upload_date = unified_strdate(self._html_search_regex(
             [r'Date\s+[Aa]dded:\s*<span>([^<]+)',
-             r'(?s)<div[^>]+class=["\']videoInfo(?:Date|Time)["\'][^>]*>(.+?)</div>'],
+             r'(?s)<div[^>]+class=["\']video-uploaded["\'][^>]*>[^<]+?<span>([^<]+)'],
             webpage, 'upload date', fatal=False))
 
         age_limit = self._rta_search(webpage)
