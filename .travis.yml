@@ -44,5 +44,5 @@ before_install:
   - if [ "$JYTHON" == "true" ]; then ./devscripts/install_jython.sh; export PATH="$HOME/jython/bin:$PATH"; fi
 script:
   - pip install "flake8; python_version >= '2.7' and python_version != '3.0' and python_version != '3.1' and python_version != '3.2' and  python_version != '3.3'"
-  - if flake8 2>/dev/null; then flake8 . ; fi
+  - if [ -x "$(command -v flake8)" ]; then flake8 . ;fi
   - ./devscripts/run_tests.sh
