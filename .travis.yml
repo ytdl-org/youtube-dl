@@ -43,6 +43,6 @@ matrix:
 before_install:
   - if [ "$JYTHON" == "true" ]; then ./devscripts/install_jython.sh; export PATH="$HOME/jython/bin:$PATH"; fi
 script:
-  - pip install flake8
+  - pip install "flake8; python_version >= '2.7' and python_version != '3.0' and python_version != '3.1' and python_version != '3.2' and  python_version != '3.3'"
   - flake8 .
   - ./devscripts/run_tests.sh
