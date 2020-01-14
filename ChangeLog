@@ -1,4 +1,4 @@
-version <unreleased>
+version 2020.01.15
 
 Extractors
 * [yourporn] Fix extraction (#21645, #22255, #23459)
