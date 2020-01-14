@@ -628,7 +628,6 @@
  - **OutsideTV**
  - **PacktPub**
  - **PacktPubCourse**
- - **PandaTV**: 熊猫TV
  - **pandora.tv**: 판도라TV
  - **ParamountNetwork**
  - **parliamentlive.tv**: UK parliament videos
