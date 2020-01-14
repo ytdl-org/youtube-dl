@@ -96,7 +96,7 @@ class SoundcloudIE(InfoExtractor):
                 'repost_count': int,
             }
         },
-        # not streamable song
+        # not streamable song, preview
         {
             'url': 'https://soundcloud.com/the-concept-band/goldrushed-mastered?in=the-concept-band/sets/the-royal-concept-ep',
             'info_dict': {
@@ -119,7 +119,6 @@ class SoundcloudIE(InfoExtractor):
                 # rtmp
                 'skip_download': True,
             },
-            'skip': 'Preview',
         },
         # private link
         {
@@ -346,9 +345,9 @@ class SoundcloudIE(InfoExtractor):
             })
 
         def invalid_url(url):
-            return not url or url in format_urls or re.search(r'/(?:preview|playlist)/0/30/', url)
+            return not url or url in format_urls
 
-        def add_format(f, protocol):
+        def add_format(f, protocol, is_preview=False):
             mobj = re.search(r'\.(?P<abr>\d+)\.(?P<ext>[0-9a-z]{3,4})(?=[/?])', stream_url)
             if mobj:
                 for k, v in mobj.groupdict().items():
@@ -361,12 +360,16 @@ class SoundcloudIE(InfoExtractor):
                 v = f.get(k)
                 if v:
                     format_id_list.append(v)
+            preview = is_preview or re.search(r'/(?:preview|playlist)/0/30/', f['url'])
+            if preview:
+                format_id_list.append('preview')
             abr = f.get('abr')
             if abr:
                 f['abr'] = int(abr)
             f.update({
                 'format_id': '_'.join(format_id_list),
                 'protocol': 'm3u8_native' if protocol == 'hls' else 'http',
+                'preference': -10 if preview else None,
             })
             formats.append(f)
 
@@ -377,7 +380,7 @@ class SoundcloudIE(InfoExtractor):
             if not isinstance(t, dict):
                 continue
             format_url = url_or_none(t.get('url'))
-            if not format_url or t.get('snipped') or '/preview/' in format_url:
+            if not format_url:
                 continue
             stream = self._download_json(
                 format_url, track_id, query=query, fatal=False)
@@ -400,7 +403,8 @@ class SoundcloudIE(InfoExtractor):
             add_format({
                 'url': stream_url,
                 'ext': ext,
-            }, 'http' if protocol == 'progressive' else protocol)
+            }, 'http' if protocol == 'progressive' else protocol,
+                t.get('snipped') or '/preview/' in format_url)
 
         if not formats:
             # Old API, does not work for some tracks (e.g.
