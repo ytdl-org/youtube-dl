@@ -334,6 +334,7 @@ from .eyedotv import EyedoTVIE
 from .facebook import (
     FacebookIE,
     FacebookPluginsVideoIE,
+    FacebookUserIE,
 )
 from .faz import FazIE
 from .fc2 import (
