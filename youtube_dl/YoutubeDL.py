@@ -635,6 +635,12 @@ class YoutubeDL(object):
         try:
             template_dict = dict(info_dict)
 
+            ##### 2020-Jan-13 PAL - Fix 'Filename too long errors' - BEGIN
+            if 'title' in template_dict.keys():
+                if len(template_dict['title']) > 200:
+                    template_dict['title'] = template_dict['title'][:200].strip() + '_'
+            ##### END
+
             template_dict['epoch'] = int(time.time())
             autonumber_size = self.params.get('autonumber_size')
             if autonumber_size is None:
