@@ -1,3 +1,35 @@
+version 2020.01.15
+
+Extractors
+* [yourporn] Fix extraction (#21645, #22255, #23459)
++ [canvas] Add support for new API endpoint (#17680, #18629)
+* [ndr:base:embed] Improve thumbnails extraction (#23731)
++ [vodplatform] Add support for embed.kwikmotion.com domain
++ [twitter] Add support for promo_video_website cards (#23711)
+* [orf:radio] Clean description and improve extraction
+* [orf:fm4] Fix extraction (#23599)
+* [safari] Fix kaltura session extraction (#23679, #23670)
+* [lego] Fix extraction and extract subtitle (#23687)
+* [cloudflarestream] Improve extraction
+    + Add support for bytehighway.net domain
+    + Add support for signed URLs
+    + Extract thumbnail
+* [naver] Improve extraction
+    * Improve geo-restriction handling
+    + Extract automatic captions
+    + Extract uploader metadata
+    + Extract VLive HLS formats
+    * Improve metadata extraction
+- [pandatv] Remove extractor (#23630)
+* [dctp] Fix format extraction (#23656)
++ [scrippsnetworks] Add support for www.discovery.com videos
+* [discovery] Fix anonymous token extraction (#23650)
+* [nrktv:seriebase] Fix extraction (#23625, #23537)
+* [wistia] Improve format extraction and extract subtitles (#22590)
+* [vice] Improve extraction (#23631)
+* [redtube] Detect private videos (#23518)
+
+
 version 2020.01.01
 
 Extractors
