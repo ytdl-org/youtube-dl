@@ -13,7 +13,7 @@ dist: trusty
 env:
   - YTDL_TEST_SET=core
   - YTDL_TEST_SET=download
-matrix:
+jobs:
   include:
     - python: 3.7
       dist: xenial
@@ -35,6 +35,11 @@ matrix:
       env: YTDL_TEST_SET=download
     - env: JYTHON=true; YTDL_TEST_SET=core
     - env: JYTHON=true; YTDL_TEST_SET=download
+    - name: flake8
+      python: 3.8
+      dist: xenial
+      install: pip install flake8
+      script: flake8 .
   fast_finish: true
   allow_failures:
     - env: YTDL_TEST_SET=download
