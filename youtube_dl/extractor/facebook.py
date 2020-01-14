@@ -534,62 +534,71 @@ class FacebookUserIE(InfoExtractor):
             url, user_id, 'Downloading user webpage')
         fb_url = self._html_search_meta(
             'al:android:url', page, default=None)
-        fb_url_re = re.match(r'fb://(?P<type>page|profile)/(?P<id>\d+)', fb_url)
-        if not fb_url_re:
+        fb_url_mobj = re.match(r'fb://(?P<type>page|profile)/(?P<id>\d+)', fb_url)
+        if not fb_url_mobj:
             raise ExtractorError('Could not extract page ID', expected=False)
-        page_id = fb_url_re.group('id')
-        fb_dtsg_ag_re = re.search(r'"async_get_token":"([\w\-:]+)"', page)
-        pagelet_token_re = re.search(r'pagelet_token:"([\w\-]+)"', page)
-        collection_token_re = re.search(r'pagelet_timeline_app_collection_([\d:]+)', page)
+        page_id = fb_url_mobj.group('id')
+        fb_dtsg_ag = self._search_regex(
+            r'"async_get_token":"([\w\-:]+)"',
+            page, 'fb_dtsg_ag', default=None)
+        pagelet_token = self._search_regex(
+            r'pagelet_token:"([\w\-]+)"',
+            page, 'pagelet_token', default=None)
+        collection_token = self._search_regex(
+            r'pagelet_timeline_app_collection_([\d:]+)',
+            page, 'collection_token', default=None)
         cursor = None
         entries = []
             
-        if fb_url_re.group('type') == 'page':
+        if fb_url_mobj.group('type') == 'page':
             endpoint = 'PagesVideoHubVideoContainerPagelet'
             a_class = '_5asm'
             data = {
                 'page': page_id
                 }
-        elif fb_url_re.group('type') == 'profile':
-            if not (fb_dtsg_ag_re and pagelet_token_re and collection_token_re):
+        elif fb_url_mobj.group('type') == 'profile':
+            if not (fb_dtsg_ag and pagelet_token and collection_token):
                 raise ExtractorError('You must be logged in to extract profile videos', expected=True)
             endpoint = 'VideosByUserAppCollectionPagelet'
             a_class = '_400z'
             data = {
-                'collection_token': collection_token_re[1],
+                'collection_token': collection_token,
                 'disablepager': False,
                 'overview': False,
                 'profile_id': page_id,
-                'pagelet_token': pagelet_token_re[1],
+                'pagelet_token': pagelet_token,
                 'order': None,
                 'sk': 'videos'
-                }        
+                }
 
         for page_num in itertools.count(1):
             js_data_page = self._download_webpage(
                 'https://www.facebook.com/ajax/pagelet/generic.php/%s' % endpoint,
                 user_id, 'Downloading page %d' % page_num,
                 query={
-                    'fb_dtsg_ag': fb_dtsg_ag_re[1] if fb_dtsg_ag_re else None,
+                    'fb_dtsg_ag': fb_dtsg_ag if fb_dtsg_ag else None,
                     'data': json.dumps(
                         {**data, 'cursor': cursor},
                         separators=(',', ':')),
                     '__a': 1
-                })
+                    })
 
-            js_data = self._parse_json(self._search_regex(
-                r'({.+})', js_data_page,
-                'js data', default='{}'), user_id, fatal=True)
+            js_data = self._parse_json(
+                self._search_regex(
+                    r'({.+})', js_data_page,
+                    'js data', default='{}'),
+                user_id, fatal=True)
 
             for video in re.findall(
                 r'href="(?P<url>[^"]+)"[^>]+%s' % a_class,
                 js_data['payload']):
                 entries.append(
-                    self.url_result('https://www.facebook.com%s' % video, FacebookIE.ie_key())
-                    )
+                    self.url_result(
+                        'https://www.facebook.com%s' % video,
+                        FacebookIE.ie_key()))
 
             cursor = None
-            if fb_url_re.group('type') == 'page':
+            if fb_url_mobj.group('type') == 'page':
                 if not 'instances' in js_data['jsmods']:
                     break
                 for parent in js_data['jsmods']['instances']:
@@ -600,7 +609,7 @@ class FacebookUserIE(InfoExtractor):
                                     if type(subchild) is dict and 'cursor' in subchild:
                                         cursor = subchild['cursor']
                                         break
-            elif fb_url_re.group('type') == 'profile':
+            elif fb_url_mobj.group('type') == 'profile':
                 for parent in js_data['jsmods']['require']:
                     if type(parent) is list:
                         for child in parent:
