@@ -512,6 +512,7 @@ class FacebookPluginsVideoIE(InfoExtractor):
             compat_urllib_parse_unquote(self._match_id(url)),
             FacebookIE.ie_key())
 
+
 class FacebookUserIE(InfoExtractor):
     _VALID_URL = r'(?P<url>https?://(?:[^/]+\.)?facebook\.com/(?:pg/)?(?P<id>[^/?#&]+))/videos(?!/\d)'
 
@@ -549,7 +550,7 @@ class FacebookUserIE(InfoExtractor):
             page, 'collection_token', default=None)
         cursor = None
         entries = []
-            
+
         if fb_url_mobj.group('type') == 'page':
             endpoint = 'PagesVideoHubVideoContainerPagelet'
             a_class = '_5asm'
@@ -590,7 +591,7 @@ class FacebookUserIE(InfoExtractor):
                 user_id, fatal=True)
 
             for video in re.findall(
-                r'href="(?P<url>[^"]+)"[^>]+%s' % a_class,
+                r'href="(?P<url>[^"]+)"[^>]+%s' % a_class, 
                 js_data['payload']):
                 entries.append(
                     self.url_result(
@@ -599,7 +600,7 @@ class FacebookUserIE(InfoExtractor):
 
             cursor = None
             if fb_url_mobj.group('type') == 'page':
-                if not 'instances' in js_data['jsmods']:
+                if 'instances' not in js_data['jsmods']:
                     break
                 for parent in js_data['jsmods']['instances']:
                     if type(parent) is list:
