@@ -2098,6 +2098,9 @@ class GenericIE(InfoExtractor):
                 'ext': 'mp4',
                 'title': 'Smoky Barbecue Favorites',
                 'thumbnail': r're:^https?://.*\.jpe?g',
+                'description': 'md5:5ff01e76316bd8d46508af26dc86023b',
+                'upload_date': '20170909',
+                'timestamp': 1504915200,
             },
             'add_ie': [ZypeIE.ie_key()],
             'params': {
