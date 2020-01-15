@@ -169,15 +169,17 @@ class RaiPlayIE(RaiBaseIE):
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
         url, video_id = mobj.group('url', 'id')
+        
+        json_url = url[:-4] + "json"
 
         media = self._download_json(
-            '%s?json' % url, video_id, 'Downloading video JSON')
+            '%s?json' % json_url, video_id, 'Downloading video JSON')
 
         title = media['name']
 
         video = media['video']
 
-        relinker_info = self._extract_relinker_info(video['contentUrl'], video_id)
+        relinker_info = self._extract_relinker_info(video['content_url'], video_id)
         self._sort_formats(relinker_info['formats'])
 
         thumbnails = []
@@ -274,12 +276,19 @@ class RaiPlayPlaylistIE(InfoExtractor):
             ('programma', 'nomeProgramma'), webpage, 'title')
         description = unescapeHTML(self._html_search_meta(
             ('description', 'og:description'), webpage, 'description'))
+        
+        json_url = url + ".json"
+        media = self._download_json(
+            '%s?json' % json_url, 'Downloading video JSON')
+        webpage = media['blocks'][0]['sets'][0]['path_id']
+        json_url = "https://www.raiplay.it" + webpage
+        webpage = self._download_webpage(json_url, playlist_id)
 
         entries = []
         for mobj in re.finditer(
-                r'<a\b[^>]+\bhref=(["\'])(?P<path>/raiplay/video/.+?)\1',
+                r'"weblink"+\s:+\s"(?P<path>/video/.+?.html)"\s?,\s?"sub',
                 webpage):
-            video_url = urljoin(url, mobj.group('path'))
+            video_url = urljoin("https://www.raiplay.it", mobj.group('path'))
             entries.append(self.url_result(
                 video_url, ie=RaiPlayIE.ie_key(),
                 video_id=RaiPlayIE._match_id(video_url)))
