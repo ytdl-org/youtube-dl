@@ -514,7 +514,7 @@ class FacebookPluginsVideoIE(InfoExtractor):
 
 
 class FacebookUserIE(InfoExtractor):
-    _VALID_URL = r'(?P<url>https?://(?:[^/]+\.)?facebook\.com/(?:pg/)?(?P<id>[^/?#&]+))/videos(?!/\d)'
+    _VALID_URL = r'(?P<url>https?://(?:[^/]+\.)?facebook\.com/(?:pg/)?(?P<id>[^/?#&]+))/videos(?!/[\w\.])'
 
     _TESTS = [{
         # page
