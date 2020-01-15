@@ -518,13 +518,15 @@ class FacebookUserIE(InfoExtractor):
 
     _TESTS = [{
         # page
-        'url': 'https://www.facebook.com/uniladmag/videos'
+        'url': 'https://www.facebook.com/Coca-Cola/videos/?ref=page_internal',
+        'info_dict': {
+            'id': 'Coca-Cola'
+        },
+        'playlist_mincount': 90,
     }, {
-        # page
-        'url': 'https://www.facebook.com/Coca-Cola/videos/?ref=page_internal'
-    }, {
-        # profile
-        'url': 'https://www.facebook.com/zuck/videos'
+        # profile (requires login)
+        'url': 'https://www.facebook.com/zuck/videos',
+        'only_matching': True,
     }]
 
     def _real_extract(self, url):
@@ -556,7 +558,7 @@ class FacebookUserIE(InfoExtractor):
             a_class = '_5asm'
             data = {
                 'page': page_id
-                }
+            }
         elif fb_url_mobj.group('type') == 'profile':
             if not (fb_dtsg_ag and pagelet_token and collection_token):
                 raise ExtractorError('You must be logged in to extract profile videos', expected=True)
@@ -570,7 +572,7 @@ class FacebookUserIE(InfoExtractor):
                 'pagelet_token': pagelet_token,
                 'order': None,
                 'sk': 'videos'
-                }
+            }
 
         for page_num in itertools.count(1):
             js_data_page = self._download_webpage(
@@ -582,7 +584,7 @@ class FacebookUserIE(InfoExtractor):
                         {**data, 'cursor': cursor},
                         separators=(',', ':')),
                     '__a': 1
-                    })
+                })
 
             js_data = self._parse_json(
                 self._search_regex(
@@ -591,8 +593,8 @@ class FacebookUserIE(InfoExtractor):
                 user_id, fatal=True)
 
             for video in re.findall(
-                r'href="(?P<url>[^"]+)"[^>]+%s' % a_class, 
-                js_data['payload']):
+                    r'href="(?P<url>[^"]+)"[^>]+%s' % a_class,
+                    js_data['payload']):
                 entries.append(
                     self.url_result(
                         'https://www.facebook.com%s' % video,
