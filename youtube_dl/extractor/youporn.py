@@ -167,7 +167,8 @@ class YouPornIE(InfoExtractor):
             webpage, 'uploader', fatal=False)
         upload_date = unified_strdate(self._html_search_regex(
             [r'Date\s+[Aa]dded:\s*<span>([^<]+)',
-             r'(?s)<div[^>]+class=["\']video-uploaded["\'][^>]*>[^<]+?<span>([^<]+)'],
+             r'(?s)<div[^>]+class=["\']video-uploaded["\'][^>]*>[^<]+?<span>([^<]+)',
+             r'(?s)<div[^>]+class=["\']videoInfo(?:Date|Time)["\'][^>]*>(.+?)</div>'],
             webpage, 'upload date', fatal=False))
 
         age_limit = self._rta_search(webpage)
