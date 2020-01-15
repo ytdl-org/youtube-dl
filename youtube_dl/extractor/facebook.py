@@ -26,6 +26,7 @@ from ..utils import (
     sanitized_Request,
     try_get,
     urlencode_postdata,
+    merge_dicts,
 )
 
 
@@ -581,7 +582,7 @@ class FacebookUserIE(InfoExtractor):
                 query={
                     'fb_dtsg_ag': fb_dtsg_ag if fb_dtsg_ag else None,
                     'data': json.dumps(
-                        {**data, 'cursor': cursor},
+                        merge_dicts(data, {'cursor': cursor}),
                         separators=(',', ':')),
                     '__a': 1
                 })
