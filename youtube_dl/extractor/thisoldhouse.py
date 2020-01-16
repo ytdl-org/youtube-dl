@@ -1,9 +1,14 @@
 # coding: utf-8
 from __future__ import unicode_literals
 
+import re
+
 from .common import InfoExtractor
 from ..compat import compat_str
-from ..utils import try_get
+from ..utils import (
+    try_get,
+    int_or_none
+)
 
 
 class ThisOldHouseIE(InfoExtractor):
@@ -19,6 +24,19 @@ class ThisOldHouseIE(InfoExtractor):
             'timestamp': 1442548800,
             'upload_date': '20150918',
         }
+    }, {
+        'url': 'https://www.thisoldhouse.com/watch/taking-modern-back-to-future-brookline-mid-century-modern-house',
+        'md5': '5bff4b17e959527066efba9371bb81ba',
+        'info_dict': {
+            'id': '8WrwQuEr',
+            'ext': 'mp4',
+            'title': 'Taking Modern Back to the Future | Brookline Mid-Century Modern House',
+            'description': 'After months of hard work, the lackluster mid-century box is a modern marvel once again. Kevin, Tommy and Richard tour the home and review all the special features that went into this beautiful space Sunil and Neha can now call home.',
+            'upload_date': '20190624',
+            'timestamp': 1561397187,
+            'season_number': 40,
+            'episode_number': 26
+        },
     }, {
         'url': 'https://www.thisoldhouse.com/watch/arlington-arts-crafts-arts-and-crafts-class-begins',
         'only_matching': True,
@@ -41,4 +59,26 @@ class ThisOldHouseIE(InfoExtractor):
             video_id = try_get(
                 drupal_settings, lambda x: x['jwplatform']['video_id'],
                 compat_str) or list(drupal_settings['comScore'])[0]
-        return self.url_result('jwplatform:' + video_id, 'JWPlatform', video_id)
+
+        series = self._search_regex(
+            r'(?s)episode-breadcrumb.*?>.*?>(.*?)</a>', webpage,
+            'series name', default=None)
+        season_number = int_or_none(self._search_regex(
+            r'Season (\d+);', webpage, 'season number',
+            default=None))
+        episode_number = int_or_none(self._search_regex(
+            r'Season \d+;[\s\S]*Ep\.(\d+)', webpage, 'episode number',
+            default=None))
+
+        if series:
+            series = series.replace(' TV', '')
+
+        return {
+            '_type': 'url_transparent',
+            'id': video_id,
+            'series': series,
+            'season_number': season_number,
+            'episode_number': episode_number,
+            'url': 'jwplatform:' + video_id,
+            'ie_key': 'JWPlatform',
+        }
