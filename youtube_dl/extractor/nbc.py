@@ -87,11 +87,25 @@ class NBCIE(AdobePassIE):
     def _real_extract(self, url):
         permalink, video_id = re.match(self._VALID_URL, url).groups()
         permalink = 'http' + compat_urllib_parse_unquote(permalink)
-        response = self._download_json(
+        video_data = self._download_json(
             'https://friendship.nbc.co/v2/graphql', video_id, query={
-                'query': '''{
-  page(name: "%s", platform: web, type: VIDEO, userId: "0") {
-    data {
+                'query': '''query bonanzaPage(
+  $app: NBCUBrands! = nbc
+  $name: String!
+  $oneApp: Boolean
+  $platform: SupportedPlatforms! = web
+  $type: EntityPageType! = VIDEO
+  $userId: String!
+) {
+  bonanzaPage(
+    app: $app
+    name: $name
+    oneApp: $oneApp
+    platform: $platform
+    type: $type
+    userId: $userId
+  ) {
+    metadata {
       ... on VideoPageData {
         description
         episodeNumber
@@ -100,15 +114,20 @@ class NBCIE(AdobePassIE):
         mpxAccountId
         mpxGuid
         rating
+        resourceId
         seasonNumber
         secondaryTitle
         seriesShortTitle
       }
     }
   }
-}''' % permalink,
-            })
-        video_data = response['data']['page']['data']
+}''',
+                'variables': json.dumps({
+                    'name': permalink,
+                    'oneApp': True,
+                    'userId': '0',
+                }),
+            })['data']['bonanzaPage']['metadata']
         query = {
             'mbr': 'true',
             'manifest': 'm3u',
@@ -117,8 +136,8 @@ class NBCIE(AdobePassIE):
         title = video_data['secondaryTitle']
         if video_data.get('locked'):
             resource = self._get_mvpd_resource(
-                'nbcentertainment', title, video_id,
-                video_data.get('rating'))
+                video_data.get('resourceId') or 'nbcentertainment',
+                title, video_id, video_data.get('rating'))
             query['auth'] = self._extract_mvpd_auth(
                 url, video_id, 'nbcentertainment', resource)
         theplatform_url = smuggle_url(update_url_query(

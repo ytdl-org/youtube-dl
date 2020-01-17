@@ -2,6 +2,7 @@
 from __future__ import unicode_literals
 
 import collections
+import functools
 import re
 
 from .common import InfoExtractor
@@ -11,6 +12,7 @@ from ..utils import (
     ExtractorError,
     get_element_by_class,
     int_or_none,
+    OnDemandPagedList,
     orderedSet,
     str_or_none,
     str_to_int,
@@ -477,14 +479,23 @@ class VKIE(VKBaseIE):
 class VKUserVideosIE(VKBaseIE):
     IE_NAME = 'vk:uservideos'
     IE_DESC = "VK - User's Videos"
-    _VALID_URL = r'https?://(?:(?:m|new)\.)?vk\.com/videos(?P<id>-?[0-9]+)(?!\?.*\bz=video)(?:[/?#&]|$)'
+    _VALID_URL = r'https?://(?:(?:m|new)\.)?vk\.com/videos(?P<id>-?[0-9]+)(?!\?.*\bz=video)(?:[/?#&](?:.*?\bsection=(?P<section>\w+))?|$)'
     _TEMPLATE_URL = 'https://vk.com/videos'
     _TESTS = [{
-        'url': 'http://vk.com/videos205387401',
+        'url': 'https://vk.com/videos-767561',
         'info_dict': {
-            'id': '205387401',
+            'id': '-767561_all',
         },
-        'playlist_mincount': 4,
+        'playlist_mincount': 1150,
+    }, {
+        'url': 'https://vk.com/videos-767561?section=uploaded',
+        'info_dict': {
+            'id': '-767561_uploaded',
+        },
+        'playlist_mincount': 425,
+    }, {
+        'url': 'http://vk.com/videos205387401',
+        'only_matching': True,
     }, {
         'url': 'http://vk.com/videos-77521',
         'only_matching': True,
@@ -498,25 +509,33 @@ class VKUserVideosIE(VKBaseIE):
         'url': 'http://new.vk.com/videos205387401',
         'only_matching': True,
     }]
-    _VIDEO = collections.namedtuple(
-        'Video', ['owner_id', 'id', 'thumb', 'title', 'flags', 'duration', 'hash', 'moder_acts', 'owner', 'date', 'views', 'platform', 'blocked', 'music_video_meta'])
+    _PAGE_SIZE = 1000
+    _VIDEO = collections.namedtuple('Video', ['owner_id', 'id'])
 
-    def _real_extract(self, url):
-        page_id = self._match_id(url)
-
+    def _fetch_page(self, page_id, section, page):
         l = self._download_payload('al_video', page_id, {
             'act': 'load_videos_silent',
+            'offset': page * self._PAGE_SIZE,
             'oid': page_id,
-        })[0]['']['list']
+            'section': section,
+        })[0][section]['list']
 
-        entries = []
         for video in l:
-            v = self._VIDEO._make(video)
+            v = self._VIDEO._make(video[:2])
             video_id = '%d_%d' % (v.owner_id, v.id)
-            entries.append(self.url_result(
-                'http://vk.com/video' + video_id, 'VK', video_id=video_id))
+            yield self.url_result(
+                'http://vk.com/video' + video_id, VKIE.ie_key(), video_id)
 
-        return self.playlist_result(entries, page_id)
+    def _real_extract(self, url):
+        page_id, section = re.match(self._VALID_URL, url).groups()
+        if not section:
+            section = 'all'
+
+        entries = OnDemandPagedList(
+            functools.partial(self._fetch_page, page_id, section),
+            self._PAGE_SIZE)
+
+        return self.playlist_result(entries, '%s_%s' % (page_id, section))
 
 
 class VKWallPostIE(VKBaseIE):
@@ -580,8 +599,7 @@ class VKWallPostIE(VKBaseIE):
         'only_matching': True,
     }]
     _BASE64_CHARS = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMN0PQRSTUVWXYZO123456789+/='
-    _AUDIO = collections.namedtuple(
-        'Audio', ['id', 'owner_id', 'url', 'title', 'performer', 'duration', 'album_id', 'unk', 'author_link', 'lyrics', 'flags', 'context', 'extra', 'hashes', 'cover_url', 'ads', 'subtitle', 'main_artists', 'feat_artists', 'album', 'track_code', 'restriction', 'album_part', 'new_stats', 'access_key'])
+    _AUDIO = collections.namedtuple('Audio', ['id', 'owner_id', 'url', 'title', 'performer', 'duration', 'album_id', 'unk', 'author_link', 'lyrics', 'flags', 'context', 'extra', 'hashes', 'cover_url', 'ads'])
 
     def _decode(self, enc):
         dec = ''
@@ -629,7 +647,7 @@ class VKWallPostIE(VKBaseIE):
 
         for audio in re.findall(r'data-audio="([^"]+)', webpage):
             audio = self._parse_json(unescapeHTML(audio), post_id)
-            a = self._AUDIO._make(audio)
+            a = self._AUDIO._make(audio[:16])
             if not a.url:
                 continue
             title = unescapeHTML(a.title)
