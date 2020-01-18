@@ -239,7 +239,7 @@ class IviCompilationIE(InfoExtractor):
             self.url_result(
                 'http://www.ivi.ru/watch/%s/%s' % (compilation_id, serie), IviIE.ie_key())
             for serie in re.findall(
-                r'<a href="/watch/%s/(\d+)"[^>]+data-id="\1"' % compilation_id, html)]
+                r'<a\b[^>]+\bhref=["\']/watch/%s/(\d+)["\']' % compilation_id, html)]
 
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
