@@ -63,7 +63,7 @@ class XFileShareIE(InfoExtractor):
     )
 
     IE_DESC = 'XFileShare based sites: %s' % ', '.join(list(zip(*_SITES))[1])
-    _VALID_URL = (r'https?://(?:www\.)?(?P<host>%s)/(?:embed-|embed\/)?(?P<id>[0-9a-zA-Z]+)'
+    _VALID_URL = (r'https?://(?:www\.)?(?P<host>%s)/(?:embed[-/])?(?P<id>[0-9a-zA-Z]+)'
                   % '|'.join(site for site in list(zip(*_SITES))[0]))
 
     _FILE_NOT_FOUND_REGEXES = (
