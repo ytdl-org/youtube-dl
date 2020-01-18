@@ -59,7 +59,6 @@ class XFileShareIE(InfoExtractor):
         (r'vup\.to', 'VUp'),
         (r'xvideosharing\.com', 'XVideoSharing'),
         (r'nxload\.com', 'NxLoad'),
-
     )
 
     IE_DESC = 'XFileShare based sites: %s' % ', '.join(list(zip(*_SITES))[1])
