@@ -392,8 +392,9 @@ class ARDBetaMediathekIE(ARDMediathekBaseIE):
         maturity_content_rating = player_page.get('maturityContentRating')
         if maturity_content_rating:
             age_limit = int_or_none(maturity_content_rating.lstrip('FSK'))
-        if not age_limit:
-            age_limit = int_or_none(self._search_regex(r'\(FSK\s*(\d+)\)\s*$', description, 'age limit', default=None))
+        if not age_limit and description:
+            age_limit = int_or_none(self._search_regex(
+                r'\(FSK\s*(\d+)\)\s*$', description, 'age limit', default=None))
         info.update({
             'age_limit': age_limit,
             'display_id': display_id,
