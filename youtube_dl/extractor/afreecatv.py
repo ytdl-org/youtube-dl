@@ -313,7 +313,9 @@ class AfreecaTVIE(InfoExtractor):
                     r'^(\d{8})_', key, 'upload date', default=None)
                 file_duration = int_or_none(file_element.get('duration'))
                 format_id = key if key else '%s_%s' % (video_id, file_num)
-                if determine_ext(file_url) == 'm3u8':
+                if "HIDE.mp4" in file_url:
+                    continue
+                elif determine_ext(file_url) == 'm3u8':
                     formats = self._extract_m3u8_formats(
                         file_url, video_id, 'mp4', entry_protocol='m3u8_native',
                         m3u8_id='hls',
