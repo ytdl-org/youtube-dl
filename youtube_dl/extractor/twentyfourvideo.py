@@ -17,7 +17,7 @@ class TwentyFourVideoIE(InfoExtractor):
     _VALID_URL = r'''(?x)
                     https?://
                         (?P<host>
-                            (?:(?:www|porno)\.)?24video\.
+                            (?:(?:www|porno?)\.)?24video\.
                             (?:net|me|xxx|sexy?|tube|adult|site|vip)
                         )/
                         (?:
