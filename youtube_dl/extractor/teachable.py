@@ -165,8 +165,12 @@ class TeachableIE(TeachableBaseIE):
             if any(re.search(p, webpage) for p in (
                     r'class=["\']lecture-contents-locked',
                     r'>\s*Lecture contents locked',
-                    r'id=["\']lecture-locked')):
+                    r'id=["\']lecture-locked',
+                    # https://academy.tailoredtutors.co.uk/courses/108779/lectures/1955313
+                    r'class=["\'](?:inner-)?lesson-locked',
+                    r'>LESSON LOCKED<')):
                 self.raise_login_required('Lecture contents locked')
+            raise ExtractorError('Unable to find video URL')
 
         title = self._og_search_title(webpage, default=None)
 

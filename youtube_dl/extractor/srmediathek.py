@@ -1,14 +1,14 @@
 # coding: utf-8
 from __future__ import unicode_literals
 
-from .ard import ARDMediathekIE
+from .ard import ARDMediathekBaseIE
 from ..utils import (
     ExtractorError,
     get_element_by_attribute,
 )
 
 
-class SRMediathekIE(ARDMediathekIE):
+class SRMediathekIE(ARDMediathekBaseIE):
     IE_NAME = 'sr:mediathek'
     IE_DESC = 'Saarländischer Rundfunk'
     _VALID_URL = r'https?://sr-mediathek(?:\.sr-online)?\.de/index\.php\?.*?&id=(?P<id>[0-9]+)'
