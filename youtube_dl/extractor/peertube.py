@@ -435,8 +435,11 @@ class PeerTubeIE(InfoExtractor):
             'timestamp': 1538391166,
             'upload_date': '20181001',
             'uploader': 'Framasoft',
-            'uploader_id': 'framasoft@framatube.org',
+            'uploader_id': 3,
             'uploader_url': 'https://framatube.org/accounts/framasoft',
+            'channel': 'Les vidéos de Framasoft',
+            'channel_id': 2,
+            'channel_url': 'https://framatube.org/video-channels/bf54d359-cfad-4935-9d45-9d6be93f63e8',
             'language': 'en',
             'license': 'Attribution - Share Alike',
             'duration': 113,
@@ -543,23 +546,16 @@ class PeerTubeIE(InfoExtractor):
 
         subtitles = self.extract_subtitles(host, video_id)
 
-        def try_get_second_level_data(section, field):
-            return try_get(video, lambda x: x[section][field], compat_str)
+        def try_get_second_level_data(section, field, type_):
+            return try_get(video, lambda x: x[section][field], type_)
 
-        def account_data(field):
-            return try_get_second_level_data('account', field)
+        def account_data(field, type_):
+            return try_get_second_level_data('account', field, type_)
 
-        def channel_data(field):
-            return try_get_second_level_data('channel', field)
+        def channel_data(field, type_):
+            return try_get_second_level_data('channel', field, type_)
 
-        def make_id_string(name_field, host_field):
-            name = str_or_none(name_field)
-            host = str_or_none(host_field)
-            if name and host:
-                return '%s@%s' % (name, host)
-            return None
-
-        category = try_get_second_level_data('category', 'label')
+        category = try_get_second_level_data('category', 'label', compat_str)
         categories = [category] if category else None
 
         nsfw = video.get('nsfw')
@@ -574,14 +570,14 @@ class PeerTubeIE(InfoExtractor):
             'description': description,
             'thumbnail': urljoin(url, video.get('thumbnailPath')),
             'timestamp': unified_timestamp(video.get('publishedAt')),
-            'uploader': account_data('displayName'),
-            'uploader_id': make_id_string(account_data('name'), account_data('host')),
-            'uploader_url': account_data('url'),
-            'channel': channel_data('displayName'),
-            'channel_id': make_id_string(channel_data('name'), channel_data('host')),
-            'channel_url': channel_data('url'),
-            'language': try_get_second_level_data('language', 'id'),
-            'license': try_get_second_level_data('licence', 'label'),
+            'uploader': account_data('displayName', compat_str),
+            'uploader_id': account_data('id', int),
+            'uploader_url': url_or_none(account_data('url', compat_str)),
+            'channel': channel_data('displayName', compat_str),
+            'channel_id': channel_data('id', int),
+            'channel_url': url_or_none(channel_data('url', compat_str)),
+            'language': try_get_second_level_data('language', 'id', compat_str),
+            'license': try_get_second_level_data('licence', 'label', compat_str),
             'duration': int_or_none(video.get('duration')),
             'view_count': int_or_none(video.get('views')),
             'like_count': int_or_none(video.get('likes')),
