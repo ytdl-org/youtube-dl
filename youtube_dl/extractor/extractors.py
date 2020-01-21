@@ -396,6 +396,7 @@ from .fusion import FusionIE
 from .fxnetworks import FXNetworksIE
 from .gaia import GaiaIE
 from .gameinformer import GameInformerIE
+from .gamerdvr import GamerDVRIE
 from .gamespot import GameSpotIE
 from .gamestar import GameStarIE
 from .gaskrank import GaskrankIE

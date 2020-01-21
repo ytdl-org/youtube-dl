@@ -2,52 +2,33 @@
 from __future__ import unicode_literals
 
 from .common import InfoExtractor
-from ..utils import (
-    int_or_none,
-    parse_filesize,
-    unified_strdate,
-)
 
 
 class XboxClipsIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:www\.)?xboxclips\.com/(?:video\.php\?.*vid=|[^/]+/)(?P<id>[\w-]{36})'
+    _VALID_URL = r'https?://(?:www\.)?xboxclips\.com/\S+?/(?P<id>[a-zA-Z0-9-]{36})'
     _TEST = {
-        'url': 'http://xboxclips.com/video.php?uid=2533274823424419&gamertag=Iabdulelah&vid=074a69a9-5faf-46aa-b93b-9909c1720325',
-        'md5': 'fbe1ec805e920aeb8eced3c3e657df5d',
+        'url': 'https://xboxclips.com/DeeperGnu613/7936bcb9-83fc-4565-979b-8db96bffa460',
+        'md5': 'e434323563f3ae6f02ab1f5b8f514f28',
         'info_dict': {
-            'id': '074a69a9-5faf-46aa-b93b-9909c1720325',
+            'id': '7936bcb9-83fc-4565-979b-8db96bffa460',
             'ext': 'mp4',
-            'title': 'Iabdulelah playing Titanfall',
-            'filesize_approx': 26800000,
-            'upload_date': '20140807',
-            'duration': 56,
+            'title': "XboxClips - DeeperGnu613 playing Forza Horizon 4",
+            'uploader': 'DeeperGnu613'
         }
     }
 
     def _real_extract(self, url):
         video_id = self._match_id(url)
-
         webpage = self._download_webpage(url, video_id)
-
         video_url = self._html_search_regex(
-            r'>(?:Link|Download): <a[^>]+href="([^"]+)"', webpage, 'video URL')
+            r"<source src=\"(\S+)\"", webpage, 'URL')
         title = self._html_search_regex(
-            r'<title>XboxClips \| ([^<]+)</title>', webpage, 'title')
-        upload_date = unified_strdate(self._html_search_regex(
-            r'>Recorded: ([^<]+)<', webpage, 'upload date', fatal=False))
-        filesize = parse_filesize(self._html_search_regex(
-            r'>Size: ([^<]+)<', webpage, 'file size', fatal=False))
-        duration = int_or_none(self._html_search_regex(
-            r'>Duration: (\d+) Seconds<', webpage, 'duration', fatal=False))
-        view_count = int_or_none(self._html_search_regex(
-            r'>Views: (\d+)<', webpage, 'view count', fatal=False))
-
+            r'<title>(.+?)</title>', webpage, 'title')
+        uploader = self._html_search_regex(
+            r'<h3>(.+?)</h3>', webpage, 'uploader')
         return {
             'id': video_id,
-            'url': video_url,
             'title': title,
-            'upload_date': upload_date,
-            'filesize_approx': filesize,
-            'duration': duration,
-            'view_count': view_count,
+            'uploader': uploader,
+            'url': video_url
         }
