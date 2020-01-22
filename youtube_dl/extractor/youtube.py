@@ -1780,7 +1780,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                 # manifest pointed by get_video_info's dashmpd).
                 # The general idea is to take a union of itags of both DASH manifests (for example
                 # video with such 'manifest behavior' see https://github.com/ytdl-org/youtube-dl/issues/6093)
-                if self._downloader.params.get('youtube_extend_dash_manifest', False):
+                if self._downloader.params.get('youtube_extend_dash_manifest', False) is True:
                     self.report_video_info_webpage_download(video_id)
                     for el in ('embedded', 'detailpage', 'vevo', ''):
                         query = {
