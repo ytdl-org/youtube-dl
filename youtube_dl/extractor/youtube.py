@@ -1780,7 +1780,52 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                 # manifest pointed by get_video_info's dashmpd).
                 # The general idea is to take a union of itags of both DASH manifests (for example
                 # video with such 'manifest behavior' see https://github.com/ytdl-org/youtube-dl/issues/6093)
-                if not video_info:
+                if self._downloader.params.get('youtube_extend_dash_manifest', True) is True:
+                    self.report_video_info_webpage_download(video_id)
+                    for el in ('embedded', 'detailpage', 'vevo', ''):
+                        query = {
+                            'video_id': video_id,
+                            'ps': 'default',
+                            'eurl': '',
+                            'gl': 'US',
+                            'hl': 'en',
+                        }
+                        if el:
+                            query['el'] = el
+                        if sts:
+                            query['sts'] = sts
+                        video_info_webpage = self._download_webpage(
+                            '%s://www.youtube.com/get_video_info' % proto,
+                            video_id, note=False,
+                            errnote='unable to download video info webpage',
+                            fatal=False, query=query)
+                        if not video_info_webpage:
+                            continue
+                        get_video_info = compat_parse_qs(video_info_webpage)
+                        if not player_response:
+                            pl_response = get_video_info.get('player_response', [None])[0]
+                            player_response = extract_player_response(pl_response, video_id)
+                        add_dash_mpd(get_video_info)
+                        if view_count is None:
+                            view_count = extract_view_count(get_video_info)
+                        if not video_info:
+                            video_info = get_video_info
+                        get_token = extract_token(get_video_info)
+                        if get_token:
+                            # Different get_video_info requests may report different results, e.g.
+                            # some may report video unavailability, but some may serve it without
+                            # any complaint (see https://github.com/ytdl-org/youtube-dl/issues/7362,
+                            # the original webpage as well as el=info and el=embedded get_video_info
+                            # requests report video unavailability due to geo restriction while
+                            # el=detailpage succeeds and returns valid data). This is probably
+                            # due to YouTube measures against IP ranges of hosting providers.
+                            # Working around by preferring the first succeeded video_info containing
+                            # the token if no such video_info yet was found.
+                            token = extract_token(video_info)
+                            if not token:
+                                video_info = get_video_info
+                            break
+                else:
                     video_info = {'title': 'Unknown'}
 
         def extract_unavailable_message():
