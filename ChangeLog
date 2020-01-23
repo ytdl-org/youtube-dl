@@ -1,3 +1,27 @@
+version 2020.01.24
+
+Extractors
+* [youtube] Fix sigfunc name extraction (#23819)
+* [stretchinternet] Fix extraction (#4319)
+* [voicerepublic] Fix extraction
+* [azmedien] Fix extraction (#23783)
+* [businessinsider] Fix jwplatform id extraction (#22929, #22954)
++ [24video] Add support for 24video.vip (#23753)
+* [ivi:compilation] Fix entries extraction (#23770)
+* [ard] Improve extraction (#23761)
+    * Simplify extraction
+    + Extract age limit and series
+    * Bypass geo-restriction
++ [nbc] Add support for nbc multi network URLs (#23049)
+* [americastestkitchen] Fix extraction
+* [zype] Improve extraction
+    + Extract subtitles (#21258)
+    + Support URLs with alternative keys/tokens (#21258)
+    + Extract more metadata
+* [orf:tvthek] Improve geo restricted videos detection (#23741)
+* [soundcloud] Restore previews extraction (#23739)
+
+
 version 2020.01.15
 
 Extractors
