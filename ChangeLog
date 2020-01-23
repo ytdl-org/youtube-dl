@@ -1,4 +1,4 @@
-version <unreleased>
+version 2020.01.24
 
 Extractors
 * [youtube] Fix sigfunc name extraction (#23819)
