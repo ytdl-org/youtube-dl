@@ -23,9 +23,9 @@ class XboxClipsIE(InfoExtractor):
         video_url = self._html_search_regex(
             r"<source src=\"(\S+)\"", webpage, 'URL')
         title = self._html_search_regex(
-            r'<title>(.+?)</title>', webpage, 'title')
+            r'<title>(.+?)</title>', webpage, 'title', fatal=False)
         uploader = self._html_search_regex(
-            r'<h3>(.+?)</h3>', webpage, 'uploader')
+            r'<h3>(.+?)</h3>', webpage, 'uploader', fatal=False)
         return {
             'id': video_id,
             'title': title,
