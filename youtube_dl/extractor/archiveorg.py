@@ -40,9 +40,12 @@ class ArchiveOrgIE(InfoExtractor):
         video_id = self._match_id(url)
         webpage = self._download_webpage(
             'http://archive.org/embed/' + video_id, video_id)
+        input_element_with_playlist = self._search_regex(
+            r'(<\s*input.*\s*class\s*=\s*[\'"].*\s*js-play8-playlist\s*.*[\'"]\s*.*>)',
+            webpage, 'jwplayer playlist')
         jwplayer_playlist = self._parse_json(self._search_regex(
-            r"(?s)Play\('[^']+'\s*,\s*(\[.+\])\s*,\s*{.*?}\)",
-            webpage, 'jwplayer playlist'), video_id)
+            r'.*\s+value\s*=\s*[\'"](.+)[\'"][\s/]',
+            input_element_with_playlist, 'playlist data'), video_id)
         info = self._parse_jwplayer_data(
             {'playlist': jwplayer_playlist}, video_id, base_url=url)
 
@@ -52,7 +55,7 @@ class ArchiveOrgIE(InfoExtractor):
         metadata = self._download_json(
             'http://archive.org/details/' + video_id, video_id, query={
                 'output': 'json',
-            })['metadata']
+            }).get('metadata', {})
         info.update({
             'title': get_optional(metadata, 'title') or info.get('title'),
             'description': clean_html(get_optional(metadata, 'description')),
