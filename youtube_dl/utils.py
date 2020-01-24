@@ -3982,20 +3982,31 @@ def js_to_json(code):
         (r'(?s)^(0+[0-7]+){skip}:?$'.format(skip=SKIP_RE), 8),
     )
 
+    def convert_escapes(m):
+        # convert Javascript's octal escape sequences (and '\0')
+        # into valid JSON escape sequences (e.g. '\347' => '\u00e7', '\0' => '\u0000')
+        if m.group(1):
+            return "\\u%04x" % int(m.group(1), 8)
+
+        # convert the remaining escape sequences
+        # into valid JSON
+        return {
+            '"': '\\"',
+            "\\'": "'",
+            '\\\n': '',
+            '\\x': '\\u00',
+        }.get(m.group(0), m.group(0))
+
     def fix_kv(m):
         v = m.group(0)
+
         if v in ('true', 'false', 'null'):
             return v
         elif v.startswith('/*') or v.startswith('//') or v == ',':
             return ""
 
         if v[0] in ("'", '"'):
-            v = re.sub(r'(?s)\\.|"', lambda m: {
-                '"': '\\"',
-                "\\'": "'",
-                '\\\n': '',
-                '\\x': '\\u00',
-            }.get(m.group(0), m.group(0)), v[1:-1])
+            v = re.sub(r'(?s)\\(?:([0-7]{1,3})|.)|"', convert_escapes, v[1:-1])
 
         for regex, base in INTEGER_TABLE:
             im = re.match(regex, v)
@@ -4006,8 +4017,8 @@ def js_to_json(code):
         return '"%s"' % v
 
     return re.sub(r'''(?sx)
-        "(?:[^"\\]*(?:\\\\|\\['"nurtbfx/\n]))*[^"\\]*"|
-        '(?:[^'\\]*(?:\\\\|\\['"nurtbfx/\n]))*[^'\\]*'|
+        "(?:[^"\\]*(?:\\\\|\\['"nurtbfx/\n01234567]))*[^"\\]*"|
+        '(?:[^'\\]*(?:\\\\|\\['"nurtbfx/\n01234567]))*[^'\\]*'|
         {comment}|,(?={skip}[\]}}])|
         (?:(?<![0-9])[eE]|[a-df-zA-DF-Z_])[.a-zA-Z_0-9]*|
         \b(?:0[xX][0-9a-fA-F]+|0+[0-7]+)(?:{skip}:)?|

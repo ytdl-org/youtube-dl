@@ -918,6 +918,9 @@ class TestUtil(unittest.TestCase):
         inp = '''{segments: [{"offset":-3.885780586188048e-16,"duration":39.75000000000001}]}'''
         self.assertEqual(js_to_json(inp), '''{"segments": [{"offset":-3.885780586188048e-16,"duration":39.75000000000001}]}''')
 
+        inp = '''{label: "Fran\347ais"}'''
+        self.assertEqual(js_to_json(inp), '''{"label": "Fran\u00e7ais"}''')
+
     def test_js_to_json_edgecases(self):
         on = js_to_json("{abc_def:'1\\'\\\\2\\\\\\'3\"4'}")
         self.assertEqual(json.loads(on), {"abc_def": "1'\\2\\'3\"4"})
