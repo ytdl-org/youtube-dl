@@ -422,8 +422,8 @@ Alternatively, refer to the [developer instructions](#developer-instructions) fo
     --xattrs                         Write metadata to the video file's xattrs
                                      (using dublin core and xdg standards)
     --fixup POLICY                   Automatically correct known faults of the
-                                     file. One of never (do nothing), warn (only
-                                     emit a warning), detect_or_warn (the
+                                     file. One of "never" (do nothing), "warn" (only
+                                     emit a warning), "detect_or_warn" (the
                                      default; fix file if we can, warn
                                      otherwise)
     --prefer-avconv                  Prefer avconv over ffmpeg for running the
