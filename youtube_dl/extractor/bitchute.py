@@ -23,7 +23,7 @@ class BitChuteIE(InfoExtractor):
             'title': 'Fuck bitches get money',
             'description': 'md5:3f21f6fb5b1d17c3dee9cf6b5fe60b3a',
             'thumbnail': r're:^https?://.*\.jpg$',
-            'uploader': 'Victoria X Rave',
+            'uploader': 'Victoria Rose',
             'upload_date': '20170813',
         },
     }, {
@@ -32,15 +32,32 @@ class BitChuteIE(InfoExtractor):
     }, {
         'url': 'https://www.bitchute.com/torrent/Zee5BE49045h/szoMrox2JEI.webtorrent',
         'only_matching': True,
+    }, {
+        # mpd enabled video
+        'url': 'https://www.bitchute.com/video/HeicRhQcU4a3/',
+        'info_dict': {
+            'id': 'HeicRhQcU4a3',
+            'ext': 'mp4',
+            'title': 'CATASTROPHE is the ONLY CURE for Inequality',
+            'description': 'md5:e48cc6382ddce3345ecdd264f71b5a4a',
+            'thumbnail': r're:^https?://.*\.jpg$',
+            'uploader': 'Black Pigeon Speaks',
+            'upload_date': '20200124',
+        },
+        'params': {
+            'skip_download': True,
+        },
     }]
 
     def _real_extract(self, url):
         video_id = self._match_id(url)
 
+        headers = {
+            'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_0) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/69.0.3497.57 Safari/537.36',
+        }
+
         webpage = self._download_webpage(
-            'https://www.bitchute.com/video/%s' % video_id, video_id, headers={
-                'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_0) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/69.0.3497.57 Safari/537.36',
-            })
+            'https://www.bitchute.com/video/%s' % video_id, video_id, headers=headers)
 
         title = self._html_search_regex(
             (r'<[^>]+\bid=["\']video-title[^>]+>([^<]+)', r'<title>([^<]+)'),
@@ -57,6 +74,13 @@ class BitChuteIE(InfoExtractor):
         formats = [
             {'url': format_url}
             for format_url in orderedSet(format_urls)]
+
+        mpd_url = re.search(r"this.videoUrl = '(.+?)';", webpage)
+
+        if mpd_url:
+            for mpd in mpd_url.groups():
+                formats.extend(self._extract_mpd_formats(
+                    mpd_url=mpd, video_id=video_id, headers=headers))
 
         if not formats:
             formats = self._parse_html5_media_entries(
