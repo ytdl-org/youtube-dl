@@ -300,25 +300,24 @@ class CeskaTelevizePoradyIE(InfoExtractor):
             webpage, 'iframe player url', group='url')), query={
                 'autoStart': 'true',
         })
+
         date_string = unescapeHTML(self._search_regex((
             r'<span class=\"premiera\">.*?(?P<date>[0-9]{1,2}\.(?:&nbsp;|\s)*[0-9]{1,2}\.(?:&nbsp;|\s)*[0-9]{2,4})',
-            r'<meta\s+itemprop="uploadDate"\s+content=[\'"](?P<date>[0-9]{4}[-\s][0-9]{1,2}[-\s][0-9]{1,2})[\'"]\s*/?>'
-            ), webpage, 'date', fatal=False, default=None))
-        #date_string = unescapeHTML(self._search_regex(
-        #    r'<meta\s+itemprop=\"uploadDate\"\s+content=[\'\"](?P<date>[0-9]{4}[-\s][0-9]{1,2}[-\s][0-9]{1,2})[\'\"]\s*/?>'
-        #    , webpage, 'date', fatal=False, default=None))
+            r'<meta\s+itemprop="uploadDate"\s+content=[\'"](?P<date>[0-9]{4}[-\s][0-9]{1,2}[-\s][0-9]{1,2})[\'"]\s*/?>'),
+            webpage, 'date', fatal=False, default=None))
+
         if date_string:
             if re.match(r'^([0-9]{4})-(\d{2})-(\d{2})', date_string):
                 date_string = re.sub(r'^([0-9]{4})-(\d{2})-(\d{2})', r'\3.\2.\1', date_string)
-            date_string = re.sub('\s', '', date_string)
+            date_string = re.sub(r'\s', '', date_string)
             date_string = unified_strdate(date_string)
 
         info = {
-                '_type': 'url_transparent',
-                'url': data_url,
-                'ie_key': CeskaTelevizeIE.ie_key(),
-                'id': video_id,
-                'release_date': date_string,
-                'upload_date': date_string
-                }
+            '_type': 'url_transparent',
+            'url': data_url,
+            'ie_key': CeskaTelevizeIE.ie_key(),
+            'id': video_id,
+            'release_date': date_string,
+            'upload_date': date_string
+        }
         return info
