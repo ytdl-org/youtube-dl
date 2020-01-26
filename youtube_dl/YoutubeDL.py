@@ -887,6 +887,10 @@ class YoutubeDL(object):
             new_result = info.copy()
             new_result.update(force_properties)
 
+            if new_result.get('entries', False):
+                for elem in new_result['entries']:
+                    elem.update(force_properties)
+
             # Extracted info may not be a video result (i.e.
             # info.get('_type', 'video') != video) but rather an url or
             # url_transparent. In such cases outer metadata (from ie_result)

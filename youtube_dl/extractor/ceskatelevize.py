@@ -15,6 +15,7 @@ from ..utils import (
     unescapeHTML,
     update_url_query,
     urlencode_postdata,
+    unified_strdate,
     USER_AGENTS,
 )
 
@@ -272,7 +273,21 @@ class CeskaTelevizePoradyIE(InfoExtractor):
         # iframe embed
         'url': 'http://www.ceskatelevize.cz/porady/10614999031-neviditelni/21251212048/',
         'only_matching': True,
-    }]
+    }, {
+        'url': 'https://www.ceskatelevize.cz/porady/1178166999-predpoved-pocasi/220411000430117/',
+        'info_dict': {
+            'id': '61924494877681777',
+            'ext': 'mp4',
+            'release_date': '20150902',
+            'upload_date': '20150902',
+        },
+        'add_ie': [CeskaTelevizeIE.ie_key()],
+        'params': {
+            # m3u8 download
+            'skip_download': True,
+        },
+    }
+    ]
 
     def _real_extract(self, url):
         video_id = self._match_id(url)
@@ -285,5 +300,25 @@ class CeskaTelevizePoradyIE(InfoExtractor):
             webpage, 'iframe player url', group='url')), query={
                 'autoStart': 'true',
         })
+        date_string = unescapeHTML(self._search_regex((
+            r'<span class=\"premiera\">.*?(?P<date>[0-9]{1,2}\.(?:&nbsp;|\s)*[0-9]{1,2}\.(?:&nbsp;|\s)*[0-9]{2,4})',
+            r'<meta\s+itemprop="uploadDate"\s+content=[\'"](?P<date>[0-9]{4}[-\s][0-9]{1,2}[-\s][0-9]{1,2})[\'"]\s*/?>'
+            ), webpage, 'date', fatal=False, default=None))
+        #date_string = unescapeHTML(self._search_regex(
+        #    r'<meta\s+itemprop=\"uploadDate\"\s+content=[\'\"](?P<date>[0-9]{4}[-\s][0-9]{1,2}[-\s][0-9]{1,2})[\'\"]\s*/?>'
+        #    , webpage, 'date', fatal=False, default=None))
+        if date_string:
+            if re.match(r'^([0-9]{4})-(\d{2})-(\d{2})', date_string):
+                date_string = re.sub(r'^([0-9]{4})-(\d{2})-(\d{2})', r'\3.\2.\1', date_string)
+            date_string = re.sub('\s', '', date_string)
+            date_string = unified_strdate(date_string)
 
-        return self.url_result(data_url, ie=CeskaTelevizeIE.ie_key())
+        info = {
+                '_type': 'url_transparent',
+                'url': data_url,
+                'ie_key': CeskaTelevizeIE.ie_key(),
+                'id': video_id,
+                'release_date': date_string,
+                'upload_date': date_string
+                }
+        return info
