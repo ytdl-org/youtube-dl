@@ -4,11 +4,7 @@ from __future__ import unicode_literals
 import re
 
 from .common import InfoExtractor
-from ..compat import (
-    compat_parse_qs,
-    compat_str,
-    compat_urllib_parse_urlparse,
-)
+from ..compat import compat_str
 from ..utils import (
     determine_ext,
     dict_get,
@@ -16,7 +12,6 @@ from ..utils import (
     str_or_none,
     strip_or_none,
     try_get,
-    urljoin,
 )
 
 
@@ -237,23 +232,23 @@ class SVTPlayIE(SVTPlayBaseIE):
 
 
 class SVTSeriesIE(SVTPlayBaseIE):
-    _VALID_URL = r'https?://(?:www\.)?svtplay\.se/(?P<id>[^/?&#]+)'
+    _VALID_URL = r'https?://(?:www\.)?svtplay\.se/(?P<id>[^/?&#]+)(?:.+?\btab=(?P<season_slug>[^&#]+))?'
     _TESTS = [{
         'url': 'https://www.svtplay.se/rederiet',
         'info_dict': {
-            'id': 'rederiet',
+            'id': '14445680',
             'title': 'Rederiet',
-            'description': 'md5:505d491a58f4fcf6eb418ecab947e69e',
+            'description': 'md5:d9fdfff17f5d8f73468176ecd2836039',
         },
         'playlist_mincount': 318,
     }, {
-        'url': 'https://www.svtplay.se/rederiet?tab=sasong2',
+        'url': 'https://www.svtplay.se/rederiet?tab=season-2-14445680',
         'info_dict': {
-            'id': 'rederiet-sasong2',
+            'id': 'season-2-14445680',
             'title': 'Rederiet - Säsong 2',
-            'description': 'md5:505d491a58f4fcf6eb418ecab947e69e',
+            'description': 'md5:d9fdfff17f5d8f73468176ecd2836039',
         },
-        'playlist_count': 12,
+        'playlist_mincount': 12,
     }]
 
     @classmethod
@@ -261,60 +256,64 @@ class SVTSeriesIE(SVTPlayBaseIE):
         return False if SVTIE.suitable(url) or SVTPlayIE.suitable(url) else super(SVTSeriesIE, cls).suitable(url)
 
     def _real_extract(self, url):
-        series_id = self._match_id(url)
+        series_slug, season_id = re.match(self._VALID_URL, url).groups()
 
-        qs = compat_parse_qs(compat_urllib_parse_urlparse(url).query)
-        season_slug = qs.get('tab', [None])[0]
-
-        if season_slug:
-            series_id += '-%s' % season_slug
-
-        webpage = self._download_webpage(
-            url, series_id, 'Downloading series page')
-
-        root = self._parse_json(
-            self._search_regex(
-                self._SVTPLAY_RE, webpage, 'content', group='json'),
-            series_id)
+        series = self._download_json(
+            'https://api.svt.se/contento/graphql', series_slug,
+            'Downloading series page', query={
+                'query': '''{
+  listablesBySlug(slugs: ["%s"]) {
+    associatedContent(include: [productionPeriod, season]) {
+      items {
+        item {
+          ... on Episode {
+            videoSvtId
+          }
+        }
+      }
+      id
+      name
+    }
+    id
+    longDescription
+    name
+    shortDescription
+  }
+}''' % series_slug,
+            })['data']['listablesBySlug'][0]
 
         season_name = None
 
         entries = []
-        for season in root['relatedVideoContent']['relatedVideosAccordion']:
+        for season in series['associatedContent']:
             if not isinstance(season, dict):
                 continue
-            if season_slug:
-                if season.get('slug') != season_slug:
+            if season_id:
+                if season.get('id') != season_id:
                     continue
                 season_name = season.get('name')
-            videos = season.get('videos')
-            if not isinstance(videos, list):
+            items = season.get('items')
+            if not isinstance(items, list):
                 continue
-            for video in videos:
-                content_url = video.get('contentUrl')
-                if not content_url or not isinstance(content_url, compat_str):
+            for item in items:
+                video = item.get('item') or {}
+                content_id = video.get('videoSvtId')
+                if not content_id or not isinstance(content_id, compat_str):
                     continue
-                entries.append(
-                    self.url_result(
-                        urljoin(url, content_url),
-                        ie=SVTPlayIE.ie_key(),
-                        video_title=video.get('title')
-                    ))
+                entries.append(self.url_result(
+                    'svt:' + content_id, SVTPlayIE.ie_key(), content_id))
 
-        metadata = root.get('metaData')
-        if not isinstance(metadata, dict):
-            metadata = {}
-
-        title = metadata.get('title')
-        season_name = season_name or season_slug
+        title = series.get('name')
+        season_name = season_name or season_id
 
         if title and season_name:
             title = '%s - %s' % (title, season_name)
-        elif season_slug:
-            title = season_slug
+        elif season_id:
+            title = season_id
 
         return self.playlist_result(
-            entries, series_id, title, metadata.get('description'))
+            entries, season_id or series.get('id'), title,
+            dict_get(series, ('longDescription', 'shortDescription')))
 
 
 class SVTPageIE(InfoExtractor):
