@@ -192,9 +192,9 @@ class NovaIE(InfoExtractor):
         if embed_id:
             info = {
                 '_type': 'url_transparent',
-                'url' : 'https://media.cms.nova.cz/embed/%s' % embed_id,
-                'ie_key' : NovaEmbedIE.ie_key(),
-                'id' : embed_id,
+                'url': 'https://media.cms.nova.cz/embed/%s' % embed_id,
+                'ie_key': NovaEmbedIE.ie_key(),
+                'id': embed_id,
                 'description': description,
                 'upload_date': upload_date
             }
