@@ -6,17 +6,17 @@ import re
 from .common import InfoExtractor
 from ..compat import (
     compat_parse_qs,
+    compat_str,
     compat_urllib_parse_urlparse,
 )
 from ..utils import (
     determine_ext,
     dict_get,
     int_or_none,
-    orderedSet,
+    str_or_none,
     strip_or_none,
     try_get,
     urljoin,
-    compat_str,
 )
 
 
@@ -318,26 +318,26 @@ class SVTSeriesIE(SVTPlayBaseIE):
 
 
 class SVTPageIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:www\.)?svt\.se/(?:[^/]+/)*(?P<id>[^/?&#]+)'
+    _VALID_URL = r'https?://(?:www\.)?svt\.se/(?P<path>(?:[^/]+/)*(?P<id>[^/?&#]+))'
     _TESTS = [{
-        'url': 'https://www.svt.se/sport/oseedat/guide-sommartraningen-du-kan-gora-var-och-nar-du-vill',
+        'url': 'https://www.svt.se/sport/ishockey/bakom-masken-lehners-kamp-mot-mental-ohalsa',
         'info_dict': {
-            'id': 'guide-sommartraningen-du-kan-gora-var-och-nar-du-vill',
-            'title': 'GUIDE: Sommarträning du kan göra var och när du vill',
+            'id': '25298267',
+            'title': 'Bakom masken – Lehners kamp mot mental ohälsa',
         },
-        'playlist_count': 7,
+        'playlist_count': 4,
     }, {
-        'url': 'https://www.svt.se/nyheter/inrikes/ebba-busch-thor-kd-har-delvis-ratt-om-no-go-zoner',
+        'url': 'https://www.svt.se/nyheter/utrikes/svenska-andrea-ar-en-mil-fran-branderna-i-kalifornien',
         'info_dict': {
-            'id': 'ebba-busch-thor-kd-har-delvis-ratt-om-no-go-zoner',
-            'title': 'Ebba Busch Thor har bara delvis rätt om ”no-go-zoner”',
+            'id': '24243746',
+            'title': 'Svenska Andrea redo att fly sitt hem i Kalifornien',
         },
-        'playlist_count': 1,
+        'playlist_count': 2,
     }, {
         # only programTitle
         'url': 'http://www.svt.se/sport/ishockey/jagr-tacklar-giroux-under-intervjun',
         'info_dict': {
-            'id': '2900353',
+            'id': '8439V2K',
             'ext': 'mp4',
             'title': 'Stjärnorna skojar till det - under SVT-intervjun',
             'duration': 27,
@@ -356,16 +356,26 @@ class SVTPageIE(InfoExtractor):
         return False if SVTIE.suitable(url) else super(SVTPageIE, cls).suitable(url)
 
     def _real_extract(self, url):
-        playlist_id = self._match_id(url)
+        path, display_id = re.match(self._VALID_URL, url).groups()
 
-        webpage = self._download_webpage(url, playlist_id)
+        article = self._download_json(
+            'https://api.svt.se/nss-api/page/' + path, display_id,
+            query={'q': 'articles'})['articles']['content'][0]
 
-        entries = [
-            self.url_result(
-                'svt:%s' % video_id, ie=SVTPlayIE.ie_key(), video_id=video_id)
-            for video_id in orderedSet(re.findall(
-                r'data-video-id=["\'](\d+)', webpage))]
+        entries = []
 
-        title = strip_or_none(self._og_search_title(webpage, default=None))
+        def _process_content(content):
+            if content.get('_type') in ('VIDEOCLIP', 'VIDEOEPISODE'):
+                video_id = compat_str(content['image']['svtId'])
+                entries.append(self.url_result(
+                    'svt:' + video_id, SVTPlayIE.ie_key(), video_id))
 
-        return self.playlist_result(entries, playlist_id, title)
+        for media in article.get('media', []):
+            _process_content(media)
+
+        for obj in article.get('structuredBody', []):
+            _process_content(obj.get('content') or {})
+
+        return self.playlist_result(
+            entries, str_or_none(article.get('id')),
+            strip_or_none(article.get('title')))
