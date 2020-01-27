@@ -389,7 +389,6 @@
  - **JeuxVideo**
  - **Joj**
  - **Jove**
- - **jpopsuki.tv**
  - **JWPlatform**
  - **Kakao**
  - **Kaltura**
