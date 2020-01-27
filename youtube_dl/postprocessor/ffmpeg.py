@@ -551,7 +551,7 @@ class FFmpegFixupStretchedPP(FFmpegPostProcessor):
 
     def _configuration_args(self, default=[]):
         return []  # Make sure the users extra arguments don't mess up the fix
-    
+
 
 class FFmpegFixupM4aPP(FFmpegPostProcessor):
     def run(self, info):
@@ -573,6 +573,7 @@ class FFmpegFixupM4aPP(FFmpegPostProcessor):
     def _configuration_args(self, default=[]):
         return []  # Make sure the users extra arguments don't mess up the fix
 
+
 class FFmpegFixupM3u8PP(FFmpegPostProcessor):
     def run(self, info):
         filename = info['filepath']
@@ -586,7 +587,7 @@ class FFmpegFixupM3u8PP(FFmpegPostProcessor):
             os.remove(encodeFilename(filename))
             os.rename(encodeFilename(temp_filename), encodeFilename(filename))
         return [], info
-    
+
     def _configuration_args(self, default=[]):
         return []  # Make sure the users extra arguments don't mess up the fix
 
