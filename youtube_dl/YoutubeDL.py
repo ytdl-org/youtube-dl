@@ -990,7 +990,7 @@ class YoutubeDL(object):
                     'playlist_title': ie_result.get('title'),
                     'playlist_uploader': ie_result.get('uploader'),
                     'playlist_uploader_id': ie_result.get('uploader_id'),
-                    'playlist_index': i + playliststart,
+                    'playlist_index': playlistitems[i - 1] if playlistitems else i + playliststart,
                     'extractor': ie_result['extractor'],
                     'webpage_url': ie_result['webpage_url'],
                     'webpage_url_basename': url_basename(ie_result['webpage_url']),
