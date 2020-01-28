@@ -28,22 +28,17 @@ class TwentyFourVideoIE(InfoExtractor):
                     '''
 
     _TESTS = [{
-        'url': 'http://www.24video.net/video/view/1044982',
-        'md5': 'e09fc0901d9eaeedac872f154931deeb',
+        'url': 'https://porn.24video.net/video/2640421-vsya-takaya-gibkaya-i-v-masle',
+        'md5': 'aa15e14301d90774e6a2c2e6155c203b',
         'info_dict': {
-            'id': '1044982',
+            'id': '2640421',
             'ext': 'mp4',
-            'title': 'Эротика каменного века',
-            'description': 'Как смотрели порно в каменном веке.',
-            'thumbnail': r're:^https?://.*\.jpg$',
-            'uploader': 'SUPERTELO',
-            'duration': 31,
-            'timestamp': 1275937857,
-            'upload_date': '20100607',
+            'title': 'Вся такая гибкая и в масле',
+            'description': 'Lucy Doll вся в масле извивается, как змея, в различных позах. Красотка показывает недосягаемый уровень секса, сворачиваясь в невероятные конфигурации',
+            'timestamp': 1558363989,
+            'upload_date': '20190520',
             'age_limit': 18,
-            'like_count': int,
-            'dislike_count': int,
-        },
+        }
     }, {
         'url': 'http://www.24video.net/player/new24_play.swf?id=1044982',
         'only_matching': True,
@@ -83,10 +78,6 @@ class TwentyFourVideoIE(InfoExtractor):
             r'<time[^>]+\bdatetime="([^"]+)"[^>]+itemprop="uploadDate"',
             webpage, 'upload date', fatal=False))
 
-        uploader = self._html_search_regex(
-            r'class="video-uploaded"[^>]*>\s*<a href="/jsecUser/movies/[^"]+"[^>]*>([^<]+)</a>',
-            webpage, 'uploader', fatal=False)
-
         view_count = int_or_none(self._html_search_regex(
             r'<span class="video-views">(\d+) просмотр',
             webpage, 'view count', fatal=False))
@@ -118,7 +109,6 @@ class TwentyFourVideoIE(InfoExtractor):
             'title': title,
             'description': description,
             'thumbnail': thumbnail,
-            'uploader': uploader,
             'duration': duration,
             'timestamp': timestamp,
             'view_count': view_count,
