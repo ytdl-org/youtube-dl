@@ -2512,7 +2512,7 @@ class YoutubePlaylistIE(YoutubePlaylistBaseInfoExtractor):
             'uploader': 'Christiaan008',
             'uploader_id': 'ChRiStIaAn008',
         },
-        'playlist_count': 95,
+        'playlist_count': 96,
     }, {
         'note': 'issue #673',
         'url': 'PLBB231211A4F62143',
