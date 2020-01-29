@@ -3984,7 +3984,7 @@ def js_to_json(code):
     # This regular expression is based on this Stack Overflow answer:
     #   https://stackoverflow.com/a/25735600
     code = re.sub(r'("(?:[^"\\]|\\[\s\S])*"|\'(?:[^\'\\]|\\[\s\S])*\')|[ \t]*//.*|[ \t]*/\*(?:[^*]|\*(?!/))*\*/',
-                  '\\1', code)
+                  lambda m: m.group(1) or '', code)
 
     def fix_kv(m):
         v = m.group(0)
