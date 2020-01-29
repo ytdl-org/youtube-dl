@@ -238,7 +238,7 @@ class SoundcloudIE(InfoExtractor):
                 'ext': 'mp3',
                 'title': 'Mezzo Valzer',
                 'description': 'md5:4138d582f81866a530317bae316e8b61',
-                'uploader': 'Giovanni Sarani',
+                'uploader': 'Micronie',
                 'uploader_id': '3352531',
                 'timestamp': 1551394171,
                 'upload_date': '20190228',
@@ -524,7 +524,17 @@ class SoundcloudIE(InfoExtractor):
 
 
 class SoundcloudPlaylistBaseIE(SoundcloudIE):
-    def _extract_track_entries(self, tracks, token=None):
+    def _extract_set(self, playlist, token=None):
+        playlist_id = compat_str(playlist['id'])
+        tracks = playlist.get('tracks') or []
+        if not all([t.get('permalink_url') for t in tracks]) and token:
+            tracks = self._download_json(
+                self._API_V2_BASE + 'tracks', playlist_id,
+                'Downloading tracks', query={
+                    'ids': ','.join([compat_str(t['id']) for t in tracks]),
+                    'playlistId': playlist_id,
+                    'playlistSecretToken': token,
+                })
         entries = []
         for track in tracks:
             track_id = str_or_none(track.get('id'))
@@ -537,7 +547,10 @@ class SoundcloudPlaylistBaseIE(SoundcloudIE):
                     url += '?secret_token=' + token
             entries.append(self.url_result(
                 url, SoundcloudIE.ie_key(), track_id))
-        return entries
+        return self.playlist_result(
+            entries, playlist_id,
+            playlist.get('title'),
+            playlist.get('description'))
 
 
 class SoundcloudSetIE(SoundcloudPlaylistBaseIE):
@@ -548,6 +561,7 @@ class SoundcloudSetIE(SoundcloudPlaylistBaseIE):
         'info_dict': {
             'id': '2284613',
             'title': 'The Royal Concept EP',
+            'description': 'md5:71d07087c7a449e8941a70a29e34671e',
         },
         'playlist_mincount': 5,
     }, {
@@ -570,13 +584,10 @@ class SoundcloudSetIE(SoundcloudPlaylistBaseIE):
             msgs = (compat_str(err['error_message']) for err in info['errors'])
             raise ExtractorError('unable to download video webpage: %s' % ','.join(msgs))
 
-        entries = self._extract_track_entries(info['tracks'], token)
-
-        return self.playlist_result(
-            entries, str_or_none(info.get('id')), info.get('title'))
+        return self._extract_set(info, token)
 
 
-class SoundcloudPagedPlaylistBaseIE(SoundcloudPlaylistBaseIE):
+class SoundcloudPagedPlaylistBaseIE(SoundcloudIE):
     def _extract_playlist(self, base_url, playlist_id, playlist_title):
         COMMON_QUERY = {
             'limit': 2000000000,
@@ -774,10 +785,7 @@ class SoundcloudPlaylistIE(SoundcloudPlaylistBaseIE):
             self._API_V2_BASE + 'playlists/' + playlist_id,
             playlist_id, 'Downloading playlist', query=query)
 
-        entries = self._extract_track_entries(data['tracks'], token)
-
-        return self.playlist_result(
-            entries, playlist_id, data.get('title'), data.get('description'))
+        return self._extract_set(data, token)
 
 
 class SoundcloudSearchIE(SearchInfoExtractor, SoundcloudIE):
