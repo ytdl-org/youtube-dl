@@ -54,7 +54,7 @@ class GulliIE(InfoExtractor):
 
 
 class GulliPlaylistIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:www\.)?replay\.gulli\.fr/.+/(?P<id>.+)'
+    _VALID_URL = r'https?://(?:www\.)?replay\.gulli\.fr/.+/(?!VOD)(?P<id>[^/]+)(?!.+)'
     _TESTS = [{
         'url': 'https://replay.gulli.fr/dessins-animes/Beyblade-Burst-Turbo',
         'info_dict': {
