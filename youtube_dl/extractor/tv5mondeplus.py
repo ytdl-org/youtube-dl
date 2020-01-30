@@ -15,14 +15,14 @@ from ..utils import (
 
 class TV5MondePlusIE(InfoExtractor):
     IE_DESC = 'TV5MONDE+'
-    _VALID_URL = r'https?://(?:www\.)?tv5mondeplus\.com/toutes-les-videos/[^/]+/(?P<id>[^/?#]+)'
+    _VALID_URL = r'https?://(?:www\.)?revoir\.tv5monde\.com/toutes-les-videos/[^/]+/(?P<id>[^/?#]+)'
     _TEST = {
-        'url': 'http://www.tv5mondeplus.com/toutes-les-videos/documentaire/tdah-mon-amour-tele-quebec-tdah-mon-amour-ep001-enfants',
-        'md5': '12130fc199f020673138a83466542ec6',
+        'url': 'https://revoir.tv5monde.com/toutes-les-videos/art-de-vivre/un-jour-sur-terre-cote-d-azur-la-reserve-biologique-du-parc-de-thorenc',
+        'md5': '9a0924b724a8bcef688029ab06cc9fd8',
         'info_dict': {
-            'id': 'tdah-mon-amour-tele-quebec-tdah-mon-amour-ep001-enfants',
+            'id': 'NA-un-jour-sur-terre-cote-d-azur-la-reserve-biologique-du-parc-de-thorenc',
             'ext': 'mp4',
-            'title': 'Tdah, mon amour - Enfants',
+            'title': 'null',
             'description': 'md5:230e3aca23115afcf8006d1bece6df74',
             'upload_date': '20170401',
             'timestamp': 1491022860,
