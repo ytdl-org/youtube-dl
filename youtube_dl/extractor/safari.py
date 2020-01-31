@@ -165,7 +165,8 @@ class SafariIE(SafariBaseIE):
             kaltura_session = self._download_json(
                 '%s/player/kaltura_session/?reference_id=%s' % (self._API_BASE, reference_id),
                 video_id, 'Downloading kaltura session JSON',
-                'Unable to download kaltura session JSON', fatal=False)
+                'Unable to download kaltura session JSON', fatal=False,
+                headers={'Accept': 'application/json'})
             if kaltura_session:
                 session = kaltura_session.get('session')
                 if session:
