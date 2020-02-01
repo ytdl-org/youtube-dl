@@ -12,8 +12,6 @@ from ..utils import (
 
 from ..compat import compat_HTTPError
 
-import re
-
 
 class AnimeLabBaseIE(InfoExtractor):
     _LOGIN_REQUIRED = True
@@ -205,7 +203,6 @@ class AnimeLabIE(AnimeLabBaseIE):
             'season_number': season_number,
             'season_id': season_id,
         }
-
 
 
 class AnimeLabShowsIE(AnimeLabBaseIE):
