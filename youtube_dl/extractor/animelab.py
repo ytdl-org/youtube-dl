@@ -76,7 +76,7 @@ class AnimeLabIE(AnimeLabBaseIE):
     _VALID_URL = r'https?://(?:www\.)?animelab\.com/player/(?P<id>[^/]+)'
 
     # the following tests require authentication, but a free account will suffice
-    # just set 'netrc' to true in test/local_parameters.json if you use a .netrc file
+    # just set 'usenetrc' to true in test/local_parameters.json if you use a .netrc file
     # or you can set 'username' and 'password' there
     # the tests also select a specific format so that the same video is downloaded
     # regardless of whether the user is premium or not (needs testing on a premium account)
