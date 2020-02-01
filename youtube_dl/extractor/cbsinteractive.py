@@ -75,10 +75,10 @@ class CBSInteractiveIE(CBSIE):
         webpage = self._download_webpage(url, display_id)
 
         data_json = self._html_search_regex(
-            r"data-(?:cnet|zdnet)-video(?:-uvp(?:js)?)?-options='([^']+)'",
+            r"data(?:-(?:cnet|zdnet))?-video(?:-(?:uvp(?:js)?|player))?-options='([^']+)'",
             webpage, 'data json')
         data = self._parse_json(data_json, display_id)
-        vdata = data.get('video') or data['videos'][0]
+        vdata = data.get('video') or (data.get('videos') or data.get('playlist'))[0]
 
         video_id = vdata['mpxRefId']
 

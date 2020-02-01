@@ -13,7 +13,7 @@ class NineGagIE(InfoExtractor):
     _TESTS = [{
         'url': 'http://9gag.com/tv/p/Kk2X5/people-are-awesome-2013-is-absolutely-awesome',
         'info_dict': {
-            'id': 'Kk2X5',
+            'id': 'kXzwOKyGlSA',
             'ext': 'mp4',
             'description': 'This 3-minute video will make you smile and then make you feel untalented and insignificant. Anyway, you should share this awesomeness. (Thanks, Dino!)',
             'title': '\"People Are Awesome 2013\" Is Absolutely Awesome',

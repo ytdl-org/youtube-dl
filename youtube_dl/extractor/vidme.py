@@ -9,6 +9,7 @@ from ..utils import (
     int_or_none,
     float_or_none,
     parse_iso8601,
+    url_or_none,
 )
 
 
@@ -161,13 +162,28 @@ class VidmeIE(InfoExtractor):
                 'or for violating the terms of use.',
                 expected=True)
 
-        formats = [{
-            'format_id': f.get('type'),
-            'url': f['uri'],
-            'width': int_or_none(f.get('width')),
-            'height': int_or_none(f.get('height')),
-            'preference': 0 if f.get('type', '').endswith('clip') else 1,
-        } for f in video.get('formats', []) if f.get('uri')]
+        formats = []
+        for f in video.get('formats', []):
+            format_url = url_or_none(f.get('uri'))
+            if not format_url:
+                continue
+            format_type = f.get('type')
+            if format_type == 'dash':
+                formats.extend(self._extract_mpd_formats(
+                    format_url, video_id, mpd_id='dash', fatal=False))
+            elif format_type == 'hls':
+                formats.extend(self._extract_m3u8_formats(
+                    format_url, video_id, 'mp4', entry_protocol='m3u8_native',
+                    m3u8_id='hls', fatal=False))
+            else:
+                formats.append({
+                    'format_id': f.get('type'),
+                    'url': format_url,
+                    'width': int_or_none(f.get('width')),
+                    'height': int_or_none(f.get('height')),
+                    'preference': 0 if f.get('type', '').endswith(
+                        'clip') else 1,
+                })
 
         if not formats and video.get('complete_url'):
             formats.append({
@@ -245,29 +261,35 @@ class VidmeListBaseIE(InfoExtractor):
 
 class VidmeUserIE(VidmeListBaseIE):
     IE_NAME = 'vidme:user'
-    _VALID_URL = r'https?://vid\.me/(?:e/)?(?P<id>[\da-zA-Z]{6,})(?!/likes)(?:[^\da-zA-Z]|$)'
+    _VALID_URL = r'https?://vid\.me/(?:e/)?(?P<id>[\da-zA-Z_-]{6,})(?!/likes)(?:[^\da-zA-Z_-]|$)'
     _API_ITEM = 'list'
     _TITLE = 'Videos'
-    _TEST = {
-        'url': 'https://vid.me/EFARCHIVE',
+    _TESTS = [{
+        'url': 'https://vid.me/MasakoX',
         'info_dict': {
-            'id': '3834632',
-            'title': 'EFARCHIVE - %s' % _TITLE,
+            'id': '16112341',
+            'title': 'MasakoX - %s' % _TITLE,
         },
-        'playlist_mincount': 238,
-    }
+        'playlist_mincount': 191,
+    }, {
+        'url': 'https://vid.me/unsQuare_netWork',
+        'only_matching': True,
+    }]
 
 
 class VidmeUserLikesIE(VidmeListBaseIE):
     IE_NAME = 'vidme:user:likes'
-    _VALID_URL = r'https?://vid\.me/(?:e/)?(?P<id>[\da-zA-Z]{6,})/likes'
+    _VALID_URL = r'https?://vid\.me/(?:e/)?(?P<id>[\da-zA-Z_-]{6,})/likes'
     _API_ITEM = 'likes'
     _TITLE = 'Likes'
-    _TEST = {
+    _TESTS = [{
         'url': 'https://vid.me/ErinAlexis/likes',
         'info_dict': {
             'id': '6483530',
             'title': 'ErinAlexis - %s' % _TITLE,
         },
         'playlist_mincount': 415,
-    }
+    }, {
+        'url': 'https://vid.me/Kaleidoscope-Ish/likes',
+        'only_matching': True,
+    }]

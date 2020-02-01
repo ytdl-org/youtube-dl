@@ -9,12 +9,20 @@ from ..utils import (
 
 
 class CinchcastIE(InfoExtractor):
-    _VALID_URL = r'https?://player\.cinchcast\.com/.*?assetId=(?P<id>[0-9]+)'
-    _TEST = {
+    _VALID_URL = r'https?://player\.cinchcast\.com/.*?(?:assetId|show_id)=(?P<id>[0-9]+)'
+    _TESTS = [{
+        'url': 'http://player.cinchcast.com/?show_id=5258197&platformId=1&assetType=single',
+        'info_dict': {
+            'id': '5258197',
+            'ext': 'mp3',
+            'title': 'Train Your Brain to Up Your Game with Coach Mandy',
+            'upload_date': '20130816',
+        },
+    }, {
         # Actual test is run in generic, look for undergroundwellness
         'url': 'http://player.cinchcast.com/?platformId=1&#038;assetType=single&#038;assetId=7141703',
         'only_matching': True,
-    }
+    }]
 
     def _real_extract(self, url):
         video_id = self._match_id(url)

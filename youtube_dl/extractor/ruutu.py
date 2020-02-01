@@ -53,13 +53,34 @@ class RuutuIE(InfoExtractor):
                 'age_limit': 0,
             },
         },
+        # Episode where <SourceFile> is "NOT-USED", but has other
+        # downloadable sources available.
+        {
+            'url': 'http://www.ruutu.fi/video/3193728',
+            'only_matching': True,
+        },
+        {
+            # audio podcast
+            'url': 'https://www.supla.fi/supla/3382410',
+            'md5': 'b9d7155fed37b2ebf6021d74c4b8e908',
+            'info_dict': {
+                'id': '3382410',
+                'ext': 'mp3',
+                'title': 'Mikä ihmeen poltergeist?',
+                'description': 'md5:bbb6963df17dfd0ecd9eb9a61bf14b52',
+                'thumbnail': r're:^https?://.*\.jpg$',
+                'age_limit': 0,
+            },
+            'expected_warnings': ['HTTP Error 502: Bad Gateway'],
+        }
     ]
 
     def _real_extract(self, url):
         video_id = self._match_id(url)
 
         video_xml = self._download_xml(
-            'http://gatling.ruutu.fi/media-xml-cache?id=%s' % video_id, video_id)
+            'https://gatling.nelonenmedia.fi/media-xml-cache', video_id,
+            query={'id': video_id})
 
         formats = []
         processed_urls = []
@@ -70,9 +91,9 @@ class RuutuIE(InfoExtractor):
                     extract_formats(child)
                 elif child.tag.endswith('File'):
                     video_url = child.text
-                    if (not video_url or video_url in processed_urls or
-                            any(p in video_url for p in ('NOT_USED', 'NOT-USED'))):
-                        return
+                    if (not video_url or video_url in processed_urls
+                            or any(p in video_url for p in ('NOT_USED', 'NOT-USED'))):
+                        continue
                     processed_urls.append(video_url)
                     ext = determine_ext(video_url)
                     if ext == 'm3u8':
@@ -87,6 +108,12 @@ class RuutuIE(InfoExtractor):
                         continue
                         formats.extend(self._extract_mpd_formats(
                             video_url, video_id, mpd_id='dash', fatal=False))
+                    elif ext == 'mp3' or child.tag == 'AudioMediaFile':
+                        formats.append({
+                            'format_id': 'audio',
+                            'url': video_url,
+                            'vcodec': 'none',
+                        })
                     else:
                         proto = compat_urllib_parse_urlparse(video_url).scheme
                         if not child.tag.startswith('HTTP') and proto != 'rtmp':

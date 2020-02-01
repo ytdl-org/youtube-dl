@@ -11,11 +11,17 @@ from ..utils import (
     determine_ext,
     ExtractorError,
     fix_xml_ampersands,
+    int_or_none,
+    merge_dicts,
     orderedSet,
     parse_duration,
     qualities,
+    str_or_none,
     strip_jsonp,
     unified_strdate,
+    unified_timestamp,
+    url_or_none,
+    urlencode_postdata,
 )
 
 
@@ -28,17 +34,17 @@ class NPOBaseIE(InfoExtractor):
 
 class NPOIE(NPOBaseIE):
     IE_NAME = 'npo'
-    IE_DESC = 'npo.nl and ntr.nl'
+    IE_DESC = 'npo.nl, ntr.nl, omroepwnl.nl, zapp.nl and npo3.nl'
     _VALID_URL = r'''(?x)
                     (?:
                         npo:|
                         https?://
                             (?:www\.)?
                             (?:
-                                npo\.nl/(?!(?:live|radio)/)(?:[^/]+/){2}|
-                                ntr\.nl/(?:[^/]+/){2,}|
+                                npo\.nl/(?:[^/]+/)*|
+                                (?:ntr|npostart)\.nl/(?:[^/]+/){2,}|
                                 omroepwnl\.nl/video/fragment/[^/]+__|
-                                zapp\.nl/[^/]+/[^/]+/
+                                (?:zapp|npo3)\.nl/(?:[^/]+/){2,}
                             )
                         )
                         (?P<id>[^/?#]+)
@@ -147,25 +153,160 @@ class NPOIE(NPOBaseIE):
         'url': 'http://www.zapp.nl/beste-vrienden-quiz/extra-video-s/WO_NTR_1067990',
         'only_matching': True,
     }, {
+        'url': 'https://www.npo3.nl/3onderzoekt/16-09-2015/VPWON_1239870',
+        'only_matching': True,
+    }, {
         # live stream
         'url': 'npo:LI_NL1_4188102',
         'only_matching': True,
     }, {
         'url': 'http://www.npo.nl/radio-gaga/13-06-2017/BNN_101383373',
         'only_matching': True,
+    }, {
+        'url': 'https://www.zapp.nl/1803-skelterlab/instructie-video-s/740-instructievideo-s/POMS_AT_11736927',
+        'only_matching': True,
+    }, {
+        'url': 'https://www.npostart.nl/broodje-gezond-ei/28-05-2018/KN_1698996',
+        'only_matching': True,
+    }, {
+        'url': 'https://npo.nl/KN_1698996',
+        'only_matching': True,
     }]
+
+    @classmethod
+    def suitable(cls, url):
+        return (False if any(ie.suitable(url)
+                for ie in (NPOLiveIE, NPORadioIE, NPORadioFragmentIE))
+                else super(NPOIE, cls).suitable(url))
 
     def _real_extract(self, url):
         video_id = self._match_id(url)
-        return self._get_info(video_id)
+        return self._get_info(url, video_id) or self._get_old_info(video_id)
 
-    def _get_info(self, video_id):
+    def _get_info(self, url, video_id):
+        token = self._download_json(
+            'https://www.npostart.nl/api/token', video_id,
+            'Downloading token', headers={
+                'Referer': url,
+                'X-Requested-With': 'XMLHttpRequest',
+            })['token']
+
+        player = self._download_json(
+            'https://www.npostart.nl/player/%s' % video_id, video_id,
+            'Downloading player JSON', data=urlencode_postdata({
+                'autoplay': 0,
+                'share': 1,
+                'pageUrl': url,
+                'hasAdConsent': 0,
+                '_token': token,
+            }))
+
+        player_token = player['token']
+
+        drm = False
+        format_urls = set()
+        formats = []
+        for profile in ('hls', 'dash-widevine', 'dash-playready', 'smooth'):
+            streams = self._download_json(
+                'https://start-player.npo.nl/video/%s/streams' % video_id,
+                video_id, 'Downloading %s profile JSON' % profile, fatal=False,
+                query={
+                    'profile': profile,
+                    'quality': 'npo',
+                    'tokenId': player_token,
+                    'streamType': 'broadcast',
+                })
+            if not streams:
+                continue
+            stream = streams.get('stream')
+            if not isinstance(stream, dict):
+                continue
+            stream_url = url_or_none(stream.get('src'))
+            if not stream_url or stream_url in format_urls:
+                continue
+            format_urls.add(stream_url)
+            if stream.get('protection') is not None or stream.get('keySystemOptions') is not None:
+                drm = True
+                continue
+            stream_type = stream.get('type')
+            stream_ext = determine_ext(stream_url)
+            if stream_type == 'application/dash+xml' or stream_ext == 'mpd':
+                formats.extend(self._extract_mpd_formats(
+                    stream_url, video_id, mpd_id='dash', fatal=False))
+            elif stream_type == 'application/vnd.apple.mpegurl' or stream_ext == 'm3u8':
+                formats.extend(self._extract_m3u8_formats(
+                    stream_url, video_id, ext='mp4',
+                    entry_protocol='m3u8_native', m3u8_id='hls', fatal=False))
+            elif re.search(r'\.isml?/Manifest', stream_url):
+                formats.extend(self._extract_ism_formats(
+                    stream_url, video_id, ism_id='mss', fatal=False))
+            else:
+                formats.append({
+                    'url': stream_url,
+                })
+
+        if not formats:
+            if drm:
+                raise ExtractorError('This video is DRM protected.', expected=True)
+            return
+
+        self._sort_formats(formats)
+
+        info = {
+            'id': video_id,
+            'title': video_id,
+            'formats': formats,
+        }
+
+        embed_url = url_or_none(player.get('embedUrl'))
+        if embed_url:
+            webpage = self._download_webpage(
+                embed_url, video_id, 'Downloading embed page', fatal=False)
+            if webpage:
+                video = self._parse_json(
+                    self._search_regex(
+                        r'\bvideo\s*=\s*({.+?})\s*;', webpage, 'video',
+                        default='{}'), video_id)
+                if video:
+                    title = video.get('episodeTitle')
+                    subtitles = {}
+                    subtitles_list = video.get('subtitles')
+                    if isinstance(subtitles_list, list):
+                        for cc in subtitles_list:
+                            cc_url = url_or_none(cc.get('src'))
+                            if not cc_url:
+                                continue
+                            lang = str_or_none(cc.get('language')) or 'nl'
+                            subtitles.setdefault(lang, []).append({
+                                'url': cc_url,
+                            })
+                    return merge_dicts({
+                        'title': title,
+                        'description': video.get('description'),
+                        'thumbnail': url_or_none(
+                            video.get('still_image_url') or video.get('orig_image_url')),
+                        'duration': int_or_none(video.get('duration')),
+                        'timestamp': unified_timestamp(video.get('broadcastDate')),
+                        'creator': video.get('channel'),
+                        'series': video.get('title'),
+                        'episode': title,
+                        'episode_number': int_or_none(video.get('episodeNumber')),
+                        'subtitles': subtitles,
+                    }, info)
+
+        return info
+
+    def _get_old_info(self, video_id):
         metadata = self._download_json(
             'http://e.omroep.nl/metadata/%s' % video_id,
             video_id,
             # We have to remove the javascript callback
             transform_source=strip_jsonp,
         )
+
+        error = metadata.get('error')
+        if error:
+            raise ExtractorError(error, expected=True)
 
         # For some videos actual video id (prid) is different (e.g. for
         # http://www.omroepwnl.nl/video/fragment/vandaag-de-dag-verkiezingen__POMS_WNL_853698
@@ -184,7 +325,15 @@ class NPOIE(NPOBaseIE):
         formats = []
         urls = set()
 
-        quality = qualities(['adaptive', 'wmv_sb', 'h264_sb', 'wmv_bb', 'h264_bb', 'wvc1_std', 'h264_std'])
+        def is_legal_url(format_url):
+            return format_url and format_url not in urls and re.match(
+                r'^(?:https?:)?//', format_url)
+
+        QUALITY_LABELS = ('Laag', 'Normaal', 'Hoog')
+        QUALITY_FORMATS = ('adaptive', 'wmv_sb', 'h264_sb', 'wmv_bb', 'h264_bb', 'wvc1_std', 'h264_std')
+
+        quality_from_label = qualities(QUALITY_LABELS)
+        quality_from_format_id = qualities(QUALITY_FORMATS)
         items = self._download_json(
             'http://ida.omroep.nl/app.php/%s' % video_id, video_id,
             'Downloading formats JSON', query={
@@ -193,18 +342,34 @@ class NPOIE(NPOBaseIE):
             })['items'][0]
         for num, item in enumerate(items):
             item_url = item.get('url')
-            if not item_url or item_url in urls:
+            if not is_legal_url(item_url):
                 continue
             urls.add(item_url)
             format_id = self._search_regex(
                 r'video/ida/([^/]+)', item_url, 'format id',
                 default=None)
 
+            item_label = item.get('label')
+
             def add_format_url(format_url):
+                width = int_or_none(self._search_regex(
+                    r'(\d+)[xX]\d+', format_url, 'width', default=None))
+                height = int_or_none(self._search_regex(
+                    r'\d+[xX](\d+)', format_url, 'height', default=None))
+                if item_label in QUALITY_LABELS:
+                    quality = quality_from_label(item_label)
+                    f_id = item_label
+                elif item_label in QUALITY_FORMATS:
+                    quality = quality_from_format_id(format_id)
+                    f_id = format_id
+                else:
+                    quality, f_id = [None] * 2
                 formats.append({
                     'url': format_url,
-                    'format_id': format_id,
-                    'quality': quality(format_id),
+                    'format_id': f_id,
+                    'width': width,
+                    'height': height,
+                    'quality': quality,
                 })
 
             # Example: http://www.npo.nl/de-nieuwe-mens-deel-1/21-07-2010/WO_VPRO_043706
@@ -216,7 +381,7 @@ class NPOIE(NPOBaseIE):
                 stream_info = self._download_json(
                     item_url + '&type=json', video_id,
                     'Downloading %s stream JSON'
-                    % item.get('label') or item.get('format') or format_id or num)
+                    % item_label or item.get('format') or format_id or num)
             except ExtractorError as ee:
                 if isinstance(ee.cause, compat_HTTPError) and ee.cause.code == 404:
                     error = (self._parse_json(
@@ -233,9 +398,9 @@ class NPOIE(NPOBaseIE):
             # JSON
             else:
                 video_url = stream_info.get('url')
-            if not video_url or video_url in urls:
+            if not video_url or 'vodnotavailable.' in video_url or video_url in urls:
                 continue
-            urls.add(item_url)
+            urls.add(video_url)
             if determine_ext(video_url) == 'm3u8':
                 formats.extend(self._extract_m3u8_formats(
                     video_url, video_id, ext='mp4',
@@ -248,7 +413,7 @@ class NPOIE(NPOBaseIE):
         if not is_live:
             for num, stream in enumerate(metadata.get('streams', [])):
                 stream_url = stream.get('url')
-                if not stream_url or stream_url in urls:
+                if not is_legal_url(stream_url):
                     continue
                 urls.add(stream_url)
                 # smooth streaming is not supported
@@ -316,7 +481,7 @@ class NPOIE(NPOBaseIE):
 
 class NPOLiveIE(NPOBaseIE):
     IE_NAME = 'npo.nl:live'
-    _VALID_URL = r'https?://(?:www\.)?npo\.nl/live(?:/(?P<id>[^/?#&]+))?'
+    _VALID_URL = r'https?://(?:www\.)?npo(?:start)?\.nl/live(?:/(?P<id>[^/?#&]+))?'
 
     _TESTS = [{
         'url': 'http://www.npo.nl/live/npo-1',
@@ -333,6 +498,9 @@ class NPOLiveIE(NPOBaseIE):
     }, {
         'url': 'http://www.npo.nl/live',
         'only_matching': True,
+    }, {
+        'url': 'https://www.npostart.nl/live/npo-1',
+        'only_matching': True,
     }]
 
     def _real_extract(self, url):
@@ -341,7 +509,7 @@ class NPOLiveIE(NPOBaseIE):
         webpage = self._download_webpage(url, display_id)
 
         live_id = self._search_regex(
-            r'data-prid="([^"]+)"', webpage, 'live id')
+            [r'media-id="([^"]+)"', r'data-prid="([^"]+)"'], webpage, 'live id')
 
         return {
             '_type': 'url_transparent',
@@ -354,7 +522,7 @@ class NPOLiveIE(NPOBaseIE):
 
 class NPORadioIE(InfoExtractor):
     IE_NAME = 'npo.nl:radio'
-    _VALID_URL = r'https?://(?:www\.)?npo\.nl/radio/(?P<id>[^/]+)/?$'
+    _VALID_URL = r'https?://(?:www\.)?npo\.nl/radio/(?P<id>[^/]+)'
 
     _TEST = {
         'url': 'http://www.npo.nl/radio/radio-1',
@@ -368,6 +536,10 @@ class NPORadioIE(InfoExtractor):
             'skip_download': True,
         }
     }
+
+    @classmethod
+    def suitable(cls, url):
+        return False if NPORadioFragmentIE.suitable(url) else super(NPORadioIE, cls).suitable(url)
 
     @staticmethod
     def _html_get_attribute_regex(attribute):
@@ -466,7 +638,7 @@ class SchoolTVIE(NPODataMidEmbedIE):
 
 class HetKlokhuisIE(NPODataMidEmbedIE):
     IE_NAME = 'hetklokhuis'
-    _VALID_URL = r'https?://(?:www\.)?hetklokhuis.nl/[^/]+/\d+/(?P<id>[^/?#&]+)'
+    _VALID_URL = r'https?://(?:www\.)?hetklokhuis\.nl/[^/]+/\d+/(?P<id>[^/?#&]+)'
 
     _TEST = {
         'url': 'http://hetklokhuis.nl/tv-uitzending/3471/Zwaartekrachtsgolven',

@@ -48,7 +48,7 @@ from .YoutubeDL import YoutubeDL
 def _real_main(argv=None):
     # Compatibility fixes for Windows
     if sys.platform == 'win32':
-        # https://github.com/rg3/youtube-dl/issues/820
+        # https://github.com/ytdl-org/youtube-dl/issues/820
         codecs.register(lambda name: codecs.lookup('utf-8') if name == 'cp65001' else None)
 
     workaround_optparse_bug9161()
@@ -94,7 +94,7 @@ def _real_main(argv=None):
             if opts.verbose:
                 write_string('[debug] Batch file urls: ' + repr(batch_urls) + '\n')
         except IOError:
-            sys.exit('ERROR: batch file could not be read')
+            sys.exit('ERROR: batch file %s could not be read' % opts.batchfile)
     all_urls = batch_urls + [url.strip() for url in args]  # batch_urls are already striped in read_batch_urls
     _enc = preferredencoding()
     all_urls = [url.decode(_enc, 'ignore') if isinstance(url, bytes) else url for url in all_urls]
@@ -166,6 +166,8 @@ def _real_main(argv=None):
     if opts.max_sleep_interval is not None:
         if opts.max_sleep_interval < 0:
             parser.error('max sleep interval must be positive or 0')
+        if opts.sleep_interval is None:
+            parser.error('min sleep interval must be specified, use --min-sleep-interval')
         if opts.max_sleep_interval < opts.sleep_interval:
             parser.error('max sleep interval must be greater than or equal to min sleep interval')
     else:
@@ -191,6 +193,11 @@ def _real_main(argv=None):
         if numeric_buffersize is None:
             parser.error('invalid buffer size specified')
         opts.buffersize = numeric_buffersize
+    if opts.http_chunk_size is not None:
+        numeric_chunksize = FileDownloader.parse_bytes(opts.http_chunk_size)
+        if not numeric_chunksize:
+            parser.error('invalid http chunk size specified')
+        opts.http_chunk_size = numeric_chunksize
     if opts.playliststart <= 0:
         raise ValueError('Playlist start must be positive')
     if opts.playlistend not in (-1, None) and opts.playlistend < opts.playliststart:
@@ -206,7 +213,7 @@ def _real_main(argv=None):
         if opts.recodevideo not in ['mp4', 'flv', 'webm', 'ogg', 'mkv', 'avi']:
             parser.error('invalid video recode format specified')
     if opts.convertsubtitles is not None:
-        if opts.convertsubtitles not in ['srt', 'vtt', 'ass']:
+        if opts.convertsubtitles not in ['srt', 'vtt', 'ass', 'lrc']:
             parser.error('invalid subtitle format specified')
 
     if opts.date is not None:
@@ -223,14 +230,14 @@ def _real_main(argv=None):
     if opts.allsubtitles and not opts.writeautomaticsub:
         opts.writesubtitles = True
 
-    outtmpl = ((opts.outtmpl is not None and opts.outtmpl) or
-               (opts.format == '-1' and opts.usetitle and '%(title)s-%(id)s-%(format)s.%(ext)s') or
-               (opts.format == '-1' and '%(id)s-%(format)s.%(ext)s') or
-               (opts.usetitle and opts.autonumber and '%(autonumber)s-%(title)s-%(id)s.%(ext)s') or
-               (opts.usetitle and '%(title)s-%(id)s.%(ext)s') or
-               (opts.useid and '%(id)s.%(ext)s') or
-               (opts.autonumber and '%(autonumber)s-%(id)s.%(ext)s') or
-               DEFAULT_OUTTMPL)
+    outtmpl = ((opts.outtmpl is not None and opts.outtmpl)
+               or (opts.format == '-1' and opts.usetitle and '%(title)s-%(id)s-%(format)s.%(ext)s')
+               or (opts.format == '-1' and '%(id)s-%(format)s.%(ext)s')
+               or (opts.usetitle and opts.autonumber and '%(autonumber)s-%(title)s-%(id)s.%(ext)s')
+               or (opts.usetitle and '%(title)s-%(id)s.%(ext)s')
+               or (opts.useid and '%(id)s.%(ext)s')
+               or (opts.autonumber and '%(autonumber)s-%(id)s.%(ext)s')
+               or DEFAULT_OUTTMPL)
     if not os.path.splitext(outtmpl)[1] and opts.extractaudio:
         parser.error('Cannot download a video and extract audio into the same'
                      ' file! Use "{0}.%(ext)s" instead of "{0}" as the output'
@@ -346,6 +353,7 @@ def _real_main(argv=None):
         'keep_fragments': opts.keep_fragments,
         'buffersize': opts.buffersize,
         'noresizebuffer': opts.noresizebuffer,
+        'http_chunk_size': opts.http_chunk_size,
         'continuedl': opts.continue_dl,
         'noprogress': opts.noprogress,
         'progress_with_newline': opts.progress_with_newline,
@@ -424,6 +432,7 @@ def _real_main(argv=None):
         'config_location': opts.config_location,
         'geo_bypass': opts.geo_bypass,
         'geo_bypass_country': opts.geo_bypass_country,
+        'geo_bypass_ip_block': opts.geo_bypass_ip_block,
         # just for deprecation check
         'autonumber': opts.autonumber if opts.autonumber is True else None,
         'usetitle': opts.usetitle if opts.usetitle is True else None,

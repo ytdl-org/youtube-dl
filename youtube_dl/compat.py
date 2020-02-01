@@ -1,13 +1,17 @@
 # coding: utf-8
 from __future__ import unicode_literals
 
+import base64
 import binascii
 import collections
+import ctypes
 import email
 import getpass
 import io
+import itertools
 import optparse
 import os
+import platform
 import re
 import shlex
 import shutil
@@ -15,7 +19,6 @@ import socket
 import struct
 import subprocess
 import sys
-import itertools
 import xml.etree.ElementTree
 
 
@@ -2361,7 +2364,7 @@ except ImportError:  # Python 2
 
     # HACK: The following are the correct unquote_to_bytes, unquote and unquote_plus
     # implementations from cpython 3.4.3's stdlib. Python 2's version
-    # is apparently broken (see https://github.com/rg3/youtube-dl/pull/6244)
+    # is apparently broken (see https://github.com/ytdl-org/youtube-dl/pull/6244)
 
     def compat_urllib_parse_unquote_to_bytes(string):
         """unquote_to_bytes('abc%20def') -> b'abc def'."""
@@ -2505,6 +2508,15 @@ class _TreeBuilder(etree.TreeBuilder):
         pass
 
 
+try:
+    # xml.etree.ElementTree.Element is a method in Python <=2.6 and
+    # the following will crash with:
+    #  TypeError: isinstance() arg 2 must be a class, type, or tuple of classes and types
+    isinstance(None, xml.etree.ElementTree.Element)
+    from xml.etree.ElementTree import Element as compat_etree_Element
+except TypeError:  # Python <=2.6
+    from xml.etree.ElementTree import _ElementInterface as compat_etree_Element
+
 if sys.version_info[0] >= 3:
     def compat_etree_fromstring(text):
         return etree.XML(text, parser=etree.XMLParser(target=_TreeBuilder()))
@@ -2637,9 +2649,9 @@ else:
 
 try:
     args = shlex.split('中文')
-    assert (isinstance(args, list) and
-            isinstance(args[0], compat_str) and
-            args[0] == '中文')
+    assert (isinstance(args, list)
+            and isinstance(args[0], compat_str)
+            and args[0] == '中文')
     compat_shlex_split = shlex.split
 except (AssertionError, UnicodeEncodeError):
     # Working around shlex issue with unicode strings on some python 2
@@ -2784,6 +2796,12 @@ except NameError:  # Python 3
     compat_numeric_types = (int, float, complex)
 
 
+try:
+    compat_integer_types = (int, long)
+except NameError:  # Python 3
+    compat_integer_types = (int, )
+
+
 if sys.version_info < (2, 7):
     def compat_socket_create_connection(address, timeout, source_address=None):
         host, port = address
@@ -2810,7 +2828,7 @@ else:
     compat_socket_create_connection = socket.create_connection
 
 
-# Fix https://github.com/rg3/youtube-dl/issues/4223
+# Fix https://github.com/ytdl-org/youtube-dl/issues/4223
 # See http://bugs.python.org/issue9161 for what is broken
 def workaround_optparse_bug9161():
     op = optparse.OptionParser()
@@ -2894,19 +2912,73 @@ except TypeError:
         if isinstance(spec, compat_str):
             spec = spec.encode('ascii')
         return struct.unpack(spec, *args)
+
+    class compat_Struct(struct.Struct):
+        def __init__(self, fmt):
+            if isinstance(fmt, compat_str):
+                fmt = fmt.encode('ascii')
+            super(compat_Struct, self).__init__(fmt)
 else:
     compat_struct_pack = struct.pack
     compat_struct_unpack = struct.unpack
+    if platform.python_implementation() == 'IronPython' and sys.version_info < (2, 7, 8):
+        class compat_Struct(struct.Struct):
+            def unpack(self, string):
+                if not isinstance(string, buffer):  # noqa: F821
+                    string = buffer(string)  # noqa: F821
+                return super(compat_Struct, self).unpack(string)
+    else:
+        compat_Struct = struct.Struct
+
+
+try:
+    from future_builtins import zip as compat_zip
+except ImportError:  # not 2.6+ or is 3.x
+    try:
+        from itertools import izip as compat_zip  # < 2.5 or 3.x
+    except ImportError:
+        compat_zip = zip
+
+
+if sys.version_info < (3, 3):
+    def compat_b64decode(s, *args, **kwargs):
+        if isinstance(s, compat_str):
+            s = s.encode('ascii')
+        return base64.b64decode(s, *args, **kwargs)
+else:
+    compat_b64decode = base64.b64decode
+
+
+if platform.python_implementation() == 'PyPy' and sys.pypy_version_info < (5, 4, 0):
+    # PyPy2 prior to version 5.4.0 expects byte strings as Windows function
+    # names, see the original PyPy issue [1] and the youtube-dl one [2].
+    # 1. https://bitbucket.org/pypy/pypy/issues/2360/windows-ctypescdll-typeerror-function-name
+    # 2. https://github.com/ytdl-org/youtube-dl/pull/4392
+    def compat_ctypes_WINFUNCTYPE(*args, **kwargs):
+        real = ctypes.WINFUNCTYPE(*args, **kwargs)
+
+        def resf(tpl, *args, **kwargs):
+            funcname, dll = tpl
+            return real((str(funcname), dll), *args, **kwargs)
+
+        return resf
+else:
+    def compat_ctypes_WINFUNCTYPE(*args, **kwargs):
+        return ctypes.WINFUNCTYPE(*args, **kwargs)
 
 
 __all__ = [
     'compat_HTMLParseError',
     'compat_HTMLParser',
     'compat_HTTPError',
+    'compat_Struct',
+    'compat_b64decode',
     'compat_basestring',
     'compat_chr',
     'compat_cookiejar',
     'compat_cookies',
+    'compat_ctypes_WINFUNCTYPE',
+    'compat_etree_Element',
     'compat_etree_fromstring',
     'compat_etree_register_namespace',
     'compat_expanduser',
@@ -2918,6 +2990,7 @@ __all__ = [
     'compat_http_client',
     'compat_http_server',
     'compat_input',
+    'compat_integer_types',
     'compat_itertools_count',
     'compat_kwargs',
     'compat_numeric_types',
@@ -2948,5 +3021,6 @@ __all__ = [
     'compat_urlretrieve',
     'compat_xml_parse_error',
     'compat_xpath',
+    'compat_zip',
     'workaround_optparse_bug9161',
 ]

@@ -33,7 +33,7 @@ class FranceInterIE(InfoExtractor):
         description = self._og_search_description(webpage)
 
         upload_date_str = self._search_regex(
-            r'class=["\']cover-emission-period["\'][^>]*>[^<]+\s+(\d{1,2}\s+[^\s]+\s+\d{4})<',
+            r'class=["\']\s*cover-emission-period\s*["\'][^>]*>[^<]+\s+(\d{1,2}\s+[^\s]+\s+\d{4})<',
             webpage, 'upload date', fatal=False)
         if upload_date_str:
             upload_date_list = upload_date_str.split()

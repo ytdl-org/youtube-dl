@@ -1,6 +1,8 @@
 # coding: utf-8
 from __future__ import unicode_literals
 
+import re
+
 from .common import InfoExtractor
 from ..compat import (
     compat_etree_fromstring,
@@ -14,15 +16,27 @@ from ..utils import (
     int_or_none,
     qualities,
     unescapeHTML,
+    urlencode_postdata,
 )
 
 
 class OdnoklassnikiIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:(?:www|m|mobile)\.)?(?:odnoklassniki|ok)\.ru/(?:video(?:embed)?|web-api/video/moviePlayer)/(?P<id>[\d-]+)'
+    _VALID_URL = r'''(?x)
+                https?://
+                    (?:(?:www|m|mobile)\.)?
+                    (?:odnoklassniki|ok)\.ru/
+                    (?:
+                        video(?:embed)?/|
+                        web-api/video/moviePlayer/|
+                        live/|
+                        dk\?.*?st\.mvId=
+                    )
+                    (?P<id>[\d-]+)
+                '''
     _TESTS = [{
         # metadata in JSON
         'url': 'http://ok.ru/video/20079905452',
-        'md5': '6ba728d85d60aa2e6dd37c9e70fdc6bc',
+        'md5': '0b62089b479e06681abaaca9d204f152',
         'info_dict': {
             'id': '20079905452',
             'ext': 'mp4',
@@ -34,7 +48,6 @@ class OdnoklassnikiIE(InfoExtractor):
             'like_count': int,
             'age_limit': 0,
         },
-        'skip': 'Video has been blocked',
     }, {
         # metadataUrl
         'url': 'http://ok.ru/video/63567059965189-0?fromTime=5',
@@ -56,7 +69,7 @@ class OdnoklassnikiIE(InfoExtractor):
         'url': 'http://ok.ru/video/64211978996595-1',
         'md5': '2f206894ffb5dbfcce2c5a14b909eea5',
         'info_dict': {
-            'id': '64211978996595-1',
+            'id': 'V_VztHT5BzY',
             'ext': 'mp4',
             'title': 'Космическая среда от 26 августа 2015',
             'description': 'md5:848eb8b85e5e3471a3a803dae1343ed0',
@@ -98,7 +111,24 @@ class OdnoklassnikiIE(InfoExtractor):
     }, {
         'url': 'http://mobile.ok.ru/video/20079905452',
         'only_matching': True,
+    }, {
+        'url': 'https://www.ok.ru/live/484531969818',
+        'only_matching': True,
+    }, {
+        'url': 'https://m.ok.ru/dk?st.cmd=movieLayer&st.discId=863789452017&st.retLoc=friend&st.rtu=%2Fdk%3Fst.cmd%3DfriendMovies%26st.mode%3Down%26st.mrkId%3D%257B%2522uploadedMovieMarker%2522%253A%257B%2522marker%2522%253A%25221519410114503%2522%252C%2522hasMore%2522%253Atrue%257D%252C%2522sharedMovieMarker%2522%253A%257B%2522marker%2522%253Anull%252C%2522hasMore%2522%253Afalse%257D%257D%26st.friendId%3D561722190321%26st.frwd%3Don%26_prevCmd%3DfriendMovies%26tkn%3D7257&st.discType=MOVIE&st.mvId=863789452017&_prevCmd=friendMovies&tkn=3648#lst#',
+        'only_matching': True,
+    }, {
+        # Paid video
+        'url': 'https://ok.ru/video/954886983203',
+        'only_matching': True,
     }]
+
+    @staticmethod
+    def _extract_url(webpage):
+        mobj = re.search(
+            r'<iframe[^>]+src=(["\'])(?P<url>(?:https?:)?//(?:odnoklassniki|ok)\.ru/videoembed/.+?)\1', webpage)
+        if mobj:
+            return mobj.group('url')
 
     def _real_extract(self, url):
         start_time = int_or_none(compat_parse_qs(
@@ -127,9 +157,14 @@ class OdnoklassnikiIE(InfoExtractor):
         if metadata:
             metadata = self._parse_json(metadata, video_id)
         else:
+            data = {}
+            st_location = flashvars.get('location')
+            if st_location:
+                data['st.location'] = st_location
             metadata = self._download_json(
                 compat_urllib_parse_unquote(flashvars['metadataUrl']),
-                video_id, 'Downloading metadata JSON')
+                video_id, 'Downloading metadata JSON',
+                data=urlencode_postdata(data))
 
         movie = metadata['movie']
 
@@ -178,6 +213,10 @@ class OdnoklassnikiIE(InfoExtractor):
             })
             return info
 
+        assert title
+        if provider == 'LIVE_TV_APP':
+            info['title'] = self._live_title(title)
+
         quality = qualities(('4', '0', '1', '2', '3', '5'))
 
         formats = [{
@@ -203,6 +242,25 @@ class OdnoklassnikiIE(InfoExtractor):
                 'format type', default=None)
             if fmt_type:
                 fmt['quality'] = quality(fmt_type)
+
+        # Live formats
+        m3u8_url = metadata.get('hlsMasterPlaylistUrl')
+        if m3u8_url:
+            formats.extend(self._extract_m3u8_formats(
+                m3u8_url, video_id, 'mp4', entry_protocol='m3u8',
+                m3u8_id='hls', fatal=False))
+        rtmp_url = metadata.get('rtmpUrl')
+        if rtmp_url:
+            formats.append({
+                'url': rtmp_url,
+                'format_id': 'rtmp',
+                'ext': 'flv',
+            })
+
+        if not formats:
+            payment_info = metadata.get('paymentInfo')
+            if payment_info:
+                raise ExtractorError('This video is paid, subscribe to download it', expected=True)
 
         self._sort_formats(formats)
 

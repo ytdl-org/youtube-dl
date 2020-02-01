@@ -5,6 +5,7 @@ import re
 
 from .common import InfoExtractor
 from ..utils import (
+    int_or_none,
     parse_iso8601,
     unescapeHTML,
 )
@@ -16,12 +17,54 @@ class PeriscopeBaseIE(InfoExtractor):
             'https://api.periscope.tv/api/v2/%s' % method,
             item_id, query=query)
 
+    def _parse_broadcast_data(self, broadcast, video_id):
+        title = broadcast['status']
+        uploader = broadcast.get('user_display_name') or broadcast.get('username')
+        title = '%s - %s' % (uploader, title) if uploader else title
+        is_live = broadcast.get('state').lower() == 'running'
+
+        thumbnails = [{
+            'url': broadcast[image],
+        } for image in ('image_url', 'image_url_small') if broadcast.get(image)]
+
+        return {
+            'id': broadcast.get('id') or video_id,
+            'title': self._live_title(title) if is_live else title,
+            'timestamp': parse_iso8601(broadcast.get('created_at')),
+            'uploader': uploader,
+            'uploader_id': broadcast.get('user_id') or broadcast.get('username'),
+            'thumbnails': thumbnails,
+            'view_count': int_or_none(broadcast.get('total_watched')),
+            'tags': broadcast.get('tags'),
+            'is_live': is_live,
+        }
+
+    @staticmethod
+    def _extract_common_format_info(broadcast):
+        return broadcast.get('state').lower(), int_or_none(broadcast.get('width')), int_or_none(broadcast.get('height'))
+
+    @staticmethod
+    def _add_width_and_height(f, width, height):
+        for key, val in (('width', width), ('height', height)):
+            if not f.get(key):
+                f[key] = val
+
+    def _extract_pscp_m3u8_formats(self, m3u8_url, video_id, format_id, state, width, height, fatal=True):
+        m3u8_formats = self._extract_m3u8_formats(
+            m3u8_url, video_id, 'mp4',
+            entry_protocol='m3u8_native'
+            if state in ('ended', 'timed_out') else 'm3u8',
+            m3u8_id=format_id, fatal=fatal)
+        if len(m3u8_formats) == 1:
+            self._add_width_and_height(m3u8_formats[0], width, height)
+        return m3u8_formats
+
 
 class PeriscopeIE(PeriscopeBaseIE):
     IE_DESC = 'Periscope'
     IE_NAME = 'periscope'
     _VALID_URL = r'https?://(?:www\.)?(?:periscope|pscp)\.tv/[^/]+/(?P<id>[^/?#]+)'
-    # Alive example URLs can be found here http://onperiscope.com/
+    # Alive example URLs can be found here https://www.periscope.tv/
     _TESTS = [{
         'url': 'https://www.periscope.tv/w/aJUQnjY3MjA3ODF8NTYxMDIyMDl2zCg2pECBgwTqRpQuQD352EMPTKQjT4uqlM3cgWFA-g==',
         'md5': '65b57957972e503fcbbaeed8f4fa04ca',
@@ -49,60 +92,50 @@ class PeriscopeIE(PeriscopeBaseIE):
     @staticmethod
     def _extract_url(webpage):
         mobj = re.search(
-            r'<iframe[^>]+src=([\'"])(?P<url>(?:https?:)?//(?:www\.)?periscope\.tv/(?:(?!\1).)+)\1', webpage)
+            r'<iframe[^>]+src=([\'"])(?P<url>(?:https?:)?//(?:www\.)?(?:periscope|pscp)\.tv/(?:(?!\1).)+)\1', webpage)
         if mobj:
             return mobj.group('url')
 
     def _real_extract(self, url):
         token = self._match_id(url)
 
-        broadcast_data = self._call_api(
-            'getBroadcastPublic', {'broadcast_id': token}, token)
-        broadcast = broadcast_data['broadcast']
-        status = broadcast['status']
-
-        user = broadcast_data.get('user', {})
-
-        uploader = broadcast.get('user_display_name') or user.get('display_name')
-        uploader_id = (broadcast.get('username') or user.get('username') or
-                       broadcast.get('user_id') or user.get('id'))
-
-        title = '%s - %s' % (uploader, status) if uploader else status
-        state = broadcast.get('state').lower()
-        if state == 'running':
-            title = self._live_title(title)
-        timestamp = parse_iso8601(broadcast.get('created_at'))
-
-        thumbnails = [{
-            'url': broadcast[image],
-        } for image in ('image_url', 'image_url_small') if broadcast.get(image)]
-
         stream = self._call_api(
-            'getAccessPublic', {'broadcast_id': token}, token)
+            'accessVideoPublic', {'broadcast_id': token}, token)
 
+        broadcast = stream['broadcast']
+        info = self._parse_broadcast_data(broadcast, token)
+
+        state = broadcast.get('state').lower()
+        width = int_or_none(broadcast.get('width'))
+        height = int_or_none(broadcast.get('height'))
+
+        def add_width_and_height(f):
+            for key, val in (('width', width), ('height', height)):
+                if not f.get(key):
+                    f[key] = val
+
+        video_urls = set()
         formats = []
-        for format_id in ('replay', 'rtmp', 'hls', 'https_hls'):
+        for format_id in ('replay', 'rtmp', 'hls', 'https_hls', 'lhls', 'lhlsweb'):
             video_url = stream.get(format_id + '_url')
-            if not video_url:
+            if not video_url or video_url in video_urls:
                 continue
-            f = {
+            video_urls.add(video_url)
+            if format_id != 'rtmp':
+                m3u8_formats = self._extract_pscp_m3u8_formats(
+                    video_url, token, format_id, state, width, height, False)
+                formats.extend(m3u8_formats)
+                continue
+            rtmp_format = {
                 'url': video_url,
                 'ext': 'flv' if format_id == 'rtmp' else 'mp4',
             }
-            if format_id != 'rtmp':
-                f['protocol'] = 'm3u8_native' if state in ('ended', 'timed_out') else 'm3u8'
-            formats.append(f)
+            self._add_width_and_height(rtmp_format)
+            formats.append(rtmp_format)
         self._sort_formats(formats)
 
-        return {
-            'id': broadcast.get('id') or token,
-            'title': title,
-            'timestamp': timestamp,
-            'uploader': uploader,
-            'uploader_id': uploader_id,
-            'thumbnails': thumbnails,
-            'formats': formats,
-        }
+        info['formats'] = formats
+        return info
 
 
 class PeriscopeUserIE(PeriscopeBaseIE):

@@ -1,7 +1,9 @@
 include README.md
-include test/*.py
-include test/*.json
+include LICENSE
+include AUTHORS
+include ChangeLog
 include youtube-dl.bash-completion
 include youtube-dl.fish
 include youtube-dl.1
 recursive-include docs Makefile conf.py *.rst
+recursive-include test *

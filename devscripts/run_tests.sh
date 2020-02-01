@@ -1,6 +1,7 @@
 #!/bin/bash
 
-DOWNLOAD_TESTS="age_restriction|download|subtitles|write_annotations|iqiyi_sdk_interpreter|youtube_lists"
+# Keep this list in sync with the `offlinetest` target in Makefile
+DOWNLOAD_TESTS="age_restriction|download|iqiyi_sdk_interpreter|socks|subtitles|write_annotations|youtube_lists|youtube_signature"
 
 test_set=""
 multiprocess_args=""

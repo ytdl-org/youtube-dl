@@ -2,13 +2,15 @@
 
 from __future__ import unicode_literals
 
-import base64
-
 from ..compat import (
+    compat_b64decode,
     compat_urllib_parse_unquote,
     compat_urlparse,
 )
-from ..utils import determine_ext
+from ..utils import (
+    determine_ext,
+    update_url_query,
+)
 from .bokecc import BokeCCBaseIE
 
 
@@ -58,7 +60,7 @@ class InfoQIE(BokeCCBaseIE):
         encoded_id = self._search_regex(
             r"jsclassref\s*=\s*'([^']*)'", webpage, 'encoded id', default=None)
 
-        real_id = compat_urllib_parse_unquote(base64.b64decode(encoded_id.encode('ascii')).decode('utf-8'))
+        real_id = compat_urllib_parse_unquote(compat_b64decode(encoded_id).decode('utf-8'))
         playpath = 'mp4:' + real_id
 
         return [{
@@ -68,21 +70,22 @@ class InfoQIE(BokeCCBaseIE):
             'play_path': playpath,
         }]
 
-    def _extract_cookies(self, webpage):
-        policy = self._search_regex(r'InfoQConstants.scp\s*=\s*\'([^\']+)\'', webpage, 'policy')
-        signature = self._search_regex(r'InfoQConstants.scs\s*=\s*\'([^\']+)\'', webpage, 'signature')
-        key_pair_id = self._search_regex(r'InfoQConstants.sck\s*=\s*\'([^\']+)\'', webpage, 'key-pair-id')
-        return 'CloudFront-Policy=%s; CloudFront-Signature=%s; CloudFront-Key-Pair-Id=%s' % (
-            policy, signature, key_pair_id)
+    def _extract_cf_auth(self, webpage):
+        policy = self._search_regex(r'InfoQConstants\.scp\s*=\s*\'([^\']+)\'', webpage, 'policy')
+        signature = self._search_regex(r'InfoQConstants\.scs\s*=\s*\'([^\']+)\'', webpage, 'signature')
+        key_pair_id = self._search_regex(r'InfoQConstants\.sck\s*=\s*\'([^\']+)\'', webpage, 'key-pair-id')
+        return {
+            'Policy': policy,
+            'Signature': signature,
+            'Key-Pair-Id': key_pair_id,
+        }
 
     def _extract_http_video(self, webpage):
         http_video_url = self._search_regex(r'P\.s\s*=\s*\'([^\']+)\'', webpage, 'video URL')
+        http_video_url = update_url_query(http_video_url, self._extract_cf_auth(webpage))
         return [{
             'format_id': 'http_video',
             'url': http_video_url,
-            'http_headers': {
-                'Cookie': self._extract_cookies(webpage)
-            },
         }]
 
     def _extract_http_audio(self, webpage, video_id):
@@ -91,22 +94,20 @@ class InfoQIE(BokeCCBaseIE):
         if not http_audio_url:
             return []
 
-        cookies_header = {'Cookie': self._extract_cookies(webpage)}
-
         # base URL is found in the Location header in the response returned by
         # GET https://www.infoq.com/mp3download.action?filename=... when logged in.
         http_audio_url = compat_urlparse.urljoin('http://res.infoq.com/downloads/mp3downloads/', http_audio_url)
+        http_audio_url = update_url_query(http_audio_url, self._extract_cf_auth(webpage))
 
         # audio file seem to be missing some times even if there is a download link
         # so probe URL to make sure
-        if not self._is_valid_url(http_audio_url, video_id, headers=cookies_header):
+        if not self._is_valid_url(http_audio_url, video_id):
             return []
 
         return [{
             'format_id': 'http_audio',
             'url': http_audio_url,
             'vcodec': 'none',
-            'http_headers': cookies_header,
         }]
 
     def _real_extract(self, url):
@@ -121,9 +122,9 @@ class InfoQIE(BokeCCBaseIE):
             formats = self._extract_bokecc_formats(webpage, video_id)
         else:
             formats = (
-                self._extract_rtmp_video(webpage) +
-                self._extract_http_video(webpage) +
-                self._extract_http_audio(webpage, video_id))
+                self._extract_rtmp_video(webpage)
+                + self._extract_http_video(webpage)
+                + self._extract_http_audio(webpage, video_id))
 
         self._sort_formats(formats)
 

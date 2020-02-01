@@ -8,7 +8,6 @@ from ..utils import (
     unified_strdate,
     xpath_text,
     determine_ext,
-    qualities,
     float_or_none,
     ExtractorError,
 )
@@ -16,7 +15,8 @@ from ..utils import (
 
 class DreiSatIE(InfoExtractor):
     IE_NAME = '3sat'
-    _VALID_URL = r'(?:https?://)?(?:www\.)?3sat\.de/mediathek/(?:index\.php|mediathek\.php)?\?(?:(?:mode|display)=[^&]+&)*obj=(?P<id>[0-9]+)$'
+    _GEO_COUNTRIES = ['DE']
+    _VALID_URL = r'https?://(?:www\.)?3sat\.de/mediathek/(?:(?:index|mediathek)\.php)?\?(?:(?:mode|display)=[^&]+&)*obj=(?P<id>[0-9]+)'
     _TESTS = [
         {
             'url': 'http://www.3sat.de/mediathek/index.php?mode=play&obj=45918',
@@ -43,7 +43,8 @@ class DreiSatIE(InfoExtractor):
     def _parse_smil_formats(self, smil, smil_url, video_id, namespace=None, f4m_params=None, transform_rtmp_url=None):
         param_groups = {}
         for param_group in smil.findall(self._xpath_ns('./head/paramGroup', namespace)):
-            group_id = param_group.attrib.get(self._xpath_ns('id', 'http://www.w3.org/XML/1998/namespace'))
+            group_id = param_group.get(self._xpath_ns(
+                'id', 'http://www.w3.org/XML/1998/namespace'))
             params = {}
             for param in param_group:
                 params[param.get('name')] = param.get('value')
@@ -54,7 +55,7 @@ class DreiSatIE(InfoExtractor):
             src = video.get('src')
             if not src:
                 continue
-            bitrate = float_or_none(video.get('system-bitrate') or video.get('systemBitrate'), 1000)
+            bitrate = int_or_none(self._search_regex(r'_(\d+)k', src, 'bitrate', None)) or float_or_none(video.get('system-bitrate') or video.get('systemBitrate'), 1000)
             group_id = video.get('paramGroup')
             param_group = param_groups[group_id]
             for proto in param_group['protocols'].split(','):
@@ -75,66 +76,36 @@ class DreiSatIE(InfoExtractor):
             note='Downloading video info',
             errnote='Failed to download video info')
 
-        status_code = doc.find('./status/statuscode')
-        if status_code is not None and status_code.text != 'ok':
-            code = status_code.text
-            if code == 'notVisibleAnymore':
+        status_code = xpath_text(doc, './status/statuscode')
+        if status_code and status_code != 'ok':
+            if status_code == 'notVisibleAnymore':
                 message = 'Video %s is not available' % video_id
             else:
-                message = '%s returned error: %s' % (self.IE_NAME, code)
+                message = '%s returned error: %s' % (self.IE_NAME, status_code)
             raise ExtractorError(message, expected=True)
 
-        title = doc.find('.//information/title').text
-        description = xpath_text(doc, './/information/detail', 'description')
-        duration = int_or_none(xpath_text(doc, './/details/lengthSec', 'duration'))
-        uploader = xpath_text(doc, './/details/originChannelTitle', 'uploader')
-        uploader_id = xpath_text(doc, './/details/originChannelId', 'uploader id')
-        upload_date = unified_strdate(xpath_text(doc, './/details/airtime', 'upload date'))
+        title = xpath_text(doc, './/information/title', 'title', True)
 
-        def xml_to_thumbnails(fnode):
-            thumbnails = []
-            for node in fnode:
-                thumbnail_url = node.text
-                if not thumbnail_url:
-                    continue
-                thumbnail = {
-                    'url': thumbnail_url,
-                }
-                if 'key' in node.attrib:
-                    m = re.match('^([0-9]+)x([0-9]+)$', node.attrib['key'])
-                    if m:
-                        thumbnail['width'] = int(m.group(1))
-                        thumbnail['height'] = int(m.group(2))
-                thumbnails.append(thumbnail)
-            return thumbnails
-
-        thumbnails = xml_to_thumbnails(doc.findall('.//teaserimages/teaserimage'))
-
-        format_nodes = doc.findall('.//formitaeten/formitaet')
-        quality = qualities(['veryhigh', 'high', 'med', 'low'])
-
-        def get_quality(elem):
-            return quality(xpath_text(elem, 'quality'))
-        format_nodes.sort(key=get_quality)
-        format_ids = []
+        urls = []
         formats = []
-        for fnode in format_nodes:
-            video_url = fnode.find('url').text
-            is_available = 'http://www.metafilegenerator' not in video_url
-            if not is_available:
+        for fnode in doc.findall('.//formitaeten/formitaet'):
+            video_url = xpath_text(fnode, 'url')
+            if not video_url or video_url in urls:
                 continue
+            urls.append(video_url)
+
+            is_available = 'http://www.metafilegenerator' not in video_url
+            geoloced = 'static_geoloced_online' in video_url
+            if not is_available or geoloced:
+                continue
+
             format_id = fnode.attrib['basetype']
-            quality = xpath_text(fnode, './quality', 'quality')
             format_m = re.match(r'''(?x)
                 (?P<vcodec>[^_]+)_(?P<acodec>[^_]+)_(?P<container>[^_]+)_
                 (?P<proto>[^_]+)_(?P<index>[^_]+)_(?P<indexproto>[^_]+)
             ''', format_id)
 
             ext = determine_ext(video_url, None) or format_m.group('container')
-            if ext not in ('smil', 'f4m', 'm3u8'):
-                format_id = format_id + '-' + quality
-            if format_id in format_ids:
-                continue
 
             if ext == 'meta':
                 continue
@@ -143,28 +114,27 @@ class DreiSatIE(InfoExtractor):
                     video_url, video_id, fatal=False))
             elif ext == 'm3u8':
                 # the certificates are misconfigured (see
-                # https://github.com/rg3/youtube-dl/issues/8665)
+                # https://github.com/ytdl-org/youtube-dl/issues/8665)
                 if video_url.startswith('https://'):
                     continue
                 formats.extend(self._extract_m3u8_formats(
-                    video_url, video_id, 'mp4', m3u8_id=format_id, fatal=False))
+                    video_url, video_id, 'mp4', 'm3u8_native',
+                    m3u8_id=format_id, fatal=False))
             elif ext == 'f4m':
                 formats.extend(self._extract_f4m_formats(
                     video_url, video_id, f4m_id=format_id, fatal=False))
             else:
-                proto = format_m.group('proto').lower()
+                quality = xpath_text(fnode, './quality')
+                if quality:
+                    format_id += '-' + quality
 
-                abr = int_or_none(xpath_text(fnode, './audioBitrate', 'abr'), 1000)
-                vbr = int_or_none(xpath_text(fnode, './videoBitrate', 'vbr'), 1000)
+                abr = int_or_none(xpath_text(fnode, './audioBitrate'), 1000)
+                vbr = int_or_none(xpath_text(fnode, './videoBitrate'), 1000)
 
-                width = int_or_none(xpath_text(fnode, './width', 'width'))
-                height = int_or_none(xpath_text(fnode, './height', 'height'))
-
-                filesize = int_or_none(xpath_text(fnode, './filesize', 'filesize'))
-
-                format_note = ''
-                if not format_note:
-                    format_note = None
+                tbr = int_or_none(self._search_regex(
+                    r'_(\d+)k', video_url, 'bitrate', None))
+                if tbr and vbr and not abr:
+                    abr = tbr - vbr
 
                 formats.append({
                     'format_id': format_id,
@@ -174,31 +144,50 @@ class DreiSatIE(InfoExtractor):
                     'vcodec': format_m.group('vcodec'),
                     'abr': abr,
                     'vbr': vbr,
-                    'width': width,
-                    'height': height,
-                    'filesize': filesize,
-                    'format_note': format_note,
-                    'protocol': proto,
-                    '_available': is_available,
+                    'tbr': tbr,
+                    'width': int_or_none(xpath_text(fnode, './width')),
+                    'height': int_or_none(xpath_text(fnode, './height')),
+                    'filesize': int_or_none(xpath_text(fnode, './filesize')),
+                    'protocol': format_m.group('proto').lower(),
                 })
-            format_ids.append(format_id)
+
+        geolocation = xpath_text(doc, './/details/geolocation')
+        if not formats and geolocation and geolocation != 'none':
+            self.raise_geo_restricted(countries=self._GEO_COUNTRIES)
 
         self._sort_formats(formats)
+
+        thumbnails = []
+        for node in doc.findall('.//teaserimages/teaserimage'):
+            thumbnail_url = node.text
+            if not thumbnail_url:
+                continue
+            thumbnail = {
+                'url': thumbnail_url,
+            }
+            thumbnail_key = node.get('key')
+            if thumbnail_key:
+                m = re.match('^([0-9]+)x([0-9]+)$', thumbnail_key)
+                if m:
+                    thumbnail['width'] = int(m.group(1))
+                    thumbnail['height'] = int(m.group(2))
+            thumbnails.append(thumbnail)
+
+        upload_date = unified_strdate(xpath_text(doc, './/details/airtime'))
 
         return {
             'id': video_id,
             'title': title,
-            'description': description,
-            'duration': duration,
+            'description': xpath_text(doc, './/information/detail'),
+            'duration': int_or_none(xpath_text(doc, './/details/lengthSec')),
             'thumbnails': thumbnails,
-            'uploader': uploader,
-            'uploader_id': uploader_id,
+            'uploader': xpath_text(doc, './/details/originChannelTitle'),
+            'uploader_id': xpath_text(doc, './/details/originChannelId'),
             'upload_date': upload_date,
             'formats': formats,
         }
 
     def _real_extract(self, url):
-        mobj = re.match(self._VALID_URL, url)
-        video_id = mobj.group('id')
-        details_url = 'http://www.3sat.de/mediathek/xmlservice/web/beitragsDetails?ak=web&id=%s' % video_id
+        video_id = self._match_id(url)
+        details_url = 'http://www.3sat.de/mediathek/xmlservice/web/beitragsDetails?id=%s' % video_id
         return self.extract_from_xml_url(video_id, details_url)

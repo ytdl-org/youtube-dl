@@ -3,6 +3,7 @@ from __future__ import unicode_literals
 import re
 
 from .common import InfoExtractor
+from .youtube import YoutubeIE
 from ..utils import (
     parse_iso8601,
     str_to_int,
@@ -41,11 +42,9 @@ class CrackedIE(InfoExtractor):
 
         webpage = self._download_webpage(url, video_id)
 
-        youtube_url = self._search_regex(
-            r'<iframe[^>]+src="((?:https?:)?//www\.youtube\.com/embed/[^"]+)"',
-            webpage, 'youtube url', default=None)
+        youtube_url = YoutubeIE._extract_url(webpage)
         if youtube_url:
-            return self.url_result(youtube_url, 'Youtube')
+            return self.url_result(youtube_url, ie=YoutubeIE.ie_key())
 
         video_url = self._html_search_regex(
             [r'var\s+CK_vidSrc\s*=\s*"([^"]+)"', r'<video\s+src="([^"]+)"'],

@@ -60,13 +60,13 @@ class HRTiBaseIE(InfoExtractor):
             language=self._APP_LANGUAGE,
             application_id=self._APP_PUBLICATION_ID)
 
-        self._login_url = (modules['user']['resources']['login']['uri'] +
-                           '/format/json').format(session_id=self._session_id)
+        self._login_url = (modules['user']['resources']['login']['uri']
+                           + '/format/json').format(session_id=self._session_id)
 
         self._logout_url = modules['user']['resources']['logout']['uri']
 
     def _login(self):
-        (username, password) = self._get_login_info()
+        username, password = self._get_login_info()
         # TODO: figure out authentication with cookies
         if username is None or password is None:
             self.raise_login_required()
@@ -104,7 +104,7 @@ class HRTiIE(HRTiBaseIE):
                         (?:
                             hrti:(?P<short_id>[0-9]+)|
                             https?://
-                                hrti\.hrt\.hr/\#/video/show/(?P<id>[0-9]+)/(?P<display_id>[^/]+)?
+                                hrti\.hrt\.hr/(?:\#/)?video/show/(?P<id>[0-9]+)/(?P<display_id>[^/]+)?
                         )
                     '''
     _TESTS = [{
@@ -128,6 +128,9 @@ class HRTiIE(HRTiBaseIE):
         'only_matching': True,
     }, {
         'url': 'hrti:2181385',
+        'only_matching': True,
+    }, {
+        'url': 'https://hrti.hrt.hr/video/show/3873068/cuvar-dvorca-dramska-serija-14',
         'only_matching': True,
     }]
 
@@ -170,7 +173,7 @@ class HRTiIE(HRTiBaseIE):
 
 
 class HRTiPlaylistIE(HRTiBaseIE):
-    _VALID_URL = r'https?://hrti.hrt.hr/#/video/list/category/(?P<id>[0-9]+)/(?P<display_id>[^/]+)?'
+    _VALID_URL = r'https?://hrti\.hrt\.hr/(?:#/)?video/list/category/(?P<id>[0-9]+)/(?P<display_id>[^/]+)?'
     _TESTS = [{
         'url': 'https://hrti.hrt.hr/#/video/list/category/212/ekumena',
         'info_dict': {
@@ -181,6 +184,9 @@ class HRTiPlaylistIE(HRTiBaseIE):
         'skip': 'Requires account credentials',
     }, {
         'url': 'https://hrti.hrt.hr/#/video/list/category/212/',
+        'only_matching': True,
+    }, {
+        'url': 'https://hrti.hrt.hr/video/list/category/212/ekumena',
         'only_matching': True,
     }]
 

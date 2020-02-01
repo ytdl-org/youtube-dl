@@ -62,10 +62,10 @@ class AudiomackIE(InfoExtractor):
         # Audiomack wraps a lot of soundcloud tracks in their branded wrapper
         # if so, pass the work off to the soundcloud extractor
         if SoundcloudIE.suitable(api_response['url']):
-            return {'_type': 'url', 'url': api_response['url'], 'ie_key': 'Soundcloud'}
+            return self.url_result(api_response['url'], SoundcloudIE.ie_key())
 
         return {
-            'id': api_response.get('id', album_url_tag),
+            'id': compat_str(api_response.get('id', album_url_tag)),
             'uploader': api_response.get('artist'),
             'title': api_response.get('title'),
             'url': api_response['url'],

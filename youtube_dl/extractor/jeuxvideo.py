@@ -30,7 +30,7 @@ class JeuxVideoIE(InfoExtractor):
         webpage = self._download_webpage(url, title)
         title = self._html_search_meta('name', webpage) or self._og_search_title(webpage)
         config_url = self._html_search_regex(
-            r'data-src(?:set-video)?="(/contenu/medias/video.php.*?)"',
+            r'data-src(?:set-video)?="(/contenu/medias/video\.php.*?)"',
             webpage, 'config URL')
         config_url = 'http://www.jeuxvideo.com' + config_url
 

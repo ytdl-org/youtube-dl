@@ -9,7 +9,7 @@ from ..utils import int_or_none
 
 class FiveTVIE(InfoExtractor):
     _VALID_URL = r'''(?x)
-                    http://
+                    https?://
                         (?:www\.)?5-tv\.ru/
                         (?:
                             (?:[^/]+/)+(?P<id>\d+)|
@@ -39,13 +39,15 @@ class FiveTVIE(InfoExtractor):
             'duration': 180,
         },
     }, {
+        # redirect to https://www.5-tv.ru/projects/1000095/izvestia-glavnoe/
         'url': 'http://www.5-tv.ru/glavnoe/#itemDetails',
         'info_dict': {
             'id': 'glavnoe',
             'ext': 'mp4',
-            'title': 'Итоги недели с 8 по 14 июня 2015 года',
+            'title': r're:^Итоги недели с \d+ по \d+ \w+ \d{4} года$',
             'thumbnail': r're:^https?://.*\.jpg$',
         },
+        'skip': 'redirect to «Известия. Главное» project page',
     }, {
         'url': 'http://www.5-tv.ru/glavnoe/broadcasts/508645/',
         'only_matching': True,
@@ -70,7 +72,8 @@ class FiveTVIE(InfoExtractor):
         webpage = self._download_webpage(url, video_id)
 
         video_url = self._search_regex(
-            r'<a[^>]+?href="([^"]+)"[^>]+?class="videoplayer"',
+            [r'<div[^>]+?class="(?:flow)?player[^>]+?data-href="([^"]+)"',
+             r'<a[^>]+?href="([^"]+)"[^>]+?class="videoplayer"'],
             webpage, 'video url')
 
         title = self._og_search_title(webpage, default=None) or self._search_regex(
