@@ -13,36 +13,18 @@ from ..utils import (
 class SportDeutschlandIE(InfoExtractor):
     _VALID_URL = r'https?://sportdeutschland\.tv/(?P<sport>[^/?#]+)/(?P<id>[^?#/]+)(?:$|[?#])'
     _TESTS = [{
-        'url': 'http://sportdeutschland.tv/badminton/live-li-ning-badminton-weltmeisterschaft-2014-kopenhagen',
+        'url': 'https://sportdeutschland.tv/badminton/re-live-deutsche-meisterschaften-2020-halbfinals?playlistId=0',
         'info_dict': {
-            'id': 'live-li-ning-badminton-weltmeisterschaft-2014-kopenhagen',
+            'id': 're-live-deutsche-meisterschaften-2020-halbfinals',
             'ext': 'mp4',
-            'title': 're:Li-Ning Badminton Weltmeisterschaft 2014 Kopenhagen',
-            'categories': ['Badminton'],
+            'title': 're:Re-live: Deutsche Meisterschaften 2020.*Halbfinals',
+            'categories': ['Badminton-Deutschland'],
             'view_count': int,
-            'thumbnail': r're:^https?://.*\.jpg$',
-            'description': r're:Die Badminton-WM 2014 aus Kopenhagen bei Sportdeutschland\.TV',
+            'thumbnail': r're:^https?://.*\.(?:jpg|png)$',
             'timestamp': int,
-            'upload_date': 're:^201408[23][0-9]$',
+            'upload_date': '20200201',
+            'description': 're:.*',  # meaningless description for THIS video
         },
-        'params': {
-            'skip_download': 'Live stream',
-        },
-    }, {
-        'url': 'http://sportdeutschland.tv/li-ning-badminton-wm-2014/lee-li-ning-badminton-weltmeisterschaft-2014-kopenhagen-herren-einzel-wei-vs',
-        'info_dict': {
-            'id': 'lee-li-ning-badminton-weltmeisterschaft-2014-kopenhagen-herren-einzel-wei-vs',
-            'ext': 'mp4',
-            'upload_date': '20140825',
-            'description': 'md5:60a20536b57cee7d9a4ec005e8687504',
-            'timestamp': 1408976060,
-            'duration': 2732,
-            'title': 'Li-Ning Badminton Weltmeisterschaft 2014 Kopenhagen: Herren Einzel, Wei Lee vs. Keun Lee',
-            'thumbnail': r're:^https?://.*\.jpg$',
-            'view_count': int,
-            'categories': ['Li-Ning Badminton WM 2014'],
-
-        }
     }]
 
     def _real_extract(self, url):
@@ -50,7 +32,7 @@ class SportDeutschlandIE(InfoExtractor):
         video_id = mobj.group('id')
         sport_id = mobj.group('sport')
 
-        api_url = 'http://proxy.vidibusdynamic.net/sportdeutschland.tv/api/permalinks/%s/%s?access_token=true' % (
+        api_url = 'https://proxy.vidibusdynamic.net/ssl/backend.sportdeutschland.tv/api/permalinks/%s/%s?access_token=true' % (
             sport_id, video_id)
         req = sanitized_Request(api_url, headers={
             'Accept': 'application/vnd.vidibus.v2.html+json',
