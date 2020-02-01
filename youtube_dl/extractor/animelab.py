@@ -101,7 +101,7 @@ class AnimeLabIE(AnimeLabBaseIE):
 
         webpage = self._download_webpage(url, display_id, 'Downloading requested URL')
 
-        video_collection = self.get_data_from_js(webpage, 'VideoCollection', display_id)
+        video_collection = self.get_data_from_js(webpage, 'AnimeLabApp.VideoCollection', display_id)
         position = int_or_none(self._search_regex(r'playlistPosition\s*?=\s*?(\d+)', webpage, 'Playlist Position'))
 
         raw_data = video_collection[position]['videoEntry']
@@ -119,20 +119,24 @@ class AnimeLabIE(AnimeLabBaseIE):
         if None not in title_parts:
             title = '%s - %s %s - %s' % title_parts
         else:
-            title = self._search_regex(r'AnimeLab - (.*) - Watch Online', webpage, 'Title from html')
+            title = episode_name
 
         description = raw_data.get('synopsis') or self._og_search_description(webpage, default=None)
 
         duration = int_or_none(raw_data.get('duration'))
 
-        thumbnail_data = raw_data.get('thumbnailInstance', {})
-        image_data = thumbnail_data.get('imageInfo', {})
-        thumbnails = [{
-            'id': str_or_none(thumbnail_data.get('id')),
-            'url': image_data.get('fullPath'),
-            'width': image_data.get('width'),
-            'height': image_data.get('height'),
-        }]
+        thumbnail_data = raw_data.get('images', [])
+        thumbnail_data = thumbnail_data[0] if len(thumbnail_data) > 0 else None
+        if thumbnail_data is not None:
+            image_data = thumbnail_data.get('imageInfo', {})
+            thumbnails = [{
+                'id': str_or_none(thumbnail_data.get('id')),
+                'url': image_data.get('fullPath'),
+                'width': image_data.get('width'),
+                'height': image_data.get('height'),
+            }]
+        else:
+            thumbnails = None
 
         season_data = raw_data.get('season', {})
         season = str_or_none(season_data.get('name'))
