@@ -159,10 +159,12 @@ class AnimeLabIE(AnimeLabBaseIE):
                 else:
                     quality = None
 
+                height = None
                 if quality:
-                    height = int_or_none(self._search_regex(r'(\d+)p?$', quality, 'Video format height', default=None, fatal=False))
-                else:
-                    height = None
+                    height = int_or_none(self._search_regex(r'(\d+)p?$', quality, 'Video format height', default=None))
+                    if height is None and quality.startswith('SD'):
+                        # sometimes we are only told it's SD quality
+                        height = 480
 
                 if height is None:
                     self.report_warning('Could not get height of video')
