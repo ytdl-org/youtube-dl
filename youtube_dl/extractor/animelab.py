@@ -60,10 +60,6 @@ class AnimeLabBaseIE(InfoExtractor):
     def _real_initialize(self):
         self._login()
 
-    def get_data_from_js(self, webpage, name, display_id):
-        data_str = self._search_regex(r'new\s+?%s\s*?\((.*?)\);' % name, webpage, 'AnimeLab %s' % name)
-        return self._parse_json(data_str, display_id)
-
 
 class AnimeLabIE(AnimeLabBaseIE):
     _VALID_URL = r'https?://(?:www\.)?animelab\.com/player/(?P<id>[^/]+)'
@@ -101,7 +97,7 @@ class AnimeLabIE(AnimeLabBaseIE):
 
         webpage = self._download_webpage(url, display_id, 'Downloading requested URL')
 
-        video_collection = self.get_data_from_js(webpage, 'AnimeLabApp.VideoCollection', display_id)
+        video_collection = self._parse_json(self._search_regex(r'new\s+?AnimeLabApp\.VideoCollection\s*?\((.*?)\);', webpage, 'AnimeLab VideoCollection'), display_id)
         position = int_or_none(self._search_regex(r'playlistPosition\s*?=\s*?(\d+)', webpage, 'Playlist Position'))
 
         raw_data = video_collection[position]['videoEntry']
