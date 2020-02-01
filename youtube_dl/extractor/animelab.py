@@ -126,17 +126,16 @@ class AnimeLabIE(AnimeLabBaseIE):
         duration = int_or_none(raw_data.get('duration'))
 
         thumbnail_data = raw_data.get('images', [])
-        thumbnail_data = thumbnail_data[0] if len(thumbnail_data) > 0 else None
-        if thumbnail_data is not None:
-            image_data = thumbnail_data.get('imageInfo', {})
-            thumbnails = [{
-                'id': str_or_none(thumbnail_data.get('id')),
-                'url': image_data.get('fullPath'),
-                'width': image_data.get('width'),
-                'height': image_data.get('height'),
-            }]
-        else:
-            thumbnails = None
+        thumbnails = []
+        for thumbnail in thumbnail_data:
+            for instance in thumbnail['imageInstances']:
+                image_data = instance.get('imageInfo', {})
+                thumbnails.append({
+                    'id': str_or_none(image_data.get('id')),
+                    'url': image_data.get('fullPath'),
+                    'width': image_data.get('width'),
+                    'height': image_data.get('height'),
+                })
 
         season_data = raw_data.get('season', {})
         season = str_or_none(season_data.get('name'))
