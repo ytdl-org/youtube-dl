@@ -223,41 +223,36 @@ class AnimeLabShowsIE(AnimeLabBaseIE):
             'title': 'Attack on Titan',
             'description': 'md5:989d95a2677e9309368d5cf39ba91469',
         },
-        'playlist_count': 37,
+        'playlist_count': 59,
         'skip': 'All AnimeLab content requires authentication',
     }
 
     def _real_extract(self, url):
         _BASE_URL = 'http://www.animelab.com'
+        _SHOWS_API_URL = '/api/videoentries/show/videos/'
         display_id = self._match_id(url)
 
         webpage = self._download_webpage(url, display_id, 'Downloading requested URL')
 
-        show_data = self.get_data_from_js(webpage, 'Show', display_id)
+        show_data_str = self._search_regex(r'({"id":.*}),\svideoEntry', webpage, 'AnimeLab show data')
+        show_data = self._parse_json(show_data_str, display_id)
 
         show_id = str_or_none(show_data.get('id'))
         title = show_data.get('name')
         description = show_data.get('shortSynopsis') or show_data.get('longSynopsis')
 
-        season_strs = re.findall(r'new\s+?VideoEntryCollection\s*?\((.*?)\)', webpage)
-        seasons = []
-        for season_str in season_strs:
-            seasons.append(self._parse_json(season_str, display_id))
-
-        if not seasons:
-            raise ExtractorError('No seasons found!')
-
         entries = []
-        for season in seasons:
+        for season in show_data['seasons']:
+            season_id = season['id']
             get_data = urlencode_postdata({
-                'seasonId': season['params']['seasonId'],
+                'seasonId': season_id,
                 'limit': 1000,
             })
             # despite using urlencode_postdata, we are sending a GET request
-            target_url = _BASE_URL + season['url'] + "?" + get_data.decode('utf-8')
+            target_url = _BASE_URL + _SHOWS_API_URL + show_id + "?" + get_data.decode('utf-8')
             response = self._download_webpage(
                 target_url,
-                None, 'Season id %s' % season['params']['seasonId'])
+                None, 'Season id %s' % season_id)
 
             season_data = self._parse_json(response, display_id)
 
