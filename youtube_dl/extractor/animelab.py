@@ -22,7 +22,7 @@ class AnimeLabBaseIE(InfoExtractor):
 
     def _login(self):
         def is_logged_in(login_webpage):
-            return '<title>AnimeLab - Login' not in login_webpage
+            return 'Sign In' not in login_webpage
 
         login_page = self._download_webpage(
             self._LOGIN_URL, None, 'Downloading login page')
@@ -47,14 +47,7 @@ class AnimeLabBaseIE(InfoExtractor):
                 headers={'Content-Type': 'application/x-www-form-urlencoded'})
         except ExtractorError as e:
             if isinstance(e.cause, compat_HTTPError) and e.cause.code == 400:
-                page = e.cause.read().decode('utf-8')
-                js_error = self._search_regex(
-                    r'Utils\.notify\(\s*?[\'"]error[\'"]\s*?,\s*?[\'"](.*?)[\'"]',
-                    page, 'Trying to get error message in js', default=None)
-                if js_error:
-                    raise ExtractorError('Unable to log in: %s' % js_error, expected=True)
-
-                raise ExtractorError('Unable to log in (could not find error)', expected=True)
+                raise ExtractorError('Unable to log in (wrong credentials?)', expected=True)
             else:
                 raise
 
