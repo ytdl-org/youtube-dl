@@ -316,7 +316,7 @@ class TVPlayIE(InfoExtractor):
         default = compat_urlparse.urlparse(url).netloc.rsplit('.', 1)[-1]
         for path in sub_paths:
             if path:
-                lang = self._search_regex(r'_(.*)(\.)', path, 'lang', default)
+                lang = self._search_regex(r'_([a-z]{2}(?:_sdh)?)\.(?:vtt|xml)', path, 'lang', default)
                 subtitles[lang] = [{
                     'url': path,
                 }]
