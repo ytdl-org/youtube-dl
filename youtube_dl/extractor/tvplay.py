@@ -392,6 +392,33 @@ class ViafreeIE(InfoExtractor):
         },
         'add_ie': [TVPlayIE.ie_key()],
     }, {
+        # with subtitles
+        'url': 'https://www.viafree.se/program/livsstil/varldens-basta-burgare/sasong-2/avsnitt-1',
+        'info_dict': {
+            'id': '828877',
+            'ext': 'mp4',
+            'title': 'Världens bästa burgare S02E01',
+            'description': '',
+            'series': 'Världens bästa burgare',
+            'season': 'Säsong 2',
+            'season_number': 2,
+            'duration': 2580,
+            'timestamp': 1491233172,
+            'upload_date': '20170403',
+            'subtitles': {
+                'sv': [{
+                    'ext': 'vtt',
+                }],
+                'sv_sdh': [{
+                    'ext': 'vtt',
+                }]
+            },
+        },
+        'params': {
+            'skip_download': True,
+        },
+        'add_ie': [TVPlayIE.ie_key()],
+    }, {
         # Different og:image URL schema
         'url': 'http://www.viafree.se/program/reality/sommaren-med-youtube-stjarnorna/sasong-1/avsnitt-2',
         'only_matching': True,
