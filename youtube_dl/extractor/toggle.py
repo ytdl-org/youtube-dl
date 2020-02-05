@@ -17,7 +17,7 @@ from ..utils import (
 
 class ToggleIE(InfoExtractor):
     IE_NAME = 'toggle'
-    _VALID_URL = r'https?://(?:www\.mewatch|video\.toggle)\.sg/(?:en|zh)/(?:[^/]+/){2,}(?P<id>[0-9]+)'
+    _VALID_URL = r'https?://(?:(?:www\.)?mewatch|video\.toggle)\.sg/(?:en|zh)/(?:[^/]+/){2,}(?P<id>[0-9]+)'
     _TESTS = [{
         'url': 'http://www.mewatch.sg/en/series/lion-moms-tif/trailers/lion-moms-premier/343115',
         'info_dict': {
@@ -61,6 +61,9 @@ class ToggleIE(InfoExtractor):
             'skip_download': 'DRM-protected wvm download',
         },
         'skip': 'm3u8 links are geo-restricted'
+    }, {
+        'url': 'http://video.toggle.sg/en/clips/seraph-sun-aloysius-will-suddenly-sing-some-old-songs-in-high-pitch-on-set/343331',
+        'only_matching': True,
     }, {
         'url': 'http://www.mewatch.sg/en/clips/seraph-sun-aloysius-will-suddenly-sing-some-old-songs-in-high-pitch-on-set/343331',
         'only_matching': True,
