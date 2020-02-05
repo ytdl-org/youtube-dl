@@ -276,6 +276,8 @@ def _real_main(argv=None):
     # so metadata can be added here.
     if opts.addmetadata:
         postprocessors.append({'key': 'FFmpegMetadata'})
+    if opts.addmusicmetadata:
+        postprocessors.append({'key': 'FFmpegMusicMetadata'})
     if opts.convertsubtitles:
         postprocessors.append({
             'key': 'FFmpegSubtitlesConvertor',

@@ -10,6 +10,7 @@ from .ffmpeg import (
     FFmpegFixupM4aPP,
     FFmpegMergerPP,
     FFmpegMetadataPP,
+    FFmpegMusicMetadataPP,
     FFmpegVideoConvertorPP,
     FFmpegSubtitlesConvertorPP,
 )
@@ -32,6 +33,7 @@ __all__ = [
     'FFmpegFixupStretchedPP',
     'FFmpegMergerPP',
     'FFmpegMetadataPP',
+    'FFmpegMusicMetadataPP',
     'FFmpegPostProcessor',
     'FFmpegSubtitlesConvertorPP',
     'FFmpegVideoConvertorPP',

@@ -502,6 +502,61 @@ class FFmpegMetadataPP(FFmpegPostProcessor):
         os.rename(encodeFilename(temp_filename), encodeFilename(filename))
         return [], info
 
+class FFmpegMusicMetadataPP(FFmpegPostProcessor):
+    def run(self, info):
+        metadata = {}
+
+        # Any original music (even singles) provided from music.youtube.com will
+        # contain 'album' JSON field, if not, its just like any other video
+        if info.get('album') is None:
+            self._downloader.to_screen('[ffmpeg] No music metadata found, nothing to add')
+            return [], info
+        metadata['title'] = info['track']
+        metadata['date'] = info['release_year']
+        metadata['artist'] = info['artist']
+        metadata['album'] = info['album']
+        if info.get('playlist_index') is not None:
+            metadata['track'] = '%d/%d' % (info['playlist_index'], info['n_entries'])
+
+        filename = info['filepath']
+        temp_filename = prepend_extension(filename, 'temp')
+        in_filenames = [filename]
+        options = []
+
+        if info['ext'] == 'm4a':
+            options.extend(['-vn', '-acodec', 'copy'])
+        else:
+            options.extend(['-c', 'copy'])
+
+        for (name, value) in metadata.items():
+            options.extend(['-metadata', '%s=%s' % (name, value)])
+
+        chapters = info.get('chapters', [])
+        if chapters:
+            metadata_filename = replace_extension(filename, 'meta')
+            with io.open(metadata_filename, 'wt', encoding='utf-8') as f:
+                def ffmpeg_escape(text):
+                    return re.sub(r'(=|;|#|\\|\n)', r'\\\1', text)
+
+                metadata_file_content = ';FFMETADATA1\n'
+                for chapter in chapters:
+                    metadata_file_content += '[CHAPTER]\nTIMEBASE=1/1000\n'
+                    metadata_file_content += 'START=%d\n' % (chapter['start_time'] * 1000)
+                    metadata_file_content += 'END=%d\n' % (chapter['end_time'] * 1000)
+                    chapter_title = chapter.get('title')
+                    if chapter_title:
+                        metadata_file_content += 'title=%s\n' % ffmpeg_escape(chapter_title)
+                f.write(metadata_file_content)
+                in_filenames.append(metadata_filename)
+                options.extend(['-map_metadata', '1'])
+
+        self._downloader.to_screen('[ffmpeg] Adding metadata to \'%s\'' % filename)
+        self.run_ffmpeg_multiple_files(in_filenames, temp_filename, options)
+        if chapters:
+            os.remove(metadata_filename)
+        os.remove(encodeFilename(filename))
+        os.rename(encodeFilename(temp_filename), encodeFilename(filename))
+        return [], info
 
 class FFmpegMergerPP(FFmpegPostProcessor):
     def run(self, info):
