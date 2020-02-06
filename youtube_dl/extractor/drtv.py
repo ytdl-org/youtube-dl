@@ -4,7 +4,7 @@ from __future__ import unicode_literals
 import binascii
 import hashlib
 import re
-
+import json
 
 from .common import InfoExtractor
 from ..aes import aes_cbc_decrypt
@@ -21,6 +21,7 @@ from ..utils import (
     try_get,
     unified_timestamp,
     update_url_query,
+    url_basename,
     url_or_none,
     urljoin
 )
@@ -352,11 +353,21 @@ class DRTVPlaylistIE(InfoExtractor):
             episodes.append(episode_url)
 
         return episodes
+    
+    def _extract_json_data(self, url):
+        display_id = self._match_id(url)
+        webpage = self._download_webpage(url, display_id)
+
+        return json.loads(re.search(r'(?P<json>{"app":.*?})<\/', webpage).group('json'))
+
 
     def _real_extract(self, url):
         playlist_id = self._match_id(url)
-        webpage = self._download_webpage(url, playlist_id)
 
+        json = self._extract_json_data(url)
+
+
+        webpage = self._download_webpage(url, playlist_id)
         title = self._html_search_regex(
             r'<h1 class=".*?hero__title".*?>(.+?)</h1>', webpage,
             'title', default=None)
@@ -364,11 +375,24 @@ class DRTVPlaylistIE(InfoExtractor):
         if title:
             title = re.sub(r'\s*\|\s*.+?$', '', title)
 
+        seasons = []
         episodes = []
+        base = re.search(r'(?P<url>.*?/drtv)', url).group()
+
         if 'serie' in url:
-            episodes = self._extract_series(url)
+            series_item = re.search(r'(?P<item>/serie/[\da-z_-]+)', url).group('item')
+            seasons = [ i['path'] for i in json.get('cache', {}).get('page', {}).get(series_item, {}).get('item', {}).get('show', {}).get('seasons', {}).get('items', {}) ]
         elif 'saeson' in url:
-            episodes = self._extract_episode_from_season(url)
+            seasons = [url]
+
+        episodes = []
+        
+        ep = self._extract_json_data(base + seasons[0])
+        items = ep.get('cache', {}).get('page', {}).get(seasons[0], {}).get('item', {}).get('episodes', {}).get('items', {})
+        
+        episodes = [
+            base + i['watchPath'] for i in items
+        ]
 
         entries = [self.url_result(ep, ie=DRTVIE.ie_key()) for ep in episodes]
 
