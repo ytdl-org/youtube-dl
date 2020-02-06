@@ -10,6 +10,7 @@ from .common import InfoExtractor
 from ..aes import aes_cbc_decrypt
 from ..compat import compat_urllib_parse_unquote
 from ..utils import (
+    base_url,
     bytes_to_intlist,
     ExtractorError,
     int_or_none,
@@ -21,8 +22,7 @@ from ..utils import (
     unified_timestamp,
     update_url_query,
     url_or_none,
-    urljoin,
-    base_url
+    urljoin
 )
 
 
