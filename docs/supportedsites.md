@@ -387,6 +387,7 @@
  - **Jamendo**
  - **JamendoAlbum**
  - **JeuxVideo**
+ - **jpopsuki.tv**
  - **Joj**
  - **Jove**
  - **JWPlatform**
