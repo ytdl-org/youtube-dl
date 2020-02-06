@@ -2098,6 +2098,9 @@ class GenericIE(InfoExtractor):
                 'ext': 'mp4',
                 'title': 'Smoky Barbecue Favorites',
                 'thumbnail': r're:^https?://.*\.jpe?g',
+                'description': 'md5:5ff01e76316bd8d46508af26dc86023b',
+                'upload_date': '20170909',
+                'timestamp': 1504915200,
             },
             'add_ie': [ZypeIE.ie_key()],
             'params': {
@@ -2960,7 +2963,7 @@ class GenericIE(InfoExtractor):
 
         # Look for VODPlatform embeds
         mobj = re.search(
-            r'<iframe[^>]+src=(["\'])(?P<url>(?:https?:)?//(?:www\.)?vod-platform\.net/[eE]mbed/.+?)\1',
+            r'<iframe[^>]+src=(["\'])(?P<url>(?:https?:)?//(?:(?:www\.)?vod-platform\.net|embed\.kwikmotion\.com)/[eE]mbed/.+?)\1',
             webpage)
         if mobj is not None:
             return self.url_result(

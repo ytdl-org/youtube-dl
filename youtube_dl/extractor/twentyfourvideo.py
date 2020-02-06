@@ -18,7 +18,7 @@ class TwentyFourVideoIE(InfoExtractor):
                     https?://
                         (?P<host>
                             (?:(?:www|porno)\.)?24video\.
-                            (?:net|me|xxx|sexy?|tube|adult|site)
+                            (?:net|me|xxx|sexy?|tube|adult|site|vip)
                         )/
                         (?:
                             video/(?:(?:view|xml)/)?|
@@ -58,6 +58,9 @@ class TwentyFourVideoIE(InfoExtractor):
         'only_matching': True,
     }, {
         'url': 'https://porno.24video.net/video/2640421-vsya-takaya-gibkaya-i-v-masle',
+        'only_matching': True,
+    }, {
+        'url': 'https://www.24video.vip/video/view/1044982',
         'only_matching': True,
     }]
 
