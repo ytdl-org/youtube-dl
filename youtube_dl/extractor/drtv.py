@@ -301,7 +301,7 @@ class DRTVIE(InfoExtractor):
 class DRTVPlaylistIE(InfoExtractor):
     _VALID_URL = r'''(?x)
                     https?://
-                        (?:www\.)?(?:dr\.dk)/drtv/(?:serie|saeson)/
+                        (?:www\.)?(?:dr\.dk|dr-massive\.com)/drtv/(?:serie|saeson)/
                         (?P<id>[\da-z_-]+)
                     '''
     _TESTS = [
