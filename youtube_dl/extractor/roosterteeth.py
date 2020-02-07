@@ -120,7 +120,7 @@ class RoosterTeethIE(InfoExtractor):
                             'id': k,
                             'url': img_url,
                         })
-        
+
         subtitles = {}
         res = self._download_webpage_handle(
             subtitle_m3u8_url, display_id,
@@ -134,9 +134,9 @@ class RoosterTeethIE(InfoExtractor):
                     parts = line.split(',')
                     for part in parts:
                         if 'LANGUAGE' in part:
-                            lang = part[part.index('=')+2:-1]
+                            lang = part[part.index('=') + 2:-1]
                         elif 'URI' in part:
-                            uri = part[part.index('=')+2:-1]
+                            uri = part[part.index('=') + 2:-1]
                     res = self._download_webpage_handle(
                         uri, display_id,
                         'Downloading m3u8 information',
@@ -145,7 +145,7 @@ class RoosterTeethIE(InfoExtractor):
                     doc, _ = res
                     for l in doc.split('\n'):
                         if not l.startswith('#'):
-                            subtitles[lang] = [{'url':uri[:-uri[::-1].index('/')]+l}]
+                            subtitles[lang] = [{'url': uri[:-uri[::-1].index('/')] + l}]
                             break
 
         return {
