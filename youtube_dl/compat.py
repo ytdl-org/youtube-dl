@@ -3009,6 +3009,7 @@ __all__ = [
     'compat_os_name',
     'compat_parse_qs',
     'compat_print',
+    'compat_realpath',
     'compat_setenv',
     'compat_shlex_quote',
     'compat_shlex_split',
