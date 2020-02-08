@@ -2754,6 +2754,17 @@ else:
         compat_expanduser = os.path.expanduser
 
 
+if compat_os_name == 'nt' and sys.version_info < (3, 8):
+    # os.path.realpath on Windows does not follow symbolic links
+    # prior to Python 3.8 (see https://bugs.python.org/issue9949)
+    def compat_realpath(path):
+        while os.path.islink(path):
+            path = os.path.abspath(os.readlink(path))
+        return path
+else:
+    compat_realpath = os.path.realpath
+
+
 if sys.version_info < (3, 0):
     def compat_print(s):
         from .utils import preferredencoding
