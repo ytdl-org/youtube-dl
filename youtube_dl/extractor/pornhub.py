@@ -65,6 +65,7 @@ class PornHubIE(PornHubBaseIE):
             'ext': 'mp4',
             'title': 'Seductive Indian beauty strips down and fingers her pink pussy',
             'uploader': 'Babes',
+            'uploader_path': '/channels/babes',
             'upload_date': '20130628',
             'duration': 361,
             'view_count': int,
@@ -83,6 +84,7 @@ class PornHubIE(PornHubBaseIE):
             'ext': 'mp4',
             'title': '重庆婷婷女王足交',
             'uploader': 'Unknown',
+            'uploader_path': '',
             'upload_date': '20150213',
             'duration': 1753,
             'view_count': int,
@@ -330,6 +332,10 @@ class PornHubIE(PornHubBaseIE):
             r'(?s)From:&nbsp;.+?<(?:a\b[^>]+\bhref=["\']/(?:(?:user|channel)s|model|pornstar)/|span\b[^>]+\bclass=["\']username)[^>]+>(.+?)<',
             webpage, 'uploader', fatal=False)
 
+        video_updoader_path = self._html_search_regex(
+            r'(?s)From:&nbsp;\s+?<div\b[^>]+>\s+<(?:a\b[^>]+\bhref=["\'](/(?:(?:user|channel)s|model|pornstar)/[^"]+)")',
+            webpage, 'uploader_url', fatal=False, default="")
+
         view_count = self._extract_count(
             r'<span class="count">([\d,\.]+)</span> views', webpage, 'view')
         like_count = self._extract_count(
@@ -349,6 +355,7 @@ class PornHubIE(PornHubBaseIE):
         return {
             'id': video_id,
             'uploader': video_uploader,
+            'uploader_path': video_uploader_path,
             'upload_date': upload_date,
             'title': title,
             'thumbnail': thumbnail,
