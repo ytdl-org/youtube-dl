@@ -332,7 +332,7 @@ class PornHubIE(PornHubBaseIE):
             r'(?s)From:&nbsp;.+?<(?:a\b[^>]+\bhref=["\']/(?:(?:user|channel)s|model|pornstar)/|span\b[^>]+\bclass=["\']username)[^>]+>(.+?)<',
             webpage, 'uploader', fatal=False)
 
-        video_updoader_path = self._html_search_regex(
+        video_uploader_path = self._html_search_regex(
             r'(?s)From:&nbsp;\s+?<div\b[^>]+>\s+<(?:a\b[^>]+\bhref=["\'](/(?:(?:user|channel)s|model|pornstar)/[^"]+)")',
             webpage, 'uploader_url', fatal=False, default="")
 
