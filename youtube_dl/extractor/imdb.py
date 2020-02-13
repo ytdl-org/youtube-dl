@@ -15,7 +15,7 @@ from ..utils import (
 class ImdbIE(InfoExtractor):
     IE_NAME = 'imdb'
     IE_DESC = 'Internet Movie Database trailers'
-    _VALID_URL = r'https?://(?:www|m)\.imdb\.com/(?:video|title|list).+?[/-]vi(?P<id>\d+)'
+    _VALID_URL = r'https?://(?:www|m)\.imdb\.com/(?:video|title|list).*?[/-]vi(?P<id>\d+)'
 
     _TESTS = [{
         'url': 'http://www.imdb.com/video/imdb/vi2524815897',
@@ -42,6 +42,9 @@ class ImdbIE(InfoExtractor):
         'only_matching': True,
     }, {
         'url': 'https://www.imdb.com/list/ls009921623/videoplayer/vi260482329',
+        'only_matching': True,
+    }, {
+        'url': 'https://www.imdb.com/video/vi3251092761?ref_=ttvi_vi_imdb_13',
         'only_matching': True,
     }]
 
