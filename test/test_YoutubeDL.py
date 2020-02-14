@@ -818,8 +818,9 @@ class TestYoutubeDL(unittest.TestCase):
 
         def get_ids(params):
             ydl = YDL(params)
-            # make a copy because the dictionary can be modified
-            ydl.process_ie_result(playlist.copy())
+            # make a deep copy because the dictionary and nested entries
+            # can be modified
+            ydl.process_ie_result(copy.deepcopy(playlist))
             return [int(v['id']) for v in ydl.downloaded_info_dicts]
 
         result = get_ids({})
