@@ -18,7 +18,7 @@ class NovaEmbedIE(InfoExtractor):
     _VALID_URL = r'https?://media\.cms\.nova\.cz/embed/(?P<id>[^/?#&]+)'
     _TEST = {
         'url': 'https://media.cms.nova.cz/embed/8o0n0r?autoplay=1',
-        'md5': 'b3834f6de5401baabf31ed57456463f7',
+        'md5': 'ee009bafcc794541570edd44b71cbea3',
         'info_dict': {
             'id': '8o0n0r',
             'ext': 'mp4',
@@ -43,18 +43,17 @@ class NovaEmbedIE(InfoExtractor):
 
         formats = []
         for format_id, format_list in bitrates.items():
-            if format_id == 'hls':
-                m3u8_url = url_or_none(format_list)
-                if not m3u8_url:
-                    continue
-                formats.extend(self._extract_m3u8_formats(
-                    m3u8_url, video_id, ext='mp4', m3u8_id='hls', fatal=False))
-
             if not isinstance(format_list, list):
-                continue
+                format_list = [format_list]
             for format_url in format_list:
                 format_url = url_or_none(format_url)
                 if not format_url:
+                    continue
+                if format_id == 'hls':
+                    formats.extend(self._extract_m3u8_formats(
+                        format_url, video_id, ext='mp4',
+                        entry_protocol='m3u8_native', m3u8_id='hls',
+                        fatal=False))
                     continue
                 f = {
                     'url': format_url,
