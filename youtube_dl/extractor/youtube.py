@@ -2495,11 +2495,20 @@ class YoutubePlaylistIE(YoutubePlaylistBaseInfoExtractor):
     _VIDEO_RE = _VIDEO_RE_TPL % r'(?P<id>[0-9A-Za-z_-]{11})'
     IE_NAME = 'youtube:playlist'
     _TESTS = [{
-        'url': 'https://www.youtube.com/playlist?list=PLAEvfQ7P06c-DVegRvdqVcIaW2nR5ZJMO',
+        'url': 'https://www.youtube.com/playlist?list=PL4lCao7KL_QFVb7Iudeipvc2BCavECqzc',
         'info_dict': {
-            'uploader_id': 'vinesthemonkey',
-            'uploader': 'vinesthemonkey',
-            'id': 'PLAEvfQ7P06c-DVegRvdqVcIaW2nR5ZJMO',
+            'uploader_id': 'UCmlqkdCBesrv2Lak1mF_MxA',
+            'uploader': 'Sergey M.',
+            'id': 'PL4lCao7KL_QFVb7Iudeipvc2BCavECqzc',
+            'title': 'youtube-dl public playlist',
+        },
+        'playlist_count': 1,
+    }, {    
+        'url': 'https://www.youtube.com/playlist?list=PL4lCao7KL_QFodcLWhDpGCYnngnHtQ-Xf',
+        'info_dict': {
+            'uploader_id': 'UCmlqkdCBesrv2Lak1mF_MxA',
+            'uploader': 'Sergey M.',
+            'id': 'PL4lCao7KL_QFodcLWhDpGCYnngnHtQ-Xf',
             'title': 'youtube-dl empty playlist',
         },
         'playlist_count': 0,
