@@ -65,16 +65,7 @@ class TikTokBaseIE(InfoExtractor):
 
 
 class TikTokIE(TikTokBaseIE):
-    _VALID_URL = r'''(?x)
-                 https?://
-                 (?:
-                    (?:www|vm)\.
-                    (?:tiktok.com)\/
-                    (@(?P<username>[\w\.]+))\/
-                    (?:video)\/
-                 )
-                 (?P<id>[\d]{6,})
-                 '''
+    _VALID_URL = r'https?://www\.tiktok\.com/@[\w\._]+/video/(?P<id>\d+)'
 
     _TESTS = [{
         'url': 'https://www.tiktok.com/@leenabhushan/video/6748451240264420610',
@@ -133,8 +124,8 @@ class TikTokIE(TikTokBaseIE):
 
         webpage = self._download_webpage(url, video_id, note='Downloading video webpage')
         json_string = self._search_regex(
-            r'id=\"__NEXT_DATA__\"\s+type=\"application\/json\"\s*[^>]+>\s*(?P<json_string>[^<]+)',
-            webpage, 'json_string', group='json_string')
+            r'id=\"__NEXT_DATA__\"\s+type=\"application\/json\"\s*[^>]+>\s*(?P<json_string_ld>[^<]+)',
+            webpage, 'json_string', group='json_string_ld')
         json_data = self._parse_json(json_string, video_id)
         video_data = try_get(json_data, lambda x: x['props']['pageProps'], expected_type=dict)
 
