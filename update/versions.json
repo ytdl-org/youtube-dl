@@ -1,6 +1,6 @@
 {
-    "latest": "2020.01.24",
-    "signature": "32db9e49c9564e20c8b3e095387528b78b47d854fca41ab9950050661084347fc91e814dae7964882ef3d8a9efe8e421194b859745d7e9e5a0249220c6bdb8c69c02cbb7d51ded7f9ee66e3cb80397f2289f9f17b93e03142ae95200f34cf3512ff9c7dfd6266ffb44dfa9978f641d9691229d883b5372e45a4b63041656d170",
+    "latest": "2020.02.16",
+    "signature": "56f0a54475b985c3cdf5807e97a074ca95da675913ec147bda13ed8562d3ade597a1e305d9fa48a79ac8d8bd52f30acf59e28a268dd8061e33c391d4ac5772e9e7063ef77d92976742f5d801347e8ffc11392f66ff67bbb78d2a6f22ff60d8b5d59d0d756d663b295861352d8de9ea27026d63743757e246bec845c6b1ecd828",
     "versions": {
         "2012.02.22": {
             "bin": [
@@ -12928,6 +12928,20 @@
             "tar": [
                 "https://yt-dl.org/downloads/2020.01.24/youtube-dl-2020.01.24.tar.gz",
                 "0b1dcc96d204984df1ee364e81cddd5645421f6065d2815472258ccdad5c36ff"
+            ]
+        },
+        "2020.02.16": {
+            "bin": [
+                "https://yt-dl.org/downloads/2020.02.16/youtube-dl",
+                "3332c3fc814a4b6cac03d369f6fb95b8b3688ac81a9d1b95f1c800da9f8ecdfa"
+            ],
+            "exe": [
+                "https://yt-dl.org/downloads/2020.02.16/youtube-dl.exe",
+                "63a1a11cb7f78dd1aab0d16ba4c257f56683f07b15e1822dc8127cc867f4494e"
+            ],
+            "tar": [
+                "https://yt-dl.org/downloads/2020.02.16/youtube-dl-2020.02.16.tar.gz",
+                "abcd19c109125a69915c6ad70fcc6b02411a64427fbb7b91a6b37217dfb9e0c6"
             ]
         }
     }
