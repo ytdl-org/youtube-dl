@@ -1,3 +1,37 @@
+version <unreleased>
+
+Core
+* [YoutubeDL] Fix playlist entry indexing with --playlist-items (#10591,
+  #10622)
+* [update] Fix updating via symlinks (#23991)
++ [compat] Introduce compat_realpath (#23991)
+
+Extractors
++ [npr] Add support for streams (#24042)
++ [24video] Add support for porn.24video.net (#23779, #23784)
+- [jpopsuki] Remove extractor (#23858)
+* [nova] Improve extraction (#23690)
+* [nova:embed] Improve (#23690)
+* [nova:embed] Fix extraction (#23672)
++ [abc:iview] Add support for 720p (#22907, #22921)
+* [nytimes] Improve format sorting (#24010)
++ [toggle] Add support for mewatch.sg (#23895, #23930)
+* [thisoldhouse] Fix extraction (#23951)
++ [popcorntimes] Add support for popcorntimes.tv (#23949)
+* [sportdeutschland] Update to new API
+* [twitch:stream] Lowercase channel id for stream request (#23917)
+* [tv5mondeplus] Fix extraction (#23907, #23911)
+* [tva] Relax URL regular expression (#23903)
+* [vimeo] Fix album extraction (#23864)
+* [viewlift] Improve extraction
+    * Fix extraction (#23851)
+    + Add support for authentication
+    + Add support for more domains
+* [svt] Fix series extraction (#22297)
+* [svt] Fix article extraction (#22897, #22919)
+* [soundcloud] Imporve private playlist/set tracks extraction (#3707)
+
+
 version 2020.01.24
 
 Extractors
