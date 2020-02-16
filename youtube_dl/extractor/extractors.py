@@ -856,9 +856,15 @@ from .porncom import PornComIE
 from .pornhd import PornHdIE
 from .pornhub import (
     PornHubIE,
-    PornHubUserIE,
-    PornHubPagedVideoListIE,
-    PornHubUserVideosUploadIE,
+    PornHubProfileIE,
+    PornHubProfileVideosIE,
+    PornHubPlaylistIE,
+)
+from .pornhubpremium import (
+    PornHubPremiumIE,
+    PornHubPremiumProfileIE,
+    PornHubPremiumProfileVideosIE,
+    PornHubPremiumPlaylistIE,
 )
 from .pornotube import PornotubeIE
 from .pornovoisines import PornoVoisinesIE
@@ -1129,6 +1135,7 @@ from .thisamericanlife import ThisAmericanLifeIE
 from .thisav import ThisAVIE
 from .thisoldhouse import ThisOldHouseIE
 from .threeqsdn import ThreeQSDNIE
+from .thumbzilla import ThumbzillaIE
 from .tiktok import (
     TikTokIE,
     TikTokUserIE,
