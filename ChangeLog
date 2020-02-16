@@ -1,4 +1,4 @@
-version <unreleased>
+version 2020.02.16
 
 Core
 * [YoutubeDL] Fix playlist entry indexing with --playlist-items (#10591,
