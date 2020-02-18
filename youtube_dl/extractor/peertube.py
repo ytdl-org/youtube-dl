@@ -435,10 +435,10 @@ class PeerTubeIE(InfoExtractor):
             'timestamp': 1538391166,
             'upload_date': '20181001',
             'uploader': 'Framasoft',
-            'uploader_id': 3,
+            'uploader_id': '3',
             'uploader_url': 'https://framatube.org/accounts/framasoft',
             'channel': 'Les vidéos de Framasoft',
-            'channel_id': 2,
+            'channel_id': '2',
             'channel_url': 'https://framatube.org/video-channels/bf54d359-cfad-4935-9d45-9d6be93f63e8',
             'language': 'en',
             'license': 'Attribution - Share Alike',
@@ -540,7 +540,7 @@ class PeerTubeIE(InfoExtractor):
 
         description = None
         if isinstance(video_description, dict):
-            description = video_description.get('description')
+            description = str_or_none(video_description.get('description'))
 
         subtitles = self.extract_subtitles(host, video_id)
 
@@ -569,10 +569,10 @@ class PeerTubeIE(InfoExtractor):
             'thumbnail': urljoin(url, video.get('thumbnailPath')),
             'timestamp': unified_timestamp(video.get('publishedAt')),
             'uploader': account_data('displayName', compat_str),
-            'uploader_id': account_data('id', int),
+            'uploader_id': str(account_data('id', int)),
             'uploader_url': url_or_none(account_data('url', compat_str)),
             'channel': channel_data('displayName', compat_str),
-            'channel_id': channel_data('id', int),
+            'channel_id': str(channel_data('id', int)),
             'channel_url': url_or_none(channel_data('url', compat_str)),
             'language': try_get_second_level_data('language', 'id', compat_str),
             'license': try_get_second_level_data('licence', 'label', compat_str),
