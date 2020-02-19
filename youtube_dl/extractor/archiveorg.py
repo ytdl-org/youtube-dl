@@ -2,8 +2,9 @@ from __future__ import unicode_literals
 
 from .common import InfoExtractor
 from ..utils import (
-    unified_strdate,
     clean_html,
+    extract_attributes,
+    unified_strdate,
 )
 
 
@@ -43,9 +44,8 @@ class ArchiveOrgIE(InfoExtractor):
         input_element_with_playlist = self._search_regex(
             r'(<\s*input.*\s*class\s*=\s*[\'"].*\s*js-play8-playlist\s*.*[\'"]\s*.*>)',
             webpage, 'jwplayer playlist')
-        jwplayer_playlist = self._parse_json(self._search_regex(
-            r'.*\s+value\s*=\s*[\'"](.+)[\'"][\s/]',
-            input_element_with_playlist, 'playlist data'), video_id)
+        jwplayer_playlist = self._parse_json(extract_attributes(
+            input_element_with_playlist)['value'], video_id)
         info = self._parse_jwplayer_data(
             {'playlist': jwplayer_playlist}, video_id, base_url=url)
 
