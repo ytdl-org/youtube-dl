@@ -52,10 +52,13 @@ class ArchiveOrgIE(InfoExtractor):
         def get_optional(metadata, field):
             return metadata.get(field, [None])[0]
 
-        metadata = self._download_json(
+        json_metadata = self._download_json(
             'http://archive.org/details/' + video_id, video_id, query={
                 'output': 'json',
-            }).get('metadata', {})
+            }, fatal=False)
+        metadata = (json_metadata.get('metadata', {})
+                    if isinstance(json_metadata, dict)
+                    else {})
         info.update({
             'title': get_optional(metadata, 'title') or info.get('title'),
             'description': clean_html(get_optional(metadata, 'description')),
