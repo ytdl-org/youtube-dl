@@ -1926,32 +1926,55 @@ def xpath_attr(node, xpath, key, name=None, fatal=False, default=NO_DEFAULT):
     return n.attrib[key]
 
 
-def get_element_by_id(id, html):
-    """Return the content of the tag with the specified ID in the passed HTML document"""
-    return get_element_by_attribute('id', id, html)
+def get_element_by_id(id, html, include_tag=False):
+    """
+    Return the content of the tag with the specified ID in the passed HTML document.
+
+    The whole element, including its tag, is returned when `include_flag` is `True`.
+    """
+    return get_element_by_attribute('id', id, html, include_tag)
 
 
-def get_element_by_class(class_name, html):
-    """Return the content of the first tag with the specified class in the passed HTML document"""
-    retval = get_elements_by_class(class_name, html)
+def get_element_by_class(class_name, html, include_tag=False):
+    """
+    Return the content of the first tag with the specified class in the passed HTML document.
+
+    The whole element, including its tag, is returned when `include_flag` is `True`.
+    """
+    retval = get_elements_by_class(class_name, html, include_tag)
     return retval[0] if retval else None
 
 
-def get_element_by_attribute(attribute, value, html, escape_value=True):
-    retval = get_elements_by_attribute(attribute, value, html, escape_value)
+def get_element_by_attribute(attribute, value, html, escape_value=True,
+                             include_tag=False):
+    """
+    Return the content of the first tag with the specified attribute in the passed HTML document.
+
+    The whole element, including its tag, is returned when `include_flag` is `True`.
+    """
+    retval = get_elements_by_attribute(attribute, value, html, escape_value,
+                                       include_tag)
     return retval[0] if retval else None
 
 
-def get_elements_by_class(class_name, html):
-    """Return the content of all tags with the specified class in the passed HTML document as a list"""
+def get_elements_by_class(class_name, html, include_tag=False):
+    """
+    Return the content of all tags with the specified class in the passed HTML document as a list.
+
+    The whole elements, including their tags, are returned when `include_flag` is `True`.
+    """
     return get_elements_by_attribute(
-        'class', r'[^\'"]*\b%s\b[^\'"]*' % re.escape(class_name),
-        html, escape_value=False)
+        'class', r'[^\'"]*(?<![\w-])%s(?![\w-])[^\'"]*' % re.escape(class_name),
+        html, escape_value=False, include_tag=include_tag)
 
 
-def get_elements_by_attribute(attribute, value, html, escape_value=True):
-    """Return the content of the tag with the specified attribute in the passed HTML document"""
+def get_elements_by_attribute(attribute, value, html, escape_value=True,
+                              include_tag=False):
+    """
+    Return the content of all tags with the specified attribute in the passed HTML document.
 
+    The whole elements, including their tags, are returned when `include_flag` is `True`.
+    """
     value = re.escape(value) if escape_value else value
 
     retlist = []
@@ -1960,11 +1983,13 @@ def get_elements_by_attribute(attribute, value, html, escape_value=True):
          (?:\s+[a-zA-Z0-9:._-]+(?:=[a-zA-Z0-9:._-]*|="[^"]*"|='[^']*'|))*?
          \s+%s=['"]?%s['"]?
          (?:\s+[a-zA-Z0-9:._-]+(?:=[a-zA-Z0-9:._-]*|="[^"]*"|='[^']*'|))*?
-        \s*>
+        \s*(?:\/\s*>|>
         (?P<content>.*?)
-        </\1>
+        </\1>)
     ''' % (re.escape(attribute), value), html):
-        res = m.group('content')
+        res = m.group(0) if include_tag else m.group('content')
+        if res is None:
+            continue
 
         if res.startswith('"') or res.startswith("'"):
             res = res[1:-1]
@@ -1981,7 +2006,10 @@ class HTMLAttributeParser(compat_HTMLParser):
         compat_HTMLParser.__init__(self)
 
     def handle_starttag(self, tag, attrs):
-        self.attrs = dict(attrs)
+        # Make sure we're looking at the first attributes. Later ones are from
+        # embedded elements.
+        if not self.attrs:
+            self.attrs = dict(attrs)
 
 
 def extract_attributes(html_element):

@@ -1401,7 +1401,48 @@ Line 1
         '''
 
         self.assertEqual(get_element_by_class('foo', html), 'nice')
+        self.assertEqual(get_element_by_class('foo', html, include_tag=True), '<span class="foo bar">nice</span>')
         self.assertEqual(get_element_by_class('no-such-class', html), None)
+
+        html = '''
+            <span class="foo bar"/>
+        '''
+
+        self.assertEqual(get_element_by_class('foo', html), None)
+        self.assertEqual(get_element_by_class('foo', html, include_tag=True), '<span class="foo bar"/>')
+
+        html = '''
+            <span class="foo bar"></span>
+        '''
+
+        self.assertEqual(get_element_by_class('foo', html), '')
+        self.assertEqual(get_element_by_class('foo', html, include_tag=True), '<span class="foo bar"></span>')
+
+        html = '''
+            <span class="content-section__wrap bar">nice</span>
+        '''
+
+        self.assertEqual(get_element_by_class('content-section__wrap', html), 'nice')
+        self.assertEqual(get_element_by_class('content-section__wrap', html, include_tag=True), '<span class="content-section__wrap bar">nice</span>')
+
+        html = '''
+            <span class="-test-hyphen">nice</span>
+        '''
+
+        self.assertEqual(get_element_by_class('-test-hyphen', html), 'nice')
+
+        html = '''
+            <span class="_test_underscore">nice</span>
+        '''
+
+        self.assertEqual(get_element_by_class('_test_underscore', html), 'nice')
+
+        html = '''
+            <span class="ä-umlaut ↑-unicode">nice</span>
+        '''
+
+        self.assertEqual(get_element_by_class('ä-umlaut', html), 'nice')
+        self.assertEqual(get_element_by_class('↑-unicode', html), 'nice')
 
     def test_get_element_by_attribute(self):
         html = '''

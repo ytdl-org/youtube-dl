@@ -4,6 +4,7 @@ from .common import InfoExtractor
 from ..utils import (
     clean_html,
     extract_attributes,
+    get_element_by_class,
     unified_strdate,
 )
 
@@ -41,9 +42,8 @@ class ArchiveOrgIE(InfoExtractor):
         video_id = self._match_id(url)
         webpage = self._download_webpage(
             'http://archive.org/embed/' + video_id, video_id)
-        input_element_with_playlist = self._search_regex(
-            r'(<\s*input.*\s*class\s*=\s*[\'"].*\s*js-play8-playlist\s*.*[\'"]\s*.*>)',
-            webpage, 'jwplayer playlist')
+        input_element_with_playlist = get_element_by_class(
+            'js-play8-playlist', webpage, include_tag=True)
         jwplayer_playlist = self._parse_json(extract_attributes(
             input_element_with_playlist)['value'], video_id)
         info = self._parse_jwplayer_data(
