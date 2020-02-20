@@ -544,16 +544,16 @@ class PeerTubeIE(InfoExtractor):
 
         subtitles = self.extract_subtitles(host, video_id)
 
-        def try_get_second_level_data(section, field, type_):
+        def data(section, field, type_):
             return try_get(video, lambda x: x[section][field], type_)
 
         def account_data(field, type_):
-            return try_get_second_level_data('account', field, type_)
+            return data('account', field, type_)
 
         def channel_data(field, type_):
-            return try_get_second_level_data('channel', field, type_)
+            return data('channel', field, type_)
 
-        category = try_get_second_level_data('category', 'label', compat_str)
+        category = data('category', 'label', compat_str)
         categories = [category] if category else None
 
         nsfw = video.get('nsfw')
@@ -574,8 +574,8 @@ class PeerTubeIE(InfoExtractor):
             'channel': channel_data('displayName', compat_str),
             'channel_id': str(channel_data('id', int)),
             'channel_url': url_or_none(channel_data('url', compat_str)),
-            'language': try_get_second_level_data('language', 'id', compat_str),
-            'license': try_get_second_level_data('licence', 'label', compat_str),
+            'language': data('language', 'id', compat_str),
+            'license': data('licence', 'label', compat_str),
             'duration': int_or_none(video.get('duration')),
             'view_count': int_or_none(video.get('views')),
             'like_count': int_or_none(video.get('likes')),
