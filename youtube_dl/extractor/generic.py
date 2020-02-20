@@ -2659,6 +2659,11 @@ class GenericIE(InfoExtractor):
             return self.playlist_from_matches(
                 matches, video_id, video_title, getter=unescapeHTML, ie='FunnyOrDie')
 
+        # Look for simplecast embeds
+        matches = re.findall(r'<iframe[^>]+?src="(https?://(?:embed|player)\.simplecast\.com/[^"]+)"', webpage)
+        if matches:
+            return self.playlist_from_matches(matches, ie='SimplecastEmbed')
+
         # Look for BBC iPlayer embed
         matches = re.findall(r'setPlaylist\("(https?://www\.bbc\.co\.uk/iplayer/[^/]+/[\da-z]{8})"\)', webpage)
         if matches:
