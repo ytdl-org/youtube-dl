@@ -30,6 +30,7 @@ from ..utils import (
     smuggle_url,
     unescapeHTML,
     unified_strdate,
+    unified_timestamp,
     unsmuggle_url,
     UnsupportedError,
     xpath_text,
@@ -2182,10 +2183,12 @@ class GenericIE(InfoExtractor):
             if not next_url:
                 continue
 
+            pubDate = it.find('pubDate')
             entries.append({
                 '_type': 'url_transparent',
                 'url': next_url,
                 'title': it.find('title').text,
+                'timestamp': None if (pubDate is None) else unified_timestamp(pubDate.text),
             })
 
         return {

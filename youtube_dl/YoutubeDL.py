@@ -896,6 +896,9 @@ class YoutubeDL(object):
             if new_result.get('_type') == 'url':
                 new_result['_type'] = 'url_transparent'
 
+            if ie_result.get('timestamp') is not None:
+                extra_info['timestamp'] = ie_result.get('timestamp')
+
             return self.process_ie_result(
                 new_result, download=download, extra_info=extra_info)
         elif result_type in ('playlist', 'multi_video'):
