@@ -160,8 +160,8 @@ class TeachableIE(TeachableBaseIE):
 
         webpage = self._download_webpage(url, video_id)
 
-        wistia_url = WistiaIE._extract_url(webpage)
-        if not wistia_url:
+        wistia_urls = WistiaIE._extract_urls(webpage)
+        if not wistia_urls:
             if any(re.search(p, webpage) for p in (
                     r'class=["\']lecture-contents-locked',
                     r'>\s*Lecture contents locked',
@@ -174,12 +174,14 @@ class TeachableIE(TeachableBaseIE):
 
         title = self._og_search_title(webpage, default=None)
 
-        return {
+        entries = [{
             '_type': 'url_transparent',
             'url': wistia_url,
             'ie_key': WistiaIE.ie_key(),
             'title': title,
-        }
+        } for wistia_url in wistia_urls]
+
+        return self.playlist_result(entries, video_id, title)
 
 
 class TeachableCourseIE(TeachableBaseIE):
