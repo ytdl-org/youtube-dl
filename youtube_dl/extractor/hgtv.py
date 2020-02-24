@@ -4,17 +4,17 @@ from __future__ import unicode_literals
 from .common import InfoExtractor
 
 
-class HGTVComShowIE(InfoExtractor):
-    IE_NAME = 'hgtv.com:show'
-    _VALID_URL = r'https?://(?:www\.)?hgtv\.com/shows/[^/]+/(?P<id>[^/?#&]+)'
+class HGTVShowIE(InfoExtractor):
+    IE_NAME = 'hgtv:show'
+    _VALID_URL = r'https?://(?:www\.)?hgtv\.(?:com|ca)/shows/[^/]+/(?P<id>[^/?#&]+)'
     _TESTS = [{
         # data-module="video"
-        'url': 'http://www.hgtv.com/shows/flip-or-flop/flip-or-flop-full-episodes-season-4-videos',
+        'url': 'https://www.hgtv.com/shows/fixer-upper/fixer-upper-full-episodes-videos',
         'info_dict': {
-            'id': 'flip-or-flop-full-episodes-season-4-videos',
-            'title': 'Flip or Flop Full Episodes',
+            'id': 'fixer-upper-full-episodes-videos',
+            'title': 'Fixer Upper - Full Episodes',
         },
-        'playlist_mincount': 15,
+        'playlist_mincount': 14,
     }, {
         # data-deferred-module="video"
         'url': 'http://www.hgtv.com/shows/good-bones/episodes/an-old-victorian-house-gets-a-new-facelift',
