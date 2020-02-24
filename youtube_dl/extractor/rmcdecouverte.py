@@ -13,7 +13,7 @@ from ..utils import smuggle_url
 
 
 class RMCDecouverteIE(InfoExtractor):
-    _VALID_URL = r'https?://rmcdecouverte\.bfmtv\.com/(?:(?:[^/]+/)*program_(?P<id>\d+)|(?P<live_id>mediaplayer-direct))'
+    _VALID_URL = r'https?://rmc(?P<channel>decouverte|story)\.bfmtv\.com/(?:.+_(?P<id>\d+)|(?P<live_id>mediaplayer-direct))'
 
     _TESTS = [{
         'url': 'https://rmcdecouverte.bfmtv.com/wheeler-dealers-occasions-a-saisir/program_2566/',
@@ -34,8 +34,27 @@ class RMCDecouverteIE(InfoExtractor):
         # live, geo restricted, bypassable
         'url': 'https://rmcdecouverte.bfmtv.com/mediaplayer-direct/',
         'only_matching': True,
+    }, {
+        'url': 'https://rmcstory.bfmtv.com/enquete-prioritaire_1443/les-urgences-veterinaires_10307/',
+        'info_dict': {
+            'id': '6130581554001',
+            'ext': 'mp4',
+            'title': 'ENQUÊTE PRIORITAIRE - LES URGENCES VETERINAIRES',
+            'description': 'md5:988009183ac392a480be758ab5797c96',
+            'uploader_id': '5817780576001',
+            'upload_date': '20200207',
+            'timestamp': 1581113113,
+        },
+        'params': {
+            'skip_download': True,
+        },
+        'skip': 'only available for a week',
+    }, {
+        # live, geo restricted, bypassable
+        'url': 'https://rmcstory.bfmtv.com/mediaplayer-direct/',
+        'only_matching': True,
     }]
-    BRIGHTCOVE_URL_TEMPLATE = 'http://players.brightcove.net/1969646226001/default_default/index.html?videoId=%s'
+    BRIGHTCOVE_URL_TEMPLATE = 'http://players.brightcove.net/%d/default_default/index.html?videoId=%s'
 
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
@@ -48,8 +67,12 @@ class RMCDecouverteIE(InfoExtractor):
         else:
             brightcove_id = self._search_regex(
                 r'data-video-id=["\'](\d+)', webpage, 'brightcove id')
+        if mobj.group('channel') == 'decouverte':
+            player_id = 1969646226001
+        else:  # 'story'
+            player_id = 5817780576001
         return self.url_result(
             smuggle_url(
-                self.BRIGHTCOVE_URL_TEMPLATE % brightcove_id,
+                self.BRIGHTCOVE_URL_TEMPLATE % (player_id, brightcove_id),
                 {'geo_countries': ['FR']}),
             'BrightcoveNew', brightcove_id)
