@@ -37,6 +37,7 @@
  - **aenetworks**: A+E Networks: A&E, Lifetime, History.com, FYI Network and History Vault
  - **afreecatv**: afreecatv.com
  - **AirMozilla**
+ - **AirVuz**
  - **AliExpressLive**
  - **AlJazeera**
  - **Allocine**
