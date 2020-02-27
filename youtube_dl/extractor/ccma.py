@@ -28,6 +28,17 @@ class CCMAIE(InfoExtractor):
             'upload_date': '20161108',
         }
     }, {
+        'url': 'http://www.ccma.cat/tv3/alacarta/crims/crims-josep-tallada-lespereu-me-capitol-1/video/6031387/',
+        'md5': 'b43c3d3486f430f3032b5b160d80cbc3',
+        'info_dict': {
+            'id': '6031387',
+            'ext': 'mp4',
+            'title': 'Crims - Josep Talleda, l\'"Espereu-me" (capítol 1)',
+            'description': 'md5:7cbdafb640da9d0d2c0f62bad1e74e60',
+            'timestamp': 1582577700,
+            'upload_date': '20200224',
+        }
+    }, {
         'url': 'http://www.ccma.cat/catradio/alacarta/programa/el-consell-de-savis-analitza-el-derbi/audio/943685/',
         'md5': 'fa3e38f269329a278271276330261425',
         'info_dict': {
