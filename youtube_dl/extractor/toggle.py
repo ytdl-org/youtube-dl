@@ -125,8 +125,10 @@ class ToggleIE(InfoExtractor):
             'mediaType': 0,
         }
 
+        #  sanitized request:
+        # 'http://tvpapi.as.tvinci.com/v2_9/gateways/jsonpostgw.aspx?m=GetMediaInfo'
         req = sanitized_Request(
-            'http://tvpapi.as.tvinci.com/v2_9/gateways/jsonpostgw.aspx?m=GetMediaInfo',
+            'https://tvpapi-as.ott.kaltura.com/v3_9/gateways/jsonpostgw.aspx?m=GetMediaInfo',
             json.dumps(params).encode('utf-8'))
         info = self._download_json(req, video_id, 'Downloading video info json')
 
