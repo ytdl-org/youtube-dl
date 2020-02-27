@@ -88,8 +88,11 @@ class CCMAIE(InfoExtractor):
 
         # utc date is in format YYYY-DD-MM
         data_utc = informacio.get('data_emissio', {}).get('utc')
-        data_iso8601 = data_utc[:5] + data_utc[8:10] + '-' + data_utc[5:7] + data_utc[10:]
-        timestamp = parse_iso8601(data_iso8601)
+        try:
+            data_iso8601 = data_utc[:5] + data_utc[8:10] + '-' + data_utc[5:7] + data_utc[10:]
+            timestamp = parse_iso8601(data_iso8601)
+        except TypeError:
+            timestamp = None
 
         subtitles = {}
         subtitols = media.get('subtitols', [])
