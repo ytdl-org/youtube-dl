@@ -28,9 +28,9 @@ class ServusIE(InfoExtractor):
         'url': 'https://www.servus.com/tv/videos/1380889096408-1235196658/',
         'only_matching': True,
     }, {
-       'url': 'https://www.servustv.com/videos/aa-21bma4d4d1w12/',
-       'only_matching': True,
-     }]
+        'url': 'https://www.servustv.com/videos/aa-21bma4d4d1w12/',
+        'only_matching': True,
+    }]
 
     def _real_extract(self, url):
         video_id = self._match_id(url).upper()
