@@ -24,8 +24,8 @@ class CCMAIE(InfoExtractor):
             'ext': 'mp4',
             'title': 'L\'espot de La Marató de TV3',
             'description': 'md5:f12987f320e2f6e988e9908e4fe97765',
-            'timestamp': 1470918540,
-            'upload_date': '20160811',
+            'timestamp': 1478608140,
+            'upload_date': '20161108',
         }
     }, {
         'url': 'http://www.ccma.cat/catradio/alacarta/programa/el-consell-de-savis-analitza-el-derbi/audio/943685/',
@@ -35,8 +35,8 @@ class CCMAIE(InfoExtractor):
             'ext': 'mp3',
             'title': 'El Consell de Savis analitza el derbi',
             'description': 'md5:e2a3648145f3241cb9c6b4b624033e53',
-            'upload_date': '20171205',
-            'timestamp': 1512507300,
+            'upload_date': '20170512',
+            'timestamp': 1494622500,
         }
     }]
 
@@ -74,7 +74,11 @@ class CCMAIE(InfoExtractor):
         title = informacio['titol']
         durada = informacio.get('durada', {})
         duration = int_or_none(durada.get('milisegons'), 1000) or parse_duration(durada.get('text'))
-        timestamp = parse_iso8601(informacio.get('data_emissio', {}).get('utc'))
+
+        # utc date is in format YYYY-DD-MM
+        data_utc = informacio.get('data_emissio', {}).get('utc')
+        data_iso8601 = data_utc[:5] + data_utc[8:10] + '-' + data_utc[5:7] + data_utc[10:]
+        timestamp = parse_iso8601(data_iso8601)
 
         subtitles = {}
         subtitols = media.get('subtitols', {})
