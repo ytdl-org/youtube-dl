@@ -92,12 +92,15 @@ class CCMAIE(InfoExtractor):
         timestamp = parse_iso8601(data_iso8601)
 
         subtitles = {}
-        subtitols = media.get('subtitols', {})
-        if subtitols:
-            sub_url = subtitols.get('url')
+        subtitols = media.get('subtitols', [])
+        # Single language -> dict; multiple languages -> List[dict]
+        if isinstance(subtitols, dict):
+            subtitols = [subtitols]
+        for st in subtitols:
+            sub_url = st.get('url')
             if sub_url:
                 subtitles.setdefault(
-                    subtitols.get('iso') or subtitols.get('text') or 'ca', []).append({
+                    st.get('iso') or 'ca', []).append({
                         'url': sub_url,
                     })
 
