@@ -38,6 +38,17 @@ class CCMAIE(InfoExtractor):
             'upload_date': '20170512',
             'timestamp': 1494622500,
         }
+    }, {
+        'url': 'http://www.ccma.cat/tv3/alacarta/crims/crims-josep-tallada-lespereu-me-capitol-1/video/6031387/',
+        'md5': 'b43c3d3486f430f3032b5b160d80cbc3',
+        'info_dict': {
+            'id': '6031387',
+            'ext': 'mp4',
+            'title': 'Crims - Josep Talleda, l\'"Espereu-me" (capítol 1)',
+            'description': 'md5:7cbdafb640da9d0d2c0f62bad1e74e60',
+            'timestamp': 1582577700,
+            'upload_date': '20200224',
+        }
     }]
 
     def _real_extract(self, url):
