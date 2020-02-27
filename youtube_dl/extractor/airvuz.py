@@ -2,7 +2,6 @@
 from __future__ import unicode_literals
 
 from .common import InfoExtractor
-from ..utils import determine_ext
 
 import re
 
@@ -32,15 +31,44 @@ class AirVuzIE(InfoExtractor):
         description = self._og_search_description(webpage)
         uploader = self._html_search_regex(r'class=(?:\'img-circle\'|"img-circle"|img-circle)[^>]+?alt=(?:"([^"]+?)"|\'([^\']+?)\'|([^\s"\'=<>`]+))', webpage, 'uploader', fatal=False) or self._html_search_regex(r'https?://(?:www\.)?airvuz\.com/user/([^>]*)', webpage, 'uploader', fatal=False)
 
-        video_url = self._html_search_regex(r'<meta[^>]+?(?:name|property)=(?:\'og:video:url\'|"og:video:url"|og:video:url)[^>]+?content=(?:"([^"]+?)"|\'([^\']+?)\'|([^\s"\'=<>`]+))', webpage, 'video_url')
-        ext = determine_ext(video_url)
+        formats = []
+
+        meta = self._download_json('https://www.airvuz.com/api/videos/%s?type=dynamic' % video_id, video_id, fatal=False)
+        if meta:
+            info_res = meta.get('data')
+
+            for res in reversed(info_res.get('resolutions')):
+                video_url = res.get('src')
+                if not video_url:
+                    continue
+                # URL is a relative path
+                video_url = 'https://www.airvuz.com/%s' % video_url
+
+                formats.append({
+                    'url': video_url,
+                    'format_id': res.get('label'),
+                    'height': res.get('res')
+                })
+        else:
+            self.report_extraction(video_id)
+
+            video_url = self._html_search_regex(r'<meta[^>]+?(?:name|property)=(?:\'og:video:url\'|"og:video:url"|og:video:url)[^>]+?content=(?:"([^"]+?)"|\'([^\']+?)\'|([^\s"\'=<>`]+))', webpage, 'video_url')
+
+            if video_url:
+                format_id = video_url.split("-")[-1].split(".")[0]
+                if len(format_id) <= 2:
+                    format_id = None
+
+                formats.append({
+                    'url': video_url,
+                    'format_id': format_id,
+                })
 
         return {
             'id': video_id,
             'display_id': display_id,
             'title': title,
-            'url': video_url,
-            'ext': ext,
+            'formats': formats,
             'thumbnail': thumbnail,
             'description': description,
             'uploader': uploader,
