@@ -23,7 +23,7 @@ class MatterIE(InfoExtractor):
         )
 
         author = self._html_search_regex(
-            r'<a href="https://app.matter.online/artists/user_\d+" target="[^"]+">([^<]+)</a>',
+            r'<a href="https://app.matter.online/artists/[^"]+" target="[^"]+">([^<]+)</a>',
             webpage, "author"
         )
         title = self._html_search_regex(
