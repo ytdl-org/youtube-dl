@@ -12,9 +12,23 @@ class MatterIE(InfoExtractor):
     used to implement playlists or other content.
     """
     _VALID_URL = r'https?://app.matter.online/tracks/(?P<id>\d+)/?'
-    _TESTS = {
-        # TODO: Implement
-    }
+    _TESTS = [{
+        'url': 'https://app.matter.online/tracks/12866',
+        'info_dict': {
+            'id': '12866',
+            'ext': 'mp3',
+            'title': 'Beautiful type beat',
+            'uploader': 'internet user',
+        },
+    }, {
+        'url': 'https://app.matter.online/tracks/18891',
+        'info_dict': {
+            'id': '18891',
+            'ext': 'mp3',
+            'title': 'starstruck',
+            'uploader': 'iwi.',
+        }
+    }]
 
     def _real_extract(self, url):
         track_id = self._match_id(url)
