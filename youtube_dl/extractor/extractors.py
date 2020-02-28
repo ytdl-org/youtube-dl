@@ -601,6 +601,7 @@ from .markiza import (
 )
 from .massengeschmacktv import MassengeschmackTVIE
 from .matchtv import MatchTVIE
+from .matter import MatterIE
 from .mdr import MDRIE
 from .mediaset import MediasetIE
 from .mediasite import (
