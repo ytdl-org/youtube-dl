@@ -52,7 +52,7 @@ Alternatively, refer to the [developer instructions](#developer-instructions) fo
 
 # OPTIONS
     -h, --help                       Print this help text and exit
-    --version                        Print program version and exit
+    -V, --version                    Print program version and exit
     -U, --update                     Update this program to latest version. Make
                                      sure that you have sufficient permissions
                                      (run with sudo if needed)
