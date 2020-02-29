@@ -135,7 +135,7 @@ class TelecincoIE(InfoExtractor):
         display_id = self._match_id(url)
         webpage = self._download_webpage(url, display_id)
         article = self._parse_json(self._search_regex(
-            r'window\.\$REACTBASE_STATE\.article\s*=\s*({.+})',
+            r'window\.\$REACTBASE_STATE\.article(?:_multisite)?\s*=\s*({.+})',
             webpage, 'article'), display_id)['article']
         title = article.get('title')
         description = clean_html(article.get('leadParagraph'))
