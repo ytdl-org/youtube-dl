@@ -164,7 +164,7 @@ class XTubeUserIE(InfoExtractor):
             'id': 'greenshowers-4056496',
             'age_limit': 18,
         },
-        'playlist_mincount': 155,
+        'playlist_mincount': 154,
     }
 
     def _real_extract(self, url):
