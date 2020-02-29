@@ -16,16 +16,17 @@ from ..utils import (
 class BitChuteIE(InfoExtractor):
     _VALID_URL = r'https?://(?:www\.)?bitchute\.com/(?:video|embed|torrent/[^/]+)/(?P<id>[^/?#&]+)'
     _TESTS = [{
-        'url': 'https://www.bitchute.com/video/szoMrox2JEI/',
-        'md5': '66c4a70e6bfc40dcb6be3eb1d74939eb',
+        'url': 'https://www.bitchute.com/video/mxzcCZI0RQ0k/',
+        'md5': '94e5c980ffdb450e72a8ed55f2e9280b',
         'info_dict': {
-            'id': 'szoMrox2JEI',
+            'id': 'mxzcCZI0RQ0k',
             'ext': 'mp4',
-            'title': 'Fuck bitches get money',
-            'description': 'md5:3f21f6fb5b1d17c3dee9cf6b5fe60b3a',
+            'title': 'Some People are just Glitches in the Matrix',
+            'description': 'md5:46cc1f8670f6da35fec011bb1d1e548e',
             'thumbnail': r're:^https?://.*\.jpg$',
-            'uploader': 'Victoria X Rave',
-            'upload_date': '20170813',
+            'uploader': 'stargods',
+            'upload_date': '20200218',
+            'timestamp': 1582066500,
         },
     }, {
         'url': 'https://www.bitchute.com/embed/lbb5G1hjPhw/',
