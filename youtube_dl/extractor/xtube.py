@@ -47,7 +47,7 @@ class XTubeIE(InfoExtractor):
             'display_id': 'A-Super-Run-Part-1-YT',
             'ext': 'flv',
             'title': 'A Super Run - Part 1 (YT)',
-            'description': 'md5:ca0d47afff4a9b2942e4b41aa970fd93',
+            'description': 'md5:4cc3af1aa1b0413289babc88f0d4f616',
             'uploader': 'tshirtguy59',
             'duration': 579,
             'view_count': int,
@@ -87,10 +87,24 @@ class XTubeIE(InfoExtractor):
                 'Cookie': 'age_verified=1; cookiesAccepted=1',
             })
 
-        sources = self._parse_json(self._search_regex(
-            r'(["\'])?sources\1?\s*:\s*(?P<sources>{.+?}),',
-            webpage, 'sources', group='sources'), video_id,
-            transform_source=js_to_json)
+        title, thumbnail, duration = [None] * 3
+
+        config = self._parse_json(self._search_regex(
+            r'playerConf\s*=\s*({.+?})\s*,\s*\n', webpage, 'config',
+            default='{}'), video_id, transform_source=js_to_json, fatal=False)
+        if config:
+            config = config.get('mainRoll')
+            if isinstance(config, dict):
+                title = config.get('title')
+                thumbnail = config.get('poster')
+                duration = int_or_none(config.get('duration'))
+                sources = config.get('sources')
+
+        if isinstance(sources, dict):
+            sources = self._parse_json(self._search_regex(
+                r'(["\'])?sources\1?\s*:\s*(?P<sources>{.+?}),',
+                webpage, 'sources', group='sources'), video_id,
+                transform_source=js_to_json)
 
         formats = []
         for format_id, format_url in sources.items():
@@ -102,20 +116,25 @@ class XTubeIE(InfoExtractor):
         self._remove_duplicate_formats(formats)
         self._sort_formats(formats)
 
-        title = self._search_regex(
-            (r'<h1>\s*(?P<title>[^<]+?)\s*</h1>', r'videoTitle\s*:\s*(["\'])(?P<title>.+?)\1'),
-            webpage, 'title', group='title')
-        description = self._search_regex(
+        if not title:
+            title = self._search_regex(
+                (r'<h1>\s*(?P<title>[^<]+?)\s*</h1>', r'videoTitle\s*:\s*(["\'])(?P<title>.+?)\1'),
+                webpage, 'title', group='title')
+        description = self._og_search_description(
+            webpage, default=None) or self._html_search_meta(
+            'twitter:description', webpage, default=None) or self._search_regex(
             r'</h1>\s*<p>([^<]+)', webpage, 'description', fatal=False)
         uploader = self._search_regex(
             (r'<input[^>]+name="contentOwnerId"[^>]+value="([^"]+)"',
              r'<span[^>]+class="nickname"[^>]*>([^<]+)'),
             webpage, 'uploader', fatal=False)
-        duration = parse_duration(self._search_regex(
-            r'<dt>Runtime:?</dt>\s*<dd>([^<]+)</dd>',
-            webpage, 'duration', fatal=False))
+        if not duration:
+            duration = parse_duration(self._search_regex(
+                r'<dt>Runtime:?</dt>\s*<dd>([^<]+)</dd>',
+                webpage, 'duration', fatal=False))
         view_count = str_to_int(self._search_regex(
-            r'<dt>Views:?</dt>\s*<dd>([\d,\.]+)</dd>',
+            (r'["\']viewsCount["\'][^>]*>(\d+)\s+views',
+             r'<dt>Views:?</dt>\s*<dd>([\d,\.]+)</dd>'),
             webpage, 'view count', fatal=False))
         comment_count = str_to_int(self._html_search_regex(
             r'>Comments? \(([\d,\.]+)\)<',
@@ -126,6 +145,7 @@ class XTubeIE(InfoExtractor):
             'display_id': display_id,
             'title': title,
             'description': description,
+            'thumbnail': thumbnail,
             'uploader': uploader,
             'duration': duration,
             'view_count': view_count,
@@ -144,7 +164,7 @@ class XTubeUserIE(InfoExtractor):
             'id': 'greenshowers-4056496',
             'age_limit': 18,
         },
-        'playlist_mincount': 155,
+        'playlist_mincount': 154,
     }
 
     def _real_extract(self, url):
