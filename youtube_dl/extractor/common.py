@@ -2341,7 +2341,7 @@ class InfoExtractor(object):
             return []
         ism_doc, urlh = res
 
-        return self._parse_ism_formats(ism_doc, compat_str(urlh.geturl()), ism_id)
+        return self._parse_ism_formats(ism_doc, urlh.geturl(), ism_id)
 
     def _parse_ism_formats(self, ism_doc, ism_url, ism_id=None):
         """
