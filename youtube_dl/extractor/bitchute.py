@@ -101,10 +101,10 @@ class BitChuteIE(InfoExtractor):
 class BitChuteChannelIE(InfoExtractor):
     _VALID_URL = r'https?://(?:www\.)?bitchute\.com/channel/(?P<id>[^/?#&]+)'
     _TEST = {
-        'url': 'https://www.bitchute.com/channel/victoriaxrave/',
-        'playlist_mincount': 185,
+        'url': 'https://www.bitchute.com/channel/stargods/',
+        'playlist_mincount': 50,
         'info_dict': {
-            'id': 'victoriaxrave',
+            'id': 'stargods',
         },
     }
 
