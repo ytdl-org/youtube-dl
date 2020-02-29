@@ -3,6 +3,7 @@ from __future__ import unicode_literals
 
 from .common import InfoExtractor
 from ..compat import compat_urllib_parse_unquote
+from ..utils import ExtractorError
 
 import re
 
@@ -10,6 +11,24 @@ import re
 class AirVuzIE(InfoExtractor):
     _VALID_URL = r'https?://(?:www\.)?airvuz\.com/video/(?P<display_id>.+)\?id=(?P<id>.+)'
     _TESTS = [
+        {
+            'url': 'https://www.airvuz.com/video/1-pack-before-the-thunderstorm?id=5d3c10176c32ae7ddc7cab29',
+            'info_dict': {
+                'id': '5d3c10176c32ae7ddc7cab29',
+                'display_id': '1-pack-before-the-thunderstorm',
+                'title': '1 pack before the thunderstorm',
+                'ext': 'mp4',
+                'thumbnail': r're:^https?://cdn.airvuz.com/image/drone-video-thumbnail\?image=airvuz-drone-video/43a6dd35ec08457545655905d638ea58/4c71ed0d6e1d93a06a0f3a053097af85.45.*',
+                'uploader': 'Menga FPV',
+                'uploader_id': 'menga-fpv',
+                'uploader_url': 'https://www.airvuz.com/user/menga-fpv',
+                'description': 'md5:13e8079235de737142d475f0b4058869',
+            },
+            'params': {
+                'format': 'video-1'
+            }
+        },
+        # No MPD
         {
             'url': 'https://www.airvuz.com/video/An-Imaginary-World?id=599e85c49282a717c50f2f7a',
             'info_dict': {
@@ -44,43 +63,75 @@ class AirVuzIE(InfoExtractor):
 
         webpage = self._download_webpage(url, video_id)
 
+        self.report_extraction(video_id)
+
         title = self._og_search_title(webpage)
         thumbnail = self._og_search_thumbnail(webpage)
         description = self._og_search_description(webpage)
         uploader = self._html_search_regex(r'class=(?:\'img-circle\'|"img-circle"|img-circle)[^>]+?alt=(?:"([^"]+?)"|\'([^\']+?)\'|([^\s"\'=<>`]+))', webpage, 'uploader', fatal=False) or self._html_search_regex(r'https?://(?:www\.)?airvuz\.com/user/([^>]*)', webpage, 'uploader', fatal=False)
 
+        video_url = self._html_search_regex(r'<meta[^>]+?(?:name|property)=(?:\'og:video:url\'|"og:video:url"|og:video:url)[^>]+?content=(?:"([^"]+?)"|\'([^\']+?)\'|([^\s"\'=<>`]+))', webpage, 'video_url', fatal=False) or None
+
         formats = []
+        mpd_info = False
 
-        meta = self._download_json('https://www.airvuz.com/api/videos/%s?type=dynamic' % video_id, video_id, fatal=False)
-        if meta:
-            info_res = meta.get('data')
+        result = re.match(r'https?://cdn\.airvuz\.com/drone-video/(?P<id>.+)/', video_url)
+        if result:
+            mpd_id = result.group('id')
+            mpd_pattern = 'https://www.airvuz.com/drone-video/%s/dash/%s_dash.mpd' % (mpd_id, mpd_id)
 
-            for res in reversed(info_res.get('resolutions')):
-                video_url = res.get('src')
-                if not video_url:
-                    continue
-                # URL is a relative path
-                video_url = 'https://www.airvuz.com/%s' % video_url
+            try:
+                # Try to get mpd file
+                mpd_formats = self._extract_mpd_formats(mpd_pattern, video_id, fatal=True)
+                if mpd_formats:
+                    # VIDEO-1 has always the highest quality
+                    for format in reversed(mpd_formats):
+                        format["format_id"] = format["format_id"].lower()
+                        formats.append(format)
 
-                formats.append({
-                    'url': video_url,
-                    'format_id': res.get('label'),
-                })
-        else:
-            self.report_extraction(video_id)
+                    mpd_info = True
 
-            video_url = self._html_search_regex(r'<meta[^>]+?(?:name|property)=(?:\'og:video:url\'|"og:video:url"|og:video:url)[^>]+?content=(?:"([^"]+?)"|\'([^\']+?)\'|([^\s"\'=<>`]+))', webpage, 'video_url')
+            except ExtractorError:
+                pass
 
-            if video_url:
-                format_id = video_url.split("-")[-1].split(".")[0]
-                if len(format_id) <= 2:
-                    # Format can't be induced from the filename
-                    format_id = None
+        if mpd_info is False:
+            try:
+                # Some videos don't have MPD information
+                # Use undocumented API to get the formats
+                meta = self._download_json('https://www.airvuz.com/api/videos/%s?type=dynamic' % video_id, video_id, fatal=True)
+                if meta:
+                    info_res = meta.get('data')
 
-                formats.append({
-                    'url': video_url,
-                    'format_id': format_id,
-                })
+                    for res in reversed(info_res.get('resolutions')):
+                        video_url = res.get('src')
+                        if not video_url:
+                            continue
+
+                        # URL is a relative path
+                        video_url = 'https://www.airvuz.com/%s' % video_url
+
+                        formats.append({
+                            'url': video_url,
+                            'format_id': res.get('label'),
+                        })
+
+            except ExtractorError:
+                #  Fallback to original video
+                self.report_warning('Unable to extract formats')
+                self.to_screen('%s: Extracting original video' % video_id)
+
+                if video_url:
+                    format_id = video_url.split("-")[-1].split(".")[0]
+                    if len(format_id) <= 2:
+                        # Format can't be induced from the filename
+                        format_id = None
+
+                    formats.append({
+                        'url': video_url,
+                        'format_id': format_id,
+                    })
+                else:
+                    raise ExtractorError('Unable to extract video data')
 
         return {
             'id': video_id,
