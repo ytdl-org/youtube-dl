@@ -4,7 +4,6 @@ import re
 
 from .common import InfoExtractor
 from .wistia import WistiaIE
-from ..compat import compat_str
 from ..utils import (
     clean_html,
     ExtractorError,
@@ -58,7 +57,7 @@ class TeachableBaseIE(InfoExtractor):
             self._logged_in = True
             return
 
-        login_url = compat_str(urlh.geturl())
+        login_url = urlh.geturl()
 
         login_form = self._hidden_inputs(login_page)
 
