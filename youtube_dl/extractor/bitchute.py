@@ -8,6 +8,7 @@ from .common import InfoExtractor
 from ..utils import (
     orderedSet,
     unified_strdate,
+    unified_timestamp,
     urlencode_postdata,
 )
 
@@ -80,6 +81,10 @@ class BitChuteIE(InfoExtractor):
             r'class=["\']video-publish-date[^>]+>[^<]+ at \d+:\d+ UTC on (.+?)\.',
             webpage, 'upload date', fatal=False))
 
+        timestamp = unified_timestamp('-'.join([upload_date[:4], upload_date[4:6], upload_date[6:]]) + ' ' + self._search_regex(
+            r'class=["\']video-publish-date[^>]+>[^<]+ (\d+:\d+ UTC) on',
+            webpage, 'timestamp', fatal=False))
+
         return {
             'id': video_id,
             'title': title,
@@ -88,6 +93,7 @@ class BitChuteIE(InfoExtractor):
             'uploader': uploader,
             'upload_date': upload_date,
             'formats': formats,
+            'timestamp': timestamp,
         }
 
 
