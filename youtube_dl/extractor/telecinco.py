@@ -5,14 +5,6 @@ import json
 import re
 
 from .common import InfoExtractor
-from .ooyala import OoyalaIE
-from ..utils import (
-    clean_html,
-    determine_ext,
-    int_or_none,
-    str_or_none,
-    urljoin,
-)
 
 
 class TelecincoIE(InfoExtractor):
@@ -23,18 +15,9 @@ class TelecincoIE(InfoExtractor):
         'url': 'http://www.telecinco.es/robinfood/temporada-01/t01xp14/Bacalao-cocochas-pil-pil_0_1876350223.html',
         'info_dict': {
             'id': '1876350223',
-            'title': 'Bacalao con kokotxas al pil-pil',
-            'description': 'md5:1382dacd32dd4592d478cbdca458e5bb',
-        },
-        'playlist': [{
-            'md5': 'adb28c37238b675dad0f042292f209a7',
-            'info_dict': {
-                'id': 'JEA5ijCnF6p5W08A1rNKn7',
-                'ext': 'mp4',
-                'title': 'Con Martín Berasategui, hacer un bacalao al pil-pil es fácil y divertido',
-                'duration': 662,
-            },
-        }]
+            'title': 'Con Martín Berasategui, hacer un bacalao al pil-pil es fácil y divertido',
+            'ext': 'm3u8'
+        }
     }, {
         'url': 'http://www.cuatro.com/deportes/futbol/barcelona/Leo_Messi-Champions-Roma_2_2052780128.html',
         'md5': '9468140ebc300fbb8b9d65dc6e5c4b43',
@@ -67,90 +50,38 @@ class TelecincoIE(InfoExtractor):
         'only_matching': True,
     }]
 
-    def _parse_content(self, content, url):
-        video_id = content['dataMediaId']
-        if content.get('dataCmsId') == 'ooyala':
-            return self.url_result(
-                'ooyala:%s' % video_id, OoyalaIE.ie_key(), video_id)
-        config_url = urljoin(url, content['dataConfig'])
-        config = self._download_json(
-            config_url, video_id, 'Downloading config JSON')
-        title = config['info']['title']
+    def _real_extract(self, url):
 
-        def mmc_url(mmc_type):
-            return re.sub(
-                r'/(?:flash|html5)\.json', '/%s.json' % mmc_type,
-                config['services']['mmc'])
+        p = '(?P<host>:?[http|https].*://[^:/ ]+).?(?P<port>[0-9]*).*'
+        m = re.search(p, url)
+        host = m.group('host')
 
-        duration = None
-        formats = []
-        for mmc_type in ('flash', 'html5'):
-            mmc = self._download_json(
-                mmc_url(mmc_type), video_id,
-                'Downloading %s mmc JSON' % mmc_type, fatal=False)
-            if not mmc:
-                continue
-            if not duration:
-                duration = int_or_none(mmc.get('duration'))
-            for location in mmc['locations']:
-                gat = self._proto_relative_url(location.get('gat'), 'http:')
-                gcp = location.get('gcp')
-                ogn = location.get('ogn')
-                if None in (gat, gcp, ogn):
-                    continue
-                token_data = {
-                    'gcp': gcp,
-                    'ogn': ogn,
-                    'sta': 0,
-                }
-                media = self._download_json(
-                    gat, video_id, data=json.dumps(token_data).encode('utf-8'),
-                    headers={
-                        'Content-Type': 'application/json;charset=utf-8',
-                        'Referer': url,
-                    }, fatal=False) or {}
-                stream = media.get('stream') or media.get('file')
-                if not stream:
-                    continue
-                ext = determine_ext(stream)
-                if ext == 'f4m':
-                    formats.extend(self._extract_f4m_formats(
-                        stream + '&hdcore=3.2.0&plugin=aasp-3.2.0.77.18',
-                        video_id, f4m_id='hds', fatal=False))
-                elif ext == 'm3u8':
-                    formats.extend(self._extract_m3u8_formats(
-                        stream, video_id, 'mp4', 'm3u8_native',
-                        m3u8_id='hls', fatal=False))
-        self._sort_formats(formats)
+        (url_title, _, video_id) = self._match_id(url).split('_')
+        webpage = self._download_webpage(url, video_id)
 
-        return {
+        m = re.search(r'dataConfig":"(?P<path>.*?)"', webpage)
+        path = m.group('path')
+        final = self._download_json(host + path, video_id)
+        title = final['info']['title']
+        mmc = final['services']['mmc']
+        if not mmc.startswith('http'):
+            mmc = 'http:' + mmc
+        res = self._download_json(mmc, video_id)
+        sta = 0
+        location = res['locations'][sta]
+        gateurl = 'https:' + location['gat']
+        gcp = location['gcp']
+        ogn = location['ogn']
+        payload = {'sta': sta, 'gcp': gcp, 'ogn': ogn}
+        res = self._download_json(gateurl, video_id, data=str.encode(json.dumps(payload)), headers={'Content-Type': 'application/json'})
+        duration = res.get('duration')
+        m8u_url = res['stream'].split('/master.m3u8')[0] + '/index_0_av.m3u8?null=0'
+
+        response = {
             'id': video_id,
+            'url': m8u_url,
             'title': title,
-            'formats': formats,
-            'thumbnail': content.get('dataPoster') or config.get('poster', {}).get('imageUrl'),
-            'duration': duration,
+            'duration': duration
         }
 
-    def _real_extract(self, url):
-        display_id = self._match_id(url)
-        webpage = self._download_webpage(url, display_id)
-        article = self._parse_json(self._search_regex(
-            r'window\.\$REACTBASE_STATE\.article\s*=\s*({.+})',
-            webpage, 'article'), display_id)['article']
-        title = article.get('title')
-        description = clean_html(article.get('leadParagraph'))
-        if article.get('editorialType') != 'VID':
-            entries = []
-            for p in article.get('body', []):
-                content = p.get('content')
-                if p.get('type') != 'video' or not content:
-                    continue
-                entries.append(self._parse_content(content, url))
-            return self.playlist_result(
-                entries, str_or_none(article.get('id')), title, description)
-        content = article['opening']['content']
-        info = self._parse_content(content, url)
-        info.update({
-            'description': description,
-        })
-        return info
+        return response
