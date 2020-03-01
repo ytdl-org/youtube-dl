@@ -505,7 +505,8 @@ class FacebookIE(InfoExtractor):
             'share_count': shares_count,
             'subtitles': subtitles,
             'comment_count': comment_count,
-            'other_posts_view_count': other_posts_view_count
+            'other_posts_view_count': other_posts_view_count,
+            '_internal_data_list': [webpage, tahoe_data.primary, tahoe_data.secondary]
         }
         if uploader_id:
             info_dict['uploader_like_count'] = FacebookAjax(self, webpage, uploader_id).page_likes
