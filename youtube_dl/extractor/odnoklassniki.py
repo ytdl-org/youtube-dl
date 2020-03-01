@@ -121,6 +121,10 @@ class OdnoklassnikiIE(InfoExtractor):
         # Paid video
         'url': 'https://ok.ru/video/954886983203',
         'only_matching': True,
+    }, {
+        # Downloads only via https
+        'url': 'https://ok.ru/video/1704000096969',
+        'only_matching': True,
     }]
 
     @staticmethod
