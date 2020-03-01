@@ -1425,7 +1425,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
             self._downloader.report_warning('video doesn\'t have subtitles')
             return {}
         return sub_lang_list
-    
+
     def _get_ytplayer_config(self, video_id, webpage):
         patterns = (
             # User data may contain arbitrary character sequences that may affect
@@ -1651,14 +1651,12 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                 'title': chapter_title,
             })
         return chapters
-        
+
     def _real_extract(self, url):
         url, smuggled_data = unsmuggle_url(url, {})
-
         proto = (
             'http' if self._downloader.params.get('prefer_insecure', False)
             else 'https')
-
         start_time = None
         end_time = None
         parsed_url = compat_urllib_parse_urlparse(url)
@@ -1689,6 +1687,8 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
             player_url = None
 
         dash_mpds = []
+        is_live = None
+        view_count = None
 
         def add_dash_mpd(video_info):
             dash_mpd = video_info.get('dashmpd')
@@ -1702,17 +1702,15 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
             if dash_mpd and dash_mpd not in dash_mpds:
                 dash_mpds.append(dash_mpd)
 
-        is_live = None
-        view_count = None
         def extract_view_count(v_info):
             return int_or_none(try_get(v_info, lambda x: x['view_count'][0]))
 
         def extract_token(v_info):
             return dict_get(v_info, ('account_playback_token', 'accountPlaybackToken', 'token'))
 
-        def extract_audioconfig(q,player_response):
-            playConfig = dict_get(player_response, ('playConfig','playerConfig','audioConfig'))
-            audioConfig = dict_get(playConfig, ('audioConfig','audioConfig','perceptualLoudnessDb'))
+        def extract_audioconfig(q, player_response):
+            playConfig = dict_get(player_response, ('playConfig', 'playerConfig', 'audioConfig'))
+            audioConfig = dict_get(playConfig, ('audioConfig', 'audioConfig', 'perceptualLoudnessDb'))
             for pattern, value in audioConfig.items():
                 if re.search(pattern, q):
                     return value
@@ -1727,9 +1725,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
             if isinstance(pl_response, dict):
                 add_dash_mpd_pr(pl_response)
                 return pl_response
-        
         player_response = {}
-
         # Get video info
         embed_webpage = None
         if re.search(r'player-age-gate-content">', video_webpage) is not None:
@@ -1829,9 +1825,8 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                         if not token:
                             video_info = get_video_info
                         break
-        
         # Audio config
-        #TODO: Extract all data audioconfig example:
+        # TODO: Extract all data audioconfig example:
         # loudnessDb = extract_audioconfig("loudnessDb", player_response)
         # enablePerFormatLoudness = extract_audioconfig("enablePerFormatLoudness", player_response)
         perceptualLoudnessDb = extract_audioconfig("perceptualLoudnessDb", player_response)
