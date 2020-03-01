@@ -1,4 +1,4 @@
-version <unreleased>
+version 2020.03.01
 
 Core
 * [YoutubeDL] Force redirect URL to unicode on python 2
