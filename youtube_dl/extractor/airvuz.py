@@ -3,7 +3,10 @@ from __future__ import unicode_literals
 
 from .common import InfoExtractor
 from ..compat import compat_urllib_parse_unquote
-from ..utils import ExtractorError
+from ..utils import (
+    ExtractorError,
+    unified_timestamp
+)
 
 import re
 
@@ -19,6 +22,8 @@ class AirVuzIE(InfoExtractor):
                 'title': '1 pack before the thunderstorm',
                 'ext': 'mp4',
                 'thumbnail': r're:^https?://cdn.airvuz.com/image/drone-video-thumbnail\?image=airvuz-drone-video/43a6dd35ec08457545655905d638ea58/4c71ed0d6e1d93a06a0f3a053097af85.45.*',
+                'timestamp': 1564217367,
+                'upload_date': '20190727',
                 'uploader': 'Menga FPV',
                 'uploader_id': 'menga-fpv',
                 'uploader_url': 'https://www.airvuz.com/user/menga-fpv',
@@ -37,7 +42,11 @@ class AirVuzIE(InfoExtractor):
                 'title': 'An Imaginary World',
                 'ext': 'mp4',
                 'thumbnail': r're:^https?://.*\.jpg',
+                'timestamp': 1503561156,
+                'upload_date': '20170824',
                 'uploader': 'Tobias Hägg',
+                'uploader_id': 'tobias-hägg',
+                'uploader_url': 'https://www.airvuz.com/user/tobias-hägg',
                 'description': 'md5:176b43a79a0a19d592c0261d9c0a48c7',
             }
         },
@@ -50,11 +59,21 @@ class AirVuzIE(InfoExtractor):
                 'title': 'Cinematic FPV Flying at a Cove! 🌊🌊🌊 The rocks, waves, and seaweed😍!',
                 'ext': 'mp4',
                 'thumbnail': r're:^https?://.*\.jpg',
+                'timestamp': 1564324147,
+                'upload_date': '20190728',
                 'uploader': 'Mako Reactra',
+                'uploader_id': 'mako-reactra',
+                'uploader_url': 'https://www.airvuz.com/user/mako-reactra',
                 'description': 'md5:ac91310ff7c2de26a0f1e8e8caae2ee6'
             },
+            'params': {
+                'format': 'video-1'
+            }
         },
     ]
+
+    def _extract_og_property(self, prop, html, fatal=False):
+        return self._html_search_regex(r'<meta[^>]+?(?:name|property)=(?:\'og:%s\'|"og:%s"|og:%s)[^>]+?content=(?:"([^"]+?)"|\'([^\']+?)\'|([^\s"\'=<>`]+))' % (prop, prop, prop), html, prop, fatal=fatal, default=None)
 
     def _real_extract(self, url):
         groups = re.match(self._VALID_URL, url)
@@ -65,12 +84,20 @@ class AirVuzIE(InfoExtractor):
 
         self.report_extraction(video_id)
 
-        title = self._og_search_title(webpage)
-        thumbnail = self._og_search_thumbnail(webpage)
+        title = self._og_search_title(webpage) or self._html_search_meta('twitter:title', webpage, fatal=True)
+        thumbnail = self._og_search_thumbnail(webpage) or self._html_search_meta('twitter:image', webpage, fatal=False)
         description = self._og_search_description(webpage)
-        uploader = self._html_search_regex(r'class=(?:\'img-circle\'|"img-circle"|img-circle)[^>]+?alt=(?:"([^"]+?)"|\'([^\']+?)\'|([^\s"\'=<>`]+))', webpage, 'uploader', fatal=False) or self._html_search_regex(r'https?://(?:www\.)?airvuz\.com/user/([^>]*)', webpage, 'uploader', fatal=False)
+        timestamp = unified_timestamp(self._extract_og_property('updated_time', webpage, fatal=False))
+        uploader = self._html_search_regex(r'class=(?:\'img-circle\'|"img-circle"|img-circle)[^>]+?alt=(?:"([^"]+?)"|\'([^\']+?)\'|([^\s"\'=<>`]+))', webpage, 'uploader', fatal=False, default=None)
 
-        video_url = self._html_search_regex(r'<meta[^>]+?(?:name|property)=(?:\'og:video:url\'|"og:video:url"|og:video:url)[^>]+?content=(?:"([^"]+?)"|\'([^\']+?)\'|([^\s"\'=<>`]+))', webpage, 'video_url', fatal=False) or None
+        uploader_id = None
+        uploader_url = None
+        uploader_info = re.search(r'(?P<url>https?://(?:www\.)?airvuz\.com/user/(?P<id>[^>]+))', webpage)
+        if uploader_info is not None:
+            uploader_id = uploader_info.group('id')
+            uploader_url = uploader_info.group('url')
+
+        video_url = self._extract_og_property('video:url', webpage, fatal=True)
 
         formats = []
         mpd_info = False
@@ -140,5 +167,8 @@ class AirVuzIE(InfoExtractor):
             'formats': formats,
             'thumbnail': thumbnail,
             'description': description,
+            'timestamp': timestamp,
             'uploader': uploader,
+            'uploader_id': uploader_id,
+            'uploader_url': uploader_url,
         }
