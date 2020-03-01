@@ -2795,6 +2795,15 @@ class YoutubeDLCookieProcessor(compat_urllib_request.HTTPCookieProcessor):
     https_response = http_response
 
 
+class YoutubeDLRedirectHandler(compat_urllib_request.HTTPRedirectHandler):
+    if sys.version_info[0] < 3:
+        def redirect_request(self, req, fp, code, msg, headers, newurl):
+            # On python 2 urlh.geturl() may sometimes return redirect URL
+            # as byte string instead of unicode. This workaround allows
+            # to force it always return unicode.
+            return compat_urllib_request.HTTPRedirectHandler.redirect_request(self, req, fp, code, msg, headers, compat_str(newurl))
+
+
 def extract_timezone(date_str):
     m = re.search(
         r'^.{8,}?(?P<tz>Z$| ?(?P<sign>\+|-)(?P<hours>[0-9]{2}):?(?P<minutes>[0-9]{2})$)',

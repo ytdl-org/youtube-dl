@@ -244,14 +244,14 @@ class ZDFChannelIE(ZDFBaseIE):
             'id': 'das-aktuelle-sportstudio',
             'title': 'das aktuelle sportstudio | ZDF',
         },
-        'playlist_count': 21,
+        'playlist_mincount': 23,
     }, {
         'url': 'https://www.zdf.de/dokumentation/planet-e',
         'info_dict': {
             'id': 'planet-e',
             'title': 'planet e.',
         },
-        'playlist_count': 4,
+        'playlist_mincount': 50,
     }, {
         'url': 'https://www.zdf.de/filme/taunuskrimi/',
         'only_matching': True,

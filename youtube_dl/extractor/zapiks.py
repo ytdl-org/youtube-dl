@@ -29,7 +29,6 @@ class ZapiksIE(InfoExtractor):
                 'timestamp': 1359044972,
                 'upload_date': '20130124',
                 'view_count': int,
-                'comment_count': int,
             },
         },
         {
