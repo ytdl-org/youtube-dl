@@ -1,3 +1,24 @@
+version 2020.03.01
+
+Core
+* [YoutubeDL] Force redirect URL to unicode on python 2
+- [options] Remove duplicate short option -v for --version (#24162)
+
+Extractors
+* [xhamster] Fix extraction (#24205)
+* [franceculture] Fix extraction (#24204)
++ [telecinco] Add support for article opening videos
+* [telecinco] Fix extraction (#24195)
+* [xtube] Fix metadata extraction (#21073, #22455)
+* [youjizz] Fix extraction (#24181)
+- Remove no longer needed compat_str around geturl
+* [pornhd] Fix extraction (#24128)
++ [teachable] Add support for multiple videos per lecture (#24101)
++ [wistia] Add support for multiple generic embeds (#8347, 11385)
+* [imdb] Fix extraction (#23443)
+* [tv2dk:bornholm:play] Fix extraction (#24076)
+
+
 version 2020.02.16
 
 Core
