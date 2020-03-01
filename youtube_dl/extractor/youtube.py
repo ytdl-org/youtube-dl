@@ -1425,7 +1425,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
             self._downloader.report_warning('video doesn\'t have subtitles')
             return {}
         return sub_lang_list
-
+    
     def _get_ytplayer_config(self, video_id, webpage):
         patterns = (
             # User data may contain arbitrary character sequences that may affect
@@ -1651,7 +1651,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                 'title': chapter_title,
             })
         return chapters
-
+        
     def _real_extract(self, url):
         url, smuggled_data = unsmuggle_url(url, {})
 
@@ -1704,12 +1704,20 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
 
         is_live = None
         view_count = None
-
         def extract_view_count(v_info):
             return int_or_none(try_get(v_info, lambda x: x['view_count'][0]))
 
         def extract_token(v_info):
             return dict_get(v_info, ('account_playback_token', 'accountPlaybackToken', 'token'))
+
+        def extract_audioconfig(q,player_response):
+            playConfig = dict_get(player_response, ('playConfig','playerConfig','audioConfig'))
+            audioConfig = dict_get(playConfig, ('audioConfig','audioConfig','perceptualLoudnessDb'))
+            for pattern, value in audioConfig.items():
+                if re.search(pattern, q):
+                    return value
+                    break
+            return None
 
         def extract_player_response(player_response, video_id):
             pl_response = str_or_none(player_response)
@@ -1719,7 +1727,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
             if isinstance(pl_response, dict):
                 add_dash_mpd_pr(pl_response)
                 return pl_response
-
+        
         player_response = {}
 
         # Get video info
@@ -1821,6 +1829,12 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                         if not token:
                             video_info = get_video_info
                         break
+        
+        # Audio config
+        #TODO: Extract all data audioconfig example:
+        # loudnessDb = extract_audioconfig("loudnessDb", player_response)
+        # enablePerFormatLoudness = extract_audioconfig("enablePerFormatLoudness", player_response)
+        perceptualLoudnessDb = extract_audioconfig("perceptualLoudnessDb", player_response)
 
         def extract_unavailable_message():
             messages = []
@@ -2460,6 +2474,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
             'album': album,
             'release_date': release_date,
             'release_year': release_year,
+            'perceptualLoudnessDb': perceptualLoudnessDb,
         }
 
 
