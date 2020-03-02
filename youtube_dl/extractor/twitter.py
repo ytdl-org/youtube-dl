@@ -251,10 +251,10 @@ class TwitterIE(TwitterBaseIE):
         'info_dict': {
             'id': '700207533655363584',
             'ext': 'mp4',
-            'title': 'Simon Vertugo - BEAT PROD: @suhmeduh #Damndaniel',
+            'title': 'simon vetugo - BEAT PROD: @suhmeduh #Damndaniel',
             'description': 'BEAT PROD: @suhmeduh  https://t.co/HBrQ4AfpvZ #Damndaniel https://t.co/byBooq2ejZ',
             'thumbnail': r're:^https?://.*\.jpg',
-            'uploader': 'Simon Vertugo',
+            'uploader': 'simon vetugo',
             'uploader_id': 'simonvertugo',
             'duration': 30.0,
             'timestamp': 1455777459,
@@ -376,6 +376,10 @@ class TwitterIE(TwitterBaseIE):
         # Twitch Clip Embed
         'url': 'https://twitter.com/GunB1g/status/1163218564784017422',
         'only_matching': True,
+    }, {
+        # promo_video_website card
+        'url': 'https://twitter.com/GunB1g/status/1163218564784017422',
+        'only_matching': True,
     }]
 
     def _real_extract(self, url):
@@ -458,10 +462,11 @@ class TwitterIE(TwitterBaseIE):
                     return try_get(o, lambda x: x[x['type'].lower() + '_value'])
 
                 card_name = card['name'].split(':')[-1]
-                if card_name == 'amplify':
-                    formats = self._extract_formats_from_vmap_url(
-                        get_binding_value('amplify_url_vmap'),
-                        get_binding_value('amplify_content_id') or twid)
+                if card_name in ('amplify', 'promo_video_website'):
+                    is_amplify = card_name == 'amplify'
+                    vmap_url = get_binding_value('amplify_url_vmap') if is_amplify else get_binding_value('player_stream_url')
+                    content_id = get_binding_value('%s_content_id' % (card_name if is_amplify else 'player'))
+                    formats = self._extract_formats_from_vmap_url(vmap_url, content_id or twid)
                     self._sort_formats(formats)
 
                     thumbnails = []

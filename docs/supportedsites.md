@@ -389,7 +389,6 @@
  - **JeuxVideo**
  - **Joj**
  - **Jove**
- - **jpopsuki.tv**
  - **JWPlatform**
  - **Kakao**
  - **Kaltura**
@@ -628,7 +627,6 @@
  - **OutsideTV**
  - **PacktPub**
  - **PacktPubCourse**
- - **PandaTV**: 熊猫TV
  - **pandora.tv**: 판도라TV
  - **ParamountNetwork**
  - **parliamentlive.tv**: UK parliament videos
@@ -664,6 +662,7 @@
  - **Pokemon**
  - **PolskieRadio**
  - **PolskieRadioCategory**
+ - **Popcorntimes**
  - **PopcornTV**
  - **PornCom**
  - **PornerBros**
@@ -1005,8 +1004,8 @@
  - **Vidzi**
  - **vier**: vier.be and vijf.be
  - **vier:videos**
- - **ViewLift**
- - **ViewLiftEmbed**
+ - **viewlift**
+ - **viewlift:embed**
  - **Viidea**
  - **viki**
  - **viki:channel**
