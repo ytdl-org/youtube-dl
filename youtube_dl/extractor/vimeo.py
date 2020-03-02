@@ -33,6 +33,7 @@ from ..utils import (
     unified_timestamp,
     unsmuggle_url,
     urlencode_postdata,
+    urljoin,
     unescapeHTML,
 )
 
@@ -191,7 +192,7 @@ class VimeoBaseInfoExtractor(InfoExtractor):
             for tt in text_tracks:
                 subtitles[tt['lang']] = [{
                     'ext': 'vtt',
-                    'url': 'https://vimeo.com' + tt['url'],
+                    'url': urljoin('https://vimeo.com', tt['url']),
                 }]
 
         thumbnails = []
