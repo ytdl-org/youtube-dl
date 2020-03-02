@@ -416,6 +416,7 @@ class PeerTubeIE(InfoExtractor):
                             peertube\.cpy\.re
                         )'''
     _UUID_RE = r'[\da-fA-F]{8}-[\da-fA-F]{4}-[\da-fA-F]{4}-[\da-fA-F]{4}-[\da-fA-F]{12}'
+    _API_BASE = 'https://%s/api/v1/videos/%s/%s'
     _VALID_URL = r'''(?x)
                     (?:
                         peertube:(?P<host>[^:]+):|
@@ -430,7 +431,7 @@ class PeerTubeIE(InfoExtractor):
             'id': '9c9de5e8-0a1e-484a-b099-e80766180a6d',
             'ext': 'mp4',
             'title': 'What is PeerTube?',
-            'description': '**[Want to help to translate this video?](https://weblate.framasoft.org/projects/what-is-peertube-video/)**\r\n\r\n**Take back the control of your videos! [#JoinPeertube](https://joinpeertube.org)**\r\n*A decentralized video hosting network, based on free/libre software!*\r\n\r\n**Animation Produced by:** [LILA](https://libreart.info) - [ZeMarmot Team](https://film.zemarmot.net)\r\n*Directed by* Aryeom\r\n*Assistant* Jehan\r\n**Licence**: [CC-By-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/)\r\n\r\n**Sponsored by** [Framasoft](https://framasoft.org)\r\n\r\n**Music**: [Red Step Forward](http://play.dogmazic.net/song.php?song_id=52491) - CC-By Ken Bushima\r\n\r\n**Movie Clip**: [Caminades 3: Llamigos](http://www.caminandes.com/) CC-By Blender Institute\r\n\r\n**Video sources**: https://gitlab.gnome.org/Jehan/what-is-peertube/',
+            'description': 'md5:3fefb8dde2b189186ce0719fda6f7b10',
             'thumbnail': r're:https?://.*\.(?:jpg|png)',
             'timestamp': 1538391166,
             'upload_date': '20181001',
@@ -489,21 +490,29 @@ class PeerTubeIE(InfoExtractor):
                 entries = [peertube_url]
         return entries
 
-    def _get_subtitles(self, host, video_id):
-        video_captions = self._download_json(
-            'https://%s/api/v1/videos/%s/captions' % (host, video_id), video_id, fatal=False)
-        if not isinstance(video_captions, dict):
-            return None
+    def _call_api(self, host, video_id, path, note=None, errnote=None, fatal=True):
+        return self._download_json(
+            self._API_BASE % (host, video_id, path), video_id,
+            note=note, errnote=errnote, fatal=fatal)
 
+    def _get_subtitles(self, host, video_id):
+        captions = self._call_api(
+            host, video_id, 'captions', note='Downloading captions JSON',
+            fatal=False)
+        if not isinstance(captions, dict):
+            return
+        data = captions.get('data')
+        if not isinstance(data, list):
+            return
         subtitles = {}
-        for entry in video_captions.get('data'):
-            language_id = try_get(entry, lambda x: x['language']['id'], compat_str)
-            caption_path = str_or_none(entry.get('captionPath'))
-            if language_id and caption_path:
-                caption_url = urljoin('https://%s' % host, entry.get('captionPath'))
-                subtitles.setdefault(language_id, []).append({
-                    'url': caption_url,
-                })
+        for e in data:
+            language_id = try_get(e, lambda x: x['language']['id'], compat_str)
+            caption_url = urljoin('https://%s' % host, e.get('captionPath'))
+            if not caption_url:
+                continue
+            subtitles.setdefault(language_id or 'en', []).append({
+                'url': caption_url,
+            })
         return subtitles
 
     def _real_extract(self, url):
@@ -511,8 +520,8 @@ class PeerTubeIE(InfoExtractor):
         host = mobj.group('host') or mobj.group('host_2')
         video_id = mobj.group('id')
 
-        video = self._download_json(
-            'https://%s/api/v1/videos/%s' % (host, video_id), video_id)
+        video = self._call_api(
+            host, video_id, '', note='Downloading video JSON')
 
         title = video['name']
 
@@ -535,12 +544,15 @@ class PeerTubeIE(InfoExtractor):
             formats.append(f)
         self._sort_formats(formats)
 
-        video_description = self._download_json(
-            'https://%s/api/v1/videos/%s/description' % (host, video_id), video_id, fatal=False)
+        full_description = self._call_api(
+            host, video_id, 'description', note='Downloading description JSON',
+            fatal=False)
 
         description = None
-        if isinstance(video_description, dict):
-            description = str_or_none(video_description.get('description'))
+        if isinstance(full_description, dict):
+            description = str_or_none(full_description.get('description'))
+        if not description:
+            description = video.get('description')
 
         subtitles = self.extract_subtitles(host, video_id)
 
@@ -569,10 +581,10 @@ class PeerTubeIE(InfoExtractor):
             'thumbnail': urljoin(url, video.get('thumbnailPath')),
             'timestamp': unified_timestamp(video.get('publishedAt')),
             'uploader': account_data('displayName', compat_str),
-            'uploader_id': str(account_data('id', int)),
+            'uploader_id': str_or_none(account_data('id', int)),
             'uploader_url': url_or_none(account_data('url', compat_str)),
             'channel': channel_data('displayName', compat_str),
-            'channel_id': str(channel_data('id', int)),
+            'channel_id': str_or_none(channel_data('id', int)),
             'channel_url': url_or_none(channel_data('url', compat_str)),
             'language': data('language', 'id', compat_str),
             'license': data('licence', 'label', compat_str),
