@@ -123,7 +123,7 @@ class OdnoklassnikiIE(InfoExtractor):
         'only_matching': True,
     }, {
         # Downloads only via https
-        'url': 'https://ok.ru/video/1704000096969',
+        'url': 'https://ok.ru/video/1705664645833',
         'only_matching': True,
     }]
 
