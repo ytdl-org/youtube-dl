@@ -32,31 +32,40 @@ class MatterIE(InfoExtractor):
 
     def _real_extract(self, url):
         track_id = self._match_id(url)
-        webpage = self._download_webpage(
-            "https://api.matter.online/api/v1/open-graph/tracks/%s/embedded" % track_id, track_id
-        )
 
-        author = self._search_regex(
-            r'<a href="https://app.matter.online/artists/[^"]+" target="[^"]+">([^<]+)</a>',
-            webpage, "author"
-        )
+        # Fetch page with metadata and download URLs.
+        api = "https://api.matter.online/api/v1/open-graph/tracks/%s/embedded"
+        webpage = self._download_webpage(api % track_id, track_id)
+
+        # Extract required fields
         title = self._search_regex(
-            r'<a href="https://app.matter.online/tracks/\d+" target="[^"]+">([^<]+)</a>',
+            r'tracks/\d+" target="[^"]+">([^<]+)</a>',
             webpage, "title"
         )
         download_url = self._search_regex(
-            r'<source src="(https://matter-production.s3.amazonaws.com/audios/[^\.]+\.[^"]+)"/>',
+            r'(https://[^/]+/audios/[^\.]+\.[^"]+)"/>',
             webpage, "download_url"
         )
-        artwork = self._search_regex(
-            r'style="background: url\((https://matter-production.s3.amazonaws.com/images/[^\.]+\.[^\)]+)\)',
-            webpage, "artwork"
-        )
 
-        return {
+        extracted = {
             'id': track_id,
             'url': download_url,
             'title': title,
-            'uploader': author,
-            'thumbnail': artwork,
         }
+
+        # Extract optional fields
+        author = self._search_regex(
+            r'artists/[^"]+" target="[^"]+">([^<]+)</a>',
+            webpage, "author", fatal=False
+        )
+        artwork = self._search_regex(
+            r'(https://[^/]+/images/[^\.]+\.[^\)]+)\)',
+            webpage, "artwork", fatal=False
+        )
+
+        if artwork:
+            extracted['thumbnail'] = artwork
+        if author:
+            extracted['uploader'] = author
+
+        return extracted
