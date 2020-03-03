@@ -4,11 +4,17 @@ from __future__ import unicode_literals
 from .common import InfoExtractor
 from ..compat import compat_urllib_parse_unquote
 from ..utils import (
+    determine_ext,
     ExtractorError,
-    unified_timestamp
+    replace_extension,
+    unified_timestamp,
+    url_basename,
+    urljoin,
+    int_or_none,
 )
 
 import re
+import copy
 
 
 class AirVuzIE(InfoExtractor):
@@ -29,9 +35,6 @@ class AirVuzIE(InfoExtractor):
                 'uploader_url': 'https://www.airvuz.com/user/menga-fpv',
                 'description': 'md5:13e8079235de737142d475f0b4058869',
             },
-            'params': {
-                'format': 'video-1'
-            }
         },
         # No MPD
         {
@@ -66,9 +69,6 @@ class AirVuzIE(InfoExtractor):
                 'uploader_url': 'https://www.airvuz.com/user/mako-reactra',
                 'description': 'md5:ac91310ff7c2de26a0f1e8e8caae2ee6'
             },
-            'params': {
-                'format': 'video-1'
-            }
         },
     ]
 
@@ -76,9 +76,9 @@ class AirVuzIE(InfoExtractor):
         return self._html_search_regex(r'<meta[^>]+?(?:name|property)=(?:\'og:%s\'|"og:%s"|og:%s)[^>]+?content=(?:"([^"]+?)"|\'([^\']+?)\'|([^\s"\'=<>`]+))' % (prop, prop, prop), html, prop, fatal=fatal, default=None)
 
     def _real_extract(self, url):
-        groups = re.match(self._VALID_URL, url)
-        video_id = groups.group('id')
-        display_id = compat_urllib_parse_unquote(groups.group('display_id'))
+        re_url = re.match(self._VALID_URL, url)
+        video_id = re_url.group('id')
+        display_id = compat_urllib_parse_unquote(re_url.group('display_id'))
 
         webpage = self._download_webpage(url, video_id)
 
@@ -105,27 +105,70 @@ class AirVuzIE(InfoExtractor):
         result = re.match(r'https?://cdn\.airvuz\.com/drone-video/(?P<id>.+)/', video_url)
         if result:
             mpd_id = result.group('id')
-            mpd_pattern = 'https://www.airvuz.com/drone-video/%s/dash/%s_dash.mpd' % (mpd_id, mpd_id)
 
             try:
                 # Try to get mpd file
-                mpd_formats = self._extract_mpd_formats(mpd_pattern, video_id, fatal=True)
+                mpd_formats = self._extract_mpd_formats('https://www.airvuz.com/drone-video/%s/dash/%s_dash.mpd' % (mpd_id, mpd_id), video_id, fatal=True)
+
                 if mpd_formats:
                     # VIDEO-1 has always the highest quality
-                    for format in reversed(mpd_formats):
-                        format["format_id"] = format["format_id"].lower()
-                        formats.append(format)
+                    # Sorts from worst to best
+                    self._sort_formats(mpd_formats)
+
+                    # Adapt original audio and video only formats list
+                    a_index = None
+                    for i, format in enumerate(mpd_formats):
+                        if 'AUDIO-1' in format.get('format_id').upper():
+                            a_index = i
+                            format['acodec'] = '%s@%sk (%s Hz)' % (format.get('acodec'), int_or_none(format.get('tbr')), format.get('asr'))
+                            format['format_note'] = 'tiny '
+                            format['asr'] = None
+                            format['container'] = None
+                        else:
+                            format['format_note'] = '%sp ' % (format.get('height'))
+                            # reject video only formats priority, otherwise it gets picked up when format is not specified
+                            format['acodec'] = 'video only'
+
+                    # Confirm audio track was found
+                    if a_index is None:
+                        raise KeyError('Unable to extract audio data')
+                    else:
+                        a_format = mpd_formats[a_index]
+                        del mpd_formats[a_index]
+
+                    formats.append(a_format)
+                    formats.extend(mpd_formats)
+
+                    # Attach video+audio to the available formats
+                    count = len(mpd_formats)
+                    for avf in copy.deepcopy(mpd_formats):
+                        # Replace URL to CDN containing whole media
+                        file_baseurl = url_basename(avf.get('url'))
+                        file_url = urljoin(result[0], file_baseurl)
+                        if avf.get('ext'):
+                            avf['url'] = replace_extension(file_url, avf.get('ext'))
+                        else:
+                            avf['url'] = replace_extension(file_url, determine_ext(avf.get('url')))
+
+                        avf['format_id'] = 'av-%s' % count
+                        avf['acodec'] = a_format.get('acodec')
+                        avf['format_note'] = '%sp ' % (avf.get('height'))
+                        avf['container'] = None
+
+                        formats.append(avf)
+                        count -= 1
 
                     mpd_info = True
 
-            except ExtractorError:
+            except (KeyError, ExtractorError):
+                # ExtractorError can occur if dash file is not available, in that case we proceed to the other extraction methods
                 pass
 
         if mpd_info is False:
             try:
                 # Some videos don't have MPD information
-                # Use undocumented API to get the formats
-                meta = self._download_json('https://www.airvuz.com/api/videos/%s?type=dynamic' % video_id, video_id, fatal=True)
+                # Use API to get the formats
+                meta = self._download_json('https://www.airvuz.com/api/videos/%s' % video_id, video_id, fatal=True)
                 if meta:
                     info_res = meta.get('data')
 
@@ -133,7 +176,6 @@ class AirVuzIE(InfoExtractor):
                         video_url = res.get('src')
                         if not video_url:
                             continue
-
                         # URL is a relative path
                         video_url = 'https://www.airvuz.com/%s' % video_url
 
@@ -143,8 +185,8 @@ class AirVuzIE(InfoExtractor):
                         })
 
             except ExtractorError:
-                #  Fallback to original video
-                self.report_warning('Unable to extract formats')
+                #  Fallback to og original video
+                self.report_warning('Unable to extract formats from JSON')
                 self.to_screen('%s: Extracting original video' % video_id)
 
                 if video_url:
