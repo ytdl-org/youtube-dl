@@ -757,6 +757,9 @@ def parseOpts(overrideArguments=None):
         '--cache-dir', dest='cachedir', default=None, metavar='DIR',
         help='Location in the filesystem where youtube-dl can store some downloaded information permanently. By default $XDG_CACHE_HOME/youtube-dl or ~/.cache/youtube-dl . At the moment, only YouTube player files (for videos with obfuscated signatures) are cached, but that may change.')
     filesystem.add_option(
+        '--temp-dir', dest='tempdir', default=None, metavar='DIR',
+        help='Directory where youtube-dl can store some temporary files.')
+    filesystem.add_option(
         '--no-cache-dir', action='store_const', const=False, dest='cachedir',
         help='Disable filesystem caching')
     filesystem.add_option(

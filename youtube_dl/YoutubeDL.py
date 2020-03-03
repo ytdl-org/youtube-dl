@@ -631,7 +631,7 @@ class YoutubeDL(object):
         except UnicodeEncodeError:
             self.to_screen('[download] The file has already been downloaded')
 
-    def prepare_filename(self, info_dict):
+    def prepare_filename(self, info_dict, temp=False):
         """Generate the output filename."""
         try:
             template_dict = dict(info_dict)
@@ -709,6 +709,9 @@ class YoutubeDL(object):
             # be expanded. For example, for outtmpl "%(title)s.%(ext)s" and
             # title "Hello $PATH", we don't want `$PATH` to be expanded.
             filename = expand_path(outtmpl).replace(sep, '') % template_dict
+
+            if temp and self.params.get("tempdir", None) is not None:
+                filename = os.path.join(self.params["tempdir"], os.path.basename(filename))
 
             # Temporary fix for #4787
             # 'Treat' all problem characters by passing filename through preferredencoding
@@ -1912,7 +1915,7 @@ class YoutubeDL(object):
                             new_info = dict(info_dict)
                             new_info.update(f)
                             fname = prepend_extension(
-                                self.prepare_filename(new_info),
+                                self.prepare_filename(new_info, temp=True),
                                 'f%s' % f['format_id'], new_info['ext'])
                             if not ensure_dir_exists(fname):
                                 return
