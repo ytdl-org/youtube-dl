@@ -86,6 +86,19 @@ class LiveLeakIE(InfoExtractor):
         # No original video
         'url': 'https://www.liveleak.com/view?t=C26ZZ_1558612804',
         'only_matching': True,
+    }, {
+        # Vimeo embed
+        'url': 'https://www.liveleak.com/view?t=973Sp_1583120710',
+        'md5': '846a7164e20c1e2c5e9bc6efe3a853bd',
+        'info_dict': {
+            'id': '80725414',
+            'ext': 'mp4',
+            'description': 'Fender guitars\' tribute to Stevie and ALL the greats,',
+            'uploader': 'smyle',
+            'uploader_id': 'user8600287',
+            'title': 'Liveleak.com - A Little Sunday Night SRV...',
+            'thumbnail': r're:^https?://.*\.jpg$'
+        }
     }]
 
     @staticmethod
@@ -111,7 +124,7 @@ class LiveLeakIE(InfoExtractor):
         if not entries:
             # Maybe an embed?
             embed_url = self._search_regex(
-                r'<iframe[^>]+src="((?:https?:)?//(?:www\.)?(?:prochan|youtube)\.com/embed[^"]+)"',
+                r'<iframe[^>]+src="((?:https?:)?//(?:(?:www\.)?(?:prochan|youtube)\.com/embed|player\.vimeo\.com/video)[^"]+)"',
                 webpage, 'embed URL')
             return {
                 '_type': 'url_transparent',
