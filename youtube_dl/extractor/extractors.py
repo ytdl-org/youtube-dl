@@ -497,7 +497,6 @@ from .jeuxvideo import JeuxVideoIE
 from .jove import JoveIE
 from .joj import JojIE
 from .jwplatform import JWPlatformIE
-from .jpopsukitv import JpopsukiIE
 from .kakao import KakaoIE
 from .kaltura import KalturaIE
 from .kanalplay import KanalPlayIE
@@ -850,6 +849,7 @@ from .polskieradio import (
     PolskieRadioIE,
     PolskieRadioCategoryIE,
 )
+from .popcorntimes import PopcorntimesIE
 from .popcorntv import PopcornTVIE
 from .porn91 import Porn91IE
 from .porncom import PornComIE

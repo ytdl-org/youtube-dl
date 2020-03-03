@@ -575,8 +575,8 @@ class TwitchStreamIE(TwitchBaseIE):
         channel_id = self._match_id(url)
 
         stream = self._call_api(
-            'kraken/streams/%s?stream_type=all' % channel_id, channel_id,
-            'Downloading stream JSON').get('stream')
+            'kraken/streams/%s?stream_type=all' % channel_id.lower(),
+            channel_id, 'Downloading stream JSON').get('stream')
 
         if not stream:
             raise ExtractorError('%s is offline' % channel_id, expected=True)

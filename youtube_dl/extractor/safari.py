@@ -8,7 +8,6 @@ from .common import InfoExtractor
 
 from ..compat import (
     compat_parse_qs,
-    compat_str,
     compat_urlparse,
 )
 from ..utils import (
@@ -39,13 +38,13 @@ class SafariBaseIE(InfoExtractor):
             'Downloading login page')
 
         def is_logged(urlh):
-            return 'learning.oreilly.com/home/' in compat_str(urlh.geturl())
+            return 'learning.oreilly.com/home/' in urlh.geturl()
 
         if is_logged(urlh):
             self.LOGGED_IN = True
             return
 
-        redirect_url = compat_str(urlh.geturl())
+        redirect_url = urlh.geturl()
         parsed_url = compat_urlparse.urlparse(redirect_url)
         qs = compat_parse_qs(parsed_url.query)
         next_uri = compat_urlparse.urljoin(
