@@ -1,3 +1,14 @@
+version 2020.03.06
+
+Extractors
+* [youtube] Fix age-gated videos support without login (#24248)
+* [vimeo] Fix showcase password protected video extraction (#24224)
+* [pornhub] Improve title extraction (#24184)
+* [peertube] Improve extraction (#23657)
++ [servus] Add support for new URL schema (#23475, #23583, #24142)
+* [vimeo] Fix subtitles URLs (#24209)
+
+
 version 2020.03.01
 
 Core
