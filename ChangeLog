@@ -1,4 +1,4 @@
-version <unreleased>
+version 2020.03.06
 
 Extractors
 * [youtube] Fix age-gated videos support without login (#24248)
