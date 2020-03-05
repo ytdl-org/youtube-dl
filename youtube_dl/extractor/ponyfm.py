@@ -17,22 +17,17 @@ class PonyFMIE(InfoExtractor):
     def _real_extract(self, url):
         track_id = self._match_id(url)
 
-        # Extract required fields from webpage
-        webpage = self._download_webpage(url, track_id)
-        title = self._html_search_meta(
-            ['og:title', 'twitter:title'], webpage) or self._html_search_regex(
-            r'<h1>([^<]+</h1>', webpage, "title"
-        )
+        # Extract required fields from JSON API
+        apiurl = "https://pony.fm/api/web/tracks/%s" % track_id
+        json = self._download_json(apiurl, track_id)['track']
 
-        # Create formats array from track_id
+        title = json['title']
         formats = []
-        base_url = "https://pony.fm/t%s" % track_id
-        formats.extend([
-            {'url': "%s/dl.mp3" % base_url},
-            {'url': "%s/dl.m4a" % base_url},
-            {'url': "%s/dl.ogg" % base_url},
-            {'url': "%s/dl.flac" % base_url}
-        ])
+        for f in json['formats']:
+            formats.append({
+                'format': f['name'],
+                'url': f['url'],
+            })
 
         extracted = {
             'id': track_id,
@@ -40,11 +35,9 @@ class PonyFMIE(InfoExtractor):
             'formats': formats,
         }
 
-        # Extract optional metadata (author, album art) from webpage
-        artwork = self._html_search_meta(['og:image'], webpage)
-        author = self._search_regex(
-            r'by: <a [^>]+>([^<]+)</a>', webpage, "author", fatal=False
-        )
+        # Extract optional metadata (author, album art) from JSON API
+        author = json.get('user', {}).get('name')
+        artwork = json.get('covers', {}).get('original')
 
         if artwork:
             extracted['thumbnail'] = artwork
