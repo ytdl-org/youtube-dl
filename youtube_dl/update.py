@@ -9,6 +9,7 @@ import subprocess
 import sys
 from zipimport import zipimporter
 
+from .compat import compat_realpath
 from .utils import encode_compat_str
 
 from .version import __version__
@@ -84,7 +85,9 @@ def update_self(to_screen, verbose, opener):
     print_notes(to_screen, versions_info['versions'])
 
     # sys.executable is set to the full pathname of the exe-file for py2exe
-    filename = sys.executable if hasattr(sys, 'frozen') else sys.argv[0]
+    # though symlinks are not followed so that we need to do this manually
+    # with help of realpath
+    filename = compat_realpath(sys.executable if hasattr(sys, 'frozen') else sys.argv[0])
 
     if not os.access(filename, os.W_OK):
         to_screen('ERROR: no write permissions on %s' % filename)

@@ -17,7 +17,7 @@ class TwentyFourVideoIE(InfoExtractor):
     _VALID_URL = r'''(?x)
                     https?://
                         (?P<host>
-                            (?:(?:www|porno)\.)?24video\.
+                            (?:(?:www|porno?)\.)?24video\.
                             (?:net|me|xxx|sexy?|tube|adult|site|vip)
                         )/
                         (?:
@@ -61,6 +61,9 @@ class TwentyFourVideoIE(InfoExtractor):
         'only_matching': True,
     }, {
         'url': 'https://www.24video.vip/video/view/1044982',
+        'only_matching': True,
+    }, {
+        'url': 'https://porn.24video.net/video/2640421-vsya-takay',
         'only_matching': True,
     }]
 
