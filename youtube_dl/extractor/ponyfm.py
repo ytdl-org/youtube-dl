@@ -12,7 +12,23 @@ class PonyFMIE(InfoExtractor):
     point using a separate class that will be in this file.
     """
     _VALID_URL = r'https?://pony\.fm/tracks/(?P<id>\d+)-.+'
-    _TESTS = []
+    _TESTS = [{
+        'url': 'https://pony.fm/tracks/43462-summer-wind-fallout-equestria-skybolt',
+        'info_dict': {
+            'id': '43462',
+            'ext': 'flac',
+            'title': 'Summer Wind (Fallout: Equestria) - SkyBolt',
+            'uploader': 'SkyBoltsMusic',
+        }
+    }, {
+        'url': 'https://pony.fm/tracks/43852-kirin-ts',
+        'info_dict': {
+            'id': '43852',
+            'ext': 'mp3',
+            'title': 'KIRIN TS',
+            'uploader': '7TAIL3DFOXX'
+        }
+    }]
 
     def _real_extract(self, url):
         track_id = self._match_id(url)
