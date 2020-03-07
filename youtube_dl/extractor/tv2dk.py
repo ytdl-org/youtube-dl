@@ -106,7 +106,7 @@ class TV2DKBornholmPlayIE(InfoExtractor):
         video_id = self._match_id(url)
 
         video = self._download_json(
-            'http://play.tv2bornholm.dk/controls/AJAX.aspx/specifikVideo', video_id,
+            'https://play.tv2bornholm.dk/controls/AJAX.aspx/specifikVideo', video_id,
             data=json.dumps({
                 'playlist_id': video_id,
                 'serienavn': '',
