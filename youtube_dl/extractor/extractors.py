@@ -1129,6 +1129,7 @@ from .thisamericanlife import ThisAmericanLifeIE
 from .thisav import ThisAVIE
 from .thisoldhouse import ThisOldHouseIE
 from .threeqsdn import ThreeQSDNIE
+from .thumbzilla import ThumbzillaIE
 from .tiktok import (
     TikTokIE,
     TikTokUserIE,

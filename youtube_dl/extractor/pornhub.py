@@ -51,10 +51,7 @@ class PornHubIE(PornHubBaseIE):
     IE_DESC = 'PornHub and Thumbzilla'
     _VALID_URL = r'''(?x)
                     https?://
-                        (?:
-                            (?:[^/]+\.)?(?P<host>pornhub\.(?:com|net))/(?:(?:view_video\.php|video/show)\?viewkey=|embed/)|
-                            (?:www\.)?thumbzilla\.com/video/
-                        )
+                        (?:[^/]+\.)?(?P<host>pornhub\.(?:com|net))/(?:(?:view_video\.php|video/show)\?viewkey=|embed/)
                         (?P<id>[\da-z]+)
                     '''
     _TESTS = [{
@@ -139,9 +136,6 @@ class PornHubIE(PornHubBaseIE):
     }, {
         # private video
         'url': 'http://www.pornhub.com/view_video.php?viewkey=ph56fd731fce6b7',
-        'only_matching': True,
-    }, {
-        'url': 'https://www.thumbzilla.com/video/ph56c6114abd99a/horny-girlfriend-sex',
         'only_matching': True,
     }, {
         'url': 'http://www.pornhub.com/video/show?viewkey=648719015',
