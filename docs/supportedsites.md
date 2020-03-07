@@ -416,6 +416,7 @@
  - **la7.it**
  - **laola1tv**
  - **laola1tv:embed**
+ - **LBRY**
  - **LCI**
  - **Lcp**
  - **LcpPlay**
