@@ -1790,11 +1790,19 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                         query['el'] = el
                     if sts:
                         query['sts'] = sts
-                    video_info_webpage = self._download_webpage(
-                        '%s://www.youtube.com/get_video_info' % proto,
-                        video_id, note=False,
-                        errnote='unable to download video info webpage',
-                        fatal=False, query=query)
+                    try:
+                        video_info_webpage = self._download_webpage(
+                            '%s://www.youtube.com/get_video_info' % proto,
+                            video_id, note=False,
+                            errnote='unable to download video info webpage',
+                            query=query)
+                    except ExtractorError as e:
+                        # Skip further retries if we get 429 since solving
+                        # captcha only unblocks access to website but
+                        # not get_video_info end point
+                        if isinstance(e.cause, compat_HTTPError) and e.cause.code == 429:
+                            break
+                        continue
                     if not video_info_webpage:
                         continue
                     get_video_info = compat_parse_qs(video_info_webpage)
@@ -1833,12 +1841,15 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
             if messages:
                 return '\n'.join(messages)
 
-        if not video_info:
+        if not video_info and not player_response:
             unavailable_message = extract_unavailable_message()
             if not unavailable_message:
                 unavailable_message = 'Unable to extract video data'
             raise ExtractorError(
                 'YouTube said: %s' % unavailable_message, expected=True, video_id=video_id)
+
+        if not isinstance(video_info, dict):
+            video_info = {}
 
         video_details = try_get(
             player_response, lambda x: x['videoDetails'], dict) or {}
