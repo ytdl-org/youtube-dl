@@ -1,4 +1,4 @@
-version <unreleased>
+version 2020.03.08
 
 Core
 + [utils] Add support for cookie files with spaces
