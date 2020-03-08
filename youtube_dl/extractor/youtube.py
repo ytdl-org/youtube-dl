@@ -66,7 +66,7 @@ class YoutubeBaseInfoExtractor(InfoExtractor):
 
     _NETRC_MACHINE = 'youtube'
     # If True it will raise an error if no login info is provided
-    _LOGIN_REQUIRED = False
+    _LOGIN_REQUIRED = True
 
     _PLAYLIST_ID_RE = r'(?:PL|LL|EC|UU|FL|RD|UL|TL|PU|OLAK5uy_)[0-9A-Za-z-_]{10,}'
 
