@@ -165,10 +165,9 @@ class PornHubIE(PornHubBaseIE):
         mobj = re.match(self._VALID_URL, url)
         host = mobj.group('host') or 'pornhub.com'
         video_id = mobj.group('id')
-        cookie_file = self._downloader.params.get('cookiefile')
 
-        if host == 'pornhubpremium.com':
-            if not cookie_file:
+        if 'premium' in host:
+            if not self._downloader.params.get('cookiefile'):
                 raise ExtractorError(
                     'PornHub Premium requires authentication.'
                     ' You may want to use --cookies.',
