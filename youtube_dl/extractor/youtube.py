@@ -29,7 +29,6 @@ from ..compat import (
 from ..utils import (
     bool_or_none,
     clean_html,
-    dict_get,
     error_to_compat_str,
     extract_attributes,
     ExtractorError,
@@ -1708,9 +1707,6 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
         def extract_view_count(v_info):
             return int_or_none(try_get(v_info, lambda x: x['view_count'][0]))
 
-        def extract_token(v_info):
-            return dict_get(v_info, ('account_playback_token', 'accountPlaybackToken', 'token'))
-
         def extract_player_response(player_response, video_id):
             pl_response = str_or_none(player_response)
             if not pl_response:
@@ -1723,10 +1719,10 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
         player_response = {}
 
         # Get video info
+        video_info = {}
         embed_webpage = None
         if re.search(r'player-age-gate-content">', video_webpage) is not None:
             age_gate = True
-            video_info = None
             # We simulate the access to the video from www.youtube.com/v/{video_id}
             # this can be viewed without login into Youtube
             url = proto + '://www.youtube.com/embed/%s' % video_id
@@ -1753,8 +1749,6 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                 view_count = extract_view_count(video_info)
         else:
             age_gate = False
-            video_info = None
-            sts = None
             # Try looking directly into the video webpage
             ytplayer_config = self._get_ytplayer_config(video_id, video_webpage)
             if ytplayer_config:
@@ -1771,69 +1765,10 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                         args['ypc_vid'], YoutubeIE.ie_key(), video_id=args['ypc_vid'])
                 if args.get('livestream') == '1' or args.get('live_playback') == 1:
                     is_live = True
-                sts = ytplayer_config.get('sts')
                 if not player_response:
                     player_response = extract_player_response(args.get('player_response'), video_id)
             if not video_info or self._downloader.params.get('youtube_include_dash_manifest', True):
                 add_dash_mpd_pr(player_response)
-                # We also try looking in get_video_info since it may contain different dashmpd
-                # URL that points to a DASH manifest with possibly different itag set (some itags
-                # are missing from DASH manifest pointed by webpage's dashmpd, some - from DASH
-                # manifest pointed by get_video_info's dashmpd).
-                # The general idea is to take a union of itags of both DASH manifests (for example
-                # video with such 'manifest behavior' see https://github.com/ytdl-org/youtube-dl/issues/6093)
-                self.report_video_info_webpage_download(video_id)
-                for el in ('embedded', 'detailpage', 'vevo', ''):
-                    query = {
-                        'video_id': video_id,
-                        'ps': 'default',
-                        'eurl': '',
-                        'gl': 'US',
-                        'hl': 'en',
-                    }
-                    if el:
-                        query['el'] = el
-                    if sts:
-                        query['sts'] = sts
-                    try:
-                        video_info_webpage = self._download_webpage(
-                            '%s://www.youtube.com/get_video_info' % proto,
-                            video_id, note=False,
-                            errnote='unable to download video info webpage',
-                            query=query)
-                    except ExtractorError as e:
-                        # Skip further retries if we get 429 since solving
-                        # captcha only unblocks access to website but
-                        # not get_video_info end point
-                        if isinstance(e.cause, compat_HTTPError) and e.cause.code == 429:
-                            break
-                        continue
-                    if not video_info_webpage:
-                        continue
-                    get_video_info = compat_parse_qs(video_info_webpage)
-                    if not player_response:
-                        pl_response = get_video_info.get('player_response', [None])[0]
-                        player_response = extract_player_response(pl_response, video_id)
-                    add_dash_mpd(get_video_info)
-                    if view_count is None:
-                        view_count = extract_view_count(get_video_info)
-                    if not video_info:
-                        video_info = get_video_info
-                    get_token = extract_token(get_video_info)
-                    if get_token:
-                        # Different get_video_info requests may report different results, e.g.
-                        # some may report video unavailability, but some may serve it without
-                        # any complaint (see https://github.com/ytdl-org/youtube-dl/issues/7362,
-                        # the original webpage as well as el=info and el=embedded get_video_info
-                        # requests report video unavailability due to geo restriction while
-                        # el=detailpage succeeds and returns valid data). This is probably
-                        # due to YouTube measures against IP ranges of hosting providers.
-                        # Working around by preferring the first succeeded video_info containing
-                        # the token if no such video_info yet was found.
-                        token = extract_token(video_info)
-                        if not token:
-                            video_info = get_video_info
-                        break
 
         def extract_unavailable_message():
             messages = []
@@ -2408,30 +2343,23 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                         f['stretched_ratio'] = ratio
 
         if not formats:
-            token = extract_token(video_info)
-            if not token:
-                if 'reason' in video_info:
-                    if 'The uploader has not made this video available in your country.' in video_info['reason']:
-                        regions_allowed = self._html_search_meta(
-                            'regionsAllowed', video_webpage, default=None)
-                        countries = regions_allowed.split(',') if regions_allowed else None
-                        self.raise_geo_restricted(
-                            msg=video_info['reason'][0], countries=countries)
-                    reason = video_info['reason'][0]
-                    if 'Invalid parameters' in reason:
-                        unavailable_message = extract_unavailable_message()
-                        if unavailable_message:
-                            reason = unavailable_message
-                    raise ExtractorError(
-                        'YouTube said: %s' % reason,
-                        expected=True, video_id=video_id)
-                else:
-                    raise ExtractorError(
-                        '"token" parameter not in video info for unknown reason',
-                        video_id=video_id)
-
-        if not formats and (video_info.get('license_info') or try_get(player_response, lambda x: x['streamingData']['licenseInfos'])):
-            raise ExtractorError('This video is DRM protected.', expected=True)
+            if 'reason' in video_info:
+                if 'The uploader has not made this video available in your country.' in video_info['reason']:
+                    regions_allowed = self._html_search_meta(
+                        'regionsAllowed', video_webpage, default=None)
+                    countries = regions_allowed.split(',') if regions_allowed else None
+                    self.raise_geo_restricted(
+                        msg=video_info['reason'][0], countries=countries)
+                reason = video_info['reason'][0]
+                if 'Invalid parameters' in reason:
+                    unavailable_message = extract_unavailable_message()
+                    if unavailable_message:
+                        reason = unavailable_message
+                raise ExtractorError(
+                    'YouTube said: %s' % reason,
+                    expected=True, video_id=video_id)
+            if video_info.get('license_info') or try_get(player_response, lambda x: x['streamingData']['licenseInfos']):
+                raise ExtractorError('This video is DRM protected.', expected=True)
 
         self._sort_formats(formats)
 
