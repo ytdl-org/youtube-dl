@@ -22,6 +22,7 @@ from ..utils import (
     remove_quotes,
     str_to_int,
     url_or_none,
+    urlencode_postdata,
 )
 
 
@@ -45,6 +46,63 @@ class PornHubBaseIE(InfoExtractor):
             webpage, urlh = dl(*args, **kwargs)
 
         return webpage, urlh
+
+    def _login_if_required(self, host):
+        login_info = self._get_login_info(netrc_machine=host.split('.')[0])
+
+        # PornHub Premium requires some kind of authentication
+        if 'premium' in host:
+            cookie_file = self._downloader.params.get('cookiefile')
+            if not cookie_file and not all(login_info):
+                raise ExtractorError(
+                    'PornHub Premium requires authentication.'
+                    ' You may want to use --cookies or --netrc.',
+                    expected=True)
+
+        # Authenticate, if required
+        cookies = self._get_cookies('https://%s' % host)
+        if all(login_info) and not cookies:
+            self._login(host, login_info)
+
+    def _login(self, host, login_info):
+        username = login_info[0]
+        password = login_info[1]
+
+        if 'premium' in host:
+            login_form_url = 'https://%s/premium/login' % host
+            login_post_url = 'https://www.%s/front/authenticate' % host
+        else:
+            login_form_url = 'https://%s/login' % host
+            login_post_url = 'https://www.%s/front/authenticate' % host
+
+        # Fetch login page
+        login_page = self._download_webpage(
+            login_form_url, video_id=None, note='Fetching login page', tries=3, fatal=True)
+
+        # Fetch login form
+        login_form = self._hidden_inputs(login_page)
+        login_form.update({
+            'username': username,
+            'password': password,
+        })
+
+        # Submit sign-in request
+        response = self._download_json(
+            login_post_url, video_id=None, note='Logging in to %s' % host, fatal=True,
+            data=urlencode_postdata(login_form), headers={
+                'Content-Type': 'application/x-www-form-urlencoded',
+                'Referer': login_form_url,
+            })
+
+        # Success
+        if response.get('success') == '1':
+            return self.to_screen("Successfully authenticated")
+
+        # Error
+        login_error = response.get('message')
+        if login_error:
+            raise ExtractorError('Unable to login: %s' % login_error, expected=True)
+        self.report_warning('Login has probably failed')
 
 
 class PornHubIE(PornHubBaseIE):
@@ -169,14 +227,10 @@ class PornHubIE(PornHubBaseIE):
         host = mobj.group('host') or 'pornhub.com'
         video_id = mobj.group('id')
 
-        if 'premium' in host:
-            if not self._downloader.params.get('cookiefile'):
-                raise ExtractorError(
-                    'PornHub Premium requires authentication.'
-                    ' You may want to use --cookies.',
-                    expected=True)
-
         self._set_cookie(host, 'age_verified', '1')
+
+        # Authenticate, if required
+        self._login_if_required(host)
 
         def dl_webpage(platform):
             self._set_cookie(host, 'platform', platform)
@@ -398,6 +452,9 @@ class PornHubPlaylistBaseIE(PornHubBaseIE):
         host = mobj.group('host')
         playlist_id = mobj.group('id')
 
+        # Authenticate, if required
+        self._login_if_required(host)
+
         webpage = self._download_webpage(url, playlist_id)
 
         entries = self._extract_entries(webpage, host)
@@ -438,7 +495,12 @@ class PornHubUserIE(PornHubPlaylistBaseIE):
 
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
+        host = mobj.group('host')
         user_id = mobj.group('id')
+
+        # Authenticate, if required
+        self._login_if_required(host)
+
         return self.url_result(
             '%s/videos' % mobj.group('url'), ie=PornHubPagedVideoListIE.ie_key(),
             video_id=user_id)
@@ -458,6 +520,9 @@ class PornHubPagedPlaylistBaseIE(PornHubPlaylistBaseIE):
         mobj = re.match(self._VALID_URL, url)
         host = mobj.group('host')
         item_id = mobj.group('id')
+
+        # Authenticate, if required
+        self._login_if_required(host)
 
         page = int_or_none(self._search_regex(
             r'\bpage=(\d+)', url, 'page', default=None))
