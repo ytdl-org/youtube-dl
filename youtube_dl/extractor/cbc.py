@@ -3,6 +3,7 @@ from __future__ import unicode_literals
 
 import json
 import re
+from xml.sax.saxutils import escape
 
 from .common import InfoExtractor
 from ..compat import (
@@ -221,10 +222,7 @@ class CBCWatchBaseIE(InfoExtractor):
     _API_KEY = '3f4beddd-2061-49b0-ae80-6f1f2ed65b37'
     _NETRC_MACHINE = 'cbcwatch'
 
-    def _signature(self):
-        email, password = self._get_login_info()
-        if email is None:
-            return
+    def _signature(self, email, password):
         data = json.dumps({
             'email': email,
             'password': password,
@@ -275,19 +273,21 @@ class CBCWatchBaseIE(InfoExtractor):
         return self._device_id and self._device_token
 
     def _register_device(self):
-        signature = self._signature()
-        self._device_id = self._device_token = None
         result = self._download_xml(
             self._API_BASE_URL + 'device/register',
             None, 'Acquiring device token',
             data=b'<device><type>web</type></device>')
         self._device_id = xpath_text(result, 'deviceId', fatal=True)
-        self._device_token = xpath_text(result, 'deviceToken', fatal=True)
-        if signature:
-            data = '<login><token>{0}</token><device><deviceId>{1}</deviceId><type>web</type></device></login>'.format(signature, self._device_id).encode()
+        anon_device_token = xpath_text(result, 'deviceToken', fatal=True)
+        email, password = self._get_login_info()
+        if email and password:
+            signature = self._signature(email, password)
+            data = '<login><token>{0}</token><device><deviceId>{1}</deviceId><type>web</type></device></login>'.format(escape(signature), escape(self._device_id)).encode()
             url = self._API_BASE_URL + 'device/login'
             result = self._download_xml(url, None, data=data, headers={'content-type': 'application/xml'})
             self._device_token = xpath_text(result, 'token', fatal=True)
+        else:
+            self._device_token = anon_device_token
         self._downloader.cache.store(
             'cbcwatch', 'device', {
                 'id': self._device_id,
