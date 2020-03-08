@@ -27,6 +27,9 @@ from ..utils import (
 
 
 class PornHubBaseIE(InfoExtractor):
+
+    _NETRC_MACHINE = 'pornhub'  # or 'pornhubpremium'
+
     def _download_webpage_handle(self, *args, **kwargs):
         def dl(*args, **kwargs):
             return super(PornHubBaseIE, self)._download_webpage_handle(*args, **kwargs)
