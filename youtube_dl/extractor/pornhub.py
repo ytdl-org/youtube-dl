@@ -149,6 +149,9 @@ class PornHubIE(PornHubBaseIE):
     }, {
         'url': 'https://www.pornhub.net/view_video.php?viewkey=203640933',
         'only_matching': True,
+    }, {
+        'url': 'https://www.pornhubpremium.com/view_video.php?viewkey=ph5e4acdae54a82',
+        'only_matching': True,
     }]
 
     @staticmethod
