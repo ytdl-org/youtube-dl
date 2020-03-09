@@ -2752,6 +2752,11 @@ class YoutubeDLCookieJar(compat_cookiejar.MozillaCookieJar):
             for line in f:
                 if line.startswith(self._HTTPONLY_PREFIX):
                     line = line[len(self._HTTPONLY_PREFIX):]
+                # Cookie file may contain spaces instead of tabs.
+                # Replace all spaces with tabs to make such cookie files work
+                # with MozillaCookieJar.
+                if not line.startswith('#'):
+                    line = re.sub(r' +', r'\t', line)
                 cf.write(compat_str(line))
         cf.seek(0)
         self._really_load(cf, filename, ignore_discard, ignore_expires)
@@ -2793,6 +2798,15 @@ class YoutubeDLCookieProcessor(compat_urllib_request.HTTPCookieProcessor):
 
     https_request = compat_urllib_request.HTTPCookieProcessor.http_request
     https_response = http_response
+
+
+class YoutubeDLRedirectHandler(compat_urllib_request.HTTPRedirectHandler):
+    if sys.version_info[0] < 3:
+        def redirect_request(self, req, fp, code, msg, headers, newurl):
+            # On python 2 urlh.geturl() may sometimes return redirect URL
+            # as byte string instead of unicode. This workaround allows
+            # to force it always return unicode.
+            return compat_urllib_request.HTTPRedirectHandler.redirect_request(self, req, fp, code, msg, headers, compat_str(newurl))
 
 
 def extract_timezone(date_str):

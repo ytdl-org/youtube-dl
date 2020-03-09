@@ -4,7 +4,6 @@ from __future__ import unicode_literals
 import re
 
 from .common import InfoExtractor
-from ..compat import compat_str
 from ..utils import (
     encode_base_n,
     ExtractorError,
@@ -55,7 +54,7 @@ class EpornerIE(InfoExtractor):
 
         webpage, urlh = self._download_webpage_handle(url, display_id)
 
-        video_id = self._match_id(compat_str(urlh.geturl()))
+        video_id = self._match_id(urlh.geturl())
 
         hash = self._search_regex(
             r'hash\s*:\s*["\']([\da-f]{32})', webpage, 'hash')
