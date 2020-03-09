@@ -14,9 +14,6 @@ from youtube_dl.utils import YoutubeDLCookieJar
 
 
 class TestYoutubeDLCookieJar(unittest.TestCase):
-    def __assert_cookie_has_value(self, cookiejar, key):
-        self.assertEqual(cookiejar._cookies['www.foobar.foobar']['/'][key].value, key + '_VALUE')
-
     def test_keep_session_cookies(self):
         cookiejar = YoutubeDLCookieJar('./test/testdata/cookies/session_cookies.txt')
         cookiejar.load(ignore_discard=True, ignore_expires=True)
@@ -35,13 +32,12 @@ class TestYoutubeDLCookieJar(unittest.TestCase):
     def test_strip_httponly_prefix(self):
         cookiejar = YoutubeDLCookieJar('./test/testdata/cookies/httponly_cookies.txt')
         cookiejar.load(ignore_discard=True, ignore_expires=True)
-        self.__assert_cookie_has_value(cookiejar, 'HTTPONLY_COOKIE')
-        self.__assert_cookie_has_value(cookiejar, 'JS_ACCESSIBLE_COOKIE')
 
-    def test_convert_spaces_to_tabs(self):
-        cookiejar = YoutubeDLCookieJar('./test/testdata/cookies/cookie_file_with_spaces.txt')
-        cookiejar.load(ignore_discard=True, ignore_expires=True)
-        self.__assert_cookie_has_value(cookiejar, 'COOKIE')
+        def assert_cookie_has_value(key):
+            self.assertEqual(cookiejar._cookies['www.foobar.foobar']['/'][key].value, key + '_VALUE')
+
+        assert_cookie_has_value('HTTPONLY_COOKIE')
+        assert_cookie_has_value('JS_ACCESSIBLE_COOKIE')
 
 
 if __name__ == '__main__':
