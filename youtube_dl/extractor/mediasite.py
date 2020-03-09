@@ -294,11 +294,17 @@ class MediasiteCatalogIE(InfoExtractor):
                 r'AntiForgeryHeaderName\s*:\s*(["\'])(?P<value>(?:(?!\1).)+)\1',
                 webpage, 'anti forgery header name',
                 default='X-SOFO-AntiForgeryHeader', group='value')
+        
+        # when AuthTicket: '' this finds no matches due to the + quantifier, returning None
+        # None is serialized to null which matches the request
+        auth_ticket = self._search_regex(
+            r'AuthTicket\s*:\s*(["\'])(?P<value>(?:(?!\1).)+)\1',
+            webpage, 'auth ticket', default=None, group='value')
 
         data = {
             'IsViewPage': True,
             'IsNewFolder': True,
-            'AuthTicket': None,
+            'AuthTicket': auth_ticket,
             'CatalogId': catalog_id,
             'CurrentFolderId': current_folder_id,
             'RootDynamicFolderId': root_dynamic_folder_id,
