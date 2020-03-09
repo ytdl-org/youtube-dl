@@ -34,6 +34,7 @@ class VevoIE(VevoBaseIE):
         (?:https?://(?:www\.)?vevo\.com/watch/(?!playlist|genre)(?:[^/]+/(?:[^/]+/)?)?|
            https?://cache\.vevo\.com/m/html/embed\.html\?video=|
            https?://videoplayer\.vevo\.com/embed/embedded\?videoId=|
+           https?://embed\.vevo\.com/.*?[?&]isrc=|
            vevo:)
         (?P<id>[^&?#]+)'''
 
@@ -143,6 +144,9 @@ class VevoIE(VevoBaseIE):
         # Another case available only via the webpage; using streams/streamsV3 formats
         # Geo-restricted to Netherlands/Germany
         'url': 'http://www.vevo.com/watch/boostee/pop-corn-clip-officiel/FR1A91600909',
+        'only_matching': True,
+    }, {
+        'url': 'https://embed.vevo.com/?isrc=USH5V1923499&partnerId=4d61b777-8023-4191-9ede-497ed6c24647&partnerAdCode=',
         'only_matching': True,
     }]
     _VERSIONS = {

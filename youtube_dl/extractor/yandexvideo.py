@@ -3,6 +3,7 @@ from __future__ import unicode_literals
 
 from .common import InfoExtractor
 from ..utils import (
+    determine_ext,
     int_or_none,
     url_or_none,
 )
@@ -47,6 +48,10 @@ class YandexVideoIE(InfoExtractor):
         # episode, sports
         'url': 'https://yandex.ru/?stream_channel=1538487871&stream_id=4132a07f71fb0396be93d74b3477131d',
         'only_matching': True,
+    }, {
+        # DASH with DRM
+        'url': 'https://yandex.ru/portal/video?from=morda&stream_id=485a92d94518d73a9d0ff778e13505f8',
+        'only_matching': True,
     }]
 
     def _real_extract(self, url):
@@ -59,13 +64,22 @@ class YandexVideoIE(InfoExtractor):
                 'disable_trackings': 1,
             })['content']
 
-        m3u8_url = url_or_none(content.get('content_url')) or url_or_none(
+        content_url = url_or_none(content.get('content_url')) or url_or_none(
             content['streams'][0]['url'])
         title = content.get('title') or content.get('computed_title')
 
-        formats = self._extract_m3u8_formats(
-            m3u8_url, video_id, 'mp4', entry_protocol='m3u8_native',
-            m3u8_id='hls')
+        ext = determine_ext(content_url)
+
+        if ext == 'm3u8':
+            formats = self._extract_m3u8_formats(
+                content_url, video_id, 'mp4', entry_protocol='m3u8_native',
+                m3u8_id='hls')
+        elif ext == 'mpd':
+            formats = self._extract_mpd_formats(
+                content_url, video_id, mpd_id='dash')
+        else:
+            formats = [{'url': content_url}]
+
         self._sort_formats(formats)
 
         description = content.get('description')
