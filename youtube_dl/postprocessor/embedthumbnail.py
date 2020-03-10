@@ -14,7 +14,8 @@ from ..utils import (
     encodeFilename,
     PostProcessingError,
     prepend_extension,
-    shell_quote
+    shell_quote,
+    base64
 )
 
 
@@ -96,7 +97,6 @@ class EmbedThumbnailPP(FFmpegPostProcessor):
                 from mutagen.oggvorbis import OggVorbis
                 from mutagen.oggopus   import OggOpus
                 from mutagen.flac      import Picture, FLAC
-                from base64            import b64encode
             except ImportError:
                 raise EmbedThumbnailPPError('mutagen was not found. Please install.')
 
@@ -114,7 +114,7 @@ class EmbedThumbnailPP(FFmpegPostProcessor):
                 aufile.add_picture(covart)
             else:
                 aufile['metadata_block_picture'] = \
-                    b64encode(covart.write()).decode('ascii')
+                    base64.b64encode(covart.write()).decode('ascii')
             
             # Save changes to temporary file, it'd be overlapped as the
             # original one.
