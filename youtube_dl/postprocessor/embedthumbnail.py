@@ -100,30 +100,30 @@ class EmbedThumbnailPP(FFmpegPostProcessor):
             except ImportError:
                 raise EmbedThumbnailPPError('mutagen was not found. Please install.')
 
-                shutil.copyfile(filename, temp_filename)
-                aufile = {'opus': OggOpus, 'flac': FLAC, 'ogg': OggVorbis} \
-                         [info['ext']](temp_filename)
-                
-                covart = Picture()
-                covart.data = open(thumbnail_filename, 'rb').read()
-                covart.type = 3 # Cover (front)
+            shutil.copyfile(filename, temp_filename)
+            aufile = {'opus': OggOpus, 'flac': FLAC, 'ogg': OggVorbis} \
+                        [info['ext']](temp_filename)
+            
+            covart = Picture()
+            covart.data = open(thumbnail_filename, 'rb').read()
+            covart.type = 3 # Cover (front)
 
-                # Since, OGGOpus and OGGVorbis doesn't natively support
-                # (coverart / thumbnail)s, it's wrapped in if..else
-                if info['ext'] == 'flac':
-                    aufile.add_picture(covart)
-                else:
-                    aufile['metadata_block_picture'] = \
-                        b64encode(covart.write()).decode('ascii')
-                
-                # Save changes to temporary file, it'd be overlapped as the
-                # original one.
-                aufile.save()
+            # Since, OGGOpus and OGGVorbis doesn't natively support
+            # (coverart / thumbnail)s, it's wrapped in if..else
+            if info['ext'] == 'flac':
+                aufile.add_picture(covart)
+            else:
+                aufile['metadata_block_picture'] = \
+                    b64encode(covart.write()).decode('ascii')
+            
+            # Save changes to temporary file, it'd be overlapped as the
+            # original one.
+            aufile.save()
 
-                if not self._already_have_thumbnail:
-                    os.remove(encodeFilename(thumbnail_filename))
-                os.remove(encodeFilename(filename))
-                os.rename(encodeFilename(temp_filename), encodeFilename(filename))
+            if not self._already_have_thumbnail:
+                os.remove(encodeFilename(thumbnail_filename))
+            os.remove(encodeFilename(filename))
+            os.rename(encodeFilename(temp_filename), encodeFilename(filename))
         else:
             raise EmbedThumbnailPPError('Only mp3, m4a/mp4, ogg, opus and flac are supported for thumbnail embedding for now.')
 
