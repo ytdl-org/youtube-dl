@@ -91,22 +91,22 @@ class EmbedThumbnailPP(FFmpegPostProcessor):
             else:
                 os.remove(encodeFilename(filename))
                 os.rename(encodeFilename(temp_filename), encodeFilename(filename))
-        
+
         elif info['ext'] in ['opus', 'ogg', 'flac']:
             try:
                 from mutagen.oggvorbis import OggVorbis
-                from mutagen.oggopus   import OggOpus
-                from mutagen.flac      import Picture, FLAC
+                from mutagen.oggopus import OggOpus
+                from mutagen.flac import Picture, FLAC
             except ImportError:
                 raise EmbedThumbnailPPError('mutagen was not found. Please install.')
 
             shutil.copyfile(filename, temp_filename)
-            aufile = {'opus': OggOpus, 'flac': FLAC, 'ogg': OggVorbis} \
-                        [info['ext']](temp_filename)
-            
+            aufile = ({'opus': OggOpus, 'flac': FLAC, 'ogg': OggVorbis}
+                      [info['ext']](temp_filename))
+
             covart = Picture()
             covart.data = open(thumbnail_filename, 'rb').read()
-            covart.type = 3 # Cover (front)
+            covart.type = 3  # Cover (front)
 
             # Since, OGGOpus and OGGVorbis doesn't natively support
             # (coverart / thumbnail)s, it's wrapped in if..else
@@ -115,7 +115,7 @@ class EmbedThumbnailPP(FFmpegPostProcessor):
             else:
                 aufile['metadata_block_picture'] = \
                     base64.b64encode(covart.write()).decode('ascii')
-            
+
             # Save changes to temporary file, it'd be overlapped as the
             # original one.
             aufile.save()
