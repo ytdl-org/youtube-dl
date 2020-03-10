@@ -466,7 +466,7 @@ class FacebookIE(InfoExtractor):
                    _lowercase_escape(self._search_regex(
                         r'\"ownerName\":"(.+?)"', tahoe_data.secondary,
                         'uploader_id', fatal=False)) or self._og_search_title(webpage, default=None)
-        
+
         timestamp = int_or_none(self._search_regex(
             r'data-utime=\\\"(\d+)\\\"', tahoe_data.secondary,
             'timestamp', default=None) or self._search_regex(
@@ -477,7 +477,8 @@ class FacebookIE(InfoExtractor):
             r'ownerid:"([\d]+)', webpage,
             'uploader_id', default=None) or self._search_regex(
             r'[\'\"]ownerid[\'\"]\s*:\s*[\'\"](\d+)[\'\"]', tahoe_data.secondary,
-            'uploader_id', fatal=False)
+            'uploader_id', default=None) or \
+            self._search_regex(r'\\\"page_id\\\"\s*:\s*\\\"(\d+)\\\"', tahoe_data.secondary, 'uploader_id', fatal=False)
 
 
         thumbnail = self._html_search_meta(['og:image', 'twitter:image'], webpage)
