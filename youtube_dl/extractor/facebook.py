@@ -552,6 +552,10 @@ class FacebookIE(InfoExtractor):
         if values:
             return values[-1]
 
+        values = re.findall(r'"reaction_count"\s*:\s*{\s*"count"\s*:\s*(\d+)', tahoe_data.secondary)
+        if values:
+            return values[-1]
+
     def _extract_views(self, webpage, tahoe_data):
         value = self._extract_meta_count(['postViewCount', 'viewCount'], webpage, tahoe_data, 'likes')
         if value:
