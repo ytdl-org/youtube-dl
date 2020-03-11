@@ -468,11 +468,11 @@ class FacebookIE(InfoExtractor):
                         'uploader_id', fatal=False)) or self._og_search_title(webpage, default=None)
 
         timestamp = int_or_none(self._search_regex(
-            r'\\\"timestamp\\\":([\d]+)', tahoe_data.secondary,
-            'timestamp', default=None)) or int_or_none(self._search_regex(
             r'data-utime=\\\"(\d+)\\\"', tahoe_data.secondary,
             'timestamp', default=None) or self._search_regex(
             r'<abbr[^>]+data-utime=["\'](\d+)', webpage,
+            'timestamp', default=None)) or int_or_none(self._search_regex(
+            r'publish_time&quot;:([\d]+)', webpage,
             'timestamp', default=None))
 
         uploader_id = self._search_regex(
