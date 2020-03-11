@@ -62,7 +62,6 @@ class PornHubBaseIE(InfoExtractor):
                     ' You may want to use --cookies or --netrc.',
                     expected=True)
 
-        # Authenticate, if required
         cookies = self._get_cookies('https://%s' % host)
         if all(login_info) and not cookies:
             self._login(host, login_info)
@@ -73,10 +72,10 @@ class PornHubBaseIE(InfoExtractor):
 
         if 'premium' in host:
             login_form_url = 'https://%s/premium/login' % host
-            login_post_url = 'https://www.%s/front/authenticate' % host
         else:
             login_form_url = 'https://%s/login' % host
-            login_post_url = 'https://www.%s/front/authenticate' % host
+
+        login_post_url = 'https://www.%s/front/authenticate' % host
 
         # Fetch login page
         login_page = self._download_webpage(
