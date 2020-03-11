@@ -20,6 +20,7 @@ from ..utils import (
     unified_timestamp,
     unsmuggle_url,
     urlencode_postdata,
+    try_get,
 )
 
 md5 = lambda s: hashlib.md5(s.encode('utf-8')).hexdigest()
@@ -425,7 +426,7 @@ class BilibiliAudioAlbumIE(BilibiliAudioBaseIE):
 
 
 class BilibiliNewBangumiIE(InfoExtractor):
-    _VALID_URL = r'(https?://www\.)?bilibili\.com/bangumi/play/ep(?P<id>\d+)'
+    _VALID_URL = r'(?:https?://www\.)?bilibili\.com/bangumi/play/ep(?P<id>\d+)'
     _TESTS = [{
         'url': 'https://www.bilibili.com/bangumi/play/ep307448',
         'md5': '084ae96f913cf13ab626326d86190ddf',
@@ -444,21 +445,21 @@ class BilibiliNewBangumiIE(InfoExtractor):
 
     def _real_extract(self, url):
         url, _ = unsmuggle_url(url)
-        match_url = re.match(self._VALID_URL, url)
-        video_id = match_url.group('id')
+        video_id = self._search_regex(self._VALID_URL, url, 'video_id', group='id')
         webpage = self._download_webpage(url, video_id)
 
-        jsondata = re.search(r'window.__INITIAL_STATE__=(.+?);', webpage)  # may return None
-        bgmdata = self._parse_json(jsondata.group(1), video_id)  # may throw exception
+        jsondata = self._search_regex(r'window.__INITIAL_STATE__=(.+?);', webpage, 'jsondata', group=1)
+        bgmdata = self._parse_json(jsondata, video_id)  # may throw exception
+
         try:
             cid = bgmdata['epInfo']['cid']
             # aid = bgmdata['epInfo']['aid']
-            title = bgmdata['h1Title']
         except KeyError as e:
-            raise ExtractorError(f'{video_id}: Failed to read JSON', cause=e)
+            raise ExtractorError(f'{video_id}: Failed to extract cid', cause=e)
 
-        jsondata = re.search(r'"ssType":(\d+)', webpage)  # may return None
-        season = jsondata.group(1)
+        title = bgmdata.get('h1Title') or self._og_search_title(webpage)
+
+        season = self._search_regex(r'"ssType":(\d+)', webpage, 'season', group=1)
 
         '''
         tokens = self._download_json(f'{self._BILIBILI_TOKEN_API}?aid={aid}&cid={cid}', video_id)
@@ -474,19 +475,15 @@ class BilibiliNewBangumiIE(InfoExtractor):
         # may throw exception
         # urls = self._download_json(f'{self._BILIBILI_API}?{params}&sign={md5(params + self._BILIBILI_KEY)}', video_id)
         urls = self._download_json('%s?%s&sign=%s' % (self._BILIBILI_API, params, md5(params + self._BILIBILI_KEY)), video_id)
-        try:
-            # The url can be played in 1080p
-            rurl = urls['durl'][0]['url']
-            ext = urls['format']
-            size = urls['durl'][0]['size']
-        except (KeyError, IndexError) as e:
-            raise ExtractorError(f'{video_id}: Failed to read JSON', cause=e)
+
+        real_url = try_get(urls, lambda x: x['durl'][0]['url'])
+
         return {
             'title': title,
             'id': video_id,
-            'url': rurl,
-            'ext': ext,
-            'size': size,
+            'url': real_url,
+            'ext': urls.get('format'),
+            'size': try_get(urls, lambda x: x['durl'][0]['size']),
             'http_headers': {
                 'Referer': url,
             }
