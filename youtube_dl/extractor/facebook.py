@@ -460,12 +460,12 @@ class FacebookIE(InfoExtractor):
                 return lowercase_escape(s)
 
 
-        uploader = clean_html(get_element_by_id(
-            'fbPhotoPageAuthorName', webpage)) or self._search_regex(
-            r'ownerName\s*:\s*"([^"]+)"', webpage, 'uploader',default=None) or \
-                   _lowercase_escape(self._search_regex(
-                        r'\"ownerName\":"(.+?)"', tahoe_data.secondary,
-                        'uploader_id', fatal=False)) or self._og_search_title(webpage, default=None)
+        uploader = clean_html(get_element_by_id('fbPhotoPageAuthorName', webpage)) or \
+                   self._search_regex(r'ownerName\s*:\s*"([^"]+)"', webpage, 'uploader',default=None) or \
+                   _lowercase_escape(self._search_regex(r'\"ownerName\":"(.+?)"', tahoe_data.secondary, 'uploader_id', fatal=False)) or \
+                   self._search_regex(r'ownerName"\s*:\s*"([^"]+)"', webpage, 'uploader', default=None) or \
+                   self._og_search_title(webpage, default=None)
+
 
         timestamp = int_or_none(self._search_regex(
             r'data-utime=\\\"(\d+)\\\"', tahoe_data.secondary,
