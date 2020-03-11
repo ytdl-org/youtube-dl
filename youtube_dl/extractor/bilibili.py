@@ -455,7 +455,7 @@ class BilibiliNewBangumiIE(InfoExtractor):
             cid = bgmdata['epInfo']['cid']
             # aid = bgmdata['epInfo']['aid']
         except KeyError as e:
-            raise ExtractorError(f'{video_id}: Failed to extract cid', cause=e)
+            raise ExtractorError('Failed to extract cid', cause=e, video_id=video_id)
 
         title = bgmdata.get('h1Title') or self._og_search_title(webpage)
 
