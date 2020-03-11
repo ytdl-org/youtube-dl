@@ -490,7 +490,7 @@ class FacebookIE(InfoExtractor):
                 self._search_regex(r'[\'\"]viewerCount[\'\"]\s*:\s*(\d+)', tahoe_data.primary, 'views', fatal=False)
             )
         else:
-            view_count = parse_count(self._extract_meta_count(['postViewCount', 'viewCount'], webpage, tahoe_data, 'likes'))
+            view_count = parse_count(self._extract_views(webpage, tahoe_data))
 
         other_posts_view_count = parse_count(self._extract_meta_count(['otherPostsViewCount'], webpage, tahoe_data, 'other_post_views'))
         likes_count = parse_count(self._extract_likes(webpage, tahoe_data))
@@ -549,6 +549,15 @@ class FacebookIE(InfoExtractor):
 
 
         values = re.findall(r'[\'\"]\blikecount[\'\"]\s*:\s*(\d+)', tahoe_data.secondary)
+        if values:
+            return values[-1]
+
+    def _extract_views(self, webpage, tahoe_data):
+        value = self._extract_meta_count(['postViewCount', 'viewCount'], webpage, tahoe_data, 'likes')
+        if value:
+            return value
+
+        values = re.findall(r'(\d+\w?) Views', tahoe_data.secondary)
         if values:
             return values[-1]
 
