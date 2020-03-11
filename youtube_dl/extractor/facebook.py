@@ -494,8 +494,8 @@ class FacebookIE(InfoExtractor):
 
         other_posts_view_count = parse_count(self._extract_meta_count(['otherPostsViewCount'], webpage, tahoe_data, 'other_post_views'))
         likes_count = parse_count(self._extract_likes(webpage, tahoe_data))
-        comment_count = parse_count(self._extract_meta_count(['commentCount'], webpage, tahoe_data, 'shares'))
         shares_count = parse_count(self._extract_shares(webpage, tahoe_data))
+        comment_count = parse_count(self._extract_comments_count(webpage, tahoe_data))
 
         info_dict = {
             'id': video_id,
@@ -547,7 +547,6 @@ class FacebookIE(InfoExtractor):
         if values:
             return values[-1]
 
-
         values = re.findall(r'[\'\"]\blikecount[\'\"]\s*:\s*(\d+)', tahoe_data.secondary)
         if values:
             return values[-1]
@@ -562,6 +561,15 @@ class FacebookIE(InfoExtractor):
             return value
         a = r'(\d+\w) Views'
         values = re.findall(r'"share_count"\s*:\s*{\s*"count"\s*:\s*(\d+)', tahoe_data.secondary)
+        if values:
+            return values[-1]
+
+    def _extract_comments_count(self, webpage, tahoe_data):
+        value = self._extract_meta_count(['commentCount'], webpage, tahoe_data, 'comment_count')
+        if value:
+            return value
+
+        values = re.findall(r'Comments\s\((\d+)', tahoe_data.secondary)
         if values:
             return values[-1]
 
@@ -598,7 +606,6 @@ class FacebookIE(InfoExtractor):
                 self._VIDEO_PAGE_TEMPLATE % video_id,
                 video_id, fatal_if_no_video=True)
             return info_dict
-
 
 class FacebookTahoeData:
     def __init__(self, extractor, page, video_id):
