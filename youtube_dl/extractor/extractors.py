@@ -105,6 +105,7 @@ from .bilibili import (
     BiliBiliBangumiIE,
     BilibiliAudioIE,
     BilibiliAudioAlbumIE,
+    BilibiliNewBangumiIE,
 )
 from .biobiochiletv import BioBioChileTVIE
 from .bitchute import (

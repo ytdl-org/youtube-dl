@@ -22,6 +22,8 @@ from ..utils import (
     urlencode_postdata,
 )
 
+md5 = lambda s: hashlib.md5(s.encode('utf-8')).hexdigest()
+
 
 class BiliBiliIE(InfoExtractor):
     _VALID_URL = r'https?://(?:www\.|bangumi\.|)bilibili\.(?:tv|com)/(?:video/av|anime/(?P<anime_id>\d+)/play#)(?P<id>\d+)'
@@ -242,6 +244,7 @@ class BiliBiliIE(InfoExtractor):
             }
 
 
+# this extractor doesn't work now
 class BiliBiliBangumiIE(InfoExtractor):
     _VALID_URL = r'https?://bangumi\.bilibili\.com/anime/(?P<id>\d+)'
 
@@ -419,3 +422,72 @@ class BilibiliAudioAlbumIE(BilibiliAudioBaseIE):
                     entries, am_id, album_title, album_data.get('intro'))
 
         return self.playlist_result(entries, am_id)
+
+
+class BilibiliNewBangumiIE(InfoExtractor):
+    _VALID_URL = r'(https?://www\.)?bilibili\.com/bangumi/play/ep(?P<id>\d+)'
+    _TESTS = [{
+        'url': 'https://www.bilibili.com/bangumi/play/ep307448',
+        'md5': '084ae96f913cf13ab626326d86190ddf',
+        'info_dict': {
+            'id': '307448',
+            'ext': 'flv',
+            'title': '异度侵入 ID:INVADED：第3话 SNIPED 瀑布世界',
+            # 'thumbnail': r're:^https?://.*\.jpg$',
+        }
+    }]
+    _APP_KEY = 'iVGUTjsxvpLeuDCf'
+    _BILIBILI_KEY = 'aHRmhWMLkdeMuILqORnYZocwMBpMEOdt'
+    # Don't forget to add ? after url
+    _BILIBILI_API = 'https://bangumi.bilibili.com/player/web_api/v2/playurl'
+    _BILIBILI_TOKEN_API = 'https://api.bilibili.com/x/player/playurl/token'
+
+    def _real_extract(self, url):
+        url, _ = unsmuggle_url(url)
+        match_url = re.match(self._VALID_URL, url)
+        video_id = match_url.group('id')
+        webpage = self._download_webpage(url, video_id)
+
+        jsondata = re.search(r'window.__INITIAL_STATE__=(.+?);', webpage)  # may return None
+        bgmdata = self._parse_json(jsondata.group(1), video_id)  # may throw exception
+        try:
+            cid = bgmdata['epInfo']['cid']
+            # aid = bgmdata['epInfo']['aid']
+            title = bgmdata['h1Title']
+        except KeyError as e:
+            raise ExtractorError(f'{video_id}: Failed to read JSON', cause=e)
+
+        jsondata = re.search(r'"ssType":(\d+)', webpage)  # may return None
+        season = jsondata.group(1)
+
+        '''
+        tokens = self._download_json(f'{self._BILIBILI_TOKEN_API}?aid={aid}&cid={cid}', video_id)
+        try:
+           token = tokens['data']['token']
+        except KeyError as e:
+           raise ExtractorError(f'{video_id}: Failed to read JSON', cause = e)
+        '''
+
+        # quality is hardcore to 80
+        # params = f'appkey={self._APP_KEY}&cid={cid}&module=bangumi&otype=json&qn=80&quality=80&season_type={season}&type='
+        params = 'appkey=%s&cid=%s&module=bangumi&otype=json&qn=80&quality=80&season_type=%s&type=' % (self._APP_KEY, cid, season)
+        # may throw exception
+        # urls = self._download_json(f'{self._BILIBILI_API}?{params}&sign={md5(params + self._BILIBILI_KEY)}', video_id)
+        urls = self._download_json('%s?%s&sign=%s' % (self._BILIBILI_API, params, md5(params + self._BILIBILI_KEY)), video_id)
+        try:
+            # The url can be played in 1080p
+            rurl = urls['durl'][0]['url']
+            ext = urls['format']
+            size = urls['durl'][0]['size']
+        except (KeyError, IndexError) as e:
+            raise ExtractorError(f'{video_id}: Failed to read JSON', cause=e)
+        return {
+            'title': title,
+            'id': video_id,
+            'url': rurl,
+            'ext': ext,
+            'size': size,
+            'http_headers': {
+                'Referer': url,
+            }
+        }
