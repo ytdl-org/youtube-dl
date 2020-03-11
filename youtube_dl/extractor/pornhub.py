@@ -231,7 +231,6 @@ class PornHubIE(PornHubBaseIE):
 
         self._set_cookie(host, 'age_verified', '1')
 
-        # Authenticate, if required
         self._login_if_required(host)
 
         def dl_webpage(platform):
@@ -454,7 +453,6 @@ class PornHubPlaylistBaseIE(PornHubBaseIE):
         host = mobj.group('host')
         playlist_id = mobj.group('id')
 
-        # Authenticate, if required
         self._login_if_required(host)
 
         webpage = self._download_webpage(url, playlist_id)
@@ -500,7 +498,6 @@ class PornHubUserIE(PornHubPlaylistBaseIE):
         host = mobj.group('host')
         user_id = mobj.group('id')
 
-        # Authenticate, if required
         self._login_if_required(host)
 
         return self.url_result(
@@ -523,7 +520,6 @@ class PornHubPagedPlaylistBaseIE(PornHubPlaylistBaseIE):
         host = mobj.group('host')
         item_id = mobj.group('id')
 
-        # Authenticate, if required
         self._login_if_required(host)
 
         page = int_or_none(self._search_regex(
