@@ -1,3 +1,15 @@
+version 2020.03.08
+
+Core
++ [utils] Add support for cookie files with spaces
+
+Extractors
++ [pornhub] Add support for pornhubpremium.com (#24288)
+- [youtube] Remove outdated code and unnecessary requests
+* [youtube] Improve extraction in 429 HTTP error conditions (#24283)
+* [nhk] Update API version (#24270)
+
+
 version 2020.03.06
 
 Extractors
