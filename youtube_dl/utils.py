@@ -2729,6 +2729,11 @@ class YoutubeDLHTTPSHandler(compat_urllib_request.HTTPSHandler):
 
 
 class YoutubeDLCookieJar(compat_cookiejar.MozillaCookieJar):
+    """
+    See [1] for cookie file format.
+
+    1. https://curl.haxx.se/docs/http-cookies.html
+    """
     _HTTPONLY_PREFIX = '#HttpOnly_'
 
     def save(self, filename=None, ignore_discard=False, ignore_expires=False):
