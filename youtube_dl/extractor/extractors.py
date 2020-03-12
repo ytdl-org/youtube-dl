@@ -1341,6 +1341,11 @@ from .vk import (
     VKUserVideosIE,
     VKWallPostIE,
 )
+from .vlaretv import (
+    VlaretvIE,
+    VlaretvPlaylistIE
+)
+
 from .vlive import (
     VLiveIE,
     VLiveChannelIE,
