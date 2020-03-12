@@ -2,11 +2,20 @@
 from __future__ import unicode_literals
 
 from .common import InfoExtractor
-from ..utils import clean_html
+from ..utils import (
+    clean_html,
+    parse_filesize,
+    float_or_none,
+    int_or_none,
+    unified_strdate,
+    str_or_none,
+    url_or_none,
+    parse_duration,
+)
 
 
 class HanimeIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:www\.)?hanime\.tv/videos/hentai/(?P<id>.+)(?:\?playlist_id=\w+)?'
+    _VALID_URL = r'https?://(?:www\.)?hanime\.tv/videos/hentai/(?P<id>.+)(?:\?playlist_id=.+)?'
     _TEST = {
         'url': 'https://hanime.tv/videos/hentai/kuroinu-1',
         'info_dict': {
@@ -22,7 +31,7 @@ class HanimeIE(InfoExtractor):
             'like_count': int,
             'dislike_count': int,
             'tags': list,
-            'censored': True,
+            'censored': 'True',
             'ext': 'mp4',
         },
         'params': {
@@ -40,41 +49,53 @@ class HanimeIE(InfoExtractor):
         api_json = self._download_json(
             'https://members.hanime.tv/api/v3/videos_manifests/%s' % video_slug,
             video_slug,
-            'API Call', headers={'X-Directive': 'api'}
-        ).get('videos_manifest').get('servers')[0].get('streams')
+            'API Call', headers={'X-Directive': 'api'}).get('videos_manifest').get('servers')[0].get('streams')
 
         title = page_json.get('name') or api_json.get[0].get('video_stream_group_id')
         tags = [t.get('text') for t in page_json.get('hentai_tags')]
 
-        video_id = str(api_json[0].get('id'))
         formats = []
         for f in api_json:
-            format = {
-                'width': int(f.get('width')),
-                'height': int(f.get('height')),
-                'filesize_approx': f.get('filesize_mbs') * 1000000,
+            item_url = url_or_none(f.get('url')) or url_or_none('https://hanime.tv/api/v1/m3u8s/%s.m3u8' % f.get('id'))
+            format = [{
+                'width': int_or_none(f.get('width')),
+                'height': int_or_none(f.get('height')),
+                'filesize_approx': parse_filesize('%sMb' % f.get('filesize_mbs')),
+                'protocol': 'm3u8',
+                'format_id': 'mp4-%sp' % f.get('height'),
+                'tbr': float_or_none(float_or_none(f.get('filesize_mbs'), invscale=8388), int_or_none(f.get('duration_in_ms'), 1000)),
                 'ext': 'mp4',
-                'url': f.get('url') or 'https://hanime.tv/api/v1/m3u8s/%s.m3u8' % f.get('id'),
-            }
-            formats.append(format)
+                'url': item_url,
+            }, {
+                'width': int_or_none(f.get('width')),
+                'height': int_or_none(f.get('height')),
+                'protocol': 'https',
+                'format_id': 'm3u8-%sp' % f.get('height'),
+                'format_note': '~8-50.00Kib',
+                'ext': 'm3u8',
+                'url': item_url,
+            }]
+            for i in format:
+                formats.append(i)
         formats.reverse()
 
         return {
-            'id': video_id,
+            'id': str_or_none(api_json[0].get('id')),
             'display_id': video_slug,
             'title': title,
             'description': clean_html(page_json.get('description')).strip(),
             'thumbnails': [
-                {'id': 'Cover', 'url': page_json.get('cover_url')},
-                {'id': 'Poster', 'url': page_json.get('poster_url')}
+                {'preference': 0, 'id': 'Poster', 'url': url_or_none(page_json.get('poster_url'))},
+                {'preference': 1, 'id': 'Cover', 'url': url_or_none(page_json.get('cover_url'))},
             ],
-            'release_date': page_json.get('released_at').replace('-', '')[:8],
-            'upload_date': page_json.get('created_at').replace('-', '')[:8],
-            'creator': page_json.get('brand'),
-            'view_count': page_json.get('views'),
-            'like_count': page_json.get('likes'),
-            'dislike_count': page_json.get('dislikes'),
+            'release_date': unified_strdate(page_json.get('released_at')),
+            'upload_date': unified_strdate(page_json.get('created_at')),
+            'creator': str_or_none(page_json.get('brand')),
+            'view_count': int_or_none(page_json.get('views')),
+            'like_count': int_or_none(page_json.get('likes')),
+            'dislike_count': int_or_none(page_json.get('dislikes')),
+            'duration': parse_duration('%sms' % f.get('duration_in_ms')),
             'tags': tags,
-            'censored': page_json.get('is_censored'),
+            'censored': str_or_none(page_json.get('is_censored')),
             'formats': formats,
         }
