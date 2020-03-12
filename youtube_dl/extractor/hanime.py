@@ -41,15 +41,24 @@ class HanimeIE(InfoExtractor):
             'https://members.hanime.tv/api/v3/videos_manifests/%s' % video_slug,
             video_slug,
             'API Call', headers={'X-Directive': 'api'}
-        )
-        api_json = api_json.get('videos_manifest').get('servers')[0].get('streams')
+        ).get('videos_manifest').get('servers')[0].get('streams')
 
         title = page_json.get('name') or api_json.get[0].get('video_stream_group_id')
         tags = [t.get('text') for t in page_json.get('hentai_tags')]
 
         video_id = str(api_json[0].get('id'))
-        playlist_url = api_json[0].get('url') or api_json[1].get('url')
-        formats = self._extract_m3u8_formats(playlist_url, video_slug, 'mp4')
+        formats = []
+        for f in api_json:
+            format = {
+                'width': int(f.get('width')),
+                'height': int(f.get('height')),
+                'filesize_approx': f.get('filesize_mbs') * 1000000,
+                'ext': 'mp4',
+                'url': f.get('url') or 'https://hanime.tv/api/v1/m3u8s/%s.m3u8' % f.get('id'),
+            }
+            formats.append(format)
+        formats.reverse()
+
         return {
             'id': video_id,
             'display_id': video_slug,
