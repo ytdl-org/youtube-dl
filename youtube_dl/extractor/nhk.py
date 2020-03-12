@@ -31,7 +31,7 @@ class NhkVodIE(InfoExtractor):
         'url': 'https://www3.nhk.or.jp/nhkworld/fr/ondemand/audio/plugin-20190404-1/',
         'only_matching': True,
     }]
-    _API_URL_TEMPLATE = 'https://api.nhk.or.jp/nhkworld/%sod%slist/v7/episode/%s/%s/all%s.json'
+    _API_URL_TEMPLATE = 'https://api.nhk.or.jp/nhkworld/%sod%slist/v7a/episode/%s/%s/all%s.json'
 
     def _real_extract(self, url):
         lang, m_type, episode_id = re.match(self._VALID_URL, url).groups()

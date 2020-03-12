@@ -113,7 +113,7 @@ class XHamsterIE(InfoExtractor):
         display_id = mobj.group('display_id') or mobj.group('display_id_2')
 
         desktop_url = re.sub(r'^(https?://(?:.+?\.)?)m\.', r'\1', url)
-        webpage = self._download_webpage(desktop_url, video_id)
+        webpage, urlh = self._download_webpage_handle(desktop_url, video_id)
 
         error = self._html_search_regex(
             r'<div[^>]+id=["\']videoClosed["\'][^>]*>(.+?)</div>',
@@ -161,6 +161,9 @@ class XHamsterIE(InfoExtractor):
                         'ext': determine_ext(format_url, 'mp4'),
                         'height': get_height(quality),
                         'filesize': filesize,
+                        'http_headers': {
+                            'Referer': urlh.geturl(),
+                        },
                     })
             self._sort_formats(formats)
 

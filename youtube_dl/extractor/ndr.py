@@ -9,6 +9,8 @@ from ..utils import (
     int_or_none,
     parse_iso8601,
     qualities,
+    try_get,
+    urljoin,
 )
 
 
@@ -220,11 +222,17 @@ class NDREmbedBaseIE(InfoExtractor):
         upload_date = ppjson.get('config', {}).get('publicationDate')
         duration = int_or_none(config.get('duration'))
 
-        thumbnails = [{
-            'id': thumbnail.get('quality') or thumbnail_id,
-            'url': thumbnail['src'],
-            'preference': quality_key(thumbnail.get('quality')),
-        } for thumbnail_id, thumbnail in config.get('poster', {}).items() if thumbnail.get('src')]
+        thumbnails = []
+        poster = try_get(config, lambda x: x['poster'], dict) or {}
+        for thumbnail_id, thumbnail in poster.items():
+            thumbnail_url = urljoin(url, thumbnail.get('src'))
+            if not thumbnail_url:
+                continue
+            thumbnails.append({
+                'id': thumbnail.get('quality') or thumbnail_id,
+                'url': thumbnail_url,
+                'preference': quality_key(thumbnail.get('quality')),
+            })
 
         return {
             'id': video_id,

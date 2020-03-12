@@ -1,3 +1,137 @@
+version 2020.03.08
+
+Core
++ [utils] Add support for cookie files with spaces
+
+Extractors
++ [pornhub] Add support for pornhubpremium.com (#24288)
+- [youtube] Remove outdated code and unnecessary requests
+* [youtube] Improve extraction in 429 HTTP error conditions (#24283)
+* [nhk] Update API version (#24270)
+
+
+version 2020.03.06
+
+Extractors
+* [youtube] Fix age-gated videos support without login (#24248)
+* [vimeo] Fix showcase password protected video extraction (#24224)
+* [pornhub] Improve title extraction (#24184)
+* [peertube] Improve extraction (#23657)
++ [servus] Add support for new URL schema (#23475, #23583, #24142)
+* [vimeo] Fix subtitles URLs (#24209)
+
+
+version 2020.03.01
+
+Core
+* [YoutubeDL] Force redirect URL to unicode on python 2
+- [options] Remove duplicate short option -v for --version (#24162)
+
+Extractors
+* [xhamster] Fix extraction (#24205)
+* [franceculture] Fix extraction (#24204)
++ [telecinco] Add support for article opening videos
+* [telecinco] Fix extraction (#24195)
+* [xtube] Fix metadata extraction (#21073, #22455)
+* [youjizz] Fix extraction (#24181)
+- Remove no longer needed compat_str around geturl
+* [pornhd] Fix extraction (#24128)
++ [teachable] Add support for multiple videos per lecture (#24101)
++ [wistia] Add support for multiple generic embeds (#8347, 11385)
+* [imdb] Fix extraction (#23443)
+* [tv2dk:bornholm:play] Fix extraction (#24076)
+
+
+version 2020.02.16
+
+Core
+* [YoutubeDL] Fix playlist entry indexing with --playlist-items (#10591,
+  #10622)
+* [update] Fix updating via symlinks (#23991)
++ [compat] Introduce compat_realpath (#23991)
+
+Extractors
++ [npr] Add support for streams (#24042)
++ [24video] Add support for porn.24video.net (#23779, #23784)
+- [jpopsuki] Remove extractor (#23858)
+* [nova] Improve extraction (#23690)
+* [nova:embed] Improve (#23690)
+* [nova:embed] Fix extraction (#23672)
++ [abc:iview] Add support for 720p (#22907, #22921)
+* [nytimes] Improve format sorting (#24010)
++ [toggle] Add support for mewatch.sg (#23895, #23930)
+* [thisoldhouse] Fix extraction (#23951)
++ [popcorntimes] Add support for popcorntimes.tv (#23949)
+* [sportdeutschland] Update to new API
+* [twitch:stream] Lowercase channel id for stream request (#23917)
+* [tv5mondeplus] Fix extraction (#23907, #23911)
+* [tva] Relax URL regular expression (#23903)
+* [vimeo] Fix album extraction (#23864)
+* [viewlift] Improve extraction
+    * Fix extraction (#23851)
+    + Add support for authentication
+    + Add support for more domains
+* [svt] Fix series extraction (#22297)
+* [svt] Fix article extraction (#22897, #22919)
+* [soundcloud] Imporve private playlist/set tracks extraction (#3707)
+
+
+version 2020.01.24
+
+Extractors
+* [youtube] Fix sigfunc name extraction (#23819)
+* [stretchinternet] Fix extraction (#4319)
+* [voicerepublic] Fix extraction
+* [azmedien] Fix extraction (#23783)
+* [businessinsider] Fix jwplatform id extraction (#22929, #22954)
++ [24video] Add support for 24video.vip (#23753)
+* [ivi:compilation] Fix entries extraction (#23770)
+* [ard] Improve extraction (#23761)
+    * Simplify extraction
+    + Extract age limit and series
+    * Bypass geo-restriction
++ [nbc] Add support for nbc multi network URLs (#23049)
+* [americastestkitchen] Fix extraction
+* [zype] Improve extraction
+    + Extract subtitles (#21258)
+    + Support URLs with alternative keys/tokens (#21258)
+    + Extract more metadata
+* [orf:tvthek] Improve geo restricted videos detection (#23741)
+* [soundcloud] Restore previews extraction (#23739)
+
+
+version 2020.01.15
+
+Extractors
+* [yourporn] Fix extraction (#21645, #22255, #23459)
++ [canvas] Add support for new API endpoint (#17680, #18629)
+* [ndr:base:embed] Improve thumbnails extraction (#23731)
++ [vodplatform] Add support for embed.kwikmotion.com domain
++ [twitter] Add support for promo_video_website cards (#23711)
+* [orf:radio] Clean description and improve extraction
+* [orf:fm4] Fix extraction (#23599)
+* [safari] Fix kaltura session extraction (#23679, #23670)
+* [lego] Fix extraction and extract subtitle (#23687)
+* [cloudflarestream] Improve extraction
+    + Add support for bytehighway.net domain
+    + Add support for signed URLs
+    + Extract thumbnail
+* [naver] Improve extraction
+    * Improve geo-restriction handling
+    + Extract automatic captions
+    + Extract uploader metadata
+    + Extract VLive HLS formats
+    * Improve metadata extraction
+- [pandatv] Remove extractor (#23630)
+* [dctp] Fix format extraction (#23656)
++ [scrippsnetworks] Add support for www.discovery.com videos
+* [discovery] Fix anonymous token extraction (#23650)
+* [nrktv:seriebase] Fix extraction (#23625, #23537)
+* [wistia] Improve format extraction and extract subtitles (#22590)
+* [vice] Improve extraction (#23631)
+* [redtube] Detect private videos (#23518)
+
+
 version 2020.01.01
 
 Extractors
