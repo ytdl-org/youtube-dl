@@ -2729,6 +2729,11 @@ class YoutubeDLHTTPSHandler(compat_urllib_request.HTTPSHandler):
 
 
 class YoutubeDLCookieJar(compat_cookiejar.MozillaCookieJar):
+    """
+    See [1] for cookie file format.
+
+    1. https://curl.haxx.se/docs/http-cookies.html
+    """
     _HTTPONLY_PREFIX = '#HttpOnly_'
 
     def save(self, filename=None, ignore_discard=False, ignore_expires=False):
@@ -2752,11 +2757,6 @@ class YoutubeDLCookieJar(compat_cookiejar.MozillaCookieJar):
             for line in f:
                 if line.startswith(self._HTTPONLY_PREFIX):
                     line = line[len(self._HTTPONLY_PREFIX):]
-                # Cookie file may contain spaces instead of tabs.
-                # Replace all spaces with tabs to make such cookie files work
-                # with MozillaCookieJar.
-                if not line.startswith('#'):
-                    line = re.sub(r' +', r'\t', line)
                 cf.write(compat_str(line))
         cf.seek(0)
         self._really_load(cf, filename, ignore_discard, ignore_expires)
