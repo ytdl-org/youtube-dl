@@ -59,8 +59,8 @@ class HanimeIE(InfoExtractor):
         formats = []
         for f in api_json:
             item_url = sanitize_url(f.get('url')) or sanitize_url('https://hanime.tv/api/v1/m3u8s/%s.m3u8' % f.get('id'))
-            width = float_or_none(f.get('width'))
-            height = float_or_none(f.get('height'))
+            width = int_or_none(f.get('width'))
+            height = int_or_none(f.get('height'))
             format = {
                 'width': width,
                 'height': height,
