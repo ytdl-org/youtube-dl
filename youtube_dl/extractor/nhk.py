@@ -87,13 +87,6 @@ class NhkVodIE(InfoExtractor):
             info['formats'] = self._extract_m3u8_formats(
                 'https://nhks-vh.akamaihd.net/i%s/master.m3u8' % audio_path,
                 episode_id, 'm4a', m3u8_id='hls', fatal=False)
-            for proto in ('rtmpt', 'rtmp'):
-                info['formats'].append({
-                    'ext': 'flv',
-                    'format_id': proto,
-                    'url': '%s://flv.nhk.or.jp/ondemand/mp4:flv%s' % (proto, audio_path),
-                    'vcodec': 'none',
-                })
             for f in info['formats']:
                 f['language'] = lang
         return info
