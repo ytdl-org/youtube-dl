@@ -85,8 +85,9 @@ class NhkVodIE(InfoExtractor):
             audio = episode['audio']
             audio_path = audio['audio']
             info['formats'] = self._extract_m3u8_formats(
-                'https://nhks-vh.akamaihd.net/i%s/master.m3u8' % audio_path,
-                episode_id, 'm4a', m3u8_id='hls', fatal=False)
+                'https://nhkworld-vh.akamaihd.net/i%s/master.m3u8' % audio_path,
+                episode_id, 'm4a', entry_protocol='m3u8_native',
+                m3u8_id='hls', fatal=False)
             for f in info['formats']:
                 f['language'] = lang
         return info
