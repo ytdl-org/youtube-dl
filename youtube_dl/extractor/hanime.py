@@ -47,34 +47,45 @@ class HanimeIE(InfoExtractor):
         video_slug = self._match_id(url)
         page_json = self._html_search_regex(r'<script>.+__NUXT__=(.+?);<\/script>', self._download_webpage(url, video_slug), 'Inline JSON')
         page_json = try_get(self._parse_json(page_json, video_slug), lambda x: x['state']['data']['video']['hentai_video'], dict) or {}
-        api_json = self._download_json(
+        api_json = try_get(self._download_json(
             'https://members.hanime.tv/api/v3/videos_manifests/%s' % video_slug,
             video_slug,
-            'API Call', headers={'X-Directive': 'api'}).get('videos_manifest').get('servers')[0].get('streams')
-        title = page_json.get('name') or api_json.get[0].get('video_stream_group_id')
+            'API Call', headers={'X-Directive': 'api'}), lambda x: x['videos_manifest']['servers'], list) or []
+        title = page_json.get('name')
+        duration = parse_duration('%sms' % page_json.get('duration_in_ms'))
         tags = []
-        for t in page_json.get('hentai_tags'):
-            if t.get('text'):
-                tags.append(t.get('text'))
+        for tag in page_json.get('hentai_tags'):
+            if tag.get('text'):
+                tags.append(tag.get('text'))
         formats = []
-        for f in api_json:
-            item_url = sanitize_url(f.get('url')) or sanitize_url('https://hanime.tv/api/v1/m3u8s/%s.m3u8' % f.get('id'))
-            width = int_or_none(f.get('width'))
-            height = int_or_none(f.get('height'))
-            format = {
-                'width': width,
-                'height': height,
-                'filesize_approx': float_or_none(parse_filesize('%sMb' % f.get('filesize_mbs'))),
-                'protocol': 'm3u8',
-                'format_id': 'mp4-%sp' % f.get('height'),
-                'ext': 'mp4',
-                'url': item_url,
-            }
-            formats.append(format)
+        video_id = None
+        for server in api_json:
+            for stream in server['streams']:
+                if stream.get('compatibility') != 'all':
+                    continue
+                item_url = sanitize_url(stream.get('url')) or sanitize_url('https://hanime.tv/api/v1/m3u8s/%s.m3u8' % stream.get('id'))
+                width = int_or_none(stream.get('width'))
+                height = int_or_none(stream.get('height'))
+                format = {
+                    'width': width,
+                    'height': height,
+                    'filesize_approx': float_or_none(parse_filesize('%sMb' % stream.get('filesize_mbs'))),
+                    'protocol': 'm3u8',
+                    'format_id': 'mp4-%sp' % stream.get('height'),
+                    'ext': 'mp4',
+                    'url': item_url,
+                }
+                formats.append(format)
+                if not title:
+                    title = stream.get('video_stream_group_id')
+                if not duration:
+                    duration = parse_duration(compat_str(stream.get('duration_in_ms')))
+                if not video_id:
+                    video_id = compat_str(stream.get('id'))
         formats.reverse()
 
         return {
-            'id': compat_str(api_json[0].get('id')),
+            'id': video_id,
             'display_id': video_slug,
             'title': title,
             'description': clean_html(page_json.get('description')),
@@ -82,14 +93,14 @@ class HanimeIE(InfoExtractor):
                 {'preference': 0, 'id': 'Poster', 'url': page_json.get('poster_url')},
                 {'preference': 1, 'id': 'Cover', 'url': page_json.get('cover_url')},
             ],
-            'release_date': unified_strdate(page_json.get('released_at')),
-            'upload_date': unified_strdate(page_json.get('created_at')),
-            'timestamp': parse_iso8601(page_json.get('created_at')),
+            'release_date': unified_strdate(page_json.get('released_at') or compat_str(page_json.get('released_at_unix'))),
+            'upload_date': unified_strdate(page_json.get('created_at') or compat_str(page_json.get('created_at_unix'))),
+            'timestamp': int_or_none(page_json.get('created_at_unix') or parse_iso8601(page_json.get('created_at'))),
             'creator': str_or_none(page_json.get('brand')),
             'view_count': int_or_none(page_json.get('views')),
             'like_count': int_or_none(page_json.get('likes')),
             'dislike_count': int_or_none(page_json.get('dislikes')),
-            'duration': float_or_none(parse_duration('%sms' % f.get('duration_in_ms'))),
+            'duration': float_or_none(duration),
             'tags': tags,
             'formats': formats,
         }
