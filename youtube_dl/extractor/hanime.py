@@ -10,7 +10,6 @@ from ..utils import (
     parse_iso8601,
     unified_strdate,
     str_or_none,
-    parse_duration,
     sanitize_url,
     compat_str,
     try_get,
@@ -45,25 +44,32 @@ class HanimeIE(InfoExtractor):
 
     def _real_extract(self, url):
         video_slug = self._match_id(url)
-        page_json = self._html_search_regex(r'<script>.+__NUXT__=(.+?);<\/script>', self._download_webpage(url, video_slug), 'Inline JSON')
+        page_json = self._html_search_regex(r'__NUXT__=({.+?});<\/script>', self._download_webpage(url, video_slug), 'Inline JSON')
         page_json = try_get(self._parse_json(page_json, video_slug), lambda x: x['state']['data']['video']['hentai_video'], dict) or {}
         api_json = try_get(self._download_json(
             'https://members.hanime.tv/api/v3/videos_manifests/%s' % video_slug,
             video_slug,
             'API Call', headers={'X-Directive': 'api'}), lambda x: x['videos_manifest']['servers'], list) or []
-        title = page_json.get('name')
-        duration = parse_duration('%sms' % page_json.get('duration_in_ms'))
         tags = []
-        for tag in page_json.get('hentai_tags'):
+        for tag in page_json.get('hentai_tags', []):
             if tag.get('text'):
                 tags.append(tag.get('text'))
+        thumbnails = []
+        if '/covers/' in page_json.get('poster_url'):
+            thumbnails.append({'preference': 0, 'id': 'Poster', 'url': page_json['poster_url']})
+        elif '/posters/' in page_json.get('poster_url'):
+            thumbnails.append({'preference': 1, 'id': 'Cover', 'url': page_json['cover_url']})
+        else:
+            thumbnails = None
         formats = []
         video_id = None
         for server in api_json:
             for stream in server['streams']:
                 if stream.get('compatibility') != 'all':
                     continue
-                item_url = sanitize_url(stream.get('url')) or sanitize_url('https://hanime.tv/api/v1/m3u8s/%s.m3u8' % stream.get('id'))
+                if not video_id:
+                    video_id = compat_str(stream['id'])
+                item_url = sanitize_url(stream.get('url')) or sanitize_url('https://hanime.tv/api/v1/m3u8s/%s.m3u8' % stream['id'])
                 width = int_or_none(stream.get('width'))
                 height = int_or_none(stream.get('height'))
                 format = {
@@ -76,23 +82,14 @@ class HanimeIE(InfoExtractor):
                     'url': item_url,
                 }
                 formats.append(format)
-                if not title:
-                    title = stream.get('video_stream_group_id')
-                if not duration:
-                    duration = parse_duration(compat_str(stream.get('duration_in_ms')))
-                if not video_id:
-                    video_id = compat_str(stream.get('id'))
         formats.reverse()
 
         return {
-            'id': video_id,
+            'id': video_id or page_json.get('id') or video_slug,
             'display_id': video_slug,
-            'title': title,
+            'title': page_json.get('name') or video_slug.replace('-', ' '),
             'description': clean_html(page_json.get('description')),
-            'thumbnails': [
-                {'preference': 0, 'id': 'Poster', 'url': page_json.get('poster_url')},
-                {'preference': 1, 'id': 'Cover', 'url': page_json.get('cover_url')},
-            ],
+            'thumbnails': thumbnails,
             'release_date': unified_strdate(page_json.get('released_at') or compat_str(page_json.get('released_at_unix'))),
             'upload_date': unified_strdate(page_json.get('created_at') or compat_str(page_json.get('created_at_unix'))),
             'timestamp': int_or_none(page_json.get('created_at_unix') or parse_iso8601(page_json.get('created_at'))),
@@ -100,7 +97,7 @@ class HanimeIE(InfoExtractor):
             'view_count': int_or_none(page_json.get('views')),
             'like_count': int_or_none(page_json.get('likes')),
             'dislike_count': int_or_none(page_json.get('dislikes')),
-            'duration': float_or_none(duration),
+            'duration': float_or_none(page_json.get('duration_in_ms') / 1000),
             'tags': tags,
             'formats': formats,
         }
