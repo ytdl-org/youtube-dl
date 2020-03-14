@@ -55,7 +55,7 @@ class HanimeIE(InfoExtractor):
         tags = []
         for t in page_json.get('hentai_tags'):
             if t.get('text'):
-                tags.append('text')
+                tags.append(t.get('text'))
         formats = []
         for f in api_json:
             item_url = sanitize_url(f.get('url')) or sanitize_url('https://hanime.tv/api/v1/m3u8s/%s.m3u8' % f.get('id'))
