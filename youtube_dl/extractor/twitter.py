@@ -30,7 +30,8 @@ from .periscope import (
 
 class TwitterBaseIE(InfoExtractor):
     _API_BASE = 'https://api.twitter.com/1.1/'
-    _BASE_REGEX = r'https?://(?:(?:www|m(?:obile)?)\.)?twitter\.com/'
+    _BASE_REGEX = r'https?://((?:(?:www|m(?:obile)?)\.)?twitter\.com|' \
+            'nitter\.(net|42l\.fr|snopyta\.org|nixnet\.services|pussthecat\.org|mastodont\.cat|13ad\.de)|tw\.openalgeria\.org)/'
     _GUEST_TOKEN = None
 
     def _extract_variant_formats(self, variant, video_id):
