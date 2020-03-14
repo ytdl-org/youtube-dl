@@ -98,7 +98,7 @@ class XTubeIE(InfoExtractor):
                 title = config.get('title')
                 thumbnail = config.get('poster')
                 duration = int_or_none(config.get('duration'))
-                sources = config.get('sources')
+                sources = config.get('sources') or config.get('format')
 
         if isinstance(sources, dict):
             sources = self._parse_json(self._search_regex(
