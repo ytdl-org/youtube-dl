@@ -48,7 +48,7 @@ class AparatIE(InfoExtractor):
 
         player = self._parse_json(
             self._search_regex(
-                r'options\s*=\s*JSON\.parse\(\s*(["\'])(?P<value>(?:(?!\1).)+)\1\s*\)',
+                r'options\s*=\s*(?P<value>.*\w*\W*)\;',
                 webpage, 'options', group='value'),
             video_id)
 
