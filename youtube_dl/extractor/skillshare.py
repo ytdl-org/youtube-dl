@@ -32,4 +32,4 @@ class SkillshareClassIE(InfoExtractor):
                 'url': 'https://players.brightcove.net/{}/default_default/index.html?videoId={}'.format(account_id, video_hashed_id),
             }
             entries.append(entry)
-        return self.playlist_result(entries, class_id, class_json_data['pageData']['headerData']['title'], class_json_data["pageData"]['sectionData']['description'])
+        return self.playlist_result(entries, class_id, class_json_data['pageData']['headerData']['title'], class_json_data.get("pageData").get('sectionData').get('description'))
