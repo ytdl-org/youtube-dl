@@ -38,7 +38,7 @@ class TouTvIE(RadioCanadaIE):
         'url': 'https://ici.tou.tv/l-age-adulte/S01C501',
         'only_matching': True,
     }]
-    _CLIENT_KEY = '4dd36440-09d5-4468-8923-b6d91174ad36'
+    _CLIENT_KEY = '90505c8d-9c34-4f34-8da1-3a85bdc6d4f4'
 
     def _real_initialize(self):
         email, password = self._get_login_info()
@@ -66,7 +66,12 @@ class TouTvIE(RadioCanadaIE):
 
     def _real_extract(self, url):
         path = self._match_id(url)
-        metadata = self._download_json('http://ici.tou.tv/presentation/%s' % path, path)
+        metadata = self._download_json(
+            'https://services.radio-canada.ca/toutv/presentation/%s' % path, path, query={
+                'client_key': self._CLIENT_KEY,
+                'device': 'web',
+                'version': 4,
+            })
         # IsDrm does not necessarily mean the video is DRM protected (see
         # https://github.com/ytdl-org/youtube-dl/issues/13994).
         if metadata.get('IsDrm'):
@@ -77,6 +82,12 @@ class TouTvIE(RadioCanadaIE):
         return merge_dicts({
             'id': video_id,
             'title': details.get('OriginalTitle'),
+            'description': details.get('Description'),
             'thumbnail': details.get('ImageUrl'),
             'duration': int_or_none(details.get('LengthInSeconds')),
+            'series': metadata.get('ProgramTitle'),
+            'season_number': int_or_none(metadata.get('SeasonNumber')),
+            'season': metadata.get('SeasonTitle'),
+            'episode_number': int_or_none(metadata.get('EpisodeNumber')),
+            'episode': metadata.get('EpisodeTitle'),
         }, self._extract_info(metadata.get('AppCode', 'toutv'), video_id))

@@ -4,7 +4,9 @@ import re
 
 from .common import InfoExtractor
 from ..utils import (
+    determine_ext,
     ExtractorError,
+    merge_dicts,
     orderedSet,
     parse_duration,
     parse_resolution,
@@ -26,6 +28,8 @@ class SpankBangIE(InfoExtractor):
             'description': 'dillion harper masturbates on a bed',
             'thumbnail': r're:^https?://.*\.jpg$',
             'uploader': 'silly2587',
+            'timestamp': 1422571989,
+            'upload_date': '20150129',
             'age_limit': 18,
         }
     }, {
@@ -61,7 +65,7 @@ class SpankBangIE(InfoExtractor):
             url.replace('/%s/embed' % video_id, '/%s/video' % video_id),
             video_id, headers={'Cookie': 'country=US'})
 
-        if re.search(r'<[^>]+\bid=["\']video_removed', webpage):
+        if re.search(r'<[^>]+\b(?:id|class)=["\']video_removed', webpage):
             raise ExtractorError(
                 'Video %s is not available' % video_id, expected=True)
 
@@ -72,11 +76,20 @@ class SpankBangIE(InfoExtractor):
             if not f_url:
                 return
             f = parse_resolution(format_id)
-            f.update({
-                'url': f_url,
-                'format_id': format_id,
-            })
-            formats.append(f)
+            ext = determine_ext(f_url)
+            if format_id.startswith('m3u8') or ext == 'm3u8':
+                formats.extend(self._extract_m3u8_formats(
+                    f_url, video_id, 'mp4', entry_protocol='m3u8_native',
+                    m3u8_id='hls', fatal=False))
+            elif format_id.startswith('mpd') or ext == 'mpd':
+                formats.extend(self._extract_mpd_formats(
+                    f_url, video_id, mpd_id='dash', fatal=False))
+            elif ext == 'mp4' or f.get('width') or f.get('height'):
+                f.update({
+                    'url': f_url,
+                    'format_id': format_id,
+                })
+                formats.append(f)
 
         STREAM_URL_PREFIX = 'stream_url_'
 
@@ -90,47 +103,46 @@ class SpankBangIE(InfoExtractor):
                 r'data-streamkey\s*=\s*(["\'])(?P<value>(?:(?!\1).)+)\1',
                 webpage, 'stream key', group='value')
 
-            sb_csrf_session = self._get_cookies(
-                'https://spankbang.com')['sb_csrf_session'].value
-
             stream = self._download_json(
                 'https://spankbang.com/api/videos/stream', video_id,
                 'Downloading stream JSON', data=urlencode_postdata({
                     'id': stream_key,
                     'data': 0,
-                    'sb_csrf_session': sb_csrf_session,
                 }), headers={
                     'Referer': url,
-                    'X-CSRFToken': sb_csrf_session,
+                    'X-Requested-With': 'XMLHttpRequest',
                 })
 
             for format_id, format_url in stream.items():
-                if format_id.startswith(STREAM_URL_PREFIX):
-                    extract_format(
-                        format_id[len(STREAM_URL_PREFIX):], format_url)
+                if format_url and isinstance(format_url, list):
+                    format_url = format_url[0]
+                extract_format(format_id, format_url)
 
-        self._sort_formats(formats)
+        self._sort_formats(formats, field_preference=('preference', 'height', 'width', 'fps', 'tbr', 'format_id'))
+
+        info = self._search_json_ld(webpage, video_id, default={})
 
         title = self._html_search_regex(
-            r'(?s)<h1[^>]*>(.+?)</h1>', webpage, 'title')
+            r'(?s)<h1[^>]*>(.+?)</h1>', webpage, 'title', default=None)
         description = self._search_regex(
             r'<div[^>]+\bclass=["\']bottom[^>]+>\s*<p>[^<]*</p>\s*<p>([^<]+)',
-            webpage, 'description', fatal=False)
-        thumbnail = self._og_search_thumbnail(webpage)
-        uploader = self._search_regex(
-            r'class="user"[^>]*><img[^>]+>([^<]+)',
+            webpage, 'description', default=None)
+        thumbnail = self._og_search_thumbnail(webpage, default=None)
+        uploader = self._html_search_regex(
+            (r'(?s)<li[^>]+class=["\']profile[^>]+>(.+?)</a>',
+             r'class="user"[^>]*><img[^>]+>([^<]+)'),
             webpage, 'uploader', default=None)
         duration = parse_duration(self._search_regex(
             r'<div[^>]+\bclass=["\']right_side[^>]+>\s*<span>([^<]+)',
-            webpage, 'duration', fatal=False))
+            webpage, 'duration', default=None))
         view_count = str_to_int(self._search_regex(
-            r'([\d,.]+)\s+plays', webpage, 'view count', fatal=False))
+            r'([\d,.]+)\s+plays', webpage, 'view count', default=None))
 
         age_limit = self._rta_search(webpage)
 
-        return {
+        return merge_dicts({
             'id': video_id,
-            'title': title,
+            'title': title or video_id,
             'description': description,
             'thumbnail': thumbnail,
             'uploader': uploader,
@@ -138,7 +150,8 @@ class SpankBangIE(InfoExtractor):
             'view_count': view_count,
             'formats': formats,
             'age_limit': age_limit,
-        }
+        }, info
+        )
 
 
 class SpankBangPlaylistIE(InfoExtractor):

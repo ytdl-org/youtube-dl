@@ -18,7 +18,7 @@ class NovaEmbedIE(InfoExtractor):
     _VALID_URL = r'https?://media\.cms\.nova\.cz/embed/(?P<id>[^/?#&]+)'
     _TEST = {
         'url': 'https://media.cms.nova.cz/embed/8o0n0r?autoplay=1',
-        'md5': 'b3834f6de5401baabf31ed57456463f7',
+        'md5': 'ee009bafcc794541570edd44b71cbea3',
         'info_dict': {
             'id': '8o0n0r',
             'ext': 'mp4',
@@ -44,10 +44,16 @@ class NovaEmbedIE(InfoExtractor):
         formats = []
         for format_id, format_list in bitrates.items():
             if not isinstance(format_list, list):
-                continue
+                format_list = [format_list]
             for format_url in format_list:
                 format_url = url_or_none(format_url)
                 if not format_url:
+                    continue
+                if format_id == 'hls':
+                    formats.extend(self._extract_m3u8_formats(
+                        format_url, video_id, ext='mp4',
+                        entry_protocol='m3u8_native', m3u8_id='hls',
+                        fatal=False))
                     continue
                 f = {
                     'url': format_url,
@@ -91,7 +97,7 @@ class NovaIE(InfoExtractor):
     _VALID_URL = r'https?://(?:[^.]+\.)?(?P<site>tv(?:noviny)?|tn|novaplus|vymena|fanda|krasna|doma|prask)\.nova\.cz/(?:[^/]+/)+(?P<id>[^/]+?)(?:\.html|/|$)'
     _TESTS = [{
         'url': 'http://tn.nova.cz/clanek/tajemstvi-ukryte-v-podzemi-specialni-nemocnice-v-prazske-krci.html#player_13260',
-        'md5': '1dd7b9d5ea27bc361f110cd855a19bd3',
+        'md5': '249baab7d0104e186e78b0899c7d5f28',
         'info_dict': {
             'id': '1757139',
             'display_id': 'tajemstvi-ukryte-v-podzemi-specialni-nemocnice-v-prazske-krci',
@@ -113,7 +119,8 @@ class NovaIE(InfoExtractor):
         'params': {
             # rtmp download
             'skip_download': True,
-        }
+        },
+        'skip': 'gone',
     }, {
         # media.cms.nova.cz embed
         'url': 'https://novaplus.nova.cz/porad/ulice/epizoda/18760-2180-dil',
@@ -128,6 +135,7 @@ class NovaIE(InfoExtractor):
             'skip_download': True,
         },
         'add_ie': [NovaEmbedIE.ie_key()],
+        'skip': 'CHYBA 404: STRÁNKA NENALEZENA',
     }, {
         'url': 'http://sport.tn.nova.cz/clanek/sport/hokej/nhl/zivot-jde-dal-hodnotil-po-vyrazeni-z-playoff-jiri-sekac.html',
         'only_matching': True,
@@ -152,14 +160,29 @@ class NovaIE(InfoExtractor):
 
         webpage = self._download_webpage(url, display_id)
 
+        description = clean_html(self._og_search_description(webpage, default=None))
+        if site == 'novaplus':
+            upload_date = unified_strdate(self._search_regex(
+                r'(\d{1,2}-\d{1,2}-\d{4})$', display_id, 'upload date', default=None))
+        elif site == 'fanda':
+            upload_date = unified_strdate(self._search_regex(
+                r'<span class="date_time">(\d{1,2}\.\d{1,2}\.\d{4})', webpage, 'upload date', default=None))
+        else:
+            upload_date = None
+
         # novaplus
         embed_id = self._search_regex(
             r'<iframe[^>]+\bsrc=["\'](?:https?:)?//media\.cms\.nova\.cz/embed/([^/?#&]+)',
             webpage, 'embed url', default=None)
         if embed_id:
-            return self.url_result(
-                'https://media.cms.nova.cz/embed/%s' % embed_id,
-                ie=NovaEmbedIE.ie_key(), video_id=embed_id)
+            return {
+                '_type': 'url_transparent',
+                'url': 'https://media.cms.nova.cz/embed/%s' % embed_id,
+                'ie_key': NovaEmbedIE.ie_key(),
+                'id': embed_id,
+                'description': description,
+                'upload_date': upload_date
+            }
 
         video_id = self._search_regex(
             [r"(?:media|video_id)\s*:\s*'(\d+)'",
@@ -233,17 +256,7 @@ class NovaIE(InfoExtractor):
         self._sort_formats(formats)
 
         title = mediafile.get('meta', {}).get('title') or self._og_search_title(webpage)
-        description = clean_html(self._og_search_description(webpage, default=None))
         thumbnail = config.get('poster')
-
-        if site == 'novaplus':
-            upload_date = unified_strdate(self._search_regex(
-                r'(\d{1,2}-\d{1,2}-\d{4})$', display_id, 'upload date', default=None))
-        elif site == 'fanda':
-            upload_date = unified_strdate(self._search_regex(
-                r'<span class="date_time">(\d{1,2}\.\d{1,2}\.\d{4})', webpage, 'upload date', default=None))
-        else:
-            upload_date = None
 
         return {
             'id': video_id,

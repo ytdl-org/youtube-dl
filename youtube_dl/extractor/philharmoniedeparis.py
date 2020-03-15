@@ -14,7 +14,7 @@ class PhilharmonieDeParisIE(InfoExtractor):
     _VALID_URL = r'''(?x)
                     https?://
                         (?:
-                            live\.philharmoniedeparis\.fr/(?:[Cc]oncert/|misc/Playlist\.ashx\?id=)|
+                            live\.philharmoniedeparis\.fr/(?:[Cc]oncert/|embed(?:app)?/|misc/Playlist\.ashx\?id=)|
                             pad\.philharmoniedeparis\.fr/doc/CIMU/
                         )
                         (?P<id>\d+)
@@ -39,6 +39,12 @@ class PhilharmonieDeParisIE(InfoExtractor):
         'only_matching': True,
     }, {
         'url': 'http://live.philharmoniedeparis.fr/misc/Playlist.ashx?id=1030324&track=&lang=fr',
+        'only_matching': True,
+    }, {
+        'url': 'https://live.philharmoniedeparis.fr/embedapp/1098406/berlioz-fantastique-lelio-les-siecles-national-youth-choir-of.html?lang=fr-FR',
+        'only_matching': True,
+    }, {
+        'url': 'https://live.philharmoniedeparis.fr/embed/1098406/berlioz-fantastique-lelio-les-siecles-national-youth-choir-of.html?lang=fr-FR',
         'only_matching': True,
     }]
     _LIVE_URL = 'https://live.philharmoniedeparis.fr'

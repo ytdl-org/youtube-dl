@@ -2649,9 +2649,9 @@ else:
 
 try:
     args = shlex.split('中文')
-    assert (isinstance(args, list) and
-            isinstance(args[0], compat_str) and
-            args[0] == '中文')
+    assert (isinstance(args, list)
+            and isinstance(args[0], compat_str)
+            and args[0] == '中文')
     compat_shlex_split = shlex.split
 except (AssertionError, UnicodeEncodeError):
     # Working around shlex issue with unicode strings on some python 2
@@ -2752,6 +2752,17 @@ else:
             return userhome + path[i:]
     else:
         compat_expanduser = os.path.expanduser
+
+
+if compat_os_name == 'nt' and sys.version_info < (3, 8):
+    # os.path.realpath on Windows does not follow symbolic links
+    # prior to Python 3.8 (see https://bugs.python.org/issue9949)
+    def compat_realpath(path):
+        while os.path.islink(path):
+            path = os.path.abspath(os.readlink(path))
+        return path
+else:
+    compat_realpath = os.path.realpath
 
 
 if sys.version_info < (3, 0):
@@ -2998,6 +3009,7 @@ __all__ = [
     'compat_os_name',
     'compat_parse_qs',
     'compat_print',
+    'compat_realpath',
     'compat_setenv',
     'compat_shlex_quote',
     'compat_shlex_split',

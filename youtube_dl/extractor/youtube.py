@@ -16,6 +16,7 @@ from ..jsinterp import JSInterpreter
 from ..swfinterp import SWFInterpreter
 from ..compat import (
     compat_chr,
+    compat_HTTPError,
     compat_kwargs,
     compat_parse_qs,
     compat_urllib_parse_unquote,
@@ -26,8 +27,10 @@ from ..compat import (
     compat_str,
 )
 from ..utils import (
+    bool_or_none,
     clean_html,
     error_to_compat_str,
+    extract_attributes,
     ExtractorError,
     float_or_none,
     get_element_by_attribute,
@@ -37,7 +40,6 @@ from ..utils import (
     orderedSet,
     parse_codecs,
     parse_duration,
-    qualities,
     remove_quotes,
     remove_start,
     smuggle_url,
@@ -66,7 +68,7 @@ class YoutubeBaseInfoExtractor(InfoExtractor):
     # If True it will raise an error if no login info is provided
     _LOGIN_REQUIRED = False
 
-    _PLAYLIST_ID_RE = r'(?:PL|LL|EC|UU|FL|RD|UL|TL|OLAK5uy_)[0-9A-Za-z-_]{10,}'
+    _PLAYLIST_ID_RE = r'(?:PL|LL|EC|UU|FL|RD|UL|TL|PU|OLAK5uy_)[0-9A-Za-z-_]{10,}'
 
     def _set_language(self):
         self._set_cookie(
@@ -114,6 +116,8 @@ class YoutubeBaseInfoExtractor(InfoExtractor):
                 'f.req': json.dumps(f_req),
                 'flowName': 'GlifWebSignIn',
                 'flowEntry': 'ServiceLogin',
+                # TODO: reverse actual botguard identifier generation algo
+                'bgRequest': '["identifier",""]',
             })
             return self._download_json(
                 url, None, note=note, errnote=errnote,
@@ -287,10 +291,25 @@ class YoutubeEntryListBaseInfoExtractor(YoutubeBaseInfoExtractor):
             if not mobj:
                 break
 
-            more = self._download_json(
-                'https://youtube.com/%s' % mobj.group('more'), playlist_id,
-                'Downloading page #%s' % page_num,
-                transform_source=uppercase_escape)
+            count = 0
+            retries = 3
+            while count <= retries:
+                try:
+                    # Downloading page may result in intermittent 5xx HTTP error
+                    # that is usually worked around with a retry
+                    more = self._download_json(
+                        'https://youtube.com/%s' % mobj.group('more'), playlist_id,
+                        'Downloading page #%s%s'
+                        % (page_num, ' (retry #%d)' % count if count else ''),
+                        transform_source=uppercase_escape)
+                    break
+                except ExtractorError as e:
+                    if isinstance(e.cause, compat_HTTPError) and e.cause.code in (500, 503):
+                        count += 1
+                        if count <= retries:
+                            continue
+                    raise
+
             content_html = more['content_html']
             if not content_html.strip():
                 # Some webpages show a "Load more" button but they don't
@@ -304,17 +323,18 @@ class YoutubePlaylistBaseInfoExtractor(YoutubeEntryListBaseInfoExtractor):
         for video_id, video_title in self.extract_videos_from_page(content):
             yield self.url_result(video_id, 'Youtube', video_id, video_title)
 
-    def extract_videos_from_page(self, page):
-        ids_in_page = []
-        titles_in_page = []
-        for mobj in re.finditer(self._VIDEO_RE, page):
+    def extract_videos_from_page_impl(self, video_re, page, ids_in_page, titles_in_page):
+        for mobj in re.finditer(video_re, page):
             # The link with index 0 is not the first video of the playlist (not sure if still actual)
             if 'index' in mobj.groupdict() and mobj.group('id') == '0':
                 continue
             video_id = mobj.group('id')
-            video_title = unescapeHTML(mobj.group('title'))
+            video_title = unescapeHTML(
+                mobj.group('title')) if 'title' in mobj.groupdict() else None
             if video_title:
                 video_title = video_title.strip()
+            if video_title == '► Play all':
+                video_title = None
             try:
                 idx = ids_in_page.index(video_id)
                 if video_title and not titles_in_page[idx]:
@@ -322,6 +342,12 @@ class YoutubePlaylistBaseInfoExtractor(YoutubeEntryListBaseInfoExtractor):
             except ValueError:
                 ids_in_page.append(video_id)
                 titles_in_page.append(video_title)
+
+    def extract_videos_from_page(self, page):
+        ids_in_page = []
+        titles_in_page = []
+        self.extract_videos_from_page_impl(
+            self._VIDEO_RE, page, ids_in_page, titles_in_page)
         return zip(ids_in_page, titles_in_page)
 
 
@@ -345,17 +371,32 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
     _VALID_URL = r"""(?x)^
                      (
                          (?:https?://|//)                                    # http(s):// or protocol-independent URL
-                         (?:(?:(?:(?:\w+\.)?[yY][oO][uU][tT][uU][bB][eE](?:-nocookie)?\.com/|
+                         (?:(?:(?:(?:\w+\.)?[yY][oO][uU][tT][uU][bB][eE](?:-nocookie|kids)?\.com/|
                             (?:www\.)?deturl\.com/www\.youtube\.com/|
                             (?:www\.)?pwnyoutube\.com/|
                             (?:www\.)?hooktube\.com/|
                             (?:www\.)?yourepeat\.com/|
                             tube\.majestyc\.net/|
+                            # Invidious instances taken from https://github.com/omarroth/invidious/wiki/Invidious-Instances
                             (?:(?:www|dev)\.)?invidio\.us/|
-                            (?:www\.)?invidiou\.sh/|
-                            (?:www\.)?invidious\.snopyta\.org/|
+                            (?:(?:www|no)\.)?invidiou\.sh/|
+                            (?:(?:www|fi|de)\.)?invidious\.snopyta\.org/|
                             (?:www\.)?invidious\.kabi\.tk/|
+                            (?:www\.)?invidious\.13ad\.de/|
+                            (?:www\.)?invidious\.mastodon\.host/|
+                            (?:www\.)?invidious\.nixnet\.xyz/|
+                            (?:www\.)?invidious\.drycat\.fr/|
+                            (?:www\.)?tube\.poal\.co/|
                             (?:www\.)?vid\.wxzm\.sx/|
+                            (?:www\.)?yt\.elukerio\.org/|
+                            (?:www\.)?yt\.lelux\.fi/|
+                            (?:www\.)?kgg2m7yk5aybusll\.onion/|
+                            (?:www\.)?qklhadlycap4cnod\.onion/|
+                            (?:www\.)?axqzx4s6s54s32yentfqojs3x5i7faxza6xo3ehd4bzzsg2ii4fv2iid\.onion/|
+                            (?:www\.)?c7hqkpkpemu6e7emz5b4vyz7idjgdvgaaa3dyimmeojqbgpea3xqjoid\.onion/|
+                            (?:www\.)?fz253lmuao3strwbfbmx46yu7acac2jz27iwtorgmbqlkurlclmancad\.onion/|
+                            (?:www\.)?invidious\.l4qlywnpwqsluw65ts7md3khrivpirse744un3x7mlskqauz5pyuzgqd\.onion/|
+                            (?:www\.)?owxfohz4kjyv25fvlqilyxast7inivgiktls3th44jhk3ej3i7ya\.b32\.i2p/|
                             youtube\.googleapis\.com/)                        # the various hostnames, with wildcard subdomains
                          (?:.*?\#/)?                                          # handle anchor (#/) redirect urls
                          (?:                                                  # the various things that can precede the ID:
@@ -483,8 +524,14 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
 
         # RTMP (unnamed)
         '_rtmp': {'protocol': 'rtmp'},
+
+        # av01 video only formats sometimes served with "unknown" codecs
+        '394': {'acodec': 'none', 'vcodec': 'av01.0.05M.08'},
+        '395': {'acodec': 'none', 'vcodec': 'av01.0.05M.08'},
+        '396': {'acodec': 'none', 'vcodec': 'av01.0.05M.08'},
+        '397': {'acodec': 'none', 'vcodec': 'av01.0.05M.08'},
     }
-    _SUBTITLE_FORMATS = ('ttml', 'vtt')
+    _SUBTITLE_FORMATS = ('srv1', 'srv2', 'srv3', 'ttml', 'vtt')
 
     _GEO_BYPASS = False
 
@@ -522,7 +569,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                 'upload_date': '20120506',
                 'title': 'Icona Pop - I Love It (feat. Charli XCX) [OFFICIAL VIDEO]',
                 'alt_title': 'I Love It (feat. Charli XCX)',
-                'description': 'md5:f3ceb5ef83a08d95b9d146f973157cc8',
+                'description': 'md5:19a2f98d9032b9311e686ed039564f63',
                 'tags': ['Icona Pop i love it', 'sweden', 'pop music', 'big beat records', 'big beat', 'charli',
                          'xcx', 'charli xcx', 'girls', 'hbo', 'i love it', "i don't care", 'icona', 'pop',
                          'iconic ep', 'iconic', 'love', 'it'],
@@ -637,12 +684,11 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                 'id': 'nfWlot6h_JM',
                 'ext': 'm4a',
                 'title': 'Taylor Swift - Shake It Off',
-                'description': 'md5:bec2185232c05479482cb5a9b82719bf',
+                'description': 'md5:307195cd21ff7fa352270fe884570ef0',
                 'duration': 242,
                 'uploader': 'TaylorSwiftVEVO',
                 'uploader_id': 'TaylorSwiftVEVO',
                 'upload_date': '20140818',
-                'creator': 'Taylor Swift',
             },
             'params': {
                 'youtube_include_dash_manifest': True,
@@ -707,11 +753,11 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                 'upload_date': '20100430',
                 'uploader_id': 'deadmau5',
                 'uploader_url': r're:https?://(?:www\.)?youtube\.com/user/deadmau5',
-                'creator': 'deadmau5',
+                'creator': 'Dada Life, deadmau5',
                 'description': 'md5:12c56784b8032162bb936a5f76d55360',
                 'uploader': 'deadmau5',
                 'title': 'Deadmau5 - Some Chords (HD)',
-                'alt_title': 'Some Chords',
+                'alt_title': 'This Machine Kills Some Chords',
             },
             'expected_warnings': [
                 'DASH manifest missing',
@@ -908,6 +954,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                 'creator': 'Todd Haberman,  Daniel Law Heath and Aaron Kaplan',
                 'track': 'Dark Walk - Position Music',
                 'artist': 'Todd Haberman,  Daniel Law Heath and Aaron Kaplan',
+                'album': 'Position Music - Production Music Vol. 143 - Dark Walk',
             },
             'params': {
                 'skip_download': True,
@@ -1086,7 +1133,100 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                 'skip_download': True,
                 'youtube_include_dash_manifest': False,
             },
-        }
+            'skip': 'not actual anymore',
+        },
+        {
+            # Youtube Music Auto-generated description
+            'url': 'https://music.youtube.com/watch?v=MgNrAu2pzNs',
+            'info_dict': {
+                'id': 'MgNrAu2pzNs',
+                'ext': 'mp4',
+                'title': 'Voyeur Girl',
+                'description': 'md5:7ae382a65843d6df2685993e90a8628f',
+                'upload_date': '20190312',
+                'uploader': 'Stephen - Topic',
+                'uploader_id': 'UC-pWHpBjdGG69N9mM2auIAA',
+                'artist': 'Stephen',
+                'track': 'Voyeur Girl',
+                'album': 'it\'s too much love to know my dear',
+                'release_date': '20190313',
+                'release_year': 2019,
+            },
+            'params': {
+                'skip_download': True,
+            },
+        },
+        {
+            # Youtube Music Auto-generated description
+            # Retrieve 'artist' field from 'Artist:' in video description
+            # when it is present on youtube music video
+            'url': 'https://www.youtube.com/watch?v=k0jLE7tTwjY',
+            'info_dict': {
+                'id': 'k0jLE7tTwjY',
+                'ext': 'mp4',
+                'title': 'Latch Feat. Sam Smith',
+                'description': 'md5:3cb1e8101a7c85fcba9b4fb41b951335',
+                'upload_date': '20150110',
+                'uploader': 'Various Artists - Topic',
+                'uploader_id': 'UCNkEcmYdjrH4RqtNgh7BZ9w',
+                'artist': 'Disclosure',
+                'track': 'Latch Feat. Sam Smith',
+                'album': 'Latch Featuring Sam Smith',
+                'release_date': '20121008',
+                'release_year': 2012,
+            },
+            'params': {
+                'skip_download': True,
+            },
+        },
+        {
+            # Youtube Music Auto-generated description
+            # handle multiple artists on youtube music video
+            'url': 'https://www.youtube.com/watch?v=74qn0eJSjpA',
+            'info_dict': {
+                'id': '74qn0eJSjpA',
+                'ext': 'mp4',
+                'title': 'Eastside',
+                'description': 'md5:290516bb73dcbfab0dcc4efe6c3de5f2',
+                'upload_date': '20180710',
+                'uploader': 'Benny Blanco - Topic',
+                'uploader_id': 'UCzqz_ksRu_WkIzmivMdIS7A',
+                'artist': 'benny blanco, Halsey, Khalid',
+                'track': 'Eastside',
+                'album': 'Eastside',
+                'release_date': '20180713',
+                'release_year': 2018,
+            },
+            'params': {
+                'skip_download': True,
+            },
+        },
+        {
+            # Youtube Music Auto-generated description
+            # handle youtube music video with release_year and no release_date
+            'url': 'https://www.youtube.com/watch?v=-hcAI0g-f5M',
+            'info_dict': {
+                'id': '-hcAI0g-f5M',
+                'ext': 'mp4',
+                'title': 'Put It On Me',
+                'description': 'md5:f6422397c07c4c907c6638e1fee380a5',
+                'upload_date': '20180426',
+                'uploader': 'Matt Maeson - Topic',
+                'uploader_id': 'UCnEkIGqtGcQMLk73Kp-Q5LQ',
+                'artist': 'Matt Maeson',
+                'track': 'Put It On Me',
+                'album': 'The Hearse',
+                'release_date': None,
+                'release_year': 2018,
+            },
+            'params': {
+                'skip_download': True,
+            },
+        },
+        {
+            'url': 'https://www.youtubekids.com/watch?v=3b8nCWDgZ6Q',
+            'only_matching': True,
+        },
     ]
 
     def __init__(self, *args, **kwargs):
@@ -1115,7 +1255,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
 
     def _extract_signature_function(self, video_id, player_url, example_sig):
         id_m = re.match(
-            r'.*?-(?P<id>[a-zA-Z0-9_-]+)(?:/watch_as3|/html5player(?:-new)?|(?:/[a-z]{2,3}_[A-Z]{2})?/base)?\.(?P<ext>[a-z]+)$',
+            r'.*?[-.](?P<id>[a-zA-Z0-9_-]+)(?:/watch_as3|/html5player(?:-new)?|(?:/[a-z]{2,3}_[A-Z]{2})?/base)?\.(?P<ext>[a-z]+)$',
             player_url)
         if not id_m:
             raise ExtractorError('Cannot identify player %r' % player_url)
@@ -1200,11 +1340,19 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
 
     def _parse_sig_js(self, jscode):
         funcname = self._search_regex(
-            (r'(["\'])signature\1\s*,\s*(?P<sig>[a-zA-Z0-9$]+)\(',
+            (r'\b[cs]\s*&&\s*[adf]\.set\([^,]+\s*,\s*encodeURIComponent\s*\(\s*(?P<sig>[a-zA-Z0-9$]+)\(',
+             r'\b[a-zA-Z0-9]+\s*&&\s*[a-zA-Z0-9]+\.set\([^,]+\s*,\s*encodeURIComponent\s*\(\s*(?P<sig>[a-zA-Z0-9$]+)\(',
+             r'\b(?P<sig>[a-zA-Z0-9$]{2})\s*=\s*function\(\s*a\s*\)\s*{\s*a\s*=\s*a\.split\(\s*""\s*\)',
+             r'(?P<sig>[a-zA-Z0-9$]+)\s*=\s*function\(\s*a\s*\)\s*{\s*a\s*=\s*a\.split\(\s*""\s*\)',
+             # Obsolete patterns
+             r'(["\'])signature\1\s*,\s*(?P<sig>[a-zA-Z0-9$]+)\(',
              r'\.sig\|\|(?P<sig>[a-zA-Z0-9$]+)\(',
-             r'yt\.akamaized\.net/\)\s*\|\|\s*.*?\s*c\s*&&\s*d\.set\([^,]+\s*,\s*(?:encodeURIComponent\s*\()?(?P<sig>[a-zA-Z0-9$]+)\(',
-             r'\bc\s*&&\s*d\.set\([^,]+\s*,\s*(?:encodeURIComponent\s*\()?\s*(?P<sig>[a-zA-Z0-9$]+)\(',
-             r'\bc\s*&&\s*d\.set\([^,]+\s*,\s*\([^)]*\)\s*\(\s*(?P<sig>[a-zA-Z0-9$]+)\('),
+             r'yt\.akamaized\.net/\)\s*\|\|\s*.*?\s*[cs]\s*&&\s*[adf]\.set\([^,]+\s*,\s*(?:encodeURIComponent\s*\()?\s*(?P<sig>[a-zA-Z0-9$]+)\(',
+             r'\b[cs]\s*&&\s*[adf]\.set\([^,]+\s*,\s*(?P<sig>[a-zA-Z0-9$]+)\(',
+             r'\b[a-zA-Z0-9]+\s*&&\s*[a-zA-Z0-9]+\.set\([^,]+\s*,\s*(?P<sig>[a-zA-Z0-9$]+)\(',
+             r'\bc\s*&&\s*a\.set\([^,]+\s*,\s*\([^)]*\)\s*\(\s*(?P<sig>[a-zA-Z0-9$]+)\(',
+             r'\bc\s*&&\s*[a-zA-Z0-9]+\.set\([^,]+\s*,\s*\([^)]*\)\s*\(\s*(?P<sig>[a-zA-Z0-9$]+)\(',
+             r'\bc\s*&&\s*[a-zA-Z0-9]+\.set\([^,]+\s*,\s*\([^)]*\)\s*\(\s*(?P<sig>[a-zA-Z0-9$]+)\('),
             jscode, 'Initial JS player signature function name', group='sig')
 
         jsi = JSInterpreter(jscode)
@@ -1468,10 +1616,6 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
         video_id = mobj.group(2)
         return video_id
 
-    def _extract_annotations(self, video_id):
-        url = 'https://www.youtube.com/annotations_invideo?features=1&legacy=1&video_id=%s' % video_id
-        return self._download_webpage(url, video_id, note='Searching for annotations.', errnote='Unable to download video annotations.')
-
     @staticmethod
     def _extract_chapters(description, duration):
         if not description:
@@ -1563,9 +1707,19 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
         def extract_view_count(v_info):
             return int_or_none(try_get(v_info, lambda x: x['view_count'][0]))
 
+        def extract_player_response(player_response, video_id):
+            pl_response = str_or_none(player_response)
+            if not pl_response:
+                return
+            pl_response = self._parse_json(pl_response, video_id, fatal=False)
+            if isinstance(pl_response, dict):
+                add_dash_mpd_pr(pl_response)
+                return pl_response
+
         player_response = {}
 
         # Get video info
+        video_info = {}
         embed_webpage = None
         if re.search(r'player-age-gate-content">', video_webpage) is not None:
             age_gate = True
@@ -1580,16 +1734,21 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                     r'"sts"\s*:\s*(\d+)', embed_webpage, 'sts', default=''),
             })
             video_info_url = proto + '://www.youtube.com/get_video_info?' + data
-            video_info_webpage = self._download_webpage(
-                video_info_url, video_id,
-                note='Refetching age-gated info webpage',
-                errnote='unable to download video info webpage')
-            video_info = compat_parse_qs(video_info_webpage)
-            add_dash_mpd(video_info)
+            try:
+                video_info_webpage = self._download_webpage(
+                    video_info_url, video_id,
+                    note='Refetching age-gated info webpage',
+                    errnote='unable to download video info webpage')
+            except ExtractorError:
+                video_info_webpage = None
+            if video_info_webpage:
+                video_info = compat_parse_qs(video_info_webpage)
+                pl_response = video_info.get('player_response', [None])[0]
+                player_response = extract_player_response(pl_response, video_id)
+                add_dash_mpd(video_info)
+                view_count = extract_view_count(video_info)
         else:
             age_gate = False
-            video_info = None
-            sts = None
             # Try looking directly into the video webpage
             ytplayer_config = self._get_ytplayer_config(video_id, video_webpage)
             if ytplayer_config:
@@ -1606,108 +1765,40 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                         args['ypc_vid'], YoutubeIE.ie_key(), video_id=args['ypc_vid'])
                 if args.get('livestream') == '1' or args.get('live_playback') == 1:
                     is_live = True
-                sts = ytplayer_config.get('sts')
                 if not player_response:
-                    pl_response = str_or_none(args.get('player_response'))
-                    if pl_response:
-                        pl_response = self._parse_json(pl_response, video_id, fatal=False)
-                        if isinstance(pl_response, dict):
-                            player_response = pl_response
+                    player_response = extract_player_response(args.get('player_response'), video_id)
             if not video_info or self._downloader.params.get('youtube_include_dash_manifest', True):
                 add_dash_mpd_pr(player_response)
-                # We also try looking in get_video_info since it may contain different dashmpd
-                # URL that points to a DASH manifest with possibly different itag set (some itags
-                # are missing from DASH manifest pointed by webpage's dashmpd, some - from DASH
-                # manifest pointed by get_video_info's dashmpd).
-                # The general idea is to take a union of itags of both DASH manifests (for example
-                # video with such 'manifest behavior' see https://github.com/ytdl-org/youtube-dl/issues/6093)
-                self.report_video_info_webpage_download(video_id)
-                for el in ('info', 'embedded', 'detailpage', 'vevo', ''):
-                    query = {
-                        'video_id': video_id,
-                        'ps': 'default',
-                        'eurl': '',
-                        'gl': 'US',
-                        'hl': 'en',
-                    }
-                    if el:
-                        query['el'] = el
-                    if sts:
-                        query['sts'] = sts
-                    video_info_webpage = self._download_webpage(
-                        '%s://www.youtube.com/get_video_info' % proto,
-                        video_id, note=False,
-                        errnote='unable to download video info webpage',
-                        fatal=False, query=query)
-                    if not video_info_webpage:
-                        continue
-                    get_video_info = compat_parse_qs(video_info_webpage)
-                    if not player_response:
-                        pl_response = get_video_info.get('player_response', [None])[0]
-                        if isinstance(pl_response, dict):
-                            player_response = pl_response
-                            add_dash_mpd_pr(player_response)
-                    add_dash_mpd(get_video_info)
-                    if view_count is None:
-                        view_count = extract_view_count(get_video_info)
-                    if not video_info:
-                        video_info = get_video_info
-                    if 'token' in get_video_info:
-                        # Different get_video_info requests may report different results, e.g.
-                        # some may report video unavailability, but some may serve it without
-                        # any complaint (see https://github.com/ytdl-org/youtube-dl/issues/7362,
-                        # the original webpage as well as el=info and el=embedded get_video_info
-                        # requests report video unavailability due to geo restriction while
-                        # el=detailpage succeeds and returns valid data). This is probably
-                        # due to YouTube measures against IP ranges of hosting providers.
-                        # Working around by preferring the first succeeded video_info containing
-                        # the token if no such video_info yet was found.
-                        if 'token' not in video_info:
-                            video_info = get_video_info
-                        break
 
         def extract_unavailable_message():
-            return self._html_search_regex(
-                r'(?s)<h1[^>]+id="unavailable-message"[^>]*>(.+?)</h1>',
-                video_webpage, 'unavailable message', default=None)
+            messages = []
+            for tag, kind in (('h1', 'message'), ('div', 'submessage')):
+                msg = self._html_search_regex(
+                    r'(?s)<{tag}[^>]+id=["\']unavailable-{kind}["\'][^>]*>(.+?)</{tag}>'.format(tag=tag, kind=kind),
+                    video_webpage, 'unavailable %s' % kind, default=None)
+                if msg:
+                    messages.append(msg)
+            if messages:
+                return '\n'.join(messages)
 
-        if 'token' not in video_info:
-            if 'reason' in video_info:
-                if 'The uploader has not made this video available in your country.' in video_info['reason']:
-                    regions_allowed = self._html_search_meta(
-                        'regionsAllowed', video_webpage, default=None)
-                    countries = regions_allowed.split(',') if regions_allowed else None
-                    self.raise_geo_restricted(
-                        msg=video_info['reason'][0], countries=countries)
-                reason = video_info['reason'][0]
-                if 'Invalid parameters' in reason:
-                    unavailable_message = extract_unavailable_message()
-                    if unavailable_message:
-                        reason = unavailable_message
-                raise ExtractorError(
-                    'YouTube said: %s' % reason,
-                    expected=True, video_id=video_id)
-            else:
-                raise ExtractorError(
-                    '"token" parameter not in video info for unknown reason',
-                    video_id=video_id)
+        if not video_info and not player_response:
+            unavailable_message = extract_unavailable_message()
+            if not unavailable_message:
+                unavailable_message = 'Unable to extract video data'
+            raise ExtractorError(
+                'YouTube said: %s' % unavailable_message, expected=True, video_id=video_id)
 
-        if video_info.get('license_info'):
-            raise ExtractorError('This video is DRM protected.', expected=True)
+        if not isinstance(video_info, dict):
+            video_info = {}
 
         video_details = try_get(
             player_response, lambda x: x['videoDetails'], dict) or {}
 
-        # title
-        if 'title' in video_info:
-            video_title = video_info['title'][0]
-        elif 'title' in player_response:
-            video_title = video_details['title']
-        else:
+        video_title = video_info.get('title', [None])[0] or video_details.get('title')
+        if not video_title:
             self._downloader.report_warning('Unable to extract video title')
             video_title = '_'
 
-        # description
         description_original = video_description = get_element_by_id("eow-description", video_webpage)
         if video_description:
 
@@ -1732,11 +1823,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
             ''', replace_url, video_description)
             video_description = clean_html(video_description)
         else:
-            fd_mobj = re.search(r'<meta name="description" content="([^"]+)"', video_webpage)
-            if fd_mobj:
-                video_description = unescapeHTML(fd_mobj.group(1))
-            else:
-                video_description = ''
+            video_description = self._html_search_meta('description', video_webpage) or video_details.get('shortDescription')
 
         if not smuggled_data.get('force_singlefeed', False):
             if not self._downloader.params.get('noplaylist'):
@@ -1774,6 +1861,9 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
         if view_count is None and video_details:
             view_count = int_or_none(video_details.get('viewCount'))
 
+        if is_live is None:
+            is_live = bool_or_none(video_details.get('isLive'))
+
         # Check for "rental" videos
         if 'ypc_video_rental_bar_text' in video_info and 'author' not in video_info:
             raise ExtractorError('"rental" videos not supported. See https://github.com/ytdl-org/youtube-dl/issues/359 for more information.', expected=True)
@@ -1781,6 +1871,9 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
         def _extract_filesize(media_url):
             return int_or_none(self._search_regex(
                 r'\bclen[=/](\d+)', media_url, 'filesize', default=None))
+
+        streaming_formats = try_get(player_response, lambda x: x['streamingData']['formats'], list) or []
+        streaming_formats.extend(try_get(player_response, lambda x: x['streamingData']['adaptiveFormats'], list) or [])
 
         if 'conn' in video_info and video_info['conn'][0].startswith('rtmp'):
             self.report_rtmp_download()
@@ -1790,10 +1883,11 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                 'url': video_info['conn'][0],
                 'player_url': player_url,
             }]
-        elif not is_live and (len(video_info.get('url_encoded_fmt_stream_map', [''])[0]) >= 1 or len(video_info.get('adaptive_fmts', [''])[0]) >= 1):
+        elif not is_live and (streaming_formats or len(video_info.get('url_encoded_fmt_stream_map', [''])[0]) >= 1 or len(video_info.get('adaptive_fmts', [''])[0]) >= 1):
             encoded_url_map = video_info.get('url_encoded_fmt_stream_map', [''])[0] + ',' + video_info.get('adaptive_fmts', [''])[0]
             if 'rtmpe%3Dyes' in encoded_url_map:
                 raise ExtractorError('rtmpe downloads are not supported, see https://github.com/ytdl-org/youtube-dl/issues/343 for more information.', expected=True)
+            formats = []
             formats_spec = {}
             fmt_list = video_info.get('fmt_list', [''])[0]
             if fmt_list:
@@ -1807,90 +1901,104 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                                 'width': int_or_none(width_height[0]),
                                 'height': int_or_none(width_height[1]),
                             }
-            q = qualities(['small', 'medium', 'hd720'])
-            streaming_formats = try_get(player_response, lambda x: x['streamingData']['formats'], list)
-            if streaming_formats:
-                for fmt in streaming_formats:
-                    itag = str_or_none(fmt.get('itag'))
-                    if not itag:
-                        continue
-                    quality = fmt.get('quality')
-                    quality_label = fmt.get('qualityLabel') or quality
-                    formats_spec[itag] = {
-                        'asr': int_or_none(fmt.get('audioSampleRate')),
-                        'filesize': int_or_none(fmt.get('contentLength')),
-                        'format_note': quality_label,
-                        'fps': int_or_none(fmt.get('fps')),
-                        'height': int_or_none(fmt.get('height')),
-                        'quality': q(quality),
-                        # bitrate for itag 43 is always 2147483647
-                        'tbr': float_or_none(fmt.get('averageBitrate') or fmt.get('bitrate'), 1000) if itag != '43' else None,
-                        'width': int_or_none(fmt.get('width')),
-                    }
-            formats = []
-            for url_data_str in encoded_url_map.split(','):
-                url_data = compat_parse_qs(url_data_str)
-                if 'itag' not in url_data or 'url' not in url_data:
+            for fmt in streaming_formats:
+                itag = str_or_none(fmt.get('itag'))
+                if not itag:
                     continue
+                quality = fmt.get('quality')
+                quality_label = fmt.get('qualityLabel') or quality
+                formats_spec[itag] = {
+                    'asr': int_or_none(fmt.get('audioSampleRate')),
+                    'filesize': int_or_none(fmt.get('contentLength')),
+                    'format_note': quality_label,
+                    'fps': int_or_none(fmt.get('fps')),
+                    'height': int_or_none(fmt.get('height')),
+                    # bitrate for itag 43 is always 2147483647
+                    'tbr': float_or_none(fmt.get('averageBitrate') or fmt.get('bitrate'), 1000) if itag != '43' else None,
+                    'width': int_or_none(fmt.get('width')),
+                }
+
+            for fmt in streaming_formats:
+                if fmt.get('drm_families'):
+                    continue
+                url = url_or_none(fmt.get('url'))
+
+                if not url:
+                    cipher = fmt.get('cipher')
+                    if not cipher:
+                        continue
+                    url_data = compat_parse_qs(cipher)
+                    url = url_or_none(try_get(url_data, lambda x: x['url'][0], compat_str))
+                    if not url:
+                        continue
+                else:
+                    cipher = None
+                    url_data = compat_parse_qs(compat_urllib_parse_urlparse(url).query)
+
                 stream_type = int_or_none(try_get(url_data, lambda x: x['stream_type'][0]))
                 # Unsupported FORMAT_STREAM_TYPE_OTF
                 if stream_type == 3:
                     continue
-                format_id = url_data['itag'][0]
-                url = url_data['url'][0]
 
-                if 's' in url_data or self._downloader.params.get('youtube_include_dash_manifest', True):
-                    ASSETS_RE = r'"assets":.+?"js":\s*("[^"]+")'
-                    jsplayer_url_json = self._search_regex(
-                        ASSETS_RE,
-                        embed_webpage if age_gate else video_webpage,
-                        'JS player URL (1)', default=None)
-                    if not jsplayer_url_json and not age_gate:
-                        # We need the embed website after all
-                        if embed_webpage is None:
-                            embed_url = proto + '://www.youtube.com/embed/%s' % video_id
-                            embed_webpage = self._download_webpage(
-                                embed_url, video_id, 'Downloading embed webpage')
+                format_id = fmt.get('itag') or url_data['itag'][0]
+                if not format_id:
+                    continue
+                format_id = compat_str(format_id)
+
+                if cipher:
+                    if 's' in url_data or self._downloader.params.get('youtube_include_dash_manifest', True):
+                        ASSETS_RE = r'"assets":.+?"js":\s*("[^"]+")'
                         jsplayer_url_json = self._search_regex(
-                            ASSETS_RE, embed_webpage, 'JS player URL')
+                            ASSETS_RE,
+                            embed_webpage if age_gate else video_webpage,
+                            'JS player URL (1)', default=None)
+                        if not jsplayer_url_json and not age_gate:
+                            # We need the embed website after all
+                            if embed_webpage is None:
+                                embed_url = proto + '://www.youtube.com/embed/%s' % video_id
+                                embed_webpage = self._download_webpage(
+                                    embed_url, video_id, 'Downloading embed webpage')
+                            jsplayer_url_json = self._search_regex(
+                                ASSETS_RE, embed_webpage, 'JS player URL')
 
-                    player_url = json.loads(jsplayer_url_json)
-                    if player_url is None:
-                        player_url_json = self._search_regex(
-                            r'ytplayer\.config.*?"url"\s*:\s*("[^"]+")',
-                            video_webpage, 'age gate player URL')
-                        player_url = json.loads(player_url_json)
-
-                if 'sig' in url_data:
-                    url += '&signature=' + url_data['sig'][0]
-                elif 's' in url_data:
-                    encrypted_sig = url_data['s'][0]
-
-                    if self._downloader.params.get('verbose'):
+                        player_url = json.loads(jsplayer_url_json)
                         if player_url is None:
-                            player_version = 'unknown'
-                            player_desc = 'unknown'
-                        else:
-                            if player_url.endswith('swf'):
-                                player_version = self._search_regex(
-                                    r'-(.+?)(?:/watch_as3)?\.swf$', player_url,
-                                    'flash player', fatal=False)
-                                player_desc = 'flash player %s' % player_version
+                            player_url_json = self._search_regex(
+                                r'ytplayer\.config.*?"url"\s*:\s*("[^"]+")',
+                                video_webpage, 'age gate player URL')
+                            player_url = json.loads(player_url_json)
+
+                    if 'sig' in url_data:
+                        url += '&signature=' + url_data['sig'][0]
+                    elif 's' in url_data:
+                        encrypted_sig = url_data['s'][0]
+
+                        if self._downloader.params.get('verbose'):
+                            if player_url is None:
+                                player_version = 'unknown'
+                                player_desc = 'unknown'
                             else:
-                                player_version = self._search_regex(
-                                    [r'html5player-([^/]+?)(?:/html5player(?:-new)?)?\.js',
-                                     r'(?:www|player(?:_ias)?)-([^/]+)(?:/[a-z]{2,3}_[A-Z]{2})?/base\.js'],
-                                    player_url,
-                                    'html5 player', fatal=False)
-                                player_desc = 'html5 player %s' % player_version
+                                if player_url.endswith('swf'):
+                                    player_version = self._search_regex(
+                                        r'-(.+?)(?:/watch_as3)?\.swf$', player_url,
+                                        'flash player', fatal=False)
+                                    player_desc = 'flash player %s' % player_version
+                                else:
+                                    player_version = self._search_regex(
+                                        [r'html5player-([^/]+?)(?:/html5player(?:-new)?)?\.js',
+                                         r'(?:www|player(?:_ias)?)[-.]([^/]+)(?:/[a-z]{2,3}_[A-Z]{2})?/base\.js'],
+                                        player_url,
+                                        'html5 player', fatal=False)
+                                    player_desc = 'html5 player %s' % player_version
 
-                        parts_sizes = self._signature_cache_id(encrypted_sig)
-                        self.to_screen('{%s} signature length %s, %s' %
-                                       (format_id, parts_sizes, player_desc))
+                            parts_sizes = self._signature_cache_id(encrypted_sig)
+                            self.to_screen('{%s} signature length %s, %s' %
+                                           (format_id, parts_sizes, player_desc))
 
-                    signature = self._decrypt_signature(
-                        encrypted_sig, video_id, player_url, age_gate)
-                    url += '&signature=' + signature
+                        signature = self._decrypt_signature(
+                            encrypted_sig, video_id, player_url, age_gate)
+                        sp = try_get(url_data, lambda x: x['sp'][0], compat_str) or 'signature'
+                        url += '&%s=%s' % (sp, signature)
                 if 'ratebypass' not in url:
                     url += '&ratebypass=yes'
 
@@ -1910,24 +2018,33 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                 mobj = re.search(r'^(?P<width>\d+)[xX](?P<height>\d+)$', url_data.get('size', [''])[0])
                 width, height = (int(mobj.group('width')), int(mobj.group('height'))) if mobj else (None, None)
 
+                if width is None:
+                    width = int_or_none(fmt.get('width'))
+                if height is None:
+                    height = int_or_none(fmt.get('height'))
+
                 filesize = int_or_none(url_data.get(
                     'clen', [None])[0]) or _extract_filesize(url)
 
-                quality = url_data.get('quality', [None])[0]
+                quality = url_data.get('quality', [None])[0] or fmt.get('quality')
+                quality_label = url_data.get('quality_label', [None])[0] or fmt.get('qualityLabel')
+
+                tbr = (float_or_none(url_data.get('bitrate', [None])[0], 1000)
+                       or float_or_none(fmt.get('bitrate'), 1000)) if format_id != '43' else None
+                fps = int_or_none(url_data.get('fps', [None])[0]) or int_or_none(fmt.get('fps'))
 
                 more_fields = {
                     'filesize': filesize,
-                    'tbr': float_or_none(url_data.get('bitrate', [None])[0], 1000),
+                    'tbr': tbr,
                     'width': width,
                     'height': height,
-                    'fps': int_or_none(url_data.get('fps', [None])[0]),
-                    'format_note': url_data.get('quality_label', [None])[0] or quality,
-                    'quality': q(quality),
+                    'fps': fps,
+                    'format_note': quality_label or quality,
                 }
                 for key, value in more_fields.items():
                     if value:
                         dct[key] = value
-                type_ = url_data.get('type', [None])[0]
+                type_ = url_data.get('type', [None])[0] or fmt.get('mimeType')
                 if type_:
                     type_split = type_.split(';')
                     kind_ext = type_split[0].split('/')
@@ -1954,8 +2071,8 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                 url_or_none(try_get(
                     player_response,
                     lambda x: x['streamingData']['hlsManifestUrl'],
-                    compat_str)) or
-                url_or_none(try_get(
+                    compat_str))
+                or url_or_none(try_get(
                     video_info, lambda x: x['hlsvp'][0], compat_str)))
             if manifest_url:
                 formats = []
@@ -1975,9 +2092,14 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                     a_format.setdefault('http_headers', {})['Youtubedl-no-compression'] = 'True'
                     formats.append(a_format)
             else:
-                error_message = clean_html(video_info.get('reason', [None])[0])
+                error_message = extract_unavailable_message()
                 if not error_message:
-                    error_message = extract_unavailable_message()
+                    error_message = clean_html(try_get(
+                        player_response, lambda x: x['playabilityStatus']['reason'],
+                        compat_str))
+                if not error_message:
+                    error_message = clean_html(
+                        try_get(video_info, lambda x: x['reason'][0], compat_str))
                 if error_message:
                     raise ExtractorError(error_message, expected=True)
                 raise ExtractorError('no conn, hlsvp, hlsManifestUrl or url_encoded_fmt_stream_map information found in video info')
@@ -2003,8 +2125,13 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
         else:
             self._downloader.report_warning('unable to extract uploader nickname')
 
-        channel_id = self._html_search_meta(
-            'channelId', video_webpage, 'channel id')
+        channel_id = (
+            str_or_none(video_details.get('channelId'))
+            or self._html_search_meta(
+                'channelId', video_webpage, 'channel id', default=None)
+            or self._search_regex(
+                r'data-channel-external-id=(["\'])(?P<id>(?:(?!\1).)+)\1',
+                video_webpage, 'channel id', default=None, group='id'))
         channel_url = 'http://www.youtube.com/channel/%s' % channel_id if channel_id else None
 
         # thumbnail image
@@ -2063,6 +2190,27 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
 
         track = extract_meta('Song')
         artist = extract_meta('Artist')
+        album = extract_meta('Album')
+
+        # Youtube Music Auto-generated description
+        release_date = release_year = None
+        if video_description:
+            mobj = re.search(r'(?s)Provided to YouTube by [^\n]+\n+(?P<track>[^·]+)·(?P<artist>[^\n]+)\n+(?P<album>[^\n]+)(?:.+?℗\s*(?P<release_year>\d{4})(?!\d))?(?:.+?Released on\s*:\s*(?P<release_date>\d{4}-\d{2}-\d{2}))?(.+?\nArtist\s*:\s*(?P<clean_artist>[^\n]+))?', video_description)
+            if mobj:
+                if not track:
+                    track = mobj.group('track').strip()
+                if not artist:
+                    artist = mobj.group('clean_artist') or ', '.join(a.strip() for a in mobj.group('artist').split('·'))
+                if not album:
+                    album = mobj.group('album'.strip())
+                release_year = mobj.group('release_year')
+                release_date = mobj.group('release_date')
+                if release_date:
+                    release_date = release_date.replace('-', '')
+                    if not release_year:
+                        release_year = int(release_date[:4])
+                if release_year:
+                    release_year = int(release_year)
 
         m_episode = re.search(
             r'<div[^>]+id="watch7-headline"[^>]*>\s*<span[^>]*>.*?>(?P<series>[^<]+)</a></b>\s*S(?P<season>\d+)\s*•\s*E(?P<episode>\d+)</span>',
@@ -2103,6 +2251,10 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                 r'<[^>]+class=["\']watch-view-count[^>]+>\s*([\d,\s]+)', video_webpage,
                 'view count', default=None))
 
+        average_rating = (
+            float_or_none(video_details.get('averageRating'))
+            or try_get(video_info, lambda x: float_or_none(x['avg_rating'][0])))
+
         # subtitles
         video_subtitles = self.extract_subtitles(video_id, video_webpage)
         automatic_captions = self.extract_automatic_captions(video_id, video_webpage)
@@ -2118,7 +2270,21 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
         # annotations
         video_annotations = None
         if self._downloader.params.get('writeannotations', False):
-            video_annotations = self._extract_annotations(video_id)
+            xsrf_token = self._search_regex(
+                r'([\'"])XSRF_TOKEN\1\s*:\s*([\'"])(?P<xsrf_token>[A-Za-z0-9+/=]+)\2',
+                video_webpage, 'xsrf token', group='xsrf_token', fatal=False)
+            invideo_url = try_get(
+                player_response, lambda x: x['annotations'][0]['playerAnnotationsUrlsRenderer']['invideoUrl'], compat_str)
+            if xsrf_token and invideo_url:
+                xsrf_field_name = self._search_regex(
+                    r'([\'"])XSRF_FIELD_NAME\1\s*:\s*([\'"])(?P<xsrf_field_name>\w+)\2',
+                    video_webpage, 'xsrf field name',
+                    group='xsrf_field_name', default='session_token')
+                video_annotations = self._download_webpage(
+                    self._proto_relative_url(invideo_url),
+                    video_id, note='Downloading annotations',
+                    errnote='Unable to download video annotations', fatal=False,
+                    data=urlencode_postdata({xsrf_field_name: xsrf_token}))
 
         chapters = self._extract_chapters(description_original, video_duration)
 
@@ -2176,6 +2342,25 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                     if f.get('vcodec') != 'none':
                         f['stretched_ratio'] = ratio
 
+        if not formats:
+            if 'reason' in video_info:
+                if 'The uploader has not made this video available in your country.' in video_info['reason']:
+                    regions_allowed = self._html_search_meta(
+                        'regionsAllowed', video_webpage, default=None)
+                    countries = regions_allowed.split(',') if regions_allowed else None
+                    self.raise_geo_restricted(
+                        msg=video_info['reason'][0], countries=countries)
+                reason = video_info['reason'][0]
+                if 'Invalid parameters' in reason:
+                    unavailable_message = extract_unavailable_message()
+                    if unavailable_message:
+                        reason = unavailable_message
+                raise ExtractorError(
+                    'YouTube said: %s' % reason,
+                    expected=True, video_id=video_id)
+            if video_info.get('license_info') or try_get(player_response, lambda x: x['streamingData']['licenseInfos']):
+                raise ExtractorError('This video is DRM protected.', expected=True)
+
         self._sort_formats(formats)
 
         self.mark_watched(video_id, video_info, player_response)
@@ -2206,7 +2391,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
             'view_count': view_count,
             'like_count': like_count,
             'dislike_count': dislike_count,
-            'average_rating': float_or_none(video_info.get('avg_rating', [None])[0]),
+            'average_rating': average_rating,
             'formats': formats,
             'is_live': is_live,
             'start_time': start_time,
@@ -2216,6 +2401,9 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
             'episode_number': episode_number,
             'track': track,
             'artist': artist,
+            'album': album,
+            'release_date': release_date,
+            'release_year': release_year,
         }
 
 
@@ -2226,7 +2414,7 @@ class YoutubePlaylistIE(YoutubePlaylistBaseInfoExtractor):
                         (?:\w+\.)?
                         (?:
                             (?:
-                                youtube\.com|
+                                youtube(?:kids)?\.com|
                                 invidio\.us
                             )
                             /
@@ -2238,7 +2426,7 @@ class YoutubePlaylistIE(YoutubePlaylistBaseInfoExtractor):
                             youtu\.be/[0-9A-Za-z_-]{11}\?.*?\blist=
                         )
                         (
-                            (?:PL|LL|EC|UU|FL|RD|UL|TL|OLAK5uy_)?[0-9A-Za-z-_]{10,}
+                            (?:PL|LL|EC|UU|FL|RD|UL|TL|PU|OLAK5uy_)?[0-9A-Za-z-_]{10,}
                             # Top tracks, they can also include dots
                             |(?:MC)[\w\.]*
                         )
@@ -2247,37 +2435,45 @@ class YoutubePlaylistIE(YoutubePlaylistBaseInfoExtractor):
                         (%(playlist_id)s)
                      )""" % {'playlist_id': YoutubeBaseInfoExtractor._PLAYLIST_ID_RE}
     _TEMPLATE_URL = 'https://www.youtube.com/playlist?list=%s'
-    _VIDEO_RE = r'href="\s*/watch\?v=(?P<id>[0-9A-Za-z_-]{11})&amp;[^"]*?index=(?P<index>\d+)(?:[^>]+>(?P<title>[^<]+))?'
+    _VIDEO_RE_TPL = r'href="\s*/watch\?v=%s(?:&amp;(?:[^"]*?index=(?P<index>\d+))?(?:[^>]+>(?P<title>[^<]+))?)?'
+    _VIDEO_RE = _VIDEO_RE_TPL % r'(?P<id>[0-9A-Za-z_-]{11})'
     IE_NAME = 'youtube:playlist'
     _TESTS = [{
-        'url': 'https://www.youtube.com/playlist?list=PLwiyx1dc3P2JR9N8gQaQN_BCvlSlap7re',
+        'url': 'https://www.youtube.com/playlist?list=PL4lCao7KL_QFVb7Iudeipvc2BCavECqzc',
         'info_dict': {
-            'title': 'ytdl test PL',
-            'id': 'PLwiyx1dc3P2JR9N8gQaQN_BCvlSlap7re',
+            'uploader_id': 'UCmlqkdCBesrv2Lak1mF_MxA',
+            'uploader': 'Sergey M.',
+            'id': 'PL4lCao7KL_QFVb7Iudeipvc2BCavECqzc',
+            'title': 'youtube-dl public playlist',
         },
-        'playlist_count': 3,
+        'playlist_count': 1,
     }, {
-        'url': 'https://www.youtube.com/playlist?list=PLtPgu7CB4gbZDA7i_euNxn75ISqxwZPYx',
+        'url': 'https://www.youtube.com/playlist?list=PL4lCao7KL_QFodcLWhDpGCYnngnHtQ-Xf',
         'info_dict': {
-            'id': 'PLtPgu7CB4gbZDA7i_euNxn75ISqxwZPYx',
-            'title': 'YDL_Empty_List',
+            'uploader_id': 'UCmlqkdCBesrv2Lak1mF_MxA',
+            'uploader': 'Sergey M.',
+            'id': 'PL4lCao7KL_QFodcLWhDpGCYnngnHtQ-Xf',
+            'title': 'youtube-dl empty playlist',
         },
         'playlist_count': 0,
-        'skip': 'This playlist is private',
     }, {
         'note': 'Playlist with deleted videos (#651). As a bonus, the video #51 is also twice in this list.',
         'url': 'https://www.youtube.com/playlist?list=PLwP_SiAcdui0KVebT0mU9Apz359a4ubsC',
         'info_dict': {
             'title': '29C3: Not my department',
             'id': 'PLwP_SiAcdui0KVebT0mU9Apz359a4ubsC',
+            'uploader': 'Christiaan008',
+            'uploader_id': 'ChRiStIaAn008',
         },
-        'playlist_count': 95,
+        'playlist_count': 96,
     }, {
         'note': 'issue #673',
         'url': 'PLBB231211A4F62143',
         'info_dict': {
             'title': '[OLD]Team Fortress 2 (Class-based LP)',
             'id': 'PLBB231211A4F62143',
+            'uploader': 'Wickydoo',
+            'uploader_id': 'Wickydoo',
         },
         'playlist_mincount': 26,
     }, {
@@ -2286,6 +2482,8 @@ class YoutubePlaylistIE(YoutubePlaylistBaseInfoExtractor):
         'info_dict': {
             'title': 'Uploads from Cauchemar',
             'id': 'UUBABnxM4Ar9ten8Mdjj1j0Q',
+            'uploader': 'Cauchemar',
+            'uploader_id': 'Cauchemar89',
         },
         'playlist_mincount': 799,
     }, {
@@ -2303,13 +2501,17 @@ class YoutubePlaylistIE(YoutubePlaylistBaseInfoExtractor):
         'info_dict': {
             'title': 'JODA15',
             'id': 'PL6IaIsEjSbf96XFRuNccS_RuEXwNdsoEu',
+            'uploader': 'milan',
+            'uploader_id': 'UCEI1-PVPcYXjB73Hfelbmaw',
         }
     }, {
         'url': 'http://www.youtube.com/embed/_xDOZElKyNU?list=PLsyOSbh5bs16vubvKePAQ1x3PhKavfBIl',
         'playlist_mincount': 485,
         'info_dict': {
-            'title': '2017 華語最新單曲 (2/24更新)',
+            'title': '2018 Chinese New Singles (11/6 updated)',
             'id': 'PLsyOSbh5bs16vubvKePAQ1x3PhKavfBIl',
+            'uploader': 'LBK',
+            'uploader_id': 'sdragonfang',
         }
     }, {
         'note': 'Embedded SWF player',
@@ -2318,13 +2520,16 @@ class YoutubePlaylistIE(YoutubePlaylistBaseInfoExtractor):
         'info_dict': {
             'title': 'JODA7',
             'id': 'YN5VISEtHet5D4NEvfTd0zcgFk84NqFZ',
-        }
+        },
+        'skip': 'This playlist does not exist',
     }, {
         'note': 'Buggy playlist: the webpage has a "Load more" button but it doesn\'t have more videos',
         'url': 'https://www.youtube.com/playlist?list=UUXw-G3eDE9trcvY2sBMM_aA',
         'info_dict': {
             'title': 'Uploads from Interstellar Movie',
             'id': 'UUXw-G3eDE9trcvY2sBMM_aA',
+            'uploader': 'Interstellar Movie',
+            'uploader_id': 'InterstellarMovie1',
         },
         'playlist_mincount': 21,
     }, {
@@ -2349,6 +2554,7 @@ class YoutubePlaylistIE(YoutubePlaylistBaseInfoExtractor):
         'params': {
             'skip_download': True,
         },
+        'skip': 'This video is not available.',
         'add_ie': [YoutubeIE.ie_key()],
     }, {
         'url': 'https://youtu.be/yeWKywCrFtk?list=PL2qgrgXsNUG5ig9cat4ohreBjYLAPC0J5',
@@ -2360,7 +2566,6 @@ class YoutubePlaylistIE(YoutubePlaylistBaseInfoExtractor):
             'uploader_id': 'backuspagemuseum',
             'uploader_url': r're:https?://(?:www\.)?youtube\.com/user/backuspagemuseum',
             'upload_date': '20161008',
-            'license': 'Standard YouTube License',
             'description': 'md5:800c0c78d5eb128500bffd4f0b4f2e8a',
             'categories': ['Nonprofits & Activism'],
             'tags': list,
@@ -2371,6 +2576,16 @@ class YoutubePlaylistIE(YoutubePlaylistBaseInfoExtractor):
             'noplaylist': True,
             'skip_download': True,
         },
+    }, {
+        # https://github.com/ytdl-org/youtube-dl/issues/21844
+        'url': 'https://www.youtube.com/playlist?list=PLzH6n4zXuckpfMu_4Ff8E7Z1behQks5ba',
+        'info_dict': {
+            'title': 'Data Analysis with Dr Mike Pound',
+            'id': 'PLzH6n4zXuckpfMu_4Ff8E7Z1behQks5ba',
+            'uploader_id': 'Computerphile',
+            'uploader': 'Computerphile',
+        },
+        'playlist_mincount': 11,
     }, {
         'url': 'https://youtu.be/uWyaPkt-VOI?list=PL9D9FC436B881BA21',
         'only_matching': True,
@@ -2384,10 +2599,41 @@ class YoutubePlaylistIE(YoutubePlaylistBaseInfoExtractor):
     }, {
         'url': 'https://invidio.us/playlist?list=PLDIoUOhQQPlXr63I_vwF9GD8sAKh77dWU',
         'only_matching': True,
+    }, {
+        'url': 'https://www.youtubekids.com/watch?v=Agk7R8I8o5U&list=PUZ6jURNr1WQZCNHF0ao-c0g',
+        'only_matching': True,
     }]
 
     def _real_initialize(self):
         self._login()
+
+    def extract_videos_from_page(self, page):
+        ids_in_page = []
+        titles_in_page = []
+
+        for item in re.findall(
+                r'(<[^>]*\bdata-video-id\s*=\s*["\'][0-9A-Za-z_-]{11}[^>]+>)', page):
+            attrs = extract_attributes(item)
+            video_id = attrs['data-video-id']
+            video_title = unescapeHTML(attrs.get('data-title'))
+            if video_title:
+                video_title = video_title.strip()
+            ids_in_page.append(video_id)
+            titles_in_page.append(video_title)
+
+        # Fallback with old _VIDEO_RE
+        self.extract_videos_from_page_impl(
+            self._VIDEO_RE, page, ids_in_page, titles_in_page)
+
+        # Relaxed fallbacks
+        self.extract_videos_from_page_impl(
+            r'href="\s*/watch\?v\s*=\s*(?P<id>[0-9A-Za-z_-]{11})', page,
+            ids_in_page, titles_in_page)
+        self.extract_videos_from_page_impl(
+            r'data-video-ids\s*=\s*["\'](?P<id>[0-9A-Za-z_-]{11})', page,
+            ids_in_page, titles_in_page)
+
+        return zip(ids_in_page, titles_in_page)
 
     def _extract_mix(self, playlist_id):
         # The mixes are generated from a single video
@@ -2414,9 +2660,9 @@ class YoutubePlaylistIE(YoutubePlaylistBaseInfoExtractor):
 
         search_title = lambda class_name: get_element_by_attribute('class', class_name, webpage)
         title_span = (
-            search_title('playlist-title') or
-            search_title('title long-title') or
-            search_title('title'))
+            search_title('playlist-title')
+            or search_title('title long-title')
+            or search_title('title'))
         title = clean_html(title_span)
 
         return self.playlist_result(url_results, playlist_id, title)
@@ -2451,7 +2697,7 @@ class YoutubePlaylistIE(YoutubePlaylistBaseInfoExtractor):
             page, 'title', default=None)
 
         _UPLOADER_BASE = r'class=["\']pl-header-details[^>]+>\s*<li>\s*<a[^>]+\bhref='
-        uploader = self._search_regex(
+        uploader = self._html_search_regex(
             r'%s["\']/(?:user|channel)/[^>]+>([^<]+)' % _UPLOADER_BASE,
             page, 'uploader', default=None)
         mobj = re.search(
@@ -2526,7 +2772,7 @@ class YoutubePlaylistIE(YoutubePlaylistBaseInfoExtractor):
 
 class YoutubeChannelIE(YoutubePlaylistBaseInfoExtractor):
     IE_DESC = 'YouTube.com channels'
-    _VALID_URL = r'https?://(?:youtu\.be|(?:\w+\.)?youtube(?:-nocookie)?\.com|(?:www\.)?invidio\.us)/channel/(?P<id>[0-9A-Za-z_-]+)'
+    _VALID_URL = r'https?://(?:youtu\.be|(?:\w+\.)?youtube(?:-nocookie|kids)?\.com|(?:www\.)?invidio\.us)/channel/(?P<id>[0-9A-Za-z_-]+)'
     _TEMPLATE_URL = 'https://www.youtube.com/channel/%s/videos'
     _VIDEO_RE = r'(?:title="(?P<title>[^"]+)"[^>]+)?href="/watch\?v=(?P<id>[0-9A-Za-z_-]+)&?'
     IE_NAME = 'youtube:channel'
@@ -2537,6 +2783,8 @@ class YoutubeChannelIE(YoutubePlaylistBaseInfoExtractor):
         'info_dict': {
             'id': 'UUKfVa3S1e4PHvxWcwyMMg8w',
             'title': 'Uploads from lex will',
+            'uploader': 'lex will',
+            'uploader_id': 'UCKfVa3S1e4PHvxWcwyMMg8w',
         }
     }, {
         'note': 'Age restricted channel',
@@ -2546,9 +2794,14 @@ class YoutubeChannelIE(YoutubePlaylistBaseInfoExtractor):
         'info_dict': {
             'id': 'UUs0ifCMCm1icqRbqhUINa0w',
             'title': 'Uploads from Deus Ex',
+            'uploader': 'Deus Ex',
+            'uploader_id': 'DeusExOfficial',
         },
     }, {
         'url': 'https://invidio.us/channel/UC23qupoDRn9YOAVzeoxjOQA',
+        'only_matching': True,
+    }, {
+        'url': 'https://www.youtubekids.com/channel/UCyu8StPfZWapR6rfW_JgqcA',
         'only_matching': True,
     }]
 
@@ -2630,6 +2883,8 @@ class YoutubeUserIE(YoutubeChannelIE):
         'info_dict': {
             'id': 'UUfX55Sx5hEFjoC3cNs6mCUQ',
             'title': 'Uploads from The Linux Foundation',
+            'uploader': 'The Linux Foundation',
+            'uploader_id': 'TheLinuxFoundation',
         }
     }, {
         # Only available via https://www.youtube.com/c/12minuteathlete/videos
@@ -2639,6 +2894,8 @@ class YoutubeUserIE(YoutubeChannelIE):
         'info_dict': {
             'id': 'UUVjM-zV6_opMDx7WYxnjZiQ',
             'title': 'Uploads from 12 Minute Athlete',
+            'uploader': '12 Minute Athlete',
+            'uploader_id': 'the12minuteathlete',
         }
     }, {
         'url': 'ytuser:phihag',
@@ -2732,7 +2989,7 @@ class YoutubePlaylistsIE(YoutubePlaylistsBaseInfoExtractor):
         'playlist_mincount': 4,
         'info_dict': {
             'id': 'ThirstForScience',
-            'title': 'Thirst for Science',
+            'title': 'ThirstForScience',
         },
     }, {
         # with "Load more" button
@@ -2749,6 +3006,7 @@ class YoutubePlaylistsIE(YoutubePlaylistsBaseInfoExtractor):
             'id': 'UCiU1dHvZObB2iP6xkJ__Icw',
             'title': 'Chem Player',
         },
+        'skip': 'Blocked',
     }]
 
 

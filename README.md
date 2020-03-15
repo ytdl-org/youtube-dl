@@ -642,6 +642,7 @@ The simplest case is requesting a specific format, for example with `-f 22` you 
 You can also use a file extension (currently `3gp`, `aac`, `flv`, `m4a`, `mp3`, `mp4`, `ogg`, `wav`, `webm` are supported) to download the best quality format of a particular file extension served as a single file, e.g. `-f webm` will download the best quality format with the `webm` extension served as a single file.
 
 You can also use special names to select particular edge case formats:
+
  - `best`: Select the best quality format represented by a single file with video and audio.
  - `worst`: Select the worst quality format represented by a single file with video and audio.
  - `bestvideo`: Select the best quality video-only format (e.g. DASH video). May not be available.
@@ -658,6 +659,7 @@ If you want to download several formats of the same video use a comma as a separ
 You can also filter the video formats by putting a condition in brackets, as in `-f "best[height=720]"` (or `-f "[filesize>10M]"`).
 
 The following numeric meta fields can be used with comparisons `<`, `<=`, `>`, `>=`, `=` (equals), `!=` (not equals):
+
  - `filesize`: The number of bytes, if known in advance
  - `width`: Width of the video, if known
  - `height`: Height of the video, if known
@@ -668,6 +670,7 @@ The following numeric meta fields can be used with comparisons `<`, `<=`, `>`, `
  - `fps`: Frame rate
 
 Also filtering work for comparisons `=` (equals), `^=` (starts with), `$=` (ends with), `*=` (contains) and following string meta fields:
+
  - `ext`: File extension
  - `acodec`: Name of the audio codec in use
  - `vcodec`: Name of the video codec in use
@@ -697,7 +700,7 @@ Note that on Windows you may need to use double quotes instead of single.
 # Download best mp4 format available or any other best if no mp4 available
 $ youtube-dl -f 'bestvideo[ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]/best'
 
-# Download best format available but not better that 480p
+# Download best format available but no better than 480p
 $ youtube-dl -f 'bestvideo[height<=480]+bestaudio/best[height<=480]'
 
 # Download best video only format but no bigger than 50 MB
@@ -749,8 +752,8 @@ As a last resort, you can also uninstall the version installed by your package m
 Afterwards, simply follow [our manual installation instructions](https://ytdl-org.github.io/youtube-dl/download.html):
 
 ```
-sudo wget https://yt-dl.org/latest/youtube-dl -O /usr/local/bin/youtube-dl
-sudo chmod a+x /usr/local/bin/youtube-dl
+sudo wget https://yt-dl.org/downloads/latest/youtube-dl -O /usr/local/bin/youtube-dl
+sudo chmod a+rx /usr/local/bin/youtube-dl
 hash -r
 ```
 
@@ -832,7 +835,9 @@ In February 2015, the new YouTube player contained a character sequence in a str
 
 ### HTTP Error 429: Too Many Requests or 402: Payment Required
 
-These two error codes indicate that the service is blocking your IP address because of overuse. Contact the service and ask them to unblock your IP address, or - if you have acquired a whitelisted IP address already - use the [`--proxy` or `--source-address` options](#network-options) to select another IP address.
+These two error codes indicate that the service is blocking your IP address because of overuse. Usually this is a soft block meaning that you can gain access again after solving CAPTCHA. Just open a browser and solve a CAPTCHA the service suggests you and after that [pass cookies](#how-do-i-pass-cookies-to-youtube-dl) to youtube-dl. Note that if your machine has multiple external IPs then you should also pass exactly the same IP you've used for solving CAPTCHA with [`--source-address`](#network-options). Also you may need to pass a `User-Agent` HTTP header of your browser with [`--user-agent`](#workarounds).
+
+If this is not the case (no CAPTCHA suggested to solve by the service) then you can contact the service and ask them to unblock your IP address, or - if you have acquired a whitelisted IP address already - use the [`--proxy` or `--source-address` options](#network-options) to select another IP address.
 
 ### SyntaxError: Non-ASCII character
 
@@ -1211,6 +1216,72 @@ Incorrect:
 ```python
 'https://www.youtube.com/watch?v=FqZTN594JQw&list='
 'PLMYEtVRpaqY00V9W81Cwmzp6N6vZqfUKD4'
+```
+
+### Inline values
+
+Extracting variables is acceptable for reducing code duplication and improving readability of complex expressions. However, you should avoid extracting variables used only once and moving them to opposite parts of the extractor file, which makes reading the linear flow difficult.
+
+#### Example
+
+Correct:
+
+```python
+title = self._html_search_regex(r'<title>([^<]+)</title>', webpage, 'title')
+```
+
+Incorrect:
+
+```python
+TITLE_RE = r'<title>([^<]+)</title>'
+# ...some lines of code...
+title = self._html_search_regex(TITLE_RE, webpage, 'title')
+```
+
+### Collapse fallbacks
+
+Multiple fallback values can quickly become unwieldy. Collapse multiple fallback values into a single expression via a list of patterns.
+
+#### Example
+
+Good:
+
+```python
+description = self._html_search_meta(
+    ['og:description', 'description', 'twitter:description'],
+    webpage, 'description', default=None)
+```
+
+Unwieldy:
+
+```python
+description = (
+    self._og_search_description(webpage, default=None)
+    or self._html_search_meta('description', webpage, default=None)
+    or self._html_search_meta('twitter:description', webpage, default=None))
+```
+
+Methods supporting list of patterns are: `_search_regex`, `_html_search_regex`, `_og_search_property`, `_html_search_meta`.
+
+### Trailing parentheses
+
+Always move trailing parentheses after the last argument.
+
+#### Example
+
+Correct:
+
+```python
+    lambda x: x['ResultSet']['Result'][0]['VideoUrlSet']['VideoUrl'],
+    list)
+```
+
+Incorrect:
+
+```python
+    lambda x: x['ResultSet']['Result'][0]['VideoUrlSet']['VideoUrl'],
+    list,
+)
 ```
 
 ### Use convenience conversion and parsing functions

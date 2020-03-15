@@ -4,7 +4,6 @@ import re
 
 from .common import InfoExtractor
 from .wistia import WistiaIE
-from ..compat import compat_str
 from ..utils import (
     clean_html,
     ExtractorError,
@@ -48,7 +47,17 @@ class TeachableBaseIE(InfoExtractor):
             'https://%s/sign_in' % site, None,
             'Downloading %s login page' % site)
 
-        login_url = compat_str(urlh.geturl())
+        def is_logged(webpage):
+            return any(re.search(p, webpage) for p in (
+                r'class=["\']user-signout',
+                r'<a[^>]+\bhref=["\']/sign_out',
+                r'Log\s+[Oo]ut\s*<'))
+
+        if is_logged(login_page):
+            self._logged_in = True
+            return
+
+        login_url = urlh.geturl()
 
         login_form = self._hidden_inputs(login_page)
 
@@ -78,10 +87,7 @@ class TeachableBaseIE(InfoExtractor):
                 'Go to https://%s/ and accept.' % (site, site), expected=True)
 
         # Successful login
-        if any(re.search(p, response) for p in (
-                r'class=["\']user-signout',
-                r'<a[^>]+\bhref=["\']/sign_out',
-                r'>\s*Log out\s*<')):
+        if is_logged(response):
             self._logged_in = True
             return
 
@@ -153,22 +159,28 @@ class TeachableIE(TeachableBaseIE):
 
         webpage = self._download_webpage(url, video_id)
 
-        wistia_url = WistiaIE._extract_url(webpage)
-        if not wistia_url:
+        wistia_urls = WistiaIE._extract_urls(webpage)
+        if not wistia_urls:
             if any(re.search(p, webpage) for p in (
                     r'class=["\']lecture-contents-locked',
                     r'>\s*Lecture contents locked',
-                    r'id=["\']lecture-locked')):
+                    r'id=["\']lecture-locked',
+                    # https://academy.tailoredtutors.co.uk/courses/108779/lectures/1955313
+                    r'class=["\'](?:inner-)?lesson-locked',
+                    r'>LESSON LOCKED<')):
                 self.raise_login_required('Lecture contents locked')
+            raise ExtractorError('Unable to find video URL')
 
         title = self._og_search_title(webpage, default=None)
 
-        return {
+        entries = [{
             '_type': 'url_transparent',
             'url': wistia_url,
             'ie_key': WistiaIE.ie_key(),
             'title': title,
-        }
+        } for wistia_url in wistia_urls]
+
+        return self.playlist_result(entries, video_id, title)
 
 
 class TeachableCourseIE(TeachableBaseIE):

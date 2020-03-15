@@ -194,6 +194,7 @@ class Aria2cFD(ExternalFD):
         cmd += self._option('--interface', 'source_address')
         cmd += self._option('--all-proxy', 'proxy')
         cmd += self._bool_option('--check-certificate', 'nocheckcertificate', 'false', 'true', '=')
+        cmd += self._bool_option('--remote-time', 'updatetime', 'true', 'false', '=')
         cmd += ['--', info_dict['url']]
         return cmd
 
@@ -289,6 +290,7 @@ class FFmpegFD(ExternalFD):
             tc_url = info_dict.get('tc_url')
             flash_version = info_dict.get('flash_version')
             live = info_dict.get('rtmp_live', False)
+            conn = info_dict.get('rtmp_conn')
             if player_url is not None:
                 args += ['-rtmp_swfverify', player_url]
             if page_url is not None:
@@ -303,6 +305,11 @@ class FFmpegFD(ExternalFD):
                 args += ['-rtmp_flashver', flash_version]
             if live:
                 args += ['-rtmp_live', 'live']
+            if isinstance(conn, list):
+                for entry in conn:
+                    args += ['-rtmp_conn', entry]
+            elif isinstance(conn, compat_str):
+                args += ['-rtmp_conn', conn]
 
         args += ['-i', url, '-c', 'copy']
 

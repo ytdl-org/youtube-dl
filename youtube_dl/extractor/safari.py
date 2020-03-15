@@ -1,15 +1,17 @@
 # coding: utf-8
 from __future__ import unicode_literals
 
+import json
 import re
 
 from .common import InfoExtractor
 
+from ..compat import (
+    compat_parse_qs,
+    compat_urlparse,
+)
 from ..utils import (
     ExtractorError,
-    sanitized_Request,
-    std_headers,
-    urlencode_postdata,
     update_url_query,
 )
 
@@ -31,44 +33,53 @@ class SafariBaseIE(InfoExtractor):
         if username is None:
             return
 
-        headers = std_headers.copy()
-        if 'Referer' not in headers:
-            headers['Referer'] = self._LOGIN_URL
+        _, urlh = self._download_webpage_handle(
+            'https://learning.oreilly.com/accounts/login-check/', None,
+            'Downloading login page')
 
-        login_page = self._download_webpage(
-            self._LOGIN_URL, None, 'Downloading login form', headers=headers)
+        def is_logged(urlh):
+            return 'learning.oreilly.com/home/' in urlh.geturl()
 
-        def is_logged(webpage):
-            return any(re.search(p, webpage) for p in (
-                r'href=["\']/accounts/logout/', r'>Sign Out<'))
-
-        if is_logged(login_page):
+        if is_logged(urlh):
             self.LOGGED_IN = True
             return
 
-        csrf = self._html_search_regex(
-            r"name='csrfmiddlewaretoken'\s+value='([^']+)'",
-            login_page, 'csrf token')
+        redirect_url = urlh.geturl()
+        parsed_url = compat_urlparse.urlparse(redirect_url)
+        qs = compat_parse_qs(parsed_url.query)
+        next_uri = compat_urlparse.urljoin(
+            'https://api.oreilly.com', qs['next'][0])
 
-        login_form = {
-            'csrfmiddlewaretoken': csrf,
-            'email': username,
-            'password1': password,
-            'login': 'Sign In',
-            'next': '',
-        }
+        auth, urlh = self._download_json_handle(
+            'https://www.oreilly.com/member/auth/login/', None, 'Logging in',
+            data=json.dumps({
+                'email': username,
+                'password': password,
+                'redirect_uri': next_uri,
+            }).encode(), headers={
+                'Content-Type': 'application/json',
+                'Referer': redirect_url,
+            }, expected_status=400)
 
-        request = sanitized_Request(
-            self._LOGIN_URL, urlencode_postdata(login_form), headers=headers)
-        login_page = self._download_webpage(
-            request, None, 'Logging in')
-
-        if not is_logged(login_page):
+        credentials = auth.get('credentials')
+        if (not auth.get('logged_in') and not auth.get('redirect_uri')
+                and credentials):
             raise ExtractorError(
-                'Login failed; make sure your credentials are correct and try again.',
-                expected=True)
+                'Unable to login: %s' % credentials, expected=True)
 
-        self.LOGGED_IN = True
+        # oreilly serves two same instances of the following cookies
+        # in Set-Cookie header and expects first one to be actually set
+        for cookie in ('groot_sessionid', 'orm-jwt', 'orm-rt'):
+            self._apply_first_set_cookie_header(urlh, cookie)
+
+        _, urlh = self._download_webpage_handle(
+            auth.get('redirect_uri') or next_uri, None, 'Completing login',)
+
+        if is_logged(urlh):
+            self.LOGGED_IN = True
+            return
+
+        raise ExtractorError('Unable to log in')
 
 
 class SafariIE(SafariBaseIE):
@@ -76,7 +87,7 @@ class SafariIE(SafariBaseIE):
     IE_DESC = 'safaribooksonline.com online video'
     _VALID_URL = r'''(?x)
                         https?://
-                            (?:www\.)?(?:safaribooksonline|learning\.oreilly)\.com/
+                            (?:www\.)?(?:safaribooksonline|(?:learning\.)?oreilly)\.com/
                             (?:
                                 library/view/[^/]+/(?P<course_id>[^/]+)/(?P<part>[^/?\#&]+)\.html|
                                 videos/[^/]+/[^/]+/(?P<reference_id>[^-]+-[^/?\#&]+)
@@ -106,6 +117,9 @@ class SafariIE(SafariBaseIE):
         'only_matching': True,
     }, {
         'url': 'https://learning.oreilly.com/videos/hadoop-fundamentals-livelessons/9780133392838/9780133392838-00_SeriesIntro',
+        'only_matching': True,
+    }, {
+        'url': 'https://www.oreilly.com/library/view/hadoop-fundamentals-livelessons/9780133392838/00_SeriesIntro.html',
         'only_matching': True,
     }]
 
@@ -150,7 +164,8 @@ class SafariIE(SafariBaseIE):
             kaltura_session = self._download_json(
                 '%s/player/kaltura_session/?reference_id=%s' % (self._API_BASE, reference_id),
                 video_id, 'Downloading kaltura session JSON',
-                'Unable to download kaltura session JSON', fatal=False)
+                'Unable to download kaltura session JSON', fatal=False,
+                headers={'Accept': 'application/json'})
             if kaltura_session:
                 session = kaltura_session.get('session')
                 if session:
@@ -163,7 +178,7 @@ class SafariIE(SafariBaseIE):
 
 class SafariApiIE(SafariBaseIE):
     IE_NAME = 'safari:api'
-    _VALID_URL = r'https?://(?:www\.)?(?:safaribooksonline|learning\.oreilly)\.com/api/v1/book/(?P<course_id>[^/]+)/chapter(?:-content)?/(?P<part>[^/?#&]+)\.html'
+    _VALID_URL = r'https?://(?:www\.)?(?:safaribooksonline|(?:learning\.)?oreilly)\.com/api/v1/book/(?P<course_id>[^/]+)/chapter(?:-content)?/(?P<part>[^/?#&]+)\.html'
 
     _TESTS = [{
         'url': 'https://www.safaribooksonline.com/api/v1/book/9780133392838/chapter/part00.html',
@@ -188,7 +203,7 @@ class SafariCourseIE(SafariBaseIE):
     _VALID_URL = r'''(?x)
                     https?://
                         (?:
-                            (?:www\.)?(?:safaribooksonline|learning\.oreilly)\.com/
+                            (?:www\.)?(?:safaribooksonline|(?:learning\.)?oreilly)\.com/
                             (?:
                                 library/view/[^/]+|
                                 api/v1/book|
@@ -218,6 +233,9 @@ class SafariCourseIE(SafariBaseIE):
         'only_matching': True,
     }, {
         'url': 'https://learning.oreilly.com/videos/hadoop-fundamentals-livelessons/9780133392838',
+        'only_matching': True,
+    }, {
+        'url': 'https://www.oreilly.com/library/view/hadoop-fundamentals-livelessons/9780133392838/',
         'only_matching': True,
     }]
 

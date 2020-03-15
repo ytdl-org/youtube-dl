@@ -9,11 +9,13 @@ from ..utils import (
     float_or_none,
     int_or_none,
     urlencode_postdata,
+    urljoin,
 )
 
 
 class LinkedInLearningBaseIE(InfoExtractor):
     _NETRC_MACHINE = 'linkedin'
+    _LOGIN_URL = 'https://www.linkedin.com/uas/login?trk=learning'
 
     def _call_api(self, course_slug, fields, video_slug=None, resolution=None):
         query = {
@@ -50,11 +52,10 @@ class LinkedInLearningBaseIE(InfoExtractor):
             return
 
         login_page = self._download_webpage(
-            'https://www.linkedin.com/uas/login?trk=learning',
-            None, 'Downloading login page')
-        action_url = self._search_regex(
+            self._LOGIN_URL, None, 'Downloading login page')
+        action_url = urljoin(self._LOGIN_URL, self._search_regex(
             r'<form[^>]+action=(["\'])(?P<url>.+?)\1', login_page, 'post url',
-            default='https://www.linkedin.com/uas/login-submit', group='url')
+            default='https://www.linkedin.com/uas/login-submit', group='url'))
         data = self._hidden_inputs(login_page)
         data.update({
             'session_key': email,

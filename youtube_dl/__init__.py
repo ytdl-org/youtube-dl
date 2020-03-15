@@ -94,7 +94,7 @@ def _real_main(argv=None):
             if opts.verbose:
                 write_string('[debug] Batch file urls: ' + repr(batch_urls) + '\n')
         except IOError:
-            sys.exit('ERROR: batch file could not be read')
+            sys.exit('ERROR: batch file %s could not be read' % opts.batchfile)
     all_urls = batch_urls + [url.strip() for url in args]  # batch_urls are already striped in read_batch_urls
     _enc = preferredencoding()
     all_urls = [url.decode(_enc, 'ignore') if isinstance(url, bytes) else url for url in all_urls]
@@ -166,6 +166,8 @@ def _real_main(argv=None):
     if opts.max_sleep_interval is not None:
         if opts.max_sleep_interval < 0:
             parser.error('max sleep interval must be positive or 0')
+        if opts.sleep_interval is None:
+            parser.error('min sleep interval must be specified, use --min-sleep-interval')
         if opts.max_sleep_interval < opts.sleep_interval:
             parser.error('max sleep interval must be greater than or equal to min sleep interval')
     else:
@@ -228,14 +230,14 @@ def _real_main(argv=None):
     if opts.allsubtitles and not opts.writeautomaticsub:
         opts.writesubtitles = True
 
-    outtmpl = ((opts.outtmpl is not None and opts.outtmpl) or
-               (opts.format == '-1' and opts.usetitle and '%(title)s-%(id)s-%(format)s.%(ext)s') or
-               (opts.format == '-1' and '%(id)s-%(format)s.%(ext)s') or
-               (opts.usetitle and opts.autonumber and '%(autonumber)s-%(title)s-%(id)s.%(ext)s') or
-               (opts.usetitle and '%(title)s-%(id)s.%(ext)s') or
-               (opts.useid and '%(id)s.%(ext)s') or
-               (opts.autonumber and '%(autonumber)s-%(id)s.%(ext)s') or
-               DEFAULT_OUTTMPL)
+    outtmpl = ((opts.outtmpl is not None and opts.outtmpl)
+               or (opts.format == '-1' and opts.usetitle and '%(title)s-%(id)s-%(format)s.%(ext)s')
+               or (opts.format == '-1' and '%(id)s-%(format)s.%(ext)s')
+               or (opts.usetitle and opts.autonumber and '%(autonumber)s-%(title)s-%(id)s.%(ext)s')
+               or (opts.usetitle and '%(title)s-%(id)s.%(ext)s')
+               or (opts.useid and '%(id)s.%(ext)s')
+               or (opts.autonumber and '%(autonumber)s-%(id)s.%(ext)s')
+               or DEFAULT_OUTTMPL)
     if not os.path.splitext(outtmpl)[1] and opts.extractaudio:
         parser.error('Cannot download a video and extract audio into the same'
                      ' file! Use "{0}.%(ext)s" instead of "{0}" as the output'
