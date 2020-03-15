@@ -92,4 +92,3 @@ class AparatIE(InfoExtractor):
             'duration': int_or_none(player.get('duration')),
             'formats': formats,
         })
- 
