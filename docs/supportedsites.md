@@ -718,8 +718,6 @@
  - **RaiPlay**
  - **RaiPlayLive**
  - **RaiPlayPlaylist**
- - **RaiPlayRadio**
- - **RaiPlayRadioPlaylist**
  - **RayWenderlich**
  - **RayWenderlichCourse**
  - **RBMARadio**
