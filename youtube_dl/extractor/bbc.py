@@ -985,7 +985,7 @@ class BBCIE(BBCCoUkIE):
              r'videoId\s*:\s*["\'](%s)["\']' % self._ID_REGEX,
              r'"vpid":"(%s)"' % self._ID_REGEX,
              r'"versionPid":"(%s)"' % self._ID_REGEX,
-             r'"pid":"(%s)"' % self._ID_REGEX,],
+             r'"pid":"(%s)"' % self._ID_REGEX],
             webpage, 'vpid', default=None)
 
         # bbc reel (e.g. https://www.bbc.com/reel/video/p07c6sb6/how-positive-thinking-is-harming-your-happiness)
