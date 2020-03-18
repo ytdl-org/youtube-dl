@@ -617,7 +617,7 @@ class TwitchStreamIE(TwitchBaseIE):
 
         thumbnails = []
         for thumbnail_key, thumbnail_url in stream['preview'].items():
-            m = re.search(r'(?P<width>\d+)x(?P<height>\d+)\.jpg$', thumbnail_key)
+            m = re.search(r'(?P<width>\d+)x(?P<height>\d+)\.jpg$', thumbnail_url)
             if not m:
                 continue
             thumbnails.append({
