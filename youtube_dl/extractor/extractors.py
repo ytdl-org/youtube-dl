@@ -657,6 +657,7 @@ from .mtv import (
 from .muenchentv import MuenchenTVIE
 from .mwave import MwaveIE, MwaveMeetGreetIE
 from .mychannels import MyChannelsIE
+from .myrunningman import MyRunningManIE
 from .myspace import MySpaceIE, MySpaceAlbumIE
 from .myspass import MySpassIE
 from .myvi import (
