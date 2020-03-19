@@ -638,6 +638,7 @@ class TwitchStreamIE(TwitchBaseIE):
             'view_count': view_count,
             'formats': formats,
             'is_live': True,
+            'uploader_like_count': stream.get('channel',{}).get('followers')
         }
 
 
