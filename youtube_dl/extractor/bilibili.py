@@ -24,7 +24,7 @@ from ..utils import (
 
 
 class BiliBiliIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:www\.|bangumi\.|)bilibili\.(?:tv|com)/(?:video/av|anime/(?P<anime_id>\d+)/play#)(?P<id>\d+)'
+    _VALID_URL = r'https?://(?:www\.|bangumi\.|)bilibili\.(?:tv|com)/(?:video/av|anime/(?P<anime_id>\d+)/play#)(?P<id>\d+)|https?://player\.bilibili\.com/player\.html\?aid=(?P<vid>\d+)&cid=(?P<cid>\d+)'
 
     _TESTS = [{
         'url': 'http://www.bilibili.tv/video/av1074402/',
@@ -109,6 +109,11 @@ class BiliBiliIE(InfoExtractor):
         url, smuggled_data = unsmuggle_url(url, {})
 
         mobj = re.match(self._VALID_URL, url)
+        if "/player.html" in url:
+            vid = mobj.group("vid")
+            url = "https://www.bilibili.com/video/av%s/" % vid
+            return self._real_extract(url)
+
         video_id = mobj.group('id')
         anime_id = mobj.group('anime_id')
         webpage = self._download_webpage(url, video_id)
