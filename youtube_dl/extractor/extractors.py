@@ -230,6 +230,7 @@ from .commonprotocols import (
 )
 from .condenast import CondeNastIE
 from .contv import CONtvIE
+from .corepoweryogaondemand import CorePowerYogaOnDemandIE
 from .corus import CorusIE
 from .cracked import CrackedIE
 from .crackle import CrackleIE
