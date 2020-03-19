@@ -516,6 +516,7 @@ class FacebookPluginsVideoIE(InfoExtractor):
 
 class FacebookUserIE(InfoExtractor):
     _VALID_URL = r'(?P<url>https?://(?:[^/]+\.)?facebook\.com/(?:pg/)?(?P<id>[^/?#&]+))/videos(?!/[\w\.])'
+    IE_NAME = "facebook:user"
 
     _TESTS = [{
         # page
@@ -556,15 +557,14 @@ class FacebookUserIE(InfoExtractor):
 
         if fb_url_mobj.group('type') == 'page':
             endpoint = 'PagesVideoHubVideoContainerPagelet'
-            a_class = '_5asm'
             data = {
                 'page': page_id
             }
+            page_re = r'<td[^>]+>.+?<a href="(?P<url>[^"]+)".+?</td>'
         elif fb_url_mobj.group('type') == 'profile':
             if not (fb_dtsg_ag and pagelet_token and collection_token):
                 raise ExtractorError('You must be logged in to extract profile videos', expected=True)
             endpoint = 'VideosByUserAppCollectionPagelet'
-            a_class = '_400z'
             data = {
                 'collection_token': collection_token,
                 'disablepager': False,
@@ -574,6 +574,7 @@ class FacebookUserIE(InfoExtractor):
                 'order': None,
                 'sk': 'videos'
             }
+            page_re = r'<li[^>]+><a href="(?P<url>[^"]+)".+?</li>'
 
         for page_num in itertools.count(1):
             js_data_page = self._download_webpage(
@@ -594,8 +595,7 @@ class FacebookUserIE(InfoExtractor):
                 user_id, fatal=True)
 
             for video in re.findall(
-                    r'href="(?P<url>[^"]+)"[^>]+%s' % a_class,
-                    js_data['payload']):
+                    page_re, js_data['payload']):
                 entries.append(
                     self.url_result(
                         'https://www.facebook.com%s' % video,
