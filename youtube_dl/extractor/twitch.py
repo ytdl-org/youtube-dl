@@ -349,6 +349,17 @@ class TwitchVodIE(TwitchItemBaseIE):
                     'ext': 'json',
                 }],
             }
+        channel_id = info['uploader_id']
+        channel = self._call_api(
+            'kraken/channels/%s' % channel_id,
+            channel_id, 'Downloading channel info JSON')
+
+        info['uploader_like_count'] = channel.get('followers')
+
+        description = info['description']
+        if description is None:
+            description = channel.get('status')
+        info['description'] = description
 
         return info
 
