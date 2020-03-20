@@ -19,7 +19,7 @@
 				<div class="terminal">
 					<p># Latest version</p>
 					<p>$ youtube-dl --version</p>
-					<p>2020.03.08</p></div>
+					<p>@PROGRAM_VERSION@</p></div>
 				<p><a class="download-button" id="g" href="download.html">Download</a><p>
 			</div>
 			<h3>Description:</h3>
