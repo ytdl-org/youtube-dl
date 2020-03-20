@@ -1,6 +1,7 @@
 # coding: utf-8
 from __future__ import unicode_literals
 
+import hashlib
 import json
 import re
 from xml.sax.saxutils import escape
@@ -263,7 +264,8 @@ class CBCWatchBaseIE(InfoExtractor):
     def _real_initialize(self):
         if self._valid_device_token():
             return
-        device = self._downloader.cache.load('cbcwatch', 'device') or {}
+        device = self._downloader.cache.load(
+            'cbcwatch', self._cache_device_key()) or {}
         self._device_id, self._device_token = device.get('id'), device.get('token')
         if self._valid_device_token():
             return
@@ -272,24 +274,30 @@ class CBCWatchBaseIE(InfoExtractor):
     def _valid_device_token(self):
         return self._device_id and self._device_token
 
+    def _cache_device_key(self):
+        email, _ = self._get_login_info()
+        return '%s_device' % hashlib.sha256(email.encode()).hexdigest() if email else 'device'
+
     def _register_device(self):
         result = self._download_xml(
             self._API_BASE_URL + 'device/register',
             None, 'Acquiring device token',
             data=b'<device><type>web</type></device>')
         self._device_id = xpath_text(result, 'deviceId', fatal=True)
-        anon_device_token = xpath_text(result, 'deviceToken', fatal=True)
         email, password = self._get_login_info()
         if email and password:
             signature = self._signature(email, password)
-            data = '<login><token>{0}</token><device><deviceId>{1}</deviceId><type>web</type></device></login>'.format(escape(signature), escape(self._device_id)).encode()
+            data = '<login><token>{0}</token><device><deviceId>{1}</deviceId><type>web</type></device></login>'.format(
+                escape(signature), escape(self._device_id)).encode()
             url = self._API_BASE_URL + 'device/login'
-            result = self._download_xml(url, None, data=data, headers={'content-type': 'application/xml'})
+            result = self._download_xml(
+                url, None, data=data,
+                headers={'content-type': 'application/xml'})
             self._device_token = xpath_text(result, 'token', fatal=True)
         else:
-            self._device_token = anon_device_token
+            self._device_token = xpath_text(result, 'deviceToken', fatal=True)
         self._downloader.cache.store(
-            'cbcwatch', 'device', {
+            'cbcwatch', self._cache_device_key(), {
                 'id': self._device_id,
                 'token': self._device_token,
             })
