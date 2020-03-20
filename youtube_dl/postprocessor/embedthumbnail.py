@@ -55,15 +55,11 @@ class EmbedThumbnailPP(FFmpegPostProcessor):
             os.remove(encodeFilename(filename))
             os.rename(encodeFilename(temp_filename), encodeFilename(filename))
 
-<<<<<<< HEAD
         elif info['ext'] == 'mkv':
             os.rename(encodeFilename(thumbnail_filename), encodeFilename('cover.jpg'))
             old_thumbnail_filename = thumbnail_filename
             thumbnail_filename = 'cover.jpg'
 
-=======
-        if info['ext'] == 'mkv':
->>>>>>> a0b2ee64dbe6d4bedad9883cc8014aa77cdd0138
             options = [
                 '-c', 'copy', '-attach', thumbnail_filename, '-metadata:s:t', 'mimetype=image/jpeg']
 
@@ -73,11 +69,8 @@ class EmbedThumbnailPP(FFmpegPostProcessor):
 
             if not self._already_have_thumbnail:
                 os.remove(encodeFilename(thumbnail_filename))
-<<<<<<< HEAD
             else:
                 os.rename(encodeFilename(thumbnail_filename), encodeFilename(old_thumbnail_filename))
-=======
->>>>>>> a0b2ee64dbe6d4bedad9883cc8014aa77cdd0138
             os.remove(encodeFilename(filename))
             os.rename(encodeFilename(temp_filename), encodeFilename(filename))
 
