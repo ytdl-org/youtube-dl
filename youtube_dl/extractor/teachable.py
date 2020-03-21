@@ -250,7 +250,7 @@ class TeachableCourseIE(TeachableBaseIE):
             if not lecture_url:
                 continue
             lecture_id = self._search_regex(
-                r'/lectures/(\d+)', lecture_url, 'lecture id', default=None)
+                r'/lectures/(\d+)', lecture_url, 'lecture-id', default=None)
             title = self._html_search_regex(
                 r'<span[^>]+class=["\']lecture-name[^>]+>([^<]+)', li,
                 'title', default=None)
