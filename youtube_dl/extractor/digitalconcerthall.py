@@ -46,7 +46,11 @@ class DigitalConcertHallIE(InfoExtractor):
         for key in playlist_dict:
             print("key: ", key, "\n")
             print("key url: ", playlist_dict[key][0]['url'], "\n")
-            entries.append(playlist_dict[key][0]['url'])
+            entries.append({
+                'id': video_id,
+                'title': title + "-" + key,
+                'url': playlist_dict[key][0]['url'],
+            })
 
 #        for i in entries:
 #            print(i)
