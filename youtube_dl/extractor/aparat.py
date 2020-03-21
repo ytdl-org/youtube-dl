@@ -75,12 +75,9 @@ class AparatIE(InfoExtractor):
         self._sort_formats(
             formats, field_preference=('height', 'width', 'tbr', 'format_id'))
 
-        title = self._og_search_title(webpage)
-        description = self._og_search_description(webpage)
-
         return {
-            'title': title,
-            'description': description,
+            'title': self._og_search_title(webpage),
+            'description': self._og_search_description(webpage),
             'id': video_id,
             'thumbnail': url_or_none(options.get('poster')),
             'duration': int_or_none(options.get('duration')),
