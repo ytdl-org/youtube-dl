@@ -16,7 +16,7 @@ from ..utils import (
 class DigitalConcertHallIE(InfoExtractor):
     IE_DESC = 'DigitalConcertHall extractor'
     _VALID_URL = r'https?://(?:www\.)?digitalconcerthall\.com/(?P<language>[a-z]+)/concert/(?P<id>[0-9]+)'
-    _TESTS = [{
+    _TEST = {
         'url': 'https://www.digitalconcerthall.com/en/concert/51841',
         'md5': 'TODO: md5 sum of the first 10241 bytes of the video file (use --test)',
         'info_dict': {
@@ -26,7 +26,7 @@ class DigitalConcertHallIE(InfoExtractor):
             'title': 'Video title goes here',
             'thumbnail': r're:^https?://.*/images/core/Phil.*\.jpg$',
         }
-    },]
+    }
 
     def debug_out(self, args):
         if not self._downloader.params.get('verbose', False):
@@ -43,9 +43,7 @@ class DigitalConcertHallIE(InfoExtractor):
         title = self._html_search_regex(r'<title>(.+?)</title>', webpage, 'title')
         self.to_screen("title: " + title)
 
-        # this returns JSON, which contains the urls of the playlist
-        #video_data = self._download_webpage(
-        #   'https://www.digitalconcerthall.com/json_services/get_stream_urls?id=' + video_id + "&language=" + language, video_id)
+        # this returns JSON containing the urls of the playlist
         playlist_dict = self._download_json(
             'https://www.digitalconcerthall.com/json_services/get_stream_urls?id=' + video_id + "&language=" + language, video_id)['urls']
 
@@ -56,6 +54,7 @@ class DigitalConcertHallIE(InfoExtractor):
             self.debug_out("key url: " + m3u8_url)
             formats = self._extract_m3u8_formats(m3u8_url, key, 'mp4', 'm3u8_native', m3u8_id='hls', fatal=False)
             self.debug_out(formats)
+            # the div with id=key contains the video title
             vid_info_div = clean_html(get_element_by_id(key, webpage))
             self.debug_out("vid_info_div:\n" + vid_info_div)
             title = re.sub('\s+', ' ', vid_info_div)
@@ -66,9 +65,6 @@ class DigitalConcertHallIE(InfoExtractor):
                 'url': m3u8_url,
                 'formats': formats,
             })
-
-#        for i in entries:
-#            print(i)
 
         return {
             '_type': 'playlist',
