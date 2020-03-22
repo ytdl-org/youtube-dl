@@ -14,6 +14,7 @@ from ..utils import (
     orderedSet,
     strip_jsonp,
     strip_or_none,
+    try_get,
     unified_strdate,
     url_or_none,
     US_RATINGS,
@@ -685,6 +686,17 @@ class PBSIE(InfoExtractor):
                         ttml_caption_suffix, '/%d_Encoded.vtt' % (ttml_caption_id + 2)),
                     'ext': 'vtt',
                 }])
+        else:
+            captions = try_get(info, lambda x: x['cc'], dict) or {}
+
+            if captions:
+                subtitles['en'] = []
+                for caption_url in captions.values():
+                    subtitles['en'].extend([{
+                        'ext': re.search(r'\.(\w{3,4})$',
+                                         caption_url).group(1),
+                        'url': caption_url
+                    }])
 
         # info['title'] is often incomplete (e.g. 'Full Episode', 'Episode 5', etc)
         # Try turning it to 'program - title' naming scheme if possible
