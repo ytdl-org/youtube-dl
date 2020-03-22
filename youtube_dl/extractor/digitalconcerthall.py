@@ -50,8 +50,8 @@ class DigitalConcertHallIE(InfoExtractor):
             self.debug_out("key: " + key)
             m3u8_url = playlist_dict.get(key)[0].get('url')
             self.debug_out("key url: " + m3u8_url)
-            formats = self._extract_m3u8_formats(m3u8_url, key, 'mp4',
-                      'm3u8_native', m3u8_id='hls', fatal=False)
+            formats = self._extract_m3u8_formats(
+                m3u8_url, key, 'mp4', 'm3u8_native', m3u8_id='hls', fatal=False)
             self.debug_out(formats)
             # the div with id=key contains the video title
             vid_info_div = clean_html(get_element_by_id(key, webpage))
