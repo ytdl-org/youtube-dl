@@ -17,70 +17,72 @@ class ParamountIE(InfoExtractor):
             'id': 'dbf6d5d5-1a95-41ac-b17b-b5caca227b25',
             'ext': 'mp4',
             'title': 'SPECIALE STEPHEN KING - Speciali video, Paramount Network',
-	    'description': 'Tutti gli speciali di Paramount Network curiosità, approfondimenti e aggiornamenti su film, serie tv e personaggi del cinema.'
+            'description': 'Tutti gli speciali di Paramount Network curiosità, approfondimenti e aggiornamenti su film, serie tv e personaggi del cinema.'
         }
     }
-
-    def _obtain_akamaihd_formats(self, url):
-        if self._downloader.params.get('verbose', False):
-            listpage = self._download_webpage(url, 'akamaihd format list')
-            self.to_screen('formats page = %s' % (listpage))
-        listpage = self._download_xml(url, 'akamaihd format list')
-        formats = []
-        for rendition in listpage.findall('./video/item/rendition'):
-            fmt = {
-                'width': int_or_none(rendition.get('width')),
-                'height': int_or_none(rendition.get('height')),
-                'url': rendition.find('./src').text
-            }
-            formats.append(fmt)
-        return formats
 
     def _real_extract(self, url):
         # webpage
 
         webpage = self._download_webpage(url, 'webpage')
+        # self.to_screen('webpage = %s' % (webpage))
 
         id = self._html_search_regex(
-            r'mgid:arc:content:paramount(?:network|channel)\.(?:it|es):([0-9a-f-]+)',
-            webpage, 'id', fatal=False) \
-	    or \
-            self._html_search_regex(
-            r'data-mtv-id="([0-9a-f-]*)"',
-            webpage, 'id', fatal=False) \
-            or \
-            self._html_search_regex(
-            r'"item_longId" *: *"([0-9a-f-]*)"',
+            r'mgid:arc:content:web.paramount(?:network|channel|plus)\.(?:it|es|com):([0-9a-f-]+)',
             webpage, 'id')
         self.to_screen('id = %s' % (id))
 
-        uri = self._html_search_regex(
-            r'(mgid:arc:content:paramount(?:network|channel)\.(?:it|es):(?:[0-9a-f-]+))',
-            webpage, 'uri', fatal=False) \
+        episode = self._html_search_regex(
+            r'mgid:arc:episode:paramount.intl:([0-9a-f-]+)',
+            webpage, 'episode', fatal=False) \
             or \
             self._html_search_regex(
-            r'data-mtv-uri="([0-9a-z:\.-]*)"',
-            webpage, 'uri')
-        self.to_screen('uri = %s' % (uri))
+            r'"contentId" *: *"([0-9a-f-]*)"',
+            webpage, 'episode')
+        self.to_screen('episode = %s' % (episode))
 
         title = self._og_search_title(webpage)
         self.to_screen('title = %s' % (title))
 
+        # episode page
+
+        server = 'https://media.mtvnservices.com'
+        prefix = '/pmt/e1/access/index.html'
+        argument1 = 'uri=mgid:arc:episode:paramount.intl:%s' % (episode)
+        argument2 = 'configtype=edge'
+        epurl = '%s%s?%s&%s' % (server, prefix, argument1, argument2)
+        self.to_screen('epurl = %s' % (epurl))
+        eppage = self._download_webpage(epurl, 'episode url page',
+                                        headers = {'Referer': url})
+        self.to_screen('format list page = %s' % (eppage))
+
+        uri = self._html_search_regex(
+            r'(mgid:arc:video:paramount.intl:(?:[0-9a-f-]+))',
+            eppage, 'uri')
+        self.to_screen('uri = %s' % (uri))
+
+        ep = self._html_search_regex(
+            r'&ep=([0-9a-f-]+)"',
+            eppage, 'ep')
+        self.to_screen('ep = %s' % (ep))
+
         # list of formats
 
-        server = 'https://mediautilssvcs-a.akamaihd.net'
+        server = 'https://media-utils.mtvnservices.com'
         prefix = '/services/MediaGenerator/'
-        arguments = 'accountOverride=esperanto.mtvi.com'
-        listurl = '%s%s%s?%s' % (server, prefix, uri, arguments)
+        arg1 = 'arcStage=live&accountOverride=intl.mtvi.com&ep=%s' % (ep)
+        arg2 = '&acceptMethods=hls&format=json&https=true&isEpisode=true'
+        listurl = '%s%s%s?%s%s' % (server, prefix, uri, arg1, arg2)
         self.to_screen('listurl = %s' % (listurl))
-        formats = self._obtain_akamaihd_formats(listurl)
-        if self._downloader.params.get('verbose', False):
-            self.to_screen('formats = %s' % (formats))
+
+        listpage = self._download_json(listurl, 'url list page')
+        self.to_screen('listpage = %s' % (listpage))
+        src = listpage['package']['video']['item'][0]['rendition'][0]['src']
+        self.to_screen('src = %s' % (src))
 
         return {
             'id': id,
-            'formats': formats,
+            'formats': self._extract_m3u8_formats(src, id),
             'title': title,
             'description': self._og_search_description(webpage),
-            'thumbnail': self._html_search_meta('thumbnail', webpage, fatal=False)
         }
