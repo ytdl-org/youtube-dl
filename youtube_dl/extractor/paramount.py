@@ -2,7 +2,6 @@
 from __future__ import unicode_literals
 
 from .common import InfoExtractor
-from ..utils import int_or_none
 
 
 class ParamountIE(InfoExtractor):
@@ -53,7 +52,7 @@ class ParamountIE(InfoExtractor):
         epurl = '%s%s?%s&%s' % (server, prefix, argument1, argument2)
         self.to_screen('epurl = %s' % (epurl))
         eppage = self._download_webpage(epurl, 'episode url page',
-                                        headers = {'Referer': url})
+                                        headers={'Referer': url})
         self.to_screen('format list page = %s' % (eppage))
 
         uri = self._html_search_regex(
