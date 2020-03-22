@@ -37,8 +37,8 @@ class DigitalConcertHallIE(InfoExtractor):
             language = 'en'
         self.debug_out("url: " + url + " video_id: " + video_id + " language: " + language)
         webpage = self._download_webpage(url, video_id)
-        title = self._html_search_regex(r'<title>(.+?)</title>', webpage, 'title')
-        self.debug_out("title: " + title)
+        playlist_title = self._html_search_regex(r'<title>(.+?)</title>', webpage, 'title')
+        self.debug_out("playlist_title: " + playlist_title)
 
         # this returns JSON containing the urls of the playlist
         playlist_dict = self._download_json(
@@ -69,6 +69,6 @@ class DigitalConcertHallIE(InfoExtractor):
         return {
             '_type': 'playlist',
             'id': video_id,
-            'title': title,
+            'title': playlist_title,
             'entries': entries,
         }
