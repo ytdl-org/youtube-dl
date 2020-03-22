@@ -42,12 +42,12 @@ class DigitalConcertHallIE(InfoExtractor):
 
         # this returns JSON containing the urls of the playlist
         playlist_dict = self._download_json(
-            'https://www.digitalconcerthall.com/json_services/get_stream_urls?id=' + video_id + "&language=" + language, video_id)['urls']
+            'https://www.digitalconcerthall.com/json_services/get_stream_urls?id=' + video_id + "&language=" + language, video_id).get('urls')
 
         entries = []
         for key in playlist_dict:
             self.debug_out("key: " + key)
-            m3u8_url = playlist_dict[key][0]['url']
+            m3u8_url = playlist_dict.get(key)[0].get('url')
             self.debug_out("key url: " + m3u8_url)
             formats = self._extract_m3u8_formats(m3u8_url, key, 'mp4', 'm3u8_native', m3u8_id='hls', fatal=False)
             self.debug_out(formats)
