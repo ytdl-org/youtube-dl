@@ -12,6 +12,7 @@ from ..utils import (
     int_or_none,
     smuggle_url,
     unescapeHTML,
+    js_to_json,
 )
 from .senateisvp import SenateISVPIE
 from .ustream import UstreamIE
@@ -73,6 +74,17 @@ class CSpanIE(InfoExtractor):
         # Audio Only
         'url': 'https://www.c-span.org/video/?437336-1/judiciary-antitrust-competition-policy-consumer-rights',
         'only_matching': True,
+    }, {
+        'url': 'https://www.c-span.org/video/?470351-1/president-trump-declares-national-emergency-response-coronavirus',
+        'info_dict': {
+            'id': '543252',
+            'ext': 'mp4',
+            'title': 'President Trump News Conference on Coronavirus Response',
+            'description': 'Speaking in the Rose Garden, President Trump declares the coronavirus pandemic a national emergency.',
+        },
+        'params': {
+            'skip_download': True,  # m3u8 downloads
+        },
     }]
     BRIGHTCOVE_URL_TEMPLATE = 'http://players.brightcove.net/%s/%s_%s/index.html?videoId=%s'
 
@@ -130,12 +142,6 @@ class CSpanIE(InfoExtractor):
         def get_text_attr(d, attr):
             return d.get(attr, {}).get('#text')
 
-        data = self._download_json(
-            'http://www.c-span.org/assets/player/ajax-player.php?os=android&html5=%s&id=%s' % (video_type, video_id),
-            video_id)['video']
-        if data['@status'] != 'Success':
-            raise ExtractorError('%s said: %s' % (self.IE_NAME, get_text_attr(data, 'error')), expected=True)
-
         doc = self._download_xml(
             'http://www.c-span.org/common/services/flashXml.php?%sid=%s' % (video_type, video_id),
             video_id)
@@ -144,6 +150,35 @@ class CSpanIE(InfoExtractor):
 
         title = find_xpath_attr(doc, './/string', 'name', 'title').text
         thumbnail = find_xpath_attr(doc, './/string', 'name', 'poster').text
+
+        data = self._download_json(
+            'http://www.c-span.org/assets/player/ajax-player.php?os=android&html5=%s&id=%s' % (video_type, video_id),
+            video_id)['video']
+        if data['@status'] != 'Success':
+            jw_setup_js = self._search_regex(
+                r'jwsetup\s*=\s*(\{[^;]+\});',
+                webpage, 'jwsetup config')
+            jw_setup = self._parse_json(
+                jw_setup_js, video_id, transform_source=js_to_json)
+            if jw_setup:
+                m3u8_url = jw_setup['playlist'][0]['sources'][0]['file']
+                formats = self._extract_m3u8_formats(
+                    m3u8_url, video_id, 'mp4',
+                    entry_protocol='m3u8_native', m3u8_id='hls', fatal=False
+                )
+                if formats:
+                    for format in formats:
+                        format['http_headers'] = {'Referer': 'https://c-span.org/'}
+                    return {
+                        'id': video_id,
+                        'title': title,
+                        'description': description,
+                        'formats': formats,
+                    }
+                # not sure where to go from here, _extract_m3u8_formats?
+                raise ExtractorError('%s retrieved m3u8 URL but not sure how to handle it: %s' % (self.IE_NAME, m3u8_url), expected=True)
+            else:
+                raise ExtractorError('%s said: %s, and we could not parse jw_setup' % (self.IE_NAME, get_text_attr(data, 'error')), expected=True)
 
         files = data['files']
         capfile = get_text_attr(data, 'capfile')
