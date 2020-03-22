@@ -6,10 +6,7 @@ import re
 from .common import InfoExtractor
 from ..utils import (
     clean_html,
-    extract_attributes,
     get_element_by_id,
-    get_element_by_attribute,
-    get_element_by_class,
 )
 
 
@@ -57,8 +54,8 @@ class DigitalConcertHallIE(InfoExtractor):
             # the div with id=key contains the video title
             vid_info_div = clean_html(get_element_by_id(key, webpage))
             self.debug_out("vid_info_div:\n" + vid_info_div)
-            title = re.sub('\s+', ' ', vid_info_div)
-            self.to_screen("title: " + title )
+            title = re.sub(r'\s+', ' ', vid_info_div)
+            self.to_screen("title: " + title)
             entries.append({
                 'id': key,
                 'title': title,
