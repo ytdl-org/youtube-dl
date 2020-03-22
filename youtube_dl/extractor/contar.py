@@ -83,7 +83,7 @@ class ContarBaseIE(InfoExtractor):
     def _get_season_number(self, serie_info, video_id):
         for season in serie_info.get('seasons', []).get('data', []):
             season_number = season.get('name')
-            for episode in season.get('videos',[]).get('data', []):
+            for episode in season.get('videos', []).get('data', []):
                 if episode.get('id') == video_id:
                     return season_number
         return None
@@ -218,18 +218,17 @@ class ContarSerieIE(ContarBaseIE):
 
 class ContarChannelIE(ContarBaseIE):
 
-    _VALID_URL = r'https?://(?:www\.)?cont\.ar/channel/(?P<id>\d+)' 
+    _VALID_URL = r'https?://(?:www\.)?cont\.ar/channel/(?P<id>\d+)'
     _TEST = {
         'url': 'https://www.cont.ar/channel/242',
         'info_dict': {
             'id': '242',
             'title': 'md5:352d30d8fa7896eec02f65b2c7299d27',
             'description': 'md5:ac4e1f02201cffb86ac8ed4bcba4a593'
-            },
+        },
         'playlist_mincount': 68,
         'params': {
-            'username': 'ytdl@yt-dl.org',
-            'password': '(snip)',
+            'usenetrc': True,
             'skip_download': True
         }
     }
@@ -251,7 +250,7 @@ class ContarChannelIE(ContarBaseIE):
 
 class ContarBrowseIE(ContarBaseIE):
 
-    _VALID_URL = r'https?://(?:www\.)?cont\.ar/browse/genre/(?P<id>\d+)' 
+    _VALID_URL = r'https?://(?:www\.)?cont\.ar/browse/genre/(?P<id>\d+)'
     _TEST = {
         'url': 'https://www.cont.ar/browse/genre/46',
         'info_dict': {
