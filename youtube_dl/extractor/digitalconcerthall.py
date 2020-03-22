@@ -45,11 +45,15 @@ class DigitalConcertHallIE(InfoExtractor):
         entries = []
         for key in playlist_dict:
             print("key: ", key, "\n")
-            print("key url: ", playlist_dict[key][0]['url'], "\n")
+            m3u8_url = playlist_dict[key][0]['url']
+            print("key url: ", m3u8_url, "\n")
+            formats = self._extract_m3u8_formats(m3u8_url, key, 'mp4', 'm3u8_native', m3u8_id='hls', fatal=False)
+            print("formats:\n", formats)
             entries.append({
-                'id': video_id,
-                'title': title + "-" + key,
-                'url': playlist_dict[key][0]['url'],
+                'id': key,
+                'title': title,
+                'url': m3u8_url,
+                'formats': formats,
             })
 
 #        for i in entries:
