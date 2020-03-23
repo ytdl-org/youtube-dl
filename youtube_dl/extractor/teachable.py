@@ -22,7 +22,7 @@ class TeachableBaseIE(InfoExtractor):
     _SITES = {
         # Only notable ones here
         'v1.upskillcourses.com': 'upskill',
-        'academy.gns3.com': 'gns3',
+        'gns3.teachable.com': 'gns3',
         'academyhacker.com': 'academyhacker',
         'stackskills.com': 'stackskills',
         'market.saleshacker.com': 'saleshacker',
@@ -128,7 +128,7 @@ class TeachableIE(TeachableBaseIE):
         'url': 'http://v1.upskillcourses.com/courses/119763/lectures/1747100',
         'only_matching': True,
     }, {
-        'url': 'https://academy.gns3.com/courses/423415/lectures/6885939',
+        'url': 'https://gns3.teachable.com/courses/423415/lectures/6885939',
         'only_matching': True,
     }, {
         'url': 'teachable:https://v1.upskillcourses.com/courses/essential-web-developer-course/lectures/1747100',
@@ -230,7 +230,7 @@ class TeachableCourseIE(TeachableBaseIE):
         'url': 'http://v1.upskillcourses.com/courses/enrolled/119763',
         'only_matching': True,
     }, {
-        'url': 'https://academy.gns3.com/courses/enrolled/423415',
+        'url': 'https://gns3.teachable.com/courses/enrolled/423415',
         'only_matching': True,
     }, {
         'url': 'teachable:https://learn.vrdev.school/p/gear-vr-developer-mini',
