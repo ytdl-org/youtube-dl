@@ -1,7 +1,30 @@
+version 2020.03.24
+
+Core
+- [utils] Revert support for cookie files with spaces used instead of tabs
+
+Extractors
+* [teachable] Update upskillcourses and gns3 domains
+* [generic] Look for teachable embeds before wistia
++ [teachable] Extract chapter metadata (#24421)
++ [bilibili] Add support for player.bilibili.com (#24402)
++ [bilibili] Add support for new URL schema with BV ids (#24439, #24442)
+* [limelight] Remove disabled API requests (#24255)
+* [soundcloud] Fix download URL extraction (#24394)
++ [cbc:watch] Add support for authentication (#19160)
+* [hellporno] Fix extraction (#24399)
+* [xtube] Fix formats extraction (#24348)
+* [ndr] Fix extraction (#24326)
+* [nhk] Update m3u8 URL and use native HLS downloader (#24329)
+- [nhk] Remove obsolete rtmp formats (#24329)
+* [nhk] Relax URL regular expression (#24329)
+- [vimeo] Revert fix showcase password protected video extraction (#24224)
+
+
 version 2020.03.08
 
 Core
-+ [utils] Add support for cookie files with spaces
++ [utils] Add support for cookie files with spaces used instead of tabs
 
 Extractors
 + [pornhub] Add support for pornhubpremium.com (#24288)
