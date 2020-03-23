@@ -41,7 +41,7 @@ class BiliBiliIE(InfoExtractor):
             'uploader': '菊子桑',
             'uploader_id': '156160',
         },
-    },{
+    }, {
         'url': 'https://www.bilibili.com/video/BV11x411K7CN/',
         'md5': '5f7d29e1a2872f3df0cf76b1f87d3788',
         'info_dict': {
