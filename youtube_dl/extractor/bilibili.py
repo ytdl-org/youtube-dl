@@ -24,7 +24,7 @@ from ..utils import (
 
 
 class BiliBiliIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:www\.|bangumi\.|)bilibili\.(?:tv|com)/(?:video/av|BV|anime/(?P<anime_id>\d+)/play#)(?P<id>\d+)'
+    _VALID_URL = r'https?://(?:www\.|bangumi\.|)bilibili\.(?:tv|com)/(?:video/av|video/BV|anime/(?P<anime_id>\d+)/play#)(?P<id>\w+)'
 
     _TESTS = [{
         'url': 'http://www.bilibili.tv/video/av1074402/',
