@@ -111,15 +111,17 @@ class TeachableIE(TeachableBaseIE):
                     ''' % TeachableBaseIE._VALID_URL_SUB_TUPLE
 
     _TESTS = [{
-        'url': 'http://v1.upskillcourses.com/courses/essential-web-developer-course/lectures/1747100',
+        'url': 'https://gns3.teachable.com/courses/gns3-certified-associate/lectures/6842364',
         'info_dict': {
-            'id': 'uzw6zw58or',
-            'ext': 'mp4',
-            'title': 'Welcome to the Course!',
-            'description': 'md5:65edb0affa582974de4625b9cdea1107',
-            'duration': 138.763,
-            'timestamp': 1479846621,
-            'upload_date': '20161122',
+            'id': 'untlgzk1v7',
+            'ext': 'bin',
+            'title': 'Overview',
+            'description': 'md5:071463ff08b86c208811130ea1c2464c',
+            'duration': 736.4,
+            'timestamp': 1542315762,
+            'upload_date': '20181115',
+            'chapter': 'Welcome',
+            'chapter_number': 1,
         },
         'params': {
             'skip_download': True,
