@@ -21,7 +21,7 @@ class TeachableBaseIE(InfoExtractor):
 
     _SITES = {
         # Only notable ones here
-        'upskillcourses.com': 'upskill',
+        'v1.upskillcourses.com': 'upskill',
         'academy.gns3.com': 'gns3',
         'academyhacker.com': 'academyhacker',
         'stackskills.com': 'stackskills',
@@ -111,7 +111,7 @@ class TeachableIE(TeachableBaseIE):
                     ''' % TeachableBaseIE._VALID_URL_SUB_TUPLE
 
     _TESTS = [{
-        'url': 'http://upskillcourses.com/courses/essential-web-developer-course/lectures/1747100',
+        'url': 'http://v1.upskillcourses.com/courses/essential-web-developer-course/lectures/1747100',
         'info_dict': {
             'id': 'uzw6zw58or',
             'ext': 'mp4',
@@ -125,13 +125,13 @@ class TeachableIE(TeachableBaseIE):
             'skip_download': True,
         },
     }, {
-        'url': 'http://upskillcourses.com/courses/119763/lectures/1747100',
+        'url': 'http://v1.upskillcourses.com/courses/119763/lectures/1747100',
         'only_matching': True,
     }, {
         'url': 'https://academy.gns3.com/courses/423415/lectures/6885939',
         'only_matching': True,
     }, {
-        'url': 'teachable:https://upskillcourses.com/courses/essential-web-developer-course/lectures/1747100',
+        'url': 'teachable:https://v1.upskillcourses.com/courses/essential-web-developer-course/lectures/1747100',
         'only_matching': True,
     }]
 
@@ -217,17 +217,17 @@ class TeachableCourseIE(TeachableBaseIE):
                         /(?:courses|p)/(?:enrolled/)?(?P<id>[^/?#&]+)
                     ''' % TeachableBaseIE._VALID_URL_SUB_TUPLE
     _TESTS = [{
-        'url': 'http://upskillcourses.com/courses/essential-web-developer-course/',
+        'url': 'http://v1.upskillcourses.com/courses/essential-web-developer-course/',
         'info_dict': {
             'id': 'essential-web-developer-course',
             'title': 'The Essential Web Developer Course (Free)',
         },
         'playlist_count': 192,
     }, {
-        'url': 'http://upskillcourses.com/courses/119763/',
+        'url': 'http://v1.upskillcourses.com/courses/119763/',
         'only_matching': True,
     }, {
-        'url': 'http://upskillcourses.com/courses/enrolled/119763',
+        'url': 'http://v1.upskillcourses.com/courses/enrolled/119763',
         'only_matching': True,
     }, {
         'url': 'https://academy.gns3.com/courses/enrolled/423415',
