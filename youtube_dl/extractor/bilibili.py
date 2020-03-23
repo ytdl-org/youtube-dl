@@ -24,10 +24,25 @@ from ..utils import (
 
 
 class BiliBiliIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:www\.|bangumi\.|)bilibili\.(?:tv|com)/(?:video/av|anime/(?P<anime_id>\d+)/play#)(?P<id>\d+)'
+    _VALID_URL = r'https?://(?:www\.|bangumi\.|)bilibili\.(?:tv|com)/(?:video/av|BV|anime/(?P<anime_id>\d+)/play#)(?P<id>\d+)'
 
     _TESTS = [{
         'url': 'http://www.bilibili.tv/video/av1074402/',
+        'md5': '5f7d29e1a2872f3df0cf76b1f87d3788',
+        'info_dict': {
+            'id': '1074402',
+            'ext': 'flv',
+            'title': '【金坷垃】金泡沫',
+            'description': 'md5:ce18c2a2d2193f0df2917d270f2e5923',
+            'duration': 308.067,
+            'timestamp': 1398012678,
+            'upload_date': '20140420',
+            'thumbnail': r're:^https?://.+\.jpg',
+            'uploader': '菊子桑',
+            'uploader_id': '156160',
+        },
+    },{
+        'url': 'https://www.bilibili.com/video/BV11x411K7CN/',
         'md5': '5f7d29e1a2872f3df0cf76b1f87d3788',
         'info_dict': {
             'id': '1074402',
