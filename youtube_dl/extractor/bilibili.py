@@ -434,3 +434,17 @@ class BilibiliAudioAlbumIE(BilibiliAudioBaseIE):
                     entries, am_id, album_title, album_data.get('intro'))
 
         return self.playlist_result(entries, am_id)
+
+
+class BiliBiliPlayerIE(InfoExtractor):
+    _VALID_URL = r'https?://player\.bilibili\.com/player\.html\?.*?\baid=(?P<id>\d+)'
+    _TEST = {
+        'url': 'http://player.bilibili.com/player.html?aid=92494333&cid=157926707&page=1',
+        'only_matching': True,
+    }
+
+    def _real_extract(self, url):
+        video_id = self._match_id(url)
+        return self.url_result(
+            'http://www.bilibili.tv/video/av%s/' % video_id,
+            ie=BiliBiliIE.ie_key(), video_id=video_id)
