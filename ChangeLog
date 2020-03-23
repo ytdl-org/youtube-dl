@@ -1,5 +1,8 @@
 version <unreleased>
 
+Core
+- [utils] Revert support for cookie files with spaces used instead of tabs
+
 Extractors
 * [teachable] Update upskillcourses and gns3 domains
 * [generic] Look for teachable embeds before wistia
@@ -15,12 +18,13 @@ Extractors
 * [nhk] Update m3u8 URL and use native HLS downloader (#24329)
 - [nhk] Remove obsolete rtmp formats (#24329)
 * [nhk] Relax URL regular expression (#24329)
+- [vimeo] Revert fix showcase password protected video extraction (#24224)
 
 
 version 2020.03.08
 
 Core
-+ [utils] Add support for cookie files with spaces
++ [utils] Add support for cookie files with spaces used instead of tabs
 
 Extractors
 + [pornhub] Add support for pornhubpremium.com (#24288)
