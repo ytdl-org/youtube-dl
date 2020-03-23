@@ -1,4 +1,4 @@
-version <unreleased>
+version 2020.03.24
 
 Core
 - [utils] Revert support for cookie files with spaces used instead of tabs
