@@ -196,8 +196,8 @@ class TurnerBaseIE(AdobePassIE):
 
     def _extract_ngtv_info(self, media_id, tokenizer_query, ap_data=None):
         streams_data = self._download_json(
-            'http://medium.ngtv.io/media/%s/tv' % media_id,
-            media_id)['media']['tv']
+            'http://medium.ngtv.io/media/%s/desktop' % media_id,
+            media_id)['media']['desktop']
         duration = None
         chapters = []
         formats = []
