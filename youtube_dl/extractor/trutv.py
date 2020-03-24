@@ -1,8 +1,6 @@
 # coding: utf-8
 from __future__ import unicode_literals
 
-import re
-
 from .turner import TurnerBaseIE
 from ..utils import (
     int_or_none,
@@ -31,13 +29,13 @@ class TruTVIE(TurnerBaseIE):
 
     def _real_extract(self, url):
         episode_slug = self._match_id(url)
-        
+
         webpage = self._download_webpage(url, episode_slug)
-        
+
         meta = self._parse_json(self._html_search_regex(r'<script type="application/ld\+json">(.+)</script>', webpage, episode_slug), episode_slug)
 
         data = self._parse_json(self._html_search_regex(r'<script type="application/json" data-drupal-selector="drupal-settings-json">(.+)</script>', webpage, episode_slug), episode_slug)
-        
+
         eps = data['turner_playlist']
 
         for ep in eps:
