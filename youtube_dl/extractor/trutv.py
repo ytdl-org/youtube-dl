@@ -8,7 +8,6 @@ from ..utils import (
 
 
 class TruTVIE(TurnerBaseIE):
-    # https://www.trutv.com/shows/impractical-jokers/season-8/episode-2/the-closer
     _VALID_URL = r'https?://(?:www\.)?trutv\.com/shows/[0-9A-Za-z-]+/season-\d+/episode-\d+/(?P<id>[0-9A-Za-z-]+)'
     _TEST = {
         'url': 'https://www.trutv.com/shows/impractical-jokers/season-8/episode-2/the-closer',
