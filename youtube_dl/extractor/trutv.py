@@ -2,6 +2,10 @@
 from __future__ import unicode_literals
 
 from .turner import TurnerBaseIE
+from ..compat import (
+    compat_urllib_parse_urlparse,
+    compat_parse_qs,
+)
 from ..utils import (
     int_or_none,
 )
@@ -44,11 +48,13 @@ class TruTVIE(TurnerBaseIE):
         media_id = video_data['mediaID']
         title = video_data['title'].strip()
 
+        tokenizer_query = compat_parse_qs(compat_urllib_parse_urlparse(data['ngtv_token_url']).query)
+
         info = self._extract_ngtv_info(
-            media_id, {}, {
+            media_id, tokenizer_query, {
                 'url': url,
                 'site_name': 'truTV',
-                'auth_required': video_data.get('authRequired'),
+                'auth_required': video_data.get('authRequired') == '1',
             })
 
         thumbnails = []
