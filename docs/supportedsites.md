@@ -98,6 +98,7 @@
  - **BiliBili**
  - **BilibiliAudio**
  - **BilibiliAudioAlbum**
+ - **BiliBiliPlayer**
  - **BioBioChileTV**
  - **BIQLE**
  - **BitChute**
