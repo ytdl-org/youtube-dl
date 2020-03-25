@@ -504,6 +504,7 @@ class BilibiliNewBangumiIE(InfoExtractor):
             }
         }
 
+
 class BiliBiliPlayerIE(InfoExtractor):
     _VALID_URL = r'https?://player\.bilibili\.com/player\.html\?.*?\baid=(?P<id>\d+)'
     _TEST = {
