@@ -9,6 +9,7 @@ from .common import InfoExtractor
 # This script only uses URLs from the BINUS TV Android app share API (https://binus.bedigital.co.id/app/share/video/).
 # Videos from the main BINUS TV website (https://www.binus.tv/video/) can still be extracted using generic extractor.
 
+
 class BinusTVAppIE(InfoExtractor):
     _VALID_URL = r'(?:https?://)?(?:www\.)?binus\.bedigital\.co\.id/app/share/video/[^\/]+/[^\/]+/(?P<id>[^/?\0]+)'
     _TEST = {
