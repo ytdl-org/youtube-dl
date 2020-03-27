@@ -48,7 +48,13 @@ ACODECS = {
 
 
 class FFmpegPostProcessorError(PostProcessingError):
-    pass
+    def __init__(self, msg, malformed_aac_error=False):
+        super(FFmpegPostProcessorError, self).__init__(msg)
+        self.msg = msg
+        self.malformed_aac_error = malformed_aac_error
+
+    def is_malformed_aac_error(self):
+        return self.malformed_aac_error
 
 
 class FFmpegPostProcessor(PostProcessor):
@@ -232,7 +238,13 @@ class FFmpegPostProcessor(PostProcessor):
         if p.returncode != 0:
             stderr = stderr.decode('utf-8', 'replace')
             msg = stderr.strip().split('\n')[-1]
-            raise FFmpegPostProcessorError(msg)
+            # check if ffmpeg error is caused by malformed AAC bitstream:
+            malformed_aac_error = False
+            malformed_aac_error_str = "Malformed AAC bitstream detected: use the audio bitstream filter 'aac_adtstoasc' to fix it"
+            if stderr.find(malformed_aac_error_str) != -1:
+                msg += " -- " + malformed_aac_error_str
+                malformed_aac_error = True
+            raise FFmpegPostProcessorError(msg, malformed_aac_error)
         self.try_utime(out_path, oldest_mtime, oldest_mtime)
 
     def run_ffmpeg(self, path, out_path, opts):
@@ -509,7 +521,15 @@ class FFmpegMergerPP(FFmpegPostProcessor):
         temp_filename = prepend_extension(filename, 'temp')
         args = ['-c', 'copy', '-map', '0:v:0', '-map', '1:a:0']
         self._downloader.to_screen('[ffmpeg] Merging formats into "%s"' % filename)
-        self.run_ffmpeg_multiple_files(info['__files_to_merge'], temp_filename, args)
+        try:
+            self.run_ffmpeg_multiple_files(info['__files_to_merge'], temp_filename, args)
+        except FFmpegPostProcessorError as e:
+            if e.is_malformed_aac_error():
+                # add option 'aac_adtstoasc' and retry:
+                args = ['-bsf:a', 'aac_adtstoasc', '-c', 'copy', '-map', '0:v:0', '-map', '1:a:0']
+                self.run_ffmpeg_multiple_files(info['__files_to_merge'], temp_filename, args)
+            else:
+                raise   # other ffmpeg error => re-throw exception
         os.rename(encodeFilename(temp_filename), encodeFilename(filename))
         return info['__files_to_merge'], info
 
