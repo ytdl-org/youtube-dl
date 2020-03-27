@@ -204,6 +204,21 @@ class TwitterIE(TwitterBaseIE):
             'age_limit': 18,
         },
     }, {
+        'url': 'https://nitter.net/freethenipple/status/643211948184596480',
+        'info_dict': {
+            'id': '643211948184596480',
+            'ext': 'mp4',
+            'title': 'FREE THE NIPPLE - FTN supporters on Hollywood Blvd today!',
+            'thumbnail': r're:^https?://.*\.jpg',
+            'description': 'FTN supporters on Hollywood Blvd today! http://t.co/c7jHH749xJ',
+            'uploader': 'FREE THE NIPPLE',
+            'uploader_id': 'freethenipple',
+            'duration': 12.922,
+            'timestamp': 1442188653,
+            'upload_date': '20150913',
+            'age_limit': 18,
+        },
+    }, {
         'url': 'https://twitter.com/giphz/status/657991469417025536/photo/1',
         'md5': 'f36dcd5fb92bf7057f155e7d927eeb42',
         'info_dict': {
@@ -219,6 +234,18 @@ class TwitterIE(TwitterBaseIE):
         'skip': 'Account suspended',
     }, {
         'url': 'https://twitter.com/starwars/status/665052190608723968',
+        'info_dict': {
+            'id': '665052190608723968',
+            'ext': 'mp4',
+            'title': 'Star Wars - A new beginning is coming December 18. Watch the official 60 second #TV spot for #StarWars: #TheForceAwakens.',
+            'description': 'A new beginning is coming December 18. Watch the official 60 second #TV spot for #StarWars: #TheForceAwakens. https://t.co/OkSqT2fjWJ',
+            'uploader_id': 'starwars',
+            'uploader': 'Star Wars',
+            'timestamp': 1447395772,
+            'upload_date': '20151113',
+        },
+    }, {
+        'url': 'https://nitter.net/starwars/status/665052190608723968',
         'info_dict': {
             'id': '665052190608723968',
             'ext': 'mp4',
@@ -262,6 +289,19 @@ class TwitterIE(TwitterBaseIE):
         },
     }, {
         'url': 'https://twitter.com/Filmdrunk/status/713801302971588609',
+        'md5': '89a15ed345d13b86e9a5a5e051fa308a',
+        'info_dict': {
+            'id': 'MIOxnrUteUd',
+            'ext': 'mp4',
+            'title': 'Dr.Pepperの飲み方 #japanese #バカ #ドクペ #電動ガン',
+            'uploader': 'TAKUMA',
+            'uploader_id': '1004126642786242560',
+            'timestamp': 1402826626,
+            'upload_date': '20140615',
+        },
+        'add_ie': ['Vine'],
+    }, {
+        'url': 'https://nitter.42l.fr/Filmdrunk/status/713801302971588609',
         'md5': '89a15ed345d13b86e9a5a5e051fa308a',
         'info_dict': {
             'id': 'MIOxnrUteUd',
