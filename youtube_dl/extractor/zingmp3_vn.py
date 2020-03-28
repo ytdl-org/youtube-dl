@@ -13,7 +13,6 @@ from ..utils import (
     url_or_none,
     int_or_none,
     try_get,
-    ExtractorError,
     js_to_json
 )
 
@@ -111,10 +110,6 @@ class Zingmp3_vnIE(InfoExtractor):
     def _real_extract(self, url):
 
         mobj = re.search(self._VALID_URL, url)
-        if not mobj:
-            raise ExtractorError(
-                f'Zingmp3 no support for {url}.', expected=True
-            )
         video_id = mobj.group('id')
         type = mobj.group('type')
         slug = mobj.group('slug')
