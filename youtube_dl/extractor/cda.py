@@ -5,6 +5,7 @@ import codecs
 import re
 
 from .common import InfoExtractor
+from ..compat import compat_urllib_parse_unquote
 from ..utils import (
     ExtractorError,
     float_or_none,
@@ -123,6 +124,19 @@ class CDAIE(InfoExtractor):
             'age_limit': 18 if need_confirm_age else 0,
         }
 
+        def decrypt_file(file):
+            b = []
+
+            for ch in file:
+                f = ord(ch)
+                b.append(chr(33 + (f + 14) % 94) if 33 <= f and 126 >= f else chr(f))
+
+            return "".join(b)
+
+        def decode(file):
+            decoded = codecs.decode(codecs.decode(file, "rot_13"), "rot_13")
+            return "https://" + decrypt_file(compat_urllib_parse_unquote(decoded)) + ".mp4"
+
         def extract_format(page, version):
             json_str = self._html_search_regex(
                 r'player_data=(\\?["\'])(?P<player_data>.+?)\1', page,
@@ -137,10 +151,9 @@ class CDAIE(InfoExtractor):
             if not video or 'file' not in video:
                 self.report_warning('Unable to extract %s version information' % version)
                 return
-            if video['file'].startswith('uggc'):
-                video['file'] = codecs.decode(video['file'], 'rot_13')
-                if video['file'].endswith('adc.mp4'):
-                    video['file'] = video['file'].replace('adc.mp4', '.mp4')
+            video['file'] = decode(video['file'])
+            if video['file'].endswith('adc.mp4'):
+                video['file'] = video['file'].replace('adc.mp4', '.mp4')
             f = {
                 'url': video['file'],
             }
