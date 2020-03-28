@@ -21,8 +21,7 @@ class Zingmp3_vnIE(InfoExtractor):
     _VALID_URL = r'''(?x)^
         ((http[s]?|fpt):)\/?\/(www\.|m\.|)
         (?P<site>
-            (?:(zingmp3\.vn)|
-            (mp3\.zing\.vn))
+            (zingmp3\.vn)
         )\/(?P<type>bai-hat|video-clip|embed)\/(?P<slug>.*?)\/(?P<id>.*?)\W
         '''
     IE_NAME = 'zingmp3_vn'
@@ -108,31 +107,26 @@ class Zingmp3_vnIE(InfoExtractor):
     _default_host = "https://zingmp3.vn/"
 
     def _real_extract(self, url):
-        self.convert_oldDomain_to_newDomain(url)
         mobj = re.search(self._VALID_URL, url)
         video_id = mobj.group('id')
-        type = mobj.group('type')
+        _type = mobj.group('type')
         slug = mobj.group('slug')
-        return self.extract_info_media(type, slug, video_id)
+        return self.extract_info_media(_type, slug, video_id)
 
-    def convert_oldDomain_to_newDomain(self,url):
-        if 'mp3.zing.vn' in url:
-            url = url.replace('mp3.zing.vn','zingmp3.vn')
-        return url
-    def extract_info_media(self, type, slug, video_id):
+    def extract_info_media(self, _type, slug, video_id):
         formats = []
         name_api = ''
-        if type == 'bai-hat':
+        if _type == 'bai-hat':
             name_api = '/song/get-song-info'
-        elif type == 'embed':
+        elif _type == 'embed':
             if slug and slug == 'song':
                 name_api = '/song/get-song-info'
-        elif type == 'video-clip':
+        elif _type == 'video-clip':
             name_api = "/video/get-video-detail"
 
         api = self.get_api_with_signature(name_api=name_api, video_id=video_id)
         info = self._download_json(url_or_request=api, video_id=video_id)
-        if type == 'video-clip' and not self._downloader.params.get("cookiefile"):
+        if _type == 'video-clip' and not self._downloader.params.get("cookiefile"):
             # TODO: Have api can get best quality like 1080p, 720p, default if dont have VIP just 480p is best quality.
             #  If requests are continuous without downtime,
             #  you may be blocked IP for a short period of time,
@@ -195,7 +189,7 @@ class Zingmp3_vnIE(InfoExtractor):
             streaming = data.get('streaming')
 
             if streaming.get('msg'):
-                if type == 'video-clip':
+                if _type == 'video-clip':
                     stream_data = streaming.get('data', dict)
                     for protocol, stream in stream_data.items():
                         if protocol == 'default':
@@ -220,9 +214,9 @@ class Zingmp3_vnIE(InfoExtractor):
                 else:
                     if streaming.get('msg') != "Success":
                         self.to_screen(
-                            f"   - {self.IE_NAME} requires authentication.\n"
-                            f"\t\t- Because This media need VIP account to listen or watch.\n"
-                            f"\t\t- You may want to use --cookies.\n\n"
+                            "Zingmp3_vn requires authentication."
+                            "Because This media need VIP account to listen or watch."
+                            "You may want to use --cookies FILE."
                         )
                         return
                     default = streaming.get('default')
@@ -265,11 +259,13 @@ class Zingmp3_vnIE(InfoExtractor):
                 'formats': formats
             }
 
-    def get_api_with_signature(self, name_api, video_id='', alias='', type='', new_release=False):
+    def get_api_with_signature(self, name_api, video_id='', alias='', _type='', new_release=False):
         """
         - The api of this site has 1 param named sig => signature
         - It uses the hash function of the variables ctime, id, and name_api.
         - Sone api don't need id, just need ctime and name_api,
+        :param _type:
+        :param alias:
         :param name_api:
         :param video_id:
         :param type:
@@ -280,6 +276,7 @@ class Zingmp3_vnIE(InfoExtractor):
         SECRET_KEY = b'10a01dcf33762d3a204cb96429918ff6'
         if not name_api:
             return
+        _time = str(int(datetime.datetime.now().timestamp()))
 
         def get_hash256(string):
             return hashlib.sha256(string.encode('utf-8')).hexdigest()
@@ -295,74 +292,69 @@ class Zingmp3_vnIE(InfoExtractor):
             data = "&".join(data)
             return data
 
-        def get_api_by_id(id):
-            url = f"https://zingmp3.vn/api{name_api}?id={id}&"
-            time = str(int(datetime.datetime.now().timestamp()))
-            sha256 = get_hash256(f"ctime={time}id={id}")
+        def get_api_by_id(_id):
+            url = r"https://zingmp3.vn/api%s?id=%s&" % (name_api, _id)
+            sha256 = get_hash256(r"ctime=%sid=%s" % (_time, _id))
 
             data = {
-                'ctime': time,
+                'ctime': _time,
                 'api_key': API_KEY,
-                'sig': get_hmac512(f"{name_api}{sha256}")
+                'sig': get_hmac512(r"%s%s" % (name_api, sha256))
             }
             return url + get_request_path(data)
 
-        def get_api_chart(type):
-            url = f"https://zingmp3.vn/api{name_api}?type={type}&"
-            time = str(int(datetime.datetime.now().timestamp()))
-            sha256 = get_hash256(f"ctime={time}")
+        def get_api_chart(_type):
+            url = r"https://zingmp3.vn/api%s?type=%s&" % (name_api, _type)
+            sha256 = get_hash256(r"ctime=%s" % (_time))
 
             data = {
-                'ctime': time,
+                'ctime': _time,
                 'api_key': API_KEY,
-                'sig': get_hmac512(f"{name_api}{sha256}")
+                'sig': get_hmac512(r"%s%s" % (name_api, sha256))
             }
             return url + get_request_path(data)
 
         def get_api_new_release():
-            url = f"https://zingmp3.vn/api{name_api}?"
-            time = str(int(datetime.datetime.now().timestamp()))
-            sha256 = get_hash256(f"ctime={time}")
+            url = r"https://zingmp3.vn/api%s?" % (name_api)
+            sha256 = get_hash256(r"ctime=%s" % (_time))
 
             data = {
-                'ctime': time,
+                'ctime': _time,
                 'api_key': API_KEY,
-                'sig': get_hmac512(f"{name_api}{sha256}")
+                'sig': get_hmac512(r"%s%s" % (name_api, sha256))
             }
             return url + get_request_path(data)
 
-        def get_api_download(id):
-            url = f"https://download.zingmp3.vn/api{name_api}?id={id}&"
-            time = str(int(datetime.datetime.now().timestamp()))
-            sha256 = get_hash256(f"ctime={time}id={id}")
+        def get_api_download(_id):
+            url = r"https://download.zingmp3.vn/api%s?id=%s&" % (name_api, _id)
+            sha256 = get_hash256(r"ctime=%sid=%s" % (_time, _id))
 
             data = {
-                'ctime': time,
+                'ctime': _time,
                 'api_key': API_KEY,
-                'sig': get_hmac512(f"{name_api}{sha256}")
+                'sig': get_hmac512(r"%s%s" % (name_api, sha256))
             }
             return url + get_request_path(data)
 
         def get_api_info_alias(alias):
-            url = f"https://zingmp3.vn/api{name_api}?alias={alias}&"
-            time = str(int(datetime.datetime.now().timestamp()))
-            sha256 = get_hash256(f"ctime={time}")
+            url = r"https://zingmp3.vn/api%s?alias=%s&" % (name_api, alias)
+            sha256 = get_hash256(r"ctime=%s" % (_time))
 
             data = {
-                'ctime': time,
+                'ctime': _time,
                 'api_key': API_KEY,
-                'sig': get_hmac512(f"{name_api}{sha256}")
+                'sig': get_hmac512(r"%s%s" % (name_api, sha256))
             }
             return url + get_request_path(data)
 
         if 'download' in name_api:
-            return get_api_download(id=video_id)
+            return get_api_download(_id=video_id)
         if alias:
             return get_api_info_alias(alias)
         if video_id:
             return get_api_by_id(video_id)
-        if type:
-            return get_api_chart(type)
+        if _type:
+            return get_api_chart(_type)
         if new_release:
             return get_api_new_release()
         return
@@ -374,8 +366,7 @@ class Zingmp3_vnPlaylistIE(Zingmp3_vnIE):
     _VALID_URL = r'''(?x)^
     ((http[s]?|fpt):)\/?\/(www\.|m\.|)
         (?P<site>
-            (?:(zingmp3\.vn)|
-            (mp3\.zing\.vn))
+            (zingmp3\.vn)
         )\/(?P<type>album|playlist)\/(?P<slug>.*?)\/(?P<playlist_id>.*?)\W
         '''
 
@@ -416,7 +407,6 @@ class Zingmp3_vnPlaylistIE(Zingmp3_vnIE):
     name_api = '/playlist/get-playlist-detail'
 
     def _real_extract(self, url):
-        self.convert_oldDomain_to_newDomain(url)
         mobj = re.search(self._VALID_URL, url)
         playlist_id = mobj.group('playlist_id')
         return self._extract_playlist(id_playlist=playlist_id)
@@ -449,13 +439,12 @@ class Zingmp3_vnUserIE(Zingmp3_vnIE):
     _VALID_URL = r'''(?x)^
             ((http[s]?|fpt):)\/?\/(www\.|m\.|)
             (?P<site>
-                (?:(zingmp3\.vn)|
-                (mp3\.zing\.vn))
+                (zingmp3\.vn)
             )\/(?P<nghe_si>nghe-si\/|)
             (?P<name>.*?)
             (?:$|\/)
             (?:
-                (?P<name_chu_de>.*?)\/(?P<id_chu_de>.*?\.)
+                (?P<name_chu_de>.*?)\/(?P<id_chu_de>.*?)\.
                 |
                 (?P<slug_name>.*?$)
             )
@@ -551,7 +540,6 @@ class Zingmp3_vnUserIE(Zingmp3_vnIE):
     }
 
     def _real_extract(self, url):
-        self.convert_oldDomain_to_newDomain(url)
         mobj = re.search(self._VALID_URL, url)
         name = mobj.group('name')
         slug_name = mobj.group('slug_name')
@@ -562,7 +550,7 @@ class Zingmp3_vnUserIE(Zingmp3_vnIE):
         name_api = self.list_name_api_user.get(slug_name) or None
         self.id_artist = None
         if nghe_si:
-            webpage = self._download_webpage(url_or_request=f"https://mp3.zing.vn/nghe-si/{name}", video_id=name)
+            webpage = self._download_webpage(url_or_request=r"https://mp3.zing.vn/nghe-si/%s" % (name), video_id=name)
             self.id_artist = self._search_regex(r'''(?x)
                                     \<a.*?tracking=\"\_frombox=artist_artistfollow\"
                                         \s+data-id=\"(?P<id_artist>.*?)\"
@@ -580,7 +568,7 @@ class Zingmp3_vnUserIE(Zingmp3_vnIE):
             return self.playlist_result(
                 entries=self._entries(),
                 playlist_id=self.id_artist,
-                playlist_title=f"{name}-{slug_name}"
+                playlist_title=r"%s-%s" % (name, slug_name)
             )
         elif name == 'chu-de':
             self.IE_NAME = "zingmp3_vn:chu-de"
@@ -659,11 +647,11 @@ class Zingmp3_vnUserIE(Zingmp3_vnIE):
 
 class Zingmp3_vnChartIE(Zingmp3_vnIE):
     IE_NAME = "zingmp3_vn:#zingchart"
+
     _VALID_URL = r'''(?x)^
             ((http[s]?|fpt):)\/?\/(www\.|m\.|)
             (?P<site>
-                (?:(zingmp3\.vn)|
-                (mp3\.zing\.vn))
+                (zingmp3\.vn)
             )\/(?P<name>zing-chart-tuan|zing-chart|top-new-release)\/
             (?P<slug_name>.*?)(\.|\/)(?P<id_name>.*?\.)?
             '''
@@ -720,7 +708,6 @@ class Zingmp3_vnChartIE(Zingmp3_vnIE):
     }
 
     def _real_extract(self, url):
-        self.convert_oldDomain_to_newDomain(url)
         mobj = re.search(self._VALID_URL, url)
         name = mobj.group('name')
         slug_name = mobj.group('slug_name')
@@ -728,7 +715,7 @@ class Zingmp3_vnChartIE(Zingmp3_vnIE):
         if name == 'zing-chart':
             api = self.get_api_with_signature(
                 name_api=self.list_name_api.get(name).get('name'),
-                type=self.list_name_api.get(name).get(slug_name)
+                _type=self.list_name_api.get(name).get(slug_name)
             )
         elif name == 'zing-chart-tuan':
             api = self.get_api_with_signature(
@@ -740,12 +727,19 @@ class Zingmp3_vnChartIE(Zingmp3_vnIE):
                 name_api=self.list_name_api.get(name).get('name'),
                 new_release=True
             )
-        webpage = self._download_webpage(url_or_request=api, video_id=name)
-        info = self._parse_json(webpage, name, transform_source=js_to_json)
-        return self.playlist_result(
-            entries=self._entries(try_get(info, lambda x: x['data']['items'])),
-            playlist_title=f"{name}-{slug_name}"
-        )
+        count = 0
+        info = None
+        while count != 3:
+            webpage = self._download_webpage(url_or_request=api, video_id=name)
+            if webpage:
+                info = self._parse_json(webpage, name, transform_source=js_to_json)
+                break
+            count += 1
+        if info:
+            return self.playlist_result(
+                entries=self._entries(try_get(info, lambda x: x['data']['items'])),
+                playlist_title=r"%s-%s" % (name, slug_name)
+            )
 
     def _entries(self, items):
         for item in items:
