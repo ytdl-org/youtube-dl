@@ -108,13 +108,17 @@ class Zingmp3_vnIE(InfoExtractor):
     _default_host = "https://zingmp3.vn/"
 
     def _real_extract(self, url):
-
+        self.convert_oldDomain_to_newDomain(url)
         mobj = re.search(self._VALID_URL, url)
         video_id = mobj.group('id')
         type = mobj.group('type')
         slug = mobj.group('slug')
         return self.extract_info_media(type, slug, video_id)
 
+    def convert_oldDomain_to_newDomain(self,url):
+        if 'mp3.zing.vn' in url:
+            url = url.replace('mp3.zing.vn','zingmp3.vn')
+        return url
     def extract_info_media(self, type, slug, video_id):
         formats = []
         name_api = ''
@@ -412,6 +416,7 @@ class Zingmp3_vnPlaylistIE(Zingmp3_vnIE):
     name_api = '/playlist/get-playlist-detail'
 
     def _real_extract(self, url):
+        self.convert_oldDomain_to_newDomain(url)
         mobj = re.search(self._VALID_URL, url)
         playlist_id = mobj.group('playlist_id')
         return self._extract_playlist(id_playlist=playlist_id)
@@ -546,6 +551,7 @@ class Zingmp3_vnUserIE(Zingmp3_vnIE):
     }
 
     def _real_extract(self, url):
+        self.convert_oldDomain_to_newDomain(url)
         mobj = re.search(self._VALID_URL, url)
         name = mobj.group('name')
         slug_name = mobj.group('slug_name')
@@ -714,6 +720,7 @@ class Zingmp3_vnChartIE(Zingmp3_vnIE):
     }
 
     def _real_extract(self, url):
+        self.convert_oldDomain_to_newDomain(url)
         mobj = re.search(self._VALID_URL, url)
         name = mobj.group('name')
         slug_name = mobj.group('slug_name')
