@@ -6,9 +6,12 @@ import hashlib
 import hmac
 import re
 import time
-from urllib.parse import quote, urljoin
 
 from .common import InfoExtractor
+from ..compat import (
+    compat_urllib_parse_urlencode,
+    compat_urllib_parse
+)
 from ..utils import (
     url_or_none,
     int_or_none,
@@ -179,7 +182,7 @@ class Zingmp3_vnIE(InfoExtractor):
             artists = [{
                 "id": i.get('id'),
                 "name": i.get('name'),
-                'link': urljoin(self._default_host, i.get('link')),
+                'link': compat_urllib_parse.urljoin(self._default_host, i.get('link')),
                 'thumbnail': convert_thumbnail(i.get('thumbnail')),
                 'follow_count': int_or_none(i.get('follow'))
             } for i in data.get('artists', [])]
@@ -284,14 +287,6 @@ class Zingmp3_vnIE(InfoExtractor):
         def get_hmac512(string):
             return hmac.new(SECRET_KEY, string.encode('utf-8'), hashlib.sha512).hexdigest()
 
-        def get_request_path(data):
-            def mapping(key, value):
-                return quote(key) + "=" + quote(value)
-
-            data = [mapping(k, v) for k, v in data.items()]
-            data = "&".join(data)
-            return data
-
         def get_api_by_id(_id):
             url = r"https://zingmp3.vn/api%s?id=%s&" % (name_api, _id)
             sha256 = get_hash256(r"ctime=%sid=%s" % (_time, _id))
@@ -301,7 +296,7 @@ class Zingmp3_vnIE(InfoExtractor):
                 'api_key': API_KEY,
                 'sig': get_hmac512(r"%s%s" % (name_api, sha256))
             }
-            return url + get_request_path(data)
+            return url + compat_urllib_parse_urlencode(data)
 
         def get_api_chart(_type):
             url = r"https://zingmp3.vn/api%s?type=%s&" % (name_api, _type)
@@ -312,7 +307,7 @@ class Zingmp3_vnIE(InfoExtractor):
                 'api_key': API_KEY,
                 'sig': get_hmac512(r"%s%s" % (name_api, sha256))
             }
-            return url + get_request_path(data)
+            return url + compat_urllib_parse_urlencode(data)
 
         def get_api_new_release():
             url = r"https://zingmp3.vn/api%s?" % (name_api)
@@ -323,7 +318,7 @@ class Zingmp3_vnIE(InfoExtractor):
                 'api_key': API_KEY,
                 'sig': get_hmac512(r"%s%s" % (name_api, sha256))
             }
-            return url + get_request_path(data)
+            return url + compat_urllib_parse_urlencode(data)
 
         def get_api_download(_id):
             url = r"https://download.zingmp3.vn/api%s?id=%s&" % (name_api, _id)
@@ -334,7 +329,7 @@ class Zingmp3_vnIE(InfoExtractor):
                 'api_key': API_KEY,
                 'sig': get_hmac512(r"%s%s" % (name_api, sha256))
             }
-            return url + get_request_path(data)
+            return url + compat_urllib_parse_urlencode(data)
 
         def get_api_info_alias(alias):
             url = r"https://zingmp3.vn/api%s?alias=%s&" % (name_api, alias)
@@ -345,7 +340,7 @@ class Zingmp3_vnIE(InfoExtractor):
                 'api_key': API_KEY,
                 'sig': get_hmac512(r"%s%s" % (name_api, sha256))
             }
-            return url + get_request_path(data)
+            return url + compat_urllib_parse_urlencode(data)
 
         if 'download' in name_api:
             return get_api_download(_id=video_id)
@@ -418,7 +413,7 @@ class Zingmp3_vnPlaylistIE(Zingmp3_vnIE):
         items = try_get(info, lambda x: x['data']['song']['items'])
         entries = []
         for item in items:
-            url = urljoin(self._default_host, item.get('link'))
+            url = compat_urllib_parse.urljoin(self._default_host, item.get('link'))
             video_id = item.get('id')
             entry = self.url_result(
                 url=url,
@@ -442,12 +437,7 @@ class Zingmp3_vnUserIE(Zingmp3_vnIE):
                 (zingmp3\.vn)
             )\/(?P<nghe_si>nghe-si\/|)
             (?P<name>.*?)
-            (?:$|\/)
-            (?:
-                (?P<name_chu_de>.*?)\/(?P<id_chu_de>.*?)\.
-                |
-                (?P<slug_name>.*?$)
-            )
+            (?:$|\/)(?P<slug_name>.*?$)
             '''
     IE_NAME = "zingmp3_vn:user"
     _TESTS = [
@@ -530,7 +520,7 @@ class Zingmp3_vnUserIE(Zingmp3_vnIE):
                 "title": "Acoustic",
             },
             "playlist_mincount": 3
-        }
+        },
     ]
     list_name_api_user = {
         'bai-hat': "/song/get-list",
@@ -550,7 +540,7 @@ class Zingmp3_vnUserIE(Zingmp3_vnIE):
         name_api = self.list_name_api_user.get(slug_name) or None
         self.id_artist = None
         if nghe_si:
-            webpage = self._download_webpage(url_or_request=r"https://mp3.zing.vn/nghe-si/%s" % (name), video_id=name)
+            webpage = self._download_webpage(url_or_request=r"https://mp3.zing.vn/nghe-si/%s" % name, video_id=name)
             self.id_artist = self._search_regex(r'''(?x)
                                     \<a.*?tracking=\"\_frombox=artist_artistfollow\"
                                         \s+data-id=\"(?P<id_artist>.*?)\"
@@ -572,8 +562,9 @@ class Zingmp3_vnUserIE(Zingmp3_vnIE):
             )
         elif name == 'chu-de':
             self.IE_NAME = "zingmp3_vn:chu-de"
-            name_chu_de = mobj.group('name_chu_de')
-            self.id_chu_de = mobj.group('id_chu_de')
+            rex = re.match(r"(?P<name_chu_de>.*)\/(?P<id_chu_de>.*?)\.", slug_name)
+            name_chu_de = rex.group('name_chu_de')
+            self.id_chu_de = rex.group('id_chu_de')
             self.api = self.get_api_with_signature(name_api="/topic/get-detail", video_id=self.id_chu_de)
             return self.playlist_result(
                 entries=self._entries_for_chu_de(),
@@ -587,7 +578,7 @@ class Zingmp3_vnUserIE(Zingmp3_vnIE):
             return
         items = try_get(info, lambda x: x['data']['playlist']['items'])
         for item in items:
-            url = urljoin(self._default_host, item.get('link'))
+            url = compat_urllib_parse.urljoin(self._default_host, item.get('link'))
             media_id = item.get('id')
             if 'album' in url or 'playlist' in url:
                 name_api = '/playlist/get-playlist-detail'
@@ -595,7 +586,7 @@ class Zingmp3_vnUserIE(Zingmp3_vnIE):
                 info_playlist = self._download_json(url_or_request=api, video_id=media_id)
                 items_playlist = try_get(info_playlist, lambda x: x['data']['song']['items'])
                 for item_pl in items_playlist:
-                    url = urljoin(self._default_host, item_pl.get('link'))
+                    url = compat_urllib_parse.urljoin(self._default_host, item_pl.get('link'))
                     video_id = item_pl.get('id')
                     yield self.url_result(
                         url=url,
@@ -617,7 +608,7 @@ class Zingmp3_vnUserIE(Zingmp3_vnIE):
                 break
             items = try_get(info, lambda x: x['data']['items'])
             for item in items:
-                url = urljoin(self._default_host, item.get('link'))
+                url = compat_urllib_parse.urljoin(self._default_host, item.get('link'))
                 media_id = item.get('id')
                 if 'album' in url or 'playlist' in url:
                     name_api = '/playlist/get-playlist-detail'
@@ -625,7 +616,7 @@ class Zingmp3_vnUserIE(Zingmp3_vnIE):
                     info_playlist = self._download_json(url_or_request=api, video_id=media_id)
                     items_playlist = try_get(info_playlist, lambda x: x['data']['song']['items'])
                     for item_pl in items_playlist:
-                        url = urljoin(self._default_host, item_pl.get('link'))
+                        url = compat_urllib_parse.urljoin(self._default_host, item_pl.get('link'))
                         video_id = item_pl.get('id')
                         yield self.url_result(
                             url=url,
@@ -743,6 +734,6 @@ class Zingmp3_vnChartIE(Zingmp3_vnIE):
 
     def _entries(self, items):
         for item in items:
-            url = urljoin(self._default_host, item.get('link'))
+            url = compat_urllib_parse.urljoin(self._default_host, item.get('link'))
             video_id = item.get('id')
             yield self.url_result(url, ie=Zingmp3_vnIE.ie_key(), video_id=video_id)
