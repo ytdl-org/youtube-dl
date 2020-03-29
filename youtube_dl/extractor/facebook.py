@@ -22,11 +22,12 @@ from ..utils import (
     int_or_none,
     js_to_json,
     limit_length,
+    merge_dicts,
     parse_count,
     sanitized_Request,
     try_get,
     urlencode_postdata,
-    merge_dicts,
+    urljoin,
 )
 
 
@@ -515,8 +516,14 @@ class FacebookPluginsVideoIE(InfoExtractor):
 
 
 class FacebookUserIE(InfoExtractor):
-    _VALID_URL = r'(?P<url>https?://(?:[^/]+\.)?facebook\.com/(?:pg/)?(?P<id>[^/?#&]+))/videos(?!/[\w\.])'
-    IE_NAME = "facebook:user"
+    _VALID_URL = r'https?://(?:[^/]+\.)?facebook\.com/(?:pg/)?(?P<id>[^/?#&]+)/videos'
+    IE_NAME = 'facebook:user'
+    
+    @classmethod
+    def suitable(cls, url):
+        return (False
+                if FacebookIE.suitable(url)
+                else super(FacebookUserIE, cls).suitable(url))
 
     _TESTS = [{
         # page
@@ -532,17 +539,17 @@ class FacebookUserIE(InfoExtractor):
     }]
 
     def _real_extract(self, url):
-        mobj = re.match(self._VALID_URL, url)
-        user_id = mobj.group('id')
+        user_id = self._match_id(url)
 
         page = self._download_webpage(
             url, user_id, 'Downloading user webpage')
         fb_url = self._html_search_meta(
             'al:android:url', page, default=None)
-        fb_url_mobj = re.match(r'fb://(?P<type>page|profile)/(?P<id>\d+)', fb_url)
-        if not fb_url_mobj:
-            raise ExtractorError('Could not extract page ID', expected=False)
-        page_id = fb_url_mobj.group('id')
+        fb_url_re = r'fb://(?P<type>page|profile)/(?P<id>\d+)'
+        page_type = self._search_regex(
+            fb_url_re, fb_url, 'page type', group='type')
+        page_id = self._search_regex(
+            fb_url_re, fb_url, 'page id', group='id')
         fb_dtsg_ag = self._search_regex(
             r'"async_get_token":"([\w\-:]+)"',
             page, 'fb_dtsg_ag', default=None)
@@ -555,15 +562,15 @@ class FacebookUserIE(InfoExtractor):
         cursor = None
         entries = []
 
-        if fb_url_mobj.group('type') == 'page':
+        if page_type == 'page':
             endpoint = 'PagesVideoHubVideoContainerPagelet'
             data = {
                 'page': page_id
             }
             page_re = r'<td[^>]+>.+?<a href="(?P<url>[^"]+)".+?</td>'
-        elif fb_url_mobj.group('type') == 'profile':
+        elif page_type == 'profile':
             if not (fb_dtsg_ag and pagelet_token and collection_token):
-                raise ExtractorError('You must be logged in to extract profile videos', expected=True)
+                raise ExtractorError('You must use cookies to extract profile videos', expected=True)
             endpoint = 'VideosByUserAppCollectionPagelet'
             data = {
                 'collection_token': collection_token,
@@ -592,17 +599,19 @@ class FacebookUserIE(InfoExtractor):
                 self._search_regex(
                     r'({.+})', js_data_page,
                     'js data', default='{}'),
-                user_id, fatal=True)
+                user_id)
 
             for video in re.findall(
                     page_re, js_data['payload']):
+                video_url = urljoin('https://www.facebook.com', video)
+                if not FacebookIE.suitable(video_url):
+                    continue
                 entries.append(
                     self.url_result(
-                        'https://www.facebook.com%s' % video,
-                        FacebookIE.ie_key()))
+                        video_url, FacebookIE.ie_key()))
 
             cursor = None
-            if fb_url_mobj.group('type') == 'page':
+            if page_type == 'page':
                 if 'instances' not in js_data['jsmods']:
                     break
                 for parent in js_data['jsmods']['instances']:
@@ -613,7 +622,7 @@ class FacebookUserIE(InfoExtractor):
                                     if type(subchild) is dict and 'cursor' in subchild:
                                         cursor = subchild['cursor']
                                         break
-            elif fb_url_mobj.group('type') == 'profile':
+            elif page_type == 'profile':
                 for parent in js_data['jsmods']['require']:
                     if type(parent) is list:
                         for child in parent:
