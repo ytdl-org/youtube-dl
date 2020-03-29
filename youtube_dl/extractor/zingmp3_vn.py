@@ -581,41 +581,17 @@ class Zingmp3_vnChartIE(Zingmp3_vnIE):
             yield self.url_result(url, ie=Zingmp3_vnIE.ie_key(), video_id=video_id)
 
 
-r"""class Zingmp3_vnUserIE(Zingmp3_vnIE):
+class Zingmp3_vnUserIE(Zingmp3_vnIE):
     _VALID_URL = r'''(?x)^
-            ((http[s]?|fpt):)\/?\/(www\.|m\.|)
-            (?P<site>
-                (zingmp3\.vn)
-            )\/(?P<nghe_si>nghe-si\/|)
-            (?P<name>.*?)
-            (?:$|\/)(?P<slug_name>.*?$)
+        ((http[s]?|fpt):)\/?\/(www\.|m\.|)
+        (?P<site>
+            (zingmp3\.vn)
+        )\/(?P<nghe_si>nghe-si\/|)(?P<name>.*?)
+        (?:$|\/)
+        (?P<slug_name>bai-hat|album|video|playlist)$
             '''
     IE_NAME = "zingmp3_vn:user"
     _TESTS = [
-        {
-            "url": "https://zingmp3.vn/Mr-Siro",
-            "info_dict": {
-                "id": "IWZ98609",
-                "title": "Mr-Siro-bai-hat"
-            },
-            "playlist_mincount": 5
-        },
-        {
-            "url": "https://zingmp3.vn/onlyc",
-            "info_dict": {
-                "id": "IWZ9ZED8",
-                "title": 'onlyc-bai-hat'
-            },
-            "playlist_mincount": 5
-        },
-        {
-            "url": "https://zingmp3.vn/nghe-si/Huong-Giang-Idol",
-            "info_dict": {
-                "id": "IWZ9CUWA",
-                "title": "Huong-Giang-Idol-bai-hat"
-            },
-            "playlist_mincount": 5
-        },
         {
             'url': "https://zingmp3.vn/nghe-si/Huong-Giang-Idol/bai-hat",
             "info_dict": {
@@ -663,14 +639,6 @@ r"""class Zingmp3_vnUserIE(Zingmp3_vnIE):
                 "title": "Mr-Siro-video",
             },
             "playlist_mincount": 5
-        },
-        {
-            "url": "https://zingmp3.vn/chu-de/Acoustic/IWZ977C8.html",
-            "info_dict": {
-                "id": "IWZ977C8",
-                "title": "Acoustic",
-            },
-            "playlist_mincount": 3
         },
     ]
     list_name_api_user = {
@@ -785,4 +753,3 @@ r"""class Zingmp3_vnUserIE(Zingmp3_vnIE):
 
             if total <= start:
                 break
-"""

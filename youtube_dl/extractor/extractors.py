@@ -1508,4 +1508,5 @@ from .zingmp3_vn import (
     Zingmp3_vnIE,
     Zingmp3_vnPlaylistIE,
     Zingmp3_vnChartIE,
+    Zingmp3_vnUserIE,
 )
