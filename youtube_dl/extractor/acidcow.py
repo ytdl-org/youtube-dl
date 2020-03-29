@@ -1,0 +1,37 @@
+from __future__ import unicode_literals
+
+from .common import InfoExtractor
+
+
+class acidcowIE(InfoExtractor):
+    """
+    InfoExtractor for acid.cow
+    This class should be used to handle videos. Another class (TODO) will be
+    used to implement playlists or other content.
+    """
+    # _VALID_URL = r'https?://app.matter.online/tracks/((?P<id>\d+)-(?P<title>\S+))/?'
+    _VALID_URL = r'https?://acidcow.com/video/([0-9]+-(?P<title>\s+))/?'
+    _TESTS = {
+        # TODO: Implement
+
+    }
+
+    def _real_extract(self, url):
+        video_id = self._match_id(url)
+        webpage = self._download_webpage(
+            r'https://cdn.acidcow.com/pics/%s/video/(\S+)' % video_id, video_id
+        )
+
+        title = self._html_search_regex(r'<title>(.+?)</title>', webpage, 'title')
+        download_url = self._html_search_regex(
+            r'<video src="https://cdn.acidcow.com/pics/([0-9]+/(?P<title>\s+))"/>',
+
+            webpage, "download_url"
+        )
+
+        return {
+            'id': video_id,
+            'url': download_url,
+            'title': title
+        }
+-

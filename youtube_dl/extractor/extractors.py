@@ -1033,6 +1033,7 @@ from .southpark import (
     SouthParkNlIE
 )
 from .sonuma import sonumaIE
+from .acidcow import acidcowIE
 from .spankbang import (
     SpankBangIE,
     SpankBangPlaylistIE,
