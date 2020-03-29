@@ -133,10 +133,6 @@ class CDAIE(InfoExtractor):
 
             return "".join(b)
 
-        def decode(file):
-            decoded = codecs.decode(codecs.decode(file, "rot_13"), "rot_13")
-            return "https://" + decrypt_file(compat_urllib_parse_unquote(decoded)) + ".mp4"
-
         def extract_format(page, version):
             json_str = self._html_search_regex(
                 r'player_data=(\\?["\'])(?P<player_data>.+?)\1', page,
@@ -151,9 +147,14 @@ class CDAIE(InfoExtractor):
             if not video or 'file' not in video:
                 self.report_warning('Unable to extract %s version information' % version)
                 return
-            video['file'] = decode(video['file'])
-            if video['file'].endswith('adc.mp4'):
-                video['file'] = video['file'].replace('adc.mp4', '.mp4')
+            if "http" not in video['file'] and ".mp4" not in video['file'] and "uggcf://" not in video['file']:
+                video['file'] = decrypt_file(compat_urllib_parse_unquote(video['file']))
+                if not video['file'].startswith("http"):
+                    video['file'] = "https://" + video['file'] + ".mp4"
+            elif video['file'].startswith('uggc'):
+                video['file'] = codecs.decode(video['file'], 'rot_13')
+                if video['file'].endswith('adc.mp4'):
+                    video['file'] = video['file'].replace('adc.mp4', '.mp4')
             f = {
                 'url': video['file'],
             }
