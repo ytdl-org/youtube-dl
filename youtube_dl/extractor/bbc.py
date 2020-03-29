@@ -755,7 +755,7 @@ class BBCIE(BBCCoUkIE):
         },
         'skip': 'Georestricted to UK',
     }, {
-        # single video with playlist.sxml URL in playlist param
+        # single video with "pid" paramter
         'url': 'http://www.bbc.com/sport/0/football/33653409',
         'info_dict': {
             'id': 'p02xycnp',
@@ -794,10 +794,11 @@ class BBCIE(BBCCoUkIE):
         'url': 'http://www.bbc.co.uk/news/science-environment-33661876',
         'only_matching': True,
     }, {
-        # single video article embedded with data-media-vpid
+        # single video article embedded with Morph "vpid" parameter
         'url': 'http://www.bbc.co.uk/sport/rowing/35908187',
         'only_matching': True,
     }, {
+        # single video with "vpid" parameter
         'url': 'https://www.bbc.co.uk/bbcthree/clip/73d0bbd0-abc3-4cea-b3c0-cdae21905eb1',
         'info_dict': {
             'id': 'p06556y7',
@@ -810,6 +811,7 @@ class BBCIE(BBCCoUkIE):
         }
     }, {
         # window.__PRELOADED_STATE__
+        # 404
         'url': 'https://www.bbc.co.uk/radio/play/b0b9z4yl',
         'info_dict': {
             'id': 'b0b9z4vz',
@@ -820,6 +822,7 @@ class BBCIE(BBCCoUkIE):
             'uploader_id': 'bbc_radio_three',
         },
     }, {
+        # article with embedded video using data-pid parameter
         'url': 'http://www.bbc.co.uk/learningenglish/chinese/features/lingohack/ep-181227',
         'info_dict': {
             'id': 'p06w9tws',
@@ -984,7 +987,6 @@ class BBCIE(BBCCoUkIE):
              r'<param[^>]+name="externalIdentifier"[^>]+value="(%s)"' % self._ID_REGEX,
              r'videoId\s*:\s*["\'](%s)["\']' % self._ID_REGEX,
              r'"vpid":"(%s)"' % self._ID_REGEX,
-             r'"versionPid":"(%s)"' % self._ID_REGEX,
              r'"pid":"(%s)"' % self._ID_REGEX],
             webpage, 'vpid', default=None)
 
@@ -993,7 +995,10 @@ class BBCIE(BBCCoUkIE):
             r'<script[^>]+id="initial-data"[^>]+data-json=\'(.+)\'>',
             webpage, 'initial data', fatal=False, default=None)
         if initial_data:
-            programme_id = self._parse_json(unescapeHTML(initial_data), playlist_id)['initData']['items'][0]['smpData']['items'][0]['versionID']
+            programme_id = self._search_regex(
+                r'"versionID":"(%s)"' % self._ID_REGEX,
+                unescapeHTML(initial_data),
+                'programme id', fatal=False, default=None)
 
         if programme_id:
             formats, subtitles = self._download_media_selector(programme_id)
