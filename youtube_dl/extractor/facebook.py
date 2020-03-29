@@ -518,7 +518,7 @@ class FacebookPluginsVideoIE(InfoExtractor):
 class FacebookUserIE(InfoExtractor):
     _VALID_URL = r'https?://(?:[^/]+\.)?facebook\.com/(?:pg/)?(?P<id>[^/?#&]+)/videos'
     IE_NAME = 'facebook:user'
-    
+
     @classmethod
     def suitable(cls, url):
         return (False
