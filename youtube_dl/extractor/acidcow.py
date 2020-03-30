@@ -34,4 +34,3 @@ class acidcowIE(InfoExtractor):
             'url': download_url,
             'title': title
         }
--

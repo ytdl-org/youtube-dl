@@ -18,6 +18,7 @@ from .acast import (
     ACastIE,
     ACastChannelIE,
 )
+from .acidcow import acidcowIE
 from .adn import ADNIE
 from .adobeconnect import AdobeConnectIE
 from .adobetv import (
@@ -1033,7 +1034,7 @@ from .southpark import (
     SouthParkNlIE
 )
 from .sonuma import sonumaIE
-from .acidcow import acidcowIE
+
 from .spankbang import (
     SpankBangIE,
     SpankBangPlaylistIE,
