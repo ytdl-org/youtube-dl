@@ -122,7 +122,7 @@ class InstagramIE(InfoExtractor):
 
         webpage = self._download_webpage(url, video_id)
 
-        (video_url, description, thumbnail, timestamp, uploader,
+        (media_url, description, thumbnail, timestamp, uploader,
          uploader_id, like_count, comment_count, comments, height,
          width) = [None] * 11
 
@@ -131,16 +131,27 @@ class InstagramIE(InfoExtractor):
                 r'window\._sharedData\s*=\s*({.+?});',
                 webpage, 'shared data', default='{}'),
             video_id, fatal=False)
+
         if shared_data:
             media = try_get(
                 shared_data,
                 (lambda x: x['entry_data']['PostPage'][0]['graphql']['shortcode_media'],
                  lambda x: x['entry_data']['PostPage'][0]['media']),
                 dict)
+
             if media:
-                video_url = media.get('video_url')
-                height = int_or_none(media.get('dimensions', {}).get('height'))
-                width = int_or_none(media.get('dimensions', {}).get('width'))
+                media_url = media.get('video_url')
+
+                if media_url:
+                    height = int_or_none(media.get('dimensions', {}).get('height'))
+                    width = int_or_none(media.get('dimensions', {}).get('width'))
+
+                elif media.get('display_resources'):
+                    display_resource = media['display_resources'][-1]  # choosing highest resolution
+                    media_url = display_resource.get('src')
+                    height = int_or_none(display_resource.get('config_height'))
+                    width = int_or_none(display_resource.get('config_width'))
+
                 description = try_get(
                     media, lambda x: x['edge_media_to_caption']['edges'][0]['node']['text'],
                     compat_str) or media.get('caption')
@@ -164,7 +175,7 @@ class InstagramIE(InfoExtractor):
                     'timestamp': int_or_none(comment.get('created_at')),
                 } for comment in media.get(
                     'comments', {}).get('nodes', []) if comment.get('text')]
-                if not video_url:
+                if not media_url:
                     edges = try_get(
                         media, lambda x: x['edge_sidecar_to_children']['edges'],
                         list) or []
@@ -191,11 +202,11 @@ class InstagramIE(InfoExtractor):
                             'Post by %s' % uploader_id if uploader_id else None,
                             description)
 
-        if not video_url:
-            video_url = self._og_search_video_url(webpage, secure=False)
+        if not media_url:
+            media_url = self._og_search_video_url(webpage, secure=False)
 
         formats = [{
-            'url': video_url,
+            'url': media_url,
             'width': width,
             'height': height,
         }]
