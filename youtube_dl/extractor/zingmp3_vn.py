@@ -1,4 +1,5 @@
 # coding: utf-8
+# Code by hatienl0i261299 - fb.com/100011734236090 - hatienloi261299@gmail.com
 from __future__ import unicode_literals
 
 import datetime
@@ -10,7 +11,8 @@ import time
 from .common import InfoExtractor
 from ..compat import (
     compat_urllib_parse_urlencode,
-    compat_urllib_parse
+    compat_urllib_parse,
+    compat_str
 )
 from ..utils import (
     url_or_none,
@@ -22,10 +24,10 @@ from ..utils import (
 
 class Zingmp3_vnIE(InfoExtractor):
     _VALID_URL = r'''(?x)^
-        ((http[s]?|fpt):)\/?\/(www\.|m\.|)
+        ((?:http[s]?|fpt):)\/?\/(?:www\.|m\.|)
         (?P<site>
             (zingmp3\.vn)
-        )\/(?P<type>bai-hat|video-clip|embed)\/(?P<slug>.*?)\/(?P<id>.*?)\W
+        )\/(?P<type>(?:bai-hat|video-clip|embed))\/(?P<slug>.*?)\/(?P<id>.*?)\W
         '''
     IE_NAME = 'zingmp3_vn'
     IE_DESC = 'zingmp3.vn'
@@ -36,7 +38,7 @@ class Zingmp3_vnIE(InfoExtractor):
             'ext': 'mp3',
             'title': 'Khóc Cùng Em',
             'thumbnail': r're:^https?://.*\.jpg$',
-            'description': str,
+            'description': compat_str,
             'like_count': int,
             'comment_count': int,
             'view_count': int,
@@ -49,7 +51,7 @@ class Zingmp3_vnIE(InfoExtractor):
             'ext': 'mp4',
             'title': "Em Gì Ơi",
             'thumbnail': r're:^https?://.*\.jpg$',
-            'description': str,
+            'description': compat_str,
             'like_count': int,
             'comment_count': int,
             'view_count': int,
@@ -61,7 +63,7 @@ class Zingmp3_vnIE(InfoExtractor):
             'ext': 'mp4',
             'title': 'Simple Love',
             'thumbnail': r're:^https?://.*\.jpg$',
-            'description': str,
+            'description': compat_str,
             'like_count': int,
             'comment_count': int,
             'view_count': int
@@ -73,7 +75,7 @@ class Zingmp3_vnIE(InfoExtractor):
             'ext': 'mp3',
             'title': "Marry You",
             'thumbnail': r're:^https?://.*\.jpg$',
-            'description': str,
+            'description': compat_str,
             'like_count': int,
             'comment_count': int,
             'view_count': int,
@@ -85,7 +87,7 @@ class Zingmp3_vnIE(InfoExtractor):
             'ext': 'mp3',
             'title': "Đáp Án Của Bạn / 你的答案",
             'thumbnail': r're:^https?://.*\.jpg$',
-            'description': str,
+            'description': compat_str,
             'like_count': int,
             'comment_count': int,
             'view_count': int,
@@ -152,7 +154,7 @@ class Zingmp3_vnIE(InfoExtractor):
             :param data:
             :return: str
             """
-            lyric = data.get('lyric') or try_get(data, lambda x: x['lyrics'][0]['content'])
+            lyric = data.get('lyric') or try_get(data, lambda x: x['lyrics'][0]['content'], compat_str)
             if url_or_none(lyric):
                 lyric = self._download_webpage(url_or_request=lyric, video_id=video_id)
             if lyric:
@@ -212,7 +214,7 @@ class Zingmp3_vnIE(InfoExtractor):
                                         'protocol': protocol,
                                         'height': int_or_none(quality) or int_or_none(quality[:-1])
                                     })
-                    formats = sorted(formats, key=lambda x: x['height'])
+                    formats = sorted(formats, key=lambda x: x['height'] if x.get("height") else -1)
                 else:
                     if streaming.get('msg') != "Success":
                         self.to_screen(
@@ -278,7 +280,7 @@ class Zingmp3_vnIE(InfoExtractor):
         SECRET_KEY = b'10a01dcf33762d3a204cb96429918ff6'
         if not name_api:
             return
-        _time = str(int(datetime.datetime.now().timestamp()))
+        _time = compat_str(int(datetime.datetime.now().timestamp()))
 
         def get_hash256(string):
             return hashlib.sha256(string.encode('utf-8')).hexdigest()
@@ -332,7 +334,7 @@ class Zingmp3_vnIE(InfoExtractor):
 
         def get_api_info_alias(alias):
             url = r"https://zingmp3.vn/api%s?alias=%s&" % (name_api, alias)
-            sha256 = get_hash256(r"ctime=%s" % (_time))
+            sha256 = get_hash256(r"ctime=%s" % _time)
 
             data = {
                 'ctime': _time,
@@ -358,10 +360,10 @@ class Zingmp3_vnPlaylistIE(Zingmp3_vnIE):
     IE_NAME = "zingmp3_vn:playlist"
 
     _VALID_URL = r'''(?x)^
-    ((http[s]?|fpt):)\/?\/(www\.|m\.|)
+    ((?:http[s]?|fpt):)\/?\/(?:www\.|m\.|)
         (?P<site>
             (zingmp3\.vn)
-        )\/(?P<type>album|playlist|chu-de)\/(?P<slug>.*?)\/(?P<playlist_id>.*?)\W
+        )\/(?P<type>(?:album|playlist|chu-de))\/(?P<slug>.*?)\/(?P<playlist_id>.*?)\W
         '''
 
     _TESTS = [
@@ -426,8 +428,7 @@ class Zingmp3_vnPlaylistIE(Zingmp3_vnIE):
             return self.playlist_result(
                 entries=self._entries_for_chu_de(id_chu_de=playlist_id),
                 playlist_id=playlist_id,
-                playlist_title=slug
-            )
+                playlist_title=slug)
         return self._extract_playlist(id_playlist=playlist_id)
 
     def _entries_for_chu_de(self, id_chu_de):
@@ -436,38 +437,42 @@ class Zingmp3_vnPlaylistIE(Zingmp3_vnIE):
         info = self._download_json(url_or_request=api, video_id=id_chu_de)
         if info.get('msg') != "Success":
             return
-        items = try_get(info, lambda x: x['data']['playlist']['items'])
+        items = try_get(info, lambda x: x['data']['playlist']['items'], list) or []
         for item in items:
+            if not item:
+                continue
             url = compat_urllib_parse.urljoin(self._default_host, item.get('link'))
             media_id = item.get('id')
             if 'album' in url or 'playlist' in url:
                 name_api = '/playlist/get-playlist-detail'
                 api = self.get_api_with_signature(name_api=name_api, video_id=media_id)
                 info_playlist = self._download_json(url_or_request=api, video_id=media_id)
-                items_playlist = try_get(info_playlist, lambda x: x['data']['song']['items'])
+                items_playlist = try_get(info_playlist, lambda x: x['data']['song']['items'], list) or []
                 for item_pl in items_playlist:
+                    if not item_pl:
+                        continue
                     url = compat_urllib_parse.urljoin(self._default_host, item_pl.get('link'))
                     video_id = item_pl.get('id')
                     yield self.url_result(
                         url=url,
                         ie=Zingmp3_vnIE.ie_key(),
-                        video_id=video_id
-                    )
+                        video_id=video_id)
 
     def _extract_playlist(self, id_playlist):
         api = self.get_api_with_signature(name_api=self.name_api_album_or_playlist, video_id=id_playlist)
         info = self._download_json(url_or_request=api, video_id=id_playlist)
-        title_playlist = try_get(info, lambda x: x['data']['title'])
-        items = try_get(info, lambda x: x['data']['song']['items'])
+        title_playlist = try_get(info, lambda x: x['data']['title'], compat_str) or ''
+        items = try_get(info, lambda x: x['data']['song']['items'], list) or []
         entries = []
         for item in items:
+            if not item:
+                continue
             url = compat_urllib_parse.urljoin(self._default_host, item.get('link'))
             video_id = item.get('id')
             entry = self.url_result(
                 url=url,
                 ie=Zingmp3_vnIE.ie_key(),
-                video_id=video_id
-            )
+                video_id=video_id)
             entries.append(entry)
 
         return {
@@ -482,10 +487,10 @@ class Zingmp3_vnChartIE(Zingmp3_vnIE):
     IE_NAME = "zingmp3_vn:#zingchart"
 
     _VALID_URL = r'''(?x)^
-            ((http[s]?|fpt):)\/?\/(www\.|m\.|)
+            ((?:http[s]?|fpt):)\/?\/(?:www\.|m\.|)
             (?P<site>
                 (zingmp3\.vn)
-            )\/(?P<name>zing-chart-tuan|zing-chart|top-new-release)\/
+            )\/(?P<name>(?:zing-chart-tuan|zing-chart|top-new-release))\/
             (?P<slug_name>.*?)(\.|\/)(?P<id_name>.*?\.)?
             '''
     _TESTS = [
@@ -548,34 +553,32 @@ class Zingmp3_vnChartIE(Zingmp3_vnIE):
         if name == 'zing-chart':
             api = self.get_api_with_signature(
                 name_api=self.list_name_api.get(name).get('name'),
-                _type=self.list_name_api.get(name).get(slug_name)
-            )
+                _type=self.list_name_api.get(name).get(slug_name))
         elif name == 'zing-chart-tuan':
             api = self.get_api_with_signature(
                 name_api=self.list_name_api.get(name).get('name'),
-                video_id=mobj.group('id_name')
-            )
+                video_id=mobj.group('id_name'))
         else:
             api = self.get_api_with_signature(
                 name_api=self.list_name_api.get(name).get('name'),
-                new_release=True
-            )
+                new_release=True)
         count = 0
         info = None
         while count != 3:
             webpage = self._download_webpage(url_or_request=api, video_id=name)
             if webpage:
-                info = self._parse_json(webpage, name, transform_source=js_to_json)
+                info = self._parse_json(webpage, name, transform_source=js_to_json, fatal=False)
                 break
             count += 1
         if info:
             return self.playlist_result(
-                entries=self._entries(try_get(info, lambda x: x['data']['items'])),
-                playlist_title=r"%s-%s" % (name, slug_name)
-            )
+                entries=self._entries(try_get(info, lambda x: x['data']['items'], list)),
+                playlist_title=r"%s-%s" % (name, slug_name))
 
     def _entries(self, items):
         for item in items:
+            if not item:
+                continue
             url = compat_urllib_parse.urljoin(self._default_host, item.get('link'))
             video_id = item.get('id')
             yield self.url_result(url, ie=Zingmp3_vnIE.ie_key(), video_id=video_id)
@@ -583,12 +586,12 @@ class Zingmp3_vnChartIE(Zingmp3_vnIE):
 
 class Zingmp3_vnUserIE(Zingmp3_vnIE):
     _VALID_URL = r'''(?x)^
-        ((http[s]?|fpt):)\/?\/(www\.|m\.|)
+        ((?:http[s]?|fpt):)\/?\/(?:www\.|m\.|)
         (?P<site>
             (zingmp3\.vn)
-        )\/(?P<nghe_si>nghe-si\/|)(?P<name>.*?)
+        )\/(?P<nghe_si>(?:nghe-si\/|))(?P<name>.*?)
         (?:$|\/)
-        (?P<slug_name>bai-hat|album|video|playlist)$
+        (?P<slug_name>(?:bai-hat|album|video|playlist))$
             '''
     IE_NAME = "zingmp3_vn:user"
     _TESTS = [
@@ -665,20 +668,19 @@ class Zingmp3_vnUserIE(Zingmp3_vnIE):
                                         \s+data-id=\"(?P<id_artist>.*?)\"
                                         \s+data-type=\"(?P<data_type>.*?)\"
                                         \s+data-name=\"(?P<data_name>.*?)\".*?\>
-                                        ''', webpage, "artist id", group="id_artist")
+                                        ''', webpage, "artist id", group="id_artist", default=None, fatal=False)
         else:
             api = self.get_api_with_signature(name_api="/oa/get-artist-info", alias=name)
             info = self._download_json(url_or_request=api, video_id=name)
             if info.get('msg') == 'Success':
-                self.id_artist = try_get(info, lambda x: x['data']['artist_id'])
+                self.id_artist = try_get(info, lambda x: x['data']['artist_id'], compat_str) or None
 
         if self.id_artist:
             self.api = self.get_api_with_signature(name_api=name_api, video_id=self.id_artist)
             return self.playlist_result(
                 entries=self._entries(),
                 playlist_id=self.id_artist,
-                playlist_title=r"%s-%s" % (name, slug_name)
-            )
+                playlist_title=r"%s-%s" % (name, slug_name))
         elif name == 'chu-de':
             self.IE_NAME = "zingmp3_vn:chu-de"
             rex = re.match(r"(?P<name_chu_de>.*)\/(?P<id_chu_de>.*?)\.", slug_name)
@@ -688,30 +690,32 @@ class Zingmp3_vnUserIE(Zingmp3_vnIE):
             return self.playlist_result(
                 entries=self._entries_for_chu_de(),
                 playlist_id=self.id_chu_de,
-                playlist_title=name_chu_de,
-            )
+                playlist_title=name_chu_de)
 
     def _entries_for_chu_de(self):
         info = self._download_json(url_or_request=self.api, video_id=self.id_chu_de)
         if info.get('msg') != "Success":
             return
-        items = try_get(info, lambda x: x['data']['playlist']['items'])
+        items = try_get(info, lambda x: x['data']['playlist']['items'], list) or []
         for item in items:
+            if not item:
+                continue
             url = compat_urllib_parse.urljoin(self._default_host, item.get('link'))
             media_id = item.get('id')
             if 'album' in url or 'playlist' in url:
                 name_api = '/playlist/get-playlist-detail'
                 api = self.get_api_with_signature(name_api=name_api, video_id=media_id)
                 info_playlist = self._download_json(url_or_request=api, video_id=media_id)
-                items_playlist = try_get(info_playlist, lambda x: x['data']['song']['items'])
+                items_playlist = try_get(info_playlist, lambda x: x['data']['song']['items'], list) or []
                 for item_pl in items_playlist:
+                    if not item_pl:
+                        continue
                     url = compat_urllib_parse.urljoin(self._default_host, item_pl.get('link'))
                     video_id = item_pl.get('id')
                     yield self.url_result(
                         url=url,
                         ie=Zingmp3_vnIE.ie_key(),
-                        video_id=video_id
-                    )
+                        video_id=video_id)
 
     def _entries(self):
         start = 0
@@ -725,30 +729,32 @@ class Zingmp3_vnUserIE(Zingmp3_vnIE):
             })
             if info.get('msg').lower() != "success":
                 break
-            items = try_get(info, lambda x: x['data']['items'])
+            items = try_get(info, lambda x: x['data']['items'], list) or []
             for item in items:
+                if not item:
+                    continue
                 url = compat_urllib_parse.urljoin(self._default_host, item.get('link'))
                 media_id = item.get('id')
                 if 'album' in url or 'playlist' in url:
                     name_api = '/playlist/get-playlist-detail'
                     api = self.get_api_with_signature(name_api=name_api, video_id=media_id)
                     info_playlist = self._download_json(url_or_request=api, video_id=media_id)
-                    items_playlist = try_get(info_playlist, lambda x: x['data']['song']['items'])
+                    items_playlist = try_get(info_playlist, lambda x: x['data']['song']['items'], list) or []
                     for item_pl in items_playlist:
+                        if not item_pl:
+                            continue
                         url = compat_urllib_parse.urljoin(self._default_host, item_pl.get('link'))
                         video_id = item_pl.get('id')
                         yield self.url_result(
                             url=url,
                             ie=Zingmp3_vnIE.ie_key(),
-                            video_id=video_id
-                        )
+                            video_id=video_id)
                 else:
                     yield self.url_result(
                         url=url,
                         ie=Zingmp3_vnIE.ie_key(),
-                        video_id=media_id
-                    )
-            total = int_or_none(try_get(info, lambda x: x['data']['total']))
+                        video_id=media_id)
+            total = int_or_none(try_get(info, lambda x: x['data']['total'], int)) or -1
             start += count
 
             if total <= start:
