@@ -170,9 +170,9 @@ class LikeeUserIE(LikeeIE):
         info_playlist = self._regex_data(webpage, user)
         uid = try_get(info_playlist, lambda x: x['userinfo']['uid'])
 
-        return self.playlist_result(entries=self._entries(uid,user),playlist_id=uid,playlist_title=user)
+        return self.playlist_result(entries=self._entries(uid, user), playlist_id=uid, playlist_title=user)
 
-    def _entries(self,uid,user):
+    def _entries(self, uid, user):
         count = 50
         lastPostId = ""
         while True:
@@ -194,7 +194,7 @@ class LikeeUserIE(LikeeIE):
                     continue
                 video_id = video.get("postId")
                 yield self.url_result(
-                    url="https://likee.com/%s/video/%s" % (user,video_id),
+                    url="https://likee.com/%s/video/%s" % (user, video_id),
                     ie=LikeeIE.ie_key(),
                     video_id=video_id
                 )
