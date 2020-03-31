@@ -29,7 +29,7 @@ class SRGSSRIE(InfoExtractor):
     def _get_tokenized_src(self, url, video_id, format_id):
         sp = compat_urllib_parse_urlparse(url).path.split('/')
         token = self._download_json(
-            'http://tp.srgssr.ch/akahd/token?acl=/%s/%s/*' % (sp[1], sp[2]),
+            'https://tp.srgssr.ch/akahd/token?acl=/%s/%s/*' % (sp[1], sp[2]),
             video_id, 'Downloading %s token' % format_id, fatal=False) or {}
         auth_params = token.get('token', {}).get('authparams')
         if auth_params:
@@ -38,7 +38,7 @@ class SRGSSRIE(InfoExtractor):
 
     def get_media_data(self, bu, media_type, media_id):
         media_data = self._download_json(
-            'http://il.srgssr.ch/integrationlayer/1.0/ue/%s/%s/play/%s.json' % (bu, media_type, media_id),
+            'https://il.srgssr.ch/integrationlayer/1.0/ue/%s/%s/play/%s.json' % (bu, media_type, media_id),
             media_id)[media_type.capitalize()]
 
         if media_data.get('block') and media_data['block'] in self._ERRORS:
