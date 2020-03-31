@@ -25,13 +25,13 @@ class acidcowIE(InfoExtractor):
     def _real_extract(self, url):
         video_id = self._match_id(url)
         webpage = self._download_webpage(
-            r'https?://cdn\.acidcow\.com/pics/[0-9]+/video/\S', video_id
+            r'https://cdn\.acidcow\.com/pics/[0-9]+/video/\S', video_id
         )
 
         title = self._html_search_regex(r'<title>(.+?)</title>', webpage, 'title')
         download_url = self._html_search_regex(
 
-            r'<video src="https?://cdn\.acidcow\.com/pics/[0-9]+/video/\S+" .+',
+            r'<video src="https://cdn\.acidcow\.com/pics/[0-9]+/video/\S+" .+',
 
             webpage, "download_url"
         )
