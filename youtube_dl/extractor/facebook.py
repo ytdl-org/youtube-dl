@@ -482,6 +482,9 @@ class FacebookIE(InfoExtractor):
         shares_count = parse_count(self._extract_shares(webpage, tahoe_data))
         comment_count = parse_count(self._extract_comments_count(webpage, tahoe_data))
 
+        uploader_handle = self._search_regex(r'"video_path":"\\\/([^\/]+)\\\/', tahoe_data.primary, 'uploader_handle', fatal=False)
+        if uploader_handle:
+            uploader_handle = uploader_handle.lower()
         info_dict = {
             'id': video_id,
             'title': video_title,
@@ -498,6 +501,7 @@ class FacebookIE(InfoExtractor):
             'subtitles': subtitles,
             'comment_count': comment_count,
             'other_posts_view_count': other_posts_view_count,
+            'uploader_handle': uploader_handle,
             '_internal_data': {
                 'page': webpage,
                 'api_response_list': [tahoe_data.primary, tahoe_data.secondary]
