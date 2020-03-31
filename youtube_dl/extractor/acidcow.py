@@ -34,13 +34,20 @@ class acidcowIE(InfoExtractor):
         )
 
         title = self._html_search_regex(r'<title>(.+?)</title>', webpage, 'title')
+        '''
         download_url = self._html_search_regex(
 
             r'<video src="https://cdn\.acidcow\.com/pics/[0-9]+/video/\S+" .+',
 
             webpage, "download_url"
         )
+        '''
+        download_url = self._html_search_regex(
 
+            r'<https://cdn\.acidcow\.com/pics/[0-9]+/video/\S+',
+
+            webpage, "download_url"
+        )
         return {
             'id': video_id,
             'url': download_url,
