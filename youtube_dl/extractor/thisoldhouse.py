@@ -20,6 +20,20 @@ class ThisOldHouseIE(InfoExtractor):
             'skip_download': True,
         },
     }, {
+        'url': 'https://www.thisoldhouse.com/21083431/seaside-transformation-the-westerly-project',
+        'note': 'test for updated video URL',
+        'info_dict': {
+            'id': '5e2b70e95216cc0001615120',
+            'ext': 'mp4',
+            'title': 'E12 | The Westerly Project | Seaside Transformation',
+            'description': 'Kevin and Tommy take the tour with the homeowners and Jeff. Norm presents his pine coffee table. Jenn gives Tommy the garden tour. Everyone meets at the flagpole to raise the flags.',
+            'timestamp': 1579755600,
+            'upload_date': '20200123',
+        },
+        'params': {
+            'skip_download': True,
+        },
+    }, {
         'url': 'https://www.thisoldhouse.com/watch/arlington-arts-crafts-arts-and-crafts-class-begins',
         'only_matching': True,
     }, {
@@ -38,6 +52,6 @@ class ThisOldHouseIE(InfoExtractor):
         display_id = self._match_id(url)
         webpage = self._download_webpage(url, display_id)
         video_id = self._search_regex(
-            r'<iframe[^>]+src=[\'"](?:https?:)?//thisoldhouse\.chorus\.build/videos/zype/([0-9a-f]{24})',
+            r'<iframe[^>]+src=[\'"](?:https?:)?//(?:www\.|)thisoldhouse(?:\.chorus\.build|\.com)/videos/zype/([0-9a-f]{24})',
             webpage, 'video id')
         return self.url_result(self._ZYPE_TMPL % video_id, 'Zype', video_id)
