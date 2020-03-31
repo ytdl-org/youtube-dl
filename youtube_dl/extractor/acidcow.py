@@ -14,7 +14,9 @@ class acidcowIE(InfoExtractor):
     # # r'https://cdn.acidcow.com/pics/%s/video/(\S+)' % video_id, video_id
     # r'<video src="https://cdn.acidcow.com/pics/([0-9]+/(?P<title>\S+))"/>',
 
-    _VALID_URL = r'https?://acidcow\.com/video/[0-9]+\S+'
+    # _VALID_URL = r'https?://acidcow\.com/video/[0-9]+\S+'
+    _VALID_URL = r'https?://acidcow\.com/video/(?P<id>\d+)-\S+'
+
     _TESTS = {
         # TODO: Implement
 
