@@ -62,8 +62,7 @@ class PornHubBaseIE(InfoExtractor):
                     ' You may want to use --cookies or --netrc.',
                     expected=True)
 
-        cookies = self._get_cookies('https://%s' % host)
-        if all(login_info) and not cookies:
+        if all(login_info):
             self._login(host, login_info)
 
     def _login(self, host, login_info):
