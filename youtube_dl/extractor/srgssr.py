@@ -75,13 +75,13 @@ class SRGSSRIE(InfoExtractor):
                 asset_url = asset['text']
                 quality = asset['@quality']
                 format_id = '%s-%s' % (protocol, quality)
-                if protocol.startswith('HTTP-HDS') or protocol.startswith('HTTP-HLS'):
+                if protocol.startswith('HTTPS-HDS') or protocol.startswith('HTTPS-HLS'):
                     asset_url = self._get_tokenized_src(asset_url, media_id, format_id)
-                    if protocol.startswith('HTTP-HDS'):
+                    if protocol.startswith('HTTPS-HDS'):
                         formats.extend(self._extract_f4m_formats(
                             asset_url + ('?' if '?' not in asset_url else '&') + 'hdcore=3.4.0',
                             media_id, f4m_id=format_id, fatal=False))
-                    elif protocol.startswith('HTTP-HLS'):
+                    elif protocol.startswith('HTTPS-HLS'):
                         formats.extend(self._extract_m3u8_formats(
                             asset_url, media_id, 'mp4', 'm3u8_native',
                             m3u8_id=format_id, fatal=False))
