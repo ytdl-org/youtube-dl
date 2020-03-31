@@ -126,6 +126,9 @@ class InstagramIE(InfoExtractor):
          uploader_id, like_count, comment_count, comments, height,
          width) = [None] * 11
 
+        ext = 'mp4'
+        media_type = 'Video'
+
         shared_data = self._parse_json(
             self._search_regex(
                 r'window\._sharedData\s*=\s*({.+?});',
@@ -148,9 +151,14 @@ class InstagramIE(InfoExtractor):
 
                 elif media.get('display_resources'):
                     display_resource = media['display_resources'][-1]  # choosing highest resolution
+
                     media_url = display_resource.get('src')
                     height = int_or_none(display_resource.get('config_height'))
                     width = int_or_none(display_resource.get('config_width'))
+
+                    if media_url:
+                        ext = media_url.split('?', 1)[0].rsplit('.', 1)[-1]
+                        media_type = 'Image'
 
                 description = try_get(
                     media, lambda x: x['edge_media_to_caption']['edges'][0]['node']['text'],
@@ -228,8 +236,8 @@ class InstagramIE(InfoExtractor):
         return {
             'id': video_id,
             'formats': formats,
-            'ext': 'mp4',
-            'title': 'Video by %s' % uploader_id,
+            'ext': ext,
+            'title': '%s by %s' % (media_type, uploader_id),
             'description': description,
             'thumbnail': thumbnail,
             'timestamp': timestamp,
