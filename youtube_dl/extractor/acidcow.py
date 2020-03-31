@@ -44,7 +44,7 @@ class acidcowIE(InfoExtractor):
         '''
         download_url = self._html_search_regex(
 
-            r'<https://cdn\.acidcow\.com/pics/[0-9]+/video/\S+',
+            r'https://cdn\.acidcow\.com/pics/[0-9]+/video/\S+',
 
             webpage, "download_url"
         )
