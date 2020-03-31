@@ -1508,6 +1508,11 @@ from .axios import (
     AxiosIE
 )
 
+from .likee import (
+    LikeeIE,
+    LikeeUserIE
+)
+
 from .zingmp3_vn import (
     Zingmp3_vnIE,
     Zingmp3_vnPlaylistIE,

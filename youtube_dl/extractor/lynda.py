@@ -219,7 +219,6 @@ class LyndaIE(LyndaBaseIE):
         self._sort_formats(formats)
 
         subtitles = self.extract_subtitles(video_id)
-
         return {
             'id': video_id,
             'title': title,
