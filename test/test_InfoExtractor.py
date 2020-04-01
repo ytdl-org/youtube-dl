@@ -745,7 +745,7 @@ jwplayer("mediaplayer").setup({"abouttext":"Visit Indie DB","aboutlink":"http:\/
                 self.ie._sort_formats(formats)
                 expect_value(self, formats, expected_formats, None)
 
-    def test_parse_mpd_formats(self):
+    def test_parse_mpd_formats_subtitles(self):
         _TEST_CASES = [
             (
                 # https://github.com/ytdl-org/youtube-dl/issues/13919
@@ -829,7 +829,8 @@ jwplayer("mediaplayer").setup({"abouttext":"Visit Indie DB","aboutlink":"http:\/
                     'tbr': 5997.485,
                     'width': 1920,
                     'height': 1080,
-                }]
+                }],
+                {},
             ), (
                 # https://github.com/ytdl-org/youtube-dl/pull/14844
                 'urls_only',
@@ -912,7 +913,8 @@ jwplayer("mediaplayer").setup({"abouttext":"Visit Indie DB","aboutlink":"http:\/
                     'tbr': 4400,
                     'width': 1920,
                     'height': 1080,
-                }]
+                }],
+                {},
             ), (
                 # https://github.com/ytdl-org/youtube-dl/issues/20346
                 # Media considered unfragmented even though it contains
@@ -958,18 +960,116 @@ jwplayer("mediaplayer").setup({"abouttext":"Visit Indie DB","aboutlink":"http:\/
                     'width': 360,
                     'height': 360,
                     'fps': 30,
-                }]
+                }],
+                {},
+            ), (
+                'subtitles',
+                'https://example.com/streams/1/playlist/playlist.mpd',  # mpd_url
+                'https://example.com/streams/1/playlist',  # mpd_base_url
+                [{'acodec': 'mp4a.40.2',
+                  'asr': 48000,
+                  'container': 'm4a_dash',
+                  'ext': 'm4a',
+                  'filesize': None,
+                  'format_id': '131kbps',
+                  'format_note': 'DASH audio',
+                  'fps': None,
+                  'fragment_base_url': 'https://example.com/streams/1/playlist/',
+                  'fragments': [{'path': '../audio/1_stereo_131072/dash/init.mp4'},
+                                {'duration': 3989.0,
+                                 'path': '../audio/1_stereo_131072/dash/segment_0.m4s'},
+                                {'duration': 3989.0,
+                                 'path': '../audio/1_stereo_131072/dash/segment_1.m4s'}],
+                  'height': None,
+                  'language': 'de',
+                  'manifest_url': 'https://example.com/streams/1/playlist/playlist.mpd',
+                  'protocol': 'http_dash_segments',
+                  'tbr': 131.072,
+                  'url': 'https://example.com/streams/1/playlist/playlist.mpd',
+                  'vcodec': 'none',
+                  'width': None},
+                 {'acodec': 'mp4a.40.2',
+                  'asr': 48000,
+                  'container': 'm4a_dash',
+                  'ext': 'm4a',
+                  'filesize': None,
+                  'format_id': '196kbps',
+                  'format_note': 'DASH audio',
+                  'fps': None,
+                  'fragment_base_url': 'https://example.com/streams/1/playlist/',
+                  'fragments': [{'path': '../audio/1_stereo_196608/dash/init.mp4'},
+                                {'duration': 3989.0,
+                                 'path': '../audio/1_stereo_196608/dash/segment_0.m4s'},
+                                {'duration': 3989.0,
+                                 'path': '../audio/1_stereo_196608/dash/segment_1.m4s'}],
+                  'height': None,
+                  'language': 'de',
+                  'manifest_url': 'https://example.com/streams/1/playlist/playlist.mpd',
+                  'protocol': 'http_dash_segments',
+                  'tbr': 196.608,
+                  'url': 'https://example.com/streams/1/playlist/playlist.mpd',
+                  'vcodec': 'none',
+                  'width': None},
+                 {'acodec': 'none',
+                  'asr': None,
+                  'container': 'mp4_dash',
+                  'ext': 'mp4',
+                  'filesize': None,
+                  'format_id': '720p 1712kbps',
+                  'format_note': 'DASH video',
+                  'fps': 25,
+                  'fragment_base_url': 'https://example.com/streams/1/playlist/',
+                  'fragments': [{'path': '../video/720_1712128/dash/init.mp4'},
+                                {'duration': 4000.0,
+                                 'path': '../video/720_1712128/dash/segment_0.m4s'},
+                                {'duration': 4000.0,
+                                 'path': '../video/720_1712128/dash/segment_1.m4s'}],
+                  'height': 720,
+                  'language': None,
+                  'manifest_url': 'https://example.com/streams/1/playlist/playlist.mpd',
+                  'protocol': 'http_dash_segments',
+                  'tbr': 1712.128,
+                  'url': 'https://example.com/streams/1/playlist/playlist.mpd',
+                  'vcodec': 'avc1.42c00d',
+                  'width': 1280},
+                 {'acodec': 'none',
+                  'asr': None,
+                  'container': 'mp4_dash',
+                  'ext': 'mp4',
+                  'filesize': None,
+                  'format_id': '1080p 4669kbps',
+                  'format_note': 'DASH video',
+                  'fps': 25,
+                  'fragment_base_url': 'https://example.com/streams/1/playlist/',
+                  'fragments': [{'path': '../video/1080_4669440/dash/init.mp4'},
+                                {'duration': 4000.0,
+                                 'path': '../video/1080_4669440/dash/segment_0.m4s'},
+                                {'duration': 4000.0,
+                                 'path': '../video/1080_4669440/dash/segment_1.m4s'}],
+                  'height': 1080,
+                  'language': None,
+                  'manifest_url': 'https://example.com/streams/1/playlist/playlist.mpd',
+                  'protocol': 'http_dash_segments',
+                  'tbr': 4669.44,
+                  'url': 'https://example.com/streams/1/playlist/playlist.mpd',
+                  'vcodec': 'avc1.42c00d',
+                  'width': 1920}],
+                {'en': [{'ext': 'vtt',
+                         'url': 'https://example.com/streams/1/subtitles/sub_en.vtt'}],
+                 'fr': [{'ext': 'vtt',
+                         'url': 'https://example.com/streams/1/subtitles/sub_fr.vtt'}]},
             )
         ]
 
-        for mpd_file, mpd_url, mpd_base_url, expected_formats in _TEST_CASES:
+        for mpd_file, mpd_url, mpd_base_url, expected_formats, expected_subtitles in _TEST_CASES:
             with io.open('./test/testdata/mpd/%s.mpd' % mpd_file,
                          mode='r', encoding='utf-8') as f:
-                formats = self.ie._parse_mpd_formats(
+                formats, subtitles = self.ie._parse_mpd_formats_subtitles(
                     compat_etree_fromstring(f.read().encode('utf-8')),
                     mpd_base_url=mpd_base_url, mpd_url=mpd_url)
                 self.ie._sort_formats(formats)
                 expect_value(self, formats, expected_formats, None)
+                expect_value(self, subtitles, expected_subtitles, None)
 
     def test_parse_f4m_formats(self):
         _TEST_CASES = [

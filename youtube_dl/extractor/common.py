@@ -2023,7 +2023,10 @@ class InfoExtractor(object):
             })
         return entries
 
-    def _extract_mpd_formats(self, mpd_url, video_id, mpd_id=None, note=None, errnote=None, fatal=True, formats_dict={}, data=None, headers={}, query={}):
+    def _extract_mpd_formats(self, *args, **kwargs):
+        return self._extract_mpd_formats_subtitles(*args, **kwargs)[0]
+
+    def _extract_mpd_formats_subtitles(self, mpd_url, video_id, mpd_id=None, note=None, errnote=None, fatal=True, formats_dict={}, data=None, headers={}, query={}):
         res = self._download_xml_handle(
             mpd_url, video_id,
             note=note or 'Downloading MPD manifest',
@@ -2036,13 +2039,16 @@ class InfoExtractor(object):
             return []
         mpd_base_url = base_url(urlh.geturl())
 
-        return self._parse_mpd_formats(
+        return self._parse_mpd_formats_subtitles(
             mpd_doc, mpd_id=mpd_id, mpd_base_url=mpd_base_url,
             formats_dict=formats_dict, mpd_url=mpd_url)
 
-    def _parse_mpd_formats(self, mpd_doc, mpd_id=None, mpd_base_url='', formats_dict={}, mpd_url=None):
+    def _parse_mpd_formats(self, *args, **kwargs):
+        return self._parse_mpd_formats_subtitles(*args, **kwargs)[0]
+
+    def _parse_mpd_formats_subtitles(self, mpd_doc, mpd_id=None, mpd_base_url='', formats_dict={}, mpd_url=None):
         """
-        Parse formats from MPD manifest.
+        Parse formats and subtitles from MPD manifest.
         References:
          1. MPEG-DASH Standard, ISO/IEC 23009-1:2014(E),
             http://standards.iso.org/ittf/PubliclyAvailableStandards/c065274_ISO_IEC_23009-1_2014.zip
@@ -2119,6 +2125,7 @@ class InfoExtractor(object):
 
         mpd_duration = parse_duration(mpd_doc.get('mediaPresentationDuration'))
         formats = []
+        subtitles = {}
         for period in mpd_doc.findall(_add_ns('Period')):
             period_duration = parse_duration(period.get('duration')) or mpd_duration
             period_ms_info = extract_multisegment_info(period, {
@@ -2134,26 +2141,27 @@ class InfoExtractor(object):
                         continue
                     representation_attrib = adaptation_set.attrib.copy()
                     representation_attrib.update(representation.attrib)
+
+                    base_url = ''
+                    for element in (representation, adaptation_set, period, mpd_doc):
+                        base_url_e = element.find(_add_ns('BaseURL'))
+                        if base_url_e is not None:
+                            base_url = compat_urlparse.urljoin(base_url_e.text, base_url)
+                            if re.match(r'^https?://', base_url):
+                                break
+                    if mpd_base_url and not re.match(r'^https?://', base_url):
+                        if not mpd_base_url.endswith('/') and not base_url.startswith('/'):
+                            mpd_base_url += '/'
+                        base_url = compat_urlparse.urljoin(mpd_base_url, base_url)
+                    representation_id = representation_attrib.get('id')
+                    lang = representation_attrib.get('lang')
+
                     # According to [1, 5.3.7.2, Table 9, page 41], @mimeType is mandatory
                     mime_type = representation_attrib['mimeType']
                     content_type = mime_type.split('/')[0]
                     if content_type == 'text':
-                        # TODO implement WebVTT downloading
-                        pass
+                        subtitles[lang] = [{'ext': mimetype2ext(mime_type), 'url': base_url}]
                     elif content_type in ('video', 'audio'):
-                        base_url = ''
-                        for element in (representation, adaptation_set, period, mpd_doc):
-                            base_url_e = element.find(_add_ns('BaseURL'))
-                            if base_url_e is not None:
-                                base_url = base_url_e.text + base_url
-                                if re.match(r'^https?://', base_url):
-                                    break
-                        if mpd_base_url and not re.match(r'^https?://', base_url):
-                            if not mpd_base_url.endswith('/') and not base_url.startswith('/'):
-                                mpd_base_url += '/'
-                            base_url = mpd_base_url + base_url
-                        representation_id = representation_attrib.get('id')
-                        lang = representation_attrib.get('lang')
                         url_el = representation.find(_add_ns('BaseURL'))
                         filesize = int_or_none(url_el.attrib.get('{http://youtube.com/yt/2012/10/10}contentLength') if url_el is not None else None)
                         bandwidth = int_or_none(representation_attrib.get('bandwidth'))
@@ -2329,7 +2337,7 @@ class InfoExtractor(object):
                         formats.append(full_info)
                     else:
                         self.report_warning('Unknown MIME type %s in DASH manifest' % mime_type)
-        return formats
+        return formats, subtitles
 
     def _extract_ism_formats(self, ism_url, video_id, ism_id=None, note=None, errnote=None, fatal=True, data=None, headers={}, query={}):
         res = self._download_xml_handle(
