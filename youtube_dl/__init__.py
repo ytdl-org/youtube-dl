@@ -441,7 +441,9 @@ def _real_main(argv=None):
     with YoutubeDL(ydl_opts) as ydl:
         # Update version
         if opts.update_self:
-            update_self(ydl.to_screen, opts.verbose, ydl._opener)
+            retcode = update_self(ydl.to_stderr, ydl.to_screen, opts.verbose, ydl._opener)
+            if retcode is not None:
+                sys.exit(retcode)
 
         # Remove cache dir
         if opts.rm_cachedir:
