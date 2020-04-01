@@ -29,7 +29,7 @@ class SRGSSRIE(InfoExtractor):
     def _get_tokenized_src(self, url, video_id, format_id):
         sp = compat_urllib_parse_urlparse(url).path.split('/')
         token = self._download_json(
-            'http://tp.srgssr.ch/akahd/token?acl=/%s/%s/*' % (sp[1], sp[2]),
+            'https://tp.srgssr.ch/akahd/token?acl=/%s/%s/*' % (sp[1], sp[2]),
             video_id, 'Downloading %s token' % format_id, fatal=False) or {}
         auth_params = token.get('token', {}).get('authparams')
         if auth_params:
@@ -38,12 +38,23 @@ class SRGSSRIE(InfoExtractor):
 
     def get_media_data(self, bu, media_type, media_id):
         media_data = self._download_json(
-            'http://il.srgssr.ch/integrationlayer/1.0/ue/%s/%s/play/%s.json' % (bu, media_type, media_id),
-            media_id)[media_type.capitalize()]
+            'https://il.srgssr.ch/integrationlayer/2.0/mediaComposition/byUrn/urn:%s:%s:%s.json' % (bu, media_type, media_id),
+            media_id)
 
-        if media_data.get('block') and media_data['block'] in self._ERRORS:
-            message = self._ERRORS[media_data['block']]
-            if media_data['block'] == 'GEOBLOCK':
+        # Look for a chapter media_id
+        for chapter in media_data.get('chapterList', []):
+            if chapter['id'] == media_id:
+                media_data['_chapter'] = chapter
+            # Look for a segment media_id
+            for segment in chapter.get('segmentList', []):
+                if segment['id'] == media_id:
+                    media_data['_chapter'] = chapter
+                    media_data['_segment'] = segment
+
+        chapter = media_data.get('_chapter', {})
+        if chapter.get('blockReason') and chapter['blockReason'] in self._ERRORS:
+            message = self._ERRORS[chapter['blockReason']]
+            if chapter['blockReason'] == 'GEOBLOCK':
                 self.raise_geo_restricted(
                     msg=message, countries=self._GEO_COUNTRIES)
             raise ExtractorError(
@@ -56,42 +67,50 @@ class SRGSSRIE(InfoExtractor):
 
         media_data = self.get_media_data(bu, media_type, media_id)
 
-        metadata = media_data['AssetMetadatas']['AssetMetadata'][0]
-        title = metadata['title']
-        description = metadata.get('description')
-        created_date = media_data.get('createdDate') or metadata.get('createdDate')
+        chapter = media_data.get('_chapter', {})
+        if media_data.get('_segment'):
+            metadata = media_data['_segment']
+        else:
+            metadata = chapter
+
+        title = metadata.get('title')
+        description = metadata.get('description', '')
+        created_date = metadata.get('date')
         timestamp = parse_iso8601(created_date)
 
         thumbnails = [{
-            'id': image.get('id'),
-            'url': image['url'],
-        } for image in media_data.get('Image', {}).get('ImageRepresentations', {}).get('ImageRepresentation', [])]
+            'id': chapter.get('id'),
+            'url': chapter['imageUrl'],
+        }]
 
         preference = qualities(['LQ', 'MQ', 'SD', 'HQ', 'HD'])
         formats = []
-        for source in media_data.get('Playlists', {}).get('Playlist', []) + media_data.get('Downloads', {}).get('Download', []):
-            protocol = source.get('@protocol')
-            for asset in source['url']:
-                asset_url = asset['text']
-                quality = asset['@quality']
-                format_id = '%s-%s' % (protocol, quality)
-                if protocol.startswith('HTTP-HDS') or protocol.startswith('HTTP-HLS'):
-                    asset_url = self._get_tokenized_src(asset_url, media_id, format_id)
-                    if protocol.startswith('HTTP-HDS'):
-                        formats.extend(self._extract_f4m_formats(
-                            asset_url + ('?' if '?' not in asset_url else '&') + 'hdcore=3.4.0',
-                            media_id, f4m_id=format_id, fatal=False))
-                    elif protocol.startswith('HTTP-HLS'):
-                        formats.extend(self._extract_m3u8_formats(
-                            asset_url, media_id, 'mp4', 'm3u8_native',
-                            m3u8_id=format_id, fatal=False))
-                else:
-                    formats.append({
-                        'format_id': format_id,
-                        'url': asset_url,
-                        'preference': preference(quality),
-                        'ext': 'flv' if protocol == 'RTMP' else None,
-                    })
+        for resource in chapter.get('resourceList', []):
+            asset_url = resource['url']
+            protocol = resource['protocol']
+            quality = resource['quality']
+            asset_pref = preference(quality) * 2
+            # Prefer HTTPS transport if available in the same quality
+            scheme = compat_urllib_parse_urlparse(asset_url).scheme
+            if scheme == 'https':
+                asset_pref += 1
+            format_id = '%s-%s-%s' % (protocol, quality, scheme.upper())
+            asset_url = self._get_tokenized_src(asset_url, media_id, format_id)
+            if protocol == 'HDS':
+                formats.extend(self._extract_f4m_formats(
+                    asset_url + ('?' if '?' not in asset_url else '&') + 'hdcore=3.4.0',
+                    media_id, f4m_id=format_id, fatal=False, preference=asset_pref))
+            elif protocol == 'HLS':
+                formats.extend(self._extract_m3u8_formats(
+                    asset_url, media_id, 'mp4', 'm3u8_native',
+                    m3u8_id=format_id, fatal=False, preference=asset_pref))
+            else:
+                formats.append({
+                    'format_id': format_id,
+                    'url': asset_url,
+                    'preference': asset_pref,
+                    'ext': 'flv' if protocol == 'RTMP' else None,
+                })
         self._sort_formats(formats)
 
         return {
@@ -118,27 +137,25 @@ class SRGSSRPlayIE(InfoExtractor):
                     '''
 
     _TESTS = [{
-        'url': 'http://www.srf.ch/play/tv/10vor10/video/snowden-beantragt-asyl-in-russland?id=28e1a57d-5b76-4399-8ab3-9097f071e6c5',
-        'md5': 'da6b5b3ac9fa4761a942331cef20fcb3',
+        'url': 'https://www.srf.ch/play/tv/10vor10/video/snowden-beantragt-asyl-in-russland?id=28e1a57d-5b76-4399-8ab3-9097f071e6c5',
+        'md5': '9a3d59e0afb444e8379bd2685923b9f4',
         'info_dict': {
             'id': '28e1a57d-5b76-4399-8ab3-9097f071e6c5',
             'ext': 'mp4',
             'upload_date': '20130701',
             'title': 'Snowden beantragt Asyl in Russland',
-            'timestamp': 1372713995,
+            'timestamp': 1372708215,
         }
     }, {
-        # No Speichern (Save) button
-        'url': 'http://www.srf.ch/play/tv/top-gear/video/jaguar-xk120-shadow-und-tornado-dampflokomotive?id=677f5829-e473-4823-ac83-a1087fe97faa',
-        'md5': '0a274ce38fda48c53c01890651985bc6',
+        'url': 'http://www.srf.ch/play/tv/10vor10/video/snowden-beantragt-asyl-in-russland?id=28e1a57d-5b76-4399-8ab3-9097f071e6c5',
+        'md5': '9a3d59e0afb444e8379bd2685923b9f4',
         'info_dict': {
-            'id': '677f5829-e473-4823-ac83-a1087fe97faa',
-            'ext': 'flv',
-            'upload_date': '20130710',
-            'title': 'Jaguar XK120, Shadow und Tornado-Dampflokomotive',
-            'description': 'md5:88604432b60d5a38787f152dec89cd56',
-            'timestamp': 1373493600,
-        },
+            'id': '28e1a57d-5b76-4399-8ab3-9097f071e6c5',
+            'ext': 'mp4',
+            'upload_date': '20130701',
+            'title': 'Snowden beantragt Asyl in Russland',
+            'timestamp': 1372708215,
+        }
     }, {
         'url': 'http://www.rtr.ch/play/radio/actualitad/audio/saira-tujetsch-tuttina-cuntinuar-cun-sedrun-muster-turissem?id=63cb0778-27f8-49af-9284-8c7a8c6d15fc',
         'info_dict': {
@@ -146,7 +163,7 @@ class SRGSSRPlayIE(InfoExtractor):
             'ext': 'mp3',
             'upload_date': '20151013',
             'title': 'Saira: Tujetsch - tuttina cuntinuar cun Sedrun Mustér Turissem',
-            'timestamp': 1444750398,
+            'timestamp': 1444709160,
         },
         'params': {
             # rtmp download
@@ -159,14 +176,11 @@ class SRGSSRPlayIE(InfoExtractor):
             'id': '6348260',
             'display_id': '6348260',
             'ext': 'mp4',
-            'duration': 1796,
             'title': 'Le 19h30',
             'description': '',
-            'uploader': '19h30',
             'upload_date': '20141201',
             'timestamp': 1417458600,
             'thumbnail': r're:^https?://.*\.image',
-            'view_count': int,
         },
         'params': {
             # m3u8 download
