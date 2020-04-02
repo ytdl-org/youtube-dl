@@ -570,7 +570,7 @@ from .liveleak import (
     LiveLeakIE,
     LiveLeakEmbedIE,
 )
-from .likee import likeeIE
+
 from .livestream import (
     LivestreamIE,
     LivestreamOriginalIE,
