@@ -29,11 +29,11 @@ class UdemyIE(InfoExtractor):
     IE_NAME = 'udemy'
     _VALID_URL = r'''(?x)
                     https?://
-                        (?:[^/]+\.)?udemy\.com/
+                        (?:[^/]+\.)?udemy\.com/course/
                         (?:
                             [^#]+\#/lecture/|
                             lecture/view/?\?lectureId=|
-                            [^/]+/learn/v4/t/lecture/
+                            [^/]+/learn/lecture/
                         )
                         (?P<id>\d+)
                     '''
@@ -421,7 +421,7 @@ class UdemyIE(InfoExtractor):
 
 class UdemyCourseIE(UdemyIE):
     IE_NAME = 'udemy:course'
-    _VALID_URL = r'https?://(?:[^/]+\.)?udemy\.com/(?P<id>[^/?#&]+)'
+    _VALID_URL = r'https?://(?:[^/]+\.)?udemy\.com/course/(?P<id>[^/?#&]+)'
     _TESTS = [{
         'url': 'https://www.udemy.com/java-tutorial/',
         'only_matching': True,
@@ -465,7 +465,7 @@ class UdemyCourseIE(UdemyIE):
                 if lecture_id:
                     entry = {
                         '_type': 'url_transparent',
-                        'url': 'https://www.udemy.com/%s/learn/v4/t/lecture/%s' % (course_path, entry['id']),
+                        'url': 'https://www.udemy.com/course/%s/learn/lecture/%s' % (course_path, entry['id']),
                         'title': entry.get('title'),
                         'ie_key': UdemyIE.ie_key(),
                     }
