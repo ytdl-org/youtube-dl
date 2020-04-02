@@ -175,7 +175,7 @@ fragment VideoComment on Comment {
 
         if is_live:
             formats = []
-            formats.append(self._extract_m3u8_formats(video_info.get('streamUrl'), video_id, entry_protocol='hls', live=True))
+            formats.extend(self._extract_m3u8_formats(video_info.get('streamUrl'), video_id, 'mp4', entry_protocol='m3u8_native', m3u8_id='hls', live=True))
             metadata['formats'] = formats
         else:
             metadata['url'] = video_info.get('directUrl')
