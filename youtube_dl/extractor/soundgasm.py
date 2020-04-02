@@ -81,13 +81,12 @@ class SoundgasmProfileIE(InfoExtractor):
             'id': 'ytdl',
         },
         'playlist_count': 1
-    },
-        {
-            'url': 'http://web.archive.org/web/20181218222843/https://soundgasm.net/u/ytdl',
-            'info_dict': {
-                'id': 'ytdl'
-            },
-            'playlist_count': 1
+    }, {
+        'url': 'http://web.archive.org/web/20181218222843/https://soundgasm.net/u/ytdl',
+        'info_dict': {
+            'id': 'ytdl'
+        },
+        'playlist_count': 1
     }]
 
     def _real_extract(self, url):
