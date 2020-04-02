@@ -1033,7 +1033,6 @@ from .southpark import (
     SouthParkEsIE,
     SouthParkNlIE
 )
-from .sonuma import sonumaIE
 
 from .spankbang import (
     SpankBangIE,
