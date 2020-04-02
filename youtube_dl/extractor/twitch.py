@@ -180,6 +180,8 @@ class TwitchItemBaseIE(TwitchBaseIE):
 
     def _extract_info(self, info):
         status = info.get('status')
+        # avoid filesystem's 255 bytes limit on filelength
+        title = info.get('title', '').encode()[:210].decode(errors='ignore')
         if status == 'recording':
             is_live = True
         elif status == 'recorded':
@@ -188,7 +190,7 @@ class TwitchItemBaseIE(TwitchBaseIE):
             is_live = None
         return {
             'id': info['_id'],
-            'title': info.get('title') or 'Untitled Broadcast',
+            'title': title or 'Untitled Broadcast',
             'description': info.get('description'),
             'duration': int_or_none(info.get('length')),
             'thumbnail': info.get('preview'),
