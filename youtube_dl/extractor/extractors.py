@@ -1347,6 +1347,7 @@ from .vlive import (
     VLiveChannelIE,
     VLivePlaylistIE
 )
+from .vlare import vlareIE
 from .vodlocker import VodlockerIE
 from .vodpl import VODPlIE
 from .vodplatform import VODPlatformIE
