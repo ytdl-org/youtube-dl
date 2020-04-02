@@ -42,6 +42,16 @@ class UdemyIE(InfoExtractor):
     _NETRC_MACHINE = 'udemy'
 
     _TESTS = [{
+        'url': 'https://www.udemy.com/course/create-a-members-only-blog-using-php-mysql-ajax/learn/lecture/15352006',
+        'note': 'test for updated URL',
+        'info_dict': {
+            'id': '18827058',
+            'ext': 'mp4',
+            'title': 'Introduction & Overview',
+            'duration': 407.37,
+        },
+        'skip': 'Requires udemy account credentials',
+    },{
         'url': 'https://www.udemy.com/java-tutorial/#/lecture/172757',
         'md5': '98eda5b657e752cf945d8445e261b5c5',
         'info_dict': {
