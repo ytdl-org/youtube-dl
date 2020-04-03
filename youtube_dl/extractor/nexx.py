@@ -250,27 +250,21 @@ class NexxIE(InfoExtractor):
         # the simple token value is no longer used, instead use tokenDASH and/or tokenHLS
         protection_token_DASH = try_get(
             video, lambda x: x['protectiondata']['tokenDASH'], compat_str)
-        if protection_token_DASH:
-            azure_manifest_url_DASH = azure_manifest_url + '?hdnts=%s' % protection_token_DASH
-        else:
-            azure_manifest_url_DASH = azure_manifest_url
-
         protection_token_HLS = try_get(
             video, lambda x: x['protectiondata']['tokenHLS'], compat_str)
-        if protection_token_HLS:
-            azure_manifest_url_HLS = azure_manifest_url + '?hdnts=%s' % protection_token_HLS
-        else:
-            azure_manifest_url_HLS = azure_manifest_url
+
+        azure_manifest_url_DASH = azure_manifest_url + '?hdnts=%s' % protection_token_DASH
+        azure_manifest_url_HLS = azure_manifest_url + '?hdnts=%s' % protection_token_HLS
 
         formats = self._extract_m3u8_formats(
-            azure_manifest_url_HLS % '(format=m3u8-aapl)',
+            (azure_manifest_url_HLS if protection_token_HLS else azure_manifest_url) % '(format=m3u8-aapl)',
             video_id, 'mp4', 'm3u8_native',
             m3u8_id='%s-hls' % cdn, fatal=False)
         formats.extend(self._extract_mpd_formats(
-            azure_manifest_url_DASH % '(format=mpd-time-csf)',
+            (azure_manifest_url_DASH if protection_token_DASH else azure_manifest_url) % '(format=mpd-time-csf)',
             video_id, mpd_id='%s-dash' % cdn, fatal=False))
         formats.extend(self._extract_ism_formats(
-            azure_manifest_url_DASH % '', video_id, ism_id='%s-mss' % cdn, fatal=False))
+            (azure_manifest_url_DASH if protection_token_DASH else azure_manifest_url) % '', video_id, ism_id='%s-mss' % cdn, fatal=False))
 
         azure_progressive_base = get_cdn_shield_base('Prog', True)
         azure_file_distribution = stream_data.get('azureFileDistribution')
