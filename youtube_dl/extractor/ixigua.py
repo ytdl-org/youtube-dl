@@ -5,9 +5,9 @@ from .common import InfoExtractor
 
 
 
-class SonumaIE(InfoExtractor):
+class IxiguaIE(InfoExtractor):
 
-    _VALID_URL = r'https://www\.sonuma\.be/archive/\S+'
+    _VALID_URL = r'https://www.ixigua.com/(?P<id>\d+)/'
 
     def _real_extract(self, url):
         video_id = self._match_id(url)

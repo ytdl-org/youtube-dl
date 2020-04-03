@@ -489,6 +489,8 @@ from .ivi import (
 )
 from .ivideon import IvideonIE
 from .iwara import IwaraIE
+
+from .ixigua import IxiguaIE
 from .izlesene import IzleseneIE
 from .jamendo import (
     JamendoIE,
