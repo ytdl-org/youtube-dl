@@ -1,7 +1,10 @@
 # coding: utf-8
 from __future__ import unicode_literals
 
+import random
 import re
+import sys
+import string
 
 from .common import InfoExtractor
 from ..compat import (
@@ -400,6 +403,7 @@ class TwitterIE(TwitterBaseIE):
         uploader = user.get('name')
         if uploader:
             title = '%s - %s' % (uploader, title)
+        title = universal_filename(title)
         uploader_id = user.get('screen_name')
 
         tags = []
@@ -596,3 +600,75 @@ class TwitterBroadcastIE(TwitterBaseIE, PeriscopeBaseIE):
         info['formats'] = self._extract_pscp_m3u8_formats(
             m3u8_url, broadcast_id, m3u8_id, state, width, height)
         return info
+
+max_len = 140
+
+def universal_filename(sutf8):
+    """People have been having problems since Twitter increased Tweet length
+    from 140 to 280 chars because video filenames are derived from the tweet
+    text that contains emojis and many hashtags. Some file names are then too  
+    long. This function is designed to be added to twitter.py in the youtube-dl 
+    extractor directory and run on titles so they are a valid filename or an
+    empty string. 
+    - Convert string to Ascii/UTF-8 (all chars in range 32 - 127)
+    - Remove control chars, illegal chars and reserved names
+    - Make sure string doesn't exceed max_len
+    - return a valid filename in ascii range since youtube-dl was started on 
+      python2 and has some utf-8 weirdness
+    """
+
+    def make_filename():
+        letters = string.ascii_lowercase
+        return ''.join(random.choice(letters) for i in range(64))
+
+    def check_name(udata):
+        if len(udata) == 0:
+            make_filename()
+        return udata
+    
+    # make sure input is a string and not 0 length
+    if sys.version_info[0] >= 3:
+        if type(sutf8) != str:
+            return make_filename()
+    else:
+        if type(sutf8) != unicode:
+            return make_filename()
+    if len(sutf8) == 0:
+        return make_filename()
+
+    # encode copies every char that is ascii in range 0-127
+    # and 'ignore' says throw away the rest, but ignore doesn't 
+    # always work on python2.7, so use a try block
+    # encode returns bytes, so turn it back into a string safely
+    # because it is all ascii which maps directly to utf-8 codecs.decode('ascii', 'ignore')
+    try:
+        udata = sutf8.encode("ascii","ignore")
+        udata = udata.decode('utf-8')
+    except:
+        print("exception")
+        return check_name("")
+    if len(udata) == 0:
+        return make_filename()
+
+    # cntl chars, get ride of multiline
+    udata = re.sub(r'[\x00-\x1F]*', '', udata)
+
+    # illegal chars, leading and trailing spaces or dots
+    udata = re.sub(r'^[\s.]*|[\s.]*$', '', udata)
+    udata = re.sub(r'[/<>:"|\\?*]*', '', udata)
+    udata = re.sub(r'\s{2,}', ' ', udata)
+
+    pattern = re.compile(r'(?P<reserved>^COM[0-9]|LPT[0-9]|CLOCK\$|CON|PRN|AUX|NUL)(?P<more>.*)')
+    m = pattern.match(udata)
+    if m is not None:
+        if not m.group('more'):
+            return make_filename()
+    
+    # make sure it is not too long or 0 (return made up valid filename if so)
+    length = len(udata)
+    if length > max_len:
+        udata = udata[0:max_len]
+    elif length == 0:
+        return make_filename()
+    
+    return udata
