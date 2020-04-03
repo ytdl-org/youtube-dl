@@ -39,11 +39,12 @@ class ZDFBaseIE(InfoExtractor):
             video_id)
 
     def _extract_episode_info(self, webpage):
-        season_number = self._search_regex(r"Staffel\ ([0-9]+)", webpage, "season", fatal=False)
-        episode_number = self._search_regex(r"Folge\ ([0-9]+)", webpage, "episode", fatal=False)
-        json_ld = json.loads(self._search_regex(JSON_LD_RE, webpage, 'JSON-LD', group='json_ld', fatal=False))
+        season_number = self._search_regex(r"Staffel\ ([0-9]+)", webpage, "season", fatal=False, default=None)
+        episode_number = self._search_regex(r"Folge\ ([0-9]+)", webpage, "episode", fatal=False, default=None)
+        json_ld = json.loads(self._search_regex(
+            JSON_LD_RE, webpage, 'JSON-LD', group='json_ld', fatal=False, default='{}'))
         episode = json_ld.get("name")
-        series = json_ld.get("publisher", {}).get("name")
+        series = try_get(json_ld, lambda x: x['publisher']['name'], str)
         return dict(
             season_number=int_or_none(season_number),
             episode_number=int_or_none(episode_number),
@@ -68,6 +69,20 @@ class ZDFIE(ZDFBaseIE):
             'timestamp': 1465021200,
             'upload_date': '20160604',
         },
+    }, {
+        'url': 'https://www.zdf.de/serien/bad-banks/schoene-neue-welt-138.html',
+        'info_dict': {
+            'id': 'schoene-neue-welt-138',
+            'ext': 'flv',
+            'description': 'md5:660826414ae02d93374783958250046d',
+            'title': 'Schöne neue Welt',
+            'timestamp': 1581194700,
+            'upload_date': '20200208',
+            'season_number': 2,
+            'episode_number': 1,
+            'episode': 'Schöne neue Welt',
+            'series': 'Bad Banks'
+        }
     }, {
         'url': 'https://www.zdf.de/service-und-hilfe/die-neue-zdf-mediathek/zdfmediathek-trailer-100.html',
         'only_matching': True,
