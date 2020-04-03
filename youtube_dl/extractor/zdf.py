@@ -1,6 +1,7 @@
 # coding: utf-8
 from __future__ import unicode_literals
 
+import json
 import re
 
 from .common import InfoExtractor
@@ -17,7 +18,7 @@ from ..utils import (
     update_url_query,
     url_or_none,
     urljoin,
-)
+    JSON_LD_RE)
 
 
 class ZDFBaseIE(InfoExtractor):
@@ -36,6 +37,19 @@ class ZDFBaseIE(InfoExtractor):
                 'player JSON', default='{}' if not fatal else NO_DEFAULT,
                 group='json'),
             video_id)
+
+    def _extract_episode_info(self, webpage):
+        season_number = self._search_regex(r"Staffel\ ([0-9]+)", webpage, "season", fatal=False)
+        episode_number = self._search_regex(r"Folge\ ([0-9]+)", webpage, "episode", fatal=False)
+        json_ld = json.loads(self._search_regex(JSON_LD_RE, webpage, 'JSON-LD', group='json_ld', fatal=False))
+        episode = json_ld.get("name")
+        series = json_ld.get("publisher", {}).get("name")
+        return dict(
+            season_number=int_or_none(season_number),
+            episode_number=int_or_none(episode_number),
+            episode=episode.strip(),
+            series=series.strip()
+        )
 
 
 class ZDFIE(ZDFBaseIE):
@@ -231,7 +245,10 @@ class ZDFIE(ZDFBaseIE):
         if webpage:
             player = self._extract_player(webpage, url, fatal=False)
             if player:
-                return self._extract_regular(url, player, video_id)
+                extracted = self._extract_regular(url, player, video_id)
+                episode_info = self._extract_episode_info(webpage)
+                extracted.update(episode_info)
+                return extracted
 
         return self._extract_mobile(video_id)
 
