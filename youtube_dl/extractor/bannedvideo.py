@@ -1,9 +1,17 @@
 from __future__ import unicode_literals
 
 import json
-from datetime import datetime
 
 from .common import InfoExtractor
+
+from ..utils import (
+    try_get,
+    int_or_none,
+    url_or_none,
+    float_or_none,
+    unified_timestamp,
+    unified_strdate,
+)
 
 
 class BannedVideoIE(InfoExtractor):
@@ -122,48 +130,50 @@ fragment VideoComment on Comment {
             'thumbnail': r're:^https?://(?:www\.)?assets\.infowarsmedia.com/images/',
             'description': 'The Chinese Communist Party Official Spokesperson At the Ministry of Truth Released Their Statement Exclusively To Alex Jones and Infowars.com',
             'upload_date': '20200324',
-            'timestamp': 1585084295.064,
+            'timestamp': 1585087895,
         }
     }
 
     def _real_extract(self, url):
         video_id = self._match_id(url)
-        video_info = self._download_json(
-            self._GRAPHQL_API,
-            video_id,
-            headers=self._GRAPHQL_HEADERS,
-            data=json.dumps({
-                'variables': {
-                    'id': video_id
-                },
-                'operationName': 'GetVideo',
-                'query': self._GRAPHQL_GETVIDEO_QUERY
-            }).encode('utf8'),
-        ).get('data').get('getVideo')
-        video_comments = self._download_json(
-            self._GRAPHQL_API,
-            video_id,
-            headers=self._GRAPHQL_HEADERS,
-            data=json.dumps({
-                'variables': {
-                    'id': video_id
-                },
-                'operationName': 'GetVideoComments',
-                'query': self._GRAPHQL_GETCOMMENTS_QUERY
-            }).encode('utf8'),
-        ).get('data').get('getVideoComments')
-        upload_date = datetime.fromisoformat(video_info.get('createdAt')[:-1])
+        video_info = try_get(
+            self._download_json(
+                self._GRAPHQL_API,
+                video_id,
+                headers=self._GRAPHQL_HEADERS,
+                data=json.dumps({
+                    'variables': {
+                        'id': video_id
+                    },
+                    'operationName': 'GetVideo',
+                    'query': self._GRAPHQL_GETVIDEO_QUERY
+                }).encode('utf8')),
+            lambda x: x['data']['getVideo'])
+        video_comments = try_get(
+            self._download_json(
+                self._GRAPHQL_API,
+                video_id,
+                headers=self._GRAPHQL_HEADERS,
+                data=json.dumps({
+                    'variables': {
+                        'id': video_id
+                    },
+                    'operationName': 'GetVideoComments',
+                    'query': self._GRAPHQL_GETCOMMENTS_QUERY
+                }).encode('utf8')),
+            lambda x: x['data']['getVideoComments'])
+        upload_date = video_info.get('createdAt')
         metadata = {}
         metadata['id'] = video_id
         metadata['title'] = video_info.get('title')[:-1]
         metadata['description'] = video_info.get('summary')
         metadata['channel'] = video_info.get('channel').get('title')
         metadata['channel_id'] = video_info.get('channel').get('_id')
-        metadata['view_count'] = video_info.get('playCount')
-        metadata['thumbnail'] = video_info.get('largeImage')
-        metadata['duration'] = video_info.get('videoDuration')
-        metadata['upload_date'] = upload_date.strftime('%Y%m%d')
-        metadata['timestamp'] = upload_date.timestamp()
+        metadata['view_count'] = int_or_none(video_info.get('playCount'))
+        metadata['thumbnail'] = url_or_none(video_info.get('largeImage'))
+        metadata['duration'] = float_or_none(video_info.get('videoDuration'), scale=1000)
+        metadata['upload_date'] = unified_strdate(upload_date)
+        metadata['timestamp'] = unified_timestamp(upload_date)
         tags = []
 
         for tag in video_info.get('tags'):
@@ -175,7 +185,13 @@ fragment VideoComment on Comment {
 
         if is_live:
             formats = []
-            formats.extend(self._extract_m3u8_formats(video_info.get('streamUrl'), video_id, 'mp4', entry_protocol='m3u8_native', m3u8_id='hls', live=True))
+            formats.extend(self._extract_m3u8_formats(
+                video_info.get('streamUrl'),
+                video_id,
+                'mp4',
+                entry_protocol='m3u8_native',
+                m3u8_id='hls',
+                live=True))
             metadata['formats'] = formats
         else:
             metadata['url'] = video_info.get('directUrl')
@@ -184,36 +200,35 @@ fragment VideoComment on Comment {
         comments = []
 
         for comment in video_comments:
-            comment_date = datetime.fromisoformat(comment.get('createdAt')[:-1])
             comments.append({
                 'id': comment.get('_id'),
                 'text': comment.get('content'),
                 'author': comment.get('user').get('username'),
                 'author_id': comment.get('user').get('_id'),
-                'timestamp': comment_date.timestamp(),
+                'timestamp': unified_timestamp(comment.get('createdAt')),
                 'parent': 'root'
             })
             if comment.get('replyCount') > 0:
-                replies = self._download_json(
-                    self._GRAPHQL_API,
-                    video_id,
-                    headers=self._GRAPHQL_HEADERS,
-                    data=json.dumps({
-                        'variables': {
-                            'id': comment.get('_id')
-                        },
-                        'operationName': 'GetCommentReplies',
-                        'query': self._GRAPHQL_GETCOMMENTSREPLIES_QUERY
-                    }).encode('utf8'),
-                ).get('data').get('getCommentReplies')
+                replies = try_get(
+                    self._download_json(
+                        self._GRAPHQL_API,
+                        video_id,
+                        headers=self._GRAPHQL_HEADERS,
+                        data=json.dumps({
+                            'variables': {
+                                'id': comment.get('_id')
+                            },
+                            'operationName': 'GetCommentReplies',
+                            'query': self._GRAPHQL_GETCOMMENTSREPLIES_QUERY
+                        }).encode('utf8')),
+                    lambda x: x['data']['getCommentReplies'])
                 for reply in replies:
-                    reply_date = datetime.fromisoformat(reply.get('createdAt')[:-1])
                     comments.append({
                         'id': reply.get('_id'),
                         'text': reply.get('content'),
                         'author': reply.get('user').get('username'),
                         'author_id': reply.get('user').get('_id'),
-                        'timestamp': reply_date.timestamp(),
+                        'timestamp': unified_timestamp(reply.get('createdAt')),
                         'parent': comment.get('_id')
                     })
         metadata["comments"] = comments
