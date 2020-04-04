@@ -264,7 +264,8 @@ class NexxIE(InfoExtractor):
             (azure_manifest_url_DASH if protection_token_DASH else azure_manifest_url) % '(format=mpd-time-csf)',
             video_id, mpd_id='%s-dash' % cdn, fatal=False))
         formats.extend(self._extract_ism_formats(
-            (azure_manifest_url_DASH if protection_token_DASH else azure_manifest_url) % '', video_id, ism_id='%s-mss' % cdn, fatal=False))
+            (azure_manifest_url_DASH if protection_token_DASH else azure_manifest_url) % '',
+            video_id, ism_id='%s-mss' % cdn, fatal=False))
 
         azure_progressive_base = get_cdn_shield_base('Prog', True)
         azure_file_distribution = stream_data.get('azureFileDistribution')
