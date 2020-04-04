@@ -1479,6 +1479,7 @@ from .youtube import (
     YoutubeUserIE,
     YoutubeWatchLaterIE,
 )
+from .yuja import YuJaIE
 from .zapiks import ZapiksIE
 from .zaq1 import Zaq1IE
 from .zattoo import (
