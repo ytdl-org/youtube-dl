@@ -34,8 +34,8 @@ class DigitalConcertHallIE(InfoExtractor):
             language = 'en'
         self.debug_out("url: " + url + " video_id: " + video_id + " language: " + language)
         webpage = self._download_webpage(url, video_id)
-        playlist_title = self._html_search_regex(r'<title>(.+?)</title>', webpage, 'title') \
-           or self._og_search_title(webpage)
+        playlist_title = self._html_search_regex(r'<title>(.+?)</title>', webpage, 'title') or \
+            self._og_search_title(webpage)
         self.debug_out("playlist_title: " + playlist_title)
 
         # this returns JSON containing the urls of the playlist
@@ -57,7 +57,7 @@ class DigitalConcertHallIE(InfoExtractor):
             formats = self._extract_m3u8_formats(
                 m3u8_url, key, 'mp4', 'm3u8_native', m3u8_id='hls', fatal=False)
             self.debug_out(formats)
-            title = [vid_info_dict.get(x)[0].get('title',"unknown title") for x in vid_info_dict
+            title = [vid_info_dict.get(x)[0].get('title', "unknown title") for x in vid_info_dict
                      if vid_info_dict.get(x)[0].get('id') == key][0]
             # avoid filenames that exceed filesystem limits
             title = (title[:MAX_TITLE_LENGTH] + '..') if len(title) > MAX_TITLE_LENGTH else title
