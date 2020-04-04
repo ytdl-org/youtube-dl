@@ -124,14 +124,27 @@ class CDAIE(InfoExtractor):
             'age_limit': 18 if need_confirm_age else 0,
         }
 
-        def decrypt_file(file):
+        def decrypt_file(a):
+            # first replace very cringy joke, then apply decodeURIComponent
+            a = compat_urllib_parse_unquote(a.replace("_XDDD", ""))
+
+            # store decrypted characters
             b = []
 
-            for ch in file:
-                f = ord(ch)
+            for e in range(len(a)):
+                f = ord(a[e])
                 b.append(chr(33 + (f + 14) % 94) if 33 <= f and 126 >= f else chr(f))
 
-            return "".join(b)
+            # decrypted URL
+            a = "".join(b)
+
+            # more "obfuscation" to deal with
+            a = a.replace(".cda.mp4", "")
+            a = a.replace(".2cda.pl", ".cda.pl")
+            a = a.replace(".3cda.pl", ".cda.pl")
+
+            # return extracted file as URL to video file
+            return "https://" + a + ".mp4"
 
         def extract_format(page, version):
             json_str = self._html_search_regex(
@@ -148,9 +161,7 @@ class CDAIE(InfoExtractor):
                 self.report_warning('Unable to extract %s version information' % version)
                 return
             if "http" not in video['file'] and ".mp4" not in video['file'] and "uggcf://" not in video['file']:
-                video['file'] = decrypt_file(compat_urllib_parse_unquote(video['file']))
-                if not video['file'].startswith("http"):
-                    video['file'] = "https://" + video['file'] + ".mp4"
+                video['file'] = decrypt_file(video['file'])
             elif video['file'].startswith('uggc'):
                 video['file'] = codecs.decode(video['file'], 'rot_13')
                 if video['file'].endswith('adc.mp4'):
