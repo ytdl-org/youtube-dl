@@ -77,6 +77,7 @@ class YuJaIE(InfoExtractor):
                 'ext': 'mp4',
                 'format_id': 'mp4_hls',
                 'protocol': 'm3u8',
+                'source_preference': 1
             })
 
         if data.get('videoLinkMp4'):
@@ -84,8 +85,8 @@ class YuJaIE(InfoExtractor):
                 'url': data.get('videoLinkMp4'),
                 'ext': 'mp4',
                 'format_id': 'mp4',
+                'source_preference': 0
             })
-
 
         return {
             'id': video_id,
