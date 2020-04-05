@@ -13,8 +13,8 @@ from ..compat import compat_HTTPError
 class DiscoveryIE(DiscoveryGoBaseIE):
     _VALID_URL = r'''(?x)https?://
         (?P<site>
-            (?:(?:www|go)\.)?discovery|
-            (?:www\.)?
+            go\.discovery|
+            www\.
                 (?:
                     investigationdiscovery|
                     discoverylife|
@@ -22,8 +22,7 @@ class DiscoveryIE(DiscoveryGoBaseIE):
                     ahctv|
                     destinationamerica|
                     sciencechannel|
-                    tlc|
-                    velocity
+                    tlc
                 )|
             watch\.
                 (?:
@@ -83,7 +82,7 @@ class DiscoveryIE(DiscoveryGoBaseIE):
                     'authRel': 'authorization',
                     'client_id': '3020a40c2356a645b4b4',
                     'nonce': ''.join([random.choice(string.ascii_letters) for _ in range(32)]),
-                    'redirectUri': 'https://fusion.ddmcdn.com/app/mercury-sdk/180/redirectHandler.html?https://www.%s.com' % site,
+                    'redirectUri': 'https://www.discovery.com/',
                 })['access_token']
 
         headers = self.geo_verification_headers()

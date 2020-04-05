@@ -88,10 +88,6 @@ from .piksel import PikselIE
 from .videa import VideaIE
 from .twentymin import TwentyMinutenIE
 from .ustream import UstreamIE
-from .openload import (
-    OpenloadIE,
-    VerystreamIE,
-)
 from .videopress import VideoPressIE
 from .rutube import RutubeIE
 from .limelight import LimelightBaseIE
@@ -119,6 +115,7 @@ from .viqeo import ViqeoIE
 from .expressen import ExpressenIE
 from .zype import ZypeIE
 from .odnoklassniki import OdnoklassnikiIE
+from .kinja import KinjaEmbedIE
 
 
 class GenericIE(InfoExtractor):
@@ -1487,16 +1484,18 @@ class GenericIE(InfoExtractor):
                 'timestamp': 1432570283,
             },
         },
-        # OnionStudios embed
+        # Kinja embed
         {
             'url': 'http://www.clickhole.com/video/dont-understand-bitcoin-man-will-mumble-explanatio-2537',
             'info_dict': {
-                'id': '2855',
+                'id': '106351',
                 'ext': 'mp4',
                 'title': 'Don’t Understand Bitcoin? This Man Will Mumble An Explanation At You',
+                'description': 'Migrated from OnionStudios',
                 'thumbnail': r're:^https?://.*\.jpe?g$',
-                'uploader': 'ClickHole',
-                'uploader_id': 'clickhole',
+                'uploader': 'clickhole',
+                'upload_date': '20150527',
+                'timestamp': 1432744860,
             }
         },
         # SnagFilms embed
@@ -2099,6 +2098,9 @@ class GenericIE(InfoExtractor):
                 'ext': 'mp4',
                 'title': 'Smoky Barbecue Favorites',
                 'thumbnail': r're:^https?://.*\.jpe?g',
+                'description': 'md5:5ff01e76316bd8d46508af26dc86023b',
+                'upload_date': '20170909',
+                'timestamp': 1504915200,
             },
             'add_ie': [ZypeIE.ie_key()],
             'params': {
@@ -2285,7 +2287,7 @@ class GenericIE(InfoExtractor):
 
         if head_response is not False:
             # Check for redirect
-            new_url = compat_str(head_response.geturl())
+            new_url = head_response.geturl()
             if url != new_url:
                 self.report_following_redirect(new_url)
                 if force_videoid:
@@ -2385,12 +2387,12 @@ class GenericIE(InfoExtractor):
                 return self.playlist_result(
                     self._parse_xspf(
                         doc, video_id, xspf_url=url,
-                        xspf_base_url=compat_str(full_response.geturl())),
+                        xspf_base_url=full_response.geturl()),
                     video_id)
             elif re.match(r'(?i)^(?:{[^}]+})?MPD$', doc.tag):
                 info_dict['formats'] = self._parse_mpd_formats(
                     doc,
-                    mpd_base_url=compat_str(full_response.geturl()).rpartition('/')[0],
+                    mpd_base_url=full_response.geturl().rpartition('/')[0],
                     mpd_url=url)
                 self._sort_formats(info_dict['formats'])
                 return info_dict
@@ -2534,15 +2536,21 @@ class GenericIE(InfoExtractor):
             return self.playlist_from_matches(
                 dailymail_urls, video_id, video_title, ie=DailyMailIE.ie_key())
 
+        # Look for Teachable embeds, must be before Wistia
+        teachable_url = TeachableIE._extract_url(webpage, url)
+        if teachable_url:
+            return self.url_result(teachable_url)
+
         # Look for embedded Wistia player
-        wistia_url = WistiaIE._extract_url(webpage)
-        if wistia_url:
-            return {
-                '_type': 'url_transparent',
-                'url': self._proto_relative_url(wistia_url),
-                'ie_key': WistiaIE.ie_key(),
-                'uploader': video_uploader,
-            }
+        wistia_urls = WistiaIE._extract_urls(webpage)
+        if wistia_urls:
+            playlist = self.playlist_from_matches(wistia_urls, video_id, video_title, ie=WistiaIE.ie_key())
+            for entry in playlist['entries']:
+                entry.update({
+                    '_type': 'url_transparent',
+                    'uploader': video_uploader,
+                })
+            return playlist
 
         # Look for SVT player
         svt_url = SVTIE._extract_url(webpage)
@@ -2894,6 +2902,12 @@ class GenericIE(InfoExtractor):
         if senate_isvp_url:
             return self.url_result(senate_isvp_url, 'SenateISVP')
 
+        # Look for Kinja embeds
+        kinja_embed_urls = KinjaEmbedIE._extract_urls(webpage, url)
+        if kinja_embed_urls:
+            return self.playlist_from_matches(
+                kinja_embed_urls, video_id, video_title)
+
         # Look for OnionStudios embeds
         onionstudios_url = OnionStudiosIE._extract_url(webpage)
         if onionstudios_url:
@@ -2955,7 +2969,7 @@ class GenericIE(InfoExtractor):
 
         # Look for VODPlatform embeds
         mobj = re.search(
-            r'<iframe[^>]+src=(["\'])(?P<url>(?:https?:)?//(?:www\.)?vod-platform\.net/[eE]mbed/.+?)\1',
+            r'<iframe[^>]+src=(["\'])(?P<url>(?:https?:)?//(?:(?:www\.)?vod-platform\.net|embed\.kwikmotion\.com)/[eE]mbed/.+?)\1',
             webpage)
         if mobj is not None:
             return self.url_result(
@@ -3038,18 +3052,6 @@ class GenericIE(InfoExtractor):
         if twentymin_urls:
             return self.playlist_from_matches(
                 twentymin_urls, video_id, video_title, ie=TwentyMinutenIE.ie_key())
-
-        # Look for Openload embeds
-        openload_urls = OpenloadIE._extract_urls(webpage)
-        if openload_urls:
-            return self.playlist_from_matches(
-                openload_urls, video_id, video_title, ie=OpenloadIE.ie_key())
-
-        # Look for Verystream embeds
-        verystream_urls = VerystreamIE._extract_urls(webpage)
-        if verystream_urls:
-            return self.playlist_from_matches(
-                verystream_urls, video_id, video_title, ie=VerystreamIE.ie_key())
 
         # Look for VideoPress embeds
         videopress_urls = VideoPressIE._extract_urls(webpage)
@@ -3143,10 +3145,6 @@ class GenericIE(InfoExtractor):
         if peertube_urls:
             return self.playlist_from_matches(
                 peertube_urls, video_id, video_title, ie=PeerTubeIE.ie_key())
-
-        teachable_url = TeachableIE._extract_url(webpage, url)
-        if teachable_url:
-            return self.url_result(teachable_url)
 
         indavideo_urls = IndavideoEmbedIE._extract_urls(webpage)
         if indavideo_urls:

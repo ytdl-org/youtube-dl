@@ -17,14 +17,12 @@ class TFOIE(InfoExtractor):
     _VALID_URL = r'https?://(?:www\.)?tfo\.org/(?:en|fr)/(?:[^/]+/){2}(?P<id>\d+)'
     _TEST = {
         'url': 'http://www.tfo.org/en/universe/tfo-247/100463871/video-game-hackathon',
-        'md5': '47c987d0515561114cf03d1226a9d4c7',
+        'md5': 'cafbe4f47a8dae0ca0159937878100d6',
         'info_dict': {
-            'id': '100463871',
+            'id': '7da3d50e495c406b8fc0b997659cc075',
             'ext': 'mp4',
             'title': 'Video Game Hackathon',
             'description': 'md5:558afeba217c6c8d96c60e5421795c07',
-            'upload_date': '20160212',
-            'timestamp': 1455310233,
         }
     }
 

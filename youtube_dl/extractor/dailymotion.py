@@ -1,50 +1,93 @@
 # coding: utf-8
 from __future__ import unicode_literals
 
-import base64
 import functools
-import hashlib
-import itertools
 import json
-import random
 import re
-import string
 
 from .common import InfoExtractor
-from ..compat import compat_struct_pack
+from ..compat import compat_HTTPError
 from ..utils import (
-    determine_ext,
-    error_to_compat_str,
+    age_restricted,
+    clean_html,
     ExtractorError,
     int_or_none,
-    mimetype2ext,
     OnDemandPagedList,
-    parse_iso8601,
-    sanitized_Request,
-    str_to_int,
     try_get,
     unescapeHTML,
-    update_url_query,
-    url_or_none,
     urlencode_postdata,
 )
 
 
 class DailymotionBaseInfoExtractor(InfoExtractor):
+    _FAMILY_FILTER = None
+    _HEADERS = {
+        'Content-Type': 'application/json',
+        'Origin': 'https://www.dailymotion.com',
+    }
+    _NETRC_MACHINE = 'dailymotion'
+
+    def _get_dailymotion_cookies(self):
+        return self._get_cookies('https://www.dailymotion.com/')
+
     @staticmethod
-    def _build_request(url):
-        """Build a request with the family filter disabled"""
-        request = sanitized_Request(url)
-        request.add_header('Cookie', 'family_filter=off; ff=off')
-        return request
+    def _get_cookie_value(cookies, name):
+        cookie = cookies.get('name')
+        if cookie:
+            return cookie.value
 
-    def _download_webpage_handle_no_ff(self, url, *args, **kwargs):
-        request = self._build_request(url)
-        return self._download_webpage_handle(request, *args, **kwargs)
+    def _set_dailymotion_cookie(self, name, value):
+        self._set_cookie('www.dailymotion.com', name, value)
 
-    def _download_webpage_no_ff(self, url, *args, **kwargs):
-        request = self._build_request(url)
-        return self._download_webpage(request, *args, **kwargs)
+    def _real_initialize(self):
+        cookies = self._get_dailymotion_cookies()
+        ff = self._get_cookie_value(cookies, 'ff')
+        self._FAMILY_FILTER = ff == 'on' if ff else age_restricted(18, self._downloader.params.get('age_limit'))
+        self._set_dailymotion_cookie('ff', 'on' if self._FAMILY_FILTER else 'off')
+
+    def _call_api(self, object_type, xid, object_fields, note, filter_extra=None):
+        if not self._HEADERS.get('Authorization'):
+            cookies = self._get_dailymotion_cookies()
+            token = self._get_cookie_value(cookies, 'access_token') or self._get_cookie_value(cookies, 'client_token')
+            if not token:
+                data = {
+                    'client_id': 'f1a362d288c1b98099c7',
+                    'client_secret': 'eea605b96e01c796ff369935357eca920c5da4c5',
+                }
+                username, password = self._get_login_info()
+                if username:
+                    data.update({
+                        'grant_type': 'password',
+                        'password': password,
+                        'username': username,
+                    })
+                else:
+                    data['grant_type'] = 'client_credentials'
+                try:
+                    token = self._download_json(
+                        'https://graphql.api.dailymotion.com/oauth/token',
+                        None, 'Downloading Access Token',
+                        data=urlencode_postdata(data))['access_token']
+                except ExtractorError as e:
+                    if isinstance(e.cause, compat_HTTPError) and e.cause.code == 400:
+                        raise ExtractorError(self._parse_json(
+                            e.cause.read().decode(), xid)['error_description'], expected=True)
+                    raise
+                self._set_dailymotion_cookie('access_token' if username else 'client_token', token)
+            self._HEADERS['Authorization'] = 'Bearer ' + token
+
+        resp = self._download_json(
+            'https://graphql.api.dailymotion.com/', xid, note, data=json.dumps({
+                'query': '''{
+  %s(xid: "%s"%s) {
+    %s
+  }
+}''' % (object_type, xid, ', ' + filter_extra if filter_extra else '', object_fields),
+            }).encode(), headers=self._HEADERS)
+        obj = resp['data'][object_type]
+        if not obj:
+            raise ExtractorError(resp['errors'][0]['message'], expected=True)
+        return obj
 
 
 class DailymotionIE(DailymotionBaseInfoExtractor):
@@ -54,18 +97,9 @@ class DailymotionIE(DailymotionBaseInfoExtractor):
                             (?:(?:www|touch)\.)?dailymotion\.[a-z]{2,3}/(?:(?:(?:embed|swf|\#)/)?video|swf)|
                             (?:www\.)?lequipe\.fr/video
                         )
-                        /(?P<id>[^/?_]+)
+                        /(?P<id>[^/?_]+)(?:.+?\bplaylist=(?P<playlist_id>x[0-9a-z]+))?
                     '''
     IE_NAME = 'dailymotion'
-
-    _FORMATS = [
-        ('stream_h264_ld_url', 'ld'),
-        ('stream_h264_url', 'standard'),
-        ('stream_h264_hq_url', 'hq'),
-        ('stream_h264_hd_url', 'hd'),
-        ('stream_h264_hd1080_url', 'hd180'),
-    ]
-
     _TESTS = [{
         'url': 'http://www.dailymotion.com/video/x5kesuj_office-christmas-party-review-jason-bateman-olivia-munn-t-j-miller_news',
         'md5': '074b95bdee76b9e3654137aee9c79dfe',
@@ -74,7 +108,6 @@ class DailymotionIE(DailymotionBaseInfoExtractor):
             'ext': 'mp4',
             'title': 'Office Christmas Party Review –  Jason Bateman, Olivia Munn, T.J. Miller',
             'description': 'Office Christmas Party Review -  Jason Bateman, Olivia Munn, T.J. Miller',
-            'thumbnail': r're:^https?:.*\.(?:jpg|png)$',
             'duration': 187,
             'timestamp': 1493651285,
             'upload_date': '20170501',
@@ -146,7 +179,16 @@ class DailymotionIE(DailymotionBaseInfoExtractor):
     }, {
         'url': 'https://www.lequipe.fr/video/k7MtHciueyTcrFtFKA2',
         'only_matching': True,
+    }, {
+        'url': 'https://www.dailymotion.com/video/x3z49k?playlist=xv4bw',
+        'only_matching': True,
     }]
+    _GEO_BYPASS = False
+    _COMMON_MEDIA_FIELDS = '''description
+      geoblockedCountries {
+        allowed
+      }
+      xid'''
 
     @staticmethod
     def _extract_urls(webpage):
@@ -162,264 +204,140 @@ class DailymotionIE(DailymotionBaseInfoExtractor):
         return urls
 
     def _real_extract(self, url):
-        video_id = self._match_id(url)
+        video_id, playlist_id = re.match(self._VALID_URL, url).groups()
 
-        webpage = self._download_webpage_no_ff(
-            'https://www.dailymotion.com/video/%s' % video_id, video_id)
+        if playlist_id:
+            if not self._downloader.params.get('noplaylist'):
+                self.to_screen('Downloading playlist %s - add --no-playlist to just download video' % playlist_id)
+                return self.url_result(
+                    'http://www.dailymotion.com/playlist/' + playlist_id,
+                    'DailymotionPlaylist', playlist_id)
+            self.to_screen('Downloading just video %s because of --no-playlist' % video_id)
 
-        age_limit = self._rta_search(webpage)
-
-        description = self._og_search_description(
-            webpage, default=None) or self._html_search_meta(
-            'description', webpage, 'description')
-
-        view_count_str = self._search_regex(
-            (r'<meta[^>]+itemprop="interactionCount"[^>]+content="UserPlays:([\s\d,.]+)"',
-             r'video_views_count[^>]+>\s+([\s\d\,.]+)'),
-            webpage, 'view count', default=None)
-        if view_count_str:
-            view_count_str = re.sub(r'\s', '', view_count_str)
-        view_count = str_to_int(view_count_str)
-        comment_count = int_or_none(self._search_regex(
-            r'<meta[^>]+itemprop="interactionCount"[^>]+content="UserComments:(\d+)"',
-            webpage, 'comment count', default=None))
-
-        player_v5 = self._search_regex(
-            [r'buildPlayer\(({.+?})\);\n',  # See https://github.com/ytdl-org/youtube-dl/issues/7826
-             r'playerV5\s*=\s*dmp\.create\([^,]+?,\s*({.+?})\);',
-             r'buildPlayer\(({.+?})\);',
-             r'var\s+config\s*=\s*({.+?});',
-             # New layout regex (see https://github.com/ytdl-org/youtube-dl/issues/13580)
-             r'__PLAYER_CONFIG__\s*=\s*({.+?});'],
-            webpage, 'player v5', default=None)
-        if player_v5:
-            player = self._parse_json(player_v5, video_id, fatal=False) or {}
-            metadata = try_get(player, lambda x: x['metadata'], dict)
-            if not metadata:
-                metadata_url = url_or_none(try_get(
-                    player, lambda x: x['context']['metadata_template_url1']))
-                if metadata_url:
-                    metadata_url = metadata_url.replace(':videoId', video_id)
-                else:
-                    metadata_url = update_url_query(
-                        'https://www.dailymotion.com/player/metadata/video/%s'
-                        % video_id, {
-                            'embedder': url,
-                            'integration': 'inline',
-                            'GK_PV5_NEON': '1',
-                        })
-                metadata = self._download_json(
-                    metadata_url, video_id, 'Downloading metadata JSON')
-
-            if try_get(metadata, lambda x: x['error']['type']) == 'password_protected':
-                password = self._downloader.params.get('videopassword')
-                if password:
-                    r = int(metadata['id'][1:], 36)
-                    us64e = lambda x: base64.urlsafe_b64encode(x).decode().strip('=')
-                    t = ''.join(random.choice(string.ascii_letters) for i in range(10))
-                    n = us64e(compat_struct_pack('I', r))
-                    i = us64e(hashlib.md5(('%s%d%s' % (password, r, t)).encode()).digest())
-                    metadata = self._download_json(
-                        'http://www.dailymotion.com/player/metadata/video/p' + i + t + n, video_id)
-
-            self._check_error(metadata)
-
-            formats = []
-            for quality, media_list in metadata['qualities'].items():
-                for media in media_list:
-                    media_url = media.get('url')
-                    if not media_url:
-                        continue
-                    type_ = media.get('type')
-                    if type_ == 'application/vnd.lumberjack.manifest':
-                        continue
-                    ext = mimetype2ext(type_) or determine_ext(media_url)
-                    if ext == 'm3u8':
-                        m3u8_formats = self._extract_m3u8_formats(
-                            media_url, video_id, 'mp4', preference=-1,
-                            m3u8_id='hls', fatal=False)
-                        for f in m3u8_formats:
-                            f['url'] = f['url'].split('#')[0]
-                            formats.append(f)
-                    elif ext == 'f4m':
-                        formats.extend(self._extract_f4m_formats(
-                            media_url, video_id, preference=-1, f4m_id='hds', fatal=False))
-                    else:
-                        f = {
-                            'url': media_url,
-                            'format_id': 'http-%s' % quality,
-                            'ext': ext,
-                        }
-                        m = re.search(r'H264-(?P<width>\d+)x(?P<height>\d+)', media_url)
-                        if m:
-                            f.update({
-                                'width': int(m.group('width')),
-                                'height': int(m.group('height')),
-                            })
-                        formats.append(f)
-            self._sort_formats(formats)
-
-            title = metadata['title']
-            duration = int_or_none(metadata.get('duration'))
-            timestamp = int_or_none(metadata.get('created_time'))
-            thumbnail = metadata.get('poster_url')
-            uploader = metadata.get('owner', {}).get('screenname')
-            uploader_id = metadata.get('owner', {}).get('id')
-
-            subtitles = {}
-            subtitles_data = metadata.get('subtitles', {}).get('data', {})
-            if subtitles_data and isinstance(subtitles_data, dict):
-                for subtitle_lang, subtitle in subtitles_data.items():
-                    subtitles[subtitle_lang] = [{
-                        'ext': determine_ext(subtitle_url),
-                        'url': subtitle_url,
-                    } for subtitle_url in subtitle.get('urls', [])]
-
-            return {
-                'id': video_id,
-                'title': title,
-                'description': description,
-                'thumbnail': thumbnail,
-                'duration': duration,
-                'timestamp': timestamp,
-                'uploader': uploader,
-                'uploader_id': uploader_id,
-                'age_limit': age_limit,
-                'view_count': view_count,
-                'comment_count': comment_count,
-                'formats': formats,
-                'subtitles': subtitles,
-            }
-
-        # vevo embed
-        vevo_id = self._search_regex(
-            r'<link rel="video_src" href="[^"]*?vevo\.com[^"]*?video=(?P<id>[\w]*)',
-            webpage, 'vevo embed', default=None)
-        if vevo_id:
-            return self.url_result('vevo:%s' % vevo_id, 'Vevo')
-
-        # fallback old player
-        embed_page = self._download_webpage_no_ff(
-            'https://www.dailymotion.com/embed/video/%s' % video_id,
-            video_id, 'Downloading embed page')
-
-        timestamp = parse_iso8601(self._html_search_meta(
-            'video:release_date', webpage, 'upload date'))
-
-        info = self._parse_json(
-            self._search_regex(
-                r'var info = ({.*?}),$', embed_page,
-                'video info', flags=re.MULTILINE),
-            video_id)
-
-        self._check_error(info)
-
-        formats = []
-        for (key, format_id) in self._FORMATS:
-            video_url = info.get(key)
-            if video_url is not None:
-                m_size = re.search(r'H264-(\d+)x(\d+)', video_url)
-                if m_size is not None:
-                    width, height = map(int_or_none, (m_size.group(1), m_size.group(2)))
-                else:
-                    width, height = None, None
-                formats.append({
-                    'url': video_url,
-                    'ext': 'mp4',
-                    'format_id': format_id,
-                    'width': width,
-                    'height': height,
-                })
-        self._sort_formats(formats)
-
-        # subtitles
-        video_subtitles = self.extract_subtitles(video_id, webpage)
-
-        title = self._og_search_title(webpage, default=None)
-        if title is None:
-            title = self._html_search_regex(
-                r'(?s)<span\s+id="video_title"[^>]*>(.*?)</span>', webpage,
-                'title')
-
-        return {
-            'id': video_id,
-            'formats': formats,
-            'uploader': info['owner.screenname'],
-            'timestamp': timestamp,
-            'title': title,
-            'description': description,
-            'subtitles': video_subtitles,
-            'thumbnail': info['thumbnail_url'],
-            'age_limit': age_limit,
-            'view_count': view_count,
-            'duration': info['duration']
+        password = self._downloader.params.get('videopassword')
+        media = self._call_api(
+            'media', video_id, '''... on Video {
+      %s
+      stats {
+        likes {
+          total
         }
+        views {
+          total
+        }
+      }
+    }
+    ... on Live {
+      %s
+      audienceCount
+      isOnAir
+    }''' % (self._COMMON_MEDIA_FIELDS, self._COMMON_MEDIA_FIELDS), 'Downloading media JSON metadata',
+            'password: "%s"' % self._downloader.params.get('videopassword') if password else None)
+        xid = media['xid']
 
-    def _check_error(self, info):
-        error = info.get('error')
+        metadata = self._download_json(
+            'https://www.dailymotion.com/player/metadata/video/' + xid,
+            xid, 'Downloading metadata JSON',
+            query={'app': 'com.dailymotion.neon'})
+
+        error = metadata.get('error')
         if error:
-            title = error.get('title') or error['message']
+            title = error.get('title') or error['raw_message']
             # See https://developer.dailymotion.com/api#access-error
             if error.get('code') == 'DM007':
-                self.raise_geo_restricted(msg=title)
+                allowed_countries = try_get(media, lambda x: x['geoblockedCountries']['allowed'], list)
+                self.raise_geo_restricted(msg=title, countries=allowed_countries)
             raise ExtractorError(
                 '%s said: %s' % (self.IE_NAME, title), expected=True)
 
-    def _get_subtitles(self, video_id, webpage):
-        try:
-            sub_list = self._download_webpage(
-                'https://api.dailymotion.com/video/%s/subtitles?fields=id,language,url' % video_id,
-                video_id, note=False)
-        except ExtractorError as err:
-            self._downloader.report_warning('unable to download video subtitles: %s' % error_to_compat_str(err))
-            return {}
-        info = json.loads(sub_list)
-        if (info['total'] > 0):
-            sub_lang_list = dict((l['language'], [{'url': l['url'], 'ext': 'srt'}]) for l in info['list'])
-            return sub_lang_list
-        self._downloader.report_warning('video doesn\'t have subtitles')
-        return {}
+        title = metadata['title']
+        is_live = media.get('isOnAir')
+        formats = []
+        for quality, media_list in metadata['qualities'].items():
+            for m in media_list:
+                media_url = m.get('url')
+                media_type = m.get('type')
+                if not media_url or media_type == 'application/vnd.lumberjack.manifest':
+                    continue
+                if media_type == 'application/x-mpegURL':
+                    formats.extend(self._extract_m3u8_formats(
+                        media_url, video_id, 'mp4',
+                        'm3u8' if is_live else 'm3u8_native',
+                        m3u8_id='hls', fatal=False))
+                else:
+                    f = {
+                        'url': media_url,
+                        'format_id': 'http-' + quality,
+                    }
+                    m = re.search(r'/H264-(\d+)x(\d+)(?:-(60)/)?', media_url)
+                    if m:
+                        width, height, fps = map(int_or_none, m.groups())
+                        f.update({
+                            'fps': fps,
+                            'height': height,
+                            'width': width,
+                        })
+                    formats.append(f)
+        for f in formats:
+            f['url'] = f['url'].split('#')[0]
+            if not f.get('fps') and f['format_id'].endswith('@60'):
+                f['fps'] = 60
+        self._sort_formats(formats)
+
+        subtitles = {}
+        subtitles_data = try_get(metadata, lambda x: x['subtitles']['data'], dict) or {}
+        for subtitle_lang, subtitle in subtitles_data.items():
+            subtitles[subtitle_lang] = [{
+                'url': subtitle_url,
+            } for subtitle_url in subtitle.get('urls', [])]
+
+        thumbnails = []
+        for height, poster_url in metadata.get('posters', {}).items():
+            thumbnails.append({
+                'height': int_or_none(height),
+                'id': height,
+                'url': poster_url,
+            })
+
+        owner = metadata.get('owner') or {}
+        stats = media.get('stats') or {}
+        get_count = lambda x: int_or_none(try_get(stats, lambda y: y[x + 's']['total']))
+
+        return {
+            'id': video_id,
+            'title': self._live_title(title) if is_live else title,
+            'description': clean_html(media.get('description')),
+            'thumbnails': thumbnails,
+            'duration': int_or_none(metadata.get('duration')) or None,
+            'timestamp': int_or_none(metadata.get('created_time')),
+            'uploader': owner.get('screenname'),
+            'uploader_id': owner.get('id') or metadata.get('screenname'),
+            'age_limit': 18 if metadata.get('explicit') else 0,
+            'tags': metadata.get('tags'),
+            'view_count': get_count('view') or int_or_none(media.get('audienceCount')),
+            'like_count': get_count('like'),
+            'formats': formats,
+            'subtitles': subtitles,
+            'is_live': is_live,
+        }
 
 
-class DailymotionPlaylistIE(DailymotionBaseInfoExtractor):
-    IE_NAME = 'dailymotion:playlist'
-    _VALID_URL = r'(?:https?://)?(?:www\.)?dailymotion\.[a-z]{2,3}/playlist/(?P<id>x[0-9a-z]+)'
-    _TESTS = [{
-        'url': 'http://www.dailymotion.com/playlist/xv4bw_nqtv_sport/1#video=xl8v3q',
-        'info_dict': {
-            'title': 'SPORT',
-            'id': 'xv4bw',
-        },
-        'playlist_mincount': 20,
-    }]
+class DailymotionPlaylistBaseIE(DailymotionBaseInfoExtractor):
     _PAGE_SIZE = 100
 
-    def _fetch_page(self, playlist_id, authorizaion, page):
+    def _fetch_page(self, playlist_id, page):
         page += 1
-        videos = self._download_json(
-            'https://graphql.api.dailymotion.com',
-            playlist_id, 'Downloading page %d' % page,
-            data=json.dumps({
-                'query': '''{
-  collection(xid: "%s") {
-    videos(first: %d, page: %d) {
-      pageInfo {
-        hasNextPage
-        nextPage
-      }
+        videos = self._call_api(
+            self._OBJECT_TYPE, playlist_id,
+            '''videos(allowExplicit: %s, first: %d, page: %d) {
       edges {
         node {
           xid
           url
         }
       }
-    }
-  }
-}''' % (playlist_id, self._PAGE_SIZE, page)
-            }).encode(), headers={
-                'Authorization': authorizaion,
-                'Origin': 'https://www.dailymotion.com',
-            })['data']['collection']['videos']
+    }''' % ('false' if self._FAMILY_FILTER else 'true', self._PAGE_SIZE, page),
+            'Downloading page %d' % page)['videos']
         for edge in videos['edges']:
             node = edge['node']
             yield self.url_result(
@@ -427,86 +345,49 @@ class DailymotionPlaylistIE(DailymotionBaseInfoExtractor):
 
     def _real_extract(self, url):
         playlist_id = self._match_id(url)
-        webpage = self._download_webpage(url, playlist_id)
-        api = self._parse_json(self._search_regex(
-            r'__PLAYER_CONFIG__\s*=\s*({.+?});',
-            webpage, 'player config'), playlist_id)['context']['api']
-        auth = self._download_json(
-            api.get('auth_url', 'https://graphql.api.dailymotion.com/oauth/token'),
-            playlist_id, data=urlencode_postdata({
-                'client_id': api.get('client_id', 'f1a362d288c1b98099c7'),
-                'client_secret': api.get('client_secret', 'eea605b96e01c796ff369935357eca920c5da4c5'),
-                'grant_type': 'client_credentials',
-            }))
-        authorizaion = '%s %s' % (auth.get('token_type', 'Bearer'), auth['access_token'])
         entries = OnDemandPagedList(functools.partial(
-            self._fetch_page, playlist_id, authorizaion), self._PAGE_SIZE)
+            self._fetch_page, playlist_id), self._PAGE_SIZE)
         return self.playlist_result(
-            entries, playlist_id,
-            self._og_search_title(webpage))
+            entries, playlist_id)
 
 
-class DailymotionUserIE(DailymotionBaseInfoExtractor):
+class DailymotionPlaylistIE(DailymotionPlaylistBaseIE):
+    IE_NAME = 'dailymotion:playlist'
+    _VALID_URL = r'(?:https?://)?(?:www\.)?dailymotion\.[a-z]{2,3}/playlist/(?P<id>x[0-9a-z]+)'
+    _TESTS = [{
+        'url': 'http://www.dailymotion.com/playlist/xv4bw_nqtv_sport/1#video=xl8v3q',
+        'info_dict': {
+            'id': 'xv4bw',
+        },
+        'playlist_mincount': 20,
+    }]
+    _OBJECT_TYPE = 'collection'
+
+
+class DailymotionUserIE(DailymotionPlaylistBaseIE):
     IE_NAME = 'dailymotion:user'
-    _VALID_URL = r'https?://(?:www\.)?dailymotion\.[a-z]{2,3}/(?!(?:embed|swf|#|video|playlist)/)(?:(?:old/)?user/)?(?P<user>[^/]+)'
-    _MORE_PAGES_INDICATOR = r'(?s)<div class="pages[^"]*">.*?<a\s+class="[^"]*?icon-arrow_right[^"]*?"'
-    _PAGE_TEMPLATE = 'http://www.dailymotion.com/user/%s/%s'
+    _VALID_URL = r'https?://(?:www\.)?dailymotion\.[a-z]{2,3}/(?!(?:embed|swf|#|video|playlist)/)(?:(?:old/)?user/)?(?P<id>[^/]+)'
     _TESTS = [{
         'url': 'https://www.dailymotion.com/user/nqtv',
         'info_dict': {
             'id': 'nqtv',
-            'title': 'Rémi Gaillard',
         },
-        'playlist_mincount': 100,
+        'playlist_mincount': 152,
     }, {
         'url': 'http://www.dailymotion.com/user/UnderProject',
         'info_dict': {
             'id': 'UnderProject',
-            'title': 'UnderProject',
         },
-        'playlist_mincount': 1800,
-        'expected_warnings': [
-            'Stopped at duplicated page',
-        ],
+        'playlist_mincount': 1000,
         'skip': 'Takes too long time',
+    }, {
+        'url': 'https://www.dailymotion.com/user/nqtv',
+        'info_dict': {
+            'id': 'nqtv',
+        },
+        'playlist_mincount': 148,
+        'params': {
+            'age_limit': 0,
+        },
     }]
-
-    def _extract_entries(self, id):
-        video_ids = set()
-        processed_urls = set()
-        for pagenum in itertools.count(1):
-            page_url = self._PAGE_TEMPLATE % (id, pagenum)
-            webpage, urlh = self._download_webpage_handle_no_ff(
-                page_url, id, 'Downloading page %s' % pagenum)
-            if urlh.geturl() in processed_urls:
-                self.report_warning('Stopped at duplicated page %s, which is the same as %s' % (
-                    page_url, urlh.geturl()), id)
-                break
-
-            processed_urls.add(urlh.geturl())
-
-            for video_id in re.findall(r'data-xid="(.+?)"', webpage):
-                if video_id not in video_ids:
-                    yield self.url_result(
-                        'http://www.dailymotion.com/video/%s' % video_id,
-                        DailymotionIE.ie_key(), video_id)
-                    video_ids.add(video_id)
-
-            if re.search(self._MORE_PAGES_INDICATOR, webpage) is None:
-                break
-
-    def _real_extract(self, url):
-        mobj = re.match(self._VALID_URL, url)
-        user = mobj.group('user')
-        webpage = self._download_webpage(
-            'https://www.dailymotion.com/user/%s' % user, user)
-        full_user = unescapeHTML(self._html_search_regex(
-            r'<a class="nav-image" title="([^"]+)" href="/%s">' % re.escape(user),
-            webpage, 'user'))
-
-        return {
-            '_type': 'playlist',
-            'id': user,
-            'title': full_user,
-            'entries': self._extract_entries(user),
-        }
+    _OBJECT_TYPE = 'channel'

@@ -4,34 +4,37 @@ from __future__ import unicode_literals
 import re
 
 from .common import InfoExtractor
+from ..utils import (
+    get_element_by_class,
+    strip_or_none,
+)
 
 
 class SeekerIE(InfoExtractor):
     _VALID_URL = r'https?://(?:www\.)?seeker\.com/(?P<display_id>.*)-(?P<article_id>\d+)\.html'
     _TESTS = [{
-        # player.loadRevision3Item
         'url': 'http://www.seeker.com/should-trump-be-required-to-release-his-tax-returns-1833805621.html',
-        'md5': '30c1dc4030cc715cf05b423d0947ac18',
+        'md5': '897d44bbe0d8986a2ead96de565a92db',
         'info_dict': {
-            'id': '76243',
-            'ext': 'webm',
+            'id': 'Elrn3gnY',
+            'ext': 'mp4',
             'title': 'Should Trump Be Required To Release His Tax Returns?',
-            'description': 'Donald Trump has been secretive about his "big," "beautiful" tax returns. So what can we learn if he decides to release them?',
-            'uploader': 'Seeker Daily',
-            'uploader_id': 'seekerdaily',
+            'description': 'md5:41efa8cfa8d627841045eec7b018eb45',
+            'timestamp': 1490090165,
+            'upload_date': '20170321',
         }
     }, {
         'url': 'http://www.seeker.com/changes-expected-at-zoos-following-recent-gorilla-lion-shootings-1834116536.html',
         'playlist': [
             {
-                'md5': '83bcd157cab89ad7318dd7b8c9cf1306',
+                'md5': '0497b9f20495174be73ae136949707d2',
                 'info_dict': {
-                    'id': '67558',
+                    'id': 'FihYQ8AE',
                     'ext': 'mp4',
                     'title': 'The Pros & Cons Of Zoos',
-                    'description': 'Zoos are often depicted as a terrible place for animals to live, but is there any truth to this?',
-                    'uploader': 'DNews',
-                    'uploader_id': 'dnews',
+                    'description': 'md5:d88f99a8ea8e7d25e6ff77f271b1271c',
+                    'timestamp': 1490039133,
+                    'upload_date': '20170320',
                 },
             }
         ],
@@ -45,13 +48,11 @@ class SeekerIE(InfoExtractor):
     def _real_extract(self, url):
         display_id, article_id = re.match(self._VALID_URL, url).groups()
         webpage = self._download_webpage(url, display_id)
-        mobj = re.search(r"player\.loadRevision3Item\('([^']+)'\s*,\s*(\d+)\);", webpage)
-        if mobj:
-            playlist_type, playlist_id = mobj.groups()
-            return self.url_result(
-                'revision3:%s:%s' % (playlist_type, playlist_id), 'Revision3Embed', playlist_id)
-        else:
-            entries = [self.url_result('revision3:video_id:%s' % video_id, 'Revision3Embed', video_id) for video_id in re.findall(
-                r'<iframe[^>]+src=[\'"](?:https?:)?//api\.seekernetwork\.com/player/embed\?videoId=(\d+)', webpage)]
-            return self.playlist_result(
-                entries, article_id, self._og_search_title(webpage), self._og_search_description(webpage))
+        entries = []
+        for jwp_id in re.findall(r'data-video-id="([a-zA-Z0-9]{8})"', webpage):
+            entries.append(self.url_result(
+                'jwplatform:' + jwp_id, 'JWPlatform', jwp_id))
+        return self.playlist_result(
+            entries, article_id,
+            self._og_search_title(webpage),
+            strip_or_none(get_element_by_class('subtitle__text', webpage)) or self._og_search_description(webpage))

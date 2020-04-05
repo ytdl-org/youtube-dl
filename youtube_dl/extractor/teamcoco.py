@@ -84,6 +84,19 @@ class TeamcocoIE(TurnerBaseIE):
             'only_matching': True,
         }
     ]
+    _RECORD_TEMPL = '''id
+        title
+        teaser
+        publishOn
+        thumb {
+          preview
+        }
+        tags {
+          name
+        }
+        duration
+        turnerMediaId
+        turnerMediaAuthToken'''
 
     def _graphql_call(self, query_template, object_type, object_id):
         find_object = 'find' + object_type
@@ -98,36 +111,36 @@ class TeamcocoIE(TurnerBaseIE):
         display_id = self._match_id(url)
 
         response = self._graphql_call('''{
-  %s(slug: "%s") {
+  %%s(slug: "%%s") {
     ... on RecordSlug {
       record {
+        %s
+      }
+    }
+    ... on PageSlug {
+      child {
         id
-        title
-        teaser
-        publishOn
-        thumb {
-          preview
-        }
-        file {
-          url
-        }
-        tags {
-          name
-        }
-        duration
-        turnerMediaId
-        turnerMediaAuthToken
       }
     }
     ... on NotFoundSlug {
       status
     }
   }
-}''', 'Slug', display_id)
+}''' % self._RECORD_TEMPL, 'Slug', display_id)
         if response.get('status'):
             raise ExtractorError('This video is no longer available.', expected=True)
 
-        record = response['record']
+        child = response.get('child')
+        if child:
+            record = self._graphql_call('''{
+  %%s(id: "%%s") {
+    ... on Video {
+      %s
+    }
+  }
+}''' % self._RECORD_TEMPL, 'Record', child['id'])
+        else:
+            record = response['record']
         video_id = record['id']
 
         info = {
@@ -150,25 +163,21 @@ class TeamcocoIE(TurnerBaseIE):
                 'accessTokenType': 'jws',
             }))
         else:
-            d = self._download_json(
+            video_sources = self._download_json(
                 'https://teamcoco.com/_truman/d/' + video_id,
-                video_id, fatal=False) or {}
-            video_sources = d.get('meta') or {}
-            if not video_sources:
-                video_sources = self._graphql_call('''{
-  %s(id: "%s") {
-    src
-  }
-}''', 'RecordVideoSource', video_id) or {}
+                video_id)['meta']['src']
+            if isinstance(video_sources, dict):
+                video_sources = video_sources.values()
 
             formats = []
             get_quality = qualities(['low', 'sd', 'hd', 'uhd'])
-            for format_id, src in video_sources.get('src', {}).items():
+            for src in video_sources:
                 if not isinstance(src, dict):
                     continue
                 src_url = src.get('src')
                 if not src_url:
                     continue
+                format_id = src.get('label')
                 ext = determine_ext(src_url, mimetype2ext(src.get('type')))
                 if format_id == 'hls' or ext == 'm3u8':
                     # compat_urllib_parse.urljoin does not work here
@@ -190,9 +199,6 @@ class TeamcocoIE(TurnerBaseIE):
                         'format_id': format_id,
                         'quality': get_quality(format_id),
                     })
-            if not formats:
-                formats = self._extract_m3u8_formats(
-                    record['file']['url'], video_id, 'mp4', fatal=False)
             self._sort_formats(formats)
             info['formats'] = formats
 

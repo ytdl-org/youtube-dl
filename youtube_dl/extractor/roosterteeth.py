@@ -1,8 +1,6 @@
 # coding: utf-8
 from __future__ import unicode_literals
 
-import re
-
 from .common import InfoExtractor
 from ..compat import (
     compat_HTTPError,
@@ -18,7 +16,6 @@ from ..utils import (
 
 class RoosterTeethIE(InfoExtractor):
     _VALID_URL = r'https?://(?:.+?\.)?roosterteeth\.com/(?:episode|watch)/(?P<id>[^/?#&]+)'
-    _LOGIN_URL = 'https://roosterteeth.com/login'
     _NETRC_MACHINE = 'roosterteeth'
     _TESTS = [{
         'url': 'http://roosterteeth.com/episode/million-dollars-but-season-2-million-dollars-but-the-game-announcement',
@@ -53,48 +50,40 @@ class RoosterTeethIE(InfoExtractor):
         'url': 'https://roosterteeth.com/watch/million-dollars-but-season-2-million-dollars-but-the-game-announcement',
         'only_matching': True,
     }]
+    _EPISODE_BASE_URL = 'https://svod-be.roosterteeth.com/api/v1/episodes/'
 
     def _login(self):
         username, password = self._get_login_info()
         if username is None:
             return
 
-        login_page = self._download_webpage(
-            self._LOGIN_URL, None,
-            note='Downloading login page',
-            errnote='Unable to download login page')
-
-        login_form = self._hidden_inputs(login_page)
-
-        login_form.update({
-            'username': username,
-            'password': password,
-        })
-
-        login_request = self._download_webpage(
-            self._LOGIN_URL, None,
-            note='Logging in',
-            data=urlencode_postdata(login_form),
-            headers={
-                'Referer': self._LOGIN_URL,
-            })
-
-        if not any(re.search(p, login_request) for p in (
-                r'href=["\']https?://(?:www\.)?roosterteeth\.com/logout"',
-                r'>Sign Out<')):
-            error = self._html_search_regex(
-                r'(?s)<div[^>]+class=(["\']).*?\balert-danger\b.*?\1[^>]*>(?:\s*<button[^>]*>.*?</button>)?(?P<error>.+?)</div>',
-                login_request, 'alert', default=None, group='error')
-            if error:
-                raise ExtractorError('Unable to login: %s' % error, expected=True)
-            raise ExtractorError('Unable to log in')
+        try:
+            self._download_json(
+                'https://auth.roosterteeth.com/oauth/token',
+                None, 'Logging in', data=urlencode_postdata({
+                    'client_id': '4338d2b4bdc8db1239360f28e72f0d9ddb1fd01e7a38fbb07b4b1f4ba4564cc5',
+                    'grant_type': 'password',
+                    'username': username,
+                    'password': password,
+                }))
+        except ExtractorError as e:
+            msg = 'Unable to login'
+            if isinstance(e.cause, compat_HTTPError) and e.cause.code == 401:
+                resp = self._parse_json(e.cause.read().decode(), None, fatal=False)
+                if resp:
+                    error = resp.get('extra_info') or resp.get('error_description') or resp.get('error')
+                    if error:
+                        msg += ': ' + error
+            self.report_warning(msg)
 
     def _real_initialize(self):
+        if self._get_cookies(self._EPISODE_BASE_URL).get('rt_access_token'):
+            return
         self._login()
 
     def _real_extract(self, url):
         display_id = self._match_id(url)
-        api_episode_url = 'https://svod-be.roosterteeth.com/api/v1/episodes/%s' % display_id
+        api_episode_url = self._EPISODE_BASE_URL + display_id
 
         try:
             m3u8_url = self._download_json(
