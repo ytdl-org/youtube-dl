@@ -470,6 +470,7 @@ from .indavideo import IndavideoEmbedIE
 from .infoq import InfoQIE
 from .instagram import (
     InstagramIE,
+    InstagramStoriesIE,
     InstagramUserIE,
     InstagramTagIE,
 )
