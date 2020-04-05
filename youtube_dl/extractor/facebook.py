@@ -482,9 +482,7 @@ class FacebookIE(InfoExtractor):
         shares_count = parse_count(self._extract_shares(webpage, tahoe_data))
         comment_count = parse_count(self._extract_comments_count(webpage, tahoe_data))
 
-        uploader_handle = self._search_regex(r'"video_path":"\\\/([^\/]+)\\\/', tahoe_data.primary, 'uploader_handle', fatal=False)
-        if uploader_handle:
-            uploader_handle = uploader_handle.lower()
+        uploader_handle = self._resolve_uploader_handle(tahoe_data, uploader_id)
         info_dict = {
             'id': video_id,
             'title': video_title,
@@ -511,6 +509,16 @@ class FacebookIE(InfoExtractor):
             info_dict['uploader_like_count'] = FacebookAjax(self, webpage, uploader_id).page_likes
 
         return webpage, info_dict
+
+    def _resolve_uploader_handle(self, tahoe_data, uploader_id):
+        uploader_handle = self._search_regex(r'"video_path":"\\\/([^\/]+)\\\/', tahoe_data.primary, 'uploader_handle',
+                                             fatal=False)
+        if uploader_handle == uploader_id:
+            uploader_handle = self._search_regex(r'href=\\"https:\\\/\\\/www.facebook.com\\\/(.+?)\\\/\\', tahoe_data.secondary,
+                                               'uploader_handle',
+                                                 fatal=False)
+
+        return uploader_handle
 
     def _extract_meta_count(self, fields, webpage, tahoe_data, name, ):
         value = None
