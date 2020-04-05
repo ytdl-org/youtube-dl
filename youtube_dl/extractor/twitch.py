@@ -643,7 +643,14 @@ class TwitchStreamIE(TwitchBaseIE):
 
 class TwitchClipsIE(TwitchBaseIE):
     IE_NAME = 'twitch:clips'
-    _VALID_URL = r'https?://(?:clips\.twitch\.tv/(?:embed\?.*?\bclip=|(?:[^/]+/)*)|(?:www\.)?twitch\.tv/[^/]+/clip/)(?P<id>[^/?#&]+)'
+    _VALID_URL = r'''(?x)
+                    https?://
+                        (?:
+                            clips\.twitch\.tv/(?:embed\?.*?\bclip=|(?:[^/]+/)*)|
+                            (?:www\.)?twitch\.tv/[^/]+/clip/
+                        )
+                        (?P<id>[^/?#&]+)
+                    '''
 
     _TESTS = [{
         'url': 'https://clips.twitch.tv/FaintLightGullWholeWheat',
