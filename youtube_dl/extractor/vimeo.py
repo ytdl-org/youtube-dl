@@ -585,7 +585,7 @@ class VimeoIE(VimeoBaseInfoExtractor):
                 url = 'https://vimeo.com/' + video_id
         elif is_player:
             url = 'https://player.vimeo.com/video/' + video_id
-        elif any(p in url for p in ('play_redirect_hls', 'moogaloop.swf', '/album/', '/showcase/')):
+        elif any(p in url for p in ('play_redirect_hls', 'moogaloop.swf')):
             url = 'https://vimeo.com/' + video_id
 
         try:
