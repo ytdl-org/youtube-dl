@@ -70,24 +70,26 @@ class YuJaIE(InfoExtractor):
             return self.url_result(data.get('youtubeCode'), YoutubeIE.ie_key())
 
         formats = []
+
         if data.get('videoHLSLink'):
             formats.append({
-                'format_id': 'mp4_hls',
                 'url': data.get('videoHLSLink'),
-                'protocol': 'm3u8',
                 'ext': 'mp4',
+                'format_id': 'mp4_hls',
+                'protocol': 'm3u8',
             })
 
         if data.get('videoLinkMp4'):
             formats.append({
-                'format_id': 'mp4',
                 'url': data.get('videoLinkMp4'),
                 'ext': 'mp4',
+                'format_id': 'mp4',
             })
+
 
         return {
             'id': video_id,
-            'title': data.get('videoTitle'),
+            'title': data['videoTitle'],
             # 'url': data.get('videoLinkMp4'),
             'formats': formats,
             'thumbnail': 'https://%s.yuja.com%s' % (subdomain, data.get('thumbImage')),
