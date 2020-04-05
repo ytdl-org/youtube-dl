@@ -57,13 +57,17 @@ class YuJaIE(InfoExtractor):
         if auth_id == '0':
             _NODE_REGEX = r'https?://(?P<subdomain>[a-z0-9]+)\.yuja\.com/V/(?:Watch|Video)\?v=(?P<id>[0-9]+)(?:.*)&node=(?P<node>[0-9]+)'
             subdomain, video_id, node_id = re.match(_NODE_REGEX, url).groups()
+
             # get new link using node ID
-            direct_link = self._download_json('https://%s.yuja.com/P/Data/VideoJSON?video=%i&node=%i&checkUser=true&a=%s'
-                                              % (subdomain, int(video_id), int(node_id), int(auth_id)), video_id, query={})['video']['directLink']
+            direct_link = self._download_json(
+                'https://%s.yuja.com/P/Data/VideoJSON?video=%i&node=%i&checkUser=true&a=%s'
+                % (subdomain, int(video_id), int(node_id), int(auth_id)), video_id, query={})['video']['directLink']
+
             auth_id = re.match(self._VALID_URL, direct_link).group('auth')
 
-        data = self._download_json('https://%s.yuja.com/P/Data/VideoJSON?video=%i&a=%i&getPlayerType=true'
-                                   % (subdomain, int(video_id), int(auth_id)), video_id, query={})['video']
+        data = self._download_json(
+            'https://%s.yuja.com/P/Data/VideoJSON?video=%i&a=%i&getPlayerType=true'
+            % (subdomain, int(video_id), int(auth_id)), video_id, query={})['video']
 
         # for YouTube embeds
         if data.get('youtubeCode'):
@@ -91,7 +95,6 @@ class YuJaIE(InfoExtractor):
         return {
             'id': video_id,
             'title': data['videoTitle'],
-            # 'url': data.get('videoLinkMp4'),
             'formats': formats,
             'thumbnail': 'https://%s.yuja.com%s' % (subdomain, data.get('thumbImage')),
             'description': data.get('description'),
