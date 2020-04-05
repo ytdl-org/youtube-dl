@@ -448,7 +448,7 @@ class FFmpegMetadataPP(FFmpegPostProcessor):
                     break
 
         add('title', ('track', 'title'))
-        add('date', 'upload_date')
+        add('date', ('release_year', 'upload_date'))
         add(('description', 'comment'), 'description')
         add('purl', 'webpage_url')
         add('track', 'track_number')
