@@ -47,7 +47,8 @@ class DigitalConcertHallIE(InfoExtractor):
         vid_info_dict = self._download_json(
             'https://api.digitalconcerthall.com/v2/concert/'
             + video_id, video_id, headers={'Accept': 'application/json',
-                                           'Accept-Language': language}).get('_embedded')
+                                           'Accept-Language': language})
+        embedded = vid_info_dict.get('_embedded')
 
         entries = []
         for key in playlist_dict:
@@ -57,17 +58,49 @@ class DigitalConcertHallIE(InfoExtractor):
             formats = self._extract_m3u8_formats(
                 m3u8_url, key, 'mp4', 'm3u8_native', m3u8_id='hls', fatal=False)
             self.debug_out(formats)
-            title = [vid_info_dict.get(x)[0].get('title', "unknown title") for x in vid_info_dict
-                     if vid_info_dict.get(x)[0].get('id') == key][0]
+            flat_list = []
+            for embed_type in embedded:
+                for item in embedded.get(embed_type):
+                    if embed_type == 'interview':
+                        item['is_interview'] = 1
+                    else:
+                        item['is_interview'] = 0
+                    flat_list.append(item)
+            vid_info = [x for x in flat_list if x.get('id') == key][0]
+            if vid_info.get('is_interview') == 1:
+                title = "Interview - " + vid_info.get('title', "unknown interview title")
+            else:
+                title = (vid_info.get('name_composer') if vid_info.get('name_composer')
+                         else 'unknown composer') + ' - ' + vid_info.get('title', "unknown title")
+            duration = vid_info.get('duration_total')
             # avoid filenames that exceed filesystem limits
             title = (title[:MAX_TITLE_LENGTH] + '..') if len(title) > MAX_TITLE_LENGTH else title
+            # append the duration in minutes to the title
+            title = title + " (" + str(round(duration / 60)) + " min.)"
             self.debug_out("title: " + title)
+            timestamp = vid_info.get('date').get('published')
             entries.append({
                 'id': key,
                 'title': title,
                 'url': m3u8_url,
                 'formats': formats,
+                'duration': duration,
+                'timestamp': timestamp,
             })
+            if vid_info_dict.get('short_description'):
+                entries[-1]['description'] = vid_info_dict.get('short_description')
+            if vid_info.get('cuepoints'):
+                chapters = []
+                for chapter in vid_info.get('cuepoints'):
+                    start_time = chapter.get('time')
+                    end_time = start_time + chapter.get('duration')
+                    chapter_title = chapter.get('text')
+                    chapters.append({
+                        'start_time': start_time,
+                        'end_time': end_time,
+                        'title': chapter_title
+                    })
+                entries[-1]['chapters'] = chapters
 
         return {
             '_type': 'playlist',
