@@ -67,6 +67,12 @@ class SpankwireIE(InfoExtractor):
         'only_matching': True,
     }]
 
+    @staticmethod
+    def _extract_urls(webpage):
+        return re.findall(
+            r'<iframe[^>]+\bsrc=["\']((?:https?:)?//(?:www\.)?spankwire\.com/EmbedPlayer\.aspx/?\?.*?\bArticleId=\d+)',
+            webpage)
+
     def _real_extract(self, url):
         video_id = self._match_id(url)
 

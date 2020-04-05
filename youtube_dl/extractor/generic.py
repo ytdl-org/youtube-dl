@@ -60,6 +60,7 @@ from .tnaflix import TNAFlixNetworkEmbedIE
 from .drtuber import DrTuberIE
 from .redtube import RedTubeIE
 from .tube8 import Tube8IE
+from .spankwire import SpankwireIE
 from .vimeo import VimeoIE
 from .dailymotion import DailymotionIE
 from .dailymail import DailyMailIE
@@ -2714,6 +2715,11 @@ class GenericIE(InfoExtractor):
         tube8_urls = Tube8IE._extract_urls(webpage)
         if tube8_urls:
             return self.playlist_from_matches(tube8_urls, video_id, video_title, ie=Tube8IE.ie_key())
+
+        # Look for embedded Spankwire player
+        spankwire_urls = SpankwireIE._extract_urls(webpage)
+        if spankwire_urls:
+            return self.playlist_from_matches(spankwire_urls, video_id, video_title, ie=SpankwireIE.ie_key())
 
         # Look for embedded Tvigle player
         mobj = re.search(
