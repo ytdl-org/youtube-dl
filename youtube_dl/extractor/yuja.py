@@ -2,7 +2,10 @@
 from __future__ import unicode_literals
 
 import re
-from ..utils import unified_timestamp
+from ..utils import (
+    unified_timestamp,
+    float_or_none
+)
 from .youtube import YoutubeIE
 
 from .common import InfoExtractor
@@ -55,13 +58,15 @@ class YuJaIE(InfoExtractor):
 
         # for some URLs, auth ID is 0 and another auth ID must be resolved from the node ID
         if auth_id == '0':
-            _NODE_REGEX = r'https?://(?P<subdomain>[a-z0-9]+)\.yuja\.com/V/(?:Watch|Video)\?v=(?P<id>[0-9]+)(?:.*)&node=(?P<node>[0-9]+)'
-            subdomain, video_id, node_id = re.match(_NODE_REGEX, url).groups()
+            subdomain, video_id, node_id = re.match(
+                r'https?://(?P<subdomain>[a-z0-9]+)\.yuja\.com/V/(?:Watch|Video)\?v=(?P<id>[0-9]+)(?:.*)&node=(?P<node>[0-9]+)',
+                url).groups()
 
             # get new link using node ID
             direct_link = self._download_json(
                 'https://%s.yuja.com/P/Data/VideoJSON?video=%i&node=%i&checkUser=true&a=%s'
-                % (subdomain, int(video_id), int(node_id), int(auth_id)), video_id, query={})['video']['directLink']
+                % (subdomain, int(video_id), int(node_id), int(auth_id)),
+                video_id, query={})['video']['directLink']
 
             auth_id = re.match(self._VALID_URL, direct_link).group('auth')
 
@@ -81,7 +86,6 @@ class YuJaIE(InfoExtractor):
                 'ext': 'mp4',
                 'format_id': 'mp4_hls',
                 'protocol': 'm3u8',
-                'source_preference': 1
             })
 
         if data.get('videoLinkMp4'):
@@ -89,7 +93,6 @@ class YuJaIE(InfoExtractor):
                 'url': data.get('videoLinkMp4'),
                 'ext': 'mp4',
                 'format_id': 'mp4',
-                'source_preference': 0
             })
 
         return {
@@ -98,7 +101,7 @@ class YuJaIE(InfoExtractor):
             'formats': formats,
             'thumbnail': 'https://%s.yuja.com%s' % (subdomain, data.get('thumbImage')),
             'description': data.get('description'),
-            'timestamp': unified_timestamp(data.get('postedDate')),
+            'timestamp': unified_timestamp(data.get('postedDate') or data.get('lastModifiedTimestamp')),
             # 'automatic_captions': TODO: add captions
-            'duration': float(data.get('duration'))
+            'duration': float_or_none(data.get('duration'))
         }
