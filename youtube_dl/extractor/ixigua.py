@@ -16,7 +16,7 @@ class IxiguaIE(InfoExtractor):
             url, video_id
         )
 
-        title = self._html_search_regex(r'<title>(\S+) - \S+', webpage, 'title')
+        title = self._html_search_regex(r'<title>(\S+ - \S+)</title>', webpage, 'title')
 
         download_url = self._html_search_regex(
 
