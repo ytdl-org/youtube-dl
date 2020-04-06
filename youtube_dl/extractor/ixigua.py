@@ -7,7 +7,7 @@ from .common import InfoExtractor
 
 class IxiguaIE(InfoExtractor):
 
-    _VALID_URL = r'https://www.ixigua.com/(?P<id>\d+)/'
+    _VALID_URL = r'https://www.ixigua.com/i(?P<id>\d+)/'
 
     def _real_extract(self, url):
         video_id = self._match_id(url)
@@ -16,7 +16,7 @@ class IxiguaIE(InfoExtractor):
             url, video_id
         )
 
-        title = self._html_search_regex(r'<title>(.+?)</title>', webpage, 'title')
+        title = self._html_search_regex(r'<title>(\S+) - \S+', webpage, 'title')
 
         download_url = self._html_search_regex(
 
@@ -25,6 +25,7 @@ class IxiguaIE(InfoExtractor):
             webpage, "download_url"
         )
         return {
+
             'id': video_id,
             'url': download_url,
             'title': title
