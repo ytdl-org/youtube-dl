@@ -647,7 +647,7 @@ class TwitchClipsIE(TwitchBaseIE):
                     https?://
                         (?:
                             clips\.twitch\.tv/(?:embed\?.*?\bclip=|(?:[^/]+/)*)|
-                            (?:www\.)?twitch\.tv/[^/]+/clip/
+                            (?:(?:www|go|m)\.)?twitch\.tv/[^/]+/clip/
                         )
                         (?P<id>[^/?#&]+)
                     '''
@@ -675,6 +675,12 @@ class TwitchClipsIE(TwitchBaseIE):
         'only_matching': True,
     }, {
         'url': 'https://clips.twitch.tv/embed?clip=InquisitiveBreakableYogurtJebaited',
+        'only_matching': True,
+    }, {
+        'url': 'https://m.twitch.tv/rossbroadcast/clip/ConfidentBraveHumanChefFrank',
+        'only_matching': True,
+    }, {
+        'url': 'https://go.twitch.tv/rossbroadcast/clip/ConfidentBraveHumanChefFrank',
         'only_matching': True,
     }]
 
