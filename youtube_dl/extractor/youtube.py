@@ -2184,9 +2184,9 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
             video_alt_title = video_creator = None
 
         def extract_meta(field):
-            return re.search(
+            return self._search_regex(
                 r'<h4[^>]+class="title"[^>]*>\s*%s\s*</h4>\s*<ul[^>]*>\s*<li>(.+?)</li>\s*' % field,
-                video_webpage).group(1)
+                video_webpage, field, default=None)
 
         def extract_meta_url(list_elem_content:str):
             if list_elem_content.endswith('</a>'):
@@ -2194,8 +2194,18 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
             else:
                 return None, list_elem_content
 
-        music_relative_url, track = extract_meta_url(extract_meta('Song'))
-        artist_relative_url, artist = extract_meta_url(extract_meta('Artist'))
+        song_elem_content = extract_meta('Song')
+        if song_elem_content:
+            music_relative_url, track = extract_meta_url(song_elem_content)
+        else:
+            music_relative_url = track = None
+
+        artist_elem_content = extract_meta('Artist')
+        if artist_elem_content:
+            artist_relative_url, artist = extract_meta_url(artist_elem_content)
+        else:
+            artist_relative_url = artist = None
+
         album = extract_meta('Album')
 
         # Youtube Music Auto-generated description
