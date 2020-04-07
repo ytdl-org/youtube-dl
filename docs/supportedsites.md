@@ -542,6 +542,7 @@
  - **ndr:embed**
  - **ndr:embed:base**
  - **NDTV**
+ - **Nebula**
  - **NerdCubedFeed**
  - **netease:album**: 网易云音乐 - 专辑
  - **netease:djradio**: 网易云音乐 - 电台
