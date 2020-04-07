@@ -2184,12 +2184,18 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
             video_alt_title = video_creator = None
 
         def extract_meta(field):
-            return self._html_search_regex(
+            return re.search(
                 r'<h4[^>]+class="title"[^>]*>\s*%s\s*</h4>\s*<ul[^>]*>\s*<li>(.+?)</li>\s*' % field,
-                video_webpage, field, default=None)
+                video_webpage).group(1)
 
-        track = extract_meta('Song')
-        artist = extract_meta('Artist')
+        def extract_meta_url(list_elem_content:str):
+            if list_elem_content.endswith('</a>'):
+                return re.search(r'<a.*href="(.+?)".*>(.*)</a>', list_elem_content).groups()
+            else:
+                return None, list_elem_content
+
+        music_relative_url, track = extract_meta_url(extract_meta('Song'))
+        artist_relative_url, artist = extract_meta_url(extract_meta('Artist'))
         album = extract_meta('Album')
 
         # Youtube Music Auto-generated description
@@ -2404,6 +2410,8 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
             'album': album,
             'release_date': release_date,
             'release_year': release_year,
+            'artist_relative_url': artist_relative_url,
+            'music_relative_url': music_relative_url,
         }
 
 
