@@ -1447,6 +1447,7 @@ from .yandexvideo import YandexVideoIE
 from .yapfiles import YapFilesIE
 from .yesjapan import YesJapanIE
 from .yinyuetai import YinYueTaiIE
+from .yjc import yjcIE
 from .ynet import YnetIE
 from .youjizz import YouJizzIE
 from .youku import (
