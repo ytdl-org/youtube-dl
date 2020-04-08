@@ -490,7 +490,7 @@ from .ivi import (
 from .ivideon import IvideonIE
 from .iwara import IwaraIE
 
-from .ixigua import IxiguaIE
+
 from .izlesene import IzleseneIE
 from .jamendo import (
     JamendoIE,
@@ -618,6 +618,7 @@ from .melonvod import MelonVODIE
 from .meta import METAIE
 from .metacafe import MetacafeIE
 from .metacritic import MetacriticIE
+from .metrotvnews import MetrotvnewsIE
 from .mgoon import MgoonIE
 from .mgtv import MGTVIE
 from .miaopai import MiaoPaiIE
