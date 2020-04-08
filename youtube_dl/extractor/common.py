@@ -2340,6 +2340,8 @@ class InfoExtractor(object):
         if res is False:
             return []
         ism_doc, urlh = res
+        if ism_doc is None:
+            return []
 
         return self._parse_ism_formats(ism_doc, urlh.geturl(), ism_id)
 
