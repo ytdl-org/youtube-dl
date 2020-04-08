@@ -6,10 +6,12 @@ from .common import InfoExtractor
 
 
 class MetrotvnewsIE(InfoExtractor):
+
     _VALID_URL = r'https:\/\/www.metrotvnews\.com\/play\/(?P<id>\S+)-\S+'
 
 
     def _real_extract(self, url):
+
         video_id = self._match_id(url)
 
         webpage = self._download_webpage(
@@ -22,6 +24,7 @@ class MetrotvnewsIE(InfoExtractor):
             r'(https:\/\/cdn01\.metrotvnews\.com\/videos\/\d+\/\d+\/\d+\/\S+.mp4)',
             webpage, "download_url"
         )
+
         return {
             'id': video_id,
             'url': download_url,
