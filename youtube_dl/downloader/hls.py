@@ -64,7 +64,7 @@ class HlsFD(FragmentFD):
         s = urlh.read().decode('utf-8', 'ignore')
 
         if not self.can_download(s, info_dict):
-            if info_dict.get('extra_param_to_segment_url') or info_dict.get('_decryption_key_url'):
+            if info_dict.get('extra_param_to_segment_url') or info_dict.get('extra_param_to_key_url'):
                 self.report_error('pycrypto not found. Please install it.')
                 return False
             self.report_warning(
@@ -115,13 +115,17 @@ class HlsFD(FragmentFD):
 
         extra_segment_query = None
         extra_key_query = None
+        extra_key_url = None
         extra_param_to_segment_url = info_dict.get('extra_param_to_segment_url')
+        extra_param_to_key_url = info_dict.get('extra_param_to_key_url')
         if extra_param_to_segment_url:
             extra_segment_query = compat_urlparse.parse_qs(extra_param_to_segment_url)
             extra_key_query = compat_urlparse.parse_qs(extra_param_to_segment_url)
-        extra_param_to_key_url = info_dict.get('extra_param_to_key_url')
         if extra_param_to_key_url:
-            extra_key_query = compat_urlparse.parse_qs(extra_param_to_key_url)
+            if extra_param_to_key_url.startswith('http'):
+                extra_key_url = extra_param_to_key_url
+            else:
+                extra_key_query = compat_urlparse.parse_qs(extra_param_to_key_url)
         i = 0
         media_sequence = 0
         decrypt_info = {'METHOD': 'NONE'}
@@ -174,8 +178,10 @@ class HlsFD(FragmentFD):
                     if decrypt_info['METHOD'] == 'AES-128':
                         iv = decrypt_info.get('IV') or compat_struct_pack('>8xq', media_sequence)
                         decrypt_info['KEY'] = decrypt_info.get('KEY') or self.ydl.urlopen(
-                            self._prepare_url(info_dict, info_dict.get('_decryption_key_url') or decrypt_info['URI'])).read()
-                        # We don't decrypt fragments during the test
+                            self._prepare_url(info_dict, decrypt_info['URI'])).read()
+                        # Since "self._TEST_FILE_SIZE" is set to 10241 bytes, only those will be downloaded for the first fragment
+                        # In case a fragment is bigger then 10241 bytes, the fragment will be cropped so AES-CBC decryption will fail.
+                        # For this reason we can't decrypt fragments during the tests.
                         if not test:
                             frag_content = AES.new(
                                 decrypt_info['KEY'], AES.MODE_CBC, iv).decrypt(frag_content)
@@ -196,6 +202,8 @@ class HlsFD(FragmentFD):
                                 man_url, decrypt_info['URI'])
                         if extra_key_query:
                             decrypt_info['URI'] = update_url_query(decrypt_info['URI'], extra_key_query)
+                        elif extra_key_url:
+                            decrypt_info['URI'] = extra_key_url
                         if decrypt_url != decrypt_info['URI']:
                             decrypt_info['KEY'] = None
                 elif line.startswith('#EXT-X-MEDIA-SEQUENCE'):
