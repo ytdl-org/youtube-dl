@@ -18,7 +18,7 @@ from .acast import (
     ACastIE,
     ACastChannelIE,
 )
-from .acidcow import acidcowIE
+
 from .adn import ADNIE
 from .adobeconnect import AdobeConnectIE
 from .adobetv import (
