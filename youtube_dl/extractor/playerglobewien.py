@@ -26,7 +26,7 @@ class PlayerGlobeWienIE(InfoExtractor):
         formats = []
         title = self._html_search_regex(r'<title>(.+?)</title>', webpage, 'title')
 
-        stream_url = self._download_webpage("https://player.globe.wien/api/playout?vodId="+video_id, video_id)
+        stream_url = self._download_webpage("https://player.globe.wien/api/playout?vodId=" + video_id, video_id)
 
         hls_url = self._parse_json(stream_url, video_id)['streamUrl']['hls']
 
@@ -39,4 +39,3 @@ class PlayerGlobeWienIE(InfoExtractor):
             'title': title,
             'formats': formats,
         }
-
