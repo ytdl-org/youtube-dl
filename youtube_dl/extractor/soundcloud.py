@@ -350,6 +350,8 @@ class SoundcloudIE(InfoExtractor):
             format_id_list = []
             if protocol:
                 format_id_list.append(protocol)
+            if f.get('ext') == 'aac':
+                f['abr'] = '256'
             for k in ('ext', 'abr'):
                 v = f.get(k)
                 if v:
