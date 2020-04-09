@@ -150,7 +150,7 @@ class Zingmp3_vnIE(InfoExtractor):
 
         def get_lyric(data):
             """
-            - Lyric is description and subtitle for media, use --get-description or --all-subs to get.
+            - Lyric is description and subtitle for media, use --get-description get.
             :param data:
             :return: str
             """
@@ -245,14 +245,6 @@ class Zingmp3_vnIE(InfoExtractor):
                 'artists': artists,
                 'thumbnail': thumbnail,
                 'description': lyric,
-                "subtitles": {
-                    "lyric": [
-                        {
-                            "ext": "txt",
-                            "data": lyric
-                        }
-                    ],
-                },
                 'created_at': created_at,
                 'released_at': released_at,
                 'like_count': like_count,
@@ -662,18 +654,12 @@ class Zingmp3_vnUserIE(Zingmp3_vnIE):
         name_api = self.list_name_api_user.get(slug_name) or None
         self.id_artist = None
         if nghe_si:
-            webpage = self._download_webpage(url_or_request=r"https://mp3.zing.vn/nghe-si/%s" % name, video_id=name)
-            self.id_artist = self._search_regex(r'''(?x)
-                                    \<a.*?tracking=\"\_frombox=artist_artistfollow\"
-                                        \s+data-id=\"(?P<id_artist>.*?)\"
-                                        \s+data-type=\"(?P<data_type>.*?)\"
-                                        \s+data-name=\"(?P<data_name>.*?)\".*?\>
-                                        ''', webpage, "artist id", group="id_artist", default=None, fatal=False)
+            api = self.get_api_with_signature(name_api="/artist/get-detail", alias=name)
         else:
             api = self.get_api_with_signature(name_api="/oa/get-artist-info", alias=name)
-            info = self._download_json(url_or_request=api, video_id=name)
-            if info.get('msg') == 'Success':
-                self.id_artist = try_get(info, lambda x: x['data']['artist_id'], compat_str) or None
+        info = self._download_json(url_or_request=api, video_id=name)
+        if info.get('msg') == 'Success':
+            self.id_artist = try_get(info, lambda x: x['data']['id'], compat_str) or None
 
         if self.id_artist:
             self.api = self.get_api_with_signature(name_api=name_api, video_id=self.id_artist)
