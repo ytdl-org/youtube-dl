@@ -837,6 +837,7 @@ from .platzi import (
     PlatziIE,
     PlatziCourseIE,
 )
+from .playerglobewien import PlayerGlobeWienIE
 from .playfm import PlayFMIE
 from .playplustv import PlayPlusTVIE
 from .plays import PlaysTVIE
