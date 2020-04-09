@@ -1840,15 +1840,26 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                         # fields may contain comma as well (see
                         # https://github.com/ytdl-org/youtube-dl/issues/8536)
                         feed_data = compat_parse_qs(compat_urllib_parse_unquote_plus(feed))
+
+                        def feed_entry(name):
+                            return try_get(feed_data, lambda x: x[name][0], compat_str)
+
+                        feed_id = feed_entry('id')
+                        if not feed_id:
+                            continue
+                        feed_title = feed_entry('title')
+                        title = video_title
+                        if feed_title:
+                            title += ' (%s)' % feed_title
                         entries.append({
                             '_type': 'url_transparent',
                             'ie_key': 'Youtube',
                             'url': smuggle_url(
                                 '%s://www.youtube.com/watch?v=%s' % (proto, feed_data['id'][0]),
                                 {'force_singlefeed': True}),
-                            'title': '%s (%s)' % (video_title, feed_data['title'][0]),
+                            'title': title,
                         })
-                        feed_ids.append(feed_data['id'][0])
+                        feed_ids.append(feed_id)
                     self.to_screen(
                         'Downloading multifeed video (%s) - add --no-playlist to just download video %s'
                         % (', '.join(feed_ids), video_id))
