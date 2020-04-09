@@ -6,18 +6,27 @@ from .common import InfoExtractor
 
 class PlayerGlobeWienIE(InfoExtractor):
     _VALID_URL = r'https?://player.globe.wien/globe-wien/(?P<id>.*)'
-    _TEST = {
+    _TESTS = [{
         'url': 'https://player.globe.wien/globe-wien/corona-podcast-teil-4',
         'info_dict': {
             'id': 'corona-podcast-teil-4',
             'ext': 'mp4',
             'title': 'Globe Wien VOD - Eckel & Niavarani & Sarsam - Im Endspurt versagt',
-            'url': 'https://player.globe.wien/globe-wien/corona-podcast-teil-4',
         },
         'params': {
-            'format': 'bestvideo+bestaudio/best',
+            'format': 'bestvideo',
         }
-    }
+    }, {
+        'url': 'https://player.globe.wien/globe-wien/corona-podcast-teil-4',
+        'info_dict': {
+            'id': 'corona-podcast-teil-4',
+            'ext': 'mp4',
+            'title': 'Globe Wien VOD - Eckel & Niavarani & Sarsam - Im Endspurt versagt',
+        },
+        'params': {
+            'format': 'bestaudio',
+        }
+    }]
 
     def _real_extract(self, url):
         video_id = self._match_id(url)
