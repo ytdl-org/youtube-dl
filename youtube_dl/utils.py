@@ -46,6 +46,7 @@ from .compat import (
     compat_html_entities,
     compat_html_entities_html5,
     compat_http_client,
+    compat_integer_types,
     compat_kwargs,
     compat_os_name,
     compat_parse_qs,
@@ -1718,13 +1719,16 @@ DATE_FORMATS = (
     '%B %d %Y',
     '%B %dst %Y',
     '%B %dnd %Y',
+    '%B %drd %Y',
     '%B %dth %Y',
     '%b %d %Y',
     '%b %dst %Y',
     '%b %dnd %Y',
+    '%b %drd %Y',
     '%b %dth %Y',
     '%b %dst %Y %I:%M',
     '%b %dnd %Y %I:%M',
+    '%b %drd %Y %I:%M',
     '%b %dth %Y %I:%M',
     '%Y %m %d',
     '%Y-%m-%d',
@@ -2725,6 +2729,11 @@ class YoutubeDLHTTPSHandler(compat_urllib_request.HTTPSHandler):
 
 
 class YoutubeDLCookieJar(compat_cookiejar.MozillaCookieJar):
+    """
+    See [1] for cookie file format.
+
+    1. https://curl.haxx.se/docs/http-cookies.html
+    """
     _HTTPONLY_PREFIX = '#HttpOnly_'
 
     def save(self, filename=None, ignore_discard=False, ignore_expires=False):
@@ -2789,6 +2798,15 @@ class YoutubeDLCookieProcessor(compat_urllib_request.HTTPCookieProcessor):
 
     https_request = compat_urllib_request.HTTPCookieProcessor.http_request
     https_response = http_response
+
+
+class YoutubeDLRedirectHandler(compat_urllib_request.HTTPRedirectHandler):
+    if sys.version_info[0] < 3:
+        def redirect_request(self, req, fp, code, msg, headers, newurl):
+            # On python 2 urlh.geturl() may sometimes return redirect URL
+            # as byte string instead of unicode. This workaround allows
+            # to force it always return unicode.
+            return compat_urllib_request.HTTPRedirectHandler.redirect_request(self, req, fp, code, msg, headers, compat_str(newurl))
 
 
 def extract_timezone(date_str):
@@ -3516,10 +3534,11 @@ def str_or_none(v, default=None):
 
 def str_to_int(int_str):
     """ A more relaxed version of int_or_none """
-    if int_str is None:
-        return None
-    int_str = re.sub(r'[,\.\+]', '', int_str)
-    return int(int_str)
+    if isinstance(int_str, compat_integer_types):
+        return int_str
+    elif isinstance(int_str, compat_str):
+        int_str = re.sub(r'[,\.\+]', '', int_str)
+        return int_or_none(int_str)
 
 
 def float_or_none(v, scale=1, invscale=1, default=None):
@@ -5378,6 +5397,19 @@ def decode_packed_codes(code):
     return re.sub(
         r'\b(\w+)\b', lambda mobj: symbol_table[mobj.group(0)],
         obfucasted_code)
+
+
+def caesar(s, alphabet, shift):
+    if shift == 0:
+        return s
+    l = len(alphabet)
+    return ''.join(
+        alphabet[(alphabet.index(c) + shift) % l] if c in alphabet else c
+        for c in s)
+
+
+def rot47(s):
+    return caesar(s, r'''!"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\]^_`abcdefghijklmnopqrstuvwxyz{|}~''', 47)
 
 
 def parse_m3u8_attributes(attrib):

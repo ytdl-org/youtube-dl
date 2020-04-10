@@ -3,9 +3,10 @@ from __future__ import unicode_literals
 
 from .common import InfoExtractor
 from ..utils import (
-    clean_html,
-    xpath_text,
     int_or_none,
+    strip_or_none,
+    unescapeHTML,
+    xpath_text,
 )
 
 
@@ -47,10 +48,10 @@ class NTVRuIE(InfoExtractor):
             'duration': 1496,
         },
     }, {
-        'url': 'http://www.ntv.ru/kino/Koma_film',
-        'md5': 'f825770930937aa7e5aca0dc0d29319a',
+        'url': 'https://www.ntv.ru/kino/Koma_film/m70281/o336036/video/',
+        'md5': 'e9c7cde24d9d3eaed545911a04e6d4f4',
         'info_dict': {
-            'id': '1007609',
+            'id': '1126480',
             'ext': 'mp4',
             'title': 'Остросюжетный фильм «Кома»',
             'description': 'Остросюжетный фильм «Кома»',
@@ -68,6 +69,10 @@ class NTVRuIE(InfoExtractor):
             'thumbnail': r're:^http://.*\.jpg',
             'duration': 2590,
         },
+    }, {
+        # Schemeless file URL
+        'url': 'https://www.ntv.ru/video/1797442',
+        'only_matching': True,
     }]
 
     _VIDEO_ID_REGEXES = [
@@ -96,37 +101,31 @@ class NTVRuIE(InfoExtractor):
             'http://www.ntv.ru/vi%s/' % video_id,
             video_id, 'Downloading video XML')
 
-        title = clean_html(xpath_text(player, './data/title', 'title', fatal=True))
-        description = clean_html(xpath_text(player, './data/description', 'description'))
+        title = strip_or_none(unescapeHTML(xpath_text(player, './data/title', 'title', fatal=True)))
 
         video = player.find('./data/video')
-        video_id = xpath_text(video, './id', 'video id')
-        thumbnail = xpath_text(video, './splash', 'thumbnail')
-        duration = int_or_none(xpath_text(video, './totaltime', 'duration'))
-        view_count = int_or_none(xpath_text(video, './views', 'view count'))
-
-        token = self._download_webpage(
-            'http://stat.ntv.ru/services/access/token',
-            video_id, 'Downloading access token')
 
         formats = []
         for format_id in ['', 'hi', 'webm']:
-            file_ = video.find('./%sfile' % format_id)
-            if file_ is None:
+            file_ = xpath_text(video, './%sfile' % format_id)
+            if not file_:
                 continue
-            size = video.find('./%ssize' % format_id)
+            if file_.startswith('//'):
+                file_ = self._proto_relative_url(file_)
+            elif not file_.startswith('http'):
+                file_ = 'http://media.ntv.ru/vod/' + file_
             formats.append({
-                'url': 'http://media2.ntv.ru/vod/%s&tok=%s' % (file_.text, token),
-                'filesize': int_or_none(size.text if size is not None else None),
+                'url': file_,
+                'filesize': int_or_none(xpath_text(video, './%ssize' % format_id)),
             })
         self._sort_formats(formats)
 
         return {
-            'id': video_id,
+            'id': xpath_text(video, './id'),
             'title': title,
-            'description': description,
-            'thumbnail': thumbnail,
-            'duration': duration,
-            'view_count': view_count,
+            'description': strip_or_none(unescapeHTML(xpath_text(player, './data/description'))),
+            'thumbnail': xpath_text(video, './splash'),
+            'duration': int_or_none(xpath_text(video, './totaltime')),
+            'view_count': int_or_none(xpath_text(video, './views')),
             'formats': formats,
         }

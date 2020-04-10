@@ -43,8 +43,15 @@ class RedTubeIE(InfoExtractor):
         webpage = self._download_webpage(
             'http://www.redtube.com/%s' % video_id, video_id)
 
-        if any(s in webpage for s in ['video-deleted-info', '>This video has been removed']):
-            raise ExtractorError('Video %s has been removed' % video_id, expected=True)
+        ERRORS = (
+            (('video-deleted-info', '>This video has been removed'), 'has been removed'),
+            (('private_video_text', '>This video is private', '>Send a friend request to its owner to be able to view it'), 'is private'),
+        )
+
+        for patterns, message in ERRORS:
+            if any(p in webpage for p in patterns):
+                raise ExtractorError(
+                    'Video %s %s' % (video_id, message), expected=True)
 
         info = self._search_json_ld(webpage, video_id, default={})
 

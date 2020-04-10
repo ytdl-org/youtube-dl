@@ -1,8 +1,9 @@
 # coding: utf-8
 from __future__ import unicode_literals
 
-import re
 import json
+import re
+import sys
 
 from .common import InfoExtractor
 from ..utils import (
@@ -91,48 +92,67 @@ class IviIE(InfoExtractor):
                     'contentid': video_id
                 }
             ]
-        }).encode()
+        })
 
-        try:
-            from Crypto.Cipher import Blowfish
-            from Crypto.Hash import CMAC
+        bundled = hasattr(sys, 'frozen')
 
-            timestamp = self._download_json(
+        for site in (353, 183):
+            content_data = (data % site).encode()
+            if site == 353:
+                if bundled:
+                    continue
+                try:
+                    from Cryptodome.Cipher import Blowfish
+                    from Cryptodome.Hash import CMAC
+                    pycryptodomex_found = True
+                except ImportError:
+                    pycryptodomex_found = False
+                    continue
+
+                timestamp = (self._download_json(
+                    self._LIGHT_URL, video_id,
+                    'Downloading timestamp JSON', data=json.dumps({
+                        'method': 'da.timestamp.get',
+                        'params': []
+                    }).encode(), fatal=False) or {}).get('result')
+                if not timestamp:
+                    continue
+
+                query = {
+                    'ts': timestamp,
+                    'sign': CMAC.new(self._LIGHT_KEY, timestamp.encode() + content_data, Blowfish).hexdigest(),
+                }
+            else:
+                query = {}
+
+            video_json = self._download_json(
                 self._LIGHT_URL, video_id,
-                'Downloading timestamp JSON', data=json.dumps({
-                    'method': 'da.timestamp.get',
-                    'params': []
-                }).encode())['result']
+                'Downloading video JSON', data=content_data, query=query)
 
-            data = data % 353
-            query = {
-                'ts': timestamp,
-                'sign': CMAC.new(self._LIGHT_KEY, timestamp.encode() + data, Blowfish).hexdigest(),
-            }
-        except ImportError:
-            data = data % 183
-            query = {}
-
-        video_json = self._download_json(
-            self._LIGHT_URL, video_id,
-            'Downloading video JSON', data=data, query=query)
-
-        error = video_json.get('error')
-        if error:
-            origin = error.get('origin')
-            message = error.get('message') or error.get('user_message')
-            extractor_msg = 'Unable to download video %s'
-            if origin == 'NotAllowedForLocation':
-                self.raise_geo_restricted(message, self._GEO_COUNTRIES)
-            elif origin == 'NoRedisValidData':
-                extractor_msg = 'Video %s does not exist'
-            elif message:
-                if 'недоступен для просмотра на площадке s183' in message:
+            error = video_json.get('error')
+            if error:
+                origin = error.get('origin')
+                message = error.get('message') or error.get('user_message')
+                extractor_msg = 'Unable to download video %s'
+                if origin == 'NotAllowedForLocation':
+                    self.raise_geo_restricted(message, self._GEO_COUNTRIES)
+                elif origin == 'NoRedisValidData':
+                    extractor_msg = 'Video %s does not exist'
+                elif site == 353:
+                    continue
+                elif bundled:
                     raise ExtractorError(
-                        'pycryptodome not found. Please install it.',
+                        'This feature does not work from bundled exe. Run youtube-dl from sources.',
                         expected=True)
-                extractor_msg += ': ' + message
-            raise ExtractorError(extractor_msg % video_id, expected=True)
+                elif not pycryptodomex_found:
+                    raise ExtractorError(
+                        'pycryptodomex not found. Please install it.',
+                        expected=True)
+                elif message:
+                    extractor_msg += ': ' + message
+                raise ExtractorError(extractor_msg % video_id, expected=True)
+            else:
+                break
 
         result = video_json['result']
         title = result['title']
@@ -219,7 +239,7 @@ class IviCompilationIE(InfoExtractor):
             self.url_result(
                 'http://www.ivi.ru/watch/%s/%s' % (compilation_id, serie), IviIE.ie_key())
             for serie in re.findall(
-                r'<a href="/watch/%s/(\d+)"[^>]+data-id="\1"' % compilation_id, html)]
+                r'<a\b[^>]+\bhref=["\']/watch/%s/(\d+)["\']' % compilation_id, html)]
 
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)

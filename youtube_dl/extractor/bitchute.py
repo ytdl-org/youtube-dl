@@ -7,6 +7,7 @@ import re
 from .common import InfoExtractor
 from ..utils import (
     orderedSet,
+    unified_strdate,
     urlencode_postdata,
 )
 
@@ -23,6 +24,7 @@ class BitChuteIE(InfoExtractor):
             'description': 'md5:3f21f6fb5b1d17c3dee9cf6b5fe60b3a',
             'thumbnail': r're:^https?://.*\.jpg$',
             'uploader': 'Victoria X Rave',
+            'upload_date': '20170813',
         },
     }, {
         'url': 'https://www.bitchute.com/embed/lbb5G1hjPhw/',
@@ -74,12 +76,17 @@ class BitChuteIE(InfoExtractor):
              r'(?s)<p\b[^>]+\bclass=["\']video-author[^>]+>(.+?)</p>'),
             webpage, 'uploader', fatal=False)
 
+        upload_date = unified_strdate(self._search_regex(
+            r'class=["\']video-publish-date[^>]+>[^<]+ at \d+:\d+ UTC on (.+?)\.',
+            webpage, 'upload date', fatal=False))
+
         return {
             'id': video_id,
             'title': title,
             'description': description,
             'thumbnail': thumbnail,
             'uploader': uploader,
+            'upload_date': upload_date,
             'formats': formats,
         }
 
