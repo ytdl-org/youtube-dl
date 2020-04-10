@@ -13,7 +13,7 @@ from ..utils import (
 
 
 class AtresPlayerIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:www\.)?atresplayer\.com/[^/]+/[^/]+/[^/]+/[^/]+/(?P<display_id>.+?)_(?P<id>[0-9a-f]{24})'
+    _VALID_URL = r'https?://(?:www\.)?atresplayer\.com/[^/]+/[^/]+/[^/]+/(?P<type>.+?)/(?P<display_id>.+?)_(?P<id>[0-9a-f]{24})'
     _NETRC_MACHINE = 'atresplayer'
     _TESTS = [
         {
@@ -61,25 +61,29 @@ class AtresPlayerIE(InfoExtractor):
             self._API_BASE + 'login', None, 'Downloading login page')
 
         try:
-            target_url = self._download_json(
+            response = self._download_json(
                 'https://account.atresmedia.com/api/login', None,
                 'Logging in', headers={
                     'Content-Type': 'application/x-www-form-urlencoded'
                 }, data=urlencode_postdata({
                     'username': username,
                     'password': password,
-                }))['targetUrl']
+                }))
+            target_url = "https://account.atresmedia.com" + response['targetUrl']
         except ExtractorError as e:
             self._handle_error(e, 400)
 
         self._request_webpage(target_url, None, 'Following Target URL')
 
     def _real_extract(self, url):
-        display_id, video_id = re.match(self._VALID_URL, url).groups()
-
+        vod_type, display_id, video_id = re.match(self._VALID_URL, url).groups()
+        if vod_type == 'clips':
+            vod_url_step = 'player/v1/video/'
+        else:
+            vod_url_step = "player/v1/episode/"
         try:
             episode = self._download_json(
-                self._API_BASE + 'client/v1/player/episode/' + video_id, video_id)
+                self._API_BASE + vod_url_step + video_id, video_id)
         except ExtractorError as e:
             self._handle_error(e, 403)
 
