@@ -6,10 +6,12 @@ from ..utils import ExtractorError
 
 class MicrosoftStreamBaseIE(InfoExtractor):
     _LOGIN_URL = 'https://web.microsoftstream.com/?noSignUpCheck=1'     # expect redirection
-    _EXPECTED_TITLE = '<title>Microsoft Stream</title>'
 
     def is_logged_in(self, webpage):
-        return self._EXPECTED_TITLE in webpage
+        """
+         This test is based on the fact that Microsoft Stream will redirect unauthenticated users
+        """
+        return '<title>Microsoft Stream</title>' in webpage
 
     def _real_initialize(self):
         username, password = self._get_login_info()
@@ -38,7 +40,7 @@ class MicrosoftStreamBaseIE(InfoExtractor):
 
 class MicrosoftStreamIE(MicrosoftStreamBaseIE):
     """
-     Extract of single Microsoft Stream video
+     Extractor for single Microsoft Stream video
     """
     IE_NAME = 'microsoftstream'
     _VALID_URL = r'https?://(?:(?:web|www)\.)?microsoftstream\.com/video/(?P<id>[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})'  # https://regex101.com/r/K1mlgK/1/
@@ -48,15 +50,22 @@ class MicrosoftStreamIE(MicrosoftStreamBaseIE):
     _TEXTTRACKS_RESPONSE = None
     _VIDEO_ID = None
 
-    _TEST = {
+    _TEST = [{
         'url': 'https://web.microsoftstream.com/video/c883c6a5-9895-4900-9a35-62f4b5d506c9',
         'info_dict': {
             'id': 'c883c6a5-9895-4900-9a35-62f4b5d506c9',
             'ext': 'mp4',
             'title': 'Webinar for Researchers: Use of GitLab',
-            'thumbnail': r're:^https?://.*$',
-        }
-    }
+            'thumbnail': r're:^https?://.*$'
+        },
+        'skip': 'Requires Microsoft 365 account credentials',
+    }, {
+        'url': 'https://web.microsoftstream.com/video/c883c6a5-9895-4900-9a35-62f4b5d506c9',
+        'only_matching': True,
+    }, {
+        'url': 'https://www.microsoftstream.com/video/1541f3f9-7fed-4901-ae70-0f7cb775679f',
+        'only_matching': True,
+    }]
 
     """
      Getters
@@ -99,7 +108,7 @@ class MicrosoftStreamIE(MicrosoftStreamBaseIE):
          Make an additional request to Microsoft Stream for the subtitle and auto-caption
         """
         # Map default variable
-        self._TEXTTRACKS_RESPONSE = self._download_json(self.texttrack_info_endpoint, self.video_id, headers=self.headers)['value']
+        self._TEXTTRACKS_RESPONSE = self._download_json(self.texttrack_info_endpoint, self.video_id, headers=self.headers).get('value')
         return self._TEXTTRACKS_RESPONSE
 
     def _determine_protocol(self, mime):
@@ -142,7 +151,7 @@ class MicrosoftStreamIE(MicrosoftStreamBaseIE):
 
             # For other Master playlists (like Microsoft Smooth Streaming)
             else:
-                self.to_screen('Found unresolvable stream with format %s' % master_playlist_url['mimeType'])
+                self.to_screen('Found unresolvable stream with format: %s' % master_playlist_url['mimeType'])
                 continue
 
             # Patching the "Authorization" header
@@ -183,8 +192,8 @@ class MicrosoftStreamIE(MicrosoftStreamBaseIE):
 
     def _real_extract(self, url):
         self._VIDEO_ID = self._match_id(url)
-        webpage = self._download_webpage(url, self.video_id)
 
+        webpage = self._download_webpage(url, self.video_id)
         if not self.is_logged_in(webpage):
             return self.raise_login_required()
 
@@ -193,20 +202,19 @@ class MicrosoftStreamIE(MicrosoftStreamBaseIE):
         self._extract_api_gateway(webpage)
 
         # "GET" api for video information
-        apiUri = self.media_info_endpoint
-        apiCall = self._download_json(apiUri, self.video_id, headers=self.headers)
+        apiResponse = self._download_json(self.media_info_endpoint, self.video_id, headers=self.headers)
 
         texttracks = self._request_texttracks()
 
         return {
             'id': self.video_id,
-            'title': apiCall['name'],
-            'description': apiCall.get('description'),
-            'uploader': apiCall.get('creator').get('name'),
-            'thumbnails': self._remap_thumbnails(apiCall.get('posterImage')),
-            'formats': self._remap_playback(apiCall['playbackUrls']),
+            'title': apiResponse['name'],
+            'description': apiResponse.get('description'),
+            'uploader': apiResponse.get('creator').get('name'),
+            'thumbnails': self._remap_thumbnails(apiResponse.get('posterImage')),
+            'formats': self._remap_playback(apiResponse['playbackUrls']),
             'subtitles': self._get_subtitles(texttracks),
             'automatic_captions': self._get_automatic_captions(texttracks),
-            'is_live': False,
-            # 'duration': apiCall['media']['duration'],
+            'is_live': False
+            # 'duration': apiResponse['media']['duration'],
         }
