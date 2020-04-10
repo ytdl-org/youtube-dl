@@ -619,7 +619,10 @@ from .metacritic import MetacriticIE
 from .mgoon import MgoonIE
 from .mgtv import MGTVIE
 from .miaopai import MiaoPaiIE
-from .microsoftstream import MicrosoftStreamIE
+from .microsoftstream import (
+    MicrosoftStreamIE,
+    MicrosoftStreamChannelIE
+)
 from .microsoftvirtualacademy import (
     MicrosoftVirtualAcademyIE,
     MicrosoftVirtualAcademyCourseIE,
