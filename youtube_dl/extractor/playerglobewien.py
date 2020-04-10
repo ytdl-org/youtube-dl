@@ -1,32 +1,36 @@
 # coding: utf-8
 from __future__ import unicode_literals
 
+import re
 from .common import InfoExtractor
 
 
 class PlayerGlobeWienIE(InfoExtractor):
     _VALID_URL = r'https?://player.globe.wien/globe-wien/(?P<id>.*)'
-    _TESTS = [{
-        'url': 'https://player.globe.wien/globe-wien/corona-podcast-teil-4',
-        'info_dict': {
-            'id': 'corona-podcast-teil-4',
-            'ext': 'mp4',
-            'title': 'Globe Wien VOD - Eckel & Niavarani & Sarsam - Im Endspurt versagt',
+    _TESTS = [
+        {
+            'url': 'https://player.globe.wien/globe-wien/corona-podcast-teil-4',
+            'info_dict': {
+                'id': 'corona-podcast-teil-4',
+                'ext': 'mp4',
+                'title': 'Eckel & Niavarani & Sarsam - Im Endspurt versagt',
+            },
+            'params': {
+                'format': 'bestvideo',
+            }
         },
-        'params': {
-            'format': 'bestvideo',
+        {
+            'url': 'https://player.globe.wien/globe-wien/corona-podcast-teil-4',
+            'info_dict': {
+                'id': 'corona-podcast-teil-4',
+                'ext': 'mp4',
+                'title': 'Eckel & Niavarani & Sarsam - Im Endspurt versagt',
+            },
+            'params': {
+                'format': 'bestaudio',
+            }
         }
-    }, {
-        'url': 'https://player.globe.wien/globe-wien/corona-podcast-teil-4',
-        'info_dict': {
-            'id': 'corona-podcast-teil-4',
-            'ext': 'mp4',
-            'title': 'Globe Wien VOD - Eckel & Niavarani & Sarsam - Im Endspurt versagt',
-        },
-        'params': {
-            'format': 'bestaudio',
-        }
-    }]
+    ]
 
     def _real_extract(self, url):
         video_id = self._match_id(url)
@@ -34,6 +38,7 @@ class PlayerGlobeWienIE(InfoExtractor):
         webpage = self._download_webpage(url, video_id)
         formats = []
         title = self._html_search_regex(r'<title>(.+?)</title>', webpage, 'title')
+        title = re.sub(r'^Globe Wien VOD -\s*','',title)
 
         stream_url = self._download_webpage("https://player.globe.wien/api/playout?vodId=" + video_id, video_id)
 
