@@ -38,7 +38,7 @@ class PlayerGlobeWienIE(InfoExtractor):
         webpage = self._download_webpage(url, video_id)
         formats = []
         title = self._html_search_regex(r'<title>(.+?)</title>', webpage, 'title')
-        title = re.sub(r'^Globe Wien VOD -\s*','',title)
+        title = re.sub(r'^Globe Wien VOD -\s*', '', title)
 
         stream_url = self._download_webpage("https://player.globe.wien/api/playout?vodId=" + video_id, video_id)
 
