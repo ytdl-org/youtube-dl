@@ -50,6 +50,15 @@ class DigitalConcertHallIE(InfoExtractor):
                                            'Accept-Language': language})
         embedded = vid_info_dict.get('_embedded')
 
+        flat_list = []
+        for embed_type in embedded:
+            for item in embedded.get(embed_type):
+                if embed_type == 'interview':
+                    item['is_interview'] = 1
+                else:
+                    item['is_interview'] = 0
+                flat_list.append(item)
+
         entries = []
         for key in playlist_dict:
             self.debug_out("key: " + key)
@@ -58,14 +67,6 @@ class DigitalConcertHallIE(InfoExtractor):
             formats = self._extract_m3u8_formats(
                 m3u8_url, key, 'mp4', 'm3u8_native', m3u8_id='hls', fatal=False)
             self.debug_out(formats)
-            flat_list = []
-            for embed_type in embedded:
-                for item in embedded.get(embed_type):
-                    if embed_type == 'interview':
-                        item['is_interview'] = 1
-                    else:
-                        item['is_interview'] = 0
-                    flat_list.append(item)
             vid_info = [x for x in flat_list if x.get('id') == key][0]
             if vid_info.get('is_interview') == 1:
                 title = "Interview - " + vid_info.get('title', "unknown interview title")
