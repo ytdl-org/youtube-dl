@@ -91,6 +91,19 @@ class Tele5IE(InfoExtractor):
             media = self._download_json(
                 'https://cdn.jwplayer.com/v2/media/' + jwplatform_id,
                 display_id)
+
+            m3u8_url = try_get(
+                media, lambda x: x['playlist'][0]['sources'][0]['file'], compat_str)
+
+            if m3u8_url:
+                formats = self._extract_m3u8_formats(m3u8_url, jwplatform_id, 'mp4', fatal=False)
+                return {
+                    'id': '%s' % jwplatform_id,
+                    'title': try_get(media, lambda x: x['title'], compat_str),
+                    # TODO: description, thumbnail, duration
+                    'formats': formats
+                }
+
             nexx_id = try_get(
                 media, lambda x: x['playlist'][0]['nexx_id'], compat_str)
 
