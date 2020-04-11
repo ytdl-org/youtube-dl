@@ -42,10 +42,14 @@ class FiteTVIE(InfoExtractor):
 
         self._sort_formats(formats)
 
+        title = info_dict.get("title") or self._og_search_title(webpage)
+        description = info_dict.get("description") or self._og_search_description(webpage)
+        thumbnail = info_dict.get("thumbnail") or self._og_search_thumbnail(webpage)
+
         return {
             "id": video_id,
-            "title": info_dict["title"],
-            "description": info_dict["description"],
-            "thumbnail": info_dict["thumbnail"],
+            "title": title,
+            "description": description,
+            "thumbnail": thumbnail,
             "formats": formats,
         }
