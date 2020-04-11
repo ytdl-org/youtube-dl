@@ -1930,7 +1930,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                 }
 
             for fmt in streaming_formats:
-                if fmt.get('drm_families'):
+                if fmt.get('drmFamilies') or fmt.get('drm_families'):
                     continue
                 url = url_or_none(fmt.get('url'))
 
