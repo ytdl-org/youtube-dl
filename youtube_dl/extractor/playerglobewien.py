@@ -6,7 +6,7 @@ from .common import InfoExtractor
 
 
 class PlayerGlobeWienIE(InfoExtractor):
-    _VALID_URL = r'https?://player.globe.wien/globe-wien/(?P<id>.*)'
+    _VALID_URL = r'https?://player.(globe.wien|hader.at)/(globe-wien|hader)/(?P<id>.*)'
     _TESTS = [
         {
             'url': 'https://player.globe.wien/globe-wien/corona-podcast-teil-4',
@@ -29,7 +29,29 @@ class PlayerGlobeWienIE(InfoExtractor):
             'params': {
                 'format': 'bestaudio',
             }
-        }
+        },
+        {
+            'url': 'https://player.hader.at/hader/hader-indien-video',
+            'info_dict': {
+                'id': 'hader-indien-video',
+                'ext': 'mp4',
+                'title': 'Film der Woche - Indien',
+            },
+            'params': {
+                'format': 'bestvideo',
+            }
+        },
+        {
+            'url': 'https://player.hader.at/hader/hader-indien-video',
+            'info_dict': {
+                'id': 'hader-indien-video',
+                'ext': 'mp4',
+                'title': 'Film der Woche - Indien',
+            },
+            'params': {
+                'format': 'bestaudio',
+            }
+        },
     ]
 
     def _real_extract(self, url):
@@ -38,7 +60,7 @@ class PlayerGlobeWienIE(InfoExtractor):
         webpage = self._download_webpage(url, video_id)
         formats = []
         title = self._html_search_regex(r'<title>(.+?)</title>', webpage, 'title')
-        title = re.sub(r'^Globe Wien VOD -\s*', '', title)
+        title = re.sub(r'^(Globe Wien VOD -|Hader VOD -)\s*', '', title)
 
         stream_url = self._download_webpage("https://player.globe.wien/api/playout?vodId=" + video_id, video_id)
 
