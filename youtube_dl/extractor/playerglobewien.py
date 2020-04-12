@@ -10,10 +10,13 @@ class PlayerGlobeWienIE(InfoExtractor):
     _TESTS = [
         {
             'url': 'https://player.globe.wien/globe-wien/corona-podcast-teil-4',
+            'md5': 'f973a27e258bdeff686e63434e872f70',
             'info_dict': {
                 'id': 'corona-podcast-teil-4',
                 'ext': 'mp4',
                 'title': 'Eckel & Niavarani & Sarsam - Im Endspurt versagt',
+                'description': 'md5:fbd2e2a456fef3a171683dd9e33f1810',
+                'thumbnail': r're:^https?://.*\.jpg',
             },
             'params': {
                 'format': 'bestvideo',
@@ -67,6 +70,8 @@ class PlayerGlobeWienIE(InfoExtractor):
     def _real_extract(self, url):
         format_id = self._match_id(url)
         webpage = self._download_webpage(url, format_id)
+        thumbnail = self._html_search_regex(r'<img class="(?:.+?)" src="(?P<thumbnail>.+?)"', webpage, 'thumbnail', group='thumbnail')
+        description = self._og_search_description(webpage)
         formats = []
         title = self._og_search_title(webpage)
         title = re.sub(r'^(Globe Wien VOD -|Hader VOD -)\s*', '', title)
@@ -93,5 +98,7 @@ class PlayerGlobeWienIE(InfoExtractor):
         return {
             'id': format_id,
             'title': title,
+            'thumbnail': thumbnail,
+            'description': description,
             'formats': formats,
         }
