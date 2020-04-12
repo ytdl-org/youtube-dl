@@ -92,7 +92,7 @@ class Tele5IE(InfoExtractor):
             webpage = self._download_webpage(url, display_id)
 
             if not smuggled_data.get('force_singlevideo', False):
-                # TODO: user now has to specify --no-playlist every time (bad)
+                # TODO: user now has to specify --no-playlist every time (annoying and not expected)
                 if not self._downloader.params.get('noplaylist'):
                     # TODO: use something other than a regex?
                     urls = re.findall('href="([^"]+)"\\s+class="special-video__link(?: video-teaser__link)?"', webpage, re.MULTILINE)
@@ -105,6 +105,7 @@ class Tele5IE(InfoExtractor):
                                 'https://tele5.de%s' % url,
                                 {'force_singlevideo': True}),
                         })
+                    # TODO: use something other than a regex?
                     title = self._html_search_regex("<h1>([^<]+)</h1>", webpage, 'playlist title')
                     return self.playlist_result(entries, playlist_title=title)
 
