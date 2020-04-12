@@ -655,7 +655,14 @@ class TwitchStreamIE(TwitchBaseIE):
 
 class TwitchClipsIE(TwitchBaseIE):
     IE_NAME = 'twitch:clips'
-    _VALID_URL = r'https?://(?:clips\.twitch\.tv/(?:embed\?.*?\bclip=|(?:[^/]+/)*)|(?:www\.)?twitch\.tv/[^/]+/clip/)(?P<id>[^/?#&]+)'
+    _VALID_URL = r'''(?x)
+                    https?://
+                        (?:
+                            clips\.twitch\.tv/(?:embed\?.*?\bclip=|(?:[^/]+/)*)|
+                            (?:(?:www|go|m)\.)?twitch\.tv/[^/]+/clip/
+                        )
+                        (?P<id>[^/?#&]+)
+                    '''
 
     _TESTS = [{
         'url': 'https://clips.twitch.tv/FaintLightGullWholeWheat',
@@ -680,6 +687,12 @@ class TwitchClipsIE(TwitchBaseIE):
         'only_matching': True,
     }, {
         'url': 'https://clips.twitch.tv/embed?clip=InquisitiveBreakableYogurtJebaited',
+        'only_matching': True,
+    }, {
+        'url': 'https://m.twitch.tv/rossbroadcast/clip/ConfidentBraveHumanChefFrank',
+        'only_matching': True,
+    }, {
+        'url': 'https://go.twitch.tv/rossbroadcast/clip/ConfidentBraveHumanChefFrank',
         'only_matching': True,
     }]
 

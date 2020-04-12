@@ -77,4 +77,3 @@ class MofosexEmbedIE(InfoExtractor):
         return self.url_result(
             'http://www.mofosex.com/videos/{0}/{0}.html'.format(video_id),
             ie=MofosexIE.ie_key(), video_id=video_id)
-
