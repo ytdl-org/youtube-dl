@@ -667,3 +667,30 @@ class BrightcoveNewIE(AdobePassIE):
 
         return self._parse_brightcove_metadata(
             json_data, video_id, headers=headers)
+
+
+class BrightcoveServicesIE(InfoExtractor):
+    IE_NAME = 'brightcove:services'
+    _VALID_URL = r'https?://.*\.brightcove\.services/\?(?P<content_type>video|playlist)Id=(?P<video_id>\d+)'
+    _TESTS = [{
+        'url': 'https://metoperafree.brightcove.services/?videoId=6146557024001',
+        'info_dict': {
+            'id': '102076671001',
+            'ext': 'mp4',
+        },
+        # 'params': {
+        #     'skip_download': True,
+        # },
+    }]
+
+    def _real_extract(self, url):
+        content_type, video_id = re.match(self._VALID_URL, url).groups()
+        webpage = self._download_webpage(url, video_id)
+        player_url = self._html_search_regex(r'(https://players.brightcove.net/\d+/[^/]+_[^/]+/index.min.js)', webpage, 'player_url')
+        valid_player_url = r'https://players.brightcove.net/(?P<account_id>\d+)/(?P<player_id>[^/]+)_(?P<embed>[^/]+)/index.min.js'
+        account_id, player_id, embed = re.match(valid_player_url, player_url).groups()
+        return {
+            '_type': 'url',
+            'url': 'https://players.brightcove.net/%s/%s_%s/index.html?%sId=%s' % (account_id, player_id, embed, content_type, video_id),
+            'ie_key': 'BrightcoveNew'
+        }

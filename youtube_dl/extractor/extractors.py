@@ -131,6 +131,7 @@ from .breakcom import BreakIE
 from .brightcove import (
     BrightcoveLegacyIE,
     BrightcoveNewIE,
+    BrightcoveServicesIE,
 )
 from .businessinsider import BusinessInsiderIE
 from .buzzfeed import BuzzFeedIE
