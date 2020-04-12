@@ -20,6 +20,8 @@ from ..utils import (
 
 
 class OnetBaseIE(InfoExtractor):
+    _URL_BASE_RE = r'https?://(?:(?:www\.)?onet\.tv|onet100\.vod\.pl)/[a-z]/'
+
     def _search_mvp_id(self, webpage):
         return self._search_regex(
             r'id=(["\'])mvp:(?P<id>.+?)\1', webpage, 'mvp id', group='id')
@@ -45,7 +47,7 @@ class OnetBaseIE(InfoExtractor):
         video = response['result'].get('0')
 
         formats = []
-        for _, formats_dict in video['formats'].items():
+        for format_type, formats_dict in video['formats'].items():
             if not isinstance(formats_dict, dict):
                 continue
             for format_id, format_list in formats_dict.items():
@@ -56,21 +58,31 @@ class OnetBaseIE(InfoExtractor):
                     if not video_url:
                         continue
                     ext = determine_ext(video_url)
-                    if format_id == 'ism':
+                    if format_id.startswith('ism'):
                         formats.extend(self._extract_ism_formats(
                             video_url, video_id, 'mss', fatal=False))
                     elif ext == 'mpd':
                         formats.extend(self._extract_mpd_formats(
                             video_url, video_id, mpd_id='dash', fatal=False))
+                    elif format_id.startswith('hls'):
+                        formats.extend(self._extract_m3u8_formats(
+                            video_url, video_id, 'mp4', 'm3u8_native',
+                            m3u8_id='hls', fatal=False))
                     else:
-                        formats.append({
+                        http_f = {
                             'url': video_url,
                             'format_id': format_id,
-                            'height': int_or_none(f.get('vertical_resolution')),
-                            'width': int_or_none(f.get('horizontal_resolution')),
                             'abr': float_or_none(f.get('audio_bitrate')),
-                            'vbr': float_or_none(f.get('video_bitrate')),
-                        })
+                        }
+                        if format_type == 'audio':
+                            http_f['vcodec'] = 'none'
+                        else:
+                            http_f.update({
+                                'height': int_or_none(f.get('vertical_resolution')),
+                                'width': int_or_none(f.get('horizontal_resolution')),
+                                'vbr': float_or_none(f.get('video_bitrate')),
+                            })
+                        formats.append(http_f)
         self._sort_formats(formats)
 
         meta = video.get('meta', {})
@@ -105,12 +117,12 @@ class OnetMVPIE(OnetBaseIE):
 
 
 class OnetIE(OnetBaseIE):
-    _VALID_URL = r'https?://(?:www\.)?onet\.tv/[a-z]/[a-z]+/(?P<display_id>[0-9a-z-]+)/(?P<id>[0-9a-z]+)'
+    _VALID_URL = OnetBaseIE._URL_BASE_RE + r'[a-z]+/(?P<display_id>[0-9a-z-]+)/(?P<id>[0-9a-z]+)'
     IE_NAME = 'onet.tv'
 
-    _TEST = {
+    _TESTS = [{
         'url': 'http://onet.tv/k/openerfestival/open-er-festival-2016-najdziwniejsze-wymagania-gwiazd/qbpyqc',
-        'md5': 'e3ffbf47590032ac3f27249204173d50',
+        'md5': '436102770fb095c75b8bb0392d3da9ff',
         'info_dict': {
             'id': 'qbpyqc',
             'display_id': 'open-er-festival-2016-najdziwniejsze-wymagania-gwiazd',
@@ -120,7 +132,10 @@ class OnetIE(OnetBaseIE):
             'upload_date': '20160705',
             'timestamp': 1467721580,
         },
-    }
+    }, {
+        'url': 'https://onet100.vod.pl/k/openerfestival/open-er-festival-2016-najdziwniejsze-wymagania-gwiazd/qbpyqc',
+        'only_matching': True,
+    }]
 
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
@@ -140,18 +155,21 @@ class OnetIE(OnetBaseIE):
 
 
 class OnetChannelIE(OnetBaseIE):
-    _VALID_URL = r'https?://(?:www\.)?onet\.tv/[a-z]/(?P<id>[a-z]+)(?:[?#]|$)'
+    _VALID_URL = OnetBaseIE._URL_BASE_RE + r'(?P<id>[a-z]+)(?:[?#]|$)'
     IE_NAME = 'onet.tv:channel'
 
-    _TEST = {
+    _TESTS = [{
         'url': 'http://onet.tv/k/openerfestival',
         'info_dict': {
             'id': 'openerfestival',
-            'title': 'Open\'er Festival Live',
-            'description': 'Dziękujemy, że oglądaliście transmisje. Zobaczcie nasze relacje i wywiady z artystami.',
+            'title': "Open'er Festival",
+            'description': "Tak było na Open'er Festival 2016! Oglądaj nasze reportaże i wywiady z artystami.",
         },
-        'playlist_mincount': 46,
-    }
+        'playlist_mincount': 35,
+    }, {
+        'url': 'https://onet100.vod.pl/k/openerfestival',
+        'only_matching': True,
+    }]
 
     def _real_extract(self, url):
         channel_id = self._match_id(url)
@@ -173,7 +191,7 @@ class OnetChannelIE(OnetBaseIE):
             'Downloading channel %s - add --no-playlist to just download video %s' % (
                 channel_id, video_name))
         matches = re.findall(
-            r'<a[^>]+href=[\'"](https?://(?:www\.)?onet\.tv/[a-z]/[a-z]+/[0-9a-z-]+/[0-9a-z]+)',
+            r'<a[^>]+href=[\'"](%s[a-z]+/[0-9a-z-]+/[0-9a-z]+)' % self._URL_BASE_RE,
             webpage)
         entries = [
             self.url_result(video_link, OnetIE.ie_key())
