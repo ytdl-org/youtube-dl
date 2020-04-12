@@ -106,8 +106,9 @@ class Tele5IE(InfoExtractor):
                                 {'force_singlevideo': True}),
                         })
                     # TODO: use something other than a regex?
-                    title = self._html_search_regex("<h1>([^<]+)</h1>", webpage, 'playlist title')
-                    return self.playlist_result(entries, playlist_title=title)
+                    title = re.search("<h1>([^<]+)</h1>", webpage, 0)
+                    if title:
+                        return self.playlist_result(entries, playlist_title=title.group(1))
 
             def extract_id(pattern, name, default=NO_DEFAULT):
                 return self._html_search_regex(
