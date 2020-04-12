@@ -19,34 +19,43 @@ from ..utils import (
 class Tele5IE(InfoExtractor):
     _VALID_URL = r'https?://(?:www\.)?tele5\.de/(?:[^/]+/)*(?P<id>[^/?#&]+)'
     _TESTS = [{
-        'url': 'https://www.tele5.de/mediathek/filme-online/videos?vid=1549416',
+        'url': 'https://www.tele5.de/filme/schlefaz-der-polyp-die-bestie-mit-den-todesarmen-ab-13042018/',
         'info_dict': {
-            'id': '1549416',
+            'id': 'XSWj0xbO',
             'ext': 'mp4',
-            'upload_date': '20180814',
-            'timestamp': 1534290623,
-            'title': 'Pandorum',
+            # fun fact: upload_date is not visible on the web page for this video
+            'upload_date': '20200326', # this is a re-upload
+            'timestamp': 1585190811,
+            'duration': 8701.0,
+            'title': 'SchleFaZ: Der Polyp - Die Bestie mit den Todesarmen (ab 13.04.2018)',
+            'description': 'SchleFaZ: Der Polyp - Die Bestie mit den Todesarmen (ab 13.04.2018)'
         },
         'params': {
-            'skip_download': True,
-        },
-    }, {
-        'url': 'https://www.tele5.de/kalkofes-mattscheibe/video-clips/politik-und-gesellschaft?ve_id=1551191',
-        'only_matching': True,
-    }, {
-        'url': 'https://www.tele5.de/video-clip/?ve_id=1609440',
-        'only_matching': True,
+            'skip_download': True
+        }
     }, {
         'url': 'https://www.tele5.de/filme/schlefaz-dragon-crusaders/',
+        'info_dict': {
+            'id': '1F8PHGxn',
+            'ext': 'mp4',
+            'upload_date': '20190509',
+            'timestamp': 1557441600,
+            'duration': 8181.0,
+            'title': 'SchleFaZ: Dragon Crusaders',
+            'description': 'Drachenzähmen schlecht gemacht! Oliver Kalkofe und Peter Rütten knöpfen sich mit "SchleFaZ: Dragon Crusaders" eine wahrhaft verhext-verflixte Drachen-Sause vor. Statt großer Kampf, großer Krampf. Nicht nur in den Füßen, die einem bei dem müden Fantasy-Abenteuer garantiert einschlafen!'
+        },
+        'params': {
+            'skip_download': True
+        }
+    }, {
+        # TODO: 400 Bad Request error on webpage, remove this test? (they might fix it eventually)
+        'url': 'https://www.tele5.de/video-clip/?ve_id=1609440',
         'only_matching': True,
     }, {
         'url': 'https://www.tele5.de/filme/making-of/avengers-endgame/',
         'only_matching': True,
     }, {
         'url': 'https://www.tele5.de/star-trek/raumschiff-voyager/ganze-folge/das-vinculum/',
-        'only_matching': True,
-    }, {
-        'url': 'https://www.tele5.de/anders-ist-sevda/',
         'only_matching': True,
     }]
 
@@ -57,10 +66,11 @@ class Tele5IE(InfoExtractor):
         NEXX_ID_RE = r'\d{6,}'
         JWPLATFORM_ID_RE = r'[a-zA-Z0-9]{8}'
 
+        def nexx_url(nexx_id):
+            return 'https://api.nexx.cloud/v3/759/videos/byid/%s' % nexx_id
+
         def nexx_result(nexx_id):
-            return self.url_result(
-                'https://api.nexx.cloud/v3/759/videos/byid/%s' % nexx_id,
-                ie=NexxIE.ie_key(), video_id=nexx_id)
+            return self.url_result(nexx_url(nexx_id), ie=NexxIE.ie_key(), video_id=nexx_id)
 
         nexx_id = jwplatform_id = None
 
@@ -77,38 +87,26 @@ class Tele5IE(InfoExtractor):
             def extract_id(pattern, name, default=NO_DEFAULT):
                 return self._html_search_regex(
                     (r'id\s*=\s*["\']video-player["\'][^>]+data-id\s*=\s*["\'](%s)' % pattern,
-                     r'\s+id\s*=\s*["\']player_(%s)' % pattern,
-                     r'\bdata-id\s*=\s*["\'](%s)' % pattern), webpage, name,
+                    r'\s+id\s*=\s*["\']player_(%s)' % pattern,
+                    r'\bdata-id\s*=\s*["\'](%s)' % pattern), webpage, name,
                     default=default)
-
-            nexx_id = extract_id(NEXX_ID_RE, 'nexx id', default=None)
-            if nexx_id:
-                return nexx_result(nexx_id)
 
             if not jwplatform_id:
                 jwplatform_id = extract_id(JWPLATFORM_ID_RE, 'jwplatform id')
+            nexx_id = extract_id(NEXX_ID_RE, 'nexx id', default=None)
+            if nexx_id:
+                return nexx_result(nexx_id)
 
             media = self._download_json(
                 'https://cdn.jwplayer.com/v2/media/' + jwplatform_id,
                 display_id)
 
-            m3u8_url = try_get(
-                media, lambda x: x['playlist'][0]['sources'][0]['file'], compat_str)
-
-            if m3u8_url:
-                formats = self._extract_m3u8_formats(m3u8_url, jwplatform_id, 'mp4', fatal=False)
-                return {
-                    'id': '%s' % jwplatform_id,
-                    'title': try_get(media, lambda x: x['title'], compat_str),
-                    # TODO: description, thumbnail, duration
-                    'formats': formats
-                }
-
             nexx_id = try_get(
                 media, lambda x: x['playlist'][0]['nexx_id'], compat_str)
 
-            if nexx_id:
-                return nexx_result(nexx_id)
+            # TODO: nexx offers more formats, but fails (404) on some videos
+            #if nexx_id:
+                #return nexx_result(nexx_id)
 
         return self.url_result(
             'jwplatform:%s' % jwplatform_id, ie=JWPlatformIE.ie_key(),
