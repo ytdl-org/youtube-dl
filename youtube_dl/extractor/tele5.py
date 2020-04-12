@@ -56,6 +56,21 @@ class Tele5IE(InfoExtractor):
         },
         'playlist_count': 6,
     }, {
+        'url': 'https://www.tele5.de/kalkofes-welt/best-of-clips/worst-of-internet/?ve_id=dm2hJgJp',
+        'info_dict': {
+            'id': 'dm2hJgJp',
+            'ext': 'mp4',
+            'title': 'Freshtorge - Sandra trifft Frau Merkel',
+            'upload_date': '20200326',
+            'description': 'Freshtorge - Sandra trifft Frau Merkel',
+            'timestamp': 1585185161,
+            'duration': 170.0,
+        },
+        'params': {
+            'noplaylist': True,
+            'skip_download': True,
+        },
+    }, {
         'url': 'https://www.tele5.de/filme/making-of/avengers-endgame/',
         'only_matching': True,
     }, {
@@ -66,7 +81,6 @@ class Tele5IE(InfoExtractor):
     def _real_extract(self, url):
         url, smuggled_data = unsmuggle_url(url, {})
 
-        # TODO: do we really need this?
         qs = compat_urlparse.parse_qs(compat_urlparse.urlparse(url).query)
         video_id = (qs.get('vid') or qs.get('ve_id') or [None])[0]
 
