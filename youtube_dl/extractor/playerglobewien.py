@@ -57,7 +57,9 @@ class PlayerGlobeWienIE(InfoExtractor):
     def _real_extract(self, url):
         format_id = self._match_id(url)
         webpage = self._download_webpage(url, format_id)
-        thumbnail = self._html_search_regex(r'<img class="(?:.+?)" src="(?P<thumbnail>.+?)"', webpage, 'thumbnail', group='thumbnail')
+        thumbnail = self._html_search_regex(
+            r'<img class="(?:.+?)" src="(?P<thumbnail>.+?)"',
+            webpage, 'thumbnail', group='thumbnail') or self._og_search_thumbnail(webpage)
         description = self._og_search_description(webpage)
         formats = []
         title = self._og_search_title(webpage)
