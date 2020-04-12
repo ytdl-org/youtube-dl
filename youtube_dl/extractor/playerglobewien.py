@@ -65,34 +65,33 @@ class PlayerGlobeWienIE(InfoExtractor):
     ]
 
     def _real_extract(self, url):
-        video_id = self._match_id(url)
-        print(video_id)
-        webpage = self._download_webpage(url, video_id)
+        format_id = self._match_id(url)
+        webpage = self._download_webpage(url, format_id)
         formats = []
         title = self._og_search_title(webpage)
         title = re.sub(r'^(Globe Wien VOD -|Hader VOD -)\s*', '', title)
 
-        streamurl = self._download_json("https://player.globe.wien/api/playout?vodId=" + video_id,
-                                        video_id).get('streamUrl')
+        streamurl = self._download_json("https://player.globe.wien/api/playout?vodId=" + format_id,
+                                        format_id).get('streamUrl')
 
         if streamurl.get('hls'):
             formats.extend(self._extract_m3u8_formats(
-                streamurl.get('hls'), video_id, 'mp4', entry_protocol='m3u8_native', m3u8_id='hls'))
+                streamurl.get('hls'), format_id, 'mp4', entry_protocol='m3u8_native', m3u8_id='hls'))
 
         if streamurl.get('dash'):
             formats.extend(self._extract_mpd_formats(
-                streamurl.get('dash'), video_id, mpd_id='dash', fatal=False))
+                streamurl.get('dash'), format_id, mpd_id='dash', fatal=False))
 
         if streamurl.get('audio'):
-            return {
-                'id': video_id,
-                'title': title,
+            formats.append({
                 'url': streamurl.get('audio'),
-            }
+                'format_id': format_id,
+                'vcodec': 'none',
+            })
 
         self._sort_formats(formats)
         return {
-            'id': video_id,
+            'id': format_id,
             'title': title,
             'formats': formats,
         }
