@@ -27,7 +27,7 @@ class acidcowIE(InfoExtractor):
             'ext': 'mp4',
             'title': 'that_was_really_close',
         },
-    },  {
+    }, {
         'url': 'https://acidcow.com/video/118850-it_reminds_me_of_cars_scene.html',
         'info_dict': {
             'id': '118850',
