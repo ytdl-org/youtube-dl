@@ -91,16 +91,16 @@ class Tele5IE(InfoExtractor):
                      r'\bdata-id\s*=\s*["\'](%s)' % pattern), webpage, name,
                     default=default)
 
-            if not jwplatform_id:
-                jwplatform_id = extract_id(JWPLATFORM_ID_RE, 'jwplatform id')
             nexx_id = extract_id(NEXX_ID_RE, 'nexx id', default=None)
             if nexx_id:
                 return nexx_result(nexx_id)
 
+            if not jwplatform_id:
+                jwplatform_id = extract_id(JWPLATFORM_ID_RE, 'jwplatform id')
+
             media = self._download_json(
                 'https://cdn.jwplayer.com/v2/media/' + jwplatform_id,
                 display_id)
-
             nexx_id = try_get(
                 media, lambda x: x['playlist'][0]['nexx_id'], compat_str)
 
