@@ -12,7 +12,9 @@ from ..compat import (
 )
 from ..utils import (
     NO_DEFAULT,
+    smuggle_url,
     try_get,
+    unsmuggle_url,
 )
 
 
@@ -48,9 +50,11 @@ class Tele5IE(InfoExtractor):
             'skip_download': True,
         },
     }, {
-        # TODO: 400 Bad Request error on webpage, remove this test? (they might fix it eventually)
-        'url': 'https://www.tele5.de/video-clip/?ve_id=1609440',
-        'only_matching': True,
+        'url': 'https://www.tele5.de/timeless/',
+        'info_dict': {
+            'title': 'Timeless',
+        },
+        'playlist_count': 6,
     }, {
         'url': 'https://www.tele5.de/filme/making-of/avengers-endgame/',
         'only_matching': True,
@@ -60,6 +64,9 @@ class Tele5IE(InfoExtractor):
     }]
 
     def _real_extract(self, url):
+        url, smuggled_data = unsmuggle_url(url, {})
+
+        # TODO: do we really need this?
         qs = compat_urlparse.parse_qs(compat_urlparse.urlparse(url).query)
         video_id = (qs.get('vid') or qs.get('ve_id') or [None])[0]
 
@@ -83,6 +90,23 @@ class Tele5IE(InfoExtractor):
         if not nexx_id:
             display_id = self._match_id(url)
             webpage = self._download_webpage(url, display_id)
+
+            if not smuggled_data.get('force_singlevideo', False):
+                # TODO: user now has to specify --no-playlist every time (bad)
+                if not self._downloader.params.get('noplaylist'):
+                    # TODO: use something other than a regex?
+                    urls = re.findall('href="([^"]+)"\\s+class="special-video__link(?: video-teaser__link)?"', webpage, re.MULTILINE)
+                    entries = []
+                    for url in urls:
+                        entries.append({
+                            '_type': 'url_transparent',
+                            'ie_key': 'Tele5',
+                            'url': smuggle_url(
+                                'https://tele5.de%s' % url,
+                                {'force_singlevideo': True}),
+                        })
+                    title = self._html_search_regex("<h1>([^<]+)</h1>", webpage, 'playlist title')
+                    return self.playlist_result(entries, playlist_title=title)
 
             def extract_id(pattern, name, default=NO_DEFAULT):
                 return self._html_search_regex(
