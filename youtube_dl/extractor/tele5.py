@@ -24,15 +24,15 @@ class Tele5IE(InfoExtractor):
             'id': 'XSWj0xbO',
             'ext': 'mp4',
             # fun fact: upload_date is not visible on the web page for this video
-            'upload_date': '20200326', # this is a re-upload
+            'upload_date': '20200326',  # this is a re-upload
             'timestamp': 1585190811,
             'duration': 8701.0,
             'title': 'SchleFaZ: Der Polyp - Die Bestie mit den Todesarmen (ab 13.04.2018)',
             'description': 'SchleFaZ: Der Polyp - Die Bestie mit den Todesarmen (ab 13.04.2018)'
         },
         'params': {
-            'skip_download': True
-        }
+            'skip_download': True,
+        },
     }, {
         'url': 'https://www.tele5.de/filme/schlefaz-dragon-crusaders/',
         'info_dict': {
@@ -45,8 +45,8 @@ class Tele5IE(InfoExtractor):
             'description': 'Drachenzähmen schlecht gemacht! Oliver Kalkofe und Peter Rütten knöpfen sich mit "SchleFaZ: Dragon Crusaders" eine wahrhaft verhext-verflixte Drachen-Sause vor. Statt großer Kampf, großer Krampf. Nicht nur in den Füßen, die einem bei dem müden Fantasy-Abenteuer garantiert einschlafen!'
         },
         'params': {
-            'skip_download': True
-        }
+            'skip_download': True,
+        },
     }, {
         # TODO: 400 Bad Request error on webpage, remove this test? (they might fix it eventually)
         'url': 'https://www.tele5.de/video-clip/?ve_id=1609440',
@@ -87,8 +87,8 @@ class Tele5IE(InfoExtractor):
             def extract_id(pattern, name, default=NO_DEFAULT):
                 return self._html_search_regex(
                     (r'id\s*=\s*["\']video-player["\'][^>]+data-id\s*=\s*["\'](%s)' % pattern,
-                    r'\s+id\s*=\s*["\']player_(%s)' % pattern,
-                    r'\bdata-id\s*=\s*["\'](%s)' % pattern), webpage, name,
+                     r'\s+id\s*=\s*["\']player_(%s)' % pattern,
+                     r'\bdata-id\s*=\s*["\'](%s)' % pattern), webpage, name,
                     default=default)
 
             if not jwplatform_id:
@@ -105,8 +105,8 @@ class Tele5IE(InfoExtractor):
                 media, lambda x: x['playlist'][0]['nexx_id'], compat_str)
 
             # TODO: nexx offers more formats, but fails (404) on some videos
-            #if nexx_id:
-                #return nexx_result(nexx_id)
+            # if nexx_id:
+            #    return nexx_result(nexx_id)
 
         return self.url_result(
             'jwplatform:%s' % jwplatform_id, ie=JWPlatformIE.ie_key(),
