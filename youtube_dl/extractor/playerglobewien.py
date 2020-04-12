@@ -20,49 +20,36 @@ class PlayerGlobeWienIE(InfoExtractor):
             },
             'params': {
                 'format': 'bestvideo',
-            }
-        },
-        {
-            'url': 'https://player.globe.wien/globe-wien/corona-podcast-teil-4',
-            'info_dict': {
-                'id': 'corona-podcast-teil-4',
-                'ext': 'm4a',
-                'title': 'Eckel & Niavarani & Sarsam - Im Endspurt versagt',
-            },
-            'params': {
-                'format': 'bestaudio',
                 'skip_download': True,
             }
         },
         {
             'url': 'https://player.hader.at/hader/hader-indien-video',
+            'md5': '0bca8d5b309361a9556cee6abff2c1b9',
             'info_dict': {
                 'id': 'hader-indien-video',
                 'ext': 'mp4',
                 'title': 'Film der Woche - Indien',
+                'description': 'md5:cad9f2bd7a0c5c0dff9cf1cff71288f6',
+                'thumbnail': r're:^https?://.*\.jpg',
             },
             'params': {
                 'format': 'bestvideo',
-            }
-        },
-        {
-            'url': 'https://player.hader.at/hader/hader-indien-video',
-            'info_dict': {
-                'id': 'hader-indien-video',
-                'ext': 'm4a',
-                'title': 'Film der Woche - Indien',
-            },
-            'params': {
-                'format': 'bestaudio',
                 'skip_download': True,
             }
         },
         {
             'url': 'https://player.hader.at/hader/hader-indien',
+            'md5': 'b8bd7cf37d82529411a6e67005739fb3',
             'info_dict': {
                 'id': 'hader-indien',
                 'ext': 'mp3',
                 'title': 'Hader & Dorfer lesen Indien',
+                'description': 'md5:8b4e1de6c627b7d9ee6cb1c65debfa85',
+                'thumbnail': r're:^https?://.*\.jpg',
+            },
+            'params': {
+                'skip_download': True,
             }
         },
     ]
