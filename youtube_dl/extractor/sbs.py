@@ -80,6 +80,10 @@ class SBSNewsIE(SBSIE):
         'only_matching': True,
     }]
 
+    @classmethod
+    def suitable(cls, url):
+        return False if SBSIE.suitable(url) else super(SBSNewsIE, cls).suitable(url)
+
     def _video_id(self, url):
         slug = self._match_id(url)
         page_contents = self._download_webpage(url, slug)
