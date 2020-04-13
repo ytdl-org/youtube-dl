@@ -69,7 +69,7 @@ class SBSIE(InfoExtractor):
         return self._match_id(url)
 
 
-class SBSNewsIE(SBSIE):
+class SBSNewsIE(InfoExtractor):
     _VALID_URL = r'https?://(?:www\.)?sbs\.com\.au/news/(?P<id>[0-9a-z-]+)'
 
     _TESTS = [{
