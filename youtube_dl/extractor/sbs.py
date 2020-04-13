@@ -75,18 +75,6 @@ class SBSNewsIE(SBSIE):
     _TESTS = [{
         'url': 'https://www.sbs.com.au/news/are-the-campaigns-working-voters-speak-out',
         'only_matching': True,
-        'md5': '2b73ddcbb597f24a87167826c47398f8',
-        'info_dict': {
-            'id': 'Vznr2YGb83mF',
-            'ext': 'mp4',
-            'title': 'Are the campaigns cutting through?',
-            'description': 'md5:d41d8cd98f00b204e9800998ecf8427e',
-            'thumbnail': r're:http://.*\.jpg',
-            'duration': 146,
-            'timestamp': 1557552900,
-            'upload_date': '20190511',
-            'uploader': 'SBSC',
-        },
     }, {
         'url': 'https://www.sbs.com.au/news/sbs-world-news-bulletin-may-11',
         'only_matching': True,
