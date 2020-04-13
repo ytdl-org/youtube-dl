@@ -88,8 +88,12 @@ class DigitalConcertHallIE(InfoExtractor):
                 'duration': duration,
                 'timestamp': timestamp,
             })
+            # use playlist description for video description by default
+            # but if the video has a description, use it
             if vid_info_dict.get('short_description'):
-                entries[-1]['description'] = vid_info_dict.get('short_description')
+                entries[-1]['description'] = vid_info_dict.get('short_description', "missing description")
+            if vid_info.get('short_description'):
+                entries[-1]['description'] = vid_info.get('short_description', "missing description")
             if vid_info.get('cuepoints'):
                 chapters = []
                 for chapter in vid_info.get('cuepoints'):
