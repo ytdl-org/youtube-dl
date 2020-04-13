@@ -8,33 +8,9 @@ from ..utils import (
 )
 
 
-class SBSIE(InfoExtractor):
-    IE_DESC = 'sbs.com.au'
-    _VALID_URL = r'https?://(?:www\.)?sbs\.com\.au/(?:ondemand|news)/video/(?:single/)?(?P<id>[0-9]+)'
-
-    _TESTS = [{
-        # Original URL is handled by the generic IE which finds the iframe:
-        # http://www.sbs.com.au/thefeed/blog/2014/08/21/dingo-conservation
-        'url': 'http://www.sbs.com.au/ondemand/video/single/320403011771/?source=drupal&vertical=thefeed',
-        'md5': '3150cf278965eeabb5b4cea1c963fe0a',
-        'info_dict': {
-            'id': '_rFBPRPO4pMR',
-            'ext': 'mp4',
-            'title': 'Dingo Conservation (The Feed)',
-            'description': 'md5:f250a9856fca50d22dec0b5b8015f8a5',
-            'thumbnail': r're:http://.*\.jpg',
-            'duration': 308,
-            'timestamp': 1408613220,
-            'upload_date': '20140821',
-            'uploader': 'SBSC',
-        },
-    }, {
-        'url': 'http://www.sbs.com.au/ondemand/video/320403011771/Dingo-Conservation-The-Feed',
-        'only_matching': True,
-    }, {
-        'url': 'http://www.sbs.com.au/news/video/471395907773/The-Feed-July-9',
-        'only_matching': True,
-    }]
+class SBSBaseIE(InfoExtractor):
+    def _video_id(self, url):
+        raise NotImplementedError('SBS InfoExtractor classes must implement _video_id()')
 
     def _real_extract(self, url):
         video_id = self._video_id(url)
@@ -65,18 +41,48 @@ class SBSIE(InfoExtractor):
             'url': smuggle_url(self._proto_relative_url(theplatform_url), {'force_smil_url': True}),
         }
 
+
+class SBSIE(SBSBaseIE):
+    IE_DESC = 'sbs.com.au'
+    _VALID_URL = r'https?://(?:www\.)?sbs\.com\.au/(?:ondemand|news)/video/(?:single/)?(?P<id>[0-9]+)'
+
+    _TESTS = [{
+        # Original URL is handled by the generic IE which finds the iframe:
+        # http://www.sbs.com.au/thefeed/blog/2014/08/21/dingo-conservation
+        'url': 'http://www.sbs.com.au/ondemand/video/single/320403011771/?source=drupal&vertical=thefeed',
+        'md5': '3150cf278965eeabb5b4cea1c963fe0a',
+        'info_dict': {
+            'id': '_rFBPRPO4pMR',
+            'ext': 'mp4',
+            'title': 'Dingo Conservation (The Feed)',
+            'description': 'md5:f250a9856fca50d22dec0b5b8015f8a5',
+            'thumbnail': r're:http://.*\.jpg',
+            'duration': 308,
+            'timestamp': 1408613220,
+            'upload_date': '20140821',
+            'uploader': 'SBSC',
+        },
+    }, {
+        'url': 'http://www.sbs.com.au/ondemand/video/320403011771/Dingo-Conservation-The-Feed',
+        'only_matching': True,
+    }, {
+        'url': 'http://www.sbs.com.au/news/video/471395907773/The-Feed-July-9',
+        'only_matching': True,
+    }]
+
     def _video_id(self, url):
         return self._match_id(url)
 
 
-class SBSNewsIE(InfoExtractor):
+class SBSNewsIE(SBSBaseIE):
+    IE_DESC = 'sbs.com.au:news'
     _VALID_URL = r'https?://(?:www\.)?sbs\.com\.au/news/(?P<id>[0-9a-z-]+)'
 
     _TESTS = [{
-        'url': 'https://www.sbs.com.au/news/are-the-campaigns-working-voters-speak-out',
+        'url': 'https://www.sbs.com.au/news/rio-s-christ-the-redeemer-dons-doctor-s-coat-to-honour-coronavirus-medics',
         'only_matching': True,
     }, {
-        'url': 'https://www.sbs.com.au/news/sbs-world-news-bulletin-may-11',
+        'url': 'https://www.sbs.com.au/news/catch-up-sbs-world-news-11-april-2020',
         'only_matching': True,
     }]
 
