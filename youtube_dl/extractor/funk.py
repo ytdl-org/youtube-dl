@@ -26,6 +26,24 @@ class FunkIE(InfoExtractor):
         },
 
     }, {
+        # protection tokens (available until 2020-07-29)
+        'url': 'https://www.funk.net/channel/the-job-lot-1199/unter-druck-185103/the-job-lot-staffel-1-1444',
+        'md5': '91330fc2708e3ef3fc7e259a341bf4d5',
+        'info_dict': {
+            'id': '185103',
+            'ext': 'mp4',
+            'title': 'Unter Druck',
+            'duration': 1459,
+            'upload_date': '20170419',
+            'timestamp': 1492618074,
+            'description': 'md5:0e752a4151c9a340db26f1455b735fa4',
+        },
+        'params': {
+            'format': 'azure-dash-1_V_video_7',
+        },
+        # really just want to test that it does not return a 400 Bad Request
+        'file_minsize': None,
+    }, {
         'url': 'https://www.funk.net/playlist/neuesteVideos/kameras-auf-dem-fusion-festival-1618699',
         'only_matching': True,
     }]

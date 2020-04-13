@@ -37,7 +37,7 @@ class NexxIE(InfoExtractor):
             'alt_title': 'Wie ein Test abläuft',
             'description': 'md5:d1ddb1ef63de721132abd38639cc2fd2',
             'creator': 'SPIEGEL TV',
-            'thumbnail': r're:^https?://.*\.jpg$',
+            'thumbnail': r're:^https?://.*\.(?:jpg|webp)$',
             'duration': 2509,
             'timestamp': 1384264416,
             'upload_date': '20131112',
@@ -51,7 +51,7 @@ class NexxIE(InfoExtractor):
             'title': 'Return of the Golden Child (OV)',
             'description': 'md5:5d969537509a92b733de21bae249dc63',
             'release_year': 2017,
-            'thumbnail': r're:^https?://.*\.jpg$',
+            'thumbnail': r're:^https?://.*\.(?:jpg|webp)$',
             'duration': 1397,
             'timestamp': 1495033267,
             'upload_date': '20170517',
@@ -69,27 +69,13 @@ class NexxIE(InfoExtractor):
         'info_dict': {
             'id': '1269984',
             'ext': 'mp4',
-            'title': '1 TAG ohne KLO... wortwörtlich! 😑',
-            'alt_title': '1 TAG ohne KLO... wortwörtlich! 😑',
-            'thumbnail': r're:^https?://.*\.jpg$',
+            'title': '1 TAG ohne KLO... wortwörtlich! ?',
+            'alt_title': '1 TAG ohne KLO... wortwörtlich! ?',
+            'description': 'md5:1cf562de6653f76fbc589ecbdf985727',
+            'thumbnail': r're:^https?://.*\.(?:jpg|webp)$',
             'duration': 607,
             'timestamp': 1518614955,
             'upload_date': '20180214',
-        },
-    }, {
-        # free cdn from http://www.spiegel.de/video/eifel-zoo-aufregung-um-ausgebrochene-raubtiere-video-99018031.html
-        'url': 'nexx:747:1533779',
-        'md5': '6bf6883912b82b7069fb86c2297e9893',
-        'info_dict': {
-            'id': '1533779',
-            'ext': 'mp4',
-            'title': 'Aufregung um ausgebrochene Raubtiere',
-            'alt_title': 'Eifel-Zoo',
-            'description': 'md5:f21375c91c74ad741dcb164c427999d2',
-            'thumbnail': r're:^https?://.*\.jpg$',
-            'duration': 111,
-            'timestamp': 1527874460,
-            'upload_date': '20180601',
         },
     }, {
         'url': 'https://api.nexxcdn.com/v3/748/videos/byid/128907',
@@ -220,6 +206,9 @@ class NexxIE(InfoExtractor):
 
         return formats
 
+    def _protection_tokens(self, video):
+        return try_get(video, lambda x: x['protectiondata'], dict)
+
     def _extract_azure_formats(self, video, video_id):
         stream_data = video['streamdata']
         cdn = stream_data['cdnType']
@@ -247,24 +236,39 @@ class NexxIE(InfoExtractor):
         azure_manifest_url = '%s%s/%s_src%s.ism/Manifest' % (
             azure_stream_base, azure_locator, video_id, ('_manifest' if is_ml else '')) + '%s'
 
+        def add_token(url, token, key=None):
+            return url + '?%s=%s' % (key or 'hdnts', token)
+        azure_manifest_urls = {}
+
+        protection_data = self._protection_tokens(video)
+        # TODO: is this kind of token still in use? (perhaps add a test)
         protection_token = try_get(
-            video, lambda x: x['protectiondata']['token'], compat_str)
+            protection_data, lambda x: x['token'], compat_str)
         if protection_token:
-            azure_manifest_url += '?hdnts=%s' % protection_token
+            azure_manifest_url = add_token(azure_manifest_url, protection_token)
+        elif protection_data:
+            token_key = try_get(protection_data, lambda x: x['tokenReference'], compat_str)
+            for key in protection_data:
+                value = protection_data[key]
+                if isinstance(value, compat_str) and key.startswith('token') and len(key) > 5:
+                    azure_manifest_urls[key[5:]] = add_token(azure_manifest_url, value, key=token_key)
 
         formats = self._extract_m3u8_formats(
-            azure_manifest_url % '(format=m3u8-aapl)',
+            (try_get(azure_manifest_urls, lambda x: x['HLS'], compat_str) or azure_manifest_url) % '(format=m3u8-aapl)',
             video_id, 'mp4', 'm3u8_native',
             m3u8_id='%s-hls' % cdn, fatal=False)
         formats.extend(self._extract_mpd_formats(
-            azure_manifest_url % '(format=mpd-time-csf)',
+            (try_get(azure_manifest_urls, lambda x: x['DASH'], compat_str) or azure_manifest_url) % '(format=mpd-time-csf)',
             video_id, mpd_id='%s-dash' % cdn, fatal=False))
         formats.extend(self._extract_ism_formats(
-            azure_manifest_url % '', video_id, ism_id='%s-mss' % cdn, fatal=False))
+            (try_get(azure_manifest_urls, lambda x: x['DASH'], compat_str) or azure_manifest_url) % '',
+            video_id, ism_id='%s-mss' % cdn, fatal=False))
 
         azure_progressive_base = get_cdn_shield_base('Prog', True)
         azure_file_distribution = stream_data.get('azureFileDistribution')
-        if azure_file_distribution:
+        # TODO: this download method does not work when tokenHLS/tokenDASH is present,
+        # (simply adding one of the tokens to the url does not fix the 400 Bad Request)
+        if azure_file_distribution and len(azure_manifest_urls) == 0:
             fds = azure_file_distribution.split(',')
             if fds:
                 for fd in fds:
@@ -314,7 +318,8 @@ class NexxIE(InfoExtractor):
                 video = find_video(result)
 
         # not all videos work via arc, e.g. nexx:741:1269984
-        if not video:
+        # some videos require extra protection tokens
+        if not video or self._protection_tokens(video):
             # Reverse engineered from JS code (see getDeviceID function)
             device_id = '%d:%d:%d%d' % (
                 random.randint(1, 4), int(time.time()),
