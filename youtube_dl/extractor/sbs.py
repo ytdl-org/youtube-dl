@@ -70,7 +70,7 @@ class SBSIE(InfoExtractor):
 
 
 class SBSNewsIE(SBSIE):
-    _VALID_URL = r'^https?://(?:www\.)?sbs\.com\.au/news/(?P<id>[0-9a-z-]+)$'
+    _VALID_URL = r'https?://(?:www\.)?sbs\.com\.au/news/(?P<id>[0-9a-z-]+)'
 
     _TESTS = [{
         'url': 'https://www.sbs.com.au/news/are-the-campaigns-working-voters-speak-out',
