@@ -359,6 +359,7 @@ def _real_main(argv=None):
         'progress_with_newline': opts.progress_with_newline,
         'playliststart': opts.playliststart,
         'playlistend': opts.playlistend,
+        'playlisttitleend': opts.playlisttitleend,
         'playlistreverse': opts.playlist_reverse,
         'playlistrandom': opts.playlist_random,
         'noplaylist': opts.noplaylist,
