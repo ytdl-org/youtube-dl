@@ -55,7 +55,7 @@ class VRTIE(InfoExtractor):
         site, display_id = re.match(self._VALID_URL, url).groups()
         webpage = self._download_webpage(url, display_id)
         attrs = extract_attributes(self._search_regex(
-             r'(<[^>]+class="vrtvideo( [^"]*)?"[^>]*>)', webpage, 'vrt video'))
+            r'(<[^>]+class="vrtvideo( [^"]*)?"[^>]*>)', webpage, 'vrt video'))
 
         asset_id = attrs['data-video-id']
         publication_id = attrs.get('data-publication-id')
