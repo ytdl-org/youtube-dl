@@ -30,6 +30,17 @@ class CloudflareStreamIE(InfoExtractor):
             'skip_download': True,
         },
     }, {
+        'url': 'https://embed.videodelivery.net/embed/r4xu.fla9.latest.js?video=eyJhbGciOiJSUzI1NiIsImtpZCI6IjEyMzQ1Njc4OTAxMjM0NTY3ODkwMTIzNDU2Nzg5MDEyIn0.eyJzdWIiOiI1ZDViYzM3ZmZjZjU0YzliODJlOTk2ODIzYmZmYmI4MSIsImtpZCI6IjVkNWJjMzdmZmNmNTRjOWI4MmU5OTY4MjNiZmZiYjgxIiwiZXhwIjoiMTYxNzM0NjgwMCIsIm5iZiI6IjE1ODU4MTA4MDAifQ.abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ',
+        'info_dict': {
+            'id': '5d5bc37ffcf54c9b82e996823bffbb81',
+            'ext': 'mp4',
+            'title': '5d5bc37ffcf54c9b82e996823bffbb81',
+        },
+        'params': {
+            'format': 'bestvideo',
+            'skip_download': True,
+        },
+    }, {
         'url': 'https://watch.cloudflarestream.com/9df17203414fd1db3e3ed74abbe936c1',
         'only_matching': True,
     }, {
@@ -53,8 +64,9 @@ class CloudflareStreamIE(InfoExtractor):
         domain = 'bytehighway.net' if 'bytehighway.net/' in url else 'videodelivery.net'
         base_url = 'https://%s/%s/' % (domain, video_id)
         if '.' in video_id:
-            video_id = self._parse_json(base64.urlsafe_b64decode(
-                video_id.split('.')[1]), video_id)['sub']
+            video_id = video_id.split('.')[1] + '===='
+            video_id = self._parse_json(base64.b64decode(
+                video_id), video_id)['sub']
         manifest_base_url = base_url + 'manifest/video.'
 
         formats = self._extract_m3u8_formats(
