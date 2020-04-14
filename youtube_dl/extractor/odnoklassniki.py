@@ -184,6 +184,9 @@ class OdnoklassnikiIE(InfoExtractor):
 
         movie = metadata['movie']
 
+        if movie.get('status') == 'PROCESSING':
+            raise ExtractorError('Video is still processing', video_id=video_id)
+
         # Some embedded videos may not contain title in movie dict (e.g.
         # http://ok.ru/video/62036049272859-0) thus we allow missing title
         # here and it's going to be extracted later by an extractor that
