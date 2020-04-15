@@ -6,7 +6,6 @@ import re
 from .theplatform import ThePlatformBaseIE
 from ..compat import (
     compat_parse_qs,
-    compat_str,
     compat_urllib_parse_urlparse,
 )
 from ..utils import (
@@ -114,7 +113,7 @@ class MediasetIE(ThePlatformBaseIE):
                 continue
             urlh = ie._request_webpage(
                 embed_url, video_id, note='Following embed URL redirect')
-            embed_url = compat_str(urlh.geturl())
+            embed_url = urlh.geturl()
             program_guid = _program_guid(_qs(embed_url))
             if program_guid:
                 entries.append(embed_url)
