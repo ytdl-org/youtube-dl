@@ -23,21 +23,52 @@ class NebulaIE(InfoExtractor):
     This description has been last updated on 2020-04-07.
     """
 
-    _VALID_URL = r'https?://(?:www\.)?watchnebula\.com/videos/(?P<id>[-\w]+)'   # the 'id' group is actually the slug, but we misname it 'id' to be able to use _match_id()
-    _TEST = {
-        'url': 'https://watchnebula.com/videos/that-time-disney-remade-beauty-and-the-beast',
-        'md5': 'fe79c4df8b3aa2fea98a93d027465c7e',
-        'info_dict': {
-            'id': '5c271b40b13fd613090034fd',
-            'ext': 'mp4',
-            'title': 'That Time Disney Remade Beauty and the Beast',
-            'description': 'Note: this video was originally posted on YouTube with the sponsor read included. We weren’t able to remove it without reducing video quality, so it’s presented here in its original context.',
-            'upload_date': '20180731',
-            'timestamp': 1533009600,
-            #'uploader': 'Lindsay Ellis',   # TODO: removed because unreliable/sometimes incorrect
-        }
-    }
-    _WORKING = False   # this is set to False because the test won't pass without an auth cookie for a (paid) subscription
+    _VALID_URL = r'https?://(?:www\.)?watchnebula\.com/videos/(?P<id>[-\w]+)'   # the 'id' group is actually the display_id, but we misname it 'id' to be able to use _match_id()
+    _TESTS = [
+        {
+            'url': 'https://watchnebula.com/videos/that-time-disney-remade-beauty-and-the-beast',
+            'md5': 'fe79c4df8b3aa2fea98a93d027465c7e',
+            'info_dict': {
+                'id': '5c271b40b13fd613090034fd',
+                'ext': 'mp4',
+                'title': 'That Time Disney Remade Beauty and the Beast',
+                'description': 'Note: this video was originally posted on YouTube with the sponsor read included. We weren’t able to remove it without reducing video quality, so it’s presented here in its original context.',
+                'upload_date': '20180731',
+                'timestamp': 1533009600,
+                'channel': 'Lindsay Ellis',
+                'uploader': 'Lindsay Ellis',
+            }
+        },
+        {
+            'url': 'https://watchnebula.com/videos/the-logistics-of-d-day-landing-craft-how-the-allies-got-ashore',
+            'md5': 'b0b171504d67e2822179149ccd6787db',
+            'info_dict': {
+                'id': '5e7e78171aaf320001fbd6be',
+                'ext': 'mp4',
+                'title': 'Landing Craft - How The Allies Got Ashore',
+                'description': r're:^In this episode we explore the unsung heroes of D-Day, the landing craft.',
+                'upload_date': '20200327',
+                'timestamp': 1585348140,
+                'channel': 'The Logistics of D-Day',
+                'uploader': 'The Logistics of D-Day',
+            }
+        },
+        {
+            'url': 'https://watchnebula.com/videos/money-episode-1-the-draw',
+            'md5': '98e96346caa3b303fec4493c5d49dcb5',
+            'info_dict': {
+                'id': '5e779ebdd157bc0001d1c75a',
+                'ext': 'mp4',
+                'title': 'Episode 1: The Draw',
+                'description': r're:^There’s free money on offer… if the players can all work together.',
+                'upload_date': '20200323',
+                'timestamp': 1584980400,
+                'channel': 'Tom Scott Presents: Money',
+                'uploader': 'Tom Scott Presents: Money',
+            }
+        },
+    ]
+    _WORKING = True   # FIXME: should this be set to False, to hide the tests from CI, given that the unit tests require an auth cookie of a (paid) subscription?
 
     def _extract_state_object(self, webpage, display_id):
         """
