@@ -1519,6 +1519,14 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                 if player_response:
                     renderer = player_response['captions']['playerCaptionsTracklistRenderer']
                     base_url = renderer['captionTracks'][0]['baseUrl']
+                    # the first caption track might contain manual
+                    # subtitles not auto-captions (e.g. 2klmuggOElE,
+                    # accessed on 16.04.2020) so we look further in
+                    # captionTracks and select a base_url from an
+                    # explicitly marked asr track if one exists.
+                    for track in renderer['captionTracks'][1:]:
+                        if track.get('kind') == 'asr':
+                            base_url = track['baseUrl']
                     sub_lang_list = []
                     for lang in renderer['translationLanguages']:
                         lang_code = lang.get('languageCode')
