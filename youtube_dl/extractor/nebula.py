@@ -105,13 +105,32 @@ class NebulaIE(InfoExtractor):
 
         return video_url
 
-    def _extract_uploader(self, video_meta):
+    def _extract_channel(self, video_meta):
         """
-        Nebula doesn't really seem to have the concept of an uploader internally, videos are often organized
-        more like a (TV) series than by uploader. But in the example case, Lindsay Ellis is the creator, so
-        I'll go with this for now.
+        Extract the channel title, by going through the list of categories and finding the first value of the
+        first category that has a value.
+
+        I know this look like a terrible approach. But actually, it's just reproducing the behavior of the
+        React code the Nebula frontend uses (as of 2020-04-07):
+
+            let channel;
+            if (video && video.categories && video.categories.length) {
+                const channelTitle = video.categories.map((category) => (category.value[0]))
+                                                     .filter((title) => (!!title))[0];
+                channel = getChannelByTitle(state, { title: channelTitle });
+            }
+
+        Basically, it finds the first (truthy) value in the category list and that's assumed to be the
+        channel title. And then the channel details (e.g. the URL) are looked up by title (!) (not by any
+        kind of ID) via an additional API call.
+
+        TODO: Implement the API calls giving us the channel list, so that we can do the title lookup and then figure out the channel URL
         """
-        return video_meta['categories'][0]['value'][0]
+        categories = video_meta['categories']
+        for category in categories:
+            if category['value']:
+                return category['value'][0]
+        return None
 
     def _real_extract(self, url):
         # FIXME: a workaround for testing, because I couldn't figure out how to supply a cookiejar when running the unit tests
@@ -127,6 +146,7 @@ class NebulaIE(InfoExtractor):
         # extract the state object from the webpage, and then retrieve video meta data from it
         state_object = self._extract_state_object(webpage, display_id)
         video_id, video_meta = self._extract_video_metadata(state_object, display_id)
+        channel_title = self._extract_channel(video_meta)
 
         # extract the video URL from the webpage
         video_url = self._extract_video_url(webpage, state_object, video_id)
@@ -146,7 +166,6 @@ class NebulaIE(InfoExtractor):
             'title': video_meta['title'],
             'description': video_meta['description'],
             'timestamp': parse_iso8601(video_meta['published_at']),
-            #'uploader': self._extract_uploader(video_meta),   # TODO: removed because unreliable/sometimes incorrect
             'thumbnails': [
                 {
                     'id': tn['name'],   # this appears to be null in all cases I've seen
@@ -156,8 +175,9 @@ class NebulaIE(InfoExtractor):
                 } for tn in video_meta['thumbnails']
             ],
             'duration': video_meta['duration'],
+            'channel': channel_title,
+            'uploader': channel_title,   # we chose here to declare the channel name as the 'uploader' -- that's certainly arguable, as sometimes it's more of a series
             # TODO: uploader_url: the video page clearly links to this (in the example case: /lindsayellis), but I cannot figure out where it gets it from!
-            # TODO: channel
             # TODO: channel_id
             # TODO: channel_url
         }
