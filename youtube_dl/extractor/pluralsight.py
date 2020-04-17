@@ -214,36 +214,34 @@ query viewClip {
 
             raise ExtractorError('Unable to log in')
 
-    def _get_subtitles(self, author, clip_idx, clip_id, lang, name, duration, video_id):
-        captions = None
-        if clip_id:
-            captions = self._download_json(
-                '%s/transcript/api/v1/caption/json/%s/%s'
-                % (self._API_BASE, clip_id, lang), video_id,
-                'Downloading captions JSON', 'Unable to download captions JSON',
-                fatal=False)
-        if not captions:
-            captions_post = {
-                'a': author,
-                'cn': int(clip_idx),
-                'lc': lang,
-                'm': name,
-            }
-            captions = self._download_json(
-                '%s/player/retrieve-captions' % self._API_BASE, video_id,
-                'Downloading captions JSON', 'Unable to download captions JSON',
-                fatal=False, data=json.dumps(captions_post).encode('utf-8'),
-                headers={'Content-Type': 'application/json;charset=utf-8'})
-        if captions:
-            return {
-                lang: [{
-                    'ext': 'json',
-                    'data': json.dumps(captions),
-                }, {
-                    'ext': 'srt',
-                    'data': self._convert_subtitles(duration, captions),
-                }]
-            }
+    def _get_subtitles(self, author, clip_idx, clip_id, languages, name, duration, video_id):
+
+        def _get_captions_for_language(language):
+            captions = None
+            if clip_id:
+                captions = self._download_json(
+                    '%s/transcript/api/v1/caption/json/%s/%s'
+                    % (self._API_BASE, clip_id, language), video_id,
+                    'Downloading captions JSON', 'Unable to download captions JSON',
+                    fatal=False)
+            if not captions:
+                captions_post = {
+                    'a': author,
+                    'cn': int(clip_idx),
+                    'lc': language,
+                    'm': name,
+                }
+                captions = self._download_json(
+                    '%s/player/retrieve-captions' % self._API_BASE, video_id,
+                    'Downloading captions JSON', 'Unable to download captions JSON',
+                    fatal=False, data=json.dumps(captions_post).encode('utf-8'),
+                    headers={'Content-Type': 'application/json;charset=utf-8'})
+
+            if captions:
+                return [{'ext': 'json', 'data': json.dumps(captions), },
+                        {'ext': 'srt', 'data': self._convert_subtitles(duration, captions), }]
+
+        return {language: _get_captions_for_language(language) for language in languages}
 
     @staticmethod
     def _convert_subtitles(duration, subs):
@@ -423,9 +421,13 @@ query viewClip {
         duration = int_or_none(
             clip.get('duration')) or parse_duration(clip.get('formattedDuration'))
 
-        # TODO: other languages?
+        available_languages = [language['code'] for language in course['translationLanguages']]
+        requested_languages = self._downloader.params['subtitleslangs']
+
+        languages_to_retrieve = set(available_languages).intersection(requested_languages)
+
         subtitles = self.extract_subtitles(
-            author, clip_idx, clip.get('clipId'), 'en', name, duration, display_id)
+            author, clip_idx, clip.get('clipId'), languages_to_retrieve, name, duration, display_id)
 
         return {
             'id': clip_id,
