@@ -181,12 +181,12 @@ class RTVEInfantilIE(InfoExtractor):
 
     _TESTS = [{
         'url': 'http://www.rtve.es/infantil/serie/cleo/video/maneras-vivir/3040283/',
-        'md5': '915319587b33720b8e0357caaa6617e6',
+        'md5': 'a5cbc6f956dc015ee1a44fedcb2606f4',
         'info_dict': {
             'id': '3040283',
             'ext': 'mp4',
             'title': 'Maneras de vivir',
-            'thumbnail': 'http://www.rtve.es/resources/jpg/6/5/1426182947956.JPG',
+            'thumbnail': 'https://img2.rtve.es/imagenes/maneras-vivir/1426182947956.JPG',
             'duration': 357.958,
         },
     }]
@@ -197,11 +197,7 @@ class RTVEInfantilIE(InfoExtractor):
             'http://www.rtve.es/api/videos/%s/config/alacarta_videos.json' % video_id,
             video_id)['page']['items'][0]
 
-        webpage = self._download_webpage(url, video_id)
-        vidplayer_id = self._search_regex(
-            r' id="vidplayer([0-9]+)"', webpage, 'internal video ID')
-
-        png_url = 'http://www.rtve.es/ztnr/movil/thumbnail/default/videos/%s.png' % vidplayer_id
+        png_url = 'http://www.rtve.es/ztnr/movil/thumbnail/default/videos/%s.png' % video_id
         png = self._download_webpage(png_url, video_id, 'Downloading url information')
         video_url = _decrypt_url(png)
 
