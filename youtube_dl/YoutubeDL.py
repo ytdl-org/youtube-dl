@@ -28,6 +28,7 @@ import random
 
 from string import ascii_letters
 
+from .archive import Archive
 from .compat import (
     compat_basestring,
     compat_cookiejar,
@@ -415,6 +416,8 @@ class YoutubeDL(object):
             self.report_warning(
                 'Parameter outtmpl is bytes, but should be a unicode string. '
                 'Put  from __future__ import unicode_literals  at the top of your code file or consider switching to Python 3.x.')
+
+        self.archive = Archive(self.params.get('download_archive'))
 
         self._setup_opener()
 
@@ -2094,32 +2097,15 @@ class YoutubeDL(object):
         return extractor.lower() + ' ' + video_id
 
     def in_download_archive(self, info_dict):
-        fn = self.params.get('download_archive')
-        if fn is None:
-            return False
-
         vid_id = self._make_archive_id(info_dict)
         if not vid_id:
             return False  # Incomplete video information
-
-        try:
-            with locked_file(fn, 'r', encoding='utf-8') as archive_file:
-                for line in archive_file:
-                    if line.strip() == vid_id:
-                        return True
-        except IOError as ioe:
-            if ioe.errno != errno.ENOENT:
-                raise
-        return False
+        return vid_id in self.archive
 
     def record_download_archive(self, info_dict):
-        fn = self.params.get('download_archive')
-        if fn is None:
-            return
         vid_id = self._make_archive_id(info_dict)
         assert vid_id
-        with locked_file(fn, 'a', encoding='utf-8') as archive_file:
-            archive_file.write(vid_id + '\n')
+        self.archive.record_download(vid_id)
 
     @staticmethod
     def format_resolution(format, default='unknown'):
