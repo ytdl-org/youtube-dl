@@ -15,17 +15,16 @@ class Archive(object):
         filepath: str       The filepath of the archive.
 
       Properties:
-        data: set           Container for holding a cache of the archive
-        disabled: bool      When true, all functions are effectively void
+        _data: set          Container for holding a cache of the archive
+        _disabled: bool     When true, all functions are effectively void
         filepath: str       The filepath of the archive
+        _last_read: float   The last modification date of the archive file
 
-      Public Methods:
+      Methods:
         __contains__        Checks a video id (archive id) exists in archive
-        record_download     Adds a new download to archive
-
-      Private Methods:
         _file_changed       Checks if file has been modified since last read
         _read_archive       Reads archive from disk
+        record_download     Adds a new download to archive
     """
 
     def __init__(self, filepath):
