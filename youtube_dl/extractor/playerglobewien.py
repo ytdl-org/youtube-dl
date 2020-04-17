@@ -6,7 +6,7 @@ from .common import InfoExtractor
 
 
 class PlayerGlobeWienIE(InfoExtractor):
-    _VALID_URL = r'https?://player.(?:globe.wien|hader.at)/(?:globe-wien|hader)/(?P<id>.*)'
+    _VALID_URL = r'https?://player\.(hader\.at|globe\.wien)/[^/]+/(?P<id>[^/?#]+)'
     _TESTS = [
         {
             'url': 'https://player.globe.wien/globe-wien/corona-podcast-teil-4',
@@ -55,39 +55,46 @@ class PlayerGlobeWienIE(InfoExtractor):
     ]
 
     def _real_extract(self, url):
-        format_id = self._match_id(url)
-        webpage = self._download_webpage(url, format_id)
-        thumbnail = self._html_search_regex(
-            r'<img class="(?:.+?)" src="(?P<thumbnail>.+?)"',
-            webpage, 'thumbnail', group='thumbnail') or self._og_search_thumbnail(webpage)
-        description = self._og_search_description(webpage)
+        video_id = self._match_id(url)
+        webpage = self._download_webpage(url, video_id)
+        next_data = self._parse_json(
+            self._search_regex(
+                r'<script[^>]+id="__NEXT_DATA__"[^>]+type="application/json"[^>]*>([^<]+)</script>',
+                webpage, 'next data'),
+            video_id)
+
+        vod = next_data.get('props').get('initialState').get('vod')
+
         formats = []
-        title = self._og_search_title(webpage)
-        title = re.sub(r'^(Globe Wien VOD -|Hader VOD -)\s*', '', title)
+        for key in vod.get('streamUrl'):
+            src_url = vod.get('streamUrl').get(key)
+            if key == 'hls':
+                formats.extend(self._extract_m3u8_formats(
+                    src_url, video_id, ext='mp4', m3u8_id=key, fatal=False))
+            elif key == 'dash':
+                formats.extend(self._extract_mpd_formats(
+                    src_url, video_id, mpd_id=key, fatal=False))
+            else:
+                formats.append({
+                    'format_id': key,
+                    'url': src_url
+                })
 
-        streamurl = self._download_json("https://player.globe.wien/api/playout?vodId=" + format_id,
-                                        format_id).get('streamUrl')
-
-        if streamurl.get('hls'):
-            formats.extend(self._extract_m3u8_formats(
-                streamurl.get('hls'), format_id, 'mp4', entry_protocol='m3u8_native', m3u8_id='hls'))
-
-        if streamurl.get('dash'):
-            formats.extend(self._extract_mpd_formats(
-                streamurl.get('dash'), format_id, mpd_id='dash', fatal=False))
-
-        if streamurl.get('audio'):
-            formats.append({
-                'url': streamurl.get('audio'),
-                'format_id': format_id,
-                'vcodec': 'none',
+        thumbnails = []
+        for key in vod.get('images'):
+            thumbnails.append({
+                'id': key,
+                'url': vod.get('images').get(key),
             })
-
+        self._check_formats(formats, video_id)
         self._sort_formats(formats)
+
         return {
-            'id': format_id,
-            'title': title,
-            'thumbnail': thumbnail,
-            'description': description,
+            'id': vod.get('id'),
+            'title': vod.get('title'),
+            'description': vod.get('teaserDescription'),
+            'release_year': vod.get('year'),
+            'duration': (vod.get('durationMinutes') or 0) * 60,
             'formats': formats,
+            'thumbnails': thumbnails,
         }
