@@ -13,7 +13,7 @@ from ..utils import (
 
 
 class RuutuIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:www\.)?(?:ruutu|supla)\.fi/(?:video|supla)/(?P<id>\d+)'
+    _VALID_URL = r'https?://(?:www\.)?(?:ruutu|supla)\.fi/(?:video|supla|audio)/(?P<id>\d+)'
     _TESTS = [
         {
             'url': 'http://www.ruutu.fi/video/2058907',
@@ -42,7 +42,7 @@ class RuutuIE(InfoExtractor):
             },
         },
         {
-            'url': 'http://www.supla.fi/supla/2231370',
+            'url': 'http://www.supla.fi/audio/2231370',
             'md5': 'df14e782d49a2c0df03d3be2a54ef949',
             'info_dict': {
                 'id': '2231370',
@@ -61,7 +61,7 @@ class RuutuIE(InfoExtractor):
         },
         {
             # audio podcast
-            'url': 'https://www.supla.fi/supla/3382410',
+            'url': 'https://www.supla.fi/audio/3382410',
             'md5': 'b9d7155fed37b2ebf6021d74c4b8e908',
             'info_dict': {
                 'id': '3382410',
@@ -71,7 +71,11 @@ class RuutuIE(InfoExtractor):
                 'thumbnail': r're:^https?://.*\.jpg$',
                 'age_limit': 0,
             },
-            'expected_warnings': ['HTTP Error 502: Bad Gateway'],
+            'expected_warnings': [
+                'HTTP Error 400: Bad Request',
+                'HTTP Error 403: Forbidden',
+                'HTTP Error 502: Bad Gateway'
+            ],
         }
     ]
 
