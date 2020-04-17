@@ -422,9 +422,9 @@ query viewClip {
             clip.get('duration')) or parse_duration(clip.get('formattedDuration'))
 
         available_languages = [language['code'] for language in course['translationLanguages']]
-        requested_languages = self._downloader.params['subtitleslangs']
 
-        languages_to_retrieve = set(available_languages).intersection(requested_languages)
+        languages_to_retrieve = available_languages if self._downloader.params['allsubtitles'] \
+            else set(available_languages).intersection(self._downloader.params['subtitleslangs'])
 
         subtitles = self.extract_subtitles(
             author, clip_idx, clip.get('clipId'), languages_to_retrieve, name, duration, display_id)
