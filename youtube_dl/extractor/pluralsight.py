@@ -241,7 +241,7 @@ query viewClip {
                 return [{'ext': 'json', 'data': json.dumps(captions), },
                         {'ext': 'srt', 'data': self._convert_subtitles(duration, captions), }]
 
-        return {language: _get_captions_for_language(language) for language in languages}
+        return dict((language, _get_captions_for_language(language)) for language in languages)
 
     @staticmethod
     def _convert_subtitles(duration, subs):
