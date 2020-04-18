@@ -4,7 +4,8 @@ from __future__ import unicode_literals
 import os
 
 from .common import InfoExtractor
-from ..utils import parse_iso8601
+from ..compat import compat_str
+from ..utils import parse_iso8601, try_get
 
 COOKIE_NEBULA_AUTH = os.environ.get('COOKIE_NEBULA_AUTH')   # FIXME: a workaround for testing, because I couldn't figure out how to supply a cookiejar when running the unit tests
 
@@ -74,9 +75,13 @@ class NebulaIE(InfoExtractor):
         """
         As of 2020-04-07, every Nebula video page is a React base page, containing an initial state JSON in a script
         tag. This function is extracting this script tag, parsing it as JSON.
+
+        May return None if no state object could be found or it didn't contain valid JSON.
         """
-        initial_state_object = self._search_regex(r'<script id="initial-app-state" type="application/json">(.+?)</script>', webpage, 'initial_state')
-        metadata = self._parse_json(initial_state_object, video_id=display_id)   # TODO: we don't have the real video ID yet, is it okay to pass the display_id instead?
+        initial_state_object = self._search_regex(
+            r'<script[^>]*id="initial-app-state"[^>]*>(.+?)</script>', webpage,
+            'initial_state', fatal=False, default=None)
+        metadata = self._parse_json(initial_state_object, video_id=display_id) if initial_state_object else None   # TODO: we don't have the real video ID yet, is it okay to pass the display_id instead?
 
         return metadata
 
@@ -84,9 +89,12 @@ class NebulaIE(InfoExtractor):
         """
         The state object contains a videos.byURL dictionary, which maps URL display IDs to video IDs. Using the
         video ID, we can then extract a dictionary with various meta data about the video itself.
+
+        May return (None, {}) if no state object was given or it didn't contain the expected lookup table or
+        meta data.
         """
-        video_id = state_object['videos']['byURL'][display_id]
-        video_meta = state_object['videos']['byID'][video_id]
+        video_id = try_get(state_object, lambda x: x['videos']['byURL'][display_id], compat_str)
+        video_meta = try_get(state_object, lambda x: x['videos']['byID'][video_id], dict) or {}
 
         return video_id, video_meta
 
@@ -100,8 +108,10 @@ class NebulaIE(InfoExtractor):
 
         # fallback: reconstruct using video ID and access token from state object
         if not video_url:
-            access_token = state_object['account']['userInfo']['zypeAuthInfo']['accessToken']
-            video_url = 'https://player.zype.com/embed/{video_id}.html?access_token={access_token}'.format(video_id=video_id, access_token=access_token)
+            access_token = try_get(state_object, lambda x: x['account']['userInfo']['zypeAuthInfo']['accessToken'],
+                                   compat_str)
+            video_url = 'https://player.zype.com/embed/{video_id}.html?access_token={access_token}'.format(
+                video_id=video_id, access_token=access_token)
 
         return video_url
 
@@ -125,12 +135,13 @@ class NebulaIE(InfoExtractor):
         kind of ID) via an additional API call.
 
         TODO: Implement the API calls giving us the channel list, so that we can do the title lookup and then figure out the channel URL
+
+        May return None of no category list could be found or no category had a label ('value').
         """
-        categories = video_meta['categories']
+        categories = video_meta.get('categories', []) if video_meta else []
         for category in categories:
-            if category['value']:
+            if category.get('value'):   # we're intentionally not using "'value' in category" here, because the expression is supposed to be falsy for empty lists in category['value'] as well!
                 return category['value'][0]
-        return None
 
     def _real_extract(self, url):
         # FIXME: a workaround for testing, because I couldn't figure out how to supply a cookiejar when running the unit tests
@@ -163,18 +174,17 @@ class NebulaIE(InfoExtractor):
             'url': video_url,
 
             # the meta data we were able to extract from Nebula
-            'title': video_meta['title'],
-            'description': video_meta['description'],
-            'timestamp': parse_iso8601(video_meta['published_at']),
+            'title': video_meta.get('title'),
+            'description': video_meta.get('description'),
+            'timestamp': parse_iso8601(video_meta.get('published_at')),
             'thumbnails': [
                 {
-                    'id': tn['name'],   # this appears to be null in all cases I've seen
+                    'id': tn.get('name'),   # this appears to be null in all cases I've seen
                     'url': tn['url'],
-                    'width': tn['width'],
-                    'height': tn['height'],
-                } for tn in video_meta['thumbnails']
-            ],
-            'duration': video_meta['duration'],
+                    'width': tn.get('width'),
+                    'height': tn.get('height'),
+                } for tn in video_meta.get('thumbnails', [])],
+            'duration': video_meta.get('duration'),
             'channel': channel_title,
             'uploader': channel_title,   # we chose here to declare the channel name as the 'uploader' -- that's certainly arguable, as sometimes it's more of a series
             # TODO: uploader_url: the video page clearly links to this (in the example case: /lindsayellis), but I cannot figure out where it gets it from!
