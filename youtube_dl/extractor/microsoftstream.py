@@ -177,7 +177,7 @@ class MicrosoftStreamIE(MicrosoftStreamBaseIE):
     _TEXTTRACKS_RESPONSE = None
     _VIDEO_ID = None
 
-    _TEST = [{
+    _TESTS = [{
         'url': 'https://web.microsoftstream.com/video/c883c6a5-9895-4900-9a35-62f4b5d506c9',
         'info_dict': {
             'id': 'c883c6a5-9895-4900-9a35-62f4b5d506c9',
@@ -245,7 +245,7 @@ class MicrosoftStreamChannelIE(MicrosoftStreamBaseIE):
     _NETRC_MACHINE = 'microsoftstream'
     _CHANNEL_ID = None
 
-    _TEST = [{
+    _TESTS = [{
         'url': 'https://web.microsoftstream.com/channel/c883c6a5-9895-4900-9a35-62f4b5d506c9',
         'only_matching': True,
     }, {
