@@ -14,7 +14,7 @@ class TV5UnisCaIE(InfoExtractor):
     IE_DESC = 'TV5UNISCA'
     _VALID_URL = r'https?://(?:www\.)?tv5unis\.ca/videos/(?P<id>[^?#]+)'
     _TESTS = []
-    _GEO_BYPASS = False
+    _GEO_COUNTRIES = ['CA', 'FR']
 
     def _real_extract(self, url):
 
