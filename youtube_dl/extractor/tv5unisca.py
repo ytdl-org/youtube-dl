@@ -16,10 +16,10 @@ class TV5UnisCaIE(InfoExtractor):
     _TESTS = []
     _GEO_BYPASS = False
 
-    def _real_extract(self, format_url):
+    def _real_extract(self, url):
 
-        display_id = self._match_id(format_url)
-        webpage = self._download_webpage(format_url, display_id)
+        display_id = self._match_id(url)
+        webpage = self._download_webpage(url, display_id)
 
         next_data_dict = self._parse_json(
             get_element_by_id('__NEXT_DATA__', webpage), display_id)\
@@ -32,16 +32,16 @@ class TV5UnisCaIE(InfoExtractor):
 
         formats = []
         for key in filter(lambda k: re.match(r'\$Video:\d+\.encodings\.', k), next_data_dict.keys()):
-            format_ul = next_data_dict[key].get('url')
-            if not format_ul:
+            url = next_data_dict[key].get('url')
+            if not url:
                 continue
-            if format_ul.endswith('.m3u8'):
-                formats.extend(self._extract_m3u8_formats(format_ul, display_id))
-            if format_ul.endswith('.ism/manifest'):
-                formats.extend(self._extract_ism_formats(format_ul, display_id, ism_id='mss', fatal=False))
-            if format_ul.endswith('.mp4'):
+            if url.endswith('.m3u8'):
+                formats.extend(self._extract_m3u8_formats(url, display_id))
+            if url.endswith('.ism/manifest'):
+                formats.extend(self._extract_ism_formats(url, display_id, ism_id='mss', fatal=False))
+            if url.endswith('.mp4'):
                 formats.append({
-                    'url': format_ul,
+                    'url': url,
                     'format_id': 'http'
                 })
 
