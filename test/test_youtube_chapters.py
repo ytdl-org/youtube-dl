@@ -16,6 +16,41 @@ class TestYoutubeChapters(unittest.TestCase):
 
     _TEST_CASES = [
         (
+            # https://www.youtube.com/watch?v=gBRKnvK1JUE
+            # pattern: 00:00 - 09:24 <title>
+            '''Here is Nucleus's 1979 album Out Of The Long Dark: https://www.youtube.com/watch?v=GX4Eh1DPb-E<br /><br />And here is their 1971 live album: https://www.youtube.com/watch?v=cpbM75B8qaE<br /><br /><a href="#" onclick="yt.www.watch.player.seekTo(00*60+00);return false;">00:00</a> - <a href="#" onclick="yt.www.watch.player.seekTo(09*60+24);return false;">09:24</a>  roots<br /><a href="#" onclick="yt.www.watch.player.seekTo(09*60+24);return false;">09:24</a> - <a href="#" onclick="yt.www.watch.player.seekTo(14*60+19);return false;">14:19</a>  images<br /><a href="#" onclick="yt.www.watch.player.seekTo(14*60+19);return false;">14:19</a> - <a href="#" onclick="yt.www.watch.player.seekTo(18*60+20);return false;">18:20</a>  caliban<br /><a href="#" onclick="yt.www.watch.player.seekTo(18*60+20);return false;">18:20</a> - <a href="#" onclick="yt.www.watch.player.seekTo(21*60+42);return false;">21:42</a>  whapatiti<br /><a href="#" onclick="yt.www.watch.player.seekTo(21*60+42);return false;">21:42</a> - <a href="#" onclick="yt.www.watch.player.seekTo(26*60+18);return false;">26:18</a>  capricorn<br /><a href="#" onclick="yt.www.watch.player.seekTo(26*60+18);return false;">26:18</a> - <a href="#" onclick="yt.www.watch.player.seekTo(29*60+42);return false;">29:42</a>  odokamona<br /><a href="#" onclick="yt.www.watch.player.seekTo(29*60+42);return false;">29:42</a> - <a href="#" onclick="yt.www.watch.player.seekTo(37*60+26);return false;">37:26</a>  southern roots and celebration<br /><br />Bass Guitar – Roger Sutton<br />Design – Keith Davis (3)<br />Drums – Clive Thacker<br />Engineer – Roger Wake<br />Guitar – Jocelyn Pitchen<br />Percussion – Aureo de Souza<br />Piano, Electric Piano – Dave MacRae<br />Producer – Fritz Fryer<br />Tenor Saxophone, Soprano Saxophone, Flute, Flute [Bamboo] – Brian Smith<br />Trumpet – Ian Carr<br />Vocals – Joy Yates<br />Written-By – Brian Smith (tracks: B1 to B3), Dave MacRae (tracks: B4), Ian Carr (tracks: A)   ''',
+            2246,
+            [{
+                'start_time': 0,
+                'end_time': 564,
+                'title': 'roots',
+            }, {
+                'start_time': 564,
+                'end_time': 859,
+                'title': 'images',
+            }, {
+                'start_time': 859,
+                'end_time': 1100,
+                'title': 'caliban',
+            }, {
+                'start_time': 1100,
+                'end_time': 1302,
+                'title': 'whapatiti',
+            }, {
+                'start_time': 1302,
+                'end_time': 1578,
+                'title': 'capricorn',
+            }, {
+                'start_time': 1578,
+                'end_time': 1782,
+                'title': 'odokamona',
+            }, {
+                'start_time': 1782,
+                'end_time': 2246,
+                'title': 'southern roots and celebration',
+            }]
+        ),
+        (
             # https://www.youtube.com/watch?v=A22oy8dFjqc
             # pattern: 00:00 - <title>
             '''This is the absolute ULTIMATE experience of Queen's set at LIVE AID, this is the best video mixed to the absolutely superior stereo radio broadcast. This vastly superior audio mix takes a huge dump on all of the official mixes. Best viewed in 1080p. ENJOY! ***MAKE SURE TO READ THE DESCRIPTION***<br /><a href="#" onclick="yt.www.watch.player.seekTo(00*60+36);return false;">00:36</a> - Bohemian Rhapsody<br /><a href="#" onclick="yt.www.watch.player.seekTo(02*60+42);return false;">02:42</a> - Radio Ga Ga<br /><a href="#" onclick="yt.www.watch.player.seekTo(06*60+53);return false;">06:53</a> - Ay Oh!<br /><a href="#" onclick="yt.www.watch.player.seekTo(07*60+34);return false;">07:34</a> - Hammer To Fall<br /><a href="#" onclick="yt.www.watch.player.seekTo(12*60+08);return false;">12:08</a> - Crazy Little Thing Called Love<br /><a href="#" onclick="yt.www.watch.player.seekTo(16*60+03);return false;">16:03</a> - We Will Rock You<br /><a href="#" onclick="yt.www.watch.player.seekTo(17*60+18);return false;">17:18</a> - We Are The Champions<br /><a href="#" onclick="yt.www.watch.player.seekTo(21*60+12);return false;">21:12</a> - Is This The World We Created...?<br /><br />Short song analysis:<br /><br />- "Bohemian Rhapsody": Although it's a short medley version, it's one of the best performances of the ballad section, with Freddie nailing the Bb4s with the correct studio phrasing (for the first time ever!).<br /><br />- "Radio Ga Ga": Although it's missing one chorus, this is one of - if not the best - the best versions ever, Freddie nails all the Bb4s and sounds very clean! Spike Edney's Roland Jupiter 8 also really shines through on this mix, compared to the DVD releases!<br /><br />- "Audience Improv": A great improv, Freddie sounds strong and confident. You gotta love when he sustains that A4 for 4 seconds!<br /><br />- "Hammer To Fall": Despite missing a verse and a chorus, it's a strong version (possibly the best ever). Freddie sings the song amazingly, and even ad-libs a C#5 and a C5! Also notice how heavy Brian's guitar sounds compared to the thin DVD mixes - it roars!<br /><br />- "Crazy Little Thing Called Love": A great version, the crowd loves the song, the jam is great as well! Only downside to this is the slight feedback issues.<br /><br />- "We Will Rock You": Although cut down to the 1st verse and chorus, Freddie sounds strong. He nails the A4, and the solo from Dr. May is brilliant!<br /><br />- "We Are the Champions": Perhaps the high-light of the performance - Freddie is very daring on this version, he sustains the pre-chorus Bb4s, nails the 1st C5, belts great A4s, but most importantly: He nails the chorus Bb4s, in all 3 choruses! This is the only time he has ever done so! It has to be said though, the last one sounds a bit rough, but that's a side effect of belting high notes for the past 18 minutes, with nodules AND laryngitis!<br /><br />- "Is This The World We Created... ?": Freddie and Brian perform a beautiful version of this, and it is one of the best versions ever. It's both sad and hilarious that a couple of BBC engineers are talking over the song, one of them being completely oblivious of the fact that he is interrupting the performance, on live television... Which was being televised to almost 2 billion homes.<br /><br /><br />All rights go to their respective owners!<br />-----Copyright Disclaimer Under Section 107 of the Copyright Act 1976, allowance is made for fair use for purposes such as criticism, comment, news reporting, teaching, scholarship, and research. Fair use is a use permitted by copyright statute that might otherwise be infringing. Non-profit, educational or personal use tips the balance in favor of fair use''',
