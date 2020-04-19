@@ -12,6 +12,7 @@ from .ffmpeg import (
     FFmpegMetadataPP,
     FFmpegVideoConvertorPP,
     FFmpegSubtitlesConvertorPP,
+    FFmpegSplitByTracksPP,
 )
 from .xattrpp import XAttrMetadataPP
 from .execafterdownload import ExecAfterDownloadPP
@@ -27,6 +28,7 @@ __all__ = [
     'ExecAfterDownloadPP',
     'FFmpegEmbedSubtitlePP',
     'FFmpegExtractAudioPP',
+    'FFmpegSplitByTracksPP',
     'FFmpegFixupM3u8PP',
     'FFmpegFixupM4aPP',
     'FFmpegFixupStretchedPP',

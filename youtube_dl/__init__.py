@@ -293,6 +293,8 @@ def _real_main(argv=None):
         })
         if not already_have_thumbnail:
             opts.writethumbnail = True
+    if opts.split_tracks:
+        postprocessors.append({'key': 'FFmpegSplitByTracks'})
     # XAttrMetadataPP should be run after post-processors that may change file
     # contents
     if opts.xattrs:

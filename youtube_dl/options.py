@@ -525,6 +525,11 @@ def parseOpts(overrideArguments=None):
         '--external-downloader-args',
         dest='external_downloader_args', metavar='ARGS',
         help='Give these arguments to the external downloader')
+    downloader.add_option(
+        '--split-tracks',
+        dest='split_tracks', action='store_true', default=False,
+        help="Split tracks based on chapters information"
+    )
 
     workarounds = optparse.OptionGroup(parser, 'Workarounds')
     workarounds.add_option(

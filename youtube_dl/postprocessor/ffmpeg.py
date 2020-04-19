@@ -1,6 +1,7 @@
 from __future__ import unicode_literals
 
 import io
+import logging
 import os
 import subprocess
 import time
@@ -655,3 +656,49 @@ class FFmpegSubtitlesConvertorPP(FFmpegPostProcessor):
                 }
 
         return sub_filenames, info
+
+
+class FFmpegSplitByTracksPP(FFmpegPostProcessor):
+    log = logging.getLogger(__name__)
+
+    def _ffmpeg_time_string(self, seconds):
+        t_minutes, t_seconds = divmod(seconds, 60)
+        t_hours, t_minutes = divmod(t_minutes, 60)
+        t_string = '{hrs:02}:{min:02}:{sec:02}'.format(hrs=t_hours, min=t_minutes, sec=t_seconds)
+        return t_string
+
+    def _build_track_name(self, chapter, information):
+        track_title = chapter.get("title", "")
+        track_title = encodeFilename(track_title)
+        track_title = track_title.replace("/", "_")
+
+        prefix, sep, ext = information['filepath'].rpartition('.')
+        track_name = "%s - %s%s%s" % (prefix, track_title, sep, ext)
+
+        return track_name
+
+    def _extract_track_from_chapter(self, chapter, information):
+        start = int(chapter['start_time'])
+        end = int(chapter['end_time'])
+        duration = end - start
+
+        start = self._ffmpeg_time_string(start)
+        duration = self._ffmpeg_time_string(duration)
+
+        destination = self._build_track_name(chapter, information)
+
+        self.run_ffmpeg(information['filepath'], destination, ['-c', 'copy', '-ss', start, '-t', duration])
+
+    def run(self, information):
+        chapters = information.get('chapters', [])
+        if not isinstance(chapters, list) or len(chapters) == 0:
+            self.log.warning('[ffmpeg] There are no tracks to extract')
+            return [], information
+
+        for idx, chapter in enumerate(chapters):
+            try:
+                self._extract_track_from_chapter(chapter, information)
+            except Exception as e:
+                self.log.error('Splitting track failed: ' + repr(e))
+
+        return [], information
