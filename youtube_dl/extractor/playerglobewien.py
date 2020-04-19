@@ -65,8 +65,7 @@ class PlayerGlobeWienIE(InfoExtractor):
         vod = next_data.get('props').get('initialState').get('vod')
 
         formats = []
-        for key in vod.get('streamUrl'):
-            src_url = vod.get('streamUrl').get(key)
+        for key, src_url in vod.get('streamUrl').items():
             if key == 'hls':
                 formats.extend(self._extract_m3u8_formats(
                     src_url, video_id, ext='mp4', m3u8_id=key, fatal=False))
@@ -80,10 +79,10 @@ class PlayerGlobeWienIE(InfoExtractor):
                 })
 
         thumbnails = []
-        for key in vod.get('images'):
+        for key, src_url in vod.get('images').items():
             thumbnails.append({
                 'id': key,
-                'url': vod.get('images').get(key),
+                'url': src_url,
             })
         self._check_formats(formats, video_id)
         self._sort_formats(formats)
