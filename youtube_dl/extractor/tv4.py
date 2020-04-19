@@ -107,11 +107,21 @@ class TV4IE(InfoExtractor):
 
         self._sort_formats(formats)
 
+        # The subtitles are defined in the manifest_url like this:
+        # # SUBTITLES groups
+        # #EXT-X-MEDIA:TYPE=SUBTITLES,GROUP-ID="textstream",NAME="Swedish",LANGUAGE="sv",AUTOSELECT=YES,DEFAULT=YES,URI="bmetgl4z0mr(12579349_ISMUSP)-textstream_swe=3000.m3u8"
+        # but I don't know yet how to extract it dynamically from there so they are hardcoded as a start.
+        hardcoded_swedish_subs_url = manifest_url[:-5] + "-textstream_swe=3000.webvtt"
+        subtitles = {}
+        subtitles.setdefault('sv', []).append({
+            'url': hardcoded_swedish_subs_url,
+            'ext': 'vtt'})
+        
         return {
             'id': video_id,
             'title': title,
             'formats': formats,
-            # 'subtitles': subtitles,
+            'subtitles': subtitles,
             'description': info.get('description'),
             'timestamp': parse_iso8601(info.get('broadcast_date_time')),
             'duration': int_or_none(info.get('duration')),
