@@ -1181,6 +1181,7 @@ from .tv2dk import (
 from .tv2hu import TV2HuIE
 from .tv4 import TV4IE
 from .tv5mondeplus import TV5MondePlusIE
+from .tv5unisca import TV5UnisCaIE
 from .tva import TVAIE
 from .tvanouvelles import (
     TVANouvellesIE,
