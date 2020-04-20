@@ -162,7 +162,8 @@ class FunimationIE(InfoExtractor):
         text_tracks_json_string = self._search_regex(
             r'"textTracks": (\[{.+?}\])',
             player_page, 'player data', default='')
-        text_tracks = self._parse_json(text_tracks_json_string, display_id, js_to_json, fatal=False) or []
+        text_tracks = self._parse_json(
+            text_tracks_json_string, display_id, js_to_json, fatal=False) or []
         subtitles = {}
         for text_track in text_tracks:
             url_element = {'url': text_track['src']}
