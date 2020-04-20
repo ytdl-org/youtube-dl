@@ -17,7 +17,6 @@ from ..utils import (
     update_url_query,
 )
 
-
 class ABCIE(InfoExtractor):
     IE_NAME = 'abc.net.au'
     _VALID_URL = r'https?://(?:www\.)?abc\.net\.au/news/(?:[^/]+/){1,2}(?P<id>\d+)'
@@ -58,7 +57,11 @@ class ABCIE(InfoExtractor):
     }, {
         'url': 'http://www.abc.net.au/news/2015-10-19/6866214',
         'only_matching': True,
-    }]
+    }, {
+        'url': "https://www.abc.net.au/news/2015-08-17/warren-entsch-introduces-same-sex-marriage-bill/6702326",
+        'only_matching': True,
+    }
+    ]
 
     def _real_extract(self, url):
         video_id = self._match_id(url)
@@ -67,8 +70,16 @@ class ABCIE(InfoExtractor):
         mobj = re.search(
             r'inline(?P<type>Video|Audio|YouTube)Data\.push\((?P<json_data>[^)]+)\);',
             webpage)
+
+        youtube_link = self._html_search_regex(r'(?s)a href="http://www.youtube.com/(.+?)"', webpage, 'youtube_link', None)
+        if youtube_link:
+            youtube_link = "http://www.youtube.com/"+youtube_link
+            return self.url_result(youtube_link)
+
         if mobj is None:
             expired = self._html_search_regex(r'(?s)class="expired-(?:video|audio)".+?<span>(.+?)</span>', webpage, 'expired', None)
+            
+
             if expired:
                 raise ExtractorError('%s said: %s' % (self.IE_NAME, expired), expected=True)
             raise ExtractorError('Unable to extract video urls')
@@ -78,6 +89,7 @@ class ABCIE(InfoExtractor):
 
         if not isinstance(urls_info, list):
             urls_info = [urls_info]
+
 
         if mobj.group('type') == 'YouTube':
             return self.playlist_result([
