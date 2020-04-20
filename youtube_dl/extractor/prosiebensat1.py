@@ -310,7 +310,7 @@ class ProSiebenSat1IE(ProSiebenSat1BaseIE):
             },
         },
         {
-            'url': 'http://www.fem.com/wellness/videos/wellness-video-clip-kurztripps-zum-valentinstag.html',
+            'url': 'http://www.fem.com/videos/beauty-lifestyle/kurztrips-zum-valentinstag',
             'info_dict': {
                 'id': '2156342',
                 'ext': 'mp4',
