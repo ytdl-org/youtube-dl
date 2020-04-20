@@ -159,12 +159,10 @@ class FunimationIE(InfoExtractor):
     def get_subtitles(self, url, video_id, display_id):
         player_url = urljoin(url, '/player/' + video_id)
         player_page = self._download_webpage(player_url, display_id)
-        text_tracks_search = self._search_regex(
-            r'("textTracks": \[{.+?}\])',
+        text_tracks_json_string = self._search_regex(
+            r'"textTracks": (\[{.+?}\])',
             player_page, 'player data', default='')
-        text_tracks_search = '{' + text_tracks_search + '}'
-        player_json = self._parse_json(text_tracks_search, display_id, js_to_json, fatal=False) or {}
-        text_tracks = player_json.get('textTracks', [])
+        text_tracks = self._parse_json(text_tracks_json_string, display_id, js_to_json, fatal=False) or []
         subtitles = {}
         for text_track in text_tracks:
             data = {'url': text_track['src']}
