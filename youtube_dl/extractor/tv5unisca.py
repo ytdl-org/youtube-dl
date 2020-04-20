@@ -4,6 +4,7 @@ from __future__ import unicode_literals
 from .common import InfoExtractor
 
 from ..utils import (
+    ExtractorError,
     get_element_by_id
 )
 
@@ -50,10 +51,14 @@ class TV5UnisCaIE(InfoExtractor):
             get_element_by_id('__NEXT_DATA__', webpage), display_id) \
             .get('props').get('apolloState')
 
-        info_dict = self._json_ld(
-            next_data_dict['$ArtisanBlocksPageMetaData:50.blockConfiguration.pageMetaDataConfiguration']['jsonLd'],
-            display_id
+        metadata = next_data_dict.get(
+            '$ArtisanBlocksPageMetaData:50.blockConfiguration.pageMetaDataConfiguration', None
         )
+
+        if not metadata:
+            raise ExtractorError('Video removed or not found.', expected=True)
+
+        info_dict = self._json_ld(metadata.get('jsonLd'), display_id)
 
         if info_dict.get('season', ''):
             info_dict['title'] = ' - '.join((info_dict.get('season', ''), info_dict.get('episode', '')))
