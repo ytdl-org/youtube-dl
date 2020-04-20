@@ -105,6 +105,7 @@ class FunimationIE(InfoExtractor):
         if series:
             title = '%s - %s' % (series, title)
         description = self._html_search_meta(['description', 'og:description'], webpage, fatal=True)
+        subtitles = self.get_subtitles(video_id, display_id)
 
         try:
             headers = {}
@@ -149,6 +150,25 @@ class FunimationIE(InfoExtractor):
             'season_number': int_or_none(title_data.get('seasonNum') or _search_kane('season')),
             'episode_number': int_or_none(title_data.get('episodeNum')),
             'episode': episode,
+            'subtitles': subtitles,
             'season_id': title_data.get('seriesId'),
             'formats': formats,
         }
+
+    def get_subtitles(self, video_id, display_id):
+        #TODO get url based on value passed in e.g., https://www.funimationnow.uk/
+        player_url = 'https://www.funimation.com/player/' + video_id
+        player_page = self._download_webpage(player_url, display_id)
+        text_tracks_search = self._search_regex(
+            r'("textTracks": \[{.+?}\])',
+            player_page, 'player data', default='')
+        text_tracks_search = '{' + text_tracks_search + '}'
+        player_json = self._parse_json(text_tracks_search, display_id, js_to_json, fatal=False) or {}
+        subtitles = {}
+        for x in player_json['textTracks']:
+            data = {'url': x['src']}
+            if x['language'] in subtitles:
+                subtitles[x['language']].append(data)
+            else:
+                subtitles[x['language']] = [data]
+        return subtitles
