@@ -165,9 +165,10 @@ class FunimationIE(InfoExtractor):
         text_tracks = self._parse_json(text_tracks_json_string, display_id, js_to_json, fatal=False) or []
         subtitles = {}
         for text_track in text_tracks:
-            data = {'url': text_track['src']}
-            if text_track['language'] in subtitles:
-                subtitles[text_track['language']].append(data)
+            url_element = {'url': text_track['src']}
+            language = text_track.get('language')
+            if language in subtitles:
+                subtitles[language].append(url_element)
             else:
-                subtitles[text_track['language']] = [data]
+                subtitles[language] = [url_element]
         return subtitles
