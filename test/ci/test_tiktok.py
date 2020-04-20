@@ -2,8 +2,8 @@ import unittest
 import youtube_dl
 
 
-class MyTestCase(unittest.TestCase):
-    def test_something(self):
+class TikTokTestYoutubeDl(unittest.TestCase):
+    def test_meta_data(self):
         url = 'https://www.tiktok.com/@danieltbraun/video/6817099671043853574'
         params = {}
         ydl = youtube_dl.YoutubeDL(params)
