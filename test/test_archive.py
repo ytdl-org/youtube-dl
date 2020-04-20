@@ -39,38 +39,6 @@ class TestArchive(unittest.TestCase):
     def test_archive_not_exists(self):
         self.assertFalse("dl_id" in self.archive)
 
-    def test_archive_last_read_on_write(self):
-        t1 = self.archive._last_read
-        self.archive.record_download("dl_id")
-        t2 = self.archive._last_read
-        self.assertNotEqual(t1, t2)
-
-    def test_archive_last_read_on_read(self):
-        t1 = self.archive._last_read
-        self.archive.record_download("dl_id 1")
-        t2 = self.archive._last_read
-        self.assertNotEqual(t1, t2)
-
-    def test_archive_file_not_changed(self):
-        self.archive.record_download("dl_id")
-        self.assertFalse(self.archive._file_changed())
-
-    def test_archive_file_changed(self):
-        self.archive.record_download("dl_id 1")
-        with open(self.archive.filepath, "a", encoding="utf-8") as f_out:
-            sleep(0.01)
-            f_out.write("dl_id 2\n")
-        self.assertTrue(self.archive._file_changed())
-
-    def test_archive_file_changed_exists(self):
-        self.archive.record_download("dl_id 1")
-        with open(self.archive.filepath, "a", encoding="utf-8") as f_out:
-            sleep(0.01)
-            f_out.write("dl_id 2\n")
-        self.assertTrue(self.archive._file_changed())
-        self.assertFalse("dl_id 2" in self.archive._data)
-        self.assertTrue("dl_id 2" in self.archive)
-
     def test_archive_multiple_writes(self):
         self.archive.record_download("dl_id 1")
         self.archive.record_download("dl_id 2")

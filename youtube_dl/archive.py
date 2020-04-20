@@ -18,25 +18,22 @@ class Archive(object):
         _data: set          Container for holding a cache of the archive
         _disabled: bool     When true, all functions are effectively void
         filepath: str       The filepath of the archive
-        _last_read: float   The last modification date of the archive file
 
       Methods:
         __contains__        Checks a video id (archive id) exists in archive
-        _file_changed       Checks if file has been modified since last read
         _read_archive       Reads archive from disk
         record_download     Adds a new download to archive
     """
 
     def __init__(self, filepath):
         """ Instantiate Archive
-        filepath: str or None. The filepath of the archive. If None is provided
-                                instance can still be used but it's effectively
-                                doing nothing."""
+        filepath: str or None. The filepath of the archive. If None or empty
+                                string is provided instance can still be used
+                                but it's effectively doing nothing."""
 
         self.filepath = None if filepath == "" else filepath
         self._disabled = self.filepath is None
         self._data = set()
-        self._last_read = 0
 
     def record_download(self, archive_id):
         """ Records a new archive_id in the archive """
@@ -45,23 +42,16 @@ class Archive(object):
 
         with locked_file(self.filepath, "a", encoding="utf-8") as file_out:
             file_out.write(archive_id + "\n")
-        self._last_read = compat_st_mtime(self.filepath)
         self._data.add(archive_id)
-
-    def _file_changed(self):
-        """ Checks if file has been modified, using system Modification Date """
-        if os.path.exists(self.filepath):
-            return self._last_read < compat_st_mtime(self.filepath)
-        return True
 
     def _read_file(self):
         """ Reads the data from archive file """
-        if self._disabled or not self._file_changed():
+        if self._disabled:
             return
+
         try:
             with locked_file(self.filepath, "r", encoding="utf-8") as file_in:
                 self._data.update(line.strip() for line in file_in)
-                self._last_read = compat_st_mtime(self.filepath)
         except IOError as err:
             if err.errno != errno.ENOENT:
                 raise
