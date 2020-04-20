@@ -28,6 +28,7 @@ from .utils import (
     expand_path,
     match_filter_func,
     MaxDownloadsReached,
+    MaxDataReached,
     preferredencoding,
     read_batch_urls,
     SameFileError,
@@ -150,6 +151,16 @@ def _real_main(argv=None):
         if numeric_limit is None:
             parser.error('invalid rate limit specified')
         opts.ratelimit = numeric_limit
+    if opts.max_data is not None:
+        numeric_limit = FileDownloader.parse_bytes(opts.max_data)
+        if numeric_limit is None:
+            parser.error('invalid max_data specified')
+        opts.max_data = numeric_limit
+    if opts.max_data_new is not None:
+        numeric_limit = FileDownloader.parse_bytes(opts.max_data_new)
+        if numeric_limit is None:
+            parser.error('invalid max_data_new specified')
+        opts.max_data_new = numeric_limit
     if opts.min_filesize is not None:
         numeric_limit = FileDownloader.parse_bytes(opts.min_filesize)
         if numeric_limit is None:
@@ -386,6 +397,8 @@ def _real_main(argv=None):
         'write_pages': opts.write_pages,
         'test': opts.test,
         'keepvideo': opts.keepvideo,
+        'max_data': opts.max_data,
+        'max_data_new': opts.max_data_new,
         'min_filesize': opts.min_filesize,
         'max_filesize': opts.max_filesize,
         'min_views': opts.min_views,
@@ -465,6 +478,9 @@ def _real_main(argv=None):
         except MaxDownloadsReached:
             ydl.to_screen('--max-download limit reached, aborting.')
             retcode = 101
+        except MaxDataReached:
+            ydl.to_screen('--max-data limit reached, aborting.')
+            retcode = 102
 
     sys.exit(retcode)
 

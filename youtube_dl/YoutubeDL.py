@@ -65,6 +65,7 @@ from .utils import (
     locked_file,
     make_HTTPS_handler,
     MaxDownloadsReached,
+    MaxDataReached,
     orderedSet,
     PagedList,
     parse_filesize,
@@ -340,6 +341,9 @@ class YoutubeDL(object):
     _num_downloads = None
     _screen_file = None
 
+    global _downloaded_data
+    _downloaded_data = None
+
     def __init__(self, params=None, auto_init=True):
         """Create a FileDownloader object with the given options."""
         if params is None:
@@ -350,6 +354,7 @@ class YoutubeDL(object):
         self._progress_hooks = []
         self._download_retcode = 0
         self._num_downloads = 0
+        self._downloaded_data = 0
         self._screen_file = [sys.stdout, sys.stderr][params.get('logtostderr', False)]
         self._err_file = sys.stderr
         self.params = {
@@ -820,6 +825,8 @@ class YoutubeDL(object):
                 self.report_error(compat_str(e), e.format_traceback())
                 break
             except MaxDownloadsReached:
+                raise
+            except MaxDataReached:
                 raise
             except Exception as e:
                 if self.params.get('ignoreerrors', False):
@@ -2021,6 +2028,9 @@ class YoutubeDL(object):
                 self.report_error('unable to download video')
             except MaxDownloadsReached:
                 self.to_screen('[info] Maximum number of downloaded files reached.')
+                raise
+            except MaxDataReached:
+                self.to_screen('[info] Maximum data limit reached.')
                 raise
             else:
                 if self.params.get('dump_single_json', False):

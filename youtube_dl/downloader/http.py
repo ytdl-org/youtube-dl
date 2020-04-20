@@ -21,6 +21,7 @@ from ..utils import (
     write_xattr,
     XAttrMetadataError,
     XAttrUnavailableError,
+    MaxDataReached
 )
 
 
@@ -187,6 +188,8 @@ class HttpFD(FileDownloader):
                 raise RetryDownload(err)
 
         def download():
+            global _downloaded_data
+
             data_len = ctx.data.info().get('Content-length', None)
 
             # Range HTTP header may be ignored/unsupported by a webserver
@@ -196,6 +199,9 @@ class HttpFD(FileDownloader):
             # block size when downloading a file.
             if is_test and (data_len is None or int(data_len) > self._TEST_FILE_SIZE):
                 data_len = self._TEST_FILE_SIZE
+
+            max_datalimit = self.params.get('max_data')
+            max_datalimit_new = self.params.get('max_data_new')
 
             if data_len is not None:
                 data_len = int(data_len) + ctx.resume_len
@@ -207,6 +213,9 @@ class HttpFD(FileDownloader):
                 if max_data_len is not None and data_len > max_data_len:
                     self.to_screen('\r[download] File is larger than max-filesize (%s bytes > %s bytes). Aborting.' % (data_len, max_data_len))
                     return False
+                if max_datalimit_new is not None and _downloaded_data + data_len > max_datalimit_new:
+                    self.to_screen('\r[download] Next file size (%s bytes), Maxmimum data limit (%s bytes) expected. Aborting.' % (data_len, max_datalimit_new))
+                    raise MaxDataReached()
 
             byte_counter = 0 + ctx.resume_len
             block_size = ctx.block_size
@@ -298,6 +307,16 @@ class HttpFD(FileDownloader):
                     'speed': speed,
                     'elapsed': now - ctx.start_time,
                 })
+
+                _downloaded_data += len(data_block)
+
+                if max_datalimit is not None:
+                    if _downloaded_data > max_datalimit:
+                        self.to_screen('\r[download] Maxmimum data limit (%s bytes) reached. Aborting.' % (data_len, max_datalimit))
+                        raise MaxDataReached()
+                elif max_datalimit_new is not None and _downloaded_data > max_datalimit_new:
+                    self.to_screen('\r[download] Maxmimum data limit (%s bytes) reached. Aborting.' % (data_len, max_datalimit_new))
+                    raise MaxDataReached()
 
                 if is_test and byte_counter == data_len:
                     break

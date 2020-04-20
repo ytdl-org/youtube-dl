@@ -2416,6 +2416,11 @@ class MaxDownloadsReached(YoutubeDLError):
     pass
 
 
+class MaxDataReached(YoutubeDLError):
+    """ --max-data limit has been reached. """
+    pass
+
+
 class UnavailableVideoError(YoutubeDLError):
     """Unavailable Format exception.
 

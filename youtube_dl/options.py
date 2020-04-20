@@ -280,6 +280,14 @@ def parseOpts(overrideArguments=None):
         dest='max_downloads', metavar='NUMBER', type=int, default=None,
         help='Abort after downloading NUMBER files')
     selection.add_option(
+        '--max-data',
+        metavar='SIZE', dest='max_data', default=None,
+        help='Stop download if total downloaded data reached SIZE (e.g. 50k or 44.6m)')
+    selection.add_option(
+        '--max-data-new',
+        metavar='SIZE', dest='max_data_new', default=None,
+        help='Stop downloading new file if estimated total downloaded data exceeds SIZE (e.g. 50k or 44.6m)')
+    selection.add_option(
         '--min-filesize',
         metavar='SIZE', dest='min_filesize', default=None,
         help='Do not download any videos smaller than SIZE (e.g. 50k or 44.6m)')
