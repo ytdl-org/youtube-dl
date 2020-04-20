@@ -175,7 +175,7 @@ class ProSiebenSat1IE(ProSiebenSat1BaseIE):
                         (?:
                             (?:beta\.)?
                             (?:
-                                prosieben(?:maxx)?|sixx|sat1(?:gold)?|kabeleins(?:doku)?|the-voice-of-germany|7tv|advopedia
+                                prosieben(?:maxx)?|sixx|sat1(?:gold)?|kabeleins(?:doku)?|the-voice-of-germany|advopedia
                             )\.(?:de|at|ch)|
                             ran\.de|fem\.com|advopedia\.de|galileo\.tv/video
                         )
@@ -331,19 +331,6 @@ class ProSiebenSat1IE(ProSiebenSat1BaseIE):
             },
             'playlist_count': 2,
             'skip': 'This video is unavailable',
-        },
-        {
-            'url': 'http://www.7tv.de/circus-halligalli/615-best-of-circus-halligalli-ganze-folge',
-            'info_dict': {
-                'id': '4187506',
-                'ext': 'mp4',
-                'title': 'Best of Circus HalliGalli',
-                'description': 'md5:8849752efd90b9772c9db6fdf87fb9e9',
-                'upload_date': '20151229',
-            },
-            'params': {
-                'skip_download': True,
-            },
         },
         {
             # title in <h2 class="subtitle">
