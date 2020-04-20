@@ -408,7 +408,7 @@ class ProSiebenSat1IE(ProSiebenSat1BaseIE):
         r'<div[^>]+id="veeseoDescription"[^>]*>(.+?)</div>',
     ]
     _UPLOAD_DATE_REGEXES = [
-        r'<meta property="og:published_time" content="(.+?)">',
+        r'<meta data-react-helmet="true" property="og:published_time" content="(.+?)"/>',
         r'<span>\s*(\d{2}\.\d{2}\.\d{4} \d{2}:\d{2}) \|\s*<span itemprop="duration"',
         r'<footer>\s*(\d{2}\.\d{2}\.\d{4}) \d{2}:\d{2} Uhr',
         r'<span style="padding-left: 4px;line-height:20px; color:#404040">(\d{2}\.\d{2}\.\d{4})</span>',
