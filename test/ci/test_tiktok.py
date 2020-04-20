@@ -8,7 +8,8 @@ class TikTokTestYoutubeDl(unittest.TestCase):
         params = {}
         ydl = youtube_dl.YoutubeDL(params)
         info = ydl.extract_info(url, download=False)
-        self.assertEquals(info['share_count'], 110)
+        self.assertEquals(info['share_count'], 121)
+
 
 
 
