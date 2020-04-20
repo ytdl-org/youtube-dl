@@ -20,7 +20,7 @@ class ESPNIE(OnceIE):
                                 (?:
                                     (?:(?:\w+\.)+)?espn\.go|
                                     (?:www\.)?espn
-                                )\.com/
+                                )\.co(m|\.uk)/
                                 (?:
                                     (?:
                                         video/(?:clip|iframe/twitter)|
@@ -72,7 +72,7 @@ class ESPNIE(OnceIE):
         'url': 'https://cdn.espn.go.com/video/clip/_/id/19771774',
         'only_matching': True,
     }, {
-        'url': 'http://www.espn.com/watch/player?id=19141491',
+        'url': ' ',
         'only_matching': True,
     }, {
         'url': 'http://www.espn.com/watch/player?bucketId=257&id=19505875',
@@ -97,6 +97,15 @@ class ESPNIE(OnceIE):
         'only_matching': True,
     }, {
         'url': 'http://www.espn.com/espnw/video/26066627/arkansas-gibson-completes-hr-cycle-four-innings',
+        'only_matching': True,
+    },{
+        'url': 'https://www.espn.co.uk/video/clip/_/id/25103188',
+        'only_matching': True,
+    },{
+        'url': 'https://www.espn.co.uk/video/clip/_/id/29069602',
+        'only_matching': True,
+    },{
+        'url': 'https://www.espn.co.uk/video/clip/_/id/19367162',
         'only_matching': True,
     }]
 
