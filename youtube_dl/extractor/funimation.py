@@ -11,7 +11,8 @@ from ..utils import (
     int_or_none,
     js_to_json,
     ExtractorError,
-    urlencode_postdata
+    urlencode_postdata,
+    urljoin
 )
 
 
@@ -105,7 +106,7 @@ class FunimationIE(InfoExtractor):
         if series:
             title = '%s - %s' % (series, title)
         description = self._html_search_meta(['description', 'og:description'], webpage, fatal=True)
-        subtitles = self.get_subtitles(video_id, display_id)
+        subtitles = self.get_subtitles(url, video_id, display_id)
 
         try:
             headers = {}
@@ -155,9 +156,8 @@ class FunimationIE(InfoExtractor):
             'formats': formats,
         }
 
-    def get_subtitles(self, video_id, display_id):
-        #TODO get url based on value passed in e.g., https://www.funimationnow.uk/
-        player_url = 'https://www.funimation.com/player/' + video_id
+    def get_subtitles(self, url, video_id, display_id):
+        player_url = urljoin(url, '/player/' + video_id)
         player_page = self._download_webpage(player_url, display_id)
         text_tracks_search = self._search_regex(
             r'("textTracks": \[{.+?}\])',
