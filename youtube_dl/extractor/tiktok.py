@@ -1,6 +1,10 @@
 # coding: utf-8
 from __future__ import unicode_literals
 
+from newspaper import Article
+from bs4 import BeautifulSoup
+import requests
+import json
 from .common import InfoExtractor
 from ..utils import (
     compat_str,
@@ -69,7 +73,8 @@ class TikTokIE(TikTokBaseIE):
                         https?://
                             (?:
                                 (?:m\.)?tiktok\.com/v|
-                                (?:www\.)?tiktok\.com/share/video
+                                (?:www\.)?tiktok\.com/share/video|
+                                (?:www\.|)tiktok\.com\/@(?:.*?)\/video
                             )
                             /(?P<id>\d+)
                     '''
@@ -94,12 +99,56 @@ class TikTokIE(TikTokBaseIE):
     }]
 
     def _real_extract(self, url):
-        video_id = self._match_id(url)
-        webpage = self._download_webpage(
-            'https://m.tiktok.com/v/%s.html' % video_id, video_id)
-        data = self._parse_json(self._search_regex(
-            r'\bdata\s*=\s*({.+?})\s*;', webpage, 'data'), video_id)
-        return self._extract_aweme(data)
+        #extract meta data using the official api
+        res = requests.get('https://www.tiktok.com/oembed?url='+url)
+        #json contains: provider url, titile, html, author_namee, height, thumbnail_width, width, version,
+        #author_url, thumbnail_height, thumbnail_url, type, provider_name (tiktok)
+        json= res.json()
+
+        #extract metadata with beautifulSoup
+        #class - jsx-1038045583 jsx-3192540912 jsx-2150087249 video-meta-count conatins likes and comments
+        result = requests.get(url)
+        src = result.content
+        soup = BeautifulSoup(result.text, 'html.parser')
+
+        meta_data= soup.find_all("div",{ "class": "jsx-1715470091.desktop-container"})
+        print (meta_data)
+
+        #
+        #
+        # video_id = self._match_id(url)
+        # webpage = self._download_webpage(url, video_id)
+        # s_rejex=self._search_regex(r'\bdata\s*=\s*({.+?})\s*;', webpage, 'data')
+        # data = self._parse_json(s_rejex, video_id)
+        # #return self.info_dict()
+        #return self._extract_aweme(data)
+        return None
+
+    # def info_dict(self,video_id,video_title,formats,uploader, timestamp, thumbnail, view_count, uploader_id, is_live, live_status
+    #               , likes_count, shares_count, subtitles, comment_count, ):
+    #     info_dict = {
+    #         'id': video_id,
+    #         'title': video_title,
+    #         'formats': formats,
+    #         'uploader': uploader,
+    #         'timestamp': timestamp,
+    #         'thumbnail': thumbnail,
+    #         'view_count': view_count,
+    #         'uploader_id': uploader_id,
+    #         'is_live': is_live,
+    #         'live_status': live_status,
+    #         'like_count': likes_count,
+    #         'share_count': shares_count,
+    #         'subtitles': subtitles,
+    #         'comment_count': comment_count,
+    #         'other_posts_view_count': other_posts_view_count,
+    #         'uploader_handle': uploader_handle,
+    #         '_internal_data': {
+    #             'page': webpage,
+    #             'api_response_list': [tahoe_data.primary, tahoe_data.secondary]
+    #         }
+    #     }
+    #     return info_dict
 
 
 class TikTokUserIE(TikTokBaseIE):
