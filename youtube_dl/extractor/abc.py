@@ -58,11 +58,7 @@ class ABCIE(InfoExtractor):
     }, {
         'url': 'http://www.abc.net.au/news/2015-10-19/6866214',
         'only_matching': True,
-    }, {
-        'url': "https://www.abc.net.au/news/2015-08-17/warren-entsch-introduces-same-sex-marriage-bill/6702326",
-        'only_matching': True,
-    }
-    ]
+    }]
 
     def _real_extract(self, url):
         video_id = self._match_id(url)
