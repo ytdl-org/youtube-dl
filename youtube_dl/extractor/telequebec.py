@@ -38,8 +38,6 @@ class TeleQuebecIE(TeleQuebecBaseIE):
             'ext': 'mp4',
             'title': 'Un petit choc et puis repart!',
             'description': 'md5:b04a7e6b3f74e32d7b294cffe8658374',
-            'upload_date': '20180222',
-            'timestamp': 1519326631,
         },
         'params': {
             'skip_download': True,
