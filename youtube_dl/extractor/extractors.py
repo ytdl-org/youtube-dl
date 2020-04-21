@@ -1214,7 +1214,7 @@ from .tweakers import TweakersIE
 from .twentyfourvideo import TwentyFourVideoIE
 from .twentymin import TwentyMinutenIE
 from .twentythreevideo import TwentyThreeVideoIE
-from .twitcasting import TwitCastingIE
+from .twitcasting import TwitCastingIE, TwitCastingHistoryIE
 from .twitch import (
     TwitchVideoIE,
     TwitchChapterIE,

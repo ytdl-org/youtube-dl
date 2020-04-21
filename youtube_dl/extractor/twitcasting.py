@@ -1,10 +1,11 @@
 # coding: utf-8
 from __future__ import unicode_literals
 
+import re
+import itertools
+
 from .common import InfoExtractor
 from ..utils import urlencode_postdata
-
-import re
 
 
 class TwitCastingIE(InfoExtractor):
@@ -56,15 +57,25 @@ class TwitCastingIE(InfoExtractor):
             r'(?s)<[^>]+id=["\']movietitle[^>]+>(.+?)</',
             webpage, 'title', default=None) or self._html_search_meta(
             'twitter:title', webpage, fatal=True)
+        # title is split across lines with lots of whitespace
+        title = title.replace('\n', ' ')
+        while '  ' in title:
+            title = title.replace('  ', ' ')
 
-        m3u8_url = self._search_regex(
-            (r'data-movie-url=(["\'])(?P<url>(?:(?!\1).)+)\1',
-             r'(["\'])(?P<url>http.+?\.m3u8.*?)\1'),
-            webpage, 'm3u8 url', group='url')
-
-        formats = self._extract_m3u8_formats(
-            m3u8_url, video_id, ext='mp4', entry_protocol='m3u8_native',
-            m3u8_id='hls')
+        # m3u8_url = self._search_regex(
+        #     (r'data-movie-url=(["\'])(?P<url>(?:(?!\1).)+)\1',
+        #      r'(["\'])(?P<url>http.+?\.m3u8.*?)\1'),
+        #     webpage, 'm3u8 url', group='url')
+        # m3u8_url = m3u8_url.replace('\\/', '/')
+        # formats = self._extract_m3u8_formats(
+        #     m3u8_url, video_id, ext='mp4', entry_protocol='m3u8_native',
+        #     m3u8_id='hls')
+        formats = [
+            {
+                'url': "http://dl01.twitcasting.tv/{uploader_id}/download/{video_id}?dl=1".format(uploader_id=uploader_id, video_id=video_id),
+                'ext': 'mp4',
+            }
+        ]
 
         thumbnail = self._og_search_thumbnail(webpage)
         description = self._og_search_description(
@@ -79,3 +90,73 @@ class TwitCastingIE(InfoExtractor):
             'uploader_id': uploader_id,
             'formats': formats,
         }
+
+
+class TwitCastingHistoryIE(InfoExtractor):
+    _VALID_URL = r'https?://(?:[^/]+\.)?twitcasting\.tv/(?P<uploader_id>[^/]+)/show'
+    _TESTS = [
+        {
+            'url': 'https://twitcasting.tv/mttbernardini/show/',
+            'info_dict': {
+                'title': 'Matteo Bernardini',
+                'id': 'mttbernardini',
+            },
+            'playlist_count': 1,
+        },
+    ]
+
+    def _get_meta_and_entries(self, url):
+        for page_num in itertools.count(0):
+            page_url = "{}/{}".format(url.rstrip('/'), page_num)
+            pagenum = None
+            list_id = None
+            webpage = self._download_webpage(
+                page_url, list_id,
+                'Downloading page %s' % pagenum)
+
+            if page_num == 0:
+                # title = re.search(r'<span class="tw-user-nav-name">(.*)</span>', webpage)
+                title = re.search(r'(?s)<[^>]+class=["\']tw-user-nav-name[^>]+>(.+?)</', webpage)
+                title = title.group(1).strip()
+                user_id = re.search(r'data-user-id="(.*)"', webpage)
+                user_id = user_id.group(1).strip()
+                yield (title, user_id)
+
+            first_page_selected = webpage.find('class="selected">1</a>') != -1
+            if page_num != 0 and first_page_selected:
+                break
+
+            matches = re.finditer(r'''<a[^>]+class=["']tw-movie-thumbnail["'][^>]+href="(.+)"[^>]+>((?:\n|.)*?)</a>''', webpage)
+            matches = list(matches)
+
+            for match in matches:
+                href = match.group(1)
+                inner = match.group(2)
+                # if REC isn't present either a live broadcast or an image
+                # e.g. https://twitcasting.tv/marrynontan/movie/506296434
+                if 'REC' not in inner:
+                    continue
+
+                # skip videos that require a password
+                # e.g. https://twitcasting.tv/mttbernardini/movie/3689740
+                locked = re.search(r'''src="/img/locked.png"''', inner)
+                if locked is not None:
+                    continue
+
+                title = re.search(r'''<[^>]+class=["']tw-movie-thumbnail-title[^>]+>[ \n]*?(.+?) *?</''', inner)
+                if title is not None:
+                    title = title.group(1).strip()
+
+                video_url = 'https://twitcasting.tv{}'.format(href)
+                video_id = href.split('/')[-1]
+                result = self.url_result(video_url, ie=TwitCastingIE.ie_key(), video_id=video_id, video_title=title)
+                yield result
+
+    def _real_extract(self, url):
+        entries = self._get_meta_and_entries(url)
+
+        (title, user_id) = next(entries)
+
+        result = self.playlist_result(entries, playlist_title=title, playlist_id=user_id)
+
+        return result
