@@ -253,7 +253,7 @@ class AnimeLabShowsIE(AnimeLabBaseIE):
             for video_data in season_data['list']:
                 entries.append(self.url_result(
                     _BASE_URL + '/player/' + video_data['slug'], 'AnimeLab',
-                    video_data.get('id'), video_data.get('name')
+                    str_or_none(video_data.get('id')), video_data.get('name')
                 ))
 
         return {
