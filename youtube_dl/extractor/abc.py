@@ -17,6 +17,7 @@ from ..utils import (
     update_url_query,
 )
 
+
 class ABCIE(InfoExtractor):
     IE_NAME = 'abc.net.au'
     _VALID_URL = r'https?://(?:www\.)?abc\.net\.au/news/(?:[^/]+/){1,2}(?P<id>\d+)'
@@ -73,12 +74,11 @@ class ABCIE(InfoExtractor):
 
         youtube_link = self._html_search_regex(r'(?s)a href="http://www.youtube.com/(.+?)"', webpage, 'youtube_link', None)
         if youtube_link:
-            youtube_link = "http://www.youtube.com/"+youtube_link
+            youtube_link = "http://www.youtube.com/" + youtube_link
             return self.url_result(youtube_link)
 
         if mobj is None:
             expired = self._html_search_regex(r'(?s)class="expired-(?:video|audio)".+?<span>(.+?)</span>', webpage, 'expired', None)
-            
 
             if expired:
                 raise ExtractorError('%s said: %s' % (self.IE_NAME, expired), expected=True)
@@ -89,7 +89,6 @@ class ABCIE(InfoExtractor):
 
         if not isinstance(urls_info, list):
             urls_info = [urls_info]
-
 
         if mobj.group('type') == 'YouTube':
             return self.playlist_result([

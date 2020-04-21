@@ -98,13 +98,13 @@ class ESPNIE(OnceIE):
     }, {
         'url': 'http://www.espn.com/espnw/video/26066627/arkansas-gibson-completes-hr-cycle-four-innings',
         'only_matching': True,
-    },{
+    }, {
         'url': 'https://www.espn.co.uk/video/clip/_/id/25103188',
         'only_matching': True,
-    },{
+    }, {
         'url': 'https://www.espn.co.uk/video/clip/_/id/29069602',
         'only_matching': True,
-    },{
+    }, {
         'url': 'https://www.espn.co.uk/video/clip/_/id/19367162',
         'only_matching': True,
     }]
