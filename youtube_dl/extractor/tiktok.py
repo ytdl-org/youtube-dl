@@ -118,12 +118,12 @@ class TikTokIE(TikTokBaseIE):
 
         return self.info_dict(video_id, str(url), json_api['title'],
                               json_api['author_name'], timestamp, json_api['thumbnail_url'],
-                              views, provider_id, False, 'not_live', likes_count, shares, '', comments_count, duration)
+                              views, provider_id, False, 'not_live', likes_count, shares, '', comments_count, duration, json_api['html'])
 
     def info_dict(self, video_id, url, video_title,
                   uploader, timestamp, thumbnail,
                   view_count, uploader_id, is_live, live_status
-                  , likes_count, shares_count, subtitles, comment_count, duration):
+                  , likes_count, shares_count, subtitles, comment_count, duration, embed_code):
         info_dict = {
             'id': video_id,
             'url': url,
@@ -140,8 +140,8 @@ class TikTokIE(TikTokBaseIE):
             'subtitles': subtitles,
             'comment_count': comment_count,
             'duration': duration,
-            'ext':'mp.4'
-
+            'ext':'mp.4',
+            'embed_code': embed_code
         }
         return info_dict
 
