@@ -106,7 +106,7 @@ class FunimationIE(InfoExtractor):
         if series:
             title = '%s - %s' % (series, title)
         description = self._html_search_meta(['description', 'og:description'], webpage, fatal=True)
-        subtitles = self.get_subtitles(url, video_id, display_id)
+        subtitles = self.extract_subtitles(url, video_id, display_id)
 
         try:
             headers = {}
@@ -156,7 +156,7 @@ class FunimationIE(InfoExtractor):
             'formats': formats,
         }
 
-    def get_subtitles(self, url, video_id, display_id):
+    def _get_subtitles(self, url, video_id, display_id):
         player_url = urljoin(url, '/player/' + video_id)
         player_page = self._download_webpage(player_url, display_id)
         text_tracks_json_string = self._search_regex(
