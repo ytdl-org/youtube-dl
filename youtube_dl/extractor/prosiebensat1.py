@@ -408,7 +408,6 @@ class ProSiebenSat1IE(ProSiebenSat1BaseIE):
         r'<div[^>]+id="veeseoDescription"[^>]*>(.+?)</div>',
     ]
     _UPLOAD_DATE_REGEXES = [
-        r'<meta data-react-helmet="true" property="og:published_time" content="(.+?)"/>',
         r'<span>\s*(\d{2}\.\d{2}\.\d{4} \d{2}:\d{2}) \|\s*<span itemprop="duration"',
         r'<footer>\s*(\d{2}\.\d{2}\.\d{4}) \d{2}:\d{2} Uhr',
         r'<span style="padding-left: 4px;line-height:20px; color:#404040">(\d{2}\.\d{2}\.\d{4})</span>',
@@ -438,8 +437,11 @@ class ProSiebenSat1IE(ProSiebenSat1BaseIE):
         if description is None:
             description = self._og_search_description(webpage)
         thumbnail = self._og_search_thumbnail(webpage)
-        upload_date = unified_strdate(self._html_search_regex(
-            self._UPLOAD_DATE_REGEXES, webpage, 'upload date', default=None))
+        upload_date = unified_strdate(
+            self._html_search_meta('og:published_time', webpage,
+                'upload date', default=None) or
+            self._html_search_regex(self._UPLOAD_DATE_REGEXES,
+                webpage, 'upload date', default=None))
 
         info.update({
             'id': clip_id,
