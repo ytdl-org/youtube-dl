@@ -115,8 +115,9 @@ class TV4IE(InfoExtractor):
         subtitles = {}
         subtitles.setdefault('sv', []).append({
             'url': hardcoded_swedish_subs_url,
-            'ext': 'vtt'})
-        
+            'ext': 'vtt'
+        })
+
         return {
             'id': video_id,
             'title': title,
