@@ -107,16 +107,29 @@ class TV4IE(InfoExtractor):
 
         self._sort_formats(formats)
 
-        # The subtitles are defined in the manifest_url like this:
-        # # SUBTITLES groups
-        # #EXT-X-MEDIA:TYPE=SUBTITLES,GROUP-ID="textstream",NAME="Swedish",LANGUAGE="sv",AUTOSELECT=YES,DEFAULT=YES,URI="bmetgl4z0mr(12579349_ISMUSP)-textstream_swe=3000.m3u8"
-        # but I don't know yet how to extract it dynamically from there so they are hardcoded as a start.
-        hardcoded_swedish_subs_url = manifest_url[:-5] + "-textstream_swe=3000.webvtt"
-        subtitles = {}
-        subtitles.setdefault('sv', []).append({
-            'url': hardcoded_swedish_subs_url,
-            'ext': 'vtt'
-        })
+        # Download manifest and extract subtitles. Extracting formats
+        # using this result resulted in an error. This means the
+        # manifest is currently being downloaded twice, which is not
+        # great.
+        res = self._download_webpage_handle(
+            manifest_url, video_id,
+            note='Downloading subtitle information',
+            errnote='Failed to download subtitle information',
+            fatal=True, data=None, headers={}, query={})
+
+        if res:
+            m3u8_doc, urlh = res
+            m3u8_url = urlh.geturl()
+            subtitles = self._parse_m3u8_subtitles(m3u8_doc, manifest_url)
+            # Hardcode webvtt for now
+            for item in subtitles:
+                # List inside dictionary
+                # Modify extension
+                url = subtitles[item][0]['url'].replace('m3u8', 'webvtt')
+                subtitles[item][0]['url'] = url
+                subtitles[item][0]['ext'] = 'vtt'
+        else:
+            subtitles = {}
 
         return {
             'id': video_id,
