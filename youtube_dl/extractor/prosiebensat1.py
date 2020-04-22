@@ -439,9 +439,9 @@ class ProSiebenSat1IE(ProSiebenSat1BaseIE):
         thumbnail = self._og_search_thumbnail(webpage)
         upload_date = unified_strdate(
             self._html_search_meta('og:published_time', webpage,
-                'upload date', default=None) or
-            self._html_search_regex(self._UPLOAD_DATE_REGEXES,
-                webpage, 'upload date', default=None))
+                                   'upload date', default=None)
+            or self._html_search_regex(self._UPLOAD_DATE_REGEXES,
+                                       webpage, 'upload date', default=None))
 
         info.update({
             'id': clip_id,
