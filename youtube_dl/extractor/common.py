@@ -1782,6 +1782,38 @@ class InfoExtractor(object):
                 last_stream_inf = {}
         return formats
 
+    def _parse_m3u8_subtitles(self, m3u8_doc, m3u8_url):
+        """
+        Parse subtitles from m3u8 file. 
+        Please avoid downloading the m3u8 twice.
+        """
+        format_url = lambda u: (
+            u
+            if re.match(r'^https?://', u)
+            else compat_urlparse.urljoin(m3u8_url, u))
+        subtitles = {}
+
+        def extract_media(x_media_line):
+            media = parse_m3u8_attributes(x_media_line)
+            # As per [1, 4.3.4.1] TYPE, GROUP-ID and NAME are REQUIRED
+            media_type, group_id, name = media.get('TYPE'), media.get('GROUP-ID'), media.get('NAME')
+            if not (media_type and group_id and name):
+                return
+            # Check for subtitles
+            if media_type not in ('SUBTITLES'):
+                return
+            subtitle_url = media.get('URI')
+            if subtitle_url:
+                subtitles.setdefault(media.get('LANGUAGE'), []).append({
+                    'url': format_url(subtitle_url),
+                })
+
+        for line in m3u8_doc.splitlines():
+            if line.startswith('#EXT-X-MEDIA:'):
+                extract_media(line)
+
+        return subtitles
+
     @staticmethod
     def _xpath_ns(path, namespace=None):
         if not namespace:
