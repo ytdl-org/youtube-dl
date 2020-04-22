@@ -363,6 +363,15 @@ class FacebookIE(InfoExtractor):
 
         tahoe_data = FacebookTahoeData(self, webpage, video_id)
         if not video_data:
+            tahoe_js_data = self._parse_json(
+                self._search_regex(
+                    r'for\s+\(\s*;\s*;\s*\)\s*;(.+)', tahoe_data.primary,
+                    'tahoe js data', default='{}'),
+                video_id, fatal=False)
+
+            video_data = extract_from_jsmods_instances(tahoe_js_data)
+
+        if not video_data:
             if not fatal_if_no_video:
                 return webpage, False
             m_msg = re.search(r'class="[^"]*uiInterstitialContent[^"]*"><div>(.*?)</div>', webpage)
@@ -372,15 +381,6 @@ class FacebookIE(InfoExtractor):
                     expected=True)
             elif '>You must log in to continue' in webpage:
                 self.raise_login_required()
-            # Video info not in first request, do a secondary request using
-            # tahoe player specific URL
-            tahoe_js_data = self._parse_json(
-                self._search_regex(
-                    r'for\s+\(\s*;\s*;\s*\)\s*;(.+)', tahoe_data.primary,
-                    'tahoe js data', default='{}'),
-                video_id, fatal=False)
-
-            video_data = extract_from_jsmods_instances(tahoe_js_data)
 
         if not video_data :
             if self._search_regex(r'newsFeedStream.*?<h1><span class.*?>(.*?)<\/span><\/h1>', webpage, "video_title") is not None:
