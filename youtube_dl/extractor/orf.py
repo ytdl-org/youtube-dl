@@ -232,6 +232,10 @@ class ORFNOEIE(ORFRadioIE):
     api_station = "noe"
     loop_station = "oe2n"
 
+    _TEST = {
+        'url': 'https://noe.orf.at/player/20200423/NGM',
+        'only_matching': True,
+    }
 
 class ORFWIEIE(ORFRadioIE):
     IE_NAME = 'orf:wien'
@@ -239,6 +243,11 @@ class ORFWIEIE(ORFRadioIE):
     _VALID_URL = r'https?://(?P<station>wien)\.orf\.at/player/(?P<date>[0-9]+)/(?P<show>\w+)'
     api_station = "wie"
     loop_station = "oe2w"
+
+    _TEST = {
+        'url': 'https://wien.orf.at/player/20200423/WGUM',
+        'only_matching': True,
+    }
 
 
 class ORFBGLIE(ORFRadioIE):
@@ -248,6 +257,11 @@ class ORFBGLIE(ORFRadioIE):
     api_station = "bgl"
     loop_station = "oe2b"
 
+    _TEST = {
+        'url': 'https://burgenland.orf.at/player/20200423/BGM',
+        'only_matching': True,
+    }
+
 
 class ORFOOEIE(ORFRadioIE):
     IE_NAME = 'orf:oberoesterreich'
@@ -255,6 +269,11 @@ class ORFOOEIE(ORFRadioIE):
     _VALID_URL = r'https?://(?P<station>ooe)\.orf\.at/player/(?P<date>[0-9]+)/(?P<show>\w+)'
     api_station = "ooe"
     loop_station = "oe2o"
+
+    _TEST = {
+        'url': 'https://ooe.orf.at/player/20200423/OGMO',
+        'only_matching': True,
+    }
 
 
 class ORFSTMIE(ORFRadioIE):
@@ -264,6 +283,11 @@ class ORFSTMIE(ORFRadioIE):
     api_station = "stm"
     loop_station = "oe2st"
 
+    _TEST = {
+        'url': 'https://steiermark.orf.at/player/20200423/STGMS',
+        'only_matching': True,
+    }
+
 
 class ORFKTNIE(ORFRadioIE):
     IE_NAME = 'orf:kaernten'
@@ -271,6 +295,11 @@ class ORFKTNIE(ORFRadioIE):
     _VALID_URL = r'https?://(?P<station>kaernten)\.orf\.at/player/(?P<date>[0-9]+)/(?P<show>\w+)'
     api_station = "ktn"
     loop_station = "oe2k"
+
+    _TEST = {
+        'url': 'https://kaernten.orf.at/player/20200423/KGUMO',
+        'only_matching': True,
+    }
 
 
 class ORFSBGIE(ORFRadioIE):
@@ -280,13 +309,23 @@ class ORFSBGIE(ORFRadioIE):
     api_station = "sbg"
     loop_station = "oe2s"
 
+    _TEST = {
+        'url': 'https://salzburg.orf.at/player/20200423/SGUM',
+        'only_matching': True,
+    }
+
 
 class ORFTIRIE(ORFRadioIE):
-    IE_NAME = 'orf:salzburg'
-    IE_DESC = 'Radio Salzburg'
+    IE_NAME = 'orf:tirol'
+    IE_DESC = 'Radio Tirol'
     _VALID_URL = r'https?://(?P<station>salzburg)\.orf\.at/player/(?P<date>[0-9]+)/(?P<show>\w+)'
     api_station = "tir"
     loop_station = "oe2t"
+
+    _TEST = {
+        'url': 'https://tirol.orf.at/player/20200423/TGUMO',
+        'only_matching': True,
+    }
 
 
 class ORFVBGIE(ORFRadioIE):
@@ -295,6 +334,11 @@ class ORFVBGIE(ORFRadioIE):
     _VALID_URL = r'https?://(?P<station>vorarlberg)\.orf\.at/player/(?P<date>[0-9]+)/(?P<show>\w+)'
     api_station = "vbg"
     loop_station = "oe2v"
+
+    _TEST = {
+        'url': 'https://vorarlberg.orf.at/player/20200423/VGUM',
+        'only_matching': True,
+    }
 
 
 class ORFOE1IE(ORFRadioIE):
