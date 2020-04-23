@@ -1784,7 +1784,7 @@ class InfoExtractor(object):
 
     def _parse_m3u8_subtitles(self, m3u8_doc, m3u8_url):
         """
-        Parse subtitles from m3u8 file. 
+        Parse subtitles from m3u8 file.
         Please avoid downloading the m3u8 twice.
         """
         format_url = lambda u: (

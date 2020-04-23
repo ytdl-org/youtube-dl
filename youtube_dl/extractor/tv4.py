@@ -119,7 +119,6 @@ class TV4IE(InfoExtractor):
 
         if res:
             m3u8_doc, urlh = res
-            m3u8_url = urlh.geturl()
             subtitles = self._parse_m3u8_subtitles(m3u8_doc, manifest_url)
             # Hardcode webvtt for now
             for item in subtitles:
