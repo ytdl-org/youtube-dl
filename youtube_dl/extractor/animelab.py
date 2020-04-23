@@ -140,7 +140,7 @@ class AnimeLabIE(AnimeLabBaseIE):
                         'height': image_data.get('height'),
                     })
 
-            season_data = raw_data.get('season', {})
+            season_data = raw_data.get('season', {}) or {}
             season = str_or_none(season_data.get('name'))
             season_number = int_or_none(season_data.get('seasonNumber'))
             season_id = str_or_none(season_data.get('id'))
