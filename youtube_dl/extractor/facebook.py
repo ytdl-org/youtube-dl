@@ -463,10 +463,10 @@ class FacebookIE(InfoExtractor):
         uploader_id = self._search_regex(
             r'ownerid:"([\d]+)', webpage,
             'uploader_id', default=None) or self._search_regex(
-            r'[\'\"]ownerid[\'\"]\s*:\s*[\'\"](\d+)[\'\"]', tahoe_data.secondary,
+            r'[\'\"]ownerid[\'\"]\s*:\s*[\'\"](\d+)[\'\"]',tahoe_data.secondary,
             'uploader_id', default=None) or \
-            self._search_regex(r'\\\"page_id\\\"\s*:\s*\\\"(\d+)\\\"', tahoe_data.secondary, 'uploader_id', fatal=False)
-
+            self._search_regex(r'\\\"page_id\\\"\s*:\s*\\\"(\d+)\\\"', tahoe_data.secondary, 'uploader_id', fatal=False) or \
+            self._search_regex(r'content_owner_id_new\\":\\"(\d+)\\"', tahoe_data.secondary, 'uploader_id', fatal=False)
 
         thumbnail = self._html_search_meta(['og:image', 'twitter:image'], webpage)
         if is_live:
@@ -576,6 +576,10 @@ class FacebookIE(InfoExtractor):
             return value
 
         values = re.findall(r'(\d+\w?) Views', tahoe_data.secondary)
+        if values:
+            return values[-1]
+
+        values = re.findall(r'seen_by_count":\"(\d+)\"', tahoe_data.secondary)
         if values:
             return values[-1]
 
