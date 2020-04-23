@@ -11,6 +11,7 @@ from ..utils import (
     determine_ext,
     float_or_none,
     int_or_none,
+    merge_dicts,
     unified_strdate,
 )
 
@@ -197,6 +198,10 @@ class ProSiebenSat1IE(ProSiebenSat1BaseIE):
                 'description': 'md5:8733c81b702ea472e069bc48bb658fc1',
                 'upload_date': '20131231',
                 'duration': 5845.04,
+                'series': 'CIRCUS HALLIGALLI',
+                'season_number': 2,
+                'episode': 'Episode 18 - Staffel 2',
+                'episode_number': 18,
             },
         },
         {
@@ -302,6 +307,7 @@ class ProSiebenSat1IE(ProSiebenSat1BaseIE):
                 'ext': 'mp4',
                 'title': 'The Voice of Germany - Andreas Kümmert: Rocket Man',
                 'description': 'md5:6ddb02b0781c6adf778afea606652e38',
+                'timestamp': 1382041620,
                 'upload_date': '20131017',
                 'duration': 469.88,
             },
@@ -443,14 +449,15 @@ class ProSiebenSat1IE(ProSiebenSat1BaseIE):
             or self._html_search_regex(self._UPLOAD_DATE_REGEXES,
                                        webpage, 'upload date', default=None))
 
-        info.update({
+        json_ld = self._search_json_ld(webpage, clip_id, default={})
+
+        return merge_dicts(info, {
             'id': clip_id,
             'title': title,
             'description': description,
             'thumbnail': thumbnail,
             'upload_date': upload_date,
-        })
-        return info
+        }, json_ld)
 
     def _extract_playlist(self, url, webpage):
         playlist_id = self._html_search_regex(
