@@ -166,40 +166,9 @@ class ORFRadioIE(InfoExtractor):
         show_date = mobj.group('date')
         show_id = mobj.group('show')
 
-        if station == "noe":
-            loop_station = "oe2n"
-            api_station = "noe"
-        elif station == "wien":
-            api_station = "wie"
-            loop_station = "oe2w"
-        elif station == "burgenland":
-            api_station = "bgl"
-            loop_station = "oe2b"
-        elif station == "ooe":
-            api_station = "ooe"
-            loop_station = "oe2o"
-        elif station == "steiermark":
-            api_station = "stm"
-            loop_station = "oe2st"
-        elif station == "kaernten":
-            api_station = "ktn"
-            loop_station = "oe2k"
-        elif station == "salzburg":
-            api_station = "sbg"
-            loop_station = "oe2s"
-        elif station == "tirol":
-            api_station = "tir"
-            loop_station = "oe2t"
-        elif station == "vorarlberg":
-            api_station = "vbg"
-            loop_station = "oe2v"
-        else:
-            loop_station = station
-            api_station = station
-
         data = self._download_json(
             'http://audioapi.orf.at/%s/api/json/current/broadcast/%s/%s'
-            % (api_station, show_id, show_date), show_id)
+            % (self.api_station, show_id, show_date), show_id)
 
         entries = []
         for info in data['streams']:
@@ -214,7 +183,7 @@ class ORFRadioIE(InfoExtractor):
             duration = end - start if end and start else None
             entries.append({
                 'id': loop_stream_id.replace('.mp3', ''),
-                'url': 'http://loopstream01.apa.at/?channel=%s&id=%s' % (loop_station, loop_stream_id),
+                'url': 'http://loopstream01.apa.at/?channel=%s&id=%s' % (self.loop_station, loop_stream_id),
                 'title': title,
                 'description': clean_html(data.get('subtitle')),
                 'duration': duration,
@@ -236,6 +205,8 @@ class ORFFM4IE(ORFRadioIE):
     IE_NAME = 'orf:fm4'
     IE_DESC = 'radio FM4'
     _VALID_URL = r'https?://(?P<station>fm4)\.orf\.at/player/(?P<date>[0-9]+)/(?P<show>4\w+)'
+    api_station = "fm4"
+    loop_station = "fm4"
 
     _TEST = {
         'url': 'http://fm4.orf.at/player/20170107/4CC',
@@ -258,66 +229,80 @@ class ORFNOEIE(ORFRadioIE):
     IE_NAME = 'orf:noe'
     IE_DESC = 'Radio Niederösterreich'
     _VALID_URL = r'https?://(?P<station>noe)\.orf\.at/player/(?P<date>[0-9]+)/(?P<show>\w+)'
+    api_station = "noe"
+    loop_station = "oe2n"
 
 
 class ORFWIEIE(ORFRadioIE):
     IE_NAME = 'orf:wien'
     IE_DESC = 'Radio Wien'
     _VALID_URL = r'https?://(?P<station>wien)\.orf\.at/player/(?P<date>[0-9]+)/(?P<show>\w+)'
+    api_station = "wie"
+    loop_station = "oe2w"
 
 
 class ORFBGLIE(ORFRadioIE):
     IE_NAME = 'orf:burgenland'
     IE_DESC = 'Radio Burgenland'
     _VALID_URL = r'https?://(?P<station>burgenland)\.orf\.at/player/(?P<date>[0-9]+)/(?P<show>\w+)'
+    api_station = "bgl"
+    loop_station = "oe2b"
 
 
 class ORFOOEIE(ORFRadioIE):
     IE_NAME = 'orf:oberoesterreich'
     IE_DESC = 'Radio Oberösterreich'
     _VALID_URL = r'https?://(?P<station>ooe)\.orf\.at/player/(?P<date>[0-9]+)/(?P<show>\w+)'
+    api_station = "ooe"
+    loop_station = "oe2o"
 
 
 class ORFSTMIE(ORFRadioIE):
     IE_NAME = 'orf:steiermark'
     IE_DESC = 'Radio Steiermark'
     _VALID_URL = r'https?://(?P<station>steiermark)\.orf\.at/player/(?P<date>[0-9]+)/(?P<show>\w+)'
+    api_station = "stm"
+    loop_station = "oe2st"
 
 
 class ORFKTNIE(ORFRadioIE):
     IE_NAME = 'orf:kaernten'
     IE_DESC = 'Radio Kärnten'
     _VALID_URL = r'https?://(?P<station>kaernten)\.orf\.at/player/(?P<date>[0-9]+)/(?P<show>\w+)'
+    api_station = "ktn"
+    loop_station = "oe2k"
 
 
 class ORFSBGIE(ORFRadioIE):
     IE_NAME = 'orf:salzburg'
     IE_DESC = 'Radio Salzburg'
     _VALID_URL = r'https?://(?P<station>salzburg)\.orf\.at/player/(?P<date>[0-9]+)/(?P<show>\w+)'
-
-
-class ORFTRLIE(ORFRadioIE):
-    IE_NAME = 'orf:salzburg'
-    IE_DESC = 'Radio Salzburg'
-    _VALID_URL = r'https?://(?P<station>salzburg)\.orf\.at/player/(?P<date>[0-9]+)/(?P<show>\w+)'
+    api_station = "sbg"
+    loop_station = "oe2s"
 
 
 class ORFTIRIE(ORFRadioIE):
-    IE_NAME = 'orf:tirol'
-    IE_DESC = 'Radio Tirol'
-    _VALID_URL = r'https?://(?P<station>tirol)\.orf\.at/player/(?P<date>[0-9]+)/(?P<show>\w+)'
+    IE_NAME = 'orf:salzburg'
+    IE_DESC = 'Radio Salzburg'
+    _VALID_URL = r'https?://(?P<station>salzburg)\.orf\.at/player/(?P<date>[0-9]+)/(?P<show>\w+)'
+    api_station = "tir"
+    loop_station = "oe2t"
 
 
 class ORFVBGIE(ORFRadioIE):
     IE_NAME = 'orf:vorarlberg'
     IE_DESC = 'Radio Vorarlberg'
     _VALID_URL = r'https?://(?P<station>vorarlberg)\.orf\.at/player/(?P<date>[0-9]+)/(?P<show>\w+)'
+    api_station = "vbg"
+    loop_station = "oe2v"
 
 
 class ORFOE1IE(ORFRadioIE):
     IE_NAME = 'orf:oe1'
     IE_DESC = 'Radio Österreich 1'
     _VALID_URL = r'https?://(?P<station>oe1)\.orf\.at/player/(?P<date>[0-9]+)/(?P<show>\w+)'
+    api_station = "oe1"
+    loop_station = "oe2v"
 
     _TEST = {
         'url': 'http://oe1.orf.at/player/20170108/456544',
