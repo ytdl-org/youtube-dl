@@ -57,8 +57,7 @@ class Archive(object):
     def __contains__(self, item):
         if not isinstance(item, str):
             raise ValueError(
-                "An archive contains only strings. Provided {}".format(type(item))
-            )
+                "An archive contains only strings. Provided {}".format(type(item)))
 
         if item not in self._data:
             self._read_file()
