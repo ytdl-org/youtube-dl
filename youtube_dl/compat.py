@@ -3014,7 +3014,6 @@ __all__ = [
     'compat_shlex_quote',
     'compat_shlex_split',
     'compat_socket_create_connection',
-    'compat_st_mtime',
     'compat_str',
     'compat_struct_pack',
     'compat_struct_unpack',
