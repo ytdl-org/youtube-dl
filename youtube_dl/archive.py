@@ -1,9 +1,7 @@
 #!/usr/bin/env python
 # coding: utf-8
 import errno
-import os
 
-from youtube_dl.compat import compat_st_mtime
 from youtube_dl.utils import locked_file
 
 

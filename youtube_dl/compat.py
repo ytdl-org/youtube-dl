@@ -2978,14 +2978,6 @@ else:
         return ctypes.WINFUNCTYPE(*args, **kwargs)
 
 
-def compat_st_mtime(path):
-    """ Py3 has nanosecond accuracy on modification time of file """
-    try:
-        return os.stat(path).st_mtime_ns
-    except ImportError:
-        return os.stat(path).st_mtime
-
-
 __all__ = [
     'compat_HTMLParseError',
     'compat_HTMLParser',
