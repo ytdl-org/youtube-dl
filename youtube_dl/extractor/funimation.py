@@ -161,7 +161,7 @@ class FunimationIE(InfoExtractor):
         player_page = self._download_webpage(player_url, display_id)
         text_tracks_json_string = self._search_regex(
             r'"textTracks": (\[{.+?}\])',
-            player_page, 'player data', default='')
+            player_page, 'subtitles data', default='')
         if not text_tracks_json_string:
             # Funimation player page unavailable due to robot detection.
             # Don't warn so that unit tests still pass this step.
