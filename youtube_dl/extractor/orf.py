@@ -166,9 +166,40 @@ class ORFRadioIE(InfoExtractor):
         show_date = mobj.group('date')
         show_id = mobj.group('show')
 
+        if station == "noe":
+            loop_station = "oe2n"
+            api_station = "noe"
+        elif station == "wien":
+            api_station = "wie"
+            loop_station = "oe2w"
+        elif station == "burgenland":
+            api_station = "bgl"
+            loop_station = "oe2b"
+        elif station == "ooe":
+            api_station = "ooe"
+            loop_station = "oe2o"
+        elif station == "steiermark":
+            api_station = "stm"
+            loop_station = "oe2st"
+        elif station == "kaernten":
+            api_station = "ktn"
+            loop_station = "oe2k"
+        elif station == "salzburg":
+            api_station = "sbg"
+            loop_station = "oe2s"
+        elif station == "tirol":
+            api_station = "tir"
+            loop_station = "oe2t"
+        elif station == "vorarlberg":
+            api_station = "vbg"
+            loop_station = "oe2v"
+        else:
+            loop_station = station
+            api_station = station
+
         data = self._download_json(
             'http://audioapi.orf.at/%s/api/json/current/broadcast/%s/%s'
-            % (station, show_id, show_date), show_id)
+            % (api_station, show_id, show_date), show_id)
 
         entries = []
         for info in data['streams']:
@@ -183,7 +214,7 @@ class ORFRadioIE(InfoExtractor):
             duration = end - start if end and start else None
             entries.append({
                 'id': loop_stream_id.replace('.mp3', ''),
-                'url': 'http://loopstream01.apa.at/?channel=%s&id=%s' % (station, loop_stream_id),
+                'url': 'http://loopstream01.apa.at/?channel=%s&id=%s' % (loop_station, loop_stream_id),
                 'title': title,
                 'description': clean_html(data.get('subtitle')),
                 'duration': duration,
@@ -221,6 +252,66 @@ class ORFFM4IE(ORFRadioIE):
         'skip': 'Shows from ORF radios are only available for 7 days.',
         'only_matching': True,
     }
+
+
+class ORFNOEIE(ORFRadioIE):
+    IE_NAME = 'orf:noe'
+    IE_DESC = 'Radio Niederösterreich'
+    _VALID_URL = r'https?://(?P<station>noe)\.orf\.at/player/(?P<date>[0-9]+)/(?P<show>\w+)'
+
+
+class ORFWIEIE(ORFRadioIE):
+    IE_NAME = 'orf:wien'
+    IE_DESC = 'Radio Wien'
+    _VALID_URL = r'https?://(?P<station>wien)\.orf\.at/player/(?P<date>[0-9]+)/(?P<show>\w+)'
+
+
+class ORFBGLIE(ORFRadioIE):
+    IE_NAME = 'orf:burgenland'
+    IE_DESC = 'Radio Burgenland'
+    _VALID_URL = r'https?://(?P<station>burgenland)\.orf\.at/player/(?P<date>[0-9]+)/(?P<show>\w+)'
+
+
+class ORFOOEIE(ORFRadioIE):
+    IE_NAME = 'orf:oberoesterreich'
+    IE_DESC = 'Radio Oberösterreich'
+    _VALID_URL = r'https?://(?P<station>ooe)\.orf\.at/player/(?P<date>[0-9]+)/(?P<show>\w+)'
+
+
+class ORFSTMIE(ORFRadioIE):
+    IE_NAME = 'orf:steiermark'
+    IE_DESC = 'Radio Steiermark'
+    _VALID_URL = r'https?://(?P<station>steiermark)\.orf\.at/player/(?P<date>[0-9]+)/(?P<show>\w+)'
+
+
+class ORFKTNIE(ORFRadioIE):
+    IE_NAME = 'orf:kaernten'
+    IE_DESC = 'Radio Kärnten'
+    _VALID_URL = r'https?://(?P<station>kaernten)\.orf\.at/player/(?P<date>[0-9]+)/(?P<show>\w+)'
+
+
+class ORFSBGIE(ORFRadioIE):
+    IE_NAME = 'orf:salzburg'
+    IE_DESC = 'Radio Salzburg'
+    _VALID_URL = r'https?://(?P<station>salzburg)\.orf\.at/player/(?P<date>[0-9]+)/(?P<show>\w+)'
+
+
+class ORFTRLIE(ORFRadioIE):
+    IE_NAME = 'orf:salzburg'
+    IE_DESC = 'Radio Salzburg'
+    _VALID_URL = r'https?://(?P<station>salzburg)\.orf\.at/player/(?P<date>[0-9]+)/(?P<show>\w+)'
+
+
+class ORFTIRIE(ORFRadioIE):
+    IE_NAME = 'orf:tirol'
+    IE_DESC = 'Radio Tirol'
+    _VALID_URL = r'https?://(?P<station>tirol)\.orf\.at/player/(?P<date>[0-9]+)/(?P<show>\w+)'
+
+
+class ORFVBGIE(ORFRadioIE):
+    IE_NAME = 'orf:vorarlberg'
+    IE_DESC = 'Radio Vorarlberg'
+    _VALID_URL = r'https?://(?P<station>vorarlberg)\.orf\.at/player/(?P<date>[0-9]+)/(?P<show>\w+)'
 
 
 class ORFOE1IE(ORFRadioIE):
