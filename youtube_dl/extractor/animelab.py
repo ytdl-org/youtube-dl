@@ -8,6 +8,7 @@ from ..utils import (
     urlencode_postdata,
     int_or_none,
     str_or_none,
+    determine_ext,
 )
 
 from ..compat import compat_HTTPError
@@ -152,25 +153,6 @@ class AnimeLabIE(AnimeLabBaseIE):
 
                 current_format = current_video_list.copy()
 
-                current_format['url'] = url
-                quality_data = video_instance.get('videoQuality')
-                if quality_data:
-                    quality = quality_data.get('name') or quality_data.get('description')
-                else:
-                    quality = None
-
-                height = None
-                if quality:
-                    height = int_or_none(self._search_regex(r'(\d+)p?$', quality, 'Video format height', default=None))
-                    if height is None and quality.startswith('SD'):
-                        # sometimes we are only told it's SD quality
-                        height = 480
-
-                if height is None:
-                    self.report_warning('Could not get height of video')
-                else:
-                    current_format['height'] = height
-
                 format_id_parts = []
 
                 format_id_parts.append(str_or_none(video_instance.get('id')))
@@ -184,6 +166,34 @@ class AnimeLabIE(AnimeLabBaseIE):
                 format_id_parts.append(current_format['language'])
 
                 format_id = '_'.join([x for x in format_id_parts if x is not None])
+
+                ext = determine_ext(url)
+                if ext == 'm3u8':
+                    m3u8_formats = self._extract_m3u8_formats(
+                        url, video_id, m3u8_id=format_id, fatal=False)
+                    formats.extend(m3u8_formats)
+                    continue
+                elif ext == 'mpd':
+                    mpd_formats = self._extract_mpd_formats(
+                        url, video_id, mpd_id=format_id, fatal=False)
+                    formats.extend(mpd_formats)
+                    continue
+
+                current_format['url'] = url
+                quality_data = video_instance.get('videoQuality')
+                if quality_data:
+                    quality = quality_data.get('name') or quality_data.get('description')
+                else:
+                    quality = None
+
+                height = None
+                if quality:
+                    height = int_or_none(self._search_regex(r'(\d+)p?$', quality, 'Video format height', default=None))
+
+                if height is None:
+                    self.report_warning('Could not get height of video')
+                else:
+                    current_format['height'] = height
                 current_format['format_id'] = format_id
 
                 formats.append(current_format)
