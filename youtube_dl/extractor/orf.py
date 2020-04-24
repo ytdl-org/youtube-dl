@@ -359,7 +359,7 @@ class ORFOE1IE(ORFRadioIE):
     IE_DESC = 'Radio Österreich 1'
     _VALID_URL = r'https?://(?P<station>oe1)\.orf\.at/player/(?P<date>[0-9]+)/(?P<show>\w+)'
     api_station = "oe1"
-    loop_station = "oe2v"
+    loop_station = "oe1"
 
     _TEST = {
         'url': 'http://oe1.orf.at/player/20170108/456544',
