@@ -162,7 +162,6 @@ class ORFTVthekIE(InfoExtractor):
 class ORFRadioIE(InfoExtractor):
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
-        station = mobj.group('station')
         show_date = mobj.group('date')
         show_id = mobj.group('show')
 
@@ -235,6 +234,7 @@ class ORFNOEIE(ORFRadioIE):
     _TEST = {
         'only_matching': True,
     }
+
 
 class ORFWIEIE(ORFRadioIE):
     IE_NAME = 'orf:wien'
@@ -311,7 +311,7 @@ class ORFSBGIE(ORFRadioIE):
 class ORFTIRIE(ORFRadioIE):
     IE_NAME = 'orf:tirol'
     IE_DESC = 'Radio Tirol'
-    _VALID_URL = r'https?://(?P<station>salzburg)\.orf\.at/player/(?P<date>[0-9]+)/(?P<show>\w+)'
+    _VALID_URL = r'https?://(?P<station>tirol)\.orf\.at/player/(?P<date>[0-9]+)/(?P<show>\w+)'
     api_station = "tir"
     loop_station = "oe2t"
 
