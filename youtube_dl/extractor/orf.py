@@ -341,6 +341,19 @@ class ORFVBGIE(ORFRadioIE):
     }
 
 
+class ORFOE3IE(ORFRadioIE):
+    IE_NAME = 'orf:oe3'
+    IE_DESC = 'Radio Österreich 3'
+    _VALID_URL = r'https?://(?P<station>oe3)\.orf\.at/player/(?P<date>[0-9]+)/(?P<show>\w+)'
+    api_station = "oe3"
+    loop_station = "oe3"
+
+    _TEST = {
+        'url': 'https://oe3.orf.at/player/20200424/3WEK',
+        'only_matching': True,
+    }
+
+
 class ORFOE1IE(ORFRadioIE):
     IE_NAME = 'orf:oe1'
     IE_DESC = 'Radio Österreich 1'
