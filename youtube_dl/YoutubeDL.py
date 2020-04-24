@@ -614,14 +614,17 @@ class YoutubeDL(object):
 
     def report_error(self, message, tb=None):
         '''
-        Do the same as trouble, but prefixes the message with 'ERROR:', colored
+        Do the same as trouble, but prefixes the message with 'ERROR:' if logger is not set, colored
         in red if stderr is a tty file.
         '''
-        if not self.params.get('no_color') and self._err_file.isatty() and compat_os_name != 'nt':
-            _msg_header = '\033[0;31mERROR:\033[0m'
+        if self.params.get('logger') is not None:
+            error_message = message
         else:
-            _msg_header = 'ERROR:'
-        error_message = '%s %s' % (_msg_header, message)
+            if not self.params.get('no_color') and self._err_file.isatty() and compat_os_name != 'nt':
+                _msg_header = '\033[0;31mERROR:\033[0m'
+            else:
+                _msg_header = 'ERROR:'
+            error_message = '%s %s' % (_msg_header, message)
         self.trouble(error_message, tb)
 
     def report_file_already_downloaded(self, file_name):
