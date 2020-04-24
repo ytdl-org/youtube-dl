@@ -232,6 +232,7 @@ class ORFNOEIE(ORFRadioIE):
     loop_station = "oe2n"
 
     _TEST = {
+        'url': 'https://noe.orf.at/player/20200423/NGM',
         'only_matching': True,
     }
 
@@ -244,6 +245,7 @@ class ORFWIEIE(ORFRadioIE):
     loop_station = "oe2w"
 
     _TEST = {
+        'url': 'https://wien.orf.at/player/20200423/WGUM',
         'only_matching': True,
     }
 
@@ -256,6 +258,7 @@ class ORFBGLIE(ORFRadioIE):
     loop_station = "oe2b"
 
     _TEST = {
+        'url': 'https://burgenland.orf.at/player/20200423/BGM',
         'only_matching': True,
     }
 
@@ -268,6 +271,7 @@ class ORFOOEIE(ORFRadioIE):
     loop_station = "oe2o"
 
     _TEST = {
+        'url': 'https://ooe.orf.at/player/20200423/OGMO',
         'only_matching': True,
     }
 
@@ -280,6 +284,7 @@ class ORFSTMIE(ORFRadioIE):
     loop_station = "oe2st"
 
     _TEST = {
+        'url': 'https://steiermark.orf.at/player/20200423/STGMS',
         'only_matching': True,
     }
 
@@ -292,6 +297,7 @@ class ORFKTNIE(ORFRadioIE):
     loop_station = "oe2k"
 
     _TEST = {
+        'url': 'https://kaernten.orf.at/player/20200423/KGUMO',
         'only_matching': True,
     }
 
@@ -304,6 +310,7 @@ class ORFSBGIE(ORFRadioIE):
     loop_station = "oe2s"
 
     _TEST = {
+        'url': 'https://salzburg.orf.at/player/20200423/SGUM',
         'only_matching': True,
     }
 
@@ -316,6 +323,7 @@ class ORFTIRIE(ORFRadioIE):
     loop_station = "oe2t"
 
     _TEST = {
+        'url': 'https://tirol.orf.at/player/20200423/TGUMO',
         'only_matching': True,
     }
 
@@ -328,6 +336,7 @@ class ORFVBGIE(ORFRadioIE):
     loop_station = "oe2v"
 
     _TEST = {
+        'url': 'https://vorarlberg.orf.at/player/20200423/VGUM',
         'only_matching': True,
     }
 
