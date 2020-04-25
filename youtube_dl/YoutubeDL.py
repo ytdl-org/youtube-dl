@@ -28,7 +28,6 @@ import random
 
 from string import ascii_letters
 
-from .archive import Archive
 from .compat import (
     compat_basestring,
     compat_cookiejar,
@@ -417,7 +416,8 @@ class YoutubeDL(object):
                 'Parameter outtmpl is bytes, but should be a unicode string. '
                 'Put  from __future__ import unicode_literals  at the top of your code file or consider switching to Python 3.x.')
 
-        self.archive = Archive(self.params.get('download_archive'))
+        self._archive_filepath = self.params.get('download_archive')
+        self._archive_set = set()
 
         self._setup_opener()
 
@@ -2097,15 +2097,40 @@ class YoutubeDL(object):
         return extractor.lower() + ' ' + video_id
 
     def in_download_archive(self, info_dict):
+        """ Checks if video from info_dict exists in archive"""
+
+        if self._archive_filepath is None:
+            return False
+
         vid_id = self._make_archive_id(info_dict)
         if not vid_id:
             return False  # Incomplete video information
-        return vid_id in self.archive
+
+        if vid_id in self._archive_set:
+            return True
+
+        # Read the archive file
+        try:
+            with locked_file(self._archive_filepath, 'r', encoding='utf-8') as archive_file:
+                for line in archive_file:
+                    self._archive_set.add(line.strip())
+                    if line.strip() == vid_id:
+                        return True
+        except IOError as ioe:
+            if ioe.errno != errno.ENOENT:
+                raise
+        return False
 
     def record_download_archive(self, info_dict):
+        """ Records a new entry in the archive for the info_dict """
+
+        if self._archive_filepath is None:
+            return
         vid_id = self._make_archive_id(info_dict)
         assert vid_id
-        self.archive.record_download(vid_id)
+        with locked_file(self._archive_filepath, 'a', encoding='utf-8') as archive_file:
+            archive_file.write(vid_id + '\n')
+        self._archive_set.add(vid_id)
 
     @staticmethod
     def format_resolution(format, default='unknown'):
