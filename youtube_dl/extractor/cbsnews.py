@@ -95,7 +95,8 @@ class CBSNewsIE(CBSIE):
         webpage = self._download_webpage(url, display_id)
 
         entries = []
-        for embed_url in re.findall(r'<iframe[^>]+data-src="(https?://(?:www\.)?cbsnews\.com/embed/video/[^#]*#[^"]+)"', webpage):
+        # This regex is intended to match attributes src and data-src
+        for embed_url in re.findall(r'<iframe[^>]+src="(https?://(?:www\.)?cbsnews\.com/embed/video/[^#]*#[^"]+)"', webpage):
             entries.append(self.url_result(embed_url, CBSNewsEmbedIE.ie_key()))
         if entries:
             return self.playlist_result(
