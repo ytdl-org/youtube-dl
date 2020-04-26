@@ -1,4 +1,3 @@
-from pprint import pprint
 from .common import InfoExtractor
 
 LABEL_SIZES={
@@ -25,7 +24,6 @@ class MyRunningManIE(InfoExtractor):
         video_id = self._match_id(url)
         webpage = self._download_webpage(url, video_id)
         data_url = self._html_search_regex(r'data-url="f([^"]+)"', webpage, "data-url")
-        pprint('https://feurl.com/api/source/{}'.format(data_url))
         source = self._download_json('https://feurl.com/api/source/{}'.format(data_url),video_id, data='r=https%3A%2F%2Fwww.myrunningman.com%2Fcache%2Fstream%2Ff{}.html&d=feurl.com'.format(data_url).encode('utf-8'))
         assert source['success']
 
@@ -35,8 +33,6 @@ class MyRunningManIE(InfoExtractor):
                 'ext': d['type'],
                 'url': d['file'],
             }, **LABEL_SIZES.get(d['label'], {})))
-            pprint(LABEL_SIZES.get(d['label'], {}))
-            pprint(d['label'])
 
         return {
             'id': video_id,
