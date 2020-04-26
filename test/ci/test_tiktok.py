@@ -24,6 +24,7 @@ class TikTokTestYoutubeDl(unittest.TestCase):
         self.assertGreaterEqual(info['comment_count'], 40)
         self.assertEquals(info['duration'], 10)
         self.assertEquals(info['ext'], 'mp.4')
+        self.assertGreater(len(info['embed_code']),0)
 
 
 if __name__ == '__main__':

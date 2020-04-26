@@ -1,4 +1,3 @@
-# coding: utf-8
 from __future__ import unicode_literals
 import ast
 from bs4 import BeautifulSoup
