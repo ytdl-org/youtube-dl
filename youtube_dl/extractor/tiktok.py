@@ -1,6 +1,7 @@
-# coding: utf-8
 from __future__ import unicode_literals
-
+import ast
+from bs4 import BeautifulSoup
+import json
 from .common import InfoExtractor
 from ..utils import (
     compat_str,
@@ -8,8 +9,7 @@ from ..utils import (
     int_or_none,
     str_or_none,
     try_get,
-    url_or_none,
-)
+    url_or_none)
 
 
 class TikTokBaseIE(InfoExtractor):
@@ -69,7 +69,8 @@ class TikTokIE(TikTokBaseIE):
                         https?://
                             (?:
                                 (?:m\.)?tiktok\.com/v|
-                                (?:www\.)?tiktok\.com/share/video
+                                (?:www\.)?tiktok\.com/share/video|
+                                (?:www\.|)tiktok\.com\/@(?:.*?)\/video
                             )
                             /(?P<id>\d+)
                     '''
@@ -95,11 +96,53 @@ class TikTokIE(TikTokBaseIE):
 
     def _real_extract(self, url):
         video_id = self._match_id(url)
-        webpage = self._download_webpage(
-            'https://m.tiktok.com/v/%s.html' % video_id, video_id)
-        data = self._parse_json(self._search_regex(
-            r'\bdata\s*=\s*({.+?})\s*;', webpage, 'data'), video_id)
-        return self._extract_aweme(data)
+        json_api = self._download_json('https://www.tiktok.com/oembed?url=' + url, video_id)
+
+        webpage = self._download_webpage(url, video_id)
+        soup = BeautifulSoup(webpage, features="html.parser")
+        json_next_data = soup.find(id='__NEXT_DATA__')
+        props = json_next_data.contents[0]
+        json_data_encode = json.dumps(props.encode('utf-8'))
+        ast_le = ast.literal_eval(json_data_encode)
+        data_dict = json.loads(ast_le)
+
+        item_info = data_dict['props']['pageProps']['videoData']['itemInfos']
+        timestamp = int(item_info['createTime'])
+        shares = item_info['shareCount']
+        views = item_info['playCount']
+        duration = item_info['video']['videoMeta']['duration']
+        provider_id = item_info['authorId']
+        comments_count = item_info['commentCount']
+        likes_count = item_info['diggCount']
+
+        return self.info_dict(video_id, str(url), json_api['title'],
+                              json_api['author_name'], timestamp, json_api['thumbnail_url'],
+                              views, provider_id, False, 'not_live', likes_count, shares, '', comments_count, duration, json_api['html'])
+
+    def info_dict(self, video_id, url, video_title,
+                  uploader, timestamp, thumbnail,
+                  view_count, uploader_id, is_live, live_status
+                  , likes_count, shares_count, subtitles, comment_count, duration, embed_code):
+        info_dict = {
+            'id': video_id,
+            'url': url,
+            'title': video_title,
+            'uploader': uploader,
+            'timestamp': timestamp,
+            'thumbnail': thumbnail,
+            'view_count': view_count,
+            'uploader_id': uploader_id,
+            'is_live': is_live,
+            'live_status': live_status,
+            'like_count': likes_count,
+            'share_count': shares_count,
+            'subtitles': subtitles,
+            'comment_count': comment_count,
+            'duration': duration,
+            'ext':'mp.4',
+            'embed_code': embed_code
+        }
+        return info_dict
 
 
 class TikTokUserIE(TikTokBaseIE):
