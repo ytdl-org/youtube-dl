@@ -1,21 +1,22 @@
 from .common import InfoExtractor
 
-LABEL_SIZES={
-    '480p': {"width":640, "height": 480},
-    '480i': {"width":640, "height": 480},
-    '720p': {"width":1280, "height": 720},
-    '720i': {"width":1280, "height": 720},
-    '1080p': {"width":1920, "height": 1080},
-    '1080i': {"width":1920, "height": 1080},
-    '1440p': {"width":2560, "height": 1440},
-    '1440i': {"width":2560, "height": 1440},
-    '4K': {"width":3840, "height": 2160},
-    '2160p': {"width":3840, "height": 2160},
-    '2160i': {"width":3840, "height": 2160},
-    '8K': {"width":7680, "height": 4320},
-    '4320p': {"width":7680, "height": 4320},
-    '4320i': {"width":7680, "height": 4320},
+LABEL_SIZES = {
+    '480p': {"width": 640, "height": 480},
+    '480i': {"width": 640, "height": 480},
+    '720p': {"width": 1280, "height": 720},
+    '720i': {"width": 1280, "height": 720},
+    '1080p': {"width": 1920, "height": 1080},
+    '1080i': {"width": 1920, "height": 1080},
+    '1440p': {"width": 2560, "height": 1440},
+    '1440i': {"width": 2560, "height": 1440},
+    '4K': {"width": 3840, "height": 2160},
+    '2160p': {"width": 3840, "height": 2160},
+    '2160i': {"width": 3840, "height": 2160},
+    '8K': {"width": 7680, "height": 4320},
+    '4320p': {"width": 7680, "height": 4320},
+    '4320i': {"width": 7680, "height": 4320},
 }
+
 
 class MyRunningManIE(InfoExtractor):
     _VALID_URL = r'(?:https?://)?(?:www\.)?myrunningman\.com/ep/(?P<id>[0-9]+)$'
@@ -24,7 +25,7 @@ class MyRunningManIE(InfoExtractor):
         video_id = self._match_id(url)
         webpage = self._download_webpage(url, video_id)
         data_url = self._html_search_regex(r'data-url="f([^"]+)"', webpage, "data-url")
-        source = self._download_json('https://feurl.com/api/source/{}'.format(data_url),video_id, data='r=https%3A%2F%2Fwww.myrunningman.com%2Fcache%2Fstream%2Ff{}.html&d=feurl.com'.format(data_url).encode('utf-8'))
+        source = self._download_json('https://feurl.com/api/source/{}'.format(data_url), video_id, data='r=https%3A%2F%2Fwww.myrunningman.com%2Fcache%2Fstream%2Ff{}.html&d=feurl.com'.format(data_url).encode('utf-8'))
         assert source['success']
 
         formats = []
@@ -45,7 +46,7 @@ class MyRunningManIE(InfoExtractor):
         }
 
 
-_="""{
+_ = """{
   "success": true,
   "player": {
     "poster_file": "/userdata/220521/poster/4/0o/40ox-ry0yo8.png?v=1558638851",
