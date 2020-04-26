@@ -235,6 +235,7 @@ from .corus import CorusIE
 from .cracked import CrackedIE
 from .crackle import CrackleIE
 from .crooksandliars import CrooksAndLiarsIE
+from .crtvg import CRTVGIE
 from .crunchyroll import (
     CrunchyrollIE,
     CrunchyrollShowPlaylistIE
