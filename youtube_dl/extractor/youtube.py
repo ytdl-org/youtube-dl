@@ -1227,6 +1227,22 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
             'url': 'https://www.youtubekids.com/watch?v=3b8nCWDgZ6Q',
             'only_matching': True,
         },
+        {
+            # A page with a link to a YouTube video
+            'url': 'http://curio.scene.org/demo/monad-macau-exports-atlas/',
+            'info_dict': {
+                'id': 'mVdISz9-iFc',
+                'ext': 'mp4',
+                'upload_date': '20190425',
+                'uploader': 'Demoscene in 23.976 Hertz',
+                'description': 'A 64 kilobyte demo (intro) released at Revision 2019. Reached 3rd place in the 64k Intro Compo. Download and comments: https://www.pouet.net/prod.php?which=80996',
+                'uploader_id': 'UC_Il-swQwhyPXhKyCdRfyXg',
+                'title': 'Atlas by Monad & Macau Exports',
+            },
+            'params': {
+                'skip_download': True,
+            },
+        },
     ]
 
     def __init__(self, *args, **kwargs):
@@ -1600,6 +1616,16 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
             class=(?P<q1>[\'"])[^\'"]*\byvii_single_video_player\b[^\'"]*(?P=q1)[^>]+
             data-video_id=(?P<q2>[\'"])([^\'"]+)(?P=q2)''', webpage)
         entries.extend(m[-1] for m in matches)
+
+        # A link to a YouTube video
+        entries.extend(list(map(
+            unescapeHTML,
+            re.findall(r'''(?x)
+                <a [^>]*href=[\'"](
+                    (?:https?:)?//(?:www\.)?youtube(?:-nocookie)?\.com/
+                    [^\'"]+
+                )[\'"]
+            ''', webpage))))
 
         return entries
 
