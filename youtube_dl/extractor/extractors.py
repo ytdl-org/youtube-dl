@@ -874,7 +874,10 @@ from .pluralsight import (
     PluralsightCourseIE,
 )
 from .podomatic import PodomaticIE
-from .pokemon import PokemonIE
+from .pokemon import (
+    PokemonIE,
+    PokemonWatchIE,
+)
 from .polskieradio import (
     PolskieRadioIE,
     PolskieRadioCategoryIE,
