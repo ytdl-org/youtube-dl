@@ -1620,9 +1620,9 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
         # due to the padding multiple video ids can lead to the same video
         # these wrong ids work but not always (not for age-gated videos)
         # it can be detected and corrected
-        video_id_padded = video_id + '=' * ((4 - len(video_id) % 4) % 4) # add padding, required for decode
+        video_id_padded = video_id + '=' * ((4 - len(video_id) % 4) % 4)  # add padding, required for decode
         decoded_bytes = base64.urlsafe_b64decode(video_id_padded)
-        real_video_id = base64.urlsafe_b64encode(decoded_bytes).decode("utf-8").replace('=','') # remove padding again
+        real_video_id = base64.urlsafe_b64encode(decoded_bytes).decode("utf-8").replace('=', '')  # remove padding again
 
         if real_video_id != video_id:
             self.to_screen('Detected wrong video id %s, trying corrected id %s' % (video_id, real_video_id))
