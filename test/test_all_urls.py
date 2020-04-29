@@ -83,7 +83,7 @@ class TestAllURLsMatching(unittest.TestCase):
         assertExtractId('https://www.youtube.com/watch_popup?v=BaW_jenozKc', 'BaW_jenozKc')
         assertExtractId('http://www.youtube.com/watch?v=BaW_jenozKcsharePLED17F32AD9753930', 'BaW_jenozKc')
         assertExtractId('BaW_jenozKc', 'BaW_jenozKc')
-        assertExtractId('DJztXj2GPfl', 'DJztXj2GPfk')  #wrong id but corrected
+        assertExtractId('DJztXj2GPfl', 'DJztXj2GPfk')  # wrong id but corrected
 
     def test_facebook_matching(self):
         self.assertTrue(FacebookIE.suitable('https://www.facebook.com/Shiniknoh#!/photo.php?v=10153317450565268'))
