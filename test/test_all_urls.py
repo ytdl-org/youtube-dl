@@ -23,6 +23,9 @@ class TestAllURLsMatching(unittest.TestCase):
     def setUp(self):
         self.ies = gen_extractors()
 
+    def to_screen(self, s, skip_eol=None):
+        print(s)
+
     def matching_ies(self, url):
         return [ie.IE_NAME for ie in self.ies if ie.suitable(url) and ie.IE_NAME != 'generic']
 
@@ -73,13 +76,14 @@ class TestAllURLsMatching(unittest.TestCase):
         self.assertMatch('https://www.youtube.com/results?baz=bar&search_query=youtube-dl+test+video&filters=video&lclk=video', ['youtube:search_url'])
 
     def test_youtube_extract(self):
-        assertExtractId = lambda url, id: self.assertEqual(YoutubeIE.extract_id(url), id)
+        assertExtractId = lambda url, id: self.assertEqual(YoutubeIE.extract_id(self, url), id)
         assertExtractId('http://www.youtube.com/watch?&v=BaW_jenozKc', 'BaW_jenozKc')
         assertExtractId('https://www.youtube.com/watch?&v=BaW_jenozKc', 'BaW_jenozKc')
         assertExtractId('https://www.youtube.com/watch?feature=player_embedded&v=BaW_jenozKc', 'BaW_jenozKc')
         assertExtractId('https://www.youtube.com/watch_popup?v=BaW_jenozKc', 'BaW_jenozKc')
         assertExtractId('http://www.youtube.com/watch?v=BaW_jenozKcsharePLED17F32AD9753930', 'BaW_jenozKc')
         assertExtractId('BaW_jenozKc', 'BaW_jenozKc')
+        assertExtractId('DJztXj2GPfl', 'DJztXj2GPfk')  #wrong id but corrected
 
     def test_facebook_matching(self):
         self.assertTrue(FacebookIE.suitable('https://www.facebook.com/Shiniknoh#!/photo.php?v=10153317450565268'))
