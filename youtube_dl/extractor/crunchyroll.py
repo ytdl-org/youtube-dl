@@ -121,46 +121,29 @@ class CrunchyrollIE(CrunchyrollBaseIE, VRVIE):
     IE_NAME = 'crunchyroll'
     _VALID_URL = r'https?://(?:(?P<prefix>www|m)\.)?(?P<url>crunchyroll\.(?:com|fr)/(?:media(?:-|/\?id=)|(?:[^/]*/){1,2}[^/?&]*?)(?P<video_id>[0-9]+))(?:[/?&]|$)'
     _TESTS = [{
-        'url': 'http://www.crunchyroll.com/wanna-be-the-strongest-in-the-world/episode-1-an-idol-wrestler-is-born-645513',
+        'url': 'https://www.crunchyroll.com/laid-back-camp/episode-1-mount-fuji-and-curry-noodles-758785',
         'info_dict': {
-            'id': '645513',
+            'id': '758785',
             'ext': 'mp4',
-            'title': 'Wanna be the Strongest in the World Episode 1 – An Idol-Wrestler is Born!',
-            'description': 'md5:2d17137920c64f2f49981a7797d275ef',
+            'title': 'Laid-Back Camp Episode 1, Mount Fuji and Curry Noodles',
+            'description': 'md5:65877a985baf8ea1e5d68b0a802bb97a',
             'thumbnail': r're:^https?://.*\.jpg$',
-            'uploader': 'Yomiuri Telecasting Corporation (YTV)',
-            'upload_date': '20131013',
-            'url': 're:(?!.*&amp)',
+            'uploader': 'Furyu',
+            'upload_date': '20180111',
         },
         'params': {
-            # rtmp
+            # m3u8 download
             'skip_download': True,
         },
-    }, {
-        'url': 'http://www.crunchyroll.com/media-589804/culture-japan-1',
-        'info_dict': {
-            'id': '589804',
-            'ext': 'flv',
-            'title': 'Culture Japan Episode 1 – Rebuilding Japan after the 3.11',
-            'description': 'md5:2fbc01f90b87e8e9137296f37b461c12',
-            'thumbnail': r're:^https?://.*\.jpg$',
-            'uploader': 'Danny Choo Network',
-            'upload_date': '20120213',
-        },
-        'params': {
-            # rtmp
-            'skip_download': True,
-        },
-        'skip': 'Video gone',
     }, {
         'url': 'http://www.crunchyroll.com/rezero-starting-life-in-another-world-/episode-5-the-morning-of-our-promise-is-still-distant-702409',
         'info_dict': {
             'id': '702409',
             'ext': 'mp4',
-            'title': 'Re:ZERO -Starting Life in Another World- Episode 5 – The Morning of Our Promise Is Still Distant',
+            'title': 'Re:ZERO -Starting Life in Another World- Episode 5, The Morning of Our Promise Is Still Distant',
             'description': 'md5:97664de1ab24bbf77a9c01918cb7dca9',
             'thumbnail': r're:^https?://.*\.jpg$',
-            'uploader': 'TV TOKYO',
+            'uploader': 'Re:Zero Partners',
             'upload_date': '20160508',
         },
         'params': {
@@ -172,7 +155,7 @@ class CrunchyrollIE(CrunchyrollBaseIE, VRVIE):
         'info_dict': {
             'id': '727589',
             'ext': 'mp4',
-            'title': "KONOSUBA -God's blessing on this wonderful world! 2 Episode 1 – Give Me Deliverance From This Judicial Injustice!",
+            'title': "KONOSUBA -God's blessing on this wonderful world! 2 Episode 1, Give Me Deliverance From This Judicial Injustice!",
             'description': 'md5:cbcf05e528124b0f3a0a419fc805ea7d',
             'thumbnail': r're:^https?://.*\.jpg$',
             'uploader': 'Kadokawa Pictures Inc.',
@@ -200,7 +183,7 @@ class CrunchyrollIE(CrunchyrollBaseIE, VRVIE):
         'info_dict': {
             'id': '535080',
             'ext': 'mp4',
-            'title': '11eyes Episode 1 – Red Night ~ Piros éjszaka',
+            'title': '11eyes Episode 1, Red Night ~ Piros éjszaka',
             'description': 'Kakeru and Yuka are thrown into an alternate nightmarish world they call "Red Night".',
             'uploader': 'Marvelous AQL Inc.',
             'upload_date': '20091021',
@@ -215,7 +198,7 @@ class CrunchyrollIE(CrunchyrollBaseIE, VRVIE):
         'info_dict': {
             'id': '606899',
             'ext': 'mp4',
-            'title': 'Hakuoki Reimeiroku Episode 1 – Dawn of the Divine Warriors',
+            'title': 'Hakuoki Reimeiroku Episode 1, Dawn of the Divine Warriors',
             'description': 'Ryunosuke was left to die, but Serizawa-san asked him a simple question "Do you want to live?"',
             'uploader': 'Geneon Entertainment',
             'upload_date': '20120717',
@@ -230,7 +213,7 @@ class CrunchyrollIE(CrunchyrollBaseIE, VRVIE):
         'info_dict': {
             'id': '590532',
             'ext': 'mp4',
-            'title': 'Haiyoru! Nyaruani (ONA) Episode 1 – Test',
+            'title': 'Haiyoru! Nyaruani (ONA) Episode 1, Test',
             'description': 'Mahiro and Nyaruko talk about official certification.',
             'uploader': 'TV TOKYO',
             'upload_date': '20120305',
@@ -440,11 +423,9 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
         language = self._search_regex(
             r'(?:vilos\.config\.player\.language|LOCALE)\s*=\s*(["\'])(?P<lang>(?:(?!\1).)+)\1',
             webpage, 'language', default=None, group='lang')
-
-        video_title = self._html_search_regex(
-            r'(?s)<h1[^>]*>((?:(?!<h1).)*?<span[^>]+itemprop=["\']title["\'][^>]*>(?:(?!<h1).)+?)</h1>',
-            webpage, 'video_title')
-        video_title = re.sub(r' {2,}', ' ', video_title)
+        video_title = self._html_search_meta('title', webpage) or self._html_search_regex(r'<title>(?P<title>.+?), - Watch on Crunchyroll</title>',
+                                                                                          webpage, 'video_title', group='title')
+        video_title = re.sub(r', - Watch on Crunchyroll', '', video_title)
         video_description = (self._parse_json(self._html_search_regex(
             r'<script[^>]*>\s*.+?\[media_id=%s\].+?({.+?"description"\s*:.+?})\);' % video_id,
             webpage, 'description', default='{}'), video_id) or media_metadata).get('description')
