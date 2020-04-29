@@ -10,6 +10,7 @@ import random
 import re
 import time
 import traceback
+import base64
 
 from .common import InfoExtractor, SearchInfoExtractor
 from ..jsinterp import JSInterpreter
@@ -1609,12 +1610,24 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
         return urls[0] if urls else None
 
     @classmethod
-    def extract_id(cls, url):
+    def extract_id(cls, self, url):
         mobj = re.match(cls._VALID_URL, url, re.VERBOSE)
         if mobj is None:
             raise ExtractorError('Invalid URL: %s' % url)
         video_id = mobj.group(2)
-        return video_id
+
+        # video_id is a result of a base64 encoding
+        # due to the padding multiple video ids can lead to the same video
+        # these wrong ids work but not always (not for age-gated videos)
+        # it can be detected and corrected
+        video_id_padded = video_id + '=' * ((4 - len(video_id) % 4) % 4) # add padding, required for decode
+        decoded_bytes = base64.urlsafe_b64decode(video_id_padded)
+        real_video_id = base64.urlsafe_b64encode(decoded_bytes).decode("utf-8").replace('=','') # remove padding again
+
+        if real_video_id != video_id:
+            self.to_screen('Detected wrong video id %s, trying corrected id %s' % (video_id, real_video_id))
+
+        return real_video_id
 
     @staticmethod
     def _extract_chapters(description, duration):
@@ -1674,7 +1687,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
         mobj = re.search(self._NEXT_URL_RE, url)
         if mobj:
             url = proto + '://www.youtube.com/' + compat_urllib_parse_unquote(mobj.group(1)).lstrip('/')
-        video_id = self.extract_id(url)
+        video_id = self.extract_id(self, url)
 
         # Get video webpage
         url = proto + '://www.youtube.com/watch?v=%s&gl=US&hl=en&has_verified=1&bpctr=9999999999' % video_id
