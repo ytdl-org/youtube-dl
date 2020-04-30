@@ -121,6 +121,20 @@ class CrunchyrollIE(CrunchyrollBaseIE, VRVIE):
     IE_NAME = 'crunchyroll'
     _VALID_URL = r'https?://(?:(?P<prefix>www|m)\.)?(?P<url>crunchyroll\.(?:com|fr)/(?:media(?:-|/\?id=)|(?:[^/]*/){1,2}[^/?&]*?)(?P<video_id>[0-9]+))(?:[/?&]|$)'
     _TESTS = [{
+        'url': 'https://www.crunchyroll.com/pt-pt/tower-of-god/episode-3-the-correct-door-794521',
+        'info_dict': {
+            'id': '794521',
+            'ext': 'mp4',
+            'title': 'Tower of God Episódio 3, The Correct Door',
+            'description': 'md5:fe1aa0b3862d1bd8548f16dd81cdaf4d',
+            'thumbnail': r're:^https?://.*\.jpg$',
+            'uploader': 'WEBTOON',
+        },
+        'params': {
+            # m3u8 download
+            'skip_download': True,
+        },
+    }, {
         'url': 'https://www.crunchyroll.com/laid-back-camp/episode-1-mount-fuji-and-curry-noodles-758785',
         'info_dict': {
             'id': '758785',
@@ -423,9 +437,9 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
         language = self._search_regex(
             r'(?:vilos\.config\.player\.language|LOCALE)\s*=\s*(["\'])(?P<lang>(?:(?!\1).)+)\1',
             webpage, 'language', default=None, group='lang')
-        video_title = self._html_search_meta('title', webpage) or self._html_search_regex(r'<title>(?P<title>.+?), - Watch on Crunchyroll</title>',
+        video_title = self._html_search_meta('title', webpage) or self._html_search_regex(r'<title>(?P<title>.+?)</title>',
                                                                                           webpage, 'video_title', group='title')
-        video_title = re.sub(r', - Watch on Crunchyroll', '', video_title)
+        video_title = re.sub(r',(?!.*,).*', '', video_title)
         video_description = (self._parse_json(self._html_search_regex(
             r'<script[^>]*>\s*.+?\[media_id=%s\].+?({.+?"description"\s*:.+?})\);' % video_id,
             webpage, 'description', default='{}'), video_id) or media_metadata).get('description')
