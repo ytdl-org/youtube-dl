@@ -1227,6 +1227,26 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
             'url': 'https://www.youtubekids.com/watch?v=3b8nCWDgZ6Q',
             'only_matching': True,
         },
+        {
+            # invalid -> valid video id redirection
+            'url': 'DJztXj2GPfl',
+            'info_dict': {
+                'id': 'DJztXj2GPfk',
+                'ext': 'mp4',
+                'title': 'Panjabi MC - Mundian To Bach Ke (The Dictator Soundtrack)',
+                'description': 'md5:bf577a41da97918e94fa9798d9228825',
+                'upload_date': '20090125',
+                'uploader': 'Prochorowka',
+                'uploader_id': 'Prochorowka',
+                'uploader_url': r're:https?://(?:www\.)?youtube\.com/user/Prochorowka',
+                'artist': 'Panjabi MC',
+                'track': 'Beware of the Boys (Mundian to Bach Ke) - Motivo Hi-Lectro Remix',
+                'album': 'Beware of the Boys (Mundian To Bach Ke)',
+            },
+            'params': {
+                'skip_download': True,
+            },
+        }
     ]
 
     def __init__(self, *args, **kwargs):
@@ -1678,7 +1698,10 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
 
         # Get video webpage
         url = proto + '://www.youtube.com/watch?v=%s&gl=US&hl=en&has_verified=1&bpctr=9999999999' % video_id
-        video_webpage = self._download_webpage(url, video_id)
+        video_webpage, urlh = self._download_webpage_handle(url, video_id)
+
+        qs = compat_parse_qs(compat_urllib_parse_urlparse(urlh.geturl()).query)
+        video_id = qs.get('v', [None])[0] or video_id
 
         # Attempt to extract SWF player URL
         mobj = re.search(r'swfConfig.*?"(https?:\\/\\/.*?watch.*?-.*?\.swf)"', video_webpage)
