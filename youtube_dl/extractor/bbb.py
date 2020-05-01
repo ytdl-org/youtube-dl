@@ -1,5 +1,7 @@
 # coding: utf-8
 
+# Contributed by Olivier Berger <olivier.berger@telecom-sudparis.eu>
+
 # Extract material from recordings made inside BigBlueButton
 
 # BigBlueButton records multiple videos :
@@ -8,14 +10,21 @@
 # for slides, annotations, etc. the playback app typically renders them on the fly upon playback
 # so it may not be easy to capture that with youtube-dl
 
+# Extract a merged video, without the slides with
+# youtube-dl --merge-output-format mkv -f slides+speaker "https://mybbb.example.com/playback/presentation/2.0/playback.html?meetingId=12345679a50a715e8d6dc692df996dceb8d788f8-1234566973639"
 
 from __future__ import unicode_literals
 
 from .common import InfoExtractor
 
-from .openload import PhantomJSwrapper
+from ..utils import (
+    unified_timestamp,
+    xpath_text,
+    xpath_with_ns,
+)
 
-# TODO : thumbnails
+_s = lambda p: xpath_with_ns(p, {'svg': 'http://www.w3.org/2000/svg'})
+_x = lambda p: xpath_with_ns(p, {'xlink': 'http://www.w3.org/1999/xlink'})
 
 class BigBlueButtonIE(InfoExtractor):
     _VALID_URL = r'(?P<website>https?://[^/]+)/playback/presentation/2.0/playback.html\?meetingId=(?P<id>[0-9a-f\-]+)'
@@ -39,17 +48,42 @@ class BigBlueButtonIE(InfoExtractor):
         video_id = self._match_id(url)
         m = self._VALID_URL_RE.match(url)
         website = m.group('website')
-        #print(video_id)
-        print(website)
 
         webpage = self._download_webpage(url, video_id)
 
-        # print(webpagejs)
+        # Extract basic metadata (more available in metadata.xml)
+        metadata_url = website + '/presentation/' + video_id + '/metadata.xml'
+        metadata = self._download_xml(metadata_url, video_id)
 
-        # TODO more code goes here, for example ...
-        #title = self._html_search_regex(r'<h1>(.+?)</h1>', webpage, 'title')
-        title = video_id
+        id = xpath_text(metadata, 'id')
+        meta = metadata.find('./meta')
+        meeting_name = xpath_text(meta, 'meetingName')
+        start_time = xpath_text(metadata, 'start_time')
 
+        title = meeting_name
+
+        # This code unused : have to grasp what to do with thumbnails
+        thumbnails = []
+        images = metadata.find('./playback/extensions/preview/images')
+        for image in images:
+            thumbnails += {
+                'url': image.text.strip(),
+                'width': image.get('width'),
+                'height': image.get('height')
+                }
+
+        # This code mostly useless unless one know how to process slides
+        shapes_url = website + '/presentation/' + video_id + '/shapes.svg'
+        shapes = self._download_xml(shapes_url, video_id)
+        images = shapes.findall(_s("./svg:image[@class='slide']"))
+        slides = []
+        for image in images:
+            slides.append(image.get(_x('xlink:href')))
+
+        # We produce 2 formats :
+        # - the 'webcams.webm' one, for speaker (can be used for merging its audio)
+        # - the 'deskshare.webm' one, for screen sharing (can be used
+        #   for merging its video) - it lacks the slides unfortunately
         formats = []
 
         sources = { 'speaker': '/video/webcams.webm', 'slides': '/deskshare/deskshare.webm' }
@@ -65,8 +99,6 @@ class BigBlueButtonIE(InfoExtractor):
             'id': video_id,
             'title': title,
             'formats': formats,
- #           'description': self._og_search_description(webpage),
-#            'uploader': self._search_regex(r'<div[^>]+id="uploader"[^>]*>([^<]+)<', webpage, 'uploader', fatal=False),
-            # TODO more properties (see youtube_dl/extractor/common.py)
+            'timestamp': int(start_time),
+#            'thumbnails': thumbnails
         }
-    
