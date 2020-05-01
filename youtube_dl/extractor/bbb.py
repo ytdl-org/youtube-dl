@@ -5,13 +5,15 @@
 # Extract material from recordings made inside BigBlueButton
 
 # BigBlueButton records multiple videos :
-#  - speaker speech & webcam
-#  - screesharing
-# for slides, annotations, etc. the playback app typically renders them on the fly upon playback
-# so it may not be easy to capture that with youtube-dl
+#  - webcams feed : sound & webcam views : useful for extracting sound
+#  - deskshare captures : screensharing, but not the slides
 
-# Extract a merged video, without the slides with
-# youtube-dl --merge-output-format mkv -f slides+speaker "https://mybbb.example.com/playback/presentation/2.0/playback.html?meetingId=12345679a50a715e8d6dc692df996dceb8d788f8-1234566973639"
+# For slides, annotations, polls and other stuff displayed to the
+# audience the playback app typically renders them on the fly upon
+# playback (SVG) so it may not be easy to capture that with youtube-dl
+
+# To extract a merged video, which will miss the slides and webcam views, proceed with :
+# youtube-dl --merge-output-format mkv -f deskshare+webcams "https://mybbb.example.com/playback/presentation/2.0/playback.html?meetingId=12345679a50a715e8d6dc692df996dceb8d788f8-1234566973639"
 
 from __future__ import unicode_literals
 
@@ -28,21 +30,35 @@ _x = lambda p: xpath_with_ns(p, {'xlink': 'http://www.w3.org/1999/xlink'})
 
 class BigBlueButtonIE(InfoExtractor):
     _VALID_URL = r'(?P<website>https?://[^/]+)/playback/presentation/2.0/playback.html\?meetingId=(?P<id>[0-9a-f\-]+)'
-    _TEST = {
-        'url': 'https://mybbb.example.com/playback/presentation/2.0/playback.html?meetingId=12345679a50a715e8d6dc692df996dceb8d788f8-1234566973639',
-        'md5': 'TODO: md5 sum of the first 10241 bytes of the video file (use --test)',
-        'info_dict': {
-            'id': '42',
-            'ext': 'mp4',
-            'title': 'Video title goes here',
-            'thumbnail': r're:^https?://.*\.jpg$',
-            # TODO more properties, either as:
-            # * A value
-            # * MD5 checksum; start the string with md5:
-            # * A regular expression; start the string with re:
-            # * Any Python type (for example int or float)
-        }
-    }
+    _TESTS = [
+        {
+            'url': 'https://webconf.imtbs-tsp.eu/playback/presentation/2.0/playback.html?meetingId=522d1d51bee82a57b535ced7091addeecb074d47-1588254659509',
+            'md5': 'dc98924b35c2234a8c7b3a61b30d968e',
+            'info_dict': {
+                'id': '522d1d51bee82a57b535ced7091addeecb074d47-1588254659509',
+                'ext': 'webm',
+                'title': 'PRO 3600',
+                'timestamp': 1588254659509,
+                'format': 'webcams - unknown'
+            },
+            'params': {
+                'format': 'webcams',
+            }
+        },
+        {
+            'url': 'https://webconf.imtbs-tsp.eu/playback/presentation/2.0/playback.html?meetingId=522d1d51bee82a57b535ced7091addeecb074d47-1588254659509',
+            'md5': '99c9191dbe03dd5eab34ba02352f1742',
+            'info_dict': {
+                'id': '522d1d51bee82a57b535ced7091addeecb074d47-1588254659509',
+                'ext': 'webm',
+                'title': 'PRO 3600',
+                'timestamp': 1588254659509,
+                'format': 'deskshare - unknown'
+            },
+            'params': {
+                'format': 'deskshare',
+            }
+        }]
 
     def _real_extract(self, url):
         video_id = self._match_id(url)
@@ -81,12 +97,12 @@ class BigBlueButtonIE(InfoExtractor):
             slides.append(image.get(_x('xlink:href')))
 
         # We produce 2 formats :
-        # - the 'webcams.webm' one, for speaker (can be used for merging its audio)
+        # - the 'webcams.webm' one, for webcams (can be used for merging its audio)
         # - the 'deskshare.webm' one, for screen sharing (can be used
-        #   for merging its video) - it lacks the slides unfortunately
+        #   for merging its video) - it lacks the slides, unfortunately
         formats = []
 
-        sources = { 'speaker': '/video/webcams.webm', 'slides': '/deskshare/deskshare.webm' }
+        sources = { 'webcams': '/video/webcams.webm', 'deskshare': '/deskshare/deskshare.webm' }
         for format_id, source in sources.items():
             video_url = website + '/presentation/' + video_id + source
             formats.append({
