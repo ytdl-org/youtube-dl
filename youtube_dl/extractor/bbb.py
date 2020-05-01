@@ -20,13 +20,13 @@ from __future__ import unicode_literals
 from .common import InfoExtractor
 
 from ..utils import (
-    unified_timestamp,
     xpath_text,
     xpath_with_ns,
 )
 
 _s = lambda p: xpath_with_ns(p, {'svg': 'http://www.w3.org/2000/svg'})
 _x = lambda p: xpath_with_ns(p, {'xlink': 'http://www.w3.org/1999/xlink'})
+
 
 class BigBlueButtonIE(InfoExtractor):
     _VALID_URL = r'(?P<website>https?://[^/]+)/playback/presentation/2.0/playback.html\?meetingId=(?P<id>[0-9a-f\-]+)'
@@ -65,7 +65,8 @@ class BigBlueButtonIE(InfoExtractor):
         m = self._VALID_URL_RE.match(url)
         website = m.group('website')
 
-        webpage = self._download_webpage(url, video_id)
+        # We don't parse anything, but make sure it exists
+        self._download_webpage(url, video_id)
 
         # Extract basic metadata (more available in metadata.xml)
         metadata_url = website + '/presentation/' + video_id + '/metadata.xml'
@@ -86,7 +87,7 @@ class BigBlueButtonIE(InfoExtractor):
                 'url': image.text.strip(),
                 'width': image.get('width'),
                 'height': image.get('height')
-                }
+            }
 
         # This code mostly useless unless one know how to process slides
         shapes_url = website + '/presentation/' + video_id + '/shapes.svg'
@@ -102,7 +103,10 @@ class BigBlueButtonIE(InfoExtractor):
         #   for merging its video) - it lacks the slides, unfortunately
         formats = []
 
-        sources = { 'webcams': '/video/webcams.webm', 'deskshare': '/deskshare/deskshare.webm' }
+        sources = {
+            'webcams': '/video/webcams.webm',
+            'deskshare': '/deskshare/deskshare.webm'
+        }
         for format_id, source in sources.items():
             video_url = website + '/presentation/' + video_id + source
             formats.append({
@@ -112,9 +116,8 @@ class BigBlueButtonIE(InfoExtractor):
         self._sort_formats(formats)
 
         return {
-            'id': video_id,
+            'id': id,
             'title': title,
             'formats': formats,
             'timestamp': int(start_time),
-#            'thumbnails': thumbnails
         }
