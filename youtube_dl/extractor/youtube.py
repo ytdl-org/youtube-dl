@@ -426,6 +426,10 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                      (?(1).+)?                                                # if we found the ID, everything can follow
                      $""" % {'playlist_id': YoutubeBaseInfoExtractor._PLAYLIST_ID_RE}
     _NEXT_URL_RE = r'[\?&]next_url=([^&]+)'
+    _PLAYER_INFO_RE = (
+        r'/(?P<id>[a-zA-Z0-9_-]{8,})/player_ias\.vflset(?:/[a-zA-Z]{2,3}_[a-zA-Z]{2,3})?/base\.(?P<ext>[a-z]+)$',
+        r'\b(?P<id>vfl[a-zA-Z0-9_-]+)\b.*?\.(?P<ext>[a-z]+)$',
+    )
     _formats = {
         '5': {'ext': 'flv', 'width': 400, 'height': 240, 'acodec': 'mp3', 'abr': 64, 'vcodec': 'h263'},
         '6': {'ext': 'flv', 'width': 450, 'height': 270, 'acodec': 'mp3', 'abr': 64, 'vcodec': 'h263'},
@@ -1273,14 +1277,18 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
         """ Return a string representation of a signature """
         return '.'.join(compat_str(len(part)) for part in example_sig.split('.'))
 
-    def _extract_signature_function(self, video_id, player_url, example_sig):
-        id_m = re.match(
-            r'.*?[-.](?P<id>[a-zA-Z0-9_-]+)(?:/watch_as3|/html5player(?:-new)?|(?:/[a-z]{2,3}_[A-Z]{2})?/base)?\.(?P<ext>[a-z]+)$',
-            player_url)
-        if not id_m:
+    @classmethod
+    def _extract_player_info(cls, player_url):
+        for player_re in cls._PLAYER_INFO_RE:
+            id_m = re.search(player_re, player_url)
+            if id_m:
+                break
+        else:
             raise ExtractorError('Cannot identify player %r' % player_url)
-        player_type = id_m.group('ext')
-        player_id = id_m.group('id')
+        return id_m.group('ext'), id_m.group('id')
+
+    def _extract_signature_function(self, video_id, player_url, example_sig):
+        player_type, player_id = self._extract_player_info(player_url)
 
         # Read from filesystem cache
         func_id = '%s_%s_%s' % (
@@ -2009,22 +2017,10 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
 
                         if self._downloader.params.get('verbose'):
                             if player_url is None:
-                                player_version = 'unknown'
                                 player_desc = 'unknown'
                             else:
-                                if player_url.endswith('swf'):
-                                    player_version = self._search_regex(
-                                        r'-(.+?)(?:/watch_as3)?\.swf$', player_url,
-                                        'flash player', fatal=False)
-                                    player_desc = 'flash player %s' % player_version
-                                else:
-                                    player_version = self._search_regex(
-                                        [r'html5player-([^/]+?)(?:/html5player(?:-new)?)?\.js',
-                                         r'(?:www|player(?:_ias)?)[-.]([^/]+)(?:/[a-z]{2,3}_[A-Z]{2})?/base\.js'],
-                                        player_url,
-                                        'html5 player', fatal=False)
-                                    player_desc = 'html5 player %s' % player_version
-
+                                player_type, player_version = self._extract_player_info(player_url)
+                                player_desc = '%s player %s' % ('flash' if player_type == 'swf' else 'html5', player_version)
                             parts_sizes = self._signature_cache_id(encrypted_sig)
                             self.to_screen('{%s} signature length %s, %s' %
                                            (format_id, parts_sizes, player_desc))
