@@ -434,9 +434,9 @@ Alternatively, refer to the [developer instructions](#developer-instructions) fo
                                      either the path to the binary or its
                                      containing directory.
     --exec CMD                       Execute a command on the file after
-                                     downloading, similar to find's -exec
-                                     syntax. Example: --exec 'adb push {}
-                                     /sdcard/Music/ && rm {}'
+                                     downloading and post-processing, similar to
+                                     find's -exec syntax. Example: --exec 'adb
+                                     push {} /sdcard/Music/ && rm {}'
     --convert-subs FORMAT            Convert the subtitles to other format
                                      (currently supported: srt|ass|vtt|lrc)
 

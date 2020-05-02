@@ -497,6 +497,7 @@
  - **MNetTV**
  - **MoeVideo**: LetitBit video services: moevideo.net, playreplay.net and videochart.net
  - **Mofosex**
+ - **MofosexEmbed**
  - **Mojvideo**
  - **Morningstar**: morningstar.com
  - **Motherless**
