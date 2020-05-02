@@ -5,6 +5,7 @@ from .common import InfoExtractor
 from ..compat import compat_urllib_parse_unquote
 import re
 
+
 class MediaKlikkIE(InfoExtractor):
     # Named regular expression group: (?P<name>...) used for referencing match as 'id'
     _VALID_URL = r'https?://(?:www\.)?mediaklikk\.hu/video/(?P<id>[^/]+)/?'
@@ -12,22 +13,22 @@ class MediaKlikkIE(InfoExtractor):
     _TEST = {
         'url': 'https://mediaklikk.hu/video/kiberma-2020-04-30-i-adas/',
         'info_dict': {
-        'id': 'kiberma-2020-04-30-i-adas',
-        'ext': 'mp4',
-        'title': 'KiberMa, 2020.04.30-i adás | MédiaKlikk',
-        # no thumbnail extractable
+            'id': 'kiberma-2020-04-30-i-adas',
+            'ext': 'mp4',
+            'title': 'KiberMa, 2020.04.30-i adás | MédiaKlikk',
+            # no thumbnail extractable
         }
     }
 
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
         video_id = mobj.group('id')
-        display_id = video_id # we only have one id in url..
+        display_id = video_id  # we only have one id in url..
         webpage = self._download_webpage(url, video_id)
 
         pattern = r"mtva_player_manager\.player\(document.getElementById\(.*\),\s?(\{.*\}).*\);"
         info_json = self._html_search_regex(pattern, webpage, 'info_json')
-        info_meta = self._parse_json(compat_urllib_parse_unquote(info_json),None)
+        info_meta = self._parse_json(compat_urllib_parse_unquote(info_json), None)
 
         info_ret = {
             '_type': 'video',
