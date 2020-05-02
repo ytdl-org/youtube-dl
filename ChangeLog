@@ -1,4 +1,4 @@
-version <unreleased>
+version 2020.05.03
 
 Core
 + [extractor/common] Extract multiple JSON-LD entries
