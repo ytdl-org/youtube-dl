@@ -2,28 +2,27 @@
 from __future__ import unicode_literals
 
 from .common import InfoExtractor
-from ..compat import (
-    compat_urllib_parse_unquote,
-    compat_str
-)
-
+from ..compat import compat_urllib_parse_unquote
+import re
 
 class MediaKlikkIE(InfoExtractor):
-    # (?P<name>...) used for referencing match as 'id'
-    _VALID_URL = r'https?://(?:www\.)?mediaklikk\.hu/video/(?P<id>:[^/]+)/?'
+    # Named regular expression group: (?P<name>...) used for referencing match as 'id'
+    _VALID_URL = r'https?://(?:www\.)?mediaklikk\.hu/video/(?P<id>[^/]+)/?'
+
     _TEST = {
         'url': 'https://mediaklikk.hu/video/kiberma-2020-04-30-i-adas/',
         'info_dict': {
-        'id': '2512015',
+        'id': 'kiberma-2020-04-30-i-adas',
         'ext': 'mp4',
         'title': 'KiberMa, 2020.04.30-i adás | MédiaKlikk',
-		# no thumbnail extractable
+        # no thumbnail extractable
         }
     }
 
     def _real_extract(self, url):
-        video_id = self._match_id(url)
-        display_id = video_id
+        mobj = re.match(self._VALID_URL, url)
+        video_id = mobj.group('id')
+        display_id = video_id # we only have one id in url..
         webpage = self._download_webpage(url, video_id)
 
         pattern = r"mtva_player_manager\.player\(document.getElementById\(.*\),\s?(\{.*\}).*\);"
@@ -32,7 +31,7 @@ class MediaKlikkIE(InfoExtractor):
 
         info_ret = {
             '_type': 'video',
-            'title': info_meta.get('title') or self._og_search_title(webpage),
+            'title': info_meta.get('title') or video_id or self._og_search_title(webpage),
             'ext': 'mp4',
             'display_id': display_id,
             'id': video_id
@@ -42,9 +41,7 @@ class MediaKlikkIE(InfoExtractor):
             info_ret['series'] = info_meta['series']
         info_meta['video'] = info_meta['token']
         del info_meta['token']
-        playerpage = self._download_webpage('https://player.mediaklikk.hu/playernew/player.php',
-                                            video_id,
-                                            query=info_meta)
+        playerpage = self._download_webpage('https://player.mediaklikk.hu/playernew/player.php', video_id, query=info_meta)
         pattern = r"\"file\": \"(\\/\\/.*playlist\.m3u8)\","
         playlist_url = 'https:' + compat_urllib_parse_unquote(
             self._html_search_regex(pattern, playerpage, 'playlist_url'))\
