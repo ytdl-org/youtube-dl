@@ -17,7 +17,7 @@ class XVideosIE(InfoExtractor):
     _VALID_URL = r'''(?x)
                     https?://
                         (?:
-                            (?:[^/]+\.)?xvideos2?\.com/video|
+                            (?:[^/]+\.)?xvideos[23]?\.com/video|
                             (?:www\.)?xvideos\.es/video|
                             flashservice\.xvideos\.com/embedframe/|
                             static-hw\.xvideos\.com/swf/xv-player\.swf\?.*?\bid_video=
