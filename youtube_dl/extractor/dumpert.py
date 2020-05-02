@@ -1,20 +1,17 @@
 # coding: utf-8
 from __future__ import unicode_literals
 
-import re
-
 from .common import InfoExtractor
-from ..compat import compat_b64decode
 from ..utils import (
+    int_or_none,
     qualities,
-    sanitized_Request,
 )
 
 
 class DumpertIE(InfoExtractor):
-    _VALID_URL = r'(?P<protocol>https?)://(?:www\.)?dumpert\.nl/(?:mediabase|embed)/(?P<id>[0-9]+/[0-9a-zA-Z]+)'
+    _VALID_URL = r'(?P<protocol>https?)://(?:(?:www|legacy)\.)?dumpert\.nl/(?:mediabase|embed|item)/(?P<id>[0-9]+[/_][0-9a-zA-Z]+)'
     _TESTS = [{
-        'url': 'http://www.dumpert.nl/mediabase/6646981/951bc60f/',
+        'url': 'https://www.dumpert.nl/item/6646981_951bc60f',
         'md5': '1b9318d7d5054e7dcb9dc7654f21d643',
         'info_dict': {
             'id': '6646981/951bc60f',
@@ -24,46 +21,60 @@ class DumpertIE(InfoExtractor):
             'thumbnail': r're:^https?://.*\.jpg$',
         }
     }, {
-        'url': 'http://www.dumpert.nl/embed/6675421/dc440fe7/',
+        'url': 'https://www.dumpert.nl/embed/6675421_dc440fe7',
+        'only_matching': True,
+    }, {
+        'url': 'http://legacy.dumpert.nl/mediabase/6646981/951bc60f',
+        'only_matching': True,
+    }, {
+        'url': 'http://legacy.dumpert.nl/embed/6675421/dc440fe7',
         'only_matching': True,
     }]
 
     def _real_extract(self, url):
-        mobj = re.match(self._VALID_URL, url)
-        video_id = mobj.group('id')
-        protocol = mobj.group('protocol')
-
-        url = '%s://www.dumpert.nl/mediabase/%s' % (protocol, video_id)
-        req = sanitized_Request(url)
-        req.add_header('Cookie', 'nsfw=1; cpc=10')
-        webpage = self._download_webpage(req, video_id)
-
-        files_base64 = self._search_regex(
-            r'data-files="([^"]+)"', webpage, 'data files')
-
-        files = self._parse_json(
-            compat_b64decode(files_base64).decode('utf-8'),
-            video_id)
+        video_id = self._match_id(url).replace('_', '/')
+        item = self._download_json(
+            'http://api-live.dumpert.nl/mobile_api/json/info/' + video_id.replace('/', '_'),
+            video_id)['items'][0]
+        title = item['title']
+        media = next(m for m in item['media'] if m.get('mediatype') == 'VIDEO')
 
         quality = qualities(['flv', 'mobile', 'tablet', '720p'])
-
-        formats = [{
-            'url': video_url,
-            'format_id': format_id,
-            'quality': quality(format_id),
-        } for format_id, video_url in files.items() if format_id != 'still']
+        formats = []
+        for variant in media.get('variants', []):
+            uri = variant.get('uri')
+            if not uri:
+                continue
+            version = variant.get('version')
+            formats.append({
+                'url': uri,
+                'format_id': version,
+                'quality': quality(version),
+            })
         self._sort_formats(formats)
 
-        title = self._html_search_meta(
-            'title', webpage) or self._og_search_title(webpage)
-        description = self._html_search_meta(
-            'description', webpage) or self._og_search_description(webpage)
-        thumbnail = files.get('still') or self._og_search_thumbnail(webpage)
+        thumbnails = []
+        stills = item.get('stills') or {}
+        for t in ('thumb', 'still'):
+            for s in ('', '-medium', '-large'):
+                still_id = t + s
+                still_url = stills.get(still_id)
+                if not still_url:
+                    continue
+                thumbnails.append({
+                    'id': still_id,
+                    'url': still_url,
+                })
+
+        stats = item.get('stats') or {}
 
         return {
             'id': video_id,
             'title': title,
-            'description': description,
-            'thumbnail': thumbnail,
-            'formats': formats
+            'description': item.get('description'),
+            'thumbnails': thumbnails,
+            'formats': formats,
+            'duration': int_or_none(media.get('duration')),
+            'like_count': int_or_none(stats.get('kudos_total')),
+            'view_count': int_or_none(stats.get('views_total')),
         }

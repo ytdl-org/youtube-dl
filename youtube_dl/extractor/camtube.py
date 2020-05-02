@@ -20,6 +20,7 @@ class CamTubeIE(InfoExtractor):
             'duration': 1274,
             'timestamp': 1528018608,
             'upload_date': '20180603',
+            'age_limit': 18
         },
         'params': {
             'skip_download': True,
@@ -66,4 +67,5 @@ class CamTubeIE(InfoExtractor):
             'like_count': like_count,
             'creator': creator,
             'formats': formats,
+            'age_limit': 18
         }

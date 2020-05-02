@@ -78,8 +78,8 @@ sed -i "s/__version__ = '.*'/__version__ = '$version'/" youtube_dl/version.py
 sed -i "s/<unreleased>/$version/" ChangeLog
 
 /bin/echo -e "\n### Committing documentation, templates and youtube_dl/version.py..."
-make README.md CONTRIBUTING.md .github/ISSUE_TEMPLATE.md supportedsites
-git add README.md CONTRIBUTING.md .github/ISSUE_TEMPLATE.md docs/supportedsites.md youtube_dl/version.py ChangeLog
+make README.md CONTRIBUTING.md issuetemplates supportedsites
+git add README.md CONTRIBUTING.md .github/ISSUE_TEMPLATE/1_broken_site.md .github/ISSUE_TEMPLATE/2_site_support_request.md .github/ISSUE_TEMPLATE/3_site_feature_request.md .github/ISSUE_TEMPLATE/4_bug_report.md .github/ISSUE_TEMPLATE/5_feature_request.md .github/ISSUE_TEMPLATE/6_question.md docs/supportedsites.md youtube_dl/version.py ChangeLog
 git commit $gpg_sign_commits -m "release $version"
 
 /bin/echo -e "\n### Now tagging, signing and pushing..."
@@ -96,7 +96,7 @@ git push origin "$version"
 REV=$(git rev-parse HEAD)
 make youtube-dl youtube-dl.tar.gz
 read -p "VM running? (y/n) " -n 1
-wget "http://$buildserver/build/rg3/youtube-dl/youtube-dl.exe?rev=$REV" -O youtube-dl.exe
+wget "http://$buildserver/build/ytdl-org/youtube-dl/youtube-dl.exe?rev=$REV" -O youtube-dl.exe
 mkdir -p "build/$version"
 mv youtube-dl youtube-dl.exe "build/$version"
 mv youtube-dl.tar.gz "build/$version/youtube-dl-$version.tar.gz"

@@ -9,6 +9,7 @@ import subprocess
 import sys
 from zipimport import zipimporter
 
+from .compat import compat_realpath
 from .utils import encode_compat_str
 
 from .version import __version__
@@ -31,7 +32,7 @@ def rsa_verify(message, signature, key):
 def update_self(to_screen, verbose, opener):
     """Update the program file with the latest version from the repository"""
 
-    UPDATE_URL = 'https://rg3.github.io/youtube-dl/update/'
+    UPDATE_URL = 'https://yt-dl.org/update/'
     VERSION_URL = UPDATE_URL + 'LATEST_VERSION'
     JSON_URL = UPDATE_URL + 'versions.json'
     UPDATES_RSA_KEY = (0x9d60ee4d8f805312fdb15a62f87b95bd66177b91df176765d13514a0f1754bcd2057295c5b6f1d35daa6742c3ffc9a82d3e118861c207995a8031e151d863c9927e304576bc80692bc8e094896fcf11b66f3e29e04e3a71e9a11558558acea1840aec37fc396fb6b65dc81a1c4144e03bd1c011de62e3f1357b327d08426fe93, 65537)
@@ -84,7 +85,9 @@ def update_self(to_screen, verbose, opener):
     print_notes(to_screen, versions_info['versions'])
 
     # sys.executable is set to the full pathname of the exe-file for py2exe
-    filename = sys.executable if hasattr(sys, 'frozen') else sys.argv[0]
+    # though symlinks are not followed so that we need to do this manually
+    # with help of realpath
+    filename = compat_realpath(sys.executable if hasattr(sys, 'frozen') else sys.argv[0])
 
     if not os.access(filename, os.W_OK):
         to_screen('ERROR: no write permissions on %s' % filename)

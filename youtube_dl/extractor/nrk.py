@@ -12,6 +12,7 @@ from ..utils import (
     ExtractorError,
     int_or_none,
     JSON_LD_RE,
+    js_to_json,
     NO_DEFAULT,
     parse_age_limit,
     parse_duration,
@@ -45,8 +46,8 @@ class NRKBaseIE(InfoExtractor):
         entries = []
 
         conviva = data.get('convivaStatistics') or {}
-        live = (data.get('mediaElementType') == 'Live' or
-                data.get('isLive') is True or conviva.get('isLive'))
+        live = (data.get('mediaElementType') == 'Live'
+                or data.get('isLive') is True or conviva.get('isLive'))
 
         def make_title(t):
             return self._live_title(t) if live else t
@@ -105,6 +106,7 @@ class NRKBaseIE(InfoExtractor):
             MESSAGES = {
                 'ProgramRightsAreNotReady': 'Du kan dessverre ikke se eller høre programmet',
                 'ProgramRightsHasExpired': 'Programmet har gått ut',
+                'NoProgramRights': 'Ikke tilgjengelig',
                 'ProgramIsGeoBlocked': 'NRK har ikke rettigheter til å vise dette programmet utenfor Norge',
             }
             message_type = data.get('messageType', '')
@@ -211,13 +213,13 @@ class NRKIE(NRKBaseIE):
     _TESTS = [{
         # video
         'url': 'http://www.nrk.no/video/PS*150533',
-        'md5': '2f7f6eeb2aacdd99885f355428715cfa',
+        'md5': '706f34cdf1322577589e369e522b50ef',
         'info_dict': {
             'id': '150533',
             'ext': 'mp4',
             'title': 'Dompap og andre fugler i Piip-Show',
             'description': 'md5:d9261ba34c43b61c812cb6b0269a5c8f',
-            'duration': 263,
+            'duration': 262,
         }
     }, {
         # audio
@@ -248,24 +250,36 @@ class NRKTVIE(NRKBaseIE):
     _VALID_URL = r'''(?x)
                         https?://
                             (?:tv|radio)\.nrk(?:super)?\.no/
-                            (?:serie/[^/]+|program)/
+                            (?:serie(?:/[^/]+){1,2}|program)/
                             (?![Ee]pisodes)%s
                             (?:/\d{2}-\d{2}-\d{4})?
                             (?:\#del=(?P<part_id>\d+))?
                     ''' % _EPISODE_RE
     _API_HOSTS = ('psapi-ne.nrk.no', 'psapi-we.nrk.no')
     _TESTS = [{
+        'url': 'https://tv.nrk.no/program/MDDP12000117',
+        'md5': '8270824df46ec629b66aeaa5796b36fb',
+        'info_dict': {
+            'id': 'MDDP12000117AA',
+            'ext': 'mp4',
+            'title': 'Alarm Trolltunga',
+            'description': 'md5:46923a6e6510eefcce23d5ef2a58f2ce',
+            'duration': 2223,
+            'age_limit': 6,
+        },
+    }, {
         'url': 'https://tv.nrk.no/serie/20-spoersmaal-tv/MUHH48000314/23-05-2014',
-        'md5': '4e9ca6629f09e588ed240fb11619922a',
+        'md5': '9a167e54d04671eb6317a37b7bc8a280',
         'info_dict': {
             'id': 'MUHH48000314AA',
             'ext': 'mp4',
             'title': '20 spørsmål 23.05.2014',
             'description': 'md5:bdea103bc35494c143c6a9acdd84887a',
             'duration': 1741,
-            'series': '20 spørsmål - TV',
+            'series': '20 spørsmål',
             'episode': '23.05.2014',
         },
+        'skip': 'NoProgramRights',
     }, {
         'url': 'https://tv.nrk.no/program/mdfp15000514',
         'info_dict': {
@@ -301,7 +315,7 @@ class NRKTVIE(NRKBaseIE):
                 'id': 'MSPO40010515AH',
                 'ext': 'mp4',
                 'title': 'Sprint fri teknikk, kvinner og menn 06.01.2015 (Part 1)',
-                'description': 'md5:c03aba1e917561eface5214020551b7a',
+                'description': 'md5:1f97a41f05a9486ee00c56f35f82993d',
                 'duration': 772,
                 'series': 'Tour de Ski',
                 'episode': '06.01.2015',
@@ -314,7 +328,7 @@ class NRKTVIE(NRKBaseIE):
                 'id': 'MSPO40010515BH',
                 'ext': 'mp4',
                 'title': 'Sprint fri teknikk, kvinner og menn 06.01.2015 (Part 2)',
-                'description': 'md5:c03aba1e917561eface5214020551b7a',
+                'description': 'md5:1f97a41f05a9486ee00c56f35f82993d',
                 'duration': 6175,
                 'series': 'Tour de Ski',
                 'episode': '06.01.2015',
@@ -326,7 +340,7 @@ class NRKTVIE(NRKBaseIE):
         'info_dict': {
             'id': 'MSPO40010515',
             'title': 'Sprint fri teknikk, kvinner og menn 06.01.2015',
-            'description': 'md5:c03aba1e917561eface5214020551b7a',
+            'description': 'md5:1f97a41f05a9486ee00c56f35f82993d',
         },
         'expected_warnings': ['Video is geo restricted'],
     }, {
@@ -362,12 +376,32 @@ class NRKTVIE(NRKBaseIE):
     }, {
         'url': 'https://radio.nrk.no/serie/dagsnytt/NPUB21019315/12-07-2015#',
         'only_matching': True,
+    }, {
+        'url': 'https://tv.nrk.no/serie/lindmo/2018/MUHU11006318/avspiller',
+        'only_matching': True,
     }]
 
 
 class NRKTVEpisodeIE(InfoExtractor):
     _VALID_URL = r'https?://tv\.nrk\.no/serie/(?P<id>[^/]+/sesong/\d+/episode/\d+)'
-    _TEST = {
+    _TESTS = [{
+        'url': 'https://tv.nrk.no/serie/hellums-kro/sesong/1/episode/2',
+        'info_dict': {
+            'id': 'MUHH36005220BA',
+            'ext': 'mp4',
+            'title': 'Kro, krig og kjærlighet 2:6',
+            'description': 'md5:b32a7dc0b1ed27c8064f58b97bda4350',
+            'duration': 1563,
+            'series': 'Hellums kro',
+            'season_number': 1,
+            'episode_number': 2,
+            'episode': '2:6',
+            'age_limit': 6,
+        },
+        'params': {
+            'skip_download': True,
+        },
+    }, {
         'url': 'https://tv.nrk.no/serie/backstage/sesong/1/episode/8',
         'info_dict': {
             'id': 'MSUI14000816AA',
@@ -383,7 +417,8 @@ class NRKTVEpisodeIE(InfoExtractor):
         'params': {
             'skip_download': True,
         },
-    }
+        'skip': 'ProgramRightsHasExpired',
+    }]
 
     def _real_extract(self, url):
         display_id = self._match_id(url)
@@ -403,21 +438,35 @@ class NRKTVSerieBaseIE(InfoExtractor):
     def _extract_series(self, webpage, display_id, fatal=True):
         config = self._parse_json(
             self._search_regex(
-                r'({.+?})\s*,\s*"[^"]+"\s*\)\s*</script>', webpage, 'config',
-                default='{}' if not fatal else NO_DEFAULT),
-            display_id, fatal=False)
+                (r'INITIAL_DATA(?:_V\d)?_*\s*=\s*({.+?})\s*;',
+                 r'({.+?})\s*,\s*"[^"]+"\s*\)\s*</script>'),
+                webpage, 'config', default='{}' if not fatal else NO_DEFAULT),
+            display_id, fatal=False, transform_source=js_to_json)
         if not config:
             return
-        return try_get(config, lambda x: x['series'], dict)
+        return try_get(
+            config,
+            (lambda x: x['initialState']['series'], lambda x: x['series']),
+            dict)
+
+    def _extract_seasons(self, seasons):
+        if not isinstance(seasons, list):
+            return []
+        entries = []
+        for season in seasons:
+            entries.extend(self._extract_episodes(season))
+        return entries
 
     def _extract_episodes(self, season):
-        entries = []
         if not isinstance(season, dict):
-            return entries
-        episodes = season.get('episodes')
-        if not isinstance(episodes, list):
-            return entries
-        for episode in episodes:
+            return []
+        return self._extract_entries(season.get('episodes'))
+
+    def _extract_entries(self, entry_list):
+        if not isinstance(entry_list, list):
+            return []
+        entries = []
+        for episode in entry_list:
             nrk_id = episode.get('prfId')
             if not nrk_id or not isinstance(nrk_id, compat_str):
                 continue
@@ -462,7 +511,15 @@ class NRKTVSeriesIE(NRKTVSerieBaseIE):
     _VALID_URL = r'https?://(?:tv|radio)\.nrk(?:super)?\.no/serie/(?P<id>[^/]+)'
     _ITEM_RE = r'(?:data-season=["\']|id=["\']season-)(?P<id>\d+)'
     _TESTS = [{
-        # new layout
+        'url': 'https://tv.nrk.no/serie/blank',
+        'info_dict': {
+            'id': 'blank',
+            'title': 'Blank',
+            'description': 'md5:7664b4e7e77dc6810cd3bca367c25b6e',
+        },
+        'playlist_mincount': 30,
+    }, {
+        # new layout, seasons
         'url': 'https://tv.nrk.no/serie/backstage',
         'info_dict': {
             'id': 'backstage',
@@ -471,20 +528,21 @@ class NRKTVSeriesIE(NRKTVSerieBaseIE):
         },
         'playlist_mincount': 60,
     }, {
-        # old layout
+        # new layout, instalments
         'url': 'https://tv.nrk.no/serie/groenn-glede',
         'info_dict': {
             'id': 'groenn-glede',
             'title': 'Grønn glede',
             'description': 'md5:7576e92ae7f65da6993cf90ee29e4608',
         },
-        'playlist_mincount': 9,
+        'playlist_mincount': 10,
     }, {
-        'url': 'http://tv.nrksuper.no/serie/labyrint',
+        # old layout
+        'url': 'https://tv.nrksuper.no/serie/labyrint',
         'info_dict': {
             'id': 'labyrint',
             'title': 'Labyrint',
-            'description': 'md5:58afd450974c89e27d5a19212eee7115',
+            'description': 'md5:318b597330fdac5959247c9b69fdb1ec',
         },
         'playlist_mincount': 3,
     }, {
@@ -517,11 +575,12 @@ class NRKTVSeriesIE(NRKTVSerieBaseIE):
             description = try_get(
                 series, lambda x: x['titles']['subtitle'], compat_str)
             entries = []
-            for season in series['seasons']:
-                entries.extend(self._extract_episodes(season))
+            entries.extend(self._extract_seasons(series.get('seasons')))
+            entries.extend(self._extract_entries(series.get('instalments')))
+            entries.extend(self._extract_episodes(series.get('extraMaterial')))
             return self.playlist_result(entries, series_id, title, description)
 
-        # Old layout (e.g. https://tv.nrk.no/serie/groenn-glede)
+        # Old layout (e.g. https://tv.nrksuper.no/serie/labyrint)
         entries = [
             self.url_result(
                 'https://tv.nrk.no/program/Episodes/{series}/{season}'.format(
@@ -533,6 +592,9 @@ class NRKTVSeriesIE(NRKTVSerieBaseIE):
             'seriestitle', webpage,
             'title', default=None) or self._og_search_title(
             webpage, fatal=False)
+        if title:
+            title = self._search_regex(
+                r'NRK (?:Super )?TV\s*[-–]\s*(.+)', title, 'title', default=title)
 
         description = self._html_search_meta(
             'series_description', webpage,
@@ -593,7 +655,7 @@ class NRKPlaylistIE(NRKPlaylistBaseIE):
             'title': 'Rivertonprisen til Karin Fossum',
             'description': 'Første kvinne på 15 år til å vinne krimlitteraturprisen.',
         },
-        'playlist_count': 5,
+        'playlist_count': 2,
     }]
 
     def _extract_title(self, webpage):
@@ -626,7 +688,7 @@ class NRKSkoleIE(InfoExtractor):
 
     _TESTS = [{
         'url': 'https://www.nrk.no/skole/?page=search&q=&mediaId=14099',
-        'md5': '6bc936b01f9dd8ed45bc58b252b2d9b6',
+        'md5': '18c12c3d071953c3bf8d54ef6b2587b7',
         'info_dict': {
             'id': '6021',
             'ext': 'mp4',

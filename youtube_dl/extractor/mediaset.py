@@ -4,6 +4,10 @@ from __future__ import unicode_literals
 import re
 
 from .theplatform import ThePlatformBaseIE
+from ..compat import (
+    compat_parse_qs,
+    compat_urllib_parse_urlparse,
+)
 from ..utils import (
     ExtractorError,
     int_or_none,
@@ -22,7 +26,7 @@ class MediasetIE(ThePlatformBaseIE):
                                 (?:video|on-demand)/(?:[^/]+/)+[^/]+_|
                                 player/index\.html\?.*?\bprogramGuid=
                             )
-                    )(?P<id>[0-9A-Z]{16})
+                    )(?P<id>[0-9A-Z]{16,})
                     '''
     _TESTS = [{
         # full episode
@@ -57,7 +61,6 @@ class MediasetIE(ThePlatformBaseIE):
             'uploader': 'Canale 5',
             'uploader_id': 'C5',
         },
-        'expected_warnings': ['HTTP Error 403: Forbidden'],
     }, {
         # clip
         'url': 'https://www.mediasetplay.mediaset.it/video/gogglebox/un-grande-classico-della-commedia-sexy_FAFU000000661680',
@@ -73,15 +76,53 @@ class MediasetIE(ThePlatformBaseIE):
     }, {
         'url': 'mediaset:FAFU000000665924',
         'only_matching': True,
+    }, {
+        'url': 'https://www.mediasetplay.mediaset.it/video/mediasethaacuoreilfuturo/palmieri-alicudi-lisola-dei-tre-bambini-felici--un-decreto-per-alicudi-e-tutte-le-microscuole_FD00000000102295',
+        'only_matching': True,
+    }, {
+        'url': 'https://www.mediasetplay.mediaset.it/video/cherryseason/anticipazioni-degli-episodi-del-23-ottobre_F306837101005C02',
+        'only_matching': True,
+    }, {
+        'url': 'https://www.mediasetplay.mediaset.it/video/tg5/ambiente-onda-umana-per-salvare-il-pianeta_F309453601079D01',
+        'only_matching': True,
+    }, {
+        'url': 'https://www.mediasetplay.mediaset.it/video/grandefratellovip/benedetta-una-doccia-gelata_F309344401044C135',
+        'only_matching': True,
     }]
 
     @staticmethod
-    def _extract_urls(webpage):
-        return [
-            mobj.group('url')
-            for mobj in re.finditer(
-                r'<iframe\b[^>]+\bsrc=(["\'])(?P<url>https?://(?:www\.)?video\.mediaset\.it/player/playerIFrame(?:Twitter)?\.shtml\?.*?\bid=\d+.*?)\1',
-                webpage)]
+    def _extract_urls(ie, webpage):
+        def _qs(url):
+            return compat_parse_qs(compat_urllib_parse_urlparse(url).query)
+
+        def _program_guid(qs):
+            return qs.get('programGuid', [None])[0]
+
+        entries = []
+        for mobj in re.finditer(
+                r'<iframe\b[^>]+\bsrc=(["\'])(?P<url>(?:https?:)?//(?:www\.)?video\.mediaset\.it/player/playerIFrame(?:Twitter)?\.shtml.*?)\1',
+                webpage):
+            embed_url = mobj.group('url')
+            embed_qs = _qs(embed_url)
+            program_guid = _program_guid(embed_qs)
+            if program_guid:
+                entries.append(embed_url)
+                continue
+            video_id = embed_qs.get('id', [None])[0]
+            if not video_id:
+                continue
+            urlh = ie._request_webpage(
+                embed_url, video_id, note='Following embed URL redirect')
+            embed_url = urlh.geturl()
+            program_guid = _program_guid(_qs(embed_url))
+            if program_guid:
+                entries.append(embed_url)
+        return entries
+
+    def _parse_smil_formats(self, smil, smil_url, video_id, namespace=None, f4m_params=None, transform_rtmp_url=None):
+        for video in smil.findall(self._xpath_ns('.//video', namespace)):
+            video.attrib['src'] = re.sub(r'(https?://vod05)t(-mediaset-it\.akamaized\.net/.+?.mpd)\?.+', r'\1\2', video.attrib['src'])
+        return super(MediasetIE, self)._parse_smil_formats(smil, smil_url, video_id, namespace, f4m_params, transform_rtmp_url)
 
     def _real_extract(self, url):
         guid = self._match_id(url)
@@ -92,14 +133,15 @@ class MediasetIE(ThePlatformBaseIE):
         subtitles = {}
         first_e = None
         for asset_type in ('SD', 'HD'):
-            for f in ('MPEG4', 'MPEG-DASH', 'M3U', 'ISM'):
+            # TODO: fixup ISM+none manifest URLs
+            for f in ('MPEG4', 'MPEG-DASH+none', 'M3U+none'):
                 try:
                     tp_formats, tp_subtitles = self._extract_theplatform_smil(
                         update_url_query('http://link.theplatform.%s/s/%s' % (self._TP_TLD, tp_path), {
                             'mbr': 'true',
                             'formats': f,
                             'assetTypes': asset_type,
-                        }), guid, 'Downloading %s %s SMIL data' % (f, asset_type))
+                        }), guid, 'Downloading %s %s SMIL data' % (f.split('+')[0], asset_type))
                 except ExtractorError as e:
                     if not first_e:
                         first_e = e

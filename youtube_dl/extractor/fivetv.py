@@ -9,7 +9,7 @@ from ..utils import int_or_none
 
 class FiveTVIE(InfoExtractor):
     _VALID_URL = r'''(?x)
-                    http://
+                    https?://
                         (?:www\.)?5-tv\.ru/
                         (?:
                             (?:[^/]+/)+(?P<id>\d+)|
@@ -39,6 +39,7 @@ class FiveTVIE(InfoExtractor):
             'duration': 180,
         },
     }, {
+        # redirect to https://www.5-tv.ru/projects/1000095/izvestia-glavnoe/
         'url': 'http://www.5-tv.ru/glavnoe/#itemDetails',
         'info_dict': {
             'id': 'glavnoe',
@@ -46,6 +47,7 @@ class FiveTVIE(InfoExtractor):
             'title': r're:^Итоги недели с \d+ по \d+ \w+ \d{4} года$',
             'thumbnail': r're:^https?://.*\.jpg$',
         },
+        'skip': 'redirect to «Известия. Главное» project page',
     }, {
         'url': 'http://www.5-tv.ru/glavnoe/broadcasts/508645/',
         'only_matching': True,
@@ -70,7 +72,7 @@ class FiveTVIE(InfoExtractor):
         webpage = self._download_webpage(url, video_id)
 
         video_url = self._search_regex(
-            [r'<div[^>]+?class="flowplayer[^>]+?data-href="([^"]+)"',
+            [r'<div[^>]+?class="(?:flow)?player[^>]+?data-href="([^"]+)"',
              r'<a[^>]+?href="([^"]+)"[^>]+?class="videoplayer"'],
             webpage, 'video url')
 

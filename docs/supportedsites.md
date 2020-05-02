@@ -26,14 +26,15 @@
  - **AcademicEarth:Course**
  - **acast**
  - **acast:channel**
- - **AddAnime**
  - **ADN**: Anime Digital Network
- - **AdobeTV**
- - **AdobeTVChannel**
- - **AdobeTVShow**
- - **AdobeTVVideo**
+ - **AdobeConnect**
+ - **adobetv**
+ - **adobetv:channel**
+ - **adobetv:embed**
+ - **adobetv:show**
+ - **adobetv:video**
  - **AdultSwim**
- - **aenetworks**: A+E Networks: A&E, Lifetime, History.com, FYI Network
+ - **aenetworks**: A+E Networks: A&E, Lifetime, History.com, FYI Network and History Vault
  - **afreecatv**: afreecatv.com
  - **AirMozilla**
  - **AliExpressLive**
@@ -44,9 +45,8 @@
  - **AmericasTestKitchen**
  - **anderetijden**: npo.nl, ntr.nl, omroepwnl.nl, zapp.nl and npo3.nl
  - **AnimeOnDemand**
- - **anitube.se**
  - **Anvato**
- - **AnySex**
+ - **aol.com**
  - **APA**
  - **Aparat**
  - **AppleConnect**
@@ -58,16 +58,8 @@
  - **ARD:mediathek**
  - **ARDBetaMediathek**
  - **Arkena**
- - **arte.tv**
  - **arte.tv:+7**
- - **arte.tv:cinema**
- - **arte.tv:concert**
- - **arte.tv:creative**
- - **arte.tv:ddc**
  - **arte.tv:embed**
- - **arte.tv:future**
- - **arte.tv:info**
- - **arte.tv:magazine**
  - **arte.tv:playlist**
  - **AsianCrush**
  - **AsianCrushPlaylist**
@@ -78,17 +70,12 @@
  - **AudioBoom**
  - **audiomack**
  - **audiomack:album**
- - **auroravid**: AuroraVid
  - **AWAAN**
  - **awaan:live**
  - **awaan:season**
  - **awaan:video**
  - **AZMedien**: AZ Medien videos
- - **AZMedienPlaylist**: AZ Medien playlists
- - **AZMedienShowPlaylist**: AZ Medien show playlists
  - **BaiduVideo**: 百度视频
- - **bambuser**
- - **bambuser:channel**
  - **Bandcamp**
  - **Bandcamp:album**
  - **Bandcamp:weekly**
@@ -98,15 +85,20 @@
  - **bbc.co.uk:article**: BBC articles
  - **bbc.co.uk:iplayer:playlist**
  - **bbc.co.uk:playlist**
+ - **BBVTV**
  - **Beatport**
  - **Beeg**
  - **BehindKink**
  - **Bellator**
  - **BellMedia**
  - **Bet**
+ - **bfi:player**
  - **Bigflix**
  - **Bild**: Bild.de
  - **BiliBili**
+ - **BilibiliAudio**
+ - **BilibiliAudioAlbum**
+ - **BiliBiliPlayer**
  - **BioBioChileTV**
  - **BIQLE**
  - **BitChute**
@@ -150,6 +142,7 @@
  - **CBSInteractive**
  - **CBSLocal**
  - **cbsnews**: CBS News
+ - **cbsnews:embed**
  - **cbsnews:livevideo**: CBS News Live Videos
  - **CBSSports**
  - **CCMA**
@@ -164,6 +157,9 @@
  - **chirbit**
  - **chirbit:profile**
  - **Cinchcast**
+ - **Cinemax**
+ - **CiscoLiveSearch**
+ - **CiscoLiveSession**
  - **CJSW**
  - **cliphunter**
  - **Clippit**
@@ -171,26 +167,25 @@
  - **Clipsyndicate**
  - **CloserToTruth**
  - **CloudflareStream**
- - **cloudtime**: CloudTime
  - **Cloudy**
  - **Clubic**
  - **Clyp**
  - **cmt.com**
  - **CNBC**
+ - **CNBCVideo**
  - **CNN**
  - **CNNArticle**
  - **CNNBlogs**
- - **ComCarCoff**
  - **ComedyCentral**
  - **ComedyCentralFullEpisodes**
  - **ComedyCentralShortname**
  - **ComedyCentralTV**
  - **CondeNast**: Condé Nast media group: Allure, Architectural Digest, Ars Technica, Bon Appétit, Brides, Condé Nast, Condé Nast Traveler, Details, Epicurious, GQ, Glamour, Golf Digest, SELF, Teen Vogue, The New Yorker, Vanity Fair, Vogue, W Magazine, WIRED
+ - **CONtv**
  - **Corus**
  - **Coub**
  - **Cracked**
  - **Crackle**
- - **Criterion**
  - **CrooksAndLiars**
  - **crunchyroll**
  - **crunchyroll:playlist**
@@ -198,6 +193,7 @@
  - **CSpan**: C-SPAN
  - **CtsNews**: 華視新聞
  - **CTVNews**
+ - **cu.ntv.co.jp**: Nippon Television Network
  - **Culturebox**
  - **CultureUnplugged**
  - **curiositystream**
@@ -207,8 +203,6 @@
  - **dailymotion**
  - **dailymotion:playlist**
  - **dailymotion:user**
- - **DaisukiMotto**
- - **DaisukiMottoPlaylist**
  - **daum.net**
  - **daum.net:clip**
  - **daum.net:playlist**
@@ -228,13 +222,12 @@
  - **DiscoveryNetworksDe**
  - **DiscoveryVR**
  - **Disney**
+ - **dlive:stream**
+ - **dlive:vod**
  - **Dotsub**
  - **DouyuShow**
  - **DouyuTV**: 斗鱼
  - **DPlay**
- - **DPlayIt**
- - **dramafever**
- - **dramafever:series**
  - **DRBonanza**
  - **Dropbox**
  - **DrTuber**
@@ -250,7 +243,9 @@
  - **EchoMsk**
  - **egghead:course**: egghead.io course
  - **egghead:lesson**: egghead.io lesson
+ - **ehftv**
  - **eHow**
+ - **EinsUndEinsTV**
  - **Einthusan**
  - **eitb.tv**
  - **EllenTube**
@@ -268,6 +263,7 @@
  - **EsriVideo**
  - **Europa**
  - **EveryonesMixtape**
+ - **EWETV**
  - **ExpoTV**
  - **Expressen**
  - **ExtremeTube**
@@ -284,12 +280,12 @@
  - **FiveThirtyEight**
  - **FiveTV**
  - **Flickr**
- - **Flipagram**
  - **Folketinget**: Folketinget (ft.dk; Danish parliament)
  - **FootyRoom**
  - **Formula1**
  - **FOX**
  - **FOX9**
+ - **FOX9News**
  - **Foxgay**
  - **foxnews**: Fox News and Fox Business Video
  - **foxnews:article**
@@ -309,15 +305,12 @@
  - **FrontendMastersCourse**
  - **FrontendMastersLesson**
  - **Funimation**
- - **FunkChannel**
- - **FunkMix**
- - **FunnyOrDie**
+ - **Funk**
  - **Fusion**
  - **Fux**
  - **FXNetworks**
+ - **Gaia**
  - **GameInformer**
- - **GameOne**
- - **gameone:playlist**
  - **GameSpot**
  - **GameStar**
  - **Gaskrank**
@@ -327,20 +320,18 @@
  - **Gfycat**
  - **GiantBomb**
  - **Giga**
+ - **GlattvisionTV**
  - **Glide**: Glide mobile video messages (glide.me)
  - **Globo**
  - **GloboArticle**
  - **Go**
- - **Go90**
  - **GodTube**
  - **Golem**
  - **GoogleDrive**
  - **Goshgay**
  - **GPUTechConf**
  - **Groupon**
- - **Hark**
  - **hbo**
- - **hbo:episode**
  - **HearThisAt**
  - **Heise**
  - **HellPorno**
@@ -354,9 +345,10 @@
  - **hitbox**
  - **hitbox:live**
  - **HitRecord**
+ - **hketv**: 香港教育局教育電視 (HKETV) Educational Television, Hong Kong Educational Bureau
  - **HornBunny**
  - **HotNewHipHop**
- - **HotStar**
+ - **hotstar**
  - **hotstar:playlist**
  - **Howcast**
  - **HowStuffWorks**
@@ -364,18 +356,21 @@
  - **HRTiPlaylist**
  - **Huajiao**: 花椒直播
  - **HuffPost**: Huffington Post
+ - **Hungama**
+ - **HungamaSong**
  - **Hypem**
- - **Iconosquare**
  - **ign.com**
  - **imdb**: Internet Movie Database trailers
  - **imdb:list**: Internet Movie Database lists
  - **Imgur**
- - **ImgurAlbum**
+ - **imgur:album**
+ - **imgur:gallery**
  - **Ina**
  - **Inc**
  - **IndavideoEmbed**
  - **InfoQ**
  - **Instagram**
+ - **instagram:tag**: Instagram hashtag search
  - **instagram:user**: Instagram user profile
  - **Internazionale**
  - **InternetVideoArchive**
@@ -395,7 +390,6 @@
  - **JeuxVideo**
  - **Joj**
  - **Jove**
- - **jpopsuki.tv**
  - **JWPlatform**
  - **Kakao**
  - **Kaltura**
@@ -403,14 +397,14 @@
  - **Kankan**
  - **Karaoketv**
  - **KarriereVideos**
- - **keek**
+ - **Katsomo**
  - **KeezMovies**
  - **Ketnet**
  - **KhanAcademy**
  - **KickStarter**
+ - **KinjaEmbed**
  - **KinoPoisk**
  - **KonserthusetPlay**
- - **kontrtube**: KontrTube.ru - Труба зовёт
  - **KrasView**: Красвью
  - **Ku6**
  - **KUSI**
@@ -427,8 +421,10 @@
  - **Lcp**
  - **LcpPlay**
  - **Le**: 乐视网
- - **Learnr**
  - **Lecture2Go**
+ - **Lecturio**
+ - **LecturioCourse**
+ - **LecturioDeCourse**
  - **LEGO**
  - **Lemonde**
  - **Lenta**
@@ -441,7 +437,11 @@
  - **limelight:channel**
  - **limelight:channel_list**
  - **LineTV**
+ - **linkedin:learning**
+ - **linkedin:learning:course**
+ - **LinuxAcademy**
  - **LiTV**
+ - **LiveJournal**
  - **LiveLeak**
  - **LiveLeakEmbed**
  - **livestream**
@@ -454,11 +454,10 @@
  - **lynda**: lynda.com videos
  - **lynda:course**: lynda.com online courses
  - **m6**
- - **macgamestore**: MacGameStore trailers
  - **mailru**: Видео@Mail.Ru
  - **mailru:music**: Музыка@Mail.Ru
  - **mailru:music:search**: Музыка@Mail.Ru
- - **MakerTV**
+ - **MallTV**
  - **mangomolo:live**
  - **mangomolo:video**
  - **ManyVids**
@@ -468,9 +467,12 @@
  - **MatchTV**
  - **MDR**: MDR.DE and KiKA
  - **media.ccc.de**
+ - **media.ccc.de:lists**
  - **Medialaan**
  - **Mediaset**
  - **Mediasite**
+ - **MediasiteCatalog**
+ - **MediasiteNamedCatalog**
  - **Medici**
  - **megaphone.fm**: megaphone.fm embedded players
  - **Meipai**: 美拍
@@ -481,19 +483,18 @@
  - **Mgoon**
  - **MGTV**: 芒果TV
  - **MiaoPai**
- - **Minhateca**
  - **MinistryGrid**
  - **Minoto**
  - **miomio.tv**
  - **MiTele**: mitele.es
  - **mixcloud**
  - **mixcloud:playlist**
- - **mixcloud:stream**
  - **mixcloud:user**
  - **Mixer:live**
  - **Mixer:vod**
  - **MLB**
  - **Mnet**
+ - **MNetTV**
  - **MoeVideo**: LetitBit video services: moevideo.net, playreplay.net and videochart.net
  - **Mofosex**
  - **Mojvideo**
@@ -509,11 +510,10 @@
  - **mtg**: MTG services
  - **mtv**
  - **mtv.de**
- - **mtv81**
  - **mtv:video**
+ - **mtvjapan**
  - **mtvservices:embedded**
  - **MuenchenTV**: münchen.tv
- - **MusicPlayOn**
  - **mva**: Microsoft Virtual Academy videos
  - **mva:course**: Microsoft Virtual Academy courses
  - **Mwave**
@@ -525,10 +525,10 @@
  - **Myvi**
  - **MyVidster**
  - **MyviEmbed**
+ - **MyVisionTV**
  - **n-tv.de**
- - **natgeo**
- - **natgeo:episodeguide**
  - **natgeo:video**
+ - **NationalGeographicTV**
  - **Naver**
  - **NBA**
  - **NBC**
@@ -550,6 +550,7 @@
  - **netease:program**: 网易云音乐 - 电台节目
  - **netease:singer**: 网易云音乐 - 歌手
  - **netease:song**: 网易云音乐
+ - **NetPlus**
  - **Netzkino**
  - **Newgrounds**
  - **NewgroundsPlaylist**
@@ -559,7 +560,6 @@
  - **NextTV**: 壹電視
  - **Nexx**
  - **NexxEmbed**
- - **nfb**: National Film Board of Canada
  - **nfl.com**
  - **NhkVod**
  - **nhl.com**
@@ -585,7 +585,6 @@
  - **nowness**
  - **nowness:playlist**
  - **nowness:series**
- - **nowvideo**: NowVideo
  - **Noz**
  - **npo**: npo.nl, ntr.nl, omroepwnl.nl, zapp.nl and npo3.nl
  - **npo.nl:live**
@@ -601,6 +600,7 @@
  - **NRKTVEpisodes**
  - **NRKTVSeason**
  - **NRKTVSeries**
+ - **NRLTV**
  - **ntv.ru**
  - **Nuvid**
  - **NYTimes**
@@ -610,7 +610,6 @@
  - **OdaTV**
  - **Odnoklassniki**
  - **OktoberfestTV**
- - **on.aol.com**
  - **OnDemandKorea**
  - **onet.pl**
  - **onet.tv**
@@ -619,16 +618,16 @@
  - **OnionStudios**
  - **Ooyala**
  - **OoyalaExternal**
- - **Openload**
  - **OraTV**
  - **orf:fm4**: radio FM4
  - **orf:fm4:story**: fm4.orf.at stories
  - **orf:iptv**: iptv.ORF.at
  - **orf:oe1**: Radio Österreich 1
  - **orf:tvthek**: ORF TVthek
+ - **OsnatelTV**
+ - **OutsideTV**
  - **PacktPub**
  - **PacktPubCourse**
- - **PandaTV**: 熊猫TV
  - **pandora.tv**: 판도라TV
  - **ParamountNetwork**
  - **parliamentlive.tv**: UK parliament videos
@@ -649,7 +648,10 @@
  - **Piksel**
  - **Pinkbike**
  - **Pladform**
+ - **Platzi**
+ - **PlatziCourse**
  - **play.fm**
+ - **PlayPlusTV**
  - **PlaysTV**
  - **Playtvak**: Playtvak.cz, iDNES.cz and Lidovky.cz
  - **Playvid**
@@ -661,21 +663,20 @@
  - **Pokemon**
  - **PolskieRadio**
  - **PolskieRadioCategory**
+ - **Popcorntimes**
  - **PopcornTV**
  - **PornCom**
  - **PornerBros**
- - **PornFlip**
  - **PornHd**
  - **PornHub**: PornHub and Thumbzilla
- - **PornHubPlaylist**
- - **PornHubUserVideos**
+ - **PornHubPagedVideoList**
+ - **PornHubUser**
+ - **PornHubUserVideosUpload**
  - **Pornotube**
  - **PornoVoisines**
  - **PornoXO**
  - **PornTube**
  - **PressTV**
- - **PrimeShareTV**
- - **PromptFile**
  - **prosiebensat1**: ProSiebenSat.1 Digital
  - **puhutv**
  - **puhutv:serie**
@@ -686,6 +687,7 @@
  - **qqmusic:playlist**: QQ音乐 - 歌单
  - **qqmusic:singer**: QQ音乐 - 歌手
  - **qqmusic:toplist**: QQ音乐 - 排行榜
+ - **QuantumTV**
  - **Quickline**
  - **QuicklineLive**
  - **R7**
@@ -693,7 +695,7 @@
  - **radio.de**
  - **radiobremen**
  - **radiocanada**
- - **RadioCanadaAudioVideo**
+ - **radiocanada:audiovideo**
  - **radiofrance**
  - **RadioJavan**
  - **Rai**
@@ -705,6 +707,7 @@
  - **RBMARadio**
  - **RDS**: RDS.ca
  - **RedBullTV**
+ - **RedBullTVRrnContent**
  - **Reddit**
  - **RedditR**
  - **RedTube**
@@ -714,8 +717,6 @@
  - **Restudy**
  - **Reuters**
  - **ReverbNation**
- - **revision**
- - **revision3:embed**
  - **RICE**
  - **RMCDecouverte**
  - **RockstarGames**
@@ -738,9 +739,7 @@
  - **rtve.es:television**
  - **RTVNH**
  - **RTVS**
- - **Rudo**
  - **RUHD**
- - **RulePorn**
  - **rutube**: Rutube videos
  - **rutube:channel**: Rutube channels
  - **rutube:embed**: Rutube embedded videos
@@ -753,6 +752,8 @@
  - **safari**: safaribooksonline.com online video
  - **safari:api**
  - **safari:course**: safaribooksonline.com online courses
+ - **SAKTV**
+ - **SaltTV**
  - **Sapo**: SAPO Vídeos
  - **savefrom.net**
  - **SBS**: sbs.com.au
@@ -760,11 +761,13 @@
  - **screen.yahoo:search**: Yahoo screen search
  - **Screencast**
  - **ScreencastOMatic**
+ - **ScrippsNetworks**
  - **scrippsnetworks:watch**
+ - **SCTE**
+ - **SCTECourse**
  - **Seeker**
  - **SenateISVP**
  - **SendtoNews**
- - **ServingSys**
  - **Servus**
  - **Sexu**
  - **SeznamZpravy**
@@ -775,6 +778,7 @@
  - **ShowRoomLive**
  - **Sina**
  - **SkylineWebcams**
+ - **SkyNews**
  - **skynewsarabia:article**
  - **skynewsarabia:video**
  - **SkySports**
@@ -794,6 +798,7 @@
  - **soundcloud:set**
  - **soundcloud:trackstation**
  - **soundcloud:user**
+ - **SoundcloudEmbed**
  - **soundgasm**
  - **soundgasm:profile**
  - **southpark.cc.com**
@@ -802,13 +807,14 @@
  - **southpark.nl**
  - **southparkstudios.dk**
  - **SpankBang**
+ - **SpankBangPlaylist**
  - **Spankwire**
  - **Spiegel**
  - **Spiegel:Article**: Articles on spiegel.de
  - **Spiegeltv**
  - **sport.francetvinfo.fr**
  - **Sport5**
- - **SportBoxEmbed**
+ - **SportBox**
  - **SportDeutschland**
  - **SpringboardPlatform**
  - **Sprout**
@@ -819,12 +825,14 @@
  - **Steam**
  - **Stitcher**
  - **Streamable**
- - **Streamango**
  - **streamcloud.eu**
  - **StreamCZ**
  - **StreetVoice**
  - **StretchInternet**
+ - **stv:player**
  - **SunPorno**
+ - **sverigesradio:episode**
+ - **sverigesradio:publication**
  - **SVT**
  - **SVTPage**
  - **SVTPlay**: SVT Play and Öppet arkiv
@@ -839,14 +847,18 @@
  - **TastyTrade**
  - **TBS**
  - **TDSLifeway**
+ - **Teachable**
+ - **TeachableCourse**
  - **teachertube**: teachertube.com videos
  - **teachertube:user:collection**: teachertube.com user and collection videos
  - **TeachingChannel**
  - **Teamcoco**
+ - **TeamTreeHouse**
  - **TechTalks**
  - **techtv.mit.edu**
  - **ted**
  - **Tele13**
+ - **Tele5**
  - **TeleBruxelles**
  - **Telecinco**: telecinco.es, cuatro.com and mediaset.es
  - **Telegraaf**
@@ -854,13 +866,14 @@
  - **TeleQuebec**
  - **TeleQuebecEmission**
  - **TeleQuebecLive**
+ - **TeleQuebecSquat**
  - **TeleTask**
  - **Telewebion**
  - **TennisTV**
+ - **TenPlay**
  - **TF1**
  - **TFO**
  - **TheIntercept**
- - **theoperaplatform**
  - **ThePlatform**
  - **ThePlatformFeed**
  - **TheScene**
@@ -870,6 +883,8 @@
  - **ThisAmericanLife**
  - **ThisAV**
  - **ThisOldHouse**
+ - **TikTok**
+ - **TikTokUser**
  - **tinypic**: tinypic.com videos
  - **TMZ**
  - **TMZArticle**
@@ -883,6 +898,7 @@
  - **ToypicsUser**: Toypics user profile
  - **TrailerAddict** (Currently broken)
  - **Trilulilu**
+ - **TruNews**
  - **TruTV**
  - **Tube8**
  - **TubiTv**
@@ -893,12 +909,12 @@
  - **tunein:topic**
  - **TunePk**
  - **Turbo**
- - **Tutv**
  - **tv.dfb.de**
  - **TV2**
  - **tv2.hu**
  - **TV2Article**
- - **TV3**
+ - **TV2DK**
+ - **TV2DKBornholmPlay**
  - **TV4**: tv4.se and tv4play.se
  - **TV5MondePlus**: TV5MONDE+
  - **TVA**
@@ -912,7 +928,9 @@
  - **TVNet**
  - **TVNoe**
  - **TVNow**
- - **TVNowList**
+ - **TVNowAnnual**
+ - **TVNowNew**
+ - **TVNowSeason**
  - **TVNowShow**
  - **tvp**: Telewizja Polska
  - **tvp:embed**: Telewizja Polska
@@ -920,6 +938,7 @@
  - **TVPlayer**
  - **TVPlayHome**
  - **Tweakers**
+ - **TwitCasting**
  - **twitch:chapter**
  - **twitch:clips**
  - **twitch:profile**
@@ -932,10 +951,12 @@
  - **twitch:vod**
  - **twitter**
  - **twitter:amplify**
+ - **twitter:broadcast**
  - **twitter:card**
  - **udemy**
  - **udemy:course**
  - **UDNEmbed**: 聯合影音
+ - **UFCArabia**
  - **UFCTV**
  - **UKTVPlay**
  - **umg:de**: Universal Music Deutschland
@@ -944,8 +965,6 @@
  - **uol.com.br**
  - **uplynk**
  - **uplynk:preplay**
- - **Upskill**
- - **UpskillCourse**
  - **Urort**: NRK P3 Urørt
  - **URPlay**
  - **USANetwork**
@@ -958,12 +977,12 @@
  - **Vbox7**
  - **VeeHD**
  - **Veoh**
- - **Vessel**
  - **Vesti**: Вести.Ru
  - **Vevo**
  - **VevoPlaylist**
  - **VGTV**: VGTV, BTTV, FTV, Aftenposten and Aftonbladet
  - **vh1.com**
+ - **vhx:embed**
  - **Viafree**
  - **vice**
  - **vice:article**
@@ -972,16 +991,12 @@
  - **Viddler**
  - **Videa**
  - **video.google:search**: Google Video search
- - **video.mit.edu**
  - **VideoDetective**
  - **videofy.me**
- - **VideoMega**
  - **videomore**
  - **videomore:season**
  - **videomore:video**
- - **VideoPremium**
  - **VideoPress**
- - **videoweed**: VideoWeed
  - **Vidio**
  - **VidLii**
  - **vidme**
@@ -990,9 +1005,8 @@
  - **Vidzi**
  - **vier**: vier.be and vijf.be
  - **vier:videos**
- - **ViewLift**
- - **ViewLiftEmbed**
- - **Viewster**
+ - **viewlift**
+ - **viewlift:embed**
  - **Viidea**
  - **viki**
  - **viki:channel**
@@ -1026,20 +1040,22 @@
  - **Voot**
  - **VoxMedia**
  - **VoxMediaVolume**
- - **Vporn**
  - **vpro**: npo.nl, ntr.nl, omroepwnl.nl, zapp.nl and npo3.nl
  - **Vrak**
- - **VRT**: deredactie.be, sporza.be, cobra.be and cobra.canvas.be
+ - **VRT**: VRT NWS, Flanders News, Flandern Info and Sporza
  - **VrtNU**: VrtNU.be
  - **vrv**
  - **vrv:series**
  - **VShare**
+ - **VTXTV**
  - **vube**: Vube.com
  - **VuClip**
  - **VVVVID**
  - **VyboryMos**
  - **Vzaar**
+ - **Wakanim**
  - **Walla**
+ - **WalyTV**
  - **washingtonpost**
  - **washingtonpost:article**
  - **wat.tv**
@@ -1056,20 +1072,18 @@
  - **Weibo**
  - **WeiboMobile**
  - **WeiqiTV**: WQTV
- - **wholecloud**: WholeCloud
- - **Wimp**
  - **Wistia**
  - **wnl**: npo.nl, ntr.nl, omroepwnl.nl, zapp.nl and npo3.nl
  - **WorldStarHipHop**
- - **wrzuta.pl**
- - **wrzuta.pl:playlist**
  - **WSJ**: Wall Street Journal
  - **WSJArticle**
+ - **WWE**
  - **XBef**
  - **XboxClips**
- - **XFileShare**: XFileShare based sites: DaClips, FileHoot, GorillaVid, MovPod, PowerWatch, Rapidvideo.ws, TheVideoBee, Vidto, Streamin.To, XVIDSTAGE, Vid ABC, VidBom, vidlo, RapidVideo.TV, FastVideo.me
+ - **XFileShare**: XFileShare based sites: ClipWatching, GoUnlimited, GoVid, HolaVid, Streamty, TheVideoBee, Uqload, VidBom, vidlo, VidLocker, VidShare, VUp, XVideoSharing
  - **XHamster**
  - **XHamsterEmbed**
+ - **XHamsterUser**
  - **xiami:album**: 虾米音乐 - 专辑
  - **xiami:artist**: 虾米音乐 - 歌手
  - **xiami:collection**: 虾米音乐 - 精选集
@@ -1085,10 +1099,14 @@
  - **XVideos**
  - **XXXYMovies**
  - **Yahoo**: Yahoo screen and movies
+ - **yahoo:gyao**
+ - **yahoo:gyao:player**
+ - **yahoo:japannews**: Yahoo! Japan News
  - **YandexDisk**
  - **yandexmusic:album**: Яндекс.Музыка - Альбом
  - **yandexmusic:playlist**: Яндекс.Музыка - Плейлист
  - **yandexmusic:track**: Яндекс.Музыка - Трек
+ - **YandexVideo**
  - **YapFiles**
  - **YesJapan**
  - **yinyuetai:video**: 音悦Tai
@@ -1124,3 +1142,4 @@
  - **ZDF**
  - **ZDFChannel**
  - **zingmp3**: mp3.zing.vn
+ - **Zype**

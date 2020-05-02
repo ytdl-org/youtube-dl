@@ -1,17 +1,12 @@
 from __future__ import unicode_literals
 
-import re
-
 from .common import InfoExtractor
-from ..compat import (
-    compat_str,
-    compat_urlparse,
-)
+from ..compat import compat_str
 from ..utils import (
     ExtractorError,
     determine_ext,
     int_or_none,
-    sanitized_Request,
+    urljoin,
 )
 
 
@@ -26,8 +21,7 @@ class VoiceRepublicIE(InfoExtractor):
             'ext': 'm4a',
             'title': 'Watching the Watchers: Building a Sousveillance State',
             'description': 'Secret surveillance programs have metadata too. The people and companies that operate secret surveillance programs can be surveilled.',
-            'thumbnail': r're:^https?://.*\.(?:png|jpg)$',
-            'duration': 1800,
+            'duration': 1556,
             'view_count': int,
         }
     }, {
@@ -38,63 +32,31 @@ class VoiceRepublicIE(InfoExtractor):
     def _real_extract(self, url):
         display_id = self._match_id(url)
 
-        req = sanitized_Request(
-            compat_urlparse.urljoin(url, '/talks/%s' % display_id))
-        # Older versions of Firefox get redirected to an "upgrade browser" page
-        req.add_header('User-Agent', 'youtube-dl')
-        webpage = self._download_webpage(req, display_id)
+        webpage = self._download_webpage(url, display_id)
 
         if '>Queued for processing, please stand by...<' in webpage:
             raise ExtractorError(
                 'Audio is still queued for processing', expected=True)
 
-        config = self._search_regex(
-            r'(?s)return ({.+?});\s*\n', webpage,
-            'data', default=None)
-        data = self._parse_json(config, display_id, fatal=False) if config else None
-        if data:
-            title = data['title']
-            description = data.get('teaser')
-            talk_id = compat_str(data.get('talk_id') or display_id)
-            talk = data['talk']
-            duration = int_or_none(talk.get('duration'))
-            formats = [{
-                'url': compat_urlparse.urljoin(url, talk_url),
-                'format_id': format_id,
-                'ext': determine_ext(talk_url) or format_id,
-                'vcodec': 'none',
-            } for format_id, talk_url in talk['links'].items()]
-        else:
-            title = self._og_search_title(webpage)
-            description = self._html_search_regex(
-                r"(?s)<div class='talk-teaser'[^>]*>(.+?)</div>",
-                webpage, 'description', fatal=False)
-            talk_id = self._search_regex(
-                [r"id='jc-(\d+)'", r"data-shareable-id='(\d+)'"],
-                webpage, 'talk id', default=None) or display_id
-            duration = None
-            player = self._search_regex(
-                r"class='vr-player jp-jplayer'([^>]+)>", webpage, 'player')
-            formats = [{
-                'url': compat_urlparse.urljoin(url, talk_url),
-                'format_id': format_id,
-                'ext': determine_ext(talk_url) or format_id,
-                'vcodec': 'none',
-            } for format_id, talk_url in re.findall(r"data-([^=]+)='([^']+)'", player)]
+        talk = self._parse_json(self._search_regex(
+            r'initialSnapshot\s*=\s*({.+?});',
+            webpage, 'talk'), display_id)['talk']
+        title = talk['title']
+        formats = [{
+            'url': urljoin(url, talk_url),
+            'format_id': format_id,
+            'ext': determine_ext(talk_url) or format_id,
+            'vcodec': 'none',
+        } for format_id, talk_url in talk['media_links'].items()]
         self._sort_formats(formats)
 
-        thumbnail = self._og_search_thumbnail(webpage)
-        view_count = int_or_none(self._search_regex(
-            r"class='play-count[^']*'>\s*(\d+) plays",
-            webpage, 'play count', fatal=False))
-
         return {
-            'id': talk_id,
+            'id': compat_str(talk.get('id') or display_id),
             'display_id': display_id,
             'title': title,
-            'description': description,
-            'thumbnail': thumbnail,
-            'duration': duration,
-            'view_count': view_count,
+            'description': talk.get('teaser'),
+            'thumbnail': talk.get('image_url'),
+            'duration': int_or_none(talk.get('archived_duration')),
+            'view_count': int_or_none(talk.get('play_count')),
             'formats': formats,
         }
