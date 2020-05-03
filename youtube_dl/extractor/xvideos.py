@@ -90,7 +90,7 @@ class XVideosIE(InfoExtractor):
         webpage = self._download_webpage(
             'https://www.xvideos.com/video%s/' % video_id, video_id, fatal=False)
 
-        if webpage == False:
+        if not webpage:
             webpage = self._download_webpage(
                 'https://www.xvideos3.com/video%s/' % video_id, video_id)
 
