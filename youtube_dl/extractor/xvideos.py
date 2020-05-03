@@ -76,13 +76,23 @@ class XVideosIE(InfoExtractor):
     }, {
         'url': 'https://de.xvideos.com/video4588838/biker_takes_his_girl',
         'only_matching': True
+    }, {
+        'url': 'https://www.xvideos2.com/video4588838/biker_takes_his_girl',
+        'only_matching': True
+    }, {
+        'url': 'https://www.xvideos3.com/video4588838/biker_takes_his_girl',
+        'only_matching': True
     }]
 
     def _real_extract(self, url):
         video_id = self._match_id(url)
 
         webpage = self._download_webpage(
-            'https://www.xvideos.com/video%s/' % video_id, video_id)
+            'https://www.xvideos.com/video%s/' % video_id, video_id, fatal=False)
+
+        if webpage == False:
+            webpage = self._download_webpage(
+                'https://www.xvideos3.com/video%s/' % video_id, video_id)
 
         mobj = re.search(r'<h1 class="inlineError">(.+?)</h1>', webpage)
         if mobj:
