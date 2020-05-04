@@ -27,6 +27,7 @@ import random
 import re
 import socket
 import ssl
+import stat
 import subprocess
 import sys
 import tempfile
@@ -1835,6 +1836,12 @@ def write_json_file(obj, fn):
                 os.unlink(fn)
             except OSError:
                 pass
+        os.chmod(tf.name,
+                 stat.S_IRUSR |
+                 stat.S_IWUSR |
+                 stat.S_IRGRP |
+                 stat.S_IROTH)
+
         os.rename(tf.name, fn)
     except Exception:
         try:
