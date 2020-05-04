@@ -804,6 +804,16 @@ from .orf import (
     ORFFM4IE,
     ORFFM4StoryIE,
     ORFOE1IE,
+    ORFOE3IE,
+    ORFNOEIE,
+    ORFWIEIE,
+    ORFBGLIE,
+    ORFOOEIE,
+    ORFSTMIE,
+    ORFKTNIE,
+    ORFSBGIE,
+    ORFTIRIE,
+    ORFVBGIE,
     ORFIPTVIE,
 )
 from .outsidetv import OutsideTVIE
