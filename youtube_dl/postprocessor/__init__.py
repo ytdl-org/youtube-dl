@@ -3,7 +3,6 @@ from __future__ import unicode_literals
 from .embedthumbnail import EmbedThumbnailPP
 from .ffmpeg import (
     FFmpegPostProcessor,
-    FFmpegAVConvertorPP,
     FFmpegEmbedSubtitlePP,
     FFmpegExtractAudioPP,
     FFmpegFixupStretchedPP,
@@ -26,7 +25,6 @@ def get_postprocessor(key):
 __all__ = [
     'EmbedThumbnailPP',
     'ExecAfterDownloadPP',
-    'FFmpegAVConvertorPP',
     'FFmpegEmbedSubtitlePP',
     'FFmpegExtractAudioPP',
     'FFmpegFixupM3u8PP',
