@@ -15,7 +15,7 @@ import time
 import math
 
 from ..compat import (
-    compat_cookiejar,
+    compat_cookiejar_Cookie,
     compat_cookies,
     compat_etree_Element,
     compat_etree_fromstring,
@@ -2843,7 +2843,7 @@ class InfoExtractor(object):
 
     def _set_cookie(self, domain, name, value, expire_time=None, port=None,
                     path='/', secure=False, discard=False, rest={}, **kwargs):
-        cookie = compat_cookiejar.Cookie(
+        cookie = compat_cookiejar_Cookie(
             0, name, value, port, port is not None, domain, True,
             domain.startswith('.'), path, True, secure, expire_time,
             discard, None, None, rest)
