@@ -1,10 +1,11 @@
 from __future__ import unicode_literals
 
 import re
-import base64
 import json
 
 from .common import InfoExtractor
+from .youtube import YoutubeIE
+from ..compat import compat_b64decode
 from ..utils import (
     clean_html,
     ExtractorError
@@ -57,7 +58,7 @@ class ChilloutzoneIE(InfoExtractor):
 
         base64_video_info = self._html_search_regex(
             r'var cozVidData = "(.+?)";', webpage, 'video data')
-        decoded_video_info = base64.b64decode(base64_video_info.encode('utf-8')).decode('utf-8')
+        decoded_video_info = compat_b64decode(base64_video_info).decode('utf-8')
         video_info_dict = json.loads(decoded_video_info)
 
         # get video information from dict
@@ -70,11 +71,9 @@ class ChilloutzoneIE(InfoExtractor):
 
         # If nativePlatform is None a fallback mechanism is used (i.e. youtube embed)
         if native_platform is None:
-            youtube_url = self._html_search_regex(
-                r'<iframe.* src="((?:https?:)?//(?:[^.]+\.)?youtube\.com/.+?)"',
-                webpage, 'fallback video URL', default=None)
-            if youtube_url is not None:
-                return self.url_result(youtube_url, ie='Youtube')
+            youtube_url = YoutubeIE._extract_url(webpage)
+            if youtube_url:
+                return self.url_result(youtube_url, ie=YoutubeIE.ie_key())
 
         # Non Fallback: Decide to use native source (e.g. youtube or vimeo) or
         # the own CDN

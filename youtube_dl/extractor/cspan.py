@@ -4,13 +4,14 @@ import re
 
 from .common import InfoExtractor
 from ..utils import (
-    int_or_none,
-    unescapeHTML,
-    find_xpath_attr,
-    smuggle_url,
     determine_ext,
     ExtractorError,
     extract_attributes,
+    find_xpath_attr,
+    get_element_by_class,
+    int_or_none,
+    smuggle_url,
+    unescapeHTML,
 )
 from .senateisvp import SenateISVPIE
 from .ustream import UstreamIE
@@ -68,6 +69,10 @@ class CSpanIE(InfoExtractor):
             'uploader': 'HouseCommittee',
             'uploader_id': '12987475',
         },
+    }, {
+        # Audio Only
+        'url': 'https://www.c-span.org/video/?437336-1/judiciary-antitrust-competition-policy-consumer-rights',
+        'only_matching': True,
     }]
     BRIGHTCOVE_URL_TEMPLATE = 'http://players.brightcove.net/%s/%s_%s/index.html?videoId=%s'
 
@@ -111,7 +116,15 @@ class CSpanIE(InfoExtractor):
                     title = self._og_search_title(webpage)
                     surl = smuggle_url(senate_isvp_url, {'force_title': title})
                     return self.url_result(surl, 'SenateISVP', video_id, title)
+                video_id = self._search_regex(
+                    r'jwsetup\.clipprog\s*=\s*(\d+);',
+                    webpage, 'jwsetup program id', default=None)
+                if video_id:
+                    video_type = 'program'
         if video_type is None or video_id is None:
+            error_message = get_element_by_class('VLplayer-error-message', webpage)
+            if error_message:
+                raise ExtractorError(error_message)
             raise ExtractorError('unable to find video id and type')
 
         def get_text_attr(d, attr):
@@ -138,7 +151,7 @@ class CSpanIE(InfoExtractor):
         entries = []
         for partnum, f in enumerate(files):
             formats = []
-            for quality in f['qualities']:
+            for quality in f.get('qualities', []):
                 formats.append({
                     'format_id': '%s-%sp' % (get_text_attr(quality, 'bitrate'), get_text_attr(quality, 'height')),
                     'url': unescapeHTML(get_text_attr(quality, 'file')),

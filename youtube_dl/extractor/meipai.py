@@ -11,7 +11,7 @@ from ..utils import (
 
 class MeipaiIE(InfoExtractor):
     IE_DESC = '美拍'
-    _VALID_URL = r'https?://(?:www\.)?meipai.com/media/(?P<id>[0-9]+)'
+    _VALID_URL = r'https?://(?:www\.)?meipai\.com/media/(?P<id>[0-9]+)'
     _TESTS = [{
         # regular uploaded video
         'url': 'http://www.meipai.com/media/531697625',

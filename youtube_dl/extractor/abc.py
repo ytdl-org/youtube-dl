@@ -1,13 +1,20 @@
 from __future__ import unicode_literals
 
+import hashlib
+import hmac
 import re
+import time
 
 from .common import InfoExtractor
+from ..compat import compat_str
 from ..utils import (
     ExtractorError,
     js_to_json,
     int_or_none,
     parse_iso8601,
+    try_get,
+    unescapeHTML,
+    update_url_query,
 )
 
 
@@ -98,33 +105,59 @@ class ABCIE(InfoExtractor):
 
 class ABCIViewIE(InfoExtractor):
     IE_NAME = 'abc.net.au:iview'
-    _VALID_URL = r'https?://iview\.abc\.net\.au/programs/[^/]+/(?P<id>[^/?#]+)'
+    _VALID_URL = r'https?://iview\.abc\.net\.au/(?:[^/]+/)*video/(?P<id>[^/?#]+)'
+    _GEO_COUNTRIES = ['AU']
 
     # ABC iview programs are normally available for 14 days only.
     _TESTS = [{
-        'url': 'http://iview.abc.net.au/programs/diaries-of-a-broken-mind/ZX9735A001S00',
-        'md5': 'cde42d728b3b7c2b32b1b94b4a548afc',
+        'url': 'https://iview.abc.net.au/show/gruen/series/11/video/LE1927H001S00',
+        'md5': '67715ce3c78426b11ba167d875ac6abf',
         'info_dict': {
-            'id': 'ZX9735A001S00',
+            'id': 'LE1927H001S00',
             'ext': 'mp4',
-            'title': 'Diaries Of A Broken Mind',
-            'description': 'md5:7de3903874b7a1be279fe6b68718fc9e',
-            'upload_date': '20161010',
-            'uploader_id': 'abc2',
-            'timestamp': 1476064920,
+            'title': "Series 11 Ep 1",
+            'series': "Gruen",
+            'description': 'md5:52cc744ad35045baf6aded2ce7287f67',
+            'upload_date': '20190925',
+            'uploader_id': 'abc1',
+            'timestamp': 1569445289,
         },
-        'skip': 'Video gone',
+        'params': {
+            'skip_download': True,
+        },
     }]
 
     def _real_extract(self, url):
         video_id = self._match_id(url)
-        webpage = self._download_webpage(url, video_id)
-        video_params = self._parse_json(self._search_regex(
-            r'videoParams\s*=\s*({.+?});', webpage, 'video params'), video_id)
-        title = video_params.get('title') or video_params['seriesTitle']
-        stream = next(s for s in video_params['playlist'] if s.get('type') == 'program')
+        video_params = self._download_json(
+            'https://iview.abc.net.au/api/programs/' + video_id, video_id)
+        title = unescapeHTML(video_params.get('title') or video_params['seriesTitle'])
+        stream = next(s for s in video_params['playlist'] if s.get('type') in ('program', 'livestream'))
 
-        formats = self._extract_akamai_formats(stream['hds-unmetered'], video_id)
+        house_number = video_params.get('episodeHouseNumber') or video_id
+        path = '/auth/hls/sign?ts={0}&hn={1}&d=android-tablet'.format(
+            int(time.time()), house_number)
+        sig = hmac.new(
+            b'android.content.res.Resources',
+            path.encode('utf-8'), hashlib.sha256).hexdigest()
+        token = self._download_webpage(
+            'http://iview.abc.net.au{0}&sig={1}'.format(path, sig), video_id)
+
+        def tokenize_url(url, token):
+            return update_url_query(url, {
+                'hdnea': token,
+            })
+
+        for sd in ('720', 'sd', 'sd-low'):
+            sd_url = try_get(
+                stream, lambda x: x['streams']['hls'][sd], compat_str)
+            if not sd_url:
+                continue
+            formats = self._extract_m3u8_formats(
+                tokenize_url(sd_url, token), video_id, 'mp4',
+                entry_protocol='m3u8_native', m3u8_id='hls', fatal=False)
+            if formats:
+                break
         self._sort_formats(formats)
 
         subtitles = {}
@@ -135,18 +168,26 @@ class ABCIViewIE(InfoExtractor):
                 'ext': 'vtt',
             }]
 
+        is_live = video_params.get('livestream') == '1'
+        if is_live:
+            title = self._live_title(title)
+
         return {
             'id': video_id,
             'title': title,
-            'description': self._html_search_meta(['og:description', 'twitter:description'], webpage),
-            'thumbnail': self._html_search_meta(['og:image', 'twitter:image:src'], webpage),
+            'description': video_params.get('description'),
+            'thumbnail': video_params.get('thumbnail'),
             'duration': int_or_none(video_params.get('eventDuration')),
             'timestamp': parse_iso8601(video_params.get('pubDate'), ' '),
-            'series': video_params.get('seriesTitle'),
+            'series': unescapeHTML(video_params.get('seriesTitle')),
             'series_id': video_params.get('seriesHouseNumber') or video_id[:7],
-            'episode_number': int_or_none(self._html_search_meta('episodeNumber', webpage, default=None)),
-            'episode': self._html_search_meta('episode_title', webpage, default=None),
+            'season_number': int_or_none(self._search_regex(
+                r'\bSeries\s+(\d+)\b', title, 'season number', default=None)),
+            'episode_number': int_or_none(self._search_regex(
+                r'\bEp\s+(\d+)\b', title, 'episode number', default=None)),
+            'episode_id': house_number,
             'uploader_id': video_params.get('channel'),
             'formats': formats,
             'subtitles': subtitles,
+            'is_live': is_live,
         }

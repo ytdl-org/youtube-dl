@@ -22,6 +22,7 @@ cover/
 updates_key.pem
 *.egg-info
 *.srt
+*.ttml
 *.sbv
 *.vtt
 *.flv
@@ -46,3 +47,7 @@ youtube-dl.zsh
 *.iml
 
 tmp/
+venv/
+
+# VS Code related files
+.vscode

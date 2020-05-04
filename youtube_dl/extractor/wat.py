@@ -19,7 +19,6 @@ class WatIE(InfoExtractor):
     _TESTS = [
         {
             'url': 'http://www.wat.tv/video/soupe-figues-l-orange-aux-epices-6z1uz_2hvf7_.html',
-            'md5': '83d882d9de5c9d97f0bb2c6273cde56a',
             'info_dict': {
                 'id': '11713067',
                 'ext': 'mp4',
@@ -28,10 +27,15 @@ class WatIE(InfoExtractor):
                 'upload_date': '20140819',
                 'duration': 120,
             },
+            'params': {
+                # m3u8 download
+                'skip_download': True,
+            },
+            'expected_warnings': ['HTTP Error 404'],
         },
         {
             'url': 'http://www.wat.tv/video/gregory-lemarchal-voix-ange-6z1v7_6ygkj_.html',
-            'md5': '34bdfa5ca9fd3c7eb88601b635b0424c',
+            'md5': 'b16574df2c3cd1a36ca0098f2a791925',
             'info_dict': {
                 'id': '11713075',
                 'ext': 'mp4',
@@ -98,38 +102,25 @@ class WatIE(InfoExtractor):
 
         formats = []
         try:
+            alt_urls = lambda manifest_url: [re.sub(r'(?:wdv|ssm)?\.ism/', repl + '.ism/', manifest_url) for repl in ('', 'ssm')]
             manifest_urls = self._download_json(
                 'http://www.wat.tv/get/webhtml/' + video_id, video_id)
             m3u8_url = manifest_urls.get('hls')
             if m3u8_url:
                 m3u8_url = remove_bitrate_limit(m3u8_url)
-                m3u8_formats = self._extract_m3u8_formats(
-                    m3u8_url, video_id, 'mp4', 'm3u8_native', m3u8_id='hls', fatal=False)
-                if m3u8_formats:
-                    formats.extend(m3u8_formats)
+                for m3u8_alt_url in alt_urls(m3u8_url):
+                    formats.extend(self._extract_m3u8_formats(
+                        m3u8_alt_url, video_id, 'mp4',
+                        'm3u8_native', m3u8_id='hls', fatal=False))
                     formats.extend(self._extract_f4m_formats(
-                        m3u8_url.replace('ios', 'web').replace('.m3u8', '.f4m'),
+                        m3u8_alt_url.replace('ios', 'web').replace('.m3u8', '.f4m'),
                         video_id, f4m_id='hds', fatal=False))
-                    http_url = extract_url('android5/%s.mp4', 'http')
-                    if http_url:
-                        for m3u8_format in m3u8_formats:
-                            vbr, abr = m3u8_format.get('vbr'), m3u8_format.get('abr')
-                            if not vbr or not abr:
-                                continue
-                            format_id = m3u8_format['format_id'].replace('hls', 'http')
-                            fmt_url = re.sub(r'%s-\d+00-\d+' % video_id, '%s-%d00-%d' % (video_id, round(vbr / 100), round(abr)), http_url)
-                            if self._is_valid_url(fmt_url, video_id, format_id):
-                                f = m3u8_format.copy()
-                                f.update({
-                                    'url': fmt_url,
-                                    'format_id': format_id,
-                                    'protocol': 'http',
-                                })
-                                formats.append(f)
             mpd_url = manifest_urls.get('mpd')
             if mpd_url:
-                formats.extend(self._extract_mpd_formats(remove_bitrate_limit(
-                    mpd_url), video_id, mpd_id='dash', fatal=False))
+                mpd_url = remove_bitrate_limit(mpd_url)
+                for mpd_alt_url in alt_urls(mpd_url):
+                    formats.extend(self._extract_mpd_formats(
+                        mpd_alt_url, video_id, mpd_id='dash', fatal=False))
             self._sort_formats(formats)
         except ExtractorError:
             abr = 64

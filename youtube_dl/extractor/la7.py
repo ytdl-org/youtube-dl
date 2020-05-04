@@ -20,7 +20,7 @@ class LA7IE(InfoExtractor):
         'url': 'http://www.la7.it/crozza/video/inccool8-02-10-2015-163722',
         'md5': '8b613ffc0c4bf9b9e377169fc19c214c',
         'info_dict': {
-            'id': 'inccool8-02-10-2015-163722',
+            'id': '0_42j6wd36',
             'ext': 'mp4',
             'title': 'Inc.Cool8',
             'description': 'Benvenuti nell\'incredibile mondo della INC. COOL. 8. dove “INC.” sta per “Incorporated” “COOL” sta per “fashion” ed Eight sta per il gesto  atletico',
@@ -49,13 +49,15 @@ class LA7IE(InfoExtractor):
         webpage = self._download_webpage(url, video_id)
 
         player_data = self._parse_json(
-            self._search_regex(r'videoLa7\(({[^;]+})\);', webpage, 'player data'),
+            self._search_regex(
+                [r'(?s)videoParams\s*=\s*({.+?});', r'videoLa7\(({[^;]+})\);'],
+                webpage, 'player data'),
             video_id, transform_source=js_to_json)
 
         return {
             '_type': 'url_transparent',
             'url': smuggle_url('kaltura:103:%s' % player_data['vid'], {
-                'service_url': 'http://kdam.iltrovatore.it',
+                'service_url': 'http://nkdam.iltrovatore.it',
             }),
             'id': video_id,
             'title': player_data['title'],

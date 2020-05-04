@@ -1,13 +1,14 @@
 # coding: utf-8
 from __future__ import unicode_literals
 
-import base64
 import json
+import re
 
 from .common import InfoExtractor
 from ..compat import (
-    compat_urlparse,
+    compat_b64decode,
     compat_str,
+    compat_urlparse,
 )
 from ..utils import (
     extract_attributes,
@@ -18,7 +19,7 @@ from ..utils import (
 
 
 class EinthusanIE(InfoExtractor):
-    _VALID_URL = r'https?://einthusan\.tv/movie/watch/(?P<id>[^/?#&]+)'
+    _VALID_URL = r'https?://(?P<host>einthusan\.(?:tv|com|ca))/movie/watch/(?P<id>[^/?#&]+)'
     _TESTS = [{
         'url': 'https://einthusan.tv/movie/watch/9097/',
         'md5': 'ff0f7f2065031b8a2cf13a933731c035',
@@ -32,16 +33,24 @@ class EinthusanIE(InfoExtractor):
     }, {
         'url': 'https://einthusan.tv/movie/watch/51MZ/?lang=hindi',
         'only_matching': True,
+    }, {
+        'url': 'https://einthusan.com/movie/watch/9097/',
+        'only_matching': True,
+    }, {
+        'url': 'https://einthusan.ca/movie/watch/4E9n/?lang=hindi',
+        'only_matching': True,
     }]
 
     # reversed from jsoncrypto.prototype.decrypt() in einthusan-PGMovieWatcher.js
     def _decrypt(self, encrypted_data, video_id):
-        return self._parse_json(base64.b64decode((
+        return self._parse_json(compat_b64decode((
             encrypted_data[:10] + encrypted_data[-1] + encrypted_data[12:-1]
-        ).encode('ascii')).decode('utf-8'), video_id)
+        )).decode('utf-8'), video_id)
 
     def _real_extract(self, url):
-        video_id = self._match_id(url)
+        mobj = re.match(self._VALID_URL, url)
+        host = mobj.group('host')
+        video_id = mobj.group('id')
 
         webpage = self._download_webpage(url, video_id)
 
@@ -53,7 +62,7 @@ class EinthusanIE(InfoExtractor):
         page_id = self._html_search_regex(
             '<html[^>]+data-pageid="([^"]+)"', webpage, 'page ID')
         video_data = self._download_json(
-            'https://einthusan.tv/ajax/movie/watch/%s/' % video_id, video_id,
+            'https://%s/ajax/movie/watch/%s/' % (host, video_id), video_id,
             data=urlencode_postdata({
                 'xEvent': 'UIVideoPlayer.PingOutcome',
                 'xJson': json.dumps({

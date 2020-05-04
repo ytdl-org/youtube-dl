@@ -4,18 +4,28 @@ from __future__ import unicode_literals
 import re
 
 from .common import InfoExtractor
-from ..utils import js_to_json
+from ..utils import (
+    determine_ext,
+    int_or_none,
+    js_to_json,
+    merge_dicts,
+)
 
 
-class SportBoxEmbedIE(InfoExtractor):
-    _VALID_URL = r'https?://news\.sportbox\.ru/vdl/player(?:/[^/]+/|\?.*?\bn?id=)(?P<id>\d+)'
+class SportBoxIE(InfoExtractor):
+    _VALID_URL = r'https?://(?:news\.sportbox|matchtv)\.ru/vdl/player(?:/[^/]+/|\?.*?\bn?id=)(?P<id>\d+)'
     _TESTS = [{
         'url': 'http://news.sportbox.ru/vdl/player/ci/211355',
         'info_dict': {
-            'id': '211355',
+            'id': '109158',
             'ext': 'mp4',
             'title': 'В Новороссийске прошел детский турнир «Поле славы боевой»',
+            'description': 'В Новороссийске прошел детский турнир «Поле славы боевой»',
             'thumbnail': r're:^https?://.*\.jpg$',
+            'duration': 292,
+            'view_count': int,
+            'timestamp': 1426237001,
+            'upload_date': '20150313',
         },
         'params': {
             # m3u8 download
@@ -24,12 +34,21 @@ class SportBoxEmbedIE(InfoExtractor):
     }, {
         'url': 'http://news.sportbox.ru/vdl/player?nid=370908&only_player=1&autostart=false&playeri=2&height=340&width=580',
         'only_matching': True,
+    }, {
+        'url': 'https://news.sportbox.ru/vdl/player/media/193095',
+        'only_matching': True,
+    }, {
+        'url': 'https://news.sportbox.ru/vdl/player/media/109158',
+        'only_matching': True,
+    }, {
+        'url': 'https://matchtv.ru/vdl/player/media/109158',
+        'only_matching': True,
     }]
 
     @staticmethod
     def _extract_urls(webpage):
         return re.findall(
-            r'<iframe[^>]+src="(https?://news\.sportbox\.ru/vdl/player[^"]+)"',
+            r'<iframe[^>]+src="(https?://(?:news\.sportbox|matchtv)\.ru/vdl/player[^"]+)"',
             webpage)
 
     def _real_extract(self, url):
@@ -37,36 +56,44 @@ class SportBoxEmbedIE(InfoExtractor):
 
         webpage = self._download_webpage(url, video_id)
 
+        sources = self._parse_json(
+            self._search_regex(
+                r'(?s)playerOptions\.sources(?:WithRes)?\s*=\s*(\[.+?\])\s*;\s*\n',
+                webpage, 'sources'),
+            video_id, transform_source=js_to_json)
+
         formats = []
-
-        def cleanup_js(code):
-            # desktop_advert_config contains complex Javascripts and we don't need it
-            return js_to_json(re.sub(r'desktop_advert_config.*', '', code))
-
-        jwplayer_data = self._parse_json(self._search_regex(
-            r'(?s)player\.setup\(({.+?})\);', webpage, 'jwplayer settings'), video_id,
-            transform_source=cleanup_js)
-
-        hls_url = jwplayer_data.get('hls_url')
-        if hls_url:
-            formats.extend(self._extract_m3u8_formats(
-                hls_url, video_id, ext='mp4', m3u8_id='hls'))
-
-        rtsp_url = jwplayer_data.get('rtsp_url')
-        if rtsp_url:
-            formats.append({
-                'url': rtsp_url,
-                'format_id': 'rtsp',
-            })
-
+        for source in sources:
+            src = source.get('src')
+            if not src:
+                continue
+            if determine_ext(src) == 'm3u8':
+                formats.extend(self._extract_m3u8_formats(
+                    src, video_id, 'mp4', entry_protocol='m3u8_native',
+                    m3u8_id='hls', fatal=False))
+            else:
+                formats.append({
+                    'url': src,
+                })
         self._sort_formats(formats)
 
-        title = jwplayer_data['node_title']
-        thumbnail = jwplayer_data.get('image_url')
+        player = self._parse_json(
+            self._search_regex(
+                r'(?s)playerOptions\s*=\s*({.+?})\s*;\s*\n', webpage,
+                'player options', default='{}'),
+            video_id, transform_source=js_to_json)
+        media_id = player['mediaId']
 
-        return {
-            'id': video_id,
-            'title': title,
-            'thumbnail': thumbnail,
+        info = self._search_json_ld(webpage, media_id, default={})
+
+        view_count = int_or_none(self._search_regex(
+            r'Просмотров\s*:\s*(\d+)', webpage, 'view count', default=None))
+
+        return merge_dicts(info, {
+            'id': media_id,
+            'title': self._og_search_title(webpage, default=None) or media_id,
+            'thumbnail': player.get('poster'),
+            'duration': int_or_none(player.get('duration')),
+            'view_count': view_count,
             'formats': formats,
-        }
+        })

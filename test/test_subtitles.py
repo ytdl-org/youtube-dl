@@ -26,7 +26,6 @@ from youtube_dl.extractor import (
     ThePlatformIE,
     ThePlatformFeedIE,
     RTVEALaCartaIE,
-    FunnyOrDieIE,
     DemocracynowIE,
 )
 
@@ -232,7 +231,7 @@ class TestNPOSubtitles(BaseTestSubtitles):
 
 
 class TestMTVSubtitles(BaseTestSubtitles):
-    url = 'http://www.cc.com/video-clips/kllhuv/stand-up-greg-fitzsimmons--uncensored---too-good-of-a-mother'
+    url = 'http://www.cc.com/video-clips/p63lk0/adam-devine-s-house-party-chasing-white-swans'
     IE = ComedyCentralIE
 
     def getInfoDict(self):
@@ -243,7 +242,7 @@ class TestMTVSubtitles(BaseTestSubtitles):
         self.DL.params['allsubtitles'] = True
         subtitles = self.getSubtitles()
         self.assertEqual(set(subtitles.keys()), set(['en']))
-        self.assertEqual(md5(subtitles['en']), 'b9f6ca22a6acf597ec76f61749765e65')
+        self.assertEqual(md5(subtitles['en']), '78206b8d8a0cfa9da64dc026eea48961')
 
 
 class TestNRKSubtitles(BaseTestSubtitles):
@@ -320,18 +319,6 @@ class TestRtveSubtitles(BaseTestSubtitles):
         subtitles = self.getSubtitles()
         self.assertEqual(set(subtitles.keys()), set(['es']))
         self.assertEqual(md5(subtitles['es']), '69e70cae2d40574fb7316f31d6eb7fca')
-
-
-class TestFunnyOrDieSubtitles(BaseTestSubtitles):
-    url = 'http://www.funnyordie.com/videos/224829ff6d/judd-apatow-will-direct-your-vine'
-    IE = FunnyOrDieIE
-
-    def test_allsubtitles(self):
-        self.DL.params['writesubtitles'] = True
-        self.DL.params['allsubtitles'] = True
-        subtitles = self.getSubtitles()
-        self.assertEqual(set(subtitles.keys()), set(['en']))
-        self.assertEqual(md5(subtitles['en']), 'c5593c193eacd353596c11c2d4f9ecc4')
 
 
 class TestDemocracynowSubtitles(BaseTestSubtitles):

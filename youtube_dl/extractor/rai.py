@@ -17,6 +17,7 @@ from ..utils import (
     parse_duration,
     strip_or_none,
     try_get,
+    unescapeHTML,
     unified_strdate,
     unified_timestamp,
     update_url_query,
@@ -31,6 +32,9 @@ class RaiBaseIE(InfoExtractor):
     _GEO_BYPASS = False
 
     def _extract_relinker_info(self, relinker_url, video_id):
+        if not re.match(r'https?://', relinker_url):
+            return {'formats': [{'url': relinker_url}]}
+
         formats = []
         geoprotection = None
         is_live = None
@@ -70,11 +74,11 @@ class RaiBaseIE(InfoExtractor):
             if (ext == 'm3u8' and platform != 'mon') or (ext == 'f4m' and platform != 'flash'):
                 continue
 
-            if ext == 'm3u8':
+            if ext == 'm3u8' or 'format=m3u8' in media_url or platform == 'mon':
                 formats.extend(self._extract_m3u8_formats(
                     media_url, video_id, 'mp4', 'm3u8_native',
                     m3u8_id='hls', fatal=False))
-            elif ext == 'f4m':
+            elif ext == 'f4m' or platform == 'flash':
                 manifest_url = update_url_query(
                     media_url.replace('manifest#live_hds.f4m', 'manifest.f4m'),
                     {'hdcore': '3.7.0', 'plugin': 'aasp-3.7.0.39.44'})
@@ -249,8 +253,42 @@ class RaiPlayLiveIE(RaiBaseIE):
         }
 
 
+class RaiPlayPlaylistIE(InfoExtractor):
+    _VALID_URL = r'https?://(?:www\.)?raiplay\.it/programmi/(?P<id>[^/?#&]+)'
+    _TESTS = [{
+        'url': 'http://www.raiplay.it/programmi/nondirloalmiocapo/',
+        'info_dict': {
+            'id': 'nondirloalmiocapo',
+            'title': 'Non dirlo al mio capo',
+            'description': 'md5:9f3d603b2947c1c7abb098f3b14fac86',
+        },
+        'playlist_mincount': 12,
+    }]
+
+    def _real_extract(self, url):
+        playlist_id = self._match_id(url)
+
+        webpage = self._download_webpage(url, playlist_id)
+
+        title = self._html_search_meta(
+            ('programma', 'nomeProgramma'), webpage, 'title')
+        description = unescapeHTML(self._html_search_meta(
+            ('description', 'og:description'), webpage, 'description'))
+
+        entries = []
+        for mobj in re.finditer(
+                r'<a\b[^>]+\bhref=(["\'])(?P<path>/raiplay/video/.+?)\1',
+                webpage):
+            video_url = urljoin(url, mobj.group('path'))
+            entries.append(self.url_result(
+                video_url, ie=RaiPlayIE.ie_key(),
+                video_id=RaiPlayIE._match_id(video_url)))
+
+        return self.playlist_result(entries, playlist_id, title, description)
+
+
 class RaiIE(RaiBaseIE):
-    _VALID_URL = r'https?://[^/]+\.(?:rai\.(?:it|tv)|rainews\.it)/dl/.+?-(?P<id>%s)(?:-.+?)?\.html' % RaiBaseIE._UUID_RE
+    _VALID_URL = r'https?://[^/]+\.(?:rai\.(?:it|tv)|rainews\.it)/.+?-(?P<id>%s)(?:-.+?)?\.html' % RaiBaseIE._UUID_RE
     _TESTS = [{
         # var uniquename = "ContentItem-..."
         # data-id="ContentItem-..."
@@ -333,6 +371,13 @@ class RaiIE(RaiBaseIE):
         'params': {
             'skip_download': True,
         },
+    }, {
+        # Direct MMS URL
+        'url': 'http://www.rai.it/dl/RaiTV/programmi/media/ContentItem-b63a4089-ac28-48cf-bca5-9f5b5bc46df5.html',
+        'only_matching': True,
+    }, {
+        'url': 'https://www.rainews.it/tgr/marche/notiziari/video/2019/02/ContentItem-6ba945a2-889c-4a80-bdeb-8489c70a8db9.html',
+        'only_matching': True,
     }]
 
     def _extract_from_content_id(self, content_id, url):
@@ -345,11 +390,11 @@ class RaiIE(RaiBaseIE):
         media_type = media['type']
         if 'Audio' in media_type:
             relinker_info = {
-                'formats': {
+                'formats': [{
                     'format_id': media.get('formatoAudio'),
                     'url': media['audioUrl'],
                     'ext': media.get('formatoAudio'),
-                }
+                }]
             }
         elif 'Video' in media_type:
             relinker_info = self._extract_relinker_info(media['mediaUri'], content_id)

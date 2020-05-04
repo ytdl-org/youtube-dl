@@ -14,7 +14,18 @@ from ..utils import (
 
 class TwentyFourVideoIE(InfoExtractor):
     IE_NAME = '24video'
-    _VALID_URL = r'https?://(?P<host>(?:www\.)?24video\.(?:net|me|xxx|sex|tube))/(?:video/(?:view|xml)/|player/new24_play\.swf\?id=)(?P<id>\d+)'
+    _VALID_URL = r'''(?x)
+                    https?://
+                        (?P<host>
+                            (?:(?:www|porno?)\.)?24video\.
+                            (?:net|me|xxx|sexy?|tube|adult|site|vip)
+                        )/
+                        (?:
+                            video/(?:(?:view|xml)/)?|
+                            player/new24_play\.swf\?id=
+                        )
+                        (?P<id>\d+)
+                    '''
 
     _TESTS = [{
         'url': 'http://www.24video.net/video/view/1044982',
@@ -42,6 +53,18 @@ class TwentyFourVideoIE(InfoExtractor):
     }, {
         'url': 'http://www.24video.tube/video/view/2363750',
         'only_matching': True,
+    }, {
+        'url': 'https://www.24video.site/video/view/2640421',
+        'only_matching': True,
+    }, {
+        'url': 'https://porno.24video.net/video/2640421-vsya-takaya-gibkaya-i-v-masle',
+        'only_matching': True,
+    }, {
+        'url': 'https://www.24video.vip/video/view/1044982',
+        'only_matching': True,
+    }, {
+        'url': 'https://porn.24video.net/video/2640421-vsya-takay',
+        'only_matching': True,
     }]
 
     def _real_extract(self, url):
@@ -60,8 +83,8 @@ class TwentyFourVideoIE(InfoExtractor):
         duration = int_or_none(self._og_search_property(
             'duration', webpage, 'duration', fatal=False))
         timestamp = parse_iso8601(self._search_regex(
-            r'<time id="video-timeago" datetime="([^"]+)" itemprop="uploadDate">',
-            webpage, 'upload date'))
+            r'<time[^>]+\bdatetime="([^"]+)"[^>]+itemprop="uploadDate"',
+            webpage, 'upload date', fatal=False))
 
         uploader = self._html_search_regex(
             r'class="video-uploaded"[^>]*>\s*<a href="/jsecUser/movies/[^"]+"[^>]*>([^<]+)</a>',
@@ -72,7 +95,7 @@ class TwentyFourVideoIE(InfoExtractor):
             webpage, 'view count', fatal=False))
         comment_count = int_or_none(self._html_search_regex(
             r'<a[^>]+href="#tab-comments"[^>]*>(\d+) комментари',
-            webpage, 'comment count', fatal=False))
+            webpage, 'comment count', default=None))
 
         # Sets some cookies
         self._download_xml(

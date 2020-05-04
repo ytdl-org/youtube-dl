@@ -41,6 +41,7 @@ def _make_result(formats, **kwargs):
         'id': 'testid',
         'title': 'testttitle',
         'extractor': 'testex',
+        'extractor_key': 'TestEx',
     }
     res.update(**kwargs)
     return res
@@ -238,6 +239,76 @@ class TestFormatSelection(unittest.TestCase):
         downloaded = ydl.downloaded_info_dicts[0]
         self.assertEqual(downloaded['format_id'], 'vid-vcodec-dot')
 
+    def test_format_selection_string_ops(self):
+        formats = [
+            {'format_id': 'abc-cba', 'ext': 'mp4', 'url': TEST_URL},
+            {'format_id': 'zxc-cxz', 'ext': 'webm', 'url': TEST_URL},
+        ]
+        info_dict = _make_result(formats)
+
+        # equals (=)
+        ydl = YDL({'format': '[format_id=abc-cba]'})
+        ydl.process_ie_result(info_dict.copy())
+        downloaded = ydl.downloaded_info_dicts[0]
+        self.assertEqual(downloaded['format_id'], 'abc-cba')
+
+        # does not equal (!=)
+        ydl = YDL({'format': '[format_id!=abc-cba]'})
+        ydl.process_ie_result(info_dict.copy())
+        downloaded = ydl.downloaded_info_dicts[0]
+        self.assertEqual(downloaded['format_id'], 'zxc-cxz')
+
+        ydl = YDL({'format': '[format_id!=abc-cba][format_id!=zxc-cxz]'})
+        self.assertRaises(ExtractorError, ydl.process_ie_result, info_dict.copy())
+
+        # starts with (^=)
+        ydl = YDL({'format': '[format_id^=abc]'})
+        ydl.process_ie_result(info_dict.copy())
+        downloaded = ydl.downloaded_info_dicts[0]
+        self.assertEqual(downloaded['format_id'], 'abc-cba')
+
+        # does not start with (!^=)
+        ydl = YDL({'format': '[format_id!^=abc]'})
+        ydl.process_ie_result(info_dict.copy())
+        downloaded = ydl.downloaded_info_dicts[0]
+        self.assertEqual(downloaded['format_id'], 'zxc-cxz')
+
+        ydl = YDL({'format': '[format_id!^=abc][format_id!^=zxc]'})
+        self.assertRaises(ExtractorError, ydl.process_ie_result, info_dict.copy())
+
+        # ends with ($=)
+        ydl = YDL({'format': '[format_id$=cba]'})
+        ydl.process_ie_result(info_dict.copy())
+        downloaded = ydl.downloaded_info_dicts[0]
+        self.assertEqual(downloaded['format_id'], 'abc-cba')
+
+        # does not end with (!$=)
+        ydl = YDL({'format': '[format_id!$=cba]'})
+        ydl.process_ie_result(info_dict.copy())
+        downloaded = ydl.downloaded_info_dicts[0]
+        self.assertEqual(downloaded['format_id'], 'zxc-cxz')
+
+        ydl = YDL({'format': '[format_id!$=cba][format_id!$=cxz]'})
+        self.assertRaises(ExtractorError, ydl.process_ie_result, info_dict.copy())
+
+        # contains (*=)
+        ydl = YDL({'format': '[format_id*=bc-cb]'})
+        ydl.process_ie_result(info_dict.copy())
+        downloaded = ydl.downloaded_info_dicts[0]
+        self.assertEqual(downloaded['format_id'], 'abc-cba')
+
+        # does not contain (!*=)
+        ydl = YDL({'format': '[format_id!*=bc-cb]'})
+        ydl.process_ie_result(info_dict.copy())
+        downloaded = ydl.downloaded_info_dicts[0]
+        self.assertEqual(downloaded['format_id'], 'zxc-cxz')
+
+        ydl = YDL({'format': '[format_id!*=abc][format_id!*=zxc]'})
+        self.assertRaises(ExtractorError, ydl.process_ie_result, info_dict.copy())
+
+        ydl = YDL({'format': '[format_id!*=-]'})
+        self.assertRaises(ExtractorError, ydl.process_ie_result, info_dict.copy())
+
     def test_youtube_format_selection(self):
         order = [
             '38', '37', '46', '22', '45', '35', '44', '18', '34', '43', '6', '5', '17', '36', '13',
@@ -340,7 +411,7 @@ class TestFormatSelection(unittest.TestCase):
         # For extractors with incomplete formats (all formats are audio-only or
         # video-only) best and worst should fallback to corresponding best/worst
         # video-only or audio-only formats (as per
-        # https://github.com/rg3/youtube-dl/pull/5556)
+        # https://github.com/ytdl-org/youtube-dl/pull/5556)
         formats = [
             {'format_id': 'low', 'ext': 'mp3', 'preference': 1, 'vcodec': 'none', 'url': TEST_URL},
             {'format_id': 'high', 'ext': 'mp3', 'preference': 2, 'vcodec': 'none', 'url': TEST_URL},
@@ -369,6 +440,19 @@ class TestFormatSelection(unittest.TestCase):
         # video-only or audio-only).
         ydl = YDL({'format': 'best[height>360]'})
         self.assertRaises(ExtractorError, ydl.process_ie_result, info_dict.copy())
+
+    def test_format_selection_issue_10083(self):
+        # See https://github.com/ytdl-org/youtube-dl/issues/10083
+        formats = [
+            {'format_id': 'regular', 'height': 360, 'url': TEST_URL},
+            {'format_id': 'video', 'height': 720, 'acodec': 'none', 'url': TEST_URL},
+            {'format_id': 'audio', 'vcodec': 'none', 'url': TEST_URL},
+        ]
+        info_dict = _make_result(formats)
+
+        ydl = YDL({'format': 'best[height>360]/bestvideo[height>360]+bestaudio'})
+        ydl.process_ie_result(info_dict.copy())
+        self.assertEqual(ydl.downloaded_info_dicts[0]['format_id'], 'video+audio')
 
     def test_invalid_format_specs(self):
         def assert_syntax_error(format_spec):
@@ -447,6 +531,23 @@ class TestFormatSelection(unittest.TestCase):
         except ExtractorError:
             pass
         self.assertEqual(ydl.downloaded_info_dicts, [])
+
+    def test_default_format_spec(self):
+        ydl = YDL({'simulate': True})
+        self.assertEqual(ydl._default_format_spec({}), 'bestvideo+bestaudio/best')
+
+        ydl = YDL({})
+        self.assertEqual(ydl._default_format_spec({'is_live': True}), 'best/bestvideo+bestaudio')
+
+        ydl = YDL({'simulate': True})
+        self.assertEqual(ydl._default_format_spec({'is_live': True}), 'bestvideo+bestaudio/best')
+
+        ydl = YDL({'outtmpl': '-'})
+        self.assertEqual(ydl._default_format_spec({}), 'best/bestvideo+bestaudio')
+
+        ydl = YDL({})
+        self.assertEqual(ydl._default_format_spec({}, download=False), 'bestvideo+bestaudio/best')
+        self.assertEqual(ydl._default_format_spec({'is_live': True}), 'best/bestvideo+bestaudio')
 
 
 class TestYoutubeDL(unittest.TestCase):
@@ -527,6 +628,8 @@ class TestYoutubeDL(unittest.TestCase):
             'ext': 'mp4',
             'width': None,
             'height': 1080,
+            'title1': '$PATH',
+            'title2': '%PATH%',
         }
 
         def fname(templ):
@@ -545,10 +648,14 @@ class TestYoutubeDL(unittest.TestCase):
         self.assertEqual(fname('%(height)0 6d.%(ext)s'), ' 01080.mp4')
         self.assertEqual(fname('%(height)0   6d.%(ext)s'), ' 01080.mp4')
         self.assertEqual(fname('%(height)   0   6d.%(ext)s'), ' 01080.mp4')
+        self.assertEqual(fname('%%'), '%')
+        self.assertEqual(fname('%%%%'), '%%')
         self.assertEqual(fname('%%(height)06d.%(ext)s'), '%(height)06d.mp4')
         self.assertEqual(fname('%(width)06d.%(ext)s'), 'NA.mp4')
         self.assertEqual(fname('%(width)06d.%%(ext)s'), 'NA.%(ext)s')
         self.assertEqual(fname('%%(width)06d.%(ext)s'), '%(width)06d.mp4')
+        self.assertEqual(fname('Hello %(title1)s'), 'Hello $PATH')
+        self.assertEqual(fname('Hello %(title2)s'), 'Hello %PATH%')
 
     def test_format_note(self):
         ydl = YoutubeDL()
@@ -709,11 +816,15 @@ class TestYoutubeDL(unittest.TestCase):
             'webpage_url': 'http://example.com',
         }
 
-        def get_ids(params):
+        def get_downloaded_info_dicts(params):
             ydl = YDL(params)
-            # make a copy because the dictionary can be modified
-            ydl.process_ie_result(playlist.copy())
-            return [int(v['id']) for v in ydl.downloaded_info_dicts]
+            # make a deep copy because the dictionary and nested entries
+            # can be modified
+            ydl.process_ie_result(copy.deepcopy(playlist))
+            return ydl.downloaded_info_dicts
+
+        def get_ids(params):
+            return [int(v['id']) for v in get_downloaded_info_dicts(params)]
 
         result = get_ids({})
         self.assertEqual(result, [1, 2, 3, 4])
@@ -739,8 +850,30 @@ class TestYoutubeDL(unittest.TestCase):
         result = get_ids({'playlist_items': '10'})
         self.assertEqual(result, [])
 
+        result = get_ids({'playlist_items': '3-10'})
+        self.assertEqual(result, [3, 4])
+
+        result = get_ids({'playlist_items': '2-4,3-4,3'})
+        self.assertEqual(result, [2, 3, 4])
+
+        # Tests for https://github.com/ytdl-org/youtube-dl/issues/10591
+        # @{
+        result = get_downloaded_info_dicts({'playlist_items': '2-4,3-4,3'})
+        self.assertEqual(result[0]['playlist_index'], 2)
+        self.assertEqual(result[1]['playlist_index'], 3)
+
+        result = get_downloaded_info_dicts({'playlist_items': '2-4,3-4,3'})
+        self.assertEqual(result[0]['playlist_index'], 2)
+        self.assertEqual(result[1]['playlist_index'], 3)
+        self.assertEqual(result[2]['playlist_index'], 4)
+
+        result = get_downloaded_info_dicts({'playlist_items': '4,2'})
+        self.assertEqual(result[0]['playlist_index'], 4)
+        self.assertEqual(result[1]['playlist_index'], 2)
+        # @}
+
     def test_urlopen_no_file_protocol(self):
-        # see https://github.com/rg3/youtube-dl/issues/8227
+        # see https://github.com/ytdl-org/youtube-dl/issues/8227
         ydl = YDL()
         self.assertRaises(compat_urllib_error.URLError, ydl.urlopen, 'file:///etc/passwd')
 
@@ -755,7 +888,8 @@ class TestYoutubeDL(unittest.TestCase):
                     '_type': 'url_transparent',
                     'url': 'foo2:',
                     'ie_key': 'Foo2',
-                    'title': 'foo1 title'
+                    'title': 'foo1 title',
+                    'id': 'foo1_id',
                 }
 
         class Foo2IE(InfoExtractor):
@@ -781,6 +915,9 @@ class TestYoutubeDL(unittest.TestCase):
         downloaded = ydl.downloaded_info_dicts[0]
         self.assertEqual(downloaded['url'], TEST_URL)
         self.assertEqual(downloaded['title'], 'foo1 title')
+        self.assertEqual(downloaded['id'], 'testid')
+        self.assertEqual(downloaded['extractor'], 'testex')
+        self.assertEqual(downloaded['extractor_key'], 'TestEx')
 
 
 if __name__ == '__main__':

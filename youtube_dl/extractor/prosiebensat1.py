@@ -11,11 +11,17 @@ from ..utils import (
     determine_ext,
     float_or_none,
     int_or_none,
+    merge_dicts,
     unified_strdate,
 )
 
 
 class ProSiebenSat1BaseIE(InfoExtractor):
+    _GEO_BYPASS = False
+    _ACCESS_ID = None
+    _SUPPORTED_PROTOCOLS = 'dash:clear,hls:clear,progressive:clear'
+    _V4_BASE_URL = 'https://vas-v4.p7s1video.net/4.0/get'
+
     def _extract_video_info(self, url, clip_id):
         client_location = url
 
@@ -31,93 +37,132 @@ class ProSiebenSat1BaseIE(InfoExtractor):
         if video.get('is_protected') is True:
             raise ExtractorError('This video is DRM protected.', expected=True)
 
-        duration = float_or_none(video.get('duration'))
-        source_ids = [compat_str(source['id']) for source in video['sources']]
-
-        client_id = self._SALT[:2] + sha1(''.join([clip_id, self._SALT, self._TOKEN, client_location, self._SALT, self._CLIENT_NAME]).encode('utf-8')).hexdigest()
-
-        sources = self._download_json(
-            'http://vas.sim-technik.de/vas/live/v2/videos/%s/sources' % clip_id,
-            clip_id, 'Downloading sources JSON', query={
-                'access_token': self._TOKEN,
-                'client_id': client_id,
-                'client_location': client_location,
-                'client_name': self._CLIENT_NAME,
-            })
-        server_id = sources['server_id']
-
-        def fix_bitrate(bitrate):
-            bitrate = int_or_none(bitrate)
-            if not bitrate:
-                return None
-            return (bitrate // 1000) if bitrate % 1000 == 0 else bitrate
-
         formats = []
-        for source_id in source_ids:
-            client_id = self._SALT[:2] + sha1(''.join([self._SALT, clip_id, self._TOKEN, server_id, client_location, source_id, self._SALT, self._CLIENT_NAME]).encode('utf-8')).hexdigest()
-            urls = self._download_json(
-                'http://vas.sim-technik.de/vas/live/v2/videos/%s/sources/url' % clip_id,
-                clip_id, 'Downloading urls JSON', fatal=False, query={
+        if self._ACCESS_ID:
+            raw_ct = self._ENCRYPTION_KEY + clip_id + self._IV + self._ACCESS_ID
+            protocols = self._download_json(
+                self._V4_BASE_URL + 'protocols', clip_id,
+                'Downloading protocols JSON',
+                headers=self.geo_verification_headers(), query={
+                    'access_id': self._ACCESS_ID,
+                    'client_token': sha1((raw_ct).encode()).hexdigest(),
+                    'video_id': clip_id,
+                }, fatal=False, expected_status=(403,)) or {}
+            error = protocols.get('error') or {}
+            if error.get('title') == 'Geo check failed':
+                self.raise_geo_restricted(countries=['AT', 'CH', 'DE'])
+            server_token = protocols.get('server_token')
+            if server_token:
+                urls = (self._download_json(
+                    self._V4_BASE_URL + 'urls', clip_id, 'Downloading urls JSON', query={
+                        'access_id': self._ACCESS_ID,
+                        'client_token': sha1((raw_ct + server_token + self._SUPPORTED_PROTOCOLS).encode()).hexdigest(),
+                        'protocols': self._SUPPORTED_PROTOCOLS,
+                        'server_token': server_token,
+                        'video_id': clip_id,
+                    }, fatal=False) or {}).get('urls') or {}
+                for protocol, variant in urls.items():
+                    source_url = variant.get('clear', {}).get('url')
+                    if not source_url:
+                        continue
+                    if protocol == 'dash':
+                        formats.extend(self._extract_mpd_formats(
+                            source_url, clip_id, mpd_id=protocol, fatal=False))
+                    elif protocol == 'hls':
+                        formats.extend(self._extract_m3u8_formats(
+                            source_url, clip_id, 'mp4', 'm3u8_native',
+                            m3u8_id=protocol, fatal=False))
+                    else:
+                        formats.append({
+                            'url': source_url,
+                            'format_id': protocol,
+                        })
+        if not formats:
+            source_ids = [compat_str(source['id']) for source in video['sources']]
+
+            client_id = self._SALT[:2] + sha1(''.join([clip_id, self._SALT, self._TOKEN, client_location, self._SALT, self._CLIENT_NAME]).encode('utf-8')).hexdigest()
+
+            sources = self._download_json(
+                'http://vas.sim-technik.de/vas/live/v2/videos/%s/sources' % clip_id,
+                clip_id, 'Downloading sources JSON', query={
                     'access_token': self._TOKEN,
                     'client_id': client_id,
                     'client_location': client_location,
                     'client_name': self._CLIENT_NAME,
-                    'server_id': server_id,
-                    'source_ids': source_id,
                 })
-            if not urls:
-                continue
-            if urls.get('status_code') != 0:
-                raise ExtractorError('This video is unavailable', expected=True)
-            urls_sources = urls['sources']
-            if isinstance(urls_sources, dict):
-                urls_sources = urls_sources.values()
-            for source in urls_sources:
-                source_url = source.get('url')
-                if not source_url:
+            server_id = sources['server_id']
+
+            def fix_bitrate(bitrate):
+                bitrate = int_or_none(bitrate)
+                if not bitrate:
+                    return None
+                return (bitrate // 1000) if bitrate % 1000 == 0 else bitrate
+
+            for source_id in source_ids:
+                client_id = self._SALT[:2] + sha1(''.join([self._SALT, clip_id, self._TOKEN, server_id, client_location, source_id, self._SALT, self._CLIENT_NAME]).encode('utf-8')).hexdigest()
+                urls = self._download_json(
+                    'http://vas.sim-technik.de/vas/live/v2/videos/%s/sources/url' % clip_id,
+                    clip_id, 'Downloading urls JSON', fatal=False, query={
+                        'access_token': self._TOKEN,
+                        'client_id': client_id,
+                        'client_location': client_location,
+                        'client_name': self._CLIENT_NAME,
+                        'server_id': server_id,
+                        'source_ids': source_id,
+                    })
+                if not urls:
                     continue
-                protocol = source.get('protocol')
-                mimetype = source.get('mimetype')
-                if mimetype == 'application/f4m+xml' or 'f4mgenerator' in source_url or determine_ext(source_url) == 'f4m':
-                    formats.extend(self._extract_f4m_formats(
-                        source_url, clip_id, f4m_id='hds', fatal=False))
-                elif mimetype == 'application/x-mpegURL':
-                    formats.extend(self._extract_m3u8_formats(
-                        source_url, clip_id, 'mp4', 'm3u8_native',
-                        m3u8_id='hls', fatal=False))
-                elif mimetype == 'application/dash+xml':
-                    formats.extend(self._extract_mpd_formats(
-                        source_url, clip_id, mpd_id='dash', fatal=False))
-                else:
-                    tbr = fix_bitrate(source['bitrate'])
-                    if protocol in ('rtmp', 'rtmpe'):
-                        mobj = re.search(r'^(?P<url>rtmpe?://[^/]+)/(?P<path>.+)$', source_url)
-                        if not mobj:
-                            continue
-                        path = mobj.group('path')
-                        mp4colon_index = path.rfind('mp4:')
-                        app = path[:mp4colon_index]
-                        play_path = path[mp4colon_index:]
-                        formats.append({
-                            'url': '%s/%s' % (mobj.group('url'), app),
-                            'app': app,
-                            'play_path': play_path,
-                            'player_url': 'http://livepassdl.conviva.com/hf/ver/2.79.0.17083/LivePassModuleMain.swf',
-                            'page_url': 'http://www.prosieben.de',
-                            'tbr': tbr,
-                            'ext': 'flv',
-                            'format_id': 'rtmp%s' % ('-%d' % tbr if tbr else ''),
-                        })
+                if urls.get('status_code') != 0:
+                    raise ExtractorError('This video is unavailable', expected=True)
+                urls_sources = urls['sources']
+                if isinstance(urls_sources, dict):
+                    urls_sources = urls_sources.values()
+                for source in urls_sources:
+                    source_url = source.get('url')
+                    if not source_url:
+                        continue
+                    protocol = source.get('protocol')
+                    mimetype = source.get('mimetype')
+                    if mimetype == 'application/f4m+xml' or 'f4mgenerator' in source_url or determine_ext(source_url) == 'f4m':
+                        formats.extend(self._extract_f4m_formats(
+                            source_url, clip_id, f4m_id='hds', fatal=False))
+                    elif mimetype == 'application/x-mpegURL':
+                        formats.extend(self._extract_m3u8_formats(
+                            source_url, clip_id, 'mp4', 'm3u8_native',
+                            m3u8_id='hls', fatal=False))
+                    elif mimetype == 'application/dash+xml':
+                        formats.extend(self._extract_mpd_formats(
+                            source_url, clip_id, mpd_id='dash', fatal=False))
                     else:
-                        formats.append({
-                            'url': source_url,
-                            'tbr': tbr,
-                            'format_id': 'http%s' % ('-%d' % tbr if tbr else ''),
-                        })
+                        tbr = fix_bitrate(source['bitrate'])
+                        if protocol in ('rtmp', 'rtmpe'):
+                            mobj = re.search(r'^(?P<url>rtmpe?://[^/]+)/(?P<path>.+)$', source_url)
+                            if not mobj:
+                                continue
+                            path = mobj.group('path')
+                            mp4colon_index = path.rfind('mp4:')
+                            app = path[:mp4colon_index]
+                            play_path = path[mp4colon_index:]
+                            formats.append({
+                                'url': '%s/%s' % (mobj.group('url'), app),
+                                'app': app,
+                                'play_path': play_path,
+                                'player_url': 'http://livepassdl.conviva.com/hf/ver/2.79.0.17083/LivePassModuleMain.swf',
+                                'page_url': 'http://www.prosieben.de',
+                                'tbr': tbr,
+                                'ext': 'flv',
+                                'format_id': 'rtmp%s' % ('-%d' % tbr if tbr else ''),
+                            })
+                        else:
+                            formats.append({
+                                'url': source_url,
+                                'tbr': tbr,
+                                'format_id': 'http%s' % ('-%d' % tbr if tbr else ''),
+                            })
         self._sort_formats(formats)
 
         return {
-            'duration': duration,
+            'duration': float_or_none(video.get('duration')),
             'formats': formats,
         }
 
@@ -129,18 +174,19 @@ class ProSiebenSat1IE(ProSiebenSat1BaseIE):
                     https?://
                         (?:www\.)?
                         (?:
+                            (?:beta\.)?
                             (?:
-                                prosieben(?:maxx)?|sixx|sat1(?:gold)?|kabeleins(?:doku)?|the-voice-of-germany|7tv|advopedia
+                                prosieben(?:maxx)?|sixx|sat1(?:gold)?|kabeleins(?:doku)?|the-voice-of-germany|advopedia
                             )\.(?:de|at|ch)|
-                            ran\.de|fem\.com|advopedia\.de
+                            ran\.de|fem\.com|advopedia\.de|galileo\.tv/video
                         )
                         /(?P<id>.+)
                     '''
 
     _TESTS = [
         {
-            # Tests changes introduced in https://github.com/rg3/youtube-dl/pull/6242
-            # in response to fixing https://github.com/rg3/youtube-dl/issues/6215:
+            # Tests changes introduced in https://github.com/ytdl-org/youtube-dl/pull/6242
+            # in response to fixing https://github.com/ytdl-org/youtube-dl/issues/6215:
             # - malformed f4m manifest support
             # - proper handling of URLs starting with `https?://` in 2.0 manifests
             # - recursive child f4m manifests extraction
@@ -148,10 +194,14 @@ class ProSiebenSat1IE(ProSiebenSat1BaseIE):
             'info_dict': {
                 'id': '2104602',
                 'ext': 'mp4',
-                'title': 'Episode 18 - Staffel 2',
+                'title': 'CIRCUS HALLIGALLI - Episode 18 - Staffel 2',
                 'description': 'md5:8733c81b702ea472e069bc48bb658fc1',
                 'upload_date': '20131231',
                 'duration': 5845.04,
+                'series': 'CIRCUS HALLIGALLI',
+                'season_number': 2,
+                'episode': 'Episode 18 - Staffel 2',
+                'episode_number': 18,
             },
         },
         {
@@ -255,8 +305,9 @@ class ProSiebenSat1IE(ProSiebenSat1BaseIE):
             'info_dict': {
                 'id': '2572814',
                 'ext': 'mp4',
-                'title': 'Andreas Kümmert: Rocket Man',
+                'title': 'The Voice of Germany - Andreas Kümmert: Rocket Man',
                 'description': 'md5:6ddb02b0781c6adf778afea606652e38',
+                'timestamp': 1382041620,
                 'upload_date': '20131017',
                 'duration': 469.88,
             },
@@ -265,7 +316,7 @@ class ProSiebenSat1IE(ProSiebenSat1BaseIE):
             },
         },
         {
-            'url': 'http://www.fem.com/wellness/videos/wellness-video-clip-kurztripps-zum-valentinstag.html',
+            'url': 'http://www.fem.com/videos/beauty-lifestyle/kurztrips-zum-valentinstag',
             'info_dict': {
                 'id': '2156342',
                 'ext': 'mp4',
@@ -286,19 +337,6 @@ class ProSiebenSat1IE(ProSiebenSat1BaseIE):
             },
             'playlist_count': 2,
             'skip': 'This video is unavailable',
-        },
-        {
-            'url': 'http://www.7tv.de/circus-halligalli/615-best-of-circus-halligalli-ganze-folge',
-            'info_dict': {
-                'id': '4187506',
-                'ext': 'mp4',
-                'title': 'Best of Circus HalliGalli',
-                'description': 'md5:8849752efd90b9772c9db6fdf87fb9e9',
-                'upload_date': '20151229',
-            },
-            'params': {
-                'skip_download': True,
-            },
         },
         {
             # title in <h2 class="subtitle">
@@ -326,6 +364,11 @@ class ProSiebenSat1IE(ProSiebenSat1BaseIE):
             'only_matching': True,
         },
         {
+            # geo restricted to Germany
+            'url': 'https://www.galileo.tv/video/diese-emojis-werden-oft-missverstanden',
+            'only_matching': True,
+        },
+        {
             'url': 'http://www.sat1gold.de/tv/edel-starck/playlist/die-gesamte-1-staffel',
             'only_matching': True,
         },
@@ -338,12 +381,19 @@ class ProSiebenSat1IE(ProSiebenSat1BaseIE):
     _TOKEN = 'prosieben'
     _SALT = '01!8d8F_)r9]4s[qeuXfP%'
     _CLIENT_NAME = 'kolibri-2.0.19-splec4'
+
+    _ACCESS_ID = 'x_prosiebenmaxx-de'
+    _ENCRYPTION_KEY = 'Eeyeey9oquahthainoofashoyoikosag'
+    _IV = 'Aeluchoc6aevechuipiexeeboowedaok'
+
     _CLIPID_REGEXES = [
         r'"clip_id"\s*:\s+"(\d+)"',
         r'clipid: "(\d+)"',
         r'clip[iI]d=(\d+)',
-        r'clip[iI]d\s*=\s*["\'](\d+)',
+        r'clip[iI][dD]\s*=\s*["\'](\d+)',
         r"'itemImageUrl'\s*:\s*'/dynamic/thumbnails/full/\d+/(\d+)",
+        r'proMamsId&quot;\s*:\s*&quot;(\d+)',
+        r'proMamsId"\s*:\s*"(\d+)',
     ]
     _TITLE_REGEXES = [
         r'<h2 class="subtitle" itemprop="name">\s*(.+?)</h2>',
@@ -364,7 +414,6 @@ class ProSiebenSat1IE(ProSiebenSat1BaseIE):
         r'<div[^>]+id="veeseoDescription"[^>]*>(.+?)</div>',
     ]
     _UPLOAD_DATE_REGEXES = [
-        r'<meta property="og:published_time" content="(.+?)">',
         r'<span>\s*(\d{2}\.\d{2}\.\d{4} \d{2}:\d{2}) \|\s*<span itemprop="duration"',
         r'<footer>\s*(\d{2}\.\d{2}\.\d{4}) \d{2}:\d{2} Uhr',
         r'<span style="padding-left: 4px;line-height:20px; color:#404040">(\d{2}\.\d{2}\.\d{4})</span>',
@@ -394,17 +443,21 @@ class ProSiebenSat1IE(ProSiebenSat1BaseIE):
         if description is None:
             description = self._og_search_description(webpage)
         thumbnail = self._og_search_thumbnail(webpage)
-        upload_date = unified_strdate(self._html_search_regex(
-            self._UPLOAD_DATE_REGEXES, webpage, 'upload date', default=None))
+        upload_date = unified_strdate(
+            self._html_search_meta('og:published_time', webpage,
+                                   'upload date', default=None)
+            or self._html_search_regex(self._UPLOAD_DATE_REGEXES,
+                                       webpage, 'upload date', default=None))
 
-        info.update({
+        json_ld = self._search_json_ld(webpage, clip_id, default={})
+
+        return merge_dicts(info, {
             'id': clip_id,
             'title': title,
             'description': description,
             'thumbnail': thumbnail,
             'upload_date': upload_date,
-        })
-        return info
+        }, json_ld)
 
     def _extract_playlist(self, url, webpage):
         playlist_id = self._html_search_regex(

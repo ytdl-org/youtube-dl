@@ -29,66 +29,68 @@ class RtmpFD(FileDownloader):
             proc = subprocess.Popen(args, stderr=subprocess.PIPE)
             cursor_in_new_line = True
             proc_stderr_closed = False
-            while not proc_stderr_closed:
-                # read line from stderr
-                line = ''
-                while True:
-                    char = proc.stderr.read(1)
-                    if not char:
-                        proc_stderr_closed = True
-                        break
-                    if char in [b'\r', b'\n']:
-                        break
-                    line += char.decode('ascii', 'replace')
-                if not line:
-                    # proc_stderr_closed is True
-                    continue
-                mobj = re.search(r'([0-9]+\.[0-9]{3}) kB / [0-9]+\.[0-9]{2} sec \(([0-9]{1,2}\.[0-9])%\)', line)
-                if mobj:
-                    downloaded_data_len = int(float(mobj.group(1)) * 1024)
-                    percent = float(mobj.group(2))
-                    if not resume_percent:
-                        resume_percent = percent
-                        resume_downloaded_data_len = downloaded_data_len
-                    time_now = time.time()
-                    eta = self.calc_eta(start, time_now, 100 - resume_percent, percent - resume_percent)
-                    speed = self.calc_speed(start, time_now, downloaded_data_len - resume_downloaded_data_len)
-                    data_len = None
-                    if percent > 0:
-                        data_len = int(downloaded_data_len * 100 / percent)
-                    self._hook_progress({
-                        'status': 'downloading',
-                        'downloaded_bytes': downloaded_data_len,
-                        'total_bytes_estimate': data_len,
-                        'tmpfilename': tmpfilename,
-                        'filename': filename,
-                        'eta': eta,
-                        'elapsed': time_now - start,
-                        'speed': speed,
-                    })
-                    cursor_in_new_line = False
-                else:
-                    # no percent for live streams
-                    mobj = re.search(r'([0-9]+\.[0-9]{3}) kB / [0-9]+\.[0-9]{2} sec', line)
+            try:
+                while not proc_stderr_closed:
+                    # read line from stderr
+                    line = ''
+                    while True:
+                        char = proc.stderr.read(1)
+                        if not char:
+                            proc_stderr_closed = True
+                            break
+                        if char in [b'\r', b'\n']:
+                            break
+                        line += char.decode('ascii', 'replace')
+                    if not line:
+                        # proc_stderr_closed is True
+                        continue
+                    mobj = re.search(r'([0-9]+\.[0-9]{3}) kB / [0-9]+\.[0-9]{2} sec \(([0-9]{1,2}\.[0-9])%\)', line)
                     if mobj:
                         downloaded_data_len = int(float(mobj.group(1)) * 1024)
+                        percent = float(mobj.group(2))
+                        if not resume_percent:
+                            resume_percent = percent
+                            resume_downloaded_data_len = downloaded_data_len
                         time_now = time.time()
-                        speed = self.calc_speed(start, time_now, downloaded_data_len)
+                        eta = self.calc_eta(start, time_now, 100 - resume_percent, percent - resume_percent)
+                        speed = self.calc_speed(start, time_now, downloaded_data_len - resume_downloaded_data_len)
+                        data_len = None
+                        if percent > 0:
+                            data_len = int(downloaded_data_len * 100 / percent)
                         self._hook_progress({
+                            'status': 'downloading',
                             'downloaded_bytes': downloaded_data_len,
+                            'total_bytes_estimate': data_len,
                             'tmpfilename': tmpfilename,
                             'filename': filename,
-                            'status': 'downloading',
+                            'eta': eta,
                             'elapsed': time_now - start,
                             'speed': speed,
                         })
                         cursor_in_new_line = False
-                    elif self.params.get('verbose', False):
-                        if not cursor_in_new_line:
-                            self.to_screen('')
-                        cursor_in_new_line = True
-                        self.to_screen('[rtmpdump] ' + line)
-            proc.wait()
+                    else:
+                        # no percent for live streams
+                        mobj = re.search(r'([0-9]+\.[0-9]{3}) kB / [0-9]+\.[0-9]{2} sec', line)
+                        if mobj:
+                            downloaded_data_len = int(float(mobj.group(1)) * 1024)
+                            time_now = time.time()
+                            speed = self.calc_speed(start, time_now, downloaded_data_len)
+                            self._hook_progress({
+                                'downloaded_bytes': downloaded_data_len,
+                                'tmpfilename': tmpfilename,
+                                'filename': filename,
+                                'status': 'downloading',
+                                'elapsed': time_now - start,
+                                'speed': speed,
+                            })
+                            cursor_in_new_line = False
+                        elif self.params.get('verbose', False):
+                            if not cursor_in_new_line:
+                                self.to_screen('')
+                            cursor_in_new_line = True
+                            self.to_screen('[rtmpdump] ' + line)
+            finally:
+                proc.wait()
             if not cursor_in_new_line:
                 self.to_screen('')
             return proc.returncode
@@ -163,7 +165,15 @@ class RtmpFD(FileDownloader):
         RD_INCOMPLETE = 2
         RD_NO_CONNECT = 3
 
-        retval = run_rtmpdump(args)
+        started = time.time()
+
+        try:
+            retval = run_rtmpdump(args)
+        except KeyboardInterrupt:
+            if not info_dict.get('is_live'):
+                raise
+            retval = RD_SUCCESS
+            self.to_screen('\n[rtmpdump] Interrupted by user')
 
         if retval == RD_NO_CONNECT:
             self.report_error('[rtmpdump] Could not connect to RTMP server.')
@@ -171,7 +181,7 @@ class RtmpFD(FileDownloader):
 
         while retval in (RD_INCOMPLETE, RD_FAILED) and not test and not live:
             prevsize = os.path.getsize(encodeFilename(tmpfilename))
-            self.to_screen('[rtmpdump] %s bytes' % prevsize)
+            self.to_screen('[rtmpdump] Downloaded %s bytes' % prevsize)
             time.sleep(5.0)  # This seems to be needed
             args = basic_args + ['--resume']
             if retval == RD_FAILED:
@@ -188,13 +198,14 @@ class RtmpFD(FileDownloader):
                 break
         if retval == RD_SUCCESS or (test and retval == RD_INCOMPLETE):
             fsize = os.path.getsize(encodeFilename(tmpfilename))
-            self.to_screen('[rtmpdump] %s bytes' % fsize)
+            self.to_screen('[rtmpdump] Downloaded %s bytes' % fsize)
             self.try_rename(tmpfilename, filename)
             self._hook_progress({
                 'downloaded_bytes': fsize,
                 'total_bytes': fsize,
                 'filename': filename,
                 'status': 'finished',
+                'elapsed': time.time() - started,
             })
             return True
         else:

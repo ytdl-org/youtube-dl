@@ -25,9 +25,14 @@ class NonkTubeIE(NuevoBaseIE):
     def _real_extract(self, url):
         video_id = self._match_id(url)
 
-        info = self._extract_nuevo(
-            'https://www.nonktube.com/media/nuevo/econfig.php?key=%s'
-            % video_id, video_id)
+        webpage = self._download_webpage(url, video_id)
 
-        info['age_limit'] = 18
+        title = self._og_search_title(webpage)
+        info = self._parse_html5_media_entries(url, webpage, video_id)[0]
+
+        info.update({
+            'id': video_id,
+            'title': title,
+            'age_limit': 18,
+        })
         return info

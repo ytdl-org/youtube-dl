@@ -3,8 +3,12 @@ from __future__ import unicode_literals
 
 from .common import InfoExtractor
 from ..utils import (
+    ExtractorError,
     int_or_none,
+    parse_age_limit,
     parse_iso8601,
+    smuggle_url,
+    str_or_none,
 )
 
 
@@ -40,10 +44,15 @@ class CWTVIE(InfoExtractor):
             'duration': 1263,
             'series': 'Whose Line Is It Anyway?',
             'season_number': 11,
-            'season': '11',
             'episode_number': 20,
             'upload_date': '20151006',
             'timestamp': 1444107300,
+            'age_limit': 14,
+            'uploader': 'CWTV',
+        },
+        'params': {
+            # m3u8 download
+            'skip_download': True,
         },
     }, {
         'url': 'http://cwtv.com/thecw/chroniclesofcisco/?play=8adebe35-f447-465f-ab52-e863506ff6d6',
@@ -58,60 +67,31 @@ class CWTVIE(InfoExtractor):
 
     def _real_extract(self, url):
         video_id = self._match_id(url)
-        video_data = None
-        formats = []
-        for partner in (154, 213):
-            vdata = self._download_json(
-                'http://metaframe.digitalsmiths.tv/v2/CWtv/assets/%s/partner/%d?format=json' % (video_id, partner), video_id, fatal=False)
-            if not vdata:
-                continue
-            video_data = vdata
-            for quality, quality_data in vdata.get('videos', {}).items():
-                quality_url = quality_data.get('uri')
-                if not quality_url:
-                    continue
-                if quality == 'variantplaylist':
-                    formats.extend(self._extract_m3u8_formats(
-                        quality_url, video_id, 'mp4', m3u8_id='hls', fatal=False))
-                else:
-                    tbr = int_or_none(quality_data.get('bitrate'))
-                    format_id = 'http' + ('-%d' % tbr if tbr else '')
-                    if self._is_valid_url(quality_url, video_id, format_id):
-                        formats.append({
-                            'format_id': format_id,
-                            'url': quality_url,
-                            'tbr': tbr,
-                        })
-        video_metadata = video_data['assetFields']
-        ism_url = video_metadata.get('smoothStreamingUrl')
-        if ism_url:
-            formats.extend(self._extract_ism_formats(
-                ism_url, video_id, ism_id='mss', fatal=False))
-        self._sort_formats(formats)
+        data = self._download_json(
+            'http://images.cwtv.com/feed/mobileapp/video-meta/apiversion_8/guid_' + video_id,
+            video_id)
+        if data.get('result') != 'ok':
+            raise ExtractorError(data['msg'], expected=True)
+        video_data = data['video']
+        title = video_data['title']
+        mpx_url = video_data.get('mpx_url') or 'http://link.theplatform.com/s/cwtv/media/guid/2703454149/%s?formats=M3U' % video_id
 
-        thumbnails = [{
-            'url': image['uri'],
-            'width': image.get('width'),
-            'height': image.get('height'),
-        } for image_id, image in video_data['images'].items() if image.get('uri')] if video_data.get('images') else None
-
-        subtitles = {
-            'en': [{
-                'url': video_metadata['UnicornCcUrl'],
-            }],
-        } if video_metadata.get('UnicornCcUrl') else None
+        season = str_or_none(video_data.get('season'))
+        episode = str_or_none(video_data.get('episode'))
+        if episode and season:
+            episode = episode[len(season):]
 
         return {
+            '_type': 'url_transparent',
             'id': video_id,
-            'title': video_metadata['title'],
-            'description': video_metadata.get('description'),
-            'duration': int_or_none(video_metadata.get('duration')),
-            'series': video_metadata.get('seriesName'),
-            'season_number': int_or_none(video_metadata.get('seasonNumber')),
-            'season': video_metadata.get('seasonName'),
-            'episode_number': int_or_none(video_metadata.get('episodeNumber')),
-            'timestamp': parse_iso8601(video_data.get('startTime')),
-            'thumbnails': thumbnails,
-            'formats': formats,
-            'subtitles': subtitles,
+            'title': title,
+            'url': smuggle_url(mpx_url, {'force_smil_url': True}),
+            'description': video_data.get('description_long'),
+            'duration': int_or_none(video_data.get('duration_secs')),
+            'series': video_data.get('series_name'),
+            'season_number': int_or_none(season),
+            'episode_number': int_or_none(episode),
+            'timestamp': parse_iso8601(video_data.get('start_time')),
+            'age_limit': parse_age_limit(video_data.get('rating')),
+            'ie_key': 'ThePlatform',
         }

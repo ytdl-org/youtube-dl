@@ -1,119 +1,73 @@
 # coding: utf-8
 from __future__ import unicode_literals
 
-import re
-import time
+import functools
 import hashlib
 import json
+import random
+import re
+import time
 
 from .adobepass import AdobePassIE
 from .common import InfoExtractor
-from ..compat import compat_HTTPError
+from .youtube import YoutubeIE
+from ..compat import (
+    compat_HTTPError,
+    compat_str,
+)
 from ..utils import (
+    clean_html,
+    ExtractorError,
     int_or_none,
+    OnDemandPagedList,
     parse_age_limit,
     str_or_none,
-    parse_duration,
-    ExtractorError,
-    extract_attributes,
+    try_get,
 )
 
 
-class ViceBaseIE(AdobePassIE):
-    def _extract_preplay_video(self, url, locale, webpage):
-        watch_hub_data = extract_attributes(self._search_regex(
-            r'(?s)(<watch-hub\s*.+?</watch-hub>)', webpage, 'watch hub'))
-        video_id = watch_hub_data['vms-id']
-        title = watch_hub_data['video-title']
-
-        query = {}
-        is_locked = watch_hub_data.get('video-locked') == '1'
-        if is_locked:
-            resource = self._get_mvpd_resource(
-                'VICELAND', title, video_id,
-                watch_hub_data.get('video-rating'))
-            query['tvetoken'] = self._extract_mvpd_auth(
-                url, video_id, 'VICELAND', resource)
-
-        # signature generation algorithm is reverse engineered from signatureGenerator in
-        # webpack:///../shared/~/vice-player/dist/js/vice-player.js in
-        # https://www.viceland.com/assets/common/js/web.vendor.bundle.js
-        exp = int(time.time()) + 14400
-        query.update({
-            'exp': exp,
-            'sign': hashlib.sha512(('%s:GET:%d' % (video_id, exp)).encode()).hexdigest(),
-        })
-
-        try:
-            host = 'www.viceland' if is_locked else self._PREPLAY_HOST
-            preplay = self._download_json(
-                'https://%s.com/%s/preplay/%s' % (host, locale, video_id),
-                video_id, query=query)
-        except ExtractorError as e:
-            if isinstance(e.cause, compat_HTTPError) and e.cause.code == 400:
-                error = json.loads(e.cause.read().decode())
-                raise ExtractorError('%s said: %s' % (
-                    self.IE_NAME, error['details']), expected=True)
-            raise
-
-        video_data = preplay['video']
-        base = video_data['base']
-        uplynk_preplay_url = preplay['preplayURL']
-        episode = video_data.get('episode', {})
-        channel = video_data.get('channel', {})
-
-        subtitles = {}
-        cc_url = preplay.get('ccURL')
-        if cc_url:
-            subtitles['en'] = [{
-                'url': cc_url,
-            }]
-
-        return {
-            '_type': 'url_transparent',
-            'url': uplynk_preplay_url,
-            'id': video_id,
-            'title': title,
-            'description': base.get('body') or base.get('display_body'),
-            'thumbnail': watch_hub_data.get('cover-image') or watch_hub_data.get('thumbnail'),
-            'duration': int_or_none(video_data.get('video_duration')) or parse_duration(watch_hub_data.get('video-duration')),
-            'timestamp': int_or_none(video_data.get('created_at'), 1000),
-            'age_limit': parse_age_limit(video_data.get('video_rating')),
-            'series': video_data.get('show_title') or watch_hub_data.get('show-title'),
-            'episode_number': int_or_none(episode.get('episode_number') or watch_hub_data.get('episode')),
-            'episode_id': str_or_none(episode.get('id') or video_data.get('episode_id')),
-            'season_number': int_or_none(watch_hub_data.get('season')),
-            'season_id': str_or_none(episode.get('season_id')),
-            'uploader': channel.get('base', {}).get('title') or watch_hub_data.get('channel-title'),
-            'uploader_id': str_or_none(channel.get('id')),
-            'subtitles': subtitles,
-            'ie_key': 'UplynkPreplay',
-        }
+class ViceBaseIE(InfoExtractor):
+    def _call_api(self, resource, resource_key, resource_id, locale, fields, args=''):
+        return self._download_json(
+            'https://video.vice.com/api/v1/graphql', resource_id, query={
+                'query': '''{
+  %s(locale: "%s", %s: "%s"%s) {
+    %s
+  }
+}''' % (resource, locale, resource_key, resource_id, args, fields),
+            })['data'][resource]
 
 
-class ViceIE(ViceBaseIE):
+class ViceIE(ViceBaseIE, AdobePassIE):
     IE_NAME = 'vice'
-    _VALID_URL = r'https?://(?:.+?\.)?vice\.com/(?:(?P<locale>[^/]+)/)?videos?/(?P<id>[^/?#&]+)'
-
+    _VALID_URL = r'https?://(?:(?:video|vms)\.vice|(?:www\.)?vice(?:land|tv))\.com/(?P<locale>[^/]+)/(?:video/[^/]+|embed)/(?P<id>[\da-f]{24})'
     _TESTS = [{
-        'url': 'https://news.vice.com/video/experimenting-on-animals-inside-the-monkey-lab',
-        'md5': '7d3ae2f9ba5f196cdd9f9efd43657ac2',
+        'url': 'https://video.vice.com/en_us/video/pet-cremator/58c69e38a55424f1227dc3f7',
         'info_dict': {
-            'id': 'N2bzkydjraWDGwnt8jAttCF6Y0PDv4Zj',
-            'ext': 'flv',
-            'title': 'Monkey Labs of Holland',
-            'description': 'md5:92b3c7dcbfe477f772dd4afa496c9149',
+            'id': '58c69e38a55424f1227dc3f7',
+            'ext': 'mp4',
+            'title': '10 Questions You Always Wanted To Ask: Pet Cremator',
+            'description': 'md5:fe856caacf61fe0e74fab15ce2b07ca5',
+            'uploader': 'vice',
+            'uploader_id': '57a204088cb727dec794c67b',
+            'timestamp': 1489664942,
+            'upload_date': '20170316',
+            'age_limit': 14,
         },
-        'add_ie': ['Ooyala'],
+        'params': {
+            # m3u8 download
+            'skip_download': True,
+        },
     }, {
+        # geo restricted to US
         'url': 'https://video.vice.com/en_us/video/the-signal-from-tolva/5816510690b70e6c5fd39a56',
         'info_dict': {
             'id': '5816510690b70e6c5fd39a56',
             'ext': 'mp4',
-            'uploader': 'Waypoint',
+            'uploader': 'vice',
             'title': 'The Signal From Tölva',
             'description': 'md5:3927e3c79f9e8094606a2b3c5b5e55d5',
-            'uploader_id': '57f7d621e05ca860fa9ccaf9',
+            'uploader_id': '57a204088cb727dec794c67b',
             'timestamp': 1477941983,
             'upload_date': '20161031',
         },
@@ -121,15 +75,14 @@ class ViceIE(ViceBaseIE):
             # m3u8 download
             'skip_download': True,
         },
-        'add_ie': ['UplynkPreplay'],
     }, {
         'url': 'https://video.vice.com/alps/video/ulfs-wien-beruchtigste-grafitti-crew-part-1/581b12b60a0e1f4c0fb6ea2f',
         'info_dict': {
             'id': '581b12b60a0e1f4c0fb6ea2f',
             'ext': 'mp4',
             'title': 'ULFs - Wien berüchtigste Grafitti Crew - Part 1',
-            'description': '<p>Zwischen Hinterzimmer-Tattoos und U-Bahnschächten erzählen uns die Ulfs, wie es ist, "süchtig nach Sachbeschädigung" zu sein.</p>',
-            'uploader': 'VICE',
+            'description': 'Zwischen Hinterzimmer-Tattoos und U-Bahnschächten erzählen uns die Ulfs, wie es ist, "süchtig nach Sachbeschädigung" zu sein.',
+            'uploader': 'vice',
             'uploader_id': '57a204088cb727dec794c67b',
             'timestamp': 1485368119,
             'upload_date': '20170125',
@@ -139,96 +92,207 @@ class ViceIE(ViceBaseIE):
             # AES-encrypted m3u8
             'skip_download': True,
         },
-        'add_ie': ['UplynkPreplay'],
     }, {
         'url': 'https://video.vice.com/en_us/video/pizza-show-trailer/56d8c9a54d286ed92f7f30e4',
         'only_matching': True,
+    }, {
+        'url': 'https://video.vice.com/en_us/embed/57f41d3556a0a80f54726060',
+        'only_matching': True,
+    }, {
+        'url': 'https://vms.vice.com/en_us/video/preplay/58c69e38a55424f1227dc3f7',
+        'only_matching': True,
+    }, {
+        'url': 'https://www.viceland.com/en_us/video/thursday-march-1-2018/5a8f2d7ff1cdb332dd446ec1',
+        'only_matching': True,
     }]
-    _PREPLAY_HOST = 'video.vice'
+
+    @staticmethod
+    def _extract_urls(webpage):
+        return re.findall(
+            r'<iframe\b[^>]+\bsrc=["\']((?:https?:)?//video\.vice\.com/[^/]+/embed/[\da-f]{24})',
+            webpage)
+
+    @staticmethod
+    def _extract_url(webpage):
+        urls = ViceIE._extract_urls(webpage)
+        return urls[0] if urls else None
 
     def _real_extract(self, url):
         locale, video_id = re.match(self._VALID_URL, url).groups()
-        webpage, urlh = self._download_webpage_handle(url, video_id)
-        embed_code = self._search_regex(
-            r'embedCode=([^&\'"]+)', webpage,
-            'ooyala embed code', default=None)
-        if embed_code:
-            return self.url_result('ooyala:%s' % embed_code, 'Ooyala')
-        youtube_id = self._search_regex(
-            r'data-youtube-id="([^"]+)"', webpage, 'youtube id', default=None)
-        if youtube_id:
-            return self.url_result(youtube_id, 'Youtube')
-        return self._extract_preplay_video(urlh.geturl(), locale, webpage)
+
+        video = self._call_api('videos', 'id', video_id, locale, '''body
+    locked
+    rating
+    thumbnail_url
+    title''')[0]
+        title = video['title'].strip()
+        rating = video.get('rating')
+
+        query = {}
+        if video.get('locked'):
+            resource = self._get_mvpd_resource(
+                'VICELAND', title, video_id, rating)
+            query['tvetoken'] = self._extract_mvpd_auth(
+                url, video_id, 'VICELAND', resource)
+
+        # signature generation algorithm is reverse engineered from signatureGenerator in
+        # webpack:///../shared/~/vice-player/dist/js/vice-player.js in
+        # https://www.viceland.com/assets/common/js/web.vendor.bundle.js
+        # new JS is located here https://vice-web-statics-cdn.vice.com/vice-player/player-embed.js
+        exp = int(time.time()) + 1440
+
+        query.update({
+            'exp': exp,
+            'sign': hashlib.sha512(('%s:GET:%d' % (video_id, exp)).encode()).hexdigest(),
+            'skipadstitching': 1,
+            'platform': 'desktop',
+            'rn': random.randint(10000, 100000),
+        })
+
+        try:
+            preplay = self._download_json(
+                'https://vms.vice.com/%s/video/preplay/%s' % (locale, video_id),
+                video_id, query=query)
+        except ExtractorError as e:
+            if isinstance(e.cause, compat_HTTPError) and e.cause.code in (400, 401):
+                error = json.loads(e.cause.read().decode())
+                error_message = error.get('error_description') or error['details']
+                raise ExtractorError('%s said: %s' % (
+                    self.IE_NAME, error_message), expected=True)
+            raise
+
+        video_data = preplay['video']
+        formats = self._extract_m3u8_formats(
+            preplay['playURL'], video_id, 'mp4', 'm3u8_native')
+        self._sort_formats(formats)
+        episode = video_data.get('episode') or {}
+        channel = video_data.get('channel') or {}
+        season = video_data.get('season') or {}
+
+        subtitles = {}
+        for subtitle in preplay.get('subtitleURLs', []):
+            cc_url = subtitle.get('url')
+            if not cc_url:
+                continue
+            language_code = try_get(subtitle, lambda x: x['languages'][0]['language_code'], compat_str) or 'en'
+            subtitles.setdefault(language_code, []).append({
+                'url': cc_url,
+            })
+
+        return {
+            'formats': formats,
+            'id': video_id,
+            'title': title,
+            'description': clean_html(video.get('body')),
+            'thumbnail': video.get('thumbnail_url'),
+            'duration': int_or_none(video_data.get('video_duration')),
+            'timestamp': int_or_none(video_data.get('created_at'), 1000),
+            'age_limit': parse_age_limit(video_data.get('video_rating') or rating),
+            'series': try_get(video_data, lambda x: x['show']['base']['display_title'], compat_str),
+            'episode_number': int_or_none(episode.get('episode_number')),
+            'episode_id': str_or_none(episode.get('id') or video_data.get('episode_id')),
+            'season_number': int_or_none(season.get('season_number')),
+            'season_id': str_or_none(season.get('id') or video_data.get('season_id')),
+            'uploader': channel.get('name'),
+            'uploader_id': str_or_none(channel.get('id')),
+            'subtitles': subtitles,
+        }
 
 
-class ViceShowIE(InfoExtractor):
+class ViceShowIE(ViceBaseIE):
     IE_NAME = 'vice:show'
-    _VALID_URL = r'https?://(?:.+?\.)?vice\.com/(?:[^/]+/)?show/(?P<id>[^/?#&]+)'
-
-    _TEST = {
-        'url': 'https://munchies.vice.com/en/show/fuck-thats-delicious-2',
+    _VALID_URL = r'https?://(?:video\.vice|(?:www\.)?vice(?:land|tv))\.com/(?P<locale>[^/]+)/show/(?P<id>[^/?#&]+)'
+    _PAGE_SIZE = 25
+    _TESTS = [{
+        'url': 'https://video.vice.com/en_us/show/fck-thats-delicious',
         'info_dict': {
-            'id': 'fuck-thats-delicious-2',
-            'title': "Fuck, That's Delicious",
-            'description': 'Follow the culinary adventures of rapper Action Bronson during his ongoing world tour.',
+            'id': '57a2040c8cb727dec794c901',
+            'title': 'F*ck, That’s Delicious',
+            'description': 'The life and eating habits of rap’s greatest bon vivant, Action Bronson.',
         },
-        'playlist_count': 17,
-    }
+        'playlist_mincount': 64,
+    }, {
+        'url': 'https://www.vicetv.com/en_us/show/fck-thats-delicious',
+        'only_matching': True,
+    }]
+
+    def _fetch_page(self, locale, show_id, page):
+        videos = self._call_api('videos', 'show_id', show_id, locale, '''body
+    id
+    url''', ', page: %d, per_page: %d' % (page + 1, self._PAGE_SIZE))
+        for video in videos:
+            yield self.url_result(
+                video['url'], ViceIE.ie_key(), video.get('id'))
 
     def _real_extract(self, url):
-        show_id = self._match_id(url)
-        webpage = self._download_webpage(url, show_id)
+        locale, display_id = re.match(self._VALID_URL, url).groups()
+        show = self._call_api('shows', 'slug', display_id, locale, '''dek
+    id
+    title''')[0]
+        show_id = show['id']
 
-        entries = [
-            self.url_result(video_url, ViceIE.ie_key())
-            for video_url, _ in re.findall(
-                r'<h2[^>]+class="article-title"[^>]+data-id="\d+"[^>]*>\s*<a[^>]+href="(%s.*?)"'
-                % ViceIE._VALID_URL, webpage)]
+        entries = OnDemandPagedList(
+            functools.partial(self._fetch_page, locale, show_id),
+            self._PAGE_SIZE)
 
-        title = self._search_regex(
-            r'<title>(.+?)</title>', webpage, 'title', default=None)
-        if title:
-            title = re.sub(r'(.+)\s*\|\s*.+$', r'\1', title).strip()
-        description = self._html_search_meta(
-            'description', webpage, 'description')
-
-        return self.playlist_result(entries, show_id, title, description)
+        return self.playlist_result(
+            entries, show_id, show.get('title'), show.get('dek'))
 
 
-class ViceArticleIE(InfoExtractor):
+class ViceArticleIE(ViceBaseIE):
     IE_NAME = 'vice:article'
-    _VALID_URL = r'https://www.vice.com/[^/]+/article/(?P<id>[^?#]+)'
+    _VALID_URL = r'https://(?:www\.)?vice\.com/(?P<locale>[^/]+)/article/(?:[0-9a-z]{6}/)?(?P<id>[^?#]+)'
 
     _TESTS = [{
         'url': 'https://www.vice.com/en_us/article/on-set-with-the-woman-making-mormon-porn-in-utah',
         'info_dict': {
             'id': '58dc0a3dee202d2a0ccfcbd8',
             'ext': 'mp4',
-            'title': 'Mormon War on Porn ',
-            'description': 'md5:ad396a2481e7f8afb5ed486878421090',
-            'uploader': 'VICE',
-            'uploader_id': '57a204088cb727dec794c693',
-            'timestamp': 1489160690,
-            'upload_date': '20170310',
+            'title': 'Mormon War on Porn',
+            'description': 'md5:1c5d91fe25fa8aa304f9def118b92dbf',
+            'uploader': 'vice',
+            'uploader_id': '57a204088cb727dec794c67b',
+            'timestamp': 1491883129,
+            'upload_date': '20170411',
+            'age_limit': 17,
         },
         'params': {
             # AES-encrypted m3u8
             'skip_download': True,
         },
-        'add_ie': ['UplynkPreplay'],
+        'add_ie': [ViceIE.ie_key()],
     }, {
         'url': 'https://www.vice.com/en_us/article/how-to-hack-a-car',
-        'md5': 'a7ecf64ee4fa19b916c16f4b56184ae2',
+        'md5': '13010ee0bc694ea87ec40724397c2349',
         'info_dict': {
             'id': '3jstaBeXgAs',
             'ext': 'mp4',
             'title': 'How to Hack a Car: Phreaked Out (Episode 2)',
             'description': 'md5:ee95453f7ff495db8efe14ae8bf56f30',
-            'uploader_id': 'MotherboardTV',
             'uploader': 'Motherboard',
+            'uploader_id': 'MotherboardTV',
             'upload_date': '20140529',
         },
-        'add_ie': ['Youtube'],
+        'add_ie': [YoutubeIE.ie_key()],
+    }, {
+        'url': 'https://www.vice.com/en_us/article/znm9dx/karley-sciortino-slutever-reloaded',
+        'md5': 'a7ecf64ee4fa19b916c16f4b56184ae2',
+        'info_dict': {
+            'id': '57f41d3556a0a80f54726060',
+            'ext': 'mp4',
+            'title': "Making The World's First Male Sex Doll",
+            'description': 'md5:19b00b215b99961cf869c40fbe9df755',
+            'uploader': 'vice',
+            'uploader_id': '57a204088cb727dec794c67b',
+            'timestamp': 1476919911,
+            'upload_date': '20161019',
+            'age_limit': 17,
+        },
+        'params': {
+            'skip_download': True,
+            'format': 'bestvideo',
+        },
+        'add_ie': [ViceIE.ie_key()],
     }, {
         'url': 'https://www.vice.com/en_us/article/cowboy-capitalists-part-1',
         'only_matching': True,
@@ -238,14 +302,11 @@ class ViceArticleIE(InfoExtractor):
     }]
 
     def _real_extract(self, url):
-        display_id = self._match_id(url)
+        locale, display_id = re.match(self._VALID_URL, url).groups()
 
-        webpage = self._download_webpage(url, display_id)
-
-        prefetch_data = self._parse_json(self._search_regex(
-            r'window\.__PREFETCH_DATA\s*=\s*({.*});',
-            webpage, 'prefetch data'), display_id)
-        body = prefetch_data['body']
+        article = self._call_api('articles', 'slug', display_id, locale, '''body
+    embed_code''')[0]
+        body = article['body']
 
         def _url_res(video_url, ie_key):
             return {
@@ -255,20 +316,22 @@ class ViceArticleIE(InfoExtractor):
                 'ie_key': ie_key,
             }
 
+        vice_url = ViceIE._extract_url(body)
+        if vice_url:
+            return _url_res(vice_url, ViceIE.ie_key())
+
         embed_code = self._search_regex(
             r'embedCode=([^&\'"]+)', body,
             'ooyala embed code', default=None)
         if embed_code:
             return _url_res('ooyala:%s' % embed_code, 'Ooyala')
 
-        youtube_url = self._html_search_regex(
-            r'<iframe[^>]+src="(.*youtube\.com/.*)"',
-            body, 'YouTube URL', default=None)
+        youtube_url = YoutubeIE._extract_url(body)
         if youtube_url:
-            return _url_res(youtube_url, 'Youtube')
+            return _url_res(youtube_url, YoutubeIE.ie_key())
 
         video_url = self._html_search_regex(
             r'data-video-url="([^"]+)"',
-            prefetch_data['embed_code'], 'video URL')
+            article['embed_code'], 'video URL')
 
         return _url_res(video_url, ViceIE.ie_key())

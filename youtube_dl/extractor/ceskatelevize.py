@@ -13,6 +13,7 @@ from ..utils import (
     float_or_none,
     sanitized_Request,
     unescapeHTML,
+    update_url_query,
     urlencode_postdata,
     USER_AGENTS,
 )
@@ -107,7 +108,7 @@ class CeskaTelevizeIE(InfoExtractor):
 
         for user_agent in (None, USER_AGENTS['Safari']):
             req = sanitized_Request(
-                'http://www.ceskatelevize.cz/ivysilani/ajax/get-client-playlist',
+                'https://www.ceskatelevize.cz/ivysilani/ajax/get-client-playlist',
                 data=urlencode_postdata(data))
 
             req.add_header('Content-type', 'application/x-www-form-urlencoded')
@@ -146,6 +147,8 @@ class CeskaTelevizeIE(InfoExtractor):
                 is_live = item.get('type') == 'LIVE'
                 formats = []
                 for format_id, stream_url in item.get('streamUrls', {}).items():
+                    if 'drmOnly=true' in stream_url:
+                        continue
                     if 'playerType=flash' in stream_url:
                         stream_formats = self._extract_m3u8_formats(
                             stream_url, playlist_id, 'mp4', 'm3u8_native',
@@ -154,7 +157,7 @@ class CeskaTelevizeIE(InfoExtractor):
                         stream_formats = self._extract_mpd_formats(
                             stream_url, playlist_id,
                             mpd_id='dash-%s' % format_id, fatal=False)
-                    # See https://github.com/rg3/youtube-dl/issues/12119#issuecomment-280037031
+                    # See https://github.com/ytdl-org/youtube-dl/issues/12119#issuecomment-280037031
                     if format_id == 'audioDescription':
                         for f in stream_formats:
                             f['source_preference'] = -10
@@ -265,6 +268,10 @@ class CeskaTelevizePoradyIE(InfoExtractor):
             # m3u8 download
             'skip_download': True,
         },
+    }, {
+        # iframe embed
+        'url': 'http://www.ceskatelevize.cz/porady/10614999031-neviditelni/21251212048/',
+        'only_matching': True,
     }]
 
     def _real_extract(self, url):
@@ -272,8 +279,11 @@ class CeskaTelevizePoradyIE(InfoExtractor):
 
         webpage = self._download_webpage(url, video_id)
 
-        data_url = unescapeHTML(self._search_regex(
-            r'<span[^>]*\bdata-url=(["\'])(?P<url>(?:(?!\1).)+)\1',
-            webpage, 'iframe player url', group='url'))
+        data_url = update_url_query(unescapeHTML(self._search_regex(
+            (r'<span[^>]*\bdata-url=(["\'])(?P<url>(?:(?!\1).)+)\1',
+             r'<iframe[^>]+\bsrc=(["\'])(?P<url>(?:https?:)?//(?:www\.)?ceskatelevize\.cz/ivysilani/embed/iFramePlayer\.php.*?)\1'),
+            webpage, 'iframe player url', group='url')), query={
+                'autoStart': 'true',
+        })
 
         return self.url_result(data_url, ie=CeskaTelevizeIE.ie_key())

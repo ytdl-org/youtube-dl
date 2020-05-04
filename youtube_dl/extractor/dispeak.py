@@ -13,7 +13,7 @@ from ..utils import (
 
 
 class DigitallySpeakingIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:evt\.dispeak|events\.digitallyspeaking)\.com/(?:[^/]+/)+xml/(?P<id>[^.]+)\.xml'
+    _VALID_URL = r'https?://(?:s?evt\.dispeak|events\.digitallyspeaking)\.com/(?:[^/]+/)+xml/(?P<id>[^.]+)\.xml'
 
     _TESTS = [{
         # From http://gdcvault.com/play/1023460/Tenacious-Design-and-The-Interface
@@ -27,6 +27,10 @@ class DigitallySpeakingIE(InfoExtractor):
     }, {
         # From http://www.gdcvault.com/play/1014631/Classic-Game-Postmortem-PAC
         'url': 'http://events.digitallyspeaking.com/gdc/sf11/xml/12396_1299111843500GMPX.xml',
+        'only_matching': True,
+    }, {
+        # From http://www.gdcvault.com/play/1013700/Advanced-Material
+        'url': 'http://sevt.dispeak.com/ubm/gdc/eur10/xml/11256_1282118587281VNIT.xml',
         'only_matching': True,
     }]
 
@@ -54,10 +58,17 @@ class DigitallySpeakingIE(InfoExtractor):
             stream_name = xpath_text(a_format, 'streamName', fatal=True)
             video_path = re.match(r'mp4\:(?P<path>.*)', stream_name).group('path')
             url = video_root + video_path
-            vbr = xpath_text(a_format, 'bitrate')
+            bitrate = xpath_text(a_format, 'bitrate')
+            tbr = int_or_none(bitrate)
+            vbr = int_or_none(self._search_regex(
+                r'-(\d+)\.mp4', video_path, 'vbr', default=None))
+            abr = tbr - vbr if tbr and vbr else None
             video_formats.append({
+                'format_id': bitrate,
                 'url': url,
-                'vbr': int_or_none(vbr),
+                'tbr': tbr,
+                'vbr': vbr,
+                'abr': abr,
             })
         return video_formats
 

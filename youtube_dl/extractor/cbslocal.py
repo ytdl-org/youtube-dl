@@ -91,12 +91,10 @@ class CBSLocalIE(AnvatoIE):
 
         info_dict = self._extract_anvato_videos(webpage, display_id)
 
-        time_str = self._html_search_regex(
-            r'class="entry-date">([^<]+)<', webpage, 'released date', default=None)
-        if time_str:
-            timestamp = unified_timestamp(time_str)
-        else:
-            timestamp = parse_iso8601(self._html_search_meta('uploadDate', webpage))
+        timestamp = unified_timestamp(self._html_search_regex(
+            r'class="(?:entry|post)-date"[^>]*>([^<]+)', webpage,
+            'released date', default=None)) or parse_iso8601(
+            self._html_search_meta('uploadDate', webpage))
 
         info_dict.update({
             'display_id': display_id,

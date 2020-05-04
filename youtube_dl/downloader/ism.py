@@ -1,25 +1,27 @@
 from __future__ import unicode_literals
 
 import time
-import struct
 import binascii
 import io
 
 from .fragment import FragmentFD
-from ..compat import compat_urllib_error
+from ..compat import (
+    compat_Struct,
+    compat_urllib_error,
+)
 
 
-u8 = struct.Struct(b'>B')
-u88 = struct.Struct(b'>Bx')
-u16 = struct.Struct(b'>H')
-u1616 = struct.Struct(b'>Hxx')
-u32 = struct.Struct(b'>I')
-u64 = struct.Struct(b'>Q')
+u8 = compat_Struct('>B')
+u88 = compat_Struct('>Bx')
+u16 = compat_Struct('>H')
+u1616 = compat_Struct('>Hxx')
+u32 = compat_Struct('>I')
+u64 = compat_Struct('>Q')
 
-s88 = struct.Struct(b'>bx')
-s16 = struct.Struct(b'>h')
-s1616 = struct.Struct(b'>hxx')
-s32 = struct.Struct(b'>i')
+s88 = compat_Struct('>bx')
+s16 = compat_Struct('>h')
+s1616 = compat_Struct('>hxx')
+s32 = compat_Struct('>i')
 
 unity_matrix = (s32.pack(0x10000) + s32.pack(0) * 3) * 2 + s32.pack(0x40000000)
 
@@ -98,7 +100,7 @@ def write_piff_header(stream, params):
 
     if is_audio:
         smhd_payload = s88.pack(0)  # balance
-        smhd_payload = u16.pack(0)  # reserved
+        smhd_payload += u16.pack(0)  # reserved
         media_header_box = full_box(b'smhd', 0, 0, smhd_payload)  # Sound Media Header
     else:
         vmhd_payload = u16.pack(0)  # graphics mode
@@ -126,7 +128,6 @@ def write_piff_header(stream, params):
         if fourcc == 'AACL':
             sample_entry_box = box(b'mp4a', sample_entry_payload)
     else:
-        sample_entry_payload = sample_entry_payload
         sample_entry_payload += u16.pack(0)  # pre defined
         sample_entry_payload += u16.pack(0)  # reserved
         sample_entry_payload += u32.pack(0) * 3  # pre defined
@@ -140,12 +141,12 @@ def write_piff_header(stream, params):
         sample_entry_payload += u16.pack(0x18)  # depth
         sample_entry_payload += s16.pack(-1)  # pre defined
 
-        codec_private_data = binascii.unhexlify(params['codec_private_data'])
+        codec_private_data = binascii.unhexlify(params['codec_private_data'].encode('utf-8'))
         if fourcc in ('H264', 'AVC1'):
             sps, pps = codec_private_data.split(u32.pack(1))[1:]
             avcc_payload = u8.pack(1)  # configuration version
             avcc_payload += sps[1:4]  # avc profile indication + profile compatibility + avc level indication
-            avcc_payload += u8.pack(0xfc | (params.get('nal_unit_length_field', 4) - 1))  # complete represenation (1) + reserved (11111) + length size minus one
+            avcc_payload += u8.pack(0xfc | (params.get('nal_unit_length_field', 4) - 1))  # complete representation (1) + reserved (11111) + length size minus one
             avcc_payload += u8.pack(1)  # reserved (0) + number of sps (0000001)
             avcc_payload += u16.pack(len(sps))
             avcc_payload += sps

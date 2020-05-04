@@ -1,97 +1,118 @@
 from __future__ import unicode_literals
 
-from .common import InfoExtractor
-from ..utils import (
-    parse_duration,
-    parse_iso8601,
-)
-from ..compat import compat_str
+import random
+import re
+import string
+
+from .discoverygo import DiscoveryGoBaseIE
+from ..compat import compat_urllib_parse_unquote
+from ..utils import ExtractorError
+from ..compat import compat_HTTPError
 
 
-class DiscoveryIE(InfoExtractor):
-    _VALID_URL = r'''(?x)https?://(?:www\.)?(?:
-            discovery|
-            investigationdiscovery|
-            discoverylife|
-            animalplanet|
-            ahctv|
-            destinationamerica|
-            sciencechannel|
-            tlc|
-            velocity
-        )\.com/(?:[^/]+/)*(?P<id>[^./?#]+)'''
+class DiscoveryIE(DiscoveryGoBaseIE):
+    _VALID_URL = r'''(?x)https?://
+        (?P<site>
+            go\.discovery|
+            www\.
+                (?:
+                    investigationdiscovery|
+                    discoverylife|
+                    animalplanet|
+                    ahctv|
+                    destinationamerica|
+                    sciencechannel|
+                    tlc
+                )|
+            watch\.
+                (?:
+                    hgtv|
+                    foodnetwork|
+                    travelchannel|
+                    diynetwork|
+                    cookingchanneltv|
+                    motortrend
+                )
+        )\.com/tv-shows/(?P<show_slug>[^/]+)/(?:video|full-episode)s/(?P<id>[^./?#]+)'''
     _TESTS = [{
-        'url': 'http://www.discovery.com/tv-shows/mythbusters/videos/mission-impossible-outtakes.htm',
+        'url': 'https://go.discovery.com/tv-shows/cash-cab/videos/riding-with-matthew-perry',
         'info_dict': {
-            'id': '20769',
+            'id': '5a2f35ce6b66d17a5026e29e',
             'ext': 'mp4',
-            'title': 'Mission Impossible Outtakes',
-            'description': ('Watch Jamie Hyneman and Adam Savage practice being'
-                            ' each other -- to the point of confusing Jamie\'s dog -- and '
-                            'don\'t miss Adam moon-walking as Jamie ... behind Jamie\'s'
-                            ' back.'),
-            'duration': 156,
-            'timestamp': 1302032462,
-            'upload_date': '20110405',
-            'uploader_id': '103207',
+            'title': 'Riding with Matthew Perry',
+            'description': 'md5:a34333153e79bc4526019a5129e7f878',
+            'duration': 84,
         },
         'params': {
             'skip_download': True,  # requires ffmpeg
         }
     }, {
-        'url': 'http://www.discovery.com/tv-shows/mythbusters/videos/mythbusters-the-simpsons',
-        'info_dict': {
-            'id': 'mythbusters-the-simpsons',
-            'title': 'MythBusters: The Simpsons',
-        },
-        'playlist_mincount': 10,
+        'url': 'https://www.investigationdiscovery.com/tv-shows/final-vision/full-episodes/final-vision',
+        'only_matching': True,
     }, {
-        'url': 'http://www.animalplanet.com/longfin-eels-maneaters/',
-        'info_dict': {
-            'id': '78326',
-            'ext': 'mp4',
-            'title': 'Longfin Eels: Maneaters?',
-            'description': 'Jeremy Wade tests whether or not New Zealand\'s longfin eels are man-eaters by covering himself in fish guts and getting in the water with them.',
-            'upload_date': '20140725',
-            'timestamp': 1406246400,
-            'duration': 116,
-            'uploader_id': '103207',
-        },
-        'params': {
-            'skip_download': True,  # requires ffmpeg
-        }
+        'url': 'https://go.discovery.com/tv-shows/alaskan-bush-people/videos/follow-your-own-road',
+        'only_matching': True,
+    }, {
+        # using `show_slug` is important to get the correct video data
+        'url': 'https://www.sciencechannel.com/tv-shows/mythbusters-on-science/full-episodes/christmas-special',
+        'only_matching': True,
     }]
+    _GEO_COUNTRIES = ['US']
+    _GEO_BYPASS = False
+    _API_BASE_URL = 'https://api.discovery.com/v1/'
 
     def _real_extract(self, url):
-        display_id = self._match_id(url)
-        info = self._download_json(url + '?flat=1', display_id)
+        site, show_slug, display_id = re.match(self._VALID_URL, url).groups()
 
-        video_title = info.get('playlist_title') or info.get('video_title')
+        access_token = None
+        cookies = self._get_cookies(url)
 
-        entries = []
+        # prefer Affiliate Auth Token over Anonymous Auth Token
+        auth_storage_cookie = cookies.get('eosAf') or cookies.get('eosAn')
+        if auth_storage_cookie and auth_storage_cookie.value:
+            auth_storage = self._parse_json(compat_urllib_parse_unquote(
+                compat_urllib_parse_unquote(auth_storage_cookie.value)),
+                display_id, fatal=False) or {}
+            access_token = auth_storage.get('a') or auth_storage.get('access_token')
 
-        for idx, video_info in enumerate(info['playlist']):
-            subtitles = {}
-            caption_url = video_info.get('captionsUrl')
-            if caption_url:
-                subtitles = {
-                    'en': [{
-                        'url': caption_url,
-                    }]
-                }
+        if not access_token:
+            access_token = self._download_json(
+                'https://%s.com/anonymous' % site, display_id,
+                'Downloading token JSON metadata', query={
+                    'authRel': 'authorization',
+                    'client_id': '3020a40c2356a645b4b4',
+                    'nonce': ''.join([random.choice(string.ascii_letters) for _ in range(32)]),
+                    'redirectUri': 'https://www.discovery.com/',
+                })['access_token']
 
-            entries.append({
-                '_type': 'url_transparent',
-                'url': 'http://players.brightcove.net/103207/default_default/index.html?videoId=ref:%s' % video_info['referenceId'],
-                'id': compat_str(video_info['id']),
-                'title': video_info['title'],
-                'description': video_info.get('description'),
-                'duration': parse_duration(video_info.get('video_length')),
-                'webpage_url': video_info.get('href') or video_info.get('url'),
-                'thumbnail': video_info.get('thumbnailURL'),
-                'alt_title': video_info.get('secondary_title'),
-                'timestamp': parse_iso8601(video_info.get('publishedDate')),
-                'subtitles': subtitles,
-            })
+        headers = self.geo_verification_headers()
+        headers['Authorization'] = 'Bearer ' + access_token
 
-        return self.playlist_result(entries, display_id, video_title)
+        try:
+            video = self._download_json(
+                self._API_BASE_URL + 'content/videos',
+                display_id, 'Downloading content JSON metadata',
+                headers=headers, query={
+                    'embed': 'show.name',
+                    'fields': 'authenticated,description.detailed,duration,episodeNumber,id,name,parental.rating,season.number,show,tags',
+                    'slug': display_id,
+                    'show_slug': show_slug,
+                })[0]
+            video_id = video['id']
+            stream = self._download_json(
+                self._API_BASE_URL + 'streaming/video/' + video_id,
+                display_id, 'Downloading streaming JSON metadata', headers=headers)
+        except ExtractorError as e:
+            if isinstance(e.cause, compat_HTTPError) and e.cause.code in (401, 403):
+                e_description = self._parse_json(
+                    e.cause.read().decode(), display_id)['description']
+                if 'resource not available for country' in e_description:
+                    self.raise_geo_restricted(countries=self._GEO_COUNTRIES)
+                if 'Authorized Networks' in e_description:
+                    raise ExtractorError(
+                        'This video is only available via cable service provider subscription that'
+                        ' is not currently supported. You may want to use --cookies.', expected=True)
+                raise ExtractorError(e_description)
+            raise
+
+        return self._extract_video_info(video, stream, display_id)

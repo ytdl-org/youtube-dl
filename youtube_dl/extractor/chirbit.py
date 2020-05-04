@@ -1,10 +1,10 @@
 # coding: utf-8
 from __future__ import unicode_literals
 
-import base64
 import re
 
 from .common import InfoExtractor
+from ..compat import compat_b64decode
 from ..utils import parse_duration
 
 
@@ -44,8 +44,7 @@ class ChirbitIE(InfoExtractor):
 
         # Reverse engineered from https://chirb.it/js/chirbit.player.js (look
         # for soundURL)
-        audio_url = base64.b64decode(
-            data_fd[::-1].encode('ascii')).decode('utf-8')
+        audio_url = compat_b64decode(data_fd[::-1]).decode('utf-8')
 
         title = self._search_regex(
             r'class=["\']chirbit-title["\'][^>]*>([^<]+)', webpage, 'title')

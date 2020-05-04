@@ -1,5 +1,8 @@
 from __future__ import unicode_literals
 
+import re
+
+from .common import InfoExtractor
 from ..utils import (
     int_or_none,
     str_to_int,
@@ -12,7 +15,7 @@ class MofosexIE(KeezMoviesIE):
     _VALID_URL = r'https?://(?:www\.)?mofosex\.com/videos/(?P<id>\d+)/(?P<display_id>[^/?#&.]+)\.html'
     _TESTS = [{
         'url': 'http://www.mofosex.com/videos/318131/amateur-teen-playing-and-masturbating-318131.html',
-        'md5': '39a15853632b7b2e5679f92f69b78e91',
+        'md5': '558fcdafbb63a87c019218d6e49daf8a',
         'info_dict': {
             'id': '318131',
             'display_id': 'amateur-teen-playing-and-masturbating-318131',
@@ -54,3 +57,23 @@ class MofosexIE(KeezMoviesIE):
         })
 
         return info
+
+
+class MofosexEmbedIE(InfoExtractor):
+    _VALID_URL = r'https?://(?:www\.)?mofosex\.com/embed/?\?.*?\bvideoid=(?P<id>\d+)'
+    _TESTS = [{
+        'url': 'https://www.mofosex.com/embed/?videoid=318131&referrer=KM',
+        'only_matching': True,
+    }]
+
+    @staticmethod
+    def _extract_urls(webpage):
+        return re.findall(
+            r'<iframe[^>]+\bsrc=["\']((?:https?:)?//(?:www\.)?mofosex\.com/embed/?\?.*?\bvideoid=\d+)',
+            webpage)
+
+    def _real_extract(self, url):
+        video_id = self._match_id(url)
+        return self.url_result(
+            'http://www.mofosex.com/videos/{0}/{0}.html'.format(video_id),
+            ie=MofosexIE.ie_key(), video_id=video_id)

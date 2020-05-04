@@ -8,8 +8,8 @@ from .common import InfoExtractor
 
 class MorningstarIE(InfoExtractor):
     IE_DESC = 'morningstar.com'
-    _VALID_URL = r'https?://(?:www\.)?morningstar\.com/[cC]over/video[cC]enter\.aspx\?id=(?P<id>[0-9]+)'
-    _TEST = {
+    _VALID_URL = r'https?://(?:(?:www|news)\.)morningstar\.com/[cC]over/video[cC]enter\.aspx\?id=(?P<id>[0-9]+)'
+    _TESTS = [{
         'url': 'http://www.morningstar.com/cover/videocenter.aspx?id=615869',
         'md5': '6c0acface7a787aadc8391e4bbf7b0f5',
         'info_dict': {
@@ -19,7 +19,10 @@ class MorningstarIE(InfoExtractor):
             'description': "Vanguard's Joel Dickson on managing higher tax rates for high-income earners and fund capital-gain distributions in 2013.",
             'thumbnail': r're:^https?://.*m(?:orning)?star\.com/.+thumb\.jpg$'
         }
-    }
+    }, {
+        'url': 'http://news.morningstar.com/cover/videocenter.aspx?id=825556',
+        'only_matching': True,
+    }]
 
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)

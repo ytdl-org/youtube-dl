@@ -15,7 +15,21 @@ from ..utils import (
 class VierIE(InfoExtractor):
     IE_NAME = 'vier'
     IE_DESC = 'vier.be and vijf.be'
-    _VALID_URL = r'https?://(?:www\.)?(?P<site>vier|vijf)\.be/(?:[^/]+/videos/(?P<display_id>[^/]+)(?:/(?P<id>\d+))?|video/v3/embed/(?P<embed_id>\d+))'
+    _VALID_URL = r'''(?x)
+                    https?://
+                        (?:www\.)?(?P<site>vier|vijf)\.be/
+                        (?:
+                            (?:
+                                [^/]+/videos|
+                                video(?:/[^/]+)*
+                            )/
+                            (?P<display_id>[^/]+)(?:/(?P<id>\d+))?|
+                            (?:
+                                video/v3/embed|
+                                embed/video/public
+                            )/(?P<embed_id>\d+)
+                        )
+                    '''
     _NETRC_MACHINE = 'vier'
     _TESTS = [{
         'url': 'http://www.vier.be/planb/videos/het-wordt-warm-de-moestuin/16129',
@@ -83,6 +97,15 @@ class VierIE(InfoExtractor):
     }, {
         'url': 'http://www.vier.be/video/v3/embed/16129',
         'only_matching': True,
+    }, {
+        'url': 'https://www.vijf.be/embed/video/public/4093',
+        'only_matching': True,
+    }, {
+        'url': 'https://www.vier.be/video/blockbusters/in-juli-en-augustus-summer-classics',
+        'only_matching': True,
+    }, {
+        'url': 'https://www.vier.be/video/achter-de-rug/2017/achter-de-rug-seizoen-1-aflevering-6',
+        'only_matching': True,
     }]
 
     def _real_initialize(self):
@@ -133,14 +156,20 @@ class VierIE(InfoExtractor):
         video_id = self._search_regex(
             [r'data-nid="(\d+)"', r'"nid"\s*:\s*"(\d+)"'],
             webpage, 'video id', default=video_id or display_id)
-        application = self._search_regex(
-            [r'data-application="([^"]+)"', r'"application"\s*:\s*"([^"]+)"'],
-            webpage, 'application', default=site + '_vod')
-        filename = self._search_regex(
-            [r'data-filename="([^"]+)"', r'"filename"\s*:\s*"([^"]+)"'],
-            webpage, 'filename')
 
-        playlist_url = 'http://vod.streamcloud.be/%s/_definst_/mp4:%s.mp4/playlist.m3u8' % (application, filename)
+        playlist_url = self._search_regex(
+            r'data-file=(["\'])(?P<url>(?:https?:)?//[^/]+/.+?\.m3u8.*?)\1',
+            webpage, 'm3u8 url', default=None, group='url')
+
+        if not playlist_url:
+            application = self._search_regex(
+                [r'data-application="([^"]+)"', r'"application"\s*:\s*"([^"]+)"'],
+                webpage, 'application', default=site + '_vod')
+            filename = self._search_regex(
+                [r'data-filename="([^"]+)"', r'"filename"\s*:\s*"([^"]+)"'],
+                webpage, 'filename')
+            playlist_url = 'http://vod.streamcloud.be/%s/_definst_/mp4:%s.mp4/playlist.m3u8' % (application, filename)
+
         formats = self._extract_wowza_formats(
             playlist_url, display_id, skip_protocols=['dash'])
         self._sort_formats(formats)

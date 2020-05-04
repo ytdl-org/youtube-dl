@@ -3,14 +3,15 @@ from __future__ import unicode_literals
 
 from .theplatform import ThePlatformIE
 from ..utils import (
-    update_url_query,
-    parse_age_limit,
     int_or_none,
+    parse_age_limit,
+    try_get,
+    update_url_query,
 )
 
 
 class AMCNetworksIE(ThePlatformIE):
-    _VALID_URL = r'https?://(?:www\.)?(?:amc|bbcamerica|ifc|wetv)\.com/(?:movies|shows(?:/[^/]+)+)/(?P<id>[^/?#]+)'
+    _VALID_URL = r'https?://(?:www\.)?(?:amc|bbcamerica|ifc|(?:we|sundance)tv)\.com/(?:movies|shows(?:/[^/]+)+)/(?P<id>[^/?#]+)'
     _TESTS = [{
         'url': 'http://www.ifc.com/shows/maron/season-04/episode-01/step-1',
         'md5': '',
@@ -50,6 +51,9 @@ class AMCNetworksIE(ThePlatformIE):
     }, {
         'url': 'http://www.wetv.com/shows/la-hair/videos/season-05/episode-09-episode-9-2/episode-9-sneak-peek-3',
         'only_matching': True,
+    }, {
+        'url': 'https://www.sundancetv.com/shows/riviera/full-episodes/season-1/episode-01-episode-1',
+        'only_matching': True,
     }]
 
     def _real_extract(self, url):
@@ -68,7 +72,8 @@ class AMCNetworksIE(ThePlatformIE):
         info = self._parse_theplatform_metadata(theplatform_metadata)
         video_id = theplatform_metadata['pid']
         title = theplatform_metadata['title']
-        rating = theplatform_metadata['ratings'][0]['rating']
+        rating = try_get(
+            theplatform_metadata, lambda x: x['ratings'][0]['rating'])
         auth_required = self._search_regex(
             r'window\.authRequired\s*=\s*(true|false);',
             webpage, 'auth required')
