@@ -84,16 +84,21 @@ class XVideosIE(InfoExtractor):
         'only_matching': True
     }]
 
+    HOSTS = ['xvideos', 'xvideos2', 'xvideos3']
+
     def _real_extract(self, url):
         video_id = self._match_id(url)
 
-        HOSTS = ('xvideos', 'xvideos2', 'xvideos3')
         self.report_download_webpage(video_id)
-        for host in HOSTS:
+        for i, host in enumerate(self.HOSTS):
+            print(host)
             webpage = self._download_webpage(
                 'https://www.' + host + '.com/video%s/' % video_id, video_id,
-                note=False, fatal=host == HOSTS[-1], errnote=host == HOSTS[-1])
+                note=False, fatal=host == self.HOSTS[-1], errnote=host == self.HOSTS[-1])
             if webpage:
+                temp_host=self.HOSTS[0]
+                self.HOSTS[0]=host
+                self.HOSTS[i]=temp_host
                 break
 
         mobj = re.search(r'<h1 class="inlineError">(.+?)</h1>', webpage)
