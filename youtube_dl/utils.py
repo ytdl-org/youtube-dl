@@ -1836,11 +1836,16 @@ def write_json_file(obj, fn):
                 os.unlink(fn)
             except OSError:
                 pass
+        mask = os.umask(0)
+        os.umask(mask)
         os.chmod(tf.name,
-                 stat.S_IRUSR |
-                 stat.S_IWUSR |
-                 stat.S_IRGRP |
-                 stat.S_IROTH)
+                 (stat.S_IRUSR
+                  | stat.S_IWUSR
+                  | stat.S_IRGRP
+                  | stat.S_IWGRP
+                  | stat.S_IROTH
+                  | stat.S_IWOTH)
+                 & ~mask)
 
         os.rename(tf.name, fn)
     except Exception:
