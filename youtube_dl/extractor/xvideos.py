@@ -96,9 +96,9 @@ class XVideosIE(InfoExtractor):
                 'https://www.' + host + '.com/video%s/' % video_id, video_id,
                 note=False, fatal=host == self.HOSTS[-1], errnote=host == self.HOSTS[-1])
             if webpage:
-                temp_host=self.HOSTS[0]
-                self.HOSTS[0]=host
-                self.HOSTS[i]=temp_host
+                temp_host = self.HOSTS[0]
+                self.HOSTS[0] = host
+                self.HOSTS[i] = temp_host
                 break
 
         mobj = re.search(r'<h1 class="inlineError">(.+?)</h1>', webpage)
