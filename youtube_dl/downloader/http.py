@@ -299,7 +299,7 @@ class HttpFD(FileDownloader):
                     'elapsed': now - ctx.start_time,
                 })
 
-                if is_test and byte_counter == data_len:
+                if data_len is not None and byte_counter == data_len:
                     break
 
             if not is_test and ctx.chunk_size and ctx.data_len is not None and byte_counter < ctx.data_len:
