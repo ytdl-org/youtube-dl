@@ -11,7 +11,7 @@ class TikTokTestYoutubeDl(unittest.TestCase):
         ydl = youtube_dl.YoutubeDL(params)
         info = ydl.extract_info(url, download=False)
         self.assertEquals(info['id'], '6807126376001441030')
-        self.assertEquals(info['url'], 'https://www.tiktok.com/@oriangaon/video/6807126376001441030')
+        self.assertEquals(info['webpage_url'], 'https://www.tiktok.com/@oriangaon/video/6807126376001441030')
         self.assertEquals(info['title'], '#foryou #foyou Mmmmm....,,')
         self.assertEquals(info['uploader'], 'Oriangaon')
         self.assertEquals(info['timestamp'], 1584907616)
@@ -25,7 +25,7 @@ class TikTokTestYoutubeDl(unittest.TestCase):
         self.assertGreaterEqual(info['share_count'], 109)
         self.assertGreaterEqual(info['comment_count'], 40)
         self.assertEquals(info['duration'], 10)
-        self.assertEquals(info['ext'], 'mp.4')
+        self.assertEquals(info['ext'], 'mp4')
         self.assertGreater(len(info['embed_code']),0)
 
     def test_download_video(self):

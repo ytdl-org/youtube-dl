@@ -109,9 +109,9 @@ class TikTokIE(TikTokBaseIE):
             'subtitles': subtitles,
             'comment_count': comment_count,
             'duration': duration,
-            'ext':'mp.4',
+            'ext':'mp4',
             'embed_code': embed_code,
-            'format': format
+            'formats': format
         }
         return info_dict
 
