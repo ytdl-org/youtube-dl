@@ -33,9 +33,9 @@ class TikTokTestYoutubeDl(unittest.TestCase):
         params = {}
         ydl = youtube_dl.YoutubeDL(params)
         info = ydl.extract_info(url, download=True)
-        self.assertTrue(os.path.exists("Imagine lebron freaking out over something you did! #foryou #ballislife #lebron #nba-6783617809113943301.mp.4"))
-        os.remove("Imagine lebron freaking out over something you did! #foryou #ballislife #lebron #nba-6783617809113943301.mp.4")
-
+        file_name="Imagine lebron freaking out over something you did! #foryou #ballislife #lebron #nba-6783617809113943301.mp.4"
+        self.assertTrue(os.path.exists(file_name))
+        os.remove(file_name)
 
 
 if __name__ == '__main__':
