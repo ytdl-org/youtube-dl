@@ -1,4 +1,6 @@
 import unittest
+import os.path
+
 import youtube_dl
 
 
@@ -25,6 +27,15 @@ class TikTokTestYoutubeDl(unittest.TestCase):
         self.assertEquals(info['duration'], 10)
         self.assertEquals(info['ext'], 'mp.4')
         self.assertGreater(len(info['embed_code']),0)
+
+    def test_download_video(self):
+        url = 'https://www.tiktok.com/@ballislife/video/6783617809113943301'
+        params = {}
+        ydl = youtube_dl.YoutubeDL(params)
+        info = ydl.extract_info(url, download=True)
+        file_name="Imagine lebron freaking out over something you did! #foryou #ballislife #lebron #nba-6783617809113943301.mp.4"
+        self.assertTrue(os.path.exists(file_name))
+        os.remove(file_name)
 
 
 if __name__ == '__main__':

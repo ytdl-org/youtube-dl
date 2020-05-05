@@ -4,63 +4,31 @@ from bs4 import BeautifulSoup
 import json
 from .common import InfoExtractor
 from ..utils import (
-    compat_str,
     ExtractorError,
-    int_or_none,
-    str_or_none,
-    try_get,
-    url_or_none)
+)
 
 
 class TikTokBaseIE(InfoExtractor):
     def _extract_aweme(self, data):
-        video = data['video']
-        description = str_or_none(try_get(data, lambda x: x['desc']))
-        width = int_or_none(try_get(data, lambda x: video['width']))
-        height = int_or_none(try_get(data, lambda x: video['height']))
+        video = data['props']['pageProps']['metaParams']
+        description = video['description']
+        video_meta=data['props']['pageProps']['videoData']['itemInfos']['video']
+        width = video_meta['videoMeta']['width']
+        height = video_meta['videoMeta']['height']
+        format_urls=video_meta['urls']
 
-        format_urls = set()
         formats = []
-        for format_id in (
-                'play_addr_lowbr', 'play_addr', 'play_addr_h264',
-                'download_addr'):
-            for format in try_get(
-                    video, lambda x: x[format_id]['url_list'], list) or []:
-                format_url = url_or_none(format)
-                if not format_url:
-                    continue
-                if format_url in format_urls:
-                    continue
-                format_urls.add(format_url)
-                formats.append({
-                    'url': format_url,
-                    'ext': 'mp4',
-                    'height': height,
-                    'width': width,
-                })
+        for format in format_urls:
+            formats.append({
+                'url': format,
+                'ext': 'mp4',
+                'height': height,
+                'width': width,
+            })
         self._sort_formats(formats)
-
-        thumbnail = url_or_none(try_get(
-            video, lambda x: x['cover']['url_list'][0], compat_str))
-        uploader = try_get(data, lambda x: x['author']['nickname'], compat_str)
-        timestamp = int_or_none(data.get('create_time'))
-        comment_count = int_or_none(data.get('comment_count')) or int_or_none(
-            try_get(data, lambda x: x['statistics']['comment_count']))
-        repost_count = int_or_none(try_get(
-            data, lambda x: x['statistics']['share_count']))
-
-        aweme_id = data['aweme_id']
-
         return {
-            'id': aweme_id,
-            'title': uploader or aweme_id,
             'description': description,
-            'thumbnail': thumbnail,
-            'uploader': uploader,
-            'timestamp': timestamp,
-            'comment_count': comment_count,
-            'repost_count': repost_count,
-            'formats': formats,
+            'formats': formats
         }
 
 
@@ -115,14 +83,16 @@ class TikTokIE(TikTokBaseIE):
         comments_count = item_info['commentCount']
         likes_count = item_info['diggCount']
 
+        entry=self._extract_aweme(data_dict)
+
         return self.info_dict(video_id, str(url), json_api['title'],
                               json_api['author_name'], timestamp, json_api['thumbnail_url'],
-                              views, provider_id, False, 'not_live', likes_count, shares, '', comments_count, duration, json_api['html'])
+                              views, provider_id, False, 'not_live', likes_count, shares, '', comments_count, duration, json_api['html'], entry['formats'])
 
     def info_dict(self, video_id, url, video_title,
                   uploader, timestamp, thumbnail,
                   view_count, uploader_id, is_live, live_status
-                  , likes_count, shares_count, subtitles, comment_count, duration, embed_code):
+                  , likes_count, shares_count, subtitles, comment_count, duration, embed_code, format):
         info_dict = {
             'id': video_id,
             'url': url,
@@ -140,7 +110,8 @@ class TikTokIE(TikTokBaseIE):
             'comment_count': comment_count,
             'duration': duration,
             'ext':'mp.4',
-            'embed_code': embed_code
+            'embed_code': embed_code,
+            'format': format
         }
         return info_dict
 
