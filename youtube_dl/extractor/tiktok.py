@@ -21,9 +21,9 @@ class TikTokBaseIE(InfoExtractor):
         for format in format_urls:
             formats.append({
                 'url': format,
-                'ext': 'mp4',
                 'height': height,
                 'width': width,
+                'ext': 'mp4',
             })
         self._sort_formats(formats)
         return {
@@ -109,9 +109,8 @@ class TikTokIE(TikTokBaseIE):
             'subtitles': subtitles,
             'comment_count': comment_count,
             'duration': duration,
-            'ext':'mp.4',
             'embed_code': embed_code,
-            'format': format
+            'formats': format
         }
         return info_dict
 
