@@ -22,8 +22,8 @@ class TikTokBaseIE(InfoExtractor):
             formats.append({
                 'url': format,
                 'height': height,
-                'ext': 'mp4',
                 'width': width,
+                'ext': 'mp4',
             })
         self._sort_formats(formats)
         return {
