@@ -9,6 +9,7 @@ from ..utils import (
     determine_ext,
     dict_get,
     int_or_none,
+    parse_iso8601,
     str_or_none,
     strip_or_none,
     try_get,
@@ -44,7 +45,8 @@ class SVTBaseIE(InfoExtractor):
                     'format_id': player_type,
                     'url': vurl,
                 })
-        if not formats and video_info.get('rights', {}).get('geoBlockedSweden'):
+        rights = video_info.get('rights', {})
+        if not formats and rights.get('geoBlockedSweden'):
             self.raise_geo_restricted(
                 'This video is only available in Sweden',
                 countries=self._GEO_COUNTRIES)
@@ -70,6 +72,8 @@ class SVTBaseIE(InfoExtractor):
         episode = video_info.get('episodeTitle')
         episode_number = int_or_none(video_info.get('episodeNumber'))
 
+        timestamp = parse_iso8601(rights.get('validFrom'))
+
         duration = int_or_none(dict_get(video_info, ('materialLength', 'contentDuration')))
         age_limit = None
         adult = dict_get(
@@ -84,6 +88,7 @@ class SVTBaseIE(InfoExtractor):
             'formats': formats,
             'subtitles': subtitles,
             'duration': duration,
+            'timestamp': timestamp,
             'age_limit': age_limit,
             'series': series,
             'season_number': season_number,
@@ -141,20 +146,25 @@ class SVTPlayIE(SVTPlayBaseIE):
                     )
                     '''
     _TESTS = [{
-        'url': 'http://www.svtplay.se/video/5996901/flygplan-till-haile-selassie/flygplan-till-haile-selassie-2',
-        'md5': '2b6704fe4a28801e1a098bbf3c5ac611',
+        'url': 'https://www.svtplay.se/video/13906852/en-liten-film-om/en-liten-film-torsk-pa-tallinn-en-liten-film-om-ensamhet',
+        'md5': '2382036fd6f8c994856c323fe51c426e',
         'info_dict': {
-            'id': '5996901',
+            'id': 'jvR32zj',
             'ext': 'mp4',
-            'title': 'Flygplan till Haile Selassie',
-            'duration': 3527,
-            'thumbnail': r're:^https?://.*[\.-]jpg$',
+            'title': 'Torsk på Tallinn - en liten film om ensamhet',
+            'timestamp': 1366063200,
+            'upload_date': '20130415',
+            'duration': 3510,
+            'thumbnail': r're:^https?://(?:.*[\.-]jpg|www.svtstatic.se/image/.*)$',
             'age_limit': 0,
             'subtitles': {
                 'sv': [{
-                    'ext': 'wsrt',
+                    'ext': 'vtt',
                 }]
             },
+        },
+        'params': {
+            'format': 'bestvideo',
         },
     }, {
         # geo restricted to Sweden
@@ -180,7 +190,7 @@ class SVTPlayIE(SVTPlayBaseIE):
 
     def _extract_by_video_id(self, video_id, webpage=None):
         data = self._download_json(
-            'https://api.svt.se/videoplayer-api/video/%s' % video_id,
+            'https://api.svt.se/video/%s' % video_id,
             video_id, headers=self.geo_verification_headers())
         info_dict = self._extract_video(data, video_id)
         if not info_dict.get('title'):
@@ -234,8 +244,10 @@ class SVTPlayIE(SVTPlayBaseIE):
                  r'"content"\s*:\s*{.*?"id"\s*:\s*"([\da-zA-Z-]+)"'),
                 webpage, 'video id')
 
-        return self._extract_by_video_id(svt_id, webpage)
+        info_dict = self._extract_by_video_id(svt_id, webpage)
+        info_dict.update({'thumbnail': thumbnail})
 
+        return info_dict
 
 class SVTSeriesIE(SVTPlayBaseIE):
     _VALID_URL = r'https?://(?:www\.)?svtplay\.se/(?P<id>[^/?&#]+)(?:.+?\btab=(?P<season_slug>[^&#]+))?'
