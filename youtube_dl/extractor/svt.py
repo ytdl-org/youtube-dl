@@ -9,6 +9,7 @@ from ..utils import (
     determine_ext,
     dict_get,
     int_or_none,
+    unified_timestamp,
     str_or_none,
     strip_or_none,
     try_get,
@@ -44,7 +45,8 @@ class SVTBaseIE(InfoExtractor):
                     'format_id': player_type,
                     'url': vurl,
                 })
-        if not formats and video_info.get('rights', {}).get('geoBlockedSweden'):
+        rights = try_get(video_info, lambda x: x['rights'], dict) or {}
+        if not formats and rights.get('geoBlockedSweden'):
             self.raise_geo_restricted(
                 'This video is only available in Sweden',
                 countries=self._GEO_COUNTRIES)
@@ -70,6 +72,7 @@ class SVTBaseIE(InfoExtractor):
         episode = video_info.get('episodeTitle')
         episode_number = int_or_none(video_info.get('episodeNumber'))
 
+        timestamp = unified_timestamp(rights.get('validFrom'))
         duration = int_or_none(dict_get(video_info, ('materialLength', 'contentDuration')))
         age_limit = None
         adult = dict_get(
@@ -84,6 +87,7 @@ class SVTBaseIE(InfoExtractor):
             'formats': formats,
             'subtitles': subtitles,
             'duration': duration,
+            'timestamp': timestamp,
             'age_limit': age_limit,
             'series': series,
             'season_number': season_number,
@@ -141,20 +145,29 @@ class SVTPlayIE(SVTPlayBaseIE):
                     )
                     '''
     _TESTS = [{
-        'url': 'http://www.svtplay.se/video/5996901/flygplan-till-haile-selassie/flygplan-till-haile-selassie-2',
-        'md5': '2b6704fe4a28801e1a098bbf3c5ac611',
+        'url': 'https://www.svtplay.se/video/26194546/det-har-ar-himlen',
+        'md5': '2382036fd6f8c994856c323fe51c426e',
         'info_dict': {
-            'id': '5996901',
+            'id': 'jNwpV9P',
             'ext': 'mp4',
-            'title': 'Flygplan till Haile Selassie',
-            'duration': 3527,
-            'thumbnail': r're:^https?://.*[\.-]jpg$',
+            'title': 'Det h\xe4r \xe4r himlen',
+            'timestamp': 1586044800,
+            'upload_date': '20200405',
+            'duration': 3515,
+            'thumbnail': r're:^https?://(?:.*[\.-]jpg|www.svtstatic.se/image/.*)$',
             'age_limit': 0,
             'subtitles': {
                 'sv': [{
-                    'ext': 'wsrt',
+                    'ext': 'vtt',
                 }]
             },
+        },
+        'params': {
+            'format': 'bestvideo',
+            # skip for now due to download test asserts that segment is > 10000 bytes and svt uses
+            # init segments that are smaller
+            # AssertionError: Expected test_SVTPlay_jNwpV9P.mp4 to be at least 9.77KiB, but it's only 864.00B
+            'skip_download': True,
         },
     }, {
         # geo restricted to Sweden
@@ -236,7 +249,10 @@ class SVTPlayIE(SVTPlayBaseIE):
                  r'["\']svtId["\']\s*:\s*["\']([\da-zA-Z-]+)'),
                 webpage, 'video id')
 
-        return self._extract_by_video_id(svt_id, webpage)
+        info_dict = self._extract_by_video_id(svt_id, webpage)
+        info_dict['thumbnail'] = thumbnail
+
+        return info_dict
 
 
 class SVTSeriesIE(SVTPlayBaseIE):
