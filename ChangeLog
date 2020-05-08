@@ -1,3 +1,26 @@
+version 2020.05.08
+
+Core
+* [downloader/http] Request last data block of exact remaining size
+* [downloader/http] Finish downloading once received data length matches
+  expected
+* [extractor/common] Use compat_cookiejar_Cookie for _set_cookie to always
+  ensure cookie name and value are bytestrings on python 2 (#23256, #24776)
++ [compat] Introduce compat_cookiejar_Cookie
+* [utils] Improve cookie files support
+    + Add support for UTF-8 in cookie files
+    * Skip malformed cookie file entries instead of crashing (invalid entry
+      length, invalid expires at)
+
+Extractors
+* [youtube] Improve signature cipher extraction (#25187, #25188)
+* [iprima] Improve extraction (#25138)
+* [uol] Fix extraction (#22007)
++ [orf] Add support for more radio stations (#24938, #24968)
+* [dailymotion] Fix typo
+- [puhutv] Remove no longer available HTTP formats (#25124)
+
+
 version 2020.05.03
 
 Core
