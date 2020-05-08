@@ -4,7 +4,6 @@ from __future__ import unicode_literals
 from .common import InfoExtractor
 from ..utils import (
     int_or_none,
-    merge_dicts,
     mimetype2ext,
     url_or_none,
 )
@@ -20,11 +19,7 @@ class AparatIE(InfoExtractor):
             'id': 'wP8On',
             'ext': 'mp4',
             'title': 'تیم گلکسی 11 - زومیت',
-            'description': 'md5:096bdabcdcc4569f2b8a5e903a3b3028',
-            'duration': 231,
-            'timestamp': 1387394859,
-            'upload_date': '20131218',
-            'view_count': int,
+            'description': 'md5:096bdabcdcc4569f2b8a5e903a3b3028'
         },
     }, {
         # multiple formats
@@ -48,14 +43,12 @@ class AparatIE(InfoExtractor):
 
         options = self._parse_json(
             self._search_regex(
-                r'options\s*=\s*JSON\.parse\(\s*(["\'])(?P<value>(?:(?!\1).)+)\1\s*\)',
+                r'options\s*=\s*(?P<value>.*}}})\s*;',
                 webpage, 'options', group='value'),
             video_id)
 
-        player = options['plugins']['sabaPlayerPlugin']
-
         formats = []
-        for sources in player['multiSRC']:
+        for sources in options['multiSRC']:
             for item in sources:
                 if not isinstance(item, dict):
                     continue
@@ -82,14 +75,11 @@ class AparatIE(InfoExtractor):
         self._sort_formats(
             formats, field_preference=('height', 'width', 'tbr', 'format_id'))
 
-        info = self._search_json_ld(webpage, video_id, default={})
-
-        if not info.get('title'):
-            info['title'] = player['title']
-
-        return merge_dicts(info, {
+        return {
+            'title': self._og_search_title(webpage),
+            'description': self._og_search_description(webpage),
             'id': video_id,
             'thumbnail': url_or_none(options.get('poster')),
-            'duration': int_or_none(player.get('duration')),
+            'duration': int_or_none(options.get('duration')),
             'formats': formats,
-        })
+        }
