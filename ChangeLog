@@ -1,4 +1,4 @@
-version <unreleased>
+version 2020.05.08
 
 Core
 * [downloader/http] Request last data block of exact remaining size
