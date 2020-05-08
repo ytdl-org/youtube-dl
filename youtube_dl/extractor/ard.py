@@ -249,7 +249,7 @@ class ARDMediathekIE(ARDMediathekBaseIE):
 
 
 class ARDIE(InfoExtractor):
-    _VALID_URL = r'(?P<mainurl>https?://(www\.)?daserste\.de/[^?#]+/videos/(?P<display_id>[^/?#]+)-(?P<id>[0-9]+))\.html'
+    _VALID_URL = r'(?P<mainurl>https?://(www\.)?daserste\.de/[^?#]+/videos(?:extern)?/(?P<display_id>[^/?#]+)-(?P<id>[0-9]+))\.html'
     _TESTS = [{
         # available till 14.02.2019
         'url': 'http://www.daserste.de/information/talk/maischberger/videos/das-groko-drama-zerlegen-sich-die-volksparteien-video-102.html',
@@ -263,6 +263,9 @@ class ARDIE(InfoExtractor):
             'upload_date': '20180214',
             'thumbnail': r're:^https?://.*\.jpg$',
         },
+    }, {
+        'url': 'https://www.daserste.de/information/reportage-dokumentation/erlebnis-erde/videosextern/woelfe-und-herdenschutzhunde-ungleiche-brueder-102.html',
+        'only_matching': True,
     }, {
         'url': 'http://www.daserste.de/information/reportage-dokumentation/dokus/videos/die-story-im-ersten-mission-unter-falscher-flagge-100.html',
         'only_matching': True,
