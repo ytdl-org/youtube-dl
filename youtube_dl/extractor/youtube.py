@@ -1966,7 +1966,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                 url = url_or_none(fmt.get('url'))
 
                 if not url:
-                    cipher = fmt.get('cipher')
+                    cipher = fmt.get('cipher') or fmt.get('signatureCipher')
                     if not cipher:
                         continue
                     url_data = compat_parse_qs(cipher)
