@@ -33,22 +33,48 @@ class ArteTVBaseIE(InfoExtractor):
                 error = 'Video %s is not available' % player_info.get('VID') or video_id
             raise ExtractorError(error, expected=True)
 
+        info_dict = {
+            'id': player_info['VID'],
+            'thumbnail': player_info.get('programImage') or player_info.get('VTU', {}).get('IUR')
+        }
+
         upload_date_str = player_info.get('shootingDate')
         if not upload_date_str:
             upload_date_str = (player_info.get('VRA') or player_info.get('VDA') or '').split(' ')[0]
+        info_dict['upload_date'] = unified_strdate(upload_date_str)
+
+        # extract alt_title if available
+        arte_vsu = player_info.get('VSU', '').strip()
+        arte_episode_title = player_info.get('subtitle', '').strip()
+        if arte_episode_title and arte_vsu:
+            info_dict['alt_title'] = '{} - {}'.format(arte_vsu, arte_episode_title)
+        elif arte_episode_title:
+            info_dict['alt_title'] = arte_episode_title
+        elif arte_vsu:
+            info_dict['alt_title'] = arte_vsu
 
         title = (player_info.get('VTI') or title or player_info['VID']).strip()
-        subtitle = player_info.get('VSU', '').strip()
-        if subtitle:
-            title += ' - %s' % subtitle
 
-        info_dict = {
-            'id': player_info['VID'],
-            'title': title,
-            'description': player_info.get('VDE'),
-            'upload_date': unified_strdate(upload_date_str),
-            'thumbnail': player_info.get('programImage') or player_info.get('VTU', {}).get('IUR'),
-        }
+        # add extra title info to main title
+        if info_dict.get('alt_title'):
+            title += ' - {}'.format(info_dict['alt_title'])
+        info_dict['title'] = title
+
+        # extract description with headline if headline present
+        description_headline = player_info.get('V7T', '').strip()
+        info_dict['description'] = description_headline or ''
+        if description_headline:
+            info_dict['description'] += "\n\n"
+        info_dict['description'] += player_info.get('VDE', '').strip()
+
+        if arte_episode_title:
+            info_dict['episode'] = arte_episode_title
+
+        # extract episode number if possible
+        episode_number_parse = re.findall(r'\(([0-9]+)\/([0-9]+)\)', title)
+        if episode_number_parse and episode_number_parse[0] and episode_number_parse[0][1]:
+            info_dict['episode_number'] = int(episode_number_parse[0][0])
+
         qfunc = qualities(['MQ', 'HQ', 'EQ', 'SQ'])
 
         LANGS = {
