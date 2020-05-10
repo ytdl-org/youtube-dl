@@ -16,7 +16,7 @@ class GiantBombIE(InfoExtractor):
     _VALID_URL = r'https?://(?:www\.)?giantbomb\.com/(videos|shows)/(?P<display_id>[^/]+)/(?P<id>\d+-\d+)'
     _TESTS = [{
         'url': 'http://www.giantbomb.com/videos/quick-look-destiny-the-dark-below/2300-9782/',
-        'md5': 'c8ea694254a59246a42831155dec57ac',
+        'md5': '132f5a803e7e0ab0e274d84bda1e77ae',
         'info_dict': {
             'id': '2300-9782',
             'display_id': 'quick-look-destiny-the-dark-below',
