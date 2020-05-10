@@ -246,7 +246,12 @@ class SoundcloudIE(InfoExtractor):
                 'comment_count': int,
                 'repost_count': int,
             },
-        }
+        },
+        {
+            # with AAC HQ format available via OAuth token
+            'url': 'https://soundcloud.com/wandw/the-chainsmokers-ft-daya-dont-let-me-down-ww-remix-1',
+            'only_matching': True,
+        },
     ]
 
     _API_V2_BASE = 'https://api-v2.soundcloud.com/'
@@ -350,6 +355,9 @@ class SoundcloudIE(InfoExtractor):
             format_id_list = []
             if protocol:
                 format_id_list.append(protocol)
+            ext = f.get('ext')
+            if ext == 'aac':
+                f['abr'] = '256'
             for k in ('ext', 'abr'):
                 v = f.get(k)
                 if v:
@@ -360,9 +368,13 @@ class SoundcloudIE(InfoExtractor):
             abr = f.get('abr')
             if abr:
                 f['abr'] = int(abr)
+            if protocol == 'hls':
+                protocol = 'm3u8' if ext == 'aac' else 'm3u8_native'
+            else:
+                protocol = 'http'
             f.update({
                 'format_id': '_'.join(format_id_list),
-                'protocol': 'm3u8_native' if protocol == 'hls' else 'http',
+                'protocol': protocol,
                 'preference': -10 if preview else None,
             })
             formats.append(f)
