@@ -110,9 +110,8 @@ class ZDFIE(ZDFBaseIE):
             formats.append(f)
 
     def _extract_entry(self, url, player, content, video_id):
-        title = content.get('title') or content['teaserHeadline']
-
         t = content['mainVideoContent']['http://zdf.de/rels/target']
+        title = (t.get('title') or content.get('title') or content['teaserHeadline']).strip()
 
         ptmd_path = t.get('http://zdf.de/rels/streams/ptmd')
 
