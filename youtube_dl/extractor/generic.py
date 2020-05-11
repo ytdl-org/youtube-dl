@@ -2390,14 +2390,11 @@ class GenericIE(InfoExtractor):
                         xspf_base_url=full_response.geturl()),
                     video_id)
             elif re.match(r'(?i)^(?:{[^}]+})?MPD$', doc.tag):
-                formats, subtitles = self._parse_mpd_formats_subtitles(
-                    doc,
-                    mpd_base_url=full_response.geturl().rpartition('/')[0],
-                    mpd_url=url)
-                self._sort_formats(formats)
-                info_dict['formats'] = formats
-                if subtitles:
-                    info_dict['subtitles'] = subtitles
+                info_dict.update(
+                    self._parse_mpd_formats_subtitles(
+                        doc, mpd_base_url=full_response.geturl().rpartition('/')[0],
+                        mpd_url=url))
+                self._sort_formats(info_dict['formats'])
                 return info_dict
             elif re.match(r'^{http://ns\.adobe\.com/f4m/[12]\.0}manifest$', doc.tag):
                 info_dict['formats'] = self._parse_f4m_formats(doc, url, video_id)

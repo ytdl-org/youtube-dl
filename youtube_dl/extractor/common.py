@@ -2023,8 +2023,10 @@ class InfoExtractor(object):
             })
         return entries
 
-    def _extract_mpd_formats(self, *args, **kwargs):
-        return self._extract_mpd_formats_subtitles(*args, **kwargs)[0]
+    def _extract_mpd_formats(self, mpd_url, video_id, mpd_id=None, note=None, errnote=None, fatal=True, formats_dict={}, data=None, headers={}, query={}):
+        return self._extract_mpd_formats_subtitles(
+            mpd_url, video_id, mpd_id=mpd_id, note=note, errnote=errnote, fatal=fatal,
+            formats_dict=formats_dict, data=data, headers=headers, query=query)['formats']
 
     def _extract_mpd_formats_subtitles(self, mpd_url, video_id, mpd_id=None, note=None, errnote=None, fatal=True, formats_dict={}, data=None, headers={}, query={}):
         res = self._download_xml_handle(
@@ -2040,11 +2042,13 @@ class InfoExtractor(object):
         mpd_base_url = base_url(urlh.geturl())
 
         return self._parse_mpd_formats_subtitles(
-            mpd_doc, mpd_id=mpd_id, mpd_base_url=mpd_base_url,
-            formats_dict=formats_dict, mpd_url=mpd_url)
+            mpd_doc, mpd_id=mpd_id, mpd_base_url=mpd_base_url, formats_dict=formats_dict,
+            mpd_url=mpd_url)
 
-    def _parse_mpd_formats(self, *args, **kwargs):
-        return self._parse_mpd_formats_subtitles(*args, **kwargs)[0]
+    def _parse_mpd_formats(self, mpd_doc, mpd_id=None, mpd_base_url='', formats_dict={}, mpd_url=None):
+        return self._parse_mpd_formats_subtitles(
+            mpd_doc, mpd_id=mpd_id, mpd_base_url=mpd_base_url, formats_dict=formats_dict,
+            mpd_url=mpd_url)['formats']
 
     def _parse_mpd_formats_subtitles(self, mpd_doc, mpd_id=None, mpd_base_url='', formats_dict={}, mpd_url=None):
         """
@@ -2055,7 +2059,7 @@ class InfoExtractor(object):
          2. https://en.wikipedia.org/wiki/Dynamic_Adaptive_Streaming_over_HTTP
         """
         if mpd_doc.get('type') == 'dynamic':
-            return []
+            return {'formats': [], 'subtitles': {}}
 
         namespace = self._search_regex(r'(?i)^{([^}]+)?}MPD$', mpd_doc.tag, 'namespace', default=None)
 
@@ -2337,7 +2341,7 @@ class InfoExtractor(object):
                         formats.append(full_info)
                     else:
                         self.report_warning('Unknown MIME type %s in DASH manifest' % mime_type)
-        return formats, subtitles
+        return {'formats': formats, 'subtitles': subtitles}
 
     def _extract_ism_formats(self, ism_url, video_id, ism_id=None, note=None, errnote=None, fatal=True, data=None, headers={}, query={}):
         res = self._download_xml_handle(

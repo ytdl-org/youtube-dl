@@ -831,7 +831,8 @@ jwplayer("mediaplayer").setup({"abouttext":"Visit Indie DB","aboutlink":"http:\/
                     'height': 1080,
                 }],
                 {},
-            ), (
+            ),
+            (
                 # https://github.com/ytdl-org/youtube-dl/pull/14844
                 'urls_only',
                 'http://unknown/manifest.mpd',  # mpd_url
@@ -915,7 +916,8 @@ jwplayer("mediaplayer").setup({"abouttext":"Visit Indie DB","aboutlink":"http:\/
                     'height': 1080,
                 }],
                 {},
-            ), (
+            ),
+            (
                 # https://github.com/ytdl-org/youtube-dl/issues/20346
                 # Media considered unfragmented even though it contains
                 # Initialization tag
@@ -933,7 +935,6 @@ jwplayer("mediaplayer").setup({"abouttext":"Visit Indie DB","aboutlink":"http:\/
                     'vcodec': 'none',
                     'tbr': 129.87,
                     'asr': 48000,
-
                 }, {
                     'url': 'https://v.redd.it/hw1x7rcg7zl21/DASH_240',
                     'manifest_url': 'https://v.redd.it/hw1x7rcg7zl21/DASHPlaylist.mpd',
@@ -962,7 +963,8 @@ jwplayer("mediaplayer").setup({"abouttext":"Visit Indie DB","aboutlink":"http:\/
                     'fps': 30,
                 }],
                 {},
-            ), (
+            ),
+            (
                 'subtitles',
                 'https://example.com/streams/1/playlist/playlist.mpd',  # mpd_url
                 'https://example.com/streams/1/playlist',  # mpd_base_url
@@ -1064,12 +1066,12 @@ jwplayer("mediaplayer").setup({"abouttext":"Visit Indie DB","aboutlink":"http:\/
         for mpd_file, mpd_url, mpd_base_url, expected_formats, expected_subtitles in _TEST_CASES:
             with io.open('./test/testdata/mpd/%s.mpd' % mpd_file,
                          mode='r', encoding='utf-8') as f:
-                formats, subtitles = self.ie._parse_mpd_formats_subtitles(
+                info_dict = self.ie._parse_mpd_formats_subtitles(
                     compat_etree_fromstring(f.read().encode('utf-8')),
                     mpd_base_url=mpd_base_url, mpd_url=mpd_url)
-                self.ie._sort_formats(formats)
-                expect_value(self, formats, expected_formats, None)
-                expect_value(self, subtitles, expected_subtitles, None)
+                self.ie._sort_formats(info_dict['formats'])
+                expect_value(self, info_dict['formats'], expected_formats, None)
+                expect_value(self, info_dict['subtitles'], expected_subtitles, None)
 
     def test_parse_f4m_formats(self):
         _TEST_CASES = [
