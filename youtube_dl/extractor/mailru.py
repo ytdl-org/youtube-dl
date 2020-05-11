@@ -128,6 +128,8 @@ class MailRuIE(InfoExtractor):
                 'http://api.video.mail.ru/videos/%s.json?new=1' % video_id,
                 video_id, 'Downloading video JSON')
 
+        video_key = self._get_cookies('https://my.mail.ru').get('video_key')
+        key = 'video_key=%s' % video_key.value
         formats = []
         for f in video_data['videos']:
             video_url = f.get('url')
@@ -140,6 +142,9 @@ class MailRuIE(InfoExtractor):
                 'url': video_url,
                 'format_id': format_id,
                 'height': height,
+                'http_headers': {
+                    'Cookie': key,
+                },
             })
         self._sort_formats(formats)
 
