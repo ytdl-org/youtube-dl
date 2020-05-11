@@ -4,10 +4,8 @@ from __future__ import unicode_literals
 import os
 
 from .common import InfoExtractor
-from ..compat import compat_str
-from ..utils import parse_iso8601, try_get
-
-COOKIE_NEBULA_AUTH = os.environ.get('COOKIE_NEBULA_AUTH')   # FIXME: a workaround for testing, because I couldn't figure out how to supply a cookiejar when running the unit tests
+from ..compat import compat_urllib_parse_unquote, compat_str
+from ..utils import parse_iso8601, ExtractorError, try_get
 
 
 class NebulaIE(InfoExtractor):
@@ -15,13 +13,13 @@ class NebulaIE(InfoExtractor):
     Nebula (https://watchnebula.com/) is a video platform created by the streamer community Standard. It hosts videos
     off-YouTube from a small hand-picked group of creators.
 
-    All videos require a subscription to watch. There are no known freely available videos. So the test case is
-    disabled (but should pass when supplying a 'nebula-auth' cookie for an account with a valid subscription).
+    All videos require a subscription to watch. There are no known freely available videos. An authentication token to
+    an account with a valid subscription can be specified in multiple ways.
 
     Nebula uses the Zype video infrastructure and this extractor is using the 'url_transparent' mode to hand off
     video extraction to the Zype extractor.
 
-    This description has been last updated on 2020-04-07.
+    This description has been last updated on 2020-05-11.
     """
 
     _VALID_URL = r'https?://(?:www\.)?watchnebula\.com/videos/(?P<id>[-\w]+)'   # the 'id' group is actually the display_id, but we misname it 'id' to be able to use _match_id()
@@ -61,7 +59,7 @@ class NebulaIE(InfoExtractor):
                 'id': '5e779ebdd157bc0001d1c75a',
                 'ext': 'mp4',
                 'title': 'Episode 1: The Draw',
-                'description': r're:^There’s free money on offer… if the players can all work together.',
+                'description': r'contains:There’s free money on offer… if the players can all work together.',
                 'upload_date': '20200323',
                 'timestamp': 1584980400,
                 'channel': 'Tom Scott Presents: Money',
@@ -71,49 +69,76 @@ class NebulaIE(InfoExtractor):
     ]
     _WORKING = True   # FIXME: should this be set to False, to hide the tests from CI, given that the unit tests require an auth cookie of a (paid) subscription?
 
-    def _extract_state_object(self, webpage, display_id):
+    def _retrieve_nebula_auth(self, video_id):
         """
-        As of 2020-04-07, every Nebula video page is a React base page, containing an initial state JSON in a script
-        tag. This function is extracting this script tag, parsing it as JSON.
+        Attempt to find a Nebula API token. Makes multiple attempts in the following order:
+        a) the --video-password command line argument
+        b) the --cookies supplied cookie jar
+        c) the NEBULA_TOKEN environment variable
+        If none of these are successful, an end user-intended error message is returned, listing some solutions.
 
-        May return None if no state object could be found or it didn't contain valid JSON.
+        # TODO: are these authentication methods, in this order, the best practice for youtube-dl?
         """
-        initial_state_object = self._search_regex(
-            r'<script[^>]*id="initial-app-state"[^>]*>(.+?)</script>', webpage,
-            'initial_state', fatal=False, default=None)
-        metadata = self._parse_json(initial_state_object, video_id=display_id) if initial_state_object else None   # TODO: we don't have the real video ID yet, is it okay to pass the display_id instead?
+        nebula_token = self._downloader.params.get('videopassword')
+        if not nebula_token:
+            # TODO: is there a helper to do all this cookie extraction?
+            nebula_cookies = self._get_cookies('https://watchnebula.com')
+            nebula_cookie = nebula_cookies.get('nebula-auth')
+            if nebula_cookie:
+                nebula_cookie_value = compat_urllib_parse_unquote(nebula_cookie.value)
+                nebula_token = self._parse_json(nebula_cookie_value, video_id).get('apiToken')
+        if not nebula_token and 'NEBULA_TOKEN' in os.environ:
+            nebula_token = os.environ.get('NEBULA_TOKEN')
+        if not nebula_token:
+            raise ExtractorError('Nebula requires an account with an active subscription. '
+                                 'You can supply a corresponding token by either '
+                                 'a) finding your nebula-auth cookie and then specifying it via --video-password, or '
+                                 'b) passing in a cookie jar containing a nebula-auth cookie via --cookies, or '
+                                 'c) setting the environment variable NEBULA_TOKEN.')
+        return nebula_token
 
-        return metadata
-
-    def _extract_video_metadata(self, state_object, display_id):
+    def _call_zype_api(self, path, params, video_id, api_key):
         """
-        The state object contains a videos.byURL dictionary, which maps URL display IDs to video IDs. Using the
-        video ID, we can then extract a dictionary with various meta data about the video itself.
-
-        May return (None, {}) if no state object was given or it didn't contain the expected lookup table or
-        meta data.
+        A helper for making calls to the Zype API.
         """
-        video_id = try_get(state_object, lambda x: x['videos']['byURL'][display_id], compat_str)
-        video_meta = try_get(state_object, lambda x: x['videos']['byID'][video_id], dict) or {}
+        query = {'api_key': api_key, 'per_page': 1}
+        query.update(params)
+        return self._download_json('https://api.zype.com' + path, video_id, query=query)
 
-        return video_id, video_meta
-
-    def _extract_video_url(self, webpage, state_object, video_id):
+    def _fetch_zype_video_data(self, display_id, api_key):
         """
-        To get the embed URL of the actual video stream, we could reconstruct it from the video ID, but it seems a
-        bit more stable to extract the iframe source that links to the video.
+        Fetch video meta data from the Zype API.
         """
-        iframe = self._search_regex(r'<iframe(.+?)</iframe>', webpage, 'iframe', fatal=False)
-        video_url = self._search_regex(r'src="(.+?)"', iframe, 'iframe-src', fatal=False) if iframe else None
+        response = self._call_zype_api('/videos', {'friendly_title': display_id}, display_id, api_key)
+        if 'response' not in response or len(response['response']) != 1:
+            raise ExtractorError('Unable to find video on Zype API')
+        return response['response'][0]
 
-        # fallback: reconstruct using video ID and access token from state object
-        if not video_url:
-            access_token = try_get(state_object, lambda x: x['account']['userInfo']['zypeAuthInfo']['accessToken'],
-                                   compat_str)
-            video_url = 'https://player.zype.com/embed/{video_id}.html?access_token={access_token}'.format(
-                video_id=video_id, access_token=access_token)
+    def _call_nebula_api(self, path, video_id, access_token):
+        """
+        A helper for making calls to the Nebula API.
+        """
+        return self._download_json('https://api.watchnebula.com/api/v1' + path, video_id, headers={
+            'Authorization': 'Token {access_token}'.format(access_token=access_token)
+        })
 
-        return video_url
+    def _fetch_zype_access_token(self, video_id, nebula_token):
+        """
+        Requests a Zype access token from the Nebula API.
+        """
+        user_object = self._call_nebula_api('/auth/user', video_id, nebula_token)
+        access_token = try_get(user_object, lambda x: x['zype_auth_info']['access_token'], compat_str)
+        if not access_token:
+            raise ExtractorError('Unable to extract Zype access token from Nebula API authentication endpoint')
+        return access_token
+
+    def _build_video_url(self, video_id, zype_access_token):
+        """
+        Construct a Zype video URL (as supported by the Zype extractor), given a Zype video ID and a Zype access token.
+        """
+        return 'https://player.zype.com/embed/{video_id}.html?access_token={access_token}'.format(
+            video_id=video_id,
+            access_token=zype_access_token)
 
     def _extract_channel(self, video_meta):
         """
@@ -144,23 +169,23 @@ class NebulaIE(InfoExtractor):
                 return category['value'][0]
 
     def _real_extract(self, url):
-        # FIXME: a workaround for testing, because I couldn't figure out how to supply a cookiejar when running the unit tests
-        if COOKIE_NEBULA_AUTH:
-            self._set_cookie('watchnebula.com', 'nebula-auth', COOKIE_NEBULA_AUTH)
-
         # extract the video's display ID from the URL (we'll retrieve the video ID later)
         display_id = self._match_id(url)
 
-        # download the page
-        webpage = self._download_webpage(url, video_id=display_id)    # TODO: what video ID do I supply, as I don't know it yet? _download_webpage doesn't accept a display_id instead...
+        # retrieve Nebula authentication information
+        nebula_token = self._retrieve_nebula_auth(display_id)
 
-        # extract the state object from the webpage, and then retrieve video meta data from it
-        state_object = self._extract_state_object(webpage, display_id)
-        video_id, video_meta = self._extract_video_metadata(state_object, display_id)
+        # fetch video meta data from the Nebula API
+        api_key = 'JlSv9XTImxelHi-eAHUVDy_NUM3uAtEogEpEdFoWHEOl9SKf5gl9pCHB1AYbY3QF'   # FIXME: extract from main chunk at runtime
+        video_meta = self._fetch_zype_video_data(display_id, api_key)
+        video_id = video_meta['_id']
+
+        # extract additional info
         channel_title = self._extract_channel(video_meta)
 
-        # extract the video URL from the webpage
-        video_url = self._extract_video_url(webpage, state_object, video_id)
+        # fetch the access token for Zype, then construct the video URL
+        zype_access_token = self._fetch_zype_access_token(video_id, nebula_token=nebula_token)
+        video_url = self._build_video_url(video_id, zype_access_token)
 
         return {
             'id': video_id,
@@ -179,7 +204,7 @@ class NebulaIE(InfoExtractor):
             'timestamp': parse_iso8601(video_meta.get('published_at')),
             'thumbnails': [
                 {
-                    'id': tn.get('name'),   # this appears to be null in all cases I've seen
+                    'id': tn.get('name'),   # this appears to be null in all cases I've encountered
                     'url': tn['url'],
                     'width': tn.get('width'),
                     'height': tn.get('height'),
