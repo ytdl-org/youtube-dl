@@ -278,15 +278,25 @@ class ITVIE(InfoExtractor):
 
 
 class ITVBTCCIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:www\.)?itv\.com/btcc/(?:[^/]+/)*(?P<id>[^/?#&]+)'
-    _TEST = {
-        'url': 'http://www.itv.com/btcc/races/btcc-2018-all-the-action-from-brands-hatch',
-        'info_dict': {
-            'id': 'btcc-2018-all-the-action-from-brands-hatch',
-            'title': 'BTCC 2018: All the action from Brands Hatch',
+    _VALID_URL = r'https?://(?:www\.)?itv\.com/btcc/(articles|races)/(?:[^/]+/)*(?P<id>[^/?#&]+)'
+    _TESTS = [
+        {
+            'url': 'https://www.itv.com/btcc/articles/btcc-2019-brands-hatch-gp-race-action',
+            'info_dict': {
+                'id': 'btcc-2019-brands-hatch-gp-race-action',
+                'title': 'BTCC 2019: Brands Hatch GP race action',
+            },
+            'playlist_mincount': 12,
         },
-        'playlist_mincount': 9,
-    }
+        {
+            'url': 'http://www.itv.com/btcc/races/btcc-2018-all-the-action-from-brands-hatch',
+            'info_dict': {
+                'id': 'btcc-2018-all-the-action-from-brands-hatch',
+                'title': 'BTCC 2018: All the action from Brands Hatch',
+            },
+            'playlist_mincount': 9,
+        }
+    ]
     BRIGHTCOVE_URL_TEMPLATE = 'http://players.brightcove.net/1582188683001/HkiHLnNRx_default/index.html?videoId=%s'
 
     def _real_extract(self, url):
@@ -305,7 +315,7 @@ class ITVBTCCIE(InfoExtractor):
                     'referrer': url,
                 }),
                 ie=BrightcoveNewIE.ie_key(), video_id=video_id)
-            for video_id in re.findall(r'data-video-id=["\'](\d+)', webpage)]
+            for video_id in re.findall(r'["\']data["\']:{["\']id["\']:(\d+),', webpage)]
 
         title = self._og_search_title(webpage, fatal=False)
 
