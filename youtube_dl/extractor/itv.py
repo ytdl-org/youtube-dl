@@ -278,25 +278,16 @@ class ITVIE(InfoExtractor):
 
 
 class ITVBTCCIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:www\.)?itv\.com/btcc/(articles|races)/(?:[^/]+/)*(?P<id>[^/?#&]+)'
-    _TESTS = [
-        {
-            'url': 'https://www.itv.com/btcc/articles/btcc-2019-brands-hatch-gp-race-action',
-            'info_dict': {
-                'id': 'btcc-2019-brands-hatch-gp-race-action',
-                'title': 'BTCC 2019: Brands Hatch GP race action',
-            },
-            'playlist_mincount': 12,
+    _VALID_URL = r'https?://(?:www\.)?itv\.com/btcc/(?:[^/]+/)*(?P<id>[^/?#&]+)'
+    _TEST = {
+        'url': 'https://www.itv.com/btcc/articles/btcc-2019-brands-hatch-gp-race-action',
+        'info_dict': {
+            'id': 'btcc-2019-brands-hatch-gp-race-action',
+            'title': 'BTCC 2019: Brands Hatch GP race action',
         },
-        {
-            'url': 'http://www.itv.com/btcc/races/btcc-2018-all-the-action-from-brands-hatch',
-            'info_dict': {
-                'id': 'btcc-2018-all-the-action-from-brands-hatch',
-                'title': 'BTCC 2018: All the action from Brands Hatch',
-            },
-            'playlist_mincount': 9,
-        }
-    ]
+        'playlist_mincount': 12,
+    }
+
     BRIGHTCOVE_URL_TEMPLATE = 'http://players.brightcove.net/1582188683001/HkiHLnNRx_default/index.html?videoId=%s'
 
     def _real_extract(self, url):
@@ -304,18 +295,28 @@ class ITVBTCCIE(InfoExtractor):
 
         webpage = self._download_webpage(url, playlist_id)
 
+        json_map = self._html_search_regex(
+            '<script id="__NEXT_DATA__" type="application/json">(.*?)</script>',
+            webpage,
+            'json_map'
+        )
+
         entries = [
             self.url_result(
-                smuggle_url(self.BRIGHTCOVE_URL_TEMPLATE % video_id, {
-                    # ITV does not like some GB IP ranges, so here are some
-                    # IP blocks it accepts
-                    'geo_ip_blocks': [
-                        '193.113.0.0/16', '54.36.162.0/23', '159.65.16.0/21'
-                    ],
-                    'referrer': url,
-                }),
+                smuggle_url(
+                    self.BRIGHTCOVE_URL_TEMPLATE % video_id['data'].get('id'), {
+                        # ITV does not like some GB IP ranges, so here are some
+                        # IP blocks it accepts
+                        'geo_ip_blocks': [
+                            '193.113.0.0/16', '54.36.162.0/23', '159.65.16.0/21'
+                        ],
+                        'referrer': url,
+                    }
+                ),
                 ie=BrightcoveNewIE.ie_key(), video_id=video_id)
-            for video_id in re.findall(r'["\']data["\']:{["\']id["\']:(\d+),', webpage)]
+            for video_id in self._parse_json(
+                json_map, playlist_id
+            )['props']['pageProps']['article']['body']['content']]
 
         title = self._og_search_title(webpage, fatal=False)
 
