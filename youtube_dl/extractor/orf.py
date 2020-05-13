@@ -376,6 +376,38 @@ class ORFOE1IE(ORFRadioIE):
     }
 
 
+class ORFRadiothekIE(ORFRadioIE):
+    _VALID_URL = r'https?://radiothek\.orf\.at/(?P<station>\w+)/(?P<date>[0-9]+)/(?P<show>\w+)'
+    IE_NAME = 'orf:radiothek'
+    IE_DESC = 'ORF Radiothek'
+
+    _API_LOOP_MAP = {
+        'fm4': 'fm4',
+        'noe': 'oe2n',
+        'wie': 'oe2w',
+        'bgl': 'oe2b',
+        'ooe': 'oe2o',
+        'stm': 'oe2st',
+        'ktn': 'oe2k',
+        'sbg': 'oe2s',
+        'tir': 'oe2t',
+        'vbg': 'oe2v',
+        'oe3': 'oe3',
+        'oe1': 'oe1',
+    }
+
+    _TEST = {
+        'url': 'https://radiothek.orf.at/fm4/20200513/4UL',
+        'only_matching': True,
+    }
+
+    def _real_extract(self, url):
+        mobj = re.match(self._VALID_URL, url)
+        self._API_STATION = mobj.group('station')
+        self._LOOP_STATION = self._API_LOOP_MAP[mobj.group('station')]
+        return super(ORFRadiothekIE, self)._real_extract(url)
+
+
 class ORFIPTVIE(InfoExtractor):
     IE_NAME = 'orf:iptv'
     IE_DESC = 'iptv.ORF.at'

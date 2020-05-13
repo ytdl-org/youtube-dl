@@ -814,6 +814,7 @@ from .orf import (
     ORFSBGIE,
     ORFTIRIE,
     ORFVBGIE,
+    ORFRadiothekIE,
     ORFIPTVIE,
 )
 from .outsidetv import OutsideTVIE
