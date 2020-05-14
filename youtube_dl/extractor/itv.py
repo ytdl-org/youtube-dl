@@ -308,15 +308,14 @@ class ITVBTCCIE(InfoExtractor):
 
         entries = [
             self.url_result(
-                smuggle_url(
-                    self.BRIGHTCOVE_URL_TEMPLATE % video_id, {
-                        # ITV does not like some GB IP ranges, so here are some
-                        # IP blocks it accepts
-                        'geo_ip_blocks': [
-                            '193.113.0.0/16', '54.36.162.0/23', '159.65.16.0/21'
-                        ],
-                        'referrer': url,
-                    }),
+                smuggle_url(self.BRIGHTCOVE_URL_TEMPLATE % video_id, {
+                    # ITV does not like some GB IP ranges, so here are some
+                    # IP blocks it accepts
+                    'geo_ip_blocks': [
+                        '193.113.0.0/16', '54.36.162.0/23', '159.65.16.0/21'
+                    ],
+                    'referrer': url,
+                }),
                 ie=BrightcoveNewIE.ie_key(), video_id=video_id)
             for video_id in video_ids]
 
