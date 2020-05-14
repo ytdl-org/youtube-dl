@@ -20,6 +20,7 @@ from ..utils import (
     merge_dicts,
     parse_duration,
     smuggle_url,
+    try_get,
     url_or_none,
     xpath_with_ns,
     xpath_element,
@@ -285,7 +286,7 @@ class ITVBTCCIE(InfoExtractor):
             'id': 'btcc-2019-brands-hatch-gp-race-action',
             'title': 'BTCC 2019: Brands Hatch GP race action',
         },
-        'playlist_mincount': 12,
+        'playlist_count': 12,
     }
 
     BRIGHTCOVE_URL_TEMPLATE = 'http://players.brightcove.net/1582188683001/HkiHLnNRx_default/index.html?videoId=%s'
@@ -295,28 +296,29 @@ class ITVBTCCIE(InfoExtractor):
 
         webpage = self._download_webpage(url, playlist_id)
 
-        json_map = self._html_search_regex(
-            '<script id="__NEXT_DATA__" type="application/json">(.*?)</script>',
-            webpage,
-            'json_map'
-        )
+        json_map = try_get(self._parse_json(self._html_search_regex(
+            '(?s)<script[^>]+id=[\'"]__NEXT_DATA__[^>]*>([^<]+)</script>', webpage, 'json_map'), playlist_id),
+            lambda x: x['props']['pageProps']['article']['body']['content']) or []
+
+        # Discard empty objects
+        video_ids = []
+        for video in json_map:
+            if video['data'].get('id'):
+                video_ids.append(video['data']['id'])
 
         entries = [
             self.url_result(
                 smuggle_url(
-                    self.BRIGHTCOVE_URL_TEMPLATE % video_id['data'].get('id'), {
+                    self.BRIGHTCOVE_URL_TEMPLATE % video_id, {
                         # ITV does not like some GB IP ranges, so here are some
                         # IP blocks it accepts
                         'geo_ip_blocks': [
                             '193.113.0.0/16', '54.36.162.0/23', '159.65.16.0/21'
                         ],
                         'referrer': url,
-                    }
-                ),
+                    }),
                 ie=BrightcoveNewIE.ie_key(), video_id=video_id)
-            for video_id in self._parse_json(
-                json_map, playlist_id
-            )['props']['pageProps']['article']['body']['content']]
+            for video_id in video_ids]
 
         title = self._og_search_title(webpage, fatal=False)
 
