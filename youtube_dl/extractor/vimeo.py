@@ -33,6 +33,7 @@ from ..utils import (
     unified_timestamp,
     unsmuggle_url,
     urlencode_postdata,
+    urljoin,
     unescapeHTML,
 )
 
@@ -191,7 +192,7 @@ class VimeoBaseInfoExtractor(InfoExtractor):
             for tt in text_tracks:
                 subtitles[tt['lang']] = [{
                     'ext': 'vtt',
-                    'url': 'https://vimeo.com' + tt['url'],
+                    'url': urljoin('https://vimeo.com', tt['url']),
                 }]
 
         thumbnails = []
@@ -591,7 +592,7 @@ class VimeoIE(VimeoBaseInfoExtractor):
             # Retrieve video webpage to extract further information
             webpage, urlh = self._download_webpage_handle(
                 url, video_id, headers=headers)
-            redirect_url = compat_str(urlh.geturl())
+            redirect_url = urlh.geturl()
         except ExtractorError as ee:
             if isinstance(ee.cause, compat_HTTPError) and ee.cause.code == 403:
                 errmsg = ee.cause.read()

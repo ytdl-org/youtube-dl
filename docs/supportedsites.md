@@ -98,6 +98,7 @@
  - **BiliBili**
  - **BilibiliAudio**
  - **BilibiliAudioAlbum**
+ - **BiliBiliPlayer**
  - **BioBioChileTV**
  - **BIQLE**
  - **BitChute**
@@ -389,7 +390,6 @@
  - **JeuxVideo**
  - **Joj**
  - **Jove**
- - **jpopsuki.tv**
  - **JWPlatform**
  - **Kakao**
  - **Kaltura**
@@ -497,6 +497,7 @@
  - **MNetTV**
  - **MoeVideo**: LetitBit video services: moevideo.net, playreplay.net and videochart.net
  - **Mofosex**
+ - **MofosexEmbed**
  - **Mojvideo**
  - **Morningstar**: morningstar.com
  - **Motherless**
@@ -619,11 +620,21 @@
  - **Ooyala**
  - **OoyalaExternal**
  - **OraTV**
+ - **orf:burgenland**: Radio Burgenland
  - **orf:fm4**: radio FM4
  - **orf:fm4:story**: fm4.orf.at stories
  - **orf:iptv**: iptv.ORF.at
+ - **orf:kaernten**: Radio Kärnten
+ - **orf:noe**: Radio Niederösterreich
+ - **orf:oberoesterreich**: Radio Oberösterreich
  - **orf:oe1**: Radio Österreich 1
+ - **orf:oe3**: Radio Österreich 3
+ - **orf:salzburg**: Radio Salzburg
+ - **orf:steiermark**: Radio Steiermark
+ - **orf:tirol**: Radio Tirol
  - **orf:tvthek**: ORF TVthek
+ - **orf:vorarlberg**: Radio Vorarlberg
+ - **orf:wien**: Radio Wien
  - **OsnatelTV**
  - **OutsideTV**
  - **PacktPub**
@@ -663,6 +674,7 @@
  - **Pokemon**
  - **PolskieRadio**
  - **PolskieRadioCategory**
+ - **Popcorntimes**
  - **PopcornTV**
  - **PornCom**
  - **PornerBros**
@@ -1004,8 +1016,8 @@
  - **Vidzi**
  - **vier**: vier.be and vijf.be
  - **vier:videos**
- - **ViewLift**
- - **ViewLiftEmbed**
+ - **viewlift**
+ - **viewlift:embed**
  - **Viidea**
  - **viki**
  - **viki:channel**

@@ -6,6 +6,7 @@ import re
 from .common import InfoExtractor
 from ..utils import (
     clean_html,
+    determine_ext,
     int_or_none,
     js_to_json,
     qualities,
@@ -18,7 +19,7 @@ class NovaEmbedIE(InfoExtractor):
     _VALID_URL = r'https?://media\.cms\.nova\.cz/embed/(?P<id>[^/?#&]+)'
     _TEST = {
         'url': 'https://media.cms.nova.cz/embed/8o0n0r?autoplay=1',
-        'md5': 'b3834f6de5401baabf31ed57456463f7',
+        'md5': 'ee009bafcc794541570edd44b71cbea3',
         'info_dict': {
             'id': '8o0n0r',
             'ext': 'mp4',
@@ -33,36 +34,76 @@ class NovaEmbedIE(InfoExtractor):
 
         webpage = self._download_webpage(url, video_id)
 
-        bitrates = self._parse_json(
-            self._search_regex(
-                r'(?s)(?:src|bitrates)\s*=\s*({.+?})\s*;', webpage, 'formats'),
-            video_id, transform_source=js_to_json)
-
-        QUALITIES = ('lq', 'mq', 'hq', 'hd')
-        quality_key = qualities(QUALITIES)
-
+        duration = None
         formats = []
-        for format_id, format_list in bitrates.items():
-            if not isinstance(format_list, list):
-                continue
-            for format_url in format_list:
-                format_url = url_or_none(format_url)
-                if not format_url:
-                    continue
-                f = {
-                    'url': format_url,
-                }
-                f_id = format_id
-                for quality in QUALITIES:
-                    if '%s.mp4' % quality in format_url:
-                        f_id += '-%s' % quality
-                        f.update({
-                            'quality': quality_key(quality),
-                            'format_note': quality.upper(),
+
+        player = self._parse_json(
+            self._search_regex(
+                r'Player\.init\s*\([^,]+,\s*({.+?})\s*,\s*{.+?}\s*\)\s*;',
+                webpage, 'player', default='{}'), video_id, fatal=False)
+        if player:
+            for format_id, format_list in player['tracks'].items():
+                if not isinstance(format_list, list):
+                    format_list = [format_list]
+                for format_dict in format_list:
+                    if not isinstance(format_dict, dict):
+                        continue
+                    format_url = url_or_none(format_dict.get('src'))
+                    format_type = format_dict.get('type')
+                    ext = determine_ext(format_url)
+                    if (format_type == 'application/x-mpegURL'
+                            or format_id == 'HLS' or ext == 'm3u8'):
+                        formats.extend(self._extract_m3u8_formats(
+                            format_url, video_id, 'mp4',
+                            entry_protocol='m3u8_native', m3u8_id='hls',
+                            fatal=False))
+                    elif (format_type == 'application/dash+xml'
+                          or format_id == 'DASH' or ext == 'mpd'):
+                        formats.extend(self._extract_mpd_formats(
+                            format_url, video_id, mpd_id='dash', fatal=False))
+                    else:
+                        formats.append({
+                            'url': format_url,
                         })
-                        break
-                f['format_id'] = f_id
-                formats.append(f)
+            duration = int_or_none(player.get('duration'))
+        else:
+            # Old path, not actual as of 08.04.2020
+            bitrates = self._parse_json(
+                self._search_regex(
+                    r'(?s)(?:src|bitrates)\s*=\s*({.+?})\s*;', webpage, 'formats'),
+                video_id, transform_source=js_to_json)
+
+            QUALITIES = ('lq', 'mq', 'hq', 'hd')
+            quality_key = qualities(QUALITIES)
+
+            for format_id, format_list in bitrates.items():
+                if not isinstance(format_list, list):
+                    format_list = [format_list]
+                for format_url in format_list:
+                    format_url = url_or_none(format_url)
+                    if not format_url:
+                        continue
+                    if format_id == 'hls':
+                        formats.extend(self._extract_m3u8_formats(
+                            format_url, video_id, ext='mp4',
+                            entry_protocol='m3u8_native', m3u8_id='hls',
+                            fatal=False))
+                        continue
+                    f = {
+                        'url': format_url,
+                    }
+                    f_id = format_id
+                    for quality in QUALITIES:
+                        if '%s.mp4' % quality in format_url:
+                            f_id += '-%s' % quality
+                            f.update({
+                                'quality': quality_key(quality),
+                                'format_note': quality.upper(),
+                            })
+                            break
+                    f['format_id'] = f_id
+                    formats.append(f)
+
         self._sort_formats(formats)
 
         title = self._og_search_title(
@@ -75,7 +116,8 @@ class NovaEmbedIE(InfoExtractor):
             r'poster\s*:\s*(["\'])(?P<value>(?:(?!\1).)+)\1', webpage,
             'thumbnail', fatal=False, group='value')
         duration = int_or_none(self._search_regex(
-            r'videoDuration\s*:\s*(\d+)', webpage, 'duration', fatal=False))
+            r'videoDuration\s*:\s*(\d+)', webpage, 'duration',
+            default=duration))
 
         return {
             'id': video_id,
@@ -91,7 +133,7 @@ class NovaIE(InfoExtractor):
     _VALID_URL = r'https?://(?:[^.]+\.)?(?P<site>tv(?:noviny)?|tn|novaplus|vymena|fanda|krasna|doma|prask)\.nova\.cz/(?:[^/]+/)+(?P<id>[^/]+?)(?:\.html|/|$)'
     _TESTS = [{
         'url': 'http://tn.nova.cz/clanek/tajemstvi-ukryte-v-podzemi-specialni-nemocnice-v-prazske-krci.html#player_13260',
-        'md5': '1dd7b9d5ea27bc361f110cd855a19bd3',
+        'md5': '249baab7d0104e186e78b0899c7d5f28',
         'info_dict': {
             'id': '1757139',
             'display_id': 'tajemstvi-ukryte-v-podzemi-specialni-nemocnice-v-prazske-krci',
@@ -113,7 +155,8 @@ class NovaIE(InfoExtractor):
         'params': {
             # rtmp download
             'skip_download': True,
-        }
+        },
+        'skip': 'gone',
     }, {
         # media.cms.nova.cz embed
         'url': 'https://novaplus.nova.cz/porad/ulice/epizoda/18760-2180-dil',
@@ -128,6 +171,7 @@ class NovaIE(InfoExtractor):
             'skip_download': True,
         },
         'add_ie': [NovaEmbedIE.ie_key()],
+        'skip': 'CHYBA 404: STRÁNKA NENALEZENA',
     }, {
         'url': 'http://sport.tn.nova.cz/clanek/sport/hokej/nhl/zivot-jde-dal-hodnotil-po-vyrazeni-z-playoff-jiri-sekac.html',
         'only_matching': True,
@@ -152,14 +196,29 @@ class NovaIE(InfoExtractor):
 
         webpage = self._download_webpage(url, display_id)
 
+        description = clean_html(self._og_search_description(webpage, default=None))
+        if site == 'novaplus':
+            upload_date = unified_strdate(self._search_regex(
+                r'(\d{1,2}-\d{1,2}-\d{4})$', display_id, 'upload date', default=None))
+        elif site == 'fanda':
+            upload_date = unified_strdate(self._search_regex(
+                r'<span class="date_time">(\d{1,2}\.\d{1,2}\.\d{4})', webpage, 'upload date', default=None))
+        else:
+            upload_date = None
+
         # novaplus
         embed_id = self._search_regex(
             r'<iframe[^>]+\bsrc=["\'](?:https?:)?//media\.cms\.nova\.cz/embed/([^/?#&]+)',
             webpage, 'embed url', default=None)
         if embed_id:
-            return self.url_result(
-                'https://media.cms.nova.cz/embed/%s' % embed_id,
-                ie=NovaEmbedIE.ie_key(), video_id=embed_id)
+            return {
+                '_type': 'url_transparent',
+                'url': 'https://media.cms.nova.cz/embed/%s' % embed_id,
+                'ie_key': NovaEmbedIE.ie_key(),
+                'id': embed_id,
+                'description': description,
+                'upload_date': upload_date
+            }
 
         video_id = self._search_regex(
             [r"(?:media|video_id)\s*:\s*'(\d+)'",
@@ -233,17 +292,7 @@ class NovaIE(InfoExtractor):
         self._sort_formats(formats)
 
         title = mediafile.get('meta', {}).get('title') or self._og_search_title(webpage)
-        description = clean_html(self._og_search_description(webpage, default=None))
         thumbnail = config.get('poster')
-
-        if site == 'novaplus':
-            upload_date = unified_strdate(self._search_regex(
-                r'(\d{1,2}-\d{1,2}-\d{4})$', display_id, 'upload date', default=None))
-        elif site == 'fanda':
-            upload_date = unified_strdate(self._search_regex(
-                r'<span class="date_time">(\d{1,2}\.\d{1,2}\.\d{4})', webpage, 'upload date', default=None))
-        else:
-            upload_date = None
 
         return {
             'id': video_id,

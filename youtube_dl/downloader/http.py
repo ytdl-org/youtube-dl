@@ -227,7 +227,7 @@ class HttpFD(FileDownloader):
             while True:
                 try:
                     # Download and write
-                    data_block = ctx.data.read(block_size if not is_test else min(block_size, data_len - byte_counter))
+                    data_block = ctx.data.read(block_size if data_len is None else min(block_size, data_len - byte_counter))
                 # socket.timeout is a subclass of socket.error but may not have
                 # errno set
                 except socket.timeout as e:
@@ -299,7 +299,7 @@ class HttpFD(FileDownloader):
                     'elapsed': now - ctx.start_time,
                 })
 
-                if is_test and byte_counter == data_len:
+                if data_len is not None and byte_counter == data_len:
                     break
 
             if not is_test and ctx.chunk_size and ctx.data_len is not None and byte_counter < ctx.data_len:
