@@ -5,7 +5,7 @@ import os
 
 from .common import InfoExtractor
 from ..compat import compat_urllib_parse_unquote, compat_str
-from ..utils import parse_iso8601, ExtractorError, try_get
+from ..utils import parse_iso8601, ExtractorError, try_get, urljoin
 
 
 class NebulaIE(InfoExtractor):
@@ -97,36 +97,81 @@ class NebulaIE(InfoExtractor):
                                  'c) setting the environment variable NEBULA_TOKEN.')
         return nebula_token
 
-    def _call_zype_api(self, path, params, video_id, api_key):
+    def _retrieve_zype_api_key(self, page_url, display_id):
+        """
+        Retrieves the Zype API key required to make calls to the Zype API.
+
+        Unfortunately, the Nebula frontend stores this as a JS object literal in one of its JS chunks,
+        looking somewhat like this (but minified):
+
+            return {
+                NODE_ENV: "production",
+                REACT_APP_NAME: "Nebula",
+                REACT_APP_NEBULA_API: "https://api.watchnebula.com/api/v1/",
+                REACT_APP_ZYPE_API: "https://api.zype.com/",
+                REACT_APP_ZYPE_API_KEY: "<redacted>",
+                REACT_APP_ZYPE_APP_KEY: "<redacted>",
+                // ...
+            }
+
+        So we have to find the reference to the chunk in the video page (as it is hashed and the hash will
+        change when they do a new release), then download the chunk and extract the API key from there,
+        hoping they won't rename the constant.
+
+        Alternatively, it is currently hardcoded and shared among all users. We haven't seen it
+        change so far, so we could also just hardcode it in the extractor as a fallback.
+        """
+        # fetch the video page
+        webpage = self._download_webpage(page_url, video_id=display_id)
+
+        # find the script tag with a file named 'main.<hash>.chunk.js' in there
+        main_script_relpath = self._search_regex(
+            r'<script[^>]*src="(?P<script_relpath>[^"]*main.[0-9a-f]*.chunk.js)"[^>]*>', webpage,
+            group='script_relpath', name='script relative path', fatal=True)
+
+        # fetch the JS chunk
+        main_script_abspath = urljoin(page_url, main_script_relpath)
+        main_script = self._download_webpage(main_script_abspath, video_id=display_id,
+                                             note='Retrieving Zype API key')
+
+        # find the API key named 'REACT_APP_ZYPE_API_KEY' in there
+        api_key = self._search_regex(
+            r'REACT_APP_ZYPE_API_KEY\s*:\s*"(?P<api_key>[\w-]*)"', main_script,
+            group='api_key', name='API key', fatal=True)
+
+        return api_key
+
+    def _call_zype_api(self, path, params, video_id, api_key, note):
         """
         A helper for making calls to the Zype API.
         """
         query = {'api_key': api_key, 'per_page': 1}
         query.update(params)
-        return self._download_json('https://api.zype.com' + path, video_id, query=query)
+        return self._download_json('https://api.zype.com' + path, video_id, query=query, note=note)
 
     def _fetch_zype_video_data(self, display_id, api_key):
         """
         Fetch video meta data from the Zype API.
         """
-        response = self._call_zype_api('/videos', {'friendly_title': display_id}, display_id, api_key)
+        response = self._call_zype_api('/videos', {'friendly_title': display_id},
+                                       display_id, api_key, note='Retrieving metadata from Zype')
         if 'response' not in response or len(response['response']) != 1:
             raise ExtractorError('Unable to find video on Zype API')
         return response['response'][0]
 
-    def _call_nebula_api(self, path, video_id, access_token):
+    def _call_nebula_api(self, path, video_id, access_token, note):
         """
         A helper for making calls to the Nebula API.
         """
         return self._download_json('https://api.watchnebula.com/api/v1' + path, video_id, headers={
             'Authorization': 'Token {access_token}'.format(access_token=access_token)
-        })
+        }, note=note)
 
     def _fetch_zype_access_token(self, video_id, nebula_token):
         """
         Requests a Zype access token from the Nebula API.
         """
-        user_object = self._call_nebula_api('/auth/user', video_id, nebula_token)
+        user_object = self._call_nebula_api('/auth/user', video_id, nebula_token, note='Retrieving Zype access token')
         access_token = try_get(user_object, lambda x: x['zype_auth_info']['access_token'], compat_str)
         if not access_token:
             raise ExtractorError('Unable to extract Zype access token from Nebula API authentication endpoint')
@@ -176,7 +221,7 @@ class NebulaIE(InfoExtractor):
         nebula_token = self._retrieve_nebula_auth(display_id)
 
         # fetch video meta data from the Nebula API
-        api_key = 'JlSv9XTImxelHi-eAHUVDy_NUM3uAtEogEpEdFoWHEOl9SKf5gl9pCHB1AYbY3QF'   # FIXME: extract from main chunk at runtime
+        api_key = self._retrieve_zype_api_key(url, display_id)
         video_meta = self._fetch_zype_video_data(display_id, api_key)
         video_id = video_meta['_id']
 
@@ -184,7 +229,7 @@ class NebulaIE(InfoExtractor):
         channel_title = self._extract_channel(video_meta)
 
         # fetch the access token for Zype, then construct the video URL
-        zype_access_token = self._fetch_zype_access_token(video_id, nebula_token=nebula_token)
+        zype_access_token = self._fetch_zype_access_token(display_id, nebula_token=nebula_token)
         video_url = self._build_video_url(video_id, zype_access_token)
 
         return {
