@@ -705,6 +705,7 @@ class TwitchClipsIE(TwitchBaseIE):
   clip(slug: "%s") {
     broadcaster {
       displayName
+      id
     }
     createdAt
     curator {
@@ -774,6 +775,7 @@ class TwitchClipsIE(TwitchBaseIE):
             'timestamp': unified_timestamp(clip.get('createdAt')),
             'thumbnails': thumbnails,
             'creator': try_get(clip, lambda x: x['broadcaster']['displayName'], compat_str),
+            'creator_id': try_get(clip, lambda x: x['broadcaster']['id'], compat_str),
             'uploader': try_get(clip, lambda x: x['curator']['displayName'], compat_str),
             'uploader_id': try_get(clip, lambda x: x['curator']['id'], compat_str),
         }
