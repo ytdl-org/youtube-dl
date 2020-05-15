@@ -32,7 +32,7 @@ class DailymotionBaseInfoExtractor(InfoExtractor):
 
     @staticmethod
     def _get_cookie_value(cookies, name):
-        cookie = cookies.get('name')
+        cookie = cookies.get(name)
         if cookie:
             return cookie.value
 
