@@ -31,7 +31,8 @@ class BiliBiliIE(InfoExtractor):
                         (?:
                             (?:
                                 video/[aA][vV]|
-                                anime/(?P<anime_id>\d+)/play\#
+                                anime/(?P<anime_id>\d+)/play\#|
+                                bangumi/media/md(?P<anime_id_2>\d+)
                             )(?P<id_bv>\d+)|
                             video/[bB][vV](?P<id>[^/?#&]+)
                         )
@@ -54,7 +55,7 @@ class BiliBiliIE(InfoExtractor):
         },
     }, {
         # Tested in BiliBiliBangumiIE
-        'url': 'http://bangumi.bilibili.com/anime/1869/play#40062',
+        'url': 'http://bangumi.bilibili.com/anime/2338/play#40062',
         'only_matching': True,
     }, {
         'url': 'http://bangumi.bilibili.com/anime/5802/play#100643',
@@ -119,24 +120,47 @@ class BiliBiliIE(InfoExtractor):
             raise ExtractorError('%s returns error %d' % (self.IE_NAME, result['code']), expected=True)
         else:
             raise ExtractorError('Can\'t extract Bangumi episode ID')
-
+    def _aid_to_bid(self, aid):
+        '''
+        convert bilibili avid to bid
+        '''
+        api_url = 'http://api.bilibili.com/x/web-interface/view?aid=%s' %(aid, )
+        js = self._download_json(api_url, aid, 'convert avid to bv id', 'convert failed')
+        return js['data']['bvid']
     def _real_extract(self, url):
         url, smuggled_data = unsmuggle_url(url, {})
 
         mobj = re.match(self._VALID_URL, url)
         video_id = mobj.group('id') or mobj.group('id_bv')
-        anime_id = mobj.group('anime_id')
+        # save the origin video id 
+        original_video_id = video_id
+        anime_id = mobj.group('anime_id') or mobj.group('anime_id_2')
         webpage = self._download_webpage(url, video_id)
-
-        if 'anime/' not in url:
-            cid = self._search_regex(
-                r'\bcid(?:["\']:|=)(\d+)', webpage, 'cid',
-                default=None
-            ) or compat_parse_qs(self._search_regex(
-                [r'EmbedPlayer\([^)]+,\s*"([^"]+)"\)',
-                 r'EmbedPlayer\([^)]+,\s*\\"([^"]+)\\"\)',
-                 r'<iframe[^>]+src="https://secure\.bilibili\.com/secure,([^"]+)"'],
-                webpage, 'player parameters'))['cid'][0]
+        title = self._html_search_regex(
+            ('<h1[^>]+\btitle=(["\'])(?P<title>(?:(?!\1).)+)\1',
+             '(?s)<h1[^>]*>(?P<title>.+?)</h1>'), webpage, 'title',
+            group='title')
+        part_list = []
+        if anime_id is None or len(anime_id) == 0:
+            if re.match(r'^\d+$', video_id) is not None:
+                video_id = self._aid_to_bid(video_id)
+                self.to_screen("%s: convert to bvid %s"%(original_video_id, video_id))
+            list_api_url = 'https://api.bilibili.com/x/web-interface/view/detail?bvid=%s'%(video_id, )
+            js = self._download_json(list_api_url, original_video_id, 'downloading video list', 'downloding video list failed', fatal=False)
+            if True or js is None or js is False:
+                # old method
+                cid = self._search_regex(
+                    r'\bcid(?:["\']:|=)(\d+)', webpage, 'cid',
+                    default=None
+                ) or compat_parse_qs(self._search_regex(
+                    [r'EmbedPlayer\([^)]+,\s*"([^"]+)"\)',
+                    r'EmbedPlayer\([^)]+,\s*\\"([^"]+)\\"\)',
+                    r'<iframe[^>]+src="https://secure\.bilibili\.com/secure,([^"]+)"'],
+                    webpage, 'player parameters'))['cid'][0]
+                part_list = [{'cid':cid, 'title': title}]
+            video_list = js['data']['View']['pages']
+            self.to_screen("%s: video count: %d"%(original_video_id, len(video_list)))
+            part_list = [{'cid': x['cid'], 'title': x['part']} for x in video_list]
         else:
             if 'no_bangumi_tip' not in smuggled_data:
                 self.to_screen('Downloading episode %s. To download all videos in anime %s, re-run youtube-dl with %s' % (
@@ -153,7 +177,8 @@ class BiliBiliIE(InfoExtractor):
                 headers=headers)
             if 'result' not in js:
                 self._report_error(js)
-            cid = js['result']['cid']
+            #TODO: set title
+            part_list = [{'cid': js['result']['cid'], 'title':''}]
 
         headers = {
             'Referer': url
@@ -163,53 +188,55 @@ class BiliBiliIE(InfoExtractor):
         entries = []
 
         RENDITIONS = ('qn=80&quality=80&type=', 'quality=2&type=mp4')
-        for num, rendition in enumerate(RENDITIONS, start=1):
-            payload = 'appkey=%s&cid=%s&otype=json&%s' % (self._APP_KEY, cid, rendition)
-            sign = hashlib.md5((payload + self._BILIBILI_KEY).encode('utf-8')).hexdigest()
+        for part_info in part_list:
+            # try to get video playback url, use 
+            for num, rendition in enumerate(RENDITIONS, start=1):
+                payload = 'appkey=%s&cid=%s&otype=json&%s' % (self._APP_KEY, part_info['cid'], rendition)
+                sign = hashlib.md5((payload + self._BILIBILI_KEY).encode('utf-8')).hexdigest()
 
-            video_info = self._download_json(
-                'http://interface.bilibili.com/v2/playurl?%s&sign=%s' % (payload, sign),
-                video_id, note='Downloading video info page',
-                headers=headers, fatal=num == len(RENDITIONS))
+                video_info = self._download_json(
+                    'http://interface.bilibili.com/v2/playurl?%s&sign=%s' % (payload, sign),
+                    original_video_id, note='Downloading video info for cid: %s'%(part_info['cid'], ),
+                    headers=headers, fatal=num == len(RENDITIONS))
 
-            if not video_info:
-                continue
-
-            if 'durl' not in video_info:
-                if num < len(RENDITIONS):
+                if not video_info:
                     continue
-                self._report_error(video_info)
 
-            for idx, durl in enumerate(video_info['durl']):
-                formats = [{
-                    'url': durl['url'],
-                    'filesize': int_or_none(durl['size']),
-                }]
-                for backup_url in durl.get('backup_url', []):
-                    formats.append({
-                        'url': backup_url,
-                        # backup URLs have lower priorities
-                        'preference': -2 if 'hd.mp4' in backup_url else -3,
+                if 'durl' not in video_info:
+                    if num < len(RENDITIONS):
+                        continue
+                    self._report_error(video_info)
+                part_title = part_info['title']
+                if len(part_list) == 1:
+                    # if video only got one part, use video title instead of part title
+                    part_title = title
+                for idx, durl in enumerate(video_info['durl']):
+                    # some video is splited to many fragments, here is this fragments
+                    formats = [{
+                        'url': durl['url'],
+                        'filesize': int_or_none(durl['size']),
+                    }]
+                    for backup_url in durl.get('backup_url', []):
+                        formats.append({
+                            'url': backup_url,
+                            # backup URLs have lower priorities
+                            'preference': -2 if 'hd.mp4' in backup_url else -3,
+                        })
+
+                    for a_format in formats:
+                        a_format.setdefault('http_headers', {}).update({
+                            'Referer': url,
+                        })
+
+                    self._sort_formats(formats)
+                    
+                    entries.append({
+                        'id': '%s_%s_%s' % (original_video_id,part_info['cid'],idx),
+                        'duration': float_or_none(durl.get('length'), 1000),
+                        'formats': formats,
+                        'title': part_title
                     })
-
-                for a_format in formats:
-                    a_format.setdefault('http_headers', {}).update({
-                        'Referer': url,
-                    })
-
-                self._sort_formats(formats)
-
-                entries.append({
-                    'id': '%s_part%s' % (video_id, idx),
-                    'duration': float_or_none(durl.get('length'), 1000),
-                    'formats': formats,
-                })
-            break
-
-        title = self._html_search_regex(
-            ('<h1[^>]+\btitle=(["\'])(?P<title>(?:(?!\1).)+)\1',
-             '(?s)<h1[^>]*>(?P<title>.+?)</h1>'), webpage, 'title',
-            group='title')
+                break
         description = self._html_search_meta('description', webpage)
         timestamp = unified_timestamp(self._html_search_regex(
             r'<time[^>]+datetime="([^"]+)"', webpage, 'upload time',
@@ -218,14 +245,7 @@ class BiliBiliIE(InfoExtractor):
         thumbnail = self._html_search_meta(['og:image', 'thumbnailUrl'], webpage)
 
         # TODO 'view_count' requires deobfuscating Javascript
-        info = {
-            'id': video_id,
-            'title': title,
-            'description': description,
-            'timestamp': timestamp,
-            'thumbnail': thumbnail,
-            'duration': float_or_none(video_info.get('timelength'), scale=1000),
-        }
+        info = {}
 
         uploader_mobj = re.search(
             r'<a[^>]+href="(?:https?:)?//space\.bilibili\.com/(?P<id>\d+)"[^>]*>(?P<name>[^<]+)',
@@ -243,16 +263,22 @@ class BiliBiliIE(InfoExtractor):
             entry.update(info)
 
         if len(entries) == 1:
-            return entries[0]
+            entry = entries[0]
+            # video only got one part
+            entry['id'] = original_video_id
+            entry['title'] = title
+            entry['description'] = description
+            entry['timestamp'] = timestamp
+            entry['thumbnail'] = thumbnail
+            return entry
         else:
-            for idx, entry in enumerate(entries):
-                entry['id'] = '%s_part%d' % (video_id, (idx + 1))
-
             return {
                 '_type': 'multi_video',
-                'id': video_id,
+                'id': original_video_id,
                 'title': title,
                 'description': description,
+                'thumbnail': thumbnail,
+                'timestamp' : timestamp,
                 'entries': entries,
             }
 
