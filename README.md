@@ -396,6 +396,10 @@ Alternatively, refer to the [developer instructions](#developer-instructions) fo
                                      a value between 0 (better) and 9 (worse)
                                      for VBR or a specific bitrate like 128K
                                      (default 5)
+    --remux-video FORMAT             Remux the video to another container format
+                                     if necessary (currently supported: mp4|mkv,
+                                     target container format must support video
+                                     / audio encoding, remuxing may fail)
     --recode-video FORMAT            Encode the video to another format if
                                      necessary (currently supported:
                                      mp4|flv|ogg|webm|mkv|avi)
