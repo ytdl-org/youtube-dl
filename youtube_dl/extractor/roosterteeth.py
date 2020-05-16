@@ -39,7 +39,7 @@ class RoosterTeethIE(InfoExtractor):
             'title': 'Volume 2, World of Remnant 3',
             'description': 'md5:8d58d3270292ea11da00ea712bbfb009',
             'episode': 'Volume 2, World of Remnant 3',
-            'channel_id': '92b6bb21-91d2-4b1b-bf95-3268fa0d9939',
+            'channel_id': 'fab60c1c-29cb-43bc-9383-5c3538d9e246',
             'thumbnail': r're:^https?://.*\.(png|jpe?g)$',
             'ext': 'mp4',
         },
