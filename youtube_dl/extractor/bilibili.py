@@ -360,29 +360,6 @@ class BiliBiliBangumiIE(InfoExtractor):
             },
         }
         ]
-    }, {
-        'url': 'http://bangumi.bilibili.com/anime/1869',
-        'info_dict': {
-            'id': '1869',
-            'title': '混沌武士',
-            'description': 'md5:6a9622b911565794c11f25f81d6a97d2',
-        },
-        'playlist': [{
-            'md5': '91da8621454dd58316851c27c68b0c13',
-            'info_dict': {
-                'id': '40062',
-                'ext': 'mp4',
-                'title': '混沌武士',
-                'description': '故事发生在日本的江户时代。风是一个小酒馆的打工女。一日，酒馆里来了一群恶霸，虽然他们的举动令风十分不满，但是毕竟风只是一届女流，无法对他们采取什么行动，只能在心里嘟哝。这时，酒家里又进来了个“不良份子...',
-                'timestamp': 1414538739,
-                'upload_date': '20141028',
-                'episode': '疾风怒涛 Tempestuous Temperaments',
-                'episode_number': 1,
-            },
-        }],
-        'params': {
-            'playlist_items': '1',
-        },
     }]
 
     def _real_extract(self, url):
@@ -433,6 +410,64 @@ class BiliBiliBangumiIE(InfoExtractor):
                     'title': episode['long_title']
                 })
         return self.playlist_result(entries, bangumi_id, title, description)
+class BiliBiliBangumiEpisodeIE(InfoExtractor):
+    _VALID_URL = r'https?://(?:www\.)bilibili.com/bangumi/play/[eE][pP](?P<id>\d+)'
+
+    IE_NAME = 'bangumi.bilibili.com'
+    IE_DESC = 'BiliBili番剧'
+    _TESTS = [{
+        'url': 'https://www.bilibili.com/bangumi/play/ep86635',
+        'info_dict': {
+            'id': '3814',
+            'title': '魔动王 最后的魔法大战',
+            'description': 'md5:9634eb0d85d515f6930fa1c833ccee63',
+        },
+        'playlist': [{
+            'info_dict': {
+                'id': '3814_1_1',
+                'ext': 'flv',
+                'title' : '最后的魔法大战 前篇'
+            },
+        },{
+            'info_dict': {
+                'id': '3814_1_2',
+                'ext': 'flv',
+                'title' : '最后的魔法大战 前篇'
+            },
+        },{
+            'info_dict': {
+                'id': '3814_1_3',
+                'ext': 'flv',
+                'title' : '最后的魔法大战 前篇'
+            },
+        },{
+            'info_dict': {
+                'id': '3814_1_4',
+                'ext': 'flv',
+                'title' : '最后的魔法大战 前篇'
+            },
+        },{
+            'info_dict': {
+                'id': '3814_1_5',
+                'ext': 'flv',
+                'title' : '最后的魔法大战 前篇'
+            },
+        }, {
+            'info_dict': {
+                'id': '3814_2_1',
+                'ext': 'flv',
+                'title' : '最后的魔法大战 后篇'
+            },
+        }
+        ]
+    }]
+
+    def _real_extract(self, url):
+        ep_id = self._match_id(url)
+        bangumi_id = self._download_json('https://api.bilibili.com/pgc/view/web/season?ep_id=%s'%(ep_id, ), ep_id, 'Downloading bangumi info')['result']['media_id']
+        return self.url_result(
+            'https://www.bilibili.com/bangumi/media/md%s' % bangumi_id,
+            ie=BiliBiliBangumiIE.ie_key(), video_id=ep_id)
 class BilibiliAudioBaseIE(InfoExtractor):
     def _call_api(self, path, sid, query=None):
         if not query:
