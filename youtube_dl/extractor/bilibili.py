@@ -27,7 +27,7 @@ from ..utils import (
 class BiliBiliIE(InfoExtractor):
     _VALID_URL = r'''(?x)
                     https?://
-                      (?:www\.)bilibili.(?:com|net)
+                      (?:www\.)bilibili.(?:com|tv)
                       /video/[aAbB][vV](?P<id>[^/?#&]+)
                     '''
 
