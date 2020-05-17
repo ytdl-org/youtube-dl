@@ -550,7 +550,7 @@ class BilibiliAudioAlbumIE(BilibiliAudioBaseIE):
             'title': '每日新曲推荐（每日11:00更新）',
             'description': '每天11:00更新，为你推送最新音乐',
         },
-        'playlist_count': 19,
+        'playlist_count': 20,
     }
 
     def _real_extract(self, url):
