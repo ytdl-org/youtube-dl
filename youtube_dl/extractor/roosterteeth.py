@@ -122,7 +122,7 @@ class RoosterTeethIE(InfoExtractor):
 
         thumbnails = []
         for image in episode.get('included', {}).get('images', []):
-            if image.get('type') in {'episode_image', 'bonus_feature_image'}:
+            if image.get('type') in ('episode_image', 'bonus_feature_image'):
                 img_attributes = image.get('attributes') or {}
                 for k in ('thumb', 'small', 'medium', 'large'):
                     img_url = img_attributes.get(k)
