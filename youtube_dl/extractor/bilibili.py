@@ -214,7 +214,7 @@ class BiliBiliIE(InfoExtractor):
                 if len(part_list) == 1:
                     # if video only got one part, use video title instead of part title
                     part_title = title
-                for idx, durl in enumerate(video_info['durl']):
+                for idx, durl in enumerate(video_info['durl'], start = 1):
                     # some video is splited to many fragments, here is this fragments
                     formats = [{
                         'url': durl['url'],
@@ -235,7 +235,7 @@ class BiliBiliIE(InfoExtractor):
                     self._sort_formats(formats)
                     
                     entries.append({
-                        'id': '%s_%s_%s' % (original_video_id,part_info['cid'],idx + 1),
+                        'id': '%s_%s_%s' % (original_video_id,part_info['cid'],idx),
                         'duration': float_or_none(durl.get('length'), 1000),
                         'formats': formats,
                         'title': part_title
@@ -310,19 +310,56 @@ class BiliBiliIE(InfoExtractor):
 
 
 class BiliBiliBangumiIE(InfoExtractor):
-    _VALID_URL = r'https?://bangumi\.bilibili\.com/anime/(?P<id>\d+)'
+    _VALID_URL = r'https?://(?:www\.)bilibili.com/bangumi/media/[mD][dD](?P<id>\d+)'
 
     IE_NAME = 'bangumi.bilibili.com'
     IE_DESC = 'BiliBili番剧'
 
     _TESTS = [{
-        'url': 'http://bangumi.bilibili.com/anime/1869',
+        'url': 'https://www.bilibili.com/bangumi/media/md3814',
         'info_dict': {
-            'id': '1869',
-            'title': '混沌武士',
-            'description': 'md5:6a9622b911565794c11f25f81d6a97d2',
+            'id': '3814',
+            'title': '魔动王 最后的魔法大战',
+            'description': 'md5:9634eb0d85d515f6930fa1c833ccee63',
         },
-        'playlist_count': 26,
+        'playlist': [{
+            'info_dict': {
+                'id': '3814_1_1',
+                'ext': 'flv',
+                'title' : '最后的魔法大战 前篇'
+            },
+        },{
+            'info_dict': {
+                'id': '3814_1_2',
+                'ext': 'flv',
+                'title' : '最后的魔法大战 前篇'
+            },
+        },{
+            'info_dict': {
+                'id': '3814_1_3',
+                'ext': 'flv',
+                'title' : '最后的魔法大战 前篇'
+            },
+        },{
+            'info_dict': {
+                'id': '3814_1_4',
+                'ext': 'flv',
+                'title' : '最后的魔法大战 前篇'
+            },
+        },{
+            'info_dict': {
+                'id': '3814_1_5',
+                'ext': 'flv',
+                'title' : '最后的魔法大战 前篇'
+            },
+        }, {
+            'info_dict': {
+                'id': '3814_2_1',
+                'ext': 'flv',
+                'title' : '最后的魔法大战 后篇'
+            },
+        }
+        ]
     }, {
         'url': 'http://bangumi.bilibili.com/anime/1869',
         'info_dict': {
@@ -348,34 +385,54 @@ class BiliBiliBangumiIE(InfoExtractor):
         },
     }]
 
-    @classmethod
-    def suitable(cls, url):
-        return False if BiliBiliIE.suitable(url) else super(BiliBiliBangumiIE, cls).suitable(url)
-
     def _real_extract(self, url):
+        headers = {
+            'Referer': url
+        } 
         bangumi_id = self._match_id(url)
+        bangumi_info = self._download_json(
+            'https://api.bilibili.com/pgc/view/web/season?season_id=%s' % (bangumi_id,),
+            bangumi_id,
+            'Downloading bangumi info',
+            'Downloading bangumi failed')['result']
+        title = bangumi_info['season_title']
+        description = bangumi_info['evaluate']
+        view_count = bangumi_info['stat']['views']
+        episodes = bangumi_info['episodes']
+        self.to_screen('%s: episode count: %d' % (bangumi_id, len(episodes)))
+        entries = []
+        for idx, episode in enumerate(episodes, start=1):
+            play_back_info = self._download_json(
+                'http://api.bilibili.com/x/player/playurl?bvid=%s&cid=%s&qn=80' % (episode['bvid'], episode['cid']),
+                bangumi_id,
+                'downloding playback info for ep: %d' % (idx, ),
+                headers=headers)['data']
+            for fragment_idx, durl in enumerate(play_back_info['durl'], start=1):
+                # some video is splited to many fragments, here is this fragments
+                formats = [{
+                    'url': durl['url'],
+                    'filesize': int_or_none(durl['size']),
+                }]
+                for backup_url in durl.get('backup_url', []):
+                    formats.append({
+                        'url': backup_url,
+                        # backup URLs have lower priorities
+                        'preference': -2 if 'hd.mp4' in backup_url else -3,
+                    })
 
-        # Sometimes this API returns a JSONP response
-        season_info = self._download_json(
-            'http://bangumi.bilibili.com/jsonp/seasoninfo/%s.ver' % bangumi_id,
-            bangumi_id, transform_source=strip_jsonp)['result']
+                for a_format in formats:
+                    a_format.setdefault('http_headers', {}).update({
+                        'Referer': url,
+                    })
 
-        entries = [{
-            '_type': 'url_transparent',
-            'url': smuggle_url(episode['webplay_url'], {'no_bangumi_tip': 1}),
-            'ie_key': BiliBiliIE.ie_key(),
-            'timestamp': parse_iso8601(episode.get('update_time'), delimiter=' '),
-            'episode': episode.get('index_title'),
-            'episode_number': int_or_none(episode.get('index')),
-        } for episode in season_info['episodes']]
-
-        entries = sorted(entries, key=lambda entry: entry.get('episode_number'))
-
-        return self.playlist_result(
-            entries, bangumi_id,
-            season_info.get('bangumi_title'), season_info.get('evaluate'))
-
-
+                self._sort_formats(formats)
+                entries.append({
+                    'id': '%s_%d_%d' % (bangumi_id,idx, fragment_idx),
+                    'duration': float_or_none(durl.get('length'), 1000),
+                    'formats': formats,
+                    'title': episode['long_title']
+                })
+        return self.playlist_result(entries, bangumi_id, title, description)
 class BilibiliAudioBaseIE(InfoExtractor):
     def _call_api(self, path, sid, query=None):
         if not query:
