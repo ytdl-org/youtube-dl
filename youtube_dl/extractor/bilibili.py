@@ -176,12 +176,12 @@ class BiliBiliIE(InfoExtractor):
         else:
             # new method, get value from json
             video_list = js['data']['View']['pages']
-            title = js['data']['View']['title']
+            title = js.get('data').get('View').get('title')
             thumbnail = js['data']['View']['pic']
-            description = js['data']['View']['desc']
-            uploader_id = js['data']['Card']['card']['mid']
-            uploader_name = js['data']['Card']['card']['name']
-            view_count = js['data']['View']['stat']['view']
+            uploader_id = js.get('data').get('Card').get('card').get('mid')
+            description = js.get('data').get('View').get('desc')
+            uploader_name = js.get('data').get('Card').get('card').get('name')
+            view_count = js.get('data').get('View').get('stat').get('view')
             self.to_screen("%s: video count: %d"%(original_video_id, len(video_list)))
             part_list = [{'cid': x['cid'], 'title': x['part']} for x in video_list]
         headers = {
@@ -294,19 +294,14 @@ class BiliBiliIE(InfoExtractor):
             entry['view_count'] = view_count
             return entry
         else:
-           return {
-               '_type': 'multi_video',
-               'uploader': uploader_name,
-               'uploader_id': uploader_id,
-               'id': original_video_id,
-               'title': title,
-               'description': description,
-               'thumbnail': thumbnail,
-               'timestamp': timestamp,
-               'upload_date': upload_date,
-               'view_count' : view_count,
-               'entries': entries,
-           }
+            playlist_entry = self.playlist_result(entries, id, title, description)
+            playlist_entry['uploader'] = uploader_name
+            playlist_entry['uploader_id'] = uploader_id
+            playlist_entry['timestamp'] = timestamp
+            playlist_entry['thumbnail'] = thumbnail
+            playlist_entry['upload_date'] = upload_date
+            playlist_entry['view_count'] = view_count
+            return playlist_entry
 
 
 class BiliBiliBangumiIE(InfoExtractor):
