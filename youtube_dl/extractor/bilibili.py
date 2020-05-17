@@ -3,6 +3,7 @@ from __future__ import unicode_literals
 
 import hashlib
 import re
+from datetime import datetime
 
 from .common import InfoExtractor
 from ..compat import (
@@ -47,7 +48,7 @@ class BiliBiliIE(InfoExtractor):
             'title': '【金坷垃】金泡沫',
             'description': 'md5:ce18c2a2d2193f0df2917d270f2e5923',
             'duration': 308.067,
-            'timestamp': 1398012678,
+            'timestamp': 1397983878,
             'upload_date': '20140420',
             'thumbnail': r're:^https?://.+\.jpg',
             'uploader': '菊子桑',
@@ -74,31 +75,26 @@ class BiliBiliIE(InfoExtractor):
             'id': '8903802',
             'title': '阿滴英文｜英文歌分享#6 "Closer',
             'description': '滴妹今天唱Closer給你聽! 有史以来，被推最多次也是最久的歌曲，其实歌词跟我原本想像差蛮多的，不过还是好听！ 微博@阿滴英文',
+            'uploader': '阿滴英文',
+            'uploader_id': '65880958',
+            'upload_date': '20170301',
+            'timestamp': 1488353834,
         },
         'playlist': [{
             'info_dict': {
-                'id': '8903802_part1',
+                'id': '8903802_14694589_1',
                 'ext': 'flv',
                 'title': '阿滴英文｜英文歌分享#6 "Closer',
-                'description': 'md5:3b1b9e25b78da4ef87e9b548b88ee76a',
-                'uploader': '阿滴英文',
-                'uploader_id': '65880958',
-                'timestamp': 1488382634,
-                'upload_date': '20170301',
+
             },
             'params': {
                 'skip_download': True,  # Test metadata only
             },
         }, {
             'info_dict': {
-                'id': '8903802_part2',
+                'id': '8903802_14694589_2',
                 'ext': 'flv',
                 'title': '阿滴英文｜英文歌分享#6 "Closer',
-                'description': 'md5:3b1b9e25b78da4ef87e9b548b88ee76a',
-                'uploader': '阿滴英文',
-                'uploader_id': '65880958',
-                'timestamp': 1488382634,
-                'upload_date': '20170301',
             },
             'params': {
                 'skip_download': True,  # Test metadata only
@@ -136,19 +132,23 @@ class BiliBiliIE(InfoExtractor):
         original_video_id = video_id
         anime_id = mobj.group('anime_id') or mobj.group('anime_id_2')
         webpage = self._download_webpage(url, video_id)
-        title = self._html_search_regex(
-            ('<h1[^>]+\btitle=(["\'])(?P<title>(?:(?!\1).)+)\1',
-             '(?s)<h1[^>]*>(?P<title>.+?)</h1>'), webpage, 'title',
-            group='title')
+        title = ''
+        timestamp = 0
+        thumbnail = ''
+        description = ''
+        uploader_id = ''
+        uploader_name = ''
+        view_count = 0
         part_list = []
-        if anime_id is None or len(anime_id) == 0:
+        if not anime_id:
+            # normal video
             if re.match(r'^\d+$', video_id) is not None:
                 video_id = self._aid_to_bid(video_id)
                 self.to_screen("%s: convert to bvid %s"%(original_video_id, video_id))
             list_api_url = 'https://api.bilibili.com/x/web-interface/view/detail?bvid=%s'%(video_id, )
             js = self._download_json(list_api_url, original_video_id, 'downloading video list', 'downloding video list failed', fatal=False)
-            if True or js is None or js is False:
-                # old method
+            if not js:
+                # try old method
                 cid = self._search_regex(
                     r'\bcid(?:["\']:|=)(\d+)', webpage, 'cid',
                     default=None
@@ -157,10 +157,18 @@ class BiliBiliIE(InfoExtractor):
                     r'EmbedPlayer\([^)]+,\s*\\"([^"]+)\\"\)',
                     r'<iframe[^>]+src="https://secure\.bilibili\.com/secure,([^"]+)"'],
                     webpage, 'player parameters'))['cid'][0]
-                part_list = [{'cid':cid, 'title': title}]
-            video_list = js['data']['View']['pages']
-            self.to_screen("%s: video count: %d"%(original_video_id, len(video_list)))
-            part_list = [{'cid': x['cid'], 'title': x['part']} for x in video_list]
+                part_list = [{'cid': cid, 'title': title}]
+            else:
+                # new method, get value from json
+                video_list = js['data']['View']['pages']
+                title = js['data']['View']['title']
+                thumbnail = js['data']['View']['pic']
+                description = js['data']['View']['desc']
+                uploader_id = js['data']['Card']['card']['mid']
+                uploader_name = js['data']['Card']['card']['name']
+                view_count = js['data']['View']['stat']['view']
+                self.to_screen("%s: video count: %d"%(original_video_id, len(video_list)))
+                part_list = [{'cid': x['cid'], 'title': x['part']} for x in video_list]
         else:
             if 'no_bangumi_tip' not in smuggled_data:
                 self.to_screen('Downloading episode %s. To download all videos in anime %s, re-run youtube-dl with %s' % (
@@ -179,7 +187,6 @@ class BiliBiliIE(InfoExtractor):
                 self._report_error(js)
             #TODO: set title
             part_list = [{'cid': js['result']['cid'], 'title':''}]
-
         headers = {
             'Referer': url
         }
@@ -231,56 +238,78 @@ class BiliBiliIE(InfoExtractor):
                     self._sort_formats(formats)
                     
                     entries.append({
-                        'id': '%s_%s_%s' % (original_video_id,part_info['cid'],idx),
+                        'id': '%s_%s_%s' % (original_video_id,part_info['cid'],idx + 1),
                         'duration': float_or_none(durl.get('length'), 1000),
                         'formats': formats,
                         'title': part_title
                     })
                 break
-        description = self._html_search_meta('description', webpage)
-        timestamp = unified_timestamp(self._html_search_regex(
-            r'<time[^>]+datetime="([^"]+)"', webpage, 'upload time',
-            default=None) or self._html_search_meta(
-            'uploadDate', webpage, 'timestamp', default=None))
-        thumbnail = self._html_search_meta(['og:image', 'thumbnailUrl'], webpage)
+        
+        
+        # timestamp = unified_timestamp(self._html_search_regex(
+        #     r'<time[^>]+datetime="([^"]+)"', webpage, 'upload time',
+        #     default=None) or self._html_search_meta(
+        #     'uploadDate', webpage, 'timestamp', default=None))
+        # upload_date = 
+        
 
-        # TODO 'view_count' requires deobfuscating Javascript
-        info = {}
-
-        uploader_mobj = re.search(
-            r'<a[^>]+href="(?:https?:)?//space\.bilibili\.com/(?P<id>\d+)"[^>]*>(?P<name>[^<]+)',
-            webpage)
-        if uploader_mobj:
-            info.update({
-                'uploader': uploader_mobj.group('name'),
-                'uploader_id': uploader_mobj.group('id'),
-            })
-        if not info.get('uploader'):
-            info['uploader'] = self._html_search_meta(
+        if not title:
+            title = self._html_search_regex(
+                ('<h1[^>]+\btitle=(["\'])(?P<title>(?:(?!\1).)+)\1',
+                 '(?s)<h1[^>]*>(?P<title>.+?)</h1>'), webpage, 'title',
+                group='title')
+        if not timestamp:
+            timestamp = self._html_search_regex(
+                ('"pubdate":(?P<timestamp>\d+),'), webpage, 'title',
+                group='timestamp')
+        if not uploader_id or not uploader_name:
+            uploader_mobj = re.search(
+                r'<a[^>]+href="(?:https?:)?//space\.bilibili\.com/(?P<id>\d+)"[^>]*>(?P<name>[^<]+)',
+                webpage)
+            if uploader_mobj:
+                uploader_id = uploader_mobj.group('id')
+                uploader_name = uploader_mobj.group('name')
+        if not uploader_id or not uploader_name:
+            # try agagin
+            uploader_name = self._html_search_meta(
                 'author', webpage, 'uploader', default=None)
+        if not thumbnail:
+            thumbnail = self._html_search_meta(['og:image', 'thumbnailUrl'], webpage)
+        if not description:
+            description = self._html_search_meta('description', webpage)
+        timestamp = int(timestamp)
+        upload_date = datetime.fromtimestamp(timestamp).strftime('%Y%m%d')
+        view_count = int(view_count)
+        
 
-        for entry in entries:
-            entry.update(info)
+        
 
         if len(entries) == 1:
             entry = entries[0]
-            # video only got one part
+            entry['uploader'] = uploader_name
+            entry['uploader_id'] = uploader_id
             entry['id'] = original_video_id
             entry['title'] = title
             entry['description'] = description
             entry['timestamp'] = timestamp
             entry['thumbnail'] = thumbnail
+            entry['upload_date'] = upload_date
+            entry['view_count'] = view_count
             return entry
         else:
-            return {
-                '_type': 'multi_video',
-                'id': original_video_id,
-                'title': title,
-                'description': description,
-                'thumbnail': thumbnail,
-                'timestamp' : timestamp,
-                'entries': entries,
-            }
+           return {
+               '_type': 'multi_video',
+               'uploader': uploader_name,
+               'uploader_id': uploader_id,
+               'id': original_video_id,
+               'title': title,
+               'description': description,
+               'thumbnail': thumbnail,
+               'timestamp': timestamp,
+               'upload_date': upload_date,
+               'view_count' : view_count,
+               'entries': entries,
+           }
 
 
 class BiliBiliBangumiIE(InfoExtractor):
