@@ -27,16 +27,8 @@ from ..utils import (
 class BiliBiliIE(InfoExtractor):
     _VALID_URL = r'''(?x)
                     https?://
-                        (?:(?:www|bangumi)\.)?
-                        bilibili\.(?:tv|com)/
-                        (?:
-                            (?:
-                                video/[aA][vV]|
-                                anime/(?P<anime_id>\d+)/play\#|
-                                bangumi/media/md(?P<anime_id_2>\d+)
-                            )(?P<id_bv>\d+)|
-                            video/[bB][vV](?P<id>[^/?#&]+)
-                        )
+                      (?:www\.)bilibili.(?:com|net)
+                      /video/[aAbB][vV](?P<id>[^/?#&]+)
                     '''
 
     _TESTS = [{
@@ -55,20 +47,6 @@ class BiliBiliIE(InfoExtractor):
             'uploader_id': '156160',
         },
     }, {
-        # Tested in BiliBiliBangumiIE
-        'url': 'http://bangumi.bilibili.com/anime/2338/play#40062',
-        'only_matching': True,
-    }, {
-        'url': 'http://bangumi.bilibili.com/anime/5802/play#100643',
-        'md5': '3f721ad1e75030cc06faf73587cfec57',
-        'info_dict': {
-            'id': '100643',
-            'ext': 'mp4',
-            'title': 'CHAOS;CHILD',
-            'description': '如果你是神明，并且能够让妄想成为现实。那你会进行怎么样的妄想？是淫靡的世界？独裁社会？毁灭性的制裁？还是……2015年，涩谷。从6年前发生的大灾害“涩谷地震”之后复兴了的这个街区里新设立的私立高中...',
-        },
-        'skip': 'Geo-restricted to China',
-    }, {
         # Title with double quotes
         'url': 'http://www.bilibili.com/video/av8903802/',
         'info_dict': {
@@ -79,6 +57,9 @@ class BiliBiliIE(InfoExtractor):
             'uploader_id': '65880958',
             'upload_date': '20170301',
             'timestamp': 1488353834,
+        },
+        'params': {
+            'skip_download': True,  # Test metadata only
         },
         'playlist': [{
             'info_dict': {
@@ -104,7 +85,43 @@ class BiliBiliIE(InfoExtractor):
         # new BV video id format
         'url': 'https://www.bilibili.com/video/BV1JE411F741',
         'only_matching': True,
-    }]
+    }, {
+        # multiple part video
+        'url': 'https://www.bilibili.com/video/BV1FJ411k7q9',
+        'info_dict': {
+            'id': '1FJ411k7q9',
+            'title': '【原始技术】用草木灰代替粘土（Minecraft真人版第五十一弹）',
+            'description': '【Primitive Technology@Youtube】\n看着上一集烧砖产生的大量草木灰，小哥有了新想法：草木灰也许可以作为粘土的又一种替代品，用来做罐子、砖块都行，不怕浸水，还不需要烧制。这是小哥第51个视频，完整合集见av2920827。更多细节见: https://youtu.be/rG6nzrksbPQ，想帮小哥制作更好的视频可以上Patreon给小哥充电：https://www.patreon.com/user?u=2945881',
+            'uploader': '昨梦电羊',
+            'uploader_id': '1388774',
+            'upload_date': '20191215',
+            'timestamp': 1576376056,
+        },
+        'params': {
+            'skip_download': True,  # Test metadata only
+        },
+        'playlist': [{
+            'info_dict': {
+                'id': '1FJ411k7q9_135730700_1',
+                'ext': 'flv',
+                'title': '字幕版1080p',
+
+            },
+            'params': {
+                'skip_download': True,  # Test metadata only
+            },
+        }, {
+            'info_dict': {
+                'id': '1FJ411k7q9_135730766_1',
+                'ext': 'flv',
+                'title': '无字幕版',
+            },
+            'params': {
+                'skip_download': True,  # Test metadata only
+            },
+        }]
+    }
+    ]
 
     _APP_KEY = 'iVGUTjsxvpLeuDCf'
     _BILIBILI_KEY = 'aHRmhWMLkdeMuILqORnYZocwMBpMEOdt'
@@ -127,10 +144,9 @@ class BiliBiliIE(InfoExtractor):
         url, smuggled_data = unsmuggle_url(url, {})
 
         mobj = re.match(self._VALID_URL, url)
-        video_id = mobj.group('id') or mobj.group('id_bv')
+        video_id = mobj.group('id')
         # save the origin video id 
         original_video_id = video_id
-        anime_id = mobj.group('anime_id') or mobj.group('anime_id_2')
         webpage = self._download_webpage(url, video_id)
         title = ''
         timestamp = 0
@@ -140,53 +156,34 @@ class BiliBiliIE(InfoExtractor):
         uploader_name = ''
         view_count = 0
         part_list = []
-        if not anime_id:
-            # normal video
-            if re.match(r'^\d+$', video_id) is not None:
-                video_id = self._aid_to_bid(video_id)
-                self.to_screen("%s: convert to bvid %s"%(original_video_id, video_id))
-            list_api_url = 'https://api.bilibili.com/x/web-interface/view/detail?bvid=%s'%(video_id, )
-            js = self._download_json(list_api_url, original_video_id, 'downloading video list', 'downloding video list failed', fatal=False)
-            if not js:
-                # try old method
-                cid = self._search_regex(
-                    r'\bcid(?:["\']:|=)(\d+)', webpage, 'cid',
-                    default=None
-                ) or compat_parse_qs(self._search_regex(
-                    [r'EmbedPlayer\([^)]+,\s*"([^"]+)"\)',
-                    r'EmbedPlayer\([^)]+,\s*\\"([^"]+)\\"\)',
-                    r'<iframe[^>]+src="https://secure\.bilibili\.com/secure,([^"]+)"'],
-                    webpage, 'player parameters'))['cid'][0]
-                part_list = [{'cid': cid, 'title': title}]
-            else:
-                # new method, get value from json
-                video_list = js['data']['View']['pages']
-                title = js['data']['View']['title']
-                thumbnail = js['data']['View']['pic']
-                description = js['data']['View']['desc']
-                uploader_id = js['data']['Card']['card']['mid']
-                uploader_name = js['data']['Card']['card']['name']
-                view_count = js['data']['View']['stat']['view']
-                self.to_screen("%s: video count: %d"%(original_video_id, len(video_list)))
-                part_list = [{'cid': x['cid'], 'title': x['part']} for x in video_list]
+        # normal video
+        if re.match(r'^\d+$', video_id):
+            video_id = self._aid_to_bid(video_id)
+            self.to_screen("%s: convert to bvid %s"%(original_video_id, video_id))
+        list_api_url = 'https://api.bilibili.com/x/web-interface/view/detail?bvid=%s'%(video_id, )
+        js = self._download_json(list_api_url, original_video_id, 'downloading video list', 'downloding video list failed', fatal=False)
+        if not js:
+            # try old method
+            cid = self._search_regex(
+                r'\bcid(?:["\']:|=)(\d+)', webpage, 'cid',
+                default=None
+            ) or compat_parse_qs(self._search_regex(
+                [r'EmbedPlayer\([^)]+,\s*"([^"]+)"\)',
+                r'EmbedPlayer\([^)]+,\s*\\"([^"]+)\\"\)',
+                r'<iframe[^>]+src="https://secure\.bilibili\.com/secure,([^"]+)"'],
+                webpage, 'player parameters'))['cid'][0]
+            part_list = [{'cid': cid, 'title': title}]
         else:
-            if 'no_bangumi_tip' not in smuggled_data:
-                self.to_screen('Downloading episode %s. To download all videos in anime %s, re-run youtube-dl with %s' % (
-                    video_id, anime_id, compat_urlparse.urljoin(url, '//bangumi.bilibili.com/anime/%s' % anime_id)))
-            headers = {
-                'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
-                'Referer': url
-            }
-            headers.update(self.geo_verification_headers())
-
-            js = self._download_json(
-                'http://bangumi.bilibili.com/web_api/get_source', video_id,
-                data=urlencode_postdata({'episode_id': video_id}),
-                headers=headers)
-            if 'result' not in js:
-                self._report_error(js)
-            #TODO: set title
-            part_list = [{'cid': js['result']['cid'], 'title':''}]
+            # new method, get value from json
+            video_list = js['data']['View']['pages']
+            title = js['data']['View']['title']
+            thumbnail = js['data']['View']['pic']
+            description = js['data']['View']['desc']
+            uploader_id = js['data']['Card']['card']['mid']
+            uploader_name = js['data']['Card']['card']['name']
+            view_count = js['data']['View']['stat']['view']
+            self.to_screen("%s: video count: %d"%(original_video_id, len(video_list)))
+            part_list = [{'cid': x['cid'], 'title': x['part']} for x in video_list]
         headers = {
             'Referer': url
         }
@@ -260,7 +257,7 @@ class BiliBiliIE(InfoExtractor):
                 group='title')
         if not timestamp:
             timestamp = self._html_search_regex(
-                ('"pubdate":(?P<timestamp>\d+),'), webpage, 'title',
+                (r'"pubdate":(?P<timestamp>\d+),'), webpage, 'title',
                 group='timestamp')
         if not uploader_id or not uploader_name:
             uploader_mobj = re.search(
