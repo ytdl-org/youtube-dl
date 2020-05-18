@@ -373,9 +373,6 @@ class BiliBiliBangumiIE(InfoExtractor):
 
 class BiliBiliBangumiEpisodeIE(InfoExtractor):
     _VALID_URL = r'https?://(?:www\.)bilibili.com/bangumi/play/[eE][pP](?P<id>\d+)'
-
-    IE_NAME = 'bangumi.bilibili.com'
-    IE_DESC = 'BiliBili番剧'
     _TESTS = [{
         'url': 'https://www.bilibili.com/bangumi/play/ep86635',
         'info_dict': {
