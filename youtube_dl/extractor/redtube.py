@@ -76,12 +76,22 @@ class RedTubeIE(InfoExtractor):
                         'format_id': format_id,
                         'height': int_or_none(format_id),
                     })
-        # find the mediaDefinitions string that is json-parsable
+        # Find the mediaDefinitions string that is json-parsable
+        # Note: This regex pattern does not necessarily match
+        # the complete json expression; the complete json may
+        # extend beyond the matching ']'. Use this regex pattern
+        # to find the start of the json expression. We don't yet
+        # know where the json expression ends.
         mobj = re.search(r'mediaDefinition\s*:\s*(\[.+?\])', webpage)
-        doc1 = webpage[mobj.start(1):]
+        doc1 = webpage[mobj.start(1):] # get json plus remaining html
         try:
+            # Use the json decoder to find the end of the json
+            # expression. The decoder will raise an exception when it
+            # goes past the valid part. 
             json.loads(doc1)
         except json.JSONDecodeError as exc:
+            # Use the exception 'pos' attribute to get the complete
+            # and valid json expression
             doc1 = doc1[0:exc.pos]
         medias = self._parse_json(
             doc1,
