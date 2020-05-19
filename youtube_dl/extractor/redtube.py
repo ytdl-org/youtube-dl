@@ -1,5 +1,6 @@
 from __future__ import unicode_literals
 
+import json
 import re
 
 from .common import InfoExtractor
@@ -75,10 +76,15 @@ class RedTubeIE(InfoExtractor):
                         'format_id': format_id,
                         'height': int_or_none(format_id),
                     })
+        # find the mediaDefinitions string that is json-parsable
+        mobj = re.search(r'mediaDefinition\s*:\s*(\[.+?\])', webpage)
+        doc1 = webpage[mobj.start(1):]
+        try:
+            x = json.loads(doc1)
+        except json.JSONDecodeError as exc:
+            doc1 = doc1[0:exc.pos]
         medias = self._parse_json(
-            self._search_regex(
-                r'mediaDefinition\s*:\s*(\[.+?\])', webpage,
-                'media definitions', default='{}'),
+            doc1,
             video_id, fatal=False)
         if medias and isinstance(medias, list):
             for media in medias:
