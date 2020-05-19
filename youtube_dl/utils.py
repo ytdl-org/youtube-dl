@@ -27,7 +27,6 @@ import random
 import re
 import socket
 import ssl
-import stat
 import subprocess
 import sys
 import tempfile
