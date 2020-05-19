@@ -80,7 +80,7 @@ class RedTubeIE(InfoExtractor):
         mobj = re.search(r'mediaDefinition\s*:\s*(\[.+?\])', webpage)
         doc1 = webpage[mobj.start(1):]
         try:
-            x = json.loads(doc1)
+            json.loads(doc1)
         except json.JSONDecodeError as exc:
             doc1 = doc1[0:exc.pos]
         medias = self._parse_json(
