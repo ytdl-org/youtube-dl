@@ -91,7 +91,6 @@ class XVideosIE(InfoExtractor):
 
         self.report_download_webpage(video_id)
         for i, host in enumerate(self.HOSTS):
-            print(host)
             webpage = self._download_webpage(
                 'https://www.' + host + '.com/video%s/' % video_id, video_id,
                 note=False, fatal=host == self.HOSTS[-1], errnote=host == self.HOSTS[-1])
