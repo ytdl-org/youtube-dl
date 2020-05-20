@@ -13,7 +13,7 @@ from ..utils import (
 
 
 class GiantBombIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:www\.)?giantbomb\.com/(videos|shows)/(?P<display_id>[^/]+)/(?P<id>\d+-\d+)'
+    _VALID_URL = r'https?://(?:www\.)?giantbomb\.com/(?:videos|shows)/(?P<display_id>[^/]+)/(?P<id>\d+-\d+)'
     _TESTS = [{
         'url': 'http://www.giantbomb.com/videos/quick-look-destiny-the-dark-below/2300-9782/',
         'md5': '132f5a803e7e0ab0e274d84bda1e77ae',
