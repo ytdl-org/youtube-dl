@@ -26,7 +26,7 @@ class TikTokTestYoutubeDl(unittest.TestCase):
         self.assertEquals(info['duration'], 10)
         self.assertEquals(info['ext'], 'mp4')
         self.assertGreater(len(info['embed_code']),0)
-        self.assertGreaterEqual(info['author_followers'], 1357)
+        self.assertGreaterEqual(info['uploader_like_count'], 1357)
         self.assertEqual(info['uploader_url'], "https://www.tiktok.com/@oriangaon")
 
     def test_download_video(self):

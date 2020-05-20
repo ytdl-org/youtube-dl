@@ -114,7 +114,7 @@ class TikTokIE(TikTokBaseIE):
             'embed_code': embed_code,
             'formats': format,
             'uploader_url': author_url,
-            'author_followers': author_followers
+            'uploader_like_count': author_followers
         }
         return info_dict
 
