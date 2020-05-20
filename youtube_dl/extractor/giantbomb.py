@@ -1,5 +1,4 @@
 from __future__ import unicode_literals
-
 import re
 import json
 
@@ -29,7 +28,6 @@ class GiantBombIE(InfoExtractor):
     }, {
         'url': 'https://www.giantbomb.com/shows/ben-stranding/2970-20212',
         'only_matching': True,
-        }
     }]
 
     def _real_extract(self, url):
