@@ -28,15 +28,7 @@ class GiantBombIE(InfoExtractor):
         }
     }, {
         'url': 'https://www.giantbomb.com/shows/ben-stranding/2970-20212',
-        'md5': '92d94e1d072d559df7e95129315a9870',
-        'info_dict': {
-            'id': '2970-20212',
-            'display_id': 'ben-stranding',
-            'ext': 'mp4',
-            'title': 'Lockdown 2020: Ben Stranding',
-            'description': 'md5:dfe795e0718a65baee2183c107b87478',
-            'duration': 5100,
-            'thumbnail': r're:^https?://.*\.png$',
+        'only_matching': True,
         }
     }]
 
