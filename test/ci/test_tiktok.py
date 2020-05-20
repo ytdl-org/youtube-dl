@@ -15,8 +15,7 @@ class TikTokTestYoutubeDl(unittest.TestCase):
         self.assertEquals(info['title'], '#foryou #foyou Mmmmm....,,')
         self.assertEquals(info['uploader'], 'Oriangaon')
         self.assertEquals(info['timestamp'], 1584907616)
-        self.assertEquals(info['thumbnail'],
-                          'https://p16-va-default.akamaized.net/obj/tos-maliva-p-0068/d1a8fbd3e42dda3a1baa01ee9edad289')
+        self.assertTrue(info['thumbnail'])
         self.assertGreaterEqual(info['view_count'], 79864)
         self.assertEquals(info['uploader_id'], '6772113344733955077')
         self.assertFalse(info['is_live'])
@@ -27,6 +26,8 @@ class TikTokTestYoutubeDl(unittest.TestCase):
         self.assertEquals(info['duration'], 10)
         self.assertEquals(info['ext'], 'mp4')
         self.assertGreater(len(info['embed_code']),0)
+        self.assertGreaterEqual(info['uploader_like_count'], 1357)
+        self.assertEqual(info['uploader_url'], "https://www.tiktok.com/@oriangaon")
 
     def test_download_video(self):
         url = 'https://www.tiktok.com/@ballislife/video/6783617809113943301'

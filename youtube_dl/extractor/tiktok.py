@@ -74,6 +74,8 @@ class TikTokIE(TikTokBaseIE):
         ast_le = ast.literal_eval(json_data_encode)
         data_dict = json.loads(ast_le)
 
+        author_followers = data_dict['props']['pageProps']['videoData']['authorStats']['followerCount']
+
         item_info = data_dict['props']['pageProps']['videoData']['itemInfos']
         timestamp = int(item_info['createTime'])
         shares = item_info['shareCount']
@@ -82,17 +84,17 @@ class TikTokIE(TikTokBaseIE):
         provider_id = item_info['authorId']
         comments_count = item_info['commentCount']
         likes_count = item_info['diggCount']
-
-        entry=self._extract_aweme(data_dict)
+        author_url = json_api['author_url']
+        entry = self._extract_aweme(data_dict)
 
         return self.info_dict(video_id, str(url), json_api['title'],
                               json_api['author_name'], timestamp, json_api['thumbnail_url'],
-                              views, provider_id, False, 'not_live', likes_count, shares, '', comments_count, duration, json_api['html'], entry['formats'])
+                              views, provider_id, False, 'not_live', likes_count, shares, '', comments_count, duration, json_api['html'], entry['formats'], author_url, author_followers)
 
     def info_dict(self, video_id, url, video_title,
                   uploader, timestamp, thumbnail,
                   view_count, uploader_id, is_live, live_status
-                  , likes_count, shares_count, subtitles, comment_count, duration, embed_code, format):
+                  , likes_count, shares_count, subtitles, comment_count, duration, embed_code, format, author_url, author_followers):
         info_dict = {
             'id': video_id,
             'url': url,
@@ -110,7 +112,9 @@ class TikTokIE(TikTokBaseIE):
             'comment_count': comment_count,
             'duration': duration,
             'embed_code': embed_code,
-            'formats': format
+            'formats': format,
+            'uploader_url': author_url,
+            'uploader_like_count': author_followers
         }
         return info_dict
 
