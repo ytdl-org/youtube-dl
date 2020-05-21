@@ -449,7 +449,7 @@ class FFmpegMetadataPP(FFmpegPostProcessor):
 
         add('title', ('track', 'title'))
         add('date', 'upload_date')
-        add(('description', 'comment'), 'description')
+        add('description')
         add('purl', 'webpage_url')
         add('track', 'track_number')
         add('artist', ('artist', 'creator', 'uploader', 'uploader_id'))
@@ -457,6 +457,9 @@ class FFmpegMetadataPP(FFmpegPostProcessor):
         add('album')
         add('album_artist')
         add('disc', 'disc_number')
+
+        if info['filepath'][-3:] == 'mp4':
+            add('Network', 'webpage_url')
 
         if not metadata:
             self._downloader.to_screen('[ffmpeg] There isn\'t any metadata to add')
