@@ -4,18 +4,13 @@ from __future__ import unicode_literals
 import re
 
 from .common import InfoExtractor
-from ..compat import compat_str
 from ..utils import (
     ExtractorError,
     determine_ext,
     int_or_none,
-    float_or_none,
     js_to_json,
     orderedSet,
-    strip_jsonp,
-    strip_or_none,
     unified_strdate,
-    url_or_none,
     US_RATINGS,
 )
 
@@ -73,21 +68,18 @@ class PBSKIDSIE(InfoExtractor):
         display_id = None
         info = None
         episode_id = mobj.group('episode_id')
-        
+
         if episode_id:
             webpage = self._download_webpage(url, episode_id)
-            
             description = self._html_search_meta(
                 'description', webpage, default=None)
             upload_date = unified_strdate(self._search_regex(
                 r'air_date"\:"([^"]+)"',
                 webpage, 'upload date', default=None))
-            
             # m3u8 url
             MULTI_PART_REGEXES = (
                 r'URI"\:"https?\:.?/.?/urs\.pbs\.org.?/redirect.?/([\d\w]+)',
             )
-            
             for p in MULTI_PART_REGEXES:
                 tabbed_videos = orderedSet(re.findall(p, webpage))
                 if tabbed_videos:
@@ -97,7 +89,7 @@ class PBSKIDSIE(InfoExtractor):
             page = self._download_webpage(url, 0)
             data = self._extract_video_data(page, 'video data', 0)
             info = data.get('video_obj')
-            video_id = info.get('URI').replace('https://urs.pbs.org/redirect/','').replace('/','')
+            video_id = info.get('URI').replace('https://urs.pbs.org/redirect/', '').replace('/', '')
             display_id = data.get('video_id')
 
         return video_id, display_id, None, description, info
@@ -119,7 +111,7 @@ class PBSKIDSIE(InfoExtractor):
             return self.playlist_result(entries, display_id)
 
         redirects = []
-        redirects.append({"url":'https://urs.pbs.org/redirect/%s/' % video_id, 'eeid':display_id})
+        redirects.append({"url": 'https://urs.pbs.org/redirect/%s/' % video_id, 'eeid': display_id})
         if upload_date is None:
             upload_date = unified_strdate(info.get('air_date'))
 
@@ -191,7 +183,7 @@ class PBSKIDSIE(InfoExtractor):
         age_limit = US_RATINGS.get(rating_str)
 
         subtitles = {}
-        closed_captions_url = info.get('closed_captions')[0].get('URI').replace('\\','')
+        closed_captions_url = info.get('closed_captions')[0].get('URI').replace('\\', '')
         if closed_captions_url:
             subtitles['en'] = [{
                 'ext': 'ttml',
@@ -231,5 +223,4 @@ class PBSKIDSIE(InfoExtractor):
             'upload_date': upload_date,
             'formats': formats,
             'subtitles': subtitles,
-            #'chapters': chapters,
         }
