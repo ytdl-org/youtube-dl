@@ -1,6 +1,7 @@
 # coding: utf-8
 from __future__ import unicode_literals
 
+import datetime
 import re
 import socket
 
@@ -25,8 +26,10 @@ from ..utils import (
     try_get,
     urlencode_postdata,
     update_url_query,
-    lowercase_escape
+    lowercase_escape,
+    parse_iso8601
 )
+
 
 
 class FacebookIE(InfoExtractor):
@@ -451,14 +454,17 @@ class FacebookIE(InfoExtractor):
                    self._search_regex(r'ownerName"\s*:\s*"([^"]+)"', webpage, 'uploader', default=None) or \
                    self._og_search_title(webpage, default=None)
 
+        if webpage.find('Paid Partnership'):
+            timestamp = self._search_regex(
+                r'datePublished":"(.+?)"', webpage,
+                'timestamp', default=None)
+            timestamp = parse_iso8601(timestamp)
+        else:
+            timestamp = int_or_none(
+                self._search_regex(r'data-utime=\\\"(\d+)\\\"', tahoe_data.secondary,'timestamp', default=None)
+                or self._search_regex(r'<abbr[^>]+data-utime=["\'](\d+)', webpage, 'timestamp', default=None)
+            ) or int_or_none(self._search_regex(r'publish_time&quot;:([\d]+)', webpage, 'timestamp', default=None))
 
-        timestamp = int_or_none(self._search_regex(
-            r'data-utime=\\\"(\d+)\\\"', tahoe_data.secondary,
-            'timestamp', default=None) or self._search_regex(
-            r'<abbr[^>]+data-utime=["\'](\d+)', webpage,
-            'timestamp', default=None)) or int_or_none(self._search_regex(
-            r'publish_time&quot;:([\d]+)', webpage,
-            'timestamp', default=None))
 
         uploader_id = self._search_regex(
             r'ownerid:"([\d]+)', webpage,
@@ -630,7 +636,6 @@ class FacebookIE(InfoExtractor):
         else:
             video_title = 'Facebook video #%s' % video_id
         return video_title
-
 
 class FacebookTahoeData:
     def __init__(self, extractor, page, video_id):
