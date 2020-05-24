@@ -145,6 +145,22 @@ class TestFormatSelection(unittest.TestCase):
         downloaded = ydl.downloaded_info_dicts[0]
         self.assertEqual(downloaded['format_id'], 'example-with-dashes')
 
+    def test_format_selection_smallest_video(self):
+        # 399          mp4        1920x1080  1080p 2720k , av01.0.08M.08, 30fps, video only, 420.27MiB
+        # 137          mp4        1920x1080  1080p 4343k , avc1.640028, 30fps, video only, 757.36MiB
+        # 271          webm       2560x1440  1440p 9007k , vp9, 30fps, video only, 1.57GiB
+        formats = [
+            {'format_id': 'av1', ext: 'mp4', 'acodec': 'none', 'filesize': 30, 'url': TEST_URL},
+            {'format_id': 'h264', ext: 'mp4', 'acodec': 'none', 'filesize': 10, 'url': TEST_URL},
+            {'format_id': 'vp9', ext: 'webm', 'acodec': 'none', 'filesize': 20, 'url': TEST_URL},
+        ]
+        info_dict = _make_result(formats)
+
+        ydl = YDL({'format': 'smallestvideo'})
+        ydl.process_ie_result(info_dict.copy())
+        downloaded = ydl.downloaded_info_dicts[0]
+        self.assertEqual(downloaded['format_id'], 'h264')
+
     def test_format_selection_audio(self):
         formats = [
             {'format_id': 'audio-low', 'ext': 'webm', 'preference': 1, 'vcodec': 'none', 'url': TEST_URL},
