@@ -454,7 +454,6 @@ class FacebookIE(InfoExtractor):
                    self._search_regex(r'ownerName"\s*:\s*"([^"]+)"', webpage, 'uploader', default=None) or \
                    self._og_search_title(webpage, default=None)
 
-        timestamp = None
         if webpage.find('Paid Partnership'):
             timestamp = self._search_regex(
                 r'datePublished":"(.+?)"', webpage,
