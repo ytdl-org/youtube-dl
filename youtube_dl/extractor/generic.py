@@ -1580,20 +1580,7 @@ class GenericIE(InfoExtractor):
                 'upload_date': '20160409',
             },
         },
-        # LiveLeak embed
-        {
-            'url': 'http://www.wykop.pl/link/3088787/',
-            'md5': '7619da8c820e835bef21a1efa2a0fc71',
-            'info_dict': {
-                'id': '874_1459135191',
-                'ext': 'mp4',
-                'title': 'Man shows poor quality of new apartment building',
-                'description': 'The wall is like a sand pile.',
-                'uploader': 'Lake8737',
-            },
-            'add_ie': [LiveLeakIE.ie_key()],
-        },
-        # Another LiveLeak embed pattern (#13336)
+        # LiveLeak embed pattern (#13336)
         {
             'url': 'https://milo.yiannopoulos.net/2017/06/concealed-carry-robbery/',
             'info_dict': {
