@@ -460,7 +460,7 @@ class FacebookIE(InfoExtractor):
                 r'datePublished":"(.+?)"', webpage,
                 'timestamp', default=None)
             timestamp = parse_iso8601(timestamp)
-        if timestamp is None:
+        else:
             timestamp = int_or_none(
                 self._search_regex(r'data-utime=\\\"(\d+)\\\"', tahoe_data.secondary,'timestamp', default=None)
                 or self._search_regex(r'<abbr[^>]+data-utime=["\'](\d+)', webpage, 'timestamp', default=None)
