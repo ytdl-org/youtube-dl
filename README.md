@@ -647,8 +647,10 @@ You can also use special names to select particular edge case formats:
  - `worst`: Select the worst quality format represented by a single file with video and audio.
  - `bestvideo`: Select the best quality video-only format (e.g. DASH video). May not be available.
  - `worstvideo`: Select the worst quality video-only format. May not be available.
+ - `smallestvideo`: Select the smallest video-only format. May not be available.
  - `bestaudio`: Select the best quality audio only-format. May not be available.
  - `worstaudio`: Select the worst quality audio only-format. May not be available.
+ - `smallestaudio`: Select the smallest audio-only format. May not be available.
 
 For example, to download the worst quality video-only format you can use `-f worstvideo`.
 

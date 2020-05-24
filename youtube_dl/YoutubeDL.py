@@ -1283,6 +1283,13 @@ class YoutubeDL(object):
                             if f.get('vcodec') == 'none']
                         if audio_formats:
                             yield audio_formats[0]
+                    elif format_spec == 'smallestaudio':
+                        video_formats = [
+                            f for f in formats
+                            if f.get('vcodec') == 'none']
+                        audio_formats = sorted(audio_formats, key=lambda format: format['filesize'])
+                        if audio_formats:
+                            yield audio_formats[0]
                     elif format_spec == 'bestvideo':
                         video_formats = [
                             f for f in formats
@@ -1293,6 +1300,13 @@ class YoutubeDL(object):
                         video_formats = [
                             f for f in formats
                             if f.get('acodec') == 'none']
+                        if video_formats:
+                            yield video_formats[0]
+                    elif format_spec == 'smallestvideo':
+                        video_formats = [
+                            f for f in formats
+                            if f.get('acodec') == 'none']
+                        video_formats = sorted(video_formats, key=lambda format: format['filesize'])
                         if video_formats:
                             yield video_formats[0]
                     else:
