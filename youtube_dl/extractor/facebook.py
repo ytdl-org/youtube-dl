@@ -454,12 +454,13 @@ class FacebookIE(InfoExtractor):
                    self._search_regex(r'ownerName"\s*:\s*"([^"]+)"', webpage, 'uploader', default=None) or \
                    self._og_search_title(webpage, default=None)
 
+        timestamp = None
         if webpage.find('Paid Partnership'):
             timestamp = self._search_regex(
                 r'datePublished":"(.+?)"', webpage,
                 'timestamp', default=None)
             timestamp = parse_iso8601(timestamp)
-        else:
+        if timestamp is None:
             timestamp = int_or_none(
                 self._search_regex(r'data-utime=\\\"(\d+)\\\"', tahoe_data.secondary,'timestamp', default=None)
                 or self._search_regex(r'<abbr[^>]+data-utime=["\'](\d+)', webpage, 'timestamp', default=None)
