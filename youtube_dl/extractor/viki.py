@@ -21,7 +21,7 @@ from ..utils import (
 class VikiBaseIE(InfoExtractor):
     _VALID_URL_BASE = r'https?://(?:www\.)?viki\.(?:com|net|mx|jp|fr)/'
     _API_QUERY_TEMPLATE = '/v4/%sapp=%s&t=%s&site=www.viki.com'
-    _API_URL_TEMPLATE = 'http://api.viki.io%s&sig=%s'
+    _API_URL_TEMPLATE = 'https://api.viki.io%s&sig=%s'
 
     _APP = '100005a'
     _APP_VERSION = '2.2.5.1428709186'
@@ -377,7 +377,7 @@ class VikiChannelIE(VikiBaseIE):
                 for video in page['response']:
                     video_id = video['id']
                     entries.append(self.url_result(
-                        'http://www.viki.com/videos/%s' % video_id, 'Viki'))
+                        'https://www.viki.com/videos/%s' % video_id, 'Viki'))
                 if not page['pagination']['next']:
                     break
 

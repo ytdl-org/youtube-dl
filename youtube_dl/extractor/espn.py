@@ -29,7 +29,8 @@ class ESPNIE(OnceIE):
                                     (?:
                                         .*?\?.*?\bid=|
                                         /_/id/
-                                    )
+                                    )|
+                                    [^/]+/video/
                                 )
                             )|
                             (?:www\.)espnfc\.(?:com|us)/(?:video/)?[^/]+/\d+/video/
@@ -93,6 +94,9 @@ class ESPNIE(OnceIE):
         'only_matching': True,
     }, {
         'url': 'http://www.espnfc.com/english-premier-league/23/video/3324163/premier-league-in-90-seconds-golden-tweets',
+        'only_matching': True,
+    }, {
+        'url': 'http://www.espn.com/espnw/video/26066627/arkansas-gibson-completes-hr-cycle-four-innings',
         'only_matching': True,
     }]
 
@@ -212,17 +216,14 @@ class FiveThirtyEightIE(InfoExtractor):
     _TEST = {
         'url': 'http://fivethirtyeight.com/features/how-the-6-8-raiders-can-still-make-the-playoffs/',
         'info_dict': {
-            'id': '21846851',
-            'ext': 'mp4',
+            'id': '56032156',
+            'ext': 'flv',
             'title': 'FiveThirtyEight: The Raiders can still make the playoffs',
             'description': 'Neil Paine breaks down the simplest scenario that will put the Raiders into the playoffs at 8-8.',
-            'timestamp': 1513960621,
-            'upload_date': '20171222',
         },
         'params': {
             'skip_download': True,
         },
-        'expected_warnings': ['Unable to download f4m manifest'],
     }
 
     def _real_extract(self, url):
@@ -230,9 +231,8 @@ class FiveThirtyEightIE(InfoExtractor):
 
         webpage = self._download_webpage(url, video_id)
 
-        video_id = self._search_regex(
-            r'data-video-id=["\'](?P<id>\d+)',
-            webpage, 'video id', group='id')
+        embed_url = self._search_regex(
+            r'<iframe[^>]+src=["\'](https?://fivethirtyeight\.abcnews\.go\.com/video/embed/\d+/\d+)',
+            webpage, 'embed url')
 
-        return self.url_result(
-            'http://espn.go.com/video/clip?id=%s' % video_id, ESPNIE.ie_key())
+        return self.url_result(embed_url, 'AbcNewsVideo')

@@ -20,10 +20,10 @@ class MailRuIE(InfoExtractor):
     IE_DESC = 'Видео@Mail.Ru'
     _VALID_URL = r'''(?x)
                     https?://
-                        (?:(?:www|m)\.)?my\.mail\.ru/
+                        (?:(?:www|m)\.)?my\.mail\.ru/+
                         (?:
                             video/.*\#video=/?(?P<idv1>(?:[^/]+/){3}\d+)|
-                            (?:(?P<idv2prefix>(?:[^/]+/){2})video/(?P<idv2suffix>[^/]+/\d+))\.html|
+                            (?:(?P<idv2prefix>(?:[^/]+/+){2})video/(?P<idv2suffix>[^/]+/\d+))\.html|
                             (?:video/embed|\+/video/meta)/(?P<metaid>\d+)
                         )
                     '''
@@ -85,6 +85,14 @@ class MailRuIE(InfoExtractor):
         {
             'url': 'http://my.mail.ru/+/video/meta/7949340477499637815',
             'only_matching': True,
+        },
+        {
+            'url': 'https://my.mail.ru//list/sinyutin10/video/_myvideo/4.html',
+            'only_matching': True,
+        },
+        {
+            'url': 'https://my.mail.ru//list//sinyutin10/video/_myvideo/4.html',
+            'only_matching': True,
         }
     ]
 
@@ -120,6 +128,12 @@ class MailRuIE(InfoExtractor):
                 'http://api.video.mail.ru/videos/%s.json?new=1' % video_id,
                 video_id, 'Downloading video JSON')
 
+        headers = {}
+
+        video_key = self._get_cookies('https://my.mail.ru').get('video_key')
+        if video_key:
+            headers['Cookie'] = 'video_key=%s' % video_key.value
+
         formats = []
         for f in video_data['videos']:
             video_url = f.get('url')
@@ -132,6 +146,7 @@ class MailRuIE(InfoExtractor):
                 'url': video_url,
                 'format_id': format_id,
                 'height': height,
+                'http_headers': headers,
             })
         self._sort_formats(formats)
 
@@ -237,7 +252,7 @@ class MailRuMusicSearchBaseIE(InfoExtractor):
 class MailRuMusicIE(MailRuMusicSearchBaseIE):
     IE_NAME = 'mailru:music'
     IE_DESC = 'Музыка@Mail.Ru'
-    _VALID_URL = r'https?://my\.mail\.ru/music/songs/[^/?#&]+-(?P<id>[\da-f]+)'
+    _VALID_URL = r'https?://my\.mail\.ru/+music/+songs/+[^/?#&]+-(?P<id>[\da-f]+)'
     _TESTS = [{
         'url': 'https://my.mail.ru/music/songs/%D0%BC8%D0%BB8%D1%82%D1%85-l-a-h-luciferian-aesthetics-of-herrschaft-single-2017-4e31f7125d0dfaef505d947642366893',
         'md5': '0f8c22ef8c5d665b13ac709e63025610',
@@ -273,7 +288,7 @@ class MailRuMusicIE(MailRuMusicSearchBaseIE):
 class MailRuMusicSearchIE(MailRuMusicSearchBaseIE):
     IE_NAME = 'mailru:music:search'
     IE_DESC = 'Музыка@Mail.Ru'
-    _VALID_URL = r'https?://my\.mail\.ru/music/search/(?P<id>[^/?#&]+)'
+    _VALID_URL = r'https?://my\.mail\.ru/+music/+search/+(?P<id>[^/?#&]+)'
     _TESTS = [{
         'url': 'https://my.mail.ru/music/search/black%20shadow',
         'info_dict': {

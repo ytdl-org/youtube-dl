@@ -29,6 +29,23 @@ class TestYoutubeDLCookieJar(unittest.TestCase):
             tf.close()
             os.remove(tf.name)
 
+    def test_strip_httponly_prefix(self):
+        cookiejar = YoutubeDLCookieJar('./test/testdata/cookies/httponly_cookies.txt')
+        cookiejar.load(ignore_discard=True, ignore_expires=True)
+
+        def assert_cookie_has_value(key):
+            self.assertEqual(cookiejar._cookies['www.foobar.foobar']['/'][key].value, key + '_VALUE')
+
+        assert_cookie_has_value('HTTPONLY_COOKIE')
+        assert_cookie_has_value('JS_ACCESSIBLE_COOKIE')
+
+    def test_malformed_cookies(self):
+        cookiejar = YoutubeDLCookieJar('./test/testdata/cookies/malformed_cookies.txt')
+        cookiejar.load(ignore_discard=True, ignore_expires=True)
+        # Cookies should be empty since all malformed cookie file entries
+        # will be ignored
+        self.assertFalse(cookiejar._cookies)
+
 
 if __name__ == '__main__':
     unittest.main()
