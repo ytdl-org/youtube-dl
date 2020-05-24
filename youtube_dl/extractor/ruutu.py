@@ -13,7 +13,7 @@ from ..utils import (
 
 
 class RuutuIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:www\.)?(?:ruutu|supla)\.fi/(?:video|supla)/(?P<id>\d+)'
+    _VALID_URL = r'https?://(?:www\.)?(?:ruutu|supla|static\.nelonenmedia)\.fi/(?:video/|supla/|player/misc/embed_player.html\?nid=)(?P<id>\d+)'
     _TESTS = [
         {
             'url': 'http://www.ruutu.fi/video/2058907',
@@ -72,7 +72,20 @@ class RuutuIE(InfoExtractor):
                 'age_limit': 0,
             },
             'expected_warnings': ['HTTP Error 502: Bad Gateway'],
-        }
+        },
+        # URL from embedded video
+        {
+            'url': 'https://static.nelonenmedia.fi/player/misc/embed_player.html?nid=3618790',
+            'md5': '71cca94775f29ef2fba12af92262647e',
+            'info_dict': {
+                'id': '3618790',
+                'ext': 'mp4',
+                'title': 'Kaukokärry hoitaa intialaisinsinöörin kauppareissut turvallisesti',
+                'thumbnail': r're:^https?://.*\.jpg$',
+                'duration': 77,
+                'age_limit': 0,
+            },
+        },
     ]
 
     def _real_extract(self, url):
