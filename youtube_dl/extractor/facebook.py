@@ -454,16 +454,30 @@ class FacebookIE(InfoExtractor):
                    self._search_regex(r'ownerName"\s*:\s*"([^"]+)"', webpage, 'uploader', default=None) or \
                    self._og_search_title(webpage, default=None)
 
-        if webpage.find('Paid Partnership'):
-            timestamp = self._search_regex(
-                r'datePublished":"(.+?)"', webpage,
-                'timestamp', default=None)
-            timestamp = parse_iso8601(timestamp)
-        else:
-            timestamp = int_or_none(
-                self._search_regex(r'data-utime=\\\"(\d+)\\\"', tahoe_data.secondary,'timestamp', default=None)
-                or self._search_regex(r'<abbr[^>]+data-utime=["\'](\d+)', webpage, 'timestamp', default=None)
-            ) or int_or_none(self._search_regex(r'publish_time&quot;:([\d]+)', webpage, 'timestamp', default=None))
+        timestamp = self._search_regex(
+                r'datePublished":"(.+?)"', webpage,'timestamp', default=None)\
+                 or self._search_regex(r'datePublished":"(.+?)"', tahoe_data.secondary, 'timestamp', default=None)\
+                 or self._search_regex(r'datePublished":"(.+?)"', tahoe_data.primary, 'timestamp', default=None)
+        timestamp = parse_iso8601(timestamp)
+
+        if timestamp == None and webpage.find('Paid Partnership') == -1 or\
+                (timestamp == None and webpage.find('Paid Partnership') > -1 and
+                 'cookiefile' in self._downloader.params):
+
+            regex_search_result_date_time = self._search_regex(r'data-utime=\\\"(\d+)\\\"', tahoe_data.secondary, 'timestamp', default=None)\
+                or self._search_regex(r'data-utime=\\\"(\d+)\\\"', tahoe_data.primary, 'timestamp', default=None)\
+                or self._search_regex(r'data-utime=\\\"(\d+)\\\"', webpage,'timestamp', default=None)\
+                or self._search_regex(r'<abbr[^>]+data-utime=["\'](\d+)', webpage, 'timestamp', default=None)\
+                or self._search_regex(r'<abbr[^>]+data-utime=["\'](\d+)', tahoe_data.secondary, 'timestamp', default=None)\
+                or self._search_regex(r'<abbr[^>]+data-utime=["\'](\d+)', tahoe_data.primary, 'timestamp', default=None)
+
+            regex_search_result_publish_time = self._search_regex(r'publish_time&quot;:([\d]+)', webpage, 'timestamp', default=None)\
+                             or self._search_regex(r'publish_time&quot;:([\d]+)', tahoe_data.primary, 'timestamp', default=None)\
+                             or self._search_regex(r'publish_time&quot;:([\d]+)', tahoe_data.secondary, 'timestamp', default=None)
+
+            timestamp = int_or_none(regex_search_result_date_time) or int_or_none(regex_search_result_publish_time)
+
+
 
 
         uploader_id = self._search_regex(
