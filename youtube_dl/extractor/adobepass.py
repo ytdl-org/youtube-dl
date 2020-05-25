@@ -392,6 +392,9 @@ MSO_INFO = {
     'coo080': {
         'name': 'Cooperative Telephone Company'
     },
+    'Cox': {
+        'name': 'Cox Communications'
+    },
     'cpt010': {
         'name': 'CP-TEL'
     },
@@ -1360,9 +1363,11 @@ class AdobePassIE(InfoExtractor):
             token_expires = unified_timestamp(re.sub(r'[_ ]GMT', '', xml_text(token, date_ele)))
             return token_expires and token_expires <= int(time.time())
 
-        def post_form(form_page_res, note, data={}):
+        def post_form(form_page_res, note, data={}, form_regex=None):
+            if not form_regex:
+                form_regex = r'<form[^>]+action=(["\'])(?P<url>.+?)\1'
             form_page, urlh = form_page_res
-            post_url = self._html_search_regex(r'<form[^>]+action=(["\'])(?P<url>.+?)\1', form_page, 'post url', group='url')
+            post_url = self._html_search_regex(form_regex, form_page, 'post url', group='url')
             if not re.match(r'https?://', post_url):
                 post_url = compat_urlparse.urljoin(urlh.geturl(), post_url)
             form_data = self._hidden_inputs(form_page)
@@ -1506,12 +1511,15 @@ class AdobePassIE(InfoExtractor):
                         provider_redirect_page_res = self._download_webpage_handle(
                             provider_refresh_redirect_url, video_id,
                             'Downloading Provider Redirect Page (meta refresh)')
+                    form_regex = None
+                    if mso_id == 'Cox':
+                        form_regex = r'<form[^>]+id="pf-signin-form"[^>]+action=(["\'])(?P<url>.+?)\1'
                     provider_login_page_res = post_form(
-                        provider_redirect_page_res, self._DOWNLOADING_LOGIN_PAGE)
+                        provider_redirect_page_res, self._DOWNLOADING_LOGIN_PAGE, form_regex=form_regex)
                     mvpd_confirm_page_res = post_form(provider_login_page_res, 'Logging in', {
                         mso_info.get('username_field', 'username'): username,
                         mso_info.get('password_field', 'password'): password,
-                    })
+                    }, form_regex=form_regex)
                     if mso_id != 'Rogers':
                         post_form(mvpd_confirm_page_res, 'Confirming Login')
 
