@@ -64,7 +64,7 @@ class PictaIE(PictaBaseIE):
                 "uploader": "admin",
                 "timestamp": 1547656602,
             },
-            "params": {"format": "4",},
+            "params": {"format": "4"},
         },
         {
             "url": "https://www.picta.cu/medias/palmiche-galeno-tercer-lugar-torneo-virtual-robotica-2020-05-21-16-15-31-431895",
@@ -92,7 +92,7 @@ class PictaIE(PictaBaseIE):
                 "timestamp": 1590077731,
             },
         },
-        {"url": "https://www.picta.cu/embed/?v=818", "only_matching": True,},
+        {"url": "https://www.picta.cu/embed/?v=818", "only_matching": True},
     ]
 
     def _real_extract(self, url):
@@ -138,7 +138,7 @@ class PictaEmbedIE(InfoExtractor):
             "uploader": "admin",
             "timestamp": 1547656602,
         },
-        "params": {"format": "4",},
+        "params": {"format": "4"},
     }
 
     def _real_extract(self, url):
