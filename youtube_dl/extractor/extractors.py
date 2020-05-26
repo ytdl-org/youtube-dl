@@ -825,6 +825,7 @@ from .pandoratv import PandoraTVIE
 from .parliamentliveuk import ParliamentLiveUKIE
 from .patreon import PatreonIE
 from .pbs import PBSIE
+from .pbskids import PBSKIDSIE
 from .pearvideo import PearVideoIE
 from .peertube import PeerTubeIE
 from .people import PeopleIE

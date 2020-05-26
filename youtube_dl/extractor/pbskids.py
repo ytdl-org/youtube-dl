@@ -50,15 +50,6 @@ class PBSKIDSIE(InfoExtractor):
         410: 'This video has expired and is no longer available for online streaming.',
     }
 
-    def _real_initialize(self):
-        cookie = (self._download_json(
-            'http://localization.services.pbs.org/localize/auto/cookie/',
-            None, headers=self.geo_verification_headers(), fatal=False) or {}).get('cookie')
-        if cookie:
-            station = self._search_regex(r'#?s=\["([^"]+)"', cookie, 'station')
-            if station:
-                self._set_cookie('.pbs.org', 'pbsol.station', station)
-
     def _extract_webpage(self, url):
         mobj = re.match(self._VALID_URL, url)
 
