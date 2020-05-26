@@ -99,6 +99,9 @@ class XTubeIE(InfoExtractor):
                 thumbnail = config.get('poster')
                 duration = int_or_none(config.get('duration'))
                 sources = config.get('sources') or config.get('format')
+                upload_date = self._search_regex(
+                    r'videos/(\d{6}/\d\d)/',
+                    thumbnail, 'upload_date', default='NA').replace('/', '')
 
         if not isinstance(sources, dict):
             sources = self._parse_json(self._search_regex(
@@ -152,6 +155,7 @@ class XTubeIE(InfoExtractor):
             'comment_count': comment_count,
             'age_limit': 18,
             'formats': formats,
+            'upload_date': upload_date,
         }
 
 
