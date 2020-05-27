@@ -2733,6 +2733,13 @@ class InfoExtractor(object):
                 'timestamp': int_or_none(video_data.get('pubdate')),
                 'duration': float_or_none(jwplayer_data.get('duration') or video_data.get('duration')),
                 'subtitles': subtitles,
+                'alt_title': clean_html(video_data.get('subtitle')),  # attributes used e.g. by Tele5 ...
+                'genre': clean_html(video_data.get('genre')),
+                'channel': clean_html(video_data.get('category') or video_data.get('channel')),
+                'season_number': int_or_none(video_data.get('season')),
+                'episode_number': int_or_none(video_data.get('episode')),
+                'release_year': int_or_none(video_data.get('releasedate')),
+                'age_limit': int_or_none(video_data.get('age_restriction')),
             }
             # https://github.com/jwplayer/jwplayer/blob/master/src/js/utils/validator.js#L32
             if len(formats) == 1 and re.search(r'^(?:http|//).*(?:youtube\.com|youtu\.be)/.+', formats[0]['url']):
