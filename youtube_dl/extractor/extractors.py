@@ -132,7 +132,6 @@ from .brightcove import (
     BrightcoveLegacyIE,
     BrightcoveNewIE,
 )
-from .britishcouncil import BritishCouncilIE
 from .businessinsider import BusinessInsiderIE
 from .buzzfeed import BuzzFeedIE
 from .byutv import BYUtvIE

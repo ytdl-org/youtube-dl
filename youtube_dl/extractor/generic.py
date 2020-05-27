@@ -119,6 +119,7 @@ from .expressen import ExpressenIE
 from .zype import ZypeIE
 from .odnoklassniki import OdnoklassnikiIE
 from .kinja import KinjaEmbedIE
+from .viddler import ViddlerIE
 
 
 class GenericIE(InfoExtractor):
@@ -1097,6 +1098,20 @@ class GenericIE(InfoExtractor):
                 'upload_date': '20150126',
             },
             'add_ie': ['Viddler'],
+        },
+        {
+            'url': 'https://learnenglish.britishcouncil.org/episode-01-they-meet',
+            'md5': '796e9c4fa07017e3da79d5e99ef36fe8',
+            'info_dict': {
+                'id': '34d5e84c',
+                'ext': 'mp4',
+                'title': 'StartingOut.s01e01',
+                'upload_date': '20160927',
+                'uploader': 'BCLearnenglish',
+                'timestamp': 1474975664,
+                'view_count': int,
+                'comment_count': int,
+            },
         },
         # Libsyn embed
         {
@@ -2579,6 +2594,12 @@ class GenericIE(InfoExtractor):
             webpage)
         if mobj is not None:
             return self.url_result(mobj.group('url'))
+
+        mobj = re.search(
+            r'<div class="viddler-auto-embed" data-video-id=([\'"])(?P<id>[^\'"]+)\1',
+            webpage)
+        if mobj is not None:
+            return ViddlerIE._build_url_result(mobj.group('id'))
 
         # Look for NYTimes player
         mobj = re.search(
