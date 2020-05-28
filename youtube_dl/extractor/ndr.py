@@ -239,7 +239,11 @@ class NDREmbedBaseIE(InfoExtractor):
                 'preference': quality_key(thumbnail.get('quality')),
             })
 
-        subs = {it['srclang']: [{'url': urljoin(url, it['src']), 'ext': 'ttml'}] for it in config.get('tracks', [])}
+        try:
+            subs = dict((it['srclang'], [{'url': urljoin(url, it['src']), 'ext': 'ttml'}]) for it in config['tracks'])
+        except Exception as e:
+            subs = {}
+            self.report_warning("Extracting subtitles resulted in an error: " + str(e), video_id)
 
         return {
             'id': video_id,
