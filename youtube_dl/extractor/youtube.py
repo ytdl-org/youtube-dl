@@ -388,8 +388,15 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                             (?:www\.)?invidious\.drycat\.fr/|
                             (?:www\.)?tube\.poal\.co/|
                             (?:www\.)?vid\.wxzm\.sx/|
+                            (?:www\.)?yewtu\.be/|
                             (?:www\.)?yt\.elukerio\.org/|
                             (?:www\.)?yt\.lelux\.fi/|
+                            (?:www\.)?invidious\.ggc-project\.de/|
+                            (?:www\.)?yt\.maisputain\.ovh/|
+                            (?:www\.)?invidious\.13ad\.de/|
+                            (?:www\.)?invidious\.toot\.koeln/|
+                            (?:www\.)?invidious\.fdn\.fr/|
+                            (?:www\.)?watch\.nettohikari\.com/|
                             (?:www\.)?kgg2m7yk5aybusll\.onion/|
                             (?:www\.)?qklhadlycap4cnod\.onion/|
                             (?:www\.)?axqzx4s6s54s32yentfqojs3x5i7faxza6xo3ehd4bzzsg2ii4fv2iid\.onion/|
@@ -397,6 +404,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                             (?:www\.)?fz253lmuao3strwbfbmx46yu7acac2jz27iwtorgmbqlkurlclmancad\.onion/|
                             (?:www\.)?invidious\.l4qlywnpwqsluw65ts7md3khrivpirse744un3x7mlskqauz5pyuzgqd\.onion/|
                             (?:www\.)?owxfohz4kjyv25fvlqilyxast7inivgiktls3th44jhk3ej3i7ya\.b32\.i2p/|
+                            (?:www\.)?4l2dgddgsrkf2ous66i6seeyi6etzfgrue332grh2n7madpwopotugyd\.onion/|
                             youtube\.googleapis\.com/)                        # the various hostnames, with wildcard subdomains
                          (?:.*?\#/)?                                          # handle anchor (#/) redirect urls
                          (?:                                                  # the various things that can precede the ID:
@@ -426,6 +434,10 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                      (?(1).+)?                                                # if we found the ID, everything can follow
                      $""" % {'playlist_id': YoutubeBaseInfoExtractor._PLAYLIST_ID_RE}
     _NEXT_URL_RE = r'[\?&]next_url=([^&]+)'
+    _PLAYER_INFO_RE = (
+        r'/(?P<id>[a-zA-Z0-9_-]{8,})/player_ias\.vflset(?:/[a-zA-Z]{2,3}_[a-zA-Z]{2,3})?/base\.(?P<ext>[a-z]+)$',
+        r'\b(?P<id>vfl[a-zA-Z0-9_-]+)\b.*?\.(?P<ext>[a-z]+)$',
+    )
     _formats = {
         '5': {'ext': 'flv', 'width': 400, 'height': 240, 'acodec': 'mp3', 'abr': 64, 'vcodec': 'h263'},
         '6': {'ext': 'flv', 'width': 450, 'height': 270, 'acodec': 'mp3', 'abr': 64, 'vcodec': 'h263'},
@@ -1227,6 +1239,26 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
             'url': 'https://www.youtubekids.com/watch?v=3b8nCWDgZ6Q',
             'only_matching': True,
         },
+        {
+            # invalid -> valid video id redirection
+            'url': 'DJztXj2GPfl',
+            'info_dict': {
+                'id': 'DJztXj2GPfk',
+                'ext': 'mp4',
+                'title': 'Panjabi MC - Mundian To Bach Ke (The Dictator Soundtrack)',
+                'description': 'md5:bf577a41da97918e94fa9798d9228825',
+                'upload_date': '20090125',
+                'uploader': 'Prochorowka',
+                'uploader_id': 'Prochorowka',
+                'uploader_url': r're:https?://(?:www\.)?youtube\.com/user/Prochorowka',
+                'artist': 'Panjabi MC',
+                'track': 'Beware of the Boys (Mundian to Bach Ke) - Motivo Hi-Lectro Remix',
+                'album': 'Beware of the Boys (Mundian To Bach Ke)',
+            },
+            'params': {
+                'skip_download': True,
+            },
+        }
     ]
 
     def __init__(self, *args, **kwargs):
@@ -1253,14 +1285,18 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
         """ Return a string representation of a signature """
         return '.'.join(compat_str(len(part)) for part in example_sig.split('.'))
 
-    def _extract_signature_function(self, video_id, player_url, example_sig):
-        id_m = re.match(
-            r'.*?[-.](?P<id>[a-zA-Z0-9_-]+)(?:/watch_as3|/html5player(?:-new)?|(?:/[a-z]{2,3}_[A-Z]{2})?/base)?\.(?P<ext>[a-z]+)$',
-            player_url)
-        if not id_m:
+    @classmethod
+    def _extract_player_info(cls, player_url):
+        for player_re in cls._PLAYER_INFO_RE:
+            id_m = re.search(player_re, player_url)
+            if id_m:
+                break
+        else:
             raise ExtractorError('Cannot identify player %r' % player_url)
-        player_type = id_m.group('ext')
-        player_id = id_m.group('id')
+        return id_m.group('ext'), id_m.group('id')
+
+    def _extract_signature_function(self, video_id, player_url, example_sig):
+        player_type, player_id = self._extract_player_info(player_url)
 
         # Read from filesystem cache
         func_id = '%s_%s_%s' % (
@@ -1678,7 +1714,10 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
 
         # Get video webpage
         url = proto + '://www.youtube.com/watch?v=%s&gl=US&hl=en&has_verified=1&bpctr=9999999999' % video_id
-        video_webpage = self._download_webpage(url, video_id)
+        video_webpage, urlh = self._download_webpage_handle(url, video_id)
+
+        qs = compat_parse_qs(compat_urllib_parse_urlparse(urlh.geturl()).query)
+        video_id = qs.get('v', [None])[0] or video_id
 
         # Attempt to extract SWF player URL
         mobj = re.search(r'swfConfig.*?"(https?:\\/\\/.*?watch.*?-.*?\.swf)"', video_webpage)
@@ -1935,7 +1974,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                 url = url_or_none(fmt.get('url'))
 
                 if not url:
-                    cipher = fmt.get('cipher')
+                    cipher = fmt.get('cipher') or fmt.get('signatureCipher')
                     if not cipher:
                         continue
                     url_data = compat_parse_qs(cipher)
@@ -1986,22 +2025,10 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
 
                         if self._downloader.params.get('verbose'):
                             if player_url is None:
-                                player_version = 'unknown'
                                 player_desc = 'unknown'
                             else:
-                                if player_url.endswith('swf'):
-                                    player_version = self._search_regex(
-                                        r'-(.+?)(?:/watch_as3)?\.swf$', player_url,
-                                        'flash player', fatal=False)
-                                    player_desc = 'flash player %s' % player_version
-                                else:
-                                    player_version = self._search_regex(
-                                        [r'html5player-([^/]+?)(?:/html5player(?:-new)?)?\.js',
-                                         r'(?:www|player(?:_ias)?)[-.]([^/]+)(?:/[a-z]{2,3}_[A-Z]{2})?/base\.js'],
-                                        player_url,
-                                        'html5 player', fatal=False)
-                                    player_desc = 'html5 player %s' % player_version
-
+                                player_type, player_version = self._extract_player_info(player_url)
+                                player_desc = '%s player %s' % ('flash' if player_type == 'swf' else 'html5', player_version)
                             parts_sizes = self._signature_cache_id(encrypted_sig)
                             self.to_screen('{%s} signature length %s, %s' %
                                            (format_id, parts_sizes, player_desc))
