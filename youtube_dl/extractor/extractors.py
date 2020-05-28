@@ -842,6 +842,7 @@ from .picarto import (
 )
 from .piksel import PikselIE
 from .pinkbike import PinkbikeIE
+from .pivotshare import PivotshareIE
 from .pladform import PladformIE
 from .platzi import (
     PlatziIE,
