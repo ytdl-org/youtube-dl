@@ -120,7 +120,6 @@ class GoIE(AdobePassIE):
 
     def _extract_videos(self, brand, video_id='-1', show_id='-1'):
         display_id = video_id if video_id != '-1' else show_id
-        
         return self._download_json(
             'http://api.contents.watchabc.go.com/vp2/ws/contents/3000/videos/%s/001/-1/%s/-1/%s/-1/-1.json' % (brand, show_id, video_id),
             display_id)['video']
@@ -145,7 +144,7 @@ class GoIE(AdobePassIE):
                 brand = self._search_regex(
                     (r'data-brand=\s*["\']\s*(\d+)',
                      r'data-page-brand=\s*["\']\s*(\d+)'), webpage, 'brand',
-                    default='004') #was 8 premerge
+                    default='004')
                 site_info = next(
                     si for _, si in self._SITE_INFO.items()
                     if si.get('brand') == brand)
