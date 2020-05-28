@@ -2595,11 +2595,11 @@ class GenericIE(InfoExtractor):
         if mobj is not None:
             return self.url_result(mobj.group('url'))
 
-        mobj = re.search(
-            r'<div class="viddler-auto-embed" data-video-id=([\'"])(?P<id>[^\'"]+)\1',
-            webpage)
-        if mobj is not None:
-            return ViddlerIE._build_url_result(mobj.group('id'))
+        viddler_id = self._search_regex(
+            r'<div[^>]+class=(["\'])viddler-auto-embed\1[^>]+data-video-id=([\'"])(?P<id>[^\'"]+)',
+            webpage, 'viddler_id', group='id')
+        if viddler_id is not None:
+            return ViddlerIE._build_url_result(viddler_id)
 
         # Look for NYTimes player
         mobj = re.search(
