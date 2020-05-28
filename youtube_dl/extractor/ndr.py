@@ -239,6 +239,8 @@ class NDREmbedBaseIE(InfoExtractor):
                 'preference': quality_key(thumbnail.get('quality')),
             })
 
+        subs = {it['srclang']: [{'url': urljoin(url, it['src']), 'ext': 'ttml'}] for it in config.get('tracks', [])}
+
         return {
             'id': video_id,
             'title': title,
@@ -248,6 +250,7 @@ class NDREmbedBaseIE(InfoExtractor):
             'duration': duration,
             'thumbnails': thumbnails,
             'formats': formats,
+            'subtitles': subs,
         }
 
 
