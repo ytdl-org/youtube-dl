@@ -528,7 +528,7 @@ class BBCCoUkIE(InfoExtractor):
 
             def get_programme_id(item):
                 def get_from_attributes(item):
-                    for p in('identifier', 'group'):
+                    for p in ('identifier', 'group'):
                         value = item.get(p)
                         if value and re.match(r'^[pb][\da-z]{7}$', value):
                             return value

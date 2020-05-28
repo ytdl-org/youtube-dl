@@ -11,6 +11,7 @@ from ..utils import (
     determine_ext,
     int_or_none,
     str_or_none,
+    try_get,
     urljoin,
 )
 
@@ -24,7 +25,7 @@ class TelecincoIE(InfoExtractor):
         'info_dict': {
             'id': '1876350223',
             'title': 'Bacalao con kokotxas al pil-pil',
-            'description': 'md5:1382dacd32dd4592d478cbdca458e5bb',
+            'description': 'md5:716caf5601e25c3c5ab6605b1ae71529',
         },
         'playlist': [{
             'md5': 'adb28c37238b675dad0f042292f209a7',
@@ -54,6 +55,26 @@ class TelecincoIE(InfoExtractor):
             'title': '#DOYLACARA. Con la trata no hay trato',
             'description': 'md5:2771356ff7bfad9179c5f5cd954f1477',
             'duration': 50,
+        },
+    }, {
+        # video in opening's content
+        'url': 'https://www.telecinco.es/vivalavida/fiorella-sobrina-edmundo-arrocet-entrevista_18_2907195140.html',
+        'info_dict': {
+            'id': '2907195140',
+            'title': 'La surrealista entrevista a la sobrina de Edmundo Arrocet: "No puedes venir aquí y tomarnos por tontos"',
+            'description': 'md5:73f340a7320143d37ab895375b2bf13a',
+        },
+        'playlist': [{
+            'md5': 'adb28c37238b675dad0f042292f209a7',
+            'info_dict': {
+                'id': 'TpI2EttSDAReWpJ1o0NVh2',
+                'ext': 'mp4',
+                'title': 'La surrealista entrevista a la sobrina de Edmundo Arrocet: "No puedes venir aquí y tomarnos por tontos"',
+                'duration': 1015,
+            },
+        }],
+        'params': {
+            'skip_download': True,
         },
     }, {
         'url': 'http://www.telecinco.es/informativos/nacional/Pablo_Iglesias-Informativos_Telecinco-entrevista-Pedro_Piqueras_2_1945155182.html',
@@ -135,17 +156,28 @@ class TelecincoIE(InfoExtractor):
         display_id = self._match_id(url)
         webpage = self._download_webpage(url, display_id)
         article = self._parse_json(self._search_regex(
-            r'window\.\$REACTBASE_STATE\.article\s*=\s*({.+})',
+            r'window\.\$REACTBASE_STATE\.article(?:_multisite)?\s*=\s*({.+})',
             webpage, 'article'), display_id)['article']
         title = article.get('title')
-        description = clean_html(article.get('leadParagraph'))
+        description = clean_html(article.get('leadParagraph')) or ''
         if article.get('editorialType') != 'VID':
             entries = []
-            for p in article.get('body', []):
-                content = p.get('content')
-                if p.get('type') != 'video' or not content:
+            body = [article.get('opening')]
+            body.extend(try_get(article, lambda x: x['body'], list) or [])
+            for p in body:
+                if not isinstance(p, dict):
                     continue
-                entries.append(self._parse_content(content, url))
+                content = p.get('content')
+                if not content:
+                    continue
+                type_ = p.get('type')
+                if type_ == 'paragraph':
+                    content_str = str_or_none(content)
+                    if content_str:
+                        description += content_str
+                    continue
+                if type_ == 'video' and isinstance(content, dict):
+                    entries.append(self._parse_content(content, url))
             return self.playlist_result(
                 entries, str_or_none(article.get('id')), title, description)
         content = article['opening']['content']

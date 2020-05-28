@@ -22,7 +22,8 @@ class BellMediaIE(InfoExtractor):
                 bravo|
                 mtv|
                 space|
-                etalk
+                etalk|
+                marilyn
             )\.ca|
             much\.com
         )/.*?(?:\bvid(?:eoid)?=|-vid|~|%7E|/(?:episode)?)(?P<id>[0-9]{6,})'''
@@ -70,6 +71,7 @@ class BellMediaIE(InfoExtractor):
         'animalplanet': 'aniplan',
         'etalk': 'ctv',
         'bnnbloomberg': 'bnn',
+        'marilyn': 'ctv_marilyn',
     }
 
     def _real_extract(self, url):
