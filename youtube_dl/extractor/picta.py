@@ -93,6 +93,10 @@ class PictaIE(PictaBaseIE):
             },
         },
         {"url": "https://www.picta.cu/embed/?v=818", "only_matching": True},
+        {
+            "url": "https://www.picta.cu/embed/palmiche-galeno-tercer-lugar-torneo-virtual-robotica-2020-05-21-16-15-31-431895",
+            "only_matching": True,
+        },
     ]
 
     def _real_extract(self, url):
@@ -124,22 +128,50 @@ class PictaEmbedIE(InfoExtractor):
     IE_DESC = "Picta embedded videos"
     _VALID_URL = r"https?://www\.picta\.cu/embed/(?:\?v=)?(?P<id>[0-9]+)"
 
-    _TEST = {
-        "url": "https://www.picta.cu/embed/?v=818",
-        "file": "Orishas - Everyday-orishas-everyday-2019-01-16-16-36-42-443003.webm",
-        "md5": "7ffdeb0043500c4bb660c04e74e90f7a",
-        "info_dict": {
-            "id": "orishas-everyday-2019-01-16-16-36-42-443003",
-            "ext": "webm",
-            "title": "Orishas - Everyday",
-            "thumbnail": r"re:^https?://.*imagen/img.*\.png$",
-            "upload_date": "20190116",
-            "description": "Orishas - Everyday (Video Oficial)",
-            "uploader": "admin",
-            "timestamp": 1547656602,
+    _TESTS = [
+        {
+            "url": "https://www.picta.cu/embed/?v=818",
+            "file": "Orishas - Everyday-orishas-everyday-2019-01-16-16-36-42-443003.webm",
+            "md5": "7ffdeb0043500c4bb660c04e74e90f7a",
+            "info_dict": {
+                "id": "orishas-everyday-2019-01-16-16-36-42-443003",
+                "ext": "webm",
+                "title": "Orishas - Everyday",
+                "thumbnail": r"re:^https?://.*imagen/img.*\.png$",
+                "upload_date": "20190116",
+                "description": "Orishas - Everyday (Video Oficial)",
+                "uploader": "admin",
+                "timestamp": 1547656602,
+            },
+            "params": {"format": "4"},
         },
-        "params": {"format": "4"},
-    }
+        {
+            "url": "https://www.picta.cu/embed/palmiche-galeno-tercer-lugar-torneo-virtual-robotica-2020-05-21-16-15-31-431895",
+            "file": "Palmiche Galeno tercer lugar en torneo virtual de robótica-palmiche-galeno-tercer-lugar-torneo-virtual-robotica-2020-05-21-16-15-31-431895.mp4",
+            "md5": "6031b7a3add2eade9c5bef7ecf5d4b02",
+            "info_dict": {
+                "id": "palmiche-galeno-tercer-lugar-torneo-virtual-robotica-2020-05-21-16-15-31-431895",
+                "ext": "mp4",
+                "title": "Palmiche Galeno tercer lugar en torneo virtual de robótica",
+                "thumbnail": r"re:^https?://.*imagen/img.*\.jpeg$",
+                "upload_date": "20200521",
+                "description": "En esta emisión:\r\n"
+                               "Iniciará en La Habana nuevo método para medir el consumo "
+                               "eléctrico |  https://bit.ly/jtlecturacee\r\n"
+                               "GICAcovid: nueva aplicación web para los centros de "
+                               "aislamiento |  https://bit.ly/jtgicacovid\r\n"
+                               "Obtuvo Palmiche tercer lugar en la primera competencia "
+                               "virtual de robótica |  https://bit.ly/jtpalmichegaleno\r\n"
+                               "\r\n"
+                               "Síguenos en:\r\n"
+                               "Facebook: http://www.facebook.com/JuventudTecnicaCuba\r\n"
+                               "Twitter e Instagram: @juventudtecnica\r\n"
+                               "Telegram: http://t.me/juventudtecnica",
+                "uploader": "ernestoguerra21",
+                "timestamp": 1590077731,
+            },
+        },
+    ]
 
     def _real_extract(self, url):
         return self.url_result(url, PictaIE.ie_key())
