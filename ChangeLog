@@ -1,3 +1,25 @@
+version 2020.05.29
+
+Core
+* [postprocessor/ffmpeg] Embed series metadata with --add-metadata
+* [utils] Fix file permissions in write_json_file (#12471, #25122)
+
+Extractors
+* [ard:beta] Extend URL regular expression (#25405)
++ [youtube] Add support for more invidious instances (#25417)
+* [giantbomb] Extend URL regular expression (#25222)
+* [ard] Improve URL regular expression (#25134, #25198)
+* [redtube] Improve formats extraction and extract m3u8 formats (#25311,
+  #25321)
+* [indavideo] Switch to HTTPS for API request (#25191)
+* [redtube] Improve title extraction (#25208)
+* [vimeo] Improve format extraction and sorting (#25285)
+* [soundcloud] Reduce API playlist page limit (#25274)
++ [youtube] Add support for yewtu.be (#25226)
+* [mailru] Fix extraction (#24530, #25239)
+* [bellator] Fix mgid extraction (#25195)
+
+
 version 2020.05.08
 
 Core
