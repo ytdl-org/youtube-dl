@@ -171,7 +171,7 @@ class PivotshareIE(InfoExtractor):
                 '%schannels/%s/media/%s/stream' % (self._API_BASE, channel_id, video_id),
                 video_id, "Downloading stream JSON metadata",
                 query=query)
-        except ExtractorError as e:
+        except ExtractorError:
             self.raise_login_required(
                 'This video is only available for %s subscribers' % channel)
 
