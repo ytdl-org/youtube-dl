@@ -1,4 +1,4 @@
-version <unreleased>
+version 2020.05.29
 
 Core
 * [postprocessor/ffmpeg] Embed series metadata with --add-metadata
