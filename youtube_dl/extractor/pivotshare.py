@@ -5,6 +5,7 @@ import re
 import json
 
 from .common import InfoExtractor
+from ..compat import compat_urllib_parse_unquote
 from ..utils import (
     try_get,
     compat_str,
@@ -129,10 +130,10 @@ class PivotshareIE(InfoExtractor):
             },
             query={
                 'client_id': self._CLIENT_ID
-            })
+            }, expected_status=401)
 
         if login.get('errors'):
-            raise ExtractorError('Unable to login: %s' % clean_html(login['errors']), expected=True)
+            raise ExtractorError('Unable to login: %s' % clean_html(login['errors'][0]['message']), expected=True)
         else:
             self._TOKEN = try_get(login, lambda x: x['login']['access_token'], compat_str)
 
@@ -166,14 +167,14 @@ class PivotshareIE(InfoExtractor):
             video_id, "Downloading media JSON metadata",
             query=query)
 
-        try:
-            stream_data = self._download_json(
-                '%schannels/%s/media/%s/stream' % (self._API_BASE, channel_id, video_id),
-                video_id, "Downloading stream JSON metadata",
-                query=query)
-        except ExtractorError:
+        stream_data = self._download_json(
+            '%schannels/%s/media/%s/stream' % (self._API_BASE, channel_id, video_id),
+            video_id, "Downloading stream JSON metadata",
+            query=query, expected_status=401)
+
+        if stream_data.get('errors'):
             self.raise_login_required(
-                'This video is only available for %s subscribers' % channel)
+                'This video is only available for %s subscribers' % compat_urllib_parse_unquote(channel))
 
         sources = try_get(
             stream_data, lambda x: x['channel']['media']['stream']['formats'], list)
