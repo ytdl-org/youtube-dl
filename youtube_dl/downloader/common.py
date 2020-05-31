@@ -370,7 +370,7 @@ class FileDownloader(object):
         if len(filename) > max_filelen:
             self.to_screen("[filename] Too long, truncating")
             start_char = len(filename) - max_filelen + 1
-            filename = filename[start_char:]
+            filename = filename[start_char:].strip()
 
         return self.real_download(filename, info_dict)
 
