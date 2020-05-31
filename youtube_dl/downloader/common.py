@@ -363,6 +363,15 @@ class FileDownloader(object):
                     else '%.2f' % sleep_interval))
             time.sleep(sleep_interval)
 
+        # truncate the filename if it's too long
+        # deducting 5 from the name max to accommodate
+        # the ".part" thing at the end
+        max_filelen = os.statvfs('./').f_namemax - 5
+        if len(filename) > max_filelen:
+            self.to_screen("[filename] Too long, truncating")
+            start_char = len(filename) - max_filelen + 1
+            filename = filename[start_char:]
+
         return self.real_download(filename, info_dict)
 
     def real_download(self, filename, info_dict):
