@@ -10,6 +10,9 @@ class PictaBaseIE(InfoExtractor):
 
     @staticmethod
     def _extract_video(video, video_id=None, require_title=True):
+        if len(video["results"]) == 0:
+            raise ExtractorError("Cannot find video!")
+
         title = (
             video["results"][0]["nombre"]
             if require_title
@@ -156,17 +159,17 @@ class PictaEmbedIE(InfoExtractor):
                 "thumbnail": r"re:^https?://.*imagen/img.*\.jpeg$",
                 "upload_date": "20200521",
                 "description": "En esta emisión:\r\n"
-                               "Iniciará en La Habana nuevo método para medir el consumo "
-                               "eléctrico |  https://bit.ly/jtlecturacee\r\n"
-                               "GICAcovid: nueva aplicación web para los centros de "
-                               "aislamiento |  https://bit.ly/jtgicacovid\r\n"
-                               "Obtuvo Palmiche tercer lugar en la primera competencia "
-                               "virtual de robótica |  https://bit.ly/jtpalmichegaleno\r\n"
-                               "\r\n"
-                               "Síguenos en:\r\n"
-                               "Facebook: http://www.facebook.com/JuventudTecnicaCuba\r\n"
-                               "Twitter e Instagram: @juventudtecnica\r\n"
-                               "Telegram: http://t.me/juventudtecnica",
+                "Iniciará en La Habana nuevo método para medir el consumo "
+                "eléctrico |  https://bit.ly/jtlecturacee\r\n"
+                "GICAcovid: nueva aplicación web para los centros de "
+                "aislamiento |  https://bit.ly/jtgicacovid\r\n"
+                "Obtuvo Palmiche tercer lugar en la primera competencia "
+                "virtual de robótica |  https://bit.ly/jtpalmichegaleno\r\n"
+                "\r\n"
+                "Síguenos en:\r\n"
+                "Facebook: http://www.facebook.com/JuventudTecnicaCuba\r\n"
+                "Twitter e Instagram: @juventudtecnica\r\n"
+                "Telegram: http://t.me/juventudtecnica",
                 "uploader": "ernestoguerra21",
                 "timestamp": 1590077731,
             },
