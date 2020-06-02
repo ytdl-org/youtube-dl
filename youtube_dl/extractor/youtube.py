@@ -388,8 +388,15 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                             (?:www\.)?invidious\.drycat\.fr/|
                             (?:www\.)?tube\.poal\.co/|
                             (?:www\.)?vid\.wxzm\.sx/|
+                            (?:www\.)?yewtu\.be/|
                             (?:www\.)?yt\.elukerio\.org/|
                             (?:www\.)?yt\.lelux\.fi/|
+                            (?:www\.)?invidious\.ggc-project\.de/|
+                            (?:www\.)?yt\.maisputain\.ovh/|
+                            (?:www\.)?invidious\.13ad\.de/|
+                            (?:www\.)?invidious\.toot\.koeln/|
+                            (?:www\.)?invidious\.fdn\.fr/|
+                            (?:www\.)?watch\.nettohikari\.com/|
                             (?:www\.)?kgg2m7yk5aybusll\.onion/|
                             (?:www\.)?qklhadlycap4cnod\.onion/|
                             (?:www\.)?axqzx4s6s54s32yentfqojs3x5i7faxza6xo3ehd4bzzsg2ii4fv2iid\.onion/|
@@ -397,6 +404,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                             (?:www\.)?fz253lmuao3strwbfbmx46yu7acac2jz27iwtorgmbqlkurlclmancad\.onion/|
                             (?:www\.)?invidious\.l4qlywnpwqsluw65ts7md3khrivpirse744un3x7mlskqauz5pyuzgqd\.onion/|
                             (?:www\.)?owxfohz4kjyv25fvlqilyxast7inivgiktls3th44jhk3ej3i7ya\.b32\.i2p/|
+                            (?:www\.)?4l2dgddgsrkf2ous66i6seeyi6etzfgrue332grh2n7madpwopotugyd\.onion/|
                             youtube\.googleapis\.com/)                        # the various hostnames, with wildcard subdomains
                          (?:.*?\#/)?                                          # handle anchor (#/) redirect urls
                          (?:                                                  # the various things that can precede the ID:

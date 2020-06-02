@@ -32,7 +32,7 @@ class JWPlatformIE(InfoExtractor):
     @staticmethod
     def _extract_urls(webpage):
         return re.findall(
-            r'<(?:script|iframe)[^>]+?src=["\']((?:https?:)?//content\.jwplatform\.com/players/[a-zA-Z0-9]{8})',
+            r'<(?:script|iframe)[^>]+?src=["\']((?:https?:)?//(?:content\.jwplatform|cdn\.jwplayer)\.com/players/[a-zA-Z0-9]{8})',
             webpage)
 
     def _real_extract(self, url):
