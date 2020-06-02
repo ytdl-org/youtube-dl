@@ -171,7 +171,7 @@ class NebulaIE(InfoExtractor):
         """
         Requests a Zype access token from the Nebula API.
         """
-        user_object = self._call_nebula_api('/auth/user', video_id, nebula_token, note='Retrieving Zype access token')
+        user_object = self._call_nebula_api('/auth/user/', video_id, nebula_token, note='Retrieving Zype access token')
         access_token = try_get(user_object, lambda x: x['zype_auth_info']['access_token'], compat_str)
         if not access_token:
             raise ExtractorError('Unable to extract Zype access token from Nebula API authentication endpoint')
