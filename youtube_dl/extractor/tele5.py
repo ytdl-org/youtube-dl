@@ -7,11 +7,15 @@ from .common import InfoExtractor
 from .jwplatform import JWPlatformIE
 from .nexx import NexxIE
 from ..compat import compat_urlparse
-from ..utils import NO_DEFAULT
+from ..utils import (
+    NO_DEFAULT,
+    smuggle_url,
+)
 
 
 class Tele5IE(InfoExtractor):
     _VALID_URL = r'https?://(?:www\.)?tele5\.de/(?:[^/]+/)*(?P<id>[^/?#&]+)'
+    _GEO_COUNTRIES = ['DE']
     _TESTS = [{
         'url': 'https://www.tele5.de/mediathek/filme-online/videos?vid=1549416',
         'info_dict': {
@@ -98,5 +102,7 @@ class Tele5IE(InfoExtractor):
                 jwplatform_id = extract_id(JWPLATFORM_ID_RE, 'jwplatform id')
 
         return self.url_result(
-            'jwplatform:%s' % jwplatform_id, ie=JWPlatformIE.ie_key(),
-            video_id=jwplatform_id)
+            smuggle_url(
+                'jwplatform:%s' % jwplatform_id,
+                {'geo_countries': self._GEO_COUNTRIES}),
+            ie=JWPlatformIE.ie_key(), video_id=jwplatform_id)
