@@ -56,7 +56,7 @@ class VikiBaseIE(InfoExtractor):
 
     def _call_api(self, path, video_id, note, timestamp=None, post_data=None):
         resp = self._download_json(
-            self._prepare_call(path, timestamp, post_data), video_id, note)
+            self._prepare_call(path, timestamp, post_data), video_id, note, headers={'x-viki-app-ver': self._APP_VERSION, 'x-viki-as-id': self._APP})
 
         error = resp.get('error')
         if error:
