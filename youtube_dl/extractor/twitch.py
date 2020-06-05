@@ -589,7 +589,7 @@ class TwitchStreamIE(TwitchBaseIE):
             assert stream is not None
 
         # IndexError is there because the first JSON contains a list
-        except (IndexError, AssertionError) as e:
+        except (IndexError, AssertionError):
             raise ExtractorError('%s is offline' % channel_name, expected=True)
 
         # Channel name may be typed if different case than the original channel name
