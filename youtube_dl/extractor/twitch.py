@@ -56,7 +56,10 @@ class TwitchBaseIE(InfoExtractor):
             'Accept': 'application/vnd.twitchtv.v5+json; charset=UTF-8',
             'Client-ID': self._CLIENT_ID,
         })
-        kwargs['headers'] = headers
+        kwargs.update({
+            'headers': headers,
+            'expected_status': (400, 410),
+        })
         response = self._download_json(
             '%s/%s' % (self._API_BASE, path), item_id,
             *args, **compat_kwargs(kwargs))
