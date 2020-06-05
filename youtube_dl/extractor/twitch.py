@@ -576,15 +576,15 @@ class TwitchStreamIE(TwitchBaseIE):
     def _real_extract(self, url):
         channel_name = self._match_id(url).lower()
         try:
-            # the kraken api (v5) accepts only channel IDS.
+            # the kraken api (v5) accepts only channel IDs.
             # kraken/users?login=CHANNELNAME returns a channel's ID from its name
             channel_id = self._call_api(
                 'kraken/users?login=%s' % channel_name,
-                channel_name, 'Getting channel ID').get('users')[0].get('_id')
-            assert channel_id is not None
+                channel_name, 'Downloading channel ID').get('users')[0].get('_id')
+            assert channel_id is not None and channel_id.isdigit()
 
             stream = self._call_api(
-                'kraken/streams/%s?stream_type=all' % channel_id.lower(),
+                'kraken/streams/%s?stream_type=all' % channel_id,
                 channel_name, 'Downloading stream JSON').get('stream')
             assert stream is not None
 
