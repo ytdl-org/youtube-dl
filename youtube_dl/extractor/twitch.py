@@ -22,6 +22,7 @@ from ..utils import (
     parse_duration,
     parse_iso8601,
     qualities,
+    str_or_none,
     try_get,
     unified_timestamp,
     update_url_query,
@@ -591,10 +592,18 @@ class TwitchStreamIE(TwitchBaseIE):
                 else super(TwitchStreamIE, cls).suitable(url))
 
     def _real_extract(self, url):
-        channel_id = self._match_id(url)
+        channel_name = self._match_id(url)
+
+        access_token = self._call_api(
+            'api/channels/%s/access_token' % channel_name, channel_name,
+            'Downloading access token JSON')
+
+        token = access_token['token']
+        channel_id = compat_str(self._parse_json(
+            token, channel_name)['channel_id'])
 
         stream = self._call_api(
-            'kraken/streams/%s?stream_type=all' % channel_id.lower(),
+            'kraken/streams/%s?stream_type=all' % channel_id,
             channel_id, 'Downloading stream JSON').get('stream')
 
         if not stream:
@@ -604,11 +613,9 @@ class TwitchStreamIE(TwitchBaseIE):
         # (e.g. http://www.twitch.tv/TWITCHPLAYSPOKEMON) that will lead to constructing
         # an invalid m3u8 URL. Working around by use of original channel name from stream
         # JSON and fallback to lowercase if it's not available.
-        channel_id = stream.get('channel', {}).get('name') or channel_id.lower()
-
-        access_token = self._call_api(
-            'api/channels/%s/access_token' % channel_id, channel_id,
-            'Downloading channel access token')
+        channel_name = try_get(
+            stream, lambda x: x['channel']['name'],
+            compat_str) or channel_name.lower()
 
         query = {
             'allow_source': 'true',
@@ -619,11 +626,11 @@ class TwitchStreamIE(TwitchBaseIE):
             'playlist_include_framerate': 'true',
             'segment_preference': '4',
             'sig': access_token['sig'].encode('utf-8'),
-            'token': access_token['token'].encode('utf-8'),
+            'token': token.encode('utf-8'),
         }
         formats = self._extract_m3u8_formats(
             '%s/api/channel/hls/%s.m3u8?%s'
-            % (self._USHER_BASE, channel_id, compat_urllib_parse_urlencode(query)),
+            % (self._USHER_BASE, channel_name, compat_urllib_parse_urlencode(query)),
             channel_id, 'mp4')
         self._prefer_source(formats)
 
@@ -646,8 +653,8 @@ class TwitchStreamIE(TwitchBaseIE):
             })
 
         return {
-            'id': compat_str(stream['_id']),
-            'display_id': channel_id,
+            'id': str_or_none(stream.get('_id')) or channel_id,
+            'display_id': channel_name,
             'title': title,
             'description': description,
             'thumbnails': thumbnails,
