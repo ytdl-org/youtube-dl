@@ -6,14 +6,8 @@ import re
 from .common import InfoExtractor
 from .jwplatform import JWPlatformIE
 from .nexx import NexxIE
-from ..compat import (
-    compat_str,
-    compat_urlparse,
-)
-from ..utils import (
-    NO_DEFAULT,
-    try_get,
-)
+from ..compat import compat_urlparse
+from ..utils import NO_DEFAULT
 
 
 class Tele5IE(InfoExtractor):
@@ -30,6 +24,21 @@ class Tele5IE(InfoExtractor):
         'params': {
             'skip_download': True,
         },
+    }, {
+        # jwplatform, nexx unavailable
+        'url': 'https://www.tele5.de/filme/ghoul-das-geheimnis-des-friedhofmonsters/',
+        'info_dict': {
+            'id': 'WJuiOlUp',
+            'ext': 'mp4',
+            'upload_date': '20200603',
+            'timestamp': 1591214400,
+            'title': 'Ghoul - Das Geheimnis des Friedhofmonsters',
+            'description': 'md5:42002af1d887ff3d5b2b3ca1f8137d97',
+        },
+        'params': {
+            'skip_download': True,
+        },
+        'add_ie': [JWPlatformIE.ie_key()],
     }, {
         'url': 'https://www.tele5.de/kalkofes-mattscheibe/video-clips/politik-und-gesellschaft?ve_id=1551191',
         'only_matching': True,
@@ -87,15 +96,6 @@ class Tele5IE(InfoExtractor):
 
             if not jwplatform_id:
                 jwplatform_id = extract_id(JWPLATFORM_ID_RE, 'jwplatform id')
-
-            media = self._download_json(
-                'https://cdn.jwplayer.com/v2/media/' + jwplatform_id,
-                display_id)
-            nexx_id = try_get(
-                media, lambda x: x['playlist'][0]['nexx_id'], compat_str)
-
-            if nexx_id:
-                return nexx_result(nexx_id)
 
         return self.url_result(
             'jwplatform:%s' % jwplatform_id, ie=JWPlatformIE.ie_key(),
