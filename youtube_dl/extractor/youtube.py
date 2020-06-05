@@ -1652,8 +1652,63 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
         video_id = mobj.group(2)
         return video_id
 
+    def _extract_chapters_from_json(self, webpage, video_id, duration):
+        if not webpage:
+            return
+        player = self._parse_json(
+            self._search_regex(
+                r'RELATED_PLAYER_ARGS["\']\s*:\s*({.+})\s*,?\s*\n', webpage,
+                'player args', default='{}'),
+            video_id, fatal=False)
+        if not player or not isinstance(player, dict):
+            return
+        watch_next_response = player.get('watch_next_response')
+        if not isinstance(watch_next_response, compat_str):
+            return
+        response = self._parse_json(watch_next_response, video_id, fatal=False)
+        if not response or not isinstance(response, dict):
+            return
+        chapters_list = try_get(
+            response,
+            lambda x: x['playerOverlays']
+                       ['playerOverlayRenderer']
+                       ['decoratedPlayerBarRenderer']
+                       ['decoratedPlayerBarRenderer']
+                       ['playerBar']
+                       ['chapteredPlayerBarRenderer']
+                       ['chapters'],
+            list)
+        if not chapters_list:
+            return
+
+        def chapter_time(chapter):
+            return float_or_none(
+                try_get(
+                    chapter,
+                    lambda x: x['chapterRenderer']['timeRangeStartMillis'],
+                    int),
+                scale=1000)
+        chapters = []
+        for next_num, chapter in enumerate(chapters_list, start=1):
+            start_time = chapter_time(chapter)
+            if start_time is None:
+                continue
+            end_time = (chapter_time(chapters_list[next_num])
+                        if next_num < len(chapters_list) else duration)
+            if end_time is None:
+                continue
+            title = try_get(
+                chapter, lambda x: x['chapterRenderer']['title']['simpleText'],
+                compat_str)
+            chapters.append({
+                'start_time': start_time,
+                'end_time': end_time,
+                'title': title,
+            })
+        return chapters
+
     @staticmethod
-    def _extract_chapters(description, duration):
+    def _extract_chapters_from_description(description, duration):
         if not description:
             return None
         chapter_lines = re.findall(
@@ -1686,6 +1741,10 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                 'title': chapter_title,
             })
         return chapters
+
+    def _extract_chapters(self, webpage, description, video_id, duration):
+        return (self._extract_chapters_from_json(webpage, video_id, duration)
+                or self._extract_chapters_from_description(description, duration))
 
     def _real_extract(self, url):
         url, smuggled_data = unsmuggle_url(url, {})
@@ -2324,7 +2383,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                     errnote='Unable to download video annotations', fatal=False,
                     data=urlencode_postdata({xsrf_field_name: xsrf_token}))
 
-        chapters = self._extract_chapters(description_original, video_duration)
+        chapters = self._extract_chapters(video_webpage, description_original, video_id, video_duration)
 
         # Look for the DASH manifest
         if self._downloader.params.get('youtube_include_dash_manifest', True):
