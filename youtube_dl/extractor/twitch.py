@@ -36,6 +36,7 @@ class TwitchBaseIE(InfoExtractor):
     _USHER_BASE = 'https://usher.ttvnw.net'
     _LOGIN_FORM_URL = 'https://www.twitch.tv/login'
     _LOGIN_POST_URL = 'https://passport.twitch.tv/login'
+    _ACCEPT = 'application/vnd.twitchtv.v5+json'
     _CLIENT_ID = 'kimne78kx3ncx6brgo4mv6wki5h1ko'
     _NETRC_MACHINE = 'twitch'
 
@@ -51,6 +52,7 @@ class TwitchBaseIE(InfoExtractor):
     def _call_api(self, path, item_id, *args, **kwargs):
         headers = kwargs.get('headers', {}).copy()
         headers['Client-ID'] = self._CLIENT_ID
+        headers['Accept'] = self._ACCEPT
         kwargs['headers'] = headers
         response = self._download_json(
             '%s/%s' % (self._API_BASE, path), item_id,
@@ -572,20 +574,29 @@ class TwitchStreamIE(TwitchBaseIE):
                 else super(TwitchStreamIE, cls).suitable(url))
 
     def _real_extract(self, url):
-        channel_id = self._match_id(url)
+        channel_name = self._match_id(url).lower()
+        try:
+            # the kraken api (v5) accepts only channel IDS.
+            # kraken/users?login=CHANNELNAME returns a channel's ID from its name
+            channel_id = self._call_api(
+                'kraken/users?login=%s' % channel_name,
+                channel_name, 'Getting channel ID').get('users')[0].get('_id')
+            assert channel_id is not None
 
-        stream = self._call_api(
-            'kraken/streams/%s?stream_type=all' % channel_id.lower(),
-            channel_id, 'Downloading stream JSON').get('stream')
+            stream = self._call_api(
+                'kraken/streams/%s?stream_type=all' % channel_id.lower(),
+                channel_name, 'Downloading stream JSON').get('stream')
+            assert stream is not None
 
-        if not stream:
-            raise ExtractorError('%s is offline' % channel_id, expected=True)
+        # IndexError is there because the first JSON contains a list
+        except (IndexError, AssertionError) as e:
+            raise ExtractorError('%s is offline' % channel_name, expected=True)
 
         # Channel name may be typed if different case than the original channel name
         # (e.g. http://www.twitch.tv/TWITCHPLAYSPOKEMON) that will lead to constructing
         # an invalid m3u8 URL. Working around by use of original channel name from stream
         # JSON and fallback to lowercase if it's not available.
-        channel_id = stream.get('channel', {}).get('name') or channel_id.lower()
+        channel_id = channel_name  # XXX
 
         access_token = self._call_api(
             'api/channels/%s/access_token' % channel_id, channel_id,
