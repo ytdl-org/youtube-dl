@@ -472,14 +472,7 @@ class FacebookIE(InfoExtractor):
 
             timestamp = int_or_none(regex_search_result_date_time) or int_or_none(regex_search_result_publish_time)
 
-
-        uploader_id = self._search_regex(
-            r'ownerid:"([\d]+)', webpage,
-            'uploader_id', default=None) or self._search_regex(
-            r'[\'\"]ownerid[\'\"]\s*:\s*[\'\"](\d+)[\'\"]',tahoe_data.secondary,
-            'uploader_id', default=None) or \
-            self._search_regex(r'\\\"page_id\\\"\s*:\s*\\\"(\d+)\\\"', tahoe_data.secondary, 'uploader_id', fatal=False) or \
-            self._search_regex(r'content_owner_id_new\\":\\"(\d+)\\"', tahoe_data.secondary, 'uploader_id', fatal=False)
+        uploader_id = self._resolve_uploader_id(webpage, tahoe_data)
 
         thumbnail = self._html_search_meta(['og:image', 'twitter:image'], webpage)
         if is_live:
@@ -509,7 +502,9 @@ class FacebookIE(InfoExtractor):
 
         video_title = self._search_regex(r'"headline":"(.+?")', webpage, 'title', fatal=False)
         if not video_title:
-            video_title = self._search_regex(r'"pageTitle">(.+?)<', webpage, 'title')
+            video_title = self._search_regex(r'"pageTitle">(.+?)<', webpage, 'title', fatal=False)
+        if not video_title:
+            video_title = self._extract_video_title(webpage, tahoe_data, video_id)
         comments_count = parse_count(self._search_regex(r'"commentCount":(.+?,)', webpage, 'comments_count', fatal=False))
         likes = parse_count(self._extract_likes(webpage, tahoe_data))
 
@@ -520,7 +515,8 @@ class FacebookIE(InfoExtractor):
         uploader_handle, uploader = self._extract_uploader_info_new_ui(uploader_json)
 
         ids_json = self._search_regex(r'data-video-channel-id="(.+?)"', webpage, 'ids')
-        channel_id, video_id = self._extract_ids_info_new_ui(ids_json)
+        uploader_id = self._resolve_uploader_id(webpage, tahoe_data)
+        video_id = self._extract_ids_info_new_ui(ids_json)
 
         post_view_counts = parse_count(self._search_regex(r'"postViewCount":(.+?),', tahoe_data.secondary, 'views'))
         other_post_view_counts = parse_count(self._search_regex(r'"otherPostsViewCount":(.+?),', tahoe_data.secondary, 'other_views'))
@@ -531,7 +527,7 @@ class FacebookIE(InfoExtractor):
 
         formats = self.resolve_new_ui_format(webpage)
         info_dict = self.build_info_dict(webpage, tahoe_data, video_id, video_title, formats, uploader, timestamp,
-                                         thumbnail, post_view_counts, channel_id, is_live, live_status, likes,
+                                         thumbnail, post_view_counts, uploader_id, is_live, live_status, likes,
                                          share_counts, {}, comments_count, other_post_view_counts,
                                          uploader_handle)
 
@@ -703,9 +699,8 @@ class FacebookIE(InfoExtractor):
     def _extract_ids_info_new_ui(self, ids_json):
         ids_json_str = ids_json.decode("utf-8")
         ids = ids_json_str.split(':')
-        channel_id = ids[0]
         video_id = ids[1]
-        return channel_id, video_id
+        return video_id
 
     def resolve_new_ui_live_info(self, webpage, tahoe_data):
 
@@ -750,6 +745,17 @@ class FacebookIE(InfoExtractor):
         format_url = unescapeHTML(format_url)
         return format_url
 
+    def _resolve_uploader_id(self, webpage, tahoe_data):
+        uploader_id = self._search_regex(
+            r'ownerid:"([\d]+)', webpage,
+            'uploader_id', default=None) or self._search_regex(
+            r'[\'\"]ownerid[\'\"]\s*:\s*[\'\"](\d+)[\'\"]', tahoe_data.secondary,
+            'uploader_id', default=None) or \
+                      self._search_regex(r'\\\"page_id\\\"\s*:\s*\\\"(\d+)\\\"', tahoe_data.secondary, 'uploader_id',
+                                         fatal=False) or \
+                      self._search_regex(r'content_owner_id_new\\":\\"(\d+)\\"', tahoe_data.secondary, 'uploader_id',
+                                         fatal=False)
+        return uploader_id
 
 class FacebookTahoeData:
     def __init__(self, extractor, page, video_id):
