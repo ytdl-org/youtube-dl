@@ -507,9 +507,10 @@ class FacebookIE(InfoExtractor):
 
     def get_from_new_ui(self, webpage, tahoe_data, url):
 
-        video_title = self._search_regex(r'"headline":"(.+?")', webpage, 'title')
-        comments_count = parse_count(self._search_regex(r'"commentCount":(.+?,)', webpage, 'comments_count'))
-        subtitles = self._search_regex(r'"about":"(.+?")', webpage, 'subtitles')
+        video_title = self._search_regex(r'"headline":"(.+?")', webpage, 'title', fatal=False)
+        if not video_title:
+            video_title = self._search_regex(r'"pageTitle">(.+?)<', webpage, 'title')
+        comments_count = parse_count(self._search_regex(r'"commentCount":(.+?,)', webpage, 'comments_count', fatal=False))
         likes = parse_count(self._extract_likes(webpage, tahoe_data))
 
         timestamp = self._search_regex(r'"datePublished":"(.+?)"', webpage, 'timestamp')
@@ -719,10 +720,10 @@ class FacebookIE(InfoExtractor):
         live_status = 'not_live'
         if is_broadcast:
             live_status = 'completed'
-            if is_live_stream:
-                live_status = 'live'
-                if is_scheduled:
-                    live_status = 'upcoming'
+        if is_live_stream:
+            live_status = 'live'
+        if is_scheduled:
+            live_status = 'upcoming'
 
         is_live = live_status == 'live'
 
