@@ -731,36 +731,38 @@ class TwitchClipsIE(TwitchBaseIE):
     def _real_extract(self, url):
         video_id = self._match_id(url)
 
-        clip = self._download_json(
+        response = self._download_json(
             'https://gql.twitch.tv/gql', video_id, data=json.dumps({
                 'query': '''{
-  clip(slug: "%s") {
-    broadcaster {
-      displayName
-      id
-    }
-    createdAt
-    curator {
-      displayName
-      id
-    }
-    durationSeconds
-    id
-    tiny: thumbnailURL(width: 86, height: 45)
-    small: thumbnailURL(width: 260, height: 147)
-    medium: thumbnailURL(width: 480, height: 272)
-    title
-    videoQualities {
-      frameRate
-      quality
-      sourceURL
-    }
-    viewCount
-  }
-}''' % video_id,
+              clip(slug: "%s") {
+                broadcaster {
+                  displayName
+                  id                  
+                }
+                createdAt
+                curator {
+                  displayName
+                  id                                  
+                }
+                durationSeconds
+                id
+                tiny: thumbnailURL(width: 86, height: 45)
+                small: thumbnailURL(width: 260, height: 147)
+                medium: thumbnailURL(width: 480, height: 272)
+                title
+                videoQualities {
+                  frameRate
+                  quality
+                  sourceURL
+                }
+                viewCount
+              }
+            }''' % video_id,
             }).encode(), headers={
                 'Client-ID': self._CLIENT_ID,
-            })['data']['clip']
+            })
+
+        clip = response['data']['clip']
 
         if not clip:
             raise ExtractorError(
@@ -798,6 +800,13 @@ class TwitchClipsIE(TwitchBaseIE):
                 })
             thumbnails.append(thumb)
 
+        channel_id = clip['broadcaster']['id']
+        channel = self._call_api(
+            'kraken/channels/%s' % channel_id,
+            channel_id, 'Downloading channel info JSON')
+
+        uploader_like_count = channel.get('followers')
+        creator_handle = channel.get('name')
         return {
             'id': clip.get('id') or video_id,
             'title': clip.get('title') or video_id,
@@ -808,6 +817,9 @@ class TwitchClipsIE(TwitchBaseIE):
             'thumbnails': thumbnails,
             'creator': try_get(clip, lambda x: x['broadcaster']['displayName'], compat_str),
             'creator_id': try_get(clip, lambda x: x['broadcaster']['id'], compat_str),
+            'creator_handle': creator_handle,
             'uploader': try_get(clip, lambda x: x['curator']['displayName'], compat_str),
             'uploader_id': try_get(clip, lambda x: x['curator']['id'], compat_str),
+            'uploader_handle': try_get(clip, lambda x: x['curator']['name'], compat_str),
+            'uploader_like_count': uploader_like_count
         }
