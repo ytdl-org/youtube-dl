@@ -220,6 +220,7 @@ class TwitchItemBaseIE(TwitchBaseIE):
             'timestamp': parse_iso8601(info.get('recorded_at')),
             'view_count': int_or_none(info.get('views')),
             'is_live': is_live,
+            'uploader_like_count': info['channel'].get('followers')
         }
 
     def _real_extract(self, url):
@@ -372,17 +373,19 @@ class TwitchVodIE(TwitchItemBaseIE):
                     'ext': 'json',
                 }],
             }
+        """
         channel_id = info['uploader_id']
         channel = self._call_api(
             'kraken/channels/%s' % channel_id,
             channel_id, 'Downloading channel info JSON')
 
         info['uploader_like_count'] = channel.get('followers')
-
+        
         description = info['description']
         if description is None:
             description = channel.get('status')
         info['description'] = description
+        """
 
         return info
 
