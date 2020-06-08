@@ -17,47 +17,46 @@ from ..utils import (
 )
 
 
-class PivotshareIE(InfoExtractor):
-    _VALID_URL = r"""(?x)
-                    https?://
-                        (?:www\.)?
-                        (?P<domain>
-                            (?:
-                                thunderboltpoweryogatv|
-                                hungrymonkyoga|
-                                soccer\.sklz|
-                                womenstennisnetwork|
-                                pigskinkids|
-                                czwstudios|
-                                highspotswrestlingnetwork|
-                                titlematchwrestlingnetwork|
-                                womenswrestlingnetwork|
-                                rockstarpronetwork|
-                                mcwragetv|
-                                aawondemand|
-                                pwnnetwork|
-                                ondemand\.DiscoveryWrestling|
-                                adsrcourses|
-                                reaktortutorials|
-                                crosscounter|
-                                cultorama|
-                                bongflix|
-                                everyonecansalsa|
-                                academy\.tedgibson|
-                                video\.jasyoga|
-                                (?P<subdomain>
-                                    [^.]+
-                                )\.pivotshare
-                            )\.
-                            (?:com|tv)
-                        )?/media/
-                        (?:
-                            [^/]+
-                        )/
-                        (?P<id>
-                            [0-9]+
-                        )
-                """
+class PivotshareBaseIE(InfoExtractor):
+    _VALID_URL_BASE = r"""(?x)
+        https?://
+            (?:www\.)?
+            (?P<domain>
+                (?:
+                    thunderboltpoweryogatv|
+                    hungrymonkyoga|
+                    soccer\.sklz|
+                    womenstennisnetwork|
+                    pigskinkids|
+                    czwstudios|
+                    highspotswrestlingnetwork|
+                    titlematchwrestlingnetwork|
+                    womenswrestlingnetwork|
+                    rockstarpronetwork|
+                    mcwragetv|
+                    aawondemand|
+                    pwnnetwork|
+                    ondemand\.DiscoveryWrestling|
+                    adsrcourses|
+                    reaktortutorials|
+                    crosscounter|
+                    cultorama|
+                    bongflix|
+                    everyonecansalsa|
+                    academy\.tedgibson|
+                    video\.jasyoga|
+                    (?P<subdomain>[^.]+)\.pivotshare
+                )
+                \.(?:com|tv)
+            )?"""
+    _API_BASE = 'https://api.pivotshare.com/v1/'
+    _CLIENT_ID = 'c0da629bb49ceff00327ac7c1f128bca'
+    _TOKEN = None
+    _NETRC_MACHINE = 'pivotshare'
+
+
+class PivotshareIE(PivotshareBaseIE):
+    _VALID_URL = r"%s/media/(?:[^/]+)/(?P<id>[0-9]+)" % PivotshareBaseIE._VALID_URL_BASE
     _TESTS = [{
         'url': 'https://ted.pivotshare.com/media/rob-forbes-on-ways-of-seeing/61/feature',
         'md5': '30a2ba2b97d0a1ccd2efb5d534d922ae',
@@ -106,11 +105,6 @@ class PivotshareIE(InfoExtractor):
         'only_matching': True,
     }]
 
-    _API_BASE = 'https://api.pivotshare.com/v1/'
-    _CLIENT_ID = 'c0da629bb49ceff00327ac7c1f128bca'
-    _TOKEN = None
-    _NETRC_MACHINE = 'pivotshare'
-
     def _real_initialize(self):
         self._login()
 
@@ -149,8 +143,8 @@ class PivotshareIE(InfoExtractor):
             query['access_token'] = self._TOKEN
 
         channel_meta = self._download_json(
-            '%schannels/%s' % (self._API_BASE, subdomain if subdomain else domain),
-            subdomain, "Downloading channel JSON metadata",
+            '%schannels/%s' % (self._API_BASE, subdomain or domain),
+            subdomain or domain, "Downloading channel JSON metadata",
             query=query)
 
         query.pop('search_method')
@@ -204,3 +198,56 @@ class PivotshareIE(InfoExtractor):
             'duration': try_get(meta, lambda x: x['channel']['media']['duration'], int),
             'categories': [try_get(meta, lambda x: x['channel']['media']['category'], compat_str)],
         }
+
+
+class PivotsharePlaylistIE(PivotshareBaseIE):
+    _VALID_URL = r'%s/categories/(?:[^/]+)/(?P<id>[0-9]+)' % PivotshareBaseIE._VALID_URL_BASE
+    _TESTS = [{
+        'url': 'https://ted.pivotshare.com/categories/science/43/media',
+        'info_dict': {
+            'id': '43',
+            'title': 'Science',
+        },
+    }]
+
+    def _real_extract(self, url):
+        domain, subdomain, playlist_id = re.match(self._VALID_URL, url).groups()
+
+        query = {
+            'client_id': self._CLIENT_ID,
+            'search_method': 'subdomain' if subdomain else 'domain'
+        }
+
+        channel_meta = self._download_json(
+            '%schannels/%s' % (self._API_BASE, subdomain or domain),
+            subdomain or domain, "Downloading channel JSON metadata",
+            query=query)
+
+        query.pop('search_method')
+
+        channel_id = try_get(channel_meta, lambda x: x['channel']['id'], int)
+
+        if channel_id:
+            category_meta = self._download_json(
+                '%schannels/%s/categories/%s' % (
+                    self._API_BASE, channel_id, playlist_id),
+                playlist_id, "Downloading playlist JSON metadata",
+                query=query)
+
+            title = try_get(category_meta, lambda x: x['channel']['category']['name'], compat_str)
+
+            category_items_meta = self._download_json(
+                '%schannels/%s/categories/%s/media' % (
+                    self._API_BASE, channel_id, playlist_id),
+                playlist_id, "Downloading playlist items JSON metadata",
+                query=query)
+
+            entries = []
+
+            for item in category_items_meta['categories']['media']:
+                entries.append(self.url_result(
+                    'https://%s/media/item/%s' % (
+                        '%s.pivotshare.com' % subdomain if subdomain else domain,
+                        item.get('id')), ie=PivotshareIE.ie_key()))
+
+            return self.playlist_result(entries, playlist_id, title)
