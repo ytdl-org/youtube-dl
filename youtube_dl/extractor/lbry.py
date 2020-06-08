@@ -2,6 +2,8 @@
 from __future__ import unicode_literals
 
 import re
+import itertools
+import json
 
 from .common import InfoExtractor
 
@@ -59,3 +61,64 @@ class LBRYIE(InfoExtractor):
             'uploader_url': uploader_url,
             'formats': formats,
         }
+
+
+class LBRYChannelIE(InfoExtractor):
+    IE_NAME = 'lbry:channel'
+    _VALID_URL = r'https?://(?:www\.)?lbry\.tv/@(?P<id>[^/?#&]+:[0-9a-f]+)'
+    _TESTS = [{
+        'url': 'https://lbry.tv/@TheLinuxGamer:f',
+        'info_dict': {
+            'id': '@TheLinuxGamer:feb61536c007cdf4faeeaab4876cb397feaf6b51',
+            'title': 'lbry @TheLinuxGamer',
+        },
+        'playlist_mincount': 500,
+    }]
+    _BASE_URL_TEMPL = 'https://lbry.tv/%s'
+
+    def _extract_list_title(self, webpage):
+        return self._TITLE or self._html_search_regex(
+            self._TITLE_RE, webpage, 'list title', fatal=False)
+
+    def _title_and_entries(self, channel_id, base_url):
+        claim_id = channel_id.split(":")[-1]
+        for pagenum in itertools.count(1):
+            data = {"jsonrpc": "2.0",
+                    "method": "claim_search",
+                    "params": {
+                        "page_size": 50,
+                        "page": pagenum,
+                        "no_totals": True,
+                        "channel_ids": [claim_id],
+                        "not_channel_ids": [],
+                        "order_by": ["release_time"],
+                        "include_purchase_receipt": True
+                    },
+                    "id": 1591611001494}
+
+            clips = self._download_json("https://api.lbry.tv/api/v1/proxy?m=claim_search", None,
+                                        headers={'Content-Type': 'application/json-rpc', },
+                                        data=json.dumps(data).encode())["result"]["items"]
+
+            if pagenum == 1:
+                yield "lbry " + clips[0]["signing_channel"]['name']
+
+            for clip in clips:
+                # the permanent_url is the lbry:// protocol url:
+                video_id = clip["permanent_url"][7:].replace("#", ":")
+
+                yield self.url_result("https://lbry.tv/%s/%s" % (channel_id, video_id),
+                                      LBRYIE.ie_key(), video_id=video_id)
+            if len(clips) == 0:
+                break
+
+    def _extract_videos(self, list_id, base_url):
+        title_and_entries = self._title_and_entries(list_id, base_url)
+        list_title = next(title_and_entries)
+        return self.playlist_result(title_and_entries, list_id, list_title)
+
+    def _real_extract(self, url):
+        channel_id = self._match_id(url)
+        webpage = self._download_webpage('https://lbry.tv/@%s' % (channel_id), channel_id)
+        real_channel_id = self._og_search_url(webpage).split("/")[-1]
+        return self._extract_videos(real_channel_id, self._BASE_URL_TEMPL % real_channel_id)
