@@ -1516,3 +1516,10 @@ from .zattoo import (
 from .zdf import ZDFIE, ZDFChannelIE
 from .zingmp3 import ZingMp3IE
 from .zype import ZypeIE
+
+from .zingmp3_vn import (
+    Zingmp3_vnIE,
+    Zingmp3_vnPlaylistIE,
+    Zingmp3_vnChartIE,
+    Zingmp3_vnUserIE
+)
