@@ -65,7 +65,7 @@ class LBRYIE(InfoExtractor):
 
 class LBRYChannelIE(InfoExtractor):
     IE_NAME = 'lbry:channel'
-    _VALID_URL = r'https?://(?:www\.)?lbry\.tv/@(?P<id>[^/?#&]+:[0-9a-f]+)'
+    _VALID_URL = r'https?://(?:www\.)?lbry\.tv/@(?P<id>[^/?#&]+:[0-9a-f]+)$'
     _TESTS = [{
         'url': 'https://lbry.tv/@TheLinuxGamer:f',
         'info_dict': {
