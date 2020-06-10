@@ -380,13 +380,11 @@ class TwitchPlaylistBaseIE(TwitchBaseIE):
     _PLAYLIST_PATH = 'kraken/channels/%s/videos/?offset=%d&limit=%d'
     _PAGE_LIMIT = 100
 
-    def _extract_playlist(self, channel_name):
+    def _extract_playlist(self, channel_id):
         info = self._call_api(
-            'kraken/users?login=%s' % channel_name,
-            channel_name, 'Downloading channel info JSON')
-        info = info['users'][0]
-        channel_id = info['_id']
-        channel_name = info.get('display_name') or info.get('name') or channel_name
+            'kraken/channels/%s' % channel_id,
+            channel_id, 'Downloading channel info JSON')
+        channel_name = info.get('display_name') or info.get('name')
         entries = []
         offset = 0
         limit = self._PAGE_LIMIT
@@ -446,7 +444,7 @@ class TwitchProfileIE(TwitchPlaylistBaseIE):
     _TESTS = [{
         'url': 'http://www.twitch.tv/vanillatv/profile',
         'info_dict': {
-            'id': '22744919',
+            'id': 'vanillatv',
             'title': 'VanillaTV',
         },
         'playlist_mincount': 412,
@@ -470,7 +468,7 @@ class TwitchAllVideosIE(TwitchVideosBaseIE):
     _TESTS = [{
         'url': 'https://www.twitch.tv/spamfish/videos/all',
         'info_dict': {
-            'id': '497952',
+            'id': 'spamfish',
             'title': 'Spamfish',
         },
         'playlist_mincount': 869,
@@ -489,7 +487,7 @@ class TwitchUploadsIE(TwitchVideosBaseIE):
     _TESTS = [{
         'url': 'https://www.twitch.tv/spamfish/videos/uploads',
         'info_dict': {
-            'id': '497952',
+            'id': 'spamfish',
             'title': 'Spamfish',
         },
         'playlist_mincount': 0,
@@ -508,7 +506,7 @@ class TwitchPastBroadcastsIE(TwitchVideosBaseIE):
     _TESTS = [{
         'url': 'https://www.twitch.tv/spamfish/videos/past-broadcasts',
         'info_dict': {
-            'id': '497952',
+            'id': 'spamfish',
             'title': 'Spamfish',
         },
         'playlist_mincount': 0,
@@ -527,7 +525,7 @@ class TwitchHighlightsIE(TwitchVideosBaseIE):
     _TESTS = [{
         'url': 'https://www.twitch.tv/spamfish/videos/highlights',
         'info_dict': {
-            'id': '497952',
+            'id': 'spamfish',
             'title': 'Spamfish',
         },
         'playlist_mincount': 805,
