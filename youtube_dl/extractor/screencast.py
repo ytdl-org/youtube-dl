@@ -1,6 +1,8 @@
 # coding: utf-8
 from __future__ import unicode_literals
 
+import re
+
 from .common import InfoExtractor
 from ..compat import (
     compat_parse_qs,
@@ -13,6 +15,8 @@ from ..utils import (
 
 class ScreencastIE(InfoExtractor):
     _VALID_URL = r'https?://(?:www\.)?screencast\.com/t/(?P<id>[a-zA-Z0-9]+)'
+    _API_URL = 'https://www.screencast.com/api/external/oembed?url=%s&format=json'
+
     _TESTS = [{
         'url': 'http://www.screencast.com/t/3ZEjQXlT',
         'md5': '917df1c13798a3e96211dd1561fded83',
@@ -60,13 +64,32 @@ class ScreencastIE(InfoExtractor):
 
     def _real_extract(self, url):
         video_id = self._match_id(url)
+
+        # The info JSON given by the API has a thumbnail URL,
+        # but it's inferior to the webpage's thumbnail.
+        # It also has no video description, so we
+        # definitely still need to get the webpage.
+
+        info = self._download_json(
+            self._API_URL % url, video_id,
+            'Downloading video info JSON')
+
+        video_url = info.get('url')
+        if video_url != None:
+            video_url_raw = compat_urllib_request.quote(video_url)
+            video_url = re.sub(r'^(?P<proto>https|http)%3A',
+                               lambda match: '%s:' % match.group('proto'), 
+                               video_url_raw)
+
+        title = info.get('title')
         webpage = self._download_webpage(url, video_id)
 
-        video_url = self._html_search_regex(
-            r'<embed name="Video".*?src="([^"]+)"', webpage,
-            'QuickTime embed', default=None)
+        if video_url == None:
+            video_url = self._html_search_regex(
+                r'<embed name="Video".*?src="([^"]+)"', webpage,
+                'QuickTime embed', default=None)
 
-        if video_url is None:
+        if video_url == None:
             flash_vars_s = self._html_search_regex(
                 r'<param name="flashVars" value="([^"]+)"', webpage, 'flash vars',
                 default=None)
@@ -80,9 +103,11 @@ class ScreencastIE(InfoExtractor):
                 flash_vars = compat_parse_qs(flash_vars_s)
                 video_url_raw = compat_urllib_request.quote(
                     flash_vars['content'][0])
-                video_url = video_url_raw.replace('http%3A', 'http:')
+                video_url = re.sub(r'^(?P<proto>http|https)%3A',
+                                   lambda match: '%s:' % match.group('proto'),
+                                   video_url_raw)
 
-        if video_url is None:
+        if video_url == None:
             video_meta = self._html_search_meta(
                 'og:video', webpage, default=None)
             if video_meta:
@@ -90,28 +115,31 @@ class ScreencastIE(InfoExtractor):
                     r'src=(.*?)(?:$|&)', video_meta,
                     'meta tag video URL', default=None)
 
-        if video_url is None:
+        if video_url == None:
             video_url = self._html_search_regex(
                 r'MediaContentUrl["\']\s*:(["\'])(?P<url>(?:(?!\1).)+)\1',
                 webpage, 'video url', default=None, group='url')
 
-        if video_url is None:
+        if video_url == None:
             video_url = self._html_search_meta(
                 'og:video', webpage, default=None)
 
-        if video_url is None:
+        if video_url == None:
             raise ExtractorError('Cannot find video')
 
-        title = self._og_search_title(webpage, default=None)
-        if title is None:
+        if title == None:
+            title = self._og_search_title(webpage, default=None)
+        
+        if title == None:
             title = self._html_search_regex(
                 [r'<b>Title:</b> ([^<]+)</div>',
                  r'class="tabSeperator">></span><span class="tabText">(.+?)<',
                  r'<title>([^<]+)</title>'],
                 webpage, 'title')
+
         thumbnail = self._og_search_thumbnail(webpage)
         description = self._og_search_description(webpage, default=None)
-        if description is None:
+        if description == None:
             description = self._html_search_meta('description', webpage)
 
         return {
