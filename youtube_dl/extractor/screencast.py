@@ -14,7 +14,7 @@ from ..utils import (
 
 
 class ScreencastIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:www\.)?screencast\.com/t/(?P<id>[a-zA-Z0-9]+)'
+    _VALID_URL = r'https?://(?:www\.)?screencast\.com/(?:t|users/[^/]+/folders/[^/]+/media)/(?P<id>[a-zA-Z0-9\-]+)'
     _API_URL = 'https://www.screencast.com/api/external/oembed?url=%s&format=json'
 
     _TESTS = [{
@@ -60,6 +60,16 @@ class ScreencastIE(InfoExtractor):
     }, {
         'url': 'http://screencast.com/t/aAB3iowa',
         'only_matching': True,
+    }, {
+        'url': 'https://www.screencast.com/users/cindyhailes/folders/Jing/media/c9be177c-5808-4c4f-af56-eadceb3a7c82',
+        'md5': '589d37a28d2add53c8bf16b9126d9dc2',
+        'info_dict': {
+            'id': 'c9be177c-5808-4c4f-af56-eadceb3a7c82',
+            'ext': 'swf',
+            'title': '2020-05-31_1737',
+            'description': 'Shared from Screencast.com',
+            'thumbnail': r're:^https?://.*\.(?:gif|jpg)$',
+        }
     }]
 
     def _real_extract(self, url):
