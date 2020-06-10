@@ -587,18 +587,24 @@ class FacebookIE(InfoExtractor):
 
         return value
 
+    @staticmethod
+    def _extract_first_pattern(pairs):
+        for pattern, data_list in pairs:
+            if not isinstance(data_list, list):
+                data_list = [data_list]
+            for data in data_list:
+                values = re.findall(pattern, data)
+                if values:
+                    return values[-1]
+
     def _extract_likes(self, webpage, tahoe_data):
-        values = re.findall(r'\blikecount\s*:\s*["\']([\d,.]+)', webpage)
-        if values:
-            return values[-1]
-
-        values = re.findall(r'[\'\"]\blikecount[\'\"]\s*:\s*(\d+)', tahoe_data.secondary)
-        if values:
-            return values[-1]
-
-        values = re.findall(r'"reaction_count"\s*:\s*{\s*"count"\s*:\s*(\d+)', tahoe_data.secondary)
-        if values:
-            return values[-1]
+        pairs = (
+            (r'"reaction_count"\s*:\s*{\s*"count"\s*:\s*(\d+)', [tahoe_data.secondary, webpage]),
+            (r'reaction_count:{count:([\d]+)}', webpage),
+            (r'\blikecount\s*:\s*["\']([\d,.]+)', webpage),
+            (r'[\'\"]\blikecount[\'\"]\s*:\s*(\d+)', tahoe_data.secondary)
+        )
+        return self._extract_first_pattern(pairs)
 
     def _extract_shares(self, webpage, tahoe_data):
         value = self._extract_meta_count(['sharecount'], webpage, tahoe_data, 'shares')
