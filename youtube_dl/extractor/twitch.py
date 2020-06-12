@@ -808,7 +808,7 @@ class TwitchClipsIE(TwitchBaseIE):
             channel_id, 'Downloading channel info JSON')
 
         uploader_like_count = channel.get('followers')
-        creator_handle = channel.get('name')
+        broadcaster_handle = channel.get('name')
         return {
             'id': clip.get('id') or video_id,
             'title': clip.get('title') or video_id,
@@ -819,9 +819,9 @@ class TwitchClipsIE(TwitchBaseIE):
             'thumbnails': thumbnails,
             'creator': try_get(clip, lambda x: x['broadcaster']['displayName'], compat_str),
             'creator_id': try_get(clip, lambda x: x['broadcaster']['id'], compat_str),
-            'creator_handle': creator_handle,
+            'broadcaster_handle': broadcaster_handle,
             'uploader': try_get(clip, lambda x: x['curator']['displayName'], compat_str),
             'uploader_id': try_get(clip, lambda x: x['curator']['id'], compat_str),
-            'uploader_handle': try_get(clip, lambda x: x['curator']['name'], compat_str),
+            'uploader_handle': try_get(clip, lambda x: x['curator']['id'], compat_str),
             'uploader_like_count': uploader_like_count
         }
