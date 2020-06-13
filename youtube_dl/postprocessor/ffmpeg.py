@@ -52,9 +52,10 @@ class FFmpegPostProcessorError(PostProcessingError):
 
 
 class FFmpegPostProcessor(PostProcessor):
-    def __init__(self, downloader=None):
+    def __init__(self, downloader=None, noconsole=False):
         PostProcessor.__init__(self, downloader)
         self._determine_executables()
+        self._noconsole = noconsole
 
     def check_version(self):
         if not self.available:
@@ -227,7 +228,12 @@ class FFmpegPostProcessor(PostProcessor):
 
         if self._downloader.params.get('verbose', False):
             self._downloader.to_screen('[debug] ffmpeg command line: %s' % shell_quote(cmd))
-        p = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, stdin=subprocess.PIPE)
+
+        startupinfo = subprocess.STARTUPINFO()
+        if self._noconsole:
+            startupinfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW
+
+        p = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, stdin=subprocess.PIPE, startupinfo=startupinfo)
         stdout, stderr = p.communicate()
         if p.returncode != 0:
             stderr = stderr.decode('utf-8', 'replace')
@@ -247,8 +253,8 @@ class FFmpegPostProcessor(PostProcessor):
 
 
 class FFmpegExtractAudioPP(FFmpegPostProcessor):
-    def __init__(self, downloader=None, preferredcodec=None, preferredquality=None, nopostoverwrites=False):
-        FFmpegPostProcessor.__init__(self, downloader)
+    def __init__(self, downloader=None, noconsole=False, preferredcodec=None, preferredquality=None, nopostoverwrites=False):
+        FFmpegPostProcessor.__init__(self, downloader, noconsole)
         if preferredcodec is None:
             preferredcodec = 'best'
         self._preferredcodec = preferredcodec
@@ -350,8 +356,8 @@ class FFmpegExtractAudioPP(FFmpegPostProcessor):
 
 
 class FFmpegVideoConvertorPP(FFmpegPostProcessor):
-    def __init__(self, downloader=None, preferedformat=None):
-        super(FFmpegVideoConvertorPP, self).__init__(downloader)
+    def __init__(self, downloader=None, noconsole=False, preferedformat=None):
+        super(FFmpegVideoConvertorPP, self).__init__(downloader, noconsole)
         self._preferedformat = preferedformat
 
     def run(self, information):
