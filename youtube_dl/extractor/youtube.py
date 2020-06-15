@@ -2356,17 +2356,21 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
         m_cat_container = self._search_regex(
             r'(?s)<h4[^>]*>\s*Category\s*</h4>\s*<ul[^>]*>(.*?)</ul>',
             video_webpage, 'categories', default=None)
+        category = None
         if m_cat_container:
             category = self._html_search_regex(
                 r'(?s)<a[^<]+>(.*?)</a>', m_cat_container, 'category',
                 default=None)
-            video_categories = None if category is None else [category]
-        else:
-            video_categories = None
+        if not category:
+            category = try_get(
+                microformat, lambda x: x['category'], compat_str)
+        video_categories = None if category is None else [category]
 
         video_tags = [
             unescapeHTML(m.group('content'))
             for m in re.finditer(self._meta_regex('og:video:tag'), video_webpage)]
+        if not video_tags:
+            video_tags = try_get(video_details, lambda x: x['keywords'], list)
 
         def _extract_count(count_name):
             return str_to_int(self._search_regex(
