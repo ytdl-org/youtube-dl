@@ -1,4 +1,4 @@
-version <unreleased>
+version 2020.06.16
 
 Extractors
 * [youtube] Fix uploader id and uploader URL extraction
