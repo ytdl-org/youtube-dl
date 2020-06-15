@@ -70,6 +70,11 @@ class YoutubeBaseInfoExtractor(InfoExtractor):
 
     _PLAYLIST_ID_RE = r'(?:PL|LL|EC|UU|FL|RD|UL|TL|PU|OLAK5uy_)[0-9A-Za-z-_]{10,}'
 
+    _YOUTUBE_CLIENT_HEADERS = {
+        'x-youtube-client-name': '1',
+        'x-youtube-client-version': '1.20200609.04.02',
+    }
+
     def _set_language(self):
         self._set_cookie(
             '.youtube.com', 'PREF', 'f1=50000000&hl=en',
@@ -301,7 +306,8 @@ class YoutubeEntryListBaseInfoExtractor(YoutubeBaseInfoExtractor):
                         'https://youtube.com/%s' % mobj.group('more'), playlist_id,
                         'Downloading page #%s%s'
                         % (page_num, ' (retry #%d)' % count if count else ''),
-                        transform_source=uppercase_escape)
+                        transform_source=uppercase_escape,
+                        headers=self._YOUTUBE_CLIENT_HEADERS)
                     break
                 except ExtractorError as e:
                     if isinstance(e.cause, compat_HTTPError) and e.cause.code in (500, 503):
@@ -1897,6 +1903,9 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
         video_details = try_get(
             player_response, lambda x: x['videoDetails'], dict) or {}
 
+        microformat = try_get(
+            player_response, lambda x: x['microformat']['playerMicroformatRenderer'], dict) or {}
+
         video_title = video_info.get('title', [None])[0] or video_details.get('title')
         if not video_title:
             self._downloader.report_warning('Unable to extract video title')
@@ -1974,6 +1983,8 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
             view_count = extract_view_count(video_info)
         if view_count is None and video_details:
             view_count = int_or_none(video_details.get('viewCount'))
+        if view_count is None and microformat:
+            view_count = int_or_none(microformat.get('viewCount'))
 
         if is_live is None:
             is_live = bool_or_none(video_details.get('isLive'))
@@ -2225,7 +2236,12 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
             video_uploader_id = mobj.group('uploader_id')
             video_uploader_url = mobj.group('uploader_url')
         else:
-            self._downloader.report_warning('unable to extract uploader nickname')
+            owner_profile_url = url_or_none(microformat.get('ownerProfileUrl'))
+            if owner_profile_url:
+                video_uploader_id = self._search_regex(
+                    r'(?:user|channel)/([^/]+)', owner_profile_url, 'uploader id',
+                    default=None)
+                video_uploader_url = owner_profile_url
 
         channel_id = (
             str_or_none(video_details.get('channelId'))
@@ -2236,17 +2252,33 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                 video_webpage, 'channel id', default=None, group='id'))
         channel_url = 'http://www.youtube.com/channel/%s' % channel_id if channel_id else None
 
-        # thumbnail image
-        # We try first to get a high quality image:
-        m_thumb = re.search(r'<span itemprop="thumbnail".*?href="(.*?)">',
-                            video_webpage, re.DOTALL)
-        if m_thumb is not None:
-            video_thumbnail = m_thumb.group(1)
-        elif 'thumbnail_url' not in video_info:
-            self._downloader.report_warning('unable to extract video thumbnail')
+        thumbnails = []
+        thumbnails_list = try_get(
+            video_details, lambda x: x['thumbnail']['thumbnails'], list) or []
+        for t in thumbnails_list:
+            if not isinstance(t, dict):
+                continue
+            thumbnail_url = url_or_none(t.get('url'))
+            if not thumbnail_url:
+                continue
+            thumbnails.append({
+                'url': thumbnail_url,
+                'width': int_or_none(t.get('width')),
+                'height': int_or_none(t.get('height')),
+            })
+
+        if not thumbnails:
             video_thumbnail = None
-        else:   # don't panic if we can't find it
-            video_thumbnail = compat_urllib_parse_unquote_plus(video_info['thumbnail_url'][0])
+            # We try first to get a high quality image:
+            m_thumb = re.search(r'<span itemprop="thumbnail".*?href="(.*?)">',
+                                video_webpage, re.DOTALL)
+            if m_thumb is not None:
+                video_thumbnail = m_thumb.group(1)
+            thumbnail_url = try_get(video_info, lambda x: x['thumbnail_url'][0], compat_str)
+            if thumbnail_url:
+                video_thumbnail = compat_urllib_parse_unquote_plus(thumbnail_url)
+            if video_thumbnail:
+                thumbnails.append({'url': video_thumbnail})
 
         # upload date
         upload_date = self._html_search_meta(
@@ -2256,6 +2288,8 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                 [r'(?s)id="eow-date.*?>(.*?)</span>',
                  r'(?:id="watch-uploader-info".*?>.*?|["\']simpleText["\']\s*:\s*["\'])(?:Published|Uploaded|Streamed live|Started) on (.+?)[<"\']'],
                 video_webpage, 'upload date', default=None)
+        if not upload_date:
+            upload_date = microformat.get('publishDate') or microformat.get('uploadDate')
         upload_date = unified_strdate(upload_date)
 
         video_license = self._html_search_regex(
@@ -2479,7 +2513,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
             'creator': video_creator or artist,
             'title': video_title,
             'alt_title': video_alt_title or track,
-            'thumbnail': video_thumbnail,
+            'thumbnails': thumbnails,
             'description': video_description,
             'categories': video_categories,
             'tags': video_tags,
@@ -3256,7 +3290,8 @@ class YoutubeFeedsInfoExtractor(YoutubeBaseInfoExtractor):
             more = self._download_json(
                 'https://youtube.com/%s' % mobj.group('more'), self._PLAYLIST_TITLE,
                 'Downloading page #%s' % page_num,
-                transform_source=uppercase_escape)
+                transform_source=uppercase_escape,
+                headers=self._YOUTUBE_CLIENT_HEADERS)
             content_html = more['content_html']
             more_widget_html = more['load_more_widget_html']
 
