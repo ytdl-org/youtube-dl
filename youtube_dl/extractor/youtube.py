@@ -70,6 +70,11 @@ class YoutubeBaseInfoExtractor(InfoExtractor):
 
     _PLAYLIST_ID_RE = r'(?:PL|LL|EC|UU|FL|RD|UL|TL|PU|OLAK5uy_)[0-9A-Za-z-_]{10,}'
 
+    _YOUTUBE_CLIENT_HEADERS = {
+        'x-youtube-client-name': '1',
+        'x-youtube-client-version': '1.20200609.04.02',
+    }
+
     def _set_language(self):
         self._set_cookie(
             '.youtube.com', 'PREF', 'f1=50000000&hl=en',
@@ -301,7 +306,8 @@ class YoutubeEntryListBaseInfoExtractor(YoutubeBaseInfoExtractor):
                         'https://youtube.com/%s' % mobj.group('more'), playlist_id,
                         'Downloading page #%s%s'
                         % (page_num, ' (retry #%d)' % count if count else ''),
-                        transform_source=uppercase_escape)
+                        transform_source=uppercase_escape,
+                        headers=self._YOUTUBE_CLIENT_HEADERS)
                     break
                 except ExtractorError as e:
                     if isinstance(e.cause, compat_HTTPError) and e.cause.code in (500, 503):
@@ -3250,7 +3256,8 @@ class YoutubeFeedsInfoExtractor(YoutubeBaseInfoExtractor):
             more = self._download_json(
                 'https://youtube.com/%s' % mobj.group('more'), self._PLAYLIST_TITLE,
                 'Downloading page #%s' % page_num,
-                transform_source=uppercase_escape)
+                transform_source=uppercase_escape,
+                headers=self._YOUTUBE_CLIENT_HEADERS)
             content_html = more['content_html']
             more_widget_html = more['load_more_widget_html']
 
