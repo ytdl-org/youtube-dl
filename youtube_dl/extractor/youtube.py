@@ -1978,6 +1978,8 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
             view_count = extract_view_count(video_info)
         if view_count is None and video_details:
             view_count = int_or_none(video_details.get('viewCount'))
+        if view_count is None and microformat:
+            view_count = int_or_none(microformat.get('viewCount'))
 
         if is_live is None:
             is_live = bool_or_none(video_details.get('isLive'))
