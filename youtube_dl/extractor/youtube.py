@@ -1898,6 +1898,9 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
         video_details = try_get(
             player_response, lambda x: x['videoDetails'], dict) or {}
 
+        microformat = try_get(
+            player_response, lambda x: x['microformat']['playerMicroformatRenderer'], dict) or {}
+
         video_title = video_info.get('title', [None])[0] or video_details.get('title')
         if not video_title:
             self._downloader.report_warning('Unable to extract video title')
@@ -2271,6 +2274,8 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                 [r'(?s)id="eow-date.*?>(.*?)</span>',
                  r'(?:id="watch-uploader-info".*?>.*?|["\']simpleText["\']\s*:\s*["\'])(?:Published|Uploaded|Streamed live|Started) on (.+?)[<"\']'],
                 video_webpage, 'upload date', default=None)
+        if not upload_date:
+            upload_date = microformat.get('publishDate') or microformat.get('uploadDate')
         upload_date = unified_strdate(upload_date)
 
         video_license = self._html_search_regex(
