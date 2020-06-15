@@ -77,7 +77,7 @@ class YoutubeBaseInfoExtractor(InfoExtractor):
 
     def _set_language(self):
         self._set_cookie(
-            '.youtube.com', 'PREF', 'f1=50000000&hl=en',
+            '.youtube.com', 'PREF', 'f1=50000000&f6=8&hl=en',
             # YouTube sets the expire time to about two months
             expire_time=time.time() + 2 * 30 * 24 * 3600)
 
