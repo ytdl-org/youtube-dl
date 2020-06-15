@@ -267,7 +267,7 @@ class TestYoutubeChapters(unittest.TestCase):
         for description, duration, expected_chapters in self._TEST_CASES:
             ie = YoutubeIE()
             expect_value(
-                self, ie._extract_chapters(description, duration),
+                self, ie._extract_chapters_from_description(description, duration),
                 expected_chapters, None)
 
 
