@@ -2225,8 +2225,6 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
         if mobj is not None:
             video_uploader_id = mobj.group('uploader_id')
             video_uploader_url = mobj.group('uploader_url')
-        else:
-            self._downloader.report_warning('unable to extract uploader nickname')
 
         channel_id = (
             str_or_none(video_details.get('channelId'))
@@ -2237,17 +2235,33 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                 video_webpage, 'channel id', default=None, group='id'))
         channel_url = 'http://www.youtube.com/channel/%s' % channel_id if channel_id else None
 
-        # thumbnail image
-        # We try first to get a high quality image:
-        m_thumb = re.search(r'<span itemprop="thumbnail".*?href="(.*?)">',
-                            video_webpage, re.DOTALL)
-        if m_thumb is not None:
-            video_thumbnail = m_thumb.group(1)
-        elif 'thumbnail_url' not in video_info:
-            self._downloader.report_warning('unable to extract video thumbnail')
+        thumbnails = []
+        thumbnails_list = try_get(
+            video_details, lambda x: x['thumbnail']['thumbnails'], list) or []
+        for t in thumbnails_list:
+            if not isinstance(t, dict):
+                continue
+            thumbnail_url = url_or_none(t.get('url'))
+            if not thumbnail_url:
+                continue
+            thumbnails.append({
+                'url': thumbnail_url,
+                'width': int_or_none(t.get('width')),
+                'height': int_or_none(t.get('height')),
+            })
+
+        if not thumbnails:
             video_thumbnail = None
-        else:   # don't panic if we can't find it
-            video_thumbnail = compat_urllib_parse_unquote_plus(video_info['thumbnail_url'][0])
+            # We try first to get a high quality image:
+            m_thumb = re.search(r'<span itemprop="thumbnail".*?href="(.*?)">',
+                                video_webpage, re.DOTALL)
+            if m_thumb is not None:
+                video_thumbnail = m_thumb.group(1)
+            thumbnail_url = try_get(video_info, lambda x: x['thumbnail_url'][0], compat_str)
+            if thumbnail_url:
+                video_thumbnail = compat_urllib_parse_unquote_plus(thumbnail_url)
+            if video_thumbnail:
+                thumbnails.append({'url': video_thumbnail})
 
         # upload date
         upload_date = self._html_search_meta(
@@ -2480,7 +2494,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
             'creator': video_creator or artist,
             'title': video_title,
             'alt_title': video_alt_title or track,
-            'thumbnail': video_thumbnail,
+            'thumbnails': thumbnails,
             'description': video_description,
             'categories': video_categories,
             'tags': video_tags,
