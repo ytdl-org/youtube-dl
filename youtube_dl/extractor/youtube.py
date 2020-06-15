@@ -2230,6 +2230,13 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
         if mobj is not None:
             video_uploader_id = mobj.group('uploader_id')
             video_uploader_url = mobj.group('uploader_url')
+        else:
+            owner_profile_url = url_or_none(microformat.get('ownerProfileUrl'))
+            if owner_profile_url:
+                video_uploader_id = self._search_regex(
+                    r'(?:user|channel)/([^/]+)', owner_profile_url, 'uploader id',
+                    default=None)
+                video_uploader_url = owner_profile_url
 
         channel_id = (
             str_or_none(video_details.get('channelId'))
