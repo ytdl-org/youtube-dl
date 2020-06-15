@@ -1930,7 +1930,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
             ''', replace_url, video_description)
             video_description = clean_html(video_description)
         else:
-            video_description = self._html_search_meta('description', video_webpage) or video_details.get('shortDescription')
+            video_description = video_details.get('shortDescription') or self._html_search_meta('description', video_webpage)
 
         if not smuggled_data.get('force_singlefeed', False):
             if not self._downloader.params.get('noplaylist'):
