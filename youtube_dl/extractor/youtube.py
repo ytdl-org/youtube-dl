@@ -2348,7 +2348,14 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                 default=None)
             video_categories = None if category is None else [category]
         else:
-            video_categories = None
+            category = clean_html(try_get(
+                    player_response,
+                    lambda x: x['microformat']['playerMicroformatRenderer']['category'],
+                compat_str))
+            if category:
+                video_categories = None if category is None else [category]
+            else:
+                video_categories = None
 
         video_tags = [
             unescapeHTML(m.group('content'))
