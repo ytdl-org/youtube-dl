@@ -442,35 +442,31 @@ class FacebookIE(InfoExtractor):
             if s:
                 return lowercase_escape(s)
 
-
         uploader = clean_html(get_element_by_id('fbPhotoPageAuthorName', webpage)) or \
                    self._search_regex(r'ownerName\s*:\s*"([^"]+)"', webpage, 'uploader',default=None) or \
                    _lowercase_escape(self._search_regex(r'\"ownerName\":"(.+?)"', tahoe_data.secondary, 'uploader_id', fatal=False)) or \
                    self._search_regex(r'ownerName"\s*:\s*"([^"]+)"', webpage, 'uploader', default=None) or \
                    self._og_search_title(webpage, default=None)
+
         timestamp = self._resolve_timestamp(webpage, tahoe_data)
         timestamp = parse_iso8601(timestamp)
-
-        if timestamp == None and webpage.find('Paid Partnership') == -1 or\
-                (timestamp == None and webpage.find('Paid Partnership') > -1 and
-                 'cookiefile' in self._downloader.params):
-
-            regex_search_result_date_time = self._search_regex(r'data-utime=\\\"(\d+)\\\"', tahoe_data.secondary, 'timestamp', default=None)\
-                or self._search_regex(r'data-utime=\\\"(\d+)\\\"', tahoe_data.primary, 'timestamp', default=None)\
-                or self._search_regex(r'data-utime=\\\"(\d+)\\\"', webpage,'timestamp', default=None)\
-                or self._search_regex(r'<abbr[^>]+data-utime=["\'](\d+)', webpage, 'timestamp', default=None)\
-                or self._search_regex(r'<abbr[^>]+data-utime=["\'](\d+)', tahoe_data.secondary, 'timestamp', default=None)\
-                or self._search_regex(r'<abbr[^>]+data-utime=["\'](\d+)', tahoe_data.primary, 'timestamp', default=None)
-
-            regex_search_result_publish_time = self._search_regex(r'publish_time&quot;:([\d]+)', webpage, 'timestamp', default=None)\
-                             or self._search_regex(r'publish_time&quot;:([\d]+)', tahoe_data.primary, 'timestamp', default=None)\
-                             or self._search_regex(r'publish_time&quot;:([\d]+)', tahoe_data.secondary, 'timestamp', default=None)
-
+        if timestamp is None and webpage.find('Paid Partnership') == -1 or \
+                (timestamp is None and webpage.find('Paid Partnership') > -1 and 'cookiefile' in self._downloader.params):
+            regex_search_result_date_time = self._search_regex(r'data-utime=\\\"(\d+)\\\"', tahoe_data.secondary, 'timestamp', default=None) \
+                                            or self._search_regex(r'data-utime=\\\"(\d+)\\\"', tahoe_data.primary, 'timestamp', default=None)\
+                                            or self._search_regex(r'data-utime=\\\"(\d+)\\\"', webpage, 'timestamp', default=None)\
+                                            or self._search_regex(r'<abbr[^>]+data-utime=["\'](\d+)', webpage, 'timestamp', default=None)\
+                                            or self._search_regex(r'<abbr[^>]+data-utime=["\'](\d+)', tahoe_data.secondary, 'timestamp', default=None)\
+                                            or self._search_regex(r'<abbr[^>]+data-utime=["\'](\d+)', tahoe_data.primary, 'timestamp', default=None)
+            regex_search_result_publish_time = self._search_regex(r'publish_time&quot;:([\d]+)', webpage, 'timestamp', default=None) \
+                                               or self._search_regex(r'publish_time&quot;:([\d]+)', tahoe_data.primary, 'timestamp', default=None) \
+                                               or self._search_regex(r'publish_time&quot;:([\d]+)', tahoe_data.secondary, 'timestamp', default=None)
             timestamp = int_or_none(regex_search_result_date_time) or int_or_none(regex_search_result_publish_time)
 
         uploader_id = self._resolve_uploader_id(webpage, tahoe_data)
 
-        thumbnail = self._html_search_meta(['og:image', 'twitter:image'], webpage)
+        thumbnail = self._resolve_thumbnail(webpage, tahoe_data)
+
         if is_live:
             view_count = parse_count(
                 self._search_regex(r'viewerCount:([\d]+)', webpage, 'views', fatal=False) or \
@@ -673,16 +669,16 @@ class FacebookIE(InfoExtractor):
         video_title = self._html_search_regex(
             r'<h2\s+[^>]*class="uiHeaderTitle"[^>]*>([^<]*)</h2>', webpage,
             'title', default=None)
-        if not video_title:
+        if not self._valid_video_title(video_title):
             video_title = self._html_search_regex(
                 r'(?s)<span class="fbPhotosPhotoCaption".*?id="fbPhotoPageCaption"><span class="hasCaption">(.*?)</span>',
                 webpage, 'alternative title', default=None)
-        if not video_title:
+        if not self._valid_video_title(video_title):
             video_title = self._og_search_title(webpage, default=None)
-        if not video_title:
+        if not self._valid_video_title(video_title):
             video_title = self._html_search_meta(
                 'description', webpage, 'title', default=None)
-        if not video_title:
+        if not self._valid_video_title(video_title):
             values = re.findall(r'videoTitle"\s*:\s*"(.*?)"', tahoe_data.secondary)
             if values:
                 video_title = values[-1]
@@ -791,6 +787,16 @@ class FacebookIE(InfoExtractor):
             timestamp = self._resolve_timestamp(webpage, tahoe_data)
         timestamp = parse_iso8601(timestamp)
         return timestamp
+
+    def _resolve_thumbnail(self, webpage, tahoe_data):
+        thumbnail = self._html_search_meta(['og:image', 'twitter:image'], webpage)
+        if not thumbnail:
+            thumbnail = self._search_regex(r'"subtitles_src":"(.+?")', tahoe_data.primary, 'thumbnail', fatal=False)
+        return thumbnail
+
+    def _valid_video_title(self, video_title):
+        return video_title and not u'Log In or Sign Up to View' in video_title
+
 
 
 class FacebookTahoeData:
