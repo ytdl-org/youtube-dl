@@ -1,3 +1,39 @@
+version 2020.06.16.1
+
+Extractors
+* [youtube] Force old layout (#25682, #25683, #25680, #25686)
+* [youtube] Fix categories and improve tags extraction
+
+
+version 2020.06.16
+
+Extractors
+* [youtube] Fix uploader id and uploader URL extraction
+* [youtube] Improve view count extraction
+* [youtube] Fix upload date extraction (#25677)
+* [youtube] Fix thumbnails extraction (#25676)
+* [youtube] Fix playlist and feed extraction (#25675)
++ [facebook] Add support for single-video ID links
++ [youtube] Extract chapters from JSON (#24819)
++ [kaltura] Add support for multiple embeds on a webpage (#25523)
+
+
+version 2020.06.06
+
+Extractors
+* [tele5] Bypass geo restriction
++ [jwplatform] Add support for bypass geo restriction
+* [tele5] Prefer jwplatform over nexx (#25533)
+* [twitch:stream] Expect 400 and 410 HTTP errors from API
+* [twitch:stream] Fix extraction (#25528)
+* [twitch] Fix thumbnails extraction (#25531)
++ [twitch] Pass v5 Accept HTTP header (#25531)
+* [brightcove] Fix subtitles extraction (#25540)
++ [malltv] Add support for sk.mall.tv (#25445)
+* [periscope] Fix untitled broadcasts (#25482)
+* [jwplatform] Improve embeds extraction (#25467)
+
+
 version 2020.05.29
 
 Core

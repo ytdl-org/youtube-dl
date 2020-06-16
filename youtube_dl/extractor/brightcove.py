@@ -5,32 +5,34 @@ import base64
 import re
 import struct
 
-from .common import InfoExtractor
 from .adobepass import AdobePassIE
+from .common import InfoExtractor
 from ..compat import (
     compat_etree_fromstring,
+    compat_HTTPError,
     compat_parse_qs,
     compat_urllib_parse_urlparse,
     compat_urlparse,
     compat_xml_parse_error,
-    compat_HTTPError,
 )
 from ..utils import (
-    ExtractorError,
+    clean_html,
     extract_attributes,
+    ExtractorError,
     find_xpath_attr,
     fix_xml_ampersands,
     float_or_none,
-    js_to_json,
     int_or_none,
+    js_to_json,
+    mimetype2ext,
     parse_iso8601,
     smuggle_url,
+    str_or_none,
     unescapeHTML,
     unsmuggle_url,
-    update_url_query,
-    clean_html,
-    mimetype2ext,
     UnsupportedError,
+    update_url_query,
+    url_or_none,
 )
 
 
@@ -553,10 +555,16 @@ class BrightcoveNewIE(AdobePassIE):
 
         subtitles = {}
         for text_track in json_data.get('text_tracks', []):
-            if text_track.get('src'):
-                subtitles.setdefault(text_track.get('srclang'), []).append({
-                    'url': text_track['src'],
-                })
+            if text_track.get('kind') != 'captions':
+                continue
+            text_track_url = url_or_none(text_track.get('src'))
+            if not text_track_url:
+                continue
+            lang = (str_or_none(text_track.get('srclang'))
+                    or str_or_none(text_track.get('label')) or 'en').lower()
+            subtitles.setdefault(lang, []).append({
+                'url': text_track_url,
+            })
 
         is_live = False
         duration = float_or_none(json_data.get('duration'), 1000)
