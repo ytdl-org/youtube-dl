@@ -1,3 +1,10 @@
+version 2020.06.16.1
+
+Extractors
+* [youtube] Force old layout (#25682, #25683, #25680, #25686)
+* [youtube] Fix categories and improve tags extraction
+
+
 version 2020.06.16
 
 Extractors
