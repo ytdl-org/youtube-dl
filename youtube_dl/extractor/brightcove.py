@@ -426,7 +426,7 @@ class BrightcoveNewIE(AdobePassIE):
         # [2] looks like:
         for video, script_tag, account_id, player_id, embed in re.findall(
                 r'''(?isx)
-                    (<video\s+[^>]*\bdata-video-id\s*=\s*['"]?[^>]+>)
+                    (<video(?:-js)?\s+[^>]*\bdata-video-id\s*=\s*['"]?[^>]+>)
                     (?:.*?
                         (<script[^>]+
                             src=["\'](?:https?:)?//players\.brightcove\.net/
