@@ -398,7 +398,6 @@ class FacebookIE(InfoExtractor):
 
         is_live, live_status = self.extract_live_info(is_scheduled, is_live_stream, is_broadcast)
 
-
         subtitles = {}
         formats = []
         for f in video_data:
@@ -443,8 +442,9 @@ class FacebookIE(InfoExtractor):
                 return lowercase_escape(s)
 
         uploader = clean_html(get_element_by_id('fbPhotoPageAuthorName', webpage)) or \
-                   self._search_regex(r'ownerName\s*:\s*"([^"]+)"', webpage, 'uploader',default=None) or \
-                   _lowercase_escape(self._search_regex(r'\"ownerName\":"(.+?)"', tahoe_data.secondary, 'uploader_id', fatal=False)) or \
+                   self._search_regex(r'ownerName\s*:\s*"([^"]+)"', webpage, 'uploader', default=None) or \
+                   _lowercase_escape(self._search_regex(r'\"ownerName\":"(.+?)"', tahoe_data.secondary, 'uploader_id',
+                                                        fatal=False)) or \
                    self._search_regex(r'ownerName"\s*:\s*"([^"]+)"', webpage, 'uploader', default=None) or \
                    self._og_search_title(webpage, default=None)
 
@@ -476,6 +476,7 @@ class FacebookIE(InfoExtractor):
             view_count = parse_count(self._extract_views(webpage, tahoe_data))
 
         other_posts_view_count = parse_count(self._extract_meta_count(['otherPostsViewCount'], webpage, tahoe_data, 'other_post_views'))
+        reactions_count = parse_count(self._extract_reactions(webpage, tahoe_data))
         likes_count = parse_count(self._extract_likes(webpage, tahoe_data))
         shares_count = parse_count(self._extract_shares(webpage, tahoe_data))
         comment_count = parse_count(self._extract_comments_count(webpage, tahoe_data))
@@ -484,11 +485,10 @@ class FacebookIE(InfoExtractor):
 
         info_dict = self.build_info_dict(webpage, tahoe_data, video_id, video_title, formats, uploader, timestamp,
                                          thumbnail, view_count, uploader_id, is_live, live_status, likes_count,
-                                         shares_count, subtitles, comment_count, other_posts_view_count, uploader_handle)
+                                         reactions_count, shares_count, subtitles, comment_count, other_posts_view_count,
+                                         uploader_handle)
 
         return webpage, info_dict
-
-
 
     def get_from_new_ui(self, webpage, tahoe_data, video_id):
 
@@ -497,6 +497,8 @@ class FacebookIE(InfoExtractor):
         comments_count = self._resolve_new_ui_comments_count(webpage, tahoe_data)
 
         likes = parse_count(self._extract_likes(webpage, tahoe_data))
+
+        reactions = parse_count(self._extract_reactions(webpage, tahoe_data))
 
         timestamp = self._resolve_new_ui_timestamp(webpage, tahoe_data)
 
@@ -517,15 +519,17 @@ class FacebookIE(InfoExtractor):
         formats = self.resolve_new_ui_format(webpage)
 
         info_dict = self.build_info_dict(webpage, tahoe_data, video_id, video_title, formats, uploader, timestamp,
-                                         thumbnail, post_view_counts, uploader_id, is_live, live_status, likes,
+                                         thumbnail, post_view_counts, uploader_id, is_live, live_status, likes, reactions,
                                          share_counts, {}, comments_count, other_post_view_counts,
                                          uploader_handle)
 
         return info_dict
 
-    def build_info_dict(self,webpage, tahoe_data, video_id, video_title=None, formats=None, uploader=None,
-                        timestamp=None, thumbnail=None, view_count=None, uploader_id=None, is_live=None, live_status=None,
-                        likes_count=None, shares_count=None, subtitles=None, comment_count=None, other_posts_view_count=None,
+    def build_info_dict(self, webpage, tahoe_data, video_id, video_title=None, formats=None, uploader=None,
+                        timestamp=None, thumbnail=None, view_count=None, uploader_id=None, is_live=None,
+                        live_status=None,
+                        likes_count=None, reactions_count=None, shares_count=None, subtitles=None, comment_count=None,
+                        other_posts_view_count=None,
                         uploader_handle=None):
         info_dict = {
             'id': video_id,
@@ -539,6 +543,7 @@ class FacebookIE(InfoExtractor):
             'is_live': is_live,
             'live_status': live_status,
             'like_count': likes_count,
+            'reactions_count': reactions_count,
             'share_count': shares_count,
             'subtitles': subtitles,
             'comment_count': comment_count,
@@ -571,8 +576,8 @@ class FacebookIE(InfoExtractor):
             if value:
                 break
             value = self._search_regex(
-                    r'\b%s\s*:\s*["\']([\d,.]+)' % f, webpage, name,
-                    default=None
+                r'\b%s\s*:\s*["\']([\d,.]+)' % f, webpage, name,
+                default=None
             )
             if value:
                 break
@@ -593,10 +598,15 @@ class FacebookIE(InfoExtractor):
                 if values:
                     return values[-1]
 
-    def _extract_likes(self, webpage, tahoe_data):
+    def _extract_reactions(self, webpage, tahoe_data):
         pairs = (
             (r'"reaction_count"\s*:\s*{\s*"count"\s*:\s*(\d+)', [tahoe_data.secondary, webpage]),
-            (r'reaction_count:{count:([\d]+)}', webpage),
+            (r'reaction_count:{count:([\d]+)}', webpage)
+        )
+        return self._extract_first_pattern(pairs)
+
+    def _extract_likes(self, webpage, tahoe_data):
+        pairs = (
             (r'\blikecount\s*:\s*["\']([\d,.]+)', webpage),
             (r'[\'\"]\blikecount[\'\"]\s*:\s*(\d+)', tahoe_data.secondary)
         )
@@ -709,7 +719,6 @@ class FacebookIE(InfoExtractor):
 
         return self.extract_live_info(is_scheduled, is_live_stream, is_broadcast)
 
-
     def extract_live_info(self, is_scheduled, is_live_stream, is_broadcast):
         live_status = 'not_live'
         if is_broadcast:
@@ -722,7 +731,6 @@ class FacebookIE(InfoExtractor):
         is_live = live_status == 'live'
 
         return is_live, live_status
-
 
     def resolve_new_ui_format(self, webpage):
         format_url = self.build_format_url(webpage)
@@ -796,7 +804,6 @@ class FacebookIE(InfoExtractor):
 
     def _valid_video_title(self, video_title):
         return video_title and not u'Log In or Sign Up to View' in video_title
-
 
 
 class FacebookTahoeData:
