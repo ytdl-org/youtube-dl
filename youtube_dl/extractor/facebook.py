@@ -791,7 +791,8 @@ class FacebookIE(InfoExtractor):
     def _resolve_thumbnail(self, webpage, tahoe_data):
         thumbnail = self._html_search_meta(['og:image', 'twitter:image'], webpage)
         if not thumbnail:
-            thumbnail = self._search_regex(r'"subtitles_src":"(.+?")', tahoe_data.primary, 'thumbnail', fatal=False)
+            thumbnail = self._search_regex(r'"thumbSrc":"(.+?)"', tahoe_data.secondary, 'thumbnail', fatal=False)
+            thumbnail = str(thumbnail).replace('\\', "")
         return thumbnail
 
     def _valid_video_title(self, video_title):
