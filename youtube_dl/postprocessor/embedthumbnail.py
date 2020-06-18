@@ -41,6 +41,16 @@ class EmbedThumbnailPP(FFmpegPostProcessor):
                 'Skipping embedding the thumbnail because the file is missing.')
             return [], info
 
+        if not os.path.splitext(encodeFilename(thumbnail_filename))[1].lower() in ['.jpg', '.png']:
+            jpg_thumbnail_filename = thumbnail_filename + ".jpg"
+
+            self._downloader.to_screen('[ffmpeg] Converting thumbnail "%s" to JPEG' % thumbnail_filename)
+
+            self.run_ffmpeg(thumbnail_filename, jpg_thumbnail_filename, ['-bsf:v', 'mjpeg2jpeg'])
+
+            os.remove(thumbnail_filename)
+            thumbnail_filename = jpg_thumbnail_filename
+
         if info['ext'] == 'mp3':
             options = [
                 '-c', 'copy', '-map', '0', '-map', '1',
