@@ -451,6 +451,7 @@ from .hungama import (
     HungamaSongIE,
 )
 from .hypem import HypemIE
+from .idf1_extractor import IDF1IE
 from .ign import (
     IGNIE,
     OneUPIE,
@@ -1516,3 +1517,4 @@ from .zattoo import (
 from .zdf import ZDFIE, ZDFChannelIE
 from .zingmp3 import ZingMp3IE
 from .zype import ZypeIE
+
