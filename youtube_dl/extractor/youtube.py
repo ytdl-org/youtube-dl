@@ -3146,7 +3146,40 @@ class YoutubePlaylistsIE(YoutubePlaylistsBaseInfoExtractor):
 
 
 class YoutubeSearchBaseInfoExtractor(YoutubePlaylistBaseInfoExtractor):
-    _VIDEO_RE = r'href="\s*/watch\?v=(?P<id>[0-9A-Za-z_-]{11})(?:[^"]*"[^>]+\btitle="(?P<title>[^"]+))?'
+    _PLAYLIST_DATA = r'window\[\"ytInitialData\"\]\W?=\W?({.*?});'
+
+    def extract_videos_from_page_impl(self, page, ids_in_page, titles_in_page):
+        playlist_json = self._search_regex(self._PLAYLIST_DATA, page, 'ytInitialData')
+        playlist_response = self._parse_json(playlist_json, None)
+
+        result_items = try_get(
+            playlist_response,
+            lambda x: x['contents']['twoColumnSearchResultsRenderer']['primaryContents']['sectionListRenderer']['contents'][0]['itemSectionRenderer']['contents'])
+
+        # plobj either contains a 'playlistRenderer', 'videoRenderer', 'channelRenderer', 'shelfRenderer' or 'searchPyvRenderer' (promoted video/ad)
+        for plobj in result_items:
+            video_id = try_get(plobj, lambda x: x['videoRenderer']['videoId'])
+            video_title = try_get(plobj, lambda x: x['videoRenderer']['title']['runs'][0]['text'])
+
+            if video_id is None or video_title is None:
+                # we do not have a videoRenderer or it is empty
+                continue
+
+            video_title = video_title.strip()
+
+            try:
+                idx = ids_in_page.index(video_id)
+                if video_title and not titles_in_page[idx]:
+                    titles_in_page[idx] = video_title
+            except ValueError:
+                ids_in_page.append(video_id)
+                titles_in_page.append(video_title)
+
+    def extract_videos_from_page(self, page):
+        ids_in_page = []
+        titles_in_page = []
+        self.extract_videos_from_page_impl(page, ids_in_page, titles_in_page)
+        return zip(ids_in_page, titles_in_page)
 
 
 class YoutubeSearchIE(SearchInfoExtractor, YoutubeSearchBaseInfoExtractor):
