@@ -3153,40 +3153,7 @@ class YoutubePlaylistsIE(YoutubePlaylistsBaseInfoExtractor):
 
 
 class YoutubeSearchBaseInfoExtractor(YoutubePlaylistBaseInfoExtractor):
-    _PLAYLIST_DATA = r'window\[\"ytInitialData\"\]\W?=\W?({.*?});'
-
-    def extract_videos_from_page_impl(self, page, ids_in_page, titles_in_page):
-        playlist_json = self._search_regex(self._PLAYLIST_DATA, page, 'ytInitialData')
-        playlist_response = self._parse_json(playlist_json, None)
-
-        result_items = try_get(
-            playlist_response,
-            lambda x: x['contents']['twoColumnSearchResultsRenderer']['primaryContents']['sectionListRenderer']['contents'][0]['itemSectionRenderer']['contents'])
-
-        # plobj either contains a 'playlistRenderer', 'videoRenderer', 'channelRenderer', 'shelfRenderer' or 'searchPyvRenderer' (promoted video/ad)
-        for plobj in result_items:
-            video_id = try_get(plobj, lambda x: x['videoRenderer']['videoId'])
-            video_title = try_get(plobj, lambda x: x['videoRenderer']['title']['runs'][0]['text'])
-
-            if video_id is None or video_title is None:
-                # we do not have a videoRenderer or it is empty
-                continue
-
-            video_title = video_title.strip()
-
-            try:
-                idx = ids_in_page.index(video_id)
-                if video_title and not titles_in_page[idx]:
-                    titles_in_page[idx] = video_title
-            except ValueError:
-                ids_in_page.append(video_id)
-                titles_in_page.append(video_title)
-
-    def extract_videos_from_page(self, page):
-        ids_in_page = []
-        titles_in_page = []
-        self.extract_videos_from_page_impl(page, ids_in_page, titles_in_page)
-        return zip(ids_in_page, titles_in_page)
+    _VIDEO_RE = r'href="\s*/watch\?v=(?P<id>[0-9A-Za-z_-]{11})(?:[^"]*"[^>]+\btitle="(?P<title>[^"]+))?'
 
 
 class YoutubeSearchIE(SearchInfoExtractor, YoutubeSearchBaseInfoExtractor):
@@ -3250,6 +3217,7 @@ class YoutubeSearchURLIE(YoutubeSearchBaseInfoExtractor):
     IE_DESC = 'YouTube.com search URLs'
     IE_NAME = 'youtube:search_url'
     _VALID_URL = r'https?://(?:www\.)?youtube\.com/results\?(.*?&)?(?:search_query|q)=(?P<query>[^&]+)(?:[&]|$)'
+    _SEARCH_DATA = r'window\[\"ytInitialData\"\]\W?=\W?({.*?});'
     _TESTS = [{
         'url': 'https://www.youtube.com/results?baz=bar&search_query=youtube-dl+test+video&filters=video&lclk=video',
         'playlist_mincount': 5,
@@ -3260,6 +3228,37 @@ class YoutubeSearchURLIE(YoutubeSearchBaseInfoExtractor):
         'url': 'https://www.youtube.com/results?q=test&sp=EgQIBBgB',
         'only_matching': True,
     }]
+
+    def extract_videos_from_page_impl(self, page, ids_in_page, titles_in_page):
+        search_response = self._parse_json(self._search_regex(self._SEARCH_DATA, page, 'ytInitialData'), None)
+
+        result_items = try_get(
+            search_response,
+            lambda x: x['contents']['twoColumnSearchResultsRenderer']['primaryContents']['sectionListRenderer']['contents'][0]['itemSectionRenderer']['contents'])
+
+        for plobj in result_items:
+            video_id = try_get(plobj, lambda x: x['videoRenderer']['videoId'])
+            video_title = try_get(plobj, lambda x: x['videoRenderer']['title']['runs'][0]['text'])
+
+            if video_id is None or video_title is None:
+                # we do not have a videoRenderer or it is empty
+                continue
+
+            video_title = video_title.strip()
+
+            try:
+                idx = ids_in_page.index(video_id)
+                if video_title and not titles_in_page[idx]:
+                    titles_in_page[idx] = video_title
+            except ValueError:
+                ids_in_page.append(video_id)
+                titles_in_page.append(video_title)
+
+    def extract_videos_from_page(self, page):
+        ids_in_page = []
+        titles_in_page = []
+        self.extract_videos_from_page_impl(page, ids_in_page, titles_in_page)
+        return zip(ids_in_page, titles_in_page)
 
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
