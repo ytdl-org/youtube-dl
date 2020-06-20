@@ -62,6 +62,14 @@ class NRKBaseIE(InfoExtractor):
                 if not asset_url:
                     continue
                 formats = self._extract_akamai_formats(asset_url, video_id)
+
+                playback_manifest = self._download_json(
+                    'http://%s/playback/manifest/program/%s' % (self._api_host, video_id),
+                    video_id, 'Downloading manifest JSON')
+                streamurl = playback_manifest.get('statistics').get('conviva').get('streamUrl')
+                formats.extend(self._extract_m3u8_formats(
+                    streamurl, video_id, 'mp4', 'm3u8_native', m3u8_id='hls', fatal=False,
+                    errnote='Alternate extractor failed'))
                 if not formats:
                     continue
                 self._sort_formats(formats)
