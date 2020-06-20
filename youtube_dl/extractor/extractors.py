@@ -1517,9 +1517,9 @@ from .zdf import ZDFIE, ZDFChannelIE
 from .zingmp3 import ZingMp3IE
 from .zype import ZypeIE
 
-from .zingmp3_vn import (
-    Zingmp3_vnIE,
-    Zingmp3_vnPlaylistIE,
-    Zingmp3_vnChartIE,
-    Zingmp3_vnUserIE
+from .zing_mp3 import (
+    Zing_mp3_vnIE,
+    Zing_mp3_vnPlaylistIE,
+    Zing_mp3_vnChartIE,
+    Zing_mp3_vnUserIE
 )
