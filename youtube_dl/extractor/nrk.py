@@ -41,6 +41,7 @@ class NRKBaseIE(InfoExtractor):
             break
 
         title = data.get('fullTitle') or data.get('mainTitle') or data['title']
+        alt_title = data.get('mainTitle')
         video_id = data.get('id') or video_id
 
         entries = []
@@ -170,6 +171,7 @@ class NRKBaseIE(InfoExtractor):
             'categories': [category] if category else None,
             'age_limit': parse_age_limit(data.get('legalAge')),
             'thumbnails': thumbnails,
+            'alt_title':alt_title,
         }
 
         vcodec = 'none' if data.get('mediaType') == 'Audio' else None
