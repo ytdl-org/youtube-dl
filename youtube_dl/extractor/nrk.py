@@ -148,6 +148,13 @@ class NRKBaseIE(InfoExtractor):
                 EPISODENUM_RE, _season_episode, 'episode number',
                 default=None, group='episode'))
 
+            if not season_number or episode_number:
+                programs = self._download_json(
+                    'http://%s/programs/%s' % (self._api_host, video_id),
+                    video_id, 'Downloading programs manifest JSON')
+                season_number = int_or_none(programs.get('seasonNumber'))
+                episode_number = int_or_none(programs.get('episodeNumber'))
+
         thumbnails = None
         images = data.get('images')
         if images and isinstance(images, dict):
