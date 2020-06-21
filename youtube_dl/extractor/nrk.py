@@ -66,7 +66,7 @@ class NRKBaseIE(InfoExtractor):
 
                 playback_manifest = self._download_json(
                     'http://%s/playback/manifest/program/%s' % (self._api_host, video_id),
-                    video_id, 'Downloading manifest JSON')
+                    video_id, 'Downloading manifest JSON', fatal=False)
                 streamurl = playback_manifest.get('statistics').get('conviva').get('streamUrl')
                 formats.extend(self._extract_m3u8_formats(
                     streamurl, video_id, 'mp4', 'm3u8_native', m3u8_id='hls', fatal=False,
@@ -151,7 +151,7 @@ class NRKBaseIE(InfoExtractor):
             if not season_number or episode_number:
                 programs = self._download_json(
                     'http://%s/programs/%s' % (self._api_host, video_id),
-                    video_id, 'Downloading programs manifest JSON')
+                    video_id, 'Downloading programs manifest JSON', fatal=False)
                 season_number = int_or_none(programs.get('seasonNumber'))
                 episode_number = int_or_none(programs.get('episodeNumber'))
 
@@ -178,7 +178,7 @@ class NRKBaseIE(InfoExtractor):
             'categories': [category] if category else None,
             'age_limit': parse_age_limit(data.get('legalAge')),
             'thumbnails': thumbnails,
-            'alt_title':alt_title,
+            'alt_title': alt_title,
         }
 
         vcodec = 'none' if data.get('mediaType') == 'Audio' else None
@@ -366,7 +366,8 @@ class NRKTVIE(NRKBaseIE):
             'id': 'KMTE50001317AA',
             'ext': 'mp4',
             'title': 'Anno 13:30',
-            'description': 'md5:11d9613661a8dbe6f9bef54e3a4cbbfa',
+            'alt_title': 'Anno',
+            'description': 'md5:13735a46076f1ed9310ed13dfd69789f',
             'duration': 2340,
             'series': 'Anno',
             'episode': '13:30',
@@ -407,6 +408,7 @@ class NRKTVEpisodeIE(InfoExtractor):
             'id': 'MUHH36005220BA',
             'ext': 'mp4',
             'title': 'Kro, krig og kjærlighet 2:6',
+            'alt_title': 'Kro, krig og kjærlighet',
             'description': 'md5:b32a7dc0b1ed27c8064f58b97bda4350',
             'duration': 1563,
             'series': 'Hellums kro',
