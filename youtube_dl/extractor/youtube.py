@@ -3282,9 +3282,11 @@ class YoutubeShowIE(YoutubePlaylistsBaseInfoExtractor):
 class YoutubeFeedsInfoExtractor(YoutubeBaseInfoExtractor):
     """
     Base class for feed extractors
-    Subclasses must define the _FEED_NAME and _PLAYLIST_TITLE properties.
+    Subclasses must define the _FEED_NAME and _PLAYLIST_TITLE properties as well as an _extract_video_info function.
     """
     _LOGIN_REQUIRED = True
+
+    _FEED_DATA = r'window\[\"ytInitialData\"\]\W?=\W?({.*?});' 
 
     @property
     def IE_NAME(self):
@@ -3296,34 +3298,41 @@ class YoutubeFeedsInfoExtractor(YoutubeBaseInfoExtractor):
     def _entries(self, page):
         # The extraction process is the same as for playlists, but the regex
         # for the video ids doesn't contain an index
-        ids = []
-        more_widget_html = content_html = page
+        info = []
+        
         for page_num in itertools.count(1):
-            matches = re.findall(r'href="\s*/watch\?v=([0-9A-Za-z_-]{11})', content_html)
+            search_response = self._parse_json(self._search_regex(self._FEED_DATA, page, 'ytInitialData'), None)
 
-            # 'recommended' feed has infinite 'load more' and each new portion spins
-            # the same videos in (sometimes) slightly different order, so we'll check
-            # for unicity and break when portion has no new videos
-            new_ids = list(filter(lambda video_id: video_id not in ids, orderedSet(matches)))
-            if not new_ids:
+            video_info, continuation = self._extract_video_info(search_response)
+            
+            new_info = [] 
+            
+            for v in video_info:
+                v_id = try_get(v, lambda x: x['videoId'])
+                if not v_id:
+                    continue
+                
+                have_video = False 
+                for old in info:
+                    if old['videoId'] == v_id:
+                        have_video = True
+                        break
+
+                if not have_video:
+                    new_info.append(v)
+
+            if not new_info:
                 break
 
-            ids.extend(new_ids)
+            info.extend(new_info)
 
-            for entry in self._ids_to_results(new_ids):
-                yield entry
+            for video in new_info:
+                yield self.url_result(try_get(video, lambda x: x['videoId']), YoutubeIE.ie_key(), video_title=try_get(video, lambda x: x['title']['simpleText']))
 
-            mobj = re.search(r'data-uix-load-more-href="/?(?P<more>[^"]+)"', more_widget_html)
-            if not mobj:
+            if not continuation:
                 break
 
-            more = self._download_json(
-                'https://youtube.com/%s' % mobj.group('more'), self._PLAYLIST_TITLE,
-                'Downloading page #%s' % page_num,
-                transform_source=uppercase_escape,
-                headers=self._YOUTUBE_CLIENT_HEADERS)
-            content_html = more['content_html']
-            more_widget_html = more['load_more_widget_html']
+            # TODO: Fix continuation request to download more pages
 
     def _real_extract(self, url):
         page = self._download_webpage(
@@ -3372,6 +3381,32 @@ class YoutubeRecommendedIE(YoutubeFeedsInfoExtractor):
     _FEED_NAME = 'recommended'
     _PLAYLIST_TITLE = 'Youtube Recommended videos'
 
+    def _extract_video_info(self, initial_data):
+        videos = []
+        continuation_renderer = None
+
+        renderers = try_get(
+                    initial_data,
+                    lambda x: x['contents']['twoColumnBrowseResultsRenderer']['tabs'][0]['tabRenderer']['content']['richGridRenderer']['contents'])
+
+        for renderer in renderers:
+            vid = try_get(renderer, lambda x: x['richItemRenderer']['content']['videoRenderer'])
+            if vid is not None:
+                videos.append(vid)
+                continue 
+            
+            if 'richSectionRenderer' in renderer:
+                vids = try_get(renderer, lambda x: x['richSectionRenderer']['content']['richShelfRenderer']['contents'])
+                for v in vids:
+                    vid = try_get(v, lambda x: x['richItemRenderer']['content']['videoRenderer'])
+                    if vid is not None:
+                        videos.append(vid)
+                continue
+            
+            if 'continuationItemRenderer' in renderer:
+                continuation_renderer = renderer
+
+        return videos, continuation_renderer
 
 class YoutubeSubscriptionsIE(YoutubeFeedsInfoExtractor):
     IE_DESC = 'YouTube.com subscriptions feed, "ytsubs" keyword (requires authentication)'
@@ -3379,6 +3414,23 @@ class YoutubeSubscriptionsIE(YoutubeFeedsInfoExtractor):
     _FEED_NAME = 'subscriptions'
     _PLAYLIST_TITLE = 'Youtube Subscriptions'
 
+    def _extract_video_info(self, initial_data):
+        videos = []
+        continuation_renderer = None
+
+        renderers = try_get(
+                    initial_data,
+                    lambda x: x['contents']['twoColumnBrowseResultsRenderer']['tabs'][0]['tabRenderer']['content']['sectionListRenderer']['contents'])
+        for renderer in renderers:
+            for item in try_get(renderer, lambda x: x['itemSectionRenderer']['contents'][0]['shelfRenderer']['content']['gridRenderer']['items']):
+                vid = try_get(item, lambda x: x['gridVideoRenderer'])
+                if vid is not None:
+                    videos.append(vid)
+
+            if 'continuationItemRenderer' in renderer:
+                continuation_renderer = renderer
+
+        return videos, continuation_renderer
 
 class YoutubeHistoryIE(YoutubeFeedsInfoExtractor):
     IE_DESC = 'Youtube watch history, ":ythistory" for short (requires authentication)'
@@ -3386,6 +3438,22 @@ class YoutubeHistoryIE(YoutubeFeedsInfoExtractor):
     _FEED_NAME = 'history'
     _PLAYLIST_TITLE = 'Youtube History'
 
+    def _extract_video_info(self, initial_data):
+        videos = []
+        continuation_renderer = None
+        
+        renderers = try_get(
+                    initial_data,
+                    lambda x: x['contents']['twoColumnBrowseResultsRenderer']['tabs'][0]['tabRenderer']['content']['sectionListRenderer']['contents'])
+        for renderer in renderers:
+            vid = try_get(renderer, lambda x: x['itemSectionRenderer']['contents'][0]['videoRenderer'])
+            if vid is not None:
+                videos.append(vid)
+
+            if 'continuationItemRenderer' in renderer:
+                continuation_renderer = renderer
+
+        return videos, continuation_renderer
 
 class YoutubeTruncatedURLIE(InfoExtractor):
     IE_NAME = 'youtube:truncated_url'
