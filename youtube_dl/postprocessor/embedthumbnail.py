@@ -44,12 +44,12 @@ class EmbedThumbnailPP(FFmpegPostProcessor):
         #Check for mislabeled webp file
         with open(encodeFilename(thumbnail_filename), "rb") as f:
             b = f.read(16)
-            if b'\x57\x45\x42\x50' in b: #Binary for WEBP
-                [thumbnail_filename_path, thumbnail_filename_extension] = os.path.splitext(thumbnail_filename)
-                if not thumbnail_filename_extension == ".webp":
-                    webp_thumbnail_filename = thumbnail_filename_path + ".webp"
-                    os.rename(thumbnail_filename, webp_thumbnail_filename)
-                    thumbnail_filename = webp_thumbnail_filename
+        if b'\x57\x45\x42\x50' in b: #Binary for WEBP
+            [thumbnail_filename_path, thumbnail_filename_extension] = os.path.splitext(thumbnail_filename)
+            if not thumbnail_filename_extension == ".webp":
+                webp_thumbnail_filename = thumbnail_filename_path + ".webp"
+                os.rename(thumbnail_filename, webp_thumbnail_filename)
+                thumbnail_filename = webp_thumbnail_filename
 
         #If not a jpg or png thumbnail, convert it to jpg using ffmpeg
         if not os.path.splitext(thumbnail_filename)[1].lower() in ['.jpg', '.png']:
