@@ -24,30 +24,18 @@ from ..utils import (
 )
 
 
+class DownloadContext(dict):
+    __getattr__ = dict.get
+    __setattr__ = dict.__setitem__
+    __delattr__ = dict.__delitem__
+
+
 class HttpFD(FileDownloader):
-    def real_download(self, filename, info_dict):
-        url = info_dict['url']
-
-        class DownloadContext(dict):
-            __getattr__ = dict.get
-            __setattr__ = dict.__setitem__
-            __delattr__ = dict.__delitem__
-
+    def create_context(self, filename, info_dict):
         ctx = DownloadContext()
         ctx.filename = filename
         ctx.tmpfilename = self.temp_name(filename)
         ctx.stream = None
-
-        # Do not include the Accept-Encoding header
-        headers = {'Youtubedl-no-compression': 'True'}
-        add_headers = info_dict.get('http_headers')
-        if add_headers:
-            headers.update(add_headers)
-
-        is_test = self.params.get('test', False)
-        chunk_size = self._TEST_FILE_SIZE if is_test else (
-            info_dict.get('downloader_options', {}).get('http_chunk_size')
-            or self.params.get('http_chunk_size') or 0)
 
         ctx.open_mode = 'wb'
         ctx.resume_len = 0
@@ -63,6 +51,22 @@ class HttpFD(FileDownloader):
                     encodeFilename(ctx.tmpfilename))
 
         ctx.is_resume = ctx.resume_len > 0
+        return ctx
+
+    def real_download(self, filename, info_dict):
+        url = info_dict['url']
+        ctx = self.create_context(filename, info_dict)
+
+        # Do not include the Accept-Encoding header
+        headers = {'Youtubedl-no-compression': 'True'}
+        add_headers = info_dict.get('http_headers')
+        if add_headers:
+            headers.update(add_headers)
+
+        is_test = self.params.get('test', False)
+        chunk_size = self._TEST_FILE_SIZE if is_test else (
+            info_dict.get('downloader_options', {}).get('http_chunk_size')
+            or self.params.get('http_chunk_size') or 0)
 
         count = 0
         retries = self.params.get('retries', 0)
