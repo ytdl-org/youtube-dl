@@ -3229,16 +3229,37 @@ class YoutubeSearchURLIE(YoutubeSearchBaseInfoExtractor):
         'only_matching': True,
     }]
 
+    def _find_videos_in_json(self, extracted):
+        videos = []
+
+        def _real_find(obj):
+            if obj is None or isinstance(obj, str):
+                return
+
+            if type(obj) is list:
+                for elem in obj:
+                    _real_find(elem)
+
+            if type(obj) is dict:
+                if "videoId" in obj:
+                    videos.append(obj)
+                    return
+
+                for _, o in obj.items():
+                    _real_find(o)
+
+        _real_find(extracted)
+
+        return videos
+
     def extract_videos_from_page_impl(self, page, ids_in_page, titles_in_page):
         search_response = self._parse_json(self._search_regex(self._SEARCH_DATA, page, 'ytInitialData'), None)
 
-        result_items = try_get(
-            search_response,
-            lambda x: x['contents']['twoColumnSearchResultsRenderer']['primaryContents']['sectionListRenderer']['contents'][0]['itemSectionRenderer']['contents'])
+        result_items = self._find_videos_in_json(search_response)
 
         for plobj in result_items:
-            video_id = try_get(plobj, lambda x: x['videoRenderer']['videoId'])
-            video_title = try_get(plobj, lambda x: x['videoRenderer']['title']['runs'][0]['text'])
+            video_id = try_get(plobj, lambda x: x['videoId'])
+            video_title = try_get(plobj, lambda x: x['title']['runs'][0]['text'])
 
             if video_id is None or video_title is None:
                 # we do not have a videoRenderer or it is empty
