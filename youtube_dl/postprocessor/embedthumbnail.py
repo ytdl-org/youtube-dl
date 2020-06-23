@@ -48,18 +48,19 @@ class EmbedThumbnailPP(FFmpegPostProcessor):
             [thumbnail_filename_path, thumbnail_filename_extension] = os.path.splitext(thumbnail_filename)
             if not thumbnail_filename_extension == ".webp":
                 webp_thumbnail_filename = thumbnail_filename_path + ".webp"
-                os.rename(thumbnail_filename, webp_thumbnail_filename)
+                os.rename(encodeFilename(thumbnail_filename), encodeFilename(webp_thumbnail_filename))
                 thumbnail_filename = webp_thumbnail_filename
 
         # If not a jpg or png thumbnail, convert it to jpg using ffmpeg
         if not os.path.splitext(thumbnail_filename)[1].lower() in ['.jpg', '.png']:
             jpg_thumbnail_filename = os.path.splitext(thumbnail_filename)[0] + ".jpg"
+            jpg_thumbnail_filename = os.path.join(os.path.dirname(jpg_thumbnail_filename), os.path.basename(jpg_thumbnail_filename).replace('%', '_'))  # ffmpeg interprets % as image sequence
 
             self._downloader.to_screen('[ffmpeg] Converting thumbnail "%s" to JPEG' % thumbnail_filename)
 
             self.run_ffmpeg(thumbnail_filename, jpg_thumbnail_filename, ['-bsf:v', 'mjpeg2jpeg'])
 
-            os.remove(thumbnail_filename)
+            os.remove(encodeFilename(thumbnail_filename))
             thumbnail_filename = jpg_thumbnail_filename
 
         if info['ext'] == 'mp3':
