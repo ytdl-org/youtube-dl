@@ -1,5 +1,6 @@
 from __future__ import division, unicode_literals
 
+import io
 import os
 import time
 import json
@@ -96,18 +97,26 @@ class FragmentFD(FileDownloader):
         frag_index_stream.close()
 
     def _download_fragment(self, ctx, frag_url, info_dict, headers=None):
-        fragment_filename = '%s-Frag%d' % (ctx['tmpfilename'], ctx['fragment_index'])
-        success = ctx['dl'].download(fragment_filename, {
+        if self.params.get('keep_fragments', False):
+            frag_file = None
+            frag_filename = '%s-Frag%d' % (ctx['tmpfilename'], ctx['fragment_index'])
+        else:
+            frag_file = io.BytesIO()
+            frag_filename = None
+        success = ctx['dl'].download(frag_file or frag_filename, {
             'url': frag_url,
             'http_headers': headers or info_dict.get('http_headers'),
         })
         if not success:
-            return False, None
-        down, frag_sanitized = sanitize_open(fragment_filename, 'rb')
-        ctx['fragment_filename_sanitized'] = frag_sanitized
-        frag_content = down.read()
-        down.close()
-        return True, frag_content
+            frag_content = None
+        elif self.params.get('keep_fragments', False):
+            frag_file, frag_sanitized = sanitize_open(frag_filename, 'rb')
+            frag_content = frag_file.read()
+        else:
+            frag_content = frag_file.getvalue()
+        if frag_file:
+            frag_file.close()
+        return success, frag_content
 
     def _append_fragment(self, ctx, frag_content):
         try:
@@ -116,9 +125,6 @@ class FragmentFD(FileDownloader):
         finally:
             if self.__do_ytdl_file(ctx):
                 self._write_ytdl_file(ctx)
-            if not self.params.get('keep_fragments', False):
-                os.remove(encodeFilename(ctx['fragment_filename_sanitized']))
-            del ctx['fragment_filename_sanitized']
 
     def _prepare_frag_download(self, ctx):
         if 'live' not in ctx:

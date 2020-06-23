@@ -1,6 +1,7 @@
 from __future__ import unicode_literals
 
 import errno
+import io
 import os
 import socket
 import time
@@ -33,9 +34,15 @@ class DownloadContext(dict):
 class HttpFD(FileDownloader):
     def create_context(self, filename, info_dict):
         ctx = DownloadContext()
-        ctx.filename = filename
-        ctx.tmpfilename = self.temp_name(filename)
-        ctx.stream = None
+
+        if isinstance(filename, io.IOBase):
+            ctx.filename = '-'
+            ctx.tmpfilename = '-'
+            ctx.stream = filename
+        else:
+            ctx.filename = filename
+            ctx.tmpfilename = self.temp_name(filename)
+            ctx.stream = None
 
         ctx.open_mode = 'wb'
         ctx.resume_len = 0
@@ -44,7 +51,8 @@ class HttpFD(FileDownloader):
         ctx.start_time = time.time()
         ctx.chunk_size = None
 
-        if self.params.get('continuedl', True):
+        if (self.params.get('continuedl', True)
+                and ctx.tmpfilename != '-'):
             # Establish possible resume length
             if os.path.isfile(encodeFilename(ctx.tmpfilename)):
                 ctx.resume_len = os.path.getsize(
@@ -221,11 +229,12 @@ class HttpFD(FileDownloader):
             before = start  # start measuring
 
             def retry(e):
-                to_stdout = ctx.tmpfilename == '-'
-                if not to_stdout:
+                if ctx.tmpfilename == '-':
+                    ctx.resume_len = byte_counter
+                else:
                     ctx.stream.close()
-                ctx.stream = None
-                ctx.resume_len = byte_counter if to_stdout else os.path.getsize(encodeFilename(ctx.tmpfilename))
+                    ctx.stream = None
+                    ctx.resume_len = os.path.getsize(encodeFilename(ctx.tmpfilename))
                 raise RetryDownload(e)
 
             while True:

@@ -473,7 +473,7 @@ def parseOpts(overrideArguments=None):
     downloader.add_option(
         '--keep-fragments',
         action='store_true', dest='keep_fragments', default=False,
-        help='Keep downloaded fragments on disk after downloading is finished; fragments are erased by default')
+        help='Keep downloaded fragments on disk after downloading is finished; fragments are not saved by default')
     downloader.add_option(
         '--buffer-size',
         dest='buffersize', metavar='SIZE', default='1024',
