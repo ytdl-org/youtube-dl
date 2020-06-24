@@ -62,6 +62,45 @@ class ARDMediathekBaseIE(InfoExtractor):
             'subtitles': subtitles,
         }
 
+    def _ARD_extract_episode_info(self, title):
+        """Try to extract season/episode data from the title."""
+        res = {}
+        if not title:
+            return res
+
+        for pattern in [
+            # Pattern for title like "Homo sapiens (S06/E07) - Originalversion"
+            # from: https://www.ardmediathek.de/one/sendung/doctor-who/Y3JpZDovL3dkci5kZS9vbmUvZG9jdG9yIHdobw
+            r'.*(?P<ep_info> \(S(?P<season_number>\d+)/E(?P<episode_number>\d+)\)).*',
+            # E.g.: title="Fritjof aus Norwegen (2) (AD)"
+            # from: https://www.ardmediathek.de/ard/sammlung/der-krieg-und-ich/68cMkqJdllm639Skj4c7sS/
+            r'.*(?P<ep_info> \((?:Folge |Teil )?(?P<episode_number>\d+)(?:/\d+)?\)).*',
+            r'.*(?P<ep_info>Folge (?P<episode_number>\d+)(?:\:| -|) )\"(?P<episode>.+)\".*',
+            # E.g.: title="Folge 25/42: Symmetrie"
+            # from: https://www.ardmediathek.de/ard/video/grips-mathe/folge-25-42-symmetrie/ard-alpha/Y3JpZDovL2JyLmRlL3ZpZGVvLzMyYzI0ZjczLWQ1N2MtNDAxNC05ZmZhLTFjYzRkZDA5NDU5OQ/
+            # E.g.: title="Folge 1063 - Vertrauen"
+            # from: https://www.ardmediathek.de/ard/sendung/die-fallers/Y3JpZDovL3N3ci5kZS8yMzAyMDQ4/
+            r'.*(?P<ep_info>Folge (?P<episode_number>\d+)(?:/\d+)?(?:\:| -|) ).*',
+        ]:
+            m = re.match(pattern, title)
+            if m:
+                groupdict = m.groupdict()
+                res['season_number'] = int_or_none(groupdict.get('season_number'))
+                res['episode_number'] = int_or_none(groupdict.get('episode_number'))
+                res['episode'] = str_or_none(groupdict.get('episode'))
+                # Build the episode title by removing numeric episode information:
+                if groupdict.get('ep_info') and not res['episode']:
+                    res['episode'] = str_or_none(
+                        title.replace(groupdict.get('ep_info'), ''))
+                if res['episode']:
+                    res['episode'] = res['episode'].strip()
+                break
+
+        # As a fallback use the whole title as the episode name:
+        if not res.get('episode'):
+            res['episode'] = title.strip()
+        return res
+
     def _extract_formats(self, media_info, video_id):
         type_ = media_info.get('_type')
         media_array = media_info.get('_mediaArray', [])
@@ -244,6 +283,7 @@ class ARDMediathekIE(ARDMediathekBaseIE):
             'description': description,
             'thumbnail': thumbnail,
         })
+        info.update(self._ARD_extract_episode_info(info['title']))
 
         return info
 
@@ -313,7 +353,7 @@ class ARDIE(InfoExtractor):
 
 
 class ARDBetaMediathekIE(ARDMediathekBaseIE):
-    _VALID_URL = r'https://(?:(?:beta|www)\.)?ardmediathek\.de/(?P<client>[^/]+)/(?:player|live|video)/(?P<display_id>(?:[^/]+/)*)(?P<video_id>[a-zA-Z0-9]+)'
+    _VALID_URL = r'https://(?:(?:beta|www)\.)?ardmediathek\.de/(?P<client>[^/]+)/(?P<mode>player|live|video|sendung|sammlung)/(?P<display_id>(?:[^/]+/)*)(?P<video_id>[a-zA-Z0-9]+)'
     _TESTS = [{
         'url': 'https://ardmediathek.de/ard/video/die-robuste-roswita/Y3JpZDovL2Rhc2Vyc3RlLmRlL3RhdG9ydC9mYmM4NGM1NC0xNzU4LTRmZGYtYWFhZS0wYzcyZTIxNGEyMDE',
         'md5': 'dfdc87d2e7e09d073d5a80770a9ce88f',
@@ -343,7 +383,111 @@ class ARDBetaMediathekIE(ARDMediathekBaseIE):
     }, {
         'url': 'https://www.ardmediathek.de/swr/live/Y3JpZDovL3N3ci5kZS8xMzQ4MTA0Mg',
         'only_matching': True,
+    }, {
+        # playlist of type 'sendung'
+        'url': 'https://www.ardmediathek.de/ard/sendung/doctor-who/Y3JpZDovL3dkci5kZS9vbmUvZG9jdG9yIHdobw/',
+        'only_matching': True,
+    }, {
+        # playlist of type 'sammlung'
+        'url': 'https://www.ardmediathek.de/ard/sammlung/team-muenster/5JpTzLSbWUAK8184IOvEir/',
+        'only_matching': True,
     }]
+
+    def _ARD_load_playlist_snipped(self, playlist_id, display_id, client, mode, pageNumber):
+        """ Query the ARD server for playlist information
+        and returns the data in "raw" format """
+        if mode == 'sendung':
+            graphQL = json.dumps({
+                'query': '''{
+                    showPage(
+                        client: "%s"
+                        showId: "%s"
+                        pageNumber: %d
+                    ) {
+                        pagination {
+                            pageSize
+                            totalElements
+                        }
+                        teasers {        # Array
+                            mediumTitle
+                            links { target { id href title } }
+                            type
+                        }
+                    }}''' % (client, playlist_id, pageNumber),
+            }).encode()
+        else:  # mode == 'sammlung'
+            graphQL = json.dumps({
+                'query': '''{
+                    morePage(
+                        client: "%s"
+                        compilationId: "%s"
+                        pageNumber: %d
+                    ) {
+                        widget {
+                            pagination {
+                                pageSize
+                                totalElements
+                            }
+                            teasers {        # Array
+                                mediumTitle
+                                links { target { id href title } }
+                                type
+                            }
+                        }
+                    }}''' % (client, playlist_id, pageNumber),
+            }).encode()
+        # Ressources for ARD graphQL debugging:
+        # https://api-test.ardmediathek.de/public-gateway
+        show_page = self._download_json(
+            'https://api.ardmediathek.de/public-gateway',
+            '[Playlist] %s' % display_id,
+            data=graphQL,
+            headers={'Content-Type': 'application/json'})['data']
+        # align the structure of the returned data:
+        if mode == 'sendung':
+            show_page = show_page['showPage']
+        else:  # mode == 'sammlung'
+            show_page = show_page['morePage']['widget']
+        return show_page
+
+    def _ARD_extract_playlist(self, url, playlist_id, display_id, client, mode):
+        """ Collects all playlist entries and returns them as info dict.
+        Supports playlists of mode 'sendung' and 'sammlung', and also nested
+        playlists. """
+        entries = []
+        pageNumber = 0
+        while True:  # iterate by pageNumber
+            show_page = self._ARD_load_playlist_snipped(
+                playlist_id, display_id, client, mode, pageNumber)
+            for teaser in show_page['teasers']:  # process playlist items
+                if '/compilation/' in teaser['links']['target']['href']:
+                    # alternativ cond.: teaser['type'] == "compilation"
+                    # => This is an nested compilation, e.g. like:
+                    # https://www.ardmediathek.de/ard/sammlung/die-kirche-bleibt-im-dorf/5eOHzt8XB2sqeFXbIoJlg2/
+                    link_mode = 'sammlung'
+                else:
+                    link_mode = 'video'
+
+                item_url = 'https://www.ardmediathek.de/%s/%s/%s/%s/%s' % (
+                    client, link_mode, display_id,
+                    # perform HTLM quoting of episode title similar to ARD:
+                    re.sub('^-|-$', '',  # remove '-' from begin/end
+                           re.sub('[^a-zA-Z0-9]+', '-',  # replace special chars by -
+                                  teaser['links']['target']['title'].lower()
+                                  .replace('ä', 'ae').replace('ö', 'oe')
+                                  .replace('ü', 'ue').replace('ß', 'ss'))),
+                    teaser['links']['target']['id'])
+                entries.append(self.url_result(
+                    item_url,
+                    ie=ARDBetaMediathekIE.ie_key()))
+
+            if (show_page['pagination']['pageSize'] * (pageNumber + 1)
+               >= show_page['pagination']['totalElements']):
+                # we've processed enough pages to get all playlist entries
+                break
+            pageNumber = pageNumber + 1
+
+        return self.playlist_result(entries, playlist_title=display_id)
 
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
@@ -353,6 +497,13 @@ class ARDBetaMediathekIE(ARDMediathekBaseIE):
             display_id = display_id.rstrip('/')
         if not display_id:
             display_id = video_id
+
+        if mobj.group('mode') in ('sendung', 'sammlung'):
+            # this is a playlist-URL
+            return self._ARD_extract_playlist(
+                url, video_id, display_id,
+                mobj.group('client'),
+                mobj.group('mode'))
 
         player_page = self._download_json(
             'https://api.ardmediathek.de/public-gateway',
@@ -419,4 +570,5 @@ class ARDBetaMediathekIE(ARDMediathekBaseIE):
             'timestamp': unified_timestamp(player_page.get('broadcastedOn')),
             'series': try_get(player_page, lambda x: x['show']['title']),
         })
+        info.update(self._ARD_extract_episode_info(info['title']))
         return info
