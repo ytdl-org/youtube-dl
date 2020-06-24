@@ -630,6 +630,14 @@ class FacebookIE(InfoExtractor):
         if values:
             return values[-1]
 
+        value = self._search_regex(r'"commentCount":(.+?),', webpage, 'comment_count', fatal=False)
+        if value:
+            return value
+
+        value = self._search_regex(r'"commentcount":(.+?),', tahoe_data.secondary, 'comment_count', fatal=False)
+        if value:
+            return value
+
     def _extract_views(self, webpage, tahoe_data):
         value = self._extract_meta_count(['postViewCount', 'viewCount'], webpage, tahoe_data, 'likes')
         if value:
