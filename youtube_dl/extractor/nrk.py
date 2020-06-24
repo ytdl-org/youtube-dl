@@ -40,6 +40,10 @@ class NRKBaseIE(InfoExtractor):
             self._api_host = api_host
             break
 
+        playback_manifest = self._download_json(
+            'http://%s/playback/manifest/program/%s' % (self._api_host, video_id),
+            video_id, 'Downloading manifest JSON', fatal=False)
+
         title = data.get('fullTitle') or data.get('mainTitle') or data['title']
         alt_title = data.get('mainTitle')
         video_id = data.get('id') or video_id
@@ -53,6 +57,28 @@ class NRKBaseIE(InfoExtractor):
         def make_title(t):
             return self._live_title(t) if live else t
 
+        playback_convia = playback_manifest.get('statistics').get('conviva')
+        if playback_convia:
+            streamurl = playback_convia.get('streamUrl', None)
+            stream = self._extract_m3u8_formats(streamurl, video_id, 'mp4',
+                'm3u8_native', m3u8_id='hls', fatal=False)
+            custom = playback_convia.get('custom')
+
+            dur = parse_duration(playback_convia.get('duration'))
+            subs = {}
+            for sub_title in playback_manifest.get('playable').get('subtitles'):
+                subs.setdefault('no', []).append({
+                    'url': sub_title.get('webVtt')
+                })
+            self._sort_formats(stream)
+            entries.append({
+                'id': custom.get('contentId'),
+                'title': custom.get('title'),
+                'duration': dur,
+                'subtitles': subs,
+                'formats': stream,
+            })
+
         media_assets = data.get('mediaAssets')
         if media_assets and isinstance(media_assets, list):
             def video_id_and_title(idx):
@@ -63,14 +89,6 @@ class NRKBaseIE(InfoExtractor):
                 if not asset_url:
                     continue
                 formats = self._extract_akamai_formats(asset_url, video_id)
-
-                playback_manifest = self._download_json(
-                    'http://%s/playback/manifest/program/%s' % (self._api_host, video_id),
-                    video_id, 'Downloading manifest JSON', fatal=False)
-                streamurl = playback_manifest.get('statistics').get('conviva').get('streamUrl')
-                formats.extend(self._extract_m3u8_formats(
-                    streamurl, video_id, 'mp4', 'm3u8_native', m3u8_id='hls', fatal=False,
-                    errnote='Alternate extractor failed'))
                 if not formats:
                     continue
                 self._sort_formats(formats)
