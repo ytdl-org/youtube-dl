@@ -284,7 +284,7 @@ class YoutubeDL(object):
                        match_filter_func in utils.py is one example for this.
     no_color:          Do not emit color codes in output.
     geo_bypass:        Bypass geographic restriction via faking X-Forwarded-For
-                       HTTP header
+                       HTTP header. False by default
     geo_bypass_country:
                        Two-letter ISO 3166-2 country code that will be used for
                        explicit geographic restriction bypassing via faking
