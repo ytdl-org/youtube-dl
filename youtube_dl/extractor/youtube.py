@@ -303,7 +303,7 @@ class YoutubeEntryListBaseInfoExtractor(YoutubeBaseInfoExtractor):
                     # Downloading page may result in intermittent 5xx HTTP error
                     # that is usually worked around with a retry
                     more = self._download_json(
-                        'https://youtube.com/%s' % mobj.group('more'), playlist_id,
+                        'https://www.youtube.com/%s' % mobj.group('more'), playlist_id,
                         'Downloading page #%s%s'
                         % (page_num, ' (retry #%d)' % count if count else ''),
                         transform_source=uppercase_escape,
