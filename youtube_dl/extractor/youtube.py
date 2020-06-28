@@ -3116,7 +3116,7 @@ class YoutubeLiveIE(YoutubeBaseInfoExtractor):
 
 class YoutubePlaylistsIE(YoutubePlaylistsBaseInfoExtractor):
     IE_DESC = 'YouTube.com user/channel playlists'
-    _VALID_URL = r'https?://(?:\w+\.)?youtube\.com/(?:user|channel)/(?P<id>[^/]+)/playlists'
+    _VALID_URL = r'https?://(?:\w+\.)?youtube\.com/(?:user|channel|c)/(?P<id>[^/]+)/playlists'
     IE_NAME = 'youtube:playlists'
 
     _TESTS = [{
@@ -3142,6 +3142,9 @@ class YoutubePlaylistsIE(YoutubePlaylistsBaseInfoExtractor):
             'title': 'Chem Player',
         },
         'skip': 'Blocked',
+    }, {
+        'url': 'https://www.youtube.com/c/ChristophLaimer/playlists',
+        'only_matching': True,
     }]
 
 
