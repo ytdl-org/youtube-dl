@@ -374,13 +374,7 @@ class FacebookIE(InfoExtractor):
         if not video_data:
             if not fatal_if_no_video:
                 return webpage, False
-            m_msg = re.search(r'class="[^"]*uiInterstitialContent[^"]*"><div>(.*?)</div>', webpage)
-            if m_msg is not None:
-                raise ExtractorError(
-                    'The video is not available, Facebook said: "%s"' % m_msg.group(1),
-                    expected=True)
-            elif '>You must log in to continue' in webpage:
-                self.raise_login_required()
+            self.validate_webpage(webpage)
 
         if not video_data:
             info_dict = self.get_from_new_ui(webpage, tahoe_data, video_id)
@@ -806,13 +800,42 @@ class FacebookIE(InfoExtractor):
 
     def _resolve_thumbnail(self, webpage, tahoe_data):
         thumbnail = self._html_search_meta(['og:image', 'twitter:image'], webpage)
+
         if not thumbnail:
-            thumbnail = self._search_regex(r'"thumbSrc":"(.+?)"', tahoe_data.secondary, 'thumbnail', fatal=False)
+            page = self.resolve_full_webpage(tahoe_data)
+            thumbnail = self._search_regex(r'"thumbnailUrl":"(.+?)"', page, 'thumbnail', fatal=False)
             thumbnail = str(thumbnail).replace('\\', "")
         return thumbnail
 
     def _valid_video_title(self, video_title):
-        return video_title and not u'Log In or Sign Up to View' in video_title
+        if video_title:
+            video_title = video_title.lower()
+        return video_title and not u'log in or sign up to view' in video_title
+
+    def validate_webpage(self, webpage):
+        m_msg = re.search(r'class="[^"]*uiInterstitialContent[^"]*"><div>(.*?)</div>', webpage)
+        if m_msg is not None:
+            raise ExtractorError(
+                'The video is not available, Facebook said: "%s"' % m_msg.group(1),
+                expected=True)
+        if 'Your Request Couldn\'t be Processed' in webpage:
+            raise ExtractorError(
+                'The video is not available, Facebook said: this content is not available',
+                expected=True)
+        elif '>You must log in to continue' in webpage:
+            self.raise_login_required()
+
+    def resolve_full_webpage(self, tahoe_data):
+        import urllib2
+        user_agent = 'Mozilla/5.0 (Macintosh; U; Intel Mac OS X 10_6_4; en-US) AppleWebKit/534.3 (KHTML, like Gecko) Chrome/6.0.472.63 Safari/534.3'
+        headers = {'User-Agent': user_agent}
+        full_url = self._search_regex(r'"permalinkURL":"(.+?)"', tahoe_data.primary, 'video_url', fatal=False)
+        full_url = str(full_url).replace('\\', "")
+        req = urllib2.Request(full_url, None, headers)
+        response = urllib2.urlopen(req)
+        page = response.read()
+        response.close()
+        return page
 
 
 class FacebookTahoeData:

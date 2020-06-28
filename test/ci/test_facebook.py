@@ -1,5 +1,6 @@
 import unittest
 import youtube_dl
+from youtube_dl.utils import DownloadError
 
 
 class facebookMetaData(unittest.TestCase):
@@ -25,8 +26,15 @@ class facebookMetaData(unittest.TestCase):
         info = ydl.extract_info(url, download=False)
         self.assertGreater(info.get('comment_count'), 0)
 
+    def test_meta_data(self):
+        params = {}
+        url = "https://www.facebook.com/watch?v=177407933624543/"
+        ydl = youtube_dl.YoutubeDL(params)
+        info = ydl.extract_info(url, download=False)
+        self.assertGreater(info.get('comment_count'), 0)
+
     def test_metadata_fetch_with_log_in(self):
-        url = "https://www.facebook.com/SerieA/videos/282581803097269"
+        url = "https://www.facebook.com/oristandup/videos/675360549895283"
         params = {}
         with open("cookie_file") as file:
             proxy = "ec2-3-221-82-67.compute-1.amazonaws.com:3128"
@@ -34,12 +42,27 @@ class facebookMetaData(unittest.TestCase):
             params['proxy'] = proxy
             ydl = youtube_dl.YoutubeDL(params)
             info = ydl.extract_info(url, download=False)
+            print (info.get('title'))
+            print (info.get('timestamp'))
             self.assertTrue(info.get('timestamp'))
             self.assertTrue(info.get('view_count'))
             self.assertTrue(info.get('comment_count'))
             self.assertTrue(info.get('width'))
             self.assertTrue(info.get('uploader_id'))
             self.assertTrue(info.get('thumbnail'))
+
+    def test_unavailable_video(self):
+        url = "https://www.facebook.com/101457238278830/videos/287839102599521/"
+        params = {}
+        with open("cookie_file") as file:
+            try:
+                proxy = "ec2-3-221-82-67.compute-1.amazonaws.com:3128"
+                params['cookiefile'] = file.name
+                params['proxy'] = proxy
+                ydl = youtube_dl.YoutubeDL(params)
+                info = ydl.extract_info(url, download=False)
+            except DownloadError:
+                self.assertRaises(DownloadError)
 
 
 if __name__ == '__main__':
