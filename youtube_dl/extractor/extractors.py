@@ -1281,6 +1281,7 @@ from .ustudio import (
 from .varzesh3 import Varzesh3IE
 from .vbox7 import Vbox7IE
 from .veehd import VeeHDIE
+from .veeps import VeepsIE
 from .veoh import VeohIE
 from .vesti import VestiIE
 from .vevo import (
