@@ -105,6 +105,9 @@ class XHamsterIE(InfoExtractor):
     }, {
         'url': 'http://xhamster.com/movies/2221348/britney_spears_sexy_booty.html?hd',
         'only_matching': True,
+    }, {
+        'url': 'http://de.xhamster.com/videos/skinny-girl-fucks-herself-hard-in-the-forest-xhnBJZx',
+        'only_matching': True,
     }]
 
     def _real_extract(self, url):
