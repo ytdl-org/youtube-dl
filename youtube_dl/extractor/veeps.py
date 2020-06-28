@@ -15,6 +15,7 @@ class VeepsIE(InfoExtractor):
     _VALID_URL = r'https?://(?P<channel>[a-zA-Z0-9]+)\.veeps\.com/stream/(?P<id>[0-9a-f]+)'
     _CSRF_TOKEN_RE = InfoExtractor._meta_regex('csrf-token')
     _M3U8_RE = r'<div[^>]+data-react-props=(?:\'|")[^>\'"]*stored_stream_asset&quot;:&quot;(?P<url>[^&>\'"]+)&quot;[^>\'"]*(?:\'|")[^>]*>'
+    _NETRC_MACHINE = 'veeps'
 
     @classmethod
     def _match_channel(cls, url):
