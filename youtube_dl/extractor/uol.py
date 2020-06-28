@@ -2,12 +2,17 @@
 from __future__ import unicode_literals
 
 from .common import InfoExtractor
+from ..compat import (
+    compat_str,
+    compat_urllib_parse_urlencode,
+)
 from ..utils import (
     clean_html,
     int_or_none,
     parse_duration,
+    parse_iso8601,
+    qualities,
     update_url_query,
-    str_or_none,
 )
 
 
@@ -16,21 +21,25 @@ class UOLIE(InfoExtractor):
     _VALID_URL = r'https?://(?:.+?\.)?uol\.com\.br/.*?(?:(?:mediaId|v)=|view/(?:[a-z0-9]+/)?|video(?:=|/(?:\d{4}/\d{2}/\d{2}/)?))(?P<id>\d+|[\w-]+-[A-Z0-9]+)'
     _TESTS = [{
         'url': 'http://player.mais.uol.com.br/player_video_v3.swf?mediaId=15951931',
-        'md5': '25291da27dc45e0afb5718a8603d3816',
+        'md5': '4f1e26683979715ff64e4e29099cf020',
         'info_dict': {
             'id': '15951931',
             'ext': 'mp4',
             'title': 'Miss simpatia é encontrada morta',
             'description': 'md5:3f8c11a0c0556d66daf7e5b45ef823b2',
+            'timestamp': 1470421860,
+            'upload_date': '20160805',
         }
     }, {
         'url': 'http://tvuol.uol.com.br/video/incendio-destroi-uma-das-maiores-casas-noturnas-de-londres-04024E9A3268D4C95326',
-        'md5': 'e41a2fb7b7398a3a46b6af37b15c00c9',
+        'md5': '2850a0e8dfa0a7307e04a96c5bdc5bc2',
         'info_dict': {
             'id': '15954259',
             'ext': 'mp4',
             'title': 'Incêndio destrói uma das maiores casas noturnas de Londres',
             'description': 'Em Londres, um incêndio destruiu uma das maiores boates da cidade. Não há informações sobre vítimas.',
+            'timestamp': 1470674520,
+            'upload_date': '20160808',
         }
     }, {
         'url': 'http://mais.uol.com.br/static/uolplayer/index.html?mediaId=15951931',
@@ -55,91 +64,55 @@ class UOLIE(InfoExtractor):
         'only_matching': True,
     }]
 
-    _FORMATS = {
-        '2': {
-            'width': 640,
-            'height': 360,
-        },
-        '5': {
-            'width': 1280,
-            'height': 720,
-        },
-        '6': {
-            'width': 426,
-            'height': 240,
-        },
-        '7': {
-            'width': 1920,
-            'height': 1080,
-        },
-        '8': {
-            'width': 192,
-            'height': 144,
-        },
-        '9': {
-            'width': 568,
-            'height': 320,
-        },
-        '11': {
-            'width': 640,
-            'height': 360,
-        }
-    }
-
     def _real_extract(self, url):
         video_id = self._match_id(url)
-        media_id = None
-
-        if video_id.isdigit():
-            media_id = video_id
-
-        if not media_id:
-            embed_page = self._download_webpage(
-                'https://jsuol.com.br/c/tv/uol/embed/?params=[embed,%s]' % video_id,
-                video_id, 'Downloading embed page', fatal=False)
-            if embed_page:
-                media_id = self._search_regex(
-                    (r'uol\.com\.br/(\d+)', r'mediaId=(\d+)'),
-                    embed_page, 'media id', default=None)
-
-        if not media_id:
-            webpage = self._download_webpage(url, video_id)
-            media_id = self._search_regex(r'mediaId=(\d+)', webpage, 'media id')
 
         video_data = self._download_json(
-            'http://mais.uol.com.br/apiuol/v3/player/getMedia/%s.json' % media_id,
-            media_id)['item']
+            # https://api.mais.uol.com.br/apiuol/v4/player/data/[MEDIA_ID]
+            'https://api.mais.uol.com.br/apiuol/v3/media/detail/' + video_id,
+            video_id)['item']
+        media_id = compat_str(video_data['mediaId'])
         title = video_data['title']
+        ver = video_data.get('revision', 2)
 
-        query = {
-            'ver': video_data.get('numRevision', 2),
-            'r': 'http://mais.uol.com.br',
-        }
-        for k in ('token', 'sign'):
-            v = video_data.get(k)
-            if v:
-                query[k] = v
-
+        uol_formats = self._download_json(
+            'https://croupier.mais.uol.com.br/v3/formats/%s/jsonp' % media_id,
+            media_id)
+        quality = qualities(['mobile', 'WEBM', '360p', '720p', '1080p'])
         formats = []
-        for f in video_data.get('formats', []):
+        for format_id, f in uol_formats.items():
+            if not isinstance(f, dict):
+                continue
             f_url = f.get('url') or f.get('secureUrl')
             if not f_url:
                 continue
+            query = {
+                'ver': ver,
+                'r': 'http://mais.uol.com.br',
+            }
+            for k in ('token', 'sign'):
+                v = f.get(k)
+                if v:
+                    query[k] = v
             f_url = update_url_query(f_url, query)
-            format_id = str_or_none(f.get('id'))
-            if format_id == '10':
-                formats.extend(self._extract_m3u8_formats(
-                    f_url, video_id, 'mp4', 'm3u8_native',
-                    m3u8_id='hls', fatal=False))
+            format_id = format_id
+            if format_id == 'HLS':
+                m3u8_formats = self._extract_m3u8_formats(
+                    f_url, media_id, 'mp4', 'm3u8_native',
+                    m3u8_id='hls', fatal=False)
+                encoded_query = compat_urllib_parse_urlencode(query)
+                for m3u8_f in m3u8_formats:
+                    m3u8_f['extra_param_to_segment_url'] = encoded_query
+                    m3u8_f['url'] = update_url_query(m3u8_f['url'], query)
+                formats.extend(m3u8_formats)
                 continue
-            fmt = {
+            formats.append({
                 'format_id': format_id,
                 'url': f_url,
-                'source_preference': 1,
-            }
-            fmt.update(self._FORMATS.get(format_id, {}))
-            formats.append(fmt)
-        self._sort_formats(formats, ('height', 'width', 'source_preference', 'tbr', 'ext'))
+                'quality': quality(format_id),
+                'preference': -1,
+            })
+        self._sort_formats(formats)
 
         tags = []
         for tag in video_data.get('tags', []):
@@ -148,12 +121,24 @@ class UOLIE(InfoExtractor):
                 continue
             tags.append(tag_description)
 
+        thumbnails = []
+        for q in ('Small', 'Medium', 'Wmedium', 'Large', 'Wlarge', 'Xlarge'):
+            q_url = video_data.get('thumb' + q)
+            if not q_url:
+                continue
+            thumbnails.append({
+                'id': q,
+                'url': q_url,
+            })
+
         return {
             'id': media_id,
             'title': title,
-            'description': clean_html(video_data.get('desMedia')),
-            'thumbnail': video_data.get('thumbnail'),
-            'duration': int_or_none(video_data.get('durationSeconds')) or parse_duration(video_data.get('duration')),
+            'description': clean_html(video_data.get('description')),
+            'thumbnails': thumbnails,
+            'duration': parse_duration(video_data.get('duration')),
             'tags': tags,
             'formats': formats,
+            'timestamp': parse_iso8601(video_data.get('publishDate'), ' '),
+            'view_count': int_or_none(video_data.get('viewsQtty')),
         }

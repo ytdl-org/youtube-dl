@@ -249,7 +249,7 @@ class ARDMediathekIE(ARDMediathekBaseIE):
 
 
 class ARDIE(InfoExtractor):
-    _VALID_URL = r'(?P<mainurl>https?://(www\.)?daserste\.de/[^?#]+/videos/(?P<display_id>[^/?#]+)-(?P<id>[0-9]+))\.html'
+    _VALID_URL = r'(?P<mainurl>https?://(www\.)?daserste\.de/[^?#]+/videos(?:extern)?/(?P<display_id>[^/?#]+)-(?P<id>[0-9]+))\.html'
     _TESTS = [{
         # available till 14.02.2019
         'url': 'http://www.daserste.de/information/talk/maischberger/videos/das-groko-drama-zerlegen-sich-die-volksparteien-video-102.html',
@@ -263,6 +263,9 @@ class ARDIE(InfoExtractor):
             'upload_date': '20180214',
             'thumbnail': r're:^https?://.*\.jpg$',
         },
+    }, {
+        'url': 'https://www.daserste.de/information/reportage-dokumentation/erlebnis-erde/videosextern/woelfe-und-herdenschutzhunde-ungleiche-brueder-102.html',
+        'only_matching': True,
     }, {
         'url': 'http://www.daserste.de/information/reportage-dokumentation/dokus/videos/die-story-im-ersten-mission-unter-falscher-flagge-100.html',
         'only_matching': True,
@@ -310,9 +313,9 @@ class ARDIE(InfoExtractor):
 
 
 class ARDBetaMediathekIE(ARDMediathekBaseIE):
-    _VALID_URL = r'https://(?:beta|www)\.ardmediathek\.de/(?P<client>[^/]+)/(?:player|live)/(?P<video_id>[a-zA-Z0-9]+)(?:/(?P<display_id>[^/?#]+))?'
+    _VALID_URL = r'https://(?:(?:beta|www)\.)?ardmediathek\.de/(?P<client>[^/]+)/(?:player|live|video)/(?P<display_id>(?:[^/]+/)*)(?P<video_id>[a-zA-Z0-9]+)'
     _TESTS = [{
-        'url': 'https://beta.ardmediathek.de/ard/player/Y3JpZDovL2Rhc2Vyc3RlLmRlL3RhdG9ydC9mYmM4NGM1NC0xNzU4LTRmZGYtYWFhZS0wYzcyZTIxNGEyMDE/die-robuste-roswita',
+        'url': 'https://ardmediathek.de/ard/video/die-robuste-roswita/Y3JpZDovL2Rhc2Vyc3RlLmRlL3RhdG9ydC9mYmM4NGM1NC0xNzU4LTRmZGYtYWFhZS0wYzcyZTIxNGEyMDE',
         'md5': 'dfdc87d2e7e09d073d5a80770a9ce88f',
         'info_dict': {
             'display_id': 'die-robuste-roswita',
@@ -326,6 +329,15 @@ class ARDBetaMediathekIE(ARDMediathekBaseIE):
             'ext': 'mp4',
         },
     }, {
+        'url': 'https://beta.ardmediathek.de/ard/video/Y3JpZDovL2Rhc2Vyc3RlLmRlL3RhdG9ydC9mYmM4NGM1NC0xNzU4LTRmZGYtYWFhZS0wYzcyZTIxNGEyMDE',
+        'only_matching': True,
+    }, {
+        'url': 'https://ardmediathek.de/ard/video/saartalk/saartalk-gesellschaftsgift-haltung-gegen-hass/sr-fernsehen/Y3JpZDovL3NyLW9ubGluZS5kZS9TVF84MTY4MA/',
+        'only_matching': True,
+    }, {
+        'url': 'https://www.ardmediathek.de/ard/video/trailer/private-eyes-s01-e01/one/Y3JpZDovL3dkci5kZS9CZWl0cmFnLTE1MTgwYzczLWNiMTEtNGNkMS1iMjUyLTg5MGYzOWQxZmQ1YQ/',
+        'only_matching': True,
+    }, {
         'url': 'https://www.ardmediathek.de/ard/player/Y3JpZDovL3N3ci5kZS9hZXgvbzEwNzE5MTU/',
         'only_matching': True,
     }, {
@@ -336,7 +348,11 @@ class ARDBetaMediathekIE(ARDMediathekBaseIE):
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
         video_id = mobj.group('video_id')
-        display_id = mobj.group('display_id') or video_id
+        display_id = mobj.group('display_id')
+        if display_id:
+            display_id = display_id.rstrip('/')
+        if not display_id:
+            display_id = video_id
 
         player_page = self._download_json(
             'https://api.ardmediathek.de/public-gateway',

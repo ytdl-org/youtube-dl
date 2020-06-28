@@ -7,7 +7,9 @@ from .wistia import WistiaIE
 from ..utils import (
     clean_html,
     ExtractorError,
+    int_or_none,
     get_element_by_class,
+    strip_or_none,
     urlencode_postdata,
     urljoin,
 )
@@ -19,8 +21,8 @@ class TeachableBaseIE(InfoExtractor):
 
     _SITES = {
         # Only notable ones here
-        'upskillcourses.com': 'upskill',
-        'academy.gns3.com': 'gns3',
+        'v1.upskillcourses.com': 'upskill',
+        'gns3.teachable.com': 'gns3',
         'academyhacker.com': 'academyhacker',
         'stackskills.com': 'stackskills',
         'market.saleshacker.com': 'saleshacker',
@@ -109,27 +111,29 @@ class TeachableIE(TeachableBaseIE):
                     ''' % TeachableBaseIE._VALID_URL_SUB_TUPLE
 
     _TESTS = [{
-        'url': 'http://upskillcourses.com/courses/essential-web-developer-course/lectures/1747100',
+        'url': 'https://gns3.teachable.com/courses/gns3-certified-associate/lectures/6842364',
         'info_dict': {
-            'id': 'uzw6zw58or',
-            'ext': 'mp4',
-            'title': 'Welcome to the Course!',
-            'description': 'md5:65edb0affa582974de4625b9cdea1107',
-            'duration': 138.763,
-            'timestamp': 1479846621,
-            'upload_date': '20161122',
+            'id': 'untlgzk1v7',
+            'ext': 'bin',
+            'title': 'Overview',
+            'description': 'md5:071463ff08b86c208811130ea1c2464c',
+            'duration': 736.4,
+            'timestamp': 1542315762,
+            'upload_date': '20181115',
+            'chapter': 'Welcome',
+            'chapter_number': 1,
         },
         'params': {
             'skip_download': True,
         },
     }, {
-        'url': 'http://upskillcourses.com/courses/119763/lectures/1747100',
+        'url': 'http://v1.upskillcourses.com/courses/119763/lectures/1747100',
         'only_matching': True,
     }, {
-        'url': 'https://academy.gns3.com/courses/423415/lectures/6885939',
+        'url': 'https://gns3.teachable.com/courses/423415/lectures/6885939',
         'only_matching': True,
     }, {
-        'url': 'teachable:https://upskillcourses.com/courses/essential-web-developer-course/lectures/1747100',
+        'url': 'teachable:https://v1.upskillcourses.com/courses/essential-web-developer-course/lectures/1747100',
         'only_matching': True,
     }]
 
@@ -173,11 +177,34 @@ class TeachableIE(TeachableBaseIE):
 
         title = self._og_search_title(webpage, default=None)
 
+        chapter = None
+        chapter_number = None
+        section_item = self._search_regex(
+            r'(?s)(?P<li><li[^>]+\bdata-lecture-id=["\']%s[^>]+>.+?</li>)' % video_id,
+            webpage, 'section item', default=None, group='li')
+        if section_item:
+            chapter_number = int_or_none(self._search_regex(
+                r'data-ss-position=["\'](\d+)', section_item, 'section id',
+                default=None))
+            if chapter_number is not None:
+                sections = []
+                for s in re.findall(
+                        r'(?s)<div[^>]+\bclass=["\']section-title[^>]+>(.+?)</div>', webpage):
+                    section = strip_or_none(clean_html(s))
+                    if not section:
+                        sections = []
+                        break
+                    sections.append(section)
+                if chapter_number <= len(sections):
+                    chapter = sections[chapter_number - 1]
+
         entries = [{
             '_type': 'url_transparent',
             'url': wistia_url,
             'ie_key': WistiaIE.ie_key(),
             'title': title,
+            'chapter': chapter,
+            'chapter_number': chapter_number,
         } for wistia_url in wistia_urls]
 
         return self.playlist_result(entries, video_id, title)
@@ -192,20 +219,20 @@ class TeachableCourseIE(TeachableBaseIE):
                         /(?:courses|p)/(?:enrolled/)?(?P<id>[^/?#&]+)
                     ''' % TeachableBaseIE._VALID_URL_SUB_TUPLE
     _TESTS = [{
-        'url': 'http://upskillcourses.com/courses/essential-web-developer-course/',
+        'url': 'http://v1.upskillcourses.com/courses/essential-web-developer-course/',
         'info_dict': {
             'id': 'essential-web-developer-course',
             'title': 'The Essential Web Developer Course (Free)',
         },
         'playlist_count': 192,
     }, {
-        'url': 'http://upskillcourses.com/courses/119763/',
+        'url': 'http://v1.upskillcourses.com/courses/119763/',
         'only_matching': True,
     }, {
-        'url': 'http://upskillcourses.com/courses/enrolled/119763',
+        'url': 'http://v1.upskillcourses.com/courses/enrolled/119763',
         'only_matching': True,
     }, {
-        'url': 'https://academy.gns3.com/courses/enrolled/423415',
+        'url': 'https://gns3.teachable.com/courses/enrolled/423415',
         'only_matching': True,
     }, {
         'url': 'teachable:https://learn.vrdev.school/p/gear-vr-developer-mini',

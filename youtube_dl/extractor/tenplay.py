@@ -10,8 +10,8 @@ from ..utils import (
 
 
 class TenPlayIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:www\.)?10play\.com\.au/[^/]+/episodes/[^/]+/[^/]+/(?P<id>tpv\d{6}[a-z]{5})'
-    _TEST = {
+    _VALID_URL = r'https?://(?:www\.)?10play\.com\.au/(?:[^/]+/)+(?P<id>tpv\d{6}[a-z]{5})'
+    _TESTS = [{
         'url': 'https://10play.com.au/masterchef/episodes/season-1/masterchef-s1-ep-1/tpv190718kwzga',
         'info_dict': {
             'id': '6060533435001',
@@ -27,7 +27,10 @@ class TenPlayIE(InfoExtractor):
             'format': 'bestvideo',
             'skip_download': True,
         }
-    }
+    }, {
+        'url': 'https://10play.com.au/how-to-stay-married/web-extras/season-1/terrys-talks-ep-1-embracing-change/tpv190915ylupc',
+        'only_matching': True,
+    }]
     BRIGHTCOVE_URL_TEMPLATE = 'https://players.brightcove.net/2199827728001/cN6vRtRQt_default/index.html?videoId=%s'
 
     def _real_extract(self, url):
