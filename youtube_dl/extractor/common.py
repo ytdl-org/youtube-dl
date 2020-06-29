@@ -521,13 +521,13 @@ class InfoExtractor(object):
                         '[debug] Using fake IP %s (%s) as X-Forwarded-For.'
                         % (self._x_forwarded_for_ip, country.upper()))
 
-    def extract(self, url):
+    def extract(self, url, default_ext='mp4'):
         """Extracts URL information and returns it in list of dicts."""
         try:
             for _ in range(2):
                 try:
                     self.initialize()
-                    ie_result = self._real_extract(url)
+                    ie_result = self._real_extract(url, default_ext)
                     if self._x_forwarded_for_ip:
                         ie_result['__x_forwarded_for_ip'] = self._x_forwarded_for_ip
                     return ie_result
@@ -565,7 +565,7 @@ class InfoExtractor(object):
         """Real initialization process. Redefine in subclasses."""
         pass
 
-    def _real_extract(self, url):
+    def _real_extract(self, url, default_ext='mp4'):
         """Real extraction process. Redefine in subclasses."""
         pass
 

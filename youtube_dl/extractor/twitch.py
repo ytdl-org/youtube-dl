@@ -222,7 +222,7 @@ class TwitchItemBaseIE(TwitchBaseIE):
             'is_live': is_live,
         }
 
-    def _real_extract(self, url):
+    def _real_extract(self, url, default_ext):
         return self._extract_media(self._match_id(url))
 
 
@@ -332,7 +332,7 @@ class TwitchVodIE(TwitchItemBaseIE):
         'only_matching': True,
     }]
 
-    def _real_extract(self, url):
+    def _real_extract(self, url, default_ext):
         item_id = self._match_id(url)
 
         info = self._download_info(self._ITEM_SHORTCUT, item_id)
@@ -352,7 +352,7 @@ class TwitchVodIE(TwitchItemBaseIE):
                     'nauth': access_token['token'],
                     'nauthsig': access_token['sig'],
                 })),
-            item_id, 'mp4', entry_protocol='m3u8_native')
+            item_id, default_ext, entry_protocol='m3u8_native')
 
         self._prefer_source(formats)
         info['formats'] = formats
@@ -594,7 +594,7 @@ class TwitchStreamIE(TwitchBaseIE):
                     TwitchClipsIE))
                 else super(TwitchStreamIE, cls).suitable(url))
 
-    def _real_extract(self, url):
+    def _real_extract(self, url, default_ext):
         channel_name = self._match_id(url)
 
         access_token = self._call_api(
@@ -634,7 +634,7 @@ class TwitchStreamIE(TwitchBaseIE):
         formats = self._extract_m3u8_formats(
             '%s/api/channel/hls/%s.m3u8?%s'
             % (self._USHER_BASE, channel_name, compat_urllib_parse_urlencode(query)),
-            channel_id, 'mp4')
+            channel_id, default_ext)
         self._prefer_source(formats)
 
         view_count = stream.get('viewers')

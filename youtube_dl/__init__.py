@@ -410,6 +410,7 @@ def _real_main(argv=None):
         'extract_flat': opts.extract_flat,
         'mark_watched': opts.mark_watched,
         'merge_output_format': opts.merge_output_format,
+        'default_extension': opts.default_extension,
         'postprocessors': postprocessors,
         'fixup': opts.fixup,
         'source_address': opts.source_address,

@@ -794,7 +794,7 @@ class YoutubeDL(object):
                                     'and will probably not work.')
 
             try:
-                ie_result = ie.extract(url)
+                ie_result = ie.extract(url, self.params['default_extension'])
                 if ie_result is None:  # Finished already (backwards compatibility; listformats and friends should be moved here)
                     break
                 if isinstance(ie_result, list):
@@ -1320,10 +1320,13 @@ class YoutubeDL(object):
                             'Both formats %s and %s are video-only, you must specify "-f video+audio"'
                             % (format_1, format_2))
                         return
-                    output_ext = (
-                        formats_info[0]['ext']
-                        if self.params.get('merge_output_format') is None
-                        else self.params['merge_output_format'])
+                    if self.params.get('merge_output_format') is None:
+                        if self.params.get('default_extension') is None:
+                            output_ext = formats_info[0]['ext']
+                        else:
+                            output_ext = self.params['default_extension']
+                    else:
+                        output_ext = self.params['merge_output_format']
                     return {
                         'requested_formats': formats_info,
                         'format': '%s+%s' % (formats_info[0].get('format'),
