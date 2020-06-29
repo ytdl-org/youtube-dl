@@ -802,8 +802,7 @@ class FacebookIE(InfoExtractor):
         thumbnail = self._html_search_meta(['og:image', 'twitter:image'], webpage)
 
         if not thumbnail:
-            page = self.resolve_full_webpage(tahoe_data)
-            thumbnail = self._search_regex(r'"thumbnailUrl":"(.+?)"', page, 'thumbnail', fatal=False)
+            thumbnail = self._search_regex(r'"thumbnailUrl":"(.+?)"', webpage, 'thumbnail', fatal=False)
             thumbnail = str(thumbnail).replace('\\', "")
         return thumbnail
 
@@ -824,18 +823,6 @@ class FacebookIE(InfoExtractor):
                 expected=True)
         elif '>You must log in to continue' in webpage:
             self.raise_login_required()
-
-    def resolve_full_webpage(self, tahoe_data):
-        import urllib2
-        user_agent = 'Mozilla/5.0 (Macintosh; U; Intel Mac OS X 10_6_4; en-US) AppleWebKit/534.3 (KHTML, like Gecko) Chrome/6.0.472.63 Safari/534.3'
-        headers = {'User-Agent': user_agent}
-        full_url = self._search_regex(r'"permalinkURL":"(.+?)"', tahoe_data.primary, 'video_url', fatal=False)
-        full_url = str(full_url).replace('\\', "")
-        req = urllib2.Request(full_url, None, headers)
-        response = urllib2.urlopen(req)
-        page = response.read()
-        response.close()
-        return page
 
 
 class FacebookTahoeData:
