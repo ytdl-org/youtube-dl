@@ -374,13 +374,7 @@ class FacebookIE(InfoExtractor):
         if not video_data:
             if not fatal_if_no_video:
                 return webpage, False
-            m_msg = re.search(r'class="[^"]*uiInterstitialContent[^"]*"><div>(.*?)</div>', webpage)
-            if m_msg is not None:
-                raise ExtractorError(
-                    'The video is not available, Facebook said: "%s"' % m_msg.group(1),
-                    expected=True)
-            elif '>You must log in to continue' in webpage:
-                self.raise_login_required()
+            self.validate_webpage(webpage)
 
         if not video_data:
             info_dict = self.get_from_new_ui(webpage, tahoe_data, video_id)
@@ -806,13 +800,29 @@ class FacebookIE(InfoExtractor):
 
     def _resolve_thumbnail(self, webpage, tahoe_data):
         thumbnail = self._html_search_meta(['og:image', 'twitter:image'], webpage)
+
         if not thumbnail:
-            thumbnail = self._search_regex(r'"thumbSrc":"(.+?)"', tahoe_data.secondary, 'thumbnail', fatal=False)
+            thumbnail = self._search_regex(r'"thumbnailUrl":"(.+?)"', webpage, 'thumbnail', fatal=False)
             thumbnail = str(thumbnail).replace('\\', "")
         return thumbnail
 
     def _valid_video_title(self, video_title):
-        return video_title and not u'Log In or Sign Up to View' in video_title
+        if video_title:
+            video_title = video_title.lower()
+        return video_title and not u'log in or sign up to view' in video_title
+
+    def validate_webpage(self, webpage):
+        m_msg = re.search(r'class="[^"]*uiInterstitialContent[^"]*"><div>(.*?)</div>', webpage)
+        if m_msg is not None:
+            raise ExtractorError(
+                'The video is not available, Facebook said: "%s"' % m_msg.group(1),
+                expected=True)
+        if 'Your Request Couldn\'t be Processed' in webpage:
+            raise ExtractorError(
+                'The video is not available, Facebook said: this content is not available',
+                expected=True)
+        elif '>You must log in to continue' in webpage:
+            self.raise_login_required()
 
 
 class FacebookTahoeData:
