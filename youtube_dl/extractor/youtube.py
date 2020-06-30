@@ -303,7 +303,7 @@ class YoutubeEntryListBaseInfoExtractor(YoutubeBaseInfoExtractor):
                     # Downloading page may result in intermittent 5xx HTTP error
                     # that is usually worked around with a retry
                     more = self._download_json(
-                        'https://youtube.com/%s' % mobj.group('more'), playlist_id,
+                        'https://www.youtube.com/%s' % mobj.group('more'), playlist_id,
                         'Downloading page #%s%s'
                         % (page_num, ' (retry #%d)' % count if count else ''),
                         transform_source=uppercase_escape,
@@ -2776,7 +2776,7 @@ class YoutubePlaylistIE(YoutubePlaylistBaseInfoExtractor):
         ids = []
         last_id = playlist_id[-11:]
         for n in itertools.count(1):
-            url = 'https://youtube.com/watch?v=%s&list=%s' % (last_id, playlist_id)
+            url = 'https://www.youtube.com/watch?v=%s&list=%s' % (last_id, playlist_id)
             webpage = self._download_webpage(
                 url, playlist_id, 'Downloading page {0} of Youtube mix'.format(n))
             new_ids = orderedSet(re.findall(
@@ -3289,7 +3289,7 @@ class YoutubeFeedsInfoExtractor(YoutubeBaseInfoExtractor):
                 break
 
             more = self._download_json(
-                'https://youtube.com/%s' % mobj.group('more'), self._PLAYLIST_TITLE,
+                'https://www.youtube.com/%s' % mobj.group('more'), self._PLAYLIST_TITLE,
                 'Downloading page #%s' % page_num,
                 transform_source=uppercase_escape,
                 headers=self._YOUTUBE_CLIENT_HEADERS)
