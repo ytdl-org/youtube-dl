@@ -329,7 +329,7 @@ class YoutubePlaylistBaseInfoExtractor(YoutubeEntryListBaseInfoExtractor):
         for video_id, video_title, video_duration in self.extract_videos_from_page(content):
             if len(video_id) == 11:
                 # Youtube video id found
-                yield self.url_result(video_id, 'Youtube', video_id, video_title)
+                yield self.url_result(video_id, 'Youtube', video_id, video_title, video_duration)
             elif len(video_id) > 11:
                 # Youtube playlist id found
                 yield self.url_result('https://www.youtube.com/playlist?list=%s' % video_id, 'YoutubePlaylist', video_id, video_title)
