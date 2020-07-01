@@ -42,7 +42,7 @@ class SexLikeRealIE(InfoExtractor):
         )["videoData"]
 
         title = (video_data["title"] or (self._html_search_meta('twitter:title',
-                 webpage, 'description')).split('-')[0].strip())
+                 webpage, 'title')).split('-')[0].strip())
 
         formats = []
         for quality in video_data['src']:
@@ -55,6 +55,10 @@ class SexLikeRealIE(InfoExtractor):
         like_count = int_or_none(video_data.get('likes'))
         duration = float_or_none(video_data.get('duration'))
 
+        description = self._html_search_meta(
+            ['description', 'twitter:description'], webpage, 'description'
+        )
+
         return {
             'id': video_id,
             'display_id': display_id,
@@ -62,5 +66,6 @@ class SexLikeRealIE(InfoExtractor):
             'thumbnail': video_data.get('posterURL'),
             'like_count': like_count,
             'duration': duration,
+            'description': description,
             'formats': formats,
         }
