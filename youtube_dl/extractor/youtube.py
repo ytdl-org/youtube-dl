@@ -326,35 +326,48 @@ class YoutubeEntryListBaseInfoExtractor(YoutubeBaseInfoExtractor):
 
 class YoutubePlaylistBaseInfoExtractor(YoutubeEntryListBaseInfoExtractor):
     def _process_page(self, content):
-        for video_id, video_title in self.extract_videos_from_page(content):
-            yield self.url_result(video_id, 'Youtube', video_id, video_title)
+        for video_id, video_title, video_duration in self.extract_videos_from_page(content):
+            if len(video_id) == 11:
+                # Youtube video id found
+                yield self.url_result(video_id, 'Youtube', video_id, video_title)
+            elif len(video_id) > 11:
+                # Youtube playlist id found
+                yield self.url_result('https://www.youtube.com/playlist?list=%s' % video_id, 'YoutubePlaylist', video_id, video_title)
 
-    def extract_videos_from_page_impl(self, video_re, page, ids_in_page, titles_in_page):
+    def extract_videos_from_page_impl(self, video_re, page, ids_in_page, titles_in_page, durations_in_page):
         for mobj in re.finditer(video_re, page):
             # The link with index 0 is not the first video of the playlist (not sure if still actual)
             if 'index' in mobj.groupdict() and mobj.group('id') == '0':
                 continue
             video_id = mobj.group('id')
-            video_title = unescapeHTML(
-                mobj.group('title')) if 'title' in mobj.groupdict() else None
+            playlist_id = mobj.group('plid') if 'plid' in mobj.groupdict() else None
+            if playlist_id is not None:
+                video_id = playlist_id
+            video_title = unescapeHTML(mobj.group('title')) if 'title' in mobj.groupdict() else None
             if video_title:
                 video_title = video_title.strip()
             if video_title == '► Play all':
                 video_title = None
+            video_duration = mobj.group('duration') if 'duration' in mobj.groupdict() else None
+            if video_duration:
+                video_duration = video_duration.strip()
             try:
                 idx = ids_in_page.index(video_id)
                 if video_title and not titles_in_page[idx]:
                     titles_in_page[idx] = video_title
+                if video_duration and not durations_in_page[idx]:
+                    durations_in_page[idx] = video_duration
             except ValueError:
                 ids_in_page.append(video_id)
                 titles_in_page.append(video_title)
+                durations_in_page.append(video_duration)
 
     def extract_videos_from_page(self, page):
         ids_in_page = []
         titles_in_page = []
-        self.extract_videos_from_page_impl(
-            self._VIDEO_RE, page, ids_in_page, titles_in_page)
-        return zip(ids_in_page, titles_in_page)
+        durations_in_page = []
+        self.extract_videos_from_page_impl(self._VIDEO_RE, page, ids_in_page, titles_in_page, durations_in_page)
+        return zip(ids_in_page, titles_in_page, durations_in_page)
 
 
 class YoutubePlaylistsBaseInfoExtractor(YoutubeEntryListBaseInfoExtractor):
@@ -3149,7 +3162,7 @@ class YoutubePlaylistsIE(YoutubePlaylistsBaseInfoExtractor):
 
 
 class YoutubeSearchBaseInfoExtractor(YoutubePlaylistBaseInfoExtractor):
-    _VIDEO_RE = r'href="\s*/watch\?v=(?P<id>[0-9A-Za-z_-]{11})(?:[^"]*"[^>]+\btitle="(?P<title>[^"]+))?'
+    _VIDEO_RE = r'href="\s*/watch\?v=(?P<id>[0-9A-Za-z_-]{11})(&amp;list=(?P<plid>[0-9A-Za-z_-]+))?(?:[^"]*"[^>]+\btitle="(?P<title>[^"]+))?(.*Duration:\s*(?P<duration>([0-1]?[0-9]|2[0-3]):[0-5][0-9]))?'
 
 
 class YoutubeSearchIE(SearchInfoExtractor, YoutubeSearchBaseInfoExtractor):
