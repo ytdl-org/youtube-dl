@@ -332,7 +332,7 @@ class YoutubePlaylistBaseInfoExtractor(YoutubeEntryListBaseInfoExtractor):
                 yield self.url_result(video_id, 'Youtube', video_id, video_title, video_duration)
             elif len(video_id) > 11:
                 # Youtube playlist id found
-                yield self.url_result('https://www.youtube.com/watch?v=%s&list=%s' % (video_id.split(';')[0], video_id.split(';')[1]), 'YoutubePlaylist', video_id, video_title)
+                yield self.url_result('https://www.youtube.com/watch?v=%s&list=%s' % (video_id.split(';')[0], video_id.split(';')[1]), 'YoutubePlaylist', video_id.split(';')[1], video_title)
 
     def extract_videos_from_page_impl(self, video_re, page, ids_in_page, titles_in_page, durations_in_page):
         for mobj in re.finditer(video_re, page):
