@@ -2758,6 +2758,7 @@ class YoutubePlaylistIE(YoutubePlaylistBaseInfoExtractor):
     def extract_videos_from_page(self, page):
         ids_in_page = []
         titles_in_page = []
+        durations_in_page = []
 
         for item in re.findall(
                 r'(<[^>]*\bdata-video-id\s*=\s*["\'][0-9A-Za-z_-]{11}[^>]+>)', page):
@@ -2768,20 +2769,21 @@ class YoutubePlaylistIE(YoutubePlaylistBaseInfoExtractor):
                 video_title = video_title.strip()
             ids_in_page.append(video_id)
             titles_in_page.append(video_title)
+            #TODO ADD VIDEO DURATION HERE TOO?
 
         # Fallback with old _VIDEO_RE
         self.extract_videos_from_page_impl(
-            self._VIDEO_RE, page, ids_in_page, titles_in_page)
+            self._VIDEO_RE, page, ids_in_page, titles_in_page, durations_in_page)
 
         # Relaxed fallbacks
         self.extract_videos_from_page_impl(
             r'href="\s*/watch\?v\s*=\s*(?P<id>[0-9A-Za-z_-]{11})', page,
-            ids_in_page, titles_in_page)
+            ids_in_page, titles_in_page, durations_in_page)
         self.extract_videos_from_page_impl(
             r'data-video-ids\s*=\s*["\'](?P<id>[0-9A-Za-z_-]{11})', page,
-            ids_in_page, titles_in_page)
+            ids_in_page, titles_in_page, durations_in_page)
 
-        return zip(ids_in_page, titles_in_page)
+        return zip(ids_in_page, titles_in_page, durations_in_page)
 
     def _extract_mix(self, playlist_id):
         # The mixes are generated from a single video
