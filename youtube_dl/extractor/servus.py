@@ -12,7 +12,8 @@ class ServusIE(InfoExtractor):
                         (?:www\.)?
                         (?:
                             servus\.com/(?:(?:at|de)/p/[^/]+|tv/videos)|
-                            servustv\.com/videos
+                            servustv\.com/videos|
+                            pm-wissen\.com/videos
                         )
                         /(?P<id>[aA]{2}-\w+|\d+-\d+)
                     '''
