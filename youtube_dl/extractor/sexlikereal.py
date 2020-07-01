@@ -6,6 +6,8 @@ import re
 from .common import InfoExtractor
 from ..utils import (
     determine_ext,
+    float_or_none,
+    int_or_none,
     js_to_json,
 )
 
@@ -32,15 +34,15 @@ class SexLikeRealIE(InfoExtractor):
         display_id = mobj.group('display_id')
         webpage = self._download_webpage(url, video_id)
 
-        # TODO more code goes here, for example ...
-
         video_data = self._parse_json(
             self._search_regex(
                 r'window\.vrPlayerSettings\s*=\s*({[^;]+});',
-                webpage, 'video_data'),
-            video_id, transform_source=js_to_json)["videoData"]
+                webpage, 'video_data'
+            ), video_id, transform_source=js_to_json
+        )["videoData"]
 
-        title = video_data.get("title")
+        title = (video_data["title"] or (self._html_search_meta('twitter:title',
+                 webpage, 'description')).split('-')[0].strip())
 
         formats = []
         for quality in video_data['src']:
@@ -50,12 +52,15 @@ class SexLikeRealIE(InfoExtractor):
                 'format_id': quality['quality']
             })
 
+        like_count = int_or_none(video_data.get('likes'))
+        duration = float_or_none(video_data.get('duration'))
+
         return {
             'id': video_id,
             'display_id': display_id,
             'title': title,
             'thumbnail': video_data.get('posterURL'),
-            'like_count': video_data.get('likes'),
-            'duration': video_data.get('duration'),
+            'like_count': like_count,
+            'duration': duration,
             'formats': formats,
         }
