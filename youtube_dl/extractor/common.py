@@ -941,7 +941,7 @@ class InfoExtractor(object):
 
     # Methods for following #608
     @staticmethod
-    def url_result(url, ie=None, video_id=None, video_title=None):
+    def url_result(url, ie=None, video_id=None, video_title=None, video_duration=None):
         """Returns a URL that points to a page that should be processed"""
         # TODO: ie should be the class used for getting the info
         video_info = {'_type': 'url',
@@ -951,6 +951,8 @@ class InfoExtractor(object):
             video_info['id'] = video_id
         if video_title is not None:
             video_info['title'] = video_title
+        if video_duration is not None:
+            video_info['duration'] = video_duration
         return video_info
 
     def playlist_from_matches(self, matches, playlist_id=None, playlist_title=None, getter=None, ie=None):
