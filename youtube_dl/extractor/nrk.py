@@ -57,11 +57,12 @@ class NRKBaseIE(InfoExtractor):
         def make_title(t):
             return self._live_title(t) if live else t
 
-        playback_convia = playback_manifest.get('statistics').get('conviva')
-        if playback_convia:
+        playback_convia = (playback_manifest.get('statistics', {}).get('conviva')
+                           if playback_manifest else None)
+        if isinstance(playback_convia, dict):
             streamurl = playback_convia.get('streamUrl', None)
             stream = self._extract_m3u8_formats(streamurl, video_id, 'mp4',
-                'm3u8_native', m3u8_id='hls', fatal=False)
+                                                'm3u8_native', m3u8_id='hls', fatal=False)
             custom = playback_convia.get('custom')
 
             dur = parse_duration(playback_convia.get('duration'))
@@ -170,8 +171,8 @@ class NRKBaseIE(InfoExtractor):
                 programs = self._download_json(
                     'http://%s/programs/%s' % (self._api_host, video_id),
                     video_id, 'Downloading programs manifest JSON', fatal=False)
-                season_number = int_or_none(programs.get('seasonNumber'))
-                episode_number = int_or_none(programs.get('episodeNumber'))
+                season_number = int_or_none(programs.get('seasonNumber')) if programs else None
+                episode_number = int_or_none(programs.get('episodeNumber')) if programs else None
 
         thumbnails = None
         images = data.get('images')
