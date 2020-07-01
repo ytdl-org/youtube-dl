@@ -2769,7 +2769,8 @@ class YoutubePlaylistIE(YoutubePlaylistBaseInfoExtractor):
                 video_title = video_title.strip()
             ids_in_page.append(video_id)
             titles_in_page.append(video_title)
-            # TODO: ADD VIDEO DURATION HERE TOO?
+            # TODO: ADD VIDEO DURATION HERE TOO!
+            durations_in_page.append(None)
 
         # Fallback with old _VIDEO_RE
         self.extract_videos_from_page_impl(
