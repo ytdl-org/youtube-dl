@@ -3168,7 +3168,7 @@ class YoutubePlaylistsIE(YoutubePlaylistsBaseInfoExtractor):
 
 
 class YoutubeSearchBaseInfoExtractor(YoutubePlaylistBaseInfoExtractor):
-    _VIDEO_RE = r'href="\s*/watch\?v=(?P<id>[0-9A-Za-z_-]{11})(&amp;list=(?P<plid>[0-9A-Za-z_-]+))?(((?!formatted-video-count-label|tile-link)[\s\S])*[^\d]+(?P<plcounter>[0-9,.]+))?((?:[^\"]*"[^>]+\btitle="(?P<title>[^\"]+)))?(?:.*Duration:\s*(?P<duration>([0-1]?[0-9]|2[0-3]):[0-5][0-9]))?'
+    _VIDEO_RE = r'href="\s*/watch\?v=(?P<id>[0-9A-Za-z_-]{11})(&amp;list=(?P<plid>[0-9A-Za-z_-]+))?(((?!formatted-video-count-label|tile-link)[\s\S])*"[^\d]+(?P<plcounter>[0-9,.]+)</b>\svideos)?((?:[^\"]*"[^>]+\btitle="(?P<title>[^\"]+)))?(?:.*Duration:\s*(?P<duration>([0-1]?[0-9]|2[0-3]):[0-5][0-9]))?'
 
 
 class YoutubeSearchIE(SearchInfoExtractor, YoutubeSearchBaseInfoExtractor):
