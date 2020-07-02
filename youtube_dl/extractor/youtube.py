@@ -332,7 +332,7 @@ class YoutubePlaylistBaseInfoExtractor(YoutubeEntryListBaseInfoExtractor):
                 yield self.url_result(video_id, 'Youtube', video_id, video_title, video_duration)
             elif len(video_id) > 11:
                 # Youtube playlist id found
-                yield self.url_result('https://www.youtube.com/playlist?list=%s' % video_id, 'YoutubePlaylist', video_id, video_title)
+                yield self.url_result('https://www.youtube.com/playlist?list=%s' % video_id, 'YoutubePlaylist', video_id, video_title, video_duration)
 
     def extract_videos_from_page_impl(self, video_re, page, ids_in_page, titles_in_page, durations_in_page):
         for mobj in re.finditer(video_re, page):
@@ -349,6 +349,9 @@ class YoutubePlaylistBaseInfoExtractor(YoutubeEntryListBaseInfoExtractor):
             if video_title == '► Play all':
                 video_title = None
             video_duration = mobj.group('duration') if 'duration' in mobj.groupdict() else None
+            playlist_count = mobj.group('plcounter') if 'plcounter' in mobj.groupdict() else None
+            if playlist_id is not None and playlist_count is not None:
+                video_duration = playlist_count
             if video_duration:
                 video_duration = video_duration.strip()
             try:
@@ -3165,7 +3168,7 @@ class YoutubePlaylistsIE(YoutubePlaylistsBaseInfoExtractor):
 
 
 class YoutubeSearchBaseInfoExtractor(YoutubePlaylistBaseInfoExtractor):
-    _VIDEO_RE = r'href="\s*/watch\?v=(?P<id>[0-9A-Za-z_-]{11})(&amp;list=(?P<plid>[0-9A-Za-z_-]+))?(?:[^"]*"[^>]+\btitle="(?P<title>[^"]+))?(.*Duration:\s*(?P<duration>([0-1]?[0-9]|2[0-3]):[0-5][0-9]))?'
+    _VIDEO_RE = r'href="\s*/watch\?v=(?P<id>[0-9A-Za-z_-]{11})(&amp;list=(?P<plid>[0-9A-Za-z_-]+))?(?:[^"]*"[^>]+\btitle="(?P<title>[^"]+))?(?:((?!formatted-video-count-label)[\s\S])*[^\d]+(?P<plcounter>[0-9,.]+))?(.*Duration:\s*(?P<duration>([0-1]?[0-9]|2[0-3]):[0-5][0-9]))?'
 
 
 class YoutubeSearchIE(SearchInfoExtractor, YoutubeSearchBaseInfoExtractor):
