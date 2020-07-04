@@ -396,6 +396,7 @@ from .funk import FunkIE
 from .fusion import FusionIE
 from .fxnetworks import FXNetworksIE
 from .gaia import GaiaIE
+from .gab import GabIE
 from .gameinformer import GameInformerIE
 from .gamespot import GameSpotIE
 from .gamestar import GameStarIE
