@@ -30,7 +30,7 @@ class GabIE(InfoExtractor):
         webpage = self._download_webpage(url, video_id)
         title = self._html_search_regex(r'<title>(.+?)</title>', webpage, 'title')
 
-        url_result = re.search('https?://(?:www\.)?gab\.com/system/media_attachments/files/[0-9]+/[0-9]+/[0-9]+/original/\w+\.\w+', webpage)
+        url_result = re.search(r'https?://(?:www\.)?gab\.com/system/media_attachments/files/[0-9]+/[0-9]+/[0-9]+/original/\w+\.\w+', webpage)
         video_url = url_result.group()
 
         return {
