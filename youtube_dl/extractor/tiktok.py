@@ -136,3 +136,37 @@ class TikTokUserIE(TikTokBaseIE):
             entry['extractor_key'] = TikTokIE.ie_key()
             entries.append(entry)
         return self.playlist_result(entries, user_id)
+
+
+class TikTokWatermarklessIE(InfoExtractor):
+    _VALID_URL = r'https?://(?:www\.)?tiktok\.com/@.+/video/(?P<id>[0-9]+)+'
+    _TESTS = [{
+        'url': 'https://www.tiktok.com/@zoey.aune/video/6813765043914624262?lang=en',
+        'info_dict': {
+            'id': 'v09044400000bq7lmc8biaper9qalb50',
+        },
+    }]
+
+    def _real_extract(self, url):
+        video_id = self._match_id(url)
+        webpage = self._download_webpage('https://m.tiktok.com/v/%s.html' % video_id, video_id)
+
+        next_data_json = self._html_search_regex([r'<script\s+id="__NEXT_DATA__"[^>]*>(.*?)</script>'],
+                                                 webpage, 'next_data')
+        watermarkedURL = self._parse_json(next_data_json, video_id).get('props', {}).get('pageProps', {}).get('videoData', {}).get('itemInfos', {}).get('video', {}).get('urls', {})[0]
+        # The vid is embedded in the first video file, so we need to download it (unfortunate!)
+        watermarkedVideoResponse = self._download_webpage(watermarkedURL, video_id)
+        idpos = watermarkedVideoResponse.index("vid:")
+        vidid = watermarkedVideoResponse[idpos + 4:idpos + 36]
+        watermarklessURL = "https://api2-16-h2.musical.ly/aweme/v1/play/?video_id={}&vr_type=0&is_play_url=1&source=PackSourceEnum_PUBLISH&media_type=4".format(vidid)
+
+        return {
+            'id': vidid,
+            'title': self._og_search_title(webpage),
+            'description': self._og_search_description(webpage),
+            'url': watermarklessURL,
+            'ext': 'mp4',
+            'http_headers': {
+                'User-Agent': 'okhttp',
+            }
+        }
