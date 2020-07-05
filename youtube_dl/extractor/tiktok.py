@@ -63,7 +63,6 @@ class TikTokIE(InfoExtractor):
         share_info = try_get(video_data, lambda x: x['shareMeta'], dict)
         unique_id = str_or_none(author_info.get('uniqueId'))
         timestamp = try_get(video_info, lambda x: int(x['createTime']), int)
-        date = datetime.fromtimestamp(timestamp).strftime('%Y%m%d')
         height = try_get(video_info, lambda x: x['video']['videoMeta']['height'], int)
         width = try_get(video_info, lambda x: x['video']['videoMeta']['width'], int)
         thumbnails = []
@@ -96,7 +95,6 @@ class TikTokIE(InfoExtractor):
             'thumbnail': try_get(video_info, lambda x: x['covers'][0], str),
             'timestamp': timestamp,
             'width': width,
-            'title': self._og_search_title(webpage),
             'creator': str_or_none(author_info.get('nickName')),
             'uploader': unique_id,
             'uploader_id': str_or_none(author_info.get('userId')),
