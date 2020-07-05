@@ -4,15 +4,10 @@ from __future__ import unicode_literals
 import json
 import re
 
+from ..utils import (ExtractorError, determine_ext, error_to_compat_str,
+                     float_or_none, int_or_none, parse_iso8601,
+                     sanitized_Request)
 from .common import InfoExtractor
-from ..utils import (
-    determine_ext,
-    ExtractorError,
-    float_or_none,
-    int_or_none,
-    parse_iso8601,
-    sanitized_Request,
-)
 
 
 class ToggleIE(InfoExtractor):
@@ -93,7 +88,29 @@ class ToggleIE(InfoExtractor):
     _API_USER = 'tvpapi_147'
     _API_PASS = '11111'
 
-    def _real_extract(self, url):
+    def _get_subtitles(self, video_id):
+        req = sanitized_Request(
+            'https://sub.toggle.sg/toggle_api/v1.0/apiService/getSubtitleFilesForMedia?mediaId={0}'.format(video_id),
+        )
+        subFiles = self._download_json(req, video_id, 'Downloading subtitles json').get('subtitleFiles', [])
+        subtitles = dict()
+
+        if len(subFiles) == 0:
+            return {}
+
+        for sub in subFiles:
+            url = sub.get('subtitleFileUrl')
+            if url is not None:
+                subtitles.setdefault(sub.get('subtitleFileLanguage'), []).append(dict(
+                    url=url,
+                    ext=re.search(
+                        r'\.(\w{3,4})$',
+                        url
+                    ).group(1)
+                ))
+        return subtitles
+
+    def _real_extract(self, url, api_url='https://tvpapi-as.ott.kaltura.com/v3_9/gateways/jsonpostgw.aspx?m=GetMediaInfo'):
         video_id = self._match_id(url)
 
         webpage = self._download_webpage(
@@ -125,89 +142,103 @@ class ToggleIE(InfoExtractor):
             'mediaType': 0,
         }
 
-        req = sanitized_Request(
-            'http://tvpapi.as.tvinci.com/v2_9/gateways/jsonpostgw.aspx?m=GetMediaInfo',
-            json.dumps(params).encode('utf-8'))
-        info = self._download_json(req, video_id, 'Downloading video info json')
+        try:
+            req = sanitized_Request(
+                api_url,
+                json.dumps(params).encode('utf-8')
+            )
+            info = self._download_json(req, video_id, 'Downloading video info json')
 
-        title = info['MediaName']
+            title = info['MediaName']
 
-        formats = []
-        for video_file in info.get('Files', []):
-            video_url, vid_format = video_file.get('URL'), video_file.get('Format')
-            if not video_url or video_url == 'NA' or not vid_format:
-                continue
-            ext = determine_ext(video_url)
-            vid_format = vid_format.replace(' ', '')
-            # if geo-restricted, m3u8 is inaccessible, but mp4 is okay
-            if ext == 'm3u8':
-                formats.extend(self._extract_m3u8_formats(
-                    video_url, video_id, ext='mp4', m3u8_id=vid_format,
-                    note='Downloading %s m3u8 information' % vid_format,
-                    errnote='Failed to download %s m3u8 information' % vid_format,
-                    fatal=False))
-            elif ext == 'mpd':
-                formats.extend(self._extract_mpd_formats(
-                    video_url, video_id, mpd_id=vid_format,
-                    note='Downloading %s MPD manifest' % vid_format,
-                    errnote='Failed to download %s MPD manifest' % vid_format,
-                    fatal=False))
-            elif ext == 'ism':
-                formats.extend(self._extract_ism_formats(
-                    video_url, video_id, ism_id=vid_format,
-                    note='Downloading %s ISM manifest' % vid_format,
-                    errnote='Failed to download %s ISM manifest' % vid_format,
-                    fatal=False))
-            elif ext in ('mp4', 'wvm'):
-                # wvm are drm-protected files
-                formats.append({
-                    'ext': ext,
-                    'url': video_url,
-                    'format_id': vid_format,
-                    'preference': self._FORMAT_PREFERENCES.get(ext + '-' + vid_format) or -1,
-                    'format_note': 'DRM-protected video' if ext == 'wvm' else None
-                })
-        if not formats:
-            # Most likely because geo-blocked
-            raise ExtractorError('No downloadable videos found', expected=True)
-        self._sort_formats(formats)
+            formats = []
+            for video_file in info.get('Files', []):
+                video_url, vid_format = video_file.get('URL'), video_file.get('Format')
+                if not video_url or video_url == 'NA' or not vid_format:
+                    continue
+                ext = determine_ext(video_url)
+                vid_format = vid_format.replace(' ', '')
+                # if geo-restricted, m3u8 is inaccessible, but mp4 is okay
+                if ext == 'm3u8':
+                    formats.extend(self._extract_m3u8_formats(
+                        video_url, video_id, ext='mp4', m3u8_id=vid_format,
+                        note='Downloading %s m3u8 information' % vid_format,
+                        errnote='Failed to download %s m3u8 information' % vid_format,
+                        fatal=False))
+                elif ext == 'mpd':
+                    formats.extend(self._extract_mpd_formats(
+                        video_url, video_id, mpd_id=vid_format,
+                        note='Downloading %s MPD manifest' % vid_format,
+                        errnote='Failed to download %s MPD manifest' % vid_format,
+                        fatal=False))
+                elif ext == 'ism':
+                    formats.extend(self._extract_ism_formats(
+                        video_url, video_id, ism_id=vid_format,
+                        note='Downloading %s ISM manifest' % vid_format,
+                        errnote='Failed to download %s ISM manifest' % vid_format,
+                        fatal=False))
+                elif ext in ('mp4', 'wvm'):
+                    # wvm are drm-protected files
+                    formats.append({
+                        'ext': ext,
+                        'url': video_url,
+                        'format_id': vid_format,
+                        'preference': self._FORMAT_PREFERENCES.get(ext + '-' + vid_format) or -1,
+                        'format_note': 'DRM-protected video' if ext == 'wvm' else None
+                    })
+            if not formats:
+                # Most likely because geo-blocked
+                raise ExtractorError('No downloadable videos found', expected=True)
+            self._sort_formats(formats)
 
-        duration = int_or_none(info.get('Duration'))
-        description = info.get('Description')
-        created_at = parse_iso8601(info.get('CreationDate') or None)
+            duration = int_or_none(info.get('Duration'))
+            description = info.get('Description')
+            created_at = parse_iso8601(info.get('CreationDate') or None)
 
-        average_rating = float_or_none(info.get('Rating'))
-        view_count = int_or_none(info.get('ViewCounter') or info.get('view_counter'))
-        like_count = int_or_none(info.get('LikeCounter') or info.get('like_counter'))
+            average_rating = float_or_none(info.get('Rating'))
+            view_count = int_or_none(info.get('ViewCounter') or info.get('view_counter'))
+            like_count = int_or_none(info.get('LikeCounter') or info.get('like_counter'))
 
-        thumbnails = []
-        for picture in info.get('Pictures', []):
-            if not isinstance(picture, dict):
-                continue
-            pic_url = picture.get('URL')
-            if not pic_url:
-                continue
-            thumbnail = {
-                'url': pic_url,
+            thumbnails = []
+            for picture in info.get('Pictures', []):
+                if not isinstance(picture, dict):
+                    continue
+                pic_url = picture.get('URL')
+                if not pic_url:
+                    continue
+                thumbnail = {
+                    'url': pic_url,
+                }
+                pic_size = picture.get('PicSize', '')
+                m = re.search(r'(?P<width>\d+)[xX](?P<height>\d+)', pic_size)
+                if m:
+                    thumbnail.update({
+                        'width': int(m.group('width')),
+                        'height': int(m.group('height')),
+                    })
+                thumbnails.append(thumbnail)
+
+            subtitles = self._get_subtitles(video_id)
+
+            return {
+                'id': video_id,
+                'title': title,
+                'description': description,
+                'duration': duration,
+                'timestamp': created_at,
+                'average_rating': average_rating,
+                'view_count': view_count,
+                'like_count': like_count,
+                'thumbnails': thumbnails,
+                'formats': formats,
+                'subtitles': subtitles
             }
-            pic_size = picture.get('PicSize', '')
-            m = re.search(r'(?P<width>\d+)[xX](?P<height>\d+)', pic_size)
-            if m:
-                thumbnail.update({
-                    'width': int(m.group('width')),
-                    'height': int(m.group('height')),
-                })
-            thumbnails.append(thumbnail)
-
-        return {
-            'id': video_id,
-            'title': title,
-            'description': description,
-            'duration': duration,
-            'timestamp': created_at,
-            'average_rating': average_rating,
-            'view_count': view_count,
-            'like_count': like_count,
-            'thumbnails': thumbnails,
-            'formats': formats,
-        }
+        except ExtractorError as err:
+            self._downloader.report_warning(
+                'Could not get metadata from tvpapi-as.ott.kaltura.com: %s \nTrying tvpapi.as.tvinci.com instead'
+                % error_to_compat_str(err)
+            )
+            self._real_extract(
+                video_id,
+                api_url='http://tvpapi.as.tvinci.com/v2_9/gateways/jsonpostgw.aspx?m=GetMediaInfo'
+            )
