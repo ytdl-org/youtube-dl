@@ -49,6 +49,14 @@ class TVPIE(InfoExtractor):
         },
         'skip': 'HTTP Error 404: Not Found',
     }, {
+        'url': 'https://wiadomosci.tvp.pl/48836336/medialne-hieny-atakuja-prezydenta-polski',
+        'info_dict': {
+            'id': '48836336',
+            'ext': 'mp4',
+            'title': 'Wiadomości, Medialne hieny atakują prezydenta Polski',
+            'description': 'md5:d5dd389dfd65e2ed02b3a176b53fabd3',
+        },
+    }, {
         'url': 'http://vod.tvp.pl/seriale/obyczajowe/na-sygnale/sezon-2-27-/odc-39/17834272',
         'only_matching': True,
     }, {
@@ -72,6 +80,7 @@ class TVPIE(InfoExtractor):
         page_id = self._match_id(url)
         webpage = self._download_webpage(url, page_id)
         video_id = self._search_regex([
+            r'/sess/TVPlayer2/embed\.php\?ID=(\d+)',
             r'<iframe[^>]+src="[^"]*?object_id=(\d+)',
             r"object_id\s*:\s*'(\d+)'",
             r'data-video-id="(\d+)"'], webpage, 'video id', default=page_id)
@@ -196,7 +205,6 @@ class TVPEmbedIE(InfoExtractor):
             'thumbnail': thumbnail,
             'formats': formats,
         }
-
 
 class TVPWebsiteIE(InfoExtractor):
     IE_NAME = 'tvp:series'
