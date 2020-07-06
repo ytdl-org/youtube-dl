@@ -17,7 +17,7 @@ from ..utils import (
 class TVPIE(InfoExtractor):
     IE_NAME = 'tvp'
     IE_DESC = 'Telewizja Polska'
-    _VALID_URL = r'https?://[^/]+\.tvp\.(?:pl|info)/(?:video/(?:[^,\s]*,)*|(?:(?!\d+/)[^/]+/)*)(?P<id>\d+)'
+    _VALID_URL = r'https?://[^/]+\.(?:tvp(?:parlament)?\.(?:pl|info))/(?:video/(?:[^,\s]*,)*|(?:(?!\d+/)[^/]+/)*)(?P<id>\d+)'
 
     _TESTS = [{
         'url': 'https://vod.tvp.pl/video/czas-honoru,i-seria-odc-13,194536',
@@ -56,6 +56,14 @@ class TVPIE(InfoExtractor):
             'title': 'Wiadomości, Medialne hieny atakują prezydenta Polski',
             'description': 'md5:d5dd389dfd65e2ed02b3a176b53fabd3',
         },
+    }, {
+        'url': 'https://www.tvpparlament.pl/retransmisje-vod/inne/podpisanie-przez-prezydenta-andrzeja-dude-projektu-zmiany-konstytucji-rp/48837669',
+        'info_dict': {
+            'id': '48837669',
+            'ext': 'mp4',
+            'title': 'Podpisanie przez prezydenta Andrzeja Dudę projektu zmiany Konstytucji RP',
+            'description': 'md5:bfe1ec8eb4b9f0b0926afa561735d8f9',
+        }
     }, {
         'url': 'http://vod.tvp.pl/seriale/obyczajowe/na-sygnale/sezon-2-27-/odc-39/17834272',
         'only_matching': True,
@@ -205,6 +213,7 @@ class TVPEmbedIE(InfoExtractor):
             'thumbnail': thumbnail,
             'formats': formats,
         }
+
 
 class TVPWebsiteIE(InfoExtractor):
     IE_NAME = 'tvp:series'
