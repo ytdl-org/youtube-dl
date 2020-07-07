@@ -17,7 +17,7 @@ from ..utils import (
 class TVPIE(InfoExtractor):
     IE_NAME = 'tvp'
     IE_DESC = 'Telewizja Polska'
-    _VALID_URL = r'https?://[^/]+\.(?:tvp(?:parlament)?\.(?:pl|info))/(?:video/(?:[^,\s]*,)*|(?:(?!\d+/)[^/]+/)*)(?P<id>\d+)'
+    _VALID_URL = r'https?://[^/]+\.(?:tvp(?:parlament)?\.(?:pl|info))/(?:video/(?:[^,\s]*,)*|(?:(?!\d+/)[^/]+/)*|(?:tvplayer)?\?channel_id=)(?P<id>\d+)'
 
     _TESTS = [{
         'url': 'https://vod.tvp.pl/video/czas-honoru,i-seria-odc-13,194536',
@@ -65,6 +65,23 @@ class TVPIE(InfoExtractor):
             'description': 'md5:bfe1ec8eb4b9f0b0926afa561735d8f9',
         }
     }, {
+        # live stream, TVPlayer2
+        'url': 'https://tvpstream.vod.tvp.pl/?channel_id=1455',
+        'info_dict': {
+            'id': '14812849',
+            'ext': 'm3u8',
+            'title': 'TVP INFO',
+            'description': 'Oglądaj online wybrane kanały TVP! Nie przegap najnowszych informacji, transmisji sportowych i kanałów tematycznych.',
+        },
+    }, {
+        # live stream, legacy TVPlayer
+        'url': 'https://www.tvp.pl/tvplayer?channel_id=5264139',
+        'info_dict': {
+            'id': '17251711',
+            'ext': 'm3u8',
+            'title': 'TV Belsat',
+        },
+    }, {
         'url': 'http://vod.tvp.pl/seriale/obyczajowe/na-sygnale/sezon-2-27-/odc-39/17834272',
         'only_matching': True,
     }, {
@@ -100,6 +117,7 @@ class TVPIE(InfoExtractor):
                 'description', webpage, default=None),
             'thumbnail': self._og_search_thumbnail(webpage, default=None),
             'ie_key': 'TVPEmbed',
+            'is_live': True if 'channel_id' in url else False,
         }
 
 
