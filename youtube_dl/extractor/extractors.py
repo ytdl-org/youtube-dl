@@ -916,6 +916,7 @@ from .raywenderlich import (
 )
 from .rbmaradio import RBMARadioIE
 from .rds import RDSIE
+from .realvision import RealVisionIE
 from .redbulltv import (
     RedBullTVIE,
     RedBullTVRrnContentIE,
