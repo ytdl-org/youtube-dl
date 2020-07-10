@@ -3307,8 +3307,6 @@ class YoutubeFeedsInfoExtractor(YoutubeBaseInfoExtractor):
     """
     _LOGIN_REQUIRED = True
 
-    _FEED_DATA = r'window\[\"ytInitialData\"\]\W?=\W?({.*?});'
-
     @property
     def IE_NAME(self):
         return 'youtube:%s' % self._FEED_NAME
