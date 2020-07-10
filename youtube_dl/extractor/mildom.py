@@ -34,7 +34,7 @@ class MildomIE(InfoExtractor):
             webpage, 'thumbnail', default=None)
 
         video_data = self._download_json(
-            self._VIDEO_INFO_BASE_URL + f'?v_id={video_id}', video_id)
+            self._VIDEO_INFO_BASE_URL + '?v_id=%s' % video_id, video_id)
         playback_data = video_data['body']['playback']
 
         video_url = playback_data['source_url']
