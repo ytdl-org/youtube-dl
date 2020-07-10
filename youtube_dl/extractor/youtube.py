@@ -3319,8 +3319,6 @@ class YoutubeFeedsInfoExtractor(YoutubeBaseInfoExtractor):
     def _entries(self, page):
         # The extraction process is the same as for playlists, but the regex
         # for the video ids doesn't contain an index
-        limit = self._downloader.params.get('max_downloads') or 1000
-
         ids = []
         more_widget_html = content_html = page
         for page_num in itertools.count(1):
@@ -3333,18 +3331,10 @@ class YoutubeFeedsInfoExtractor(YoutubeBaseInfoExtractor):
             if not new_ids:
                 break
 
-            done = False
-            if len(new_ids) + len(ids) > limit:
-                new_ids = new_ids[:limit - len(ids)]
-                done = True
-
             ids.extend(new_ids)
 
             for entry in self._ids_to_results(new_ids):
                 yield entry
-
-            if done:
-                break
 
             mobj = re.search(r'data-uix-load-more-href="/?(?P<more>[^"]+)"', more_widget_html)
             if not mobj:
