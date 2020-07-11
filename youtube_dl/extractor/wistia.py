@@ -56,7 +56,7 @@ class WistiaIE(InfoExtractor):
             urls.append(unescapeHTML(match.group('url')))
         for match in re.finditer(
                 r'''(?sx)
-                    <div[^>]+class=(["']).*?\bwistia_async_(?P<id>[a-z0-9]{10})\b.*?\2
+                    <div[^>]+class=(["'])(?:(?!\1).)*?\bwistia_async_(?P<id>[a-z0-9]{10})\b(?:(?!\1).)*?\1
                 ''', webpage):
             urls.append('wistia:%s' % match.group('id'))
         for match in re.finditer(r'(?:data-wistia-?id=["\']|Wistia\.embed\(["\']|id=["\']wistia_)(?P<id>[a-z0-9]{10})', webpage):
