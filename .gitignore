@@ -10,13 +10,13 @@ build/
 dist/
 MANIFEST
 README.txt
-youtube-dl.1
-youtube-dl.bash-completion
-youtube-dl.fish
-youtube_dl/extractor/lazy_extractors.py
-youtube-dl
-youtube-dl.exe
-youtube-dl.tar.gz
+picta-dl.1
+picta-dl.bash-completion
+picta-dl.fish
+picta_dl/extractor/lazy_extractors.py
+picta-dl
+picta-dl.exe
+picta-dl.tar.gz
 .coverage
 cover/
 updates_key.pem
@@ -40,7 +40,7 @@ updates_key.pem
 *.swp
 test/local_parameters.json
 .tox
-youtube-dl.zsh
+picta-dl.zsh
 
 # IntelliJ related files
 .idea
@@ -48,6 +48,9 @@ youtube-dl.zsh
 
 tmp/
 venv/
+.env
+
+*.spec
 
 # VS Code related files
 .vscode
