@@ -43,8 +43,8 @@ class MildomIE(InfoExtractor):
         thumbnail = playback_data.get('video_pic')
         if not thumbnail:
             thumbnail = self._html_search_meta(
-            'og:image',
-            webpage, 'thumbnail', default=None)
+                'og:image',
+                webpage, 'thumbnail', default=None)
 
         return {
             'id': video_id,
