@@ -26,11 +26,8 @@ class MildomIE(InfoExtractor):
 
     def _real_extract(self, url):
         channel_id, video_id = re.match(self._VALID_URL, url).groups()
-        webpage = self._download_webpage(url, video_id)
-        thumbnail = self._html_search_meta(
-            'og:image',
-            webpage, 'thumbnail', default=None)
 
+        webpage = self._download_webpage(url, video_id)
         video_data = self._download_json(
             self._VIDEO_INFO_BASE_URL + '?v_id=%s' % video_id, video_id)
         playback_data = video_data['body']['playback']
@@ -39,6 +36,15 @@ class MildomIE(InfoExtractor):
         description = playback_data.get('video_intro')
         uploader = try_get(playback_data, lambda x: x['author_info']['login_name'], compat_str)
         title = playback_data.get('title')
+        if not title:
+            title = self._html_search_meta(
+                ['og:description', 'description'],
+                webpage, 'thumbnail', default=None)
+        thumbnail = playback_data.get('video_pic')
+        if not thumbnail:
+            thumbnail = self._html_search_meta(
+            'og:image',
+            webpage, 'thumbnail', default=None)
 
         return {
             'id': video_id,
