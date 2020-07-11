@@ -39,7 +39,7 @@ class MildomIE(InfoExtractor):
         if not title:
             title = self._html_search_meta(
                 ['og:description', 'description'],
-                webpage, 'thumbnail', default=None)
+                webpage, 'description', default=None)
         thumbnail = playback_data.get('video_pic')
         if not thumbnail:
             thumbnail = self._html_search_meta(
