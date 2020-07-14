@@ -8,7 +8,7 @@ import re
 
 class MediaKlikkIE(InfoExtractor):
     # Named regular expression group: (?P<name>...) used for referencing match as 'id'
-    _VALID_URL = r'https?://(?:www\.)?mediaklikk\.hu/video/(?P<id>[^/]+)/?'
+    _VALID_URL = r'https?://(?:www\.)?(?:mediaklikk|m4sport)\.hu/videok?/(?P<id>[^/]+)/?'
 
     _TEST = {
         'url': 'https://mediaklikk.hu/video/kiberma-2020-04-30-i-adas/',
