@@ -7,7 +7,7 @@ import json
 import re
 import itertools
 
-from .common import InfoExtractor
+from .common import InfoExtractor, SearchInfoExtractor
 from ..compat import (
     compat_kwargs,
     compat_HTTPError,
@@ -1126,3 +1126,47 @@ class VHXEmbedIE(VimeoBaseInfoExtractor):
         info = self._parse_config(config, video_id)
         self._vimeo_sort_formats(info['formats'])
         return info
+
+
+class VimeoSearchIE(SearchInfoExtractor):
+    IE_DESC = 'vimeo.com search'
+    _MAX_RESULTS = float('inf')
+    IE_NAME = 'vimeo:search'
+    _SEARCH_KEY = 'vimeosearch'
+    _TESTS = []
+
+    def _get_n_results(self, query, n):
+        """Get a specified number of results for a query"""
+
+        video_ids = []
+
+        for pagenum in itertools.count(1):
+            if len(video_ids) >= n:
+                break
+
+            webpage = self._download_webpage(
+                'https://vimeo.com/search/page:%i?' % pagenum,
+                'vimeosearch:' + query,
+                query={'q': query})
+
+            for match in re.finditer(r'vimeo.com\\\/([0-9]{9})', webpage):
+                if len(video_ids) >= n:
+                    break
+
+                video_id = match.group(1)
+
+                # video ids may appear multiple time so only add new ones
+                if video_id not in video_ids:
+                    video_ids.append(video_id)
+
+        entries = []
+
+        for video_id in video_ids:
+            entries.append({'_type': 'url', 'url': 'https://vimeo.com/' + video_id})
+
+        return {
+            '_type': 'playlist',
+            'id': query,
+            'title': query,
+            'entries': entries
+        }

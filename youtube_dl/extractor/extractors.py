@@ -1334,6 +1334,7 @@ from .vimeo import (
     VimeoUserIE,
     VimeoWatchLaterIE,
     VHXEmbedIE,
+    VimeoSearchIE,
 )
 from .vimple import VimpleIE
 from .vine import (
