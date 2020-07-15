@@ -398,10 +398,19 @@ def parseOpts(overrideArguments=None):
         '--format-sort',
         action='store', dest='format_sort', metavar='FORMAT', default=None,
         help=(
-            'Specify the fields used to sort the formats (e.g. height,width,tbr). '
+            'Sort the formats by the fields given (e.g. height,width,-filesize,tbr). '
             'Available fields: language_preference, quality, height, width, fps, '
-            'filesize, filesize_approx, tbr, vbr, abr, format_id, '
-            'proto_preference, ext_preference, audio_ext_preference, source_preference'))
+            'filesize, filesize_approx, tbr, vbr, abr, format_id, preference'
+            'proto_preference, ext_preference, audio_ext_preference, source_preference. '
+            'Prefix the field (except format_id) by a + to sort it in reverse. '
+            'preference and language_preference will always have the highest priority '
+            'unless --format-sort-force is given'))
+    video_format.add_option(
+        '--format-sort-force',
+        action='store_true', dest='format_sort_force', metavar='FORMAT', default=False,
+        help=(
+            'User specified sort order takes priority even over '
+            'preference and language_preference'))
     video_format.add_option(
         '--all-formats',
         action='store_const', dest='format', const='all',

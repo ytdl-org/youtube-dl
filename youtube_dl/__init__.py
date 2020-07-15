@@ -339,6 +339,7 @@ def _real_main(argv=None):
         'skip_download': opts.skip_download,
         'format': opts.format,
         'format_sort': opts.format_sort,
+        'format_sort_force': opts.format_sort_force,
         'listformats': opts.listformats,
         'outtmpl': outtmpl,
         'autonumber_size': opts.autonumber_size,

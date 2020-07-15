@@ -1358,19 +1358,35 @@ class InfoExtractor(object):
         if not formats:
             raise ExtractorError('No video formats found')
 
-        sort = self._downloader.params.get('format_sort', '')
-        sort = sort.split(',') if isinstance(sort, str) else []
-        if isinstance(field_preference, (list, tuple)):
-            sort += [f for f in field_preference if f not in sort]
-        sort += [f for f in
-                 ['preference', 'language_preference', 'quality', 'tbr',  # default order
+        def _get_sort_list():
+            sort = self._downloader.params.get('format_sort', '')
+            sort = sort.split(',') if isinstance(sort, str) else []
+            if self._downloader.params.get('verbose', False):
+                self._downloader.to_screen('[debug] Sort order diven by user: %s' % sort)
+                self._downloader.to_screen('[debug] Sort order diven by extractor: %s' % field_preference)
+
+            return  (tuple()
+                        if self._downloader.params.get('format_sort_force')
+                        else ('preference', 'language_preference')) + \
+                    tuple(sort) + \
+                    (tuple(field_preference)
+                        if isinstance(field_preference, (list, tuple))
+                        else tuple()) + \
+                    ('preference', 'language_preference', 'quality', 'tbr',  # default order
                      'filesize', 'vbr', 'height', 'width',
                      'proto_preference', 'ext_preference',
                      'abr', 'audio_ext_preference', 'fps',
-                     'filesize_approx', 'source_preference', 'format_id']
-                 if f not in sort]
+                     'filesize_approx', 'source_preference', 'format_id')
+
+        sort = {}
+        for item in _get_sort_list():
+            if item[:1] == "+":
+                sort.setdefault(item[1:], True) # Value = reverse?
+            else:
+                sort.setdefault(item, False)
         if self._downloader.params.get('verbose', False):
-            self._downloader.to_screen('[debug] Formats sorted by: %s' % sort)
+            self._downloader.to_screen('[debug] Formats sorted by: %s'
+                % [("+" + i) if sort[i] else i for i in sort])
 
         for f in formats:
             # Automatically determine tbr when missing based on abr and vbr (improves
@@ -1423,10 +1439,11 @@ class InfoExtractor(object):
                         'audio_ext_preference': audio_ext_preference}
 
             return tuple(
-                prefVars.get(field)
-                if prefVars.get(field) is not None
-                else (f.get(field) if f.get(field) is not None
-                      else ('' if field == 'format_id' else -1))
+                (-1 if field != 'format_id' and sort[field] else 1)*(
+                    prefVars.get(field)
+                    if prefVars.get(field) is not None
+                    else (f.get(field) if f.get(field) is not None
+                        else ('' if field == 'format_id' else -1)))
                 for field in sort)
 
         formats.sort(key=_formats_key)
