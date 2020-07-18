@@ -12,7 +12,7 @@ class TheWeatherChannelIE(ThePlatformIE):
     _VALID_URL = r'https?://(?:www\.)?weather\.com/(?:[^/]+/)*video/(?P<id>[^/?#]+)'
     _TESTS = [{
         'url': 'https://weather.com/series/great-outdoors/video/ice-climber-is-in-for-a-shock',
-        'md5': 'ab924ac9574e79689c24c6b95e957def',
+        'md5': 'c4cbe74c9c17c5676b704b950b73dd92',
         'info_dict': {
             'id': 'cc82397e-cc3f-4d11-9390-a785add090e8',
             'ext': 'mp4',
@@ -26,10 +26,7 @@ class TheWeatherChannelIE(ThePlatformIE):
     def _real_extract(self, url):
         display_id = self._match_id(url)
         webpage = self._download_webpage(url, display_id)
-        drupal_settings = self._parse_json(self._search_regex(
-            r'jQuery\.extend\(Drupal\.settings\s*,\s*({.+?})\);',
-            webpage, 'drupal settings'), display_id)
-        video_id = drupal_settings['twc']['contexts']['node']['uuid']
+        video_id = self._search_regex(r'"activeVideo":{"id":"(.*?)"',webpage, 'video id')
         video_data = self._download_json(
             'https://dsx.weather.com/cms/v4/asset-collection/en_US/' + video_id, video_id)
         seo_meta = video_data.get('seometa', {})
