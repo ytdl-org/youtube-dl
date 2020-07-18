@@ -26,7 +26,7 @@ class TheWeatherChannelIE(ThePlatformIE):
     def _real_extract(self, url):
         display_id = self._match_id(url)
         webpage = self._download_webpage(url, display_id)
-        video_id = self._search_regex(r'"activeVideo":{"id":"(.*?)"',webpage, 'video id')
+        video_id = self._search_regex(r'"activeVideo":{"id":"(.*?)"', webpage, 'video id')
         video_data = self._download_json(
             'https://dsx.weather.com/cms/v4/asset-collection/en_US/' + video_id, video_id)
         seo_meta = video_data.get('seometa', {})
