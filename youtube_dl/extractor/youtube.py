@@ -316,7 +316,7 @@ class YoutubeEntryListBaseInfoExtractor(YoutubeBaseInfoExtractor):
                             continue
                     raise
 
-            content_html = more['content_html']
+            content_html = more['content_html'] if 'content_html' in more else ""
             if not content_html.strip():
                 # Some webpages show a "Load more" button but they don't
                 # have more videos
