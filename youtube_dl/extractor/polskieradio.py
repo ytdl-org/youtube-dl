@@ -60,13 +60,13 @@ class PolskieRadioIE(InfoExtractor):
             },
         }],
     }, {
-        'url': 'http://www.polskieradio.pl/265/5217/Artykul/1635803,Euro-2016-nie-ma-miejsca-na-blad-Polacy-graja-ze-Szwajcaria-o-cwiercfinal',
+        'url': 'https://www.polskieradio.pl/8/4346/Artykul/2487823,Marek-Kondrat-czyta-Mistrza-i-Malgorzate',
         'info_dict': {
-            'id': '1635803',
-            'title': 'Euro 2016: nie ma miejsca na błąd. Polacy grają ze Szwajcarią o ćwierćfinał',
-            'description': 'md5:01cb7d0cad58664095d72b51a1ebada2',
+            'id': '2487823',
+            'title': 'Marek Kondrat czyta "Mistrza i Małgorzatę"',
+            'description': 'md5:8422a95cc83834f2aaeff9d82e9c8f39',
         },
-        'playlist_mincount': 12,
+        'playlist_mincount': 50,
     }, {
         'url': 'http://polskieradio.pl/9/305/Artykul/1632955,Bardzo-popularne-slowo-remis',
         'only_matching': True,
