@@ -2952,6 +2952,7 @@ class YoutubeChannelIE(YoutubePlaylistBaseInfoExtractor):
         channel_id = self._match_id(url)
 
         url = self._build_template_url(url, channel_id)
+        extra_info = dict()
 
         # Channel by page listing is restricted to 35 pages of 30 items, i.e. 1050 videos total (see #5778)
         # Workaround by extracting as a playlist if managed to obtain channel playlist URL
@@ -2962,8 +2963,10 @@ class YoutubeChannelIE(YoutubePlaylistBaseInfoExtractor):
         if channel_page is False:
             channel_playlist_id = False
         else:
-            channel_image = self._html_search_meta(
+            extra_info['channel_image'] = self._html_search_meta(
                 'og:image', channel_page, 'channel image', default=None)
+            extra_info['channel_title'] = self._html_search_meta(
+                'og:title', channel_page, 'channel title', default=None)
             channel_playlist_id = self._html_search_meta(
                 'channelId', channel_page, 'channel id', default=None)
             if not channel_playlist_id:
@@ -2978,7 +2981,7 @@ class YoutubeChannelIE(YoutubePlaylistBaseInfoExtractor):
             playlist_id = 'UU' + channel_playlist_id[2:]
             url_result = self.url_result(
                 compat_urlparse.urljoin(url, '/playlist?list=%s' % playlist_id), 'YoutubePlaylist')
-            url_result['channel_image'] = channel_image
+            url_result.update(extra_info)
             return url_result
 
         channel_page = self._download_webpage(url, channel_id, 'Downloading page #1')

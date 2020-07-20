@@ -866,6 +866,8 @@ class YoutubeDL(object):
             # contained in a playlist
             if ie_result.get('channel_image'):
                 extra_info['channel_image'] = ie_result.get('channel_image')
+            if ie_result.get('channel_title'):
+                extra_info['channel_title'] = ie_result.get('channel_title')
             return self.extract_info(ie_result['url'],
                                      download,
                                      ie_key=ie_result.get('ie_key'),
