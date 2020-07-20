@@ -1,5 +1,6 @@
 # coding: utf-8
 from __future__ import unicode_literals
+from collections import defaultdict
 import subprocess
 import json
 
@@ -50,9 +51,9 @@ class YleDLIE(InfoExtractor):
             props['description'] = description
 
         ysubs = yledl.get('subtitles', [])
-        subtitles = {}
+        subtitles = defaultdict(list)
         for s in ysubs:
-            subtitles[s['language']] = [{'url': s['url']}]
+            subtitles[s['language']].append({'url': s['url'], 'ext': s['category']})
         props['subtitles'] = subtitles
 
         formats = []
