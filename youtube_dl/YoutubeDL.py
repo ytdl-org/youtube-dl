@@ -864,6 +864,8 @@ class YoutubeDL(object):
         elif result_type == 'url':
             # We have to add extra_info to the results because it may be
             # contained in a playlist
+            if ie_result.get('channel_image'):
+                extra_info['channel_image'] = ie_result.get('channel_image')
             return self.extract_info(ie_result['url'],
                                      download,
                                      ie_key=ie_result.get('ie_key'),
@@ -998,6 +1000,7 @@ class YoutubeDL(object):
                     'extractor_key': ie_result['extractor_key'],
                 }
 
+                extra.update(extra_info)
                 reason = self._match_entry(entry, incomplete=True)
                 if reason is not None:
                     self.to_screen('[download] ' + reason)
