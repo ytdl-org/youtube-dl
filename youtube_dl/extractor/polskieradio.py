@@ -21,7 +21,7 @@ from ..utils import (
 
 class PolskieRadioIE(InfoExtractor):
     _VALID_URL = r'https?://(?:www\.)?polskieradio\.pl/\d+/\d+/Artykul/(?P<id>[0-9]+)'
-    _TESTS = [{
+    _TESTS = [{  # Old-style single broadcast.
         'url': 'http://www.polskieradio.pl/7/5102/Artykul/1587943,Prof-Andrzej-Nowak-o-historii-nie-da-sie-myslec-beznamietnie',
         'info_dict': {
             'id': '1587943',
@@ -40,7 +40,7 @@ class PolskieRadioIE(InfoExtractor):
                 'thumbnail': r're:^https?://static\.prsa\.pl/images/.*\.jpg$'
             },
         }],
-    }, {
+    }, {  # New-style single broadcast.
         'url': 'https://www.polskieradio.pl/8/2382/Artykul/2534482,Zagarysci-Poezja-jak-spoiwo',
         'info_dict': {
             'id': '2534482',
@@ -59,7 +59,7 @@ class PolskieRadioIE(InfoExtractor):
                 'thumbnail': r're:^https?://static\.prsa\.pl/images/.*\.jpg$'
             },
         }],
-    }, {
+    }, {  # Old-style multiple broadcast playlist.
         'url': 'https://www.polskieradio.pl/8/4346/Artykul/2487823,Marek-Kondrat-czyta-Mistrza-i-Malgorzate',
         'info_dict': {
             'id': '2487823',
@@ -67,6 +67,14 @@ class PolskieRadioIE(InfoExtractor):
             'description': 'md5:8422a95cc83834f2aaeff9d82e9c8f39',
         },
         'playlist_mincount': 50,
+    }, {  # New-style multiple broadcast playlist.
+        'url': 'https://www.polskieradio.pl/8/4346/Artykul/2541317,Czytamy-Kalendarz-i-klepsydre-Tadeusza-Konwickiego',
+        'info_dict': {
+            'id': '2541317',
+            'title': 'Czytamy "Kalendarz i klepsydrę" Tadeusza Konwickiego',
+            'description': 'md5:0baeaa46d877f1351fb2eeed3e871f9f',
+        },
+        'playlist_mincount': 15,
     }, {
         'url': 'http://polskieradio.pl/9/305/Artykul/1632955,Bardzo-popularne-slowo-remis',
         'only_matching': True,
