@@ -54,7 +54,12 @@ class YleDLIE(InfoExtractor):
         subtitles = defaultdict(list)
         for s in ysubs:
             subtitles[s['language']].append({'url': s['url'], 'ext': s['category']})
-        props['subtitles'] = subtitles
+        # Temporary fix for mpv's ytdl_hook
+        subs = {}
+        for lang, slist in subtitles.items():
+            for n, s in enumerate(slist, 1):
+                subs[lang + (str(n) if n > 1 else "")] = [s]
+        props['subtitles'] = subs
 
         formats = []
         for f in yledl.get('flavors', []):
