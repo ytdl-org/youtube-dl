@@ -247,6 +247,8 @@ class InfoExtractor(object):
                     entry and one of:
                         * "data": The subtitles file contents
                         * "url": A URL pointing to the subtitles file
+                        * "name": (optional) Name or description of the subtitles, used
+                          when there are more than one subtitles file for this language
                     "ext" will be calculated from URL if missing
     automatic_captions: Like 'subtitles', used by the YoutubeIE for
                     automatically generated captions

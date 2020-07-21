@@ -1448,18 +1448,21 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
         for track in subs_doc.findall('track'):
             lang = track.attrib['lang_code']
             if lang in sub_lang_list:
-                continue
-            sub_formats = []
+                sub_formats = sub_lang_list[lang]
+            else:
+                sub_formats = []
             for ext in self._SUBTITLE_FORMATS:
+                name = track.attrib['name']
                 params = compat_urllib_parse_urlencode({
                     'lang': lang,
                     'v': video_id,
                     'fmt': ext,
-                    'name': track.attrib['name'].encode('utf-8'),
+                    'name': name.encode('utf-8'),
                 })
                 sub_formats.append({
                     'url': 'https://www.youtube.com/api/timedtext?' + params,
                     'ext': ext,
+                    'name': name,
                 })
             sub_lang_list[lang] = sub_formats
         if not sub_lang_list:
