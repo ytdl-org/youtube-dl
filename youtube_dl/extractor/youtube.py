@@ -326,20 +326,21 @@ class YoutubeEntryListBaseInfoExtractor(YoutubeBaseInfoExtractor):
 
 class YoutubePlaylistBaseInfoExtractor(YoutubeEntryListBaseInfoExtractor):
     def _process_page(self, content):
-        for video_id, video_title, video_duration in self.extract_videos_from_page(content):
+        for video_id, video_title, video_duration, playlist_video_id in self.extract_videos_from_page(content):
             if len(video_id) == 11:
                 # Youtube video id found
                 yield self.url_result(video_id, 'Youtube', video_id, video_title, video_duration)
             elif len(video_id) > 11:
                 # Youtube playlist id found
-                yield self.url_result('https://www.youtube.com/playlist?list=%s' % video_id, 'YoutubePlaylist', video_id, video_title, video_duration)
+                yield self.url_result('https://www.youtube.com/watch?v=%s&list=%s' % (playlist_video_id, video_id), 'YoutubePlaylist', video_id, video_title, video_duration)
 
-    def extract_videos_from_page_impl(self, video_re, page, ids_in_page, titles_in_page, durations_in_page):
+    def extract_videos_from_page_impl(self, video_re, page, ids_in_page, titles_in_page, durations_in_page, playlist_video_id_in_page):
         for mobj in re.finditer(video_re, page):
             # The link with index 0 is not the first video of the playlist (not sure if still actual)
             if 'index' in mobj.groupdict() and mobj.group('id') == '0':
                 continue
-            video_id = mobj.group('id')
+            video_id_original = mobj.group('id')
+            video_id = video_id_original
             playlist_id = mobj.group('plid') if 'plid' in mobj.groupdict() else None
             if playlist_id is not None:
                 video_id = playlist_id
@@ -360,17 +361,21 @@ class YoutubePlaylistBaseInfoExtractor(YoutubeEntryListBaseInfoExtractor):
                     titles_in_page[idx] = video_title
                 if video_duration and not durations_in_page[idx]:
                     durations_in_page[idx] = video_duration
+                if playlist_id is not None and not playlist_video_id_in_page[idx]:
+                    playlist_video_id_in_page[idx] = video_id_original
             except ValueError:
                 ids_in_page.append(video_id)
                 titles_in_page.append(video_title)
                 durations_in_page.append(video_duration)
+                playlist_video_id_in_page.append(video_id_original)
 
     def extract_videos_from_page(self, page):
         ids_in_page = []
+        playlist_video_id_in_page = []
         titles_in_page = []
         durations_in_page = []
-        self.extract_videos_from_page_impl(self._VIDEO_RE, page, ids_in_page, titles_in_page, durations_in_page)
-        return zip(ids_in_page, titles_in_page, durations_in_page)
+        self.extract_videos_from_page_impl(self._VIDEO_RE, page, ids_in_page, titles_in_page, durations_in_page, playlist_video_id_in_page)
+        return zip(ids_in_page, titles_in_page, durations_in_page, playlist_video_id_in_page)
 
 
 class YoutubePlaylistsBaseInfoExtractor(YoutubeEntryListBaseInfoExtractor):
@@ -2772,7 +2777,7 @@ class YoutubePlaylistIE(YoutubePlaylistBaseInfoExtractor):
                 video_title = video_title.strip()
             ids_in_page.append(video_id)
             titles_in_page.append(video_title)
-            # TODO: ADD VIDEO DURATION HERE TOO!
+            # TODO: ADD VIDEO DURATION HERE TOO?
             durations_in_page.append(None)
 
         # Fallback with old _VIDEO_RE
