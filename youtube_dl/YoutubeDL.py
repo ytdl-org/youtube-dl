@@ -1673,26 +1673,30 @@ class YoutubeDL(object):
 
         formats_query = self.params.get('subtitlesformat', 'best')
         formats_preference = formats_query.split('/') if formats_query else []
-        subs = {}
+        subs = collections.defaultdict(list)
         for lang in requested_langs:
             formats = available_subs.get(lang)
             if formats is None:
                 self.report_warning('%s subtitles not available for %s' % (lang, video_id))
                 continue
-            for ext in formats_preference:
-                if ext == 'best':
-                    f = formats[-1]
-                    break
-                matches = list(filter(lambda f: f['ext'] == ext, formats))
-                if matches:
-                    f = matches[-1]
-                    break
-            else:
-                f = formats[-1]
-                self.report_warning(
-                    'No subtitle format found matching "%s" for language %s, '
-                    'using %s' % (formats_query, lang, f['ext']))
-            subs[lang] = f
+            named = collections.defaultdict(list)
+            for f in formats:
+                named[f.get('name', '')].append(f)
+            for name, fmts in named.items():
+                for ext in formats_preference:
+                    if ext == 'best':
+                        f = fmts[-1]
+                        break
+                    matches = [f for f in fmts if f['ext'] == ext]
+                    if matches:
+                        f = matches[-1]
+                        break
+                    else:
+                        f = fmts[-1]
+                        self.report_warning(
+                            'No subtitle format found matching "%s" for language %s, '
+                            'using %s' % (formats_query, lang, f['ext']))
+                subs[lang].append(f)
         return subs
 
     def __forced_printings(self, info_dict, filename, incomplete):
@@ -1813,32 +1817,34 @@ class YoutubeDL(object):
             # that way it will silently go on when used with unsupporting IE
             subtitles = info_dict['requested_subtitles']
             ie = self.get_info_extractor(info_dict['extractor_key'])
-            for sub_lang, sub_info in subtitles.items():
-                sub_format = sub_info['ext']
-                sub_filename = subtitles_filename(filename, sub_lang, sub_format, info_dict.get('ext'))
-                if self.params.get('nooverwrites', False) and os.path.exists(encodeFilename(sub_filename)):
-                    self.to_screen('[info] Video subtitle %s.%s is already present' % (sub_lang, sub_format))
-                else:
-                    self.to_screen('[info] Writing video subtitles to: ' + sub_filename)
-                    if sub_info.get('data') is not None:
-                        try:
-                            # Use newline='' to prevent conversion of newline characters
-                            # See https://github.com/ytdl-org/youtube-dl/issues/10268
-                            with io.open(encodeFilename(sub_filename), 'w', encoding='utf-8', newline='') as subfile:
-                                subfile.write(sub_info['data'])
-                        except (OSError, IOError):
-                            self.report_error('Cannot write subtitles file ' + sub_filename)
-                            return
+            for sub_lang, sub_info_list in subtitles.items():
+                for sub_info in sub_info_list:
+                    sub_format = sub_info['ext']
+                    sub_name = sub_info.get('name', '')
+                    sub_filename = subtitles_filename(filename, sub_lang, sub_name, sub_format, info_dict.get('ext'))
+                    if self.params.get('nooverwrites', False) and os.path.exists(encodeFilename(sub_filename)):
+                        self.to_screen('[info] Video subtitle %s is already present' % (sub_filename))
                     else:
-                        try:
-                            sub_data = ie._request_webpage(
-                                sub_info['url'], info_dict['id'], note=False).read()
-                            with io.open(encodeFilename(sub_filename), 'wb') as subfile:
-                                subfile.write(sub_data)
-                        except (ExtractorError, IOError, OSError, ValueError) as err:
-                            self.report_warning('Unable to download subtitle for "%s": %s' %
-                                                (sub_lang, error_to_compat_str(err)))
-                            continue
+                        self.to_screen('[info] Writing video subtitles to: ' + sub_filename)
+                        if sub_info.get('data') is not None:
+                            try:
+                                # Use newline='' to prevent conversion of newline characters
+                                # See https://github.com/ytdl-org/youtube-dl/issues/10268
+                                with io.open(encodeFilename(sub_filename), 'w', encoding='utf-8', newline='') as subfile:
+                                    subfile.write(sub_info['data'])
+                            except (OSError, IOError):
+                                self.report_error('Cannot write subtitles file ' + sub_filename)
+                                return
+                        else:
+                            try:
+                                sub_data = ie._request_webpage(
+                                    sub_info['url'], info_dict['id'], note=False).read()
+                                with io.open(encodeFilename(sub_filename), 'wb') as subfile:
+                                    subfile.write(sub_data)
+                            except (ExtractorError, IOError, OSError, ValueError) as err:
+                                self.report_warning('Unable to download subtitle for "%s": %s' %
+                                                    (sub_lang, error_to_compat_str(err)))
+                                continue
 
         if self.params.get('writeinfojson', False):
             infofn = replace_extension(filename, 'info.json', info_dict.get('ext'))
@@ -2226,10 +2232,15 @@ class YoutubeDL(object):
             return
         self.to_screen(
             'Available %s for %s:' % (name, video_id))
+        table = []
+        for lang, formats in subtitles.items():
+            named = collections.defaultdict(list)
+            for f in formats:
+                named[f.get('name', '')].append(f['ext'])
+            for name in named.keys():
+                table.append([lang, name, ', '.join(e for e in reversed(named[name]))])
         self.to_screen(render_table(
-            ['Language', 'formats'],
-            [[lang, ', '.join(f['ext'] for f in reversed(formats))]
-                for lang, formats in subtitles.items()]))
+            ['Language', 'name', 'formats'], table))
 
     def urlopen(self, req):
         """ Start an HTTP download """
