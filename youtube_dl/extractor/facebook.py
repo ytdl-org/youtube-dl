@@ -457,6 +457,9 @@ class FacebookIE(InfoExtractor):
                                                or self._search_regex(r'publish_time&quot;:([\d]+)', tahoe_data.secondary, 'timestamp', default=None)
             timestamp = int_or_none(regex_search_result_date_time) or int_or_none(regex_search_result_publish_time)
 
+        if timestamp is None and webpage.find('Paid Partnership') > -1:
+            timestamp = self._search_regex(r'"publish_time\\":(.+?),', webpage, 'timestamp', default=None, fatal=False)
+
         uploader_id = self._resolve_uploader_id(webpage, tahoe_data)
 
         thumbnail = self._resolve_thumbnail(webpage, tahoe_data)

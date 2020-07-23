@@ -64,6 +64,15 @@ class facebookMetaData(unittest.TestCase):
             except DownloadError:
                 self.assertRaises(DownloadError)
 
+    def test_paid_videos_timestamp(self):
+        params = {}
+        url = "https://www.facebook.com/148456285190063/videos/307226959975478"
+        ydl = youtube_dl.YoutubeDL(params)
+        info = ydl.extract_info(url, download=False)
+        print (info.get('timestamp'))
+        self.assertTrue(info.get('timestamp'))
+
+
 
 if __name__ == '__main__':
     unittest.main()
