@@ -490,8 +490,6 @@
  - **mixcloud**
  - **mixcloud:playlist**
  - **mixcloud:user**
- - **Mixer:live**
- - **Mixer:vod**
  - **MLB**
  - **Mnet**
  - **MNetTV**
