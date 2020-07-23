@@ -124,43 +124,53 @@ class RaiBaseIE(InfoExtractor):
 class RaiPlayIE(RaiBaseIE):
     _VALID_URL = r'(?P<url>https?://(?:www\.)?raiplay\.it/.+?-(?P<id>%s)\.html)' % RaiBaseIE._UUID_RE
     _TESTS = [{
-        'url': 'http://www.raiplay.it/video/2016/10/La-Casa-Bianca-e06118bb-59a9-4636-b914-498e4cfd2c66.html?source=twitter',
-        'md5': '340aa3b7afb54bfd14a8c11786450d76',
-        'info_dict': {
-            'id': 'e06118bb-59a9-4636-b914-498e4cfd2c66',
-            'ext': 'mp4',
-            'title': 'La Casa Bianca',
-            'alt_title': 'S2016 - Puntata del 23/10/2016',
-            'description': 'md5:a09d45890850458077d1f68bb036e0a5',
-            'thumbnail': r're:^https?://.*\.jpg$',
-            'uploader': 'Rai 3',
-            'creator': 'Rai 3',
-            'duration': 3278,
-            'timestamp': 1477764300,
-            'upload_date': '20161029',
-            'series': 'La Casa Bianca',
-            'season': '2016',
-        },
-    }, {
         'url': 'http://www.raiplay.it/video/2014/04/Report-del-07042014-cb27157f-9dd0-4aee-b788-b1f67643a391.html',
         'md5': '8970abf8caf8aef4696e7b1f2adfc696',
         'info_dict': {
             'id': 'cb27157f-9dd0-4aee-b788-b1f67643a391',
             'ext': 'mp4',
             'title': 'Report del 07/04/2014',
-            'alt_title': 'S2013/14 - Puntata del 07/04/2014',
-            'description': 'md5:f27c544694cacb46a078db84ec35d2d9',
+            'alt_title': 'St 2013/14 - Espresso nel caff\u00e8 - 07/04/2014',
+            'description': 'md5:d730c168a58f4bb35600fc2f881ec04e',
             'thumbnail': r're:^https?://.*\.jpg$',
-            'uploader': 'Rai 5',
-            'creator': 'Rai 5',
+            'uploader': 'Rai 3',
+            'creator': 'Rai 3',
             'duration': 6160,
             'series': 'Report',
-            'season_number': 5,
             'season': '2013/14',
         },
         'params': {
             'skip_download': True,
         },
+    }, {
+        # Gif thumbnail
+        'url': 'https://www.raiplay.it/video/2018/11/LEredita-61f7169f-6363-4a85-b455-1f0ff9b2ee9c.html',
+        'info_dict': {
+            'id': '61f7169f-6363-4a85-b455-1f0ff9b2ee9c',
+            'ext': 'mp4',
+            'title': 'L\'Eredit\u00e0',
+            'description': 'md5:ef516a9ea9fa254b5934d136e635d638',
+            'thumbnail': r're:^https?://.*\.gif$',
+            'duration': 3636.0,
+            'uploader': 'Rai 1',
+            'alt_title': 'St 2018/19 - Puntata del 24/11/2018',
+        },
+        'params': {
+            'skip_download': True,
+        },
+    }, {
+        # Film, no season, no alt_title
+        'url': 'https://www.raiplay.it/video/2016/12/Cosmopolis-f2028775-4195-4fc1-8dd8-f54562e3b94e.html',
+        'info_dict': {
+            'id': 'f2028775-4195-4fc1-8dd8-f54562e3b94e',
+            'ext': 'mp4',
+            'title': 'Cosmopolis',
+            'description': 'md5:55c635a72062272a15839dab2e35438f',
+            "uploader": "Rai 3",
+            "creator": "Rai Cinema",
+            "duration": 6333.0,
+        },
+        'skip': 'Georestricted to IT',
     }, {
         'url': 'http://www.raiplay.it/video/2016/11/gazebotraindesi-efebe701-969c-4593-92f3-285f0d1ce750.html?',
         'only_matching': True,
@@ -171,13 +181,12 @@ class RaiPlayIE(RaiBaseIE):
         url, video_id = mobj.group('url', 'id')
 
         media = self._download_json(
-            '%s?json' % url, video_id, 'Downloading video JSON')
+            url.replace('.html', '.json'), video_id, 'Downloading video JSON')
 
         title = media['name']
-
         video = media['video']
 
-        relinker_info = self._extract_relinker_info(video['contentUrl'], video_id)
+        relinker_info = self._extract_relinker_info(video['content_url'], video_id)
         self._sort_formats(relinker_info['formats'])
 
         thumbnails = []
@@ -185,7 +194,7 @@ class RaiPlayIE(RaiBaseIE):
             for _, value in media.get('images').items():
                 if value:
                     thumbnails.append({
-                        'url': value.replace('[RESOLUTION]', '600x400')
+                        'url': urljoin(url, value.replace('[RESOLUTION]', '600x400'))
                     })
 
         timestamp = unified_timestamp(try_get(
@@ -197,18 +206,18 @@ class RaiPlayIE(RaiBaseIE):
             'id': video_id,
             'title': self._live_title(title) if relinker_info.get(
                 'is_live') else title,
-            'alt_title': media.get('subtitle'),
-            'description': media.get('description'),
-            'uploader': strip_or_none(media.get('channel')),
-            'creator': strip_or_none(media.get('editor')),
+            'alt_title': strip_or_none(media.get('subtitle')),
+            'description': strip_or_none(media.get('description')),
+            'uploader': try_get(
+                media, lambda x: x['program_info']['channel'], compat_str),
+            'creator': try_get(
+                media, lambda x: x['program_info']['editor'], compat_str),
             'duration': parse_duration(video.get('duration')),
             'timestamp': timestamp,
             'thumbnails': thumbnails,
             'series': try_get(
-                media, lambda x: x['isPartOf']['name'], compat_str),
-            'season_number': int_or_none(try_get(
-                media, lambda x: x['isPartOf']['numeroStagioni'])),
-            'season': media.get('stagione') or None,
+                media, lambda x: x['program_info']['name'], compat_str),
+            'season': media.get('season', None),
             'subtitles': subtitles,
         }
 
@@ -316,7 +325,6 @@ class RaiIE(RaiBaseIE):
     }, {
         # with ContentItem in og:url
         'url': 'http://www.rai.it/dl/RaiTV/programmi/media/ContentItem-efb17665-691c-45d5-a60c-5301333cbb0c.html',
-        'md5': '11959b4e44fa74de47011b5799490adf',
         'info_dict': {
             'id': 'efb17665-691c-45d5-a60c-5301333cbb0c',
             'ext': 'mp4',
@@ -326,18 +334,6 @@ class RaiIE(RaiBaseIE):
             'duration': 2214,
             'upload_date': '20161103',
         }
-    }, {
-        # drawMediaRaiTV(...)
-        'url': 'http://www.report.rai.it/dl/Report/puntata/ContentItem-0c7a664b-d0f4-4b2c-8835-3f82e46f433e.html',
-        'md5': '2dd727e61114e1ee9c47f0da6914e178',
-        'info_dict': {
-            'id': '59d69d28-6bb6-409d-a4b5-ed44096560af',
-            'ext': 'mp4',
-            'title': 'Il pacco',
-            'description': 'md5:4b1afae1364115ce5d78ed83cd2e5b3a',
-            'thumbnail': r're:^https?://.*\.jpg$',
-            'upload_date': '20141221',
-        },
     }, {
         # initEdizione('ContentItem-...'
         'url': 'http://www.tg1.rai.it/dl/tg1/2010/edizioni/ContentSet-9b6e0cba-4bef-4aef-8cf0-9f7f665b7dfb-tg1.html?item=undefined',
