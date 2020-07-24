@@ -906,7 +906,7 @@ class InfoExtractor(object):
         except TypeError as ve:
             errmsg = '%s: Failed to download due to geo location restrictions' % video_id
             if fatal:
-                raise ExtractorErro(errmsg, cause=ve)
+                raise ExtractorError(errmsg, cause=ve)
             else:
                 self.report_warning(errmsg + str(ve))
 
