@@ -710,6 +710,15 @@ class YoutubeDL(object):
             # title "Hello $PATH", we don't want `$PATH` to be expanded.
             filename = expand_path(outtmpl).replace(sep, '') % template_dict
 
+            # Fix for 'ERROR: Stream #1:0 -> #0:1 (copy)' when specifying an output filename with the extension '.mp3'
+            # (Mentioned in https://github.com/ytdl-org/youtube-dl/pull/25717#issuecomment-658729806)
+            prefix, dot, ext = filename.rpartition('.')
+            if ext == 'mp3':
+                prefix = prefix.replace('../', '').replace('..\\', '')
+                filename = prefix + '.mka'
+                self.to_screen('The Matroska container (.mka) will be used for the download, '
+                  'but the final file will have the .mp3 extension')
+
             # Temporary fix for #4787
             # 'Treat' all problem characters by passing filename through preferredencoding
             # to workaround encoding issues with subprocess on python2 @ Windows
