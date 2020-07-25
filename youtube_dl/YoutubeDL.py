@@ -717,7 +717,7 @@ class YoutubeDL(object):
                 prefix = prefix.replace('../', '').replace('..\\', '')
                 filename = prefix + '.mka'
                 self.to_screen('The Matroska container (.mka) will be used for the download, '
-                  'but the final file will have the .mp3 extension')
+                    'but the final file will have the .mp3 extension')
 
             # Temporary fix for #4787
             # 'Treat' all problem characters by passing filename through preferredencoding
