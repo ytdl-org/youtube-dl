@@ -710,14 +710,13 @@ class YoutubeDL(object):
             # title "Hello $PATH", we don't want `$PATH` to be expanded.
             filename = expand_path(outtmpl).replace(sep, '') % template_dict
 
-            # Fix for 'ERROR: Stream #1:0 -> #0:1 (copy)' when specifying an output filename with the extension '.mp3'
-            # (Mentioned in https://github.com/ytdl-org/youtube-dl/pull/25717#issuecomment-658729806)
+            # Fix for #6724 (https://github.com/ytdl-org/youtube-dl/issues/6724)
             prefix, dot, ext = filename.rpartition('.')
-            if ext == 'mp3':
-                prefix = prefix.replace('../', '').replace('..\\', '')
-                filename = prefix + '.mka'
-                self.to_screen('The Matroska container (.mka) will be used for the download, '
-                    'but the final file will have the .mp3 extension')
+            prefix = prefix.replace('../', '').replace('..\\', '')
+            filename = prefix + '.mka'
+            self.to_screen(
+                'The Matroska container (.mka) will be used for the download, '
+                'but the final file will have the .%s extension' % (ext))
 
             # Temporary fix for #4787
             # 'Treat' all problem characters by passing filename through preferredencoding
@@ -2076,7 +2075,7 @@ class YoutubeDL(object):
                 self.report_error(e.msg)
             if files_to_delete and not self.params.get('keepvideo', False):
                 for old_filename in files_to_delete:
-                    self.to_screen('Deleting original file %s (pass -k to keep)' % old_filename)
+                    self.to_screen('Deleting original file: %s (pass -k to keep)' % old_filename)
                     try:
                         os.remove(encodeFilename(old_filename))
                     except (IOError, OSError):
