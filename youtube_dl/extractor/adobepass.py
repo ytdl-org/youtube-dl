@@ -65,6 +65,9 @@ MSO_INFO = {
         'username_field': 'IDToken1',
         'password_field': 'IDToken2',
     },
+    'GoogleFiber': {
+        'name': 'Google Fiber Direct'
+    },
     'thr030': {
         'name': '3 Rivers Communications'
     },
@@ -1496,6 +1499,63 @@ class AdobePassIE(InfoExtractor):
                         }), headers={
                             'Content-Type': 'application/x-www-form-urlencoded'
                         })
+                elif mso_id == 'GoogleFiber':
+                    # Google Fiber uses a series of web calls and a click through
+                    # only valid if you are connecting from a Google Fiber IP address
+                    # TODO: handle username/password authentication if remote
+                    provider_redirect_page, urlh = provider_redirect_page_res
+                    if 'history_val' in provider_redirect_page:
+                        saml_firstbookend_url = urlh.geturl()
+                        saml_autoauth_page = self._download_webpage(
+                            saml_firstbookend_url, 'First Bookend Redirect', query={
+                                'history': '17',
+                            }, headers={
+                                'Referer': url
+                            })
+                        if '$.ajax({' in saml_autoauth_page:
+                            saml_ajaxautoauth_url = self._html_search_regex(
+                                r'url: (["\'])(?P<url>.+?)\1',
+                                saml_autoauth_page,
+                                'SAML Redirect URL', group='url',
+                                flags=re.MULTILINE
+                            )
+                            saml_login_url = self._html_search_regex(
+                                r'window.location.replace\((["\'])(?P<url>.+?login.php)\1',
+                                saml_autoauth_page,
+                                'Auth Redirect URL', group='url'
+                            )
+                            saml_ajaxcall_page = self._download_webpage(
+                                saml_ajaxautoauth_url, 'SAML Autoauth')
+                            saml_login_res = self._download_webpage_handle(
+                                saml_login_url + '?AuthState=%s' % saml_ajaxcall_page,
+                                'SAML Login')
+                        elif 'http-equiv="refresh"' in saml_autoauth_page:
+                            saml_redirect_url = extract_redirect_url(
+                                saml_autoauth_page, fatal=True)
+                            saml_login_res = self._download_webpage_handle(
+                                saml_redirect_url, video_id,
+                                self._DOWNLOADING_LOGIN_PAGE, headers={
+                                    'Referer': '%s&history=17' % saml_firstbookend_url}
+                            )
+                        else:
+                            raise ExtractorError(
+                                'Unable to automatically login with GoogleFiber. Maybe not a Google Fiber IP?'
+                            )
+                        provider_postlogin_page_res = post_form(saml_login_res, 'SAML Accept Login')
+                        provider_postlogin_page, urlh = provider_postlogin_page_res
+                        saml_redirect_url = extract_redirect_url(
+                            provider_postlogin_page, fatal=True)
+                        provider_finallogin_page_res = self._download_webpage_handle(
+                            saml_redirect_url, video_id,
+                            'SAML Final Redirect')
+                        provider_page, urlh = provider_finallogin_page_res
+                        saml_lastbookend_url = urlh.geturl()
+                        saml_finalredirect_page_res = self._download_webpage_handle(
+                            saml_lastbookend_url, 'SAML Final', query={
+                                'history': '19',
+                            }
+                        )
+                        post_form(saml_finalredirect_page_res, 'SAML Response')
                 else:
                     # Some providers (e.g. DIRECTV NOW) have another meta refresh
                     # based redirect that should be followed.
