@@ -69,7 +69,7 @@ def _decrypt_url(png):
 class RTVEALaCartaIE(InfoExtractor):
     IE_NAME = 'rtve.es:alacarta'
     IE_DESC = 'RTVE a la carta'
-    _VALID_URL = r'https?://(?:www\.)?rtve\.es/(m/)?(alacarta/videos|filmoteca)/[^/]+/[^/]+/(?P<id>\d+)'
+    _VALID_URL = r'https?://(?:www\.)?rtve\.es/(m/)?((alacarta|playz)/videos|filmoteca)/[^/]+/[^/]+/(?P<id>\d+)'
 
     _TESTS = [{
         'url': 'http://www.rtve.es/alacarta/videos/balonmano/o-swiss-cup-masculina-final-espana-suecia/2491869/',
