@@ -710,13 +710,16 @@ class YoutubeDL(object):
             # title "Hello $PATH", we don't want `$PATH` to be expanded.
             filename = expand_path(outtmpl).replace(sep, '') % template_dict
 
-            # Fix for #6724 (https://github.com/ytdl-org/youtube-dl/issues/6724)
+            # Fixes the issue of the audio not being converted to the desired format when using --audio-format and
+            # specifying an audio extension with -o, e.g. --audio-format mp3 -o test.mp3
             prefix, dot, ext = filename.rpartition('.')
-            prefix = prefix.replace('../', '').replace('..\\', '')
-            filename = prefix + '.mka'
-            self.to_screen(
-                'The Matroska container (.mka) will be used for the download, '
-                'but the final file will have the .%s extension' % (ext))
+            audio_extensions = ['mp3', 'm4a', 'aac' 'opus', 'ogg', 'wav', 'flac']
+            if ext in audio_extensions:
+                prefix = prefix.replace('../', '').replace('..\\', '')
+                filename = prefix + '.mka'
+                self.to_screen(
+                    '[download] The Matroska container (.mka) will be used for the download, '
+                    'but the final file will have the .%s extension' % (ext))
 
             # Temporary fix for #4787
             # 'Treat' all problem characters by passing filename through preferredencoding
