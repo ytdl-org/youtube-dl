@@ -175,7 +175,7 @@ class XTubeUserIE(InfoExtractor):
             request = sanitized_Request(
                 'http://www.xtube.com/profile/%s/videos/%d' % (user_id, pagenum),
                 headers={
-                    'Cookie': 'popunder=4',
+                    'Cookie': 'AGEGATEPASSED=1; popunder=4',
                     'X-Requested-With': 'XMLHttpRequest',
                     'Referer': url,
                 })
