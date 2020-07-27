@@ -86,60 +86,26 @@ class RedBullTVIE(InfoExtractor):
     }]
 
     def _real_extract(self, url):
-        # video_id is 'AP-...' ID
-        video_id = self._match_id(url)
+        # we want to use the rrn ID as the video id, but we can't know it until
+        # after downloading the webpage
+        webpage = self._download_webpage(url, video_id=url)
 
-        # Try downloading the webpage multiple times in order to get a repsonse
-        # cache which will contain the result of a query to
-        # 'https://www.redbull.com/v3/api/composition/v3/query/en-INT?rb3Schema=v1:pageConfig&filter[uriSlug]=%s' % video_id
-        # We use the response cache to get the rrn ID and other metadata. We do
-        # this instead of simply querying the API in order to preserve the
-        # provided URL's locale. (Annoyingly, the locale in the input URL
-        # ('en-us', for example) is of a different format than the locale
-        # required for the API request.)
-        tries = 3
-        for i in range(tries):
-            try:
-                if i == 0:
-                    webpage = self._download_webpage(url, video_id)
-                else:
-                    webpage = self._download_webpage(
-                        url, video_id, note='Redownloading webpage')
-                # extract response cache
-                response_cache = json.loads(self._html_search_regex(
-                    r'<script type="application/json" id="response-cache">(.+?)</script>',
-                    webpage, 'response-cache'))
-            except RegexNotFoundError:
-                if i < tries - 1:
-                    self.to_screen('Waiting before redownloading webpage')
-                    time.sleep(2)
-                    continue
-                else:
-                    self.to_screen('Failed to download/locate response cache. Wait a few seconds and try running the command again.')
-                    raise
-            break
-
-        # select the key that includes the string 'pageConfig'
-        metadata = json.loads(
-            response_cache[
-                [key for key in response_cache.keys() if 'pageConfig' in key][0]
-            ]['response']
-        )['data']
-
-        # extract rrn ID
-        rrn_id_ext = metadata['analytics']['asset']['trackingDimensions']['masterID']
-        # trim locale from the end of rrn_id_ext
-        rrn_id = ':'.join(rrn_id_ext.split(':')[:-1])
+        info = json.loads(self._html_search_regex(
+            r'<script type="application/ld\+json">(.*?)</script>', webpage, 'video info'))
+        rrn_id = self._search_regex(
+            r'(rrn:.*):',
+            try_get(info, lambda x: x['associatedMedia']['embedUrl'], compat_str)
+            or try_get(info, lambda x: x["embedUrl"], compat_str),
+            'rrn ID')
 
         # get access token for download
         session = self._download_json(
-            'https://api.redbull.tv/v3/session', video_id,
+            'https://api.redbull.tv/v3/session', rrn_id,
             note='Downloading access token', query={
-                'category': 'personal_computer',
                 'os_family': 'http',
             })
         if session.get('code') == 'error':
-            raise ExtractorError('%s said: %s' % (
+            raise ExtractorError('{0} said: {1}'.format(
                 self.IE_NAME, session['message']))
         token = session['token']
 
@@ -147,55 +113,41 @@ class RedBullTVIE(InfoExtractor):
         # subtitle tracks are also listed in this m3u8, but yt-dl does not
         # currently implement an easy way to download m3u8 VTT subtitles
         formats = self._extract_m3u8_formats(
-            'https://dms.redbull.tv/v3/%s/%s/playlist.m3u8' % (rrn_id, token),
-            video_id, 'mp4', entry_protocol='m3u8_native', m3u8_id='hls')
+            'https://dms.redbull.tv/v3/{0}/{1}/playlist.m3u8'.format(rrn_id, token),
+            rrn_id, 'mp4', entry_protocol='m3u8_native', m3u8_id='hls')
         self._sort_formats(formats)
 
         # download more metadata
-        metadata2 = self._download_json(
-            'https://api.redbull.tv/v3/products/%s' % rrn_id,
-            video_id, note='Downloading video information',
+        metadata = self._download_json(
+            'https://api.redbull.tv/v3/products/{0}'.format(rrn_id),
+            rrn_id, note='Downloading video information',
             headers={'Authorization': token}
         )
 
         # extract metadata
-        title = try_get(metadata2, lambda x: x['title'], compat_str) or \
+        title = try_get(metadata, lambda x: x['title'], compat_str) or \
             try_get(metadata, lambda x: x['analytics']['asset']['title'], compat_str)
 
-        subheading = try_get(metadata2, lambda x: x['subheading'], compat_str)
+        subheading = try_get(metadata, lambda x: x['subheading'], compat_str)
         if subheading:
-            title += ' - %s' % subheading
+            title += ' - {0}'.format(subheading)
 
-        long_description = try_get(metadata2, lambda x: x['long_description'], compat_str)
+        long_description = try_get(
+            metadata, lambda x: x['long_description'], compat_str)
         short_description = try_get(
-            metadata2, lambda x: x['short_description'], compat_str) or \
-            try_get(
-            metadata, lambda x: x['pageMeta']['og:description'], compat_str)
+            metadata, lambda x: x['short_description'], compat_str)
 
-        duration = float_or_none(
-            try_get(metadata2, lambda x: x['duration'], int), scale=1000)
+        duration = float_or_none(try_get(
+            metadata, lambda x: x['duration'], int), scale=1000)
 
-        release_dates = [try_get(
-            metadata,
-            lambda x: x['analytics']['asset']['publishDate'],
-            compat_str)]
-        release_dates.append(try_get(
-            metadata,
-            lambda x: x['analytics']['asset']['trackingDimensions']['originalPublishingDate'],
-            compat_str))
-        release_dates.append(try_get(
-            metadata,
-            lambda x: x['analytics']['asset']['trackingDimensions']['publishingDate'],
-            compat_str))
-
-        release_date = unified_strdate(
-            release_dates[0] or release_dates[1] or release_dates[2])
+        date_pub = try_get(info, lambda x: x['datePublished'], compat_str)
+        date_create = try_get(info, lambda x: x['dateCreated'], compat_str)
 
         return {
-            'id': video_id,
+            'id': rrn_id,
             'title': title,
             'description': long_description or short_description,
             'duration': duration,
-            'release_date': release_date,
+            'release_date': unified_strdate(date_pub or date_create),
             'formats': formats,
         }
