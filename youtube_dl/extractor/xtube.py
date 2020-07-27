@@ -84,7 +84,7 @@ class XTubeIE(InfoExtractor):
 
         webpage = self._download_webpage(
             url_pattern % video_id, display_id, headers={
-                'Cookie': 'age_verified=1; cookiesAccepted=1',
+                'Cookie': 'AGEGATEPASSED=1; cookiesAccepted=1',
             })
 
         title, thumbnail, duration = [None] * 3
