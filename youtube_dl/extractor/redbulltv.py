@@ -18,70 +18,42 @@ class RedBullTVIE(InfoExtractor):
     _VALID_URL = r"""(?x)^
                      https?://
                      (?:www\.)?redbull\.com/
-                     [^/]+/                                                   # locale/language code
-                     (?:videos|recap-videos|events|episodes|films)/
-                     (?P<id>AP-\w{13})(?:/live/AP-\w{13})?
-                     (?:\?playlist)?(?:\?playlistId=rrn:content:collections:[\da-f]{8}-[\da-f]{4}-[\da-f]{4}-[\da-f]{4}-[\da-f]{12}:[\w-]+)?
+                     [^/]+/  # locale/language code
+                     (?:videos|films|episodes)/
+                     .+
                      $"""
     _TESTS = [{
-        # videos
-        'url': 'https://www.redbull.com/int-en/videos/AP-1YM911N612111',
-        'md5': 'e2d92baecce184ecd521fa3d72f36aa8',
+        'url': 'https://www.redbull.com/int-en/videos/pedro-barros-concrete-dreams-story-clip',
+        'md5': '8e265c207aa7f191dc49505ae599f3ee',
         'info_dict': {
-            'id': 'AP-1YM911N612111',
+            'id': 'rrn:content:videos:9f804d87-bee9-48fa-aba2-a990c95f9316',
             'ext': 'mp4',
-            'title': 'md5:fa027630eb511593fe91e4323762e95d',
-            'description': 'md5:7f769874c63e45f9b6f43315a99094c7',
-            'duration': 255.0,
-            'release_date': '20190809',
+            'title': 'Concrete Dreams - Pedro\'s Niemeyer tour of Brazil',
+            'description': 'Pedro Barros had a dream to skate the iconic works of Oscar Niemeyer – one of the pillars of modern world architecture.',
+            'duration': 943.0,
+            'release_date': '20200618',
         },
     }, {
-        # recap-videos
-        'url': 'https://www.redbull.com/int-en/recap-videos/AP-1YM8YXTC52111?playlistId=rrn:content:collections:e916768e-7b47-413d-a254-bc97d7f808f7:en-INT',
-        'md5': 'aa7c6ab92ea6103f61d5fc5cbb85fd53',
-        'info_dict': {
-            'id': 'AP-1YM8YXTC52111',
-            'ext': 'mp4',
-            'title': 'md5:dc9aec63e687a534a6bb13adbb86571c',
-            'description': 'md5:3774af48bf6fbc5fb6c8ebad6891f728',
-            'duration': 1560.0,
-            'release_date': '20190808',
-        },
-    }, {
-        # events
-        'url': 'https://www.redbull.com/int-en/recap-videos/AP-1ZYQN7WNW2111',
-        'md5': '0f2043deef92405249c8ca96ba197901',
-        'info_dict': {
-            'id': 'AP-1ZYQN7WNW2111',
-            'ext': 'mp4',
-            'title': 'md5:c2a490a9db25823c2c9790093e3563ab',
-            'description': 'md5:fb7e7a8cfaa72f7dc139238186d69800',
-            'duration': 933.0,
-            'release_date': '20190727',
-        },
-    }, {
-        # episodes
-        'url': 'https://www.redbull.com/int-en/episodes/AP-1PMHKJFCW1W11',
-        'md5': 'db8271a7200d40053a1809ed0dd574ff',
-        'info_dict': {
-            'id': 'AP-1PMHKJFCW1W11',
-            'ext': 'mp4',
-            'title': 'md5:f767c9809c12c3411632cb7de9d30608',
-            'description': 'md5:b5f522b89b72e1e23216e5018810bb25',
-            'duration': 904.0,
-            'release_date': '20170221',
-        },
-    }, {
-        # films
-        'url': 'https://www.redbull.com/int-en/films/AP-1ZSMAW8FH2111',
+        'url': 'https://www.redbull.com/int-en/films/against-the-odds',
         'md5': '3a753f7c3c1f9966ae660e05c3c7862b',
         'info_dict': {
-            'id': 'AP-1ZSMAW8FH2111',
+            'id': 'rrn:content:films:0825a746-5930-539d-a1dd-d06a7d94ae18',
             'ext': 'mp4',
-            'title': 'md5:47478de1e62dadcda748c2b58ae7e343',
-            'description': 'md5:9a885f6f5344b98c684f8aaf6bdfbc38',
+            'title': 'Against the Odds - The story of a new team coming together',
+            'description': 'In 2018, OG were at rock-bottom, hit by painful departures and scrapping in qualifiers for Dota 2\'s TI8. Against the Odds is the fairytale of this broken team\'s shot at Gaming’s biggest prize.',
             'duration': 4837.0,
             'release_date': '20190801',
+        },
+    }, {
+        'url': 'https://www.redbull.com/int-en/episodes/red-bull-moto-spy-s4-e1',
+        'md5': '4bee7de8c8caba977f22055d8d32473d',
+        'info_dict': {
+            'id': 'rrn:content:episode-videos:0f020f53-c089-460e-9740-cfb0b9144cda',
+            'ext': 'mp4',
+            'title': 'Great characters make great riders - Red Bull Moto Spy S4E1',
+            'description': 'The 2020 AMA Supercross season features some talented big-name riders. Are the likes of Cooper Webb, Ken Roczen and half a dozen others destined to dominate – and block the rookies from succeeding?',
+            'duration': 1448.0,
+            'release_date': '20200102',
         },
     }]
 
