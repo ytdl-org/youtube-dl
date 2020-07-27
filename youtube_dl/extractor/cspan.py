@@ -16,6 +16,23 @@ from ..utils import (
 from .senateisvp import SenateISVPIE
 from .ustream import UstreamIE
 
+remove_row = re.compile("^\s+|\n|\r|\t|\s+$")
+remove_all_space = re.compile("\s+")
+m3u8_files_start = re.compile('''jwsetup=\{playlist:\[\{sources:\[''')
+m3u8_files_end = re.compile("],")
+m3u8_file = re.compile("{file:'(.+)'}")
+
+def getM3u8Files(data):
+    data = remove_row.sub("", data)
+    data = remove_all_space.sub("", data)
+    si = m3u8_files_start.search(data)
+    ei = m3u8_files_end.search(data[si.start():])
+    files = []
+    for f in data[si.start() + 29:si.start() + ei.start()].split(","):
+        ff = m3u8_file.search(f)
+        if ff:
+            files.append(ff.group(1))
+    return files
 
 class CSpanIE(InfoExtractor):
     _VALID_URL = r'https?://(?:www\.)?c-span\.org/video/\?(?P<id>[0-9a-f]+)'
@@ -31,6 +48,7 @@ class CSpanIE(InfoExtractor):
         'skip': 'Regularly fails on travis, for unknown reasons',
     }, {
         'url': 'http://www.c-span.org/video/?c4486943/cspan-international-health-care-models',
+        'url': 'https://www.c-span.org/video/?465817-1/president-trump-addresses-international-association-chiefs-police-conference',
         # md5 is unstable
         'info_dict': {
             'id': 'c4486943',
@@ -80,11 +98,10 @@ class CSpanIE(InfoExtractor):
         video_id = self._match_id(url)
         video_type = None
         webpage = self._download_webpage(url, video_id)
-
         ustream_url = UstreamIE._extract_url(webpage)
+
         if ustream_url:
             return self.url_result(ustream_url, UstreamIE.ie_key())
-
         if '&vod' not in url:
             bc = self._search_regex(
                 r"(<[^>]+id='brightcove-player-embed'[^>]+>)",
@@ -130,64 +147,91 @@ class CSpanIE(InfoExtractor):
         def get_text_attr(d, attr):
             return d.get(attr, {}).get('#text')
 
-        data = self._download_json(
-            'http://www.c-span.org/assets/player/ajax-player.php?os=android&html5=%s&id=%s' % (video_type, video_id),
-            video_id)['video']
-        if data['@status'] != 'Success':
-            raise ExtractorError('%s said: %s' % (self.IE_NAME, get_text_attr(data, 'error')), expected=True)
+        json_url = "http://www.c-span.org/assets/player/ajax-player.php?os=android&html5=%s&id=%s" % (video_type, video_id)
+        xml_url = 'http://www.c-span.org/common/services/flashXml.php?%sid=%s' % (video_type, video_id)
 
-        doc = self._download_xml(
-            'http://www.c-span.org/common/services/flashXml.php?%sid=%s' % (video_type, video_id),
-            video_id)
+        data = self._download_json(json_url, video_id)['video']
+        doc = self._download_xml(xml_url, video_id)
 
         description = self._html_search_meta('description', webpage)
-
         title = find_xpath_attr(doc, './/string', 'name', 'title').text
         thumbnail = find_xpath_attr(doc, './/string', 'name', 'poster').text
 
-        files = data['files']
-        capfile = get_text_attr(data, 'capfile')
-
         entries = []
-        for partnum, f in enumerate(files):
-            formats = []
-            for quality in f.get('qualities', []):
-                formats.append({
-                    'format_id': '%s-%sp' % (get_text_attr(quality, 'bitrate'), get_text_attr(quality, 'height')),
-                    'url': unescapeHTML(get_text_attr(quality, 'file')),
-                    'height': int_or_none(get_text_attr(quality, 'height')),
-                    'tbr': int_or_none(get_text_attr(quality, 'bitrate')),
+        if data['@status'] != 'Success':
+            try:
+                files = getM3u8Files(webpage)
+                for partnum, path in enumerate(files):
+                    formats = self._extract_m3u8_formats(
+                        path, video_id, 'mp4',
+                        entry_protocol='m3u8_native', m3u8_id='hls') if determine_ext(path) == 'm3u8' else [{'url': path, }]
+                    for f in formats:
+                        f.setdefault('http_headers', {})['Referer'] = url
+                    self._sort_formats(formats)
+                    entries.append({
+                        'id': '%s_%d' % (video_id, partnum + 1),
+                        'title': (
+                            title if len(files) == 1 else
+                            '%s part %d' % (title, partnum + 1)),
+                        'formats': formats,
+                        'description': description,
+                        'thumbnail': thumbnail,
+                    })
+            except Exception as err:
+                raise ExtractorError('%s said: %s' % (self.IE_NAME, err), expected=True)
+
+            if len(entries) == 0:
+                raise ExtractorError('%s said: %s' % (self.IE_NAME, "Not find support files"), expected=True)
+        else:
+            files = data['files']
+            capfile = get_text_attr(data, 'capfile')
+            for partnum, f in enumerate(files):
+                formats = []
+                for quality in f.get('qualities', []):
+                    formats.append({
+                        'format_id': '%s-%sp' % (get_text_attr(quality, 'bitrate'), get_text_attr(quality, 'height')),
+                        'url': unescapeHTML(get_text_attr(quality, 'file')),
+                        'height': int_or_none(get_text_attr(quality, 'height')),
+                        'tbr': int_or_none(get_text_attr(quality, 'bitrate')),
+                    })
+                if not formats:
+                    path = unescapeHTML(get_text_attr(f, 'path'))
+                    if not path:
+                        continue
+                    formats = self._extract_m3u8_formats(
+                        path, video_id, 'mp4', entry_protocol='m3u8_native',
+                        m3u8_id='hls') if determine_ext(path) == 'm3u8' else [{'url': path, }]
+                for f in formats:
+                    f.setdefault('http_headers', {})['Referer'] = url
+                self._sort_formats(formats)
+                entries.append({
+                    'id': '%s_%d' % (video_id, partnum + 1),
+                    'title': (
+                        title if len(files) == 1 else
+                        '%s part %d' % (title, partnum + 1)),
+                    'formats': formats,
+                    'description': description,
+                    'thumbnail': thumbnail,
+                    'duration': int_or_none(get_text_attr(f, 'length')),
+                    'subtitles': {
+                        'en': [{
+                            'url': capfile,
+                            'ext': determine_ext(capfile, 'dfxp')
+                        }],
+                    } if capfile else None,
                 })
-            if not formats:
-                path = unescapeHTML(get_text_attr(f, 'path'))
-                if not path:
-                    continue
-                formats = self._extract_m3u8_formats(
-                    path, video_id, 'mp4', entry_protocol='m3u8_native',
-                    m3u8_id='hls') if determine_ext(path) == 'm3u8' else [{'url': path, }]
-            self._sort_formats(formats)
-            entries.append({
-                'id': '%s_%d' % (video_id, partnum + 1),
-                'title': (
-                    title if len(files) == 1 else
-                    '%s part %d' % (title, partnum + 1)),
-                'formats': formats,
-                'description': description,
-                'thumbnail': thumbnail,
-                'duration': int_or_none(get_text_attr(f, 'length')),
-                'subtitles': {
-                    'en': [{
-                        'url': capfile,
-                        'ext': determine_ext(capfile, 'dfxp')
-                    }],
-                } if capfile else None,
-            })
 
         if len(entries) == 1:
             entry = dict(entries[0])
             entry['id'] = 'c' + video_id if video_type == 'clip' else video_id
             return entry
         else:
+            res = {
+                '_type': 'playlist',
+                'entries': entries,
+                'title': title,
+                'id': 'c' + video_id if video_type == 'clip' else video_id,
+            }
             return {
                 '_type': 'playlist',
                 'entries': entries,
