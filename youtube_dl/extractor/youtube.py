@@ -1777,6 +1777,9 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
             url = proto + '://www.youtube.com/' + compat_urllib_parse_unquote(mobj.group(1)).lstrip('/')
         video_id = self.extract_id(url)
 
+        # Check url is youtube music
+        is_music = re.match(r'^https?:\/\/music\.youtube\.com\/.+', url) is not None
+
         # Get video webpage
         url = proto + '://www.youtube.com/watch?v=%s&gl=US&hl=en&has_verified=1&bpctr=9999999999' % video_id
         video_webpage, urlh = self._download_webpage_handle(url, video_id)
@@ -1825,18 +1828,37 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
         # Get video info
         video_info = {}
         embed_webpage = None
-        if re.search(r'player-age-gate-content">', video_webpage) is not None:
+
+        # Youtube music should be parsed from get_video_info
+        # instead of youtube for 256kbps aac codec
+        if is_music or re.search(r'player-age-gate-content">', video_webpage) is not None:
             age_gate = True
             # We simulate the access to the video from www.youtube.com/v/{video_id}
             # this can be viewed without login into Youtube
             url = proto + '://www.youtube.com/embed/%s' % video_id
             embed_webpage = self._download_webpage(url, video_id, 'Downloading embed webpage')
-            data = compat_urllib_parse_urlencode({
-                'video_id': video_id,
-                'eurl': 'https://youtube.googleapis.com/v/' + video_id,
-                'sts': self._search_regex(
-                    r'"sts"\s*:\s*(\d+)', embed_webpage, 'sts', default=''),
-            })
+            if is_music:
+                # el, c, cver, cplayer field required for 141(aac 256kbps) codec
+                # maybe paramter of youtube music player?
+                data = compat_urllib_parse_urlencode({
+                    'video_id': video_id,
+                    'eurl': 'https://youtube.googleapis.com/v/' + video_id,
+                    'el': 'detailpage',
+                    'c': 'WEB_REMIX',
+                    'cver': '0.1',
+                    'cplayer': 'UNIPLAYER',
+                    'sts': self._search_regex(
+                        r'"sts"\s*:\s*(\d+)', embed_webpage, 'sts', default=''),
+                })
+            else:
+                # Remove youtube music parameter for normal video
+                data = compat_urllib_parse_urlencode({
+                    'video_id': video_id,
+                    'eurl': 'https://youtube.googleapis.com/v/' + video_id,
+                    'sts': self._search_regex(
+                        r'"sts"\s*:\s*(\d+)', embed_webpage, 'sts', default=''),
+                })
+
             video_info_url = proto + '://www.youtube.com/get_video_info?' + data
             try:
                 video_info_webpage = self._download_webpage(
