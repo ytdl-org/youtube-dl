@@ -16,13 +16,14 @@ from ..utils import (
 from .senateisvp import SenateISVPIE
 from .ustream import UstreamIE
 
-remove_row = re.compile("^\s+|\n|\r|\t|\s+$")
-remove_all_space = re.compile("\s+")
-m3u8_files_start = re.compile('''jwsetup=\{playlist:\[\{sources:\[''')
-m3u8_files_end = re.compile("],")
-m3u8_file = re.compile("{file:'(.+)'}")
+remove_row = re.compile(r"^\s+|\n|\r|\t|\s+$")
+remove_all_space = re.compile(r"\s+")
+m3u8_files_start = re.compile(r"jwsetup={playlist:\[{sources:\[")
+m3u8_files_end = re.compile(r"],")
+m3u8_file = re.compile(r"{file:'(.+)'}")
 
-def getM3u8Files(data):
+
+def get_m3u8_files(data):
     data = remove_row.sub("", data)
     data = remove_all_space.sub("", data)
     si = m3u8_files_start.search(data)
@@ -33,6 +34,7 @@ def getM3u8Files(data):
         if ff:
             files.append(ff.group(1))
     return files
+
 
 class CSpanIE(InfoExtractor):
     _VALID_URL = r'https?://(?:www\.)?c-span\.org/video/\?(?P<id>[0-9a-f]+)'
@@ -48,7 +50,6 @@ class CSpanIE(InfoExtractor):
         'skip': 'Regularly fails on travis, for unknown reasons',
     }, {
         'url': 'http://www.c-span.org/video/?c4486943/cspan-international-health-care-models',
-        'url': 'https://www.c-span.org/video/?465817-1/president-trump-addresses-international-association-chiefs-police-conference',
         # md5 is unstable
         'info_dict': {
             'id': 'c4486943',
@@ -147,7 +148,8 @@ class CSpanIE(InfoExtractor):
         def get_text_attr(d, attr):
             return d.get(attr, {}).get('#text')
 
-        json_url = "http://www.c-span.org/assets/player/ajax-player.php?os=android&html5=%s&id=%s" % (video_type, video_id)
+        json_url = "http://www.c-span.org/assets/player/ajax-player.php?os=android&html5=%s&id=%s" \
+                   % (video_type, video_id)
         xml_url = 'http://www.c-span.org/common/services/flashXml.php?%sid=%s' % (video_type, video_id)
 
         data = self._download_json(json_url, video_id)['video']
@@ -160,11 +162,12 @@ class CSpanIE(InfoExtractor):
         entries = []
         if data['@status'] != 'Success':
             try:
-                files = getM3u8Files(webpage)
+                files = get_m3u8_files(webpage)
                 for partnum, path in enumerate(files):
                     formats = self._extract_m3u8_formats(
                         path, video_id, 'mp4',
-                        entry_protocol='m3u8_native', m3u8_id='hls') if determine_ext(path) == 'm3u8' else [{'url': path, }]
+                        entry_protocol='m3u8_native', m3u8_id='hls') if determine_ext(path) == 'm3u8' \
+                        else [{'url': path, }]
                     for f in formats:
                         f.setdefault('http_headers', {})['Referer'] = url
                     self._sort_formats(formats)
@@ -201,8 +204,8 @@ class CSpanIE(InfoExtractor):
                     formats = self._extract_m3u8_formats(
                         path, video_id, 'mp4', entry_protocol='m3u8_native',
                         m3u8_id='hls') if determine_ext(path) == 'm3u8' else [{'url': path, }]
-                for f in formats:
-                    f.setdefault('http_headers', {})['Referer'] = url
+                for ff in formats:
+                    ff.setdefault('http_headers', {})['Referer'] = url
                 self._sort_formats(formats)
                 entries.append({
                     'id': '%s_%d' % (video_id, partnum + 1),
@@ -226,12 +229,6 @@ class CSpanIE(InfoExtractor):
             entry['id'] = 'c' + video_id if video_type == 'clip' else video_id
             return entry
         else:
-            res = {
-                '_type': 'playlist',
-                'entries': entries,
-                'title': title,
-                'id': 'c' + video_id if video_type == 'clip' else video_id,
-            }
             return {
                 '_type': 'playlist',
                 'entries': entries,
