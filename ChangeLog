@@ -1,3 +1,15 @@
+version 2020.07.28
+
+Extractors
+* [youtube] Fix sigfunc name extraction (#26134, #26135, #26136, #26137)
+* [youtube] Improve description extraction (#25937, #25980)
+* [wistia] Restrict embed regular expression (#25969)
+* [youtube] Prevent excess HTTP 301 (#25786)
++ [youtube:playlists] Extend URL regular expression (#25810)
++ [bellmedia] Add support for cp24.com clip URLs (#25764)
+* [brightcove] Improve embed detection (#25674)
+
+
 version 2020.06.16.1
 
 Extractors
