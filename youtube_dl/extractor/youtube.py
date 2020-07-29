@@ -3213,7 +3213,7 @@ class YoutubeSearchIE(SearchInfoExtractor, YoutubeSearchBaseInfoExtractor):
             if not new_videos or len(videos) > limit:
                 break
             next_link = self._html_search_regex(
-                r'href="(/results\?[^"]*\bsp=[^"]+)"[^>]*>\s*<span[^>]+class="[^"]*\byt-uix-button-content\b[^"]*"[^>]*>Next',
+                r'href="(/results\?[^"]*\b(?:sp=[^"]+)?)"[^>]*>\s*<span[^>]+class="[^"]*\byt-uix-button-content\b[^"]*"[^>]*>Next',
                 html_content, 'next link', default=None)
             if next_link is None:
                 break
