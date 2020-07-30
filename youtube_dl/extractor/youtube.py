@@ -2244,7 +2244,8 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
 
         # thumbnail image
         # We try first to get a high quality image:
-        m_thumb = re.search(r'<span itemprop="thumbnail".*?href="(.*?)">',video_webpage, re.DOTALL)
+        m_thumb = re.search(r'<span itemprop="thumbnail".*?href="(.*?)">',
+                            video_webpage, re.DOTALL)
         if m_thumb is not None:
             video_thumbnail = m_thumb.group(1)
         elif 'thumbnail_url' not in video_info:
