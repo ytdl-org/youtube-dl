@@ -3310,7 +3310,7 @@ class YoutubeFeedsInfoExtractor(YoutubeBaseInfoExtractor):
     """
     _LOGIN_REQUIRED = True
     _FEED_DATA = r'window\[\"ytInitialData\"\]\W?=\W?({.*?});'
-    _YTCFG_DATA =  r"ytcfg.set\(({.*?})\)"
+    _YTCFG_DATA = r"ytcfg.set\(({.*?})\)"
 
     @property
     def IE_NAME(self):
@@ -3319,10 +3319,9 @@ class YoutubeFeedsInfoExtractor(YoutubeBaseInfoExtractor):
     def _real_initialize(self):
         self._login()
 
-
     def _find_videos_in_json(self, extracted):
         videos = []
-        continuation = None        
+        continuation = None
 
         def _real_find(obj):
             if obj is None or isinstance(obj, str):
@@ -3336,19 +3335,19 @@ class YoutubeFeedsInfoExtractor(YoutubeBaseInfoExtractor):
                 if "videoId" in obj:
                     videos.append(obj)
                     return
-                
+
                 if "nextContinuationData" in obj:
                     nonlocal continuation
                     continuation = obj["nextContinuationData"]
-                    return 
-                
+                    return
+
                 for _, o in obj.items():
                     _real_find(o)
 
         _real_find(extracted)
 
         return videos, continuation
-        
+
     def _entries(self, page):
         info = []
 
@@ -3359,14 +3358,14 @@ class YoutubeFeedsInfoExtractor(YoutubeBaseInfoExtractor):
         for page_num in itertools.count(1):
             video_info, continuation = self._find_videos_in_json(search_response)
 
-            new_info = [] 
+            new_info = []
 
             for v in video_info:
                 v_id = try_get(v, lambda x: x['videoId'])
                 if not v_id:
                     continue
 
-                have_video = False 
+                have_video = False
                 for old in info:
                     if old['videoId'] == v_id:
                         have_video = True
@@ -3402,7 +3401,7 @@ class YoutubeFeedsInfoExtractor(YoutubeBaseInfoExtractor):
                     "X-YouTube-Device": try_get(yt_conf, lambda x: x["DEVICE"]),
                     "X-YouTube-Page-CL": try_get(yt_conf, lambda x: x["PAGE_CL"]),
                     "X-YouTube-Page-Label": try_get(yt_conf, lambda x: x["PAGE_BUILD_LABEL"]),
-                    "X-YouTube-Variants-Checksum": try_get(yt_conf, lambda x: x["VARIANTS_CHECKSUM"]), 
+                    "X-YouTube-Variants-Checksum": try_get(yt_conf, lambda x: x["VARIANTS_CHECKSUM"]),
                 })
 
     def _real_extract(self, url):
