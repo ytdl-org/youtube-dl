@@ -5,10 +5,12 @@ import codecs
 import re
 
 from .common import InfoExtractor
+from ..compat import compat_urllib_parse_unquote
 from ..utils import (
     ExtractorError,
     float_or_none,
     int_or_none,
+    try_get,
     multipart_encode,
     parse_duration,
     random_birthday,
@@ -98,6 +100,14 @@ class CDAIE(InfoExtractor):
 
         formats = []
 
+        metadata_json = self._html_search_regex(r'''(?x)
+            <script[^>]+type=(["\'])application/ld\+json\1[^>]*>
+            (?P<metadata_json>(?:.|\n)+?)
+            </script>
+        ''', webpage, 'metadata_json', fatal=False, group='metadata_json')
+
+        metadata = self._parse_json(metadata_json, 'metadata', fatal=False)
+
         uploader = self._search_regex(r'''(?x)
             <(span|meta)[^>]+itemprop=(["\'])author\2[^>]*>
             (?:<\1[^>]*>[^<]*</\1>|(?!</\1>)(?:.|\n))*?
@@ -106,9 +116,7 @@ class CDAIE(InfoExtractor):
         view_count = self._search_regex(
             r'Odsłony:(?:\s|&nbsp;)*([0-9]+)', webpage,
             'view_count', default=None)
-        average_rating = self._search_regex(
-            r'<(?:span|meta)[^>]+itemprop=(["\'])ratingValue\1[^>]*>(?P<rating_value>[0-9.]+)',
-            webpage, 'rating', fatal=False, group='rating_value')
+        average_rating = try_get(metadata, lambda x: x[0]['aggregateRating']['ratingValue'], str)
 
         info_dict = {
             'id': video_id,
@@ -122,6 +130,47 @@ class CDAIE(InfoExtractor):
             'duration': None,
             'age_limit': 18 if need_confirm_age else 0,
         }
+
+        # Function extracted from cda.pl player.js script
+        def deobfuscate_video_url(url):
+            if not any(word in url for word in ['http', '.mp4', 'uggcf://']):
+                word_list = [
+                    '_XDDD',
+                    '_CDA',
+                    '_ADC',
+                    '_CXD',
+                    '_QWE',
+                    '_Q5',
+                    '_IKSDE',
+                ]
+                for word in word_list:
+                    url = url.replace(word, '')
+
+                url = compat_urllib_parse_unquote(url)
+
+                char_list = list(url)
+                for i, char in enumerate(char_list):
+                    char_code = ord(char)
+                    if 33 <= char_code <= 126:
+                        char_list[i] = chr(33 + ((char_code + 14) % 94))
+                url = ''.join(char_list)
+
+                url = url.replace('.cda.mp4', '')
+                url = url.replace('.2cda.pl', '.cda.pl')
+                url = url.replace('.3cda.pl', '.cda.pl')
+
+                url = 'https://' + (url.replace('/upstream', '.mp4/upstream')
+                                    if '/upstream' in url else url + '.mp4')
+
+            if 'http' not in url:
+                url = codecs.decode(url, 'rot_13')
+
+            if 'mp4' not in url:
+                url += '.mp4'
+
+            url = url.replace('adc.mp4', '.mp4')
+
+            return url
 
         def extract_format(page, version):
             json_str = self._html_search_regex(
@@ -137,12 +186,10 @@ class CDAIE(InfoExtractor):
             if not video or 'file' not in video:
                 self.report_warning('Unable to extract %s version information' % version)
                 return
-            if video['file'].startswith('uggc'):
-                video['file'] = codecs.decode(video['file'], 'rot_13')
-                if video['file'].endswith('adc.mp4'):
-                    video['file'] = video['file'].replace('adc.mp4', '.mp4')
+
+            url = deobfuscate_video_url(video['file'])
             f = {
-                'url': video['file'],
+                'url': url,
             }
             m = re.search(
                 r'<a[^>]+data-quality="(?P<format_id>[^"]+)"[^>]+href="[^"]+"[^>]+class="[^"]*quality-btn-active[^"]*">(?P<height>[0-9]+)p',
