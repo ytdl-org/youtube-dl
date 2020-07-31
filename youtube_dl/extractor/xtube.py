@@ -92,6 +92,7 @@ class XTubeIE(InfoExtractor):
         config = self._parse_json(self._search_regex(
             r'playerConf\s*=\s*({.+?})\s*,\s*\n', webpage, 'config',
             default='{}'), video_id, transform_source=js_to_json, fatal=False)
+        sources = {}
         if config:
             config = config.get('mainRoll')
             if isinstance(config, dict):
