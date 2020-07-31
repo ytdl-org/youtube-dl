@@ -148,12 +148,8 @@ class CDAIE(InfoExtractor):
 
                 url = compat_urllib_parse_unquote(url)
 
-                char_list = list(url)
-                for i, char in enumerate(char_list):
-                    char_code = ord(char)
-                    if 33 <= char_code <= 126:
-                        char_list[i] = chr(33 + ((char_code + 14) % 94))
-                url = ''.join(char_list)
+                url = ''.join(map(lambda char: chr(33 + ((ord(char) + 14) % 94))
+                                  if 33 <= ord(char) <= 126 else char, url))
 
                 url = url.replace('.cda.mp4', '')
                 url = url.replace('.2cda.pl', '.cda.pl')
