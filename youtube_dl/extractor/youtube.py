@@ -3321,7 +3321,7 @@ class YoutubeFeedsInfoExtractor(YoutubeBaseInfoExtractor):
 
     def _find_videos_in_json(self, extracted):
         videos = []
-        continuation = None
+        c = {}
 
         def _real_find(obj):
             if obj is None or isinstance(obj, str):
@@ -3337,8 +3337,7 @@ class YoutubeFeedsInfoExtractor(YoutubeBaseInfoExtractor):
                     return
 
                 if "nextContinuationData" in obj:
-                    nonlocal continuation
-                    continuation = obj["nextContinuationData"]
+                    c["continuation"] = obj["nextContinuationData"]
                     return
 
                 for _, o in obj.items():
@@ -3346,7 +3345,7 @@ class YoutubeFeedsInfoExtractor(YoutubeBaseInfoExtractor):
 
         _real_find(extracted)
 
-        return videos, continuation
+        return videos, try_get(c, lambda x: x["continuation"])
 
     def _entries(self, page):
         info = []
@@ -3380,7 +3379,7 @@ class YoutubeFeedsInfoExtractor(YoutubeBaseInfoExtractor):
             info.extend(new_info)
 
             for video in new_info:
-                yield self.url_result(try_get(video, lambda x: x['videoId']), YoutubeIE.ie_key(), video_title=try_get(video, lambda x: x['title']['simpleText']))
+                yield self.url_result(try_get(video, lambda x: x['videoId']), YoutubeIE.ie_key(), video_title=try_get(video, lambda x: x['title']['runs'][0]['text']))
 
             if not continuation:
                 break
