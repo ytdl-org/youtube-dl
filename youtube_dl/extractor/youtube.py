@@ -579,8 +579,8 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
             }
         },
         {
-            'url': 'https://www.youtube.com/watch?v=UxxajLWwzqY',
             'note': 'Test generic use_cipher_signature video (#897)',
+            'url': 'https://www.youtube.com/watch?v=UxxajLWwzqY',
             'info_dict': {
                 'id': 'UxxajLWwzqY',
                 'ext': 'mp4',
@@ -601,8 +601,8 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
             }
         },
         {
-            'url': 'https://www.youtube.com/watch?v=07FYdnEawAQ',
             'note': 'Test VEVO video with age protection (#956)',
+            'url': 'https://www.youtube.com/watch?v=07FYdnEawAQ',
             'info_dict': {
                 'id': '07FYdnEawAQ',
                 'ext': 'mp4',
@@ -621,8 +621,8 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
             }
         },
         {
-            'url': '//www.YouTube.com/watch?v=yZIXLfi8CZQ',
             'note': 'Embed-only video (#1746)',
+            'url': '//www.YouTube.com/watch?v=yZIXLfi8CZQ',
             'info_dict': {
                 'id': 'yZIXLfi8CZQ',
                 'ext': 'mp4',
@@ -636,8 +636,8 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
             }
         },
         {
-            'url': 'https://www.youtube.com/watch?v=BaW_jenozKc&v=UxxajLWwzqY',
             'note': 'Use the first video ID in the URL',
+            'url': 'https://www.youtube.com/watch?v=BaW_jenozKc&v=UxxajLWwzqY',
             'info_dict': {
                 'id': 'BaW_jenozKc',
                 'ext': 'mp4',
@@ -659,8 +659,8 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
             },
         },
         {
-            'url': 'https://www.youtube.com/watch?v=a9LDPn-MO4I',
             'note': '256k DASH audio (format 141) via DASH manifest',
+            'url': 'https://www.youtube.com/watch?v=a9LDPn-MO4I',
             'info_dict': {
                 'id': 'a9LDPn-MO4I',
                 'ext': 'm4a',
@@ -677,8 +677,8 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
             },
             'skip': 'format 141 not served anymore',
         },
-        # DASH manifest with encrypted signature
         {
+            'note': 'DASH manifest with encrypted signature',
             'url': 'https://www.youtube.com/watch?v=IB3lcPjvWLA',
             'info_dict': {
                 'id': 'IB3lcPjvWLA',
@@ -695,8 +695,8 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                 'format': '141/bestaudio[ext=m4a]',
             },
         },
-        # JS player signature function name containing $
         {
+            'note': 'JS player signature function name containing $',
             'url': 'https://www.youtube.com/watch?v=nfWlot6h_JM',
             'info_dict': {
                 'id': 'nfWlot6h_JM',
@@ -713,8 +713,8 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                 'format': '141/bestaudio[ext=m4a]',
             },
         },
-        # Controversy video
         {
+            'note': 'Controversy video',
             'url': 'https://www.youtube.com/watch?v=T4XJQO3qol8',
             'info_dict': {
                 'id': 'T4XJQO3qol8',
@@ -728,8 +728,8 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                 'description': 'SUBSCRIBE: http://www.youtube.com/saturninefilms\n\nEven Obama has taken a stand against freedom on this issue: http://www.huffingtonpost.com/2010/09/09/obama-gma-interview-quran_n_710282.html',
             }
         },
-        # Normal age-gate video (No vevo, embed allowed)
         {
+            'note': 'Normal age-gate video (No vevo, embed allowed)',
             'url': 'https://youtube.com/watch?v=HtVdAasjOgU',
             'info_dict': {
                 'id': 'HtVdAasjOgU',
@@ -744,8 +744,8 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                 'age_limit': 18,
             },
         },
-        # Age-gate video with encrypted signature
         {
+            'note': 'Age-gate video with encrypted signature',
             'url': 'https://www.youtube.com/watch?v=6kLq3WMV1nU',
             'info_dict': {
                 'id': '6kLq3WMV1nU',
@@ -760,9 +760,9 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                 'age_limit': 18,
             },
         },
-        # video_info is None (https://github.com/ytdl-org/youtube-dl/issues/4421)
         # YouTube Red ad is not captured for creator
         {
+            'note': 'video_info is None (https://github.com/ytdl-org/youtube-dl/issues/4421)',
             'url': '__2ABJjxzNo',
             'info_dict': {
                 'id': '__2ABJjxzNo',
@@ -781,8 +781,8 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                 'DASH manifest missing',
             ]
         },
-        # Olympics (https://github.com/ytdl-org/youtube-dl/issues/4431)
         {
+            'note': 'Olympics (https://github.com/ytdl-org/youtube-dl/issues/4431)',
             'url': 'lqQg6PlCWgI',
             'info_dict': {
                 'id': 'lqQg6PlCWgI',
@@ -799,8 +799,8 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                 'skip_download': 'requires avconv',
             }
         },
-        # Non-square pixels
         {
+            'note': 'Non-square pixels',
             'url': 'https://www.youtube.com/watch?v=_b-2C3KPAM0',
             'info_dict': {
                 'id': '_b-2C3KPAM0',
@@ -815,8 +815,8 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                 'title': '[A-made] 變態妍字幕版 太妍 我就是這樣的人',
             },
         },
-        # url_encoded_fmt_stream_map is empty string
         {
+            'note': 'url_encoded_fmt_stream_map is empty string',
             'url': 'qEJwOuvDf7I',
             'info_dict': {
                 'id': 'qEJwOuvDf7I',
@@ -832,8 +832,8 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
             },
             'skip': 'This live event has ended.',
         },
-        # Extraction from multiple DASH manifests (https://github.com/ytdl-org/youtube-dl/pull/6097)
         {
+            'note': 'Extraction from multiple DASH manifests (https://github.com/ytdl-org/youtube-dl/pull/6097)',
             'url': 'https://www.youtube.com/watch?v=FIl7x6_3R5Y',
             'info_dict': {
                 'id': 'FIl7x6_3R5Y',
@@ -849,8 +849,8 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
             },
             'skip': 'not actual anymore',
         },
-        # DASH manifest with segment_list
         {
+            'note': 'DASH manifest with segment_list',
             'url': 'https://www.youtube.com/embed/CsmdDsKjzN8',
             'md5': '8ce563a1d667b599d21064e982ab9e31',
             'info_dict': {
@@ -869,7 +869,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
             'skip': 'This live event has ended.',
         },
         {
-            # Multifeed videos (multiple cameras), URL is for Main Camera
+            'note': 'Multifeed videos (multiple cameras), URL is for Main Camera',
             'url': 'https://www.youtube.com/watch?v=jqWvoWXjCVs',
             'info_dict': {
                 'id': 'jqWvoWXjCVs',
@@ -935,7 +935,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
             'skip': 'This video is not available.',
         },
         {
-            # Multifeed video with comma in title (see https://github.com/ytdl-org/youtube-dl/issues/8536)
+            'note': 'Multifeed video with comma in title (see https://github.com/ytdl-org/youtube-dl/issues/8536)',
             'url': 'https://www.youtube.com/watch?v=gVfLd0zydlo',
             'info_dict': {
                 'id': 'gVfLd0zydlo',
@@ -957,6 +957,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
             # Also tests cut-off URL expansion in video description (see
             # https://github.com/ytdl-org/youtube-dl/issues/1892,
             # https://github.com/ytdl-org/youtube-dl/issues/8164)
+            'note': 'Title with JS-like syntax "};" (see https://github.com/ytdl-org/youtube-dl/issues/7468)',
             'url': 'https://www.youtube.com/watch?v=lsguqyKfVQg',
             'info_dict': {
                 'id': 'lsguqyKfVQg',
@@ -979,12 +980,12 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
             },
         },
         {
-            # Tags with '};' (see https://github.com/ytdl-org/youtube-dl/issues/7468)
+            'note': "Tags with '};' (see https://github.com/ytdl-org/youtube-dl/issues/7468)",
             'url': 'https://www.youtube.com/watch?v=Ms7iBXnlUO8',
             'only_matching': True,
         },
         {
-            # Video with yt:stretch=17:0
+            'note': 'Video with yt:stretch=17:0',
             'url': 'https://www.youtube.com/watch?v=Q39EVAstoRM',
             'info_dict': {
                 'id': 'Q39EVAstoRM',
@@ -1001,7 +1002,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
             'skip': 'This video does not exist.',
         },
         {
-            # Video licensed under Creative Commons
+            'note': 'Video licensed under Creative Commons',
             'url': 'https://www.youtube.com/watch?v=M4gD1WSo5mA',
             'info_dict': {
                 'id': 'M4gD1WSo5mA',
@@ -1020,7 +1021,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
             },
         },
         {
-            # Channel-like uploader_url
+            'note': 'Channel-like uploader_url',
             'url': 'https://www.youtube.com/watch?v=eQcmzGIKrzg',
             'info_dict': {
                 'id': 'eQcmzGIKrzg',
@@ -1043,12 +1044,12 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
             'only_matching': True,
         },
         {
-            # YouTube Red paid video (https://github.com/ytdl-org/youtube-dl/issues/10059)
+            'note': 'YouTube Red paid video (https://github.com/ytdl-org/youtube-dl/issues/10059)',
             'url': 'https://www.youtube.com/watch?v=i1Ko8UG-Tdo',
             'only_matching': True,
         },
         {
-            # Rental video preview
+            'note': 'Rental video preview',
             'url': 'https://www.youtube.com/watch?v=yYr8q0y5Jfg',
             'info_dict': {
                 'id': 'uGpuVWrhIzE',
@@ -1067,7 +1068,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
             'skip': 'This video is not available.',
         },
         {
-            # YouTube Red video with episode data
+            'note': 'YouTube Red video with episode data',
             'url': 'https://www.youtube.com/watch?v=iqKdEhx-dD4',
             'info_dict': {
                 'id': 'iqKdEhx-dD4',
@@ -1091,8 +1092,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
             ],
         },
         {
-            # The following content has been identified by the YouTube community
-            # as inappropriate or offensive to some audiences.
+            'note': 'The following content has been identified by the YouTube community as inappropriate or offensive to some audiences',
             'url': 'https://www.youtube.com/watch?v=6SJNVb0GnPI',
             'info_dict': {
                 'id': '6SJNVb0GnPI',
@@ -1110,12 +1110,12 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
             },
         },
         {
-            # itag 212
             'url': '1t24XAntNCY',
+            'note': 'itag 212',
             'only_matching': True,
         },
         {
-            # geo restricted to JP
+            'note': 'geo restricted to JP',
             'url': 'sJL6WA-aGkQ',
             'only_matching': True,
         },
@@ -1128,12 +1128,12 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
             'only_matching': True,
         },
         {
-            # DRM protected
+            'note': 'DRM protected',
             'url': 'https://www.youtube.com/watch?v=s7_qI6_mIXc',
             'only_matching': True,
         },
         {
-            # Video with unsupported adaptive stream type formats
+            'note': 'Video with unsupported adaptive stream type formats',
             'url': 'https://www.youtube.com/watch?v=Z4Vy8R84T1U',
             'info_dict': {
                 'id': 'Z4Vy8R84T1U',
@@ -1154,8 +1154,8 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
             'skip': 'not actual anymore',
         },
         {
-            # Youtube Music Auto-generated description
             'url': 'https://music.youtube.com/watch?v=MgNrAu2pzNs',
+            'note': 'Youtube Music Auto-generated description',
             'info_dict': {
                 'id': 'MgNrAu2pzNs',
                 'ext': 'mp4',
@@ -1175,8 +1175,8 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
             },
         },
         {
-            # Youtube Music Auto-generated description
             # Retrieve 'artist' field from 'Artist:' in video description
+            'note': 'Youtube Music Auto-generated description',
             # when it is present on youtube music video
             'url': 'https://www.youtube.com/watch?v=k0jLE7tTwjY',
             'info_dict': {
@@ -1198,8 +1198,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
             },
         },
         {
-            # Youtube Music Auto-generated description
-            # handle multiple artists on youtube music video
+            'note': 'Youtube Music Auto-generated description, handle multiple artists on youtube music video',
             'url': 'https://www.youtube.com/watch?v=74qn0eJSjpA',
             'info_dict': {
                 'id': '74qn0eJSjpA',
@@ -1220,8 +1219,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
             },
         },
         {
-            # Youtube Music Auto-generated description
-            # handle youtube music video with release_year and no release_date
+            'note': 'Youtube Music Auto-generated description, handle youtube music video with release_year and no release_date',
             'url': 'https://www.youtube.com/watch?v=-hcAI0g-f5M',
             'info_dict': {
                 'id': '-hcAI0g-f5M',
@@ -1246,8 +1244,8 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
             'only_matching': True,
         },
         {
-            # invalid -> valid video id redirection
             'url': 'DJztXj2GPfl',
+            'note': 'invalid -> valid video id redirection',
             'info_dict': {
                 'id': 'DJztXj2GPfk',
                 'ext': 'mp4',
