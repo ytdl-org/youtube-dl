@@ -34,7 +34,7 @@ class TikTokBaseIE(InfoExtractor):
 
         formats = []
         formats.append({
-            'url': try_get(video_info, lambda x: x['video']['urls'][0], str),
+            'url': try_get(video_info, lambda x: x['video']['urls'][0]),
             'ext': 'mp4',
             'height': height,
             'width': width
@@ -47,7 +47,7 @@ class TikTokBaseIE(InfoExtractor):
             'id': str_or_none(video_info.get('id')),
             'like_count': int_or_none(video_info.get('diggCount')),
             'repost_count': int_or_none(video_info.get('shareCount')),
-            'thumbnail': try_get(video_info, lambda x: x['covers'][0], str),
+            'thumbnail': try_get(video_info, lambda x: x['covers'][0]),
             'timestamp': timestamp,
             'width': width,
             'title': self._og_search_title(webpage),
