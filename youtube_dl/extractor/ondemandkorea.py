@@ -60,6 +60,11 @@ class OnDemandKoreaIE(InfoExtractor):
                 'This video is only available to ODK PLUS members.',
                 expected=True)
 
+        if 'ODK PREMIUM Members Only' in webpage:
+            raise ExtractorError(
+                'This video is only available to ODK PREMIUM members.',
+                expected=True)
+
         title = self._search_regex(
             r'class=["\']episode_title["\'][^>]*>([^<]+)',
             webpage, 'episode_title', fatal=False) or self._og_search_title(webpage)
