@@ -440,6 +440,7 @@ class FacebookIE(InfoExtractor):
                    _lowercase_escape(self._search_regex(r'\"ownerName\":"(.+?)"', tahoe_data.secondary, 'uploader_id',
                                                         fatal=False)) or \
                    self._search_regex(r'ownerName"\s*:\s*"([^"]+)"', webpage, 'uploader', default=None) or \
+                   self._search_regex(r'ownerName"\s*:\s*"([^"]+)"', tahoe_data.primary, 'uploader', default=None) or \
                    self._og_search_title(webpage, default=None)
 
         timestamp = self._resolve_timestamp(webpage, tahoe_data)
@@ -806,6 +807,9 @@ class FacebookIE(InfoExtractor):
 
         if not thumbnail:
             thumbnail = self._search_regex(r'"thumbnailUrl":"(.+?)"', webpage, 'thumbnail', fatal=False)
+            if not thumbnail:
+                thumbnail = self._search_regex(r'"preferredThumbnailURI":"(.+?)"', tahoe_data.primary, 'thumbnail',
+                                               fatal=False)
             thumbnail = str(thumbnail).replace('\\', "")
         return thumbnail
 
