@@ -54,8 +54,8 @@ class FloatplaneIE(InfoExtractor):
         #  each url separately
         for level in cdn_json['resource']['data']['qualityLevels']:
             video_url = cdn_json['cdn'] + cdn_json['resource']['uri']
-            video_url = video_url.replace('{qualityLevels}',level['name'])
-            video_url = video_url.replace('{qualityLevelParams.token}',cdn_json['resource']['data']['qualityLevelParams'][level['name']]['token'])
+            video_url = video_url.replace('{qualityLevels}', level['name'])
+            video_url = video_url.replace('{qualityLevelParams.token}', cdn_json['resource']['data']['qualityLevelParams'][level['name']]['token'])
             formats.append({
                 'format_id': level['name'],
                 'url': video_url,
