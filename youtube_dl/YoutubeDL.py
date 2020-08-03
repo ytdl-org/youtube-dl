@@ -1805,6 +1805,14 @@ class YoutubeDL(object):
                     self.report_error('Cannot write annotations file: ' + annofn)
                     return
 
+        def dl(name, info):
+            fd = get_suitable_downloader(info, self.params)(self, self.params)
+            for ph in self._progress_hooks:
+                fd.add_progress_hook(ph)
+            if self.params.get('verbose'):
+                self.to_stdout('[debug] Invoking downloader on %r' % info.get('url'))
+            return fd.download(name, info)
+
         subtitles_are_requested = any([self.params.get('writesubtitles', False),
                                        self.params.get('writeautomaticsub')])
 
@@ -1819,7 +1827,6 @@ class YoutubeDL(object):
                 if self.params.get('nooverwrites', False) and os.path.exists(encodeFilename(sub_filename)):
                     self.to_screen('[info] Video subtitle %s.%s is already present' % (sub_lang, sub_format))
                 else:
-                    self.to_screen('[info] Writing video subtitles to: ' + sub_filename)
                     if sub_info.get('data') is not None:
                         try:
                             # Use newline='' to prevent conversion of newline characters
@@ -1831,10 +1838,9 @@ class YoutubeDL(object):
                             return
                     else:
                         try:
-                            sub_data = ie._request_webpage(
-                                sub_info['url'], info_dict['id'], note=False).read()
-                            with io.open(encodeFilename(sub_filename), 'wb') as subfile:
-                                subfile.write(sub_data)
+                            # TODO does this transfer session...?
+                            # TODO exceptions
+                            dl(sub_filename, sub_info)
                         except (ExtractorError, IOError, OSError, ValueError) as err:
                             self.report_warning('Unable to download subtitle for "%s": %s' %
                                                 (sub_lang, error_to_compat_str(err)))
@@ -1856,14 +1862,6 @@ class YoutubeDL(object):
 
         if not self.params.get('skip_download', False):
             try:
-                def dl(name, info):
-                    fd = get_suitable_downloader(info, self.params)(self, self.params)
-                    for ph in self._progress_hooks:
-                        fd.add_progress_hook(ph)
-                    if self.params.get('verbose'):
-                        self.to_stdout('[debug] Invoking downloader on %r' % info.get('url'))
-                    return fd.download(name, info)
-
                 if info_dict.get('requested_formats') is not None:
                     downloaded = []
                     success = True
