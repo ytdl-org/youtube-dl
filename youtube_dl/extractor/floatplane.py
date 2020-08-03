@@ -74,5 +74,5 @@ class FloatplaneIE(InfoExtractor):
             'url': video_url,
             'thumbnail': try_get(info_json, lambda x: x['thumbnail']['path'], compat_str),
             'formats': formats,
-            'duration': int_or_none(try_get(info_json, lambda x: x['metsadata']['videoDuration']))
+            'duration': int_or_none(try_get(info_json, lambda x: x['metadata']['videoDuration']))
         }
