@@ -1462,6 +1462,14 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                     'ext': ext,
                 })
             sub_lang_list[lang] = sub_formats
+        # TODO check that live chat replay actually exists
+        sub_lang_list['live_chat'] = [
+            {
+                'video_id': video_id,
+                'ext': 'json',
+                'protocol': 'youtube_live_chat_replay',
+            },
+        ]
         if not sub_lang_list:
             self._downloader.report_warning('video doesn\'t have subtitles')
             return {}

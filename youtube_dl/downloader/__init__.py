@@ -8,6 +8,7 @@ from .rtmp import RtmpFD
 from .dash import DashSegmentsFD
 from .rtsp import RtspFD
 from .ism import IsmFD
+from .youtube_live_chat import YoutubeLiveChatReplayFD
 from .external import (
     get_external_downloader,
     FFmpegFD,
@@ -26,6 +27,7 @@ PROTOCOL_MAP = {
     'f4m': F4mFD,
     'http_dash_segments': DashSegmentsFD,
     'ism': IsmFD,
+    'youtube_live_chat_replay': YoutubeLiveChatReplayFD,
 }
 
 
