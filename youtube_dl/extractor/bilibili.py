@@ -151,7 +151,7 @@ class BiliBiliIE(InfoExtractor):
         video_count = video_data['videos']
 
         tags_info = self._download_json(
-            f"https://api.bilibili.com/x/web-interface/view/detail/tag?aid={aid}", video_id,
+            "https://api.bilibili.com/x/web-interface/view/detail/tag?aid=%s" % (aid), video_id,
             'Geting video tags.', 'Unable to get Login/User Information.')
         if tags_info['code'] != 0:
             self._report_error(tags_info)
@@ -181,7 +181,7 @@ class BiliBiliIE(InfoExtractor):
             'uploader': uploader_data['name'],
             'uploader_id': uploader_data['mid'],
             'duration': video_data['duration'],
-            'webpage_url': f'https://www.bilibili.com/video/av{aid}',
+            'webpage_url': 'https://www.bilibili.com/video/av%s' % (aid),
             'categories': [video_data['tname']],
             'view_count': video_data['stat']['viewseo'],
             'comment_count': video_data['stat']['reply'],
@@ -198,11 +198,11 @@ class BiliBiliIE(InfoExtractor):
         for part_info in video_data['pages']:
             if part is not None and part_info["page"] != part:
                 continue
-            uri = f'https://www.bilibili.com/video/av{aid}?p={part_info["page"]}'
+            uri = 'https://www.bilibili.com/video/av%s?p=%s' % (aid, part_info["page"])
             if first:
                 first = False
             else:
-                webpage = self._download_webpage(uri, f"{video_id} Part{part_info['page']}")
+                webpage = self._download_webpage(uri, "%s Part%s" % (video_id, part_info['page']))
             headers = {'referer': uri}
             if new_api:
                 play_info = re.search(r"window\.__playinfo__=([^<]+)", webpage, re.I)  # Get video links from webpage.
@@ -214,8 +214,8 @@ class BiliBiliIE(InfoExtractor):
                 else:
                     new_api = False
                     play_info = self._download_json(
-                        f"https://api.bilibili.com/x/player/playurl?cid={part_info['cid']}&qn=120&otype=json&bvid={bvid}&fnver=0&fnval=16",
-                        f"{video_id} Part{part_info['page']}",
+                        "https://api.bilibili.com/x/player/playurl?cid=%s&qn=120&otype=json&bvid=%s&fnver=0&fnval=16" % (part_info['cid'], bvid),
+                        "%s Part%s" % (video_id, part_info['page']),
                         "Geting video links.",
                         "Unable to get video links.")
                     if play_info['code'] != 0:
@@ -223,8 +223,8 @@ class BiliBiliIE(InfoExtractor):
                     play_info = play_info['data']
             else:
                 play_info = self._download_json(
-                    f"https://api.bilibili.com/x/player/playurl?cid={part_info['cid']}&qn=120&otype=json&bvid={bvid}&fnver=0&fnval=16",
-                    f"{video_id} Part{part_info['page']}",
+                    "https://api.bilibili.com/x/player/playurl?cid=%s&qn=120&otype=json&bvid=%s&fnver=0&fnval=16" % (part_info['cid'], bvid),
+                    "%s Part%s" % (video_id, part_info['page']),
                     "Geting video links.",
                     "Unable to get video links.")
                 if play_info['code'] != 0:
@@ -233,14 +233,14 @@ class BiliBiliIE(InfoExtractor):
             if 'durl' in play_info:  # Stream for flv player
                 if video_count > 1 and len(play_info['durl']) > 1 and part is None:
                     self.report_warning(
-                        f"There are multiply FLV files in this part. Please input \"{uri}\" to extract it.",
-                        f"{video_id} Part{part_info['page']}")
+                        "There are multiply FLV files in this part. Please input \"%s\" to extract it." % (uri),
+                        "%s Part%s" % (video_id, part_info['page']))
                     continue
                 is_durl = True
                 if video_count > 1:
                     info.update({
-                        'title': f"{info['title']} - {part_info['part']}",
-                        'id': f"{video_id} P{part_info['page']}"
+                        'title': "%s - %s" % (info['title'], part_info['part']),
+                        'id': "%s P%s" % (video_id, part_info['page'])
                     })
                 video_quality = play_info['quality']
                 accept_video_quality_desc = play_info['accept_description']
@@ -256,11 +256,11 @@ class BiliBiliIE(InfoExtractor):
                 for video_q in accept_video_quality:
                     if video_q not in video_formats:
                         if new_api:
-                            self._set_cookie(domain=".bilibili.com", name="CURRENT_QUALITY", value=f"{video_q}")
+                            self._set_cookie(domain=".bilibili.com", name="CURRENT_QUALITY", value=str(video_q))
                             webpage = self._download_webpage(uri,
-                                                             f"{video_id} Part{part_info['page']}",
-                                                             f"Geting video links for format id : {video_q}.",
-                                                             f"Unable to get video links for format id : {video_q}.")
+                                                             "%s Part%s" % (video_id, part_info['page']),
+                                                             "Geting video links for format id : %s." % (video_q),
+                                                             "Unable to get video links for format id : %s." % (video_q))
                             play_info = re.search(r"window\.__playinfo__=([^<]+)", webpage, re.I)  # Get video links from webpage.
                             if play_info is not None:
                                 play_info = json.loads(play_info.groups()[0])
@@ -270,17 +270,19 @@ class BiliBiliIE(InfoExtractor):
                             else:
                                 new_api = False
                                 play_info = self._download_json(
-                                    f"https://api.bilibili.com/x/player/playurl?cid={part_info['cid']}&qn={video_q}&otype=json&bvid={bvid}&fnver=0&fnval=16", f"{video_id} Part{part_info['page']}",
-                                    f"Geting video links for format id : {video_q}.",
-                                    f"Unable to get video links for format id : {video_q}.")
+                                    "https://api.bilibili.com/x/player/playurl?cid=%s&qn=%s&otype=json&bvid=%s&fnver=0&fnval=16" % (part_info['cid'], video_q, bvid),
+                                    "%s Part%s" % (video_id, part_info['page']),
+                                    "Geting video links for format id : %s." % (video_q),
+                                    "Unable to get video links for format id : %s." % (video_q))
                                 if play_info['code'] != 0:
                                     self._report_error(play_info)
                                 play_info = play_info['data']
                         else:
                             play_info = self._download_json(
-                                f"https://api.bilibili.com/x/player/playurl?cid={part_info['cid']}&qn={video_q}&otype=json&bvid={bvid}&fnver=0&fnval=16", f"{video_id} Part{part_info['page']}",
-                                f"Geting video links for format id : {video_q}.",
-                                f"Unable to get video links for format id : {video_q}.")
+                                "https://api.bilibili.com/x/player/playurl?cid=%s&qn=%s&otype=json&bvid=%s&fnver=0&fnval=16" % (part_info['cid'], video_q, bvid),
+                                "%s Part%s" % (video_id, part_info['page']),
+                                "Geting video links for format id : %s." % (video_q),
+                                "Unable to get video links for format id : %s." % (video_q))
                             if play_info['code'] != 0:
                                 self._report_error(play_info)
                             play_info = play_info['data']
@@ -291,7 +293,7 @@ class BiliBiliIE(InfoExtractor):
                 for i in range(max(durl_length)):
                     entry = {}
                     entry.update(info)
-                    entry.update({'id': f"{info['id']} Part{i+1}"})
+                    entry.update({'id': "%s Part%s" % (info['id'], i + 1)})
                     formats_output = []
                     for video_q in accept_video_quality:
                         durl = video_formats[video_q]
@@ -299,7 +301,7 @@ class BiliBiliIE(InfoExtractor):
                             video_format = durl[i]
                             formats_output.append({
                                 "url": video_format['url'],
-                                "format_id": f"{video_q}",
+                                "format_id": str(video_q),
                                 "ext": "flv",
                                 "http_headers": headers,
                                 "filesize": video_format['size']
@@ -338,11 +340,11 @@ class BiliBiliIE(InfoExtractor):
                             elif is_vip > 0:
                                 bs = True
                             if new_api:
-                                self._set_cookie(domain=".bilibili.com", name="CURRENT_QUALITY", value=f"{video_q}")
+                                self._set_cookie(domain=".bilibili.com", name="CURRENT_QUALITY", value=str(video_q))
                                 webpage = self._download_webpage(uri,
-                                                                 f"{video_id} Part{part_info['page']}",
-                                                                 f"Geting video links for format id : {video_q}.",
-                                                                 f"Unable to get video links for format id : {video_q}.")
+                                                                 "%s Part%s" % (video_id, part_info['page']),
+                                                                 "Geting video links for format id : %s." % (video_q),
+                                                                 "Unable to get video links for format id : %s." % (video_q))
                                 play_info = re.search(r"window\.__playinfo__=([^<]+)", webpage, re.I)  # Get video links from webpage.
                                 if play_info is not None:
                                     play_info = json.loads(play_info.groups()[0])
@@ -352,18 +354,19 @@ class BiliBiliIE(InfoExtractor):
                                 else:
                                     new_api = False
                                     play_info = self._download_json(
-                                        f"https://api.bilibili.com/x/player/playurl?cid={part_info['cid']}&qn={video_q}&otype=json&bvid={bvid}&fnver=0&fnval=16", f"{video_id} Part{part_info['page']}",
-                                        f"Geting video links for format id : {video_q}.",
-                                        f"Unable to get video links for format id : {video_q}.")
+                                        "https://api.bilibili.com/x/player/playurl?cid=%s&qn=%s&otype=json&bvid=%s&fnver=0&fnval=16" % (part_info['cid'], video_q, bvid),
+                                        "%s Part%s" % (video_id, part_info['page']),
+                                        "Geting video links for format id : %s." % (video_q),
+                                        "Unable to get video links for format id : %s." % (video_q))
                                     if play_info['code'] != 0:
                                         self._report_error(play_info)
                                     play_info = play_info['data']
                             else:
                                 play_info = self._download_json(
-                                    f"https://api.bilibili.com/x/player/playurl?cid={part_info['cid']}&qn={video_q}&otype=json&bvid={bvid}&fnver=0&fnval=16",
-                                    f"{video_id} Part{part_info['page']}",
-                                    f"Geting video links for format id : {video_q}.",
-                                    f"Unable to get video links for format id : {video_q}.")
+                                    "https://api.bilibili.com/x/player/playurl?cid=%s&qn=%s&otype=json&bvid=%s&fnver=0&fnval=16" % (part_info['cid'], video_q, bvid),
+                                    "%s Part%s" % (video_id, part_info['page']),
+                                    "Geting video links for format id : %s." % (video_q),
+                                    "Unable to get video links for format id : %s." % (video_q))
                                 if play_info['code'] != 0:
                                     self._report_error(play_info)
                                 play_info = play_info['data']
@@ -388,7 +391,7 @@ class BiliBiliIE(InfoExtractor):
                         {"url": video_format['base_url'],
                          "ext": "mp4",
                          "format_note": video_desc_dict[video_format['id']],
-                         "format_id": f"{i}",
+                         "format_id": str(i),
                          "vcodec": video_format['codecs'],
                          "fps": self._getfps(video_format['frame_rate']),
                          "width": video_format['width'],
@@ -404,15 +407,15 @@ class BiliBiliIE(InfoExtractor):
                     audio_format = video_formats[audio_quality]
                     formats_output.append({
                         "url": audio_format["base_url"],
-                        "format_id": f"{audio_format['id']}",
+                        "format_id": str(audio_format['id']),
                         "ext": "mp4",
                         "acodec": audio_format['codecs'],
                         "http_headers": headers
                     })
                 entry.update({"formats": formats_output})
                 if video_count > 1:
-                    entry.update({"title": f"{info['title']} - {part_info['part']}"})
-                    entry.update({"id": f"{video_id} P{part_info['page']}"})
+                    entry.update({"title": "%s - %s" % (info['title'], part_info['part'])})
+                    entry.update({"id": "%s P%s" % (video_id, part_info['page'])})
                 entries.append(entry)
 
         if video_count > 1:
