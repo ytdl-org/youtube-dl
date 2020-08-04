@@ -302,6 +302,7 @@ class BiliBiliIE(InfoExtractor):
                             formats_output.append({
                                 "url": video_format['url'],
                                 "format_id": str(video_q),
+                                "format_note": video_desc_dict[video_q],
                                 "ext": "flv",
                                 "http_headers": headers,
                                 "filesize": video_format['size']
