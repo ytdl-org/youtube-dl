@@ -113,7 +113,7 @@ class BiliBiliIE(InfoExtractor):
             else:
                 return 0
 
-    def _calculate_size(self, durl: list) -> int:
+    def _calculate_size(self, durl):
         "Calculate total file size."
         s = 0
         for i in durl:
