@@ -101,7 +101,7 @@ class BiliBiliIE(InfoExtractor):
         else:
             raise ExtractorError('Can\'t extract Bangumi episode ID')
 
-    def _getfps(self, s: str) -> int:
+    def _getfps(self, s):
         "convert fps to int"
         if s.isnumeric():
             return int(s)
