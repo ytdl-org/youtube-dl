@@ -152,7 +152,7 @@ class BiliBiliIE(InfoExtractor):
 
         tags_info = self._download_json(
             "https://api.bilibili.com/x/web-interface/view/detail/tag?aid=%s" % (aid), video_id,
-            'Geting video tags.', 'Unable to get Login/User Information.')
+            'Geting video tags.', 'Unable to get video tags.')
         if tags_info['code'] != 0:
             self._report_error(tags_info)
         tags_info = tags_info['data']
@@ -290,6 +290,7 @@ class BiliBiliIE(InfoExtractor):
                             video_formats[play_info["quality"]] = play_info['durl']
                             video_formats_size[play_info["quality"]] = self._calculate_size(play_info['durl'])
                             durl_length.append(len(play_info['durl']))
+                self._set_cookie(domain=".bilibili.com", name="CURRENT_QUALITY", value="120")
                 for i in range(max(durl_length)):
                     entry = {}
                     entry.update(info)
