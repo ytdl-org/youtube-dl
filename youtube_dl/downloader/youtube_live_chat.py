@@ -28,7 +28,7 @@ class YoutubeLiveChatReplayFD(FragmentFD):
             return self._download_fragment(ctx, url, info_dict, headers)
 
         def parse_yt_initial_data(data):
-            raw_json = re.search(b'window\["ytInitialData"\]\s*=\s*(.*);', data).group(1)
+            raw_json = re.search(rb'window\["ytInitialData"\]\s*=\s*(.*);', data).group(1)
             return json.loads(raw_json)
 
         self._prepare_and_start_frag_download(ctx)
