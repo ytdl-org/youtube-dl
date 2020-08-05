@@ -358,7 +358,7 @@ class SoundcloudIE(InfoExtractor):
         var g = function(e, t) {
             return o[e -= 0]
         };
-        e[g("0x9")] = {
+        e[g("0x9")] = { #e = function 162
             initialize: function() {
                 v = window[g("0x5")].now();
                 var e = function(e) {
@@ -381,6 +381,8 @@ class SoundcloudIE(InfoExtractor):
                 })
             }
         '''
+        #after shifting the list
+        #["forEach", "length", "Chrome PDF Plugin", "512", "mozInnerScreenY", "Date", "addEventListener", "Native Client", "424242", "exports", "height", "Widevine Content Decryption Module", "mousemove", "keyup", "1024", "420", "https:", "128", "plugins", "charCodeAt", "4096", "typeof global", "undefined", "now", "msLaunchUri", "screen", "eval", "safari", "navigator", "WebKit built-in PDF", "isTrusted", "touchmove", "webdriver", "__webdriver_script_fn", "Chromium PDF Viewer", "$cdc_asdjflasutopfhvcZLmcfl_", "keydown", "typeof process", "encodeURIComponent", "getAttribute", "document", "unescape", "256", "call", "Chrome PDF Viewer", "_Selenium_IDE_Recorder", "width", "TestUA", "location", "name"]
 
         '''
         sign: function(e, t, n, o) {e = "tom_heidel@web.de", t = "EXLwg5lHTO2dslU5EePe3xkw0m1h86Cd", n = "0763ed7314c69015fd4a0dc16bbf4b90", o = undefined
