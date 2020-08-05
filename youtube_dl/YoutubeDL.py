@@ -1838,10 +1838,11 @@ class YoutubeDL(object):
                             return
                     else:
                         try:
-                            # TODO does this transfer session...?
-                            # TODO exceptions
                             dl(sub_filename, sub_info)
-                        except (ExtractorError, IOError, OSError, ValueError) as err:
+                        except (
+                            ExtractorError, IOError, OSError, ValueError,
+                            compat_urllib_error.URLError,
+                            compat_http_client.HTTPException, socket.error) as err:
                             self.report_warning('Unable to download subtitle for "%s": %s' %
                                                 (sub_lang, error_to_compat_str(err)))
                             continue
