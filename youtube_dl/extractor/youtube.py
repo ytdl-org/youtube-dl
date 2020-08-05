@@ -1435,7 +1435,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
             raise ExtractorError(
                 'Signature extraction failed: ' + tb, cause=e)
 
-    def _get_subtitles(self, video_id, webpage, is_live_content):
+    def _get_subtitles(self, video_id, webpage, has_live_chat_replay):
         try:
             subs_doc = self._download_xml(
                 'https://video.google.com/timedtext?hl=en&type=list&v=%s' % video_id,
@@ -1462,7 +1462,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                     'ext': ext,
                 })
             sub_lang_list[lang] = sub_formats
-        if is_live_content:
+        if has_live_chat_replay:
             sub_lang_list['live_chat'] = [
                 {
                     'video_id': video_id,
