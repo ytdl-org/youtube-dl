@@ -449,70 +449,444 @@ class BiliBiliIE(InfoExtractor):
 
 
 class BiliBiliBangumiIE(InfoExtractor):
-    _VALID_URL = r'https?://bangumi\.bilibili\.com/anime/(?P<id>\d+)'
+    _VALID_URL = r'''(?x)
+                    https?://
+                        (?:(?:www)\.)?
+                        bilibili\.(?:tv|com)/
+                        (?:
+                            (?:
+                                bangumi/play/[sS][sS]
+                            )(?P<ssid>\d+)|
+                            bangumi/play/[eE][pP](?P<epid>\d+)
+                        )
+                    '''
 
-    IE_NAME = 'bangumi.bilibili.com'
+    IE_NAME = 'bilibili bangumi'
     IE_DESC = 'BiliBili番剧'
 
-    _TESTS = [{
-        'url': 'http://bangumi.bilibili.com/anime/1869',
-        'info_dict': {
-            'id': '1869',
-            'title': '混沌武士',
-            'description': 'md5:6a9622b911565794c11f25f81d6a97d2',
-        },
-        'playlist_count': 26,
-    }, {
-        'url': 'http://bangumi.bilibili.com/anime/1869',
-        'info_dict': {
-            'id': '1869',
-            'title': '混沌武士',
-            'description': 'md5:6a9622b911565794c11f25f81d6a97d2',
-        },
-        'playlist': [{
-            'md5': '91da8621454dd58316851c27c68b0c13',
-            'info_dict': {
-                'id': '40062',
-                'ext': 'mp4',
-                'title': '混沌武士',
-                'description': '故事发生在日本的江户时代。风是一个小酒馆的打工女。一日，酒馆里来了一群恶霸，虽然他们的举动令风十分不满，但是毕竟风只是一届女流，无法对他们采取什么行动，只能在心里嘟哝。这时，酒家里又进来了个“不良份子...',
-                'timestamp': 1414538739,
-                'upload_date': '20141028',
-                'episode': '疾风怒涛 Tempestuous Temperaments',
-                'episode_number': 1,
-            },
-        }],
-        'params': {
-            'playlist_items': '1',
-        },
-    }]
+    _TESTS = []
 
-    @classmethod
+    @ classmethod
     def suitable(cls, url):
         return False if BiliBiliIE.suitable(url) else super(BiliBiliBangumiIE, cls).suitable(url)
 
+    def _get_episode_list(self, bangumi_info):
+        ep_list = bangumi_info['epList']
+        episode_list = []
+        for i in ep_list:
+            temp = {}
+            temp.update(i)
+            episode_list.append(temp)
+        if 'sections' in bangumi_info:
+            for section in bangumi_info['sections']:
+                for i in section['epList']:
+                    temp = {}
+                    temp.update(i)
+                    temp.update({
+                        "section_title": section['title'],
+                        "section_id": section['id']
+                    })
+                    episode_list.append(temp)
+        return episode_list
+
+    def _report_error(self, error):
+        if 'message' in error:
+            raise ExtractorError(error['message'])
+        elif 'code' in error:
+            raise ExtractorError(str(error['code']))
+        else:
+            raise ExtractorError(str(error))
+
+    def _report_warning(self, warning, video_id=None):
+        if 'message' in warning:
+            self.report_warning(warning['message'], video_id)
+        elif 'code' in warning:
+            self.report_warning(str(warning['code']), video_id)
+        else:
+            self.report_warning(str(warning), video_id)
+
+    def _calculate_size(self, durl):
+        "Calculate total file size."
+        s = 0
+        for i in durl:
+            s = s + i['size']
+        return s
+
+    def _getfps(self, s):
+        "convert fps to int"
+        if s.isnumeric():
+            return int(s)
+        else:
+            r = re.search(r"([0-9]+)/([0-9]+)", s)
+            if r is not None:
+                r = r.groups()
+                return int(r[0]) / int(r[1])
+            else:
+                return 0
+
+    def _extract_episode(self, episode_info):
+        epid = episode_info['id']
+        uri = "https://www.bilibili.com/bangumi/play/ep%s" % (epid)
+        if self._epid is None:
+            video_id = "%s %s" % (self._video_id, episode_info['titleFormat'])
+        if self._first:
+            webpage = self._webpage
+            self._first = False
+        else:
+            webpage = self._download_webpage(uri, video_id)
+        headers = {'referer': uri}
+        if self._new_api:
+            play_info = re.search(r"window\.__playinfo__=([^<]+)", webpage, re.I)
+            if play_info is not None:
+                play_info = json.loads(play_info.groups()[0])
+                if play_info['code'] != 0:
+                    self._report_error(play_info)
+                play_info = play_info['data']
+            else:
+                self._new_api = False
+                play_info = self._download_json(
+                    "https://api.bilibili.com/pgc/player/web/playurl?cid=%s&qn=120&type=&otype=json&fourk=1&bvid=%s&ep_id=%s&fnver=0&fnval=16&session=" % (episode_info['cid'], episode_info['bvid'], epid),
+                    video_id,
+                    "Geting video links.",
+                    "Unable to get video links.",
+                    headers=headers)
+                if play_info['code'] == -10403:  # Need vip or buy
+                    self._new_api = True
+                    self._report_warning(play_info)
+                elif play_info['code'] != 0:
+                    self._report_error(play_info)
+                play_info = play_info['result']
+        else:
+            play_info = self._download_json(
+                "https://api.bilibili.com/pgc/player/web/playurl?cid=%s&qn=120&type=&otype=json&fourk=1&bvid=%s&ep_id=%s&fnver=0&fnval=16&session=" % (episode_info['cid'], episode_info['bvid'], epid),
+                video_id,
+                "Geting video links.",
+                "Unable to get video links.",
+                headers=headers)
+            if play_info['code'] == -10403:  # Need vip or buy
+                self._report_warning(play_info)
+            elif play_info['code'] != 0:
+                self._report_error(play_info)
+            play_info = play_info['result']
+        if 'durl' in play_info:  # Stream for flv player
+            if self._video_count > 1 and len(play_info['durl']) > 1 and self._epid is None:
+                self._report_warning(
+                    "There are multiply FLV files in this episode. Please input \"%s\" to extract it." % (uri),
+                    video_id)
+                return
+            self._is_durl = True
+            if self._epid is not None:
+                self._info.update({
+                    "title": "%s - %s %s" % (self._info['title'], episode_info['titleFormat'], episode_info['longTitle']),
+                    "id": video_id,
+                    "episode": episode_info['longTitle'],
+                    "episode_id": episode_info['id']
+                })
+            video_quality = play_info['quality']
+            accept_video_quality_desc = play_info['accept_description']
+            accept_video_quality = play_info['accept_quality']
+            video_desc_dict = {}
+            for i in range(len(accept_video_quality)):
+                video_desc_dict.update({
+                    accept_video_quality[i]: accept_video_quality_desc[i]
+                })
+            video_formats = {video_quality: play_info['durl']}
+            video_formats_size = {video_quality: self._calculate_size(play_info['durl'])}
+            durl_length = [len(play_info['durl'])]
+            for video_q in accept_video_quality:
+                if video_q not in video_formats:
+                    if self._new_api:
+                        self._set_cookie(domain=".bilibili.com", name="CURRENT_QUALITY", value=str(video_q))
+                        webpage = self._download_webpage(
+                            uri,
+                            video_id,
+                            "Geting video links for format id : %s." % (video_q),
+                            "Unable to get video links for format id : %s." % (video_q))
+                        play_info = re.search(r"window\.__playinfo__=([^<]+)", webpage, re.I)
+                        if play_info is not None:
+                            play_info = json.loads(play_info.groups()[0])
+                            if play_info['code'] != 0:
+                                self._report_error(play_info)
+                            play_info = play_info['data']
+                        else:
+                            self._new_api = False
+                            play_info = self._download_json(
+                                "https://api.bilibili.com/pgc/player/web/playurl?cid=%s&qn=%s&type=&otype=json&fourk=1&bvid=%s&ep_id=%s&fnver=0&fnval=16&session=" % (episode_info['cid'], video_q, episode_info['bvid'], epid),
+                                video_id,
+                                "Geting video links for format id : %s." % (video_q),
+                                "Unable to get video links for format id : %s." % (video_q),
+                                headers=headers)
+                            if play_info['code'] == -10403:  # Need vip or buy
+                                self._new_api = True
+                                self._report_warning(play_info)
+                            elif play_info['code'] != 0:
+                                self._report_error(play_info)
+                            play_info = play_info['result']
+                    else:
+                        play_info = self._download_json(
+                            "https://api.bilibili.com/pgc/player/web/playurl?cid=%s&qn=%s&type=&otype=json&fourk=1&bvid=%s&ep_id=%s&fnver=0&fnval=16&session=" % (episode_info['cid'], video_q, episode_info['bvid'], epid),
+                            video_id,
+                            "Geting video links for format id : %s." % (video_q),
+                            "Unable to get video links for format id : %s." % (video_q),
+                            headers=headers)
+                        if play_info['code'] == -10403:  # Need vip or buy
+                            self._report_warning(play_info)
+                        elif play_info['code'] != 0:
+                            self._report_error(play_info)
+                        play_info = play_info['result']
+                    if 'durl' in play_info:
+                        video_formats[play_info["quality"]] = play_info['durl']
+                        video_formats_size[play_info["quality"]] = self._calculate_size(play_info['durl'])
+                        durl_length.append(len(play_info['durl']))
+            self._set_cookie(domain=".bilibili.com", name="CURRENT_QUALITY", value="120")
+            for i in range(max(durl_length)):
+                entry = {}
+                entry.update(self._info)
+                if self._epid is None:
+                    entry.update({
+                        "title": "%s - %s %s" % (self._info['title'], episode_info['titleFormat'], episode_info['longTitle']),
+                        "id": video_id,
+                        "episode": episode_info['longTitle'],
+                        "episode_id": episode_info['id']
+                    })
+                else:
+                    entry.update({
+                        "id": "%s Part%s" % (video_id, i + 1)
+                    })
+                formats_output = []
+                for video_q in accept_video_quality:
+                    durl = video_formats[video_q]
+                    if i < len(durl):
+                        video_format = durl[i]
+                        formats_output.append({
+                            "url": video_format['url'],
+                            "format_id": str(video_q),
+                            "format_note": video_desc_dict[video_q],
+                            "ext": "flv",
+                            "http_headers": headers,
+                            "filesize": video_format['size']
+                        })
+                entry['formats'] = formats_output
+                self._entries.append(entry)
+        elif 'dash' in play_info:  # Stream for dash player
+            video_quality = play_info['quality']
+            accept_video_quality_desc = play_info['accept_description']
+            accept_video_quality = play_info['accept_quality']
+            accept_audio_quality = []
+            dash = play_info['dash']
+            video_quality_list = []
+            video_desc_dict = {}
+            for i in range(len(accept_video_quality)):
+                video_desc_dict.update({
+                    accept_video_quality[i]: accept_video_quality_desc[i]
+                })
+            video_formats = {}
+            for video_format in dash['video']:
+                if video_format['codecs'].startswith('hev'):
+                    video_quality_list.append(video_format['id'] + 1)
+                    video_formats[video_format['id'] + 1] = video_format
+                else:
+                    video_quality_list.append(video_format['id'])
+                    video_formats[video_format['id']] = video_format
+            bs = True  # Try to get all video formats
+            while bs:
+                bs = False
+                for video_q in accept_video_quality:
+                    if video_q not in video_formats:
+                        if not self._is_login and video_q <= 32:
+                            bs = True
+                        elif self._is_vip < 1 and video_q <= 80 and video_q != 74:
+                            bs = True
+                        elif self._is_vip > 0:
+                            bs = True
+                        if self._new_api:
+                            self._set_cookie(domain=".bilibili.com", name="CURRENT_QUALITY", value=str(video_q))
+                            webpage = self._download_webpage(
+                                uri,
+                                video_id,
+                                "Geting video links for format id : %s." % (video_q),
+                                "Unable to get video links for format id : %s." % (video_q))
+                            play_info = re.search(r"window\.__playinfo__=([^<]+)", webpage, re.I)
+                            if play_info is not None:
+                                play_info = json.loads(play_info.groups()[0])
+                                if play_info['code'] != 0:
+                                    self._report_error(play_info)
+                                play_info = play_info['data']
+                            else:
+                                self._new_api = False
+                                play_info = self._download_json(
+                                    "https://api.bilibili.com/pgc/player/web/playurl?cid=%s&qn=%s&type=&otype=json&fourk=1&bvid=%s&ep_id=%s&fnver=0&fnval=16&session=" % (episode_info['cid'], video_q, episode_info['bvid'], epid),
+                                    video_id,
+                                    "Geting video links for format id : %s." % (video_q),
+                                    "Unable to get video links for format id : %s." % (video_q),
+                                    headers=headers)
+                                if play_info['code'] == -10403:  # Need vip or buy
+                                    self._new_api = True
+                                    self._report_warning(play_info)
+                                elif play_info['code'] != 0:
+                                    self._report_error(play_info)
+                                play_info = play_info['result']
+                        else:
+                            play_info = self._download_json(
+                                "https://api.bilibili.com/pgc/player/web/playurl?cid=%s&qn=%s&type=&otype=json&fourk=1&bvid=%s&ep_id=%s&fnver=0&fnval=16&session=" % (episode_info['cid'], video_q, episode_info['bvid'], epid),
+                                video_id,
+                                "Geting video links for format id : %s." % (video_q),
+                                "Unable to get video links for format id : %s." % (video_q),
+                                headers=headers)
+                            if play_info['code'] == -10403:  # Need vip or buy
+                                self._report_warning(play_info)
+                            elif play_info['code'] != 0:
+                                self._report_error(play_info)
+                            play_info = play_info['result']
+                        if 'dash' in play_info:
+                            for video_format in play_info['dash']['video']:
+                                if video_format['codecs'].startswith('hev'):  # Let format id increase 1 to distinguish codec
+                                    video_format_q = video_format['id'] + 1
+                                else:
+                                    video_format_q = video_format['id']
+                                if video_format_q not in video_formats:
+                                    video_quality_list.append(video_format_q)
+                                    video_formats[video_format_q] = video_format
+                                    bs = True
+                            break
+            self._set_cookie(domain=".bilibili.com", name="CURRENT_QUALITY", value="120")
+            entry = {}
+            entry.update(self._info)
+            entry.update({
+                "title": "%s - %s %s" % (self._info['title'], episode_info['titleFormat'], episode_info['longTitle']),
+                "id": video_id,
+                "episode": episode_info['longTitle'],
+                "episode_id": episode_info['id']
+            })
+            formats_output = []
+            for i in video_quality_list:
+                video_format = video_formats[i]
+                formats_output.append({
+                    "url": video_format['base_url'],
+                    "ext": "mp4",
+                    "format_note": video_desc_dict[video_format['id']],
+                    "format_id": str(i),
+                    "vcodec": video_format['codecs'],
+                    "fps": self._getfps(video_format['frame_rate']),
+                    "width": video_format['width'],
+                    "height": video_format['height'],
+                    "http_headers": headers
+                })
+            if 'audio' in dash and dash['audio'] is not None:
+                for audio_format in dash['audio']:
+                    accept_audio_quality.append(audio_format['id'])
+                    video_formats[audio_format['id']] = audio_format
+            accept_audio_quality.sort(reverse=True)
+            for audio_quality in accept_audio_quality:
+                audio_format = video_formats[audio_quality]
+                formats_output.append({
+                    "url": audio_format["base_url"],
+                    "format_id": str(audio_format['id']),
+                    "ext": "mp4",
+                    "acodec": audio_format['codecs'],
+                    "http_headers": headers
+                })
+            entry.update({"formats": formats_output})
+            self._entries.append(entry)
+
     def _real_extract(self, url):
-        bangumi_id = self._match_id(url)
+        url, smuggled_data = unsmuggle_url(url, {})
 
-        # Sometimes this API returns a JSONP response
-        season_info = self._download_json(
-            'http://bangumi.bilibili.com/jsonp/seasoninfo/%s.ver' % bangumi_id,
-            bangumi_id, transform_source=strip_jsonp)['result']
+        mobj = re.match(self._VALID_URL, url)
+        ssid = mobj.group('ssid')
+        epid = mobj.group('epid')
+        video_id = ssid or epid
+        if ssid is not None:
+            ssid = int(ssid)
+            video_id = "ss" + video_id
+        if epid is not None:
+            epid = int(epid)
+            video_id = "ep" + video_id
 
-        entries = [{
-            '_type': 'url_transparent',
-            'url': smuggle_url(episode['webplay_url'], {'no_bangumi_tip': 1}),
-            'ie_key': BiliBiliIE.ie_key(),
-            'timestamp': parse_iso8601(episode.get('update_time'), delimiter=' '),
-            'episode': episode.get('index_title'),
-            'episode_number': int_or_none(episode.get('index')),
-        } for episode in season_info['episodes']]
+        # Set Cookies need to parse the Links.
+        self._set_cookie(domain=".bilibili.com", name="CURRENT_QUALITY", value="120")  # Set default video quality
+        self._set_cookie(domain=".bilibili.com", name="CURRENT_FNVAL", value="16")
+        self._set_cookie(domain=".bilibili.com", name="laboratory", value="1-1")  # Use new webpage API
+        self._set_cookie(domain=".bilibili.com", name="stardustvideo", value="1")
 
-        entries = sorted(entries, key=lambda entry: entry.get('episode_number'))
+        webpage = self._download_webpage(url, video_id)
 
-        return self.playlist_result(
-            entries, bangumi_id,
-            season_info.get('bangumi_title'), season_info.get('evaluate'))
+        bangumi_info = re.search(r"window\.__INITIAL_STATE__=([^;]+)", webpage, re.I)
+        if bangumi_info is not None:
+            bangumi_info = json.loads(bangumi_info.groups()[0])
+        else:
+            raise ExtractorError("Can not find the bangumi.")
+        media_info = bangumi_info['mediaInfo']
+        if ssid is None:
+            ssid = int(media_info['ssId'])
+
+        user_info = self._download_json(
+            "https://api.bilibili.com/x/web-interface/nav", video_id,
+            "Geting Login/User Information.", "Unable to get Login/User Information.")
+        if user_info['code'] != 0 and user_info['code'] != -101:
+            self._report_error(user_info)
+        user_info = user_info['data']
+        self._is_login = user_info['isLogin']
+        if self._is_login:
+            self._is_vip = user_info['vipStatus']
+        else:
+            self._is_vip = 0
+        self._is_durl = False  # If return the durl Stream, this will be true
+
+        self._info = {
+            "series": media_info['series'],
+            "title": media_info['title'],
+            "season": media_info['title'],
+            "season_id": media_info['ssId'],
+            "id": video_id,
+            "thumbnail": "https:" + media_info['cover'],
+            "description": media_info['evaluate'],
+            "uploader": media_info['upInfo']['name'],
+            "release_date": media_info['pub']['time'][0:4] + media_info['pub']['time'][5:7] + media_info['pub']['time'][8:10],
+            "uploader_id": media_info['upInfo']['mid'],
+            "view_count": media_info['stat']['views'],
+            "like_count": media_info['stat']['favorites'],
+            "comment_count": media_info['stat']['reply'],
+            "webpage_url": "https://www.bilibili.com/bangumi/play/%s" % (video_id)
+        }
+
+        ep_list = self._get_episode_list(bangumi_info)
+        if epid is not None:
+            ep_info = None
+            for ep in ep_list:
+                if ep['id'] == epid:
+                    ep_info = ep
+                    break
+            if ep_info is None:
+                self._report_error("Can not find the infomation of ep%s." % (epid))
+        self._video_count = len(ep_list)
+        self._new_api = True  # Parse video links from webpage first.
+        self._first = True  # First Part
+        self._webpage = webpage
+        self._video_id = video_id
+        self._epid = epid
+        self._entries = []
+        if epid is not None:
+            self._extract_episode(ep_info)
+        else:
+            for ep_info in ep_list:
+                self._extract_episode(ep_info)
+
+        if epid is None:
+            self._info.update({
+                "_type": 'multi_video',
+                'entries': self._entries
+            })
+            return self._info
+        else:
+            if len(self._entries) == 1:
+                return self._entries[0]
+            else:
+                self._info.update({
+                    "_type": 'multi_video',
+                    'entries': self._entries
+                })
+                return self._info
 
 
 class BilibiliAudioBaseIE(InfoExtractor):
