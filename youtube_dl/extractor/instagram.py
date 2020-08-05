@@ -22,7 +22,7 @@ from ..utils import (
 
 
 class InstagramIE(InfoExtractor):
-    _VALID_URL = r'(?P<url>https?://(?:www\.)?instagram\.com/(?:p|tv)/(?P<id>[^/?#&]+))'
+    _VALID_URL = r'(?P<url>https?://(?:www\.)?instagram\.com/(?:p|tv|reel)/(?P<id>[^/?#&]+))'
     _TESTS = [{
         'url': 'https://instagram.com/p/aye83DjauH/?foo=bar#abc',
         'md5': '0d2da106a9d2631273e192b372806516',
@@ -35,7 +35,7 @@ class InstagramIE(InfoExtractor):
             'timestamp': 1371748545,
             'upload_date': '20130620',
             'uploader_id': 'naomipq',
-            'uploader': 'Naomi Leonor Phan-Quang',
+            'uploader': 'B E A U T Y  F O R  A S H E S',
             'like_count': int,
             'comment_count': int,
             'comments': list,
@@ -85,6 +85,19 @@ class InstagramIE(InfoExtractor):
             'id': 'BQ0eAlwhDrw',
             'title': 'Post by instagram',
             'description': 'md5:0f9203fc6a2ce4d228da5754bcf54957',
+        },
+    }, {
+        # reels
+        'url': 'https://www.instagram.com/reel/CDg_6Y1pxWu/',
+        'info_dict': {
+            'id': 'CDg_6Y1pxWu',
+            'ext': 'mp4',
+            'title': 'Video by mileycyrus',
+            'thumbnail': r're:^https?://.*\.jpg',
+            'timestamp': 1596647638,
+            'upload_date': '20200805',
+            'uploader_id': 'mileycyrus',
+            'uploader': 'Miley Cyrus',
         },
     }, {
         'url': 'https://instagram.com/p/-Cmh1cukG2/',
