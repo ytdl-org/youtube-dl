@@ -139,8 +139,20 @@ class BiliBiliIE(InfoExtractor):
         if video_info is not None:
             video_info = json.loads(video_info.groups()[0])
         else:
-            self._report_error("")  # TODO Should redirect to Bangumi episode ID.
-            # https://api.bilibili.com/x/web-interface/view/detail?bvid=&aid=&jsonp=jsonp have redirect links.
+            if mobj.group('id') is not None:
+                uri = "https://api.bilibili.com/x/web-interface/view/detail?bvid=BV%s&aid=&jsonp=jsonp" % (video_id)
+            else:
+                uri = "https://api.bilibili.com/x/web-interface/view/detail?bvid=&aid=%s&jsonp=jsonp" % (video_id)
+            redriect_info = self._download_json(
+                uri, video_id,
+                "Geting redriect information.", "Unable to get redriect information.")
+            if redriect_info['code'] != 0:
+                self._report_error(redriect_info)
+            redriect_info = redriect_info['data']
+            if 'View' in redriect_info and 'redirect_url' in redriect_info['View']:
+                return self.url_result(redriect_info['View']['redirect_url'])
+            else:
+                raise ExtractorError("Can not find redirect URL.")
         video_data = video_info['videoData']
         uploader_data = video_info['upData']
         aid = video_data['aid']
@@ -526,6 +538,8 @@ class BiliBiliBangumiIE(InfoExtractor):
         uri = "https://www.bilibili.com/bangumi/play/ep%s" % (epid)
         if self._epid is None:
             video_id = "%s %s" % (self._video_id, episode_info['titleFormat'])
+        else:
+            video_id = self._video_id
         if self._first:
             webpage = self._webpage
             self._first = False
