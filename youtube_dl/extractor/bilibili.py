@@ -11,10 +11,7 @@ from ..compat import (
 from ..utils import (
     ExtractorError,
     int_or_none,
-    parse_iso8601,
-    smuggle_url,
     str_or_none,
-    strip_jsonp,
     unsmuggle_url,
 )
 
