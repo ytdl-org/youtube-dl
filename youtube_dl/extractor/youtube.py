@@ -2002,13 +2002,12 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
             is_live = bool_or_none(video_details.get('isLive'))
 
         has_live_chat_replay = False
-        is_live_content = bool_or_none(video_details.get('isLiveContent'))
-        if not is_live and is_live_content:
+        if not is_live:
             yt_initial_data = self._get_yt_initial_data(video_id, video_webpage)
             try:
                 yt_initial_data['contents']['twoColumnWatchNextResults']['conversationBar']['liveChatRenderer']['continuations'][0]['reloadContinuationData']['continuation']
                 has_live_chat_replay = True
-            except (KeyError, IndexError):
+            except (KeyError, IndexError, TypeError):
                 pass
 
         # Check for "rental" videos
