@@ -311,7 +311,7 @@ class SoundcloudIE(InfoExtractor):
                 raise
 
     def _real_initialize(self):
-        self._CLIENT_ID = self._downloader.cache.load('soundcloud', 'client_id') or "T5R4kgWS2PRf6lzLyIravUMnKlbIxQag" #'EXLwg5lHTO2dslU5EePe3xkw0m1h86Cd' #'YUKXoArFcqrlQn9tfNHvvyfnDISj04zk'
+        self._CLIENT_ID = self._downloader.cache.load('soundcloud', 'client_id') or "T5R4kgWS2PRf6lzLyIravUMnKlbIxQag"  # 'EXLwg5lHTO2dslU5EePe3xkw0m1h86Cd' # 'YUKXoArFcqrlQn9tfNHvvyfnDISj04zk'
         self._USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/84.0.4147.105 Safari/537.36"
         self._login()
 
@@ -331,9 +331,9 @@ class SoundcloudIE(InfoExtractor):
             'recaptcha_pubkey': 'null',
             'recaptcha_response': 'null',
             'credentials': {
-                    'identifier': username,
-                    'password': password
-                },
+                'identifier': username,
+                'password': password
+            },
             'signature': self.sign(username, password, self._CLIENT_ID),
             'device_id': '00000-000000-000000-000000',
             'user_agent': self._USER_AGENT
@@ -348,12 +348,10 @@ class SoundcloudIE(InfoExtractor):
         else:
             self._HEADERS = {'Authorization': 'OAuth ' + self._access_token}
 
-        
-
     # signature generation
     def sign(self, user, pw, clid="T5R4kgWS2PRf6lzLyIravUMnKlbIxQag"):
         a = 33
-        i = 1 
+        i = 1
         s = 440123
         w = 117
         u = 1800000
@@ -372,7 +370,7 @@ class SoundcloudIE(InfoExtractor):
         h = p
 
         m = 8011470
-        f = 0 
+        f = 0
 
         for f in range(f, len(h)):
             m = (m >> 1) + ((1 & m) << 23)
@@ -383,7 +381,6 @@ class SoundcloudIE(InfoExtractor):
         out = str(y) + ':' + str(d) + ':' + format(m, 'x') + ':' + str(c)
 
         return out
-
 
     @classmethod
     def _resolv_url(cls, url):
