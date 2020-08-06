@@ -4,6 +4,7 @@ from __future__ import unicode_literals
 import itertools
 import re
 import json
+import random
 
 from .common import (
     InfoExtractor,
@@ -312,9 +313,9 @@ class SoundcloudIE(InfoExtractor):
 
     def _real_initialize(self):
         self._CLIENT_ID = self._downloader.cache.load('soundcloud', 'client_id') or "T5R4kgWS2PRf6lzLyIravUMnKlbIxQag"  # 'EXLwg5lHTO2dslU5EePe3xkw0m1h86Cd' # 'YUKXoArFcqrlQn9tfNHvvyfnDISj04zk'
-        self._USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/84.0.4147.105 Safari/537.36"
         self._login()
 
+    _USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/84.0.4147.105 Safari/537.36"
     _API_AUTH_QUERY_TEMPLATE = '?client_id=%s'
     _API_AUTH_URL_PW = 'https://api-auth.soundcloud.com/web-auth/sign-in/password%s'
     _access_token = None
@@ -326,6 +327,11 @@ class SoundcloudIE(InfoExtractor):
         if username is None:
             return
 
+        def genDevId():
+            def genNumBlock():
+                return ''.join([str(random.randrange(10)) for i in range(6)])
+            return '-'.join([genNumBlock() for i in range(4)])
+
         payload = {
             'client_id': self._CLIENT_ID,
             'recaptcha_pubkey': 'null',
@@ -335,7 +341,7 @@ class SoundcloudIE(InfoExtractor):
                 'password': password
             },
             'signature': self.sign(username, password, self._CLIENT_ID),
-            'device_id': '00000-000000-000000-000000',
+            'device_id': genDevId(),
             'user_agent': self._USER_AGENT
         }
 
@@ -349,7 +355,7 @@ class SoundcloudIE(InfoExtractor):
             self._HEADERS = {'Authorization': 'OAuth ' + self._access_token}
 
     # signature generation
-    def sign(self, user, pw, clid="T5R4kgWS2PRf6lzLyIravUMnKlbIxQag"):
+    def sign(self, user, pw, clid):
         a = 33
         i = 1
         s = 440123
