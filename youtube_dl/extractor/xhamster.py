@@ -26,7 +26,7 @@ class XHamsterIE(InfoExtractor):
                         (?:.+?\.)?%s/
                         (?:
                             movies/(?P<id>\d+)/(?P<display_id>[^/]*)\.html|
-                            videos/(?P<display_id_2>[^/]*)-(?P<id_2>\d+)
+                            videos/(?P<display_id_2>[^/]*)-(?P<id_2>\w+)
                         )
                     ''' % _DOMAINS
     _TESTS = [{
