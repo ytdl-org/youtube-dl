@@ -3,8 +3,7 @@ from __future__ import unicode_literals
 
 import itertools
 import re
-import time
-import random
+import json
 
 from .common import (
     InfoExtractor,
@@ -30,6 +29,7 @@ from ..utils import (
     update_url_query,
     url_or_none,
     urlhandle_detect_ext,
+    sanitized_Request,
 )
 
 
@@ -310,187 +310,21 @@ class SoundcloudIE(InfoExtractor):
                     return False
                 raise
 
-    _CLIENT_ID = 'EXLwg5lHTO2dslU5EePe3xkw0m1h86Cd'
-    _USER_AGENT = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/84.0.4147.105 Safari/537.36 Edg/84.0.522.50' #MS EDGE CHROME-BASED
-    _USERNAME = ''
-    _PASSWORD = ''
-    _KEY = '0763ed7314c69015fd4a0dc16bbf4b90'
-
     def _real_initialize(self):
-        self._CLIENT_ID, _CLIENT_ID = self._downloader.cache.load('soundcloud', 'client_id') or 'EXLwg5lHTO2dslU5EePe3xkw0m1h86Cd' #'YUKXoArFcqrlQn9tfNHvvyfnDISj04zk'
-        self._USERNAME, self._PASSWORD = self._get_login_info()
-        _USERNAME = self._USERNAME
-        _PASSWORD = self._PASSWORD
+        self._CLIENT_ID = self._downloader.cache.load('soundcloud', 'client_id') or "T5R4kgWS2PRf6lzLyIravUMnKlbIxQag" #'EXLwg5lHTO2dslU5EePe3xkw0m1h86Cd' #'YUKXoArFcqrlQn9tfNHvvyfnDISj04zk'
+        self._USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/84.0.4147.105 Safari/537.36"
         self._login()
+
+    _API_AUTH_QUERY_TEMPLATE = '?client_id=%s'
+    _API_AUTH_URL_PW = 'https://api-auth.soundcloud.com/web-auth/sign-in/password%s'
+    _access_token = None
 
     def _login(self):
         username, password = self._get_login_info()
         if username is None:
             return
 
-        '''
-        EXAMPLE
-        {"client_id":"EXLwg5lHTO2dslU5EePe3xkw0m1h86Cd","recaptcha_pubkey":"6Ld72JcUAAAAAItDloUGqg6H38KK5j08VuQlegV1","recaptcha_response":null,"credentials":{"identifier":user,"password":password},"signature":"8:33-1-53791-767-2073600-1028-25-25:3b9024:4","device_id":"71542-609622-728970-275967","user_agent":"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/84.0.4147.105 Safari/537.36 Edg/84.0.522.50"}
-        
-
-        call_payload = {
-                client_id: u.clientId,
-                recaptcha_pubkey: p,
-                recaptcha_response: 0 < n.length ? n : null,
-                credentials: {
-                    identifier: e,
-                    password: t
-                },
-                signature: l.sign(e, u.clientId, c),
-                device_id: u.deviceId,
-                user_agent: h
-                }
-        '''
-
-        '''
-        var t, n, o = ["touchmove", "webdriver", "__webdriver_script_fn", "Chromium PDF Viewer", "$cdc_asdjflasutopfhvcZLmcfl_", "keydown", "typeof process", "encodeURIComponent", "getAttribute", "document", "unescape", "256", "call", "Chrome PDF Viewer", "_Selenium_IDE_Recorder", "width", "TestUA", "location", "name", "forEach", "length", "Chrome PDF Plugin", "512", "mozInnerScreenY", "Date", "addEventListener", "Native Client", "424242", "exports", "height", "Widevine Content Decryption Module", "mousemove", "keyup", "1024", "420", "https:", "128", "plugins", "charCodeAt", "4096", "typeof global", "undefined", "now", "msLaunchUri", "screen", "eval", "safari", "navigator", "WebKit built-in PDF", "isTrusted"];
-        t = o,
-        n = 219,
-        function(e) {
-            for (; --e; )
-                t.push(t.shift())
-        }(++n);
-        var g = function(e, t) {
-            return o[e -= 0]
-        };
-        e[g("0x9")] = { #e = function 162
-            initialize: function() {
-                v = window[g("0x5")].now();
-                var e = function(e) {
-                    try {
-                        if (!1 === e[g("0x1e")])
-                            return
-                    } catch (e) {}
-                    w += 1
-                };
-                window[g("0x6")](g("0xc"), e),
-                window[g("0x6")](g("0x1f"), e),
-                window[g("0x6")](g("0x24"), function() {
-                    b += 1
-                }),
-                window.addEventListener(g("0xd"), function() {
-                    k += 1
-                }),
-                window[g("0x6")]("click", function() {
-                    _ += 1
-                })
-            }
-        '''
-        #after shifting the list
-        #["forEach", "length", "Chrome PDF Plugin", "512", "mozInnerScreenY", "Date", "addEventListener", "Native Client", "424242", "exports", "height", "Widevine Content Decryption Module", "mousemove", "keyup", "1024", "420", "https:", "128", "plugins", "charCodeAt", "4096", "typeof global", "undefined", "now", "msLaunchUri", "screen", "eval", "safari", "navigator", "WebKit built-in PDF", "isTrusted", "touchmove", "webdriver", "__webdriver_script_fn", "Chromium PDF Viewer", "$cdc_asdjflasutopfhvcZLmcfl_", "keydown", "typeof process", "encodeURIComponent", "getAttribute", "document", "unescape", "256", "call", "Chrome PDF Viewer", "_Selenium_IDE_Recorder", "width", "TestUA", "location", "name"]
-
-        '''
-        sign: function(e, t, n, o) {e = "tom_heidel@web.de", t = "EXLwg5lHTO2dslU5EePe3xkw0m1h86Cd", n = "0763ed7314c69015fd4a0dc16bbf4b90", o = undefined
-            r = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/84.0.4147.105 Safari/537.36"
-            }
-
-        ## ignore
-        #var g = function(e, t) {
-        #    return o[e -= 0]
-        #};
-        #Return value: "$cdc_asdjflasutopfhvcZLmcfl_"
-
-        var s = window[g("0x5")][g("0x17")]() - v #v was created earlier in initialize
-        g("0x5") = Date
-        g("0x17") = now
-        v = Timestamp in milliseconds e.g. 1596580552126
-        Return value s: 725321
-
-        u = 0;
-                try {
-                    u = window.screen[g("0x2e")] * window[g("0x19")][g("0xa")]
-        g("0x2e") = width
-        g("0x19") = screen
-        g("0xa") = height
-        Return value u: 2073600
-
-        var l = +g("0xe");
-        l = 1024
-
-        try {
-                    [][g("0x0")][g("0x2b")](window[g("0x1c")][g("0x12")], function(e) {
-                        var t = e[g("0x31")];
-                        t === g("0x22") && (l += 1),
-                        t === g("0x2c") && (l += 2),
-                        t === g("0x7") && (l += 4),
-                        t === g("0xb") && (l += 8),
-                        t === g("0x2") && (l += 16),
-                        "Java Appvar Plug-in" === t && (l += 32),
-                        "Shockwave Flash" === t && (l += 64),
-                        "Edge PDF Viewer" === t && (l += +g("0x11")),
-                        t === g("0x1d") && (l += +g("0x2a"))
-                    })
-                }
-        g("0x0") = forEach
-        g("0x2b") = call
-        g("0x1c") = navigator
-        g("0x12") = plugins
-
-        } catch (e) {}
-                o && (r = g("0x2f"));
-                o && (i = +g("0x14"));
-                o && (a = +g("0x14"));
-                o && (w = 42);
-                o && (s = +g("0x8"));
-                o && (u = 420 * +g("0xf"));
-                o && (l = +g("0xe"));
-                o && (b = 7);
-                o && (k = 9);
-                o && (_ = 0);
-
-        e = "tom_heidel@web.de"
-        o = undefined, r = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/84.0.4147.105 Safari/537.36"
-        a = 33
-        i = 1
-        a = 33
-        s = 725321
-        u = 2073600
-        l = 1046
-        b = 2
-        k = 2
-        _ = 5
-        w = 1049
-        y = "8"
-        n = "0763ed7314c69015fd4a0dc16bbf4b90" #same as c in l.sign
-
-        for (var d = [a, i, s, w, u, l, b, k].join("-"), c = _, p = n + y + d + r + e + t + d + n, h = window[g("0x29")](window[g("0x26")](p)), m = 8011470, f = 0; f < h[g("0x1")]; f += 1)
-                    m = (m >> 1) + ((1 & m) << 23),
-                    m += h[g("0x13")](f),
-                    m &= 16777215;
-                return y + ":" + d + ":" + m.toString(16) + ":" + c
-            }
-
-        d = "33-1-725321-1049-2073600-1046-2-2"
-        c = 5
-        p = "0763ed7314c69015fd4a0dc16bbf4b90833-1-725321-1049-2073600-1046-2-2Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/84.0.4147.105 Safari/537.36tom_heidel@web.deEXLwg5lHTO2dslU5EePe3xkw0m1h86Cd33-1-725321-1049-2073600-1046-2-20763ed7314c69015fd4a0dc16bbf4b90"
-
-        g("0x29") = unescape
-        g("0x26") = encodeURIComponent
-
-        h = "0763ed7314c69015fd4a0dc16bbf4b90833-1-725321-1049-2073600-1046-2-2Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/84.0.4147.105 Safari/537.36tom_heidel@web.deEXLwg5lHTO2dslU5EePe3xkw0m1h86Cd33-1-725321-1049-2073600-1046-2-20763ed7314c69015fd4a0dc16bbf4b90"
-        m = 8011470
-        f = 0
-
-        g("0x1") = length
-        m = 4005735 #calculated m = (m >> 1) + ((1 & m) << 23)
-        g("0x13") = charCodeAt
-        m = 4005783 #calculated m += h[g("0x13")](f)
-        .-.-.-. after all h.length iterations
-        m = 245670
-
-        Return value: "8:33-1-725321-1049-2073600-1046-2-2:3bfa6:5" #signature
-
-        # user-agent string is processed in signature calculating
-        # this probably means if a signature with user-agent A is given you cannot change it to B when logging in 
-
-        '''
-
-        login_form = {
+        payload = {
             'client_id': self._CLIENT_ID,
             'recaptcha_pubkey': 'null',
             'recaptcha_response': 'null',
@@ -498,47 +332,37 @@ class SoundcloudIE(InfoExtractor):
                     'identifier': username,
                     'password': password
                 },
-            'signature': '',#l.sign(username, self._CLIENT_ID, c='0763ed7314c69015fd4a0dc16bbf4b90'), #c is extracted from web_auth js around (reading upwards from) function api.callEndpoint("verifyIdentifier"
+            'signature': self.sign(username, password, self._CLIENT_ID),
             'device_id': '00000-000000-000000-000000',
             'user_agent': self._USER_AGENT
         }
 
-        '''
-        login = self._call_api(
-            'sessions.json', None,
-            'Logging in', post_data=login_form)
-        '''
+        query = self._API_AUTH_QUERY_TEMPLATE % self._CLIENT_ID
+        login = sanitized_Request(self._API_AUTH_URL_PW % query, json.dumps(payload))
+        response = self._download_json(login)
+        print(response)
+        return 0
+        
 
     # signature generation
-    def sign(self):#, username=_USERNAME, client_id=_CLIENT_ID, key=_KEY):
-        zero = 0
-        i = a = 1
-        u = 0 #u is actually screenWidth * screenHeight for 1920*1080 = 2073600
-        mU = 2073600
-        l = 1024 #1046?
-        timestamp = millis = int(round(time.time() * 1000))
-        mTimestamp = timestamp - (timestamp - random.randint(50000, 850000)) #hacky timestamp difference
-        uTimestamp = random.randint(50000, 850000)
-        w = 42 #1049?
-        b = k = 2 #25?
-        underscore = 0 #4, 5?
-
-
-        #d = '-'.join([str(mInt) for mInt in [a, i, s, w, u, l, b, k]])
-        d = '-'.join([str(mInt) for mInt in [a, i, zero, w, u, l, b, k]])
-        print(d)
-
-        c = underscore
-
-        n = _KEY = '0763ed7314c69015fd4a0dc16bbf4b90'
-        y = '8' #some kind of version??
+    def sign(self, user, pw, clid="T5R4kgWS2PRf6lzLyIravUMnKlbIxQag"):
+        a = 33
+        i = 1 
+        s = 440123
+        w = 117
+        u = 1800000
+        l = 1042
+        b = 37
+        k = 37
+        c = 5
+        n = _KEY = "0763ed7314c69015fd4a0dc16bbf4b90"
+        y = _REV = "8"
         r = _USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/84.0.4147.105 Safari/537.36"
-        e = _USERNAME = "tom_heidel@web.de"
-        t = _CLIENT_ID = 'EXLwg5lHTO2dslU5EePe3xkw0m1h86Cd'
+        e = _USERNAME = user
+        t = _CLIENT_ID = clid
 
-
+        d = '-'.join([str(mInt) for mInt in [a, i, s, w, u, l, b, k]])
         p = n + y + d + r + e + t + d + n
-
         h = p
 
         m = 8011470
@@ -554,7 +378,6 @@ class SoundcloudIE(InfoExtractor):
 
         return out
 
-    ###
 
     @classmethod
     def _resolv_url(cls, url):

@@ -1,5 +1,8 @@
 import time
 import random
+import requests
+import sys
+import getpass
 
 def sign():#, username=_USERNAME, client_id=_CLIENT_ID, key=_KEY):
     zero = 0
@@ -75,7 +78,7 @@ def signp(a, i, s, w, u, l, b, k, c, n, r, e, t):
 
     d = '-'.join([str(mInt) for mInt in [a, i, s, w, u, l, b, k]])
     #d = '-'.join([str(mInt) for mInt in [mA, i, uTimestamp, mW, mU, mL, mB, mK]])
-    print(d)
+    #print(d)
 
     #c = mUnderscore
 
@@ -90,7 +93,7 @@ def signp(a, i, s, w, u, l, b, k, c, n, r, e, t):
 
     h = p
 
-    print(h)
+    #print(h)
 
     m = 8011470
     f = 0 
@@ -100,15 +103,51 @@ def signp(a, i, s, w, u, l, b, k, c, n, r, e, t):
         m += ord(h[f])
         m &= 16777215
     
-    print(m)
+    #print(m)
 
     out = str(y) + ':' + str(d) + ':' + format(m, 'x') + ':' + str(c)
 
     return out
 
-print(signp(33, 1, 193702, 748, 2073600, 1046, 2, 2, 4, "0763ed7314c69015fd4a0dc16bbf4b90", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/84.0.4147.105 Safari/537.36", "tom_heidel@web.de", "T5R4kgWS2PRf6lzLyIravUMnKlbIxQag"))
+#sig = signp(33, 1, 193702, 748, 2073600, 1046, 2, 2, 4, "0763ed7314c69015fd4a0dc16bbf4b90", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/84.0.4147.105 Safari/537.36", "tom_heidel@web.de", "T5R4kgWS2PRf6lzLyIravUMnKlbIxQag")
+#print(sig)
+#print(signp(33, 1, -1, 748, 2073600, 1046, 2, 2, 4, "0763ed7314c69015fd4a0dc16bbf4b90", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/84.0.4147.105 Safari/537.36", "tom_heidel@web.de", "T5R4kgWS2PRf6lzLyIravUMnKlbIxQag"))
+#print(signp(33, 1, 440123, 117, 1800000, 1042, 37, 37, 5, "0763ed7314c69015fd4a0dc16bbf4b90", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/84.0.4147.105 Safari/537.36", "tom_heidel@web.de", "T5R4kgWS2PRf6lzLyIravUMnKlbIxQag"))
 
 #d = "33-1-193702-748-2073600-1046-2-2"
 #p = "0763ed7314c69015fd4a0dc16bbf4b90833-1-193702-748-2073600-1046-2-2Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/84.0.4147.105 Safari/537.36tom_heidel@web.deT5R4kgWS2PRf6lzLyIravUMnKlbIxQag33-1-193702-748-2073600-1046-2-20763ed7314c69015fd4a0dc16bbf4b90"
 
 #sig = "8:33-1-193702-748-2073600-1046-2-2:3bfb60:4"
+
+login_form_hardcoded = {
+            'client_id': "T5R4kgWS2PRf6lzLyIravUMnKlbIxQag",
+            'recaptcha_pubkey': 'null',
+            'recaptcha_response': 'null',
+            'credentials': {
+                    'identifier': "tom_heidel@web.de",
+                    'password': ''#getpass.getpass()
+                },
+            'signature': '',#sig,
+            'device_id': '00000-000000-000000-000000',
+            'user_agent': "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/84.0.4147.105 Safari/537.36"
+        }
+
+user = input("User: ")
+password = getpass.getpass()
+sig_soft = signp(33, 1, 193702, 748, 2073600, 1046, 2, 2, 4, "0763ed7314c69015fd4a0dc16bbf4b90", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/84.0.4147.105 Safari/537.36", user, "T5R4kgWS2PRf6lzLyIravUMnKlbIxQag")
+
+login_form_soft = {
+            'client_id': "T5R4kgWS2PRf6lzLyIravUMnKlbIxQag",
+            'recaptcha_pubkey': 'null',
+            'recaptcha_response': 'null',
+            'credentials': {
+                    'identifier': user,
+                    'password': password
+                },
+            'signature': sig_soft,
+            'device_id': '00000-000000-000000-000000',
+            'user_agent': "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/84.0.4147.105 Safari/537.36"
+        }
+
+r = requests.post("https://api-auth.soundcloud.com/web-auth/sign-in/password?client_id=T5R4kgWS2PRf6lzLyIravUMnKlbIxQag", json=login_form_soft)
+print(r.text)
