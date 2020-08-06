@@ -365,11 +365,11 @@ class SoundcloudIE(InfoExtractor):
         b = 37
         k = 37
         c = 5
-        n = _KEY = "0763ed7314c69015fd4a0dc16bbf4b90"
-        y = _REV = "8"
-        r = _USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/84.0.4147.105 Safari/537.36"
-        e = _USERNAME = user
-        t = _CLIENT_ID = clid
+        n = "0763ed7314c69015fd4a0dc16bbf4b90"  # _KEY
+        y = "8"  # _REV
+        r = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/84.0.4147.105 Safari/537.36"  # _USER_AGENT
+        e = user  # _USERNAME
+        t = clid  # _CLIENT_ID
 
         d = '-'.join([str(mInt) for mInt in [a, i, s, w, u, l, b, k]])
         p = n + y + d + r + e + t + d + n
