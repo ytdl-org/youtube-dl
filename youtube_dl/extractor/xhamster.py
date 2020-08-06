@@ -129,7 +129,7 @@ class XHamsterIE(InfoExtractor):
 
         initials = self._parse_json(
             self._search_regex(
-                r'window\.initials\s*=\s*({.+?})\s*;\s*\n', webpage, 'initials',
+                r'window\.initials\s*=\s*({.+?})\s*;\s*', webpage, 'initials',
                 default='{}'),
             video_id, fatal=False)
         if initials:
