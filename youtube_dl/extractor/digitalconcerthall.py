@@ -96,8 +96,18 @@ class DigitalConcertHallIE(InfoExtractor):
                 entries[-1]['description'] = vid_info.get('short_description', "missing description")
             if vid_info.get('cuepoints'):
                 chapters = []
+                first_chapter = 1
                 for chapter in vid_info.get('cuepoints'):
                     start_time = chapter.get('time')
+                    # Often, the first chapter does not start at zero.  In this case,
+                    # insert an intro chapter so that first chapter is the start of the music
+                    if (first_chapter == 1) and (start_time != 0):
+                        chapters.append({
+                            'start_time': 0,
+                            'end_time': start_time,
+                            'title': '0. Intro'
+                        })
+                    first_chapter = 0
                     end_time = start_time + chapter.get('duration')
                     chapter_title = chapter.get('text')
                     chapters.append({
