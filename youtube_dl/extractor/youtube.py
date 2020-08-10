@@ -1495,7 +1495,8 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
 
     def _get_yt_initial_data(self, video_id, webpage):
         config = self._search_regex(
-            r'window\["ytInitialData"\]\s*=\s*(.*);',
+            (r'window\["ytInitialData"\]\s*=\s*(.*);',
+             r'var\s+ytInitialData\s*=\s*(.*?);'),
             webpage, 'ytInitialData', default=None)
         if config:
             return self._parse_json(
