@@ -28,8 +28,8 @@ class YoutubeLiveChatReplayFD(FragmentFD):
             return self._download_fragment(ctx, url, info_dict, headers)
 
         def parse_yt_initial_data(data):
-            window_patt = b'window\\["ytInitialData"\\]\\s*=\\s*(.*?);'
-            var_patt = b'var\\s+ytInitialData\\s*=\\s*(.*?);'
+            window_patt = b'window\\["ytInitialData"\\]\\s*=\\s*(.*?)(?<=});'
+            var_patt = b'var\\s+ytInitialData\\s*=\\s*(.*?)(?<=});'
             for patt in window_patt, var_patt:
                 try:
                     raw_json = re.search(patt, data).group(1)
