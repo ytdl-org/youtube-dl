@@ -50,7 +50,7 @@ class TikTokBaseIE(InfoExtractor):
             'thumbnail': try_get(video_info, lambda x: x['covers'][0]),
             'timestamp': timestamp,
             'width': width,
-            'title': self._og_search_title(webpage),
+            'title': str_or_none(share_info.get('title')) or self._og_search_title(webpage),
             'creator': str_or_none(author_info.get('nickName')),
             'uploader': unique_id,
             'uploader_id': str_or_none(author_info.get('userId')),
