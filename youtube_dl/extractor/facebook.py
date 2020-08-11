@@ -692,8 +692,7 @@ class FacebookIE(InfoExtractor):
         if not self._valid_video_title(video_title):
             video_title = self._og_search_title(webpage, default=None)
         if not self._valid_video_title(video_title):
-            video_title = self._html_search_meta(
-                'description', webpage, 'title', default=None)
+            video_title = self._resolve_description(webpage, tahoe_data)
         if not self._valid_video_title(video_title):
             values = re.findall(r'videoTitle"\s*:\s*"(.*?)"', tahoe_data.secondary)
             if values:
@@ -816,7 +815,7 @@ class FacebookIE(InfoExtractor):
     def _valid_video_title(self, video_title):
         if video_title:
             video_title = video_title.lower()
-        return video_title and not u'log in or sign up to view' in video_title
+        return video_title and not u'log in or sign up to view' in video_title and not u'on facebook watch' in video_title
 
     def validate_webpage(self, webpage):
         m_msg = re.search(r'class="[^"]*uiInterstitialContent[^"]*"><div>(.*?)</div>', webpage)
@@ -830,6 +829,11 @@ class FacebookIE(InfoExtractor):
                 expected=True)
         elif '>You must log in to continue' in webpage:
             self.raise_login_required()
+
+    def _resolve_description(self, webpage, tahoe_data):
+        description = self._html_search_meta(
+            'description', webpage, 'title', default=None)
+        return description
 
 
 class FacebookTahoeData:
