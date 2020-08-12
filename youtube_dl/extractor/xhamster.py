@@ -25,8 +25,8 @@ class XHamsterIE(InfoExtractor):
                     https?://
                         (?:.+?\.)?%s/
                         (?:
-                            movies/(?P<id>\d+)/(?P<display_id>[^/]*)\.html|
-                            videos/(?P<display_id_2>[^/]*)-(?P<id_2>\d+)
+                            movies/(?P<id>[\dA-Za-z]+)/(?P<display_id>[^/]*)\.html|
+                            videos/(?P<display_id_2>[^/]*)-(?P<id_2>[\dA-Za-z]+)
                         )
                     ''' % _DOMAINS
     _TESTS = [{
@@ -104,6 +104,9 @@ class XHamsterIE(InfoExtractor):
         'only_matching': True,
     }, {
         'url': 'http://xhamster.com/movies/2221348/britney_spears_sexy_booty.html?hd',
+        'only_matching': True,
+    }, {
+        'url': 'http://de.xhamster.com/videos/skinny-girl-fucks-herself-hard-in-the-forest-xhnBJZx',
         'only_matching': True,
     }]
 
