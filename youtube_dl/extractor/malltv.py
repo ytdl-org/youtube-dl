@@ -8,7 +8,7 @@ from ..utils import merge_dicts
 
 
 class MallTVIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:www\.)?mall\.tv/(?:[^/]+/)*(?P<id>[^/?#&]+)'
+    _VALID_URL = r'https?://(?:(?:www|sk)\.)?mall\.tv/(?:[^/]+/)*(?P<id>[^/?#&]+)'
     _TESTS = [{
         'url': 'https://www.mall.tv/18-miliard-pro-neziskovky-opravdu-jsou-sportovci-nebo-clovek-v-tisni-pijavice',
         'md5': '1c4a37f080e1f3023103a7b43458e518',
@@ -25,6 +25,9 @@ class MallTVIE(InfoExtractor):
         }
     }, {
         'url': 'https://www.mall.tv/kdo-to-plati/18-miliard-pro-neziskovky-opravdu-jsou-sportovci-nebo-clovek-v-tisni-pijavice',
+        'only_matching': True,
+    }, {
+        'url': 'https://sk.mall.tv/gejmhaus/reklamacia-nehreje-vyrobnik-tepla-alebo-spekacka',
         'only_matching': True,
     }]
 

@@ -110,32 +110,17 @@ class ABCIViewIE(InfoExtractor):
 
     # ABC iview programs are normally available for 14 days only.
     _TESTS = [{
-        'url': 'https://iview.abc.net.au/show/big-ted-s-big-adventure/series/0/video/CH1307H001S00',
+        'url': 'https://iview.abc.net.au/show/gruen/series/11/video/LE1927H001S00',
+        'md5': '67715ce3c78426b11ba167d875ac6abf',
         'info_dict': {
-            'id': 'CH1307H001S00',
+            'id': 'LE1927H001S00',
             'ext': 'mp4',
-            'title': "Otters",
-            'series': "Big Ted's Big Adventure",
-            'description': 'md5:74b89063ffb40eaf0ac95cd9486e645c',
-            'upload_date': '20180923',
-            'uploader_id': 'abc4kids',
-            'timestamp': 1537682400,
-        },
-        'params': {
-            'skip_download': True,
-        },
-    },
-    {
-        'url': 'https://iview.abc.net.au/programs/play-school-story-time-languages/CK1752H001S00',
-        'info_dict': {
-            'id': 'CK1752H001S00',
-            'ext': 'mp4',
-            'title': "Emma Alberici: Guess How Much I Love You (Italian)",
-            'series': "Play School Story Time: Languages",
-            'description': 'md5:b61ce34edc946e109e76c7432db5d91f',
-            'upload_date': '20171204',
-            'uploader_id': 'abc4kids',
-            'timestamp': 1512414300,
+            'title': "Series 11 Ep 1",
+            'series': "Gruen",
+            'description': 'md5:52cc744ad35045baf6aded2ce7287f67',
+            'upload_date': '20190925',
+            'uploader_id': 'abc1',
+            'timestamp': 1569445289,
         },
         'params': {
             'skip_download': True,
@@ -189,7 +174,7 @@ class ABCIViewIE(InfoExtractor):
                 'hdnea': token,
             })
 
-        for sd in ('sd', 'sd-low'):
+        for sd in ('720', 'sd', 'sd-low'):
             sd_url = try_get(
                 stream, lambda x: x['streams']['hls'][sd], compat_str)
             if not sd_url:
@@ -228,11 +213,11 @@ class ABCIViewShowIE(ABCIViewIE):
             'url': 'https://iview.abc.net.au/show/play-school-story-time',
             'info_dict': {
                 'title': "Play School Story Time",
-                'description': 'md5:2763b35f418d334d72e3d7f7fc7afb82',
+                'description': 'md5:e457ee8e1d0645f7f39022f9ae599568',
                 'uploader_id': 'abc4kids',
                 'id': 'play-school-story-time'
             },
-            'playlist_count': 24
+            'playlist_count': 46
         },
     ]
 

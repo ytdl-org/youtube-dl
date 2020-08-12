@@ -4,10 +4,11 @@ from __future__ import unicode_literals
 import re
 
 from .common import InfoExtractor
+from ..utils import unsmuggle_url
 
 
 class JWPlatformIE(InfoExtractor):
-    _VALID_URL = r'(?:https?://(?:content\.jwplatform|cdn\.jwplayer)\.com/(?:(?:feed|player|thumb|preview|video)s|jw6|v2/media)/|jwplatform:)(?P<id>[a-zA-Z0-9]{8})'
+    _VALID_URL = r'(?:https?://(?:content\.jwplatform|cdn\.jwplayer)\.com/(?:(?:feed|player|thumb|preview)s|jw6|v2/media)/|jwplatform:)(?P<id>[a-zA-Z0-9]{8})'
     _TESTS = [{
         'url': 'http://content.jwplatform.com/players/nPripu9l-ALJ3XQCI.js',
         'md5': 'fa8899fa601eb7c83a64e9d568bdf325',
@@ -32,10 +33,14 @@ class JWPlatformIE(InfoExtractor):
     @staticmethod
     def _extract_urls(webpage):
         return re.findall(
-            r'<(?:script|iframe)[^>]+?src=["\']((?:https?:)?//content\.jwplatform\.com/players/[a-zA-Z0-9]{8})',
+            r'<(?:script|iframe)[^>]+?src=["\']((?:https?:)?//(?:content\.jwplatform|cdn\.jwplayer)\.com/players/[a-zA-Z0-9]{8})',
             webpage)
 
     def _real_extract(self, url):
+        url, smuggled_data = unsmuggle_url(url, {})
+        self._initialize_geo_bypass({
+            'countries': smuggled_data.get('geo_countries'),
+        })
         video_id = self._match_id(url)
         json_data = self._download_json('https://cdn.jwplayer.com/v2/media/' + video_id, video_id)
         return self._parse_jwplayer_data(json_data, video_id)

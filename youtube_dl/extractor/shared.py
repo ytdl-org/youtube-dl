@@ -1,10 +1,18 @@
 from __future__ import unicode_literals
 
 from .common import InfoExtractor
-from ..compat import compat_b64decode
+from ..compat import (
+    compat_b64decode,
+    compat_urllib_parse_unquote_plus,
+)
 from ..utils import (
+    determine_ext,
     ExtractorError,
     int_or_none,
+    js_to_json,
+    KNOWN_EXTENSIONS,
+    parse_filesize,
+    rot47,
     url_or_none,
     urlencode_postdata,
 )
@@ -22,10 +30,8 @@ class SharedBaseIE(InfoExtractor):
 
         video_url = self._extract_video_url(webpage, video_id, url)
 
-        title = compat_b64decode(self._html_search_meta(
-            'full:title', webpage, 'title')).decode('utf-8')
-        filesize = int_or_none(self._html_search_meta(
-            'full:size', webpage, 'file size', fatal=False))
+        title = self._extract_title(webpage)
+        filesize = int_or_none(self._extract_filesize(webpage))
 
         return {
             'id': video_id,
@@ -34,6 +40,14 @@ class SharedBaseIE(InfoExtractor):
             'filesize': filesize,
             'title': title,
         }
+
+    def _extract_title(self, webpage):
+        return compat_b64decode(self._html_search_meta(
+            'full:title', webpage, 'title')).decode('utf-8')
+
+    def _extract_filesize(self, webpage):
+        return self._html_search_meta(
+            'full:size', webpage, 'file size', fatal=False)
 
 
 class SharedIE(SharedBaseIE):
@@ -82,21 +96,43 @@ class VivoIE(SharedBaseIE):
             'id': 'd7ddda0e78',
             'ext': 'mp4',
             'title': 'Chicken',
-            'filesize': 528031,
+            'filesize': 515659,
         },
     }
 
-    def _extract_video_url(self, webpage, video_id, *args):
-        def decode_url(encoded_url):
+    def _extract_title(self, webpage):
+        title = self._html_search_regex(
+            r'data-name\s*=\s*(["\'])(?P<title>(?:(?!\1).)+)\1', webpage,
+            'title', default=None, group='title')
+        if title:
+            ext = determine_ext(title)
+            if ext.lower() in KNOWN_EXTENSIONS:
+                title = title.rpartition('.' + ext)[0]
+            return title
+        return self._og_search_title(webpage)
+
+    def _extract_filesize(self, webpage):
+        return parse_filesize(self._search_regex(
+            r'data-type=["\']video["\'][^>]*>Watch.*?<strong>\s*\((.+?)\)',
+            webpage, 'filesize', fatal=False))
+
+    def _extract_video_url(self, webpage, video_id, url):
+        def decode_url_old(encoded_url):
             return compat_b64decode(encoded_url).decode('utf-8')
 
-        stream_url = url_or_none(decode_url(self._search_regex(
+        stream_url = self._search_regex(
             r'data-stream\s*=\s*(["\'])(?P<url>(?:(?!\1).)+)\1', webpage,
-            'stream url', default=None, group='url')))
+            'stream url', default=None, group='url')
+        if stream_url:
+            stream_url = url_or_none(decode_url_old(stream_url))
         if stream_url:
             return stream_url
-        return self._parse_json(
+
+        def decode_url(encoded_url):
+            return rot47(compat_urllib_parse_unquote_plus(encoded_url))
+
+        return decode_url(self._parse_json(
             self._search_regex(
-                r'InitializeStream\s*\(\s*(["\'])(?P<url>(?:(?!\1).)+)\1',
-                webpage, 'stream', group='url'),
-            video_id, transform_source=decode_url)[0]
+                r'(?s)InitializeStream\s*\(\s*({.+?})\s*\)\s*;', webpage,
+                'stream'),
+            video_id, transform_source=js_to_json)['source'])

@@ -72,8 +72,13 @@ class TV4IE(InfoExtractor):
         video_id = self._match_id(url)
 
         info = self._download_json(
-            'http://www.tv4play.se/player/assets/%s.json' % video_id,
-            video_id, 'Downloading video info JSON')
+            'https://playback-api.b17g.net/asset/%s' % video_id,
+            video_id, 'Downloading video info JSON', query={
+                'service': 'tv4',
+                'device': 'browser',
+                'protocol': 'hls,dash',
+                'drm': 'widevine',
+            })['metadata']
 
         title = info['title']
 
@@ -94,7 +99,7 @@ class TV4IE(InfoExtractor):
             manifest_url.replace('.m3u8', '.f4m'),
             video_id, f4m_id='hds', fatal=False))
         formats.extend(self._extract_ism_formats(
-            re.sub(r'\.ism/.+?\.m3u8', r'.ism/Manifest', manifest_url),
+            re.sub(r'\.ism/.*?\.m3u8', r'.ism/Manifest', manifest_url),
             video_id, ism_id='mss', fatal=False))
 
         if not formats and info.get('is_geo_restricted'):
@@ -111,5 +116,9 @@ class TV4IE(InfoExtractor):
             'timestamp': parse_iso8601(info.get('broadcast_date_time')),
             'duration': int_or_none(info.get('duration')),
             'thumbnail': info.get('image'),
-            'is_live': info.get('is_live') is True,
+            'is_live': info.get('isLive') is True,
+            'series': info.get('seriesTitle'),
+            'season_number': int_or_none(info.get('seasonNumber')),
+            'episode': info.get('episodeTitle'),
+            'episode_number': int_or_none(info.get('episodeNumber')),
         }

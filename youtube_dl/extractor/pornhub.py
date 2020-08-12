@@ -17,6 +17,7 @@ from ..utils import (
     determine_ext,
     ExtractorError,
     int_or_none,
+    NO_DEFAULT,
     orderedSet,
     remove_quotes,
     str_to_int,
@@ -51,7 +52,7 @@ class PornHubIE(PornHubBaseIE):
     _VALID_URL = r'''(?x)
                     https?://
                         (?:
-                            (?:[^/]+\.)?(?P<host>pornhub\.(?:com|net))/(?:(?:view_video\.php|video/show)\?viewkey=|embed/)|
+                            (?:[^/]+\.)?(?P<host>pornhub(?:premium)?\.(?:com|net))/(?:(?:view_video\.php|video/show)\?viewkey=|embed/)|
                             (?:www\.)?thumbzilla\.com/video/
                         )
                         (?P<id>[\da-z]+)
@@ -148,6 +149,9 @@ class PornHubIE(PornHubBaseIE):
     }, {
         'url': 'https://www.pornhub.net/view_video.php?viewkey=203640933',
         'only_matching': True,
+    }, {
+        'url': 'https://www.pornhubpremium.com/view_video.php?viewkey=ph5e4acdae54a82',
+        'only_matching': True,
     }]
 
     @staticmethod
@@ -165,12 +169,19 @@ class PornHubIE(PornHubBaseIE):
         host = mobj.group('host') or 'pornhub.com'
         video_id = mobj.group('id')
 
+        if 'premium' in host:
+            if not self._downloader.params.get('cookiefile'):
+                raise ExtractorError(
+                    'PornHub Premium requires authentication.'
+                    ' You may want to use --cookies.',
+                    expected=True)
+
         self._set_cookie(host, 'age_verified', '1')
 
         def dl_webpage(platform):
             self._set_cookie(host, 'platform', platform)
             return self._download_webpage(
-                'http://www.%s/view_video.php?viewkey=%s' % (host, video_id),
+                'https://www.%s/view_video.php?viewkey=%s' % (host, video_id),
                 video_id, 'Downloading %s webpage' % platform)
 
         webpage = dl_webpage('pc')
@@ -188,10 +199,10 @@ class PornHubIE(PornHubBaseIE):
         # http://www.pornhub.com/view_video.php?viewkey=1331683002), not relying
         # on that anymore.
         title = self._html_search_meta(
-            'twitter:title', webpage, default=None) or self._search_regex(
-            (r'<h1[^>]+class=["\']title["\'][^>]*>(?P<title>[^<]+)',
-             r'<div[^>]+data-video-title=(["\'])(?P<title>.+?)\1',
-             r'shareTitle\s*=\s*(["\'])(?P<title>.+?)\1'),
+            'twitter:title', webpage, default=None) or self._html_search_regex(
+            (r'(?s)<h1[^>]+class=["\']title["\'][^>]*>(?P<title>.+?)</h1>',
+             r'<div[^>]+data-video-title=(["\'])(?P<title>(?:(?!\1).)+)\1',
+             r'shareTitle["\']\s*[=:]\s*(["\'])(?P<title>(?:(?!\1).)+)\1'),
             webpage, 'title', group='title')
 
         video_urls = []
@@ -227,12 +238,13 @@ class PornHubIE(PornHubBaseIE):
         else:
             thumbnail, duration = [None] * 2
 
-        if not video_urls:
-            tv_webpage = dl_webpage('tv')
-
+        def extract_js_vars(webpage, pattern, default=NO_DEFAULT):
             assignments = self._search_regex(
-                r'(var.+?mediastring.+?)</script>', tv_webpage,
-                'encoded url').split(';')
+                pattern, webpage, 'encoded url', default=default)
+            if not assignments:
+                return {}
+
+            assignments = assignments.split(';')
 
             js_vars = {}
 
@@ -254,11 +266,35 @@ class PornHubIE(PornHubBaseIE):
                 assn = re.sub(r'var\s+', '', assn)
                 vname, value = assn.split('=', 1)
                 js_vars[vname] = parse_js_value(value)
+            return js_vars
 
-            video_url = js_vars['mediastring']
-            if video_url not in video_urls_set:
-                video_urls.append((video_url, None))
-                video_urls_set.add(video_url)
+        def add_video_url(video_url):
+            v_url = url_or_none(video_url)
+            if not v_url:
+                return
+            if v_url in video_urls_set:
+                return
+            video_urls.append((v_url, None))
+            video_urls_set.add(v_url)
+
+        if not video_urls:
+            FORMAT_PREFIXES = ('media', 'quality')
+            js_vars = extract_js_vars(
+                webpage, r'(var\s+(?:%s)_.+)' % '|'.join(FORMAT_PREFIXES),
+                default=None)
+            if js_vars:
+                for key, format_url in js_vars.items():
+                    if any(key.startswith(p) for p in FORMAT_PREFIXES):
+                        add_video_url(format_url)
+            if not video_urls and re.search(
+                    r'<[^>]+\bid=["\']lockedPlayer', webpage):
+                raise ExtractorError(
+                    'Video %s is locked' % video_id, expected=True)
+
+        if not video_urls:
+            js_vars = extract_js_vars(
+                dl_webpage('tv'), r'(var.+?mediastring.+?)</script>')
+            add_video_url(js_vars['mediastring'])
 
         for mobj in re.finditer(
                 r'<a[^>]+\bclass=["\']downloadBtn\b[^>]+\bhref=(["\'])(?P<url>(?:(?!\1).)+)\1',
@@ -276,9 +312,15 @@ class PornHubIE(PornHubBaseIE):
                     r'/(\d{6}/\d{2})/', video_url, 'upload data', default=None)
                 if upload_date:
                     upload_date = upload_date.replace('/', '')
-            if determine_ext(video_url) == 'mpd':
+            ext = determine_ext(video_url)
+            if ext == 'mpd':
                 formats.extend(self._extract_mpd_formats(
                     video_url, video_id, mpd_id='dash', fatal=False))
+                continue
+            elif ext == 'm3u8':
+                formats.extend(self._extract_m3u8_formats(
+                    video_url, video_id, 'mp4', entry_protocol='m3u8_native',
+                    m3u8_id='hls', fatal=False))
                 continue
             tbr = None
             mobj = re.search(r'(?P<height>\d+)[pP]?_(?P<tbr>\d+)[kK]', video_url)
@@ -372,37 +414,99 @@ class PornHubPlaylistBaseIE(PornHubBaseIE):
             entries, playlist_id, title, playlist.get('description'))
 
 
-class PornHubPlaylistIE(PornHubPlaylistBaseIE):
-    _VALID_URL = r'https?://(?:[^/]+\.)?(?P<host>pornhub\.(?:com|net))/playlist/(?P<id>\d+)'
+class PornHubUserIE(PornHubPlaylistBaseIE):
+    _VALID_URL = r'(?P<url>https?://(?:[^/]+\.)?(?P<host>pornhub(?:premium)?\.(?:com|net))/(?:(?:user|channel)s|model|pornstar)/(?P<id>[^/?#&]+))(?:[?#&]|/(?!videos)|$)'
     _TESTS = [{
-        'url': 'http://www.pornhub.com/playlist/4667351',
-        'info_dict': {
-            'id': '4667351',
-            'title': 'Nataly Hot',
-        },
-        'playlist_mincount': 2,
+        'url': 'https://www.pornhub.com/model/zoe_ph',
+        'playlist_mincount': 118,
     }, {
-        'url': 'https://de.pornhub.com/playlist/4667351',
+        'url': 'https://www.pornhub.com/pornstar/liz-vicious',
+        'info_dict': {
+            'id': 'liz-vicious',
+        },
+        'playlist_mincount': 118,
+    }, {
+        'url': 'https://www.pornhub.com/users/russianveet69',
+        'only_matching': True,
+    }, {
+        'url': 'https://www.pornhub.com/channels/povd',
+        'only_matching': True,
+    }, {
+        'url': 'https://www.pornhub.com/model/zoe_ph?abc=1',
         'only_matching': True,
     }]
 
+    def _real_extract(self, url):
+        mobj = re.match(self._VALID_URL, url)
+        user_id = mobj.group('id')
+        return self.url_result(
+            '%s/videos' % mobj.group('url'), ie=PornHubPagedVideoListIE.ie_key(),
+            video_id=user_id)
 
-class PornHubUserVideosIE(PornHubPlaylistBaseIE):
-    _VALID_URL = r'https?://(?:[^/]+\.)?(?P<host>pornhub\.(?:com|net))/(?:(?:user|channel)s|model|pornstar)/(?P<id>[^/]+)/videos'
+
+class PornHubPagedPlaylistBaseIE(PornHubPlaylistBaseIE):
+    @staticmethod
+    def _has_more(webpage):
+        return re.search(
+            r'''(?x)
+                <li[^>]+\bclass=["\']page_next|
+                <link[^>]+\brel=["\']next|
+                <button[^>]+\bid=["\']moreDataBtn
+            ''', webpage) is not None
+
+    def _real_extract(self, url):
+        mobj = re.match(self._VALID_URL, url)
+        host = mobj.group('host')
+        item_id = mobj.group('id')
+
+        page = int_or_none(self._search_regex(
+            r'\bpage=(\d+)', url, 'page', default=None))
+
+        entries = []
+        for page_num in (page, ) if page is not None else itertools.count(1):
+            try:
+                webpage = self._download_webpage(
+                    url, item_id, 'Downloading page %d' % page_num,
+                    query={'page': page_num})
+            except ExtractorError as e:
+                if isinstance(e.cause, compat_HTTPError) and e.cause.code == 404:
+                    break
+                raise
+            page_entries = self._extract_entries(webpage, host)
+            if not page_entries:
+                break
+            entries.extend(page_entries)
+            if not self._has_more(webpage):
+                break
+
+        return self.playlist_result(orderedSet(entries), item_id)
+
+
+class PornHubPagedVideoListIE(PornHubPagedPlaylistBaseIE):
+    _VALID_URL = r'https?://(?:[^/]+\.)?(?P<host>pornhub(?:premium)?\.(?:com|net))/(?P<id>(?:[^/]+/)*[^/?#&]+)'
     _TESTS = [{
-        'url': 'http://www.pornhub.com/users/zoe_ph/videos/public',
-        'info_dict': {
-            'id': 'zoe_ph',
-        },
-        'playlist_mincount': 171,
+        'url': 'https://www.pornhub.com/model/zoe_ph/videos',
+        'only_matching': True,
     }, {
         'url': 'http://www.pornhub.com/users/rushandlia/videos',
         'only_matching': True,
     }, {
+        'url': 'https://www.pornhub.com/pornstar/jenny-blighe/videos',
+        'info_dict': {
+            'id': 'pornstar/jenny-blighe/videos',
+        },
+        'playlist_mincount': 149,
+    }, {
+        'url': 'https://www.pornhub.com/pornstar/jenny-blighe/videos?page=3',
+        'info_dict': {
+            'id': 'pornstar/jenny-blighe/videos',
+        },
+        'playlist_mincount': 40,
+    }, {
         # default sorting as Top Rated Videos
         'url': 'https://www.pornhub.com/channels/povd/videos',
         'info_dict': {
-            'id': 'povd',
+            'id': 'channels/povd/videos',
         },
         'playlist_mincount': 293,
     }, {
@@ -421,31 +525,87 @@ class PornHubUserVideosIE(PornHubPlaylistBaseIE):
         'url': 'http://www.pornhub.com/users/zoe_ph/videos/public',
         'only_matching': True,
     }, {
-        'url': 'https://www.pornhub.com/model/jayndrea/videos/upload',
+        # Most Viewed Videos
+        'url': 'https://www.pornhub.com/pornstar/liz-vicious/videos?o=mv',
         'only_matching': True,
     }, {
-        'url': 'https://www.pornhub.com/pornstar/jenny-blighe/videos/upload',
+        # Top Rated Videos
+        'url': 'https://www.pornhub.com/pornstar/liz-vicious/videos?o=tr',
+        'only_matching': True,
+    }, {
+        # Longest Videos
+        'url': 'https://www.pornhub.com/pornstar/liz-vicious/videos?o=lg',
+        'only_matching': True,
+    }, {
+        # Newest Videos
+        'url': 'https://www.pornhub.com/pornstar/liz-vicious/videos?o=cm',
+        'only_matching': True,
+    }, {
+        'url': 'https://www.pornhub.com/pornstar/liz-vicious/videos/paid',
+        'only_matching': True,
+    }, {
+        'url': 'https://www.pornhub.com/pornstar/liz-vicious/videos/fanonly',
+        'only_matching': True,
+    }, {
+        'url': 'https://www.pornhub.com/video',
+        'only_matching': True,
+    }, {
+        'url': 'https://www.pornhub.com/video?page=3',
+        'only_matching': True,
+    }, {
+        'url': 'https://www.pornhub.com/video/search?search=123',
+        'only_matching': True,
+    }, {
+        'url': 'https://www.pornhub.com/categories/teen',
+        'only_matching': True,
+    }, {
+        'url': 'https://www.pornhub.com/categories/teen?page=3',
+        'only_matching': True,
+    }, {
+        'url': 'https://www.pornhub.com/hd',
+        'only_matching': True,
+    }, {
+        'url': 'https://www.pornhub.com/hd?page=3',
+        'only_matching': True,
+    }, {
+        'url': 'https://www.pornhub.com/described-video',
+        'only_matching': True,
+    }, {
+        'url': 'https://www.pornhub.com/described-video?page=2',
+        'only_matching': True,
+    }, {
+        'url': 'https://www.pornhub.com/video/incategories/60fps-1/hd-porn',
+        'only_matching': True,
+    }, {
+        'url': 'https://www.pornhub.com/playlist/44121572',
+        'info_dict': {
+            'id': 'playlist/44121572',
+        },
+        'playlist_mincount': 132,
+    }, {
+        'url': 'https://www.pornhub.com/playlist/4667351',
+        'only_matching': True,
+    }, {
+        'url': 'https://de.pornhub.com/playlist/4667351',
         'only_matching': True,
     }]
 
-    def _real_extract(self, url):
-        mobj = re.match(self._VALID_URL, url)
-        host = mobj.group('host')
-        user_id = mobj.group('id')
+    @classmethod
+    def suitable(cls, url):
+        return (False
+                if PornHubIE.suitable(url) or PornHubUserIE.suitable(url) or PornHubUserVideosUploadIE.suitable(url)
+                else super(PornHubPagedVideoListIE, cls).suitable(url))
 
-        entries = []
-        for page_num in itertools.count(1):
-            try:
-                webpage = self._download_webpage(
-                    url, user_id, 'Downloading page %d' % page_num,
-                    query={'page': page_num})
-            except ExtractorError as e:
-                if isinstance(e.cause, compat_HTTPError) and e.cause.code == 404:
-                    break
-                raise
-            page_entries = self._extract_entries(webpage, host)
-            if not page_entries:
-                break
-            entries.extend(page_entries)
 
-        return self.playlist_result(entries, user_id)
+class PornHubUserVideosUploadIE(PornHubPagedPlaylistBaseIE):
+    _VALID_URL = r'(?P<url>https?://(?:[^/]+\.)?(?P<host>pornhub(?:premium)?\.(?:com|net))/(?:(?:user|channel)s|model|pornstar)/(?P<id>[^/]+)/videos/upload)'
+    _TESTS = [{
+        'url': 'https://www.pornhub.com/pornstar/jenny-blighe/videos/upload',
+        'info_dict': {
+            'id': 'jenny-blighe',
+        },
+        'playlist_mincount': 129,
+    }, {
+        'url': 'https://www.pornhub.com/model/zoe_ph/videos/upload',
+        'only_matching': True,
+    }]
