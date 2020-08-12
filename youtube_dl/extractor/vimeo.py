@@ -601,7 +601,8 @@ class VimeoIE(VimeoBaseInfoExtractor):
                     raise ExtractorError(
                         'Cannot download embed-only video without embedding '
                         'URL. Please call youtube-dl with the URL of the page '
-                        'that embeds this video.',
+                        'that embeds this video, or by passing that to the '
+                        '--referer argument.',
                         expected=True)
             raise
 
