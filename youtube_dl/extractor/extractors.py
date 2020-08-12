@@ -840,7 +840,7 @@ from .picarto import (
     PicartoIE,
     PicartoVodIE,
 )
-from .picta import PictaIE, PictaPlaylistIE
+from .picta import PictaIE, PictaChannelPlaylistIE, PictaUserPlaylistIE
 from .piksel import PikselIE
 from .pinkbike import PinkbikeIE
 from .pladform import PladformIE
