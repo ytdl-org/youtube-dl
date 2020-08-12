@@ -20,7 +20,7 @@ from ..utils import (
 
 
 class XHamsterIE(InfoExtractor):
-    _DOMAINS = r'(?:xhamster\.(?:com|one|desi)|xhms\.pro|xhamster[27]\.com)'
+    _DOMAINS = r'(?:xhamster\.(?:com|one|desi)|xhms\.pro|xhamster\d+\.com)'
     _VALID_URL = r'''(?x)
                     https?://
                         (?:.+?\.)?%s/
@@ -98,6 +98,12 @@ class XHamsterIE(InfoExtractor):
         'only_matching': True,
     }, {
         'url': 'https://xhamster2.com/videos/femaleagent-shy-beauty-takes-the-bait-1509445',
+        'only_matching': True,
+    }, {
+        'url': 'https://xhamster11.com/videos/femaleagent-shy-beauty-takes-the-bait-1509445',
+        'only_matching': True,
+    }, {
+        'url': 'https://xhamster26.com/videos/femaleagent-shy-beauty-takes-the-bait-1509445',
         'only_matching': True,
     }, {
         'url': 'http://xhamster.com/movies/1509445/femaleagent_shy_beauty_takes_the_bait.html',
