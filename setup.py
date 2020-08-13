@@ -37,7 +37,7 @@ exec(compile(open('youtube_dl/version.py').read(),
              'youtube_dl/version.py', 'exec'))
 
 DESCRIPTION = 'YouTube video downloader'
-LONG_DESCRIPTION = 'Command-line program to download videos from YouTube.com and other video sites'
+LONG_DESCRIPTION = open('README.md').read()
 
 py2exe_console = [{
     'script': './youtube_dl/__main__.py',
@@ -104,6 +104,7 @@ setup(
     version=__version__,
     description=DESCRIPTION,
     long_description=LONG_DESCRIPTION,
+    long_description_content_type='text/markdown',
     url='https://github.com/ytdl-org/youtube-dl',
     author='Ricardo Garcia',
     author_email='ytdl@yt-dl.org',
