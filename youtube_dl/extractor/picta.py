@@ -65,7 +65,8 @@ class PictaBaseIE(InfoExtractor):
 class PictaIE(PictaBaseIE):
     IE_NAME = "picta"
     IE_DESC = "Picta videos"
-    _VALID_URL = r"https?://(?:www\.)?picta\.cu/(?:medias|embed)/(?:\?v=)?(?P<id>[\da-z-]+)(?:\?playlist=(?P<playlist_id>[\da-z-]+))?"
+    _VALID_URL = r"https?://(?:www\.)?picta\.cu/(?:medias|embed)/(?:\?v=)?(?P<id>[\da-z-]+)" \
+                 r"(?:\?playlist=(?P<playlist_id>[\da-z-]+))?"
 
     _TESTS = [
         {
@@ -131,7 +132,7 @@ class PictaIE(PictaBaseIE):
             cls._VALID_URL_RE = re.compile(cls._VALID_URL)
         m = cls._VALID_URL_RE.match(url)
         assert m
-        return compat_str(m.group('playlist_id'))
+        return m.group('playlist_id')
 
     def _real_extract(self, url):
         playlist_id = None
@@ -139,18 +140,15 @@ class PictaIE(PictaBaseIE):
         json_url = API_BASE_URL + "publicacion/?format=json&slug_url_raw=%s" % video_id
         video = self._download_json(json_url, video_id, "Downloading video JSON")
         info = self._extract_video(video, video_id)
-        if info["playlist_channel"] and self.playlist_id is None:
+        if (
+                info["playlist_channel"]
+                and self.playlist_id is None
+                and self._match_playlist_id(url) is None
+        ):
             playlist_id = info["playlist_channel"].get("id")
             self.playlist_id = playlist_id
         # Download Playlist (--yes-playlist) in first place
-        if playlist_id and not self._downloader.params.get('noplaylist'):
-            self.to_screen('Downloading playlist %s - add --no-playlist to just download video' % playlist_id)
-            return self.url_result(
-                ROOT_BASE_URL + "medias/" + video_id + "?" + "playlist=" + compat_str(playlist_id),
-                PictaChannelPlaylistIE.ie_key(),
-                playlist_id
-            )
-        elif (
+        if (
                 self.playlist_id is None
                 and self._match_playlist_id(url)
                 and not self._downloader.params.get('noplaylist')
@@ -161,6 +159,14 @@ class PictaIE(PictaBaseIE):
             return self.url_result(
                 ROOT_BASE_URL + "medias/" + video_id + "?" + "playlist=" + playlist_id,
                 PictaUserPlaylistIE.ie_key(),
+                playlist_id
+            )
+        elif playlist_id and not self._downloader.params.get('noplaylist'):
+            playlist_id = compat_str(playlist_id)
+            self.to_screen('Downloading playlist %s - add --no-playlist to just download video' % playlist_id)
+            return self.url_result(
+                ROOT_BASE_URL + "medias/" + video_id + "?" + "playlist=" + playlist_id,
+                PictaChannelPlaylistIE.ie_key(),
                 playlist_id
             )
         elif self._downloader.params.get('noplaylist'):
@@ -246,7 +252,8 @@ class PictaPlaylistIE(InfoExtractor):
     API_PLAYLIST_ENDPOINT = API_BASE_URL + "lista_reproduccion_canal/"
     IE_NAME = "picta:playlist"
     IE_DESC = "Picta playlist"
-    _VALID_URL = r"https?://(?:www\.)?picta\.cu/(?:medias|embed)/(?:\?v=)?(?P<id>[\da-z-]+)(?:\?playlist=(?P<playlist_id>[\da-z-]+))?"
+    _VALID_URL = r"https?://(?:www\.)?picta\.cu/(?:medias|embed)/(?P<id>[\da-z-]+)" \
+                 r"\?playlist=(?P<playlist_id>[\da-z-]+)$"
 
     _NETRC_MACHINE = "picta"
 
@@ -256,7 +263,7 @@ class PictaPlaylistIE(InfoExtractor):
             cls._VALID_URL_RE = re.compile(cls._VALID_URL)
         m = cls._VALID_URL_RE.match(url)
         assert m
-        return compat_str(m.group('playlist_id'))
+        return m.group('playlist_id')
 
     def _set_auth_basic(self):
         header = {}
@@ -297,22 +304,24 @@ class PictaPlaylistIE(InfoExtractor):
     def _entries(self, playlist_id):
         json_url = self.API_PLAYLIST_ENDPOINT + "?format=json&id=%s" % playlist_id
         headers = self._set_auth_basic()
+        playlist = {}
         try:
             playlist = self._download_json(json_url, playlist_id, "Downloading playlist JSON", headers=headers)
+            assert playlist.get("count", 0) >= 1
         except ExtractorError as e:
             if isinstance(e.cause, compat_HTTPError) and e.cause.code in (403,):
                 raise self.raise_login_required(
                     msg='This playlist is only available for registered users. Check your username and password'
                 )
-
-            raise ExtractorError("Unable to login...")
+        except AssertionError:
+            raise ExtractorError("Playlist no exists!")
 
         info_playlist = self._extract_playlist(playlist, playlist_id)
         playlist_entries = info_playlist.get("entries")
 
         for video in playlist_entries:
             video_id = video.get("id")
-            video_url = ROOT_BASE_URL + "medias/" + video.get("slug_url") + "?" + "playlist=" + compat_str(playlist_id)
+            video_url = ROOT_BASE_URL + "medias/" + video.get("slug_url") + "?" + "playlist=" + playlist_id
             yield self.url_result(video_url, PictaIE.ie_key(), video_id)
 
     def _real_extract(self, url):
@@ -326,17 +335,15 @@ class PictaChannelPlaylistIE(PictaPlaylistIE):
     IE_NAME = "picta:channel:playlist"
     IE_DESC = "Picta channel playlist"
 
-    _TESTS = [
-        {
-            "url": ("https://www.picta.cu/medias/"
-                    "201-paradigma-devops-implementacion-tecnomatica-2020-07-05-22-44-41-299736?playlist=4441"),
-            "info_dict": {
-                "id": 4441,
-                "title": "D\u00eda 2: Telecomunicaciones, Redes y Ciberseguridad",
-                "thumbnail": r"re:^https?://.*imagen/img.*\.jpeg$",
-            },
+    _TEST_CHANNEL = {
+        "url": ("https://www.picta.cu/medias/"
+                "201-paradigma-devops-implementacion-tecnomatica-2020-07-05-22-44-41-299736"),
+        "info_dict": {
+            "id": 4441,
+            "title": "D\u00eda 2: Telecomunicaciones, Redes y Ciberseguridad",
+            "thumbnail": r"re:^https?://.*imagen/img.*\.jpeg$",
         },
-    ]
+    }
 
 
 # noinspection PyAbstractClass
@@ -345,16 +352,14 @@ class PictaUserPlaylistIE(PictaPlaylistIE, PictaBaseIE):
     IE_NAME = "picta:user:playlist"
     IE_DESC = "Picta user playlist"
 
-    _TESTS = [
-        {
-            "url": "https://www.picta.cu/medias/die-hart-1x01-2020-08-06-18-12-50-310131?playlist=96",
-            "info_dict": {
-                "id": 96,
-                "title": "Die hart",
-                "thumbnail": None,
-            },
+    _TEST_USER = {
+        "url": "https://www.picta.cu/medias/fundamento-big-data-2020-08-09-19-47-15-230297?playlist=129",
+        "info_dict": {
+            "id": 129,
+            "title": "picta-dl",
+            "thumbnail": None,
         },
-    ]
+    }
 
     def _extract_playlist(self, playlist, playlist_id=None, require_title=True):
         if len(playlist["results"]) == 0:
