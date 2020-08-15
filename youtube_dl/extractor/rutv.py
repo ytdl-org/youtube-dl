@@ -139,7 +139,7 @@ class RUTVIE(InfoExtractor):
         is_live = video_type == 'live'
 
         json_data = self._download_json(
-            'http://player.rutv.ru/iframe/data%s/id/%s' % ('live' if is_live else 'video', video_id),
+            'http://player.vgtrk.com/iframe/data%s/id/%s' % ('live' if is_live else 'video', video_id),
             video_id, 'Downloading JSON')
 
         if json_data['errors']:
