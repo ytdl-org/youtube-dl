@@ -21,7 +21,7 @@ from ..utils import (
 
 class ABCIE(InfoExtractor):
     IE_NAME = 'abc.net.au'
-    _VALID_URL = r'https?://(?:www\.)?abc\.net\.au/news/(?:[^/]+/){1,2}(?P<id>\d+)'
+    _VALID_URL = r'https?://(?:www\.)?abc\.net\.au/(?:news|btn)/(?:[^/]+/){1,4}(?P<id>\d{5,})'
 
     _TESTS = [{
         'url': 'http://www.abc.net.au/news/2014-11-05/australia-to-staff-ebola-treatment-centre-in-sierra-leone/5868334',
@@ -60,12 +60,31 @@ class ABCIE(InfoExtractor):
         'url': 'http://www.abc.net.au/news/2015-10-19/6866214',
         'only_matching': True,
     }, {
+        'url': 'https://www.abc.net.au/btn/classroom/wwi-centenary/10527914',
+        'info_dict': {
+            'id': '10527914',
+            'ext': 'mp4',
+            'title': 'WWI Centenary',
+            'description': 'md5:c2379ec0ca84072e86b446e536954546',
+        }
+    }, {
         'url': 'https://www.abc.net.au/news/programs/the-world/2020-06-10/black-lives-matter-protests-spawn-support-for/12342074',
         'info_dict': {
             'id': '12342074',
             'ext': 'mp4',
             'title': 'Black Lives Matter protests spawn support for Papuans in Indonesia',
             'description': 'md5:2961a17dc53abc558589ccd0fb8edd6f',
+        }
+    }, {
+        'url': 'https://www.abc.net.au/btn/newsbreak/btn-newsbreak-20200814/12560476',
+        'info_dict': {
+            'id': 'tDL8Ld4dK_8',
+            'ext': 'mp4',
+            'title': 'Fortnite Banned From Apple and Google App Stores',
+            'description': 'md5:a6df3f36ce8f816b74af4bd6462f5651',
+            'upload_date': '20200813',
+            'uploader': 'Behind the News',
+            'uploader_id': 'behindthenews',
         }
     }]
 
@@ -81,6 +100,8 @@ class ABCIE(InfoExtractor):
         else:
             mobj = re.search(r'<a href="(?P<url>http://www\.youtube\.com/watch\?v=[^"]+)"><span><strong>External Link:</strong>',
                              webpage)
+            if mobj is None:
+                mobj = re.search(r'<iframe width="100%" src="(?P<url>//www\.youtube-nocookie\.com/embed/[^?"]+)', webpage)
             if mobj:
                 urls_info = mobj.groupdict()
                 youtube = True
