@@ -561,7 +561,7 @@ class FacebookIE(InfoExtractor):
         uploader_handle = self._search_regex(r'"video_path":"\\\/([^\/]+)\\\/', tahoe_data.primary, 'uploader_handle',
                                              fatal=False)
         if uploader_handle == uploader_id:
-            uploader_handle = self._search_regex(r'href=\\"https:\\\/\\\/www.facebook.com\\\/(.+?)\\\/\\', tahoe_data.secondary,
+            uploader_handle = self._search_regex(r'href=\\"https:\\\/\\\/www.facebook.com\\\/(.+?)\\\/', tahoe_data.secondary,
                                                'uploader_handle',
                                                  fatal=False)
 
