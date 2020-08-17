@@ -1057,6 +1057,11 @@ from .spike import (
     BellatorIE,
     ParamountNetworkIE,
 )
+from .storyfire import (
+    StoryFireIE,
+    StoryFireUserIE,
+    StoryFireSeriesIE,
+)
 from .stitcher import StitcherIE
 from .sport5 import Sport5IE
 from .sportbox import SportBoxIE
