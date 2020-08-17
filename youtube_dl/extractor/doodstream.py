@@ -42,18 +42,18 @@ class DoodStreamIE(InfoExtractor):
             video_id = self._match_id(url)
             webpage = self._download_webpage(url, video_id)
 
-        title = self._html_search_meta(['og:title', 'twitter:title'], 
-             webpage, default=None)
+        title = self._html_search_meta(['og:title', 'twitter:title'],
+                                       webpage, default=None)
         thumb = self._html_search_meta(['og:image', 'twitter:image'],
-             webpage, default=None)
+                                       webpage, default=None)
         token = self._html_search_regex(r'[?&]token=([a-z0-9]+)[&\']', webpage, 'token')
         description = self._html_search_meta(
-            ['og:description', 'description', 'twitter:description'], 
+            ['og:description', 'description', 'twitter:description'],
             webpage, default=None)
         auth_url = 'https://dood.to' + self._html_search_regex(
             r'(/pass_md5.*?)\'', webpage, 'pass_md5')
         headers = {
-            'User-Agent': 'Mozilla/5.0 (Windows NT 6.1; WOW64; rv:53.0) Gecko/20100101 Firefox/66.0', 
+            'User-Agent': 'Mozilla/5.0 (Windows NT 6.1; WOW64; rv:53.0) Gecko/20100101 Firefox/66.0',
             'referer': url
         }
 
