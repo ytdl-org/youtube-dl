@@ -11,10 +11,10 @@ from ..utils import (
 
 
 class AparatIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:www\.)?aparat\.com/(?:v/|video/video/embed/videohash/)(?P<id>[a-zA-Z0-9]+)/vt/frame'
+    _VALID_URL = r'https?://(?:www\.)?aparat\.com/(?:v/|video/video/embed/videohash/)(?P<id>[a-zA-Z0-9]+/|vt/frame)'
 
     _TESTS = [{
-        'url': 'http://www.aparat.com/v/wP8On',
+        'url': 'http://www.aparat.com/v/wP8On/',
         'md5': '131aca2e14fe7c4dcb3c4877ba300c89',
         'info_dict': {
             'id': 'wP8On',
