@@ -7,6 +7,7 @@ from .common import InfoExtractor
 from ..utils import (
     determine_ext,
     int_or_none,
+    merge_dicts,
     parse_iso8601,
     qualities,
     try_get,
@@ -87,21 +88,25 @@ class NDRIE(NDRBaseIE):
 
     def _extract_embed(self, webpage, display_id):
         embed_url = self._html_search_meta(
-            'embedURL', webpage, 'embed URL', fatal=True)
+            'embedURL', webpage, 'embed URL',
+            default=None) or self._search_regex(
+            r'\bembedUrl["\']\s*:\s*(["\'])(?P<url>(?:(?!\1).)+)\1', webpage,
+            'embed URL', group='url')
         description = self._search_regex(
             r'<p[^>]+itemprop="description">([^<]+)</p>',
             webpage, 'description', default=None) or self._og_search_description(webpage)
         timestamp = parse_iso8601(
             self._search_regex(
                 r'<span[^>]+itemprop="(?:datePublished|uploadDate)"[^>]+content="([^"]+)"',
-                webpage, 'upload date', fatal=False))
-        return {
+                webpage, 'upload date', default=None))
+        info = self._search_json_ld(webpage, display_id, default={})
+        return merge_dicts({
             '_type': 'url_transparent',
             'url': embed_url,
             'display_id': display_id,
             'description': description,
             'timestamp': timestamp,
-        }
+        }, info)
 
 
 class NJoyIE(NDRBaseIE):

@@ -3,34 +3,47 @@ from __future__ import unicode_literals
 import re
 
 from .common import InfoExtractor
-from ..compat import (
-    compat_urllib_parse_unquote,
-    compat_urllib_parse_urlparse,
-)
 from ..utils import (
-    sanitized_Request,
+    float_or_none,
+    int_or_none,
+    merge_dicts,
+    str_or_none,
     str_to_int,
-    unified_strdate,
+    url_or_none,
 )
-from ..aes import aes_decrypt_text
 
 
 class SpankwireIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:www\.)?(?P<url>spankwire\.com/[^/]*/video(?P<id>[0-9]+)/?)'
+    _VALID_URL = r'''(?x)
+                    https?://
+                        (?:www\.)?spankwire\.com/
+                        (?:
+                            [^/]+/video|
+                            EmbedPlayer\.aspx/?\?.*?\bArticleId=
+                        )
+                        (?P<id>\d+)
+                    '''
     _TESTS = [{
         # download URL pattern: */<height>P_<tbr>K_<video_id>.mp4
         'url': 'http://www.spankwire.com/Buckcherry-s-X-Rated-Music-Video-Crazy-Bitch/video103545/',
-        'md5': '8bbfde12b101204b39e4b9fe7eb67095',
+        'md5': '5aa0e4feef20aad82cbcae3aed7ab7cd',
         'info_dict': {
             'id': '103545',
             'ext': 'mp4',
             'title': 'Buckcherry`s X Rated Music Video Crazy Bitch',
             'description': 'Crazy Bitch X rated music video.',
+            'duration': 222,
             'uploader': 'oreusz',
             'uploader_id': '124697',
-            'upload_date': '20070507',
+            'timestamp': 1178587885,
+            'upload_date': '20070508',
+            'average_rating': float,
+            'view_count': int,
+            'comment_count': int,
             'age_limit': 18,
-        }
+            'categories': list,
+            'tags': list,
+        },
     }, {
         # download URL pattern: */mp4_<format_id>_<video_id>.mp4
         'url': 'http://www.spankwire.com/Titcums-Compiloation-I/video1921551/',
@@ -45,83 +58,125 @@ class SpankwireIE(InfoExtractor):
             'upload_date': '20150822',
             'age_limit': 18,
         },
+        'params': {
+            'proxy': '127.0.0.1:8118'
+        },
+        'skip': 'removed',
+    }, {
+        'url': 'https://www.spankwire.com/EmbedPlayer.aspx/?ArticleId=156156&autostart=true',
+        'only_matching': True,
     }]
 
+    @staticmethod
+    def _extract_urls(webpage):
+        return re.findall(
+            r'<iframe[^>]+\bsrc=["\']((?:https?:)?//(?:www\.)?spankwire\.com/EmbedPlayer\.aspx/?\?.*?\bArticleId=\d+)',
+            webpage)
+
     def _real_extract(self, url):
-        mobj = re.match(self._VALID_URL, url)
-        video_id = mobj.group('id')
+        video_id = self._match_id(url)
 
-        req = sanitized_Request('http://www.' + mobj.group('url'))
-        req.add_header('Cookie', 'age_verified=1')
-        webpage = self._download_webpage(req, video_id)
+        video = self._download_json(
+            'https://www.spankwire.com/api/video/%s.json' % video_id, video_id)
 
-        title = self._html_search_regex(
-            r'<h1>([^<]+)', webpage, 'title')
-        description = self._html_search_regex(
-            r'(?s)<div\s+id="descriptionContent">(.+?)</div>',
-            webpage, 'description', fatal=False)
-        thumbnail = self._html_search_regex(
-            r'playerData\.screenShot\s*=\s*["\']([^"\']+)["\']',
-            webpage, 'thumbnail', fatal=False)
-
-        uploader = self._html_search_regex(
-            r'by:\s*<a [^>]*>(.+?)</a>',
-            webpage, 'uploader', fatal=False)
-        uploader_id = self._html_search_regex(
-            r'by:\s*<a href="/(?:user/viewProfile|Profile\.aspx)\?.*?UserId=(\d+).*?"',
-            webpage, 'uploader id', fatal=False)
-        upload_date = unified_strdate(self._html_search_regex(
-            r'</a> on (.+?) at \d+:\d+',
-            webpage, 'upload date', fatal=False))
-
-        view_count = str_to_int(self._html_search_regex(
-            r'<div id="viewsCounter"><span>([\d,\.]+)</span> views</div>',
-            webpage, 'view count', fatal=False))
-        comment_count = str_to_int(self._html_search_regex(
-            r'<span\s+id="spCommentCount"[^>]*>([\d,\.]+)</span>',
-            webpage, 'comment count', fatal=False))
-
-        videos = re.findall(
-            r'playerData\.cdnPath([0-9]{3,})\s*=\s*(?:encodeURIComponent\()?["\']([^"\']+)["\']', webpage)
-        heights = [int(video[0]) for video in videos]
-        video_urls = list(map(compat_urllib_parse_unquote, [video[1] for video in videos]))
-        if webpage.find(r'flashvars\.encrypted = "true"') != -1:
-            password = self._search_regex(
-                r'flashvars\.video_title = "([^"]+)',
-                webpage, 'password').replace('+', ' ')
-            video_urls = list(map(
-                lambda s: aes_decrypt_text(s, password, 32).decode('utf-8'),
-                video_urls))
+        title = video['title']
 
         formats = []
-        for height, video_url in zip(heights, video_urls):
-            path = compat_urllib_parse_urlparse(video_url).path
-            m = re.search(r'/(?P<height>\d+)[pP]_(?P<tbr>\d+)[kK]', path)
-            if m:
-                tbr = int(m.group('tbr'))
-                height = int(m.group('height'))
-            else:
-                tbr = None
-            formats.append({
-                'url': video_url,
-                'format_id': '%dp' % height,
-                'height': height,
-                'tbr': tbr,
+        videos = video.get('videos')
+        if isinstance(videos, dict):
+            for format_id, format_url in videos.items():
+                video_url = url_or_none(format_url)
+                if not format_url:
+                    continue
+                height = int_or_none(self._search_regex(
+                    r'(\d+)[pP]', format_id, 'height', default=None))
+                m = re.search(
+                    r'/(?P<height>\d+)[pP]_(?P<tbr>\d+)[kK]', video_url)
+                if m:
+                    tbr = int(m.group('tbr'))
+                    height = height or int(m.group('height'))
+                else:
+                    tbr = None
+                formats.append({
+                    'url': video_url,
+                    'format_id': '%dp' % height if height else format_id,
+                    'height': height,
+                    'tbr': tbr,
+                })
+        m3u8_url = url_or_none(video.get('HLS'))
+        if m3u8_url:
+            formats.extend(self._extract_m3u8_formats(
+                m3u8_url, video_id, 'mp4', entry_protocol='m3u8_native',
+                m3u8_id='hls', fatal=False))
+        self._sort_formats(formats, ('height', 'tbr', 'width', 'format_id'))
+
+        view_count = str_to_int(video.get('viewed'))
+
+        thumbnails = []
+        for preference, t in enumerate(('', '2x'), start=0):
+            thumbnail_url = url_or_none(video.get('poster%s' % t))
+            if not thumbnail_url:
+                continue
+            thumbnails.append({
+                'url': thumbnail_url,
+                'preference': preference,
             })
-        self._sort_formats(formats)
 
-        age_limit = self._rta_search(webpage)
+        def extract_names(key):
+            entries_list = video.get(key)
+            if not isinstance(entries_list, list):
+                return
+            entries = []
+            for entry in entries_list:
+                name = str_or_none(entry.get('name'))
+                if name:
+                    entries.append(name)
+            return entries
 
-        return {
+        categories = extract_names('categories')
+        tags = extract_names('tags')
+
+        uploader = None
+        info = {}
+
+        webpage = self._download_webpage(
+            'https://www.spankwire.com/_/video%s/' % video_id, video_id,
+            fatal=False)
+        if webpage:
+            info = self._search_json_ld(webpage, video_id, default={})
+            thumbnail_url = None
+            if 'thumbnail' in info:
+                thumbnail_url = url_or_none(info['thumbnail'])
+                del info['thumbnail']
+            if not thumbnail_url:
+                thumbnail_url = self._og_search_thumbnail(webpage)
+            if thumbnail_url:
+                thumbnails.append({
+                    'url': thumbnail_url,
+                    'preference': 10,
+                })
+            uploader = self._html_search_regex(
+                r'(?s)by\s*<a[^>]+\bclass=["\']uploaded__by[^>]*>(.+?)</a>',
+                webpage, 'uploader', fatal=False)
+            if not view_count:
+                view_count = str_to_int(self._search_regex(
+                    r'data-views=["\']([\d,.]+)', webpage, 'view count',
+                    fatal=False))
+
+        return merge_dicts({
             'id': video_id,
             'title': title,
-            'description': description,
-            'thumbnail': thumbnail,
+            'description': video.get('description'),
+            'duration': int_or_none(video.get('duration')),
+            'thumbnails': thumbnails,
             'uploader': uploader,
-            'uploader_id': uploader_id,
-            'upload_date': upload_date,
+            'uploader_id': str_or_none(video.get('userId')),
+            'timestamp': int_or_none(video.get('time_approved_on')),
+            'average_rating': float_or_none(video.get('rating')),
             'view_count': view_count,
-            'comment_count': comment_count,
+            'comment_count': int_or_none(video.get('comments')),
+            'age_limit': 18,
+            'categories': categories,
+            'tags': tags,
             'formats': formats,
-            'age_limit': age_limit,
-        }
+        }, info)

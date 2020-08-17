@@ -21,6 +21,8 @@ from ..utils import (
     orderedSet,
     parse_duration,
     parse_iso8601,
+    qualities,
+    str_or_none,
     try_get,
     unified_timestamp,
     update_url_query,
@@ -50,8 +52,14 @@ class TwitchBaseIE(InfoExtractor):
 
     def _call_api(self, path, item_id, *args, **kwargs):
         headers = kwargs.get('headers', {}).copy()
-        headers['Client-ID'] = self._CLIENT_ID
-        kwargs['headers'] = headers
+        headers.update({
+            'Accept': 'application/vnd.twitchtv.v5+json; charset=UTF-8',
+            'Client-ID': self._CLIENT_ID,
+        })
+        kwargs.update({
+            'headers': headers,
+            'expected_status': (400, 410),
+        })
         response = self._download_json(
             '%s/%s' % (self._API_BASE, path), item_id,
             *args, **compat_kwargs(kwargs))
@@ -186,12 +194,27 @@ class TwitchItemBaseIE(TwitchBaseIE):
             is_live = False
         else:
             is_live = None
+        _QUALITIES = ('small', 'medium', 'large')
+        quality_key = qualities(_QUALITIES)
+        thumbnails = []
+        preview = info.get('preview')
+        if isinstance(preview, dict):
+            for thumbnail_id, thumbnail_url in preview.items():
+                thumbnail_url = url_or_none(thumbnail_url)
+                if not thumbnail_url:
+                    continue
+                if thumbnail_id not in _QUALITIES:
+                    continue
+                thumbnails.append({
+                    'url': thumbnail_url,
+                    'preference': quality_key(thumbnail_id),
+                })
         return {
             'id': info['_id'],
             'title': info.get('title') or 'Untitled Broadcast',
             'description': info.get('description'),
             'duration': int_or_none(info.get('length')),
-            'thumbnail': info.get('preview'),
+            'thumbnails': thumbnails,
             'uploader': info.get('channel', {}).get('display_name'),
             'uploader_id': info.get('channel', {}).get('name'),
             'timestamp': parse_iso8601(info.get('recorded_at')),
@@ -572,10 +595,18 @@ class TwitchStreamIE(TwitchBaseIE):
                 else super(TwitchStreamIE, cls).suitable(url))
 
     def _real_extract(self, url):
-        channel_id = self._match_id(url)
+        channel_name = self._match_id(url)
+
+        access_token = self._call_api(
+            'api/channels/%s/access_token' % channel_name, channel_name,
+            'Downloading access token JSON')
+
+        token = access_token['token']
+        channel_id = compat_str(self._parse_json(
+            token, channel_name)['channel_id'])
 
         stream = self._call_api(
-            'kraken/streams/%s?stream_type=all' % channel_id.lower(),
+            'kraken/streams/%s?stream_type=all' % channel_id,
             channel_id, 'Downloading stream JSON').get('stream')
 
         if not stream:
@@ -585,11 +616,9 @@ class TwitchStreamIE(TwitchBaseIE):
         # (e.g. http://www.twitch.tv/TWITCHPLAYSPOKEMON) that will lead to constructing
         # an invalid m3u8 URL. Working around by use of original channel name from stream
         # JSON and fallback to lowercase if it's not available.
-        channel_id = stream.get('channel', {}).get('name') or channel_id.lower()
-
-        access_token = self._call_api(
-            'api/channels/%s/access_token' % channel_id, channel_id,
-            'Downloading channel access token')
+        channel_name = try_get(
+            stream, lambda x: x['channel']['name'],
+            compat_str) or channel_name.lower()
 
         query = {
             'allow_source': 'true',
@@ -600,11 +629,11 @@ class TwitchStreamIE(TwitchBaseIE):
             'playlist_include_framerate': 'true',
             'segment_preference': '4',
             'sig': access_token['sig'].encode('utf-8'),
-            'token': access_token['token'].encode('utf-8'),
+            'token': token.encode('utf-8'),
         }
         formats = self._extract_m3u8_formats(
             '%s/api/channel/hls/%s.m3u8?%s'
-            % (self._USHER_BASE, channel_id, compat_urllib_parse_urlencode(query)),
+            % (self._USHER_BASE, channel_name, compat_urllib_parse_urlencode(query)),
             channel_id, 'mp4')
         self._prefer_source(formats)
 
@@ -627,8 +656,8 @@ class TwitchStreamIE(TwitchBaseIE):
             })
 
         return {
-            'id': compat_str(stream['_id']),
-            'display_id': channel_id,
+            'id': str_or_none(stream.get('_id')) or channel_id,
+            'display_id': channel_name,
             'title': title,
             'description': description,
             'thumbnails': thumbnails,
@@ -643,7 +672,14 @@ class TwitchStreamIE(TwitchBaseIE):
 
 class TwitchClipsIE(TwitchBaseIE):
     IE_NAME = 'twitch:clips'
-    _VALID_URL = r'https?://(?:clips\.twitch\.tv/(?:embed\?.*?\bclip=|(?:[^/]+/)*)|(?:www\.)?twitch\.tv/[^/]+/clip/)(?P<id>[^/?#&]+)'
+    _VALID_URL = r'''(?x)
+                    https?://
+                        (?:
+                            clips\.twitch\.tv/(?:embed\?.*?\bclip=|(?:[^/]+/)*)|
+                            (?:(?:www|go|m)\.)?twitch\.tv/[^/]+/clip/
+                        )
+                        (?P<id>[^/?#&]+)
+                    '''
 
     _TESTS = [{
         'url': 'https://clips.twitch.tv/FaintLightGullWholeWheat',
@@ -668,6 +704,12 @@ class TwitchClipsIE(TwitchBaseIE):
         'only_matching': True,
     }, {
         'url': 'https://clips.twitch.tv/embed?clip=InquisitiveBreakableYogurtJebaited',
+        'only_matching': True,
+    }, {
+        'url': 'https://m.twitch.tv/rossbroadcast/clip/ConfidentBraveHumanChefFrank',
+        'only_matching': True,
+    }, {
+        'url': 'https://go.twitch.tv/rossbroadcast/clip/ConfidentBraveHumanChefFrank',
         'only_matching': True,
     }]
 

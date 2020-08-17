@@ -1,12 +1,11 @@
 from __future__ import unicode_literals
 
-import re
-
 from .common import InfoExtractor
 from ..utils import (
-    js_to_json,
+    int_or_none,
+    merge_dicts,
     remove_end,
-    determine_ext,
+    unified_timestamp,
 )
 
 
@@ -14,15 +13,21 @@ class HellPornoIE(InfoExtractor):
     _VALID_URL = r'https?://(?:www\.)?hellporno\.(?:com/videos|net/v)/(?P<id>[^/]+)'
     _TESTS = [{
         'url': 'http://hellporno.com/videos/dixie-is-posing-with-naked-ass-very-erotic/',
-        'md5': '1fee339c610d2049699ef2aa699439f1',
+        'md5': 'f0a46ebc0bed0c72ae8fe4629f7de5f3',
         'info_dict': {
             'id': '149116',
             'display_id': 'dixie-is-posing-with-naked-ass-very-erotic',
             'ext': 'mp4',
             'title': 'Dixie is posing with naked ass very erotic',
+            'description': 'md5:9a72922749354edb1c4b6e540ad3d215',
+            'categories': list,
             'thumbnail': r're:https?://.*\.jpg$',
+            'duration': 240,
+            'timestamp': 1398762720,
+            'upload_date': '20140429',
+            'view_count': int,
             'age_limit': 18,
-        }
+        },
     }, {
         'url': 'http://hellporno.net/v/186271/',
         'only_matching': True,
@@ -36,40 +41,36 @@ class HellPornoIE(InfoExtractor):
         title = remove_end(self._html_search_regex(
             r'<title>([^<]+)</title>', webpage, 'title'), ' - Hell Porno')
 
-        flashvars = self._parse_json(self._search_regex(
-            r'var\s+flashvars\s*=\s*({.+?});', webpage, 'flashvars'),
-            display_id, transform_source=js_to_json)
+        info = self._parse_html5_media_entries(url, webpage, display_id)[0]
+        self._sort_formats(info['formats'])
 
-        video_id = flashvars.get('video_id')
-        thumbnail = flashvars.get('preview_url')
-        ext = determine_ext(flashvars.get('postfix'), 'mp4')
+        video_id = self._search_regex(
+            (r'chs_object\s*=\s*["\'](\d+)',
+             r'params\[["\']video_id["\']\]\s*=\s*(\d+)'), webpage, 'video id',
+            default=display_id)
+        description = self._search_regex(
+            r'class=["\']desc_video_view_v2[^>]+>([^<]+)', webpage,
+            'description', fatal=False)
+        categories = [
+            c.strip()
+            for c in self._html_search_meta(
+                'keywords', webpage, 'categories', default='').split(',')
+            if c.strip()]
+        duration = int_or_none(self._og_search_property(
+            'video:duration', webpage, fatal=False))
+        timestamp = unified_timestamp(self._og_search_property(
+            'video:release_date', webpage, fatal=False))
+        view_count = int_or_none(self._search_regex(
+            r'>Views\s+(\d+)', webpage, 'view count', fatal=False))
 
-        formats = []
-        for video_url_key in ['video_url', 'video_alt_url']:
-            video_url = flashvars.get(video_url_key)
-            if not video_url:
-                continue
-            video_text = flashvars.get('%s_text' % video_url_key)
-            fmt = {
-                'url': video_url,
-                'ext': ext,
-                'format_id': video_text,
-            }
-            m = re.search(r'^(?P<height>\d+)[pP]', video_text)
-            if m:
-                fmt['height'] = int(m.group('height'))
-            formats.append(fmt)
-        self._sort_formats(formats)
-
-        categories = self._html_search_meta(
-            'keywords', webpage, 'categories', default='').split(',')
-
-        return {
+        return merge_dicts(info, {
             'id': video_id,
             'display_id': display_id,
             'title': title,
-            'thumbnail': thumbnail,
+            'description': description,
             'categories': categories,
+            'duration': duration,
+            'timestamp': timestamp,
+            'view_count': view_count,
             'age_limit': 18,
-            'formats': formats,
-        }
+        })

@@ -20,20 +20,16 @@ class PokemonIE(InfoExtractor):
             'ext': 'mp4',
             'title': 'The Ol’ Raise and Switch!',
             'description': 'md5:7db77f7107f98ba88401d3adc80ff7af',
-            'timestamp': 1511824728,
-            'upload_date': '20171127',
         },
         'add_id': ['LimelightMedia'],
     }, {
         # no data-video-title
-        'url': 'https://www.pokemon.com/us/pokemon-episodes/pokemon-movies/pokemon-the-rise-of-darkrai-2008',
+        'url': 'https://www.pokemon.com/fr/episodes-pokemon/films-pokemon/pokemon-lascension-de-darkrai-2008',
         'info_dict': {
-            'id': '99f3bae270bf4e5097274817239ce9c8',
+            'id': 'dfbaf830d7e54e179837c50c0c6cc0e1',
             'ext': 'mp4',
-            'title': 'Pokémon: The Rise of Darkrai',
-            'description': 'md5:ea8fbbf942e1e497d54b19025dd57d9d',
-            'timestamp': 1417778347,
-            'upload_date': '20141205',
+            'title': "Pokémon : L'ascension de Darkrai",
+            'description': 'md5:d1dbc9e206070c3e14a06ff557659fb5',
         },
         'add_id': ['LimelightMedia'],
         'params': {

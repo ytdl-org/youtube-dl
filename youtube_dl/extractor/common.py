@@ -15,7 +15,7 @@ import time
 import math
 
 from ..compat import (
-    compat_cookiejar,
+    compat_cookiejar_Cookie,
     compat_cookies,
     compat_etree_Element,
     compat_etree_fromstring,
@@ -1182,16 +1182,33 @@ class InfoExtractor(object):
                                       'twitter card player')
 
     def _search_json_ld(self, html, video_id, expected_type=None, **kwargs):
-        json_ld = self._search_regex(
-            JSON_LD_RE, html, 'JSON-LD', group='json_ld', **kwargs)
+        json_ld_list = list(re.finditer(JSON_LD_RE, html))
         default = kwargs.get('default', NO_DEFAULT)
-        if not json_ld:
-            return default if default is not NO_DEFAULT else {}
         # JSON-LD may be malformed and thus `fatal` should be respected.
         # At the same time `default` may be passed that assumes `fatal=False`
         # for _search_regex. Let's simulate the same behavior here as well.
         fatal = kwargs.get('fatal', True) if default == NO_DEFAULT else False
-        return self._json_ld(json_ld, video_id, fatal=fatal, expected_type=expected_type)
+        json_ld = []
+        for mobj in json_ld_list:
+            json_ld_item = self._parse_json(
+                mobj.group('json_ld'), video_id, fatal=fatal)
+            if not json_ld_item:
+                continue
+            if isinstance(json_ld_item, dict):
+                json_ld.append(json_ld_item)
+            elif isinstance(json_ld_item, (list, tuple)):
+                json_ld.extend(json_ld_item)
+        if json_ld:
+            json_ld = self._json_ld(json_ld, video_id, fatal=fatal, expected_type=expected_type)
+        if json_ld:
+            return json_ld
+        if default is not NO_DEFAULT:
+            return default
+        elif fatal:
+            raise RegexNotFoundError('Unable to extract JSON-LD')
+        else:
+            self._downloader.report_warning('unable to extract JSON-LD %s' % bug_reports_message())
+            return {}
 
     def _json_ld(self, json_ld, video_id, fatal=True, expected_type=None):
         if isinstance(json_ld, compat_str):
@@ -1256,10 +1273,10 @@ class InfoExtractor(object):
             extract_interaction_statistic(e)
 
         for e in json_ld:
-            if isinstance(e.get('@context'), compat_str) and re.match(r'^https?://schema.org/?$', e.get('@context')):
+            if '@context' in e:
                 item_type = e.get('@type')
                 if expected_type is not None and expected_type != item_type:
-                    return info
+                    continue
                 if item_type in ('TVEpisode', 'Episode'):
                     episode_name = unescapeHTML(e.get('name'))
                     info.update({
@@ -1293,11 +1310,17 @@ class InfoExtractor(object):
                     })
                 elif item_type == 'VideoObject':
                     extract_video_object(e)
-                    continue
+                    if expected_type is None:
+                        continue
+                    else:
+                        break
                 video = e.get('video')
                 if isinstance(video, dict) and video.get('@type') == 'VideoObject':
                     extract_video_object(video)
-                break
+                if expected_type is None:
+                    continue
+                else:
+                    break
         return dict((k, v) for k, v in info.items() if v is not None)
 
     @staticmethod
@@ -2340,6 +2363,8 @@ class InfoExtractor(object):
         if res is False:
             return []
         ism_doc, urlh = res
+        if ism_doc is None:
+            return []
 
         return self._parse_ism_formats(ism_doc, urlh.geturl(), ism_id)
 
@@ -2818,7 +2843,7 @@ class InfoExtractor(object):
 
     def _set_cookie(self, domain, name, value, expire_time=None, port=None,
                     path='/', secure=False, discard=False, rest={}, **kwargs):
-        cookie = compat_cookiejar.Cookie(
+        cookie = compat_cookiejar_Cookie(
             0, name, value, port, port is not None, domain, True,
             domain.startswith('.'), path, True, secure, expire_time,
             discard, None, None, rest)

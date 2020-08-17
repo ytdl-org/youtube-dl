@@ -6,7 +6,7 @@ from .common import InfoExtractor
 
 
 class NhkVodIE(InfoExtractor):
-    _VALID_URL = r'https?://www3\.nhk\.or\.jp/nhkworld/(?P<lang>[a-z]{2})/ondemand/(?P<type>video|audio)/(?P<id>\d{7}|[a-z]+-\d{8}-\d+)'
+    _VALID_URL = r'https?://www3\.nhk\.or\.jp/nhkworld/(?P<lang>[a-z]{2})/ondemand/(?P<type>video|audio)/(?P<id>\d{7}|[^/]+?-\d{8}-\d+)'
     # Content available only for a limited period of time. Visit
     # https://www3.nhk.or.jp/nhkworld/en/ondemand/ for working samples.
     _TESTS = [{
@@ -29,6 +29,9 @@ class NhkVodIE(InfoExtractor):
         'only_matching': True,
     }, {
         'url': 'https://www3.nhk.or.jp/nhkworld/fr/ondemand/audio/plugin-20190404-1/',
+        'only_matching': True,
+    }, {
+        'url': 'https://www3.nhk.or.jp/nhkworld/en/ondemand/audio/j_art-20150903-1/',
         'only_matching': True,
     }]
     _API_URL_TEMPLATE = 'https://api.nhk.or.jp/nhkworld/%sod%slist/v7a/episode/%s/%s/all%s.json'
@@ -82,15 +85,9 @@ class NhkVodIE(InfoExtractor):
             audio = episode['audio']
             audio_path = audio['audio']
             info['formats'] = self._extract_m3u8_formats(
-                'https://nhks-vh.akamaihd.net/i%s/master.m3u8' % audio_path,
-                episode_id, 'm4a', m3u8_id='hls', fatal=False)
-            for proto in ('rtmpt', 'rtmp'):
-                info['formats'].append({
-                    'ext': 'flv',
-                    'format_id': proto,
-                    'url': '%s://flv.nhk.or.jp/ondemand/mp4:flv%s' % (proto, audio_path),
-                    'vcodec': 'none',
-                })
+                'https://nhkworld-vh.akamaihd.net/i%s/master.m3u8' % audio_path,
+                episode_id, 'm4a', entry_protocol='m3u8_native',
+                m3u8_id='hls', fatal=False)
             for f in info['formats']:
                 f['language'] = lang
         return info

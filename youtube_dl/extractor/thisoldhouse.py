@@ -31,6 +31,10 @@ class ThisOldHouseIE(InfoExtractor):
     }, {
         'url': 'https://www.thisoldhouse.com/21113884/s41-e13-paradise-lost',
         'only_matching': True,
+    }, {
+        # iframe www.thisoldhouse.com
+        'url': 'https://www.thisoldhouse.com/21083431/seaside-transformation-the-westerly-project',
+        'only_matching': True,
     }]
     _ZYPE_TMPL = 'https://player.zype.com/embed/%s.html?api_key=hsOk_yMSPYNrT22e9pu8hihLXjaZf0JW5jsOWv4ZqyHJFvkJn6rtToHl09tbbsbe'
 
@@ -38,6 +42,6 @@ class ThisOldHouseIE(InfoExtractor):
         display_id = self._match_id(url)
         webpage = self._download_webpage(url, display_id)
         video_id = self._search_regex(
-            r'<iframe[^>]+src=[\'"](?:https?:)?//thisoldhouse\.chorus\.build/videos/zype/([0-9a-f]{24})',
+            r'<iframe[^>]+src=[\'"](?:https?:)?//(?:www\.)?thisoldhouse\.(?:chorus\.build|com)/videos/zype/([0-9a-f]{24})',
             webpage, 'video id')
         return self.url_result(self._ZYPE_TMPL % video_id, 'Zype', video_id)
