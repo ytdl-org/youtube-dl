@@ -46,6 +46,7 @@ class PictaBaseIE(InfoExtractor):
             if len(video["results"][0]["lista_reproduccion_canal"]) > 0
             else None
         )
+        subtitle_url = try_get(video, lambda x: x["results"][0]["url_subtitulo"])
 
         return {
             "id": try_get(video, lambda x: x["results"][0]["id"], compat_str) or video_id,
@@ -57,7 +58,8 @@ class PictaBaseIE(InfoExtractor):
             "timestamp": timestamp,
             "category": [category] if category else None,
             "manifest_url": manifest_url,
-            "playlist_channel": playlist_channel
+            "playlist_channel": playlist_channel,
+            "subtitle_url": subtitle_url,
         }
 
 
@@ -123,6 +125,11 @@ class PictaIE(PictaBaseIE):
         },
     ]
 
+    _LANGUAGES_CODES = ['es']
+    _LANG_ES = _LANGUAGES_CODES[0]
+
+    _SUBTITLE_FORMATS = ('srt', )
+
     def _real_initialize(self):
         self.playlist_id = None
 
@@ -133,6 +140,25 @@ class PictaIE(PictaBaseIE):
         m = cls._VALID_URL_RE.match(url)
         assert m
         return m.group('playlist_id')
+
+    def _get_subtitles(self, video):
+        sub_lang_list = {}
+        lang = self._LANG_ES
+
+        sub_url = video.get('subtitle_url', '')
+
+        if sub_url:
+            sub_formats = []
+            for ext in self._SUBTITLE_FORMATS:
+                sub_formats.append({
+                    'url': sub_url,
+                    'ext': ext,
+                })
+            sub_lang_list[lang] = sub_formats
+        if not sub_lang_list:
+            self._downloader.report_warning('video doesn\'t have subtitles')
+            return {}
+        return sub_lang_list
 
     def _real_extract(self, url):
         playlist_id = None
@@ -183,8 +209,11 @@ class PictaIE(PictaBaseIE):
             raise ExtractorError("Cannot find video formats")
 
         self._sort_formats(formats)
-
         info["formats"] = formats
+
+        # subtitles
+        video_subtitles = self.extract_subtitles(info)
+        info["subtitles"] = video_subtitles
         return info
 
 
