@@ -12,6 +12,8 @@ from ..utils import (
 
 
 class TeleQuebecBaseIE(InfoExtractor):
+    BRIGHTCOVE_URL_TEMPLATE = 'http://players.brightcove.net/6150020952001/default_default/index.html?videoId=%s'
+
     @staticmethod
     def _limelight_result(media_id):
         return {
@@ -20,6 +22,13 @@ class TeleQuebecBaseIE(InfoExtractor):
                 'limelight:media:' + media_id, {'geo_countries': ['CA']}),
             'ie_key': 'LimelightMedia',
         }
+
+    def _brightcove_result(self, brightcove_id):
+        return self.url_result(
+            smuggle_url(
+                self.BRIGHTCOVE_URL_TEMPLATE % brightcove_id,
+                {'geo_countries': ['CA']}),
+            'BrightcoveNew', brightcove_id)
 
 
 class TeleQuebecIE(TeleQuebecBaseIE):
@@ -37,7 +46,7 @@ class TeleQuebecIE(TeleQuebecBaseIE):
             'id': '577116881b4b439084e6b1cf4ef8b1b3',
             'ext': 'mp4',
             'title': 'Un petit choc et puis repart!',
-            'description': 'md5:b04a7e6b3f74e32d7b294cffe8658374',
+            'description': 'md5:067bc84bd6afecad85e69d1000730907',
         },
         'params': {
             'skip_download': True,
@@ -58,7 +67,10 @@ class TeleQuebecIE(TeleQuebecBaseIE):
             'https://mnmedias.api.telequebec.tv/api/v2/media/' + media_id,
             media_id)['media']
 
-        info = self._limelight_result(media_data['streamInfo']['sourceId'])
+        if media_data['streamInfo']['source'] == 'Brightcove':
+            info = self._brightcove_result(media_data['streamInfo']['sourceId'])
+        elif media_data['streamInfo']['source'] == 'Limelight':
+            info = self._limelight_result(media_data['streamInfo']['sourceId'])
         info.update({
             'title': media_data.get('title'),
             'description': try_get(
