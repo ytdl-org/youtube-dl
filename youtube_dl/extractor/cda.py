@@ -4,6 +4,8 @@ from __future__ import unicode_literals
 import codecs
 import re
 
+import js2py
+
 from .common import InfoExtractor
 from ..utils import (
     ExtractorError,
@@ -141,8 +143,12 @@ class CDAIE(InfoExtractor):
                 video['file'] = codecs.decode(video['file'], 'rot_13')
                 if video['file'].endswith('adc.mp4'):
                     video['file'] = video['file'].replace('adc.mp4', '.mp4')
+
+            #  Native cda decode:
+            decode = getDecoder()
+
             f = {
-                'url': video['file'],
+                'url': decode(video['file']),
             }
             m = re.search(
                 r'<a[^>]+data-quality="(?P<format_id>[^"]+)"[^>]+href="[^"]+"[^>]+class="[^"]*quality-btn-active[^"]*">(?P<height>[0-9]+)p',
@@ -180,3 +186,50 @@ class CDAIE(InfoExtractor):
         self._sort_formats(formats)
 
         return info_dict
+
+def getDecoder():
+    return js2py.eval_js(R'''
+var k = function (a) {
+    return a.replace(/[a-zA-Z]/g, function (a) {
+        return String.fromCharCode(("Z" >= a ? 90 : 122) >= (a = a.charCodeAt(0) + 13) ? a : a - 26)
+    })
+};
+
+var l = function(a) {
+    for (var b = [], e = 0; e < a.length; e++) {
+        var f = a.charCodeAt(e);
+        b[e] = 33 <= f && 126 >= f ? String.fromCharCode(33 + (f + 14) % 94) : String.fromCharCode(f)
+    }
+    return da(b.join(""))
+}
+
+var aa = function (a) {
+    String.fromCharCode(("Z" >= a ? 82 : 132) >= (c = a.charCodeAt(0) + 11) ? c : c - 55);
+    return l(a)
+};
+
+    da = function(a) {
+        a = a.replace(".cda.mp4", "");
+        a = a.replace(".2cda.pl", ".cda.pl");
+        a = a.replace(".3cda.pl", ".cda.pl");
+        return -1 < a.indexOf("/upstream") ? (a = a.replace("/upstream", ".mp4/upstream"),
+        "https://" + a) : "https://" + a + ".mp4"
+    }
+
+var ba = function (a) {
+    return aa(decodeURIComponent(k(a)))
+};
+
+// M function:
+var decode = function (a) {
+    String.fromCharCode(("Z" >= a ? 11 : 344) >= (c = a.charCodeAt(0) + 22) ? c : c - 11);
+    a = a.replace("_XDDD", "");
+    a = a.replace("_CDA", "");
+    a = a.replace("_ADC", "");
+    a = a.replace("_CXD", "");
+    a = a.replace("_QWE", "");
+    a = a.replace("_Q5", "");
+    a = a.replace("_IKSDE", "");
+    return ba(k(a))
+};
+''')
