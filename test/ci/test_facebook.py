@@ -28,11 +28,13 @@ class facebookMetaData(unittest.TestCase):
 
     def test_meta_data(self):
         params = {}
-        url = "https://www.facebook.com/parapsychological.centr/videos/177407933624543/"
+        url = "https://www.facebook.com/watch?v=925616657920281"
         ydl = youtube_dl.YoutubeDL(params)
         info = ydl.extract_info(url, download=False)
         self.assertGreater(info.get('comment_count'), 0)
         self.assertTrue(info.get('uploader_handle'), 0)
+        self.assertGreater(len(info.get('title')), 0)
+
 
     def test_metadata_fetch_with_log_in(self):
         url = "https://www.facebook.com/oristandup/videos/675360549895283"

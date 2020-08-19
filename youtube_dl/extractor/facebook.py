@@ -694,6 +694,9 @@ class FacebookIE(InfoExtractor):
         if not self._valid_video_title(video_title):
             video_title = self._resolve_description(webpage, tahoe_data)
         if not self._valid_video_title(video_title):
+            video_title = self._html_search_regex(r'"videoTitle":"(.+?")', tahoe_data.secondary, 'title from secondary', default=None)
+            video_title = video_title.decode('unicode_escape')
+        if not self._valid_video_title(video_title):
             values = re.findall(r'videoTitle"\s*:\s*"(.*?)"', tahoe_data.secondary)
             if values:
                 video_title = values[-1]
