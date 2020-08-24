@@ -3354,7 +3354,7 @@ class YoutubeFeedsInfoExtractor(YoutubeBaseInfoExtractor):
     def _entries(self, page):
         info = []
 
-        yt_conf = self._parse_json(self._search_regex(self._YTCFG_DATA, page, 'ytcfg.set'), None)
+        yt_conf = self._parse_json(self._search_regex(self._YTCFG_DATA, page, 'ytcfg.set', default="null"), None, fatal=False)
 
         search_response = self._parse_json(self._search_regex(self._FEED_DATA, page, 'ytInitialData'), None)
 
@@ -3385,7 +3385,7 @@ class YoutubeFeedsInfoExtractor(YoutubeBaseInfoExtractor):
             for video in new_info:
                 yield self.url_result(try_get(video, lambda x: x['videoId']), YoutubeIE.ie_key(), video_title=try_get(video, lambda x: x['title']['runs'][0]['text']))
 
-            if not continuation:
+            if not continuation or not yt_conf:
                 break
 
             search_response = self._download_json(
