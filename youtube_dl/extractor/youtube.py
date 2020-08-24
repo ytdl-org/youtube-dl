@@ -3383,7 +3383,7 @@ class YoutubeFeedsInfoExtractor(YoutubeBaseInfoExtractor):
             info.extend(new_info)
 
             for video in new_info:
-                yield self.url_result(try_get(video, lambda x: x['videoId']), YoutubeIE.ie_key(), video_title=try_get(video, lambda x: x['title']['runs'][0]['text']))
+                yield self.url_result(try_get(video, lambda x: x['videoId']), YoutubeIE.ie_key(), video_title=try_get(video, lambda x: x['title']['runs'][0]['text']) or try_get(video, lambda x: x['title']['simpleText']))
 
             if not continuation or not yt_conf:
                 break
