@@ -87,9 +87,9 @@ class ZingMp3BaseInfoExtractor(InfoExtractor):
 
 
 class ZingMp3IE(ZingMp3BaseInfoExtractor):
-    _VALID_URL = r'https?://mp3\.zing\.vn/(?:bai-hat|album|playlist|video-clip)/[^/]+/(?P<id>\w+)\.html'
+    _VALID_URL = r'https?://zingmp3\.vn/(?:bai-hat|album|playlist|video-clip)/[^/]+/(?P<id>\w+)\.html'
     _TESTS = [{
-        'url': 'http://mp3.zing.vn/bai-hat/Xa-Mai-Xa-Bao-Thy/ZWZB9WAB.html',
+        'url': 'http://zingmp3.vn/bai-hat/Xa-Mai-Xa-Bao-Thy/ZWZB9WAB.html',
         'md5': 'ead7ae13693b3205cbc89536a077daed',
         'info_dict': {
             'id': 'ZWZB9WAB',
@@ -98,7 +98,7 @@ class ZingMp3IE(ZingMp3BaseInfoExtractor):
             'thumbnail': r're:^https?://.*\.jpg$',
         },
     }, {
-        'url': 'http://mp3.zing.vn/video-clip/Let-It-Go-Frozen-OST-Sungha-Jung/ZW6BAEA0.html',
+        'url': 'http://zingmp3.vn/video-clip/Let-It-Go-Frozen-OST-Sungha-Jung/ZW6BAEA0.html',
         'md5': '870295a9cd8045c0e15663565902618d',
         'info_dict': {
             'id': 'ZW6BAEA0',
@@ -106,7 +106,7 @@ class ZingMp3IE(ZingMp3BaseInfoExtractor):
             'ext': 'mp4',
         },
     }, {
-        'url': 'http://mp3.zing.vn/album/Lau-Dai-Tinh-Ai-Bang-Kieu-Minh-Tuyet/ZWZBWDAF.html',
+        'url': 'http://zingmp3.vn/album/Lau-Dai-Tinh-Ai-Bang-Kieu-Minh-Tuyet/ZWZBWDAF.html',
         'info_dict': {
             '_type': 'playlist',
             'id': 'ZWZBWDAF',
@@ -115,11 +115,11 @@ class ZingMp3IE(ZingMp3BaseInfoExtractor):
         'playlist_count': 10,
         'skip': 'removed at the request of the owner',
     }, {
-        'url': 'http://mp3.zing.vn/playlist/Duong-Hong-Loan-apollobee/IWCAACCB.html',
+        'url': 'http://zingmp3.vn/playlist/Duong-Hong-Loan-apollobee/IWCAACCB.html',
         'only_matching': True,
     }]
     IE_NAME = 'zingmp3'
-    IE_DESC = 'mp3.zing.vn'
+    IE_DESC = 'zingmp3.vn'
 
     def _real_extract(self, url):
         page_id = self._match_id(url)
