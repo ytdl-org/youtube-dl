@@ -4,6 +4,7 @@ import re
 
 from .common import InfoExtractor
 from ..utils import (
+    determine_ext,
     ExtractorError,
     int_or_none,
     merge_dicts,
@@ -43,14 +44,21 @@ class RedTubeIE(InfoExtractor):
         webpage = self._download_webpage(
             'http://www.redtube.com/%s' % video_id, video_id)
 
-        if any(s in webpage for s in ['video-deleted-info', '>This video has been removed']):
-            raise ExtractorError('Video %s has been removed' % video_id, expected=True)
+        ERRORS = (
+            (('video-deleted-info', '>This video has been removed'), 'has been removed'),
+            (('private_video_text', '>This video is private', '>Send a friend request to its owner to be able to view it'), 'is private'),
+        )
+
+        for patterns, message in ERRORS:
+            if any(p in webpage for p in patterns):
+                raise ExtractorError(
+                    'Video %s %s' % (video_id, message), expected=True)
 
         info = self._search_json_ld(webpage, video_id, default={})
 
         if not info.get('title'):
             info['title'] = self._html_search_regex(
-                (r'<h(\d)[^>]+class="(?:video_title_text|videoTitle)[^"]*">(?P<title>(?:(?!\1).)+)</h\1>',
+                (r'<h(\d)[^>]+class="(?:video_title_text|videoTitle|video_title)[^"]*">(?P<title>(?:(?!\1).)+)</h\1>',
                  r'(?:videoTitle|title)\s*:\s*(["\'])(?P<title>(?:(?!\1).)+)\1',),
                 webpage, 'title', group='title',
                 default=None) or self._og_search_title(webpage)
@@ -70,13 +78,19 @@ class RedTubeIE(InfoExtractor):
                     })
         medias = self._parse_json(
             self._search_regex(
-                r'mediaDefinition\s*:\s*(\[.+?\])', webpage,
+                r'mediaDefinition["\']?\s*:\s*(\[.+?}\s*\])', webpage,
                 'media definitions', default='{}'),
             video_id, fatal=False)
         if medias and isinstance(medias, list):
             for media in medias:
                 format_url = url_or_none(media.get('videoUrl'))
                 if not format_url:
+                    continue
+                if media.get('format') == 'hls' or determine_ext(format_url) == 'm3u8':
+                    formats.extend(self._extract_m3u8_formats(
+                        format_url, video_id, 'mp4',
+                        entry_protocol='m3u8_native', m3u8_id='hls',
+                        fatal=False))
                     continue
                 format_id = media.get('quality')
                 formats.append({

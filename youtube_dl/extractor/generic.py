@@ -60,6 +60,9 @@ from .tnaflix import TNAFlixNetworkEmbedIE
 from .drtuber import DrTuberIE
 from .redtube import RedTubeIE
 from .tube8 import Tube8IE
+from .mofosex import MofosexEmbedIE
+from .spankwire import SpankwireIE
+from .youporn import YouPornIE
 from .vimeo import VimeoIE
 from .dailymotion import DailymotionIE
 from .dailymail import DailyMailIE
@@ -1706,6 +1709,15 @@ class GenericIE(InfoExtractor):
             'add_ie': ['Kaltura'],
         },
         {
+            # multiple kaltura embeds, nsfw
+            'url': 'https://www.quartier-rouge.be/prive/femmes/kamila-avec-video-jaime-sadomie.html',
+            'info_dict': {
+                'id': 'kamila-avec-video-jaime-sadomie',
+                'title': "Kamila avec vídeo “J'aime sadomie”",
+            },
+            'playlist_count': 8,
+        },
+        {
             # Non-standard Vimeo embed
             'url': 'https://openclassrooms.com/courses/understanding-the-web',
             'md5': '64d86f1c7d369afd9a78b38cbb88d80a',
@@ -2098,6 +2110,9 @@ class GenericIE(InfoExtractor):
                 'ext': 'mp4',
                 'title': 'Smoky Barbecue Favorites',
                 'thumbnail': r're:^https?://.*\.jpe?g',
+                'description': 'md5:5ff01e76316bd8d46508af26dc86023b',
+                'upload_date': '20170909',
+                'timestamp': 1504915200,
             },
             'add_ie': [ZypeIE.ie_key()],
             'params': {
@@ -2284,7 +2299,7 @@ class GenericIE(InfoExtractor):
 
         if head_response is not False:
             # Check for redirect
-            new_url = compat_str(head_response.geturl())
+            new_url = head_response.geturl()
             if url != new_url:
                 self.report_following_redirect(new_url)
                 if force_videoid:
@@ -2384,12 +2399,12 @@ class GenericIE(InfoExtractor):
                 return self.playlist_result(
                     self._parse_xspf(
                         doc, video_id, xspf_url=url,
-                        xspf_base_url=compat_str(full_response.geturl())),
+                        xspf_base_url=full_response.geturl()),
                     video_id)
             elif re.match(r'(?i)^(?:{[^}]+})?MPD$', doc.tag):
                 info_dict['formats'] = self._parse_mpd_formats(
                     doc,
-                    mpd_base_url=compat_str(full_response.geturl()).rpartition('/')[0],
+                    mpd_base_url=full_response.geturl().rpartition('/')[0],
                     mpd_url=url)
                 self._sort_formats(info_dict['formats'])
                 return info_dict
@@ -2533,15 +2548,21 @@ class GenericIE(InfoExtractor):
             return self.playlist_from_matches(
                 dailymail_urls, video_id, video_title, ie=DailyMailIE.ie_key())
 
+        # Look for Teachable embeds, must be before Wistia
+        teachable_url = TeachableIE._extract_url(webpage, url)
+        if teachable_url:
+            return self.url_result(teachable_url)
+
         # Look for embedded Wistia player
-        wistia_url = WistiaIE._extract_url(webpage)
-        if wistia_url:
-            return {
-                '_type': 'url_transparent',
-                'url': self._proto_relative_url(wistia_url),
-                'ie_key': WistiaIE.ie_key(),
-                'uploader': video_uploader,
-            }
+        wistia_urls = WistiaIE._extract_urls(webpage)
+        if wistia_urls:
+            playlist = self.playlist_from_matches(wistia_urls, video_id, video_title, ie=WistiaIE.ie_key())
+            for entry in playlist['entries']:
+                entry.update({
+                    '_type': 'url_transparent',
+                    'uploader': video_uploader,
+                })
+            return playlist
 
         # Look for SVT player
         svt_url = SVTIE._extract_url(webpage)
@@ -2706,6 +2727,21 @@ class GenericIE(InfoExtractor):
         if tube8_urls:
             return self.playlist_from_matches(tube8_urls, video_id, video_title, ie=Tube8IE.ie_key())
 
+        # Look for embedded Mofosex player
+        mofosex_urls = MofosexEmbedIE._extract_urls(webpage)
+        if mofosex_urls:
+            return self.playlist_from_matches(mofosex_urls, video_id, video_title, ie=MofosexEmbedIE.ie_key())
+
+        # Look for embedded Spankwire player
+        spankwire_urls = SpankwireIE._extract_urls(webpage)
+        if spankwire_urls:
+            return self.playlist_from_matches(spankwire_urls, video_id, video_title, ie=SpankwireIE.ie_key())
+
+        # Look for embedded YouPorn player
+        youporn_urls = YouPornIE._extract_urls(webpage)
+        if youporn_urls:
+            return self.playlist_from_matches(youporn_urls, video_id, video_title, ie=YouPornIE.ie_key())
+
         # Look for embedded Tvigle player
         mobj = re.search(
             r'<iframe[^>]+?src=(["\'])(?P<url>(?:https?:)?//cloud\.tvigle\.ru/video/.+?)\1', webpage)
@@ -2817,9 +2853,12 @@ class GenericIE(InfoExtractor):
             return self.url_result(mobj.group('url'), 'Zapiks')
 
         # Look for Kaltura embeds
-        kaltura_url = KalturaIE._extract_url(webpage)
-        if kaltura_url:
-            return self.url_result(smuggle_url(kaltura_url, {'source_url': url}), KalturaIE.ie_key())
+        kaltura_urls = KalturaIE._extract_urls(webpage)
+        if kaltura_urls:
+            return self.playlist_from_matches(
+                kaltura_urls, video_id, video_title,
+                getter=lambda x: smuggle_url(x, {'source_url': url}),
+                ie=KalturaIE.ie_key())
 
         # Look for EaglePlatform embeds
         eagleplatform_url = EaglePlatformIE._extract_url(webpage)
@@ -2960,7 +2999,7 @@ class GenericIE(InfoExtractor):
 
         # Look for VODPlatform embeds
         mobj = re.search(
-            r'<iframe[^>]+src=(["\'])(?P<url>(?:https?:)?//(?:www\.)?vod-platform\.net/[eE]mbed/.+?)\1',
+            r'<iframe[^>]+src=(["\'])(?P<url>(?:https?:)?//(?:(?:www\.)?vod-platform\.net|embed\.kwikmotion\.com)/[eE]mbed/.+?)\1',
             webpage)
         if mobj is not None:
             return self.url_result(
@@ -3136,10 +3175,6 @@ class GenericIE(InfoExtractor):
         if peertube_urls:
             return self.playlist_from_matches(
                 peertube_urls, video_id, video_title, ie=PeerTubeIE.ie_key())
-
-        teachable_url = TeachableIE._extract_url(webpage, url)
-        if teachable_url:
-            return self.url_result(teachable_url)
 
         indavideo_urls = IndavideoEmbedIE._extract_urls(webpage)
         if indavideo_urls:

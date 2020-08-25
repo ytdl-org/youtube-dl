@@ -7,9 +7,18 @@ from .common import InfoExtractor
 
 
 class ServusIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:www\.)?servus\.com/(?:(?:at|de)/p/[^/]+|tv/videos)/(?P<id>[aA]{2}-\w+|\d+-\d+)'
+    _VALID_URL = r'''(?x)
+                    https?://
+                        (?:www\.)?
+                        (?:
+                            servus\.com/(?:(?:at|de)/p/[^/]+|tv/videos)|
+                            servustv\.com/videos
+                        )
+                        /(?P<id>[aA]{2}-\w+|\d+-\d+)
+                    '''
     _TESTS = [{
-        'url': 'https://www.servus.com/de/p/Die-Gr%C3%BCnen-aus-Sicht-des-Volkes/AA-1T6VBU5PW1W12/',
+        # new URL schema
+        'url': 'https://www.servustv.com/videos/aa-1t6vbu5pw1w12/',
         'md5': '3e1dd16775aa8d5cbef23628cfffc1f4',
         'info_dict': {
             'id': 'AA-1T6VBU5PW1W12',
@@ -18,6 +27,10 @@ class ServusIE(InfoExtractor):
             'description': 'md5:1247204d85783afe3682644398ff2ec4',
             'thumbnail': r're:^https?://.*\.jpg',
         }
+    }, {
+        # old URL schema
+        'url': 'https://www.servus.com/de/p/Die-Gr%C3%BCnen-aus-Sicht-des-Volkes/AA-1T6VBU5PW1W12/',
+        'only_matching': True,
     }, {
         'url': 'https://www.servus.com/at/p/Wie-das-Leben-beginnt/1309984137314-381415152/',
         'only_matching': True,

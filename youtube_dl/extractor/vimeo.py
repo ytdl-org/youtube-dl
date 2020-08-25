@@ -33,6 +33,7 @@ from ..utils import (
     unified_timestamp,
     unsmuggle_url,
     urlencode_postdata,
+    urljoin,
     unescapeHTML,
 )
 
@@ -139,28 +140,28 @@ class VimeoBaseInfoExtractor(InfoExtractor):
             })
 
         # TODO: fix handling of 308 status code returned for live archive manifest requests
+        sep_pattern = r'/sep/video/'
         for files_type in ('hls', 'dash'):
             for cdn_name, cdn_data in config_files.get(files_type, {}).get('cdns', {}).items():
                 manifest_url = cdn_data.get('url')
                 if not manifest_url:
                     continue
                 format_id = '%s-%s' % (files_type, cdn_name)
-                if files_type == 'hls':
-                    formats.extend(self._extract_m3u8_formats(
-                        manifest_url, video_id, 'mp4',
-                        'm3u8' if is_live else 'm3u8_native', m3u8_id=format_id,
-                        note='Downloading %s m3u8 information' % cdn_name,
-                        fatal=False))
-                elif files_type == 'dash':
-                    mpd_pattern = r'/%s/(?:sep/)?video/' % video_id
-                    mpd_manifest_urls = []
-                    if re.search(mpd_pattern, manifest_url):
-                        for suffix, repl in (('', 'video'), ('_sep', 'sep/video')):
-                            mpd_manifest_urls.append((format_id + suffix, re.sub(
-                                mpd_pattern, '/%s/%s/' % (video_id, repl), manifest_url)))
-                    else:
-                        mpd_manifest_urls = [(format_id, manifest_url)]
-                    for f_id, m_url in mpd_manifest_urls:
+                sep_manifest_urls = []
+                if re.search(sep_pattern, manifest_url):
+                    for suffix, repl in (('', 'video'), ('_sep', 'sep/video')):
+                        sep_manifest_urls.append((format_id + suffix, re.sub(
+                            sep_pattern, '/%s/' % repl, manifest_url)))
+                else:
+                    sep_manifest_urls = [(format_id, manifest_url)]
+                for f_id, m_url in sep_manifest_urls:
+                    if files_type == 'hls':
+                        formats.extend(self._extract_m3u8_formats(
+                            m_url, video_id, 'mp4',
+                            'm3u8' if is_live else 'm3u8_native', m3u8_id=f_id,
+                            note='Downloading %s m3u8 information' % cdn_name,
+                            fatal=False))
+                    elif files_type == 'dash':
                         if 'json=1' in m_url:
                             real_m_url = (self._download_json(m_url, video_id, fatal=False) or {}).get('url')
                             if real_m_url:
@@ -169,11 +170,6 @@ class VimeoBaseInfoExtractor(InfoExtractor):
                             m_url.replace('/master.json', '/master.mpd'), video_id, f_id,
                             'Downloading %s MPD information' % cdn_name,
                             fatal=False)
-                        for f in mpd_formats:
-                            if f.get('vcodec') == 'none':
-                                f['preference'] = -50
-                            elif f.get('acodec') == 'none':
-                                f['preference'] = -40
                         formats.extend(mpd_formats)
 
         live_archive = live_event.get('archive') or {}
@@ -185,13 +181,19 @@ class VimeoBaseInfoExtractor(InfoExtractor):
                 'preference': 1,
             })
 
+        for f in formats:
+            if f.get('vcodec') == 'none':
+                f['preference'] = -50
+            elif f.get('acodec') == 'none':
+                f['preference'] = -40
+
         subtitles = {}
         text_tracks = config['request'].get('text_tracks')
         if text_tracks:
             for tt in text_tracks:
                 subtitles[tt['lang']] = [{
                     'ext': 'vtt',
-                    'url': 'https://vimeo.com' + tt['url'],
+                    'url': urljoin('https://vimeo.com', tt['url']),
                 }]
 
         thumbnails = []
@@ -591,7 +593,7 @@ class VimeoIE(VimeoBaseInfoExtractor):
             # Retrieve video webpage to extract further information
             webpage, urlh = self._download_webpage_handle(
                 url, video_id, headers=headers)
-            redirect_url = compat_str(urlh.geturl())
+            redirect_url = urlh.geturl()
         except ExtractorError as ee:
             if isinstance(ee.cause, compat_HTTPError) and ee.cause.code == 403:
                 errmsg = ee.cause.read()
@@ -841,33 +843,6 @@ class VimeoChannelIE(VimeoBaseInfoExtractor):
         return self._TITLE or self._html_search_regex(
             self._TITLE_RE, webpage, 'list title', fatal=False)
 
-    def _login_list_password(self, page_url, list_id, webpage):
-        login_form = self._search_regex(
-            r'(?s)<form[^>]+?id="pw_form"(.*?)</form>',
-            webpage, 'login form', default=None)
-        if not login_form:
-            return webpage
-
-        password = self._downloader.params.get('videopassword')
-        if password is None:
-            raise ExtractorError('This album is protected by a password, use the --video-password option', expected=True)
-        fields = self._hidden_inputs(login_form)
-        token, vuid = self._extract_xsrft_and_vuid(webpage)
-        fields['token'] = token
-        fields['password'] = password
-        post = urlencode_postdata(fields)
-        password_path = self._search_regex(
-            r'action="([^"]+)"', login_form, 'password URL')
-        password_url = compat_urlparse.urljoin(page_url, password_path)
-        password_request = sanitized_Request(password_url, post)
-        password_request.add_header('Content-type', 'application/x-www-form-urlencoded')
-        self._set_vimeo_cookie('vuid', vuid)
-        self._set_vimeo_cookie('xsrft', token)
-
-        return self._download_webpage(
-            password_request, list_id,
-            'Verifying the password', 'Wrong password')
-
     def _title_and_entries(self, list_id, base_url):
         for pagenum in itertools.count(1):
             page_url = self._page_url(base_url, pagenum)
@@ -876,7 +851,6 @@ class VimeoChannelIE(VimeoBaseInfoExtractor):
                 'Downloading page %s' % pagenum)
 
             if pagenum == 1:
-                webpage = self._login_list_password(page_url, list_id, webpage)
                 yield self._extract_list_title(webpage)
 
             # Try extracting href first since not all videos are available via
@@ -923,7 +897,7 @@ class VimeoUserIE(VimeoChannelIE):
     _BASE_URL_TEMPL = 'https://vimeo.com/%s'
 
 
-class VimeoAlbumIE(VimeoChannelIE):
+class VimeoAlbumIE(VimeoBaseInfoExtractor):
     IE_NAME = 'vimeo:album'
     _VALID_URL = r'https://vimeo\.com/(?:album|showcase)/(?P<id>\d+)(?:$|[?#]|/(?!video))'
     _TITLE_RE = r'<header id="page_header">\n\s*<h1>(.*?)</h1>'
@@ -973,13 +947,39 @@ class VimeoAlbumIE(VimeoChannelIE):
     def _real_extract(self, url):
         album_id = self._match_id(url)
         webpage = self._download_webpage(url, album_id)
-        webpage = self._login_list_password(url, album_id, webpage)
-        api_config = self._extract_vimeo_config(webpage, album_id)['api']
+        viewer = self._parse_json(self._search_regex(
+            r'bootstrap_data\s*=\s*({.+?})</script>',
+            webpage, 'bootstrap data'), album_id)['viewer']
+        jwt = viewer['jwt']
+        album = self._download_json(
+            'https://api.vimeo.com/albums/' + album_id,
+            album_id, headers={'Authorization': 'jwt ' + jwt},
+            query={'fields': 'description,name,privacy'})
+        hashed_pass = None
+        if try_get(album, lambda x: x['privacy']['view']) == 'password':
+            password = self._downloader.params.get('videopassword')
+            if not password:
+                raise ExtractorError(
+                    'This album is protected by a password, use the --video-password option',
+                    expected=True)
+            self._set_vimeo_cookie('vuid', viewer['vuid'])
+            try:
+                hashed_pass = self._download_json(
+                    'https://vimeo.com/showcase/%s/auth' % album_id,
+                    album_id, 'Verifying the password', data=urlencode_postdata({
+                        'password': password,
+                        'token': viewer['xsrft'],
+                    }), headers={
+                        'X-Requested-With': 'XMLHttpRequest',
+                    })['hashed_pass']
+            except ExtractorError as e:
+                if isinstance(e.cause, compat_HTTPError) and e.cause.code == 401:
+                    raise ExtractorError('Wrong password', expected=True)
+                raise
         entries = OnDemandPagedList(functools.partial(
-            self._fetch_page, album_id, api_config['jwt'],
-            api_config.get('hashed_pass')), self._PAGE_SIZE)
-        return self.playlist_result(entries, album_id, self._html_search_regex(
-            r'<title>\s*(.+?)(?:\s+on Vimeo)?</title>', webpage, 'title', fatal=False))
+            self._fetch_page, album_id, jwt, hashed_pass), self._PAGE_SIZE)
+        return self.playlist_result(
+            entries, album_id, album.get('name'), album.get('description'))
 
 
 class VimeoGroupsIE(VimeoChannelIE):
