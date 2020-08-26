@@ -4,14 +4,19 @@ from __future__ import unicode_literals
 import re
 
 from .common import InfoExtractor
-from ..compat import compat_str
+from ..compat import (
+    compat_parse_qs,
+    compat_urllib_parse_urlparse,
+)
 from ..utils import (
     determine_ext,
     dict_get,
     int_or_none,
-    str_or_none,
+    orderedSet,
     strip_or_none,
     try_get,
+    urljoin,
+    compat_str,
 )
 
 
@@ -232,23 +237,23 @@ class SVTPlayIE(SVTPlayBaseIE):
 
 
 class SVTSeriesIE(SVTPlayBaseIE):
-    _VALID_URL = r'https?://(?:www\.)?svtplay\.se/(?P<id>[^/?&#]+)(?:.+?\btab=(?P<season_slug>[^&#]+))?'
+    _VALID_URL = r'https?://(?:www\.)?svtplay\.se/(?P<id>[^/?&#]+)'
     _TESTS = [{
         'url': 'https://www.svtplay.se/rederiet',
         'info_dict': {
-            'id': '14445680',
+            'id': 'rederiet',
             'title': 'Rederiet',
-            'description': 'md5:d9fdfff17f5d8f73468176ecd2836039',
+            'description': 'md5:505d491a58f4fcf6eb418ecab947e69e',
         },
         'playlist_mincount': 318,
     }, {
-        'url': 'https://www.svtplay.se/rederiet?tab=season-2-14445680',
+        'url': 'https://www.svtplay.se/rederiet?tab=sasong2',
         'info_dict': {
-            'id': 'season-2-14445680',
+            'id': 'rederiet-sasong2',
             'title': 'Rederiet - Säsong 2',
-            'description': 'md5:d9fdfff17f5d8f73468176ecd2836039',
+            'description': 'md5:505d491a58f4fcf6eb418ecab947e69e',
         },
-        'playlist_mincount': 12,
+        'playlist_count': 12,
     }]
 
     @classmethod
@@ -256,87 +261,83 @@ class SVTSeriesIE(SVTPlayBaseIE):
         return False if SVTIE.suitable(url) or SVTPlayIE.suitable(url) else super(SVTSeriesIE, cls).suitable(url)
 
     def _real_extract(self, url):
-        series_slug, season_id = re.match(self._VALID_URL, url).groups()
+        series_id = self._match_id(url)
 
-        series = self._download_json(
-            'https://api.svt.se/contento/graphql', series_slug,
-            'Downloading series page', query={
-                'query': '''{
-  listablesBySlug(slugs: ["%s"]) {
-    associatedContent(include: [productionPeriod, season]) {
-      items {
-        item {
-          ... on Episode {
-            videoSvtId
-          }
-        }
-      }
-      id
-      name
-    }
-    id
-    longDescription
-    name
-    shortDescription
-  }
-}''' % series_slug,
-            })['data']['listablesBySlug'][0]
+        qs = compat_parse_qs(compat_urllib_parse_urlparse(url).query)
+        season_slug = qs.get('tab', [None])[0]
+
+        if season_slug:
+            series_id += '-%s' % season_slug
+
+        webpage = self._download_webpage(
+            url, series_id, 'Downloading series page')
+
+        root = self._parse_json(
+            self._search_regex(
+                self._SVTPLAY_RE, webpage, 'content', group='json'),
+            series_id)
 
         season_name = None
 
         entries = []
-        for season in series['associatedContent']:
+        for season in root['relatedVideoContent']['relatedVideosAccordion']:
             if not isinstance(season, dict):
                 continue
-            if season_id:
-                if season.get('id') != season_id:
+            if season_slug:
+                if season.get('slug') != season_slug:
                     continue
                 season_name = season.get('name')
-            items = season.get('items')
-            if not isinstance(items, list):
+            videos = season.get('videos')
+            if not isinstance(videos, list):
                 continue
-            for item in items:
-                video = item.get('item') or {}
-                content_id = video.get('videoSvtId')
-                if not content_id or not isinstance(content_id, compat_str):
+            for video in videos:
+                content_url = video.get('contentUrl')
+                if not content_url or not isinstance(content_url, compat_str):
                     continue
-                entries.append(self.url_result(
-                    'svt:' + content_id, SVTPlayIE.ie_key(), content_id))
+                entries.append(
+                    self.url_result(
+                        urljoin(url, content_url),
+                        ie=SVTPlayIE.ie_key(),
+                        video_title=video.get('title')
+                    ))
 
-        title = series.get('name')
-        season_name = season_name or season_id
+        metadata = root.get('metaData')
+        if not isinstance(metadata, dict):
+            metadata = {}
+
+        title = metadata.get('title')
+        season_name = season_name or season_slug
 
         if title and season_name:
             title = '%s - %s' % (title, season_name)
-        elif season_id:
-            title = season_id
+        elif season_slug:
+            title = season_slug
 
         return self.playlist_result(
-            entries, season_id or series.get('id'), title,
-            dict_get(series, ('longDescription', 'shortDescription')))
+            entries, series_id, title, metadata.get('description'))
 
 
 class SVTPageIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:www\.)?svt\.se/(?P<path>(?:[^/]+/)*(?P<id>[^/?&#]+))'
+    _VALID_URL = r'https?://(?:www\.)?svt\.se/(?:[^/]+/)*(?P<id>[^/?&#]+)'
     _TESTS = [{
-        'url': 'https://www.svt.se/sport/ishockey/bakom-masken-lehners-kamp-mot-mental-ohalsa',
+        'url': 'https://www.svt.se/sport/oseedat/guide-sommartraningen-du-kan-gora-var-och-nar-du-vill',
         'info_dict': {
-            'id': '25298267',
-            'title': 'Bakom masken – Lehners kamp mot mental ohälsa',
+            'id': 'guide-sommartraningen-du-kan-gora-var-och-nar-du-vill',
+            'title': 'GUIDE: Sommarträning du kan göra var och när du vill',
         },
-        'playlist_count': 4,
+        'playlist_count': 7,
     }, {
-        'url': 'https://www.svt.se/nyheter/utrikes/svenska-andrea-ar-en-mil-fran-branderna-i-kalifornien',
+        'url': 'https://www.svt.se/nyheter/inrikes/ebba-busch-thor-kd-har-delvis-ratt-om-no-go-zoner',
         'info_dict': {
-            'id': '24243746',
-            'title': 'Svenska Andrea redo att fly sitt hem i Kalifornien',
+            'id': 'ebba-busch-thor-kd-har-delvis-ratt-om-no-go-zoner',
+            'title': 'Ebba Busch Thor har bara delvis rätt om ”no-go-zoner”',
         },
-        'playlist_count': 2,
+        'playlist_count': 1,
     }, {
         # only programTitle
         'url': 'http://www.svt.se/sport/ishockey/jagr-tacklar-giroux-under-intervjun',
         'info_dict': {
-            'id': '8439V2K',
+            'id': '2900353',
             'ext': 'mp4',
             'title': 'Stjärnorna skojar till det - under SVT-intervjun',
             'duration': 27,
@@ -355,26 +356,16 @@ class SVTPageIE(InfoExtractor):
         return False if SVTIE.suitable(url) else super(SVTPageIE, cls).suitable(url)
 
     def _real_extract(self, url):
-        path, display_id = re.match(self._VALID_URL, url).groups()
+        playlist_id = self._match_id(url)
 
-        article = self._download_json(
-            'https://api.svt.se/nss-api/page/' + path, display_id,
-            query={'q': 'articles'})['articles']['content'][0]
+        webpage = self._download_webpage(url, playlist_id)
 
-        entries = []
+        entries = [
+            self.url_result(
+                'svt:%s' % video_id, ie=SVTPlayIE.ie_key(), video_id=video_id)
+            for video_id in orderedSet(re.findall(
+                r'data-video-id=["\'](\d+)', webpage))]
 
-        def _process_content(content):
-            if content.get('_type') in ('VIDEOCLIP', 'VIDEOEPISODE'):
-                video_id = compat_str(content['image']['svtId'])
-                entries.append(self.url_result(
-                    'svt:' + video_id, SVTPlayIE.ie_key(), video_id))
+        title = strip_or_none(self._og_search_title(webpage, default=None))
 
-        for media in article.get('media', []):
-            _process_content(media)
-
-        for obj in article.get('structuredBody', []):
-            _process_content(obj.get('content') or {})
-
-        return self.playlist_result(
-            entries, str_or_none(article.get('id')),
-            strip_or_none(article.get('title')))
+        return self.playlist_result(entries, playlist_id, title)

@@ -4,7 +4,6 @@ import re
 
 from .common import InfoExtractor
 from ..utils import (
-    determine_ext,
     ExtractorError,
     merge_dicts,
     orderedSet,
@@ -65,7 +64,7 @@ class SpankBangIE(InfoExtractor):
             url.replace('/%s/embed' % video_id, '/%s/video' % video_id),
             video_id, headers={'Cookie': 'country=US'})
 
-        if re.search(r'<[^>]+\b(?:id|class)=["\']video_removed', webpage):
+        if re.search(r'<[^>]+\bid=["\']video_removed', webpage):
             raise ExtractorError(
                 'Video %s is not available' % video_id, expected=True)
 
@@ -76,20 +75,11 @@ class SpankBangIE(InfoExtractor):
             if not f_url:
                 return
             f = parse_resolution(format_id)
-            ext = determine_ext(f_url)
-            if format_id.startswith('m3u8') or ext == 'm3u8':
-                formats.extend(self._extract_m3u8_formats(
-                    f_url, video_id, 'mp4', entry_protocol='m3u8_native',
-                    m3u8_id='hls', fatal=False))
-            elif format_id.startswith('mpd') or ext == 'mpd':
-                formats.extend(self._extract_mpd_formats(
-                    f_url, video_id, mpd_id='dash', fatal=False))
-            elif ext == 'mp4' or f.get('width') or f.get('height'):
-                f.update({
-                    'url': f_url,
-                    'format_id': format_id,
-                })
-                formats.append(f)
+            f.update({
+                'url': f_url,
+                'format_id': format_id,
+            })
+            formats.append(f)
 
         STREAM_URL_PREFIX = 'stream_url_'
 
@@ -103,22 +93,28 @@ class SpankBangIE(InfoExtractor):
                 r'data-streamkey\s*=\s*(["\'])(?P<value>(?:(?!\1).)+)\1',
                 webpage, 'stream key', group='value')
 
+            sb_csrf_session = self._get_cookies(
+                'https://spankbang.com')['sb_csrf_session'].value
+
             stream = self._download_json(
                 'https://spankbang.com/api/videos/stream', video_id,
                 'Downloading stream JSON', data=urlencode_postdata({
                     'id': stream_key,
                     'data': 0,
+                    'sb_csrf_session': sb_csrf_session,
                 }), headers={
                     'Referer': url,
-                    'X-Requested-With': 'XMLHttpRequest',
+                    'X-CSRFToken': sb_csrf_session,
                 })
 
             for format_id, format_url in stream.items():
-                if format_url and isinstance(format_url, list):
-                    format_url = format_url[0]
-                extract_format(format_id, format_url)
+                if format_id.startswith(STREAM_URL_PREFIX):
+                    if format_url and isinstance(format_url, list):
+                        format_url = format_url[0]
+                    extract_format(
+                        format_id[len(STREAM_URL_PREFIX):], format_url)
 
-        self._sort_formats(formats, field_preference=('preference', 'height', 'width', 'fps', 'tbr', 'format_id'))
+        self._sort_formats(formats)
 
         info = self._search_json_ld(webpage, video_id, default={})
 

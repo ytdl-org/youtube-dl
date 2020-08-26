@@ -28,11 +28,10 @@
  - **acast:channel**
  - **ADN**: Anime Digital Network
  - **AdobeConnect**
- - **adobetv**
- - **adobetv:channel**
- - **adobetv:embed**
- - **adobetv:show**
- - **adobetv:video**
+ - **AdobeTV**
+ - **AdobeTVChannel**
+ - **AdobeTVShow**
+ - **AdobeTVVideo**
  - **AdultSwim**
  - **aenetworks**: A+E Networks: A&E, Lifetime, History.com, FYI Network and History Vault
  - **afreecatv**: afreecatv.com
@@ -98,7 +97,6 @@
  - **BiliBili**
  - **BilibiliAudio**
  - **BilibiliAudioAlbum**
- - **BiliBiliPlayer**
  - **BioBioChileTV**
  - **BIQLE**
  - **BitChute**
@@ -390,6 +388,7 @@
  - **JeuxVideo**
  - **Joj**
  - **Jove**
+ - **jpopsuki.tv**
  - **JWPlatform**
  - **Kakao**
  - **Kaltura**
@@ -397,7 +396,6 @@
  - **Kankan**
  - **Karaoketv**
  - **KarriereVideos**
- - **Katsomo**
  - **KeezMovies**
  - **Ketnet**
  - **KhanAcademy**
@@ -405,6 +403,7 @@
  - **KinjaEmbed**
  - **KinoPoisk**
  - **KonserthusetPlay**
+ - **kontrtube**: KontrTube.ru - Труба зовёт
  - **KrasView**: Красвью
  - **Ku6**
  - **KUSI**
@@ -497,7 +496,6 @@
  - **MNetTV**
  - **MoeVideo**: LetitBit video services: moevideo.net, playreplay.net and videochart.net
  - **Mofosex**
- - **MofosexEmbed**
  - **Mojvideo**
  - **Morningstar**: morningstar.com
  - **Motherless**
@@ -515,6 +513,7 @@
  - **mtvjapan**
  - **mtvservices:embedded**
  - **MuenchenTV**: münchen.tv
+ - **MusicPlayOn**
  - **mva**: Microsoft Virtual Academy videos
  - **mva:course**: Microsoft Virtual Academy courses
  - **Mwave**
@@ -620,25 +619,16 @@
  - **Ooyala**
  - **OoyalaExternal**
  - **OraTV**
- - **orf:burgenland**: Radio Burgenland
  - **orf:fm4**: radio FM4
  - **orf:fm4:story**: fm4.orf.at stories
  - **orf:iptv**: iptv.ORF.at
- - **orf:kaernten**: Radio Kärnten
- - **orf:noe**: Radio Niederösterreich
- - **orf:oberoesterreich**: Radio Oberösterreich
  - **orf:oe1**: Radio Österreich 1
- - **orf:oe3**: Radio Österreich 3
- - **orf:salzburg**: Radio Salzburg
- - **orf:steiermark**: Radio Steiermark
- - **orf:tirol**: Radio Tirol
  - **orf:tvthek**: ORF TVthek
- - **orf:vorarlberg**: Radio Vorarlberg
- - **orf:wien**: Radio Wien
  - **OsnatelTV**
  - **OutsideTV**
  - **PacktPub**
  - **PacktPubCourse**
+ - **PandaTV**: 熊猫TV
  - **pandora.tv**: 판도라TV
  - **ParamountNetwork**
  - **parliamentlive.tv**: UK parliament videos
@@ -674,7 +664,6 @@
  - **Pokemon**
  - **PolskieRadio**
  - **PolskieRadioCategory**
- - **Popcorntimes**
  - **PopcornTV**
  - **PornCom**
  - **PornerBros**
@@ -772,7 +761,6 @@
  - **screen.yahoo:search**: Yahoo screen search
  - **Screencast**
  - **ScreencastOMatic**
- - **ScrippsNetworks**
  - **scrippsnetworks:watch**
  - **SCTE**
  - **SCTECourse**
@@ -925,7 +913,6 @@
  - **tv2.hu**
  - **TV2Article**
  - **TV2DK**
- - **TV2DKBornholmPlay**
  - **TV4**: tv4.se and tv4play.se
  - **TV5MondePlus**: TV5MONDE+
  - **TVA**
@@ -967,7 +954,6 @@
  - **udemy**
  - **udemy:course**
  - **UDNEmbed**: 聯合影音
- - **UFCArabia**
  - **UFCTV**
  - **UKTVPlay**
  - **umg:de**: Universal Music Deutschland
@@ -1007,6 +993,7 @@
  - **videomore**
  - **videomore:season**
  - **videomore:video**
+ - **VideoPremium**
  - **VideoPress**
  - **Vidio**
  - **VidLii**
@@ -1016,8 +1003,8 @@
  - **Vidzi**
  - **vier**: vier.be and vijf.be
  - **vier:videos**
- - **viewlift**
- - **viewlift:embed**
+ - **ViewLift**
+ - **ViewLiftEmbed**
  - **Viidea**
  - **viki**
  - **viki:channel**

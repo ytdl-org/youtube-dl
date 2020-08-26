@@ -16,22 +16,12 @@ class IPrimaIE(InfoExtractor):
     _GEO_BYPASS = False
 
     _TESTS = [{
-        'url': 'https://prima.iprima.cz/particka/92-epizoda',
+        'url': 'http://play.iprima.cz/gondici-s-r-o-33',
         'info_dict': {
-            'id': 'p51388',
+            'id': 'p136534',
             'ext': 'mp4',
-            'title': 'Partička (92)',
-            'description': 'md5:859d53beae4609e6dd7796413f1b6cac',
-        },
-        'params': {
-            'skip_download': True,  # m3u8 download
-        },
-    }, {
-        'url': 'https://cnn.iprima.cz/videa/70-epizoda',
-        'info_dict': {
-            'id': 'p681554',
-            'ext': 'mp4',
-            'title': 'HLAVNÍ ZPRÁVY 3.5.2020',
+            'title': 'Gondíci s. r. o. (34)',
+            'description': 'md5:16577c629d006aa91f59ca8d8e7f99bd',
         },
         'params': {
             'skip_download': True,  # m3u8 download
@@ -78,15 +68,9 @@ class IPrimaIE(InfoExtractor):
 
         webpage = self._download_webpage(url, video_id)
 
-        title = self._og_search_title(
-            webpage, default=None) or self._search_regex(
-            r'<h1>([^<]+)', webpage, 'title')
-
         video_id = self._search_regex(
             (r'<iframe[^>]+\bsrc=["\'](?:https?:)?//(?:api\.play-backend\.iprima\.cz/prehravac/embedded|prima\.iprima\.cz/[^/]+/[^/]+)\?.*?\bid=(p\d+)',
-             r'data-product="([^"]+)">',
-             r'id=["\']player-(p\d+)"',
-             r'playerId\s*:\s*["\']player-(p\d+)'),
+             r'data-product="([^"]+)">'),
             webpage, 'real id')
 
         playerpage = self._download_webpage(
@@ -141,8 +125,8 @@ class IPrimaIE(InfoExtractor):
 
         return {
             'id': video_id,
-            'title': title,
-            'thumbnail': self._og_search_thumbnail(webpage, default=None),
+            'title': self._og_search_title(webpage),
+            'thumbnail': self._og_search_thumbnail(webpage),
             'formats': formats,
-            'description': self._og_search_description(webpage, default=None),
+            'description': self._og_search_description(webpage),
         }

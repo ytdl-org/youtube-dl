@@ -5,34 +5,32 @@ import base64
 import re
 import struct
 
-from .adobepass import AdobePassIE
 from .common import InfoExtractor
+from .adobepass import AdobePassIE
 from ..compat import (
     compat_etree_fromstring,
-    compat_HTTPError,
     compat_parse_qs,
     compat_urllib_parse_urlparse,
     compat_urlparse,
     compat_xml_parse_error,
+    compat_HTTPError,
 )
 from ..utils import (
-    clean_html,
-    extract_attributes,
     ExtractorError,
+    extract_attributes,
     find_xpath_attr,
     fix_xml_ampersands,
     float_or_none,
-    int_or_none,
     js_to_json,
-    mimetype2ext,
+    int_or_none,
     parse_iso8601,
     smuggle_url,
-    str_or_none,
     unescapeHTML,
     unsmuggle_url,
-    UnsupportedError,
     update_url_query,
-    url_or_none,
+    clean_html,
+    mimetype2ext,
+    UnsupportedError,
 )
 
 
@@ -426,7 +424,7 @@ class BrightcoveNewIE(AdobePassIE):
         # [2] looks like:
         for video, script_tag, account_id, player_id, embed in re.findall(
                 r'''(?isx)
-                    (<video(?:-js)?\s+[^>]*\bdata-video-id\s*=\s*['"]?[^>]+>)
+                    (<video\s+[^>]*\bdata-video-id\s*=\s*['"]?[^>]+>)
                     (?:.*?
                         (<script[^>]+
                             src=["\'](?:https?:)?//players\.brightcove\.net/
@@ -555,16 +553,10 @@ class BrightcoveNewIE(AdobePassIE):
 
         subtitles = {}
         for text_track in json_data.get('text_tracks', []):
-            if text_track.get('kind') != 'captions':
-                continue
-            text_track_url = url_or_none(text_track.get('src'))
-            if not text_track_url:
-                continue
-            lang = (str_or_none(text_track.get('srclang'))
-                    or str_or_none(text_track.get('label')) or 'en').lower()
-            subtitles.setdefault(lang, []).append({
-                'url': text_track_url,
-            })
+            if text_track.get('src'):
+                subtitles.setdefault(text_track.get('srclang'), []).append({
+                    'url': text_track['src'],
+                })
 
         is_live = False
         duration = float_or_none(json_data.get('duration'), 1000)
@@ -594,63 +586,45 @@ class BrightcoveNewIE(AdobePassIE):
 
         account_id, player_id, embed, content_type, video_id = re.match(self._VALID_URL, url).groups()
 
-        policy_key_id = '%s_%s' % (account_id, player_id)
-        policy_key = self._downloader.cache.load('brightcove', policy_key_id)
-        policy_key_extracted = False
-        store_pk = lambda x: self._downloader.cache.store('brightcove', policy_key_id, x)
+        webpage = self._download_webpage(
+            'http://players.brightcove.net/%s/%s_%s/index.min.js'
+            % (account_id, player_id, embed), video_id)
 
-        def extract_policy_key():
-            webpage = self._download_webpage(
-                'http://players.brightcove.net/%s/%s_%s/index.min.js'
-                % (account_id, player_id, embed), video_id)
+        policy_key = None
 
-            policy_key = None
-
-            catalog = self._search_regex(
-                r'catalog\(({.+?})\);', webpage, 'catalog', default=None)
+        catalog = self._search_regex(
+            r'catalog\(({.+?})\);', webpage, 'catalog', default=None)
+        if catalog:
+            catalog = self._parse_json(
+                js_to_json(catalog), video_id, fatal=False)
             if catalog:
-                catalog = self._parse_json(
-                    js_to_json(catalog), video_id, fatal=False)
-                if catalog:
-                    policy_key = catalog.get('policyKey')
+                policy_key = catalog.get('policyKey')
 
-            if not policy_key:
-                policy_key = self._search_regex(
-                    r'policyKey\s*:\s*(["\'])(?P<pk>.+?)\1',
-                    webpage, 'policy key', group='pk')
-
-            store_pk(policy_key)
-            return policy_key
+        if not policy_key:
+            policy_key = self._search_regex(
+                r'policyKey\s*:\s*(["\'])(?P<pk>.+?)\1',
+                webpage, 'policy key', group='pk')
 
         api_url = 'https://edge.api.brightcove.com/playback/v1/accounts/%s/%ss/%s' % (account_id, content_type, video_id)
-        headers = {}
+        headers = {
+            'Accept': 'application/json;pk=%s' % policy_key,
+        }
         referrer = smuggled_data.get('referrer')
         if referrer:
             headers.update({
                 'Referer': referrer,
                 'Origin': re.search(r'https?://[^/]+', referrer).group(0),
             })
-
-        for _ in range(2):
-            if not policy_key:
-                policy_key = extract_policy_key()
-                policy_key_extracted = True
-            headers['Accept'] = 'application/json;pk=%s' % policy_key
-            try:
-                json_data = self._download_json(api_url, video_id, headers=headers)
-                break
-            except ExtractorError as e:
-                if isinstance(e.cause, compat_HTTPError) and e.cause.code in (401, 403):
-                    json_data = self._parse_json(e.cause.read().decode(), video_id)[0]
-                    message = json_data.get('message') or json_data['error_code']
-                    if json_data.get('error_subcode') == 'CLIENT_GEO':
-                        self.raise_geo_restricted(msg=message)
-                    elif json_data.get('error_code') == 'INVALID_POLICY_KEY' and not policy_key_extracted:
-                        policy_key = None
-                        store_pk(None)
-                        continue
-                    raise ExtractorError(message, expected=True)
-                raise
+        try:
+            json_data = self._download_json(api_url, video_id, headers=headers)
+        except ExtractorError as e:
+            if isinstance(e.cause, compat_HTTPError) and e.cause.code == 403:
+                json_data = self._parse_json(e.cause.read().decode(), video_id)[0]
+                message = json_data.get('message') or json_data['error_code']
+                if json_data.get('error_subcode') == 'CLIENT_GEO':
+                    self.raise_geo_restricted(msg=message)
+                raise ExtractorError(message, expected=True)
+            raise
 
         errors = json_data.get('errors')
         if errors and errors[0].get('error_subcode') == 'TVE_AUTH':

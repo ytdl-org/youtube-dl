@@ -6,18 +6,22 @@ import time
 import itertools
 
 from .common import InfoExtractor
-from .naver import NaverBaseIE
-from ..compat import compat_str
+from ..compat import (
+    compat_urllib_parse_urlencode,
+    compat_str,
+)
 from ..utils import (
+    dict_get,
     ExtractorError,
-    merge_dicts,
+    float_or_none,
+    int_or_none,
     remove_start,
     try_get,
     urlencode_postdata,
 )
 
 
-class VLiveIE(NaverBaseIE):
+class VLiveIE(InfoExtractor):
     IE_NAME = 'vlive'
     _VALID_URL = r'https?://(?:(?:www|m)\.)?vlive\.tv/video/(?P<id>[0-9]+)'
     _NETRC_MACHINE = 'vlive'
@@ -30,7 +34,6 @@ class VLiveIE(NaverBaseIE):
             'title': "[V LIVE] Girl's Day's Broadcast",
             'creator': "Girl's Day",
             'view_count': int,
-            'uploader_id': 'muploader_a',
         },
     }, {
         'url': 'http://www.vlive.tv/video/16937',
@@ -41,7 +44,6 @@ class VLiveIE(NaverBaseIE):
             'creator': 'EXO',
             'view_count': int,
             'subtitles': 'mincount:12',
-            'uploader_id': 'muploader_j',
         },
         'params': {
             'skip_download': True,
@@ -185,9 +187,45 @@ class VLiveIE(NaverBaseIE):
                     'This video is only available for CH+ subscribers')
             long_video_id, key = video_info['vid'], video_info['inkey']
 
-        return merge_dicts(
-            self._get_common_fields(webpage),
-            self._extract_video_info(video_id, long_video_id, key))
+        playinfo = self._download_json(
+            'http://global.apis.naver.com/rmcnmv/rmcnmv/vod_play_videoInfo.json?%s'
+            % compat_urllib_parse_urlencode({
+                'videoId': long_video_id,
+                'key': key,
+                'ptc': 'http',
+                'doct': 'json',  # document type (xml or json)
+                'cpt': 'vtt',  # captions type (vtt or ttml)
+            }), video_id)
+
+        formats = [{
+            'url': vid['source'],
+            'format_id': vid.get('encodingOption', {}).get('name'),
+            'abr': float_or_none(vid.get('bitrate', {}).get('audio')),
+            'vbr': float_or_none(vid.get('bitrate', {}).get('video')),
+            'width': int_or_none(vid.get('encodingOption', {}).get('width')),
+            'height': int_or_none(vid.get('encodingOption', {}).get('height')),
+            'filesize': int_or_none(vid.get('size')),
+        } for vid in playinfo.get('videos', {}).get('list', []) if vid.get('source')]
+        self._sort_formats(formats)
+
+        view_count = int_or_none(playinfo.get('meta', {}).get('count'))
+
+        subtitles = {}
+        for caption in playinfo.get('captions', {}).get('list', []):
+            lang = dict_get(caption, ('locale', 'language', 'country', 'label'))
+            if lang and caption.get('source'):
+                subtitles[lang] = [{
+                    'ext': 'vtt',
+                    'url': caption['source']}]
+
+        info = self._get_common_fields(webpage)
+        info.update({
+            'id': video_id,
+            'formats': formats,
+            'view_count': view_count,
+            'subtitles': subtitles,
+        })
+        return info
 
     def _download_init_page(self, video_id):
         return self._download_webpage(

@@ -8,6 +8,7 @@ from .common import InfoExtractor
 
 from ..compat import (
     compat_parse_qs,
+    compat_str,
     compat_urlparse,
 )
 from ..utils import (
@@ -38,13 +39,13 @@ class SafariBaseIE(InfoExtractor):
             'Downloading login page')
 
         def is_logged(urlh):
-            return 'learning.oreilly.com/home/' in urlh.geturl()
+            return 'learning.oreilly.com/home/' in compat_str(urlh.geturl())
 
         if is_logged(urlh):
             self.LOGGED_IN = True
             return
 
-        redirect_url = urlh.geturl()
+        redirect_url = compat_str(urlh.geturl())
         parsed_url = compat_urlparse.urlparse(redirect_url)
         qs = compat_parse_qs(parsed_url.query)
         next_uri = compat_urlparse.urljoin(
@@ -164,8 +165,7 @@ class SafariIE(SafariBaseIE):
             kaltura_session = self._download_json(
                 '%s/player/kaltura_session/?reference_id=%s' % (self._API_BASE, reference_id),
                 video_id, 'Downloading kaltura session JSON',
-                'Unable to download kaltura session JSON', fatal=False,
-                headers={'Accept': 'application/json'})
+                'Unable to download kaltura session JSON', fatal=False)
             if kaltura_session:
                 session = kaltura_session.get('session')
                 if session:

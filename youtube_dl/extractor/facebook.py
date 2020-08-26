@@ -466,18 +466,15 @@ class FacebookIE(InfoExtractor):
             return info_dict
 
         if '/posts/' in url:
-            video_id_json = self._search_regex(
-                r'(["\'])video_ids\1\s*:\s*(?P<ids>\[.+?\])', webpage, 'video ids', group='ids',
-                default='')
-            if video_id_json:
-                entries = [
-                    self.url_result('facebook:%s' % vid, FacebookIE.ie_key())
-                    for vid in self._parse_json(video_id_json, video_id)]
-                return self.playlist_result(entries, video_id)
+            entries = [
+                self.url_result('facebook:%s' % vid, FacebookIE.ie_key())
+                for vid in self._parse_json(
+                    self._search_regex(
+                        r'(["\'])video_ids\1\s*:\s*(?P<ids>\[.+?\])',
+                        webpage, 'video ids', group='ids'),
+                    video_id)]
 
-            # Single Video?
-            video_id = self._search_regex(r'video_id:\s*"([0-9]+)"', webpage, 'single video id')
-            return self.url_result('facebook:%s' % video_id, FacebookIE.ie_key())
+            return self.playlist_result(entries, video_id)
         else:
             _, info_dict = self._extract_from_url(
                 self._VIDEO_PAGE_TEMPLATE % video_id,

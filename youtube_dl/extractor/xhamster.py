@@ -20,13 +20,13 @@ from ..utils import (
 
 
 class XHamsterIE(InfoExtractor):
-    _DOMAINS = r'(?:xhamster\.(?:com|one|desi)|xhms\.pro|xhamster\d+\.com)'
+    _DOMAINS = r'(?:xhamster\.(?:com|one|desi)|xhms\.pro|xhamster[27]\.com)'
     _VALID_URL = r'''(?x)
                     https?://
                         (?:.+?\.)?%s/
                         (?:
-                            movies/(?P<id>[\dA-Za-z]+)/(?P<display_id>[^/]*)\.html|
-                            videos/(?P<display_id_2>[^/]*)-(?P<id_2>[\dA-Za-z]+)
+                            movies/(?P<id>\d+)/(?P<display_id>[^/]*)\.html|
+                            videos/(?P<display_id_2>[^/]*)-(?P<id_2>\d+)
                         )
                     ''' % _DOMAINS
     _TESTS = [{
@@ -100,19 +100,10 @@ class XHamsterIE(InfoExtractor):
         'url': 'https://xhamster2.com/videos/femaleagent-shy-beauty-takes-the-bait-1509445',
         'only_matching': True,
     }, {
-        'url': 'https://xhamster11.com/videos/femaleagent-shy-beauty-takes-the-bait-1509445',
-        'only_matching': True,
-    }, {
-        'url': 'https://xhamster26.com/videos/femaleagent-shy-beauty-takes-the-bait-1509445',
-        'only_matching': True,
-    }, {
         'url': 'http://xhamster.com/movies/1509445/femaleagent_shy_beauty_takes_the_bait.html',
         'only_matching': True,
     }, {
         'url': 'http://xhamster.com/movies/2221348/britney_spears_sexy_booty.html?hd',
-        'only_matching': True,
-    }, {
-        'url': 'http://de.xhamster.com/videos/skinny-girl-fucks-herself-hard-in-the-forest-xhnBJZx',
         'only_matching': True,
     }]
 
@@ -122,7 +113,7 @@ class XHamsterIE(InfoExtractor):
         display_id = mobj.group('display_id') or mobj.group('display_id_2')
 
         desktop_url = re.sub(r'^(https?://(?:.+?\.)?)m\.', r'\1', url)
-        webpage, urlh = self._download_webpage_handle(desktop_url, video_id)
+        webpage = self._download_webpage(desktop_url, video_id)
 
         error = self._html_search_regex(
             r'<div[^>]+id=["\']videoClosed["\'][^>]*>(.+?)</div>',
@@ -138,7 +129,7 @@ class XHamsterIE(InfoExtractor):
 
         initials = self._parse_json(
             self._search_regex(
-                r'window\.initials\s*=\s*({.+?})\s*;', webpage, 'initials',
+                r'window\.initials\s*=\s*({.+?})\s*;\s*\n', webpage, 'initials',
                 default='{}'),
             video_id, fatal=False)
         if initials:
@@ -170,9 +161,6 @@ class XHamsterIE(InfoExtractor):
                         'ext': determine_ext(format_url, 'mp4'),
                         'height': get_height(quality),
                         'filesize': filesize,
-                        'http_headers': {
-                            'Referer': urlh.geturl(),
-                        },
                     })
             self._sort_formats(formats)
 
