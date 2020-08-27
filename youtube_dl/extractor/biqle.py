@@ -3,10 +3,11 @@ from __future__ import unicode_literals
 
 from .common import InfoExtractor
 from .vk import VKIE
-from ..utils import (
-    HEADRequest,
-    int_or_none,
+from ..compat import (
+    compat_b64decode,
+    compat_urllib_parse_unquote,
 )
+from ..utils import int_or_none
 
 
 class BIQLEIE(InfoExtractor):
@@ -47,9 +48,16 @@ class BIQLEIE(InfoExtractor):
         if VKIE.suitable(embed_url):
             return self.url_result(embed_url, VKIE.ie_key(), video_id)
 
-        self._request_webpage(
-            HEADRequest(embed_url), video_id, headers={'Referer': url})
-        video_id, sig, _, access_token = self._get_cookies(embed_url)['video_ext'].value.split('%3A')
+        embed_page = self._download_webpage(
+            embed_url, video_id, headers={'Referer': url})
+        video_ext = self._get_cookies(embed_url).get('video_ext')
+        if video_ext:
+            video_ext = compat_urllib_parse_unquote(video_ext.value)
+        if not video_ext:
+            video_ext = compat_b64decode(self._search_regex(
+                r'video_ext\s*:\s*[\'"]([A-Za-z0-9+/=]+)',
+                embed_page, 'video_ext')).decode()
+        video_id, sig, _, access_token = video_ext.split(':')
         item = self._download_json(
             'https://api.vk.com/method/video.get', video_id,
             headers={'User-Agent': 'okhttp/3.4.1'}, query={
