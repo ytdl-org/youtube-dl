@@ -134,6 +134,10 @@ class AluraCourseIE(AluraIE):
         'only_matching': True,
     }]
 
+    @classmethod
+    def suitable(cls, url):
+        return False if AluraIE.suitable(url) else super(AluraCourseIE, cls).suitable(url)
+
     def _real_extract(self, url):
 
         course_path = self._match_id(url)
