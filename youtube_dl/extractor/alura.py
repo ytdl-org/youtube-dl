@@ -29,27 +29,24 @@ class AluraIE(InfoExtractor):
             'id': '60095',
             'ext': 'mp4',
             'title': 'Referências, ref-set e alter'
-            },
-            'skip': 'Requires alura account credentials',
         },
+        'skip': 'Requires alura account credentials'},
         {
             # URL without video
             'url': 'https://cursos.alura.com.br/course/clojure-mutabilidade-com-atoms-e-refs/task/60098',
-            'only_matching': True,
-        },
+            'only_matching': True},
         {
             'url': 'https://cursos.alura.com.br/course/fundamentos-market-digital/task/55219',
-            'only_matching': True,
-        }
+            'only_matching': True}
     ]
 
     def _real_extract(self, url):
 
         video_id = self._match_id(url)
         course = self._search_regex(self._VALID_URL, url, 'post url', group='course_name')
-        video_url = self._VIDEO_URL % (course,video_id)
+        video_url = self._VIDEO_URL % (course, video_id)
 
-        video_dict = self._download_json(video_url, None, 'Searching for videos', expected_status=[404,500])
+        video_dict = self._download_json(video_url, None, 'Searching for videos', expected_status=[404, 500])
 
         if video_dict:
             webpage = self._download_webpage(url, video_id)
@@ -152,9 +149,21 @@ class AluraCourseIE(AluraIE):
                 page_url = urljoin(url, path)
                 section_path = self._download_webpage(page_url, course_path)
                 for path_video in re.findall(r'<a\b(?=[^>]* class="[^"]*(?<=[" ])task-menu-nav-item-link-VIDEO[" ])(?=[^>]* href="([^"]*))', section_path):
-                    chapter = clean_html(self._search_regex(r'<h3[^>]+class=(["\'])task-menu-section-title-text\1[^>]*>(?P<chapter>[^<]+)',section_path, 'chapter', group='chapter'))
-                    chapter_number = int_or_none(self._search_regex(r'<span[^>]+class=(["\'])task-menu-section-title-number[^>]*>(.*?)<strong>(?P<chapter_number>[^<]+)</strong>',section_path, 'chapter number', group='chapter_number'))
+                    chapter = clean_html(
+                        self._search_regex(
+                            r'<h3[^>]+class=(["\'])task-menu-section-title-text\1[^>]*>(?P<chapter>[^<]+)',
+                            section_path,
+                            'chapter',
+                            group='chapter'))
+
+                    chapter_number = int_or_none(
+                        self._search_regex(
+                            r'<span[^>]+class=(["\'])task-menu-section-title-number[^>]*>(.*?)<strong>(?P<chapter_number>[^<]+)</strong>',
+                            section_path,
+                            'chapter number',
+                            group='chapter_number'))
                     video_url = urljoin(url, path_video)
+
                     entry = {
                         '_type': 'url_transparent',
                         'id': self._match_id(video_url),
