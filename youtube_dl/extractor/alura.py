@@ -78,13 +78,6 @@ class AluraIE(InfoExtractor):
                 "formats": formats
             }
 
-    def extract_output_format(src):
-        return {
-            'url': src.get('link'),
-            'manifest_url': src.get('linkWebm'),
-            'format': src.get('quality')
-        }
-
     def _real_initialize(self):
         self._login()
 
