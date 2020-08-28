@@ -46,7 +46,7 @@ class AluraIE(InfoExtractor):
         course = self._search_regex(self._VALID_URL, url, 'post url', group='course_name')
         video_url = self._VIDEO_URL % (course, video_id)
 
-        video_dict = self._download_json(video_url, None, 'Searching for videos', expected_status=[404, 500])
+        video_dict = self._download_json(video_url, video_id, 'Searching for videos')
 
         if video_dict:
             webpage = self._download_webpage(url, video_id)
