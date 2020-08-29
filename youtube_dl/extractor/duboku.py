@@ -5,7 +5,16 @@ import re
 
 from .common import InfoExtractor
 from ..compat import compat_urlparse
-from ..utils import *
+from ..utils import (
+    clean_html,
+    extract_attributes,
+    ExtractorError,
+    get_elements_by_class,
+    int_or_none,
+    js_to_json,
+    smuggle_url,
+    unescapeHTML,
+)
 
 
 def _get_elements_by_tag_and_attrib(html, tag=None, attribute=None, value=None, escape_value=True):
@@ -52,9 +61,24 @@ class DubokuIE(InfoExtractor):
         'url': 'https://www.duboku.co/vodplay/1575-1-1.html',
         'info_dict': {
             'id': '1575-1-1',
-            'title': '白色月光',
-            'season': 1,
-            'episode': 1,
+            'ext': 'ts',
+            'series': '白色月光',
+            'title': 'contains:白色月光',
+            'season_number': 1,
+            'episode_number': 1,
+        },
+        'params': {
+            'skip_download': 'm3u8 download',
+        },
+    }, {
+        'url': 'https://www.duboku.co/vodplay/1588-1-1.html',
+        'info_dict': {
+            'id': '1588-1-1',
+            'ext': 'ts',
+            'series': '亲爱的自己',
+            'title': 'contains:预告片',
+            'season_number': 1,
+            'episode_number': 1,
         },
         'params': {
             'skip_download': 'm3u8 download',
@@ -137,24 +161,26 @@ class DubokuPlaylistIE(InfoExtractor):
 
     _VALID_URL = r'(?:https?://[^/]+\.duboku\.co/voddetail/)(?P<id>[0-9]+)\.html.*'
     _TESTS = [{
-        'url': 'https://www.duboku.co/vodplay/1575.html',
+        'url': 'https://www.duboku.co/voddetail/1575.html',
         'info_dict': {
-            'id': '1575#playlist1',
+            'id': 'startswith:1575',
             'title': '白色月光',
         },
         'playlist_count': 12,
     }, {
-        'url': 'https://www.duboku.co/vodplay/1554.html',
+        'url': 'https://www.duboku.co/voddetail/1554.html',
         'info_dict': {
-            'id': '1554#playlist1',
+            'id': 'startswith:1554',
             'title': '以家人之名',
         },
+        'playlist_mincount': 30,
     }, {
-        'url': 'https://www.duboku.co/vodplay/1554.html#playlist2',
+        'url': 'https://www.duboku.co/voddetail/1554.html#playlist2',
         'info_dict': {
             'id': '1554#playlist2',
             'title': '以家人之名',
         },
+        'playlist_mincount': 27,
     }]
 
     def _real_extract(self, url):
