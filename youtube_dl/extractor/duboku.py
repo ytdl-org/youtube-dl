@@ -136,6 +136,26 @@ class DubokuPlaylistIE(InfoExtractor):
     IE_DESC = 'www.duboku.co entire series'
 
     _VALID_URL = r'(?:https?://[^/]+\.duboku\.co/voddetail/)(?P<id>[0-9]+)\.html.*'
+    _TESTS = [{
+        'url': 'https://www.duboku.co/vodplay/1575.html',
+        'info_dict': {
+            'id': '1575#playlist1',
+            'title': '白色月光',
+        },
+        'playlist_count': 12,
+    }, {
+        'url': 'https://www.duboku.co/vodplay/1554.html',
+        'info_dict': {
+            'id': '1554#playlist1',
+            'title': '以家人之名',
+        },
+    }, {
+        'url': 'https://www.duboku.co/vodplay/1554.html#playlist2',
+        'info_dict': {
+            'id': '1554#playlist2',
+            'title': '以家人之名',
+        },
+    }]
 
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
@@ -173,7 +193,15 @@ class DubokuPlaylistIE(InfoExtractor):
             playlists[playlist_id] = playlist
 
         # select the specified playlist if url fragment exists
-        playlist = playlists.get(fragment) if fragment else next(iter(playlists.values()))
+        playlist = None
+        playlist_id = None
+        if fragment:
+            playlist = playlists.get(fragment)
+            playlist_id = fragment
+        else:
+            first = next(iter(playlists.items()))
+            if first:
+                (playlist_id, playlist) = first
         if not playlist:
             raise ExtractorError(
                 'Cannot find %s' % fragment if fragment else 'Cannot extract playlist')
@@ -181,5 +209,5 @@ class DubokuPlaylistIE(InfoExtractor):
         # return url results
         return self.playlist_result([
             self.url_result(
-                'https://www.duboku.co' + x['href'], video_title=x.get('title'))
-            for x in playlist], series_id, title)
+                'https://www.duboku.co' + x['href'], DubokuIE.IE_NAME, video_title=x.get('title'))
+            for x in playlist], series_id + '#' + playlist_id, title)
