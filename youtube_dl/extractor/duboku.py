@@ -47,7 +47,7 @@ class DubokuIE(InfoExtractor):
     IE_NAME = 'duboku'
     IE_DESC = 'www.duboku.co'
 
-    _VALID_URL = r'(?:https?://[^/]+\.duboku\.co/vodplay/)(?P<id>[0-9\-]+)\.html.*'
+    _VALID_URL = r'(?:https?://[^/]+\.duboku\.co/vodplay/)(?P<id>[0-9]+-[0-9-]+)\.html.*'
     _TESTS = [{
         'url': 'https://www.duboku.co/vodplay/1575-1-1.html',
         'info_dict': {
