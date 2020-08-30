@@ -101,7 +101,7 @@ class DubokuIE(InfoExtractor):
 
         player_data = self._search_regex(
             self._PLAYER_DATA_PATTERN, webpage_html, 'player_data')
-        player_data = self._parse_json(js_to_json(player_data), video_id)
+        player_data = self._parse_json(player_data, video_id, js_to_json)
 
         # extract title
 
@@ -121,8 +121,9 @@ class DubokuIE(InfoExtractor):
                         title = re.sub(r'[\s\r\n\t]+', ' ', title)
                         break
 
-        data_url = player_data['url']
-        assert data_url
+        data_url = player_data.get('url')
+        if not data_url:
+            raise ExtractorError('Cannot find url in player_data')
         data_from = player_data.get('from')
 
         # if it is an embedded iframe, maybe it's an external source
@@ -225,7 +226,7 @@ class DubokuPlaylistIE(InfoExtractor):
             playlist = playlists.get(fragment)
             playlist_id = fragment
         else:
-            first = next(iter(playlists.items()))
+            first = next(iter(playlists.items()), None)
             if first:
                 (playlist_id, playlist) = first
         if not playlist:
@@ -235,5 +236,6 @@ class DubokuPlaylistIE(InfoExtractor):
         # return url results
         return self.playlist_result([
             self.url_result(
-                'https://www.duboku.co' + x['href'], DubokuIE.IE_NAME, video_title=x.get('title'))
+                compat_urlparse.urljoin('https://www.duboku.co', x['href']),
+                ie=DubokuIE.ie_key(), video_title=x.get('title'))
             for x in playlist], series_id + '#' + playlist_id, title)
