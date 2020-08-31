@@ -316,13 +316,14 @@ class FranceTVInfoIE(FranceTVBaseInfoExtractor):
     _VALID_URL = r'https?://(?:www|mobile|france3-regions)\.francetvinfo\.fr/(?:[^/]+/)*(?P<id>[^/?#&.]+)'
 
     _TESTS = [{
-        'url': 'http://www.francetvinfo.fr/replay-jt/france-3/soir-3/jt-grand-soir-3-lundi-26-aout-2013_393427.html',
+        'url': 'https://www.francetvinfo.fr/replay-jt/france-3/soir-3/jt-grand-soir-3-jeudi-22-aout-2019_3561461.html',
         'info_dict': {
-            'id': '84981923',
+            'id': 'd12458ee-5062-48fe-bfdd-a30d6a01b793',
             'ext': 'mp4',
             'title': 'Soir 3',
-            'upload_date': '20130826',
-            'timestamp': 1377548400,
+            'upload_date': '20190822',
+            'timestamp': 1566510900,
+            'description': 'md5:72d167097237701d6e8452ff03b83c00',
             'subtitles': {
                 'fr': 'mincount:2',
             },
@@ -374,7 +375,8 @@ class FranceTVInfoIE(FranceTVBaseInfoExtractor):
         video_id = self._search_regex(
             (r'player\.load[^;]+src:\s*["\']([^"\']+)',
              r'id-video=([^@]+@[^"]+)',
-             r'<a[^>]+href="(?:https?:)?//videos\.francetv\.fr/video/([^@]+@[^"]+)"'),
+             r'<a[^>]+href="(?:https?:)?//videos\.francetv\.fr/video/([^@]+@[^"]+)"',
+             r'data-id="([^"]+)"'),
             webpage, 'video id')
 
         return self._make_url_result(video_id)
