@@ -56,14 +56,14 @@ class VikiBaseIE(InfoExtractor):
 
     def _call_api(self, path, video_id, note, timestamp=None, post_data=None):
         resp = self._download_json(
-            self._prepare_call(path, timestamp, post_data), video_id, note)
+            self._prepare_call(path, timestamp, post_data), video_id, note, headers={'x-viki-app-ver': '2.2.5.1428709186'}, expected_status=[200, 400, 404])
 
         error = resp.get('error')
         if error:
             if error == 'invalid timestamp':
                 resp = self._download_json(
                     self._prepare_call(path, int(resp['current_timestamp']), post_data),
-                    video_id, '%s (retry)' % note)
+                    video_id, '%s (retry)' % note, headers={'x-viki-app-ver': '2.2.5.1428709186'}, expected_status=[200, 400, 404])
                 error = resp.get('error')
             if error:
                 self._raise_error(resp['error'])
