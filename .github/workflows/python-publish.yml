@@ -4,9 +4,9 @@
 name: Upload Python Package
 
 on:
-  pull_request:
+  push:
     branches:
-    - release
+      - release
 
 jobs:
   deploy:
