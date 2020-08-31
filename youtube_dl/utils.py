@@ -4173,6 +4173,7 @@ def mimetype2ext(mt):
         # Per RFC 3003, audio/mpeg can be .mp1, .mp2 or .mp3. Here use .mp3 as
         # it's the most popular one
         'audio/mpeg': 'mp3',
+        'audio/x-wav': 'wav',
     }.get(mt)
     if ext is not None:
         return ext
