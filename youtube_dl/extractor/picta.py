@@ -67,7 +67,7 @@ class PictaBaseIE(InfoExtractor):
 class PictaIE(PictaBaseIE):
     IE_NAME = "picta"
     IE_DESC = "Picta videos"
-    _VALID_URL = r"https?://(?:www\.)?picta\.cu/(?:medias|embed)/(?:\?v=)?(?P<id>[\da-z-]+)" \
+    _VALID_URL = r"https?://(?:www\.)?picta\.cu/(?:medias|movie|embed)/(?:\?v=)?(?P<id>[\da-z-]+)" \
                  r"(?:\?playlist=(?P<playlist_id>[\da-z-]+))?"
 
     _TESTS = [
@@ -116,6 +116,10 @@ class PictaIE(PictaBaseIE):
                 "uploader": "ernestoguerra21",
                 "timestamp": 1590077731,
             },
+        },
+        {
+            "url": "https://www.picta.cu/movie/phineas-ferb-pelicula-candace-universo-2020-08-28-21-00-32-857026",
+            "only_matching": True,
         },
         {"url": "https://www.picta.cu/embed/?v=818", "only_matching": True},
         {
@@ -281,7 +285,7 @@ class PictaPlaylistIE(InfoExtractor):
     API_PLAYLIST_ENDPOINT = API_BASE_URL + "lista_reproduccion_canal/"
     IE_NAME = "picta:playlist"
     IE_DESC = "Picta playlist"
-    _VALID_URL = r"https?://(?:www\.)?picta\.cu/(?:medias|embed)/(?P<id>[\da-z-]+)" \
+    _VALID_URL = r"https?://(?:www\.)?picta\.cu/(?:medias|movie|embed)/(?P<id>[\da-z-]+)" \
                  r"\?playlist=(?P<playlist_id>[\da-z-]+)$"
 
     _NETRC_MACHINE = "picta"
