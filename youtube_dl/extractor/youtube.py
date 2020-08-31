@@ -1435,7 +1435,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
             raise ExtractorError(
                 'Signature extraction failed: ' + tb, cause=e)
 
-    def _get_subtitles(self, video_id, webpage):
+    def _get_subtitles(self, video_id, webpage, has_live_chat_replay):
         try:
             subs_doc = self._download_xml(
                 'https://video.google.com/timedtext?hl=en&type=list&v=%s' % video_id,
@@ -1462,6 +1462,14 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                     'ext': ext,
                 })
             sub_lang_list[lang] = sub_formats
+        if has_live_chat_replay:
+            sub_lang_list['live_chat'] = [
+                {
+                    'video_id': video_id,
+                    'ext': 'json',
+                    'protocol': 'youtube_live_chat_replay',
+                },
+            ]
         if not sub_lang_list:
             self._downloader.report_warning('video doesn\'t have subtitles')
             return {}
@@ -1481,6 +1489,15 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
         )
         config = self._search_regex(
             patterns, webpage, 'ytplayer.config', default=None)
+        if config:
+            return self._parse_json(
+                uppercase_escape(config), video_id, fatal=False)
+
+    def _get_yt_initial_data(self, video_id, webpage):
+        config = self._search_regex(
+            (r'window\["ytInitialData"\]\s*=\s*(.*?)(?<=});',
+             r'var\s+ytInitialData\s*=\s*(.*?)(?<=});'),
+            webpage, 'ytInitialData', default=None)
         if config:
             return self._parse_json(
                 uppercase_escape(config), video_id, fatal=False)
@@ -1978,6 +1995,15 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
         if is_live is None:
             is_live = bool_or_none(video_details.get('isLive'))
 
+        has_live_chat_replay = False
+        if not is_live:
+            yt_initial_data = self._get_yt_initial_data(video_id, video_webpage)
+            try:
+                yt_initial_data['contents']['twoColumnWatchNextResults']['conversationBar']['liveChatRenderer']['continuations'][0]['reloadContinuationData']['continuation']
+                has_live_chat_replay = True
+            except (KeyError, IndexError, TypeError):
+                pass
+
         # Check for "rental" videos
         if 'ypc_video_rental_bar_text' in video_info and 'author' not in video_info:
             raise ExtractorError('"rental" videos not supported. See https://github.com/ytdl-org/youtube-dl/issues/359 for more information.', expected=True)
@@ -2385,7 +2411,8 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
             or try_get(video_info, lambda x: float_or_none(x['avg_rating'][0])))
 
         # subtitles
-        video_subtitles = self.extract_subtitles(video_id, video_webpage)
+        video_subtitles = self.extract_subtitles(
+            video_id, video_webpage, has_live_chat_replay)
         automatic_captions = self.extract_automatic_captions(video_id, video_webpage)
 
         video_duration = try_get(
