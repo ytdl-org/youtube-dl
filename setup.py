@@ -1,62 +1,21 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-from __future__ import print_function
-
+from setuptools import setup, Command
 import os.path
 import warnings
 import sys
-
-try:
-    from setuptools import setup, Command
-    setuptools_available = True
-except ImportError:
-    from distutils.core import setup, Command
-    setuptools_available = False
 from distutils.spawn import spawn
-
-try:
-    # This will create an exe that needs Microsoft Visual C++ 2008
-    # Redistributable Package
-    import py2exe
-except ImportError:
-    if len(sys.argv) >= 2 and sys.argv[1] == 'py2exe':
-        print('Cannot import py2exe', file=sys.stderr)
-        exit(1)
-
-py2exe_options = {
-    'bundle_files': 1,
-    'compressed': 1,
-    'optimize': 2,
-    'dist_dir': '.',
-    'dll_excludes': ['w9xpopen.exe', 'crypt32.dll'],
-}
 
 # Get the version from youtube_dl/version.py without importing the package
 exec(compile(open('youtube_dl/version.py').read(),
              'youtube_dl/version.py', 'exec'))
 
-DESCRIPTION = 'YouTube video downloader'
-LONG_DESCRIPTION = 'Command-line program to download videos from YouTube.com and other video sites'
-
-py2exe_console = [{
-    'script': './youtube_dl/__main__.py',
-    'dest_base': 'youtube-dl',
-    'version': __version__,
-    'description': DESCRIPTION,
-    'comments': LONG_DESCRIPTION,
-    'product_name': 'youtube-dl',
-    'product_version': __version__,
-}]
-
-py2exe_params = {
-    'console': py2exe_console,
-    'options': {'py2exe': py2exe_options},
-    'zipfile': None
-}
+DESCRIPTION = 'Media downloader supporting various sites such as youtube'
+LONG_DESCRIPTION = 'Command-line program to download videos from YouTube.com and other video sites. Based on a more active community fork.'
 
 if len(sys.argv) >= 2 and sys.argv[1] == 'py2exe':
-    params = py2exe_params
+    print("inv")
 else:
     files_spec = [
         ('etc/bash_completion.d', ['youtube-dl.bash-completion']),
@@ -78,10 +37,10 @@ else:
     params = {
         'data_files': data_files,
     }
-    if setuptools_available:
-        params['entry_points'] = {'console_scripts': ['youtube-dl = youtube_dl:main']}
-    else:
-        params['scripts'] = ['bin/youtube-dl']
+    #if setuptools_available:
+    params['entry_points'] = {'console_scripts': ['youtube-dlc = youtube_dl:main']}
+    #else:
+    #    params['scripts'] = ['bin/youtube-dlc']
 
 class build_lazy_extractors(Command):
     description = 'Build the extractor lazy loading module'
@@ -100,49 +59,45 @@ class build_lazy_extractors(Command):
         )
 
 setup(
-    name='youtube_dl',
+    name="youtube_dlc",
     version=__version__,
+    maintainer="Tom-Oliver Heidel",
+    maintainer_email="theidel@uni-bremen.de",
     description=DESCRIPTION,
     long_description=LONG_DESCRIPTION,
-    url='https://github.com/ytdl-org/youtube-dl',
-    author='Ricardo Garcia',
-    author_email='ytdl@yt-dl.org',
-    maintainer='Sergey M.',
-    maintainer_email='dstftw@gmail.com',
-    license='Unlicense',
-    packages=[
+    # long_description_content_type="text/markdown",
+    url="https://github.com/blackjack4494/youtube-dlc",
+    # packages=setuptools.find_packages(),
+	packages=[
         'youtube_dl',
         'youtube_dl.extractor', 'youtube_dl.downloader',
         'youtube_dl.postprocessor'],
-
-    # Provokes warning on most systems (why?!)
-    # test_suite = 'nose.collector',
-    # test_requires = ['nosetest'],
-
     classifiers=[
-        'Topic :: Multimedia :: Video',
-        'Development Status :: 5 - Production/Stable',
-        'Environment :: Console',
-        'License :: Public Domain',
-        'Programming Language :: Python',
-        'Programming Language :: Python :: 2',
-        'Programming Language :: Python :: 2.6',
-        'Programming Language :: Python :: 2.7',
-        'Programming Language :: Python :: 3',
-        'Programming Language :: Python :: 3.2',
-        'Programming Language :: Python :: 3.3',
-        'Programming Language :: Python :: 3.4',
-        'Programming Language :: Python :: 3.5',
-        'Programming Language :: Python :: 3.6',
-        'Programming Language :: Python :: 3.7',
-        'Programming Language :: Python :: 3.8',
-        'Programming Language :: Python :: Implementation',
-        'Programming Language :: Python :: Implementation :: CPython',
-        'Programming Language :: Python :: Implementation :: IronPython',
-        'Programming Language :: Python :: Implementation :: Jython',
-        'Programming Language :: Python :: Implementation :: PyPy',
+	    "Topic :: Multimedia :: Video",
+        "Development Status :: 5 - Production/Stable",
+        "Environment :: Console",
+        "Programming Language :: Python",
+        "Programming Language :: Python :: 2",
+        "Programming Language :: Python :: 2.6",
+        "Programming Language :: Python :: 2.7",
+        "Programming Language :: Python :: 3",
+        "Programming Language :: Python :: 3.2",
+        "Programming Language :: Python :: 3.3",
+        "Programming Language :: Python :: 3.4",
+        "Programming Language :: Python :: 3.5",
+        "Programming Language :: Python :: 3.6",
+        "Programming Language :: Python :: 3.7",
+        "Programming Language :: Python :: 3.8",
+        "Programming Language :: Python :: Implementation",
+        "Programming Language :: Python :: Implementation :: CPython",
+        "Programming Language :: Python :: Implementation :: IronPython",
+        "Programming Language :: Python :: Implementation :: Jython",
+        "Programming Language :: Python :: Implementation :: PyPy",
+        "License :: Public Domain",
+        "Operating System :: OS Independent",
     ],
-
-    cmdclass={'build_lazy_extractors': build_lazy_extractors},
+    python_requires='>=2.6',
+	
+	cmdclass={'build_lazy_extractors': build_lazy_extractors},
     **params
 )
