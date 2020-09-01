@@ -1,4 +1,5 @@
 [![Build Status](https://travis-ci.com/blackjack4494/youtube-dlc.svg?branch=master)](https://travis-ci.com/blackjack4494/youtube-dlc)
+[![Downloads](https://pepy.tech/badge/youtube-dlc)](https://pepy.tech/project/youtube-dlc)
 
 youtube-dlc - download videos from youtube.com or other video platforms
 
