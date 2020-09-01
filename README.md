@@ -9,18 +9,42 @@ youtube-dlc - download videos from youtube.com or other video platforms
 
 # INSTALLATION
 
-To install it right away for all UNIX users (Linux, macOS, etc.), type:
+**All Platforms**  
+Preferred way using pip:  
 You may want to use `python3` instead of `python`
 
     python -m pip install --upgrade youtube-dlc
 
-To build the Windows executable (a compiled version will be available online soon)
+**UNIX** (Linux, macOS, etc.)  
+Using wget:
+
+    sudo wget https://github.com/blackjack4494/youtube-dlc/releases/latest/download/youtube-dlc -O /usr/local/bin/youtube-dlc
+    sudo chmod a+rx /usr/local/bin/youtube-dlc
+
+Using curl:
+
+    sudo curl -L https://github.com/blackjack4494/youtube-dlc/releases/latest/download/youtube-dlc -o /usr/local/bin/youtube-dlc
+    sudo chmod a+rx /usr/local/bin/youtube-dlc
+
+
+**Windows** users can download [youtube-dlc.exe](https://github.com/blackjack4494/youtube-dlc/releases/latest/download/youtube-dlc.exe) (**do not** put in `C:\Windows\System32`!).  
+
+**Compile**
+To build the Windows executable yourself
 
     python -m pip install --upgrade pyinstaller
     pyinstaller.exe youtube_dl\__main__.py --onefile --name youtube-dlc
     
 Or simply execute the `make_win.bat` if pyinstaller is installed.
-There will be a `youtube-dlc.exe` in `/dist`
+There will be a `youtube-dlc.exe` in `/dist`  
+
+For Unix:
+You will need the required build tools  
+python, make (GNU), pandoc, zip, nosetests  
+Then simply type this
+
+    make
+
 
 # DESCRIPTION
 **youtube-dlc** is a command-line program to download videos from YouTube.com and a few more sites. It requires the Python interpreter, version 2.6, 2.7, or 3.2+, and it is not platform specific. It should work on your Unix box, on Windows or on macOS. It is released to the public domain, which means you can modify it, redistribute it or use it however you like.
