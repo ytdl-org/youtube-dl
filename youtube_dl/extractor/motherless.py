@@ -85,10 +85,10 @@ class MotherlessIE(InfoExtractor):
             or 'http://cdn4.videos.motherlessmedia.com/videos/%s.mp4?fs=opencloud' % video_id)
         age_limit = self._rta_search(webpage)
         view_count = str_to_int(self._html_search_regex(
-            (r'>(\d+)\s+Views<', r'<strong>Views</strong>\s+([^<]+)<'),
+            (r'>(.+?)\s+Views<', r'<strong>Views</strong>\s+([^<]+)<'),
             webpage, 'view count', fatal=False))
         like_count = str_to_int(self._html_search_regex(
-            (r'>(\d+)\s+Favorites<', r'<strong>Favorited</strong>\s+([^<]+)<'),
+            (r'>(.+?)\s+Favorites<', r'<strong>Favorited</strong>\s+([^<]+)<'),
             webpage, 'like count', fatal=False))
 
         upload_date = self._html_search_regex(
