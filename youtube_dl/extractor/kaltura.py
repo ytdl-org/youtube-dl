@@ -113,9 +113,14 @@ class KalturaIE(InfoExtractor):
 
     @staticmethod
     def _extract_url(webpage):
+        urls = KalturaIE._extract_urls(webpage)
+        return urls[0] if urls else None
+
+    @staticmethod
+    def _extract_urls(webpage):
         # Embed codes: https://knowledge.kaltura.com/embedding-kaltura-media-players-your-site
-        mobj = (
-            re.search(
+        finditer = (
+            re.finditer(
                 r"""(?xs)
                     kWidget\.(?:thumb)?[Ee]mbed\(
                     \{.*?
@@ -124,7 +129,7 @@ class KalturaIE(InfoExtractor):
                         (?P<q3>['"])entry_?[Ii]d(?P=q3)\s*:\s*
                         (?P<q4>['"])(?P<id>(?:(?!(?P=q4)).)+)(?P=q4)(?:,|\s*\})
                 """, webpage)
-            or re.search(
+            or re.finditer(
                 r'''(?xs)
                     (?P<q1>["'])
                         (?:https?:)?//cdnapi(?:sec)?\.kaltura\.com(?::\d+)?/(?:(?!(?P=q1)).)*\b(?:p|partner_id)/(?P<partner_id>\d+)(?:(?!(?P=q1)).)*
@@ -138,7 +143,7 @@ class KalturaIE(InfoExtractor):
                     )
                     (?P<q3>["'])(?P<id>(?:(?!(?P=q3)).)+)(?P=q3)
                 ''', webpage)
-            or re.search(
+            or re.finditer(
                 r'''(?xs)
                     <(?:iframe[^>]+src|meta[^>]+\bcontent)=(?P<q1>["'])
                       (?:https?:)?//(?:(?:www|cdnapi(?:sec)?)\.)?kaltura\.com/(?:(?!(?P=q1)).)*\b(?:p|partner_id)/(?P<partner_id>\d+)
@@ -148,7 +153,8 @@ class KalturaIE(InfoExtractor):
                     (?P=q1)
                 ''', webpage)
         )
-        if mobj:
+        urls = []
+        for mobj in finditer:
             embed_info = mobj.groupdict()
             for k, v in embed_info.items():
                 if v:
@@ -160,7 +166,8 @@ class KalturaIE(InfoExtractor):
                 webpage)
             if service_mobj:
                 url = smuggle_url(url, {'service_url': service_mobj.group('id')})
-            return url
+            urls.append(url)
+        return urls
 
     def _kaltura_api_call(self, video_id, actions, service_url=None, *args, **kwargs):
         params = actions[0]

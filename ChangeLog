@@ -1,3 +1,73 @@
+version 2020.07.28
+
+Extractors
+* [youtube] Fix sigfunc name extraction (#26134, #26135, #26136, #26137)
+* [youtube] Improve description extraction (#25937, #25980)
+* [wistia] Restrict embed regular expression (#25969)
+* [youtube] Prevent excess HTTP 301 (#25786)
++ [youtube:playlists] Extend URL regular expression (#25810)
++ [bellmedia] Add support for cp24.com clip URLs (#25764)
+* [brightcove] Improve embed detection (#25674)
+
+
+version 2020.06.16.1
+
+Extractors
+* [youtube] Force old layout (#25682, #25683, #25680, #25686)
+* [youtube] Fix categories and improve tags extraction
+
+
+version 2020.06.16
+
+Extractors
+* [youtube] Fix uploader id and uploader URL extraction
+* [youtube] Improve view count extraction
+* [youtube] Fix upload date extraction (#25677)
+* [youtube] Fix thumbnails extraction (#25676)
+* [youtube] Fix playlist and feed extraction (#25675)
++ [facebook] Add support for single-video ID links
++ [youtube] Extract chapters from JSON (#24819)
++ [kaltura] Add support for multiple embeds on a webpage (#25523)
+
+
+version 2020.06.06
+
+Extractors
+* [tele5] Bypass geo restriction
++ [jwplatform] Add support for bypass geo restriction
+* [tele5] Prefer jwplatform over nexx (#25533)
+* [twitch:stream] Expect 400 and 410 HTTP errors from API
+* [twitch:stream] Fix extraction (#25528)
+* [twitch] Fix thumbnails extraction (#25531)
++ [twitch] Pass v5 Accept HTTP header (#25531)
+* [brightcove] Fix subtitles extraction (#25540)
++ [malltv] Add support for sk.mall.tv (#25445)
+* [periscope] Fix untitled broadcasts (#25482)
+* [jwplatform] Improve embeds extraction (#25467)
+
+
+version 2020.05.29
+
+Core
+* [postprocessor/ffmpeg] Embed series metadata with --add-metadata
+* [utils] Fix file permissions in write_json_file (#12471, #25122)
+
+Extractors
+* [ard:beta] Extend URL regular expression (#25405)
++ [youtube] Add support for more invidious instances (#25417)
+* [giantbomb] Extend URL regular expression (#25222)
+* [ard] Improve URL regular expression (#25134, #25198)
+* [redtube] Improve formats extraction and extract m3u8 formats (#25311,
+  #25321)
+* [indavideo] Switch to HTTPS for API request (#25191)
+* [redtube] Improve title extraction (#25208)
+* [vimeo] Improve format extraction and sorting (#25285)
+* [soundcloud] Reduce API playlist page limit (#25274)
++ [youtube] Add support for yewtu.be (#25226)
+* [mailru] Fix extraction (#24530, #25239)
+* [bellator] Fix mgid extraction (#25195)
+
+
 version 2020.05.08
 
 Core
