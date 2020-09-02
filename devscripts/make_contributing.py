@@ -11,7 +11,7 @@ def main():
     options, args = parser.parse_args()
     if len(args) != 2:
         parser.error('Expected an input and an output filename')
-
+'''
     infile, outfile = args
 
     with io.open(infile, encoding='utf-8') as inf:
@@ -27,7 +27,7 @@ def main():
 
     with io.open(outfile, 'w', encoding='utf-8') as outf:
         outf.write(out)
-
+'''
 
 if __name__ == '__main__':
     main()

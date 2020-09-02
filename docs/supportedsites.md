@@ -224,6 +224,7 @@
  - **Disney**
  - **dlive:stream**
  - **dlive:vod**
+ - **DoodStream**
  - **Dotsub**
  - **DouyuShow**
  - **DouyuTV**: 斗鱼
@@ -352,6 +353,7 @@
  - **hotstar:playlist**
  - **Howcast**
  - **HowStuffWorks**
+ - **hrfernsehen**
  - **HRTi**
  - **HRTiPlaylist**
  - **Huajiao**: 花椒直播
@@ -835,6 +837,9 @@
  - **stanfordoc**: Stanford Open ClassRoom
  - **Steam**
  - **Stitcher**
+ - **StoryFire**
+ - **StoryFireSeries**
+ - **StoryFireUser**
  - **Streamable**
  - **streamcloud.eu**
  - **StreamCZ**

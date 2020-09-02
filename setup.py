@@ -67,11 +67,11 @@ setup(
     long_description=LONG_DESCRIPTION,
     # long_description_content_type="text/markdown",
     url="https://github.com/blackjack4494/youtube-dlc",
-    # packages=setuptools.find_packages(),
-	packages=[
-        'youtube_dlc',
-        'youtube_dlc.extractor', 'youtube_dlc.downloader',
-        'youtube_dlc.postprocessor'],
+    packages=setuptools.find_packages(),
+	#packages=[
+    #    'youtube_dlc',
+    #    'youtube_dlc.extractor', 'youtube_dlc.downloader',
+    #    'youtube_dlc.postprocessor'],
     classifiers=[
 	    "Topic :: Multimedia :: Video",
         "Development Status :: 5 - Production/Stable",
