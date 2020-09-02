@@ -1388,8 +1388,8 @@ Line 1
         self.assertEqual(caesar('ebg', 'acegik', -2), 'abc')
 
     def test_rot47(self):
-        self.assertEqual(rot47('youtube-dlc'), r'J@FEF36\5=')
-        self.assertEqual(rot47('youtube-dlc'), r'*~&%&qt\s{')
+        self.assertEqual(rot47('youtube-dlc'), r'J@FEF36\5=4')
+        self.assertEqual(rot47('youtube-dlc'), r'*~&%&qt\s{r')
 
     def test_urshift(self):
         self.assertEqual(urshift(3, 1), 1)

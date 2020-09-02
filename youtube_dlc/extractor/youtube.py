@@ -560,16 +560,16 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
             'info_dict': {
                 'id': 'BaW_jenozKc',
                 'ext': 'mp4',
-                'title': 'youtube-dlc test video "\'/\\ä↭𝕐',
+                'title': 'youtube-dl test video "\'/\\ä↭𝕐',
                 'uploader': 'Philipp Hagemeister',
                 'uploader_id': 'phihag',
                 'uploader_url': r're:https?://(?:www\.)?youtube\.com/user/phihag',
                 'channel_id': 'UCLqxVugv74EIW3VWh2NOa3Q',
                 'channel_url': r're:https?://(?:www\.)?youtube\.com/channel/UCLqxVugv74EIW3VWh2NOa3Q',
                 'upload_date': '20121002',
-                'description': 'test chars:  "\'/\\ä↭𝕐\ntest URL: https://github.com/rg3/youtube-dl/issues/1892\n\nThis is a test video for youtube-dlc.\n\nFor more information, contact phihag@phihag.de .',
+                'description': 'test chars:  "\'/\\ä↭𝕐\ntest URL: https://github.com/rg3/youtube-dl/issues/1892\n\nThis is a test video for youtube-dl.\n\nFor more information, contact phihag@phihag.de .',
                 'categories': ['Science & Technology'],
-                'tags': ['youtube-dlc'],
+                'tags': ['youtube-dl'],
                 'duration': 10,
                 'view_count': int,
                 'like_count': int,
@@ -641,14 +641,14 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
             'info_dict': {
                 'id': 'BaW_jenozKc',
                 'ext': 'mp4',
-                'title': 'youtube-dlc test video "\'/\\ä↭𝕐',
+                'title': 'youtube-dl test video "\'/\\ä↭𝕐',
                 'uploader': 'Philipp Hagemeister',
                 'uploader_id': 'phihag',
                 'uploader_url': r're:https?://(?:www\.)?youtube\.com/user/phihag',
                 'upload_date': '20121002',
-                'description': 'test chars:  "\'/\\ä↭𝕐\ntest URL: https://github.com/rg3/youtube-dl/issues/1892\n\nThis is a test video for youtube-dlc.\n\nFor more information, contact phihag@phihag.de .',
+                'description': 'test chars:  "\'/\\ä↭𝕐\ntest URL: https://github.com/rg3/youtube-dl/issues/1892\n\nThis is a test video for youtube-dl.\n\nFor more information, contact phihag@phihag.de .',
                 'categories': ['Science & Technology'],
-                'tags': ['youtube-dlc'],
+                'tags': ['youtube-dl'],
                 'duration': 10,
                 'view_count': int,
                 'like_count': int,
@@ -2600,7 +2600,7 @@ class YoutubePlaylistIE(YoutubePlaylistBaseInfoExtractor):
             'uploader_id': 'UCmlqkdCBesrv2Lak1mF_MxA',
             'uploader': 'Sergey M.',
             'id': 'PL4lCao7KL_QFVb7Iudeipvc2BCavECqzc',
-            'title': 'youtube-dlc public playlist',
+            'title': 'youtube-dl public playlist',
         },
         'playlist_count': 1,
     }, {
@@ -2609,7 +2609,7 @@ class YoutubePlaylistIE(YoutubePlaylistBaseInfoExtractor):
             'uploader_id': 'UCmlqkdCBesrv2Lak1mF_MxA',
             'uploader': 'Sergey M.',
             'id': 'PL4lCao7KL_QFodcLWhDpGCYnngnHtQ-Xf',
-            'title': 'youtube-dlc empty playlist',
+            'title': 'youtube-dl empty playlist',
         },
         'playlist_count': 0,
     }, {
@@ -3235,10 +3235,10 @@ class YoutubeSearchURLIE(YoutubeSearchBaseInfoExtractor):
     IE_NAME = 'youtube:search_url'
     _VALID_URL = r'https?://(?:www\.)?youtube\.com/results\?(.*?&)?(?:search_query|q)=(?P<query>[^&]+)(?:[&]|$)'
     _TESTS = [{
-        'url': 'https://www.youtube.com/results?baz=bar&search_query=youtube-dlc+test+video&filters=video&lclk=video',
+        'url': 'https://www.youtube.com/results?baz=bar&search_query=youtube-dl+test+video&filters=video&lclk=video',
         'playlist_mincount': 5,
         'info_dict': {
-            'title': 'youtube-dlc test video',
+            'title': 'youtube-dl test video',
         }
     }, {
         'url': 'https://www.youtube.com/results?q=test&sp=EgQIBBgB',
@@ -3422,9 +3422,9 @@ class YoutubeTruncatedURLIE(InfoExtractor):
         raise ExtractorError(
             'Did you forget to quote the URL? Remember that & is a meta '
             'character in most shells, so you want to put the URL in quotes, '
-            'like  youtube-dlc '
+            'like  youtube-dl '
             '"https://www.youtube.com/watch?feature=foo&v=BaW_jenozKc" '
-            ' or simply  youtube-dlc BaW_jenozKc  .',
+            ' or simply  youtube-dl BaW_jenozKc  .',
             expected=True)
 
 

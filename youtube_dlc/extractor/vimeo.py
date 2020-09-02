@@ -287,7 +287,7 @@ class VimeoIE(VimeoBaseInfoExtractor):
             'info_dict': {
                 'id': '56015672',
                 'ext': 'mp4',
-                'title': "youtube-dlc test video - \u2605 \" ' \u5e78 / \\ \u00e4 \u21ad \U0001d550",
+                'title': "youtube-dl test video - \u2605 \" ' \u5e78 / \\ \u00e4 \u21ad \U0001d550",
                 'description': 'md5:2d3305bad981a06ff79f027f19865021',
                 'timestamp': 1355990239,
                 'upload_date': '20121220',
@@ -347,7 +347,7 @@ class VimeoIE(VimeoBaseInfoExtractor):
             'info_dict': {
                 'id': '68375962',
                 'ext': 'mp4',
-                'title': 'youtube-dlc password protected test video',
+                'title': 'youtube-dl password protected test video',
                 'timestamp': 1371200155,
                 'upload_date': '20130614',
                 'uploader_url': r're:https?://(?:www\.)?vimeo\.com/user18948128',
@@ -358,7 +358,7 @@ class VimeoIE(VimeoBaseInfoExtractor):
             },
             'params': {
                 'format': 'best[protocol=https]',
-                'videopassword': 'youtube-dlc',
+                'videopassword': 'youtube-dl',
             },
         },
         {
@@ -473,7 +473,7 @@ class VimeoIE(VimeoBaseInfoExtractor):
             'info_dict': {
                 'id': '68375962',
                 'ext': 'mp4',
-                'title': 'youtube-dlc password protected test video',
+                'title': 'youtube-dl password protected test video',
                 'uploader_url': r're:https?://(?:www\.)?vimeo\.com/user18948128',
                 'uploader_id': 'user18948128',
                 'uploader': 'Jaime Marquínez Ferrándiz',
@@ -481,7 +481,7 @@ class VimeoIE(VimeoBaseInfoExtractor):
             },
             'params': {
                 'format': 'best[protocol=https]',
-                'videopassword': 'youtube-dlc',
+                'videopassword': 'youtube-dl',
             },
         },
         {
@@ -917,7 +917,7 @@ class VimeoAlbumIE(VimeoBaseInfoExtractor):
         },
         'playlist_count': 1,
         'params': {
-            'videopassword': 'youtube-dlc',
+            'videopassword': 'youtube-dl',
         }
     }]
     _PAGE_SIZE = 100
