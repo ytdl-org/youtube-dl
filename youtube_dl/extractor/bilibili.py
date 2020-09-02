@@ -189,9 +189,12 @@ class BiliBiliIE(InfoExtractor):
                         continue
                     self._report_error(video_info)
                 part_title = part_info['title']
-                if len(part_list) == 1:
+                if len(part_list) == 1 or len(part_title) == 0:
                     # if video only got one part, use video title instead of part title
                     part_title = title
+                else:
+                    # some video not name part title properly, so add video title in front
+                    part_title = title + "_" + part_title
                 for idx, durl in enumerate(video_info['durl'], start=1):
                     # some video is splited to many fragments, here is this fragments
                     formats = [{
