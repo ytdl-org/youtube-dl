@@ -11,12 +11,19 @@ dist/
 MANIFEST
 README.txt
 youtube-dl.1
+youtube-dlc.1
 youtube-dl.bash-completion
+youtube-dlc.bash-completion
 youtube-dl.fish
+youtube-dlc.fish
 youtube_dl/extractor/lazy_extractors.py
+youtube_dlc/extractor/lazy_extractors.py
 youtube-dl
+youtube-dlc
 youtube-dl.exe
+youtube-dlc.exe
 youtube-dl.tar.gz
+youtube-dlc.tar.gz
 .coverage
 cover/
 updates_key.pem
@@ -41,6 +48,7 @@ updates_key.pem
 test/local_parameters.json
 .tox
 youtube-dl.zsh
+youtube-dlc.zsh
 
 # IntelliJ related files
 .idea
