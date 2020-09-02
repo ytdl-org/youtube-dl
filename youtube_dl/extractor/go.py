@@ -138,8 +138,7 @@ class GoIE(AdobePassIE):
                     # from http://freeform.go.com/shows/shadowhunters/episodes/season-2/1-this-guilty-blood
                     r'data-video-id=["\']*(VDKA\w+)',
                     # https://abc.com/shows/the-rookie/episode-guide/season-02/03-the-bet
-                    r'\bvideoIdCode["\']\s*:\s*["\'](vdka\w+)'
-                    # r'\b(?:video)?id["\']\s*:\s*["\'](VDKA\w+)'
+                    r'\b(?:video)?id["\']\s*:\s*["\'](VDKA\w+)'
                 ), webpage, 'video id', default=video_id)
             if not site_info:
                 brand = self._search_regex(
