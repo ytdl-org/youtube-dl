@@ -14,7 +14,7 @@ import json
 import re
 import subprocess
 
-from youtube_dl.swfinterp import SWFInterpreter
+from youtube_dlc.swfinterp import SWFInterpreter
 
 
 TEST_DIR = os.path.join(

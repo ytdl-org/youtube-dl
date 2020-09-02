@@ -7,9 +7,9 @@ import warnings
 import sys
 from distutils.spawn import spawn
 
-# Get the version from youtube_dl/version.py without importing the package
-exec(compile(open('youtube_dl/version.py').read(),
-             'youtube_dl/version.py', 'exec'))
+# Get the version from youtube_dlc/version.py without importing the package
+exec(compile(open('youtube_dlc/version.py').read(),
+             'youtube_dlc/version.py', 'exec'))
 
 DESCRIPTION = 'Media downloader supporting various sites such as youtube'
 LONG_DESCRIPTION = 'Command-line program to download videos from YouTube.com and other video sites. Based on a more active community fork.'
@@ -18,10 +18,10 @@ if len(sys.argv) >= 2 and sys.argv[1] == 'py2exe':
     print("inv")
 else:
     files_spec = [
-        ('etc/bash_completion.d', ['youtube-dl.bash-completion']),
-        ('etc/fish/completions', ['youtube-dl.fish']),
-        ('share/doc/youtube_dl', ['README.txt']),
-        ('share/man/man1', ['youtube-dl.1'])
+        ('etc/bash_completion.d', ['youtube-dlc.bash-completion']),
+        ('etc/fish/completions', ['youtube-dlc.fish']),
+        ('share/doc/youtube_dlc', ['README.txt']),
+        ('share/man/man1', ['youtube-dlc.1'])
     ]
     root = os.path.dirname(os.path.abspath(__file__))
     data_files = []
@@ -38,7 +38,7 @@ else:
         'data_files': data_files,
     }
     #if setuptools_available:
-    params['entry_points'] = {'console_scripts': ['youtube-dlc = youtube_dl:main']}
+    params['entry_points'] = {'console_scripts': ['youtube-dlc = youtube_dlc:main']}
     #else:
     #    params['scripts'] = ['bin/youtube-dlc']
 
@@ -54,7 +54,7 @@ class build_lazy_extractors(Command):
 
     def run(self):
         spawn(
-            [sys.executable, 'devscripts/make_lazy_extractors.py', 'youtube_dl/extractor/lazy_extractors.py'],
+            [sys.executable, 'devscripts/make_lazy_extractors.py', 'youtube_dlc/extractor/lazy_extractors.py'],
             dry_run=self.dry_run,
         )
 
@@ -69,9 +69,9 @@ setup(
     url="https://github.com/blackjack4494/youtube-dlc",
     # packages=setuptools.find_packages(),
 	packages=[
-        'youtube_dl',
-        'youtube_dl.extractor', 'youtube_dl.downloader',
-        'youtube_dl.postprocessor'],
+        'youtube_dlc',
+        'youtube_dlc.extractor', 'youtube_dlc.downloader',
+        'youtube_dlc.postprocessor'],
     classifiers=[
 	    "Topic :: Multimedia :: Video",
         "Development Status :: 5 - Production/Stable",

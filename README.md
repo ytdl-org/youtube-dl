@@ -34,7 +34,7 @@ Using curl:
 To build the Windows executable yourself
 
     python -m pip install --upgrade pyinstaller
-    pyinstaller.exe youtube_dl\__main__.py --onefile --name youtube-dlc
+    pyinstaller.exe youtube_dlc\__main__.py --onefile --name youtube-dlc
     
 Or simply execute the `make_win.bat` if pyinstaller is installed.
 There will be a `youtube-dlc.exe` in `/dist`  
@@ -71,18 +71,18 @@ Then simply type this
                                      extractor
     --default-search PREFIX          Use this prefix for unqualified URLs. For
                                      example "gvsearch2:" downloads two videos
-                                     from google videos for youtube-dl "large
+                                     from google videos for youtube-dlc "large
                                      apple". Use the value "auto" to let
-                                     youtube-dl guess ("auto_warning" to emit a
+                                     youtube-dlc guess ("auto_warning" to emit a
                                      warning when guessing). "error" just throws
                                      an error. The default value "fixup_error"
                                      repairs broken URLs, but emits an error if
                                      this is not possible instead of searching.
     --ignore-config                  Do not read configuration files. When given
                                      in the global configuration file
-                                     /etc/youtube-dl.conf: Do not read the user
+                                     /etc/youtube-dlc.conf: Do not read the user
                                      configuration in ~/.config/youtube-
-                                     dl/config (%APPDATA%/youtube-dl/config.txt
+                                     dl/config (%APPDATA%/youtube-dlc/config.txt
                                      on Windows)
     --config-location PATH           Location of the configuration file; either
                                      the path to the config or its containing
@@ -240,7 +240,7 @@ Then simply type this
                                      filenames
     -w, --no-overwrites              Do not overwrite files
     -c, --continue                   Force resume of partially downloaded files.
-                                     By default, youtube-dl will resume
+                                     By default, youtube-dlc will resume
                                      downloads if possible.
     --no-continue                    Do not resume partially downloaded files
                                      (restart from beginning)
@@ -258,11 +258,11 @@ Then simply type this
                                      option)
     --cookies FILE                   File to read cookies from and dump cookie
                                      jar in
-    --cache-dir DIR                  Location in the filesystem where youtube-dl
+    --cache-dir DIR                  Location in the filesystem where youtube-dlc
                                      can store some downloaded information
                                      permanently. By default
-                                     $XDG_CACHE_HOME/youtube-dl or
-                                     ~/.cache/youtube-dl . At the moment, only
+                                     $XDG_CACHE_HOME/youtube-dlc or
+                                     ~/.cache/youtube-dlc . At the moment, only
                                      YouTube player files (for videos with
                                      obfuscated signatures) are cached, but that
                                      may change.
@@ -308,8 +308,8 @@ Then simply type this
                                      files in the current directory to debug
                                      problems
     --print-traffic                  Display sent and read HTTP traffic
-    -C, --call-home                  Contact the youtube-dl server for debugging
-    --no-call-home                   Do NOT contact the youtube-dl server for
+    -C, --call-home                  Contact the youtube-dlc server for debugging
+    --no-call-home                   Do NOT contact the youtube-dlc server for
                                      debugging
 
 ## Workarounds:
@@ -370,7 +370,7 @@ Then simply type this
 ## Authentication Options:
     -u, --username USERNAME          Login with this account ID
     -p, --password PASSWORD          Account password. If this option is left
-                                     out, youtube-dl will ask interactively.
+                                     out, youtube-dlc will ask interactively.
     -2, --twofactor TWOFACTOR        Two-factor authentication code
     -n, --netrc                      Use .netrc authentication data
     --video-password PASSWORD        Video password (vimeo, smotri, youku)
@@ -381,7 +381,7 @@ Then simply type this
                                      a list of available MSOs
     --ap-username USERNAME           Multiple-system operator account login
     --ap-password PASSWORD           Multiple-system operator account password.
-                                     If this option is left out, youtube-dl will
+                                     If this option is left out, youtube-dlc will
                                      ask interactively.
     --ap-list-mso                    List all supported multiple-system
                                      operators
@@ -444,6 +444,6 @@ Then simply type this
 
 # COPYRIGHT
 
-youtube-dl is released into the public domain by the copyright holders.
+youtube-dlc is released into the public domain by the copyright holders.
 
 This README file was originally written by [Daniel Bolton](https://github.com/dbbolton) and is likewise released into the public domain.

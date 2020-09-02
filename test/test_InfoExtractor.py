@@ -10,10 +10,10 @@ import unittest
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from test.helper import FakeYDL, expect_dict, expect_value, http_server_port
-from youtube_dl.compat import compat_etree_fromstring, compat_http_server
-from youtube_dl.extractor.common import InfoExtractor
-from youtube_dl.extractor import YoutubeIE, get_info_extractor
-from youtube_dl.utils import encode_data_uri, strip_jsonp, ExtractorError, RegexNotFoundError
+from youtube_dlc.compat import compat_etree_fromstring, compat_http_server
+from youtube_dlc.extractor.common import InfoExtractor
+from youtube_dlc.extractor import YoutubeIE, get_info_extractor
+from youtube_dlc.utils import encode_data_uri, strip_jsonp, ExtractorError, RegexNotFoundError
 import threading
 
 

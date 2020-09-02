@@ -14,8 +14,8 @@ lazy_extractors_filename = sys.argv[1]
 if os.path.exists(lazy_extractors_filename):
     os.remove(lazy_extractors_filename)
 
-from youtube_dl.extractor import _ALL_CLASSES
-from youtube_dl.extractor.common import InfoExtractor, SearchInfoExtractor
+from youtube_dlc.extractor import _ALL_CLASSES
+from youtube_dlc.extractor.common import InfoExtractor, SearchInfoExtractor
 
 with open('devscripts/lazy_load_template.py', 'rt') as f:
     module_template = f.read()

@@ -1,4 +1,4 @@
-__youtube_dl()
+__youtube_dlc()
 {
     local cur prev opts fileopts diropts keywords
     COMPREPLY=()
@@ -26,4 +26,4 @@ __youtube_dl()
     fi
 }
 
-complete -F __youtube_dl youtube-dl
+complete -F __youtube_dlc youtube-dlc

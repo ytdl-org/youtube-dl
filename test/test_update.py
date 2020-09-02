@@ -10,7 +10,7 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 
 import json
-from youtube_dl.update import rsa_verify
+from youtube_dlc.update import rsa_verify
 
 
 class TestUpdate(unittest.TestCase):

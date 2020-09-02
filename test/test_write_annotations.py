@@ -15,11 +15,11 @@ import io
 
 import xml.etree.ElementTree
 
-import youtube_dl.YoutubeDL
-import youtube_dl.extractor
+import youtube_dlc.YoutubeDL
+import youtube_dlc.extractor
 
 
-class YoutubeDL(youtube_dl.YoutubeDL):
+class YoutubeDL(youtube_dlc.YoutubeDL):
     def __init__(self, *args, **kwargs):
         super(YoutubeDL, self).__init__(*args, **kwargs)
         self.to_stderr = self.to_screen
@@ -45,7 +45,7 @@ class TestAnnotations(unittest.TestCase):
 
     def test_info_json(self):
         expected = list(EXPECTED_ANNOTATIONS)  # Two annotations could have the same text.
-        ie = youtube_dl.extractor.YoutubeIE()
+        ie = youtube_dlc.extractor.YoutubeIE()
         ydl = YoutubeDL(params)
         ydl.add_info_extractor(ie)
         ydl.download([TEST_ID])

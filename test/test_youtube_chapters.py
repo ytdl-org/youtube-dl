@@ -9,7 +9,7 @@ import unittest
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from test.helper import expect_value
-from youtube_dl.extractor import YoutubeIE
+from youtube_dlc.extractor import YoutubeIE
 
 
 class TestYoutubeChapters(unittest.TestCase):

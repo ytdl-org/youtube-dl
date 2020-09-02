@@ -7,8 +7,8 @@ import os
 import sys
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from youtube_dl.utils import intlist_to_bytes
-from youtube_dl.aes import aes_encrypt, key_expansion
+from youtube_dlc.utils import intlist_to_bytes
+from youtube_dlc.aes import aes_encrypt, key_expansion
 
 secret_msg = b'Secret message goes here'
 

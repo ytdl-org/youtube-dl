@@ -9,11 +9,11 @@ import sys
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from youtube_dl.compat import (
+from youtube_dlc.compat import (
     compat_print,
     compat_urllib_request,
 )
-from youtube_dl.utils import format_bytes
+from youtube_dlc.utils import format_bytes
 
 
 def format_size(bytes):
@@ -36,9 +36,9 @@ for page in itertools.count(1):
             asset_name = asset['name']
             total_bytes += asset['download_count'] * asset['size']
             if all(not re.match(p, asset_name) for p in (
-                    r'^youtube-dl$',
-                    r'^youtube-dl-\d{4}\.\d{2}\.\d{2}(?:\.\d+)?\.tar\.gz$',
-                    r'^youtube-dl\.exe$')):
+                    r'^youtube-dlc$',
+                    r'^youtube-dlc-\d{4}\.\d{2}\.\d{2}(?:\.\d+)?\.tar\.gz$',
+                    r'^youtube-dlc\.exe$')):
                 continue
             compat_print(
                 ' %s size: %s downloads: %d'

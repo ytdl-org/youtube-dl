@@ -6,9 +6,9 @@ from os.path import dirname as dirn
 import sys
 
 sys.path.insert(0, dirn(dirn((os.path.abspath(__file__)))))
-import youtube_dl
+import youtube_dlc
 
-BASH_COMPLETION_FILE = "youtube-dl.bash-completion"
+BASH_COMPLETION_FILE = "youtube-dlc.bash-completion"
 BASH_COMPLETION_TEMPLATE = "devscripts/bash-completion.in"
 
 
@@ -26,5 +26,5 @@ def build_completion(opt_parser):
         f.write(filled_template)
 
 
-parser = youtube_dl.parseOpts()[0]
+parser = youtube_dlc.parseOpts()[0]
 build_completion(parser)

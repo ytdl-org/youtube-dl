@@ -12,13 +12,13 @@ import sys
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from youtube_dl.compat import (
+from youtube_dlc.compat import (
     compat_basestring,
     compat_getpass,
     compat_print,
     compat_urllib_request,
 )
-from youtube_dl.utils import (
+from youtube_dlc.utils import (
     make_HTTPS_handler,
     sanitized_Request,
 )
@@ -98,7 +98,7 @@ def main():
     releaser = GitHubReleaser()
 
     new_release = releaser.create_release(
-        version, name='youtube-dl %s' % version, body=body)
+        version, name='youtube-dlc %s' % version, body=body)
     release_id = new_release['id']
 
     for asset in os.listdir(build_path):

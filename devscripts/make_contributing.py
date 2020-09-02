@@ -20,7 +20,7 @@ def main():
     bug_text = re.search(
         r'(?s)#\s*BUGS\s*[^\n]*\s*(.*?)#\s*COPYRIGHT', readme).group(1)
     dev_text = re.search(
-        r'(?s)(#\s*DEVELOPER INSTRUCTIONS.*?)#\s*EMBEDDING YOUTUBE-DL',
+        r'(?s)(#\s*DEVELOPER INSTRUCTIONS.*?)#\s*EMBEDDING youtube-dlc',
         readme).group(1)
 
     out = bug_text + dev_text

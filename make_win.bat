@@ -1,1 +1,1 @@
-pyinstaller.exe youtube_dl\__main__.py --onefile --name youtube-dlc
+pyinstaller.exe youtube_dlc\__main__.py --onefile --name youtube-dlc

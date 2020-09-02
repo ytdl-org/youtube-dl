@@ -2,8 +2,8 @@ include README.md
 include LICENSE
 include AUTHORS
 include ChangeLog
-include youtube-dl.bash-completion
-include youtube-dl.fish
-include youtube-dl.1
+include youtube-dlc.bash-completion
+include youtube-dlc.fish
+include youtube-dlc.1
 recursive-include docs Makefile conf.py *.rst
 recursive-include test *

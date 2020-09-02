@@ -7,10 +7,10 @@ import os
 import sys
 
 
-# Import youtube_dl
+# Import youtube_dlc
 ROOT_DIR = os.path.join(os.path.dirname(__file__), '..')
 sys.path.insert(0, ROOT_DIR)
-import youtube_dl
+import youtube_dlc
 
 
 def main():
@@ -33,7 +33,7 @@ def main():
                 ie_md += ' (Currently broken)'
             yield ie_md
 
-    ies = sorted(youtube_dl.gen_extractors(), key=lambda i: i.IE_NAME.lower())
+    ies = sorted(youtube_dlc.gen_extractors(), key=lambda i: i.IE_NAME.lower())
     out = '# Supported sites\n' + ''.join(
         ' - ' + md + '\n'
         for md in gen_ies_md(ies))

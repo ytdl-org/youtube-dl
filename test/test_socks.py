@@ -15,7 +15,7 @@ from test.helper import (
     FakeYDL,
     get_params,
 )
-from youtube_dl.compat import (
+from youtube_dlc.compat import (
     compat_str,
     compat_urllib_request,
 )

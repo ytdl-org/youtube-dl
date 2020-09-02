@@ -12,7 +12,7 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from test.helper import gettestcases
 
-from youtube_dl.extractor import (
+from youtube_dlc.extractor import (
     FacebookIE,
     gen_extractors,
     YoutubeIE,
@@ -70,7 +70,7 @@ class TestAllURLsMatching(unittest.TestCase):
 
     def test_youtube_search_matching(self):
         self.assertMatch('http://www.youtube.com/results?search_query=making+mustard', ['youtube:search_url'])
-        self.assertMatch('https://www.youtube.com/results?baz=bar&search_query=youtube-dl+test+video&filters=video&lclk=video', ['youtube:search_url'])
+        self.assertMatch('https://www.youtube.com/results?baz=bar&search_query=youtube-dlc+test+video&filters=video&lclk=video', ['youtube:search_url'])
 
     def test_youtube_extract(self):
         assertExtractId = lambda url, id: self.assertEqual(YoutubeIE.extract_id(url), id)
