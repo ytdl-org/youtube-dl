@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-from setuptools import setup, Command
+from setuptools import setup, Command, find_packages
 import os.path
 import warnings
 import sys
@@ -67,7 +67,7 @@ setup(
     long_description=LONG_DESCRIPTION,
     # long_description_content_type="text/markdown",
     url="https://github.com/blackjack4494/youtube-dlc",
-    packages=setuptools.find_packages(),
+    packages=find_packages(),
 	#packages=[
     #    'youtube_dlc',
     #    'youtube_dlc.extractor', 'youtube_dlc.downloader',
