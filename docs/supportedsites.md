@@ -6,7 +6,6 @@
  - **23video**
  - **24video**
  - **3qsdn**: 3Q SDN
- - **3sat**
  - **4tube**
  - **56.com**
  - **5min**
@@ -1155,7 +1154,7 @@
  - **Zaq1**
  - **Zattoo**
  - **ZattooLive**
- - **ZDF**
+ - **ZDF-3sat**
  - **ZDFChannel**
  - **zingmp3**: mp3.zing.vn
  - **Zype**

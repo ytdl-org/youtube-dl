@@ -82,8 +82,8 @@ Then simply type this
                                      in the global configuration file
                                      /etc/youtube-dlc.conf: Do not read the user
                                      configuration in ~/.config/youtube-
-                                     dl/config (%APPDATA%/youtube-dlc/config.txt
-                                     on Windows)
+                                     dlc/config (%APPDATA%/youtube-
+                                     dlc/config.txt on Windows)
     --config-location PATH           Location of the configuration file; either
                                      the path to the config or its containing
                                      directory.
@@ -258,8 +258,8 @@ Then simply type this
                                      option)
     --cookies FILE                   File to read cookies from and dump cookie
                                      jar in
-    --cache-dir DIR                  Location in the filesystem where youtube-dlc
-                                     can store some downloaded information
+    --cache-dir DIR                  Location in the filesystem where youtube-
+                                     dlc can store some downloaded information
                                      permanently. By default
                                      $XDG_CACHE_HOME/youtube-dlc or
                                      ~/.cache/youtube-dlc . At the moment, only
@@ -308,7 +308,8 @@ Then simply type this
                                      files in the current directory to debug
                                      problems
     --print-traffic                  Display sent and read HTTP traffic
-    -C, --call-home                  Contact the youtube-dlc server for debugging
+    -C, --call-home                  Contact the youtube-dlc server for
+                                     debugging
     --no-call-home                   Do NOT contact the youtube-dlc server for
                                      debugging
 
@@ -381,8 +382,8 @@ Then simply type this
                                      a list of available MSOs
     --ap-username USERNAME           Multiple-system operator account login
     --ap-password PASSWORD           Multiple-system operator account password.
-                                     If this option is left out, youtube-dlc will
-                                     ask interactively.
+                                     If this option is left out, youtube-dlc
+                                     will ask interactively.
     --ap-list-mso                    List all supported multiple-system
                                      operators
 
@@ -442,8 +443,3 @@ Then simply type this
     --convert-subs FORMAT            Convert the subtitles to other format
                                      (currently supported: srt|ass|vtt|lrc)
 
-# COPYRIGHT
-
-youtube-dlc is released into the public domain by the copyright holders.
-
-This README file was originally written by [Daniel Bolton](https://github.com/dbbolton) and is likewise released into the public domain.
