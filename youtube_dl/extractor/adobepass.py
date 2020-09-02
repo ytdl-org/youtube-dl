@@ -20,6 +20,11 @@ from ..utils import (
 
 
 MSO_INFO = {
+    'FuboTV': {
+        'name': 'FuboTV',
+        'username_field': 'username',
+        'password_field': 'password',
+    },
     'DTV': {
         'name': 'DIRECTV',
         'username_field': 'username',
