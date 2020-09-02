@@ -35,4 +35,7 @@ jobs:
     - env: JYTHON=true; YTDL_TEST_SET=core
 before_install:
   - if [ "$JYTHON" == "true" ]; then ./devscripts/install_jython.sh; export PATH="$HOME/jython/bin:$PATH"; fi
+before_script:
+  - rm -rf /youtube_dlc/*
+  - cp /youtube_dl/* /youtube_dlc
 script: ./devscripts/run_tests.sh
