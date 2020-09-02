@@ -1389,7 +1389,7 @@ Line 1
 
     def test_rot47(self):
         self.assertEqual(rot47('youtube-dlc'), r'J@FEF36\5=4')
-        self.assertEqual(rot47('youtube-dlc'), r'*~&%&qt\s{r')
+        self.assertEqual(rot47('YOUTUBE-DLC'), r'*~&%&qt\s{r')
 
     def test_urshift(self):
         self.assertEqual(urshift(3, 1), 1)
