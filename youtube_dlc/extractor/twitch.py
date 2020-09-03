@@ -458,82 +458,86 @@ class TwitchProfileIE(TwitchPlaylistBaseIE):
 
 class TwitchVideosBaseIE(TwitchPlaylistBaseIE):
     _VALID_URL_VIDEOS_BASE = r'%s/(?P<id>[^/]+)/videos' % TwitchBaseIE._VALID_URL_BASE
+    _VALID_URL_VIDEOS_FILTERS = r'\?(?:.*?[&;])??filter=%s'
     _PLAYLIST_PATH = TwitchPlaylistBaseIE._PLAYLIST_PATH + '&broadcast_type='
 
 
 class TwitchAllVideosIE(TwitchVideosBaseIE):
     IE_NAME = 'twitch:videos:all'
-    _VALID_URL = r'%s/all' % TwitchVideosBaseIE._VALID_URL_VIDEOS_BASE
+    _VALID_URL = '%s/?(?:(?:%s)|$)' % (
+        TwitchVideosBaseIE._VALID_URL_VIDEOS_BASE,
+        TwitchVideosBaseIE._VALID_URL_VIDEOS_FILTERS % 'all'
+    )
     _PLAYLIST_PATH = TwitchVideosBaseIE._PLAYLIST_PATH + 'archive,upload,highlight'
     _PLAYLIST_TYPE = 'all videos'
 
     _TESTS = [{
-        'url': 'https://www.twitch.tv/spamfish/videos/all',
+        'url': 'https://www.twitch.tv/spamfish/videos?filter=all&sort=time',
         'info_dict': {
             'id': '497952',
             'title': 'Spamfish',
         },
         'playlist_mincount': 869,
     }, {
-        'url': 'https://m.twitch.tv/spamfish/videos/all',
+        'url': 'https://m.twitch.tv/spamfish/videos/',
         'only_matching': True,
     }]
 
 
 class TwitchUploadsIE(TwitchVideosBaseIE):
     IE_NAME = 'twitch:videos:uploads'
-    _VALID_URL = r'%s/uploads' % TwitchVideosBaseIE._VALID_URL_VIDEOS_BASE
+    _VALID_URL = '%s/?(?:%s)' % (
+        TwitchVideosBaseIE._VALID_URL_VIDEOS_BASE,
+        TwitchVideosBaseIE._VALID_URL_VIDEOS_FILTERS % 'uploads'
+    )
     _PLAYLIST_PATH = TwitchVideosBaseIE._PLAYLIST_PATH + 'upload'
     _PLAYLIST_TYPE = 'uploads'
 
     _TESTS = [{
-        'url': 'https://www.twitch.tv/spamfish/videos/uploads',
+        'url': 'https://www.twitch.tv/spamfish/videos?filter=uploads&sort=time',
         'info_dict': {
             'id': '497952',
             'title': 'Spamfish',
         },
         'playlist_mincount': 0,
-    }, {
-        'url': 'https://m.twitch.tv/spamfish/videos/uploads',
-        'only_matching': True,
     }]
 
 
 class TwitchPastBroadcastsIE(TwitchVideosBaseIE):
     IE_NAME = 'twitch:videos:past-broadcasts'
-    _VALID_URL = r'%s/past-broadcasts' % TwitchVideosBaseIE._VALID_URL_VIDEOS_BASE
+    _VALID_URL = '%s/?(?:%s)' % (
+        TwitchVideosBaseIE._VALID_URL_VIDEOS_BASE,
+        TwitchVideosBaseIE._VALID_URL_VIDEOS_FILTERS % 'archives'
+    )
     _PLAYLIST_PATH = TwitchVideosBaseIE._PLAYLIST_PATH + 'archive'
     _PLAYLIST_TYPE = 'past broadcasts'
 
     _TESTS = [{
-        'url': 'https://www.twitch.tv/spamfish/videos/past-broadcasts',
+        'url': 'https://www.twitch.tv/spamfish/videos?filter=archives&sort=time',
         'info_dict': {
             'id': '497952',
             'title': 'Spamfish',
         },
         'playlist_mincount': 0,
-    }, {
-        'url': 'https://m.twitch.tv/spamfish/videos/past-broadcasts',
-        'only_matching': True,
     }]
 
 
 class TwitchHighlightsIE(TwitchVideosBaseIE):
     IE_NAME = 'twitch:videos:highlights'
-    _VALID_URL = r'%s/highlights' % TwitchVideosBaseIE._VALID_URL_VIDEOS_BASE
+    _VALID_URL = '%s/?(?:%s)' % (
+        TwitchVideosBaseIE._VALID_URL_VIDEOS_BASE,
+        TwitchVideosBaseIE._VALID_URL_VIDEOS_FILTERS % 'highlights'
+    )
     _PLAYLIST_PATH = TwitchVideosBaseIE._PLAYLIST_PATH + 'highlight'
     _PLAYLIST_TYPE = 'highlights'
 
     _TESTS = [{
-        'url': 'https://www.twitch.tv/spamfish/videos/highlights',
+        'url': 'https://www.twitch.tv/spamfish/videos?filter=highlights&sort=views',
         'info_dict': {
             'id': '497952',
             'title': 'Spamfish',
         },
         'playlist_mincount': 805,
-    }, {
-        'url': 'https://m.twitch.tv/spamfish/videos/highlights',
-        'only_matching': True,
     }]
 
 
