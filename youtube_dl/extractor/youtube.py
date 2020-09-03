@@ -3309,7 +3309,7 @@ class YoutubeFeedsInfoExtractor(YoutubeBaseInfoExtractor):
     Subclasses must define the _FEED_NAME and _PLAYLIST_TITLE properties.
     """
     _LOGIN_REQUIRED = True
-    _FEED_DATA = r'window\[\"ytInitialData\"\]\W?=\W?({.*?});'
+    _FEED_DATA = r'(?:window\["ytInitialData"\]|ytInitialData)\W?=\W?({.*?});'
     _YTCFG_DATA = r"ytcfg.set\(({.*?})\)"
 
     @property
