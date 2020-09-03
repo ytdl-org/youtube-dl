@@ -7,10 +7,12 @@ from .common import InfoExtractor
 from ..compat import compat_str
 from ..utils import (
     ExtractorError,
+    get_element_by_id,
     int_or_none,
     parse_iso8601,
     parse_duration,
     str_or_none,
+    try_get,
     update_url_query,
     urljoin,
 )
@@ -204,6 +206,86 @@ class TVNowNewIE(InfoExtractor):
             ie=TVNowIE.ie_key(), video_id=mobj.group('id'))
 
 
+class TVNowFilmIE(TVNowBaseIE):
+    _VALID_URL = r'''(?x)
+                    (?P<base_url>https?://
+                        (?:www\.)?tvnow\.(?:de|at|ch)/
+                        (?:filme))/
+                        (?P<title>[^/?$&]+)-(?P<id>\d+)
+                    '''
+    _TESTS = [{
+        'url': 'https://www.tvnow.de/filme/lord-of-war-haendler-des-todes-7959',
+        'info_dict': {
+            'id': '1426690',
+            'display_id': 'lord-of-war-haendler-des-todes',
+            'ext': 'mp4',
+            'title': 'Lord of War',
+            'description': 'md5:5eda15c0d5b8cb70dac724c8a0ff89a9',
+            'timestamp': 1550010000,
+            'upload_date': '20190212',
+            'duration': 7016,
+        },
+    }, {
+        'url': 'https://www.tvnow.de/filme/the-machinist-12157',
+        'info_dict': {
+            'id': '328160',
+            'display_id': 'the-machinist',
+            'ext': 'mp4',
+            'title': 'The Machinist',
+            'description': 'md5:9a0e363fdd74b3a9e1cdd9e21d0ecc28',
+            'timestamp': 1496469720,
+            'upload_date': '20170603',
+            'duration': 5836,
+        },
+    }, {
+        'url': 'https://www.tvnow.de/filme/horst-schlaemmer-isch-kandidiere-17777',
+        'only_matching': True,  # DRM protected
+    }]
+
+    def _real_extract(self, url):
+        mobj = re.match(self._VALID_URL, url)
+        display_id = mobj.group('title')
+
+        webpage = self._download_webpage(url, display_id, fatal=False)
+        if not webpage:
+            raise ExtractorError('Cannot download "%s"' % url, expected=True)
+
+        json_text = get_element_by_id('now-web-state', webpage)
+        if not json_text:
+            raise ExtractorError('Cannot read video data', expected=True)
+
+        json_data = self._parse_json(
+            json_text,
+            display_id,
+            transform_source=lambda x: x.replace('&q;', '"'),
+            fatal=False)
+        if not json_data:
+            raise ExtractorError('Cannot read video data', expected=True)
+
+        player_key = next(
+            (key for key in json_data.keys() if 'module/player' in key),
+            None)
+        page_key = next(
+            (key for key in json_data.keys() if 'page/filme' in key),
+            None)
+        movie_id = try_get(
+            json_data,
+            [
+                lambda x: x[player_key]['body']['id'],
+                lambda x: x[page_key]['body']['modules'][0]['id'],
+                lambda x: x[page_key]['body']['modules'][1]['id']],
+            int)
+        if not movie_id:
+            raise ExtractorError('Cannot extract movie ID', expected=True)
+
+        info = self._call_api(
+            'movies/%d' % movie_id,
+            display_id,
+            query={'fields': ','.join(self._VIDEO_FIELDS)})
+
+        return self._extract_video(info, display_id)
+
+
 class TVNowNewBaseIE(InfoExtractor):
     def _call_api(self, path, video_id, query={}):
         result = self._download_json(
@@ -345,6 +427,82 @@ class TVNowIE(TVNowNewBaseIE):
         display_id, video_id = re.match(self._VALID_URL, url).groups()
         info = self._call_api('player/' + video_id, video_id)
         return self._extract_video(info, video_id, display_id)
+
+
+class TVNowFilmIE(TVNowIE):
+    _VALID_URL = r'''(?x)
+                    (?P<base_url>https?://
+                        (?:www\.)?tvnow\.(?:de|at|ch)/
+                        (?:filme))/
+                        (?P<title>[^/?$&]+)-(?P<id>\d+)
+                    '''
+    _TESTS = [{
+        'url': 'https://www.tvnow.de/filme/lord-of-war-haendler-des-todes-7959',
+        'info_dict': {
+            'id': '1426690',
+            'display_id': 'lord-of-war-haendler-des-todes',
+            'ext': 'mp4',
+            'title': 'Lord of War',
+            'description': 'md5:5eda15c0d5b8cb70dac724c8a0ff89a9',
+            'timestamp': 1550010000,
+            'upload_date': '20190212',
+            'duration': 7016,
+        },
+    }, {
+        'url': 'https://www.tvnow.de/filme/the-machinist-12157',
+        'info_dict': {
+            'id': '328160',
+            'display_id': 'the-machinist',
+            'ext': 'mp4',
+            'title': 'The Machinist',
+            'description': 'md5:9a0e363fdd74b3a9e1cdd9e21d0ecc28',
+            'timestamp': 1496469720,
+            'upload_date': '20170603',
+            'duration': 5836,
+        },
+    }, {
+        'url': 'https://www.tvnow.de/filme/horst-schlaemmer-isch-kandidiere-17777',
+        'only_matching': True,  # DRM protected
+    }]
+
+    def _real_extract(self, url):
+        mobj = re.match(self._VALID_URL, url)
+        display_id = mobj.group('title')
+
+        webpage = self._download_webpage(url, display_id, fatal=False)
+        if not webpage:
+            raise ExtractorError('Cannot download "%s"' % url, expected=True)
+
+        json_text = get_element_by_id('now-web-state', webpage)
+        if not json_text:
+            raise ExtractorError('Cannot read video data', expected=True)
+
+        json_data = self._parse_json(
+            json_text,
+            display_id,
+            transform_source=lambda x: x.replace('&q;', '"'),
+            fatal=False)
+        if not json_data:
+            raise ExtractorError('Cannot read video data', expected=True)
+
+        player_key = next(
+            (key for key in json_data.keys() if 'module/player' in key),
+            None)
+        page_key = next(
+            (key for key in json_data.keys() if 'page/filme' in key),
+            None)
+        movie_id = try_get(
+            json_data,
+            [
+                lambda x: x[player_key]['body']['id'],
+                lambda x: x[page_key]['body']['modules'][0]['id'],
+                lambda x: x[page_key]['body']['modules'][1]['id']],
+            int)
+        if not movie_id:
+            raise ExtractorError('Cannot extract movie ID', expected=True)
+
+        info = self._call_api('player/%d' % movie_id, display_id)
+        return self._extract_video(info, url, display_id)
 """
 
 
