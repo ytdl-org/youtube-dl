@@ -24,6 +24,7 @@ youtube-dl.exe
 youtube-dlc.exe
 youtube-dl.tar.gz
 youtube-dlc.tar.gz
+youtube-dlc.spec
 .coverage
 cover/
 updates_key.pem
