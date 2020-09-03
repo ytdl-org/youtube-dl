@@ -600,7 +600,7 @@ class SoundcloudPlaylistBaseIE(SoundcloudIE):
 
 
 class SoundcloudSetIE(SoundcloudPlaylistBaseIE):
-    _VALID_URL = r'https?://(?:(?:www|m)\.)?soundcloud\.com/(?P<uploader>[\w\d-]+)/sets/(?P<slug_title>[\w\d-]+)(?:/(?P<token>[^?/]+))?'
+    _VALID_URL = r'https?://(?:(?:www|m)\.)?soundcloud\.com/(?P<uploader>[\w\d-]+)/sets/(?P<slug_title>[:\w\d-]+)(?:/(?P<token>[^?/]+))?'
     IE_NAME = 'soundcloud:set'
     _TESTS = [{
         'url': 'https://soundcloud.com/the-concept-band/sets/the-royal-concept-ep',
@@ -612,6 +612,15 @@ class SoundcloudSetIE(SoundcloudPlaylistBaseIE):
         'playlist_mincount': 5,
     }, {
         'url': 'https://soundcloud.com/the-concept-band/sets/the-royal-concept-ep/token',
+        'only_matching': True,
+    }, {
+        'url': 'https://soundcloud.com/discover/sets/weekly::flacmatic',
+        'only_matching': True,
+    }, {
+        'url': 'https://soundcloud.com/discover/sets/charts-top:all-music:de',
+        'only_matching': True,
+    }, {
+        'url': 'https://soundcloud.com/discover/sets/charts-top:hiphoprap:kr',
         'only_matching': True,
     }]
 
