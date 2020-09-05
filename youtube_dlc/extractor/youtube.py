@@ -549,7 +549,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
         '396': {'acodec': 'none', 'vcodec': 'av01.0.05M.08'},
         '397': {'acodec': 'none', 'vcodec': 'av01.0.05M.08'},
     }
-    _SUBTITLE_FORMATS = ('srv1', 'srv2', 'srv3', 'ttml', 'vtt')
+    _SUBTITLE_FORMATS = ('srv1', 'srv2', 'srv3', 'ttml', 'vtt', 'json3')
 
     _GEO_BYPASS = False
 
@@ -1577,14 +1577,21 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                     player_response, video_id, fatal=False)
                 if player_response:
                     renderer = player_response['captions']['playerCaptionsTracklistRenderer']
-                    base_url = renderer['captionTracks'][0]['baseUrl']
-                    sub_lang_list = []
-                    for lang in renderer['translationLanguages']:
-                        lang_code = lang.get('languageCode')
-                        if lang_code:
-                            sub_lang_list.append(lang_code)
-                    return make_captions(base_url, sub_lang_list)
-
+                    caption_tracks = renderer['captionTracks']
+                    for caption_track in caption_tracks:
+                        if 'kind' not in caption_track:
+                            # not an automatic transcription
+                            continue
+                        base_url = caption_track['baseUrl']
+                        sub_lang_list = []
+                        for lang in renderer['translationLanguages']:
+                            lang_code = lang.get('languageCode')
+                            if lang_code:
+                                sub_lang_list.append(lang_code)
+                        return make_captions(base_url, sub_lang_list)
+                    
+                    self._downloader.report_warning("Couldn't find automatic captions for %s" % video_id)
+                    return {}
             # Some videos don't provide ttsurl but rather caption_tracks and
             # caption_translation_languages (e.g. 20LmZk1hakA)
             # Does not used anymore as of 22.06.2017
