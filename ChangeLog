@@ -1,4 +1,4 @@
-version <unreleased>
+version 2020.09.06
 
 Core
 + [utils] Recognize wav mimetype (#26463)
