@@ -1,138 +1,112 @@
 # coding: utf-8
 from __future__ import unicode_literals
 
-from .common import InfoExtractor
-from ..utils import (
-    compat_str,
+from youtube_dl.extractor.common import InfoExtractor
+from youtube_dl.utils import (
     ExtractorError,
     int_or_none,
     str_or_none,
-    try_get,
-    url_or_none,
+    try_get
 )
 
 
-class TikTokBaseIE(InfoExtractor):
-    def _extract_aweme(self, data):
-        video = data['video']
-        description = str_or_none(try_get(data, lambda x: x['desc']))
-        width = int_or_none(try_get(data, lambda x: video['width']))
-        height = int_or_none(try_get(data, lambda x: video['height']))
-
-        format_urls = set()
-        formats = []
-        for format_id in (
-                'play_addr_lowbr', 'play_addr', 'play_addr_h264',
-                'download_addr'):
-            for format in try_get(
-                    video, lambda x: x[format_id]['url_list'], list) or []:
-                format_url = url_or_none(format)
-                if not format_url:
-                    continue
-                if format_url in format_urls:
-                    continue
-                format_urls.add(format_url)
-                formats.append({
-                    'url': format_url,
-                    'ext': 'mp4',
-                    'height': height,
-                    'width': width,
-                })
-        self._sort_formats(formats)
-
-        thumbnail = url_or_none(try_get(
-            video, lambda x: x['cover']['url_list'][0], compat_str))
-        uploader = try_get(data, lambda x: x['author']['nickname'], compat_str)
-        timestamp = int_or_none(data.get('create_time'))
-        comment_count = int_or_none(data.get('comment_count')) or int_or_none(
-            try_get(data, lambda x: x['statistics']['comment_count']))
-        repost_count = int_or_none(try_get(
-            data, lambda x: x['statistics']['share_count']))
-
-        aweme_id = data['aweme_id']
-
-        return {
-            'id': aweme_id,
-            'title': uploader or aweme_id,
-            'description': description,
-            'thumbnail': thumbnail,
-            'uploader': uploader,
-            'timestamp': timestamp,
-            'comment_count': comment_count,
-            'repost_count': repost_count,
-            'formats': formats,
-        }
-
-
-class TikTokIE(TikTokBaseIE):
-    _VALID_URL = r'''(?x)
-                        https?://
-                            (?:
-                                (?:m\.)?tiktok\.com/v|
-                                (?:www\.)?tiktok\.com/share/video
-                            )
-                            /(?P<id>\d+)
-                    '''
+class TikTokIE(InfoExtractor):
+    _VALID_URL = r'https?://(?:www\.)?tiktok\.com/@.+/video/(?P<id>[0-9]+)+'
     _TESTS = [{
-        'url': 'https://m.tiktok.com/v/6606727368545406213.html',
-        'md5': 'd584b572e92fcd48888051f238022420',
+        'url': 'https://www.tiktok.com/@zoey.aune/video/6813765043914624262?lang=en',
+        'md5': 'd679cc9a75bce136e5a2be41fd9f77e0',
         'info_dict': {
-            'id': '6606727368545406213',
-            'ext': 'mp4',
-            'title': 'Zureeal',
-            'description': '#bowsette#mario#cosplay#uk#lgbt#gaming#asian#bowsettecosplay',
-            'thumbnail': r're:^https?://.*~noop.image',
-            'uploader': 'Zureeal',
-            'timestamp': 1538248586,
-            'upload_date': '20180929',
             'comment_count': int,
+            'creator': 'Zoey',
+            'description': 'md5:b22dea1b2dd4e18258ebe42cf5571a97',
+            'duration': 10,
+            'ext': 'mp4',
+            'formats': list,
+            'width': 576,
+            'height': 1024,
+            'id': '6813765043914624262',
+            'like_count': int,
             'repost_count': int,
+            'thumbnail': r're:^https?://[\w\/\.\-]+(~[\w\-]+\.image)?',
+            'thumbnails': list,
+            'timestamp': 1586453303,
+            'title': 'Zoey on TikTok',
+            'upload_date': '20200409',
+            'uploader': 'zoey.aune',
+            'uploader_id': '6651338645989621765',
+            'uploader_url': r're:https://www.tiktok.com/@zoey.aune',
+            'webpage_url': r're:https://www.tiktok.com/@zoey.aune/(video/)?6813765043914624262',
         }
-    }, {
-        'url': 'https://www.tiktok.com/share/video/6606727368545406213',
-        'only_matching': True,
     }]
 
     def _real_extract(self, url):
         video_id = self._match_id(url)
-        webpage = self._download_webpage(
-            'https://m.tiktok.com/v/%s.html' % video_id, video_id)
-        data = self._parse_json(self._search_regex(
-            r'\bdata\s*=\s*({.+?})\s*;', webpage, 'data'), video_id)
-        return self._extract_aweme(data)
+        webpage = self._download_webpage('https://m.tiktok.com/v/%s.html' % video_id, video_id)
 
+        # The webpage will have a json embedded in a <script id="__NEXT_DATA__"> tag. The JSON holds all the metadata, so fetch that out.
+        json_string = self._html_search_regex([r'<script\s+id="__NEXT_DATA__"[^>]*>(.*?)</script>'],
+                                              webpage, 'next_data')
+        json_data = self._parse_json(json_string, video_id)
+        video_data = try_get(json_data, lambda x: x['props']['pageProps'], expected_type=dict)
 
-class TikTokUserIE(TikTokBaseIE):
-    _VALID_URL = r'''(?x)
-                        https?://
-                            (?:
-                                (?:m\.)?tiktok\.com/h5/share/usr|
-                                (?:www\.)?tiktok\.com/share/user
-                            )
-                            /(?P<id>\d+)
-                    '''
-    _TESTS = [{
-        'url': 'https://m.tiktok.com/h5/share/usr/188294915489964032.html',
-        'info_dict': {
-            'id': '188294915489964032',
-        },
-        'playlist_mincount': 24,
-    }, {
-        'url': 'https://www.tiktok.com/share/user/188294915489964032',
-        'only_matching': True,
-    }]
+        # The watermarkless video ID is embedded in the first video file, so we need to download it and get the video ID.
+        watermarked_url = video_data['videoData']['itemInfos']['video']['urls'][0]
+        # watermarked_response = self._download_webpage(watermarked_url, video_id)
+        # idpos = watermarked_response.index("vid:")
+        # watermarkless_video_id = watermarked_response[idpos + 4:idpos + 36]
+        # watermarkless_url = "https://api2-16-h2.musical.ly/aweme/v1/play/?video_id={}&vr_type=0&is_play_url=1&source=PackSourceEnum_PUBLISH&media_type=4".format(watermarkless_video_id)
+        watermarkless_url = watermarked_url
 
-    def _real_extract(self, url):
-        user_id = self._match_id(url)
-        data = self._download_json(
-            'https://m.tiktok.com/h5/share/usr/list/%s/' % user_id, user_id,
-            query={'_signature': '_'})
-        entries = []
-        for aweme in data['aweme_list']:
-            try:
-                entry = self._extract_aweme(aweme)
-            except ExtractorError:
-                continue
-            entry['extractor_key'] = TikTokIE.ie_key()
-            entries.append(entry)
-        return self.playlist_result(entries, user_id)
+        # Get extra metadata
+        video_info = try_get(video_data, lambda x: x['videoData']['itemInfos'], dict)
+        author_info = try_get(video_data, lambda x: x['videoData']['authorInfos'], dict)
+        share_info = try_get(video_data, lambda x: x['shareMeta'], dict)
+        unique_id = str_or_none(author_info.get('uniqueId'))
+        timestamp = try_get(video_info, lambda x: int(x['createTime']), int)
+        height = try_get(video_info, lambda x: x['video']['videoMeta']['height'], int)
+        width = try_get(video_info, lambda x: x['video']['videoMeta']['width'], int)
+        thumbnails = [
+            {
+                'url': video_info.get('thumbnail')
+                or self._og_search_thumbnail(webpage),
+                'width': width,
+                'height': height,
+            }
+        ]
+
+        formats = [
+            {
+                'url': watermarkless_url,
+                'ext': 'mp4',
+                'height': height,
+                'width': width,
+            }
+        ]
+
+        if video_data.get('statusCode') != 0:
+            raise ExtractorError('Video not available', video_id=video_id)
+
+        return {
+            'id': video_id,
+            'title': self._og_search_title(webpage),
+            'description': str_or_none(video_info.get('text')) or str_or_none(share_info.get('desc')),
+            'comment_count': int_or_none(video_info.get('commentCount')),
+            'duration': try_get(video_info, lambda x: x['video']['videoMeta']['duration'], int),
+            'height': height,
+            'like_count': int_or_none(video_info.get('diggCount')),
+            'repost_count': int_or_none(video_info.get('shareCount')),
+            'thumbnail': try_get(video_info, lambda x: x['covers'][0], str),
+            'timestamp': timestamp,
+            'width': width,
+            'creator': str_or_none(author_info.get('nickName')),
+            'uploader': unique_id,
+            'uploader_id': str_or_none(author_info.get('userId')),
+            'uploader_url': 'https://www.tiktok.com/@' + unique_id,
+            'thumbnails': thumbnails,
+            'webpage_url': self._og_search_url(webpage),
+            'ext': 'mp4',
+            'formats': formats,
+            'http_headers': {
+                'User-Agent': 'okhttp',
+            }
+        }
