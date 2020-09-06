@@ -1,13 +1,16 @@
 # coding: utf-8
 from __future__ import unicode_literals
 
-from youtube_dl.extractor.common import InfoExtractor
-from youtube_dl.utils import (
+from .common import InfoExtractor
+from ..utils import (
+    compat_str,
     ExtractorError,
     int_or_none,
     str_or_none,
-    try_get
+    try_get,
+    url_or_none,
 )
+
 
 
 class TikTokIE(InfoExtractor):
