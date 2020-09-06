@@ -2781,8 +2781,7 @@ class YoutubePlaylistIE(YoutubePlaylistBaseInfoExtractor):
             webpage = self._download_webpage(
                 url, playlist_id, 'Downloading page {0} of Youtube mix'.format(n))
             new_ids = orderedSet(re.findall(
-                r'''(?xs)data-video-username=".*?".*?
-                           href="/watch\?v=([0-9A-Za-z_-]{11})&amp;[^"]*?list=%s''' % re.escape(playlist_id),
+                r'[\'"]/watch\?v=([0-9A-Za-z_-]{11})(?:&amp;|\\u0026)[^"]*?list=%s' % re.escape(playlist_id),
                 webpage))
             # Fetch new pages until all the videos are repeated, it seems that
             # there are always 51 unique videos.

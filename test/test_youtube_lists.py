@@ -45,8 +45,8 @@ class TestYoutubeLists(unittest.TestCase):
         result = ie.extract('https://www.youtube.com/watch?v=W01L70IGBgE&index=2&list=RDOQpdSVF_k_w')
         entries = result['entries']
         self.assertTrue(len(entries) >= 50)
-        original_video = entries[0]
-        self.assertEqual(original_video['id'], 'OQpdSVF_k_w')
+        original_video_id = 'OQpdSVF_k_w'
+        self.assertTrue(original_video_id in {entry['id'] for entry in entries})
 
     def test_youtube_toptracks(self):
         print('Skipping: The playlist page gives error 500')
