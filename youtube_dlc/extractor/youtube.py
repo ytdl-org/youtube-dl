@@ -1589,7 +1589,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                             if lang_code:
                                 sub_lang_list.append(lang_code)
                         return make_captions(base_url, sub_lang_list)
-                    
+
                     self._downloader.report_warning("Couldn't find automatic captions for %s" % video_id)
                     return {}
             # Some videos don't provide ttsurl but rather caption_tracks and

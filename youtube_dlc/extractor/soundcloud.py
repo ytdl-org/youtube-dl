@@ -251,8 +251,13 @@ class SoundcloudIE(InfoExtractor):
             },
         },
         {
-            # with AAC HQ format available via OAuth token
+            # AAC HQ format available (account with active subscription needed)
             'url': 'https://soundcloud.com/wandw/the-chainsmokers-ft-daya-dont-let-me-down-ww-remix-1',
+            'only_matching': True,
+        },
+        {
+            # Go+ (account with active subscription needed)
+            'url': 'https://soundcloud.com/taylorswiftofficial/look-what-you-made-me-do',
             'only_matching': True,
         },
     ]
