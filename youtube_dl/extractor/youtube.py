@@ -1825,7 +1825,8 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
         # Get video info
         video_info = {}
         embed_webpage = None
-        if self._html_search_meta('og:restrictions:age', video_webpage, default=None) == "18+":
+        if (self._og_search_property('restrictions:age', video_webpage, default=None) == '18+'
+                or re.search(r'player-age-gate-content">', video_webpage) is not None):
             age_gate = True
             # We simulate the access to the video from www.youtube.com/v/{video_id}
             # this can be viewed without login into Youtube
