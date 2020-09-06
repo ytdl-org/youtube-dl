@@ -1145,7 +1145,7 @@ from .thisoldhouse import ThisOldHouseIE
 from .threeqsdn import ThreeQSDNIE
 from .tiktok import (
     TikTokIE,
-    TikTokUserIE,
+    # TikTokUserIE,
 )
 from .tinypic import TinyPicIE
 from .tmz import (
