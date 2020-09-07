@@ -36,15 +36,43 @@ class YoutubeLiveChatReplayFD(FragmentFD):
                     return json.loads(raw_json)
                 except AttributeError:
                     continue
+            return None
+
+        def get_obj_value(obj, path):
+            return None
+            cur = obj
+            try:
+                for key in path:
+                    cur = cur[key]
+            except (KeyError, IndexError, TypeError):
+                return None
+            return cur
+
+        def continuation_get_id(data):
+            continuations = get_obj_value(data, ['continuations']) or []
+            for continuation in continuations:
+                if 'reloadContinuationData' in continuation:
+                    return get_obj_value(continuation, ['reloadContinuationData', 'continuation'])
+                if 'liveChatReplayContinuationData' in continuation:
+                    return get_obj_value(continuation, ['liveChatReplayContinuationData', 'continuation'])
+            return None
 
         self._prepare_and_start_frag_download(ctx)
 
         success, raw_fragment = dl_fragment(
             'https://www.youtube.com/watch?v={}'.format(video_id))
         if not success:
+            self.report_error('Video page download unsuccessful.')
             return False
         data = parse_yt_initial_data(raw_fragment)
-        continuation_id = data['contents']['twoColumnWatchNextResults']['conversationBar']['liveChatRenderer']['continuations'][0]['reloadContinuationData']['continuation']
+        if data is None:
+            self.report_error('Unable to parse ytInitialData.')
+            return False
+        data = get_obj_value(data, ['contents', 'twoColumnWatchNextResults', 'conversationBar', 'liveChatRenderer'])
+        if data is None:
+            self.report_error('Cannot find liveChatRenderer from ytInitialData.')
+            return False
+        continuation_id = continuation_get_id(data)
         # no data yet but required to call _append_fragment
         self._append_fragment(ctx, b'')
 
@@ -56,6 +84,7 @@ class YoutubeLiveChatReplayFD(FragmentFD):
                 url = 'https://www.youtube.com/live_chat_replay?continuation={}'.format(continuation_id)
                 success, raw_fragment = dl_fragment(url)
                 if not success:
+                    self.report_error('Live chat continuation download unsuccessful.')
                     return False
                 data = parse_yt_initial_data(raw_fragment)
             else:
@@ -66,13 +95,17 @@ class YoutubeLiveChatReplayFD(FragmentFD):
                        + '&pbj=1')
                 success, raw_fragment = dl_fragment(url)
                 if not success:
+                    self.report_error('Live chat continuation download unsuccessful.')
                     return False
-                data = json.loads(raw_fragment)['response']
+                data = get_obj_value(json.loads(raw_fragment), ['response'])
 
             first = False
             continuation_id = None
 
-            live_chat_continuation = data['continuationContents']['liveChatContinuation']
+            live_chat_continuation = get_obj_value(data, ['continuationContents', 'liveChatContinuation'])
+            if live_chat_continuation is None:
+                self.report_error('Cannot find liveChatContinuation.')
+                return False
             offset = None
             processed_fragment = bytearray()
             if 'actions' in live_chat_continuation:
@@ -82,7 +115,7 @@ class YoutubeLiveChatReplayFD(FragmentFD):
                         offset = int(replay_chat_item_action['videoOffsetTimeMsec'])
                     processed_fragment.extend(
                         json.dumps(action, ensure_ascii=False).encode('utf-8') + b'\n')
-                continuation_id = live_chat_continuation['continuations'][0]['liveChatReplayContinuationData']['continuation']
+                continuation_id = continuation_get_id(live_chat_continuation)
 
             self._append_fragment(ctx, processed_fragment)
 
