@@ -153,6 +153,7 @@ class DubokuIE(InfoExtractor):
             'episode_number': int_or_none(episode_id),
             'episode_id': episode_id,
             'formats': formats,
+            'http_headers': {'Referer': 'https://www.duboku.co/static/player/videojs.html'}
         }
 
 
