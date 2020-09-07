@@ -39,7 +39,6 @@ class YoutubeLiveChatReplayFD(FragmentFD):
             return None
 
         def get_obj_value(obj, path):
-            return None
             cur = obj
             try:
                 for key in path:
