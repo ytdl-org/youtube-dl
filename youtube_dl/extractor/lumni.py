@@ -37,7 +37,12 @@ class LumniIE(InfoExtractor):
 
 
 class LumniPlaylistIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:www\.)?lumni\.fr/(?:dossier|programme|serie)/(?P<id>[0-9a-z-]+)'
+    _VALID_URL = r'''(?x)
+                    https?://
+                        (?:www\.)?lumni\.fr/
+                        (?:dossier|programme|serie)/
+                        (?P<id>[0-9a-z-]+)
+                    '''
     _TESTS = [{
         'url': 'https://www.lumni.fr/dossier/les-fondamentaux-vocabulaire',
         'info_dict': {
