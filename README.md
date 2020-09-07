@@ -434,9 +434,9 @@ Alternatively, refer to the [developer instructions](#developer-instructions) fo
                                      either the path to the binary or its
                                      containing directory.
     --exec CMD                       Execute a command on the file after
-                                     downloading, similar to find's -exec
-                                     syntax. Example: --exec 'adb push {}
-                                     /sdcard/Music/ && rm {}'
+                                     downloading and post-processing, similar to
+                                     find's -exec syntax. Example: --exec 'adb
+                                     push {} /sdcard/Music/ && rm {}'
     --convert-subs FORMAT            Convert the subtitles to other format
                                      (currently supported: srt|ass|vtt|lrc)
 
@@ -1032,7 +1032,7 @@ After you have ensured this site is distributing its content legally, you can fo
 5. Add an import in [`youtube_dl/extractor/extractors.py`](https://github.com/ytdl-org/youtube-dl/blob/master/youtube_dl/extractor/extractors.py).
 6. Run `python test/test_download.py TestDownload.test_YourExtractor`. This *should fail* at first, but you can continually re-run it until you're done. If you decide to add more than one test, then rename ``_TEST`` to ``_TESTS`` and make it into a list of dictionaries. The tests will then be named `TestDownload.test_YourExtractor`, `TestDownload.test_YourExtractor_1`, `TestDownload.test_YourExtractor_2`, etc. Note that tests with `only_matching` key in test's dict are not counted in.
 7. Have a look at [`youtube_dl/extractor/common.py`](https://github.com/ytdl-org/youtube-dl/blob/master/youtube_dl/extractor/common.py) for possible helper methods and a [detailed description of what your extractor should and may return](https://github.com/ytdl-org/youtube-dl/blob/7f41a598b3fba1bcab2817de64a08941200aa3c8/youtube_dl/extractor/common.py#L94-L303). Add tests and code for as many as you want.
-8. Make sure your code follows [youtube-dl coding conventions](#youtube-dl-coding-conventions) and check the code with [flake8](http://flake8.pycqa.org/en/latest/index.html#quickstart):
+8. Make sure your code follows [youtube-dl coding conventions](#youtube-dl-coding-conventions) and check the code with [flake8](https://flake8.pycqa.org/en/latest/index.html#quickstart):
 
         $ flake8 youtube_dl/extractor/yourextractor.py
 
