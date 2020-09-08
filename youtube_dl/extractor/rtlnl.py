@@ -14,6 +14,7 @@ class RtlNlIE(InfoExtractor):
     _VALID_URL = r'''(?x)
         https?://(?:(?:www|static)\.)?
         (?:
+            rtlxl\.nl/[^\#]*\#!/[^/]+/|
             rtlxl\.nl/programma/[^/]+/|
             rtl\.nl/(?:(?:system/videoplayer/(?:[^/]+/)+(?:video_)?embed\.html|embed)\b.+?\buuid=|video/)
         )
@@ -44,7 +45,6 @@ class RtlNlIE(InfoExtractor):
             'upload_date': '20160429',
             'duration': 1167.96,
         },
-        'skip': 'old url pattern'
     }, {
         # best format available a3t
         'url': 'http://www.rtl.nl/system/videoplayer/derden/rtlnieuws/video_embed.html#uuid=84ae5571-ac25-4225-ae0c-ef8d9efb2aed/autoplay=false',
