@@ -15,6 +15,7 @@ from ..utils import (
     ExtractorError,
     int_or_none,
     float_or_none,
+    OnDemandPagedList,
     parse_duration,
     parse_iso8601,
     remove_start,
@@ -484,13 +485,20 @@ class NiconicoIE(InfoExtractor):
 
 
 class NiconicoPlaylistIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:www\.)?nicovideo\.jp/mylist/(?P<id>\d+)'
+    _VALID_URL = r'https?://(?:www\.)?nicovideo\.jp(/user/.*)?/mylist/(?P<id>\d+)'
 
     _TEST = {
         'url': 'http://www.nicovideo.jp/mylist/27411728',
         'info_dict': {
             'id': '27411728',
             'title': 'AKB48のオールナイトニッポン',
+            'uploader': 'のっく',
+            'uploader_id': '805442',
+            'description': '''各うｐ主に感謝。\r
+\r
+私個人でうｐしているものに関しては、私が聴きたい形でのうｐをしておりますので現在の形式にプラスされるであろう、視聴者の建設的な意見以外の要望には一切対応致しません。\r
+曲カット等の形式を希望されるのであれば、御自分でうｐするようにして下さい。\r
+曲カット版はほぼ全く需要が無いのが過去の事例で判明しているので、こちらでは対応致しません。'''
         },
         'playlist_mincount': 225,
     }
@@ -499,19 +507,40 @@ class NiconicoPlaylistIE(InfoExtractor):
         list_id = self._match_id(url)
         webpage = self._download_webpage(url, list_id)
 
-        entries_json = self._search_regex(r'Mylist\.preload\(\d+, (\[.*\])\);',
-                                          webpage, 'entries')
-        entries = json.loads(entries_json)
-        entries = [{
-            '_type': 'url',
-            'ie_key': NiconicoIE.ie_key(),
-            'url': ('http://www.nicovideo.jp/watch/%s' %
-                    entry['item_data']['video_id']),
-        } for entry in entries]
+        header = self._parse_json(self._html_search_regex(
+            r'data-common-header="([^"]+)"', webpage,
+            'webpage header'), list_id)
+        frontendId = header.get('initConfig').get('frontendId')
+        frontendVersion = header.get('initConfig').get('frontendVersion')
+
+        def get_page_data(pagenum, pagesize):
+            return self._download_json(
+                'http://nvapi.nicovideo.jp/v2/mylists/' + list_id, list_id,
+                query={'page': 1 + pagenum, 'pageSize': pagesize},
+                headers={
+                    'X-Frontend-Id': frontendId,
+                    'X-Frontend-Version': frontendVersion,
+                }).get('data').get('mylist')
+
+        data = get_page_data(0, 1)
+        title = data.get('name')
+        description = data.get('description')
+        uploader = data.get('owner').get('name')
+        uploader_id = data.get('owner').get('id')
+
+        def pagefunc(pagenum):
+            data = get_page_data(pagenum, 25)
+            return ({
+                '_type': 'url',
+                'url': 'http://www.nicovideo.jp/watch/' + item.get('watchId'),
+            } for item in data.get('items'))
 
         return {
             '_type': 'playlist',
-            'title': self._search_regex(r'\s+name: "(.*?)"', webpage, 'title'),
             'id': list_id,
-            'entries': entries,
+            'title': title,
+            'description': description,
+            'uploader': uploader,
+            'uploader_id': uploader_id,
+            'entries': OnDemandPagedList(pagefunc, 25),
         }
