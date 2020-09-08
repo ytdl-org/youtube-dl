@@ -31,7 +31,7 @@ class RtlNlIE(InfoExtractor):
             'timestamp': 1593293400,
             'upload_date': '20200627',
             'duration': 661.08,
-        }, 
+        },
     }, {
         # old url pattern. Tests does not pass
         'url': 'http://www.rtlxl.nl/#!/rtl-nieuws-132237/82b1aad1-4a14-3d7b-b554-b0aed1b2c416',
