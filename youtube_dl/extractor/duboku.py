@@ -142,7 +142,7 @@ class DubokuIE(InfoExtractor):
                 'episode_id': episode_id,
             }
 
-        formats = self._extract_m3u8_formats(data_url, video_id, 'ts')
+        formats = self._extract_m3u8_formats(data_url, video_id, 'mp4')
 
         return {
             'id': video_id,
