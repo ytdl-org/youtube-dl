@@ -589,6 +589,7 @@ from .lynda import (
     LyndaCourseIE
 )
 from .m6 import M6IE
+from .magentamusik360 import MagentaMusik360IE
 from .mailru import (
     MailRuIE,
     MailRuMusicIE,
