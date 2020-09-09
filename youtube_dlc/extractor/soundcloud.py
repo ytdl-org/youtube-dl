@@ -650,7 +650,7 @@ class SoundcloudSetIE(SoundcloudPlaylistBaseIE):
 class SoundcloudPagedPlaylistBaseIE(SoundcloudIE):
     def _extract_playlist(self, base_url, playlist_id, playlist_title):
         COMMON_QUERY = {
-            'limit': 80000,
+            'limit': 200,
             'linked_partitioning': '1',
         }
 
