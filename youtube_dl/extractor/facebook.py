@@ -816,9 +816,19 @@ class FacebookIE(InfoExtractor):
         return thumbnail
 
     def _valid_video_title(self, video_title):
-        if video_title:
-            video_title = video_title.lower()
-        return video_title and not u'log in or sign up to view' in video_title and not u'on facebook watch' in video_title
+        if not video_title:
+            return False
+
+        video_title = video_title.lower()
+        invalid_terms = [
+            u'log in or sign up to view',
+            u'on facebook watch',
+            u'","'
+        ]
+        for term in invalid_terms:
+            if term in video_title:
+                return False
+        return True
 
     def validate_webpage(self, webpage):
         m_msg = re.search(r'class="[^"]*uiInterstitialContent[^"]*"><div>(.*?)</div>', webpage)
