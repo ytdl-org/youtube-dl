@@ -35,6 +35,13 @@ class facebookMetaData(unittest.TestCase):
         self.assertTrue(info.get('uploader_handle'), 0)
         self.assertGreater(len(info.get('title')), 0)
 
+    def test_new_ui(self):
+        params = {}
+        url = "https://www.facebook.com/115232383642471/videos/444314619837387"
+        ydl = youtube_dl.YoutubeDL(params)
+        info = ydl.extract_info(url, download=False)
+        self.assertGreater(len(info.get('title')), 0)
+
 
     def test_metadata_fetch_with_log_in(self):
         url = "https://www.facebook.com/oristandup/videos/675360549895283"

@@ -781,6 +781,7 @@ class FacebookIE(InfoExtractor):
 
     def _resolve_new_ui_title(self, webpage, tahoe_data, video_id):
         video_title = self._search_regex(r'"headline":"(.+?")', webpage, 'title', fatal=False)
+        video_title = video_title.decode('unicode_escape')
         if not video_title:
             video_title = self._search_regex(r'"pageTitle">(.+?)<', webpage, 'title', fatal=False)
         if not video_title:
