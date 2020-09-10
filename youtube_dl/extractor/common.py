@@ -1362,8 +1362,9 @@ class InfoExtractor(object):
             sort = self._downloader.params.get('format_sort', '')
             sort = sort.split(',') if isinstance(sort, str) else []
             if self._downloader.params.get('verbose', False):
-                self._downloader.to_screen('[debug] Sort order diven by user: %s' % sort)
-                self._downloader.to_screen('[debug] Sort order diven by extractor: %s' % field_preference)
+                self._downloader.to_screen('[debug] Sort order given by user: %s' % sort)
+                if field_preference:
+                    self._downloader.to_screen('[debug] Sort order given by extractor: %s' % ','.join(field_preference))
 
             return  (tuple()
                         if self._downloader.params.get('format_sort_force')
@@ -1372,11 +1373,11 @@ class InfoExtractor(object):
                     (tuple(field_preference)
                         if isinstance(field_preference, (list, tuple))
                         else tuple()) + \
-                    ('preference', 'language_preference', 'quality', 'tbr',  # default order
-                     'filesize', 'vbr', 'height', 'width',
-                     'proto_preference', 'ext_preference',
-                     'abr', 'audio_ext_preference', 'fps',
-                     'filesize_approx', 'source_preference', 'format_id')
+                    ('preference', 'language_preference', 'quality', # default order
+                     'tbr', 'filesize', 'vbr', 'height', 'width',
+                     'proto_preference', 'ext_preference', 'codec_preference',
+                     'abr', 'audio_ext_preference', 'audio_codec_preference',
+                     'fps', 'filesize_approx', 'source_preference', 'format_id')
 
         sort = {}
         for item in _get_sort_list():
@@ -1433,17 +1434,45 @@ class InfoExtractor(object):
                     ext_preference = -1
                 audio_ext_preference = 0
 
+            if f.get('vcodec') == 'none':
+                codec_preference = -1
+            elif not f.get('vcodec'):
+                codec_preference = 0
+            else:
+                codec_preference = 10
+                ORDER = ['av01', 'vp9', '(h265|he?vc?)', '(h264|avc)', 'vp8', '(mp4v|h263)', 'theora']
+                for i in ORDER:
+                    if re.match(i, f.get('vcodec')):
+                        break
+                    else:
+                        codec_preference -= 1
+
+            if f.get('acodec') == 'none':
+                audio_codec_preference = -1
+            elif not f.get('acodec'):
+                audio_codec_preference = 0
+            else:
+                audio_codec_preference = 10
+                ORDER = ['opus', 'vorbis', 'aac', 'mp4a', 'mp3', 'e?a?c-?3', 'dts']
+                for i in ORDER:
+                    if re.match(i, f.get('acodec')):
+                        break
+                    else:
+                        audio_codec_preference -= 1
+
             prefVars = {'preference': preference,
                         'proto_preference': proto_preference,
                         'ext_preference': ext_preference,
-                        'audio_ext_preference': audio_ext_preference}
+                        'audio_ext_preference': audio_ext_preference,
+                        'codec_preference': codec_preference,
+                        'audio_codec_preference': audio_codec_preference}
 
             return tuple(
                 (-1 if field != 'format_id' and sort[field] else 1)*(
                     prefVars.get(field)
                     if prefVars.get(field) is not None
                     else (f.get(field) if f.get(field) is not None
-                        else ('' if field == 'format_id' else -1)))
+                        else ('' if field == 'format_id' else -sort[field])))
                 for field in sort)
 
         formats.sort(key=_formats_key)
