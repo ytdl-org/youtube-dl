@@ -93,7 +93,7 @@ class NDRIE(NDRBaseIE):
             default=None) or self._search_regex(
             r'\bembedUrl["\']\s*:\s*(["\'])(?P<url>(?:(?!\1).)+)\1', webpage,
             'embed URL', fatal=False, group='url')
-        if embed_url == None:
+        if embed_url is None:
             return self.url_result('ndr:%s' % id, ie=NDREmbedBaseIE.ie_key())
         description = self._search_regex(
             r'<p[^>]+itemprop="description">([^<]+)</p>',
