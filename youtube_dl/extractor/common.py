@@ -1381,13 +1381,15 @@ class InfoExtractor(object):
 
         sort = {}
         for item in _get_sort_list():
-            if item[:1] == "+":
-                sort.setdefault(item[1:], True) # Value = reverse?
+            item = item.split(":", 1)
+            lim = float(item[1]) if len(item)>1 else None
+            if item[0][:1] == "+":
+                sort.setdefault(item[0][1:], (-1, lim)) # item[key] = (Reverse for best, reverse again below this)
             else:
-                sort.setdefault(item, False)
+                sort.setdefault(item[0], (1, lim))
         if self._downloader.params.get('verbose', False):
             self._downloader.to_screen('[debug] Formats sorted by: %s'
-                % [("+" + i) if sort[i] else i for i in sort])
+                % ["".join(( ("+" if sort[i][0]<0 else ""), i, ":"+str(sort[i][1]) )) for i in sort] )
 
         for f in formats:
             # Automatically determine tbr when missing based on abr and vbr (improves
@@ -1465,15 +1467,37 @@ class InfoExtractor(object):
                         'ext_preference': ext_preference,
                         'audio_ext_preference': audio_ext_preference,
                         'codec_preference': codec_preference,
-                        'audio_codec_preference': audio_codec_preference}
+                        'audio_codec_preference': audio_codec_preference }
 
-            return tuple(
-                (-1 if field != 'format_id' and sort[field] else 1)*(
-                    prefVars.get(field)
-                    if prefVars.get(field) is not None
-                    else (f.get(field) if f.get(field) is not None
-                        else ('' if field == 'format_id' else -sort[field])))
-                for field in sort)
+            def format_get_val(field):
+                return f.get(field) if prefVars.get(field) is None else prefVars.get(field)
+
+            def format_get_preference(field):
+                val = format_get_val(field)
+                return (
+                    (0, f.get(field, ''))
+                        if field == 'format_id'
+                    else (-10, 0)
+                        if val is None
+                    else (0, sort[field][0]*val)
+                        if sort[field][1] is None
+                    else (0, -val)
+                        if val==sort[field][1] and sort[field][0]<0
+                    else (0, -val)
+                        if val>sort[field][1] 
+                    else (-1, val)
+                        if sort[field][0]<0
+                    else (0, val) )
+
+            ''' # For DEBUGGING
+            if self._downloader.params.get('verbose', False):
+                for field in sort:
+                    self._downloader.to_screen('[debug] %s[%s] = %s | Pref = %s' 
+                        %( field, format_get_val('format_id'), format_get_val(field), str(format_get_preference(field)) ) )
+                self._downloader.to_screen('')
+            ''' #'''
+
+            return tuple(format_get_preference(field) for field in sort )
 
         formats.sort(key=_formats_key)
 
