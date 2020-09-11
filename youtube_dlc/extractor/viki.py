@@ -273,7 +273,7 @@ class VikiIE(VikiBaseIE):
                     })
                 else:
                     urlh = self._request_webpage(
-                    HEADRequest(format_url), video_id, 'Checking file size', fatal=False)
+                        HEADRequest(format_url), video_id, 'Checking file size', fatal=False)
                     formats.append({
                         'url': format_url,
                         'format_id': '%s-%s' % (format_id, protocol),
@@ -311,9 +311,9 @@ class VikiIE(VikiBaseIE):
         stream_ids = []
         for f in formats:
             s_id = f.get('stream_id')
-            if s_id != None:
+            if s_id is not None:
                 stream_ids.append(s_id)
-        
+
         subtitles = {}
         for subtitle_lang, _ in video.get('subtitle_completions', {}).items():
             subtitles[subtitle_lang] = [{
