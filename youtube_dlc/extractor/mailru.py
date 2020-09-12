@@ -20,10 +20,10 @@ class MailRuIE(InfoExtractor):
     IE_DESC = 'Видео@Mail.Ru'
     _VALID_URL = r'''(?x)
                     https?://
-                        (?:(?:www|m)\.)?my\.mail\.ru/+
+                        (?:(?:www|m|videoapi)\.)?my\.mail\.ru/+
                         (?:
                             video/.*\#video=/?(?P<idv1>(?:[^/]+/){3}\d+)|
-                            (?:(?P<idv2prefix>(?:[^/]+/+){2})video/(?P<idv2suffix>[^/]+/\d+))\.html|
+                            (?:videos/embed/)?(?:(?P<idv2prefix>(?:[^/]+/+){2})(?:video/(?:embed/)?)?(?P<idv2suffix>[^/]+/\d+))(?:\.html)?|
                             (?:video/embed|\+/video/meta)/(?P<metaid>\d+)
                         )
                     '''
@@ -108,15 +108,21 @@ class MailRuIE(InfoExtractor):
             if not video_id:
                 video_id = mobj.group('idv2prefix') + mobj.group('idv2suffix')
             webpage = self._download_webpage(url, video_id)
-            page_config = self._parse_json(self._search_regex(
+            page_config = self._parse_json(self._search_regex([
                 r'(?s)<script[^>]+class="sp-video__page-config"[^>]*>(.+?)</script>',
+                r'(?s)"video":\s*(\{.+?\}),'],
                 webpage, 'page config', default='{}'), video_id, fatal=False)
             if page_config:
-                meta_url = page_config.get('metaUrl') or page_config.get('video', {}).get('metaUrl')
+                meta_url = page_config.get('metaUrl') or page_config.get('video', {}).get('metaUrl') or page_config.get('metadataUrl')
             else:
                 meta_url = None
 
         video_data = None
+
+        # fix meta_url if missing the host address
+        if re.match(r'^\/\+\/', meta_url):
+            meta_url = 'https://my.mail.ru' + meta_url
+
         if meta_url:
             video_data = self._download_json(
                 meta_url, video_id or meta_id, 'Downloading video meta JSON',
