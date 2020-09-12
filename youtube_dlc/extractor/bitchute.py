@@ -6,6 +6,8 @@ import re
 
 from .common import InfoExtractor
 from ..utils import (
+    ExtractorError,
+    GeoRestrictedError,
     orderedSet,
     unified_strdate,
     urlencode_postdata,
@@ -59,8 +61,14 @@ class BitChuteIE(InfoExtractor):
             for format_url in orderedSet(format_urls)]
 
         if not formats:
-            formats = self._parse_html5_media_entries(
-                url, webpage, video_id)[0]['formats']
+            entries = self._parse_html5_media_entries(
+                url, webpage, video_id)
+            if not entries:
+                error = self._html_search_regex(r'<h1 class="page-title">([^<]+)</h1>', webpage, 'error', default='Cannot find video')
+                if error == 'Video Unavailable':
+                    raise GeoRestrictedError(error)
+                raise ExtractorError(error)
+            formats = entries[0]['formats']
 
         self._check_formats(formats, video_id)
         self._sort_formats(formats)
