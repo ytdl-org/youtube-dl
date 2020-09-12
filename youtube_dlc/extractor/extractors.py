@@ -1165,10 +1165,7 @@ from .thisamericanlife import ThisAmericanLifeIE
 from .thisav import ThisAVIE
 from .thisoldhouse import ThisOldHouseIE
 from .threeqsdn import ThreeQSDNIE
-from .tiktok import (
-    TikTokIE,
-    TikTokUserIE,
-)
+from .tiktok import TikTokIE
 from .tinypic import TinyPicIE
 from .tmz import (
     TMZIE,
