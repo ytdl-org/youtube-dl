@@ -15,11 +15,25 @@ class RtlNlIE(InfoExtractor):
         https?://(?:(?:www|static)\.)?
         (?:
             rtlxl\.nl/[^\#]*\#!/[^/]+/|
+            rtlxl\.nl/programma/[^/]+/|
             rtl\.nl/(?:(?:system/videoplayer/(?:[^/]+/)+(?:video_)?embed\.html|embed)\b.+?\buuid=|video/)
         )
         (?P<id>[0-9a-f-]+)'''
 
     _TESTS = [{
+        'url': 'https://www.rtlxl.nl/programma/rtl-nieuws/0bd1384d-d970-3086-98bb-5c104e10c26f',
+        'md5': '490428f1187b60d714f34e1f2e3af0b6',
+        'info_dict': {
+            'id': '0bd1384d-d970-3086-98bb-5c104e10c26f',
+            'ext': 'mp4',
+            'title': 'RTL Nieuws',
+            'description': 'md5:d41d8cd98f00b204e9800998ecf8427e',
+            'timestamp': 1593293400,
+            'upload_date': '20200627',
+            'duration': 661.08,
+        },
+    }, {
+        # old url pattern. Tests does not pass
         'url': 'http://www.rtlxl.nl/#!/rtl-nieuws-132237/82b1aad1-4a14-3d7b-b554-b0aed1b2c416',
         'md5': '473d1946c1fdd050b2c0161a4b13c373',
         'info_dict': {
