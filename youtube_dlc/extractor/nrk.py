@@ -11,7 +11,6 @@ from ..compat import (
 from ..utils import (
     ExtractorError,
     int_or_none,
-    JSON_LD_RE,
     js_to_json,
     NO_DEFAULT,
     parse_age_limit,
@@ -425,13 +424,20 @@ class NRKTVEpisodeIE(InfoExtractor):
 
         webpage = self._download_webpage(url, display_id)
 
-        nrk_id = self._parse_json(
-            self._search_regex(JSON_LD_RE, webpage, 'JSON-LD', group='json_ld'),
-            display_id)['@id']
-
+        info = self._search_json_ld(webpage, display_id, default={})
+        nrk_id = info.get('@id') or self._html_search_meta(
+            'nrk:program-id', webpage, default=None) or self._search_regex(
+            r'data-program-id=["\'](%s)' % NRKTVIE._EPISODE_RE, webpage,
+            'nrk id')
         assert re.match(NRKTVIE._EPISODE_RE, nrk_id)
-        return self.url_result(
-            'nrk:%s' % nrk_id, ie=NRKIE.ie_key(), video_id=nrk_id)
+
+        info.update({
+            '_type': 'url_transparent',
+            'id': nrk_id,
+            'url': 'nrk:%s' % nrk_id,
+            'ie_key': NRKIE.ie_key(),
+        })
+        return info
 
 
 class NRKTVSerieBaseIE(InfoExtractor):

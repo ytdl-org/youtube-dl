@@ -4199,6 +4199,7 @@ def mimetype2ext(mt):
         'vnd.ms-sstr+xml': 'ism',
         'quicktime': 'mov',
         'mp2t': 'ts',
+        'x-wav': 'wav',
     }.get(res, res)
 
 

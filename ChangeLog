@@ -1,3 +1,24 @@
+version 2020.09.06
+
+Core
++ [utils] Recognize wav mimetype (#26463)
+
+Extractors
+* [nrktv:episode] Improve video id extraction (#25594, #26369, #26409)
+* [youtube] Fix age gate content detection (#26100, #26152, #26311, #26384)
+* [youtube:user] Extend URL regular expression (#26443)
+* [xhamster] Improve initials regular expression (#26526, #26353)
+* [svtplay] Fix video id extraction (#26425, #26428, #26438)
+* [twitch] Rework extractors (#12297, #20414, #20604, #21811, #21812, #22979,
+  #24263, #25010, #25553, #25606)
+    * Switch to GraphQL
+    + Add support for collections
+    + Add support for clips and collections playlists
+* [biqle] Improve video ext extraction
+* [xhamster] Fix extraction (#26157, #26254)
+* [xhamster] Extend URL regular expression (#25789, #25804, #25927))
+
+
 version 2020.07.28
 
 Extractors
