@@ -288,6 +288,10 @@ from .drtv import (
 )
 from .dtube import DTubeIE
 from .dvtv import DVTVIE
+from .duboku import (
+    DubokuIE,
+    DubokuPlaylistIE
+)
 from .dumpert import DumpertIE
 from .defense import DefenseGouvFrIE
 from .discovery import DiscoveryIE
