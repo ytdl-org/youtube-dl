@@ -315,6 +315,7 @@ def _real_main(argv=None):
         else match_filter_func(opts.match_filter))
 
     ydl_opts = {
+        'convertsubtitles': opts.convertsubtitles,
         'usenetrc': opts.usenetrc,
         'username': opts.username,
         'password': opts.password,
