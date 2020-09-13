@@ -1,4 +1,4 @@
-version <unreleased>
+version 2020.09.14
 
 Core
 + [postprocessor/embedthumbnail] Add support for non jpg/png thumbnails
