@@ -116,19 +116,19 @@ class KakaoIE(InfoExtractor):
                 pass
         self._sort_formats(formats)
 
-        thumbs = []
-        for thumb in clip.get('clipChapterThumbnailList', []):
-            thumbs.append({
-                'url': thumb.get('thumbnailUrl'),
-                'id': compat_str(thumb.get('timeInSec')),
-                'preference': -1 if thumb.get('isDefault') else 0
-            })
-        top_thumbnail = clip.get('thumbnailUrl')
-        if top_thumbnail:
-            thumbs.append({
-                'url': top_thumbnail,
-                'preference': 10,
-            })
+        # thumbs = []
+        # for thumb in clip.get('clipChapterThumbnailList', []):
+        #     thumbs.append({
+        #         'url': thumb.get('thumbnailUrl'),
+        #         'id': compat_str(thumb.get('timeInSec')),
+        #         'preference': -1 if thumb.get('isDefault') else 0
+        #     })
+        # top_thumbnail = clip.get('thumbnailUrl')
+        # if top_thumbnail:
+        #     thumbs.append({
+        #         'url': top_thumbnail,
+        #         'preference': 10,
+        #     })
 
         return {
             'id': display_id,
@@ -136,7 +136,7 @@ class KakaoIE(InfoExtractor):
             'description': strip_or_none(clip.get('description')),
             'uploader': clip_link.get('channel', {}).get('name'),
             'uploader_id': clip_link.get('channelId'),
-            'thumbnails': thumbs,
+            # 'thumbnails': thumbs,
             'timestamp': unified_timestamp(clip_link.get('createTime')),
             'duration': int_or_none(clip.get('duration')),
             'view_count': int_or_none(clip.get('playCount')),
