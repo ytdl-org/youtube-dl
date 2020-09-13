@@ -192,7 +192,14 @@ class RedBullIE(InfoExtractor):
     }, {
         'url': 'https://www.redbull.com/int-en/live/mens-dh-finals-fort-william',
         'only_matching': True,
+    }, {
+        # only available on the int-en website so a fallback is need for the API
+        # https://www.redbull.com/v3/api/graphql/v1/v3/query/en-GB>en-INT?filter[uriSlug]=fia-wrc-saturday-recap-estonia&rb3Schema=v1:hero
+        'url': 'https://www.redbull.com/gb-en/live/fia-wrc-saturday-recap-estonia',
+        'only_matching': True,
     }]
+    _INT_FALLBACK_LIST = ['de', 'en', 'es', 'fr']
+    _LAT_FALLBACK_MAP = ['ar', 'bo', 'car', 'cl', 'co', 'mx', 'pe']
 
     def _real_extract(self, url):
         region, lang, filter_type, display_id = re.search(self._VALID_URL, url).groups()
@@ -201,8 +208,16 @@ class RedBullIE(InfoExtractor):
         elif filter_type == 'live':
             filter_type = 'live-videos'
 
+        regions = [region.upper()]
+        if region != 'int':
+            if region in self._LAT_FALLBACK_MAP:
+                regions.append('LAT')
+            if lang in self._INT_FALLBACK_LIST:
+                regions.append('INT')
+        locale = '>'.join(['%s-%s' % (lang, reg) for reg in regions])
+
         rrn_id = self._download_json(
-            'https://www.redbull.com/v3/api/graphql/v1/v3/query/%s-%s' % (lang, region.upper()),
+            'https://www.redbull.com/v3/api/graphql/v1/v3/query/' + locale,
             display_id, query={
                 'filter[type]': filter_type,
                 'filter[uriSlug]': display_id,
