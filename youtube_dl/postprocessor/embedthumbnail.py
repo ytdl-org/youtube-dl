@@ -13,6 +13,7 @@ from ..utils import (
     encodeFilename,
     PostProcessingError,
     prepend_extension,
+    replace_extension,
     shell_quote
 )
 
@@ -41,27 +42,37 @@ class EmbedThumbnailPP(FFmpegPostProcessor):
                 'Skipping embedding the thumbnail because the file is missing.')
             return [], info
 
-        # Check for mislabeled webp file
-        with open(encodeFilename(thumbnail_filename), "rb") as f:
-            b = f.read(16)
-        if b'\x57\x45\x42\x50' in b:  # Binary for WEBP
-            [thumbnail_filename_path, thumbnail_filename_extension] = os.path.splitext(thumbnail_filename)
-            if not thumbnail_filename_extension == ".webp":
-                webp_thumbnail_filename = thumbnail_filename_path + ".webp"
-                os.rename(encodeFilename(thumbnail_filename), encodeFilename(webp_thumbnail_filename))
-                thumbnail_filename = webp_thumbnail_filename
+        def is_webp(path):
+            with open(encodeFilename(path), 'rb') as f:
+                b = f.read(12)
+            return b[0:4] == b'RIFF' and b[8:] == b'WEBP'
 
-        # If not a jpg or png thumbnail, convert it to jpg using ffmpeg
-        if not os.path.splitext(thumbnail_filename)[1].lower() in ['.jpg', '.png']:
-            jpg_thumbnail_filename = os.path.splitext(thumbnail_filename)[0] + ".jpg"
-            jpg_thumbnail_filename = os.path.join(os.path.dirname(jpg_thumbnail_filename), os.path.basename(jpg_thumbnail_filename).replace('%', '_'))  # ffmpeg interprets % as image sequence
+        # Correct extension for WebP file with wrong extension (see #25687, #25717)
+        _, thumbnail_ext = os.path.splitext(thumbnail_filename)
+        if thumbnail_ext:
+            thumbnail_ext = thumbnail_ext[1:].lower()
+            if thumbnail_ext != 'webp' and is_webp(thumbnail_filename):
+                self._downloader.to_screen(
+                    '[ffmpeg] Correcting extension to webp and escaping path for thumbnail "%s"' % thumbnail_filename)
+                thumbnail_webp_filename = replace_extension(thumbnail_filename, 'webp')
+                os.rename(encodeFilename(thumbnail_filename), encodeFilename(thumbnail_webp_filename))
+                thumbnail_filename = thumbnail_webp_filename
+                thumbnail_ext = 'webp'
 
-            self._downloader.to_screen('[ffmpeg] Converting thumbnail "%s" to JPEG' % thumbnail_filename)
-
-            self.run_ffmpeg(thumbnail_filename, jpg_thumbnail_filename, ['-bsf:v', 'mjpeg2jpeg'])
-
-            os.remove(encodeFilename(thumbnail_filename))
-            thumbnail_filename = jpg_thumbnail_filename
+        # Convert unsupported thumbnail formats to JPEG (see #25687, #25717)
+        if thumbnail_ext not in ['jpg', 'png']:
+            # NB: % is supposed to be escaped with %% but this does not work
+            # for input files so working around with standard substitution
+            escaped_thumbnail_filename = thumbnail_filename.replace('%', '#')
+            os.rename(encodeFilename(thumbnail_filename), encodeFilename(escaped_thumbnail_filename))
+            escaped_thumbnail_jpg_filename = replace_extension(escaped_thumbnail_filename, 'jpg')
+            self._downloader.to_screen('[ffmpeg] Converting thumbnail "%s" to JPEG' % escaped_thumbnail_filename)
+            self.run_ffmpeg(escaped_thumbnail_filename, escaped_thumbnail_jpg_filename, ['-bsf:v', 'mjpeg2jpeg'])
+            os.remove(encodeFilename(escaped_thumbnail_filename))
+            thumbnail_jpg_filename = replace_extension(thumbnail_filename, 'jpg')
+            # Rename back to unescaped for further processing
+            os.rename(encodeFilename(escaped_thumbnail_jpg_filename), encodeFilename(thumbnail_jpg_filename))
+            thumbnail_filename = thumbnail_jpg_filename
 
         if info['ext'] == 'mp3':
             options = [
