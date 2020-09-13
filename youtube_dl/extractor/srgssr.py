@@ -176,7 +176,7 @@ class SRGSSRPlayIE(InfoExtractor):
         'url': 'https://www.srf.ch/play/tv/popupvideoplayer?id=c4dba0ca-e75b-43b2-a34f-f708a4932e01',
         'only_matching': True,
     }, {
-        'url': 'https://www.srf.ch/play/tv/tagesschau/video/tagesschau-vom-11-09-2020-hauptausgabe?urn=urn:srf:video:78bd5da9-7fc7-4191-9086-539774215739',
+        'url': 'https://www.srf.ch/play/tv/meteo/video/abendausgabe?urn=urn:srf:video:c93094be-96a0-43f8-a438-26d128a68805',
         'only_matching': True,
     }]
 
