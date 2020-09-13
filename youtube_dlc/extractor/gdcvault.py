@@ -5,9 +5,7 @@ import re
 from .common import InfoExtractor
 from .kaltura import KalturaIE
 from ..utils import (
-    HEADRequest,
     sanitized_Request,
-    smuggle_url,
     urlencode_postdata,
 )
 
@@ -139,7 +137,7 @@ class GDCVaultIE(InfoExtractor):
 
         PLAYER_REGEX = r'<iframe src=\"(?P<manifest_url>.*?)\".*?</iframe>'
         manifest_url = self._html_search_regex(
-                PLAYER_REGEX, webpage, 'manifest_url')
+            PLAYER_REGEX, webpage, 'manifest_url')
 
         partner_id = self._search_regex(
             r'/p(?:artner_id)?/(\d+)', manifest_url, 'partner id',
