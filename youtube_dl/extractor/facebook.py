@@ -420,6 +420,8 @@ class FacebookIE(InfoExtractor):
             if subtitles_src:
                 subtitles.setdefault('en', []).append({'url': subtitles_src})
         if not formats:
+            formats = self.resolve_new_ui_format(webpage)
+        if not formats:
             raise ExtractorError('Cannot find video formats')
 
         # Downloads with browser's User-Agent are rate limited. Working around
@@ -505,7 +507,9 @@ class FacebookIE(InfoExtractor):
 
         uploader_id = self._resolve_uploader_id(webpage, tahoe_data)
 
-        post_view_counts = parse_count(self._search_regex(r'"postViewCount":(.+?),', tahoe_data.secondary, 'views'))
+        post_view_counts = self._extract_views(webpage, tahoe_data)
+        if not post_view_counts:
+            post_view_counts = parse_count(self._search_regex(r'"postViewCount":(.+?),', tahoe_data.secondary, 'views'))
         other_post_view_counts = parse_count(self._search_regex(r'"otherPostsViewCount":(.+?),', tahoe_data.secondary, 'other_views'))
 
         share_counts = parse_count(self._search_regex(r'"sharecount":(.+?),', tahoe_data.secondary, 'other_views'))
