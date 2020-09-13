@@ -19,14 +19,15 @@ class NDRBaseIE(InfoExtractor):
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
         display_id = next(group for group in mobj.groups() if group)
+        id = mobj.group('id')
         webpage = self._download_webpage(url, display_id)
-        return self._extract_embed(webpage, display_id)
+        return self._extract_embed(webpage, display_id, id)
 
 
 class NDRIE(NDRBaseIE):
     IE_NAME = 'ndr'
     IE_DESC = 'NDR.de - Norddeutscher Rundfunk'
-    _VALID_URL = r'https?://(?:www\.)?ndr\.de/(?:[^/]+/)*(?P<id>[^/?#]+),[\da-z]+\.html'
+    _VALID_URL = r'https?://(?:www\.)?(?:daserste\.)?ndr\.de/(?:[^/]+/)*(?P<display_id>[^/?#]+),(?P<id>[\da-z]+)\.html'
     _TESTS = [{
         # httpVideo, same content id
         'url': 'http://www.ndr.de/fernsehen/Party-Poette-und-Parade,hafengeburtstag988.html',
@@ -86,12 +87,14 @@ class NDRIE(NDRBaseIE):
         'only_matching': True,
     }]
 
-    def _extract_embed(self, webpage, display_id):
+    def _extract_embed(self, webpage, display_id, id):
         embed_url = self._html_search_meta(
             'embedURL', webpage, 'embed URL',
             default=None) or self._search_regex(
             r'\bembedUrl["\']\s*:\s*(["\'])(?P<url>(?:(?!\1).)+)\1', webpage,
-            'embed URL', group='url')
+            'embed URL', fatal=False, group='url')
+        if embed_url is None:
+            return self.url_result('ndr:%s' % id, ie=NDREmbedBaseIE.ie_key())
         description = self._search_regex(
             r'<p[^>]+itemprop="description">([^<]+)</p>',
             webpage, 'description', default=None) or self._og_search_description(webpage)
@@ -152,7 +155,7 @@ class NJoyIE(NDRBaseIE):
         'only_matching': True,
     }]
 
-    def _extract_embed(self, webpage, display_id):
+    def _extract_embed(self, webpage, display_id, id):
         video_id = self._search_regex(
             r'<iframe[^>]+id="pp_([\da-z]+)"', webpage, 'embed id')
         description = self._search_regex(
@@ -253,7 +256,7 @@ class NDREmbedBaseIE(InfoExtractor):
 
 class NDREmbedIE(NDREmbedBaseIE):
     IE_NAME = 'ndr:embed'
-    _VALID_URL = r'https?://(?:www\.)?ndr\.de/(?:[^/]+/)*(?P<id>[\da-z]+)-(?:player|externalPlayer)\.html'
+    _VALID_URL = r'https?://(?:www\.)?(?:daserste\.)?ndr\.de/(?:[^/]+/)*(?P<id>[\da-z]+)-(?:player|externalPlayer)\.html'
     _TESTS = [{
         'url': 'http://www.ndr.de/fernsehen/sendungen/ndr_aktuell/ndraktuell28488-player.html',
         'md5': '8b9306142fe65bbdefb5ce24edb6b0a9',
