@@ -950,16 +950,13 @@
  - **TVPlayHome**
  - **Tweakers**
  - **TwitCasting**
- - **twitch:chapter**
  - **twitch:clips**
- - **twitch:profile**
  - **twitch:stream**
- - **twitch:video**
- - **twitch:videos:all**
- - **twitch:videos:highlights**
- - **twitch:videos:past-broadcasts**
- - **twitch:videos:uploads**
  - **twitch:vod**
+ - **TwitchCollection**
+ - **TwitchVideos**
+ - **TwitchVideosClips**
+ - **TwitchVideosCollections**
  - **twitter**
  - **twitter:amplify**
  - **twitter:broadcast**

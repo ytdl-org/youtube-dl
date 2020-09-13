@@ -224,9 +224,15 @@ class SVTPlayIE(SVTPlayBaseIE):
                 self._adjust_title(info_dict)
                 return info_dict
 
-        svt_id = self._search_regex(
-            r'<video[^>]+data-video-id=["\']([\da-zA-Z-]+)',
-            webpage, 'video id')
+            svt_id = try_get(
+                data, lambda x: x['statistics']['dataLake']['content']['id'],
+                compat_str)
+
+        if not svt_id:
+            svt_id = self._search_regex(
+                (r'<video[^>]+data-video-id=["\']([\da-zA-Z-]+)',
+                 r'"content"\s*:\s*{.*?"id"\s*:\s*"([\da-zA-Z-]+)"'),
+                webpage, 'video id')
 
         return self._extract_by_video_id(svt_id, webpage)
 
