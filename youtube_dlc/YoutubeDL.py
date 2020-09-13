@@ -1860,9 +1860,9 @@ class YoutubeDL(object):
                     info_dict.setdefault('__postprocessors', [])
                     # info_dict['__postprocessors'].append(subconv)
                 if os.path.exists(encodeFilename(afilename)):
-                        self.to_screen(
-                            '[download] %s has already been downloaded and '
-                            'converted' % afilename)
+                    self.to_screen(
+                        '[download] %s has already been downloaded and '
+                        'converted' % afilename)
                 else:
                     try:
                         self.post_process(filename, info_dict)
