@@ -15,7 +15,8 @@ class RtlNlIE(InfoExtractor):
         https?://(?:(?:www|static)\.)?
         (?:
             rtlxl\.nl/(?:[^\#]*\#!|programma)/[^/]+/|
-            rtl\.nl/(?:(?:system/videoplayer/(?:[^/]+/)+(?:video_)?embed\.html|embed)\b.+?\buuid=|video/)
+            rtl\.nl/(?:(?:system/videoplayer/(?:[^/]+/)+(?:video_)?embed\.html|embed)\b.+?\buuid=|video/)|
+            embed\.rtl\.nl/\#uuid=
         )
         (?P<id>[0-9a-f-]+)'''
 
@@ -90,6 +91,10 @@ class RtlNlIE(InfoExtractor):
         'only_matching': True,
     }, {
         'url': 'https://static.rtl.nl/embed/?uuid=1a2970fc-5c0b-43ff-9fdc-927e39e6d1bc&autoplay=false&publicatiepunt=rtlnieuwsnl',
+        'only_matching': True,
+    }, {
+        # new embed URL schema
+        'url': 'https://embed.rtl.nl/#uuid=84ae5571-ac25-4225-ae0c-ef8d9efb2aed/autoplay=false',
         'only_matching': True,
     }]
 
