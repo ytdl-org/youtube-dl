@@ -5,9 +5,7 @@ import re
 from .common import InfoExtractor
 from .kaltura import KalturaIE
 from ..utils import (
-    HEADRequest,
     sanitized_Request,
-    smuggle_url,
     urlencode_postdata,
 )
 
@@ -122,67 +120,38 @@ class GDCVaultIE(InfoExtractor):
         request = sanitized_Request(login_url, urlencode_postdata(login_form))
         request.add_header('Content-Type', 'application/x-www-form-urlencoded')
         self._download_webpage(request, display_id, 'Logging in')
-        start_page = self._download_webpage(webpage_url, display_id, 'Getting authenticated video page')
+        webpage = self._download_webpage(webpage_url, display_id, 'Getting authenticated video page')
         self._download_webpage(logout_url, display_id, 'Logging out')
 
-        return start_page
+        return webpage
 
     def _real_extract(self, url):
         video_id, name = re.match(self._VALID_URL, url).groups()
         display_id = name or video_id
 
-        webpage_url = 'http://www.gdcvault.com/play/' + video_id
-        start_page = self._download_webpage(webpage_url, display_id)
+        webpage = self._download_webpage(url, display_id)
 
-        direct_url = self._search_regex(
-            r's1\.addVariable\("file",\s*encodeURIComponent\("(/[^"]+)"\)\);',
-            start_page, 'url', default=None)
-        if direct_url:
-            title = self._html_search_regex(
-                r'<td><strong>Session Name:?</strong></td>\s*<td>(.*?)</td>',
-                start_page, 'title')
-            video_url = 'http://www.gdcvault.com' + direct_url
-            # resolve the url so that we can detect the correct extension
-            video_url = self._request_webpage(
-                HEADRequest(video_url), video_id).geturl()
+        title = self._html_search_regex(
+            r'<td><strong>Session Name:?</strong></td>\s*<td>(.*?)</td>',
+            webpage, 'title')
 
-            return {
-                'id': video_id,
-                'display_id': display_id,
-                'url': video_url,
-                'title': title,
-            }
+        PLAYER_REGEX = r'<iframe src=\"(?P<manifest_url>.*?)\".*?</iframe>'
+        manifest_url = self._html_search_regex(
+            PLAYER_REGEX, webpage, 'manifest_url')
 
-        embed_url = KalturaIE._extract_url(start_page)
-        if embed_url:
-            embed_url = smuggle_url(embed_url, {'source_url': url})
-            ie_key = 'Kaltura'
-        else:
-            PLAYER_REGEX = r'<iframe src="(?P<xml_root>.+?)/(?:gdc-)?player.*?\.html.*?".*?</iframe>'
+        partner_id = self._search_regex(
+            r'/p(?:artner_id)?/(\d+)', manifest_url, 'partner id',
+            default='1670711')
 
-            xml_root = self._html_search_regex(
-                PLAYER_REGEX, start_page, 'xml root', default=None)
-            if xml_root is None:
-                # Probably need to authenticate
-                login_res = self._login(webpage_url, display_id)
-                if login_res is None:
-                    self.report_warning('Could not login.')
-                else:
-                    start_page = login_res
-                    # Grab the url from the authenticated page
-                    xml_root = self._html_search_regex(
-                        PLAYER_REGEX, start_page, 'xml root')
-
-            xml_name = self._html_search_regex(
-                r'<iframe src=".*?\?xml(?:=|URL=xml/)(.+?\.xml).*?".*?</iframe>',
-                start_page, 'xml filename')
-            embed_url = '%s/xml/%s' % (xml_root, xml_name)
-            ie_key = 'DigitallySpeaking'
+        kaltura_id = self._search_regex(
+            r'entry_id=(?P<id>(?:[^&])+)', manifest_url,
+            'kaltura id', group='id')
 
         return {
             '_type': 'url_transparent',
+            'url': 'kaltura:%s:%s' % (partner_id, kaltura_id),
+            'ie_key': KalturaIE.ie_key(),
             'id': video_id,
             'display_id': display_id,
-            'url': embed_url,
-            'ie_key': ie_key,
+            'title': title,
         }
