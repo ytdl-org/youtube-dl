@@ -105,6 +105,7 @@ from .postprocessor import (
     FFmpegFixupStretchedPP,
     FFmpegMergerPP,
     FFmpegPostProcessor,
+    FFmpegSubtitlesConvertorPP,
     get_postprocessor,
 )
 from .version import __version__
@@ -1845,6 +1846,29 @@ class YoutubeDL(object):
                             self.report_warning('Unable to download subtitle for "%s": %s' %
                                                 (sub_lang, error_to_compat_str(err)))
                             continue
+
+        if self.params.get('skip_download', False):
+            if self.params.get('convertsubtitles', False):
+                subconv = FFmpegSubtitlesConvertorPP(self, format=self.params.get('convertsubtitles'))
+                filename_real_ext = os.path.splitext(filename)[1][1:]
+                filename_wo_ext = (
+                    os.path.splitext(filename)[0]
+                    if filename_real_ext == info_dict['ext']
+                    else filename)
+                afilename = '%s.%s' % (filename_wo_ext, self.params.get('convertsubtitles'))
+                if subconv.available:
+                    info_dict.setdefault('__postprocessors', [])
+                    # info_dict['__postprocessors'].append(subconv)
+                if os.path.exists(encodeFilename(afilename)):
+                        self.to_screen(
+                            '[download] %s has already been downloaded and '
+                            'converted' % afilename)
+                else:
+                    try:
+                        self.post_process(filename, info_dict)
+                    except (PostProcessingError) as err:
+                        self.report_error('postprocessing: %s' % str(err))
+                        return
 
         if self.params.get('writeinfojson', False):
             infofn = replace_extension(filename, 'info.json', info_dict.get('ext'))
