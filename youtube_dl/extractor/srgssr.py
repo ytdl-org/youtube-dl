@@ -114,7 +114,7 @@ class SRGSSRPlayIE(InfoExtractor):
                             [^/]+/(?P<type>video|audio)/[^?]+|
                             popup(?P<type_2>video|audio)player
                         )
-                        \?id=(?P<id>[0-9a-f\-]{36}|\d+)
+                        \?((?:urn=(?:[^/?#]+:)*|id=)(?P<id>[0-9a-f\-]{36})|\d+)
                     '''
 
     _TESTS = [{
