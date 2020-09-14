@@ -1,5 +1,6 @@
 # coding: utf-8
 from __future__ import unicode_literals
+import json
 
 from .common import InfoExtractor
 from ..utils import (
@@ -31,7 +32,6 @@ class MiTeleIE(InfoExtractor):
             'timestamp': 1471209401,
             'upload_date': '20160814',
         },
-        'add_ie': ['Ooyala'],
     }, {
         # no explicit title
         'url': 'http://www.mitele.es/programas-tv/cuarto-milenio/57b0de3dc915da14058b4876/player',
@@ -53,8 +53,7 @@ class MiTeleIE(InfoExtractor):
         },
         'params': {
             'skip_download': True,
-        },
-        'add_ie': ['Ooyala'],
+        }
     }, {
         'url': 'http://www.mitele.es/series-online/la-que-se-avecina/57aac5c1c915da951a8b45ed/player',
         'only_matching': True,
@@ -75,10 +74,7 @@ class MiTeleIE(InfoExtractor):
         content = pre_player.get('content') or {}
         info = content.get('info') or {}
 
-        return {
-            '_type': 'url_transparent',
-            # for some reason only HLS is supported
-            'url': smuggle_url('ooyala:' + video_id, {'supportedformats': 'm3u8,dash'}),
+        info = {
             'id': video_id,
             'title': title,
             'description': info.get('synopsis'),
@@ -91,3 +87,34 @@ class MiTeleIE(InfoExtractor):
             'age_limit': int_or_none(info.get('rating')),
             'timestamp': parse_iso8601(pre_player.get('publishedTime')),
         }
+
+        if video.get('dataCmsId') == 'ooyala':
+            info.update({
+                '_type': 'url_transparent',
+                # for some reason only HLS is supported
+                'url': smuggle_url('ooyala:' + video_id, {'supportedformats': 'm3u8,dash'}),
+            })
+        else:
+            config = self._download_json(
+                video['dataConfig'], video_id, 'Downloading config JSON')
+            services = config['services']
+            gbx = self._download_json(
+                services['gbx'], video_id, 'Downloading gbx JSON')
+            caronte = self._download_json(
+                services['caronte'], video_id, 'Downloading caronte JSON')
+            cerbero = self._download_json(
+                caronte['cerbero'], video_id, 'Downloading cerbero JSON',
+                headers={
+                    'Content-Type': 'application/json;charset=UTF-8',
+                    'Origin': 'https://www.mitele.es'
+                },
+                data=json.dumps({
+                    'bbx': caronte['bbx'],
+                    'gbx': gbx['gbx']
+                }).encode('utf-8'))
+            formats = self._extract_m3u8_formats(
+                caronte['dls'][0]['stream'], video_id, 'mp4', 'm3u8_native', m3u8_id='hls',
+                query=dict([cerbero['tokens']['1']['cdn'].split('=', 1)]))
+            info['formats'] = formats
+
+        return info
