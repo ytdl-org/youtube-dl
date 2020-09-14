@@ -93,6 +93,7 @@ class DigitallySpeakingIE(InfoExtractor):
             'quality': -2,
             'preference': -2,
             'format_id': 'slides',
+            'acodec': 'none',
         })
         speaker_video_path = xpath_text(metadata, './speakerVideo', fatal=True)
         formats.append({
