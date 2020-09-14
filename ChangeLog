@@ -1,3 +1,21 @@
+version 2020.09.14
+
+Core
++ [postprocessor/embedthumbnail] Add support for non jpg/png thumbnails
+  (#25687, #25717)
+
+Extractors
+* [rtlnl] Extend URL regular expression (#26549, #25821)
+* [youtube] Fix empty description extraction (#26575, #26006)
+* [srgssr] Extend URL regular expression (#26555, #26556, #26578)
+* [googledrive] Use redirect URLs for source format (#18877, #23919, #24689,
+  #26565)
+* [svtplay] Fix id extraction (#26576)
+* [redbulltv] Improve support for rebull.com TV localized URLs (#22063)
++ [redbulltv] Add support for new redbull.com TV URLs (#22037, #22063)
+* [soundcloud:pagedplaylist] Reduce pagination limit (#26557)
+
+
 version 2020.09.06
 
 Core
