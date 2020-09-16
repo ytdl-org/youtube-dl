@@ -470,3 +470,4 @@ Then simply type this
 
 ## Extractor Options:
     --ignore-dynamic-mpd             Do not process dynamic DASH manifests
+

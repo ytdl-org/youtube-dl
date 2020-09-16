@@ -256,6 +256,7 @@
  - **EllenTube**
  - **EllenTubePlaylist**
  - **EllenTubeVideo**
+ - **Elonet**
  - **ElPais**: El País
  - **Embedly**
  - **EMPFlix**
