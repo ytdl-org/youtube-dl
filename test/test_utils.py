@@ -803,6 +803,8 @@ class TestUtil(unittest.TestCase):
         self.assertEqual(mimetype2ext('text/vtt'), 'vtt')
         self.assertEqual(mimetype2ext('text/vtt;charset=utf-8'), 'vtt')
         self.assertEqual(mimetype2ext('text/html; charset=utf-8'), 'html')
+        self.assertEqual(mimetype2ext('audio/x-wav'), 'wav')
+        self.assertEqual(mimetype2ext('audio/x-wav;codec=pcm'), 'wav')
 
     def test_month_by_name(self):
         self.assertEqual(month_by_name(None), None)
