@@ -12,7 +12,20 @@ youtube-dlc is a fork of youtube-dl with the intention of getting features teste
 - [INSTALLATION](#installation)
 - [DESCRIPTION](#description)
 - [OPTIONS](#options)
-- [COPYRIGHT](#copyright)
+  - [Network Options:](#network-options)
+  - [Geo Restriction:](#geo-restriction)
+  - [Video Selection:](#video-selection)
+  - [Download Options:](#download-options)
+  - [Filesystem Options:](#filesystem-options)
+  - [Thumbnail images:](#thumbnail-images)
+  - [Verbosity / Simulation Options:](#verbosity--simulation-options)
+  - [Workarounds:](#workarounds)
+  - [Video Format Options:](#video-format-options)
+  - [Subtitle Options:](#subtitle-options)
+  - [Authentication Options:](#authentication-options)
+  - [Adobe Pass Options:](#adobe-pass-options)
+  - [Post-processing Options:](#post-processing-options)
+  - [Extractor Options:](#extractor-options)
 
 # INSTALLATION
 
@@ -355,6 +368,8 @@ Then simply type this
                                      videos
     --youtube-skip-dash-manifest     Do not download the DASH manifests and
                                      related data on YouTube videos
+    --youtube-skip-hls-manifest      Do not download the HLS manifests and
+                                     related data on YouTube videos
     --merge-output-format FORMAT     If a merge is required (e.g.
                                      bestvideo+bestaudio), output to given
                                      container format. One of mkv, mp4, ogg,
@@ -453,3 +468,5 @@ Then simply type this
     --convert-subs FORMAT            Convert the subtitles to other format
                                      (currently supported: srt|ass|vtt|lrc)
 
+## Extractor Options:
+    --ignore-dynamic-mpd             Do not process dynamic DASH manifests

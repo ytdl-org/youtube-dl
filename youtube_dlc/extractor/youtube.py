@@ -2244,7 +2244,8 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                     a_format['player_url'] = player_url
                     # Accept-Encoding header causes failures in live streams on Youtube and Youtube Gaming
                     a_format.setdefault('http_headers', {})['Youtubedl-no-compression'] = 'True'
-                    formats.append(a_format)
+                    if self._downloader.params.get('youtube_include_hls_manifest', True):
+                        formats.append(a_format)
             else:
                 error_message = extract_unavailable_message()
                 if not error_message:
