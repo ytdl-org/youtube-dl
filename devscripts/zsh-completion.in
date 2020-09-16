@@ -16,6 +16,8 @@ __youtube_dlc() {
                 _path_files
             elif [[ ${prev} =~ ${diropts} ]]; then
                 _path_files -/
+            elif [[ ${prev} == "--remux-video" ]]; then
+                _arguments '*: :(mp4 mkv)'
             elif [[ ${prev} == "--recode-video" ]]; then
                 _arguments '*: :(mp4 flv ogg webm mkv)'
             else

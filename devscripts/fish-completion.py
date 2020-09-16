@@ -14,6 +14,7 @@ FISH_COMPLETION_FILE = 'youtube-dlc.fish'
 FISH_COMPLETION_TEMPLATE = 'devscripts/fish-completion.in'
 
 EXTRA_ARGS = {
+    'remux-video': ['--arguments', 'mp4 mkv', '--exclusive'],
     'recode-video': ['--arguments', 'mp4 flv ogg webm mkv', '--exclusive'],
 
     # Options that need a file parameter
