@@ -2874,10 +2874,10 @@ def workaround_optparse_bug9161():
 if hasattr(shutil, 'get_terminal_size'):  # Python >= 3.3
     compat_get_terminal_size = shutil.get_terminal_size
 else:
-    from .utils import process_communicate_or_kill
     _terminal_size = collections.namedtuple('terminal_size', ['columns', 'lines'])
 
     def compat_get_terminal_size(fallback=(80, 24)):
+        from .utils import process_communicate_or_kill
         columns = compat_getenv('COLUMNS')
         if columns:
             columns = int(columns)
