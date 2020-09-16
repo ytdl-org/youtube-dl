@@ -1158,6 +1158,7 @@ from .tenplay import TenPlayIE
 from .testurl import TestURLIE
 from .tf1 import TF1IE
 from .tfo import TFOIE
+from .theartistunion import TheArtistUnionIE
 from .theintercept import TheInterceptIE
 from .theplatform import (
     ThePlatformIE,
