@@ -6,8 +6,8 @@ VSVersionInfo(
   ffi=FixedFileInfo(
     # filevers and prodvers should be always a tuple with four items: (1, 2, 3, 4)
     # Set not needed items to zero 0.
-    filevers=(6, 9, 2020, 0),
-    prodvers=(6, 9, 2020, 0),
+    filevers=(16, 9, 2020, 0),
+    prodvers=(16, 9, 2020, 0),
     # Contains a bitmask that specifies the valid bits 'flags'r
     mask=0x3f,
     # Contains a bitmask that specifies the Boolean attributes of the file.
@@ -33,12 +33,12 @@ VSVersionInfo(
         [StringStruct(u'Comments', u'Youtube-dlc Command Line Interface.'),
 	StringStruct(u'CompanyName', u'theidel@uni-bremen.de'),
         StringStruct(u'FileDescription', u'Media Downloader'),
-        StringStruct(u'FileVersion', u'6.9.2020.0'),
+        StringStruct(u'FileVersion', u'16.9.2020.0'),
         StringStruct(u'InternalName', u'youtube-dlc'),
         StringStruct(u'LegalCopyright', u'theidel@uni-bremen.de | UNLICENSE'),
         StringStruct(u'OriginalFilename', u'youtube-dlc.exe'),
         StringStruct(u'ProductName', u'Youtube-dlc'),
-        StringStruct(u'ProductVersion', u'6.9.2020.0 | git.io/JUGsM')])
+        StringStruct(u'ProductVersion', u'16.9.2020.0 | git.io/JUGsM')])
       ]), 
     VarFileInfo([VarStruct(u'Translation', [0, 1200])])
   ]
