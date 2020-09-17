@@ -106,7 +106,12 @@ class HttpFD(FileDownloader):
                 set_range(request, range_start, range_end)
             # Establish connection
             try:
-                ctx.data = self.ydl.urlopen(request)
+                try:
+                    ctx.data = self.ydl.urlopen(request)
+                except (compat_urllib_error.URLError, ) as err:
+                    if isinstance(err.reason, socket.timeout):
+                        raise RetryDownload(err)
+                    raise err
                 # When trying to resume, Content-Range HTTP header of response has to be checked
                 # to match the value of requested Range HTTP header. This is due to a webservers
                 # that don't support resuming and serve a whole file with no Content-Range
