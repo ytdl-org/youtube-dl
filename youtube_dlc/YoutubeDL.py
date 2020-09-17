@@ -120,7 +120,6 @@ class ArchiveTree(object):
         self.line = line
 
     def at_insert(self, line):
-        print("at_insert: ", line)
         if self.line:
             if line < self.line:
                 if self.left is None:
@@ -136,7 +135,6 @@ class ArchiveTree(object):
             self.line = line
 
     def at_exist(self, line):
-        print("at_exist: ", line)
         if self.line is None:
             return False
         if line < self.line:
