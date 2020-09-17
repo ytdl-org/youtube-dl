@@ -1,6 +1,8 @@
 # coding: utf-8
 from __future__ import unicode_literals
 
+import re
+
 from .common import InfoExtractor
 from ..compat import compat_HTTPError
 from ..utils import (
@@ -10,7 +12,7 @@ from ..utils import (
 
 
 class RedBullTVIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:www\.)?redbull(?:\.tv|\.com(?:/[^/]+)?(?:/tv)?)(?:/events/[^/]+)?/(?:videos?|live)/(?P<id>AP-\w+)'
+    _VALID_URL = r'https?://(?:www\.)?redbull(?:\.tv|\.com(?:/[^/]+)?(?:/tv)?)(?:/events/[^/]+)?/(?:videos?|live|(?:film|episode)s)/(?P<id>AP-\w+)'
     _TESTS = [{
         # film
         'url': 'https://www.redbull.tv/video/AP-1Q6XCDTAN1W11',
@@ -29,8 +31,8 @@ class RedBullTVIE(InfoExtractor):
             'id': 'AP-1PMHKJFCW1W11',
             'ext': 'mp4',
             'title': 'Grime - Hashtags S2E4',
-            'description': 'md5:b5f522b89b72e1e23216e5018810bb25',
-            'duration': 904.6,
+            'description': 'md5:5546aa612958c08a98faaad4abce484d',
+            'duration': 904,
         },
         'params': {
             'skip_download': True,
@@ -44,11 +46,15 @@ class RedBullTVIE(InfoExtractor):
     }, {
         'url': 'https://www.redbull.com/us-en/events/AP-1XV2K61Q51W11/live/AP-1XUJ86FDH1W11',
         'only_matching': True,
+    }, {
+        'url': 'https://www.redbull.com/int-en/films/AP-1ZSMAW8FH2111',
+        'only_matching': True,
+    }, {
+        'url': 'https://www.redbull.com/int-en/episodes/AP-1TQWK7XE11W11',
+        'only_matching': True,
     }]
 
-    def _real_extract(self, url):
-        video_id = self._match_id(url)
-
+    def extract_info(self, video_id):
         session = self._download_json(
             'https://api.redbull.tv/v3/session', video_id,
             note='Downloading access token', query={
@@ -105,24 +111,119 @@ class RedBullTVIE(InfoExtractor):
             'subtitles': subtitles,
         }
 
+    def _real_extract(self, url):
+        video_id = self._match_id(url)
+        return self.extract_info(video_id)
+
+
+class RedBullEmbedIE(RedBullTVIE):
+    _VALID_URL = r'https?://(?:www\.)?redbull\.com/embed/(?P<id>rrn:content:[^:]+:[\da-f]{8}-[\da-f]{4}-[\da-f]{4}-[\da-f]{4}-[\da-f]{12}:[a-z]{2}-[A-Z]{2,3})'
+    _TESTS = [{
+        # HLS manifest accessible only using assetId
+        'url': 'https://www.redbull.com/embed/rrn:content:episode-videos:f3021f4f-3ed4-51ac-915a-11987126e405:en-INT',
+        'only_matching': True,
+    }]
+    _VIDEO_ESSENSE_TMPL = '''... on %s {
+      videoEssence {
+        attributes
+      }
+    }'''
+
+    def _real_extract(self, url):
+        rrn_id = self._match_id(url)
+        asset_id = self._download_json(
+            'https://edge-graphql.crepo-production.redbullaws.com/v1/graphql',
+            rrn_id, headers={'API-KEY': 'e90a1ff11335423998b100c929ecc866'},
+            query={
+                'query': '''{
+  resource(id: "%s", enforceGeoBlocking: false) {
+    %s
+    %s
+  }
+}''' % (rrn_id, self._VIDEO_ESSENSE_TMPL % 'LiveVideo', self._VIDEO_ESSENSE_TMPL % 'VideoResource'),
+            })['data']['resource']['videoEssence']['attributes']['assetId']
+        return self.extract_info(asset_id)
+
 
 class RedBullTVRrnContentIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:www\.)?redbull(?:\.tv|\.com(?:/[^/]+)?(?:/tv)?)/(?:video|live)/rrn:content:[^:]+:(?P<id>[\da-f]{8}-[\da-f]{4}-[\da-f]{4}-[\da-f]{4}-[\da-f]{12})'
+    _VALID_URL = r'https?://(?:www\.)?redbull\.com/(?P<region>[a-z]{2,3})-(?P<lang>[a-z]{2})/tv/(?:video|live|film)/(?P<id>rrn:content:[^:]+:[\da-f]{8}-[\da-f]{4}-[\da-f]{4}-[\da-f]{4}-[\da-f]{12})'
     _TESTS = [{
         'url': 'https://www.redbull.com/int-en/tv/video/rrn:content:live-videos:e3e6feb4-e95f-50b7-962a-c70f8fd13c73/mens-dh-finals-fort-william',
         'only_matching': True,
     }, {
         'url': 'https://www.redbull.com/int-en/tv/video/rrn:content:videos:a36a0f36-ff1b-5db8-a69d-ee11a14bf48b/tn-ts-style?playlist=rrn:content:event-profiles:83f05926-5de8-5389-b5e4-9bb312d715e8:extras',
         'only_matching': True,
+    }, {
+        'url': 'https://www.redbull.com/int-en/tv/film/rrn:content:films:d1f4d00e-4c04-5d19-b510-a805ffa2ab83/follow-me',
+        'only_matching': True,
     }]
 
     def _real_extract(self, url):
-        display_id = self._match_id(url)
+        region, lang, rrn_id = re.search(self._VALID_URL, url).groups()
+        rrn_id += ':%s-%s' % (lang, region.upper())
+        return self.url_result(
+            'https://www.redbull.com/embed/' + rrn_id,
+            RedBullEmbedIE.ie_key(), rrn_id)
 
-        webpage = self._download_webpage(url, display_id)
 
-        video_url = self._og_search_url(webpage)
+class RedBullIE(InfoExtractor):
+    _VALID_URL = r'https?://(?:www\.)?redbull\.com/(?P<region>[a-z]{2,3})-(?P<lang>[a-z]{2})/(?P<type>(?:episode|film|(?:(?:recap|trailer)-)?video)s|live)/(?!AP-|rrn:content:)(?P<id>[^/?#&]+)'
+    _TESTS = [{
+        'url': 'https://www.redbull.com/int-en/episodes/grime-hashtags-s02-e04',
+        'md5': 'db8271a7200d40053a1809ed0dd574ff',
+        'info_dict': {
+            'id': 'AA-1MT8DQWA91W14',
+            'ext': 'mp4',
+            'title': 'Grime - Hashtags S2E4',
+            'description': 'md5:5546aa612958c08a98faaad4abce484d',
+        },
+    }, {
+        'url': 'https://www.redbull.com/int-en/films/kilimanjaro-mountain-of-greatness',
+        'only_matching': True,
+    }, {
+        'url': 'https://www.redbull.com/int-en/recap-videos/uci-mountain-bike-world-cup-2017-mens-xco-finals-from-vallnord',
+        'only_matching': True,
+    }, {
+        'url': 'https://www.redbull.com/int-en/trailer-videos/kings-of-content',
+        'only_matching': True,
+    }, {
+        'url': 'https://www.redbull.com/int-en/videos/tnts-style-red-bull-dance-your-style-s1-e12',
+        'only_matching': True,
+    }, {
+        'url': 'https://www.redbull.com/int-en/live/mens-dh-finals-fort-william',
+        'only_matching': True,
+    }, {
+        # only available on the int-en website so a fallback is need for the API
+        # https://www.redbull.com/v3/api/graphql/v1/v3/query/en-GB>en-INT?filter[uriSlug]=fia-wrc-saturday-recap-estonia&rb3Schema=v1:hero
+        'url': 'https://www.redbull.com/gb-en/live/fia-wrc-saturday-recap-estonia',
+        'only_matching': True,
+    }]
+    _INT_FALLBACK_LIST = ['de', 'en', 'es', 'fr']
+    _LAT_FALLBACK_MAP = ['ar', 'bo', 'car', 'cl', 'co', 'mx', 'pe']
+
+    def _real_extract(self, url):
+        region, lang, filter_type, display_id = re.search(self._VALID_URL, url).groups()
+        if filter_type == 'episodes':
+            filter_type = 'episode-videos'
+        elif filter_type == 'live':
+            filter_type = 'live-videos'
+
+        regions = [region.upper()]
+        if region != 'int':
+            if region in self._LAT_FALLBACK_MAP:
+                regions.append('LAT')
+            if lang in self._INT_FALLBACK_LIST:
+                regions.append('INT')
+        locale = '>'.join(['%s-%s' % (lang, reg) for reg in regions])
+
+        rrn_id = self._download_json(
+            'https://www.redbull.com/v3/api/graphql/v1/v3/query/' + locale,
+            display_id, query={
+                'filter[type]': filter_type,
+                'filter[uriSlug]': display_id,
+                'rb3Schema': 'v1:hero',
+            })['data']['id']
 
         return self.url_result(
-            video_url, ie=RedBullTVIE.ie_key(),
-            video_id=RedBullTVIE._match_id(video_url))
+            'https://www.redbull.com/embed/' + rrn_id,
+            RedBullEmbedIE.ie_key(), rrn_id)

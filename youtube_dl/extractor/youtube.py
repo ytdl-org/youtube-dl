@@ -1264,7 +1264,23 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
             'params': {
                 'skip_download': True,
             },
-        }
+        },
+        {
+            # empty description results in an empty string
+            'url': 'https://www.youtube.com/watch?v=x41yOUIvK2k',
+            'info_dict': {
+                'id': 'x41yOUIvK2k',
+                'ext': 'mp4',
+                'title': 'IMG 3456',
+                'description': '',
+                'upload_date': '20170613',
+                'uploader_id': 'ElevageOrVert',
+                'uploader': 'ElevageOrVert',
+            },
+            'params': {
+                'skip_download': True,
+            },
+        },
     ]
 
     def __init__(self, *args, **kwargs):
@@ -1825,7 +1841,8 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
         # Get video info
         video_info = {}
         embed_webpage = None
-        if re.search(r'player-age-gate-content">', video_webpage) is not None:
+        if (self._og_search_property('restrictions:age', video_webpage, default=None) == '18+'
+                or re.search(r'player-age-gate-content">', video_webpage) is not None):
             age_gate = True
             # We simulate the access to the video from www.youtube.com/v/{video_id}
             # this can be viewed without login into Youtube
@@ -1930,7 +1947,9 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
             ''', replace_url, video_description)
             video_description = clean_html(video_description)
         else:
-            video_description = video_details.get('shortDescription') or self._html_search_meta('description', video_webpage)
+            video_description = video_details.get('shortDescription')
+            if video_description is None:
+                video_description = self._html_search_meta('description', video_webpage)
 
         if not smuggled_data.get('force_singlefeed', False):
             if not self._downloader.params.get('noplaylist'):
@@ -3008,7 +3027,7 @@ class YoutubeChannelIE(YoutubePlaylistBaseInfoExtractor):
 
 class YoutubeUserIE(YoutubeChannelIE):
     IE_DESC = 'YouTube.com user videos (URL or "ytuser" keyword)'
-    _VALID_URL = r'(?:(?:https?://(?:\w+\.)?youtube\.com/(?:(?P<user>user|c)/)?(?!(?:attribution_link|watch|results|shared)(?:$|[^a-z_A-Z0-9-])))|ytuser:)(?!feed/)(?P<id>[A-Za-z0-9_-]+)'
+    _VALID_URL = r'(?:(?:https?://(?:\w+\.)?youtube\.com/(?:(?P<user>user|c)/)?(?!(?:attribution_link|watch|results|shared)(?:$|[^a-z_A-Z0-9%-])))|ytuser:)(?!feed/)(?P<id>[A-Za-z0-9_%-]+)'
     _TEMPLATE_URL = 'https://www.youtube.com/%s/%s/videos'
     IE_NAME = 'youtube:user'
 
@@ -3037,6 +3056,9 @@ class YoutubeUserIE(YoutubeChannelIE):
         'only_matching': True,
     }, {
         'url': 'https://www.youtube.com/c/gametrailers',
+        'only_matching': True,
+    }, {
+        'url': 'https://www.youtube.com/c/Pawe%C5%82Zadro%C5%BCniak',
         'only_matching': True,
     }, {
         'url': 'https://www.youtube.com/gametrailers',

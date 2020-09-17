@@ -1,3 +1,42 @@
+version 2020.09.14
+
+Core
++ [postprocessor/embedthumbnail] Add support for non jpg/png thumbnails
+  (#25687, #25717)
+
+Extractors
+* [rtlnl] Extend URL regular expression (#26549, #25821)
+* [youtube] Fix empty description extraction (#26575, #26006)
+* [srgssr] Extend URL regular expression (#26555, #26556, #26578)
+* [googledrive] Use redirect URLs for source format (#18877, #23919, #24689,
+  #26565)
+* [svtplay] Fix id extraction (#26576)
+* [redbulltv] Improve support for rebull.com TV localized URLs (#22063)
++ [redbulltv] Add support for new redbull.com TV URLs (#22037, #22063)
+* [soundcloud:pagedplaylist] Reduce pagination limit (#26557)
+
+
+version 2020.09.06
+
+Core
++ [utils] Recognize wav mimetype (#26463)
+
+Extractors
+* [nrktv:episode] Improve video id extraction (#25594, #26369, #26409)
+* [youtube] Fix age gate content detection (#26100, #26152, #26311, #26384)
+* [youtube:user] Extend URL regular expression (#26443)
+* [xhamster] Improve initials regular expression (#26526, #26353)
+* [svtplay] Fix video id extraction (#26425, #26428, #26438)
+* [twitch] Rework extractors (#12297, #20414, #20604, #21811, #21812, #22979,
+  #24263, #25010, #25553, #25606)
+    * Switch to GraphQL
+    + Add support for collections
+    + Add support for clips and collections playlists
+* [biqle] Improve video ext extraction
+* [xhamster] Fix extraction (#26157, #26254)
+* [xhamster] Extend URL regular expression (#25789, #25804, #25927))
+
+
 version 2020.07.28
 
 Extractors
