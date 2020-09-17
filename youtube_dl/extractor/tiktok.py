@@ -37,7 +37,10 @@ class TikTokBaseIE(InfoExtractor):
             'url': try_get(video_info, lambda x: x['video']['urls'][0]),
             'ext': 'mp4',
             'height': height,
-            'width': width
+            'width': width,
+            'http_headers': {
+                'Referer': self._og_search_url(webpage),
+            },
         })
 
         return {
