@@ -672,7 +672,10 @@ from .nationalgeographic import (
     NationalGeographicVideoIE,
     NationalGeographicTVIE,
 )
-from .naver import NaverIE
+from .naver import (
+    NaverIE,
+    NaverLiveIE,
+)
 from .nba import NBAIE
 from .nbc import (
     CSNNEIE,
