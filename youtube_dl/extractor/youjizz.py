@@ -44,7 +44,7 @@ class YouJizzIE(InfoExtractor):
 
         encodings = self._parse_json(
             self._search_regex(
-                r'encodings\s*=\s*(\[.+?\]);\n', webpage, 'encodings',
+                r'[Ee]ncodings\s*=\s*(\[.+?\]);\n', webpage, 'encodings',
                 default='[]'),
             video_id, fatal=False)
         for encoding in encodings:

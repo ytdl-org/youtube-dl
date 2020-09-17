@@ -7,7 +7,7 @@
 # https://github.com/zsh-users/antigen
 
 # Install youtube-dl:
-# antigen bundle rg3/youtube-dl
+# antigen bundle ytdl-org/youtube-dl
 # Bundles installed by antigen are available for use immediately.
 
 # Update youtube-dl (and all other antigen bundles):

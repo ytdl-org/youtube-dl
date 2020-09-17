@@ -84,8 +84,8 @@ class NDTVIE(InfoExtractor):
 
         # '__title' does not contain extra words such as sub-site name, "Video" etc.
         title = compat_urllib_parse_unquote_plus(
-            self._search_regex(r"__title\s*=\s*'([^']+)'", webpage, 'title', default=None) or
-            self._og_search_title(webpage))
+            self._search_regex(r"__title\s*=\s*'([^']+)'", webpage, 'title', default=None)
+            or self._og_search_title(webpage))
 
         filename = self._search_regex(
             r"(?:__)?filename\s*[:=]\s*'([^']+)'", webpage, 'video filename')

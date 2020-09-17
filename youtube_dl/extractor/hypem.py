@@ -1,18 +1,11 @@
 from __future__ import unicode_literals
 
-import json
-import time
-
 from .common import InfoExtractor
-from ..compat import compat_urllib_parse_urlencode
-from ..utils import (
-    ExtractorError,
-    sanitized_Request,
-)
+from ..utils import int_or_none
 
 
 class HypemIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:www\.)?hypem\.com/track/(?P<id>[^/]+)/'
+    _VALID_URL = r'https?://(?:www\.)?hypem\.com/track/(?P<id>[0-9a-z]{5})'
     _TEST = {
         'url': 'http://hypem.com/track/1v6ga/BODYWORK+-+TAME',
         'md5': 'b9cc91b5af8995e9f0c1cee04c575828',
@@ -21,41 +14,36 @@ class HypemIE(InfoExtractor):
             'ext': 'mp3',
             'title': 'Tame',
             'uploader': 'BODYWORK',
+            'timestamp': 1371810457,
+            'upload_date': '20130621',
         }
     }
 
     def _real_extract(self, url):
         track_id = self._match_id(url)
 
-        data = {'ax': 1, 'ts': time.time()}
-        request = sanitized_Request(url + '?' + compat_urllib_parse_urlencode(data))
-        response, urlh = self._download_webpage_handle(
-            request, track_id, 'Downloading webpage with the url')
+        response = self._download_webpage(url, track_id)
 
-        html_tracks = self._html_search_regex(
-            r'(?ms)<script type="application/json" id="displayList-data">(.+?)</script>',
-            response, 'tracks')
-        try:
-            track_list = json.loads(html_tracks)
-            track = track_list['tracks'][0]
-        except ValueError:
-            raise ExtractorError('Hypemachine contained invalid JSON.')
+        track = self._parse_json(self._html_search_regex(
+            r'(?s)<script\s+type="application/json"\s+id="displayList-data">(.+?)</script>',
+            response, 'tracks'), track_id)['tracks'][0]
 
-        key = track['key']
         track_id = track['id']
         title = track['song']
 
-        request = sanitized_Request(
-            'http://hypem.com/serve/source/%s/%s' % (track_id, key),
-            '', {'Content-Type': 'application/json'})
-        song_data = self._download_json(request, track_id, 'Downloading metadata')
-        final_url = song_data['url']
-        artist = track.get('artist')
+        final_url = self._download_json(
+            'http://hypem.com/serve/source/%s/%s' % (track_id, track['key']),
+            track_id, 'Downloading metadata', headers={
+                'Content-Type': 'application/json'
+            })['url']
 
         return {
             'id': track_id,
             'url': final_url,
             'ext': 'mp3',
             'title': title,
-            'uploader': artist,
+            'uploader': track.get('artist'),
+            'duration': int_or_none(track.get('time')),
+            'timestamp': int_or_none(track.get('ts')),
+            'track': title,
         }

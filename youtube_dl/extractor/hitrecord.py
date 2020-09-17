@@ -47,8 +47,8 @@ class HitRecordIE(InfoExtractor):
             tags = [
                 t['text']
                 for t in tags_list
-                if isinstance(t, dict) and t.get('text') and
-                isinstance(t['text'], compat_str)]
+                if isinstance(t, dict) and t.get('text')
+                and isinstance(t['text'], compat_str)]
 
         return {
             'id': video_id,

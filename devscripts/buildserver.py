@@ -322,7 +322,7 @@ class GITBuilder(GITInfoBuilder):
 
 
 class YoutubeDLBuilder(object):
-    authorizedUsers = ['fraca7', 'phihag', 'rg3', 'FiloSottile']
+    authorizedUsers = ['fraca7', 'phihag', 'rg3', 'FiloSottile', 'ytdl-org']
 
     def __init__(self, **kwargs):
         if self.repoName != 'youtube-dl':

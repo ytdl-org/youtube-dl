@@ -71,7 +71,7 @@ class BleacherReportIE(InfoExtractor):
         video = article_data.get('video')
         if video:
             video_type = video['type']
-            if video_type == 'cms.bleacherreport.com':
+            if video_type in ('cms.bleacherreport.com', 'vid.bleacherreport.com'):
                 info['url'] = 'http://bleacherreport.com/video_embed?id=%s' % video['id']
             elif video_type == 'ooyala.com':
                 info['url'] = 'ooyala:%s' % video['id']
@@ -87,9 +87,9 @@ class BleacherReportIE(InfoExtractor):
 
 
 class BleacherReportCMSIE(AMPIE):
-    _VALID_URL = r'https?://(?:www\.)?bleacherreport\.com/video_embed\?id=(?P<id>[0-9a-f-]{36})'
+    _VALID_URL = r'https?://(?:www\.)?bleacherreport\.com/video_embed\?id=(?P<id>[0-9a-f-]{36}|\d{5})'
     _TESTS = [{
-        'url': 'http://bleacherreport.com/video_embed?id=8fd44c2f-3dc5-4821-9118-2c825a98c0e1',
+        'url': 'http://bleacherreport.com/video_embed?id=8fd44c2f-3dc5-4821-9118-2c825a98c0e1&library=video-cms',
         'md5': '2e4b0a997f9228ffa31fada5c53d1ed1',
         'info_dict': {
             'id': '8fd44c2f-3dc5-4821-9118-2c825a98c0e1',
@@ -101,6 +101,6 @@ class BleacherReportCMSIE(AMPIE):
 
     def _real_extract(self, url):
         video_id = self._match_id(url)
-        info = self._extract_feed_info('http://cms.bleacherreport.com/media/items/%s/akamai.json' % video_id)
+        info = self._extract_feed_info('http://vid.bleacherreport.com/videos/%s.akamai' % video_id)
         info['id'] = video_id
         return info

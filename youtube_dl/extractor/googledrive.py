@@ -36,7 +36,7 @@ class GoogleDriveIE(InfoExtractor):
         }
     }, {
         # video can't be watched anonymously due to view count limit reached,
-        # but can be downloaded (see https://github.com/rg3/youtube-dl/issues/14046)
+        # but can be downloaded (see https://github.com/ytdl-org/youtube-dl/issues/14046)
         'url': 'https://drive.google.com/file/d/0B-vUyvmDLdWDcEt4WjBqcmI2XzQ/view',
         'md5': 'bfbd670d03a470bb1e6d4a257adec12e',
         'info_dict': {
@@ -220,19 +220,27 @@ class GoogleDriveIE(InfoExtractor):
                 'id': video_id,
                 'export': 'download',
             })
-        urlh = self._request_webpage(
-            source_url, video_id, note='Requesting source file',
-            errnote='Unable to request source file', fatal=False)
+
+        def request_source_file(source_url, kind):
+            return self._request_webpage(
+                source_url, video_id, note='Requesting %s file' % kind,
+                errnote='Unable to request %s file' % kind, fatal=False)
+        urlh = request_source_file(source_url, 'source')
         if urlh:
-            def add_source_format(src_url):
+            def add_source_format(urlh):
                 formats.append({
-                    'url': src_url,
+                    # Use redirect URLs as download URLs in order to calculate
+                    # correct cookies in _calc_cookies.
+                    # Using original URLs may result in redirect loop due to
+                    # google.com's cookies mistakenly used for googleusercontent.com
+                    # redirect URLs (see #23919).
+                    'url': urlh.geturl(),
                     'ext': determine_ext(title, 'mp4').lower(),
                     'format_id': 'source',
                     'quality': 1,
                 })
             if urlh.headers.get('Content-Disposition'):
-                add_source_format(source_url)
+                add_source_format(urlh)
             else:
                 confirmation_webpage = self._webpage_read_content(
                     urlh, url, video_id, note='Downloading confirmation page',
@@ -242,9 +250,12 @@ class GoogleDriveIE(InfoExtractor):
                         r'confirm=([^&"\']+)', confirmation_webpage,
                         'confirmation code', fatal=False)
                     if confirm:
-                        add_source_format(update_url_query(source_url, {
+                        confirmed_source_url = update_url_query(source_url, {
                             'confirm': confirm,
-                        }))
+                        })
+                        urlh = request_source_file(confirmed_source_url, 'confirmed source')
+                        if urlh and urlh.headers.get('Content-Disposition'):
+                            add_source_format(urlh)
 
         if not formats:
             reason = self._search_regex(

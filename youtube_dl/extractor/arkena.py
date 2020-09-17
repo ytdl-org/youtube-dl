@@ -103,7 +103,7 @@ class ArkenaIE(InfoExtractor):
                         f_url, video_id, mpd_id=kind, fatal=False))
                 elif kind == 'silverlight':
                     # TODO: process when ism is supported (see
-                    # https://github.com/rg3/youtube-dl/issues/8118)
+                    # https://github.com/ytdl-org/youtube-dl/issues/8118)
                     continue
                 else:
                     tbr = float_or_none(f.get('Bitrate'), 1000)

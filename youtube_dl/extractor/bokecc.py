@@ -11,8 +11,8 @@ from ..utils import ExtractorError
 class BokeCCBaseIE(InfoExtractor):
     def _extract_bokecc_formats(self, webpage, video_id, format_id=None):
         player_params_str = self._html_search_regex(
-            r'<(?:script|embed)[^>]+src="http://p\.bokecc\.com/player\?([^"]+)',
-            webpage, 'player params')
+            r'<(?:script|embed)[^>]+src=(?P<q>["\'])(?:https?:)?//p\.bokecc\.com/(?:player|flash/player\.swf)\?(?P<query>.+?)(?P=q)',
+            webpage, 'player params', group='query')
 
         player_params = compat_parse_qs(player_params_str)
 
@@ -36,9 +36,9 @@ class BokeCCIE(BokeCCBaseIE):
     _VALID_URL = r'https?://union\.bokecc\.com/playvideo\.bo\?(?P<query>.*)'
 
     _TESTS = [{
-        'url': 'http://union.bokecc.com/playvideo.bo?vid=E44D40C15E65EA30&uid=CD0C5D3C8614B28B',
+        'url': 'http://union.bokecc.com/playvideo.bo?vid=E0ABAE9D4F509B189C33DC5901307461&uid=FE644790DE9D154A',
         'info_dict': {
-            'id': 'CD0C5D3C8614B28B_E44D40C15E65EA30',
+            'id': 'FE644790DE9D154A_E0ABAE9D4F509B189C33DC5901307461',
             'ext': 'flv',
             'title': 'BokeCC Video',
         },

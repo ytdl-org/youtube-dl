@@ -114,7 +114,7 @@ class DreiSatIE(InfoExtractor):
                     video_url, video_id, fatal=False))
             elif ext == 'm3u8':
                 # the certificates are misconfigured (see
-                # https://github.com/rg3/youtube-dl/issues/8665)
+                # https://github.com/ytdl-org/youtube-dl/issues/8665)
                 if video_url.startswith('https://'):
                     continue
                 formats.extend(self._extract_m3u8_formats(

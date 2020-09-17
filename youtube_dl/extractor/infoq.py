@@ -122,9 +122,9 @@ class InfoQIE(BokeCCBaseIE):
             formats = self._extract_bokecc_formats(webpage, video_id)
         else:
             formats = (
-                self._extract_rtmp_video(webpage) +
-                self._extract_http_video(webpage) +
-                self._extract_http_audio(webpage, video_id))
+                self._extract_rtmp_video(webpage)
+                + self._extract_http_video(webpage)
+                + self._extract_http_audio(webpage, video_id))
 
         self._sort_formats(formats)
 

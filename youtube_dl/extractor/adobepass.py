@@ -25,6 +25,11 @@ MSO_INFO = {
         'username_field': 'username',
         'password_field': 'password',
     },
+    'ATT': {
+        'name': 'AT&T U-verse',
+        'username_field': 'userid',
+        'password_field': 'password',
+    },
     'ATTOTT': {
         'name': 'DIRECTV NOW',
         'username_field': 'email',

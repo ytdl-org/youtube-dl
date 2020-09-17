@@ -176,7 +176,9 @@ class FileDownloader(object):
             return
         speed = float(byte_counter) / elapsed
         if speed > rate_limit:
-            time.sleep(max((byte_counter // rate_limit) - elapsed, 0))
+            sleep_time = float(byte_counter) / rate_limit - elapsed
+            if sleep_time > 0:
+                time.sleep(sleep_time)
 
     def temp_name(self, filename):
         """Returns a temporary filename for the given filename."""
@@ -330,15 +332,15 @@ class FileDownloader(object):
         """
 
         nooverwrites_and_exists = (
-            self.params.get('nooverwrites', False) and
-            os.path.exists(encodeFilename(filename))
+            self.params.get('nooverwrites', False)
+            and os.path.exists(encodeFilename(filename))
         )
 
         if not hasattr(filename, 'write'):
             continuedl_and_exists = (
-                self.params.get('continuedl', True) and
-                os.path.isfile(encodeFilename(filename)) and
-                not self.params.get('nopart', False)
+                self.params.get('continuedl', True)
+                and os.path.isfile(encodeFilename(filename))
+                and not self.params.get('nopart', False)
             )
 
             # Check file already present

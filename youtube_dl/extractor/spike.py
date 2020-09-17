@@ -8,22 +8,20 @@ class BellatorIE(MTVServicesInfoExtractor):
     _TESTS = [{
         'url': 'http://www.bellator.com/fight/atwr7k/bellator-158-michael-page-vs-evangelista-cyborg',
         'info_dict': {
-            'id': 'b55e434e-fde1-4a98-b7cc-92003a034de4',
-            'ext': 'mp4',
-            'title': 'Douglas Lima vs. Paul Daley - Round 1',
-            'description': 'md5:805a8dd29310fd611d32baba2f767885',
+            'title': 'Michael Page vs. Evangelista Cyborg',
+            'description': 'md5:0d917fc00ffd72dd92814963fc6cbb05',
         },
-        'params': {
-            # m3u8 download
-            'skip_download': True,
-        },
+        'playlist_count': 3,
     }, {
         'url': 'http://www.bellator.com/video-clips/bw6k7n/bellator-158-foundations-michael-venom-page',
         'only_matching': True,
     }]
 
-    _FEED_URL = 'http://www.spike.com/feeds/mrss/'
+    _FEED_URL = 'http://www.bellator.com/feeds/mrss/'
     _GEO_COUNTRIES = ['US']
+
+    def _extract_mgid(self, webpage):
+        return self._extract_triforce_mgid(webpage)
 
 
 class ParamountNetworkIE(MTVServicesInfoExtractor):
@@ -46,8 +44,12 @@ class ParamountNetworkIE(MTVServicesInfoExtractor):
     _GEO_COUNTRIES = ['US']
 
     def _extract_mgid(self, webpage):
-        cs = self._parse_json(self._search_regex(
+        root_data = self._parse_json(self._search_regex(
             r'window\.__DATA__\s*=\s*({.+})',
-            webpage, 'data'), None)['children']
-        c = next(c for c in cs if c.get('type') == 'VideoPlayer')
+            webpage, 'data'), None)
+
+        def find_sub_data(data, data_type):
+            return next(c for c in data['children'] if c.get('type') == data_type)
+
+        c = find_sub_data(find_sub_data(root_data, 'MainContainer'), 'VideoPlayer')
         return c['props']['media']['video']['config']['uri']

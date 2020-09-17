@@ -45,12 +45,12 @@ for test in gettestcases():
 
         RESULT = ('.' + domain + '\n' in LIST or '\n' + domain + '\n' in LIST)
 
-    if RESULT and ('info_dict' not in test or 'age_limit' not in test['info_dict'] or
-                   test['info_dict']['age_limit'] != 18):
+    if RESULT and ('info_dict' not in test or 'age_limit' not in test['info_dict']
+                   or test['info_dict']['age_limit'] != 18):
         print('\nPotential missing age_limit check: {0}'.format(test['name']))
 
-    elif not RESULT and ('info_dict' in test and 'age_limit' in test['info_dict'] and
-                         test['info_dict']['age_limit'] == 18):
+    elif not RESULT and ('info_dict' in test and 'age_limit' in test['info_dict']
+                         and test['info_dict']['age_limit'] == 18):
         print('\nPotential false negative: {0}'.format(test['name']))
 
     else:

@@ -1,3 +1,1505 @@
+version 2020.09.14
+
+Core
++ [postprocessor/embedthumbnail] Add support for non jpg/png thumbnails
+  (#25687, #25717)
+
+Extractors
+* [rtlnl] Extend URL regular expression (#26549, #25821)
+* [youtube] Fix empty description extraction (#26575, #26006)
+* [srgssr] Extend URL regular expression (#26555, #26556, #26578)
+* [googledrive] Use redirect URLs for source format (#18877, #23919, #24689,
+  #26565)
+* [svtplay] Fix id extraction (#26576)
+* [redbulltv] Improve support for rebull.com TV localized URLs (#22063)
++ [redbulltv] Add support for new redbull.com TV URLs (#22037, #22063)
+* [soundcloud:pagedplaylist] Reduce pagination limit (#26557)
+
+
+version 2020.09.06
+
+Core
++ [utils] Recognize wav mimetype (#26463)
+
+Extractors
+* [nrktv:episode] Improve video id extraction (#25594, #26369, #26409)
+* [youtube] Fix age gate content detection (#26100, #26152, #26311, #26384)
+* [youtube:user] Extend URL regular expression (#26443)
+* [xhamster] Improve initials regular expression (#26526, #26353)
+* [svtplay] Fix video id extraction (#26425, #26428, #26438)
+* [twitch] Rework extractors (#12297, #20414, #20604, #21811, #21812, #22979,
+  #24263, #25010, #25553, #25606)
+    * Switch to GraphQL
+    + Add support for collections
+    + Add support for clips and collections playlists
+* [biqle] Improve video ext extraction
+* [xhamster] Fix extraction (#26157, #26254)
+* [xhamster] Extend URL regular expression (#25789, #25804, #25927))
+
+
+version 2020.07.28
+
+Extractors
+* [youtube] Fix sigfunc name extraction (#26134, #26135, #26136, #26137)
+* [youtube] Improve description extraction (#25937, #25980)
+* [wistia] Restrict embed regular expression (#25969)
+* [youtube] Prevent excess HTTP 301 (#25786)
++ [youtube:playlists] Extend URL regular expression (#25810)
++ [bellmedia] Add support for cp24.com clip URLs (#25764)
+* [brightcove] Improve embed detection (#25674)
+
+
+version 2020.06.16.1
+
+Extractors
+* [youtube] Force old layout (#25682, #25683, #25680, #25686)
+* [youtube] Fix categories and improve tags extraction
+
+
+version 2020.06.16
+
+Extractors
+* [youtube] Fix uploader id and uploader URL extraction
+* [youtube] Improve view count extraction
+* [youtube] Fix upload date extraction (#25677)
+* [youtube] Fix thumbnails extraction (#25676)
+* [youtube] Fix playlist and feed extraction (#25675)
++ [facebook] Add support for single-video ID links
++ [youtube] Extract chapters from JSON (#24819)
++ [kaltura] Add support for multiple embeds on a webpage (#25523)
+
+
+version 2020.06.06
+
+Extractors
+* [tele5] Bypass geo restriction
++ [jwplatform] Add support for bypass geo restriction
+* [tele5] Prefer jwplatform over nexx (#25533)
+* [twitch:stream] Expect 400 and 410 HTTP errors from API
+* [twitch:stream] Fix extraction (#25528)
+* [twitch] Fix thumbnails extraction (#25531)
++ [twitch] Pass v5 Accept HTTP header (#25531)
+* [brightcove] Fix subtitles extraction (#25540)
++ [malltv] Add support for sk.mall.tv (#25445)
+* [periscope] Fix untitled broadcasts (#25482)
+* [jwplatform] Improve embeds extraction (#25467)
+
+
+version 2020.05.29
+
+Core
+* [postprocessor/ffmpeg] Embed series metadata with --add-metadata
+* [utils] Fix file permissions in write_json_file (#12471, #25122)
+
+Extractors
+* [ard:beta] Extend URL regular expression (#25405)
++ [youtube] Add support for more invidious instances (#25417)
+* [giantbomb] Extend URL regular expression (#25222)
+* [ard] Improve URL regular expression (#25134, #25198)
+* [redtube] Improve formats extraction and extract m3u8 formats (#25311,
+  #25321)
+* [indavideo] Switch to HTTPS for API request (#25191)
+* [redtube] Improve title extraction (#25208)
+* [vimeo] Improve format extraction and sorting (#25285)
+* [soundcloud] Reduce API playlist page limit (#25274)
++ [youtube] Add support for yewtu.be (#25226)
+* [mailru] Fix extraction (#24530, #25239)
+* [bellator] Fix mgid extraction (#25195)
+
+
+version 2020.05.08
+
+Core
+* [downloader/http] Request last data block of exact remaining size
+* [downloader/http] Finish downloading once received data length matches
+  expected
+* [extractor/common] Use compat_cookiejar_Cookie for _set_cookie to always
+  ensure cookie name and value are bytestrings on python 2 (#23256, #24776)
++ [compat] Introduce compat_cookiejar_Cookie
+* [utils] Improve cookie files support
+    + Add support for UTF-8 in cookie files
+    * Skip malformed cookie file entries instead of crashing (invalid entry
+      length, invalid expires at)
+
+Extractors
+* [youtube] Improve signature cipher extraction (#25187, #25188)
+* [iprima] Improve extraction (#25138)
+* [uol] Fix extraction (#22007)
++ [orf] Add support for more radio stations (#24938, #24968)
+* [dailymotion] Fix typo
+- [puhutv] Remove no longer available HTTP formats (#25124)
+
+
+version 2020.05.03
+
+Core
++ [extractor/common] Extract multiple JSON-LD entries
+* [options] Clarify doc on --exec command (#19087, #24883)
+* [extractor/common] Skip malformed ISM manifest XMLs while extracting
+  ISM formats (#24667)
+
+Extractors
+* [crunchyroll] Fix and improve extraction (#25096, #25060)
+* [youtube] Improve player id extraction
+* [youtube] Use redirected video id if any (#25063)
+* [yahoo] Fix GYAO Player extraction and relax URL regular expression
+  (#24178, #24778)
+* [tvplay] Fix Viafree extraction (#15189, #24473, #24789)
+* [tenplay] Relax URL regular expression (#25001)
++ [prosiebensat1] Extract series metadata
+* [prosiebensat1] Improve extraction and remove 7tv.de support (#24948)
+- [prosiebensat1] Remove 7tv.de support (#24948)
+* [youtube] Fix DRM videos detection (#24736)
+* [thisoldhouse] Fix video id extraction (#24548, #24549)
++ [soundcloud] Extract AAC format (#19173, #24708)
+* [youtube] Skip broken multifeed videos (#24711)
+* [nova:embed] Fix extraction (#24700)
+* [motherless] Fix extraction (#24699)
+* [twitch:clips] Extend URL regular expression (#24290, #24642)
+* [tv4] Fix ISM formats extraction (#24667)
+* [tele5] Fix extraction (#24553)
++ [mofosex] Add support for generic embeds (#24633)
++ [youporn] Add support for generic embeds
++ [spankwire] Add support for generic embeds (#24633)
+* [spankwire] Fix extraction (#18924, #20648)
+
+
+version 2020.03.24
+
+Core
+- [utils] Revert support for cookie files with spaces used instead of tabs
+
+Extractors
+* [teachable] Update upskillcourses and gns3 domains
+* [generic] Look for teachable embeds before wistia
++ [teachable] Extract chapter metadata (#24421)
++ [bilibili] Add support for player.bilibili.com (#24402)
++ [bilibili] Add support for new URL schema with BV ids (#24439, #24442)
+* [limelight] Remove disabled API requests (#24255)
+* [soundcloud] Fix download URL extraction (#24394)
++ [cbc:watch] Add support for authentication (#19160)
+* [hellporno] Fix extraction (#24399)
+* [xtube] Fix formats extraction (#24348)
+* [ndr] Fix extraction (#24326)
+* [nhk] Update m3u8 URL and use native HLS downloader (#24329)
+- [nhk] Remove obsolete rtmp formats (#24329)
+* [nhk] Relax URL regular expression (#24329)
+- [vimeo] Revert fix showcase password protected video extraction (#24224)
+
+
+version 2020.03.08
+
+Core
++ [utils] Add support for cookie files with spaces used instead of tabs
+
+Extractors
++ [pornhub] Add support for pornhubpremium.com (#24288)
+- [youtube] Remove outdated code and unnecessary requests
+* [youtube] Improve extraction in 429 HTTP error conditions (#24283)
+* [nhk] Update API version (#24270)
+
+
+version 2020.03.06
+
+Extractors
+* [youtube] Fix age-gated videos support without login (#24248)
+* [vimeo] Fix showcase password protected video extraction (#24224)
+* [pornhub] Improve title extraction (#24184)
+* [peertube] Improve extraction (#23657)
++ [servus] Add support for new URL schema (#23475, #23583, #24142)
+* [vimeo] Fix subtitles URLs (#24209)
+
+
+version 2020.03.01
+
+Core
+* [YoutubeDL] Force redirect URL to unicode on python 2
+- [options] Remove duplicate short option -v for --version (#24162)
+
+Extractors
+* [xhamster] Fix extraction (#24205)
+* [franceculture] Fix extraction (#24204)
++ [telecinco] Add support for article opening videos
+* [telecinco] Fix extraction (#24195)
+* [xtube] Fix metadata extraction (#21073, #22455)
+* [youjizz] Fix extraction (#24181)
+- Remove no longer needed compat_str around geturl
+* [pornhd] Fix extraction (#24128)
++ [teachable] Add support for multiple videos per lecture (#24101)
++ [wistia] Add support for multiple generic embeds (#8347, 11385)
+* [imdb] Fix extraction (#23443)
+* [tv2dk:bornholm:play] Fix extraction (#24076)
+
+
+version 2020.02.16
+
+Core
+* [YoutubeDL] Fix playlist entry indexing with --playlist-items (#10591,
+  #10622)
+* [update] Fix updating via symlinks (#23991)
++ [compat] Introduce compat_realpath (#23991)
+
+Extractors
++ [npr] Add support for streams (#24042)
++ [24video] Add support for porn.24video.net (#23779, #23784)
+- [jpopsuki] Remove extractor (#23858)
+* [nova] Improve extraction (#23690)
+* [nova:embed] Improve (#23690)
+* [nova:embed] Fix extraction (#23672)
++ [abc:iview] Add support for 720p (#22907, #22921)
+* [nytimes] Improve format sorting (#24010)
++ [toggle] Add support for mewatch.sg (#23895, #23930)
+* [thisoldhouse] Fix extraction (#23951)
++ [popcorntimes] Add support for popcorntimes.tv (#23949)
+* [sportdeutschland] Update to new API
+* [twitch:stream] Lowercase channel id for stream request (#23917)
+* [tv5mondeplus] Fix extraction (#23907, #23911)
+* [tva] Relax URL regular expression (#23903)
+* [vimeo] Fix album extraction (#23864)
+* [viewlift] Improve extraction
+    * Fix extraction (#23851)
+    + Add support for authentication
+    + Add support for more domains
+* [svt] Fix series extraction (#22297)
+* [svt] Fix article extraction (#22897, #22919)
+* [soundcloud] Imporve private playlist/set tracks extraction (#3707)
+
+
+version 2020.01.24
+
+Extractors
+* [youtube] Fix sigfunc name extraction (#23819)
+* [stretchinternet] Fix extraction (#4319)
+* [voicerepublic] Fix extraction
+* [azmedien] Fix extraction (#23783)
+* [businessinsider] Fix jwplatform id extraction (#22929, #22954)
++ [24video] Add support for 24video.vip (#23753)
+* [ivi:compilation] Fix entries extraction (#23770)
+* [ard] Improve extraction (#23761)
+    * Simplify extraction
+    + Extract age limit and series
+    * Bypass geo-restriction
++ [nbc] Add support for nbc multi network URLs (#23049)
+* [americastestkitchen] Fix extraction
+* [zype] Improve extraction
+    + Extract subtitles (#21258)
+    + Support URLs with alternative keys/tokens (#21258)
+    + Extract more metadata
+* [orf:tvthek] Improve geo restricted videos detection (#23741)
+* [soundcloud] Restore previews extraction (#23739)
+
+
+version 2020.01.15
+
+Extractors
+* [yourporn] Fix extraction (#21645, #22255, #23459)
++ [canvas] Add support for new API endpoint (#17680, #18629)
+* [ndr:base:embed] Improve thumbnails extraction (#23731)
++ [vodplatform] Add support for embed.kwikmotion.com domain
++ [twitter] Add support for promo_video_website cards (#23711)
+* [orf:radio] Clean description and improve extraction
+* [orf:fm4] Fix extraction (#23599)
+* [safari] Fix kaltura session extraction (#23679, #23670)
+* [lego] Fix extraction and extract subtitle (#23687)
+* [cloudflarestream] Improve extraction
+    + Add support for bytehighway.net domain
+    + Add support for signed URLs
+    + Extract thumbnail
+* [naver] Improve extraction
+    * Improve geo-restriction handling
+    + Extract automatic captions
+    + Extract uploader metadata
+    + Extract VLive HLS formats
+    * Improve metadata extraction
+- [pandatv] Remove extractor (#23630)
+* [dctp] Fix format extraction (#23656)
++ [scrippsnetworks] Add support for www.discovery.com videos
+* [discovery] Fix anonymous token extraction (#23650)
+* [nrktv:seriebase] Fix extraction (#23625, #23537)
+* [wistia] Improve format extraction and extract subtitles (#22590)
+* [vice] Improve extraction (#23631)
+* [redtube] Detect private videos (#23518)
+
+
+version 2020.01.01
+
+Extractors
+* [brightcove] Invalidate policy key cache on failing requests
+* [pornhub] Improve locked videos detection (#22449, #22780)
++ [pornhub] Add support for m3u8 formats
+* [pornhub] Fix extraction (#22749, #23082)
+* [brightcove] Update policy key on failing requests
+* [spankbang] Improve removed video detection (#23423)
+* [spankbang] Fix extraction (#23307, #23423, #23444)
+* [soundcloud] Automatically update client id on failing requests
+* [prosiebensat1] Improve geo restriction handling (#23571)
+* [brightcove] Cache brightcove player policy keys
+* [teachable] Fail with error message if no video URL found
+* [teachable] Improve locked lessons detection (#23528)
++ [scrippsnetworks] Add support for Scripps Networks sites (#19857, #22981)
+* [mitele] Fix extraction (#21354, #23456)
+* [soundcloud] Update client id (#23516)
+* [mailru] Relax URL regular expressions (#23509)
+
+
+version 2019.12.25
+
+Core
+* [utils] Improve str_to_int
++ [downloader/hls] Add ability to override AES decryption key URL (#17521)
+
+Extractors
+* [mediaset] Fix parse formats (#23508)
++ [tv2dk:bornholm:play] Add support for play.tv2bornholm.dk (#23291)
++ [slideslive] Add support for url and vimeo service names (#23414)
+* [slideslive] Fix extraction (#23413)
+* [twitch:clips] Fix extraction (#23375)
++ [soundcloud] Add support for token protected embeds (#18954)
+* [vk] Improve extraction
+    * Fix User Videos extraction (#23356)
+    * Extract all videos for lists with more than 1000 videos (#23356)
+    + Add support for video albums (#14327, #14492)
+- [kontrtube] Remove extractor
+- [videopremium] Remove extractor
+- [musicplayon] Remove extractor (#9225)
++ [ufctv] Add support for ufcfightpass.imgdge.com and
+  ufcfightpass.imggaming.com (#23343)
++ [twitch] Extract m3u8 formats frame rate (#23333)
++ [imggaming] Add support for playlists and extract subtitles
++ [ufcarabia] Add support for UFC Arabia (#23312)
+* [ufctv] Fix extraction
+* [yahoo] Fix gyao brightcove player id (#23303)
+* [vzaar] Override AES decryption key URL (#17521)
++ [vzaar] Add support for AES HLS manifests (#17521, #23299)
+* [nrl] Fix extraction
+* [teachingchannel] Fix extraction
+* [nintendo] Fix extraction and partially add support for Nintendo Direct
+  videos (#4592)
++ [ooyala] Add better fallback values for domain and streams variables
++ [youtube] Add support youtubekids.com (#23272)
+* [tv2] Detect DRM protection
++ [tv2] Add support for katsomo.fi and mtv.fi (#10543)
+* [tv2] Fix tv2.no article extraction
+* [msn] Improve extraction
+    + Add support for YouTube and NBCSports embeds
+    + Add support for articles with multiple videos
+    * Improve AOL embed support
+    * Improve format extraction
+* [abcotvs] Relax URL regular expression and improve metadata extraction
+  (#18014)
+* [channel9] Reduce response size
+* [adobetv] Improve extaction
+    * Use OnDemandPagedList for list extractors
+    * Reduce show extraction requests
+    * Extract original video format and subtitles
+    + Add support for adobe tv embeds
+
+
+version 2019.11.28
+
+Core
++ [utils] Add generic caesar cipher and rot47
+* [utils] Handle rd-suffixed day parts in unified_strdate (#23199)
+
+Extractors
+* [vimeo] Improve extraction
+    * Fix review extraction
+    * Fix ondemand extraction
+    * Make password protected player case as an expected error (#22896)
+    * Simplify channel based extractors code
+- [openload] Remove extractor (#11999)
+- [verystream] Remove extractor
+- [streamango] Remove extractor (#15406)
+* [dailymotion] Improve extraction
+    * Extract http formats included in m3u8 manifest
+    * Fix user extraction (#3553, #21415)
+    + Add suport for User Authentication (#11491)
+    * Fix password protected videos extraction (#23176)
+    * Respect age limit option and family filter cookie value (#18437)
+    * Handle video url playlist query param
+    * Report allowed countries for geo-restricted videos
+* [corus] Improve extraction
+    + Add support for Series Plus, W Network, YTV, ABC Spark, disneychannel.com
+      and disneylachaine.ca (#20861)
+    + Add support for self hosted videos (#22075)
+    * Detect DRM protection (#14910, #9164)
+* [vivo] Fix extraction (#22328, #22279)
++ [bitchute] Extract upload date (#22990, #23193)
+* [soundcloud] Update client id (#23214)
+
+
+version 2019.11.22
+
+Core
++ [extractor/common] Clean jwplayer description HTML tags
++ [extractor/common] Add data, headers and query to all major extract formats
+  methods
+
+Extractors
+* [chaturbate] Fix extraction (#23010, #23012)
++ [ntvru] Add support for non relative file URLs (#23140)
+* [vk] Fix wall audio thumbnails extraction (#23135)
+* [ivi] Fix format extraction (#21991)
+- [comcarcoff] Remove extractor
++ [drtv] Add support for new URL schema (#23059)
++ [nexx] Add support for Multi Player JS Setup (#23052)
++ [teamcoco] Add support for new videos (#23054)
+* [soundcloud] Check if the soundtrack has downloads left (#23045)
+* [facebook] Fix posts video data extraction (#22473)
+- [addanime] Remove extractor
+- [minhateca] Remove extractor
+- [daisuki] Remove extractor
+* [seeker] Fix extraction
+- [revision3] Remove extractors
+* [twitch] Fix video comments URL (#18593, #15828)
+* [twitter] Improve extraction
+    + Add support for generic embeds (#22168)
+    * Always extract http formats for native videos (#14934)
+    + Add support for Twitter Broadcasts (#21369)
+    + Extract more metadata
+    * Improve VMap format extraction
+    * Unify extraction code for both twitter statuses and cards
++ [twitch] Add support for Clip embed URLs
+* [lnkgo] Fix extraction (#16834)
+* [mixcloud] Improve extraction
+    * Improve metadata extraction (#11721)
+    * Fix playlist extraction (#22378)
+    * Fix user mixes extraction (#15197, #17865)
++ [kinja] Add support for Kinja embeds (#5756, #11282, #22237, #22384)
+* [onionstudios] Fix extraction
++ [hotstar] Pass Referer header to format requests (#22836)
+* [dplay] Minimize response size
++ [patreon] Extract uploader_id and filesize
+* [patreon] Minimize response size
+* [roosterteeth] Fix login request (#16094, #22689)
+
+
+version 2019.11.05
+
+Extractors
++ [scte] Add support for learning.scte.org (#22975)
++ [msn] Add support for Vidible and AOL embeds (#22195, #22227)
+* [myspass] Fix video URL extraction and improve metadata extraction (#22448)
+* [jamendo] Improve extraction
+    * Fix album extraction (#18564)
+    * Improve metadata extraction (#18565, #21379)
+* [mediaset] Relax URL guid matching (#18352)
++ [mediaset] Extract unprotected M3U and MPD manifests (#17204)
+* [telegraaf] Fix extraction
++ [bellmedia] Add support for marilyn.ca videos (#22193)
+* [stv] Fix extraction (#22928)
+- [iconosquare] Remove extractor
+- [keek] Remove extractor
+- [gameone] Remove extractor (#21778)
+- [flipagram] Remove extractor
+- [bambuser] Remove extractor
+* [wistia] Reduce embed extraction false positives
++ [wistia] Add support for inline embeds (#22931)
+- [go90] Remove extractor
+* [kakao] Remove raw request
++ [kakao] Extract format total bitrate
+* [daum] Fix VOD and Clip extracton (#15015)
+* [kakao] Improve extraction
+    + Add support for embed URLs
+    + Add support for Kakao Legacy vid based embed URLs
+    * Only extract fields used for extraction
+    * Strip description and extract tags
+* [mixcloud] Fix cloudcast data extraction (#22821)
+* [yahoo] Improve extraction
+    + Add support for live streams (#3597, #3779, #22178)
+    * Bypass cookie consent page for european domains (#16948, #22576)
+    + Add generic support for embeds (#20332)
+* [tv2] Fix and improve extraction (#22787)
++ [tv2dk] Add support for TV2 DK sites
+* [onet] Improve extraction …
+    + Add support for onet100.vod.pl
+    + Extract m3u8 formats
+    * Correct audio only format info
+* [fox9] Fix extraction
+
+
+version 2019.10.29
+
+Core
+* [utils] Actualize major IPv4 address blocks per country
+
+Extractors
++ [go] Add support for abc.com and freeform.com (#22823, #22864)
++ [mtv] Add support for mtvjapan.com
+* [mtv] Fix extraction for mtv.de (#22113)
+* [videodetective] Fix extraction
+* [internetvideoarchive] Fix extraction
+* [nbcnews] Fix extraction (#12569, #12576, #21703, #21923)
+- [hark] Remove extractor
+- [tutv] Remove extractor
+- [learnr] Remove extractor
+- [macgamestore] Remove extractor
+* [la7] Update Kaltura service URL (#22358)
+* [thesun] Fix extraction (#16966)
+- [makertv] Remove extractor
++ [tenplay] Add support for 10play.com.au (#21446)
+* [soundcloud] Improve extraction
+    * Improve format extraction (#22123)
+    + Extract uploader_id and uploader_url (#21916)
+    + Extract all known thumbnails (#19071, #20659)
+    * Fix extration for private playlists (#20976)
+    + Add support for playlist embeds (#20976)
+    * Skip preview formats (#22806)
+* [dplay] Improve extraction
+    + Add support for dplay.fi, dplay.jp and es.dplay.com (#16969)
+    * Fix it.dplay.com extraction (#22826)
+    + Extract creator, tags and thumbnails
+    * Handle playback API call errors
++ [discoverynetworks] Add support for dplay.co.uk
+* [vk] Improve extraction
+    + Add support for Odnoklassniki embeds
+    + Extract more videos from user lists (#4470)
+    + Fix wall post audio extraction (#18332)
+    * Improve error detection (#22568)
++ [odnoklassniki] Add support for embeds
+* [puhutv] Improve extraction
+    * Fix subtitles extraction
+    * Transform HLS URLs to HTTP URLs
+    * Improve metadata extraction
+* [ceskatelevize] Skip DRM media
++ [facebook] Extract subtitles (#22777)
+* [globo] Handle alternative hash signing method
+
+
+version 2019.10.22
+
+Core
+* [utils] Improve subtitles_filename (#22753)
+
+Extractors
+* [facebook] Bypass download rate limits (#21018)
++ [contv] Add support for contv.com
+- [viewster] Remove extractor
+* [xfileshare] Improve extractor (#17032, #17906, #18237, #18239)
+    * Update the list of domains
+    + Add support for aa-encoded video data
+    * Improve jwplayer format extraction
+    + Add support for Clappr sources
+* [mangomolo] Fix video format extraction and add support for player URLs
+* [audioboom] Improve metadata extraction
+* [twitch] Update VOD URL matching (#22395, #22727)
+- [mit] Remove support for video.mit.edu (#22403)
+- [servingsys] Remove extractor (#22639)
+* [dumpert] Fix extraction (#22428, #22564)
+* [atresplayer] Fix extraction (#16277, #16716)
+
+
+version 2019.10.16
+
+Core
+* [extractor/common] Make _is_valid_url more relaxed
+
+Extractors
+* [vimeo] Improve album videos id extraction (#22599)
++ [globo] Extract subtitles (#22713)
+* [bokecc] Improve player params extraction (#22638)
+* [nexx] Handle result list (#22666)
+* [vimeo] Fix VHX embed extraction
+* [nbc] Switch to graphql API (#18581, #22693, #22701)
+- [vessel] Remove extractor
+- [promptfile] Remove extractor (#6239)
+* [kaltura] Fix service URL extraction (#22658)
+* [kaltura] Fix embed info strip (#22658)
+* [globo] Fix format extraction (#20319)
+* [redtube] Improve metadata extraction (#22492, #22615)
+* [pornhub:uservideos:upload] Fix extraction (#22619)
++ [telequebec:squat] Add support for squat.telequebec.tv (#18503)
+- [wimp] Remove extractor (#22088, #22091)
++ [gfycat] Extend URL regular expression (#22225)
++ [chaturbate] Extend URL regular expression (#22309)
+* [peertube] Update instances (#22414)
++ [telequebec] Add support for coucou.telequebec.tv (#22482)
++ [xvideos] Extend URL regular expression (#22471)
+- [youtube] Remove support for invidious.enkirton.net (#22543)
++ [openload] Add support for oload.monster (#22592)
+* [nrktv:seriebase] Fix extraction (#22596)
++ [youtube] Add support for yt.lelux.fi (#22597)
+* [orf:tvthek] Make manifest requests non fatal (#22578)
+* [teachable] Skip login when already logged in (#22572)
+* [viewlift] Improve extraction (#22545)
+* [nonktube] Fix extraction (#22544)
+
+
+version 2019.09.28
+
+Core
+* [YoutubeDL] Honour all --get-* options with --flat-playlist (#22493)
+
+Extractors
+* [vk] Fix extraction (#22522)
+* [heise] Fix kaltura embeds extraction (#22514)
+* [ted] Check for resources validity and extract subtitled downloads (#22513)
++ [youtube] Add support for
+  owxfohz4kjyv25fvlqilyxast7inivgiktls3th44jhk3ej3i7ya.b32.i2p (#22292)
++ [nhk] Add support for clips
+* [nhk] Fix video extraction (#22249, #22353)
+* [byutv] Fix extraction (#22070)
++ [openload] Add support for oload.online (#22304)
++ [youtube] Add support for invidious.drycat.fr (#22451)
+* [jwplatfom] Do not match video URLs (#20596, #22148)
+* [youtube:playlist] Unescape playlist uploader (#22483)
++ [bilibili] Add support audio albums and songs (#21094)
++ [instagram] Add support for tv URLs
++ [mixcloud] Allow uppercase letters in format URLs (#19280)
+* [brightcove] Delegate all supported legacy URLs to new extractor (#11523,
+  #12842, #13912, #15669, #16303)
+* [hotstar] Use native HLS downloader by default
++ [hotstar] Extract more formats (#22323)
+* [9now] Fix extraction (#22361)
+* [zdf] Bypass geo restriction
++ [tv4] Extract series metadata
+* [tv4] Fix extraction (#22443)
+
+
+version 2019.09.12.1
+
+Extractors
+* [youtube] Remove quality and tbr for itag 43 (#22372)
+
+
+version 2019.09.12
+
+Extractors
+* [youtube] Quick extraction tempfix (#22367, #22163)
+
+
+version 2019.09.01
+
+Core
++ [extractor/generic] Add support for squarespace embeds (#21294, #21802,
+  #21859)
++ [downloader/external] Respect mtime option for aria2c (#22242)
+
+Extractors
++ [xhamster:user] Add support for user pages (#16330, #18454)
++ [xhamster] Add support for more domains
++ [verystream] Add support for woof.tube (#22217)
++ [dailymotion] Add support for lequipe.fr (#21328, #22152)
++ [openload] Add support for oload.vip (#22205)
++ [bbccouk] Extend URL regular expression (#19200)
++ [youtube] Add support for invidious.nixnet.xyz and yt.elukerio.org (#22223)
+* [safari] Fix authentication (#22161, #22184)
+* [usanetwork] Fix extraction (#22105)
++ [einthusan] Add support for einthusan.ca (#22171)
+* [youtube] Improve unavailable message extraction (#22117)
++ [piksel] Extract subtitles (#20506)
+
+
+version 2019.08.13
+
+Core
+* [downloader/fragment] Fix ETA calculation of resumed download (#21992)
+* [YoutubeDL] Check annotations availability (#18582)
+
+Extractors
+* [youtube:playlist] Improve flat extraction (#21927)
+* [youtube] Fix annotations extraction (#22045)
++ [discovery] Extract series meta field (#21808)
+* [youtube] Improve error detection (#16445)
+* [vimeo] Fix album extraction (#1933, #15704, #15855, #18967, #21986)
++ [roosterteeth] Add support for watch URLs
+* [discovery] Limit video data by show slug (#21980)
+
+
+version 2019.08.02
+
+Extractors
++ [tvigle] Add support for HLS and DASH formats (#21967)
+* [tvigle] Fix extraction (#21967)
++ [yandexvideo] Add support for DASH formats (#21971)
+* [discovery] Use API call for video data extraction (#21808)
++ [mgtv] Extract format_note (#21881)
+* [tvn24] Fix metadata extraction (#21833, #21834)
+* [dlive] Relax URL regular expression (#21909)
++ [openload] Add support for oload.best (#21913)
+* [youtube] Improve metadata extraction for age gate content (#21943)
+
+
+version 2019.07.30
+
+Extractors
+* [youtube] Fix and improve title and description extraction (#21934)
+
+
+version 2019.07.27
+
+Extractors
++ [yahoo:japannews] Add support for yahoo.co.jp (#21698, #21265)
++ [discovery] Add support go.discovery.com URLs
+* [youtube:playlist] Relax video regular expression (#21844)
+* [generic] Restrict --default-search schemeless URLs detection pattern
+  (#21842)
+* [vrv] Fix CMS signing query extraction (#21809)
+
+
+version 2019.07.16
+
+Extractors
++ [asiancrush] Add support for yuyutv.com, midnightpulp.com and cocoro.tv
+  (#21281, #21290)
+* [kaltura] Check source format URL (#21290)
+* [ctsnews] Fix YouTube embeds extraction (#21678)
++ [einthusan] Add support for einthusan.com (#21748, #21775)
++ [youtube] Add support for invidious.mastodon.host (#21777)
++ [gfycat] Extend URL regular expression (#21779, #21780)
+* [youtube] Restrict is_live extraction (#21782)
+
+
+version 2019.07.14
+
+Extractors
+* [porn91] Fix extraction (#21312)
++ [yandexmusic] Extract track number and disk number (#21421)
++ [yandexmusic] Add support for multi disk albums (#21420, #21421)
+* [lynda] Handle missing subtitles (#20490, #20513)
++ [youtube] Add more invidious instances to URL regular expression (#21694)
+* [twitter] Improve uploader id extraction (#21705)
+* [spankbang] Fix and improve metadata extraction
+* [spankbang] Fix extraction (#21763, #21764)
++ [dlive] Add support for dlive.tv (#18080)
++ [livejournal] Add support for livejournal.com (#21526)
+* [roosterteeth] Fix free episode extraction (#16094)
+* [dbtv] Fix extraction
+* [bellator] Fix extraction
+- [rudo] Remove extractor (#18430, #18474)
+* [facebook] Fallback to twitter:image meta for thumbnail extraction (#21224)
+* [bleacherreport] Fix Bleacher Report CMS extraction
+* [espn] Fix fivethirtyeight.com extraction
+* [5tv] Relax video URL regular expression and support https URLs
+* [youtube] Fix is_live extraction (#21734)
+* [youtube] Fix authentication (#11270)
+
+
+version 2019.07.12
+
+Core
++ [adobepass] Add support for AT&T U-verse (mso ATT) (#13938, #21016)
+
+Extractors
++ [mgtv] Pass Referer HTTP header for format URLs (#21726)
++ [beeg] Add support for api/v6 v2 URLs without t argument (#21701)
+* [voxmedia:volume] Improvevox embed extraction (#16846)
+* [funnyordie] Move extraction to VoxMedia extractor (#16846)
+* [gameinformer] Fix extraction (#8895, #15363, #17206)
+* [funk] Fix extraction (#17915)
+* [packtpub] Relax lesson URL regular expression (#21695)
+* [packtpub] Fix extraction (#21268)
+* [philharmoniedeparis] Relax URL regular expression (#21672)
+* [peertube] Detect embed URLs in generic extraction (#21666)
+* [mixer:vod] Relax URL regular expression (#21657, #21658)
++ [lecturio] Add support id based URLs (#21630)
++ [go] Add site info for disneynow (#21613)
+* [ted] Restrict info regular expression (#21631)
+* [twitch:vod] Actualize m3u8 URL (#21538, #21607)
+* [vzaar] Fix videos with empty title (#21606)
+* [tvland] Fix extraction (#21384)
+* [arte] Clean extractor (#15583, #21614)
+
+
+version 2019.07.02
+
+Core
++ [utils] Introduce random_user_agent and use as default User-Agent (#21546)
+
+Extractors
++ [vevo] Add support for embed.vevo.com URLs (#21565)
++ [openload] Add support for oload.biz (#21574)
+* [xiami] Update API base URL (#21575)
+* [yourporn] Fix extraction (#21585)
++ [acast] Add support for URLs with episode id (#21444)
++ [dailymotion] Add support for DM.player embeds
+* [soundcloud] Update client id
+
+
+version 2019.06.27
+
+Extractors
++ [go] Add support for disneynow.com (#21528)
+* [mixer:vod] Relax URL regular expression (#21531, #21536)
+* [drtv] Relax URL regular expression
+* [fusion] Fix extraction (#17775, #21269)
+- [nfb] Remove extractor (#21518)
++ [beeg] Add support for api/v6 v2 URLs (#21511)
++ [brightcove:new] Add support for playlists (#21331)
++ [openload] Add support for oload.life (#21495)
+* [vimeo:channel,group] Make title extraction non fatal
+* [vimeo:likes] Implement extrator in terms of channel extractor (#21493)
++ [pornhub] Add support for more paged video sources
++ [pornhub] Add support for downloading single pages and search pages (#15570)
+* [pornhub] Rework extractors (#11922, #16078, #17454, #17936)
++ [youtube] Add another signature function pattern
+* [tf1] Fix extraction (#21365, #21372)
+* [crunchyroll] Move Accept-Language workaround to video extractor since
+  it causes playlists not to list any videos
+* [crunchyroll:playlist] Fix and relax title extraction (#21291, #21443)
+
+
+version 2019.06.21
+
+Core
+* [utils] Restrict parse_codecs and add theora as known vcodec (#21381)
+
+Extractors
+* [youtube] Update signature function patterns (#21469, #21476)
+* [youtube] Make --write-annotations non fatal (#21452)
++ [sixplay] Add support for rtlmost.hu (#21405)
+* [youtube] Hardcode codec metadata for av01 video only formats (#21381)
+* [toutv] Update client key (#21370)
++ [biqle] Add support for new embed domain
+* [cbs] Improve DRM protected videos detection (#21339)
+
+
+version 2019.06.08
+
+Core
+* [downloader/common] Improve rate limit (#21301)
+* [utils] Improve strip_or_none
+* [extractor/common] Strip src attribute for HTML5 entries code (#18485,
+  #21169)
+
+Extractors
+* [ted] Fix playlist extraction (#20844, #21032)
+* [vlive:playlist] Fix video extraction when no playlist is found (#20590)
++ [vlive] Add CH+ support (#16887, #21209)
++ [openload] Add support for oload.website (#21329)
++ [tvnow] Extract HD formats (#21201)
++ [redbulltv] Add support for rrn:content URLs (#21297)
+* [youtube] Fix average rating extraction (#21304)
++ [bitchute] Extract HTML5 formats (#21306)
+* [cbsnews] Fix extraction (#9659, #15397)
+* [vvvvid] Relax URL regular expression (#21299)
++ [prosiebensat1] Add support for new API (#21272)
++ [vrv] Extract adaptive_hls formats (#21243)
+* [viki] Switch to HTTPS (#21001)
+* [LiveLeak] Check if the original videos exist (#21206, #21208)
+* [rtp] Fix extraction (#15099)
+* [youtube] Improve DRM protected videos detection (#1774)
++ [srgssrplay] Add support for popupvideoplayer URLs (#21155)
++ [24video] Add support for porno.24video.net (#21194)
++ [24video] Add support for 24video.site (#21193)
+- [pornflip] Remove extractor
+- [criterion] Remove extractor (#21195)
+* [pornhub] Use HTTPS (#21061)
+* [bitchute] Fix uploader extraction (#21076)
+* [streamcloud] Reduce waiting time to 6 seconds (#21092)
+- [novamov] Remove extractors (#21077)
++ [openload] Add support for oload.press (#21135)
+* [vivo] Fix extraction (#18906, #19217)
+
+
+version 2019.05.20
+
+Core
++ [extractor/common] Move workaround for applying first Set-Cookie header
+  into a separate _apply_first_set_cookie_header method
+
+Extractors
+* [safari] Fix authentication (#21090)
+* [vk] Use _apply_first_set_cookie_header
+* [vrt] Fix extraction (#20527)
++ [canvas] Add support for vrtnieuws and sporza site ids and extract
+  AES HLS formats
++ [vrv] Extract captions (#19238)
+* [tele5] Improve video id extraction
+* [tele5] Relax URL regular expression (#21020, #21063)
+* [svtplay] Update API URL (#21075)
++ [yahoo:gyao] Add X-User-Agent header to dam proxy requests (#21071)
+
+
+version 2019.05.11
+
+Core
+* [utils] Transliterate "þ" as "th" (#20897)
+
+Extractors
++ [cloudflarestream] Add support for videodelivery.net (#21049)
++ [byutv] Add support for DVR videos (#20574, #20676)
++ [gfycat] Add support for URLs with tags (#20696, #20731)
++ [openload] Add support for verystream.com (#20701, #20967)
+* [youtube] Use sp field value for signature field name (#18841, #18927,
+  #21028)
++ [yahoo:gyao] Extend URL regular expression (#21008)
+* [youtube] Fix channel id extraction (#20982, #21003)
++ [sky] Add support for news.sky.com (#13055)
++ [youtube:entrylistbase] Retry on 5xx HTTP errors (#20965)
++ [francetvinfo] Extend video id extraction (#20619, #20740)
+* [4tube] Update token hosts (#20918)
+* [hotstar] Move to API v2 (#20931)
+* [fox] Fix API error handling under python 2 (#20925)
++ [redbulltv] Extend URL regular expression (#20922)
+
+
+version 2019.04.30
+
+Extractors
+* [openload] Use real Chrome versions (#20902)
+- [youtube] Remove info el for get_video_info request
+* [youtube] Improve extraction robustness
+- [dramafever] Remove extractor (#20868)
+* [adn] Fix subtitle extraction (#12724)
++ [ccc] Extract creator (#20355)
++ [ccc:playlist] Add support for media.ccc.de playlists (#14601, #20355)
++ [sverigesradio] Add support for sverigesradio.se (#18635)
++ [cinemax] Add support for cinemax.com
+* [sixplay] Try extracting non-DRM protected manifests (#20849)
++ [youtube] Extract Youtube Music Auto-generated metadata (#20599, #20742)
+- [wrzuta] Remove extractor (#20684, #20801)
+* [twitch] Prefer source format (#20850)
++ [twitcasting] Add support for private videos (#20843)
+* [reddit] Validate thumbnail URL (#20030)
+* [yandexmusic] Fix track URL extraction (#20820)
+
+
+version 2019.04.24
+
+Extractors
+* [youtube] Fix extraction (#20758, #20759, #20761, #20762, #20764, #20766,
+  #20767, #20769, #20771, #20768, #20770)
+* [toutv] Fix extraction and extract series info (#20757)
++ [vrv] Add support for movie listings (#19229)
++ [youtube] Print error when no data is available (#20737)
++ [soundcloud] Add support for new rendition and improve extraction (#20699)
++ [ooyala] Add support for geo verification proxy
++ [nrl] Add support for nrl.com (#15991)
++ [vimeo] Extract live archive source format (#19144)
++ [vimeo] Add support for live streams and improve info extraction (#19144)
++ [ntvcojp] Add support for cu.ntv.co.jp
++ [nhk] Extract RTMPT format
++ [nhk] Add support for audio URLs
++ [udemy] Add another course id extraction pattern (#20491)
++ [openload] Add support for oload.services (#20691)
++ [openload] Add support for openloed.co (#20691, #20693)
+* [bravotv] Fix extraction (#19213)
+
+
+version 2019.04.17
+
+Extractors
+* [openload] Randomize User-Agent (#20688)
++ [openload] Add support for oladblock domains (#20471)
+* [adn] Fix subtitle extraction (#12724)
++ [aol] Add support for localized websites
++ [yahoo] Add support GYAO episode URLs
++ [yahoo] Add support for streaming.yahoo.co.jp (#5811, #7098)
++ [yahoo] Add support for gyao.yahoo.co.jp
+* [aenetworks] Fix history topic extraction and extract more formats
++ [cbs] Extract smpte and vtt subtitles
++ [streamango] Add support for streamcherry.com (#20592)
++ [yourporn] Add support for sxyprn.com (#20646)
+* [mgtv] Fix extraction (#20650)
+* [linkedin:learning] Use urljoin for form action URL (#20431)
++ [gdc] Add support for kaltura embeds (#20575)
+* [dispeak] Improve mp4 bitrate extraction
+* [kaltura] Sanitize embed URLs
+* [jwplatfom] Do not match manifest URLs (#20596)
+* [aol] Restrict URL regular expression and improve format extraction
++ [tiktok] Add support for new URL schema (#20573)
++ [stv:player] Add support for player.stv.tv (#20586)
+
+
+version 2019.04.07
+
+Core
++ [downloader/external] Pass rtmp_conn to ffmpeg
+
+Extractors
++ [ruutu] Add support for audio podcasts (#20473, #20545)
++ [xvideos] Extract all thumbnails (#20432)
++ [platzi] Add support for platzi.com (#20562)
+* [dvtv] Fix extraction (#18514, #19174)
++ [vrv] Add basic support for individual movie links (#19229)
++ [bfi:player] Add support for player.bfi.org.uk (#19235)
+* [hbo] Fix extraction and extract subtitles (#14629, #13709)
+* [youtube] Extract srv[1-3] subtitle formats (#20566)
+* [adultswim] Fix extraction (#18025)
+* [teamcoco] Fix extraction and add suport for subdomains (#17099, #20339)
+* [adn] Fix subtitle compatibility with ffmpeg
+* [adn] Fix extraction and add support for positioning styles (#20549)
+* [vk] Use unique video id (#17848)
+* [newstube] Fix extraction
+* [rtl2] Actualize extraction
++ [adobeconnect] Add support for adobeconnect.com (#20283)
++ [gaia] Add support for authentication (#14605)
++ [mediasite] Add support for dashed ids and named catalogs (#20531)
+
+
+version 2019.04.01
+
+Core
+* [utils] Improve int_or_none and float_or_none (#20403)
+* Check for valid --min-sleep-interval when --max-sleep-interval is specified
+  (#20435)
+
+Extractors
++ [weibo] Extend URL regular expression (#20496)
++ [xhamster] Add support for xhamster.one (#20508)
++ [mediasite] Add support for catalogs (#20507)
++ [teamtreehouse] Add support for teamtreehouse.com (#9836)
++ [ina] Add support for audio URLs
+* [ina] Improve extraction
+* [cwtv] Fix episode number extraction (#20461)
+* [npo] Improve DRM detection
++ [pornhub] Add support for DASH formats (#20403)
+* [svtplay] Update API endpoint (#20430)
+
+
+version 2019.03.18
+
+Core
+* [extractor/common] Improve HTML5 entries extraction
++ [utils] Introduce parse_bitrate
+* [update] Hide update URLs behind redirect
+* [extractor/common] Fix url meta field for unfragmented DASH formats (#20346)
+
+Extractors
++ [yandexvideo] Add extractor
+* [openload] Improve embed detection
++ [corus] Add support for bigbrothercanada.ca (#20357)
++ [orf:radio] Extract series (#20012)
++ [cbc:watch] Add support for gem.cbc.ca (#20251, #20359)
+- [anysex] Remove extractor (#19279)
++ [ciscolive] Add support for new URL schema (#20320, #20351)
++ [youtube] Add support for invidiou.sh (#20309)
+- [anitube] Remove extractor (#20334)
+- [ruleporn] Remove extractor (#15344, #20324)
+* [npr] Fix extraction (#10793, #13440)
+* [biqle] Fix extraction (#11471, #15313)
+* [viddler] Modernize
+* [moevideo] Fix extraction
+* [primesharetv] Remove extractor
+* [hypem] Modernize and extract more metadata (#15320)
+* [veoh] Fix extraction
+* [escapist] Modernize
+- [videomega] Remove extractor (#10108)
++ [beeg] Add support for beeg.porn (#20306)
+* [vimeo:review] Improve config url extraction and extract original format
+  (#20305)
+* [fox] Detect geo restriction and authentication errors (#20208)
+
+
+version 2019.03.09
+
+Core
+* [extractor/common] Use compat_etree_Element
++ [compat] Introduce compat_etree_Element
+* [extractor/common] Fallback url to base URL for DASH formats
+* [extractor/common] Do not fail on invalid data while parsing F4M manifest
+  in non fatal mode
+* [extractor/common] Return MPD manifest as format's url meta field (#20242)
+* [utils] Strip #HttpOnly_ prefix from cookies files (#20219)
+
+Extractors
+* [francetv:site] Relax video id regular expression (#20268)
+* [toutv] Detect invalid login error
+* [toutv] Fix authentication (#20261)
++ [urplay] Extract timestamp (#20235)
++ [openload] Add support for oload.space (#20246)
+* [facebook] Improve uploader extraction (#20250)
+* [bbc] Use compat_etree_Element
+* [crunchyroll] Use compat_etree_Element
+* [npo] Improve ISM extraction
+* [rai] Improve extraction (#20253)
+* [paramountnetwork] Fix mgid extraction (#20241)
+* [libsyn] Improve extraction (#20229)
++ [youtube] Add more invidious instances to URL regular expression (#20228)
+* [spankbang] Fix extraction (#20023)
+* [espn] Extend URL regular expression (#20013)
+* [sixplay] Handle videos with empty assets (#20016)
++ [vimeo] Add support for Vimeo Pro portfolio protected videos (#20070)
+
+
+version 2019.03.01
+
+Core
++ [downloader/external] Add support for rate limit and retries for wget
+* [downloader/external] Fix infinite retries for curl (#19303)
+
+Extractors
+* [npo] Fix extraction (#20084)
+* [francetv:site] Extend video id regex (#20029, #20071)
++ [periscope] Extract width and height (#20015)
+* [servus] Fix extraction (#19297)
+* [bbccouk] Make subtitles non fatal (#19651)
+* [metacafe] Fix family filter bypass (#19287)
+
+
+version 2019.02.18
+
+Extractors
+* [tvp:website] Fix and improve extraction
++ [tvp] Detect unavailable videos
+* [tvp] Fix description extraction and make thumbnail optional
++ [linuxacademy] Add support for linuxacademy.com (#12207)
+* [bilibili] Update keys (#19233)
+* [udemy] Extend URL regular expressions (#14330, #15883)
+* [udemy] Update User-Agent and detect captcha (#14713, #15839, #18126)
+* [noovo] Fix extraction (#19230)
+* [rai] Relax URL regular expression (#19232)
++ [vshare] Pass Referer to download request (#19205, #19221)
++ [openload] Add support for oload.live (#19222)
+* [imgur] Use video id as title fallback (#18590)
++ [twitch] Add new source format detection approach (#19193)
+* [tvplayhome] Fix video id extraction (#19190)
+* [tvplayhome] Fix episode metadata extraction (#19190)
+* [rutube:embed] Fix extraction (#19163)
++ [rutube:embed] Add support private videos (#19163)
++ [soundcloud] Extract more metadata
++ [trunews] Add support for trunews.com (#19153)
++ [linkedin:learning] Extract chapter_number and chapter_id (#19162)
+
+
+version 2019.02.08
+
+Core
+* [utils] Improve JSON-LD regular expression (#18058)
+* [YoutubeDL] Fallback to ie_key of matching extractor while making
+  download archive id when no explicit ie_key is provided (#19022)
+
+Extractors
++ [malltv] Add support for mall.tv (#18058, #17856)
++ [spankbang:playlist] Add support for playlists (#19145)
+* [spankbang] Extend URL regular expression
+* [trutv] Fix extraction (#17336)
+* [toutv] Fix authentication (#16398, #18700)
+* [pornhub] Fix tags and categories extraction (#13720, #19135)
+* [pornhd] Fix formats extraction
++ [pornhd] Extract like count (#19123, #19125)
+* [radiocanada] Switch to the new media requests (#19115)
++ [teachable] Add support for courses.workitdaily.com (#18871)
+- [vporn] Remove extractor (#16276)
++ [soundcloud:pagedplaylist] Add ie and title to entries (#19022, #19086)
++ [drtuber] Extract duration (#19078)
+* [soundcloud] Fix paged playlists extraction, add support for albums and update client id
+* [soundcloud] Update client id
+* [drtv] Improve preference (#19079)
++ [openload] Add support for openload.pw and oload.pw (#18930)
++ [openload] Add support for oload.info (#19073)
+* [crackle] Authorize media detail request (#16931)
+
+
+version 2019.01.30.1
+
+Core
+* [postprocessor/ffmpeg] Fix avconv processing broken in #19025 (#19067)
+
+
+version 2019.01.30
+
+Core
+* [postprocessor/ffmpeg] Do not copy Apple TV chapter tracks while embedding
+  subtitles (#19024, #19042)
+* [postprocessor/ffmpeg] Disable "Last message repeated" messages (#19025)
+
+Extractors
+* [yourporn] Fix extraction and extract duration (#18815, #18852, #19061)
+* [drtv] Improve extraction (#19039)
+    + Add support for EncryptedUri videos
+    + Extract more metadata
+    * Fix subtitles extraction
++ [fox] Add support for locked videos using cookies (#19060)
+* [fox] Fix extraction for free videos (#19060)
++ [zattoo] Add support for tv.salt.ch (#19059)
+
+
+version 2019.01.27
+
+Core
++ [extractor/common] Extract season in _json_ld
+* [postprocessor/ffmpeg] Fallback to ffmpeg/avconv for audio codec detection
+  (#681)
+
+Extractors
+* [vice] Fix extraction for locked videos (#16248)
++ [wakanim] Detect DRM protected videos
++ [wakanim] Add support for wakanim.tv (#14374)
+* [usatoday] Fix extraction for videos with custom brightcove partner id
+  (#18990)
+* [drtv] Fix extraction (#18989)
+* [nhk] Extend URL regular expression (#18968)
+* [go] Fix Adobe Pass requests for Disney Now (#18901)
++ [openload] Add support for oload.club (#18969)
+
+
+version 2019.01.24
+
+Core
+* [YoutubeDL] Fix negation for string operators in format selection (#18961)
+
+
+version 2019.01.23
+
+Core
+* [utils] Fix urljoin for paths with non-http(s) schemes
+* [extractor/common] Improve jwplayer relative URL handling (#18892)
++ [YoutubeDL] Add negation support for string comparisons in format selection
+  expressions (#18600, #18805)
+* [extractor/common] Improve HLS video-only format detection (#18923)
+
+Extractors
+* [crunchyroll] Extend URL regular expression (#18955)
+* [pornhub] Bypass scrape detection (#4822, #5930, #7074, #10175, #12722,
+  #17197, #18338 #18842, #18899)
++ [vrv] Add support for authentication (#14307)
+* [videomore:season] Fix extraction
+* [videomore] Improve extraction (#18908)
++ [tnaflix] Pass Referer in metadata request (#18925)
+* [radiocanada] Relax DRM check (#18608, #18609)
+* [vimeo] Fix video password verification for videos protected by
+  Referer HTTP header
++ [hketv] Add support for hkedcity.net (#18696)
++ [streamango] Add support for fruithosts.net (#18710)
++ [instagram] Add support for tags (#18757)
++ [odnoklassniki] Detect paid videos (#18876)
+* [ted] Correct acodec for HTTP formats (#18923)
+* [cartoonnetwork] Fix extraction (#15664, #17224)
+* [vimeo] Fix extraction for password protected player URLs (#18889)
+
+
+version 2019.01.17
+
+Extractors
+* [youtube] Extend JS player signature function name regular expressions
+  (#18890, #18891, #18893)
+
+
+version 2019.01.16
+
+Core
++ [test/helper] Add support for maxcount and count collection len checkers
+* [downloader/hls] Fix uplynk ad skipping (#18824)
+* [postprocessor/ffmpeg] Improve ffmpeg version parsing (#18813)
+
+Extractors
+* [youtube] Skip unsupported adaptive stream type (#18804)
++ [youtube] Extract DASH formats from player response (#18804)
+* [funimation] Fix extraction (#14089)
+* [skylinewebcams] Fix extraction (#18853)
++ [curiositystream] Add support for non app URLs
++ [bitchute] Check formats (#18833)
+* [wistia] Extend URL regular expression (#18823)
++ [playplustv] Add support for playplus.com (#18789)
+
+
+version 2019.01.10
+
+Core
+* [extractor/common] Use episode name as title in _json_ld
++ [extractor/common] Add support for movies in _json_ld
+* [postprocessor/ffmpeg] Embed subtitles with non-standard language codes
+  (#18765)
++ [utils] Add language codes replaced in 1989 revision of ISO 639
+  to ISO639Utils (#18765)
+
+Extractors
+* [youtube] Extract live HLS URL from player response (#18799)
++ [outsidetv] Add support for outsidetv.com (#18774)
+* [jwplatform] Use JW Platform Delivery API V2 and add support for more URLs
++ [fox] Add support National Geographic (#17985, #15333, #14698)
++ [playplustv] Add support for playplus.tv (#18789)
+* [globo] Set GLBID cookie manually (#17346)
++ [gaia] Add support for gaia.com (#14605)
+* [youporn] Fix title and description extraction (#18748)
++ [hungama] Add support for hungama.com (#17402, #18771)
+* [dtube] Fix extraction (#18741)
+* [tvnow] Fix and rework extractors and prepare for a switch to the new API
+  (#17245, #18499)
+* [carambatv:page] Fix extraction (#18739)
+
+
+version 2019.01.02
+
+Extractors
+* [discovery] Use geo verification headers (#17838)
++ [packtpub] Add support for subscription.packtpub.com (#18718)
+* [yourporn] Fix extraction (#18583)
++ [acast:channel] Add support for play.acast.com (#18587)
++ [extractors] Add missing age limits (#18621)
++ [rmcdecouverte] Add support for live stream
+* [rmcdecouverte] Bypass geo restriction
+* [rmcdecouverte] Update URL regular expression (#18595, 18697)
+* [manyvids] Fix extraction (#18604, #18614)
+* [bitchute] Fix extraction (#18567)
+
+
+version 2018.12.31
+
+Extractors
++ [bbc] Add support for another embed pattern (#18643)
++ [npo:live] Add support for npostart.nl (#18644)
+* [beeg] Fix extraction (#18610, #18626)
+* [youtube] Unescape HTML for series (#18641)
++ [youtube] Extract more format metadata
+* [youtube] Detect DRM protected videos (#1774)
+* [youtube] Relax HTML5 player regular expressions (#18465, #18466)
+* [youtube] Extend HTML5 player regular expression (#17516)
++ [liveleak] Add support for another embed type and restore original
+  format extraction
++ [crackle] Extract ISM and HTTP formats
++ [twitter] Pass Referer with card request (#18579)
+* [mediasite] Extend URL regular expression (#18558)
++ [lecturio] Add support for lecturio.de (#18562)
++ [discovery] Add support for Scripps Networks watch domains (#17947)
+
+
+version 2018.12.17
+
+Extractors
+* [ard:beta] Improve geo restricted videos extraction
+* [ard:beta] Fix subtitles extraction
+* [ard:beta] Improve extraction robustness
+* [ard:beta] Relax URL regular expression (#18441)
+* [acast] Add support for embed.acast.com and play.acast.com (#18483)
+* [iprima] Relax URL regular expression (#18515, #18540)
+* [vrv] Fix initial state extraction (#18553)
+* [youtube] Fix mark watched (#18546)
++ [safari] Add support for learning.oreilly.com (#18510)
+* [youtube] Fix multifeed extraction (#18531)
+* [lecturio] Improve subtitles extraction (#18488)
+* [uol] Fix format URL extraction (#18480)
++ [ard:mediathek] Add support for classic.ardmediathek.de (#18473)
+
+
+version 2018.12.09
+
+Core
+* [YoutubeDL] Keep session cookies in cookie file between runs
+* [YoutubeDL] Recognize session cookies with expired set to 0 (#12929)
+
+Extractors
++ [teachable] Add support for teachable platform sites (#5451, #18150, #18272)
++ [aenetworks] Add support for historyvault.com (#18460)
+* [imgur] Improve gallery and album detection and extraction (#9133, #16577,
+  #17223, #18404)
+* [iprima] Relax URL regular expression (#18453)
+* [hotstar] Fix video data extraction (#18386)
+* [ard:mediathek] Fix title and description extraction (#18349, #18371)
+* [xvideos] Switch to HTTPS (#18422, #18427)
++ [lecturio] Add support for lecturio.com (#18405)
++ [nrktv:series] Add support for extra materials
+* [nrktv:season,series] Fix extraction (#17159, #17258)
+* [nrktv] Relax URL regular expression (#18304, #18387)
+* [yourporn] Fix extraction (#18424, #18425)
+* [tbs] Fix info extraction (#18403)
++ [gamespot] Add support for review URLs
+
+
+version 2018.12.03
+
+Core
+* [utils] Fix random_birthday to generate existing dates only (#18284)
+
+Extractors
++ [tiktok] Add support for tiktok.com (#18108, #18135)
+* [pornhub] Use actual URL host for requests (#18359)
+* [lynda] Fix authentication (#18158, #18217)
+* [gfycat] Update API endpoint (#18333, #18343)
++ [hotstar] Add support for alternative app state layout (#18320)
+* [azmedien] Fix extraction (#18334, #18336)
++ [vimeo] Add support for VHX (Vimeo OTT) (#14835)
+* [joj] Fix extraction (#18280, #18281)
++ [wistia] Add support for fast.wistia.com (#18287)
+
+
+version 2018.11.23
+
+Core
++ [setup.py] Add more relevant classifiers
+
+Extractors
+* [mixcloud] Fallback to hardcoded decryption key (#18016)
+* [nbc:news] Fix article extraction (#16194)
+* [foxsports] Fix extraction (#17543)
+* [loc] Relax regular expression and improve formats extraction
++ [ciscolive] Add support for ciscolive.cisco.com (#17984)
+* [nzz] Relax kaltura regex (#18228)
+* [sixplay] Fix formats extraction
+* [bitchute] Improve title extraction
+* [kaltura] Limit requested MediaEntry fields
++ [americastestkitchen] Add support for zype embeds (#18225)
++ [pornhub] Add pornhub.net alias
+* [nova:embed] Fix extraction (#18222)
+
+
+version 2018.11.18
+
+Extractors
++ [wwe] Extract subtitles
++ [wwe] Add support for playlistst (#14781)
++ [wwe] Add support for wwe.com (#14781, #17450)
+* [vk] Detect geo restriction (#17767)
+* [openload] Use original host during extraction (#18211)
+* [atvat] Fix extraction (#18041)
++ [rte] Add support for new API endpoint (#18206)
+* [tnaflixnetwork:embed] Fix extraction (#18205)
+* [picarto] Use API and add token support (#16518)
++ [zype] Add support for player.zype.com (#18143)
+* [vivo] Fix extraction (#18139)
+* [ruutu] Update API endpoint (#18138)
+
+
+version 2018.11.07
+
+Extractors
++ [youtube] Add another JS signature function name regex (#18091, #18093,
+  #18094)
+* [facebook] Fix tahoe request (#17171)
+* [cliphunter] Fix extraction (#18083)
++ [youtube:playlist] Add support for invidio.us (#18077)
+* [zattoo] Arrange API hosts for derived extractors (#18035)
++ [youtube] Add fallback metadata extraction from videoDetails (#18052)
+
+
+version 2018.11.03
+
+Core
+* [extractor/common] Ensure response handle is not prematurely closed before
+  it can be read if it matches expected_status (#17195, #17846, #17447)
+
+Extractors
+* [laola1tv:embed] Set correct stream access URL scheme (#16341)
++ [ehftv] Add support for ehftv.com (#15408)
+* [azmedien] Adopt to major site redesign (#17745, #17746)
++ [twitcasting] Add support for twitcasting.tv (#17981)
+* [orf:tvthek] Fix extraction (#17737, #17956, #18024)
++ [openload] Add support for oload.fun (#18045)
+* [njpwworld] Fix authentication (#17427)
++ [linkedin:learning] Add support for linkedin.com/learning (#13545)
+* [theplatform] Improve error detection (#13222)
+* [cnbc] Simplify extraction (#14280, #17110)
++ [cbnc] Add support for new URL schema (#14193)
+* [aparat] Improve extraction and extract more metadata (#17445, #18008)
+* [aparat] Fix extraction
+
+
+version 2018.10.29
+
+Core
++ [extractor/common] Add validation for JSON-LD URLs
+
+Extractors
++ [sportbox] Add support for matchtv.ru
+* [sportbox] Fix extraction (#17978)
+* [screencast] Fix extraction (#14590, #14617, #17990)
++ [openload] Add support for oload.icu
++ [ivi] Add support for ivi.tv
+* [crunchyroll] Improve extraction failsafeness (#17991)
+* [dailymail] Fix formats extraction (#17976)
+* [viewster] Reduce format requests
+* [cwtv] Handle API errors (#17905)
++ [rutube] Use geo verification headers (#17897)
++ [brightcove:legacy] Add fallbacks to brightcove:new (#13912)
+- [tv3] Remove extractor (#10461, #15339)
+* [ted] Fix extraction for HTTP and RTMP formats (#5941, #17572, #17894)
++ [openload] Add support for oload.cc (#17823)
++ [patreon] Extract post_file URL (#17792)
+* [patreon] Fix extraction (#14502, #10471)
+
+
 version 2018.10.05
 
 Extractors
@@ -43,7 +1545,7 @@ Extractors
 + [youtube] Extract channel meta fields (#9676, #12939)
 * [porntube] Fix extraction (#17541)
 * [asiancrush] Fix extraction (#15630)
-+ [twitch:clips] Extend URL regular expression (closes #17559)
++ [twitch:clips] Extend URL regular expression (#17559)
 + [vzaar] Add support for HLS
 * [tube8] Fix metadata extraction (#17520)
 * [eporner] Extract JSON-LD (#17519)

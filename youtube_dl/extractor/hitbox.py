@@ -58,8 +58,8 @@ class HitboxIE(InfoExtractor):
         title = video_meta.get('media_status')
         alt_title = video_meta.get('media_title')
         description = clean_html(
-            video_meta.get('media_description') or
-            video_meta.get('media_description_md'))
+            video_meta.get('media_description')
+            or video_meta.get('media_description_md'))
         duration = float_or_none(video_meta.get('media_duration'))
         uploader = video_meta.get('media_user_name')
         views = int_or_none(video_meta.get('media_views'))

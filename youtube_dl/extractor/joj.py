@@ -61,7 +61,7 @@ class JojIE(InfoExtractor):
 
         bitrates = self._parse_json(
             self._search_regex(
-                r'(?s)bitrates\s*=\s*({.+?});', webpage, 'bitrates',
+                r'(?s)(?:src|bitrates)\s*=\s*({.+?});', webpage, 'bitrates',
                 default='{}'),
             video_id, transform_source=js_to_json, fatal=False)
 

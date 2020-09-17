@@ -14,6 +14,7 @@ class CamModelsIE(InfoExtractor):
     _TESTS = [{
         'url': 'https://www.cammodels.com/cam/AutumnKnight/',
         'only_matching': True,
+        'age_limit': 18
     }]
 
     def _real_extract(self, url):
@@ -93,4 +94,5 @@ class CamModelsIE(InfoExtractor):
             'title': self._live_title(user_id),
             'is_live': True,
             'formats': formats,
+            'age_limit': 18
         }

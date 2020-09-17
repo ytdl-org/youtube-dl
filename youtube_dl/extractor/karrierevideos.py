@@ -47,8 +47,8 @@ class KarriereVideosIE(InfoExtractor):
 
         webpage = self._download_webpage(url, video_id)
 
-        title = (self._html_search_meta('title', webpage, default=None) or
-                 self._search_regex(r'<h1 class="title">([^<]+)</h1>', webpage, 'video title'))
+        title = (self._html_search_meta('title', webpage, default=None)
+                 or self._search_regex(r'<h1 class="title">([^<]+)</h1>', webpage, 'video title'))
 
         video_id = self._search_regex(
             r'/config/video/(.+?)\.xml', webpage, 'video id')

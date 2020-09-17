@@ -108,7 +108,7 @@ class NHLIE(NHLBaseIE):
             'timestamp': 1454544904,
         },
     }, {
-        # Some m3u8 URLs are invalid (https://github.com/rg3/youtube-dl/issues/10713)
+        # Some m3u8 URLs are invalid (https://github.com/ytdl-org/youtube-dl/issues/10713)
         'url': 'https://www.nhl.com/predators/video/poile-laviolette-on-subban-trade/t-277437416/c-44315003',
         'md5': '50b2bb47f405121484dda3ccbea25459',
         'info_dict': {

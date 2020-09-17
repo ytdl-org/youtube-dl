@@ -2,22 +2,25 @@
 from __future__ import unicode_literals
 
 from .common import InfoExtractor
-from ..utils import float_or_none
+from ..utils import (
+    clean_html,
+    float_or_none,
+)
 
 
 class AudioBoomIE(InfoExtractor):
     _VALID_URL = r'https?://(?:www\.)?audioboom\.com/(?:boos|posts)/(?P<id>[0-9]+)'
     _TESTS = [{
-        'url': 'https://audioboom.com/boos/4279833-3-09-2016-czaban-hour-3?t=0',
-        'md5': '63a8d73a055c6ed0f1e51921a10a5a76',
+        'url': 'https://audioboom.com/posts/7398103-asim-chaudhry',
+        'md5': '7b00192e593ff227e6a315486979a42d',
         'info_dict': {
-            'id': '4279833',
+            'id': '7398103',
             'ext': 'mp3',
-            'title': '3/09/2016 Czaban Hour 3',
-            'description': 'Guest:   Nate Davis - NFL free agency,   Guest:   Stan Gans',
-            'duration': 2245.72,
-            'uploader': 'SB Nation A.M.',
-            'uploader_url': r're:https?://(?:www\.)?audioboom\.com/channel/steveczabanyahoosportsradio',
+            'title': 'Asim Chaudhry',
+            'description': 'md5:2f3fef17dacc2595b5362e1d7d3602fc',
+            'duration': 4000.99,
+            'uploader': 'Sue Perkins: An hour or so with...',
+            'uploader_url': r're:https?://(?:www\.)?audioboom\.com/channel/perkins',
         }
     }, {
         'url': 'https://audioboom.com/posts/4279833-3-09-2016-czaban-hour-3?t=0',
@@ -32,8 +35,8 @@ class AudioBoomIE(InfoExtractor):
         clip = None
 
         clip_store = self._parse_json(
-            self._search_regex(
-                r'data-new-clip-store=(["\'])(?P<json>{.*?"clipId"\s*:\s*%s.*?})\1' % video_id,
+            self._html_search_regex(
+                r'data-new-clip-store=(["\'])(?P<json>{.+?})\1',
                 webpage, 'clip store', default='{}', group='json'),
             video_id, fatal=False)
         if clip_store:
@@ -47,14 +50,15 @@ class AudioBoomIE(InfoExtractor):
 
         audio_url = from_clip('clipURLPriorToLoading') or self._og_search_property(
             'audio', webpage, 'audio url')
-        title = from_clip('title') or self._og_search_title(webpage)
-        description = from_clip('description') or self._og_search_description(webpage)
+        title = from_clip('title') or self._html_search_meta(
+            ['og:title', 'og:audio:title', 'audio_title'], webpage)
+        description = from_clip('description') or clean_html(from_clip('formattedDescription')) or self._og_search_description(webpage)
 
         duration = float_or_none(from_clip('duration') or self._html_search_meta(
             'weibo:audio:duration', webpage))
 
-        uploader = from_clip('author') or self._og_search_property(
-            'audio:artist', webpage, 'uploader', fatal=False)
+        uploader = from_clip('author') or self._html_search_meta(
+            ['og:audio:artist', 'twitter:audio:artist_name', 'audio_artist'], webpage, 'uploader')
         uploader_url = from_clip('author_url') or self._html_search_meta(
             'audioboo:channel', webpage, 'uploader url')
 

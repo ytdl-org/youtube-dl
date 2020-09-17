@@ -1,6 +1,7 @@
 # coding: utf-8
 from __future__ import unicode_literals
 
+
 from .common import InfoExtractor
 from ..utils import smuggle_url
 
@@ -34,3 +35,32 @@ class CNBCIE(InfoExtractor):
                 {'force_smil_url': True}),
             'id': video_id,
         }
+
+
+class CNBCVideoIE(InfoExtractor):
+    _VALID_URL = r'https?://(?:www\.)?cnbc\.com/video/(?:[^/]+/)+(?P<id>[^./?#&]+)'
+    _TEST = {
+        'url': 'https://www.cnbc.com/video/2018/07/19/trump-i-dont-necessarily-agree-with-raising-rates.html',
+        'info_dict': {
+            'id': '7000031301',
+            'ext': 'mp4',
+            'title': "Trump: I don't necessarily agree with raising rates",
+            'description': 'md5:878d8f0b4ebb5bb1dda3514b91b49de3',
+            'timestamp': 1531958400,
+            'upload_date': '20180719',
+            'uploader': 'NBCU-CNBC',
+        },
+        'params': {
+            'skip_download': True,
+        },
+    }
+
+    def _real_extract(self, url):
+        display_id = self._match_id(url)
+        webpage = self._download_webpage(url, display_id)
+        video_id = self._search_regex(
+            r'content_id["\']\s*:\s*["\'](\d+)', webpage, display_id,
+            'video id')
+        return self.url_result(
+            'http://video.cnbc.com/gallery/?video=%s' % video_id,
+            CNBCIE.ie_key())

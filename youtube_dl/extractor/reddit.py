@@ -7,6 +7,7 @@ from ..utils import (
     ExtractorError,
     int_or_none,
     float_or_none,
+    url_or_none,
 )
 
 
@@ -119,7 +120,7 @@ class RedditRIE(InfoExtractor):
             '_type': 'url_transparent',
             'url': video_url,
             'title': data.get('title'),
-            'thumbnail': data.get('thumbnail'),
+            'thumbnail': url_or_none(data.get('thumbnail')),
             'timestamp': float_or_none(data.get('created_utc')),
             'uploader': data.get('author'),
             'like_count': int_or_none(data.get('ups')),

@@ -1,11 +1,9 @@
 # coding: utf-8
 from __future__ import unicode_literals
 
-import re
-
 from .adobepass import AdobePassIE
 from ..utils import (
-    extract_attributes,
+    NO_DEFAULT,
     smuggle_url,
     update_url_query,
 )
@@ -31,22 +29,22 @@ class USANetworkIE(AdobePassIE):
         display_id = self._match_id(url)
         webpage = self._download_webpage(url, display_id)
 
-        player_params = extract_attributes(self._search_regex(
-            r'(<div[^>]+data-usa-tve-player-container[^>]*>)', webpage, 'player params'))
-        video_id = player_params['data-mpx-guid']
-        title = player_params['data-episode-title']
+        def _x(name, default=NO_DEFAULT):
+            return self._search_regex(
+                r'data-%s\s*=\s*(["\'])(?P<value>(?:(?!\1).)+)\1' % name,
+                webpage, name, default=default, group='value')
 
-        account_pid, path = re.search(
-            r'data-src="(?:https?)?//player\.theplatform\.com/p/([^/]+)/.*?/(media/guid/\d+/\d+)',
-            webpage).groups()
+        video_id = _x('mpx-guid')
+        title = _x('episode-title')
+        mpx_account_id = _x('mpx-account-id', '2304992029')
 
         query = {
             'mbr': 'true',
         }
-        if player_params.get('data-is-full-episode') == '1':
+        if _x('is-full-episode', None) == '1':
             query['manifest'] = 'm3u'
 
-        if player_params.get('data-entitlement') == 'auth':
+        if _x('is-entitlement', None) == '1':
             adobe_pass = {}
             drupal_settings = self._search_regex(
                 r'jQuery\.extend\(Drupal\.settings\s*,\s*({.+?})\);',
@@ -57,7 +55,7 @@ class USANetworkIE(AdobePassIE):
                     adobe_pass = drupal_settings.get('adobePass', {})
             resource = self._get_mvpd_resource(
                 adobe_pass.get('adobePassResourceId', 'usa'),
-                title, video_id, player_params.get('data-episode-rating', 'TV-14'))
+                title, video_id, _x('episode-rating', 'TV-14'))
             query['auth'] = self._extract_mvpd_auth(
                 url, video_id, adobe_pass.get('adobePassRequestorId', 'usa'), resource)
 
@@ -65,11 +63,11 @@ class USANetworkIE(AdobePassIE):
         info.update({
             '_type': 'url_transparent',
             'url': smuggle_url(update_url_query(
-                'http://link.theplatform.com/s/%s/%s' % (account_pid, path),
+                'http://link.theplatform.com/s/HNK2IC/media/guid/%s/%s' % (mpx_account_id, video_id),
                 query), {'force_smil_url': True}),
             'id': video_id,
             'title': title,
-            'series': player_params.get('data-show-title'),
+            'series': _x('show-title', None),
             'episode': title,
             'ie_key': 'ThePlatform',
         })

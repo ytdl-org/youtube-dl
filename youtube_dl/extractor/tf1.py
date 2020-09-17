@@ -2,6 +2,7 @@
 from __future__ import unicode_literals
 
 from .common import InfoExtractor
+from ..compat import compat_str
 
 
 class TF1IE(InfoExtractor):
@@ -43,12 +44,49 @@ class TF1IE(InfoExtractor):
     }, {
         'url': 'http://www.tf1.fr/hd1/documentaire/videos/mylene-farmer-d-une-icone.html',
         'only_matching': True,
+    }, {
+        'url': 'https://www.tf1.fr/tmc/quotidien-avec-yann-barthes/videos/quotidien-premiere-partie-11-juin-2019.html',
+        'info_dict': {
+            'id': '13641379',
+            'ext': 'mp4',
+            'title': 'md5:f392bc52245dc5ad43771650c96fb620',
+            'description': 'md5:44bc54f0a21322f5b91d68e76a544eae',
+            'upload_date': '20190611',
+        },
+        'params': {
+            # Sometimes wat serves the whole file with the --test option
+            'skip_download': True,
+        },
     }]
 
     def _real_extract(self, url):
         video_id = self._match_id(url)
+
         webpage = self._download_webpage(url, video_id)
-        wat_id = self._html_search_regex(
-            r'(["\'])(?:https?:)?//www\.wat\.tv/embedframe/.*?(?P<id>\d{8})\1',
-            webpage, 'wat id', group='id')
+
+        wat_id = None
+
+        data = self._parse_json(
+            self._search_regex(
+                r'__APOLLO_STATE__\s*=\s*({.+?})\s*(?:;|</script>)', webpage,
+                'data', default='{}'), video_id, fatal=False)
+
+        if data:
+            try:
+                wat_id = next(
+                    video.get('streamId')
+                    for key, video in data.items()
+                    if isinstance(video, dict)
+                    and video.get('slug') == video_id)
+                if not isinstance(wat_id, compat_str) or not wat_id.isdigit():
+                    wat_id = None
+            except StopIteration:
+                pass
+
+        if not wat_id:
+            wat_id = self._html_search_regex(
+                (r'(["\'])(?:https?:)?//www\.wat\.tv/embedframe/.*?(?P<id>\d{8})\1',
+                 r'(["\']?)streamId\1\s*:\s*(["\']?)(?P<id>\d+)\2'),
+                webpage, 'wat id', group='id')
+
         return self.url_result('wat:%s' % wat_id, 'Wat')

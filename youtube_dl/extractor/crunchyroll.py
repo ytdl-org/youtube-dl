@@ -11,7 +11,9 @@ from .common import InfoExtractor
 from .vrv import VRVIE
 from ..compat import (
     compat_b64decode,
+    compat_etree_Element,
     compat_etree_fromstring,
+    compat_str,
     compat_urllib_parse_urlencode,
     compat_urllib_request,
     compat_urlparse,
@@ -24,9 +26,9 @@ from ..utils import (
     intlist_to_bytes,
     int_or_none,
     lowercase_escape,
+    merge_dicts,
     remove_end,
     sanitized_Request,
-    unified_strdate,
     urlencode_postdata,
     xpath_text,
 )
@@ -55,22 +57,11 @@ class CrunchyrollBaseIE(InfoExtractor):
         if username is None:
             return
 
-        self._download_webpage(
-            'https://www.crunchyroll.com/?a=formhandler',
-            None, 'Logging in', 'Wrong login info',
-            data=urlencode_postdata({
-                'formname': 'RpcApiUser_Login',
-                'next_url': 'https://www.crunchyroll.com/acct/membership',
-                'name': username,
-                'password': password,
-            }))
-
-        '''
         login_page = self._download_webpage(
             self._LOGIN_URL, None, 'Downloading login page')
 
         def is_logged(webpage):
-            return '<title>Redirecting' in webpage
+            return 'href="/logout"' in webpage
 
         # Already logged in
         if is_logged(login_page):
@@ -109,23 +100,9 @@ class CrunchyrollBaseIE(InfoExtractor):
             raise ExtractorError('Unable to login: %s' % error, expected=True)
 
         raise ExtractorError('Unable to log in')
-        '''
 
     def _real_initialize(self):
         self._login()
-
-    def _download_webpage(self, url_or_request, *args, **kwargs):
-        request = (url_or_request if isinstance(url_or_request, compat_urllib_request.Request)
-                   else sanitized_Request(url_or_request))
-        # Accept-Language must be set explicitly to accept any language to avoid issues
-        # similar to https://github.com/rg3/youtube-dl/issues/6797.
-        # Along with IP address Crunchyroll uses Accept-Language to guess whether georestriction
-        # should be imposed or not (from what I can see it just takes the first language
-        # ignoring the priority and requires it to correspond the IP). By the way this causes
-        # Crunchyroll to not work in georestriction cases in some browsers that don't place
-        # the locale lang first in header. However allowing any language seems to workaround the issue.
-        request.add_header('Accept-Language', '*')
-        return super(CrunchyrollBaseIE, self)._download_webpage(request, *args, **kwargs)
 
     @staticmethod
     def _add_skip_wall(url):
@@ -135,7 +112,7 @@ class CrunchyrollBaseIE(InfoExtractor):
         # > This content may be inappropriate for some people.
         # > Are you sure you want to continue?
         # since it's not disabled by default in crunchyroll account's settings.
-        # See https://github.com/rg3/youtube-dl/issues/7202.
+        # See https://github.com/ytdl-org/youtube-dl/issues/7202.
         qs['skip_wall'] = ['1']
         return compat_urlparse.urlunparse(
             parsed_url._replace(query=compat_urllib_parse_urlencode(qs, True)))
@@ -143,7 +120,7 @@ class CrunchyrollBaseIE(InfoExtractor):
 
 class CrunchyrollIE(CrunchyrollBaseIE, VRVIE):
     IE_NAME = 'crunchyroll'
-    _VALID_URL = r'https?://(?:(?P<prefix>www|m)\.)?(?P<url>crunchyroll\.(?:com|fr)/(?:media(?:-|/\?id=)|[^/]*/[^/?&]*?)(?P<video_id>[0-9]+))(?:[/?&]|$)'
+    _VALID_URL = r'https?://(?:(?P<prefix>www|m)\.)?(?P<url>crunchyroll\.(?:com|fr)/(?:media(?:-|/\?id=)|(?:[^/]*/){1,2}[^/?&]*?)(?P<video_id>[0-9]+))(?:[/?&]|$)'
     _TESTS = [{
         'url': 'http://www.crunchyroll.com/wanna-be-the-strongest-in-the-world/episode-1-an-idol-wrestler-is-born-645513',
         'info_dict': {
@@ -160,6 +137,7 @@ class CrunchyrollIE(CrunchyrollBaseIE, VRVIE):
             # rtmp
             'skip_download': True,
         },
+        'skip': 'Video gone',
     }, {
         'url': 'http://www.crunchyroll.com/media-589804/culture-japan-1',
         'info_dict': {
@@ -181,11 +159,12 @@ class CrunchyrollIE(CrunchyrollBaseIE, VRVIE):
         'info_dict': {
             'id': '702409',
             'ext': 'mp4',
-            'title': 'Re:ZERO -Starting Life in Another World- Episode 5 – The Morning of Our Promise Is Still Distant',
-            'description': 'md5:97664de1ab24bbf77a9c01918cb7dca9',
+            'title': compat_str,
+            'description': compat_str,
             'thumbnail': r're:^https?://.*\.jpg$',
-            'uploader': 'TV TOKYO',
-            'upload_date': '20160508',
+            'uploader': 'Re:Zero Partners',
+            'timestamp': 1462098900,
+            'upload_date': '20160501',
         },
         'params': {
             # m3u8 download
@@ -196,12 +175,13 @@ class CrunchyrollIE(CrunchyrollBaseIE, VRVIE):
         'info_dict': {
             'id': '727589',
             'ext': 'mp4',
-            'title': "KONOSUBA -God's blessing on this wonderful world! 2 Episode 1 – Give Me Deliverance From This Judicial Injustice!",
-            'description': 'md5:cbcf05e528124b0f3a0a419fc805ea7d',
+            'title': compat_str,
+            'description': compat_str,
             'thumbnail': r're:^https?://.*\.jpg$',
             'uploader': 'Kadokawa Pictures Inc.',
-            'upload_date': '20170118',
-            'series': "KONOSUBA -God's blessing on this wonderful world!",
+            'timestamp': 1484130900,
+            'upload_date': '20170111',
+            'series': compat_str,
             'season': "KONOSUBA -God's blessing on this wonderful world! 2",
             'season_number': 2,
             'episode': 'Give Me Deliverance From This Judicial Injustice!',
@@ -224,10 +204,11 @@ class CrunchyrollIE(CrunchyrollBaseIE, VRVIE):
         'info_dict': {
             'id': '535080',
             'ext': 'mp4',
-            'title': '11eyes Episode 1 – Red Night ~ Piros éjszaka',
-            'description': 'Kakeru and Yuka are thrown into an alternate nightmarish world they call "Red Night".',
+            'title': compat_str,
+            'description': compat_str,
             'uploader': 'Marvelous AQL Inc.',
-            'upload_date': '20091021',
+            'timestamp': 1255512600,
+            'upload_date': '20091014',
         },
         'params': {
             # Just test metadata extraction
@@ -248,15 +229,17 @@ class CrunchyrollIE(CrunchyrollBaseIE, VRVIE):
             # just test metadata extraction
             'skip_download': True,
         },
+        'skip': 'Video gone',
     }, {
         # A video with a vastly different season name compared to the series name
         'url': 'http://www.crunchyroll.com/nyarko-san-another-crawling-chaos/episode-1-test-590532',
         'info_dict': {
             'id': '590532',
             'ext': 'mp4',
-            'title': 'Haiyoru! Nyaruani (ONA) Episode 1 – Test',
-            'description': 'Mahiro and Nyaruko talk about official certification.',
+            'title': compat_str,
+            'description': compat_str,
             'uploader': 'TV TOKYO',
+            'timestamp': 1330956000,
             'upload_date': '20120305',
             'series': 'Nyarko-san: Another Crawling Chaos',
             'season': 'Haiyoru! Nyaruani (ONA)',
@@ -268,6 +251,9 @@ class CrunchyrollIE(CrunchyrollBaseIE, VRVIE):
     }, {
         'url': 'http://www.crunchyroll.com/media-723735',
         'only_matching': True,
+    }, {
+        'url': 'https://www.crunchyroll.com/en-gb/mob-psycho-100/episode-2-urban-legends-encountering-rumors-780921',
+        'only_matching': True,
     }]
 
     _FORMAT_IDS = {
@@ -276,6 +262,19 @@ class CrunchyrollIE(CrunchyrollBaseIE, VRVIE):
         '720': ('62', '106'),
         '1080': ('80', '108'),
     }
+
+    def _download_webpage(self, url_or_request, *args, **kwargs):
+        request = (url_or_request if isinstance(url_or_request, compat_urllib_request.Request)
+                   else sanitized_Request(url_or_request))
+        # Accept-Language must be set explicitly to accept any language to avoid issues
+        # similar to https://github.com/ytdl-org/youtube-dl/issues/6797.
+        # Along with IP address Crunchyroll uses Accept-Language to guess whether georestriction
+        # should be imposed or not (from what I can see it just takes the first language
+        # ignoring the priority and requires it to correspond the IP). By the way this causes
+        # Crunchyroll to not work in georestriction cases in some browsers that don't place
+        # the locale lang first in header. However allowing any language seems to workaround the issue.
+        request.add_header('Accept-Language', '*')
+        return super(CrunchyrollBaseIE, self)._download_webpage(request, *args, **kwargs)
 
     def _decrypt_subtitles(self, data, iv, id):
         data = bytes_to_intlist(compat_b64decode(data))
@@ -398,7 +397,7 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
                 'Downloading subtitles for ' + sub_name, data={
                     'subtitle_script_id': sub_id,
                 })
-            if sub_doc is None:
+            if not isinstance(sub_doc, compat_etree_Element):
                 continue
             sid = sub_doc.get('id')
             iv = xpath_text(sub_doc, 'iv', 'subtitle iv')
@@ -450,23 +449,21 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
             webpage, 'language', default=None, group='lang')
 
         video_title = self._html_search_regex(
-            r'(?s)<h1[^>]*>((?:(?!<h1).)*?<span[^>]+itemprop=["\']title["\'][^>]*>(?:(?!<h1).)+?)</h1>',
-            webpage, 'video_title')
+            (r'(?s)<h1[^>]*>((?:(?!<h1).)*?<(?:span[^>]+itemprop=["\']title["\']|meta[^>]+itemprop=["\']position["\'])[^>]*>(?:(?!<h1).)+?)</h1>',
+             r'<title>(.+?),\s+-\s+.+? Crunchyroll'),
+            webpage, 'video_title', default=None)
+        if not video_title:
+            video_title = re.sub(r'^Watch\s+', '', self._og_search_description(webpage))
         video_title = re.sub(r' {2,}', ' ', video_title)
         video_description = (self._parse_json(self._html_search_regex(
             r'<script[^>]*>\s*.+?\[media_id=%s\].+?({.+?"description"\s*:.+?})\);' % video_id,
             webpage, 'description', default='{}'), video_id) or media_metadata).get('description')
         if video_description:
             video_description = lowercase_escape(video_description.replace(r'\r\n', '\n'))
-        video_upload_date = self._html_search_regex(
-            [r'<div>Availability for free users:(.+?)</div>', r'<div>[^<>]+<span>\s*(.+?\d{4})\s*</span></div>'],
-            webpage, 'video_upload_date', fatal=False, flags=re.DOTALL)
-        if video_upload_date:
-            video_upload_date = unified_strdate(video_upload_date)
         video_uploader = self._html_search_regex(
             # try looking for both an uploader that's a link and one that's not
             [r'<a[^>]+href="/publisher/[^"]+"[^>]*>([^<]+)</a>', r'<div>\s*Publisher:\s*<span>\s*(.+?)\s*</span>\s*</div>'],
-            webpage, 'video_uploader', fatal=False)
+            webpage, 'video_uploader', default=False)
 
         formats = []
         for stream in media.get('streams', []):
@@ -515,7 +512,7 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
                         'video_quality': stream_quality,
                         'current_page': url,
                     })
-                if streamdata is not None:
+                if isinstance(streamdata, compat_etree_Element):
                     stream_info = streamdata.find('./{default}preload/stream_info')
                     if stream_info is not None:
                         stream_infos.append(stream_info)
@@ -526,7 +523,7 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
                         'video_format': stream_format,
                         'video_encode_quality': stream_quality,
                     })
-                if stream_info is not None:
+                if isinstance(stream_info, compat_etree_Element):
                     stream_infos.append(stream_info)
                 for stream_info in stream_infos:
                     video_encode_id = xpath_text(stream_info, './video_encode_id')
@@ -598,23 +595,36 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
         series = self._html_search_regex(
             r'(?s)<h\d[^>]+\bid=["\']showmedia_about_episode_num[^>]+>(.+?)</h\d',
             webpage, 'series', fatal=False)
-        season = xpath_text(metadata, 'series_title')
 
-        episode = xpath_text(metadata, 'episode_title') or media_metadata.get('title')
-        episode_number = int_or_none(xpath_text(metadata, 'episode_number') or media_metadata.get('episode_number'))
+        season = episode = episode_number = duration = thumbnail = None
+
+        if isinstance(metadata, compat_etree_Element):
+            season = xpath_text(metadata, 'series_title')
+            episode = xpath_text(metadata, 'episode_title')
+            episode_number = int_or_none(xpath_text(metadata, 'episode_number'))
+            duration = float_or_none(media_metadata.get('duration'), 1000)
+            thumbnail = xpath_text(metadata, 'episode_image_url')
+
+        if not episode:
+            episode = media_metadata.get('title')
+        if not episode_number:
+            episode_number = int_or_none(media_metadata.get('episode_number'))
+        if not thumbnail:
+            thumbnail = media_metadata.get('thumbnail', {}).get('url')
 
         season_number = int_or_none(self._search_regex(
             r'(?s)<h\d[^>]+id=["\']showmedia_about_episode_num[^>]+>.+?</h\d>\s*<h4>\s*Season (\d+)',
             webpage, 'season number', default=None))
 
-        return {
+        info = self._search_json_ld(webpage, video_id, default={})
+
+        return merge_dicts({
             'id': video_id,
             'title': video_title,
             'description': video_description,
-            'duration': float_or_none(media_metadata.get('duration'), 1000),
-            'thumbnail': xpath_text(metadata, 'episode_image_url') or media_metadata.get('thumbnail', {}).get('url'),
+            'duration': duration,
+            'thumbnail': thumbnail,
             'uploader': video_uploader,
-            'upload_date': video_upload_date,
             'series': series,
             'season': season,
             'season_number': season_number,
@@ -622,7 +632,7 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
             'episode_number': episode_number,
             'subtitles': subtitles,
             'formats': formats,
-        }
+        }, info)
 
 
 class CrunchyrollShowPlaylistIE(CrunchyrollBaseIE):
@@ -657,9 +667,8 @@ class CrunchyrollShowPlaylistIE(CrunchyrollBaseIE):
         webpage = self._download_webpage(
             self._add_skip_wall(url), show_id,
             headers=self.geo_verification_headers())
-        title = self._html_search_regex(
-            r'(?s)<h1[^>]*>\s*<span itemprop="name">(.*?)</span>',
-            webpage, 'title')
+        title = self._html_search_meta('name', webpage, default=None)
+
         episode_paths = re.findall(
             r'(?s)<li id="showview_videos_media_(\d+)"[^>]+>.*?<a href="([^"]+)"',
             webpage)

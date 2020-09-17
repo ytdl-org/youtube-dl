@@ -1,20 +1,19 @@
 # coding: utf-8
 from __future__ import unicode_literals
 
-import re
-
 from .turner import TurnerBaseIE
+from ..utils import int_or_none
 
 
 class CartoonNetworkIE(TurnerBaseIE):
     _VALID_URL = r'https?://(?:www\.)?cartoonnetwork\.com/video/(?:[^/]+/)+(?P<id>[^/?#]+)-(?:clip|episode)\.html'
     _TEST = {
-        'url': 'http://www.cartoonnetwork.com/video/teen-titans-go/starfire-the-cat-lady-clip.html',
+        'url': 'https://www.cartoonnetwork.com/video/ben-10/how-to-draw-upgrade-episode.html',
         'info_dict': {
-            'id': '8a250ab04ed07e6c014ef3f1e2f9016c',
+            'id': '6e3375097f63874ebccec7ef677c1c3845fa850e',
             'ext': 'mp4',
-            'title': 'Starfire the Cat Lady',
-            'description': 'Robin decides to become a cat so that Starfire will finally love him.',
+            'title': 'How to Draw Upgrade',
+            'description': 'md5:2061d83776db7e8be4879684eefe8c0f',
         },
         'params': {
             # m3u8 download
@@ -25,18 +24,39 @@ class CartoonNetworkIE(TurnerBaseIE):
     def _real_extract(self, url):
         display_id = self._match_id(url)
         webpage = self._download_webpage(url, display_id)
-        id_type, video_id = re.search(r"_cnglobal\.cvp(Video|Title)Id\s*=\s*'([^']+)';", webpage).groups()
-        query = ('id' if id_type == 'Video' else 'titleId') + '=' + video_id
-        return self._extract_cvp_info(
-            'http://www.cartoonnetwork.com/video-seo-svc/episodeservices/getCvpPlaylist?networkName=CN2&' + query, video_id, {
-                'secure': {
-                    'media_src': 'http://androidhls-secure.cdn.turner.com/toon/big',
-                    'tokenizer_src': 'https://token.vgtf.net/token/token_mobile',
-                },
-            }, {
+
+        def find_field(global_re, name, content_re=None, value_re='[^"]+', fatal=False):
+            metadata_re = ''
+            if content_re:
+                metadata_re = r'|video_metadata\.content_' + content_re
+            return self._search_regex(
+                r'(?:_cnglobal\.currentVideo\.%s%s)\s*=\s*"(%s)";' % (global_re, metadata_re, value_re),
+                webpage, name, fatal=fatal)
+
+        media_id = find_field('mediaId', 'media id', 'id', '[0-9a-f]{40}', True)
+        title = find_field('episodeTitle', 'title', '(?:episodeName|name)', fatal=True)
+
+        info = self._extract_ngtv_info(
+            media_id, {'networkId': 'cartoonnetwork'}, {
                 'url': url,
                 'site_name': 'CartoonNetwork',
-                'auth_required': self._search_regex(
-                    r'_cnglobal\.cvpFullOrPreviewAuth\s*=\s*(true|false);',
-                    webpage, 'auth required', default='false') == 'true',
+                'auth_required': find_field('authType', 'auth type') != 'unauth',
             })
+
+        series = find_field(
+            'propertyName', 'series', 'showName') or self._html_search_meta('partOfSeries', webpage)
+        info.update({
+            'id': media_id,
+            'display_id': display_id,
+            'title': title,
+            'description': self._html_search_meta('description', webpage),
+            'series': series,
+            'episode': title,
+        })
+
+        for field in ('season', 'episode'):
+            field_name = field + 'Number'
+            info[field + '_number'] = int_or_none(find_field(
+                field_name, field + ' number', value_re=r'\d+') or self._html_search_meta(field_name, webpage))
+
+        return info

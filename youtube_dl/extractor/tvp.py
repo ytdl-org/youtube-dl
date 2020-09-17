@@ -1,14 +1,16 @@
 # coding: utf-8
 from __future__ import unicode_literals
 
+import itertools
 import re
 
 from .common import InfoExtractor
 from ..utils import (
-    determine_ext,
     clean_html,
-    get_element_by_attribute,
+    determine_ext,
     ExtractorError,
+    get_element_by_attribute,
+    orderedSet,
 )
 
 
@@ -19,12 +21,12 @@ class TVPIE(InfoExtractor):
 
     _TESTS = [{
         'url': 'https://vod.tvp.pl/video/czas-honoru,i-seria-odc-13,194536',
-        'md5': '8aa518c15e5cc32dfe8db400dc921fbb',
+        'md5': 'a21eb0aa862f25414430f15fdfb9e76c',
         'info_dict': {
             'id': '194536',
             'ext': 'mp4',
-            'title': 'Czas honoru, I seria – odc. 13',
-            'description': 'md5:381afa5bca72655fe94b05cfe82bf53d',
+            'title': 'Czas honoru, odc. 13 – Władek',
+            'description': 'md5:437f48b93558370b031740546b696e24',
         },
     }, {
         'url': 'http://www.tvp.pl/there-can-be-anything-so-i-shortened-it/17916176',
@@ -45,6 +47,7 @@ class TVPIE(InfoExtractor):
             'title': 'Wiadomości, 28.09.2017, 19:30',
             'description': 'Wydanie główne codziennego serwisu informacyjnego.'
         },
+        'skip': 'HTTP Error 404: Not Found',
     }, {
         'url': 'http://vod.tvp.pl/seriale/obyczajowe/na-sygnale/sezon-2-27-/odc-39/17834272',
         'only_matching': True,
@@ -75,8 +78,10 @@ class TVPIE(InfoExtractor):
         return {
             '_type': 'url_transparent',
             'url': 'tvp:' + video_id,
-            'description': self._og_search_description(webpage, default=None),
-            'thumbnail': self._og_search_thumbnail(webpage),
+            'description': self._og_search_description(
+                webpage, default=None) or self._html_search_meta(
+                'description', webpage, default=None),
+            'thumbnail': self._og_search_thumbnail(webpage, default=None),
             'ie_key': 'TVPEmbed',
         }
 
@@ -87,6 +92,15 @@ class TVPEmbedIE(InfoExtractor):
     _VALID_URL = r'(?:tvp:|https?://[^/]+\.tvp\.(?:pl|info)/sess/tvplayer\.php\?.*?object_id=)(?P<id>\d+)'
 
     _TESTS = [{
+        'url': 'tvp:194536',
+        'md5': 'a21eb0aa862f25414430f15fdfb9e76c',
+        'info_dict': {
+            'id': '194536',
+            'ext': 'mp4',
+            'title': 'Czas honoru, odc. 13 – Władek',
+        },
+    }, {
+        # not available
         'url': 'http://www.tvp.pl/sess/tvplayer.php?object_id=22670268',
         'md5': '8c9cd59d16edabf39331f93bf8a766c7',
         'info_dict': {
@@ -94,6 +108,7 @@ class TVPEmbedIE(InfoExtractor):
             'ext': 'mp4',
             'title': 'Panorama, 07.12.2015, 15:40',
         },
+        'skip': 'Transmisja została zakończona lub materiał niedostępny',
     }, {
         'url': 'tvp:22670268',
         'only_matching': True,
@@ -105,10 +120,13 @@ class TVPEmbedIE(InfoExtractor):
         webpage = self._download_webpage(
             'http://www.tvp.pl/sess/tvplayer.php?object_id=%s' % video_id, video_id)
 
-        error_massage = get_element_by_attribute('class', 'msg error', webpage)
-        if error_massage:
+        error = self._html_search_regex(
+            r'(?s)<p[^>]+\bclass=["\']notAvailable__text["\'][^>]*>(.+?)</p>',
+            webpage, 'error', default=None) or clean_html(
+            get_element_by_attribute('class', 'msg error', webpage))
+        if error:
             raise ExtractorError('%s said: %s' % (
-                self.IE_NAME, clean_html(error_massage)), expected=True)
+                self.IE_NAME, clean_html(error)), expected=True)
 
         title = self._search_regex(
             r'name\s*:\s*([\'"])Title\1\s*,\s*value\s*:\s*\1(?P<title>.+?)\1',
@@ -180,48 +198,55 @@ class TVPEmbedIE(InfoExtractor):
         }
 
 
-class TVPSeriesIE(InfoExtractor):
+class TVPWebsiteIE(InfoExtractor):
     IE_NAME = 'tvp:series'
-    _VALID_URL = r'https?://vod\.tvp\.pl/(?:[^/]+/){2}(?P<id>[^/]+)/?$'
+    _VALID_URL = r'https?://vod\.tvp\.pl/website/(?P<display_id>[^,]+),(?P<id>\d+)'
 
     _TESTS = [{
-        'url': 'http://vod.tvp.pl/filmy-fabularne/filmy-za-darmo/ogniem-i-mieczem',
+        # series
+        'url': 'https://vod.tvp.pl/website/lzy-cennet,38678312/video',
         'info_dict': {
-            'title': 'Ogniem i mieczem',
-            'id': '4278026',
+            'id': '38678312',
         },
-        'playlist_count': 4,
+        'playlist_count': 115,
     }, {
-        'url': 'http://vod.tvp.pl/audycje/podroze/boso-przez-swiat',
+        # film
+        'url': 'https://vod.tvp.pl/website/gloria,35139666',
         'info_dict': {
-            'title': 'Boso przez świat',
-            'id': '9329207',
+            'id': '36637049',
+            'ext': 'mp4',
+            'title': 'Gloria, Gloria',
         },
-        'playlist_count': 86,
+        'params': {
+            'skip_download': True,
+        },
+        'add_ie': ['TVPEmbed'],
+    }, {
+        'url': 'https://vod.tvp.pl/website/lzy-cennet,38678312',
+        'only_matching': True,
     }]
 
+    def _entries(self, display_id, playlist_id):
+        url = 'https://vod.tvp.pl/website/%s,%s/video' % (display_id, playlist_id)
+        for page_num in itertools.count(1):
+            page = self._download_webpage(
+                url, display_id, 'Downloading page %d' % page_num,
+                query={'page': page_num})
+
+            video_ids = orderedSet(re.findall(
+                r'<a[^>]+\bhref=["\']/video/%s,[^,]+,(\d+)' % display_id,
+                page))
+
+            if not video_ids:
+                break
+
+            for video_id in video_ids:
+                yield self.url_result(
+                    'tvp:%s' % video_id, ie=TVPEmbedIE.ie_key(),
+                    video_id=video_id)
+
     def _real_extract(self, url):
-        display_id = self._match_id(url)
-        webpage = self._download_webpage(url, display_id, tries=5)
-
-        title = self._html_search_regex(
-            r'(?s) id=[\'"]path[\'"]>(?:.*? / ){2}(.*?)</span>', webpage, 'series')
-        playlist_id = self._search_regex(r'nodeId:\s*(\d+)', webpage, 'playlist id')
-        playlist = self._download_webpage(
-            'http://vod.tvp.pl/vod/seriesAjax?type=series&nodeId=%s&recommend'
-            'edId=0&sort=&page=0&pageSize=10000' % playlist_id, display_id, tries=5,
-            note='Downloading playlist')
-
-        videos_paths = re.findall(
-            '(?s)class="shortTitle">.*?href="(/[^"]+)', playlist)
-        entries = [
-            self.url_result('http://vod.tvp.pl%s' % v_path, ie=TVPIE.ie_key())
-            for v_path in videos_paths]
-
-        return {
-            '_type': 'playlist',
-            'id': playlist_id,
-            'display_id': display_id,
-            'title': title,
-            'entries': entries,
-        }
+        mobj = re.match(self._VALID_URL, url)
+        display_id, playlist_id = mobj.group('display_id', 'id')
+        return self.playlist_result(
+            self._entries(display_id, playlist_id), playlist_id)

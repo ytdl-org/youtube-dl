@@ -258,8 +258,8 @@ class YoukuShowIE(InfoExtractor):
             transform_source=lambda s: js_to_json(strip_jsonp(s))).get('html')
         if playlist_data is None:
             return [None, None]
-        drama_list = (get_element_by_class('p-drama-grid', playlist_data) or
-                      get_element_by_class('p-drama-half-row', playlist_data))
+        drama_list = (get_element_by_class('p-drama-grid', playlist_data)
+                      or get_element_by_class('p-drama-half-row', playlist_data))
         if drama_list is None:
             raise ExtractorError('No episodes found')
         video_urls = re.findall(r'<a[^>]+href="([^"]+)"', drama_list)

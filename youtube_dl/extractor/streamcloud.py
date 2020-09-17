@@ -45,7 +45,7 @@ class StreamcloudIE(InfoExtractor):
             value="([^"]*)"
             ''', orig_webpage)
 
-        self._sleep(12, video_id)
+        self._sleep(6, video_id)
 
         webpage = self._download_webpage(
             url, video_id, data=urlencode_postdata(fields), headers={

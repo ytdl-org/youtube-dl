@@ -363,7 +363,4 @@ class LivestreamShortenerIE(InfoExtractor):
         id = mobj.group('id')
         webpage = self._download_webpage(url, id)
 
-        return {
-            '_type': 'url',
-            'url': self._og_search_url(webpage),
-        }
+        return self.url_result(self._og_search_url(webpage))

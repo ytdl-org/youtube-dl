@@ -110,17 +110,17 @@ class ABCIViewIE(InfoExtractor):
 
     # ABC iview programs are normally available for 14 days only.
     _TESTS = [{
-        'url': 'https://iview.abc.net.au/show/ben-and-hollys-little-kingdom/series/0/video/ZX9371A050S00',
-        'md5': 'cde42d728b3b7c2b32b1b94b4a548afc',
+        'url': 'https://iview.abc.net.au/show/gruen/series/11/video/LE1927H001S00',
+        'md5': '67715ce3c78426b11ba167d875ac6abf',
         'info_dict': {
-            'id': 'ZX9371A050S00',
+            'id': 'LE1927H001S00',
             'ext': 'mp4',
-            'title': "Gaston's Birthday",
-            'series': "Ben And Holly's Little Kingdom",
-            'description': 'md5:f9de914d02f226968f598ac76f105bcf',
-            'upload_date': '20180604',
-            'uploader_id': 'abc4kids',
-            'timestamp': 1528140219,
+            'title': "Series 11 Ep 1",
+            'series': "Gruen",
+            'description': 'md5:52cc744ad35045baf6aded2ce7287f67',
+            'upload_date': '20190925',
+            'uploader_id': 'abc1',
+            'timestamp': 1569445289,
         },
         'params': {
             'skip_download': True,
@@ -148,7 +148,7 @@ class ABCIViewIE(InfoExtractor):
                 'hdnea': token,
             })
 
-        for sd in ('sd', 'sd-low'):
+        for sd in ('720', 'sd', 'sd-low'):
             sd_url = try_get(
                 stream, lambda x: x['streams']['hls'][sd], compat_str)
             if not sd_url:

@@ -7,50 +7,51 @@ from .common import InfoExtractor
 
 
 class DBTVIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:www\.)?dbtv\.no/(?:[^/]+/)?(?P<id>[0-9]+)(?:#(?P<display_id>.+))?'
+    _VALID_URL = r'https?://(?:www\.)?dagbladet\.no/video/(?:(?:embed|(?P<display_id>[^/]+))/)?(?P<id>[0-9A-Za-z_-]{11}|[a-zA-Z0-9]{8})'
     _TESTS = [{
-        'url': 'http://dbtv.no/3649835190001#Skulle_teste_ut_fornøyelsespark,_men_kollegaen_var_bare_opptatt_av_bikinikroppen',
-        'md5': '2e24f67936517b143a234b4cadf792ec',
+        'url': 'https://www.dagbladet.no/video/PynxJnNWChE/',
+        'md5': 'b8f850ba1860adbda668d367f9b77699',
         'info_dict': {
-            'id': '3649835190001',
-            'display_id': 'Skulle_teste_ut_fornøyelsespark,_men_kollegaen_var_bare_opptatt_av_bikinikroppen',
+            'id': 'PynxJnNWChE',
             'ext': 'mp4',
             'title': 'Skulle teste ut fornøyelsespark, men kollegaen var bare opptatt av bikinikroppen',
-            'description': 'md5:1504a54606c4dde3e4e61fc97aa857e0',
+            'description': 'md5:49cc8370e7d66e8a2ef15c3b4631fd3f',
             'thumbnail': r're:https?://.*\.jpg',
-            'timestamp': 1404039863,
-            'upload_date': '20140629',
-            'duration': 69.544,
-            'uploader_id': '1027729757001',
+            'upload_date': '20160916',
+            'duration': 69,
+            'uploader_id': 'UCk5pvsyZJoYJBd7_oFPTlRQ',
+            'uploader': 'Dagbladet',
         },
-        'add_ie': ['BrightcoveNew']
+        'add_ie': ['Youtube']
     }, {
-        'url': 'http://dbtv.no/3649835190001',
+        'url': 'https://www.dagbladet.no/video/embed/xlGmyIeN9Jo/?autoplay=false',
         'only_matching': True,
     }, {
-        'url': 'http://www.dbtv.no/lazyplayer/4631135248001',
-        'only_matching': True,
-    }, {
-        'url': 'http://dbtv.no/vice/5000634109001',
-        'only_matching': True,
-    }, {
-        'url': 'http://dbtv.no/filmtrailer/3359293614001',
+        'url': 'https://www.dagbladet.no/video/truer-iran-bor-passe-dere/PalfB2Cw',
         'only_matching': True,
     }]
 
     @staticmethod
     def _extract_urls(webpage):
         return [url for _, url in re.findall(
-            r'<iframe[^>]+src=(["\'])((?:https?:)?//(?:www\.)?dbtv\.no/(?:lazy)?player/\d+.*?)\1',
+            r'<iframe[^>]+src=(["\'])((?:https?:)?//(?:www\.)?dagbladet\.no/video/embed/(?:[0-9A-Za-z_-]{11}|[a-zA-Z0-9]{8}).*?)\1',
             webpage)]
 
     def _real_extract(self, url):
-        video_id, display_id = re.match(self._VALID_URL, url).groups()
-
-        return {
+        display_id, video_id = re.match(self._VALID_URL, url).groups()
+        info = {
             '_type': 'url_transparent',
-            'url': 'http://players.brightcove.net/1027729757001/default_default/index.html?videoId=%s' % video_id,
             'id': video_id,
             'display_id': display_id,
-            'ie_key': 'BrightcoveNew',
         }
+        if len(video_id) == 11:
+            info.update({
+                'url': video_id,
+                'ie_key': 'Youtube',
+            })
+        else:
+            info.update({
+                'url': 'jwplatform:' + video_id,
+                'ie_key': 'JWPlatform',
+            })
+        return info

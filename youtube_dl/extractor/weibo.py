@@ -19,7 +19,7 @@ from ..utils import (
 
 
 class WeiboIE(InfoExtractor):
-    _VALID_URL = r'https?://weibo\.com/[0-9]+/(?P<id>[a-zA-Z0-9]+)'
+    _VALID_URL = r'https?://(?:www\.)?weibo\.com/[0-9]+/(?P<id>[a-zA-Z0-9]+)'
     _TEST = {
         'url': 'https://weibo.com/6275294458/Fp6RGfbff?type=comment',
         'info_dict': {

@@ -14,7 +14,7 @@ from ..utils import (
 
 
 class GameSpotIE(OnceIE):
-    _VALID_URL = r'https?://(?:www\.)?gamespot\.com/(?:video|article)s/(?:[^/]+/\d+-|embed/)(?P<id>\d+)'
+    _VALID_URL = r'https?://(?:www\.)?gamespot\.com/(?:video|article|review)s/(?:[^/]+/\d+-|embed/)(?P<id>\d+)'
     _TESTS = [{
         'url': 'http://www.gamespot.com/videos/arma-3-community-guide-sitrep-i/2300-6410818/',
         'md5': 'b2a30deaa8654fcccd43713a6b6a4825',
@@ -40,6 +40,9 @@ class GameSpotIE(OnceIE):
         'only_matching': True,
     }, {
         'url': 'https://www.gamespot.com/articles/the-last-of-us-2-receives-new-ps4-trailer/1100-6454469/',
+        'only_matching': True,
+    }, {
+        'url': 'https://www.gamespot.com/reviews/gears-of-war-review/1900-6161188/',
         'only_matching': True,
     }]
 

@@ -60,8 +60,8 @@ class HRTiBaseIE(InfoExtractor):
             language=self._APP_LANGUAGE,
             application_id=self._APP_PUBLICATION_ID)
 
-        self._login_url = (modules['user']['resources']['login']['uri'] +
-                           '/format/json').format(session_id=self._session_id)
+        self._login_url = (modules['user']['resources']['login']['uri']
+                           + '/format/json').format(session_id=self._session_id)
 
         self._logout_url = modules['user']['resources']['logout']['uri']
 

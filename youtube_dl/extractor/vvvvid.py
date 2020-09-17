@@ -12,7 +12,7 @@ from ..utils import (
 
 
 class VVVVIDIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:www\.)?vvvvid\.it/#!(?:show|anime|film|series)/(?P<show_id>\d+)/[^/]+/(?P<season_id>\d+)/(?P<id>[0-9]+)'
+    _VALID_URL = r'https?://(?:www\.)?vvvvid\.it/(?:#!)?(?:show|anime|film|series)/(?P<show_id>\d+)/[^/]+/(?P<season_id>\d+)/(?P<id>[0-9]+)'
     _TESTS = [{
         # video_type == 'video/vvvvid'
         'url': 'https://www.vvvvid.it/#!show/434/perche-dovrei-guardarlo-di-dario-moccia/437/489048/ping-pong',

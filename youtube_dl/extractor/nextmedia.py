@@ -180,8 +180,8 @@ class AppleDailyIE(NextMediaIE):
     _URL_PATTERN = r'\{url: \'(.+)\'\}'
 
     def _fetch_title(self, page):
-        return (self._html_search_regex(r'<h1 id="h1">([^<>]+)</h1>', page, 'news title', default=None) or
-                self._html_search_meta('description', page, 'news title'))
+        return (self._html_search_regex(r'<h1 id="h1">([^<>]+)</h1>', page, 'news title', default=None)
+                or self._html_search_meta('description', page, 'news title'))
 
     def _fetch_thumbnail(self, page):
         return self._html_search_regex(r"setInitialImage\(\'([^']+)'\)", page, 'video thumbnail', fatal=False)

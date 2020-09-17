@@ -24,7 +24,7 @@ total_bytes = 0
 
 for page in itertools.count(1):
     releases = json.loads(compat_urllib_request.urlopen(
-        'https://api.github.com/repos/rg3/youtube-dl/releases?page=%s' % page
+        'https://api.github.com/repos/ytdl-org/youtube-dl/releases?page=%s' % page
     ).read().decode('utf-8'))
 
     if not releases:

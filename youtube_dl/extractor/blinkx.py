@@ -32,8 +32,8 @@ class BlinkxIE(InfoExtractor):
         video_id = self._match_id(url)
         display_id = video_id[:8]
 
-        api_url = ('https://apib4.blinkx.com/api.php?action=play_video&' +
-                   'video=%s' % video_id)
+        api_url = ('https://apib4.blinkx.com/api.php?action=play_video&'
+                   + 'video=%s' % video_id)
         data_json = self._download_webpage(api_url, display_id)
         data = json.loads(data_json)['api']['results'][0]
         duration = None

@@ -238,8 +238,8 @@ def write_metadata_tag(stream, metadata):
 
 
 def remove_encrypted_media(media):
-    return list(filter(lambda e: 'drmAdditionalHeaderId' not in e.attrib and
-                                 'drmAdditionalHeaderSetId' not in e.attrib,
+    return list(filter(lambda e: 'drmAdditionalHeaderId' not in e.attrib
+                                 and 'drmAdditionalHeaderSetId' not in e.attrib,
                        media))
 
 
@@ -267,8 +267,8 @@ class F4mFD(FragmentFD):
         media = doc.findall(_add_ns('media'))
         if not media:
             self.report_error('No media found')
-        for e in (doc.findall(_add_ns('drmAdditionalHeader')) +
-                  doc.findall(_add_ns('drmAdditionalHeaderSet'))):
+        for e in (doc.findall(_add_ns('drmAdditionalHeader'))
+                  + doc.findall(_add_ns('drmAdditionalHeaderSet'))):
             # If id attribute is missing it's valid for all media nodes
             # without drmAdditionalHeaderId or drmAdditionalHeaderSetId attribute
             if 'id' not in e.attrib:
@@ -324,8 +324,8 @@ class F4mFD(FragmentFD):
         urlh = self.ydl.urlopen(self._prepare_url(info_dict, man_url))
         man_url = urlh.geturl()
         # Some manifests may be malformed, e.g. prosiebensat1 generated manifests
-        # (see https://github.com/rg3/youtube-dl/issues/6215#issuecomment-121704244
-        # and https://github.com/rg3/youtube-dl/issues/7823)
+        # (see https://github.com/ytdl-org/youtube-dl/issues/6215#issuecomment-121704244
+        # and https://github.com/ytdl-org/youtube-dl/issues/7823)
         manifest = fix_xml_ampersands(urlh.read().decode('utf-8', 'ignore')).strip()
 
         doc = compat_etree_fromstring(manifest)
@@ -409,7 +409,7 @@ class F4mFD(FragmentFD):
                             # In tests, segments may be truncated, and thus
                             # FlvReader may not be able to parse the whole
                             # chunk. If so, write the segment as is
-                            # See https://github.com/rg3/youtube-dl/issues/9214
+                            # See https://github.com/ytdl-org/youtube-dl/issues/9214
                             dest_stream.write(down_data)
                             break
                         raise

@@ -1,6 +1,8 @@
 # coding: utf-8
 from __future__ import unicode_literals
 
+import re
+
 from .common import InfoExtractor
 from ..compat import (
     compat_etree_fromstring,
@@ -115,7 +117,18 @@ class OdnoklassnikiIE(InfoExtractor):
     }, {
         'url': 'https://m.ok.ru/dk?st.cmd=movieLayer&st.discId=863789452017&st.retLoc=friend&st.rtu=%2Fdk%3Fst.cmd%3DfriendMovies%26st.mode%3Down%26st.mrkId%3D%257B%2522uploadedMovieMarker%2522%253A%257B%2522marker%2522%253A%25221519410114503%2522%252C%2522hasMore%2522%253Atrue%257D%252C%2522sharedMovieMarker%2522%253A%257B%2522marker%2522%253Anull%252C%2522hasMore%2522%253Afalse%257D%257D%26st.friendId%3D561722190321%26st.frwd%3Don%26_prevCmd%3DfriendMovies%26tkn%3D7257&st.discType=MOVIE&st.mvId=863789452017&_prevCmd=friendMovies&tkn=3648#lst#',
         'only_matching': True,
+    }, {
+        # Paid video
+        'url': 'https://ok.ru/video/954886983203',
+        'only_matching': True,
     }]
+
+    @staticmethod
+    def _extract_url(webpage):
+        mobj = re.search(
+            r'<iframe[^>]+src=(["\'])(?P<url>(?:https?:)?//(?:odnoklassniki|ok)\.ru/videoembed/.+?)\1', webpage)
+        if mobj:
+            return mobj.group('url')
 
     def _real_extract(self, url):
         start_time = int_or_none(compat_parse_qs(
@@ -243,6 +256,11 @@ class OdnoklassnikiIE(InfoExtractor):
                 'format_id': 'rtmp',
                 'ext': 'flv',
             })
+
+        if not formats:
+            payment_info = metadata.get('paymentInfo')
+            if payment_info:
+                raise ExtractorError('This video is paid, subscribe to download it', expected=True)
 
         self._sort_formats(formats)
 

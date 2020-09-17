@@ -305,7 +305,7 @@ class PBSIE(InfoExtractor):
         {
             # Video embedded in iframe containing angle brackets as attribute's value (e.g.
             # "<iframe style='position: absolute;<br />\ntop: 0; left: 0;' ...", see
-            # https://github.com/rg3/youtube-dl/issues/7059)
+            # https://github.com/ytdl-org/youtube-dl/issues/7059)
             'url': 'http://www.pbs.org/food/features/a-chefs-life-season-3-episode-5-prickly-business/',
             'md5': '59b0ef5009f9ac8a319cc5efebcd865e',
             'info_dict': {
@@ -348,7 +348,7 @@ class PBSIE(InfoExtractor):
             },
         },
         {
-            # https://github.com/rg3/youtube-dl/issues/13801
+            # https://github.com/ytdl-org/youtube-dl/issues/13801
             'url': 'https://www.pbs.org/video/pbs-newshour-full-episode-july-31-2017-1501539057/',
             'info_dict': {
                 'id': '3003333873',
@@ -642,7 +642,7 @@ class PBSIE(InfoExtractor):
                 # we won't try extracting them.
                 # Since summer 2016 higher quality formats (4500k and 6500k) are also available
                 # albeit they are not documented in [2].
-                # 1. https://github.com/rg3/youtube-dl/commit/cbc032c8b70a038a69259378c92b4ba97b42d491#commitcomment-17313656
+                # 1. https://github.com/ytdl-org/youtube-dl/commit/cbc032c8b70a038a69259378c92b4ba97b42d491#commitcomment-17313656
                 # 2. https://projects.pbs.org/confluence/display/coveapi/COVE+Video+Specifications
                 if not bitrate or int(bitrate) < 400:
                     continue
