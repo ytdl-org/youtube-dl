@@ -120,19 +120,31 @@ class ArchiveTree(object):
         self.line = line
 
     def at_insert(self, line):
-        if self.line:
-            if line < self.line:
-                if self.left is None:
-                    self.left = ArchiveTree(line)
+#        print("at_insert: ", line)
+        cur = self
+        while True:
+#            print("comparing ", line, cur.line)
+            if cur.line:
+                if line < cur.line:
+                    if cur.left is None:
+                        cur.left = ArchiveTree(line)
+                        return
+                    else:
+                        cur = cur.left
+                        continue
+                elif line > cur.line:
+                    if cur.right is None:
+                        cur.right = ArchiveTree(line)
+                        return
+                    else:
+                        cur = cur.right
+                        continue
                 else:
-                    self.left.at_insert(line)
-            elif line > self.line:
-                if self.right is None:
-                    self.right = ArchiveTree(line)
-                else:
-                    self.right.at_insert(line)
-        else:
-            self.line = line
+                    # Duplicate line found
+                    return
+            else:
+                cur.line = line
+                return
 
     def at_exist(self, line):
         if self.line is None:
@@ -416,6 +428,9 @@ class YoutubeDL(object):
                     '%s is deprecated. Use %s instead.' % (option, suggestion))
                 return True
             return False
+
+        if self.params.get('verbose'):
+            self.to_stdout('[debug] Loading archive file %r' % self.params.get('download_archive'))
 
         preload_download_archive(self)
 
