@@ -113,12 +113,14 @@ from .version import __version__
 if compat_os_name == 'nt':
     import ctypes
 
+# Archive tree
 class ArchiveTree(object):
     def __init__(self, line):
         self.left = None
         self.right = None
         self.line = line
 
+    # Tree insertion
     def at_insert(self, line):
 #        print("at_insert: ", line)
         cur = self
@@ -130,6 +132,7 @@ class ArchiveTree(object):
                         cur.left = ArchiveTree(line)
                         return
                     else:
+#                        print("LEFT")
                         cur = cur.left
                         continue
                 elif line > cur.line:
@@ -137,6 +140,7 @@ class ArchiveTree(object):
                         cur.right = ArchiveTree(line)
                         return
                     else:
+#                        print("RIGHT")
                         cur = cur.right
                         continue
                 else:
@@ -410,16 +414,55 @@ class YoutubeDL(object):
 
         """Preload the archive, if any is specified"""
         def preload_download_archive(self):
+            lines = []
             fn = self.params.get('download_archive')
             if fn is None:
                 return False
             try:
                 with locked_file(fn, 'r', encoding='utf-8') as archive_file:
                     for line in archive_file:
-                        self.archive.at_insert(line.strip())
+                        lines.append(line.strip())
             except IOError as ioe:
                 if ioe.errno != errno.ENOENT:
                     raise
+            lmax = len(lines)
+            if lmax >= 4:
+                # Populate binary search tree by splitting the archive list in half
+                # and then adding from the outside edges inward
+                # This mitigates the worst case where the archive has been sorted
+                ptrLL = 0
+                ptrLR = lmax // 2
+                ptrRL = ptrLR + 1
+                ptrRR = lmax - 1
+                inserted = 0
+                while True:
+#                    print("ptrs: %d %d %d %d" % (ptrLL, ptrLR, ptrRL, ptrRR))
+                    if ptrLR > ptrLL:
+                        self.archive.at_insert(lines[ptrLR])
+                        inserted += 1
+                        ptrLR -= 1;
+                    if ptrRL < ptrRR:
+                        self.archive.at_insert(lines[ptrRL])
+                        inserted += 1
+                        ptrRL += 1;
+                    if ptrLL < ptrLR:
+                        self.archive.at_insert(lines[ptrLL])
+                        inserted += 1
+                        ptrLL += 1;
+                    if ptrRR > ptrRL:
+                        self.archive.at_insert(lines[ptrRR])
+                        inserted += 1
+                        ptrRR -= 1;
+                    if ptrLL == ptrLR and ptrRL == ptrRR:
+                        print("inserted: %d, lmax: %d" % (inserted, lmax))
+                        break
+            elif lmax > 0:
+                # Skip multi-line logic for a single line
+                for idx in lines:
+                    self.archive.at_insert(idx)
+            else:
+                # No lines were loaded
+                return False
             return True
 
         def check_deprecated(param, option, suggestion):
