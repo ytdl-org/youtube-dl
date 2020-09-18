@@ -424,16 +424,7 @@ class YoutubeDL(object):
                     raise
             lmax = len(lines)
             if lmax > 10:
-                pos = 0
-                while pos < lmax:
-                    if lmax - pos <= 2:
-                        break
-                    target = random.randrange(pos + 1, lmax - 1)
-                    # Swap line at pos with randomly chosen target
-                    temp = lines[pos]
-                    lines[pos] = lines[target]
-                    lines[target] = temp
-                    pos += 1
+                random.shuffle(lines)
             elif lmax < 1:
                 # No lines were loaded
                 return False
