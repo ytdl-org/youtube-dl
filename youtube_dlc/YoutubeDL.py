@@ -113,8 +113,9 @@ from .version import __version__
 if compat_os_name == 'nt':
     import ctypes
 
-# Archive tree
+
 class ArchiveTree(object):
+    """Binary search tree for download archive entries"""
     def __init__(self, line):
         self.left = None
         self.right = None
