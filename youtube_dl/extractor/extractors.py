@@ -418,6 +418,7 @@ from .googledrive import GoogleDriveIE
 from .googleplus import GooglePlusIE
 from .googlesearch import GoogleSearchIE
 from .goshgay import GoshgayIE
+from .gotostage import GoToStageIE
 from .gputechconf import GPUTechConfIE
 from .groupon import GrouponIE
 from .hbo import HBOIE
