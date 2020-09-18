@@ -69,7 +69,7 @@ class HotStarBaseIE(InfoExtractor):
 
 class HotStarIE(HotStarBaseIE):
     IE_NAME = 'hotstar'
-    _VALID_URL = r'https?://(?:www\.)?hotstar\.com/\S+\/(?P<id>\d{10})'
+    _VALID_URL = r'https?://(?:www\.)?hotstar\.com/.*(?P<id>\d{10})'
     _TESTS = [{
         # contentData
         'url': 'https://www.hotstar.com/can-you-not-spread-rumours/1000076273',
