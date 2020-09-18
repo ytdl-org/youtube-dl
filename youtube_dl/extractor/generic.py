@@ -60,6 +60,9 @@ from .tnaflix import TNAFlixNetworkEmbedIE
 from .drtuber import DrTuberIE
 from .redtube import RedTubeIE
 from .tube8 import Tube8IE
+from .mofosex import MofosexEmbedIE
+from .spankwire import SpankwireIE
+from .youporn import YouPornIE
 from .vimeo import VimeoIE
 from .dailymotion import DailymotionIE
 from .dailymail import DailyMailIE
@@ -1706,6 +1709,15 @@ class GenericIE(InfoExtractor):
             'add_ie': ['Kaltura'],
         },
         {
+            # multiple kaltura embeds, nsfw
+            'url': 'https://www.quartier-rouge.be/prive/femmes/kamila-avec-video-jaime-sadomie.html',
+            'info_dict': {
+                'id': 'kamila-avec-video-jaime-sadomie',
+                'title': "Kamila avec vídeo “J'aime sadomie”",
+            },
+            'playlist_count': 8,
+        },
+        {
             # Non-standard Vimeo embed
             'url': 'https://openclassrooms.com/courses/understanding-the-web',
             'md5': '64d86f1c7d369afd9a78b38cbb88d80a',
@@ -2715,6 +2727,21 @@ class GenericIE(InfoExtractor):
         if tube8_urls:
             return self.playlist_from_matches(tube8_urls, video_id, video_title, ie=Tube8IE.ie_key())
 
+        # Look for embedded Mofosex player
+        mofosex_urls = MofosexEmbedIE._extract_urls(webpage)
+        if mofosex_urls:
+            return self.playlist_from_matches(mofosex_urls, video_id, video_title, ie=MofosexEmbedIE.ie_key())
+
+        # Look for embedded Spankwire player
+        spankwire_urls = SpankwireIE._extract_urls(webpage)
+        if spankwire_urls:
+            return self.playlist_from_matches(spankwire_urls, video_id, video_title, ie=SpankwireIE.ie_key())
+
+        # Look for embedded YouPorn player
+        youporn_urls = YouPornIE._extract_urls(webpage)
+        if youporn_urls:
+            return self.playlist_from_matches(youporn_urls, video_id, video_title, ie=YouPornIE.ie_key())
+
         # Look for embedded Tvigle player
         mobj = re.search(
             r'<iframe[^>]+?src=(["\'])(?P<url>(?:https?:)?//cloud\.tvigle\.ru/video/.+?)\1', webpage)
@@ -2826,9 +2853,12 @@ class GenericIE(InfoExtractor):
             return self.url_result(mobj.group('url'), 'Zapiks')
 
         # Look for Kaltura embeds
-        kaltura_url = KalturaIE._extract_url(webpage)
-        if kaltura_url:
-            return self.url_result(smuggle_url(kaltura_url, {'source_url': url}), KalturaIE.ie_key())
+        kaltura_urls = KalturaIE._extract_urls(webpage)
+        if kaltura_urls:
+            return self.playlist_from_matches(
+                kaltura_urls, video_id, video_title,
+                getter=lambda x: smuggle_url(x, {'source_url': url}),
+                ie=KalturaIE.ie_key())
 
         # Look for EaglePlatform embeds
         eagleplatform_url = EaglePlatformIE._extract_url(webpage)

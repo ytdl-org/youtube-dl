@@ -18,7 +18,7 @@ class PeriscopeBaseIE(InfoExtractor):
             item_id, query=query)
 
     def _parse_broadcast_data(self, broadcast, video_id):
-        title = broadcast['status']
+        title = broadcast.get('status') or 'Periscope Broadcast'
         uploader = broadcast.get('user_display_name') or broadcast.get('username')
         title = '%s - %s' % (uploader, title) if uploader else title
         is_live = broadcast.get('state').lower() == 'running'

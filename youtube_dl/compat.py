@@ -57,6 +57,17 @@ try:
 except ImportError:  # Python 2
     import cookielib as compat_cookiejar
 
+if sys.version_info[0] == 2:
+    class compat_cookiejar_Cookie(compat_cookiejar.Cookie):
+        def __init__(self, version, name, value, *args, **kwargs):
+            if isinstance(name, compat_str):
+                name = name.encode()
+            if isinstance(value, compat_str):
+                value = value.encode()
+            compat_cookiejar.Cookie.__init__(self, version, name, value, *args, **kwargs)
+else:
+    compat_cookiejar_Cookie = compat_cookiejar.Cookie
+
 try:
     import http.cookies as compat_cookies
 except ImportError:  # Python 2
@@ -2987,6 +2998,7 @@ __all__ = [
     'compat_basestring',
     'compat_chr',
     'compat_cookiejar',
+    'compat_cookiejar_Cookie',
     'compat_cookies',
     'compat_ctypes_WINFUNCTYPE',
     'compat_etree_Element',

@@ -497,6 +497,7 @@
  - **MNetTV**
  - **MoeVideo**: LetitBit video services: moevideo.net, playreplay.net and videochart.net
  - **Mofosex**
+ - **MofosexEmbed**
  - **Mojvideo**
  - **Morningstar**: morningstar.com
  - **Motherless**
@@ -619,11 +620,21 @@
  - **Ooyala**
  - **OoyalaExternal**
  - **OraTV**
+ - **orf:burgenland**: Radio Burgenland
  - **orf:fm4**: radio FM4
  - **orf:fm4:story**: fm4.orf.at stories
  - **orf:iptv**: iptv.ORF.at
+ - **orf:kaernten**: Radio Kärnten
+ - **orf:noe**: Radio Niederösterreich
+ - **orf:oberoesterreich**: Radio Oberösterreich
  - **orf:oe1**: Radio Österreich 1
+ - **orf:oe3**: Radio Österreich 3
+ - **orf:salzburg**: Radio Salzburg
+ - **orf:steiermark**: Radio Steiermark
+ - **orf:tirol**: Radio Tirol
  - **orf:tvthek**: ORF TVthek
+ - **orf:vorarlberg**: Radio Vorarlberg
+ - **orf:wien**: Radio Wien
  - **OsnatelTV**
  - **OutsideTV**
  - **PacktPub**
@@ -706,6 +717,8 @@
  - **RayWenderlichCourse**
  - **RBMARadio**
  - **RDS**: RDS.ca
+ - **RedBull**
+ - **RedBullEmbed**
  - **RedBullTV**
  - **RedBullTVRrnContent**
  - **Reddit**
@@ -939,16 +952,13 @@
  - **TVPlayHome**
  - **Tweakers**
  - **TwitCasting**
- - **twitch:chapter**
  - **twitch:clips**
- - **twitch:profile**
  - **twitch:stream**
- - **twitch:video**
- - **twitch:videos:all**
- - **twitch:videos:highlights**
- - **twitch:videos:past-broadcasts**
- - **twitch:videos:uploads**
  - **twitch:vod**
+ - **TwitchCollection**
+ - **TwitchVideos**
+ - **TwitchVideosClips**
+ - **TwitchVideosCollections**
  - **twitter**
  - **twitter:amplify**
  - **twitter:broadcast**

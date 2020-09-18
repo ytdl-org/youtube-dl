@@ -82,17 +82,6 @@ class PuhuTVIE(InfoExtractor):
         urls = []
         formats = []
 
-        def add_http_from_hls(m3u8_f):
-            http_url = m3u8_f['url'].replace('/hls/', '/mp4/').replace('/chunklist.m3u8', '.mp4')
-            if http_url != m3u8_f['url']:
-                f = m3u8_f.copy()
-                f.update({
-                    'format_id': f['format_id'].replace('hls', 'http'),
-                    'protocol': 'http',
-                    'url': http_url,
-                })
-                formats.append(f)
-
         for video in videos['data']['videos']:
             media_url = url_or_none(video.get('url'))
             if not media_url or media_url in urls:
@@ -101,12 +90,9 @@ class PuhuTVIE(InfoExtractor):
 
             playlist = video.get('is_playlist')
             if (video.get('stream_type') == 'hls' and playlist is True) or 'playlist.m3u8' in media_url:
-                m3u8_formats = self._extract_m3u8_formats(
+                formats.extend(self._extract_m3u8_formats(
                     media_url, video_id, 'mp4', entry_protocol='m3u8_native',
-                    m3u8_id='hls', fatal=False)
-                for m3u8_f in m3u8_formats:
-                    formats.append(m3u8_f)
-                    add_http_from_hls(m3u8_f)
+                    m3u8_id='hls', fatal=False))
                 continue
 
             quality = int_or_none(video.get('quality'))
@@ -128,8 +114,6 @@ class PuhuTVIE(InfoExtractor):
                 format_id += '-%sp' % quality
             f['format_id'] = format_id
             formats.append(f)
-            if is_hls:
-                add_http_from_hls(f)
         self._sort_formats(formats)
 
         creator = try_get(

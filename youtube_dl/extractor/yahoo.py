@@ -12,6 +12,7 @@ from ..compat import (
 )
 from ..utils import (
     clean_html,
+    ExtractorError,
     int_or_none,
     mimetype2ext,
     parse_iso8601,
@@ -368,31 +369,47 @@ class YahooGyaOPlayerIE(InfoExtractor):
         'url': 'https://gyao.yahoo.co.jp/episode/%E3%81%8D%E3%81%AE%E3%81%86%E4%BD%95%E9%A3%9F%E3%81%B9%E3%81%9F%EF%BC%9F%20%E7%AC%AC2%E8%A9%B1%202019%2F4%2F12%E6%94%BE%E9%80%81%E5%88%86/5cb02352-b725-409e-9f8d-88f947a9f682',
         'only_matching': True,
     }]
+    _GEO_BYPASS = False
 
     def _real_extract(self, url):
         video_id = self._match_id(url).replace('/', ':')
-        video = self._download_json(
-            'https://gyao.yahoo.co.jp/dam/v1/videos/' + video_id,
-            video_id, query={
-                'fields': 'longDescription,title,videoId',
-            }, headers={
-                'X-User-Agent': 'Unknown Pc GYAO!/2.0.0 Web',
-            })
+        headers = self.geo_verification_headers()
+        headers['Accept'] = 'application/json'
+        resp = self._download_json(
+            'https://gyao.yahoo.co.jp/apis/playback/graphql', video_id, query={
+                'appId': 'dj00aiZpPUNJeDh2cU1RazU3UCZzPWNvbnN1bWVyc2VjcmV0Jng9NTk-',
+                'query': '''{
+  content(parameter: {contentId: "%s", logicaAgent: PC_WEB}) {
+    video {
+      delivery {
+        id
+      }
+      title
+    }
+  }
+}''' % video_id,
+            }, headers=headers)
+        content = resp['data']['content']
+        if not content:
+            msg = resp['errors'][0]['message']
+            if msg == 'not in japan':
+                self.raise_geo_restricted(countries=['JP'])
+            raise ExtractorError(msg)
+        video = content['video']
         return {
             '_type': 'url_transparent',
             'id': video_id,
             'title': video['title'],
             'url': smuggle_url(
-                'http://players.brightcove.net/4235717419001/SyG5P0gjb_default/index.html?videoId=' + video['videoId'],
+                'http://players.brightcove.net/4235717419001/SyG5P0gjb_default/index.html?videoId=' + video['delivery']['id'],
                 {'geo_countries': ['JP']}),
-            'description': video.get('longDescription'),
             'ie_key': BrightcoveNewIE.ie_key(),
         }
 
 
 class YahooGyaOIE(InfoExtractor):
     IE_NAME = 'yahoo:gyao'
-    _VALID_URL = r'https?://(?:gyao\.yahoo\.co\.jp/(?:p|title/[^/]+)|streaming\.yahoo\.co\.jp/p/y)/(?P<id>\d+/v\d+|[\da-f]{8}-[\da-f]{4}-[\da-f]{4}-[\da-f]{4}-[\da-f]{12})'
+    _VALID_URL = r'https?://(?:gyao\.yahoo\.co\.jp/(?:p|title(?:/[^/]+)?)|streaming\.yahoo\.co\.jp/p/y)/(?P<id>\d+/v\d+|[\da-f]{8}-[\da-f]{4}-[\da-f]{4}-[\da-f]{4}-[\da-f]{12})'
     _TESTS = [{
         'url': 'https://gyao.yahoo.co.jp/p/00449/v03102/',
         'info_dict': {
@@ -404,6 +421,9 @@ class YahooGyaOIE(InfoExtractor):
         'only_matching': True,
     }, {
         'url': 'https://gyao.yahoo.co.jp/title/%E3%81%97%E3%82%83%E3%81%B9%E3%81%8F%E3%82%8A007/5b025a49-b2e5-4dc7-945c-09c6634afacf',
+        'only_matching': True,
+    }, {
+        'url': 'https://gyao.yahoo.co.jp/title/5b025a49-b2e5-4dc7-945c-09c6634afacf',
         'only_matching': True,
     }]
 
