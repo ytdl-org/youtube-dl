@@ -341,7 +341,7 @@ class PornHubIE(PornHubBaseIE):
             webpage, 'uploader', fatal=False)
 
         view_count = self._extract_count(
-            r'<span class="count">([\d,\.]+)</span> views', webpage, 'view')
+            r'<span class="count">([\d,\.]+)</span> [Vv]iews', webpage, 'view')
         like_count = self._extract_count(
             r'<span class="votesUp">([\d,\.]+)</span>', webpage, 'like')
         dislike_count = self._extract_count(
