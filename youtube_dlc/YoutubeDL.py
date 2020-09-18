@@ -114,6 +114,54 @@ if compat_os_name == 'nt':
     import ctypes
 
 
+class ArchiveTree(object):
+    """Binary search tree for download archive entries"""
+    def __init__(self, line):
+        self.left = None
+        self.right = None
+        self.line = line
+
+    # Tree insertion
+    def at_insert(self, line):
+        cur = self
+        while True:
+            if cur.line:
+                if line < cur.line:
+                    if cur.left is None:
+                        cur.left = ArchiveTree(line)
+                        return
+                    else:
+                        cur = cur.left
+                        continue
+                elif line > cur.line:
+                    if cur.right is None:
+                        cur.right = ArchiveTree(line)
+                        return
+                    else:
+                        cur = cur.right
+                        continue
+                else:
+                    # Duplicate line found
+                    return
+            else:
+                cur.line = line
+                return
+
+    def at_exist(self, line):
+        if self.line is None:
+            return False
+        if line < self.line:
+            if self.left is None:
+                return False
+            return self.left.at_exist(line)
+        elif line > self.line:
+            if self.right is None:
+                return False
+            return self.right.at_exist(line)
+        else:
+            return True
+
+
 class YoutubeDL(object):
     """YoutubeDL class.
 
@@ -359,6 +407,39 @@ class YoutubeDL(object):
         }
         self.params.update(params)
         self.cache = Cache(self)
+        self.archive = ArchiveTree(None)
+
+        """Preload the archive, if any is specified"""
+        def preload_download_archive(self):
+            lines = []
+            fn = self.params.get('download_archive')
+            if fn is None:
+                return False
+            try:
+                with locked_file(fn, 'r', encoding='utf-8') as archive_file:
+                    for line in archive_file:
+                        lines.append(line.strip())
+            except IOError as ioe:
+                if ioe.errno != errno.ENOENT:
+                    raise
+            lmax = len(lines)
+            if lmax > 10:
+                pos = 0
+                while pos < lmax:
+                    if lmax - pos <= 2:
+                        break
+                    target = random.randrange(pos + 1, lmax - 1)
+                    # Swap line at pos with randomly chosen target
+                    temp = lines[pos]
+                    lines[pos] = lines[target]
+                    lines[target] = temp
+                    pos += 1
+            elif lmax < 1:
+                # No lines were loaded
+                return False
+            for x in lines:
+                self.archive.at_insert(x)
+            return True
 
         def check_deprecated(param, option, suggestion):
             if self.params.get(param) is not None:
@@ -366,6 +447,11 @@ class YoutubeDL(object):
                     '%s is deprecated. Use %s instead.' % (option, suggestion))
                 return True
             return False
+
+        if self.params.get('verbose'):
+            self.to_stdout('[debug] Loading archive file %r' % self.params.get('download_archive'))
+
+        preload_download_archive(self)
 
         if check_deprecated('cn_verification_proxy', '--cn-verification-proxy', '--geo-verification-proxy'):
             if self.params.get('geo_verification_proxy') is None:
@@ -722,7 +808,7 @@ class YoutubeDL(object):
             return None
 
     def _match_entry(self, info_dict, incomplete):
-        """ Returns None iff the file should be downloaded """
+        """ Returns None if the file should be downloaded """
 
         video_title = info_dict.get('title', info_dict.get('id', 'video'))
         if 'title' in info_dict:
@@ -2142,15 +2228,7 @@ class YoutubeDL(object):
         if not vid_id:
             return False  # Incomplete video information
 
-        try:
-            with locked_file(fn, 'r', encoding='utf-8') as archive_file:
-                for line in archive_file:
-                    if line.strip() == vid_id:
-                        return True
-        except IOError as ioe:
-            if ioe.errno != errno.ENOENT:
-                raise
-        return False
+        return self.archive.at_exist(vid_id)
 
     def record_download_archive(self, info_dict):
         fn = self.params.get('download_archive')
@@ -2160,6 +2238,7 @@ class YoutubeDL(object):
         assert vid_id
         with locked_file(fn, 'a', encoding='utf-8') as archive_file:
             archive_file.write(vid_id + '\n')
+        self.archive.at_insert(vid_id)
 
     @staticmethod
     def format_resolution(format, default='unknown'):
