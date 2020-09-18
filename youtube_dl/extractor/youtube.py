@@ -434,7 +434,8 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                      (?!.*?\blist=
                         (?:
                             %(playlist_id)s|                                  # combined list/video URLs are handled by the playlist IE
-                            WL                                                # WL are handled by the watch later IE
+                            WL|                                               # WL are handled by the watch later IE
+                            LM                                                # LM are handled by the watch later IE
                         )
                      )
                      (?(1).+)?                                                # if we found the ID, everything can follow
@@ -3344,6 +3345,27 @@ class YoutubeWatchLaterIE(YoutubePlaylistIE):
         if video:
             return video
         _, playlist = self._extract_playlist('WL')
+        return playlist
+
+
+class YoutubeLikedMusicIE(YoutubePlaylistIE):
+    IE_NAME = 'youtube:likedmusic'
+    IE_DESC = 'Youtube liked music list, ":ytlikedmusic" for short (requires authentication)'
+    _VALID_URL = r'https?://(?:www\.)?youtube\.com/((?:playlist|watch)\?(?:.+&)?list=LM)|:ytlikedmusic'
+
+    _TESTS = [{
+        'url': 'https://www.youtube.com/playlist?list=LM',
+        'only_matching': True,
+    }, {
+        'url': 'https://www.youtube.com/watch?v=j2DgYtvDW3I&index=1&list=LM',
+        'only_matching': True,
+    }]
+
+    def _real_extract(self, url):
+        _, video = self._check_download_just_video(url, 'LM')
+        if video:
+            return video
+        _, playlist = self._extract_playlist('LM')
         return playlist
 
 

@@ -1490,6 +1490,7 @@ from .youtube import (
     YoutubeTruncatedURLIE,
     YoutubeUserIE,
     YoutubeWatchLaterIE,
+    YoutubeLikedMusicIE,
 )
 from .zapiks import ZapiksIE
 from .zaq1 import Zaq1IE
