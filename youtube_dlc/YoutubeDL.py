@@ -122,17 +122,14 @@ class ArchiveTree(object):
 
     # Tree insertion
     def at_insert(self, line):
-#        print("at_insert: ", line)
         cur = self
         while True:
-#            print("comparing ", line, cur.line)
             if cur.line:
                 if line < cur.line:
                     if cur.left is None:
                         cur.left = ArchiveTree(line)
                         return
                     else:
-#                        print("LEFT")
                         cur = cur.left
                         continue
                 elif line > cur.line:
@@ -140,7 +137,6 @@ class ArchiveTree(object):
                         cur.right = ArchiveTree(line)
                         return
                     else:
-#                        print("RIGHT")
                         cur = cur.right
                         continue
                 else:
@@ -426,43 +422,24 @@ class YoutubeDL(object):
                 if ioe.errno != errno.ENOENT:
                     raise
             lmax = len(lines)
-            if lmax >= 4:
+            if lmax > 10:
                 # Populate binary search tree by splitting the archive list in half
                 # and then adding from the outside edges inward
                 # This mitigates the worst case where the archive has been sorted
-                ptrLL = 0
-                ptrLR = lmax // 2
-                ptrRL = ptrLR + 1
-                ptrRR = lmax - 1
-                inserted = 0
-                while True:
-#                    print("ptrs: %d %d %d %d" % (ptrLL, ptrLR, ptrRL, ptrRR))
-                    if ptrLR > ptrLL:
-                        self.archive.at_insert(lines[ptrLR])
-                        inserted += 1
-                        ptrLR -= 1;
-                    if ptrRL < ptrRR:
-                        self.archive.at_insert(lines[ptrRL])
-                        inserted += 1
-                        ptrRL += 1;
-                    if ptrLL < ptrLR:
-                        self.archive.at_insert(lines[ptrLL])
-                        inserted += 1
-                        ptrLL += 1;
-                    if ptrRR > ptrRL:
-                        self.archive.at_insert(lines[ptrRR])
-                        inserted += 1
-                        ptrRR -= 1;
-                    if ptrLL == ptrLR and ptrRL == ptrRR:
-                        print("inserted: %d, lmax: %d" % (inserted, lmax))
+                pos = 0
+                while pos < lmax:
+                    if lmax - pos <= 2:
                         break
-            elif lmax > 0:
-                # Skip multi-line logic for a single line
-                for idx in lines:
-                    self.archive.at_insert(idx)
-            else:
+                    target = random.randrange(pos + 1, lmax - 1)
+                    temp = lines[pos]
+                    lines[pos] = lines[target]
+                    lines[target] = lines[pos]
+                    pos += 1
+            elif lmax < 1:
                 # No lines were loaded
                 return False
+            for x in lines:
+                self.archive.at_insert(x)
             return True
 
         def check_deprecated(param, option, suggestion):
