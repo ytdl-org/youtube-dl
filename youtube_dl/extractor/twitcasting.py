@@ -62,20 +62,14 @@ class TwitCastingIE(InfoExtractor):
         while '  ' in title:
             title = title.replace('  ', ' ')
 
-        # m3u8_url = self._search_regex(
-        #     (r'data-movie-url=(["\'])(?P<url>(?:(?!\1).)+)\1',
-        #      r'(["\'])(?P<url>http.+?\.m3u8.*?)\1'),
-        #     webpage, 'm3u8 url', group='url')
-        # m3u8_url = m3u8_url.replace('\\/', '/')
-        # formats = self._extract_m3u8_formats(
-        #     m3u8_url, video_id, ext='mp4', entry_protocol='m3u8_native',
-        #     m3u8_id='hls')
-        formats = [
-            {
-                'url': "http://dl01.twitcasting.tv/{uploader_id}/download/{video_id}?dl=1".format(uploader_id=uploader_id, video_id=video_id),
-                'ext': 'mp4',
-            }
-        ]
+        m3u8_url = self._search_regex(
+            (r'data-movie-url=(["\'])(?P<url>(?:(?!\1).)+)\1',
+             r'(["\'])(?P<url>http.+?\.m3u8.*?)\1'),
+            webpage, 'm3u8 url', group='url')
+        m3u8_url = m3u8_url.replace('\\/', '/')
+        formats = self._extract_m3u8_formats(
+            m3u8_url, video_id, ext='mp4', entry_protocol='m3u8_native',
+            m3u8_id='hls')
 
         thumbnail = self._og_search_thumbnail(webpage)
         description = self._og_search_description(
