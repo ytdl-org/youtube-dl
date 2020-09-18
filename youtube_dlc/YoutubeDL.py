@@ -423,17 +423,15 @@ class YoutubeDL(object):
                     raise
             lmax = len(lines)
             if lmax > 10:
-                # Populate binary search tree by splitting the archive list in half
-                # and then adding from the outside edges inward
-                # This mitigates the worst case where the archive has been sorted
                 pos = 0
                 while pos < lmax:
                     if lmax - pos <= 2:
                         break
                     target = random.randrange(pos + 1, lmax - 1)
+                    # Swap line at pos with randomly chosen target
                     temp = lines[pos]
                     lines[pos] = lines[target]
-                    lines[target] = lines[pos]
+                    lines[target] = temp
                     pos += 1
             elif lmax < 1:
                 # No lines were loaded
