@@ -26,10 +26,8 @@ class SkyItaliaBaseIE(InfoExtractor):
         raise ExtractorError('Video not found')
 
     def _get_formats(self, video_id, token=_TOKEN):
-        print(token)
         data_url = self._GET_VIDEO_DATA.replace('{id}', video_id)
         data_url = data_url.replace('{token}', token)
-        print(data_url)
         video_data = self._parse_json(
             self._download_webpage(data_url, video_id),
             video_id
