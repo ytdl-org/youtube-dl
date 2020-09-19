@@ -1016,6 +1016,12 @@ from .sky import (
     SkyNewsIE,
     SkySportsIE,
 )
+from .skyitalia import (
+    SkyVideoItIE,
+    SkySportItIE,
+    SkyTg24ItIE,
+    SkyArteItIE
+)
 from .slideshare import SlideshareIE
 from .slideslive import SlidesLiveIE
 from .slutload import SlutloadIE
