@@ -12,23 +12,24 @@ from ..utils import (
 
 
 class TeleQuebecBaseIE(InfoExtractor):
-    BRIGHTCOVE_URL_TEMPLATE = 'http://players.brightcove.net/6150020952001/default_default/index.html?videoId=%s'
+    @staticmethod
+    def _result(url, ie_key):
+        return {
+            '_type': 'url_transparent',
+            'url': smuggle_url(url, {'geo_countries': ['CA']}),
+            'ie_key': ie_key,
+        }
 
     @staticmethod
     def _limelight_result(media_id):
-        return {
-            '_type': 'url_transparent',
-            'url': smuggle_url(
-                'limelight:media:' + media_id, {'geo_countries': ['CA']}),
-            'ie_key': 'LimelightMedia',
-        }
+        return TeleQuebecBaseIE._result(
+            'limelight:media:' + media_id, 'LimelightMedia')
 
-    def _brightcove_result(self, brightcove_id):
-        return self.url_result(
-            smuggle_url(
-                self.BRIGHTCOVE_URL_TEMPLATE % brightcove_id,
-                {'geo_countries': ['CA']}),
-            'BrightcoveNew', brightcove_id)
+    @staticmethod
+    def _brightcove_result(brightcove_id):
+        return TeleQuebecBaseIE._result(
+            'http://players.brightcove.net/6150020952001/default_default/index.html?videoId=%s'
+            % brightcove_id, 'BrightcoveNew')
 
 
 class TeleQuebecIE(TeleQuebecBaseIE):
@@ -52,6 +53,22 @@ class TeleQuebecIE(TeleQuebecBaseIE):
             'skip_download': True,
         },
     }, {
+        'url': 'https://zonevideo.telequebec.tv/media/55267/le-soleil/passe-partout',
+        'info_dict': {
+            'id': '6167180337001',
+            'ext': 'mp4',
+            'title': 'Le soleil',
+            'description': 'md5:64289c922a8de2abbe99c354daffde02',
+            'uploader_id': '6150020952001',
+            'upload_date': '20200625',
+            'timestamp': 1593090307,
+        },
+        'params': {
+            'format': 'bestvideo',
+            'skip_download': True,
+        },
+        'add_ie': ['BrightcoveNew'],
+    }, {
         # no description
         'url': 'http://zonevideo.telequebec.tv/media/30261',
         'only_matching': True,
@@ -67,10 +84,14 @@ class TeleQuebecIE(TeleQuebecBaseIE):
             'https://mnmedias.api.telequebec.tv/api/v2/media/' + media_id,
             media_id)['media']
 
-        if media_data['streamInfo']['source'] == 'Brightcove':
-            info = self._brightcove_result(media_data['streamInfo']['sourceId'])
-        elif media_data['streamInfo']['source'] == 'Limelight':
-            info = self._limelight_result(media_data['streamInfo']['sourceId'])
+        source_id = media_data['streamInfo']['sourceId']
+        source = (try_get(
+            media_data, lambda x: x['streamInfo']['source'],
+            compat_str) or 'limelight').lower()
+        if source == 'brightcove':
+            info = self._brightcove_result(source_id)
+        else:
+            info = self._limelight_result(source_id)
         info.update({
             'title': media_data.get('title'),
             'description': try_get(
