@@ -154,7 +154,7 @@ class TwitCastingHistoryIE(InfoExtractor):
                 video_url = 'https://twitcasting.tv%s' % href
                 video_id = href.split('/')[-1]
                 result = self.url_result(video_url,
-                    ie=TwitCastingIE.ie_key(), video_id=video_id, video_title=title)
+                                         ie=TwitCastingIE.ie_key(), video_id=video_id, video_title=title)
                 yield result
 
     def _real_extract(self, url):
