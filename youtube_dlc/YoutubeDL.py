@@ -114,54 +114,6 @@ if compat_os_name == 'nt':
     import ctypes
 
 
-class ArchiveTree(object):
-    """Binary search tree for download archive entries"""
-    def __init__(self, line):
-        self.left = None
-        self.right = None
-        self.line = line
-
-    # Tree insertion
-    def at_insert(self, line):
-        cur = self
-        while True:
-            if cur.line:
-                if line < cur.line:
-                    if cur.left is None:
-                        cur.left = ArchiveTree(line)
-                        return
-                    else:
-                        cur = cur.left
-                        continue
-                elif line > cur.line:
-                    if cur.right is None:
-                        cur.right = ArchiveTree(line)
-                        return
-                    else:
-                        cur = cur.right
-                        continue
-                else:
-                    # Duplicate line found
-                    return
-            else:
-                cur.line = line
-                return
-
-    def at_exist(self, line):
-        if self.line is None:
-            return False
-        if line < self.line:
-            if self.left is None:
-                return False
-            return self.left.at_exist(line)
-        elif line > self.line:
-            if self.right is None:
-                return False
-            return self.right.at_exist(line)
-        else:
-            return True
-
-
 class YoutubeDL(object):
     """YoutubeDL class.
 
@@ -407,29 +359,21 @@ class YoutubeDL(object):
         }
         self.params.update(params)
         self.cache = Cache(self)
-        self.archive = ArchiveTree(None)
+        self.archive = set()
 
         """Preload the archive, if any is specified"""
         def preload_download_archive(self):
-            lines = []
             fn = self.params.get('download_archive')
             if fn is None:
                 return False
             try:
                 with locked_file(fn, 'r', encoding='utf-8') as archive_file:
                     for line in archive_file:
-                        lines.append(line.strip())
+                        self.archive.add(line.strip())
             except IOError as ioe:
                 if ioe.errno != errno.ENOENT:
                     raise
-            lmax = len(lines)
-            if lmax > 10:
-                random.shuffle(lines)
-            elif lmax < 1:
-                # No lines were loaded
                 return False
-            for x in lines:
-                self.archive.at_insert(x)
             return True
 
         def check_deprecated(param, option, suggestion):
@@ -2219,7 +2163,7 @@ class YoutubeDL(object):
         if not vid_id:
             return False  # Incomplete video information
 
-        return self.archive.at_exist(vid_id)
+        return vid_id in self.archive
 
     def record_download_archive(self, info_dict):
         fn = self.params.get('download_archive')
@@ -2229,7 +2173,7 @@ class YoutubeDL(object):
         assert vid_id
         with locked_file(fn, 'a', encoding='utf-8') as archive_file:
             archive_file.write(vid_id + '\n')
-        self.archive.at_insert(vid_id)
+        self.archive.add(vid_id)
 
     @staticmethod
     def format_resolution(format, default='unknown'):
