@@ -16,7 +16,7 @@ class SkyItaliaBaseIE(InfoExtractor):
     }
 
     def _extract_video_id(self, url):
-        webpage = self._download_webpage(url, 'skysport')
+        webpage = self._download_webpage(url, 'skyitalia')
         video_id = self._html_search_regex(
             [r'data-videoid=\"(\d+)\"',
              r'http://player\.sky\.it/social\?id=(\d+)\&'],
