@@ -53,10 +53,10 @@ class TwitCastingIE(InfoExtractor):
             })
         webpage = self._download_webpage(url, video_id, data=request_data)
 
-        title = self._html_search_regex(
+        title = (self._html_search_regex(
             r'(?s)<[^>]+id=["\']movietitle[^>]+>(.+?)</',
-            webpage, 'title', default=None) or self._html_search_meta(
-            'twitter:title', webpage, fatal=True)
+            webpage, 'title', default=None)
+            or self._html_search_meta('twitter:title', webpage, fatal=True))
         # title is split across lines with lots of whitespace
         title = title.replace('\n', ' ')
         while '  ' in title:
@@ -101,7 +101,7 @@ class TwitCastingHistoryIE(InfoExtractor):
 
     def _get_meta_and_entries(self, url):
         for page_num in itertools.count(0):
-            page_url = "{}/{}".format(url.rstrip('/'), page_num)
+            page_url = "%s/%s" % (url.rstrip('/'), page_num)
             pagenum = None
             list_id = None
             webpage = self._download_webpage(
@@ -109,11 +109,19 @@ class TwitCastingHistoryIE(InfoExtractor):
                 'Downloading page %s' % pagenum)
 
             if page_num == 0:
-                # title = re.search(r'<span class="tw-user-nav-name">(.*)</span>', webpage)
-                title = re.search(r'(?s)<[^>]+class=["\']tw-user-nav-name[^>]+>(.+?)</', webpage)
-                title = title.group(1).strip()
-                user_id = re.search(r'data-user-id="(.*)"', webpage)
-                user_id = user_id.group(1).strip()
+                title = self._search_regex(
+                    r'(?s)<[^>]+class=["\']tw-user-nav-name[^>]+>(.+?)</',
+                    webpage, 'playlist_title', fatal=False)
+
+                if title is not None:
+                    title = title.strip()
+
+                user_id = self._search_regex(
+                    r'data-user-id=["\'](.+?)["\']',
+                    webpage, 'user_id', fatal=False)
+                if user_id is not None:
+                    user_id = user_id.strip()
+
                 yield (title, user_id)
 
             first_page_selected = webpage.find('class="selected">1</a>') != -1
@@ -137,13 +145,16 @@ class TwitCastingHistoryIE(InfoExtractor):
                 if locked is not None:
                     continue
 
-                title = re.search(r'''<[^>]+class=["']tw-movie-thumbnail-title[^>]+>[ \n]*?(.+?) *?</''', inner)
+                title = self._search_regex(
+                    r'''<[^>]+class=["']tw-movie-thumbnail-title[^>]+>[ \n]*?(.+?) *?</''',
+                    inner, 'title', fatal=False)
                 if title is not None:
-                    title = title.group(1).strip()
+                    title = title.strip()
 
-                video_url = 'https://twitcasting.tv{}'.format(href)
+                video_url = 'https://twitcasting.tv%s' % href
                 video_id = href.split('/')[-1]
-                result = self.url_result(video_url, ie=TwitCastingIE.ie_key(), video_id=video_id, video_title=title)
+                result = self.url_result(video_url,
+                    ie=TwitCastingIE.ie_key(), video_id=video_id, video_title=title)
                 yield result
 
     def _real_extract(self, url):
