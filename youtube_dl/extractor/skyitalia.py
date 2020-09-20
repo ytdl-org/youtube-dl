@@ -1,6 +1,8 @@
 # coding: utf-8
 from __future__ import unicode_literals
 
+import re
+
 from .common import InfoExtractor
 from ..utils import ExtractorError
 
@@ -54,6 +56,12 @@ class SkyItaliaBaseIE(InfoExtractor):
             'formats': formats
         }
 
+    def _real_extract(self, url):
+        video_id = self._match_id(url)
+        if not re.match(r'^\d+$', video_id):
+            video_id = self._extract_video_id(url)
+        return self._get_formats(video_id, self._TOKEN)
+
 
 class SkyVideoItIE(SkyItaliaBaseIE):
     IE_NAME = 'video.sky.it'
@@ -73,14 +81,10 @@ class SkyVideoItIE(SkyItaliaBaseIE):
         'only_matching': True,
     }]
 
-    def _real_extract(self, url):
-        return self._get_formats(self._match_id(url))
-
 
 class SkySportItIE(SkyItaliaBaseIE):
     IE_NAME = 'sport.sky.it'
-    _VALID_URL = r'https?://sport\.sky\.it/.+?$'
-
+    _VALID_URL = r'https?://sport\.sky\.it/(?P<id>.+?)$'
     _TESTS = [{
         'url': 'https://sport.sky.it/motogp/2020/09/18/motogp-gp-emilia-romagna-misano-2020-prove-libere-diretta',
         'md5': '9c03b590b06e5952d8051f0e02b0feca',
@@ -92,14 +96,10 @@ class SkySportItIE(SkyItaliaBaseIE):
         }
     }]
 
-    def _real_extract(self, url):
-        return self._get_formats(self._extract_video_id(url))
-
 
 class SkyTg24ItIE(SkyItaliaBaseIE):
     IE_NAME = 'tg24.sky.it'
-    _VALID_URL = r'https?://tg24\.sky\.it/.+?$'
-
+    _VALID_URL = r'https?://tg24\.sky\.it/(?P<id>.+?)$'
     _TESTS = [{
         'url': 'https://tg24.sky.it/salute-e-benessere/2020/09/18/coronavirus-vaccino-ue-sanofi',
         'md5': 'caa25e62dadb529bc5e0b078da99f854',
@@ -111,14 +111,10 @@ class SkyTg24ItIE(SkyItaliaBaseIE):
         }
     }]
 
-    def _real_extract(self, url):
-        return self._get_formats(self._extract_video_id(url))
-
 
 class SkyArteItIE(SkyItaliaBaseIE):
     IE_NAME = 'arte.sky.it'
-    _VALID_URL = r'https?://arte\.sky\.it/video/.+?$'
-
+    _VALID_URL = r'https?://arte\.sky\.it/video/(?P<id>.+?)$'
     _TESTS = [{
         'url': 'https://arte.sky.it/video/federico-fellini-maestri-cinema/',
         'md5': '2f22513a89f45142f2746f878d690647',
@@ -129,8 +125,4 @@ class SkyArteItIE(SkyItaliaBaseIE):
             'thumbnail': 'https://videoplatform.sky.it/thumbnail/2020/09/03/1599146747305_i-maestri-del-cinema-federico-felini_thumbnail_1.jpg',
         }
     }]
-
     _TOKEN = 'LWk29hfiU39NNdq87ePeRach3nzTSV20o0lTv2001Cd'
-
-    def _real_extract(self, url):
-        return self._get_formats(self._extract_video_id(url), self._TOKEN)
