@@ -341,7 +341,8 @@ Alternatively, refer to the [developer instructions](#developer-instructions) fo
                                      SELECTION" for all the info
     --all-formats                    Download all available video formats
     --prefer-free-formats            Prefer free video formats unless a specific
-                                     one is requested
+                                     one is requested or a higher quality
+                                     non-free format is available
     -F, --list-formats               List all available formats of requested
                                      videos
     --youtube-skip-dash-manifest     Do not download the DASH manifests and

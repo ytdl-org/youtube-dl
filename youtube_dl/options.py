@@ -401,7 +401,7 @@ def parseOpts(overrideArguments=None):
     video_format.add_option(
         '--prefer-free-formats',
         action='store_true', dest='prefer_free_formats', default=False,
-        help='Prefer free video formats unless a specific one is requested')
+        help='Prefer free video formats unless a specific one is requested or a higher quality non-free format is available')
     video_format.add_option(
         '-F', '--list-formats',
         action='store_true', dest='listformats',
