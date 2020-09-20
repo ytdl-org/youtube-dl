@@ -2002,6 +2002,9 @@ class YoutubeDL(object):
                     self.report_error('postprocessing: %s' % str(err))
                     return
                 self.record_download_archive(info_dict)
+                max_downloads = self.params.get('max_downloads')
+                if max_downloads is not None and self._num_downloads >= int(max_downloads):
+                    raise MaxDownloadsReached()
 
     def download(self, url_list):
         """Download a given list of URLs."""
