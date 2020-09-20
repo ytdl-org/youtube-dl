@@ -717,6 +717,8 @@
  - **RayWenderlichCourse**
  - **RBMARadio**
  - **RDS**: RDS.ca
+ - **RedBull**
+ - **RedBullEmbed**
  - **RedBullTV**
  - **RedBullTVRrnContent**
  - **Reddit**

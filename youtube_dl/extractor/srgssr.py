@@ -114,7 +114,7 @@ class SRGSSRPlayIE(InfoExtractor):
                             [^/]+/(?P<type>video|audio)/[^?]+|
                             popup(?P<type_2>video|audio)player
                         )
-                        \?id=(?P<id>[0-9a-f\-]{36}|\d+)
+                        \?.*?\b(?:id=|urn=urn:[^:]+:video:)(?P<id>[0-9a-f\-]{36}|\d+)
                     '''
 
     _TESTS = [{
@@ -174,6 +174,12 @@ class SRGSSRPlayIE(InfoExtractor):
         }
     }, {
         'url': 'https://www.srf.ch/play/tv/popupvideoplayer?id=c4dba0ca-e75b-43b2-a34f-f708a4932e01',
+        'only_matching': True,
+    }, {
+        'url': 'https://www.srf.ch/play/tv/10vor10/video/snowden-beantragt-asyl-in-russland?urn=urn:srf:video:28e1a57d-5b76-4399-8ab3-9097f071e6c5',
+        'only_matching': True,
+    }, {
+        'url': 'https://www.rts.ch/play/tv/19h30/video/le-19h30?urn=urn:rts:video:6348260',
         'only_matching': True,
     }]
 

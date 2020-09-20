@@ -918,7 +918,9 @@ from .rbmaradio import RBMARadioIE
 from .rds import RDSIE
 from .redbulltv import (
     RedBullTVIE,
+    RedBullEmbedIE,
     RedBullTVRrnContentIE,
+    RedBullIE,
 )
 from .reddit import (
     RedditIE,

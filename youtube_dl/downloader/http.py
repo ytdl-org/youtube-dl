@@ -106,7 +106,12 @@ class HttpFD(FileDownloader):
                 set_range(request, range_start, range_end)
             # Establish connection
             try:
-                ctx.data = self.ydl.urlopen(request)
+                try:
+                    ctx.data = self.ydl.urlopen(request)
+                except (compat_urllib_error.URLError, ) as err:
+                    if isinstance(err.reason, socket.timeout):
+                        raise RetryDownload(err)
+                    raise err
                 # When trying to resume, Content-Range HTTP header of response has to be checked
                 # to match the value of requested Range HTTP header. This is due to a webservers
                 # that don't support resuming and serve a whole file with no Content-Range
@@ -233,9 +238,11 @@ class HttpFD(FileDownloader):
                 except socket.timeout as e:
                     retry(e)
                 except socket.error as e:
-                    if e.errno not in (errno.ECONNRESET, errno.ETIMEDOUT):
-                        raise
-                    retry(e)
+                    # SSLError on python 2 (inherits socket.error) may have
+                    # no errno set but this error message
+                    if e.errno in (errno.ECONNRESET, errno.ETIMEDOUT) or getattr(e, 'message') == 'The read operation timed out':
+                        retry(e)
+                    raise
 
                 byte_counter += len(data_block)
 
