@@ -339,6 +339,7 @@ class YoutubeDL(object):
     _download_retcode = None
     _num_downloads = None
     _screen_file = None
+    archive_list = []
 
     def __init__(self, params=None, auto_init=True):
         """Create a FileDownloader object with the given options."""
@@ -2102,14 +2103,16 @@ class YoutubeDL(object):
         if not vid_id:
             return False  # Incomplete video information
 
-        try:
-            with locked_file(fn, 'r', encoding='utf-8') as archive_file:
-                for line in archive_file:
-                    if line.strip() == vid_id:
-                        return True
-        except IOError as ioe:
-            if ioe.errno != errno.ENOENT:
-                raise
+        if len(self.archive_list) == 0:
+            try:
+                with locked_file(fn, 'r', encoding='utf-8') as archive_file:
+                    for line in archive_file:
+                        self.archive_list.append(line.strip())
+            except IOError as ioe:
+                if ioe.errno != errno.ENOENT:
+                    raise
+        if vid_id in self.archive_list:
+            return True
         return False
 
     def record_download_archive(self, info_dict):
@@ -2120,6 +2123,7 @@ class YoutubeDL(object):
         assert vid_id
         with locked_file(fn, 'a', encoding='utf-8') as archive_file:
             archive_file.write(vid_id + '\n')
+            self.archive_list.append(vid_id)
 
     @staticmethod
     def format_resolution(format, default='unknown'):
