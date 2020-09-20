@@ -18,7 +18,7 @@ from ..utils import (
     try_get,
     unified_timestamp,
     url_or_none,
-)
+    ExtractorError)
 
 
 class RutubeBaseIE(InfoExtractor):
@@ -60,6 +60,39 @@ class RutubeBaseIE(InfoExtractor):
             'is_live': bool_or_none(video.get('is_livestream')),
             'is_club': bool_or_none(video.get('is_club')),
         }
+
+    def _real_initialize(self):
+        self._login()
+
+    def _login(self):
+        username, password = self._get_login_info()
+        if username is None:
+            return
+
+        login = self._download_json(
+            'https://pass.rutube.ru/api/accounts/phone/login/', None,
+            'Logging in', 'Unable to log in',
+            data=json.dumps({
+                'phone': username,
+                'password': password,
+            }).encode(),
+            headers={
+                'Content-Type': 'application/json',
+                'Accept': 'application/json'
+            },
+            expected_status=400
+        )
+        if not login.get('success'):
+            msg = login.get('message')
+            raise ExtractorError(
+                'Unable to log in. %s said: %s' % (self.IE_NAME, msg),
+                expected=True
+            )
+
+        self._download_webpage(
+            'https://rutube.ru/social/auth/rupass/?callback_path=/social/login/rupass/',
+            None, False
+        )
 
     def _download_and_extract_info(self, video_id, query=None):
         return self._extract_info(
@@ -148,33 +181,26 @@ class RutubeIE(RutubeBaseIE):
         query = {}
 
         if info['is_club']:
-            username, password = self._get_login_info()
-            if username is None or password is None:
+            visitor_json, urlh = self._download_webpage_handle(
+                'https://rutube.ru/api/accounts/visitor/', video_id,
+                'Downloading visitor JSON', 'Unable to download visitor JSON'
+            )
+            if not visitor_json:
                 self.raise_login_required()
 
-            login = self._download_json(
-                'https://pass.rutube.ru/api/accounts/phone/login/', video_id, data=json.dumps({
-                    'phone': username,
-                    'password': password,
-                }).encode(),
-                headers={'Content-Type': 'application/json', 'Accept': 'application/json'}
-            )
-            if not login['success']:
-                self.raise_login_required('Invalid login or password')
-
-            self._download_webpage(
-                'https://rutube.ru/social/auth/rupass/?callback_path=/social/login/rupass/', video_id)
-
-            visitor = self._download_json(
-                'https://rutube.ru/api/accounts/visitor/', video_id, 'Downloading visitor JSON',
-                'Unable to download visitor JSON')
-            clubParams = visitor['club_params_encrypted']
+            visitor = self._parse_json(visitor_json, video_id)
+            club_params = visitor['club_params_encrypted']
             ad = self._download_json(
-                'https://mtr.rutube.ru/api/v3/interactive?' + clubParams + '&video_id=' + video_id, video_id,
-                'Downloading AD JSON', 'Unable to download AD JSON')
-            clubToken = ad['award']
-            query['club_token'] = clubToken
-            query['no_404'] = 'true'
+                'https://mtr.rutube.ru/api/v3/interactive?%s&video_id=%s' %
+                (club_params, video_id),
+                video_id, 'Downloading AD JSON', 'Unable to download AD JSON'
+            )
+            club_token = ad['award']
+
+            query.update({
+                'club_token': club_token,
+                'no_404': 'true',
+            })
 
         info['formats'] = self._download_and_extract_formats(video_id, query)
         return info
