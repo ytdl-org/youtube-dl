@@ -184,6 +184,8 @@ class Aria2cFD(ExternalFD):
     def _make_cmd(self, tmpfilename, info_dict):
         cmd = [self.exe]
         cmd += self._bool_option('--continue', 'continuedl', separator='=')
+        cmd += self._bool_option('--allow-overwrite', 'continuedl', 'false', 'true', separator='=')
+        cmd += self._bool_option('--remove-control-file', 'continuedl', 'false', 'true', separator='=')
         cmd += self._configuration_args([
             '--min-split-size', '1M', '--max-connection-per-server', '4'])
         dn = os.path.dirname(tmpfilename)
