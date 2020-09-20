@@ -80,19 +80,16 @@ class RutubeBaseIE(InfoExtractor):
                 'Content-Type': 'application/json',
                 'Accept': 'application/json'
             },
-            expected_status=400
-        )
+            expected_status=400)
         if not login.get('success'):
             msg = login.get('message')
             raise ExtractorError(
                 'Unable to log in. %s said: %s' % (self.IE_NAME, msg),
-                expected=True
-            )
+                expected=True)
 
         self._download_webpage(
             'https://rutube.ru/social/auth/rupass/?callback_path=/social/login/rupass/',
-            None, False
-        )
+            None, False)
 
     def _download_and_extract_info(self, video_id, query=None):
         return self._extract_info(
@@ -183,8 +180,7 @@ class RutubeIE(RutubeBaseIE):
         if info['is_club']:
             visitor_json, urlh = self._download_webpage_handle(
                 'https://rutube.ru/api/accounts/visitor/', video_id,
-                'Downloading visitor JSON', 'Unable to download visitor JSON'
-            )
+                'Downloading visitor JSON', 'Unable to download visitor JSON')
             if not visitor_json:
                 self.raise_login_required()
 
@@ -193,8 +189,7 @@ class RutubeIE(RutubeBaseIE):
             ad = self._download_json(
                 'https://mtr.rutube.ru/api/v3/interactive?%s&video_id=%s' %
                 (club_params, video_id),
-                video_id, 'Downloading AD JSON', 'Unable to download AD JSON'
-            )
+                video_id, 'Downloading AD JSON', 'Unable to download AD JSON')
             club_token = ad['award']
 
             query.update({
