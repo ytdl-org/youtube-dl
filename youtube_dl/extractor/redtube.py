@@ -31,6 +31,9 @@ class RedTubeIE(InfoExtractor):
     }, {
         'url': 'http://embed.redtube.com/?bgcolor=000000&id=1443286',
         'only_matching': True,
+    }, {
+        'url': 'http://it.redtube.com/66418',
+        'only_matching': True,
     }]
 
     @staticmethod
