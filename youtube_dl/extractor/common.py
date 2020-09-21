@@ -1358,6 +1358,20 @@ class InfoExtractor(object):
         if not formats:
             raise ExtractorError('No video formats found')
 
+        sort = self._downloader.params.get('format_sort', '')
+        sort = sort.split(',') if isinstance(sort, str) else []
+        if isinstance(field_preference, (list, tuple)):
+            sort += [f for f in field_preference if f not in sort]
+        sort += [f for f in
+                 ['preference', 'language_preference', 'quality', 'tbr',  # default order
+                     'filesize', 'vbr', 'height', 'width',
+                     'proto_preference', 'ext_preference',
+                     'abr', 'audio_ext_preference', 'fps',
+                     'filesize_approx', 'source_preference', 'format_id']
+                 if f not in sort]
+        if self._downloader.params.get('verbose', False):
+            self._downloader.to_screen('[debug] Formats sorted by: %s' % sort)
+
         for f in formats:
             # Automatically determine tbr when missing based on abr and vbr (improves
             # formats sorting in some cases)
@@ -1369,13 +1383,6 @@ class InfoExtractor(object):
             from ..utils import determine_ext
             if not f.get('ext') and 'url' in f:
                 f['ext'] = determine_ext(f['url'])
-
-            if isinstance(field_preference, (list, tuple)):
-                return tuple(
-                    f.get(field)
-                    if f.get(field) is not None
-                    else ('' if field == 'format_id' else -1)
-                    for field in field_preference)
 
             preference = f.get('preference')
             if preference is None:
@@ -1410,24 +1417,18 @@ class InfoExtractor(object):
                     ext_preference = -1
                 audio_ext_preference = 0
 
-            return (
-                preference,
-                f.get('language_preference') if f.get('language_preference') is not None else -1,
-                f.get('quality') if f.get('quality') is not None else -1,
-                f.get('tbr') if f.get('tbr') is not None else -1,
-                f.get('filesize') if f.get('filesize') is not None else -1,
-                f.get('vbr') if f.get('vbr') is not None else -1,
-                f.get('height') if f.get('height') is not None else -1,
-                f.get('width') if f.get('width') is not None else -1,
-                proto_preference,
-                ext_preference,
-                f.get('abr') if f.get('abr') is not None else -1,
-                audio_ext_preference,
-                f.get('fps') if f.get('fps') is not None else -1,
-                f.get('filesize_approx') if f.get('filesize_approx') is not None else -1,
-                f.get('source_preference') if f.get('source_preference') is not None else -1,
-                f.get('format_id') if f.get('format_id') is not None else '',
-            )
+            prefVars = {'preference': preference,
+                        'proto_preference': proto_preference,
+                        'ext_preference': ext_preference,
+                        'audio_ext_preference': audio_ext_preference}
+
+            return tuple(
+                prefVars.get(field)
+                if prefVars.get(field) is not None
+                else (f.get(field) if f.get(field) is not None
+                      else ('' if field == 'format_id' else -1))
+                for field in sort)
+
         formats.sort(key=_formats_key)
 
     def _check_formats(self, formats, video_id):

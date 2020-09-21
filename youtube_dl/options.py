@@ -395,6 +395,14 @@ def parseOpts(overrideArguments=None):
         action='store', dest='format', metavar='FORMAT', default=None,
         help='Video format code, see the "FORMAT SELECTION" for all the info')
     video_format.add_option(
+        '--format-sort',
+        action='store', dest='format_sort', metavar='FORMAT', default=None,
+        help=(
+            'Specify the fields used to sort the formats (e.g. height,width,tbr). '
+            'Available fields: language_preference, quality, height, width, fps, '
+            'filesize, filesize_approx, tbr, vbr, abr, format_id, '
+            'proto_preference, ext_preference, audio_ext_preference, source_preference'))
+    video_format.add_option(
         '--all-formats',
         action='store_const', dest='format', const='all',
         help='Download all available video formats')
