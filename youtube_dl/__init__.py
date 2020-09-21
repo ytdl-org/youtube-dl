@@ -209,6 +209,9 @@ def _real_main(argv=None):
         opts.audioquality = opts.audioquality.strip('k').strip('K')
         if not opts.audioquality.isdigit():
             parser.error('invalid audio quality specified')
+    if opts.remuxvideo is not None:
+        if opts.remuxvideo not in ['mp4', 'mkv']:
+            parser.error('invalid video container format specified')
     if opts.recodevideo is not None:
         if opts.recodevideo not in ['mp4', 'flv', 'webm', 'ogg', 'mkv', 'avi']:
             parser.error('invalid video recode format specified')
@@ -260,6 +263,11 @@ def _real_main(argv=None):
             'preferredcodec': opts.audioformat,
             'preferredquality': opts.audioquality,
             'nopostoverwrites': opts.nopostoverwrites,
+        })
+    if opts.remuxvideo:
+        postprocessors.append({
+            'key': 'FFmpegVideoRemuxer',
+            'preferedformat': opts.remuxvideo,
         })
     if opts.recodevideo:
         postprocessors.append({
