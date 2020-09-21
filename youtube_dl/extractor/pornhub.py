@@ -17,6 +17,7 @@ from ..utils import (
     determine_ext,
     ExtractorError,
     int_or_none,
+    merge_dicts,
     NO_DEFAULT,
     orderedSet,
     remove_quotes,
@@ -59,13 +60,14 @@ class PornHubIE(PornHubBaseIE):
                     '''
     _TESTS = [{
         'url': 'http://www.pornhub.com/view_video.php?viewkey=648719015',
-        'md5': '1e19b41231a02eba417839222ac9d58e',
+        'md5': 'a6391306d050e4547f62b3f485dd9ba9',
         'info_dict': {
             'id': '648719015',
             'ext': 'mp4',
             'title': 'Seductive Indian beauty strips down and fingers her pink pussy',
             'uploader': 'Babes',
             'upload_date': '20130628',
+            'timestamp': 1372447216,
             'duration': 361,
             'view_count': int,
             'like_count': int,
@@ -82,8 +84,8 @@ class PornHubIE(PornHubBaseIE):
             'id': '1331683002',
             'ext': 'mp4',
             'title': '重庆婷婷女王足交',
-            'uploader': 'Unknown',
             'upload_date': '20150213',
+            'timestamp': 1423804862,
             'duration': 1753,
             'view_count': int,
             'like_count': int,
@@ -121,6 +123,7 @@ class PornHubIE(PornHubBaseIE):
         'params': {
             'skip_download': True,
         },
+        'skip': 'This video has been disabled',
     }, {
         'url': 'http://www.pornhub.com/view_video.php?viewkey=ph557bbb6676d2d',
         'only_matching': True,
@@ -338,10 +341,10 @@ class PornHubIE(PornHubBaseIE):
 
         video_uploader = self._html_search_regex(
             r'(?s)From:&nbsp;.+?<(?:a\b[^>]+\bhref=["\']/(?:(?:user|channel)s|model|pornstar)/|span\b[^>]+\bclass=["\']username)[^>]+>(.+?)<',
-            webpage, 'uploader', fatal=False)
+            webpage, 'uploader', default=None)
 
         view_count = self._extract_count(
-            r'<span class="count">([\d,\.]+)</span> views', webpage, 'view')
+            r'<span class="count">([\d,\.]+)</span> [Vv]iews', webpage, 'view')
         like_count = self._extract_count(
             r'<span class="votesUp">([\d,\.]+)</span>', webpage, 'like')
         dislike_count = self._extract_count(
@@ -356,7 +359,11 @@ class PornHubIE(PornHubBaseIE):
             if div:
                 return re.findall(r'<a[^>]+\bhref=[^>]+>([^<]+)', div)
 
-        return {
+        info = self._search_json_ld(webpage, video_id, default={})
+        # description provided in JSON-LD is irrelevant
+        info['description'] = None
+
+        return merge_dicts({
             'id': video_id,
             'uploader': video_uploader,
             'upload_date': upload_date,
@@ -372,7 +379,7 @@ class PornHubIE(PornHubBaseIE):
             'tags': extract_list('tags'),
             'categories': extract_list('categories'),
             'subtitles': subtitles,
-        }
+        }, info)
 
 
 class PornHubPlaylistBaseIE(PornHubBaseIE):

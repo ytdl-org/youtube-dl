@@ -10,6 +10,7 @@ import os
 import random
 import re
 import socket
+import ssl
 import sys
 import time
 import math
@@ -67,6 +68,7 @@ from ..utils import (
     sanitized_Request,
     sanitize_filename,
     str_or_none,
+    str_to_int,
     strip_or_none,
     unescapeHTML,
     unified_strdate,
@@ -623,9 +625,12 @@ class InfoExtractor(object):
                 url_or_request = update_url_query(url_or_request, query)
             if data is not None or headers:
                 url_or_request = sanitized_Request(url_or_request, data, headers)
+        exceptions = [compat_urllib_error.URLError, compat_http_client.HTTPException, socket.error]
+        if hasattr(ssl, 'CertificateError'):
+            exceptions.append(ssl.CertificateError)
         try:
             return self._downloader.urlopen(url_or_request)
-        except (compat_urllib_error.URLError, compat_http_client.HTTPException, socket.error) as err:
+        except tuple(exceptions) as err:
             if isinstance(err, compat_urllib_error.HTTPError):
                 if self.__can_accept_status_code(err, expected_status):
                     # Retain reference to error to prevent file object from
@@ -1244,7 +1249,10 @@ class InfoExtractor(object):
                 interaction_type = is_e.get('interactionType')
                 if not isinstance(interaction_type, compat_str):
                     continue
-                interaction_count = int_or_none(is_e.get('userInteractionCount'))
+                # For interaction count some sites provide string instead of
+                # an integer (as per spec) with non digit characters (e.g. ",")
+                # so extracting count with more relaxed str_to_int
+                interaction_count = str_to_int(is_e.get('userInteractionCount'))
                 if interaction_count is None:
                     continue
                 count_kind = INTERACTION_TYPE_MAP.get(interaction_type.split('/')[-1])
@@ -1264,6 +1272,7 @@ class InfoExtractor(object):
                 'thumbnail': url_or_none(e.get('thumbnailUrl') or e.get('thumbnailURL')),
                 'duration': parse_duration(e.get('duration')),
                 'timestamp': unified_timestamp(e.get('uploadDate')),
+                'uploader': str_or_none(e.get('author')),
                 'filesize': float_or_none(e.get('contentSize')),
                 'tbr': int_or_none(e.get('bitrate')),
                 'width': int_or_none(e.get('width')),
