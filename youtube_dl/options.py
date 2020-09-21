@@ -356,6 +356,10 @@ def parseOpts(overrideArguments=None):
         '--include-ads',
         dest='include_ads', action='store_true',
         help='Download advertisements as well (experimental)')
+    selection.add_option(
+        '--no-include-ads',
+        dest='include_ads', action='store_false',
+        help='Do not download advertisements (default)')
 
     authentication = optparse.OptionGroup(parser, 'Authentication Options')
     authentication.add_option(
@@ -407,27 +411,34 @@ def parseOpts(overrideArguments=None):
         action='store', dest='format_sort', metavar='FORMAT', default=None,
         help=(
             'Sort the formats by the fields given. '
-            'Default order: preference, language_preference, quality, '
-            'tbr, filesize, vbr, height, width, '
+            'Default order: preference, language_preference, '
+            'quality, tbr, filesize, vbr, height, width, '
             'proto_preference, ext_preference, codec_preference, '
             'abr, audio_ext_preference, audio_codec_preference, '
             'fps, filesize_approx, source_preference, format_id. '
-            'Prefix the field (except format_id) by a + to sort it in reverse. '
-            'Suffix the field with :value to give highest preference to "value". '
-            'preference and language_preference will always have the highest priority '
-            'unless --format-sort-force is given. '
-            'Examples: 1) "-f bestvideo --format-sort +height:720,fps,+filesize" gets the video with '
-            'the smallest filesize with largest fps with '
-            'the smallest height>=720 (or largest height available if there is no such format). '
-            '2) "-f bestvideo --format-sort height:720,proto_preference,tbr" gets the video with '
-            'largest bitrate with best protocol with '
-            'the largest height<=720 (or smallest height available if there is no such format)'))
+            'Prefix the field (except format_id) by a + to '
+            'perform the sort in reverse. Suffix the field with '
+            ':NUMBER to give highest preference to "NUMBER". '
+            'Examples: 1) '
+            '"-f bestvideo --format-sort +height:720,fps,+filesize" '
+            'gets the video with the smallest filesize with the '
+            'largest fps with the smallest height>=720 (or '
+            'largest height available if there is no such format). '
+            '2) "-f bestvideo --format-sort height:720,tbr" gets the '
+            'video with largest bitrate with the largest height<=720 '
+            '(or smallest height available if there is no such format)'))
     video_format.add_option(
         '--format-sort-force',
         action='store_true', dest='format_sort_force', metavar='FORMAT', default=False,
         help=(
             'User specified sort order takes priority even over '
             'preference and language_preference'))
+    video_format.add_option(
+        '--no-format-sort-force',
+        action='store_false', dest='format_sort_force', metavar='FORMAT', default=False,
+        help=(
+            'preference and language_preference takes priority over'
+            'the user specified sort order (default)'))
     video_format.add_option(
         '--all-formats',
         action='store_const', dest='format', const='all',
@@ -443,7 +454,7 @@ def parseOpts(overrideArguments=None):
     video_format.add_option(
         '--youtube-include-dash-manifest',
         action='store_true', dest='youtube_include_dash_manifest', default=True,
-        help=optparse.SUPPRESS_HELP)
+        help='Download the DASH manifests and related data on YouTube videos (default)')
     video_format.add_option(
         '--youtube-skip-dash-manifest',
         action='store_false', dest='youtube_include_dash_manifest',
@@ -462,9 +473,17 @@ def parseOpts(overrideArguments=None):
         action='store_true', dest='writesubtitles', default=False,
         help='Write subtitle file')
     subtitles.add_option(
+        '--no-write-sub', '--no-write-srt',
+        action='store_false', dest='writesubtitles',
+        help='Do not Write subtitle file (default)')
+    subtitles.add_option(
         '--write-auto-sub', '--write-automatic-sub',
         action='store_true', dest='writeautomaticsub', default=False,
         help='Write automatically generated subtitle file (YouTube only)')
+    subtitles.add_option(
+        '--no-write-auto-sub', '--no-write-automatic-sub',
+        action='store_false', dest='writeautomaticsub', default=False,
+        help='Do not write automatically generated subtitle file (default)')
     subtitles.add_option(
         '--all-subs',
         action='store_true', dest='allsubtitles', default=False,
@@ -529,6 +548,10 @@ def parseOpts(overrideArguments=None):
         '--playlist-reverse',
         action='store_true',
         help='Download playlist videos in reverse order')
+    downloader.add_option(
+        '--no-playlist-reverse',
+        action='store_false', dest='playlist_reverse', 
+        help='Download playlist videos in default order. Useful to undo --playlist-reverse')
     downloader.add_option(
         '--playlist-random',
         action='store_true',
@@ -739,6 +762,10 @@ def parseOpts(overrideArguments=None):
         '--restrict-filenames',
         action='store_true', dest='restrictfilenames', default=False,
         help='Restrict filenames to only ASCII characters, and avoid "&" and spaces in filenames')
+    filesystem.add_option(
+        '--no-restrict-filenames',
+        action='store_false', dest='restrictfilenames', default=False,
+        help='Allow Unicode characters, "&" and spaces in filenames (default)')
     filesystem.add_option(
         '-A', '--auto-number',
         action='store_true', dest='autonumber', default=False,
