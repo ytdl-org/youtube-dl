@@ -111,9 +111,8 @@ class TVerIE(BrightcoveNewIE):
 
         # get video description
         description = \
-            self._og_search_description(webpage) or \
-            self._html_search_meta('twitter:description', webpage) or \
-            self._html_search_regex(r'<div class="description">(?P<description>.*?)</div>', webpage, 'description', default=None, flags=re.DOTALL)
+            self._html_search_meta(['description', 'og:description', 'twitter:description'], webpage, 'description', default=None) or \
+            self._html_search_regex(r'<div[^>]+class="description"[^>]*>(?P<description>.*?)</div>', webpage, 'description', default=None, flags=re.DOTALL)
 
         # undo _VALID_URL
         self._VALID_URL = _VALID_URL
@@ -123,7 +122,7 @@ class TVerIE(BrightcoveNewIE):
         # Brightcove ID
         info_dict['display_id'] = brightcove_video_id
         # select large thumbnail
-        info_dict['thumbnail'] = info_dict['thumbnail'].replace('160x90', '1920x1080')
+        info_dict['thumbnail'] = info_dict.get('thumbnail').replace('160x90', '1920x1080')
         # desctiption
         info_dict['description'] = description
 
