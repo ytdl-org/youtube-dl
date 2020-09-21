@@ -1198,6 +1198,7 @@ from .tvanouvelles import (
     TVANouvellesIE,
     TVANouvellesArticleIE,
 )
+from .tver import TVerIE
 from .tvc import (
     TVCIE,
     TVCArticleIE,
