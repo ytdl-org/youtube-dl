@@ -1,3 +1,67 @@
+This is a fork of [youtube-dl](https://github.com/ytdl-org/youtube-dl)
+
+[![](https://img.shields.io/badge/Fork-2020.09.21.00-brightgreen?style=for-the-badge&logo=GitHub)](https://github.com/pukkandan/youtube-dl)
+[![](https://img.shields.io/badge/youtube--dl-2020.09.20-blue?style=for-the-badge&logo=GitHub)](https://github.com/ytdl-org/youtube-dl)
+
+- [NEW FEATURES](#new-features)
+- [FIXES](#fixes)
+- [OTHER CHANGES](#other-changes)
+- [FAQ](#faq0)
+- [ORIGINAL README](#youtube-dl)
+
+-----------------
+<br/><br/>
+
+# NEW FEATURES
+
+#### 2020.09.21.00
+
+*Nothing*
+
+# FIXES
+
+#### 2020.09.21.00
+
+*Nothing*
+
+# OTHER CHANGES
+
+#### 2020.09.21.00
+
+* Created this fork, updated README.md and created version.txt & ChangeLog-Fork
+
+-----------------
+<br/><br/>
+
+# <a name="faq0"></a>FAQ
+
+### Why does this fork exist?
+
+[youtube-dl](https://github.com/ytdl-org/youtube-dl) currently have over 700 open pull requests and 3100 open issues. The project has very few maintainers and considering their very strict policies on merges, it makes sense that they are not able to look into and fix this massive amount of backlog. However,  there are some of these pull requests that I really want to use. So I created this fork and am pulling all the things I need into it. If anyone else wants to use this fork, feel free to do so. I personally use youtube-dl quite a lot, so expect the fork to be frequently updated.
+
+### Can I request a pull/feature?
+
+I don't plan on accepting any feature requests. You are free to make such requests if you hope someone else will implement it, but you are probably better off making the request on the original repository.
+
+If you already have the code, it's a different story. Make the pull request, and I will merge it as long as it doesn't break anything else.
+
+### Where are the releases? 
+
+I will not be making any releases. If anyone wants to create and maintain releases for this fork, please contact me. You can install the fork using `pip install https://github.com/pukkandan/youtube-dl/archive/master.zip`
+
+### What are the other branches?
+
+**Short answer:** You shouldn't use any of the other branches.
+
+Still want to know what they are?  
+* [**personal**](https://github.com/pukkandan/youtube-dl/tree/personal) is the version I personally use. It will contain changes that are not backward compatible.
+* [**format-sort**](https://github.com/pukkandan/youtube-dl/tree/personal) is the development branch for the `--format-sort` option
+
+-----------------
+<br/><br/>
+
+# [YOUTUBE-DL](https://github.com/ytdl-org/youtube-dl)
+
 [![Build Status](https://travis-ci.org/ytdl-org/youtube-dl.svg?branch=master)](https://travis-ci.org/ytdl-org/youtube-dl)
 
 youtube-dl - download videos from youtube.com or other video platforms

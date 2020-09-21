@@ -51,3 +51,4 @@ venv/
 
 # VS Code related files
 .vscode
+*.sublime-workspace
