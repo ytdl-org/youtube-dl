@@ -186,6 +186,10 @@ def parseOpts(overrideArguments=None):
         default=False,
         help='Do not extract the videos of a playlist, only list them.')
     general.add_option(
+        '--flat-videos',
+        action='store_true', dest='extract_flat', default=False,
+        help='Do not resolve the video urls.')
+    general.add_option(
         '--mark-watched',
         action='store_true', dest='mark_watched', default=False,
         help='Mark videos watched (YouTube only)')
