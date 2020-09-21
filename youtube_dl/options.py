@@ -475,7 +475,7 @@ def parseOpts(overrideArguments=None):
     subtitles.add_option(
         '--no-write-sub', '--no-write-srt',
         action='store_false', dest='writesubtitles',
-        help='Do not Write subtitle file (default)')
+        help='Do not write subtitle file (default)')
     subtitles.add_option(
         '--write-auto-sub', '--write-automatic-sub',
         action='store_true', dest='writeautomaticsub', default=False,
@@ -551,7 +551,7 @@ def parseOpts(overrideArguments=None):
     downloader.add_option(
         '--no-playlist-reverse',
         action='store_false', dest='playlist_reverse', 
-        help='Download playlist videos in default order. Useful to undo --playlist-reverse')
+        help='Download playlist videos in default order')
     downloader.add_option(
         '--playlist-random',
         action='store_true',
@@ -690,8 +690,7 @@ def parseOpts(overrideArguments=None):
     verbosity.add_option(
         '--print-json',
         action='store_true', dest='print_json', default=False,
-        help='Be quiet and print the video information as JSON (video is still being downloaded).',
-    )
+        help='Be quiet and print the video information as JSON (video is still being downloaded).')
     verbosity.add_option(
         '--force-write-download-archive', '--force-write-archive',
         action='store_true', dest='force_write_download_archive', default=False,
@@ -829,7 +828,7 @@ def parseOpts(overrideArguments=None):
         action='store_true', dest='rm_cachedir',
         help='Delete all filesystem cache files')
 
-    thumbnail = optparse.OptionGroup(parser, 'Thumbnail images')
+    thumbnail = optparse.OptionGroup(parser, 'Thumbnail Images')
     thumbnail.add_option(
         '--write-thumbnail',
         action='store_true', dest='writethumbnail', default=False,

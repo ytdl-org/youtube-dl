@@ -1,9 +1,20 @@
+New Single-commit Functionality
+-----------------
+Make the changes in master
+Make necessary changes in readme.md
+Change version number in version.txt
+Commit
+( 1 commit per change)
+
+======================================================
+
+
+
 New Functionality
 -----------------
 => Upstream Update
 Rebase upstream-master to upstream/master
 Branch from upstream-master
-Log the new branch in "What are the other branches?" in readme.md
 Do the necessary commits in the new branch
 => Merge pull
 
@@ -18,7 +29,6 @@ Accept the request (Squash and Merge)
 Add author in AUTHORS-Fork
 Make necessary changes in readme.md
 Change version number in version.txt
-Log changes to ChangeLog-Fork
 Commit
 ( 2 commits per pull request)
 
