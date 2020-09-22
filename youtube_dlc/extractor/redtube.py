@@ -15,7 +15,7 @@ from ..utils import (
 
 
 class RedTubeIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:(?:www\.)?redtube\.com/|embed\.redtube\.com/\?.*?\bid=)(?P<id>[0-9]+)'
+    _VALID_URL = r'https?://(?:(?:\w+\.)?redtube\.com/|embed\.redtube\.com/\?.*?\bid=)(?P<id>[0-9]+)'
     _TESTS = [{
         'url': 'http://www.redtube.com/66418',
         'md5': 'fc08071233725f26b8f014dba9590005',
@@ -30,6 +30,9 @@ class RedTubeIE(InfoExtractor):
         }
     }, {
         'url': 'http://embed.redtube.com/?bgcolor=000000&id=1443286',
+        'only_matching': True,
+    }, {
+        'url': 'http://it.redtube.com/66418',
         'only_matching': True,
     }]
 
