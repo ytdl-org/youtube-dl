@@ -241,7 +241,7 @@ class HttpFD(FileDownloader):
                 except socket.error as e:
                     # SSLError on python 2 (inherits socket.error) may have
                     # no errno set but this error message
-                    if e.errno in (errno.ECONNRESET, errno.ETIMEDOUT) or getattr(e, 'message') == 'The read operation timed out':
+                    if e.errno in (errno.ECONNRESET, errno.ETIMEDOUT) or getattr(e, 'message', None) == 'The read operation timed out':
                         retry(e)
                     raise
 
