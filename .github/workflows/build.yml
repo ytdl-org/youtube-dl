@@ -57,7 +57,7 @@ jobs:
         SHA2: ${{ hashFiles('youtube-dlc') }}
       run: echo "::set-output name=sha2_unix::${env:SHA2}"
 
-build_windows:
+  build_windows:
 
     runs-on: windows-latest
 
