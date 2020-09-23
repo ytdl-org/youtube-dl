@@ -22,7 +22,9 @@ old_rev = ''
 if len(_OLD_VERSION) > 1:
     old_rev = _OLD_VERSION[1]
 
-ver = f'{datetime.today():%Y.%m.%d}'
+now = datetime.now()
+# ver = f'{datetime.today():%Y.%m.%d}'
+ver = now.strftime("%Y.%m.%d")
 rev = ''
 
 if old_ver == ver:
