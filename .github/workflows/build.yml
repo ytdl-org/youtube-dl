@@ -6,7 +6,7 @@ on:
       - release
 
 jobs:
-  build_unix_and_deploy_pypi:
+  build_unix:
 
     runs-on: ubuntu-latest
 
