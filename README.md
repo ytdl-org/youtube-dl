@@ -49,19 +49,16 @@ youtube-dl - download videos from youtube.com or other video platforms
 * `--force-write-archive` by @h-h-h-h
 * Shortcut Options: `--write-link`, `--write-url-link`, `--write-webloc-link`, `--write-desktop-link` by @h-h-h-h
 
-#### 2020.09.21.00
-*Nothing*
-
 ### Fixes
+
+#### 2020.09.23.00
+* Dropped [#8](https://github.com/pukkandan/youtube-dl/commit/5bc0c7eb03d132fa121462b73f836be8b422ae53). This has been fixed in the main repo
 
 #### 2020.09.22.00
 * Fix for youtube chapters extractor by @gschizas
 * Fix for youtube description by @randombyte-developer
 * Added embedding of thumbnails in mkv files by @MrDoritos
 * Fix for embedding thumbnail in mp3 by @pauldubois98
-
-#### 2020.09.21.00
-*Nothing*
 
 ### Other Changes
 
