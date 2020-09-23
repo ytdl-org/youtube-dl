@@ -1,0 +1,162 @@
+name: Build
+
+on:
+  push:
+    branches:
+      - release
+
+jobs:
+  build_unix:
+
+    runs-on: ubuntu-latest
+
+    outputs:
+      ytdlc_version: ${{ steps.bump_version.outputs.ytdlc_version }}
+      upload_url: ${{ steps.create_release.outputs.upload_url }}
+      sha2_unix: ${{ steps.sha2_file.outputs.sha2_unix }}
+
+    steps:
+    - uses: actions/checkout@v2
+    - name: Set up Python
+      uses: actions/setup-python@v2
+      with:
+          python-version: '3.x'
+    - name: Install packages
+      run: sudo apt-get -y install zip pandoc man
+    - name: Bump version
+      id: bump_version
+      run: python scripts/update-version-workflow.py
+    - name: Run Make
+      run: make
+    - name: Create Release
+      id: create_release
+      uses: actions/create-release@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        tag_name: ${{ github.ref }}
+        release_name: youtube-dlc ${{ steps.dump_version.outputs.ytdlc_version }}
+        body: |
+          Changelog:
+          PLACEHOLDER
+        draft: false
+        prerelease: false
+    - name: Upload youtube-dlc Unix binary
+      id: upload-release-asset 
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ steps.create_release.outputs.upload_url }}
+        asset_path: ./youtube-dlc
+        asset_name: youtube-dlc
+        asset_content_type: application/octet-stream
+    - name: Get SHA2-256SUMS for youtube-dlc
+      id: sha2_file
+      env:
+        SHA2: ${{ hashFiles('youtube-dlc') }}
+      run: echo "::set-output name=sha2_unix::${env:SHA2}"
+
+build_windows:
+
+    runs-on: windows-latest
+
+    needs: build_unix
+
+    steps:
+    - uses: actions/checkout@v2
+    - name: Set up Python
+      uses: actions/setup-python@v2
+      with:
+          python-version: '3.x'
+    - name: Install Requirements
+      run: pip install pyinstaller
+    - name: Bump version
+      run: python scripts/update-version-workflow.py
+    - name: Run PyInstaller Script
+      run: python pyinst.py
+    - name: Upload youtube-dlc.exe Windows binary
+      id: upload-release-windows
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ needs.build_unix.outputs.upload_url }}
+        asset_path: ./dist/youtube-dlc.exe
+        asset_name: youtube-dlc.exe
+        asset_content_type: application/octet-stream
+    - name: Get SHA2-256SUMS for youtube-dlc.exe
+      id: sha2_file_win
+      env:
+        SHA2: ${{ hashFiles('dist/youtube-dlc.exe') }}
+      run: echo "::set-output name=sha2_windows::${env:SHA2}"
+
+  build_windows32:
+
+    runs-on: windows-latest
+
+    needs: build_unix
+
+    steps:
+    - uses: actions/checkout@v2
+    - name: Set up Python 3.4.2 32-Bit
+      uses: actions/setup-python@v2
+      with:
+          python-version: '3.4.2'
+          architecture: 'x86'
+    - name: Install Requirements for 32 Bit
+      run: pip install pyinstaller==3.5
+    - name: Bump version
+      run: python scripts/update-version-workflow.py
+    - name: Run PyInstaller Script for 32 Bit
+      run: python pyinst32.py
+    - name: Upload Executable youtube-dlc_x86.exe
+      id: upload-release-windows32
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ needs.build_unix.outputs.upload_url }}
+        asset_path: ./dist/youtube-dlc_x86.exe
+        asset_name: youtube-dlc_x86.exe
+        asset_content_type: application/octet-stream
+    - name: Get SHA2-256SUMS for youtube-dlc_x86.exe
+      id: sha2_file_win32
+      env:
+        SHA2: ${{ hashFiles('dist/youtube-dlc_x86.exe') }}
+      run: echo "::set-output name=sha2_windows32::${env:SHA2}"
+    - name: Make SHA2-256SUMS file
+      env:
+        SHA2_WINDOWS: ${{ needs.build_windows.outputs.sha2_windows }}
+        SHA2_WINDOWS32: ${{ steps.sha2_file_win32.outputs.sha2_windows32 }}
+        SHA2_UNIX: ${{ needs.build_unix.outputs.sha2_unix }}
+        YTDLC_VERSION: ${{ needs.build_unix.outputs.ytdlc_version }}
+      run: |
+        echo "$SHA2_WINDOWS youtube-dlc.exe" > SHA2-256SUMS
+        echo "$SHA2_WINDOWS32 youtube-dlc32.exe" > SHA2-256SUMS
+        echo "$SHA2_UNIX youtube-dlc" >> SHA2-256SUMS
+
+  deploy:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v2
+    - name: Set up Python
+      uses: actions/setup-python@v2
+      with:
+        python-version: '3.x'
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install setuptools wheel twine
+    - name: Bump version
+      run: python scripts/update-version-workflow.py
+    - name: Build and publish
+      env:
+        TWINE_USERNAME: ${{ secrets.PYPI_USERNAME }}
+        TWINE_PASSWORD: ${{ secrets.PYPI_PASSWORD }}
+      run: |
+        rm -rf dist/*
+        python setup.py sdist bdist_wheel
+        twine upload dist/*
