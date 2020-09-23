@@ -139,6 +139,8 @@ jobs:
   deploy:
 
     runs-on: ubuntu-latest
+    
+    needs: build_unix
 
     steps:
     - uses: actions/checkout@v2
