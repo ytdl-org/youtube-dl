@@ -164,3 +164,88 @@ class NaverIE(NaverBaseIE):
             'age_limit': 19 if current_clip.get('adult') else None,
         })
         return info
+
+
+class NaverLiveIE(InfoExtractor):
+    IE_NAME = 'Naver:live'
+    _VALID_URL = r'https?://(?:m\.)?tv(?:cast)?\.naver\.com/l/(?P<id>\d+)'
+    _GEO_BYPASS = False
+    _TESTS = [{
+        'url': 'https://tv.naver.com/l/52010',
+        'info_dict': {
+            'id': '52010',
+            'ext': 'm3u8',
+            'title': '[LIVE] 뉴스특보 : "수도권 거리두기, 2주간 2단계로 조정"',
+            'description': 'md5:df7f0c237a5ed5e786ce5c91efbeaab3',
+            'channel_id': 'NTV-ytnnews24-0',
+            'start_time': 1597026780000,
+        },
+    }, {
+        'url': 'https://tv.naver.com/l/51549',
+        'info_dict': {
+            'id': '51549',
+            'ext': 'm3u8',
+            'title': '연합뉴스TV - 코로나19 뉴스특보',
+            'description': 'md5:c655e82091bc21e413f549c0eaccc481',
+            'channel_id': 'NTV-yonhapnewstv-0',
+            'start_time': 1596406380000,
+        },
+    }, {
+        'url': 'https://tv.naver.com/l/54887',
+        'only_matching': True,
+    }]
+
+    def _real_extract(self, url):
+        video_id = self._match_id(url)
+        page = self._download_webpage(url, video_id, 'Downloading Page', 'Unable to download Page')
+        secure_url = self._search_regex(r'sApiF:\s+(?:"|\')([^"\']+)', page, 'secureurl')
+
+        info = self._extract_video_info(video_id, secure_url)
+        info.update({
+            'description': self._og_search_description(page)
+        })
+
+        return info
+
+    def _extract_video_info(self, video_id, url):
+        video_data = self._download_json(url, video_id, headers=self.geo_verification_headers())
+        meta = video_data.get('meta')
+        status = meta.get('status')
+
+        if status == 'CLOSED':
+            raise ExtractorError('Stream is offline.', expected=True)
+        elif status != 'OPENED':
+            raise ExtractorError('Unknown status %s' % status)
+
+        title = meta.get('title')
+        stream_list = video_data.get('streams')
+
+        if stream_list is None:
+            raise ExtractorError('Could not get stream data.', expected=True)
+
+        formats = []
+        for quality in stream_list:
+            if not quality.get('url'):
+                continue
+
+            prop = quality.get('property')
+            if prop.get('abr'):  # This abr doesn't mean Average audio bitrate.
+                continue
+
+            formats.extend(self._extract_m3u8_formats(
+                quality.get('url'), video_id, 'm3u8',
+                m3u8_id=quality.get('qualityId'), live=True
+            ))
+        self._sort_formats(formats)
+
+        return {
+            'id': video_id,
+            'title': title,
+            'formats': formats,
+            'channel_id': meta.get('channelId'),
+            'channel_url': meta.get('channelUrl'),
+            'thumbnail': meta.get('imgUrl'),
+            'start_time': meta.get('startTime'),
+            'categories': [meta.get('categoryId')],
+            'is_live': True
+        }
