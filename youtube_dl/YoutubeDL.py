@@ -51,6 +51,9 @@ from .utils import (
     DEFAULT_OUTTMPL,
     determine_ext,
     determine_protocol,
+    DOT_DESKTOP_LINK_TEMPLATE,
+    DOT_URL_LINK_TEMPLATE,
+    DOT_WEBLOC_LINK_TEMPLATE,
     DownloadError,
     encode_compat_str,
     encodeFilename,
@@ -61,6 +64,7 @@ from .utils import (
     formatSeconds,
     GeoRestrictedError,
     int_or_none,
+    iri_to_uri,
     ISO3166Utils,
     locked_file,
     make_HTTPS_handler,
@@ -84,6 +88,7 @@ from .utils import (
     std_headers,
     str_or_none,
     subtitles_filename,
+    to_high_limit_path,
     UnavailableVideoError,
     url_basename,
     version_tuple,
@@ -160,6 +165,8 @@ class YoutubeDL(object):
     forcejson:         Force printing info_dict as JSON.
     dump_single_json:  Force printing the info_dict of the whole playlist
                        (or video) as a single JSON line.
+    force_write_download_archive: Force writing download archive regardless of
+                       'skip_download' or 'simulate'.
     simulate:          Do not download the video files.
     format:            Video format code. See options.py for more information.
     outtmpl:           Template for output names.
@@ -181,6 +188,11 @@ class YoutubeDL(object):
     writeannotations:  Write the video annotations to a .annotations.xml file
     writethumbnail:    Write the thumbnail image to a file
     write_all_thumbnails:  Write all thumbnail formats to files
+    writelink:         Write an internet shortcut file, depending on the
+                       current platform (.url/.webloc/.desktop)
+    writeurllink:      Write a Windows internet shortcut file (.url)
+    writewebloclink:   Write a macOS internet shortcut file (.webloc)
+    writedesktoplink:  Write a Linux internet shortcut file (.desktop)
     writesubtitles:    Write the video subtitles to a file
     writeautomaticsub: Write the automatically generated subtitles to a file
     allsubtitles:      Downloads all the subtitles of the video
@@ -1759,8 +1771,11 @@ class YoutubeDL(object):
         # Forced printings
         self.__forced_printings(info_dict, filename, incomplete=False)
 
-        # Do nothing else if in simulate mode
         if self.params.get('simulate', False):
+            if self.params.get('force_write_download_archive', False):
+                self.record_download_archive(info_dict)
+
+            # Do nothing else if in simulate mode
             return
 
         if filename is None:
@@ -1860,6 +1875,57 @@ class YoutubeDL(object):
 
         self._write_thumbnails(info_dict, filename)
 
+        # Write internet shortcut files
+        url_link = webloc_link = desktop_link = False
+        if self.params.get('writelink', False):
+            if sys.platform == "darwin":  # macOS.
+                webloc_link = True
+            elif sys.platform.startswith("linux"):
+                desktop_link = True
+            else:  # if sys.platform in ['win32', 'cygwin']:
+                url_link = True
+        if self.params.get('writeurllink', False):
+            url_link = True
+        if self.params.get('writewebloclink', False):
+            webloc_link = True
+        if self.params.get('writedesktoplink', False):
+            desktop_link = True
+
+        if url_link or webloc_link or desktop_link:
+            if 'webpage_url' not in info_dict:
+                self.report_error('Cannot write internet shortcut file because the "webpage_url" field is missing in the media information')
+                return
+            ascii_url = iri_to_uri(info_dict['webpage_url'])
+
+        def _write_link_file(extension, template, newline, embed_filename):
+            linkfn = replace_extension(filename, extension, info_dict.get('ext'))
+            if self.params.get('nooverwrites', False) and os.path.exists(encodeFilename(linkfn)):
+                self.to_screen('[info] Internet shortcut is already present')
+            else:
+                try:
+                    self.to_screen('[info] Writing internet shortcut to: ' + linkfn)
+                    with io.open(encodeFilename(to_high_limit_path(linkfn)), 'w', encoding='utf-8', newline=newline) as linkfile:
+                        template_vars = {'url': ascii_url}
+                        if embed_filename:
+                            template_vars['filename'] = linkfn[:-(len(extension) + 1)]
+                        linkfile.write(template % template_vars)
+                except (OSError, IOError):
+                    self.report_error('Cannot write internet shortcut ' + linkfn)
+                    return False
+            return True
+
+        if url_link:
+            if not _write_link_file('url', DOT_URL_LINK_TEMPLATE, '\r\n', embed_filename=False):
+                return
+        if webloc_link:
+            if not _write_link_file('webloc', DOT_WEBLOC_LINK_TEMPLATE, '\n', embed_filename=False):
+                return
+        if desktop_link:
+            if not _write_link_file('desktop', DOT_DESKTOP_LINK_TEMPLATE, '\n', embed_filename=True):
+                return
+
+        # Download
+        must_record_download_archive = False
         if not self.params.get('skip_download', False):
             try:
                 def dl(name, info):
@@ -2007,7 +2073,10 @@ class YoutubeDL(object):
                 except (PostProcessingError) as err:
                     self.report_error('postprocessing: %s' % str(err))
                     return
-                self.record_download_archive(info_dict)
+                must_record_download_archive = True
+
+        if must_record_download_archive or self.params.get('force_write_download_archive', False):
+            self.record_download_archive(info_dict)
 
     def download(self, url_list):
         """Download a given list of URLs."""
