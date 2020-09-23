@@ -1,3 +1,4 @@
+from __future__ import unicode_literals
 from PyInstaller.utils.win32.versioninfo import (
     VarStruct, VarFileInfo, StringStruct, StringTable,
     StringFileInfo, FixedFileInfo, VSVersionInfo, SetVersion,
