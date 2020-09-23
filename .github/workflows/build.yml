@@ -99,10 +99,10 @@ jobs:
 
     steps:
     - uses: actions/checkout@v2
-    - name: Set up Python 3.4.2 32-Bit
+    - name: Set up Python 3.5.4 32-Bit
       uses: actions/setup-python@v2
       with:
-          python-version: '3.4.2'
+          python-version: '3.5.4'
           architecture: 'x86'
     - name: Install Requirements for 32 Bit
       run: pip install pyinstaller==3.5
