@@ -31,7 +31,7 @@ _SEPARATOR = '-'
 
 version = _SEPARATOR.join(filter(None, [ver, str(rev)]))
 
-print('::set-output name=ydlc_version::' + version)
+print('::set-output name=ytdlc_version::' + version)
 
 file_version_py = open('youtube_dlc/version.py', 'rt')
 data = file_version_py.read()
