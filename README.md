@@ -50,13 +50,16 @@ Using curl:
 **Windows** users can download [youtube-dlc.exe](https://github.com/blackjack4494/youtube-dlc/releases/latest/download/youtube-dlc.exe) (**do not** put in `C:\Windows\System32`!).  
 
 **Compile**
-To build the Windows executable yourself
+To build the Windows executable yourself (without version info!)
 
     python -m pip install --upgrade pyinstaller
     pyinstaller.exe youtube_dlc\__main__.py --onefile --name youtube-dlc
     
 Or simply execute the `make_win.bat` if pyinstaller is installed.
 There will be a `youtube-dlc.exe` in `/dist`  
+
+New way to build Windows is to use `python pyinst.py` (please use python3 64Bit)  
+For 32Bit Version use a 32Bit Version of python (3 preferred here as well) and run `python pyinst32.py`  
 
 For Unix:
 You will need the required build tools  
