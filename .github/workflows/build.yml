@@ -26,6 +26,8 @@ jobs:
     - name: Bump version
       id: bump_version
       run: python scripts/update-version-workflow.py
+    - name: Check the output from My action
+      run: echo "${{ steps.bump_version.outputs.ytdlc_version }}"
     - name: Run Make
       run: make
     - name: Create Release
@@ -34,8 +36,8 @@ jobs:
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
-        tag_name: ${{ steps.dump_version.outputs.ytdlc_version }}
-        release_name: youtube-dlc ${{ steps.dump_version.outputs.ytdlc_version }}
+        tag_name: ${{ steps.bump_version.outputs.ytdlc_version }}
+        release_name: youtube-dlc ${{ steps.bump_version.outputs.ytdlc_version }}
         body: |
           Changelog:
           PLACEHOLDER
