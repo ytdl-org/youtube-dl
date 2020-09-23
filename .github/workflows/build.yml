@@ -34,7 +34,7 @@ jobs:
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
-        tag_name: ${{ github.ref }}
+        tag_name: ${{ steps.dump_version.outputs.ytdlc_version }}
         release_name: youtube-dlc ${{ steps.dump_version.outputs.ytdlc_version }}
         body: |
           Changelog:
