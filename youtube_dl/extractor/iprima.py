@@ -87,7 +87,7 @@ class IPrimaIE(InfoExtractor):
              r'data-product="([^"]+)">',
              r'id=["\']player-(p\d+)"',
              r'playerId\s*:\s*["\']player-(p\d+)',
-             r'let videos *= *["\'](p\d+)'),
+             r'\bvideos\s*=\s*["\'](p\d+)'),
             webpage, 'real id')
 
         playerpage = self._download_webpage(
