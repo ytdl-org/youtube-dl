@@ -374,7 +374,7 @@ class YoutubeDL(object):
         check_deprecated('autonumber', '--auto-number', '-o "%(autonumber)s-%(title)s.%(ext)s"')
         check_deprecated('usetitle', '--title', '-o "%(title)s-%(id)s.%(ext)s"')
 
-        if params.get('bidi_workaround', False):
+        if self.params.get('bidi_workaround', False):
             try:
                 import pty
                 master, slave = pty.openpty()
@@ -775,6 +775,43 @@ class YoutubeDL(object):
         If 'download', also downloads the videos.
         extra_info is a dict containing the extra values to add to each result
         '''
+
+        if self.params.get('bidi_workaround', False):
+            try:
+                import pty
+                master, slave = pty.openpty()
+                width = compat_get_terminal_size().columns
+                if width is None:
+                    width_args = []
+                else:
+                    width_args = ['-w', str(width)]
+                sp_kwargs = dict(
+                    stdin=subprocess.PIPE,
+                    stdout=slave,
+                    stderr=self._err_file)
+                try:
+                    self._output_process = subprocess.Popen(
+                        ['bidiv'] + width_args, **sp_kwargs
+                    )
+                except OSError:
+                    self._output_process = subprocess.Popen(
+                        ['fribidi', '-c', 'UTF-8'] + width_args, **sp_kwargs)
+                self._output_channel = os.fdopen(master, 'rb')
+            except OSError as ose:
+                if ose.errno == errno.ENOENT:
+                    self.report_warning('Could not find fribidi executable, ignoring --bidi-workaround . Make sure that  fribidi  is an executable file in one of the directories in your $PATH.')
+                else:
+                    raise
+        
+        for pp_def_raw in self.params.get('postprocessors', []):
+            pp_class = get_postprocessor(pp_def_raw['key'])
+            pp_def = dict(pp_def_raw)
+            del pp_def['key']
+            pp = pp_class(self, **compat_kwargs(pp_def))
+            self.add_post_processor(pp)
+
+        for ph in self.params.get('progress_hooks', []):
+            self.add_progress_hook(ph)
 
         if not ie_key and force_generic_extractor:
             ie_key = 'Generic'
