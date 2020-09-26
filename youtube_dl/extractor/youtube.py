@@ -388,6 +388,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                             (?:(?:www|no)\.)?invidiou\.sh/|
                             (?:(?:www|fi|de)\.)?invidious\.snopyta\.org/|
                             (?:www\.)?invidious\.kabi\.tk/|
+                            (?:www\.)?invidiou(?:s)?\.site/|
                             (?:www\.)?invidious\.13ad\.de/|
                             (?:www\.)?invidious\.mastodon\.host/|
                             (?:www\.)?invidious\.nixnet\.xyz/|
