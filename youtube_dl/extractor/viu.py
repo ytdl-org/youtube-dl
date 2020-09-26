@@ -208,7 +208,9 @@ class ViuOTTIE(InfoExtractor):
         query = {
             'r': 'vod/ajax-detail',
             'platform_flag_label': 'web',
+            'language_flag_id': 3,
             'product_id': video_id,
+            'ut': 2,
         }
 
         area_id = self._AREA_ID.get(country_code.upper())
@@ -226,7 +228,7 @@ class ViuOTTIE(InfoExtractor):
         stream_data = self._download_json(
             'https://d1k2us671qcoau.cloudfront.net/distribute_web_%s.php' % country_code,
             video_id, 'Downloading stream info', query={
-                'ccs_product_id': video_data['ccs_product_id'],
+                'ccs_product_id': video_data['ccs_product_id'], 'language_flag_id': 3,
             }, headers={
                 'Referer': url,
                 'Origin': re.search(r'https?://[^/]+', url).group(0),
