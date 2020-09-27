@@ -168,7 +168,7 @@ class ViuPlaylistIE(ViuBaseIE):
 
 class ViuOTTIE(InfoExtractor):
     IE_NAME = 'viu:ott'
-    _VALID_URL = r'https?://(?:www\.)?viu\.com/ott/(?P<country_code>[a-z]{2})/[a-z]{2}-[a-z]{2}/vod/(?P<id>\d+)'
+    _VALID_URL = r'https?://(?:www\.)?viu\.com/ott/(?P<country_code>[a-z]{2})/(?P<lang_code>[a-z]{2}-[a-z]{2})/vod/(?P<id>\d+)'
     _TESTS = [{
         'url': 'http://www.viu.com/ott/sg/en-us/vod/3421/The%20Prime%20Minister%20and%20I',
         'info_dict': {
@@ -201,9 +201,13 @@ class ViuOTTIE(InfoExtractor):
         'TH': 4,
         'PH': 5,
     }
+    _LANGUAGE_FLAG = {
+        'zh-hk': 1,
+        'en-us': 3,
+    }
 
     def _real_extract(self, url):
-        country_code, video_id = re.match(self._VALID_URL, url).groups()
+        country_code, lang_code, video_id = re.match(self._VALID_URL, url).groups()
 
         query = {
             'r': 'vod/ajax-detail',
@@ -227,6 +231,7 @@ class ViuOTTIE(InfoExtractor):
             'https://d1k2us671qcoau.cloudfront.net/distribute_web_%s.php' % country_code,
             video_id, 'Downloading stream info', query={
                 'ccs_product_id': video_data['ccs_product_id'],
+                'language_flag_id': self._LANGUAGE_FLAG.get(lang_code.lower()) or '3',
             }, headers={
                 'Referer': url,
                 'Origin': re.search(r'https?://[^/]+', url).group(0),
