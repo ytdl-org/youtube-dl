@@ -137,7 +137,11 @@ class GoIE(AdobePassIE):
                     # There may be inner quotes, e.g. data-video-id="'VDKA3609139'"
                     # from http://freeform.go.com/shows/shadowhunters/episodes/season-2/1-this-guilty-blood
                     r'data-video-id=["\']*(VDKA\w+)',
-                    # https://abc.com/shows/the-rookie/episode-guide/season-02/03-the-bet
+                    # https://github.com/ytdl-org/youtube-dl/pull/25216/files
+                    #  The following is based on the pull request on the line above. Changed the ABC.com URL to a show available now.
+                    # https://abc.com/shows/the-rookie/episode-guide/season-02/19-the-q-word
+                    r'\bvideoIdCode["\']\s*:\s*["\'](vdka\w+)',
+                    # Deprecated  fallback pattern
                     r'\b(?:video)?id["\']\s*:\s*["\'](VDKA\w+)'
                 ), webpage, 'video id', default=video_id)
             if not site_info:
