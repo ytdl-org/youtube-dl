@@ -210,7 +210,6 @@ class ViuOTTIE(InfoExtractor):
             'platform_flag_label': 'web',
             'language_flag_id': 3,
             'product_id': video_id,
-            'ut': 2,
         }
 
         area_id = self._AREA_ID.get(country_code.upper())
