@@ -19,14 +19,30 @@ jobs:
       python: 3.8
       install: pip install flake8
       script: flake8 .
-    - python: 2.6  # test end of life Python version on end of life Trusty
+    - python: 2.6  # test end of life veersions of Python on end of life distro Trusty
       dist: trusty
+      env: YTDL_TEST_SET=core
+    - python: 2.6
+      dist: trusty
+      env: YTDL_TEST_SET=download
     - python: 3.2
       dist: trusty
-    - python: 3,3
+      env: YTDL_TEST_SET=core
+    - python: 3.2
       dist: trusty
+      env: YTDL_TEST_SET=download
+    - python: 3.3
+      dist: trusty
+      env: YTDL_TEST_SET=core
+    - python: 3.3
+      dist: trusty
+      env: YTDL_TEST_SET=download
     - python: 3.4
       dist: trusty
+      env: YTDL_TEST_SET=core
+    - python: 3.4
+      dist: trusty
+      env: YTDL_TEST_SET=download
     - env: JYTHON=true; YTDL_TEST_SET=core
       dist: trusty
     - env: JYTHON=true; YTDL_TEST_SET=download
@@ -34,8 +50,6 @@ jobs:
   fast_finish: true
   allow_failures:
     - env: YTDL_TEST_SET=download
-    - env: JYTHON=true; YTDL_TEST_SET=core
-    - env: JYTHON=true; YTDL_TEST_SET=download
 before_install:
   - if [ "$JYTHON" == "true" ]; then ./devscripts/install_jython.sh; export PATH="$HOME/jython/bin:$PATH"; fi
 script: ./devscripts/run_tests.sh
