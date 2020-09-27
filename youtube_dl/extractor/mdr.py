@@ -126,6 +126,9 @@ class MDRIE(InfoExtractor):
                     abr = int_or_none(xpath_text(asset, './bitrateAudio', 'abr'), 1000)
                     filesize = int_or_none(xpath_text(asset, './fileSize', 'file size'))
 
+                    if vbr is None and abr is None:
+                        continue
+
                     f = {
                         'url': video_url,
                         'format_id': '%s-%d' % (media_type, vbr or abr),
