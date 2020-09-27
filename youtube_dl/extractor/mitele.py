@@ -1,11 +1,13 @@
 # coding: utf-8
 from __future__ import unicode_literals
 
+import re
+
 from .common import InfoExtractor
 from ..utils import (
+    determine_ext,
     int_or_none,
     parse_iso8601,
-    smuggle_url,
 )
 
 
@@ -31,7 +33,6 @@ class MiTeleIE(InfoExtractor):
             'timestamp': 1471209401,
             'upload_date': '20160814',
         },
-        'add_ie': ['Ooyala'],
     }, {
         # no explicit title
         'url': 'http://www.mitele.es/programas-tv/cuarto-milenio/57b0de3dc915da14058b4876/player',
@@ -54,7 +55,6 @@ class MiTeleIE(InfoExtractor):
         'params': {
             'skip_download': True,
         },
-        'add_ie': ['Ooyala'],
     }, {
         'url': 'http://www.mitele.es/series-online/la-que-se-avecina/57aac5c1c915da951a8b45ed/player',
         'only_matching': True,
@@ -75,10 +75,45 @@ class MiTeleIE(InfoExtractor):
         content = pre_player.get('content') or {}
         info = content.get('info') or {}
 
+        config = self._download_json(
+            video.get('dataConfig'), video_id, 'Downloading config JSON')
+        caronte = self._download_json(
+            config.get('services').get('caronte'), video_id, 'Downloading caronte JSON')
+        gbx = self._download_json(
+            config.get('services').get('gbx'), video_id, 'Downloading gbx').get('gbx')
+        bbx = caronte.get('bbx')
+
+        headers = {
+            'Referer': url,
+            'Origin': re.search(r'https?://[^/]+', url).group(0),
+            'Accept': 'application/json, text/plain, */*',
+            'Host': caronte.get('cerbero').split('//')[-1],
+            'Content-Type': 'application/json;charset=UTF-8',
+        }
+        # The server refuses the spaces and random order like this:
+        #   data=json.dumps({'bbx': bbx, 'gbx+':gbx}).encode(),
+        response = self._download_json(
+            caronte.get('cerbero'), video_id, 'Downloading cerbero token',
+            data='{"bbx":"%s","gbx":"%s"}' % (bbx, gbx),
+            headers=headers)
+        token = response.get('tokens').get('1').get('cdn')
+
+        formats = []
+        for location in caronte['dls']:
+            stream = location.get('stream')
+            if not stream:
+                continue
+            ext = determine_ext(stream)
+            if ext == 'm3u8':
+                formats.extend(self._extract_m3u8_formats(
+                    stream + '?' + token,
+                    video_id, 'mp4', 'm3u8_native',
+                    m3u8_id='hls', fatal=False))
+        self._sort_formats(formats)
+
         return {
-            '_type': 'url_transparent',
-            # for some reason only HLS is supported
-            'url': smuggle_url('ooyala:' + video_id, {'supportedformats': 'm3u8,dash'}),
+            'formats': formats,
+            'url': video_id,
             'id': video_id,
             'title': title,
             'description': info.get('synopsis'),
