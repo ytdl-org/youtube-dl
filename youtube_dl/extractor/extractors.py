@@ -111,6 +111,7 @@ from .biobiochiletv import BioBioChileTVIE
 from .bitchute import (
     BitChuteIE,
     BitChuteChannelIE,
+    BitChutePlaylistIE,
 )
 from .biqle import BIQLEIE
 from .bleacherreport import (

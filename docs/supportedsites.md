@@ -103,6 +103,7 @@
  - **BIQLE**
  - **BitChute**
  - **BitChuteChannel**
+ - **BitChutePlaylist**
  - **BleacherReport**
  - **BleacherReportCMS**
  - **blinkx**
