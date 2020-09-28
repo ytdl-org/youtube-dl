@@ -12,7 +12,7 @@ from ..utils import (
 
 
 class TikTokBaseIE(InfoExtractor):
-    def _extract_aweme(self, video_data, webpage):
+    def _extract_aweme(self, video_data, webpage, url):
         video_info = try_get(
             video_data, lambda x: x['videoData']['itemInfos'], dict)
         author_info = try_get(
@@ -60,7 +60,10 @@ class TikTokBaseIE(InfoExtractor):
             'webpage_url': self._og_search_url(webpage),
             'description': str_or_none(video_info.get('text')) or str_or_none(share_info.get('desc')),
             'ext': 'mp4',
-            'formats': formats
+            'formats': formats,
+            'http_headers': {
+                'Referer': url,
+            }
         }
 
 
@@ -131,6 +134,6 @@ class TikTokIE(TikTokBaseIE):
 
         # Chech statusCode for success
         if video_data.get('statusCode') == 0:
-            return self._extract_aweme(video_data, webpage)
+            return self._extract_aweme(video_data, webpage, url)
 
         raise ExtractorError('Video not available', video_id=video_id)
