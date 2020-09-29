@@ -54,12 +54,11 @@ class YandexMusicTrackIE(YandexMusicBaseIE):
 
     _TESTS = [{
         'url': 'http://music.yandex.ru/album/540508/track/4878838',
-        'md5': 'f496818aa2f60b6c0062980d2e00dc20',
+        'md5': 'dec8b661f12027ceaba33318787fff76',
         'info_dict': {
             'id': '4878838',
             'ext': 'mp3',
             'title': 'Carlo Ambrosio & Fabio Di Bari - Gypsy Eyes 1',
-            'filesize': 4628061,
             'duration': 193.04,
             'track': 'Gypsy Eyes 1',
             'album': 'Gypsy Soul',
@@ -67,16 +66,14 @@ class YandexMusicTrackIE(YandexMusicBaseIE):
             'artist': 'Carlo Ambrosio & Fabio Di Bari',
             'release_year': 2009,
         },
-        'skip': 'Travis CI servers blocked by YandexMusic',
     }, {
         # multiple disks
         'url': 'http://music.yandex.ru/album/3840501/track/705105',
-        'md5': 'ebe7b4e2ac7ac03fe11c19727ca6153e',
+        'md5': '82a54e9e787301dd45aba093cf6e58c0',
         'info_dict': {
             'id': '705105',
             'ext': 'mp3',
             'title': 'Hooverphonic - Sometimes',
-            'filesize': 5743386,
             'duration': 239.27,
             'track': 'Sometimes',
             'album': 'The Best of Hooverphonic',
@@ -87,7 +84,6 @@ class YandexMusicTrackIE(YandexMusicBaseIE):
             'disc_number': 2,
             'track_number': 9,
         },
-        'skip': 'Travis CI servers blocked by YandexMusic',
     }]
 
     def _real_extract(self, url):
@@ -109,7 +105,7 @@ class YandexMusicTrackIE(YandexMusicBaseIE):
             'Downloading track location JSON',
             query={'format': 'json'})
         key = hashlib.md5(('XGRlBW9FXlekgbPrRHuSiA' + fd_data['path'][1:] + fd_data['s']).encode('utf-8')).hexdigest()
-        f_url = 'http://%s/get-mp3/%s/%s?track-id=%s ' % (fd_data['host'], key, fd_data['ts'] + fd_data['path'], track_id)
+        f_url = 'http://%s/get-mp3/%s/%s?track-id=%s ' % (fd_data['host'], key, fd_data['ts'] + fd_data['path'], track['realId'])
 
         thumbnail = None
         cover_uri = track.get('albums', [{}])[0].get('coverUri')
@@ -122,7 +118,6 @@ class YandexMusicTrackIE(YandexMusicBaseIE):
             'id': track_id,
             'ext': 'mp3',
             'url': f_url,
-            'filesize': int_or_none(track.get('fileSize')),
             'duration': float_or_none(track.get('durationMs'), 1000),
             'thumbnail': thumbnail,
             'track': track_title,
@@ -198,7 +193,6 @@ class YandexMusicAlbumIE(YandexMusicPlaylistBaseIE):
             'title': 'Carlo Ambrosio - Gypsy Soul (2009)',
         },
         'playlist_count': 50,
-        'skip': 'Travis CI servers blocked by YandexMusic',
     }, {
         'url': 'https://music.yandex.ru/album/3840501',
         'info_dict': {
@@ -206,7 +200,6 @@ class YandexMusicAlbumIE(YandexMusicPlaylistBaseIE):
             'title': 'Hooverphonic - The Best of Hooverphonic (2016)',
         },
         'playlist_count': 33,
-        'skip': 'Travis CI servers blocked by YandexMusic',
     }]
 
     def _real_extract(self, url):
@@ -239,17 +232,16 @@ class YandexMusicPlaylistIE(YandexMusicPlaylistBaseIE):
             'description': 'md5:3b9f27b0efbe53f2ee1e844d07155cc9',
         },
         'playlist_count': 6,
-        'skip': 'Travis CI servers blocked by YandexMusic',
     }, {
         # playlist exceeding the limit of 150 tracks shipped with webpage (see
         # https://github.com/ytdl-org/youtube-dl/issues/6666)
-        'url': 'https://music.yandex.ru/users/ya.playlist/playlists/1036',
+        'url': 'https://music.yandex.ru/users/music-blog/playlists/1190',
         'info_dict': {
-            'id': '1036',
-            'title': 'Музыка 90-х',
+            'id': '1190',
+            'title': 'Музыка 1990-х',
+            'description': 'От «[Smells Like Teen Spirit](/album/5576245/track/53404)» до «[Freestyler](/album/2395430/track/4712292)». Самые популярные песни из 1990-х в одном плейлисте.'
         },
-        'playlist_mincount': 300,
-        'skip': 'Travis CI servers blocked by YandexMusic',
+        'playlist_mincount': 124,
     }]
 
     def _real_extract(self, url):
