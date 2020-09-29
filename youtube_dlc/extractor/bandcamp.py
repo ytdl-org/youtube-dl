@@ -33,14 +33,17 @@ class BandcampIE(InfoExtractor):
         'info_dict': {
             'id': '1812978515',
             'ext': 'mp3',
-            'title': "youtube-dlc  \"'/\\\u00e4\u21ad - youtube-dlc test song \"'/\\\u00e4\u21ad",
+            'title': "youtube-dl  \"'/\\\u00e4\u21ad - youtube-dl  \"'/\\\u00e4\u21ad - youtube-dl test song \"'/\\\u00e4\u21ad",
             'duration': 9.8485,
+            'uploader': "youtube-dl  \"'/\\\u00e4\u21ad",
+            'timestamp': 1354224127,
+            'upload_date': '20121129',
         },
         '_skip': 'There is a limit of 200 free downloads / month for the test song'
     }, {
         # free download
         'url': 'http://benprunty.bandcamp.com/track/lanius-battle',
-        'md5': '853e35bf34aa1d6fe2615ae612564b36',
+        'md5': '5d92af55811e47f38962a54c30b07ef0',
         'info_dict': {
             'id': '2650410135',
             'ext': 'aiff',
@@ -91,10 +94,12 @@ class BandcampIE(InfoExtractor):
         duration = None
 
         formats = []
-        track_info = self._parse_json(
-            self._search_regex(
-                r'trackinfo\s*:\s*\[\s*({.+?})\s*\]\s*,\s*?\n',
-                webpage, 'track info', default='{}'), title)
+        trackinfo_block = self._html_search_regex(
+            r'trackinfo(?:["\']|&quot;):\[\s*({.+?})\s*\],(?:["\']|&quot;)',
+            webpage, 'track info', default='{}')
+
+        track_info = self._parse_json(trackinfo_block, title)
+
         if track_info:
             file_ = track_info.get('file')
             if isinstance(file_, dict):
@@ -116,9 +121,10 @@ class BandcampIE(InfoExtractor):
             duration = float_or_none(track_info.get('duration'))
 
         def extract(key):
-            return self._search_regex(
-                r'\b%s\s*["\']?\s*:\s*(["\'])(?P<value>(?:(?!\1).)+)\1' % key,
+            data = self._html_search_regex(
+                r',(["\']|&quot;)%s\1:\1(?P<value>(?:\\\1|((?!\1).))+)\1' % key,
                 webpage, key, default=None, group='value')
+            return data.replace(r'\"', '"').replace('\\\\', '\\') if data else data
 
         artist = extract('artist')
         album = extract('album_title')
@@ -127,12 +133,12 @@ class BandcampIE(InfoExtractor):
         release_date = unified_strdate(extract('album_release_date'))
 
         download_link = self._search_regex(
-            r'freeDownloadPage\s*:\s*(["\'])(?P<url>(?:(?!\1).)+)\1', webpage,
+            r'freeDownloadPage(?:["\']|&quot;):\s*(["\']|&quot;)(?P<url>(?:(?!\1).)+)\1', webpage,
             'download link', default=None, group='url')
         if download_link:
             track_id = self._search_regex(
-                r'(?ms)var TralbumData = .*?[{,]\s*id: (?P<id>\d+),?$',
-                webpage, 'track id')
+                r'\?id=(?P<id>\d+)&',
+                download_link, 'track id')
 
             download_webpage = self._download_webpage(
                 download_link, track_id, 'Downloading free downloads page')
@@ -315,10 +321,12 @@ class BandcampAlbumIE(InfoExtractor):
             if self._html_search_meta('duration', elem_content, default=None)]
 
         title = self._html_search_regex(
-            r'album_title\s*:\s*"((?:\\.|[^"\\])+?)"',
-            webpage, 'title', fatal=False)
+            r'album_title\s*(?:&quot;|["\']):\s*(&quot;|["\'])(?P<album>(?:\\\1|((?!\1).))+)\1',
+            webpage, 'title', fatal=False, group='album')
+
         if title:
             title = title.replace(r'\"', '"')
+
         return {
             '_type': 'playlist',
             'uploader_id': uploader_id,
