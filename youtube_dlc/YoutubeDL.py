@@ -164,7 +164,8 @@ class YoutubeDL(object):
     simulate:          Do not download the video files.
     format:            Video format code. See options.py for more information.
     outtmpl:           Template for output names.
-    restrictfilenames: Do not allow "&" and spaces in file names
+    restrictfilenames: Do not allow "&" and spaces in file names.
+    trim_file_name:    Limit length of filename (extension excluded).
     ignoreerrors:      Do not stop on download errors.
     force_generic_extractor: Force downloader to use the generic extractor
     nooverwrites:      Prevent overwriting files.
@@ -731,6 +732,16 @@ class YoutubeDL(object):
             # be expanded. For example, for outtmpl "%(title)s.%(ext)s" and
             # title "Hello $PATH", we don't want `$PATH` to be expanded.
             filename = expand_path(outtmpl).replace(sep, '') % template_dict
+
+            # https://github.com/blackjack4494/youtube-dlc/issues/85
+            trim_file_name = self.params.get('trim_file_name', False)
+            if trim_file_name:
+                fn_groups = filename.rsplit('.')
+                ext = fn_groups[-1]
+                sub_ext = ''
+                if len(fn_groups) > 2:
+                    sub_ext = fn_groups[-2]
+                filename = '.'.join(filter(None, [fn_groups[0][:trim_file_name], sub_ext, ext]))
 
             # Temporary fix for #4787
             # 'Treat' all problem characters by passing filename through preferredencoding
