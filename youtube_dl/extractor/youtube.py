@@ -3257,12 +3257,12 @@ class YoutubeSearchURLIE(YoutubeSearchBaseInfoExtractor):
 
         result_items = self._find_videos_in_json(search_response)
 
-        for plobj in result_items:
-            video_id = try_get(plobj, lambda x: x['videoId'])
-            video_title = try_get(plobj, lambda x: x['title']['runs'][0]['text'])
+        for renderer in result_items:
+            video_id = try_get(renderer, lambda x: x['videoId'])
+            video_title = try_get(renderer, lambda x: x['title']['runs'][0]['text']) or try_get(renderer, lambda x: x['title']['simpleText'])
 
             if video_id is None or video_title is None:
-                # we do not have a videoRenderer or it is empty
+                # we do not have a videoRenderer or title extraction broke
                 continue
 
             video_title = video_title.strip()
