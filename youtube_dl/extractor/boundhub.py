@@ -1,9 +1,6 @@
 # coding: utf-8
 from __future__ import unicode_literals
 
-import os
-import re
-
 from .common import InfoExtractor
 from ..utils import int_or_none
 
