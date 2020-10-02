@@ -48,15 +48,14 @@ class BoundHubIE(InfoExtractor):
 
         # Get screenshots
         html_screenshots = self._search_regex(r'<div\s*class=[\"\']block-screenshots[\"\']>([\s\S]+?)</div>', webpage, 'html_screenshots', fatal=False)
-        regex_screenshots = r'<img\s*class=[\"\'][^\"\']*[\"\']\s*src=[\"\'][^\"\']*[\"\']\s*data-original=[\"\']([^\"\']*)[\"\']\s*width=[\"\']([^\"\']*)[\"\']\s*height=[\"\']([^\"\']*)[\"\']>'
+        regex_screenshots = r'<a href=[\"\']([^\"\']*)[\"\']'
+
         thumbnails = list()
 
         for match in re.findall(regex_screenshots, html_screenshots):
             img = dict()
-            img['url'] = match[0]
+            img['url'] = match.rstrip('/')
             img['id'] = int_or_none(os.path.splitext(os.path.basename(img['url']))[0])
-            img['width'] = int_or_none(match[1])
-            img['height'] = int_or_none(match[2])
             thumbnails.append(img)
 
         return {
