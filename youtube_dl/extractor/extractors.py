@@ -1163,6 +1163,7 @@ from .tunein import (
     TuneInTopicIE,
     TuneInShortenerIE,
 )
+from .tubetugraz import TubeTuGrazIE
 from .tunepk import TunePkIE
 from .turbo import TurboIE
 from .tv2 import (
