@@ -23,7 +23,7 @@ class BoundHubIE(InfoExtractor):
             'thumbnail': 'https://cnt.boundhub.com/contents/videos_screenshots/205000/205969/preview.mp4.jpg',
             'uploader': 'Tamina',
             'uploader_id': 39278,
-            'uploader_url': 'https://www.boundhub.com/members/39278/',
+            'uploader_url': 'https://www.boundhub.com/members/39278/'
         }
     }
 
@@ -44,11 +44,11 @@ class BoundHubIE(InfoExtractor):
             'url': self._search_regex(r'video_url: [\"\']([^\"\']*)[\"\']', webpage, 'url'),
             'description': self._search_regex(r'<div\s*class=[\"\']item[\"\']>\s*Description:\s*<em>(.*)<\/em>', webpage, 'description', fatal=False),
             'display_id': self._html_search_regex(r'https?://(?:www\.)?boundhub\.com/videos/[0-9]+/([\w-]*)', url, 'display_id', fatal=False),
-            'duration': (int(minutes) * 60) + int(seconds),
+            'duration': int_or_none((int(minutes) * 60) + int(seconds)),
             'ext': self._html_search_regex(r'postfix:\s*[\"\']\.([^\"\']*)[\"\']', webpage, 'ext', fatal=False),
             'thumbnail': self._html_search_regex(r'preview_url:\s*[\"\']([^\"\']*)[\"\']', webpage, 'thumbnail', fatal=False),
             'uploader': self._search_regex(r'<div\s*class=[\"\']username[\"\']>\s*<a.*>\s*(.*)\s*</a>', webpage, 'uploader', fatal=False),
             'uploader_id': int_or_none(self._html_search_regex(r'https?://(?:www\.)?boundhub\.com/members/(\d+)', uploader_url, 'uploader_id', fatal=False)),
             'uploader_url': uploader_url,
-            'views': int_or_none(self._search_regex(r'<span>\s*Views:\s*<em>([\w ]*)</em>', webpage, 'views_text', fatal=False).replace(' ', '')),
+            'views': int_or_none(self._search_regex(r'<span>\s*Views:\s*<em>([\w ]*)</em>', webpage, 'views_text', fatal=False).replace(' ', ''))
         }
