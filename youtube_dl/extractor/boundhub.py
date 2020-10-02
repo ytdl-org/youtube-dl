@@ -28,48 +28,36 @@ class BoundHubIE(InfoExtractor):
     }
 
     def _real_extract(self, url):
-        video_id = self._match_id(url)
-        webpage = self._download_webpage(url, video_id)
+        webpage = self._download_webpage(url, self._match_id(url))
 
         # Parse duration
         duration_text = self._search_regex(r'<span>\s*Duration:\s*<em>([\w ]*)</em>', webpage, 'duration_text', fatal=False)
         minutes = self._html_search_regex(r'(\d*)min', duration_text, 'minutes', fatal=False)
         seconds = self._html_search_regex(r'(\d*)sec', duration_text, 'seconds', fatal=False)
-        duration = (int(minutes) * 60) + int(seconds)
 
-        # Parse views
-        views_text = self._search_regex(r'<span>\s*Views:\s*<em>([\w ]*)</em>', webpage, 'views_text', fatal=False)
-        views = int_or_none(views_text.replace(' ', ''))
-
-        # Get uploader url and id
+        # Get uploader url
         uploader_url = self._search_regex(r'<div\s*class=[\"\']username[\"\']>\s*<a href=[\"\']([^\"\']*)[\"\']', webpage, 'uploader_url', fatal=False)
-        uploader_id = self._html_search_regex(r'https?://(?:www\.)?boundhub\.com/members/(\d+)', uploader_url, 'uploader_id', fatal=False)
-        uploader_id = int_or_none(uploader_id)
 
         # Get screenshots
-        html_screenshots = self._search_regex(r'<div\s*class=[\"\']block-screenshots[\"\']>([\s\S]+?)</div>', webpage, 'html_screenshots', fatal=False)
-        regex_screenshots = r'<a href=[\"\']([^\"\']*)[\"\']'
-
         thumbnails = list()
-
-        for match in re.findall(regex_screenshots, html_screenshots):
+        for match in re.findall(r'<a href=[\"\']([^\"\']*)[\"\']', self._search_regex(r'<div\s*class=[\"\']block-screenshots[\"\']>([\s\S]+?)</div>', webpage, 'html_screenshots', fatal=False)):
             img = dict()
             img['url'] = match.rstrip('/')
             img['id'] = int_or_none(os.path.splitext(os.path.basename(img['url']))[0])
             thumbnails.append(img)
 
         return {
-            'id': video_id,
+            'id': self._match_id(url),
             'title': self._search_regex(r'<div\s*class=[\"\']headline[\"\']>\s*<h2>(.*)</h2>', webpage, 'title', default=None) or self._og_search_title(webpage),
             'url': self._search_regex(r'video_url: [\"\']([^\"\']*)[\"\']', webpage, 'url'),
             'description': self._search_regex(r'<div\s*class=[\"\']item[\"\']>\s*Description:\s*<em>(.*)<\/em>', webpage, 'description', fatal=False),
             'display_id': self._html_search_regex(r'https?://(?:www\.)?boundhub\.com/videos/[0-9]+/([\w-]*)', url, 'display_id', fatal=False),
-            'duration': duration,
+            'duration': (int(minutes) * 60) + int(seconds),
             'ext': self._html_search_regex(r'postfix:\s*[\"\']\.([^\"\']*)[\"\']', webpage, 'ext', fatal=False),
             'thumbnail': self._html_search_regex(r'preview_url:\s*[\"\']([^\"\']*)[\"\']', webpage, 'thumbnail', fatal=False),
             'thumbnails': thumbnails,
             'uploader': self._search_regex(r'<div\s*class=[\"\']username[\"\']>\s*<a.*>\s*(.*)\s*</a>', webpage, 'uploader', fatal=False),
-            'uploader_id': uploader_id,
+            'uploader_id': int_or_none(self._html_search_regex(r'https?://(?:www\.)?boundhub\.com/members/(\d+)', uploader_url, 'uploader_id', fatal=False)),
             'uploader_url': uploader_url,
-            'views': views,
+            'views': int_or_none(self._search_regex(r'<span>\s*Views:\s*<em>([\w ]*)</em>', webpage, 'views_text', fatal=False).replace(' ', '')),
         }
