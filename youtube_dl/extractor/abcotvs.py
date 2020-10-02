@@ -4,29 +4,30 @@ from __future__ import unicode_literals
 import re
 
 from .common import InfoExtractor
+from ..compat import compat_str
 from ..utils import (
+    dict_get,
     int_or_none,
-    parse_iso8601,
+    try_get,
 )
 
 
 class ABCOTVSIE(InfoExtractor):
     IE_NAME = 'abcotvs'
     IE_DESC = 'ABC Owned Television Stations'
-    _VALID_URL = r'https?://(?:abc(?:7(?:news|ny|chicago)?|11|13|30)|6abc)\.com(?:/[^/]+/(?P<display_id>[^/]+))?/(?P<id>\d+)'
+    _VALID_URL = r'https?://(?P<site>abc(?:7(?:news|ny|chicago)?|11|13|30)|6abc)\.com(?:(?:/[^/]+)*/(?P<display_id>[^/]+))?/(?P<id>\d+)'
     _TESTS = [
         {
             'url': 'http://abc7news.com/entertainment/east-bay-museum-celebrates-vintage-synthesizers/472581/',
             'info_dict': {
-                'id': '472581',
+                'id': '472548',
                 'display_id': 'east-bay-museum-celebrates-vintage-synthesizers',
                 'ext': 'mp4',
-                'title': 'East Bay museum celebrates vintage synthesizers',
+                'title': 'East Bay museum celebrates synthesized music',
                 'description': 'md5:24ed2bd527096ec2a5c67b9d5a9005f3',
                 'thumbnail': r're:^https?://.*\.jpg$',
-                'timestamp': 1421123075,
+                'timestamp': 1421118520,
                 'upload_date': '20150113',
-                'uploader': 'Jonathan Bloom',
             },
             'params': {
                 # m3u8 download
@@ -37,39 +38,63 @@ class ABCOTVSIE(InfoExtractor):
             'url': 'http://abc7news.com/472581',
             'only_matching': True,
         },
+        {
+            'url': 'https://6abc.com/man-75-killed-after-being-struck-by-vehicle-in-chester/5725182/',
+            'only_matching': True,
+        },
     ]
+    _SITE_MAP = {
+        '6abc': 'wpvi',
+        'abc11': 'wtvd',
+        'abc13': 'ktrk',
+        'abc30': 'kfsn',
+        'abc7': 'kabc',
+        'abc7chicago': 'wls',
+        'abc7news': 'kgo',
+        'abc7ny': 'wabc',
+    }
 
     def _real_extract(self, url):
-        mobj = re.match(self._VALID_URL, url)
-        video_id = mobj.group('id')
-        display_id = mobj.group('display_id') or video_id
+        site, display_id, video_id = re.match(self._VALID_URL, url).groups()
+        display_id = display_id or video_id
+        station = self._SITE_MAP[site]
 
-        webpage = self._download_webpage(url, display_id)
+        data = self._download_json(
+            'https://api.abcotvs.com/v2/content', display_id, query={
+                'id': video_id,
+                'key': 'otv.web.%s.story' % station,
+                'station': station,
+            })['data']
+        video = try_get(data, lambda x: x['featuredMedia']['video'], dict) or data
+        video_id = compat_str(dict_get(video, ('id', 'publishedKey'), video_id))
+        title = video.get('title') or video['linkText']
 
-        m3u8 = self._html_search_meta(
-            'contentURL', webpage, 'm3u8 url', fatal=True).split('?')[0]
-
-        formats = self._extract_m3u8_formats(m3u8, display_id, 'mp4')
+        formats = []
+        m3u8_url = video.get('m3u8')
+        if m3u8_url:
+            formats = self._extract_m3u8_formats(
+                video['m3u8'].split('?')[0], display_id, 'mp4', m3u8_id='hls', fatal=False)
+        mp4_url = video.get('mp4')
+        if mp4_url:
+            formats.append({
+                'abr': 128,
+                'format_id': 'https',
+                'height': 360,
+                'url': mp4_url,
+                'width': 640,
+            })
         self._sort_formats(formats)
 
-        title = self._og_search_title(webpage).strip()
-        description = self._og_search_description(webpage).strip()
-        thumbnail = self._og_search_thumbnail(webpage)
-        timestamp = parse_iso8601(self._search_regex(
-            r'<div class="meta">\s*<time class="timeago" datetime="([^"]+)">',
-            webpage, 'upload date', fatal=False))
-        uploader = self._search_regex(
-            r'rel="author">([^<]+)</a>',
-            webpage, 'uploader', default=None)
+        image = video.get('image') or {}
 
         return {
             'id': video_id,
             'display_id': display_id,
             'title': title,
-            'description': description,
-            'thumbnail': thumbnail,
-            'timestamp': timestamp,
-            'uploader': uploader,
+            'description': dict_get(video, ('description', 'caption'), try_get(video, lambda x: x['meta']['description'])),
+            'thumbnail': dict_get(image, ('source', 'dynamicSource')),
+            'timestamp': int_or_none(video.get('date')),
+            'duration': int_or_none(video.get('length')),
             'formats': formats,
         }
 

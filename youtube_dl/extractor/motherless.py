@@ -26,7 +26,7 @@ class MotherlessIE(InfoExtractor):
             'categories': ['Gaming', 'anal', 'reluctant', 'rough', 'Wife'],
             'upload_date': '20100913',
             'uploader_id': 'famouslyfuckedup',
-            'thumbnail': r're:http://.*\.jpg',
+            'thumbnail': r're:https?://.*\.jpg',
             'age_limit': 18,
         }
     }, {
@@ -40,7 +40,7 @@ class MotherlessIE(InfoExtractor):
                            'game', 'hairy'],
             'upload_date': '20140622',
             'uploader_id': 'Sulivana7x',
-            'thumbnail': r're:http://.*\.jpg',
+            'thumbnail': r're:https?://.*\.jpg',
             'age_limit': 18,
         },
         'skip': '404',
@@ -54,7 +54,7 @@ class MotherlessIE(InfoExtractor):
             'categories': ['superheroine heroine  superher'],
             'upload_date': '20140827',
             'uploader_id': 'shade0230',
-            'thumbnail': r're:http://.*\.jpg',
+            'thumbnail': r're:https?://.*\.jpg',
             'age_limit': 18,
         }
     }, {
@@ -76,7 +76,8 @@ class MotherlessIE(InfoExtractor):
             raise ExtractorError('Video %s is for friends only' % video_id, expected=True)
 
         title = self._html_search_regex(
-            r'id="view-upload-title">\s+([^<]+)<', webpage, 'title')
+            (r'(?s)<div[^>]+\bclass=["\']media-meta-title[^>]+>(.+?)</div>',
+             r'id="view-upload-title">\s+([^<]+)<'), webpage, 'title')
         video_url = (self._html_search_regex(
             (r'setup\(\{\s*["\']file["\']\s*:\s*(["\'])(?P<url>(?:(?!\1).)+)\1',
              r'fileurl\s*=\s*(["\'])(?P<url>(?:(?!\1).)+)\1'),
@@ -84,14 +85,15 @@ class MotherlessIE(InfoExtractor):
             or 'http://cdn4.videos.motherlessmedia.com/videos/%s.mp4?fs=opencloud' % video_id)
         age_limit = self._rta_search(webpage)
         view_count = str_to_int(self._html_search_regex(
-            r'<strong>Views</strong>\s+([^<]+)<',
+            (r'>(\d+)\s+Views<', r'<strong>Views</strong>\s+([^<]+)<'),
             webpage, 'view count', fatal=False))
         like_count = str_to_int(self._html_search_regex(
-            r'<strong>Favorited</strong>\s+([^<]+)<',
+            (r'>(\d+)\s+Favorites<', r'<strong>Favorited</strong>\s+([^<]+)<'),
             webpage, 'like count', fatal=False))
 
         upload_date = self._html_search_regex(
-            r'<strong>Uploaded</strong>\s+([^<]+)<', webpage, 'upload date')
+            (r'class=["\']count[^>]+>(\d+\s+[a-zA-Z]{3}\s+\d{4})<',
+             r'<strong>Uploaded</strong>\s+([^<]+)<'), webpage, 'upload date')
         if 'Ago' in upload_date:
             days = int(re.search(r'([0-9]+)', upload_date).group(1))
             upload_date = (datetime.datetime.now() - datetime.timedelta(days=days)).strftime('%Y%m%d')

@@ -3,31 +3,51 @@ from __future__ import unicode_literals
 
 from .common import InfoExtractor
 from ..utils import (
-    clean_html,
     determine_ext,
     extract_attributes,
-    get_element_by_class,
     int_or_none,
     parse_duration,
-    parse_iso8601,
 )
 
 
 class TV5MondePlusIE(InfoExtractor):
     IE_DESC = 'TV5MONDE+'
-    _VALID_URL = r'https?://(?:www\.)?tv5mondeplus\.com/toutes-les-videos/[^/]+/(?P<id>[^/?#]+)'
-    _TEST = {
-        'url': 'http://www.tv5mondeplus.com/toutes-les-videos/documentaire/tdah-mon-amour-tele-quebec-tdah-mon-amour-ep001-enfants',
-        'md5': '12130fc199f020673138a83466542ec6',
+    _VALID_URL = r'https?://(?:www\.)?(?:tv5mondeplus|revoir\.tv5monde)\.com/toutes-les-videos/[^/]+/(?P<id>[^/?#]+)'
+    _TESTS = [{
+        # movie
+        'url': 'https://revoir.tv5monde.com/toutes-les-videos/cinema/rendez-vous-a-atlit',
+        'md5': '8cbde5ea7b296cf635073e27895e227f',
         'info_dict': {
-            'id': 'tdah-mon-amour-tele-quebec-tdah-mon-amour-ep001-enfants',
+            'id': '822a4756-0712-7329-1859-a13ac7fd1407',
+            'display_id': 'rendez-vous-a-atlit',
             'ext': 'mp4',
-            'title': 'Tdah, mon amour - Enfants',
-            'description': 'md5:230e3aca23115afcf8006d1bece6df74',
-            'upload_date': '20170401',
-            'timestamp': 1491022860,
-        }
-    }
+            'title': 'Rendez-vous à Atlit',
+            'description': 'md5:2893a4c5e1dbac3eedff2d87956e4efb',
+            'upload_date': '20200130',
+        },
+    }, {
+        # series episode
+        'url': 'https://revoir.tv5monde.com/toutes-les-videos/series-fictions/c-est-la-vie-ennemie-juree',
+        'info_dict': {
+            'id': '0df7007c-4900-3936-c601-87a13a93a068',
+            'display_id': 'c-est-la-vie-ennemie-juree',
+            'ext': 'mp4',
+            'title': "C'est la vie - Ennemie jurée",
+            'description': 'md5:dfb5c63087b6f35fe0cc0af4fe44287e',
+            'upload_date': '20200130',
+            'series': "C'est la vie",
+            'episode': 'Ennemie jurée',
+        },
+        'params': {
+            'skip_download': True,
+        },
+    }, {
+        'url': 'https://revoir.tv5monde.com/toutes-les-videos/series-fictions/neuf-jours-en-hiver-neuf-jours-en-hiver',
+        'only_matching': True,
+    }, {
+        'url': 'https://revoir.tv5monde.com/toutes-les-videos/info-societe/le-journal-de-la-rts-edition-du-30-01-20-19h30',
+        'only_matching': True,
+    }]
     _GEO_BYPASS = False
 
     def _real_extract(self, url):
@@ -37,11 +57,7 @@ class TV5MondePlusIE(InfoExtractor):
         if ">Ce programme n'est malheureusement pas disponible pour votre zone géographique.<" in webpage:
             self.raise_geo_restricted(countries=['FR'])
 
-        series = get_element_by_class('video-detail__title', webpage)
-        title = episode = get_element_by_class(
-            'video-detail__subtitle', webpage) or series
-        if series and series != title:
-            title = '%s - %s' % (series, title)
+        title = episode = self._html_search_regex(r'<h1>([^<]+)', webpage, 'title')
         vpl_data = extract_attributes(self._search_regex(
             r'(<[^>]+class="video_player_loader"[^>]+>)',
             webpage, 'video player loader'))
@@ -65,15 +81,37 @@ class TV5MondePlusIE(InfoExtractor):
                 })
         self._sort_formats(formats)
 
+        description = self._html_search_regex(
+            r'(?s)<div[^>]+class=["\']episode-texte[^>]+>(.+?)</div>', webpage,
+            'description', fatal=False)
+
+        series = self._html_search_regex(
+            r'<p[^>]+class=["\']episode-emission[^>]+>([^<]+)', webpage,
+            'series', default=None)
+
+        if series and series != title:
+            title = '%s - %s' % (series, title)
+
+        upload_date = self._search_regex(
+            r'(?:date_publication|publish_date)["\']\s*:\s*["\'](\d{4}_\d{2}_\d{2})',
+            webpage, 'upload date', default=None)
+        if upload_date:
+            upload_date = upload_date.replace('_', '')
+
+        video_id = self._search_regex(
+            (r'data-guid=["\']([\da-f]{8}-[\da-f]{4}-[\da-f]{4}-[\da-f]{4}-[\da-f]{12})',
+             r'id_contenu["\']\s:\s*(\d+)'), webpage, 'video id',
+            default=display_id)
+
         return {
-            'id': display_id,
+            'id': video_id,
             'display_id': display_id,
             'title': title,
-            'description': clean_html(get_element_by_class('video-detail__description', webpage)),
+            'description': description,
             'thumbnail': vpl_data.get('data-image'),
             'duration': int_or_none(vpl_data.get('data-duration')) or parse_duration(self._html_search_meta('duration', webpage)),
-            'timestamp': parse_iso8601(self._html_search_meta('uploadDate', webpage)),
+            'upload_date': upload_date,
             'formats': formats,
-            'episode': episode,
             'series': series,
+            'episode': episode,
         }

@@ -31,7 +31,13 @@ class FranceCultureIE(InfoExtractor):
         webpage = self._download_webpage(url, display_id)
 
         video_data = extract_attributes(self._search_regex(
-            r'(?s)<div[^>]+class="[^"]*?(?:title-zone-diffusion|heading-zone-(?:wrapper|player-button))[^"]*?"[^>]*>.*?(<button[^>]+data-asset-source="[^"]+"[^>]+>)',
+            r'''(?sx)
+                (?:
+                    </h1>|
+                    <div[^>]+class="[^"]*?(?:title-zone-diffusion|heading-zone-(?:wrapper|player-button))[^"]*?"[^>]*>
+                ).*?
+                (<button[^>]+data-asset-source="[^"]+"[^>]+>)
+            ''',
             webpage, 'video data'))
 
         video_url = video_data['data-asset-source']

@@ -10,12 +10,13 @@ import os
 import random
 import re
 import socket
+import ssl
 import sys
 import time
 import math
 
 from ..compat import (
-    compat_cookiejar,
+    compat_cookiejar_Cookie,
     compat_cookies,
     compat_etree_Element,
     compat_etree_fromstring,
@@ -67,6 +68,7 @@ from ..utils import (
     sanitized_Request,
     sanitize_filename,
     str_or_none,
+    str_to_int,
     strip_or_none,
     unescapeHTML,
     unified_strdate,
@@ -220,7 +222,7 @@ class InfoExtractor(object):
                         * "preference" (optional, int) - quality of the image
                         * "width" (optional, int)
                         * "height" (optional, int)
-                        * "resolution" (optional, string "{width}x{height"},
+                        * "resolution" (optional, string "{width}x{height}",
                                         deprecated)
                         * "filesize" (optional, int)
     thumbnail:      Full URL to a video thumbnail image.
@@ -623,9 +625,12 @@ class InfoExtractor(object):
                 url_or_request = update_url_query(url_or_request, query)
             if data is not None or headers:
                 url_or_request = sanitized_Request(url_or_request, data, headers)
+        exceptions = [compat_urllib_error.URLError, compat_http_client.HTTPException, socket.error]
+        if hasattr(ssl, 'CertificateError'):
+            exceptions.append(ssl.CertificateError)
         try:
             return self._downloader.urlopen(url_or_request)
-        except (compat_urllib_error.URLError, compat_http_client.HTTPException, socket.error) as err:
+        except tuple(exceptions) as err:
             if isinstance(err, compat_urllib_error.HTTPError):
                 if self.__can_accept_status_code(err, expected_status):
                     # Retain reference to error to prevent file object from
@@ -1182,16 +1187,33 @@ class InfoExtractor(object):
                                       'twitter card player')
 
     def _search_json_ld(self, html, video_id, expected_type=None, **kwargs):
-        json_ld = self._search_regex(
-            JSON_LD_RE, html, 'JSON-LD', group='json_ld', **kwargs)
+        json_ld_list = list(re.finditer(JSON_LD_RE, html))
         default = kwargs.get('default', NO_DEFAULT)
-        if not json_ld:
-            return default if default is not NO_DEFAULT else {}
         # JSON-LD may be malformed and thus `fatal` should be respected.
         # At the same time `default` may be passed that assumes `fatal=False`
         # for _search_regex. Let's simulate the same behavior here as well.
         fatal = kwargs.get('fatal', True) if default == NO_DEFAULT else False
-        return self._json_ld(json_ld, video_id, fatal=fatal, expected_type=expected_type)
+        json_ld = []
+        for mobj in json_ld_list:
+            json_ld_item = self._parse_json(
+                mobj.group('json_ld'), video_id, fatal=fatal)
+            if not json_ld_item:
+                continue
+            if isinstance(json_ld_item, dict):
+                json_ld.append(json_ld_item)
+            elif isinstance(json_ld_item, (list, tuple)):
+                json_ld.extend(json_ld_item)
+        if json_ld:
+            json_ld = self._json_ld(json_ld, video_id, fatal=fatal, expected_type=expected_type)
+        if json_ld:
+            return json_ld
+        if default is not NO_DEFAULT:
+            return default
+        elif fatal:
+            raise RegexNotFoundError('Unable to extract JSON-LD')
+        else:
+            self._downloader.report_warning('unable to extract JSON-LD %s' % bug_reports_message())
+            return {}
 
     def _json_ld(self, json_ld, video_id, fatal=True, expected_type=None):
         if isinstance(json_ld, compat_str):
@@ -1227,7 +1249,10 @@ class InfoExtractor(object):
                 interaction_type = is_e.get('interactionType')
                 if not isinstance(interaction_type, compat_str):
                     continue
-                interaction_count = int_or_none(is_e.get('userInteractionCount'))
+                # For interaction count some sites provide string instead of
+                # an integer (as per spec) with non digit characters (e.g. ",")
+                # so extracting count with more relaxed str_to_int
+                interaction_count = str_to_int(is_e.get('userInteractionCount'))
                 if interaction_count is None:
                     continue
                 count_kind = INTERACTION_TYPE_MAP.get(interaction_type.split('/')[-1])
@@ -1247,6 +1272,7 @@ class InfoExtractor(object):
                 'thumbnail': url_or_none(e.get('thumbnailUrl') or e.get('thumbnailURL')),
                 'duration': parse_duration(e.get('duration')),
                 'timestamp': unified_timestamp(e.get('uploadDate')),
+                'uploader': str_or_none(e.get('author')),
                 'filesize': float_or_none(e.get('contentSize')),
                 'tbr': int_or_none(e.get('bitrate')),
                 'width': int_or_none(e.get('width')),
@@ -1256,10 +1282,10 @@ class InfoExtractor(object):
             extract_interaction_statistic(e)
 
         for e in json_ld:
-            if isinstance(e.get('@context'), compat_str) and re.match(r'^https?://schema.org/?$', e.get('@context')):
+            if '@context' in e:
                 item_type = e.get('@type')
                 if expected_type is not None and expected_type != item_type:
-                    return info
+                    continue
                 if item_type in ('TVEpisode', 'Episode'):
                     episode_name = unescapeHTML(e.get('name'))
                     info.update({
@@ -1293,11 +1319,17 @@ class InfoExtractor(object):
                     })
                 elif item_type == 'VideoObject':
                     extract_video_object(e)
-                    continue
+                    if expected_type is None:
+                        continue
+                    else:
+                        break
                 video = e.get('video')
                 if isinstance(video, dict) and video.get('@type') == 'VideoObject':
                     extract_video_object(video)
-                break
+                if expected_type is None:
+                    continue
+                else:
+                    break
         return dict((k, v) for k, v in info.items() if v is not None)
 
     @staticmethod
@@ -1424,12 +1456,10 @@ class InfoExtractor(object):
         try:
             self._request_webpage(url, video_id, 'Checking %s URL' % item, headers=headers)
             return True
-        except ExtractorError as e:
-            if isinstance(e.cause, compat_urllib_error.URLError):
-                self.to_screen(
-                    '%s: %s URL is invalid, skipping' % (video_id, item))
-                return False
-            raise
+        except ExtractorError:
+            self.to_screen(
+                '%s: %s URL is invalid, skipping' % (video_id, item))
+            return False
 
     def http_scheme(self):
         """ Either "http:" or "https:", depending on the user's preferences """
@@ -1457,14 +1487,14 @@ class InfoExtractor(object):
 
     def _extract_f4m_formats(self, manifest_url, video_id, preference=None, f4m_id=None,
                              transform_source=lambda s: fix_xml_ampersands(s).strip(),
-                             fatal=True, m3u8_id=None):
+                             fatal=True, m3u8_id=None, data=None, headers={}, query={}):
         manifest = self._download_xml(
             manifest_url, video_id, 'Downloading f4m manifest',
             'Unable to download f4m manifest',
             # Some manifests may be malformed, e.g. prosiebensat1 generated manifests
             # (see https://github.com/ytdl-org/youtube-dl/issues/6215#issuecomment-121704244)
             transform_source=transform_source,
-            fatal=fatal)
+            fatal=fatal, data=data, headers=headers, query=query)
 
         if manifest is False:
             return []
@@ -1588,12 +1618,13 @@ class InfoExtractor(object):
     def _extract_m3u8_formats(self, m3u8_url, video_id, ext=None,
                               entry_protocol='m3u8', preference=None,
                               m3u8_id=None, note=None, errnote=None,
-                              fatal=True, live=False):
+                              fatal=True, live=False, data=None, headers={},
+                              query={}):
         res = self._download_webpage_handle(
             m3u8_url, video_id,
             note=note or 'Downloading m3u8 information',
             errnote=errnote or 'Failed to download m3u8 information',
-            fatal=fatal)
+            fatal=fatal, data=data, headers=headers, query=query)
 
         if res is False:
             return []
@@ -1767,6 +1798,19 @@ class InfoExtractor(object):
                         # the same GROUP-ID
                         f['acodec'] = 'none'
                 formats.append(f)
+
+                # for DailyMotion
+                progressive_uri = last_stream_inf.get('PROGRESSIVE-URI')
+                if progressive_uri:
+                    http_f = f.copy()
+                    del http_f['manifest_url']
+                    http_f.update({
+                        'format_id': f['format_id'].replace('hls-', 'http-'),
+                        'protocol': 'http',
+                        'url': progressive_uri,
+                    })
+                    formats.append(http_f)
+
                 last_stream_inf = {}
         return formats
 
@@ -2011,12 +2055,12 @@ class InfoExtractor(object):
             })
         return entries
 
-    def _extract_mpd_formats(self, mpd_url, video_id, mpd_id=None, note=None, errnote=None, fatal=True, formats_dict={}):
+    def _extract_mpd_formats(self, mpd_url, video_id, mpd_id=None, note=None, errnote=None, fatal=True, formats_dict={}, data=None, headers={}, query={}):
         res = self._download_xml_handle(
             mpd_url, video_id,
             note=note or 'Downloading MPD manifest',
             errnote=errnote or 'Failed to download MPD manifest',
-            fatal=fatal)
+            fatal=fatal, data=data, headers=headers, query=query)
         if res is False:
             return []
         mpd_doc, urlh = res
@@ -2319,15 +2363,17 @@ class InfoExtractor(object):
                         self.report_warning('Unknown MIME type %s in DASH manifest' % mime_type)
         return formats
 
-    def _extract_ism_formats(self, ism_url, video_id, ism_id=None, note=None, errnote=None, fatal=True):
+    def _extract_ism_formats(self, ism_url, video_id, ism_id=None, note=None, errnote=None, fatal=True, data=None, headers={}, query={}):
         res = self._download_xml_handle(
             ism_url, video_id,
             note=note or 'Downloading ISM manifest',
             errnote=errnote or 'Failed to download ISM manifest',
-            fatal=fatal)
+            fatal=fatal, data=data, headers=headers, query=query)
         if res is False:
             return []
         ism_doc, urlh = res
+        if ism_doc is None:
+            return []
 
         return self._parse_ism_formats(ism_doc, urlh.geturl(), ism_id)
 
@@ -2691,7 +2737,7 @@ class InfoExtractor(object):
             entry = {
                 'id': this_video_id,
                 'title': unescapeHTML(video_data['title'] if require_title else video_data.get('title')),
-                'description': video_data.get('description'),
+                'description': clean_html(video_data.get('description')),
                 'thumbnail': urljoin(base_url, self._proto_relative_url(video_data.get('image'))),
                 'timestamp': int_or_none(video_data.get('pubdate')),
                 'duration': float_or_none(jwplayer_data.get('duration') or video_data.get('duration')),
@@ -2806,7 +2852,7 @@ class InfoExtractor(object):
 
     def _set_cookie(self, domain, name, value, expire_time=None, port=None,
                     path='/', secure=False, discard=False, rest={}, **kwargs):
-        cookie = compat_cookiejar.Cookie(
+        cookie = compat_cookiejar_Cookie(
             0, name, value, port, port is not None, domain, True,
             domain.startswith('.'), path, True, secure, expire_time,
             discard, None, None, rest)

@@ -32,7 +32,7 @@ class Channel9IE(InfoExtractor):
             'upload_date': '20130828',
             'session_code': 'KOS002',
             'session_room': 'Arena 1A',
-            'session_speakers': ['Andrew Coates', 'Brady Gaster', 'Mads Kristensen', 'Ed Blankenship', 'Patrick Klug'],
+            'session_speakers': 'count:5',
         },
     }, {
         'url': 'http://channel9.msdn.com/posts/Self-service-BI-with-Power-BI-nuclear-testing',
@@ -65,14 +65,14 @@ class Channel9IE(InfoExtractor):
             'skip_download': True,
         },
     }, {
-        'url': 'https://channel9.msdn.com/Niners/Splendid22/Queue/76acff796e8f411184b008028e0d492b/RSS',
-        'info_dict': {
-            'id': 'Niners/Splendid22/Queue/76acff796e8f411184b008028e0d492b',
-            'title': 'Channel 9',
-        },
-        'playlist_mincount': 100,
-    }, {
         'url': 'https://channel9.msdn.com/Events/DEVintersection/DEVintersection-2016/RSS',
+        'info_dict': {
+            'id': 'Events/DEVintersection/DEVintersection-2016',
+            'title': 'DEVintersection 2016 Orlando Sessions',
+        },
+        'playlist_mincount': 14,
+    }, {
+        'url': 'https://channel9.msdn.com/Niners/Splendid22/Queue/76acff796e8f411184b008028e0d492b/RSS',
         'only_matching': True,
     }, {
         'url': 'https://channel9.msdn.com/Events/Speakers/scott-hanselman/RSS?UrlSafeName=scott-hanselman',
@@ -112,11 +112,11 @@ class Channel9IE(InfoExtractor):
                 episode_data), content_path)
             content_id = episode_data['contentId']
             is_session = '/Sessions(' in episode_data['api']
-            content_url = 'https://channel9.msdn.com/odata' + episode_data['api']
+            content_url = 'https://channel9.msdn.com/odata' + episode_data['api'] + '?$select=Captions,CommentCount,MediaLengthInSeconds,PublishedDate,Rating,RatingCount,Title,VideoMP4High,VideoMP4Low,VideoMP4Medium,VideoPlayerPreviewImage,VideoWMV,VideoWMVHQ,Views,'
             if is_session:
-                content_url += '?$expand=Speakers'
+                content_url += 'Code,Description,Room,Slides,Speakers,ZipFile&$expand=Speakers'
             else:
-                content_url += '?$expand=Authors'
+                content_url += 'Authors,Body&$expand=Authors'
             content_data = self._download_json(content_url, content_id)
             title = content_data['Title']
 
@@ -210,7 +210,7 @@ class Channel9IE(InfoExtractor):
                 'id': content_id,
                 'title': title,
                 'description': clean_html(content_data.get('Description') or content_data.get('Body')),
-                'thumbnail': content_data.get('Thumbnail') or content_data.get('VideoPlayerPreviewImage'),
+                'thumbnail': content_data.get('VideoPlayerPreviewImage'),
                 'duration': int_or_none(content_data.get('MediaLengthInSeconds')),
                 'timestamp': parse_iso8601(content_data.get('PublishedDate')),
                 'avg_rating': int_or_none(content_data.get('Rating')),

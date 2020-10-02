@@ -4,37 +4,64 @@ from __future__ import unicode_literals
 import re
 
 from .common import InfoExtractor
+from ..compat import compat_chr
 from ..utils import (
     decode_packed_codes,
     determine_ext,
     ExtractorError,
     int_or_none,
-    NO_DEFAULT,
+    js_to_json,
     urlencode_postdata,
 )
 
 
+# based on openload_decode from 2bfeee69b976fe049761dd3012e30b637ee05a58
+def aa_decode(aa_code):
+    symbol_table = [
+        ('7', '((ﾟｰﾟ) + (o^_^o))'),
+        ('6', '((o^_^o) +(o^_^o))'),
+        ('5', '((ﾟｰﾟ) + (ﾟΘﾟ))'),
+        ('2', '((o^_^o) - (ﾟΘﾟ))'),
+        ('4', '(ﾟｰﾟ)'),
+        ('3', '(o^_^o)'),
+        ('1', '(ﾟΘﾟ)'),
+        ('0', '(c^_^o)'),
+    ]
+    delim = '(ﾟДﾟ)[ﾟεﾟ]+'
+    ret = ''
+    for aa_char in aa_code.split(delim):
+        for val, pat in symbol_table:
+            aa_char = aa_char.replace(pat, val)
+        aa_char = aa_char.replace('+ ', '')
+        m = re.match(r'^\d+', aa_char)
+        if m:
+            ret += compat_chr(int(m.group(0), 8))
+        else:
+            m = re.match(r'^u([\da-f]+)', aa_char)
+            if m:
+                ret += compat_chr(int(m.group(1), 16))
+    return ret
+
+
 class XFileShareIE(InfoExtractor):
     _SITES = (
-        (r'daclips\.(?:in|com)', 'DaClips'),
-        (r'filehoot\.com', 'FileHoot'),
-        (r'gorillavid\.(?:in|com)', 'GorillaVid'),
-        (r'movpod\.in', 'MovPod'),
-        (r'powerwatch\.pw', 'PowerWatch'),
-        (r'rapidvideo\.ws', 'Rapidvideo.ws'),
+        (r'clipwatching\.com', 'ClipWatching'),
+        (r'gounlimited\.to', 'GoUnlimited'),
+        (r'govid\.me', 'GoVid'),
+        (r'holavid\.com', 'HolaVid'),
+        (r'streamty\.com', 'Streamty'),
         (r'thevideobee\.to', 'TheVideoBee'),
-        (r'vidto\.(?:me|se)', 'Vidto'),
-        (r'streamin\.to', 'Streamin.To'),
-        (r'xvidstage\.com', 'XVIDSTAGE'),
-        (r'vidabc\.com', 'Vid ABC'),
+        (r'uqload\.com', 'Uqload'),
         (r'vidbom\.com', 'VidBom'),
         (r'vidlo\.us', 'vidlo'),
-        (r'rapidvideo\.(?:cool|org)', 'RapidVideo.TV'),
-        (r'fastvideo\.me', 'FastVideo.me'),
+        (r'vidlocker\.xyz', 'VidLocker'),
+        (r'vidshare\.tv', 'VidShare'),
+        (r'vup\.to', 'VUp'),
+        (r'xvideosharing\.com', 'XVideoSharing'),
     )
 
     IE_DESC = 'XFileShare based sites: %s' % ', '.join(list(zip(*_SITES))[1])
-    _VALID_URL = (r'https?://(?P<host>(?:www\.)?(?:%s))/(?:embed-)?(?P<id>[0-9a-zA-Z]+)'
+    _VALID_URL = (r'https?://(?:www\.)?(?P<host>%s)/(?:embed-)?(?P<id>[0-9a-zA-Z]+)'
                   % '|'.join(site for site in list(zip(*_SITES))[0]))
 
     _FILE_NOT_FOUND_REGEXES = (
@@ -43,82 +70,14 @@ class XFileShareIE(InfoExtractor):
     )
 
     _TESTS = [{
-        'url': 'http://gorillavid.in/06y9juieqpmi',
-        'md5': '5ae4a3580620380619678ee4875893ba',
+        'url': 'http://xvideosharing.com/fq65f94nd2ve',
+        'md5': '4181f63957e8fe90ac836fa58dc3c8a6',
         'info_dict': {
-            'id': '06y9juieqpmi',
+            'id': 'fq65f94nd2ve',
             'ext': 'mp4',
-            'title': 'Rebecca Black My Moment Official Music Video Reaction-6GK87Rc8bzQ',
+            'title': 'sample',
             'thumbnail': r're:http://.*\.jpg',
         },
-    }, {
-        'url': 'http://gorillavid.in/embed-z08zf8le23c6-960x480.html',
-        'only_matching': True,
-    }, {
-        'url': 'http://daclips.in/3rso4kdn6f9m',
-        'md5': '1ad8fd39bb976eeb66004d3a4895f106',
-        'info_dict': {
-            'id': '3rso4kdn6f9m',
-            'ext': 'mp4',
-            'title': 'Micro Pig piglets ready on 16th July 2009-bG0PdrCdxUc',
-            'thumbnail': r're:http://.*\.jpg',
-        }
-    }, {
-        'url': 'http://movpod.in/0wguyyxi1yca',
-        'only_matching': True,
-    }, {
-        'url': 'http://filehoot.com/3ivfabn7573c.html',
-        'info_dict': {
-            'id': '3ivfabn7573c',
-            'ext': 'mp4',
-            'title': 'youtube-dl test video \'äBaW_jenozKc.mp4.mp4',
-            'thumbnail': r're:http://.*\.jpg',
-        },
-        'skip': 'Video removed',
-    }, {
-        'url': 'http://vidto.me/ku5glz52nqe1.html',
-        'info_dict': {
-            'id': 'ku5glz52nqe1',
-            'ext': 'mp4',
-            'title': 'test'
-        }
-    }, {
-        'url': 'http://powerwatch.pw/duecjibvicbu',
-        'info_dict': {
-            'id': 'duecjibvicbu',
-            'ext': 'mp4',
-            'title': 'Big Buck Bunny trailer',
-        },
-    }, {
-        'url': 'http://xvidstage.com/e0qcnl03co6z',
-        'info_dict': {
-            'id': 'e0qcnl03co6z',
-            'ext': 'mp4',
-            'title': 'Chucky Prank 2015.mp4',
-        },
-    }, {
-        # removed by administrator
-        'url': 'http://xvidstage.com/amfy7atlkx25',
-        'only_matching': True,
-    }, {
-        'url': 'http://vidabc.com/i8ybqscrphfv',
-        'info_dict': {
-            'id': 'i8ybqscrphfv',
-            'ext': 'mp4',
-            'title': 're:Beauty and the Beast 2017',
-        },
-        'params': {
-            'skip_download': True,
-        },
-    }, {
-        'url': 'http://www.rapidvideo.cool/b667kprndr8w',
-        'only_matching': True,
-    }, {
-        'url': 'http://www.fastvideo.me/k8604r8nk8sn/FAST_FURIOUS_8_-_Trailer_italiano_ufficiale.mp4.html',
-        'only_matching': True,
-    }, {
-        'url': 'http://vidto.se/1tx1pf6t12cg.html',
-        'only_matching': True,
     }]
 
     @staticmethod
@@ -131,10 +90,9 @@ class XFileShareIE(InfoExtractor):
                 webpage)]
 
     def _real_extract(self, url):
-        mobj = re.match(self._VALID_URL, url)
-        video_id = mobj.group('id')
+        host, video_id = re.match(self._VALID_URL, url).groups()
 
-        url = 'http://%s/%s' % (mobj.group('host'), video_id)
+        url = 'https://%s/' % host + ('embed-%s.html' % video_id if host in ('govid.me', 'vidlo.us') else video_id)
         webpage = self._download_webpage(url, video_id)
 
         if any(re.search(p, webpage) for p in self._FILE_NOT_FOUND_REGEXES):
@@ -142,7 +100,7 @@ class XFileShareIE(InfoExtractor):
 
         fields = self._hidden_inputs(webpage)
 
-        if fields['op'] == 'download1':
+        if fields.get('op') == 'download1':
             countdown = int_or_none(self._search_regex(
                 r'<span id="countdown_str">(?:[Ww]ait)?\s*<span id="cxc">(\d+)</span>\s*(?:seconds?)?</span>',
                 webpage, 'countdown', default=None))
@@ -160,13 +118,37 @@ class XFileShareIE(InfoExtractor):
             (r'style="z-index: [0-9]+;">([^<]+)</span>',
              r'<td nowrap>([^<]+)</td>',
              r'h4-fine[^>]*>([^<]+)<',
-             r'>Watch (.+) ',
+             r'>Watch (.+)[ <]',
              r'<h2 class="video-page-head">([^<]+)</h2>',
-             r'<h2 style="[^"]*color:#403f3d[^"]*"[^>]*>([^<]+)<'),  # streamin.to
+             r'<h2 style="[^"]*color:#403f3d[^"]*"[^>]*>([^<]+)<',  # streamin.to
+             r'title\s*:\s*"([^"]+)"'),  # govid.me
             webpage, 'title', default=None) or self._og_search_title(
             webpage, default=None) or video_id).strip()
 
-        def extract_formats(default=NO_DEFAULT):
+        for regex, func in (
+                (r'(eval\(function\(p,a,c,k,e,d\){.+)', decode_packed_codes),
+                (r'(ﾟ.+)', aa_decode)):
+            obf_code = self._search_regex(regex, webpage, 'obfuscated code', default=None)
+            if obf_code:
+                webpage = webpage.replace(obf_code, func(obf_code))
+
+        formats = []
+
+        jwplayer_data = self._search_regex(
+            [
+                r'jwplayer\("[^"]+"\)\.load\(\[({.+?})\]\);',
+                r'jwplayer\("[^"]+"\)\.setup\(({.+?})\);',
+            ], webpage,
+            'jwplayer data', default=None)
+        if jwplayer_data:
+            jwplayer_data = self._parse_json(
+                jwplayer_data.replace(r"\'", "'"), video_id, js_to_json)
+            if jwplayer_data:
+                formats = self._parse_jwplayer_data(
+                    jwplayer_data, video_id, False,
+                    m3u8_id='hls', mpd_id='dash')['formats']
+
+        if not formats:
             urls = []
             for regex in (
                     r'(?:file|src)\s*:\s*(["\'])(?P<url>http(?:(?!\1).)+\.(?:m3u8|mp4|flv)(?:(?!\1).)*)\1',
@@ -177,6 +159,12 @@ class XFileShareIE(InfoExtractor):
                     video_url = mobj.group('url')
                     if video_url not in urls:
                         urls.append(video_url)
+
+            sources = self._search_regex(
+                r'sources\s*:\s*(\[(?!{)[^\]]+\])', webpage, 'sources', default=None)
+            if sources:
+                urls.extend(self._parse_json(sources, video_id))
+
             formats = []
             for video_url in urls:
                 if determine_ext(video_url) == 'm3u8':
@@ -189,21 +177,13 @@ class XFileShareIE(InfoExtractor):
                         'url': video_url,
                         'format_id': 'sd',
                     })
-            if not formats and default is not NO_DEFAULT:
-                return default
-            self._sort_formats(formats)
-            return formats
-
-        formats = extract_formats(default=None)
-
-        if not formats:
-            webpage = decode_packed_codes(self._search_regex(
-                r"(}\('(.+)',(\d+),(\d+),'[^']*\b(?:file|embed)\b[^']*'\.split\('\|'\))",
-                webpage, 'packed code'))
-            formats = extract_formats()
+        self._sort_formats(formats)
 
         thumbnail = self._search_regex(
-            r'image\s*:\s*["\'](http[^"\']+)["\'],', webpage, 'thumbnail', default=None)
+            [
+                r'<video[^>]+poster="([^"]+)"',
+                r'(?:image|poster)\s*:\s*["\'](http[^"\']+)["\'],',
+            ], webpage, 'thumbnail', default=None)
 
         return {
             'id': video_id,

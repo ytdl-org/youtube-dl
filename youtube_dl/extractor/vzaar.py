@@ -33,6 +33,18 @@ class VzaarIE(InfoExtractor):
             'title': 'MP3',
         },
     }, {
+        # hlsAes = true
+        'url': 'https://view.vzaar.com/11379930/player',
+        'info_dict': {
+            'id': '11379930',
+            'ext': 'mp4',
+            'title': 'Videoaula',
+        },
+        'params': {
+            # m3u8 download
+            'skip_download': True,
+        },
+    }, {
         # with null videoTitle
         'url': 'https://view.vzaar.com/20313539/download',
         'only_matching': True,
@@ -58,6 +70,7 @@ class VzaarIE(InfoExtractor):
             f = {
                 'url': source_url,
                 'format_id': 'http',
+                'preference': 1,
             }
             if 'audio' in source_url:
                 f.update({
@@ -75,13 +88,17 @@ class VzaarIE(InfoExtractor):
 
         video_guid = video_data.get('guid')
         usp = video_data.get('usp')
-        if isinstance(video_guid, compat_str) and isinstance(usp, dict):
-            m3u8_url = ('http://fable.vzaar.com/v4/usp/%s/%s.ism/.m3u8?'
-                        % (video_guid, video_id)) + '&'.join(
-                '%s=%s' % (k, v) for k, v in usp.items())
-            formats.extend(self._extract_m3u8_formats(
-                m3u8_url, video_id, 'mp4', entry_protocol='m3u8_native',
-                m3u8_id='hls', fatal=False))
+        if video_data.get('uspEnabled') and isinstance(video_guid, compat_str) and isinstance(usp, dict):
+            hls_aes = video_data.get('hlsAes')
+            qs = '&'.join('%s=%s' % (k, v) for k, v in usp.items())
+            url_templ = 'http://%%s.vzaar.com/v5/usp%s/%s/%s.ism%%s?' % ('aes' if hls_aes else '', video_guid, video_id)
+            m3u8_formats = self._extract_m3u8_formats(
+                url_templ % ('fable', '/.m3u8') + qs, video_id, 'mp4', 'm3u8_native',
+                m3u8_id='hls', fatal=False)
+            if hls_aes:
+                for f in m3u8_formats:
+                    f['_decryption_key_url'] = url_templ % ('goose', '') + qs
+            formats.extend(m3u8_formats)
 
         self._sort_formats(formats)
 

@@ -7,22 +7,39 @@ from ..utils import (
     int_or_none,
     smuggle_url,
     try_get,
+    unified_timestamp,
 )
 
 
 class TeleQuebecBaseIE(InfoExtractor):
     @staticmethod
-    def _limelight_result(media_id):
+    def _result(url, ie_key):
         return {
             '_type': 'url_transparent',
-            'url': smuggle_url(
-                'limelight:media:' + media_id, {'geo_countries': ['CA']}),
-            'ie_key': 'LimelightMedia',
+            'url': smuggle_url(url, {'geo_countries': ['CA']}),
+            'ie_key': ie_key,
         }
+
+    @staticmethod
+    def _limelight_result(media_id):
+        return TeleQuebecBaseIE._result(
+            'limelight:media:' + media_id, 'LimelightMedia')
+
+    @staticmethod
+    def _brightcove_result(brightcove_id):
+        return TeleQuebecBaseIE._result(
+            'http://players.brightcove.net/6150020952001/default_default/index.html?videoId=%s'
+            % brightcove_id, 'BrightcoveNew')
 
 
 class TeleQuebecIE(TeleQuebecBaseIE):
-    _VALID_URL = r'https?://zonevideo\.telequebec\.tv/media/(?P<id>\d+)'
+    _VALID_URL = r'''(?x)
+                    https?://
+                        (?:
+                            zonevideo\.telequebec\.tv/media|
+                            coucou\.telequebec\.tv/videos
+                        )/(?P<id>\d+)
+                    '''
     _TESTS = [{
         # available till 01.01.2023
         'url': 'http://zonevideo.telequebec.tv/media/37578/un-petit-choc-et-puis-repart/un-chef-a-la-cabane',
@@ -30,16 +47,33 @@ class TeleQuebecIE(TeleQuebecBaseIE):
             'id': '577116881b4b439084e6b1cf4ef8b1b3',
             'ext': 'mp4',
             'title': 'Un petit choc et puis repart!',
-            'description': 'md5:b04a7e6b3f74e32d7b294cffe8658374',
-            'upload_date': '20180222',
-            'timestamp': 1519326631,
+            'description': 'md5:067bc84bd6afecad85e69d1000730907',
         },
         'params': {
             'skip_download': True,
         },
     }, {
+        'url': 'https://zonevideo.telequebec.tv/media/55267/le-soleil/passe-partout',
+        'info_dict': {
+            'id': '6167180337001',
+            'ext': 'mp4',
+            'title': 'Le soleil',
+            'description': 'md5:64289c922a8de2abbe99c354daffde02',
+            'uploader_id': '6150020952001',
+            'upload_date': '20200625',
+            'timestamp': 1593090307,
+        },
+        'params': {
+            'format': 'bestvideo',
+            'skip_download': True,
+        },
+        'add_ie': ['BrightcoveNew'],
+    }, {
         # no description
         'url': 'http://zonevideo.telequebec.tv/media/30261',
+        'only_matching': True,
+    }, {
+        'url': 'https://coucou.telequebec.tv/videos/41788/idee-de-genie/l-heure-du-bain',
         'only_matching': True,
     }]
 
@@ -50,7 +84,14 @@ class TeleQuebecIE(TeleQuebecBaseIE):
             'https://mnmedias.api.telequebec.tv/api/v2/media/' + media_id,
             media_id)['media']
 
-        info = self._limelight_result(media_data['streamInfo']['sourceId'])
+        source_id = media_data['streamInfo']['sourceId']
+        source = (try_get(
+            media_data, lambda x: x['streamInfo']['source'],
+            compat_str) or 'limelight').lower()
+        if source == 'brightcove':
+            info = self._brightcove_result(source_id)
+        else:
+            info = self._limelight_result(source_id)
         info.update({
             'title': media_data.get('title'),
             'description': try_get(
@@ -59,6 +100,52 @@ class TeleQuebecIE(TeleQuebecBaseIE):
                 media_data.get('durationInMilliseconds'), 1000),
         })
         return info
+
+
+class TeleQuebecSquatIE(InfoExtractor):
+    _VALID_URL = r'https://squat\.telequebec\.tv/videos/(?P<id>\d+)'
+    _TESTS = [{
+        'url': 'https://squat.telequebec.tv/videos/9314',
+        'info_dict': {
+            'id': 'd59ae78112d542e793d83cc9d3a5b530',
+            'ext': 'mp4',
+            'title': 'Poupeflekta',
+            'description': 'md5:2f0718f8d2f8fece1646ee25fb7bce75',
+            'duration': 1351,
+            'timestamp': 1569057600,
+            'upload_date': '20190921',
+            'series': 'Miraculous : Les Aventures de Ladybug et Chat Noir',
+            'season': 'Saison 3',
+            'season_number': 3,
+            'episode_number': 57,
+        },
+        'params': {
+            'skip_download': True,
+        },
+    }]
+
+    def _real_extract(self, url):
+        video_id = self._match_id(url)
+
+        video = self._download_json(
+            'https://squat.api.telequebec.tv/v1/videos/%s' % video_id,
+            video_id)
+
+        media_id = video['sourceId']
+
+        return {
+            '_type': 'url_transparent',
+            'url': 'http://zonevideo.telequebec.tv/media/%s' % media_id,
+            'ie_key': TeleQuebecIE.ie_key(),
+            'id': media_id,
+            'title': video.get('titre'),
+            'description': video.get('description'),
+            'timestamp': unified_timestamp(video.get('datePublication')),
+            'series': video.get('container'),
+            'season': video.get('saison'),
+            'season_number': int_or_none(video.get('noSaison')),
+            'episode_number': int_or_none(video.get('episode')),
+        }
 
 
 class TeleQuebecEmissionIE(TeleQuebecBaseIE):

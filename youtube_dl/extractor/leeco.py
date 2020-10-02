@@ -326,7 +326,7 @@ class LetvCloudIE(InfoExtractor):
             elif play_json.get('code'):
                 raise ExtractorError('Letv cloud returned error %d' % play_json['code'], expected=True)
             else:
-                raise ExtractorError('Letv cloud returned an unknwon error')
+                raise ExtractorError('Letv cloud returned an unknown error')
 
         def b64decode(s):
             return compat_b64decode(s).decode('utf-8')

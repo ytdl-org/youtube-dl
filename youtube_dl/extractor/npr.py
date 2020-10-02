@@ -4,6 +4,7 @@ from .common import InfoExtractor
 from ..utils import (
     int_or_none,
     qualities,
+    url_or_none,
 )
 
 
@@ -48,6 +49,10 @@ class NprIE(InfoExtractor):
             },
         }],
         'expected_warnings': ['Failed to download m3u8 information'],
+    }, {
+        # multimedia, no formats, stream
+        'url': 'https://www.npr.org/2020/02/14/805476846/laura-stevenson-tiny-desk-concert',
+        'only_matching': True,
     }]
 
     def _real_extract(self, url):
@@ -95,6 +100,17 @@ class NprIE(InfoExtractor):
                             'format_id': format_id,
                             'quality': quality(format_id),
                         })
+            for stream_id, stream_entry in media.get('stream', {}).items():
+                if not isinstance(stream_entry, dict):
+                    continue
+                if stream_id != 'hlsUrl':
+                    continue
+                stream_url = url_or_none(stream_entry.get('$text'))
+                if not stream_url:
+                    continue
+                formats.extend(self._extract_m3u8_formats(
+                    stream_url, stream_id, 'mp4', 'm3u8_native',
+                    m3u8_id='hls', fatal=False))
             self._sort_formats(formats)
 
             entries.append({

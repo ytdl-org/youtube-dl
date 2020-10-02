@@ -1,73 +1,56 @@
+# coding: utf-8
 from __future__ import unicode_literals
-import os.path
+
+import re
 
 from .common import InfoExtractor
-from ..compat import (
-    compat_urllib_parse_urlparse,
-)
+from ..compat import compat_str
 from ..utils import (
-    ExtractorError,
+    int_or_none,
+    parse_duration,
+    xpath_text,
 )
 
 
 class MySpassIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:www\.)?myspass\.de/.*'
+    _VALID_URL = r'https?://(?:www\.)?myspass\.de/([^/]+/)*(?P<id>\d+)'
     _TEST = {
         'url': 'http://www.myspass.de/myspass/shows/tvshows/absolute-mehrheit/Absolute-Mehrheit-vom-17022013-Die-Highlights-Teil-2--/11741/',
         'md5': '0b49f4844a068f8b33f4b7c88405862b',
         'info_dict': {
             'id': '11741',
             'ext': 'mp4',
-            'description': 'Wer kann in die Fu\u00dfstapfen von Wolfgang Kubicki treten und die Mehrheit der Zuschauer hinter sich versammeln? Wird vielleicht sogar die Absolute Mehrheit geknackt und der Jackpot von 200.000 Euro mit nach Hause genommen?',
-            'title': 'Absolute Mehrheit vom 17.02.2013 - Die Highlights, Teil 2',
+            'description': 'Wer kann in die Fußstapfen von Wolfgang Kubicki treten und die Mehrheit der Zuschauer hinter sich versammeln? Wird vielleicht sogar die Absolute Mehrheit geknackt und der Jackpot von 200.000 Euro mit nach Hause genommen?',
+            'title': '17.02.2013 - Die Highlights, Teil 2',
         },
     }
 
     def _real_extract(self, url):
-        META_DATA_URL_TEMPLATE = 'http://www.myspass.de/myspass/includes/apps/video/getvideometadataxml.php?id=%s'
+        video_id = self._match_id(url)
 
-        # video id is the last path element of the URL
-        # usually there is a trailing slash, so also try the second but last
-        url_path = compat_urllib_parse_urlparse(url).path
-        url_parent_path, video_id = os.path.split(url_path)
-        if not video_id:
-            _, video_id = os.path.split(url_parent_path)
-
-        # get metadata
-        metadata_url = META_DATA_URL_TEMPLATE % video_id
         metadata = self._download_xml(
-            metadata_url, video_id, transform_source=lambda s: s.strip())
+            'http://www.myspass.de/myspass/includes/apps/video/getvideometadataxml.php?id=' + video_id,
+            video_id)
 
-        # extract values from metadata
-        url_flv_el = metadata.find('url_flv')
-        if url_flv_el is None:
-            raise ExtractorError('Unable to extract download url')
-        video_url = url_flv_el.text
-        title_el = metadata.find('title')
-        if title_el is None:
-            raise ExtractorError('Unable to extract title')
-        title = title_el.text
-        format_id_el = metadata.find('format_id')
-        if format_id_el is None:
-            format = 'mp4'
-        else:
-            format = format_id_el.text
-        description_el = metadata.find('description')
-        if description_el is not None:
-            description = description_el.text
-        else:
-            description = None
-        imagePreview_el = metadata.find('imagePreview')
-        if imagePreview_el is not None:
-            thumbnail = imagePreview_el.text
-        else:
-            thumbnail = None
+        title = xpath_text(metadata, 'title', fatal=True)
+        video_url = xpath_text(metadata, 'url_flv', 'download url', True)
+        video_id_int = int(video_id)
+        for group in re.search(r'/myspass2009/\d+/(\d+)/(\d+)/(\d+)/', video_url).groups():
+            group_int = int(group)
+            if group_int > video_id_int:
+                video_url = video_url.replace(
+                    group, compat_str(group_int // video_id_int))
 
         return {
             'id': video_id,
             'url': video_url,
             'title': title,
-            'format': format,
-            'thumbnail': thumbnail,
-            'description': description,
+            'thumbnail': xpath_text(metadata, 'imagePreview'),
+            'description': xpath_text(metadata, 'description'),
+            'duration': parse_duration(xpath_text(metadata, 'duration')),
+            'series': xpath_text(metadata, 'format'),
+            'season_number': int_or_none(xpath_text(metadata, 'season')),
+            'season_id': xpath_text(metadata, 'season_id'),
+            'episode': title,
+            'episode_number': int_or_none(xpath_text(metadata, 'episode')),
         }

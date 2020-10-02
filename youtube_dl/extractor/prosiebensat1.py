@@ -11,12 +11,13 @@ from ..utils import (
     determine_ext,
     float_or_none,
     int_or_none,
+    merge_dicts,
     unified_strdate,
 )
 
 
 class ProSiebenSat1BaseIE(InfoExtractor):
-    _GEO_COUNTRIES = ['DE']
+    _GEO_BYPASS = False
     _ACCESS_ID = None
     _SUPPORTED_PROTOCOLS = 'dash:clear,hls:clear,progressive:clear'
     _V4_BASE_URL = 'https://vas-v4.p7s1video.net/4.0/get'
@@ -39,14 +40,18 @@ class ProSiebenSat1BaseIE(InfoExtractor):
         formats = []
         if self._ACCESS_ID:
             raw_ct = self._ENCRYPTION_KEY + clip_id + self._IV + self._ACCESS_ID
-            server_token = (self._download_json(
+            protocols = self._download_json(
                 self._V4_BASE_URL + 'protocols', clip_id,
                 'Downloading protocols JSON',
                 headers=self.geo_verification_headers(), query={
                     'access_id': self._ACCESS_ID,
                     'client_token': sha1((raw_ct).encode()).hexdigest(),
                     'video_id': clip_id,
-                }, fatal=False) or {}).get('server_token')
+                }, fatal=False, expected_status=(403,)) or {}
+            error = protocols.get('error') or {}
+            if error.get('title') == 'Geo check failed':
+                self.raise_geo_restricted(countries=['AT', 'CH', 'DE'])
+            server_token = protocols.get('server_token')
             if server_token:
                 urls = (self._download_json(
                     self._V4_BASE_URL + 'urls', clip_id, 'Downloading urls JSON', query={
@@ -171,7 +176,7 @@ class ProSiebenSat1IE(ProSiebenSat1BaseIE):
                         (?:
                             (?:beta\.)?
                             (?:
-                                prosieben(?:maxx)?|sixx|sat1(?:gold)?|kabeleins(?:doku)?|the-voice-of-germany|7tv|advopedia
+                                prosieben(?:maxx)?|sixx|sat1(?:gold)?|kabeleins(?:doku)?|the-voice-of-germany|advopedia
                             )\.(?:de|at|ch)|
                             ran\.de|fem\.com|advopedia\.de|galileo\.tv/video
                         )
@@ -189,10 +194,14 @@ class ProSiebenSat1IE(ProSiebenSat1BaseIE):
             'info_dict': {
                 'id': '2104602',
                 'ext': 'mp4',
-                'title': 'Episode 18 - Staffel 2',
+                'title': 'CIRCUS HALLIGALLI - Episode 18 - Staffel 2',
                 'description': 'md5:8733c81b702ea472e069bc48bb658fc1',
                 'upload_date': '20131231',
                 'duration': 5845.04,
+                'series': 'CIRCUS HALLIGALLI',
+                'season_number': 2,
+                'episode': 'Episode 18 - Staffel 2',
+                'episode_number': 18,
             },
         },
         {
@@ -296,8 +305,9 @@ class ProSiebenSat1IE(ProSiebenSat1BaseIE):
             'info_dict': {
                 'id': '2572814',
                 'ext': 'mp4',
-                'title': 'Andreas Kümmert: Rocket Man',
+                'title': 'The Voice of Germany - Andreas Kümmert: Rocket Man',
                 'description': 'md5:6ddb02b0781c6adf778afea606652e38',
+                'timestamp': 1382041620,
                 'upload_date': '20131017',
                 'duration': 469.88,
             },
@@ -306,7 +316,7 @@ class ProSiebenSat1IE(ProSiebenSat1BaseIE):
             },
         },
         {
-            'url': 'http://www.fem.com/wellness/videos/wellness-video-clip-kurztripps-zum-valentinstag.html',
+            'url': 'http://www.fem.com/videos/beauty-lifestyle/kurztrips-zum-valentinstag',
             'info_dict': {
                 'id': '2156342',
                 'ext': 'mp4',
@@ -327,19 +337,6 @@ class ProSiebenSat1IE(ProSiebenSat1BaseIE):
             },
             'playlist_count': 2,
             'skip': 'This video is unavailable',
-        },
-        {
-            'url': 'http://www.7tv.de/circus-halligalli/615-best-of-circus-halligalli-ganze-folge',
-            'info_dict': {
-                'id': '4187506',
-                'ext': 'mp4',
-                'title': 'Best of Circus HalliGalli',
-                'description': 'md5:8849752efd90b9772c9db6fdf87fb9e9',
-                'upload_date': '20151229',
-            },
-            'params': {
-                'skip_download': True,
-            },
         },
         {
             # title in <h2 class="subtitle">
@@ -417,7 +414,6 @@ class ProSiebenSat1IE(ProSiebenSat1BaseIE):
         r'<div[^>]+id="veeseoDescription"[^>]*>(.+?)</div>',
     ]
     _UPLOAD_DATE_REGEXES = [
-        r'<meta property="og:published_time" content="(.+?)">',
         r'<span>\s*(\d{2}\.\d{2}\.\d{4} \d{2}:\d{2}) \|\s*<span itemprop="duration"',
         r'<footer>\s*(\d{2}\.\d{2}\.\d{4}) \d{2}:\d{2} Uhr',
         r'<span style="padding-left: 4px;line-height:20px; color:#404040">(\d{2}\.\d{2}\.\d{4})</span>',
@@ -447,17 +443,21 @@ class ProSiebenSat1IE(ProSiebenSat1BaseIE):
         if description is None:
             description = self._og_search_description(webpage)
         thumbnail = self._og_search_thumbnail(webpage)
-        upload_date = unified_strdate(self._html_search_regex(
-            self._UPLOAD_DATE_REGEXES, webpage, 'upload date', default=None))
+        upload_date = unified_strdate(
+            self._html_search_meta('og:published_time', webpage,
+                                   'upload date', default=None)
+            or self._html_search_regex(self._UPLOAD_DATE_REGEXES,
+                                       webpage, 'upload date', default=None))
 
-        info.update({
+        json_ld = self._search_json_ld(webpage, clip_id, default={})
+
+        return merge_dicts(info, {
             'id': clip_id,
             'title': title,
             'description': description,
             'thumbnail': thumbnail,
             'upload_date': upload_date,
-        })
-        return info
+        }, json_ld)
 
     def _extract_playlist(self, url, webpage):
         playlist_id = self._html_search_regex(

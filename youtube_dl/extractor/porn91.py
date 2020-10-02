@@ -39,7 +39,12 @@ class Porn91IE(InfoExtractor):
             r'<div id="viewvideo-title">([^<]+)</div>', webpage, 'title')
         title = title.replace('\n', '')
 
-        info_dict = self._parse_html5_media_entries(url, webpage, video_id)[0]
+        video_link_url = self._search_regex(
+            r'<textarea[^>]+id=["\']fm-video_link[^>]+>([^<]+)</textarea>',
+            webpage, 'video link')
+        videopage = self._download_webpage(video_link_url, video_id)
+
+        info_dict = self._parse_html5_media_entries(url, videopage, video_id)[0]
 
         duration = parse_duration(self._search_regex(
             r'时长:\s*</span>\s*(\d+:\d+)', webpage, 'duration', fatal=False))

@@ -47,39 +47,19 @@ class AZMedienIE(InfoExtractor):
         'url': 'https://www.telebaern.tv/telebaern-news/montag-1-oktober-2018-ganze-sendung-133531189#video=0_7xjo9lf1',
         'only_matching': True
     }]
-
+    _API_TEMPL = 'https://www.%s/api/pub/gql/%s/NewsArticleTeaser/cb9f2f81ed22e9b47f4ca64ea3cc5a5d13e88d1d'
     _PARTNER_ID = '1719221'
 
     def _real_extract(self, url):
-        mobj = re.match(self._VALID_URL, url)
-        host = mobj.group('host')
-        video_id = mobj.group('id')
-        entry_id = mobj.group('kaltura_id')
+        host, display_id, article_id, entry_id = re.match(self._VALID_URL, url).groups()
 
         if not entry_id:
-            api_url = 'https://www.%s/api/pub/gql/%s' % (host, host.split('.')[0])
-            payload = {
-                'query': '''query VideoContext($articleId: ID!) {
-                    article: node(id: $articleId) {
-                      ... on Article {
-                        mainAssetRelation {
-                          asset {
-                            ... on VideoAsset {
-                              kalturaId
-                            }
-                          }
-                        }
-                      }
-                    }
-                  }''',
-                'variables': {'articleId': 'Article:%s' % mobj.group('article_id')},
-            }
-            json_data = self._download_json(
-                api_url, video_id, headers={
-                    'Content-Type': 'application/json',
-                },
-                data=json.dumps(payload).encode())
-            entry_id = json_data['data']['article']['mainAssetRelation']['asset']['kalturaId']
+            entry_id = self._download_json(
+                self._API_TEMPL % (host, host.split('.')[0]), display_id, query={
+                    'variables': json.dumps({
+                        'contextId': 'NewsArticle:' + article_id,
+                    }),
+                })['data']['context']['mainAsset']['video']['kaltura']['kalturaId']
 
         return self.url_result(
             'kaltura:%s:%s' % (self._PARTNER_ID, entry_id),

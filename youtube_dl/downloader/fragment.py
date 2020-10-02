@@ -190,12 +190,13 @@ class FragmentFD(FileDownloader):
         })
 
     def _start_frag_download(self, ctx):
+        resume_len = ctx['complete_frags_downloaded_bytes']
         total_frags = ctx['total_frags']
         # This dict stores the download progress, it's updated by the progress
         # hook
         state = {
             'status': 'downloading',
-            'downloaded_bytes': ctx['complete_frags_downloaded_bytes'],
+            'downloaded_bytes': resume_len,
             'fragment_index': ctx['fragment_index'],
             'fragment_count': total_frags,
             'filename': ctx['filename'],
@@ -234,8 +235,8 @@ class FragmentFD(FileDownloader):
                 state['downloaded_bytes'] += frag_downloaded_bytes - ctx['prev_frag_downloaded_bytes']
                 if not ctx['live']:
                     state['eta'] = self.calc_eta(
-                        start, time_now, estimated_size,
-                        state['downloaded_bytes'])
+                        start, time_now, estimated_size - resume_len,
+                        state['downloaded_bytes'] - resume_len)
                 state['speed'] = s.get('speed') or ctx.get('speed')
                 ctx['speed'] = state['speed']
                 ctx['prev_frag_downloaded_bytes'] = frag_downloaded_bytes

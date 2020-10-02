@@ -153,7 +153,7 @@ After you have ensured this site is distributing its content legally, you can fo
 5. Add an import in [`youtube_dl/extractor/extractors.py`](https://github.com/ytdl-org/youtube-dl/blob/master/youtube_dl/extractor/extractors.py).
 6. Run `python test/test_download.py TestDownload.test_YourExtractor`. This *should fail* at first, but you can continually re-run it until you're done. If you decide to add more than one test, then rename ``_TEST`` to ``_TESTS`` and make it into a list of dictionaries. The tests will then be named `TestDownload.test_YourExtractor`, `TestDownload.test_YourExtractor_1`, `TestDownload.test_YourExtractor_2`, etc. Note that tests with `only_matching` key in test's dict are not counted in.
 7. Have a look at [`youtube_dl/extractor/common.py`](https://github.com/ytdl-org/youtube-dl/blob/master/youtube_dl/extractor/common.py) for possible helper methods and a [detailed description of what your extractor should and may return](https://github.com/ytdl-org/youtube-dl/blob/7f41a598b3fba1bcab2817de64a08941200aa3c8/youtube_dl/extractor/common.py#L94-L303). Add tests and code for as many as you want.
-8. Make sure your code follows [youtube-dl coding conventions](#youtube-dl-coding-conventions) and check the code with [flake8](http://flake8.pycqa.org/en/latest/index.html#quickstart):
+8. Make sure your code follows [youtube-dl coding conventions](#youtube-dl-coding-conventions) and check the code with [flake8](https://flake8.pycqa.org/en/latest/index.html#quickstart):
 
         $ flake8 youtube_dl/extractor/yourextractor.py
 
@@ -337,6 +337,72 @@ Incorrect:
 ```python
 'https://www.youtube.com/watch?v=FqZTN594JQw&list='
 'PLMYEtVRpaqY00V9W81Cwmzp6N6vZqfUKD4'
+```
+
+### Inline values
+
+Extracting variables is acceptable for reducing code duplication and improving readability of complex expressions. However, you should avoid extracting variables used only once and moving them to opposite parts of the extractor file, which makes reading the linear flow difficult.
+
+#### Example
+
+Correct:
+
+```python
+title = self._html_search_regex(r'<title>([^<]+)</title>', webpage, 'title')
+```
+
+Incorrect:
+
+```python
+TITLE_RE = r'<title>([^<]+)</title>'
+# ...some lines of code...
+title = self._html_search_regex(TITLE_RE, webpage, 'title')
+```
+
+### Collapse fallbacks
+
+Multiple fallback values can quickly become unwieldy. Collapse multiple fallback values into a single expression via a list of patterns.
+
+#### Example
+
+Good:
+
+```python
+description = self._html_search_meta(
+    ['og:description', 'description', 'twitter:description'],
+    webpage, 'description', default=None)
+```
+
+Unwieldy:
+
+```python
+description = (
+    self._og_search_description(webpage, default=None)
+    or self._html_search_meta('description', webpage, default=None)
+    or self._html_search_meta('twitter:description', webpage, default=None))
+```
+
+Methods supporting list of patterns are: `_search_regex`, `_html_search_regex`, `_og_search_property`, `_html_search_meta`.
+
+### Trailing parentheses
+
+Always move trailing parentheses after the last argument.
+
+#### Example
+
+Correct:
+
+```python
+    lambda x: x['ResultSet']['Result'][0]['VideoUrlSet']['VideoUrl'],
+    list)
+```
+
+Incorrect:
+
+```python
+    lambda x: x['ResultSet']['Result'][0]['VideoUrlSet']['VideoUrl'],
+    list,
+)
 ```
 
 ### Use convenience conversion and parsing functions

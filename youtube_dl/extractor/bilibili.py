@@ -15,6 +15,7 @@ from ..utils import (
     float_or_none,
     parse_iso8601,
     smuggle_url,
+    str_or_none,
     strip_jsonp,
     unified_timestamp,
     unsmuggle_url,
@@ -23,7 +24,18 @@ from ..utils import (
 
 
 class BiliBiliIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:www\.|bangumi\.|)bilibili\.(?:tv|com)/(?:video/av|anime/(?P<anime_id>\d+)/play#)(?P<id>\d+)'
+    _VALID_URL = r'''(?x)
+                    https?://
+                        (?:(?:www|bangumi)\.)?
+                        bilibili\.(?:tv|com)/
+                        (?:
+                            (?:
+                                video/[aA][vV]|
+                                anime/(?P<anime_id>\d+)/play\#
+                            )(?P<id_bv>\d+)|
+                            video/[bB][vV](?P<id>[^/?#&]+)
+                        )
+                    '''
 
     _TESTS = [{
         'url': 'http://www.bilibili.tv/video/av1074402/',
@@ -91,6 +103,10 @@ class BiliBiliIE(InfoExtractor):
                 'skip_download': True,  # Test metadata only
             },
         }]
+    }, {
+        # new BV video id format
+        'url': 'https://www.bilibili.com/video/BV1JE411F741',
+        'only_matching': True,
     }]
 
     _APP_KEY = 'iVGUTjsxvpLeuDCf'
@@ -108,7 +124,7 @@ class BiliBiliIE(InfoExtractor):
         url, smuggled_data = unsmuggle_url(url, {})
 
         mobj = re.match(self._VALID_URL, url)
-        video_id = mobj.group('id')
+        video_id = mobj.group('id') or mobj.group('id_bv')
         anime_id = mobj.group('anime_id')
         webpage = self._download_webpage(url, video_id)
 
@@ -306,3 +322,129 @@ class BiliBiliBangumiIE(InfoExtractor):
         return self.playlist_result(
             entries, bangumi_id,
             season_info.get('bangumi_title'), season_info.get('evaluate'))
+
+
+class BilibiliAudioBaseIE(InfoExtractor):
+    def _call_api(self, path, sid, query=None):
+        if not query:
+            query = {'sid': sid}
+        return self._download_json(
+            'https://www.bilibili.com/audio/music-service-c/web/' + path,
+            sid, query=query)['data']
+
+
+class BilibiliAudioIE(BilibiliAudioBaseIE):
+    _VALID_URL = r'https?://(?:www\.)?bilibili\.com/audio/au(?P<id>\d+)'
+    _TEST = {
+        'url': 'https://www.bilibili.com/audio/au1003142',
+        'md5': 'fec4987014ec94ef9e666d4d158ad03b',
+        'info_dict': {
+            'id': '1003142',
+            'ext': 'm4a',
+            'title': '【tsukimi】YELLOW / 神山羊',
+            'artist': 'tsukimi',
+            'comment_count': int,
+            'description': 'YELLOW的mp3版！',
+            'duration': 183,
+            'subtitles': {
+                'origin': [{
+                    'ext': 'lrc',
+                }],
+            },
+            'thumbnail': r're:^https?://.+\.jpg',
+            'timestamp': 1564836614,
+            'upload_date': '20190803',
+            'uploader': 'tsukimi-つきみぐー',
+            'view_count': int,
+        },
+    }
+
+    def _real_extract(self, url):
+        au_id = self._match_id(url)
+
+        play_data = self._call_api('url', au_id)
+        formats = [{
+            'url': play_data['cdns'][0],
+            'filesize': int_or_none(play_data.get('size')),
+        }]
+
+        song = self._call_api('song/info', au_id)
+        title = song['title']
+        statistic = song.get('statistic') or {}
+
+        subtitles = None
+        lyric = song.get('lyric')
+        if lyric:
+            subtitles = {
+                'origin': [{
+                    'url': lyric,
+                }]
+            }
+
+        return {
+            'id': au_id,
+            'title': title,
+            'formats': formats,
+            'artist': song.get('author'),
+            'comment_count': int_or_none(statistic.get('comment')),
+            'description': song.get('intro'),
+            'duration': int_or_none(song.get('duration')),
+            'subtitles': subtitles,
+            'thumbnail': song.get('cover'),
+            'timestamp': int_or_none(song.get('passtime')),
+            'uploader': song.get('uname'),
+            'view_count': int_or_none(statistic.get('play')),
+        }
+
+
+class BilibiliAudioAlbumIE(BilibiliAudioBaseIE):
+    _VALID_URL = r'https?://(?:www\.)?bilibili\.com/audio/am(?P<id>\d+)'
+    _TEST = {
+        'url': 'https://www.bilibili.com/audio/am10624',
+        'info_dict': {
+            'id': '10624',
+            'title': '每日新曲推荐（每日11:00更新）',
+            'description': '每天11:00更新，为你推送最新音乐',
+        },
+        'playlist_count': 19,
+    }
+
+    def _real_extract(self, url):
+        am_id = self._match_id(url)
+
+        songs = self._call_api(
+            'song/of-menu', am_id, {'sid': am_id, 'pn': 1, 'ps': 100})['data']
+
+        entries = []
+        for song in songs:
+            sid = str_or_none(song.get('id'))
+            if not sid:
+                continue
+            entries.append(self.url_result(
+                'https://www.bilibili.com/audio/au' + sid,
+                BilibiliAudioIE.ie_key(), sid))
+
+        if entries:
+            album_data = self._call_api('menu/info', am_id) or {}
+            album_title = album_data.get('title')
+            if album_title:
+                for entry in entries:
+                    entry['album'] = album_title
+                return self.playlist_result(
+                    entries, am_id, album_title, album_data.get('intro'))
+
+        return self.playlist_result(entries, am_id)
+
+
+class BiliBiliPlayerIE(InfoExtractor):
+    _VALID_URL = r'https?://player\.bilibili\.com/player\.html\?.*?\baid=(?P<id>\d+)'
+    _TEST = {
+        'url': 'http://player.bilibili.com/player.html?aid=92494333&cid=157926707&page=1',
+        'only_matching': True,
+    }
+
+    def _real_extract(self, url):
+        video_id = self._match_id(url)
+        return self.url_result(
+            'http://www.bilibili.tv/video/av%s/' % video_id,
+            ie=BiliBiliIE.ie_key(), video_id=video_id)

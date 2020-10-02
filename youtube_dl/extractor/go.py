@@ -40,8 +40,17 @@ class GoIE(AdobePassIE):
             'resource_id': 'Disney',
         }
     }
-    _VALID_URL = r'https?://(?:(?:(?P<sub_domain>%s)\.)?go|(?P<sub_domain_2>disneynow))\.com/(?:(?:[^/]+/)*(?P<id>vdka\w+)|(?:[^/]+/)*(?P<display_id>[^/?#]+))'\
-                 % '|'.join(list(_SITE_INFO.keys()) + ['disneynow'])
+    _VALID_URL = r'''(?x)
+                    https?://
+                        (?:
+                            (?:(?P<sub_domain>%s)\.)?go|
+                            (?P<sub_domain_2>abc|freeform|disneynow)
+                        )\.com/
+                        (?:
+                            (?:[^/]+/)*(?P<id>[Vv][Dd][Kk][Aa]\w+)|
+                            (?:[^/]+/)*(?P<display_id>[^/?\#]+)
+                        )
+                    ''' % '|'.join(list(_SITE_INFO.keys()))
     _TESTS = [{
         'url': 'http://abc.go.com/shows/designated-survivor/video/most-recent/VDKA3807643',
         'info_dict': {
@@ -54,6 +63,7 @@ class GoIE(AdobePassIE):
             # m3u8 download
             'skip_download': True,
         },
+        'skip': 'This content is no longer available.',
     }, {
         'url': 'http://watchdisneyxd.go.com/doraemon',
         'info_dict': {
@@ -61,6 +71,34 @@ class GoIE(AdobePassIE):
             'id': 'SH55574025',
         },
         'playlist_mincount': 51,
+    }, {
+        'url': 'http://freeform.go.com/shows/shadowhunters/episodes/season-2/1-this-guilty-blood',
+        'info_dict': {
+            'id': 'VDKA3609139',
+            'ext': 'mp4',
+            'title': 'This Guilty Blood',
+            'description': 'md5:f18e79ad1c613798d95fdabfe96cd292',
+            'age_limit': 14,
+        },
+        'params': {
+            'geo_bypass_ip_block': '3.244.239.0/24',
+            # m3u8 download
+            'skip_download': True,
+        },
+    }, {
+        'url': 'https://abc.com/shows/the-rookie/episode-guide/season-02/03-the-bet',
+        'info_dict': {
+            'id': 'VDKA13435179',
+            'ext': 'mp4',
+            'title': 'The Bet',
+            'description': 'md5:c66de8ba2e92c6c5c113c3ade84ab404',
+            'age_limit': 14,
+        },
+        'params': {
+            'geo_bypass_ip_block': '3.244.239.0/24',
+            # m3u8 download
+            'skip_download': True,
+        },
     }, {
         'url': 'http://abc.go.com/shows/the-catch/episode-guide/season-01/10-the-wedding',
         'only_matching': True,
@@ -95,10 +133,13 @@ class GoIE(AdobePassIE):
         if not video_id or not site_info:
             webpage = self._download_webpage(url, display_id or video_id)
             video_id = self._search_regex(
-                # There may be inner quotes, e.g. data-video-id="'VDKA3609139'"
-                # from http://freeform.go.com/shows/shadowhunters/episodes/season-2/1-this-guilty-blood
-                r'data-video-id=["\']*(VDKA\w+)', webpage, 'video id',
-                default=video_id)
+                (
+                    # There may be inner quotes, e.g. data-video-id="'VDKA3609139'"
+                    # from http://freeform.go.com/shows/shadowhunters/episodes/season-2/1-this-guilty-blood
+                    r'data-video-id=["\']*(VDKA\w+)',
+                    # https://abc.com/shows/the-rookie/episode-guide/season-02/03-the-bet
+                    r'\b(?:video)?id["\']\s*:\s*["\'](VDKA\w+)'
+                ), webpage, 'video id', default=video_id)
             if not site_info:
                 brand = self._search_regex(
                     (r'data-brand=\s*["\']\s*(\d+)',

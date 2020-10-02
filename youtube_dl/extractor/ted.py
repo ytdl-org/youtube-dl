@@ -182,20 +182,29 @@ class TEDIE(InfoExtractor):
 
         title = talk_info['title'].strip()
 
-        native_downloads = try_get(
-            talk_info,
-            (lambda x: x['downloads']['nativeDownloads'],
-             lambda x: x['nativeDownloads']),
-            dict) or {}
+        downloads = talk_info.get('downloads') or {}
+        native_downloads = downloads.get('nativeDownloads') or talk_info.get('nativeDownloads') or {}
 
         formats = [{
             'url': format_url,
             'format_id': format_id,
-            'format': format_id,
         } for (format_id, format_url) in native_downloads.items() if format_url is not None]
+
+        subtitled_downloads = downloads.get('subtitledDownloads') or {}
+        for lang, subtitled_download in subtitled_downloads.items():
+            for q in self._NATIVE_FORMATS:
+                q_url = subtitled_download.get(q)
+                if not q_url:
+                    continue
+                formats.append({
+                    'url': q_url,
+                    'format_id': '%s-%s' % (q, lang),
+                    'language': lang,
+                })
+
         if formats:
             for f in formats:
-                finfo = self._NATIVE_FORMATS.get(f['format_id'])
+                finfo = self._NATIVE_FORMATS.get(f['format_id'].split('-')[0])
                 if finfo:
                     f.update(finfo)
 
@@ -215,34 +224,7 @@ class TEDIE(InfoExtractor):
 
         http_url = None
         for format_id, resources in resources_.items():
-            if format_id == 'h264':
-                for resource in resources:
-                    h264_url = resource.get('file')
-                    if not h264_url:
-                        continue
-                    bitrate = int_or_none(resource.get('bitrate'))
-                    formats.append({
-                        'url': h264_url,
-                        'format_id': '%s-%sk' % (format_id, bitrate),
-                        'tbr': bitrate,
-                    })
-                    if re.search(r'\d+k', h264_url):
-                        http_url = h264_url
-            elif format_id == 'rtmp':
-                streamer = talk_info.get('streamer')
-                if not streamer:
-                    continue
-                for resource in resources:
-                    formats.append({
-                        'format_id': '%s-%s' % (format_id, resource.get('name')),
-                        'url': streamer,
-                        'play_path': resource['file'],
-                        'ext': 'flv',
-                        'width': int_or_none(resource.get('width')),
-                        'height': int_or_none(resource.get('height')),
-                        'tbr': int_or_none(resource.get('bitrate')),
-                    })
-            elif format_id == 'hls':
+            if format_id == 'hls':
                 if not isinstance(resources, dict):
                     continue
                 stream_url = url_or_none(resources.get('stream'))
@@ -251,6 +233,36 @@ class TEDIE(InfoExtractor):
                 formats.extend(self._extract_m3u8_formats(
                     stream_url, video_name, 'mp4', m3u8_id=format_id,
                     fatal=False))
+            else:
+                if not isinstance(resources, list):
+                    continue
+                if format_id == 'h264':
+                    for resource in resources:
+                        h264_url = resource.get('file')
+                        if not h264_url:
+                            continue
+                        bitrate = int_or_none(resource.get('bitrate'))
+                        formats.append({
+                            'url': h264_url,
+                            'format_id': '%s-%sk' % (format_id, bitrate),
+                            'tbr': bitrate,
+                        })
+                        if re.search(r'\d+k', h264_url):
+                            http_url = h264_url
+                elif format_id == 'rtmp':
+                    streamer = talk_info.get('streamer')
+                    if not streamer:
+                        continue
+                    for resource in resources:
+                        formats.append({
+                            'format_id': '%s-%s' % (format_id, resource.get('name')),
+                            'url': streamer,
+                            'play_path': resource['file'],
+                            'ext': 'flv',
+                            'width': int_or_none(resource.get('width')),
+                            'height': int_or_none(resource.get('height')),
+                            'tbr': int_or_none(resource.get('bitrate')),
+                        })
 
         m3u8_formats = list(filter(
             lambda f: f.get('protocol') == 'm3u8' and f.get('vcodec') != 'none',

@@ -134,7 +134,7 @@ def parseOpts(overrideArguments=None):
         action='help',
         help='Print this help text and exit')
     general.add_option(
-        '-v', '--version',
+        '--version',
         action='version',
         help='Print program version and exit')
     general.add_option(
@@ -853,7 +853,7 @@ def parseOpts(overrideArguments=None):
     postproc.add_option(
         '--exec',
         metavar='CMD', dest='exec_cmd',
-        help='Execute a command on the file after downloading, similar to find\'s -exec syntax. Example: --exec \'adb push {} /sdcard/Music/ && rm {}\'')
+        help='Execute a command on the file after downloading and post-processing, similar to find\'s -exec syntax. Example: --exec \'adb push {} /sdcard/Music/ && rm {}\'')
     postproc.add_option(
         '--convert-subs', '--convert-subtitles',
         metavar='FORMAT', dest='convertsubtitles', default=None,

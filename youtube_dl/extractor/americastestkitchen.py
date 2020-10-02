@@ -5,6 +5,7 @@ from .common import InfoExtractor
 from ..utils import (
     clean_html,
     int_or_none,
+    js_to_json,
     try_get,
     unified_strdate,
 )
@@ -13,22 +14,21 @@ from ..utils import (
 class AmericasTestKitchenIE(InfoExtractor):
     _VALID_URL = r'https?://(?:www\.)?americastestkitchen\.com/(?:episode|videos)/(?P<id>\d+)'
     _TESTS = [{
-        'url': 'https://www.americastestkitchen.com/episode/548-summer-dinner-party',
+        'url': 'https://www.americastestkitchen.com/episode/582-weeknight-japanese-suppers',
         'md5': 'b861c3e365ac38ad319cfd509c30577f',
         'info_dict': {
-            'id': '1_5g5zua6e',
-            'title': 'Summer Dinner Party',
+            'id': '5b400b9ee338f922cb06450c',
+            'title': 'Weeknight Japanese Suppers',
             'ext': 'mp4',
-            'description': 'md5:858d986e73a4826979b6a5d9f8f6a1ec',
-            'thumbnail': r're:^https?://.*\.jpg',
-            'timestamp': 1497285541,
-            'upload_date': '20170612',
-            'uploader_id': 'roger.metcalf@americastestkitchen.com',
-            'release_date': '20170617',
+            'description': 'md5:3d0c1a44bb3b27607ce82652db25b4a8',
+            'thumbnail': r're:^https?://',
+            'timestamp': 1523664000,
+            'upload_date': '20180414',
+            'release_date': '20180414',
             'series': "America's Test Kitchen",
-            'season_number': 17,
-            'episode': 'Summer Dinner Party',
-            'episode_number': 24,
+            'season_number': 18,
+            'episode': 'Weeknight Japanese Suppers',
+            'episode_number': 15,
         },
         'params': {
             'skip_download': True,
@@ -47,7 +47,7 @@ class AmericasTestKitchenIE(InfoExtractor):
             self._search_regex(
                 r'window\.__INITIAL_STATE__\s*=\s*({.+?})\s*;\s*</script>',
                 webpage, 'initial context'),
-            video_id)
+            video_id, js_to_json)
 
         ep_data = try_get(
             video_data,
@@ -55,17 +55,7 @@ class AmericasTestKitchenIE(InfoExtractor):
              lambda x: x['videoDetail']['content']['data']), dict)
         ep_meta = ep_data.get('full_video', {})
 
-        zype_id = ep_meta.get('zype_id')
-        if zype_id:
-            embed_url = 'https://player.zype.com/embed/%s.js?api_key=jZ9GUhRmxcPvX7M3SlfejB6Hle9jyHTdk2jVxG7wOHPLODgncEKVdPYBhuz9iWXQ' % zype_id
-            ie_key = 'Zype'
-        else:
-            partner_id = self._search_regex(
-                r'src=["\'](?:https?:)?//(?:[^/]+\.)kaltura\.com/(?:[^/]+/)*(?:p|partner_id)/(\d+)',
-                webpage, 'kaltura partner id')
-            external_id = ep_data.get('external_id') or ep_meta['external_id']
-            embed_url = 'kaltura:%s:%s' % (partner_id, external_id)
-            ie_key = 'Kaltura'
+        zype_id = ep_data.get('zype_id') or ep_meta['zype_id']
 
         title = ep_data.get('title') or ep_meta.get('title')
         description = clean_html(ep_meta.get('episode_description') or ep_data.get(
@@ -79,8 +69,8 @@ class AmericasTestKitchenIE(InfoExtractor):
 
         return {
             '_type': 'url_transparent',
-            'url': embed_url,
-            'ie_key': ie_key,
+            'url': 'https://player.zype.com/embed/%s.js?api_key=jZ9GUhRmxcPvX7M3SlfejB6Hle9jyHTdk2jVxG7wOHPLODgncEKVdPYBhuz9iWXQ' % zype_id,
+            'ie_key': 'Zype',
             'title': title,
             'description': description,
             'thumbnail': thumbnail,

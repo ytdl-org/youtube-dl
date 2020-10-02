@@ -18,7 +18,6 @@ from ..utils import (
 
 class LimelightBaseIE(InfoExtractor):
     _PLAYLIST_SERVICE_URL = 'http://production-ps.lvp.llnw.net/r/PlaylistService/%s/%s/%s'
-    _API_URL = 'http://api.video.limelight.com/rest/organizations/%s/%s/%s/%s.json'
 
     @classmethod
     def _extract_urls(cls, webpage, source_url):
@@ -70,7 +69,8 @@ class LimelightBaseIE(InfoExtractor):
         try:
             return self._download_json(
                 self._PLAYLIST_SERVICE_URL % (self._PLAYLIST_SERVICE_PATH, item_id, method),
-                item_id, 'Downloading PlaylistService %s JSON' % method, fatal=fatal, headers=headers)
+                item_id, 'Downloading PlaylistService %s JSON' % method,
+                fatal=fatal, headers=headers)
         except ExtractorError as e:
             if isinstance(e.cause, compat_HTTPError) and e.cause.code == 403:
                 error = self._parse_json(e.cause.read().decode(), item_id)['detail']['contentAccessPermission']
@@ -79,22 +79,22 @@ class LimelightBaseIE(InfoExtractor):
                 raise ExtractorError(error, expected=True)
             raise
 
-    def _call_api(self, organization_id, item_id, method):
-        return self._download_json(
-            self._API_URL % (organization_id, self._API_PATH, item_id, method),
-            item_id, 'Downloading API %s JSON' % method)
-
-    def _extract(self, item_id, pc_method, mobile_method, meta_method, referer=None):
+    def _extract(self, item_id, pc_method, mobile_method, referer=None):
         pc = self._call_playlist_service(item_id, pc_method, referer=referer)
-        metadata = self._call_api(pc['orgId'], item_id, meta_method)
-        mobile = self._call_playlist_service(item_id, mobile_method, fatal=False, referer=referer)
-        return pc, mobile, metadata
+        mobile = self._call_playlist_service(
+            item_id, mobile_method, fatal=False, referer=referer)
+        return pc, mobile
 
-    def _extract_info(self, streams, mobile_urls, properties):
-        video_id = properties['media_id']
+    def _extract_info(self, pc, mobile, i, referer):
+        get_item = lambda x, y: try_get(x, lambda x: x[y][i], dict) or {}
+        pc_item = get_item(pc, 'playlistItems')
+        mobile_item = get_item(mobile, 'mediaList')
+        video_id = pc_item.get('mediaId') or mobile_item['mediaId']
+        title = pc_item.get('title') or mobile_item['title']
+
         formats = []
         urls = []
-        for stream in streams:
+        for stream in pc_item.get('streams', []):
             stream_url = stream.get('url')
             if not stream_url or stream.get('drmProtected') or stream_url in urls:
                 continue
@@ -155,7 +155,7 @@ class LimelightBaseIE(InfoExtractor):
                     })
                 formats.append(fmt)
 
-        for mobile_url in mobile_urls:
+        for mobile_url in mobile_item.get('mobileUrls', []):
             media_url = mobile_url.get('mobileUrl')
             format_id = mobile_url.get('targetMediaPlatform')
             if not media_url or format_id in ('Widevine', 'SmoothStreaming') or media_url in urls:
@@ -179,53 +179,33 @@ class LimelightBaseIE(InfoExtractor):
 
         self._sort_formats(formats)
 
-        title = properties['title']
-        description = properties.get('description')
-        timestamp = int_or_none(properties.get('publish_date') or properties.get('create_date'))
-        duration = float_or_none(properties.get('duration_in_milliseconds'), 1000)
-        filesize = int_or_none(properties.get('total_storage_in_bytes'))
-        categories = [properties.get('category')]
-        tags = properties.get('tags', [])
-        thumbnails = [{
-            'url': thumbnail['url'],
-            'width': int_or_none(thumbnail.get('width')),
-            'height': int_or_none(thumbnail.get('height')),
-        } for thumbnail in properties.get('thumbnails', []) if thumbnail.get('url')]
-
         subtitles = {}
-        for caption in properties.get('captions', []):
-            lang = caption.get('language_code')
-            subtitles_url = caption.get('url')
-            if lang and subtitles_url:
-                subtitles.setdefault(lang, []).append({
-                    'url': subtitles_url,
-                })
-        closed_captions_url = properties.get('closed_captions_url')
-        if closed_captions_url:
-            subtitles.setdefault('en', []).append({
-                'url': closed_captions_url,
-                'ext': 'ttml',
-            })
+        for flag in mobile_item.get('flags'):
+            if flag == 'ClosedCaptions':
+                closed_captions = self._call_playlist_service(
+                    video_id, 'getClosedCaptionsDetailsByMediaId',
+                    False, referer) or []
+                for cc in closed_captions:
+                    cc_url = cc.get('webvttFileUrl')
+                    if not cc_url:
+                        continue
+                    lang = cc.get('languageCode') or self._search_regex(r'/[a-z]{2}\.vtt', cc_url, 'lang', default='en')
+                    subtitles.setdefault(lang, []).append({
+                        'url': cc_url,
+                    })
+                break
+
+        get_meta = lambda x: pc_item.get(x) or mobile_item.get(x)
 
         return {
             'id': video_id,
             'title': title,
-            'description': description,
+            'description': get_meta('description'),
             'formats': formats,
-            'timestamp': timestamp,
-            'duration': duration,
-            'filesize': filesize,
-            'categories': categories,
-            'tags': tags,
-            'thumbnails': thumbnails,
+            'duration': float_or_none(get_meta('durationInMilliseconds'), 1000),
+            'thumbnail': get_meta('previewImageUrl') or get_meta('thumbnailImageUrl'),
             'subtitles': subtitles,
         }
-
-    def _extract_info_helper(self, pc, mobile, i, metadata):
-        return self._extract_info(
-            try_get(pc, lambda x: x['playlistItems'][i]['streams'], list) or [],
-            try_get(mobile, lambda x: x['mediaList'][i]['mobileUrls'], list) or [],
-            metadata)
 
 
 class LimelightMediaIE(LimelightBaseIE):
@@ -251,8 +231,6 @@ class LimelightMediaIE(LimelightBaseIE):
             'description': 'md5:8005b944181778e313d95c1237ddb640',
             'thumbnail': r're:^https?://.*\.jpeg$',
             'duration': 144.23,
-            'timestamp': 1244136834,
-            'upload_date': '20090604',
         },
         'params': {
             # m3u8 download
@@ -268,30 +246,29 @@ class LimelightMediaIE(LimelightBaseIE):
             'title': '3Play Media Overview Video',
             'thumbnail': r're:^https?://.*\.jpeg$',
             'duration': 78.101,
-            'timestamp': 1338929955,
-            'upload_date': '20120605',
-            'subtitles': 'mincount:9',
+            # TODO: extract all languages that were accessible via API
+            # 'subtitles': 'mincount:9',
+            'subtitles': 'mincount:1',
         },
     }, {
         'url': 'https://assets.delvenetworks.com/player/loader.swf?mediaId=8018a574f08d416e95ceaccae4ba0452',
         'only_matching': True,
     }]
     _PLAYLIST_SERVICE_PATH = 'media'
-    _API_PATH = 'media'
 
     def _real_extract(self, url):
         url, smuggled_data = unsmuggle_url(url, {})
         video_id = self._match_id(url)
+        source_url = smuggled_data.get('source_url')
         self._initialize_geo_bypass({
             'countries': smuggled_data.get('geo_countries'),
         })
 
-        pc, mobile, metadata = self._extract(
+        pc, mobile = self._extract(
             video_id, 'getPlaylistByMediaId',
-            'getMobilePlaylistByMediaId', 'properties',
-            smuggled_data.get('source_url'))
+            'getMobilePlaylistByMediaId', source_url)
 
-        return self._extract_info_helper(pc, mobile, 0, metadata)
+        return self._extract_info(pc, mobile, 0, source_url)
 
 
 class LimelightChannelIE(LimelightBaseIE):
@@ -313,6 +290,7 @@ class LimelightChannelIE(LimelightBaseIE):
         'info_dict': {
             'id': 'ab6a524c379342f9b23642917020c082',
             'title': 'Javascript Sample Code',
+            'description': 'Javascript Sample Code - http://www.delvenetworks.com/sample-code/playerCode-demo.html',
         },
         'playlist_mincount': 3,
     }, {
@@ -320,22 +298,23 @@ class LimelightChannelIE(LimelightBaseIE):
         'only_matching': True,
     }]
     _PLAYLIST_SERVICE_PATH = 'channel'
-    _API_PATH = 'channels'
 
     def _real_extract(self, url):
         url, smuggled_data = unsmuggle_url(url, {})
         channel_id = self._match_id(url)
+        source_url = smuggled_data.get('source_url')
 
-        pc, mobile, medias = self._extract(
+        pc, mobile = self._extract(
             channel_id, 'getPlaylistByChannelId',
             'getMobilePlaylistWithNItemsByChannelId?begin=0&count=-1',
-            'media', smuggled_data.get('source_url'))
+            source_url)
 
         entries = [
-            self._extract_info_helper(pc, mobile, i, medias['media_list'][i])
-            for i in range(len(medias['media_list']))]
+            self._extract_info(pc, mobile, i, source_url)
+            for i in range(len(pc['playlistItems']))]
 
-        return self.playlist_result(entries, channel_id, pc['title'])
+        return self.playlist_result(
+            entries, channel_id, pc.get('title'), mobile.get('description'))
 
 
 class LimelightChannelListIE(LimelightBaseIE):
@@ -368,10 +347,12 @@ class LimelightChannelListIE(LimelightBaseIE):
     def _real_extract(self, url):
         channel_list_id = self._match_id(url)
 
-        channel_list = self._call_playlist_service(channel_list_id, 'getMobileChannelListById')
+        channel_list = self._call_playlist_service(
+            channel_list_id, 'getMobileChannelListById')
 
         entries = [
             self.url_result('limelight:channel:%s' % channel['id'], 'LimelightChannel')
             for channel in channel_list['channelList']]
 
-        return self.playlist_result(entries, channel_list_id, channel_list['title'])
+        return self.playlist_result(
+            entries, channel_list_id, channel_list['title'])

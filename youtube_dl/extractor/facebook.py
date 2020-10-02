@@ -334,7 +334,7 @@ class FacebookIE(InfoExtractor):
         if not video_data:
             server_js_data = self._parse_json(
                 self._search_regex(
-                    r'bigPipe\.onPageletArrive\(({.+?})\)\s*;\s*}\s*\)\s*,\s*["\']onPageletArrive\s+(?:stream_pagelet|pagelet_group_mall|permalink_video_pagelet)',
+                    r'bigPipe\.onPageletArrive\(({.+?})\)\s*;\s*}\s*\)\s*,\s*["\']onPageletArrive\s+(?:pagelet_group_mall|permalink_video_pagelet|hyperfeed_story_id_\d+)',
                     webpage, 'js data', default='{}'),
                 video_id, transform_source=js_to_json, fatal=False)
             video_data = extract_from_jsmods_instances(server_js_data)
@@ -379,6 +379,7 @@ class FacebookIE(InfoExtractor):
         if not video_data:
             raise ExtractorError('Cannot parse data')
 
+        subtitles = {}
         formats = []
         for f in video_data:
             format_id = f['stream_type']
@@ -402,8 +403,16 @@ class FacebookIE(InfoExtractor):
             if dash_manifest:
                 formats.extend(self._parse_mpd_formats(
                     compat_etree_fromstring(compat_urllib_parse_unquote_plus(dash_manifest))))
+            subtitles_src = f[0].get('subtitles_src')
+            if subtitles_src:
+                subtitles.setdefault('en', []).append({'url': subtitles_src})
         if not formats:
             raise ExtractorError('Cannot find video formats')
+
+        # Downloads with browser's User-Agent are rate limited. Working around
+        # with non-browser User-Agent.
+        for f in formats:
+            f.setdefault('http_headers', {})['User-Agent'] = 'facebookexternalhit/1.1'
 
         self._sort_formats(formats)
 
@@ -428,7 +437,7 @@ class FacebookIE(InfoExtractor):
         timestamp = int_or_none(self._search_regex(
             r'<abbr[^>]+data-utime=["\'](\d+)', webpage,
             'timestamp', default=None))
-        thumbnail = self._og_search_thumbnail(webpage)
+        thumbnail = self._html_search_meta(['og:image', 'twitter:image'], webpage)
 
         view_count = parse_count(self._search_regex(
             r'\bviewCount\s*:\s*["\']([\d,.]+)', webpage, 'view count',
@@ -442,6 +451,7 @@ class FacebookIE(InfoExtractor):
             'timestamp': timestamp,
             'thumbnail': thumbnail,
             'view_count': view_count,
+            'subtitles': subtitles,
         }
 
         return webpage, info_dict
@@ -456,15 +466,18 @@ class FacebookIE(InfoExtractor):
             return info_dict
 
         if '/posts/' in url:
-            entries = [
-                self.url_result('facebook:%s' % vid, FacebookIE.ie_key())
-                for vid in self._parse_json(
-                    self._search_regex(
-                        r'(["\'])video_ids\1\s*:\s*(?P<ids>\[.+?\])',
-                        webpage, 'video ids', group='ids'),
-                    video_id)]
+            video_id_json = self._search_regex(
+                r'(["\'])video_ids\1\s*:\s*(?P<ids>\[.+?\])', webpage, 'video ids', group='ids',
+                default='')
+            if video_id_json:
+                entries = [
+                    self.url_result('facebook:%s' % vid, FacebookIE.ie_key())
+                    for vid in self._parse_json(video_id_json, video_id)]
+                return self.playlist_result(entries, video_id)
 
-            return self.playlist_result(entries, video_id)
+            # Single Video?
+            video_id = self._search_regex(r'video_id:\s*"([0-9]+)"', webpage, 'single video id')
+            return self.url_result('facebook:%s' % video_id, FacebookIE.ie_key())
         else:
             _, info_dict = self._extract_from_url(
                 self._VIDEO_PAGE_TEMPLATE % video_id,

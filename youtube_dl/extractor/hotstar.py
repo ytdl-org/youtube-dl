@@ -3,6 +3,7 @@ from __future__ import unicode_literals
 
 import hashlib
 import hmac
+import re
 import time
 import uuid
 
@@ -117,6 +118,7 @@ class HotStarIE(HotStarBaseIE):
         if video_data.get('drmProtected'):
             raise ExtractorError('This video is DRM protected.', expected=True)
 
+        headers = {'Referer': url}
         formats = []
         geo_restricted = False
         playback_sets = self._call_api_v2('h/v2/play', video_id)['playBackSets']
@@ -126,6 +128,8 @@ class HotStarIE(HotStarBaseIE):
             format_url = url_or_none(playback_set.get('playbackUrl'))
             if not format_url:
                 continue
+            format_url = re.sub(
+                r'(?<=//staragvod)(\d)', r'web\1', format_url)
             tags = str_or_none(playback_set.get('tagsCombination')) or ''
             if tags and 'encryption:plain' not in tags:
                 continue
@@ -133,10 +137,12 @@ class HotStarIE(HotStarBaseIE):
             try:
                 if 'package:hls' in tags or ext == 'm3u8':
                     formats.extend(self._extract_m3u8_formats(
-                        format_url, video_id, 'mp4', m3u8_id='hls'))
+                        format_url, video_id, 'mp4',
+                        entry_protocol='m3u8_native',
+                        m3u8_id='hls', headers=headers))
                 elif 'package:dash' in tags or ext == 'mpd':
                     formats.extend(self._extract_mpd_formats(
-                        format_url, video_id, mpd_id='dash'))
+                        format_url, video_id, mpd_id='dash', headers=headers))
                 elif ext == 'f4m':
                     # produce broken files
                     pass
@@ -153,6 +159,9 @@ class HotStarIE(HotStarBaseIE):
         if not formats and geo_restricted:
             self.raise_geo_restricted(countries=['IN'])
         self._sort_formats(formats)
+
+        for f in formats:
+            f.setdefault('http_headers', {}).update(headers)
 
         return {
             'id': video_id,

@@ -16,20 +16,17 @@ class DctpTvIE(InfoExtractor):
     _TESTS = [{
         # 4x3
         'url': 'http://www.dctp.tv/filme/videoinstallation-fuer-eine-kaufhausfassade/',
+        'md5': '3ffbd1556c3fe210724d7088fad723e3',
         'info_dict': {
             'id': '95eaa4f33dad413aa17b4ee613cccc6c',
             'display_id': 'videoinstallation-fuer-eine-kaufhausfassade',
-            'ext': 'flv',
+            'ext': 'm4v',
             'title': 'Videoinstallation für eine Kaufhausfassade',
             'description': 'Kurzfilm',
             'thumbnail': r're:^https?://.*\.jpg$',
             'duration': 71.24,
             'timestamp': 1302172322,
             'upload_date': '20110407',
-        },
-        'params': {
-            # rtmp download
-            'skip_download': True,
         },
     }, {
         # 16x9
@@ -59,33 +56,26 @@ class DctpTvIE(InfoExtractor):
 
         uuid = media['uuid']
         title = media['title']
-        ratio = '16x9' if media.get('is_wide') else '4x3'
-        play_path = 'mp4:%s_dctp_0500_%s.m4v' % (uuid, ratio)
+        is_wide = media.get('is_wide')
+        formats = []
 
-        servers = self._download_json(
-            'http://www.dctp.tv/streaming_servers/', display_id,
-            note='Downloading server list JSON', fatal=False)
+        def add_formats(suffix):
+            templ = 'https://%%s/%s_dctp_%s.m4v' % (uuid, suffix)
+            formats.extend([{
+                'format_id': 'hls-' + suffix,
+                'url': templ % 'cdn-segments.dctp.tv' + '/playlist.m3u8',
+                'protocol': 'm3u8_native',
+            }, {
+                'format_id': 's3-' + suffix,
+                'url': templ % 'completed-media.s3.amazonaws.com',
+            }, {
+                'format_id': 'http-' + suffix,
+                'url': templ % 'cdn-media.dctp.tv',
+            }])
 
-        if servers:
-            endpoint = next(
-                server['endpoint']
-                for server in servers
-                if url_or_none(server.get('endpoint'))
-                and 'cloudfront' in server['endpoint'])
-        else:
-            endpoint = 'rtmpe://s2pqqn4u96e4j8.cloudfront.net/cfx/st/'
-
-        app = self._search_regex(
-            r'^rtmpe?://[^/]+/(?P<app>.*)$', endpoint, 'app')
-
-        formats = [{
-            'url': endpoint,
-            'app': app,
-            'play_path': play_path,
-            'page_url': url,
-            'player_url': 'http://svm-prod-dctptv-static.s3.amazonaws.com/dctptv-relaunch2012-110.swf',
-            'ext': 'flv',
-        }]
+        add_formats('0500_' + ('16x9' if is_wide else '4x3'))
+        if is_wide:
+            add_formats('720p')
 
         thumbnails = []
         images = media.get('images')
