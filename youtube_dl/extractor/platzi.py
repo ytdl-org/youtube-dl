@@ -18,7 +18,54 @@ from ..utils import (
 )
 
 
-class PlatziIE(InfoExtractor):
+class PlatziBaseIE(InfoExtractor):
+    _LOGIN_URL = 'https://platzi.com/login/'
+    _NETRC_MACHINE = 'platzi'
+
+    def _real_initialize(self):
+        self._login()
+
+    def _login(self):
+        username, password = self._get_login_info()
+        if username is None:
+            return
+
+        login_page = self._download_webpage(
+            self._LOGIN_URL, None, 'Downloading login page')
+
+        login_form = self._hidden_inputs(login_page)
+
+        login_form.update({
+            'email': username,
+            'password': password,
+        })
+
+        urlh = self._request_webpage(
+            self._LOGIN_URL, None, 'Logging in',
+            data=urlencode_postdata(login_form),
+            headers={'Referer': self._LOGIN_URL})
+
+        # login succeeded
+        if 'platzi.com/login' not in urlh.geturl():
+            return
+
+        login_error = self._webpage_read_content(
+            urlh, self._LOGIN_URL, None, 'Downloading login error page')
+
+        login = self._parse_json(
+            self._search_regex(
+                r'login\s*=\s*({.+?})(?:\s*;|\s*</script)', login_error, 'login'),
+            None)
+
+        for kind in ('error', 'password', 'nonFields'):
+            error = str_or_none(login.get('%sError' % kind))
+            if error:
+                raise ExtractorError(
+                    'Unable to login: %s' % error, expected=True)
+        raise ExtractorError('Unable to log in')
+
+
+class PlatziIE(PlatziBaseIE):
     _VALID_URL = r'''(?x)
                     https?://
                         (?:
@@ -26,8 +73,6 @@ class PlatziIE(InfoExtractor):
                             courses\.platzi\.com/classes  # en version
                         )/[^/]+/(?P<id>\d+)-[^/?\#&]+
                     '''
-    _LOGIN_URL = 'https://platzi.com/login/'
-    _NETRC_MACHINE = 'platzi'
 
     _TESTS = [{
         'url': 'https://platzi.com/clases/1311-next-js/12074-creando-nuestra-primera-pagina/',
@@ -55,48 +100,6 @@ class PlatziIE(InfoExtractor):
         },
     }]
 
-    def _real_initialize(self):
-        self._login()
-
-    def _login(self):
-        username, password = self._get_login_info()
-        if username is None:
-            return
-
-        login_page = self._download_webpage(
-            self._LOGIN_URL, None, 'Downloading login page')
-
-        login_form = self._hidden_inputs(login_page)
-
-        login_form.update({
-            'email': username,
-            'password': password,
-        })
-
-        urlh = self._request_webpage(
-            self._LOGIN_URL, None, 'Logging in',
-            data=urlencode_postdata(login_form),
-            headers={'Referer': self._LOGIN_URL})
-
-        # login succeeded
-        if 'platzi.com/login' not in compat_str(urlh.geturl()):
-            return
-
-        login_error = self._webpage_read_content(
-            urlh, self._LOGIN_URL, None, 'Downloading login error page')
-
-        login = self._parse_json(
-            self._search_regex(
-                r'login\s*=\s*({.+?})(?:\s*;|\s*</script)', login_error, 'login'),
-            None)
-
-        for kind in ('error', 'password', 'nonFields'):
-            error = str_or_none(login.get('%sError' % kind))
-            if error:
-                raise ExtractorError(
-                    'Unable to login: %s' % error, expected=True)
-        raise ExtractorError('Unable to log in')
-
     def _real_extract(self, url):
         lecture_id = self._match_id(url)
 
@@ -104,7 +107,11 @@ class PlatziIE(InfoExtractor):
 
         data = self._parse_json(
             self._search_regex(
-                r'client_data\s*=\s*({.+?})\s*;', webpage, 'client data'),
+                # client_data may contain "};" so that we have to try more
+                # strict regex first
+                (r'client_data\s*=\s*({.+?})\s*;\s*\n',
+                 r'client_data\s*=\s*({.+?})\s*;'),
+                webpage, 'client data'),
             lecture_id)
 
         material = data['initialState']['material']
@@ -146,7 +153,7 @@ class PlatziIE(InfoExtractor):
         }
 
 
-class PlatziCourseIE(InfoExtractor):
+class PlatziCourseIE(PlatziBaseIE):
     _VALID_URL = r'''(?x)
                     https?://
                         (?:

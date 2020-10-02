@@ -5,24 +5,27 @@ import re
 
 from .common import InfoExtractor
 from ..utils import (
+    clean_html,
+    compat_str,
     int_or_none,
-    unified_strdate,
+    parse_iso8601,
 )
 
 
 class LnkGoIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:www\.)?lnkgo\.(?:alfa\.)?lt/visi-video/(?P<show>[^/]+)/ziurek-(?P<id>[A-Za-z0-9-]+)'
+    _VALID_URL = r'https?://(?:www\.)?lnk(?:go)?\.(?:alfa\.)?lt/(?:visi-video/[^/]+|video)/(?P<id>[A-Za-z0-9-]+)(?:/(?P<episode_id>\d+))?'
     _TESTS = [{
-        'url': 'http://lnkgo.alfa.lt/visi-video/yra-kaip-yra/ziurek-yra-kaip-yra-162',
+        'url': 'http://www.lnkgo.lt/visi-video/aktualai-pratesimas/ziurek-putka-trys-klausimai',
         'info_dict': {
-            'id': '46712',
+            'id': '10809',
             'ext': 'mp4',
-            'title': 'Yra kaip yra',
-            'upload_date': '20150107',
-            'description': 'md5:d82a5e36b775b7048617f263a0e3475e',
-            'age_limit': 7,
-            'duration': 3019,
-            'thumbnail': r're:^https?://.*\.jpg$'
+            'title': "Put'ka: Trys Klausimai",
+            'upload_date': '20161216',
+            'description': 'Seniai matytas Put’ka užduoda tris klausimėlius. Pabandykime surasti atsakymus.',
+            'age_limit': 18,
+            'duration': 117,
+            'thumbnail': r're:^https?://.*\.jpg$',
+            'timestamp': 1481904000,
         },
         'params': {
             'skip_download': True,  # HLS download
@@ -30,20 +33,21 @@ class LnkGoIE(InfoExtractor):
     }, {
         'url': 'http://lnkgo.alfa.lt/visi-video/aktualai-pratesimas/ziurek-nerdas-taiso-kompiuteri-2',
         'info_dict': {
-            'id': '47289',
+            'id': '10467',
             'ext': 'mp4',
             'title': 'Nėrdas: Kompiuterio Valymas',
             'upload_date': '20150113',
             'description': 'md5:7352d113a242a808676ff17e69db6a69',
             'age_limit': 18,
             'duration': 346,
-            'thumbnail': r're:^https?://.*\.jpg$'
+            'thumbnail': r're:^https?://.*\.jpg$',
+            'timestamp': 1421164800,
         },
         'params': {
             'skip_download': True,  # HLS download
         },
     }, {
-        'url': 'http://www.lnkgo.lt/visi-video/aktualai-pratesimas/ziurek-putka-trys-klausimai',
+        'url': 'https://lnk.lt/video/neigalieji-tv-bokste/37413',
         'only_matching': True,
     }]
     _AGE_LIMITS = {
@@ -51,66 +55,34 @@ class LnkGoIE(InfoExtractor):
         'N-14': 14,
         'S': 18,
     }
+    _M3U8_TEMPL = 'https://vod.lnk.lt/lnk_vod/lnk/lnk/%s:%s/playlist.m3u8%s'
 
     def _real_extract(self, url):
-        display_id = self._match_id(url)
+        display_id, video_id = re.match(self._VALID_URL, url).groups()
 
-        webpage = self._download_webpage(
-            url, display_id, 'Downloading player webpage')
+        video_info = self._download_json(
+            'https://lnk.lt/api/main/video-page/%s/%s/false' % (display_id, video_id or '0'),
+            display_id)['videoConfig']['videoInfo']
 
-        video_id = self._search_regex(
-            r'data-ep="([^"]+)"', webpage, 'video ID')
-        title = self._og_search_title(webpage)
-        description = self._og_search_description(webpage)
-        upload_date = unified_strdate(self._search_regex(
-            r'class="[^"]*meta-item[^"]*air-time[^"]*">.*?<strong>([^<]+)</strong>', webpage, 'upload date', fatal=False))
-
-        thumbnail_w = int_or_none(
-            self._og_search_property('image:width', webpage, 'thumbnail width', fatal=False))
-        thumbnail_h = int_or_none(
-            self._og_search_property('image:height', webpage, 'thumbnail height', fatal=False))
-        thumbnail = {
-            'url': self._og_search_thumbnail(webpage),
-        }
-        if thumbnail_w and thumbnail_h:
-            thumbnail.update({
-                'width': thumbnail_w,
-                'height': thumbnail_h,
-            })
-
-        config = self._parse_json(self._search_regex(
-            r'episodePlayer\((\{.*?\}),\s*\{', webpage, 'sources'), video_id)
-
-        if config.get('pGeo'):
-            self.report_warning(
-                'This content might not be available in your country due to copyright reasons')
-
-        formats = [{
-            'format_id': 'hls',
-            'ext': 'mp4',
-            'url': config['EpisodeVideoLink_HLS'],
-        }]
-
-        m = re.search(r'^(?P<url>rtmp://[^/]+/(?P<app>[^/]+))/(?P<play_path>.+)$', config['EpisodeVideoLink'])
-        if m:
-            formats.append({
-                'format_id': 'rtmp',
-                'ext': 'flv',
-                'url': m.group('url'),
-                'play_path': m.group('play_path'),
-                'page_url': url,
-            })
-
+        video_id = compat_str(video_info['id'])
+        title = video_info['title']
+        prefix = 'smil' if video_info.get('isQualityChangeAvailable') else 'mp4'
+        formats = self._extract_m3u8_formats(
+            self._M3U8_TEMPL % (prefix, video_info['videoUrl'], video_info.get('secureTokenParams') or ''),
+            video_id, 'mp4', 'm3u8_native')
         self._sort_formats(formats)
+
+        poster_image = video_info.get('posterImage')
 
         return {
             'id': video_id,
             'display_id': display_id,
             'title': title,
             'formats': formats,
-            'thumbnails': [thumbnail],
-            'duration': int_or_none(config.get('VideoTime')),
-            'description': description,
-            'age_limit': self._AGE_LIMITS.get(config.get('PGRating'), 0),
-            'upload_date': upload_date,
+            'thumbnail': 'https://lnk.lt/all-images/' + poster_image if poster_image else None,
+            'duration': int_or_none(video_info.get('duration')),
+            'description': clean_html(video_info.get('htmlDescription')),
+            'age_limit': self._AGE_LIMITS.get(video_info.get('pgRating'), 0),
+            'timestamp': parse_iso8601(video_info.get('airDate')),
+            'view_count': int_or_none(video_info.get('viewsCount')),
         }

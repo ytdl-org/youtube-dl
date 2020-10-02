@@ -22,7 +22,7 @@ from ..utils import (
 
 
 class InstagramIE(InfoExtractor):
-    _VALID_URL = r'(?P<url>https?://(?:www\.)?instagram\.com/p/(?P<id>[^/?#&]+))'
+    _VALID_URL = r'(?P<url>https?://(?:www\.)?instagram\.com/(?:p|tv)/(?P<id>[^/?#&]+))'
     _TESTS = [{
         'url': 'https://instagram.com/p/aye83DjauH/?foo=bar#abc',
         'md5': '0d2da106a9d2631273e192b372806516',
@@ -91,6 +91,9 @@ class InstagramIE(InfoExtractor):
         'only_matching': True,
     }, {
         'url': 'http://instagram.com/p/9o6LshA7zy/embed/',
+        'only_matching': True,
+    }, {
+        'url': 'https://www.instagram.com/tv/aye83DjauH/',
         'only_matching': True,
     }]
 

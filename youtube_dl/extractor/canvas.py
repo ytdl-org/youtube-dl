@@ -13,6 +13,8 @@ from ..utils import (
     int_or_none,
     merge_dicts,
     parse_iso8601,
+    str_or_none,
+    url_or_none,
 )
 
 
@@ -20,15 +22,15 @@ class CanvasIE(InfoExtractor):
     _VALID_URL = r'https?://mediazone\.vrt\.be/api/v1/(?P<site_id>canvas|een|ketnet|vrt(?:video|nieuws)|sporza)/assets/(?P<id>[^/?#&]+)'
     _TESTS = [{
         'url': 'https://mediazone.vrt.be/api/v1/ketnet/assets/md-ast-4ac54990-ce66-4d00-a8ca-9eac86f4c475',
-        'md5': '90139b746a0a9bd7bb631283f6e2a64e',
+        'md5': '68993eda72ef62386a15ea2cf3c93107',
         'info_dict': {
             'id': 'md-ast-4ac54990-ce66-4d00-a8ca-9eac86f4c475',
             'display_id': 'md-ast-4ac54990-ce66-4d00-a8ca-9eac86f4c475',
-            'ext': 'flv',
+            'ext': 'mp4',
             'title': 'Nachtwacht: De Greystook',
-            'description': 'md5:1db3f5dc4c7109c821261e7512975be7',
+            'description': 'Nachtwacht: De Greystook',
             'thumbnail': r're:^https?://.*\.jpg$',
-            'duration': 1468.03,
+            'duration': 1468.04,
         },
         'expected_warnings': ['is not a supported codec', 'Unknown MIME type'],
     }, {
@@ -39,23 +41,45 @@ class CanvasIE(InfoExtractor):
         'HLS': 'm3u8_native',
         'HLS_AES': 'm3u8',
     }
+    _REST_API_BASE = 'https://media-services-public.vrt.be/vualto-video-aggregator-web/rest/external/v1'
 
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
         site_id, video_id = mobj.group('site_id'), mobj.group('id')
 
+        # Old API endpoint, serves more formats but may fail for some videos
         data = self._download_json(
             'https://mediazone.vrt.be/api/v1/%s/assets/%s'
-            % (site_id, video_id), video_id)
+            % (site_id, video_id), video_id, 'Downloading asset JSON',
+            'Unable to download asset JSON', fatal=False)
+
+        # New API endpoint
+        if not data:
+            token = self._download_json(
+                '%s/tokens' % self._REST_API_BASE, video_id,
+                'Downloading token', data=b'',
+                headers={'Content-Type': 'application/json'})['vrtPlayerToken']
+            data = self._download_json(
+                '%s/videos/%s' % (self._REST_API_BASE, video_id),
+                video_id, 'Downloading video JSON', fatal=False, query={
+                    'vrtPlayerToken': token,
+                    'client': '%s@PROD' % site_id,
+                }, expected_status=400)
+            message = data.get('message')
+            if message and not data.get('title'):
+                if data.get('code') == 'AUTHENTICATION_REQUIRED':
+                    self.raise_login_required(message)
+                raise ExtractorError(message, expected=True)
 
         title = data['title']
         description = data.get('description')
 
         formats = []
         for target in data['targetUrls']:
-            format_url, format_type = target.get('url'), target.get('type')
+            format_url, format_type = url_or_none(target.get('url')), str_or_none(target.get('type'))
             if not format_url or not format_type:
                 continue
+            format_type = format_type.upper()
             if format_type in self._HLS_ENTRY_PROTOCOLS_MAP:
                 formats.extend(self._extract_m3u8_formats(
                     format_url, video_id, 'mp4', self._HLS_ENTRY_PROTOCOLS_MAP[format_type],
@@ -134,20 +158,20 @@ class CanvasEenIE(InfoExtractor):
         },
         'skip': 'Pagina niet gevonden',
     }, {
-        'url': 'https://www.een.be/sorry-voor-alles/herbekijk-sorry-voor-alles',
+        'url': 'https://www.een.be/thuis/emma-pakt-thilly-aan',
         'info_dict': {
-            'id': 'mz-ast-11a587f8-b921-4266-82e2-0bce3e80d07f',
-            'display_id': 'herbekijk-sorry-voor-alles',
+            'id': 'md-ast-3a24ced2-64d7-44fb-b4ed-ed1aafbf90b8',
+            'display_id': 'emma-pakt-thilly-aan',
             'ext': 'mp4',
-            'title': 'Herbekijk Sorry voor alles',
-            'description': 'md5:8bb2805df8164e5eb95d6a7a29dc0dd3',
+            'title': 'Emma pakt Thilly aan',
+            'description': 'md5:c5c9b572388a99b2690030afa3f3bad7',
             'thumbnail': r're:^https?://.*\.jpg$',
-            'duration': 3788.06,
+            'duration': 118.24,
         },
         'params': {
             'skip_download': True,
         },
-        'skip': 'Episode no longer available',
+        'expected_warnings': ['is not a supported codec'],
     }, {
         'url': 'https://www.canvas.be/check-point/najaar-2016/de-politie-uw-vriend',
         'only_matching': True,
@@ -183,19 +207,44 @@ class VrtNUIE(GigyaBaseIE):
     IE_DESC = 'VrtNU.be'
     _VALID_URL = r'https?://(?:www\.)?vrt\.be/(?P<site_id>vrtnu)/(?:[^/]+/)*(?P<id>[^/?#&]+)'
     _TESTS = [{
+        # Available via old API endpoint
         'url': 'https://www.vrt.be/vrtnu/a-z/postbus-x/1/postbus-x-s1a1/',
         'info_dict': {
             'id': 'pbs-pub-2e2d8c27-df26-45c9-9dc6-90c78153044d$vid-90c932b1-e21d-4fb8-99b1-db7b49cf74de',
-            'ext': 'flv',
+            'ext': 'mp4',
             'title': 'De zwarte weduwe',
-            'description': 'md5:d90c21dced7db869a85db89a623998d4',
+            'description': 'md5:db1227b0f318c849ba5eab1fef895ee4',
             'duration': 1457.04,
             'thumbnail': r're:^https?://.*\.jpg$',
-            'season': '1',
+            'season': 'Season 1',
             'season_number': 1,
             'episode_number': 1,
         },
-        'skip': 'This video is only available for registered users'
+        'skip': 'This video is only available for registered users',
+        'params': {
+            'username': '<snip>',
+            'password': '<snip>',
+        },
+        'expected_warnings': ['is not a supported codec'],
+    }, {
+        # Only available via new API endpoint
+        'url': 'https://www.vrt.be/vrtnu/a-z/kamp-waes/1/kamp-waes-s1a5/',
+        'info_dict': {
+            'id': 'pbs-pub-0763b56c-64fb-4d38-b95b-af60bf433c71$vid-ad36a73c-4735-4f1f-b2c0-a38e6e6aa7e1',
+            'ext': 'mp4',
+            'title': 'Aflevering 5',
+            'description': 'Wie valt door de mand tijdens een missie?',
+            'duration': 2967.06,
+            'season': 'Season 1',
+            'season_number': 1,
+            'episode_number': 5,
+        },
+        'skip': 'This video is only available for registered users',
+        'params': {
+            'username': '<snip>',
+            'password': '<snip>',
+        },
+        'expected_warnings': ['Unable to download asset JSON', 'is not a supported codec', 'Unknown MIME type'],
     }]
     _NETRC_MACHINE = 'vrtnu'
     _APIKEY = '3_0Z2HujMtiWq_pkAjgnS2Md2E11a1AwZjYiBETtwNE-EoEHDINgtnvcAOpNgmrVGy'

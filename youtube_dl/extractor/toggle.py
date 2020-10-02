@@ -17,9 +17,9 @@ from ..utils import (
 
 class ToggleIE(InfoExtractor):
     IE_NAME = 'toggle'
-    _VALID_URL = r'https?://video\.toggle\.sg/(?:en|zh)/(?:[^/]+/){2,}(?P<id>[0-9]+)'
+    _VALID_URL = r'https?://(?:(?:www\.)?mewatch|video\.toggle)\.sg/(?:en|zh)/(?:[^/]+/){2,}(?P<id>[0-9]+)'
     _TESTS = [{
-        'url': 'http://video.toggle.sg/en/series/lion-moms-tif/trailers/lion-moms-premier/343115',
+        'url': 'http://www.mewatch.sg/en/series/lion-moms-tif/trailers/lion-moms-premier/343115',
         'info_dict': {
             'id': '343115',
             'ext': 'mp4',
@@ -33,7 +33,7 @@ class ToggleIE(InfoExtractor):
         }
     }, {
         'note': 'DRM-protected video',
-        'url': 'http://video.toggle.sg/en/movies/dug-s-special-mission/341413',
+        'url': 'http://www.mewatch.sg/en/movies/dug-s-special-mission/341413',
         'info_dict': {
             'id': '341413',
             'ext': 'wvm',
@@ -48,7 +48,7 @@ class ToggleIE(InfoExtractor):
     }, {
         # this also tests correct video id extraction
         'note': 'm3u8 links are geo-restricted, but Android/mp4 is okay',
-        'url': 'http://video.toggle.sg/en/series/28th-sea-games-5-show/28th-sea-games-5-show-ep11/332861',
+        'url': 'http://www.mewatch.sg/en/series/28th-sea-games-5-show/28th-sea-games-5-show-ep11/332861',
         'info_dict': {
             'id': '332861',
             'ext': 'mp4',
@@ -65,19 +65,22 @@ class ToggleIE(InfoExtractor):
         'url': 'http://video.toggle.sg/en/clips/seraph-sun-aloysius-will-suddenly-sing-some-old-songs-in-high-pitch-on-set/343331',
         'only_matching': True,
     }, {
-        'url': 'http://video.toggle.sg/zh/series/zero-calling-s2-hd/ep13/336367',
+        'url': 'http://www.mewatch.sg/en/clips/seraph-sun-aloysius-will-suddenly-sing-some-old-songs-in-high-pitch-on-set/343331',
         'only_matching': True,
     }, {
-        'url': 'http://video.toggle.sg/en/series/vetri-s2/webisodes/jeeva-is-an-orphan-vetri-s2-webisode-7/342302',
+        'url': 'http://www.mewatch.sg/zh/series/zero-calling-s2-hd/ep13/336367',
         'only_matching': True,
     }, {
-        'url': 'http://video.toggle.sg/en/movies/seven-days/321936',
+        'url': 'http://www.mewatch.sg/en/series/vetri-s2/webisodes/jeeva-is-an-orphan-vetri-s2-webisode-7/342302',
         'only_matching': True,
     }, {
-        'url': 'https://video.toggle.sg/en/tv-show/news/may-2017-cna-singapore-tonight/fri-19-may-2017/512456',
+        'url': 'http://www.mewatch.sg/en/movies/seven-days/321936',
         'only_matching': True,
     }, {
-        'url': 'http://video.toggle.sg/en/channels/eleven-plus/401585',
+        'url': 'https://www.mewatch.sg/en/tv-show/news/may-2017-cna-singapore-tonight/fri-19-may-2017/512456',
+        'only_matching': True,
+    }, {
+        'url': 'http://www.mewatch.sg/en/channels/eleven-plus/401585',
         'only_matching': True,
     }]
 

@@ -17,6 +17,7 @@ from ..utils import (
     float_or_none,
     mimetype2ext,
     str_or_none,
+    try_get,
     unified_timestamp,
     update_url_query,
     url_or_none,
@@ -24,7 +25,14 @@ from ..utils import (
 
 
 class DRTVIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:www\.)?dr\.dk/(?:tv/se|nyheder|radio(?:/ondemand)?)/(?:[^/]+/)*(?P<id>[\da-z-]+)(?:[/#?]|$)'
+    _VALID_URL = r'''(?x)
+                    https?://
+                        (?:
+                            (?:www\.)?dr\.dk/(?:tv/se|nyheder|radio(?:/ondemand)?)/(?:[^/]+/)*|
+                            (?:www\.)?(?:dr\.dk|dr-massive\.com)/drtv/(?:se|episode)/
+                        )
+                        (?P<id>[\da-z_-]+)
+                    '''
     _GEO_BYPASS = False
     _GEO_COUNTRIES = ['DK']
     IE_NAME = 'drtv'
@@ -83,6 +91,26 @@ class DRTVIE(InfoExtractor):
     }, {
         'url': 'https://www.dr.dk/radio/p4kbh/regionale-nyheder-kh4/p4-nyheder-2019-06-26-17-30-9',
         'only_matching': True,
+    }, {
+        'url': 'https://www.dr.dk/drtv/se/bonderoeven_71769',
+        'info_dict': {
+            'id': '00951930010',
+            'ext': 'mp4',
+            'title': 'Bonderøven (1:8)',
+            'description': 'md5:3cf18fc0d3b205745d4505f896af8121',
+            'timestamp': 1546542000,
+            'upload_date': '20190103',
+            'duration': 2576.6,
+        },
+        'params': {
+            'skip_download': True,
+        },
+    }, {
+        'url': 'https://www.dr.dk/drtv/episode/bonderoeven_71769',
+        'only_matching': True,
+    }, {
+        'url': 'https://dr-massive.com/drtv/se/bonderoeven_71769',
+        'only_matching': True,
     }]
 
     def _real_extract(self, url):
@@ -100,13 +128,32 @@ class DRTVIE(InfoExtractor):
             webpage, 'video id', default=None)
 
         if not video_id:
-            video_id = compat_urllib_parse_unquote(self._search_regex(
+            video_id = self._search_regex(
                 r'(urn(?:%3A|:)dr(?:%3A|:)mu(?:%3A|:)programcard(?:%3A|:)[\da-f]+)',
-                webpage, 'urn'))
+                webpage, 'urn', default=None)
+            if video_id:
+                video_id = compat_urllib_parse_unquote(video_id)
+
+        _PROGRAMCARD_BASE = 'https://www.dr.dk/mu-online/api/1.4/programcard'
+        query = {'expanded': 'true'}
+
+        if video_id:
+            programcard_url = '%s/%s' % (_PROGRAMCARD_BASE, video_id)
+        else:
+            programcard_url = _PROGRAMCARD_BASE
+            page = self._parse_json(
+                self._search_regex(
+                    r'data\s*=\s*({.+?})\s*(?:;|</script)', webpage,
+                    'data'), '1')['cache']['page']
+            page = page[list(page.keys())[0]]
+            item = try_get(
+                page, (lambda x: x['item'], lambda x: x['entries'][0]['item']),
+                dict)
+            video_id = item['customId'].split(':')[-1]
+            query['productionnumber'] = video_id
 
         data = self._download_json(
-            'https://www.dr.dk/mu-online/api/1.4/programcard/%s' % video_id,
-            video_id, 'Downloading video JSON', query={'expanded': 'true'})
+            programcard_url, video_id, 'Downloading video JSON', query=query)
 
         title = str_or_none(data.get('Title')) or re.sub(
             r'\s*\|\s*(?:TV\s*\|\s*DR|DRTV)$', '',

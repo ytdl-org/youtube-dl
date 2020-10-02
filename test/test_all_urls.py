@@ -123,12 +123,6 @@ class TestAllURLsMatching(unittest.TestCase):
         self.assertMatch('http://video.pbs.org/viralplayer/2365173446/', ['pbs'])
         self.assertMatch('http://video.pbs.org/widget/partnerplayer/980042464/', ['pbs'])
 
-    def test_yahoo_https(self):
-        # https://github.com/ytdl-org/youtube-dl/issues/2701
-        self.assertMatch(
-            'https://screen.yahoo.com/smartwatches-latest-wearable-gadgets-163745379-cbs.html',
-            ['Yahoo'])
-
     def test_no_duplicated_ie_names(self):
         name_accu = collections.defaultdict(list)
         for ie in self.ies:

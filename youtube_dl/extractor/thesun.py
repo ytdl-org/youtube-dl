@@ -3,7 +3,7 @@ from __future__ import unicode_literals
 import re
 
 from .common import InfoExtractor
-from .ooyala import OoyalaIE
+from ..utils import extract_attributes
 
 
 class TheSunIE(InfoExtractor):
@@ -16,6 +16,7 @@ class TheSunIE(InfoExtractor):
         },
         'playlist_count': 2,
     }
+    BRIGHTCOVE_URL_TEMPLATE = 'http://players.brightcove.net/%s/default_default/index.html?videoId=%s'
 
     def _real_extract(self, url):
         article_id = self._match_id(url)
@@ -23,10 +24,15 @@ class TheSunIE(InfoExtractor):
         webpage = self._download_webpage(url, article_id)
 
         entries = []
-        for ooyala_id in re.findall(
-                r'<[^>]+\b(?:id\s*=\s*"thesun-ooyala-player-|data-content-id\s*=\s*")([^"]+)',
+        for video in re.findall(
+                r'<video[^>]+data-video-id-pending=[^>]+>',
                 webpage):
-            entries.append(OoyalaIE._build_url_result(ooyala_id))
+            attrs = extract_attributes(video)
+            video_id = attrs['data-video-id-pending']
+            account_id = attrs.get('data-account', '5067014667001')
+            entries.append(self.url_result(
+                self.BRIGHTCOVE_URL_TEMPLATE % (account_id, video_id),
+                'BrightcoveNew', video_id))
 
         return self.playlist_result(
             entries, article_id, self._og_search_title(webpage, fatal=False))

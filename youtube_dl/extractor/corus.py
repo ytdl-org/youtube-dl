@@ -4,7 +4,12 @@ from __future__ import unicode_literals
 import re
 
 from .theplatform import ThePlatformFeedIE
-from ..utils import int_or_none
+from ..utils import (
+    dict_get,
+    ExtractorError,
+    float_or_none,
+    int_or_none,
+)
 
 
 class CorusIE(ThePlatformFeedIE):
@@ -12,24 +17,49 @@ class CorusIE(ThePlatformFeedIE):
                     https?://
                         (?:www\.)?
                         (?P<domain>
-                            (?:globaltv|etcanada)\.com|
-                            (?:hgtv|foodnetwork|slice|history|showcase|bigbrothercanada)\.ca
+                            (?:
+                                globaltv|
+                                etcanada|
+                                seriesplus|
+                                wnetwork|
+                                ytv
+                            )\.com|
+                            (?:
+                                hgtv|
+                                foodnetwork|
+                                slice|
+                                history|
+                                showcase|
+                                bigbrothercanada|
+                                abcspark|
+                                disney(?:channel|lachaine)
+                            )\.ca
                         )
-                        /(?:video/(?:[^/]+/)?|(?:[^/]+/)+(?:videos/[a-z0-9-]+-|video\.html\?.*?\bv=))
-                        (?P<id>\d+)
+                        /(?:[^/]+/)*
+                        (?:
+                            video\.html\?.*?\bv=|
+                            videos?/(?:[^/]+/)*(?:[a-z0-9-]+-)?
+                        )
+                        (?P<id>
+                            [\da-f]{8}-[\da-f]{4}-[\da-f]{4}-[\da-f]{4}-[\da-f]{12}|
+                            (?:[A-Z]{4})?\d{12,20}
+                        )
                     '''
     _TESTS = [{
         'url': 'http://www.hgtv.ca/shows/bryan-inc/videos/movie-night-popcorn-with-bryan-870923331648/',
-        'md5': '05dcbca777bf1e58c2acbb57168ad3a6',
         'info_dict': {
             'id': '870923331648',
             'ext': 'mp4',
             'title': 'Movie Night Popcorn with Bryan',
             'description': 'Bryan whips up homemade popcorn, the old fashion way for Jojo and Lincoln.',
-            'uploader': 'SHWM-NEW',
             'upload_date': '20170206',
             'timestamp': 1486392197,
         },
+        'params': {
+            'format': 'bestvideo',
+            'skip_download': True,
+        },
+        'expected_warnings': ['Failed to parse JSON'],
     }, {
         'url': 'http://www.foodnetwork.ca/shows/chopped/video/episode/chocolate-obsession/video.html?v=872683587753',
         'only_matching': True,
@@ -48,58 +78,83 @@ class CorusIE(ThePlatformFeedIE):
     }, {
         'url': 'https://www.bigbrothercanada.ca/video/big-brother-canada-704/1457812035894/',
         'only_matching': True
+    }, {
+        'url': 'https://www.seriesplus.com/emissions/dre-mary-mort-sur-ordonnance/videos/deux-coeurs-battant/SERP0055626330000200/',
+        'only_matching': True
+    }, {
+        'url': 'https://www.disneychannel.ca/shows/gabby-duran-the-unsittables/video/crybaby-duran-clip/2f557eec-0588-11ea-ae2b-e2c6776b770e/',
+        'only_matching': True
     }]
-
-    _TP_FEEDS = {
-        'globaltv': {
-            'feed_id': 'ChQqrem0lNUp',
-            'account_id': 2269680845,
-        },
-        'etcanada': {
-            'feed_id': 'ChQqrem0lNUp',
-            'account_id': 2269680845,
-        },
-        'hgtv': {
-            'feed_id': 'L0BMHXi2no43',
-            'account_id': 2414428465,
-        },
-        'foodnetwork': {
-            'feed_id': 'ukK8o58zbRmJ',
-            'account_id': 2414429569,
-        },
-        'slice': {
-            'feed_id': '5tUJLgV2YNJ5',
-            'account_id': 2414427935,
-        },
-        'history': {
-            'feed_id': 'tQFx_TyyEq4J',
-            'account_id': 2369613659,
-        },
-        'showcase': {
-            'feed_id': '9H6qyshBZU3E',
-            'account_id': 2414426607,
-        },
-        'bigbrothercanada': {
-            'feed_id': 'ChQqrem0lNUp',
-            'account_id': 2269680845,
-        },
+    _GEO_BYPASS = False
+    _SITE_MAP = {
+        'globaltv': 'series',
+        'etcanada': 'series',
+        'foodnetwork': 'food',
+        'bigbrothercanada': 'series',
+        'disneychannel': 'disneyen',
+        'disneylachaine': 'disneyfr',
     }
 
     def _real_extract(self, url):
         domain, video_id = re.match(self._VALID_URL, url).groups()
-        feed_info = self._TP_FEEDS[domain.split('.')[0]]
-        return self._extract_feed_info('dtjsEC', feed_info['feed_id'], 'byId=' + video_id, video_id, lambda e: {
-            'episode_number': int_or_none(e.get('pl1$episode')),
-            'season_number': int_or_none(e.get('pl1$season')),
-            'series': e.get('pl1$show'),
-        }, {
-            'HLS': {
-                'manifest': 'm3u',
-            },
-            'DesktopHLS Default': {
-                'manifest': 'm3u',
-            },
-            'MP4 MBR': {
-                'manifest': 'm3u',
-            },
-        }, feed_info['account_id'])
+        site = domain.split('.')[0]
+        path = self._SITE_MAP.get(site, site)
+        if path != 'series':
+            path = 'migration/' + path
+        video = self._download_json(
+            'https://globalcontent.corusappservices.com/templates/%s/playlist/' % path,
+            video_id, query={'byId': video_id},
+            headers={'Accept': 'application/json'})[0]
+        title = video['title']
+
+        formats = []
+        for source in video.get('sources', []):
+            smil_url = source.get('file')
+            if not smil_url:
+                continue
+            source_type = source.get('type')
+            note = 'Downloading%s smil file' % (' ' + source_type if source_type else '')
+            resp = self._download_webpage(
+                smil_url, video_id, note, fatal=False,
+                headers=self.geo_verification_headers())
+            if not resp:
+                continue
+            error = self._parse_json(resp, video_id, fatal=False)
+            if error:
+                if error.get('exception') == 'GeoLocationBlocked':
+                    self.raise_geo_restricted(countries=['CA'])
+                raise ExtractorError(error['description'])
+            smil = self._parse_xml(resp, video_id, fatal=False)
+            if smil is None:
+                continue
+            namespace = self._parse_smil_namespace(smil)
+            formats.extend(self._parse_smil_formats(
+                smil, smil_url, video_id, namespace))
+        if not formats and video.get('drm'):
+            raise ExtractorError('This video is DRM protected.', expected=True)
+        self._sort_formats(formats)
+
+        subtitles = {}
+        for track in video.get('tracks', []):
+            track_url = track.get('file')
+            if not track_url:
+                continue
+            lang = 'fr' if site in ('disneylachaine', 'seriesplus') else 'en'
+            subtitles.setdefault(lang, []).append({'url': track_url})
+
+        metadata = video.get('metadata') or {}
+        get_number = lambda x: int_or_none(video.get('pl1$' + x) or metadata.get(x + 'Number'))
+
+        return {
+            'id': video_id,
+            'title': title,
+            'formats': formats,
+            'thumbnail': dict_get(video, ('defaultThumbnailUrl', 'thumbnail', 'image')),
+            'description': video.get('description'),
+            'timestamp': int_or_none(video.get('availableDate'), 1000),
+            'subtitles': subtitles,
+            'duration': float_or_none(metadata.get('duration')),
+            'series': dict_get(video, ('show', 'pl1$show')),
+            'season_number': get_number('season'),
+            'episode_number': get_number('episode'),
+        }

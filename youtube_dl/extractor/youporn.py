@@ -5,7 +5,6 @@ import re
 from .common import InfoExtractor
 from ..utils import (
     int_or_none,
-    sanitized_Request,
     str_to_int,
     unescapeHTML,
     unified_strdate,
@@ -15,7 +14,7 @@ from ..aes import aes_decrypt_text
 
 
 class YouPornIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:www\.)?youporn\.com/watch/(?P<id>\d+)/(?P<display_id>[^/?#&]+)'
+    _VALID_URL = r'https?://(?:www\.)?youporn\.com/(?:watch|embed)/(?P<id>\d+)(?:/(?P<display_id>[^/?#&]+))?'
     _TESTS = [{
         'url': 'http://www.youporn.com/watch/505835/sex-ed-is-it-safe-to-masturbate-daily/',
         'md5': '3744d24c50438cf5b6f6d59feb5055c2',
@@ -57,16 +56,28 @@ class YouPornIE(InfoExtractor):
         'params': {
             'skip_download': True,
         },
+    }, {
+        'url': 'https://www.youporn.com/embed/505835/sex-ed-is-it-safe-to-masturbate-daily/',
+        'only_matching': True,
+    }, {
+        'url': 'http://www.youporn.com/watch/505835',
+        'only_matching': True,
     }]
+
+    @staticmethod
+    def _extract_urls(webpage):
+        return re.findall(
+            r'<iframe[^>]+\bsrc=["\']((?:https?:)?//(?:www\.)?youporn\.com/embed/\d+)',
+            webpage)
 
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
         video_id = mobj.group('id')
-        display_id = mobj.group('display_id')
+        display_id = mobj.group('display_id') or video_id
 
-        request = sanitized_Request(url)
-        request.add_header('Cookie', 'age_verified=1')
-        webpage = self._download_webpage(request, display_id)
+        webpage = self._download_webpage(
+            'http://www.youporn.com/watch/%s' % video_id, display_id,
+            headers={'Cookie': 'age_verified=1'})
 
         title = self._html_search_regex(
             r'(?s)<div[^>]+class=["\']watchVideoTitle[^>]+>(.+?)</div>',

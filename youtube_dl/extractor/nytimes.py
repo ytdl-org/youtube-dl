@@ -69,10 +69,10 @@ class NYTimesBaseIE(InfoExtractor):
                     'width': int_or_none(video.get('width')),
                     'height': int_or_none(video.get('height')),
                     'filesize': get_file_size(video.get('file_size') or video.get('fileSize')),
-                    'tbr': int_or_none(video.get('bitrate'), 1000),
+                    'tbr': int_or_none(video.get('bitrate'), 1000) or None,
                     'ext': ext,
                 })
-        self._sort_formats(formats)
+        self._sort_formats(formats, ('height', 'width', 'filesize', 'tbr', 'fps', 'format_id'))
 
         thumbnails = []
         for image in video_data.get('images', []):

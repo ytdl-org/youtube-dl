@@ -8,7 +8,6 @@ from .common import InfoExtractor
 from ..compat import (
     compat_b64decode,
     compat_HTTPError,
-    compat_str,
 )
 from ..utils import (
     ExtractorError,
@@ -99,7 +98,7 @@ class LinuxAcademyIE(InfoExtractor):
             'sso': 'true',
         })
 
-        login_state_url = compat_str(urlh.geturl())
+        login_state_url = urlh.geturl()
 
         try:
             login_page = self._download_webpage(
@@ -129,7 +128,7 @@ class LinuxAcademyIE(InfoExtractor):
             })
 
         access_token = self._search_regex(
-            r'access_token=([^=&]+)', compat_str(urlh.geturl()),
+            r'access_token=([^=&]+)', urlh.geturl(),
             'access token')
 
         self._download_webpage(

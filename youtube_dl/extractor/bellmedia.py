@@ -22,10 +22,11 @@ class BellMediaIE(InfoExtractor):
                 bravo|
                 mtv|
                 space|
-                etalk
+                etalk|
+                marilyn
             )\.ca|
-            much\.com
-        )/.*?(?:\bvid(?:eoid)?=|-vid|~|%7E|/(?:episode)?)(?P<id>[0-9]{6,})'''
+            (?:much|cp24)\.com
+        )/.*?(?:\b(?:vid(?:eoid)?|clipId)=|-vid|~|%7E|/(?:episode)?)(?P<id>[0-9]{6,})'''
     _TESTS = [{
         'url': 'https://www.bnnbloomberg.ca/video/david-cockfield-s-top-picks~1403070',
         'md5': '36d3ef559cfe8af8efe15922cd3ce950',
@@ -61,6 +62,9 @@ class BellMediaIE(InfoExtractor):
     }, {
         'url': 'http://www.etalk.ca/video?videoid=663455',
         'only_matching': True,
+    }, {
+        'url': 'https://www.cp24.com/video?clipId=1982548',
+        'only_matching': True,
     }]
     _DOMAINS = {
         'thecomedynetwork': 'comedy',
@@ -70,6 +74,7 @@ class BellMediaIE(InfoExtractor):
         'animalplanet': 'aniplan',
         'etalk': 'ctv',
         'bnnbloomberg': 'bnn',
+        'marilyn': 'ctv_marilyn',
     }
 
     def _real_extract(self, url):

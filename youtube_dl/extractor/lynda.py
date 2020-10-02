@@ -117,6 +117,10 @@ class LyndaIE(LyndaBaseIE):
     }, {
         'url': 'https://www.lynda.com/de/Graphic-Design-tutorials/Willkommen-Grundlagen-guten-Gestaltung/393570/393572-4.html',
         'only_matching': True,
+    }, {
+        # Status="NotFound", Message="Transcript not found"
+        'url': 'https://www.lynda.com/ASP-NET-tutorials/What-you-should-know/5034180/2811512-4.html',
+        'only_matching': True,
     }]
 
     def _raise_unavailable(self, video_id):
@@ -247,12 +251,17 @@ class LyndaIE(LyndaBaseIE):
 
     def _get_subtitles(self, video_id):
         url = 'https://www.lynda.com/ajax/player?videoId=%s&type=transcript' % video_id
-        subs = self._download_json(url, None, False)
+        subs = self._download_webpage(
+            url, video_id, 'Downloading subtitles JSON', fatal=False)
+        if not subs or 'Status="NotFound"' in subs:
+            return {}
+        subs = self._parse_json(subs, video_id, fatal=False)
+        if not subs:
+            return {}
         fixed_subs = self._fix_subtitles(subs)
         if fixed_subs:
             return {'en': [{'ext': 'srt', 'data': fixed_subs}]}
-        else:
-            return {}
+        return {}
 
 
 class LyndaCourseIE(LyndaBaseIE):

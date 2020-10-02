@@ -4,8 +4,10 @@ import re
 
 from .common import InfoExtractor
 from ..utils import (
+    determine_ext,
     ExtractorError,
     int_or_none,
+    merge_dicts,
     str_to_int,
     unified_strdate,
     url_or_none,
@@ -13,7 +15,7 @@ from ..utils import (
 
 
 class RedTubeIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:(?:www\.)?redtube\.com/|embed\.redtube\.com/\?.*?\bid=)(?P<id>[0-9]+)'
+    _VALID_URL = r'https?://(?:(?:\w+\.)?redtube\.com/|embed\.redtube\.com/\?.*?\bid=)(?P<id>[0-9]+)'
     _TESTS = [{
         'url': 'http://www.redtube.com/66418',
         'md5': 'fc08071233725f26b8f014dba9590005',
@@ -29,6 +31,9 @@ class RedTubeIE(InfoExtractor):
     }, {
         'url': 'http://embed.redtube.com/?bgcolor=000000&id=1443286',
         'only_matching': True,
+    }, {
+        'url': 'http://it.redtube.com/66418',
+        'only_matching': True,
     }]
 
     @staticmethod
@@ -42,14 +47,24 @@ class RedTubeIE(InfoExtractor):
         webpage = self._download_webpage(
             'http://www.redtube.com/%s' % video_id, video_id)
 
-        if any(s in webpage for s in ['video-deleted-info', '>This video has been removed']):
-            raise ExtractorError('Video %s has been removed' % video_id, expected=True)
+        ERRORS = (
+            (('video-deleted-info', '>This video has been removed'), 'has been removed'),
+            (('private_video_text', '>This video is private', '>Send a friend request to its owner to be able to view it'), 'is private'),
+        )
 
-        title = self._html_search_regex(
-            (r'<h(\d)[^>]+class="(?:video_title_text|videoTitle)[^"]*">(?P<title>(?:(?!\1).)+)</h\1>',
-             r'(?:videoTitle|title)\s*:\s*(["\'])(?P<title>(?:(?!\1).)+)\1',),
-            webpage, 'title', group='title',
-            default=None) or self._og_search_title(webpage)
+        for patterns, message in ERRORS:
+            if any(p in webpage for p in patterns):
+                raise ExtractorError(
+                    'Video %s %s' % (video_id, message), expected=True)
+
+        info = self._search_json_ld(webpage, video_id, default={})
+
+        if not info.get('title'):
+            info['title'] = self._html_search_regex(
+                (r'<h(\d)[^>]+class="(?:video_title_text|videoTitle|video_title)[^"]*">(?P<title>(?:(?!\1).)+)</h\1>',
+                 r'(?:videoTitle|title)\s*:\s*(["\'])(?P<title>(?:(?!\1).)+)\1',),
+                webpage, 'title', group='title',
+                default=None) or self._og_search_title(webpage)
 
         formats = []
         sources = self._parse_json(
@@ -66,13 +81,19 @@ class RedTubeIE(InfoExtractor):
                     })
         medias = self._parse_json(
             self._search_regex(
-                r'mediaDefinition\s*:\s*(\[.+?\])', webpage,
+                r'mediaDefinition["\']?\s*:\s*(\[.+?}\s*\])', webpage,
                 'media definitions', default='{}'),
             video_id, fatal=False)
         if medias and isinstance(medias, list):
             for media in medias:
                 format_url = url_or_none(media.get('videoUrl'))
                 if not format_url:
+                    continue
+                if media.get('format') == 'hls' or determine_ext(format_url) == 'm3u8':
+                    formats.extend(self._extract_m3u8_formats(
+                        format_url, video_id, 'mp4',
+                        entry_protocol='m3u8_native', m3u8_id='hls',
+                        fatal=False))
                     continue
                 format_id = media.get('quality')
                 formats.append({
@@ -88,28 +109,28 @@ class RedTubeIE(InfoExtractor):
 
         thumbnail = self._og_search_thumbnail(webpage)
         upload_date = unified_strdate(self._search_regex(
-            r'<span[^>]+>ADDED ([^<]+)<',
-            webpage, 'upload date', fatal=False))
+            r'<span[^>]+>(?:ADDED|Published on) ([^<]+)<',
+            webpage, 'upload date', default=None))
         duration = int_or_none(self._og_search_property(
             'video:duration', webpage, default=None) or self._search_regex(
                 r'videoDuration\s*:\s*(\d+)', webpage, 'duration', default=None))
         view_count = str_to_int(self._search_regex(
             (r'<div[^>]*>Views</div>\s*<div[^>]*>\s*([\d,.]+)',
-             r'<span[^>]*>VIEWS</span>\s*</td>\s*<td>\s*([\d,.]+)'),
-            webpage, 'view count', fatal=False))
+             r'<span[^>]*>VIEWS</span>\s*</td>\s*<td>\s*([\d,.]+)',
+             r'<span[^>]+\bclass=["\']video_view_count[^>]*>\s*([\d,.]+)'),
+            webpage, 'view count', default=None))
 
         # No self-labeling, but they describe themselves as
         # "Home of Videos Porno"
         age_limit = 18
 
-        return {
+        return merge_dicts(info, {
             'id': video_id,
             'ext': 'mp4',
-            'title': title,
             'thumbnail': thumbnail,
             'upload_date': upload_date,
             'duration': duration,
             'view_count': view_count,
             'age_limit': age_limit,
             'formats': formats,
-        }
+        })

@@ -4,7 +4,6 @@ from __future__ import unicode_literals
 import re
 
 from .common import InfoExtractor
-from ..compat import compat_str
 from ..utils import (
     ExtractorError,
     int_or_none,
@@ -151,7 +150,7 @@ class TumblrIE(InfoExtractor):
         url = 'http://%s.tumblr.com/post/%s/' % (blog, video_id)
         webpage, urlh = self._download_webpage_handle(url, video_id)
 
-        redirect_url = compat_str(urlh.geturl())
+        redirect_url = urlh.geturl()
         if 'tumblr.com/safe-mode' in redirect_url or redirect_url.startswith('/safe-mode'):
             raise ExtractorError(
                 'This Tumblr may contain sensitive media. '

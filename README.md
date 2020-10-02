@@ -434,9 +434,9 @@ Alternatively, refer to the [developer instructions](#developer-instructions) fo
                                      either the path to the binary or its
                                      containing directory.
     --exec CMD                       Execute a command on the file after
-                                     downloading, similar to find's -exec
-                                     syntax. Example: --exec 'adb push {}
-                                     /sdcard/Music/ && rm {}'
+                                     downloading and post-processing, similar to
+                                     find's -exec syntax. Example: --exec 'adb
+                                     push {} /sdcard/Music/ && rm {}'
     --convert-subs FORMAT            Convert the subtitles to other format
                                      (currently supported: srt|ass|vtt|lrc)
 
@@ -545,7 +545,7 @@ The basic usage is not to set any template arguments when downloading a single f
  - `extractor` (string): Name of the extractor
  - `extractor_key` (string): Key name of the extractor
  - `epoch` (numeric): Unix epoch when creating the file
- - `autonumber` (numeric): Five-digit number that will be increased with each download, starting at zero
+ - `autonumber` (numeric): Number that will be increased with each download, starting at `--autonumber-start`
  - `playlist` (string): Name or id of the playlist that contains the video
  - `playlist_index` (numeric): Index of the video in the playlist padded with leading zeros according to the total length of the playlist
  - `playlist_id` (string): Playlist identifier
@@ -752,8 +752,8 @@ As a last resort, you can also uninstall the version installed by your package m
 Afterwards, simply follow [our manual installation instructions](https://ytdl-org.github.io/youtube-dl/download.html):
 
 ```
-sudo wget https://yt-dl.org/latest/youtube-dl -O /usr/local/bin/youtube-dl
-sudo chmod a+x /usr/local/bin/youtube-dl
+sudo wget https://yt-dl.org/downloads/latest/youtube-dl -O /usr/local/bin/youtube-dl
+sudo chmod a+rx /usr/local/bin/youtube-dl
 hash -r
 ```
 
@@ -835,7 +835,9 @@ In February 2015, the new YouTube player contained a character sequence in a str
 
 ### HTTP Error 429: Too Many Requests or 402: Payment Required
 
-These two error codes indicate that the service is blocking your IP address because of overuse. Contact the service and ask them to unblock your IP address, or - if you have acquired a whitelisted IP address already - use the [`--proxy` or `--source-address` options](#network-options) to select another IP address.
+These two error codes indicate that the service is blocking your IP address because of overuse. Usually this is a soft block meaning that you can gain access again after solving CAPTCHA. Just open a browser and solve a CAPTCHA the service suggests you and after that [pass cookies](#how-do-i-pass-cookies-to-youtube-dl) to youtube-dl. Note that if your machine has multiple external IPs then you should also pass exactly the same IP you've used for solving CAPTCHA with [`--source-address`](#network-options). Also you may need to pass a `User-Agent` HTTP header of your browser with [`--user-agent`](#workarounds).
+
+If this is not the case (no CAPTCHA suggested to solve by the service) then you can contact the service and ask them to unblock your IP address, or - if you have acquired a whitelisted IP address already - use the [`--proxy` or `--source-address` options](#network-options) to select another IP address.
 
 ### SyntaxError: Non-ASCII character
 
@@ -1030,7 +1032,7 @@ After you have ensured this site is distributing its content legally, you can fo
 5. Add an import in [`youtube_dl/extractor/extractors.py`](https://github.com/ytdl-org/youtube-dl/blob/master/youtube_dl/extractor/extractors.py).
 6. Run `python test/test_download.py TestDownload.test_YourExtractor`. This *should fail* at first, but you can continually re-run it until you're done. If you decide to add more than one test, then rename ``_TEST`` to ``_TESTS`` and make it into a list of dictionaries. The tests will then be named `TestDownload.test_YourExtractor`, `TestDownload.test_YourExtractor_1`, `TestDownload.test_YourExtractor_2`, etc. Note that tests with `only_matching` key in test's dict are not counted in.
 7. Have a look at [`youtube_dl/extractor/common.py`](https://github.com/ytdl-org/youtube-dl/blob/master/youtube_dl/extractor/common.py) for possible helper methods and a [detailed description of what your extractor should and may return](https://github.com/ytdl-org/youtube-dl/blob/7f41a598b3fba1bcab2817de64a08941200aa3c8/youtube_dl/extractor/common.py#L94-L303). Add tests and code for as many as you want.
-8. Make sure your code follows [youtube-dl coding conventions](#youtube-dl-coding-conventions) and check the code with [flake8](http://flake8.pycqa.org/en/latest/index.html#quickstart):
+8. Make sure your code follows [youtube-dl coding conventions](#youtube-dl-coding-conventions) and check the code with [flake8](https://flake8.pycqa.org/en/latest/index.html#quickstart):
 
         $ flake8 youtube_dl/extractor/yourextractor.py
 
@@ -1214,6 +1216,72 @@ Incorrect:
 ```python
 'https://www.youtube.com/watch?v=FqZTN594JQw&list='
 'PLMYEtVRpaqY00V9W81Cwmzp6N6vZqfUKD4'
+```
+
+### Inline values
+
+Extracting variables is acceptable for reducing code duplication and improving readability of complex expressions. However, you should avoid extracting variables used only once and moving them to opposite parts of the extractor file, which makes reading the linear flow difficult.
+
+#### Example
+
+Correct:
+
+```python
+title = self._html_search_regex(r'<title>([^<]+)</title>', webpage, 'title')
+```
+
+Incorrect:
+
+```python
+TITLE_RE = r'<title>([^<]+)</title>'
+# ...some lines of code...
+title = self._html_search_regex(TITLE_RE, webpage, 'title')
+```
+
+### Collapse fallbacks
+
+Multiple fallback values can quickly become unwieldy. Collapse multiple fallback values into a single expression via a list of patterns.
+
+#### Example
+
+Good:
+
+```python
+description = self._html_search_meta(
+    ['og:description', 'description', 'twitter:description'],
+    webpage, 'description', default=None)
+```
+
+Unwieldy:
+
+```python
+description = (
+    self._og_search_description(webpage, default=None)
+    or self._html_search_meta('description', webpage, default=None)
+    or self._html_search_meta('twitter:description', webpage, default=None))
+```
+
+Methods supporting list of patterns are: `_search_regex`, `_html_search_regex`, `_og_search_property`, `_html_search_meta`.
+
+### Trailing parentheses
+
+Always move trailing parentheses after the last argument.
+
+#### Example
+
+Correct:
+
+```python
+    lambda x: x['ResultSet']['Result'][0]['VideoUrlSet']['VideoUrl'],
+    list)
+```
+
+Incorrect:
+
+```python
+    lambda x: x['ResultSet']['Result'][0]['VideoUrlSet']['VideoUrl'],
+    list,
+)
 ```
 
 ### Use convenience conversion and parsing functions
