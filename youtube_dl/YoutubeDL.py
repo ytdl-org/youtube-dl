@@ -340,10 +340,8 @@ class YoutubeDL(object):
     _num_downloads = None
     _screen_file = None
 
-    def __init__(self, params=None, auto_init=True):
+    def __init__(self, params={}, auto_init=True):
         """Create a FileDownloader object with the given options."""
-        if params is None:
-            params = {}
         self._ies = []
         self._ies_instances = {}
         self._pps = []
