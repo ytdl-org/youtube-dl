@@ -14,12 +14,27 @@ class RtlNlIE(InfoExtractor):
     _VALID_URL = r'''(?x)
         https?://(?:(?:www|static)\.)?
         (?:
-            rtlxl\.nl/[^\#]*\#!/[^/]+/|
-            rtl\.nl/(?:(?:system/videoplayer/(?:[^/]+/)+(?:video_)?embed\.html|embed)\b.+?\buuid=|video/)
+            rtlxl\.nl/(?:[^\#]*\#!|programma)/[^/]+/|
+            rtl\.nl/(?:(?:system/videoplayer/(?:[^/]+/)+(?:video_)?embed\.html|embed)\b.+?\buuid=|video/)|
+            embed\.rtl\.nl/\#uuid=
         )
         (?P<id>[0-9a-f-]+)'''
 
     _TESTS = [{
+        # new URL schema
+        'url': 'https://www.rtlxl.nl/programma/rtl-nieuws/0bd1384d-d970-3086-98bb-5c104e10c26f',
+        'md5': '490428f1187b60d714f34e1f2e3af0b6',
+        'info_dict': {
+            'id': '0bd1384d-d970-3086-98bb-5c104e10c26f',
+            'ext': 'mp4',
+            'title': 'RTL Nieuws',
+            'description': 'md5:d41d8cd98f00b204e9800998ecf8427e',
+            'timestamp': 1593293400,
+            'upload_date': '20200627',
+            'duration': 661.08,
+        },
+    }, {
+        # old URL schema
         'url': 'http://www.rtlxl.nl/#!/rtl-nieuws-132237/82b1aad1-4a14-3d7b-b554-b0aed1b2c416',
         'md5': '473d1946c1fdd050b2c0161a4b13c373',
         'info_dict': {
@@ -31,6 +46,7 @@ class RtlNlIE(InfoExtractor):
             'upload_date': '20160429',
             'duration': 1167.96,
         },
+        'skip': '404',
     }, {
         # best format available a3t
         'url': 'http://www.rtl.nl/system/videoplayer/derden/rtlnieuws/video_embed.html#uuid=84ae5571-ac25-4225-ae0c-ef8d9efb2aed/autoplay=false',
@@ -75,6 +91,10 @@ class RtlNlIE(InfoExtractor):
         'only_matching': True,
     }, {
         'url': 'https://static.rtl.nl/embed/?uuid=1a2970fc-5c0b-43ff-9fdc-927e39e6d1bc&autoplay=false&publicatiepunt=rtlnieuwsnl',
+        'only_matching': True,
+    }, {
+        # new embed URL schema
+        'url': 'https://embed.rtl.nl/#uuid=84ae5571-ac25-4225-ae0c-ef8d9efb2aed/autoplay=false',
         'only_matching': True,
     }]
 
