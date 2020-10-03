@@ -1,11 +1,12 @@
 # coding: utf-8
 from __future__ import unicode_literals
 
+import json
 import os
 
 from .common import InfoExtractor
 from ..compat import compat_urllib_parse_unquote, compat_str
-from ..utils import parse_iso8601, ExtractorError, try_get, urljoin
+from ..utils import parse_iso8601, ExtractorError, try_get, urljoin, sanitized_Request
 
 
 class NebulaIE(InfoExtractor):
@@ -68,6 +69,22 @@ class NebulaIE(InfoExtractor):
         },
     ]
     _WORKING = True   # FIXME: should this be set to False, to hide the tests from CI, given that the unit tests require an auth cookie of a (paid) subscription?
+    _NETRC_MACHINE = 'watchnebula'
+
+    def _perform_login(self, username, password, video_id):
+        """
+        Perform login to Nebula.
+
+        Takes a username (email address) and password. Returns a Nebula token.
+        """
+        data = json.dumps({'email': username, 'password': password}).encode('utf8')
+        request = sanitized_Request(method='POST',
+                                    url='https://api.watchnebula.com/api/v1/auth/login/',
+                                    data=data,
+                                    headers={'content-type': 'application/json'})
+        response = self._download_json(request, fatal=True, video_id=video_id,
+                                       note='Logging in to Nebula')
+        return response['key']
 
     def _retrieve_nebula_auth(self, video_id):
         """
@@ -79,6 +96,11 @@ class NebulaIE(InfoExtractor):
 
         # TODO: are these authentication methods, in this order, the best practice for youtube-dl?
         """
+
+        username, password = self._get_login_info()
+        nebula_token = self._perform_login(username, password, video_id)
+        return nebula_token
+
         nebula_token = self._downloader.params.get('videopassword')
         if not nebula_token:
             # TODO: is there a helper to do all this cookie extraction?
