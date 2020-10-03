@@ -670,7 +670,6 @@ from .myvi import (
 from .myvidster import MyVidsterIE
 from .nationalgeographic import (
     NationalGeographicVideoIE,
-    NationalGeographicTVIE,
 )
 from .naver import NaverIE
 from .nba import NBAIE

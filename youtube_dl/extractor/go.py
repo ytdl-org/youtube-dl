@@ -38,13 +38,17 @@ class GoIE(AdobePassIE):
         'disneynow': {
             'brand': '011',
             'resource_id': 'Disney',
+        },
+        'nationalgeographic': {
+            'brand': '026',
+            'requestor_id': 'dtci',
         }
     }
     _VALID_URL = r'''(?x)
                     https?://
                         (?:
                             (?:(?P<sub_domain>%s)\.)?go|
-                            (?P<sub_domain_2>abc|freeform|disneynow)
+                            (?:www\.)?(?P<sub_domain_2>abc|freeform|disneynow|nationalgeographic)
                         )\.com/
                         (?:
                             (?:[^/]+/)*(?P<id>[Vv][Dd][Kk][Aa]\w+)|
@@ -93,6 +97,19 @@ class GoIE(AdobePassIE):
             'title': 'The Bet',
             'description': 'md5:c66de8ba2e92c6c5c113c3ade84ab404',
             'age_limit': 14,
+        },
+        'params': {
+            'geo_bypass_ip_block': '3.244.239.0/24',
+            # m3u8 download
+            'skip_download': True,
+        },
+    }, {
+        'url': 'https://www.nationalgeographic.com/tv/shows/live-free-or-die/episode-guide/season-01/episode-05-butchers-and-builders/vdka10914748',
+        'info_dict': {
+            'id': 'VDKA10914748',
+            'ext': 'mp4',
+            'title': 'Butchers and Builders',
+            'description': 'md5:25b8b04d5c21fbed3644c0c17c3a41df',
         },
         'params': {
             'geo_bypass_ip_block': '3.244.239.0/24',
