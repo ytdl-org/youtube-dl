@@ -918,7 +918,9 @@ from .rbmaradio import RBMARadioIE
 from .rds import RDSIE
 from .redbulltv import (
     RedBullTVIE,
+    RedBullEmbedIE,
     RedBullTVRrnContentIE,
+    RedBullIE,
 )
 from .reddit import (
     RedditIE,
@@ -1229,14 +1231,11 @@ from .twentymin import TwentyMinutenIE
 from .twentythreevideo import TwentyThreeVideoIE
 from .twitcasting import TwitCastingIE
 from .twitch import (
-    TwitchVideoIE,
-    TwitchChapterIE,
     TwitchVodIE,
-    TwitchProfileIE,
-    TwitchAllVideosIE,
-    TwitchUploadsIE,
-    TwitchPastBroadcastsIE,
-    TwitchHighlightsIE,
+    TwitchCollectionIE,
+    TwitchVideosIE,
+    TwitchVideosClipsIE,
+    TwitchVideosCollectionsIE,
     TwitchStreamIE,
     TwitchClipsIE,
 )
