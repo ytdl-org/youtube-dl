@@ -852,6 +852,7 @@ from .playplustv import PlayPlusTVIE
 from .plays import PlaysTVIE
 from .playtvak import PlaytvakIE
 from .playvid import PlayvidIE
+from .playvids import PlayvidsIE
 from .playwire import PlaywireIE
 from .pluralsight import (
     PluralsightIE,

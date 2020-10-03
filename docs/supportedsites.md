@@ -666,6 +666,7 @@
  - **PlaysTV**
  - **Playtvak**: Playtvak.cz, iDNES.cz and Lidovky.cz
  - **Playvid**
+ - **Playvids**
  - **Playwire**
  - **pluralsight**
  - **pluralsight:course**
