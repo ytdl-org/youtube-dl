@@ -40,7 +40,7 @@ class NebulaIE(InfoExtractor):
         },
         {
             'url': 'https://watchnebula.com/videos/the-logistics-of-d-day-landing-craft-how-the-allies-got-ashore',
-            'md5': 'b0b171504d67e2822179149ccd6787db',
+            'md5': '6d4edd14ce65720fa63aba5c583fb328',
             'info_dict': {
                 'id': '5e7e78171aaf320001fbd6be',
                 'ext': 'mp4',
@@ -54,7 +54,7 @@ class NebulaIE(InfoExtractor):
         },
         {
             'url': 'https://watchnebula.com/videos/money-episode-1-the-draw',
-            'md5': '98e96346caa3b303fec4493c5d49dcb5',
+            'md5': '8c7d272910eea320f6f8e6d3084eecf5',
             'info_dict': {
                 'id': '5e779ebdd157bc0001d1c75a',
                 'ext': 'mp4',
