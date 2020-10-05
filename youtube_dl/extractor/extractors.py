@@ -18,6 +18,11 @@ from .acast import (
     ACastIE,
     ACastChannelIE,
 )
+from .acfun import (
+    AcfunIE,
+    AcfunBangumiIE,
+    AcfunLiveIE,
+)
 from .adn import ADNIE
 from .adobeconnect import AdobeConnectIE
 from .adobetv import (
