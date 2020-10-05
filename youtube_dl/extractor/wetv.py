@@ -88,6 +88,9 @@ class WeTvIE(WeTvBaseInfoExtractor):
         'url': 'https://wetv.vip/en/play/jenizogwk2t8400/o00318x0wds',
         'only_matching': True,
     }, {
+        'url': "https://wetv.vip/en/play/jenizogwk2t8400-The%20King's%20Avatar/play?vid=o00318x0wds",
+        'only_matching': True,
+    }, {
         # user video
         'url': 'https://wetv.vip/en/play/a3150lwr4jn-Ve-Po-Ad%20Review%20%2F%20HowTo',
         'md5': 'b053543f584bb4ae10767b5c6bf67807',
@@ -283,7 +286,11 @@ class WeTvPlaylistIE(WeTvBaseInfoExtractor):
             (?:[a-z]{2}(?:-[a-z]{2})?/)?
             play(?:/|\?cid=)
             (?P<id>[a-z\d]{15})
-            (?:$|[^a-z\d])'''
+            (?:-[^/]*)?
+            (?:
+                $|
+                /(?!(?:play\?vid=)?[a-z\d]{11})
+            )'''
     _TESTS = [{
         'url': 'https://wetv.vip/en/play/jenizogwk2t8400',
         'info_dict': {
