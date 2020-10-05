@@ -18,6 +18,7 @@ from ..compat import (
     compat_urlparse,
 )
 from ..utils import (
+    ExtractorError,
     int_or_none,
     parse_duration,
     smuggle_url,
@@ -121,7 +122,7 @@ class WeTvIE(WeTvBaseInfoExtractor):
                 'ext': 'mp4',
                 'title': 'Gokukoku no Brynhildr - "Ichiban Boshi" \u2014 Full Ending',
             },
-        }
+        },
     ]
 
     @staticmethod
@@ -190,9 +191,19 @@ class WeTvIE(WeTvBaseInfoExtractor):
         jsonp_url = self.generate_jsonp_url(quality, video_id, *args)
         # "accept-encoding: gzip" results in
         # EOFError: Compressed file ended before the end-of-stream marker was reached
-        return self._download_json(jsonp_url, video_id, transform_source=strip_jsonp,
+        data = self._download_json(jsonp_url, video_id, transform_source=strip_jsonp,
                                    note='Downloading {} metadata'.format(quality),
                                    headers={'Accept-Encoding': 'deflate'})
+
+        error_code = data.get('exem')
+        if error_code == 0:
+            return data
+        elif error_code == -2:
+            raise ExtractorError('This video is only available for VIP users.', expected=True)
+        elif error_code == -12:
+            raise ExtractorError('Bad encryption parameter')
+        else:
+            raise ExtractorError('Unknown error: [{}] {}'.format(error_code, data.get('msg')))
 
     @staticmethod
     def extract_qualities(data):
