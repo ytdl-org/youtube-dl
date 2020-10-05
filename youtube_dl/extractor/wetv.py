@@ -76,39 +76,53 @@ class WeTvIE(WeTvBaseInfoExtractor):
         )
         (?P<id>[a-z\d]{11})
         (?:$|[^a-z\d])'''
-    _TESTS = [{
-        'url': 'https://wetv.vip/play?vid=o00318x0wds',
-        'md5': '6b07174a61ed9c1dfb8defab3b40ba12',
-        'info_dict': {
-            'id': 'o00318x0wds',
-            'ext': 'mp4',
-            'title': "EP1\uff1aThe King's Avatar",
+    _TESTS = [
+        {
+            'url': 'https://wetv.vip/play?vid=o00318x0wds',
+            'md5': 'e07ac4c842ed9363ee8a70ee3b72b047',
+            'info_dict': {
+                'id': 'o00318x0wds',
+                'ext': 'mp4',
+                'title': "EP1\uff1aThe King's Avatar",
+                'thumbnail': r're:^https?://.*\.png.*$',
+                'duration': 2696,
+            },
+            'params': {
+                'hls_prefer_native': True,
+            },
+        },
+        {
+            'url': 'https://wetv.vip/en/play/jenizogwk2t8400/o00318x0wds',
+            'only_matching': True,
+        },
+        {
+            'url': "https://wetv.vip/en/play/jenizogwk2t8400-The%20King's%20Avatar/play?vid=o00318x0wds",
+            'only_matching': True,
+        },
+        {
+            'url': 'https://wetv.vip/en/play/a3150lwr4jn-Ve-Po-Ad%20Review%20%2F%20HowTo',
+            'note': 'user video',
+            'md5': '551b6d76d72a67933f25e6b7b078c865',
+            'info_dict': {
+                'id': 'a3150lwr4jn',
+                'ext': 'mp4',
+                'title': 'Ve-Po-Ad Review / HowTo',
+            },
+            'params': {
+                'hls_prefer_native': True,
+            },
+        },
+        {
+            'url': 'https://wetv.vip/en/play/h31438yuulr',
+            'note': 'non-m3u8',
+            'md5': 'c1b83ac4653d38b2d5e423caeab4148b',
+            'info_dict': {
+                'id': 'h31438yuulr',
+                'ext': 'mp4',
+                'title': 'Gokukoku no Brynhildr - "Ichiban Boshi" \u2014 Full Ending',
+            },
         }
-    }, {
-        'url': 'https://wetv.vip/en/play/jenizogwk2t8400/o00318x0wds',
-        'only_matching': True,
-    }, {
-        'url': "https://wetv.vip/en/play/jenizogwk2t8400-The%20King's%20Avatar/play?vid=o00318x0wds",
-        'only_matching': True,
-    }, {
-        # user video
-        'url': 'https://wetv.vip/en/play/a3150lwr4jn-Ve-Po-Ad%20Review%20%2F%20HowTo',
-        'md5': 'b053543f584bb4ae10767b5c6bf67807',
-        'info_dict': {
-            'id': 'a3150lwr4jn',
-            'ext': 'mp4',
-            'title': 'Ve-Po-Ad Review / HowTo',
-        }
-    }, {
-        # non-m3u8
-        'url': 'https://wetv.vip/en/play/h31438yuulr',
-        'md5': 'c1b83ac4653d38b2d5e423caeab4148b',
-        'info_dict': {
-            'id': 'h31438yuulr',
-            'ext': 'mp4',
-            'title': 'Gokukoku no Brynhildr - "Ichiban Boshi" \u2014 Full Ending',
-        }
-    }]
+    ]
 
     @staticmethod
     def create_guid():
@@ -291,18 +305,31 @@ class WeTvPlaylistIE(WeTvBaseInfoExtractor):
                 $|
                 /(?!(?:play\?vid=)?[a-z\d]{11})
             )'''
-    _TESTS = [{
-        'url': 'https://wetv.vip/en/play/jenizogwk2t8400',
-        'info_dict': {
-            'id': 'jenizogwk2t8400',
-            'title': "The King's Avatar",
-            'description': 'md5:eca1c149133af485673d7676d4eff0c9',
+    _TESTS = [
+        {
+            'url': 'https://wetv.vip/en/play/jenizogwk2t8400',
+            'info_dict': {
+                'id': 'jenizogwk2t8400',
+                'title': "The King's Avatar",
+                'description': 'md5:eca1c149133af485673d7676d4eff0c9',
+            },
+            'playlist_count': 40,
         },
-        'playlist_count': 40,
-    }, {
-        'url': 'https://wetv.vip/play?cid=jenizogwk2t8400',
-        'only_matching': True,
-    }]
+        {
+            'url': 'https://wetv.vip/play?cid=jenizogwk2t8400',
+            'only_matching': True,
+        },
+        {
+            'url': 'https://wetv.vip/en/play/0odpmck0od6ylsb',
+            'note': 'movie',
+            'info_dict': {
+                'id': '0odpmck0od6ylsb',
+                'title': 'Mystified',
+                'description': 'md5:92717c44e1f89133c634cd5827c67636',
+            },
+            'playlist_count': 1,
+        },
+    ]
 
     def _real_extract(self, url):
         playlist_id = self._match_id(url)
@@ -314,13 +341,12 @@ class WeTvPlaylistIE(WeTvBaseInfoExtractor):
         for video_info in info['videoList']:
             parsed_info = WeTvBaseInfoExtractor.parse_video_info(video_info)
             smuggled_url = smuggle_url(
-                'wetv:{}'.format(parsed_info['id'], ),
+                'wetv:{}'.format(parsed_info['id']),
                 {
                     'playlist_id': playlist_id,
                     'lang_code': lang_code,
                     'country_code': country_code,
-                }
-            )
+                })
             parsed_info.update({
                 '_type': 'url_transparent',
                 'url': smuggled_url,
@@ -337,7 +363,7 @@ class WeTvPlaylistIE(WeTvBaseInfoExtractor):
         }
 
 
-class CKey:
+class CKey(object):
     def __init__(self):
         self.encryption_arrays = [[
             1332468387, -1641050960, 2136896045, -1629555948,
@@ -352,11 +378,11 @@ class CKey:
             -391724567, -1068702727, -381903814, -648522509,
             -1266234148, 1959407397, -1644776673, 1152313324]]
         d = [None] * 256
-        f = d.copy()
-        g = d.copy()
-        h = d.copy()
-        j = d.copy()
-        o = d.copy()
+        f = d[::]
+        g = d[::]
+        h = d[::]
+        j = d[::]
+        o = d[::]
         for i in range(256):
             o[i] = i << 1 if i < 128 else i << 1 ^ 283
 
