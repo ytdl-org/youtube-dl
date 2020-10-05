@@ -3879,16 +3879,23 @@ def escape_url(url):
 
 
 def read_batch_urls(batch_fd):
+    seen = set()
     def fixup(url):
         if not isinstance(url, compat_str):
             url = url.decode('utf-8', 'replace')
         BOM_UTF8 = '\xef\xbb\xbf'
         if url.startswith(BOM_UTF8):
             url = url[len(BOM_UTF8):]
-        url = url.strip()
-        if url.startswith(('#', ';', ']')):
-            return False
-        return url
+        if url:
+            if url[0] == '\ufeff':
+                url = url[1:]
+            url = url.lstrip()
+            if url and not url[0] in ('#', ';', ']'):
+                url = url.split('#', 1)[0].rstrip()
+                if not url in seen:
+                    seen.add(url)
+                    return url
+        return False
 
     with contextlib.closing(batch_fd) as fd:
         return [url for url in map(fixup, fd) if url]
