@@ -173,26 +173,26 @@ class WeTvIE(WeTvBaseInfoExtractor):
             'cid': playlist_id,
             'lang_code': lang_code,
             'country_code': country_code,
-            'flowid': '{}_{}'.format(WeTvIE.create_guid(), params['platform']),
+            'flowid': '{0}_{1}'.format(WeTvIE.create_guid(), params['platform']),
             'host': parsed_url.netloc,
             'refer': parsed_url.netloc,
             'ehost': compat_urlparse.urlunparse((parsed_url.scheme, parsed_url.netloc, parsed_url.path, None, None, None)),
             'tm': int(timestamp),
-            '_{}'.format(int(timestamp * 1000)): '',
-            'callback': 'txplayerJsonpCallBack_getinfo_{}'.format(random.randint(10000, 1000000)),
+            '_{0}'.format(int(timestamp * 1000)): '',
+            'callback': 'txplayerJsonpCallBack_getinfo_{0}'.format(random.randint(10000, 1000000)),
         })
         params['cKey'] = self.ckey.make(
             video_id, compat_str(params['tm']), params['appVer'], params['guid'],
             compat_str(params['platform']), url, std_headers['User-Agent'])
 
-        return 'https://play.wetv.vip/getvinfo?{}'.format(compat_urllib_parse_urlencode(params))
+        return 'https://play.wetv.vip/getvinfo?{0}'.format(compat_urllib_parse_urlencode(params))
 
     def get_jsonp_data(self, quality, video_id, *args):
         jsonp_url = self.generate_jsonp_url(quality, video_id, *args)
         # "accept-encoding: gzip" results in
         # EOFError: Compressed file ended before the end-of-stream marker was reached
         data = self._download_json(jsonp_url, video_id, transform_source=strip_jsonp,
-                                   note='Downloading {} metadata'.format(quality),
+                                   note='Downloading {0} metadata'.format(quality),
                                    headers={'Accept-Encoding': 'deflate'})
 
         error_code = data.get('exem')
@@ -203,7 +203,7 @@ class WeTvIE(WeTvBaseInfoExtractor):
         elif error_code == -12:
             raise ExtractorError('Bad encryption parameter')
         else:
-            raise ExtractorError('Unknown error: [{}] {}'.format(error_code, data.get('msg')))
+            raise ExtractorError('Unknown error: [{0}] {1}'.format(error_code, data.get('msg')))
 
     @staticmethod
     def extract_qualities(data):
@@ -224,9 +224,9 @@ class WeTvIE(WeTvBaseInfoExtractor):
 
         url = video_info['ul']['ui'][random.randint(0, 2)]['url']
         if 'fvkey' in video_info:
-            url += '{}?vkey={}'.format(video_info['fn'], video_info['fvkey'])
+            url += '{0}?vkey={1}'.format(video_info['fn'], video_info['fvkey'])
         elif url.endswith('/'):
-            url += '{}.m3u8?ver=4'.format(video_info['fn'])
+            url += '{0}.m3u8?ver=4'.format(video_info['fn'])
 
         return {
             'url': url,
@@ -271,7 +271,7 @@ class WeTvIE(WeTvBaseInfoExtractor):
         # when opened in new tab - load series page (and start playing the first episode)
         # when clicked on the website - load clicked episode
         # solution: use https://wetv.vip/en/play/p0031yjo98d instead
-        good_url = 'https://wetv.vip/{}/play/{}'.format(language or 'en', video_id)
+        good_url = 'https://wetv.vip/{0}/play/{1}'.format(language or 'en', video_id)
 
         if smuggled_data:
             # playlist extractor sets the metadata like title, duration, etc.,
@@ -352,7 +352,7 @@ class WeTvPlaylistIE(WeTvBaseInfoExtractor):
         for video_info in info['videoList']:
             parsed_info = WeTvBaseInfoExtractor.parse_video_info(video_info)
             smuggled_url = smuggle_url(
-                'wetv:{}'.format(parsed_info['id']),
+                'wetv:{0}'.format(parsed_info['id']),
                 {
                     'playlist_id': playlist_id,
                     'lang_code': lang_code,
@@ -443,7 +443,7 @@ class CKey(object):
     def decode_text(arr, length):
         text_array = []
         for i in range(length):
-            text_array.append('{:02x}'.format(
+            text_array.append('{0:02x}'.format(
                 CKey.rshift(arr[i // 4], 24 - i % 4 * 8) & 255))
 
         return ''.join(text_array)
