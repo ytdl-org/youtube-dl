@@ -101,7 +101,7 @@ class AcfunIE(BasicAcfunInfoExtractor):
 
         currentVideoInfo = json_data.get("currentVideoInfo")
         durationMillis = currentVideoInfo.get("durationMillis")
-        duration = durationMillis / 1000
+        duration = float_or_none(durationMillis) / 1000.0
 
         formats = self._extract_formats(currentVideoInfo)
         return {
@@ -146,7 +146,7 @@ class AcfunBangumiIE(BasicAcfunInfoExtractor):
 
         currentVideoInfo = json_data.get("currentVideoInfo")
         durationMillis = currentVideoInfo.get("durationMillis")
-        duration = durationMillis / 1000
+        duration = float_or_none(durationMillis) / 1000.0
 
         formats = self._extract_formats(currentVideoInfo)
         return {
@@ -214,7 +214,11 @@ class AcfunLiveIE(BasicAcfunInfoExtractor):
             streams_url, live_id, data=fetch_streams_data, headers=self._FAKE_HEADERS
         )
 
-        # print(streams_json)
+        try:
+            assert "data" in streams_json
+        except AssertionError:
+            raise ExtractorError("This live room is currently closed")
+
         title = streams_json["data"]["caption"]
         streams_info = json.loads(streams_json["data"]["videoPlayRes"])  # streams info
         representation = streams_info["liveAdaptiveManifest"][0]["adaptationSet"][
