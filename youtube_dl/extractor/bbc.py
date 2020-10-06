@@ -350,16 +350,26 @@ class BBCCoUkIE(InfoExtractor):
 
     def _download_media_selector(self, programme_id):
         last_exception = None
+        formats = []
+        subtitles = []
+        # as some mediaselectors may be parseable but have 
+        # no formats (eg captions only), try all possible
+        # mediaselectors
         for mediaselector_url in self._MEDIASELECTOR_URLS:
             try:
-                return self._download_media_selector_url(
+                formatsAndSubtitles = self._download_media_selector_url(
                     mediaselector_url % programme_id, programme_id)
+                formats += formatsAndSubtitles[0]
+                subtitles += formatsAndSubtitles[1]
             except BBCCoUkIE.MediaSelectionError as e:
                 if e.id in ('notukerror', 'geolocation', 'selectionunavailable'):
                     last_exception = e
                     continue
                 self._raise_extractor_error(e)
-        self._raise_extractor_error(last_exception)
+        # ignore a trapped exception if formats were found 
+        if last_exception and not formats:
+            self._raise_extractor_error(last_exception)
+        return formats, subtitles
 
     def _download_media_selector_url(self, url, programme_id=None):
         media_selection = self._download_xml(
