@@ -70,10 +70,10 @@ class AcfunIE(BasicAcfunInfoExtractor):
             "note": "single video in playlist",
             "url": "https://www.acfun.cn/v/ac17532274_3",
             "info_dict": {
-                "id": "17532274",
+                "id": "17532274_3",
                 "ext": "mp4",
                 "duration": 233.770,
-                "title": "【AC娘x竾颜音】【周六狂欢24小时】TRAP：七夕恋歌！落入本娘爱的陷阱！ - TRAP 阿婵",
+                "title": "【AC娘x竾颜音】【周六狂欢24小时】TRAP：七夕恋歌！落入本娘爱的陷阱！-TRAP 阿婵",
                 "uploader": "AC娘本体",
                 "uploader_id": 23682490,
             },
@@ -87,8 +87,8 @@ class AcfunIE(BasicAcfunInfoExtractor):
                 "uploader": "AC娘本体",
                 "uploader_id": 23682490,
             },
-            "playlist_count": 5
-        }
+            "playlist_count": 5,
+        },
     ]
 
     def _real_extract(self, url):
@@ -99,47 +99,57 @@ class AcfunIE(BasicAcfunInfoExtractor):
         json_text = self._html_search_regex(
             r"(?s)videoInfo\s*=\s*(\{.*?\});", webpage, "json_text"
         )
-        json_data = json.loads(json_text)   
+        json_data = json.loads(json_text)
 
         title = json_data["title"]
 
         uploader = str_or_none(json_data.get("user").get("name"))
-        uploader_id = str_to_int(json_data.get("user").get("id"))       
+        uploader_id = str_to_int(json_data.get("user").get("id"))
 
-        videoList = json_data.get('videoList')
+        videoList = json_data.get("videoList")
         if videoList:
             video_num = len(videoList)
-        
+
         if not page_id and video_num and video_num > 1:
-            if not self._downloader.params.get('noplaylist'):
-                self.to_screen('Downloading all pages %s - add --no-playlist to just download video' % video_id)
-                entries = [self.url_result( 
-                    '%s_%d' % (url, pid), 
-                    self.IE_NAME, 
-                    video_id='%s_%d' % (video_id, pid)) 
-                    for pid in range(1, video_num+1)]
+            if not self._downloader.params.get("noplaylist"):
+                self.to_screen(
+                    "Downloading all pages %s - add --no-playlist to just download video"
+                    % video_id
+                )
+                entries = [
+                    self.url_result(
+                        "%s_%d" % (url, pid),
+                        self.IE_NAME,
+                        video_id="%s_%d" % (video_id, pid),
+                    )
+                    for pid in range(1, video_num + 1)
+                ]
                 playlist = self.playlist_result(entries, video_id, title)
-                playlist.update({
-                    'uploader': uploader,
-                    'uploader_id': uploader_id,
-                })
+                playlist.update(
+                    {
+                        "uploader": uploader,
+                        "uploader_id": uploader_id,
+                    }
+                )
                 return playlist
-                          
-            self.to_screen('Downloading just video %s because of --no-playlist' % video_id) 
+
+            self.to_screen(
+                "Downloading just video %s because of --no-playlist" % video_id
+            )
 
         p_title = self._html_search_regex(
             r"<li\s[^<]*?class='[^']*active[^']*'.*?>(.*?)</li>",
             webpage,
             "p_title",
             default=None,
-        )        
+        )
 
         if p_title:
-            title = "%s-%s" % (title, p_title)     
+            title = "%s-%s" % (title, p_title)
 
         if page_id:
-            video_id += page_id             
-            
+            video_id += page_id
+
         currentVideoInfo = json_data.get("currentVideoInfo")
         durationMillis = currentVideoInfo.get("durationMillis")
         duration = float_or_none(durationMillis) / 1000.0
