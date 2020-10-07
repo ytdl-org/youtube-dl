@@ -194,7 +194,6 @@ class AcfunBangumiIE(BasicAcfunInfoExtractor):
 
     def _all_episodes(self, bangumi_id):
         timestamp = int_or_none(float_or_none(time.time(), invscale=1000))
-        print("Timestamp: ", timestamp)
         webpage = self._download_webpage(
             self._FETCH_EPISODES_URL % (bangumi_id, timestamp),
             bangumi_id,
@@ -333,9 +332,15 @@ class AcfunLiveIE(BasicAcfunInfoExtractor):
 
         formats = []
         for stream in representation:
+            # use hls instead of flv to fix video broken problem when stopped
+            i = stream["url"].index("flv?")
+            u3m8_url = (
+                stream["url"][0:i].replace("pull.etoote.com", "hlspull.etoote.com")
+                + "m3u8"
+            )
             formats += [
                 {
-                    "url": stream["url"],
+                    "url": u3m8_url,
                     "ext": "mp4",
                     "tbr": stream.get("bitrate"),
                 }
