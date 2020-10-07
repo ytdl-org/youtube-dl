@@ -352,7 +352,7 @@ class BBCCoUkIE(InfoExtractor):
         last_exception = None
         formats = []
         subtitles = []
-        # as some mediaselectors may be parseable but have 
+        # as some mediaselectors may be parseable but have
         # no formats (eg captions only), try all possible
         # mediaselectors
         for mediaselector_url in self._MEDIASELECTOR_URLS:
@@ -366,7 +366,7 @@ class BBCCoUkIE(InfoExtractor):
                     last_exception = e
                     continue
                 self._raise_extractor_error(e)
-        # ignore a trapped exception if formats were found 
+        # ignore a trapped exception if formats were found
         if last_exception and not formats:
             self._raise_extractor_error(last_exception)
         return formats, subtitles
