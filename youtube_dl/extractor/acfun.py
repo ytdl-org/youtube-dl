@@ -1,20 +1,18 @@
 # coding: utf-8
 from __future__ import unicode_literals
 
+import time
 import json
 import re
 
 from .common import InfoExtractor
-from ..compat import (
-    compat_urllib_parse_urlencode,
-    compat_urllib_request,
-)
 from ..utils import (
     int_or_none,
     float_or_none,
     str_or_none,
     str_to_int,
     sanitized_Request,
+    urlencode_postdata,
     ExtractorError,
 )
 
@@ -36,7 +34,8 @@ class BasicAcfunInfoExtractor(InfoExtractor):
 
         formats = []
         for stream in representation:
-            size = float_or_none(durationMillis) * stream["avgBitrate"] / 8
+            avgByterate = float_or_none(stream.get("avgBitrate"), 8)
+            size = float_or_none(durationMillis, invscale=avgByterate)
             formats += [
                 {
                     "url": stream["url"],
@@ -79,7 +78,7 @@ class AcfunIE(BasicAcfunInfoExtractor):
             },
         },
         {
-            "note": "multiple video with playlist",
+            "note": "multiple video within playlist",
             "url": "https://www.acfun.cn/v/ac17532274",
             "info_dict": {
                 "id": "17532274",
@@ -113,8 +112,8 @@ class AcfunIE(BasicAcfunInfoExtractor):
         if not page_id and video_num and video_num > 1:
             if not self._downloader.params.get("noplaylist"):
                 self.to_screen(
-                    "Downloading all pages %s - add --no-playlist to just download video"
-                    % video_id
+                    "Downloading all pages of %s(ac%s) - add --no-playlist to just download video"
+                    % (title, video_id)
                 )
                 entries = [
                     self.url_result(
@@ -134,7 +133,8 @@ class AcfunIE(BasicAcfunInfoExtractor):
                 return playlist
 
             self.to_screen(
-                "Downloading just video %s because of --no-playlist" % video_id
+                "Downloading just video %s(ac%s) because of --no-playlist"
+                % (title, video_id)
             )
 
         p_title = self._html_search_regex(
@@ -152,7 +152,7 @@ class AcfunIE(BasicAcfunInfoExtractor):
 
         currentVideoInfo = json_data.get("currentVideoInfo")
         durationMillis = currentVideoInfo.get("durationMillis")
-        duration = float_or_none(durationMillis) / 1000.0
+        duration = float_or_none(durationMillis, 1000)
 
         formats = self._extract_formats(currentVideoInfo)
         return {
@@ -166,44 +166,93 @@ class AcfunIE(BasicAcfunInfoExtractor):
 
 
 class AcfunBangumiIE(BasicAcfunInfoExtractor):
-    _VALID_URL = r"https?://www\.acfun\.cn/bangumi/aa(?P<id>[_\d]+)"
-    _TEST = {
-        "url": "https://www.acfun.cn/bangumi/aa6002917_36188_1748679",
-        "info_dict": {
-            "id": "6002917_36188_1748679",
-            "ext": "mp4",
-            "duration": 1437.076,
-            "title": "租借女友 第12话 告白和女友",
+    _VALID_URL = r"https?://www\.acfun\.cn/bangumi/aa(?P<id>\d+)(?P<episode_id>[_\d]+)?"
+    _TESTS = [
+        {
+            "note": "single episode",
+            "url": "https://www.acfun.cn/bangumi/aa6002917_36188_1748679",
+            "info_dict": {
+                "id": "6002917_36188_1748679",
+                "ext": "mp4",
+                "duration": 1437.076,
+                "title": "租借女友 第12话 告白和女友",
+            },
         },
-    }
+        {
+            "note": "all episodes of bangumi",
+            "url": "https://www.acfun.cn/bangumi/aa6002917",
+            "info_dict": {
+                "id": "6002917",
+                "title": "租借女友",
+            },
+            "playlist_count": 12,
+        },
+    ]
+
+    _TEMPLATE_URL = "https://www.acfun.cn/bangumi/aa%s%s"
+    _FETCH_EPISODES_URL = "https://www.acfun.cn/bangumi/aa%s?pagelets=pagelet_partlist&reqID=0&ajaxpipe=1&t=%d"
+
+    def _all_episodes(self, bangumi_id):
+        timestamp = int_or_none(float_or_none(time.time(), invscale=1000))
+        print("Timestamp: ", timestamp)
+        webpage = self._download_webpage(
+            self._FETCH_EPISODES_URL % (bangumi_id, timestamp),
+            bangumi_id,
+            headers=self._FAKE_HEADERS,
+        )
+        entries = [
+            self.url_result(self._TEMPLATE_URL % (bangumi_id, eid), self.IE_NAME, eid)
+            for eid in re.findall(
+                r"data-href=./bangumi/aa%s([_\d]+)." % bangumi_id, webpage
+            )
+        ]
+        return entries
 
     def _real_extract(self, url):
-        video_id = self._match_id(url)
-        webpage = self._download_webpage(url, video_id, headers=self._FAKE_HEADERS)
+        bangumi_id, episode_id = re.match(self._VALID_URL, url).groups()
+        webpage = self._download_webpage(url, bangumi_id, headers=self._FAKE_HEADERS)
 
         json_text = self._html_search_regex(
             r"(?s)bangumiData\s*=\s*(\{.*?\});", webpage, "json_text"
         )
         json_data = json.loads(json_text)
 
-        title = (
-            json_data.get("showTitle")
-            or json_data["bangumiTitle"]
-            + " "
-            + json_data["episodeName"]
-            + " "
-            + json_data["title"]
+        bangumiTitle = json_data["bangumiTitle"]
+
+        if not episode_id:
+            if not self._downloader.params.get("noplaylist"):
+                self.to_screen(
+                    "Downloading all episodes of %s(aa%s) - add --no-playlist to just download first episode"
+                    % (bangumiTitle, bangumi_id)
+                )
+                playlist = self.playlist_result(
+                    self._all_episodes(bangumi_id), bangumi_id, bangumiTitle
+                )
+                return playlist
+
+            self.to_screen(
+                "Downloading just first episode %s(aa%s) because of --no-playlist"
+                % (bangumiTitle, bangumi_id)
+            )
+
+        title = json_data.get("showTitle") or "%s %s %s" % (
+            json_data["bangumiTitle"],
+            json_data["episodeName"],
+            json_data["title"],
         )
 
         currentVideoInfo = json_data.get("currentVideoInfo")
         durationMillis = currentVideoInfo.get("durationMillis")
-        duration = float_or_none(durationMillis) / 1000.0
+        duration = float_or_none(durationMillis, 1000)
+
+        if episode_id:
+            bangumi_id += episode_id
 
         formats = self._extract_formats(currentVideoInfo)
         return {
-            "id": video_id,
+            "id": bangumi_id,
             "title": title,
-            "duration": float_or_none(duration),
+            "duration": duration,
             "formats": formats,
         }
 
@@ -211,23 +260,31 @@ class AcfunBangumiIE(BasicAcfunInfoExtractor):
 class AcfunLiveIE(BasicAcfunInfoExtractor):
     _VALID_URL = r"https?://live\.acfun\.cn/live/(?P<id>\d+)"
     _TEST = {
-        "url": "https://live.acfun.cn/live/36782183",
-        "only_matching": True,
+        "url": "https://live.acfun.cn/live/34195163",
         "info_dict": {
-            "id": "36782183",
+            "id": "34195163",
             "ext": "mp4",
-            # 'title': '看见兔兔就烦！',
+            "title": r"re:^晴心Haruko \d{4}-\d{2}-\d{2} \d{2}:\d{2}$",
             "is_live": True,
         },
+        "only_matching": True,
     }
+
+    _LOGIN_URL = "https://id.app.acfun.cn/rest/app/visitor/login"
+    _STREAMS_URL = "https://api.kuaishouzt.com/rest/zt/live/web/startPlay?subBiz=mainApp&kpn=ACFUN_APP&kpf=PC_WEB&userId=%d&did=%s&acfun.api.visitor_st=%s"
 
     def _real_extract(self, url):
         live_id = self._match_id(url)
         self._FAKE_HEADERS.update({"Referer": url})
 
-        # Firstly get _did cookie
-        fisrt_req = sanitized_Request(url, headers=self._FAKE_HEADERS)
-        first_res = compat_urllib_request.urlopen(fisrt_req)
+        # Firstly fetch _did cookie and streamer name(use for title)
+        first_req = sanitized_Request(url, headers=self._FAKE_HEADERS)
+        webpage, first_res = self._download_webpage_handle(first_req, live_id)
+        live_up_name = self._html_search_regex(
+            r"<a [^>]*?class[^>]*?up-name[^>]*?>([^<]*?)</a>",
+            webpage,
+            "live_up_name",
+        )
 
         for header_name, header_value in first_res.info().items():
             if header_name.lower() == "set-cookie":
@@ -241,25 +298,24 @@ class AcfunLiveIE(BasicAcfunInfoExtractor):
         self._FAKE_HEADERS.update({"Cookie": "_did=%s" % did_cookie})
 
         # Login to get userId and acfun.api.visitor_st
-        login_data = compat_urllib_parse_urlencode({"sid": "acfun.api.visitor"}).encode(
-            "ascii"
-        )
+        login_data = urlencode_postdata({"sid": "acfun.api.visitor"})
         login_json = self._download_json(
-            "https://id.app.acfun.cn/rest/app/visitor/login",
+            self._LOGIN_URL,
             live_id,
             data=login_data,
             headers=self._FAKE_HEADERS,
         )
 
-        streams_url = (
-            "https://api.kuaishouzt.com/rest/zt/live/web/startPlay?subBiz=mainApp&kpn=ACFUN_APP&kpf=PC_WEB&userId=%d&did=%s&acfun.api.visitor_st=%s"
-            % (login_json["userId"], did_cookie, login_json["acfun.api.visitor_st"])
+        streams_url = self._STREAMS_URL % (
+            login_json["userId"],
+            did_cookie,
+            login_json["acfun.api.visitor_st"],
         )
 
         # Fetch stream lists
-        fetch_streams_data = compat_urllib_parse_urlencode(
+        fetch_streams_data = urlencode_postdata(
             {"authorId": int_or_none(live_id), "pullStreamType": "FLV"}
-        ).encode("ascii")
+        )
 
         streams_json = self._download_json(
             streams_url, live_id, data=fetch_streams_data, headers=self._FAKE_HEADERS
@@ -270,8 +326,7 @@ class AcfunLiveIE(BasicAcfunInfoExtractor):
         except AssertionError:
             raise ExtractorError("This live room is currently closed")
 
-        title = streams_json["data"]["caption"]
-        streams_info = json.loads(streams_json["data"]["videoPlayRes"])  # streams info
+        streams_info = json.loads(streams_json["data"]["videoPlayRes"])
         representation = streams_info["liveAdaptiveManifest"][0]["adaptationSet"][
             "representation"
         ]
@@ -288,7 +343,7 @@ class AcfunLiveIE(BasicAcfunInfoExtractor):
         self._sort_formats(formats)
         return {
             "id": live_id,
-            "title": self._live_title(title),
+            "title": self._live_title(live_up_name),
             "formats": formats,
             "is_live": True,
         }
