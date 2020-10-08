@@ -65,7 +65,7 @@ class YandexVideoIE(InfoExtractor):
         'only_matching': True,
     }]
 
-    def split_params(self, txt: str) -> []:
+    def split_params(self, txt):
         braket = 0
         line = ''
         items = []
