@@ -100,6 +100,7 @@ from .beatport import BeatportIE
 from .bet import BetIE
 from .bfi import BFIPlayerIE
 from .bigflix import BigflixIE
+from .bigmarker import BigMarkerIE
 from .bild import BildIE
 from .bilibili import (
     BiliBiliIE,
