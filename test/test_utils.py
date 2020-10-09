@@ -994,6 +994,12 @@ class TestUtil(unittest.TestCase):
         on = js_to_json('{42:4.2e1}')
         self.assertEqual(json.loads(on), {'42': 42.0})
 
+        on = js_to_json('{ "0x40": "0x40" }')
+        self.assertEqual(json.loads(on), {'0x40': '0x40'})
+
+        on = js_to_json('{ "040": "040" }')
+        self.assertEqual(json.loads(on), {'040': '040'})
+
     def test_js_to_json_malformed(self):
         self.assertEqual(js_to_json('42a1'), '42"a1"')
         self.assertEqual(js_to_json('42a-1'), '42"a"-1')
