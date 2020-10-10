@@ -7,6 +7,7 @@ from .common import InfoExtractor
 from ..compat import (
     compat_kwargs,
     compat_str,
+    compat_urlparse,
 )
 from ..utils import (
     ExtractorError,
@@ -227,21 +228,43 @@ class ViuOTTIE(InfoExtractor):
         if not video_data:
             raise ExtractorError('This video is not available in your region.', expected=True)
 
-        stream_data = self._download_json(
-            'https://d1k2us671qcoau.cloudfront.net/distribute_web_%s.php' % country_code,
-            video_id, 'Downloading stream info', query={
-                'ccs_product_id': video_data['ccs_product_id'],
-                'language_flag_id': self._LANGUAGE_FLAG.get(lang_code.lower()) or '3',
-            }, headers={
-                'Referer': url,
-                'Origin': re.search(r'https?://[^/]+', url).group(0),
-            })['data']['stream']
+        duration_limit = False
+        query = {
+            'ccs_product_id': video_data['ccs_product_id'],
+            'language_flag_id': self._LANGUAGE_FLAG.get(lang_code.lower()) or '3',
+        }
+        headers = {
+            'Referer': re.search(r'https?://[^/]+', url).group(0),
+            'Origin': re.search(r'https?://[^/]+', url).group(0),
+        }
+        try:
+            stream_data = self._download_json(
+                'https://d1k2us671qcoau.cloudfront.net/distribute_web_%s.php' % country_code,
+                video_id, 'Downloading stream info', query=query, headers=headers)
+            stream_data = stream_data['data']['stream']
+        except KeyError:
+            # preview is limited to 3min for non-members
+            # retry with the duration limit set
+            duration_limit = True
+            query['duration'] = '180'
+            stream_data = self._download_json(
+                'https://d1k2us671qcoau.cloudfront.net/distribute_web_%s.php' % country_code,
+                video_id, 'Downloading stream info', query=query, headers=headers)
+            stream_data = stream_data['data']['stream']
 
         stream_sizes = stream_data.get('size', {})
         formats = []
         for vid_format, stream_url in stream_data.get('url', {}).items():
             height = int_or_none(self._search_regex(
                 r's(\d+)p', vid_format, 'height', default=None))
+
+            # by pass preview duration limit
+            if duration_limit:
+                temp = compat_urlparse.urlparse(stream_url)
+                query = dict(compat_urlparse.parse_qsl(temp.query, keep_blank_values=True))
+                query.update({'duration': '9999999', 'duration_start': '0'})
+                stream_url = temp._replace(query=compat_urlparse.urlencode(query)).geturl()
+
             formats.append({
                 'format_id': vid_format,
                 'url': stream_url,
