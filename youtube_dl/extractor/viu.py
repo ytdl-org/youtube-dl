@@ -8,11 +8,13 @@ from ..compat import (
     compat_kwargs,
     compat_str,
     compat_urlparse,
+    compat_urllib_request,
 )
 from ..utils import (
     ExtractorError,
     int_or_none,
 )
+import json
 
 
 class ViuBaseIE(InfoExtractor):
@@ -169,6 +171,7 @@ class ViuPlaylistIE(ViuBaseIE):
 
 class ViuOTTIE(InfoExtractor):
     IE_NAME = 'viu:ott'
+    _NETRC_MACHINE = 'viu'
     _VALID_URL = r'https?://(?:www\.)?viu\.com/ott/(?P<country_code>[a-z]{2})/(?P<lang_code>[a-z]{2}-[a-z]{2})/vod/(?P<id>\d+)'
     _TESTS = [{
         'url': 'http://www.viu.com/ott/sg/en-us/vod/3421/The%20Prime%20Minister%20and%20I',
@@ -204,8 +207,46 @@ class ViuOTTIE(InfoExtractor):
     }
     _LANGUAGE_FLAG = {
         'zh-hk': 1,
+        'zh-cn': 2,
         'en-us': 3,
     }
+    _user_info = None
+
+    def _detect_error(self, response):
+        code = response.get('status', {}).get('code')
+        if code > 0:
+            message = response.get('status', {}).get('message')
+            raise ExtractorError('%s said: %s (%s)' % (
+                self.IE_NAME, message, code), expected=True)
+        return response['data']
+
+    def _raise_login_required(self):
+        raise ExtractorError(
+            'This video requires login. '
+            'Specify --username and --password or --netrc (machine: %s) '
+            'to provide account credentials.' % self._NETRC_MACHINE,
+            expected=True)
+
+    def _login(self, country_code, video_id):
+        if not self._user_info:
+            username, password = self._get_login_info()
+            if username is None or password is None:
+                return
+
+            data = self._download_json(
+                compat_urllib_request.Request(
+                    'https://www.viu.com/ott/%s/index.php' % country_code, method='POST'),
+                video_id, 'Logging in', errnote=False, fatal=False,
+                query={'r': 'user/login'},
+                data=json.dumps({
+                    'username': username,
+                    'password': password,
+                    'platform_flag_label': 'web',
+                }).encode())
+            data = self._detect_error(data)
+            self._user_info = data['user']
+
+        return self._user_info
 
     def _real_extract(self, url):
         country_code, lang_code, video_id = re.match(self._VALID_URL, url).groups()
@@ -241,16 +282,33 @@ class ViuOTTIE(InfoExtractor):
             stream_data = self._download_json(
                 'https://d1k2us671qcoau.cloudfront.net/distribute_web_%s.php' % country_code,
                 video_id, 'Downloading stream info', query=query, headers=headers)
-            stream_data = stream_data['data']['stream']
-        except KeyError:
-            # preview is limited to 3min for non-members
-            # retry with the duration limit set
-            duration_limit = True
-            query['duration'] = '180'
-            stream_data = self._download_json(
-                'https://d1k2us671qcoau.cloudfront.net/distribute_web_%s.php' % country_code,
-                video_id, 'Downloading stream info', query=query, headers=headers)
-            stream_data = stream_data['data']['stream']
+            stream_data = self._detect_error(stream_data)['stream']
+        except (ExtractorError, KeyError):
+            stream_data = None
+            if video_data.get('user_level', 0) > 0:
+                user = self._login(country_code, video_id)
+                if user:
+                    query['identity'] = user['identity']
+                    stream_data = self._download_json(
+                        'https://d1k2us671qcoau.cloudfront.net/distribute_web_%s.php' % country_code,
+                        video_id, 'Downloading stream info', query=query, headers=headers)
+                    stream_data = self._detect_error(stream_data).get('stream')
+                else:
+                    # preview is limited to 3min for non-members
+                    # try to bypass the duration limit
+                    duration_limit = True
+                    query['duration'] = '180'
+                    stream_data = self._download_json(
+                        'https://d1k2us671qcoau.cloudfront.net/distribute_web_%s.php' % country_code,
+                        video_id, 'Downloading stream info', query=query, headers=headers)
+                    try:
+                        stream_data = self._detect_error(stream_data)['stream']
+                    except (ExtractorError, KeyError):
+                        # if still not working, give up
+                        self._raise_login_required()
+
+        if not stream_data:
+            raise ExtractorError('Cannot get stream info', expected=True)
 
         stream_sizes = stream_data.get('size', {})
         formats = []
