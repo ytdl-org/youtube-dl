@@ -75,6 +75,18 @@ class MDRIE(InfoExtractor):
     }, {
         'url': 'http://www.mdr.de/mediathek/mdr-videos/a/video-1334.html',
         'only_matching': True,
+    }, {
+        'url': 'https://www.kika.de/petronella-apfelmus/sendungen/sendung124504.html',
+        'info_dict': {
+            'id': '124504',
+            'ext': 'mp4',
+            'title': '2. Papa ist geschrumpft',
+            'description': 'md5:0374fa1997819a5ad2a2659af81264c6',
+            'timestamp': 1602477300,
+            'upload_date': '20201012',
+            'duration': 685,
+            'uploader': 'ZDF',
+        },
     }]
 
     def _real_extract(self, url):
@@ -103,7 +115,7 @@ class MDRIE(InfoExtractor):
                     continue
 
                 video_url = url_el.text
-                if video_url in processed_urls:
+                if video_url is None or video_url in processed_urls:
                     continue
 
                 processed_urls.append(video_url)
@@ -128,11 +140,14 @@ class MDRIE(InfoExtractor):
 
                     f = {
                         'url': video_url,
-                        'format_id': '%s-%d' % (media_type, vbr or abr),
                         'filesize': filesize,
                         'abr': abr,
                         'preference': 1,
                     }
+
+                    if vbr or abr:
+                        f.update({
+                            'format_id': '%s-%d' % (media_type, vbr or abr)})
 
                     if vbr:
                         width = int_or_none(xpath_text(asset, './frameWidth', 'width'))
