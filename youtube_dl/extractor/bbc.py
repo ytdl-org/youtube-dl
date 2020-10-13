@@ -359,12 +359,17 @@ class BBCCoUkIE(InfoExtractor):
             try:
                 formatsAndSubtitles = self._download_media_selector_url(
                     mediaselector_url % programme_id, programme_id)
-                # formats should always be set, but just in case
+                # formats (a list) should always be set, but just in case
                 if formatsAndSubtitles[0]:
                     formats += formatsAndSubtitles[0]
-                # subtitles may never be set
+                # subtitles subtitles (a dict {(lang,sttl)})
                 if formatsAndSubtitles[1]:
-                    subtitles += formatsAndSubtitles[1]
+                    if not subtitles:
+                        subtitles = formatsAndSubtitles[1]
+                    else:
+                        # prioritise the first sttl for each lang
+                        formatsAndSubtitles[1].update(subtitles)
+                        subtitles = formatsAndSubtitles[1]
             except BBCCoUkIE.MediaSelectionError as e:
                 if e.id in ('notukerror', 'geolocation', 'selectionunavailable'):
                     last_exception = e
