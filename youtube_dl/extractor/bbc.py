@@ -351,7 +351,7 @@ class BBCCoUkIE(InfoExtractor):
     def _download_media_selector(self, programme_id):
         last_exception = None
         formats = []
-        subtitles = []
+        subtitles = None
         # as some mediaselectors may be parseable but have
         # no formats (eg captions only), try all possible
         # mediaselectors
@@ -364,12 +364,10 @@ class BBCCoUkIE(InfoExtractor):
                     formats += formatsAndSubtitles[0]
                 # subtitles subtitles (a dict {(lang,sttl)})
                 if formatsAndSubtitles[1]:
-                    if not subtitles:
-                        subtitles = formatsAndSubtitles[1]
-                    else:
+                    if subtitles:
                         # prioritise the first sttl for each lang
                         formatsAndSubtitles[1].update(subtitles)
-                        subtitles = formatsAndSubtitles[1]
+                    subtitles = formatsAndSubtitles[1]
             except BBCCoUkIE.MediaSelectionError as e:
                 if e.id in ('notukerror', 'geolocation', 'selectionunavailable'):
                     last_exception = e
