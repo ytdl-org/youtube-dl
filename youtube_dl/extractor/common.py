@@ -1368,16 +1368,15 @@ class InfoExtractor(object):
 
             return  (tuple()
                         if self._downloader.params.get('format_sort_force')
-                        else ('preference', 'language_preference')) + \
+                        else ('avoid_bad', 'has_video', 'has_audio', 'extractor', 'language')) + \
                     tuple(sort) + \
                     (tuple(field_preference)
                         if isinstance(field_preference, (list, tuple))
                         else tuple()) + \
-                    ('preference', 'language_preference', 'quality', # default order
+                    ('avoid_bad', 'has_video', 'has_audio', 'extractor', 'language', 'quality', # default order
                      'tbr', 'filesize', 'vbr', 'height', 'width',
-                     'proto_preference', 'ext_preference', 'codec_preference',
-                     'abr', 'audio_ext_preference', 'audio_codec_preference',
-                     'fps', 'filesize_approx', 'source_preference', 'format_id')
+                     'proto', 'ext', 'codec', 'abr', 'audio_ext', 'audio_codec',
+                     'fps', 'filesize_approx', 'source', 'format_id')
 
         sort = {}
         for item in _get_sort_list():
@@ -1403,17 +1402,22 @@ class InfoExtractor(object):
             if not f.get('ext') and 'url' in f:
                 f['ext'] = determine_ext(f['url'])
 
+            has_audio_preference = 0
+            has_video_preference = 0
+            avoid_bad_preference = 0
             preference = f.get('preference')
             if preference is None:
                 preference = 0
                 if f.get('ext') in ['f4f', 'f4m']:  # Not yet supported
                     preference -= 0.5
+            elif preference <= -40:
+                avoid_bad_preference = preference
 
             protocol = f.get('protocol') or determine_protocol(f)
             proto_preference = 0 if protocol in ['http', 'https'] else (-0.5 if protocol == 'rtsp' else -0.1)
 
             if f.get('vcodec') == 'none':  # audio only
-                preference -= 50
+                has_video_preference = -50
                 if self._downloader.params.get('prefer_free_formats'):
                     ORDER = ['aac', 'mp3', 'm4a', 'webm', 'ogg', 'opus']
                 else:
@@ -1425,7 +1429,7 @@ class InfoExtractor(object):
                     audio_ext_preference = -1
             else:
                 if f.get('acodec') == 'none':  # video only
-                    preference -= 40
+                    has_audio_preference = -40
                 if self._downloader.params.get('prefer_free_formats'):
                     ORDER = ['flv', 'mp4', 'webm']
                 else:
@@ -1462,15 +1466,18 @@ class InfoExtractor(object):
                     else:
                         audio_codec_preference -= 1
 
-            prefVars = {'preference': preference,
-                        'proto_preference': proto_preference,
-                        'ext_preference': ext_preference,
-                        'audio_ext_preference': audio_ext_preference,
-                        'codec_preference': codec_preference,
-                        'audio_codec_preference': audio_codec_preference }
+            prefVars = {'extractor': preference,
+                        'avoid_bad': avoid_bad_preference,
+                        'proto': proto_preference,
+                        'has_audio': has_audio_preference,
+                        'has_video': has_video_preference,
+                        'ext': ext_preference,
+                        'audio_ext': audio_ext_preference,
+                        'codec': codec_preference,
+                        'audio_codec': audio_codec_preference }
 
             def format_get_val(field):
-                return f.get(field) if prefVars.get(field) is None else prefVars.get(field)
+                return (f.get(field + '_preference') if f.get(field) is None else f.get(field)) if prefVars.get(field) is None else prefVars.get(field)
 
             def format_get_preference(field):
                 val = format_get_val(field)
