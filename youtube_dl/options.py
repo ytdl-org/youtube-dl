@@ -186,6 +186,10 @@ def parseOpts(overrideArguments=None):
         default=False,
         help='Do not extract the videos of a playlist, only list them.')
     general.add_option(
+        '--flat-videos',
+        action='store_true', dest='extract_flat', default=False,
+        help='Do not resolve the video urls.')
+    general.add_option(
         '--mark-watched',
         action='store_true', dest='mark_watched', default=False,
         help='Mark videos watched (YouTube only)')
@@ -345,9 +349,17 @@ def parseOpts(overrideArguments=None):
         dest='download_archive',
         help='Download only videos not listed in the archive file. Record the IDs of all downloaded videos in it.')
     selection.add_option(
+        '--break-on-existing',
+        action='store_true', dest='break_on_existing', default=False,
+        help="Stop the download process after attempting to download a file that's in the archive.")
+    selection.add_option(
         '--include-ads',
         dest='include_ads', action='store_true',
         help='Download advertisements as well (experimental)')
+    selection.add_option(
+        '--no-include-ads',
+        dest='include_ads', action='store_false',
+        help='Do not download advertisements (default)')
 
     authentication = optparse.OptionGroup(parser, 'Authentication Options')
     authentication.add_option(
@@ -423,6 +435,12 @@ def parseOpts(overrideArguments=None):
             'These fields normally filter out the undesirable formats. '
             'So use this option with caution. '))
     video_format.add_option(
+        '--no-format-sort-force',
+        action='store_false', dest='format_sort_force', metavar='FORMAT', default=False,
+        help=(
+            'avoid_bad, has_video, has_audio, extractor and language '
+            'takes priority over any user specified sort order (default)'))
+    video_format.add_option(
         '--all-formats',
         action='store_const', dest='format', const='all',
         help='Download all available video formats')
@@ -437,7 +455,7 @@ def parseOpts(overrideArguments=None):
     video_format.add_option(
         '--youtube-include-dash-manifest',
         action='store_true', dest='youtube_include_dash_manifest', default=True,
-        help=optparse.SUPPRESS_HELP)
+        help='Download the DASH manifests and related data on YouTube videos (default)')
     video_format.add_option(
         '--youtube-skip-dash-manifest',
         action='store_false', dest='youtube_include_dash_manifest',
@@ -456,9 +474,17 @@ def parseOpts(overrideArguments=None):
         action='store_true', dest='writesubtitles', default=False,
         help='Write subtitle file')
     subtitles.add_option(
+        '--no-write-sub', '--no-write-srt',
+        action='store_false', dest='writesubtitles',
+        help='Do not write subtitle file (default)')
+    subtitles.add_option(
         '--write-auto-sub', '--write-automatic-sub',
         action='store_true', dest='writeautomaticsub', default=False,
         help='Write automatically generated subtitle file (YouTube only)')
+    subtitles.add_option(
+        '--no-write-auto-sub', '--no-write-automatic-sub',
+        action='store_false', dest='writeautomaticsub', default=False,
+        help='Do not write automatically generated subtitle file (default)')
     subtitles.add_option(
         '--all-subs',
         action='store_true', dest='allsubtitles', default=False,
@@ -523,6 +549,10 @@ def parseOpts(overrideArguments=None):
         '--playlist-reverse',
         action='store_true',
         help='Download playlist videos in reverse order')
+    downloader.add_option(
+        '--no-playlist-reverse',
+        action='store_false', dest='playlist_reverse', 
+        help='Download playlist videos in default order')
     downloader.add_option(
         '--playlist-random',
         action='store_true',
@@ -661,8 +691,11 @@ def parseOpts(overrideArguments=None):
     verbosity.add_option(
         '--print-json',
         action='store_true', dest='print_json', default=False,
-        help='Be quiet and print the video information as JSON (video is still being downloaded).',
-    )
+        help='Be quiet and print the video information as JSON (video is still being downloaded).')
+    verbosity.add_option(
+        '--force-write-download-archive', '--force-write-archive',
+        action='store_true', dest='force_write_download_archive', default=False,
+        help='Force download archive entries to be written as far as no errors occur, even if --skip-download or any simulation switch is used.')
     verbosity.add_option(
         '--newline',
         action='store_true', dest='progress_with_newline', default=False,
@@ -730,6 +763,10 @@ def parseOpts(overrideArguments=None):
         action='store_true', dest='restrictfilenames', default=False,
         help='Restrict filenames to only ASCII characters, and avoid "&" and spaces in filenames')
     filesystem.add_option(
+        '--no-restrict-filenames',
+        action='store_false', dest='restrictfilenames', default=False,
+        help='Allow Unicode characters, "&" and spaces in filenames (default)')
+    filesystem.add_option(
         '-A', '--auto-number',
         action='store_true', dest='autonumber', default=False,
         help=optparse.SUPPRESS_HELP)
@@ -792,7 +829,7 @@ def parseOpts(overrideArguments=None):
         action='store_true', dest='rm_cachedir',
         help='Delete all filesystem cache files')
 
-    thumbnail = optparse.OptionGroup(parser, 'Thumbnail images')
+    thumbnail = optparse.OptionGroup(parser, 'Thumbnail Images')
     thumbnail.add_option(
         '--write-thumbnail',
         action='store_true', dest='writethumbnail', default=False,
@@ -806,7 +843,25 @@ def parseOpts(overrideArguments=None):
         action='store_true', dest='list_thumbnails', default=False,
         help='Simulate and list all available thumbnail formats')
 
-    postproc = optparse.OptionGroup(parser, 'Post-processing Options')
+    link = optparse.OptionGroup(parser, 'Internet Shortcut Options')
+    link.add_option(
+        '--write-link',
+        action='store_true', dest='writelink', default=False,
+        help='Write an internet shortcut file, depending on the current platform (.url/.webloc/.desktop). The URL may be cached by the OS.')
+    link.add_option(
+        '--write-url-link',
+        action='store_true', dest='writeurllink', default=False,
+        help='Write a Windows internet shortcut file (.url). Note that the OS caches the URL based on the file path.')
+    link.add_option(
+        '--write-webloc-link',
+        action='store_true', dest='writewebloclink', default=False,
+        help='Write a macOS internet shortcut file (.webloc)')
+    link.add_option(
+        '--write-desktop-link',
+        action='store_true', dest='writedesktoplink', default=False,
+        help='Write a Linux internet shortcut file (.desktop)')
+
+    postproc = optparse.OptionGroup(parser, 'Post-Processing Options')
     postproc.add_option(
         '-x', '--extract-audio',
         action='store_true', dest='extractaudio', default=False,
@@ -818,6 +873,10 @@ def parseOpts(overrideArguments=None):
         '--audio-quality', metavar='QUALITY',
         dest='audioquality', default='5',
         help='Specify ffmpeg/avconv audio quality, insert a value between 0 (better) and 9 (worse) for VBR or a specific bitrate like 128K (default %default)')
+    postproc.add_option(
+        '--remux-video',
+        metavar='FORMAT', dest='remuxvideo', default=None,
+        help='Remux the video to another container format if necessary (currently supported: mp4|mkv, target container format must support video / audio encoding, remuxing may fail)')
     postproc.add_option(
         '--recode-video',
         metavar='FORMAT', dest='recodevideo', default=None,
@@ -894,6 +953,7 @@ def parseOpts(overrideArguments=None):
     parser.add_option_group(downloader)
     parser.add_option_group(filesystem)
     parser.add_option_group(thumbnail)
+    parser.add_option_group(link)
     parser.add_option_group(verbosity)
     parser.add_option_group(workarounds)
     parser.add_option_group(video_format)

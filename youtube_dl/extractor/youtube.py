@@ -1677,21 +1677,15 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
     def _extract_chapters_from_json(self, webpage, video_id, duration):
         if not webpage:
             return
-        player = self._parse_json(
+        initial_data = self._parse_json(
             self._search_regex(
-                r'RELATED_PLAYER_ARGS["\']\s*:\s*({.+})\s*,?\s*\n', webpage,
+                r'window\["ytInitialData"\] = (.+);\n', webpage,
                 'player args', default='{}'),
             video_id, fatal=False)
-        if not player or not isinstance(player, dict):
-            return
-        watch_next_response = player.get('watch_next_response')
-        if not isinstance(watch_next_response, compat_str):
-            return
-        response = self._parse_json(watch_next_response, video_id, fatal=False)
-        if not response or not isinstance(response, dict):
+        if not initial_data or not isinstance(initial_data, dict):
             return
         chapters_list = try_get(
-            response,
+            initial_data,
             lambda x: x['playerOverlays']
                        ['playerOverlayRenderer']
                        ['decoratedPlayerBarRenderer']

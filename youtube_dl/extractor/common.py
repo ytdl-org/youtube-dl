@@ -1466,6 +1466,7 @@ class InfoExtractor(object):
                     else:
                         audio_codec_preference -= 1
 
+
             prefVars = {'extractor': preference,
                         'avoid_bad': avoid_bad_preference,
                         'proto': proto_preference,
@@ -1478,6 +1479,7 @@ class InfoExtractor(object):
 
             def format_get_val(field):
                 return (f.get(field + '_preference') if f.get(field) is None else f.get(field)) if prefVars.get(field) is None else prefVars.get(field)
+
 
             def format_get_preference(field):
                 val = format_get_val(field)

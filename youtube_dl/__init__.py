@@ -209,6 +209,9 @@ def _real_main(argv=None):
         opts.audioquality = opts.audioquality.strip('k').strip('K')
         if not opts.audioquality.isdigit():
             parser.error('invalid audio quality specified')
+    if opts.remuxvideo is not None:
+        if opts.remuxvideo not in ['mp4', 'mkv']:
+            parser.error('invalid video container format specified')
     if opts.recodevideo is not None:
         if opts.recodevideo not in ['mp4', 'flv', 'webm', 'ogg', 'mkv', 'avi']:
             parser.error('invalid video recode format specified')
@@ -260,6 +263,11 @@ def _real_main(argv=None):
             'preferredcodec': opts.audioformat,
             'preferredquality': opts.audioquality,
             'nopostoverwrites': opts.nopostoverwrites,
+        })
+    if opts.remuxvideo:
+        postprocessors.append({
+            'key': 'FFmpegVideoRemuxer',
+            'preferedformat': opts.remuxvideo,
         })
     if opts.recodevideo:
         postprocessors.append({
@@ -335,6 +343,7 @@ def _real_main(argv=None):
         'forceformat': opts.getformat,
         'forcejson': opts.dumpjson or opts.print_json,
         'dump_single_json': opts.dump_single_json,
+        'force_write_download_archive': opts.force_write_download_archive,
         'simulate': opts.simulate or any_getting,
         'skip_download': opts.skip_download,
         'format': opts.format,
@@ -373,6 +382,10 @@ def _real_main(argv=None):
         'writeinfojson': opts.writeinfojson,
         'writethumbnail': opts.writethumbnail,
         'write_all_thumbnails': opts.write_all_thumbnails,
+        'writelink': opts.writelink,
+        'writeurllink': opts.writeurllink,
+        'writewebloclink': opts.writewebloclink,
+        'writedesktoplink': opts.writedesktoplink,
         'writesubtitles': opts.writesubtitles,
         'writeautomaticsub': opts.writeautomaticsub,
         'allsubtitles': opts.allsubtitles,
@@ -397,6 +410,7 @@ def _real_main(argv=None):
         'youtube_print_sig_code': opts.youtube_print_sig_code,
         'age_limit': opts.age_limit,
         'download_archive': download_archive_fn,
+        'break_on_existing': opts.break_on_existing,
         'cookiefile': opts.cookiefile,
         'nocheckcertificate': opts.no_check_certificate,
         'prefer_insecure': opts.prefer_insecure,
