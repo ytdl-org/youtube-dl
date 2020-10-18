@@ -798,6 +798,7 @@ from .ooyala import (
     OoyalaIE,
     OoyalaExternalIE,
 )
+from .opencast import OpencastIE
 from .ora import OraTVIE
 from .orf import (
     ORFTVthekIE,
