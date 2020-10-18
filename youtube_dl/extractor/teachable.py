@@ -139,9 +139,9 @@ class TeachableIE(TeachableBaseIE):
 
     @staticmethod
     def _is_teachable(webpage):
-        return 'teachableTracker.linker:autoLink' in webpage and re.search(
-            r'<link[^>]+href=["\']https?://process\.fs\.teachablecdn\.com',
-            webpage)
+        return 'teachableTracker.linker:autoLink' in webpage and (
+                re.search(r'<link[^>]+href=["\']https?://process\.fs\.teachablecdn\.com', webpage) or
+                re.search(r'<img[^>]+src=["\']https?://process\.fs\.teachablecdn\.com', webpage))
 
     @staticmethod
     def _extract_url(webpage, source_url):
