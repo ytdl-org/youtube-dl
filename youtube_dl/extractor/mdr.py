@@ -141,13 +141,11 @@ class MDRIE(InfoExtractor):
                     f = {
                         'url': video_url,
                         'filesize': filesize,
+                        'format_id': media_type,
+                        'vbr': vbr,
                         'abr': abr,
                         'preference': 1,
                     }
-
-                    if vbr or abr:
-                        f.update({
-                            'format_id': '%s-%d' % (media_type, vbr or abr)})
 
                     if vbr:
                         width = int_or_none(xpath_text(asset, './frameWidth', 'width'))
