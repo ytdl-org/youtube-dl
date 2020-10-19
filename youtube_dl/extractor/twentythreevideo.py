@@ -8,7 +8,7 @@ from ..utils import int_or_none
 
 class TwentyThreeVideoIE(InfoExtractor):
     IE_NAME = '23video'
-    _VALID_URL = r'https?://(?P<domain>[^.]+\.(twentythree\.net|23video\.com|filmweb\.no))/v\.ihtml/player\.html\?(?P<query>.*?\bphoto(?:_|%5f)id=(?P<id>\d+).*)'
+    _VALID_URL = r'https?://(?P<domain>[^.]+\.twentythree\.net|[^.]+\.23video\.com|[^.]+\.filmweb\.no)/v\.ihtml/player\.html\?(?P<query>.*?\bphoto(?:_|%5f)id=(?P<id>\d+).*)'
     _TESTS = [{
         'url': 'https://video.twentythree.net/v.ihtml/player.html?showDescriptions=0&source=site&photo%5fid=20448876&autoPlay=1',
         'md5': '75fcf216303eb1dae9920d651f85ced4',
@@ -23,20 +23,11 @@ class TwentyThreeVideoIE(InfoExtractor):
         }
     }, {
         'url': 'https://bonnier-publications-danmark.23video.com/v.ihtml/player.html?token=f0dc46476e06e13afd5a1f84a29e31e8&source=embed&photo%5fid=36137620',
-        'md5': '772a91f83d129ee5f015b12bea61a78b',
-        'info_dict': {
-            'id': '36137620',
-            'ext': 'mp4',
-            'upload_date': '20181004',
-            'uploader': 'Kristoffer Engbo',
-            'title': 'Photoshop Elements 2019 - Photo Text',
-            'uploader_id': '10801356',
-            'timestamp': 1538664032,
-        }
+        'only_matching': True,
     }]
 
     def _real_extract(self, url):
-        domain, _, query, photo_id = re.match(self._VALID_URL, url).groups()
+        domain, query, photo_id = re.match(self._VALID_URL, url).groups()
         base_url = 'https://%s' % domain
         photo_data = self._download_json(
             base_url + '/api/photo/list?' + query, photo_id, query={
