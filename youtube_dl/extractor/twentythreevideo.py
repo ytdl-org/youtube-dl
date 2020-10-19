@@ -8,7 +8,7 @@ from ..utils import int_or_none
 
 class TwentyThreeVideoIE(InfoExtractor):
     IE_NAME = '23video'
-    _VALID_URL = r'https?://(?P<domain>[^.]+\.twentythree\.net|[^.]+\.23video\.com|[^.]+\.filmweb\.no)/v\.ihtml/player\.html\?(?P<query>.*?\bphoto(?:_|%5f)id=(?P<id>\d+).*)'
+    _VALID_URL = r'https?://(?P<domain>[^.]+\.(?:twentythree\.net|23video\.com|filmweb\.no))/v\.ihtml/player\.html\?(?P<query>.*?\bphoto(?:_|%5f)id=(?P<id>\d+).*)'
     _TESTS = [{
         'url': 'https://video.twentythree.net/v.ihtml/player.html?showDescriptions=0&source=site&photo%5fid=20448876&autoPlay=1',
         'md5': '75fcf216303eb1dae9920d651f85ced4',
