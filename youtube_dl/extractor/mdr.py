@@ -140,10 +140,12 @@ class MDRIE(InfoExtractor):
 
                     f = {
                         'url': video_url,
-                        'filesize': filesize,
                         'abr': abr,
                         'preference': 1,
                     }
+
+                    if filesize:
+                        f.update({'filesize': filesize})
 
                     if vbr or abr:
                         f.update({
@@ -170,10 +172,7 @@ class MDRIE(InfoExtractor):
                         abr = f.get('tbr') or abr
                         if 'tbr' in f:
                             del f['tbr']
-                        f.update({
-                            'abr': abr,
-                            'vcodec': 'none',
-                        })
+                        f.update({'abr': abr})
 
                 formats.extend(url_formats)
 
