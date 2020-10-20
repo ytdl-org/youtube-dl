@@ -908,6 +908,37 @@ class BBCIE(BBCCoUkIE):
 
         entries = []
 
+        initial_data_re = self._search_regex(
+            r'<script[^>]*>window.__INITIAL_DATA__=(.*?);</script>', webpage,
+            'initial data', default=None)
+        if initial_data_re:
+            initial_data = self._parse_json(initial_data_re, playlist_id)
+            for key in initial_data['data']:
+                data = initial_data['data'][key].get('data')
+                if data and isinstance(data, dict):
+                    mediaItem = None
+                    initialItem = data.get('initialItem')
+                    blocks = data.get('blocks')
+                    if initialItem:
+                        mediaItem = initialItem.get('mediaItem')
+                    elif blocks:
+                        for block in blocks:
+                            if block.get('type') == 'media':
+                                mediaItem = block.get('model')
+                    if mediaItem:
+                        title = mediaItem['title']['content'] if mediaItem.get('title') else mediaItem.get('caption')
+                        description = '\n'.join([block['model']['text'] for block in mediaItem['summary']['blocks']]) if mediaItem.get('summary') else None
+                        programme_id = mediaItem['media']['items'][0]['id']
+                        formats, subtitles = self._download_media_selector(programme_id)
+                        self._sort_formats(formats)
+                        entries.append({
+                            'id': programme_id,
+                            'title': title,
+                            'description': description,
+                            'formats': formats,
+                            'subtitles': subtitles,
+                        })
+
         # article with multiple videos embedded with playlist.sxml (e.g.
         # http://www.bbc.com/sport/0/football/34475836)
         playlists = re.findall(r'<param[^>]+name="playlist"[^>]+value="([^"]+)"', webpage)
@@ -1025,54 +1056,57 @@ class BBCIE(BBCCoUkIE):
         group_id = self._search_regex(
             r'<div[^>]+\bclass=["\']video["\'][^>]+\bdata-pid=["\'](%s)' % self._ID_REGEX,
             webpage, 'group id', default=None)
-        if playlist_id:
+        if group_id:
             return self.url_result(
                 'https://www.bbc.co.uk/programmes/%s' % group_id,
                 ie=BBCCoUkIE.ie_key())
 
         # Morph based embed (e.g. http://www.bbc.co.uk/sport/live/olympics/36895975)
-        # There are several setPayload calls may be present but the video
-        # seems to be always related to the first one
-        morph_payload = self._parse_json(
-            self._search_regex(
-                r'Morph\.setPayload\([^,]+,\s*({.+?})\);',
-                webpage, 'morph payload', default='{}'),
-            playlist_id, fatal=False)
-        if morph_payload:
-            components = try_get(morph_payload, lambda x: x['body']['components'], list) or []
-            for component in components:
-                if not isinstance(component, dict):
-                    continue
-                lead_media = try_get(component, lambda x: x['props']['leadMedia'], dict)
-                if not lead_media:
-                    continue
-                identifiers = lead_media.get('identifiers')
-                if not identifiers or not isinstance(identifiers, dict):
-                    continue
-                programme_id = identifiers.get('vpid') or identifiers.get('playablePid')
-                if not programme_id:
-                    continue
-                title = lead_media.get('title') or self._og_search_title(webpage)
-                formats, subtitles = self._download_media_selector(programme_id)
-                self._sort_formats(formats)
-                description = lead_media.get('summary')
-                uploader = lead_media.get('masterBrand')
-                uploader_id = lead_media.get('mid')
-                duration = None
-                duration_d = lead_media.get('duration')
-                if isinstance(duration_d, dict):
-                    duration = parse_duration(dict_get(
-                        duration_d, ('rawDuration', 'formattedDuration', 'spokenDuration')))
-                return {
-                    'id': programme_id,
-                    'title': title,
-                    'description': description,
-                    'duration': duration,
-                    'uploader': uploader,
-                    'uploader_id': uploader_id,
-                    'formats': formats,
-                    'subtitles': subtitles,
-                }
+        morph_payloads = re.findall(
+                r'Morph\.setPayload\([^,]+,\s*({.+?})\);', webpage)
+        if morph_payloads:
+            for morph_payload_text in morph_payloads:
+                morph_payload = self._parse_json(
+                    morph_payload_text, playlist_id, fatal=False)
+                if morph_payload:
+                    body_text = try_get(morph_payload, lambda x: x['body']['content']['article']['body']) or None
+                    if not body_text:
+                        continue
+                    body = self._parse_json(
+                        body_text, playlist_id, fatal=False)
+                    if not isinstance(body, list):
+                        continue
+                    for item in body:
+                        if not isinstance(item, dict):
+                            continue
+                        videoData = item.get('videoData')
+                        if videoData:
+                            programme_id = videoData.get('vpid') or videoData.get('playablePid')
+                            if not programme_id:
+                                continue
+                            title = videoData.get('title') or self._og_search_title(webpage)
+                            formats, subtitles = self._download_media_selector(programme_id)
+                            self._sort_formats(formats)
+                            description = videoData.get('caption') or videoData.get('summary')
+                            uploader = videoData.get('masterBrand')
+                            uploader_id = videoData.get('mid')
+                            duration = None
+                            duration_d = videoData.get('duration')
+                            if isinstance(duration_d, dict):
+                                duration = parse_duration(dict_get(
+                                    duration_d, ('rawDuration', 'formattedDuration', 'spokenDuration')))
+                            entries.append({
+                                'id': programme_id,
+                                'title': title,
+                                'description': description,
+                                'duration': duration,
+                                'uploader': uploader,
+                                'uploader_id': uploader_id,
+                                'formats': formats,
+                                'subtitles': subtitles,
+                            })
+            return self.playlist_result(
+                entries, playlist_id)
 
         preload_state = self._parse_json(self._search_regex(
             r'window\.__PRELOADED_STATE__\s*=\s*({.+?});', webpage,
