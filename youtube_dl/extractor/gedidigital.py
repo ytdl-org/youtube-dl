@@ -2,9 +2,9 @@
 from __future__ import unicode_literals
 
 import re
-from var_dump import var_dump
 
 from .common import InfoExtractor
+from ..compat import compat_str
 
 
 class GediDigitalBaseIE(InfoExtractor):
@@ -35,6 +35,7 @@ class GediDigitalBaseIE(InfoExtractor):
 
         fmt_reg = r'(?P<t>video|audio)-(?P<p>rrtv|hls)-(?P<h>[\w\d]+)(?:-(?P<br>[\w\d]+))?$'
         br_reg = r'video-rrtv-(?P<br>\d+)-'
+
         for t, n, v in player_data:
             if t == 'format':
                 m = re.match(fmt_reg, n)
@@ -79,7 +80,10 @@ class GediDigitalBaseIE(InfoExtractor):
                 if n == 'image_full_play':
                     thumb = v
 
-        title = re.sub(r'\s*-\s*La Stampa', '', self._og_search_title(webpage)) if title == '' else title
+        title = self._og_search_title(webpage) if title == '' else title
+
+        # clean weird char
+        title = compat_str(title).encode('utf8', 'replace').replace(b'\xc3\x82', b'').decode('utf8', 'replace')
 
         if audio_fmts:
             self._clean_audio_fmts(audio_fmts)
@@ -122,7 +126,7 @@ class GediDigitalIE(GediDigitalBaseIE):
                         |corrierealpi
                         |lasentinella
                     )
-                    (?:\.gelocal)?\.it/.+?/(?P<id>[\d/]+)$'''
+                    (?:\.gelocal)?\.it/.+?/(?P<id>[\d/]+)(?:\?|\&|$)'''
     _TESTS = [{
         'url': 'https://video.lastampa.it/politica/il-paradosso-delle-regionali-la-lega-vince-ma-sembra-aver-perso/121559/121683',
         'md5': '84658d7fb9e55a6e57ecc77b73137494',
@@ -131,7 +135,7 @@ class GediDigitalIE(GediDigitalBaseIE):
             'ext': 'mp4',
             'title': 'Il paradosso delle Regionali: ecco perché la Lega vince ma sembra aver perso',
             'description': 'md5:de7f4d6eaaaf36c153b599b10f8ce7ca',
-            'thumbnail': 'https://www.repstatic.it/video/photo/2020/09/22/731397/731397-thumb-social-play.jpg',
+            'thumbnail': r're:^https://www\.repstatic\.it/video/photo/.+?-thumb-social-play\.jpg$',
         },
     }, {
         'url': 'https://video.repubblica.it/motori/record-della-pista-a-spa-francorchamps-la-pagani-huayra-roadster-bc-stupisce/367415/367963',
@@ -141,7 +145,7 @@ class GediDigitalIE(GediDigitalBaseIE):
             'ext': 'mp4',
             'title': 'Record della pista a Spa Francorchamps, la Pagani Huayra Roadster BC stupisce',
             'description': 'md5:5deb503cefe734a3eb3f07ed74303920',
-            'thumbnail': 'https://www.repstatic.it/video/photo/2020/09/19/730799/730799-thumb-social-play.jpg',
+            'thumbnail': r're:^https://www\.repstatic\.it/video/photo/.+?-thumb-social-play\.jpg$',
         },
     }, {
         'url': 'https://video.ilsecoloxix.it/sport/cassani-e-i-brividi-azzurri-ai-mondiali-di-imola-qui-mi-sono-innamorato-del-ciclismo-da-ragazzino-incredibile-tornarci-da-ct/66184/66267',
@@ -151,7 +155,7 @@ class GediDigitalIE(GediDigitalBaseIE):
             'ext': 'mp4',
             'title': 'Cassani e i brividi azzurri ai Mondiali di Imola: \\"Qui mi sono innamorato del ciclismo da ragazzino, incredibile tornarci da ct\\"',
             'description': 'md5:fc9c50894f70a2469bb9b54d3d0a3d3b',
-            'thumbnail': 'https://www.repstatic.it/video/photo/2020/09/23/731520/731520-thumb-social-play.jpg',
+            'thumbnail': r're:^https://www\.repstatic\.it/video/photo/.+?-thumb-social-play\.jpg$',
         },
     }, {
         'url': 'https://video.iltirreno.gelocal.it/sport/dentro-la-notizia-ferrari-cosa-succede-a-maranello/141059/142723',
@@ -161,7 +165,17 @@ class GediDigitalIE(GediDigitalBaseIE):
             'ext': 'mp4',
             'title': 'Dentro la notizia - Ferrari, cosa succede a Maranello',
             'description': 'md5:9907d65b53765681fa3a0b3122617c1f',
-            'thumbnail': 'https://www.repstatic.it/video/photo/2020/09/23/731504/731504-thumb-social-play.jpg',
+            'thumbnail': r're:^https://www\.repstatic\.it/video/photo/.+?-thumb-social-play\.jpg$',
+        },
+    }, {
+        'url': 'https://video.espresso.repubblica.it/embed/tutti-i-video/01-ted-villa/14772/14870&width=640&height=360',
+        'md5': '0391c2c83c6506581003aaf0255889c0',
+        'info_dict': {
+            'id': '14772/14870',
+            'ext': 'mp4',
+            'title': 'Festival EMERGENCY, Villa: «La buona informazione aiuta la salute» (14772-14870)',
+            'description': 'md5:2bce954d278248f3c950be355b7c2226',
+            'thumbnail': r're:^https://www\.repstatic\.it/video/photo/.+?-thumb-social-play\.jpg$',
         },
     }, {
         'url': 'https://video.messaggeroveneto.gelocal.it/sport/dentro-la-notizia-ferrari-cosa-succede-a-maranello/133362/134466',
