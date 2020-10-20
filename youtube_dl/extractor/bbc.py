@@ -1063,7 +1063,7 @@ class BBCIE(BBCCoUkIE):
 
         # Morph based embed (e.g. http://www.bbc.co.uk/sport/live/olympics/36895975)
         morph_payloads = re.findall(
-                r'Morph\.setPayload\([^,]+,\s*({.+?})\);', webpage)
+            r'Morph\.setPayload\([^,]+,\s*({.+?})\);', webpage)
         if morph_payloads:
             for morph_payload_text in morph_payloads:
                 morph_payload = self._parse_json(
