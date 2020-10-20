@@ -1105,8 +1105,7 @@ class BBCIE(BBCCoUkIE):
                                 'formats': formats,
                                 'subtitles': subtitles,
                             })
-            return self.playlist_result(
-                entries, playlist_id)
+            return self.playlist_result(entries, playlist_id, playlist_title, playlist_description)
 
         preload_state = self._parse_json(self._search_regex(
             r'window\.__PRELOADED_STATE__\s*=\s*({.+?});', webpage,
