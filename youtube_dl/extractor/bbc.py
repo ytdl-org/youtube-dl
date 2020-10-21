@@ -916,16 +916,16 @@ class BBCIE(BBCCoUkIE):
             for key in initial_data['data']:
                 data = initial_data['data'][key].get('data')
                 if data and isinstance(data, dict):
-                    mediaItem = None
+                    mediaItems = []
                     initialItem = data.get('initialItem')
                     blocks = data.get('blocks')
                     if initialItem:
-                        mediaItem = initialItem.get('mediaItem')
-                    elif blocks:
+                        mediaItems.append(initialItem.get('mediaItem'))
+                    if blocks:
                         for block in blocks:
                             if block.get('type') == 'media':
-                                mediaItem = block.get('model')
-                    if mediaItem:
+                                mediaItems.append(block.get('model'))
+                    for mediaItem in mediaItems:
                         title = mediaItem['title']['content'] if mediaItem.get('title') else mediaItem.get('caption')
                         description = '\n'.join([block['model']['text'] for block in mediaItem['summary']['blocks']]) if mediaItem.get('summary') else None
                         programme_id = mediaItem['media']['items'][0]['id']
