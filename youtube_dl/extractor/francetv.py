@@ -313,7 +313,7 @@ class FranceTVEmbedIE(FranceTVBaseInfoExtractor):
 
 class FranceTVInfoIE(FranceTVBaseInfoExtractor):
     IE_NAME = 'francetvinfo.fr'
-    _VALID_URL = r'https?://(?:www|mobile|france3-regions)\.francetvinfo\.fr/(?:[^/]+/)*(?P<id>[^/?#&.]+)'
+    _VALID_URL = r'https?://(?:www|mobile|france3-regions|la1ere)\.francetvinfo\.fr/(?:[^/]+/)*(?P<id>[^/?#&.]+)'
 
     _TESTS = [{
         'url': 'http://www.francetvinfo.fr/replay-jt/france-3/soir-3/jt-grand-soir-3-lundi-26-aout-2013_393427.html',
