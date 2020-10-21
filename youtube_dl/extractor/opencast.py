@@ -80,6 +80,7 @@ class OpencastBaseIE(InfoExtractor):
                                 'app': m_obj.group('app'),
                                 'play_path': m_obj.group('playpath'),
                                 'rtmp_live': True,
+                                'preference': -2
                             }
                         )
                         extention = m_obj.group('playpath').split(':')
