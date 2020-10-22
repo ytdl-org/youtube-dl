@@ -108,7 +108,7 @@ class GediDigitalBaseIE(InfoExtractor):
 
 class GediDigitalIE(GediDigitalBaseIE):
     IE_NAME = ''
-    _VALID_URL = r'''(?x)https://video\.
+    _VALID_URL = r'''(?x)https?://video\.
                     (?P<iename>
                         (?:espresso\.)?repubblica
                         |lastampa
