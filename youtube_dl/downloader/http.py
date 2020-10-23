@@ -223,9 +223,10 @@ class HttpFD(FileDownloader):
 
             def retry(e):
                 to_stdout = ctx.tmpfilename == '-'
-                if not to_stdout:
-                    ctx.stream.close()
-                ctx.stream = None
+                if ctx.stream is not None:
+                    if not to_stdout:
+                        ctx.stream.close()
+                    ctx.stream = None
                 ctx.resume_len = byte_counter if to_stdout else os.path.getsize(encodeFilename(ctx.tmpfilename))
                 raise RetryDownload(e)
 
@@ -240,7 +241,7 @@ class HttpFD(FileDownloader):
                 except socket.error as e:
                     # SSLError on python 2 (inherits socket.error) may have
                     # no errno set but this error message
-                    if e.errno in (errno.ECONNRESET, errno.ETIMEDOUT) or getattr(e, 'message') == 'The read operation timed out':
+                    if e.errno in (errno.ECONNRESET, errno.ETIMEDOUT) or getattr(e, 'message', None) == 'The read operation timed out':
                         retry(e)
                     raise
 
