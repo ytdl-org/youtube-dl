@@ -243,8 +243,7 @@ class ViuOTTIE(InfoExtractor):
                     'password': password,
                     'platform_flag_label': 'web',
                 }).encode())
-            data = self._detect_error(data)
-            self._user_info = data['user']
+            self._user_info = self._detect_error(data)['user']
 
         return self._user_info
 
@@ -278,37 +277,34 @@ class ViuOTTIE(InfoExtractor):
             'Referer': re.search(r'https?://[^/]+', url).group(0),
             'Origin': re.search(r'https?://[^/]+', url).group(0),
         }
-        try:
-            stream_data = self._download_json(
+
+        def _try_download_stream_data():
+            temp1 = self._download_json(
                 'https://d1k2us671qcoau.cloudfront.net/distribute_web_%s.php' % country_code,
                 video_id, 'Downloading stream info', query=query, headers=headers)
-            stream_data = self._detect_error(stream_data)['stream']
+            return self._detect_error(temp1).get('stream')
+
+        stream_data = None
+        try:
+            stream_data = _try_download_stream_data()
         except (ExtractorError, KeyError):
-            stream_data = None
             if video_data.get('user_level', 0) > 0:
                 user = self._login(country_code, video_id)
                 if user:
                     query['identity'] = user['identity']
-                    stream_data = self._download_json(
-                        'https://d1k2us671qcoau.cloudfront.net/distribute_web_%s.php' % country_code,
-                        video_id, 'Downloading stream info', query=query, headers=headers)
-                    stream_data = self._detect_error(stream_data).get('stream')
                 else:
                     # preview is limited to 3min for non-members
                     # try to bypass the duration limit
                     duration_limit = True
                     query['duration'] = '180'
-                    stream_data = self._download_json(
-                        'https://d1k2us671qcoau.cloudfront.net/distribute_web_%s.php' % country_code,
-                        video_id, 'Downloading stream info', query=query, headers=headers)
-                    try:
-                        stream_data = self._detect_error(stream_data)['stream']
-                    except (ExtractorError, KeyError):
-                        # if still not working, give up
-                        self._raise_login_required()
+                stream_data = _try_download_stream_data()
 
         if not stream_data:
-            raise ExtractorError('Cannot get stream info', expected=True)
+            if duration_limit:
+                # raise login required message if we have tried with the duration hack
+                self._raise_login_required()
+            else:
+                raise ExtractorError('Cannot get stream info', expected=True)
 
         stream_sizes = stream_data.get('size', {})
         formats = []
