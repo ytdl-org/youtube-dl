@@ -15,12 +15,15 @@ class NebulaIE(InfoExtractor):
     off-YouTube from a small hand-picked group of creators.
 
     All videos require a subscription to watch. There are no known freely available videos. An authentication token to
-    an account with a valid subscription can be specified in multiple ways.
+    an account with a valid subscription can be specified in multiple ways, including credentials in .netrc or a cookie
+    jar.
+    As neither of these parameters appear to be supported by the unit test runner, it's recommended to set the envvar
+    NEBULA_TOKEN to execute the test runs.
 
     Nebula uses the Zype video infrastructure and this extractor is using the 'url_transparent' mode to hand off
     video extraction to the Zype extractor.
 
-    This description has been last updated on 2020-05-11.
+    This description has been last updated on 2020-10-22.
     """
 
     _VALID_URL = r'https?://(?:www\.)?watchnebula\.com/videos/(?P<id>[-\w]+)'   # the 'id' group is actually the display_id, but we misname it 'id' to be able to use _match_id()
@@ -73,35 +76,44 @@ class NebulaIE(InfoExtractor):
 
     def _perform_login(self, username, password, video_id):
         """
-        Perform login to Nebula.
+        Log in to Nebula, authenticating using a given username and password.
 
-        Takes a username (email address) and password. Returns a Nebula token.
+        Returns a Nebula token, as the frontend would store it in the
+        nebula-auth cookie. Or False, if authentication fails.
         """
         data = json.dumps({'email': username, 'password': password}).encode('utf8')
         request = sanitized_Request(method='POST',
                                     url='https://api.watchnebula.com/api/v1/auth/login/',
                                     data=data,
                                     headers={'content-type': 'application/json'})
-        response = self._download_json(request, fatal=True, video_id=video_id,
-                                       note='Logging in to Nebula')
+        response = self._download_json(request, fatal=False, video_id=video_id,
+                                       note='Authenticating to Nebula with supplied credentials',
+                                       errnote='Authentication failed or rejected')
+        if not response or 'key' not in response:
+            return False
         return response['key']
 
     def _retrieve_nebula_auth(self, video_id):
         """
-        Attempt to find a Nebula API token. Makes multiple attempts in the following order:
-        a) the --video-password command line argument
+        Attempt to find a Nebula API token. Makes multiple attempts in the
+        following order:
+        a) login credentials used to authenticate to the Nebula login endpoint,
+           either from .netrc or specified using --username/--password
         b) the --cookies supplied cookie jar
         c) the NEBULA_TOKEN environment variable
-        If none of these are successful, an end user-intended error message is returned, listing some solutions.
-
-        # TODO: are these authentication methods, in this order, the best practice for youtube-dl?
+        d) the --video-password command line argument (this isn't documented in
+           the error message, because probably highly unpopular)
+        If none of these are successful, an end user-intended error message is
+        raised, listing some solutions.
         """
+        nebula_token = None
 
+        # option #1: login credentials via .netrc or --username and --password
         username, password = self._get_login_info()
-        nebula_token = self._perform_login(username, password, video_id)
-        return nebula_token
+        if username and password:
+            nebula_token = self._perform_login(username, password, video_id)
 
-        nebula_token = self._downloader.params.get('videopassword')
+        # option #2: nebula token via cookie jar
         if not nebula_token:
             # TODO: is there a helper to do all this cookie extraction?
             nebula_cookies = self._get_cookies('https://watchnebula.com')
@@ -109,12 +121,19 @@ class NebulaIE(InfoExtractor):
             if nebula_cookie:
                 nebula_cookie_value = compat_urllib_parse_unquote(nebula_cookie.value)
                 nebula_token = self._parse_json(nebula_cookie_value, video_id).get('apiToken')
+
+        # option #3: nebula token via environment variable
         if not nebula_token and 'NEBULA_TOKEN' in os.environ:
             nebula_token = os.environ.get('NEBULA_TOKEN')
+
+        # option #4: nebula token via --videopassword
+        if not nebula_token:
+            nebula_token = self._downloader.params.get('videopassword')
+
         if not nebula_token:
             raise ExtractorError('Nebula requires an account with an active subscription. '
-                                 'You can supply a corresponding token by either '
-                                 'a) finding your nebula-auth cookie and then specifying it via --video-password, or '
+                                 'You can supply your authentication information by either '
+                                 'a) storing your credentials in .netrc or supplying them via --username and --password, or '
                                  'b) passing in a cookie jar containing a nebula-auth cookie via --cookies, or '
                                  'c) setting the environment variable NEBULA_TOKEN.')
         return nebula_token
