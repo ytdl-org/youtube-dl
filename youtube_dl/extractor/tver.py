@@ -111,7 +111,7 @@ class TVerIE(InfoExtractor):
             fod_formats.reverse()
 
             info_dict = {
-                'id': video_id,  # Tver ID
+                'id': video_id,  # TVer ID
                 'display_id': fod_video_id,  # FOD ID
                 'formats': fod_formats,
                 'title': title,
@@ -132,12 +132,12 @@ class TVerIE(InfoExtractor):
             brightcove_info = self._extract_brightcove_info(brightcove_url, 'https://tver.jp/')
 
             # Note: Delegate extraction to BrightcoveNewIE by specifying url_transparent,
-            # while also making TverIE's own acquired entities such as description available.
+            # while also making TVerIE's own acquired entities such as description available.
             info_dict = {
                 '_type': 'url_transparent',
                 'url': brightcove_url,
                 'ie_key': BrightcoveNewIE.ie_key(),
-                'id': video_id,  # Tver ID
+                'id': video_id,  # TVer ID
                 'display_id': brightcove_video_id,  # Brightcove ID
                 'title': title or brightcove_info.get('name'),
                 'description': description,
