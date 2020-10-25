@@ -935,6 +935,7 @@
  - **TVANouvellesArticle**
  - **TVC**
  - **TVCArticle**
+ - **TVer**: TVer
  - **tvigle**: Интернет-телевидение Tvigle.ru
  - **tvland.com**
  - **TVN24**
