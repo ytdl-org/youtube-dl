@@ -642,6 +642,7 @@ from .mofosex import (
     MofosexEmbedIE,
 )
 from .mojvideo import MojvideoIE
+from .moretv import MoreTVIE
 from .morningstar import MorningstarIE
 from .motherless import (
     MotherlessIE,
