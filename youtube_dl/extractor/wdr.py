@@ -103,9 +103,10 @@ class WDRIE(InfoExtractor):
 
 
 class WDRPageIE(InfoExtractor):
+    _KINDER_WDR_URL = r'https?://kinder\.wdr\.de/(?:radio|tv)/.*?/(av|nachhoeren)/(?P<kinder_display_id>.*?)\.html'
     _CURRENT_MAUS_URL = r'https?://(?:www\.)wdrmaus.de/(?:[^/]+/){1,2}[^/?#]+\.php5'
     _PAGE_REGEX = r'/(?:mediathek/)?(?:[^/]+/)*(?P<display_id>[^/]+)\.html'
-    _VALID_URL = r'https?://(?:www\d?\.)?(?:wdr\d?|sportschau)\.de' + _PAGE_REGEX + '|' + _CURRENT_MAUS_URL
+    _VALID_URL = r'https?://(?:www\d?\.)?(?:wdr\d?|sportschau)\.de' + _PAGE_REGEX + '|' + _CURRENT_MAUS_URL + '|' + _KINDER_WDR_URL
 
     _TESTS = [
         {
@@ -212,7 +213,29 @@ class WDRPageIE(InfoExtractor):
         {
             'url': 'http://www.sportschau.de/handballem2018/audio-vorschau---die-handball-em-startet-mit-grossem-favoritenfeld-100.html',
             'only_matching': True,
-        }
+        },
+        {
+            'url': 'https://kinder.wdr.de/radio/kinderradionacht/nachhoeren/audio-die-erste-stunde-der-ard-kinderradionacht--zum-nachhoeren-100.html',
+            'info_dict': {
+                'id': 'mdb-2056595',
+                'ext': 'mp3',
+                'title': u'Die erste Stunde der ARD-Kinderradionacht 2019 zum Nachhören',
+                'alt_title': 'WDR 5 KiRaKa ohne Download ',
+                'upload_date': '20191206',
+                'is_live': False,
+            }
+        },
+        {
+            'url': 'https://kinder.wdr.de/tv/die-sendung-mit-dem-elefanten/av/video-folge---astronaut-100.html',
+            'info_dict': {
+                'id': 'mdb-1849059',
+                'ext': 'mp4',
+                'title': u'Folge 510 – Astronaut',
+                'alt_title': 'Die Sendung mit dem Elefanten',
+                'upload_date': '20200130',
+                'is_live': False,
+            }
+        },
     ]
 
     def _real_extract(self, url):
