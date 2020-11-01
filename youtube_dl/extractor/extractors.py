@@ -949,6 +949,7 @@ from .radiode import RadioDeIE
 from .radiojavan import RadioJavanIE
 from .radiobremen import RadioBremenIE
 from .radiofrance import RadioFranceIE
+from .radioplay import RadioplayPodcastIE
 from .rai import (
     RaiPlayIE,
     RaiPlayLiveIE,
