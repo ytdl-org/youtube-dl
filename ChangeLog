@@ -1,4 +1,4 @@
-version <unreleased>
+version 2020.11.01
 
 Core
 * [utils] Don't attempt to coerce JS strings to numbers in js_to_json (#26851)
