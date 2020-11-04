@@ -1505,5 +1505,5 @@ from .zattoo import (
 )
 from .zdf import ZDFIE, ZDFChannelIE
 from .zingmp3 import ZingMp3IE
-from .zoomus import ZoomUSIE
+from .zoom import ZoomIE
 from .zype import ZypeIE
