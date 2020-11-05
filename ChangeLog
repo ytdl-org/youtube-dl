@@ -1,3 +1,21 @@
+version 2020.11.01
+
+Core
+* [utils] Don't attempt to coerce JS strings to numbers in js_to_json (#26851)
+* [downloader/http] Properly handle missing message in SSLError (#26646)
+* [downloader/http] Fix access to not yet opened stream in retry
+
+Extractors
+* [youtube] Fix JS player URL extraction
+* [ytsearch] Fix extraction (#26920)
+* [afreecatv] Fix typo (#26970)
+* [23video] Relax URL regular expression (#26870)
++ [ustream] Add support for video.ibm.com (#26894)
+* [iqiyi] Fix typo (#26884)
++ [expressen] Add support for di.se (#26670)
+* [iprima] Improve video id extraction (#26507, #26494)
+
+
 version 2020.09.20
 
 Core
