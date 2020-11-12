@@ -5,8 +5,10 @@ import re
 
 from .brightcove import BrightcoveNewIE
 from .common import InfoExtractor
+from ..compat import compat_HTTPError
 from ..utils import (
     js_to_json,
+    ExtractorError,
 )
 
 
@@ -127,9 +129,11 @@ class TVerIE(InfoExtractor):
 
             # extract brightcove information
             brightcove_account_id = tver_info[3]
+            brightcove_player_id = tver_info[1]
             brightcove_video_id = 'ref:' + tver_info[4]
-            brightcove_url = 'http://players.brightcove.net/%s/default_default/index.html?videoId=%s' % (brightcove_account_id, brightcove_video_id)
-            brightcove_info = self._extract_brightcove_info(brightcove_url, 'https://tver.jp/')
+            brightcove_url = 'http://players.brightcove.net/%s/%s_default/index.html?videoId=%s' \
+                % (brightcove_account_id, brightcove_player_id, brightcove_video_id)
+            brightcove_url, brightcove_info = self._extract_brightcove_info(brightcove_url, 'https://tver.jp/')
 
             # Note: Delegate extraction to BrightcoveNewIE by specifying url_transparent,
             # while also making TVerIE's own acquired entities such as description available.
@@ -186,5 +190,13 @@ class TVerIE(InfoExtractor):
             'Referer': referrer,
         }
 
-        # return brightcove api info
-        return self._download_json(api_url, video_id, headers=headers)
+        # get brightcove api info
+        try:
+            response = self._download_json(api_url, video_id, headers=headers)
+        except ExtractorError as e:
+            # Remove 'ref:' from API URL when HTTPError occurs
+            if isinstance(e.cause, compat_HTTPError):
+                url = url.replace('ref:', '')
+                response = self._download_json(api_url.replace('ref:', ''), video_id, headers=headers)
+
+        return url, response
