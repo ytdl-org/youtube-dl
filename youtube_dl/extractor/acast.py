@@ -10,6 +10,7 @@ from ..utils import (
     clean_html,
     float_or_none,
     int_or_none,
+    js_to_json,
     try_get,
     unified_timestamp,
     OnDemandPagedList,
@@ -28,24 +29,36 @@ class ACastIE(InfoExtractor):
                     '''
     _TESTS = [{
         'url': 'https://www.acast.com/sparpodcast/2.raggarmordet-rosterurdetforflutna',
-        'md5': '16d936099ec5ca2d5869e3a813ee8dc4',
+        'md5': 'f5598f3ad1e4776fed12ec1407153e4b',
         'info_dict': {
             'id': '2a92b283-1a75-4ad8-8396-499c641de0d9',
             'ext': 'mp3',
             'title': '2. Raggarmordet - Röster ur det förflutna',
-            'description': 'md5:4f81f6d8cf2e12ee21a321d8bca32db4',
+            'description': 'md5:a992ae67f4d98f1c0141598f7bebbf67',
             'timestamp': 1477346700,
             'upload_date': '20161024',
-            'duration': 2766.602563,
+            'duration': 2766.0,
             'creator': 'Anton Berg & Martin Johnson',
             'series': 'Spår',
             'episode': '2. Raggarmordet - Röster ur det förflutna',
         }
     }, {
-        'url': 'http://embed.acast.com/adambuxton/ep.12-adam-joeschristmaspodcast2015',
-        'only_matching': True,
+        'url': 'https://play.acast.com/s/spraktalk/ap-120185',
+        'md5': 'dfccc97aaa43976028362c60101f938f',
+        'info_dict': {
+            'id': 'ap-120185',
+            'ext': 'mp3',
+            'title': 'Tysk: Likere norsk enn du tror!',
+            'description': 'md5:72d161967fc635cd1c839c8307843995',
+            'timestamp': 1606190415,
+            'upload_date': '20201124',
+            'duration': 1665.0,
+            'creator': 'Aftenposten',
+            'series': 'Språktalk',
+            'episode': 'Tysk: Likere norsk enn du tror!',
+        }
     }, {
-        'url': 'https://play.acast.com/s/rattegangspodden/s04e09-styckmordet-i-helenelund-del-22',
+        'url': 'http://embed.acast.com/adambuxton/ep.12-adam-joeschristmaspodcast2015',
         'only_matching': True,
     }, {
         'url': 'https://play.acast.com/s/sparpodcast/2a92b283-1a75-4ad8-8396-499c641de0d9',
@@ -53,37 +66,38 @@ class ACastIE(InfoExtractor):
     }]
 
     def _real_extract(self, url):
+        id = self._match_id(url)
+        webpage = self._download_webpage(url, id)
+        player = self._parse_json(self._search_regex(
+            r'<script[^>]*>\s*window\.__INITIAL__STATE__\s*=\s*({.+});</script',
+            webpage, 'player', default='{}'), id, transform_source=js_to_json)
+        for player_key in player['feeder'].keys():
+            if "Show:" in player_key:
+                break;
+        show_data = player['feeder'][player_key]
+
         channel, display_id = re.match(self._VALID_URL, url).groups()
         s = self._download_json(
             'https://feeder.acast.com/api/v1/shows/%s/episodes/%s' % (channel, display_id),
             display_id)
         media_url = s['url']
-        if re.search(r'[0-9a-f]{8}-(?:[0-9a-f]{4}-){3}[0-9a-f]{12}', display_id):
-            episode_url = s.get('episodeUrl')
-            if episode_url:
-                display_id = episode_url
-            else:
-                channel, display_id = re.match(self._VALID_URL, s['link']).groups()
-        cast_data = self._download_json(
-            'https://play-api.acast.com/splash/%s/%s' % (channel, display_id),
-            display_id)['result']
-        e = cast_data['episode']
-        title = e.get('name') or s['title']
+
+        title = s['title']
         return {
-            'id': compat_str(e['id']),
+            'id': compat_str(s['id']),
             'display_id': display_id,
             'url': media_url,
             'title': title,
-            'description': e.get('summary') or clean_html(e.get('description') or s.get('description')),
-            'thumbnail': e.get('image'),
-            'timestamp': unified_timestamp(e.get('publishingDate') or s.get('publishDate')),
-            'duration': float_or_none(e.get('duration') or s.get('duration')),
-            'filesize': int_or_none(e.get('contentLength')),
-            'creator': try_get(cast_data, lambda x: x['show']['author'], compat_str),
-            'series': try_get(cast_data, lambda x: x['show']['name'], compat_str),
-            'season_number': int_or_none(e.get('seasonNumber')),
+            'description': clean_html(s.get('description')),
+            'thumbnail': s.get('image'),
+            'timestamp': unified_timestamp(s.get('publishDate')),
+            'duration': float_or_none(s.get('duration')),
+            'filesize': int_or_none(s.get('contentLength')),
+            'creator': show_data.get('author').strip(), # try_get(cast_data, lambda x: x['show']['author'], compat_str),
+            'series': show_data.get('title').strip(), # try_get(cast_data, lambda x: x['show']['name'], compat_str),
+            'season_number': int_or_none(s.get('season')),
             'episode': title,
-            'episode_number': int_or_none(e.get('episodeNumber')),
+            'episode_number': int_or_none(s.get('episode')),
         }
 
 
