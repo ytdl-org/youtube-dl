@@ -2723,7 +2723,7 @@ class YoutubeTabIE(YoutubeBaseInfoExtractor):
                 'itct': ctp,
             }
 
-    def _entries(self, tab):
+    def _entries(self, tab, identity_token):
         continuation = None
         slr_contents = tab['sectionListRenderer']['contents']
         for slr_content in slr_contents:
@@ -2768,16 +2768,20 @@ class YoutubeTabIE(YoutubeBaseInfoExtractor):
             if not continuation:
                 continuation = self._extract_continuation(is_renderer)
 
+        headers = {
+            'x-youtube-client-name': '1',
+            'x-youtube-client-version': '2.20201112.04.01',
+        }
+        if identity_token:
+            headers['x-youtube-identity-token'] = identity_token
+
         for page_num in itertools.count(1):
             if not continuation:
                 break
             browse = self._download_json(
                 'https://www.youtube.com/browse_ajax', None,
                 'Downloading page %d' % page_num,
-                headers={
-                    'x-youtube-client-name': '1',
-                    'x-youtube-client-version': '2.20201030.01.00',
-                }, query=continuation, fatal=False)
+                headers=headers, query=continuation, fatal=False)
             if not browse:
                 break
             response = try_get(browse, lambda x: x[1]['response'], dict)
@@ -2848,8 +2852,11 @@ class YoutubeTabIE(YoutubeBaseInfoExtractor):
         title = channel_title or channel_id
         if tab_title:
             title += ' - %s' % tab_title
+        identity_token = self._search_regex(
+            r'\bID_TOKEN["\']\s*:\s*["\'](.+?)["\']', webpage,
+            'identity token', default=None)
         return self.playlist_result(
-            self._entries(selected_tab['content']),
+            self._entries(selected_tab['content'], identity_token),
             playlist_id=channel_external_id or channel_id,
             playlist_title=title)
 
