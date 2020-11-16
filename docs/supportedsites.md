@@ -602,6 +602,7 @@
  - **niconico**: ニコニコ動画
  - **NiconicoPlaylist**
  - **Nintendo**
+ - **Nitter**
  - **njoy**: N-JOY
  - **njoy:embed**
  - **NJPWWorld**: 新日本プロレスワールド
