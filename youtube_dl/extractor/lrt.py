@@ -61,7 +61,7 @@ class LRTIE(InfoExtractor):
         json_ld_data = self._search_json_ld(webpage, video_id)
 
         tags = []
-        for tag in media.get('tags', []):
+        for tag in (media.get('tags') or []):
             tag_name = tag.get('name')
             if not tag_name:
                 continue
