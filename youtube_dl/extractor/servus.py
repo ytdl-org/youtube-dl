@@ -18,7 +18,7 @@ class ServusIE(InfoExtractor):
                         (?:www\.)?
                         (?:
                             servus\.com/(?:(?:at|de)/p/[^/]+|tv/videos)|
-                            servustv\.com/videos
+                            (?:servustv|pm-wissen)\.com/videos
                         )
                         /(?P<id>[aA]{2}-\w+|\d+-\d+)
                     '''
@@ -54,6 +54,9 @@ class ServusIE(InfoExtractor):
         'only_matching': True,
     }, {
         'url': 'https://www.servus.com/tv/videos/1380889096408-1235196658/',
+        'only_matching': True,
+    }, {
+        'url': 'https://www.pm-wissen.com/videos/aa-24mus4g2w2112/',
         'only_matching': True,
     }]
 
