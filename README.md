@@ -9,6 +9,8 @@ Download videos from youtube.com or other video platforms
 
 </div>
 
+## INDEX
+
 - [INSTALLATION](#installation)
 - [DESCRIPTION](#description)
 - [OPTIONS](#options)
