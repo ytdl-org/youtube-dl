@@ -60,7 +60,7 @@ See the <a href="https://pypi.python.org/pypi/youtube_dl">pypi page</a> for more
 <p>Older releases are also signed with one of:
 
 <ul>
-<li>Philipp Hagemeister <code class="fingerprint"><a href="https://phihag.de/keys/A4826A18.asc">7D33 D762 FD6C 3513 0481  347F DB4B 54CB A482 6A18</a></code></li>
+<li>Philipp Hagemeister <code class="fingerprint"><a href="https://phihag.de/keys/A4826A18.asc">7D33 D762 FD6C 3513 0481  347F DB4B 54CB A482 6A18</a></code> (until 2016-05-30)</li>
 <li>Philipp Hagemeister <code class="fingerprint">0600 E1DB 6FB5 3A5D 95D8  FC0D F5EA B582 FAFB 085C</code> (until 2013-06-01)</li>
 </li>
 <li>Filippo Valsorda <code class="fingerprint">428D F5D6 3EF0 7494 BB45  5AC0 EBF0 1804 BCF0 5F6B</code> (until 2014)</li>
