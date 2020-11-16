@@ -4078,7 +4078,7 @@ def js_to_json(code):
         v = m.group(0)
         if v in ('true', 'false', 'null'):
             return v
-        elif v.startswith('/*') or v.startswith('//') or v == ',':
+        elif v.startswith('/*') or v.startswith('//') or v.startswith('!') or v == ',':
             return ""
 
         if v[0] in ("'", '"'):
@@ -4103,7 +4103,8 @@ def js_to_json(code):
         {comment}|,(?={skip}[\]}}])|
         (?:(?<![0-9])[eE]|[a-df-zA-DF-Z_])[.a-zA-Z_0-9]*|
         \b(?:0[xX][0-9a-fA-F]+|0+[0-7]+)(?:{skip}:)?|
-        [0-9]+(?={skip}:)
+        [0-9]+(?={skip}:)|
+        !+
         '''.format(comment=COMMENT_RE, skip=SKIP_RE), fix_kv, code)
 
 
