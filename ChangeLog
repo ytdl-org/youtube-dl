@@ -1,4 +1,4 @@
-version <unreleased>
+version 2020.11.17
 
 Core
 * [utils] Skip ! prefixed code in js_to_json
