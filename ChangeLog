@@ -1,4 +1,4 @@
-version <unreleased>
+version 2020.11.18
 
 Extractors
 * [spiegel] Fix extraction (#24206, #24767)
