@@ -1,3 +1,19 @@
+version <unreleased>
+
+Extractors
+* [spiegel] Fix extraction (#24206, #24767)
+* [youtube] Improve extraction
+    + Add support for --no-playlist (#27009)
+    * Improve playlist and mix extraction (#26390, #26509, #26534, #27011)
+    + Extract playlist uploader data
+* [youtube:tab] Fix view count extraction (#27051)
+* [malltv] Fix extraction (#27035)
++ [bandcamp] Extract playlist description (#22684)
+* [urplay] Fix extraction (#26828)
+* [youtube:tab] Fix playlist title extraction (#27015)
+* [youtube] Fix chapters extraction (#26005)
+
+
 version 2020.11.17
 
 Core
