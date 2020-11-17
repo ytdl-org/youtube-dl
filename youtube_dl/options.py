@@ -300,6 +300,13 @@ def parseOpts(overrideArguments=None):
         metavar='DATE', dest='dateafter', default=None,
         help='Download only videos uploaded on or after this date (i.e. inclusive)')
     selection.add_option(
+        '--date-playlist-order',
+        metavar='ORDER', dest='date_playlist_order', default='none',
+        type='choice', choices=['asc', 'desc', 'none'],
+        help='The playlist is known to be sorted in chronological order. '
+        'One of desc (most recent first), asc (least recent first), or none (no effect, the default). '
+        'Causes youtube-dl to stop downloading the playlist after encountering a video outside the specified date restrictions.')
+    selection.add_option(
         '--min-views',
         metavar='COUNT', dest='min_views', default=None, type=int,
         help='Do not download any videos with less than COUNT views')
