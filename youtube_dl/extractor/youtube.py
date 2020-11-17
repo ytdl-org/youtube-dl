@@ -2825,30 +2825,36 @@ class YoutubeTabIE(YoutubeBaseInfoExtractor):
             raise ExtractorError('Unable to find selected tab')
 
     def _real_extract(self, url):
-        channel_id = self._match_id(url)
+        item_id = self._match_id(url)
         url = compat_urlparse.urlunparse(
             compat_urlparse.urlparse(url)._replace(netloc='www.youtube.com'))
-        webpage = self._download_webpage(url, channel_id)
-        data = self._extract_yt_initial_data(channel_id, webpage)
+        webpage = self._download_webpage(url, item_id)
+        data = self._extract_yt_initial_data(item_id, webpage)
         tabs = data['contents']['twoColumnBrowseResultsRenderer']['tabs']
         selected_tab = self._extract_selected_tab(tabs)
-        channel_title = try_get(
-            data, lambda x: x['metadata']['channelMetadataRenderer']['title'],
-            compat_str)
-        channel_external_id = try_get(
-            data, lambda x: x['metadata']['channelMetadataRenderer']['externalId'],
-            compat_str)
-        tab_title = selected_tab.get('title')
-        title = channel_title or channel_id
-        if tab_title:
-            title += ' - %s' % tab_title
+        renderer = try_get(
+            data, lambda x: x['metadata']['channelMetadataRenderer'], dict)
+        if renderer:
+            channel_title = renderer.get('title') or item_id
+            tab_title = selected_tab.get('title')
+            title = channel_title or item_id
+            if tab_title:
+                title += ' - %s' % tab_title
+            description = renderer.get('description')
+            playlist_id = renderer.get('externalId')
+        renderer = try_get(
+            data, lambda x: x['metadata']['playlistMetadataRenderer'], dict)
+        if renderer:
+            title = renderer.get('title')
+            description = None
+            playlist_id = item_id
         identity_token = self._search_regex(
             r'\bID_TOKEN["\']\s*:\s*["\'](.+?)["\']', webpage,
             'identity token', default=None)
         return self.playlist_result(
             self._entries(selected_tab['content'], identity_token),
-            playlist_id=channel_external_id or channel_id,
-            playlist_title=title)
+            playlist_id=playlist_id, playlist_title=title,
+            playlist_description=description)
 
 
 class YoutubePlaylistIE(InfoExtractor):
