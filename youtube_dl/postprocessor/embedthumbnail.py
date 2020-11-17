@@ -30,6 +30,7 @@ class EmbedThumbnailPP(FFmpegPostProcessor):
     def run(self, info):
         filename = info['filepath']
         temp_filename = prepend_extension(filename, 'temp')
+        mtime = os.stat(filename).st_mtime
 
         if not info.get('thumbnails'):
             self._downloader.to_screen('[embedthumbnail] There aren\'t any thumbnails to embed')
@@ -123,4 +124,5 @@ class EmbedThumbnailPP(FFmpegPostProcessor):
         else:
             raise EmbedThumbnailPPError('Only mp3 and m4a/mp4 are supported for thumbnail embedding for now.')
 
+        self.try_utime(filename, mtime, mtime)
         return [], info
