@@ -529,6 +529,7 @@ from .laola1tv import (
     EHFTVIE,
     ITTFIE,
 )
+from .lbry import LBRYIE
 from .lci import LCIIE
 from .lcp import (
     LcpPlayIE,
@@ -1357,7 +1358,6 @@ from .vk import (
 from .vlive import (
     VLiveIE,
     VLiveChannelIE,
-    VLivePlaylistIE
 )
 from .vodlocker import VodlockerIE
 from .vodpl import VODPlIE
@@ -1474,21 +1474,18 @@ from .yourporn import YourPornIE
 from .yourupload import YourUploadIE
 from .youtube import (
     YoutubeIE,
-    YoutubeChannelIE,
-    YoutubeFavouritesIE,
     YoutubeHistoryIE,
     YoutubeLiveIE,
+    YoutubeTabIE,
     YoutubePlaylistIE,
-    YoutubePlaylistsIE,
     YoutubeRecommendedIE,
     YoutubeSearchDateIE,
     YoutubeSearchIE,
-    YoutubeSearchURLIE,
-    YoutubeShowIE,
+    #YoutubeSearchURLIE,
     YoutubeSubscriptionsIE,
     YoutubeTruncatedIDIE,
     YoutubeTruncatedURLIE,
-    YoutubeUserIE,
+    YoutubeYtUserIE,
     YoutubeWatchLaterIE,
 )
 from .zapiks import ZapiksIE

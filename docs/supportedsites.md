@@ -417,6 +417,7 @@
  - **la7.it**
  - **laola1tv**
  - **laola1tv:embed**
+ - **lbry.tv**
  - **LCI**
  - **Lcp**
  - **LcpPlay**
@@ -1042,7 +1043,6 @@
  - **vk:wallpost**
  - **vlive**
  - **vlive:channel**
- - **vlive:playlist**
  - **Vodlocker**
  - **VODPl**
  - **VODPlatform**
@@ -1131,20 +1131,16 @@
  - **YourPorn**
  - **YourUpload**
  - **youtube**: YouTube.com
- - **youtube:channel**: YouTube.com channels
- - **youtube:favorites**: YouTube.com favourite videos, ":ytfav" for short (requires authentication)
  - **youtube:history**: Youtube watch history, ":ythistory" for short (requires authentication)
  - **youtube:live**: YouTube.com live streams
  - **youtube:playlist**: YouTube.com playlists
- - **youtube:playlists**: YouTube.com user/channel playlists
  - **youtube:recommended**: YouTube.com recommended videos, ":ytrec" for short (requires authentication)
  - **youtube:search**: YouTube.com searches
  - **youtube:search:date**: YouTube.com searches, newest videos first
- - **youtube:search_url**: YouTube.com search URLs
- - **youtube:show**: YouTube.com (multi-season) shows
  - **youtube:subscriptions**: YouTube.com subscriptions feed, "ytsubs" keyword (requires authentication)
- - **youtube:user**: YouTube.com user videos (URL or "ytuser" keyword)
+ - **youtube:tab**: YouTube.com tab
  - **youtube:watchlater**: Youtube watch later list, ":ytwatchlater" for short (requires authentication)
+ - **YoutubeYtUser**
  - **Zapiks**
  - **Zaq1**
  - **Zattoo**

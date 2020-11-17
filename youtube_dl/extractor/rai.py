@@ -1,3 +1,4 @@
+# coding: utf-8
 from __future__ import unicode_literals
 
 import re
@@ -16,7 +17,6 @@ from ..utils import (
     int_or_none,
     parse_duration,
     strip_or_none,
-    try_get,
     unescapeHTML,
     unified_strdate,
     unified_timestamp,
@@ -141,6 +141,7 @@ class RaiPlayIE(RaiBaseIE):
             'series': 'La Casa Bianca',
             'season': '2016',
         },
+        'skip': 'This content is not available',
     }, {
         'url': 'http://www.raiplay.it/video/2014/04/Report-del-07042014-cb27157f-9dd0-4aee-b788-b1f67643a391.html',
         'md5': '8970abf8caf8aef4696e7b1f2adfc696',
@@ -148,14 +149,12 @@ class RaiPlayIE(RaiBaseIE):
             'id': 'cb27157f-9dd0-4aee-b788-b1f67643a391',
             'ext': 'mp4',
             'title': 'Report del 07/04/2014',
-            'alt_title': 'S2013/14 - Puntata del 07/04/2014',
-            'description': 'md5:f27c544694cacb46a078db84ec35d2d9',
+            'alt_title': 'St 2013/14 - Espresso nel caffè - 07/04/2014',
+            'description': 'md5:d730c168a58f4bb35600fc2f881ec04e',
             'thumbnail': r're:^https?://.*\.jpg$',
-            'uploader': 'Rai 5',
-            'creator': 'Rai 5',
+            'uploader': 'Rai Gulp',
             'duration': 6160,
             'series': 'Report',
-            'season_number': 5,
             'season': '2013/14',
         },
         'params': {
@@ -167,48 +166,51 @@ class RaiPlayIE(RaiBaseIE):
     }]
 
     def _real_extract(self, url):
-        mobj = re.match(self._VALID_URL, url)
-        url, video_id = mobj.group('url', 'id')
+        url, video_id = re.match(self._VALID_URL, url).groups()
 
         media = self._download_json(
-            '%s?json' % url, video_id, 'Downloading video JSON')
+            url.replace('.html', '.json'), video_id, 'Downloading video JSON')
 
         title = media['name']
 
         video = media['video']
 
-        relinker_info = self._extract_relinker_info(video['contentUrl'], video_id)
+        relinker_info = self._extract_relinker_info(video['content_url'], video_id)
         self._sort_formats(relinker_info['formats'])
 
         thumbnails = []
-        if 'images' in media:
-            for _, value in media.get('images').items():
-                if value:
-                    thumbnails.append({
-                        'url': value.replace('[RESOLUTION]', '600x400')
-                    })
+        for _, value in media.get('images', {}).items():
+            if value:
+                thumbnails.append({
+                    'url': urljoin(url, value),
+                })
 
-        timestamp = unified_timestamp(try_get(
-            media, lambda x: x['availabilities'][0]['start'], compat_str))
+        date_published = media.get('date_published')
+        time_published = media.get('time_published')
+        if date_published and time_published:
+            date_published += ' ' + time_published
 
         subtitles = self._extract_subtitles(url, video.get('subtitles'))
+
+        program_info = media.get('program_info') or {}
+        season = media.get('season')
 
         info = {
             'id': video_id,
             'title': self._live_title(title) if relinker_info.get(
                 'is_live') else title,
-            'alt_title': media.get('subtitle'),
+            'alt_title': strip_or_none(media.get('subtitle')),
             'description': media.get('description'),
             'uploader': strip_or_none(media.get('channel')),
-            'creator': strip_or_none(media.get('editor')),
+            'creator': strip_or_none(media.get('editor') or None),
             'duration': parse_duration(video.get('duration')),
-            'timestamp': timestamp,
+            'timestamp': unified_timestamp(date_published),
             'thumbnails': thumbnails,
-            'series': try_get(
-                media, lambda x: x['isPartOf']['name'], compat_str),
-            'season_number': int_or_none(try_get(
-                media, lambda x: x['isPartOf']['numeroStagioni'])),
-            'season': media.get('stagione') or None,
+            'series': program_info.get('name'),
+            'season_number': int_or_none(season),
+            'season': season if (season and not season.isdigit()) else None,
+            'episode': media.get('episode_title'),
+            'episode_number': int_or_none(media.get('episode')),
             'subtitles': subtitles,
         }
 
@@ -300,7 +302,8 @@ class RaiIE(RaiBaseIE):
             'thumbnail': r're:^https?://.*\.jpg$',
             'duration': 1758,
             'upload_date': '20140612',
-        }
+        },
+        'skip': 'This content is available only in Italy',
     }, {
         # with ContentItem in many metas
         'url': 'http://www.rainews.it/dl/rainews/media/Weekend-al-cinema-da-Hollywood-arriva-il-thriller-di-Tate-Taylor-La-ragazza-del-treno-1632c009-c843-4836-bb65-80c33084a64b.html',
@@ -316,7 +319,7 @@ class RaiIE(RaiBaseIE):
     }, {
         # with ContentItem in og:url
         'url': 'http://www.rai.it/dl/RaiTV/programmi/media/ContentItem-efb17665-691c-45d5-a60c-5301333cbb0c.html',
-        'md5': '11959b4e44fa74de47011b5799490adf',
+        'md5': '6865dd00cf0bbf5772fdd89d59bd768a',
         'info_dict': {
             'id': 'efb17665-691c-45d5-a60c-5301333cbb0c',
             'ext': 'mp4',
@@ -338,6 +341,7 @@ class RaiIE(RaiBaseIE):
             'thumbnail': r're:^https?://.*\.jpg$',
             'upload_date': '20141221',
         },
+        'skip': 'This content is not available',
     }, {
         # initEdizione('ContentItem-...'
         'url': 'http://www.tg1.rai.it/dl/tg1/2010/edizioni/ContentSet-9b6e0cba-4bef-4aef-8cf0-9f7f665b7dfb-tg1.html?item=undefined',
@@ -360,6 +364,7 @@ class RaiIE(RaiBaseIE):
         'params': {
             'skip_download': True,
         },
+        'skip': 'This content is available only in Italy',
     }, {
         # HLS live stream with ContentItem in og:url
         'url': 'http://www.rainews.it/dl/rainews/live/ContentItem-3156f2f2-dc70-4953-8e2f-70d7489d4ce9.html',
