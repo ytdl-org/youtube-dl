@@ -46,12 +46,12 @@ class CanvasIE(InfoExtractor):
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
         site_id, video_id = mobj.group('site_id'), mobj.group('id')
-
+        data = False
         # Old API endpoint, serves more formats but may fail for some videos
-        data = self._download_json(
-            'https://mediazone.vrt.be/api/v1/%s/assets/%s'
-            % (site_id, video_id), video_id, 'Downloading asset JSON',
-            'Unable to download asset JSON', fatal=False)
+        #data = self._download_json(
+        #    'https://mediazone.vrt.be/api/v1/%s/assets/%s'
+        #    % (site_id, video_id), video_id, 'Downloading asset JSON',
+        #    'Unable to download asset JSON', fatal=False)
 
         # New API endpoint
         if not data:
@@ -249,6 +249,7 @@ class VrtNUIE(GigyaBaseIE):
     _NETRC_MACHINE = 'vrtnu'
     _APIKEY = '3_0Z2HujMtiWq_pkAjgnS2Md2E11a1AwZjYiBETtwNE-EoEHDINgtnvcAOpNgmrVGy'
     _CONTEXT_ID = 'R3595707040'
+    _REST_API_BASE = 'https://media-services-public.vrt.be/vualto-video-aggregator-web/rest/external/v1'
 
     def _real_initialize(self):
         self._login()
@@ -332,34 +333,72 @@ class VrtNUIE(GigyaBaseIE):
         release_date = parse_iso8601(self._html_search_regex(
             r'(?ms)<div class="content__broadcastdate">\s*<time\ datetime="(.+?)"',
             webpage, 'release_date', default=None))
+        
+        publication_id = self._html_search_regex(r'publicationid="(.+?)"',
+            webpage, 'publication_id', default=None)
 
+        video_id = self._html_search_regex(r'videoid="(.+?)"',
+            webpage, 'video_id', default=None)
+        
         # If there's a ? or a # in the URL, remove them and everything after
-        clean_url = urlh.geturl().split('?')[0].split('#')[0].strip('/')
-        securevideo_url = clean_url + '.mssecurevideo.json'
+        #clean_url = urlh.geturl().split('?')[0].split('#')[0].strip('/')
+        #securevideo_url = clean_url + '.mssecurevideo.json'
 
-        try:
-            video = self._download_json(securevideo_url, display_id)
-        except ExtractorError as e:
-            if isinstance(e.cause, compat_HTTPError) and e.cause.code == 401:
-                self.raise_login_required()
-            raise
+        token = self._download_json(
+            '%s/tokens' % self._REST_API_BASE, video_id,
+            'Downloading token', data=b'',
+            headers={'Content-Type': 'application/json'})['vrtPlayerToken']
+
+        data = self._download_json(
+            '%s/videos/%s$%s' % (self._REST_API_BASE, publication_id, video_id),
+            video_id, 'Downloading video JSON', fatal=False, query={
+                'vrtPlayerToken': token,
+                'client': 'vrtvideo@PROD',
+            })
+ 
+#        try:
+#            video = self._download_json(securevideo_url, display_id)
+#        except ExtractorError as e:
+#            if isinstance(e.cause, compat_HTTPError) and e.cause.code == 401:
+#                self.raise_login_required()
+#            raise
 
         # We are dealing with a '../<show>.relevant' URL
-        redirect_url = video.get('url')
-        if redirect_url:
-            return self.url_result(self._proto_relative_url(redirect_url, 'https:'))
+        #redirect_url = video.get('url')
+        #if redirect_url:
+        #    return self.url_result(self._proto_relative_url(redirect_url, 'https:'))
 
         # There is only one entry, but with an unknown key, so just get
         # the first one
-        video_id = list(video.values())[0].get('videoid')
+        #video_id = list(video.values())[0].get('videoid')
+        formats = []
+        for target in data['targetUrls']:
+            format_url, format_type = url_or_none(target.get('url')), str_or_none(target.get('type'))
+            if not format_url or not format_type:
+                continue
+            format_type = format_type.upper()
+            if format_type == 'HDS':
+                formats.extend(self._extract_f4m_formats(
+                    format_url, video_id, f4m_id=format_type, fatal=False))
+            elif format_type == 'MPEG_DASH':
+                formats.extend(self._extract_mpd_formats(
+                    format_url, video_id, mpd_id=format_type, fatal=False))
+            elif format_type == 'HSS':
+                formats.extend(self._extract_ism_formats(
+                    format_url, video_id, ism_id='mss', fatal=False))
+            else:
+                formats.append({
+                    'format_id': format_type,
+                    'url': format_url,
+                })
+        self._sort_formats(formats)
+
 
         return merge_dicts(info, {
-            '_type': 'url_transparent',
-            'url': 'https://mediazone.vrt.be/api/v1/vrtvideo/assets/%s' % video_id,
-            'ie_key': CanvasIE.ie_key(),
             'id': video_id,
             'display_id': display_id,
             'title': title,
+            'formats':formats,
             'description': description,
             'season': season,
             'season_number': season_number,
