@@ -45,6 +45,7 @@ from ..utils import (
     unescapeHTML,
     unified_strdate,
     unsmuggle_url,
+    update_url_query,
     uppercase_escape,
     url_or_none,
     urlencode_postdata,
@@ -65,7 +66,7 @@ class YoutubeBaseInfoExtractor(InfoExtractor):
     # If True it will raise an error if no login info is provided
     _LOGIN_REQUIRED = False
 
-    _PLAYLIST_ID_RE = r'(?:PL|LL|EC|UU|FL|RD|UL|TL|PU|OLAK5uy_)[0-9A-Za-z-_]{10,}'
+    _PLAYLIST_ID_RE = r'(?:(?:PL|LL|EC|UU|FL|RD|UL|TL|PU|OLAK5uy_)[0-9A-Za-z-_]{10,}|RDMM)'
 
     _YOUTUBE_CLIENT_HEADERS = {
         'x-youtube-client-name': '1',
@@ -972,10 +973,6 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
         {
             # geo restricted to JP
             'url': 'sJL6WA-aGkQ',
-            'only_matching': True,
-        },
-        {
-            'url': 'https://www.youtube.com/watch?v=MuAGGZNfUkU&list=RDMM',
             'only_matching': True,
         },
         {
@@ -2351,7 +2348,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
 
 class YoutubeTabIE(YoutubeBaseInfoExtractor):
     IE_DESC = 'YouTube.com tab'
-    _VALID_URL = r'https?://(?:\w+\.)?(?:youtube(?:kids)?\.com|invidio\.us)/(?:(?:channel|c|user)/|playlist\?.*?\blist=)(?P<id>[^/?#&]+)'
+    _VALID_URL = r'https?://(?:\w+\.)?(?:youtube(?:kids)?\.com|invidio\.us)/(?:(?:channel|c|user)/|(?:playlist|watch)\?.*?\blist=)(?P<id>[^/?#&]+)'
     IE_NAME = 'youtube:tab'
 
     _TESTS = [{
@@ -2361,6 +2358,7 @@ class YoutubeTabIE(YoutubeBaseInfoExtractor):
         'info_dict': {
             'id': 'UCqj7Cz7revf5maW9g5pgNcg',
             'title': 'Игорь Клейнер - Playlists',
+            'description': 'md5:be97ee0f14ee314f1f002cf187166ee2',
         },
     }, {
         # playlists, multipage, different order
@@ -2369,14 +2367,16 @@ class YoutubeTabIE(YoutubeBaseInfoExtractor):
         'info_dict': {
             'id': 'UCqj7Cz7revf5maW9g5pgNcg',
             'title': 'Игорь Клейнер - Playlists',
+            'description': 'md5:be97ee0f14ee314f1f002cf187166ee2',
         },
     }, {
         # playlists, singlepage
         'url': 'https://www.youtube.com/user/ThirstForScience/playlists',
         'playlist_mincount': 4,
         'info_dict': {
-            'id': 'ThirstForScience',
-            'title': 'ThirstForScience',
+            'id': 'UCAEtajcuhQ6an9WEzY9LEMQ',
+            'title': 'ThirstForScience - Playlists',
+            'description': 'md5:609399d937ea957b0f53cbffb747a14c',
         }
     }, {
         'url': 'https://www.youtube.com/c/ChristophLaimer/playlists',
@@ -2407,6 +2407,7 @@ class YoutubeTabIE(YoutubeBaseInfoExtractor):
         'info_dict': {
             'id': 'UCKfVa3S1e4PHvxWcwyMMg8w',
             'title': 'lex will - Home',
+            'description': 'md5:2163c5d0ff54ed5f598d6a7e6211e488',
         },
         'playlist_mincount': 2,
     }, {
@@ -2415,6 +2416,7 @@ class YoutubeTabIE(YoutubeBaseInfoExtractor):
         'info_dict': {
             'id': 'UCKfVa3S1e4PHvxWcwyMMg8w',
             'title': 'lex will - Videos',
+            'description': 'md5:2163c5d0ff54ed5f598d6a7e6211e488',
         },
         'playlist_mincount': 975,
     }, {
@@ -2423,6 +2425,7 @@ class YoutubeTabIE(YoutubeBaseInfoExtractor):
         'info_dict': {
             'id': 'UCKfVa3S1e4PHvxWcwyMMg8w',
             'title': 'lex will - Videos',
+            'description': 'md5:2163c5d0ff54ed5f598d6a7e6211e488',
         },
         'playlist_mincount': 199,
     }, {
@@ -2431,6 +2434,7 @@ class YoutubeTabIE(YoutubeBaseInfoExtractor):
         'info_dict': {
             'id': 'UCKfVa3S1e4PHvxWcwyMMg8w',
             'title': 'lex will - Playlists',
+            'description': 'md5:2163c5d0ff54ed5f598d6a7e6211e488',
         },
         'playlist_mincount': 17,
     }, {
@@ -2439,6 +2443,7 @@ class YoutubeTabIE(YoutubeBaseInfoExtractor):
         'info_dict': {
             'id': 'UCKfVa3S1e4PHvxWcwyMMg8w',
             'title': 'lex will - Community',
+            'description': 'md5:2163c5d0ff54ed5f598d6a7e6211e488',
         },
         'playlist_mincount': 18,
     }, {
@@ -2447,6 +2452,7 @@ class YoutubeTabIE(YoutubeBaseInfoExtractor):
         'info_dict': {
             'id': 'UCKfVa3S1e4PHvxWcwyMMg8w',
             'title': 'lex will - Channels',
+            'description': 'md5:2163c5d0ff54ed5f598d6a7e6211e488',
         },
         'playlist_mincount': 138,
     }, {
@@ -2465,7 +2471,7 @@ class YoutubeTabIE(YoutubeBaseInfoExtractor):
             'title': '29C3: Not my department',
             'id': 'PLwP_SiAcdui0KVebT0mU9Apz359a4ubsC',
             'uploader': 'Christiaan008',
-            'uploader_id': 'ChRiStIaAn008',
+            'uploader_id': 'UCEPzS1rYsrkqzSLNp76nrcg',
         },
         'playlist_count': 96,
     }, {
@@ -2475,7 +2481,7 @@ class YoutubeTabIE(YoutubeBaseInfoExtractor):
             'title': 'Uploads from Cauchemar',
             'id': 'UUBABnxM4Ar9ten8Mdjj1j0Q',
             'uploader': 'Cauchemar',
-            'uploader_id': 'Cauchemar89',
+            'uploader_id': 'UCBABnxM4Ar9ten8Mdjj1j0Q',
         },
         'playlist_mincount': 1123,
     }, {
@@ -2489,7 +2495,7 @@ class YoutubeTabIE(YoutubeBaseInfoExtractor):
             'title': 'Uploads from Interstellar Movie',
             'id': 'UUXw-G3eDE9trcvY2sBMM_aA',
             'uploader': 'Interstellar Movie',
-            'uploader_id': 'InterstellarMovie1',
+            'uploader_id': 'UCXw-G3eDE9trcvY2sBMM_aA',
         },
         'playlist_mincount': 21,
     }, {
@@ -2498,12 +2504,42 @@ class YoutubeTabIE(YoutubeBaseInfoExtractor):
         'info_dict': {
             'title': 'Data Analysis with Dr Mike Pound',
             'id': 'PLzH6n4zXuckpfMu_4Ff8E7Z1behQks5ba',
-            'uploader_id': 'Computerphile',
+            'uploader_id': 'UC9-y-6csu5WGm29I7JiwpnA',
             'uploader': 'Computerphile',
         },
         'playlist_mincount': 11,
     }, {
         'url': 'https://invidio.us/playlist?list=PLDIoUOhQQPlXr63I_vwF9GD8sAKh77dWU',
+        'only_matching': True,
+    }, {
+        # Playlist URL that does not actually serve a playlist
+        'url': 'https://www.youtube.com/watch?v=FqZTN594JQw&list=PLMYEtVRpaqY00V9W81Cwmzp6N6vZqfUKD4',
+        'info_dict': {
+            'id': 'FqZTN594JQw',
+            'ext': 'webm',
+            'title': "Smiley's People 01 detective, Adventure Series, Action",
+            'uploader': 'STREEM',
+            'uploader_id': 'UCyPhqAZgwYWZfxElWVbVJng',
+            'uploader_url': r're:https?://(?:www\.)?youtube\.com/channel/UCyPhqAZgwYWZfxElWVbVJng',
+            'upload_date': '20150526',
+            'license': 'Standard YouTube License',
+            'description': 'md5:507cdcb5a49ac0da37a920ece610be80',
+            'categories': ['People & Blogs'],
+            'tags': list,
+            'view_count': int,
+            'like_count': int,
+            'dislike_count': int,
+        },
+        'params': {
+            'skip_download': True,
+        },
+        'skip': 'This video is not available.',
+        'add_ie': [YoutubeIE.ie_key()],
+    }, {
+        'url': 'https://www.youtubekids.com/watch?v=Agk7R8I8o5U&list=PUZ6jURNr1WQZCNHF0ao-c0g',
+        'only_matching': True,
+    }, {
+        'url': 'https://www.youtube.com/watch?v=MuAGGZNfUkU&list=RDMM',
         'only_matching': True,
     }]
 
@@ -2535,7 +2571,9 @@ class YoutubeTabIE(YoutubeBaseInfoExtractor):
     def _extract_video(self, renderer):
         video_id = renderer.get('videoId')
         title = try_get(
-            renderer, lambda x: x['title']['runs'][0]['text'], compat_str)
+            renderer,
+            (lambda x: x['title']['runs'][0]['text'],
+             lambda x: x['title']['simpleText']), compat_str)
         description = try_get(
             renderer, lambda x: x['descriptionSnippet']['runs'][0]['text'],
             compat_str)
@@ -2615,7 +2653,7 @@ class YoutubeTabIE(YoutubeBaseInfoExtractor):
         for content in video_list_renderer['contents']:
             if not isinstance(content, dict):
                 continue
-            renderer = content.get('playlistVideoRenderer')
+            renderer = content.get('playlistVideoRenderer') or content.get('playlistPanelVideoRenderer')
             if not isinstance(renderer, dict):
                 continue
             video_id = renderer.get('videoId')
@@ -2715,7 +2753,7 @@ class YoutubeTabIE(YoutubeBaseInfoExtractor):
 
     def _entries(self, tab, identity_token):
         continuation = None
-        slr_contents = tab['sectionListRenderer']['contents']
+        slr_contents = try_get(tab, lambda x: x['sectionListRenderer']['contents'], list) or []
         for slr_content in slr_contents:
             if not isinstance(slr_content, dict):
                 continue
@@ -2824,13 +2862,30 @@ class YoutubeTabIE(YoutubeBaseInfoExtractor):
         else:
             raise ExtractorError('Unable to find selected tab')
 
-    def _real_extract(self, url):
-        item_id = self._match_id(url)
-        url = compat_urlparse.urlunparse(
-            compat_urlparse.urlparse(url)._replace(netloc='www.youtube.com'))
-        webpage = self._download_webpage(url, item_id)
-        data = self._extract_yt_initial_data(item_id, webpage)
-        tabs = data['contents']['twoColumnBrowseResultsRenderer']['tabs']
+    @staticmethod
+    def _extract_uploader(data):
+        uploader = {}
+        sidebar_renderer = try_get(
+            data, lambda x: x['sidebar']['playlistSidebarRenderer']['items'], list)
+        if sidebar_renderer:
+            for item in sidebar_renderer:
+                if not isinstance(item, dict):
+                    continue
+                renderer = item.get('playlistSidebarSecondaryInfoRenderer')
+                if not isinstance(renderer, dict):
+                    continue
+                owner = try_get(
+                    renderer, lambda x: x['videoOwner']['videoOwnerRenderer']['title']['runs'][0], dict)
+                if owner:
+                    uploader['uploader'] = owner.get('text')
+                    uploader['uploader_id'] = try_get(
+                        owner, lambda x: x['navigationEndpoint']['browseEndpoint']['browseId'], compat_str)
+                    uploader['uploader_url'] = urljoin(
+                        'https://www.youtube.com/',
+                        try_get(owner, lambda x: x['navigationEndpoint']['browseEndpoint']['canonicalBaseUrl'], compat_str))
+        return uploader
+
+    def _extract_from_tabs(self, item_id, webpage, data, tabs, identity_token):
         selected_tab = self._extract_selected_tab(tabs)
         renderer = try_get(
             data, lambda x: x['metadata']['channelMetadataRenderer'], dict)
@@ -2848,42 +2903,69 @@ class YoutubeTabIE(YoutubeBaseInfoExtractor):
             title = renderer.get('title')
             description = None
             playlist_id = item_id
-        identity_token = self._search_regex(
-            r'\bID_TOKEN["\']\s*:\s*["\'](.+?)["\']', webpage,
-            'identity token', default=None)
-        return self.playlist_result(
+        playlist = self.playlist_result(
             self._entries(selected_tab['content'], identity_token),
             playlist_id=playlist_id, playlist_title=title,
             playlist_description=description)
+        playlist.update(self._extract_uploader(data))
+        return playlist
+
+    def _extract_from_playlist(self, item_id, data, playlist):
+        title = playlist.get('title') or try_get(
+            data, lambda x: x['titleText']['simpleText'], compat_str)
+        playlist_id = playlist.get('playlistId') or item_id
+        return self.playlist_result(
+            self._playlist_entries(playlist), playlist_id=playlist_id,
+            playlist_title=title)
+
+    def _real_extract(self, url):
+        item_id = self._match_id(url)
+        url = compat_urlparse.urlunparse(
+            compat_urlparse.urlparse(url)._replace(netloc='www.youtube.com'))
+        # Handle both video/playlist URLs
+        qs = compat_urlparse.parse_qs(compat_urlparse.urlparse(url).query)
+        video_id = qs.get('v', [None])[0]
+        playlist_id = qs.get('list', [None])[0]
+        if video_id and playlist_id:
+            if self._downloader.params.get('noplaylist'):
+                self.to_screen('Downloading just video %s because of --no-playlist' % video_id)
+                return self.url_result(video_id, ie=YoutubeIE.ie_key(), video_id=video_id)
+            self.to_screen('Downloading playlist %s - add --no-playlist to just download video %s' % (playlist_id, video_id))
+        webpage = self._download_webpage(url, item_id)
+        identity_token = self._search_regex(
+            r'\bID_TOKEN["\']\s*:\s*["\'](.+?)["\']', webpage,
+            'identity token', default=None)
+        data = self._extract_yt_initial_data(item_id, webpage)
+        tabs = try_get(
+            data, lambda x: x['contents']['twoColumnBrowseResultsRenderer']['tabs'], list)
+        if tabs:
+            return self._extract_from_tabs(item_id, webpage, data, tabs, identity_token)
+        playlist = try_get(
+            data, lambda x: x['contents']['twoColumnWatchNextResults']['playlist']['playlist'], dict)
+        if playlist:
+            return self._extract_from_playlist(item_id, data, playlist)
+        # Fallback to video extraction if no playlist alike page is recognized
+        if video_id:
+            return self.url_result(video_id, ie=YoutubeIE.ie_key(), video_id=video_id)
+        # Failed to recognize
+        raise ExtractorError('Unable to recognize tab page')
 
 
 class YoutubePlaylistIE(InfoExtractor):
     IE_DESC = 'YouTube.com playlists'
-    _VALID_URL = r"""(?x)(?:
+    _VALID_URL = r'''(?x)(?:
                         (?:https?://)?
                         (?:\w+\.)?
                         (?:
                             (?:
                                 youtube(?:kids)?\.com|
-                                invidio\.us
+                                invidio\.us|
+                                youtu\.be
                             )
-                            /
-                            (?:
-                               (?:course|view_play_list|my_playlists|artist|playlist|watch|embed/(?:videoseries|[0-9A-Za-z_-]{11}))
-                               \? (?:.*?[&;])*? (?:p|a|list)=
-                            |  p/
-                            )|
-                            youtu\.be/[0-9A-Za-z_-]{11}\?.*?\blist=
-                        )
-                        (
-                            (?:PL|LL|EC|UU|FL|RD|UL|TL|PU|OLAK5uy_)?[0-9A-Za-z-_]{10,}
-                            # Top tracks, they can also include dots
-                            |(?:MC)[\w\.]*
-                        )
-                        .*
-                     |
-                        (%(playlist_id)s)
-                     )""" % {'playlist_id': YoutubeBaseInfoExtractor._PLAYLIST_ID_RE}
+                            /.*?\?.*?\blist=
+                        )?
+                        (?P<id>%(playlist_id)s)
+                     )''' % {'playlist_id': YoutubeBaseInfoExtractor._PLAYLIST_ID_RE}
     IE_NAME = 'youtube:playlist'
     _TESTS = [{
         'note': 'issue #673',
@@ -2892,7 +2974,7 @@ class YoutubePlaylistIE(InfoExtractor):
             'title': '[OLD]Team Fortress 2 (Class-based LP)',
             'id': 'PLBB231211A4F62143',
             'uploader': 'Wickydoo',
-            'uploader_id': 'Wickydoo',
+            'uploader_id': 'UCKSpbfbl5kRQpTdL7kMc-1Q',
         },
         'playlist_mincount': 29,
     }, {
@@ -2920,41 +3002,8 @@ class YoutubePlaylistIE(InfoExtractor):
             'title': '2018 Chinese New Singles (11/6 updated)',
             'id': 'PLsyOSbh5bs16vubvKePAQ1x3PhKavfBIl',
             'uploader': 'LBK',
-            'uploader_id': 'sdragonfang',
+            'uploader_id': 'UC21nz3_MesPLqtDqwdvnoxA',
         }
-    }, {
-        'note': 'Embedded SWF player',
-        'url': 'https://www.youtube.com/p/YN5VISEtHet5D4NEvfTd0zcgFk84NqFZ?hl=en_US&fs=1&rel=0',
-        'playlist_count': 4,
-        'info_dict': {
-            'title': 'JODA7',
-            'id': 'YN5VISEtHet5D4NEvfTd0zcgFk84NqFZ',
-        },
-        'skip': 'This playlist does not exist',
-    }, {
-        # Playlist URL that does not actually serve a playlist
-        'url': 'https://www.youtube.com/watch?v=FqZTN594JQw&list=PLMYEtVRpaqY00V9W81Cwmzp6N6vZqfUKD4',
-        'info_dict': {
-            'id': 'FqZTN594JQw',
-            'ext': 'webm',
-            'title': "Smiley's People 01 detective, Adventure Series, Action",
-            'uploader': 'STREEM',
-            'uploader_id': 'UCyPhqAZgwYWZfxElWVbVJng',
-            'uploader_url': r're:https?://(?:www\.)?youtube\.com/channel/UCyPhqAZgwYWZfxElWVbVJng',
-            'upload_date': '20150526',
-            'license': 'Standard YouTube License',
-            'description': 'md5:507cdcb5a49ac0da37a920ece610be80',
-            'categories': ['People & Blogs'],
-            'tags': list,
-            'view_count': int,
-            'like_count': int,
-            'dislike_count': int,
-        },
-        'params': {
-            'skip_download': True,
-        },
-        'skip': 'This video is not available.',
-        'add_ie': [YoutubeIE.ie_key()],
     }, {
         'url': 'https://youtu.be/yeWKywCrFtk?list=PL2qgrgXsNUG5ig9cat4ohreBjYLAPC0J5',
         'info_dict': {
@@ -2985,9 +3034,6 @@ class YoutubePlaylistIE(InfoExtractor):
         # music album playlist
         'url': 'OLAK5uy_m4xAFdmMC5rX3Ji3g93pQe3hqLZw_9LhM',
         'only_matching': True,
-    }, {
-        'url': 'https://www.youtubekids.com/watch?v=Agk7R8I8o5U&list=PUZ6jURNr1WQZCNHF0ao-c0g',
-        'only_matching': True,
     }]
 
     @classmethod
@@ -2996,13 +3042,12 @@ class YoutubePlaylistIE(InfoExtractor):
             YoutubePlaylistIE, cls).suitable(url)
 
     def _real_extract(self, url):
-        # Extract playlist id
-        mobj = re.match(self._VALID_URL, url)
-        if mobj is None:
-            raise ExtractorError('Invalid URL: %s' % url)
-        playlist_id = mobj.group(1) or mobj.group(2)
+        playlist_id = self._match_id(url)
+        qs = compat_urlparse.parse_qs(compat_urlparse.urlparse(url).query)
+        if not qs:
+            qs = {'list': playlist_id}
         return self.url_result(
-            'https://www.youtube.com/playlist?list=%s' % playlist_id,
+            update_url_query('https://www.youtube.com/playlist', qs),
             ie=YoutubeTabIE.ie_key(), video_id=playlist_id)
 
 
@@ -3250,13 +3295,13 @@ class YoutubeFeedsInfoExtractor(YoutubeBaseInfoExtractor):
 class YoutubeWatchLaterIE(InfoExtractor):
     IE_NAME = 'youtube:watchlater'
     IE_DESC = 'Youtube watch later list, ":ytwatchlater" for short (requires authentication)'
-    _VALID_URL = r'https?://(?:www\.)?youtube\.com/(?:feed/watch_later|(?:playlist|watch)\?(?:.+&)?list=WL)|:ytwatchlater'
+    _VALID_URL = r'https?://(?:www\.)?youtube\.com/feed/watch_later|:ytwatchlater'
 
     _TESTS = [{
-        'url': 'https://www.youtube.com/watch?v=bCNU9TrbiRk&index=1&list=WL',
+        'url': 'https://www.youtube.com/feed/watch_later',
         'only_matching': True,
     }, {
-        'url': 'https://www.youtube.com/feed/watch_later',
+        'url': ':ytwatchlater',
         'only_matching': True,
     }]
 
