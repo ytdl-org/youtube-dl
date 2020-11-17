@@ -176,7 +176,7 @@ from .ccc import (
     CCCPlaylistIE,
 )
 from .ccma import CCMAIE
-from .cctv import CCTVIE
+from .cctv import CCTVIE, CCTVChannelIE
 from .cda import CDAIE
 from .ceskatelevize import (
     CeskaTelevizeIE,
