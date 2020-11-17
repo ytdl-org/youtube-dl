@@ -16,7 +16,7 @@ from ..utils import (
 
 class LBRYIE(InfoExtractor):
     IE_NAME = 'lbry.tv'
-    _VALID_URL = r'https?://(?:www\.)?lbry\.tv/(?P<id>@[0-9a-zA-Z-]+:[0-9a-z]+/[0-9a-zA-Z().-]+:[0-9a-z])'
+    _VALID_URL = r'https?://(?:www\.)?(?:lbry\.tv|odysee\.com)/(?P<id>@[0-9a-zA-Z-]+:[0-9a-z]+/[0-9a-zA-Z().-]+:[0-9a-z])'
     _TESTS = [{
         # Video
         'url': 'https://lbry.tv/@Mantega:1/First-day-LBRY:1',
@@ -41,6 +41,9 @@ class LBRYIE(InfoExtractor):
             'timestamp': 1591312601,
             'upload_date': '20200604',
         }
+    }, {
+        'url': 'https://odysee.com/@BrodieRobertson:5/apple-is-tracking-everything-you-do-on:e',
+        'only_matching': True,
     }]
 
     def _call_api_proxy(self, method, display_id, params):
