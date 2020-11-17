@@ -2543,8 +2543,8 @@ class YoutubeTabIE(YoutubeBaseInfoExtractor):
             renderer, lambda x: x['lengthText']['simpleText'], compat_str))
         view_count_text = try_get(
             renderer, lambda x: x['viewCountText']['simpleText'], compat_str) or ''
-        view_count = int_or_none(self._search_regex(
-            r'^(\d+)', re.sub(r'\s', '', view_count_text),
+        view_count = str_to_int(self._search_regex(
+            r'^([\d,]+)', re.sub(r'\s', '', view_count_text),
             'view count', default=None))
         uploader = try_get(
             renderer, lambda x: x['ownerText']['runs'][0]['text'], compat_str)
