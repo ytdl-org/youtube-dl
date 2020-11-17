@@ -17,6 +17,7 @@ from ..utils import (
     parse_duration,
     try_get,
     url_or_none,
+    urljoin,
 )
 from .dailymotion import DailymotionIE
 
@@ -130,10 +131,10 @@ class FranceTVIE(InfoExtractor):
 
         videos = []
 
-        for video in info['videos']:
-            if video['statut'] != 'ONLINE':
+        for video in (info.get('videos') or []):
+            if video.get('statut') != 'ONLINE':
                 continue
-            if not video['url']:
+            if not video.get('url'):
                 continue
             videos.append(video)
 
@@ -151,15 +152,15 @@ class FranceTVIE(InfoExtractor):
 
         formats = []
         for video in videos:
-            video_url = video['url']
+            video_url = video.get('url')
             if not video_url:
                 continue
             if is_live is None:
-                is_live = ((try_get(
-                    video, lambda x: x['plages_ouverture'][0]['direct'], bool) is True)
+                is_live = (try_get(
+                    video, lambda x: x['plages_ouverture'][0]['direct'], bool) is True
                     or video.get('is_live') is True
                     or '/live.francetv.fr/' in video_url)
-            format_id = video['format']
+            format_id = video.get('format')
             ext = determine_ext(video_url)
             if ext == 'f4m':
                 if georestricted:
@@ -209,10 +210,10 @@ class FranceTVIE(InfoExtractor):
         return {
             'id': video_id,
             'title': self._live_title(title) if is_live else title,
-            'description': clean_html(info['synopsis']),
-            'thumbnail': compat_urlparse.urljoin('http://pluzz.francetv.fr', info['image']),
-            'duration': int_or_none(info.get('real_duration')) or parse_duration(info['duree']),
-            'timestamp': int_or_none(info['diffusion']['timestamp']),
+            'description': clean_html(info.get('synopsis')),
+            'thumbnail': urljoin('http://pluzz.francetv.fr', info.get('image')),
+            'duration': int_or_none(info.get('real_duration')) or parse_duration(info.get('duree')),
+            'timestamp': int_or_none(try_get(info, lambda x: x['diffusion']['timestamp'])),
             'is_live': is_live,
             'formats': formats,
             'subtitles': subtitles,
