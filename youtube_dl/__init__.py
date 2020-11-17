@@ -127,6 +127,10 @@ def _real_main(argv=None):
     # Conflicting, missing and erroneous options
     if opts.usenetrc and (opts.username is not None or opts.password is not None):
         parser.error('using .netrc conflicts with giving username/password')
+    if opts.usekeyring and (opts.username is not None or opts.password is not None):
+        parser.error('using keyring conflicts with giving username/password')
+    if opts.usekeyring and opts.usenetrc:
+        parser.error('using keyring conflicts with using .netrc')
     if opts.password is not None and opts.username is None:
         parser.error('account username missing\n')
     if opts.ap_password is not None and opts.ap_username is None:
@@ -316,6 +320,7 @@ def _real_main(argv=None):
 
     ydl_opts = {
         'usenetrc': opts.usenetrc,
+        'usekeyring': opts.usekeyring,
         'username': opts.username,
         'password': opts.password,
         'twofactor': opts.twofactor,
