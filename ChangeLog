@@ -1,3 +1,27 @@
+version 2020.11.17
+
+Core
+* [utils] Skip ! prefixed code in js_to_json
+
+Extractors
+* [youtube:tab] Fix extraction with cookies provided (#27005)
+* [lrt] Fix extraction with empty tags (#20264)
++ [ndr:embed:base] Extract subtitles (#25447, #26106)
++ [servus] Add support for pm-wissen.com (#25869)
+* [servus] Fix extraction (#26872, #26967, #26983, #27000)
+* [xtube] Fix extraction (#26996)
+* [lrt] Fix extraction
++ [lbry] Add support for lbry.tv
++ [condenast] Extract subtitles
+* [condenast] Fix extraction
+* [bandcamp] Fix extraction (#26681, #26684)
+* [rai] Fix RaiPlay extraction (#26064, #26096)
+* [vlive] Fix extraction
+* [usanetwork] Fix extraction
+* [nbc] Fix NBCNews/Today/MSNBC extraction
+* [cnbc] Fix extraction
+
+
 version 2020.11.12
 
 Extractors
