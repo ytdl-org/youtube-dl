@@ -417,6 +417,7 @@
  - **la7.it**
  - **laola1tv**
  - **laola1tv:embed**
+ - **lbry.tv**
  - **LCI**
  - **Lcp**
  - **LcpPlay**
@@ -1043,7 +1044,6 @@
  - **vk:wallpost**
  - **vlive**
  - **vlive:channel**
- - **vlive:playlist**
  - **Vodlocker**
  - **VODPl**
  - **VODPlatform**

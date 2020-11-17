@@ -510,48 +510,6 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
             }
         },
         {
-            'url': 'https://www.youtube.com/watch?v=UxxajLWwzqY',
-            'note': 'Test generic use_cipher_signature video (#897)',
-            'info_dict': {
-                'id': 'UxxajLWwzqY',
-                'ext': 'mp4',
-                'upload_date': '20120506',
-                'title': 'Icona Pop - I Love It (feat. Charli XCX) [OFFICIAL VIDEO]',
-                'alt_title': 'I Love It (feat. Charli XCX)',
-                'description': 'md5:19a2f98d9032b9311e686ed039564f63',
-                'tags': ['Icona Pop i love it', 'sweden', 'pop music', 'big beat records', 'big beat', 'charli',
-                         'xcx', 'charli xcx', 'girls', 'hbo', 'i love it', "i don't care", 'icona', 'pop',
-                         'iconic ep', 'iconic', 'love', 'it'],
-                'duration': 180,
-                'uploader': 'Icona Pop',
-                'uploader_id': 'IconaPop',
-                'uploader_url': r're:https?://(?:www\.)?youtube\.com/user/IconaPop',
-                'creator': 'Icona Pop',
-                'track': 'I Love It (feat. Charli XCX)',
-                'artist': 'Icona Pop',
-            }
-        },
-        {
-            'url': 'https://www.youtube.com/watch?v=07FYdnEawAQ',
-            'note': 'Test VEVO video with age protection (#956)',
-            'info_dict': {
-                'id': '07FYdnEawAQ',
-                'ext': 'mp4',
-                'upload_date': '20130703',
-                'title': 'Justin Timberlake - Tunnel Vision (Official Music Video) (Explicit)',
-                'alt_title': 'Tunnel Vision',
-                'description': 'md5:07dab3356cde4199048e4c7cd93471e1',
-                'duration': 419,
-                'uploader': 'justintimberlakeVEVO',
-                'uploader_id': 'justintimberlakeVEVO',
-                'uploader_url': r're:https?://(?:www\.)?youtube\.com/user/justintimberlakeVEVO',
-                'creator': 'Justin Timberlake',
-                'track': 'Tunnel Vision',
-                'artist': 'Justin Timberlake',
-                'age_limit': 18,
-            }
-        },
-        {
             'url': '//www.YouTube.com/watch?v=yZIXLfi8CZQ',
             'note': 'Embed-only video (#1746)',
             'info_dict': {
@@ -567,7 +525,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
             }
         },
         {
-            'url': 'https://www.youtube.com/watch?v=BaW_jenozKc&v=UxxajLWwzqY',
+            'url': 'https://www.youtube.com/watch?v=BaW_jenozKc&v=yZIXLfi8CZQ',
             'note': 'Use the first video ID in the URL',
             'info_dict': {
                 'id': 'BaW_jenozKc',
@@ -626,24 +584,6 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                 'format': '141/bestaudio[ext=m4a]',
             },
         },
-        # JS player signature function name containing $
-        {
-            'url': 'https://www.youtube.com/watch?v=nfWlot6h_JM',
-            'info_dict': {
-                'id': 'nfWlot6h_JM',
-                'ext': 'm4a',
-                'title': 'Taylor Swift - Shake It Off',
-                'description': 'md5:307195cd21ff7fa352270fe884570ef0',
-                'duration': 242,
-                'uploader': 'TaylorSwiftVEVO',
-                'uploader_id': 'TaylorSwiftVEVO',
-                'upload_date': '20140818',
-            },
-            'params': {
-                'youtube_include_dash_manifest': True,
-                'format': '141/bestaudio[ext=m4a]',
-            },
-        },
         # Controversy video
         {
             'url': 'https://www.youtube.com/watch?v=T4XJQO3qol8',
@@ -672,22 +612,6 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                 'uploader_id': 'WitcherGame',
                 'uploader_url': r're:https?://(?:www\.)?youtube\.com/user/WitcherGame',
                 'upload_date': '20140605',
-                'age_limit': 18,
-            },
-        },
-        # Age-gate video with encrypted signature
-        {
-            'url': 'https://www.youtube.com/watch?v=6kLq3WMV1nU',
-            'info_dict': {
-                'id': '6kLq3WMV1nU',
-                'ext': 'mp4',
-                'title': 'Dedication To My Ex (Miss That) (Lyric Video)',
-                'description': 'md5:33765bb339e1b47e7e72b5490139bb41',
-                'duration': 246,
-                'uploader': 'LloydVEVO',
-                'uploader_id': 'LloydVEVO',
-                'uploader_url': r're:https?://(?:www\.)?youtube\.com/user/LloydVEVO',
-                'upload_date': '20110629',
                 'age_limit': 18,
             },
         },
@@ -1100,73 +1024,6 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                 'album': 'it\'s too much love to know my dear',
                 'release_date': '20190313',
                 'release_year': 2019,
-            },
-            'params': {
-                'skip_download': True,
-            },
-        },
-        {
-            # Youtube Music Auto-generated description
-            # Retrieve 'artist' field from 'Artist:' in video description
-            # when it is present on youtube music video
-            'url': 'https://www.youtube.com/watch?v=k0jLE7tTwjY',
-            'info_dict': {
-                'id': 'k0jLE7tTwjY',
-                'ext': 'mp4',
-                'title': 'Latch Feat. Sam Smith',
-                'description': 'md5:3cb1e8101a7c85fcba9b4fb41b951335',
-                'upload_date': '20150110',
-                'uploader': 'Various Artists - Topic',
-                'uploader_id': 'UCNkEcmYdjrH4RqtNgh7BZ9w',
-                'artist': 'Disclosure',
-                'track': 'Latch Feat. Sam Smith',
-                'album': 'Latch Featuring Sam Smith',
-                'release_date': '20121008',
-                'release_year': 2012,
-            },
-            'params': {
-                'skip_download': True,
-            },
-        },
-        {
-            # Youtube Music Auto-generated description
-            # handle multiple artists on youtube music video
-            'url': 'https://www.youtube.com/watch?v=74qn0eJSjpA',
-            'info_dict': {
-                'id': '74qn0eJSjpA',
-                'ext': 'mp4',
-                'title': 'Eastside',
-                'description': 'md5:290516bb73dcbfab0dcc4efe6c3de5f2',
-                'upload_date': '20180710',
-                'uploader': 'Benny Blanco - Topic',
-                'uploader_id': 'UCzqz_ksRu_WkIzmivMdIS7A',
-                'artist': 'benny blanco, Halsey, Khalid',
-                'track': 'Eastside',
-                'album': 'Eastside',
-                'release_date': '20180713',
-                'release_year': 2018,
-            },
-            'params': {
-                'skip_download': True,
-            },
-        },
-        {
-            # Youtube Music Auto-generated description
-            # handle youtube music video with release_year and no release_date
-            'url': 'https://www.youtube.com/watch?v=-hcAI0g-f5M',
-            'info_dict': {
-                'id': '-hcAI0g-f5M',
-                'ext': 'mp4',
-                'title': 'Put It On Me',
-                'description': 'md5:f6422397c07c4c907c6638e1fee380a5',
-                'upload_date': '20180426',
-                'uploader': 'Matt Maeson - Topic',
-                'uploader_id': 'UCnEkIGqtGcQMLk73Kp-Q5LQ',
-                'artist': 'Matt Maeson',
-                'track': 'Put It On Me',
-                'album': 'The Hearse',
-                'release_date': None,
-                'release_year': 2018,
             },
             'params': {
                 'skip_download': True,
@@ -1608,21 +1465,11 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
     def _extract_chapters_from_json(self, webpage, video_id, duration):
         if not webpage:
             return
-        player = self._parse_json(
-            self._search_regex(
-                r'RELATED_PLAYER_ARGS["\']\s*:\s*({.+})\s*,?\s*\n', webpage,
-                'player args', default='{}'),
-            video_id, fatal=False)
-        if not player or not isinstance(player, dict):
-            return
-        watch_next_response = player.get('watch_next_response')
-        if not isinstance(watch_next_response, compat_str):
-            return
-        response = self._parse_json(watch_next_response, video_id, fatal=False)
-        if not response or not isinstance(response, dict):
+        data = self._extract_yt_initial_data(video_id, webpage)
+        if not data or not isinstance(data, dict):
             return
         chapters_list = try_get(
-            response,
+            data,
             lambda x: x['playerOverlays']
                        ['playerOverlayRenderer']
                        ['decoratedPlayerBarRenderer']
@@ -2866,7 +2713,7 @@ class YoutubeTabIE(YoutubeBaseInfoExtractor):
                 'itct': ctp,
             }
 
-    def _entries(self, tab):
+    def _entries(self, tab, identity_token):
         continuation = None
         slr_contents = tab['sectionListRenderer']['contents']
         for slr_content in slr_contents:
@@ -2911,16 +2758,20 @@ class YoutubeTabIE(YoutubeBaseInfoExtractor):
             if not continuation:
                 continuation = self._extract_continuation(is_renderer)
 
+        headers = {
+            'x-youtube-client-name': '1',
+            'x-youtube-client-version': '2.20201112.04.01',
+        }
+        if identity_token:
+            headers['x-youtube-identity-token'] = identity_token
+
         for page_num in itertools.count(1):
             if not continuation:
                 break
             browse = self._download_json(
                 'https://www.youtube.com/browse_ajax', None,
                 'Downloading page %d' % page_num,
-                headers={
-                    'x-youtube-client-name': '1',
-                    'x-youtube-client-version': '2.20201030.01.00',
-                }, query=continuation, fatal=False)
+                headers=headers, query=continuation, fatal=False)
             if not browse:
                 break
             response = try_get(browse, lambda x: x[1]['response'], dict)
@@ -2974,27 +2825,36 @@ class YoutubeTabIE(YoutubeBaseInfoExtractor):
             raise ExtractorError('Unable to find selected tab')
 
     def _real_extract(self, url):
-        channel_id = self._match_id(url)
+        item_id = self._match_id(url)
         url = compat_urlparse.urlunparse(
             compat_urlparse.urlparse(url)._replace(netloc='www.youtube.com'))
-        webpage = self._download_webpage(url, channel_id)
-        data = self._extract_yt_initial_data(channel_id, webpage)
+        webpage = self._download_webpage(url, item_id)
+        data = self._extract_yt_initial_data(item_id, webpage)
         tabs = data['contents']['twoColumnBrowseResultsRenderer']['tabs']
         selected_tab = self._extract_selected_tab(tabs)
-        channel_title = try_get(
-            data, lambda x: x['metadata']['channelMetadataRenderer']['title'],
-            compat_str)
-        channel_external_id = try_get(
-            data, lambda x: x['metadata']['channelMetadataRenderer']['externalId'],
-            compat_str)
-        tab_title = selected_tab.get('title')
-        title = channel_title or channel_id
-        if tab_title:
-            title += ' - %s' % tab_title
+        renderer = try_get(
+            data, lambda x: x['metadata']['channelMetadataRenderer'], dict)
+        if renderer:
+            channel_title = renderer.get('title') or item_id
+            tab_title = selected_tab.get('title')
+            title = channel_title or item_id
+            if tab_title:
+                title += ' - %s' % tab_title
+            description = renderer.get('description')
+            playlist_id = renderer.get('externalId')
+        renderer = try_get(
+            data, lambda x: x['metadata']['playlistMetadataRenderer'], dict)
+        if renderer:
+            title = renderer.get('title')
+            description = None
+            playlist_id = item_id
+        identity_token = self._search_regex(
+            r'\bID_TOKEN["\']\s*:\s*["\'](.+?)["\']', webpage,
+            'identity token', default=None)
         return self.playlist_result(
-            self._entries(selected_tab['content']),
-            playlist_id=channel_external_id or channel_id,
-            playlist_title=title)
+            self._entries(selected_tab['content'], identity_token),
+            playlist_id=playlist_id, playlist_title=title,
+            playlist_description=description)
 
 
 class YoutubePlaylistIE(InfoExtractor):
