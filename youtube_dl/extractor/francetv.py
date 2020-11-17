@@ -128,17 +128,37 @@ class FranceTVIE(InfoExtractor):
 
         is_live = None
 
-        formats = []
+        videos = []
+
         for video in info['videos']:
             if video['statut'] != 'ONLINE':
                 continue
+            if not video['url']:
+                continue
+            videos.append(video)
+
+        if not videos:
+            for device_type in ['desktop', 'mobile']:
+                fallback_info = self._download_json(
+                    'https://player.webservices.francetelevisions.fr/v1/videos/%s' % video_id,
+                    video_id, 'Downloading fallback %s video JSON' % device_type, query={
+                        'device_type': device_type,
+                        'browser': 'chrome',
+                    }, fatal=False)
+
+                if fallback_info and fallback_info.get('video'):
+                    videos.append(fallback_info['video'])
+
+        formats = []
+        for video in videos:
             video_url = video['url']
             if not video_url:
                 continue
             if is_live is None:
-                is_live = (try_get(
-                    video, lambda x: x['plages_ouverture'][0]['direct'],
-                    bool) is True) or '/live.francetv.fr/' in video_url
+                is_live = ((try_get(
+                    video, lambda x: x['plages_ouverture'][0]['direct'], bool) is True)
+                    or video.get('is_live') is True
+                    or '/live.francetv.fr/' in video_url)
             format_id = video['format']
             ext = determine_ext(video_url)
             if ext == 'f4m':
@@ -154,6 +174,9 @@ class FranceTVIE(InfoExtractor):
                     sign(video_url, format_id), video_id, 'mp4',
                     entry_protocol='m3u8_native', m3u8_id=format_id,
                     fatal=False))
+            elif ext == 'mpd':
+                formats.extend(self._extract_mpd_formats(
+                    sign(video_url, format_id), video_id, mpd_id=format_id, fatal=False))
             elif video_url.startswith('rtmp'):
                 formats.append({
                     'url': video_url,
@@ -166,6 +189,7 @@ class FranceTVIE(InfoExtractor):
                         'url': video_url,
                         'format_id': format_id,
                     })
+
         self._sort_formats(formats)
 
         title = info['titre']
