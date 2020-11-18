@@ -5463,7 +5463,7 @@ def encode_base_n(num, n, table=None):
 
 def decode_packed_codes(code):
     mobj = re.search(PACKED_CODES_RE, code)
-    obfucasted_code, base, count, symbols = mobj.groups()
+    obfuscated_code, base, count, symbols = mobj.groups()
     base = int(base)
     count = int(count)
     symbols = symbols.split('|')
@@ -5476,7 +5476,7 @@ def decode_packed_codes(code):
 
     return re.sub(
         r'\b(\w+)\b', lambda mobj: symbol_table[mobj.group(0)],
-        obfucasted_code)
+        obfuscated_code)
 
 
 def caesar(s, alphabet, shift):
