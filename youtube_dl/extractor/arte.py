@@ -11,6 +11,7 @@ from ..utils import (
     qualities,
     try_get,
     unified_strdate,
+    url_or_none,
 )
 
 # There are different sources of video in arte.tv, the extraction process
@@ -63,8 +64,13 @@ class ArteTVBaseIE(InfoExtractor):
         langcode = LANGS.get(lang, lang)
 
         formats = []
+        m3u8_formats = []
         for format_id, format_dict in vsr.items():
             f = dict(format_dict)
+            format_url = url_or_none(f.get('url'))
+            streamer = f.get('streamer')
+            if not format_url and not streamer:
+                continue
             versionCode = f.get('versionCode')
             l = re.escape(langcode)
 
@@ -107,6 +113,15 @@ class ArteTVBaseIE(InfoExtractor):
             else:
                 lang_pref = -1
 
+            media_type = f.get('mediaType')
+            if media_type == 'hls':
+                m3u8_formats = self._extract_m3u8_formats(
+                    format_url, video_id, 'mp4', entry_protocol='m3u8_native',
+                    m3u8_id=format_id, fatal=False)
+                for m3u8_format in m3u8_formats:
+                    m3u8_format['language_preference'] = lang_pref
+                continue
+
             format = {
                 'format_id': format_id,
                 'preference': -10 if f.get('videoFormat') == 'M3U8' else None,
@@ -118,7 +133,7 @@ class ArteTVBaseIE(InfoExtractor):
                 'quality': qfunc(f.get('quality')),
             }
 
-            if f.get('mediaType') == 'rtmp':
+            if media_type == 'rtmp':
                 format['url'] = f['streamer']
                 format['play_path'] = 'mp4:' + f['url']
                 format['ext'] = 'flv'
@@ -128,6 +143,8 @@ class ArteTVBaseIE(InfoExtractor):
             formats.append(format)
 
         self._check_formats(formats, video_id)
+
+        formats.extend(m3u8_formats)
         self._sort_formats(formats)
 
         info_dict['formats'] = formats
