@@ -331,7 +331,7 @@ Extractors
     + Add support for more domains
 * [svt] Fix series extraction (#22297)
 * [svt] Fix article extraction (#22897, #22919)
-* [soundcloud] Imporve private playlist/set tracks extraction (#3707)
+* [soundcloud] Improve private playlist/set tracks extraction (#3707)
 
 
 version 2020.01.24
@@ -3356,7 +3356,7 @@ Extractors
 + [cda] Support birthday verification (#12789)
 * [leeco] Fix extraction (#12974)
 + [pbs] Extract chapters
-* [amp] Imporove thumbnail and subtitles extraction
+* [amp] Improve thumbnail and subtitles extraction
 * [foxsports] Fix extraction (#12945)
 - [coub] Remove comment count extraction (#12941)
 
