@@ -1498,7 +1498,7 @@ version 2018.11.18
 
 Extractors
 + [wwe] Extract subtitles
-+ [wwe] Add support for playlistst (#14781)
++ [wwe] Add support for playlists (#14781)
 + [wwe] Add support for wwe.com (#14781, #17450)
 * [vk] Detect geo restriction (#17767)
 * [openload] Use original host during extraction (#18211)
