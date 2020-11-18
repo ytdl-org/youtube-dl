@@ -58,9 +58,9 @@
  - **ARD:mediathek**
  - **ARDBetaMediathek**
  - **Arkena**
- - **arte.tv:+7**
- - **arte.tv:embed**
- - **arte.tv:playlist**
+ - **ArteTV**
+ - **ArteTVEmbed**
+ - **ArteTVPlaylist**
  - **AsianCrush**
  - **AsianCrushPlaylist**
  - **AtresPlayer**

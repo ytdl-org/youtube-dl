@@ -1,4 +1,4 @@
-version <unreleased>
+version 2020.11.19
 
 Core
 * [extractor/common] Output error for invalid URLs in _is_valid_url (#21400,

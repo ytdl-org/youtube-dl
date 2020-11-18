@@ -19,7 +19,7 @@ labels: 'site-support-request'
 
 <!--
 Carefully read and work through this check list in order to prevent the most common mistakes and misuse of youtube-dl:
-- First of, make sure you are using the latest version of youtube-dl. Run `youtube-dl --version` and ensure your version is 2020.11.18. If it's not, see https://yt-dl.org/update on how to update. Issues with outdated version will be REJECTED.
+- First of, make sure you are using the latest version of youtube-dl. Run `youtube-dl --version` and ensure your version is 2020.11.19. If it's not, see https://yt-dl.org/update on how to update. Issues with outdated version will be REJECTED.
 - Make sure that all provided video/audio/playlist URLs (if any) are alive and playable in a browser.
 - Make sure that site you are requesting is not dedicated to copyright infringement, see https://yt-dl.org/copyright-infringement. youtube-dl does not support such sites. In order for site support request to be accepted all provided example URLs should not violate any copyrights.
 - Search the bugtracker for similar site support requests: http://yt-dl.org/search-issues. DO NOT post duplicates.
@@ -27,7 +27,7 @@ Carefully read and work through this check list in order to prevent the most com
 -->
 
 - [ ] I'm reporting a new site support request
-- [ ] I've verified that I'm running youtube-dl version **2020.11.18**
+- [ ] I've verified that I'm running youtube-dl version **2020.11.19**
 - [ ] I've checked that all provided URLs are alive and playable in a browser
 - [ ] I've checked that none of provided URLs violate any copyrights
 - [ ] I've searched the bugtracker for similar site support requests including closed ones
