@@ -2747,7 +2747,7 @@ Extractors
 * [yahoo] Bypass geo restriction for brightcove (#14210)
 * [yahoo] Use extracted brightcove account id (#14210)
 * [rtve:alacarta] Fix extraction (#14290)
-+ [yahoo] Add support for custom brigthcove embeds (#14210)
++ [yahoo] Add support for custom brightcove embeds (#14210)
 + [generic] Add support for Video.js embeds
 + [gfycat] Add support for /gifs/detail URLs (#14322)
 * [generic] Fix infinite recursion for twitter:player URLs (#14339)
