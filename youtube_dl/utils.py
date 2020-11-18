@@ -2458,7 +2458,7 @@ class XAttrMetadataError(YoutubeDLError):
 
         # Parsing code and msg
         if (self.code in (errno.ENOSPC, errno.EDQUOT)
-                or 'No space left' in self.msg or 'Disk quota excedded' in self.msg):
+                or 'No space left' in self.msg or 'Disk quota exceeded' in self.msg):
             self.reason = 'NO_SPACE'
         elif self.code == errno.E2BIG or 'Argument list too long' in self.msg:
             self.reason = 'VALUE_TOO_LONG'
