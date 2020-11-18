@@ -457,7 +457,7 @@ Extractors
 * [abcotvs] Relax URL regular expression and improve metadata extraction
   (#18014)
 * [channel9] Reduce response size
-* [adobetv] Improve extaction
+* [adobetv] Improve extraction
     * Use OnDemandPagedList for list extractors
     * Reduce show extraction requests
     * Extract original video format and subtitles
@@ -567,7 +567,7 @@ Extractors
 - [go90] Remove extractor
 * [kakao] Remove raw request
 + [kakao] Extract format total bitrate
-* [daum] Fix VOD and Clip extracton (#15015)
+* [daum] Fix VOD and Clip extraction (#15015)
 * [kakao] Improve extraction
     + Add support for embed URLs
     + Add support for Kakao Legacy vid based embed URLs
@@ -611,7 +611,7 @@ Extractors
     * Improve format extraction (#22123)
     + Extract uploader_id and uploader_url (#21916)
     + Extract all known thumbnails (#19071, #20659)
-    * Fix extration for private playlists (#20976)
+    * Fix extraction for private playlists (#20976)
     + Add support for playlist embeds (#20976)
     * Skip preview formats (#22806)
 * [dplay] Improve extraction
@@ -2552,7 +2552,7 @@ Extractors
 * [nexx] Extract more formats
 + [openload] Add support for openload.link (#14763)
 * [empflix] Relax URL regular expression
-* [empflix] Fix extractrion
+* [empflix] Fix extraction
 * [tnaflix] Don't modify download URLs (#14811)
 - [gamersyde] Remove extractor
 * [francetv:generationwhat] Fix extraction
