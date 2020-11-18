@@ -482,7 +482,7 @@ Extractors
 * [dailymotion] Improve extraction
     * Extract http formats included in m3u8 manifest
     * Fix user extraction (#3553, #21415)
-    + Add suport for User Authentication (#11491)
+    + Add support for User Authentication (#11491)
     * Fix password protected videos extraction (#23176)
     * Respect age limit option and family filter cookie value (#18437)
     * Handle video url playlist query param
@@ -1086,7 +1086,7 @@ Extractors
 * [hbo] Fix extraction and extract subtitles (#14629, #13709)
 * [youtube] Extract srv[1-3] subtitle formats (#20566)
 * [adultswim] Fix extraction (#18025)
-* [teamcoco] Fix extraction and add suport for subdomains (#17099, #20339)
+* [teamcoco] Fix extraction and add support for subdomains (#17099, #20339)
 * [adn] Fix subtitle compatibility with ffmpeg
 * [adn] Fix extraction and add support for positioning styles (#20549)
 * [vk] Use unique video id (#17848)
@@ -3526,7 +3526,7 @@ Extractors
 + [rbmaradio] Add support for redbullradio.com URLs (#12687)
 + [npo:live] Add support for default URL (#12555)
 * [mixcloud:playlist] Fix title, description and view count extraction (#12582)
-+ [thesun] Add suport for thesun.co.uk (#11298, #12674)
++ [thesun] Add support for thesun.co.uk (#11298, #12674)
 + [ceskateleveize:porady] Add support for porady (#7411, #12645)
 * [ceskateleveize] Improve extraction and remove URL replacement hacks
 + [kaltura] Add support for iframe embeds (#12679)
