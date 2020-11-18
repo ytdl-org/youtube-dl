@@ -3565,7 +3565,7 @@ Extractors
 * [funimation] Fix extraction (#10696, #11773)
 + [xfileshare] Add support for vidabc.com (#12589)
 + [xfileshare] Improve extraction and extract hls formats
-+ [crunchyroll] Pass geo verifcation proxy
++ [crunchyroll] Pass geo verification proxy
 + [cwtv] Extract ISM formats
 + [tvplay] Bypass geo restriction
 + [vrv] Add support for vrv.co
@@ -5283,7 +5283,7 @@ Fixed/improved extractors
 - kaltura (#5557)
 - la7
 - Changed features
-- Rename --cn-verfication-proxy to --geo-verification-proxy
+- Rename --cn-verification-proxy to --geo-verification-proxy
 Miscellaneous
 - Add script for displaying downloads statistics
 
