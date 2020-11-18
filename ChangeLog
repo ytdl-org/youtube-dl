@@ -2992,7 +2992,7 @@ Extractors
 * [amcnetworks] Make rating optional (#12453)
 * [cloudy] Fix extraction (#13737)
 + [nickru] Add support for nickelodeon.ru
-* [mtv] Improve thumbnal extraction
+* [mtv] Improve thumbnail extraction
 * [nick] Automate geo-restriction bypass (#13711)
 * [niconico] Improve error reporting (#13696)
 
