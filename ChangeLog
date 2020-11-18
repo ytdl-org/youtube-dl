@@ -1,3 +1,23 @@
+version <unreleased>
+
+Core
+* [extractor/common] Output error for invalid URLs in _is_valid_url (#21400,
+  #24151, #25617, #25618, #25586, #26068, #27072)
+
+Extractors
+* [youporn] Fix upload date extraction
+* [youporn] Make comment count optional (#26986)
+* [arte] Rework extractors
+    * Reimplement embed and playlist extractors to delegate to the single
+      entrypoint artetv extractor
+    * Improve embeds detection (#27057)
++ [arte] Extract m3u8 formats (#27061)
+* [mgtv] Fix format extraction (#26415)
++ [lbry] Add support for odysee.com (#26806)
+* [francetv] Improve info extraction
++ [francetv] Add fallback video URL extraction (#27047)
+
+
 version 2020.11.18
 
 Extractors
