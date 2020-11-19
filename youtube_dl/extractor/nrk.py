@@ -14,11 +14,14 @@ from ..utils import (
     determine_ext,
     ExtractorError,
     int_or_none,
+    js_to_json,
     parse_age_limit,
     parse_duration,
+    parse_iso8601,
     try_get,
     urljoin,
     url_or_none,
+    urljoin,
 )
 
 
@@ -836,3 +839,77 @@ class NRKSkoleIE(InfoExtractor):
             video_id)['psId']
 
         return self.url_result('nrk:%s' % nrk_id)
+
+
+class NRKPodcastEpisodeIE(InfoExtractor):
+    IE_DESC = 'NRK Podkast'
+    _VALID_URL = r'https?://radio\.nrk\.no/podkast/([^/]+/sesong/)?[^/]+/(?P<id>[\w-]+)'
+
+    _TESTS = [{
+        'url': 'https://radio.nrk.no/podkast/loerdagsraadet/l_1985e1f5-6c6f-4047-85e1-f56c6f3047aa',
+        'info_dict': {
+            'id': 'l_1985e1f5-6c6f-4047-85e1-f56c6f3047aa',
+            'ext': 'mp3',
+            'title': 'Peder Kjøs / Sissel Gran / Finn Skårderud',
+            'description': "md5:bb194b449c7da3cbdd994519b9341fb1",
+            'timestamp': 1604142000,
+            'upload_date': '20201031',
+        },
+    }, {
+        'url': 'https://radio.nrk.no/podkast/hele_historien/sesong/bortfoert-i-bergen/l_774d1a2c-7aa7-4965-8d1a-2c7aa7d9652c',
+        'info_dict': {
+            'id': 'l_774d1a2c-7aa7-4965-8d1a-2c7aa7d9652c',
+            'ext': 'mp3',
+            'title': 'Bortført i Bergen (2:3)',
+            'description': "md5:849611cc6b1c61c6785f1c63bc7c80fa",
+            'timestamp': 1603145160,
+            'upload_date': '20201019',
+            'series': 'Hele historien',
+        },
+    }, {
+        'url': 'https://radio.nrk.no/podcast/ulrikkes_univers/nrkno-poddkast-26588-134079-05042018030000',
+        'info_dict': {
+            'id': 'nrkno-poddkast-26588-134079-05042018030000',
+            'ext': 'mp3',
+            'title': 'Jeg er sinna og det må du tåle!',
+            'description': "md5:3199c55a4a2e55b1721423ccbdacc1b6",
+            'timestamp': 1522897200,
+            'upload_date': '20180405',
+            'series': 'Ulrikkes univers',
+        },
+    }]
+
+    def _real_extract(self, url):
+        video_id = self._match_id(url)
+        webpage = self._download_webpage(url, video_id)
+        player = self._parse_json(self._search_regex(
+            r'window\.__PRELOADED_STATE__\s*=\s*({.+})', webpage,
+            'player', default='{}'), video_id, transform_source=js_to_json)
+        player_config = self._parse_json(self._search_regex(
+            r'window\.__NRK_RADIO_CONFIG__\s*=\s*({.+})', webpage,
+            'player', default='{}'), video_id, transform_source=js_to_json)
+        api_host_url = player_config['PS_API_BASE_URL']
+
+        metadata_url = None
+        for episode_data in player['series']['latestEpisodes']['episodes']:
+            if episode_data['episodeId'] == video_id:
+                metadata_url = episode_data['_links']['playback']['href']
+                break
+        if metadata_url == None:
+            metadata_url = player['series']['episode']['_links']['playback']['href']
+
+        metadata = self._download_json(urljoin(api_host_url, metadata_url), video_id, transform_source=js_to_json)
+
+        manifest_url = metadata['playable']['resolve']
+        manifest = self._download_json(urljoin(api_host_url, manifest_url), video_id, 'Downloading JSON manifest',
+            'Unable to download JSON manifest', transform_source=js_to_json)
+
+        return {
+            'url': manifest['playable']['assets'][0]['url'],
+            'id': video_id,
+            'title': metadata['preplay']['titles']['title'].strip(),
+            'description': metadata.get('preplay').get('titles').get('subtitle').strip(),
+            'thumbnail': metadata.get('preplay').get('poster').get('images')[0].get('url') if metadata.get('preplay').get('poster').get('images') else None,
+            'timestamp': parse_iso8601(manifest.get('availability').get('onDemand').get('from')),
+            'series': player.get('series').get('series').get('titles').get('title').strip(),
+        }
