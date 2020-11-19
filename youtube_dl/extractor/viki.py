@@ -296,6 +296,9 @@ class VikiIE(VikiBaseIE):
                         if f.get('acodec') == 'none' and f.get('vcodec') != 'none':
                             f['acodec'] = None
                     formats.extend(m3u8_formats)
+                elif format_id == 'mpd':
+                    formats.extend(self._extract_mpd_formats(
+                        format_url, video_id, 'mpd-%s' % protocol, fatal=False))
                 elif format_url.startswith('rtmp'):
                     mobj = re.search(
                         r'^(?P<url>rtmp://[^/]+/(?P<app>.+?))/(?P<playpath>mp4:.+)$',
