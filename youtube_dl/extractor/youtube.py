@@ -2474,13 +2474,13 @@ class YoutubeTabIE(YoutubeBaseInfoExtractor):
         },
         'playlist_mincount': 138,
     }, {
-        'url': 'https://invidio.us/channel/UC23qupoDRn9YOAVzeoxjOQA',
+        'url': 'https://invidio.us/channel/UCmlqkdCBesrv2Lak1mF_MxA',
         'only_matching': True,
     }, {
-        'url': 'https://www.youtubekids.com/channel/UCyu8StPfZWapR6rfW_JgqcA',
+        'url': 'https://www.youtubekids.com/channel/UCmlqkdCBesrv2Lak1mF_MxA',
         'only_matching': True,
     }, {
-        'url': 'https://music.youtube.com/channel/UCT-K0qO8z6NzWrywqefBPBQ',
+        'url': 'https://music.youtube.com/channel/UCmlqkdCBesrv2Lak1mF_MxA',
         'only_matching': True,
     }, {
         'note': 'Playlist with deleted videos (#651). As a bonus, the video #51 is also twice in this list.',
@@ -2527,7 +2527,7 @@ class YoutubeTabIE(YoutubeBaseInfoExtractor):
         },
         'playlist_mincount': 11,
     }, {
-        'url': 'https://invidio.us/playlist?list=PLDIoUOhQQPlXr63I_vwF9GD8sAKh77dWU',
+        'url': 'https://invidio.us/playlist?list=PL4lCao7KL_QFVb7Iudeipvc2BCavECqzc',
         'only_matching': True,
     }, {
         # Playlist URL that does not actually serve a playlist
