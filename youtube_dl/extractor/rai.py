@@ -16,7 +16,9 @@ from ..utils import (
     GeoRestrictedError,
     int_or_none,
     parse_duration,
+    remove_start,
     strip_or_none,
+    try_get,
     unified_strdate,
     unified_timestamp,
     update_url_query,
@@ -121,7 +123,7 @@ class RaiBaseIE(InfoExtractor):
 
 
 class RaiPlayIE(RaiBaseIE):
-    _VALID_URL = r'(?P<base>https?://(?:www\.)?raiplay\.it/.+?-)(?P<id>%s)\.(?:html|json)' % RaiBaseIE._UUID_RE
+    _VALID_URL = r'(?P<base>https?://(?:www\.)?raiplay\.it/.+?-(?P<id>%s))\.(?:html|json)' % RaiBaseIE._UUID_RE
     _TESTS = [{
         'url': 'http://www.raiplay.it/video/2014/04/Report-del-07042014-cb27157f-9dd0-4aee-b788-b1f67643a391.html',
         'md5': '8970abf8caf8aef4696e7b1f2adfc696',
@@ -146,11 +148,10 @@ class RaiPlayIE(RaiBaseIE):
     }]
 
     def _real_extract(self, url):
-        mobj = re.match(self._VALID_URL, url)
-        base, video_id, = mobj.group('base', 'id')
+        base, video_id = re.match(self._VALID_URL, url).groups()
 
         media = self._download_json(
-            '%s%s.json' % (base, video_id), video_id, 'Downloading video JSON')
+            base + '.json', video_id, 'Downloading video JSON')
 
         title = media['name']
 
@@ -177,7 +178,8 @@ class RaiPlayIE(RaiBaseIE):
         season = media.get('season')
 
         info = {
-            'id': video_id,
+            'id': remove_start(media.get('id'), 'ContentItem-') or video_id,
+            'display_id': video_id,
             'title': self._live_title(title) if relinker_info.get(
                 'is_live') else title,
             'alt_title': strip_or_none(media.get('subtitle')),
@@ -199,9 +201,9 @@ class RaiPlayIE(RaiBaseIE):
         return info
 
 
-class RaiPlayLiveIE(RaiBaseIE):
+class RaiPlayLiveIE(RaiPlayIE):
     _VALID_URL = r'(?P<base>https?://(?:www\.)?raiplay\.it/dirette/(?P<id>[^/?#&]+))'
-    _TEST = {
+    _TESTS = [{
         'url': 'http://www.raiplay.it/dirette/rainews24',
         'info_dict': {
             'id': 'd784ad40-e0ae-4a69-aa76-37519d238a9c',
@@ -216,35 +218,7 @@ class RaiPlayLiveIE(RaiBaseIE):
         'params': {
             'skip_download': True,
         },
-    }
-
-    def _real_extract(self, url):
-        mobj = re.match(self._VALID_URL, url)
-        base, display_id, = mobj.group('base', 'id')
-
-        media = self._download_json(
-            '%s.json' % base,
-            display_id, 'Downloading channel JSON')
-
-        title = media['name']
-        video = media['video']
-        video_id = media['id'].replace('ContentItem-', '')
-
-        relinker_info = self._extract_relinker_info(video['content_url'], video_id)
-        self._sort_formats(relinker_info['formats'])
-
-        info = {
-            'id': video_id,
-            'display_id': display_id,
-            'title': self._live_title(title) if relinker_info.get(
-                'is_live') else title,
-            'description': media.get('description'),
-            'uploader': strip_or_none(media.get('channel')),
-            'creator': strip_or_none(media.get('editor')),
-        }
-
-        info.update(relinker_info)
-        return info
+    }]
 
 
 class RaiPlayPlaylistIE(InfoExtractor):
@@ -260,36 +234,34 @@ class RaiPlayPlaylistIE(InfoExtractor):
     }]
 
     def _real_extract(self, url):
-        mobj = re.match(self._VALID_URL, url)
-        base, playlist_id, = mobj.group('base', 'id')
+        base, playlist_id = re.match(self._VALID_URL, url).groups()
 
-        media = self._download_json(
-            '%s.json' % base,
-            playlist_id, 'Downloading program JSON')
-
-        title = media.get('name')
-        description = None
-        if media.get('program_info') and media['program_info'].get('description'):
-            description = media['program_info']['description']
+        program = self._download_json(
+            base + '.json', playlist_id, 'Downloading program JSON')
 
         entries = []
-        for b in media.get('blocks', []):
-            for s in b.get('sets', []):
-                cs = s.get('id')
-                if not cs:
+        for b in (program.get('blocks') or []):
+            for s in (b.get('sets') or []):
+                s_id = s.get('id')
+                if not s_id:
                     continue
                 medias = self._download_json(
-                    '%s/%s.json' % (base, cs),
-                    cs, 'Downloading content set JSON', fatal=False)
+                    '%s/%s.json' % (base, s_id), s_id,
+                    'Downloading content set JSON', fatal=False)
                 if not medias:
                     continue
-                for m in medias['items']:
-                    video_url = urljoin(url, m['path_id'])
+                for m in (medias.get('items') or []):
+                    path_id = m.get('path_id')
+                    if not path_id:
+                        continue
+                    video_url = urljoin(url, path_id)
                     entries.append(self.url_result(
                         video_url, ie=RaiPlayIE.ie_key(),
                         video_id=RaiPlayIE._match_id(video_url)))
 
-        return self.playlist_result(entries, playlist_id, title, description)
+        return self.playlist_result(
+            entries, playlist_id, program.get('name'),
+            try_get(program, lambda x: x['program_info']['description']))
 
 
 class RaiIE(RaiBaseIE):
