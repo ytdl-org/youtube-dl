@@ -68,7 +68,7 @@ class RaiBaseIE(InfoExtractor):
 
             # This does not imply geo restriction (e.g.
             # http://www.raisport.rai.it/dl/raiSport/media/rassegna-stampa-04a9f4bd-b563-40cf-82a6-aad3529cb4a9.html)
-            if media_url == 'http://download.rai.it/video_no_available.mp4':
+            if '/video_no_available.mp4' in media_url:
                 continue
 
             ext = determine_ext(media_url)
