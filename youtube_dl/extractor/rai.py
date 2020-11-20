@@ -424,7 +424,7 @@ class RaiIE(RaiBaseIE):
             except ExtractorError:
                 pass
 
-        relinker_url = self._search_regex(
+        relinker_url = self._proto_relative_url(self._search_regex(
             r'''(?x)
                 (?:
                     var\s+videoURL|
@@ -436,7 +436,7 @@ class RaiIE(RaiBaseIE):
                     //mediapolis(?:vod)?\.rai\.it/relinker/relinkerServlet\.htm\?
                     (?:(?!\1).)*\bcont=(?:(?!\1).)+)\1
             ''',
-            webpage, 'relinker URL', group='url')
+            webpage, 'relinker URL', group='url'))
 
         relinker_info = self._extract_relinker_info(
             urljoin(url, relinker_url), video_id)
