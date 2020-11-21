@@ -367,7 +367,7 @@ Extractors
     + Add support for more domains
 * [svt] Fix series extraction (#22297)
 * [svt] Fix article extraction (#22897, #22919)
-* [soundcloud] Imporve private playlist/set tracks extraction (#3707)
+* [soundcloud] Improve private playlist/set tracks extraction (#3707)
 
 
 version 2020.01.24
@@ -493,7 +493,7 @@ Extractors
 * [abcotvs] Relax URL regular expression and improve metadata extraction
   (#18014)
 * [channel9] Reduce response size
-* [adobetv] Improve extaction
+* [adobetv] Improve extraction
     * Use OnDemandPagedList for list extractors
     * Reduce show extraction requests
     * Extract original video format and subtitles
@@ -518,7 +518,7 @@ Extractors
 * [dailymotion] Improve extraction
     * Extract http formats included in m3u8 manifest
     * Fix user extraction (#3553, #21415)
-    + Add suport for User Authentication (#11491)
+    + Add support for User Authentication (#11491)
     * Fix password protected videos extraction (#23176)
     * Respect age limit option and family filter cookie value (#18437)
     * Handle video url playlist query param
@@ -603,7 +603,7 @@ Extractors
 - [go90] Remove extractor
 * [kakao] Remove raw request
 + [kakao] Extract format total bitrate
-* [daum] Fix VOD and Clip extracton (#15015)
+* [daum] Fix VOD and Clip extraction (#15015)
 * [kakao] Improve extraction
     + Add support for embed URLs
     + Add support for Kakao Legacy vid based embed URLs
@@ -647,7 +647,7 @@ Extractors
     * Improve format extraction (#22123)
     + Extract uploader_id and uploader_url (#21916)
     + Extract all known thumbnails (#19071, #20659)
-    * Fix extration for private playlists (#20976)
+    * Fix extraction for private playlists (#20976)
     + Add support for playlist embeds (#20976)
     * Skip preview formats (#22806)
 * [dplay] Improve extraction
@@ -1122,7 +1122,7 @@ Extractors
 * [hbo] Fix extraction and extract subtitles (#14629, #13709)
 * [youtube] Extract srv[1-3] subtitle formats (#20566)
 * [adultswim] Fix extraction (#18025)
-* [teamcoco] Fix extraction and add suport for subdomains (#17099, #20339)
+* [teamcoco] Fix extraction and add support for subdomains (#17099, #20339)
 * [adn] Fix subtitle compatibility with ffmpeg
 * [adn] Fix extraction and add support for positioning styles (#20549)
 * [vk] Use unique video id (#17848)
@@ -1534,7 +1534,7 @@ version 2018.11.18
 
 Extractors
 + [wwe] Extract subtitles
-+ [wwe] Add support for playlistst (#14781)
++ [wwe] Add support for playlists (#14781)
 + [wwe] Add support for wwe.com (#14781, #17450)
 * [vk] Detect geo restriction (#17767)
 * [openload] Use original host during extraction (#18211)
@@ -2567,7 +2567,7 @@ Extractors
 * [youku] Update ccode (#14872)
 * [mnet] Fix format extraction (#14883)
 + [xiami] Add Referer header to API request
-* [mtv] Correct scc extention in extracted subtitles (#13730)
+* [mtv] Correct scc extension in extracted subtitles (#13730)
 * [vvvvid] Fix extraction for kenc videos (#13406)
 + [br] Add support for BR Mediathek videos (#14560, #14788)
 + [daisuki] Add support for motto.daisuki.com (#14681)
@@ -2588,7 +2588,7 @@ Extractors
 * [nexx] Extract more formats
 + [openload] Add support for openload.link (#14763)
 * [empflix] Relax URL regular expression
-* [empflix] Fix extractrion
+* [empflix] Fix extraction
 * [tnaflix] Don't modify download URLs (#14811)
 - [gamersyde] Remove extractor
 * [francetv:generationwhat] Fix extraction
@@ -2783,7 +2783,7 @@ Extractors
 * [yahoo] Bypass geo restriction for brightcove (#14210)
 * [yahoo] Use extracted brightcove account id (#14210)
 * [rtve:alacarta] Fix extraction (#14290)
-+ [yahoo] Add support for custom brigthcove embeds (#14210)
++ [yahoo] Add support for custom brightcove embeds (#14210)
 + [generic] Add support for Video.js embeds
 + [gfycat] Add support for /gifs/detail URLs (#14322)
 * [generic] Fix infinite recursion for twitter:player URLs (#14339)
@@ -3028,7 +3028,7 @@ Extractors
 * [amcnetworks] Make rating optional (#12453)
 * [cloudy] Fix extraction (#13737)
 + [nickru] Add support for nickelodeon.ru
-* [mtv] Improve thumbnal extraction
+* [mtv] Improve thumbnail extraction
 * [nick] Automate geo-restriction bypass (#13711)
 * [niconico] Improve error reporting (#13696)
 
@@ -3392,7 +3392,7 @@ Extractors
 + [cda] Support birthday verification (#12789)
 * [leeco] Fix extraction (#12974)
 + [pbs] Extract chapters
-* [amp] Imporove thumbnail and subtitles extraction
+* [amp] Improve thumbnail and subtitles extraction
 * [foxsports] Fix extraction (#12945)
 - [coub] Remove comment count extraction (#12941)
 
@@ -3562,7 +3562,7 @@ Extractors
 + [rbmaradio] Add support for redbullradio.com URLs (#12687)
 + [npo:live] Add support for default URL (#12555)
 * [mixcloud:playlist] Fix title, description and view count extraction (#12582)
-+ [thesun] Add suport for thesun.co.uk (#11298, #12674)
++ [thesun] Add support for thesun.co.uk (#11298, #12674)
 + [ceskateleveize:porady] Add support for porady (#7411, #12645)
 * [ceskateleveize] Improve extraction and remove URL replacement hacks
 + [kaltura] Add support for iframe embeds (#12679)
@@ -3601,7 +3601,7 @@ Extractors
 * [funimation] Fix extraction (#10696, #11773)
 + [xfileshare] Add support for vidabc.com (#12589)
 + [xfileshare] Improve extraction and extract hls formats
-+ [crunchyroll] Pass geo verifcation proxy
++ [crunchyroll] Pass geo verification proxy
 + [cwtv] Extract ISM formats
 + [tvplay] Bypass geo restriction
 + [vrv] Add support for vrv.co
@@ -3665,7 +3665,7 @@ Extractors
 + [bostonglobe] Add extractor for bostonglobe.com (#12099)
 + [toongoggles] Add support for toongoggles.com (#12171)
 + [medialaan] Add support for Medialaan sites (#9974, #11912)
-+ [discoverynetworks] Add support for more domains and bypass geo restiction
++ [discoverynetworks] Add support for more domains and bypass geo restriction
 * [openload] Fix extraction (#10408)
 
 
@@ -5255,7 +5255,7 @@ version 2016.07.09.1
 Fixed/improved extractors
 - youtube
 - ard
-- srmediatek (#9373)
+- srmediathek (#9373)
 
 
 version 2016.07.09
@@ -5319,7 +5319,7 @@ Fixed/improved extractors
 - kaltura (#5557)
 - la7
 - Changed features
-- Rename --cn-verfication-proxy to --geo-verification-proxy
+- Rename --cn-verification-proxy to --geo-verification-proxy
 Miscellaneous
 - Add script for displaying downloads statistics
 
