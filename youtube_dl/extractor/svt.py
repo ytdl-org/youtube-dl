@@ -154,7 +154,7 @@ class SVTPlayIE(SVTPlayBaseIE):
         'info_dict': {
             'id': 'jNwpV9P',
             'ext': 'mp4',
-            'title': 'Det h\xe4r \xe4r himlen',
+            'title': 'Det här är himlen',
             'timestamp': 1586044800,
             'upload_date': '20200405',
             'duration': 3515,
