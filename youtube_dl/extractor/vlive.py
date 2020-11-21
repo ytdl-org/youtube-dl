@@ -1,6 +1,7 @@
 # coding: utf-8
 from __future__ import unicode_literals
 
+import re
 import itertools
 import json
 
@@ -24,7 +25,9 @@ class VLiveBaseIE(NaverBaseIE):
 
 class VLiveIE(VLiveBaseIE):
     IE_NAME = 'vlive'
-    _VALID_URL = r'https?://(?:(?:www|m)\.)?vlive\.tv/(?:video|embed)/(?P<id>[0-9]+)'
+    _VALID_URL = r'https?://(?:(?:www|m)\.)?vlive\.tv/(?P<type>(video)|(embed)|(post))/(?P<id>(?:\d-)?[0-9]+)'
+    _POST_TEMPLATE = 'post/v1.0/post-%s'
+    _VIDEO_TEMPLATE = 'post/v1.0/officialVideoPost-%s'
     _NETRC_MACHINE = 'vlive'
     _TESTS = [{
         'url': 'http://www.vlive.tv/video/1326',
@@ -39,6 +42,20 @@ class VLiveIE(VLiveBaseIE):
         },
     }, {
         'url': 'http://www.vlive.tv/video/16937',
+        'info_dict': {
+            'id': '16937',
+            'ext': 'mp4',
+            'title': '첸백시 걍방',
+            'creator': 'EXO',
+            'view_count': int,
+            'subtitles': 'mincount:12',
+            'uploader_id': 'muploader_j',
+        },
+        'params': {
+            'skip_download': True,
+        },
+    }, {
+        'url': 'https://www.vlive.tv/post/0-18257176',
         'info_dict': {
             'id': '16937',
             'ext': 'mp4',
@@ -109,18 +126,22 @@ class VLiveIE(VLiveBaseIE):
             headers={'Referer': 'https://www.vlive.tv/'}, query=query)
 
     def _real_extract(self, url):
-        video_id = self._match_id(url)
+        mobj = re.match(self._VALID_URL, url)
+        url_id = mobj.group('id')
+        link_type = mobj.group('type')
+        path_template = self._POST_TEMPLATE if link_type in ('post') else self._VIDEO_TEMPLATE
 
         try:
             post = self._call_api(
-                'post/v1.0/officialVideoPost-%s', video_id,
-                'author{nickname},channel{channelCode,channelName},officialVideo{commentCount,exposeStatus,likeCount,playCount,playTime,status,title,type,vodId}')
+                path_template, url_id,
+                'author{nickname},channel{channelCode,channelName},officialVideo{commentCount,exposeStatus,likeCount,playCount,playTime,status,title,type,vodId,videoSeq}')
         except ExtractorError as e:
             if isinstance(e.cause, compat_HTTPError) and e.cause.code == 403:
                 self.raise_login_required(json.loads(e.cause.read().decode())['message'])
             raise
 
         video = post['officialVideo']
+        video_id = compat_str(video.get('videoSeq'))
 
         def get_common_fields():
             channel = post.get('channel') or {}
