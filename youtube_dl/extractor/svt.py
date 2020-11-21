@@ -140,7 +140,11 @@ class SVTPlayIE(SVTPlayBaseIE):
     IE_DESC = 'SVT Play and Öppet arkiv'
     _VALID_URL = r'''(?x)
                     (?:
-                        svt:(?P<svt_id>[^/?#&]+)|
+                        (?:
+                            svt:|
+                            https?://(?:www\.)?svt\.se/barnkanalen/barnplay/[^/]+/
+                        )
+                        (?P<svt_id>[^/?#&]+)|
                         https?://(?:www\.)?(?:svtplay|oppetarkiv)\.se/(?:video|klipp|kanaler)/(?P<id>[^/?#&]+)
                     )
                     '''
@@ -184,6 +188,12 @@ class SVTPlayIE(SVTPlayBaseIE):
         'only_matching': True,
     }, {
         'url': 'svt:14278044',
+        'only_matching': True,
+    }, {
+        'url': 'https://www.svt.se/barnkanalen/barnplay/kar/eWv5MLX/',
+        'only_matching': True,
+    }, {
+        'url': 'svt:eWv5MLX',
         'only_matching': True,
     }]
 
@@ -376,7 +386,7 @@ class SVTPageIE(InfoExtractor):
 
     @classmethod
     def suitable(cls, url):
-        return False if SVTIE.suitable(url) else super(SVTPageIE, cls).suitable(url)
+        return False if SVTIE.suitable(url) or SVTPlayIE.suitable(url) else super(SVTPageIE, cls).suitable(url)
 
     def _real_extract(self, url):
         path, display_id = re.match(self._VALID_URL, url).groups()
