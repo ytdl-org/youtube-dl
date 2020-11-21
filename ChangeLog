@@ -1,4 +1,4 @@
-version <unreleased>
+version 2020.11.21.1
 
 Core
 * [downloader/http] Fix crash during urlopen caused by missing reason
