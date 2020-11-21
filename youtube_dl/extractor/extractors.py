@@ -843,6 +843,7 @@ from .picarto import (
 )
 from .piksel import PikselIE
 from .pinkbike import PinkbikeIE
+from .pinterest import PinterestIE
 from .pladform import PladformIE
 from .platzi import (
     PlatziIE,
