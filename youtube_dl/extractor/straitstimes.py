@@ -6,7 +6,7 @@ from .common import InfoExtractor
 
 
 class StraitsTimesIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:www\.)?straitstimes\.com/(?P<section>(?:-|\w|\d)+)/(?P<id>(?:-|\w|\d)+)'
+    _VALID_URL = r'https?://(?:www\.)?straitstimes\.com/(?:(?:-|\w|\d)+)/(?P<id>(?:-|\w|\d)+)'
     _TESTS = [
         {
             'url': 'https://www.straitstimes.com/singapore/making-money-and-still-doing-good',
@@ -43,7 +43,7 @@ class StraitsTimesIE(InfoExtractor):
 
         webpage = self._download_webpage(url, display_id)
         url_obj = (
-            re.search(r'<iframe src="/embed/(?P<id>\d+)"(.*)</iframe>', webpage)
+            re.search(r'<iframe src="/embed/(?P<id>\d+)".*</iframe>', webpage)
             or re.search(r'<div.*resource="https://players.brightcove.net/4539381505001/default_default(?:/index.html)?\?videoId=(?P<id>\d+)">', webpage))
 
         brightcove_id = url_obj.group('id')
