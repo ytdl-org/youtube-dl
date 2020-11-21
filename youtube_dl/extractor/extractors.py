@@ -1475,7 +1475,6 @@ from .yourupload import YourUploadIE
 from .youtube import (
     YoutubeIE,
     YoutubeHistoryIE,
-    YoutubeLiveIE,
     YoutubeTabIE,
     YoutubePlaylistIE,
     YoutubeRecommendedIE,

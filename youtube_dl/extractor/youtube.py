@@ -2559,12 +2559,56 @@ class YoutubeTabIE(YoutubeBaseInfoExtractor):
     }, {
         'url': 'https://www.youtube.com/watch?v=MuAGGZNfUkU&list=RDMM',
         'only_matching': True,
+    }, {
+        'url': 'https://www.youtube.com/channel/UCoMdktPbSTixAyNGwb-UYkQ/live',
+        'info_dict': {
+            'id': '9Auq9mYxFEE',
+            'ext': 'mp4',
+            'title': 'Watch Sky News live',
+            'uploader': 'Sky News',
+            'uploader_id': 'skynews',
+            'uploader_url': r're:https?://(?:www\.)?youtube\.com/user/skynews',
+            'upload_date': '20191102',
+            'description': 'md5:78de4e1c2359d0ea3ed829678e38b662',
+            'categories': ['News & Politics'],
+            'tags': list,
+            'like_count': int,
+            'dislike_count': int,
+        },
+        'params': {
+            'skip_download': True,
+        },
+    }, {
+        'url': 'https://www.youtube.com/user/TheYoungTurks/live',
+        'info_dict': {
+            'id': 'a48o2S1cPoo',
+            'ext': 'mp4',
+            'title': 'The Young Turks - Live Main Show',
+            'uploader': 'The Young Turks',
+            'uploader_id': 'TheYoungTurks',
+            'uploader_url': r're:https?://(?:www\.)?youtube\.com/user/TheYoungTurks',
+            'upload_date': '20150715',
+            'license': 'Standard YouTube License',
+            'description': 'md5:438179573adcdff3c97ebb1ee632b891',
+            'categories': ['News & Politics'],
+            'tags': ['Cenk Uygur (TV Program Creator)', 'The Young Turks (Award-Winning Work)', 'Talk Show (TV Genre)'],
+            'like_count': int,
+            'dislike_count': int,
+        },
+        'params': {
+            'skip_download': True,
+        },
+        'only_matching': True,
+    }, {
+        'url': 'https://www.youtube.com/channel/UC1yBKRuGpC1tSM73A0ZjYjQ/live',
+        'only_matching': True,
+    }, {
+        'url': 'https://www.youtube.com/c/CommanderVideoHq/live',
+        'only_matching': True,
+    }, {
+        'url': 'https://www.youtube.com/TheYoungTurks/live',
+        'only_matching': True,
     }]
-
-    @classmethod
-    def suitable(cls, url):
-        return False if YoutubeLiveIE.suitable(url) else super(
-            YoutubeTabIE, cls).suitable(url)
 
     def _extract_channel_id(self, webpage):
         channel_id = self._html_search_meta(
@@ -2951,7 +2995,7 @@ class YoutubeTabIE(YoutubeBaseInfoExtractor):
             self.to_screen('Downloading playlist %s - add --no-playlist to just download video %s' % (playlist_id, video_id))
         webpage = self._download_webpage(url, item_id)
         identity_token = self._search_regex(
-            r'\bID_TOKEN["\']\s*:\s*["\'](.+?)["\']', webpage,
+            r'\bID_TOKEN["\']\s*:\s/l*["\'](.+?)["\']', webpage,
             'identity token', default=None)
         data = self._extract_yt_initial_data(item_id, webpage)
         tabs = try_get(
@@ -2962,7 +3006,11 @@ class YoutubeTabIE(YoutubeBaseInfoExtractor):
             data, lambda x: x['contents']['twoColumnWatchNextResults']['playlist']['playlist'], dict)
         if playlist:
             return self._extract_from_playlist(item_id, data, playlist)
-        # Fallback to video extraction if no playlist alike page is recognized
+        # Fallback to video extraction if no playlist alike page is recognized.
+        # First check for the current video then try the v attribute of URL query.
+        video_id = try_get(
+            data, lambda x: x['currentVideoEndpoint']['watchEndpoint']['videoId'],
+            compat_str) or video_id
         if video_id:
             return self.url_result(video_id, ie=YoutubeIE.ie_key(), video_id=video_id)
         # Failed to recognize
@@ -3081,58 +3129,6 @@ class YoutubeYtUserIE(InfoExtractor):
         return self.url_result(
             'https://www.youtube.com/user/%s' % user_id,
             ie=YoutubeTabIE.ie_key(), video_id=user_id)
-
-
-class YoutubeLiveIE(YoutubeBaseInfoExtractor):
-    IE_DESC = 'YouTube.com live streams'
-    _VALID_URL = r'(?P<base_url>https?://(?:\w+\.)?youtube\.com/(?:(?:user|channel|c)/)?(?P<id>[^/]+))/live'
-    IE_NAME = 'youtube:live'
-
-    _TESTS = [{
-        'url': 'https://www.youtube.com/user/TheYoungTurks/live',
-        'info_dict': {
-            'id': 'a48o2S1cPoo',
-            'ext': 'mp4',
-            'title': 'The Young Turks - Live Main Show',
-            'uploader': 'The Young Turks',
-            'uploader_id': 'TheYoungTurks',
-            'uploader_url': r're:https?://(?:www\.)?youtube\.com/user/TheYoungTurks',
-            'upload_date': '20150715',
-            'license': 'Standard YouTube License',
-            'description': 'md5:438179573adcdff3c97ebb1ee632b891',
-            'categories': ['News & Politics'],
-            'tags': ['Cenk Uygur (TV Program Creator)', 'The Young Turks (Award-Winning Work)', 'Talk Show (TV Genre)'],
-            'like_count': int,
-            'dislike_count': int,
-        },
-        'params': {
-            'skip_download': True,
-        },
-    }, {
-        'url': 'https://www.youtube.com/channel/UC1yBKRuGpC1tSM73A0ZjYjQ/live',
-        'only_matching': True,
-    }, {
-        'url': 'https://www.youtube.com/c/CommanderVideoHq/live',
-        'only_matching': True,
-    }, {
-        'url': 'https://www.youtube.com/TheYoungTurks/live',
-        'only_matching': True,
-    }]
-
-    def _real_extract(self, url):
-        mobj = re.match(self._VALID_URL, url)
-        channel_id = mobj.group('id')
-        base_url = mobj.group('base_url')
-        webpage = self._download_webpage(url, channel_id, fatal=False)
-        if webpage:
-            page_type = self._og_search_property(
-                'type', webpage, 'page type', default='')
-            video_id = self._html_search_meta(
-                'videoId', webpage, 'video id', default=None)
-            if page_type.startswith('video') and video_id and re.match(
-                    r'^[0-9A-Za-z_-]{11}$', video_id):
-                return self.url_result(video_id, YoutubeIE.ie_key())
-        return self.url_result(base_url)
 
 
 class YoutubeSearchIE(SearchInfoExtractor, YoutubeBaseInfoExtractor):
