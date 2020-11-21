@@ -41,6 +41,7 @@
  - **AlJazeera**
  - **Allocine**
  - **AlphaPorno**
+ - **Amara**
  - **AMCNetworks**
  - **AmericasTestKitchen**
  - **anderetijden**: npo.nl, ntr.nl, omroepwnl.nl, zapp.nl and npo3.nl
@@ -1130,7 +1131,6 @@
  - **YourUpload**
  - **youtube**: YouTube.com
  - **youtube:history**: Youtube watch history, ":ythistory" for short (requires authentication)
- - **youtube:live**: YouTube.com live streams
  - **youtube:playlist**: YouTube.com playlists
  - **youtube:recommended**: YouTube.com recommended videos, ":ytrec" for short (requires authentication)
  - **youtube:search**: YouTube.com searches
