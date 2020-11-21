@@ -10,12 +10,12 @@ class ChannelNewsAsiaIE(InfoExtractor):
     _TESTS = [
         {
             'url': 'https://www.channelnewsasia.com/news/video-on-demand/wizards-of-tech',
-            'md5': 'a8ba47ac856fccb6213c74f1d82eeb3d',
+            'md5': 'ed9ed143052f0da3ee8a8fa59ba16870',
             'info_dict': {
-                'id': '9ldHdzajE6gEsQce6-K8eVvYNSAgY3fg',
+                'id': 'w0ZWRzajE6qDPXDb7DSeaOCJ3bJ3GDqC',
                 'ext': 'mp4',
-                'title': 'Home',
-                'description': 'md5:03740111008a32416327f07dbbc5526c',
+                'title': 'Wizards Of Tech_2020_0_1_Body',
+                'description': 'md5:b3882dd00e329e623a179465de9f5478',
             },
         },
         {
@@ -36,6 +36,7 @@ class ChannelNewsAsiaIE(InfoExtractor):
         webpage = self._download_webpage(url, display_id)
         url_obj = (
             re.search(r'<div.*video-asset-id="(?P<id>(?:\d|\w|-)+)".*</div>', webpage, flags=re.DOTALL)
+            or re.search(r'<div.*data-video-id="(?P<id>(?:\d|\w|-)+)".*</div>', webpage, flags=re.DOTALL)
         )
 
         ooyala_id = url_obj.group('id')
