@@ -2620,10 +2620,13 @@ class YoutubeTabIE(YoutubeBaseInfoExtractor):
     }, {
         'url': 'https://www.youtube.com/c/CommanderVideoHq/live',
         'only_matching': True,
-    }, {
-        'url': 'https://www.youtube.com/TheYoungTurks/live',
-        'only_matching': True,
-    }]
+    },
+    # TODO
+    # {
+    #     'url': 'https://www.youtube.com/TheYoungTurks/live',
+    #     'only_matching': True,
+    # }
+    ]
 
     def _extract_channel_id(self, webpage):
         channel_id = self._html_search_meta(
