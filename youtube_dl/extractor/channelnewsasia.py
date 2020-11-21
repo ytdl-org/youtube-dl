@@ -36,8 +36,7 @@ class ChannelNewsAsiaIE(InfoExtractor):
         webpage = self._download_webpage(url, display_id)
         url_obj = (
             re.search(r'<div.*video-asset-id="(?P<id>(?:\d|\w|-)+)".*</div>', webpage, flags=re.DOTALL)
-            or re.search(r'<div.*data-video-id="(?P<id>(?:\d|\w|-)+)".*</div>', webpage, flags=re.DOTALL)
-        )
+            or re.search(r'<div.*data-video-id="(?P<id>(?:\d|\w|-)+)".*</div>', webpage, flags=re.DOTALL))
 
         ooyala_id = url_obj.group('id')
         return self.url_result(
