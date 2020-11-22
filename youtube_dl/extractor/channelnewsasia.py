@@ -9,7 +9,7 @@ class ChannelNewsAsiaIE(InfoExtractor):
     _VALID_URL = r'https?://(?:www\.)?channelnewsasia\.com/(?:(?:-|\w|\d)+)/(?:(?:-|\w|\d)+)/(?P<id>(?:-|\w|\d)+)'
     _TESTS = [
         {
-            'url': 'https://www.channelnewsasia.com/news/video-on-demand/wizards-of-tech',
+            'url': 'https://www.channelnewsasia.com/news/video-on-demand/wizards-of-tech/wizards-of-tech-body-13515106',
             'md5': 'ed9ed143052f0da3ee8a8fa59ba16870',
             'info_dict': {
                 'id': 'w0ZWRzajE6qDPXDb7DSeaOCJ3bJ3GDqC',
@@ -34,11 +34,15 @@ class ChannelNewsAsiaIE(InfoExtractor):
         display_id = self._match_id(url)
 
         webpage = self._download_webpage(url, display_id)
-        url_obj = (
-            re.search(r'<div.*video-asset-id="(?P<id>(?:\d|\w|-)+)".*</div>', webpage, flags=re.DOTALL)
-            or re.search(r'<div.*data-video-id="(?P<id>(?:\d|\w|-)+)".*</div>', webpage, flags=re.DOTALL))
+        
+        ooyala_id = (
+            self._search_regex(
+                r'id="ooyala-\d+-((?:\d|\w|-)+)--\d+', webpage, 'ooyala id',
+                default=None, fatal=False)
+            or self._search_regex(
+                r'video-asset-id="((?:\d|\w|-)+)', webpage, 'ooyala id',
+                default=None, fatal=False))
 
-        ooyala_id = url_obj.group('id')
         return self.url_result(
             'ooyala:' + ooyala_id, 'Ooyala', ooyala_id
         )
