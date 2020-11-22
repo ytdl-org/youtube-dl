@@ -32,7 +32,7 @@ class FranceInterIE(InfoExtractor):
 
         title = self._og_search_title(webpage)
         description = self._og_search_description(webpage)
-        thumbnail = self._og_search_thumbnail(webpage)
+        thumbnail = self._html_search_meta(['og:image', 'twitter:image'], webpage)
 
         upload_date_str = self._search_regex(
             r'class=["\']\s*cover-emission-period\s*["\'][^>]*>[^<]+\s+(\d{1,2}\s+[^\s]+\s+\d{4})<',
