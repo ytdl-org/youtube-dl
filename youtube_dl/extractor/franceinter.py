@@ -50,7 +50,7 @@ class FranceInterIE(InfoExtractor):
             'id': video_id,
             'title': title,
             'description': description,
-            'thumbnail' : thumbnail,
+            'thumbnail': thumbnail,
             'upload_date': upload_date,
             'formats': [{
                 'url': video_url,
