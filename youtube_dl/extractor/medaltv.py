@@ -17,7 +17,8 @@ class MedalTVIE(InfoExtractor):
             'title': 'Quad Cold',
             'description': 'Medal,https://medal.tv/desktop/',
             'uploader': 'MowgliSB',
-            'timestamp': 1603165266000,
+            'timestamp': 1603165266,
+            'upload_date': '20201020',
             'uploader_id': 10619174,
         }
     }, {
@@ -29,7 +30,8 @@ class MedalTVIE(InfoExtractor):
             'title': 'u tk me i tk u bigger',
             'description': 'Medal,https://medal.tv/desktop/',
             'uploader': 'Mimicc',
-            'timestamp': 1605580939000,
+            'timestamp': 1605580939,
+            'upload_date': '20201117',
             'uploader_id': 5156321,
         }
     }]
@@ -103,7 +105,7 @@ class MedalTVIE(InfoExtractor):
 
             # author information
             'uploader': author_info['displayName'],
-            'timestamp': clip_info['created'],
+            'timestamp': clip_info['created'] / 1000,
             'uploader_id': author_info['id'],
             'uploader_url': 'https://medal.tv/users/{}'.format(author_info['id']),
 
