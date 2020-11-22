@@ -224,7 +224,7 @@ class NYTimesArticleIE(NYTimesBaseIE):
 
 
 class NYTimesCookingIE(NYTimesBaseIE):
-    _VALID_URL = r'https?://(?:www\.)?cooking\.nytimes\.com/(?:[^/]+/)*(?P<id>[^.]+)(?:\.html)?'
+    _VALID_URL = r'https?://cooking\.nytimes\.com/(?:guid|recip)es/(?P<id>\d+)'
     _TESTS = [{
         'url': 'https://cooking.nytimes.com/recipes/1017817-cranberry-curd-tart',
         'md5': 'dab81fa2eaeb3f9ed47498bdcfcdc1d3',
