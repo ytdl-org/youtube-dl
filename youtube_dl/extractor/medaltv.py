@@ -4,6 +4,12 @@ from __future__ import unicode_literals
 
 from .common import InfoExtractor
 from ..utils import ExtractorError
+from ..compat import compat_str
+from ..utils import (
+    try_get,
+    float_or_none,
+    int_or_none
+)
 
 
 class MedalTVIE(InfoExtractor):
@@ -43,17 +49,19 @@ class MedalTVIE(InfoExtractor):
         webpage = self._download_webpage(url, video_id)
 
         hydration_data = self._search_regex(r'<script>.*hydrationData\s*=\s*({.+?})\s*</script>', webpage, 'hydration data', default='{}')
-        parsed = self._parse_json(hydration_data, video_id, fatal=False)
+        parsed = self._parse_json(hydration_data, video_id)
 
-        author_info = next(iter(parsed['profiles'].values()))
-        clip_info = parsed['clips'][video_id]
+        author_info = next(iter(parsed.get('profiles').values()))
+        clip_info = parsed.get('clips').get(video_id)
 
         if('error' in clip_info):
-            if(clip_info['error'] == 404):
+            error_code = clip_info.get('error')
+            if(error_code == 404):
                 raise ExtractorError('That clip does not exist.', expected=True, video_id=video_id)
             else:
-                raise ExtractorError('An unknown error occurred ({}).'.format(clip_info['error']), video_id=video_id)
-        source_aspect_ratio = clip_info['sourceWidth'] / clip_info['sourceHeight']
+                raise ExtractorError('An unknown error occurred ({}).'.format(error_code), video_id=video_id)
+
+        source_aspect_ratio = clip_info.get('sourceWidth') / clip_info.get('sourceHeight')
 
         # ordered from worst to best quality
         heights = (144, 240, 360, 480, 720, 1080)
@@ -69,50 +77,51 @@ class MedalTVIE(InfoExtractor):
 
             # second condition needed as sometimes medal says
             # they have a format when in fact it is another format
-            if(video_key in clip_info and format_key in clip_info[video_key]):
+            if(video_key in clip_info and format_key in clip_info.get(video_key)):
                 formats.append({
-                    'url': clip_info[video_key],
+                    'url': clip_info.get(video_key),
                     'format_id': format_key,
                     'width': width,
                     'height': height
                 })
 
-            if(thumbnail_key in clip_info and format_key in clip_info[thumbnail_key]):
+            if(thumbnail_key in clip_info and format_key in clip_info.get(thumbnail_key)):
                 thumbnails.append({
                     'id': format_key,
-                    'url': clip_info[thumbnail_key],
+                    'url': clip_info.get(thumbnail_key),
                     'width': width,
                     'height': height
                 })
 
+        # add source to formats
         formats.append({
-            'url': clip_info['contentUrl'],
+            'url': clip_info.get('contentUrl'),
             'format_id': 'source',
-            'width': clip_info['sourceWidth'],
-            'height': clip_info['sourceHeight']
+            'width': clip_info.get('sourceWidth'),
+            'height': clip_info.get('sourceHeight')
         })
 
         return {
             'id': video_id,
-            'title': clip_info['contentTitle'] if clip_info['hasTitle'] else '',
+            'title': clip_info.get('contentTitle'),
 
             'formats': formats,
-            'url': clip_info['contentUrl'],
+            'url': clip_info.get('contentUrl'),
 
             'thumbnails': thumbnails,
-            'thumbnail': thumbnails[0]['url'],
+            'thumbnail': try_get(thumbnails, lambda x: x[-1]['url'], compat_str),
 
-            'description': clip_info['contentDescription'],
+            'description': clip_info.get('contentDescription'),
 
             # author information
-            'uploader': author_info['displayName'],
-            'timestamp': clip_info['created'] / 1000,
-            'uploader_id': author_info['id'],
-            'uploader_url': 'https://medal.tv/users/{}'.format(author_info['id']),
+            'uploader': author_info.get('displayName'),
+            'timestamp': float_or_none(clip_info.get('created') / 1000),
+            'uploader_id': author_info.get('id'),
+            'uploader_url': 'https://medal.tv/users/{}'.format(author_info.get('id')),
 
             # other clip information
-            'duration': clip_info['videoLengthSeconds'],
-            'view_count': clip_info['views'],
-            'like_count': clip_info['likes'],
-            'comment_count': clip_info['comments']
+            'duration': float_or_none(clip_info.get('videoLengthSeconds')),
+            'view_count': int_or_none(clip_info.get('views')),
+            'like_count': int_or_none(clip_info.get('likes')),
+            'comment_count': int_or_none(clip_info.get('comments'))
         }
