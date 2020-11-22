@@ -31,6 +31,7 @@ class FranceInterIE(InfoExtractor):
 
         title = self._og_search_title(webpage)
         description = self._og_search_description(webpage)
+        thumbnail = self._og_search_thumbnail(webpage)
 
         upload_date_str = self._search_regex(
             r'class=["\']\s*cover-emission-period\s*["\'][^>]*>[^<]+\s+(\d{1,2}\s+[^\s]+\s+\d{4})<',
@@ -48,6 +49,7 @@ class FranceInterIE(InfoExtractor):
             'id': video_id,
             'title': title,
             'description': description,
+            'thumbnail' : thumbnail,
             'upload_date': upload_date,
             'formats': [{
                 'url': video_url,
