@@ -16,7 +16,7 @@ class FranceInterIE(InfoExtractor):
             'ext': 'mp3',
             'title': 'Affaire Cahuzac : le contentieux du compte en Suisse',
             'description': 'md5:401969c5d318c061f86bda1fa359292b',
-            'thumbnail': 'md5:48455373092572b23164123db7598c2e',
+            'thumbnail': r're:^https?://.*\.jpg',
             'upload_date': '20160907',
         },
     }
