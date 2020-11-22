@@ -116,10 +116,7 @@ class FragmentFD(FileDownloader):
         finally:
             if self.__do_ytdl_file(ctx):
                 self._write_ytdl_file(ctx)
-            try:
-                os.utime(ctx['tmpfilename'], (time.time(), os.stat(ctx['fragment_filename_sanitized']).st_mtime))
-            except Exception:
-                pass
+            self.mtime = os.stat(ctx['fragment_filename_sanitized']).st_mtime
             if not self.params.get('keep_fragments', False):
                 os.remove(encodeFilename(ctx['fragment_filename_sanitized']))
             del ctx['fragment_filename_sanitized']
@@ -263,6 +260,12 @@ class FragmentFD(FileDownloader):
         else:
             self.try_rename(ctx['tmpfilename'], ctx['filename'])
             downloaded_bytes = os.path.getsize(encodeFilename(ctx['filename']))
+
+        if self.mtime:
+            try:
+                os.utime(ctx['filename'], (time.time(), self.mtime))
+            except Exception:
+                pass
 
         self._hook_progress({
             'downloaded_bytes': downloaded_bytes,
