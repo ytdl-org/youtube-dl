@@ -1,6 +1,5 @@
 # coding: utf-8
 from __future__ import unicode_literals
-import re
 
 from .common import InfoExtractor
 
@@ -40,13 +39,15 @@ class StraitsTimesIE(InfoExtractor):
 
     def _real_extract(self, url):
         display_id = self._match_id(url)
-
         webpage = self._download_webpage(url, display_id)
-        url_obj = (
-            re.search(r'<iframe src="/embed/(?P<id>\d+)".*</iframe>', webpage)
-            or re.search(r'<div.*resource="https://players.brightcove.net/4539381505001/default_default(?:/index.html)?\?videoId=(?P<id>\d+)">', webpage))
 
-        brightcove_id = url_obj.group('id')
+        video_id = (
+            self._search_regex(
+                r'src=["\']/embed/(\d+)', webpage, 'video id',
+                default=None, fatal=False)
+            or self._search_regex(
+                r'videoId=(\d+)', webpage, 'video id'))
+
         return self.url_result(
-            self.BRIGHTCOVE_URL_TEMPLATE % brightcove_id, 'BrightcoveNew', brightcove_id
+            self.BRIGHTCOVE_URL_TEMPLATE % video_id, 'BrightcoveNew', video_id
         )
