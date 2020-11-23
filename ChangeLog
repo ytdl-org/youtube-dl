@@ -1,4 +1,4 @@
-version <unreleased>
+version 2020.11.24
 
 Core
 + [extractor/common] Add generic support for akamai HTTP format extraction
