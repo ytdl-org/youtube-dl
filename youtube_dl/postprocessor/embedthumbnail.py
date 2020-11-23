@@ -88,7 +88,7 @@ class EmbedThumbnailPP(FFmpegPostProcessor):
             os.remove(encodeFilename(filename))
             os.rename(encodeFilename(temp_filename), encodeFilename(filename))
 
-        elif info['ext'] == 'mkv':
+        elif info['ext'] in ['mkv', 'webm']:
             os.rename(encodeFilename(thumbnail_filename), encodeFilename('cover.jpg'))
             old_thumbnail_filename = thumbnail_filename
             thumbnail_filename = 'cover.jpg'
