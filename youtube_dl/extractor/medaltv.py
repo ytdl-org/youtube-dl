@@ -64,14 +64,6 @@ class MedalTVIE(InfoExtractor):
                 raise ExtractorError('An unknown error occurred ({0}).'.format(error),
                                      video_id=video_id)
 
-        # Necessary because the id of the author is not known in advance.
-        # Won't raise an issue if no profile can be found as this is optional.
-        author_info = try_get(parsed,
-                              lambda x: list(x['profiles'].values())[0], dict
-                              ) or {}
-        author_id = author_info.get('id')
-        author_url = 'https://medal.tv/users/{0}'.format(author_id) if author_id else None
-
         width = int_or_none(clip_info.get('sourceWidth'))
         height = int_or_none(clip_info.get('sourceHeight'))
 
@@ -118,6 +110,14 @@ class MedalTVIE(InfoExtractor):
                 'width': width,
                 'height': height
             })
+
+        # Necessary because the id of the author is not known in advance.
+        # Won't raise an issue if no profile can be found as this is optional.
+        author_info = try_get(parsed,
+                              lambda x: list(x['profiles'].values())[0], dict
+                              ) or {}
+        author_id = author_info.get('id')
+        author_url = 'https://medal.tv/users/{0}'.format(author_id) if author_id else None
 
         return {
             'id': video_id,
