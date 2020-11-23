@@ -270,6 +270,7 @@ class BandcampAlbumIE(BandcampIE):
             'title': '"Entropy" EP',
             'uploader_id': 'jstrecords',
             'id': 'entropy-ep',
+            'description': 'md5:0ff22959c943622972596062f2f366a5',
         },
         'playlist_mincount': 3,
     }, {
@@ -279,6 +280,7 @@ class BandcampAlbumIE(BandcampIE):
             'id': 'we-are-the-plague',
             'title': 'WE ARE THE PLAGUE',
             'uploader_id': 'insulters',
+            'description': 'md5:b3cf845ee41b2b1141dc7bde9237255f',
         },
         'playlist_count': 2,
     }]
@@ -305,11 +307,14 @@ class BandcampAlbumIE(BandcampIE):
             for t in track_info
             if t.get('duration')]
 
+        current = tralbum.get('current') or {}
+
         return {
             '_type': 'playlist',
             'uploader_id': uploader_id,
             'id': playlist_id,
-            'title': try_get(tralbum, lambda x: x['current']['title'], compat_str),
+            'title': current.get('title'),
+            'description': current.get('about'),
             'entries': entries,
         }
 
