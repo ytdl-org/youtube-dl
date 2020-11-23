@@ -55,15 +55,6 @@ class MedalTVIE(InfoExtractor):
             raise ExtractorError('Could not find video information.',
                                  video_id=video_id)
 
-        error = clip_info.get('error')
-        if error:
-            if(error == 404):
-                raise ExtractorError('That clip does not exist.',
-                                     expected=True, video_id=video_id)
-            else:
-                raise ExtractorError('An unknown error occurred ({0}).'.format(error),
-                                     video_id=video_id)
-
         width = int_or_none(clip_info.get('sourceWidth'))
         height = int_or_none(clip_info.get('sourceHeight'))
 
@@ -110,6 +101,15 @@ class MedalTVIE(InfoExtractor):
                 'width': width,
                 'height': height
             })
+
+        error = clip_info.get('error')
+        if not formats and error:
+            if(error == 404):
+                raise ExtractorError('That clip does not exist.',
+                                     expected=True, video_id=video_id)
+            else:
+                raise ExtractorError('An unknown error occurred ({0}).'.format(error),
+                                     video_id=video_id)
 
         # Necessary because the id of the author is not known in advance.
         # Won't raise an issue if no profile can be found as this is optional.
