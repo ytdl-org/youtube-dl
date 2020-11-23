@@ -3013,7 +3013,7 @@ class YoutubeTabIE(YoutubeBaseInfoExtractor):
             self.to_screen('Downloading playlist %s - add --no-playlist to just download video %s' % (playlist_id, video_id))
         webpage = self._download_webpage(url, item_id)
         identity_token = self._search_regex(
-            r'\bID_TOKEN["\']\s*:\s/l*["\'](.+?)["\']', webpage,
+            r'\bID_TOKEN["\']\s*:\s*["\'](.+?)["\']', webpage,
             'identity token', default=None)
         data = self._extract_yt_initial_data(item_id, webpage)
         tabs = try_get(
