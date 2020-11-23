@@ -1491,6 +1491,7 @@ from .yourporn import YourPornIE
 from .yourupload import YourUploadIE
 from .youtube import (
     YoutubeIE,
+    YoutubeFavouritesIE,
     YoutubeHistoryIE,
     YoutubeTabIE,
     YoutubePlaylistIE,

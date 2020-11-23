@@ -3149,6 +3149,25 @@ class YoutubeYtUserIE(InfoExtractor):
             ie=YoutubeTabIE.ie_key(), video_id=user_id)
 
 
+class YoutubeFavouritesIE(YoutubeBaseInfoExtractor):
+    IE_NAME = 'youtube:favorites'
+    IE_DESC = 'YouTube.com favourite videos, ":ytfav" for short (requires authentication)'
+    _VALID_URL = r'https?://(?:www\.)?youtube\.com/my_favorites|:ytfav(?:ou?rites)?'
+    _LOGIN_REQUIRED = True
+    _TESTS = [{
+        'url': ':ytfav',
+        'only_matching': True,
+    }, {
+        'url': ':ytfavorites',
+        'only_matching': True,
+    }]
+
+    def _real_extract(self, url):
+        return self.url_result(
+            'https://www.youtube.com/playlist?list=LL',
+            ie=YoutubeTabIE.ie_key())
+
+
 class YoutubeSearchIE(SearchInfoExtractor, YoutubeBaseInfoExtractor):
     IE_DESC = 'YouTube.com searches'
     # there doesn't appear to be a real limit, for example if you search for
