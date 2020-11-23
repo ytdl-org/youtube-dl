@@ -1,3 +1,22 @@
+version <unreleased>
+
+Core
++ [extractor/common] Add generic support for akamai HTTP format extraction
+
+Extractors
+* [youtube:tab] Fix feeds extraction (#25695, #26452)
+* [youtube:favorites] Restore extractor
+* [youtube:tab] Fix some weird typo (#27157)
++ [pinterest] Add support for large collections (more than 25 pins)
++ [franceinter] Extract thumbnail (#27153)
++ [box] Add support for box.com (#5949)
++ [nytimes] Add support for cooking.nytimes.com (#27112, #27143)
+* [lbry] Relax URL regular expression (#27144)
++ [rumble] Add support for embed pages (#10785)
++ [skyit] Add support for multiple Sky Italia websites (#26629)
++ [pinterest] Add support for pinterest.com (#25747)
+
+
 version 2020.11.21.1
 
 Core
