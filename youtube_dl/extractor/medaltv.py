@@ -47,16 +47,16 @@ class MedalTVIE(InfoExtractor):
 
         hydration_data = self._search_regex(
             r'<script[^>]*>\s*(?:var\s*)?hydrationData\s*=\s*({.+?})\s*</script>',
-            webpage, 'hydration data', default='{}', fatal=True)
-        parsed = self._parse_json(hydration_data, video_id, fatal=True)
+            webpage, 'hydration data', default='{}')
+        parsed = self._parse_json(hydration_data, video_id)
 
         clip_info = try_get(parsed, lambda x: x['clips'][video_id], dict) or {}
-        if(not clip_info):
+        if not clip_info:
             raise ExtractorError('Could not find video information.',
                                  video_id=video_id)
 
         error = clip_info.get('error')
-        if(error):
+        if error:
             if(error == 404):
                 raise ExtractorError('That clip does not exist.',
                                      expected=True, video_id=video_id)
