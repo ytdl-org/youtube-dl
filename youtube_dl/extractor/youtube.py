@@ -33,7 +33,6 @@ from ..utils import (
     get_element_by_id,
     int_or_none,
     mimetype2ext,
-    orderedSet,
     parse_codecs,
     parse_duration,
     remove_quotes,
@@ -2381,7 +2380,19 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
 
 class YoutubeTabIE(YoutubeBaseInfoExtractor):
     IE_DESC = 'YouTube.com tab'
-    _VALID_URL = r'https?://(?:\w+\.)?(?:youtube(?:kids)?\.com|invidio\.us)/(?:(?:channel|c|user)/|(?:playlist|watch)\?.*?\blist=)(?P<id>[^/?#&]+)'
+    _VALID_URL = r'''(?x)
+                    https?://
+                        (?:\w+\.)?
+                        (?:
+                            youtube(?:kids)?\.com|
+                            invidio\.us
+                        )/
+                        (?:
+                            (?:channel|c|user|feed)/|
+                            (?:playlist|watch)\?.*?\blist=
+                        )
+                        (?P<id>[^/?\#&]+)
+                    '''
     IE_NAME = 'youtube:tab'
 
     _TESTS = [{
@@ -2620,7 +2631,30 @@ class YoutubeTabIE(YoutubeBaseInfoExtractor):
     }, {
         'url': 'https://www.youtube.com/c/CommanderVideoHq/live',
         'only_matching': True,
-    },
+    }, {
+        'url': 'https://www.youtube.com/feed/trending',
+        'only_matching': True,
+    }, {
+        # needs auth
+        'url': 'https://www.youtube.com/feed/library',
+        'only_matching': True,
+    }, {
+        # needs auth
+        'url': 'https://www.youtube.com/feed/history',
+        'only_matching': True,
+    }, {
+        # needs auth
+        'url': 'https://www.youtube.com/feed/subscriptions',
+        'only_matching': True,
+    }, {
+        # needs auth
+        'url': 'https://www.youtube.com/feed/watch_later',
+        'only_matching': True,
+    }, {
+        # no longer available?
+        'url': 'https://www.youtube.com/feed/recommended',
+        'only_matching': True,
+    }
         # TODO
         # {
         #     'url': 'https://www.youtube.com/TheYoungTurks/live',
@@ -2707,27 +2741,34 @@ class YoutubeTabIE(YoutubeBaseInfoExtractor):
                     'https://www.youtube.com/channel/%s' % channel_id,
                     ie=YoutubeTabIE.ie_key(), video_title=title)
 
-    def _shelf_entries_trimmed(self, shelf_renderer):
-        renderer = try_get(
-            shelf_renderer, lambda x: x['content']['horizontalListRenderer'], dict)
-        if not renderer:
+    def _shelf_entries_from_content(self, shelf_renderer):
+        content = shelf_renderer.get('content')
+        if not isinstance(content, dict):
             return
-        # TODO: add support for nested playlists so each shelf is processed
-        # as separate playlist
-        # TODO: this includes only first N items
-        for entry in self._grid_entries(renderer):
-            yield entry
+        renderer = content.get('gridRenderer')
+        if renderer:
+            # TODO: add support for nested playlists so each shelf is processed
+            # as separate playlist
+            # TODO: this includes only first N items
+            for entry in self._grid_entries(renderer):
+                yield entry
+        renderer = content.get('horizontalListRenderer')
+        if renderer:
+            # TODO
+            pass
 
     def _shelf_entries(self, shelf_renderer):
         ep = try_get(
             shelf_renderer, lambda x: x['endpoint']['commandMetadata']['webCommandMetadata']['url'],
             compat_str)
         shelf_url = urljoin('https://www.youtube.com', ep)
-        if not shelf_url:
-            return
-        title = try_get(
-            shelf_renderer, lambda x: x['title']['runs'][0]['text'], compat_str)
-        yield self.url_result(shelf_url, video_title=title)
+        if shelf_url:
+            title = try_get(
+                shelf_renderer, lambda x: x['title']['runs'][0]['text'], compat_str)
+            yield self.url_result(shelf_url, video_title=title)
+        # Shelf may not contain shelf URL, fallback to extraction from content
+        for entry in self._shelf_entries_from_content(shelf_renderer):
+            yield entry
 
     def _playlist_entries(self, video_list_renderer):
         for content in video_list_renderer['contents']:
@@ -2832,8 +2873,11 @@ class YoutubeTabIE(YoutubeBaseInfoExtractor):
             }
 
     def _entries(self, tab, identity_token):
+        slr_renderer = try_get(tab, lambda x: x['sectionListRenderer'], dict)
+        if not slr_renderer:
+            return
         continuation = None
-        slr_contents = try_get(tab, lambda x: x['sectionListRenderer']['contents'], list) or []
+        slr_contents = try_get(slr_renderer, lambda x: x['contents'], list) or []
         for slr_content in slr_contents:
             if not isinstance(slr_content, dict):
                 continue
@@ -2875,6 +2919,9 @@ class YoutubeTabIE(YoutubeBaseInfoExtractor):
 
             if not continuation:
                 continuation = self._extract_continuation(is_renderer)
+
+        if not continuation:
+            continuation = self._extract_continuation(slr_renderer)
 
         headers = {
             'x-youtube-client-name': '1',
@@ -2924,7 +2971,7 @@ class YoutubeTabIE(YoutubeBaseInfoExtractor):
                 continuation_item = continuation_items[0]
                 if not isinstance(continuation_item, dict):
                     continue
-                renderer = continuation_item.get('playlistVideoRenderer')
+                renderer = continuation_item.get('playlistVideoRenderer') or continuation_item.get('itemSectionRenderer')
                 if renderer:
                     video_list_renderer = {'contents': continuation_items}
                     for entry in self._playlist_entries(video_list_renderer):
@@ -2969,6 +3016,7 @@ class YoutubeTabIE(YoutubeBaseInfoExtractor):
         selected_tab = self._extract_selected_tab(tabs)
         renderer = try_get(
             data, lambda x: x['metadata']['channelMetadataRenderer'], dict)
+        playlist_id = title = description = None
         if renderer:
             channel_title = renderer.get('title') or item_id
             tab_title = selected_tab.get('title')
@@ -3289,10 +3337,10 @@ class YoutubeSearchURLIE(YoutubeSearchIE):
 """
 
 
-class YoutubeFeedsInfoExtractor(YoutubeBaseInfoExtractor):
+class YoutubeFeedsInfoExtractor(YoutubeTabIE):
     """
     Base class for feed extractors
-    Subclasses must define the _FEED_NAME and _PLAYLIST_TITLE properties.
+    Subclasses must define the _FEED_NAME property.
     """
     _LOGIN_REQUIRED = True
 
@@ -3303,55 +3351,17 @@ class YoutubeFeedsInfoExtractor(YoutubeBaseInfoExtractor):
     def _real_initialize(self):
         self._login()
 
-    def _entries(self, page):
-        # The extraction process is the same as for playlists, but the regex
-        # for the video ids doesn't contain an index
-        ids = []
-        more_widget_html = content_html = page
-        for page_num in itertools.count(1):
-            matches = re.findall(r'href="\s*/watch\?v=([0-9A-Za-z_-]{11})', content_html)
-
-            # 'recommended' feed has infinite 'load more' and each new portion spins
-            # the same videos in (sometimes) slightly different order, so we'll check
-            # for unicity and break when portion has no new videos
-            new_ids = list(filter(lambda video_id: video_id not in ids, orderedSet(matches)))
-            if not new_ids:
-                break
-
-            ids.extend(new_ids)
-
-            for entry in self._ids_to_results(new_ids):
-                yield entry
-
-            mobj = re.search(r'data-uix-load-more-href="/?(?P<more>[^"]+)"', more_widget_html)
-            if not mobj:
-                break
-
-            more = self._download_json(
-                'https://www.youtube.com/%s' % mobj.group('more'), self._PLAYLIST_TITLE,
-                'Downloading page #%s' % page_num,
-                transform_source=uppercase_escape,
-                headers=self._YOUTUBE_CLIENT_HEADERS)
-            content_html = more['content_html']
-            more_widget_html = more['load_more_widget_html']
-
     def _real_extract(self, url):
-        page = self._download_webpage(
+        return self.url_result(
             'https://www.youtube.com/feed/%s' % self._FEED_NAME,
-            self._PLAYLIST_TITLE)
-        return self.playlist_result(
-            self._entries(page), playlist_title=self._PLAYLIST_TITLE)
+            ie=YoutubeTabIE.ie_key())
 
 
 class YoutubeWatchLaterIE(InfoExtractor):
     IE_NAME = 'youtube:watchlater'
     IE_DESC = 'Youtube watch later list, ":ytwatchlater" for short (requires authentication)'
-    _VALID_URL = r'https?://(?:www\.)?youtube\.com/feed/watch_later|:ytwatchlater'
-
+    _VALID_URL = r':ytwatchlater'
     _TESTS = [{
-        'url': 'https://www.youtube.com/feed/watch_later',
-        'only_matching': True,
-    }, {
         'url': ':ytwatchlater',
         'only_matching': True,
     }]
@@ -3363,23 +3373,38 @@ class YoutubeWatchLaterIE(InfoExtractor):
 
 class YoutubeRecommendedIE(YoutubeFeedsInfoExtractor):
     IE_DESC = 'YouTube.com recommended videos, ":ytrec" for short (requires authentication)'
-    _VALID_URL = r'https?://(?:www\.)?youtube\.com/feed/recommended|:ytrec(?:ommended)?'
+    _VALID_URL = r':ytrec(?:ommended)?'
     _FEED_NAME = 'recommended'
-    _PLAYLIST_TITLE = 'Youtube Recommended videos'
+    _TESTS = [{
+        'url': ':ytrec',
+        'only_matching': True,
+    }, {
+        'url': ':ytrecommended',
+        'only_matching': True,
+    }]
 
 
 class YoutubeSubscriptionsIE(YoutubeFeedsInfoExtractor):
     IE_DESC = 'YouTube.com subscriptions feed, "ytsubs" keyword (requires authentication)'
-    _VALID_URL = r'https?://(?:www\.)?youtube\.com/feed/subscriptions|:ytsubs(?:criptions)?'
+    _VALID_URL = r':ytsubs(?:criptions)?'
     _FEED_NAME = 'subscriptions'
-    _PLAYLIST_TITLE = 'Youtube Subscriptions'
+    _TESTS = [{
+        'url': ':ytsubs',
+        'only_matching': True,
+    }, {
+        'url': ':ytsubscriptions',
+        'only_matching': True,
+    }]
 
 
 class YoutubeHistoryIE(YoutubeFeedsInfoExtractor):
     IE_DESC = 'Youtube watch history, ":ythistory" for short (requires authentication)'
-    _VALID_URL = r'https?://(?:www\.)?youtube\.com/feed/history|:ythistory'
+    _VALID_URL = r':ythistory'
     _FEED_NAME = 'history'
-    _PLAYLIST_TITLE = 'Youtube History'
+    _TESTS = [{
+        'url': ':ythistory',
+        'only_matching': True,
+    }]
 
 
 class YoutubeTruncatedURLIE(InfoExtractor):
