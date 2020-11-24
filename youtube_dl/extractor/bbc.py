@@ -1092,10 +1092,26 @@ class BBCIE(BBCCoUkIE):
             self._search_regex(
                 r'(?s)bbcthreeConfig\s*=\s*({.+?})\s*;\s*<', webpage,
                 'bbcthree config', default='{}'),
-            playlist_id, transform_source=js_to_json, fatal=False)
-        if bbc3_config:
+            playlist_id, transform_source=js_to_json, fatal=False) or {}
+        payload = bbc3_config.get('payload') or {}
+        if payload:
+            clip = payload.get('currentClip') or {}
+            clip_vpid = clip.get('vpid')
+            clip_title = clip.get('title')
+            if clip_vpid and clip_title:
+                formats, subtitles = self._download_media_selector(clip_vpid)
+                self._sort_formats(formats)
+                return {
+                    'id': clip_vpid,
+                    'title': clip_title,
+                    'thumbnail': dict_get(clip, ('poster', 'imageUrl')),
+                    'description': clip.get('description'),
+                    'duration': parse_duration(clip.get('duration')),
+                    'formats': formats,
+                    'subtitles': subtitles,
+                }
             bbc3_playlist = try_get(
-                bbc3_config, lambda x: x['payload']['content']['bbcMedia']['playlist'],
+                payload, lambda x: x['content']['bbcMedia']['playlist'],
                 dict)
             if bbc3_playlist:
                 playlist_title = bbc3_playlist.get('title') or playlist_title
