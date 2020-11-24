@@ -981,7 +981,7 @@ class BBCIE(BBCCoUkIE):
         group_id = self._search_regex(
             r'<div[^>]+\bclass=["\']video["\'][^>]+\bdata-pid=["\'](%s)' % self._ID_REGEX,
             webpage, 'group id', default=None)
-        if playlist_id:
+        if group_id:
             return self.url_result(
                 'https://www.bbc.co.uk/programmes/%s' % group_id,
                 ie=BBCCoUkIE.ie_key())
@@ -1117,6 +1117,39 @@ class BBCIE(BBCCoUkIE):
                     })
                 return self.playlist_result(
                     entries, playlist_id, playlist_title, playlist_description)
+
+        initial_data = self._parse_json(self._search_regex(
+            r'window\.__INITIAL_DATA__\s*=\s*({.+?});', webpage,
+            'preload state', default='{}'), playlist_id, fatal=False)
+        if initial_data:
+            def parse_media(media):
+                if not media:
+                    return
+                for item in (try_get(media, lambda x: x['media']['items'], list) or []):
+                    item_id = item.get('id')
+                    item_title = item.get('title')
+                    if not (item_id and item_title):
+                        continue
+                    formats, subtitles = self._download_media_selector(item_id)
+                    self._sort_formats(formats)
+                    entries.append({
+                        'id': item_id,
+                        'title': item_title,
+                        'thumbnail': item.get('holdingImageUrl'),
+                        'formats': formats,
+                        'subtitles': subtitles,
+                    })
+            for resp in (initial_data.get('data') or {}).values():
+                name = resp.get('name')
+                if name == 'media-experience':
+                    parse_media(try_get(resp, lambda x: x['data']['initialItem']['mediaItem'], dict))
+                elif name == 'article':
+                    for block in (try_get(resp, lambda x: x['data']['blocks'], list) or []):
+                        if block.get('type') != 'media':
+                            continue
+                        parse_media(block.get('model'))
+            return self.playlist_result(
+                entries, playlist_id, playlist_title, playlist_description)
 
         def extract_all(pattern):
             return list(filter(None, map(
