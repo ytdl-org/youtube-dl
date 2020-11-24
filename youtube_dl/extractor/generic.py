@@ -2194,11 +2194,15 @@ class GenericIE(InfoExtractor):
 
             if not next_url:
                 continue
-
+            
+            item_desc_el = it.find('description')    
+            item_desc = None if item_desc_el is None else item_desc_el.text
+            
             entries.append({
                 '_type': 'url_transparent',
                 'url': next_url,
                 'title': it.find('title').text,
+                'description': item_desc
             })
 
         return {
