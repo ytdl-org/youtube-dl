@@ -1,13 +1,16 @@
 # coding: utf-8
-
 from __future__ import unicode_literals
 
+import re
+
 from .common import InfoExtractor
+from ..compat import compat_str
 from ..utils import (
     ExtractorError,
-    try_get,
     float_or_none,
-    int_or_none
+    int_or_none,
+    str_or_none,
+    try_get,
 )
 
 
@@ -45,94 +48,84 @@ class MedalTVIE(InfoExtractor):
         video_id = self._match_id(url)
         webpage = self._download_webpage(url, video_id)
 
-        hydration_data = self._search_regex(
+        hydration_data = self._parse_json(self._search_regex(
             r'<script[^>]*>\s*(?:var\s*)?hydrationData\s*=\s*({.+?})\s*</script>',
-            webpage, 'hydration data', default='{}')
-        parsed = self._parse_json(hydration_data, video_id)
+            webpage, 'hydration data', default='{}'), video_id)
 
-        clip_info = try_get(parsed, lambda x: x['clips'][video_id], dict) or {}
-        if not clip_info:
-            raise ExtractorError('Could not find video information.',
-                                 video_id=video_id)
+        clip = try_get(
+            hydration_data, lambda x: x['clips'][video_id], dict) or {}
+        if not clip:
+            raise ExtractorError(
+                'Could not find video information.', video_id=video_id)
 
-        width = int_or_none(clip_info.get('sourceWidth'))
-        height = int_or_none(clip_info.get('sourceHeight'))
+        title = clip['contentTitle']
 
-        aspect_ratio = (width / height) if(width and height) else (16 / 9)
+        source_width = int_or_none(clip.get('sourceWidth'))
+        source_height = int_or_none(clip.get('sourceHeight'))
 
-        # ordered from lowest to highest resolution
-        heights = (144, 240, 360, 480, 720, 1080)
+        aspect_ratio = source_width / source_height if source_width and source_height else 16 / 9
 
-        formats = []
-        thumbnails = []
-
-        for height in heights:
-            format_key = '{0}p'.format(height)
-            video_key = 'contentUrl{0}'.format(format_key)
-            thumbnail_key = 'thumbnail{0}'.format(format_key)
+        def add_item(container, item_url, height, id_key='format_id', item_id=None):
+            item_id = item_id or '%dp' % height
+            if item_id not in item_url:
+                return
             width = int(round(aspect_ratio * height))
-
-            # Second condition needed as sometimes medal says
-            # they have a format when in fact it is another format.
-            format_url = clip_info.get(video_key)
-            if(format_url and format_key in format_url):
-                formats.append({
-                    'url': format_url,
-                    'format_id': format_key,
-                    'width': width,
-                    'height': height
-                })
-
-            thumbnail_url = clip_info.get(thumbnail_key)
-            if(thumbnail_url and format_key in thumbnail_url):
-                thumbnails.append({
-                    'id': format_key,
-                    'url': thumbnail_url,
-                    'width': width,
-                    'height': height
-                })
-
-        # add source to formats
-        source_url = clip_info.get('contentUrl')
-        if(source_url):
-            formats.append({
-                'url': source_url,
-                'format_id': 'source',
+            container.append({
+                'url': item_url,
+                id_key: item_id,
                 'width': width,
                 'height': height
             })
 
-        error = clip_info.get('error')
+        formats = []
+        thumbnails = []
+        for k, v in clip.items():
+            if not (v and isinstance(v, compat_str)):
+                continue
+            mobj = re.match(r'(contentUrl|thumbnail)(?:(\d+)p)?$', k)
+            if not mobj:
+                continue
+            prefix = mobj.group(1)
+            height = int_or_none(mobj.group(2))
+            if prefix == 'contentUrl':
+                add_item(
+                    formats, v, height or source_height,
+                    item_id=None if height else 'source')
+            elif prefix == 'thumbnail':
+                add_item(thumbnails, v, height, 'id')
+
+        error = clip.get('error')
         if not formats and error:
-            if(error == 404):
-                raise ExtractorError('That clip does not exist.',
-                                     expected=True, video_id=video_id)
+            if error == 404:
+                raise ExtractorError(
+                    'That clip does not exist.',
+                    expected=True, video_id=video_id)
             else:
-                raise ExtractorError('An unknown error occurred ({0}).'.format(error),
-                                     video_id=video_id)
+                raise ExtractorError(
+                    'An unknown error occurred ({0}).'.format(error),
+                    video_id=video_id)
+
+        self._sort_formats(formats)
 
         # Necessary because the id of the author is not known in advance.
         # Won't raise an issue if no profile can be found as this is optional.
-        author_info = try_get(parsed,
-                              lambda x: list(x['profiles'].values())[0], dict
-                              ) or {}
-        author_id = author_info.get('id')
+        author = try_get(
+            hydration_data, lambda x: list(x['profiles'].values())[0], dict) or {}
+        author_id = str_or_none(author.get('id'))
         author_url = 'https://medal.tv/users/{0}'.format(author_id) if author_id else None
 
         return {
             'id': video_id,
-            'title': clip_info.get('contentTitle'),
+            'title': title,
             'formats': formats,
             'thumbnails': thumbnails,
-            'description': clip_info.get('contentDescription'),
-
-            'uploader': author_info.get('displayName'),
-            'timestamp': float_or_none(clip_info.get('created'), 1000),
+            'description': clip.get('contentDescription'),
+            'uploader': author.get('displayName'),
+            'timestamp': float_or_none(clip.get('created'), 1000),
             'uploader_id': author_id,
             'uploader_url': author_url,
-
-            'duration': float_or_none(clip_info.get('videoLengthSeconds')),
-            'view_count': int_or_none(clip_info.get('views')),
-            'like_count': int_or_none(clip_info.get('likes')),
-            'comment_count': int_or_none(clip_info.get('comments'))
+            'duration': int_or_none(clip.get('videoLengthSeconds')),
+            'view_count': int_or_none(clip.get('views')),
+            'like_count': int_or_none(clip.get('likes')),
+            'comment_count': int_or_none(clip.get('comments')),
         }
