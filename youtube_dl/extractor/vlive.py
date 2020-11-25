@@ -68,6 +68,10 @@ class VLiveIE(VLiveBaseIE):
     }, {
         'url': 'https://www.vlive.tv/embed/1326',
         'only_matching': True,
+    }, {
+        # works only with gcc=KR
+        'url': 'https://www.vlive.tv/video/225019',
+        'only_matching': True,
     }]
 
     def _real_initialize(self):
@@ -102,7 +106,7 @@ class VLiveIE(VLiveBaseIE):
             raise ExtractorError('Unable to log in', expected=True)
 
     def _call_api(self, path_template, video_id, fields=None):
-        query = {'appId': self._APP_ID}
+        query = {'appId': self._APP_ID, 'gcc': 'KR'}
         if fields:
             query['fields'] = fields
         try:
