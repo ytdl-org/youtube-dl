@@ -13,6 +13,8 @@ from ..utils import (
     ExtractorError,
     int_or_none,
     merge_dicts,
+    str_or_none,
+    strip_or_none,
     try_get,
     urlencode_postdata,
 )
@@ -103,22 +105,22 @@ class VLiveIE(VLiveBaseIE):
         query = {'appId': self._APP_ID}
         if fields:
             query['fields'] = fields
-        return self._download_json(
-            'https://www.vlive.tv/globalv-web/vam-web/' + path_template % video_id, video_id,
-            'Downloading %s JSON metadata' % path_template.split('/')[-1].split('-')[0],
-            headers={'Referer': 'https://www.vlive.tv/'}, query=query)
-
-    def _real_extract(self, url):
-        video_id = self._match_id(url)
-
         try:
-            post = self._call_api(
-                'post/v1.0/officialVideoPost-%s', video_id,
-                'author{nickname},channel{channelCode,channelName},officialVideo{commentCount,exposeStatus,likeCount,playCount,playTime,status,title,type,vodId}')
+            return self._download_json(
+                'https://www.vlive.tv/globalv-web/vam-web/' + path_template % video_id, video_id,
+                'Downloading %s JSON metadata' % path_template.split('/')[-1].split('-')[0],
+                headers={'Referer': 'https://www.vlive.tv/'}, query=query)
         except ExtractorError as e:
             if isinstance(e.cause, compat_HTTPError) and e.cause.code == 403:
                 self.raise_login_required(json.loads(e.cause.read().decode())['message'])
             raise
+
+    def _real_extract(self, url):
+        video_id = self._match_id(url)
+
+        post = self._call_api(
+            'post/v1.0/officialVideoPost-%s', video_id,
+            'author{nickname},channel{channelCode,channelName},officialVideo{commentCount,exposeStatus,likeCount,playCount,playTime,status,title,type,vodId}')
 
         video = post['officialVideo']
 
@@ -168,6 +170,83 @@ class VLiveIE(VLiveBaseIE):
                     expected=True)
             else:
                 raise ExtractorError('Unknown status ' + status)
+
+
+class VLivePostIE(VLiveIE):
+    IE_NAME = 'vlive:post'
+    _VALID_URL = r'https?://(?:(?:www|m)\.)?vlive\.tv/post/(?P<id>\d-\d+)'
+    _TESTS = [{
+        # uploadType = SOS
+        'url': 'https://www.vlive.tv/post/1-20088044',
+        'info_dict': {
+            'id': '1-20088044',
+            'title': 'Hola estrellitas la tierra les dice hola (si era así no?) Ha...',
+            'description': 'md5:fab8a1e50e6e51608907f46c7fa4b407',
+        },
+        'playlist_count': 3,
+    }, {
+        # uploadType = V
+        'url': 'https://www.vlive.tv/post/1-20087926',
+        'info_dict': {
+            'id': '1-20087926',
+            'title': 'James Corden: And so, the baby becamos the Papa💜😭💪😭',
+        },
+        'playlist_count': 1,
+    }]
+    _FVIDEO_TMPL = 'fvideo/v1.0/fvideo-%%s/%s'
+    _SOS_TMPL = _FVIDEO_TMPL % 'sosPlayInfo'
+    _INKEY_TMPL = _FVIDEO_TMPL % 'inKey'
+
+    def _real_extract(self, url):
+        post_id = self._match_id(url)
+
+        post = self._call_api(
+            'post/v1.0/post-%s', post_id,
+            'attachments{video},officialVideo{videoSeq},plainBody,title')
+
+        video_seq = str_or_none(try_get(
+            post, lambda x: x['officialVideo']['videoSeq']))
+        if video_seq:
+            return self.url_result(
+                'http://www.vlive.tv/video/' + video_seq,
+                VLiveIE.ie_key(), video_seq)
+
+        title = post['title']
+        entries = []
+        for idx, video in enumerate(post['attachments']['video'].values()):
+            video_id = video.get('videoId')
+            if not video_id:
+                continue
+            upload_type = video.get('uploadType')
+            upload_info = video.get('uploadInfo') or {}
+            entry = None
+            if upload_type == 'SOS':
+                download = self._call_api(
+                    self._SOS_TMPL, video_id)['videoUrl']['download']
+                formats = []
+                for f_id, f_url in download.items():
+                    formats.append({
+                        'format_id': f_id,
+                        'url': f_url,
+                        'height': int_or_none(f_id[:-1]),
+                    })
+                self._sort_formats(formats)
+                entry = {
+                    'formats': formats,
+                    'id': video_id,
+                    'thumbnail': upload_info.get('imageUrl'),
+                }
+            elif upload_type == 'V':
+                vod_id = upload_info.get('videoId')
+                if not vod_id:
+                    continue
+                inkey = self._call_api(self._INKEY_TMPL, video_id)['inKey']
+                entry = self._extract_video_info(video_id, vod_id, inkey)
+            if entry:
+                entry['title'] = '%s_part%s' % (title, idx)
+                entries.append(entry)
+        return self.playlist_result(
+            entries, post_id, title, strip_or_none(post.get('plainBody')))
 
 
 class VLiveChannelIE(VLiveBaseIE):
