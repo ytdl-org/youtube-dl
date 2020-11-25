@@ -111,6 +111,7 @@ class NebulaIE(InfoExtractor):
         # option #1: login credentials via .netrc or --username and --password
         username, password = self._get_login_info()
         if username and password:
+            self.to_screen('Authenticating to Nebula using .netrc or command line-supplied credentials')
             nebula_token = self._perform_login(username, password, video_id)
 
         # option #2: nebula token via cookie jar
@@ -119,16 +120,20 @@ class NebulaIE(InfoExtractor):
             nebula_cookies = self._get_cookies('https://watchnebula.com')
             nebula_cookie = nebula_cookies.get('nebula-auth')
             if nebula_cookie:
+                self.to_screen('Authenticating to Nebula with credentials from cookie jar')
                 nebula_cookie_value = compat_urllib_parse_unquote(nebula_cookie.value)
                 nebula_token = self._parse_json(nebula_cookie_value, video_id).get('apiToken')
 
         # option #3: nebula token via environment variable
         if not nebula_token and 'NEBULA_TOKEN' in os.environ:
             nebula_token = os.environ.get('NEBULA_TOKEN')
+            if nebula_token:
+                self.to_screen('Authenticating to Nebula with token from NEBULA_TOKEN environment variable')
 
         # option #4: nebula token via --videopassword
         if not nebula_token:
             nebula_token = self._downloader.params.get('videopassword')
+            if nebula_token: self.to_screen('Authenticating to Nebula with token from --videopassword')
 
         if not nebula_token:
             raise ExtractorError('Nebula requires an account with an active subscription. '
