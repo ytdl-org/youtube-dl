@@ -1,4 +1,4 @@
-version <unreleased>
+version 2020.11.26
 
 Core
 * [downloader/fragment] Set final file's mtime according to last fragment's
