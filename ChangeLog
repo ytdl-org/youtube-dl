@@ -1,3 +1,22 @@
+version <unreleased>
+
+Core
+* [downloader/fragment] Set final file's mtime according to last fragment's
+  Last-Modified header (#11718, #18384, #27138)
+
+Extractors
++ [spreaker] Add support for spreaker.com (#13480, #13877)
+* [vlive] Improve extraction for geo-restricted videos
++ [vlive] Add support for post URLs (#27122, #27123)
+* [viki] Fix video API request (#27184)
+* [bbc] Fix BBC Three clip extraction
+* [bbc] Fix BBC News videos extraction
++ [medaltv] Add support for medal.tv (#27149)
+* [youtube] Imporve music metadata and license extraction (#26013)
+* [nrk] Fix extraction
+* [cda] Fix extraction (#17803, #24458, #24518, #26381)
+
+
 version 2020.11.24
 
 Core
