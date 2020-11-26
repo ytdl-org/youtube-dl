@@ -9,6 +9,7 @@ from ..utils import (
     ExtractorError,
     int_or_none,
     urlencode_postdata,
+    urljoin,
 )
 
 
@@ -58,7 +59,7 @@ class AtresPlayerIE(InfoExtractor):
             return
 
         self._request_webpage(
-            self._API_BASE + 'login', None, 'Downloading login page')
+            urljoin(self._API_BASE, 'login'), None, 'Downloading login page')
 
         try:
             target_url = self._download_json(
@@ -72,6 +73,7 @@ class AtresPlayerIE(InfoExtractor):
         except ExtractorError as e:
             self._handle_error(e, 400)
 
+        target_url = urljoin('https://account.atresmedia.com', target_url)
         self._request_webpage(target_url, None, 'Following Target URL')
 
     def _real_extract(self, url):
