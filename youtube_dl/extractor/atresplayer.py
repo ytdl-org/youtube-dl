@@ -6,10 +6,13 @@ import re
 from .common import InfoExtractor
 from ..compat import compat_HTTPError
 from ..utils import (
+    base_url,
     ExtractorError,
     int_or_none,
     urlencode_postdata,
     urljoin,
+    xpath_text,
+    xpath_with_ns,
 )
 
 
@@ -76,6 +79,27 @@ class AtresPlayerIE(InfoExtractor):
         target_url = urljoin('https://account.atresmedia.com', target_url)
         self._request_webpage(target_url, None, 'Following Target URL')
 
+    def _get_mpd_subtitles(self, mpd_xml, mpd_url):
+        subs = {}
+
+        def _add_ns(name):
+            return xpath_with_ns(name, {
+                'mpd': 'urn:mpeg:dash:schema:mpd:2011'
+            })
+
+        text_nodes = mpd_xml.findall(
+            _add_ns('./mpd:Period/mpd:AdaptationSet[@contentType="text"]'))
+        for node in text_nodes:
+            lang = node.attrib['lang']
+            url = xpath_text(
+                node, _add_ns('./mpd:Representation[@mimeType="text/vtt"]/mpd:BaseURL'))
+            if url:
+                subs.update({lang: [{
+                    'ext': 'vtt',
+                    'url': urljoin(mpd_url, url),
+                }]})
+        return subs
+
     def _real_extract(self, url):
         display_id, video_id = re.match(self._VALID_URL, url).groups()
 
@@ -98,6 +122,7 @@ class AtresPlayerIE(InfoExtractor):
         title = episode['titulo']
 
         formats = []
+        subtitles = {}
         for source in episode.get('sources', []):
             src = source.get('src')
             if not src:
@@ -108,8 +133,13 @@ class AtresPlayerIE(InfoExtractor):
                     src, video_id, 'mp4', 'm3u8_native',
                     m3u8_id='hls', fatal=False))
             elif src_type == 'application/dash+xml':
-                formats.extend(self._extract_mpd_formats(
-                    src, video_id, mpd_id='dash', fatal=False))
+                mpd_doc, mpd_handle = self._download_xml_handle(
+                    src, video_id, note='Downloading MPD manifest', fatal=False)
+                if mpd_doc is not None:
+                    mpd_base_url = base_url(mpd_handle.geturl())
+                    subtitles.update(self._get_mpd_subtitles(mpd_doc, mpd_base_url))
+                    formats.extend(self._parse_mpd_formats(
+                        mpd_doc, mpd_id='dash', mpd_base_url=mpd_base_url, mpd_url=src))
         self._sort_formats(formats)
 
         heartbeat = episode.get('heartbeat') or {}
@@ -127,4 +157,5 @@ class AtresPlayerIE(InfoExtractor):
             'channel': get_meta('channel'),
             'season': get_meta('season'),
             'episode_number': int_or_none(get_meta('episodeNumber')),
+            'subtitles': subtitles,
         }
