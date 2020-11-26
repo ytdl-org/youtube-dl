@@ -3335,8 +3335,8 @@ class GenericIE(InfoExtractor):
             # twitter:player:stream should be checked before twitter:player since
             # it is expected to contain a raw stream (see
             # https://dev.twitter.com/cards/types/player#On_twitter.com_via_desktop_browser)
-            found = filter_video(re.findall(
-                r'<meta (?:property|name)="twitter:player:stream" (?:content|value)="(.+?)"', webpage))
+            found = filter_video(
+                m.group('content') for m in re.finditer(self._meta_regex("twitter:player:stream"), webpage))
         if not found:
             # We look for Open Graph info:
             # We have to match any number spaces between elements, some sites try to align them (eg.: statigr.am)
