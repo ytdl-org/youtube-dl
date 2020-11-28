@@ -283,6 +283,7 @@ class YoutubeBaseInfoExtractor(InfoExtractor):
     }
 
     _YT_INITIAL_DATA_RE = r'(?:window\s*\[\s*["\']ytInitialData["\']\s*\]|ytInitialData)\s*=\s*({.+?})\s*;'
+    _YT_INITIAL_PLAYER_RESPONSE_RE = r'ytInitialPlayerResponse\s*=\s*({.+?})\s*;'
 
     def _call_api(self, ep, query, video_id):
         data = self._DEFAULT_API_DATA.copy()
@@ -1068,7 +1069,10 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
             },
         },
         {
-            # with '};' inside yt initial data (see https://github.com/ytdl-org/youtube-dl/issues/27093)
+            # with '};' inside yt initial data (see [1])
+            # see [2] for an example with '};' inside ytInitialPlayerResponse
+            # 1. https://github.com/ytdl-org/youtube-dl/issues/27093
+            # 2. https://github.com/ytdl-org/youtube-dl/issues/27216
             'url': 'https://www.youtube.com/watch?v=CHqg6qOn4no',
             'info_dict': {
                 'id': 'CHqg6qOn4no',
@@ -1686,7 +1690,8 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
         if not video_info and not player_response:
             player_response = extract_player_response(
                 self._search_regex(
-                    r'ytInitialPlayerResponse\s*=\s*({.+?})\s*;', video_webpage,
+                    (r'%s\s*(?:var\s+meta|</script|\n)' % self._YT_INITIAL_PLAYER_RESPONSE_RE,
+                     self._YT_INITIAL_PLAYER_RESPONSE_RE), video_webpage,
                     'initial player response', default='{}'),
                 video_id)
 
