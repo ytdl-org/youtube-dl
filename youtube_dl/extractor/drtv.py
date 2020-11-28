@@ -29,7 +29,7 @@ class DRTVIE(InfoExtractor):
                     https?://
                         (?:
                             (?:www\.)?dr\.dk/(?:tv/se|nyheder|radio(?:/ondemand)?)/(?:[^/]+/)*|
-                            (?:www\.)?(?:dr\.dk|dr-massive\.com)/drtv/(?:se|episode)/
+                            (?:www\.)?(?:dr\.dk|dr-massive\.com)/drtv/(?:se|episode|program)/
                         )
                         (?P<id>[\da-z_-]+)
                     '''
