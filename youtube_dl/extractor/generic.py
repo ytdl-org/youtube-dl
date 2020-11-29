@@ -214,6 +214,24 @@ class GenericIE(InfoExtractor):
             },
             'playlist_mincount': 100,
         },
+        # RSS feed with items description
+        {
+            'url': 'http://radiofrance-podcast.net/podcast09/rss_14631.xml',
+            'info_dict': {
+                'id': 'http://radiofrance-podcast.net/podcast09/rss_14631.xml',
+                'title': 'Certains l\'aiment Fip',
+                'description': 're:.*FIP met le cinéma.*'
+            },
+            'playlist': [{
+                'info_dict': {
+                    'id': '14631-22.11.2020-ITEMA_22491517-2020Y24252S0327',
+                    'ext': 'mp3',
+                    'title': 'Les musiques de Valérie Lemercier',
+                    'description': 're:.*occasion de la sortie.*',
+                    'upload_date': '20201122',
+                },
+            }],
+        },
         # SMIL from http://videolectures.net/promogram_igor_mekjavic_eng
         {
             'url': 'http://videolectures.net/promogram_igor_mekjavic_eng/video/1/smil.xml',
