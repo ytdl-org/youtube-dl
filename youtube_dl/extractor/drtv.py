@@ -111,6 +111,9 @@ class DRTVIE(InfoExtractor):
     }, {
         'url': 'https://dr-massive.com/drtv/se/bonderoeven_71769',
         'only_matching': True,
+    }, {
+        'url': 'https://www.dr.dk/drtv/program/jagten_220924',
+        'only_matching': True,
     }]
 
     def _real_extract(self, url):
