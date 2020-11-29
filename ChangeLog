@@ -1,3 +1,19 @@
+version <unreleased>
+
+Core
+* [YoutubeDL] Write static debug to stderr and respect quiet for dynamic debug
+  (#14579, #22593)
+
+Extractors
+* [drtv] Extend URL regular expression (#27243)
+* [tiktok] Fix extraction (#20809, #22838, #22850, #25987, #26281, #26411,
+  #26639, #26776, #27237)
++ [ina] Add support for mobile URLs (#27229)
+* [pornhub] Fix like and dislike count extraction (#27227, #27234)
+* [youtube] Improve yt initial player response extraction (#27216)
+* [videa] Fix extraction (#25650, #25973, #26301)
+
+
 version 2020.11.26
 
 Core
@@ -12,7 +28,7 @@ Extractors
 * [bbc] Fix BBC Three clip extraction
 * [bbc] Fix BBC News videos extraction
 + [medaltv] Add support for medal.tv (#27149)
-* [youtube] Imporve music metadata and license extraction (#26013)
+* [youtube] Improve music metadata and license extraction (#26013)
 * [nrk] Fix extraction
 * [cda] Fix extraction (#17803, #24458, #24518, #26381)
 
