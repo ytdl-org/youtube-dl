@@ -1,4 +1,4 @@
-version <unreleased>
+version 2020.11.29
 
 Core
 * [YoutubeDL] Write static debug to stderr and respect quiet for dynamic debug
