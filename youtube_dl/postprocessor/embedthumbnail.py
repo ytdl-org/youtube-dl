@@ -85,8 +85,7 @@ class EmbedThumbnailPP(FFmpegPostProcessor):
 
             if not self._already_have_thumbnail:
                 os.remove(encodeFilename(thumbnail_filename))
-            os.remove(encodeFilename(filename))
-            os.rename(encodeFilename(temp_filename), encodeFilename(filename))
+            os.replace(encodeFilename(temp_filename), encodeFilename(filename))
 
         elif info['ext'] in ['m4a', 'mp4']:
             if not check_executable('AtomicParsley', ['-v']):
@@ -118,8 +117,7 @@ class EmbedThumbnailPP(FFmpegPostProcessor):
             if b'No changes' in stdout:
                 self._downloader.report_warning('The file format doesn\'t support embedding a thumbnail')
             else:
-                os.remove(encodeFilename(filename))
-                os.rename(encodeFilename(temp_filename), encodeFilename(filename))
+                os.replace(encodeFilename(temp_filename), encodeFilename(filename))
         else:
             raise EmbedThumbnailPPError('Only mp3 and m4a/mp4 are supported for thumbnail embedding for now.')
 

@@ -424,8 +424,7 @@ class FFmpegEmbedSubtitlePP(FFmpegPostProcessor):
         temp_filename = prepend_extension(filename, 'temp')
         self._downloader.to_screen('[ffmpeg] Embedding subtitles in \'%s\'' % filename)
         self.run_ffmpeg_multiple_files(input_files, temp_filename, opts)
-        os.remove(encodeFilename(filename))
-        os.rename(encodeFilename(temp_filename), encodeFilename(filename))
+        os.replace(encodeFilename(temp_filename), encodeFilename(filename))
 
         return sub_filenames, information
 
@@ -509,8 +508,7 @@ class FFmpegMetadataPP(FFmpegPostProcessor):
         self.run_ffmpeg_multiple_files(in_filenames, temp_filename, options)
         if chapters:
             os.remove(metadata_filename)
-        os.remove(encodeFilename(filename))
-        os.rename(encodeFilename(temp_filename), encodeFilename(filename))
+        os.replace(encodeFilename(temp_filename), encodeFilename(filename))
         return [], info
 
 
@@ -555,8 +553,7 @@ class FFmpegFixupStretchedPP(FFmpegPostProcessor):
         self._downloader.to_screen('[ffmpeg] Fixing aspect ratio in "%s"' % filename)
         self.run_ffmpeg(filename, temp_filename, options)
 
-        os.remove(encodeFilename(filename))
-        os.rename(encodeFilename(temp_filename), encodeFilename(filename))
+        os.replace(encodeFilename(temp_filename), encodeFilename(filename))
 
         return [], info
 
@@ -573,8 +570,7 @@ class FFmpegFixupM4aPP(FFmpegPostProcessor):
         self._downloader.to_screen('[ffmpeg] Correcting container in "%s"' % filename)
         self.run_ffmpeg(filename, temp_filename, options)
 
-        os.remove(encodeFilename(filename))
-        os.rename(encodeFilename(temp_filename), encodeFilename(filename))
+        os.replace(encodeFilename(temp_filename), encodeFilename(filename))
 
         return [], info
 
@@ -589,8 +585,7 @@ class FFmpegFixupM3u8PP(FFmpegPostProcessor):
             self._downloader.to_screen('[ffmpeg] Fixing malformed AAC bitstream in "%s"' % filename)
             self.run_ffmpeg(filename, temp_filename, options)
 
-            os.remove(encodeFilename(filename))
-            os.rename(encodeFilename(temp_filename), encodeFilename(filename))
+            os.replace(encodeFilename(temp_filename), encodeFilename(filename))
         return [], info
 
 
