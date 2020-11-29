@@ -71,6 +71,8 @@ from .socks import (
     sockssocket,
 )
 
+from unidecode import unidecode
+
 
 def register_socks_protocols():
     # "Register" SOCKS protocols
@@ -2101,6 +2103,8 @@ def sanitize_filename(s, restricted=False, is_id=False):
 
     # Handle timestamps
     s = re.sub(r'[0-9]+(?::[0-9]+)+', lambda m: m.group(0).replace(':', '_'), s)
+    if restricted:
+        s = unidecode(s)
     result = ''.join(map(replace_insane, s))
     if not is_id:
         while '__' in result:
