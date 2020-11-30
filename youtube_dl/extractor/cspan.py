@@ -165,6 +165,8 @@ class CSpanIE(InfoExtractor):
                 formats = self._extract_m3u8_formats(
                     path, video_id, 'mp4', entry_protocol='m3u8_native',
                     m3u8_id='hls') if determine_ext(path) == 'm3u8' else [{'url': path, }]
+            for f in formats:
+                f.setdefault('http_headers', {})['Referer'] = url
             self._sort_formats(formats)
             entries.append({
                 'id': '%s_%d' % (video_id, partnum + 1),
