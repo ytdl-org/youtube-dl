@@ -602,7 +602,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                 'description': 'SUBSCRIBE: http://www.youtube.com/saturninefilms\n\nEven Obama has taken a stand against freedom on this issue: http://www.huffingtonpost.com/2010/09/09/obama-gma-interview-quran_n_710282.html',
             }
         },
-        # Normal age-gate video (No vevo, embed allowed)
+        # Normal age-gate video (No vevo, embed allowed), available via embed page
         {
             'url': 'https://youtube.com/watch?v=HtVdAasjOgU',
             'info_dict': {
@@ -617,6 +617,12 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                 'upload_date': '20140605',
                 'age_limit': 18,
             },
+        },
+        {
+            # Age-gated video only available with authentication (unavailable
+            # via embed page workaround)
+            'url': 'XgnwCQzjau8',
+            'only_matching': True,
         },
         # video_info is None (https://github.com/ytdl-org/youtube-dl/issues/4421)
         # YouTube Red ad is not captured for creator
@@ -1637,8 +1643,8 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
         # Get video info
         video_info = {}
         embed_webpage = None
-        if (self._og_search_property('restrictions:age', video_webpage, default=None) == '18+'
-                or re.search(r'player-age-gate-content">', video_webpage) is not None):
+
+        if re.search(r'["\']status["\']\s*:\s*["\']LOGIN_REQUIRED', video_webpage) is not None:
             age_gate = True
             # We simulate the access to the video from www.youtube.com/v/{video_id}
             # this can be viewed without login into Youtube
