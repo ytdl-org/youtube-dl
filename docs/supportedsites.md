@@ -471,6 +471,7 @@
  - **massengeschmack.tv**
  - **MatchTV**
  - **MDR**: MDR.DE and KiKA
+ - **MedalTV**
  - **media.ccc.de**
  - **media.ccc.de:lists**
  - **Medialaan**
@@ -839,6 +840,10 @@
  - **Sport5**
  - **SportBox**
  - **SportDeutschland**
+ - **Spreaker**
+ - **SpreakerPage**
+ - **SpreakerShow**
+ - **SpreakerShowPage**
  - **SpringboardPlatform**
  - **Sprout**
  - **sr:mediathek**: Saarländischer Rundfunk
@@ -907,7 +912,7 @@
  - **ThisAV**
  - **ThisOldHouse**
  - **TikTok**
- - **TikTokUser**
+ - **TikTokUser** (Currently broken)
  - **tinypic**: tinypic.com videos
  - **TMZ**
  - **TMZArticle**
@@ -1055,6 +1060,7 @@
  - **vk:wallpost**
  - **vlive**
  - **vlive:channel**
+ - **vlive:post**
  - **Vodlocker**
  - **VODPl**
  - **VODPlatform**
