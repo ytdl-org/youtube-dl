@@ -1185,7 +1185,10 @@ from .tnaflix import (
     EMPFlixIE,
     MovieFapIE,
 )
-from .toggle import ToggleIE
+from .toggle import (
+    ToggleIE,
+    MeWatchIE,
+)
 from .tonline import TOnlineIE
 from .toongoggles import ToonGogglesIE
 from .toutv import TouTvIE

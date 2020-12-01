@@ -11,13 +11,13 @@ from ..utils import (
     float_or_none,
     int_or_none,
     parse_iso8601,
-    sanitized_Request,
+    strip_or_none,
 )
 
 
 class ToggleIE(InfoExtractor):
     IE_NAME = 'toggle'
-    _VALID_URL = r'https?://(?:(?:www\.)?mewatch|video\.toggle)\.sg/(?:en|zh)/(?:[^/]+/){2,}(?P<id>[0-9]+)'
+    _VALID_URL = r'(?:https?://(?:(?:www\.)?mewatch|video\.toggle)\.sg/(?:en|zh)/(?:[^/]+/){2,}|toggle:)(?P<id>[0-9]+)'
     _TESTS = [{
         'url': 'http://www.mewatch.sg/en/series/lion-moms-tif/trailers/lion-moms-premier/343115',
         'info_dict': {
@@ -96,16 +96,6 @@ class ToggleIE(InfoExtractor):
     def _real_extract(self, url):
         video_id = self._match_id(url)
 
-        webpage = self._download_webpage(
-            url, video_id, note='Downloading video page')
-
-        api_user = self._search_regex(
-            r'apiUser\s*:\s*(["\'])(?P<user>.+?)\1', webpage, 'apiUser',
-            default=self._API_USER, group='user')
-        api_pass = self._search_regex(
-            r'apiPass\s*:\s*(["\'])(?P<pass>.+?)\1', webpage, 'apiPass',
-            default=self._API_PASS, group='pass')
-
         params = {
             'initObj': {
                 'Locale': {
@@ -118,17 +108,16 @@ class ToggleIE(InfoExtractor):
                 'SiteGuid': 0,
                 'DomainID': '0',
                 'UDID': '',
-                'ApiUser': api_user,
-                'ApiPass': api_pass
+                'ApiUser': self._API_USER,
+                'ApiPass': self._API_PASS
             },
             'MediaID': video_id,
             'mediaType': 0,
         }
 
-        req = sanitized_Request(
+        info = self._download_json(
             'http://tvpapi.as.tvinci.com/v2_9/gateways/jsonpostgw.aspx?m=GetMediaInfo',
-            json.dumps(params).encode('utf-8'))
-        info = self._download_json(req, video_id, 'Downloading video info json')
+            video_id, 'Downloading video info json', data=json.dumps(params).encode('utf-8'))
 
         title = info['MediaName']
 
@@ -172,14 +161,6 @@ class ToggleIE(InfoExtractor):
             raise ExtractorError('No downloadable videos found', expected=True)
         self._sort_formats(formats)
 
-        duration = int_or_none(info.get('Duration'))
-        description = info.get('Description')
-        created_at = parse_iso8601(info.get('CreationDate') or None)
-
-        average_rating = float_or_none(info.get('Rating'))
-        view_count = int_or_none(info.get('ViewCounter') or info.get('view_counter'))
-        like_count = int_or_none(info.get('LikeCounter') or info.get('like_counter'))
-
         thumbnails = []
         for picture in info.get('Pictures', []):
             if not isinstance(picture, dict):
@@ -199,15 +180,46 @@ class ToggleIE(InfoExtractor):
                 })
             thumbnails.append(thumbnail)
 
+        def counter(prefix):
+            return int_or_none(
+                info.get(prefix + 'Counter') or info.get(prefix.lower() + '_counter'))
+
         return {
             'id': video_id,
             'title': title,
-            'description': description,
-            'duration': duration,
-            'timestamp': created_at,
-            'average_rating': average_rating,
-            'view_count': view_count,
-            'like_count': like_count,
+            'description': strip_or_none(info.get('Description')),
+            'duration': int_or_none(info.get('Duration')),
+            'timestamp': parse_iso8601(info.get('CreationDate') or None),
+            'average_rating': float_or_none(info.get('Rating')),
+            'view_count': counter('View'),
+            'like_count': counter('Like'),
             'thumbnails': thumbnails,
             'formats': formats,
         }
+
+
+class MeWatchIE(InfoExtractor):
+    IE_NAME = 'mewatch'
+    _VALID_URL = r'https?://(?:www\.)?mewatch\.sg/watch/[0-9a-zA-Z-]+-(?P<id>[0-9]+)'
+    _TESTS = [{
+        'url': 'https://www.mewatch.sg/watch/Recipe-Of-Life-E1-179371',
+        'info_dict': {
+            'id': '1008625',
+            'ext': 'mp4',
+            'title': 'Recipe Of Life 味之道',
+            'timestamp': 1603306526,
+            'description': 'md5:6e88cde8af2068444fc8e1bc3ebf257c',
+            'upload_date': '20201021',
+        },
+        'params': {
+            'skip_download': 'm3u8 download',
+        },
+    }]
+
+    def _real_extract(self, url):
+        item_id = self._match_id(url)
+        custom_id = self._download_json(
+            'https://cdn.mewatch.sg/api/items/' + item_id,
+            item_id, query={'segments': 'all'})['customId']
+        return self.url_result(
+            'toggle:' + custom_id, ToggleIE.ie_key(), custom_id)
