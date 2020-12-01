@@ -10,7 +10,7 @@ class NhkVodIE(InfoExtractor):
     # Content available only for a limited period of time. Visit
     # https://www3.nhk.or.jp/nhkworld/en/ondemand/ for working samples.
     _TESTS = [{
-        # clip
+        # video clip
         'url': 'https://www3.nhk.or.jp/nhkworld/en/ondemand/video/9999011/',
         'md5': '256a1be14f48d960a7e61e2532d95ec3',
         'info_dict': {
@@ -20,6 +20,19 @@ class NhkVodIE(InfoExtractor):
             'description': 'md5:5aee4a9f9d81c26281862382103b0ea5',
             'timestamp': 1565965194,
             'upload_date': '20190816',
+        },
+    }, {
+        # audio clip
+        'url': 'https://www3.nhk.or.jp/nhkworld/en/ondemand/audio/r_inventions-20201104-1/',
+        'info_dict': {
+            'id': 'r_inventions-20201104-1-en',
+            'ext': 'm4a',
+            'title': "Japan's Top Inventions - Miniature Video Cameras",
+            'description': 'md5:07ea722bdbbb4936fdd360b6a480c25b',
+        },
+        'params': {
+            # m3u8 download
+            'skip_download': True,
         },
     }, {
         'url': 'https://www3.nhk.or.jp/nhkworld/en/ondemand/video/2015173/',
