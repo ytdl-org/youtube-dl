@@ -84,12 +84,6 @@ class ToggleIE(InfoExtractor):
         'only_matching': True,
     }]
 
-    _FORMAT_PREFERENCES = {
-        'wvm-STBMain': -10,
-        'wvm-iPadMain': -20,
-        'wvm-iPhoneMain': -30,
-        'wvm-Android': -40,
-    }
     _API_USER = 'tvpapi_147'
     _API_PASS = '11111'
 
@@ -130,11 +124,16 @@ class ToggleIE(InfoExtractor):
             vid_format = vid_format.replace(' ', '')
             # if geo-restricted, m3u8 is inaccessible, but mp4 is okay
             if ext == 'm3u8':
-                formats.extend(self._extract_m3u8_formats(
+                m3u8_formats = self._extract_m3u8_formats(
                     video_url, video_id, ext='mp4', m3u8_id=vid_format,
                     note='Downloading %s m3u8 information' % vid_format,
                     errnote='Failed to download %s m3u8 information' % vid_format,
-                    fatal=False))
+                    fatal=False)
+                for f in m3u8_formats:
+                    # Apple FairPlay Streaming
+                    if '/fpshls/' in f['url']:
+                        continue
+                    formats.append(f)
             elif ext == 'mpd':
                 formats.extend(self._extract_mpd_formats(
                     video_url, video_id, mpd_id=vid_format,
@@ -147,16 +146,17 @@ class ToggleIE(InfoExtractor):
                     note='Downloading %s ISM manifest' % vid_format,
                     errnote='Failed to download %s ISM manifest' % vid_format,
                     fatal=False))
-            elif ext in ('mp4', 'wvm'):
-                # wvm are drm-protected files
+            elif ext == 'mp4':
                 formats.append({
                     'ext': ext,
                     'url': video_url,
                     'format_id': vid_format,
-                    'preference': self._FORMAT_PREFERENCES.get(ext + '-' + vid_format) or -1,
-                    'format_note': 'DRM-protected video' if ext == 'wvm' else None
                 })
         if not formats:
+            for meta in (info.get('Metas') or []):
+                if meta.get('Key') == 'Encryption' and meta.get('Value') == '1':
+                    raise ExtractorError(
+                        'This video is DRM protected.', expected=True)
             # Most likely because geo-blocked
             raise ExtractorError('No downloadable videos found', expected=True)
         self._sort_formats(formats)
