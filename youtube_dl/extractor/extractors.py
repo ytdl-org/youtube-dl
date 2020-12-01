@@ -1221,7 +1221,10 @@ from .tv2dk import (
 from .tv2hu import TV2HuIE
 from .tv4 import TV4IE
 from .tv5mondeplus import TV5MondePlusIE
-from .tva import TVAIE
+from .tva import (
+    TVAIE,
+    QubIE,
+)
 from .tvanouvelles import (
     TVANouvellesIE,
     TVANouvellesArticleIE,
