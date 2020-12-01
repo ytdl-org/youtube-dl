@@ -486,6 +486,7 @@
  - **META**
  - **metacafe**
  - **Metacritic**
+ - **mewatch**
  - **Mgoon**
  - **MGTV**: 芒果TV
  - **MiaoPai**
@@ -1132,6 +1133,8 @@
  - **yahoo:japannews**: Yahoo! Japan News
  - **YandexDisk**
  - **yandexmusic:album**: Яндекс.Музыка - Альбом
+ - **yandexmusic:artist:albums**: Яндекс.Музыка - Артист - Альбомы
+ - **yandexmusic:artist:tracks**: Яндекс.Музыка - Артист - Треки
  - **yandexmusic:playlist**: Яндекс.Музыка - Плейлист
  - **yandexmusic:track**: Яндекс.Музыка - Трек
  - **YandexVideo**

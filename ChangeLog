@@ -1,4 +1,4 @@
-version <unreleased>
+version 2020.12.02
 
 Extractors
 + [tva] Add support for qub.ca (#27235)
