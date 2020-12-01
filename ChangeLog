@@ -1,3 +1,20 @@
+version <unreleased>
+
+Extractors
++ [tva] Add support for qub.ca (#27235)
++ [toggle] Detect DRM protected videos (closes #16479)(closes #20805)
++ [toggle] Add support for new MeWatch URLs (#27256)
+* [youtube:tab] Extract channels only from channels tab (#27266)
++ [cspan] Extract info from jwplayer data (#3672, #3734, #10638, #13030,
+  #18806, #23148, #24461, #26171, #26800, #27263)
+* [cspan] Pass Referer header with format's video URL (#26032, #25729)
+* [youtube] Improve age-gated videos extraction (#27259)
++ [mediaset] Add support for movie URLs (#27240)
+* [yandexmusic] Refactor
++ [yandexmusic] Add support for artist's tracks and albums (#11887, #22284)
+* [yandexmusic:track] Fix extraction (#26449, #26669, #26747, #26748, #26762)
+
+
 version 2020.11.29
 
 Core
