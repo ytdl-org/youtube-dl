@@ -1,0 +1,7 @@
+version: '3.3'
+services:
+  youtube-dl:
+    build: .
+    volumes:
+      - ./downloads:/downloads
+    command: "https://www.youtube.com/watch?v=dQw4w9WgXcQ"
