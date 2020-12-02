@@ -1398,8 +1398,7 @@ from .vk import (
 )
 from .vlive import (
     VLiveIE,
-    VLiveChannelIE,
-    VLivePlaylistIE
+    VLiveChannelIE
 )
 from .vodlocker import VodlockerIE
 from .vodpl import VODPlIE
@@ -1517,21 +1516,15 @@ from .yourporn import YourPornIE
 from .yourupload import YourUploadIE
 from .youtube import (
     YoutubeIE,
-    YoutubeChannelIE,
     YoutubeFavouritesIE,
     YoutubeHistoryIE,
-    YoutubeLiveIE,
     YoutubePlaylistIE,
-    YoutubePlaylistsIE,
     YoutubeRecommendedIE,
     YoutubeSearchDateIE,
     YoutubeSearchIE,
-    YoutubeSearchURLIE,
-    YoutubeShowIE,
     YoutubeSubscriptionsIE,
     YoutubeTruncatedIDIE,
     YoutubeTruncatedURLIE,
-    YoutubeUserIE,
     YoutubeWatchLaterIE,
 )
 from .zapiks import ZapiksIE
