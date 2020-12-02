@@ -1401,6 +1401,7 @@ from .voxmedia import (
 )
 from .vrt import VRTIE
 from .vrak import VrakIE
+from .vrsumo import VRSumoIE
 from .vrv import (
     VRVIE,
     VRVSeriesIE,
