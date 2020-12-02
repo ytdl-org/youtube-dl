@@ -937,6 +937,28 @@ class TestUtil(unittest.TestCase):
         self.assertEqual(d['x'], 1)
         self.assertEqual(d['y'], 'a')
 
+        # Just drop ! prefix for now though this results in a wrong value
+        on = js_to_json('''{
+            a: !0,
+            b: !1,
+            c: !!0,
+            d: !!42.42,
+            e: !!![],
+            f: !"abc",
+            g: !"",
+            !42: 42
+        }''')
+        self.assertEqual(json.loads(on), {
+            'a': 0,
+            'b': 1,
+            'c': 0,
+            'd': 42.42,
+            'e': [],
+            'f': "abc",
+            'g': "",
+            '42': 42
+        })
+
         on = js_to_json('["abc", "def",]')
         self.assertEqual(json.loads(on), ['abc', 'def'])
 
