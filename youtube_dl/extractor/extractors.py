@@ -58,7 +58,7 @@ from .ard import (
     ARDMediathekIE,
 )
 from .arte import (
-    ArteTVPlusIE,
+    ArteTVIE,
     ArteTVEmbedIE,
     ArteTVPlaylistIE,
 )
@@ -1092,7 +1092,7 @@ from .spankbang import (
     SpankBangPlaylistIE,
 )
 from .spankwire import SpankwireIE
-from .spiegel import SpiegelIE, SpiegelArticleIE
+from .spiegel import SpiegelIE
 from .spiegeltv import SpiegeltvIE
 from .spike import (
     BellatorIE,
