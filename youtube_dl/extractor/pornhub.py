@@ -53,7 +53,7 @@ class PornHubIE(PornHubBaseIE):
     _VALID_URL = r'''(?x)
                     https?://
                         (?:
-                            (?:[^/]+\.)?(?P<host>pornhub(?:premium)?\.(?:com|net))/(?:(?:view_video\.php|video/show)\?viewkey=|embed/)|
+                            (?:[^/]+\.)?(?P<host>pornhub(?:premium)?\.(?:com|net|org))/(?:(?:view_video\.php|video/show)\?viewkey=|embed/)|
                             (?:www\.)?thumbzilla\.com/video/
                         )
                         (?P<id>[\da-z]+)
@@ -153,6 +153,9 @@ class PornHubIE(PornHubBaseIE):
         'url': 'https://www.pornhub.net/view_video.php?viewkey=203640933',
         'only_matching': True,
     }, {
+        'url': 'https://www.pornhub.org/view_video.php?viewkey=203640933',
+        'only_matching': True,
+    }, {
         'url': 'https://www.pornhubpremium.com/view_video.php?viewkey=ph5e4acdae54a82',
         'only_matching': True,
     }]
@@ -160,7 +163,7 @@ class PornHubIE(PornHubBaseIE):
     @staticmethod
     def _extract_urls(webpage):
         return re.findall(
-            r'<iframe[^>]+?src=["\'](?P<url>(?:https?:)?//(?:www\.)?pornhub\.(?:com|net)/embed/[\da-z]+)',
+            r'<iframe[^>]+?src=["\'](?P<url>(?:https?:)?//(?:www\.)?pornhub\.(?:com|net|org)/embed/[\da-z]+)',
             webpage)
 
     def _extract_count(self, pattern, webpage, name):
@@ -422,7 +425,7 @@ class PornHubPlaylistBaseIE(PornHubBaseIE):
 
 
 class PornHubUserIE(PornHubPlaylistBaseIE):
-    _VALID_URL = r'(?P<url>https?://(?:[^/]+\.)?(?P<host>pornhub(?:premium)?\.(?:com|net))/(?:(?:user|channel)s|model|pornstar)/(?P<id>[^/?#&]+))(?:[?#&]|/(?!videos)|$)'
+    _VALID_URL = r'(?P<url>https?://(?:[^/]+\.)?(?P<host>pornhub(?:premium)?\.(?:com|net|org))/(?:(?:user|channel)s|model|pornstar)/(?P<id>[^/?#&]+))(?:[?#&]|/(?!videos)|$)'
     _TESTS = [{
         'url': 'https://www.pornhub.com/model/zoe_ph',
         'playlist_mincount': 118,
@@ -490,7 +493,7 @@ class PornHubPagedPlaylistBaseIE(PornHubPlaylistBaseIE):
 
 
 class PornHubPagedVideoListIE(PornHubPagedPlaylistBaseIE):
-    _VALID_URL = r'https?://(?:[^/]+\.)?(?P<host>pornhub(?:premium)?\.(?:com|net))/(?P<id>(?:[^/]+/)*[^/?#&]+)'
+    _VALID_URL = r'https?://(?:[^/]+\.)?(?P<host>pornhub(?:premium)?\.(?:com|net|org))/(?P<id>(?:[^/]+/)*[^/?#&]+)'
     _TESTS = [{
         'url': 'https://www.pornhub.com/model/zoe_ph/videos',
         'only_matching': True,
@@ -605,7 +608,7 @@ class PornHubPagedVideoListIE(PornHubPagedPlaylistBaseIE):
 
 
 class PornHubUserVideosUploadIE(PornHubPagedPlaylistBaseIE):
-    _VALID_URL = r'(?P<url>https?://(?:[^/]+\.)?(?P<host>pornhub(?:premium)?\.(?:com|net))/(?:(?:user|channel)s|model|pornstar)/(?P<id>[^/]+)/videos/upload)'
+    _VALID_URL = r'(?P<url>https?://(?:[^/]+\.)?(?P<host>pornhub(?:premium)?\.(?:com|net|org))/(?:(?:user|channel)s|model|pornstar)/(?P<id>[^/]+)/videos/upload)'
     _TESTS = [{
         'url': 'https://www.pornhub.com/pornstar/jenny-blighe/videos/upload',
         'info_dict': {
