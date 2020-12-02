@@ -1,6 +1,9 @@
 # coding: utf-8
 from __future__ import unicode_literals
 
+import json
+import re
+
 from .common import InfoExtractor
 from ..compat import compat_str
 from ..utils import (
@@ -16,12 +19,12 @@ from ..utils import (
 class PinterestBaseIE(InfoExtractor):
     _VALID_URL_BASE = r'https?://(?:[^/]+\.)?pinterest\.(?:com|fr|de|ch|jp|cl|ca|it|co\.uk|nz|ru|com\.au|at|pt|co\.kr|es|com\.mx|dk|ph|th|com\.uy|co|nl|info|kr|ie|vn|com\.vn|ec|mx|in|pe|co\.at|hu|co\.in|co\.nz|id|com\.ec|com\.py|tw|be|uk|com\.bo|com\.pe)'
 
-    def _extract_resource(self, webpage, video_id):
-        return self._parse_json(
-            self._search_regex(
-                r'<script[^>]+\bid=["\']initial-state["\'][^>]*>({.+?})</script>',
-                webpage, 'application json'),
-            video_id)['resourceResponses']
+    def _call_api(self, resource, video_id, options):
+        return self._download_json(
+            'https://www.pinterest.com/resource/%sResource/get/' % resource,
+            video_id, 'Download %s JSON metadata' % resource, query={
+                'data': json.dumps({'options': options})
+            })['resource_response']
 
     def _extract_video(self, data, extract_formats=True):
         video_id = data['id']
@@ -128,13 +131,16 @@ class PinterestIE(PinterestBaseIE):
 
     def _real_extract(self, url):
         video_id = self._match_id(url)
-        webpage = self._download_webpage(url, video_id)
-        data = self._extract_resource(webpage, video_id)[0]['response']['data']
+        data = self._call_api(
+            'Pin', video_id, {
+                'field_set_key': 'unauth_react_main_pin',
+                'id': video_id,
+            })['data']
         return self._extract_video(data)
 
 
 class PinterestCollectionIE(PinterestBaseIE):
-    _VALID_URL = r'%s/[^/]+/(?P<id>[^/?#&]+)' % PinterestBaseIE._VALID_URL_BASE
+    _VALID_URL = r'%s/(?P<username>[^/]+)/(?P<id>[^/?#&]+)' % PinterestBaseIE._VALID_URL_BASE
     _TESTS = [{
         'url': 'https://www.pinterest.ca/mashal0407/cool-diys/',
         'info_dict': {
@@ -142,6 +148,14 @@ class PinterestCollectionIE(PinterestBaseIE):
             'title': 'cool diys',
         },
         'playlist_count': 8,
+    }, {
+        'url': 'https://www.pinterest.ca/fudohub/videos/',
+        'info_dict': {
+            'id': '682858430939307450',
+            'title': 'VIDEOS',
+        },
+        'playlist_mincount': 365,
+        'skip': 'Test with extract_formats=False',
     }]
 
     @classmethod
@@ -150,27 +164,38 @@ class PinterestCollectionIE(PinterestBaseIE):
             PinterestCollectionIE, cls).suitable(url)
 
     def _real_extract(self, url):
-        collection_name = self._match_id(url)
-        webpage = self._download_webpage(url, collection_name)
-        resource = self._extract_resource(webpage, collection_name)[1]
+        username, slug = re.match(self._VALID_URL, url).groups()
+        board = self._call_api(
+            'Board', slug, {
+                'slug': slug,
+                'username': username
+            })['data']
+        board_id = board['id']
+        options = {
+            'board_id': board_id,
+            'page_size': 250,
+        }
+        bookmark = None
         entries = []
-        for item in resource['response']['data']:
-            if not isinstance(item, dict) or item.get('type') != 'pin':
-                continue
-            video_id = item.get('id')
-            if video_id:
-                # Some pins may not be available anonymously via pin URL
-                # video = self._extract_video(item, extract_formats=False)
-                # video.update({
-                #     '_type': 'url_transparent',
-                #     'url': 'https://www.pinterest.com/pin/%s/' % video_id,
-                # })
-                # entries.append(video)
-                entries.append(self._extract_video(item))
-        title = try_get(
-            resource, lambda x: x['options']['board_title'], compat_str)
-        collection_id = try_get(
-            resource, lambda x: x['options']['board_id'],
-            compat_str) or collection_name
+        while True:
+            if bookmark:
+                options['bookmarks'] = [bookmark]
+            board_feed = self._call_api('BoardFeed', board_id, options)
+            for item in (board_feed.get('data') or []):
+                if not isinstance(item, dict) or item.get('type') != 'pin':
+                    continue
+                video_id = item.get('id')
+                if video_id:
+                    # Some pins may not be available anonymously via pin URL
+                    # video = self._extract_video(item, extract_formats=False)
+                    # video.update({
+                    #     '_type': 'url_transparent',
+                    #     'url': 'https://www.pinterest.com/pin/%s/' % video_id,
+                    # })
+                    # entries.append(video)
+                    entries.append(self._extract_video(item))
+            bookmark = board_feed.get('bookmark')
+            if not bookmark:
+                break
         return self.playlist_result(
-            entries, playlist_id=collection_id, playlist_title=title)
+            entries, playlist_id=board_id, playlist_title=board.get('name'))

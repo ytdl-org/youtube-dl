@@ -5,6 +5,7 @@ from .common import InfoExtractor
 from ..utils import (
     compat_str,
     ExtractorError,
+    float_or_none,
     int_or_none,
     str_or_none,
     try_get,
@@ -13,7 +14,7 @@ from ..utils import (
 
 
 class TikTokBaseIE(InfoExtractor):
-    def _extract_aweme(self, data):
+    def _extract_video(self, data, video_id=None):
         video = data['video']
         description = str_or_none(try_get(data, lambda x: x['desc']))
         width = int_or_none(try_get(data, lambda x: video['width']))
@@ -21,43 +22,54 @@ class TikTokBaseIE(InfoExtractor):
 
         format_urls = set()
         formats = []
-        for format_id in (
-                'play_addr_lowbr', 'play_addr', 'play_addr_h264',
-                'download_addr'):
-            for format in try_get(
-                    video, lambda x: x[format_id]['url_list'], list) or []:
-                format_url = url_or_none(format)
-                if not format_url:
-                    continue
-                if format_url in format_urls:
-                    continue
-                format_urls.add(format_url)
-                formats.append({
-                    'url': format_url,
-                    'ext': 'mp4',
-                    'height': height,
-                    'width': width,
-                })
+        for format_id in ('download', 'play'):
+            format_url = url_or_none(video.get('%sAddr' % format_id))
+            if not format_url:
+                continue
+            if format_url in format_urls:
+                continue
+            format_urls.add(format_url)
+            formats.append({
+                'url': format_url,
+                'ext': 'mp4',
+                'height': height,
+                'width': width,
+                'http_headers': {
+                    'Referer': 'https://www.tiktok.com/',
+                }
+            })
         self._sort_formats(formats)
 
-        thumbnail = url_or_none(try_get(
-            video, lambda x: x['cover']['url_list'][0], compat_str))
-        uploader = try_get(data, lambda x: x['author']['nickname'], compat_str)
-        timestamp = int_or_none(data.get('create_time'))
-        comment_count = int_or_none(data.get('comment_count')) or int_or_none(
-            try_get(data, lambda x: x['statistics']['comment_count']))
-        repost_count = int_or_none(try_get(
-            data, lambda x: x['statistics']['share_count']))
+        thumbnail = url_or_none(video.get('cover'))
+        duration = float_or_none(video.get('duration'))
 
-        aweme_id = data['aweme_id']
+        uploader = try_get(data, lambda x: x['author']['nickname'], compat_str)
+        uploader_id = try_get(data, lambda x: x['author']['id'], compat_str)
+
+        timestamp = int_or_none(data.get('createTime'))
+
+        def stats(key):
+            return int_or_none(try_get(
+                data, lambda x: x['stats']['%sCount' % key]))
+
+        view_count = stats('play')
+        like_count = stats('digg')
+        comment_count = stats('comment')
+        repost_count = stats('share')
+
+        aweme_id = data.get('id') or video_id
 
         return {
             'id': aweme_id,
             'title': uploader or aweme_id,
             'description': description,
             'thumbnail': thumbnail,
+            'duration': duration,
             'uploader': uploader,
+            'uploader_id': uploader_id,
             'timestamp': timestamp,
+            'view_count': view_count,
+            'like_count': like_count,
             'comment_count': comment_count,
             'repost_count': repost_count,
             'formats': formats,
@@ -65,62 +77,56 @@ class TikTokBaseIE(InfoExtractor):
 
 
 class TikTokIE(TikTokBaseIE):
-    _VALID_URL = r'''(?x)
-                        https?://
-                            (?:
-                                (?:m\.)?tiktok\.com/v|
-                                (?:www\.)?tiktok\.com/share/video
-                            )
-                            /(?P<id>\d+)
-                    '''
+    _VALID_URL = r'https?://(?:www\.)?tiktok\.com/@[^/]+/video/(?P<id>\d+)'
     _TESTS = [{
-        'url': 'https://m.tiktok.com/v/6606727368545406213.html',
-        'md5': 'd584b572e92fcd48888051f238022420',
+        'url': 'https://www.tiktok.com/@zureeal/video/6606727368545406213',
+        'md5': '163ceff303bb52de60e6887fe399e6cd',
         'info_dict': {
             'id': '6606727368545406213',
             'ext': 'mp4',
             'title': 'Zureeal',
             'description': '#bowsette#mario#cosplay#uk#lgbt#gaming#asian#bowsettecosplay',
-            'thumbnail': r're:^https?://.*~noop.image',
+            'thumbnail': r're:^https?://.*',
+            'duration': 15,
             'uploader': 'Zureeal',
+            'uploader_id': '188294915489964032',
             'timestamp': 1538248586,
             'upload_date': '20180929',
+            'view_count': int,
+            'like_count': int,
             'comment_count': int,
             'repost_count': int,
         }
-    }, {
-        'url': 'https://www.tiktok.com/share/video/6606727368545406213',
-        'only_matching': True,
     }]
+
+    def _real_initialize(self):
+        # Setup session (will set necessary cookies)
+        self._request_webpage(
+            'https://www.tiktok.com/', None, note='Setting up session')
 
     def _real_extract(self, url):
         video_id = self._match_id(url)
-        webpage = self._download_webpage(
-            'https://m.tiktok.com/v/%s.html' % video_id, video_id)
+        webpage = self._download_webpage(url, video_id)
         data = self._parse_json(self._search_regex(
-            r'\bdata\s*=\s*({.+?})\s*;', webpage, 'data'), video_id)
-        return self._extract_aweme(data)
+            r'<script[^>]+\bid=["\']__NEXT_DATA__[^>]+>\s*({.+?})\s*</script',
+            webpage, 'data'), video_id)['props']['pageProps']['itemInfo']['itemStruct']
+        return self._extract_video(data, video_id)
 
 
 class TikTokUserIE(TikTokBaseIE):
-    _VALID_URL = r'''(?x)
-                        https?://
-                            (?:
-                                (?:m\.)?tiktok\.com/h5/share/usr|
-                                (?:www\.)?tiktok\.com/share/user
-                            )
-                            /(?P<id>\d+)
-                    '''
+    _VALID_URL = r'https://(?:www\.)?tiktok\.com/@(?P<id>[^/?#&]+)'
     _TESTS = [{
-        'url': 'https://m.tiktok.com/h5/share/usr/188294915489964032.html',
+        'url': 'https://www.tiktok.com/@zureeal',
         'info_dict': {
             'id': '188294915489964032',
         },
         'playlist_mincount': 24,
-    }, {
-        'url': 'https://www.tiktok.com/share/user/188294915489964032',
-        'only_matching': True,
     }]
+    _WORKING = False
+
+    @classmethod
+    def suitable(cls, url):
+        return False if TikTokIE.suitable(url) else super(TikTokUserIE, cls).suitable(url)
 
     def _real_extract(self, url):
         user_id = self._match_id(url)
@@ -130,7 +136,7 @@ class TikTokUserIE(TikTokBaseIE):
         entries = []
         for aweme in data['aweme_list']:
             try:
-                entry = self._extract_aweme(aweme)
+                entry = self._extract_video(aweme)
             except ExtractorError:
                 continue
             entry['extractor_key'] = TikTokIE.ie_key()
