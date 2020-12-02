@@ -171,7 +171,7 @@ class PornHubIE(PornHubBaseIE):
         mobj = re.match(self._VALID_URL, url)
         host = mobj.group('host') or 'pornhub.com'
         video_id = mobj.group('id')
-
+        
         if 'premium' in host:
             if not self._downloader.params.get('cookiefile'):
                 raise ExtractorError(
@@ -346,9 +346,9 @@ class PornHubIE(PornHubBaseIE):
         view_count = self._extract_count(
             r'<span class="count">([\d,\.]+)</span> [Vv]iews', webpage, 'view')
         like_count = self._extract_count(
-            r'<span[^>]+class="votesUp"[^>]*>([\d,\.]+)</span>', webpage, 'like')
+            r'<span class="votesUp">([\d,\.]+)</span>', webpage, 'like')
         dislike_count = self._extract_count(
-            r'<span[^>]+class="votesDown"[^>]*>([\d,\.]+)</span>', webpage, 'dislike')
+            r'<span class="votesDown">([\d,\.]+)</span>', webpage, 'dislike')
         comment_count = self._extract_count(
             r'All Comments\s*<span>\(([\d,.]+)\)', webpage, 'comment')
 
@@ -383,14 +383,24 @@ class PornHubIE(PornHubBaseIE):
 
 
 class PornHubPlaylistBaseIE(PornHubBaseIE):
-    def _extract_entries(self, webpage, host):
+    def _extract_entries(self, webpage, host, item_id):
         # Only process container div with main playlist content skipping
         # drop-down menu that uses similar pattern for videos (see
         # https://github.com/ytdl-org/youtube-dl/issues/11594).
-        container = self._search_regex(
-            r'(?s)(<div[^>]+class=["\']container.+)', webpage,
-            'container', default=webpage)
 
+        
+        lazyurl = self._search_regex(
+            r"lazyloadUrl = \"(?P<lazyurl>.*?)\"", webpage,
+            'lazyurl', default=None)
+        if lazyurl:
+            container = self._download_webpage(
+                'http://www.%s%s' % (host, lazyurl), item_id)
+        else:
+            container = self._search_regex(
+                r'(?s)(<div[^>]+class=["\']container.+)', webpage,
+                'container', default=webpage)
+
+        
         return [
             self.url_result(
                 'http://www.%s/%s' % (host, video_url),
@@ -407,7 +417,7 @@ class PornHubPlaylistBaseIE(PornHubBaseIE):
 
         webpage = self._download_webpage(url, playlist_id)
 
-        entries = self._extract_entries(webpage, host)
+        entries = self._extract_entries(webpage, host, playlist_id)
 
         playlist = self._parse_json(
             self._search_regex(
@@ -479,7 +489,7 @@ class PornHubPagedPlaylistBaseIE(PornHubPlaylistBaseIE):
                 if isinstance(e.cause, compat_HTTPError) and e.cause.code == 404:
                     break
                 raise
-            page_entries = self._extract_entries(webpage, host)
+            page_entries = self._extract_entries(webpage, host, item_id)
             if not page_entries:
                 break
             entries.extend(page_entries)

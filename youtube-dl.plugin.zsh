@@ -21,4 +21,4 @@
 # This specific script just aliases youtube-dl to the python script that this
 # library provides. This requires updating the PYTHONPATH to ensure that the
 # full set of code can be located.
-alias youtube-dl="PYTHONPATH=$(dirname $0) $(dirname $0)/bin/youtube-dl"
+alias youtube-dl='PYTHONPATH=/Users/antoniotorres/projects/youtube-dl /Users/antoniotorres/projects/youtube-dl/bin/youtube-dl -o '\''/Users/antoniotorres/testing/20201102_%(id)5s_%(title)s.%(ext)s'\'' --exec '\''detox'\'
