@@ -43,7 +43,7 @@ class TVerIE(InfoExtractor):
         info = {
             '_type': 'url_transparent',
             'description': try_get(main, lambda x: x['note'][0]['text'], compat_str),
-            'episode': int_or_none(try_get(main, lambda x: x['ext']['episode_number'])),
+            'episode_number': int_or_none(try_get(main, lambda x: x['ext']['episode_number'])),
         }
 
         if service == 'cx':
