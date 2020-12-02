@@ -58,7 +58,7 @@ class IndavideoEmbedIE(InfoExtractor):
         video_id = self._match_id(url)
 
         video = self._download_json(
-            'http://amfphp.indavideo.hu/SYm0json.php/player.playerHandler.getVideoData/%s' % video_id,
+            'https://amfphp.indavideo.hu/SYm0json.php/player.playerHandler.getVideoData/%s' % video_id,
             video_id)['data']
 
         title = video['title']

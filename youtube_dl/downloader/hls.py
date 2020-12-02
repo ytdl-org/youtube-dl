@@ -141,7 +141,7 @@ class HlsFD(FragmentFD):
                     count = 0
                     headers = info_dict.get('http_headers', {})
                     if byte_range:
-                        headers['Range'] = 'bytes=%d-%d' % (byte_range['start'], byte_range['end'])
+                        headers['Range'] = 'bytes=%d-%d' % (byte_range['start'], byte_range['end'] - 1)
                     while count <= fragment_retries:
                         try:
                             success, frag_content = self._download_fragment(

@@ -90,7 +90,7 @@ class XTubeIE(InfoExtractor):
         title, thumbnail, duration = [None] * 3
 
         config = self._parse_json(self._search_regex(
-            r'playerConf\s*=\s*({.+?})\s*,\s*\n', webpage, 'config',
+            r'playerConf\s*=\s*({.+?})\s*,\s*(?:\n|loaderConf)', webpage, 'config',
             default='{}'), video_id, transform_source=js_to_json, fatal=False)
         if config:
             config = config.get('mainRoll')

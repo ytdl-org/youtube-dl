@@ -5,32 +5,34 @@ import base64
 import re
 import struct
 
-from .common import InfoExtractor
 from .adobepass import AdobePassIE
+from .common import InfoExtractor
 from ..compat import (
     compat_etree_fromstring,
+    compat_HTTPError,
     compat_parse_qs,
     compat_urllib_parse_urlparse,
     compat_urlparse,
     compat_xml_parse_error,
-    compat_HTTPError,
 )
 from ..utils import (
-    ExtractorError,
+    clean_html,
     extract_attributes,
+    ExtractorError,
     find_xpath_attr,
     fix_xml_ampersands,
     float_or_none,
-    js_to_json,
     int_or_none,
+    js_to_json,
+    mimetype2ext,
     parse_iso8601,
     smuggle_url,
+    str_or_none,
     unescapeHTML,
     unsmuggle_url,
-    update_url_query,
-    clean_html,
-    mimetype2ext,
     UnsupportedError,
+    update_url_query,
+    url_or_none,
 )
 
 
@@ -145,7 +147,7 @@ class BrightcoveLegacyIE(InfoExtractor):
     ]
 
     @classmethod
-    def _build_brighcove_url(cls, object_str):
+    def _build_brightcove_url(cls, object_str):
         """
         Build a Brightcove url from a xml string containing
         <object class="BrightcoveExperience">{params}</object>
@@ -215,7 +217,7 @@ class BrightcoveLegacyIE(InfoExtractor):
         return cls._make_brightcove_url(params)
 
     @classmethod
-    def _build_brighcove_url_from_js(cls, object_js):
+    def _build_brightcove_url_from_js(cls, object_js):
         # The layout of JS is as follows:
         # customBC.createVideo = function (width, height, playerID, playerKey, videoPlayer, VideoRandomID) {
         #   // build Brightcove <object /> XML
@@ -270,12 +272,12 @@ class BrightcoveLegacyIE(InfoExtractor):
             ).+?>\s*</object>''',
             webpage)
         if matches:
-            return list(filter(None, [cls._build_brighcove_url(m) for m in matches]))
+            return list(filter(None, [cls._build_brightcove_url(m) for m in matches]))
 
         matches = re.findall(r'(customBC\.createVideo\(.+?\);)', webpage)
         if matches:
             return list(filter(None, [
-                cls._build_brighcove_url_from_js(custom_bc)
+                cls._build_brightcove_url_from_js(custom_bc)
                 for custom_bc in matches]))
         return [src for _, src in re.findall(
             r'<iframe[^>]+src=([\'"])((?:https?:)?//link\.brightcove\.com/services/player/(?!\1).+)\1', webpage)]
@@ -424,7 +426,7 @@ class BrightcoveNewIE(AdobePassIE):
         # [2] looks like:
         for video, script_tag, account_id, player_id, embed in re.findall(
                 r'''(?isx)
-                    (<video\s+[^>]*\bdata-video-id\s*=\s*['"]?[^>]+>)
+                    (<video(?:-js)?\s+[^>]*\bdata-video-id\s*=\s*['"]?[^>]+>)
                     (?:.*?
                         (<script[^>]+
                             src=["\'](?:https?:)?//players\.brightcove\.net/
@@ -553,10 +555,16 @@ class BrightcoveNewIE(AdobePassIE):
 
         subtitles = {}
         for text_track in json_data.get('text_tracks', []):
-            if text_track.get('src'):
-                subtitles.setdefault(text_track.get('srclang'), []).append({
-                    'url': text_track['src'],
-                })
+            if text_track.get('kind') != 'captions':
+                continue
+            text_track_url = url_or_none(text_track.get('src'))
+            if not text_track_url:
+                continue
+            lang = (str_or_none(text_track.get('srclang'))
+                    or str_or_none(text_track.get('label')) or 'en').lower()
+            subtitles.setdefault(lang, []).append({
+                'url': text_track_url,
+            })
 
         is_live = False
         duration = float_or_none(json_data.get('duration'), 1000)

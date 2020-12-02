@@ -91,6 +91,7 @@ from .piksel import PikselIE
 from .videa import VideaIE
 from .twentymin import TwentyMinutenIE
 from .ustream import UstreamIE
+from .arte import ArteTVEmbedIE
 from .videopress import VideoPressIE
 from .rutube import RutubeIE
 from .limelight import LimelightBaseIE
@@ -841,7 +842,7 @@ class GenericIE(InfoExtractor):
                 'skip_download': True,
             }
         },
-        # MTVSercices embed
+        # MTVServices embed
         {
             'url': 'http://www.vulture.com/2016/06/new-key-peele-sketches-released.html',
             'md5': 'ca1aef97695ef2c1d6973256a57e5252',
@@ -1707,6 +1708,15 @@ class GenericIE(InfoExtractor):
                 'timestamp': 1430303472,
             },
             'add_ie': ['Kaltura'],
+        },
+        {
+            # multiple kaltura embeds, nsfw
+            'url': 'https://www.quartier-rouge.be/prive/femmes/kamila-avec-video-jaime-sadomie.html',
+            'info_dict': {
+                'id': 'kamila-avec-video-jaime-sadomie',
+                'title': "Kamila avec vídeo “J'aime sadomie”",
+            },
+            'playlist_count': 8,
         },
         {
             # Non-standard Vimeo embed
@@ -2751,11 +2761,9 @@ class GenericIE(InfoExtractor):
             return self.url_result(ustream_url, UstreamIE.ie_key())
 
         # Look for embedded arte.tv player
-        mobj = re.search(
-            r'<(?:script|iframe) [^>]*?src="(?P<url>http://www\.arte\.tv/(?:playerv2/embed|arte_vp/index)[^"]+)"',
-            webpage)
-        if mobj is not None:
-            return self.url_result(mobj.group('url'), 'ArteTVEmbed')
+        arte_urls = ArteTVEmbedIE._extract_urls(webpage)
+        if arte_urls:
+            return self.playlist_from_matches(arte_urls, video_id, video_title)
 
         # Look for embedded francetv player
         mobj = re.search(
@@ -2844,9 +2852,12 @@ class GenericIE(InfoExtractor):
             return self.url_result(mobj.group('url'), 'Zapiks')
 
         # Look for Kaltura embeds
-        kaltura_url = KalturaIE._extract_url(webpage)
-        if kaltura_url:
-            return self.url_result(smuggle_url(kaltura_url, {'source_url': url}), KalturaIE.ie_key())
+        kaltura_urls = KalturaIE._extract_urls(webpage)
+        if kaltura_urls:
+            return self.playlist_from_matches(
+                kaltura_urls, video_id, video_title,
+                getter=lambda x: smuggle_url(x, {'source_url': url}),
+                ie=KalturaIE.ie_key())
 
         # Look for EaglePlatform embeds
         eagleplatform_url = EaglePlatformIE._extract_url(webpage)
