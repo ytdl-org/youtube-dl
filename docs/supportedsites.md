@@ -471,6 +471,7 @@
  - **massengeschmack.tv**
  - **MatchTV**
  - **MDR**: MDR.DE and KiKA
+ - **MedalTV**
  - **media.ccc.de**
  - **media.ccc.de:lists**
  - **Medialaan**
@@ -485,6 +486,7 @@
  - **META**
  - **metacafe**
  - **Metacritic**
+ - **mewatch**
  - **Mgoon**
  - **MGTV**: 芒果TV
  - **MiaoPai**
@@ -839,6 +841,10 @@
  - **Sport5**
  - **SportBox**
  - **SportDeutschland**
+ - **Spreaker**
+ - **SpreakerPage**
+ - **SpreakerShow**
+ - **SpreakerShowPage**
  - **SpringboardPlatform**
  - **Sprout**
  - **sr:mediathek**: Saarländischer Rundfunk
@@ -907,7 +913,7 @@
  - **ThisAV**
  - **ThisOldHouse**
  - **TikTok**
- - **TikTokUser**
+ - **TikTokUser** (Currently broken)
  - **tinypic**: tinypic.com videos
  - **TMZ**
  - **TMZArticle**
@@ -1056,6 +1062,7 @@
  - **vk:wallpost**
  - **vlive**
  - **vlive:channel**
+ - **vlive:post**
  - **Vodlocker**
  - **VODPl**
  - **VODPlatform**
@@ -1127,6 +1134,8 @@
  - **yahoo:japannews**: Yahoo! Japan News
  - **YandexDisk**
  - **yandexmusic:album**: Яндекс.Музыка - Альбом
+ - **yandexmusic:artist:albums**: Яндекс.Музыка - Артист - Альбомы
+ - **yandexmusic:artist:tracks**: Яндекс.Музыка - Артист - Треки
  - **yandexmusic:playlist**: Яндекс.Музыка - Плейлист
  - **yandexmusic:track**: Яндекс.Музыка - Трек
  - **YandexVideo**
