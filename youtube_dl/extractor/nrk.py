@@ -365,7 +365,7 @@ class NRKTVIE(NRKBaseIE):
             }
             message_type = data.get('messageType', '')
             # Can be ProgramIsGeoBlocked or ChannelIsGeoBlocked*
-            if 'IsGeoBlocked' in message_type or try_get(data, lambda x: x['usageRights']['isGeoBlocked']) is Trues:
+            if 'IsGeoBlocked' in message_type or try_get(data, lambda x: x['usageRights']['isGeoBlocked']) is True:
                 self.raise_geo_restricted(
                     msg=MESSAGES.get('ProgramIsGeoBlocked'),
                     countries=self._GEO_COUNTRIES)
