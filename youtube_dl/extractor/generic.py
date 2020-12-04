@@ -198,11 +198,19 @@ class GenericIE(InfoExtractor):
         {
             'url': 'http://podcastfeeds.nbcnews.com/audio/podcast/MSNBC-MADDOW-NETCAST-M4V.xml',
             'info_dict': {
-                'id': 'pdv_maddow_netcast_m4v-02-27-2015-201624',
-                'ext': 'm4v',
-                'upload_date': '20150228',
-                'title': 'pdv_maddow_netcast_m4v-02-27-2015-201624',
-            }
+                'id': 'http://podcastfeeds.nbcnews.com/nbcnews/video/podcast/MSNBC-MADDOW-NETCAST-M4V.xml',
+				'title': 'MSNBC Rachel Maddow (video)',
+                'description': 're:.*her unique approach to storytelling.*',
+            },
+            'playlist': [{
+                'info_dict': {
+                    'ext': 'mov',
+                    'id': 'pdv_maddow_netcast_mov-12-03-2020-223726',
+                    'title': 'MSNBC Rachel Maddow (video) - 12-03-2020-223726',
+                    'description': 're:.*her unique approach to storytelling.*',
+                    'upload_date': '20201204',
+                },
+            }],
         },
         # RSS feed with enclosures and unsupported link URLs
         {
@@ -213,24 +221,6 @@ class GenericIE(InfoExtractor):
                 'title': 'Hello Internet',
             },
             'playlist_mincount': 100,
-        },
-        # RSS feed with items description
-        {
-            'url': 'http://radiofrance-podcast.net/podcast09/rss_14631.xml',
-            'info_dict': {
-                'id': 'http://radiofrance-podcast.net/podcast09/rss_14631.xml',
-                'title': 'Certains l\'aiment Fip',
-                'description': 're:.*FIP met le cinéma.*'
-            },
-            'playlist': [{
-                'info_dict': {
-                    'id': '14631-22.11.2020-ITEMA_22491517-2020Y24252S0327',
-                    'ext': 'mp3',
-                    'title': 'Les musiques de Valérie Lemercier',
-                    'description': 're:.*occasion de la sortie.*',
-                    'upload_date': '20201122',
-                },
-            }],
         },
         # SMIL from http://videolectures.net/promogram_igor_mekjavic_eng
         {
@@ -2213,14 +2203,11 @@ class GenericIE(InfoExtractor):
             if not next_url:
                 continue
             
-            item_desc_el = it.find('description')    
-            item_desc = None if item_desc_el is None else item_desc_el.text
-            
             entries.append({
                 '_type': 'url_transparent',
                 'url': next_url,
                 'title': it.find('title').text,
-                'description': item_desc
+                'description': xpath_text(it, 'description', default=None)
             })
 
         return {
