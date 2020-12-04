@@ -1,6 +1,7 @@
 # coding: utf-8
 from __future__ import unicode_literals
 
+import itertools
 import re
 
 from .common import InfoExtractor
@@ -17,6 +18,7 @@ from ..utils import (
     parse_age_limit,
     parse_duration,
     try_get,
+    urljoin,
     url_or_none,
 )
 
@@ -547,8 +549,10 @@ class NRKTVSerieBaseIE(InfoExtractor):
             return []
         entries = []
         for episode in entry_list:
-            nrk_id = episode.get('prfId')
+            nrk_id = episode.get('prfId') or episode.get('episodeId')
             if not nrk_id or not isinstance(nrk_id, compat_str):
+                continue
+            if not re.match(NRKTVIE._EPISODE_RE, nrk_id):
                 continue
             entries.append(self.url_result(
                 'nrk:%s' % nrk_id, ie=NRKIE.ie_key(), video_id=nrk_id))
@@ -556,35 +560,98 @@ class NRKTVSerieBaseIE(InfoExtractor):
 
 
 class NRKTVSeasonIE(NRKTVSerieBaseIE):
-    _VALID_URL = r'https?://tv\.nrk\.no/serie/[^/]+/sesong/(?P<id>\d+)'
-    _TEST = {
+    _VALID_URL = r'https?://(?P<domain>tv|radio)\.nrk\.no/serie/(?P<serie>[^/]+)/(?:sesong/)?(?P<id>\d+)'
+    _TESTS = [{
         'url': 'https://tv.nrk.no/serie/backstage/sesong/1',
         'info_dict': {
-            'id': '1',
+            'id': 'backstage/1',
             'title': 'Sesong 1',
         },
         'playlist_mincount': 30,
-    }
+    }, {
+        # no /sesong/ in path
+        'url': 'https://tv.nrk.no/serie/lindmo/2016',
+        'info_dict': {
+            'id': 'lindmo/2016',
+            'title': '2016',
+        },
+        'playlist_mincount': 29,
+    }, {
+        # weird nested _embedded in catalog JSON response
+        'url': 'https://radio.nrk.no/serie/dickie-dick-dickens/sesong/1',
+        'info_dict': {
+            'id': 'dickie-dick-dickens/1',
+            'title': 'Sesong 1',
+        },
+        'playlist_mincount': 11,
+    }, {
+        # 841 entries, multi page
+        'url': 'https://radio.nrk.no/serie/dagsnytt/sesong/201509',
+        'info_dict': {
+            'id': 'dagsnytt/201509',
+            'title': 'September 2015',
+        },
+        'playlist_mincount': 841,
+    }, {
+        # 180 entries, single page
+        'url': 'https://tv.nrk.no/serie/spangas/sesong/1',
+        'only_matching': True,
+    }]
 
     @classmethod
     def suitable(cls, url):
         return (False if NRKTVIE.suitable(url) or NRKTVEpisodeIE.suitable(url)
                 else super(NRKTVSeasonIE, cls).suitable(url))
 
+    _ASSETS_KEYS = ('episodes', 'instalments',)
+
+    def _entries(self, data, display_id):
+        for page_num in itertools.count(1):
+            embedded = data.get('_embedded')
+            if not isinstance(embedded, dict):
+                break
+            # Extract entries
+            for asset_key in self._ASSETS_KEYS:
+                entries = try_get(
+                    embedded,
+                    (lambda x: x[asset_key]['_embedded'][asset_key],
+                     lambda x: x[asset_key]),
+                    list)
+                for e in self._extract_entries(entries):
+                    yield e
+            # Find next URL
+            for asset_key in self._ASSETS_KEYS:
+                next_url = urljoin(
+                    'https://psapi.nrk.no/',
+                    try_get(
+                        data,
+                        (lambda x: x['_links']['next']['href'],
+                         lambda x: x['_embedded'][asset_key]['_links']['next']['href']),
+                        compat_str))
+                if next_url:
+                    break
+            if not next_url:
+                break
+            data = self._download_json(
+                next_url, display_id,
+                'Downloading season JSON page %d' % page_num, fatal=False)
+            if not data:
+                break
+
     def _real_extract(self, url):
-        display_id = self._match_id(url)
+        mobj = re.match(self._VALID_URL, url)
+        domain = mobj.group('domain')
+        serie = mobj.group('serie')
+        season_id = mobj.group('id')
+        display_id = '%s/%s' % (serie, season_id)
 
-        webpage = self._download_webpage(url, display_id)
-
-        series = self._extract_series(webpage, display_id)
-
-        season = next(
-            s for s in series['seasons']
-            if int(display_id) == s.get('seasonNumber'))
-
-        title = try_get(season, lambda x: x['titles']['title'], compat_str)
+        data = self._download_json(
+            'https://psapi.nrk.no/%s/catalog/series/%s/seasons/%s'
+            % (domain, serie, season_id), display_id, query={'pageSize': 50})
+        title = try_get(data, lambda x: x['titles']['title'], compat_str) or display_id
         return self.playlist_result(
-            self._extract_episodes(season), display_id, title)
+            self._entries(data, display_id),
+            display_id, title)
 
 
 class NRKTVSeriesIE(NRKTVSerieBaseIE):
