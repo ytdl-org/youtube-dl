@@ -148,14 +148,7 @@ class NRKIE(NRKBaseIE):
 class NRKTVIE(NRKBaseIE):
     IE_DESC = 'NRK TV and NRK Radio'
     _EPISODE_RE = r'(?P<id>[a-zA-Z]{4}\d{8})'
-    _VALID_URL = r'''(?x)
-                        https?://
-                            (?:tv|radio)\.nrk(?:super)?\.no/
-                            (?:serie(?:/[^/]+){1,}|program)/
-                            (?![Ee]pisodes)%s
-                            (?:/\d{2}-\d{2}-\d{4})?
-                            (?:\#del=(?P<part_id>\d+))?
-                    ''' % _EPISODE_RE
+    _VALID_URL = r'https?://(?:tv|radio)\.nrk(?:super)?\.no/(?:[^/]+/)*%s' % _EPISODE_RE
     _API_HOSTS = ('psapi-ne.nrk.no', 'psapi-we.nrk.no')
     _TESTS = [{
         'url': 'https://tv.nrk.no/program/MDDP12000117',
