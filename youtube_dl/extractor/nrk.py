@@ -146,7 +146,7 @@ class NRKTVIE(NRKBaseIE):
     _VALID_URL = r'''(?x)
                         https?://
                             (?:tv|radio)\.nrk(?:super)?\.no/
-                            (?:serie(?:/[^/]+){1,2}|program)/
+                            (?:serie(?:/[^/]+){1,}|program)/
                             (?![Ee]pisodes)%s
                             (?:/\d{2}-\d{2}-\d{4})?
                             (?:\#del=(?P<part_id>\d+))?
@@ -274,6 +274,9 @@ class NRKTVIE(NRKBaseIE):
         'only_matching': True,
     }, {
         'url': 'https://tv.nrk.no/serie/lindmo/2018/MUHU11006318/avspiller',
+        'only_matching': True,
+    }, {
+        'url': 'https://radio.nrk.no/serie/dagsnytt/sesong/201507/NPUB21019315',
         'only_matching': True,
     }]
 
