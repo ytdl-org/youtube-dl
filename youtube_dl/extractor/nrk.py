@@ -24,6 +24,11 @@ from ..utils import (
 class NRKBaseIE(InfoExtractor):
     _GEO_COUNTRIES = ['NO']
 
+    def _extract_nrk_formats(self, asset_url, video_id):
+        return self._extract_m3u8_formats(
+            re.sub(r'(?:bw_(?:low|high)=\d+|no_audio_only)&?', '', asset_url),
+            video_id, 'mp4', 'm3u8_native', fatal=False)
+
 
 class NRKIE(NRKBaseIE):
     _VALID_URL = r'''(?x)
@@ -94,9 +99,7 @@ class NRKIE(NRKBaseIE):
             if not format_url:
                 continue
             if asset.get('format') == 'HLS' or determine_ext(format_url) == 'm3u8':
-                formats.extend(self._extract_m3u8_formats(
-                    format_url, video_id, 'mp4', entry_protocol='m3u8_native',
-                    m3u8_id='hls', fatal=False))
+                formats.extend(self._extract_nrk_formats(format_url, video_id))
         self._sort_formats(formats)
 
         data = self._download_json(
@@ -298,6 +301,7 @@ class NRKTVIE(NRKBaseIE):
         title = data.get('fullTitle') or data.get('mainTitle') or data['title']
         video_id = data.get('id') or video_id
 
+        urls = []
         entries = []
 
         conviva = data.get('convivaStatistics') or {}
@@ -314,18 +318,12 @@ class NRKTVIE(NRKBaseIE):
                         else ('%s-%d' % (video_id, idx), '%s (Part %d)' % (title, idx)))
             for num, asset in enumerate(media_assets, 1):
                 asset_url = asset.get('url')
-                if not asset_url:
+                if not asset_url or asset_url in urls:
                     continue
-                formats = self._extract_akamai_formats(asset_url, video_id)
+                formats = extract_nrk_formats(asset_url, video_id)
                 if not formats:
                     continue
                 self._sort_formats(formats)
-
-                # Some f4m streams may not work with hdcore in fragments' URLs
-                for f in formats:
-                    extra_param = f.get('extra_param_to_segment_url')
-                    if extra_param and 'hdcore' in extra_param:
-                        del f['extra_param_to_segment_url']
 
                 entry_id, entry_title = video_id_and_title(num)
                 duration = parse_duration(asset.get('duration'))
@@ -346,16 +344,17 @@ class NRKTVIE(NRKBaseIE):
 
         if not entries:
             media_url = data.get('mediaUrl')
-            if media_url:
-                formats = self._extract_akamai_formats(media_url, video_id)
-                self._sort_formats(formats)
-                duration = parse_duration(data.get('duration'))
-                entries = [{
-                    'id': video_id,
-                    'title': make_title(title),
-                    'duration': duration,
-                    'formats': formats,
-                }]
+            if media_url and media_url not in urls:
+                formats = extract_nrk_formats(media_url, video_id)
+                if formats:
+                    self._sort_formats(formats)
+                    duration = parse_duration(data.get('duration'))
+                    entries = [{
+                        'id': video_id,
+                        'title': make_title(title),
+                        'duration': duration,
+                        'formats': formats,
+                    }]
 
         if not entries:
             MESSAGES = {
@@ -366,7 +365,7 @@ class NRKTVIE(NRKBaseIE):
             }
             message_type = data.get('messageType', '')
             # Can be ProgramIsGeoBlocked or ChannelIsGeoBlocked*
-            if 'IsGeoBlocked' in message_type:
+            if 'IsGeoBlocked' in message_type or try_get(data, lambda x: x['usageRights']['isGeoBlocked']) is Trues:
                 self.raise_geo_restricted(
                     msg=MESSAGES.get('ProgramIsGeoBlocked'),
                     countries=self._GEO_COUNTRIES)
