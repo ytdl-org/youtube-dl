@@ -9,11 +9,12 @@ from requests import Session
 
 from .common import InfoExtractor
 from ..utils import (
-    multipart_encode,
+    HEADRequest, multipart_encode,
     ExtractorError,
     clean_html,
-    get_element_by_class)
-
+    get_element_by_class,
+    std_headers
+)
 
 class SketchySexBaseIE(InfoExtractor):
     _LOGIN_URL = "https://sketchysex.com/sign-in"
@@ -23,36 +24,48 @@ class SketchySexBaseIE(InfoExtractor):
     _ABORT_URL = "https://sketchysex.com/multiple-sessions/abort"
     _AUTH_URL = "https://sketchysex.com/authorize2"
     _NETRC_MACHINE = 'sketchysex'
-    _USER_AGENT = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_6) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/84.0.4147.135 Safari/537.36"
+    _USER_AGENT = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.16; rv:82.0) Gecko/20100101 Firefox/82.0"
 
     def __init__(self):
-        self.session = Session()
-        self.user_agent = self._USER_AGENT
+        #self.session = Session()
+        std_headers['User-Agent'] = self._USER_AGENT
+        self.headers = dict()
+        self.headers.update({
+            "User-Agent": self._USER_AGENT,
+            "Accept-Charset": "",
+            "Accept-Encoding" : "gzip, deflate, br",
+            "Accept-Language" : "es-ES,en-US;q=0.7,en;q=0.3",
+            "Accept" : "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8"
+        })
 
     def _login(self):
         self.username, self.password = self._get_login_info()
-    
+
+        self.report_login()
         if not self.username or not self.password:
             self.raise_login_required(
                 'A valid %s account is needed to access this media.'
                 % self._NETRC_MACHINE)
 
         self._set_cookie('sketchysex.com', 'pp-accepted', 'true')
-        login_page = self._download_webpage(
+        self._download_webpage_handle(
             self._SITE_URL,
             None,
             'Downloading site page',
-            headers={
-                "User-Agent": self.user_agent
-            }
+            headers=self.headers
         )
-        
-        cookies = self._get_cookies(self._LOGIN_URL)
+        self.headers.update({"Referer" : "https://sketchysex.com/episodes/1"})
+        self._download_webpage_handle(
+            self._LOGIN_URL,
+            None,
+            headers=self.headers
+        )
+        self.cookies = self._get_cookies(self._LOGIN_URL)
         #print(cookies)
         data = {
             "username": self.username,
             "password": self.password,
-            "_csrf-token": urllib.parse.unquote(cookies['X-EMA-CSRFToken'].coded_value)
+            "_csrf-token": urllib.parse.unquote(self.cookies['X-EMA-CSRFToken'].coded_value)
             
         }
 
@@ -61,40 +74,44 @@ class SketchySexBaseIE(InfoExtractor):
         out, content = multipart_encode(data, boundary)
         #print(out)
         #print(content)
+        self.headers.update({
+            "Referer": self._LOGIN_URL,
+            "Origin": self._SITE_URL,
+            "Content-Type": content,
+            
+        })
         login_page, url_handle = self._download_webpage_handle(
             self._LOGIN_URL,
             None,
             'Login request',
             data=out,
-            headers={
-                "Referer": self._LOGIN_URL,
-                "Origin": self._SITE_URL,
-                "Content-Type": content,
-                "User-Agent": self.user_agent
-            }
+            headers=self.headers
         )
 
-        
+        del self.headers["Content-Type"]
+        del self.headers["Origin"]
         if self._AUTH_URL in url_handle.geturl():
             data = {
                 "email": "a.tgarc@gmail.com",
                 "last-name": "Torres",
-                "_csrf-token": urllib.parse.unquote(cookies['X-EMA-CSRFToken'].coded_value)
+                "_csrf-token": urllib.parse.unquote(self.cookies['X-EMA-CSRFToken'].coded_value)
             }
             out, content = multipart_encode(data, "-------------------------------"
                 + str(random.randrange(1111111111111111111111111111, 9999999999999999999999999999)))
+            self.headers.update({
+                "Referer": self._AUTH_URL,
+                "Origin": self._SITE_URL,
+                "Content-Type": content,               
+            })
             auth_page, url_handle = self._download_webpage_handle(
                 self._AUTH_URL,
                 None,
                 "Log in ok after auth2",
                 data=out,
-                headers={
-                    "Referer": self._AUTH_URL,
-                    "Origin": self._SITE_URL,
-                    "Content-Type": content,
-                    "User-Agent": self.user_agent
-                }
+                headers=self.headers
             )
+            del self.headers["Content-Type"]
+            del self.headers["Origin"]
 
         
         if self._LOGIN_URL in url_handle.geturl():
@@ -105,17 +122,15 @@ class SketchySexBaseIE(InfoExtractor):
             raise ExtractorError('Unable to log in')
 
         elif self._MULT_URL in url_handle.geturl():
+            self.headers.update({
+                "Referer": self._MULT_URL,
+            })
             abort_page, url_handle = self._download_webpage_handle(
                 self._ABORT_URL,
                 None,
                 "Log in ok after abort sessions",
-                headers={
-                    "Referer": self._MULT_URL,
-                    "User-Agent": self.user_agent
-                }
+                headers=self.headers
             )
-            
-
 
     def _log_out(self):
         self._request_webpage(
@@ -130,7 +145,7 @@ class SketchySexBaseIE(InfoExtractor):
         
         try:
 
-            content = self.session.request("GET", url).text
+            content, _ = self._download_webpage_handle(url, None, headers=self.headers)
             #print(content)
             regex_title = r"<title>(?P<title>.*?)</title>"
             regex_emurl = r"iframe src=\"(?P<embedurl>.*?)\""
@@ -139,16 +154,19 @@ class SketchySexBaseIE(InfoExtractor):
             if re.search(regex_title, content):
                 title = re.search(regex_title, content).group("title")
             if not title:
-                title = "sketchysex"
+                title = url.rsplit("/", 1)[1].replace("-","_")
+            else:
+                title = title.split(" :: ")[0].replace(" ", "_")
             if re.search(regex_emurl, content):
                 embedurl = re.search(regex_emurl, content).group("embedurl")
             if not embedurl:
                 raise ExtractorError("", cause="Can't find any video", expected=True)
             
-            self.session.headers['Referer'] = url
-            content = self.session.request("GET", embedurl).text
-
- 
+            self.headers.update({'Referer' : url})
+            content, _ = self._download_webpage_handle(embedurl, None, headers=self.headers)
+            #content = (webpage.read()).decode('utf-8')
+            
+            #print(content)
             if not self.username in content:
                 raise ExtractorError("", cause="It seems you are not logged", expected=True)            
         
@@ -161,18 +179,23 @@ class SketchySexBaseIE(InfoExtractor):
             videourl = "https://videostreamingsolutions.net/api:ov-embed/parseToken?token=" + tokenid
             #print(videourl)
 
-            self.session.headers['Referer'] = embedurl
-            
-            info = json.loads(self.session.request("GET", videourl).text)
+            #self.session.headers['Referer'] = embedurl
+            self.headers.update({
+                "Referer" : embedurl,
+                "Accept" : "*/*",
+                "X-Requested-With" : "XMLHttpRequest"})
+            info = self._download_json(videourl, None, headers=self.headers)
+            #info = json.loads(self.session.request("GET", videourl).text)
 
             if not info:
                 raise ExtractorError("", cause="Can't find any JSON info", expected=True)
 
-            
+            #print(info)
+            videoid = str(info['xdo']['video']['id'])
             manifesturl = "https://videostreamingsolutions.net/api:ov-embed/manifest/" + info['xdo']['video']['manifest_id'] + "/manifest.m3u8"
             
             formats_m3u8 = self._extract_m3u8_formats(
-                manifesturl, None, m3u8_id="hls", fatal=False
+                manifesturl, videoid, m3u8_id="hls", ext="mp4", entry_protocol='m3u8_native', fatal=False
             )
 
             if not formats_m3u8:
@@ -180,8 +203,7 @@ class SketchySexBaseIE(InfoExtractor):
 
             self._sort_formats(formats_m3u8)
         
-            videoid = str(info['xdo']['video']['id'])
-            
+                        
             info_dict = {
                 "id":str(info['xdo']['video']['id']),
                 "title": title,
@@ -207,26 +229,19 @@ class SketchySexIE(SketchySexBaseIE):
 
     def _real_initialize(self):
         self._login()
-        cookies = self._get_cookies(self._LOGIN_URL)
-        for key in cookies:
-            self.session.cookies.set(key, cookies[key].coded_value)
-        self.session.headers.update({
-            "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8",
-            "User-Agent": self.user_agent,
+        self.headers.update({            
+            "Referer" : "https://sketchysex.com/episodes/1",
         })
-        
-        #print(self.session.cookies)
 
     def _real_extract(self, url):
         data = self._extract_from_page(url)
-        self._log_out()
+        #self._log_out()
         if not data:
             raise ExtractorError("Not any video format found")
         elif "error" in data['id']:
-            raise ExtractorError(data['cause'])
+            raise ExtractorError(str(data['cause']))
         else:
             return(data)
-
 
 class SketchySexPlayListIE(SketchySexBaseIE):
     IE_NAME = 'sketchysex:playlist'
@@ -234,16 +249,10 @@ class SketchySexPlayListIE(SketchySexBaseIE):
     _VALID_URL = r"https?://(?:www\.)?sketchysex\.com/episodes/(?P<id>\d+)"
     _BASE_URL = "https://sketchysex.com"
 
-
     def _real_initialize(self):
         self._login()
-        cookies = self._get_cookies(self._LOGIN_URL)
-        for key in cookies:
-            self.session.cookies.set(key, cookies[key].coded_value)
-        self.session.headers.update({
-            "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8",
-            "User-Agent": self.user_agent,
-
+        self.headers.update({
+            "Referer" : self._LOGIN_URL,
         })
 
     def _real_extract(self, url):
@@ -251,23 +260,25 @@ class SketchySexPlayListIE(SketchySexBaseIE):
         playlistid = re.search(self._VALID_URL, url).group("id")
 
   
-        page = self.session.request("GET", url).text
+        #self._set_cookie('fraternityx.com', 'pp-accepted', 'true')
+        content, _ = self._download_webpage_handle(url, None, headers=self.headers)
+        #page = (webpage.read()).decode('utf-8')
+       # page = self.session.request("GET", url).text
     
         generic_link = re.compile(r'(?<=\")/episode/[^\"]+(?=\")', re.I)
 
-        target_links = list(set(re.findall(generic_link, page)))
+        target_links = list(set(re.findall(generic_link, content)))
 
-    
         entries = []
         for link in target_links:
             
             full_link = self._BASE_URL + link
-            self.session.headers['Referer'] = url
+            self.headers['Referer'] = url
             info = self._extract_from_page(full_link)
             if info:
                 if not "error" in info['id']:
                     entries.append(info)
             
-        self._log_out()
+        #self._log_out()
         return self.playlist_result(entries, "sketchysex Episodes:" + playlistid, "sketchysex Episodes:" + playlistid)
 

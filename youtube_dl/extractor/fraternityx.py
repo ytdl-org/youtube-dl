@@ -16,7 +16,6 @@ from ..utils import (
     std_headers
 )
 
-
 class FraternityxBaseIE(InfoExtractor):
     _LOGIN_URL = "https://fraternityx.com/sign-in"
     _SITE_URL = "https://fraternityx.com"
@@ -39,14 +38,10 @@ class FraternityxBaseIE(InfoExtractor):
             "Accept" : "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8"
         })
 
-        del self.headers["Accept-Charset"]
-        
-
     def _login(self):
         self.username, self.password = self._get_login_info()
 
         self.report_login()
-    
         if not self.username or not self.password:
             self.raise_login_required(
                 'A valid %s account is needed to access this media.'
@@ -58,17 +53,13 @@ class FraternityxBaseIE(InfoExtractor):
             None,
             'Downloading site page',
             headers=self.headers
-
         )
-
         self.headers.update({"Referer" : "https://fraternityx.com/episodes/1"})
         self._download_webpage_handle(
             self._LOGIN_URL,
             None,
             headers=self.headers
-
         )
-        
         self.cookies = self._get_cookies(self._LOGIN_URL)
         #print(cookies)
         data = {
@@ -99,32 +90,26 @@ class FraternityxBaseIE(InfoExtractor):
 
         del self.headers["Content-Type"]
         del self.headers["Origin"]
-
         if self._AUTH_URL in url_handle.geturl():
             data = {
                 "email": "a.tgarc@gmail.com",
                 "last-name": "Torres",
-                "_csrf-token": urllib.parse.unquote(cookies['X-EMA-CSRFToken'].coded_value)
+                "_csrf-token": urllib.parse.unquote(self.cookies['X-EMA-CSRFToken'].coded_value)
             }
             out, content = multipart_encode(data, "-------------------------------"
                 + str(random.randrange(1111111111111111111111111111, 9999999999999999999999999999)))
-            
             self.headers.update({
                 "Referer": self._AUTH_URL,
                 "Origin": self._SITE_URL,
-                "Content-Type": content,
-               
+                "Content-Type": content,               
             })
-
             auth_page, url_handle = self._download_webpage_handle(
                 self._AUTH_URL,
                 None,
                 "Log in ok after auth2",
                 data=out,
                 headers=self.headers
-                
             )
-
             del self.headers["Content-Type"]
             del self.headers["Origin"]
 
@@ -140,16 +125,13 @@ class FraternityxBaseIE(InfoExtractor):
             self.headers.update({
                 "Referer": self._MULT_URL,
             })
-
-           
             abort_page, url_handle = self._download_webpage_handle(
                 self._ABORT_URL,
                 None,
                 "Log in ok after abort sessions",
-                headers=self.headers                
+                headers=self.headers
             )
 
-    
     def _log_out(self):
         self._request_webpage(
             self._LOG_OUT,
@@ -175,7 +157,6 @@ class FraternityxBaseIE(InfoExtractor):
                 title = url.rsplit("/", 1)[1].replace("-","_")
             else:
                 title = title.split(" :: ")[0].replace(" ", "_")
-
             if re.search(regex_emurl, content):
                 embedurl = re.search(regex_emurl, content).group("embedurl")
             if not embedurl:
@@ -186,7 +167,6 @@ class FraternityxBaseIE(InfoExtractor):
             #content = (webpage.read()).decode('utf-8')
             
             #print(content)
- 
             if not self.username in content:
                 raise ExtractorError("", cause="It seems you are not logged", expected=True)            
         
@@ -215,7 +195,7 @@ class FraternityxBaseIE(InfoExtractor):
             manifesturl = "https://videostreamingsolutions.net/api:ov-embed/manifest/" + info['xdo']['video']['manifest_id'] + "/manifest.m3u8"
             
             formats_m3u8 = self._extract_m3u8_formats(
-                manifesturl, videoid, m3u8_id="hls", ext='mp4', entry_protocol='m3u8_native', fatal=False
+                manifesturl, videoid, m3u8_id="hls", ext="mp4", entry_protocol='m3u8_native', fatal=False
             )
 
             if not formats_m3u8:
@@ -252,7 +232,7 @@ class FraternityxIE(FraternityxBaseIE):
         self.headers.update({            
             "Referer" : "https://fraternityx.com/episodes/1",
         })
- 
+
     def _real_extract(self, url):
         data = self._extract_from_page(url)
         #self._log_out()
@@ -269,14 +249,11 @@ class FraternityxPlayListIE(FraternityxBaseIE):
     _VALID_URL = r"https?://(?:www\.)?fraternityx\.com/episodes/(?P<id>\d+)"
     _BASE_URL = "https://fraternityx.com"
 
-
     def _real_initialize(self):
         self._login()
-        self.headers.update({            
+        self.headers.update({
             "Referer" : self._LOGIN_URL,
         })
- 
-
 
     def _real_extract(self, url):
 
