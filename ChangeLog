@@ -1,3 +1,24 @@
+version <unreleased>
+
+Core
+* [extractor/common] Improve Akamai HTTP format extraction
+    * Allow m3u8 manifest without an additional audio format
+    * Fix extraction for qualities starting with a number
+
+Extractors
+* [teachable:course] Improve extraction (#24507, #27286)
+* [nrk] Improve error extraction
+* [nrktv:series] Improve extraction (#21926)
+* [nrktv:season] Improve extraction
+* [nrk] Improve format extraction and geo-restriction detection (#24221)
+* [pornhub] Handle HTTP errors gracefully (#26414)
+* [nrktv] Relax URL regular expression (#27299, #26185)
++ [zdf] Extract webm formats (#26659)
++ [gamespot] Extract DASH and HTTP formats
++ [tver] Add support for tver.jp (#26662, #27284)
++ [pornhub] Add support for pornhub.org (#27276)
+
+
 version 2020.12.02
 
 Extractors
