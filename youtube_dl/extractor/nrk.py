@@ -31,6 +31,22 @@ class NRKBaseIE(InfoExtractor):
             re.sub(r'(?:bw_(?:low|high)=\d+|no_audio_only)&?', '', asset_url),
             video_id, 'mp4', 'm3u8_native', fatal=False)
 
+    def _raise_error(self, data):
+        MESSAGES = {
+            'ProgramRightsAreNotReady': 'Du kan dessverre ikke se eller høre programmet',
+            'ProgramRightsHasExpired': 'Programmet har gått ut',
+            'NoProgramRights': 'Ikke tilgjengelig',
+            'ProgramIsGeoBlocked': 'NRK har ikke rettigheter til å vise dette programmet utenfor Norge',
+        }
+        message_type = data.get('messageType', '')
+        # Can be ProgramIsGeoBlocked or ChannelIsGeoBlocked*
+        if 'IsGeoBlocked' in message_type or try_get(data, lambda x: x['usageRights']['isGeoBlocked']) is True:
+            self.raise_geo_restricted(
+                msg=MESSAGES.get('ProgramIsGeoBlocked'),
+                countries=self._GEO_COUNTRIES)
+        message = data.get('endUserMessage') or MESSAGES.get(message_type, message_type)
+        raise ExtractorError('%s said: %s' % (self.IE_NAME, message), expected=True)
+
 
 class NRKIE(NRKBaseIE):
     _VALID_URL = r'''(?x)
@@ -88,6 +104,9 @@ class NRKIE(NRKBaseIE):
         manifest = self._download_json(
             'http://psapi.nrk.no/playback/manifest/%s' % video_id,
             video_id, 'Downloading manifest JSON')
+
+        if manifest.get('playability') == 'nonPlayable':
+            self._raise_error(manifest['nonPlayable'])
 
         playable = manifest['playable']
 
@@ -352,22 +371,7 @@ class NRKTVIE(NRKBaseIE):
                     }]
 
         if not entries:
-            MESSAGES = {
-                'ProgramRightsAreNotReady': 'Du kan dessverre ikke se eller høre programmet',
-                'ProgramRightsHasExpired': 'Programmet har gått ut',
-                'NoProgramRights': 'Ikke tilgjengelig',
-                'ProgramIsGeoBlocked': 'NRK har ikke rettigheter til å vise dette programmet utenfor Norge',
-            }
-            message_type = data.get('messageType', '')
-            # Can be ProgramIsGeoBlocked or ChannelIsGeoBlocked*
-            if 'IsGeoBlocked' in message_type or try_get(data, lambda x: x['usageRights']['isGeoBlocked']) is True:
-                self.raise_geo_restricted(
-                    msg=MESSAGES.get('ProgramIsGeoBlocked'),
-                    countries=self._GEO_COUNTRIES)
-            raise ExtractorError(
-                '%s said: %s' % (self.IE_NAME, MESSAGES.get(
-                    message_type, message_type)),
-                expected=True)
+            self._raise_error(data)
 
         series = conviva.get('seriesName') or data.get('seriesTitle')
         episode = conviva.get('episodeName') or data.get('episodeNumberOrDate')
