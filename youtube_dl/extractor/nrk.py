@@ -521,7 +521,8 @@ class NRKTVSerieBaseIE(InfoExtractor):
         config = self._parse_json(
             self._search_regex(
                 (r'INITIAL_DATA(?:_V\d)?_*\s*=\s*({.+?})\s*;',
-                 r'({.+?})\s*,\s*"[^"]+"\s*\)\s*</script>'),
+                 r'({.+?})\s*,\s*"[^"]+"\s*\)\s*</script>',
+                 r'PRELOADED_STATE_*\s*=\s*({.+?})\s*\n'),
                 webpage, 'config', default='{}' if not fatal else NO_DEFAULT),
             display_id, fatal=False, transform_source=js_to_json)
         if not config:
@@ -531,12 +532,26 @@ class NRKTVSerieBaseIE(InfoExtractor):
             (lambda x: x['initialState']['series'], lambda x: x['series']),
             dict)
 
-    def _extract_seasons(self, seasons):
+    def _extract_seasons(self, domain, series_id, seasons):
+        if isinstance(seasons, dict):
+            seasons = seasons.get('seasons')
         if not isinstance(seasons, list):
             return []
         entries = []
         for season in seasons:
-            entries.extend(self._extract_episodes(season))
+            if not isinstance(season, dict):
+                continue
+            episodes = self._extract_episodes(season)
+            if episodes:
+                entries.extend(episodes)
+                continue
+            season_name = season.get('name')
+            if season_name and isinstance(season_name, compat_str):
+                entries.append(self.url_result(
+                    'https://%s.nrk.no/serie/%s/sesong/%s'
+                    % (domain, series_id, season_name),
+                    ie=NRKTVSeasonIE.ie_key(),
+                    video_title=season.get('title')))
         return entries
 
     def _extract_episodes(self, season):
@@ -713,6 +728,13 @@ class NRKTVSeriesIE(NRKTVSerieBaseIE):
     }, {
         'url': 'https://tv.nrk.no/serie/postmann-pat',
         'only_matching': True,
+    }, {
+        'url': 'https://radio.nrk.no/serie/dickie-dick-dickens',
+        'info_dict': {
+            'id': 'dickie-dick-dickens',
+        },
+        'playlist_mincount': 8,
+        'expected_warnings': ['HTTP Error 404: Not Found'],
     }]
 
     @classmethod
@@ -748,7 +770,7 @@ class NRKTVSeriesIE(NRKTVSerieBaseIE):
         # New layout (e.g. https://tv.nrk.no/serie/backstage)
         if series:
             entries = []
-            entries.extend(self._extract_seasons(series.get('seasons')))
+            entries.extend(self._extract_seasons(domain, series_id, series.get('seasons')))
             entries.extend(self._extract_entries(series.get('instalments')))
             entries.extend(self._extract_episodes(series.get('extraMaterial')))
             return self.playlist_result(entries, series_id, title, description)
