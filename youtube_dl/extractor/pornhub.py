@@ -31,7 +31,12 @@ class PornHubBaseIE(InfoExtractor):
         def dl(*args, **kwargs):
             return super(PornHubBaseIE, self)._download_webpage_handle(*args, **kwargs)
 
-        webpage, urlh = dl(*args, **kwargs)
+        ret = dl(*args, **kwargs)
+
+        if not ret:
+            return ret
+
+        webpage, urlh = ret
 
         if any(re.search(p, webpage) for p in (
                 r'<body\b[^>]+\bonload=["\']go\(\)',
