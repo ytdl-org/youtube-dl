@@ -558,6 +558,46 @@ class NRKTVSerieBaseIE(InfoExtractor):
                 'nrk:%s' % nrk_id, ie=NRKIE.ie_key(), video_id=nrk_id))
         return entries
 
+    _ASSETS_KEYS = ('episodes', 'instalments',)
+
+    def _extract_assets_key(self, embedded):
+        for asset_key in self._ASSETS_KEYS:
+            if embedded.get(asset_key):
+                return asset_key
+
+    def _entries(self, data, display_id):
+        for page_num in itertools.count(1):
+            embedded = data.get('_embedded')
+            if not isinstance(embedded, dict):
+                break
+            assets_key = self._extract_assets_key(embedded)
+            if not assets_key:
+                break
+            # Extract entries
+            entries = try_get(
+                embedded,
+                (lambda x: x[assets_key]['_embedded'][assets_key],
+                 lambda x: x[assets_key]),
+                list)
+            for e in self._extract_entries(entries):
+                yield e
+            # Find next URL
+            next_url = urljoin(
+                'https://psapi.nrk.no/',
+                try_get(
+                    data,
+                    (lambda x: x['_links']['next']['href'],
+                     lambda x: x['_embedded'][assets_key]['_links']['next']['href']),
+                    compat_str))
+            if not next_url:
+                break
+            data = self._download_json(
+                next_url, display_id,
+                'Downloading %s JSON page %d' % (assets_key, page_num),
+                fatal=False)
+            if not data:
+                break
+
 
 class NRKTVSeasonIE(NRKTVSerieBaseIE):
     _VALID_URL = r'https?://(?P<domain>tv|radio)\.nrk\.no/serie/(?P<serie>[^/]+)/(?:sesong/)?(?P<id>\d+)'
@@ -603,41 +643,6 @@ class NRKTVSeasonIE(NRKTVSerieBaseIE):
         return (False if NRKTVIE.suitable(url) or NRKTVEpisodeIE.suitable(url)
                 else super(NRKTVSeasonIE, cls).suitable(url))
 
-    _ASSETS_KEYS = ('episodes', 'instalments',)
-
-    def _entries(self, data, display_id):
-        for page_num in itertools.count(1):
-            embedded = data.get('_embedded')
-            if not isinstance(embedded, dict):
-                break
-            # Extract entries
-            for asset_key in self._ASSETS_KEYS:
-                entries = try_get(
-                    embedded,
-                    (lambda x: x[asset_key]['_embedded'][asset_key],
-                     lambda x: x[asset_key]),
-                    list)
-                for e in self._extract_entries(entries):
-                    yield e
-            # Find next URL
-            for asset_key in self._ASSETS_KEYS:
-                next_url = urljoin(
-                    'https://psapi.nrk.no/',
-                    try_get(
-                        data,
-                        (lambda x: x['_links']['next']['href'],
-                         lambda x: x['_embedded'][asset_key]['_links']['next']['href']),
-                        compat_str))
-                if next_url:
-                    break
-            if not next_url:
-                break
-            data = self._download_json(
-                next_url, display_id,
-                'Downloading season JSON page %d' % page_num, fatal=False)
-            if not data:
-                break
-
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
         domain = mobj.group('domain')
@@ -648,6 +653,7 @@ class NRKTVSeasonIE(NRKTVSerieBaseIE):
         data = self._download_json(
             'https://psapi.nrk.no/%s/catalog/series/%s/seasons/%s'
             % (domain, serie, season_id), display_id, query={'pageSize': 50})
+
         title = try_get(data, lambda x: x['titles']['title'], compat_str) or display_id
         return self.playlist_result(
             self._entries(data, display_id),
@@ -655,26 +661,9 @@ class NRKTVSeasonIE(NRKTVSerieBaseIE):
 
 
 class NRKTVSeriesIE(NRKTVSerieBaseIE):
-    _VALID_URL = r'https?://(?:tv|radio)\.nrk(?:super)?\.no/serie/(?P<id>[^/]+)'
+    _VALID_URL = r'https?://(?P<domain>tv|radio)\.nrk(?:super)?\.no/serie/(?P<id>[^/]+)'
     _ITEM_RE = r'(?:data-season=["\']|id=["\']season-)(?P<id>\d+)'
     _TESTS = [{
-        'url': 'https://tv.nrk.no/serie/blank',
-        'info_dict': {
-            'id': 'blank',
-            'title': 'Blank',
-            'description': 'md5:7664b4e7e77dc6810cd3bca367c25b6e',
-        },
-        'playlist_mincount': 30,
-    }, {
-        # new layout, seasons
-        'url': 'https://tv.nrk.no/serie/backstage',
-        'info_dict': {
-            'id': 'backstage',
-            'title': 'Backstage',
-            'description': 'md5:c3ec3a35736fca0f9e1207b5511143d3',
-        },
-        'playlist_mincount': 60,
-    }, {
         # new layout, instalments
         'url': 'https://tv.nrk.no/serie/groenn-glede',
         'info_dict': {
@@ -682,7 +671,30 @@ class NRKTVSeriesIE(NRKTVSerieBaseIE):
             'title': 'Grønn glede',
             'description': 'md5:7576e92ae7f65da6993cf90ee29e4608',
         },
-        'playlist_mincount': 10,
+        'playlist_mincount': 90,
+    }, {
+        # new layout, instalments, more entries
+        'url': 'https://tv.nrk.no/serie/lindmo',
+        'only_matching': True,
+    }, {
+        'url': 'https://tv.nrk.no/serie/blank',
+        'info_dict': {
+            'id': 'blank',
+            'title': 'Blank',
+            'description': 'md5:7664b4e7e77dc6810cd3bca367c25b6e',
+        },
+        'playlist_mincount': 30,
+        'expected_warnings': ['HTTP Error 404: Not Found'],
+    }, {
+        # new layout, seasons
+        'url': 'https://tv.nrk.no/serie/backstage',
+        'info_dict': {
+            'id': 'backstage',
+            'title': 'Backstage',
+            'description': 'md5:63692ceb96813d9a207e9910483d948b',
+        },
+        'playlist_mincount': 60,
+        'expected_warnings': ['HTTP Error 404: Not Found'],
     }, {
         # old layout
         'url': 'https://tv.nrksuper.no/serie/labyrint',
@@ -711,16 +723,30 @@ class NRKTVSeriesIE(NRKTVSerieBaseIE):
             else super(NRKTVSeriesIE, cls).suitable(url))
 
     def _real_extract(self, url):
-        series_id = self._match_id(url)
+        mobj = re.match(self._VALID_URL, url)
+        domain = mobj.group('domain')
+        series_id = mobj.group('id')
+
+        title = description = None
 
         webpage = self._download_webpage(url, series_id)
 
-        # New layout (e.g. https://tv.nrk.no/serie/backstage)
         series = self._extract_series(webpage, series_id, fatal=False)
         if series:
             title = try_get(series, lambda x: x['titles']['title'], compat_str)
             description = try_get(
                 series, lambda x: x['titles']['subtitle'], compat_str)
+
+        data = self._download_json(
+            'https://psapi.nrk.no/%s/catalog/series/%s/instalments'
+            % (domain, series_id), series_id, query={'pageSize': 50},
+            fatal=False)
+        if data:
+            return self.playlist_result(
+                self._entries(data, series_id), series_id, title, description)
+
+        # New layout (e.g. https://tv.nrk.no/serie/backstage)
+        if series:
             entries = []
             entries.extend(self._extract_seasons(series.get('seasons')))
             entries.extend(self._extract_entries(series.get('instalments')))
