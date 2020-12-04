@@ -320,7 +320,7 @@ class NRKTVIE(NRKBaseIE):
                 asset_url = asset.get('url')
                 if not asset_url or asset_url in urls:
                     continue
-                formats = extract_nrk_formats(asset_url, video_id)
+                formats = self._extract_nrk_formats(asset_url, video_id)
                 if not formats:
                     continue
                 self._sort_formats(formats)
@@ -345,7 +345,7 @@ class NRKTVIE(NRKBaseIE):
         if not entries:
             media_url = data.get('mediaUrl')
             if media_url and media_url not in urls:
-                formats = extract_nrk_formats(media_url, video_id)
+                formats = self._extract_nrk_formats(media_url, video_id)
                 if formats:
                     self._sort_formats(formats)
                     duration = parse_duration(data.get('duration'))
