@@ -308,6 +308,7 @@
  - **FrontendMasters**
  - **FrontendMastersCourse**
  - **FrontendMastersLesson**
+ - **FujiTVFODPlus7**
  - **Funimation**
  - **Funk**
  - **Fusion**
@@ -710,6 +711,7 @@
  - **qqmusic:singer**: QQ音乐 - 歌手
  - **qqmusic:toplist**: QQ音乐 - 排行榜
  - **QuantumTV**
+ - **Qub**
  - **Quickline**
  - **QuicklineLive**
  - **R7**
@@ -952,6 +954,7 @@
  - **TVANouvellesArticle**
  - **TVC**
  - **TVCArticle**
+ - **TVer**
  - **tvigle**: Интернет-телевидение Tvigle.ru
  - **tvland.com**
  - **TVN24**

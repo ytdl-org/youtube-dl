@@ -1,4 +1,4 @@
-version <unreleased>
+version 2020.12.05
 
 Core
 * [extractor/common] Improve Akamai HTTP format extraction
