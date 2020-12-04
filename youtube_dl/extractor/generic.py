@@ -194,12 +194,12 @@ class GenericIE(InfoExtractor):
             },
             'playlist_mincount': 11,
         },
-        # RSS feed with enclosure
+        # RSS feed with enclosure and item description
         {
             'url': 'http://podcastfeeds.nbcnews.com/audio/podcast/MSNBC-MADDOW-NETCAST-M4V.xml',
             'info_dict': {
                 'id': 'http://podcastfeeds.nbcnews.com/nbcnews/video/podcast/MSNBC-MADDOW-NETCAST-M4V.xml',
-				'title': 'MSNBC Rachel Maddow (video)',
+                'title': 'MSNBC Rachel Maddow (video)',
                 'description': 're:.*her unique approach to storytelling.*',
             },
             'playlist': [{
@@ -2202,7 +2202,7 @@ class GenericIE(InfoExtractor):
 
             if not next_url:
                 continue
-            
+
             entries.append({
                 '_type': 'url_transparent',
                 'url': next_url,
