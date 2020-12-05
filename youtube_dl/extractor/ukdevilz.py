@@ -9,7 +9,7 @@ from ..compat import compat_urlparse
 
 
 class UKDevilzIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:www\.)?ukdevilz\.com/watch/-(?P<id>[\d]*_[\d]*)'
+    _VALID_URL = r'https?://(?:www\.)?ukdevilz\.com/watch/(-)?(?P<id>[\d]*_[\d]*)'
     IE_DESC = 'UKDEVILZ'
     _TEST = {
         'url': 'https://ukdevilz.com/watch/-160418850_456239050',
