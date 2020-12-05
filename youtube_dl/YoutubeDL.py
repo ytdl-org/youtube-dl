@@ -2358,7 +2358,9 @@ class YoutubeDL(object):
             else:
                 proxies = {'http': opts_proxy, 'https': opts_proxy}
         else:
-            proxies = compat_urllib_request.getproxies()
+            # this `getproxies` call will core in Mac,so ignore it,use empty proxy instead.
+            #proxies = compat_urllib_request.getproxies()
+            proxies = {}
             # Set HTTPS proxy to HTTP one if given (https://github.com/ytdl-org/youtube-dl/issues/805)
             if 'http' in proxies and 'https' not in proxies:
                 proxies['https'] = proxies['http']
