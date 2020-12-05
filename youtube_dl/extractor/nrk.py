@@ -121,6 +121,7 @@ class NRKIE(NRKBaseIE):
 
     def _extract_from_playback(self, video_id):
         path_templ = 'playback/%s/' + video_id
+
         def call_playback_api(item, query=None):
             return self._call_api(path_templ % item, video_id, item, query=query)
         # known values for preferredCdn: akamai, iponly, minicdn and telenor
@@ -696,7 +697,8 @@ class NRKTVSeriesIE(NRKTVSerieBaseIE):
         domain = 'radio' if site == 'radio.nrk' else 'tv'
 
         series = self._call_api(
-            '%s/catalog/series/%s' % (domain, series_id), series_id, 'serie')
+            '%s/catalog/series/%s' % (domain, series_id),
+            series_id, 'serie', query={'embeddedInstalmentsPageSize': 50})
         titles = try_get(series, [
             lambda x: x['titles'],
             lambda x: x[x['type']]['titles'],
