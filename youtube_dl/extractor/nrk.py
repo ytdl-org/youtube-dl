@@ -2,6 +2,7 @@
 from __future__ import unicode_literals
 
 import itertools
+import random
 import re
 
 from .common import InfoExtractor
@@ -22,13 +23,26 @@ from ..utils import (
 
 
 class NRKBaseIE(InfoExtractor):
+    _GEO_COUNTRIES = ['NO']
+    _CDN_REPL_REGEX = r'''(?x)://
+        (?:
+            nrkod\d{1,2}-httpcache0-47115-cacheod0\.dna\.ip-only\.net/47115-cacheod0|
+            nrk-od-no\.telenorcdn\.net|
+            minicdn-od\.nrk\.no/od/nrkhd-osl-rr\.netwerk\.no/no
+        )/'''
+
     def _extract_nrk_formats(self, asset_url, video_id):
         if re.match(r'https?://[^/]+\.akamaihd\.net/i/', asset_url):
             return self._extract_akamai_formats(
                 re.sub(r'(?:b=\d+-\d+|__a__=off)&?', '', asset_url), video_id)
-        return self._extract_m3u8_formats(
-            re.sub(r'(?:bw_(?:low|high)=\d+|no_audio_only)&?', '', asset_url),
-            video_id, 'mp4', 'm3u8_native', fatal=False)
+        asset_url = re.sub(r'(?:bw_(?:low|high)=\d+|no_audio_only)&?', '', asset_url)
+        formats = self._extract_m3u8_formats(
+            asset_url, video_id, 'mp4', 'm3u8_native', fatal=False)
+        if not formats and re.search(self._CDN_REPL_REGEX, asset_url):
+            formats = self._extract_m3u8_formats(
+                re.sub(self._CDN_REPL_REGEX, '://nrk-od-%02d.akamaized.net/no/' % random.randint(0, 99), asset_url),
+                video_id, 'mp4', 'm3u8_native', fatal=False)
+        return formats
 
     def _raise_error(self, data):
         MESSAGES = {
@@ -107,8 +121,10 @@ class NRKIE(NRKBaseIE):
 
     def _extract_from_playback(self, video_id):
         path_templ = 'playback/%s/' + video_id
-        call_playback_api = lambda x: self._call_api(path_templ % x, video_id, x)
-        manifest = call_playback_api('manifest')
+        def call_playback_api(item, query=None):
+            return self._call_api(path_templ % item, video_id, item, query=query)
+        # known values for preferredCdn: akamai, iponly, minicdn and telenor
+        manifest = call_playback_api('manifest', {'preferredCdn': 'akamai'})
 
         if manifest.get('playability') == 'nonPlayable':
             self._raise_error(manifest['nonPlayable'])
@@ -195,7 +211,6 @@ class NRKTVIE(NRKBaseIE):
             'series': '20 spørsmål',
             'episode': '23.05.2014',
         },
-        'skip': 'NoProgramRights',
     }, {
         'url': 'https://tv.nrk.no/program/mdfp15000514',
         'info_dict': {
@@ -214,15 +229,15 @@ class NRKTVIE(NRKBaseIE):
         # single playlist video
         'url': 'https://tv.nrk.no/serie/tour-de-ski/MSPO40010515/06-01-2015#del=2',
         'info_dict': {
-            'id': 'MSPO40010515-part2',
-            'ext': 'flv',
-            'title': 'Tour de Ski: Sprint fri teknikk, kvinner og menn 06.01.2015 (del 2:2)',
-            'description': 'md5:238b67b97a4ac7d7b4bf0edf8cc57d26',
+            'id': 'MSPO40010515AH',
+            'ext': 'mp4',
+            'title': 'Sprint fri teknikk, kvinner og menn 06.01.2015',
+            'description': 'md5:c03aba1e917561eface5214020551b7a',
         },
         'params': {
             'skip_download': True,
         },
-        'expected_warnings': ['Video is geo restricted'],
+        'expected_warnings': ['Failed to download m3u8 information'],
         'skip': 'particular part is not supported currently',
     }, {
         'url': 'https://tv.nrk.no/serie/tour-de-ski/MSPO40010515/06-01-2015',
@@ -232,7 +247,7 @@ class NRKTVIE(NRKBaseIE):
             'title': 'Sprint fri teknikk, kvinner og menn 06.01.2015',
             'description': 'md5:c03aba1e917561eface5214020551b7a',
         },
-        'skip': 'Video is geo restricted',
+        'expected_warnings': ['Failed to download m3u8 information'],
     }, {
         'url': 'https://tv.nrk.no/serie/anno/KMTE50001317/sesong-3/episode-13',
         'info_dict': {
@@ -312,6 +327,7 @@ class NRKTVIE(NRKBaseIE):
                 asset_url = asset.get('url')
                 if not asset_url or asset_url in urls:
                     continue
+                urls.append(asset_url)
                 formats = self._extract_nrk_formats(asset_url, video_id)
                 if not formats:
                     continue
