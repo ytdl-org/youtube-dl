@@ -694,11 +694,13 @@ class NRKTVSeriesIE(NRKTVSerieBaseIE):
 
     def _real_extract(self, url):
         site, series_id = re.match(self._VALID_URL, url).groups()
-        domain = 'radio' if site == 'radio.nrk' else 'tv'
+        is_radio = site == 'radio.nrk'
+        domain = 'radio' if is_radio else 'tv'
 
+        size_prefix = 'p' if is_radio else 'embeddedInstalmentsP'
         series = self._call_api(
             '%s/catalog/series/%s' % (domain, series_id),
-            series_id, 'serie', query={'embeddedInstalmentsPageSize': 50})
+            series_id, 'serie', query={size_prefix + 'ageSize': 50})
         titles = try_get(series, [
             lambda x: x['titles'],
             lambda x: x[x['type']]['titles'],
