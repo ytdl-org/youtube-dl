@@ -407,6 +407,10 @@ def parseOpts(overrideArguments=None):
         action='store_true', dest='listformats',
         help='List all available formats of requested videos')
     video_format.add_option(
+        '-G', '--get-formats',
+        action='store_true', dest='getformats',
+        help='Get all available formats of requested videos')        
+    video_format.add_option(
         '--youtube-include-dash-manifest',
         action='store_true', dest='youtube_include_dash_manifest', default=True,
         help=optparse.SUPPRESS_HELP)

@@ -276,6 +276,7 @@ class YoutubeDL(object):
                        Actual sleep time will be a random float from range
                        [sleep_interval; max_sleep_interval].
     listformats:       Print an overview of available video formats and exit.
+    getformats:        Get all available video formats and exit.
     list_thumbnails:   Print a table of all thumbnails and exit.
     match_filter:      A function that gets called with the info_dict of
                        every video.
@@ -1645,13 +1646,25 @@ class YoutubeDL(object):
             raise ExtractorError('requested format not available',
                                  expected=True)
 
-        if download:
+        get_func = self.params.get('getformats')
+
+        if download or get_func:
+            new_info_list = []
             if len(formats_to_download) > 1:
                 self.to_screen('[info] %s: downloading video in %s formats' % (info_dict['id'], len(formats_to_download)))
             for format in formats_to_download:
                 new_info = dict(info_dict)
                 new_info.update(format)
-                self.process_info(new_info)
+                new_info_list.append(new_info)
+
+            # get format function return all formats info
+            if get_func:
+                get_func(new_info_list)
+                return info_dict
+
+            if download:
+                for new_info in new_info_list:                
+                    self.process_info(new_info)                                
         # We update the info dict with the best quality format (backwards compatibility)
         info_dict.update(formats_to_download[-1])
         return info_dict
