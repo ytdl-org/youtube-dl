@@ -2521,8 +2521,8 @@ class InfoExtractor(object):
             # Allowing more characters may end up in significant slow down (see
             # https://github.com/ytdl-org/youtube-dl/issues/11979, example URL:
             # http://www.porntrex.com/maps/videositemap.xml).
-            r'(?s)(<(?P<tag>(?:amp-)?(?:video|audio))(?:\s+[^>]*)?>)(.*?)</(?P=tag)>', webpage))
-        for media_tag, media_type, media_content in media_tags:
+            r'(?s)(<(?P<tag>(?:amp-)?(video|audio))(?:\s+[^>]*)?>)(.*?)</(?P=tag)>', webpage))
+        for media_tag, _, media_type, media_content in media_tags:
             media_info = {
                 'formats': [],
                 'subtitles': {},
