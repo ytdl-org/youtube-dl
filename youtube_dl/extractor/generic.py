@@ -20,12 +20,14 @@ from ..utils import (
     ExtractorError,
     float_or_none,
     HEADRequest,
+    int_or_none,
     is_html,
     js_to_json,
     KNOWN_EXTENSIONS,
     merge_dicts,
     mimetype2ext,
     orderedSet,
+    parse_duration,
     sanitized_Request,
     smuggle_url,
     unescapeHTML,
@@ -33,7 +35,9 @@ from ..utils import (
     unified_timestamp,
     unsmuggle_url,
     UnsupportedError,
+    url_or_none,
     xpath_text,
+    xpath_with_ns,
 )
 from .commonprotocols import RtmpIE
 from .brightcove import (
@@ -206,10 +210,12 @@ class GenericIE(InfoExtractor):
             'playlist': [{
                 'info_dict': {
                     'ext': 'mov',
-                    'id': 'pdv_maddow_netcast_mov-12-03-2020-223726',
-                    'title': 'MSNBC Rachel Maddow (video) - 12-03-2020-223726',
+                    'id': 'pdv_maddow_netcast_mov-12-04-2020-224335',
+                    'title': 're:MSNBC Rachel Maddow',
                     'description': 're:.*her unique approach to storytelling.*',
-                    'upload_date': '20201204',
+                    'timestamp': int,
+                    'upload_date': compat_str,
+                    'duration': float,
                 },
             }],
         },
@@ -2189,6 +2195,10 @@ class GenericIE(InfoExtractor):
         playlist_desc_el = doc.find('./channel/description')
         playlist_desc = None if playlist_desc_el is None else playlist_desc_el.text
 
+        NS_MAP = {
+            'itunes': 'http://www.itunes.com/dtds/podcast-1.0.dtd',
+        }
+
         entries = []
         for it in doc.findall('./channel/item'):
             next_url = None
@@ -2204,6 +2214,20 @@ class GenericIE(InfoExtractor):
             if not next_url:
                 continue
 
+            def itunes(key):
+                return xpath_text(
+                    it, xpath_with_ns('./itunes:%s' % key, NS_MAP),
+                    default=None)
+
+            duration = itunes('duration')
+            explicit = itunes('explicit')
+            if explicit == 'true':
+                age_limit = 18
+            elif explicit == 'false':
+                age_limit = 0
+            else:
+                age_limit = None
+
             entries.append({
                 '_type': 'url_transparent',
                 'url': next_url,
@@ -2211,6 +2235,12 @@ class GenericIE(InfoExtractor):
                 'description': xpath_text(it, 'description', default=None),
                 'timestamp': unified_timestamp(
                     xpath_text(it, 'pubDate', default=None)),
+                'duration': int_or_none(duration) or parse_duration(duration),
+                'thumbnail': url_or_none(itunes('image')),
+                'episode': itunes('title'),
+                'episode_number': int_or_none(itunes('episode')),
+                'season_number': int_or_none(itunes('season')),
+                'age_limit': age_limit,
             })
 
         return {
