@@ -1520,6 +1520,7 @@ from .youtube import (
     YoutubeSubscriptionsIE,
     YoutubeTruncatedIDIE,
     YoutubeTruncatedURLIE,
+    YoutubeYtBeIE,
     YoutubeYtUserIE,
     YoutubeWatchLaterIE,
 )
