@@ -2513,7 +2513,8 @@ class InfoExtractor(object):
         # amp-video and amp-audio are very similar to their HTML5 counterparts
         # so we wll include them right here (see
         # https://www.ampproject.org/docs/reference/components/amp-video)
-        _MEDIA_TAG_NAME_RE = r'(?:amp-)?(video|audio)'
+        # For dl8-* tags see https://delight-vr.com/documentation/dl8-video/
+        _MEDIA_TAG_NAME_RE = r'(?:(?:amp|dl8(?:-live)?)-)?(video|audio)'
         media_tags = [(media_tag, media_type, '')
                       for media_tag, media_type
                       in re.findall(r'(?s)(<%s[^>]*/>)' % _MEDIA_TAG_NAME_RE, webpage)]
