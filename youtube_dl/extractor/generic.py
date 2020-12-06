@@ -2207,7 +2207,7 @@ class GenericIE(InfoExtractor):
                 '_type': 'url_transparent',
                 'url': next_url,
                 'title': it.find('title').text,
-                'description': xpath_text(it, 'description', default=None)
+                'description': xpath_text(it, 'description', default=None),
             })
 
         return {
