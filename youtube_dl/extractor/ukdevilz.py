@@ -35,11 +35,11 @@ class UKDevilzIE(InfoExtractor):
 
         # playlist has no info about the width and file extension of the HLS stream
         # the HLS stream seems to always be the highest quality of the other streams, so just use that
-        max_height = 0
+        max_width = 0
         ext = ''
         for source in playlist.get('sources'):
-            if source.get('label') and int(source.get('label')) > max_height:
-                max_height = int_or_none(source.get('label'))
+            if source.get('label') and int(source.get('label')) > max_width:
+                max_width = int_or_none(source.get('label'))
                 ext = source.get('type')
 
         formats = []
@@ -48,8 +48,9 @@ class UKDevilzIE(InfoExtractor):
                 'url': source.get('file') if not source.get('file').startswith('/') else compat_urlparse.urljoin(url, source.get('file')),
                 'ext': ext if source.get('type') == 'hls' else source.get('type'),
                 'protocol': 'm3u8' if source.get('type') == 'hls' else compat_urlparse.urlparse(source.get('file')).scheme,
-                'height': int_or_none(source.get('label') or max_height)
+                'width': int_or_none(source.get('label') or max_width)
             })
+        self._sort_formats(formats)
 
         description = (self._search_regex(r'(?s)<div[^>]+\bclass=["\']description["\'][^>]*>(.+?)</div>', webpage, 'description', default='', fatal=False)
                        or self._og_search_description(webpage))
