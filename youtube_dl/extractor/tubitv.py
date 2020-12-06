@@ -93,4 +93,5 @@ class TubiTvIE(InfoExtractor):
             'description': video_data.get('description'),
             'duration': int_or_none(video_data.get('duration')),
             'uploader_id': video_data.get('publisher_id'),
+            'release_year': video_data.get('year'),
         }
