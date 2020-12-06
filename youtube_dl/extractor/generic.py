@@ -31,7 +31,6 @@ from ..utils import (
     sanitized_Request,
     smuggle_url,
     unescapeHTML,
-    unified_strdate,
     unified_timestamp,
     unsmuggle_url,
     UnsupportedError,
