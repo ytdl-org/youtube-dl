@@ -1,4 +1,4 @@
-version <unreleased>
+version 2020.12.07
 
 Core
 * [extractor/common] Extract timestamp from Last-Modified header
