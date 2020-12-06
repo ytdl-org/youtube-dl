@@ -33,6 +33,16 @@ class TubiTvIE(InfoExtractor):
     }, {
         'url': 'http://tubitv.com/movies/383676/tracker',
         'only_matching': True,
+    }, {
+        'url': 'https://tubitv.com/movies/562717/benji',
+        'info_dict': {
+            'id': '562717',
+            'ext': 'mp4',
+            'title': 'Benji',
+            'description': 'America’s beloved pooch stars in this remastered version of the 1974 hit about a sweet and emotionally smart dog who tries to save two kidnapped kids.',
+            'uploader_id': '300ac2a9d39325a0cf8d7c27f8d01056',
+            'release_year': 1974,
+        },
     }]
 
     def _login(self):
@@ -93,5 +103,5 @@ class TubiTvIE(InfoExtractor):
             'description': video_data.get('description'),
             'duration': int_or_none(video_data.get('duration')),
             'uploader_id': video_data.get('publisher_id'),
-            'release_year': video_data.get('year'),
+            'release_year': int_or_none(video_data.get('year', 0)),
         }
