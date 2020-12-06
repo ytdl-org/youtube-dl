@@ -194,7 +194,7 @@ class GenericIE(InfoExtractor):
             },
             'playlist_mincount': 11,
         },
-        # RSS feed with enclosure and item description
+        # RSS feed with enclosure
         {
             'url': 'http://podcastfeeds.nbcnews.com/audio/podcast/MSNBC-MADDOW-NETCAST-M4V.xml',
             'info_dict': {
