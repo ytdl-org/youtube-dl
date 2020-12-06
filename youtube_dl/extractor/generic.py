@@ -198,11 +198,19 @@ class GenericIE(InfoExtractor):
         {
             'url': 'http://podcastfeeds.nbcnews.com/audio/podcast/MSNBC-MADDOW-NETCAST-M4V.xml',
             'info_dict': {
-                'id': 'pdv_maddow_netcast_m4v-02-27-2015-201624',
-                'ext': 'm4v',
-                'upload_date': '20150228',
-                'title': 'pdv_maddow_netcast_m4v-02-27-2015-201624',
-            }
+                'id': 'http://podcastfeeds.nbcnews.com/nbcnews/video/podcast/MSNBC-MADDOW-NETCAST-M4V.xml',
+                'title': 'MSNBC Rachel Maddow (video)',
+                'description': 're:.*her unique approach to storytelling.*',
+            },
+            'playlist': [{
+                'info_dict': {
+                    'ext': 'mov',
+                    'id': 'pdv_maddow_netcast_mov-12-03-2020-223726',
+                    'title': 'MSNBC Rachel Maddow (video) - 12-03-2020-223726',
+                    'description': 're:.*her unique approach to storytelling.*',
+                    'upload_date': '20201204',
+                },
+            }],
         },
         # RSS feed with enclosures and unsupported link URLs
         {
@@ -2199,6 +2207,7 @@ class GenericIE(InfoExtractor):
                 '_type': 'url_transparent',
                 'url': next_url,
                 'title': it.find('title').text,
+                'description': xpath_text(it, 'description', default=None),
             })
 
         return {
