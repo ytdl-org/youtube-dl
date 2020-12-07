@@ -67,11 +67,6 @@ class YoutubeBaseInfoExtractor(InfoExtractor):
 
     _PLAYLIST_ID_RE = r'(?:(?:PL|LL|EC|UU|FL|RD|UL|TL|PU|OLAK5uy_)[0-9A-Za-z-_]{10,}|RDMM)'
 
-    _YOUTUBE_CLIENT_HEADERS = {
-        'x-youtube-client-name': '1',
-        'x-youtube-client-version': '1.20200609.04.02',
-    }
-
     def _set_language(self):
         self._set_cookie(
             '.youtube.com', 'PREF', 'f1=50000000&f6=8&hl=en',
