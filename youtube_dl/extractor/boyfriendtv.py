@@ -7,13 +7,15 @@ import json
 
 from .common import InfoExtractor
 
-from requests import Session
+import requests 
 
 
 from ..utils import (
     ExtractorError,
     urlencode_postdata,
     urljoin,
+    int_or_none,
+    sanitize_filename
 
 )
 
@@ -154,8 +156,8 @@ class BoyFriendTVIE(BoyFriendTVBaseIE):
             url_v = src['src'].replace("\\","")
             filesize = None
             try:
-                session = Session()
-                filesize = int(session.request("HEAD", url_v).headers['content-length'])
+                
+                filesize = int(requests.head(url_v).headers['content-length'])
             except Exception as e:
                 pass
 
@@ -168,18 +170,28 @@ class BoyFriendTVIE(BoyFriendTVBaseIE):
 
         self._sort_formats(formats)
 
+        average_rating = int_or_none(self._search_regex(
+            r'<div class="progress-big js-rating-title" title="(?P<average_rating>.+?)%">', webpage, 'average_rating', group='average_rating'))
+
+
         return ({
             'id': video_id,
-            'title': video_title,            
+            'title': sanitize_filename(video_title, True),
             'formats': formats,
+            'average_rating': average_rating
         })
+
+# class BoyFriendLightTV(BoyFriendTVBaseIE):
+#     IE_NAME = 'boyfriendlighttv'
+
+#     def _real_extract(self, url):
 
 
 class BoyFriendTVPlayListIE(BoyFriendTVBaseIE):
     IE_NAME = 'boyfriendtvplaylist'
     IE_DESC = 'boyfriendtvplaylist'
-    _VALID_URL = r'https?://(?:(?P<prefix>www|es|ru|de)\.)?(?P<url>boyfriendtv\.com/playlists/(?P<playlist_id>.*?)/?)'
-
+    _VALID_URL = r'https?://(?:(www|es|ru|de)\.)boyfriendtv\.com/playlists/(?P<playlist_id>.*?)(?:(/|$))'
+    
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
         playlist_id = mobj.group('playlist_id')
@@ -188,24 +200,54 @@ class BoyFriendTVPlayListIE(BoyFriendTVBaseIE):
         webpage = self._download_webpage(url, playlist_id, "Downloading web page playlist")
 
         pl_title = self._html_search_regex(r'(?s)<h1>(?P<title>.*?)<', webpage, 'title', group='title')
-        print(pl_title)
+        
+        entries = []
 
-        episode_paths = re.findall(
-            r'(?s)<li class="playlist-video-thumb thumb-item videospot">.*?<a href="([^"]+)"',
-            webpage)
+        i = 2
+        ep_id = 0
+        while True:
 
-        #print(episode_paths)
-        entries = [
-            self.url_result(self._SITE_URL + ep.split("?pl")[0], 'BoyFriendTV', ep_id)
-            for ep_id, ep in enumerate(episode_paths)
-        ]
-        entries.reverse()
+            if webpage:            
+                videos_paths = re.findall(
+                    r'(?s)<li class="playlist-video-thumb thumb-item videospot">.*?<a href="([^"]+)"',
+                    webpage)
+                titles_list = re.findall(
+                    r'(?s)<li class="playlist-video-thumb thumb-item videospot">.*?title="([^"]+)"',
+                    webpage)
+                rating_list = re.findall(
+                    r'(?s)<div class="progress-small js-rating-title.*?title="([^"]+)%"',
+                    webpage)
+                ids_list = re.findall(
+                    r'(?s)<li class="playlist-video-thumb thumb-item videospot">.*?data-video-id="([^"]+)"',
+                    webpage)
 
-        print(entries)
+                lista_len = [len(videos_paths), len(titles_list), len(rating_list), len(ids_list)]
+                if len(set(lista_len)) > 1:
+                    raise ExtractorError("Data mismatch for videos in the playlist")                   
+                
+                for j, video in enumerate(videos_paths):
+                    
+                    entry = self.url_result(self._SITE_URL + video.split("?pl")[0], 'BoyFriendTV', ids_list[j], sanitize_filename(titles_list[j], True)) 
+                    entry.update({'average_rating': rating_list[j]}) 
+                    entries.append(entry)
+                    ep_id += 1
+              
+
+                if '<link rel="next"' in webpage:
+
+                    webpage = self._download_webpage(urljoin(url+"/*",str(i)), playlist_id, f"Downloading web page playlist {i}")
+                    i += 1
+
+                else:
+                    break
+            else:
+                break
+
+                
 
         return {
             '_type': 'playlist',
             'id': playlist_id,
-            'title': pl_title,
+            'title': sanitize_filename(pl_title, True),
             'entries': entries,
         }
