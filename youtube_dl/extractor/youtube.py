@@ -3060,6 +3060,24 @@ class YoutubeTabIE(YoutubeBaseInfoExtractor):
                         try_get(owner, lambda x: x['navigationEndpoint']['browseEndpoint']['canonicalBaseUrl'], compat_str))
         return uploader
 
+    @staticmethod
+    def _extract_alert(data):
+        alerts = []
+        for alert in try_get(data, lambda x: x['alerts'], list) or []:
+            if not isinstance(alert, dict):
+                continue
+            alert_text = try_get(
+                alert, lambda x: x['alertRenderer']['text'], dict)
+            if not alert_text:
+                continue
+            text = try_get(
+                alert_text,
+                (lambda x: x['simpleText'], lambda x: x['runs'][0]['text']),
+                compat_str)
+            if text:
+                alerts.append(text)
+        return '\n'.join(alerts)
+
     def _extract_from_tabs(self, item_id, webpage, data, tabs, identity_token):
         selected_tab = self._extract_selected_tab(tabs)
         renderer = try_get(
@@ -3127,6 +3145,10 @@ class YoutubeTabIE(YoutubeBaseInfoExtractor):
             compat_str) or video_id
         if video_id:
             return self.url_result(video_id, ie=YoutubeIE.ie_key(), video_id=video_id)
+        # Capture and output alerts
+        alert = self._extract_alert(data)
+        if alert:
+            raise ExtractorError(alert, expected=True)
         # Failed to recognize
         raise ExtractorError('Unable to recognize tab page')
 
