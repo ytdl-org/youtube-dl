@@ -334,6 +334,8 @@ class PornHubIE(PornHubBaseIE):
                 if not height:
                     height = int(mobj.group('height'))
                 tbr = int(mobj.group('tbr'))
+            if format_id == '240p':
+                f['vcodec'] = 'none'
             formats.append({
                 'url': video_url,
                 'format_id': '%dp' % height if height else None,
