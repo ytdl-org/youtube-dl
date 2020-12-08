@@ -17,7 +17,7 @@ from ..utils import (
 
 
 class AtresPlayerIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:www\.)?atresplayer\.com/[^/]+/[^/]+/[^/]+/[^/]+/(?P<display_id>.+?)_(?P<id>[0-9a-f]{24})'
+    _VALID_URL = r'https?://(?:www\.)?atresplayer\.com/[^/]+/[^/]+/[^/]+(?:/[^/]+)?/(?P<display_id>.+?)_(?P<id>[0-9a-f]{24})'
     _NETRC_MACHINE = 'atresplayer'
     _TESTS = [
         {
