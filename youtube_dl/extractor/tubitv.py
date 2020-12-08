@@ -34,14 +34,17 @@ class TubiTvIE(InfoExtractor):
         'url': 'http://tubitv.com/movies/383676/tracker',
         'only_matching': True,
     }, {
-        'url': 'https://tubitv.com/movies/562717/benji',
+        'url': 'https://tubitv.com/movies/560057/penitentiary?start=true',
         'info_dict': {
-            'id': '562717',
+            'id': '560057',
             'ext': 'mp4',
-            'title': 'Benji',
-            'description': 'America’s beloved pooch stars in this remastered version of the 1974 hit about a sweet and emotionally smart dog who tries to save two kidnapped kids.',
-            'uploader_id': '300ac2a9d39325a0cf8d7c27f8d01056',
-            'release_year': 1974,
+            'title': 'Penitentiary',
+            'description': 'md5:8d2fc793a93cc1575ff426fdcb8dd3f9',
+            'uploader_id': 'd8fed30d4f24fcb22ec294421b9defc2',
+            'release_year': 1979,
+        },
+        'params': {
+            'skip_download': True,
         },
     }]
 
@@ -103,5 +106,5 @@ class TubiTvIE(InfoExtractor):
             'description': video_data.get('description'),
             'duration': int_or_none(video_data.get('duration')),
             'uploader_id': video_data.get('publisher_id'),
-            'release_year': int_or_none(video_data.get('year', 0)),
+            'release_year': int_or_none(video_data.get('year')),
         }
