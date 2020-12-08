@@ -30,6 +30,8 @@ from .adobetv import (
 from .adultswim import AdultSwimIE
 from .aenetworks import (
     AENetworksIE,
+    AENetworksCollectionIE,
+    AENetworksShowIE,
     HistoryTopicIE,
 )
 from .afreecatv import AfreecaTVIE
@@ -393,6 +395,7 @@ from .frontendmasters import (
     FrontendMastersLessonIE,
     FrontendMastersCourseIE
 )
+from .fujitv import FujiTVFODPlus7IE
 from .funimation import FunimationIE
 from .funk import FunkIE
 from .fusion import FusionIE
@@ -1149,6 +1152,7 @@ from .telequebec import (
     TeleQuebecSquatIE,
     TeleQuebecEmissionIE,
     TeleQuebecLiveIE,
+    TeleQuebecVideoIE,
 )
 from .teletask import TeleTaskIE
 from .telewebion import TelewebionIE
@@ -1233,6 +1237,7 @@ from .tvc import (
     TVCIE,
     TVCArticleIE,
 )
+from .tver import TVerIE
 from .tvigle import TvigleIE
 from .tvland import TVLandIE
 from .tvn24 import TVN24IE
@@ -1518,6 +1523,7 @@ from .youtube import (
     YoutubeSubscriptionsIE,
     YoutubeTruncatedIDIE,
     YoutubeTruncatedURLIE,
+    YoutubeYtBeIE,
     YoutubeYtUserIE,
     YoutubeWatchLaterIE,
 )

@@ -3060,6 +3060,24 @@ class YoutubeTabIE(YoutubeBaseInfoExtractor):
                         try_get(owner, lambda x: x['navigationEndpoint']['browseEndpoint']['canonicalBaseUrl'], compat_str))
         return uploader
 
+    @staticmethod
+    def _extract_alert(data):
+        alerts = []
+        for alert in try_get(data, lambda x: x['alerts'], list) or []:
+            if not isinstance(alert, dict):
+                continue
+            alert_text = try_get(
+                alert, lambda x: x['alertRenderer']['text'], dict)
+            if not alert_text:
+                continue
+            text = try_get(
+                alert_text,
+                (lambda x: x['simpleText'], lambda x: x['runs'][0]['text']),
+                compat_str)
+            if text:
+                alerts.append(text)
+        return '\n'.join(alerts)
+
     def _extract_from_tabs(self, item_id, webpage, data, tabs, identity_token):
         selected_tab = self._extract_selected_tab(tabs)
         renderer = try_get(
@@ -3127,6 +3145,10 @@ class YoutubeTabIE(YoutubeBaseInfoExtractor):
             compat_str) or video_id
         if video_id:
             return self.url_result(video_id, ie=YoutubeIE.ie_key(), video_id=video_id)
+        # Capture and output alerts
+        alert = self._extract_alert(data)
+        if alert:
+            raise ExtractorError(alert, expected=True)
         # Failed to recognize
         raise ExtractorError('Unable to recognize tab page')
 
@@ -3139,8 +3161,7 @@ class YoutubePlaylistIE(InfoExtractor):
                         (?:
                             (?:
                                 youtube(?:kids)?\.com|
-                                invidio\.us|
-                                youtu\.be
+                                invidio\.us
                             )
                             /.*?\?.*?\blist=
                         )?
@@ -3185,6 +3206,32 @@ class YoutubePlaylistIE(InfoExtractor):
             'uploader_id': 'UC21nz3_MesPLqtDqwdvnoxA',
         }
     }, {
+        'url': 'TLGGrESM50VT6acwMjAyMjAxNw',
+        'only_matching': True,
+    }, {
+        # music album playlist
+        'url': 'OLAK5uy_m4xAFdmMC5rX3Ji3g93pQe3hqLZw_9LhM',
+        'only_matching': True,
+    }]
+
+    @classmethod
+    def suitable(cls, url):
+        return False if YoutubeTabIE.suitable(url) else super(
+            YoutubePlaylistIE, cls).suitable(url)
+
+    def _real_extract(self, url):
+        playlist_id = self._match_id(url)
+        qs = compat_urlparse.parse_qs(compat_urlparse.urlparse(url).query)
+        if not qs:
+            qs = {'list': playlist_id}
+        return self.url_result(
+            update_url_query('https://www.youtube.com/playlist', qs),
+            ie=YoutubeTabIE.ie_key(), video_id=playlist_id)
+
+
+class YoutubeYtBeIE(InfoExtractor):
+    _VALID_URL = r'https?://youtu\.be/(?P<id>[0-9A-Za-z_-]{11})/*?.*?\blist=(?P<playlist_id>%(playlist_id)s)' % {'playlist_id': YoutubeBaseInfoExtractor._PLAYLIST_ID_RE}
+    _TESTS = [{
         'url': 'https://youtu.be/yeWKywCrFtk?list=PL2qgrgXsNUG5ig9cat4ohreBjYLAPC0J5',
         'info_dict': {
             'id': 'yeWKywCrFtk',
@@ -3207,28 +3254,18 @@ class YoutubePlaylistIE(InfoExtractor):
     }, {
         'url': 'https://youtu.be/uWyaPkt-VOI?list=PL9D9FC436B881BA21',
         'only_matching': True,
-    }, {
-        'url': 'TLGGrESM50VT6acwMjAyMjAxNw',
-        'only_matching': True,
-    }, {
-        # music album playlist
-        'url': 'OLAK5uy_m4xAFdmMC5rX3Ji3g93pQe3hqLZw_9LhM',
-        'only_matching': True,
     }]
 
-    @classmethod
-    def suitable(cls, url):
-        return False if YoutubeTabIE.suitable(url) else super(
-            YoutubePlaylistIE, cls).suitable(url)
-
     def _real_extract(self, url):
-        playlist_id = self._match_id(url)
-        qs = compat_urlparse.parse_qs(compat_urlparse.urlparse(url).query)
-        if not qs:
-            qs = {'list': playlist_id}
+        mobj = re.match(self._VALID_URL, url)
+        video_id = mobj.group('id')
+        playlist_id = mobj.group('playlist_id')
         return self.url_result(
-            update_url_query('https://www.youtube.com/playlist', qs),
-            ie=YoutubeTabIE.ie_key(), video_id=playlist_id)
+            update_url_query('https://www.youtube.com/watch', {
+                'v': video_id,
+                'list': playlist_id,
+                'feature': 'youtu.be',
+            }), ie=YoutubeTabIE.ie_key(), video_id=playlist_id)
 
 
 class YoutubeYtUserIE(InfoExtractor):

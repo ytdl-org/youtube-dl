@@ -1,3 +1,50 @@
+version 2020.12.07
+
+Core
+* [extractor/common] Extract timestamp from Last-Modified header
++ [extractor/common] Add support for dl8-* media tags (#27283)
+* [extractor/common] Fix media type extraction for HTML5 media tags
+  in start/end form
+
+Extractors
+* [aenetworks] Fix extraction (#23363, #23390, #26795, #26985)
+    * Fix Fastly format extraction
+    + Add support for play and watch subdomains
+    + Extract series metadata
+* [youtube] Improve youtu.be extraction in non-existing playlists (#27324)
++ [generic] Extract RSS video description, timestamp and itunes metadata
+  (#27177)
+* [nrk] Reduce the number of instalments and episodes requests
+* [nrk] Improve extraction
+    * Improve format extraction for old akamai formats
+    + Add is_live value to entry info dict
+    * Request instalments only when available
+    * Fix skole extraction
++ [peertube] Extract fps
++ [peertube] Recognize audio-only formats (#27295)
+
+
+version 2020.12.05
+
+Core
+* [extractor/common] Improve Akamai HTTP format extraction
+    * Allow m3u8 manifest without an additional audio format
+    * Fix extraction for qualities starting with a number
+
+Extractors
+* [teachable:course] Improve extraction (#24507, #27286)
+* [nrk] Improve error extraction
+* [nrktv:series] Improve extraction (#21926)
+* [nrktv:season] Improve extraction
+* [nrk] Improve format extraction and geo-restriction detection (#24221)
+* [pornhub] Handle HTTP errors gracefully (#26414)
+* [nrktv] Relax URL regular expression (#27299, #26185)
++ [zdf] Extract webm formats (#26659)
++ [gamespot] Extract DASH and HTTP formats
++ [tver] Add support for tver.jp (#26662, #27284)
++ [pornhub] Add support for pornhub.org (#27276)
+
+
 version 2020.12.02
 
 Extractors
