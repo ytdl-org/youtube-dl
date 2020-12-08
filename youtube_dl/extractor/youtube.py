@@ -2688,6 +2688,10 @@ class YoutubeTabIE(YoutubeBaseInfoExtractor):
         # no longer available?
         'url': 'https://www.youtube.com/feed/recommended',
         'only_matching': True,
+    }, {
+        # inline playlist with not always working continuations
+        'url': 'https://www.youtube.com/watch?v=UC6u0Tct-Fo&list=PL36D642111D65BE7C',
+        'only_matching': True,
     }
         # TODO
         # {
@@ -3099,10 +3103,20 @@ class YoutubeTabIE(YoutubeBaseInfoExtractor):
         playlist.update(self._extract_uploader(data))
         return playlist
 
-    def _extract_from_playlist(self, item_id, data, playlist):
+    def _extract_from_playlist(self, item_id, url, data, playlist):
         title = playlist.get('title') or try_get(
             data, lambda x: x['titleText']['simpleText'], compat_str)
         playlist_id = playlist.get('playlistId') or item_id
+        # Inline playlist rendition continuation does not always work
+        # at Youtube side, so delegating regular tab-based playlist URL
+        # processing whenever possible.
+        playlist_url = urljoin(url, try_get(
+            playlist, lambda x: x['endpoint']['commandMetadata']['webCommandMetadata']['url'],
+            compat_str))
+        if playlist_url and playlist_url != url:
+            return self.url_result(
+                playlist_url, ie=YoutubeTabIE.ie_key(), video_id=playlist_id,
+                video_title=title)
         return self.playlist_result(
             self._playlist_entries(playlist), playlist_id=playlist_id,
             playlist_title=title)
@@ -3132,7 +3146,7 @@ class YoutubeTabIE(YoutubeBaseInfoExtractor):
         playlist = try_get(
             data, lambda x: x['contents']['twoColumnWatchNextResults']['playlist']['playlist'], dict)
         if playlist:
-            return self._extract_from_playlist(item_id, data, playlist)
+            return self._extract_from_playlist(item_id, url, data, playlist)
         # Fallback to video extraction if no playlist alike page is recognized.
         # First check for the current video then try the v attribute of URL query.
         video_id = try_get(
