@@ -1,3 +1,27 @@
+version <unreleaed>
+
+Core
+* [extractor/common] Fix inline HTML5 media tags processing (#27345)
+
+Extractors
+* [youtube:tab] Improve identity token extraction (#27197)
+* [youtube:tab] Make click tracking params on continuation optional
+* [youtube:tab] Delegate inline playlists to tab-based playlists (27298)
++ [tubitv] Extract release year (#27317)
+* [amcnetworks] Fix free content extraction (#20354)
++ [lbry:channel] Add support for channels (#25584)
++ [lbry] Add support for short and embed URLs
+* [lbry] Fix channel metadata extraction
++ [telequebec] Add support for video.telequebec.tv (#27339)
+* [telequebec] Fix extraction (#25733, #26883)
++ [youtube:tab] Capture and output alerts (#27340)
+* [tvplay:home] Fix extraction (#21153)
+* [americastestkitchen] Fix Extraction and add support
+  for Cook's Country and Cook's Illustrated (#17234, #27322)
++ [slideslive] Add support for yoda service videos and extract subtitles
+  (#27323)
+
+
 version 2020.12.07
 
 Core
