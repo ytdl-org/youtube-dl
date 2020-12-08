@@ -2871,6 +2871,16 @@ class YoutubeTabIE(YoutubeBaseInfoExtractor):
                 yield entry
 
     @staticmethod
+    def _build_continuation_query(continuation, ctp=None):
+        query = {
+            'ctoken': continuation,
+            'continuation': continuation,
+        }
+        if ctp:
+            query['itct'] = ctp
+        return query
+
+    @staticmethod
     def _extract_next_continuation_data(renderer):
         next_continuation = try_get(
             renderer, lambda x: x['continuations'][0]['nextContinuationData'], dict)
@@ -2880,11 +2890,7 @@ class YoutubeTabIE(YoutubeBaseInfoExtractor):
         if not continuation:
             return
         ctp = next_continuation.get('clickTrackingParams')
-        return {
-            'ctoken': continuation,
-            'continuation': continuation,
-            'itct': ctp,
-        }
+        return YoutubeTabIE._build_continuation_query(continuation, ctp)
 
     @classmethod
     def _extract_continuation(cls, renderer):
@@ -2907,13 +2913,7 @@ class YoutubeTabIE(YoutubeBaseInfoExtractor):
             if not continuation:
                 continue
             ctp = continuation_ep.get('clickTrackingParams')
-            if not ctp:
-                continue
-            return {
-                'ctoken': continuation,
-                'continuation': continuation,
-                'itct': ctp,
-            }
+            return YoutubeTabIE._build_continuation_query(continuation, ctp)
 
     def _entries(self, tab, identity_token):
         tab_content = try_get(tab, lambda x: x['content'], dict)
