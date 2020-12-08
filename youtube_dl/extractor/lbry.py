@@ -11,12 +11,14 @@ from ..utils import (
     int_or_none,
     mimetype2ext,
     try_get,
+    urljoin,
 )
 
 
 class LBRYIE(InfoExtractor):
     IE_NAME = 'lbry.tv'
-    _VALID_URL = r'https?://(?:www\.)?(?:lbry\.tv|odysee\.com)/(?P<id>@[^:]+:[0-9a-z]+/[^:]+:[0-9a-z])'
+    _CLAIM_ID_REGEX = r'[0-9a-f]{1,40}'
+    _VALID_URL = r'https?://(?:www\.)?(?:lbry\.tv|odysee\.com)/(?P<id>@[^:]+:{0}/[^:]+:{0}|[^:]+:{0}|\$/embed/[^/]+/{0})'.format(_CLAIM_ID_REGEX)
     _TESTS = [{
         # Video
         'url': 'https://lbry.tv/@Mantega:1/First-day-LBRY:1',
@@ -40,12 +42,26 @@ class LBRYIE(InfoExtractor):
             'description': 'md5:661ac4f1db09f31728931d7b88807a61',
             'timestamp': 1591312601,
             'upload_date': '20200604',
+            'tags': list,
+            'duration': 2570,
+            'channel': 'The LBRY Foundation',
+            'channel_id': '0ed629d2b9c601300cacf7eabe9da0be79010212',
+            'channel_url': 'https://lbry.tv/@LBRYFoundation:0ed629d2b9c601300cacf7eabe9da0be79010212',
         }
     }, {
         'url': 'https://odysee.com/@BrodieRobertson:5/apple-is-tracking-everything-you-do-on:e',
         'only_matching': True,
     }, {
         'url': "https://odysee.com/@ScammerRevolts:b0/I-SYSKEY'D-THE-SAME-SCAMMERS-3-TIMES!:b",
+        'only_matching': True,
+    }, {
+        'url': 'https://lbry.tv/Episode-1:e7d93d772bd87e2b62d5ab993c1c3ced86ebb396',
+        'only_matching': True,
+    }, {
+        'url': 'https://lbry.tv/$/embed/Episode-1/e7d93d772bd87e2b62d5ab993c1c3ced86ebb396',
+        'only_matching': True,
+    }, {
+        'url': 'https://lbry.tv/Episode-1:e7',
         'only_matching': True,
     }]
 
@@ -59,22 +75,33 @@ class LBRYIE(InfoExtractor):
             }).encode())['result']
 
     def _real_extract(self, url):
-        display_id = self._match_id(url).replace(':', '#')
+        display_id = self._match_id(url)
+        if display_id.startswith('$/embed/'):
+            display_id = display_id[8:].replace('/', ':')
+        else:
+            display_id = display_id.replace(':', '#')
         uri = 'lbry://' + display_id
         result = self._call_api_proxy(
             'resolve', display_id, {'urls': [uri]})[uri]
         result_value = result['value']
         if result_value.get('stream_type') not in ('video', 'audio'):
             raise ExtractorError('Unsupported URL', expected=True)
+        claim_id = result['claim_id']
+        title = result_value['title']
         streaming_url = self._call_api_proxy(
-            'get', display_id, {'uri': uri})['streaming_url']
+            'get', claim_id, {'uri': uri})['streaming_url']
         source = result_value.get('source') or {}
         media = result_value.get('video') or result_value.get('audio') or {}
-        signing_channel = result_value.get('signing_channel') or {}
+        signing_channel = result.get('signing_channel') or {}
+        channel_name = signing_channel.get('name')
+        channel_claim_id = signing_channel.get('claim_id')
+        channel_url = None
+        if channel_name and channel_claim_id:
+            channel_url = urljoin(url, '/%s:%s' % (channel_name, channel_claim_id))
 
         return {
-            'id': result['claim_id'],
-            'title': result_value['title'],
+            'id': claim_id,
+            'title': title,
             'thumbnail': try_get(result_value, lambda x: x['thumbnail']['url'], compat_str),
             'description': result_value.get('description'),
             'license': result_value.get('license'),
@@ -83,8 +110,9 @@ class LBRYIE(InfoExtractor):
             'width': int_or_none(media.get('width')),
             'height': int_or_none(media.get('height')),
             'duration': int_or_none(media.get('duration')),
-            'channel': signing_channel.get('name'),
-            'channel_id': signing_channel.get('claim_id'),
+            'channel': try_get(signing_channel, lambda x: x['value']['title']),
+            'channel_id': channel_claim_id,
+            'channel_url': channel_url,
             'ext': determine_ext(source.get('name')) or mimetype2ext(source.get('media_type')),
             'filesize': int_or_none(source.get('size')),
             'url': streaming_url,
