@@ -1,4 +1,4 @@
-version <unreleaed>
+version 2020.12.09
 
 Core
 * [extractor/common] Fix inline HTML5 media tags processing (#27345)
