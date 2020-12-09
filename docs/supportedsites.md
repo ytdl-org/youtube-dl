@@ -817,6 +817,10 @@
  - **Slideshare**
  - **SlidesLive**
  - **Slutload**
+ - **smotri**: Smotri.com
+ - **smotri:broadcast**: Smotri.com broadcasts
+ - **smotri:community**: Smotri.com community videos
+ - **smotri:user**: Smotri.com user videos
  - **Snotr**
  - **Sohu**
  - **SonyLIV**
