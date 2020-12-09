@@ -6,11 +6,9 @@ import re
 
 from .common import InfoExtractor
 from ..utils import (
-    urlencode_postdata,
+    ExtractorError, urlencode_postdata,
     sanitize_filename
 )
-
-
 
 class NakedSwordBaseIE(InfoExtractor):
     IE_NAME = 'nakedsword'
@@ -82,46 +80,57 @@ class NakedSwordSceneIE(NakedSwordBaseIE):
        
         regex_sceneid = r"<meta name='SCENEID' content='(?P<sceid>.*?)'"
         mobj = re.search(regex_sceneid, webpage)
+        scene_id = None
         if mobj:
             scene_id = mobj.group("sceid")
-            getstream_url_m3u8 = "https://www.nakedsword.com/scriptservices/getstream/scene/" + scene_id + "/HLS"
-        
+            if scene_id:
+                getstream_url_m3u8 = "https://www.nakedsword.com/scriptservices/getstream/scene/" + scene_id + "/HLS"
+            else:
+                raise ExtractorError("Can't find sceneid")
+        else:
+            raise ExtractorError("Can't finf sceneid")
         
         #print(getstream_url_m3u8)
 
-        info_m3u8 = self._download_json(
-                getstream_url_m3u8,
-                scene_id,
+        mobj = re.match(self._VALID_URL, url)
+        
+        title_id = mobj.group('id')
+
+        try:
+
+            info_m3u8 = self._download_json(
+                    getstream_url_m3u8,
+                    scene_id,
+                )
+
+            mpd_url_m3u8 = info_m3u8.get("StreamUrl")
+
+
+            formats_m3u8 = self._extract_m3u8_formats(
+                mpd_url_m3u8, scene_id, m3u8_id="hls", ext="mp4", entry_protocol='m3u8_native', fatal=False
             )
 
-        mpd_url_m3u8 = info_m3u8.get("StreamUrl")
 
+                
+            n = len(formats_m3u8)
+            for f in formats_m3u8:
+                f['format_id'] = "hls-" + str(n-1)
+                n = n - 1
 
-        formats_m3u8 = self._extract_m3u8_formats(
-            mpd_url_m3u8, scene_id, m3u8_id="hls", ext="mp4", entry_protocol='m3u8_native', fatal=False
-        )
+            title = info_m3u8.get("Title")
+            if not title:
+                title = "nakedsword"
+            title = sanitize_filename(title, True)
+            title = title + "_scene_" + title_id
 
-
-            
-        n = len(formats_m3u8)
-        for f in formats_m3u8:
-            f['format_id'] = "hls-" + str(n-1)
-            #print(format)
-            n = n - 1
-            #input("WAIT...")
-            #self._sort_formats(formats_m3u8)
-
-        title = info_m3u8.get("Title")
-        title = sanitize_filename(title)
-        title = title.replace(" ", "_")
-        title = title + "_scene_" + scene_id
-
-        self._logout()
+            self._logout()
+        
+        except Exception as e:
+            raise ExtractorError from e
 
         return {
             "id": scene_id,
             "title": title,
-            #"formats": formats + formats_m3u8,
             "formats": formats_m3u8,
             "ext": "mp4"
         }
@@ -139,6 +148,7 @@ class NakedSwordMovieIE(NakedSwordBaseIE):
     def _real_extract(self, url):
 
         mobj = re.match(self._VALID_URL, url)
+        
         playlist_id = mobj.group('id')
         title = mobj.group('title')
 
@@ -149,7 +159,6 @@ class NakedSwordMovieIE(NakedSwordBaseIE):
         pl_title = self._html_search_regex(r'(?s)<title>(?P<title>.*?)<', webpage, 'title', group='title').split(" | ")[1]
 
         #print(title)
-
 
         scenes_paths = re.findall(rf'{title}/scene/([\d]+)', webpage)
 
