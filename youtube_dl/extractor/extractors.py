@@ -925,6 +925,7 @@ from .raywenderlich import (
     RayWenderlichIE,
     RayWenderlichCourseIE,
 )
+from .rbgtum import RbgTumIE
 from .rbmaradio import RBMARadioIE
 from .rds import RDSIE
 from .redbulltv import (
