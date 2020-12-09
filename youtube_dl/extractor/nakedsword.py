@@ -11,16 +11,15 @@ from ..utils import (
 )
 
 
-class NakedSwordIE(InfoExtractor):
+
+class NakedSwordBaseIE(InfoExtractor):
     IE_NAME = 'nakedsword'
     IE_DESC = 'nakedsword'
-    _VALID_URL = r"https?://(?:www\.)?nakedsword.com/movies/(?P<id>[^&?#]+)"
+    
+    _SITE_URL = "https://nakedsword.com/"
     _LOGIN_URL = "https://www.nakedsword.com/signin"
     _LOGOUT_URL = "https://nakedsword.com/signout"
     _NETRC_MACHINE = 'nakedsword'
-
-    def _real_initialize(self):
-        self._login()
 
     def _login(self):
         username, password = self._get_login_info()
@@ -67,106 +66,105 @@ class NakedSwordIE(InfoExtractor):
             'Log out'
         )
 
+
+class NakedSwordSceneIE(NakedSwordBaseIE):
+    IE_NAME = 'nakedsword:scene'
+    _VALID_URL = r"https?://(?:www\.)?nakedsword.com/movies/(?P<movieid>[\d]+)/(?P<title>[a-zA-Z\d_-]+)/scene/(?P<id>[\d]+)/?$"
+
+    def _real_initialize(self):
+
+        self._login()
+
     def _real_extract(self, url):
 
-        try:
+        
+        webpage = self._download_webpage(url, None, "Downloading web page scene")
+       
+        regex_sceneid = r"<meta name='SCENEID' content='(?P<sceid>.*?)'"
+        mobj = re.search(regex_sceneid, webpage)
+        if mobj:
+            scene_id = mobj.group("sceid")
+            getstream_url_m3u8 = "https://www.nakedsword.com/scriptservices/getstream/scene/" + scene_id + "/HLS"
+        
+        
+        #print(getstream_url_m3u8)
 
-            webpage_url = url
-            webpage = self._downloader.urlopen(webpage_url)
-            content = (webpage.read()).decode('utf-8')
-
-            # print(content)
-
-            regex_movieid = r"<meta name='MOVIEID' content='(?P<movid>.*?)'"
-            regex_sceneid = r"<meta name='SCENEID' content='(?P<sceid>.*?)'"
-            # regex_movieid = self._meta_regex("MOVIEID")
-            # regex_sceneid = self._meta_regex("SCENEID")
-
-            # self._search_regex(pattern, string, name, default, fatal, flags, group)
-            # movieid = self._search_regex(regex_movieid, content, "MOVIEID", default=None)
-            # sceneid = self._search_regex(regex_sceneid, content, "SCENEID", default=None)
-            # print(regex_movieid)
-            mobj = re.search(regex_movieid, content)
-            movie_id = mobj.group("movid")
-            mobj = re.search(regex_sceneid, content)
-            if mobj:
-                scene_id = mobj.group("sceid")
-                # print("sceneid", scene_id)
-                #getstream_url = "https://www.nakedsword.com/scriptservices/getstream/scene/" + scene_id + "/DASH"
-                getstream_url_m3u8 = "https://www.nakedsword.com/scriptservices/getstream/scene/" + scene_id + "/HLS"
-                video_id = scene_id
-
-            else:
-                # print("movieid", movie_id)
-                # getstream_url = "https://www.nakedsword.com/scriptservices/getstream/movie/" + movie_id + "/DASH"
-                getstream_url_m3u8 = "https://www.nakedsword.com/scriptservices/getstream/movie/" + movie_id + "/HLS"
-                video_id = movie_id
-
-            # mobj_id= re.match(self._VALID_URL, url)
-            # video_id = mobj.group("id")
-            # webpage_url = "https://nakedsword.com/movies/" + video_id
-            # webpage = self._download_webpage(webpage_url, video_id)
-
-            # getstream_url = "https://www.nakedsword.com/scriptservices/getstream/movie/" + movie_id
-
-            # print("videoid: ", video_id)
-            # print("webpage_url: ", webpage_url)
-            # print(webpage)
-
-            # print(getstream_url)
-            #info = self._download_json(
-            #    getstream_url,
-            #    video_id,
-            #)
-
-            info_m3u8 = self._download_json(
+        info_m3u8 = self._download_json(
                 getstream_url_m3u8,
-                video_id,
+                scene_id,
             )
 
-            #print(info_m3u8)
+        mpd_url_m3u8 = info_m3u8.get("StreamUrl")
 
-            #mpd_url = info.get("StreamUrl")
 
-            mpd_url_m3u8 = info_m3u8.get("StreamUrl")
+        formats_m3u8 = self._extract_m3u8_formats(
+            mpd_url_m3u8, scene_id, m3u8_id="hls", ext="mp4", entry_protocol='m3u8_native', fatal=False
+        )
 
-            #formats = self._extract_mpd_formats(
-            #    mpd_url, video_id, mpd_id="dash", fatal=False
-            #)
 
-            formats_m3u8 = self._extract_m3u8_formats(
-                mpd_url_m3u8, video_id, m3u8_id="hls", ext="mp4", entry_protocol='m3u8_native', fatal=False
-            )
-
-            #print(formats_m3u8)
             
-            n = len(formats_m3u8)
-            for f in formats_m3u8:
-                f['format_id'] = "hls-" + str(n-1)
-                #print(format)
-                n = n - 1
+        n = len(formats_m3u8)
+        for f in formats_m3u8:
+            f['format_id'] = "hls-" + str(n-1)
+            #print(format)
+            n = n - 1
             #input("WAIT...")
             #self._sort_formats(formats_m3u8)
 
+        title = info_m3u8.get("Title")
+        title = sanitize_filename(title)
+        title = title.replace(" ", "_")
+        title = title + "_scene_" + scene_id
 
-            #self._sort_formats(formats)
-            title = info_m3u8.get("Title")
-            title = sanitize_filename(title)
-            title = title.replace(" ", "_")
-            if (info_m3u8.get("MediaType") == "Scene"):
-                substr = webpage_url.rpartition("/")
-                title = title + "_Scene_" + substr[2]
+        self._logout()
 
-            self._logout()
+        return {
+            "id": scene_id,
+            "title": title,
+            #"formats": formats + formats_m3u8,
+            "formats": formats_m3u8,
+            "ext": "mp4"
+        }
 
-            return {
-                "id": video_id,
-                "title": title,
-                #"formats": formats + formats_m3u8,
-                "formats": formats_m3u8,
-                "ext": "mp4"
-            }
-        except Exception as e:
-            print(e)
-            self._logout()
-            return None
+class NakedSwordMovieIE(NakedSwordBaseIE):
+    IE_NAME = 'nakedsword:movie'
+    _VALID_URL = r"https?://(?:www\.)?nakedsword.com/movies/(?P<id>[\d]+)/(?P<title>[a-zA-Z\d_-]+)/?$"
+    _MOVIES_URL = "https://nakedsword.com/movies/"
+
+    def _real_initialize(self):
+
+        self._login()
+
+
+    def _real_extract(self, url):
+
+        mobj = re.match(self._VALID_URL, url)
+        playlist_id = mobj.group('id')
+        title = mobj.group('title')
+
+        webpage = self._download_webpage(url, playlist_id, "Downloading web page playlist")
+
+        #print(webpage)
+
+        pl_title = self._html_search_regex(r'(?s)<title>(?P<title>.*?)<', webpage, 'title', group='title').split(" | ")[1]
+
+        #print(title)
+
+
+        scenes_paths = re.findall(rf'{title}/scene/([\d]+)', webpage)
+
+        #print(scenes_paths)
+
+        entries = []
+        for scene in scenes_paths:
+            entry = self.url_result(self._MOVIES_URL + playlist_id + "/" + title + "/" + "scene" + "/" + scene, 'NakedSwordScene')
+            entries.append(entry)
+
+        #print(entries)
+
+        return {
+            '_type': 'playlist',
+            'id': playlist_id,
+            'title': sanitize_filename(pl_title, True),
+            'entries': entries,
+        }

@@ -689,7 +689,10 @@ from .myvi import (
     MyviEmbedIE,
 )
 from .myvidster import MyVidsterIE
-from .nakedsword import NakedSwordIE
+from .nakedsword import (
+    NakedSwordSceneIE,
+    NakedSwordMovieIE
+)
 from .nationalgeographic import (
     NationalGeographicVideoIE,
     NationalGeographicTVIE,
