@@ -237,24 +237,20 @@ Alternatively, refer to the [developer instructions](#developer-instructions) fo
                                      compare against a number, key = 'LITERAL'
                                      (like "uploader = 'Mike Smith'", also works
                                      with !=) to match against a string literal
-                                     and & to require multiple matches. Values
-                                     which are not known are excluded unless you
-                                     put a question mark (?) after the operator.
-                                     For example, to only match videos that have
-                                     been liked more than 100 times and disliked
-                                     less than 50 times (or the dislike
-                                     functionality is not available at the given
-                                     service), but who also have a description,
-                                     use --match-filter "like_count > 100 &
+                                     and & to require multiple matches. The
+                                     string comparisons ^= (starts with), *=
+                                     (contains) and $= (ends with). Every
+                                     comparison operator can be prefixed by ! to
+                                     negate it. Values which are not known are
+                                     excluded unless you put a question mark (?)
+                                     after the operator. For example, to only
+                                     match videos that have been liked more than
+                                     100 times and disliked less than 50 times
+                                     (or the dislike functionality is not
+                                     available at the given service), but who
+                                     also have a description, use
+                                     --match-filter "like_count > 100 &
                                      dislike_count <? 50 & description" .
-                                     For matching strings, the oparators ~= and
-                                     !~= check for string containment and
-                                     exclusion. The operators *= and !*= search
-                                     for a regular expression.
-                                     For example, to only match videos which
-                                     have neither 'sponsored' nor 'Sponsored' in
-                                     the title, use --match-filter "title !*=
-                                     '[Ss]ponsored'"
     --no-playlist                    Download only the video, if the URL refers
                                      to a video and a playlist.
     --yes-playlist                   Download the playlist, if the URL refers to

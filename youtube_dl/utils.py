@@ -4368,15 +4368,13 @@ def _match_one(filter_part, dct):
         '>': operator.gt,
         '>=': operator.ge,
         '=': operator.eq,
-        '!=': operator.ne,
-        '~=': operator.contains,
-        '!~=': lambda left, right: not operator.contains(left, right),
-        '*=': lambda left, right: bool(re.search(right, left)),
-        '!*=': lambda left, right: not bool(re.search(right, left)),
+        '*=': operator.contains,
+        '^=': lambda attr, value: attr.startswith(value),
+        '$=': lambda attr, value: attr.endswith(value),
     }
     operator_rex = re.compile(r'''(?x)\s*
         (?P<key>[a-z_]+)
-        \s*(?P<op>%s)(?P<none_inclusive>\s*\?)?\s*
+        \s*(?P<negation>!\s*)?(?P<op>%s)(?P<none_inclusive>\s*\?)?\s*
         (?:
             (?P<intval>[0-9.]+(?:[kKmMgGtTpPeEzZyY]i?[Bb]?)?)|
             (?P<quote>["\'])(?P<quotedstrval>(?:\\.|(?!(?P=quote)|\\).)+?)(?P=quote)|
@@ -4386,7 +4384,11 @@ def _match_one(filter_part, dct):
         ''' % '|'.join(map(re.escape, COMPARISON_OPERATORS.keys())))
     m = operator_rex.search(filter_part)
     if m:
-        op = COMPARISON_OPERATORS[m.group('op')]
+        unnegated_op = COMPARISON_OPERATORS[m.group('op')]
+        if m.group('negation'):
+            op = lambda attr, value: not unnegated_op(attr, value)
+        else:
+            op = unnegated_op
         actual_value = dct.get(m.group('key'))
         if (m.group('quotedstrval') is not None
             or m.group('strval') is not None
@@ -4401,7 +4403,7 @@ def _match_one(filter_part, dct):
             if quote is not None:
                 comparison_value = comparison_value.replace(r'\%s' % quote, quote)
         else:
-            if m.group('op') in ('~=', '!~=', '*=', '!*='):
+            if m.group('op') in ('*=', '^=', '$='):
                 raise ValueError(
                     'Operator %s only supports string values!' % m.group('op'))
             try:
