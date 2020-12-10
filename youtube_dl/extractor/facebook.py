@@ -328,11 +328,10 @@ class FacebookIE(InfoExtractor):
                     js_data, lambda x: x['jsmods']['instances'], list) or [])
 
         if not video_data:
-            server_js_data = self._parse_json(
-                self._search_regex(
-                    r'bigPipe\.onPageletArrive\(({.+?})\)\s*;\s*}\s*\)\s*,\s*["\']onPageletArrive\s+(?:pagelet_group_mall|permalink_video_pagelet|hyperfeed_story_id_\d+)',
-                    webpage, 'js data', default='{}'),
-                video_id, transform_source=js_to_json, fatal=False)
+            server_js_data = self._parse_json(self._search_regex([
+                r'bigPipe\.onPageletArrive\(({.+?})\)\s*;\s*}\s*\)\s*,\s*["\']onPageletArrive\s+(?:pagelet_group_mall|permalink_video_pagelet|hyperfeed_story_id_\d+)',
+                r'bigPipe\.onPageletArrive\(({.*?id\s*:\s*"permalink_video_pagelet".*?})\);'
+            ], webpage, 'js data', default='{}'), video_id, js_to_json, False)
             video_data = extract_from_jsmods_instances(server_js_data)
 
         if not video_data:
