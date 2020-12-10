@@ -319,10 +319,18 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                             (?:www\.)?invidious\.kabi\.tk/|
                             (?:www\.)?invidious\.13ad\.de/|
                             (?:www\.)?invidious\.mastodon\.host/|
+                            (?:www\.)?invidious\.zapashcanon\.fr/|
+                            (?:www\.)?invidious\.kavin\.rocks/|
+                            (?:www\.)?invidious\.tube/|
+                            (?:www\.)?invidiou\.site/|
+                            (?:www\.)?invidious\.site/|
+                            (?:www\.)?invidious\.xyz/|
                             (?:www\.)?invidious\.nixnet\.xyz/|
                             (?:www\.)?invidious\.drycat\.fr/|
                             (?:www\.)?tube\.poal\.co/|
+                            (?:www\.)?tube\.connect\.cafe/|
                             (?:www\.)?vid\.wxzm\.sx/|
+                            (?:www\.)?vid\.mint\.lgbt/|
                             (?:www\.)?yewtu\.be/|
                             (?:www\.)?yt\.elukerio\.org/|
                             (?:www\.)?yt\.lelux\.fi/|
