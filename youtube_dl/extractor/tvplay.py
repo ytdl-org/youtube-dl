@@ -6,20 +6,19 @@ import re
 from .common import InfoExtractor
 from ..compat import (
     compat_HTTPError,
-    compat_str,
     compat_urlparse,
 )
 from ..utils import (
     determine_ext,
     ExtractorError,
     int_or_none,
+    parse_duration,
     parse_iso8601,
     qualities,
-    smuggle_url,
     try_get,
-    unsmuggle_url,
     update_url_query,
     url_or_none,
+    urljoin,
 )
 
 
@@ -235,11 +234,6 @@ class TVPlayIE(InfoExtractor):
     ]
 
     def _real_extract(self, url):
-        url, smuggled_data = unsmuggle_url(url, {})
-        self._initialize_geo_bypass({
-            'countries': smuggled_data.get('geo_countries'),
-        })
-
         video_id = self._match_id(url)
         geo_country = self._search_regex(
             r'https?://[^/]+\.([a-z]{2})', url,
@@ -285,8 +279,6 @@ class TVPlayIE(InfoExtractor):
                     'ext': ext,
                 }
                 if video_url.startswith('rtmp'):
-                    if smuggled_data.get('skip_rtmp'):
-                        continue
                     m = re.search(
                         r'^(?P<url>rtmp://[^/]+/(?P<app>[^/]+))/(?P<playpath>.+)$', video_url)
                     if not m:
@@ -347,119 +339,84 @@ class ViafreeIE(InfoExtractor):
     _VALID_URL = r'''(?x)
                     https?://
                         (?:www\.)?
-                        viafree\.
-                        (?:
-                            (?:dk|no)/programmer|
-                            se/program
-                        )
-                        /(?:[^/]+/)+(?P<id>[^/?#&]+)
+                        viafree\.(?P<country>dk|no|se)
+                        /(?P<id>program(?:mer)?/(?:[^/]+/)+[^/?#&]+)
                     '''
     _TESTS = [{
-        'url': 'http://www.viafree.se/program/livsstil/husraddarna/sasong-2/avsnitt-2',
+        'url': 'http://www.viafree.no/programmer/underholdning/det-beste-vorspielet/sesong-2/episode-1',
         'info_dict': {
-            'id': '395375',
+            'id': '757786',
             'ext': 'mp4',
-            'title': 'Husräddarna S02E02',
-            'description': 'md5:4db5c933e37db629b5a2f75dfb34829e',
-            'series': 'Husräddarna',
-            'season': 'Säsong 2',
+            'title': 'Det beste vorspielet - Sesong 2 - Episode 1',
+            'description': 'md5:b632cb848331404ccacd8cd03e83b4c3',
+            'series': 'Det beste vorspielet',
             'season_number': 2,
-            'duration': 2576,
-            'timestamp': 1400596321,
-            'upload_date': '20140520',
+            'duration': 1116,
+            'timestamp': 1471200600,
+            'upload_date': '20160814',
         },
         'params': {
             'skip_download': True,
         },
-        'add_ie': [TVPlayIE.ie_key()],
     }, {
         # with relatedClips
         'url': 'http://www.viafree.se/program/reality/sommaren-med-youtube-stjarnorna/sasong-1/avsnitt-1',
-        'info_dict': {
-            'id': '758770',
-            'ext': 'mp4',
-            'title': 'Sommaren med YouTube-stjärnorna S01E01',
-            'description': 'md5:2bc69dce2c4bb48391e858539bbb0e3f',
-            'series': 'Sommaren med YouTube-stjärnorna',
-            'season': 'Säsong 1',
-            'season_number': 1,
-            'duration': 1326,
-            'timestamp': 1470905572,
-            'upload_date': '20160811',
-        },
-        'params': {
-            'skip_download': True,
-        },
-        'add_ie': [TVPlayIE.ie_key()],
+        'only_matching': True,
     }, {
         # Different og:image URL schema
         'url': 'http://www.viafree.se/program/reality/sommaren-med-youtube-stjarnorna/sasong-1/avsnitt-2',
         'only_matching': True,
     }, {
-        'url': 'http://www.viafree.no/programmer/underholdning/det-beste-vorspielet/sesong-2/episode-1',
+        'url': 'http://www.viafree.se/program/livsstil/husraddarna/sasong-2/avsnitt-2',
         'only_matching': True,
     }, {
         'url': 'http://www.viafree.dk/programmer/reality/paradise-hotel/saeson-7/episode-5',
         'only_matching': True,
     }]
+    _GEO_BYPASS = False
 
     @classmethod
     def suitable(cls, url):
         return False if TVPlayIE.suitable(url) else super(ViafreeIE, cls).suitable(url)
 
     def _real_extract(self, url):
-        video_id = self._match_id(url)
+        country, path = re.match(self._VALID_URL, url).groups()
+        content = self._download_json(
+            'https://viafree-content.mtg-api.com/viafree-content/v1/%s/path/%s' % (country, path), path)
+        program = content['_embedded']['viafreeBlocks'][0]['_embedded']['program']
+        guid = program['guid']
+        meta = content['meta']
+        title = meta['title']
 
-        webpage = self._download_webpage(url, video_id)
+        try:
+            stream_href = self._download_json(
+                program['_links']['streamLink']['href'], guid,
+                headers=self.geo_verification_headers())['embedded']['prioritizedStreams'][0]['links']['stream']['href']
+        except ExtractorError as e:
+            if isinstance(e.cause, compat_HTTPError) and e.cause.code == 403:
+                self.raise_geo_restricted(countries=[country])
+            raise
 
-        data = self._parse_json(
-            self._search_regex(
-                r'(?s)window\.App\s*=\s*({.+?})\s*;\s*</script',
-                webpage, 'data', default='{}'),
-            video_id, transform_source=lambda x: re.sub(
-                r'(?s)function\s+[a-zA-Z_][\da-zA-Z_]*\s*\([^)]*\)\s*{[^}]*}\s*',
-                'null', x), fatal=False)
+        formats = self._extract_m3u8_formats(stream_href, guid, 'mp4')
+        self._sort_formats(formats)
+        episode = program.get('episode') or {}
 
-        video_id = None
-
-        if data:
-            video_id = try_get(
-                data, lambda x: x['context']['dispatcher']['stores'][
-                    'ContentPageProgramStore']['currentVideo']['id'],
-                compat_str)
-
-        # Fallback #1 (extract from og:image URL schema)
-        if not video_id:
-            thumbnail = self._og_search_thumbnail(webpage, default=None)
-            if thumbnail:
-                video_id = self._search_regex(
-                    # Patterns seen:
-                    #  http://cdn.playapi.mtgx.tv/imagecache/600x315/cloud/content-images/inbox/765166/a2e95e5f1d735bab9f309fa345cc3f25.jpg
-                    #  http://cdn.playapi.mtgx.tv/imagecache/600x315/cloud/content-images/seasons/15204/758770/4a5ba509ca8bc043e1ebd1a76131cdf2.jpg
-                    r'https?://[^/]+/imagecache/(?:[^/]+/)+(\d{6,})/',
-                    thumbnail, 'video id', default=None)
-
-        # Fallback #2. Extract from raw JSON string.
-        # May extract wrong video id if relatedClips is present.
-        if not video_id:
-            video_id = self._search_regex(
-                r'currentVideo["\']\s*:\s*.+?["\']id["\']\s*:\s*["\'](\d{6,})',
-                webpage, 'video id')
-
-        return self.url_result(
-            smuggle_url(
-                'mtg:%s' % video_id,
-                {
-                    'geo_countries': [
-                        compat_urlparse.urlparse(url).netloc.rsplit('.', 1)[-1]],
-                    # rtmp host mtgfs.fplive.net for viafree is unresolvable
-                    'skip_rtmp': True,
-                }),
-            ie=TVPlayIE.ie_key(), video_id=video_id)
+        return {
+            'id': guid,
+            'title': title,
+            'thumbnail': meta.get('image'),
+            'description': meta.get('description'),
+            'series': episode.get('seriesTitle'),
+            'episode_number': int_or_none(episode.get('episodeNumber')),
+            'season_number': int_or_none(episode.get('seasonNumber')),
+            'duration': int_or_none(try_get(program, lambda x: x['video']['duration']['milliseconds']), 1000),
+            'timestamp': parse_iso8601(try_get(program, lambda x: x['availability']['start'])),
+            'formats': formats,
+        }
 
 
 class TVPlayHomeIE(InfoExtractor):
-    _VALID_URL = r'https?://tvplay\.(?:tv3\.lt|skaties\.lv|tv3\.ee)/[^/]+/[^/?#&]+-(?P<id>\d+)'
+    _VALID_URL = r'https?://(?:tv3?)?play\.(?:tv3\.lt|skaties\.lv|tv3\.ee)/(?:[^/]+/)*[^/?#&]+-(?P<id>\d+)'
     _TESTS = [{
         'url': 'https://tvplay.tv3.lt/aferistai-n-7/aferistai-10047125/',
         'info_dict': {
@@ -478,80 +435,58 @@ class TVPlayHomeIE(InfoExtractor):
         'params': {
             'skip_download': True,
         },
-        'add_ie': [TVPlayIE.ie_key()],
     }, {
         'url': 'https://tvplay.skaties.lv/vinas-melo-labak/vinas-melo-labak-10280317/',
         'only_matching': True,
     }, {
         'url': 'https://tvplay.tv3.ee/cool-d-ga-mehhikosse/cool-d-ga-mehhikosse-10044354/',
         'only_matching': True,
+    }, {
+        'url': 'https://play.tv3.lt/aferistai-10047125',
+        'only_matching': True,
+    }, {
+        'url': 'https://tv3play.skaties.lv/vinas-melo-labak-10280317',
+        'only_matching': True,
+    }, {
+        'url': 'https://play.tv3.ee/cool-d-ga-mehhikosse-10044354',
+        'only_matching': True,
     }]
 
     def _real_extract(self, url):
         video_id = self._match_id(url)
 
-        webpage = self._download_webpage(url, video_id)
+        asset = self._download_json(
+            urljoin(url, '/sb/public/asset/' + video_id), video_id)
 
-        video_id = self._search_regex(
-            r'data-asset-id\s*=\s*["\'](\d{5,})\b', webpage, 'video id')
-
-        if len(video_id) < 8:
-            return self.url_result(
-                'mtg:%s' % video_id, ie=TVPlayIE.ie_key(), video_id=video_id)
-
-        m3u8_url = self._search_regex(
-            r'data-file\s*=\s*(["\'])(?P<url>(?:(?!\1).)+)\1', webpage,
-            'm3u8 url', group='url')
+        m3u8_url = asset['movie']['contentUrl']
+        video_id = asset['assetId']
+        asset_title = asset['title']
+        title = asset_title['title']
 
         formats = self._extract_m3u8_formats(
-            m3u8_url, video_id, 'mp4', entry_protocol='m3u8_native',
-            m3u8_id='hls')
+            m3u8_url, video_id, 'mp4', 'm3u8_native', m3u8_id='hls')
         self._sort_formats(formats)
 
-        title = self._search_regex(
-            r'data-title\s*=\s*(["\'])(?P<value>(?:(?!\1).)+)\1', webpage,
-            'title', default=None, group='value') or self._html_search_meta(
-            'title', webpage, default=None) or self._og_search_title(
-            webpage)
+        thumbnails = None
+        image_url = asset.get('imageUrl')
+        if image_url:
+            thumbnails = [{
+                'url': urljoin(url, image_url),
+                'ext': 'jpg',
+            }]
 
-        description = self._html_search_meta(
-            'description', webpage,
-            default=None) or self._og_search_description(webpage)
-
-        thumbnail = self._search_regex(
-            r'data-image\s*=\s*(["\'])(?P<url>(?:(?!\1).)+)\1', webpage,
-            'thumbnail', default=None, group='url') or self._html_search_meta(
-            'thumbnail', webpage, default=None) or self._og_search_thumbnail(
-            webpage)
-
-        duration = int_or_none(self._search_regex(
-            r'data-duration\s*=\s*["\'](\d+)', webpage, 'duration',
-            fatal=False))
-
-        season = self._search_regex(
-            (r'data-series-title\s*=\s*(["\'])[^/]+/(?P<value>(?:(?!\1).)+)\1',
-             r'\bseason\s*:\s*(["\'])(?P<value>(?:(?!\1).)+)\1'), webpage,
-            'season', default=None, group='value')
-        season_number = int_or_none(self._search_regex(
-            r'(\d+)(?:[.\s]+sezona|\s+HOOAEG)', season or '', 'season number',
-            default=None))
-        episode = self._search_regex(
-            (r'\bepisode\s*:\s*(["\'])(?P<value>(?:(?!\1).)+)\1',
-             r'data-subtitle\s*=\s*(["\'])(?P<value>(?:(?!\1).)+)\1'), webpage,
-            'episode', default=None, group='value')
-        episode_number = int_or_none(self._search_regex(
-            r'(?:S[eē]rija|Osa)\s+(\d+)', episode or '', 'episode number',
-            default=None))
+        metadata = asset.get('metadata') or {}
 
         return {
             'id': video_id,
             'title': title,
-            'description': description,
-            'thumbnail': thumbnail,
-            'duration': duration,
-            'season': season,
-            'season_number': season_number,
-            'episode': episode,
-            'episode_number': episode_number,
+            'description': asset_title.get('summaryLong') or asset_title.get('summaryShort'),
+            'thumbnails': thumbnails,
+            'duration': parse_duration(asset_title.get('runTime')),
+            'series': asset.get('tvSeriesTitle'),
+            'season': asset.get('tvSeasonTitle'),
+            'season_number': int_or_none(metadata.get('seasonNumber')),
+            'episode': asset_title.get('titleBrief'),
+            'episode_number': int_or_none(metadata.get('episodeNumber')),
             'formats': formats,
         }

@@ -4,6 +4,7 @@ import re
 
 from .common import InfoExtractor
 from ..utils import (
+    determine_ext,
     ExtractorError,
     int_or_none,
     merge_dicts,
@@ -14,7 +15,7 @@ from ..utils import (
 
 
 class RedTubeIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:(?:www\.)?redtube\.com/|embed\.redtube\.com/\?.*?\bid=)(?P<id>[0-9]+)'
+    _VALID_URL = r'https?://(?:(?:\w+\.)?redtube\.com/|embed\.redtube\.com/\?.*?\bid=)(?P<id>[0-9]+)'
     _TESTS = [{
         'url': 'http://www.redtube.com/66418',
         'md5': 'fc08071233725f26b8f014dba9590005',
@@ -29,6 +30,9 @@ class RedTubeIE(InfoExtractor):
         }
     }, {
         'url': 'http://embed.redtube.com/?bgcolor=000000&id=1443286',
+        'only_matching': True,
+    }, {
+        'url': 'http://it.redtube.com/66418',
         'only_matching': True,
     }]
 
@@ -57,7 +61,7 @@ class RedTubeIE(InfoExtractor):
 
         if not info.get('title'):
             info['title'] = self._html_search_regex(
-                (r'<h(\d)[^>]+class="(?:video_title_text|videoTitle)[^"]*">(?P<title>(?:(?!\1).)+)</h\1>',
+                (r'<h(\d)[^>]+class="(?:video_title_text|videoTitle|video_title)[^"]*">(?P<title>(?:(?!\1).)+)</h\1>',
                  r'(?:videoTitle|title)\s*:\s*(["\'])(?P<title>(?:(?!\1).)+)\1',),
                 webpage, 'title', group='title',
                 default=None) or self._og_search_title(webpage)
@@ -77,13 +81,19 @@ class RedTubeIE(InfoExtractor):
                     })
         medias = self._parse_json(
             self._search_regex(
-                r'mediaDefinition\s*:\s*(\[.+?\])', webpage,
+                r'mediaDefinition["\']?\s*:\s*(\[.+?}\s*\])', webpage,
                 'media definitions', default='{}'),
             video_id, fatal=False)
         if medias and isinstance(medias, list):
             for media in medias:
                 format_url = url_or_none(media.get('videoUrl'))
                 if not format_url:
+                    continue
+                if media.get('format') == 'hls' or determine_ext(format_url) == 'm3u8':
+                    formats.extend(self._extract_m3u8_formats(
+                        format_url, video_id, 'mp4',
+                        entry_protocol='m3u8_native', m3u8_id='hls',
+                        fatal=False))
                     continue
                 format_id = media.get('quality')
                 formats.append({

@@ -106,7 +106,14 @@ class HttpFD(FileDownloader):
                 set_range(request, range_start, range_end)
             # Establish connection
             try:
-                ctx.data = self.ydl.urlopen(request)
+                try:
+                    ctx.data = self.ydl.urlopen(request)
+                except (compat_urllib_error.URLError, ) as err:
+                    # reason may not be available, e.g. for urllib2.HTTPError on python 2.6
+                    reason = getattr(err, 'reason', None)
+                    if isinstance(reason, socket.timeout):
+                        raise RetryDownload(err)
+                    raise err
                 # When trying to resume, Content-Range HTTP header of response has to be checked
                 # to match the value of requested Range HTTP header. This is due to a webservers
                 # that don't support resuming and serve a whole file with no Content-Range
@@ -218,24 +225,27 @@ class HttpFD(FileDownloader):
 
             def retry(e):
                 to_stdout = ctx.tmpfilename == '-'
-                if not to_stdout:
-                    ctx.stream.close()
-                ctx.stream = None
+                if ctx.stream is not None:
+                    if not to_stdout:
+                        ctx.stream.close()
+                    ctx.stream = None
                 ctx.resume_len = byte_counter if to_stdout else os.path.getsize(encodeFilename(ctx.tmpfilename))
                 raise RetryDownload(e)
 
             while True:
                 try:
                     # Download and write
-                    data_block = ctx.data.read(block_size if not is_test else min(block_size, data_len - byte_counter))
+                    data_block = ctx.data.read(block_size if data_len is None else min(block_size, data_len - byte_counter))
                 # socket.timeout is a subclass of socket.error but may not have
                 # errno set
                 except socket.timeout as e:
                     retry(e)
                 except socket.error as e:
-                    if e.errno not in (errno.ECONNRESET, errno.ETIMEDOUT):
-                        raise
-                    retry(e)
+                    # SSLError on python 2 (inherits socket.error) may have
+                    # no errno set but this error message
+                    if e.errno in (errno.ECONNRESET, errno.ETIMEDOUT) or getattr(e, 'message', None) == 'The read operation timed out':
+                        retry(e)
+                    raise
 
                 byte_counter += len(data_block)
 
@@ -299,7 +309,7 @@ class HttpFD(FileDownloader):
                     'elapsed': now - ctx.start_time,
                 })
 
-                if is_test and byte_counter == data_len:
+                if data_len is not None and byte_counter == data_len:
                     break
 
             if not is_test and ctx.chunk_size and ctx.data_len is not None and byte_counter < ctx.data_len:

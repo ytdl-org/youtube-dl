@@ -57,6 +57,17 @@ try:
 except ImportError:  # Python 2
     import cookielib as compat_cookiejar
 
+if sys.version_info[0] == 2:
+    class compat_cookiejar_Cookie(compat_cookiejar.Cookie):
+        def __init__(self, version, name, value, *args, **kwargs):
+            if isinstance(name, compat_str):
+                name = name.encode()
+            if isinstance(value, compat_str):
+                value = value.encode()
+            compat_cookiejar.Cookie.__init__(self, version, name, value, *args, **kwargs)
+else:
+    compat_cookiejar_Cookie = compat_cookiejar.Cookie
+
 try:
     import http.cookies as compat_cookies
 except ImportError:  # Python 2
@@ -2334,7 +2345,7 @@ except ImportError:  # Python <3.4
 
         # HTMLParseError has been deprecated in Python 3.3 and removed in
         # Python 3.5. Introducing dummy exception for Python >3.5 for compatible
-        # and uniform cross-version exceptiong handling
+        # and uniform cross-version exception handling
         class compat_HTMLParseError(Exception):
             pass
 
@@ -2987,6 +2998,7 @@ __all__ = [
     'compat_basestring',
     'compat_chr',
     'compat_cookiejar',
+    'compat_cookiejar_Cookie',
     'compat_cookies',
     'compat_ctypes_WINFUNCTYPE',
     'compat_etree_Element',

@@ -162,13 +162,12 @@ class ORFTVthekIE(InfoExtractor):
 class ORFRadioIE(InfoExtractor):
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
-        station = mobj.group('station')
         show_date = mobj.group('date')
         show_id = mobj.group('show')
 
         data = self._download_json(
             'http://audioapi.orf.at/%s/api/json/current/broadcast/%s/%s'
-            % (station, show_id, show_date), show_id)
+            % (self._API_STATION, show_id, show_date), show_id)
 
         entries = []
         for info in data['streams']:
@@ -183,7 +182,7 @@ class ORFRadioIE(InfoExtractor):
             duration = end - start if end and start else None
             entries.append({
                 'id': loop_stream_id.replace('.mp3', ''),
-                'url': 'http://loopstream01.apa.at/?channel=%s&id=%s' % (station, loop_stream_id),
+                'url': 'http://loopstream01.apa.at/?channel=%s&id=%s' % (self._LOOP_STATION, loop_stream_id),
                 'title': title,
                 'description': clean_html(data.get('subtitle')),
                 'duration': duration,
@@ -205,6 +204,8 @@ class ORFFM4IE(ORFRadioIE):
     IE_NAME = 'orf:fm4'
     IE_DESC = 'radio FM4'
     _VALID_URL = r'https?://(?P<station>fm4)\.orf\.at/player/(?P<date>[0-9]+)/(?P<show>4\w+)'
+    _API_STATION = 'fm4'
+    _LOOP_STATION = 'fm4'
 
     _TEST = {
         'url': 'http://fm4.orf.at/player/20170107/4CC',
@@ -223,10 +224,142 @@ class ORFFM4IE(ORFRadioIE):
     }
 
 
+class ORFNOEIE(ORFRadioIE):
+    IE_NAME = 'orf:noe'
+    IE_DESC = 'Radio Niederösterreich'
+    _VALID_URL = r'https?://(?P<station>noe)\.orf\.at/player/(?P<date>[0-9]+)/(?P<show>\w+)'
+    _API_STATION = 'noe'
+    _LOOP_STATION = 'oe2n'
+
+    _TEST = {
+        'url': 'https://noe.orf.at/player/20200423/NGM',
+        'only_matching': True,
+    }
+
+
+class ORFWIEIE(ORFRadioIE):
+    IE_NAME = 'orf:wien'
+    IE_DESC = 'Radio Wien'
+    _VALID_URL = r'https?://(?P<station>wien)\.orf\.at/player/(?P<date>[0-9]+)/(?P<show>\w+)'
+    _API_STATION = 'wie'
+    _LOOP_STATION = 'oe2w'
+
+    _TEST = {
+        'url': 'https://wien.orf.at/player/20200423/WGUM',
+        'only_matching': True,
+    }
+
+
+class ORFBGLIE(ORFRadioIE):
+    IE_NAME = 'orf:burgenland'
+    IE_DESC = 'Radio Burgenland'
+    _VALID_URL = r'https?://(?P<station>burgenland)\.orf\.at/player/(?P<date>[0-9]+)/(?P<show>\w+)'
+    _API_STATION = 'bgl'
+    _LOOP_STATION = 'oe2b'
+
+    _TEST = {
+        'url': 'https://burgenland.orf.at/player/20200423/BGM',
+        'only_matching': True,
+    }
+
+
+class ORFOOEIE(ORFRadioIE):
+    IE_NAME = 'orf:oberoesterreich'
+    IE_DESC = 'Radio Oberösterreich'
+    _VALID_URL = r'https?://(?P<station>ooe)\.orf\.at/player/(?P<date>[0-9]+)/(?P<show>\w+)'
+    _API_STATION = 'ooe'
+    _LOOP_STATION = 'oe2o'
+
+    _TEST = {
+        'url': 'https://ooe.orf.at/player/20200423/OGMO',
+        'only_matching': True,
+    }
+
+
+class ORFSTMIE(ORFRadioIE):
+    IE_NAME = 'orf:steiermark'
+    IE_DESC = 'Radio Steiermark'
+    _VALID_URL = r'https?://(?P<station>steiermark)\.orf\.at/player/(?P<date>[0-9]+)/(?P<show>\w+)'
+    _API_STATION = 'stm'
+    _LOOP_STATION = 'oe2st'
+
+    _TEST = {
+        'url': 'https://steiermark.orf.at/player/20200423/STGMS',
+        'only_matching': True,
+    }
+
+
+class ORFKTNIE(ORFRadioIE):
+    IE_NAME = 'orf:kaernten'
+    IE_DESC = 'Radio Kärnten'
+    _VALID_URL = r'https?://(?P<station>kaernten)\.orf\.at/player/(?P<date>[0-9]+)/(?P<show>\w+)'
+    _API_STATION = 'ktn'
+    _LOOP_STATION = 'oe2k'
+
+    _TEST = {
+        'url': 'https://kaernten.orf.at/player/20200423/KGUMO',
+        'only_matching': True,
+    }
+
+
+class ORFSBGIE(ORFRadioIE):
+    IE_NAME = 'orf:salzburg'
+    IE_DESC = 'Radio Salzburg'
+    _VALID_URL = r'https?://(?P<station>salzburg)\.orf\.at/player/(?P<date>[0-9]+)/(?P<show>\w+)'
+    _API_STATION = 'sbg'
+    _LOOP_STATION = 'oe2s'
+
+    _TEST = {
+        'url': 'https://salzburg.orf.at/player/20200423/SGUM',
+        'only_matching': True,
+    }
+
+
+class ORFTIRIE(ORFRadioIE):
+    IE_NAME = 'orf:tirol'
+    IE_DESC = 'Radio Tirol'
+    _VALID_URL = r'https?://(?P<station>tirol)\.orf\.at/player/(?P<date>[0-9]+)/(?P<show>\w+)'
+    _API_STATION = 'tir'
+    _LOOP_STATION = 'oe2t'
+
+    _TEST = {
+        'url': 'https://tirol.orf.at/player/20200423/TGUMO',
+        'only_matching': True,
+    }
+
+
+class ORFVBGIE(ORFRadioIE):
+    IE_NAME = 'orf:vorarlberg'
+    IE_DESC = 'Radio Vorarlberg'
+    _VALID_URL = r'https?://(?P<station>vorarlberg)\.orf\.at/player/(?P<date>[0-9]+)/(?P<show>\w+)'
+    _API_STATION = 'vbg'
+    _LOOP_STATION = 'oe2v'
+
+    _TEST = {
+        'url': 'https://vorarlberg.orf.at/player/20200423/VGUM',
+        'only_matching': True,
+    }
+
+
+class ORFOE3IE(ORFRadioIE):
+    IE_NAME = 'orf:oe3'
+    IE_DESC = 'Radio Österreich 3'
+    _VALID_URL = r'https?://(?P<station>oe3)\.orf\.at/player/(?P<date>[0-9]+)/(?P<show>\w+)'
+    _API_STATION = 'oe3'
+    _LOOP_STATION = 'oe3'
+
+    _TEST = {
+        'url': 'https://oe3.orf.at/player/20200424/3WEK',
+        'only_matching': True,
+    }
+
+
 class ORFOE1IE(ORFRadioIE):
     IE_NAME = 'orf:oe1'
     IE_DESC = 'Radio Österreich 1'
     _VALID_URL = r'https?://(?P<station>oe1)\.orf\.at/player/(?P<date>[0-9]+)/(?P<show>\w+)'
+    _API_STATION = 'oe1'
+    _LOOP_STATION = 'oe1'
 
     _TEST = {
         'url': 'http://oe1.orf.at/player/20170108/456544',

@@ -108,6 +108,18 @@ class TestInfoExtractor(unittest.TestCase):
         self.assertEqual(self.ie._download_json(uri, None, fatal=False), None)
 
     def test_parse_html5_media_entries(self):
+        # inline video tag
+        expect_dict(
+            self,
+            self.ie._parse_html5_media_entries(
+                'https://127.0.0.1/video.html',
+                r'<html><video src="/vid.mp4" /></html>', None)[0],
+            {
+                'formats': [{
+                    'url': 'https://127.0.0.1/vid.mp4',
+                }],
+            })
+
         # from https://www.r18.com/
         # with kpbs in label
         expect_dict(
