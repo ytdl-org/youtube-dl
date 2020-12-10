@@ -1898,6 +1898,9 @@ class YoutubeDL(object):
                             for exts in COMPATIBLE_EXTS:
                                 if video_ext in exts and audio_ext in exts:
                                     return True
+                        # Special case: Opus audio is allowed in MP4
+                        if video_ext == 'mp4' and audio_ext == 'webm':
+                            return True
                         # TODO: Check acodec/vcodec
                         return False
 
