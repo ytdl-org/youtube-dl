@@ -177,3 +177,89 @@ class NakedSwordMovieIE(NakedSwordBaseIE):
             'title': sanitize_filename(pl_title, True),
             'entries': entries,
         }
+
+class NakedSwordMostWatchedIE(NakedSwordBaseIE):
+    IE_NAME = "nakedsword:mostwatched"
+    _VALID_URL = r'https?://(?:www\.)?nakedsword.com/most-watched/?'
+    _MOST_WATCHED = 'https://nakedsword.com/most-watched?content=Scenes&page='
+    
+    def _real_extract(self, url):      
+       
+
+        entries = []
+
+        for i in range(1,5):
+               
+            webpage = self._download_webpage(f"{self._MOST_WATCHED}{i}", None, "Downloading web page playlist")
+            if webpage:  
+                #print(webpage)          
+                videos_paths = re.findall(
+                    r"<div class='SRMainTitleDurationLink'><a href='([^\']+)'>",
+                    webpage)     
+                
+                if videos_paths:
+
+                    for j, video in enumerate(videos_paths):
+                        
+                        entry = self.url_result(self._SITE_URL + video, 'NakedSwordScene') 
+                        entries.append(entry)
+                else:
+                    raise ExtractorError("No info")
+
+
+                
+            else:
+                raise ExtractorError("No info")
+
+                
+
+        return {
+            '_type': 'playlist',
+            'id': "NakedSWord mostwatched",
+            'title': "NakedSword mostwatched",
+            'entries': entries,
+        }
+
+
+class NakedSwordStarsIE(NakedSwordBaseIE):
+    IE_NAME = "nakedsword:stars"
+    _VALID_URL = r'https?://(?:www\.)?nakedsword.com/stars/(?P<id>[\d]+)/(?P<name>[a-zA-Z\d_-]+)/?$'
+    _MOST_WATCHED = "?content=Scenes&sort=MostWatched&page="
+    
+    def _real_extract(self, url):      
+       
+
+        entries = []
+
+        for i in range(1,5):
+
+
+            webpage = self._download_webpage(f"{url}{self._MOST_WATCHED}{i}", None, "Downloading web page playlist")
+            if webpage:  
+                #print(webpage)          
+                videos_paths = re.findall(
+                    r"<div class='SRMainTitleDurationLink'><a href='([^\']+)'>",
+                    webpage)     
+                
+                if videos_paths:
+
+                    for j, video in enumerate(videos_paths):
+                        
+                        entry = self.url_result(self._SITE_URL + video, 'NakedSwordScene') 
+                        entries.append(entry)
+                else:
+                    raise ExtractorError("No info")
+
+
+                
+            else:
+                raise ExtractorError("No info")
+
+                
+
+        return {
+            '_type': 'playlist',
+            'id': "NakedSWord",
+            'title': "NakedSword",
+            'entries': entries,
+        }

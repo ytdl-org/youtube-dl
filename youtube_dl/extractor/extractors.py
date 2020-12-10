@@ -691,7 +691,9 @@ from .myvi import (
 from .myvidster import MyVidsterIE
 from .nakedsword import (
     NakedSwordSceneIE,
-    NakedSwordMovieIE
+    NakedSwordMovieIE,
+    NakedSwordMostWatchedIE,
+    NakedSwordStarsIE,
 )
 from .nationalgeographic import (
     NationalGeographicVideoIE,
