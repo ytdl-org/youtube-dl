@@ -306,7 +306,8 @@ class FacebookIE(InfoExtractor):
         self._login()
 
     def _extract_from_url(self, url, video_id, fatal_if_no_video=True):
-        webpage = self._download_webpage(url, video_id)
+        webpage = self._download_webpage(
+            url.replace('://m.facebook.com/', '://www.facebook.com/'), video_id)
 
         video_data = None
 
