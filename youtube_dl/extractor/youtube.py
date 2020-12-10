@@ -2723,9 +2723,7 @@ class YoutubeTabIE(YoutubeBaseInfoExtractor):
     def _extract_video(self, renderer):
         video_id = renderer.get('videoId')
         title = try_get(
-            renderer,
-            (lambda x: x['title']['runs'][0]['text'],
-             lambda x: x['title']['simpleText']), compat_str)
+            renderer, lambda x: x('title', [None])[0], compat_str)
         description = try_get(
             renderer, lambda x: x['descriptionSnippet']['runs'][0]['text'],
             compat_str)
