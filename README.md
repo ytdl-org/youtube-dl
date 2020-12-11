@@ -552,6 +552,7 @@ The basic usage is not to set any template arguments when downloading a single f
  - `playlist_title` (string): Playlist title
  - `playlist_uploader` (string): Full name of the playlist uploader
  - `playlist_uploader_id` (string): Nickname or id of the playlist uploader
+ - `cast` (string): Comma separated list of the video cast, sorted by alphabetical order. Only implemented for Pornhub.
 
 Available for the video that belongs to some logical chapter or section:
 

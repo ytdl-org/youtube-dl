@@ -163,6 +163,16 @@ class PornHubIE(PornHubBaseIE):
     }, {
         'url': 'https://www.pornhubpremium.com/view_video.php?viewkey=ph5e4acdae54a82',
         'only_matching': True,
+    }, {
+        'url': 'http://www.pornhub.com/view_video.php?viewkey=648719015',
+        'info_dict': {
+            'cast': "Sunny Leone"
+        }
+    }, {
+        'url': 'https://www.pornhub.com/view_video.php?viewkey=ph5751a6de30963',
+        'info_dict': {
+            'cast': "Crissy Moon, Gigi Rivera, Lizz Tayler, Marco Banderas"
+        }
     }]
 
     @staticmethod
@@ -170,6 +180,10 @@ class PornHubIE(PornHubBaseIE):
         return re.findall(
             r'<iframe[^>]+?src=["\'](?P<url>(?:https?:)?//(?:www\.)?pornhub\.(?:com|net|org)/embed/[\da-z]+)',
             webpage)
+
+    def _extract_cast(self, webpage):
+        # Extract by finding data-mxptext values
+        return ", ".join(sorted(re.findall(r"data-mxptext=\"(.+)\"", webpage)))
 
     def _extract_count(self, pattern, webpage, name):
         return str_to_int(self._search_regex(
@@ -387,6 +401,7 @@ class PornHubIE(PornHubBaseIE):
             'tags': extract_list('tags'),
             'categories': extract_list('categories'),
             'subtitles': subtitles,
+            'cast': self._extract_cast(webpage),
         }, info)
 
 
