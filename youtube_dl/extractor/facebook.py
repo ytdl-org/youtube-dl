@@ -365,8 +365,8 @@ class FacebookIE(InfoExtractor):
             return video_data
 
         server_js_data = self._parse_json(self._search_regex(
-            r'handleServerJS\(({.+})(?:\);|,")', webpage,
-            'server js data', default='{}'), video_id, fatal=False)
+            [r'handleServerJS\(({.+})(?:\);|,")', r'\bs\.handle\(({.+?})\);'],
+            webpage, 'server js data', default='{}'), video_id, fatal=False)
 
         if server_js_data:
             video_data = extract_video_data(server_js_data.get('instances', []))
