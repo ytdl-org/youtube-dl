@@ -358,7 +358,7 @@ class FacebookIE(InfoExtractor):
         def extract_video_data(instances):
             video_data = []
             for item in instances:
-                if item[1][0] == 'VideoConfig':
+                if try_get(item, lambda x: x[1][0]) == 'VideoConfig':
                     video_item = item[2][0]
                     if video_item.get('video_id'):
                         video_data.append(video_item['videoData'])
