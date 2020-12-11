@@ -6,7 +6,9 @@ from ..compat import compat_urllib_parse_urlparse
 from ..utils import (
     determine_ext,
     ExtractorError,
+    find_xpath_attr,
     int_or_none,
+    unified_strdate,
     url_or_none,
     xpath_attr,
     xpath_text,
@@ -92,6 +94,32 @@ class RuutuIE(InfoExtractor):
             'url': 'https://static.nelonenmedia.fi/player/misc/embed_player.html?nid=3618790',
             'only_matching': True,
         },
+        {
+            # episode
+            'url': 'https://www.ruutu.fi/video/3401964',
+            'info_dict': {
+                'id': '3401964',
+                'ext': 'mp4',
+                'title': 'Temptation Island Suomi - Kausi 5 - Jakso 17',
+                'description': 'md5:87cf01d5e1e88adf0c8a2937d2bd42ba',
+                'thumbnail': r're:^https?://.*\.jpg$',
+                'duration': 2582,
+                'age_limit': 12,
+                'upload_date': '20190508',
+                'series': 'Temptation Island Suomi',
+                'season_number': 5,
+                'episode_number': 17,
+                'categories': ['Reality ja tositapahtumat', 'Kotimaiset suosikit', 'Romantiikka ja parisuhde'],
+            },
+            'params': {
+                'skip_download': True,
+            },
+        },
+        {
+            # premium
+            'url': 'https://www.ruutu.fi/video/3618715',
+            'only_matching': True,
+        },
     ]
     _API_BASE = 'https://gatling.nelonenmedia.fi'
 
@@ -165,18 +193,35 @@ class RuutuIE(InfoExtractor):
 
         extract_formats(video_xml.find('./Clip'))
 
-        drm = xpath_text(video_xml, './Clip/DRM', default=None)
-        if not formats and drm:
-            raise ExtractorError('This video is DRM protected.', expected=True)
+        def pv(name):
+            node = find_xpath_attr(
+                video_xml, './Clip/PassthroughVariables/variable', 'name', name)
+            if node is not None:
+                return node.get('value')
+
+        if not formats:
+            drm = xpath_text(video_xml, './Clip/DRM', default=None)
+            if drm:
+                raise ExtractorError('This video is DRM protected.', expected=True)
+            ns_st_cds = pv('ns_st_cds')
+            if ns_st_cds != 'free':
+                raise ExtractorError('This video is %s.' % ns_st_cds, expected=True)
 
         self._sort_formats(formats)
+
+        themes = pv('themes')
 
         return {
             'id': video_id,
             'title': xpath_attr(video_xml, './/Behavior/Program', 'program_name', 'title', fatal=True),
             'description': xpath_attr(video_xml, './/Behavior/Program', 'description', 'description'),
             'thumbnail': xpath_attr(video_xml, './/Behavior/Startpicture', 'href', 'thumbnail'),
-            'duration': int_or_none(xpath_text(video_xml, './/Runtime', 'duration')),
+            'duration': int_or_none(xpath_text(video_xml, './/Runtime', 'duration')) or int_or_none(pv('runtime')),
             'age_limit': int_or_none(xpath_text(video_xml, './/AgeLimit', 'age limit')),
+            'upload_date': unified_strdate(pv('date_start')),
+            'series': pv('series_name'),
+            'season_number': int_or_none(pv('season_number')),
+            'episode_number': int_or_none(pv('episode_number')),
+            'categories': themes.split(',') if themes else [],
             'formats': formats,
         }
