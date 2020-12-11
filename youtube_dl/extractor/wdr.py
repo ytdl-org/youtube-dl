@@ -105,7 +105,7 @@ class WDRIE(InfoExtractor):
 class WDRPageIE(InfoExtractor):
     _CURRENT_MAUS_URL = r'https?://(?:www\.)wdrmaus.de/(?:[^/]+/){1,2}[^/?#]+\.php5'
     _PAGE_REGEX = r'/(?:mediathek/)?(?:[^/]+/)*(?P<display_id>[^/]+)\.html'
-    _VALID_URL = r'https?://(?:www\d?\.)?(?:wdr\d?|sportschau)\.de' + _PAGE_REGEX + '|' + _CURRENT_MAUS_URL
+    _VALID_URL = r'https?://(?:www\d?\.)?(?:(?:kinder\.)?wdr\d?|sportschau)\.de' + _PAGE_REGEX + '|' + _CURRENT_MAUS_URL
 
     _TESTS = [
         {
@@ -212,7 +212,11 @@ class WDRPageIE(InfoExtractor):
         {
             'url': 'http://www.sportschau.de/handballem2018/audio-vorschau---die-handball-em-startet-mit-grossem-favoritenfeld-100.html',
             'only_matching': True,
-        }
+        },
+        {
+            'url': 'https://kinder.wdr.de/tv/die-sendung-mit-dem-elefanten/av/video-folge---astronaut-100.html',
+            'only_matching': True,
+        },
     ]
 
     def _real_extract(self, url):
