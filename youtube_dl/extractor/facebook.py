@@ -265,6 +265,17 @@ class FacebookIE(InfoExtractor):
             'timestamp': 1606162592,
         },
         'skip': 'Requires logging in',
+    }, {
+        # node.comet_sections.content.story.attached_story.attachments.style_type_renderer.attachment.media
+        'url': 'https://www.facebook.com/groups/ateistiskselskab/permalink/10154930137678856/',
+        'info_dict': {
+            'id': '211567722618337',
+            'ext': 'mp4',
+            'title': 'Facebook video #211567722618337',
+            'uploader_id': '127875227654254',
+            'upload_date': '20161122',
+            'timestamp': 1479793574,
+        },
     }]
     _SUPPORTED_PAGLETS_REGEX = r'(?:pagelet_group_mall|permalink_video_pagelet|hyperfeed_story_id_[0-9a-f]+)'
 
@@ -451,7 +462,11 @@ class FacebookIE(InfoExtractor):
                     if not nodes and node:
                         nodes.append(node)
                     for node in nodes:
-                        attachments = try_get(node, lambda x: x['comet_sections']['content']['story']['attachments'], list) or []
+                        story = try_get(node, lambda x: x['comet_sections']['content']['story'], dict) or {}
+                        attachments = try_get(story, [
+                            lambda x: x['attached_story']['attachments'],
+                            lambda x: x['attachments']
+                        ], list) or []
                         for attachment in attachments:
                             attachment = try_get(attachment, lambda x: x['style_type_renderer']['attachment'], dict)
                             ns = try_get(attachment, lambda x: x['all_subattachments']['nodes'], list) or []
