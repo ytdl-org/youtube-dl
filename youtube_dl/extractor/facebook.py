@@ -26,6 +26,7 @@ from ..utils import (
     sanitized_Request,
     try_get,
     urlencode_postdata,
+    urljoin,
 )
 
 
@@ -244,7 +245,28 @@ class FacebookIE(InfoExtractor):
         # data.video.story.attachments[].media
         'url': 'https://www.facebook.com/watch/?v=647537299265662',
         'only_matching': True,
+    }, {
+        # data.node.comet_sections.content.story.attachments[].style_type_renderer.attachment.all_subattachments.nodes[].media
+        'url': 'https://www.facebook.com/PankajShahLondon/posts/10157667649866271',
+        'info_dict': {
+            'id': '10157667649866271',
+        },
+        'playlist_count': 3,
+    }, {
+        # data.nodes[].comet_sections.content.story.attachments[].style_type_renderer.attachment.media
+        'url': 'https://m.facebook.com/Alliance.Police.Department/posts/4048563708499330',
+        'info_dict': {
+            'id': '117576630041613',
+            'ext': 'mp4',
+            # TODO: title can be extracted from video page
+            'title': 'Facebook video #117576630041613',
+            'uploader_id': '189393014416438',
+            'upload_date': '20201123',
+            'timestamp': 1606162592,
+        },
+        'skip': 'Requires logging in',
     }]
+    _SUPPORTED_PAGLETS_REGEX = r'(?:pagelet_group_mall|permalink_video_pagelet|hyperfeed_story_id_[0-9a-f]+)'
 
     @staticmethod
     def _extract_urls(webpage):
@@ -327,18 +349,20 @@ class FacebookIE(InfoExtractor):
     def _real_initialize(self):
         self._login()
 
-    def _extract_from_url(self, url, video_id, fatal_if_no_video=True):
+    def _extract_from_url(self, url, video_id):
         webpage = self._download_webpage(
             url.replace('://m.facebook.com/', '://www.facebook.com/'), video_id)
 
         video_data = None
 
         def extract_video_data(instances):
+            video_data = []
             for item in instances:
                 if item[1][0] == 'VideoConfig':
                     video_item = item[2][0]
                     if video_item.get('video_id'):
-                        return video_item['videoData']
+                        video_data.append(video_item['videoData'])
+            return video_data
 
         server_js_data = self._parse_json(self._search_regex(
             r'handleServerJS\(({.+})(?:\);|,")', webpage,
@@ -358,10 +382,18 @@ class FacebookIE(InfoExtractor):
                 formats.extend(self._parse_mpd_formats(
                     compat_etree_fromstring(compat_urllib_parse_unquote_plus(dash_manifest))))
 
+        def process_formats(formats):
+            # Downloads with browser's User-Agent are rate limited. Working around
+            # with non-browser User-Agent.
+            for f in formats:
+                f.setdefault('http_headers', {})['User-Agent'] = 'facebookexternalhit/1.1'
+
+            self._sort_formats(formats)
+
         if not video_data:
             server_js_data = self._parse_json(self._search_regex([
-                r'bigPipe\.onPageletArrive\(({.+?})\)\s*;\s*}\s*\)\s*,\s*["\']onPageletArrive\s+(?:pagelet_group_mall|permalink_video_pagelet|hyperfeed_story_id_\d+)',
-                r'bigPipe\.onPageletArrive\(({.*?id\s*:\s*"permalink_video_pagelet".*?})\);'
+                r'bigPipe\.onPageletArrive\(({.+?})\)\s*;\s*}\s*\)\s*,\s*["\']onPageletArrive\s+' + self._SUPPORTED_PAGLETS_REGEX,
+                r'bigPipe\.onPageletArrive\(({.*?id\s*:\s*"%s".*?})\);' % self._SUPPORTED_PAGLETS_REGEX
             ], webpage, 'js data', default='{}'), video_id, js_to_json, False)
             video_data = extract_from_jsmods_instances(server_js_data)
 
@@ -386,7 +418,7 @@ class FacebookIE(InfoExtractor):
                                 'url': playable_url,
                             })
                         extract_dash_manifest(video, formats)
-                        self._sort_formats(formats)
+                        process_formats(formats)
                         v_id = video.get('videoId') or video.get('id') or video_id
                         info = {
                             'id': v_id,
@@ -414,32 +446,37 @@ class FacebookIE(InfoExtractor):
 
                     data = try_get(require, lambda x: x[3][1]['__bbox']['result']['data'], dict) or {}
 
-                    attachments = try_get(data, [
-                        lambda x: x['video']['story']['attachments'],
-                        lambda x: x['video']['creation_story']['attachments'],
-                        lambda x: x['node']['comet_sections']['content']['story']['attachments']
-                    ], list) or []
-                    for attachment in attachments:
-                        attachment = try_get(attachment, lambda x: x['style_type_renderer']['attachment'], dict) or attachment
-                        nodes = try_get(attachment, lambda x: x['all_subattachments']['nodes'], list) or []
-                        for node in nodes:
-                            parse_attachment(node)
-                        parse_attachment(attachment)
+                    nodes = data.get('nodes') or []
+                    node = data.get('node') or {}
+                    if not nodes and node:
+                        nodes.append(node)
+                    for node in nodes:
+                        attachments = try_get(node, lambda x: x['comet_sections']['content']['story']['attachments'], list) or []
+                        for attachment in attachments:
+                            attachment = try_get(attachment, lambda x: x['style_type_renderer']['attachment'], dict)
+                            ns = try_get(attachment, lambda x: x['all_subattachments']['nodes'], list) or []
+                            for n in ns:
+                                parse_attachment(n)
+                            parse_attachment(attachment)
 
                     edges = try_get(data, lambda x: x['mediaset']['currMedia']['edges'], list) or []
                     for edge in edges:
                         parse_attachment(edge, key='node')
 
-                    if not entries:
-                        video = data.get('video') or {}
-                        if video:
+                    video = data.get('video') or {}
+                    if video:
+                        attachments = try_get(video, [
+                            lambda x: x['story']['attachments'],
+                            lambda x: x['creation_story']['attachments']
+                        ], list) or []
+                        for attachment in attachments:
+                            parse_attachment(attachment)
+                        if not entries:
                             parse_graphql_video(video)
 
-                    return webpage, self.playlist_result(entries, video_id)
+                    return self.playlist_result(entries, video_id)
 
         if not video_data:
-            if not fatal_if_no_video:
-                return webpage, False
             m_msg = re.search(r'class="[^"]*uiInterstitialContent[^"]*"><div>(.*?)</div>', webpage)
             if m_msg is not None:
                 raise ExtractorError(
@@ -477,6 +514,17 @@ class FacebookIE(InfoExtractor):
         if not video_data:
             raise ExtractorError('Cannot parse data')
 
+        if len(video_data) > 1:
+            entries = []
+            for v in video_data:
+                video_url = v[0].get('video_url')
+                if not video_url:
+                    continue
+                entries.append(self.url_result(urljoin(
+                    url, video_url), self.ie_key(), v[0].get('video_id')))
+            return self.playlist_result(entries, video_id)
+        video_data = video_data[0]
+
         formats = []
         subtitles = {}
         for f in video_data:
@@ -504,12 +552,7 @@ class FacebookIE(InfoExtractor):
         if not formats:
             raise ExtractorError('Cannot find video formats')
 
-        # Downloads with browser's User-Agent are rate limited. Working around
-        # with non-browser User-Agent.
-        for f in formats:
-            f.setdefault('http_headers', {})['User-Agent'] = 'facebookexternalhit/1.1'
-
-        self._sort_formats(formats)
+        process_formats(formats)
 
         video_title = self._html_search_regex(
             r'<h2\s+[^>]*class="uiHeaderTitle"[^>]*>([^<]*)</h2>', webpage,
@@ -549,35 +592,13 @@ class FacebookIE(InfoExtractor):
             'subtitles': subtitles,
         }
 
-        return webpage, info_dict
+        return info_dict
 
     def _real_extract(self, url):
         video_id = self._match_id(url)
 
         real_url = self._VIDEO_PAGE_TEMPLATE % video_id if url.startswith('facebook:') else url
-        webpage, info_dict = self._extract_from_url(real_url, video_id, fatal_if_no_video=False)
-
-        if info_dict:
-            return info_dict
-
-        if '/posts/' in url:
-            video_id_json = self._search_regex(
-                r'(["\'])video_ids\1\s*:\s*(?P<ids>\[.+?\])', webpage, 'video ids', group='ids',
-                default='')
-            if video_id_json:
-                entries = [
-                    self.url_result('facebook:%s' % vid, FacebookIE.ie_key())
-                    for vid in self._parse_json(video_id_json, video_id)]
-                return self.playlist_result(entries, video_id)
-
-            # Single Video?
-            video_id = self._search_regex(r'video_id:\s*"([0-9]+)"', webpage, 'single video id')
-            return self.url_result('facebook:%s' % video_id, FacebookIE.ie_key())
-        else:
-            _, info_dict = self._extract_from_url(
-                self._VIDEO_PAGE_TEMPLATE % video_id,
-                video_id, fatal_if_no_video=True)
-            return info_dict
+        return self._extract_from_url(real_url, video_id)
 
 
 class FacebookPluginsVideoIE(InfoExtractor):
