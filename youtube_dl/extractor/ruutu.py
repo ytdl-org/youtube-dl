@@ -13,7 +13,14 @@ from ..utils import (
 
 
 class RuutuIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:www\.)?(?:ruutu|supla)\.fi/(?:video|supla|audio)/(?P<id>\d+)'
+    _VALID_URL = r'''(?x)
+                    https?://
+                        (?:
+                            (?:www\.)?(?:ruutu|supla)\.fi/(?:video|supla|audio)/|
+                            static\.nelonenmedia\.fi/player/misc/embed_player\.html\?.*?\bnid=
+                        )
+                        (?P<id>\d+)
+                    '''
     _TESTS = [
         {
             'url': 'http://www.ruutu.fi/video/2058907',
@@ -78,6 +85,10 @@ class RuutuIE(InfoExtractor):
         },
         {
             'url': 'http://www.supla.fi/audio/2231370',
+            'only_matching': True,
+        },
+        {
+            'url': 'https://static.nelonenmedia.fi/player/misc/embed_player.html?nid=3618790',
             'only_matching': True,
         },
     ]
