@@ -43,7 +43,7 @@ class FacebookIE(InfoExtractor):
                                 video\.php|
                                 video/embed|
                                 story\.php|
-                                watch/?
+                                watch(?:/live)?/?
                             )\?(?:.*?)(?:v|video_id|story_fbid)=|
                             [^/]+/videos/(?:[^/]+/)?|
                             [^/]+/posts/|
@@ -276,6 +276,10 @@ class FacebookIE(InfoExtractor):
             'upload_date': '20161122',
             'timestamp': 1479793574,
         },
+    }, {
+        # data.video.creation_story.attachments[].media
+        'url': 'https://www.facebook.com/watch/live/?v=1823658634322275',
+        'only_matching': True,
     }]
     _SUPPORTED_PAGLETS_REGEX = r'(?:pagelet_group_mall|permalink_video_pagelet|hyperfeed_story_id_[0-9a-f]+)'
 
