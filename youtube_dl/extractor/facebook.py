@@ -16,11 +16,13 @@ from ..utils import (
     clean_html,
     error_to_compat_str,
     ExtractorError,
+    float_or_none,
     get_element_by_id,
     int_or_none,
     js_to_json,
     limit_length,
     parse_count,
+    qualities,
     sanitized_Request,
     try_get,
     urlencode_postdata,
@@ -39,7 +41,8 @@ class FacebookIE(InfoExtractor):
                                 photo\.php|
                                 video\.php|
                                 video/embed|
-                                story\.php
+                                story\.php|
+                                watch/?
                             )\?(?:.*?)(?:v|video_id|story_fbid)=|
                             [^/]+/videos/(?:[^/]+/)?|
                             [^/]+/posts/|
@@ -53,8 +56,6 @@ class FacebookIE(InfoExtractor):
     _CHECKPOINT_URL = 'https://www.facebook.com/checkpoint/?next=http%3A%2F%2Ffacebook.com%2Fhome.php&_fb_noscript=1'
     _NETRC_MACHINE = 'facebook'
     IE_NAME = 'facebook'
-
-    _CHROME_USER_AGENT = 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/48.0.2564.97 Safari/537.36'
 
     _VIDEO_PAGE_TEMPLATE = 'https://www.facebook.com/video/video.php?v=%s'
     _VIDEO_PAGE_TAHOE_TEMPLATE = 'https://www.facebook.com/video/tahoe/async/%s/?chain=true&isvideo=true&payloadtype=primary'
@@ -72,6 +73,7 @@ class FacebookIE(InfoExtractor):
         },
         'skip': 'Requires logging in',
     }, {
+        # data.video
         'url': 'https://www.facebook.com/video.php?v=274175099429670',
         'info_dict': {
             'id': '274175099429670',
@@ -133,6 +135,7 @@ class FacebookIE(InfoExtractor):
         },
     }, {
         # have 1080P, but only up to 720p in swf params
+        # data.video.story.attachments[].media
         'url': 'https://www.facebook.com/cnn/videos/10155529876156509/',
         'md5': '9571fae53d4165bbbadb17a94651dcdc',
         'info_dict': {
@@ -147,6 +150,7 @@ class FacebookIE(InfoExtractor):
         },
     }, {
         # bigPipe.onPageletArrive ... onPageletArrive pagelet_group_mall
+        # data.node.comet_sections.content.story.attachments[].style_type_renderer.attachment.media
         'url': 'https://www.facebook.com/yaroslav.korpan/videos/1417995061575415/',
         'info_dict': {
             'id': '1417995061575415',
@@ -174,6 +178,7 @@ class FacebookIE(InfoExtractor):
             'skip_download': True,
         },
     }, {
+        # data.node.comet_sections.content.story.attachments[].style_type_renderer.attachment.media
         'url': 'https://www.facebook.com/groups/1024490957622648/permalink/1396382447100162/',
         'info_dict': {
             'id': '1396382447100162',
@@ -193,18 +198,23 @@ class FacebookIE(InfoExtractor):
         'url': 'https://www.facebook.com/amogood/videos/1618742068337349/?fref=nf',
         'only_matching': True,
     }, {
+        # data.mediaset.currMedia.edges
         'url': 'https://www.facebook.com/ChristyClarkForBC/videos/vb.22819070941/10153870694020942/?type=2&theater',
         'only_matching': True,
     }, {
+        # data.video.story.attachments[].media
         'url': 'facebook:544765982287235',
         'only_matching': True,
     }, {
+        # data.node.comet_sections.content.story.attachments[].style_type_renderer.attachment.media
         'url': 'https://www.facebook.com/groups/164828000315060/permalink/764967300301124/',
         'only_matching': True,
     }, {
+        # data.video.creation_story.attachments[].media
         'url': 'https://zh-hk.facebook.com/peoplespower/videos/1135894589806027/',
         'only_matching': True,
     }, {
+        # data.video
         'url': 'https://www.facebookcorewwwi.onion/video.php?v=274175099429670',
         'only_matching': True,
     }, {
@@ -212,6 +222,7 @@ class FacebookIE(InfoExtractor):
         'url': 'https://www.facebook.com/onlycleverentertainment/videos/1947995502095005/',
         'only_matching': True,
     }, {
+        # data.video
         'url': 'https://www.facebook.com/WatchESLOne/videos/359649331226507/',
         'info_dict': {
             'id': '359649331226507',
@@ -222,6 +233,27 @@ class FacebookIE(InfoExtractor):
         'params': {
             'skip_download': True,
         },
+    }, {
+        # data.node.comet_sections.content.story.attachments[].style_type_renderer.attachment.all_subattachments.nodes[].media
+        'url': 'https://www.facebook.com/100033620354545/videos/106560053808006/',
+        'info_dict': {
+            'id': '106560053808006',
+        },
+        'playlist_count': 2,
+    }, {
+        # data.video_home_www_feed.video_home_sections.edges[].node.feed_section_renderer.section.section_components.edges[].node.feed_unit.attachments
+        'url': 'https://www.facebook.com/watch/?v=125475412191640',
+        'md5': 'a38bed45dd1b2881ea230f3561c914b7',
+        'info_dict': {
+            'id': '373249263226147',
+            'ext': 'mp4',
+            'title': 'شوف بعينيك ماذا يحدث...ماناش نخوف فيكم رانا ننقل لكم مايحدث...',
+            'description': 'شوف بعينيك ماذا يحدث خويا العزيز...ماناش نخوف فيكم رانا ننقل لكم مايحدث...\nتذكروا جيدا ماكنا نقوله لكم منذ سنوات وماكنا نحذركم .',
+            'timestamp': 1550353963,
+            'upload_date': '20190216',
+            'uploader_id': '176917942440142',
+        },
+        'skip': 'Requires logging in',
     }]
 
     @staticmethod
@@ -306,9 +338,8 @@ class FacebookIE(InfoExtractor):
         self._login()
 
     def _extract_from_url(self, url, video_id, fatal_if_no_video=True):
-        req = sanitized_Request(url)
-        req.add_header('User-Agent', self._CHROME_USER_AGENT)
-        webpage = self._download_webpage(req, video_id)
+        webpage = self._download_webpage(
+            url.replace('://m.facebook.com/', '://www.facebook.com/'), video_id)
 
         video_data = None
 
@@ -331,13 +362,98 @@ class FacebookIE(InfoExtractor):
                 return extract_video_data(try_get(
                     js_data, lambda x: x['jsmods']['instances'], list) or [])
 
+        def extract_dash_manifest(video, formats):
+            dash_manifest = video.get('dash_manifest')
+            if dash_manifest:
+                formats.extend(self._parse_mpd_formats(
+                    compat_etree_fromstring(compat_urllib_parse_unquote_plus(dash_manifest))))
+
         if not video_data:
-            server_js_data = self._parse_json(
-                self._search_regex(
-                    r'bigPipe\.onPageletArrive\(({.+?})\)\s*;\s*}\s*\)\s*,\s*["\']onPageletArrive\s+(?:pagelet_group_mall|permalink_video_pagelet|hyperfeed_story_id_\d+)',
-                    webpage, 'js data', default='{}'),
-                video_id, transform_source=js_to_json, fatal=False)
+            server_js_data = self._parse_json(self._search_regex([
+                r'bigPipe\.onPageletArrive\(({.+?})\)\s*;\s*}\s*\)\s*,\s*["\']onPageletArrive\s+(?:pagelet_group_mall|permalink_video_pagelet|hyperfeed_story_id_\d+)',
+                r'bigPipe\.onPageletArrive\(({.*?id\s*:\s*"permalink_video_pagelet".*?})\);'
+            ], webpage, 'js data', default='{}'), video_id, js_to_json, False)
             video_data = extract_from_jsmods_instances(server_js_data)
+
+        if not video_data:
+            graphql_data = self._parse_json(self._search_regex(
+                r'handleWithCustomApplyEach\([^,]+,\s*({.*?"(?:dash_manifest|playable_url(?:_quality_hd)?)"\s*:\s*"[^"]+".*?})\);',
+                webpage, 'graphql data', default='{}'), video_id, fatal=False) or {}
+            for require in (graphql_data.get('require') or []):
+                if require[0] == 'RelayPrefetchedStreamCache':
+                    entries = []
+
+                    def parse_graphql_video(video):
+                        formats = []
+                        q = qualities(['sd', 'hd'])
+                        for (suffix, format_id) in [('', 'sd'), ('_quality_hd', 'hd')]:
+                            playable_url = video.get('playable_url' + suffix)
+                            if not playable_url:
+                                continue
+                            formats.append({
+                                'format_id': format_id,
+                                'quality': q(format_id),
+                                'url': playable_url,
+                            })
+                        extract_dash_manifest(video, formats)
+                        self._sort_formats(formats)
+                        v_id = video.get('videoId') or video.get('id') or video_id
+                        info = {
+                            'id': v_id,
+                            'formats': formats,
+                            'thumbnail': try_get(video, lambda x: x['thumbnailImage']['uri']),
+                            'uploader_id': try_get(video, lambda x: x['owner']['id']),
+                            'timestamp': int_or_none(video.get('publish_time')),
+                            'duration': float_or_none(video.get('playable_duration_in_ms'), 1000),
+                        }
+                        description = try_get(video, lambda x: x['savable_description']['text'])
+                        title = video.get('name')
+                        if title:
+                            info.update({
+                                'title': title,
+                                'description': description,
+                            })
+                        else:
+                            info['title'] = description or 'Facebook video #%s' % v_id
+                        entries.append(info)
+
+                    def parse_attachment(attachment, key='media'):
+                        media = attachment.get(key) or {}
+                        if media.get('__typename') == 'Video':
+                            return parse_graphql_video(media)
+
+                    data = try_get(require, lambda x: x[3][1]['__bbox']['result']['data'], dict) or {}
+
+                    attachments = try_get(data, [
+                        lambda x: x['video']['story']['attachments'],
+                        lambda x: x['video']['creation_story']['attachments'],
+                        lambda x: x['node']['comet_sections']['content']['story']['attachments']
+                    ], list) or []
+                    for attachment in attachments:
+                        attachment = try_get(attachment, lambda x: x['style_type_renderer']['attachment'], dict) or attachment
+                        nodes = try_get(attachment, lambda x: x['all_subattachments']['nodes'], list) or []
+                        for node in nodes:
+                            parse_attachment(node)
+                        parse_attachment(attachment)
+
+                    edges = try_get(data, lambda x: x['mediaset']['currMedia']['edges'], list) or []
+                    for edge in edges:
+                        parse_attachment(edge, key='node')
+
+                    video_home_sections = try_get(data, lambda x: x['video_home_www_feed']['video_home_sections']['edges'], list) or []
+                    for video_home_section in video_home_sections:
+                        section_components = try_get(video_home_section, lambda x: x['node']['feed_section_renderer']['section']['section_components']['edges'], list) or []
+                        for section_component in section_components:
+                            attachments = try_get(section_component, lambda x: x['node']['feed_unit']['attachments'], list) or []
+                            for attachment in attachments:
+                                parse_attachment(attachment)
+
+                    if not entries:
+                        video = data.get('video') or {}
+                        if video:
+                            parse_graphql_video(video)
+
+                    return webpage, self.playlist_result(entries, video_id)
 
         if not video_data:
             if not fatal_if_no_video:
@@ -379,8 +495,8 @@ class FacebookIE(InfoExtractor):
         if not video_data:
             raise ExtractorError('Cannot parse data')
 
-        subtitles = {}
         formats = []
+        subtitles = {}
         for f in video_data:
             format_id = f['stream_type']
             if f and isinstance(f, dict):
@@ -399,10 +515,7 @@ class FacebookIE(InfoExtractor):
                             'url': src,
                             'preference': preference,
                         })
-            dash_manifest = f[0].get('dash_manifest')
-            if dash_manifest:
-                formats.extend(self._parse_mpd_formats(
-                    compat_etree_fromstring(compat_urllib_parse_unquote_plus(dash_manifest))))
+            extract_dash_manifest(f[0], formats)
             subtitles_src = f[0].get('subtitles_src')
             if subtitles_src:
                 subtitles.setdefault('en', []).append({'url': subtitles_src})
