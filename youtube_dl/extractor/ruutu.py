@@ -7,6 +7,7 @@ from ..utils import (
     determine_ext,
     ExtractorError,
     int_or_none,
+    url_or_none,
     xpath_attr,
     xpath_text,
 )
@@ -92,12 +93,13 @@ class RuutuIE(InfoExtractor):
             'only_matching': True,
         },
     ]
+    _API_BASE = 'https://gatling.nelonenmedia.fi'
 
     def _real_extract(self, url):
         video_id = self._match_id(url)
 
         video_xml = self._download_xml(
-            'https://gatling.nelonenmedia.fi/media-xml-cache', video_id,
+            '%s/media-xml-cache' % self._API_BASE, video_id,
             query={'id': video_id})
 
         formats = []
@@ -114,9 +116,18 @@ class RuutuIE(InfoExtractor):
                         continue
                     processed_urls.append(video_url)
                     ext = determine_ext(video_url)
+                    auth_video_url = url_or_none(self._download_webpage(
+                        '%s/auth/access/v2' % self._API_BASE, video_id,
+                        note='Downloading authenticated %s stream URL' % ext,
+                        fatal=False, query={'stream': video_url}))
+                    if auth_video_url:
+                        processed_urls.append(auth_video_url)
+                        video_url = auth_video_url
                     if ext == 'm3u8':
                         formats.extend(self._extract_m3u8_formats(
-                            video_url, video_id, 'mp4', m3u8_id='hls', fatal=False))
+                            video_url, video_id, 'mp4',
+                            entry_protocol='m3u8_native', m3u8_id='hls',
+                            fatal=False))
                     elif ext == 'f4m':
                         formats.extend(self._extract_f4m_formats(
                             video_url, video_id, f4m_id='hds', fatal=False))
