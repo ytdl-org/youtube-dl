@@ -41,7 +41,8 @@ class FacebookIE(InfoExtractor):
                                 photo\.php|
                                 video\.php|
                                 video/embed|
-                                story\.php
+                                story\.php|
+                                watch/?
                             )\?(?:.*?)(?:v|video_id|story_fbid)=|
                             [^/]+/videos/(?:[^/]+/)?|
                             [^/]+/posts/|
@@ -239,6 +240,10 @@ class FacebookIE(InfoExtractor):
             'id': '106560053808006',
         },
         'playlist_count': 2,
+    }, {
+        # data.video.story.attachments[].media
+        'url': 'https://www.facebook.com/watch/?v=647537299265662',
+        'only_matching': True,
     }]
 
     @staticmethod
