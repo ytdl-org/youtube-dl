@@ -288,15 +288,25 @@ class PornHubIE(PornHubBaseIE):
             video_urls.append((v_url, None))
             video_urls_set.add(v_url)
 
+        def parse_quality_items(js_str):
+            if (url_or_none(js_str)):
+                return js_str
+            media_definitions = self._parse_json(js_str, video_id, fatal=False)
+            if isinstance(media_definitions, list):
+                for definition in media_definitions:
+                    if not isinstance(definition, dict):
+                        continue
+                    add_video_url(definition.get('url'))
+
         if not video_urls:
-            FORMAT_PREFIXES = ('media', 'quality')
+            FORMAT_PREFIXES = ('media', 'quality', 'qualityItems')
             js_vars = extract_js_vars(
                 webpage, r'(var\s+(?:%s)_.+)' % '|'.join(FORMAT_PREFIXES),
                 default=None)
             if js_vars:
                 for key, format_url in js_vars.items():
                     if any(key.startswith(p) for p in FORMAT_PREFIXES):
-                        add_video_url(format_url)
+                        add_video_url(parse_quality_items(format_url))
             if not video_urls and re.search(
                     r'<[^>]+\bid=["\']lockedPlayer', webpage):
                 raise ExtractorError(
