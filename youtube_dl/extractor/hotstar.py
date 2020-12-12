@@ -25,7 +25,7 @@ from ..utils import (
 class HotStarBaseIE(InfoExtractor):
     _AKAMAI_ENCRYPTION_KEY = b'\x05\xfc\x1a\x01\xca\xc9\x4b\xc4\x12\xfc\x53\x12\x07\x75\xf9\xee'
 
-    def _call_api_impl(self, path, video_id, query):
+    def _call_api(self, path, video_id, query_name='contentId'):
         st = int(time.time())
         exp = st + 6000
         auth = 'st=%d~exp=%d~acl=/*' % (st, exp)
@@ -35,33 +35,51 @@ class HotStarBaseIE(InfoExtractor):
                 'hotstarauth': auth,
                 'x-country-code': 'IN',
                 'x-platform-code': 'JIO',
-            }, query=query)
+            }, query={
+                query_name: video_id,
+                'tas': 10000,
+            })
         if response['statusCode'] != 'OK':
             raise ExtractorError(
                 response['body']['message'], expected=True)
         return response['body']['results']
 
-    def _call_api(self, path, video_id, query_name='contentId'):
-        return self._call_api_impl(path, video_id, {
-            query_name: video_id,
-            'tas': 10000,
-        })
+    def _call_api_v2(self, path, video_id, country_code):
+        cookies = self._get_cookies('https://www.hotstar.com/%s' % (country_code))
+        user_up = cookies.get('userUP')
+        if not user_up or not user_up.value:
+            raise ExtractorError(
+                'You must pass the cookies for a logged in hotstar.com '
+                'session with --cookies to download replays.',
+                expected=True)
 
-    def _call_api_v2(self, path, video_id):
-        return self._call_api_impl(
-            '%s/in/contents/%s' % (path, video_id), video_id, {
-                'desiredConfig': 'encryption:plain;ladder:phone,tv;package:hls,dash',
-                'client': 'mweb',
-                'clientVersion': '6.18.0',
-                'deviceId': compat_str(uuid.uuid4()),
-                'osName': 'Windows',
-                'osVersion': '10',
+        st = int(time.time())
+        exp = st + 6000
+        auth = 'st=%d~exp=%d~acl=/*' % (st, exp)
+        auth += '~hmac=' + hmac.new(self._AKAMAI_ENCRYPTION_KEY, auth.encode(), hashlib.sha256).hexdigest()
+        response = self._download_json(
+            'https://api.hotstar.com/%s/%s' % (path, video_id), video_id, headers={
+                'hotstarauth': auth,
+                'x-country-code': country_code,
+                'x-HS-AppVersion': '6.88.2',
+                'x-HS-Platform': 'web',
+                'x-HS-UserToken': user_up.value,
+                'x-Request-Id': compat_str(uuid.uuid4()),
+            }, query={
+                'desired-config': 'encryption:plain|ladder:phone|package:hls',
+                'device-id': compat_str(uuid.uuid4()),
+                'os-name': 'Windows',
+                'os-version': '10',
             })
+        if 'errorCode' in response:
+            raise ExtractorError(
+                response, expected=True)
+        return response['data']
 
 
 class HotStarIE(HotStarBaseIE):
     IE_NAME = 'hotstar'
-    _VALID_URL = r'https?://(?:www\.)?hotstar\.com/(?:.+?[/-])?(?P<id>\d{10})'
+    _VALID_URL = r'https?://(?:www\.)?hotstar\.com/(?:(?P<country_code>\w\w)/)?(?:.+?[/-])?(?P<id>\d{10})'
     _TESTS = [{
         # contentData
         'url': 'https://www.hotstar.com/can-you-not-spread-rumours/1000076273',
@@ -96,7 +114,9 @@ class HotStarIE(HotStarBaseIE):
     _GEO_BYPASS = False
 
     def _real_extract(self, url):
-        video_id = self._match_id(url)
+        country_code, video_id = re.match(HotStarIE._VALID_URL, url).groups()
+        if country_code is None:
+            country_code = 'in'
 
         webpage = self._download_webpage(url, video_id)
         app_state = self._parse_json(self._search_regex(
@@ -115,13 +135,10 @@ class HotStarIE(HotStarBaseIE):
 
         title = video_data['title']
 
-        if video_data.get('drmProtected'):
-            raise ExtractorError('This video is DRM protected.', expected=True)
-
         headers = {'Referer': url}
         formats = []
         geo_restricted = False
-        playback_sets = self._call_api_v2('h/v2/play', video_id)['playBackSets']
+        playback_sets = self._call_api_v2('play/v2/playback/content', video_id, country_code)['playBackSets']
         for playback_set in playback_sets:
             if not isinstance(playback_set, dict):
                 continue
@@ -183,7 +200,7 @@ class HotStarIE(HotStarBaseIE):
 
 class HotStarPlaylistIE(HotStarBaseIE):
     IE_NAME = 'hotstar:playlist'
-    _VALID_URL = r'https?://(?:www\.)?hotstar\.com/tv/[^/]+/s-\w+/list/[^/]+/t-(?P<id>\w+)'
+    _VALID_URL = r'https?://(?:www\.)?hotstar\.com/(?:(?P<country_code>\w\w)/)?tv/[^/]+/s-\w+/list/[^/]+/t-(?P<id>\w+)'
     _TESTS = [{
         'url': 'https://www.hotstar.com/tv/savdhaan-india/s-26/list/popular-clips/t-3_2_26',
         'info_dict': {
@@ -196,13 +213,15 @@ class HotStarPlaylistIE(HotStarBaseIE):
     }]
 
     def _real_extract(self, url):
-        playlist_id = self._match_id(url)
+        country_code, playlist_id = re.match(HotStarPlaylistIE._VALID_URL, url).groups()
+        if country_code is None:
+            country_code = 'in'
 
         collection = self._call_api('o/v1/tray/find', playlist_id, 'uqId')
 
         entries = [
             self.url_result(
-                'https://www.hotstar.com/%s' % video['contentId'],
+                'https://www.hotstar.com/%s/%s' % (country_code, video['contentId']),
                 ie=HotStarIE.ie_key(), video_id=video['contentId'])
             for video in collection['assets']['items']
             if video.get('contentId')]
