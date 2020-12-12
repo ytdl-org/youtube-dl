@@ -1308,53 +1308,56 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
             return self._parse_json(
                 uppercase_escape(config), video_id, fatal=False)
 
-    def _get_automatic_captions(self, video_id, webpage):
+    def _get_automatic_captions(self, video_id, webpage, player_response):
         """We need the webpage for getting the captions url, pass it as an
            argument to speed up the process."""
+        # player_response is passed in since _get_ytplayer_config is no longer
+        # available (see https://github.com/ytdl-org/youtube-dl/issues/27315)
         self.to_screen('%s: Looking for automatic captions' % video_id)
         player_config = self._get_ytplayer_config(video_id, webpage)
         err_msg = 'Couldn\'t find automatic captions for %s' % video_id
-        if not player_config:
+        if not player_config and not player_response:
             self._downloader.report_warning(err_msg)
             return {}
         try:
-            args = player_config['args']
-            caption_url = args.get('ttsurl')
-            if caption_url:
-                timestamp = args['timestamp']
-                # We get the available subtitles
-                list_params = compat_urllib_parse_urlencode({
-                    'type': 'list',
-                    'tlangs': 1,
-                    'asrs': 1,
-                })
-                list_url = caption_url + '&' + list_params
-                caption_list = self._download_xml(list_url, video_id)
-                original_lang_node = caption_list.find('track')
-                if original_lang_node is None:
-                    self._downloader.report_warning('Video doesn\'t have automatic captions')
-                    return {}
-                original_lang = original_lang_node.attrib['lang_code']
-                caption_kind = original_lang_node.attrib.get('kind', '')
+            if player_config:
+                args = player_config['args']
+                caption_url = args.get('ttsurl')
+                if caption_url:
+                    timestamp = args['timestamp']
+                    # We get the available subtitles
+                    list_params = compat_urllib_parse_urlencode({
+                        'type': 'list',
+                        'tlangs': 1,
+                        'asrs': 1,
+                    })
+                    list_url = caption_url + '&' + list_params
+                    caption_list = self._download_xml(list_url, video_id)
+                    original_lang_node = caption_list.find('track')
+                    if original_lang_node is None:
+                        self._downloader.report_warning('Video doesn\'t have automatic captions')
+                        return {}
+                    original_lang = original_lang_node.attrib['lang_code']
+                    caption_kind = original_lang_node.attrib.get('kind', '')
 
-                sub_lang_list = {}
-                for lang_node in caption_list.findall('target'):
-                    sub_lang = lang_node.attrib['lang_code']
-                    sub_formats = []
-                    for ext in self._SUBTITLE_FORMATS:
-                        params = compat_urllib_parse_urlencode({
-                            'lang': original_lang,
-                            'tlang': sub_lang,
-                            'fmt': ext,
-                            'ts': timestamp,
-                            'kind': caption_kind,
-                        })
-                        sub_formats.append({
-                            'url': caption_url + '&' + params,
-                            'ext': ext,
-                        })
-                    sub_lang_list[sub_lang] = sub_formats
-                return sub_lang_list
+                    sub_lang_list = {}
+                    for lang_node in caption_list.findall('target'):
+                        sub_lang = lang_node.attrib['lang_code']
+                        sub_formats = []
+                        for ext in self._SUBTITLE_FORMATS:
+                            params = compat_urllib_parse_urlencode({
+                                'lang': original_lang,
+                                'tlang': sub_lang,
+                                'fmt': ext,
+                                'ts': timestamp,
+                                'kind': caption_kind,
+                            })
+                            sub_formats.append({
+                                'url': caption_url + '&' + params,
+                                'ext': ext,
+                            })
+                        sub_lang_list[sub_lang] = sub_formats
+                    return sub_lang_list
 
             def make_captions(sub_url, sub_langs):
                 parsed_sub_url = compat_urllib_parse_urlparse(sub_url)
@@ -1377,33 +1380,39 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                 return captions
 
             # New captions format as of 22.06.2017
+            # As player_response passes in as a parameter, we don't need to get and
+            # parse it from args as of 12.12.2020
+            '''
             player_response = args.get('player_response')
-            if player_response and isinstance(player_response, compat_str):
-                player_response = self._parse_json(
-                    player_response, video_id, fatal=False)
-                if player_response:
-                    renderer = player_response['captions']['playerCaptionsTracklistRenderer']
-                    base_url = renderer['captionTracks'][0]['baseUrl']
-                    sub_lang_list = []
-                    for lang in renderer['translationLanguages']:
-                        lang_code = lang.get('languageCode')
-                        if lang_code:
-                            sub_lang_list.append(lang_code)
-                    return make_captions(base_url, sub_lang_list)
+            pl_response = self._parse_json(player_response,
+                                           video_id,
+                                           fatal=False)
+            '''
+            if player_response:
+                captions = player_response.get('captions')
+                renderer = captions.get('playerCaptionsTracklistRenderer')
+                base_url = renderer['captionTracks'][0]['baseUrl']
+                sub_lang_list = []
+                for lang in renderer['translationLanguages']:
+                    lang_code = lang.get('languageCode')
+                    if lang_code:
+                        sub_lang_list.append(lang_code)
+                return make_captions(base_url, sub_lang_list)
 
             # Some videos don't provide ttsurl but rather caption_tracks and
             # caption_translation_languages (e.g. 20LmZk1hakA)
             # Does not used anymore as of 22.06.2017
-            caption_tracks = args['caption_tracks']
-            caption_translation_languages = args['caption_translation_languages']
-            caption_url = compat_parse_qs(caption_tracks.split(',')[0])['u'][0]
-            sub_lang_list = []
-            for lang in caption_translation_languages.split(','):
-                lang_qs = compat_parse_qs(compat_urllib_parse_unquote_plus(lang))
-                sub_lang = lang_qs.get('lc', [None])[0]
-                if sub_lang:
-                    sub_lang_list.append(sub_lang)
-            return make_captions(caption_url, sub_lang_list)
+            if player_config:
+                caption_tracks = args['caption_tracks']
+                caption_translation_languages = args['caption_translation_languages']
+                caption_url = compat_parse_qs(caption_tracks.split(',')[0])['u'][0]
+                sub_lang_list = []
+                for lang in caption_translation_languages.split(','):
+                    lang_qs = compat_parse_qs(compat_urllib_parse_unquote_plus(lang))
+                    sub_lang = lang_qs.get('lc', [None])[0]
+                    if sub_lang:
+                        sub_lang_list.append(sub_lang)
+                return make_captions(caption_url, sub_lang_list)
         # An extractor error can be raise by the download process if there are
         # no automatic captions but there are subtitles
         except (KeyError, IndexError, ExtractorError):
@@ -2262,7 +2271,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
 
         # subtitles
         video_subtitles = self.extract_subtitles(video_id, video_webpage)
-        automatic_captions = self.extract_automatic_captions(video_id, video_webpage)
+        automatic_captions = self.extract_automatic_captions(video_id, video_webpage, player_response)
 
         video_duration = try_get(
             video_info, lambda x: int_or_none(x['length_seconds'][0]))
