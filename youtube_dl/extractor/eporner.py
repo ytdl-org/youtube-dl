@@ -57,7 +57,7 @@ class EpornerIE(InfoExtractor):
         video_id = self._match_id(urlh.geturl())
 
         hash = self._search_regex(
-            r'hash\s*:\s*["\']([\da-f]{32})', webpage, 'hash')
+            r'hash\s*[:=]\s*["\']([\da-f]{32})', webpage, 'hash')
 
         title = self._og_search_title(webpage, default=None) or self._html_search_regex(
             r'<title>(.+?) - EPORNER', webpage, 'title')
