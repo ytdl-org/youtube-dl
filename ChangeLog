@@ -1,3 +1,36 @@
+version <unreleased>
+
+Core
+* [YoutubeDL] Improve thumbnail filename deducing (#26010, #27244)
+
+Extractors
++ [ruutu] Extract more metadata
++ [ruutu] Detect non-free videos (#21154)
+* [ruutu] Authenticate format URLs (#21031, #26782)
++ [ruutu] Add support for static.nelonenmedia.fi (#25412)
++ [ruutu] Extend URL regular expression (#24839)
++ [facebook] Add support archived live video URLs (#15859)
+* [wdr] Improve overall extraction
++ [wdr] Extend subtitles extraction (#22672, #22723)
++ [facebook] Add support for videos attached to Relay based story pages
+  (#10795)
++ [wdr:page] Add support for kinder.wdr.de (#27350)
++ [facebook] Add another regular expression for handleServerJS
+* [facebook] Fix embed page extraction
++ [facebook] Add support for Relay post pages (#26935)
++ [facebook] Add support for watch videos (#22795, #27062)
++ [facebook] Add support for group posts with multiple videos (#19131)
+* [itv] Fix series metadata extraction (#26897)
+- [itv] Remove old extraction method (#23177)
+* [facebook] Redirect mobile URLs to desktop URLs (#24831, #25624)
++ [facebook] Add support for Relay based pages (#26823)
+* [facebook] Try to reduce unnecessary tahoe requests
+- [facebook] Remove hardcoded Chrome User-Agent (#18974, #25411, #26958,
+  #27329)
+- [smotri] Remove extractor (#27358)
+- [beampro] Remove extractor (#17290, #22871, #23020, #23061, #26099)
+
+
 version 2020.12.09
 
 Core
