@@ -1,4 +1,4 @@
-version <unreleased>
+version 2020.12.12
 
 Core
 * [YoutubeDL] Improve thumbnail filename deducing (#26010, #27244)
