@@ -18,8 +18,8 @@ class MxplayerIE(InfoExtractor):
         'url': 'https://www.mxplayer.in/movie/watch-knock-knock-hindi-dubbed-movie-online-b9fa28df3bfb8758874735bbd7d2655a?watch=true',
         'info_dict': {
             'id': 'b9fa28df3bfb8758874735bbd7d2655a',
-            'ext': 'mpd',
-            'title': 'watch-knock-knock-hindi-dubbed-movie-online',
+            'ext': 'mp4',
+            'title': 'Knock Knock Movie | Watch 2015 Knock Knock Full Movie Online- MX Player',
         },
         'params': {
             'skip_download': True,
@@ -53,7 +53,6 @@ class MxplayerIE(InfoExtractor):
         video_slug = mobj.group('slug')
 
         video_id = video_slug.split('-')[-1]
-        title = "-".join(video_slug.split("-")[:-1])
 
         webpage = self._download_webpage(url, video_id)
 
@@ -70,8 +69,7 @@ class MxplayerIE(InfoExtractor):
         video_dict = source['entities'][video_id]
         stream_urls = self._get_stream_urls(video_dict)
 
-        if not title:
-            title = self._og_search_title(webpage, fatal=True, default=video_dict['title'])
+        title = self._og_search_title(webpage, fatal=True, default=video_dict['title'])
 
         formats = []
         headers = {'Referer': url}
