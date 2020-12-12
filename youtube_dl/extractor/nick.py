@@ -3,8 +3,12 @@ from __future__ import unicode_literals
 
 import re
 
+from .common import InfoExtractor
 from .mtv import MTVServicesInfoExtractor
-from ..utils import update_url_query
+from ..utils import (
+    update_url_query,
+    int_or_none,
+)
 
 
 class NickIE(MTVServicesInfoExtractor):
@@ -247,3 +251,43 @@ class NickRuIE(MTVServicesInfoExtractor):
         webpage = self._download_webpage(url, video_id)
         mgid = self._extract_mgid(webpage)
         return self.url_result('http://media.mtvnservices.com/embed/%s' % mgid)
+
+
+class NickIlIE(InfoExtractor):
+    _VALID_URL = r'https?://(?:www\.)?nick\.co\.il/video/(?P<id>[0-9]+)'
+    _TEST = {
+        'url': 'http://www.nick.co.il/video/17360',
+        'md5': '0974ad5949022e0477a5a28ee5b85634',
+        'info_dict': {
+            'id': '17360',
+            'ext': 'mp4',
+            'title': '\u05e9\u05d9\u05e8 \u05d4\u05e4\u05ea\u05d9\u05d7\u05d4 \u05e9\u05dc \u05d3\u05d5\u05e8\u05d2 \u05d5\u05d0\u05df \u05d3\u05e0\u05d2\u05d5',
+        }
+    }
+
+    def _real_extract(self, url):
+        video_id = self._match_id(url)
+        items = self._download_json(
+            'http://nickplay.ilovegames.co.il/api/nicktogoapi/GetItems', video_id, query={
+                'countryCode': 'IL',
+                'deviceId': '',
+                'isApp': 0,
+                'itemId': video_id,
+            }
+        ).get('items')
+        if items is None:
+            return {}
+        try:
+            video = next(filter(lambda i: i.get('id') == int(video_id), items))
+        except StopIteration:
+            return {}
+        url = video.get('url')
+        if url is None:
+            return {}
+        formats = self._extract_m3u8_formats(url, video_id, ext='mp4')
+        return {
+            'id': video_id,
+            'title': video.get('title'),
+            'duration': int_or_none(video.get('duration'), scale=1000),
+            'formats': formats,
+        }
