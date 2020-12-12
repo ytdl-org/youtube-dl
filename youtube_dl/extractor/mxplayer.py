@@ -10,6 +10,7 @@ from ..utils import (
 # VALID_STREAMS = ('dash', 'hls', )
 VALID_STREAMS = ('dash', )
 
+
 class MxplayerIE(InfoExtractor):
     _VALID_URL = r'https?://(?:www\.)?mxplayer\.in/movie/(?P<slug>[a-z0-9]+(?:-[a-z0-9]+)*)'
     # _VALID_URL = r'https?://(?:www\.)?mxplayer\.in/movie/(?P<title>.*)[-](?P<id>.+)$'
@@ -69,6 +70,9 @@ class MxplayerIE(InfoExtractor):
         video_dict = source['entities'][video_id]
         stream_urls = self._get_stream_urls(video_dict)
 
+        if not title:
+            title = self._og_search_title(webpage, fatal=True, default=video_dict['title'])
+
         formats = []
         headers = {'Referer': url}
         for stream_name, stream_url in stream_urls:
@@ -77,13 +81,13 @@ class MxplayerIE(InfoExtractor):
                 if not format_url:
                     continue
                 formats.extend(self._extract_mpd_formats(
-                        format_url, video_id, mpd_id='dash', headers=headers))
+                    format_url, video_id, mpd_id='dash', headers=headers))
 
         self._sort_formats(formats)
         info = {
             'id': video_id,
             'ext': 'mpd',
-            'title': video_dict.get('title') or title,
+            'title': title,
             'description': video_dict.get('description'),
             'formats': formats
         }
@@ -91,11 +95,10 @@ class MxplayerIE(InfoExtractor):
         if video_dict.get('imageInfo'):
             info['thumbnails'] = list(map(lambda i: dict(i, **{
                 'url': urljoin(config_dict['imageBaseUrl'], i['url'])
-            }) , video_dict['imageInfo']))
+            }), video_dict['imageInfo']))
 
         if video_dict.get('webUrl'):
             last_part = video_dict['webUrl'].split("/")[-1]
             info['display_id'] = last_part.replace(video_id, "").rstrip("-")
 
         return info
-
