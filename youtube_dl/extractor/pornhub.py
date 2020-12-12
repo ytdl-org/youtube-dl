@@ -281,12 +281,21 @@ class PornHubIE(PornHubBaseIE):
 
         def add_video_url(video_url):
             v_url = url_or_none(video_url)
-            if not v_url:
+            if not v_url or not isinstance(v_url, compat_str):
                 return
             if v_url in video_urls_set:
                 return
             video_urls.append((v_url, None))
             video_urls_set.add(v_url)
+
+        def parse_quality_items(js_str):
+            media_definitions = self._parse_json(js_str, None)
+            if isinstance(media_definitions, list):
+                for definition in media_definitions:
+                    if not isinstance(definition, dict):
+                        continue
+                    video_url = definition.get('url')
+                    add_video_url(video_url)
 
         if not video_urls:
             FORMAT_PREFIXES = ('media', 'quality')
@@ -295,6 +304,8 @@ class PornHubIE(PornHubBaseIE):
                 default=None)
             if js_vars:
                 for key, format_url in js_vars.items():
+                    if key.startswith("qualityItems"):
+                        parse_quality_items(format_url)
                     if any(key.startswith(p) for p in FORMAT_PREFIXES):
                         add_video_url(format_url)
             if not video_urls and re.search(
