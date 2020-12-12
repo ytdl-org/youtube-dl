@@ -6,6 +6,7 @@ import hmac
 import re
 import time
 import uuid
+import json
 
 from .common import InfoExtractor
 from ..compat import (
@@ -30,16 +31,25 @@ class HotStarBaseIE(InfoExtractor):
         exp = st + 6000
         auth = 'st=%d~exp=%d~acl=/*' % (st, exp)
         auth += '~hmac=' + hmac.new(self._AKAMAI_ENCRYPTION_KEY, auth.encode(), hashlib.sha256).hexdigest()
+        token = self._download_json(
+            'https://api.hotstar.com/in/aadhar/v2/web/in/user/guest-signup',
+            video_id, note='Downloading token',
+            data=json.dumps({"idType": "device", "id": compat_str(uuid.uuid4())}).encode('utf-8'),
+            headers={
+                'hotstarauth': auth,
+                'Content-Type': 'application/json',
+            })['description']['userIdentity']
         response = self._download_json(
             'https://api.hotstar.com/' + path, video_id, headers={
                 'hotstarauth': auth,
-                'x-country-code': 'IN',
-                'x-platform-code': 'JIO',
+                'x-hs-appversion': '6.72.2',
+                'x-hs-platform': 'web',
+                'x-hs-usertoken': token,
             }, query=query)
-        if response['statusCode'] != 'OK':
+        if response['message'] != "Playback URL's fetched successfully":
             raise ExtractorError(
-                response['body']['message'], expected=True)
-        return response['body']['results']
+                response['message'], expected=True)
+        return response['data']
 
     def _call_api(self, path, video_id, query_name='contentId'):
         return self._call_api_impl(path, video_id, {
@@ -49,13 +59,11 @@ class HotStarBaseIE(InfoExtractor):
 
     def _call_api_v2(self, path, video_id):
         return self._call_api_impl(
-            '%s/in/contents/%s' % (path, video_id), video_id, {
-                'desiredConfig': 'encryption:plain;ladder:phone,tv;package:hls,dash',
-                'client': 'mweb',
-                'clientVersion': '6.18.0',
-                'deviceId': compat_str(uuid.uuid4()),
-                'osName': 'Windows',
-                'osVersion': '10',
+            '%s/content/%s' % (path, video_id), video_id, {
+                'desired-config': 'encryption:plain;ladder:phone,tv;package:hls,dash',
+                'device-id': compat_str(uuid.uuid4()),
+                'os-name': 'Windows',
+                'os-version': '10',
             })
 
 
@@ -121,7 +129,7 @@ class HotStarIE(HotStarBaseIE):
         headers = {'Referer': url}
         formats = []
         geo_restricted = False
-        playback_sets = self._call_api_v2('h/v2/play', video_id)['playBackSets']
+        playback_sets = self._call_api_v2('play/v1/playback', video_id)['playBackSets']
         for playback_set in playback_sets:
             if not isinstance(playback_set, dict):
                 continue
