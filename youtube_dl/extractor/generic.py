@@ -209,12 +209,13 @@ class GenericIE(InfoExtractor):
             'playlist': [{
                 'info_dict': {
                     'ext': 'mov',
-                    'id': 'pdv_maddow_netcast_mov-12-04-2020-224335',
+                    'id': 'pdv_maddow_netcast_mov-12-11-2020-225421',
                     'title': 're:MSNBC Rachel Maddow',
                     'description': 're:.*her unique approach to storytelling.*',
                     'timestamp': int,
-                    'upload_date': compat_str,
+                    'upload_date': '20201211',
                     'duration': float,
+                    'thumbnail': None,
                 },
             }],
         },
