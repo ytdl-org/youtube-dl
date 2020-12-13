@@ -43,7 +43,7 @@ class EpornerIE(InfoExtractor):
         'url': 'http://www.eporner.com/hd-porn/3YRUtzMcWn0',
         'only_matching': True,
     }, {
-        'url': 'http://www.eporner.com/hd-porn/3YRUtzMcWn0',
+        'url': 'http://www.eporner.com/embed/3YRUtzMcWn0',
         'only_matching': True,
     }, {
         'url': 'https://www.eporner.com/video-FJsA19J3Y3H/one-of-the-greats/',
