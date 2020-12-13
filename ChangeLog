@@ -1,4 +1,4 @@
-version <unreleased>
+version 2020.12.14
 
 Core
 * [extractor/common] Improve JSON-LD interaction statistic extraction (#23306)
