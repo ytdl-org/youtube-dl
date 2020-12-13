@@ -16,7 +16,7 @@ from ..utils import (
 
 
 class EpornerIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:www\.)?eporner\.com/(?:hd-porn|embed)/(?P<id>\w+)(?:/(?P<display_id>[\w-]+))?'
+    _VALID_URL = r'https?://(?:www\.)?eporner\.com/(?:(?:hd-porn|embed)/|video-)(?P<id>\w+)(?:/(?P<display_id>[\w-]+))?'
     _TESTS = [{
         'url': 'http://www.eporner.com/hd-porn/95008/Infamous-Tiffany-Teen-Strip-Tease-Video/',
         'md5': '39d486f046212d8e1b911c52ab4691f8',
@@ -45,6 +45,9 @@ class EpornerIE(InfoExtractor):
     }, {
         'url': 'http://www.eporner.com/hd-porn/3YRUtzMcWn0',
         'only_matching': True,
+    }, {
+        'url': 'https://www.eporner.com/video-FJsA19J3Y3H/one-of-the-greats/',
+        'only_matching': True,
     }]
 
     def _real_extract(self, url):
@@ -57,7 +60,7 @@ class EpornerIE(InfoExtractor):
         video_id = self._match_id(urlh.geturl())
 
         hash = self._search_regex(
-            r'hash\s*:\s*["\']([\da-f]{32})', webpage, 'hash')
+            r'hash\s*[:=]\s*["\']([\da-f]{32})', webpage, 'hash')
 
         title = self._og_search_title(webpage, default=None) or self._html_search_regex(
             r'<title>(.+?) - EPORNER', webpage, 'title')
