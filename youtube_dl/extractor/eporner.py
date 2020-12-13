@@ -118,8 +118,8 @@ class EpornerIE(InfoExtractor):
         duration = parse_duration(self._html_search_meta(
             'duration', webpage, default=None))
         view_count = str_to_int(self._search_regex(
-            r'id="cinemaviews">\s*([0-9,]+)\s*<small>views',
-            webpage, 'view count', fatal=False))
+            r'id=["\']cinemaviews1["\'][^>]*>\s*([0-9,]+)',
+            webpage, 'view count', default=None))
 
         return merge_dicts(json_ld, {
             'id': video_id,
