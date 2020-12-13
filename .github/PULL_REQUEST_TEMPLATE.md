@@ -7,8 +7,10 @@
 ---
 
 ### Before submitting a *pull request* make sure you have:
-- [ ] At least skimmed through [adding new extractor tutorial](https://github.com/ytdl-org/youtube-dl#adding-support-for-a-new-site) and [youtube-dl coding conventions](https://github.com/ytdl-org/youtube-dl#youtube-dl-coding-conventions) sections
 - [ ] [Searched](https://github.com/ytdl-org/youtube-dl/search?q=is%3Apr&type=Issues) the bugtracker for similar pull requests
+- [ ] Read [adding new extractor tutorial](https://github.com/ytdl-org/youtube-dl#adding-support-for-a-new-site)
+- [ ] Read [youtube-dl coding conventions](https://github.com/ytdl-org/youtube-dl#youtube-dl-coding-conventions) and adjusted the code to meet them
+- [ ] Covered the code with tests (note that PRs without tests will be REJECTED)
 - [ ] Checked the code with [flake8](https://pypi.python.org/pypi/flake8)
 
 ### In order to be accepted and merged into youtube-dl each piece of code must be in public domain or released under [Unlicense](http://unlicense.org/). Check one of the following options:
