@@ -147,7 +147,6 @@ class TestInfoExtractor(unittest.TestCase):
                 'height': 1080,
             })
 
-
     def test_download_json(self):
         uri = encode_data_uri(b'{"foo": "blah"}', 'application/json')
         self.assertEqual(self.ie._download_json(uri, None), {'foo': 'blah'})
