@@ -1390,6 +1390,10 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
             '''
             if player_response:
                 captions = player_response.get('captions')
+                if captions is None:
+                    self._downloader.report_warning(
+                        'Video doesn\'t have automatic captions')
+                    return {}
                 renderer = captions.get('playerCaptionsTracklistRenderer')
                 base_url = renderer['captionTracks'][0]['baseUrl']
                 sub_lang_list = []
