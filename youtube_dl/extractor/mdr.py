@@ -20,6 +20,8 @@ class MDRIE(InfoExtractor):
     IE_DESC = 'MDR.DE and KiKA'
     _VALID_URL = r'https?://(?:www\.)?(?:mdr|kika)\.de/(?:.*)/[a-z-]+-?(?P<id>\d+)(?:_.+?)?\.html'
 
+    _GEO_COUNTRIES = ['DE']
+
     _TESTS = [{
         # MDR regularly deletes its videos
         'url': 'http://www.mdr.de/fakt/video189002.html',
