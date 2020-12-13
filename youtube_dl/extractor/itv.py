@@ -7,6 +7,7 @@ import re
 from .common import InfoExtractor
 from .brightcove import BrightcoveNewIE
 from ..utils import (
+    clean_html,
     determine_ext,
     extract_attributes,
     get_element_by_class,
@@ -14,7 +15,6 @@ from ..utils import (
     merge_dicts,
     parse_duration,
     smuggle_url,
-    strip_or_none,
     url_or_none,
 )
 
@@ -146,7 +146,7 @@ class ITVIE(InfoExtractor):
             'formats': formats,
             'subtitles': subtitles,
             'duration': parse_duration(video_data.get('Duration')),
-            'description': strip_or_none(get_element_by_class('episode-info__synopsis', webpage)),
+            'description': clean_html(get_element_by_class('episode-info__synopsis', webpage)),
         }, info)
 
 
