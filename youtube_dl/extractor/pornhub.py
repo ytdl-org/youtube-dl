@@ -294,8 +294,7 @@ class PornHubIE(PornHubBaseIE):
                 for definition in media_definitions:
                     if not isinstance(definition, dict):
                         continue
-                    video_url = definition.get('url')
-                    add_video_url(video_url)
+                    add_video_url(definition.get('url'))
 
         if not video_urls:
             FORMAT_PREFIXES = ('media', 'quality')
