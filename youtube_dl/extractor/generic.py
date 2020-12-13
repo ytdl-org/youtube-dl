@@ -35,6 +35,7 @@ from ..utils import (
     unsmuggle_url,
     UnsupportedError,
     url_or_none,
+    xpath_attr,
     xpath_text,
     xpath_with_ns,
 )
@@ -2234,7 +2235,7 @@ class GenericIE(InfoExtractor):
                 'timestamp': unified_timestamp(
                     xpath_text(it, 'pubDate', default=None)),
                 'duration': int_or_none(duration) or parse_duration(duration),
-                'thumbnail': url_or_none(itunes('image')),
+                'thumbnail': url_or_none(xpath_attr(it, xpath_with_ns('./itunes:image', NS_MAP), 'href')),
                 'episode': itunes('title'),
                 'episode_number': int_or_none(itunes('episode')),
                 'season_number': int_or_none(itunes('season')),
