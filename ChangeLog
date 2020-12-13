@@ -1,3 +1,30 @@
+version <unreleased>
+
+Core
+* [extractor/common] Improve JSON-LD interaction statistic extraction (#23306)
+* [downloader/hls] Delegate manifests with media initialization to ffmpeg
++ [extractor/common] Document duration meta field for playlists
+
+Extractors
+* [mdr] Bypass geo restriction
+* [mdr] Improve extraction (#24346, #26873)
+* [yandexmusic:album] Improve album title extraction (#27418)
+* [eporner] Fix view count extraction and make optional (#23306)
++ [eporner] Extend URL regular expression
+* [eporner] Fix hash extraction and extend _VALID_URL (#27396)
+* [slideslive] Use m3u8 entry protocol for m3u8 formats (#27400)
+* [twitcasting] Fix format extraction and improve info extraction (#24868)
+* [linuxacademy] Fix authentication and extraction (#21129, #26223, #27402)
+* [itv] Clean description from HTML tags (#27399)
+* [vlive] Sort live formats (#27404)
+* [hotstart] Fix and improve extraction
+    * Fix format extraction (#26690)
+    + Extract thumbnail URL (#16079, #20412)
+    + Add support for country specific playlist URLs (#23496)
+    * Select the last id in video URL (#26412)
++ [youtube] Add some invidious instances (#27373)
+
+
 version 2020.12.12
 
 Core
@@ -106,7 +133,7 @@ version 2020.12.02
 
 Extractors
 + [tva] Add support for qub.ca (#27235)
-+ [toggle] Detect DRM protected videos (closes #16479)(closes #20805)
++ [toggle] Detect DRM protected videos (#16479, #20805)
 + [toggle] Add support for new MeWatch URLs (#27256)
 * [youtube:tab] Extract channels only from channels tab (#27266)
 + [cspan] Extract info from jwplayer data (#3672, #3734, #10638, #13030,
