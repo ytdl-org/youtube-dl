@@ -260,6 +260,14 @@ class YandexMusicAlbumIE(YandexMusicPlaylistBaseIE):
         },
         'playlist_count': 33,
         # 'skip': 'Travis CI servers blocked by YandexMusic',
+    }, {
+        # empty artists
+        'url': 'https://music.yandex.ru/album/9091882',
+        'info_dict': {
+            'id': '9091882',
+            'title': 'ТЕД на русском',
+        },
+        'playlist_count': 187,
     }]
 
     def _real_extract(self, url):
@@ -273,7 +281,10 @@ class YandexMusicAlbumIE(YandexMusicPlaylistBaseIE):
 
         entries = self._build_playlist([track for volume in album['volumes'] for track in volume])
 
-        title = '%s - %s' % (album['artists'][0]['name'], album['title'])
+        title = album['title']
+        artist = try_get(album, lambda x: x['artists'][0]['name'], compat_str)
+        if artist:
+            title = '%s - %s' % (artist, title)
         year = album.get('year')
         if year:
             title += ' (%s)' % year
