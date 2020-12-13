@@ -215,7 +215,27 @@ class GenericIE(InfoExtractor):
                     'timestamp': int,
                     'upload_date': '20201211',
                     'duration': float,
-                    'thumbnail': None,
+                },
+            }],
+        },
+        # RSS feed with item with description and thumbnails
+        {
+            'url': 'https://anchor.fm/s/dd00e14/podcast/rss',
+            'info_dict': {
+                'id': 'https://anchor.fm/s/dd00e14/podcast/rss',
+                'title': 're:.*100% Hydrogen.*',
+                'description': 're:.*In this episode.*',
+            },
+            'playlist': [{
+                'info_dict': {
+                    'ext': 'm4a',
+                    'id': 'c1c879525ce2cb640b344507e682c36d',
+                    'title': 're:Hydrogen!',
+                    'description': 're:.*In this episode we are going.*',
+                    'timestamp': int,
+                    'upload_date': '20190908',
+                    'duration': int,
+                    'thumbnail': r're:^https?://.*\.jpg$',
                 },
             }],
         },
