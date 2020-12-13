@@ -16,7 +16,7 @@ from ..utils import (
 
 
 class EpornerIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:www\.)?eporner\.com/(?:hd-porn|embed)/(?P<id>\w+)(?:/(?P<display_id>[\w-]+))?'
+    _VALID_URL = r'https?://(?:www\.)?eporner\.com/(?:(?:hd-porn|embed)/|(?:video-))(?P<id>\w+)(?:/(?P<display_id>[\w-]+))?'
     _TESTS = [{
         'url': 'http://www.eporner.com/hd-porn/95008/Infamous-Tiffany-Teen-Strip-Tease-Video/',
         'md5': '39d486f046212d8e1b911c52ab4691f8',
@@ -44,6 +44,9 @@ class EpornerIE(InfoExtractor):
         'only_matching': True,
     }, {
         'url': 'http://www.eporner.com/hd-porn/3YRUtzMcWn0',
+        'only_matching': True,
+    }, {
+        'url': 'https://www.eporner.com/video-FJsA19J3Y3H/one-of-the-greats/',
         'only_matching': True,
     }]
 
