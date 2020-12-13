@@ -1237,8 +1237,16 @@ class InfoExtractor(object):
             'ViewAction': 'view',
         }
 
+        def extract_interaction_type(e):
+            interaction_type = e.get('interactionType')
+            if isinstance(interaction_type, dict):
+                interaction_type = interaction_type.get('@type')
+            return str_or_none(interaction_type)
+
         def extract_interaction_statistic(e):
             interaction_statistic = e.get('interactionStatistic')
+            if isinstance(interaction_statistic, dict):
+                interaction_statistic = [interaction_statistic]
             if not isinstance(interaction_statistic, list):
                 return
             for is_e in interaction_statistic:
@@ -1246,8 +1254,8 @@ class InfoExtractor(object):
                     continue
                 if is_e.get('@type') != 'InteractionCounter':
                     continue
-                interaction_type = is_e.get('interactionType')
-                if not isinstance(interaction_type, compat_str):
+                interaction_type = extract_interaction_type(is_e)
+                if not interaction_type:
                     continue
                 # For interaction count some sites provide string instead of
                 # an integer (as per spec) with non digit characters (e.g. ",")
