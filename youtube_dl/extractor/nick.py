@@ -256,7 +256,7 @@ class NickRuIE(MTVServicesInfoExtractor):
 
 
 class NickIlIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:www\.)?nick\.co\.il/video/(?P<id>[0-9]+)'
+    _VALID_URL = r'https?://(?:www\.)?nick\.co\.il/video/(?P<id>\d+)'
     _TEST = {
         'url': 'http://www.nick.co.il/video/17360',
         'md5': '0974ad5949022e0477a5a28ee5b85634',
@@ -279,7 +279,7 @@ class NickIlIE(InfoExtractor):
             }).get('items')
         if items is None:
             raise ExtractorError('Unable to extract video data', expected=True, video_id=video_id)
-        video = try_get([i for i in items if i.get('id') == int(video_id)] or None, lambda x: x[0], dict)
+        video = try_get([i for i in items if i.get('id') == int(video_id)], lambda x: x[0], dict)
         if video is None:
             raise ExtractorError('Unable to find video ID', expected=True, video_id=video_id)
         url = video.get('url')
