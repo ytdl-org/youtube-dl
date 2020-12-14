@@ -119,7 +119,7 @@ class RedditRIE(InfoExtractor):
 
         duration = None
         if data.get('media') and data['media'].get('reddit_video'):
-            duration = data['media']['reddit_video']['duration']
+            duration = data['media']['reddit_video'].get('duration')
 
         return {
             '_type': 'url_transparent',
