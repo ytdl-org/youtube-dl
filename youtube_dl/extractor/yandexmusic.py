@@ -247,7 +247,7 @@ class YandexMusicPlaylistBaseIE(YandexMusicBaseIE):
 class YandexMusicAlbumIE(YandexMusicPlaylistBaseIE):
     IE_NAME = 'yandexmusic:album'
     IE_DESC = 'Яндекс.Музыка - Альбом'
-    _VALID_URL = r'%s/album/(?P<id>\d+)/?(\?|$)' % YandexMusicBaseIE._VALID_URL_BASE
+    _VALID_URL = r'%s/album/(?P<id>\d+)' % YandexMusicBaseIE._VALID_URL_BASE
 
     _TESTS = [{
         'url': 'http://music.yandex.ru/album/540508',
@@ -274,6 +274,10 @@ class YandexMusicAlbumIE(YandexMusicPlaylistBaseIE):
         },
         'playlist_count': 187,
     }]
+
+    @classmethod
+    def suitable(cls, url):
+        return False if YandexMusicTrackIE.suitable(url) else super(YandexMusicAlbumIE, cls).suitable(url)
 
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
