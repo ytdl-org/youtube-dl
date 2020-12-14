@@ -15,6 +15,8 @@ from ..utils import (
 
 
 class YandexMusicBaseIE(InfoExtractor):
+    _VALID_URL_BASE = r'https?://music\.yandex\.(?P<tld>ru|kz|ua|by)'
+
     @staticmethod
     def _handle_error(response):
         if isinstance(response, dict):
@@ -62,7 +64,7 @@ class YandexMusicBaseIE(InfoExtractor):
 class YandexMusicTrackIE(YandexMusicBaseIE):
     IE_NAME = 'yandexmusic:track'
     IE_DESC = 'Яндекс.Музыка - Трек'
-    _VALID_URL = r'https?://music\.yandex\.(?P<tld>ru|kz|ua|by)/album/(?P<album_id>\d+)/track/(?P<id>\d+)'
+    _VALID_URL = r'%s/album/(?P<album_id>\d+)/track/(?P<id>\d+)' % YandexMusicBaseIE._VALID_URL_BASE
 
     _TESTS = [{
         'url': 'http://music.yandex.ru/album/540508/track/4878838',
@@ -242,7 +244,7 @@ class YandexMusicPlaylistBaseIE(YandexMusicBaseIE):
 class YandexMusicAlbumIE(YandexMusicPlaylistBaseIE):
     IE_NAME = 'yandexmusic:album'
     IE_DESC = 'Яндекс.Музыка - Альбом'
-    _VALID_URL = r'https?://music\.yandex\.(?P<tld>ru|kz|ua|by)/album/(?P<id>\d+)/?(\?|$)'
+    _VALID_URL = r'%s/album/(?P<id>\d+)/?(\?|$)' % YandexMusicBaseIE._VALID_URL_BASE
 
     _TESTS = [{
         'url': 'http://music.yandex.ru/album/540508',
@@ -295,7 +297,7 @@ class YandexMusicAlbumIE(YandexMusicPlaylistBaseIE):
 class YandexMusicPlaylistIE(YandexMusicPlaylistBaseIE):
     IE_NAME = 'yandexmusic:playlist'
     IE_DESC = 'Яндекс.Музыка - Плейлист'
-    _VALID_URL = r'https?://music\.yandex\.(?P<tld>ru|kz|ua|by)/users/(?P<user>[^/]+)/playlists/(?P<id>\d+)'
+    _VALID_URL = r'%s/users/(?P<user>[^/]+)/playlists/(?P<id>\d+)' % YandexMusicBaseIE._VALID_URL_BASE
 
     _TESTS = [{
         'url': 'http://music.yandex.ru/users/music.partners/playlists/1245',
@@ -374,7 +376,7 @@ class YandexMusicArtistBaseIE(YandexMusicPlaylistBaseIE):
 class YandexMusicArtistTracksIE(YandexMusicArtistBaseIE):
     IE_NAME = 'yandexmusic:artist:tracks'
     IE_DESC = 'Яндекс.Музыка - Артист - Треки'
-    _VALID_URL = r'https?://music\.yandex\.(?P<tld>ru|kz|ua|by)/artist/(?P<id>\d+)/tracks'
+    _VALID_URL = r'%s/artist/(?P<id>\d+)/tracks' % YandexMusicBaseIE._VALID_URL_BASE
 
     _TESTS = [{
         'url': 'https://music.yandex.ru/artist/617526/tracks',
@@ -404,7 +406,7 @@ class YandexMusicArtistTracksIE(YandexMusicArtistBaseIE):
 class YandexMusicArtistAlbumsIE(YandexMusicArtistBaseIE):
     IE_NAME = 'yandexmusic:artist:albums'
     IE_DESC = 'Яндекс.Музыка - Артист - Альбомы'
-    _VALID_URL = r'https?://music\.yandex\.(?P<tld>ru|kz|ua|by)/artist/(?P<id>\d+)/albums'
+    _VALID_URL = r'%s/artist/(?P<id>\d+)/albums' % YandexMusicBaseIE._VALID_URL_BASE
 
     _TESTS = [{
         'url': 'https://music.yandex.ru/artist/617526/albums',
