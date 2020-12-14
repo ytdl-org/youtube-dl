@@ -6,8 +6,10 @@ import re
 from .common import InfoExtractor
 from .mtv import MTVServicesInfoExtractor
 from ..utils import (
+    try_get,
     update_url_query,
     int_or_none,
+    ExtractorError,
 )
 
 
@@ -268,22 +270,21 @@ class NickIlIE(InfoExtractor):
     def _real_extract(self, url):
         video_id = self._match_id(url)
         items = self._download_json(
-            'http://nickplay.ilovegames.co.il/api/nicktogoapi/GetItems', video_id, query={
+            'http://nickplay.ilovegames.co.il/api/nicktogoapi/GetItems', video_id,
+            query={
                 'countryCode': 'IL',
                 'deviceId': '',
                 'isApp': 0,
                 'itemId': video_id,
-            }
-        ).get('items')
+            }).get('items')
         if items is None:
-            return {}
-        try:
-            video = next(filter(lambda i: i.get('id') == int(video_id), items))
-        except StopIteration:
-            return {}
+            raise ExtractorError('Unable to extract video data', expected=True, video_id=video_id)
+        video = try_get([i for i in items if i.get('id') == int(video_id)] or None, lambda x: x[0], dict)
+        if video is None:
+            raise ExtractorError('Unable to find video ID', expected=True, video_id=video_id)
         url = video.get('url')
         if url is None:
-            return {}
+            raise ExtractorError('Unable to extract video data', expected=True, video_id=video_id)
         formats = self._extract_m3u8_formats(url, video_id, ext='mp4')
         return {
             'id': video_id,
