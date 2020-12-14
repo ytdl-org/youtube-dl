@@ -63,6 +63,7 @@ class RedditRIE(InfoExtractor):
             'dislike_count': int,
             'comment_count': int,
             'age_limit': 0,
+            'duration': 12
         },
         'params': {
             'format': 'bestvideo',
@@ -116,6 +117,10 @@ class RedditRIE(InfoExtractor):
         else:
             age_limit = None
 
+        duration = None
+        if data.get('media') and data['media'].get('reddit_video'):
+            duration = data['media']['reddit_video']['duration']
+
         return {
             '_type': 'url_transparent',
             'url': video_url,
@@ -127,4 +132,5 @@ class RedditRIE(InfoExtractor):
             'dislike_count': int_or_none(data.get('downs')),
             'comment_count': int_or_none(data.get('num_comments')),
             'age_limit': age_limit,
+            'duration': duration
         }
