@@ -15,7 +15,7 @@ from ..utils import (
 
 
 class YandexMusicBaseIE(InfoExtractor):
-    _VALID_URL_BASE = r'https?://music\.yandex\.(?P<tld>ru|kz|ua|by)'
+    _VALID_URL_BASE = r'https?://music\.yandex\.(?P<tld>ru|kz|ua|by|com)'
 
     @staticmethod
     def _handle_error(response):
@@ -102,6 +102,9 @@ class YandexMusicTrackIE(YandexMusicBaseIE):
             'track_number': 9,
         },
         # 'skip': 'Travis CI servers blocked by YandexMusic',
+    }, {
+        'url': 'http://music.yandex.com/album/540508/track/4878838',
+        'only_matching': True,
     }]
 
     def _real_extract(self, url):
