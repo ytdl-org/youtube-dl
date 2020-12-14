@@ -8,6 +8,7 @@ from ..utils import (
     int_or_none,
     float_or_none,
     url_or_none,
+    try_get
 )
 
 
@@ -117,10 +118,6 @@ class RedditRIE(InfoExtractor):
         else:
             age_limit = None
 
-        duration = None
-        if data.get('media') and data['media'].get('reddit_video'):
-            duration = data['media']['reddit_video'].get('duration')
-
         return {
             '_type': 'url_transparent',
             'url': video_url,
@@ -132,5 +129,6 @@ class RedditRIE(InfoExtractor):
             'dislike_count': int_or_none(data.get('downs')),
             'comment_count': int_or_none(data.get('num_comments')),
             'age_limit': age_limit,
-            'duration': int_or_none(duration)
+            'duration': int_or_none(try_get(data, 
+                lambda x: x['media']['reddit_video']['duration']))
         }
