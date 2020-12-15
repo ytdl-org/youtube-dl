@@ -724,7 +724,10 @@ from .nexx import (
     NexxIE,
     NexxEmbedIE,
 )
-from .nfl import NFLIE
+from .nfl import (
+    NFLIE,
+    NFLArticleIE,
+)
 from .nhk import (
     NhkVodIE,
     NhkVodProgramIE,
