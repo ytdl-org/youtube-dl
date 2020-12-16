@@ -93,10 +93,17 @@ class MotherlessIE(InfoExtractor):
 
         upload_date = self._html_search_regex(
             (r'class=["\']count[^>]+>(\d+\s+[a-zA-Z]{3}\s+\d{4})<',
+             r'class=["\']count[^>]+>(\d+[hd])\s+[aA]go<',  # 20h/1d ago
              r'<strong>Uploaded</strong>\s+([^<]+)<'), webpage, 'upload date')
-        if 'Ago' in upload_date:
-            days = int(re.search(r'([0-9]+)', upload_date).group(1))
-            upload_date = (datetime.datetime.now() - datetime.timedelta(days=days)).strftime('%Y%m%d')
+        relative = re.match(r'(\d+)([hd])$', upload_date)
+        if relative:
+            delta = int(relative.group(1))
+            unit = relative.group(2)
+            if unit == 'h':
+                delta_t = datetime.timedelta(hours=delta)
+            else:  # unit == 'd'
+                delta_t = datetime.timedelta(days=delta)
+            upload_date = (datetime.datetime.now() - delta_t).strftime('%Y%m%d')
         else:
             upload_date = unified_strdate(upload_date)
 
