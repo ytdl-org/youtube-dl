@@ -89,7 +89,8 @@ class MotherlessIE(InfoExtractor):
              r'<strong>Views</strong>\s+([^<]+)<'),
             webpage, 'view count', fatal=False))
         like_count = str_to_int(self._html_search_regex(
-            (r'>(\d+)\s+Favorites<', r'<strong>Favorited</strong>\s+([^<]+)<'),
+            (r'>([\d,.]+)\s+Favorites<',  # 1,234 Favorites
+             r'<strong>Favorited</strong>\s+([^<]+)<'),
             webpage, 'like count', fatal=False))
 
         upload_date = self._html_search_regex(
