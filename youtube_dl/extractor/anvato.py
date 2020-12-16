@@ -9,7 +9,7 @@ import re
 import time
 
 from .common import InfoExtractor
-from .anvato_token_generator import NFLTokenGenerator
+# from .anvato_token_generator import NFLTokenGenerator
 from ..aes import aes_encrypt
 from ..compat import compat_str
 from ..utils import (
@@ -205,7 +205,7 @@ class AnvatoIE(InfoExtractor):
     }
 
     _TOKEN_GENERATORS = {
-        'GXvEgwyJeWem8KCYXfeoHWknwP48Mboj': NFLTokenGenerator,
+        # 'GXvEgwyJeWem8KCYXfeoHWknwP48Mboj': NFLTokenGenerator,
     }
 
     _API_KEY = '3hwbSuqqT690uxjNYBktSQpa5ZrpYYR0Iofx7NcJHyA'

@@ -57,6 +57,7 @@ class NFLBaseIE(InfoExtractor):
                         )/
                     '''
     _VIDEO_CONFIG_REGEX = r'<script[^>]+id="[^"]*video-config-[0-9a-f]{8}-(?:[0-9a-f]{4}-){3}[0-9a-f]{12}[^"]*"[^>]*>\s*({.+})'
+    _WORKING = False
 
     def _parse_video_config(self, video_config, display_id):
         video_config = self._parse_json(video_config, display_id)
