@@ -65,7 +65,6 @@ class RedditRIE(InfoExtractor):
             'dislike_count': int,
             'comment_count': int,
             'age_limit': 0,
-
         },
         'params': {
             'format': 'bestvideo',
