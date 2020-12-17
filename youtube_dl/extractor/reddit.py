@@ -128,7 +128,7 @@ class RedditRIE(InfoExtractor):
             'duration': int_or_none(try_get(
                 data,
                 (lambda x: x['media']['reddit_video']['duration'],
-                 lambda x: x['media']['secure_media']['duration']))),
+                 lambda x: x['secure_media']['reddit_video']['duration']))),
             'like_count': int_or_none(data.get('ups')),
             'dislike_count': int_or_none(data.get('downs')),
             'comment_count': int_or_none(data.get('num_comments')),
