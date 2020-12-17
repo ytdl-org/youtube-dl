@@ -7,8 +7,8 @@ from ..utils import (
     ExtractorError,
     int_or_none,
     float_or_none,
+    try_get,
     url_or_none,
-    try_get
 )
 
 
@@ -60,11 +60,12 @@ class RedditRIE(InfoExtractor):
             'timestamp': 1501941939,
             'upload_date': '20170805',
             'uploader': 'Antw87',
+            'duration': 12,
             'like_count': int,
             'dislike_count': int,
             'comment_count': int,
             'age_limit': 0,
-            'duration': 12
+
         },
         'params': {
             'format': 'bestvideo',
@@ -125,10 +126,12 @@ class RedditRIE(InfoExtractor):
             'thumbnail': url_or_none(data.get('thumbnail')),
             'timestamp': float_or_none(data.get('created_utc')),
             'uploader': data.get('author'),
+            'duration': int_or_none(try_get(
+                data,
+                (lambda x: x['media']['reddit_video']['duration'],
+                 lambda x: x['media']['secure_media']['duration']))),
             'like_count': int_or_none(data.get('ups')),
             'dislike_count': int_or_none(data.get('downs')),
             'comment_count': int_or_none(data.get('num_comments')),
             'age_limit': age_limit,
-            'duration': int_or_none(try_get(data,
-                                            lambda x: x['media']['reddit_video']['duration']))
         }
