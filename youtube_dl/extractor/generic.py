@@ -35,6 +35,7 @@ from ..utils import (
     unsmuggle_url,
     UnsupportedError,
     url_or_none,
+    xpath_attr,
     xpath_text,
     xpath_with_ns,
 )
@@ -216,6 +217,30 @@ class GenericIE(InfoExtractor):
                     'duration': float,
                 },
             }],
+        },
+        # RSS feed with item with description and thumbnails
+        {
+            'url': 'https://anchor.fm/s/dd00e14/podcast/rss',
+            'info_dict': {
+                'id': 'https://anchor.fm/s/dd00e14/podcast/rss',
+                'title': 're:.*100% Hydrogen.*',
+                'description': 're:.*In this episode.*',
+            },
+            'playlist': [{
+                'info_dict': {
+                    'ext': 'm4a',
+                    'id': 'c1c879525ce2cb640b344507e682c36d',
+                    'title': 're:Hydrogen!',
+                    'description': 're:.*In this episode we are going.*',
+                    'timestamp': int,
+                    'upload_date': '20190908',
+                    'duration': int,
+                    'thumbnail': r're:^https?://.*\.jpg$',
+                },
+            }],
+            'params': {
+                'skip_download': True,
+            },
         },
         # RSS feed with enclosures and unsupported link URLs
         {
@@ -2234,7 +2259,7 @@ class GenericIE(InfoExtractor):
                 'timestamp': unified_timestamp(
                     xpath_text(it, 'pubDate', default=None)),
                 'duration': int_or_none(duration) or parse_duration(duration),
-                'thumbnail': url_or_none(itunes('image')),
+                'thumbnail': url_or_none(xpath_attr(it, xpath_with_ns('./itunes:image', NS_MAP), 'href')),
                 'episode': itunes('title'),
                 'episode_number': int_or_none(itunes('episode')),
                 'season_number': int_or_none(itunes('season')),
