@@ -300,6 +300,12 @@ class YoutubeBaseInfoExtractor(InfoExtractor):
                  self._YT_INITIAL_DATA_RE), webpage, 'yt initial data'),
             video_id)
 
+    def _extract_ytcfg(self, video_id, webpage):
+        return self._parse_json(
+            self._search_regex(
+                r'ytcfg\.set\s*\(\s*({.+?})\s*\)\s*;', webpage, 'ytcfg',
+                default='{}'), video_id, fatal=False)
+
 
 class YoutubeIE(YoutubeBaseInfoExtractor):
     IE_DESC = 'YouTube.com'
@@ -2283,16 +2289,25 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
         # annotations
         video_annotations = None
         if self._downloader.params.get('writeannotations', False):
-            xsrf_token = self._search_regex(
-                r'([\'"])XSRF_TOKEN\1\s*:\s*([\'"])(?P<xsrf_token>[A-Za-z0-9+/=]+)\2',
-                video_webpage, 'xsrf token', group='xsrf_token', fatal=False)
+            xsrf_token = None
+            ytcfg = self._extract_ytcfg(video_id, video_webpage)
+            if ytcfg:
+                xsrf_token = try_get(ytcfg, lambda x: x['XSRF_TOKEN'], compat_str)
+            if not xsrf_token:
+                xsrf_token = self._search_regex(
+                    r'([\'"])XSRF_TOKEN\1\s*:\s*([\'"])(?P<xsrf_token>(?:(?!\2).)+)\2',
+                    video_webpage, 'xsrf token', group='xsrf_token', fatal=False)
             invideo_url = try_get(
                 player_response, lambda x: x['annotations'][0]['playerAnnotationsUrlsRenderer']['invideoUrl'], compat_str)
             if xsrf_token and invideo_url:
-                xsrf_field_name = self._search_regex(
-                    r'([\'"])XSRF_FIELD_NAME\1\s*:\s*([\'"])(?P<xsrf_field_name>\w+)\2',
-                    video_webpage, 'xsrf field name',
-                    group='xsrf_field_name', default='session_token')
+                xsrf_field_name = None
+                if ytcfg:
+                    xsrf_field_name = try_get(ytcfg, lambda x: x['XSRF_FIELD_NAME'], compat_str)
+                if not xsrf_field_name:
+                    xsrf_field_name = self._search_regex(
+                        r'([\'"])XSRF_FIELD_NAME\1\s*:\s*([\'"])(?P<xsrf_field_name>\w+)\2',
+                        video_webpage, 'xsrf field name',
+                        group='xsrf_field_name', default='session_token')
                 video_annotations = self._download_webpage(
                     self._proto_relative_url(invideo_url),
                     video_id, note='Downloading annotations',
@@ -3130,10 +3145,7 @@ class YoutubeTabIE(YoutubeBaseInfoExtractor):
             playlist_title=title)
 
     def _extract_identity_token(self, webpage, item_id):
-        ytcfg = self._parse_json(
-            self._search_regex(
-                r'ytcfg\.set\s*\(\s*({.+?})\s*\)\s*;', webpage, 'ytcfg',
-                default='{}'), item_id, fatal=False)
+        ytcfg = self._extract_ytcfg(item_id, webpage)
         if ytcfg:
             token = try_get(ytcfg, lambda x: x['ID_TOKEN'], compat_str)
             if token:
