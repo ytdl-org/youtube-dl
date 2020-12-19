@@ -232,10 +232,13 @@ class GenericIE(InfoExtractor):
                     'id': 'c1c879525ce2cb640b344507e682c36d',
                     'title': 're:Hydrogen!',
                     'description': 're:.*In this episode we are going.*',
-                    'timestamp': int,
+                    'timestamp': 1567977776,
                     'upload_date': '20190908',
-                    'duration': int,
+                    'duration': 459,
                     'thumbnail': r're:^https?://.*\.jpg$',
+                    'episode_number': 1,
+                    'season_number': 1,
+                    'age_limit': 0,
                 },
             }],
             'params': {
@@ -2243,10 +2246,10 @@ class GenericIE(InfoExtractor):
                     default=None)
 
             duration = itunes('duration')
-            explicit = itunes('explicit')
-            if explicit == 'true':
+            explicit = (itunes('explicit') or '').lower()
+            if explicit in ('true', 'yes'):
                 age_limit = 18
-            elif explicit == 'false':
+            elif explicit in ('false', 'no'):
                 age_limit = 0
             else:
                 age_limit = None
