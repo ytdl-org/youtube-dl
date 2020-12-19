@@ -1057,8 +1057,9 @@ from .sky import (
     SkySportsIE,
 )
 from .slamrush import (
+    SlamRushIE,
     SlamRushPlaylistIE,
-    SlamRushIE
+    
 )
 from .slideshare import SlideshareIE
 from .slideslive import SlidesLiveIE
@@ -1119,6 +1120,7 @@ from .steam import SteamIE
 from .streamable import StreamableIE
 from .streamcloud import StreamcloudIE
 from .streamcz import StreamCZIE
+from .streamtape import StreamtapeIE
 from .streetvoice import StreetVoiceIE
 from .stretchinternet import StretchInternetIE
 from .stv import STVPlayerIE

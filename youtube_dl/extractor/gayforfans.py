@@ -2,9 +2,15 @@
 from __future__ import unicode_literals
 
 import re
+
 from requests_html import HTMLSession
 
 from .common import InfoExtractor
+
+from ..utils import (
+    ExtractorError,
+
+)
 
 class GayForFansIE(InfoExtractor):
     IE_NAME = 'gayforfans'
@@ -53,7 +59,3 @@ class GayForFansIE(InfoExtractor):
             'ext': 'mp4'
            
         } 
-
-
-
- 

@@ -6,6 +6,8 @@ from requests_html import HTMLSession
 
 from .common import InfoExtractor
 
+from ..utils import ExtractorError
+
 class ThisVidIE(InfoExtractor):
     IE_NAME = 'thisvid'
     IE_DESC = 'thisvid'

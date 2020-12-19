@@ -1,9 +1,11 @@
 from __future__ import unicode_literals
 
 from .common import InfoExtractor
+from .streamtape import StreamtapeIE
 
 
 class MyVidsterIE(InfoExtractor):
+    IE_NAME = 'myvidster'
     _VALID_URL = r'https?://(?:www\.)?myvidster\.com/video/(?P<id>\d+)/'
 
     _TEST = {
@@ -24,6 +26,23 @@ class MyVidsterIE(InfoExtractor):
         video_id = self._match_id(url)
         webpage = self._download_webpage(url, video_id)
 
-        return self.url_result(self._html_search_regex(
+        title = self._og_search_title(webpage)
+
+        real_url = self._html_search_regex(
             r'rel="videolink" href="(?P<real_url>.*)">',
-            webpage, 'real video url'))
+            webpage, 'real video url')
+
+        streamtape_url = StreamtapeIE._extract_url(webpage)
+        print(f"streamtape url: {streamtape_url}")
+        if streamtape_url:
+            entry_video = StreamtapeIE._extract_info_video(real_url)
+            print(entry_video)
+            entry_video['title'] = title
+            print(entry_video)
+            return entry_video
+
+        print(f"{video_id}:{title}:{real_url}")
+        entry_video = self.url_result(real_url, None, video_id, title)
+        print(f"Entry video: {entry_video}")
+        
+        return entry_video

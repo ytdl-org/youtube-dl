@@ -1,15 +1,21 @@
 # coding: utf-8
 from __future__ import unicode_literals
 
-import re
-from requests_html import HTMLSession
 import random
 import urllib.parse
+import re
 
 from .common import InfoExtractor
 from ..utils import (
     multipart_encode,
-    ExtractorError)
+    ExtractorError,
+    clean_html,
+    get_element_by_class)
+
+from requests_html import (
+    HTMLSession,
+   
+)
 
 
 class SlamRushBaseIE(InfoExtractor):
