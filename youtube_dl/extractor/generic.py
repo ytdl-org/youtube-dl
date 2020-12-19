@@ -238,6 +238,9 @@ class GenericIE(InfoExtractor):
                     'thumbnail': r're:^https?://.*\.jpg$',
                 },
             }],
+            'params': {
+                'skip_download': True,
+            },
         },
         # RSS feed with enclosures and unsupported link URLs
         {
