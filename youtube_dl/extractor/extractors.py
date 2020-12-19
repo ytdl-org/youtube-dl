@@ -679,7 +679,14 @@ from .nationalgeographic import (
     NationalGeographicTVIE,
 )
 from .naver import NaverIE
-from .nba import NBAIE
+from .nba import (
+    NBAWatchEmbedIE,
+    NBAWatchIE,
+    NBAWatchCollectionIE,
+    NBAEmbedIE,
+    NBAIE,
+    NBAChannelIE,
+)
 from .nbc import (
     CSNNEIE,
     NBCIE,
