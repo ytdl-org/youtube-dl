@@ -2605,6 +2605,13 @@ class InfoExtractor(object):
         return entries
 
     def _extract_akamai_formats(self, manifest_url, video_id, hosts={}):
+        signed = 'hdnea=' in manifest_url
+        if not signed:
+            # https://learn.akamai.com/en-us/webhelp/media-services-on-demand/stream-packaging-user-guide/GUID-BE6C0F73-1E06-483B-B0EA-57984B91B7F9.html
+            manifest_url = re.sub(
+                r'(?:b=[\d,-]+|(?:__a__|attributes)=off|__b__=\d+)&?',
+                '', manifest_url).strip('?')
+
         formats = []
 
         hdcore_sign = 'hdcore=3.7.0'
@@ -2630,7 +2637,7 @@ class InfoExtractor(object):
         formats.extend(m3u8_formats)
 
         http_host = hosts.get('http')
-        if http_host and m3u8_formats and 'hdnea=' not in m3u8_url:
+        if http_host and m3u8_formats and not signed:
             REPL_REGEX = r'https?://[^/]+/i/([^,]+),([^/]+),([^/]+)\.csmil/.+'
             qualities = re.match(REPL_REGEX, m3u8_url).group(2).split(',')
             qualities_length = len(qualities)

@@ -33,8 +33,7 @@ class NRKBaseIE(InfoExtractor):
 
     def _extract_nrk_formats(self, asset_url, video_id):
         if re.match(r'https?://[^/]+\.akamaihd\.net/i/', asset_url):
-            return self._extract_akamai_formats(
-                re.sub(r'(?:b=\d+-\d+|__a__=off)&?', '', asset_url), video_id)
+            return self._extract_akamai_formats(asset_url, video_id)
         asset_url = re.sub(r'(?:bw_(?:low|high)=\d+|no_audio_only)&?', '', asset_url)
         formats = self._extract_m3u8_formats(
             asset_url, video_id, 'mp4', 'm3u8_native', fatal=False)
