@@ -611,6 +611,10 @@ def parseOpts(overrideArguments=None):
         action='store_true', dest='getdescription', default=False,
         help='Simulate, quiet but print video description')
     verbosity.add_option(
+        '--get-uploader',
+        action='store_true', dest='getuploader', default=False,
+        help='Simulate, quiet but print video uploader')
+    verbosity.add_option(
         '--get-duration',
         action='store_true', dest='getduration', default=False,
         help='Simulate, quiet but print video length')

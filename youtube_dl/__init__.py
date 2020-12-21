@@ -243,7 +243,7 @@ def _real_main(argv=None):
                      ' file! Use "{0}.%(ext)s" instead of "{0}" as the output'
                      ' template'.format(outtmpl))
 
-    any_getting = opts.geturl or opts.gettitle or opts.getid or opts.getthumbnail or opts.getdescription or opts.getfilename or opts.getformat or opts.getduration or opts.dumpjson or opts.dump_single_json
+    any_getting = opts.geturl or opts.gettitle or opts.getid or opts.getthumbnail or opts.getdescription or opts.getuploader or opts.getfilename or opts.getformat or opts.getduration or opts.dumpjson or opts.dump_single_json
     any_printing = opts.print_json
     download_archive_fn = expand_path(opts.download_archive) if opts.download_archive is not None else opts.download_archive
 
@@ -330,6 +330,7 @@ def _real_main(argv=None):
         'forceid': opts.getid,
         'forcethumbnail': opts.getthumbnail,
         'forcedescription': opts.getdescription,
+        'forceuploader': opts.getuploader,
         'forceduration': opts.getduration,
         'forcefilename': opts.getfilename,
         'forceformat': opts.getformat,

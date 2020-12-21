@@ -285,6 +285,7 @@ Alternatively, refer to the [developer instructions](#developer-instructions) fo
     --get-id                         Simulate, quiet but print id
     --get-thumbnail                  Simulate, quiet but print thumbnail URL
     --get-description                Simulate, quiet but print video description
+    --get-uploader                   Simulate, quiet but print video uploader
     --get-duration                   Simulate, quiet but print video length
     --get-filename                   Simulate, quiet but print output filename
     --get-format                     Simulate, quiet but print output format

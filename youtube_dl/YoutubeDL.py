@@ -155,6 +155,7 @@ class YoutubeDL(object):
     forceid:           Force printing ID.
     forcethumbnail:    Force printing thumbnail URL.
     forcedescription:  Force printing description.
+    forceuploader:     Force printing uploader.
     forcefilename:     Force printing final filename.
     forceduration:     Force printing duration.
     forcejson:         Force printing info_dict as JSON.
@@ -1717,6 +1718,7 @@ class YoutubeDL(object):
                 self.to_stdout(info_dict[field])
 
         print_mandatory('title')
+        print_mandatory('uploader')
         print_mandatory('id')
         if self.params.get('forceurl', False) and not incomplete:
             if info_dict.get('requested_formats') is not None:
