@@ -1,3 +1,33 @@
+version <unreleased>
+
+Core
+* [common] Remove unwanted query params from unsigned akamai manifest URLs
+
+Extractors
+- [tastytrade] Remove extractor (#25716)
+* [niconico] Fix playlist extraction (#27428)
+- [everyonesmixtape] Remove extractor
+- [kanalplay] Remove extractor
+* [arkena] Fix extraction
+* [nba] Rewrite extractor
+* [turner] Improve info extraction
+* [youtube] Improve xsrf token extraction (#27442)
+* [generic] Improve RSS age limit extraction
+* [generic] Fix RSS itunes thumbnail extraction (#27405)
++ [redditr] Extract duration (#27426)
+- [zaq1] Remove extractor
++ [asiancrush] Add support for retrocrush.tv
+* [asiancrush] Fix extraction
+- [noco] Remove extractor (#10864)
+* [nfl] Fix extraction (#22245)
+* [skysports] Relax URL regular expression (#27435)
++ [tv5unis] Add support for tv5unis.ca (#22399, #24890)
++ [videomore] Add support for more.tv (#27088)
++ [yandexmusic] Add support for music.yandex.com (#27425)
++ [nhk:program] Add support for audio programs and program clips
++ [nhk] Add support for NHK video programs (#27230)
+
+
 version 2020.12.14
 
 Core
