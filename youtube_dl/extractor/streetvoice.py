@@ -3,27 +3,28 @@ from __future__ import unicode_literals
 
 from .common import InfoExtractor
 from ..compat import compat_str
-from ..utils import unified_strdate
+from ..utils import int_or_none, unified_timestamp
 
 
 class StreetVoiceIE(InfoExtractor):
     _VALID_URL = r'https?://(?:.+?\.)?streetvoice\.com/[^/]+/songs/(?P<id>[0-9]+)'
     _TESTS = [{
-        'url': 'http://streetvoice.com/skippylu/songs/94440/',
-        'md5': '15974627fc01a29e492c98593c2fd472',
+        'url': 'https://streetvoice.com/lekimberleyy/songs/630281/',
+        'md5': '515d4bfdfe337039d9efaa53be24484d',
         'info_dict': {
-            'id': '94440',
+            'id': '630281',
             'ext': 'mp3',
-            'title': '輸',
-            'description': 'Crispy脆樂團 - 輸',
-            'thumbnail': r're:^https?://.*\.jpg$',
-            'duration': 260,
-            'upload_date': '20091018',
-            'uploader': 'Crispy脆樂團',
-            'uploader_id': '627810',
+            'title': '郵票Good Times feat. 瘦子E.SO',
+            'description': 'Kimberley - 郵票Good Times feat. 瘦子E.SO',
+            'thumbnail': r're:^https?://.*\.jpg',
+            'uploader': 'lekimberleyy',
+            'uploader_id': '2674557',
+            'duration': 236,
+            'upload_date': '20201216',
+            'timestamp': 1608110177
         }
     }, {
-        'url': 'http://tw.streetvoice.com/skippylu/songs/94440/',
+        'url': 'https://tw.streetvoice.com/ConstantanChange/songs/628471/',
         'only_matching': True,
     }]
 
@@ -31,19 +32,44 @@ class StreetVoiceIE(InfoExtractor):
         song_id = self._match_id(url)
 
         song = self._download_json(
-            'https://streetvoice.com/api/v1/public/song/%s/' % song_id, song_id, data=b'')
+            'https://streetvoice.com/api/v4/song/%s/' % song_id, song_id, note="Downloading song details")
+
+        song_file = self._download_json(
+            'https://streetvoice.com/api/v4/song/%s/hls/file/' % song_id, song_id, data=b'', note="Downloading song data")
 
         title = song['name']
-        author = song['user']['nickname']
+        formats = [{'url': song_file['file'], 'format_id': 'hls', 'protocol': 'm3u8', 'ext': 'mp3'}]
+
+        author = uploader = uploader_id = album_name = album_type = None
+        user_data = song.get('user')
+
+        if (user_data is not None):
+            user_profile = user_data.get('profile')
+            if (user_profile is not None):
+                author = user_profile.get('nickname')
+            uploader = user_data.get('username')
+            uploader_id = compat_str(user_data.get('id'))
+
+        album_data = song.get('album')
+        if (album_data is not None):
+            album_name = album_data.get('name')
+            album_type = album_data.get('type')
+
 
         return {
             'id': song_id,
-            'url': song['file'],
             'title': title,
             'description': '%s - %s' % (author, title),
             'thumbnail': self._proto_relative_url(song.get('image'), 'http:'),
-            'duration': song.get('length'),
-            'upload_date': unified_strdate(song.get('created_at')),
-            'uploader': author,
-            'uploader_id': compat_str(song['user']['id']),
+            'uploader': uploader,
+            'uploader_id': uploader_id,
+            'formats': formats,
+            'duration': int_or_none(song.get('length')),
+            'view_count': int_or_none(song.get('plays_count')),
+            'like_count': int_or_none(song.get('like_count')),
+            'comment_count': int_or_none(song.get('comments_count')),
+            'timestamp': unified_timestamp(song.get('publish_at')),
+            'repost_count': int_or_none(song.get('share_count')),
+            'album': album_name,
+            'album_type': album_type
         }
