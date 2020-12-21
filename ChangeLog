@@ -1,4 +1,4 @@
-version <unreleased>
+version 2020.12.22
 
 Core
 * [common] Remove unwanted query params from unsigned akamai manifest URLs
