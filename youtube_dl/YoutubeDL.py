@@ -1718,7 +1718,6 @@ class YoutubeDL(object):
                 self.to_stdout(info_dict[field])
 
         print_mandatory('title')
-        print_mandatory('uploader')
         print_mandatory('id')
         if self.params.get('forceurl', False) and not incomplete:
             if info_dict.get('requested_formats') is not None:
@@ -1727,6 +1726,7 @@ class YoutubeDL(object):
             else:
                 # For RTMP URLs, also include the playpath
                 self.to_stdout(info_dict['url'] + info_dict.get('play_path', ''))
+        print_optional('uploader')
         print_optional('thumbnail')
         print_optional('description')
         if self.params.get('forcefilename', False) and filename is not None:
