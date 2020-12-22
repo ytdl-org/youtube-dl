@@ -56,29 +56,33 @@ class TwentyThreeVideoIE(InfoExtractor):
                 photo_id,
                 query = new_query,
                 transform_source=lambda s: self._search_regex(r'(?s)({.+})', s, 'photolist_2')
-            )["photolist_2"]["photos"]
-            
-            for photo in photolist_result:
-                if photo['photo_id'] == photo_id:
-                    return photo['protection_method'] == 'geoblocking'
-
-            return false
-            
-        video_query = { 'format': 'json' }
-        if(is_geo_blocked()):
-            token = self._download_json(
-                base_url + '/api/protection/verify',
-                photo_id,
-                query={ 'protection_method': 'geoblocking', 'object_id': photo_id, 'object_type': 'photo', 'format': 'json', 'callback': 'visualplatform_1' },
-                transform_source=lambda s: self._search_regex(r'(?s)({.+})', s, 'protectedtoken'))['protectedtoken']['protected_token']
-
-            video_query = { 'format': 'json', token: token}
-
+            )["photolist_2"]
         
+            if "photos" in photolist_result:
+                for photo in photolist_result['photos']:
+                    if photo['photo_id'] == photo_id:
+                        return photo['protection_method'] == 'geoblocking'
+
+            return False
+        
+        def get_video_query():
+            if is_geo_blocked():
+                token = self._download_json(
+                    base_url + '/api/protection/verify',
+                    photo_id,
+                    query={ 'protection_method': 'geoblocking', 'object_id': photo_id, 'object_type': 'photo', 'format': 'json', 'callback': 'visualplatform_1' },
+                    transform_source=lambda s: self._search_regex(r'(?s)({.+})', s, 'protectedtoken'))['protectedtoken']['protected_token']
+
+                return  { 'format': 'json', 'token': token}    
+            else:
+                return { 'format': 'json' }
+
+        video_query = get_video_query()
         photo_data = self._download_json(
-            base_url + '/api/photo/list?' + query, photo_id, query={
-                'format': 'json', 'token': token
-            }, transform_source=lambda s: self._search_regex(r'(?s)({.+})', s, 'photo data'))['photo']
+            base_url + '/api/photo/list?' + query, photo_id, 
+            query = video_query, 
+            transform_source=lambda s: self._search_regex(r'(?s)({.+})', s, 'photo data'))['photo']
+        
         title = photo_data['title']
         formats = []
 
