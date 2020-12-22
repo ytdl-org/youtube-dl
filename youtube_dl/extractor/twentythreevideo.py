@@ -33,7 +33,7 @@ class TwentyThreeVideoIE(InfoExtractor):
             'upload_date': '20181004',
             'uploader_id': '10801356',
             'uploader': 'Kristoffer Engbo',
-        } 
+        }
     }, {
         'url': 'https://video.kglteater.dk/v.ihtml/player.html?source=share&photo%5fid=65098499',
         'md5': '4e20a33ce86b13ca114ee44a0a8d8efb',
@@ -45,6 +45,18 @@ class TwentyThreeVideoIE(InfoExtractor):
             'upload_date': '20201112',
             'uploader_id': '62151179',
             'uploader': 'jbny',
+        }
+    }, {
+        'url': 'https://video.kglteater.dk/v.ihtml/player.html?showDescriptions=0&source=site&photo%5fid=52486482&autoPlay=1',
+        'md5': 'c39ffb965079fb4395788e6814ec3cdc',
+        'info_dict': {
+            'id': '52486482',
+            'ext': 'mp4',
+            'title': u'N\xf8ddekn\xe6kkeren 2019',
+            'timestamp': 1558953133,
+            'upload_date': '20190527',
+            'uploader_id': '7450690',
+            'uploader': 'Tejs Holm',
         }
     }]
 
