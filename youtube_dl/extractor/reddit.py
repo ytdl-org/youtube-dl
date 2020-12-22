@@ -119,15 +119,23 @@ class RedditRIE(InfoExtractor):
         else:
             age_limit = None
 
+        thumbnails = []
+        images = try_get(
+            data, lambda x: x['preview']['images'][0]['resolutions']) or []
+        for image in images:
+            url = url_or_none(unescapeHTML(image['url']))
+            if url is not None:
+                thumbnails.append({
+                    'url': url,
+                    'width': int_or_none(image['width']),
+                    'height': int_or_none(image['height']),
+                })
+
         return {
             '_type': 'url_transparent',
             'url': video_url,
             'title': data.get('title'),
-            'thumbnail': url_or_none(unescapeHTML(try_get(
-                data,
-                (lambda x: x['preview']['images'][0]['resolutions'][3]['url'],
-                 lambda x: x['preview']['images'][0]['resolutions'][2]['url'],
-                 lambda x: x['thumbnail'])))),
+            'thumbnails': thumbnails,
             'timestamp': float_or_none(data.get('created_utc')),
             'uploader': data.get('author'),
             'duration': int_or_none(try_get(
