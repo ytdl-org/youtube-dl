@@ -9,6 +9,7 @@ from ..utils import (
     float_or_none,
     try_get,
     url_or_none,
+    unescapeHTML,
 )
 
 
@@ -122,7 +123,11 @@ class RedditRIE(InfoExtractor):
             '_type': 'url_transparent',
             'url': video_url,
             'title': data.get('title'),
-            'thumbnail': url_or_none(data.get('thumbnail')),
+            'thumbnail': url_or_none(unescapeHTML(try_get(
+                data,
+                (lambda x: x['preview']['images'][0]['resolutions'][3]['url'],
+                 lambda x: x['preview']['images'][0]['resolutions'][2]['url'],
+                 lambda x: x['thumbnail'])))),
             'timestamp': float_or_none(data.get('created_utc')),
             'uploader': data.get('author'),
             'duration': int_or_none(try_get(
