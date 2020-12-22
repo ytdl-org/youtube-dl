@@ -4,6 +4,7 @@ import re
 
 from .common import InfoExtractor
 from ..utils import int_or_none
+from ..compat import compat_urllib_parse_urlencode
 
 
 class TwentyThreeVideoIE(InfoExtractor):
@@ -35,23 +36,44 @@ class TwentyThreeVideoIE(InfoExtractor):
         domain, query, photo_id = re.match(self._VALID_URL, url).groups()
         base_url = 'https://%s' % domain
         print(base_url + '/api/protection/verify')
-        # https://video.kglteater.dk/api/protection/verify?callback=visualplatform_1&protection_method=geoblocking&object_id=65550896&object_type=photo&verification_data=&format=json
-        # https://video.kglteater.dk/api/protection/verify
+    
+        def is_geo_blocked():
+            # /api/player/settings
+            playersettings_0 = { 'player_id': 0, 'parameters': 'showDescriptions=0&source=site&photo%5fid=' + photo_id + '&autoPlay=1', '_li': 0, '_bot': 0 }
+            playersettings_0_param =  '/api/player/settings?' + compat_urllib_parse_urlencode(playersettings_0)
+            
+            # /api/live/list
+            livelist_1 = { 'include_actions_p': 1, 'showDescriptions': 0, 'source': 'site', 'photo_id': photo_id, 'autoPlay': 1, 'upcoming_p' : 1, 'ordering': 'streaming', 'player_id': 0 }
+            livelist_1_param =  '/api/live/list?' + compat_urllib_parse_urlencode(livelist_1)
+            
+            # /api/photo/list
+            photolist_2 = { 'size':10, 'include_actions_p': 1, 'showDescriptions': 0, 'source': 'site', 'photo_id': photo_id, 'autoPlay':1,'player_id':0 }
+            photolist_2_param = '/api/photo/list?' + compat_urllib_parse_urlencode(photolist_2)
+            
+            new_query = query={ 'format': 'json', 'callback': 'test', 'playersettings_0': playersettings_0_param,  'livelist_1': livelist_1_param, 'photolist_2': photolist_2_param }
+            photolist_result = self._download_json(
+                base_url + '/api/concatenate',
+                photo_id,
+                query = new_query,
+                transform_source=lambda s: self._search_regex(r'(?s)({.+})', s, 'photolist_2')
+            )["photolist_2"]["photos"]
+            
+            for photo in photolist_result:
+                if photo['photo_id'] == photo_id:
+                    return photo['protection_method'] == 'geoblocking'
 
-        player_settings = self._download_json(
-            base_url + '/api/protection/verify',
-            photo_id,
-             query={ 'protection_method': 'geoblocking', 'object_id': photo_id, 'object_type': 'photo', 'format': 'json', 'callback': 'visualplatform_1' },
-             transform_source=lambda s: self._search_regex(r'(?s)({.+})', s, 'protectedtoken'))['protectedtoken']['protected_token']
+            return false
+            
+        video_query = { 'format': 'json' }
+        if(is_geo_blocked()):
+            token = self._download_json(
+                base_url + '/api/protection/verify',
+                photo_id,
+                query={ 'protection_method': 'geoblocking', 'object_id': photo_id, 'object_type': 'photo', 'format': 'json', 'callback': 'visualplatform_1' },
+                transform_source=lambda s: self._search_regex(r'(?s)({.+})', s, 'protectedtoken'))['protectedtoken']['protected_token']
 
+            video_query = { 'format': 'json', token: token}
 
-        token = self._download_json(
-            base_url + '/api/protection/verify',
-            photo_id,
-             query={ 'protection_method': 'geoblocking', 'object_id': photo_id, 'object_type': 'photo', 'format': 'json', 'callback': 'visualplatform_1' },
-             transform_source=lambda s: self._search_regex(r'(?s)({.+})', s, 'protectedtoken'))['protectedtoken']['protected_token']
-
-        print(token);
         
         photo_data = self._download_json(
             base_url + '/api/photo/list?' + query, photo_id, query={
