@@ -21,20 +21,43 @@ class TwentyThreeVideoIE(InfoExtractor):
             'uploader_id': '12258964',
             'uploader': 'Rasmus Bysted',
         }
-    }, {
+    },
+    {
         'url': 'https://bonnier-publications-danmark.23video.com/v.ihtml/player.html?token=f0dc46476e06e13afd5a1f84a29e31e8&source=embed&photo%5fid=36137620',
+        'only_matching': True,
+    },
+    {
+        'url': 'https://video.kglteater.dk/v.ihtml/player.html?source=share&photo%5fid=65098499',
         'only_matching': True,
     }]
 
     def _real_extract(self, url):
         domain, query, photo_id = re.match(self._VALID_URL, url).groups()
         base_url = 'https://%s' % domain
+        print(base_url + '/api/protection/verify')
+        # https://video.kglteater.dk/api/protection/verify?callback=visualplatform_1&protection_method=geoblocking&object_id=65550896&object_type=photo&verification_data=&format=json
+        # https://video.kglteater.dk/api/protection/verify
+
+        player_settings = self._download_json(
+            base_url + '/api/protection/verify',
+            photo_id,
+             query={ 'protection_method': 'geoblocking', 'object_id': photo_id, 'object_type': 'photo', 'format': 'json', 'callback': 'visualplatform_1' },
+             transform_source=lambda s: self._search_regex(r'(?s)({.+})', s, 'protectedtoken'))['protectedtoken']['protected_token']
+
+
+        token = self._download_json(
+            base_url + '/api/protection/verify',
+            photo_id,
+             query={ 'protection_method': 'geoblocking', 'object_id': photo_id, 'object_type': 'photo', 'format': 'json', 'callback': 'visualplatform_1' },
+             transform_source=lambda s: self._search_regex(r'(?s)({.+})', s, 'protectedtoken'))['protectedtoken']['protected_token']
+
+        print(token);
+        
         photo_data = self._download_json(
             base_url + '/api/photo/list?' + query, photo_id, query={
-                'format': 'json',
+                'format': 'json', 'token': token
             }, transform_source=lambda s: self._search_regex(r'(?s)({.+})', s, 'photo data'))['photo']
         title = photo_data['title']
-
         formats = []
 
         audio_path = photo_data.get('audio_download')
