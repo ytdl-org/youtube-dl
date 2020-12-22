@@ -52,7 +52,7 @@ class TwentyThreeVideoIE(InfoExtractor):
         'info_dict': {
             'id': '52486482',
             'ext': 'mp4',
-            'title': 'Nøddeknækkeren 2019',
+            'title': 'N\xf8ddekn\xe6kkeren 2019',
             'timestamp': 1558953133,
             'upload_date': '20190527',
             'uploader_id': '7450690',
