@@ -24,7 +24,16 @@ class TwentyThreeVideoIE(InfoExtractor):
         }
     }, {
         'url': 'https://bonnier-publications-danmark.23video.com/v.ihtml/player.html?token=f0dc46476e06e13afd5a1f84a29e31e8&source=embed&photo%5fid=36137620',
-        'only_matching': True,
+        'md5': '772a91f83d129ee5f015b12bea61a78b',
+        'info_dict': {
+            'id': '36137620',
+            'ext': 'mp4',
+            'title': 'Photoshop Elements 2019 - Photo Text',
+            'timestamp': 1538664032,
+            'upload_date': '20181004',
+            'uploader_id': '10801356',
+            'uploader': 'Kristoffer Engbo',
+        } 
     }, {
         'url': 'https://video.kglteater.dk/v.ihtml/player.html?source=share&photo%5fid=65098499',
         'md5': '4e20a33ce86b13ca114ee44a0a8d8efb',
