@@ -99,10 +99,10 @@ class ImdbIE(InfoExtractor):
         else:
             info = {}
 
-        title = self._html_search_meta(
+        title = info.get('videoTitle') or self._html_search_meta(
             ['og:title', 'twitter:title'], webpage) or self._html_search_regex(
             r'<title>(.+?)</title>', webpage, 'title',
-            default=None) or info['videoTitle']
+            default=None)
 
         return {
             'id': video_id,
@@ -111,7 +111,7 @@ class ImdbIE(InfoExtractor):
             'formats': formats,
             'description': info.get('videoDescription'),
             'thumbnail': url_or_none(try_get(
-                video_metadata, lambda x: x['videoSlate']['source'])),
+                info, lambda x: x['videoSlate']['source'])),
             'duration': parse_duration(info.get('videoRuntime')),
         }
 
