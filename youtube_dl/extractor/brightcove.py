@@ -28,6 +28,7 @@ from ..utils import (
     parse_iso8601,
     smuggle_url,
     str_or_none,
+    try_get,
     unescapeHTML,
     unsmuggle_url,
     UnsupportedError,
@@ -600,24 +601,27 @@ class BrightcoveNewIE(AdobePassIE):
         store_pk = lambda x: self._downloader.cache.store('brightcove', policy_key_id, x)
 
         def extract_policy_key():
-            webpage = self._download_webpage(
-                'http://players.brightcove.net/%s/%s_%s/index.min.js'
-                % (account_id, player_id, embed), video_id)
-
-            policy_key = None
-
-            catalog = self._search_regex(
-                r'catalog\(({.+?})\);', webpage, 'catalog', default=None)
-            if catalog:
-                catalog = self._parse_json(
-                    js_to_json(catalog), video_id, fatal=False)
-                if catalog:
-                    policy_key = catalog.get('policyKey')
-
+            base_url = 'http://players.brightcove.net/%s/%s_%s/' % (account_id, player_id, embed)
+            config = self._download_json(
+                base_url + 'config.json', video_id, fatal=False) or {}
+            policy_key = try_get(
+                config, lambda x: x['video_cloud']['policy_key'])
             if not policy_key:
-                policy_key = self._search_regex(
-                    r'policyKey\s*:\s*(["\'])(?P<pk>.+?)\1',
-                    webpage, 'policy key', group='pk')
+                webpage = self._download_webpage(
+                    base_url + 'index.min.js', video_id)
+
+                catalog = self._search_regex(
+                    r'catalog\(({.+?})\);', webpage, 'catalog', default=None)
+                if catalog:
+                    catalog = self._parse_json(
+                        js_to_json(catalog), video_id, fatal=False)
+                    if catalog:
+                        policy_key = catalog.get('policyKey')
+
+                if not policy_key:
+                    policy_key = self._search_regex(
+                        r'policyKey\s*:\s*(["\'])(?P<pk>.+?)\1',
+                        webpage, 'policy key', group='pk')
 
             store_pk(policy_key)
             return policy_key
