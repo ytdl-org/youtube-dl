@@ -1,6 +1,7 @@
 # coding: utf-8
 from __future__ import unicode_literals
 
+import json
 import re
 import socket
 
@@ -8,6 +9,7 @@ from .common import InfoExtractor
 from ..compat import (
     compat_etree_fromstring,
     compat_http_client,
+    compat_str,
     compat_urllib_error,
     compat_urllib_parse_unquote,
     compat_urllib_parse_unquote_plus,
@@ -47,7 +49,8 @@ class FacebookIE(InfoExtractor):
                             )\?(?:.*?)(?:v|video_id|story_fbid)=|
                             [^/]+/videos/(?:[^/]+/)?|
                             [^/]+/posts/|
-                            groups/[^/]+/permalink/
+                            groups/[^/]+/permalink/|
+                            watchparty/
                         )|
                     facebook:
                 )
@@ -280,8 +283,18 @@ class FacebookIE(InfoExtractor):
         # data.video.creation_story.attachments[].media
         'url': 'https://www.facebook.com/watch/live/?v=1823658634322275',
         'only_matching': True,
+    }, {
+        'url': 'https://www.facebook.com/watchparty/211641140192478',
+        'info_dict': {
+            'id': '211641140192478',
+        },
+        'playlist_count': 1,
+        'skip': 'Requires logging in',
     }]
     _SUPPORTED_PAGLETS_REGEX = r'(?:pagelet_group_mall|permalink_video_pagelet|hyperfeed_story_id_[0-9a-f]+)'
+    _api_config = {
+        'graphURI': '/api/graphql/'
+    }
 
     @staticmethod
     def _extract_urls(webpage):
@@ -405,6 +418,17 @@ class FacebookIE(InfoExtractor):
 
             self._sort_formats(formats)
 
+        def extract_relay_data(_filter):
+            return self._parse_json(self._search_regex(
+                r'handleWithCustomApplyEach\([^,]+,\s*({.*?%s.*?})\);' % _filter,
+                webpage, 'replay data', default='{}'), video_id, fatal=False) or {}
+
+        def extract_relay_prefetched_data(_filter):
+            replay_data = extract_relay_data(_filter)
+            for require in (replay_data.get('require') or []):
+                if require[0] == 'RelayPrefetchedStreamCache':
+                    return try_get(require, lambda x: x[3][1]['__bbox']['result']['data'], dict) or {}
+
         if not video_data:
             server_js_data = self._parse_json(self._search_regex([
                 r'bigPipe\.onPageletArrive\(({.+?})\)\s*;\s*}\s*\)\s*,\s*["\']onPageletArrive\s+' + self._SUPPORTED_PAGLETS_REGEX,
@@ -413,87 +437,83 @@ class FacebookIE(InfoExtractor):
             video_data = extract_from_jsmods_instances(server_js_data)
 
         if not video_data:
-            graphql_data = self._parse_json(self._search_regex(
-                r'handleWithCustomApplyEach\([^,]+,\s*({.*?"(?:dash_manifest|playable_url(?:_quality_hd)?)"\s*:\s*"[^"]+".*?})\);',
-                webpage, 'graphql data', default='{}'), video_id, fatal=False) or {}
-            for require in (graphql_data.get('require') or []):
-                if require[0] == 'RelayPrefetchedStreamCache':
-                    entries = []
+            data = extract_relay_prefetched_data(
+                r'"(?:dash_manifest|playable_url(?:_quality_hd)?)"\s*:\s*"[^"]+"')
+            if data:
+                entries = []
 
-                    def parse_graphql_video(video):
-                        formats = []
-                        q = qualities(['sd', 'hd'])
-                        for (suffix, format_id) in [('', 'sd'), ('_quality_hd', 'hd')]:
-                            playable_url = video.get('playable_url' + suffix)
-                            if not playable_url:
-                                continue
-                            formats.append({
-                                'format_id': format_id,
-                                'quality': q(format_id),
-                                'url': playable_url,
-                            })
-                        extract_dash_manifest(video, formats)
-                        process_formats(formats)
-                        v_id = video.get('videoId') or video.get('id') or video_id
-                        info = {
-                            'id': v_id,
-                            'formats': formats,
-                            'thumbnail': try_get(video, lambda x: x['thumbnailImage']['uri']),
-                            'uploader_id': try_get(video, lambda x: x['owner']['id']),
-                            'timestamp': int_or_none(video.get('publish_time')),
-                            'duration': float_or_none(video.get('playable_duration_in_ms'), 1000),
-                        }
-                        description = try_get(video, lambda x: x['savable_description']['text'])
-                        title = video.get('name')
-                        if title:
-                            info.update({
-                                'title': title,
-                                'description': description,
-                            })
-                        else:
-                            info['title'] = description or 'Facebook video #%s' % v_id
-                        entries.append(info)
+                def parse_graphql_video(video):
+                    formats = []
+                    q = qualities(['sd', 'hd'])
+                    for (suffix, format_id) in [('', 'sd'), ('_quality_hd', 'hd')]:
+                        playable_url = video.get('playable_url' + suffix)
+                        if not playable_url:
+                            continue
+                        formats.append({
+                            'format_id': format_id,
+                            'quality': q(format_id),
+                            'url': playable_url,
+                        })
+                    extract_dash_manifest(video, formats)
+                    process_formats(formats)
+                    v_id = video.get('videoId') or video.get('id') or video_id
+                    info = {
+                        'id': v_id,
+                        'formats': formats,
+                        'thumbnail': try_get(video, lambda x: x['thumbnailImage']['uri']),
+                        'uploader_id': try_get(video, lambda x: x['owner']['id']),
+                        'timestamp': int_or_none(video.get('publish_time')),
+                        'duration': float_or_none(video.get('playable_duration_in_ms'), 1000),
+                    }
+                    description = try_get(video, lambda x: x['savable_description']['text'])
+                    title = video.get('name')
+                    if title:
+                        info.update({
+                            'title': title,
+                            'description': description,
+                        })
+                    else:
+                        info['title'] = description or 'Facebook video #%s' % v_id
+                    entries.append(info)
 
-                    def parse_attachment(attachment, key='media'):
-                        media = attachment.get(key) or {}
-                        if media.get('__typename') == 'Video':
-                            return parse_graphql_video(media)
+                def parse_attachment(attachment, key='media'):
+                    media = attachment.get(key) or {}
+                    if media.get('__typename') == 'Video':
+                        return parse_graphql_video(media)
 
-                    data = try_get(require, lambda x: x[3][1]['__bbox']['result']['data'], dict) or {}
+                nodes = data.get('nodes') or []
+                node = data.get('node') or {}
+                if not nodes and node:
+                    nodes.append(node)
+                for node in nodes:
+                    story = try_get(node, lambda x: x['comet_sections']['content']['story'], dict) or {}
+                    attachments = try_get(story, [
+                        lambda x: x['attached_story']['attachments'],
+                        lambda x: x['attachments']
+                    ], list) or []
+                    for attachment in attachments:
+                        attachment = try_get(attachment, lambda x: x['style_type_renderer']['attachment'], dict)
+                        ns = try_get(attachment, lambda x: x['all_subattachments']['nodes'], list) or []
+                        for n in ns:
+                            parse_attachment(n)
+                        parse_attachment(attachment)
 
-                    nodes = data.get('nodes') or []
-                    node = data.get('node') or {}
-                    if not nodes and node:
-                        nodes.append(node)
-                    for node in nodes:
-                        story = try_get(node, lambda x: x['comet_sections']['content']['story'], dict) or {}
-                        attachments = try_get(story, [
-                            lambda x: x['attached_story']['attachments'],
-                            lambda x: x['attachments']
-                        ], list) or []
-                        for attachment in attachments:
-                            attachment = try_get(attachment, lambda x: x['style_type_renderer']['attachment'], dict)
-                            ns = try_get(attachment, lambda x: x['all_subattachments']['nodes'], list) or []
-                            for n in ns:
-                                parse_attachment(n)
-                            parse_attachment(attachment)
+                edges = try_get(data, lambda x: x['mediaset']['currMedia']['edges'], list) or []
+                for edge in edges:
+                    parse_attachment(edge, key='node')
 
-                    edges = try_get(data, lambda x: x['mediaset']['currMedia']['edges'], list) or []
-                    for edge in edges:
-                        parse_attachment(edge, key='node')
+                video = data.get('video') or {}
+                if video:
+                    attachments = try_get(video, [
+                        lambda x: x['story']['attachments'],
+                        lambda x: x['creation_story']['attachments']
+                    ], list) or []
+                    for attachment in attachments:
+                        parse_attachment(attachment)
+                    if not entries:
+                        parse_graphql_video(video)
 
-                    video = data.get('video') or {}
-                    if video:
-                        attachments = try_get(video, [
-                            lambda x: x['story']['attachments'],
-                            lambda x: x['creation_story']['attachments']
-                        ], list) or []
-                        for attachment in attachments:
-                            parse_attachment(attachment)
-                        if not entries:
-                            parse_graphql_video(video)
-
-                    return self.playlist_result(entries, video_id)
+                return self.playlist_result(entries, video_id)
 
         if not video_data:
             m_msg = re.search(r'class="[^"]*uiInterstitialContent[^"]*"><div>(.*?)</div>', webpage)
@@ -504,6 +524,43 @@ class FacebookIE(InfoExtractor):
             elif '>You must log in to continue' in webpage:
                 self.raise_login_required()
 
+        if not video_data and '/watchparty/' in url:
+            post_data = {
+                'doc_id': 3731964053542869,
+                'variables': json.dumps({
+                    'livingRoomID': video_id,
+                }),
+            }
+
+            prefetched_data = extract_relay_prefetched_data(r'"login_data"\s*:\s*{')
+            if prefetched_data:
+                lsd = try_get(prefetched_data, lambda x: x['login_data']['lsd'], dict)
+                if lsd:
+                    post_data[lsd['name']] = lsd['value']
+
+            relay_data = extract_relay_data(r'\[\s*"RelayAPIConfigDefaults"\s*,')
+            for define in (relay_data.get('define') or []):
+                if define[0] == 'RelayAPIConfigDefaults':
+                    self._api_config = define[2]
+
+            living_room = self._download_json(
+                urljoin(url, self._api_config['graphURI']), video_id,
+                data=urlencode_postdata(post_data))['data']['living_room']
+
+            entries = []
+            for edge in (try_get(living_room, lambda x: x['recap']['watched_content']['edges']) or []):
+                video = try_get(edge, lambda x: x['node']['video']) or {}
+                v_id = video.get('id')
+                if not v_id:
+                    continue
+                v_id = compat_str(v_id)
+                entries.append(self.url_result(
+                    self._VIDEO_PAGE_TEMPLATE % v_id,
+                    self.ie_key(), v_id, video.get('name')))
+
+            return self.playlist_result(entries, video_id)
+
+        if not video_data:
             # Video info not in first request, do a secondary request using
             # tahoe player specific URL
             tahoe_data = self._download_webpage(
