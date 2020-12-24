@@ -94,7 +94,7 @@ class SonyLIVIE(InfoExtractor):
             '1.6', 'IN/DETAIL/' + video_id, video_id)['containers'][0]['metadata']
         title = metadata['title']
         episode = metadata.get('episodeTitle')
-        if episode:
+        if episode and title != episode:
             title += ' - ' + episode
 
         return {
