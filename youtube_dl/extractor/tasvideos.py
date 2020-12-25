@@ -19,7 +19,7 @@ class TasVideosIE(InfoExtractor):
         video_id = self._match_id(url)
         webpage = self._download_webpage(url, video_id)
         video_url = "http://www." + self._search_regex(
-            r'<a [^>]+(?P<URL>archive\.org\/download[^<]+(?:mkv|mp4))[^<]+<\/a>',
+            r'<a [^>]+(?P<URL>archive\.org\/download[^<]+(?:mkv|mp4|avi))[^<]+<\/a>',
             webpage, 'video url')
         title = self._search_regex(
             r'<span title="Movie[^"]+">(?P<TITLE>[^<]+)<\/span>', webpage,
