@@ -55,7 +55,7 @@ class SproutIE(AdobePassIE):
             })
         return {
             '_type': 'url_transparent',
-            'id': 'id',
+            'id': media_pid,
             'url': theplatform_url,
             'series': mpx_metadata.get('seriesName'),
             'season_number': int_or_none(mpx_metadata.get('seasonNumber')),
