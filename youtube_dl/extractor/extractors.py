@@ -1455,7 +1455,10 @@ from .weibo import (
     WeiboMobileIE
 )
 from .weiqitv import WeiqiTVIE
-from .wistia import WistiaIE
+from .wistia import (
+    WistiaIE,
+    WistiaPlaylistIE,
+)
 from .worldstarhiphop import WorldStarHipHopIE
 from .wsj import (
     WSJIE,
