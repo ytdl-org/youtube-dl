@@ -3,7 +3,7 @@ from __future__ import unicode_literals
 
 import re
 
-from requests.sessions import session
+from requests import Session
 
 from .common import InfoExtractor
 from ..utils import (
@@ -24,25 +24,20 @@ class StreamtapeIE(InfoExtractor):
         if mobj:
             return mobj.group('real_url')
 
-    @staticmethod
-    def _extract_info_video(url):
-        mobj = re.match(StreamtapeIE._VALID_URL, url)
+        mobj = re.search(r"reload_video\('(?P<real_url>https://streamtape\.com.+?)/'", webpage)
         if mobj:
-            video_id = mobj.group('id')
-        else:
-            raise ExtractorError('Video does not exits')
+            return mobj.group('real_url')
+        
 
-        headers = std_headers
 
-        session = requests.Session(headers=headers)
-        webpage = session.get(url).text
 
+    @staticmethod
+    def _extract_info_video(webpage, video_id):
         if 'Video not found' in webpage:
             raise ExtractorError(
                 'Video %s does not exist' % video_id, expected=True)
 
-        mobj = re.search(
-            r'<div id="videolink" style="display:none;">(?P<video_url>[^<]+)</div>', webpage)
+        mobj = re.search(r"<script>var elem=document.getElementById\('videolink'\);elem\['innerHTML'\]='(?P<video_url>.*?)';</script>", webpage)
         if mobj:
             video_url = mobj.group('video_url')
 
@@ -50,28 +45,63 @@ class StreamtapeIE(InfoExtractor):
             raise ExtractorError(
             'Video %s does not exist' % video_id, expected=True)
 
-        mobj = re.match(r'<meta name="og:title" content="(?P<title>.+?)">', webpage)
         title = None
+        mobj = re.match(r'<meta name="og:title" content="(?P<title>.+?)">', webpage)
         if mobj:
             title = mobj.group('title')
+        
+        if not title:
+            title = 'streamtape'
+
 
         #resp = requests.head('https:' + video_url + '&stream=1')
         #url_download = resp.headers.get('Location')
-        url_download = 'https:' + video_url + '&stream=1'
+        url_download = 'https:' + video_url + '&dl=1'
+        print(url_download) 
+
+        headers = std_headers
+
+        print(headers)
+       
+        # headers = {
+        #     "acccept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9",
+        #     "pragma": "no-cache",
+        #     "cache-control": "no-cache",
+        #     #"sec-fetch-site": "none",
+        #     #"sec-fetch-mode": "navigate",
+        #     #"sec-fetch-dest": "document",
+        #     "accept-language": "es-ES,es;q=0.9,en;q=0.8,gl;q=0.7,ja;q=0.6",
+
+        # }   
+        # session.headers.update(headers)
+        # print(session.headers)    
+        res = requests.head(url_download,headers=headers)
+        print(res.headers)
+        url_video = res.headers['location']
+        print(url_video)
         
                
         return ({
-            'url': url_download,
+            'url': url_video,
             'id': video_id,
             'title': title,
-            'ext': 'mp4',
-            'http_headers': {'Referer': url, 'Origin':'https://streamtape.com', 'Accept': 'video/webm,video/ogg,video/*;q=0.9,application/ogg;q=0.7,audio/*;q=0.6,*/*;q=0.5', 'Accept-Language': 'es-ES,en-US;q=0.7,en;q=0.3', 'Range': 'bytes=0-', 'Accept-Encoding': 'gzip, deflate, br'}
+            'ext': 'mp4'
         })
 
 
 
     
     def _real_extract(self, url):
-        return self._extract_info_video(url)
+        mobj = re.search(self._VALID_URL, url)
+        if mobj:
+            video_id = mobj.group('id')
+        else:
+            raise ExtractorError('Video does not exits')
+
+        if 'Video not found' in webpage:
+            raise ExtractorError(
+                'Video %s does not exist' % video_id, expected=True)
+        webpage = self._download_webpage(url, video_id)
+        return self._extract_info_video(webpage, video_id)
               
 

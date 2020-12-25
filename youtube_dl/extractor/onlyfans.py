@@ -227,7 +227,7 @@ class OnlyFansPostIE(OnlyFansBaseIE):
     IE_DESC = 'onlyfans:post'
     #_VALID_URL = r"https?://(?:www\.)?onlyfans.com/post/(?P<post>\d{8})"
     #_VALID_URL = r"(onlyfans:post:(?P<post>.*?):(?P<account>.*?))|(https?://(?:www\.)?onlyfans.com/(?P<post>.*?)/(?P<account>.*?))"
-    _VALID_URL =  r"(?:(onlyfans:post:(?P<post>.*?):(?P<account>[\da-zA-Z]+))|(https?://(?:www\.)?onlyfans.com/(?P<post2>.*?)/(?P<account2>[\da-zA-Z]+)))"
+    _VALID_URL =  r"(?:(onlyfans:post:(?P<post>.*?):(?P<account>[\da-zA-Z]+))|(https?://(?:www\.)?onlyfans.com/(?P<post2>[\d]+)/(?P<account2>[\da-zA-Z]+)))"
 
     def _real_initialize(self):
         if not self.cookies:  
@@ -282,7 +282,8 @@ class OnlyFansPlaylistIE(OnlyFansBaseIE):
     IE_NAME = 'onlyfans:playlist'
     IE_DESC = 'onlyfans:playlist'
     #_VALID_URL = r"https?://(?:www\.)?onlyfans.com/account/(?P<account>[^/]+)"
-    _VALID_URL = r"(?:(onlyfans:account:(?P<account>[^/]+))|(https?://(?:www\.)?onlyfans.com/account/(?P<account2>[^/]+)))"
+    _VALID_URL = r"(?:(onlyfans:account:(?P<account>[^:]+)(?:(:(?P<mode>(?:date|favs|tips)))?))|(https?://(?:www\.)?onlyfans.com/(?P<account2>[\da-zA-Z]+)(?:(/(?P<mode2>(?:date|favs|tips)))?)$))"
+    _MODE_DICT = {"favs" : "favorites_count_desc", "tips" : "tips_summ_desc", "date" : "publish_date_desc", "latest25" : "publish_date_desc"}
            
    
     def _real_initialize(self):
@@ -297,9 +298,15 @@ class OnlyFansPlaylistIE(OnlyFansBaseIE):
             if not account:
                 account = re.search(self._VALID_URL, url).group("account2")
             #self.driver.maximize_window()
-            # print(account)
+            #print("Acc: " + account)
             #cookies = self.driver.get_cookies()
             #json.dump(cookies, open("cookies.json", "w"))
+            mode = re.search(self._VALID_URL, url).group("mode")
+            if not mode:
+                mode = re.search(self._VALID_URL, url).group("mode2")
+                if not mode:
+                    mode = "latest25"
+           #print(f"mode: {mode}")
             for cookie in self.cookies:
                 #print(cookie)
                 if not "user-agent" in cookie['name']:
@@ -315,35 +322,57 @@ class OnlyFansPlaylistIE(OnlyFansBaseIE):
             n_videos = int(data_user['videosCount'])
             
             self.session.cookies.set("wallLayout", "list")
-            url_getvideos_base = "https://onlyfans.com/api2/v2/users/" + str(user_id) + "/posts/videos?limit=100&order=publish_date_desc&skip_users=all&skip_users_dups=1&pinned=0&app-token=" + self.app_token
-            url_getvideos = url_getvideos_base
-            time3 = ""
-            data_videos = []
-           
+
             self.session.headers["user-id"] = self._USER_ID
             self.session.headers["Referer"] = self._SITE_URL + "/" + account + "/videos"
             self.session.headers["Origin"] = self._SITE_URL
             self.session.headers["Access-Token"] = self.session.cookies['sess']
             
-            #print(self.session.headers)
+            data_videos = [] 
+            
+            if mode=="date":
 
-            self.to_screen("Found " + str(n_videos))
-            self.to_screen("Fetching video details for download")
 
-            for i in range(0, (n_videos//100 + 1)):
+                url_getvideos_base = "https://onlyfans.com/api2/v2/users/" + str(user_id) + "/posts/videos?limit=100&order=" + self._MODE_DICT.get("date") + "&skip_users=all&skip_users_dups=1&pinned=0&app-token=" + self.app_token
+                url_getvideos = url_getvideos_base
+                time3 = ""                          
 
-                print(url_getvideos)
+                
+                #print(self.session.headers)
+
+                self.to_screen("Found " + str(n_videos))
+                self.to_screen("Fetching video details for download")
+
+                for i in range(0, (n_videos//100 + 1)):
+
+                   #print(url_getvideos)
+                    r = self.session.request("GET", url_getvideos, timeout=60)
+                   #print(r)
+                    if r:
+                        data_videos.extend(json.loads(r.text))
+                        time3 = data_videos[-1]["postedAtPrecise"]
+                        url_getvideos = url_getvideos_base + "&beforePublishTime=" + str(time3)  
+                    else:
+                        raise ExtractorError("No videos")
+                        break
+                #with open(str(user_id) + "_" + account + ".json", "w") as outfile:
+                #     json.dump(data_videos, outfile, indent=6)
+
+            elif mode=="favs" or mode=="tips" or mode=="latest25":
+
+                
+
+                url_getvideos = "https://onlyfans.com/api2/v2/users/" + str(user_id) + "/posts/videos?limit=25&order=" + self._MODE_DICT.get(mode) + "&skip_users=all&skip_users_dups=1&pinned=0&app-token=" + self.app_token
+               #print(url_getvideos)
                 r = self.session.request("GET", url_getvideos, timeout=60)
-                print(r)
+               #print(r)
                 if r:
                     data_videos.extend(json.loads(r.text))
-                    time3 = data_videos[-1]["postedAtPrecise"]
-                    url_getvideos = url_getvideos_base + "&beforePublishTime=" + str(time3)  
                 else:
                     raise ExtractorError("No videos")
-                    break
-            #with open(str(user_id) + "_" + account + ".json", "w") as outfile:
-            #     json.dump(data_videos, outfile, indent=6)
+                    
+
+
 
             entries = []
 
