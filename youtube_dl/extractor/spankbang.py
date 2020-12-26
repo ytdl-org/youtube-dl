@@ -13,6 +13,7 @@ from ..utils import (
     str_to_int,
     url_or_none,
     urlencode_postdata,
+    urljoin,
 )
 
 
@@ -166,30 +167,33 @@ class SpankBangIE(InfoExtractor):
 
 
 class SpankBangPlaylistIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:[^/]+\.)?spankbang\.com/(?P<id>[\da-z]+)/playlist/[^/]+'
+    _VALID_URL = r'https?://(?:[^/]+\.)?spankbang\.com/(?P<id>[\da-z]+)/playlist/(?P<display_id>[^/]+)'
     _TEST = {
         'url': 'https://spankbang.com/ug0k/playlist/big+ass+titties',
         'info_dict': {
             'id': 'ug0k',
             'title': 'Big Ass Titties',
         },
-        'playlist_mincount': 50,
+        'playlist_mincount': 40,
     }
 
     def _real_extract(self, url):
-        playlist_id = self._match_id(url)
+        mobj = re.match(self._VALID_URL, url)
+        playlist_id = mobj.group('id')
+        display_id = mobj.group('display_id')
 
         webpage = self._download_webpage(
             url, playlist_id, headers={'Cookie': 'country=US; mobile=on'})
 
         entries = [self.url_result(
-            'https://spankbang.com/%s/video' % video_id,
-            ie=SpankBangIE.ie_key(), video_id=video_id)
-            for video_id in orderedSet(re.findall(
-                r'<a[^>]+\bhref=["\']/?([\da-z]+)/play/', webpage))]
+            urljoin(url, mobj.group('path')),
+            ie=SpankBangIE.ie_key(), video_id=mobj.group('id'))
+            for mobj in re.finditer(
+                r'<a[^>]+\bhref=(["\'])(?P<path>/?[\da-z]+-(?P<id>[\da-z]+)/playlist/%s(?:(?!\1).)*)\1'
+                % re.escape(display_id), webpage)]
 
         title = self._html_search_regex(
-            r'<h1>([^<]+)\s+playlist</h1>', webpage, 'playlist title',
+            r'<h1>([^<]+)\s+playlist\s*<', webpage, 'playlist title',
             fatal=False)
 
         return self.playlist_result(entries, playlist_id, title)
