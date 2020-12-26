@@ -112,6 +112,7 @@
  - **blinkx**
  - **Bloomberg**
  - **BokeCC**
+ - **BongaCams**
  - **BostonGlobe**
  - **Box**
  - **Bpb**: Bundeszentrale für politische Bildung
@@ -146,6 +147,7 @@
  - **CBS**
  - **CBSInteractive**
  - **CBSLocal**
+ - **CBSLocalArticle**
  - **cbsnews**: CBS News
  - **cbsnews:embed**
  - **cbsnews:livevideo**: CBS News Live Videos
@@ -198,6 +200,7 @@
  - **CSNNE**
  - **CSpan**: C-SPAN
  - **CtsNews**: 華視新聞
+ - **CTV**
  - **CTVNews**
  - **cu.ntv.co.jp**: Nippon Television Network
  - **Culturebox**
@@ -1108,6 +1111,7 @@
  - **WeiboMobile**
  - **WeiqiTV**: WQTV
  - **Wistia**
+ - **WistiaPlaylist**
  - **wnl**: npo.nl, ntr.nl, omroepwnl.nl, zapp.nl and npo3.nl
  - **WorldStarHipHop**
  - **WSJ**: Wall Street Journal

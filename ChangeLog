@@ -1,4 +1,4 @@
-version <unreleased>
+version 2020.12.26
 
 Extractors
 * [instagram] Fix comment count extraction
