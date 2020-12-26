@@ -1,3 +1,35 @@
+version <unreleased>
+
+Extractors
+* [instagram] Fix comment count extraction
++ [instagram] Add support for reel URLs (#26234, #26250)
+* [bbc] Switch to media selector v6 (#23232, #23933, #26303, #26432, #26821,
+  #27538)
+* [instagram] Improve thumbnail extraction
+* [instagram] Fix extraction when authenticated (#22880, #26377, #26981,
+  #27422)
+* [spankbang:playlist] Fix extraction (#24087)
++ [spankbang] Add support for playlist videos
+* [pornhub] Improve like and dislike count extraction (#27356)
+* [pornhub] Fix lq formats extraction (#27386, #27393)
++ [bongacams] Add support for bongacams.com (#27440)
+* [youtube:tab] Extend URL regular expression (#27501)
+* [theweatherchannel] Fix extraction (#25930, #26051)
++ [sprout] Add support for Universal Kids (#22518)
+* [theplatform] Allow passing geo bypass countries from other extractors
++ [wistia] Add support for playlists (#27533)
++ [ctv] Add support for ctv.ca (#27525)
+* [9c9media] Improve info extraction
+* [youtube] Fix automatic captions extraction (#27162, #27388)
+* [sonyliv] Fix title for movies
+* [sonyliv] Fix extraction (#25667)
+* [streetvoice] Fix extraction (#27455, #27492)
++ [facebook] Add support for watchparty pages (#27507)
+* [cbslocal] Fix video extraction
++ [brightcove] Add another method to extract policyKey
+* [mewatch] Relax URL regular expression (#27506)
+
+
 version 2020.12.22
 
 Core
