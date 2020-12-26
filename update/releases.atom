@@ -3,7 +3,7 @@
     <link rel="self" href="http://ytdl-org.github.io/youtube-dl/update/releases.atom" />
     <title>youtube-dl releases</title>
     <id>https://yt-dl.org/feed/youtube-dl-updates-feed</id>
-    <updated>2020-12-22T04:49:36.027143Z</updated>
+    <updated>2020-12-26T23:19:03.633014Z</updated>
     
 	<entry>
 	    <id>https://yt-dl.org/feed/youtube-dl-updates-feed/youtube-dl-2012.02.22</id>
@@ -14343,6 +14343,21 @@
 	        <name>The youtube-dl maintainers</name>
 	    </author>
 	    <updated>2020-12-22T00:00:00Z</updated>
+	</entry>
+
+	<entry>
+	    <id>https://yt-dl.org/feed/youtube-dl-updates-feed/youtube-dl-2020.12.26</id>
+	    <title>New version 2020.12.26</title>
+	    <link href="http://ytdl-org.github.io/youtube-dl" />
+	    <content type="xhtml">
+	        <div xmlns="http://www.w3.org/1999/xhtml">
+	            Downloads available at <a href="https://yt-dl.org/downloads/2020.12.26/">https://yt-dl.org/downloads/2020.12.26/</a>
+	        </div>
+	    </content>
+	    <author>
+	        <name>The youtube-dl maintainers</name>
+	    </author>
+	    <updated>2020-12-26T00:00:00Z</updated>
 	</entry>
 
 </feed>
