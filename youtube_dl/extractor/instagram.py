@@ -35,7 +35,7 @@ class InstagramIE(InfoExtractor):
             'timestamp': 1371748545,
             'upload_date': '20130620',
             'uploader_id': 'naomipq',
-            'uploader': 'Naomi Leonor Phan-Quang',
+            'uploader': 'B E A U T Y  F O R  A S H E S',
             'like_count': int,
             'comment_count': int,
             'comments': list,
