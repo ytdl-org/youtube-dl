@@ -17,7 +17,14 @@ from ..utils import (
 
 
 class SpankBangIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:[^/]+\.)?spankbang\.com/(?P<id>[\da-z]+)/(?:video|play|embed)\b'
+    _VALID_URL = r'''(?x)
+                    https?://
+                        (?:[^/]+\.)?spankbang\.com/
+                        (?:
+                            (?P<id>[\da-z]+)/(?:video|play|embed)\b|
+                            [\da-z]+-(?P<id_2>[\da-z]+)/playlist/[^/?#&]+
+                        )
+                    '''
     _TESTS = [{
         'url': 'http://spankbang.com/3vvn/video/fantasy+solo',
         'md5': '1cc433e1d6aa14bc376535b8679302f7',
@@ -57,10 +64,14 @@ class SpankBangIE(InfoExtractor):
     }, {
         'url': 'https://spankbang.com/2y3td/embed/',
         'only_matching': True,
+    }, {
+        'url': 'https://spankbang.com/2v7ik-7ecbgu/playlist/latina+booty',
+        'only_matching': True,
     }]
 
     def _real_extract(self, url):
-        video_id = self._match_id(url)
+        mobj = re.match(self._VALID_URL, url)
+        video_id = mobj.group('id') or mobj.group('id_2')
         webpage = self._download_webpage(
             url.replace('/%s/embed' % video_id, '/%s/video' % video_id),
             video_id, headers={'Cookie': 'country=US'})
