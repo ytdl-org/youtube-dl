@@ -361,12 +361,16 @@ class PornHubIE(PornHubBaseIE):
             r'(?s)From:&nbsp;.+?<(?:a\b[^>]+\bhref=["\']/(?:(?:user|channel)s|model|pornstar)/|span\b[^>]+\bclass=["\']username)[^>]+>(.+?)<',
             webpage, 'uploader', default=None)
 
+        def extract_vote_count(kind, name):
+            return self._extract_count(
+                (r'<span[^>]+\bclass="votes%s"[^>]*>([\d,\.]+)</span>' % kind,
+                 r'<span[^>]+\bclass=["\']votes%s["\'][^>]*\bdata-rating=["\'](\d+)' % kind),
+                webpage, name)
+
         view_count = self._extract_count(
             r'<span class="count">([\d,\.]+)</span> [Vv]iews', webpage, 'view')
-        like_count = self._extract_count(
-            r'<span[^>]+class="votesUp"[^>]*>([\d,\.]+)</span>', webpage, 'like')
-        dislike_count = self._extract_count(
-            r'<span[^>]+class="votesDown"[^>]*>([\d,\.]+)</span>', webpage, 'dislike')
+        like_count = extract_vote_count('Up', 'like')
+        dislike_count = extract_vote_count('Down', 'dislike')
         comment_count = self._extract_count(
             r'All Comments\s*<span>\(([\d,.]+)\)', webpage, 'comment')
 
