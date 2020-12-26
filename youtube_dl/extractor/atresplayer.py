@@ -11,6 +11,7 @@ from ..utils import (
     int_or_none,
     urlencode_postdata,
     urljoin,
+    xpath_element,
     xpath_text,
     xpath_with_ns,
 )
@@ -87,16 +88,19 @@ class AtresPlayerIE(InfoExtractor):
                 'mpd': 'urn:mpeg:dash:schema:mpd:2011'
             })
 
+        def _is_mime_type(node, mime_type):
+            return node.attrib.get('mimeType') == mime_type
+
         text_nodes = mpd_xml.findall(
-            _add_ns('./mpd:Period/mpd:AdaptationSet[@contentType="text"]'))
-        for node in text_nodes:
-            lang = node.attrib['lang']
-            url = xpath_text(
-                node, _add_ns('./mpd:Representation[@mimeType="text/vtt"]/mpd:BaseURL'))
-            if url:
+            _add_ns('mpd:Period/mpd:AdaptationSet[@contentType="text"]'))
+        for adaptation_set in text_nodes:
+            lang = adaptation_set.attrib['lang']
+            representation = xpath_element(adaptation_set, _add_ns('mpd:Representation'))
+            subs_url = xpath_text(representation, _add_ns('mpd:BaseURL'))
+            if subs_url and (_is_mime_type(adaptation_set, 'text/vtt') or _is_mime_type(representation, 'text/vtt')):
                 subs.update({lang: [{
                     'ext': 'vtt',
-                    'url': urljoin(mpd_url, url),
+                    'url': urljoin(mpd_url, subs_url),
                 }]})
         return subs
 
