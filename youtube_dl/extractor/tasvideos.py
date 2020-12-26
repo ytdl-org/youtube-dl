@@ -3,7 +3,7 @@ from __future__ import unicode_literals
 from .common import InfoExtractor
 
 
-class TasVideosIE(InfoExtractor):
+class TASVideosIE(InfoExtractor):
     _VALID_URL = r'http://tasvideos.org/(?P<id>\d+M)\.html'
     _TEST = {
         'url': 'http://tasvideos.org/4352M.html',
