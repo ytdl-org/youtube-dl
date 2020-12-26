@@ -2442,7 +2442,8 @@ class YoutubeTabIE(YoutubeBaseInfoExtractor):
                         )/
                         (?:
                             (?:channel|c|user|feed)/|
-                            (?:playlist|watch)\?.*?\blist=
+                            (?:playlist|watch)\?.*?\blist=|
+                            (?!(?:watch|embed|v|e)\b)
                         )
                         (?P<id>[^/?\#&]+)
                     '''
@@ -2711,13 +2712,22 @@ class YoutubeTabIE(YoutubeBaseInfoExtractor):
         # inline playlist with not always working continuations
         'url': 'https://www.youtube.com/watch?v=UC6u0Tct-Fo&list=PL36D642111D65BE7C',
         'only_matching': True,
-    }
-        # TODO
-        # {
-        #     'url': 'https://www.youtube.com/TheYoungTurks/live',
-        #     'only_matching': True,
-        # }
-    ]
+    }, {
+        'url': 'https://www.youtube.com/course?list=ECUl4u3cNGP61MdtwGTqZA0MreSaDybji8',
+        'only_matching': True,
+    }, {
+        'url': 'https://www.youtube.com/course',
+        'only_matching': True,
+    }, {
+        'url': 'https://www.youtube.com/zsecurity',
+        'only_matching': True,
+    }, {
+        'url': 'http://www.youtube.com/NASAgovVideo/videos',
+        'only_matching': True,
+    }, {
+        'url': 'https://www.youtube.com/TheYoungTurks/live',
+        'only_matching': True,
+    }]
 
     def _extract_channel_id(self, webpage):
         channel_id = self._html_search_meta(
