@@ -7,7 +7,6 @@ from ..utils import (
     determine_ext,
     ExtractorError,
     merge_dicts,
-    orderedSet,
     parse_duration,
     parse_resolution,
     str_to_int,
