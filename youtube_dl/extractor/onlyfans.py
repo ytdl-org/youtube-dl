@@ -20,13 +20,15 @@ from selenium.webdriver.support import expected_conditions as ec
 from selenium.webdriver.common.by import By
 from selenium.webdriver.chrome.options import Options
 
+from pathlib import Path
+
 from rclone import RClone
 
 class OnlyFansBaseIE(InfoExtractor):
 
     _SITE_URL = "https://onlyfans.com/"
     _DRIVER_PATH = "/usr/local/bin/chromedriver"
-    _COOKIES_PATH = "/Users/antoniotorres/testing/cookies.json"
+    _COOKIES_PATH = Path(Path.home(), "testing/cookies.json")
 
     _APP_TOKEN = "33d57ade8c02dbc5a333db99ff9ae26a"
 
