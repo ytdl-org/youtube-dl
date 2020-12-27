@@ -140,7 +140,7 @@ class TeachableIE(TeachableBaseIE):
     @staticmethod
     def _is_teachable(webpage):
         return 'teachableTracker.linker:autoLink' in webpage and re.search(
-            r'<link[^>]+href=["\']https?://process\.fs\.teachablecdn\.com',
+            r'<link[^>]+href=["\']https?://(?:process\.fs|assets)\.teachablecdn\.com',
             webpage)
 
     @staticmethod
