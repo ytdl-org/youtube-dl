@@ -283,7 +283,7 @@ class OnlyFansPlaylistIE(OnlyFansBaseIE):
     IE_DESC = 'onlyfans:playlist'
     #_VALID_URL = r"https?://(?:www\.)?onlyfans.com/account/(?P<account>[^/]+)"
     _VALID_URL = r"(?:(onlyfans:account:(?P<account>[^:]+)(?:(:(?P<mode>(?:date|favs|tips)))?))|(https?://(?:www\.)?onlyfans.com/(?P<account2>[\da-zA-Z]+)(?:(/(?P<mode2>(?:date|favs|tips)))?)$))"
-    _MODE_DICT = {"favs" : "favorites_count_desc", "tips" : "tips_summ_desc", "date" : "publish_date_desc", "latest25" : "publish_date_desc"}
+    _MODE_DICT = {"favs" : "favorites_count_desc", "tips" : "tips_summ_desc", "date" : "publish_date_desc", "latest10" : "publish_date_desc"}
            
    
     def _real_initialize(self):
@@ -305,7 +305,7 @@ class OnlyFansPlaylistIE(OnlyFansBaseIE):
             if not mode:
                 mode = re.search(self._VALID_URL, url).group("mode2")
                 if not mode:
-                    mode = "latest25"
+                    mode = "latest10"
            #print(f"mode: {mode}")
             for cookie in self.cookies:
                 #print(cookie)
@@ -358,11 +358,11 @@ class OnlyFansPlaylistIE(OnlyFansBaseIE):
                 #with open(str(user_id) + "_" + account + ".json", "w") as outfile:
                 #     json.dump(data_videos, outfile, indent=6)
 
-            elif mode=="favs" or mode=="tips" or mode=="latest25":
+            elif mode=="favs" or mode=="tips" or mode=="latest10":
 
                 
 
-                url_getvideos = "https://onlyfans.com/api2/v2/users/" + str(user_id) + "/posts/videos?limit=25&order=" + self._MODE_DICT.get(mode) + "&skip_users=all&skip_users_dups=1&pinned=0&app-token=" + self.app_token
+                url_getvideos = "https://onlyfans.com/api2/v2/users/" + str(user_id) + "/posts/videos?limit=10&order=" + self._MODE_DICT.get(mode) + "&skip_users=all&skip_users_dups=1&pinned=0&app-token=" + self.app_token
                #print(url_getvideos)
                 r = self.session.request("GET", url_getvideos, timeout=60)
                #print(r)

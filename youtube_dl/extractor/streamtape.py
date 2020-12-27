@@ -19,6 +19,7 @@ class StreamtapeIE(InfoExtractor):
 
     @staticmethod
     def _extract_url(webpage):
+        
         mobj = re.search(
             r'rel="videolink" href="(?P<real_url>https://streamtape\.com.+?)"', webpage)
         if mobj:
@@ -37,7 +38,8 @@ class StreamtapeIE(InfoExtractor):
             raise ExtractorError(
                 'Video %s does not exist' % video_id, expected=True)
 
-        mobj = re.search(r"<script>var elem=document.getElementById\('videolink'\);elem\['innerHTML'\]='(?P<video_url>.*?)';</script>", webpage)
+        print(webpage)
+        mobj = re.search(r'\("videolink"\)\.innerHTML = "(?P<video_url>.*?)"', webpage)
         if mobj:
             video_url = mobj.group('video_url')
 
