@@ -80,7 +80,8 @@ class AMCNetworksIE(ThePlatformIE):
         title = theplatform_metadata['title']
         rating = try_get(
             theplatform_metadata, lambda x: x['ratings'][0]['rating'])
-        if properties.get('videoCategory') == 'TVE-Auth':
+        video_category = properties.get('videoCategory')
+        if video_category and video_category.endswith('-Auth'):
             resource = self._get_mvpd_resource(
                 requestor_id, title, video_id, rating)
             query['auth'] = self._extract_mvpd_auth(
