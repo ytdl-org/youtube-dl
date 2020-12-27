@@ -25,7 +25,21 @@ class YourPornIE(InfoExtractor):
             'skip_download': True,
         },
     }, {
+        'url': 'https://sxyprn.com/post/5acfc82b12d00.html',
+        'md5': '1df93ede16d87685aa069f56ac69b0e7',
+        'info_dict': {
+            'id': '5acfc82b12d00',
+            'ext': 'mp4',
+            'title': 'Girls Do Porn E157 The Mormon Girl this should be in HD... #GirlsDoPorn #GDP #BigTits #casting',
+            'thumbnail': r're:^https?://.*\.jpg$',
+            'duration': 2466,
+            'age_limit': 18,
+        },
+    }, {
         'url': 'https://sxyprn.com/post/57ffcb2e1179b.html',
+        'only_matching': True,
+    }, {
+        'url': 'https://sxyprn.com/post/5af15f6799de9.html',
         'only_matching': True,
     }]
 
