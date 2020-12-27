@@ -901,7 +901,7 @@ from .popcorntv import PopcornTVIE
 from .porn91 import Porn91IE
 from .porncom import PornComIE
 from .pornhd import PornHdIE
-from .pornhub import (
+from .pornhub_atorres import (
     PornHubIE,
     PornHubUserIE,
     PornHubPagedVideoListIE,

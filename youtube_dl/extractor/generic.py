@@ -54,7 +54,7 @@ from .condenast import CondeNastIE
 from .udn import UDNEmbedIE
 from .senateisvp import SenateISVPIE
 from .svt import SVTIE
-from .pornhub import PornHubIE
+from .pornhub_atorres import PornHubIE
 from .xhamster import XHamsterEmbedIE
 from .tnaflix import TNAFlixNetworkEmbedIE
 from .drtuber import DrTuberIE
