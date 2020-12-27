@@ -321,7 +321,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                             # Invidious instances taken from https://github.com/omarroth/invidious/wiki/Invidious-Instances
                             (?:(?:www|dev)\.)?invidio\.us/|
                             (?:(?:www|no)\.)?invidiou\.sh/|
-                            (?:(?:www|fi|de)\.)?invidious\.snopyta\.org/|
+                            (?:(?:www|fi)\.)?invidious\.snopyta\.org/|
                             (?:www\.)?invidious\.kabi\.tk/|
                             (?:www\.)?invidious\.13ad\.de/|
                             (?:www\.)?invidious\.mastodon\.host/|
