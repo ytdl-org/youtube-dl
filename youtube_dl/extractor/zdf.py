@@ -40,7 +40,7 @@ class ZDFBaseIE(InfoExtractor):
 
 class ZDFIE(ZDFBaseIE):
     _VALID_URL = r'https?://www\.zdf\.de/(?:[^/]+/)*(?P<id>[^/?]+)\.html'
-    _QUALITIES = ('auto', 'low', 'med', 'high', 'veryhigh')
+    _QUALITIES = ('auto', 'low', 'med', 'high', 'veryhigh', 'hd')
     _GEO_COUNTRIES = ['DE']
 
     _TESTS = [{
@@ -119,7 +119,7 @@ class ZDFIE(ZDFBaseIE):
         if not ptmd_path:
             ptmd_path = t[
                 'http://zdf.de/rels/streams/ptmd-template'].replace(
-                '{playerId}', 'portal')
+                '{playerId}', 'ngplayer_2_4')
 
         ptmd = self._call_api(
             urljoin(url, ptmd_path), player, url, video_id, 'metadata')

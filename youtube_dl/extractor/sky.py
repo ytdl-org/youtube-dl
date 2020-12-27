@@ -41,8 +41,8 @@ class SkyBaseIE(InfoExtractor):
 
 
 class SkySportsIE(SkyBaseIE):
-    _VALID_URL = r'https?://(?:www\.)?skysports\.com/watch/video/(?P<id>[0-9]+)'
-    _TEST = {
+    _VALID_URL = r'https?://(?:www\.)?skysports\.com/watch/video/([^/]+/)*(?P<id>[0-9]+)'
+    _TESTS = [{
         'url': 'http://www.skysports.com/watch/video/10328419/bale-its-our-time-to-shine',
         'md5': '77d59166cddc8d3cb7b13e35eaf0f5ec',
         'info_dict': {
@@ -52,7 +52,13 @@ class SkySportsIE(SkyBaseIE):
             'description': 'md5:e88bda94ae15f7720c5cb467e777bb6d',
         },
         'add_ie': ['Ooyala'],
-    }
+    }, {
+        'url': 'https://www.skysports.com/watch/video/sports/f1/12160544/abu-dhabi-gp-the-notebook',
+        'only_matching': True,
+    }, {
+        'url': 'https://www.skysports.com/watch/video/tv-shows/12118508/rainford-brent-how-ace-programme-helps',
+        'only_matching': True,
+    }]
 
 
 class SkyNewsIE(SkyBaseIE):
