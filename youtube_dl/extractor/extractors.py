@@ -253,6 +253,7 @@ from .curiositystream import (
     CuriosityStreamCollectionIE,
 )
 from .cwtv import CWTVIE
+from .daftsex import DAFTSEXIE
 from .dailymail import DailyMailIE
 from .dailymotion import (
     DailymotionIE,
