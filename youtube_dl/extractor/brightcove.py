@@ -534,14 +534,6 @@ class BrightcoveNewIE(AdobePassIE):
                         'format_id': build_format_id('rtmp'),
                     })
                 formats.append(f)
-        if not formats:
-            # for sonyliv.com DRM protected videos
-            s3_source_url = json_data.get('custom_fields', {}).get('s3sourceurl')
-            if s3_source_url:
-                formats.append({
-                    'url': s3_source_url,
-                    'format_id': 'source',
-                })
 
         errors = json_data.get('errors')
         if not formats and errors:
