@@ -1,3 +1,24 @@
+version <unreleased>
+
+Extractors
+* [youtube] Improve yt initial data extraction (#27524)
+* [youtube:tab] Improve URL matching #27559)
+* [youtube:tab] Restore retry on browse requests (#27313, #27564)
+* [aparat] Fix extraction (#22285, #22611, #23348, #24354, #24591, #24904,
+  #25418, #26070, #26350, #26738, #27563)
+- [brightcove] Remove sonyliv specific code
+* [piksel] Improve format extraction
++ [zype] Add support for uplynk videos
++ [toggle] Add support for live.mewatch.sg (#27555)
++ [go] Add support for fxnow.fxnetworks.com (#13972, #22467, #23754, #26826)
+* [teachable] Improve embed detection (#26923)
+* [mitele] Fix free video extraction (#24624, #25827, #26757)
+* [telecinco] Fix extraction
+* [youtube] Update invidious.snopyta.org (#22667)
+* [amcnetworks] Improve auth only video detection (#27548)
++ [generic] Add support for VHX Embeds (#27546)
+
+
 version 2020.12.26
 
 Extractors
