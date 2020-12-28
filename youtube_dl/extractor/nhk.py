@@ -90,7 +90,7 @@ class NhkVodIE(NhkBaseIE):
     _TESTS = [{
         # video clip
         'url': 'https://www3.nhk.or.jp/nhkworld/en/ondemand/video/9999011/',
-        'md5': '256a1be14f48d960a7e61e2532d95ec3',
+        'md5': '7a90abcfe610ec22a6bfe15bd46b30ca',
         'info_dict': {
             'id': 'a95j5iza',
             'ext': 'mp4',
