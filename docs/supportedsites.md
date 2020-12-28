@@ -317,7 +317,6 @@
  - **Funk**
  - **Fusion**
  - **Fux**
- - **FXNetworks**
  - **Gaia**
  - **GameInformer**
  - **GameSpot**
