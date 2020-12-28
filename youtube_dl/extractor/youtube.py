@@ -16,6 +16,7 @@ from ..jsinterp import JSInterpreter
 from ..swfinterp import SWFInterpreter
 from ..compat import (
     compat_chr,
+    compat_HTTPError,
     compat_parse_qs,
     compat_urllib_parse_unquote,
     compat_urllib_parse_unquote_plus,
@@ -3009,10 +3010,24 @@ class YoutubeTabIE(YoutubeBaseInfoExtractor):
         for page_num in itertools.count(1):
             if not continuation:
                 break
-            browse = self._download_json(
-                'https://www.youtube.com/browse_ajax', None,
-                'Downloading page %d' % page_num,
-                headers=headers, query=continuation, fatal=False)
+            count = 0
+            retries = 3
+            while count <= retries:
+                try:
+                    # Downloading page may result in intermittent 5xx HTTP error
+                    # that is usually worked around with a retry
+                    browse = self._download_json(
+                        'https://www.youtube.com/browse_ajax', None,
+                        'Downloading page %d%s'
+                        % (page_num, ' (retry #%d)' % count if count else ''),
+                        headers=headers, query=continuation)
+                    break
+                except ExtractorError as e:
+                    if isinstance(e.cause, compat_HTTPError) and e.cause.code in (500, 503):
+                        count += 1
+                        if count <= retries:
+                            continue
+                    raise
             if not browse:
                 break
             response = try_get(browse, lambda x: x[1]['response'], dict)
