@@ -41,6 +41,7 @@ updates_key.pem
 test/local_parameters.json
 .tox
 youtube-dl.zsh
+bin/youtube-dl
 
 # IntelliJ related files
 .idea
