@@ -1,6 +1,7 @@
 from __future__ import unicode_literals
 
 from .common import InfoExtractor
+import re
 
 
 class TASVideosIE(InfoExtractor):
@@ -18,15 +19,22 @@ class TASVideosIE(InfoExtractor):
     def _real_extract(self, url):
         video_id = self._match_id(url)
         webpage = self._download_webpage(url, video_id)
-        video_url = "http://www." + self._search_regex(
+        video_urls = re.findall(
             r'<a [^>]+(?P<URL>archive\.org\/download[^<]+\.(?:mkv|mp4|avi))[^<]+<\/a>',
-            webpage, 'video url')
+            webpage)
         title = self._search_regex(
             r'<span title="Movie[^"]+">(?P<TITLE>[^<]+)<\/span>', webpage,
             'title')
+        formats = []
+
+        for url in video_urls:
+            format_entry = {'url': "http://www." + url}
+            formats.append(format_entry)
+
+        self._sort_formats(formats)
 
         return {
             'id': video_id,
             'title': title,
-            'url': video_url,
+            'formats': formats,
         }
