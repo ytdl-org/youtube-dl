@@ -280,6 +280,7 @@ class YoutubeBaseInfoExtractor(InfoExtractor):
 
     _YT_INITIAL_DATA_RE = r'(?:window\s*\[\s*["\']ytInitialData["\']\s*\]|ytInitialData)\s*=\s*({.+?})\s*;'
     _YT_INITIAL_PLAYER_RESPONSE_RE = r'ytInitialPlayerResponse\s*=\s*({.+?})\s*;'
+    _YT_INITIAL_BOUNDARY_RE = r'(?:var\s+meta|</script|\n)'
 
     def _call_api(self, ep, query, video_id):
         data = self._DEFAULT_API_DATA.copy()
@@ -297,7 +298,7 @@ class YoutubeBaseInfoExtractor(InfoExtractor):
     def _extract_yt_initial_data(self, video_id, webpage):
         return self._parse_json(
             self._search_regex(
-                (r'%s\s*\n' % self._YT_INITIAL_DATA_RE,
+                (r'%s\s*%s' % (self._YT_INITIAL_DATA_RE, self._YT_INITIAL_BOUNDARY_RE),
                  self._YT_INITIAL_DATA_RE), webpage, 'yt initial data'),
             video_id)
 
@@ -1104,6 +1105,11 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
             },
         },
         {
+            # another example of '};' in ytInitialData
+            'url': 'https://www.youtube.com/watch?v=gVfgbahppCY',
+            'only_matching': True,
+        },
+        {
             'url': 'https://www.youtube.com/watch_popup?v=63RmMXCd_bQ',
             'only_matching': True,
         },
@@ -1706,7 +1712,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
         if not video_info and not player_response:
             player_response = extract_player_response(
                 self._search_regex(
-                    (r'%s\s*(?:var\s+meta|</script|\n)' % self._YT_INITIAL_PLAYER_RESPONSE_RE,
+                    (r'%s\s*%s' % (self._YT_INITIAL_PLAYER_RESPONSE_RE, self._YT_INITIAL_BOUNDARY_RE),
                      self._YT_INITIAL_PLAYER_RESPONSE_RE), video_webpage,
                     'initial player response', default='{}'),
                 video_id)
