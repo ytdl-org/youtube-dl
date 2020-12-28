@@ -1,4 +1,4 @@
-version <unreleased>
+version 2020.12.29
 
 Extractors
 * [youtube] Improve yt initial data extraction (#27524)
