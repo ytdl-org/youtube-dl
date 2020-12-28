@@ -1119,6 +1119,35 @@ class VHXEmbedIE(VimeoBaseInfoExtractor):
     IE_NAME = 'vhx:embed'
     _VALID_URL = r'https?://embed\.vhx\.tv/videos/(?P<id>\d+)'
 
+    def _vhx_login(self, email, password, login_url):
+        login_page = self._download_webpage(
+            login_url, None,
+            note='Downloading login page',
+            errnote='unable to fetch login page'
+        )
+
+        """check if user is already logged in via cookies"""
+        if "You are now signed in." in login_page:
+            return
+
+        login_form = self._hidden_inputs(login_page)
+
+        login_form.update({
+            'passwordless': 0,
+            'email': email,
+            'password': password
+        })
+
+        self._download_webpage(login_url, None, 'Logging in', 'Login failed',
+                               expected_status=302,
+                               data=urlencode_postdata(login_form),
+                               headers={'Content-Type': 'application/x-www-form-urlencoded'})
+
+    def _call_api(self, video_id, access_token, path='', query=None):
+        return self._download_json(
+            'https://api.vhx.tv/videos/' + video_id + path, video_id, headers={
+                'Authorization': 'Bearer ' + access_token,
+            }, query=query)
     @staticmethod
     def _extract_url(webpage):
         mobj = re.search(
@@ -1135,4 +1164,5 @@ class VHXEmbedIE(VimeoBaseInfoExtractor):
         info = self._parse_config(config, video_id)
         info['id'] = video_id
         self._vimeo_sort_formats(info['formats'])
+
         return info
