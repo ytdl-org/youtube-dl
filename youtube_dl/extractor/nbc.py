@@ -286,33 +286,6 @@ class NBCSportsStreamIE(AdobePassIE):
         }
 
 
-class CSNNEIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:www\.)?csnne\.com/video/(?P<id>[0-9a-z-]+)'
-
-    _TEST = {
-        'url': 'http://www.csnne.com/video/snc-evening-update-wright-named-red-sox-no-5-starter',
-        'info_dict': {
-            'id': 'yvBLLUgQ8WU0',
-            'ext': 'mp4',
-            'title': 'SNC evening update: Wright named Red Sox\' No. 5 starter.',
-            'description': 'md5:1753cfee40d9352b19b4c9b3e589b9e3',
-            'timestamp': 1459369979,
-            'upload_date': '20160330',
-            'uploader': 'NBCU-SPORTS',
-        }
-    }
-
-    def _real_extract(self, url):
-        display_id = self._match_id(url)
-        webpage = self._download_webpage(url, display_id)
-        return {
-            '_type': 'url_transparent',
-            'ie_key': 'ThePlatform',
-            'url': self._html_search_meta('twitter:player:stream', webpage),
-            'display_id': display_id,
-        }
-
-
 class NBCNewsIE(ThePlatformIE):
     _VALID_URL = r'(?x)https?://(?:www\.)?(?:nbcnews|today|msnbc)\.com/([^/]+/)*(?:.*-)?(?P<id>[^/?]+)'
 

@@ -696,7 +696,6 @@ from .nba import (
     NBAChannelIE,
 )
 from .nbc import (
-    CSNNEIE,
     NBCIE,
     NBCNewsIE,
     NBCOlympicsIE,
