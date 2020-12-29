@@ -198,7 +198,7 @@ class VVVVIDShowIE(VVVVIDIE):
                 if not season_id or not video_id:
                     continue
 
-                video_url = '/'.join([url, season_id, video_id, 'title'])
+                video_url = '/'.join([url, season_id, video_id])
 
                 # create video title as "ep. title [lang]"
                 episode_number = episode.get('number')
