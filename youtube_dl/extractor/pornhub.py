@@ -288,14 +288,24 @@ class PornHubIE(PornHubBaseIE):
             video_urls.append((v_url, None))
             video_urls_set.add(v_url)
 
+        def parse_quality_items(quality_items):
+            q_items = self._parse_json(quality_items, video_id, fatal=False)
+            if not isinstance(q_items, list):
+                return
+            for item in q_items:
+                if isinstance(item, dict):
+                    add_video_url(item.get('url'))
+
         if not video_urls:
-            FORMAT_PREFIXES = ('media', 'quality')
+            FORMAT_PREFIXES = ('media', 'quality', 'qualityItems')
             js_vars = extract_js_vars(
                 webpage, r'(var\s+(?:%s)_.+)' % '|'.join(FORMAT_PREFIXES),
                 default=None)
             if js_vars:
                 for key, format_url in js_vars.items():
-                    if any(key.startswith(p) for p in FORMAT_PREFIXES):
+                    if key.startswith(FORMAT_PREFIXES[-1]):
+                        parse_quality_items(format_url)
+                    elif any(key.startswith(p) for p in FORMAT_PREFIXES[:2]):
                         add_video_url(format_url)
             if not video_urls and re.search(
                     r'<[^>]+\bid=["\']lockedPlayer', webpage):
@@ -351,12 +361,16 @@ class PornHubIE(PornHubBaseIE):
             r'(?s)From:&nbsp;.+?<(?:a\b[^>]+\bhref=["\']/(?:(?:user|channel)s|model|pornstar)/|span\b[^>]+\bclass=["\']username)[^>]+>(.+?)<',
             webpage, 'uploader', default=None)
 
+        def extract_vote_count(kind, name):
+            return self._extract_count(
+                (r'<span[^>]+\bclass="votes%s"[^>]*>([\d,\.]+)</span>' % kind,
+                 r'<span[^>]+\bclass=["\']votes%s["\'][^>]*\bdata-rating=["\'](\d+)' % kind),
+                webpage, name)
+
         view_count = self._extract_count(
             r'<span class="count">([\d,\.]+)</span> [Vv]iews', webpage, 'view')
-        like_count = self._extract_count(
-            r'<span[^>]+class="votesUp"[^>]*>([\d,\.]+)</span>', webpage, 'like')
-        dislike_count = self._extract_count(
-            r'<span[^>]+class="votesDown"[^>]*>([\d,\.]+)</span>', webpage, 'dislike')
+        like_count = extract_vote_count('Up', 'like')
+        dislike_count = extract_vote_count('Down', 'dislike')
         comment_count = self._extract_count(
             r'All Comments\s*<span>\(([\d,.]+)\)', webpage, 'comment')
 

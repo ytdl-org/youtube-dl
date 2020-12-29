@@ -200,7 +200,7 @@ class ToggleIE(InfoExtractor):
 
 class MeWatchIE(InfoExtractor):
     IE_NAME = 'mewatch'
-    _VALID_URL = r'https?://(?:www\.)?mewatch\.sg/watch/[0-9a-zA-Z-]+-(?P<id>[0-9]+)'
+    _VALID_URL = r'https?://(?:(?:www|live)\.)?mewatch\.sg/watch/[^/?#&]+-(?P<id>[0-9]+)'
     _TESTS = [{
         'url': 'https://www.mewatch.sg/watch/Recipe-Of-Life-E1-179371',
         'info_dict': {
@@ -214,6 +214,15 @@ class MeWatchIE(InfoExtractor):
         'params': {
             'skip_download': 'm3u8 download',
         },
+    }, {
+        'url': 'https://www.mewatch.sg/watch/Little-Red-Dot-Detectives-S2-搜密。打卡。小红点-S2-E1-176232',
+        'only_matching': True,
+    }, {
+        'url': 'https://www.mewatch.sg/watch/Little-Red-Dot-Detectives-S2-%E6%90%9C%E5%AF%86%E3%80%82%E6%89%93%E5%8D%A1%E3%80%82%E5%B0%8F%E7%BA%A2%E7%82%B9-S2-E1-176232',
+        'only_matching': True,
+    }, {
+        'url': 'https://live.mewatch.sg/watch/Recipe-Of-Life-E41-189759',
+        'only_matching': True,
     }]
 
     def _real_extract(self, url):

@@ -1083,7 +1083,7 @@ class YoutubeDL(object):
                 '*=': lambda attr, value: value in attr,
             }
             str_operator_rex = re.compile(r'''(?x)
-                \s*(?P<key>ext|acodec|vcodec|container|protocol|format_id)
+                \s*(?P<key>ext|acodec|vcodec|container|protocol|format_id|language)
                 \s*(?P<negation>!\s*)?(?P<op>%s)(?P<none_inclusive>\s*\?)?
                 \s*(?P<value>[a-zA-Z0-9._-]+)
                 \s*$
@@ -2410,7 +2410,7 @@ class YoutubeDL(object):
             thumb_ext = determine_ext(t['url'], 'jpg')
             suffix = '_%s' % t['id'] if len(thumbnails) > 1 else ''
             thumb_display_id = '%s ' % t['id'] if len(thumbnails) > 1 else ''
-            t['filename'] = thumb_filename = os.path.splitext(filename)[0] + suffix + '.' + thumb_ext
+            t['filename'] = thumb_filename = replace_extension(filename + suffix, thumb_ext, info_dict.get('ext'))
 
             if self.params.get('nooverwrites', False) and os.path.exists(encodeFilename(thumb_filename)):
                 self.to_screen('[%s] %s: Thumbnail %sis already present' %

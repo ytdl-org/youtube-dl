@@ -336,8 +336,8 @@ class InfoExtractor(object):
     object, each element of which is a valid dictionary by this specification.
 
     Additionally, playlists can have "id", "title", "description", "uploader",
-    "uploader_id", "uploader_url" attributes with the same semantics as videos
-    (see above).
+    "uploader_id", "uploader_url", "duration" attributes with the same semantics
+    as videos (see above).
 
 
     _type "multi_video" indicates that there are multiple videos that
@@ -1237,8 +1237,16 @@ class InfoExtractor(object):
             'ViewAction': 'view',
         }
 
+        def extract_interaction_type(e):
+            interaction_type = e.get('interactionType')
+            if isinstance(interaction_type, dict):
+                interaction_type = interaction_type.get('@type')
+            return str_or_none(interaction_type)
+
         def extract_interaction_statistic(e):
             interaction_statistic = e.get('interactionStatistic')
+            if isinstance(interaction_statistic, dict):
+                interaction_statistic = [interaction_statistic]
             if not isinstance(interaction_statistic, list):
                 return
             for is_e in interaction_statistic:
@@ -1246,8 +1254,8 @@ class InfoExtractor(object):
                     continue
                 if is_e.get('@type') != 'InteractionCounter':
                     continue
-                interaction_type = is_e.get('interactionType')
-                if not isinstance(interaction_type, compat_str):
+                interaction_type = extract_interaction_type(is_e)
+                if not interaction_type:
                     continue
                 # For interaction count some sites provide string instead of
                 # an integer (as per spec) with non digit characters (e.g. ",")
@@ -2597,6 +2605,13 @@ class InfoExtractor(object):
         return entries
 
     def _extract_akamai_formats(self, manifest_url, video_id, hosts={}):
+        signed = 'hdnea=' in manifest_url
+        if not signed:
+            # https://learn.akamai.com/en-us/webhelp/media-services-on-demand/stream-packaging-user-guide/GUID-BE6C0F73-1E06-483B-B0EA-57984B91B7F9.html
+            manifest_url = re.sub(
+                r'(?:b=[\d,-]+|(?:__a__|attributes)=off|__b__=\d+)&?',
+                '', manifest_url).strip('?')
+
         formats = []
 
         hdcore_sign = 'hdcore=3.7.0'
@@ -2622,7 +2637,7 @@ class InfoExtractor(object):
         formats.extend(m3u8_formats)
 
         http_host = hosts.get('http')
-        if http_host and m3u8_formats and 'hdnea=' not in m3u8_url:
+        if http_host and m3u8_formats and not signed:
             REPL_REGEX = r'https?://[^/]+/i/([^,]+),([^/]+),([^/]+)\.csmil/.+'
             qualities = re.match(REPL_REGEX, m3u8_url).group(2).split(',')
             qualities_length = len(qualities)

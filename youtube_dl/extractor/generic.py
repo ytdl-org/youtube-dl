@@ -35,6 +35,7 @@ from ..utils import (
     unsmuggle_url,
     UnsupportedError,
     url_or_none,
+    xpath_attr,
     xpath_text,
     xpath_with_ns,
 )
@@ -52,7 +53,6 @@ from .ooyala import OoyalaIE
 from .rutv import RUTVIE
 from .tvc import TVCIE
 from .sportbox import SportBoxIE
-from .smotri import SmotriIE
 from .myvi import MyviIE
 from .condenast import CondeNastIE
 from .udn import UDNEmbedIE
@@ -67,7 +67,10 @@ from .tube8 import Tube8IE
 from .mofosex import MofosexEmbedIE
 from .spankwire import SpankwireIE
 from .youporn import YouPornIE
-from .vimeo import VimeoIE
+from .vimeo import (
+    VimeoIE,
+    VHXEmbedIE,
+)
 from .dailymotion import DailymotionIE
 from .dailymail import DailyMailIE
 from .onionstudios import OnionStudiosIE
@@ -217,6 +220,33 @@ class GenericIE(InfoExtractor):
                     'duration': float,
                 },
             }],
+        },
+        # RSS feed with item with description and thumbnails
+        {
+            'url': 'https://anchor.fm/s/dd00e14/podcast/rss',
+            'info_dict': {
+                'id': 'https://anchor.fm/s/dd00e14/podcast/rss',
+                'title': 're:.*100% Hydrogen.*',
+                'description': 're:.*In this episode.*',
+            },
+            'playlist': [{
+                'info_dict': {
+                    'ext': 'm4a',
+                    'id': 'c1c879525ce2cb640b344507e682c36d',
+                    'title': 're:Hydrogen!',
+                    'description': 're:.*In this episode we are going.*',
+                    'timestamp': 1567977776,
+                    'upload_date': '20190908',
+                    'duration': 459,
+                    'thumbnail': r're:^https?://.*\.jpg$',
+                    'episode_number': 1,
+                    'season_number': 1,
+                    'age_limit': 0,
+                },
+            }],
+            'params': {
+                'skip_download': True,
+            },
         },
         # RSS feed with enclosures and unsupported link URLs
         {
@@ -1998,22 +2028,6 @@ class GenericIE(InfoExtractor):
             'add_ie': [SpringboardPlatformIE.ie_key()],
         },
         {
-            'url': 'https://www.youtube.com/shared?ci=1nEzmT-M4fU',
-            'info_dict': {
-                'id': 'uPDB5I9wfp8',
-                'ext': 'webm',
-                'title': 'Pocoyo: 90 minutos de episódios completos Português para crianças - PARTE 3',
-                'description': 'md5:d9e4d9346a2dfff4c7dc4c8cec0f546d',
-                'upload_date': '20160219',
-                'uploader': 'Pocoyo - Português (BR)',
-                'uploader_id': 'PocoyoBrazil',
-            },
-            'add_ie': [YoutubeIE.ie_key()],
-            'params': {
-                'skip_download': True,
-            },
-        },
-        {
             'url': 'https://www.yapfiles.ru/show/1872528/690b05d3054d2dbe1e69523aa21bb3b1.mp4.html',
             'info_dict': {
                 'id': 'vMDE4NzI1Mjgt690b',
@@ -2182,7 +2196,18 @@ class GenericIE(InfoExtractor):
         #     'params': {
         #         'force_generic_extractor': True,
         #     },
-        # }
+        # },
+        {
+            # VHX Embed
+            'url': 'https://demo.vhx.tv/category-c/videos/file-example-mp4-480-1-5mg-copy',
+            'info_dict': {
+                'id': '858208',
+                'ext': 'mp4',
+                'title': 'Untitled',
+                'uploader_id': 'user80538407',
+                'uploader': 'OTT Videos',
+            },
+        },
     ]
 
     def report_following_redirect(self, new_url):
@@ -2219,10 +2244,10 @@ class GenericIE(InfoExtractor):
                     default=None)
 
             duration = itunes('duration')
-            explicit = itunes('explicit')
-            if explicit == 'true':
+            explicit = (itunes('explicit') or '').lower()
+            if explicit in ('true', 'yes'):
                 age_limit = 18
-            elif explicit == 'false':
+            elif explicit in ('false', 'no'):
                 age_limit = 0
             else:
                 age_limit = None
@@ -2235,7 +2260,7 @@ class GenericIE(InfoExtractor):
                 'timestamp': unified_timestamp(
                     xpath_text(it, 'pubDate', default=None)),
                 'duration': int_or_none(duration) or parse_duration(duration),
-                'thumbnail': url_or_none(itunes('image')),
+                'thumbnail': url_or_none(xpath_attr(it, xpath_with_ns('./itunes:image', NS_MAP), 'href')),
                 'episode': itunes('title'),
                 'episode_number': int_or_none(itunes('episode')),
                 'season_number': int_or_none(itunes('season')),
@@ -2560,6 +2585,10 @@ class GenericIE(InfoExtractor):
         if vimeo_urls:
             return self.playlist_from_matches(vimeo_urls, video_id, video_title, ie=VimeoIE.ie_key())
 
+        vhx_url = VHXEmbedIE._extract_url(webpage)
+        if vhx_url:
+            return self.url_result(vhx_url, VHXEmbedIE.ie_key())
+
         vid_me_embed_url = self._search_regex(
             r'src=[\'"](https?://vid\.me/[^\'"]+)[\'"]',
             webpage, 'vid.me embed', default=None)
@@ -2814,11 +2843,6 @@ class GenericIE(InfoExtractor):
             webpage)
         if mobj is not None:
             return self.url_result(mobj.group('url'))
-
-        # Look for embedded smotri.com player
-        smotri_url = SmotriIE._extract_url(webpage)
-        if smotri_url:
-            return self.url_result(smotri_url, 'Smotri')
 
         # Look for embedded Myvi.ru player
         myvi_url = MyviIE._extract_url(webpage)

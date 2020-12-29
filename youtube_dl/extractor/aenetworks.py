@@ -6,6 +6,7 @@ import re
 from .theplatform import ThePlatformIE
 from ..utils import (
     ExtractorError,
+    GeoRestrictedError,
     int_or_none,
     update_url_query,
     urlencode_postdata,
@@ -28,6 +29,7 @@ class AENetworksBaseIE(ThePlatformIE):
         'lifetimemovieclub.com': ('LIFETIMEMOVIECLUB', 'lmc'),
         'fyi.tv': ('FYI', 'fyi'),
         'historyvault.com': (None, 'historyvault'),
+        'biography.com': (None, 'biography'),
     }
 
     def _extract_aen_smil(self, smil_url, video_id, auth=None):
@@ -54,6 +56,8 @@ class AENetworksBaseIE(ThePlatformIE):
                 tp_formats, tp_subtitles = self._extract_theplatform_smil(
                     m_url, video_id, 'Downloading %s SMIL data' % (q.get('switch') or q['assetTypes']))
             except ExtractorError as e:
+                if isinstance(e, GeoRestrictedError):
+                    raise
                 last_e = e
                 continue
             formats.extend(tp_formats)
@@ -66,6 +70,34 @@ class AENetworksBaseIE(ThePlatformIE):
             'formats': formats,
             'subtitles': subtitles,
         }
+
+    def _extract_aetn_info(self, domain, filter_key, filter_value, url):
+        requestor_id, brand = self._DOMAIN_MAP[domain]
+        result = self._download_json(
+            'https://feeds.video.aetnd.com/api/v2/%s/videos' % brand,
+            filter_value, query={'filter[%s]' % filter_key: filter_value})['results'][0]
+        title = result['title']
+        video_id = result['id']
+        media_url = result['publicUrl']
+        theplatform_metadata = self._download_theplatform_metadata(self._search_regex(
+            r'https?://link\.theplatform\.com/s/([^?]+)', media_url, 'theplatform_path'), video_id)
+        info = self._parse_theplatform_metadata(theplatform_metadata)
+        auth = None
+        if theplatform_metadata.get('AETN$isBehindWall'):
+            resource = self._get_mvpd_resource(
+                requestor_id, theplatform_metadata['title'],
+                theplatform_metadata.get('AETN$PPL_pplProgramId') or theplatform_metadata.get('AETN$PPL_pplProgramId_OLD'),
+                theplatform_metadata['ratings'][0]['rating'])
+            auth = self._extract_mvpd_auth(
+                url, video_id, requestor_id, resource)
+        info.update(self._extract_aen_smil(media_url, video_id, auth))
+        info.update({
+            'title': title,
+            'series': result.get('seriesName'),
+            'season_number': int_or_none(result.get('tvSeasonNumber')),
+            'episode_number': int_or_none(result.get('tvSeasonEpisodeNumber')),
+        })
+        return info
 
 
 class AENetworksIE(AENetworksBaseIE):
@@ -139,32 +171,7 @@ class AENetworksIE(AENetworksBaseIE):
 
     def _real_extract(self, url):
         domain, canonical = re.match(self._VALID_URL, url).groups()
-        requestor_id, brand = self._DOMAIN_MAP[domain]
-        result = self._download_json(
-            'https://feeds.video.aetnd.com/api/v2/%s/videos' % brand,
-            canonical, query={'filter[canonical]': '/' + canonical})['results'][0]
-        title = result['title']
-        video_id = result['id']
-        media_url = result['publicUrl']
-        theplatform_metadata = self._download_theplatform_metadata(self._search_regex(
-            r'https?://link\.theplatform\.com/s/([^?]+)', media_url, 'theplatform_path'), video_id)
-        info = self._parse_theplatform_metadata(theplatform_metadata)
-        auth = None
-        if theplatform_metadata.get('AETN$isBehindWall'):
-            resource = self._get_mvpd_resource(
-                requestor_id, theplatform_metadata['title'],
-                theplatform_metadata.get('AETN$PPL_pplProgramId') or theplatform_metadata.get('AETN$PPL_pplProgramId_OLD'),
-                theplatform_metadata['ratings'][0]['rating'])
-            auth = self._extract_mvpd_auth(
-                url, video_id, requestor_id, resource)
-        info.update(self._extract_aen_smil(media_url, video_id, auth))
-        info.update({
-            'title': title,
-            'series': result.get('seriesName'),
-            'season_number': int_or_none(result.get('tvSeasonNumber')),
-            'episode_number': int_or_none(result.get('tvSeasonEpisodeNumber')),
-        })
-        return info
+        return self._extract_aetn_info(domain, 'canonical', '/' + canonical, url)
 
 
 class AENetworksListBaseIE(AENetworksBaseIE):
@@ -294,3 +301,42 @@ class HistoryTopicIE(AENetworksBaseIE):
         return self.url_result(
             'http://www.history.com/videos/' + display_id,
             AENetworksIE.ie_key())
+
+
+class HistoryPlayerIE(AENetworksBaseIE):
+    IE_NAME = 'history:player'
+    _VALID_URL = r'https?://(?:www\.)?(?P<domain>(?:history|biography)\.com)/player/(?P<id>\d+)'
+    _TESTS = []
+
+    def _real_extract(self, url):
+        domain, video_id = re.match(self._VALID_URL, url).groups()
+        return self._extract_aetn_info(domain, 'id', video_id, url)
+
+
+class BiographyIE(AENetworksBaseIE):
+    _VALID_URL = r'https?://(?:www\.)?biography\.com/video/(?P<id>[^/?#&]+)'
+    _TESTS = [{
+        'url': 'https://www.biography.com/video/vincent-van-gogh-full-episode-2075049808',
+        'info_dict': {
+            'id': '30322987',
+            'ext': 'mp4',
+            'title': 'Vincent Van Gogh - Full Episode',
+            'description': 'A full biography about the most influential 20th century painter, Vincent Van Gogh.',
+            'timestamp': 1311970571,
+            'upload_date': '20110729',
+            'uploader': 'AENE-NEW',
+        },
+        'params': {
+            # m3u8 download
+            'skip_download': True,
+        },
+        'add_ie': ['ThePlatform'],
+    }]
+
+    def _real_extract(self, url):
+        display_id = self._match_id(url)
+        webpage = self._download_webpage(url, display_id)
+        player_url = self._search_regex(
+            r'<phoenix-iframe[^>]+src="(%s)' % HistoryPlayerIE._VALID_URL,
+            webpage, 'player URL')
+        return self.url_result(player_url, HistoryPlayerIE.ie_key())
