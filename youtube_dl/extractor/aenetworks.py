@@ -306,6 +306,7 @@ class HistoryTopicIE(AENetworksBaseIE):
 class HistoryPlayerIE(AENetworksBaseIE):
     IE_NAME = 'history:player'
     _VALID_URL = r'https?://(?:www\.)?(?P<domain>(?:history|biography)\.com)/player/(?P<id>\d+)'
+    _TESTS = []
 
     def _real_extract(self, url):
         domain, video_id = re.match(self._VALID_URL, url).groups()
