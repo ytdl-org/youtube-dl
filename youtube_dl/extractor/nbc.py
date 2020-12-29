@@ -158,7 +158,8 @@ class NBCIE(AdobePassIE):
 
 
 class NBCSportsVPlayerIE(InfoExtractor):
-    _VALID_URL = r'https?://vplayer\.nbcsports\.com/(?:[^/]+/)+(?P<id>[0-9a-zA-Z_]+)'
+    _VALID_URL_BASE = r'https?://(?:vplayer\.nbcsports\.com|(?:www\.)?nbcsports\.com/vplayer)/'
+    _VALID_URL = _VALID_URL_BASE + r'(?:[^/]+/)+(?P<id>[0-9a-zA-Z_]+)'
 
     _TESTS = [{
         'url': 'https://vplayer.nbcsports.com/p/BxmELC/nbcsports_embed/select/9CsDKds0kvHI',
@@ -174,12 +175,15 @@ class NBCSportsVPlayerIE(InfoExtractor):
     }, {
         'url': 'https://vplayer.nbcsports.com/p/BxmELC/nbcsports_embed/select/media/_hqLjQ95yx8Z',
         'only_matching': True,
+    }, {
+        'url': 'https://www.nbcsports.com/vplayer/p/BxmELC/nbcsports/select/PHJSaFWbrTY9?form=html&autoPlay=true',
+        'only_matching': True,
     }]
 
     @staticmethod
     def _extract_url(webpage):
         iframe_m = re.search(
-            r'<iframe[^>]+src="(?P<url>https?://vplayer\.nbcsports\.com/[^"]+)"', webpage)
+            r'<(?:iframe[^>]+|div[^>]+data-(?:mpx-)?)src="(?P<url>%s[^"]+)"' % NBCSportsVPlayerIE._VALID_URL_BASE, webpage)
         if iframe_m:
             return iframe_m.group('url')
 
@@ -192,21 +196,29 @@ class NBCSportsVPlayerIE(InfoExtractor):
 
 
 class NBCSportsIE(InfoExtractor):
-    # Does not include https because its certificate is invalid
-    _VALID_URL = r'https?://(?:www\.)?nbcsports\.com//?(?:[^/]+/)+(?P<id>[0-9a-z-]+)'
+    _VALID_URL = r'https?://(?:www\.)?nbcsports\.com//?(?!vplayer/)(?:[^/]+/)+(?P<id>[0-9a-z-]+)'
 
-    _TEST = {
+    _TESTS = [{
+        # iframe src
         'url': 'http://www.nbcsports.com//college-basketball/ncaab/tom-izzo-michigan-st-has-so-much-respect-duke',
         'info_dict': {
             'id': 'PHJSaFWbrTY9',
-            'ext': 'flv',
+            'ext': 'mp4',
             'title': 'Tom Izzo, Michigan St. has \'so much respect\' for Duke',
             'description': 'md5:ecb459c9d59e0766ac9c7d5d0eda8113',
             'uploader': 'NBCU-SPORTS',
             'upload_date': '20150330',
             'timestamp': 1427726529,
         }
-    }
+    }, {
+        # data-mpx-src
+        'url': 'https://www.nbcsports.com/philadelphia/philadelphia-phillies/bruce-bochy-hector-neris-hes-idiot',
+        'only_matching': True,
+    }, {
+        # data-src
+        'url': 'https://www.nbcsports.com/boston/video/report-card-pats-secondary-no-match-josh-allen',
+        'only_matching': True,
+    }]
 
     def _real_extract(self, url):
         video_id = self._match_id(url)
