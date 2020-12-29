@@ -45,16 +45,23 @@ class VVVVIDIE(InfoExtractor):
             'https://www.vvvvid.it/user/login',
             None, headers=self.geo_verification_headers())['data']['conn_id']
 
-    def _real_extract(self, url):
-        show_id, season_id, video_id = re.match(self._VALID_URL, url).groups()
+    def _download_info(self, url, video_id):
         response = self._download_json(
-            'https://www.vvvvid.it/vvvvid/ondemand/%s/season/%s' % (show_id, season_id),
-            video_id, headers=self.geo_verification_headers(), query={
+            url, video_id,
+            headers=self.geo_verification_headers(), query={
                 'conn_id': self._conn_id,
             })
         if response['result'] == 'error':
             raise ExtractorError('%s said: %s' % (
                 self.IE_NAME, response['message']), expected=True)
+        return response
+
+    def _real_extract(self, url):
+        show_id, season_id, video_id = re.match(self._VALID_URL, url).groups()
+
+        response = self._download_info(
+            'https://www.vvvvid.it/vvvvid/ondemand/%s/season/%s' % (show_id, season_id),
+            video_id)
 
         vid = int(video_id)
         video_data = list(filter(
@@ -159,36 +166,53 @@ class VVVVIDIE(InfoExtractor):
 
 
 class VVVVIDShowIE(VVVVIDIE):
-    _VALID_URL = r'https?://(?:www\.)?vvvvid\.it/(?:#!)?(?:show)/(?P<show_id>\d+)/(?P<id>[^/]+)$'
+    _VALID_URL = r'https?://(?:www\.)?vvvvid\.it/(?:#!)?(?:show)/(?P<show_id>\d+)/(?P<id>[^/]+)(?:\?|\&|/$|$)'
     _TESTS = [{
-        'url': 'https://www.vvvvid.it/show/156/psycho-pass',
+        'url': 'https://www.vvvvid.it/show/156/psyco-pass',
         'info_dict': {
             'id': '156',
-            'title': 'psycho-pass',
+            'title': 'Psycho-Pass',
         },
         'playlist_count': 46,
     }]
 
     def _real_extract(self, url):
         show_id, video_id = re.match(self._VALID_URL, url).groups()
-        response = self._download_json(
-            'https://www.vvvvid.it/vvvvid/ondemand/%s/seasons/' % show_id,
-            video_id, headers=self.geo_verification_headers(), query={
-                'conn_id': self._conn_id,
-            })
-        if response['result'] == 'error':
-            raise ExtractorError('%s said: %s' % (
-                self.IE_NAME, response['message']), expected=True)
+
+        response = self._download_info(
+            'https://www.vvvvid.it/vvvvid/ondemand/%s/seasons/' % show_id, video_id)
+
+        show_infos = self._download_info(
+            'https://www.vvvvid.it/vvvvid/ondemand/%s/info/' % show_id, video_id)
+
+        show_title = show_infos['data'].get('title')
 
         entries = []
+        lang = 'ITA'
         for season in response['data']:
-            for episode in season['episodes']:
-                u = "%s/%s/%s/title" % (
-                    url, episode.get('season_id'), episode.get('video_id')
-                )
+            if 'giapponese' in season.get('name').lower():
+                lang = 'JP'
+            for episode in season.get('episodes'):
+                season_id = str_or_none(episode.get('season_id'))
+                video_id = str_or_none(episode.get('video_id'))
+                if not season_id or not video_id:
+                    continue
+
+                video_url = '/'.join([url, season_id, video_id, 'title'])
+
+                # create video title as "ep. title [lang]"
+                episode_number = episode.get('number')
+                video_title = '%s. %s [%s]' % (
+                    episode_number, episode.get('title'), lang)
+
                 entries.append({
-                    "_type": "url_transparent",
-                    "ie_key": VVVVIDIE.ie_key(),
-                    "url": u,
+                    '_type': 'url_transparent',
+                    'ie_key': VVVVIDIE.ie_key(),
+                    'url': video_url,
+                    'title': video_title,
+                    'thumbnail': episode.get('thumbnail'),
+                    'description': episode.get('description'),
+                    'season_number': episode.get('season_number'),
+                    'episode_number': int_or_none(episode_number),
                 })
-        return self.playlist_result(entries, show_id, video_id)
+        return self.playlist_result(entries, show_id, show_title)
