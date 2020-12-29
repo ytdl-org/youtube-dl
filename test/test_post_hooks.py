@@ -11,13 +11,16 @@ from test.helper import get_params, try_rm
 import youtube_dl.YoutubeDL
 from youtube_dl.utils import DownloadError
 
+
 class YoutubeDL(youtube_dl.YoutubeDL):
     def __init__(self, *args, **kwargs):
         super(YoutubeDL, self).__init__(*args, **kwargs)
         self.to_stderr = self.to_screen
 
+
 TEST_ID = 'gr51aVj-mLg'
 EXPECTED_NAME = 'gr51aVj-mLg'
+
 
 class TestPostHooks(unittest.TestCase):
     def setUp(self):
@@ -44,21 +47,22 @@ class TestPostHooks(unittest.TestCase):
         ydl = YoutubeDL(self.params)
         self.assertRaises(DownloadError, ydl.download, [TEST_ID])
 
-    def hook_one(self,filename):
+    def hook_one(self, filename):
         self.stored_name_1, _ = os.path.splitext(os.path.basename(filename))
         self.files.append(filename)
 
-    def hook_two(self,filename):
+    def hook_two(self, filename):
         self.stored_name_2, _ = os.path.splitext(os.path.basename(filename))
         self.files.append(filename)
 
-    def hook_three(self,filename):
+    def hook_three(self, filename):
         self.files.append(filename)
         raise Exception('Test exception for \'%s\'' % filename)
 
     def tearDown(self):
         for f in self.files:
             try_rm(f)
+
 
 if __name__ == '__main__':
     unittest.main()
