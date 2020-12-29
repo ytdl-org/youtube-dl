@@ -9,6 +9,7 @@ from ..utils import (
     int_or_none,
     str_or_none,
 )
+from var_dump import var_dump
 
 
 class VVVVIDIE(InfoExtractor):
@@ -156,3 +157,39 @@ class VVVVIDIE(InfoExtractor):
             'view_count': int_or_none(video_data.get('views')),
             'like_count': int_or_none(video_data.get('video_likes')),
         }
+
+
+class VVVVIDPlaylistIE(VVVVIDIE):
+    _VALID_URL = r'https?://(?:www\.)?vvvvid\.it/(?:#!)?(?:show)/(?P<show_id>\d+)/(?P<id>[^/]+)$'
+    _TESTS = [{
+        'url': 'https://www.vvvvid.it/show/156/psycho-pass',
+        'info_dict': {
+            'id': '156',
+            'title': 'psycho-pass',
+        },
+        'playlist_count': 46,
+    }]
+
+    def _real_extract(self, url):
+        show_id, video_id = re.match(self._VALID_URL, url).groups()
+        response = self._download_json(
+            'https://www.vvvvid.it/vvvvid/ondemand/%s/seasons/' % show_id,
+            video_id, headers=self.geo_verification_headers(), query={
+                'conn_id': self._conn_id,
+            })
+        if response['result'] == 'error':
+            raise ExtractorError('%s said: %s' % (
+                self.IE_NAME, response['message']), expected=True)
+
+        entries = []
+        for season in response['data']:
+            for episode in season['episodes']:
+                u = "%s/%s/%s/title" % (
+                    url, episode.get('season_id'), episode.get('video_id')
+                )
+                entries.append({
+                    "_type": "url_transparent",
+                    "ie_key": VVVVIDIE.ie_key(),
+                    "url": u,
+                })
+        return self.playlist_result(entries, show_id, video_id)
