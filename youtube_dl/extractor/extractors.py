@@ -1426,7 +1426,7 @@ from .vube import VubeIE
 from .vuclip import VuClipIE
 from .vvvvid import (
     VVVVIDIE,
-    VVVVIDPlaylistIE,
+    VVVVIDShowIE,
 )
 from .vyborymos import VyboryMosIE
 from .vzaar import VzaarIE

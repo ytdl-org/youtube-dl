@@ -158,7 +158,7 @@ class VVVVIDIE(InfoExtractor):
         }
 
 
-class VVVVIDPlaylistIE(VVVVIDIE):
+class VVVVIDShowIE(VVVVIDIE):
     _VALID_URL = r'https?://(?:www\.)?vvvvid\.it/(?:#!)?(?:show)/(?P<show_id>\d+)/(?P<id>[^/]+)$'
     _TESTS = [{
         'url': 'https://www.vvvvid.it/show/156/psycho-pass',
