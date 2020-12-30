@@ -444,6 +444,19 @@ Alternatively, refer to the [developer instructions](#developer-instructions) fo
 # CONFIGURATION
 
 You can configure youtube-dl by placing any supported command line option to a configuration file. On Linux and macOS, the system wide configuration file is located at `/etc/youtube-dl.conf` and the user wide configuration file at `~/.config/youtube-dl/config`. On Windows, the user wide configuration file locations are `%APPDATA%\youtube-dl\config.txt` or `C:\Users\<user name>\youtube-dl.conf`. Note that by default configuration file may not exist so you may need to create it yourself.
+There are other possible locations and configuration file names. Generally, the program will try to find them in the following order:
+1. `%XDG_CONFIG_HOME%/youtube-dl/config`
+2. `%XDG_CONFIG_HOME%/youtube-dl.conf`
+3. `~/.config/youtube-dl/config`
+4. `~/.config/youtube-dl/youtube-dl.conf`
+5. `%APPDATA%/youtube-dl/config`
+6. `%APPDATA%/youtube-dl/config.txt`
+7. `~/youtube-dl.conf`
+8. `~/youtube-dl.conf.txt`
+9. `<some path>/youtube-dl/youtube_dl/youtube-dl.conf` (in case the .py files are not bundled)
+10. `<some path>/youtube-dl/youtube-dl.conf` (same as above but upper one level)
+11. `<some path>/youtube-dl.conf` (same as above but upper one level)
+12. `./youtube-dl.conf` (same folder where youtube-dl.exe or bundled binary located)
 
 For example, with the following configuration file youtube-dl will always extract the audio, not copy the mtime, use a proxy and save all videos under `Movies` directory in your home directory:
 ```
