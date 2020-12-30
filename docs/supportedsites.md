@@ -104,6 +104,7 @@
  - **BilibiliAudioAlbum**
  - **BiliBiliPlayer**
  - **BioBioChileTV**
+ - **Biography**
  - **BIQLE**
  - **BitChute**
  - **BitChuteChannel**
@@ -197,7 +198,6 @@
  - **CrooksAndLiars**
  - **crunchyroll**
  - **crunchyroll:playlist**
- - **CSNNE**
  - **CSpan**: C-SPAN
  - **CtsNews**: 華視新聞
  - **CTV**
@@ -349,6 +349,7 @@
  - **hgtv.com:show**
  - **HiDive**
  - **HistoricFilms**
+ - **history:player**
  - **history:topic**: History.com Topic
  - **hitbox**
  - **hitbox:live**
@@ -1088,6 +1089,7 @@
  - **vube**: Vube.com
  - **VuClip**
  - **VVVVID**
+ - **VVVVIDShow**
  - **VyboryMos**
  - **Vzaar**
  - **Wakanim**

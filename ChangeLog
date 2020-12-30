@@ -1,4 +1,4 @@
-version <unreleased>
+version 2020.12.31
 
 Core
 * [utils] Accept only supported protocols in url_or_none
