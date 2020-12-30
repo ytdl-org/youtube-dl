@@ -243,6 +243,45 @@ class FraternityxIE(FraternityxBaseIE):
         else:
             return(data)
 
+# class FraternityxPlayListIE(FraternityxBaseIE):
+#     IE_NAME = 'fraternityx:playlist'
+#     IE_DESC = 'fraternityx:playlist'
+#     _VALID_URL = r"https?://(?:www\.)?fraternityx\.com/episodes/(?P<id>\d+)"
+#     _BASE_URL = "https://fraternityx.com"
+
+#     def _real_initialize(self):
+#         self._login()
+#         self.headers.update({
+#             "Referer" : self._LOGIN_URL,
+#         })
+
+#     def _real_extract(self, url):
+
+#         playlistid = re.search(self._VALID_URL, url).group("id")
+
+  
+#         #self._set_cookie('fraternityx.com', 'pp-accepted', 'true')
+#         content, _ = self._download_webpage_handle(url, None, headers=self.headers)
+#         #page = (webpage.read()).decode('utf-8')
+#        # page = self.session.request("GET", url).text
+    
+#         generic_link = re.compile(r'(?<=\")/episode/[^\"]+(?=\")', re.I)
+
+#         target_links = list(set(re.findall(generic_link, content)))
+
+#         entries = []
+#         for link in target_links:
+            
+#             full_link = self._BASE_URL + link
+#             self.headers['Referer'] = url
+#             info = self._extract_from_page(full_link)
+#             if info:
+#                 if not "error" in info['id']:
+#                     entries.append(info)
+            
+#         #self._log_out()
+#         return self.playlist_result(entries, "fraternityx Episodes:" + playlistid, "fraternityx Episodes:" + playlistid)
+
 class FraternityxPlayListIE(FraternityxBaseIE):
     IE_NAME = 'fraternityx:playlist'
     IE_DESC = 'fraternityx:playlist'
@@ -272,13 +311,15 @@ class FraternityxPlayListIE(FraternityxBaseIE):
         entries = []
         for link in target_links:
             
-            full_link = self._BASE_URL + link
-            self.headers['Referer'] = url
-            info = self._extract_from_page(full_link)
-            if info:
-                if not "error" in info['id']:
-                    entries.append(info)
+            
+            entries.append(self.url_result(self._BASE_URL + link, ie=FraternityX.ie_key()))
+            
+            # full_link = self._BASE_URL + link
+            # self.headers['Referer'] = url
+            # info = self._extract_from_page(full_link)
+            # if info:
+            #     if not "error" in info['id']:
+            #         entries.append(info)
             
         #self._log_out()
         return self.playlist_result(entries, "fraternityx Episodes:" + playlistid, "fraternityx Episodes:" + playlistid)
-

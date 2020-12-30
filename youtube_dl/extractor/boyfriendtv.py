@@ -156,8 +156,9 @@ class BoyFriendTVIE(BoyFriendTVBaseIE):
             url_v = src['src'].replace("\\","")
             filesize = None
             try:
-                
-                filesize = int(requests.head(url_v).headers['content-length'])
+                res = requests.get(url_v, stream=True)
+                filesize = int(res.headers['Content-Length'])
+                #filesize = int(requests.head(url_v).headers['content-length'])
             except Exception as e:
                 pass
 

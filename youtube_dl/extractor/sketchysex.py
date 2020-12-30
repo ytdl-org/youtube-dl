@@ -37,6 +37,10 @@ class SketchySexBaseIE(InfoExtractor):
             "Accept-Language" : "es-ES,en-US;q=0.7,en;q=0.3",
             "Accept" : "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8"
         })
+        self.logged = False
+
+
+
 
     def _login(self):
         self.username, self.password = self._get_login_info()
@@ -132,12 +136,12 @@ class SketchySexBaseIE(InfoExtractor):
                 headers=self.headers
             )
 
-    def _log_out(self):
-        self._request_webpage(
-            self._LOG_OUT,
-            None,
-            'Log out'
-        )
+    # def _log_out(self):
+    #     self._request_webpage(
+    #         self._LOG_OUT,
+    #         None,
+    #         'Log out'
+    #     )
 
     def _extract_from_page(self, url):
         
@@ -170,6 +174,7 @@ class SketchySexBaseIE(InfoExtractor):
             if not self.username in content:
                 raise ExtractorError("", cause="It seems you are not logged", expected=True)            
         
+            self._log_out()
             regex_token = r"token: '(?P<tokenid>.*?)'"
             tokenid = ""
             tokenid = re.search(regex_token, content).group("tokenid")
@@ -225,10 +230,22 @@ class SketchySexIE(SketchySexBaseIE):
     IE_NAME = 'sketchysex'
     IE_DESC = 'sketchysex'
     _VALID_URL = r"https?://(?:www\.)?sketchysex.com/episode/"
+    _URL_COOKIES = "https://sketchysex.com"
     
 
-    def _real_initialize(self):
+
+    
+    def initcfg(self):
         self._login()
+        data = dict()
+        data['headers'] = self.headers
+        data['cookies'] = self._get_cookies(self._URL_COOKIES)
+        self.logged = True
+        return data
+
+    def _real_initialize(self):
+        if not self.logged:
+            self._login()
         self.headers.update({            
             "Referer" : "https://sketchysex.com/episodes/1",
         })
@@ -243,6 +260,45 @@ class SketchySexIE(SketchySexBaseIE):
         else:
             return(data)
 
+# class SketchySexPlayListIE(SketchySexBaseIE):
+#     IE_NAME = 'sketchysex:playlist'
+#     IE_DESC = 'sketchysex:playlist'
+#     _VALID_URL = r"https?://(?:www\.)?sketchysex\.com/episodes/(?P<id>\d+)"
+#     _BASE_URL = "https://sketchysex.com"
+
+#     def _real_initialize(self):
+#         self._login()
+#         self.headers.update({
+#             "Referer" : self._LOGIN_URL,
+#         })
+
+#     def _real_extract(self, url):
+
+#         playlistid = re.search(self._VALID_URL, url).group("id")
+
+  
+#         #self._set_cookie('fraternityx.com', 'pp-accepted', 'true')
+#         content, _ = self._download_webpage_handle(url, None, headers=self.headers)
+#         #page = (webpage.read()).decode('utf-8')
+#        # page = self.session.request("GET", url).text
+    
+#         generic_link = re.compile(r'(?<=\")/episode/[^\"]+(?=\")', re.I)
+
+#         target_links = list(set(re.findall(generic_link, content)))
+
+#         entries = []
+#         for link in target_links:
+            
+#             full_link = self._BASE_URL + link
+#             self.headers['Referer'] = url
+#             info = self._extract_from_page(full_link)
+#             if info:
+#                 if not "error" in info['id']:
+#                     entries.append(info)
+            
+#         #self._log_out()
+#         return self.playlist_result(entries, "sketchysex Episodes:" + playlistid, "sketchysex Episodes:" + playlistid)
+
 class SketchySexPlayListIE(SketchySexBaseIE):
     IE_NAME = 'sketchysex:playlist'
     IE_DESC = 'sketchysex:playlist'
@@ -250,8 +306,9 @@ class SketchySexPlayListIE(SketchySexBaseIE):
     _BASE_URL = "https://sketchysex.com"
 
     def _real_initialize(self):
-        self._login()
-        self.headers.update({
+        if not self.logged:
+            self._login()            
+            self.headers.update({
             "Referer" : self._LOGIN_URL,
         })
 
@@ -262,23 +319,28 @@ class SketchySexPlayListIE(SketchySexBaseIE):
   
         #self._set_cookie('fraternityx.com', 'pp-accepted', 'true')
         content, _ = self._download_webpage_handle(url, None, headers=self.headers)
+        #self._log_out()
         #page = (webpage.read()).decode('utf-8')
-       # page = self.session.request("GET", url).text
+        #page = self.session.request("GET", url).text
     
-        generic_link = re.compile(r'(?<=\")/episode/[^\"]+(?=\")', re.I)
-
-        target_links = list(set(re.findall(generic_link, content)))
-
+        episodes_links = re.findall(r'<h1><a href=\"(/episode/.*?)\">', content)
+ 
         entries = []
-        for link in target_links:
+        for link in episodes_links:
+
+            entries.append(self.url_result(self._BASE_URL + link, ie=SketchySexIE.ie_key()))
             
-            full_link = self._BASE_URL + link
-            self.headers['Referer'] = url
-            info = self._extract_from_page(full_link)
-            if info:
-                if not "error" in info['id']:
-                    entries.append(info)
+            # full_link = self._BASE_URL + link
+            # self.headers['Referer'] = url
+            # info = self._extract_from_page(full_link)
+            # if info:
+            #     if not "error" in info['id']:
+            #         entries.append(info)
+
             
         #self._log_out()
         return self.playlist_result(entries, "sketchysex Episodes:" + playlistid, "sketchysex Episodes:" + playlistid)
+
+
+        
 
