@@ -8,7 +8,7 @@ class TASVideosIE(InfoExtractor):
     _VALID_URL = r'http://tasvideos.org/(?P<id>\d+M)\.html'
     _TEST = {
         'url': 'http://tasvideos.org/4352M.html',
-        'md5': '92b08f544beb6ee905030609c7251cd1',
+        'md5': '8dced25a575e853cec5533a887a8dcfc',
         'info_dict': {
             'id': '4352M',
             'ext': 'mkv',
