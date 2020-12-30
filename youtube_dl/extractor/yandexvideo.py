@@ -5,6 +5,7 @@ from .common import InfoExtractor
 from ..utils import (
     determine_ext,
     int_or_none,
+    try_get,
     url_or_none,
 )
 
@@ -64,12 +65,7 @@ class YandexVideoIE(InfoExtractor):
     def _real_extract(self, url):
         video_id = self._match_id(url)
 
-        content = self._download_json(
-            # 'https://frontend.vh.yandex.ru/v23/player/%s.json' % video_id,
-            # video_id, query={
-            #     'stream_options': 'hires',
-            #     'disable_trackings': 1,
-            # })['content']
+        player = try_get((self._download_json(
             'https://frontend.vh.yandex.ru/graphql', video_id, data=b'''{
   player(content_id: "%s") {
     computed_title
@@ -90,7 +86,15 @@ class YandexVideoIE(InfoExtractor):
     title
     views_count
   }
-}''' % video_id.encode())['player']['content']['content']
+}''' % video_id.encode(), fatal=False)), lambda x: x['player']['content'])
+        if not player or player.get('error'):
+            player = self._download_json(
+                'https://frontend.vh.yandex.ru/v23/player/%s.json' % video_id,
+                video_id, query={
+                    'stream_options': 'hires',
+                    'disable_trackings': 1,
+                })
+        content = player['content']
 
         title = content.get('title') or content['computed_title']
 
