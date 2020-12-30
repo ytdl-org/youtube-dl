@@ -1,3 +1,26 @@
+version <unreleased>
+
+Core
+* [utils] Accept only supported protocols in url_or_none
+* [YoutubeDL] Allow format filtering using audio language (#16209)
+
+Extractors
++ [redditr] Extract all thumbnails (#27503)
+* [vvvvid] Improve info extraction
++ [vvvvid] Add support for playlists (#18130, #27574)
++ [yandexdisk] Extract info from webpage
+* [yandexdisk] Fix extraction (#17861, #27131)
+* [yandexvideo] Use old API call as fallback
+* [yandexvideo] Fix extraction (#25000)
+- [nbc] Remove CSNNE extractor
+* [nbc] Fix NBCSport VPlayer URL extraction (#16640)
++ [aenetworks] Add support for biography.com (#3863)
+* [uktvplay] Match new video URLs (#17909)
+* [sevenplay] Detect API errors
+* [tenplay] Fix format extraction (#26653)
+* [brightcove] Raise error for DRM protected videos (#23467, #27568)
+
+
 version 2020.12.29
 
 Extractors
