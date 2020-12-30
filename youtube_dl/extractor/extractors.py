@@ -1425,7 +1425,10 @@ from .vshare import VShareIE
 from .medialaan import MedialaanIE
 from .vube import VubeIE
 from .vuclip import VuClipIE
-from .vvvvid import VVVVIDIE
+from .vvvvid import (
+    VVVVIDIE,
+    VVVVIDShowIE,
+)
 from .vyborymos import VyboryMosIE
 from .vzaar import VzaarIE
 from .wakanim import WakanimIE

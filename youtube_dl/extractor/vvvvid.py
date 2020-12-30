@@ -12,7 +12,8 @@ from ..utils import (
 
 
 class VVVVIDIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:www\.)?vvvvid\.it/(?:#!)?(?:show|anime|film|series)/(?P<show_id>\d+)/[^/]+/(?P<season_id>\d+)/(?P<id>[0-9]+)'
+    _VALID_URL_BASE = r'https?://(?:www\.)?vvvvid\.it/(?:#!)?(?:show|anime|film|series)/'
+    _VALID_URL = r'%s(?P<show_id>\d+)/[^/]+/(?P<season_id>\d+)/(?P<id>[0-9]+)' % _VALID_URL_BASE
     _TESTS = [{
         # video_type == 'video/vvvvid'
         'url': 'https://www.vvvvid.it/#!show/434/perche-dovrei-guardarlo-di-dario-moccia/437/489048/ping-pong',
@@ -45,20 +46,26 @@ class VVVVIDIE(InfoExtractor):
             'https://www.vvvvid.it/user/login',
             None, headers=self.geo_verification_headers())['data']['conn_id']
 
-    def _real_extract(self, url):
-        show_id, season_id, video_id = re.match(self._VALID_URL, url).groups()
+    def _download_info(self, show_id, path, video_id, fatal=True):
         response = self._download_json(
-            'https://www.vvvvid.it/vvvvid/ondemand/%s/season/%s' % (show_id, season_id),
+            'https://www.vvvvid.it/vvvvid/ondemand/%s%s' % (show_id, path),
             video_id, headers=self.geo_verification_headers(), query={
                 'conn_id': self._conn_id,
-            })
+            }, fatal=fatal)
         if response['result'] == 'error':
             raise ExtractorError('%s said: %s' % (
                 self.IE_NAME, response['message']), expected=True)
+        return response['data']
+
+    def _real_extract(self, url):
+        show_id, season_id, video_id = re.match(self._VALID_URL, url).groups()
+
+        response = self._download_info(
+            show_id, '/season/%s' % season_id, video_id)
 
         vid = int(video_id)
         video_data = list(filter(
-            lambda episode: episode.get('video_id') == vid, response['data']))[0]
+            lambda episode: episode.get('video_id') == vid, response))[0]
         formats = []
 
         # vvvvid embed_info decryption algorithm is reverse engineered from function $ds(h) at vvvvid.js
@@ -156,3 +163,49 @@ class VVVVIDIE(InfoExtractor):
             'view_count': int_or_none(video_data.get('views')),
             'like_count': int_or_none(video_data.get('video_likes')),
         }
+
+
+class VVVVIDShowIE(VVVVIDIE):
+    _VALID_URL = r'(?P<base_url>%s(?P<show_id>\d+)/(?P<show_title>[^/]+))/?(?:$|[\?&].*$)?$' % VVVVIDIE._VALID_URL_BASE
+    _TESTS = [{
+        'url': 'https://www.vvvvid.it/show/156/psyco-pass',
+        'info_dict': {
+            'id': '156',
+            'title': 'Psycho-Pass',
+            'description': 'md5:94d572c0bd85894b193b8aebc9a3a806',
+        },
+        'playlist_count': 46,
+    }]
+
+    def _real_extract(self, url):
+        base_url, show_id, show_title = re.match(self._VALID_URL, url).groups()
+
+        response = self._download_info(
+            show_id, '/seasons/', show_title)
+
+        show_infos = self._download_info(
+            show_id, '/info/', show_title, fatal=False)
+
+        entries = []
+        for season in response:
+            episodes = season.get('episodes') or []
+            for episode in episodes:
+                season_id = str_or_none(episode.get('season_id'))
+                video_id = str_or_none(episode.get('video_id'))
+                if not (season_id and video_id):
+                    continue
+
+                video_url = '/'.join([base_url, season_id, video_id])
+
+                entries.append({
+                    '_type': 'url_transparent',
+                    'ie_key': VVVVIDIE.ie_key(),
+                    'url': video_url,
+                    'title': episode.get('title'),
+                    'thumbnail': episode.get('thumbnail'),
+                    'description': episode.get('description'),
+                    'season_number': int_or_none(episode.get('season_number')),
+                    'episode_number': int_or_none(episode.get('number')),
+                })
+        return self.playlist_result(
+            entries, show_id, show_infos.get('title'), show_infos.get('description'))
