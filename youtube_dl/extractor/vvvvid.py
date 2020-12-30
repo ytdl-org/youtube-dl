@@ -168,7 +168,7 @@ class VVVVIDIE(InfoExtractor):
 
 
 class VVVVIDShowIE(VVVVIDIE):
-    _VALID_URL = r'(?P<base_url>%s(?P<show_id>\d+)/(?P<id>[^/]+))(?:/$|[\?&].*$)?' % VVVVIDIE._VALID_URL_BASE
+    _VALID_URL = r'(?P<base_url>%s(?P<show_id>\d+)/(?P<id>[^/]+))/?(?:$|[\?&].*$)?$' % VVVVIDIE._VALID_URL_BASE
     _TESTS = [{
         'url': 'https://www.vvvvid.it/show/156/psyco-pass',
         'info_dict': {
