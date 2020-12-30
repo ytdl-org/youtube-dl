@@ -22,6 +22,16 @@ class VVVVIDIE(InfoExtractor):
             'id': '489048',
             'ext': 'mp4',
             'title': 'Ping Pong',
+            'duration': 239,
+            'series': '"Perché dovrei guardarlo?" di Dario Moccia',
+            'season_id': '437',
+            'season_number': 1,
+            'episode': 'Ping Pong',
+            'episode_number': 1,
+            'episode_id': '3334',
+            'view_count': int,
+            'like_count': int,
+            'repost_count': int,
         },
         'params': {
             'skip_download': True,
@@ -38,6 +48,9 @@ class VVVVIDIE(InfoExtractor):
         'params': {
             'skip_download': True,
         },
+    }, {
+        'url': 'https://www.vvvvid.it/show/434/perche-dovrei-guardarlo-di-dario-moccia/437/489048',
+        'only_matching': True
     }]
     _conn_id = None
 
@@ -48,24 +61,34 @@ class VVVVIDIE(InfoExtractor):
 
     def _download_info(self, show_id, path, video_id, fatal=True):
         response = self._download_json(
-            'https://www.vvvvid.it/vvvvid/ondemand/%s%s' % (show_id, path),
+            'https://www.vvvvid.it/vvvvid/ondemand/%s/%s' % (show_id, path),
             video_id, headers=self.geo_verification_headers(), query={
                 'conn_id': self._conn_id,
             }, fatal=fatal)
-        if response['result'] == 'error':
+        if not (response or fatal):
+            return
+        if response.get('result') == 'error':
             raise ExtractorError('%s said: %s' % (
                 self.IE_NAME, response['message']), expected=True)
         return response['data']
+
+    def _extract_common_video_info(self, video_data):
+        return {
+            'thumbnail': video_data.get('thumbnail'),
+            'episode_number': int_or_none(video_data.get('number')),
+            'episode_id': str_or_none(video_data.get('id')),
+        }
 
     def _real_extract(self, url):
         show_id, season_id, video_id = re.match(self._VALID_URL, url).groups()
 
         response = self._download_info(
-            show_id, '/season/%s' % season_id, video_id)
+            show_id, 'season/%s' % season_id, video_id)
 
         vid = int(video_id)
         video_data = list(filter(
             lambda episode: episode.get('video_id') == vid, response))[0]
+        title = video_data['title']
         formats = []
 
         # vvvvid embed_info decryption algorithm is reverse engineered from function $ds(h) at vvvvid.js
@@ -148,25 +171,25 @@ class VVVVIDIE(InfoExtractor):
                     'http://sb.top-ix.org/videomg/_definst_/mp4:%s/playlist.m3u8' % embed_code, video_id))
         self._sort_formats(formats)
 
-        return {
+        info = self._extract_common_video_info(video_data)
+        info.update({
             'id': video_id,
-            'title': video_data['title'],
+            'title': title,
             'formats': formats,
-            'thumbnail': video_data.get('thumbnail'),
             'duration': int_or_none(video_data.get('length')),
             'series': video_data.get('show_title'),
             'season_id': season_id,
             'season_number': video_data.get('season_number'),
-            'episode_id': str_or_none(video_data.get('id')),
-            'episode_number': int_or_none(video_data.get('number')),
-            'episode_title': video_data['title'],
+            'episode': title,
             'view_count': int_or_none(video_data.get('views')),
             'like_count': int_or_none(video_data.get('video_likes')),
-        }
+            'repost_count': int_or_none(video_data.get('video_shares')),
+        })
+        return info
 
 
 class VVVVIDShowIE(VVVVIDIE):
-    _VALID_URL = r'(?P<base_url>%s(?P<show_id>\d+)/(?P<show_title>[^/]+))/?(?:$|[\?&].*$)?$' % VVVVIDIE._VALID_URL_BASE
+    _VALID_URL = r'(?P<base_url>%s(?P<id>\d+)(?:/(?P<show_title>[^/?&#]+))?)/?(?:[?#&]|$)' % VVVVIDIE._VALID_URL_BASE
     _TESTS = [{
         'url': 'https://www.vvvvid.it/show/156/psyco-pass',
         'info_dict': {
@@ -175,37 +198,40 @@ class VVVVIDShowIE(VVVVIDIE):
             'description': 'md5:94d572c0bd85894b193b8aebc9a3a806',
         },
         'playlist_count': 46,
+    }, {
+        'url': 'https://www.vvvvid.it/show/156',
+        'only_matching': True,
     }]
 
     def _real_extract(self, url):
         base_url, show_id, show_title = re.match(self._VALID_URL, url).groups()
 
-        response = self._download_info(
-            show_id, '/seasons/', show_title)
+        seasons = self._download_info(
+            show_id, 'seasons/', show_title)
 
-        show_infos = self._download_info(
-            show_id, '/info/', show_title, fatal=False)
+        show_info = self._download_info(
+            show_id, 'info/', show_title, fatal=False)
 
         entries = []
-        for season in response:
+        for season in (seasons or []):
+            season_number = int_or_none(season.get('number'))
             episodes = season.get('episodes') or []
             for episode in episodes:
                 season_id = str_or_none(episode.get('season_id'))
                 video_id = str_or_none(episode.get('video_id'))
                 if not (season_id and video_id):
                     continue
-
-                video_url = '/'.join([base_url, season_id, video_id])
-
-                entries.append({
-                    '_type': 'url_transparent',
+                info = self._extract_common_video_info(episode)
+                info.update({
+                    '_type': 'url',
                     'ie_key': VVVVIDIE.ie_key(),
-                    'url': video_url,
+                    'url': '/'.join([base_url, season_id, video_id]),
                     'title': episode.get('title'),
-                    'thumbnail': episode.get('thumbnail'),
                     'description': episode.get('description'),
-                    'season_number': int_or_none(episode.get('season_number')),
-                    'episode_number': int_or_none(episode.get('number')),
+                    'season_number': season_number,
+                    'season_id': season_id,
                 })
+                entries.append(info)
+
         return self.playlist_result(
-            entries, show_id, show_infos.get('title'), show_infos.get('description'))
+            entries, show_id, show_info.get('title'), show_info.get('description'))
