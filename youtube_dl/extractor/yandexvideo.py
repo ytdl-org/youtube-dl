@@ -66,7 +66,7 @@ class YandexVideoIE(InfoExtractor):
         video_id = self._match_id(url)
 
         player = try_get((self._download_json(
-            'https://frontend.vh.yandex.ru/graphql', video_id, data=b'''{
+            'https://frontend.vh.yandex.ru/graphql', video_id, data=('''{
   player(content_id: "%s") {
     computed_title
     content_url
@@ -86,7 +86,7 @@ class YandexVideoIE(InfoExtractor):
     title
     views_count
   }
-}''' % video_id.encode(), fatal=False)), lambda x: x['player']['content'])
+}''' % video_id).encode(), fatal=False)), lambda x: x['player']['content'])
         if not player or player.get('error'):
             player = self._download_json(
                 'https://frontend.vh.yandex.ru/v23/player/%s.json' % video_id,
