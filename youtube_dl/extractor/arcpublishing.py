@@ -73,6 +73,7 @@ class ArcPublishingIE(InfoExtractor):
         ], 'video-api-cdn.%s.arcpublishing.com/api'),
     ]
 
+    @staticmethod
     def _extract_urls(webpage):
         entries = []
         # https://arcpublishing.atlassian.net/wiki/spaces/POWA/overview
