@@ -5,6 +5,8 @@ import re
 
 from .common import InfoExtractor
 
+from ..utils import get_elements_by_class
+
 
 class TASVideosIE(InfoExtractor):
     _VALID_URL = r'http://tasvideos.org/(?P<id>\d+M)\.html'
@@ -57,8 +59,8 @@ class TASVideosPlaylistIE(InfoExtractor):
         webpage = self._download_webpage(url, playlist_id)
         playlist_title = self._search_regex(
             r'<title>(?P<title>[^<]*)</title>', webpage, 'title')
-        video_entries = re.findall(
-            r'((?s)<table class="item".*?archive.*?<\/table)>', webpage)
+        video_entries = get_elements_by_class('item', webpage)
+        
         entries = []
         for entry in video_entries:
             video_urls = re.findall(
