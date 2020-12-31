@@ -152,7 +152,6 @@ class VVVVIDIE(InfoExtractor):
             embed_code = ds(embed_code)
             video_type = video_data.get('video_type')
             if video_type in ('video/rcs', 'video/kenc'):
-                embed_code = re.sub(r'https?://([^/]+)/z/', r'https://\1/i/', embed_code).replace('/manifest.f4m', '/master.m3u8')
                 if video_type == 'video/kenc':
                     kenc = self._download_json(
                         'https://www.vvvvid.it/kenc', video_id, query={
@@ -163,9 +162,7 @@ class VVVVIDIE(InfoExtractor):
                     kenc_message = kenc.get('message')
                     if kenc_message:
                         embed_code += '?' + ds(kenc_message)
-                formats.extend(self._extract_m3u8_formats(
-                    embed_code, video_id, 'mp4',
-                    m3u8_id='hls', fatal=False))
+                formats.extend(self._extract_akamai_formats(embed_code, video_id))
             else:
                 formats.extend(self._extract_wowza_formats(
                     'http://sb.top-ix.org/videomg/_definst_/mp4:%s/playlist.m3u8' % embed_code, video_id))
@@ -217,6 +214,8 @@ class VVVVIDShowIE(VVVVIDIE):
             season_number = int_or_none(season.get('number'))
             episodes = season.get('episodes') or []
             for episode in episodes:
+                if episode.get('playable') is False:
+                    continue
                 season_id = str_or_none(episode.get('season_id'))
                 video_id = str_or_none(episode.get('video_id'))
                 if not (season_id and video_id):
