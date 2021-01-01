@@ -27,8 +27,13 @@ class TASVideosIE(InfoExtractor):
             r'<a [^>]+(?P<URL>archive\.org\/download[^<]+\.(?:mkv|mp4|avi))[^<]+<\/a>',
             webpage)
         title = self._search_regex(
-            r'<span title="Movie[^"]+">(?P<TITLE>[^<]+)<\/span>', webpage,
-            'title')
+            r'<span title="Movie[^"]+">(?P<TITLE>[^<]+)<\/span>',
+            webpage, 'title')
+        time_and_author = self._html_search_regex(
+            r'<th.*<\/span>(?P<time_and_author>.*)<\/th>', webpage,
+            'title: speedrun timer and credit', fatal=False)
+        if time_and_author is not None:
+            title = title + time_and_author
 
         formats = []
         for url in video_urls:
@@ -60,15 +65,20 @@ class TASVideosPlaylistIE(InfoExtractor):
         playlist_title = self._search_regex(
             r'<title>(?P<title>[^<]*)</title>', webpage, 'title')
         video_entries = get_elements_by_class('item', webpage)
-        
+
         entries = []
         for entry in video_entries:
             video_urls = re.findall(
                 r'<a [^>]+(?P<URL>archive\.org\/download[^<]+\.(?:mkv|mp4|avi))[^<]+<\/a>',
                 entry)
             title = self._search_regex(
-                r'<span title="Movie[^"]+">(?P<title>[^<]+)<\/span>', entry,
-                'title')
+                r'<span title="Movie[^"]+">(?P<title>[^<]+)<\/span>',
+                entry, 'title')
+            time_and_author = self._html_search_regex(
+                r'<th.*<\/span>(?P<time_and_author>.*)<\/th>', entry,
+                'time_and_author', fatal=False)
+            if time_and_author is not None:
+                title = title + time_and_author
             video_id = self._search_regex(
                 r'id="movie_(?P<id>\d+)', entry, 'video id') + 'M'
 
