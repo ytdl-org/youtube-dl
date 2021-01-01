@@ -26,6 +26,7 @@ class VVVVIDIE(InfoExtractor):
             'duration': 239,
             'series': '"Perché dovrei guardarlo?" di Dario Moccia',
             'season_id': '437',
+            'season': 'VIDEO',
             'episode': 'Ping Pong',
             'episode_number': 1,
             'episode_id': '3334',
@@ -105,6 +106,19 @@ class VVVVIDIE(InfoExtractor):
             lambda episode: episode.get('video_id') == vid, response))[0]
         title = video_data['title']
         formats = []
+
+        # get season title
+        seasons = self._download_info(
+            show_id, 'seasons/', video_id, fatal=False)
+        season_title = None
+        for season in (seasons or []):
+            for episode in (season.get('episodes') or []):
+                if episode.get('video_id') == vid:
+                    season_title = str_or_none(season.get('name'))
+                    break
+            else:
+                continue
+            break
 
         # vvvvid embed_info decryption algorithm is reverse engineered from function $ds(h) at vvvvid.js
         def ds(h):
@@ -215,6 +229,7 @@ class VVVVIDIE(InfoExtractor):
             'duration': int_or_none(video_data.get('length')),
             'series': video_data.get('show_title'),
             'season_id': season_id,
+            'season': season_title,
             'episode': title,
             'view_count': int_or_none(video_data.get('views')),
             'like_count': int_or_none(video_data.get('video_likes')),
