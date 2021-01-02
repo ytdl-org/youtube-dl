@@ -21,7 +21,6 @@ from ..utils import (
     try_get,
     urljoin,
     url_or_none,
-    urljoin,
 )
 
 
@@ -895,7 +894,7 @@ class NRKPodcastEpisodeIE(InfoExtractor):
             if episode_data['episodeId'] == video_id:
                 metadata_url = episode_data['_links']['playback']['href']
                 break
-        if metadata_url == None:
+        if metadata_url is None:
             metadata_url = player['series']['episode']['_links']['playback']['href']
 
         metadata = self._download_json(urljoin(api_host_url, metadata_url), video_id, transform_source=js_to_json)
