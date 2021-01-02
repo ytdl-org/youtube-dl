@@ -143,7 +143,9 @@ class NRKIE(NRKBaseIE):
         'only_matching': True,
     }]
 
-    def _extract_from_playback(self, video_id):
+    def _real_extract(self, url):
+        video_id = self._match_id(url).split('/')[-1]
+
         path_templ = 'playback/%s/' + video_id
 
         def call_playback_api(item, query=None):
@@ -211,10 +213,6 @@ class NRKIE(NRKBaseIE):
             'thumbnails': thumbnails,
             'formats': formats,
         }
-
-    def _real_extract(self, url):
-        video_id = self._match_id(url).split('/')[-1]
-        return self._extract_from_playback(video_id)
 
 
 class NRKTVIE(InfoExtractor):
