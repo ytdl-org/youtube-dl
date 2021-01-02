@@ -118,16 +118,28 @@ class NRKIE(NRKBaseIE):
         'url': 'nrk:l_96f4f1b0-de54-4e6a-b4f1-b0de54fe6af8',
         'only_matching': True,
     }, {
+        'url': 'nrk:podcast/l_96f4f1b0-de54-4e6a-b4f1-b0de54fe6af8',
+        'only_matching': True,
+    }, {
         # clip
         'url': 'nrk:150533',
         'only_matching': True,
     }, {
-        # episode
+        'url': 'nrk:clip/150533',
+        'only_matching': True,
+    }, {
+        # program
         'url': 'nrk:MDDP12000117',
+        'only_matching': True,
+    }, {
+        'url': 'nrk:program/ENRK10100318',
         'only_matching': True,
     }, {
         # direkte
         'url': 'nrk:nrk1',
+        'only_matching': True,
+    }, {
+        'url': 'nrk:channel/nrk1',
         'only_matching': True,
     }]
 
