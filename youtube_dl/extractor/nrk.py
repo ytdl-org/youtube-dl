@@ -62,66 +62,6 @@ class NRKBaseIE(InfoExtractor):
             fatal=fatal, query=query,
             headers={'Accept-Encoding': 'gzip, deflate, br'})
 
-    def _extract_from_playback(self, video_id):
-        path_templ = 'playback/%s/' + video_id
-
-        def call_playback_api(item, query=None):
-            return self._call_api(path_templ % item, video_id, item, query=query)
-        # known values for preferredCdn: akamai, iponly, minicdn and telenor
-        manifest = call_playback_api('manifest', {'preferredCdn': 'akamai'})
-
-        if manifest.get('playability') == 'nonPlayable':
-            self._raise_error(manifest['nonPlayable'])
-
-        playable = manifest['playable']
-
-        formats = []
-        for asset in playable['assets']:
-            if not isinstance(asset, dict):
-                continue
-            if asset.get('encrypted'):
-                continue
-            format_url = url_or_none(asset.get('url'))
-            if not format_url:
-                continue
-            if asset.get('format') == 'HLS' or determine_ext(format_url) == 'm3u8':
-                formats.extend(self._extract_nrk_formats(format_url, video_id))
-        self._sort_formats(formats)
-
-        data = call_playback_api('metadata')
-
-        preplay = data['preplay']
-        titles = preplay['titles']
-        title = titles['title']
-        alt_title = titles.get('subtitle')
-
-        description = preplay.get('description')
-        duration = parse_duration(playable.get('duration')) or parse_duration(data.get('duration'))
-
-        thumbnails = []
-        for image in try_get(
-                preplay, lambda x: x['poster']['images'], list) or []:
-            if not isinstance(image, dict):
-                continue
-            image_url = url_or_none(image.get('url'))
-            if not image_url:
-                continue
-            thumbnails.append({
-                'url': image_url,
-                'width': int_or_none(image.get('pixelWidth')),
-                'height': int_or_none(image.get('pixelHeight')),
-            })
-
-        return {
-            'id': video_id,
-            'title': title,
-            'alt_title': alt_title,
-            'description': description,
-            'duration': duration,
-            'thumbnails': thumbnails,
-            'formats': formats,
-        }
-
 
 class NRKIE(NRKBaseIE):
     _VALID_URL = r'''(?x)
@@ -173,14 +113,97 @@ class NRKIE(NRKBaseIE):
     }, {
         'url': 'https://www.nrk.no/video/humor/kommentatorboksen-reiser-til-sjos_d1fda11f-a4ad-437a-a374-0398bc84e999',
         'only_matching': True,
+    }, {
+        # podcast
+        'url': 'nrk:l_96f4f1b0-de54-4e6a-b4f1-b0de54fe6af8',
+        'only_matching': True,
+    }, {
+        # clip
+        'url': 'nrk:150533',
+        'only_matching': True,
+    }, {
+        # episode
+        'url': 'nrk:MDDP12000117',
+        'only_matching': True,
+    }, {
+        # direkte
+        'url': 'nrk:nrk1',
+        'only_matching': True,
     }]
+
+    def _extract_from_playback(self, video_id):
+        path_templ = 'playback/%s/' + video_id
+
+        def call_playback_api(item, query=None):
+            return self._call_api(path_templ % item, video_id, item, query=query)
+        # known values for preferredCdn: akamai, iponly, minicdn and telenor
+        manifest = call_playback_api('manifest', {'preferredCdn': 'akamai'})
+
+        if manifest.get('playability') == 'nonPlayable':
+            self._raise_error(manifest['nonPlayable'])
+
+        playable = manifest['playable']
+
+        formats = []
+        for asset in playable['assets']:
+            if not isinstance(asset, dict):
+                continue
+            if asset.get('encrypted'):
+                continue
+            format_url = url_or_none(asset.get('url'))
+            if not format_url:
+                continue
+            asset_format = (asset.get('format') or '').lower()
+            if asset_format == 'hls' or determine_ext(format_url) == 'm3u8':
+                formats.extend(self._extract_nrk_formats(format_url, video_id))
+            elif asset_format == 'mp3':
+                formats.append({
+                    'url': format_url,
+                    'format_id': asset_format,
+                    'vcodec': 'none',
+                })
+        self._sort_formats(formats)
+
+        data = call_playback_api('metadata')
+
+        preplay = data['preplay']
+        titles = preplay['titles']
+        title = titles['title']
+        alt_title = titles.get('subtitle')
+
+        description = preplay.get('description')
+        duration = parse_duration(playable.get('duration')) or parse_duration(data.get('duration'))
+
+        thumbnails = []
+        for image in try_get(
+                preplay, lambda x: x['poster']['images'], list) or []:
+            if not isinstance(image, dict):
+                continue
+            image_url = url_or_none(image.get('url'))
+            if not image_url:
+                continue
+            thumbnails.append({
+                'url': image_url,
+                'width': int_or_none(image.get('pixelWidth')),
+                'height': int_or_none(image.get('pixelHeight')),
+            })
+
+        return {
+            'id': video_id,
+            'title': title,
+            'alt_title': alt_title,
+            'description': description,
+            'duration': duration,
+            'thumbnails': thumbnails,
+            'formats': formats,
+        }
 
     def _real_extract(self, url):
         video_id = self._match_id(url)
         return self._extract_from_playback(video_id)
 
 
-class NRKTVIE(NRKBaseIE):
+class NRKTVIE(InfoExtractor):
     IE_DESC = 'NRK TV and NRK Radio'
     _EPISODE_RE = r'(?P<id>[a-zA-Z]{4}\d{8})'
     _VALID_URL = r'https?://(?:tv|radio)\.nrk(?:super)?\.no/(?:[^/]+/)*%s' % _EPISODE_RE
@@ -288,7 +311,8 @@ class NRKTVIE(NRKBaseIE):
 
     def _real_extract(self, url):
         video_id = self._match_id(url)
-        return self._extract_from_playback(video_id)
+        return self.url_result(
+            'nrk:%s' % video_id, ie=NRKIE.ie_key(), video_id=video_id)
 
 
 class NRKTVEpisodeIE(InfoExtractor):
@@ -359,8 +383,6 @@ class NRKTVSerieBaseIE(NRKBaseIE):
             nrk_id = episode.get('prfId') or episode.get('episodeId')
             if not nrk_id or not isinstance(nrk_id, compat_str):
                 continue
-            if not re.match(NRKTVIE._EPISODE_RE, nrk_id):
-                continue
             entries.append(self.url_result(
                 'nrk:%s' % nrk_id, ie=NRKIE.ie_key(), video_id=nrk_id))
         return entries
@@ -371,6 +393,10 @@ class NRKTVSerieBaseIE(NRKBaseIE):
         for asset_key in self._ASSETS_KEYS:
             if embedded.get(asset_key):
                 return asset_key
+
+    @staticmethod
+    def _catalog_name(serie_kind):
+        return 'podcast' if serie_kind in ('podcast', 'podkast') else 'series'
 
     def _entries(self, data, display_id):
         for page_num in itertools.count(1):
@@ -405,7 +431,16 @@ class NRKTVSerieBaseIE(NRKBaseIE):
 
 
 class NRKTVSeasonIE(NRKTVSerieBaseIE):
-    _VALID_URL = r'https?://(?P<domain>tv|radio)\.nrk\.no/serie/(?P<serie>[^/]+)/(?:sesong/)?(?P<id>\d+)'
+    _VALID_URL = r'''(?x)
+                    https?://
+                        (?P<domain>tv|radio)\.nrk\.no/
+                        (?P<serie_kind>serie|pod[ck]ast)/
+                        (?P<serie>[^/]+)/
+                        (?:
+                            (?:sesong/)?(?P<id>\d+)|
+                            sesong/(?P<id_2>[^/?#&]+)
+                        )
+                    '''
     _TESTS = [{
         'url': 'https://tv.nrk.no/serie/backstage/sesong/1',
         'info_dict': {
@@ -441,19 +476,34 @@ class NRKTVSeasonIE(NRKTVSerieBaseIE):
         # 180 entries, single page
         'url': 'https://tv.nrk.no/serie/spangas/sesong/1',
         'only_matching': True,
+    }, {
+        'url': 'https://radio.nrk.no/podkast/hele_historien/sesong/diagnose-kverulant',
+        'info_dict': {
+            'id': 'hele_historien/diagnose-kverulant',
+            'title': 'Diagnose kverulant',
+        },
+        'playlist_mincount': 3,
+    }, {
+        'url': 'https://radio.nrk.no/podkast/loerdagsraadet/sesong/202101',
+        'only_matching': True,
     }]
 
     @classmethod
     def suitable(cls, url):
-        return (False if NRKTVIE.suitable(url) or NRKTVEpisodeIE.suitable(url)
+        return (False if NRKTVIE.suitable(url) or NRKTVEpisodeIE.suitable(url) or NRKRadioPodkastIE.suitable(url)
                 else super(NRKTVSeasonIE, cls).suitable(url))
 
     def _real_extract(self, url):
-        domain, serie, season_id = re.match(self._VALID_URL, url).groups()
+        mobj = re.match(self._VALID_URL, url)
+        domain = mobj.group('domain')
+        serie_kind = mobj.group('serie_kind')
+        serie = mobj.group('serie')
+        season_id = mobj.group('id') or mobj.group('id_2')
         display_id = '%s/%s' % (serie, season_id)
 
         data = self._call_api(
-            '%s/catalog/series/%s/seasons/%s' % (domain, serie, season_id),
+            '%s/catalog/%s/%s/seasons/%s'
+            % (domain, self._catalog_name(serie_kind), serie, season_id),
             display_id, 'season', query={'pageSize': 50})
 
         title = try_get(data, lambda x: x['titles']['title'], compat_str) or display_id
@@ -463,7 +513,7 @@ class NRKTVSeasonIE(NRKTVSerieBaseIE):
 
 
 class NRKTVSeriesIE(NRKTVSerieBaseIE):
-    _VALID_URL = r'https?://(?P<domain>(?:tv|radio)\.nrk|(?:tv\.)?nrksuper)\.no/serie/(?P<id>[^/]+)'
+    _VALID_URL = r'https?://(?P<domain>(?:tv|radio)\.nrk|(?:tv\.)?nrksuper)\.no/(?P<serie_kind>serie|pod[ck]ast)/(?P<id>[^/]+)'
     _TESTS = [{
         # new layout, instalments
         'url': 'https://tv.nrk.no/serie/groenn-glede',
@@ -523,23 +573,33 @@ class NRKTVSeriesIE(NRKTVSerieBaseIE):
     }, {
         'url': 'https://nrksuper.no/serie/labyrint',
         'only_matching': True,
+    }, {
+        'url': 'https://radio.nrk.no/podkast/ulrikkes_univers',
+        'info_dict': {
+            'id': 'ulrikkes_univers',
+        },
+        'playlist_mincount': 10,
+    }, {
+        'url': 'https://radio.nrk.no/podkast/ulrikkes_univers/nrkno-poddkast-26588-134079-05042018030000',
+        'only_matching': True,
     }]
 
     @classmethod
     def suitable(cls, url):
         return (
             False if any(ie.suitable(url)
-                         for ie in (NRKTVIE, NRKTVEpisodeIE, NRKTVSeasonIE))
+                         for ie in (NRKTVIE, NRKTVEpisodeIE, NRKRadioPodkastIE, NRKTVSeasonIE))
             else super(NRKTVSeriesIE, cls).suitable(url))
 
     def _real_extract(self, url):
-        site, series_id = re.match(self._VALID_URL, url).groups()
+        site, serie_kind, series_id = re.match(self._VALID_URL, url).groups()
         is_radio = site == 'radio.nrk'
         domain = 'radio' if is_radio else 'tv'
 
         size_prefix = 'p' if is_radio else 'embeddedInstalmentsP'
         series = self._call_api(
-            '%s/catalog/series/%s' % (domain, series_id),
+            '%s/catalog/%s/%s'
+            % (domain, self._catalog_name(serie_kind), series_id),
             series_id, 'serie', query={size_prefix + 'ageSize': 50})
         titles = try_get(series, [
             lambda x: x['titles'],
@@ -554,12 +614,14 @@ class NRKTVSeriesIE(NRKTVSerieBaseIE):
         embedded_seasons = embedded.get('seasons') or []
         if len(linked_seasons) > len(embedded_seasons):
             for season in linked_seasons:
-                season_name = season.get('name')
-                if season_name and isinstance(season_name, compat_str):
+                season_url = urljoin(url, season.get('href'))
+                if not season_url:
+                    season_name = season.get('name')
+                    if season_name and isinstance(season_name, compat_str):
+                        season_url = 'https://%s.nrk.no/serie/%s/sesong/%s' % (domain, series_id, season_name)
+                if season_url:
                     entries.append(self.url_result(
-                        'https://%s.nrk.no/serie/%s/sesong/%s'
-                        % (domain, series_id, season_name),
-                        ie=NRKTVSeasonIE.ie_key(),
+                        season_url, ie=NRKTVSeasonIE.ie_key(),
                         video_title=season.get('title')))
         else:
             for season in embedded_seasons:
@@ -582,6 +644,38 @@ class NRKTVDirekteIE(NRKTVIE):
         'url': 'https://radio.nrk.no/direkte/p1_oslo_akershus',
         'only_matching': True,
     }]
+
+
+class NRKRadioPodkastIE(InfoExtractor):
+    _VALID_URL = r'https?://radio\.nrk\.no/pod[ck]ast/(?:[^/]+/)+(?P<id>l_[\da-f]{8}-[\da-f]{4}-[\da-f]{4}-[\da-f]{4}-[\da-f]{12})'
+
+    _TESTS = [{
+        'url': 'https://radio.nrk.no/podkast/ulrikkes_univers/l_96f4f1b0-de54-4e6a-b4f1-b0de54fe6af8',
+        'md5': '8d40dab61cea8ab0114e090b029a0565',
+        'info_dict': {
+            'id': 'MUHH48000314AA',
+            'ext': 'mp4',
+            'title': '20 spørsmål 23.05.2014',
+            'description': 'md5:bdea103bc35494c143c6a9acdd84887a',
+            'duration': 1741,
+            'series': '20 spørsmål',
+            'episode': '23.05.2014',
+        },
+    }, {
+        'url': 'https://radio.nrk.no/podcast/ulrikkes_univers/l_96f4f1b0-de54-4e6a-b4f1-b0de54fe6af8',
+        'only_matching': True,
+    }, {
+        'url': 'https://radio.nrk.no/podkast/ulrikkes_univers/sesong/1/l_96f4f1b0-de54-4e6a-b4f1-b0de54fe6af8',
+        'only_matching': True,
+    }, {
+        'url': 'https://radio.nrk.no/podkast/hele_historien/sesong/bortfoert-i-bergen/l_774d1a2c-7aa7-4965-8d1a-2c7aa7d9652c',
+        'only_matching': True,
+    }]
+
+    def _real_extract(self, url):
+        video_id = self._match_id(url)
+        return self.url_result(
+            'nrk:%s' % video_id, ie=NRKIE.ie_key(), video_id=video_id)
 
 
 class NRKPlaylistBaseIE(InfoExtractor):

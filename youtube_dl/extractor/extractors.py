@@ -790,6 +790,7 @@ from .nrk import (
     NRKSkoleIE,
     NRKTVIE,
     NRKTVDirekteIE,
+    NRKRadioPodkastIE,
     NRKTVEpisodeIE,
     NRKTVEpisodesIE,
     NRKTVSeasonIE,
