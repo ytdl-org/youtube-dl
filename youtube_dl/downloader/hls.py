@@ -1,6 +1,7 @@
 from __future__ import unicode_literals
 
 import re
+import struct
 import binascii
 try:
     from Crypto.Cipher import AES
@@ -170,6 +171,12 @@ class HlsFD(FragmentFD):
                         iv = decrypt_info.get('IV') or compat_struct_pack('>8xq', media_sequence)
                         decrypt_info['KEY'] = decrypt_info.get('KEY') or self.ydl.urlopen(
                             self._prepare_url(info_dict, info_dict.get('_decryption_key_url') or decrypt_info['URI'])).read()
+                        if len(frag_content) % 16 != 0:
+                            # If the content doesn't match the block size then pad it out using
+                            # PKCS#7 padding.
+                            padding_length = 16 - (len(frag_content) % 16)
+                            # struct.pack is used for python 2 and 3 compatability.
+                            frag_content += struct.pack('B', padding_length) * padding_length
                         frag_content = AES.new(
                             decrypt_info['KEY'], AES.MODE_CBC, iv).decrypt(frag_content)
                     self._append_fragment(ctx, frag_content)
