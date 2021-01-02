@@ -6,15 +6,11 @@ import random
 import re
 
 from .common import InfoExtractor
-from ..compat import (
-    compat_str,
-    compat_urllib_parse_unquote,
-)
+from ..compat import compat_str
 from ..utils import (
     determine_ext,
     ExtractorError,
     int_or_none,
-    parse_age_limit,
     parse_duration,
     try_get,
     urljoin,
@@ -63,60 +59,8 @@ class NRKBaseIE(InfoExtractor):
         return self._download_json(
             urljoin('http://psapi.nrk.no/', path),
             video_id, note or 'Downloading %s JSON' % item,
-            fatal=fatal, query=query)
-
-
-class NRKIE(NRKBaseIE):
-    _VALID_URL = r'''(?x)
-                        (?:
-                            nrk:|
-                            https?://
-                                (?:
-                                    (?:www\.)?nrk\.no/video/(?:PS\*|[^_]+_)|
-                                    v8[-.]psapi\.nrk\.no/mediaelement/
-                                )
-                            )
-                            (?P<id>[^?\#&]+)
-                        '''
-
-    _TESTS = [{
-        # video
-        'url': 'http://www.nrk.no/video/PS*150533',
-        'md5': 'f46be075326e23ad0e524edfcb06aeb6',
-        'info_dict': {
-            'id': '150533',
-            'ext': 'mp4',
-            'title': 'Dompap og andre fugler i Piip-Show',
-            'description': 'md5:d9261ba34c43b61c812cb6b0269a5c8f',
-            'duration': 262,
-        }
-    }, {
-        # audio
-        'url': 'http://www.nrk.no/video/PS*154915',
-        # MD5 is unstable
-        'info_dict': {
-            'id': '154915',
-            'ext': 'mp4',
-            'title': 'Slik høres internett ut når du er blind',
-            'description': 'md5:a621f5cc1bd75c8d5104cb048c6b8568',
-            'duration': 20,
-        }
-    }, {
-        'url': 'nrk:ecc1b952-96dc-4a98-81b9-5296dc7a98d9',
-        'only_matching': True,
-    }, {
-        'url': 'nrk:clip/7707d5a3-ebe7-434a-87d5-a3ebe7a34a70',
-        'only_matching': True,
-    }, {
-        'url': 'https://v8-psapi.nrk.no/mediaelement/ecc1b952-96dc-4a98-81b9-5296dc7a98d9',
-        'only_matching': True,
-    }, {
-        'url': 'https://www.nrk.no/video/dompap-og-andre-fugler-i-piip-show_150533',
-        'only_matching': True,
-    }, {
-        'url': 'https://www.nrk.no/video/humor/kommentatorboksen-reiser-til-sjos_d1fda11f-a4ad-437a-a374-0398bc84e999',
-        'only_matching': True,
-    }]
+            fatal=fatal, query=query,
+            headers={'Accept-Encoding': 'gzip, deflate, br'})
 
     def _extract_from_playback(self, video_id):
         path_templ = 'playback/%s/' + video_id
@@ -178,6 +122,59 @@ class NRKIE(NRKBaseIE):
             'formats': formats,
         }
 
+
+class NRKIE(NRKBaseIE):
+    _VALID_URL = r'''(?x)
+                        (?:
+                            nrk:|
+                            https?://
+                                (?:
+                                    (?:www\.)?nrk\.no/video/(?:PS\*|[^_]+_)|
+                                    v8[-.]psapi\.nrk\.no/mediaelement/
+                                )
+                            )
+                            (?P<id>[^?\#&]+)
+                        '''
+
+    _TESTS = [{
+        # video
+        'url': 'http://www.nrk.no/video/PS*150533',
+        'md5': 'f46be075326e23ad0e524edfcb06aeb6',
+        'info_dict': {
+            'id': '150533',
+            'ext': 'mp4',
+            'title': 'Dompap og andre fugler i Piip-Show',
+            'description': 'md5:d9261ba34c43b61c812cb6b0269a5c8f',
+            'duration': 262,
+        }
+    }, {
+        # audio
+        'url': 'http://www.nrk.no/video/PS*154915',
+        # MD5 is unstable
+        'info_dict': {
+            'id': '154915',
+            'ext': 'mp4',
+            'title': 'Slik høres internett ut når du er blind',
+            'description': 'md5:a621f5cc1bd75c8d5104cb048c6b8568',
+            'duration': 20,
+        }
+    }, {
+        'url': 'nrk:ecc1b952-96dc-4a98-81b9-5296dc7a98d9',
+        'only_matching': True,
+    }, {
+        'url': 'nrk:clip/7707d5a3-ebe7-434a-87d5-a3ebe7a34a70',
+        'only_matching': True,
+    }, {
+        'url': 'https://v8-psapi.nrk.no/mediaelement/ecc1b952-96dc-4a98-81b9-5296dc7a98d9',
+        'only_matching': True,
+    }, {
+        'url': 'https://www.nrk.no/video/dompap-og-andre-fugler-i-piip-show_150533',
+        'only_matching': True,
+    }, {
+        'url': 'https://www.nrk.no/video/humor/kommentatorboksen-reiser-til-sjos_d1fda11f-a4ad-437a-a374-0398bc84e999',
+        'only_matching': True,
+    }]
+
     def _real_extract(self, url):
         video_id = self._match_id(url)
         return self._extract_from_playback(video_id)
@@ -187,7 +184,6 @@ class NRKTVIE(NRKBaseIE):
     IE_DESC = 'NRK TV and NRK Radio'
     _EPISODE_RE = r'(?P<id>[a-zA-Z]{4}\d{8})'
     _VALID_URL = r'https?://(?:tv|radio)\.nrk(?:super)?\.no/(?:[^/]+/)*%s' % _EPISODE_RE
-    _API_HOSTS = ('psapi-ne.nrk.no', 'psapi-we.nrk.no')
     _TESTS = [{
         'url': 'https://tv.nrk.no/program/MDDP12000117',
         'md5': 'c4a5960f1b00b40d47db65c1064e0ab1',
@@ -290,164 +286,9 @@ class NRKTVIE(NRKBaseIE):
         'only_matching': True,
     }]
 
-    _api_host = None
-
-    def _extract_from_mediaelement(self, video_id):
-        api_hosts = (self._api_host, ) if self._api_host else self._API_HOSTS
-
-        for api_host in api_hosts:
-            data = self._download_json(
-                'http://%s/mediaelement/%s' % (api_host, video_id),
-                video_id, 'Downloading mediaelement JSON',
-                fatal=api_host == api_hosts[-1])
-            if not data:
-                continue
-            self._api_host = api_host
-            break
-
-        title = data.get('fullTitle') or data.get('mainTitle') or data['title']
-        video_id = data.get('id') or video_id
-
-        urls = []
-        entries = []
-
-        conviva = data.get('convivaStatistics') or {}
-        live = (data.get('mediaElementType') == 'Live'
-                or data.get('isLive') is True or conviva.get('isLive'))
-
-        def make_title(t):
-            return self._live_title(t) if live else t
-
-        media_assets = data.get('mediaAssets')
-        if media_assets and isinstance(media_assets, list):
-            def video_id_and_title(idx):
-                return ((video_id, title) if len(media_assets) == 1
-                        else ('%s-%d' % (video_id, idx), '%s (Part %d)' % (title, idx)))
-            for num, asset in enumerate(media_assets, 1):
-                asset_url = asset.get('url')
-                if not asset_url or asset_url in urls:
-                    continue
-                urls.append(asset_url)
-                formats = self._extract_nrk_formats(asset_url, video_id)
-                if not formats:
-                    continue
-                self._sort_formats(formats)
-
-                entry_id, entry_title = video_id_and_title(num)
-                duration = parse_duration(asset.get('duration'))
-                subtitles = {}
-                for subtitle in ('webVtt', 'timedText'):
-                    subtitle_url = asset.get('%sSubtitlesUrl' % subtitle)
-                    if subtitle_url:
-                        subtitles.setdefault('no', []).append({
-                            'url': compat_urllib_parse_unquote(subtitle_url)
-                        })
-                entries.append({
-                    'id': asset.get('carrierId') or entry_id,
-                    'title': make_title(entry_title),
-                    'duration': duration,
-                    'subtitles': subtitles,
-                    'formats': formats,
-                    'is_live': live,
-                })
-
-        if not entries:
-            media_url = data.get('mediaUrl')
-            if media_url and media_url not in urls:
-                formats = self._extract_nrk_formats(media_url, video_id)
-                if formats:
-                    self._sort_formats(formats)
-                    duration = parse_duration(data.get('duration'))
-                    entries = [{
-                        'id': video_id,
-                        'title': make_title(title),
-                        'duration': duration,
-                        'formats': formats,
-                        'is_live': live,
-                    }]
-
-        if not entries:
-            self._raise_error(data)
-
-        series = conviva.get('seriesName') or data.get('seriesTitle')
-        episode = conviva.get('episodeName') or data.get('episodeNumberOrDate')
-
-        season_number = None
-        episode_number = None
-        if data.get('mediaElementType') == 'Episode':
-            _season_episode = data.get('scoresStatistics', {}).get('springStreamStream') or \
-                data.get('relativeOriginUrl', '')
-            EPISODENUM_RE = [
-                r'/s(?P<season>\d{,2})e(?P<episode>\d{,2})\.',
-                r'/sesong-(?P<season>\d{,2})/episode-(?P<episode>\d{,2})',
-            ]
-            season_number = int_or_none(self._search_regex(
-                EPISODENUM_RE, _season_episode, 'season number',
-                default=None, group='season'))
-            episode_number = int_or_none(self._search_regex(
-                EPISODENUM_RE, _season_episode, 'episode number',
-                default=None, group='episode'))
-
-        thumbnails = None
-        images = data.get('images')
-        if images and isinstance(images, dict):
-            web_images = images.get('webImages')
-            if isinstance(web_images, list):
-                thumbnails = [{
-                    'url': image['imageUrl'],
-                    'width': int_or_none(image.get('width')),
-                    'height': int_or_none(image.get('height')),
-                } for image in web_images if image.get('imageUrl')]
-
-        description = data.get('description')
-        category = data.get('mediaAnalytics', {}).get('category')
-
-        common_info = {
-            'description': description,
-            'series': series,
-            'episode': episode,
-            'season_number': season_number,
-            'episode_number': episode_number,
-            'categories': [category] if category else None,
-            'age_limit': parse_age_limit(data.get('legalAge')),
-            'thumbnails': thumbnails,
-        }
-
-        vcodec = 'none' if data.get('mediaType') == 'Audio' else None
-
-        for entry in entries:
-            entry.update(common_info)
-            for f in entry['formats']:
-                f['vcodec'] = vcodec
-
-        points = data.get('shortIndexPoints')
-        if isinstance(points, list):
-            chapters = []
-            for next_num, point in enumerate(points, start=1):
-                if not isinstance(point, dict):
-                    continue
-                start_time = parse_duration(point.get('startPoint'))
-                if start_time is None:
-                    continue
-                end_time = parse_duration(
-                    data.get('duration')
-                    if next_num == len(points)
-                    else points[next_num].get('startPoint'))
-                if end_time is None:
-                    continue
-                chapters.append({
-                    'start_time': start_time,
-                    'end_time': end_time,
-                    'title': point.get('title'),
-                })
-            if chapters and len(entries) == 1:
-                entries[0]['chapters'] = chapters
-
-        return self.playlist_result(entries, video_id, title, description)
-
     def _real_extract(self, url):
         video_id = self._match_id(url)
-        return self._extract_from_mediaelement(video_id)
+        return self._extract_from_playback(video_id)
 
 
 class NRKTVEpisodeIE(InfoExtractor):
