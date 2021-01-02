@@ -208,7 +208,7 @@ class ThePlatformIE(ThePlatformBaseIE, AdobePassIE):
         if m:
             return [m.group('url')]
 
-        # Are whitesapces ignored in URLs?
+        # Are whitespaces ignored in URLs?
         # https://github.com/ytdl-org/youtube-dl/issues/12044
         matches = re.findall(
             r'(?s)<(?:iframe|script)[^>]+src=(["\'])((?:https?:)?//player\.theplatform\.com/p/.+?)\1', webpage)
@@ -234,6 +234,9 @@ class ThePlatformIE(ThePlatformBaseIE, AdobePassIE):
 
     def _real_extract(self, url):
         url, smuggled_data = unsmuggle_url(url, {})
+        self._initialize_geo_bypass({
+            'countries': smuggled_data.get('geo_countries'),
+        })
 
         mobj = re.match(self._VALID_URL, url)
         provider_id = mobj.group('provider_id')

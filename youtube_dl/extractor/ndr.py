@@ -7,6 +7,7 @@ from .common import InfoExtractor
 from ..utils import (
     determine_ext,
     int_or_none,
+    merge_dicts,
     parse_iso8601,
     qualities,
     try_get,
@@ -81,27 +82,54 @@ class NDRIE(NDRBaseIE):
             'skip_download': True,
         },
     }, {
+        # with subtitles
+        'url': 'https://www.ndr.de/fernsehen/sendungen/extra_3/extra-3-Satiremagazin-mit-Christian-Ehring,sendung1091858.html',
+        'info_dict': {
+            'id': 'extra18674',
+            'display_id': 'extra-3-Satiremagazin-mit-Christian-Ehring',
+            'ext': 'mp4',
+            'title': 'Extra 3 vom 11.11.2020 mit Christian Ehring',
+            'description': 'md5:42ee53990a715eaaf4dc7f13a3bd56c6',
+            'uploader': 'ndrtv',
+            'upload_date': '20201113',
+            'duration': 1749,
+            'subtitles': {
+                'de': [{
+                    'ext': 'ttml',
+                    'url': r're:^https://www\.ndr\.de.+',
+                }],
+            },
+        },
+        'params': {
+            'skip_download': True,
+        },
+        'expected_warnings': ['Unable to download f4m manifest'],
+    }, {
         'url': 'https://www.ndr.de/Fettes-Brot-Ferris-MC-und-Thees-Uhlmann-live-on-stage,festivalsommer116.html',
         'only_matching': True,
     }]
 
     def _extract_embed(self, webpage, display_id):
         embed_url = self._html_search_meta(
-            'embedURL', webpage, 'embed URL', fatal=True)
+            'embedURL', webpage, 'embed URL',
+            default=None) or self._search_regex(
+            r'\bembedUrl["\']\s*:\s*(["\'])(?P<url>(?:(?!\1).)+)\1', webpage,
+            'embed URL', group='url')
         description = self._search_regex(
             r'<p[^>]+itemprop="description">([^<]+)</p>',
             webpage, 'description', default=None) or self._og_search_description(webpage)
         timestamp = parse_iso8601(
             self._search_regex(
                 r'<span[^>]+itemprop="(?:datePublished|uploadDate)"[^>]+content="([^"]+)"',
-                webpage, 'upload date', fatal=False))
-        return {
+                webpage, 'upload date', default=None))
+        info = self._search_json_ld(webpage, display_id, default={})
+        return merge_dicts({
             '_type': 'url_transparent',
             'url': embed_url,
             'display_id': display_id,
             'description': description,
             'timestamp': timestamp,
-        }
+        }, info)
 
 
 class NJoyIE(NDRBaseIE):
@@ -234,6 +262,20 @@ class NDREmbedBaseIE(InfoExtractor):
                 'preference': quality_key(thumbnail.get('quality')),
             })
 
+        subtitles = {}
+        tracks = config.get('tracks')
+        if tracks and isinstance(tracks, list):
+            for track in tracks:
+                if not isinstance(track, dict):
+                    continue
+                track_url = urljoin(url, track.get('src'))
+                if not track_url:
+                    continue
+                subtitles.setdefault(track.get('srclang') or 'de', []).append({
+                    'url': track_url,
+                    'ext': 'ttml',
+                })
+
         return {
             'id': video_id,
             'title': title,
@@ -243,6 +285,7 @@ class NDREmbedBaseIE(InfoExtractor):
             'duration': duration,
             'thumbnails': thumbnails,
             'formats': formats,
+            'subtitles': subtitles,
         }
 
 

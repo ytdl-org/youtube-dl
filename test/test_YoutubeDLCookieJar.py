@@ -39,6 +39,13 @@ class TestYoutubeDLCookieJar(unittest.TestCase):
         assert_cookie_has_value('HTTPONLY_COOKIE')
         assert_cookie_has_value('JS_ACCESSIBLE_COOKIE')
 
+    def test_malformed_cookies(self):
+        cookiejar = YoutubeDLCookieJar('./test/testdata/cookies/malformed_cookies.txt')
+        cookiejar.load(ignore_discard=True, ignore_expires=True)
+        # Cookies should be empty since all malformed cookie file entries
+        # will be ignored
+        self.assertFalse(cookiejar._cookies)
+
 
 if __name__ == '__main__':
     unittest.main()

@@ -5,13 +5,11 @@ import json
 import re
 
 from .common import InfoExtractor
-from .ooyala import OoyalaIE
 from ..utils import (
     clean_html,
-    determine_ext,
     int_or_none,
     str_or_none,
-    urljoin,
+    try_get,
 )
 
 
@@ -24,10 +22,10 @@ class TelecincoIE(InfoExtractor):
         'info_dict': {
             'id': '1876350223',
             'title': 'Bacalao con kokotxas al pil-pil',
-            'description': 'md5:1382dacd32dd4592d478cbdca458e5bb',
+            'description': 'md5:716caf5601e25c3c5ab6605b1ae71529',
         },
         'playlist': [{
-            'md5': 'adb28c37238b675dad0f042292f209a7',
+            'md5': '7ee56d665cfd241c0e6d80fd175068b0',
             'info_dict': {
                 'id': 'JEA5ijCnF6p5W08A1rNKn7',
                 'ext': 'mp4',
@@ -37,7 +35,7 @@ class TelecincoIE(InfoExtractor):
         }]
     }, {
         'url': 'http://www.cuatro.com/deportes/futbol/barcelona/Leo_Messi-Champions-Roma_2_2052780128.html',
-        'md5': '9468140ebc300fbb8b9d65dc6e5c4b43',
+        'md5': 'c86fe0d99e3bdb46b7950d38bf6ef12a',
         'info_dict': {
             'id': 'jn24Od1zGLG4XUZcnUnZB6',
             'ext': 'mp4',
@@ -47,13 +45,33 @@ class TelecincoIE(InfoExtractor):
         },
     }, {
         'url': 'http://www.mediaset.es/12meses/campanas/doylacara/conlatratanohaytrato/Ayudame-dar-cara-trata-trato_2_1986630220.html',
-        'md5': 'ae2dc6b7b50b2392076a51c0f70e01f6',
+        'md5': 'eddb50291df704ce23c74821b995bcac',
         'info_dict': {
             'id': 'aywerkD2Sv1vGNqq9b85Q2',
             'ext': 'mp4',
             'title': '#DOYLACARA. Con la trata no hay trato',
             'description': 'md5:2771356ff7bfad9179c5f5cd954f1477',
             'duration': 50,
+        },
+    }, {
+        # video in opening's content
+        'url': 'https://www.telecinco.es/vivalavida/fiorella-sobrina-edmundo-arrocet-entrevista_18_2907195140.html',
+        'info_dict': {
+            'id': '2907195140',
+            'title': 'La surrealista entrevista a la sobrina de Edmundo Arrocet: "No puedes venir aquí y tomarnos por tontos"',
+            'description': 'md5:73f340a7320143d37ab895375b2bf13a',
+        },
+        'playlist': [{
+            'md5': 'adb28c37238b675dad0f042292f209a7',
+            'info_dict': {
+                'id': 'TpI2EttSDAReWpJ1o0NVh2',
+                'ext': 'mp4',
+                'title': 'La surrealista entrevista a la sobrina de Edmundo Arrocet: "No puedes venir aquí y tomarnos por tontos"',
+                'duration': 1015,
+            },
+        }],
+        'params': {
+            'skip_download': True,
         },
     }, {
         'url': 'http://www.telecinco.es/informativos/nacional/Pablo_Iglesias-Informativos_Telecinco-entrevista-Pedro_Piqueras_2_1945155182.html',
@@ -69,58 +87,24 @@ class TelecincoIE(InfoExtractor):
 
     def _parse_content(self, content, url):
         video_id = content['dataMediaId']
-        if content.get('dataCmsId') == 'ooyala':
-            return self.url_result(
-                'ooyala:%s' % video_id, OoyalaIE.ie_key(), video_id)
-        config_url = urljoin(url, content['dataConfig'])
         config = self._download_json(
-            config_url, video_id, 'Downloading config JSON')
+            content['dataConfig'], video_id, 'Downloading config JSON')
         title = config['info']['title']
-
-        def mmc_url(mmc_type):
-            return re.sub(
-                r'/(?:flash|html5)\.json', '/%s.json' % mmc_type,
-                config['services']['mmc'])
-
-        duration = None
-        formats = []
-        for mmc_type in ('flash', 'html5'):
-            mmc = self._download_json(
-                mmc_url(mmc_type), video_id,
-                'Downloading %s mmc JSON' % mmc_type, fatal=False)
-            if not mmc:
-                continue
-            if not duration:
-                duration = int_or_none(mmc.get('duration'))
-            for location in mmc['locations']:
-                gat = self._proto_relative_url(location.get('gat'), 'http:')
-                gcp = location.get('gcp')
-                ogn = location.get('ogn')
-                if None in (gat, gcp, ogn):
-                    continue
-                token_data = {
-                    'gcp': gcp,
-                    'ogn': ogn,
-                    'sta': 0,
-                }
-                media = self._download_json(
-                    gat, video_id, data=json.dumps(token_data).encode('utf-8'),
-                    headers={
-                        'Content-Type': 'application/json;charset=utf-8',
-                        'Referer': url,
-                    }, fatal=False) or {}
-                stream = media.get('stream') or media.get('file')
-                if not stream:
-                    continue
-                ext = determine_ext(stream)
-                if ext == 'f4m':
-                    formats.extend(self._extract_f4m_formats(
-                        stream + '&hdcore=3.2.0&plugin=aasp-3.2.0.77.18',
-                        video_id, f4m_id='hds', fatal=False))
-                elif ext == 'm3u8':
-                    formats.extend(self._extract_m3u8_formats(
-                        stream, video_id, 'mp4', 'm3u8_native',
-                        m3u8_id='hls', fatal=False))
+        services = config['services']
+        caronte = self._download_json(services['caronte'], video_id)
+        stream = caronte['dls'][0]['stream']
+        headers = self.geo_verification_headers()
+        headers.update({
+            'Content-Type': 'application/json;charset=UTF-8',
+            'Origin': re.match(r'https?://[^/]+', url).group(0),
+        })
+        cdn = self._download_json(
+            caronte['cerbero'], video_id, data=json.dumps({
+                'bbx': caronte['bbx'],
+                'gbx': self._download_json(services['gbx'], video_id)['gbx'],
+            }).encode(), headers=headers)['tokens']['1']['cdn']
+        formats = self._extract_m3u8_formats(
+            stream + '?' + cdn, video_id, 'mp4', 'm3u8_native', m3u8_id='hls')
         self._sort_formats(formats)
 
         return {
@@ -128,24 +112,35 @@ class TelecincoIE(InfoExtractor):
             'title': title,
             'formats': formats,
             'thumbnail': content.get('dataPoster') or config.get('poster', {}).get('imageUrl'),
-            'duration': duration,
+            'duration': int_or_none(content.get('dataDuration')),
         }
 
     def _real_extract(self, url):
         display_id = self._match_id(url)
         webpage = self._download_webpage(url, display_id)
         article = self._parse_json(self._search_regex(
-            r'window\.\$REACTBASE_STATE\.article\s*=\s*({.+})',
+            r'window\.\$REACTBASE_STATE\.article(?:_multisite)?\s*=\s*({.+})',
             webpage, 'article'), display_id)['article']
         title = article.get('title')
-        description = clean_html(article.get('leadParagraph'))
+        description = clean_html(article.get('leadParagraph')) or ''
         if article.get('editorialType') != 'VID':
             entries = []
-            for p in article.get('body', []):
-                content = p.get('content')
-                if p.get('type') != 'video' or not content:
+            body = [article.get('opening')]
+            body.extend(try_get(article, lambda x: x['body'], list) or [])
+            for p in body:
+                if not isinstance(p, dict):
                     continue
-                entries.append(self._parse_content(content, url))
+                content = p.get('content')
+                if not content:
+                    continue
+                type_ = p.get('type')
+                if type_ == 'paragraph':
+                    content_str = str_or_none(content)
+                    if content_str:
+                        description += content_str
+                    continue
+                if type_ == 'video' and isinstance(content, dict):
+                    entries.append(self._parse_content(content, url))
             return self.playlist_result(
                 entries, str_or_none(article.get('id')), title, description)
         content = article['opening']['content']

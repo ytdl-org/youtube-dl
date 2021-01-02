@@ -10,12 +10,13 @@ import os
 import random
 import re
 import socket
+import ssl
 import sys
 import time
 import math
 
 from ..compat import (
-    compat_cookiejar,
+    compat_cookiejar_Cookie,
     compat_cookies,
     compat_etree_Element,
     compat_etree_fromstring,
@@ -67,6 +68,7 @@ from ..utils import (
     sanitized_Request,
     sanitize_filename,
     str_or_none,
+    str_to_int,
     strip_or_none,
     unescapeHTML,
     unified_strdate,
@@ -334,8 +336,8 @@ class InfoExtractor(object):
     object, each element of which is a valid dictionary by this specification.
 
     Additionally, playlists can have "id", "title", "description", "uploader",
-    "uploader_id", "uploader_url" attributes with the same semantics as videos
-    (see above).
+    "uploader_id", "uploader_url", "duration" attributes with the same semantics
+    as videos (see above).
 
 
     _type "multi_video" indicates that there are multiple videos that
@@ -623,9 +625,12 @@ class InfoExtractor(object):
                 url_or_request = update_url_query(url_or_request, query)
             if data is not None or headers:
                 url_or_request = sanitized_Request(url_or_request, data, headers)
+        exceptions = [compat_urllib_error.URLError, compat_http_client.HTTPException, socket.error]
+        if hasattr(ssl, 'CertificateError'):
+            exceptions.append(ssl.CertificateError)
         try:
             return self._downloader.urlopen(url_or_request)
-        except (compat_urllib_error.URLError, compat_http_client.HTTPException, socket.error) as err:
+        except tuple(exceptions) as err:
             if isinstance(err, compat_urllib_error.HTTPError):
                 if self.__can_accept_status_code(err, expected_status):
                     # Retain reference to error to prevent file object from
@@ -1182,16 +1187,33 @@ class InfoExtractor(object):
                                       'twitter card player')
 
     def _search_json_ld(self, html, video_id, expected_type=None, **kwargs):
-        json_ld = self._search_regex(
-            JSON_LD_RE, html, 'JSON-LD', group='json_ld', **kwargs)
+        json_ld_list = list(re.finditer(JSON_LD_RE, html))
         default = kwargs.get('default', NO_DEFAULT)
-        if not json_ld:
-            return default if default is not NO_DEFAULT else {}
         # JSON-LD may be malformed and thus `fatal` should be respected.
         # At the same time `default` may be passed that assumes `fatal=False`
         # for _search_regex. Let's simulate the same behavior here as well.
         fatal = kwargs.get('fatal', True) if default == NO_DEFAULT else False
-        return self._json_ld(json_ld, video_id, fatal=fatal, expected_type=expected_type)
+        json_ld = []
+        for mobj in json_ld_list:
+            json_ld_item = self._parse_json(
+                mobj.group('json_ld'), video_id, fatal=fatal)
+            if not json_ld_item:
+                continue
+            if isinstance(json_ld_item, dict):
+                json_ld.append(json_ld_item)
+            elif isinstance(json_ld_item, (list, tuple)):
+                json_ld.extend(json_ld_item)
+        if json_ld:
+            json_ld = self._json_ld(json_ld, video_id, fatal=fatal, expected_type=expected_type)
+        if json_ld:
+            return json_ld
+        if default is not NO_DEFAULT:
+            return default
+        elif fatal:
+            raise RegexNotFoundError('Unable to extract JSON-LD')
+        else:
+            self._downloader.report_warning('unable to extract JSON-LD %s' % bug_reports_message())
+            return {}
 
     def _json_ld(self, json_ld, video_id, fatal=True, expected_type=None):
         if isinstance(json_ld, compat_str):
@@ -1215,8 +1237,16 @@ class InfoExtractor(object):
             'ViewAction': 'view',
         }
 
+        def extract_interaction_type(e):
+            interaction_type = e.get('interactionType')
+            if isinstance(interaction_type, dict):
+                interaction_type = interaction_type.get('@type')
+            return str_or_none(interaction_type)
+
         def extract_interaction_statistic(e):
             interaction_statistic = e.get('interactionStatistic')
+            if isinstance(interaction_statistic, dict):
+                interaction_statistic = [interaction_statistic]
             if not isinstance(interaction_statistic, list):
                 return
             for is_e in interaction_statistic:
@@ -1224,10 +1254,13 @@ class InfoExtractor(object):
                     continue
                 if is_e.get('@type') != 'InteractionCounter':
                     continue
-                interaction_type = is_e.get('interactionType')
-                if not isinstance(interaction_type, compat_str):
+                interaction_type = extract_interaction_type(is_e)
+                if not interaction_type:
                     continue
-                interaction_count = int_or_none(is_e.get('userInteractionCount'))
+                # For interaction count some sites provide string instead of
+                # an integer (as per spec) with non digit characters (e.g. ",")
+                # so extracting count with more relaxed str_to_int
+                interaction_count = str_to_int(is_e.get('userInteractionCount'))
                 if interaction_count is None:
                     continue
                 count_kind = INTERACTION_TYPE_MAP.get(interaction_type.split('/')[-1])
@@ -1247,6 +1280,7 @@ class InfoExtractor(object):
                 'thumbnail': url_or_none(e.get('thumbnailUrl') or e.get('thumbnailURL')),
                 'duration': parse_duration(e.get('duration')),
                 'timestamp': unified_timestamp(e.get('uploadDate')),
+                'uploader': str_or_none(e.get('author')),
                 'filesize': float_or_none(e.get('contentSize')),
                 'tbr': int_or_none(e.get('bitrate')),
                 'width': int_or_none(e.get('width')),
@@ -1256,10 +1290,10 @@ class InfoExtractor(object):
             extract_interaction_statistic(e)
 
         for e in json_ld:
-            if isinstance(e.get('@context'), compat_str) and re.match(r'^https?://schema.org/?$', e.get('@context')):
+            if '@context' in e:
                 item_type = e.get('@type')
                 if expected_type is not None and expected_type != item_type:
-                    return info
+                    continue
                 if item_type in ('TVEpisode', 'Episode'):
                     episode_name = unescapeHTML(e.get('name'))
                     info.update({
@@ -1293,11 +1327,17 @@ class InfoExtractor(object):
                     })
                 elif item_type == 'VideoObject':
                     extract_video_object(e)
-                    continue
+                    if expected_type is None:
+                        continue
+                    else:
+                        break
                 video = e.get('video')
                 if isinstance(video, dict) and video.get('@type') == 'VideoObject':
                     extract_video_object(video)
-                break
+                if expected_type is None:
+                    continue
+                else:
+                    break
         return dict((k, v) for k, v in info.items() if v is not None)
 
     @staticmethod
@@ -1424,9 +1464,10 @@ class InfoExtractor(object):
         try:
             self._request_webpage(url, video_id, 'Checking %s URL' % item, headers=headers)
             return True
-        except ExtractorError:
+        except ExtractorError as e:
             self.to_screen(
-                '%s: %s URL is invalid, skipping' % (video_id, item))
+                '%s: %s URL is invalid, skipping: %s'
+                % (video_id, item, error_to_compat_str(e.cause)))
             return False
 
     def http_scheme(self):
@@ -1631,7 +1672,7 @@ class InfoExtractor(object):
         # just the media without qualities renditions.
         # Fortunately, master playlist can be easily distinguished from media
         # playlist based on particular tags availability. As of [1, 4.3.3, 4.3.4]
-        # master playlist tags MUST NOT appear in a media playist and vice versa.
+        # master playlist tags MUST NOT appear in a media playlist and vice versa.
         # As of [1, 4.3.3.1] #EXT-X-TARGETDURATION tag is REQUIRED for every
         # media playlist and MUST NOT appear in master playlist thus we can
         # clearly detect media playlist with this criterion.
@@ -2340,6 +2381,8 @@ class InfoExtractor(object):
         if res is False:
             return []
         ism_doc, urlh = res
+        if ism_doc is None:
+            return []
 
         return self._parse_ism_formats(ism_doc, urlh.geturl(), ism_id)
 
@@ -2478,16 +2521,18 @@ class InfoExtractor(object):
         # amp-video and amp-audio are very similar to their HTML5 counterparts
         # so we wll include them right here (see
         # https://www.ampproject.org/docs/reference/components/amp-video)
-        media_tags = [(media_tag, media_type, '')
-                      for media_tag, media_type
-                      in re.findall(r'(?s)(<(?:amp-)?(video|audio)[^>]*/>)', webpage)]
+        # For dl8-* tags see https://delight-vr.com/documentation/dl8-video/
+        _MEDIA_TAG_NAME_RE = r'(?:(?:amp|dl8(?:-live)?)-)?(video|audio)'
+        media_tags = [(media_tag, media_tag_name, media_type, '')
+                      for media_tag, media_tag_name, media_type
+                      in re.findall(r'(?s)(<(%s)[^>]*/>)' % _MEDIA_TAG_NAME_RE, webpage)]
         media_tags.extend(re.findall(
             # We only allow video|audio followed by a whitespace or '>'.
             # Allowing more characters may end up in significant slow down (see
             # https://github.com/ytdl-org/youtube-dl/issues/11979, example URL:
             # http://www.porntrex.com/maps/videositemap.xml).
-            r'(?s)(<(?P<tag>(?:amp-)?(?:video|audio))(?:\s+[^>]*)?>)(.*?)</(?P=tag)>', webpage))
-        for media_tag, media_type, media_content in media_tags:
+            r'(?s)(<(?P<tag>%s)(?:\s+[^>]*)?>)(.*?)</(?P=tag)>' % _MEDIA_TAG_NAME_RE, webpage))
+        for media_tag, _, media_type, media_content in media_tags:
             media_info = {
                 'formats': [],
                 'subtitles': {},
@@ -2560,7 +2605,15 @@ class InfoExtractor(object):
         return entries
 
     def _extract_akamai_formats(self, manifest_url, video_id, hosts={}):
+        signed = 'hdnea=' in manifest_url
+        if not signed:
+            # https://learn.akamai.com/en-us/webhelp/media-services-on-demand/stream-packaging-user-guide/GUID-BE6C0F73-1E06-483B-B0EA-57984B91B7F9.html
+            manifest_url = re.sub(
+                r'(?:b=[\d,-]+|(?:__a__|attributes)=off|__b__=\d+)&?',
+                '', manifest_url).strip('?')
+
         formats = []
+
         hdcore_sign = 'hdcore=3.7.0'
         f4m_url = re.sub(r'(https?://[^/]+)/i/', r'\1/z/', manifest_url).replace('/master.m3u8', '/manifest.f4m')
         hds_host = hosts.get('hds')
@@ -2573,13 +2626,38 @@ class InfoExtractor(object):
         for entry in f4m_formats:
             entry.update({'extra_param_to_segment_url': hdcore_sign})
         formats.extend(f4m_formats)
+
         m3u8_url = re.sub(r'(https?://[^/]+)/z/', r'\1/i/', manifest_url).replace('/manifest.f4m', '/master.m3u8')
         hls_host = hosts.get('hls')
         if hls_host:
             m3u8_url = re.sub(r'(https?://)[^/]+', r'\1' + hls_host, m3u8_url)
-        formats.extend(self._extract_m3u8_formats(
+        m3u8_formats = self._extract_m3u8_formats(
             m3u8_url, video_id, 'mp4', 'm3u8_native',
-            m3u8_id='hls', fatal=False))
+            m3u8_id='hls', fatal=False)
+        formats.extend(m3u8_formats)
+
+        http_host = hosts.get('http')
+        if http_host and m3u8_formats and not signed:
+            REPL_REGEX = r'https?://[^/]+/i/([^,]+),([^/]+),([^/]+)\.csmil/.+'
+            qualities = re.match(REPL_REGEX, m3u8_url).group(2).split(',')
+            qualities_length = len(qualities)
+            if len(m3u8_formats) in (qualities_length, qualities_length + 1):
+                i = 0
+                for f in m3u8_formats:
+                    if f['vcodec'] != 'none':
+                        for protocol in ('http', 'https'):
+                            http_f = f.copy()
+                            del http_f['manifest_url']
+                            http_url = re.sub(
+                                REPL_REGEX, protocol + r'://%s/\g<1>%s\3' % (http_host, qualities[i]), f['url'])
+                            http_f.update({
+                                'format_id': http_f['format_id'].replace('hls-', protocol + '-'),
+                                'url': http_url,
+                                'protocol': protocol,
+                            })
+                            formats.append(http_f)
+                        i += 1
+
         return formats
 
     def _extract_wowza_formats(self, url, video_id, m3u8_entry_protocol='m3u8_native', skip_protocols=[]):
@@ -2818,7 +2896,7 @@ class InfoExtractor(object):
 
     def _set_cookie(self, domain, name, value, expire_time=None, port=None,
                     path='/', secure=False, discard=False, rest={}, **kwargs):
-        cookie = compat_cookiejar.Cookie(
+        cookie = compat_cookiejar_Cookie(
             0, name, value, port, port is not None, domain, True,
             domain.startswith('.'), path, True, secure, expire_time,
             discard, None, None, rest)

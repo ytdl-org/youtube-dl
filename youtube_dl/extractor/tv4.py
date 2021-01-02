@@ -99,7 +99,7 @@ class TV4IE(InfoExtractor):
             manifest_url.replace('.m3u8', '.f4m'),
             video_id, f4m_id='hds', fatal=False))
         formats.extend(self._extract_ism_formats(
-            re.sub(r'\.ism/.+?\.m3u8', r'.ism/Manifest', manifest_url),
+            re.sub(r'\.ism/.*?\.m3u8', r'.ism/Manifest', manifest_url),
             video_id, ism_id='mss', fatal=False))
 
         if not formats and info.get('is_geo_restricted'):

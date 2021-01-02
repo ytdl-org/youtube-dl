@@ -46,7 +46,7 @@ class PlatziBaseIE(InfoExtractor):
             headers={'Referer': self._LOGIN_URL})
 
         # login succeeded
-        if 'platzi.com/login' not in compat_str(urlh.geturl()):
+        if 'platzi.com/login' not in urlh.geturl():
             return
 
         login_error = self._webpage_read_content(

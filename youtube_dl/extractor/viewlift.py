@@ -1,28 +1,62 @@
 from __future__ import unicode_literals
 
-import base64
+import json
 import re
 
 from .common import InfoExtractor
-from ..compat import compat_urllib_parse_unquote
+from ..compat import compat_HTTPError
 from ..utils import (
     ExtractorError,
-    clean_html,
-    determine_ext,
     int_or_none,
-    js_to_json,
     parse_age_limit,
-    parse_duration,
-    try_get,
 )
 
 
 class ViewLiftBaseIE(InfoExtractor):
-    _DOMAINS_REGEX = r'(?:(?:main\.)?snagfilms|snagxtreme|funnyforfree|kiddovid|winnersview|(?:monumental|lax)sportsnetwork|vayafilm)\.com|hoichoi\.tv'
+    _API_BASE = 'https://prod-api.viewlift.com/'
+    _DOMAINS_REGEX = r'(?:(?:main\.)?snagfilms|snagxtreme|funnyforfree|kiddovid|winnersview|(?:monumental|lax)sportsnetwork|vayafilm|failarmy|ftfnext|lnppass\.legapallacanestro|moviespree|app\.myoutdoortv|neoufitness|pflmma|theidentitytb)\.com|(?:hoichoi|app\.horseandcountry|kronon|marquee|supercrosslive)\.tv'
+    _SITE_MAP = {
+        'ftfnext': 'lax',
+        'funnyforfree': 'snagfilms',
+        'hoichoi': 'hoichoitv',
+        'kiddovid': 'snagfilms',
+        'laxsportsnetwork': 'lax',
+        'legapallacanestro': 'lnp',
+        'marquee': 'marquee-tv',
+        'monumentalsportsnetwork': 'monumental-network',
+        'moviespree': 'bingeflix',
+        'pflmma': 'pfl',
+        'snagxtreme': 'snagfilms',
+        'theidentitytb': 'tampabay',
+        'vayafilm': 'snagfilms',
+    }
+    _TOKENS = {}
+
+    def _call_api(self, site, path, video_id, query):
+        token = self._TOKENS.get(site)
+        if not token:
+            token_query = {'site': site}
+            email, password = self._get_login_info(netrc_machine=site)
+            if email:
+                resp = self._download_json(
+                    self._API_BASE + 'identity/signin', video_id,
+                    'Logging in', query=token_query, data=json.dumps({
+                        'email': email,
+                        'password': password,
+                    }).encode())
+            else:
+                resp = self._download_json(
+                    self._API_BASE + 'identity/anonymous-token', video_id,
+                    'Downloading authorization token', query=token_query)
+            self._TOKENS[site] = token = resp['authorizationToken']
+        return self._download_json(
+            self._API_BASE + path, video_id,
+            headers={'Authorization': token}, query=query)
 
 
 class ViewLiftEmbedIE(ViewLiftBaseIE):
-    _VALID_URL = r'https?://(?:(?:www|embed)\.)?(?:%s)/embed/player\?.*\bfilmId=(?P<id>[\da-f]{8}-(?:[\da-f]{4}-){3}[\da-f]{12})' % ViewLiftBaseIE._DOMAINS_REGEX
+    IE_NAME = 'viewlift:embed'
+    _VALID_URL = r'https?://(?:(?:www|embed)\.)?(?P<domain>%s)/embed/player\?.*\bfilmId=(?P<id>[\da-f]{8}-(?:[\da-f]{4}-){3}[\da-f]{12})' % ViewLiftBaseIE._DOMAINS_REGEX
     _TESTS = [{
         'url': 'http://embed.snagfilms.com/embed/player?filmId=74849a00-85a9-11e1-9660-123139220831&w=500',
         'md5': '2924e9215c6eff7a55ed35b72276bd93',
@@ -30,6 +64,9 @@ class ViewLiftEmbedIE(ViewLiftBaseIE):
             'id': '74849a00-85a9-11e1-9660-123139220831',
             'ext': 'mp4',
             'title': '#whilewewatch',
+            'description': 'md5:b542bef32a6f657dadd0df06e26fb0c8',
+            'timestamp': 1334350096,
+            'upload_date': '20120413',
         }
     }, {
         # invalid labels, 360p is better that 480p
@@ -39,7 +76,8 @@ class ViewLiftEmbedIE(ViewLiftBaseIE):
             'id': '17ca0950-a74a-11e0-a92a-0026bb61d036',
             'ext': 'mp4',
             'title': 'Life in Limbo',
-        }
+        },
+        'skip': 'The video does not exist',
     }, {
         'url': 'http://www.snagfilms.com/embed/player?filmId=0000014c-de2f-d5d6-abcf-ffef58af0017',
         'only_matching': True,
@@ -54,67 +92,68 @@ class ViewLiftEmbedIE(ViewLiftBaseIE):
             return mobj.group('url')
 
     def _real_extract(self, url):
-        video_id = self._match_id(url)
-
-        webpage = self._download_webpage(url, video_id)
-
-        if '>This film is not playable in your area.<' in webpage:
-            raise ExtractorError(
-                'Film %s is not playable in your area.' % video_id, expected=True)
+        domain, film_id = re.match(self._VALID_URL, url).groups()
+        site = domain.split('.')[-2]
+        if site in self._SITE_MAP:
+            site = self._SITE_MAP[site]
+        try:
+            content_data = self._call_api(
+                site, 'entitlement/video/status', film_id, {
+                    'id': film_id
+                })['video']
+        except ExtractorError as e:
+            if isinstance(e.cause, compat_HTTPError) and e.cause.code == 403:
+                error_message = self._parse_json(e.cause.read().decode(), film_id).get('errorMessage')
+                if error_message == 'User does not have a valid subscription or has not purchased this content.':
+                    self.raise_login_required()
+                raise ExtractorError(error_message, expected=True)
+            raise
+        gist = content_data['gist']
+        title = gist['title']
+        video_assets = content_data['streamingInfo']['videoAssets']
 
         formats = []
-        has_bitrate = False
-        sources = self._parse_json(self._search_regex(
-            r'(?s)sources:\s*(\[.+?\]),', webpage,
-            'sources', default='[]'), video_id, js_to_json)
-        for source in sources:
-            file_ = source.get('file')
-            if not file_:
+        mpeg_video_assets = video_assets.get('mpeg') or []
+        for video_asset in mpeg_video_assets:
+            video_asset_url = video_asset.get('url')
+            if not video_asset:
                 continue
-            type_ = source.get('type')
-            ext = determine_ext(file_)
-            format_id = source.get('label') or ext
-            if all(v in ('m3u8', 'hls') for v in (type_, ext)):
-                formats.extend(self._extract_m3u8_formats(
-                    file_, video_id, 'mp4', 'm3u8_native',
-                    m3u8_id='hls', fatal=False))
-            else:
-                bitrate = int_or_none(self._search_regex(
-                    [r'(\d+)kbps', r'_\d{1,2}x\d{1,2}_(\d{3,})\.%s' % ext],
-                    file_, 'bitrate', default=None))
-                if not has_bitrate and bitrate:
-                    has_bitrate = True
-                height = int_or_none(self._search_regex(
-                    r'^(\d+)[pP]$', format_id, 'height', default=None))
-                formats.append({
-                    'url': file_,
-                    'format_id': 'http-%s%s' % (format_id, ('-%dk' % bitrate if bitrate else '')),
-                    'tbr': bitrate,
-                    'height': height,
-                })
-        if not formats:
-            hls_url = self._parse_json(self._search_regex(
-                r'filmInfo\.src\s*=\s*({.+?});',
-                webpage, 'src'), video_id, js_to_json)['src']
-            formats = self._extract_m3u8_formats(
-                hls_url, video_id, 'mp4', 'm3u8_native',
-                m3u8_id='hls', fatal=False)
-        field_preference = None if has_bitrate else ('height', 'tbr', 'format_id')
-        self._sort_formats(formats, field_preference)
+            bitrate = int_or_none(video_asset.get('bitrate'))
+            height = int_or_none(self._search_regex(
+                r'^_?(\d+)[pP]$', video_asset.get('renditionValue'),
+                'height', default=None))
+            formats.append({
+                'url': video_asset_url,
+                'format_id': 'http%s' % ('-%d' % bitrate if bitrate else ''),
+                'tbr': bitrate,
+                'height': height,
+                'vcodec': video_asset.get('codec'),
+            })
 
-        title = self._search_regex(
-            [r"title\s*:\s*'([^']+)'", r'<title>([^<]+)</title>'],
-            webpage, 'title')
+        hls_url = video_assets.get('hls')
+        if hls_url:
+            formats.extend(self._extract_m3u8_formats(
+                hls_url, film_id, 'mp4', 'm3u8_native', m3u8_id='hls', fatal=False))
+        self._sort_formats(formats, ('height', 'tbr', 'format_id'))
 
-        return {
-            'id': video_id,
+        info = {
+            'id': film_id,
             'title': title,
+            'description': gist.get('description'),
+            'thumbnail': gist.get('videoImageUrl'),
+            'duration': int_or_none(gist.get('runtime')),
+            'age_limit': parse_age_limit(content_data.get('parentalRating')),
+            'timestamp': int_or_none(gist.get('publishDate'), 1000),
             'formats': formats,
         }
+        for k in ('categories', 'tags'):
+            info[k] = [v['title'] for v in content_data.get(k, []) if v.get('title')]
+        return info
 
 
 class ViewLiftIE(ViewLiftBaseIE):
-    _VALID_URL = r'https?://(?:www\.)?(?P<domain>%s)(?:/(?:films/title|show|(?:news/)?videos?))?/(?P<id>[^?#]+)' % ViewLiftBaseIE._DOMAINS_REGEX
+    IE_NAME = 'viewlift'
+    _VALID_URL = r'https?://(?:www\.)?(?P<domain>%s)(?P<path>(?:/(?:films/title|show|(?:news/)?videos?|watch))?/(?P<id>[^?#]+))' % ViewLiftBaseIE._DOMAINS_REGEX
     _TESTS = [{
         'url': 'http://www.snagfilms.com/films/title/lost_for_life',
         'md5': '19844f897b35af219773fd63bdec2942',
@@ -151,10 +190,13 @@ class ViewLiftIE(ViewLiftBaseIE):
             'id': '00000148-7b53-de26-a9fb-fbf306f70020',
             'display_id': 'augie_alone/s_2_ep_12_love',
             'ext': 'mp4',
-            'title': 'Augie, Alone:S. 2 Ep. 12 - Love',
-            'description': 'md5:db2a5c72d994f16a780c1eb353a8f403',
+            'title': 'S. 2 Ep. 12 - Love',
+            'description': 'Augie finds love.',
             'thumbnail': r're:^https?://.*\.jpg',
             'duration': 107,
+            'upload_date': '20141012',
+            'timestamp': 1413129540,
+            'age_limit': 17,
         },
         'params': {
             'skip_download': True,
@@ -177,6 +219,9 @@ class ViewLiftIE(ViewLiftBaseIE):
         # Was once Kaltura embed
         'url': 'https://www.monumentalsportsnetwork.com/videos/john-carlson-postgame-2-25-15',
         'only_matching': True,
+    }, {
+        'url': 'https://www.marquee.tv/watch/sadlerswells-sacredmonsters',
+        'only_matching': True,
     }]
 
     @classmethod
@@ -184,119 +229,22 @@ class ViewLiftIE(ViewLiftBaseIE):
         return False if ViewLiftEmbedIE.suitable(url) else super(ViewLiftIE, cls).suitable(url)
 
     def _real_extract(self, url):
-        domain, display_id = re.match(self._VALID_URL, url).groups()
-
-        webpage = self._download_webpage(url, display_id)
-
-        if ">Sorry, the Film you're looking for is not available.<" in webpage:
-            raise ExtractorError(
-                'Film %s is not available.' % display_id, expected=True)
-
-        initial_store_state = self._search_regex(
-            r"window\.initialStoreState\s*=.*?JSON\.parse\(unescape\(atob\('([^']+)'\)\)\)",
-            webpage, 'Initial Store State', default=None)
-        if initial_store_state:
-            modules = self._parse_json(compat_urllib_parse_unquote(base64.b64decode(
-                initial_store_state).decode()), display_id)['page']['data']['modules']
-            content_data = next(m['contentData'][0] for m in modules if m.get('moduleType') == 'VideoDetailModule')
-            gist = content_data['gist']
-            film_id = gist['id']
-            title = gist['title']
-            video_assets = try_get(
-                content_data, lambda x: x['streamingInfo']['videoAssets'], dict)
-            if not video_assets:
-                token = self._download_json(
-                    'https://prod-api.viewlift.com/identity/anonymous-token',
-                    film_id, 'Downloading authorization token',
-                    query={'site': 'snagfilms'})['authorizationToken']
-                video_assets = self._download_json(
-                    'https://prod-api.viewlift.com/entitlement/video/status',
-                    film_id, headers={
-                        'Authorization': token,
-                        'Referer': url,
-                    }, query={
-                        'id': film_id
-                    })['video']['streamingInfo']['videoAssets']
-
-            formats = []
-            mpeg_video_assets = video_assets.get('mpeg') or []
-            for video_asset in mpeg_video_assets:
-                video_asset_url = video_asset.get('url')
-                if not video_asset:
-                    continue
-                bitrate = int_or_none(video_asset.get('bitrate'))
-                height = int_or_none(self._search_regex(
-                    r'^_?(\d+)[pP]$', video_asset.get('renditionValue'),
-                    'height', default=None))
-                formats.append({
-                    'url': video_asset_url,
-                    'format_id': 'http%s' % ('-%d' % bitrate if bitrate else ''),
-                    'tbr': bitrate,
-                    'height': height,
-                    'vcodec': video_asset.get('codec'),
-                })
-
-            hls_url = video_assets.get('hls')
-            if hls_url:
-                formats.extend(self._extract_m3u8_formats(
-                    hls_url, film_id, 'mp4', 'm3u8_native', m3u8_id='hls', fatal=False))
-            self._sort_formats(formats, ('height', 'tbr', 'format_id'))
-
-            info = {
-                'id': film_id,
-                'display_id': display_id,
-                'title': title,
-                'description': gist.get('description'),
-                'thumbnail': gist.get('videoImageUrl'),
-                'duration': int_or_none(gist.get('runtime')),
-                'age_limit': parse_age_limit(content_data.get('parentalRating')),
-                'timestamp': int_or_none(gist.get('publishDate'), 1000),
-                'formats': formats,
-            }
-            for k in ('categories', 'tags'):
-                info[k] = [v['title'] for v in content_data.get(k, []) if v.get('title')]
-            return info
-        else:
-            film_id = self._search_regex(r'filmId=([\da-f-]{36})"', webpage, 'film id')
-
-            snag = self._parse_json(
-                self._search_regex(
-                    r'Snag\.page\.data\s*=\s*(\[.+?\]);', webpage, 'snag', default='[]'),
-                display_id)
-
-            for item in snag:
-                if item.get('data', {}).get('film', {}).get('id') == film_id:
-                    data = item['data']['film']
-                    title = data['title']
-                    description = clean_html(data.get('synopsis'))
-                    thumbnail = data.get('image')
-                    duration = int_or_none(data.get('duration') or data.get('runtime'))
-                    categories = [
-                        category['title'] for category in data.get('categories', [])
-                        if category.get('title')]
-                    break
-            else:
-                title = self._html_search_regex(
-                    (r'itemprop="title">([^<]+)<',
-                     r'(?s)itemprop="title">(.+?)<div'), webpage, 'title')
-                description = self._html_search_regex(
-                    r'(?s)<div itemprop="description" class="film-synopsis-inner ">(.+?)</div>',
-                    webpage, 'description', default=None) or self._og_search_description(webpage)
-                thumbnail = self._og_search_thumbnail(webpage)
-                duration = parse_duration(self._search_regex(
-                    r'<span itemprop="duration" class="film-duration strong">([^<]+)<',
-                    webpage, 'duration', fatal=False))
-                categories = re.findall(r'<a href="/movies/[^"]+">([^<]+)</a>', webpage)
-
-            return {
-                '_type': 'url_transparent',
-                'url': 'http://%s/embed/player?filmId=%s' % (domain, film_id),
-                'id': film_id,
-                'display_id': display_id,
-                'title': title,
-                'description': description,
-                'thumbnail': thumbnail,
-                'duration': duration,
-                'categories': categories,
-                'ie_key': 'ViewLiftEmbed',
-            }
+        domain, path, display_id = re.match(self._VALID_URL, url).groups()
+        site = domain.split('.')[-2]
+        if site in self._SITE_MAP:
+            site = self._SITE_MAP[site]
+        modules = self._call_api(
+            site, 'content/pages', display_id, {
+                'includeContent': 'true',
+                'moduleOffset': 1,
+                'path': path,
+                'site': site,
+            })['modules']
+        film_id = next(m['contentData'][0]['gist']['id'] for m in modules if m.get('moduleType') == 'VideoDetailModule')
+        return {
+            '_type': 'url_transparent',
+            'url': 'http://%s/embed/player?filmId=%s' % (domain, film_id),
+            'id': film_id,
+            'display_id': display_id,
+            'ie_key': 'ViewLiftEmbed',
+        }

@@ -42,11 +42,13 @@ class HlsFD(FragmentFD):
             # no segments will definitely be appended to the end of the playlist.
             # r'#EXT-X-PLAYLIST-TYPE:EVENT',  # media segments may be appended to the end of
             #                                 # event media playlists [4]
+            r'#EXT-X-MAP:',  # media initialization [5]
 
             # 1. https://tools.ietf.org/html/draft-pantos-http-live-streaming-17#section-4.3.2.4
             # 2. https://tools.ietf.org/html/draft-pantos-http-live-streaming-17#section-4.3.2.2
             # 3. https://tools.ietf.org/html/draft-pantos-http-live-streaming-17#section-4.3.3.2
             # 4. https://tools.ietf.org/html/draft-pantos-http-live-streaming-17#section-4.3.3.5
+            # 5. https://tools.ietf.org/html/draft-pantos-http-live-streaming-17#section-4.3.2.5
         )
         check_results = [not re.search(feature, manifest) for feature in UNSUPPORTED_FEATURES]
         is_aes128_enc = '#EXT-X-KEY:METHOD=AES-128' in manifest
@@ -141,7 +143,7 @@ class HlsFD(FragmentFD):
                     count = 0
                     headers = info_dict.get('http_headers', {})
                     if byte_range:
-                        headers['Range'] = 'bytes=%d-%d' % (byte_range['start'], byte_range['end'])
+                        headers['Range'] = 'bytes=%d-%d' % (byte_range['start'], byte_range['end'] - 1)
                     while count <= fragment_retries:
                         try:
                             success, frag_content = self._download_fragment(

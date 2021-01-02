@@ -4,7 +4,6 @@ from __future__ import unicode_literals
 import re
 
 from .common import InfoExtractor
-from ..compat import compat_str
 from ..utils import (
     encode_base_n,
     ExtractorError,
@@ -17,7 +16,7 @@ from ..utils import (
 
 
 class EpornerIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:www\.)?eporner\.com/(?:hd-porn|embed)/(?P<id>\w+)(?:/(?P<display_id>[\w-]+))?'
+    _VALID_URL = r'https?://(?:www\.)?eporner\.com/(?:(?:hd-porn|embed)/|video-)(?P<id>\w+)(?:/(?P<display_id>[\w-]+))?'
     _TESTS = [{
         'url': 'http://www.eporner.com/hd-porn/95008/Infamous-Tiffany-Teen-Strip-Tease-Video/',
         'md5': '39d486f046212d8e1b911c52ab4691f8',
@@ -44,7 +43,10 @@ class EpornerIE(InfoExtractor):
         'url': 'http://www.eporner.com/hd-porn/3YRUtzMcWn0',
         'only_matching': True,
     }, {
-        'url': 'http://www.eporner.com/hd-porn/3YRUtzMcWn0',
+        'url': 'http://www.eporner.com/embed/3YRUtzMcWn0',
+        'only_matching': True,
+    }, {
+        'url': 'https://www.eporner.com/video-FJsA19J3Y3H/one-of-the-greats/',
         'only_matching': True,
     }]
 
@@ -55,10 +57,10 @@ class EpornerIE(InfoExtractor):
 
         webpage, urlh = self._download_webpage_handle(url, display_id)
 
-        video_id = self._match_id(compat_str(urlh.geturl()))
+        video_id = self._match_id(urlh.geturl())
 
         hash = self._search_regex(
-            r'hash\s*:\s*["\']([\da-f]{32})', webpage, 'hash')
+            r'hash\s*[:=]\s*["\']([\da-f]{32})', webpage, 'hash')
 
         title = self._og_search_title(webpage, default=None) or self._html_search_regex(
             r'<title>(.+?) - EPORNER', webpage, 'title')
@@ -116,8 +118,8 @@ class EpornerIE(InfoExtractor):
         duration = parse_duration(self._html_search_meta(
             'duration', webpage, default=None))
         view_count = str_to_int(self._search_regex(
-            r'id="cinemaviews">\s*([0-9,]+)\s*<small>views',
-            webpage, 'view count', fatal=False))
+            r'id=["\']cinemaviews1["\'][^>]*>\s*([0-9,]+)',
+            webpage, 'view count', default=None))
 
         return merge_dicts(json_ld, {
             'id': video_id,

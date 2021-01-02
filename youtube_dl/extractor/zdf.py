@@ -41,7 +41,7 @@ class ZDFBaseIE(InfoExtractor):
 class ZDFIE(ZDFBaseIE):
     IE_NAME = "ZDF-3sat"
     _VALID_URL = r'https?://www\.(zdf|3sat)\.de/(?:[^/]+/)*(?P<id>[^/?]+)\.html'
-    _QUALITIES = ('auto', 'low', 'med', 'high', 'veryhigh')
+    _QUALITIES = ('auto', 'low', 'med', 'high', 'veryhigh', 'hd')
     _GEO_COUNTRIES = ['DE']
 
     _TESTS = [{
@@ -131,7 +131,7 @@ class ZDFIE(ZDFBaseIE):
         if not ptmd_path:
             ptmd_path = t[
                 'http://zdf.de/rels/streams/ptmd-template'].replace(
-                '{playerId}', 'portal')
+                '{playerId}', 'ngplayer_2_4')
 
         ptmd = self._call_api(
             urljoin(url, ptmd_path), player, url, video_id, 'metadata')
@@ -256,14 +256,14 @@ class ZDFChannelIE(ZDFBaseIE):
             'id': 'das-aktuelle-sportstudio',
             'title': 'das aktuelle sportstudio | ZDF',
         },
-        'playlist_count': 21,
+        'playlist_mincount': 23,
     }, {
         'url': 'https://www.zdf.de/dokumentation/planet-e',
         'info_dict': {
             'id': 'planet-e',
             'title': 'planet e.',
         },
-        'playlist_count': 4,
+        'playlist_mincount': 50,
     }, {
         'url': 'https://www.zdf.de/filme/taunuskrimi/',
         'only_matching': True,

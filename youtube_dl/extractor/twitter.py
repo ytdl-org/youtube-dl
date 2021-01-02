@@ -578,6 +578,18 @@ class TwitterBroadcastIE(TwitterBaseIE, PeriscopeBaseIE):
     IE_NAME = 'twitter:broadcast'
     _VALID_URL = TwitterBaseIE._BASE_REGEX + r'i/broadcasts/(?P<id>[0-9a-zA-Z]{13})'
 
+    _TEST = {
+        # untitled Periscope video
+        'url': 'https://twitter.com/i/broadcasts/1yNGaQLWpejGj',
+        'info_dict': {
+            'id': '1yNGaQLWpejGj',
+            'ext': 'mp4',
+            'title': 'Andrea May Sahouri - Periscope Broadcast',
+            'uploader': 'Andrea May Sahouri',
+            'uploader_id': '1PXEdBZWpGwKe',
+        },
+    }
+
     def _real_extract(self, url):
         broadcast_id = self._match_id(url)
         broadcast = self._call_api(

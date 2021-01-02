@@ -92,6 +92,7 @@ from .utils import (
     YoutubeDLCookieJar,
     YoutubeDLCookieProcessor,
     YoutubeDLHandler,
+    YoutubeDLRedirectHandler,
 )
 from .cache import Cache
 from .extractor import get_info_extractor, gen_extractor_classes, _LAZY_LOADER
@@ -792,21 +793,14 @@ class YoutubeDL(object):
                 self.report_warning('The program functionality for this site has been marked as broken, '
                                     'and will probably not work.')
 
+            return self.__extract_info(url, ie, download, extra_info, process)
+        else:
+            self.report_error('no suitable InfoExtractor for URL %s' % url)
+
+    def __handle_extraction_exceptions(func):
+        def wrapper(self, *args, **kwargs):
             try:
-                ie_result = ie.extract(url)
-                if ie_result is None:  # Finished already (backwards compatibility; listformats and friends should be moved here)
-                    break
-                if isinstance(ie_result, list):
-                    # Backwards compatibility: old IE result format
-                    ie_result = {
-                        '_type': 'compat_list',
-                        'entries': ie_result,
-                    }
-                self.add_default_extra_info(ie_result, ie, url)
-                if process:
-                    return self.process_ie_result(ie_result, download, extra_info)
-                else:
-                    return ie_result
+                return func(self, *args, **kwargs)
             except GeoRestrictedError as e:
                 msg = e.msg
                 if e.countries:
@@ -814,20 +808,33 @@ class YoutubeDL(object):
                         map(ISO3166Utils.short2full, e.countries))
                 msg += '\nYou might want to use a VPN or a proxy server (with --proxy) to workaround.'
                 self.report_error(msg)
-                break
             except ExtractorError as e:  # An error we somewhat expected
                 self.report_error(compat_str(e), e.format_traceback())
-                break
             except MaxDownloadsReached:
                 raise
             except Exception as e:
                 if self.params.get('ignoreerrors', False):
                     self.report_error(error_to_compat_str(e), tb=encode_compat_str(traceback.format_exc()))
-                    break
                 else:
                     raise
+        return wrapper
+
+    @__handle_extraction_exceptions
+    def __extract_info(self, url, ie, download, extra_info, process):
+        ie_result = ie.extract(url)
+        if ie_result is None:  # Finished already (backwards compatibility; listformats and friends should be moved here)
+            return
+        if isinstance(ie_result, list):
+            # Backwards compatibility: old IE result format
+            ie_result = {
+                '_type': 'compat_list',
+                'entries': ie_result,
+            }
+        self.add_default_extra_info(ie_result, ie, url)
+        if process:
+            return self.process_ie_result(ie_result, download, extra_info)
         else:
-            self.report_error('no suitable InfoExtractor for URL %s' % url)
+            return ie_result
 
     def add_default_extra_info(self, ie_result, ie, url):
         self.add_extra_info(ie_result, {
@@ -990,7 +997,7 @@ class YoutubeDL(object):
                     'playlist_title': ie_result.get('title'),
                     'playlist_uploader': ie_result.get('uploader'),
                     'playlist_uploader_id': ie_result.get('uploader_id'),
-                    'playlist_index': i + playliststart,
+                    'playlist_index': playlistitems[i - 1] if playlistitems else i + playliststart,
                     'extractor': ie_result['extractor'],
                     'webpage_url': ie_result['webpage_url'],
                     'webpage_url_basename': url_basename(ie_result['webpage_url']),
@@ -1002,9 +1009,8 @@ class YoutubeDL(object):
                     self.to_screen('[download] ' + reason)
                     continue
 
-                entry_result = self.process_ie_result(entry,
-                                                      download=download,
-                                                      extra_info=extra)
+                entry_result = self.__process_iterable_entry(entry, download, extra)
+                # TODO: skip failed (empty) entries?
                 playlist_results.append(entry_result)
             ie_result['entries'] = playlist_results
             self.to_screen('[download] Finished downloading playlist: %s' % playlist)
@@ -1032,6 +1038,11 @@ class YoutubeDL(object):
             return ie_result
         else:
             raise Exception('Invalid result type: %s' % result_type)
+
+    @__handle_extraction_exceptions
+    def __process_iterable_entry(self, entry, download, extra_info):
+        return self.process_ie_result(
+            entry, download=download, extra_info=extra_info)
 
     def _build_format_filter(self, filter_spec):
         " Returns a function to filter the formats according to the filter_spec "
@@ -1072,7 +1083,7 @@ class YoutubeDL(object):
                 '*=': lambda attr, value: value in attr,
             }
             str_operator_rex = re.compile(r'''(?x)
-                \s*(?P<key>ext|acodec|vcodec|container|protocol|format_id)
+                \s*(?P<key>ext|acodec|vcodec|container|protocol|format_id|language)
                 \s*(?P<negation>!\s*)?(?P<op>%s)(?P<none_inclusive>\s*\?)?
                 \s*(?P<value>[a-zA-Z0-9._-]+)
                 \s*$
@@ -1599,7 +1610,7 @@ class YoutubeDL(object):
         if req_format is None:
             req_format = self._default_format_spec(info_dict, download=download)
             if self.params.get('verbose'):
-                self.to_stdout('[debug] Default format spec: %s' % req_format)
+                self._write_string('[debug] Default format spec: %s\n' % req_format)
 
         format_selector = self.build_format_selector(req_format)
 
@@ -1860,7 +1871,7 @@ class YoutubeDL(object):
                     for ph in self._progress_hooks:
                         fd.add_progress_hook(ph)
                     if self.params.get('verbose'):
-                        self.to_stdout('[debug] Invoking downloader on %r' % info.get('url'))
+                        self.to_screen('[debug] Invoking downloader on %r' % info.get('url'))
                     return fd.download(name, info)
 
                 if info_dict.get('requested_formats') is not None:
@@ -2343,6 +2354,7 @@ class YoutubeDL(object):
         debuglevel = 1 if self.params.get('debug_printtraffic') else 0
         https_handler = make_HTTPS_handler(self.params, debuglevel=debuglevel)
         ydlh = YoutubeDLHandler(self.params, debuglevel=debuglevel)
+        redirect_handler = YoutubeDLRedirectHandler()
         data_handler = compat_urllib_request_DataHandler()
 
         # When passing our own FileHandler instance, build_opener won't add the
@@ -2356,7 +2368,7 @@ class YoutubeDL(object):
         file_handler.file_open = file_open
 
         opener = compat_urllib_request.build_opener(
-            proxy_handler, https_handler, cookie_processor, ydlh, data_handler, file_handler)
+            proxy_handler, https_handler, cookie_processor, ydlh, redirect_handler, data_handler, file_handler)
 
         # Delete the default user-agent header, which would otherwise apply in
         # cases where our custom HTTP handler doesn't come into play
@@ -2398,7 +2410,7 @@ class YoutubeDL(object):
             thumb_ext = determine_ext(t['url'], 'jpg')
             suffix = '_%s' % t['id'] if len(thumbnails) > 1 else ''
             thumb_display_id = '%s ' % t['id'] if len(thumbnails) > 1 else ''
-            t['filename'] = thumb_filename = os.path.splitext(filename)[0] + suffix + '.' + thumb_ext
+            t['filename'] = thumb_filename = replace_extension(filename + suffix, thumb_ext, info_dict.get('ext'))
 
             if self.params.get('nooverwrites', False) and os.path.exists(encodeFilename(thumb_filename)):
                 self.to_screen('[%s] %s: Thumbnail %sis already present' %

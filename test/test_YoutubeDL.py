@@ -816,11 +816,15 @@ class TestYoutubeDL(unittest.TestCase):
             'webpage_url': 'http://example.com',
         }
 
-        def get_ids(params):
+        def get_downloaded_info_dicts(params):
             ydl = YDL(params)
-            # make a copy because the dictionary can be modified
-            ydl.process_ie_result(playlist.copy())
-            return [int(v['id']) for v in ydl.downloaded_info_dicts]
+            # make a deep copy because the dictionary and nested entries
+            # can be modified
+            ydl.process_ie_result(copy.deepcopy(playlist))
+            return ydl.downloaded_info_dicts
+
+        def get_ids(params):
+            return [int(v['id']) for v in get_downloaded_info_dicts(params)]
 
         result = get_ids({})
         self.assertEqual(result, [1, 2, 3, 4])
@@ -851,6 +855,22 @@ class TestYoutubeDL(unittest.TestCase):
 
         result = get_ids({'playlist_items': '2-4,3-4,3'})
         self.assertEqual(result, [2, 3, 4])
+
+        # Tests for https://github.com/ytdl-org/youtube-dl/issues/10591
+        # @{
+        result = get_downloaded_info_dicts({'playlist_items': '2-4,3-4,3'})
+        self.assertEqual(result[0]['playlist_index'], 2)
+        self.assertEqual(result[1]['playlist_index'], 3)
+
+        result = get_downloaded_info_dicts({'playlist_items': '2-4,3-4,3'})
+        self.assertEqual(result[0]['playlist_index'], 2)
+        self.assertEqual(result[1]['playlist_index'], 3)
+        self.assertEqual(result[2]['playlist_index'], 4)
+
+        result = get_downloaded_info_dicts({'playlist_items': '4,2'})
+        self.assertEqual(result[0]['playlist_index'], 4)
+        self.assertEqual(result[1]['playlist_index'], 2)
+        # @}
 
     def test_urlopen_no_file_protocol(self):
         # see https://github.com/ytdl-org/youtube-dl/issues/8227
@@ -898,6 +918,76 @@ class TestYoutubeDL(unittest.TestCase):
         self.assertEqual(downloaded['id'], 'testid')
         self.assertEqual(downloaded['extractor'], 'testex')
         self.assertEqual(downloaded['extractor_key'], 'TestEx')
+
+    # Test case for https://github.com/ytdl-org/youtube-dl/issues/27064
+    def test_ignoreerrors_for_playlist_with_url_transparent_iterable_entries(self):
+
+        class _YDL(YDL):
+            def __init__(self, *args, **kwargs):
+                super(_YDL, self).__init__(*args, **kwargs)
+
+            def trouble(self, s, tb=None):
+                pass
+
+        ydl = _YDL({
+            'format': 'extra',
+            'ignoreerrors': True,
+        })
+
+        class VideoIE(InfoExtractor):
+            _VALID_URL = r'video:(?P<id>\d+)'
+
+            def _real_extract(self, url):
+                video_id = self._match_id(url)
+                formats = [{
+                    'format_id': 'default',
+                    'url': 'url:',
+                }]
+                if video_id == '0':
+                    raise ExtractorError('foo')
+                if video_id == '2':
+                    formats.append({
+                        'format_id': 'extra',
+                        'url': TEST_URL,
+                    })
+                return {
+                    'id': video_id,
+                    'title': 'Video %s' % video_id,
+                    'formats': formats,
+                }
+
+        class PlaylistIE(InfoExtractor):
+            _VALID_URL = r'playlist:'
+
+            def _entries(self):
+                for n in range(3):
+                    video_id = compat_str(n)
+                    yield {
+                        '_type': 'url_transparent',
+                        'ie_key': VideoIE.ie_key(),
+                        'id': video_id,
+                        'url': 'video:%s' % video_id,
+                        'title': 'Video Transparent %s' % video_id,
+                    }
+
+            def _real_extract(self, url):
+                return self.playlist_result(self._entries())
+
+        ydl.add_info_extractor(VideoIE(ydl))
+        ydl.add_info_extractor(PlaylistIE(ydl))
+        info = ydl.extract_info('playlist:')
+        entries = info['entries']
+        self.assertEqual(len(entries), 3)
+        self.assertTrue(entries[0] is None)
+        self.assertTrue(entries[1] is None)
+        self.assertEqual(len(ydl.downloaded_info_dicts), 1)
+        downloaded = ydl.downloaded_info_dicts[0]
+        self.assertEqual(entries[2], downloaded)
+        self.assertEqual(downloaded['url'], TEST_URL)
+        self.assertEqual(downloaded['title'], 'Video Transparent 2')
+        self.assertEqual(downloaded['id'], '2')
+        self.assertEqual(downloaded['extractor'], 'Video')
+        self.assertEqual(downloaded['extractor_key'], 'Video')
 
 
 if __name__ == '__main__':

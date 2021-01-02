@@ -447,6 +447,13 @@ class FFmpegMetadataPP(FFmpegPostProcessor):
                         metadata[meta_f] = info[info_f]
                     break
 
+        # See [1-4] for some info on media metadata/metadata supported
+        # by ffmpeg.
+        # 1. https://kdenlive.org/en/project/adding-meta-data-to-mp4-video/
+        # 2. https://wiki.multimedia.cx/index.php/FFmpeg_Metadata
+        # 3. https://kodi.wiki/view/Video_file_tagging
+        # 4. http://atomicparsley.sourceforge.net/mpeg-4files.html
+
         add('title', ('track', 'title'))
         add('date', 'upload_date')
         add(('description', 'comment'), 'description')
@@ -457,6 +464,10 @@ class FFmpegMetadataPP(FFmpegPostProcessor):
         add('album')
         add('album_artist')
         add('disc', 'disc_number')
+        add('show', 'series')
+        add('season_number')
+        add('episode_id', ('episode', 'episode_id'))
+        add('episode_sort', 'episode_number')
 
         if not metadata:
             self._downloader.to_screen('[ffmpeg] There isn\'t any metadata to add')

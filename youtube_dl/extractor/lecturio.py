@@ -4,7 +4,6 @@ from __future__ import unicode_literals
 import re
 
 from .common import InfoExtractor
-from ..compat import compat_str
 from ..utils import (
     clean_html,
     determine_ext,
@@ -36,7 +35,7 @@ class LecturioBaseIE(InfoExtractor):
             self._LOGIN_URL, None, 'Downloading login popup')
 
         def is_logged(url_handle):
-            return self._LOGIN_URL not in compat_str(url_handle.geturl())
+            return self._LOGIN_URL not in url_handle.geturl()
 
         # Already logged in
         if is_logged(urlh):
