@@ -151,6 +151,8 @@ class NRKIE(NRKBaseIE):
         # known values for preferredCdn: akamai, iponly, minicdn and telenor
         manifest = call_playback_api('manifest', {'preferredCdn': 'akamai'})
 
+        video_id = try_get(manifest, lambda x: x['id'], compat_str) or video_id
+
         if manifest.get('playability') == 'nonPlayable':
             self._raise_error(manifest['nonPlayable'])
 
@@ -211,7 +213,7 @@ class NRKIE(NRKBaseIE):
         }
 
     def _real_extract(self, url):
-        video_id = self._match_id(url)
+        video_id = self._match_id(url).split('/')[-1]
         return self._extract_from_playback(video_id)
 
 
