@@ -204,6 +204,9 @@ class NRKIE(NRKBaseIE):
                 'height': int_or_none(image.get('pixelHeight')),
             })
 
+        age_limit = int_or_none(try_get(
+            data, lambda x: x['legalAge']['body']['rating']['code']))
+
         return {
             'id': video_id,
             'title': title,
@@ -211,6 +214,7 @@ class NRKIE(NRKBaseIE):
             'description': description,
             'duration': duration,
             'thumbnails': thumbnails,
+            'age_limit': age_limit,
             'formats': formats,
         }
 
