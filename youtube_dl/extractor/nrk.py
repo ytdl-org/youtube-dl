@@ -220,8 +220,15 @@ class NRKIE(NRKBaseIE):
                 'url': sub_url,
             })
 
-        age_limit = int_or_none(try_get(
-            data, lambda x: x['legalAge']['body']['rating']['code']))
+        legal_age = try_get(
+            data, lambda x: x['legalAge']['body']['rating']['code'], compat_str)
+        # https://en.wikipedia.org/wiki/Norwegian_Media_Authority
+        if legal_age == 'A':
+            age_limit = 0
+        elif legal_age.isdigit():
+            age_limit = int_or_none(legal_age)
+        else:
+            age_limit = None
 
         is_series = try_get(data, lambda x: x['_links']['series']['name']) == 'series'
 
@@ -304,6 +311,7 @@ class NRKTVIE(InfoExtractor):
             'duration': 1741,
             'series': '20 spørsmål',
             'episode': '23. mai 2014',
+            'age_limit': 0,
         },
     }, {
         'url': 'https://tv.nrk.no/program/mdfp15000514',
@@ -315,6 +323,7 @@ class NRKTVIE(InfoExtractor):
             'duration': 4605.08,
             'series': 'Kunnskapskanalen',
             'episode': 'Grunnlovsjubiléet - Stor ståhei for ingenting',
+            'age_limit': 0,
         },
         'params': {
             'skip_download': True,
@@ -327,6 +336,7 @@ class NRKTVIE(InfoExtractor):
             'ext': 'mp4',
             'title': 'Sprint fri teknikk, kvinner og menn 06.01.2015',
             'description': 'md5:c03aba1e917561eface5214020551b7a',
+            'age_limit': 0,
         },
         'params': {
             'skip_download': True,
@@ -340,6 +350,7 @@ class NRKTVIE(InfoExtractor):
             'ext': 'mp4',
             'title': 'Sprint fri teknikk, kvinner og menn 06.01.2015',
             'description': 'md5:c03aba1e917561eface5214020551b7a',
+            'age_limit': 0,
         },
         'expected_warnings': ['Failed to download m3u8 information'],
         'skip': 'Ikke tilgjengelig utenfor Norge',
@@ -355,6 +366,7 @@ class NRKTVIE(InfoExtractor):
             'episode': '13. episode',
             'season_number': 3,
             'episode_number': 13,
+            'age_limit': 0,
         },
         'params': {
             'skip_download': True,
@@ -369,6 +381,7 @@ class NRKTVIE(InfoExtractor):
             'duration': 1796,
             'series': 'Nytt på nytt',
             'episode': '27.01.2017',
+            'age_limit': 0,
         },
         'params': {
             'skip_download': True,
@@ -422,6 +435,7 @@ class NRKTVEpisodeIE(InfoExtractor):
             'season_number': 1,
             'episode_number': 8,
             'episode': '8. episode',
+            'age_limit': 0,
         },
         'params': {
             'skip_download': True,
