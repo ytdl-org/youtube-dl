@@ -238,16 +238,29 @@ class NRKIE(NRKBaseIE):
         }
 
         if is_series:
-            series = title
+            series = season_id = season_number = episode = episode_number = None
+            programs = self._call_api(
+                'programs/%s' % video_id, video_id, 'programs', fatal=False)
+            if programs and isinstance(programs, dict):
+                series = str_or_none(programs.get('seriesTitle'))
+                season_id = str_or_none(programs.get('seasonId'))
+                season_number = int_or_none(programs.get('seasonNumber'))
+                episode = str_or_none(programs.get('episodeTitle'))
+                episode_number = int_or_none(programs.get('episodeNumber'))
+            if not series:
+                series = title
             if alt_title:
                 title += ' - %s' % alt_title
-            season_number = int_or_none(self._search_regex(
-                r'Sesong\s+(\d+)', description or '', 'season number',
-                default=None))
-            episode = alt_title if is_series else None
-            episode_number = int_or_none(self._search_regex(
-                r'^(\d+)\.', episode or '', 'episode number',
-                default=None))
+            if not season_number:
+                season_number = int_or_none(self._search_regex(
+                    r'Sesong\s+(\d+)', description or '', 'season number',
+                    default=None))
+            if not episode:
+                episode = alt_title if is_series else None
+            if not episode_number:
+                episode_number = int_or_none(self._search_regex(
+                    r'^(\d+)\.', episode or '', 'episode number',
+                    default=None))
             if not episode_number:
                 episode_number = int_or_none(self._search_regex(
                     r'\((\d+)\s*:\s*\d+\)', description or '',
@@ -255,6 +268,7 @@ class NRKIE(NRKBaseIE):
             info.update({
                 'title': title,
                 'series': series,
+                'season_id': season_id,
                 'season_number': season_number,
                 'episode': episode,
                 'episode_number': episode_number,
@@ -388,7 +402,7 @@ class NRKTVEpisodeIE(InfoExtractor):
             'description': 'md5:ad92ddffc04cea8ce14b415deef81787',
             'duration': 1563.92,
             'series': 'Hellums kro',
-            # 'season_number': 1,
+            'season_number': 1,
             'episode_number': 2,
             'episode': '2. Kro, krig og kjærlighet',
             'age_limit': 6,
