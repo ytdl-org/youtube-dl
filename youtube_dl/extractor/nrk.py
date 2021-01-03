@@ -298,6 +298,14 @@ class NRKTVIE(InfoExtractor):
             'description': 'md5:46923a6e6510eefcce23d5ef2a58f2ce',
             'duration': 2223.44,
             'age_limit': 6,
+            'subtitles': {
+                'nb-nor': [{
+                    'ext': 'vtt',
+                }],
+                'nb-ttv': [{
+                    'ext': 'vtt',
+                }]
+            },
         },
     }, {
         'url': 'https://tv.nrk.no/serie/20-spoersmaal-tv/MUHH48000314/23-05-2014',
