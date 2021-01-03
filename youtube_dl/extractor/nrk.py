@@ -12,6 +12,7 @@ from ..utils import (
     ExtractorError,
     int_or_none,
     parse_duration,
+    str_or_none,
     try_get,
     urljoin,
     url_or_none,
@@ -204,6 +205,21 @@ class NRKIE(NRKBaseIE):
                 'height': int_or_none(image.get('pixelHeight')),
             })
 
+        subtitles = {}
+        for sub in try_get(playable, lambda x: x['subtitles'], list) or []:
+            if not isinstance(sub, dict):
+                continue
+            sub_url = url_or_none(sub.get('webVtt'))
+            if not sub_url:
+                continue
+            sub_key = str_or_none(sub.get('language')) or 'nb'
+            sub_type = str_or_none(sub.get('type'))
+            if sub_type:
+                sub_key += '-%s' % sub_type
+            subtitles.setdefault(sub_key, []).append({
+                'url': sub_url,
+            })
+
         age_limit = int_or_none(try_get(
             data, lambda x: x['legalAge']['body']['rating']['code']))
 
@@ -216,6 +232,7 @@ class NRKIE(NRKBaseIE):
             'thumbnails': thumbnails,
             'age_limit': age_limit,
             'formats': formats,
+            'subtitles': subtitles,
         }
 
 
