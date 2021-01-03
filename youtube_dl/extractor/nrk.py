@@ -246,7 +246,9 @@ class NRKIE(NRKBaseIE):
                 default=None))
             episode = alt_title if is_series else None
             episode_number = int_or_none(self._search_regex(
-                r'(\d+)\.\s+episode', episode or '', 'episode number',
+                r'^(\d+)\.', episode or '', 'episode number',
+                default=None)) or int_or_none(self._search_regex(
+                r'\((\d+)\s*:\s*\d+\)', description or '', 'episode number',
                 default=None))
             info.update({
                 'title': title,
@@ -374,19 +376,19 @@ class NRKTVIE(InfoExtractor):
 
 
 class NRKTVEpisodeIE(InfoExtractor):
-    _VALID_URL = r'https?://tv\.nrk\.no/serie/(?P<id>[^/]+/sesong/\d+/episode/\d+)'
+    _VALID_URL = r'https?://tv\.nrk\.no/serie/(?P<id>[^/]+/sesong/(?P<season_number>\d+)/episode/(?P<episode_number>\d+))'
     _TESTS = [{
         'url': 'https://tv.nrk.no/serie/hellums-kro/sesong/1/episode/2',
         'info_dict': {
-            'id': 'MUHH36005220BA',
+            'id': 'MUHH36005220',
             'ext': 'mp4',
-            'title': 'Kro, krig og kjærlighet 2:6',
-            'description': 'md5:b32a7dc0b1ed27c8064f58b97bda4350',
-            'duration': 1563,
+            'title': 'Hellums kro - 2. Kro, krig og kjærlighet',
+            'description': 'md5:ad92ddffc04cea8ce14b415deef81787',
+            'duration': 1563.92,
             'series': 'Hellums kro',
-            'season_number': 1,
+            # 'season_number': 1,
             'episode_number': 2,
-            'episode': '2:6',
+            'episode': '2. Kro, krig og kjærlighet',
             'age_limit': 6,
         },
         'params': {
@@ -395,15 +397,15 @@ class NRKTVEpisodeIE(InfoExtractor):
     }, {
         'url': 'https://tv.nrk.no/serie/backstage/sesong/1/episode/8',
         'info_dict': {
-            'id': 'MSUI14000816AA',
+            'id': 'MSUI14000816',
             'ext': 'mp4',
-            'title': 'Backstage 8:30',
+            'title': 'Backstage - 8. episode',
             'description': 'md5:de6ca5d5a2d56849e4021f2bf2850df4',
             'duration': 1320,
             'series': 'Backstage',
             'season_number': 1,
             'episode_number': 8,
-            'episode': '8:30',
+            'episode': '8. episode',
         },
         'params': {
             'skip_download': True,
@@ -412,7 +414,7 @@ class NRKTVEpisodeIE(InfoExtractor):
     }]
 
     def _real_extract(self, url):
-        display_id = self._match_id(url)
+        display_id, season_number, episode_number = re.match(self._VALID_URL, url).groups()
 
         webpage = self._download_webpage(url, display_id)
 
@@ -424,10 +426,12 @@ class NRKTVEpisodeIE(InfoExtractor):
         assert re.match(NRKTVIE._EPISODE_RE, nrk_id)
 
         info.update({
-            '_type': 'url_transparent',
+            '_type': 'url',
             'id': nrk_id,
             'url': 'nrk:%s' % nrk_id,
             'ie_key': NRKIE.ie_key(),
+            'season_number': int(season_number),
+            'episode_number': int(episode_number),
         })
         return info
 
