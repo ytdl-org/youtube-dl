@@ -247,9 +247,11 @@ class NRKIE(NRKBaseIE):
             episode = alt_title if is_series else None
             episode_number = int_or_none(self._search_regex(
                 r'^(\d+)\.', episode or '', 'episode number',
-                default=None)) or int_or_none(self._search_regex(
-                r'\((\d+)\s*:\s*\d+\)', description or '', 'episode number',
                 default=None))
+            if not episode_number:
+                episode_number = int_or_none(self._search_regex(
+                    r'\((\d+)\s*:\s*\d+\)', description or '',
+                    'episode number', default=None))
             info.update({
                 'title': title,
                 'series': series,
