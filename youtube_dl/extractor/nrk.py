@@ -223,7 +223,9 @@ class NRKIE(NRKBaseIE):
         age_limit = int_or_none(try_get(
             data, lambda x: x['legalAge']['body']['rating']['code']))
 
-        return {
+        is_series = try_get(data, lambda x: x['_links']['series']['name']) == 'series'
+
+        info = {
             'id': video_id,
             'title': title,
             'alt_title': alt_title,
@@ -234,6 +236,27 @@ class NRKIE(NRKBaseIE):
             'formats': formats,
             'subtitles': subtitles,
         }
+
+        if is_series:
+            series = title
+            if alt_title:
+                title += ' - %s' % alt_title
+            season_number = int_or_none(self._search_regex(
+                r'Sesong\s+(\d+)', description or '', 'season number',
+                default=None))
+            episode = alt_title if is_series else None
+            episode_number = int_or_none(self._search_regex(
+                r'(\d+)\.\s+episode', episode or '', 'episode number',
+                default=None))
+            info.update({
+                'title': title,
+                'series': series,
+                'season_number': season_number,
+                'episode': episode,
+                'episode_number': episode_number,
+            })
+
+        return info
 
 
 class NRKTVIE(InfoExtractor):
