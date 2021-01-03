@@ -488,6 +488,11 @@ class TwitterIE(TwitterBaseIE):
                         'url': get_binding_value('broadcast_url'),
                         'ie_key': TwitterBroadcastIE.ie_key(),
                     })
+                elif card_name == 'summary':
+                    info.update({
+                        '_type': 'url',
+                        'url': get_binding_value('card_url'),
+                    })
                 # amplify, promo_video_website, promo_video_convo, appplayer, ...
                 else:
                     is_amplify = card_name == 'amplify'
