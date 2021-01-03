@@ -1,3 +1,24 @@
+version <unreleased>
+
+Extractors
+* [nrk] Improve series metadata extraction (#27473)
++ [nrk] Extract subtitles
+* [nrk] Fix age limit extraction
+* [nrk] Improve video id extraction
++ [nrk] Add support for podcasts (#27634, #27635)
+* [nrk] Generalize and delegate all item extractors to nrk
++ [nrk] Add support for mp3 formats
+* [nrktv] Switch to playback endpoint
+* [vvvvid] Fix season metadata extraction (#18130)
+* [stitcher] Fix extraction (#20811, #27606)
+* [acast] Fix extraction (#21444, #27612, #27613)
++ [arcpublishing] Add support for arcpublishing.com (#2298, #9340, #17200)
++ [sky] Add support for Sports News articles and Brighcove videos (#13054)
++ [vvvvid] Extract akamai formats
+* [vvvvid] Skip unplayable episodes (#27599)
+* [yandexvideo] Fix extraction for Python 3.4
+
+
 version 2020.12.31
 
 Core
