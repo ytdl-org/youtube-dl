@@ -35,7 +35,7 @@ class OdnoklassnikiIE(InfoExtractor):
                 '''
     _TESTS = [{
         # metadata in JSON
-        'url': 'http://ok.ru/video/20079905452',
+        'url': 'https://ok.ru/video/20079905452',
         'md5': '0b62089b479e06681abaaca9d204f152',
         'info_dict': {
             'id': '20079905452',
@@ -50,7 +50,7 @@ class OdnoklassnikiIE(InfoExtractor):
         },
     }, {
         # metadataUrl
-        'url': 'http://ok.ru/video/63567059965189-0?fromTime=5',
+        'url': 'https://ok.ru/video/63567059965189-0?fromTime=5',
         'md5': '6ff470ea2dd51d5d18c295a355b0b6bc',
         'info_dict': {
             'id': '63567059965189-0',
@@ -66,7 +66,7 @@ class OdnoklassnikiIE(InfoExtractor):
         },
     }, {
         # YouTube embed (metadataUrl, provider == USER_YOUTUBE)
-        'url': 'http://ok.ru/video/64211978996595-1',
+        'url': 'https://ok.ru/video/64211978996595-1',
         'md5': '2f206894ffb5dbfcce2c5a14b909eea5',
         'info_dict': {
             'id': 'V_VztHT5BzY',
@@ -81,7 +81,7 @@ class OdnoklassnikiIE(InfoExtractor):
         },
     }, {
         # YouTube embed (metadata, provider == USER_YOUTUBE, no metadata.movie.title field)
-        'url': 'http://ok.ru/video/62036049272859-0',
+        'url': 'https://ok.ru/video/62036049272859-0',
         'info_dict': {
             'id': '62036049272859-0',
             'ext': 'mp4',
@@ -97,19 +97,19 @@ class OdnoklassnikiIE(InfoExtractor):
         },
         'skip': 'Video has not been found',
     }, {
-        'url': 'http://ok.ru/web-api/video/moviePlayer/20079905452',
+        'url': 'https://ok.ru/web-api/video/moviePlayer/20079905452',
         'only_matching': True,
     }, {
-        'url': 'http://www.ok.ru/video/20648036891',
+        'url': 'https://www.ok.ru/video/20648036891',
         'only_matching': True,
     }, {
-        'url': 'http://www.ok.ru/videoembed/20648036891',
+        'url': 'https://www.ok.ru/videoembed/20648036891',
         'only_matching': True,
     }, {
-        'url': 'http://m.ok.ru/video/20079905452',
+        'url': 'https://m.ok.ru/video/20079905452',
         'only_matching': True,
     }, {
-        'url': 'http://mobile.ok.ru/video/20079905452',
+        'url': 'https://mobile.ok.ru/video/20079905452',
         'only_matching': True,
     }, {
         'url': 'https://www.ok.ru/live/484531969818',
@@ -137,7 +137,7 @@ class OdnoklassnikiIE(InfoExtractor):
         video_id = self._match_id(url)
 
         webpage = self._download_webpage(
-            'http://ok.ru/video/%s' % video_id, video_id)
+            'https://ok.ru/video/%s' % video_id, video_id)
 
         error = self._search_regex(
             r'[^>]+class="vp_video_stub_txt"[^>]*>([^<]+)<',
