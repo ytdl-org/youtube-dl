@@ -5,7 +5,18 @@ from .common import InfoExtractor
 
 class AparatCamIE(InfoExtractor):
     _VALID_URL = r'https?://aparat.cam/(?P<id>[^/?#]+)'
-    _TESTS = []
+    _TESTS = [{
+        'url': 'https://aparat.cam/n4d6dh0wvlpr',
+        'md5': '825e761f785b60b71b0b197db97a3a40',
+        'info_dict': {
+            'id': 'n4d6dh0wvlpr',
+            'protocol': 'm3u8',
+            'ext': 'mp4',
+            'title': 'Funny Cats Compilation 2020 Best Funny Cat Videos Ever Funny Vines',
+            'thumbnail': r're:^https?://.*\.jpg$',
+            'age_limit': 18,
+        },
+    }]
 
     def _real_extract(self, url):
         video_id = self._match_id(url)
