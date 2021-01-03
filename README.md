@@ -28,12 +28,16 @@ If you do not have curl, you can alternatively use a recent wget:
     sudo wget https://yt-dl.org/downloads/latest/youtube-dl -O /usr/local/bin/youtube-dl
     sudo chmod a+rx /usr/local/bin/youtube-dl
 
+If you are Ubuntu 20.04 user you going to need one more step due to /usr/bin/python absence:
+
+    sudo ln -s /usr/bin/python3 /usr/local/bin/python
+
 Windows users can [download an .exe file](https://yt-dl.org/latest/youtube-dl.exe) and place it in any location on their [PATH](https://en.wikipedia.org/wiki/PATH_%28variable%29) except for `%SYSTEMROOT%\System32` (e.g. **do not** put in `C:\Windows\System32`).
 
 You can also use pip:
 
     sudo -H pip install --upgrade youtube-dl
-    
+
 This command will update youtube-dl if you have already installed it. See the [pypi page](https://pypi.python.org/pypi/youtube_dl) for more information.
 
 macOS users can install youtube-dl with [Homebrew](https://brew.sh/):
