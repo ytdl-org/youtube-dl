@@ -267,7 +267,7 @@ class NRKTVIE(InfoExtractor):
         'url': 'https://tv.nrk.no/program/MDDP12000117',
         'md5': 'c4a5960f1b00b40d47db65c1064e0ab1',
         'info_dict': {
-            'id': 'MDDP12000117AA',
+            'id': 'MDDP12000117',
             'ext': 'mp4',
             'title': 'Alarm Trolltunga',
             'description': 'md5:46923a6e6510eefcce23d5ef2a58f2ce',
@@ -278,24 +278,25 @@ class NRKTVIE(InfoExtractor):
         'url': 'https://tv.nrk.no/serie/20-spoersmaal-tv/MUHH48000314/23-05-2014',
         'md5': '8d40dab61cea8ab0114e090b029a0565',
         'info_dict': {
-            'id': 'MUHH48000314AA',
+            'id': 'MUHH48000314',
             'ext': 'mp4',
-            'title': '20 spørsmål 23.05.2014',
+            'title': '20 spørsmål - 23. mai 2014',
+            'alt_title': '23. mai 2014',
             'description': 'md5:bdea103bc35494c143c6a9acdd84887a',
             'duration': 1741,
             'series': '20 spørsmål',
-            'episode': '23.05.2014',
+            'episode': '23. mai 2014',
         },
     }, {
         'url': 'https://tv.nrk.no/program/mdfp15000514',
         'info_dict': {
-            'id': 'MDFP15000514CA',
+            'id': 'MDFP15000514',
             'ext': 'mp4',
-            'title': 'Grunnlovsjubiléet - Stor ståhei for ingenting 24.05.2014',
+            'title': 'Kunnskapskanalen - Grunnlovsjubiléet - Stor ståhei for ingenting',
             'description': 'md5:89290c5ccde1b3a24bb8050ab67fe1db',
             'duration': 4605.08,
             'series': 'Kunnskapskanalen',
-            'episode': '24.05.2014',
+            'episode': 'Grunnlovsjubiléet - Stor ståhei for ingenting',
         },
         'params': {
             'skip_download': True,
@@ -304,7 +305,7 @@ class NRKTVIE(InfoExtractor):
         # single playlist video
         'url': 'https://tv.nrk.no/serie/tour-de-ski/MSPO40010515/06-01-2015#del=2',
         'info_dict': {
-            'id': 'MSPO40010515AH',
+            'id': 'MSPO40010515',
             'ext': 'mp4',
             'title': 'Sprint fri teknikk, kvinner og menn 06.01.2015',
             'description': 'md5:c03aba1e917561eface5214020551b7a',
@@ -317,22 +318,23 @@ class NRKTVIE(InfoExtractor):
     }, {
         'url': 'https://tv.nrk.no/serie/tour-de-ski/MSPO40010515/06-01-2015',
         'info_dict': {
-            'id': 'MSPO40010515AH',
+            'id': 'MSPO40010515',
             'ext': 'mp4',
             'title': 'Sprint fri teknikk, kvinner og menn 06.01.2015',
             'description': 'md5:c03aba1e917561eface5214020551b7a',
         },
         'expected_warnings': ['Failed to download m3u8 information'],
+        'skip': 'Ikke tilgjengelig utenfor Norge',
     }, {
         'url': 'https://tv.nrk.no/serie/anno/KMTE50001317/sesong-3/episode-13',
         'info_dict': {
-            'id': 'KMTE50001317AA',
+            'id': 'KMTE50001317',
             'ext': 'mp4',
-            'title': 'Anno 13:30',
+            'title': 'Anno - 13. episode',
             'description': 'md5:11d9613661a8dbe6f9bef54e3a4cbbfa',
             'duration': 2340,
             'series': 'Anno',
-            'episode': '13:30',
+            'episode': '13. episode',
             'season_number': 3,
             'episode_number': 13,
         },
@@ -342,7 +344,7 @@ class NRKTVIE(InfoExtractor):
     }, {
         'url': 'https://tv.nrk.no/serie/nytt-paa-nytt/MUHH46000317/27-01-2017',
         'info_dict': {
-            'id': 'MUHH46000317AA',
+            'id': 'MUHH46000317',
             'ext': 'mp4',
             'title': 'Nytt på Nytt 27.01.2017',
             'description': 'md5:5358d6388fba0ea6f0b6d11c48b9eb4b',
