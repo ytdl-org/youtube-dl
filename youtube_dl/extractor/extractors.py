@@ -1096,7 +1096,10 @@ from .spike import (
     BellatorIE,
     ParamountNetworkIE,
 )
-from .stitcher import StitcherIE
+from .stitcher import (
+    StitcherIE,
+    StitcherShowIE,
+)
 from .sport5 import Sport5IE
 from .sportbox import SportBoxIE
 from .sportdeutschland import SportDeutschlandIE
