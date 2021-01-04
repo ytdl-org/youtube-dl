@@ -423,7 +423,6 @@ class RaiIE(RaiBaseIE):
         content_item_url = self._html_search_meta(
             ('og:url', 'og:video', 'og:video:secure_url', 'twitter:url',
              'twitter:player', 'jsonlink'), webpage, default=None)
-
         if content_item_url:
             content_item_id = self._search_regex(
                 r'ContentItem-(%s)' % self._UUID_RE, content_item_url,
