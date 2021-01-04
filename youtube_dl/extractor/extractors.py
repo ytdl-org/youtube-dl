@@ -55,6 +55,7 @@ from .appletrailers import (
     AppleTrailersIE,
     AppleTrailersSectionIE,
 )
+from .applepodcasts import ApplePodcastsIE
 from .archiveorg import ArchiveOrgIE
 from .arcpublishing import ArcPublishingIE
 from .arkena import ArkenaIE
