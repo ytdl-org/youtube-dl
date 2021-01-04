@@ -3,6 +3,7 @@ from __future__ import unicode_literals
 
 from .common import InfoExtractor
 from ..utils import (
+    clean_html,
     clean_podcast_url,
     int_or_none,
     str_or_none,
@@ -18,7 +19,7 @@ class IHeartRadioBaseIE(InfoExtractor):
     def _extract_episode(self, episode):
         return {
             'thumbnail': episode.get('imageUrl'),
-            'description': episode.get('description'),
+            'description': clean_html(episode.get('description')),
             'timestamp': int_or_none(episode.get('startDate'), 1000),
             'duration': int_or_none(episode.get('duration')),
         }
