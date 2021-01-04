@@ -145,13 +145,30 @@ class RaiPlayIE(RaiBaseIE):
     }, {
         'url': 'http://www.raiplay.it/video/2016/11/gazebotraindesi-efebe701-969c-4593-92f3-285f0d1ce750.html?',
         'only_matching': True,
+    }, {
+        # DRM protected
+        'url': 'https://www.raiplay.it/video/2020/09/Lo-straordinario-mondo-di-Zoey-S1E1-Lo-straordinario-potere-di-Zoey-ed493918-1d32-44b7-8454-862e473d00ff.html',
+        'only_matching': True,
     }]
+
+    def _check_drm(self, obj):
+        if (obj.get('rights_management') and (
+                obj['rights_management']['rights'].get('drm'))):
+            return True
+
+        if (obj.get('program_info')):
+            return self._check_drm(obj['program_info'])
+
+        return False
 
     def _real_extract(self, url):
         base, video_id = re.match(self._VALID_URL, url).groups()
 
         media = self._download_json(
             base + '.json', video_id, 'Downloading video JSON')
+
+        if self._check_drm(media):
+            raise ExtractorError('This video is DRM protected.', expected=True)
 
         title = media['name']
 
