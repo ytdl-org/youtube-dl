@@ -152,11 +152,10 @@ class RaiPlayIE(RaiBaseIE):
     }]
 
     def _check_drm(self, obj):
-        if (obj.get('rights_management') and (
-                obj['rights_management']['rights'].get('drm'))):
+        if try_get(obj, lambda x: x['rights_management']['rights']['drm'], dict):
             return True
 
-        if (obj.get('program_info')):
+        if obj.get('program_info'):
             return self._check_drm(obj['program_info'])
 
         return False
