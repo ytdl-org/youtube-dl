@@ -423,6 +423,10 @@ from .godtube import GodTubeIE
 from .golem import GolemIE
 from .googledrive import GoogleDriveIE
 from .googleplus import GooglePlusIE
+from .googlepodcasts import (
+    GooglePodcastsIE,
+    GooglePodcastsFeedIE,
+)
 from .googlesearch import GoogleSearchIE
 from .goshgay import GoshgayIE
 from .gputechconf import GPUTechConfIE
