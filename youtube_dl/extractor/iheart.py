@@ -45,7 +45,6 @@ class IHeartRadioIE(IHeartRadioBaseIE):
         episode = self._call_api(
             'episodes/' + episode_id, episode_id)['episode']
         info = self._extract_episode(episode)
-        print(episode['mediaUrl'])
         info.update({
             'id': episode_id,
             'title': episode['title'],
