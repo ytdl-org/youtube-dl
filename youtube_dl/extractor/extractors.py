@@ -423,7 +423,6 @@ from .go import GoIE
 from .godtube import GodTubeIE
 from .golem import GolemIE
 from .googledrive import GoogleDriveIE
-from .googleplus import GooglePlusIE
 from .googlepodcasts import (
     GooglePodcastsIE,
     GooglePodcastsFeedIE,
