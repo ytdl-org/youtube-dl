@@ -192,29 +192,27 @@ class TwitchGraphQLBaseIE(TwitchBaseIE):
             }
         return self._download_base_gql(video_id, ops, note)
 
-    def _download_access_token_gql(self, video_id, item_type=None):
-        if item_type == 'vod':
-            method = 'videoPlaybackAccessToken'
-            param_name = 'id'
-        else:
-            method = 'streamPlaybackAccessToken'
-            param_name = 'channelName'
+    def _download_access_token_gql(self, video_id, token_kind, param_name):
+        method = '%sPlaybackAccessToken' % token_kind
         ops = {
             'query': '''{
               %s(
                 %s: "%s",
-                  params: {
-                    platform: "web",
-                    playerBackend: "mediaplayer",
-                    playerType: "site"
-                  }) {
+                params: {
+                  platform: "web",
+                  playerBackend: "mediaplayer",
+                  playerType: "site"
+                }
+              )
+              {
                 value
                 signature
               }
             }''' % (method, param_name, video_id),
         }
-        note = 'Downloading access token GraphQL'
-        return self._download_base_gql(video_id, ops, note)['data'][method]
+        return self._download_base_gql(
+            video_id, ops,
+            'Downloading %s access token GraphQL' % token_kind)['data'][method]
 
 
 class TwitchVodIE(TwitchGraphQLBaseIE):
@@ -227,8 +225,6 @@ class TwitchVodIE(TwitchGraphQLBaseIE):
                         )
                         (?P<id>\d+)
                     '''
-    _ITEM_TYPE = 'vod'
-    _ITEM_SHORTCUT = 'v'
 
     _TESTS = [{
         'url': 'http://www.twitch.tv/riotgames/v/6528877?t=5m10s',
@@ -333,7 +329,7 @@ class TwitchVodIE(TwitchGraphQLBaseIE):
         vod_id = self._match_id(url)
 
         info = self._download_info(vod_id)
-        access_token = self._download_access_token_gql(vod_id, self._ITEM_TYPE)
+        access_token = self._download_access_token_gql(vod_id, 'video', 'id')
 
         formats = self._extract_m3u8_formats(
             '%s/vod/%s.m3u8?%s' % (
@@ -839,7 +835,8 @@ class TwitchStreamIE(TwitchGraphQLBaseIE):
         if not stream:
             raise ExtractorError('%s is offline' % channel_name, expected=True)
 
-        access_token = self._download_access_token_gql(channel_name)
+        access_token = self._download_access_token_gql(
+            channel_name, 'stream', 'channelName')
         token = access_token['value']
 
         stream_id = stream.get('id') or channel_name
