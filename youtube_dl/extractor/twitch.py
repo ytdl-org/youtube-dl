@@ -171,6 +171,7 @@ class TwitchGraphQLBaseIE(TwitchBaseIE):
         'StreamMetadata': '1c719a40e481453e5c48d9bb585d971b8b372f8ebb105b17076722264dfa5b3e',
         'ComscoreStreamingQuery': 'e1edae8122517d013405f237ffcc124515dc6ded82480a88daef69c83b53ac01',
         'VideoPreviewOverlay': '3006e77e51b128d838fa4e835723ca4dc9a05c5efd4466c1085215c6e437e65c',
+        'VideoMetadata': '226edb3e692509f727fd56821f5653c05740242c82b0388883e0c0e75dcbf687',
     }
 
     def _download_base_gql(self, video_id, ops, note, fatal=True):
@@ -234,7 +235,7 @@ class TwitchVodIE(TwitchGraphQLBaseIE):
             'title': 'LCK Summer Split - Week 6 Day 1',
             'thumbnail': r're:^https?://.*\.jpg$',
             'duration': 17208,
-            'timestamp': 1435131709,
+            'timestamp': 1435131734,
             'upload_date': '20150624',
             'uploader': 'Riot Games',
             'uploader_id': 'riotgames',
@@ -288,6 +289,22 @@ class TwitchVodIE(TwitchGraphQLBaseIE):
                 'kraken/videos/%s' % item_id, item_id,
                 'Downloading video info JSON'))
 
+    def _download_info_gql(self, item_id):
+        data = self._download_gql(
+            item_id, [{
+                'operationName': 'VideoMetadata',
+                'variables': {
+                    'channelLogin': '',
+                    'videoID': item_id,
+                },
+            }],
+            'Downloading stream metadata GraphQL')[0]['data']
+        video = data.get('video')
+        if video is None:
+            raise ExtractorError(
+                'Video %s does not exist' % item_id, expected=True)
+        return self._extract_info_gql(video, item_id)
+
     @staticmethod
     def _extract_info(info):
         status = info.get('status')
@@ -325,10 +342,32 @@ class TwitchVodIE(TwitchGraphQLBaseIE):
             'is_live': is_live,
         }
 
+    @staticmethod
+    def _extract_info_gql(info, item_id):
+        vod_id = info.get('id') or item_id
+        # id backward compatibility for download archives
+        if vod_id[0] != 'v':
+            vod_id = 'v%s' % vod_id
+        thumbnail = url_or_none(info.get('previewThumbnailURL'))
+        if thumbnail:
+            for p in ('width', 'height'):
+                thumbnail = thumbnail.replace('{%s}' % p, '0')
+        return {
+            'id': vod_id,
+            'title': info.get('title') or 'Untitled Broadcast',
+            'description': info.get('description'),
+            'duration': int_or_none(info.get('lengthSeconds')),
+            'thumbnail': thumbnail,
+            'uploader': try_get(info, lambda x: x['owner']['displayName'], compat_str),
+            'uploader_id': try_get(info, lambda x: x['owner']['login'], compat_str),
+            'timestamp': unified_timestamp(info.get('publishedAt')),
+            'view_count': int_or_none(info.get('viewCount')),
+        }
+
     def _real_extract(self, url):
         vod_id = self._match_id(url)
 
-        info = self._download_info(vod_id)
+        info = self._download_info_gql(vod_id)
         access_token = self._download_access_token_gql(vod_id, 'video', 'id')
 
         formats = self._extract_m3u8_formats(
