@@ -9,6 +9,7 @@ from ..compat import (
     compat_b64decode,
     compat_urllib_parse_urlencode,
 )
+from ..utils import std_headers
 
 
 class SproutVideoIE(InfoExtractor):
@@ -33,7 +34,7 @@ class SproutVideoIE(InfoExtractor):
 
     def _real_extract(self, url):
         video_id = self._match_id(url)
-        webpage = self._download_webpage(url, video_id)
+        webpage = self._download_webpage(url, video_id, headers=std_headers)
 
         data = self._search_regex(r"var\s+dat\s+=\s+'([^']+)';", webpage, 'data')
         data_decoded = compat_b64decode(data).decode('utf-8')
@@ -47,11 +48,18 @@ class SproutVideoIE(InfoExtractor):
         k_sign = SproutVideoIE._policy_to_qs(parsed_data, 'k')
         t_sign = SproutVideoIE._policy_to_qs(parsed_data, 't')
 
+        custom_headers = {
+            'Accept': '*/*',
+            'Origin': 'https://videos.sproutvideo.com',
+            'Referer': url
+        }
+
         resource_url = 'https://{0}.videos.sproutvideo.com/{1}/{2}/video/index.m3u8?{3}'.format(
             parsed_data['base'], parsed_data['s3_user_hash'], parsed_data['s3_video_hash'], m_sign)
 
         formats = self._extract_m3u8_formats(
-            resource_url, video_id, 'mp4', entry_protocol='m3u8_native', m3u8_id='hls', fatal=False)
+            resource_url, video_id, 'mp4', entry_protocol='m3u8_native', m3u8_id='hls', fatal=False,
+            headers=custom_headers)
         self._sort_formats(formats)
 
         for entry in formats:
@@ -59,6 +67,7 @@ class SproutVideoIE(InfoExtractor):
                 'url': '{0}?{1}'.format(entry['url'], m_sign),
                 'extra_param_to_segment_url': t_sign,
                 'extra_param_to_key_url': k_sign,
+                'http_headers': custom_headers
             })
 
         return {
