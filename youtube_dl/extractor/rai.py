@@ -412,7 +412,7 @@ class RaiIE(RaiBaseIE):
                 'content item id', default=None)
 
         if not content_item_id:
-            content_item_id = self._search_regex(
+            content_item_id = self._search_regex([
                 r'''(?x)
                     (?:
                         (?:initEdizione|drawMediaRaiTV)\(|
@@ -421,12 +421,11 @@ class RaiIE(RaiBaseIE):
                     (["\'])
                     (?:(?!\1).)*\bContentItem-(?P<id>%s)
                 ''' % self._UUID_RE,
-                webpage, 'content item id', default=None, group='id')
-
-        if not content_item_id:
-            content_item_id = self._search_regex(
-                r'/ContentItem-(?P<id>%s)\.html\?iframe' % self._UUID_RE,
-                webpage, 'content item id', default=None, group='id')
+                r'''(?x)
+                    <iframe[^>]+\bsrc=(["']).+?
+                    /ContentItem-(?P<id>%s)\.html\?iframe.*?\1
+                ''' % self._UUID_RE,
+            ], webpage, 'content item id', default=None, group='id')
 
         content_item_ids = set()
         if content_item_id:
