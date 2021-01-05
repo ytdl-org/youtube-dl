@@ -327,7 +327,7 @@ class RaiIE(RaiBaseIE):
             'skip_download': True,
         },
     }, {
-        # ContentItem in iframe - fixes #12652
+        # ContentItem in iframe (see #12652)
         'url': 'http://www.presadiretta.rai.it/dl/portali/site/puntata/ContentItem-3ed19d13-26c2-46ff-a551-b10828262f1b.html',
         'info_dict': {
             'id': '1ad6dc64-444a-42a4-9bea-e5419ad2f5fd',
