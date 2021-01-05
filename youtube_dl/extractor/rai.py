@@ -151,22 +151,13 @@ class RaiPlayIE(RaiBaseIE):
         'only_matching': True,
     }]
 
-    def _check_drm(self, obj):
-        if try_get(obj, lambda x: x['rights_management']['rights']['drm'], dict):
-            return True
-
-        if obj.get('program_info'):
-            return self._check_drm(obj['program_info'])
-
-        return False
-
     def _real_extract(self, url):
         base, video_id = re.match(self._VALID_URL, url).groups()
 
         media = self._download_json(
             base + '.json', video_id, 'Downloading video JSON')
 
-        if self._check_drm(media):
+        if try_get(media, lambda x: x['rights_management']['rights']['drm'], dict) or try_get(media, lambda x: x['program_info']['rights_management']['rights']['drm'], dict):
             raise ExtractorError('This video is DRM protected.', expected=True)
 
         title = media['name']
@@ -343,19 +334,6 @@ class RaiIE(RaiBaseIE):
             'skip_download': True,
         },
     }, {
-        # ContentItem in iframe - fixes #12652
-        'url': 'http://www.presadiretta.rai.it/dl/portali/site/puntata/ContentItem-3ed19d13-26c2-46ff-a551-b10828262f1b.html',
-        'info_dict': {
-            'id': '1ad6dc64-444a-42a4-9bea-e5419ad2f5fd',
-            'ext': 'mp4',
-            'title': 'Partiti acchiappavoti - Presa diretta del 13/09/2015',
-            'description': 'md5:d291b03407ec505f95f27970c0b025f4',
-            'upload_date': '20150913',
-        },
-        'params': {
-            'skip_download': True,
-        },
-    }, {
         # Direct MMS URL
         'url': 'http://www.rai.it/dl/RaiTV/programmi/media/ContentItem-b63a4089-ac28-48cf-bca5-9f5b5bc46df5.html',
         'only_matching': True,
@@ -437,11 +415,6 @@ class RaiIE(RaiBaseIE):
                     (["\'])
                     (?:(?!\1).)*\bContentItem-(?P<id>%s)
                 ''' % self._UUID_RE,
-                webpage, 'content item id', default=None, group='id')
-
-        if not content_item_id:
-            content_item_id = self._search_regex(
-                r'/ContentItem-(?P<id>%s)\.html\?iframe' % self._UUID_RE,
                 webpage, 'content item id', default=None, group='id')
 
         content_item_ids = set()
