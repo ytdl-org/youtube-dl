@@ -9,7 +9,6 @@ import re
 
 from .common import InfoExtractor
 from ..compat import (
-    compat_kwargs,
     compat_parse_qs,
     compat_str,
     compat_urlparse,
@@ -41,31 +40,6 @@ class TwitchBaseIE(InfoExtractor):
     _LOGIN_POST_URL = 'https://passport.twitch.tv/login'
     _CLIENT_ID = 'kimne78kx3ncx6brgo4mv6wki5h1ko'
     _NETRC_MACHINE = 'twitch'
-
-    def _handle_error(self, response):
-        if not isinstance(response, dict):
-            return
-        error = response.get('error')
-        if error:
-            raise ExtractorError(
-                '%s returned error: %s - %s' % (self.IE_NAME, error, response.get('message')),
-                expected=True)
-
-    def _call_api(self, path, item_id, *args, **kwargs):
-        headers = kwargs.get('headers', {}).copy()
-        headers.update({
-            'Accept': 'application/vnd.twitchtv.v5+json; charset=UTF-8',
-            'Client-ID': self._CLIENT_ID,
-        })
-        kwargs.update({
-            'headers': headers,
-            'expected_status': (400, 410),
-        })
-        response = self._download_json(
-            '%s/%s' % (self._API_BASE, path), item_id,
-            *args, **compat_kwargs(kwargs))
-        self._handle_error(response)
-        return response
 
     def _real_initialize(self):
         self._login()
@@ -150,14 +124,6 @@ class TwitchBaseIE(InfoExtractor):
                         'format_note': 'Source',
                     })
         self._sort_formats(formats)
-
-    def _download_access_token(self, channel_name):
-        return self._call_api(
-            'api/channels/%s/access_token' % channel_name, channel_name,
-            'Downloading access token JSON')
-
-    def _extract_channel_id(self, token, channel_name):
-        return compat_str(self._parse_json(token, channel_name)['channel_id'])
 
 
 class TwitchGraphQLBaseIE(TwitchBaseIE):
@@ -282,12 +248,6 @@ class TwitchVodIE(TwitchGraphQLBaseIE):
         'url': 'https://player.twitch.tv/?video=480452374',
         'only_matching': True,
     }]
-
-    def _download_info(self, item_id):
-        return self._extract_info(
-            self._call_api(
-                'kraken/videos/%s' % item_id, item_id,
-                'Downloading video info JSON'))
 
     def _download_info_gql(self, item_id):
         data = self._download_gql(
@@ -498,49 +458,6 @@ class TwitchPlaylistBaseIE(TwitchGraphQLBaseIE):
                     cursor = edge.get('cursor')
                     yield entry
             if not cursor or not isinstance(cursor, compat_str):
-                break
-
-    # Deprecated kraken v5 API
-    def _entries_kraken(self, channel_name, broadcast_type, sort):
-        access_token = self._download_access_token(channel_name)
-        channel_id = self._extract_channel_id(access_token['token'], channel_name)
-        offset = 0
-        counter_override = None
-        for counter in itertools.count(1):
-            response = self._call_api(
-                'kraken/channels/%s/videos/' % channel_id,
-                channel_id,
-                'Downloading video JSON page %s' % (counter_override or counter),
-                query={
-                    'offset': offset,
-                    'limit': self._PAGE_LIMIT,
-                    'broadcast_type': broadcast_type,
-                    'sort': sort,
-                })
-            videos = response.get('videos')
-            if not isinstance(videos, list):
-                break
-            for video in videos:
-                if not isinstance(video, dict):
-                    continue
-                video_url = url_or_none(video.get('url'))
-                if not video_url:
-                    continue
-                yield {
-                    '_type': 'url_transparent',
-                    'ie_key': TwitchVodIE.ie_key(),
-                    'id': video.get('_id'),
-                    'url': video_url,
-                    'title': video.get('title'),
-                    'description': video.get('description'),
-                    'timestamp': unified_timestamp(video.get('published_at')),
-                    'duration': float_or_none(video.get('length')),
-                    'view_count': int_or_none(video.get('views')),
-                    'language': video.get('language'),
-                }
-            offset += self._PAGE_LIMIT
-            total = int_or_none(response.get('_total'))
-            if total and offset >= total:
                 break
 
 
