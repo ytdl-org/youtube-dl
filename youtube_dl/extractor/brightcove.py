@@ -471,13 +471,18 @@ class BrightcoveNewIE(AdobePassIE):
     def _parse_brightcove_metadata(self, json_data, video_id, headers={}):
         title = json_data['name'].strip()
 
+        num_drm_sources = 0
         formats = []
-        for source in json_data.get('sources', []):
+        sources = json_data.get('sources') or []
+        for source in sources:
             container = source.get('container')
             ext = mimetype2ext(source.get('type'))
             src = source.get('src')
             # https://support.brightcove.com/playback-api-video-fields-reference#key_systems_object
-            if ext == 'ism' or container == 'WVM' or source.get('key_systems'):
+            if container == 'WVM' or source.get('key_systems'):
+                num_drm_sources += 1
+                continue
+            elif ext == 'ism':
                 continue
             elif ext == 'm3u8' or container == 'M2TS':
                 if not src:
@@ -534,20 +539,15 @@ class BrightcoveNewIE(AdobePassIE):
                         'format_id': build_format_id('rtmp'),
                     })
                 formats.append(f)
-        if not formats:
-            # for sonyliv.com DRM protected videos
-            s3_source_url = json_data.get('custom_fields', {}).get('s3sourceurl')
-            if s3_source_url:
-                formats.append({
-                    'url': s3_source_url,
-                    'format_id': 'source',
-                })
 
-        errors = json_data.get('errors')
-        if not formats and errors:
-            error = errors[0]
-            raise ExtractorError(
-                error.get('message') or error.get('error_subcode') or error['error_code'], expected=True)
+        if not formats:
+            errors = json_data.get('errors')
+            if errors:
+                error = errors[0]
+                raise ExtractorError(
+                    error.get('message') or error.get('error_subcode') or error['error_code'], expected=True)
+            if sources and num_drm_sources == len(sources):
+                raise ExtractorError('This video is DRM protected.', expected=True)
 
         self._sort_formats(formats)
 
