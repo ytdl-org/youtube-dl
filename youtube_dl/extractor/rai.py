@@ -103,22 +103,33 @@ class RaiBaseIE(InfoExtractor):
         }.items() if v is not None)
 
     @staticmethod
-    def _extract_subtitles(url, subtitle_url):
-        subtitles = {}
-        if subtitle_url and isinstance(subtitle_url, compat_str):
-            subtitle_url = urljoin(url, subtitle_url)
+    def _extract_subtitles(url, video_data):
+
+        def create_sub(url, lang):
             STL_EXT = '.stl'
             SRT_EXT = '.srt'
-            subtitles['it'] = [{
-                'ext': 'stl',
-                'url': subtitle_url,
+            sub = {}
+            sub[lang] = [{
+                'ext': determine_ext(url),
+                'url': url,
             }]
-            if subtitle_url.endswith(STL_EXT):
-                srt_url = subtitle_url[:-len(STL_EXT)] + SRT_EXT
-                subtitles['it'].append({
+            if url.endswith(STL_EXT):
+                srt_url = url[:-len(STL_EXT)] + SRT_EXT
+                sub[lang].append({
                     'ext': 'srt',
                     'url': srt_url,
                 })
+            return sub
+
+        subtitles = {}
+        subtitlesArray = video_data.get('subtitlesArray')
+        subtitlesArray.append({'url': video_data.get('subtitles')})
+        for subtitle in subtitlesArray or []:
+            sub_url = subtitle.get('url')
+            if sub_url and isinstance(sub_url, compat_str):
+                subtitles.update(create_sub(
+                    urljoin(url, sub_url), subtitle.get('language') or 'it'))
+
         return subtitles
 
 
@@ -138,6 +149,9 @@ class RaiPlayIE(RaiBaseIE):
             'duration': 6160,
             'series': 'Report',
             'season': '2013/14',
+            'subtitles': {
+                'it': 'count:2',
+            },
         },
         'params': {
             'skip_download': True,
@@ -172,7 +186,7 @@ class RaiPlayIE(RaiBaseIE):
         if date_published and time_published:
             date_published += ' ' + time_published
 
-        subtitles = self._extract_subtitles(url, video.get('subtitles'))
+        subtitles = self._extract_subtitles(url, video)
 
         program_info = media.get('program_info') or {}
         season = media.get('season')
