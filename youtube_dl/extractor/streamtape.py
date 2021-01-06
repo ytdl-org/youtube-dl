@@ -8,7 +8,7 @@ from requests import Session
 from .common import InfoExtractor
 from ..utils import (
     ExtractorError, 
-    std_headers   
+    std_headers
 )
 
 import requests
@@ -39,7 +39,8 @@ class StreamtapeIE(InfoExtractor):
                 'Video %s does not exist' % video_id, expected=True)
 
         print(webpage)
-        mobj = re.search(r'\("videolink"\)\.innerHTML = "(?P<video_url>.*?)"', webpage)
+        #mobj = re.search(r'\("videolink"\)\.innerHTML = "(?P<video_url>.*?)"', webpage)
+        mobj = re.search(r"<script>.*?\.innerHTML = (?P<video_url>.*?);</script>", webpage)
         if mobj:
             video_url = mobj.group('video_url')
 
@@ -47,18 +48,24 @@ class StreamtapeIE(InfoExtractor):
             raise ExtractorError(
             'Video %s does not exist' % video_id, expected=True)
 
+        url_s = video_url.split("+")
+        url_download = "https:"
+        for s in url_s:
+            url_download = url_download + s.strip(" \"\'")
+        url_download = url_download + "&dl=1"
         title = None
-        mobj = re.match(r'<meta name="og:title" content="(?P<title>.+?)">', webpage)
+        mobj = re.search(r"<meta name=\"og:title\" content=\"(?P<title>.+?)\">", webpage)
         if mobj:
-            title = mobj.group('title')
-        
+            title = mobj.group('title').partition(".")[0]
+            
+
         if not title:
             title = 'streamtape'
 
 
         #resp = requests.head('https:' + video_url + '&stream=1')
         #url_download = resp.headers.get('Location')
-        url_download = 'https:' + video_url + '&dl=1'
+        #url_download = 'https:' + video_url + '&dl=1'
         print(url_download) 
 
         headers = std_headers
@@ -101,9 +108,7 @@ class StreamtapeIE(InfoExtractor):
             raise ExtractorError('Video does not exits')
 
         webpage = self._download_webpage(url, video_id)
-        if 'Video not found' in webpage:
-            raise ExtractorError(
-                'Video %s does not exist' % video_id, expected=True)
+        
         
         return self._extract_info_video(webpage, video_id)
               
