@@ -16,6 +16,8 @@ from ..utils import (
     std_headers
 )
 
+import logging
+
 class SketchySexBaseIE(InfoExtractor):
     _LOGIN_URL = "https://sketchysex.com/sign-in"
     _SITE_URL = "https://sketchysex.com"
@@ -24,20 +26,20 @@ class SketchySexBaseIE(InfoExtractor):
     _ABORT_URL = "https://sketchysex.com/multiple-sessions/abort"
     _AUTH_URL = "https://sketchysex.com/authorize2"
     _NETRC_MACHINE = 'sketchysex'
-    _USER_AGENT = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.16; rv:82.0) Gecko/20100101 Firefox/82.0"
+    #_USER_AGENT = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.16; rv:82.0) Gecko/20100101 Firefox/82.0"
 
     def __init__(self):
         #self.session = Session()
-        std_headers['User-Agent'] = self._USER_AGENT
+        logger = logging.getLogger(__name__)
+        #std_headers['User-Agent'] = self._USER_AGENT
         self.headers = dict()
         self.headers.update({
-            "User-Agent": self._USER_AGENT,
+            #"User-Agent": self._USER_AGENT,
             "Accept-Charset": "",
             "Accept-Encoding" : "gzip, deflate, br",
             "Accept-Language" : "es-ES,en-US;q=0.7,en;q=0.3",
             "Accept" : "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8"
-        })
-        self.logged = False
+        })        
 
 
 
@@ -136,12 +138,12 @@ class SketchySexBaseIE(InfoExtractor):
                 headers=self.headers
             )
 
-    # def _log_out(self):
-    #     self._request_webpage(
-    #         self._LOG_OUT,
-    #         None,
-    #         'Log out'
-    #     )
+    def _log_out(self):
+        self._request_webpage(
+            self._LOG_OUT,
+            None,
+           'Log out'
+       )
 
     def _extract_from_page(self, url):
         
@@ -174,7 +176,6 @@ class SketchySexBaseIE(InfoExtractor):
             if not self.username in content:
                 raise ExtractorError("", cause="It seems you are not logged", expected=True)            
         
-            self._log_out()
             regex_token = r"token: '(?P<tokenid>.*?)'"
             tokenid = ""
             tokenid = re.search(regex_token, content).group("tokenid")
@@ -243,8 +244,18 @@ class SketchySexIE(SketchySexBaseIE):
         self.logged = True
         return data
 
+    def islogged(self):
+        webpage, _ = self._download_webpage_handle(
+            self._SITE_URL,
+            None,
+            None,
+            headers=self.headers
+        )
+        return ("Log Out" in webpage)
+
+
     def _real_initialize(self):
-        if not self.logged:
+        if not self.islogged():
             self._login()
         self.headers.update({            
             "Referer" : "https://sketchysex.com/episodes/1",
@@ -306,9 +317,8 @@ class SketchySexPlayListIE(SketchySexBaseIE):
     _BASE_URL = "https://sketchysex.com"
 
     def _real_initialize(self):
-        if not self.logged:
-            self._login()            
-            self.headers.update({
+        self._login()            
+        self.headers.update({
             "Referer" : self._LOGIN_URL,
         })
 
@@ -338,7 +348,7 @@ class SketchySexPlayListIE(SketchySexBaseIE):
             #         entries.append(info)
 
             
-        #self._log_out()
+        self._log_out()
         return self.playlist_result(entries, "sketchysex Episodes:" + playlistid, "sketchysex Episodes:" + playlistid)
 
 

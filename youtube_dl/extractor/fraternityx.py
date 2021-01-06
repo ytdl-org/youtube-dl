@@ -37,6 +37,7 @@ class FraternityxBaseIE(InfoExtractor):
             "Accept-Language" : "es-ES,en-US;q=0.7,en;q=0.3",
             "Accept" : "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8"
         })
+       
 
     def _login(self):
         self.username, self.password = self._get_login_info()
@@ -312,7 +313,7 @@ class FraternityxPlayListIE(FraternityxBaseIE):
         for link in target_links:
             
             
-            entries.append(self.url_result(self._BASE_URL + link, ie=FraternityX.ie_key()))
+            entries.append(self.url_result(self._BASE_URL + link, ie=FraternityXIE.ie_key()))
             
             # full_link = self._BASE_URL + link
             # self.headers['Referer'] = url

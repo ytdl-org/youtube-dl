@@ -100,10 +100,11 @@ class StreamtapeIE(InfoExtractor):
         else:
             raise ExtractorError('Video does not exits')
 
+        webpage = self._download_webpage(url, video_id)
         if 'Video not found' in webpage:
             raise ExtractorError(
                 'Video %s does not exist' % video_id, expected=True)
-        webpage = self._download_webpage(url, video_id)
+        
         return self._extract_info_video(webpage, video_id)
               
 
