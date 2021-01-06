@@ -101,6 +101,11 @@ from .bellmedia import BellMediaIE
 from .beatport import BeatportIE
 from .bet import BetIE
 from .bfi import BFIPlayerIE
+from .bfmtv import (
+    BFMTVIE,
+    BFMTVLiveIE,
+    BFMTVArticleIE,
+)
 from .bigflix import BigflixIE
 from .bild import BildIE
 from .bilibili import (
