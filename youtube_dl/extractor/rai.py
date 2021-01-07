@@ -108,8 +108,8 @@ class RaiBaseIE(InfoExtractor):
         SRT_EXT = '.srt'
         subtitles = {}
         subtitles_array = video_data.get('subtitlesArray') or []
-        subtitles_array.append({'url': video_data.get('subtitles')})
-        subtitles_array.append({'url': video_data.get('subtitlesUrl')})
+        for k in ('subtitles', 'subtitlesUrl'):
+            subtitles_array.append({'url': video_data.get(k)})
         for subtitle in subtitles_array:
             sub_url = subtitle.get('url')
             if sub_url and isinstance(sub_url, compat_str):
