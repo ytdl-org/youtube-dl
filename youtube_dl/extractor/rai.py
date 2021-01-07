@@ -119,12 +119,11 @@ class RaiBaseIE(InfoExtractor):
                     'ext': determine_ext(sub_url),
                     'url': sub_url,
                 })
-                if determine_ext(sub_url) == STL_EXT:
-                    subtitles.setdefault(sub_lang, []).append({
+                if STL_EXT == subtitles[sub_lang][0]['ext']:
+                    subtitles[sub_lang].append({
                         'ext': SRT_EXT,
                         'url': sub_url[:-len(STL_EXT)] + SRT_EXT,
                     })
-
         return subtitles
 
 
