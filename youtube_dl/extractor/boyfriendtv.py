@@ -26,9 +26,10 @@ class BoyFriendTVBaseIE(InfoExtractor):
     _NETRC_MACHINE = 'boyfriendtv'
     _LOGOUT_URL = 'https://www.boyfriendtv.com/logout'
     _PROFILE_URL = 'https://www.boyfriendtv.com/profiles/1778026/'
-    _OUR_URL = 'https://www.boyfriendtv.com/out/lj-110/'
     
-
+    def is_logged(self, url):
+        return (url == self._SITE_URL + "/")
+    
     def _login(self):
         self.username, self.password = self._get_login_info()
         if self.username is None:
@@ -37,10 +38,8 @@ class BoyFriendTVBaseIE(InfoExtractor):
         login_page, urlh = self._download_webpage_handle(
             self._LOGIN_URL, None, 'Downloading login page')
 
-        def is_logged(url):
-            return (url == self._SITE_URL + "/")
         
-        if is_logged(urlh.geturl()):
+        if self.is_logged(urlh.geturl()):
             return
 
         login_form = self._form_hidden_inputs('loginForm', login_page)
@@ -65,7 +64,7 @@ class BoyFriendTVBaseIE(InfoExtractor):
 
       
         # Successful login
-        if is_logged(urlh.geturl()):
+        if self.is_logged(urlh.geturl()):
             return
 
         else:
@@ -81,32 +80,28 @@ class BoyFriendTVBaseIE(InfoExtractor):
         else:
             raise ExtractorError('Unable to log out', expected=True)
 
+ 
+class BoyFriendTVIE(BoyFriendTVBaseIE):
+    IE_NAME = 'boyfriendtv'
+    _VALID_URL = r'https?://(?:(?P<prefix>m|www|es|ru|de)\.)?(?P<url>boyfriendtv\.com/videos/(?P<video_id>[0-9]+)/?(?:([0-9a-zA-z_-]+/?)|$))'
+    _SOURCES_FORM = r'sources: {(?P<type>.+?):\[(?P<sources>.+?)\]}'
 
     def _real_initialize(self):
         self._login()
-
-    def _out(self):
-        out_page, urlh = self.download_webpage_handle(
-            self._OUT_URL, None
-        )
-
-
-
-class BoyFriendTVIE(BoyFriendTVBaseIE):
-    IE_NAME = 'boyfriendtv'
-    _VALID_URL = r'https?://(?:(?P<prefix>www|es|ru|de)\.)?(?P<url>boyfriendtv\.com/videos/(?P<video_id>[0-9]+)/?(?:([0-9a-zA-z_-]+/?)|$))'
-    _SOURCES_FORM = r'sources: {(?P<type>.+?):\[(?P<sources>.+?)\]}'
 
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
         video_id = mobj.group('video_id')
 
         
-        webpage, urlh = self._download_webpage_handle(url, video_id, "Downloading web page video",
-                                            headers={'X-Requested-With': 'XMLHttpRequest'})
+        webpage, urlh = self._download_webpage_handle(
+            url, video_id, "Downloading web page video",
+            headers={'X-Requested-With': 'XMLHttpRequest'})
+
         if not 'VideoPlayer' in webpage:
-            webpage, urlh = self._download_webpage_handle(self._LOGIN_URL + "/?fw=" + url, video_id, "login web page video",
-                                            headers={'X-Requested-With': 'XMLHttpRequest'})
+            webpage, urlh = self._download_webpage_handle(
+                self._LOGIN_URL + "/?fw=" + url, video_id, "login web page video",
+                headers={'X-Requested-With': 'XMLHttpRequest'})
             
             login_form = self._form_hidden_inputs('loginForm', webpage)
 
@@ -131,11 +126,7 @@ class BoyFriendTVIE(BoyFriendTVBaseIE):
             webpage, urlh = self._download_webpage_handle(url, video_id, "Downloading web page video",
                                             headers={'X-Requested-With': 'XMLHttpRequest'})
 
-        # if not 'VideoPlayer' in webpage:
-        #     with open(f"/Users/antoniotorres/testing/{video_id}.html", "w") as f:
-        #         f.write(webpage)
 
-            # raise ExtractorError("No video info", expected=True)    
         
         sources = self._search_regex(self._SOURCES_FORM, webpage, 'sources', default=None, group='sources', fatal=False)
         if sources:
@@ -156,7 +147,8 @@ class BoyFriendTVIE(BoyFriendTVBaseIE):
             url_v = src['src'].replace("\\","")
             filesize = None
             try:
-                res = requests.get(url_v, stream=True)
+                #res = requests.get(url_v, stream=True)
+                res = requests.head(url_v)
                 filesize = int(res.headers['Content-Length'])
                 #filesize = int(requests.head(url_v).headers['content-length'])
             except Exception as e:
@@ -182,16 +174,14 @@ class BoyFriendTVIE(BoyFriendTVBaseIE):
             'average_rating': average_rating
         })
 
-# class BoyFriendLightTV(BoyFriendTVBaseIE):
-#     IE_NAME = 'boyfriendlighttv'
-
-#     def _real_extract(self, url):
-
 
 class BoyFriendTVPlayListIE(BoyFriendTVBaseIE):
     IE_NAME = 'boyfriendtvplaylist'
     IE_DESC = 'boyfriendtvplaylist'
-    _VALID_URL = r'https?://(?:(www|es|ru|de)\.)boyfriendtv\.com/playlists/(?P<playlist_id>.*?)(?:(/|$))'
+    _VALID_URL = r'https?://(?:(m|www|es|ru|de)\.)boyfriendtv\.com/playlists/(?P<playlist_id>.*?)(?:(/|$))'
+
+    def _real_initialize(self):
+        self._login()
     
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
