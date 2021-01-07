@@ -122,9 +122,10 @@ class RaiBaseIE(InfoExtractor):
             return sub
 
         subtitles = {}
-        subtitlesArray = video_data.get('subtitlesArray')
-        subtitlesArray.append({'url': video_data.get('subtitles')})
-        for subtitle in subtitlesArray or []:
+        subtitles_array = video_data.get('subtitlesArray') or []
+        subtitles_array.append({'url': video_data.get('subtitles')})
+        subtitles_array.append({'url': video_data.get('subtitlesUrl')})
+        for subtitle in subtitles_array:
             sub_url = subtitle.get('url')
             if sub_url and isinstance(sub_url, compat_str):
                 subtitles.update(create_sub(
@@ -158,6 +159,10 @@ class RaiPlayIE(RaiBaseIE):
         },
     }, {
         'url': 'http://www.raiplay.it/video/2016/11/gazebotraindesi-efebe701-969c-4593-92f3-285f0d1ce750.html?',
+        'only_matching': True,
+    }, {
+        # subtitles at 'subtitlesArray' key (see #27698)
+        'url': 'https://www.raiplay.it/video/2020/12/Report---04-01-2021-2e90f1de-8eee-4de4-ac0e-78d21db5b600.html',
         'only_matching': True,
     }]
 
@@ -341,7 +346,7 @@ class RaiIE(RaiBaseIE):
             'skip_download': True,
         },
     }, {
-        # ContentItem in iframe (see #12652)
+        # ContentItem in iframe (see #12652) and subtitle at 'subtitlesUrl' key
         'url': 'http://www.presadiretta.rai.it/dl/portali/site/puntata/ContentItem-3ed19d13-26c2-46ff-a551-b10828262f1b.html',
         'info_dict': {
             'id': '1ad6dc64-444a-42a4-9bea-e5419ad2f5fd',
@@ -349,6 +354,9 @@ class RaiIE(RaiBaseIE):
             'title': 'Partiti acchiappavoti - Presa diretta del 13/09/2015',
             'description': 'md5:d291b03407ec505f95f27970c0b025f4',
             'upload_date': '20150913',
+            'subtitles': {
+                'it': 'count:2',
+            },
         },
         'params': {
             'skip_download': True,
@@ -393,7 +401,7 @@ class RaiIE(RaiBaseIE):
                     'url': compat_urlparse.urljoin(url, thumbnail_url),
                 })
 
-        subtitles = self._extract_subtitles(url, media.get('subtitlesUrl'))
+        subtitles = self._extract_subtitles(url, media)
 
         info = {
             'id': content_id,
