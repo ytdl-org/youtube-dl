@@ -104,23 +104,8 @@ class RaiBaseIE(InfoExtractor):
 
     @staticmethod
     def _extract_subtitles(url, video_data):
-
-        def create_sub(url, lang):
-            STL_EXT = '.stl'
-            SRT_EXT = '.srt'
-            sub = {}
-            sub[lang] = [{
-                'ext': determine_ext(url),
-                'url': url,
-            }]
-            if url.endswith(STL_EXT):
-                srt_url = url[:-len(STL_EXT)] + SRT_EXT
-                sub[lang].append({
-                    'ext': 'srt',
-                    'url': srt_url,
-                })
-            return sub
-
+        STL_EXT = '.stl'
+        SRT_EXT = '.srt'
         subtitles = {}
         subtitles_array = video_data.get('subtitlesArray') or []
         subtitles_array.append({'url': video_data.get('subtitles')})
@@ -128,8 +113,20 @@ class RaiBaseIE(InfoExtractor):
         for subtitle in subtitles_array:
             sub_url = subtitle.get('url')
             if sub_url and isinstance(sub_url, compat_str):
-                subtitles.update(create_sub(
-                    urljoin(url, sub_url), subtitle.get('language') or 'it'))
+                sub_lang = subtitle.get('language') or 'it'
+                sub_url = urljoin(url, sub_url)
+                sub = {}
+                sub[sub_lang] = [{
+                    'ext': determine_ext(sub_url),
+                    'url': sub_url,
+                }]
+                if sub_url.endswith(STL_EXT):
+                    srt_url = sub_url[:-len(STL_EXT)] + SRT_EXT
+                    sub[sub_lang].append({
+                        'ext': 'srt',
+                        'url': srt_url,
+                    })
+                subtitles.update(sub)
 
         return subtitles
 
