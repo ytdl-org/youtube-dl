@@ -12,7 +12,7 @@ from ..utils import (
 
 
 class GimyIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:www\.)?gimy\.co/eps/(?P<id>[0-9,-]+)'
+    _VALID_URL = r'https?://(?:www\.)?gimy\.co/eps/(?P<id>[0-9,-]+)\.html'
     _TESTS = [{
         'url': 'http://gimy.co/eps/116498-1-1.html',
         'md5': '3c804e6600c466b98ac24a6f3431cafd',
@@ -63,12 +63,10 @@ class GimyIE(InfoExtractor):
         if m3u8_url is None:
             raise ExtractorError('Unable to extract video urls')
 
-        formats = self._extract_m3u8_formats(m3u8_url, video_id, 'mp4', entry_protocol='m3u8_native')
-
         return {
             'id': video_id,
             'title': self._og_search_title(webpage),
-            'formats': formats,
+            'formats': self._extract_m3u8_formats(m3u8_url, video_id, 'mp4', entry_protocol='m3u8_native'),
             'description': self._og_search_description(webpage),
             'thumbnail': self._og_search_thumbnail(webpage)
         }
