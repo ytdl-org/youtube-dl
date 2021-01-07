@@ -211,7 +211,7 @@ class CanvasEenIE(InfoExtractor):
 
 class VrtNUIE(GigyaBaseIE):
     IE_DESC = 'VrtNU.be'
-    _VALID_URL = r'https?://(?:www\.)?vrt\.be/(?P<site_id>vrtnu)/(?:[^/]+/)*(?P<id>[^/?#&]+)'
+    _VALID_URL = r'https?://(?:www\.)?vrt\.be/vrtnu/a-z/(?:[^/]+/){2}(?P<id>[^/?#&]+)'
     _TESTS = [{
         # Available via old API endpoint
         'url': 'https://www.vrt.be/vrtnu/a-z/postbus-x/1989/postbus-x-s1989a1/',
