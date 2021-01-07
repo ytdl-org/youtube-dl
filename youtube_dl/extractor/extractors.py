@@ -55,7 +55,9 @@ from .appletrailers import (
     AppleTrailersIE,
     AppleTrailersSectionIE,
 )
+from .applepodcasts import ApplePodcastsIE
 from .archiveorg import ArchiveOrgIE
+from .arcpublishing import ArcPublishingIE
 from .arkena import ArkenaIE
 from .ard import (
     ARDBetaMediathekIE,
@@ -99,6 +101,12 @@ from .bellmedia import BellMediaIE
 from .beatport import BeatportIE
 from .bet import BetIE
 from .bfi import BFIPlayerIE
+from .bfmtv import (
+    BFMTVIE,
+    BFMTVLiveIE,
+    BFMTVArticleIE,
+)
+from .bibeltv import BibelTVIE
 from .bigflix import BigflixIE
 from .bild import BildIE
 from .bilibili import (
@@ -421,7 +429,10 @@ from .go import GoIE
 from .godtube import GodTubeIE
 from .golem import GolemIE
 from .googledrive import GoogleDriveIE
-from .googleplus import GooglePlusIE
+from .googlepodcasts import (
+    GooglePodcastsIE,
+    GooglePodcastsFeedIE,
+)
 from .googlesearch import GoogleSearchIE
 from .goshgay import GoshgayIE
 from .gputechconf import GPUTechConfIE
@@ -461,6 +472,10 @@ from .ign import (
     IGNIE,
     OneUPIE,
     PCMagIE,
+)
+from .iheart import (
+    IHeartRadioIE,
+    IHeartRadioPodcastIE,
 )
 from .imdb import (
     ImdbIE,
@@ -789,6 +804,7 @@ from .nrk import (
     NRKSkoleIE,
     NRKTVIE,
     NRKTVDirekteIE,
+    NRKRadioPodkastIE,
     NRKTVEpisodeIE,
     NRKTVEpisodesIE,
     NRKTVSeasonIE,
@@ -1052,6 +1068,7 @@ from .skynewsarabia import (
 from .sky import (
     SkyNewsIE,
     SkySportsIE,
+    SkySportsNewsIE,
 )
 from .slideshare import SlideshareIE
 from .slideslive import SlidesLiveIE
@@ -1089,7 +1106,10 @@ from .spike import (
     BellatorIE,
     ParamountNetworkIE,
 )
-from .stitcher import StitcherIE
+from .stitcher import (
+    StitcherIE,
+    StitcherShowIE,
+)
 from .sport5 import Sport5IE
 from .sportbox import SportBoxIE
 from .sportdeutschland import SportDeutschlandIE
@@ -1425,7 +1445,10 @@ from .vshare import VShareIE
 from .medialaan import MedialaanIE
 from .vube import VubeIE
 from .vuclip import VuClipIE
-from .vvvvid import VVVVIDIE
+from .vvvvid import (
+    VVVVIDIE,
+    VVVVIDShowIE,
+)
 from .vyborymos import VyboryMosIE
 from .vzaar import VzaarIE
 from .wakanim import WakanimIE
