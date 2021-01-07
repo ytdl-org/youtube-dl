@@ -115,11 +115,12 @@ class RaiBaseIE(InfoExtractor):
             if sub_url and isinstance(sub_url, compat_str):
                 sub_lang = subtitle.get('language') or 'it'
                 sub_url = urljoin(url, sub_url)
+                sub_ext = determine_ext(sub_url, SRT_EXT)
                 subtitles.setdefault(sub_lang, []).append({
-                    'ext': determine_ext(sub_url),
+                    'ext': sub_ext,
                     'url': sub_url,
                 })
-                if STL_EXT == subtitles[sub_lang][0]['ext']:
+                if STL_EXT == sub_ext:
                     subtitles[sub_lang].append({
                         'ext': SRT_EXT,
                         'url': sub_url[:-len(STL_EXT)] + SRT_EXT,
