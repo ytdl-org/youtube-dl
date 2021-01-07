@@ -104,8 +104,8 @@ class RaiBaseIE(InfoExtractor):
 
     @staticmethod
     def _extract_subtitles(url, video_data):
-        STL_EXT = '.stl'
-        SRT_EXT = '.srt'
+        STL_EXT = 'stl'
+        SRT_EXT = 'srt'
         subtitles = {}
         subtitles_array = video_data.get('subtitlesArray') or []
         for k in ('subtitles', 'subtitlesUrl'):
@@ -119,13 +119,11 @@ class RaiBaseIE(InfoExtractor):
                     'ext': determine_ext(sub_url),
                     'url': sub_url,
                 })
-                if sub_url.endswith(STL_EXT):
-                    srt_url = sub_url[:-len(STL_EXT)] + SRT_EXT
-                    sub[sub_lang].append({
-                        'ext': 'srt',
-                        'url': srt_url,
+                if determine_ext(sub_url) == STL_EXT:
+                    subtitles.setdefault(sub_lang, []).append({
+                        'ext': SRT_EXT,
+                        'url': sub_url[:-len(STL_EXT)] + SRT_EXT,
                     })
-                subtitles.update(sub)
 
         return subtitles
 
