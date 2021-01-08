@@ -1,4 +1,4 @@
-version <unreleased>
+version 2021.01.08
 
 Core
 * [downloader/hls] Disable decryption in tests (#27660)
