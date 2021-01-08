@@ -40,8 +40,14 @@ class ParamountNetworkIE(MTVServicesInfoExtractor):
         },
     }]
 
-    _FEED_URL = 'http://www.paramountnetwork.com/feeds/mrss/'
+    _FEED_URL = 'http://feeds.mtvnservices.com/od/feed/intl-mrss-player-feed'
     _GEO_COUNTRIES = ['US']
+
+    def _get_feed_query(self, uri):
+        return {
+            'arcEp': 'paramountnetwork.com',
+            'mgid': uri,
+        }
 
     def _extract_mgid(self, webpage):
         root_data = self._parse_json(self._search_regex(
