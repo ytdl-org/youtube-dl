@@ -11,6 +11,8 @@ from ..utils import (
 
 
 class ExecAfterDownloadPP(PostProcessor):
+    PP_NAME = 'Exec'
+
     def __init__(self, downloader, exec_cmd):
         super(ExecAfterDownloadPP, self).__init__(downloader)
         self.exec_cmd = exec_cmd
