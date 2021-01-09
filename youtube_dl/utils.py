@@ -2212,6 +2212,15 @@ def unescapeHTML(s):
         r'&([^&;]+;)', lambda m: _htmlentity_transform(m.group(1)), s)
 
 
+def process_communicate_or_kill(p, *args, **kwargs):
+    try:
+        return p.communicate(*args, **kwargs)
+    except BaseException:  # Including KeyboardInterrupt
+        p.kill()
+        p.wait()
+        raise
+
+
 def get_subprocess_encoding():
     if sys.platform == 'win32' and sys.getwindowsversion()[0] >= 5:
         # For subprocess calls, encode with locale encoding
@@ -3788,7 +3797,8 @@ def check_executable(exe, args=[]):
     """ Checks if the given binary is installed somewhere in PATH, and returns its name.
     args can be a list of arguments for a short output (like -version) """
     try:
-        subprocess.Popen([exe] + args, stdout=subprocess.PIPE, stderr=subprocess.PIPE).communicate()
+        process_communicate_or_kill(subprocess.Popen(
+            [exe] + args, stdout=subprocess.PIPE, stderr=subprocess.PIPE))
     except OSError:
         return False
     return exe
@@ -3802,10 +3812,10 @@ def get_exe_version(exe, args=['--version'],
         # STDIN should be redirected too. On UNIX-like systems, ffmpeg triggers
         # SIGTTOU if youtube-dl is run in the background.
         # See https://github.com/ytdl-org/youtube-dl/issues/955#issuecomment-209789656
-        out, _ = subprocess.Popen(
+        out, _ = process_communicate_or_kill(subprocess.Popen(
             [encodeArgument(exe)] + args,
             stdin=subprocess.PIPE,
-            stdout=subprocess.PIPE, stderr=subprocess.STDOUT).communicate()
+            stdout=subprocess.PIPE, stderr=subprocess.STDOUT))
     except OSError:
         return False
     if isinstance(out, bytes):  # Python 2.x
@@ -5744,7 +5754,7 @@ def write_xattr(path, key, value):
                         cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, stdin=subprocess.PIPE)
                 except EnvironmentError as e:
                     raise XAttrMetadataError(e.errno, e.strerror)
-                stdout, stderr = p.communicate()
+                stdout, stderr = process_communicate_or_kill(p)
                 stderr = stderr.decode('utf-8', 'replace')
                 if p.returncode != 0:
                     raise XAttrMetadataError(p.returncode, stderr)
