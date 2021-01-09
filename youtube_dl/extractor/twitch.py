@@ -76,7 +76,7 @@ class TwitchBaseIE(InfoExtractor):
 
             headers = {
                 'Referer': page_url,
-                'Origin': page_url,
+                'Origin': 'https://www.twitch.tv',
                 'Content-Type': 'text/plain;charset=UTF-8',
             }
 
