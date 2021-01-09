@@ -20,7 +20,7 @@ class DPlayIE(InfoExtractor):
             (?:www\.)?(?P<host>d
                 (?:
                     play\.(?P<country>dk|fi|jp|se|no)|
-                    iscoveryplus\.(?P<plus_country>dk|es|fi|it|se|no)
+                    iscoveryplus\.(?P<plus_country>dk|es|fi|it|se|no|it)
                 )
             )|
             (?P<subdomain_country>es|it)\.dplay\.com
@@ -148,6 +148,9 @@ class DPlayIE(InfoExtractor):
         'only_matching': True,
     }, {
         'url': 'https://www.discoveryplus.fi/videot/shifting-gears-with-aaron-kaufman/episode-16',
+        'only_matching': True,
+    }, {
+        'url': 'https://www.discoveryplus.it/programmi/drive-me-crazy/stagione-2-episodio-5-cross-country',
         'only_matching': True,
     }]
 
