@@ -17,6 +17,7 @@ from ..compat import (
 )
 from ..utils import (
     clean_html,
+    dict_get,
     ExtractorError,
     float_or_none,
     int_or_none,
@@ -83,7 +84,7 @@ class TwitchBaseIE(InfoExtractor):
             response = self._download_json(
                 post_url, None, note, data=json.dumps(form).encode(),
                 headers=headers, expected_status=400)
-            error = response.get('error_description') or response.get('error_code')
+            error = dict_get(response, ('error', 'error_description', 'error_code'))
             if error:
                 fail(error)
 
