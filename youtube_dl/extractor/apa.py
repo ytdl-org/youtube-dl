@@ -7,7 +7,6 @@ from .common import InfoExtractor
 from ..utils import (
     determine_ext,
     js_to_json,
-    url_or_none,
 )
 
 
@@ -17,14 +16,10 @@ class APAIE(InfoExtractor):
         'url': 'http://uvp.apa.at/embed/293f6d17-692a-44e3-9fd5-7b178f3a1029',
         'md5': '2b12292faeb0a7d930c778c7a5b4759b',
         'info_dict': {
-            'id': 'jjv85FdZ',
+            'id': '293f6d17-692a-44e3-9fd5-7b178f3a1029',
             'ext': 'mp4',
-            'title': '"Blau ist mysteriös": Die Blue Man Group im Interview',
-            'description': 'md5:d41d8cd98f00b204e9800998ecf8427e',
+            'title': '293f6d17-692a-44e3-9fd5-7b178f3a1029',
             'thumbnail': r're:^https?://.*\.jpg$',
-            'duration': 254,
-            'timestamp': 1519211149,
-            'upload_date': '20180221',
         },
     }, {
         'url': 'https://uvp-apapublisher.sf.apa.at/embed/2f94e9e6-d945-4db2-9548-f9a41ebf7b78',
@@ -48,7 +43,7 @@ class APAIE(InfoExtractor):
     def _real_extract(self, url):
         video_id = self._match_id(url)
 
-        webpage = self._download_webpage(url, video_id)
+        webpage = self._download_webpage('https://uvp.apa.at/player/%s' % video_id, video_id)
 
         jwplatform_id = self._search_regex(
             r'media[iI]d\s*:\s*["\'](?P<id>[a-zA-Z0-9]{8})', webpage,
@@ -59,18 +54,12 @@ class APAIE(InfoExtractor):
                 'jwplatform:' + jwplatform_id, ie='JWPlatform',
                 video_id=video_id)
 
-        sources = self._parse_json(
-            self._search_regex(
-                r'sources\s*=\s*(\[.+?\])\s*;', webpage, 'sources'),
-            video_id, transform_source=js_to_json)
+        sources = self._parse_json("{" + self._search_regex(
+            r'("hls"\s*:\s*"[^"]+"\s*,\s*"progressive"\s*:\s*"[^"]+")', webpage, 'sources')
+            + "}", video_id, transform_source=js_to_json)
 
         formats = []
-        for source in sources:
-            if not isinstance(source, dict):
-                continue
-            source_url = url_or_none(source.get('file'))
-            if not source_url:
-                continue
+        for (format, source_url) in sources.items():
             ext = determine_ext(source_url)
             if ext == 'm3u8':
                 formats.extend(self._extract_m3u8_formats(
@@ -83,7 +72,7 @@ class APAIE(InfoExtractor):
         self._sort_formats(formats)
 
         thumbnail = self._search_regex(
-            r'image\s*:\s*(["\'])(?P<url>(?:(?!\1).)+)\1', webpage,
+            r'"poster"\s*:\s*(["\'])(?P<url>(?:(?!\1).)+)\1', webpage,
             'thumbnail', fatal=False, group='url')
 
         return {
