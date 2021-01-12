@@ -8,6 +8,7 @@ from .common import InfoExtractor
 from ..utils import (
     get_element_by_id,
     unified_strdate,
+    ExtractorError,
     parse_duration)
 
 
@@ -35,9 +36,7 @@ class KhinsiderIE(InfoExtractor):
             'album', group='album') + '_' + self._search_regex(self._VALID_URL, url, 'track', group='track')
         webpage = self._download_webpage(url, video_id)
 
-        title = self._html_search_regex(
-            r'Song name: <b>(.+?)</b>',
-            webpage, 'title') or self._search_regex(self._VALID_URL, url, 'track', group='track')
+        title = self._html_search_regex(r'Song name: <b>(.+?)</b>', webpage, 'title', default=video_id)
 
         return {
             'id': video_id,
@@ -45,7 +44,7 @@ class KhinsiderIE(InfoExtractor):
             'description': self._html_search_meta('description', webpage),
             'url': url,
             'ext': 'mp3',
-            'album': self._html_search_regex(r'Album name: <b>(.+?)</b>', webpage, 'album name'),
+            'album': self._html_search_regex(r'Album name: <b>(.+?)</b>', webpage, 'album name', fatal=False),
             'track': title
         }
 
@@ -74,6 +73,9 @@ class KhinsiderAlbumIE(InfoExtractor):
         r = re.compile(r'<td class=\"clickable-row\"><a href=\"(?P<track_url>.+?)\">(?P<track_title>.+?)</a></td>[^\S]+<td class=\"clickable-row\"[^>]+?><a href=\"(.+?)\"[^>]+?>(?P<duration>[0-9,:]+)</a></td>')
         songs_info = [m.groupdict() for m in r.finditer(content)]
 
+        if len(songs_info) <= 0:
+            raise ExtractorError('No tracks found for this album.')
+
         entries = []
         for song_info in songs_info:
             entries.append({
@@ -92,7 +94,7 @@ class KhinsiderAlbumIE(InfoExtractor):
         video_id = self._match_id(url)
         webpage = self._download_webpage(url, video_id)
 
-        title = self._html_search_regex(r'<title>(.+?)[^\S]+?</title>', webpage, 'title')
+        title = self._html_search_regex(r'<title>(.+?)[^\S]+?</title>', webpage, 'title', default=video_id)
         upload_date = self._html_search_regex(r'Date added: <b>(.+?)</b>', webpage, 'upload date', fatal=False)
         tb = self._html_search_regex(
             r'<a href=\"(https://vgmsite.com/(.+?).jpg)\" target=\"_blank\">',
