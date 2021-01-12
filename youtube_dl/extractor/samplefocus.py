@@ -33,12 +33,12 @@ class SampleFocusIE(InfoExtractor):
         video_id = self._match_id(url)
         webpage = self._download_webpage(url, video_id)
 
-        title = self._og_search_title(webpage) or self._html_search_regex(r'<h1>(.+?)</h1>', webpage, 'title')
+        title = self._og_search_title(webpage) or self._html_search_regex(r'<h1>(.+?)</h1>', webpage, 'title', default=video_id)
         tb = self._og_search_thumbnail(webpage) or extract_attributes(get_element_by_class('waveform')).get('src')
 
         mp3_url = self._html_search_regex(
             r'<meta itemprop="contentUrl" content="?(.+?)"?>',
-            webpage, 'mp3 url') or extract_attributes(get_element_by_id('sample_mp3')).get('value')
+            webpage, 'mp3 url', fatal=False) or extract_attributes(get_element_by_id('sample_mp3')).get('value')
 
         return {
             'id': video_id,
@@ -46,6 +46,6 @@ class SampleFocusIE(InfoExtractor):
             'url': mp3_url,
             'ext': 'mp3',
             'thumbnail': tb,
-            'description': self._html_search_meta('description', webpage),
+            'description': self._html_search_meta('description', webpage, fatal=False),
             'license': self._html_search_regex(r'<a href="/license">(.+?)</a>', webpage, 'license')
         }
