@@ -1567,6 +1567,7 @@ from .youtube import (
     YoutubeYtUserIE,
     YoutubeWatchLaterIE,
 )
+from .youvi import YouviIE
 from .zapiks import ZapiksIE
 from .zattoo import (
     BBVTVIE,
