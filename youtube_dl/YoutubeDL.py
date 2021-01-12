@@ -624,13 +624,6 @@ class YoutubeDL(object):
         error_message = '%s %s' % (_msg_header, message)
         self.trouble(error_message, tb)
 
-    def report_file_already_downloaded(self, file_name):
-        """Report file has already been fully downloaded."""
-        try:
-            self.to_screen('[download] %s has already been downloaded' % file_name)
-        except UnicodeEncodeError:
-            self.to_screen('[download] The file has already been downloaded')
-
     def prepare_filename(self, info_dict):
         """Generate the output filename."""
         try:
