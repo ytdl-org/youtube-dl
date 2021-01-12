@@ -52,6 +52,7 @@ from .utils import (
     determine_ext,
     determine_protocol,
     DownloadError,
+    DownloadLimitReached,
     encode_compat_str,
     encodeFilename,
     error_to_compat_str,
@@ -64,6 +65,7 @@ from .utils import (
     ISO3166Utils,
     locked_file,
     make_HTTPS_handler,
+    MaxAlreadyDownloadedReached,
     MaxDownloadsReached,
     orderedSet,
     PagedList,
@@ -350,6 +352,7 @@ class YoutubeDL(object):
         self._progress_hooks = []
         self._download_retcode = 0
         self._num_downloads = 0
+        self._num_already_downloaded = 0
         self._screen_file = [sys.stdout, sys.stderr][params.get('logtostderr', False)]
         self._err_file = sys.stderr
         self.params = {
@@ -803,7 +806,7 @@ class YoutubeDL(object):
                 self.report_error(msg)
             except ExtractorError as e:  # An error we somewhat expected
                 self.report_error(compat_str(e), e.format_traceback())
-            except MaxDownloadsReached:
+            except DownloadLimitReached:
                 raise
             except Exception as e:
                 if self.params.get('ignoreerrors', False):
@@ -1736,7 +1739,7 @@ class YoutubeDL(object):
         max_downloads = self.params.get('max_downloads')
         if max_downloads is not None:
             if self._num_downloads >= int(max_downloads):
-                raise MaxDownloadsReached()
+                raise MaxDownloadsReached('Maximum number of downloaded files reached')
 
         # TODO: backward compatibility, to be removed
         info_dict['fulltitle'] = info_dict['title']
@@ -2005,6 +2008,12 @@ class YoutubeDL(object):
                     self.report_error('postprocessing: %s' % str(err))
                     return
                 self.record_download_archive(info_dict)
+                if success == 'already_downloaded':
+                    self._num_already_downloaded += 1
+                    max_already_downloaded = self.params.get('max_already_downloaded')
+                    if max_already_downloaded is not None:
+                        if self._num_already_downloaded >= int(max_already_downloaded):
+                            raise MaxAlreadyDownloadedReached('Maximum number of previously downloaded files reached')
 
     def download(self, url_list):
         """Download a given list of URLs."""
@@ -2022,8 +2031,8 @@ class YoutubeDL(object):
                     url, force_generic_extractor=self.params.get('force_generic_extractor', False))
             except UnavailableVideoError:
                 self.report_error('unable to download video')
-            except MaxDownloadsReached:
-                self.to_screen('[info] Maximum number of downloaded files reached.')
+            except DownloadLimitReached as dlr:
+                self.to_screen('[info] %s' % dlr)
                 raise
             else:
                 if self.params.get('dump_single_json', False):

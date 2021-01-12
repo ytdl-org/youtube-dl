@@ -25,9 +25,9 @@ from .utils import (
     decodeOption,
     DEFAULT_OUTTMPL,
     DownloadError,
+    DownloadLimitReached,
     expand_path,
     match_filter_func,
-    MaxDownloadsReached,
     preferredencoding,
     read_batch_urls,
     SameFileError,
@@ -380,6 +380,7 @@ def _real_main(argv=None):
         'matchtitle': decodeOption(opts.matchtitle),
         'rejecttitle': decodeOption(opts.rejecttitle),
         'max_downloads': opts.max_downloads,
+        'max_already_downloaded': opts.max_already_downloaded,
         'prefer_free_formats': opts.prefer_free_formats,
         'verbose': opts.verbose,
         'dump_intermediate_pages': opts.dump_intermediate_pages,
@@ -462,8 +463,8 @@ def _real_main(argv=None):
                 retcode = ydl.download_with_info_file(expand_path(opts.load_info_filename))
             else:
                 retcode = ydl.download(all_urls)
-        except MaxDownloadsReached:
-            ydl.to_screen('--max-download limit reached, aborting.')
+        except DownloadLimitReached as dlr:
+            ydl.to_screen('%s, aborting.' % dlr)
             retcode = 101
 
     sys.exit(retcode)

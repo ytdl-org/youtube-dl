@@ -280,6 +280,10 @@ def parseOpts(overrideArguments=None):
         dest='max_downloads', metavar='NUMBER', type=int, default=None,
         help='Abort after downloading NUMBER files')
     selection.add_option(
+        '--max-already-downloaded',
+        dest='max_already_downloaded', metavar='NUMBER', type=int, default=None,
+        help='Stop after having attempted to download NUMBER previously downloaded files (useful for reverse-chronological playlists)')
+    selection.add_option(
         '--min-filesize',
         metavar='SIZE', dest='min_filesize', default=None,
         help='Do not download any videos smaller than SIZE (e.g. 50k or 44.6m)')

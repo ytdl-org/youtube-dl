@@ -2419,8 +2419,18 @@ class PostProcessingError(YoutubeDLError):
         self.msg = msg
 
 
-class MaxDownloadsReached(YoutubeDLError):
+class DownloadLimitReached(YoutubeDLError):
+    """ Base class for download limit exceptions. """
+    pass
+
+
+class MaxDownloadsReached(DownloadLimitReached):
     """ --max-downloads limit has been reached. """
+    pass
+
+
+class MaxAlreadyDownloadedReached(DownloadLimitReached):
+    """ --max-already-downloaded limit has been reached. """
     pass
 
 
