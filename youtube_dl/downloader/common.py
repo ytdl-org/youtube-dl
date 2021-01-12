@@ -328,7 +328,7 @@ class FileDownloader(object):
 
     def download(self, filename, info_dict):
         """Download to a filename using the info from info_dict
-        Return True on success and False otherwise
+        Return a string describing the result on success and False otherwise
         """
 
         nooverwrites_and_exists = (
@@ -351,7 +351,7 @@ class FileDownloader(object):
                     'status': 'finished',
                     'total_bytes': os.path.getsize(encodeFilename(filename)),
                 })
-                return True
+                return 'already_downloaded'
 
         min_sleep_interval = self.params.get('sleep_interval')
         if min_sleep_interval:
@@ -363,7 +363,10 @@ class FileDownloader(object):
                     else '%.2f' % sleep_interval))
             time.sleep(sleep_interval)
 
-        return self.real_download(filename, info_dict)
+        rv = self.real_download(filename, info_dict)
+        if rv is True:
+            rv = 'ok'
+        return rv
 
     def real_download(self, filename, info_dict):
         """Real download process. Redefine in subclasses."""
