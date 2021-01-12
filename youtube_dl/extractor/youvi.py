@@ -32,7 +32,6 @@ class YouviIE(InfoExtractor):
                 format_entry = {'url': url}
                 formats.append(format_entry)
                 
-
         if formats:
             self._sort_formats(formats)
             return {
