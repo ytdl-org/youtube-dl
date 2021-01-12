@@ -39,7 +39,6 @@ class YouviIE(InfoExtractor):
                 'title': title,
                 'formats': formats,
             }
-
         else:
             external_embed = self._search_regex(
                 r'service_type:"(?P<embed>[^"]+?)"', webpage, 'external-embed')
