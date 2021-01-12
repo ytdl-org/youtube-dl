@@ -31,9 +31,10 @@ class YouviIE(InfoExtractor):
                 url = url.replace(r'\u002F', r'/')
                 format_entry = {'url': url}
                 formats.append(format_entry)
-                self._sort_formats(formats)
+                
 
         if formats:
+            self._sort_formats(formats)
             return {
                 'id': video_id,
                 'title': title,
