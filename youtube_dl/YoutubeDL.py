@@ -1226,6 +1226,8 @@ class YoutubeDL(object):
                         group = _parse_format_selection(tokens, inside_group=True)
                         current_selector = FormatSelector(GROUP, group, [])
                     elif string == '+':
+                        if inside_merge:
+                            raise syntax_error('Unexpected "+"', start)
                         video_selector = current_selector
                         audio_selector = _parse_format_selection(tokens, inside_merge=True)
                         if not video_selector or not audio_selector:
