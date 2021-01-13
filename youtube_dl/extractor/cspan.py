@@ -23,6 +23,14 @@ class CSpanIE(InfoExtractor):
     _VALID_URL = r'https?://(?:www\.)?c-span\.org/video/\?(?P<id>[0-9a-f]+)'
     IE_DESC = 'C-SPAN'
     _TESTS = [{
+        'url': 'https://www.c-span.org/video/?c4936925/president-trump-criticizes-efforts-remove-office',
+        'md5': '64563802b9502778e38bda5e01255597',
+        'info_dict': {
+            'id': 'c4936925',
+            'ext': 'mp4',
+            'title': 'President Trump Criticizes Efforts to Remove Him From Office'
+        }
+    }, {
         'url': 'http://www.c-span.org/video/?313572-1/HolderonV',
         'md5': '94b29a4f131ff03d23471dd6f60b6a1d',
         'info_dict': {
@@ -117,7 +125,13 @@ class CSpanIE(InfoExtractor):
                 base_url=url)
             add_referer(info['formats'])
             ld_info = self._search_json_ld(webpage, video_id, default={})
-            return merge_dicts(info, ld_info)
+            result = merge_dicts(info, ld_info)
+            # search for title if not in jwplayer nor json_ld
+            if result.get('title') is None:
+                result['title'] = self._og_search_title(
+                    webpage, default=video_id) or self._html_search_regex(
+                    r'<title>(.+?)</title>', webpage, 'title', fatal=False, default=video_id)
+            return result
 
         # Obsolete
         # We first look for clipid, because clipprog always appears before
