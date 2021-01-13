@@ -464,6 +464,7 @@ class TestFormatSelection(unittest.TestCase):
         assert_syntax_error('+bestaudio')
         assert_syntax_error('bestvideo+')
         assert_syntax_error('/')
+        assert_syntax_error('bestvideo+bestvideo+bestaudio')
 
     def test_format_filtering(self):
         formats = [
