@@ -34,8 +34,8 @@ class MyVidsterIE(InfoExtractor):
         streamtape_url = StreamtapeIE._extract_url(webpage)
         print(f"streamtape url: {streamtape_url}")
         if streamtape_url:
-            webpage = self._download_webpage(streamtape_url, video_id)
-            entry_video = StreamtapeIE._extract_info_video(webpage, video_id)
+            
+            entry_video = StreamtapeIE._extract_info_video(streamtape_url, video_id)
             print(entry_video)
             entry_video['title'] = title
             print(entry_video)

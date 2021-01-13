@@ -5,7 +5,6 @@ import json
 import re
 import random
 import urllib.parse
-from requests import Session
 
 from .common import InfoExtractor
 from ..utils import (
@@ -26,22 +25,51 @@ class SketchySexBaseIE(InfoExtractor):
     _ABORT_URL = "https://sketchysex.com/multiple-sessions/abort"
     _AUTH_URL = "https://sketchysex.com/authorize2"
     _NETRC_MACHINE = 'sketchysex'
-    #_USER_AGENT = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.16; rv:82.0) Gecko/20100101 Firefox/82.0"
+    
 
+    
     def __init__(self):
-        #self.session = Session()
-        logger = logging.getLogger(__name__)
-        #std_headers['User-Agent'] = self._USER_AGENT
+        #self.logger = logging.getLogger(__name__)
         self.headers = dict()
+        # self.headers.update({
+        #     #"User-Agent": self._USER_AGENT,            
+        #     "Accept-Encoding" : "gzip, deflate, br",
+        #     "Accept-Language" : "es-ES,en-US;q=0.7,en;q=0.3",
+        #     "Accept" : "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8"
+        # })  
+        
+    
+    def initcfg(self):
+        self.islogged()
+        self._abort()
+        self._login()
+        data = dict()
+        data['headers'] = self.headers
+        data['cookies'] = self._get_cookies(self._URL_COOKIES)
+        return data
+
+    def islogged(self):
+
+        webpage, _ = self._download_webpage_handle(
+            self._SITE_URL,
+            None,
+            None,
+            headers=self.headers
+        )
+
+        return ("Log Out" in webpage)
+    
+    def _abort(self):
+
         self.headers.update({
-            #"User-Agent": self._USER_AGENT,
-            "Accept-Charset": "",
-            "Accept-Encoding" : "gzip, deflate, br",
-            "Accept-Language" : "es-ES,en-US;q=0.7,en;q=0.3",
-            "Accept" : "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8"
-        })        
-
-
+            "Referer": self._MULT_URL,
+        })
+        abort_page, url_handle = self._download_webpage_handle(
+            self._ABORT_URL,
+            None,
+            "Log in ok after abort sessions",
+            headers=self.headers
+        )
 
 
     def _login(self):
@@ -54,6 +82,7 @@ class SketchySexBaseIE(InfoExtractor):
                 % self._NETRC_MACHINE)
 
         self._set_cookie('sketchysex.com', 'pp-accepted', 'true')
+
         self._download_webpage_handle(
             self._SITE_URL,
             None,
@@ -71,20 +100,21 @@ class SketchySexBaseIE(InfoExtractor):
         data = {
             "username": self.username,
             "password": self.password,
+            "submit1" : "Log In",
             "_csrf-token": urllib.parse.unquote(self.cookies['X-EMA-CSRFToken'].coded_value)
             
         }
 
-        boundary = "-------------------------------" + str(random.randrange(1111111111111111111111111111, 9999999999999999999999999999))
+        boundary = "-----------------------------" + str(random.randrange(11111111111111111111111111111, 99999999999999999999999999999))
         
-        out, content = multipart_encode(data, boundary)
+        
+        out, content = multipart_encode(data, boundary)        
         #print(out)
         #print(content)
         self.headers.update({
             "Referer": self._LOGIN_URL,
             "Origin": self._SITE_URL,
-            "Content-Type": content,
-            
+            "Content-Type": content,            
         })
         login_page, url_handle = self._download_webpage_handle(
             self._LOGIN_URL,
@@ -102,8 +132,7 @@ class SketchySexBaseIE(InfoExtractor):
                 "last-name": "Torres",
                 "_csrf-token": urllib.parse.unquote(self.cookies['X-EMA-CSRFToken'].coded_value)
             }
-            out, content = multipart_encode(data, "-------------------------------"
-                + str(random.randrange(1111111111111111111111111111, 9999999999999999999999999999)))
+            out, content = multipart_encode(data, boundary)
             self.headers.update({
                 "Referer": self._AUTH_URL,
                 "Origin": self._SITE_URL,
@@ -128,15 +157,10 @@ class SketchySexBaseIE(InfoExtractor):
             raise ExtractorError('Unable to log in')
 
         elif self._MULT_URL in url_handle.geturl():
-            self.headers.update({
-                "Referer": self._MULT_URL,
-            })
-            abort_page, url_handle = self._download_webpage_handle(
-                self._ABORT_URL,
-                None,
-                "Log in ok after abort sessions",
-                headers=self.headers
-            )
+
+            self._abort()
+
+
 
     def _log_out(self):
         self._request_webpage(
@@ -151,7 +175,7 @@ class SketchySexBaseIE(InfoExtractor):
         
         try:
 
-            content, _ = self._download_webpage_handle(url, None, headers=self.headers)
+            content, _ = self._download_webpage_handle(url, None, "Downloading video web page", headers=self.headers)
             #print(content)
             regex_title = r"<title>(?P<title>.*?)</title>"
             regex_emurl = r"iframe src=\"(?P<embedurl>.*?)\""
@@ -163,13 +187,14 @@ class SketchySexBaseIE(InfoExtractor):
                 title = url.rsplit("/", 1)[1].replace("-","_")
             else:
                 title = title.split(" :: ")[0].replace(" ", "_")
+                title = title.replace("/","_")
             if re.search(regex_emurl, content):
                 embedurl = re.search(regex_emurl, content).group("embedurl")
             if not embedurl:
                 raise ExtractorError("", cause="Can't find any video", expected=True)
             
             self.headers.update({'Referer' : url})
-            content, _ = self._download_webpage_handle(embedurl, None, headers=self.headers)
+            content, _ = self._download_webpage_handle(embedurl, None, "Downloading embed video", headers=self.headers)
             #content = (webpage.read()).decode('utf-8')
             
             #print(content)
@@ -185,13 +210,11 @@ class SketchySexBaseIE(InfoExtractor):
             videourl = "https://videostreamingsolutions.net/api:ov-embed/parseToken?token=" + tokenid
             #print(videourl)
 
-            #self.session.headers['Referer'] = embedurl
             self.headers.update({
                 "Referer" : embedurl,
                 "Accept" : "*/*",
                 "X-Requested-With" : "XMLHttpRequest"})
             info = self._download_json(videourl, None, headers=self.headers)
-            #info = json.loads(self.session.request("GET", videourl).text)
 
             if not info:
                 raise ExtractorError("", cause="Can't find any JSON info", expected=True)
@@ -233,33 +256,14 @@ class SketchySexIE(SketchySexBaseIE):
     _VALID_URL = r"https?://(?:www\.)?sketchysex.com/episode/"
     _URL_COOKIES = "https://sketchysex.com"
     
-
-
-    
-    def initcfg(self):
-        self._login()
-        data = dict()
-        data['headers'] = self.headers
-        data['cookies'] = self._get_cookies(self._URL_COOKIES)
-        self.logged = True
-        return data
-
-    def islogged(self):
-        webpage, _ = self._download_webpage_handle(
-            self._SITE_URL,
-            None,
-            None,
-            headers=self.headers
-        )
-        return ("Log Out" in webpage)
-
-
     def _real_initialize(self):
+
         if not self.islogged():
             self._login()
         self.headers.update({            
             "Referer" : "https://sketchysex.com/episodes/1",
         })
+        self.username, self.password = self._get_login_info() 
 
     def _real_extract(self, url):
         data = self._extract_from_page(url)
@@ -271,85 +275,52 @@ class SketchySexIE(SketchySexBaseIE):
         else:
             return(data)
 
-# class SketchySexPlayListIE(SketchySexBaseIE):
-#     IE_NAME = 'sketchysex:playlist'
-#     IE_DESC = 'sketchysex:playlist'
-#     _VALID_URL = r"https?://(?:www\.)?sketchysex\.com/episodes/(?P<id>\d+)"
-#     _BASE_URL = "https://sketchysex.com"
-
-#     def _real_initialize(self):
-#         self._login()
-#         self.headers.update({
-#             "Referer" : self._LOGIN_URL,
-#         })
-
-#     def _real_extract(self, url):
-
-#         playlistid = re.search(self._VALID_URL, url).group("id")
-
-  
-#         #self._set_cookie('fraternityx.com', 'pp-accepted', 'true')
-#         content, _ = self._download_webpage_handle(url, None, headers=self.headers)
-#         #page = (webpage.read()).decode('utf-8')
-#        # page = self.session.request("GET", url).text
-    
-#         generic_link = re.compile(r'(?<=\")/episode/[^\"]+(?=\")', re.I)
-
-#         target_links = list(set(re.findall(generic_link, content)))
-
-#         entries = []
-#         for link in target_links:
-            
-#             full_link = self._BASE_URL + link
-#             self.headers['Referer'] = url
-#             info = self._extract_from_page(full_link)
-#             if info:
-#                 if not "error" in info['id']:
-#                     entries.append(info)
-            
-#         #self._log_out()
-#         return self.playlist_result(entries, "sketchysex Episodes:" + playlistid, "sketchysex Episodes:" + playlistid)
-
 class SketchySexPlayListIE(SketchySexBaseIE):
     IE_NAME = 'sketchysex:playlist'
     IE_DESC = 'sketchysex:playlist'
     _VALID_URL = r"https?://(?:www\.)?sketchysex\.com/episodes/(?P<id>\d+)"
     _BASE_URL = "https://sketchysex.com"
+    _BASE_URL_PL = "https://sketchysex.com/episodes/"
 
     def _real_initialize(self):
-        self._login()            
+        if not self.islogged():
+            self._login()          
         self.headers.update({
             "Referer" : self._LOGIN_URL,
         })
+        self.username, self.password = self._get_login_info() 
 
     def _real_extract(self, url):
 
         playlistid = re.search(self._VALID_URL, url).group("id")
 
-  
-        #self._set_cookie('fraternityx.com', 'pp-accepted', 'true')
-        content, _ = self._download_webpage_handle(url, None, headers=self.headers)
-        #self._log_out()
-        #page = (webpage.read()).decode('utf-8')
-        #page = self.session.request("GET", url).text
-    
-        episodes_links = re.findall(r'<h1><a href=\"(/episode/.*?)\">', content)
- 
         entries = []
-        for link in episodes_links:
 
-            entries.append(self.url_result(self._BASE_URL + link, ie=SketchySexIE.ie_key()))
+        i = 0
+
+        while True:
+
+            url_pl = f"{self._BASE_URL_PL}{int(playlistid) + i}"
+
+            print(url_pl)
+        
+            content, _ = self._download_webpage_handle(url_pl, None, headers=self.headers)
+        
+            episodes = re.findall(r'<h1><a href=\"(/episode/.*?)\">(.*?)<', content)
+           
+    
+            for ep in episodes:
+                
+                entries.append(self.url_result(self._BASE_URL + ep[0], ie=SketchySexIE.ie_key(), video_title=ep[1].replace(" ","_").replace("/","_")))
+
+            if "NEXT>" in content:
+                i += 1
+            else:
+                break
             
-            # full_link = self._BASE_URL + link
-            # self.headers['Referer'] = url
-            # info = self._extract_from_page(full_link)
-            # if info:
-            #     if not "error" in info['id']:
-            #         entries.append(info)
-
             
         self._log_out()
-        return self.playlist_result(entries, "sketchysex Episodes:" + playlistid, "sketchysex Episodes:" + playlistid)
+        return self.playlist_result(entries, f"sketchysex Episodes:{playlistid}", f"sketchysex Episodes:{playlistid}")
 
 
         

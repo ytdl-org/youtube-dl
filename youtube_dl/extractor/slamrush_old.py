@@ -28,11 +28,16 @@ class SlamRushBaseIE(InfoExtractor):
     _ABORT_URL = "https://slamrush.com/multiple-sessions/abort"
     _MULT_URL = "https://slamrush.com/multiple-sessions"
     _NETRC_MACHINE = 'slamrush'
+    _USER_AGENT = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_6) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/84.0.4147.135 Safari/537.36"
+    _API_VIDEO = "https://slamrush.com/api:ov-embed/video/"
 
     def __init__(self):
-        self.headers = dict()
+        self.session = HTMLSession()
+        self.session.headers.update({
+            "User-Agent": self._USER_AGENT,
+        })
+        self.user_agent = self._USER_AGENT
 
-    
     def islogged(self):
 
         webpage, _ = self._download_webpage_handle(
@@ -42,10 +47,11 @@ class SlamRushBaseIE(InfoExtractor):
         )
 
         return ("Logout" in webpage)
-    
     def _login(self):
 
         self.username, self.password = self._get_login_info()
+        #print(username)
+        #print(password)webpage =
     
         self.report_login()
         
@@ -60,10 +66,15 @@ class SlamRushBaseIE(InfoExtractor):
             self._SITE_URL,
             None,
             'Downloading site page',
+            # headers={
+            #     "User-Agent": self.user_agent,
+            # }
                 
         )
 
         self.cookies = self._get_cookies(self._LOGIN_URL)
+        #print(self.cookies)
+        #print(type(self.cookies))
 
         data = {
             "username": self.username,
@@ -82,9 +93,9 @@ class SlamRushBaseIE(InfoExtractor):
             data=out,
             headers={
                 "Referer": self._LOGIN_URL,
-                "Origin": self._SITE_URL,
+                "Origin": self._SITE_URL,                #
                 "Content-Type": content,
-
+                "User-Agent": self.user_agent
             }
         )
 
@@ -94,7 +105,8 @@ class SlamRushBaseIE(InfoExtractor):
                 "last-name": "Torres",
                 "_csrf-token": urllib.parse.unquote(self.cookies['X-EMA-CSRFToken'].coded_value)
             }
-            out, content = multipart_encode(data, boundary)
+            out, content = multipart_encode(data, "-------------------------------"
+                + str(random.randrange(1111111111111111111111111111, 9999999999999999999999999999)))
             auth_page, url_handle = self._download_webpage_handle(
                 self._AUTH_URL,
                 None,
@@ -104,7 +116,7 @@ class SlamRushBaseIE(InfoExtractor):
                     "Referer": self._AUTH_URL,
                     "Origin": self._SITE_URL,
                     "Content-Type": content,
- 
+                    "User-Agent": self.user_agent
                 }
             )
         
@@ -122,7 +134,7 @@ class SlamRushBaseIE(InfoExtractor):
                 "Log in ok after abort sessions",
                 headers={
                     "Referer": self._MULT_URL,
- 
+                    "User-Agent": self.user_agent
                 }
             )
 
@@ -133,7 +145,7 @@ class SlamRushBaseIE(InfoExtractor):
                     None,
                     'Log out'
                 )
-      
+        #print("135: " + url_handle.geturl())
         if (url_handle.geturl() == self._MULT_URL):
                 abort_page, url_handle = self._download_webpage_handle(
                     self._ABORT_URL,
@@ -147,15 +159,19 @@ class SlamRushIE(SlamRushBaseIE):
     IE_NAME = 'slamrush'
     _API_TOKEN = "https://videostreamingsolutions.net/api:ov-embed/parseToken?token="
     _API_MANIFEST = "https://videostreamingsolutions.net/api:ov-embed/manifest/"
-    _VALID_URL = r"https://videostreamingsolutions.net/embed/"
+    _VALID_URL = r"https://slamrush.com/api:ov-embed/video/"
 
-    
-   
     def _real_extract(self, url):
 
-        vembed_page, _ = self._download_webpage_handle(url, None, "Downloaging video embed page", headers={'Referer' : self._SITE_URL})
-        regex_token = r"token: \'(?P<tokenid>.*?)\'"
-        mobj = re.search(regex_token, vembed_page)
+        text = url.split(self._API_VIDEO)[1]
+        infotext = text.split("/=?title?=/")
+        title = infotext[0]
+        #print(title)
+        embedurl = infotext[1]
+        #print(embedurl)
+        vembed_page = self.session.get(embedurl, headers={'Referer' : self._SITE_URL})
+        regex_token = r"token: '(?P<tokenid>.*?)'"
+        mobj = re.search(regex_token, vembed_page.html.html)
         tokenid = mobj.group("tokenid")
         #print(tokenid)
         info = self._download_json(self._API_TOKEN + tokenid, None)
@@ -177,8 +193,10 @@ class SlamRushIE(SlamRushBaseIE):
         return({
             "_type" : "video",
             "id" : str(videoid),
+            "title" : title,
             "formats" : formats_m3u8,
-        })
+        }
+        )
      
 
 
@@ -188,36 +206,26 @@ class SlamRushPlaylistIE(SlamRushBaseIE):
     _VALID_URL = r"https?://(?:www\.)?slamrush.com"
 
     def _real_initialize(self):
-        if not self.islogged():
-            self._login()
-        else:
-            self.username, self.password = self._get_login_info() 
+        self._login()
 
     def _real_extract(self, url):
        
-
-        webpage, _ = self._download_webpage_handle(url, None, "Downloading playlist webpage")
-
-        if not webpage:
-            raise ExtractorError("webpage don't work")
-
-        video_embed_list =  re.findall(r"episodePlayer: ?\'([^\']+)\'", webpage)
-        video_title_list = re.findall(r"class=\"name\">([^<]+)<", webpage)
-    
-        if len(video_embed_list) != len(video_title_list):
-            raise ExtractorError("doesnt match number of embed videos with number of titles")        
-        
+        for key, v in self.cookies.items():
+            self.session.cookies.set(key, self.cookies[key].coded_value)
+        webpage = self.session.get(url)
+        episodes = webpage.html.find("div.episode-item")
         entries = []
-
-        for url_embed, title in zip(video_embed_list,video_title_list):
-
-            
+        for ep in episodes:
+            title = ep.text.split('\n')[0]
+            vembed_url = ep.attrs['data-bind'].split("episodePlayer: ")[1][1:-1]
+                        
             entries.append({
-                "_type" : "url_transparent",
-                "url": url_embed,
-                "title": title.replace("\n","").replace("\t","").replace(" ","_"),
+                "_type" : "url",
+                "url": self._API_VIDEO + title + "/=?title?=/" + vembed_url,
+                "title": title,
                 "ie_key" : SlamRushIE.ie_key()
+
             })
-    
+     
 
         return self.playlist_result(entries, "SlamRush" )

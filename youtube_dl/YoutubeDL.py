@@ -634,6 +634,7 @@ class YoutubeDL(object):
     def prepare_filename(self, info_dict):
         """Generate the output filename."""
         try:
+            print(info_dict)
             template_dict = dict(info_dict)
 
             template_dict['epoch'] = int(time.time())

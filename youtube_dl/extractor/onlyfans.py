@@ -194,7 +194,7 @@ class OnlyFansBaseIE(InfoExtractor):
                 print(e)
                 print("No info for 240p format")
             
-            self._check_formats(formats, videoid)
+           # self._check_formats(formats, videoid)
             if formats:
                 self._sort_formats(formats)
             
