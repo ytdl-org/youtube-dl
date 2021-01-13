@@ -251,8 +251,13 @@ class MixcloudPlaylistBaseIE(MixcloudBaseIE):
                 cloudcast_url = cloudcast.get('url')
                 if not cloudcast_url:
                     continue
+                video_id = cloudcast.get('slug')
+                if video_id:
+                    owner_username = try_get(cloudcast, lambda x: x['owner']['username'], compat_str)
+                    if owner_username:
+                        video_id = '%s_%s' % (owner_username, video_id)
                 entries.append(self.url_result(
-                    cloudcast_url, MixcloudIE.ie_key(), cloudcast.get('slug')))
+                    cloudcast_url, MixcloudIE.ie_key(), video_id))
 
             page_info = items['pageInfo']
             has_next_page = page_info['hasNextPage']
@@ -321,7 +326,8 @@ class MixcloudUserIE(MixcloudPlaylistBaseIE):
     _DESCRIPTION_KEY = 'biog'
     _ROOT_TYPE = 'user'
     _NODE_TEMPLATE = '''slug
-          url'''
+          url
+          owner { username }'''
 
     def _get_playlist_title(self, title, slug):
         return '%s (%s)' % (title, slug)
@@ -345,6 +351,7 @@ class MixcloudPlaylistIE(MixcloudPlaylistBaseIE):
     _NODE_TEMPLATE = '''cloudcast {
             slug
             url
+            owner { username }
           }'''
 
     def _get_cloudcast(self, node):
