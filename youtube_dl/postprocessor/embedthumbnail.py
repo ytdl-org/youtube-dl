@@ -23,7 +23,6 @@ class EmbedThumbnailPPError(PostProcessingError):
 
 
 class EmbedThumbnailPP(FFmpegPostProcessor):
-    PP_NAME = 'EmbedThumbnail'
 
     def __init__(self, downloader=None, already_have_thumbnail=False):
         super(EmbedThumbnailPP, self).__init__(downloader)

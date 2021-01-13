@@ -2,6 +2,7 @@ from __future__ import unicode_literals
 
 import os
 
+from ..compat import compat_str
 from ..utils import (
     PostProcessingError,
     cli_configuration_args,
@@ -33,8 +34,10 @@ class PostProcessor(object):
 
     def __init__(self, downloader=None):
         self._downloader = downloader
-        if not hasattr(self, 'PP_NAME'):
-            self.PP_NAME = self.__class__.__name__[:-2]
+
+    @classmethod
+    def pp_key(cls):
+        return compat_str(cls.__name__[:-2])
 
     def set_downloader(self, downloader):
         """Sets the downloader for this PP."""
@@ -65,9 +68,9 @@ class PostProcessor(object):
 
     def _configuration_args(self, default=[]):
         args = self._downloader.params.get('postprocessor_args', {})
-        if isinstance(args, list):  # for backward compatibility
+        if isinstance(args, list) or args is None:  # for backward compatibility
             args = {'default': args}
-        return cli_configuration_args(args, self.PP_NAME.lower(), args.get('default', []))
+        return cli_configuration_args(args, self.pp_key().lower(), args.get('default', []))
 
 
 class AudioConversionError(PostProcessingError):

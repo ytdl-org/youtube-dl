@@ -795,14 +795,16 @@ def parseOpts(overrideArguments=None):
         metavar='FORMAT', dest='recodevideo', default=None,
         help='Encode the video to another format if necessary (currently supported: mp4|flv|ogg|webm|mkv|avi)')
     postproc.add_option(
-        '--postprocessor-args', metavar='NAME:ARGS',
+        '--postprocessor-args', metavar='KEY:ARGS',
         dest='postprocessor_args', action='append',
         help=(
             'Give these arguments to the postprocessors. '
             "Specify the postprocessor name and the arguments separated by a colon ':' "
             'to give the argument to only the specified postprocessor. Supported names are '
-            'ExtractAudio, VideoConvertor, EmbedSubtitle, Metadata, Merger, FixupStretched, FixupM4a, FixupM3u8, SubtitlesConvertor and Default'
-            '. You can use this option multiple times to give different arguments to different postprocessors'))
+            'FFmpegExtractAudio, FFmpegVideoConvertor, FFmpegEmbedSubtitle, FFmpegMetadata, '
+            'FFmpegMerger, FFmpegFixupStretched, FFmpegFixupM4a, FFmpegFixupM3u8, FFmpegSubtitlesConvertor, '
+            'EmbedThumbnail, ExecAfterDownload, MetadataFromTitle, XAttrMetadata and Default. '
+            'You can use this option multiple times to give different arguments to different postprocessors'))
     postproc.add_option(
         '-k', '--keep-video',
         action='store_true', dest='keepvideo', default=False,
