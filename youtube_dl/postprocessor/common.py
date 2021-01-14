@@ -67,15 +67,13 @@ class PostProcessor(object):
 
     def _configuration_args(self, default=[]):
         args = self._downloader.params.get('postprocessor_args', {})
-        if isinstance(args, (list, tuple)) or args is None:  # for backward compatibility
+        if isinstance(args, (list, tuple)):  # for backward compatibility
             return args
         if args is None:
             return default
-        if isinstance(args, (list, tuple)):  # for backward compatibility
-            return args
         assert isinstance(args, dict)
-        pp_args = args.get(self.pp_key().lower(), args.get('default', []))
-        assert isinstance(pp_args, (list, tuple)) or pp_args is None
+        pp_args = args.get(self.pp_key().lower(), args.get('default', default))
+        assert isinstance(pp_args, (list, tuple))
         return pp_args
 
 
