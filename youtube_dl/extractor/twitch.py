@@ -138,13 +138,17 @@ class TwitchBaseIE(InfoExtractor):
         self._sort_formats(formats)
 
     def _download_base_gql(self, video_id, ops, note, fatal=True):
+        headers = {
+            'Content-Type': 'text/plain;charset=UTF-8',
+            'Client-ID': self._CLIENT_ID,
+        }
+        gql_auth = self._get_cookies('https://gql.twitch.tv').get('auth-token')
+        if gql_auth:
+            headers['Authorization'] = 'OAuth ' + gql_auth.value
         return self._download_json(
             'https://gql.twitch.tv/gql', video_id, note,
             data=json.dumps(ops).encode(),
-            headers={
-                'Content-Type': 'text/plain;charset=UTF-8',
-                'Client-ID': self._CLIENT_ID,
-            }, fatal=fatal)
+            headers=headers, fatal=fatal)
 
     def _download_gql(self, video_id, ops, note, fatal=True):
         for op in ops:
