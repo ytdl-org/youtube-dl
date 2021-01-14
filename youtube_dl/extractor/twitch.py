@@ -143,7 +143,7 @@ class TwitchBaseIE(InfoExtractor):
             'Client-ID': self._CLIENT_ID,
         }
         gql_auth = self._get_cookies('https://gql.twitch.tv').get('auth-token')
-        if gql_auth is not None:
+        if gql_auth:
             headers['Authorization'] = 'OAuth ' + gql_auth.value
         return self._download_json(
             'https://gql.twitch.tv/gql', video_id, note,
