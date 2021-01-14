@@ -4,6 +4,7 @@ from __future__ import unicode_literals
 import re
 
 from .common import InfoExtractor
+from .youtube import YoutubeIE
 from ..utils import (
     ExtractorError,
     int_or_none,
@@ -43,6 +44,23 @@ class VVVVIDIE(InfoExtractor):
             'id': '482493',
             'ext': 'mp4',
             'title': 'Episodio 01',
+        },
+        'params': {
+            'skip_download': True,
+        },
+    }, {
+        # video_type == 'video/youtube'
+        'url': 'https://www.vvvvid.it/show/404/one-punch-man/406/486683/trailer',
+        'md5': '33e0edfba720ad73a8782157fdebc648',
+        'info_dict': {
+            'id': 'RzmFKUDOUgw',
+            'ext': 'mp4',
+            'title': 'Trailer',
+            'season': 'EXTRA',
+            'upload_date': '20150906',
+            'description': 'md5:a5e802558d35247fee285875328c0b80',
+            'uploader_id': 'BandaiVisual',
+            'uploader': 'BANDAI NAMCO Arts Channel',
         },
         'params': {
             'skip_download': True,
@@ -154,6 +172,7 @@ class VVVVIDIE(InfoExtractor):
                     if season_number:
                         info['season_number'] = int(season_number)
 
+        youtube = False
         for quality in ('_sd', ''):
             embed_code = video_data.get('embed_info' + quality)
             if not embed_code:
@@ -172,19 +191,18 @@ class VVVVIDIE(InfoExtractor):
                     if kenc_message:
                         embed_code += '?' + ds(kenc_message)
                 formats.extend(self._extract_akamai_formats(embed_code, video_id))
+            elif video_type == 'video/youtube':
+                youtube = True
             else:
                 formats.extend(self._extract_wowza_formats(
                     'http://sb.top-ix.org/videomg/_definst_/mp4:%s/playlist.m3u8' % embed_code, video_id))
             metadata_from_url(embed_code)
-
-        self._sort_formats(formats)
 
         metadata_from_url(video_data.get('thumbnail'))
         info.update(self._extract_common_video_info(video_data))
         info.update({
             'id': video_id,
             'title': title,
-            'formats': formats,
             'duration': int_or_none(video_data.get('length')),
             'series': video_data.get('show_title'),
             'season_id': season_id,
@@ -193,6 +211,19 @@ class VVVVIDIE(InfoExtractor):
             'like_count': int_or_none(video_data.get('video_likes')),
             'repost_count': int_or_none(video_data.get('video_shares')),
         })
+
+        if youtube:
+            info.update({
+                '_type': 'url_transparent',
+                'ie_key': YoutubeIE.ie_key(),
+                'url': embed_code,
+            })
+        else:
+            self._sort_formats(formats)
+            info.update({
+                'formats': formats,
+            })
+
         return info
 
 
