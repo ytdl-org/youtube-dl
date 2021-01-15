@@ -137,9 +137,10 @@ class AtresPlayerIE(InfoExtractor):
                     src, video_id, 'mp4', 'm3u8_native',
                     m3u8_id='hls', fatal=False))
             elif src_type == 'application/dash+xml':
-                mpd_doc, mpd_handle = self._download_xml_handle(
+                mpd = self._download_xml_handle(
                     src, video_id, note='Downloading MPD manifest', fatal=False)
-                if mpd_doc is not None:
+                if mpd:
+                    mpd_doc, mpd_handle = mpd
                     mpd_base_url = base_url(mpd_handle.geturl())
                     subtitles.update(self._get_mpd_subtitles(mpd_doc, mpd_base_url))
                     formats.extend(self._parse_mpd_formats(
