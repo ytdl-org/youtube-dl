@@ -1,15 +1,13 @@
 # coding: utf-8
-from __future__ import unicode_literals
+from __future__ import absolute_import, division, unicode_literals
 
 # Taken from https://github.com/add-ons/plugin.video.viervijfzes/blob/master/resources/lib/viervijfzes/auth_awsidp.py
 # with some small modifications (replacement of six and requests, removal of unused function, reformatting)
 # This file is licensed as GPL-3 from https://github.com/add-ons/plugin.video.viervijfzes:
 # https://github.com/add-ons/plugin.video.viervijfzes/blob/master/LICENSE
 
-""" Amazon Cognito implementation without external dependencies """
+# Amazon Cognito implementation without external dependencies
 # Based on https://github.com/retrospect-addon/plugin.video.retrospect/blob/master/channels/channel.be/vier/awsidp.py
-
-from __future__ import absolute_import, division
 
 import base64
 import binascii
