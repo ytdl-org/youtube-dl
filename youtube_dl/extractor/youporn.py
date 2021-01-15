@@ -88,7 +88,7 @@ class YouPornIE(InfoExtractor):
         # Main source
         definitions = self._parse_json(
             self._search_regex(
-                r'mediaDefinition\s*=\s*(\[.+?\]);', webpage,
+                r'mediaDefinition\s*[=:]\s*(\[.+?\])\s*[;,]', webpage,
                 'media definitions', default='[]'),
             video_id, fatal=False)
         if definitions:
