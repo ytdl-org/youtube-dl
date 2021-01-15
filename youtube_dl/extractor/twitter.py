@@ -407,6 +407,22 @@ class TwitterIE(TwitterBaseIE):
         # appplayer card
         'url': 'https://twitter.com/poco_dandy/status/1150646424461176832',
         'only_matching': True,
+    }, {
+        # video_direct_message card
+        'url': 'https://twitter.com/qarev001/status/1348948114569269251',
+        'only_matching': True,
+    }, {
+        # poll2choice_video card
+        'url': 'https://twitter.com/CAF_Online/status/1349365911120195585',
+        'only_matching': True,
+    }, {
+        # poll3choice_video card
+        'url': 'https://twitter.com/SamsungMobileSA/status/1348609186725289984',
+        'only_matching': True,
+    }, {
+        # poll4choice_video card
+        'url': 'https://twitter.com/SouthamptonFC/status/1347577658079641604',
+        'only_matching': True,
     }]
 
     def _real_extract(self, url):
@@ -517,7 +533,9 @@ class TwitterIE(TwitterBaseIE):
                 elif card_name == 'unified_card':
                     media_entities = self._parse_json(get_binding_value('unified_card'), twid)['media_entities']
                     extract_from_video_info(next(iter(media_entities.values())))
-                # amplify, promo_video_website, promo_video_convo, appplayer, ...
+                # amplify, promo_video_website, promo_video_convo, appplayer,
+                # video_direct_message, poll2choice_video, poll3choice_video,
+                # poll4choice_video, ...
                 else:
                     is_amplify = card_name == 'amplify'
                     vmap_url = get_binding_value('amplify_url_vmap') if is_amplify else get_binding_value('player_stream_url')
