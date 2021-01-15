@@ -103,7 +103,7 @@ class YouPornIE(InfoExtractor):
                     links.append(video_url)
 
         # Fallback #1, this also contains extra low quality 180p format
-        for _, link in re.findall(r'<a[^>]+href=(["\'])(http.+?)\1[^>]+title=["\']Download [Vv]ideo', webpage):
+        for _, link in re.findall(r'<a[^>]+href=(["\'])(http(?:(?!\1).)+\.mp4(?:(?!\1).)*)\1[^>]+title=["\']Download [Vv]ideo', webpage):
             links.append(link)
 
         # Fallback #2 (unavailable as at 22.06.2017)
