@@ -71,6 +71,9 @@ class VierVijfKijkOnlineIE(InfoExtractor):
             else:
                 season = title_split[1].strip()
             episode = title_split[2].split('Aflevering')[1].strip()
+        elif len(title_split) == 1:
+            season = None
+            episode = None
         else:
             season = None
             episode = title_split[1].split('Aflevering')[1].strip()
