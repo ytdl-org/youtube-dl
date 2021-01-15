@@ -312,7 +312,7 @@ def _real_main(argv=None):
     postprocessor_args = {}
     if opts.postprocessor_args is not None:
         for string in opts.postprocessor_args:
-            mobj = re.match(r'(?P<pp>[\w+]+):(?P<args>.*)$', string)
+            mobj = re.match(r'(?P<pp>\w+(?:\+\w+)):(?P<args>.*)$', string)
             if mobj is None:
                 pp_key, pp_args = 'default', string
             else:
