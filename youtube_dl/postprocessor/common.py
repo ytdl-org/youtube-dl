@@ -65,16 +65,30 @@ class PostProcessor(object):
         except Exception:
             self._downloader.report_warning(errnote)
 
-    def _configuration_args(self, default=[]):
+    def _configuration_args(self, default=[], exe=None):
         args = self._downloader.params.get('postprocessor_args', {})
         if isinstance(args, (list, tuple)):  # for backward compatibility
             return args
         if args is None:
             return default
         assert isinstance(args, dict)
-        pp_args = args.get(self.pp_key().lower(), args.get('default', default))
+
+        pp_key = self.pp_key().lower()
+        pp_args = args.get(pp_key, args.get('default', default))
         assert isinstance(pp_args, (list, tuple))
-        return pp_args
+
+        if exe is None:
+            return pp_args
+        assert isinstance(exe, compat_str)
+
+        exe = exe.lower()
+        exe_args = args.get(exe, [])
+        assert isinstance(exe_args, (list, tuple))
+
+        specific_args = args.get('%s+%s' % (pp_key, exe), [])
+        assert isinstance(specific_args, (list, tuple))
+
+        return pp_args + exe_args + specific_args
 
 
 class AudioConversionError(PostProcessingError):
