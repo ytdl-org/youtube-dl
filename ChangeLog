@@ -1,4 +1,4 @@
-version <unreleased>
+version 2021.01.16
 
 Core
 * [YoutubeDL] Protect from infinite recursion due to recursively nested
