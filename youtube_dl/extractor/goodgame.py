@@ -96,10 +96,6 @@ class GoodgameStreamIE(GoodgameBaseIE):
         else:
             thumbnail = None
 
-        title = stream_info.get('title')
-        if title is None:
-            raise ExtractorError('Unable to extract title', video_id=channel_id)
-
         formats = []
         for quality, suffix in self._QUALITIES.items():
             formats.append({
@@ -111,7 +107,7 @@ class GoodgameStreamIE(GoodgameBaseIE):
         self._prefer_source(formats)
         return {
             'id': channel_id,
-            'title': title,
+            'title': stream_info['title'],
             'view_count': int_or_none(stream_info.get('viewers')),
             'thumbnail': thumbnail,
             'is_live': True,
