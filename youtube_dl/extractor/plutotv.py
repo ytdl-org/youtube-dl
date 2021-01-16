@@ -6,6 +6,7 @@ import uuid
 
 from .common import InfoExtractor
 from ..compat import (
+    compat_str,
     compat_urlparse,
 )
 from ..utils import (
@@ -13,6 +14,7 @@ from ..utils import (
     float_or_none,
     int_or_none,
     try_get,
+    url_or_none,
 )
 
 
@@ -22,14 +24,14 @@ class PlutoTVIE(InfoExtractor):
     _INFO_QUERY_PARAMS = {
         'appName': 'web',
         'appVersion': 'na',
-        'clientID': str(uuid.uuid1()),
+        'clientID': compat_str(uuid.uuid1()),
         'clientModelNumber': 'na',
         'serverSideAds': 'false',
         'deviceMake': 'unknown',
         'deviceModel': 'web',
         'deviceType': 'web',
         'deviceVersion': 'unknown',
-        'sid': str(uuid.uuid1()),
+        'sid': compat_str(uuid.uuid1()),
     }
     _TESTS = [
         {
@@ -78,43 +80,44 @@ class PlutoTVIE(InfoExtractor):
 
     def _to_ad_free_formats(self, video_id, formats):
         ad_free_formats = []
+        m3u8_urls = set()
         for format in formats:
-            res = self._download_webpage_handle(
+            res = self._download_webpage(
                 format.get('url'), video_id, note='Downloading m3u8 playlist',
                 fatal=False)
-            if res is False:
+            if not res:
                 continue
-            playlist_doc, _ = res
             first_segment_url = re.search(
-                r'^(https?://.*/)0\-(end|[0-9]+)/[^/]+\.ts$', playlist_doc,
+                r'^(https?://.*/)0\-(end|[0-9]+)/[^/]+\.ts$', res,
                 re.MULTILINE)
             if not first_segment_url:
                 continue
-            m3u8_url = compat_urlparse.urljoin(
-                first_segment_url.group(1), '0-end/master.m3u8')
+            m3u8_urls.add(
+                compat_urlparse.urljoin(first_segment_url.group(1), '0-end/master.m3u8'))
+
+        for m3u8_url in m3u8_urls:
             ad_free_formats.extend(
                 self._extract_m3u8_formats(
                     m3u8_url, video_id, 'mp4', 'm3u8_native',
                     m3u8_id='hls', fatal=False))
+        self._sort_formats(ad_free_formats)
         return ad_free_formats
 
     def _get_video_info(self, video_json, slug, series_name=None):
         video_id = video_json.get('_id', slug)
         formats = []
-        for video_url in video_json.get('stitched', {}).get('urls', []):
+        for video_url in try_get(video_json, lambda x: x['stitched']['urls'], list):
             if video_url.get('type') != 'hls':
                 continue
-            url = video_url.get('url')
+            url = url_or_none(video_url.get('url'))
             formats.extend(
                 self._extract_m3u8_formats(
                     url, video_id, 'mp4', 'm3u8_native',
                     m3u8_id='hls', fatal=False))
         self._sort_formats(formats)
-        ad_free_formats = self._to_ad_free_formats(video_id, formats)
-        self._sort_formats(ad_free_formats)
         info = {
             'id': video_id,
-            'formats': ad_free_formats if ad_free_formats else formats,
+            'formats': self._to_ad_free_formats(video_id, formats),
             'title': video_json.get('name'),
             'description': video_json.get('description'),
             'duration': float_or_none(video_json.get('duration'), scale=1000),
@@ -129,26 +132,27 @@ class PlutoTVIE(InfoExtractor):
         return info
 
     def _real_extract(self, url):
-        video_type, slug = re.match(self._VALID_URL, url).groups()
-        slug_components = slug.split('/')
-        info_slug = slug_components[0]
+        path = compat_urlparse.urlparse(url).path
+        path_components = path.split('/')
+        video_type = path_components[2]
+        info_slug = path_components[3]
         video_json = self._download_json(self._INFO_URL + info_slug, info_slug,
                                          query=self._INFO_QUERY_PARAMS)
 
         if video_type == 'series':
             series_name = video_json.get('name', info_slug)
-            season_number = int_or_none(try_get(slug_components, lambda x: x[2]))
-            episode_slug = try_get(slug_components, lambda x: x[4])
+            season_number = int_or_none(try_get(path_components, lambda x: x[5]))
+            episode_slug = try_get(path_components, lambda x: x[7])
 
             videos = []
-            for season in video_json.get('seasons', []):
+            for season in video_json['seasons']:
                 if season_number is not None and season_number != int_or_none(season.get('number')):
                     continue
-                for episode in season.get('episodes', []):
+                for episode in season['episodes']:
                     if episode_slug is not None and episode_slug != episode.get('slug'):
                         continue
                     videos.append(self._get_video_info(episode, episode_slug, series_name))
-            if len(videos) == 0:
+            if not len(videos):
                 raise ExtractorError('Failed to find any videos to extract')
             if episode_slug is not None and len(videos) == 1:
                 return videos[0]
@@ -159,4 +163,4 @@ class PlutoTVIE(InfoExtractor):
                                         playlist_id=video_json.get('_id', info_slug),
                                         playlist_title=playlist_title)
         assert video_type == 'movies'
-        return self._get_video_info(video_json, slug)
+        return self._get_video_info(video_json, info_slug)
