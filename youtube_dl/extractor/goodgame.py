@@ -108,7 +108,7 @@ class GoodgameStreamIE(GoodgameBaseIE):
         return {
             'id': channel_id,
             'title': stream_info['title'],
-            'view_count': int_or_none(stream_info.get('viewers')),
+            'view_count': int(stream_info.get('viewers')),
             'thumbnail': thumbnail,
             'is_live': True,
             'formats': formats,
