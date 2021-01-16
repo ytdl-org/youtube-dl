@@ -42,7 +42,7 @@ class GoodgameBaseIE(InfoExtractor):
 
 class GoodgameStreamIE(GoodgameBaseIE):
     IE_NAME = 'goodgame:stream'
-    _VALID_URL = r'https?://(?:www\.)?goodgame\.ru/(channel/|player\?)(?P<id>[^/#?]+)'
+    _VALID_URL = r'https?://(?:www\.)?goodgame\.ru/(?:channel/|player\?)(?P<id>[^/#?]+)'
     _TESTS = [{
         'url': 'https://goodgame.ru/channel/rutony',
         'info_dict': {
