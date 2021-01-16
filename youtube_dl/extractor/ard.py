@@ -187,13 +187,13 @@ class ARDMediathekIE(ARDMediathekBaseIE):
             if doc.tag == 'rss':
                 return GenericIE()._extract_rss(url, video_id, doc)
 
-        title = self._html_search_regex(
+        title = self._og_search_title(webpage, default=None) or self._html_search_regex(
             [r'<h1(?:\s+class="boxTopHeadline")?>(.*?)</h1>',
              r'<meta name="dcterms\.title" content="(.*?)"/>',
              r'<h4 class="headline">(.*?)</h4>',
              r'<title[^>]*>(.*?)</title>'],
             webpage, 'title')
-        description = self._html_search_meta(
+        description = self._og_search_description(webpage, default=None) or self._html_search_meta(
             'dcterms.abstract', webpage, 'description', default=None)
         if description is None:
             description = self._html_search_meta(
