@@ -651,6 +651,11 @@ from .microsoftvirtualacademy import (
     MicrosoftVirtualAcademyIE,
     MicrosoftVirtualAcademyCourseIE,
 )
+from .minds import (
+    MindsIE,
+    MindsActivityIE,
+    MindsChannelIE,
+)
 from .ministrygrid import MinistryGridIE
 from .minoto import MinotoIE
 from .miomio import MioMioIE
