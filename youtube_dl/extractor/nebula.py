@@ -85,7 +85,12 @@ class NebulaIE(InfoExtractor):
         request = sanitized_Request(method='POST',
                                     url='https://api.watchnebula.com/api/v1/auth/login/',
                                     data=data,
-                                    headers={'content-type': 'application/json'})
+                                    headers={
+                                        'content-type': 'application/json',
+                                        # Overwrite the cookie headers, because
+                                        # submitting the 'sessionid' cookie
+                                        # always causes a 403 on auth endpoint
+                                        'cookie': ''})
         response = self._download_json(request, fatal=False, video_id=video_id,
                                        note='Authenticating to Nebula with supplied credentials',
                                        errnote='Authentication failed or rejected')
@@ -105,6 +110,9 @@ class NebulaIE(InfoExtractor):
            the error message, because probably highly unpopular)
         If none of these are successful, an end user-intended error message is
         raised, listing some solutions.
+
+        Returns a Nebula API token, which subsequently can be used to make
+        authenticated calls to the Nebula API.
         """
         nebula_token = None
 
