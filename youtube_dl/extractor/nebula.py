@@ -141,7 +141,8 @@ class NebulaIE(InfoExtractor):
         # option #4: nebula token via --videopassword
         if not nebula_token:
             nebula_token = self._downloader.params.get('videopassword')
-            if nebula_token: self.to_screen('Authenticating to Nebula with token from --videopassword')
+            if nebula_token:
+                self.to_screen('Authenticating to Nebula with token from --videopassword')
 
         if not nebula_token:
             raise ExtractorError('Nebula requires an account with an active subscription. '
@@ -228,6 +229,8 @@ class NebulaIE(InfoExtractor):
         user_object = self._call_nebula_api('/auth/user/', video_id, nebula_token, note='Retrieving Zype access token')
         access_token = try_get(user_object, lambda x: x['zype_auth_info']['access_token'], compat_str)
         if not access_token:
+            if try_get(user_object, lambda x: x['is_subscribed'], bool):
+                raise ExtractorError('Unable to extract Zype access token from Nebula API authentication endpoint, please try loading an arbitrary video in a browser with this account to ''prime'' it for video downloading')
             raise ExtractorError('Unable to extract Zype access token from Nebula API authentication endpoint')
         return access_token
 
