@@ -6,6 +6,7 @@ import re
 from .common import InfoExtractor
 from ..utils import (
     clean_html,
+    parse_iso8601,
     try_get,
     unified_strdate,
 )
@@ -23,12 +24,31 @@ class AmericasTestKitchenIE(InfoExtractor):
             'description': 'md5:64e606bfee910627efc4b5f050de92b3',
             'thumbnail': r're:^https?://',
             'timestamp': 1523664000,
-            'upload_date': '20180414',
+            'upload_date': '20180410',
             'release_date': '20180410',
             'series': "America's Test Kitchen",
             'season_number': 18,
             'episode': 'Japanese Suppers',
             'episode_number': 15,
+        },
+        'params': {
+            'skip_download': True,
+        },
+    }, {
+        'url': 'https://www.americastestkitchen.com/episode/705-simple-chicken-dinner',
+        'md5': '06451608c57651e985a498e69cec17e5',
+        'info_dict': {
+            'id': '5fbe8c61bda2010001c6763b',
+            'title': 'Simple Chicken Dinner',
+            'ext': 'mp4',
+            'description': 'md5:eb68737cc2fd4c26ca7db30139d109e7',
+            'thumbnail': r're:^https?://',
+            'upload_date': '20210116',
+            'release_date': '20210116',
+            'series': "America's Test Kitchen",
+            'season_number': 21,
+            'episode': 'Simple Chicken Dinner',
+            'episode_number': 3,
         },
         'params': {
             'skip_download': True,
@@ -60,7 +80,11 @@ class AmericasTestKitchenIE(InfoExtractor):
             'url': 'https://player.zype.com/embed/%s.js?api_key=jZ9GUhRmxcPvX7M3SlfejB6Hle9jyHTdk2jVxG7wOHPLODgncEKVdPYBhuz9iWXQ' % video['zypeId'],
             'ie_key': 'Zype',
             'description': clean_html(video.get('description')),
+            'timestamp': parse_iso8601(video.get('publishDate')),
             'release_date': unified_strdate(video.get('publishDate')),
+            'upload_date': unified_strdate(video.get('publishDate')),
+            'episode_number': episode.get('number'),
+            'season_number': episode.get('season'),
             'series': try_get(episode, lambda x: x['show']['title']),
             'episode': episode.get('title'),
         }
