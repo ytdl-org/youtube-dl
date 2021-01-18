@@ -5,7 +5,6 @@ from .common import InfoExtractor
 
 
 class RCTIplusIE(InfoExtractor):
-    IE_NAME = 'RCTIplus'
     _VALID_URL = r'https://www\.rctiplus\.com/programs/\d+?/.*?/episode/(?P<id>\d+)/.*'
     _TEST = {
         'url': 'https://www.rctiplus.com/programs/540/upin-ipin/episode/5642/esok-puasa-upin-ipin-ep1',
