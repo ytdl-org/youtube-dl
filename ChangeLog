@@ -1,3 +1,69 @@
+version 2021.01.16
+
+Core
+* [YoutubeDL] Protect from infinite recursion due to recursively nested
+  playlists (#27833)
+* [YoutubeDL] Ignore failure to create existing directory (#27811)
+* [YoutubeDL] Raise syntax error for format selection expressions with multiple
+  + operators (#27803)
+
+Extractors
++ [animeondemand] Add support for lazy playlist extraction (#27829)
+* [youporn] Restrict fallback download URL (#27822)
+* [youporn] Improve height and tbr extraction (#20425, #23659)
+* [youporn] Fix extraction (#27822)
++ [twitter] Add support for unified cards (#27826)
++ [twitch] Add Authorization header with OAuth token for GraphQL requests
+  (#27790)
+* [mixcloud:playlist:base] Extract video id in flat playlist mode (#27787)
+* [cspan] Improve info extraction (#27791)
+* [adn] Improve info extraction
+* [adn] Fix extraction (#26963, #27732)
+* [youtube:search] Extract from all sections (#27604)
+* [youtube:search] fix viewcount and try to extract all video sections (#27604)
+* [twitch] Improve login error extraction
+* [twitch] Fix authentication (#27743)
+* [3qsdn] Improve extraction (#21058)
+* [peertube] Extract formats from streamingPlaylists (#26002, #27586, #27728)
+* [khanacademy] Fix extraction (#2887, #26803)
+* [spike] Update Paramount Network feed URL (#27715)
+
+
+version 2021.01.08
+
+Core
+* [downloader/hls] Disable decryption in tests (#27660)
++ [utils] Add a function to clean podcast URLs
+
+Extractors
+* [rai] Improve subtitles extraction (#27698, #27705)
+* [canvas] Match only supported VRT NU URLs (#27707)
++ [bibeltv] Add support for bibeltv.de (#14361)
++ [bfmtv] Add support for bfmtv.com (#16053, #26615)
++ [sbs] Add support for ondemand play and news embed URLs (#17650, #27629)
+* [twitch] Drop legacy kraken API v5 code altogether and refactor
+* [twitch:vod] Switch to GraphQL for video metadata
+* [canvas] Fix VRT NU extraction (#26957, #27053)
+* [twitch] Switch access token to GraphQL and refactor (#27646)
++ [rai] Detect ContentItem in iframe (#12652, #27673)
+* [ketnet] Fix extraction (#27662)
++ [dplay] Add suport Discovery+ domains (#27680)
+* [motherless] Improve extraction (#26495, #27450)
+* [motherless] Fix recent videos upload date extraction (#27661)
+* [nrk] Fix extraction for videos without a legalAge rating
+- [googleplus] Remove extractor (#4955, #7400)
++ [applepodcasts] Add support for podcasts.apple.com (#25918)
++ [googlepodcasts] Add support for podcasts.google.com
++ [iheart] Add support for iheart.com (#27037)
+* [acast] Clean podcast URLs
+* [stitcher] Clean podcast URLs
++ [xfileshare] Add support for aparat.cam (#27651)
++ [twitter] Add support for summary card (#25121)
+* [twitter] Try to use a Generic fallback for unknown twitter cards (#25982)
++ [stitcher] Add support for shows and show metadata extraction (#20510)
+* [stv] Improve episode id extraction (#23083)
+
+
 version 2021.01.03
 
 Extractors

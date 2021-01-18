@@ -62,6 +62,9 @@ class YouPornIE(InfoExtractor):
     }, {
         'url': 'http://www.youporn.com/watch/505835',
         'only_matching': True,
+    }, {
+        'url': 'https://www.youporn.com/watch/13922959/femdom-principal/',
+        'only_matching': True,
     }]
 
     @staticmethod
@@ -90,7 +93,7 @@ class YouPornIE(InfoExtractor):
         # Main source
         definitions = self._parse_json(
             self._search_regex(
-                r'mediaDefinition\s*=\s*(\[.+?\]);', webpage,
+                r'mediaDefinition\s*[=:]\s*(\[.+?\])\s*[;,]', webpage,
                 'media definitions', default='[]'),
             video_id, fatal=False)
         if definitions:
@@ -102,7 +105,7 @@ class YouPornIE(InfoExtractor):
                     links.append(video_url)
 
         # Fallback #1, this also contains extra low quality 180p format
-        for _, link in re.findall(r'<a[^>]+href=(["\'])(http.+?)\1[^>]+title=["\']Download [Vv]ideo', webpage):
+        for _, link in re.findall(r'<a[^>]+href=(["\'])(http(?:(?!\1).)+\.mp4(?:(?!\1).)*)\1[^>]+title=["\']Download [Vv]ideo', webpage):
             links.append(link)
 
         # Fallback #2 (unavailable as at 22.06.2017)
@@ -130,8 +133,9 @@ class YouPornIE(InfoExtractor):
             # Video URL's path looks like this:
             #  /201012/17/505835/720p_1500k_505835/YouPorn%20-%20Sex%20Ed%20Is%20It%20Safe%20To%20Masturbate%20Daily.mp4
             #  /201012/17/505835/vl_240p_240k_505835/YouPorn%20-%20Sex%20Ed%20Is%20It%20Safe%20To%20Masturbate%20Daily.mp4
+            #  /videos/201703/11/109285532/1080P_4000K_109285532.mp4
             # We will benefit from it by extracting some metadata
-            mobj = re.search(r'(?P<height>\d{3,4})[pP]_(?P<bitrate>\d+)[kK]_\d+/', video_url)
+            mobj = re.search(r'(?P<height>\d{3,4})[pP]_(?P<bitrate>\d+)[kK]_\d+', video_url)
             if mobj:
                 height = int(mobj.group('height'))
                 bitrate = int(mobj.group('bitrate'))
