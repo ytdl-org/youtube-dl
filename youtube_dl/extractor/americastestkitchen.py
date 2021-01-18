@@ -85,7 +85,7 @@ class AmericasTestKitchenIE(InfoExtractor):
             'description': clean_html(video.get('description')),
             'timestamp': unified_timestamp(video.get('publishDate')),
             'release_date': unified_strdate(video.get('publishDate')),
-            'episode_number': episode.get('number'),
+            'episode_number': int_or_none(episode.get('number')),
             'season_number': int_or_none(episode.get('season')),
             'series': try_get(episode, lambda x: x['show']['title']),
             'episode': episode.get('title'),
