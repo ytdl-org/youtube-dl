@@ -74,21 +74,31 @@ class PostProcessor(object):
         assert isinstance(args, dict)
 
         pp_key = self.pp_key().lower()
-        pp_args = args.get(pp_key, args.get('default', default))
+
+        exe_args = None
+        if exe is not None:
+            assert isinstance(exe, compat_str)
+            exe = exe.lower()
+            specific_args = args.get('%s+%s' % (pp_key, exe))
+            if specific_args is not None:
+                assert isinstance(specific_args, (list, tuple))
+                return specific_args
+            exe_args = args.get(exe)
+
+        pp_args = args.get(pp_key)
+        if pp_args is None and exe_args is None:
+            default = args.get('default', default)
+            assert isinstance(default, (list, tuple))
+            return default
+
+        if pp_args is None:
+            pp_args = []
+        elif exe_args is None:
+            exe_args = []
+
         assert isinstance(pp_args, (list, tuple))
-
-        if exe is None:
-            return pp_args
-        assert isinstance(exe, compat_str)
-
-        exe = exe.lower()
-        exe_args = args.get(exe, [])
         assert isinstance(exe_args, (list, tuple))
-
-        specific_args = args.get('%s+%s' % (pp_key, exe), [])
-        assert isinstance(specific_args, (list, tuple))
-
-        return pp_args + exe_args + specific_args
+        return pp_args + exe_args
 
 
 class AudioConversionError(PostProcessingError):
