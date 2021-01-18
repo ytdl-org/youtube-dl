@@ -14,7 +14,10 @@ class RCTIplusIE(InfoExtractor):
             'id': '5642',
             'title': 'Esok Puasa - Upin & Ipin Ep.1',
             'ext': 'm3u8',
-        }
+        },
+        'params': {
+            'format': 'bestvideo, bestaudio',
+        },
     }
 
     def _real_extract(self, url):
