@@ -265,6 +265,7 @@ from .ctsnews import CtsNewsIE
 from .ctv import CTVIE
 from .ctvnews import CTVNewsIE
 from .cultureunplugged import CultureUnpluggedIE
+from .cumlouder import CumlouderIE
 from .curiositystream import (
     CuriosityStreamIE,
     CuriosityStreamCollectionIE,

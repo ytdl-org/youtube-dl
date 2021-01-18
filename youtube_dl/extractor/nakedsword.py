@@ -19,6 +19,14 @@ class NakedSwordBaseIE(InfoExtractor):
     _LOGOUT_URL = "https://nakedsword.com/signout"
     _NETRC_MACHINE = 'nakedsword'
 
+    
+    def islogged(self):
+        page, urlh = self._download_webpage_handle(
+            self._SITE_URL,
+            None
+        )
+        return ("/signout" in page)
+    
     def _login(self):
         username, password = self._get_login_info()
         # print(username)
@@ -70,8 +78,8 @@ class NakedSwordSceneIE(NakedSwordBaseIE):
     _VALID_URL = r"https?://(?:www\.)?nakedsword.com/movies/(?P<movieid>[\d]+)/(?P<title>[a-zA-Z\d_-]+)/scene/(?P<id>[\d]+)/?$"
 
     def _real_initialize(self):
-
-        self._login()
+        if not self.islogged():
+            self._login()
 
     def _real_extract(self, url):
 
@@ -117,9 +125,7 @@ class NakedSwordSceneIE(NakedSwordBaseIE):
                 f['format_id'] = "hls-" + str(n-1)
                 n = n - 1
 
-            title = info_m3u8.get("Title")
-            if not title:
-                title = "nakedsword"
+            title = info_m3u8.get("Title", "nakedsword")
             title = sanitize_filename(title, True)
             title = title + "_scene_" + title_id
 
@@ -170,6 +176,8 @@ class NakedSwordMovieIE(NakedSwordBaseIE):
             entries.append(entry)
 
         #print(entries)
+
+        self._logout()
 
         return {
             '_type': 'playlist',

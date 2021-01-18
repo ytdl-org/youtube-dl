@@ -53,7 +53,6 @@ class SketchySexBaseIE(InfoExtractor):
         webpage, _ = self._download_webpage_handle(
             self._SITE_URL,
             None,
-            None,
             headers=self.headers
         )
 

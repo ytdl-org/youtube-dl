@@ -199,7 +199,6 @@ class OnlyFansBaseIE(InfoExtractor):
                 self._sort_formats(formats)
             
                 info_dict = {
-
                     "id" :  str(videoid),
                     "title" : datevideo + "_" + account,
                     "formats" : formats
