@@ -171,7 +171,6 @@ class VVVVIDIE(InfoExtractor):
                     if season_number:
                         info['season_number'] = int(season_number)
 
-        youtube = False
         for quality in ('_sd', ''):
             embed_code = video_data.get('embed_info' + quality)
             if not embed_code:
@@ -191,17 +190,26 @@ class VVVVIDIE(InfoExtractor):
                         embed_code += '?' + ds(kenc_message)
                 formats.extend(self._extract_akamai_formats(embed_code, video_id))
             elif video_type == 'video/youtube':
-                youtube = True
+                info.update({
+                    '_type': 'url_transparent',
+                    'ie_key': YoutubeIE.ie_key(),
+                    'url': embed_code,
+                })
+                formats = None
             else:
                 formats.extend(self._extract_wowza_formats(
                     'http://sb.top-ix.org/videomg/_definst_/mp4:%s/playlist.m3u8' % embed_code, video_id))
             metadata_from_url(embed_code)
+
+        if formats:
+            self._sort_formats(formats)
 
         metadata_from_url(video_data.get('thumbnail'))
         info.update(self._extract_common_video_info(video_data))
         info.update({
             'id': video_id,
             'title': title,
+            'formats': formats,
             'duration': int_or_none(video_data.get('length')),
             'series': video_data.get('show_title'),
             'season_id': season_id,
@@ -210,19 +218,6 @@ class VVVVIDIE(InfoExtractor):
             'like_count': int_or_none(video_data.get('video_likes')),
             'repost_count': int_or_none(video_data.get('video_shares')),
         })
-
-        if youtube:
-            info.update({
-                '_type': 'url_transparent',
-                'ie_key': YoutubeIE.ie_key(),
-                'url': embed_code,
-            })
-        else:
-            self._sort_formats(formats)
-            info.update({
-                'formats': formats,
-            })
-
         return info
 
 
