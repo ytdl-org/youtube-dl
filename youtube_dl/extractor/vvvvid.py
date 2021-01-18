@@ -171,12 +171,12 @@ class VVVVIDIE(InfoExtractor):
                     if season_number:
                         info['season_number'] = int(season_number)
 
-        for quality in ('_sd', ''):
+        video_type = video_data.get('video_type')
+        for quality in ('', '_sd'):
             embed_code = video_data.get('embed_info' + quality)
             if not embed_code:
                 continue
             embed_code = ds(embed_code)
-            video_type = video_data.get('video_type')
             if video_type in ('video/rcs', 'video/kenc'):
                 if video_type == 'video/kenc':
                     kenc = self._download_json(
@@ -196,6 +196,7 @@ class VVVVIDIE(InfoExtractor):
                     'url': embed_code,
                 })
                 formats = None
+                break
             else:
                 formats.extend(self._extract_wowza_formats(
                     'http://sb.top-ix.org/videomg/_definst_/mp4:%s/playlist.m3u8' % embed_code, video_id))
