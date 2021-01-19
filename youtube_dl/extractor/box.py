@@ -8,7 +8,7 @@ from .common import InfoExtractor
 from ..utils import (
     determine_ext,
     parse_iso8601,
-    # try_get,
+    try_get,
     update_url_query,
 )
 
@@ -51,7 +51,7 @@ class BoxIE(InfoExtractor):
                 'BoxApi': 'shared_link=' + shared_link,
                 'X-Rep-Hints': '[dash]',  # TODO: extract `hls` formats
             }, query={
-                'fields': 'authenticated_download_url,created_at,created_by,description,extension,is_download_available,name,representations,size'
+                'fields': 'permissions,authenticated_download_url,created_at,created_by,description,extension,is_download_available,name,representations,size'
             })
         title = f['name']
 
@@ -62,20 +62,24 @@ class BoxIE(InfoExtractor):
 
         formats = []
 
-        # for entry in (try_get(f, lambda x: x['representations']['entries'], list) or []):
-        #     entry_url_template = try_get(
-        #         entry, lambda x: x['content']['url_template'])
-        #     if not entry_url_template:
-        #         continue
-        #     representation = entry.get('representation')
-        #     if representation == 'dash':
-        #         TODO: append query to every fragment URL
-        #         formats.extend(self._extract_mpd_formats(
-        #             entry_url_template.replace('{+asset_path}', 'manifest.mpd'),
-        #             file_id, query=query))
+        for entry in (try_get(f, lambda x: x['representations']['entries'], list) or []):
+            entry_url_template = try_get(
+                entry, lambda x: x['content']['url_template'])
+            if not entry_url_template:
+                continue
+            representation = entry.get('representation')
+            if representation == 'dash':
+                extracted = self._extract_mpd_formats(
+                    entry_url_template.replace('{+asset_path}', 'manifest.mpd'),
+                    file_id, query=query)
+                for extracted_format in extracted:
+                    for fragment in extracted_format['fragments']:
+                        fragment['path'] = update_url_query(fragment['path'], query)
+                formats.extend(extracted)
 
         authenticated_download_url = f.get('authenticated_download_url')
-        if authenticated_download_url and f.get('is_download_available'):
+        permissions = f.get('permissions') or {}
+        if authenticated_download_url and f.get('is_download_available') and permissions.get('can_download', True):
             formats.append({
                 'ext': f.get('extension') or determine_ext(title),
                 'filesize': f.get('size'),
