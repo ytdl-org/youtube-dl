@@ -3,102 +3,146 @@ from __future__ import unicode_literals
 import re
 
 from .common import InfoExtractor
-from ..utils import str_to_int
+from ..utils import (
+    determine_ext,
+    url_or_none,
+    int_or_none,
+    float_or_none,
+    ExtractorError
+)
 
 
 class NineGagIE(InfoExtractor):
     IE_NAME = '9gag'
-    _VALID_URL = r'https?://(?:www\.)?9gag(?:\.com/tv|\.tv)/(?:p|embed)/(?P<id>[a-zA-Z0-9]+)(?:/(?P<display_id>[^?#/]+))?'
+    _VALID_URL = r'https?://(?:www\.)?9gag\.com/gag/(?P<id>[a-zA-Z0-9]+)'
 
     _TESTS = [{
-        'url': 'http://9gag.com/tv/p/Kk2X5/people-are-awesome-2013-is-absolutely-awesome',
+        'url': 'https://9gag.com/gag/an5Qz5b',
         'info_dict': {
-            'id': 'kXzwOKyGlSA',
-            'ext': 'mp4',
-            'description': 'This 3-minute video will make you smile and then make you feel untalented and insignificant. Anyway, you should share this awesomeness. (Thanks, Dino!)',
-            'title': '\"People Are Awesome 2013\" Is Absolutely Awesome',
-            'uploader_id': 'UCdEH6EjDKwtTe-sO2f0_1XA',
-            'uploader': 'CompilationChannel',
-            'upload_date': '20131110',
-            'view_count': int,
-        },
-        'add_ie': ['Youtube'],
+            'id': 'an5Qz5b',
+            'ext': 'webm',
+            'title': 'Dogs playing tetherball',
+            'upload_date': '20191108',
+            'timestamp': 1573243994,
+            'age_limit': 0,
+            'categories': [
+                'Wholesome'
+            ],
+            'tags': [
+                'Dog'
+            ]
+        }
     }, {
-        'url': 'http://9gag.com/tv/p/aKolP3',
+        'url': 'https://9gag.com/gag/ae5Ag7B',
         'info_dict': {
-            'id': 'aKolP3',
-            'ext': 'mp4',
-            'title': 'This Guy Travelled 11 countries In 44 days Just To Make This Amazing Video',
-            'description': "I just saw more in 1 minute than I've seen in 1 year. This guy's video is epic!!",
-            'uploader_id': 'rickmereki',
-            'uploader': 'Rick Mereki',
-            'upload_date': '20110803',
-            'view_count': int,
-        },
-        'add_ie': ['Vimeo'],
-    }, {
-        'url': 'http://9gag.com/tv/p/KklwM',
-        'only_matching': True,
-    }, {
-        'url': 'http://9gag.tv/p/Kk2X5',
-        'only_matching': True,
-    }, {
-        'url': 'http://9gag.com/tv/embed/a5Dmvl',
-        'only_matching': True,
+            'id': 'ae5Ag7B',
+            'ext': 'webm',
+            'title': 'Capybara Agility Training',
+            'upload_date': '20191108',
+            'timestamp': 1573237208,
+            'age_limit': 0,
+            'categories': [
+                'Awesome'
+            ],
+            'tags': [
+                'Weimaraner',
+                'American Pit Bull Terrier'
+            ]
+        }
     }]
 
-    _EXTERNAL_VIDEO_PROVIDER = {
-        '1': {
-            'url': '%s',
-            'ie_key': 'Youtube',
-        },
-        '2': {
-            'url': 'http://player.vimeo.com/video/%s',
-            'ie_key': 'Vimeo',
-        },
-        '3': {
-            'url': 'http://instagram.com/p/%s',
-            'ie_key': 'Instagram',
-        },
-        '4': {
-            'url': 'http://vine.co/v/%s',
-            'ie_key': 'Vine',
-        },
+    _EXTERNAL_VIDEO_PROVIDERS = {
+        'Youtube': 'https://youtube.com/watch?v=%s'
     }
 
     def _real_extract(self, url):
-        mobj = re.match(self._VALID_URL, url)
-        video_id = mobj.group('id')
-        display_id = mobj.group('display_id') or video_id
+        video_id = self._match_id(url)
+        webpage = self._download_webpage(url, video_id)
+        rawJsonData = self._search_regex(
+            r'window._config\s*=\s*JSON.parse\(["\']({.+?})["\']\);',
+            webpage,
+            'data')
+        rawJsonData = rawJsonData.replace('\\"', '"').replace('\\\\/', '/')
+        data = self._parse_json(rawJsonData, video_id)['data']['post']
 
-        webpage = self._download_webpage(url, display_id)
+        if data['type'] == 'Video':
+            vid = data['video']['id']
+            ie_key = data['video']['source'].capitalize()
+            return {
+                '_type': 'url_transparent',
+                'url': self._EXTERNAL_VIDEO_PROVIDERS[ie_key] % vid,
+                'ie_key': ie_key,
+                'id': vid,
+                'duration': data['video'].get('duration'),
+                'start_time': data['video'].get('startTs')
+            }
 
-        post_view = self._parse_json(
-            self._search_regex(
-                r'var\s+postView\s*=\s*new\s+app\.PostView\({\s*post:\s*({.+?})\s*,\s*posts:\s*prefetchedCurrentPost',
-                webpage, 'post view'),
-            display_id)
+        if data['type'] == 'EmbedVideo':
+            vid = data['video']['id']
+            ie_key = data['video']['source'].capitalize()
+            return {
+                '_type': 'url_transparent',
+                'url': data['video']['embedUrl'],
+                #'ie_key': vid,
+                'start_time': data['video'].get('startTs')
+            }
 
-        ie_key = None
-        source_url = post_view.get('sourceUrl')
-        if not source_url:
-            external_video_id = post_view['videoExternalId']
-            external_video_provider = post_view['videoExternalProvider']
-            source_url = self._EXTERNAL_VIDEO_PROVIDER[external_video_provider]['url'] % external_video_id
-            ie_key = self._EXTERNAL_VIDEO_PROVIDER[external_video_provider]['ie_key']
-        title = post_view['title']
-        description = post_view.get('description')
-        view_count = str_to_int(post_view.get('externalView'))
-        thumbnail = post_view.get('thumbnail_700w') or post_view.get('ogImageUrl') or post_view.get('thumbnail_300w')
+        if data['type'] != 'Animated':
+            raise ExtractorError(
+                'The given url does not contain a video',
+                expected=True)
+
+        duration = None
+        formats = []
+        thumbnails = []
+        for key in data['images']:
+            image = data['images'][key]
+            if 'duration' in image and duration is None:
+                duration = int_or_none(image['duration'])
+            url = url_or_none(image.get('url'))
+            if url == None:
+                continue
+            ext = determine_ext(url)
+            if ext == 'jpg' or ext == 'png':
+                thumbnail = {
+                    'url': url,
+                    'width': float_or_none(image.get('width')),
+                    'height': float_or_none(image.get('height'))
+                }
+                thumbnails.append(thumbnail)
+            elif ext == 'webm' or ext == 'mp4':
+                formats.append({
+                    'format_id': re.sub(r'.*_([^\.]+).(.*)', r'\1_\2', url),
+                    'ext': ext,
+                    'url': url,
+                    'width': float_or_none(image.get('width')),
+                    'height': float_or_none(image.get('height'))
+                })
+        section = None
+        postSection = data.get('postSection')
+        if postSection != None and 'name' in postSection:
+            section = re.sub(r'\\[^\\]{5}', '', postSection['name'])
+        age_limit = int_or_none(data.get('nsfw'))
+        if age_limit != None:
+            age_limit = age_limit * 18
+        tags = None
+        if 'tags' in data:
+            tags = []
+            for tag in data.get('tags') or []:
+                tags.append(tag.get('key'))
 
         return {
-            '_type': 'url_transparent',
-            'url': source_url,
-            'ie_key': ie_key,
             'id': video_id,
-            'display_id': display_id,
-            'title': title,
-            'description': description,
-            'view_count': view_count,
-            'thumbnail': thumbnail,
+            'title': data['title'],
+            'timestamp': int_or_none(data.get('creationTs')),
+            'duration': duration,
+            'formats': formats,
+            'thumbnails': thumbnails,
+            'like_count': int_or_none(data.get('upVoteCount')),
+            'dislike_count': int_or_none(data.get('downVoteCount')),
+            'comment_count': int_or_none(data.get('commentsCount')),
+            'age_limit': age_limit,
+            'categories': [section],
+            'tags': tags,
+            'is_live': False
         }
