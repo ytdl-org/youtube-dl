@@ -10,6 +10,7 @@ from ..compat import compat_str
 class GediDigitalBaseIE(InfoExtractor):
     @staticmethod
     def _clean_audio_fmts(formats):
+        # remove duplicates audio formats
         unique_formats = []
         for f in formats:
             if 'acodec' in f:
@@ -28,74 +29,40 @@ class GediDigitalBaseIE(InfoExtractor):
 
         formats = []
         audio_fmts = []
-        hls_fmts = []
-        http_fmts = []
-        title = ''
-        thumb = ''
-
-        fmt_reg = r'(?P<t>video|audio)-(?P<p>rrtv|hls)-(?P<h>[\w\d]+)(?:-(?P<br>[\w\d]+))?$'
-        br_reg = r'video-rrtv-(?P<br>\d+)-'
+        title = None
+        thumb = None
 
         for t, n, v in player_data:
             if t == 'format':
-                m = re.match(fmt_reg, n)
-                if m:
-                    # audio formats
-                    if m.group('t') == 'audio':
-                        if m.group('p') == 'hls':
-                            audio_fmts.extend(self._extract_m3u8_formats(
-                                v, video_id, 'm4a', m3u8_id='hls', fatal=False))
-                        elif m.group('p') == 'rrtv':
-                            audio_fmts.append({
-                                'format_id': 'mp3',
-                                'url': v,
-                                'tbr': 128,
-                                'ext': 'mp3',
-                                'vcodec': 'none',
-                                'acodec': 'mp3',
-                            })
-
-                    # video formats
-                    elif m.group('t') == 'video':
-                        # hls manifest video
-                        if m.group('p') == 'hls':
-                            hls_fmts.extend(self._extract_m3u8_formats(
-                                v, video_id, 'mp4', m3u8_id='hls', fatal=False))
-                        # direct mp4 video
-                        elif m.group('p') == 'rrtv':
-                            if not m.group('br'):
-                                mm = re.search(br_reg, v)
-                            http_fmts.append({
-                                'format_id': 'https-' + m.group('h'),
-                                'protocol': 'https',
-                                'url': v,
-                                'tbr': int(m.group('br')) if m.group('br') else
-                                (int(mm.group('br')) if mm.group('br') else 0),
-                                'height': int(m.group('h'))
-                            })
-
+                if n == 'video-hls-vod-ak':
+                    formats.extend(self._extract_akamai_formats(
+                        v, video_id, {'http': 'media.gedidigital.it'}))
+                if n == 'audio-hls-vod':
+                    audio_fmts.extend(self._extract_m3u8_formats(
+                        v, video_id, 'm4a', m3u8_id='hls', fatal=False))
+                if n == 'audio-rrtv-mp3':
+                    audio_fmts.append({
+                        'format_id': 'mp3',
+                        'url': v,
+                        'tbr': 128,
+                        'ext': 'mp3',
+                        'vcodec': 'none',
+                        'acodec': 'mp3',
+                    })
             elif t == 'param':
                 if n == 'videotitle':
                     title = v
-                if n == 'image_full_play':
+                if n in ['image_full_play', 'image_full', 'image']:
                     thumb = v
 
-        title = self._og_search_title(webpage) if title == '' else title
+        title = self._og_search_title(webpage) if not title else title
 
         # clean weird char
         title = compat_str(title).encode('utf8', 'replace').replace(b'\xc3\x82', b'').decode('utf8', 'replace')
 
-        if audio_fmts:
-            self._clean_audio_fmts(audio_fmts)
-            self._sort_formats(audio_fmts)
-        if hls_fmts:
-            self._sort_formats(hls_fmts)
-        if http_fmts:
-            self._sort_formats(http_fmts)
-
+        self._clean_audio_fmts(audio_fmts)
         formats.extend(audio_fmts)
-        formats.extend(hls_fmts)
-        formats.extend(http_fmts)
+        self._sort_formats(formats)
 
         return {
             'id': video_id,
@@ -169,7 +136,7 @@ class GediDigitalIE(GediDigitalBaseIE):
         },
     }, {
         'url': 'https://video.espresso.repubblica.it/embed/tutti-i-video/01-ted-villa/14772/14870&width=640&height=360',
-        'md5': '0391c2c83c6506581003aaf0255889c0',
+        'md5': 'ca3323b47c94cac92fff03eef0387d97',
         'info_dict': {
             'id': '14772/14870',
             'ext': 'mp4',
