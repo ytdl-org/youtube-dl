@@ -11,7 +11,6 @@ from ..utils import (
     try_get,
     unified_strdate,
     unified_timestamp,
-    update_url_query,
 )
 
 
@@ -95,7 +94,7 @@ class AmericasTestKitchenIE(InfoExtractor):
 
 
 class AmericasTestKitchenSeasonIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:www\.)?(?P<show>americastestkitchen|cookscountry)\.com/episodes/browse/season\_(?P<id>\d+)'
+    _VALID_URL = r'https?://(?:www\.)?(?P<show>americastestkitchen|cookscountry)\.com/episodes/browse/season_(?P<id>\d+)'
     _TESTS = [{
         # ATK Season
         'url': 'https://www.americastestkitchen.com/episodes/browse/season_1',
@@ -129,37 +128,40 @@ class AmericasTestKitchenSeasonIE(InfoExtractor):
             'search_show_slug:%s' % slug,
         ]
 
-        params = {
-            'facetFilters': json.dumps(filters),
-            'attributesToRetrieve': 'search_url',
-            'attributesToHighlight': '',
-            # ATK and CCO always have less 26 episodes per season
-            'hitsPerPage': '30',
-        }
-
-        url = 'https://y1fnzxui30-dsn.algolia.net/1/indexes/everest_search_atk_season_desc_production'
-
         season_search = self._download_json(
-            update_url_query(url, params),
-            season,
-            headers={
-                'Origin': 'https://www.americastestkitchen.com',
-                'Content-Type': 'application/x-www-form-urlencoded',
+            'https://y1fnzxui30-dsn.algolia.net/1/indexes/everest_search_atk_season_desc_production',
+            season, headers={
+                'Origin': 'https://www.%s.com' % show_name,
                 'X-Algolia-API-Key': '8d504d0099ed27c1b73708d22871d805',
                 'X-Algolia-Application-Id': 'Y1FNZXUI30',
+            }, query={
+                'facetFilters': json.dumps(filters),
+                'attributesToRetrieve': 'search_url',
+                'attributesToHighlight': '',
+                # ATK and CCO generally have less than 26 episodes per season
+                'hitsPerPage': '100',
             })
+
+        for episode in season_search['hits']:
+            search_url = episode.get('search_url')
+            if search_url:
+                self.url_result(
+                    'https://www.%s.com%s' % (show_name, episode['search_url']),
+                    'AmericasTestKitchen',
+                    episode['objectID'].split('_')[-1])
 
         entries = [
             self.url_result(
-                'https://www.americastestkitchen.com' + episode['search_url'],
+                'https://www.%s.com%s' % (show_name, episode.get('search_url')),
                 'AmericasTestKitchen',
-                episode['objectID'].split('_')[-1])
+                try_get(episode, lambda e: e['objectID'].split('_')[-1]))
             for episode in season_search['hits']
+            if 'search_url' in episode
         ]
 
         return {
             '_type': 'playlist',
             'id': 'season-%s' % season,
             'title': 'Season %s' % season,
-            'entries': sorted(entries, key=lambda e: e['id']),
+            'entries': sorted(entries, key=lambda e: e.get('id')),
         }
