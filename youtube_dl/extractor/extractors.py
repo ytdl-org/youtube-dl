@@ -44,7 +44,7 @@ from .amara import AmaraIE
 from .amcnetworks import AMCNetworksIE
 from .americastestkitchen import (
     AmericasTestKitchenIE,
-    AmericasTestKitchenPlaylistIE,
+    AmericasTestKitchenSeasonIE,
 )
 from .animeondemand import AnimeOnDemandIE
 from .anvato import AnvatoIE

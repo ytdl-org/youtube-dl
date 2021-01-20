@@ -11,6 +11,7 @@ from ..utils import (
     try_get,
     unified_strdate,
     unified_timestamp,
+    update_url_query,
 )
 
 
@@ -93,10 +94,10 @@ class AmericasTestKitchenIE(InfoExtractor):
         }
 
 
-class AmericasTestKitchenPlaylistIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:www\.)?americastestkitchen\.com/episodes/browse/season\_(?P<id>\d+)'
+class AmericasTestKitchenSeasonIE(InfoExtractor):
+    _VALID_URL = r'https?://(?:www\.)?(?P<show>americastestkitchen|cookscountry)\.com/episodes/browse/season\_(?P<id>\d+)'
     _TESTS = [{
-        # Single-digit season
+        # ATK Season
         'url': 'https://www.americastestkitchen.com/episodes/browse/season_1',
         'info_dict': {
             'id': 'season-1',
@@ -104,44 +105,56 @@ class AmericasTestKitchenPlaylistIE(InfoExtractor):
         },
         'playlist_count': 13,
     }, {
+        # Cooks Country Season
+        'url': 'https://www.cookscountry.com/episodes/browse/season_12',
+        'info_dict': {
+            'id': 'season-12',
+            'title': 'Season 12',
+        },
+        'playlist_count': 13,
+    }, {
         # Multi-digit season
         'url': 'https://www.americastestkitchen.com/episodes/browse/season_20',
-        'info_dict': {
-            'id': 'season-20',
-            'title': 'Season 20',
-        },
-        'playlist_count': 26,
+        'only_matching': True,
     }]
 
     def _real_extract(self, url):
-        mobj = re.match(self._VALID_URL, url)
-        season = mobj.group('id')
+        show_name, season = re.match(self._VALID_URL, url).groups()
 
-        data = {
-            'requests': [
-                {
-                    'indexName': 'everest_search_atk_season_desc_production',
-                    'params': 'filters=search_document_klass%3Aepisode%20AND%20search_site_list%3Aatk%20AND%20search_show_slug%3Aatk%20&enableRules=false&hitsPerPage=30&maxValuesPerFacet=21&page=0&facets=%5B%22search_season_list%22%5D&tagFilters=&facetFilters=%5B%5B%22search_season_list%3ASeason%20' + season + '%22%5D%5D'
+        slug = 'atk' if show_name == 'americastestkitchen' else 'cco'
 
-                }
-            ]
+        filters = [
+            'search_season_list:Season %s' % season,
+            'search_document_klass:episode',
+            'search_show_slug:%s' % slug,
+        ]
+
+        params = {
+            'facetFilters': json.dumps(filters),
+            'attributesToRetrieve': 'search_url',
+            'attributesToHighlight': '',
+            # ATK and CCO always have less 26 episodes per season
+            'hitsPerPage': '30',
         }
 
-        # ATK uses a third-party provider to list the episodes for each season
-        # The data to provide it must be sent with content-type=application/x-www-form-urlencoded
-        # But the endpoint actually just wants JSON
+        url = 'https://y1fnzxui30-dsn.algolia.net/1/indexes/everest_search_atk_season_desc_production'
+
         season_search = self._download_json(
-            'https://y1fnzxui30-dsn.algolia.net/1/indexes/*/queries?x-algolia-agent=Algolia%20for%20JavaScript%20(3.35.1)%3B%20Browser%3B%20JS%20Helper%20(3.1.1)%3B%20react%20(16.13.1)%3B%20react-instantsearch%20(6.5.0)&x-algolia-application-id=Y1FNZXUI30&x-algolia-api-key=8d504d0099ed27c1b73708d22871d805',
-            season, data=json.dumps(data), headers={
+            update_url_query(url, params),
+            season,
+            headers={
                 'Origin': 'https://www.americastestkitchen.com',
-                'Content-Type': 'application/x-www-form-urlencoded'
+                'Content-Type': 'application/x-www-form-urlencoded',
+                'X-Algolia-API-Key': '8d504d0099ed27c1b73708d22871d805',
+                'X-Algolia-Application-Id': 'Y1FNZXUI30',
             })
 
-        episode_paths = season_search['results'][0]['hits']
-
         entries = [
-            self.url_result('https://www.americastestkitchen.com' + episode['search_url'], 'AmericasTestKitchen', episode['objectID'])
-            for episode in episode_paths
+            self.url_result(
+                'https://www.americastestkitchen.com' + episode['search_url'],
+                'AmericasTestKitchen',
+                episode['objectID'].split('_')[-1])
+            for episode in season_search['hits']
         ]
 
         return {
