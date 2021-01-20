@@ -161,5 +161,5 @@ class AmericasTestKitchenSeasonIE(InfoExtractor):
             '_type': 'playlist',
             'id': 'season-%s' % season,
             'title': 'Season %s' % season,
-            'entries': entries,
+            'entries': sorted(entries, key=lambda e: e['id']),
         }
