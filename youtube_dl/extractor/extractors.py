@@ -1461,6 +1461,7 @@ from .vshare import VShareIE
 from .medialaan import MedialaanIE
 from .vube import VubeIE
 from .vuclip import VuClipIE
+from .vudeo import VudeoIE
 from .vvvvid import (
     VVVVIDIE,
     VVVVIDShowIE,
