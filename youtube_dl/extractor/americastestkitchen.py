@@ -144,11 +144,11 @@ class AmericasTestKitchenSeasonIE(InfoExtractor):
 
         entries = [
             self.url_result(
-                'https://www.%s.com%s' % (show_name, episode.get('search_url')),
+                'https://www.%s.com%s' % (show_name, episode['search_url']),
                 'AmericasTestKitchen',
                 try_get(episode, lambda e: e['objectID'].split('_')[-1]))
             for episode in season_search['hits']
-            if 'search_url' in episode
+            if 'search_url' in episode and episode['search_url']
         ]
 
         return {
