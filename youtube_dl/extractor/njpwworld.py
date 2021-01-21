@@ -87,7 +87,7 @@ class NJPWWorldIE(InfoExtractor):
         tag_block = get_element_by_class('tag-block', webpage)
         tags = re.findall(
             r'<a[^>]*>([^<]+)</a>', tag_block
-        )
+        ) if tag_block else None
 
         return {
             'id': video_id,
