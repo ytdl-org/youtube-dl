@@ -99,7 +99,7 @@ class AmericasTestKitchenSeasonIE(InfoExtractor):
         # ATK Season
         'url': 'https://www.americastestkitchen.com/episodes/browse/season_1',
         'info_dict': {
-            'id': 'season-1',
+            'id': 'season_1',
             'title': 'Season 1',
         },
         'playlist_count': 13,
@@ -107,53 +107,53 @@ class AmericasTestKitchenSeasonIE(InfoExtractor):
         # Cooks Country Season
         'url': 'https://www.cookscountry.com/episodes/browse/season_12',
         'info_dict': {
-            'id': 'season-12',
+            'id': 'season_12',
             'title': 'Season 12',
         },
         'playlist_count': 13,
-    }, {
-        # Multi-digit season
-        'url': 'https://www.americastestkitchen.com/episodes/browse/season_20',
-        'only_matching': True,
     }]
 
     def _real_extract(self, url):
-        show_name, season = re.match(self._VALID_URL, url).groups()
+        show_name, season_number = re.match(self._VALID_URL, url).groups()
+        season_number = int(season_number)
 
         slug = 'atk' if show_name == 'americastestkitchen' else 'cco'
 
-        filters = [
-            'search_season_list:Season %s' % season,
-            'search_document_klass:episode',
-            'search_show_slug:%s' % slug,
-        ]
+        season = 'Season %d' % season_number
 
         season_search = self._download_json(
-            'https://y1fnzxui30-dsn.algolia.net/1/indexes/everest_search_atk_season_desc_production',
+            'https://y1fnzxui30-dsn.algolia.net/1/indexes/everest_search_%s_season_desc_production' % slug,
             season, headers={
                 'Origin': 'https://www.%s.com' % show_name,
                 'X-Algolia-API-Key': '8d504d0099ed27c1b73708d22871d805',
                 'X-Algolia-Application-Id': 'Y1FNZXUI30',
             }, query={
-                'facetFilters': json.dumps(filters),
-                'attributesToRetrieve': 'search_url',
+                'facetFilters': json.dumps([
+                    'search_season_list:' + season,
+                    'search_document_klass:episode',
+                    'search_show_slug:' + slug,
+                ]),
+                'attributesToRetrieve': 'description,search_%s_episode_number,search_document_date,search_url,title' % slug,
                 'attributesToHighlight': '',
-                # ATK and CCO generally have less than 26 episodes per season
-                'hitsPerPage': '100',
+                'hitsPerPage': 1000,
             })
 
-        entries = [
-            self.url_result(
-                'https://www.%s.com%s' % (show_name, episode['search_url']),
-                'AmericasTestKitchen',
-                try_get(episode, lambda e: e['objectID'].split('_')[-1]))
-            for episode in season_search['hits']
-            if 'search_url' in episode and episode['search_url']
-        ]
+        def entries():
+            for episode in (season_search.get('hits') or []):
+                search_url = episode.get('search_url')
+                if not search_url:
+                    continue
+                yield {
+                    '_type': 'url',
+                    'url': 'https://www.%s.com%s' % (show_name, search_url),
+                    'id': try_get(episode, lambda e: e['objectID'].split('_')[-1]),
+                    'title': episode.get('title'),
+                    'description': episode.get('description'),
+                    'timestamp': unified_timestamp(episode.get('search_document_date')),
+                    'season_number': season_number,
+                    'episode_number': int_or_none(episode.get('search_%s_episode_number' % slug)),
+                    'ie_key': AmericasTestKitchenIE.ie_key(),
+                }
 
-        return {
-            '_type': 'playlist',
-            'id': 'season-%s' % season,
-            'title': 'Season %s' % season,
-            'entries': sorted(entries, key=lambda e: e.get('id')),
-        }
+        return self.playlist_result(
+            entries(), 'season_%d' % season_number, season)
