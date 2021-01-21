@@ -21,7 +21,7 @@ class NJPWWorldIE(InfoExtractor):
         'info_dict': {
             'id': 's_series_00155_1_9',
             'ext': 'mp4',
-            'title': '第9試合　ランディ・サベージ　vs　リック・スタイナー',
+            'title': '闘強導夢2000 2000年1月4日 東京ドーム 第9試合 ランディ・サベージ VS リック・スタイナー',
             'tags': list,
         },
         'params': {
@@ -34,7 +34,7 @@ class NJPWWorldIE(InfoExtractor):
             'id': 's_series_00563_16_bs',
             'ext': 'mp4',
             'title': 'WORLD TAG LEAGUE 2020 & BEST OF THE SUPER Jr.27 2020年12月6日 福岡・福岡国際センター バックステージコメント（字幕あり）',
-            'tags': list,
+            'tags': ["福岡・福岡国際センター", "バックステージコメント", "2020", "20年代"],
         },
     }]
 
@@ -85,13 +85,14 @@ class NJPWWorldIE(InfoExtractor):
         self._sort_formats(formats)
 
         tag_block = get_element_by_class('tag-block', webpage)
+        tag_list = get_element_by_class('tag-list', tag_block) if tag_block else None
         tags = re.findall(
-            r'<a[^>]*>([^<]+)</a>', tag_block
-        ) if tag_block else None
+            r'<a[^>]*>([^<]+)</a>', tag_list
+        ) if tag_list else None
 
         return {
             'id': video_id,
-            'title': get_element_by_class('article-title', webpage),
+            'title': get_element_by_class('article-title', webpage) or self._og_search_title(webpage),
             'formats': formats,
             'tags': tags,
         }
