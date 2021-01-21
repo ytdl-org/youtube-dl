@@ -142,14 +142,6 @@ class AmericasTestKitchenSeasonIE(InfoExtractor):
                 'hitsPerPage': '100',
             })
 
-        for episode in season_search['hits']:
-            search_url = episode.get('search_url')
-            if search_url:
-                self.url_result(
-                    'https://www.%s.com%s' % (show_name, episode['search_url']),
-                    'AmericasTestKitchen',
-                    episode['objectID'].split('_')[-1])
-
         entries = [
             self.url_result(
                 'https://www.%s.com%s' % (show_name, episode.get('search_url')),
