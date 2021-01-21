@@ -43,15 +43,6 @@ class WatIE(InfoExtractor):
         },
     ]
 
-    _FORMATS = (
-        (200, 416, 234),
-        (400, 480, 270),
-        (600, 640, 360),
-        (1200, 640, 360),
-        (1800, 960, 540),
-        (2500, 1280, 720),
-    )
-
     def _real_extract(self, url):
         video_id = self._match_id(url)
         video_id = video_id if video_id.isdigit() and len(video_id) > 6 else compat_str(int(video_id, 36))
