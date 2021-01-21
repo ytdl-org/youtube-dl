@@ -85,10 +85,9 @@ class NJPWWorldIE(InfoExtractor):
         self._sort_formats(formats)
 
         tag_block = get_element_by_class('tag-block', webpage)
-        tag_list = get_element_by_class('tag-list', tag_block) if tag_block else None
         tags = re.findall(
-            r'<a[^>]*\sclass="tag-[^>]*>([^<]+)</a>', tag_list
-        ) if tag_list else None
+            r'<a[^>]*\sclass="tag-[^>]*>([^<]+)</a>', tag_block
+        ) if tag_block else None
 
         return {
             'id': video_id,
