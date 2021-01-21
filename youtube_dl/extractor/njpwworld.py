@@ -86,7 +86,7 @@ class NJPWWorldIE(InfoExtractor):
 
         tag_block = get_element_by_class('tag-block', webpage)
         tags = re.findall(
-            r'<a[^>]*\sclass="tag-[^>]*>([^<]+)</a>', tag_block
+            r'<a[^>]+class="tag-[^"]+"[^>]*>([^<]+)</a>', tag_block
         ) if tag_block else None
 
         return {
