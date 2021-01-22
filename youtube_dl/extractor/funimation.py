@@ -110,11 +110,24 @@ class FunimationIE(InfoExtractor):
             headers = {}
             if self._TOKEN:
                 headers['Authorization'] = 'Token %s' % self._TOKEN
-            sources = self._download_json(
-                'https://www.funimation.com/api/showexperience/%s/' % video_id,
-                video_id, headers=headers, query={
-                    'pinst_id': ''.join([random.choice(string.digits + string.ascii_letters) for _ in range(8)]),
-                })['items']
+            try:
+                sources = self._download_json(
+                    'https://www.funimation.com/api/showexperience/%s/' % video_id,
+                    video_id, headers=headers, query={
+                        'pinst_id': ''.join([random.choice(string.digits + string.ascii_letters) for _ in range(8)]),
+                    })
+                sources = sources['items']
+            except KeyError:
+                if 'errors' in sources:
+                    errors = sources['errors']
+                    if len(errors) > 0:
+                        error = errors[0]
+                        if 'detail' in error:
+                            detail = error['detail']
+                            raise ExtractorError('%s said: %s' % (
+                                self.IE_NAME, detail), expected=True)
+                        else:
+                            raise ExtractorError(error, expected=True)
         except ExtractorError as e:
             if isinstance(e.cause, compat_HTTPError) and e.cause.code == 403:
                 error = self._parse_json(e.cause.read(), video_id)['errors'][0]
