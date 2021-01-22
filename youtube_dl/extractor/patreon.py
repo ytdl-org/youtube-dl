@@ -160,7 +160,8 @@ class PatreonIE(InfoExtractor):
             if post_file.get('name') == 'video':
                 # single video embed
                 info.update({
-                    'url': post_file['url']
+                    'ext': 'mp4',
+                    'url': post_file['url'],
                 })
             else:
                 # video is attached as a file
