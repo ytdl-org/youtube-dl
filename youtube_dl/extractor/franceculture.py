@@ -11,7 +11,7 @@ from ..utils import (
 
 class FranceCultureIE(InfoExtractor):
     _VALID_URL = r'https?://(?:www\.)?franceculture\.fr/emissions/(?:[^/]+/)*(?P<id>[^/?#&]+)'
-    _TEST = {
+    _TESTS = [{
         'url': 'http://www.franceculture.fr/emissions/carnet-nomade/rendez-vous-au-pays-des-geeks',
         'info_dict': {
             'id': 'rendez-vous-au-pays-des-geeks',
@@ -23,7 +23,11 @@ class FranceCultureIE(InfoExtractor):
             'timestamp': 1393700400,
             'vcodec': 'none',
         }
-    }
+    }, {
+        # no thumbnail
+        'url': 'https://www.franceculture.fr/emissions/la-recherche-montre-en-main/la-recherche-montre-en-main-du-mercredi-10-octobre-2018',
+        'only_matching': True,
+    }]
 
     def _real_extract(self, url):
         display_id = self._match_id(url)
@@ -48,7 +52,7 @@ class FranceCultureIE(InfoExtractor):
             webpage, 'description', default=None)
         thumbnail = self._search_regex(
             r'(?s)<figure[^>]+itemtype="https://schema.org/ImageObject"[^>]*>.*?<img[^>]+(?:data-dejavu-)?src="([^"]+)"',
-            webpage, 'thumbnail', fatal=False)
+            webpage, 'thumbnail', default=None)
         uploader = self._html_search_regex(
             r'(?s)<span class="author">(.*?)</span>',
             webpage, 'uploader', default=None)
