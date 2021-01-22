@@ -19,6 +19,7 @@ import re
 
 class PatreonIE(InfoExtractor):
     _VALID_URL = r'https?://(?:www\.)?patreon\.com/(?:creation\?hid=|posts/(?:[\w-]+-)?)(?P<id>\d+)'
+    _NETRC_MACHINE = 'patreon'
     _TESTS = [{
         'url': 'http://www.patreon.com/creation?hid=743933',
         'md5': 'e25505eec1053a6e6813b8ed369875cc',
@@ -66,6 +67,11 @@ class PatreonIE(InfoExtractor):
     }, {
         'url': 'https://www.patreon.com/posts/743933',
         'only_matching': True,
+    }, {
+        # embedded patreon-hosted video, paywalled
+        'url': 'https://www.patreon.com/posts/terps-part-1-46181905',
+        'only_matching': True,
+        'skip': 'Patron-only content'
     }]
 
     def _login(self):
