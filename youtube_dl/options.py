@@ -786,7 +786,7 @@ def parseOpts(overrideArguments=None):
     postproc.add_option(
         '-x', '--extract-audio',
         action='store_true', dest='extractaudio', default=False,
-        help='Convert video files to audio-only files (requires ffmpeg or avconv and ffprobe or avprobe)')
+        help='Convert video files to audio-only files (requires ffmpeg/avconv and ffprobe/avprobe)')
     postproc.add_option(
         '--audio-format', metavar='FORMAT', dest='audioformat', default='best',
         help='Specify audio format: "best", "aac", "flac", "mp3", "m4a", "opus", "vorbis", or "wav"; "%default" by default; No effect without -x')
