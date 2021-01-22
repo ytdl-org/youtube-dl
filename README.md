@@ -387,8 +387,8 @@ Alternatively, refer to the [developer instructions](#developer-instructions) fo
 
 ## Post-processing Options:
     -x, --extract-audio              Convert video files to audio-only files
-                                     (requires ffmpeg or avconv and ffprobe or
-                                     avprobe)
+                                     (requires (ffmpeg or avconv) and (ffprobe or
+                                     avprobe))
     --audio-format FORMAT            Specify audio format: "best", "aac",
                                      "flac", "mp3", "m4a", "opus", "vorbis", or
                                      "wav"; "best" by default; No effect without
