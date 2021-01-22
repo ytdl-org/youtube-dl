@@ -11,8 +11,10 @@ from ..utils import (
     parse_iso8601,
     str_or_none,
     try_get,
+    sanitized_Request,
 )
-
+import json
+import re
 
 class PatreonIE(InfoExtractor):
     _VALID_URL = r'https?://(?:www\.)?patreon\.com/(?:creation\?hid=|posts/(?:[\w-]+-)?)(?P<id>\d+)'
@@ -65,23 +67,25 @@ class PatreonIE(InfoExtractor):
         'only_matching': True,
     }]
 
-    # Currently Patreon exposes download URL via hidden CSS, so login is not
-    # needed. Keeping this commented for when this inevitably changes.
-    '''
     def _login(self):
         username, password = self._get_login_info()
         if username is None:
             return
 
         login_form = {
-            'redirectUrl': 'http://www.patreon.com/',
-            'email': username,
-            'password': password,
+            'data' : {
+                'type' : 'user',
+                'attributes' : {
+                    'email' : username,
+                    'password' : password
+                },
+                'relationships' : {}
+            }
         }
 
         request = sanitized_Request(
-            'https://www.patreon.com/processLogin',
-            compat_urllib_parse_urlencode(login_form).encode('utf-8')
+            'https://www.patreon.com/api/login?include=campaign,user_location&json-api-version=1.0',
+            json.dumps(login_form).encode('ascii')
         )
         login_page = self._download_webpage(request, None, note='Logging in')
 
@@ -90,7 +94,6 @@ class PatreonIE(InfoExtractor):
 
     def _real_initialize(self):
         self._login()
-    '''
 
     def _real_extract(self, url):
         video_id = self._match_id(url)
@@ -146,11 +149,17 @@ class PatreonIE(InfoExtractor):
 
         if not info.get('url'):
             post_file = attributes['post_file']
-            ext = determine_ext(post_file.get('name'))
-            if ext in KNOWN_EXTENSIONS:
-                info.update({
-                    'ext': ext,
-                    'url': post_file['url'],
-                })
-
+            if post_file.get('name') == 'video':
+               # single video embed
+               info.update({
+                   'url': post_file['url']
+               })
+            else:
+              # video is attached as a file 
+              ext = determine_ext(post_file.get('name'))
+              if ext in KNOWN_EXTENSIONS:
+                  info.update({
+                      'ext': ext,
+                      'url': post_file['url'],
+                  })
         return info
