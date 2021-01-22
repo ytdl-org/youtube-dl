@@ -1,21 +1,21 @@
 # coding: utf-8
 from __future__ import unicode_literals
 
+import json
+import re
+
 from .common import InfoExtractor
 from ..utils import (
     clean_html,
     determine_ext,
+    ExtractorError,
     int_or_none,
     KNOWN_EXTENSIONS,
     mimetype2ext,
     parse_iso8601,
     str_or_none,
     try_get,
-    sanitized_Request,
-    ExtractorError,
 )
-import json
-import re
 
 
 class PatreonIE(InfoExtractor):
@@ -91,11 +91,11 @@ class PatreonIE(InfoExtractor):
             }
         }
 
-        request = sanitized_Request(
-            'https://www.patreon.com/api/login?include=campaign,user_location&json-api-version=1.0',
-            json.dumps(login_form).encode('ascii')
-        )
-        login_page = self._download_webpage(request, None, note='Logging in')
+        login_page = self._download_webpage(
+            'https://www.patreon.com/api/login',
+            video_id=None,
+            note='Logging in',
+            data=json.dumps(login_form).encode('ascii'))
 
         if re.search(r'onLoginFailed', login_page):
             raise ExtractorError('Unable to login, incorrect username and/or password', expected=True)
