@@ -16,6 +16,7 @@ from ..utils import (
 import json
 import re
 
+
 class PatreonIE(InfoExtractor):
     _VALID_URL = r'https?://(?:www\.)?patreon\.com/(?:creation\?hid=|posts/(?:[\w-]+-)?)(?P<id>\d+)'
     _TESTS = [{
@@ -150,16 +151,16 @@ class PatreonIE(InfoExtractor):
         if not info.get('url'):
             post_file = attributes['post_file']
             if post_file.get('name') == 'video':
-               # single video embed
-               info.update({
-                   'url': post_file['url']
-               })
+                # single video embed
+                info.update({
+                    'url': post_file['url']
+                })
             else:
-              # video is attached as a file 
-              ext = determine_ext(post_file.get('name'))
-              if ext in KNOWN_EXTENSIONS:
-                  info.update({
-                      'ext': ext,
-                      'url': post_file['url'],
-                  })
+                # video is attached as a file
+                ext = determine_ext(post_file.get('name'))
+                if ext in KNOWN_EXTENSIONS:
+                    info.update({
+                        'ext': ext,
+                        'url': post_file['url'],
+                    })
         return info
