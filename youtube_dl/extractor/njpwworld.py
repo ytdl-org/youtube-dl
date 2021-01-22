@@ -36,6 +36,9 @@ class NJPWWorldIE(InfoExtractor):
             'title': 'WORLD TAG LEAGUE 2020 & BEST OF THE SUPER Jr.27 2020年12月6日 福岡・福岡国際センター バックステージコメント（字幕あり）',
             'tags': ["福岡・福岡国際センター", "バックステージコメント", "2020", "20年代"],
         },
+        'params': {
+            'skip_download': True,
+        },
     }]
 
     _LOGIN_URL = 'https://front.njpwworld.com/auth/login'
