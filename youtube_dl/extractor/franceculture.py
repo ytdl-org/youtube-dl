@@ -20,7 +20,7 @@ class FranceCultureIE(InfoExtractor):
             'title': 'Rendez-vous au pays des geeks',
             'thumbnail': r're:^https?://.*\.jpg$',
             'upload_date': '20140301',
-            'timestamp': 1393642916,
+            'timestamp': 1393700400,
             'vcodec': 'none',
         }
     }
@@ -36,12 +36,12 @@ class FranceCultureIE(InfoExtractor):
                     </h1>|
                     <div[^>]+class="[^"]*?(?:title-zone-diffusion|heading-zone-(?:wrapper|player-button))[^"]*?"[^>]*>
                 ).*?
-                (<button[^>]+data-asset-source="[^"]+"[^>]+>)
+                (<button[^>]+data-(?:url|asset-source)="[^"]+"[^>]+>)
             ''',
             webpage, 'video data'))
 
-        video_url = video_data['data-asset-source']
-        title = video_data.get('data-asset-title') or self._og_search_title(webpage)
+        video_url = video_data.get('data-url') or video_data['data-asset-source']
+        title = video_data.get('data-asset-title') or video_data.get('data-diffusion-title') or self._og_search_title(webpage)
 
         description = self._html_search_regex(
             r'(?s)<div[^>]+class="intro"[^>]*>.*?<h2>(.+?)</h2>',
@@ -64,6 +64,6 @@ class FranceCultureIE(InfoExtractor):
             'ext': ext,
             'vcodec': 'none' if ext == 'mp3' else None,
             'uploader': uploader,
-            'timestamp': int_or_none(video_data.get('data-asset-created-date')),
+            'timestamp': int_or_none(video_data.get('data-start-time')) or int_or_none(video_data.get('data-asset-created-date')),
             'duration': int_or_none(video_data.get('data-duration')),
         }
