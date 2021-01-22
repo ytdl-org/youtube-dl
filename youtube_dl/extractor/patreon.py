@@ -12,6 +12,7 @@ from ..utils import (
     str_or_none,
     try_get,
     sanitized_Request,
+    ExtractorError,
 )
 import json
 import re
@@ -80,13 +81,13 @@ class PatreonIE(InfoExtractor):
             return
 
         login_form = {
-            'data' : {
-                'type' : 'user',
-                'attributes' : {
-                    'email' : username,
-                    'password' : password
+            'data': {
+                'type': 'user',
+                'attributes': {
+                    'email': username,
+                    'password': password
                 },
-                'relationships' : {}
+                'relationships': {}
             }
         }
 
