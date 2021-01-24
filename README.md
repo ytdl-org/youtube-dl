@@ -44,6 +44,10 @@ Or with [MacPorts](https://www.macports.org/):
 
     sudo port install youtube-dl
 
+You can also use [Chocolatey](https://chocolatey.org/):
+
+    choco install youtube-dl
+
 Alternatively, refer to the [developer instructions](#developer-instructions) for how to check out and work with the git repository. For further options, including PGP signatures, see the [youtube-dl Download Page](https://ytdl-org.github.io/youtube-dl/download.html).
 
 # DESCRIPTION
