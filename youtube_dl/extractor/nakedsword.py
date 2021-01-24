@@ -202,7 +202,7 @@ class NakedSwordMostWatchedIE(NakedSwordBaseIE):
             if webpage:  
                 #print(webpage)          
                 videos_paths = re.findall(
-                    r"<div class='SRMainTitleDurationLink'><a href='([^\']+)'>",
+                    r"<div class='SRMainTitleDurationLink'><a href='/([^\']+)'>",
                     webpage)     
                 
                 if videos_paths:
@@ -246,7 +246,7 @@ class NakedSwordStarsIE(NakedSwordBaseIE):
             if webpage:  
                 #print(webpage)          
                 videos_paths = re.findall(
-                    r"<div class='SRMainTitleDurationLink'><a href='([^\']+)'>",
+                    r"<div class='SRMainTitleDurationLink'><a href='/([^\']+)'>",
                     webpage)     
                 
                 if videos_paths:
@@ -267,7 +267,7 @@ class NakedSwordStarsIE(NakedSwordBaseIE):
 
         return {
             '_type': 'playlist',
-            'id': "NakedSWord",
-            'title': "NakedSword",
+            'id': "NakedSWordStar",
+            'title': "NakedSwordStar",
             'entries': entries,
         }
