@@ -190,3 +190,32 @@ class KatsomoIE(TV2IE):
     _API_DOMAIN = 'api.katsomo.fi'
     _PROTOCOLS = ('HLS', 'MPD')
     _GEO_COUNTRIES = ['FI']
+
+
+class MTVuutisetIE(KatsomoIE):
+    _VALID_URL = r'https?://(?:www\.)mtvuutiset\.fi/(?:artikkeli/[0-9a-z-]+/|video/prog)(?P<id>\d+)'
+    _TEST = {
+        'url': 'https://www.mtvuutiset.fi/artikkeli/tallaisia-vaurioita-viking-amorellassa-on-useamman-osaston-alla-vetta/7931384',
+        'info_dict': {
+            'id': '1311159',
+            'ext': 'mp4',
+            'title': 'MTV Uutiset Live',
+            'description': 'Viking Amorellan matkustajien evakuointi on alkanut – tältä operaatio näyttää laivalla',
+            'timestamp': 1600608966,
+            'upload_date': '20200920',
+            'duration': 153.7886666,
+            'view_count': int,
+            'categories': list,
+        },
+        'params': {
+            # m3u8 download
+            'skip_download': True,
+        },
+    }
+
+    def _real_extract(self, url):
+        art_id = self._match_id(url)
+        webpage = self._download_webpage(url, art_id)
+        video_id = self._html_search_regex(
+            r'<div class=\'player-container\' .*data-katsomoid="(.+?)"', webpage, 'video_id')
+        return self.url_result("http://mtv.fi/a/0/a/%s" % video_id, video_id=video_id, ie="Katsomo")
