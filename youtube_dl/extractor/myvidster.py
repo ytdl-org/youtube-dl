@@ -90,7 +90,7 @@ class MyVidsterIE(InfoExtractor):
         real_url = self._html_search_regex(r'rel="videolink" href="(?P<real_url>.*)">',
             webpage, 'real_url')
 
-        #print(f"{real_url}:{url}")   
+        self.to_screen(f"{real_url}")   
 
         if real_url.startswith("https://www.myvidster.com/video"):
             
