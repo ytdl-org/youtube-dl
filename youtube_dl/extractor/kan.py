@@ -46,7 +46,7 @@ class KanIE(InfoExtractor):
             url,
             video_id,
             headers=self.geo_verification_headers())
-        if 'itemId' in url.lower():
+        if 'itemid' in url.lower():
             return self._extract_item(video_id, webpage)
         elif 'catid' in url.lower():
             return self._extract_list(video_id, webpage)
