@@ -1264,7 +1264,7 @@ from .tv2 import (
     TV2IE,
     TV2ArticleIE,
     KatsomoIE,
-    MTVuutisetIE,
+    MTVUutisetArticleIE,
 )
 from .tv2dk import (
     TV2DKIE,
