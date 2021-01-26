@@ -36,6 +36,8 @@ class AbcNewsVideoIE(AMPIE):
             'description': 'George Stephanopoulos goes one-on-one with Iranian Foreign Minister Dr. Javad Zarif.',
             'duration': 180,
             'thumbnail': r're:^https?://.*\.jpg$',
+            'timestamp': 1380454200,
+            'upload_date': '20130929',
         },
         'params': {
             # m3u8 download
