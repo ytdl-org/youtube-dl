@@ -1,14 +1,9 @@
 # coding: utf-8
 from __future__ import unicode_literals
 
-import calendar
 import re
-import time
 
 from .amp import AMPIE
-from .common import InfoExtractor
-from .youtube import YoutubeIE
-from ..compat import compat_urlparse
 
 
 class AbcNewsVideoIE(AMPIE):
@@ -64,33 +59,33 @@ class AbcNewsVideoIE(AMPIE):
         return info_dict
 
 
-class AbcNewsIE(InfoExtractor):
+class AbcNewsIE(AMPIE):
     IE_NAME = 'abcnews'
     _VALID_URL = r'https?://abcnews\.go\.com/(?:[^/]+/)+(?P<display_id>[0-9a-z-]+)/story\?id=(?P<id>\d+)'
 
     _TESTS = [{
-        'url': 'http://abcnews.go.com/Blotter/News/dramatic-video-rare-death-job-america/story?id=10498713#.UIhwosWHLjY',
+        'url': 'https://abcnews.go.com/US/winter-storms-moving-us-snow-freezing-rain-flooding/story?id=75466370',
         'info_dict': {
-            'id': '10505354',
+            'id': '75466370',
             'ext': 'flv',
-            'display_id': 'dramatic-video-rare-death-job-america',
-            'title': 'Occupational Hazards',
-            'description': 'Nightline investigates the dangers that lurk at various jobs.',
+            'display_id': 'winter-storms-moving-us-snow-freezing-rain-flooding',
+            'title': 'Winter storms moving across US with snow, freezing rain',
+            'description': 'Two storms moved through the West this weekend with a funnel cloud reportedly being spotted in San Diego along with 1 to 2 feet of snow from California to Colorado.',
             'thumbnail': r're:^https?://.*\.jpg$',
-            'upload_date': '20100428',
-            'timestamp': 1272412800,
+            'upload_date': '20210125',
+            'timestamp': 1611566880,
         },
         'add_ie': ['AbcNewsVideo'],
     }, {
         'url': 'http://abcnews.go.com/Entertainment/justin-timberlake-performs-stop-feeling-eurovision-2016/story?id=39125818',
         'info_dict': {
-            'id': '38897857',
+            'id': '39125818',
             'ext': 'mp4',
             'display_id': 'justin-timberlake-performs-stop-feeling-eurovision-2016',
             'title': 'Justin Timberlake Drops Hints For Secret Single',
             'description': 'Lara Spencer reports the buzziest stories of the day in "GMA" Pop News.',
-            'upload_date': '20160515',
-            'timestamp': 1463329500,
+            'upload_date': '20160505',
+            'timestamp': 1462442280,
         },
         'params': {
             # m3u8 download
@@ -110,41 +105,11 @@ class AbcNewsIE(InfoExtractor):
         video_id = mobj.group('id')
 
         webpage = self._download_webpage(url, video_id)
-        video_url = self._search_regex(
-            r'window\.abcnvideo\.url\s*=\s*"([^"]+)"', webpage, 'video URL')
-        full_video_url = compat_urlparse.urljoin(url, video_url)
+        feed_url = self._html_search_regex(r'"feed"\s*:\s*"(.*?)"', webpage, 'feed URL')
 
-        youtube_url = YoutubeIE._extract_url(webpage)
-
-        timestamp = None
-        date_str = self._html_search_regex(
-            r'<span[^>]+class="timestamp">([^<]+)</span>',
-            webpage, 'timestamp', fatal=False)
-        if date_str:
-            tz_offset = 0
-            if date_str.endswith(' ET'):  # Eastern Time
-                tz_offset = -5
-                date_str = date_str[:-3]
-            date_formats = ['%b. %d, %Y', '%b %d, %Y, %I:%M %p']
-            for date_format in date_formats:
-                try:
-                    timestamp = calendar.timegm(time.strptime(date_str.strip(), date_format))
-                except ValueError:
-                    continue
-            if timestamp is not None:
-                timestamp -= tz_offset * 3600
-
-        entry = {
-            '_type': 'url_transparent',
-            'ie_key': AbcNewsVideoIE.ie_key(),
-            'url': full_video_url,
+        info_dict = self._extract_feed_info(feed_url)
+        info_dict.update({
             'id': video_id,
             'display_id': display_id,
-            'timestamp': timestamp,
-        }
-
-        if youtube_url:
-            entries = [entry, self.url_result(youtube_url, ie=YoutubeIE.ie_key())]
-            return self.playlist_result(entries)
-
-        return entry
+        })
+        return info_dict
