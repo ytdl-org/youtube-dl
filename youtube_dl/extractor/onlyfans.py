@@ -283,7 +283,7 @@ class OnlyFansPlaylistIE(OnlyFansBaseIE):
     IE_NAME = 'onlyfans:playlist'
     IE_DESC = 'onlyfans:playlist'
     #_VALID_URL = r"https?://(?:www\.)?onlyfans.com/account/(?P<account>[^/]+)"
-    _VALID_URL = r"(?:(onlyfans:account:(?P<account>[^:]+)(?:(:(?P<mode>(?:date|favs|tips)))?))|(https?://(?:www\.)?onlyfans.com/(?P<account2>[\da-zA-Z]+)(?:(/(?P<mode2>(?:date|favs|tips)))?)$))"
+    _VALID_URL = r"(?:(onlyfans:account:(?P<account>[^:]+)(?:(:(?P<mode>(?:date|favs|tips)))?))|(https?://(?:www\.)?onlyfans.com/(?P<account2>\w+)(?:(/(?P<mode2>(?:date|favs|tips)))?)$))"
     _MODE_DICT = {"favs" : "favorites_count_desc", "tips" : "tips_summ_desc", "date" : "publish_date_desc", "latest10" : "publish_date_desc"}
            
    
