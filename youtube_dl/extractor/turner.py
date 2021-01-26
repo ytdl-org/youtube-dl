@@ -42,6 +42,8 @@ class TurnerBaseIE(AdobePassIE):
             auth = self._download_xml(
                 tokenizer_src, content_id, query=query)
             error_msg = xpath_text(auth, 'error/msg')
+            if error_msg == 'Content blocked due to location':
+                self.raise_geo_restricted(error_msg)
             if error_msg:
                 raise ExtractorError(error_msg, expected=True)
             token = xpath_text(auth, 'token')
