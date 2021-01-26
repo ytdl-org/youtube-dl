@@ -9,7 +9,7 @@ from ..utils import unified_strdate, parse_duration
 def get_thumbnail(data):
     for media in data.get('media_group', []):
         if media.get('type') == 'image':
-            for item in media.get('media_item'):
+            for item in media.get('media_item', []):
                 thumbnail = item.get('src')
                 if thumbnail:
                     return thumbnail
@@ -53,11 +53,11 @@ class KanIE(InfoExtractor):
         return {}
 
     def _extract_list(self, list_id, webpage):
-        ids = re.findall(r'onclick="playVideo\(.*,\'([0-9]+)\'\)', webpage)
+        video_ids = re.findall(r'onclick="playVideo\(.*,\'([0-9]+)\'\)', webpage)
         title = self._og_search_title(webpage)
         description = self._og_search_description(webpage)
         entries = []
-        for video_id in ids:
+        for video_id in video_ids:
             url = 'https://www.kan.org.il/Item/?itemId=%s' % video_id
             webpage = self._download_webpage(
                 url,
