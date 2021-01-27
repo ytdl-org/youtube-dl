@@ -5,7 +5,9 @@ import re
 
 from .common import InfoExtractor
 from ..compat import (
+    compat_http_client,
     compat_urlparse,
+    compat_urllib_parse_urlparse,
     compat_str,
 )
 from ..utils import (
@@ -96,11 +98,96 @@ class RaiBaseIE(InfoExtractor):
         if not formats and geoprotection is True:
             self.raise_geo_restricted(countries=self._GEO_COUNTRIES)
 
+        formats.extend(self._create_http_urls(relinker_url))
+
         return dict((k, v) for k, v in {
             'is_live': is_live,
             'duration': duration,
             'formats': formats,
         }.items() if v is not None)
+
+    def _create_http_urls(self, relinker_url):
+        _RELINKER_REG = r'https?://(?P<host>[^/]+?)/(?:i/)?(?P<extra>[^/]+?)/(?P<path>.+?)/(?P<id>\d+)(?:_,(?P<quality>[,\d]+)+)?(?:/playlist.m3u8|,?\.mp4).+?'
+        _MP4_REG = r'https?://(?P<cdn_id>creativemedia|download)(?P<cdn_num>\d+).+?/\d+(?:_\d+)?\.mp4$'
+        _MP4_TMPL = 'https://%s%s-rai-it.akamaized.net/%s%s/%s%s.mp4'
+        _QUALITY = {
+            # tbr: w, h
+            '250': [352, 198],
+            '400': [512, 288],
+            '700': [512, 288],
+            '800': [700, 394],
+            '1200': [736, 414],
+            '1800': [1024, 576],
+            '2400': [1280, 720],
+            '3200': [1440, 810],
+            '3600': [1440, 810],
+            '5000': [1920, 1080],
+            '10000': [1920, 1080],
+        }
+
+        def get_location(url, headers={}):
+            _url = compat_urllib_parse_urlparse(url)
+            conn = compat_http_client.HTTPConnection(_url.netloc)
+            try:
+                conn.request('HEAD', '%s?%s' % (_url.path, _url.query), headers=headers)
+            except Exception:
+                return None
+
+            resp = conn.getresponse()
+
+            if resp.status == 200:
+                return True
+            elif resp.status == 302:
+                return resp.getheader('Location')
+            elif resp.status == 404:
+                return None
+            return None
+
+        cdn_id, cdn_num = None, None
+        mobj = re.match(_MP4_REG, get_location(relinker_url) or '')
+        if mobj:
+            cdn_id, cdn_num = mobj.groups()
+
+        mobj = re.match(_RELINKER_REG, get_location(relinker_url, {'User-Agent': 'Rai'}) or '')
+
+        if not mobj:
+            return []
+
+        mobj = mobj.groupdict()
+        mobj['quality'] = mobj['quality'].split(',') if mobj['quality'] else ['.']
+        mobj['quality'] = [i for i in mobj['quality'] if i]
+        mobj['extra'] = mobj['extra'] + '/' if 'akamai' in mobj['host'] else ''
+
+        if not cdn_id and not cdn_num:
+            found = False
+            quality = '_%s' % mobj['quality'][-1] if len(mobj['quality']) > 1 else ''
+            for cdn_num in range(1, 10):
+                for cdn_id in ['creativemedia', 'download']:
+                    temp = _MP4_TMPL % (cdn_id, cdn_num, mobj['extra'], mobj['path'], mobj['id'], quality)
+                    if get_location(temp) is True:
+                        found = True
+                        break
+                else:
+                    continue
+                break
+
+            if not found:
+                return []
+
+        formats = []
+        for q in mobj['quality']:
+            quality = '_%s' % q if len(mobj['quality']) > 1 else ''
+            if q not in _QUALITY:
+                q = '1800'
+            formats.append({
+                'url': _MP4_TMPL % (cdn_id, str(cdn_num), mobj['extra'], mobj['path'], mobj['id'], quality),
+                'width': _QUALITY[q][0],
+                'height': _QUALITY[q][1],
+                'tbr': int(q) + 50,
+                'protocol': 'https',
+                'format_id': 'https-%s' % q,
+            })
+        return formats
 
     @staticmethod
     def _extract_subtitles(url, video_data):
