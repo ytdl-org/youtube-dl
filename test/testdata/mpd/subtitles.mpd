@@ -1,0 +1,31 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<MPD availabilityStartTime="2015-11-10T10:01:31Z" id="e66e8502-59d8-42d4-9fc7-1ca87dbed590" mediaPresentationDuration="PT1H43M14S" minBufferTime="PT1S" profiles="urn:mpeg:dash:profile:isoff-main:2011" timeShiftBufferDepth="PT30S" type="static">
+  <Period>
+    <AdaptationSet codecs="avc1.42c00d" mimeType="video/mp4">
+      <Representation bandwidth="1712128" frameRate="25" height="720" id="720p 1712kbps" width="1280">
+        <SegmentTemplate duration="100000" initialization="../video/720_1712128/dash/init.mp4" media="../video/720_1712128/dash/segment_$Number$.m4s" startNumber="0" timescale="25" />
+      </Representation>
+      <Representation bandwidth="4669440" frameRate="25" height="1080" id="1080p 4669kbps" width="1920">
+        <SegmentTemplate duration="100000" initialization="../video/1080_4669440/dash/init.mp4" media="../video/1080_4669440/dash/segment_$Number$.m4s" startNumber="0" timescale="25" />
+      </Representation>
+    </AdaptationSet>
+    <AdaptationSet codecs="mp4a.40.2" lang="de" mimeType="audio/mp4" streamName="Deutsch stereo">
+      <Representation audioSamplingRate="48000" bandwidth="131072" id="131kbps">
+        <SegmentTemplate duration="191472" initialization="../audio/1_stereo_131072/dash/init.mp4" media="../audio/1_stereo_131072/dash/segment_$Number$.m4s" startNumber="0" timescale="48" />
+      </Representation>
+      <Representation audioSamplingRate="48000" bandwidth="196608" id="196kbps">
+        <SegmentTemplate duration="191472" initialization="../audio/1_stereo_196608/dash/init.mp4" media="../audio/1_stereo_196608/dash/segment_$Number$.m4s" startNumber="0" timescale="48" />
+      </Representation>
+    </AdaptationSet>
+    <AdaptationSet lang="fr" mimeType="text/vtt" streamName="Französisch">
+      <Representation>
+        <BaseURL>../subtitles/sub_fr.vtt</BaseURL>
+      </Representation>
+    </AdaptationSet>
+    <AdaptationSet lang="en" mimeType="text/vtt" streamName="Englisch">
+      <Representation>
+        <BaseURL>../subtitles/sub_en.vtt</BaseURL>
+      </Representation>
+    </AdaptationSet>
+  </Period>
+</MPD>
