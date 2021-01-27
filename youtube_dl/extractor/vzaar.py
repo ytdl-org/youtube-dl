@@ -97,7 +97,7 @@ class VzaarIE(InfoExtractor):
                 m3u8_id='hls', fatal=False)
             if hls_aes:
                 for f in m3u8_formats:
-                    f['_decryption_key_url'] = url_templ % ('goose', '') + qs
+                    f['extra_param_to_key_url'] = url_templ % ('goose', '') + qs
             formats.extend(m3u8_formats)
 
         self._sort_formats(formats)
