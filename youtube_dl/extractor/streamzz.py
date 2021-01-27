@@ -26,24 +26,28 @@ class StreamzzIE(InfoExtractor):
         Parses the URL into the video's URL.
         """
         # Parse the video id out of the URL
-        video_id = self._search_regex(r'https?://(?:\w+\.)?streamzz\.(?:vg|to)/([0-9a-zA-Z]+)',
-                                      url, 'video_id', fatal=False) or ''
+        video_id = self._search_regex(
+            r'https?://(?:\w+\.)?streamzz\.(?:vg|to)/([0-9a-zA-Z]+)',
+            url, 'video_id', fatal=False, default='')
 
         # Get the hosted webpage
         webpage = self._download_webpage(url, video_id)
 
         # Get the identifer of the video
-        identifier = self._search_regex(r"streamz\.vg/download(.*?)[\"\']", webpage, video_id, fatal=False)
+        identifier = self._search_regex(
+            r"streamz\.vg/download(.*?)[\"\']", webpage, video_id, fatal=False)
 
         # It can be either none or empty, either way it's bad
         if not identifier:
-            raise ExtractorError('Streamz: Failed to find the download button on the website')
+            raise ExtractorError(
+                'Streamz: Failed to find the download button on the website')
 
         # Now create the download URL using the identifier
         url = r'https://streamz.vg/getlink-{0}.dll'.format(identifier)
 
         # Get the title of the video, remove the prepended site name
-        title = self._search_regex('<title>(.*?)(</title>)', webpage, name='title', fatal=False) or ''
+        title = self._search_regex('<title>(.*?)(</title>)', webpage,
+                                   name='title', fatal=False, default='')
         if title.startswith('StreamZ.vg '):
             title = title[len('StreamZ.vg '):].strip()
 
