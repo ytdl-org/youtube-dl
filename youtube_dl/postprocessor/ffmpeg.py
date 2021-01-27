@@ -385,19 +385,21 @@ class FFmpegEmbedSubtitlePP(FFmpegPostProcessor):
         filename = information['filepath']
 
         ext = information['ext']
-        sub_langs = []
+        sub_langs = set()
         sub_filenames = []
         webm_vtt_warn = False
 
-        for lang, sub_info in subtitles.items():
-            sub_ext = sub_info['ext']
-            if ext != 'webm' or ext == 'webm' and sub_ext == 'vtt':
-                sub_langs.append(lang)
-                sub_filenames.append(subtitles_filename(filename, lang, sub_ext, ext))
-            else:
-                if not webm_vtt_warn and ext == 'webm' and sub_ext != 'vtt':
-                    webm_vtt_warn = True
-                    self._downloader.to_screen('[ffmpeg] Only WebVTT subtitles can be embedded in webm files')
+        for lang, sub_info_list in subtitles.items():
+            for sub_info in sub_info_list:
+                sub_ext = sub_info['ext']
+                if ext != 'webm' or ext == 'webm' and sub_ext == 'vtt':
+                    sub_langs.add(lang)
+                    sub_name = sub_info.get('name', '')
+                    sub_filenames.append(subtitles_filename(filename, lang, sub_name, sub_ext, ext))
+                else:
+                    if not webm_vtt_warn and ext == 'webm' and sub_ext != 'vtt':
+                        webm_vtt_warn = True
+                        self._downloader.to_screen('[ffmpeg] Only WebVTT subtitles can be embedded in webm files')
 
         if not sub_langs:
             return [], information
@@ -611,47 +613,55 @@ class FFmpegSubtitlesConvertorPP(FFmpegPostProcessor):
             return [], info
         self._downloader.to_screen('[ffmpeg] Converting subtitles')
         sub_filenames = []
-        for lang, sub in subs.items():
-            ext = sub['ext']
-            if ext == new_ext:
-                self._downloader.to_screen(
-                    '[ffmpeg] Subtitle file for %s is already in the requested format' % new_ext)
-                continue
-            old_file = subtitles_filename(filename, lang, ext, info.get('ext'))
-            sub_filenames.append(old_file)
-            new_file = subtitles_filename(filename, lang, new_ext, info.get('ext'))
-
-            if ext in ('dfxp', 'ttml', 'tt'):
-                self._downloader.report_warning(
-                    'You have requested to convert dfxp (TTML) subtitles into another format, '
-                    'which results in style information loss')
-
-                dfxp_file = old_file
-                srt_file = subtitles_filename(filename, lang, 'srt', info.get('ext'))
-
-                with open(dfxp_file, 'rb') as f:
-                    srt_data = dfxp2srt(f.read())
-
-                with io.open(srt_file, 'wt', encoding='utf-8') as f:
-                    f.write(srt_data)
-                old_file = srt_file
-
-                subs[lang] = {
-                    'ext': 'srt',
-                    'data': srt_data
-                }
-
-                if new_ext == 'srt':
+        for lang, sublist in subs.items():
+            for sub in sublist:
+                ext = sub['ext']
+                if ext == new_ext:
+                    self._downloader.to_screen(
+                        '[ffmpeg] Subtitle file for %s is already in the requested format' % new_ext)
                     continue
-                else:
-                    sub_filenames.append(srt_file)
+                name = sub.get('name', '')
+                old_file = subtitles_filename(filename, lang, name, ext, info.get('ext'))
+                sub_filenames.append(old_file)
+                new_file = subtitles_filename(filename, lang, name, new_ext, info.get('ext'))
 
-            self.run_ffmpeg(old_file, new_file, ['-f', new_format])
+                if ext in ('dfxp', 'ttml', 'tt'):
+                    self._downloader.report_warning(
+                        'You have requested to convert dfxp (TTML) subtitles into another format, '
+                        'which results in style information loss')
 
-            with io.open(new_file, 'rt', encoding='utf-8') as f:
-                subs[lang] = {
-                    'ext': new_ext,
-                    'data': f.read(),
-                }
+                    dfxp_file = old_file
+                    srt_file = subtitles_filename(filename, lang, 'srt', info.get('ext'))
+
+                    with open(dfxp_file, 'rb') as f:
+                        srt_data = dfxp2srt(f.read())
+
+                    with io.open(srt_file, 'wt', encoding='utf-8') as f:
+                        f.write(srt_data)
+                    old_file = srt_file
+
+                    slist_new = [s for s in subs[lang] if s.get('name', '') != name]
+                    slist_new.append({
+                        'name': name,
+                        'ext': 'srt',
+                        'data': srt_data
+                    })
+                    subs[lang] = slist_new
+
+                    if new_ext == 'srt':
+                        continue
+                    else:
+                        sub_filenames.append(srt_file)
+
+                self.run_ffmpeg(old_file, new_file, ['-f', new_format])
+
+                with io.open(new_file, 'rt', encoding='utf-8') as f:
+                    slist_new = [s for s in subs[lang] if s.get('name', '') != name]
+                    slist_new.append({
+                        'name': name,
+                        'ext': new_ext,
+                        'data': f.read(),
+                    })
+                    subs[lang] = slist_new
 
         return sub_filenames, info
