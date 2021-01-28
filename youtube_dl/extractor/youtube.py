@@ -2370,7 +2370,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                             mpd_url, video_id, fatal=dash_mpd_fatal,
                             formats_dict=self._formats):
                         if not df.get('filesize'):
-                            df['filesize'] = _extract_filesize(df['url'])
+                            df['filesize'] = _extract_filesize(df.get('fragment_base_url') or df['url'])
                         # Do not overwrite DASH format found in some previous DASH manifest
                         if df['format_id'] not in dash_formats:
                             dash_formats[df['format_id']] = df
