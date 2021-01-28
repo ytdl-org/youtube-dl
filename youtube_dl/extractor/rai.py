@@ -129,7 +129,9 @@ class RaiBaseIE(InfoExtractor):
             _url = compat_urllib_parse_urlparse(url)
             conn = compat_http_client.HTTPConnection(_url.netloc)
             try:
-                conn.request('HEAD', '%s?%s' % (_url.path, _url.query), headers=headers)
+                conn.request(
+                    'HEAD', '%s?%s' % (_url.path, _url.query),
+                    headers=headers)
             except Exception:
                 return None
 
@@ -151,9 +153,17 @@ class RaiBaseIE(InfoExtractor):
             for f in fmts:
                 if f.get('tbr'):
                     if (br - br / 100 * 10) <= f.get('tbr') <= (br + br / 100 * 10):
-                        return [f.get('width'), f.get('height'), f.get('tbr'), f.get('format_id').split('-')[1]]
+                        return [
+                            f.get('width'),
+                            f.get('height'),
+                            f.get('tbr'),
+                            f.get('format_id').split('-')[1],
+                        ]
 
             return [None, None, None, tbr]
+
+        def quality_tag(q, qualities):
+            return '_%s' % q if (len(qualities) > 1 or int_or_none(q)) else ''
 
         cdn_id, cdn_num = None, None
         loc = get_location(relinker_url)
@@ -162,7 +172,9 @@ class RaiBaseIE(InfoExtractor):
         if mobj:
             cdn_id, cdn_num = mobj.groups()
 
-        mobj = re.match(_RELINKER_REG, get_location(relinker_url, {'User-Agent': 'Rai'}) or '')
+        mobj = re.match(
+            _RELINKER_REG,
+            get_location(relinker_url, {'User-Agent': 'Rai'}) or '')
 
         if not mobj:
             return []
@@ -174,10 +186,12 @@ class RaiBaseIE(InfoExtractor):
 
         if not cdn_id and not cdn_num:
             found = False
-            quality = '_%s' % mobj['quality'][-1] if (len(mobj['quality']) > 1 or int_or_none(mobj['quality'][-1])) else ''
+            quality = quality_tag(mobj['quality'][-1], mobj['quality'])
             for cdn_num in range(1, 10):
                 for cdn_id in ['creativemedia', 'download']:
-                    temp = _MP4_TMPL % (cdn_id, cdn_num, mobj['extra'], mobj['path'], mobj['id'], quality)
+                    temp = _MP4_TMPL % (
+                        cdn_id, str(cdn_num), mobj['extra'], mobj['path'],
+                        mobj['id'], quality)
                     if get_location(temp) is True:
                         found = True
                         break
@@ -191,10 +205,12 @@ class RaiBaseIE(InfoExtractor):
         formats = []
         for q in mobj['quality']:
             w, h, t = None, None, None
-            quality = '_%s' % q if (len(mobj['quality']) > 1 or int_or_none(q)) else ''
+            quality = quality_tag(q, mobj['quality'])
             w, h, t, q = get_format_info(q)
             formats.append({
-                'url': _MP4_TMPL % (cdn_id, str(cdn_num), mobj['extra'], mobj['path'], mobj['id'], quality),
+                'url': _MP4_TMPL % (
+                    cdn_id, str(cdn_num), mobj['extra'], mobj['path'],
+                    mobj['id'], quality),
                 'width': w or _QUALITY[q][0],
                 'height': h or _QUALITY[q][1],
                 'tbr': t or int(q),
