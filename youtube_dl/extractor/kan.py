@@ -3,7 +3,12 @@ from __future__ import unicode_literals
 import re
 
 from .common import InfoExtractor
-from ..utils import unified_strdate, parse_duration
+from ..utils import (
+    ExtractorError,
+    parse_duration,
+    try_get,
+    unified_strdate,
+)
 
 
 def get_thumbnail(data):
@@ -15,9 +20,49 @@ def get_thumbnail(data):
                     return thumbnail
 
 
-class KanIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:www\.)?kan\.org\.il/(?:[iI]tem/\?item[iI]d|program/\?cat[iI]d)=(?P<id>[0-9]+)'
-    _TESTS = [{
+class KanBaseIE(InfoExtractor):
+    _GEO_COUNTRIES = ['IL']
+
+    def download_webpage(self, url, video_id):
+        return self._download_webpage(
+            url,
+            video_id,
+            headers=self.geo_verification_headers())
+
+    def extract_item(self, video_id, webpage):
+        data = self._parse_json(
+            self._search_regex(
+                r'<script id="kan_app_search_data" type="application/json">([^<]+)</script>',
+                webpage,
+                'data',
+            ),
+            video_id,
+        )
+        title = data.get('title') or self._og_search_title(webpage)
+        description = data.get('summary') or \
+            self._og_search_description(webpage, fatal=False)
+        creator = try_get(data, lambda x: x['author']['name'], str) or \
+            self._og_search_property('site_name', webpage, fatal=False)
+        thumbnail = get_thumbnail(data)
+        m3u8_url = try_get(data, lambda x: x['content']['src'], str)
+        if not m3u8_url:
+            raise ExtractorError('Unable to extract m3u8 url')
+
+        return {
+            'id': video_id,
+            'title': title,
+            'thumbnail': thumbnail,
+            'formats': self._extract_m3u8_formats(m3u8_url, video_id, ext='mp4'),
+            'description': description,
+            'creator': creator,
+            'release_date': unified_strdate(data.get('published')),
+            'duration': parse_duration(data.get('extensions', {}).get('duration')),
+        }
+
+
+class KanEpisodeIE(KanBaseIE):
+    _VALID_URL = r'https?://(?:www\.)?kan\.org\.il/[iI]tem/\?item[iI]d=(?P<id>[0-9]+)'
+    _TEST = {
         'url': 'https://www.kan.org.il/Item/?itemId=74658',
         'md5': 'c28763bdb61c1bb7823528dd024e6129',
         'info_dict': {
@@ -28,74 +73,45 @@ class KanIE(InfoExtractor):
             'description': 'הגופות ממשיכות להיערם, אך איזי עדיין מפקפק בחשדות נגד ברק',
             'creator': 'מערכת כאן',
             'release_date': '20200803',
-            'duration': 2393}
-    }, {
+            'duration': 2393,
+        },
+    }
+
+    def _real_extract(self, url):
+        video_id = self._match_id(url)
+        return self.extract_item(video_id, self.download_webpage(url, video_id))
+
+
+class KanPlaylistIE(KanBaseIE):
+    _VALID_URL = r'https?://(?:www\.)?kan\.org\.il/program/\?cat[iI]d=(?P<id>[0-9]+)'
+    _TEST = {
         'url': 'https://www.kan.org.il/program/?catId=1636',
         'playlist_mincount': 9,
         'info_dict': {
             'id': '1636',
             'title': 'מנאייכ - פרקים מלאים לצפייה ישירה | כאן',
-            'description': 'md5:9dfbd501189d08674d20762464c5301b'
-        }
-    }]
-    _GEO_COUNTRIES = ['IL']
+            'description': 'md5:9dfbd501189d08674d20762464c5301b',
+        },
+    }
 
     def _real_extract(self, url):
-        video_id = self._match_id(url)
-        webpage = self._download_webpage(
-            url,
-            video_id,
-            headers=self.geo_verification_headers())
-        if 'itemid' in url.lower():
-            return self._extract_item(video_id, webpage)
-        elif 'catid' in url.lower():
-            return self._extract_list(video_id, webpage)
-        return {}
-
-    def _extract_list(self, list_id, webpage):
+        list_id = self._match_id(url)
+        webpage = self.download_webpage(url, list_id)
         video_ids = re.findall(r'onclick="playVideo\(.*,\'([0-9]+)\'\)', webpage)
-        title = self._og_search_title(webpage)
-        description = self._og_search_description(webpage)
         entries = []
         for video_id in video_ids:
             url = 'https://www.kan.org.il/Item/?itemId=%s' % video_id
-            webpage = self._download_webpage(
-                url,
+            entries.append(self.extract_item(
                 video_id,
-                headers=self.geo_verification_headers())
-            entries.append(self._extract_item(video_id, webpage))
+                self.download_webpage(url, video_id))
+            )
+        if not entries:
+            raise ExtractorError('Unable to extract playlist entries')
+
         return {
             '_type': 'playlist',
             'id': list_id,
             'entries': entries,
-            'title': title,
-            'description': description
-        }
-
-    def _extract_item(self, video_id, webpage):
-        data = self._parse_json(
-            self._search_regex(
-                r'<script id="kan_app_search_data" type="application/json">([^<]+)</script>',
-                webpage, 'data'),
-            video_id)
-        title = data.get('title') or \
-            self._og_search_title(webpage) or \
-            self._html_search_regex(r'<title>([^<]+)</title>', webpage, 'title')
-        description = data.get('summary') or \
-            self._og_search_description(webpage, fatal=False)
-        creator = data.get('author', {}).get('name') or \
-            self._og_search_property('site_name', webpage, fatal=False)
-        thumbnail = get_thumbnail(data)
-        m3u8_url = data.get('content', {}).get('src')
-        formats = self._extract_m3u8_formats(m3u8_url, video_id, ext='mp4')
-        return {
-            '_type': 'video',
-            'id': video_id,
-            'title': title,
-            'thumbnail': thumbnail,
-            'formats': formats,
-            'description': description,
-            'creator': creator,
-            'release_date': unified_strdate(data.get('published')),
-            'duration': parse_duration(data.get('extensions', {}).get('duration'))
+            'title': self._og_search_title(webpage, fatal=False),
+            'description': self._og_search_description(webpage),
         }

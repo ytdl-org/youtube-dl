@@ -521,7 +521,10 @@ from .joj import JojIE
 from .jwplatform import JWPlatformIE
 from .kakao import KakaoIE
 from .kaltura import KalturaIE
-from .kan import KanIE
+from .kan import (
+    KanEpisodeIE,
+    KanPlaylistIE
+)
 from .kankan import KankanIE
 from .karaoketv import KaraoketvIE
 from .karrierevideos import KarriereVideosIE
