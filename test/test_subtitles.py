@@ -27,6 +27,7 @@ from youtube_dl.extractor import (
     ThePlatformFeedIE,
     RTVEALaCartaIE,
     DemocracynowIE,
+    RoosterTeethIE,
 )
 
 
@@ -347,6 +348,22 @@ class TestDemocracynowSubtitles(BaseTestSubtitles):
         subtitles = self.getSubtitles()
         self.assertEqual(set(subtitles.keys()), set(['en']))
         self.assertEqual(md5(subtitles['en']), 'acaca989e24a9e45a6719c9b3d60815c')
+
+
+class TestRoosterTeethSubtitles(BaseTestSubtitles):
+    url = 'https://www.roosterteeth.com/watch/rwby-season-1-episode-1'
+    IE = RoosterTeethIE
+
+    def test_allsubtitles(self):
+        self.DL.params['writesubtitles'] = True
+        self.DL.params['allsubtitles'] = True
+        subtitles = self.getSubtitles()
+        self.assertEqual(set(subtitles.keys()), set(['pt', 'de', 'fr', 'es', 'en']))
+        self.assertEqual(md5(subtitles['pt']), '96490f6884378403b4304b4355ddd028')
+        self.assertEqual(md5(subtitles['de']), 'a30fbfbc2574530457d12fcaf68b515c')
+        self.assertEqual(md5(subtitles['fr']), '64ff89d6a4dd8aa079f680d1cb799fde')
+        self.assertEqual(md5(subtitles['es']), '565a9b49173539ce5a3de9756bd3e3a2')
+        self.assertEqual(md5(subtitles['en']), '404252b16a423c3b89d3c8774445df65')
 
 
 if __name__ == '__main__':
