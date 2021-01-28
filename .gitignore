@@ -17,6 +17,7 @@ youtube_dl/extractor/lazy_extractors.py
 youtube-dl
 youtube-dl.exe
 youtube-dl.tar.gz
+bin/
 .coverage
 cover/
 updates_key.pem
