@@ -98,7 +98,7 @@ class RaiBaseIE(InfoExtractor):
         if not formats and geoprotection is True:
             self.raise_geo_restricted(countries=self._GEO_COUNTRIES)
 
-        formats.extend(self._create_http_urls(relinker_url))
+        formats.extend(self._create_http_urls(relinker_url, formats))
 
         return dict((k, v) for k, v in {
             'is_live': is_live,
@@ -106,9 +106,9 @@ class RaiBaseIE(InfoExtractor):
             'formats': formats,
         }.items() if v is not None)
 
-    def _create_http_urls(self, relinker_url):
-        _RELINKER_REG = r'https?://(?P<host>[^/]+?)/(?:i/)?(?P<extra>[^/]+?)/(?P<path>.+?)/(?P<id>\d+)(?:_,(?P<quality>[,\d]+)+)?(?:/playlist.m3u8|,?\.mp4).+?'
-        _MP4_REG = r'https?://(?P<cdn_id>creativemedia|download)(?P<cdn_num>\d+).+?/\d+(?:_\d+)?\.mp4$'
+    def _create_http_urls(self, relinker_url, fmts):
+        _RELINKER_REG = r'https?://(?P<host>[^/]+?)/(?:i/)?(?P<extra>[^/]+?)/(?P<path>.+?)/(?P<id>\d+)(?:_(?P<quality>[\d\,]+))?(?:\.mp4|/playlist\.m3u8).+?'
+        _MP4_REG = r'https?://(?P<cdn_id>creativemedia[x]?|download)(?P<cdn_num>\d+).+?/\d+(?:_\d+)?\.mp4$'
         _MP4_TMPL = 'https://%s%s-rai-it.akamaized.net/%s%s/%s%s.mp4'
         _QUALITY = {
             # tbr: w, h
@@ -143,8 +143,22 @@ class RaiBaseIE(InfoExtractor):
                 return None
             return None
 
+        def get_format_info(tbr):
+            br = int_or_none(tbr)
+            if len(fmts) == 1 and not br:
+                br = fmts[0].get('tbr')
+
+            for f in fmts:
+                if f.get('tbr'):
+                    if (br - br / 100 * 10) <= f.get('tbr') <= (br + br / 100 * 10):
+                        return [f.get('width'), f.get('height'), f.get('tbr'), f.get('format_id').split('-')[1]]
+
+            return [None, None, None, tbr]
+
         cdn_id, cdn_num = None, None
-        mobj = re.match(_MP4_REG, get_location(relinker_url) or '')
+        loc = get_location(relinker_url)
+        loc = loc if loc is not True else ''
+        mobj = re.match(_MP4_REG, loc or '')
         if mobj:
             cdn_id, cdn_num = mobj.groups()
 
@@ -160,7 +174,7 @@ class RaiBaseIE(InfoExtractor):
 
         if not cdn_id and not cdn_num:
             found = False
-            quality = '_%s' % mobj['quality'][-1] if len(mobj['quality']) > 1 else ''
+            quality = '_%s' % mobj['quality'][-1] if (len(mobj['quality']) > 1 or int_or_none(mobj['quality'][-1])) else ''
             for cdn_num in range(1, 10):
                 for cdn_id in ['creativemedia', 'download']:
                     temp = _MP4_TMPL % (cdn_id, cdn_num, mobj['extra'], mobj['path'], mobj['id'], quality)
@@ -176,14 +190,14 @@ class RaiBaseIE(InfoExtractor):
 
         formats = []
         for q in mobj['quality']:
-            quality = '_%s' % q if len(mobj['quality']) > 1 else ''
-            if q not in _QUALITY:
-                q = '1800'
+            w, h, t = None, None, None
+            quality = '_%s' % q if (len(mobj['quality']) > 1 or int_or_none(q)) else ''
+            w, h, t, q = get_format_info(q)
             formats.append({
                 'url': _MP4_TMPL % (cdn_id, str(cdn_num), mobj['extra'], mobj['path'], mobj['id'], quality),
-                'width': _QUALITY[q][0],
-                'height': _QUALITY[q][1],
-                'tbr': int(q) + 50,
+                'width': w or _QUALITY[q][0],
+                'height': h or _QUALITY[q][1],
+                'tbr': t or int(q),
                 'protocol': 'https',
                 'format_id': 'https-%s' % q,
             })
