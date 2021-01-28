@@ -42,7 +42,10 @@ from .aljazeera import AlJazeeraIE
 from .alphaporno import AlphaPornoIE
 from .amara import AmaraIE
 from .amcnetworks import AMCNetworksIE
-from .americastestkitchen import AmericasTestKitchenIE
+from .americastestkitchen import (
+    AmericasTestKitchenIE,
+    AmericasTestKitchenSeasonIE,
+)
 from .animeondemand import AnimeOnDemandIE
 from .anvato import AnvatoIE
 from .aol import AolIE
@@ -239,11 +242,8 @@ from .cnn import (
 )
 from .coub import CoubIE
 from .comedycentral import (
-    ComedyCentralFullEpisodesIE,
     ComedyCentralIE,
-    ComedyCentralShortnameIE,
     ComedyCentralTVIE,
-    ToshIE,
 )
 from .commonmistakes import CommonMistakesIE, UnicodeBOMIE
 from .commonprotocols import (
@@ -1290,6 +1290,10 @@ from .toutv import TouTvIE
 from .toypics import ToypicsUserIE, ToypicsIE
 from .traileraddict import TrailerAddictIE
 from .trilulilu import TriluliluIE
+from .trovo import (
+    TrovoIE,
+    TrovoVodIE,
+)
 from .trunews import TruNewsIE
 from .trutv import TruTVIE
 from .tube8 import Tube8IE
@@ -1308,6 +1312,7 @@ from .tv2 import (
     TV2IE,
     TV2ArticleIE,
     KatsomoIE,
+    MTVUutisetArticleIE,
 )
 from .tv2dk import (
     TV2DKIE,
@@ -1506,6 +1511,7 @@ from .vrv import (
     VRVSeriesIE,
 )
 from .vshare import VShareIE
+from .vtm import VTMIE
 from .medialaan import MedialaanIE
 from .vube import VubeIE
 from .vuclip import VuClipIE
