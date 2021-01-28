@@ -1,16 +1,20 @@
 # coding: utf-8
 from __future__ import unicode_literals
 
+import re
+
 from .common import InfoExtractor
 from ..compat import (
     compat_HTTPError,
     compat_str,
+    compat_urlparse,
 )
 from ..utils import (
     ExtractorError,
     int_or_none,
     str_or_none,
     urlencode_postdata,
+    parse_m3u8_attributes,
 )
 
 
@@ -86,9 +90,11 @@ class RoosterTeethIE(InfoExtractor):
         api_episode_url = self._EPISODE_BASE_URL + display_id
 
         try:
-            m3u8_url = self._download_json(
-                api_episode_url + '/videos', display_id,
-                'Downloading video JSON metadata')['data'][0]['attributes']['url']
+            video_json = self._download_json(
+                api_episode_url + '/videos', display_id)['data'][0]
+            m3u8_url = \
+                video_json['attributes'].get('url') or \
+                video_json['links'].get('master')
         except ExtractorError as e:
             if isinstance(e.cause, compat_HTTPError) and e.cause.code == 403:
                 if self._parse_json(e.cause.read().decode(), display_id).get('access') is False:
@@ -99,6 +105,9 @@ class RoosterTeethIE(InfoExtractor):
         formats = self._extract_m3u8_formats(
             m3u8_url, display_id, 'mp4', 'm3u8_native', m3u8_id='hls')
         self._sort_formats(formats)
+
+        subtitles = self._extract_m3u8_subtitles(
+            m3u8_url, display_id)
 
         episode = self._download_json(
             api_episode_url, display_id,
@@ -133,5 +142,59 @@ class RoosterTeethIE(InfoExtractor):
             'episode_id': str_or_none(episode.get('uuid')),
             'formats': formats,
             'channel_id': attributes.get('channel_id'),
+            'subtitles': subtitles,
             'duration': int_or_none(attributes.get('length')),
         }
+
+    def _extract_m3u8_subtitles(self, m3u8_url, video_id):
+        res = self._download_webpage_handle(
+            m3u8_url, video_id,
+            note='Downloading subtitle information',
+            errnote='Failed to download subtitle information',
+            fatal=False, data=None, headers={}, query={})
+        if res is False:
+            return None
+
+        m3u8_doc, urlh = res
+        m3u8_url = urlh.geturl()
+
+        def format_url(url, base_url):
+            if re.match(r'^https?://', url):
+                return url
+            else:
+                return compat_urlparse.urljoin(base_url, url)
+
+        subtitles = {}
+
+        for line in m3u8_doc.splitlines():
+            if not line.startswith("#EXT-X-MEDIA:"):
+                continue
+            media = parse_m3u8_attributes(line)
+
+            media_type, media_url_raw, media_lang = (
+                media.get('TYPE'),
+                media.get('URI'),
+                media.get('LANGUAGE'),
+            )
+            if not (media_type in ('SUBTITLES',) and media_url_raw and media_lang):
+                continue
+
+            media_url = format_url(media_url_raw, base_url=m3u8_url)
+
+            res = self._download_webpage_handle(
+                media_url, video_id,
+                note='Downloading subtitle information ({})'.format(media_lang),
+                errnote='Failed to download subtitle information ({})'.format(media_lang),
+                fatal=False, data=None, headers={}, query={})
+            if res is False:
+                continue
+
+            m3u8_subtitle_doc, _ = res
+            for subtitle_line in m3u8_subtitle_doc.splitlines():
+                if subtitle_line.startswith("#"):
+                    continue
+                media_url = format_url(subtitle_line, base_url=media_url)
+                break
+
+            subtitles[media_lang] = [{'url': media_url, }, ]
+        return subtitles if len(subtitles) > 0 else None
