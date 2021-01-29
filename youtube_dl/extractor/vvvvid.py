@@ -172,6 +172,7 @@ class VVVVIDIE(InfoExtractor):
                         info['season_number'] = int(season_number)
 
         video_type = video_data.get('video_type')
+        is_youtube = False
         for quality in ('', '_sd'):
             embed_code = video_data.get('embed_info' + quality)
             if not embed_code:
@@ -195,22 +196,22 @@ class VVVVIDIE(InfoExtractor):
                     'ie_key': YoutubeIE.ie_key(),
                     'url': embed_code,
                 })
-                formats = None
+                is_youtube = True
                 break
             else:
                 formats.extend(self._extract_wowza_formats(
                     'http://sb.top-ix.org/videomg/_definst_/mp4:%s/playlist.m3u8' % embed_code, video_id))
             metadata_from_url(embed_code)
 
-        if formats:
+        if not is_youtube:
             self._sort_formats(formats)
+            info['formats'] = formats
 
         metadata_from_url(video_data.get('thumbnail'))
         info.update(self._extract_common_video_info(video_data))
         info.update({
             'id': video_id,
             'title': title,
-            'formats': formats,
             'duration': int_or_none(video_data.get('length')),
             'series': video_data.get('show_title'),
             'season_id': season_id,
