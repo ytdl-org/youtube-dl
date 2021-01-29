@@ -57,6 +57,7 @@ class VVVVIDIE(InfoExtractor):
             'id': 'RzmFKUDOUgw',
             'ext': 'mp4',
             'title': 'Trailer',
+            'season': 'EXTRA',
             'upload_date': '20150906',
             'description': 'md5:a5e802558d35247fee285875328c0b80',
             'uploader_id': 'BandaiVisual',
