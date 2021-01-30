@@ -1768,6 +1768,9 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
         if not isinstance(video_info, dict):
             video_info = {}
 
+        playable_in_embed = try_get(
+            player_response, lambda x: x['playabilityStatus']['playableInEmbed'])
+
         video_details = try_get(
             player_response, lambda x: x['videoDetails'], dict) or {}
 
@@ -2469,6 +2472,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
             'album': album,
             'release_date': release_date,
             'release_year': release_year,
+            'playable_in_embed': playable_in_embed,
         }
 
 
