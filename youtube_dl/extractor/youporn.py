@@ -153,6 +153,8 @@ class YouPornIE(InfoExtractor):
         thumbnail = self._search_regex(
             r'(?:imageurl\s*=|poster\s*:)\s*(["\'])(?P<thumbnail>.+?)\1',
             webpage, 'thumbnail', fatal=False, group='thumbnail')
+        duration = int_or_none(self._html_search_meta(
+            'video:duration', webpage, 'duration', default=False, fatal=False))
 
         uploader = self._html_search_regex(
             r'(?s)<div[^>]+class=["\']submitByLink["\'][^>]*>(.+?)</div>',
@@ -194,6 +196,7 @@ class YouPornIE(InfoExtractor):
             'title': title,
             'description': description,
             'thumbnail': thumbnail,
+            'duration': duration,
             'uploader': uploader,
             'upload_date': upload_date,
             'average_rating': average_rating,
