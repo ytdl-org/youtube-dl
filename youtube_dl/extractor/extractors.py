@@ -433,6 +433,7 @@ from .gamespot import GameSpotIE
 from .gamestar import GameStarIE
 from .gaskrank import GaskrankIE
 from .gayforfans import GayForFansIE
+from .gayforiteu import GayForITEUIE 
 from .gazeta import GazetaIE
 from .gdcvault import GDCVaultIE
 from .generic import GenericIE
@@ -696,6 +697,7 @@ from .mofosex import (
     MofosexEmbedIE,
 )
 from .mojvideo import MojvideoIE
+from .monstercockinfo import MonsterCockInfoIE
 from .morningstar import MorningstarIE
 from .motherless import (
     MotherlessIE,
@@ -722,7 +724,7 @@ from .myvi import (
     MyviIE,
     MyviEmbedIE,
 )
-from .myvidster import MyVidsterIE
+from .myvidster import MyVidsterIE, MyVidsterChannelIE
 from .nakedsword import (
     NakedSwordSceneIE,
     NakedSwordMovieIE,

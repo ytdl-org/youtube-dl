@@ -637,7 +637,7 @@ class YoutubeDL(object):
     def prepare_filename(self, info_dict):
         """Generate the output filename."""
         try:
-            print(info_dict)
+            #print(info_dict)
             template_dict = dict(info_dict)
 
             template_dict['epoch'] = int(time.time())
@@ -2350,6 +2350,10 @@ class YoutubeDL(object):
                     'You are using an outdated version (newest version: %s)! '
                     'See https://yt-dl.org/update if you need help updating.' %
                     latest_version)
+
+        #print(self.params)
+
+
 
     def _setup_opener(self):
         timeout_val = self.params.get('socket_timeout')
