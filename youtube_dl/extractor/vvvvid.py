@@ -26,7 +26,6 @@ class VVVVIDIE(InfoExtractor):
             'duration': 239,
             'series': '"Perché dovrei guardarlo?" di Dario Moccia',
             'season_id': '437',
-            'season': 'VIDEO',
             'episode': 'Ping Pong',
             'episode_number': 1,
             'episode_id': '3334',
@@ -57,7 +56,6 @@ class VVVVIDIE(InfoExtractor):
             'id': 'RzmFKUDOUgw',
             'ext': 'mp4',
             'title': 'Trailer',
-            'season': 'EXTRA',
             'upload_date': '20150906',
             'description': 'md5:a5e802558d35247fee285875328c0b80',
             'uploader_id': 'BandaiVisual',
@@ -107,19 +105,6 @@ class VVVVIDIE(InfoExtractor):
             lambda episode: episode.get('video_id') == vid, response))[0]
         title = video_data['title']
         formats = []
-
-        # get season title
-        seasons = self._download_info(
-            show_id, 'seasons/', video_id, fatal=False)
-        season_title = None
-        for season in (seasons or []):
-            for episode in (season.get('episodes') or []):
-                if episode.get('video_id') == vid:
-                    season_title = str_or_none(season.get('name'))
-                    break
-            else:
-                continue
-            break
 
         # vvvvid embed_info decryption algorithm is reverse engineered from function $ds(h) at vvvvid.js
         def ds(h):
@@ -230,7 +215,6 @@ class VVVVIDIE(InfoExtractor):
             'duration': int_or_none(video_data.get('length')),
             'series': video_data.get('show_title'),
             'season_id': season_id,
-            'season': season_title,
             'episode': title,
             'view_count': int_or_none(video_data.get('views')),
             'like_count': int_or_none(video_data.get('video_likes')),
@@ -263,9 +247,13 @@ class VVVVIDShowIE(VVVVIDIE):
         show_info = self._download_info(
             show_id, 'info/', show_title, fatal=False)
 
+        if not show_title:
+            base_url += "/title"
+
         entries = []
         for season in (seasons or []):
             episodes = season.get('episodes') or []
+            playlist_title = season.get('name') or show_info.get('title')
             for episode in episodes:
                 if episode.get('playable') is False:
                     continue
@@ -275,12 +263,13 @@ class VVVVIDShowIE(VVVVIDIE):
                     continue
                 info = self._extract_common_video_info(episode)
                 info.update({
-                    '_type': 'url',
+                    '_type': 'url_transparent',
                     'ie_key': VVVVIDIE.ie_key(),
                     'url': '/'.join([base_url, season_id, video_id]),
                     'title': episode.get('title'),
                     'description': episode.get('description'),
                     'season_id': season_id,
+                    'playlist_title': playlist_title,
                 })
                 entries.append(info)
 
