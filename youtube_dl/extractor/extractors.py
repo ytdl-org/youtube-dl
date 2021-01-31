@@ -822,6 +822,7 @@ from .orf import (
     ORFIPTVIE,
 )
 from .outsidetv import OutsideTVIE
+from .pac12 import Pac12IE
 from .packtpub import (
     PacktPubIE,
     PacktPubCourseIE,
