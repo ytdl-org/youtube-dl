@@ -74,7 +74,7 @@ class EggheadLessonIE(InfoExtractor):
             'upload_date': '20161209',
             'duration': 304,
             'view_count': 0,
-            'tags': ['free', 'javascript',],
+            'tags': ['free', 'javascript'],
         },
         'params': {
             'skip_download': True,
