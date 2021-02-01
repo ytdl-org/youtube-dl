@@ -605,6 +605,7 @@ from .livestream import (
 )
 from .lnkgo import LnkGoIE
 from .localnews8 import LocalNews8IE
+from .loom import LoomIE
 from .lovehomeporn import LoveHomePornIE
 from .lrt import LRTIE
 from .lynda import (
