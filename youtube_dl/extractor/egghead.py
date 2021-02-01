@@ -30,7 +30,7 @@ class EggheadCourseIE(InfoExtractor):
         playlist_id = self._match_id(url)
 
         lessons = self._download_json(
-            'https://egghead.io/api/v1/series/%s/lessons' % playlist_id,
+            'https://app.egghead.io/api/v1/series/%s/lessons' % playlist_id,
             playlist_id, 'Downloading course lessons JSON')
 
         entries = []
@@ -45,7 +45,7 @@ class EggheadCourseIE(InfoExtractor):
                 lesson_url, ie=EggheadLessonIE.ie_key(), video_id=lesson_id))
 
         course = self._download_json(
-            'https://egghead.io/api/v1/series/%s' % playlist_id,
+            'https://app.egghead.io/api/v1/series/%s' % playlist_id,
             playlist_id, 'Downloading course JSON', fatal=False) or {}
 
         playlist_id = course.get('id')
@@ -74,7 +74,7 @@ class EggheadLessonIE(InfoExtractor):
             'upload_date': '20161209',
             'duration': 304,
             'view_count': 0,
-            'tags': ['javascript', 'free'],
+            'tags': ['free', 'javascript',],
         },
         'params': {
             'skip_download': True,
@@ -89,7 +89,7 @@ class EggheadLessonIE(InfoExtractor):
         display_id = self._match_id(url)
 
         lesson = self._download_json(
-            'https://egghead.io/api/v1/lessons/%s' % display_id, display_id)
+            'https://app.egghead.io/api/v1/lessons/%s' % display_id, display_id)
 
         lesson_id = compat_str(lesson['id'])
         title = lesson['title']
