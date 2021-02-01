@@ -1223,6 +1223,46 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
         video_id = mobj.group(2)
         return video_id
 
+    def _extract_chapters_from_json(self, data, video_id, duration):
+        chapters_list = try_get(
+            data,
+            lambda x: x['playerOverlays']
+                       ['playerOverlayRenderer']
+                       ['decoratedPlayerBarRenderer']
+                       ['decoratedPlayerBarRenderer']
+                       ['playerBar']
+                       ['chapteredPlayerBarRenderer']
+                       ['chapters'],
+            list)
+        if not chapters_list:
+            return
+
+        def chapter_time(chapter):
+            return float_or_none(
+                try_get(
+                    chapter,
+                    lambda x: x['chapterRenderer']['timeRangeStartMillis'],
+                    int),
+                scale=1000)
+        chapters = []
+        for next_num, chapter in enumerate(chapters_list, start=1):
+            start_time = chapter_time(chapter)
+            if start_time is None:
+                continue
+            end_time = (chapter_time(chapters_list[next_num])
+                        if next_num < len(chapters_list) else duration)
+            if end_time is None:
+                continue
+            title = try_get(
+                chapter, lambda x: x['chapterRenderer']['title']['simpleText'],
+                compat_str)
+            chapters.append({
+                'start_time': start_time,
+                'end_time': end_time,
+                'title': title,
+            })
+        return chapters
+
     def _extract_yt_initial_variable(self, webpage, regex, video_id, name):
         return self._parse_json(self._search_regex(
             (r'%s\s*%s' % (regex, self._YT_INITIAL_BOUNDARY_RE),
@@ -1597,31 +1637,34 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                 'next', {'videoId': video_id}, video_id, fatal=False)
 
         if initial_data:
-            for engagment_pannel in (initial_data.get('engagementPanels') or []):
-                contents = try_get(
-                    engagment_pannel, lambda x: x['engagementPanelSectionListRenderer']['content']['macroMarkersListRenderer']['contents'],
-                    list)
-                if not contents:
-                    continue
-
-                def chapter_time(mmlir):
-                    return parse_duration(mmlir.get(
-                        get_text(mmlir.get('timeDescription'))))
-
-                chapters = []
-                for next_num, content in enumerate(contents, start=1):
-                    mmlir = content.get('macroMarkersListItemRenderer') or {}
-                    start_time = chapter_time(mmlir)
-                    end_time = chapter_time(try_get(
-                        contents, lambda x: x[next_num]['macroMarkersListItemRenderer'])) \
-                        if next_num < len(contents) else duration
-                    if not (start_time and end_time):
+            chapters = self._extract_chapters_from_json(
+                initial_data, video_id, duration)
+            if not chapters:
+                for engagment_pannel in (initial_data.get('engagementPanels') or []):
+                    contents = try_get(
+                        engagment_pannel, lambda x: x['engagementPanelSectionListRenderer']['content']['macroMarkersListRenderer']['contents'],
+                        list)
+                    if not contents:
                         continue
-                    chapters.append({
-                        'start_time': start_time,
-                        'end_time': end_time,
-                        'title': get_text(mmlir.get('title')),
-                    })
+
+                    def chapter_time(mmlir):
+                        return parse_duration(mmlir.get(
+                            get_text(mmlir.get('timeDescription'))))
+
+                    for next_num, content in enumerate(contents, start=1):
+                        mmlir = content.get('macroMarkersListItemRenderer') or {}
+                        start_time = chapter_time(mmlir)
+                        end_time = chapter_time(try_get(
+                            contents, lambda x: x[next_num]['macroMarkersListItemRenderer'])) \
+                            if next_num < len(contents) else duration
+                        if not (start_time and end_time):
+                            continue
+                        chapters.append({
+                            'start_time': start_time,
+                            'end_time': end_time,
+                            'title': get_text(mmlir.get('title')),
+                        })
+            if chapters:
                 info['chapters'] = chapters
 
             contents = try_get(
