@@ -757,7 +757,7 @@ class YoutubeDL(object):
         like_count = info_dict.get('like_count')
         dislike_count = info_dict.get('dislike_count')
         if like_count is not None and dislike_count is not None:
-            score = int( round(float(like_count) / float(like_count + dislike_count) * 100.0, 0) )
+            score = int(round(float(like_count) / float(like_count + dislike_count) * 100.0, 0))
             min_score = self.params.get('min_score')
             if min_score is not None and score < min_score:
                 return 'Skipping %s, because it has not reached the minimum score (%d/%d)' % (video_title, score, min_score)
