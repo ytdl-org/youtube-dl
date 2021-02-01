@@ -51,6 +51,8 @@ Alternatively, refer to the [developer instructions](#developer-instructions) fo
 
     youtube-dl [OPTIONS] URL [URL...]
 
+Please refer to [this example](https://github.com/ytdl-org/youtube-dl#video-url-contains-an-ampersand-and-im-getting-some-strange-output-1-2839-or-v-is-not-recognized-as-an-internal-or-external-command) if you want to use it as a trial.
+
 # OPTIONS
     -h, --help                           Print this help text and exit
     --version                            Print program version and exit
