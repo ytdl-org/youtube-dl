@@ -1664,7 +1664,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
             player_response,
             lambda x: x['captions']['playerCaptionsTracklistRenderer'], dict)
         if pctr:
-            def process_language(container, base_url, caption, query):
+            def process_language(container, base_url, lang_code, query):
                 lang_subs = []
                 for fmt in self._SUBTITLE_FORMATS:
                     query.update({
@@ -1674,35 +1674,28 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                         'ext': fmt,
                         'url': update_url_query(base_url, query),
                     })
-                subtitles[caption['languageCode']] = lang_subs
+                container[lang_code] = lang_subs
 
             subtitles = {}
-            for caption_track in pctr['captionTracks']:
-                base_url = caption_track['baseUrl']
+            for caption_track in (pctr.get('captionTracks') or []):
+                base_url = caption_track.get('baseUrl')
+                if not base_url:
+                    continue
                 if caption_track.get('kind') != 'asr':
-                    lang_subs = []
-                    for fmt in self._SUBTITLE_FORMATS:
-                        lang_subs.append({
-                            'ext': fmt,
-                            'url': update_url_query(base_url, {
-                                'fmt': fmt,
-                            }),
-                        })
-                    subtitles[caption_track['languageCode']] = lang_subs
+                    lang_code = caption_track.get('languageCode')
+                    if not lang_code:
+                        continue
+                    process_language(
+                        subtitles, base_url, lang_code, {})
                     continue
                 automatic_captions = {}
-                for translation_language in pctr['translationLanguages']:
-                    translation_language_code = translation_language['languageCode']
-                    lang_subs = []
-                    for fmt in self._SUBTITLE_FORMATS:
-                        lang_subs.append({
-                            'ext': fmt,
-                            'url': update_url_query(base_url, {
-                                'fmt': fmt,
-                                'tlang': translation_language_code,
-                            }),
-                        })
-                    automatic_captions[translation_language_code] = lang_subs
+                for translation_language in (pctr.get('translationLanguages') or []):
+                    translation_language_code = translation_language.get('languageCode')
+                    if not translation_language_code:
+                        continue
+                    process_language(
+                        automatic_captions, base_url, translation_language_code,
+                        {'tlang': translation_language_code})
                 info['automatic_captions'] = automatic_captions
             info['subtitles'] = subtitles
 
