@@ -308,6 +308,10 @@ def parseOpts(overrideArguments=None):
         metavar='COUNT', dest='max_views', default=None, type=int,
         help='Do not download any videos with more than COUNT views')
     selection.add_option(
+        '--min-score',
+        metavar='SCORE', dest='min_score', default=None, type=int,
+        help='Do not download any videos with less than SCORE percentage of likes')
+    selection.add_option(
         '--match-filter',
         metavar='FILTER', dest='match_filter', default=None,
         help=(

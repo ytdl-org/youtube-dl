@@ -391,6 +391,7 @@ def _real_main(argv=None):
         'max_filesize': opts.max_filesize,
         'min_views': opts.min_views,
         'max_views': opts.max_views,
+        'min_score': opts.min_score,
         'daterange': date,
         'cachedir': opts.cachedir,
         'youtube_print_sig_code': opts.youtube_print_sig_code,

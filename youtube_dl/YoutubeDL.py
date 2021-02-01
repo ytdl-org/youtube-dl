@@ -206,6 +206,9 @@ class YoutubeDL(object):
                        downloaded.
                        Videos without view count information are always
                        downloaded. None for no limit.
+    min_score:         An integer representing the minimum percentage of like_count
+                       that a video must have in order not to be skipped. None
+                       for no limit.
     download_archive:  File name of a file where all downloads are recorded.
                        Videos already present in the file are not downloaded
                        again.
@@ -751,6 +754,13 @@ class YoutubeDL(object):
             max_views = self.params.get('max_views')
             if max_views is not None and view_count > max_views:
                 return 'Skipping %s, because it has exceeded the maximum view count (%d/%d)' % (video_title, view_count, max_views)
+        like_count = info_dict.get('like_count')
+        dislike_count = info_dict.get('dislike_count')
+        if like_count is not None and dislike_count is not None:
+            score = int( round(float(like_count) / float(like_count + dislike_count) * 100.0, 0) )
+            min_score = self.params.get('min_score')
+            if min_score is not None and score < min_score:
+                return 'Skipping %s, because it has not reached the minimum score (%d/%d)' % (video_title, score, min_score)
         if age_restricted(info_dict.get('age_limit'), self.params.get('age_limit')):
             return 'Skipping "%s" because it is age restricted' % video_title
         if self.in_download_archive(info_dict):
