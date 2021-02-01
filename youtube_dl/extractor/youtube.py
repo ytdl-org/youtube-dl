@@ -1753,22 +1753,25 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                         continue
 
                     def chapter_time(mmlir):
-                        return parse_duration(mmlir.get(
-                            get_text(mmlir.get('timeDescription'))))
+                        return parse_duration(
+                            get_text(mmlir.get('timeDescription')))
 
+                    chapters = []
                     for next_num, content in enumerate(contents, start=1):
                         mmlir = content.get('macroMarkersListItemRenderer') or {}
                         start_time = chapter_time(mmlir)
                         end_time = chapter_time(try_get(
                             contents, lambda x: x[next_num]['macroMarkersListItemRenderer'])) \
                             if next_num < len(contents) else duration
-                        if not (start_time and end_time):
+                        if start_time is None or end_time is None:
                             continue
                         chapters.append({
                             'start_time': start_time,
                             'end_time': end_time,
                             'title': get_text(mmlir.get('title')),
                         })
+                    if chapters:
+                        break
             if chapters:
                 info['chapters'] = chapters
 
