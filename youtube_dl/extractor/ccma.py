@@ -103,7 +103,7 @@ class CCMAIE(InfoExtractor):
             sub_url = st.get('url')
             if sub_url:
                 subtitles.setdefault(
-                    st.get('iso') or 'ca', []).append({
+                    st.get('iso') or st.get('text') or 'ca', []).append({
                         'url': sub_url,
                     })
 
