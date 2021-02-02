@@ -16,7 +16,7 @@ class EggheadBaseIE(InfoExtractor):
     def _call_api(self, path, video_id, resource, fatal=True):
         return self._download_json(
             'https://app.egghead.io/api/v1/' + path,
-            video_id, 'Downloading %s JSON' % resource)
+            video_id, 'Downloading %s JSON' % resource, fatal=fatal)
 
 
 class EggheadCourseIE(EggheadBaseIE):
@@ -79,7 +79,7 @@ class EggheadLessonIE(EggheadBaseIE):
             'upload_date': '20161209',
             'duration': 304,
             'view_count': 0,
-            'tags': ['free', 'javascript'],
+            'tags': 'count:2',
         },
         'params': {
             'skip_download': True,
