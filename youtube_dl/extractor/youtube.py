@@ -1397,6 +1397,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                     'Refetching age-gated info webpage',
                     'unable to download video info webpage', query={
                         'video_id': video_id,
+                        'eurl': 'https://www.youtube.com/embed/' + video_id,
                     }, fatal=False)),
                 lambda x: x['player_response'][0],
                 compat_str) or '{}', video_id)
