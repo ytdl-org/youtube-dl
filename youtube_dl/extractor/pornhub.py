@@ -23,6 +23,7 @@ from ..utils import (
     remove_quotes,
     str_to_int,
     update_url_query,
+    urlencode_postdata,
     url_or_none,
 )
 
@@ -52,6 +53,66 @@ class PornHubBaseIE(InfoExtractor):
             webpage, urlh = dl(*args, **kwargs)
 
         return webpage, urlh
+
+    def _real_initialize(self):
+        self._logged_in = False
+
+    def _login(self, host):
+        if self._logged_in:
+            return
+
+        site = host.split('.')[0]
+
+        # Both sites pornhub and pornhubpremium have separate accounts
+        # so there should be an option to provide credentials for both.
+        # At the same time some videos are available under the same video id
+        # on both sites so that we have to identify them as the same video.
+        # For that purpose we have to keep both in the same extractor
+        # but under different netrc machines.
+        username, password = self._get_login_info(netrc_machine=site)
+        if username is None:
+            return
+
+        login_url = 'https://www.%s/%slogin' % (host, 'premium/' if 'premium' in host else '')
+        login_page = self._download_webpage(
+            login_url, None, 'Downloading %s login page' % site)
+
+        def is_logged(webpage):
+            return any(re.search(p, webpage) for p in (
+                r'class=["\']signOut',
+                r'>Sign\s+[Oo]ut\s*<'))
+
+        if is_logged(login_page):
+            self._logged_in = True
+            return
+
+        login_form = self._hidden_inputs(login_page)
+
+        login_form.update({
+            'username': username,
+            'password': password,
+        })
+
+        response = self._download_json(
+            'https://www.%s/front/authenticate' % host, None,
+            'Logging in to %s' % site,
+            data=urlencode_postdata(login_form),
+            headers={
+                'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
+                'Referer': login_url,
+                'X-Requested-With': 'XMLHttpRequest',
+            })
+
+        if response.get('success') == '1':
+            self._logged_in = True
+            return
+
+        message = response.get('message')
+        if message is not None:
+            raise ExtractorError(
+                'Unable to login: %s' % message, expected=True)
+
+        raise ExtractorError('Unable to log in')
 
 
 class PornHubIE(PornHubBaseIE):
@@ -164,12 +225,20 @@ class PornHubIE(PornHubBaseIE):
     }, {
         'url': 'https://www.pornhubpremium.com/view_video.php?viewkey=ph5e4acdae54a82',
         'only_matching': True,
+    }, {
+        # Some videos are available with the same id on both premium
+        # and non-premium sites (e.g. this and the following test)
+        'url': 'https://www.pornhub.com/view_video.php?viewkey=ph5f75b0f4b18e3',
+        'only_matching': True,
+    }, {
+        'url': 'https://www.pornhubpremium.com/view_video.php?viewkey=ph5f75b0f4b18e3',
+        'only_matching': True,
     }]
 
     @staticmethod
     def _extract_urls(webpage):
         return re.findall(
-            r'<iframe[^>]+?src=["\'](?P<url>(?:https?:)?//(?:www\.)?pornhub\.(?:com|net|org)/embed/[\da-z]+)',
+            r'<iframe[^>]+?src=["\'](?P<url>(?:https?:)?//(?:www\.)?pornhub(?:premium)?\.(?:com|net|org)/embed/[\da-z]+)',
             webpage)
 
     def _extract_count(self, pattern, webpage, name):
@@ -181,12 +250,7 @@ class PornHubIE(PornHubBaseIE):
         host = mobj.group('host') or 'pornhub.com'
         video_id = mobj.group('id')
 
-        if 'premium' in host:
-            if not self._downloader.params.get('cookiefile'):
-                raise ExtractorError(
-                    'PornHub Premium requires authentication.'
-                    ' You may want to use --cookies.',
-                    expected=True)
+        self._login(host)
 
         self._set_cookie(host, 'age_verified', '1')
 
@@ -427,26 +491,6 @@ class PornHubPlaylistBaseIE(PornHubBaseIE):
                 container))
         ]
 
-    def _real_extract(self, url):
-        mobj = re.match(self._VALID_URL, url)
-        host = mobj.group('host')
-        playlist_id = mobj.group('id')
-
-        webpage = self._download_webpage(url, playlist_id)
-
-        entries = self._extract_entries(webpage, host)
-
-        playlist = self._parse_json(
-            self._search_regex(
-                r'(?:playlistObject|PLAYLIST_VIEW)\s*=\s*({.+?});', webpage,
-                'playlist', default='{}'),
-            playlist_id, fatal=False)
-        title = playlist.get('title') or self._search_regex(
-            r'>Videos\s+in\s+(.+?)\s+[Pp]laylist<', webpage, 'title', fatal=False)
-
-        return self.playlist_result(
-            entries, playlist_id, title, playlist.get('description'))
-
 
 class PornHubUserIE(PornHubPlaylistBaseIE):
     _VALID_URL = r'(?P<url>https?://(?:[^/]+\.)?(?P<host>pornhub(?:premium)?\.(?:com|net|org))/(?:(?:user|channel)s|model|pornstar)/(?P<id>[^/?#&]+))(?:[?#&]|/(?!videos)|$)'
@@ -506,12 +550,14 @@ class PornHubPagedPlaylistBaseIE(PornHubPlaylistBaseIE):
         host = mobj.group('host')
         item_id = mobj.group('id')
 
+        self._login(host)
+
         page = self._extract_page(url)
 
         VIDEOS = '/videos'
 
-        def download_page(base_url, num):
-            note = 'Downloading %spage %d' % ('' if VIDEOS in base_url else 'fallback ', num)
+        def download_page(base_url, num, fallback=False):
+            note = 'Downloading page %d%s' % (num, ' (switch to fallback)' if fallback else '')
             return self._download_webpage(
                 base_url, item_id, note, query={'page': num})
 
@@ -532,7 +578,7 @@ class PornHubPagedPlaylistBaseIE(PornHubPlaylistBaseIE):
                     # 1. https://github.com/ytdl-org/youtube-dl/issues/27853
                     if is_404(e) and page_num == first_page and VIDEOS in base_url:
                         base_url = base_url.replace(VIDEOS, '')
-                        webpage = download_page(base_url, page_num)
+                        webpage = download_page(base_url, page_num, fallback=True)
                     else:
                         raise
             except ExtractorError as e:
