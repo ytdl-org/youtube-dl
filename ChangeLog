@@ -1,4 +1,4 @@
-version <unreleased>
+version 2021.02.04
 
 Extractors
 * [pornhub] Implement lazy playlist extraction

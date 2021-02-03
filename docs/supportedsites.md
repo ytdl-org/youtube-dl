@@ -537,6 +537,7 @@
  - **mtv:video**
  - **mtvjapan**
  - **mtvservices:embedded**
+ - **MTVUutisetArticle**
  - **MuenchenTV**: münchen.tv
  - **mva**: Microsoft Virtual Academy videos
  - **mva:course**: Microsoft Virtual Academy courses
@@ -1058,7 +1059,6 @@
  - **vidme**
  - **vidme:user**
  - **vidme:user:likes**
- - **Vidzi**
  - **vier**: vier.be and vijf.be
  - **vier:videos**
  - **viewlift**
@@ -1103,6 +1103,7 @@
  - **vrv**
  - **vrv:series**
  - **VShare**
+ - **VTM**
  - **VTXTV**
  - **vube**: Vube.com
  - **VuClip**
