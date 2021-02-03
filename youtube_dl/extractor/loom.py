@@ -17,30 +17,6 @@ from ..utils import (
 class LoomBaseInfoIE(InfoExtractor):
     _BASE_URL = 'https://www.loom.com/'
 
-    def _extract_video_info_json(self, webpage, video_id):
-        info = self._html_search_regex(
-            r'window.loomSSRVideo = (.+?);',
-            webpage,
-            'info')
-        return self._parse_json(info, 'json', js_to_json)
-
-    def _get_url_by_id_type(self, video_id, type):
-        request = compat_urllib_request.Request(
-            self._BASE_URL + 'api/campaigns/sessions/' + video_id + '/' + type,
-            {})
-        (json, _) = self._download_json_handle(request, video_id)
-        return (url_or_none(json.get('url')), json.get('part_credentials'))
-
-    def _get_m3u8_formats(self, url, video_id, credentials):
-        format_list = self._extract_m3u8_formats(url, video_id)
-        for item in format_list:
-            item['protocol'] = 'm3u8_native'
-            item['url'] += '?' + credentials
-            item['ext'] = 'mp4'
-            item['format_id'] = 'hls-' + str(item.get('height', 0))
-            item['extra_param_to_segment_url'] = credentials
-        return format_list
-
 
 class LoomIE(LoomBaseInfoIE):
     _VALID_URL = r'https?://(?:www\.)?loom\.com/share/(?P<id>[a-zA-Z0-9]+)'
@@ -82,6 +58,30 @@ class LoomIE(LoomBaseInfoIE):
             }
         }
     ]
+
+    def _extract_video_info_json(self, webpage, video_id):
+        info = self._html_search_regex(
+            r'window.loomSSRVideo = (.+?);',
+            webpage,
+            'info')
+        return self._parse_json(info, 'json', js_to_json)
+
+    def _get_url_by_id_type(self, video_id, type):
+        request = compat_urllib_request.Request(
+            self._BASE_URL + 'api/campaigns/sessions/' + video_id + '/' + type,
+            {})
+        json = self._download_json(request, video_id)
+        return (url_or_none(json.get('url')), json.get('part_credentials'))
+
+    def _get_m3u8_formats(self, url, video_id, credentials):
+        format_list = self._extract_m3u8_formats(url, video_id)
+        for item in format_list:
+            item['protocol'] = 'm3u8_native'
+            item['url'] += '?' + credentials
+            item['ext'] = 'mp4'
+            item['format_id'] = 'hls-' + str(item.get('height', 0))
+            item['extra_param_to_segment_url'] = credentials
+        return format_list
 
     def _real_extract(self, url):
         video_id = self._match_id(url)
