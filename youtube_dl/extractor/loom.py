@@ -1,8 +1,12 @@
 from __future__ import unicode_literals
 
+import json
+import re
+
 from .common import InfoExtractor
 
 from ..compat import (
+    compat_urllib_parse_unquote,
     compat_urllib_parse_urlencode,
     compat_urllib_request
 )
@@ -19,7 +23,7 @@ class LoomBaseInfoIE(InfoExtractor):
 
 
 class LoomIE(LoomBaseInfoIE):
-    _VALID_URL = r'https?://(?:www\.)?loom\.com/share/(?P<id>[a-zA-Z0-9]+)'
+    _VALID_URL = r'https?://(?:www\.)?loom\.com/share/(?!folder)(?P<id>[a-zA-Z0-9]+)'
     _TESTS = [
         {
             'url': 'https://www.loom.com/share/31b41727a5b24dacb6c1417a565b2ebf',
@@ -70,8 +74,8 @@ class LoomIE(LoomBaseInfoIE):
         request = compat_urllib_request.Request(
             self._BASE_URL + 'api/campaigns/sessions/' + video_id + '/' + type,
             {})
-        json = self._download_json(request, video_id)
-        return (url_or_none(json.get('url')), json.get('part_credentials'))
+        json_doc = self._download_json(request, video_id)
+        return (url_or_none(json_doc.get('url')), json_doc.get('part_credentials'))
 
     def _get_m3u8_formats(self, url, video_id, credentials):
         format_list = self._extract_m3u8_formats(url, video_id)
@@ -125,3 +129,74 @@ class LoomIE(LoomBaseInfoIE):
             'uploader': info.get('owner_full_name'),
             'timestamp': unified_timestamp(info.get('createdAt'))
         }
+
+
+class LoomFolderIE(LoomBaseInfoIE):
+    _VALID_URL = r'https?://(?:www\.)?loom\.com/share/folder/(?P<id>.+)/?'
+    _TESTS = [
+        {
+            'url': 'https://www.loom.com/share/folder/997db4db046f43e5912f10dc5f817b5c/List%20B-%20e%2C%20u',
+            'info_dict': {
+                'id': 'b14bf2c5ef434bca8ab3585b0c1e97d9',
+                'title': 'List B- e, u'
+            },
+            'playlist_mincount': 4
+        },
+        {
+            'url': 'https://www.loom.com/share/folder/997db4db046f43e5912f10dc5f817b5c',
+            'info_dict': {
+                'id': '997db4db046f43e5912f10dc5f817b5c',
+                'title': 'Blending Lessons '
+            },
+            'playlist_mincount': 16
+        }
+    ]
+
+    def _get_real_folder_id(self, path):
+        subfolders = re.match(
+            r'^([a-zA-Z0-9]+)(?:\/(.+))*$',
+            compat_urllib_parse_unquote(path))
+        folder_names = subfolders.groups()[1:]
+        parent_folder_id = subfolders.group(1)
+        if(folder_names[0] is None):
+            return path
+
+        # Fetch folder id
+        request = compat_urllib_request.Request(
+            self._BASE_URL + 'v1/folders/by_name',
+            json.dumps({
+                'folder_names': folder_names,
+                'parent_folder_id': parent_folder_id
+            }).encode('utf-8'))
+        json_doc = self._download_json(request, parent_folder_id)
+
+        return try_get(json_doc, lambda x: x['current_folder']['id'])
+
+    def _get_folder_info(self, folder_id):
+        json_doc = self._download_json(url_or_none(self._BASE_URL + 'v1/folders/' + folder_id), folder_id)
+        videos = []
+
+        # Recursive call for subfolder
+        for folder in json_doc.get('folders'):
+            subfolder_info = self._get_folder_info(folder.get('id'))
+            videos.extend(subfolder_info.get('entries'))
+        videos.extend([val.get('id') for val in json_doc.get('videos')])
+
+        return {
+            'id': folder_id,
+            'title': json_doc.get('name'),
+            'description': json_doc.get('description'),
+            'entries': videos
+        }
+
+    def _real_extract(self, url):
+        folder_id = self._match_id(url)
+        folder_id = self._get_real_folder_id(folder_id)
+        folder_info = self._get_folder_info(folder_id)
+        folder_info['_type'] = 'playlist'
+
+        for i in range(len(folder_info['entries'])):
+            video_id = folder_info['entries'][i]
+            folder_info['entries'][i] = LoomIE(self._downloader)._real_extract(url_or_none(self._BASE_URL + 'share/' + video_id))
+
+        return folder_info
