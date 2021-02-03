@@ -135,12 +135,12 @@ class LoomFolderIE(LoomBaseInfoIE):
     _VALID_URL = r'https?://(?:www\.)?loom\.com/share/folder/(?P<id>.+)/?'
     _TESTS = [
         {
-            'url': 'https://www.loom.com/share/folder/997db4db046f43e5912f10dc5f817b5c/List%20B-%20e%2C%20u',
+            'url': 'https://www.loom.com/share/folder/997db4db046f43e5912f10dc5f817b5c/List%20A-%20a%2C%20i%2C%20o',
             'info_dict': {
-                'id': 'b14bf2c5ef434bca8ab3585b0c1e97d9',
-                'title': 'List B- e, u'
+                'id': '9a8a87f6b6f546d9a400c8e7575ff7f2',
+                'title': 'List A- a, i, o'
             },
-            'playlist_mincount': 4
+            'playlist_mincount': 12
         },
         {
             'url': 'https://www.loom.com/share/folder/997db4db046f43e5912f10dc5f817b5c',
