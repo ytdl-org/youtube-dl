@@ -22,6 +22,7 @@ from ..utils import (
     orderedSet,
     remove_quotes,
     str_to_int,
+    update_url_query,
     url_or_none,
 )
 
@@ -405,6 +406,10 @@ class PornHubIE(PornHubBaseIE):
 
 
 class PornHubPlaylistBaseIE(PornHubBaseIE):
+    def _extract_page(self, url):
+        return int_or_none(self._search_regex(
+            r'\bpage=(\d+)', url, 'page', default=None))
+
     def _extract_entries(self, webpage, host):
         # Only process container div with main playlist content skipping
         # drop-down menu that uses similar pattern for videos (see
@@ -463,14 +468,27 @@ class PornHubUserIE(PornHubPlaylistBaseIE):
     }, {
         'url': 'https://www.pornhub.com/model/zoe_ph?abc=1',
         'only_matching': True,
+    }, {
+        # Unavailable via /videos page, but available with direct pagination
+        # on pornstar page (see [1]), requires premium
+        # 1. https://github.com/ytdl-org/youtube-dl/issues/27853
+        'url': 'https://www.pornhubpremium.com/pornstar/sienna-west',
+        'only_matching': True,
+    }, {
+        # Same as before, multi page
+        'url': 'https://www.pornhubpremium.com/pornstar/lily-labeau',
+        'only_matching': True,
     }]
 
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
         user_id = mobj.group('id')
+        videos_url = '%s/videos' % mobj.group('url')
+        page = self._extract_page(url)
+        if page:
+            videos_url = update_url_query(videos_url, {'page': page})
         return self.url_result(
-            '%s/videos' % mobj.group('url'), ie=PornHubPagedVideoListIE.ie_key(),
-            video_id=user_id)
+            videos_url, ie=PornHubPagedVideoListIE.ie_key(), video_id=user_id)
 
 
 class PornHubPagedPlaylistBaseIE(PornHubPlaylistBaseIE):
@@ -488,17 +506,37 @@ class PornHubPagedPlaylistBaseIE(PornHubPlaylistBaseIE):
         host = mobj.group('host')
         item_id = mobj.group('id')
 
-        page = int_or_none(self._search_regex(
-            r'\bpage=(\d+)', url, 'page', default=None))
+        page = self._extract_page(url)
+
+        VIDEOS = '/videos'
+
+        def download_page(base_url, num):
+            note = 'Downloading %spage %d' % ('' if VIDEOS in base_url else 'fallback ', num)
+            return self._download_webpage(
+                base_url, item_id, note, query={'page': num})
+
+        def is_404(e):
+            return isinstance(e.cause, compat_HTTPError) and e.cause.code == 404
 
         entries = []
-        for page_num in (page, ) if page is not None else itertools.count(1):
+        base_url = url
+        has_page = page is not None
+        first_page = page if has_page else 1
+        for page_num in (first_page, ) if has_page else itertools.count(first_page):
             try:
-                webpage = self._download_webpage(
-                    url, item_id, 'Downloading page %d' % page_num,
-                    query={'page': page_num})
+                try:
+                    webpage = download_page(base_url, page_num)
+                except ExtractorError as e:
+                    # Some sources may not be available via /videos page,
+                    # trying to fallback to main page pagination (see [1])
+                    # 1. https://github.com/ytdl-org/youtube-dl/issues/27853
+                    if is_404(e) and page_num == first_page and VIDEOS in base_url:
+                        base_url = base_url.replace(VIDEOS, '')
+                        webpage = download_page(base_url, page_num)
+                    else:
+                        raise
             except ExtractorError as e:
-                if isinstance(e.cause, compat_HTTPError) and e.cause.code == 404:
+                if is_404(e) and page_num != first_page:
                     break
                 raise
             page_entries = self._extract_entries(webpage, host)
