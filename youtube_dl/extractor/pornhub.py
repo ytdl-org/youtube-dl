@@ -547,13 +547,7 @@ class PornHubPagedPlaylistBaseIE(PornHubPlaylistBaseIE):
                 <button[^>]+\bid=["\']moreDataBtn
             ''', webpage) is not None
 
-    def _real_extract(self, url):
-        mobj = re.match(self._VALID_URL, url)
-        host = mobj.group('host')
-        item_id = mobj.group('id')
-
-        self._login(host)
-
+    def _entries(self, url, host, item_id):
         page = self._extract_page(url)
 
         VIDEOS = '/videos'
@@ -566,7 +560,6 @@ class PornHubPagedPlaylistBaseIE(PornHubPlaylistBaseIE):
         def is_404(e):
             return isinstance(e.cause, compat_HTTPError) and e.cause.code == 404
 
-        entries = []
         base_url = url
         has_page = page is not None
         first_page = page if has_page else 1
@@ -590,11 +583,19 @@ class PornHubPagedPlaylistBaseIE(PornHubPlaylistBaseIE):
             page_entries = self._extract_entries(webpage, host)
             if not page_entries:
                 break
-            entries.extend(page_entries)
+            for e in page_entries:
+                yield e
             if not self._has_more(webpage):
                 break
 
-        return self.playlist_result(orderedSet(entries), item_id)
+    def _real_extract(self, url):
+        mobj = re.match(self._VALID_URL, url)
+        host = mobj.group('host')
+        item_id = mobj.group('id')
+
+        self._login(host)
+
+        return self.playlist_result(self._entries(url, host, item_id), item_id)
 
 
 class PornHubPagedVideoListIE(PornHubPagedPlaylistBaseIE):
