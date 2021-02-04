@@ -1477,6 +1477,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
 
         formats = []
         itags = []
+        itag_qualities = {}
         player_url = None
         q = qualities(['tiny', 'small', 'medium', 'large', 'hd720', 'hd1080', 'hd1440', 'hd2160', 'hd2880', 'highres'])
         streaming_data = player_response.get('streamingData') or {}
@@ -1484,6 +1485,16 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
         streaming_formats.extend(streaming_data.get('adaptiveFormats') or [])
         for fmt in streaming_formats:
             if fmt.get('targetDurationSec') or fmt.get('drmFamilies'):
+                continue
+
+            itag = str_or_none(fmt.get('itag'))
+            quality = fmt.get('quality')
+            if itag and quality:
+                itag_qualities[itag] = quality
+            # FORMAT_STREAM_TYPE_OTF(otf=1) requires downloading the init fragment
+            # (adding `&sq=0` to the URL) and parsing emsg box to determine the
+            # number of fragment that would subsequently requested with (`&sq=N`)
+            if fmt.get('type') == 'FORMAT_STREAM_TYPE_OTF':
                 continue
 
             fmt_url = fmt.get('url')
@@ -1505,10 +1516,8 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                 sp = try_get(sc, lambda x: x['sp'][0]) or 'signature'
                 fmt_url += '&' + sp + '=' + signature
 
-            itag = str_or_none(fmt.get('itag'))
             if itag:
                 itags.append(itag)
-            quality = fmt.get('quality')
             dct = {
                 'asr': int_or_none(fmt.get('audioSampleRate')),
                 'filesize': int_or_none(fmt.get('contentLength')),
@@ -1549,22 +1558,19 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
         if self._downloader.params.get('youtube_include_dash_manifest'):
             dash_manifest_url = streaming_data.get('dashManifestUrl')
             if dash_manifest_url:
-                dash_formats = []
                 for f in self._extract_mpd_formats(
                         dash_manifest_url, video_id, fatal=False):
+                    itag = f['format_id']
+                    if itag in itags:
+                        continue
+                    if itag in itag_qualities:
+                        f['quality'] = q(itag_qualities[itag])
                     filesize = int_or_none(self._search_regex(
                         r'/clen/(\d+)', f.get('fragment_base_url')
                         or f['url'], 'file size', default=None))
                     if filesize:
                         f['filesize'] = filesize
-                    dash_formats.append(f)
-                # Until further investigation prefer DASH formats as non-DASH
-                # may not be available (see [1])
-                # 1. https://github.com/ytdl-org/youtube-dl/issues/28070
-                if dash_formats:
-                    dash_formats_keys = [f['format_id'] for f in dash_formats]
-                    formats = [f for f in formats if f['format_id'] not in dash_formats_keys]
-                    formats.extend(dash_formats)
+                    formats.append(f)
 
         if not formats:
             if streaming_data.get('licenseInfos'):
