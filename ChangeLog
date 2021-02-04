@@ -1,3 +1,10 @@
+version <unreleased>
+
+Extractors
+* [youtube] Prefer DASH formats (#28070)
+* [azmedien] Fix extraction (#28064)
+
+
 version 2021.02.04
 
 Extractors
