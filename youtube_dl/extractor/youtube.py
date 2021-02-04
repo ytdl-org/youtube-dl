@@ -1549,16 +1549,22 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
         if self._downloader.params.get('youtube_include_dash_manifest'):
             dash_manifest_url = streaming_data.get('dashManifestUrl')
             if dash_manifest_url:
+                dash_formats = []
                 for f in self._extract_mpd_formats(
                         dash_manifest_url, video_id, fatal=False):
-                    if f['format_id'] in itags:
-                        continue
                     filesize = int_or_none(self._search_regex(
                         r'/clen/(\d+)', f.get('fragment_base_url')
                         or f['url'], 'file size', default=None))
                     if filesize:
                         f['filesize'] = filesize
-                    formats.append(f)
+                    dash_formats.append(f)
+                # Until further investigation prefer DASH formats as non-DASH
+                # may not be available (see [1])
+                # 1. https://github.com/ytdl-org/youtube-dl/issues/28070
+                if dash_formats:
+                    dash_formats_keys = [f['format_id'] for f in dash_formats]
+                    formats = [f for f in formats if f['format_id'] not in dash_formats_keys]
+                    formats.extend(dash_formats)
 
         if not formats:
             if streaming_data.get('licenseInfos'):
