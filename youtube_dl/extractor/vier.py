@@ -17,7 +17,7 @@ from ..utils import (
 class VierVijfKijkOnlineIE(InfoExtractor):
     IE_NAME = 'viervijfkijkonline'
     IE_DESC = 'vier.be and vijf.be - Kijk Online'
-    _VALID_URL = r'https?://(?:www\.)?(?P<site>vier|vijf)\.be/video/(?P<series>(?!v3)[^/]+)/(?P<season>[^/]+)(/(?P<episode>[^/]+)|)'
+    _VALID_URL = r'https?://(?:www\.)?(?P<site>vier|vijf|goplay)\.be/video/(?P<series>(?!v3)[^/]+)/(?P<season>[^/]+)(/(?P<episode>[^/]+)|)'
     _NETRC_MACHINE = 'vier'
     _TESTS = [{
         'url': 'https://www.vier.be/video/hotel-romantiek/2017/hotel-romantiek-aflevering-1',
