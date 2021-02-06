@@ -117,7 +117,7 @@ class VierIE(InfoExtractor):
     IE_DESC = 'vier.be and vijf.be'
     _VALID_URL = r'''(?x)
                     https?://
-                        (?:www\.)?(?P<site>vier|vijf)\.be/
+                        (?:www\.)?(?P<site>vier|vijf|goplay)\.be/
                         (?:
                             (?:
                                 [^/]+/videos
