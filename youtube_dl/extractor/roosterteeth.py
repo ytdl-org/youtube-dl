@@ -104,14 +104,15 @@ class RoosterTeethIE(InfoExtractor):
                         '%s is only available for FIRST members' % display_id)
             raise
 
-        if m3u8_url is None:
-            raise ExtractorError("Unable to find formats")
+        if m3u8_url:
+            formats = self._extract_m3u8_formats(
+                m3u8_url, display_id, 'mp4', 'm3u8_native', m3u8_id='hls')
+            self._sort_formats(formats)
 
-        formats = self._extract_m3u8_formats(
-            m3u8_url, display_id, 'mp4', 'm3u8_native', m3u8_id='hls')
-        self._sort_formats(formats)
-
-        subtitles = self._extract_m3u8_subtitles(m3u8_url, display_id)
+            subtitles = self._extract_m3u8_subtitles(m3u8_url, display_id)
+        else:
+            formats = []
+            subtitles = None
 
         episode = self._download_json(
             api_episode_url, display_id,
