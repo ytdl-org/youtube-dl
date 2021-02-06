@@ -42,8 +42,8 @@ class URPlayIE(InfoExtractor):
         url = url.replace('skola.se/Produkter', 'play.se/program')
         webpage = self._download_webpage(url, video_id)
         urplayer_data = self._parse_json(self._html_search_regex(
-            r'data-react-class="components/Player/Player"[^>]+data-react-props="({.+?})"',
-            webpage, 'urplayer data'), video_id)['currentProduct']
+            r'data-react-class="routes/Product/components/ProgramContainer/ProgramContainer"[^>]+data-react-props="({.+?})"',
+            webpage, 'urplayer data'), video_id)['accessibleEpisodes'][0]
         episode = urplayer_data['title']
         raw_streaming_info = urplayer_data['streamingInfo']['raw']
         host = self._download_json(
