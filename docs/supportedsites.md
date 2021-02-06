@@ -46,10 +46,11 @@
  - **Amara**
  - **AMCNetworks**
  - **AmericasTestKitchen**
+ - **AmericasTestKitchenSeason**
  - **anderetijden**: npo.nl, ntr.nl, omroepwnl.nl, zapp.nl and npo3.nl
  - **AnimeOnDemand**
  - **Anvato**
- - **aol.com**
+ - **aol.com**: Yahoo screen and movies
  - **APA**
  - **Aparat**
  - **AppleConnect**
@@ -192,8 +193,6 @@
  - **CNNArticle**
  - **CNNBlogs**
  - **ComedyCentral**
- - **ComedyCentralFullEpisodes**
- - **ComedyCentralShortname**
  - **ComedyCentralTV**
  - **CondeNast**: Condé Nast media group: Allure, Architectural Digest, Ars Technica, Bon Appétit, Brides, Condé Nast, Condé Nast Traveler, Details, Epicurious, GQ, Glamour, Golf Digest, SELF, Teen Vogue, The New Yorker, Vanity Fair, Vogue, W Magazine, WIRED
  - **CONtv**
@@ -418,7 +417,8 @@
  - **Katsomo**
  - **KeezMovies**
  - **Ketnet**
- - **KhanAcademy**
+ - **khanacademy**
+ - **khanacademy:unit**
  - **KickStarter**
  - **KinjaEmbed**
  - **KinoPoisk**
@@ -505,6 +505,9 @@
  - **Mgoon**
  - **MGTV**: 芒果TV
  - **MiaoPai**
+ - **minds**
+ - **minds:channel**
+ - **minds:group**
  - **MinistryGrid**
  - **Minoto**
  - **miomio.tv**
@@ -534,6 +537,7 @@
  - **mtv:video**
  - **mtvjapan**
  - **mtvservices:embedded**
+ - **MTVUutisetArticle**
  - **MuenchenTV**: münchen.tv
  - **mva**: Microsoft Virtual Academy videos
  - **mva:course**: Microsoft Virtual Academy courses
@@ -858,6 +862,8 @@
  - **Sport5**
  - **SportBox**
  - **SportDeutschland**
+ - **spotify**
+ - **spotify:show**
  - **Spreaker**
  - **SpreakerPage**
  - **SpreakerShow**
@@ -939,12 +945,13 @@
  - **TNAFlixNetworkEmbed**
  - **toggle**
  - **ToonGoggles**
- - **Tosh**: Tosh.0
  - **tou.tv**
  - **Toypics**: Toypics video
  - **ToypicsUser**: Toypics user profile
  - **TrailerAddict** (Currently broken)
  - **Trilulilu**
+ - **Trovo**
+ - **TrovoVod**
  - **TruNews**
  - **TruTV**
  - **Tube8**
@@ -1052,7 +1059,6 @@
  - **vidme**
  - **vidme:user**
  - **vidme:user:likes**
- - **Vidzi**
  - **vier**: vier.be and vijf.be
  - **vier:videos**
  - **viewlift**
@@ -1097,6 +1103,7 @@
  - **vrv**
  - **vrv:series**
  - **VShare**
+ - **VTM**
  - **VTXTV**
  - **vube**: Vube.com
  - **VuClip**

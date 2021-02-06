@@ -251,11 +251,9 @@ class MixcloudPlaylistBaseIE(MixcloudBaseIE):
                 cloudcast_url = cloudcast.get('url')
                 if not cloudcast_url:
                     continue
-                video_id = cloudcast.get('slug')
-                if video_id:
-                    owner_username = try_get(cloudcast, lambda x: x['owner']['username'], compat_str)
-                    if owner_username:
-                        video_id = '%s_%s' % (owner_username, video_id)
+                slug = try_get(cloudcast, lambda x: x['slug'], compat_str)
+                owner_username = try_get(cloudcast, lambda x: x['owner']['username'], compat_str)
+                video_id = '%s_%s' % (owner_username, slug) if slug and owner_username else None
                 entries.append(self.url_result(
                     cloudcast_url, MixcloudIE.ie_key(), video_id))
 

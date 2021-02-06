@@ -1,3 +1,107 @@
+version 2021.02.04.1
+
+Extractors
+* [youtube] Prefer DASH formats (#28070)
+* [azmedien] Fix extraction (#28064)
+
+
+version 2021.02.04
+
+Extractors
+* [pornhub] Implement lazy playlist extraction
+* [svtplay] Fix video id extraction (#28058)
++ [pornhub] Add support for authentication (#18797, #21416, #24294)
+* [pornhub:user] Improve paging
++ [pornhub:user] Add support for URLs unavailable via /videos page (#27853)
++ [bravotv] Add support for oxygen.com (#13357, #22500)
++ [youtube] Pass embed URL to get_video_info request
+* [ccma] Improve metadata extraction (#27994)
+    + Extract age limit, alt title, categories, series and episode number
+    * Fix timestamp multiple subtitles extraction
+* [egghead] Update API domain (#28038)
+- [vidzi] Remove extractor (#12629)
+* [vidio] Improve metadata extraction
+* [youtube] Improve subtitles extraction
+* [youtube] Fix chapter extraction fallback
+* [youtube] Rewrite extractor
+    * Improve format sorting
+    * Remove unused code
+    * Fix series metadata extraction
+    * Fix trailer video extraction
+    * Improve error reporting
+    + Extract video location
++ [vvvvid] Add support for youtube embeds (#27825)
+* [googledrive] Report download page errors (#28005)
+* [vlive] Fix error message decoding for python 2 (#28004)
+* [youtube] Improve DASH formats file size extraction
+* [cda] Improve birth validation detection (#14022, #27929)
++ [awaan] Extract uploader id (#27963)
++ [medialaan] Add support DPG Media MyChannels based websites (#14871, #15597,
+  #16106, #16489)
+* [abcnews] Fix extraction (#12394, #27920)
+* [AMP] Fix upload date and timestamp extraction (#27970)
+* [tv4] Relax URL regular expression (#27964)
++ [tv2] Add support for mtvuutiset.fi (#27744)
+* [adn] Improve login warning reporting
+* [zype] Fix uplynk id extraction (#27956)
++ [adn] Add support for authentication (#17091, #27841, #27937)
+
+
+version 2021.01.24.1
+
+Core
+* Introduce --output-na-placeholder (#27896)
+
+Extractors
+* [franceculture] Make thumbnail optional (#18807)
+* [franceculture] Fix extraction (#27891, #27903)
+* [njpwworld] Fix extraction (#27890)
+* [comedycentral] Fix extraction (#27905)
+* [wat] Fix format extraction (#27901)
++ [americastestkitchen:season] Add support for seasons (#27861)
++ [trovo] Add support for trovo.live (#26125)
++ [aol] Add support for yahoo videos (#26650)
+* [yahoo] Fix single video extraction
+* [lbry] Unescape lbry URI (#27872)
+* [9gag] Fix and improve extraction (#23022)
+* [americastestkitchen] Improve metadata extraction for ATK episodes (#27860)
+* [aljazeera] Fix extraction (#20911, #27779)
++ [minds] Add support for minds.com (#17934)
+* [ard] Fix title and description extraction (#27761)
++ [spotify] Add support for Spotify Podcasts (#27443)
+
+
+version 2021.01.16
+
+Core
+* [YoutubeDL] Protect from infinite recursion due to recursively nested
+  playlists (#27833)
+* [YoutubeDL] Ignore failure to create existing directory (#27811)
+* [YoutubeDL] Raise syntax error for format selection expressions with multiple
+  + operators (#27803)
+
+Extractors
++ [animeondemand] Add support for lazy playlist extraction (#27829)
+* [youporn] Restrict fallback download URL (#27822)
+* [youporn] Improve height and tbr extraction (#20425, #23659)
+* [youporn] Fix extraction (#27822)
++ [twitter] Add support for unified cards (#27826)
++ [twitch] Add Authorization header with OAuth token for GraphQL requests
+  (#27790)
+* [mixcloud:playlist:base] Extract video id in flat playlist mode (#27787)
+* [cspan] Improve info extraction (#27791)
+* [adn] Improve info extraction
+* [adn] Fix extraction (#26963, #27732)
+* [youtube:search] Extract from all sections (#27604)
+* [youtube:search] fix viewcount and try to extract all video sections (#27604)
+* [twitch] Improve login error extraction
+* [twitch] Fix authentication (#27743)
+* [3qsdn] Improve extraction (#21058)
+* [peertube] Extract formats from streamingPlaylists (#26002, #27586, #27728)
+* [khanacademy] Fix extraction (#2887, #26803)
+* [spike] Update Paramount Network feed URL (#27715)
+
+
 version 2021.01.08
 
 Core
