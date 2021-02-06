@@ -500,6 +500,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                 'uploader': 'AfrojackVEVO',
                 'uploader_id': 'AfrojackVEVO',
                 'upload_date': '20131011',
+                'abr': 129.495,
             },
             'params': {
                 'youtube_include_dash_manifest': True,
@@ -1518,6 +1519,8 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
 
             if itag:
                 itags.append(itag)
+            tbr = float_or_none(
+                fmt.get('averageBitrate') or fmt.get('bitrate'), 1000)
             dct = {
                 'asr': int_or_none(fmt.get('audioSampleRate')),
                 'filesize': int_or_none(fmt.get('contentLength')),
@@ -1526,8 +1529,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                 'fps': int_or_none(fmt.get('fps')),
                 'height': int_or_none(fmt.get('height')),
                 'quality': q(quality),
-                'tbr': float_or_none(fmt.get(
-                    'averageBitrate') or fmt.get('bitrate'), 1000),
+                'tbr': tbr,
                 'url': fmt_url,
                 'width': fmt.get('width'),
             }
@@ -1538,7 +1540,13 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                 if mobj:
                     dct['ext'] = mimetype2ext(mobj.group(1))
                     dct.update(parse_codecs(mobj.group(2)))
-            if dct.get('acodec') == 'none' or dct.get('vcodec') == 'none':
+            no_audio = dct.get('acodec') == 'none'
+            no_video = dct.get('vcodec') == 'none'
+            if no_audio:
+                dct['vbr'] = tbr
+            if no_video:
+                dct['abr'] = tbr
+            if no_audio or no_video:
                 dct['downloader_options'] = {
                     # Youtube throttles chunks >~10M
                     'http_chunk_size': 10485760,
