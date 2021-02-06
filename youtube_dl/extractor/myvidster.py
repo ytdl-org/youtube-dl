@@ -62,7 +62,7 @@ class MyVidsterBaseIE(InfoExtractor):
 
 class MyVidsterIE(MyVidsterBaseIE):
     IE_NAME = 'myvidster'
-    _VALID_URL = r'https?://(?:www\.)?myvidster\.com/video/(?P<id>\d+)/?(?:.*|$)'
+    _VALID_URL = r'https?://(?:www\.)?myvidster\.com/(?:video|vsearch)/(?P<id>\d+)/?(?:.*|$)'
 
     _TEST = {
         'url': 'http://www.myvidster.com/video/32059805/Hot_chemistry_with_raw_love_making',
@@ -88,6 +88,7 @@ class MyVidsterIE(MyVidsterBaseIE):
 
     def _real_extract(self, url):
         video_id = self._match_id(url)
+        url = url.replace("vsearch", "video")
         webpage = self._download_webpage(url, video_id)
 
         title = self._og_search_title(webpage)
