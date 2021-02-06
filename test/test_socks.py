@@ -113,6 +113,8 @@ class TestSocks(unittest.TestCase):
     def test_socks5(self):
         self.assertTrue(isinstance(self._get_ip('socks5'), compat_str))
 
+    def test_socks5h(self):
+        self.assertTrue(isinstance(self._get_ip('socks5h'), compat_str))
 
 if __name__ == '__main__':
     unittest.main()
