@@ -1019,6 +1019,28 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
             'url': 'https://www.youtube.com/watch_popup?v=63RmMXCd_bQ',
             'only_matching': True,
         },
+        {
+            # https://github.com/ytdl-org/youtube-dl/pull/28094
+            'url': 'OtqTfy26tG0',
+            'info_dict': {
+                'id': 'OtqTfy26tG0',
+                'ext': 'mp4',
+                'title': 'Burn Out',
+                'description': 'md5:8d07b84dcbcbfb34bc12a56d968b6131',
+                'upload_date': '20141120',
+                'uploader': 'The Cinematic Orchestra - Topic',
+                'uploader_id': 'UCIzsJBIyo8hhpFm1NK0uLgw',
+                'uploader_url': r're:https?://(?:www\.)?youtube\.com/channel/UCIzsJBIyo8hhpFm1NK0uLgw',
+                'artist': 'The Cinematic Orchestra',
+                'track': 'Burn Out',
+                'album': 'Every Day',
+                'release_data': None,
+                'release_year': None,
+            },
+            'params': {
+                'skip_download': True,
+            },
+        },
     ]
     _formats = {
         '5': {'ext': 'flv', 'width': 400, 'height': 240, 'acodec': 'mp3', 'abr': 64, 'vcodec': 'h263'},
@@ -1743,7 +1765,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                     'artist': mobj.group('clean_artist') or ', '.join(a.strip() for a in mobj.group('artist').split('·')),
                     'track': mobj.group('track').strip(),
                     'release_date': release_date,
-                    'release_year': int(release_year),
+                    'release_year': int_or_none(release_year),
                 })
 
         initial_data = None
