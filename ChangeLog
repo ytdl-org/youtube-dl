@@ -1,3 +1,52 @@
+version 2021.02.04.1
+
+Extractors
+* [youtube] Prefer DASH formats (#28070)
+* [azmedien] Fix extraction (#28064)
+
+
+version 2021.02.04
+
+Extractors
+* [pornhub] Implement lazy playlist extraction
+* [svtplay] Fix video id extraction (#28058)
++ [pornhub] Add support for authentication (#18797, #21416, #24294)
+* [pornhub:user] Improve paging
++ [pornhub:user] Add support for URLs unavailable via /videos page (#27853)
++ [bravotv] Add support for oxygen.com (#13357, #22500)
++ [youtube] Pass embed URL to get_video_info request
+* [ccma] Improve metadata extraction (#27994)
+    + Extract age limit, alt title, categories, series and episode number
+    * Fix timestamp multiple subtitles extraction
+* [egghead] Update API domain (#28038)
+- [vidzi] Remove extractor (#12629)
+* [vidio] Improve metadata extraction
+* [youtube] Improve subtitles extraction
+* [youtube] Fix chapter extraction fallback
+* [youtube] Rewrite extractor
+    * Improve format sorting
+    * Remove unused code
+    * Fix series metadata extraction
+    * Fix trailer video extraction
+    * Improve error reporting
+    + Extract video location
++ [vvvvid] Add support for youtube embeds (#27825)
+* [googledrive] Report download page errors (#28005)
+* [vlive] Fix error message decoding for python 2 (#28004)
+* [youtube] Improve DASH formats file size extraction
+* [cda] Improve birth validation detection (#14022, #27929)
++ [awaan] Extract uploader id (#27963)
++ [medialaan] Add support DPG Media MyChannels based websites (#14871, #15597,
+  #16106, #16489)
+* [abcnews] Fix extraction (#12394, #27920)
+* [AMP] Fix upload date and timestamp extraction (#27970)
+* [tv4] Relax URL regular expression (#27964)
++ [tv2] Add support for mtvuutiset.fi (#27744)
+* [adn] Improve login warning reporting
+* [zype] Fix uplynk id extraction (#27956)
++ [adn] Add support for authentication (#17091, #27841, #27937)
+
+
 version 2021.01.24.1
 
 Core
