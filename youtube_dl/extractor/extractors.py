@@ -409,9 +409,9 @@ from .francetv import (
     CultureboxIE,
 )
 from .fraternityx import (
-    #FraternityxBaseIE,
-    FraternityxIE,
-    FraternityxPlayListIE,
+    FraternityXBaseIE,
+    FraternityXIE,
+    FraternityXPlayListIE,
     
 )
 from .freesound import FreesoundIE

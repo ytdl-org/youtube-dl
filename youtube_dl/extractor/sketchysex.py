@@ -25,20 +25,13 @@ class SketchySexBaseIE(InfoExtractor):
     _ABORT_URL = "https://sketchysex.com/multiple-sessions/abort"
     _AUTH_URL = "https://sketchysex.com/authorize2"
     _NETRC_MACHINE = 'sketchysex'
-    
 
-    
+
+
     def __init__(self):
-        #self.logger = logging.getLogger(__name__)
+
         self.headers = dict()
-        # self.headers.update({
-        #     #"User-Agent": self._USER_AGENT,            
-        #     "Accept-Encoding" : "gzip, deflate, br",
-        #     "Accept-Language" : "es-ES,en-US;q=0.7,en;q=0.3",
-        #     "Accept" : "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8"
-        # })  
-        
-    
+ 
     def initcfg(self):
         self.islogged()
         self._abort()
@@ -252,7 +245,7 @@ class SketchySexBaseIE(InfoExtractor):
 class SketchySexIE(SketchySexBaseIE):
     IE_NAME = 'sketchysex'
     IE_DESC = 'sketchysex'
-    _VALID_URL = r"https?://(?:www\.)?sketchysex.com/episode/"
+    _VALID_URL = r'https?://(?:www\.)?sketchysex.com/episode/.*'
     _URL_COOKIES = "https://sketchysex.com"
     
     def _real_initialize(self):
