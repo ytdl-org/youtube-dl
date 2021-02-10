@@ -29,16 +29,17 @@ class SampleFocusIE(InfoExtractor):
         video_id = self._match_id(url)
         webpage = self._download_webpage(url, video_id)
 
-        title = self._og_search_title(webpage) or self._html_search_regex(r'<h1>(.+?)</h1>', webpage, 'title', default=video_id)
+        title = self._og_search_title(webpage, fatal=False) or self._html_search_regex(r'<h1>(.+?)</h1>', webpage, 'title', default=video_id)
 
         mp3_url = self._html_search_regex(
-            r'<input type="hidden" name="sample_mp3" id="sample_mp3" value="(.+\.mp3\?[0-9]+)" class="sample-mp3" />',
+            r'<input[^>]+type="hidden"[^>]+id=(?:["\'])sample_mp3(?:["\'])[^>]+value=(?:["\'])(.+\.mp3\?[0-9]+)(?:["\'])',
             webpage, 'mp3', fatal=False) or self._html_search_regex(
-            r'<meta itemprop="contentUrl" content="?(.+\.mp3\?[0-9]+)"?>',
+            r'<meta[^>]+itemprop=(?:["\'])contentUrl(?:["\'])[^>]+content=(?:["\'])?(.+\.mp3\?[0-9]+)(?:["\'])?',
             webpage, 'mp3 url')
+        # print(mp3_url)
 
         tb = self._og_search_thumbnail(webpage) or self._html_search_regex(
-            r'<img class="waveform" style="background-color: #(?:[\w,0-9]{6})" src="(.+?)" />',
+            r'<img[^>]+class=(?:["\'])waveform responsive-img[^>]+src=(?:["\'])([^"\']+)',
             webpage, 'mp3', fatal=False)
 
         return {
