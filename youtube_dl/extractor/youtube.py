@@ -2374,9 +2374,9 @@ class YoutubeTabIE(YoutubeBaseInfoExtractor):
         next_continuation = cls._extract_next_continuation_data(renderer)
         if next_continuation:
             return next_continuation
-        contents = renderer.get('contents')
-        if not isinstance(contents, list):
-            return
+        contents = []
+        for key in ('contents', 'items'):
+            contents.extend(try_get(renderer, lambda x: x[key], list) or [])
         for content in contents:
             if not isinstance(content, dict):
                 continue
@@ -2508,6 +2508,13 @@ class YoutubeTabIE(YoutubeBaseInfoExtractor):
             if continuation_items:
                 continuation_item = continuation_items[0]
                 if not isinstance(continuation_item, dict):
+                    continue
+                renderer = continuation_item.get('gridVideoRenderer')
+                if renderer:
+                    grid_renderer = {'items': continuation_items}
+                    for entry in self._grid_entries(grid_renderer):
+                        yield entry
+                    continuation = self._extract_continuation(grid_renderer)
                     continue
                 renderer = continuation_item.get('playlistVideoRenderer') or continuation_item.get('itemSectionRenderer')
                 if renderer:
