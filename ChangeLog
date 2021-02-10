@@ -1,3 +1,20 @@
+version <unreleased>
+
+Extractors
+* [youtube:tab] Improve grid continuation extraction (#28130)
+* [ign] Fix extraction (#24771)
++ [xhamster] Extract format filesize
++ [xhamster] Extract formats from xplayer settings (#28114)
++ [youtube] Add support phone/tablet JS player (#26424)
+* [archiveorg] Fix and improve extraction (#21330, #23586, #25277, #26780,
+  #27109, #27236, #28063)
++ [cda] Detect geo restricted videos (#28106)
+* [urplay] Fix extraction (#28073, #28074)
+* [youtube] Fix release date extraction (#28094)
++ [youtube] Extract abr and vbr (#28100)
+* [youtube] Skip OTF formats (#28070)
+
+
 version 2021.02.04.1
 
 Extractors
