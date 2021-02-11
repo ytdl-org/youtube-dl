@@ -10,7 +10,7 @@ from ..utils import (
 
 
 class RTVSLO4DIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:4d|www)\.rtvslo\.si/(?:arhiv/.+|embed|4d/arhiv)/(?P<id>\d+)'
+    _VALID_URL = r'https?://(?:4d\.rtvslo\.si/(?:arhiv/.+|embed)|www\.rtvslo\.si/(?:4d/arhiv|mmr/prispevek))/(?P<id>\d+)'
     _TEST = {
         'url': 'https://4d.rtvslo.si/arhiv/seje-odbora-za-kmetijstvo-gozdarstvo-in-prehrano/174595438',
         'md5': 'b87e5a65be2365f83eb0d24d44131d0f',
