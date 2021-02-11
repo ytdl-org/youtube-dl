@@ -4,14 +4,13 @@ from __future__ import unicode_literals
 from .common import InfoExtractor
 from ..utils import (
     unified_timestamp,
-    try_get,
-    ExtractorError
+    try_get
 )
 
 
 class RTVSLO4DIE(InfoExtractor):
     _VALID_URL = r'https?://(?:4d\.rtvslo\.si/(?:arhiv/.+|embed)|www\.rtvslo\.si/(?:4d/arhiv|mmr/prispevek))/(?P<id>\d+)'
-    _TEST = {
+    _TESTS = [{
         'url': 'https://4d.rtvslo.si/arhiv/seje-odbora-za-kmetijstvo-gozdarstvo-in-prehrano/174595438',
         'md5': 'b87e5a65be2365f83eb0d24d44131d0f',
         'info_dict': {
@@ -23,7 +22,31 @@ class RTVSLO4DIE(InfoExtractor):
             'upload_date': '20190212',
             'duration': 85
         },
-    }
+    }, {
+        'url': 'https://4d.rtvslo.si/arhiv/punto-e-a-capo/174752966',
+        'md5': 'a1ce903ee0a4051e417c9357e3d51c71',
+        'info_dict': {
+            'id': '174752966',
+            'ext': 'mp3',
+            'title': 'Dante divulgatore della scienza, con Gian Italo Bischi. E un ricordo di Federico Roncoroni',
+            'thumbnail': r're:https://img.rtvslo.si/.+\.jpg',
+            'timestamp': 1613033635,
+            'upload_date': '20210211',
+            'duration': 1740
+        },
+    }, {
+        'url': 'https://4d.rtvslo.si/arhiv/punto-e-a-capo/174752966',
+        'only_matching': True,
+    }, {
+        'url': 'https://4d.rtvslo.si/embed/174595438',
+        'only_matching': True,
+    }, {
+        'url': 'https://www.rtvslo.si/4d/arhiv/174752597?s=tv_ita',
+        'only_matching': True,
+    }, {
+        'url': 'https://www.rtvslo.si/mmr/prispevek/174752987',
+        'only_matching': True,
+    }]
 
     def _real_extract(self, url):
         media_id = self._match_id(url)
@@ -31,22 +54,21 @@ class RTVSLO4DIE(InfoExtractor):
         info_url = 'https://api.rtvslo.si/ava/getRecording/' + media_id + '?client_id=19cc0556a5ee31d0d52a0e30b0696b26'
         media_info = self._download_json(info_url, media_id)['response']
 
-        if media_info['mediaType'] != 'video':
-            raise ExtractorError('Downloading audio is not implemented for this source yet')
-
-        # TODO: Support for audio-only links (like radio shows)
-        # Instead of HLS, an mp3 URL is provided for those in ".mediaFiles[0].streams.https"
-
-        formats = self._extract_m3u8_formats(
-            media_info['addaptiveMedia']['hls'], media_id, 'mp4',
-            entry_protocol='m3u8_native', m3u8_id='hls')
-
-        return {
+        extracted = {
             'id': media_id,
             'title': media_info['title'],
             'description': try_get(media_info, 'description'),
             'thumbnail': media_info.get('thumbnail_sec'),
             'timestamp': unified_timestamp(media_info['broadcastDate']),
             'duration': media_info.get('duration'),
-            'formats': formats,
         }
+
+        if media_info['mediaType'] == 'video':
+            extracted['formats'] = self._extract_m3u8_formats(
+                media_info['addaptiveMedia']['hls'], media_id, 'mp4',
+                entry_protocol='m3u8_native', m3u8_id='hls')
+
+        elif media_info['mediaType'] == 'audio':
+            extracted['url'] = media_info['mediaFiles'][0]['streamers']['http'] + '/' + media_info['mediaFiles'][0]['filename']
+
+        return extracted
