@@ -170,6 +170,9 @@ def _real_main(argv=None):
             parser.error('min sleep interval must be specified, use --min-sleep-interval')
         if opts.max_sleep_interval < opts.sleep_interval:
             parser.error('max sleep interval must be greater than or equal to min sleep interval')
+    if opts.page_sleep_interval is not None:
+        if opts.page_sleep_interval < 0:
+            parser.error('page sleep interval must be positive or 0')
     else:
         opts.max_sleep_interval = opts.sleep_interval
     if opts.ap_mso and opts.ap_mso not in MSO_INFO:
@@ -417,6 +420,7 @@ def _real_main(argv=None):
         'call_home': opts.call_home,
         'sleep_interval': opts.sleep_interval,
         'max_sleep_interval': opts.max_sleep_interval,
+        'page_sleep_interval': opts.page_sleep_interval,
         'external_downloader': opts.external_downloader,
         'list_thumbnails': opts.list_thumbnails,
         'playlist_items': opts.playlist_items,
