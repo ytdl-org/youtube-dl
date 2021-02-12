@@ -8,6 +8,7 @@ import os.path
 import random
 import re
 import traceback
+import time
 
 from .common import InfoExtractor, SearchInfoExtractor
 from ..compat import (
