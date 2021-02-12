@@ -576,8 +576,8 @@ def parseOpts(overrideArguments=None):
         '--page-sleep-interval', metavar='SECONDS',
         dest='page_sleep_interval', type=float,
         help=(
-            'Number of seconds to sleep before loading a YouTube page '
-            'to prevent 429 on larger downloads. '))
+            'Number of seconds to sleep before loading a webpage or YouTube '
+            'page to prevent errors such as 429 on larger downloads. '))
 
     verbosity = optparse.OptionGroup(parser, 'Verbosity / Simulation Options')
     verbosity.add_option(
