@@ -572,6 +572,12 @@ def parseOpts(overrideArguments=None):
             'Upper bound of a range for randomized sleep before each download '
             '(maximum possible number of seconds to sleep). Must only be used '
             'along with --min-sleep-interval.'))
+    workarounds.add_option(
+        '--page-sleep-interval', metavar='SECONDS',
+        dest='page_sleep_interval', type=float,
+        help=(
+            'Number of seconds to sleep before loading a YouTube page '
+            'to prevent 429 on larger downloads. '))
 
     verbosity = optparse.OptionGroup(parser, 'Verbosity / Simulation Options')
     verbosity.add_option(
