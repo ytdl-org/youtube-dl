@@ -32,31 +32,33 @@ class KanBaseIE(InfoExtractor):
     def extract_item(self, video_id, webpage):
         data = self._parse_json(
             self._search_regex(
-                r'<script id="kan_app_search_data" type="application/json">([^<]+)</script>',
+                r'<script[^>]+id="kan_app_search_data"[^>]*>([^<]+)</script>',
                 webpage,
                 'data',
             ),
             video_id,
         )
         title = data.get('title') or self._og_search_title(webpage)
+        m3u8_url = try_get(data, lambda x: x['content']['src'], compat_str)
+        formats = self._extract_m3u8_formats(m3u8_url, video_id, ext='mp4')
+        if not formats:
+            raise ExtractorError('Unable to extract video formats')
         description = data.get('summary') or \
             self._og_search_description(webpage, fatal=False)
-        creator = try_get(data, lambda x: x['author']['name'], str) or \
+        creator = try_get(data, lambda x: x['author']['name'], compat_str) or \
             self._og_search_property('site_name', webpage, fatal=False)
         thumbnail = get_thumbnail(data)
-        m3u8_url = try_get(data, lambda x: x['content']['src'], str)
-        if not m3u8_url:
-            raise ExtractorError('Unable to extract m3u8 url')
 
         return {
             'id': video_id,
             'title': title,
             'thumbnail': thumbnail,
-            'formats': self._extract_m3u8_formats(m3u8_url, video_id, ext='mp4'),
+            'formats': formats,
             'description': description,
             'creator': creator,
             'release_date': unified_strdate(data.get('published')),
-            'duration': parse_duration(data.get('extensions', {}).get('duration')),
+            'duration': parse_duration(
+                try_get(data, lambda x: x['extensions']['duration']))
         }
 
 
@@ -100,10 +102,10 @@ class KanPlaylistIE(KanBaseIE):
         video_ids = re.findall(r'onclick="playVideo\(.*,\'([0-9]+)\'\)', webpage)
         entries = []
         for video_id in video_ids:
-            url = 'https://www.kan.org.il/Item/?itemId=%s' % video_id
+            video_url = 'https://www.kan.org.il/Item/?itemId=%s' % video_id
             entries.append(self.extract_item(
                 video_id,
-                self.download_webpage(url, video_id))
+                self.download_webpage(video_url, video_id))
             )
         if not entries:
             raise ExtractorError('Unable to extract playlist entries')
