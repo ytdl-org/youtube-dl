@@ -48,10 +48,12 @@ class Pac12IE(InfoExtractor):
             video_id = self._match_id(vod_url)
         title = self._html_search_regex(r'<title>(.+?)</title>',
                                         webpage, 'title')
-        description = self._og_search_description(webpage, default=None) \
-            or self._search_regex(r'"description":"(?P<description>[^"]+)"',
-                                  webpage, 'description', default="") \
-                   .encode('utf-8').decode('unicode_escape')
+        description = self._og_search_description(webpage, default=None)
+        if description == None:
+            d = self._search_regex(r'"description":"(?P<description>[^"]+)"',
+                                   webpage, 'description', default=None)
+            if d != None:
+                description = d.encode('utf-8').decode('unicode_escape')
         return {
             'id': video_id,
             'title': title,
