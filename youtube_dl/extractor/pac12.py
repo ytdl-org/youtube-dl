@@ -1,5 +1,7 @@
 # coding: utf-8
 from __future__ import unicode_literals
+from __future__ import print_function #XXX
+import pprint #XXX
 
 import re
 
@@ -32,9 +34,15 @@ class Pac12IE(InfoExtractor):
     def _real_extract(self, url):
         video_id = self._match_id(url)
         webpage = self._download_webpage(url, video_id)
-        video_url = \
-            self._search_regex(r'"manifest_url":"(?P<url>https:[^"]+)"',
-                               webpage, 'url', group='url', default=None)
+
+        drupal_settings = self._parse_json(
+            self._search_regex(
+                r'<script[^>]+type="application/json"[^>]*data-drupal-selector="drupal-settings-json">([^<]+)</script>',
+                webpage, 'drupal settings'), video_id)
+        pprint.pprint(drupal_settings.get('currentVideo'))
+
+        video_url = drupal_settings.get('currentVideo', {}).get('manifest_url')
+
         vod_url = None
         if (video_url is None) or ('vod-' not in url):
             vod_url = self._search_regex(r'(https?://(?:embed\.)?pac-12\.com/(?:embed/)?vod-[0-9a-zA-Z]+)',
