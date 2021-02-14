@@ -33,9 +33,9 @@ class SampleFocusIE(InfoExtractor):
             r'<h1>(.+?)</h1>', webpage, 'title', default=video_id)
 
         mp3_url = self._html_search_regex(
-            r'<input[^>]+id=(?:["\'])sample_mp3(?:["\'])[^>]+value=(?:["\'])(.+\?[0-9]+)(?:["\'])[^>]*>',
+            r'<input[^>]+id=(?:["\'])sample_mp3(?:["\'])[^>]+value=(?:["\'])(.+?)(?:["\'])[^>]*>',
             webpage, 'mp3', fatal=False) or self._html_search_regex(
-            r'<meta[^>]+itemprop=(?:["\'])contentUrl(?:["\'])[^>]+content=(?:["\'])(?:["\'])[^>]*?>',
+            r'<meta[^>]+itemprop=(?:["\'])contentUrl(?:["\'])[^>]+content=(?:["\'])?([^>"\']+)(?:["\'])?[^>]*>',
             webpage, 'mp3 url')
 
         tb = self._og_search_thumbnail(webpage) or self._html_search_regex(
