@@ -3,13 +3,13 @@ from __future__ import unicode_literals
 
 from .common import InfoExtractor
 from ..utils import (
-    unified_timestamp,
-    try_get
+    try_get,
+    unified_timestamp
 )
 
 
 class RTVSLO4DIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:4d\.rtvslo\.si/(?:arhiv/.+|embed)|www\.rtvslo\.si/(?:4d/arhiv|mmr/prispevek))/(?P<id>\d+)'
+    _VALID_URL = r'https?://(?:4d\.rtvslo\.si/(?:arhiv/[^/]+|embed)|www\.rtvslo\.si/(?:4d/arhiv|mmr/prispevek))/(?P<id>\d+)'
     _TESTS = [{
         'url': 'https://4d.rtvslo.si/arhiv/seje-odbora-za-kmetijstvo-gozdarstvo-in-prehrano/174595438',
         'md5': 'b87e5a65be2365f83eb0d24d44131d0f',
@@ -51,22 +51,24 @@ class RTVSLO4DIE(InfoExtractor):
     def _real_extract(self, url):
         media_id = self._match_id(url)
 
-        info_url = 'https://api.rtvslo.si/ava/getRecording/' + media_id + '?client_id=19cc0556a5ee31d0d52a0e30b0696b26'
-        media_info = self._download_json(info_url, media_id)['response']
+        media_info = self._download_json(
+            'https://api.rtvslo.si/ava/getRecording/' + media_id, media_id,
+            query={'client_id': '19cc0556a5ee31d0d52a0e30b0696b26'})['response']
 
         extracted = {
             'id': media_id,
             'title': media_info['title'],
             'description': try_get(media_info, 'description'),
             'thumbnail': media_info.get('thumbnail_sec'),
-            'timestamp': unified_timestamp(media_info['broadcastDate']),
+            'timestamp': unified_timestamp(media_info.get('broadcastDate')),
             'duration': media_info.get('duration'),
         }
 
         if media_info['mediaType'] == 'video':
             extracted['formats'] = self._extract_m3u8_formats(
-                media_info['addaptiveMedia']['hls'], media_id, 'mp4',
+                media_info['addaptiveMedia']['hls_sec'], media_id, 'mp4',
                 entry_protocol='m3u8_native', m3u8_id='hls')
+            self._sort_formats(extracted['formats'])
 
         elif media_info['mediaType'] == 'audio':
             extracted['url'] = media_info['mediaFiles'][0]['streamers']['http'] + '/' + media_info['mediaFiles'][0]['filename']
