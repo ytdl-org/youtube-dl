@@ -3,6 +3,7 @@ from __future__ import unicode_literals
 
 from .common import InfoExtractor
 
+
 class Pac12IE(InfoExtractor):
     _VALID_URL = r'https?://(?:[a-z]+\.)?pac-12.com/(?:embed/)?(?P<id>.*)'
 
@@ -41,7 +42,7 @@ class Pac12IE(InfoExtractor):
         if manifest_url is None:
             # Video may be embedded one level deeper
             vod_url = self._search_regex(
-               r'(https?://(?:embed\.)?pac-12\.com/(?:embed/)?vod-\w+)',
+                r'(https?://(?:embed\.)?pac-12\.com/(?:embed/)?vod-\w+)',
                 webpage, 'url', default=None)
             if vod_url is None:
                 return None
