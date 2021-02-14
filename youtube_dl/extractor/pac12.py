@@ -49,8 +49,10 @@ class Pac12IE(InfoExtractor):
             return self.url_result(vod_url)
 
         return {
-            'id': cv.get('id'),
-            'title': cv.get('title'),
+            'id': cv.get('id') or video_id,
+            'title': (cv.get('title')
+                      or self._html_search_regex(r'<title>(.+?)</title>',
+                                                 webpage, 'title')),
             'description': cv.get('description'),
             'url': manifest_url,
             'ext': 'mp4',
