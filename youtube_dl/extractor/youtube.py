@@ -311,7 +311,6 @@ class YoutubeBaseInfoExtractor(InfoExtractor):
             renderer,
             (lambda x: x['ownerText']['runs'][0]['text'],
              lambda x: x['shortBylineText']['runs'][0]['text']), compat_str)
-
         return {
             '_type': 'url_transparent',
             'ie_key': YoutubeIE.ie_key(),
