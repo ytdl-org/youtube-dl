@@ -63,43 +63,29 @@ class LoomIE(LoomBaseInfoIE):
         }
     ]
 
-    def _extract_video_info_json(self, webpage, video_id):
-        info = self._html_search_regex(
-            r'window.loomSSRVideo = (.+?);',
-            webpage,
-            'info')
-        return self._parse_json(info, 'json', js_to_json)
-
-    def _get_url_by_id_type(self, video_id, type):
-        request = compat_urllib_request.Request(
-            self._BASE_URL + 'api/campaigns/sessions/' + video_id + '/' + type,
-            {})
-        json_doc = self._download_json(request, video_id)
-        return (url_or_none(json_doc.get('url')), json_doc.get('part_credentials'))
-
-    def _get_m3u8_formats(self, url, video_id, credentials):
-        format_list = self._extract_m3u8_formats(url, video_id)
-        for item in format_list:
-            item['protocol'] = 'm3u8_native'
-            item['url'] += '?' + credentials
-            item['ext'] = 'mp4'
-            item['format_id'] = 'hls-' + str(item.get('height', 0))
-            item['extra_param_to_segment_url'] = credentials
-        return format_list
-
     def _real_extract(self, url):
         video_id = self._match_id(url)
         webpage = self._download_webpage(url, video_id)
 
-        info = self._extract_video_info_json(webpage, video_id)
+        info_json = self._html_search_regex(
+            r'window.loomSSRVideo = (.+?);',
+            webpage,
+            'info')
+        info = self._parse_json(info_json, 'json', js_to_json)
 
         formats = []
         for type in ['transcoded-url', 'raw-url']:
-            (url, part_credentials) = self._get_url_by_id_type(video_id, type)
+            request = compat_urllib_request.Request(
+                self._BASE_URL + 'api/campaigns/sessions/' + video_id + '/' + type,
+                {})
+            json_doc = self._download_json(request, video_id)
+            url = url_or_none(json_doc.get('url'))
+            part_credentials = json_doc.get('part_credentials')
+
             ext = self._search_regex(
                 r'\.([a-zA-Z0-9]+)\?',
                 url, 'ext', default=None)
-            if(ext != 'm3u8'):
+            if ext != 'm3u8':
                 formats.append({
                     'url': url,
                     'ext': ext,
@@ -109,7 +95,13 @@ class LoomIE(LoomBaseInfoIE):
                 })
             else:
                 credentials = compat_urllib_parse_urlencode(part_credentials)
-                m3u8_formats = self._get_m3u8_formats(url, video_id, credentials)
+                m3u8_formats = self._extract_m3u8_formats(url, video_id)
+                for item in m3u8_formats:
+                    item['protocol'] = 'm3u8_native'
+                    item['url'] += '?' + credentials
+                    item['ext'] = 'mp4'
+                    item['format_id'] = 'hls-' + str(item.get('height', 0))
+                    item['extra_param_to_segment_url'] = credentials
                 for i in range(len(m3u8_formats)):
                     formats.insert(
                         (-1, len(formats))[i == len(m3u8_formats) - 1],
