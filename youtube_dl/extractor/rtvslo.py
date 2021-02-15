@@ -57,23 +57,13 @@ class RTVSLO4DIE(InfoExtractor):
             'https://api.rtvslo.si/ava/getRecording/' + media_id, media_id,
             query={'client_id': '19cc0556a5ee31d0d52a0e30b0696b26'})['response']
 
-        extracted = {
-            'id': media_id,
-            'title': media_info['title'],
-            'description': try_get(media_info, 'description'),
-            'thumbnail': media_info.get('thumbnail_sec'),
-            'timestamp': unified_timestamp(media_info.get('broadcastDate')),
-            'duration': media_info.get('duration'),
-        }
-
         if media_info['mediaType'] == 'video':
-            extracted['formats'] = self._extract_m3u8_formats(
+            formats = self._extract_m3u8_formats(
                 media_info['addaptiveMedia']['hls_sec'], media_id, 'mp4',
                 entry_protocol='m3u8_native', m3u8_id='hls')
-            self._sort_formats(extracted['formats'])
 
         elif media_info['mediaType'] == 'audio':
-            extracted['formats'] = [{
+            formats = [{
                 'format_id': file['mediaType'],
                 'url': file['streamers']['http'] + '/' + file['filename'],
                 'ext': determine_ext(file['filename']),
@@ -82,6 +72,14 @@ class RTVSLO4DIE(InfoExtractor):
                 'vcodec': 'none'
             } for file in media_info['mediaFiles']]
 
-        self._sort_formats(extracted['formats'])
+        self._sort_formats(formats)
 
-        return extracted
+        return {
+            'id': media_id,
+            'title': media_info['title'],
+            'formats': formats,
+            'description': try_get(media_info, 'description'),
+            'thumbnail': media_info.get('thumbnail_sec'),
+            'timestamp': unified_timestamp(media_info.get('broadcastDate')),
+            'duration': media_info.get('duration'),
+        }
