@@ -308,7 +308,7 @@ class YoutubeBaseInfoExtractor(InfoExtractor):
             r'^([\d,]+)', re.sub(r'\s', '', view_count_text),
             'view count', default=None))
         uploader = try_get(
-            renderer, 
+            renderer,
             (lambda x: x['ownerText']['runs'][0]['text'],
              lambda x: x['shortBylineText']['runs'][0]['text']), compat_str)
 
