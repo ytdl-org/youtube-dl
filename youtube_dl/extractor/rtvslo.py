@@ -3,6 +3,8 @@ from __future__ import unicode_literals
 
 from .common import InfoExtractor
 from ..utils import (
+    determine_ext,
+    int_or_none,
     try_get,
     unified_timestamp
 )
@@ -71,6 +73,15 @@ class RTVSLO4DIE(InfoExtractor):
             self._sort_formats(extracted['formats'])
 
         elif media_info['mediaType'] == 'audio':
-            extracted['url'] = media_info['mediaFiles'][0]['streamers']['http'] + '/' + media_info['mediaFiles'][0]['filename']
+            extracted['formats'] = [{
+                'format_id': file['mediaType'],
+                'url': file['streamers']['http'] + '/' + file['filename'],
+                'ext': determine_ext(file['filename']),
+                'tbr': int_or_none(file.get('bitrate')),
+                'filesize': int_or_none(file.get('filesize')),
+                'vcodec': 'none'
+            } for file in media_info['mediaFiles']]
+
+        self._sort_formats(extracted['formats'])
 
         return extracted
