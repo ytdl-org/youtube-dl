@@ -1042,6 +1042,11 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                 'skip_download': True,
             },
         },
+        {
+            # controversial video, only works with bpctr when authenticated with cookies
+            'url': 'https://www.youtube.com/watch?v=nGC3D_FkCmg',
+            'only_matching': True,
+        },
     ]
     _formats = {
         '5': {'ext': 'flv', 'width': 400, 'height': 240, 'acodec': 'mp3', 'abr': 64, 'vcodec': 'h263'},
@@ -1405,7 +1410,8 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
         video_id = self._match_id(url)
         base_url = self.http_scheme() + '//www.youtube.com/'
         webpage_url = base_url + 'watch?v=' + video_id
-        webpage = self._download_webpage(webpage_url, video_id, fatal=False)
+        webpage = self._download_webpage(
+            webpage_url + '&bpctr=9999999999', video_id, fatal=False)
 
         player_response = None
         if webpage:
