@@ -14,7 +14,7 @@ class RTVSLO4DIE(InfoExtractor):
     _VALID_URL = r'https?://(?:4d\.rtvslo\.si/(?:arhiv/[^/]+|embed)|www\.rtvslo\.si/(?:4d/arhiv|mmr/prispevek))/(?P<id>\d+)'
     _TESTS = [{
         'url': 'https://4d.rtvslo.si/arhiv/seje-odbora-za-kmetijstvo-gozdarstvo-in-prehrano/174595438',
-        'md5': 'b87e5a65be2365f83eb0d24d44131d0f',
+        'md5': '37ab1181292a08e0d6b7952545e6ce8b',
         'info_dict': {
             'id': '174595438',
             'ext': 'mp4',
