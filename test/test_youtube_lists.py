@@ -12,6 +12,7 @@ from test.helper import FakeYDL
 
 from youtube_dl.extractor import (
     YoutubePlaylistIE,
+    YoutubeTabIE,
     YoutubeIE,
 )
 
@@ -65,6 +66,16 @@ class TestYoutubeLists(unittest.TestCase):
         self.assertIsPlaylist(result)
         for entry in result['entries']:
             self.assertTrue(entry.get('title'))
+
+    def test_youtube_flat_playlist_uploaders(self):
+        dl = FakeYDL()
+        dl.params['extract_flat'] = True
+        ie = YoutubeTabIE(dl)
+        result = ie.extract('https://www.youtube.com/playlist?list=PL2zzFmCbIz4fshCLrvopue-wDeKQ5ERKO')
+        self.assertIsPlaylist(result)
+        for entry in result['entries']:
+            if entry['title'] not in ('[Deleted video]', '[Private video]'):
+                self.assertTrue(entry.get('uploader'))
 
 
 if __name__ == '__main__':
