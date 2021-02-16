@@ -8,9 +8,14 @@ from ..utils import (
     ExtractorError,
     extract_attributes,
     find_xpath_attr,
+    get_element_by_attribute,
     get_element_by_class,
     int_or_none,
+    js_to_json,
+    merge_dicts,
+    parse_iso8601,
     smuggle_url,
+    str_to_int,
     unescapeHTML,
 )
 from .senateisvp import SenateISVPIE
@@ -98,6 +103,48 @@ class CSpanIE(InfoExtractor):
                     bc_attr['data-bcid'])
                 return self.url_result(smuggle_url(bc_url, {'source_url': url}))
 
+        def add_referer(formats):
+            for f in formats:
+                f.setdefault('http_headers', {})['Referer'] = url
+
+        # As of 01.12.2020 this path looks to cover all cases making the rest
+        # of the code unnecessary
+        jwsetup = self._parse_json(
+            self._search_regex(
+                r'(?s)jwsetup\s*=\s*({.+?})\s*;', webpage, 'jwsetup',
+                default='{}'),
+            video_id, transform_source=js_to_json, fatal=False)
+        if jwsetup:
+            info = self._parse_jwplayer_data(
+                jwsetup, video_id, require_title=False, m3u8_id='hls',
+                base_url=url)
+            add_referer(info['formats'])
+            for subtitles in info['subtitles'].values():
+                for subtitle in subtitles:
+                    ext = determine_ext(subtitle['url'])
+                    if ext == 'php':
+                        ext = 'vtt'
+                    subtitle['ext'] = ext
+            ld_info = self._search_json_ld(webpage, video_id, default={})
+            title = get_element_by_class('video-page-title', webpage) or \
+                self._og_search_title(webpage)
+            description = get_element_by_attribute('itemprop', 'description', webpage) or \
+                self._html_search_meta(['og:description', 'description'], webpage)
+            return merge_dicts(info, ld_info, {
+                'title': title,
+                'thumbnail': get_element_by_attribute('itemprop', 'thumbnailUrl', webpage),
+                'description': description,
+                'timestamp': parse_iso8601(get_element_by_attribute('itemprop', 'uploadDate', webpage)),
+                'location': get_element_by_attribute('itemprop', 'contentLocation', webpage),
+                'duration': int_or_none(self._search_regex(
+                    r'jwsetup\.seclength\s*=\s*(\d+);',
+                    webpage, 'duration', fatal=False)),
+                'view_count': str_to_int(self._search_regex(
+                    r"<span[^>]+class='views'[^>]*>([\d,]+)\s+Views</span>",
+                    webpage, 'views', fatal=False)),
+            })
+
+        # Obsolete
         # We first look for clipid, because clipprog always appears before
         patterns = [r'id=\'clip(%s)\'\s*value=\'([0-9]+)\'' % t for t in ('id', 'prog')]
         results = list(filter(None, (re.search(p, webpage) for p in patterns)))
@@ -165,6 +212,7 @@ class CSpanIE(InfoExtractor):
                 formats = self._extract_m3u8_formats(
                     path, video_id, 'mp4', entry_protocol='m3u8_native',
                     m3u8_id='hls') if determine_ext(path) == 'm3u8' else [{'url': path, }]
+            add_referer(formats)
             self._sort_formats(formats)
             entries.append({
                 'id': '%s_%d' % (video_id, partnum + 1),

@@ -22,16 +22,25 @@ from ..utils import (
     orderedSet,
     remove_quotes,
     str_to_int,
+    update_url_query,
+    urlencode_postdata,
     url_or_none,
 )
 
 
 class PornHubBaseIE(InfoExtractor):
+    _NETRC_MACHINE = 'pornhub'
+
     def _download_webpage_handle(self, *args, **kwargs):
         def dl(*args, **kwargs):
             return super(PornHubBaseIE, self)._download_webpage_handle(*args, **kwargs)
 
-        webpage, urlh = dl(*args, **kwargs)
+        ret = dl(*args, **kwargs)
+
+        if not ret:
+            return ret
+
+        webpage, urlh = ret
 
         if any(re.search(p, webpage) for p in (
                 r'<body\b[^>]+\bonload=["\']go\(\)',
@@ -47,13 +56,73 @@ class PornHubBaseIE(InfoExtractor):
 
         return webpage, urlh
 
+    def _real_initialize(self):
+        self._logged_in = False
+
+    def _login(self, host):
+        if self._logged_in:
+            return
+
+        site = host.split('.')[0]
+
+        # Both sites pornhub and pornhubpremium have separate accounts
+        # so there should be an option to provide credentials for both.
+        # At the same time some videos are available under the same video id
+        # on both sites so that we have to identify them as the same video.
+        # For that purpose we have to keep both in the same extractor
+        # but under different netrc machines.
+        username, password = self._get_login_info(netrc_machine=site)
+        if username is None:
+            return
+
+        login_url = 'https://www.%s/%slogin' % (host, 'premium/' if 'premium' in host else '')
+        login_page = self._download_webpage(
+            login_url, None, 'Downloading %s login page' % site)
+
+        def is_logged(webpage):
+            return any(re.search(p, webpage) for p in (
+                r'class=["\']signOut',
+                r'>Sign\s+[Oo]ut\s*<'))
+
+        if is_logged(login_page):
+            self._logged_in = True
+            return
+
+        login_form = self._hidden_inputs(login_page)
+
+        login_form.update({
+            'username': username,
+            'password': password,
+        })
+
+        response = self._download_json(
+            'https://www.%s/front/authenticate' % host, None,
+            'Logging in to %s' % site,
+            data=urlencode_postdata(login_form),
+            headers={
+                'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
+                'Referer': login_url,
+                'X-Requested-With': 'XMLHttpRequest',
+            })
+
+        if response.get('success') == '1':
+            self._logged_in = True
+            return
+
+        message = response.get('message')
+        if message is not None:
+            raise ExtractorError(
+                'Unable to login: %s' % message, expected=True)
+
+        raise ExtractorError('Unable to log in')
+
 
 class PornHubIE(PornHubBaseIE):
     IE_DESC = 'PornHub and Thumbzilla'
     _VALID_URL = r'''(?x)
                     https?://
                         (?:
-                            (?:[^/]+\.)?(?P<host>pornhub(?:premium)?\.(?:com|net))/(?:(?:view_video\.php|video/show)\?viewkey=|embed/)|
+                            (?:[^/]+\.)?(?P<host>pornhub(?:premium)?\.(?:com|net|org))/(?:(?:view_video\.php|video/show)\?viewkey=|embed/)|
                             (?:www\.)?thumbzilla\.com/video/
                         )
                         (?P<id>[\da-z]+)
@@ -153,14 +222,25 @@ class PornHubIE(PornHubBaseIE):
         'url': 'https://www.pornhub.net/view_video.php?viewkey=203640933',
         'only_matching': True,
     }, {
+        'url': 'https://www.pornhub.org/view_video.php?viewkey=203640933',
+        'only_matching': True,
+    }, {
         'url': 'https://www.pornhubpremium.com/view_video.php?viewkey=ph5e4acdae54a82',
+        'only_matching': True,
+    }, {
+        # Some videos are available with the same id on both premium
+        # and non-premium sites (e.g. this and the following test)
+        'url': 'https://www.pornhub.com/view_video.php?viewkey=ph5f75b0f4b18e3',
+        'only_matching': True,
+    }, {
+        'url': 'https://www.pornhubpremium.com/view_video.php?viewkey=ph5f75b0f4b18e3',
         'only_matching': True,
     }]
 
     @staticmethod
     def _extract_urls(webpage):
         return re.findall(
-            r'<iframe[^>]+?src=["\'](?P<url>(?:https?:)?//(?:www\.)?pornhub\.(?:com|net)/embed/[\da-z]+)',
+            r'<iframe[^>]+?src=["\'](?P<url>(?:https?:)?//(?:www\.)?pornhub(?:premium)?\.(?:com|net|org)/embed/[\da-z]+)',
             webpage)
 
     def _extract_count(self, pattern, webpage, name):
@@ -172,12 +252,7 @@ class PornHubIE(PornHubBaseIE):
         host = mobj.group('host') or 'pornhub.com'
         video_id = mobj.group('id')
 
-        if 'premium' in host:
-            if not self._downloader.params.get('cookiefile'):
-                raise ExtractorError(
-                    'PornHub Premium requires authentication.'
-                    ' You may want to use --cookies.',
-                    expected=True)
+        self._login(host)
 
         self._set_cookie(host, 'age_verified', '1')
 
@@ -280,14 +355,24 @@ class PornHubIE(PornHubBaseIE):
             video_urls.append((v_url, None))
             video_urls_set.add(v_url)
 
+        def parse_quality_items(quality_items):
+            q_items = self._parse_json(quality_items, video_id, fatal=False)
+            if not isinstance(q_items, list):
+                return
+            for item in q_items:
+                if isinstance(item, dict):
+                    add_video_url(item.get('url'))
+
         if not video_urls:
-            FORMAT_PREFIXES = ('media', 'quality')
+            FORMAT_PREFIXES = ('media', 'quality', 'qualityItems')
             js_vars = extract_js_vars(
                 webpage, r'(var\s+(?:%s)_.+)' % '|'.join(FORMAT_PREFIXES),
                 default=None)
             if js_vars:
                 for key, format_url in js_vars.items():
-                    if any(key.startswith(p) for p in FORMAT_PREFIXES):
+                    if key.startswith(FORMAT_PREFIXES[-1]):
+                        parse_quality_items(format_url)
+                    elif any(key.startswith(p) for p in FORMAT_PREFIXES[:2]):
                         add_video_url(format_url)
             if not video_urls and re.search(
                     r'<[^>]+\bid=["\']lockedPlayer', webpage):
@@ -343,12 +428,16 @@ class PornHubIE(PornHubBaseIE):
             r'(?s)From:&nbsp;.+?<(?:a\b[^>]+\bhref=["\']/(?:(?:user|channel)s|model|pornstar)/|span\b[^>]+\bclass=["\']username)[^>]+>(.+?)<',
             webpage, 'uploader', default=None)
 
+        def extract_vote_count(kind, name):
+            return self._extract_count(
+                (r'<span[^>]+\bclass="votes%s"[^>]*>([\d,\.]+)</span>' % kind,
+                 r'<span[^>]+\bclass=["\']votes%s["\'][^>]*\bdata-rating=["\'](\d+)' % kind),
+                webpage, name)
+
         view_count = self._extract_count(
             r'<span class="count">([\d,\.]+)</span> [Vv]iews', webpage, 'view')
-        like_count = self._extract_count(
-            r'<span class="votesUp">([\d,\.]+)</span>', webpage, 'like')
-        dislike_count = self._extract_count(
-            r'<span class="votesDown">([\d,\.]+)</span>', webpage, 'dislike')
+        like_count = extract_vote_count('Up', 'like')
+        dislike_count = extract_vote_count('Down', 'dislike')
         comment_count = self._extract_count(
             r'All Comments\s*<span>\(([\d,.]+)\)', webpage, 'comment')
 
@@ -383,6 +472,10 @@ class PornHubIE(PornHubBaseIE):
 
 
 class PornHubPlaylistBaseIE(PornHubBaseIE):
+    def _extract_page(self, url):
+        return int_or_none(self._search_regex(
+            r'\bpage=(\d+)', url, 'page', default=None))
+
     def _extract_entries(self, webpage, host):
         # Only process container div with main playlist content skipping
         # drop-down menu that uses similar pattern for videos (see
@@ -400,29 +493,9 @@ class PornHubPlaylistBaseIE(PornHubBaseIE):
                 container))
         ]
 
-    def _real_extract(self, url):
-        mobj = re.match(self._VALID_URL, url)
-        host = mobj.group('host')
-        playlist_id = mobj.group('id')
-
-        webpage = self._download_webpage(url, playlist_id)
-
-        entries = self._extract_entries(webpage, host)
-
-        playlist = self._parse_json(
-            self._search_regex(
-                r'(?:playlistObject|PLAYLIST_VIEW)\s*=\s*({.+?});', webpage,
-                'playlist', default='{}'),
-            playlist_id, fatal=False)
-        title = playlist.get('title') or self._search_regex(
-            r'>Videos\s+in\s+(.+?)\s+[Pp]laylist<', webpage, 'title', fatal=False)
-
-        return self.playlist_result(
-            entries, playlist_id, title, playlist.get('description'))
-
 
 class PornHubUserIE(PornHubPlaylistBaseIE):
-    _VALID_URL = r'(?P<url>https?://(?:[^/]+\.)?(?P<host>pornhub(?:premium)?\.(?:com|net))/(?:(?:user|channel)s|model|pornstar)/(?P<id>[^/?#&]+))(?:[?#&]|/(?!videos)|$)'
+    _VALID_URL = r'(?P<url>https?://(?:[^/]+\.)?(?P<host>pornhub(?:premium)?\.(?:com|net|org))/(?:(?:user|channel)s|model|pornstar)/(?P<id>[^/?#&]+))(?:[?#&]|/(?!videos)|$)'
     _TESTS = [{
         'url': 'https://www.pornhub.com/model/zoe_ph',
         'playlist_mincount': 118,
@@ -441,14 +514,27 @@ class PornHubUserIE(PornHubPlaylistBaseIE):
     }, {
         'url': 'https://www.pornhub.com/model/zoe_ph?abc=1',
         'only_matching': True,
+    }, {
+        # Unavailable via /videos page, but available with direct pagination
+        # on pornstar page (see [1]), requires premium
+        # 1. https://github.com/ytdl-org/youtube-dl/issues/27853
+        'url': 'https://www.pornhubpremium.com/pornstar/sienna-west',
+        'only_matching': True,
+    }, {
+        # Same as before, multi page
+        'url': 'https://www.pornhubpremium.com/pornstar/lily-labeau',
+        'only_matching': True,
     }]
 
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
         user_id = mobj.group('id')
+        videos_url = '%s/videos' % mobj.group('url')
+        page = self._extract_page(url)
+        if page:
+            videos_url = update_url_query(videos_url, {'page': page})
         return self.url_result(
-            '%s/videos' % mobj.group('url'), ie=PornHubPagedVideoListIE.ie_key(),
-            video_id=user_id)
+            videos_url, ie=PornHubPagedVideoListIE.ie_key(), video_id=user_id)
 
 
 class PornHubPagedPlaylistBaseIE(PornHubPlaylistBaseIE):
@@ -461,36 +547,59 @@ class PornHubPagedPlaylistBaseIE(PornHubPlaylistBaseIE):
                 <button[^>]+\bid=["\']moreDataBtn
             ''', webpage) is not None
 
-    def _real_extract(self, url):
-        mobj = re.match(self._VALID_URL, url)
-        host = mobj.group('host')
-        item_id = mobj.group('id')
+    def _entries(self, url, host, item_id):
+        page = self._extract_page(url)
 
-        page = int_or_none(self._search_regex(
-            r'\bpage=(\d+)', url, 'page', default=None))
+        VIDEOS = '/videos'
 
-        entries = []
-        for page_num in (page, ) if page is not None else itertools.count(1):
+        def download_page(base_url, num, fallback=False):
+            note = 'Downloading page %d%s' % (num, ' (switch to fallback)' if fallback else '')
+            return self._download_webpage(
+                base_url, item_id, note, query={'page': num})
+
+        def is_404(e):
+            return isinstance(e.cause, compat_HTTPError) and e.cause.code == 404
+
+        base_url = url
+        has_page = page is not None
+        first_page = page if has_page else 1
+        for page_num in (first_page, ) if has_page else itertools.count(first_page):
             try:
-                webpage = self._download_webpage(
-                    url, item_id, 'Downloading page %d' % page_num,
-                    query={'page': page_num})
+                try:
+                    webpage = download_page(base_url, page_num)
+                except ExtractorError as e:
+                    # Some sources may not be available via /videos page,
+                    # trying to fallback to main page pagination (see [1])
+                    # 1. https://github.com/ytdl-org/youtube-dl/issues/27853
+                    if is_404(e) and page_num == first_page and VIDEOS in base_url:
+                        base_url = base_url.replace(VIDEOS, '')
+                        webpage = download_page(base_url, page_num, fallback=True)
+                    else:
+                        raise
             except ExtractorError as e:
-                if isinstance(e.cause, compat_HTTPError) and e.cause.code == 404:
+                if is_404(e) and page_num != first_page:
                     break
                 raise
             page_entries = self._extract_entries(webpage, host)
             if not page_entries:
                 break
-            entries.extend(page_entries)
+            for e in page_entries:
+                yield e
             if not self._has_more(webpage):
                 break
 
-        return self.playlist_result(orderedSet(entries), item_id)
+    def _real_extract(self, url):
+        mobj = re.match(self._VALID_URL, url)
+        host = mobj.group('host')
+        item_id = mobj.group('id')
+
+        self._login(host)
+
+        return self.playlist_result(self._entries(url, host, item_id), item_id)
 
 
 class PornHubPagedVideoListIE(PornHubPagedPlaylistBaseIE):
-    _VALID_URL = r'https?://(?:[^/]+\.)?(?P<host>pornhub(?:premium)?\.(?:com|net))/(?P<id>(?:[^/]+/)*[^/?#&]+)'
+    _VALID_URL = r'https?://(?:[^/]+\.)?(?P<host>pornhub(?:premium)?\.(?:com|net|org))/(?P<id>(?:[^/]+/)*[^/?#&]+)'
     _TESTS = [{
         'url': 'https://www.pornhub.com/model/zoe_ph/videos',
         'only_matching': True,
@@ -605,7 +714,7 @@ class PornHubPagedVideoListIE(PornHubPagedPlaylistBaseIE):
 
 
 class PornHubUserVideosUploadIE(PornHubPagedPlaylistBaseIE):
-    _VALID_URL = r'(?P<url>https?://(?:[^/]+\.)?(?P<host>pornhub(?:premium)?\.(?:com|net))/(?:(?:user|channel)s|model|pornstar)/(?P<id>[^/]+)/videos/upload)'
+    _VALID_URL = r'(?P<url>https?://(?:[^/]+\.)?(?P<host>pornhub(?:premium)?\.(?:com|net|org))/(?:(?:user|channel)s|model|pornstar)/(?P<id>[^/]+)/videos/upload)'
     _TESTS = [{
         'url': 'https://www.pornhub.com/pornstar/jenny-blighe/videos/upload',
         'info_dict': {

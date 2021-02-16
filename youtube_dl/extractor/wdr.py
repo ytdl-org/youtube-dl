@@ -17,6 +17,7 @@ from ..utils import (
     unified_strdate,
     update_url_query,
     urlhandle_detect_ext,
+    url_or_none,
 )
 
 
@@ -42,16 +43,20 @@ class WDRIE(InfoExtractor):
         is_live = metadata.get('mediaType') == 'live'
 
         tracker_data = metadata['trackerData']
+        title = tracker_data['trackerClipTitle']
+
         media_resource = metadata['mediaResource']
 
         formats = []
 
         # check if the metadata contains a direct URL to a file
-        for kind, media_resource in media_resource.items():
+        for kind, media in media_resource.items():
+            if not isinstance(media, dict):
+                continue
             if kind not in ('dflt', 'alt'):
                 continue
 
-            for tag_name, medium_url in media_resource.items():
+            for tag_name, medium_url in media.items():
                 if tag_name not in ('videoURL', 'audioURL'):
                     continue
 
@@ -88,8 +93,16 @@ class WDRIE(InfoExtractor):
                 'url': caption_url,
                 'ext': 'ttml',
             }]
-
-        title = tracker_data['trackerClipTitle']
+        captions_hash = media_resource.get('captionsHash')
+        if isinstance(captions_hash, dict):
+            for ext, format_url in captions_hash.items():
+                format_url = url_or_none(format_url)
+                if not format_url:
+                    continue
+                subtitles.setdefault('de', []).append({
+                    'url': format_url,
+                    'ext': determine_ext(format_url, None) or ext,
+                })
 
         return {
             'id': tracker_data.get('trackerClipId', video_id),
@@ -105,7 +118,7 @@ class WDRIE(InfoExtractor):
 class WDRPageIE(InfoExtractor):
     _CURRENT_MAUS_URL = r'https?://(?:www\.)wdrmaus.de/(?:[^/]+/){1,2}[^/?#]+\.php5'
     _PAGE_REGEX = r'/(?:mediathek/)?(?:[^/]+/)*(?P<display_id>[^/]+)\.html'
-    _VALID_URL = r'https?://(?:www\d?\.)?(?:wdr\d?|sportschau)\.de' + _PAGE_REGEX + '|' + _CURRENT_MAUS_URL
+    _VALID_URL = r'https?://(?:www\d?\.)?(?:(?:kinder\.)?wdr\d?|sportschau)\.de' + _PAGE_REGEX + '|' + _CURRENT_MAUS_URL
 
     _TESTS = [
         {
@@ -212,7 +225,11 @@ class WDRPageIE(InfoExtractor):
         {
             'url': 'http://www.sportschau.de/handballem2018/audio-vorschau---die-handball-em-startet-mit-grossem-favoritenfeld-100.html',
             'only_matching': True,
-        }
+        },
+        {
+            'url': 'https://kinder.wdr.de/tv/die-sendung-mit-dem-elefanten/av/video-folge---astronaut-100.html',
+            'only_matching': True,
+        },
     ]
 
     def _real_extract(self, url):
