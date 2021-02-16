@@ -7,7 +7,7 @@ from .dplay import DPlayIE
 
 
 class DiscoveryNetworksDeIE(DPlayIE):
-    _VALID_URL = r'https?://(?:www\.)?(?P<domain>(?:tlc|dmax)\.de|dplay\.co\.uk)/(?:programme|show|sendungen)/(?P<programme>[^/]+)/(?:video/)?(?P<alternate_id>[^/]+)'
+    _VALID_URL = r'https?://(?:www\.)?(?P<domain>(?:tlc|dmax|hgtv)\.de|dplay\.co\.uk)/(?:programme|show|sendungen)/(?P<programme>[^/]+)/(?:video/)?(?P<alternate_id>[^/]+)'
 
     _TESTS = [{
         'url': 'https://www.tlc.de/programme/breaking-amish/video/die-welt-da-drauen/DCB331270001100',
@@ -31,6 +31,9 @@ class DiscoveryNetworksDeIE(DPlayIE):
         'only_matching': True,
     }, {
         'url': 'https://tlc.de/sendungen/breaking-amish/die-welt-da-drauen/',
+        'only_matching': True,
+    }, {
+        'url': 'https://de.hgtv.com/sendungen/haus-flipping-mit-tarek/altes-haus-mit-charme/',
         'only_matching': True,
     }]
 
