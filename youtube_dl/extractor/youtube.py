@@ -913,6 +913,11 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
             'only_matching': True,
         },
         {
+            # from https://nitter.pussthecat.org/YouTube/status/1360363141947944964#m
+            'url': 'https://redirect.invidious.io/Yh0AhrY9GjA',
+            'only_matching': True,
+        },
+        {
             # DRM protected
             'url': 'https://www.youtube.com/watch?v=s7_qI6_mIXc',
             'only_matching': True,
