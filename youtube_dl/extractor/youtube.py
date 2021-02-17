@@ -335,8 +335,10 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                             (?:www\.)?hooktube\.com/|
                             (?:www\.)?yourepeat\.com/|
                             tube\.majestyc\.net/|
-                            # Invidious instances taken from https://github.com/omarroth/invidious/wiki/Invidious-Instances
+                            # invidious-redirect websites
+                            (?:www\.)?redirect\.invidious\.io/|
                             (?:(?:www|dev)\.)?invidio\.us/|
+                            # Invidious instances taken from https://github.com/iv-org/documentation/blob/master/Invidious-Instances.md
                             (?:(?:www|no)\.)?invidiou\.sh/|
                             (?:(?:www|fi)\.)?invidious\.snopyta\.org/|
                             (?:www\.)?invidious\.kabi\.tk/|
@@ -904,6 +906,10 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
         },
         {
             'url': 'https://invidio.us/watch?v=BaW_jenozKc',
+            'only_matching': True,
+        },
+        {
+            'url': 'https://redirect.invidious.io/watch?v=BaW_jenozKc',
             'only_matching': True,
         },
         {
