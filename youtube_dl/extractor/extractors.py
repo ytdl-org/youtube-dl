@@ -291,6 +291,7 @@ from .douyutv import (
 from .dplay import (
     DPlayIE,
     DiscoveryPlusIE,
+    HGTVDeIE,
 )
 from .dreisat import DreiSatIE
 from .drbonanza import DRBonanzaIE

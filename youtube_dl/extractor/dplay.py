@@ -11,11 +11,13 @@ from ..utils import (
     ExtractorError,
     float_or_none,
     int_or_none,
+    strip_or_none,
     unified_timestamp,
 )
 
 
 class DPlayIE(InfoExtractor):
+    _PATH_REGEX = r'/(?P<id>[^/]+/[^/?#]+)'
     _VALID_URL = r'''(?x)https?://
         (?P<domain>
             (?:www\.)?(?P<host>d
@@ -25,7 +27,7 @@ class DPlayIE(InfoExtractor):
                 )
             )|
             (?P<subdomain_country>es|it)\.dplay\.com
-        )/[^/]+/(?P<id>[^/]+/[^/?#]+)'''
+        )/[^/]+''' + _PATH_REGEX
 
     _TESTS = [{
         # non geo restricted, via secure api, unsigned download hls URL
@@ -272,7 +274,7 @@ class DPlayIE(InfoExtractor):
             'id': video_id,
             'display_id': display_id,
             'title': title,
-            'description': info.get('description'),
+            'description': strip_or_none(info.get('description')),
             'duration': float_or_none(info.get('videoDuration'), 1000),
             'timestamp': unified_timestamp(info.get('publishStart')),
             'series': series,
@@ -295,7 +297,7 @@ class DPlayIE(InfoExtractor):
 
 
 class DiscoveryPlusIE(DPlayIE):
-    _VALID_URL = r'https?://(?:www\.)?discoveryplus\.com/video/(?P<id>[^/]+/[^/]+)'
+    _VALID_URL = r'https?://(?:www\.)?discoveryplus\.com/video' + DPlayIE._PATH_REGEX
     _TESTS = [{
         'url': 'https://www.discoveryplus.com/video/property-brothers-forever-home/food-and-family',
         'info_dict': {
@@ -335,3 +337,32 @@ class DiscoveryPlusIE(DPlayIE):
         display_id = self._match_id(url)
         return self._get_disco_api_info(
             url, display_id, 'us1-prod-direct.discoveryplus.com', 'go', 'us')
+
+
+class HGTVDeIE(DPlayIE):
+    _VALID_URL = r'https?://de\.hgtv\.com/sendungen' + DPlayIE._PATH_REGEX
+    _TESTS = [{
+        'url': 'https://de.hgtv.com/sendungen/tiny-house-klein-aber-oho/wer-braucht-schon-eine-toilette/',
+        'info_dict': {
+            'id': '151205',
+            'display_id': 'tiny-house-klein-aber-oho/wer-braucht-schon-eine-toilette',
+            'ext': 'mp4',
+            'title': 'Wer braucht schon eine Toilette',
+            'description': 'md5:05b40a27e7aed2c9172de34d459134e2',
+            'duration': 1177.024,
+            'timestamp': 1595705400,
+            'upload_date': '20200725',
+            'creator': 'HGTV',
+            'series': 'Tiny House - klein, aber oho',
+            'season_number': 3,
+            'episode_number': 3,
+        },
+        'params': {
+            'format': 'bestvideo',
+        },
+    }]
+
+    def _real_extract(self, url):
+        display_id = self._match_id(url)
+        return self._get_disco_api_info(
+            url, display_id, 'eu1-prod.disco-api.com', 'hgtv', 'de')
