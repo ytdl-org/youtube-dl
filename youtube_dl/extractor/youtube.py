@@ -326,54 +326,57 @@ class YoutubeBaseInfoExtractor(InfoExtractor):
 
 class YoutubeIE(YoutubeBaseInfoExtractor):
     IE_DESC = 'YouTube.com'
+    _INVIDIOUS_SITES = (
+        # invidious-redirect websites
+        r'(?:www\.)?redirect\.invidious\.io',
+        r'(?:(?:www|dev)\.)?invidio\.us',
+        # Invidious instances taken from https://github.com/iv-org/documentation/blob/master/Invidious-Instances.md
+        r'(?:(?:www|no)\.)?invidiou\.sh',
+        r'(?:(?:www|fi)\.)?invidious\.snopyta\.org',
+        r'(?:www\.)?invidious\.kabi\.tk',
+        r'(?:www\.)?invidious\.13ad\.de',
+        r'(?:www\.)?invidious\.mastodon\.host',
+        r'(?:www\.)?invidious\.zapashcanon\.fr',
+        r'(?:www\.)?invidious\.kavin\.rocks',
+        r'(?:www\.)?invidious\.tube',
+        r'(?:www\.)?invidiou\.site',
+        r'(?:www\.)?invidious\.site',
+        r'(?:www\.)?invidious\.xyz',
+        r'(?:www\.)?invidious\.nixnet\.xyz',
+        r'(?:www\.)?invidious\.drycat\.fr',
+        r'(?:www\.)?tube\.poal\.co',
+        r'(?:www\.)?tube\.connect\.cafe',
+        r'(?:www\.)?vid\.wxzm\.sx',
+        r'(?:www\.)?vid\.mint\.lgbt',
+        r'(?:www\.)?yewtu\.be',
+        r'(?:www\.)?yt\.elukerio\.org',
+        r'(?:www\.)?yt\.lelux\.fi',
+        r'(?:www\.)?invidious\.ggc-project\.de',
+        r'(?:www\.)?yt\.maisputain\.ovh',
+        r'(?:www\.)?invidious\.13ad\.de',
+        r'(?:www\.)?invidious\.toot\.koeln',
+        r'(?:www\.)?invidious\.fdn\.fr',
+        r'(?:www\.)?watch\.nettohikari\.com',
+        r'(?:www\.)?kgg2m7yk5aybusll\.onion',
+        r'(?:www\.)?qklhadlycap4cnod\.onion',
+        r'(?:www\.)?axqzx4s6s54s32yentfqojs3x5i7faxza6xo3ehd4bzzsg2ii4fv2iid\.onion',
+        r'(?:www\.)?c7hqkpkpemu6e7emz5b4vyz7idjgdvgaaa3dyimmeojqbgpea3xqjoid\.onion',
+        r'(?:www\.)?fz253lmuao3strwbfbmx46yu7acac2jz27iwtorgmbqlkurlclmancad\.onion',
+        r'(?:www\.)?invidious\.l4qlywnpwqsluw65ts7md3khrivpirse744un3x7mlskqauz5pyuzgqd\.onion',
+        r'(?:www\.)?owxfohz4kjyv25fvlqilyxast7inivgiktls3th44jhk3ej3i7ya\.b32\.i2p',
+        r'(?:www\.)?4l2dgddgsrkf2ous66i6seeyi6etzfgrue332grh2n7madpwopotugyd\.onion',
+    )
     _VALID_URL = r"""(?x)^
                      (
                          (?:https?://|//)                                    # http(s):// or protocol-independent URL
-                         (?:(?:(?:(?:\w+\.)?[yY][oO][uU][tT][uU][bB][eE](?:-nocookie|kids)?\.com/|
-                            (?:www\.)?deturl\.com/www\.youtube\.com/|
-                            (?:www\.)?pwnyoutube\.com/|
-                            (?:www\.)?hooktube\.com/|
-                            (?:www\.)?yourepeat\.com/|
-                            tube\.majestyc\.net/|
-                            # invidious-redirect websites
-                            (?:www\.)?redirect\.invidious\.io/|
-                            (?:(?:www|dev)\.)?invidio\.us/|
-                            # Invidious instances taken from https://github.com/iv-org/documentation/blob/master/Invidious-Instances.md
-                            (?:(?:www|no)\.)?invidiou\.sh/|
-                            (?:(?:www|fi)\.)?invidious\.snopyta\.org/|
-                            (?:www\.)?invidious\.kabi\.tk/|
-                            (?:www\.)?invidious\.13ad\.de/|
-                            (?:www\.)?invidious\.mastodon\.host/|
-                            (?:www\.)?invidious\.zapashcanon\.fr/|
-                            (?:www\.)?invidious\.kavin\.rocks/|
-                            (?:www\.)?invidious\.tube/|
-                            (?:www\.)?invidiou\.site/|
-                            (?:www\.)?invidious\.site/|
-                            (?:www\.)?invidious\.xyz/|
-                            (?:www\.)?invidious\.nixnet\.xyz/|
-                            (?:www\.)?invidious\.drycat\.fr/|
-                            (?:www\.)?tube\.poal\.co/|
-                            (?:www\.)?tube\.connect\.cafe/|
-                            (?:www\.)?vid\.wxzm\.sx/|
-                            (?:www\.)?vid\.mint\.lgbt/|
-                            (?:www\.)?yewtu\.be/|
-                            (?:www\.)?yt\.elukerio\.org/|
-                            (?:www\.)?yt\.lelux\.fi/|
-                            (?:www\.)?invidious\.ggc-project\.de/|
-                            (?:www\.)?yt\.maisputain\.ovh/|
-                            (?:www\.)?invidious\.13ad\.de/|
-                            (?:www\.)?invidious\.toot\.koeln/|
-                            (?:www\.)?invidious\.fdn\.fr/|
-                            (?:www\.)?watch\.nettohikari\.com/|
-                            (?:www\.)?kgg2m7yk5aybusll\.onion/|
-                            (?:www\.)?qklhadlycap4cnod\.onion/|
-                            (?:www\.)?axqzx4s6s54s32yentfqojs3x5i7faxza6xo3ehd4bzzsg2ii4fv2iid\.onion/|
-                            (?:www\.)?c7hqkpkpemu6e7emz5b4vyz7idjgdvgaaa3dyimmeojqbgpea3xqjoid\.onion/|
-                            (?:www\.)?fz253lmuao3strwbfbmx46yu7acac2jz27iwtorgmbqlkurlclmancad\.onion/|
-                            (?:www\.)?invidious\.l4qlywnpwqsluw65ts7md3khrivpirse744un3x7mlskqauz5pyuzgqd\.onion/|
-                            (?:www\.)?owxfohz4kjyv25fvlqilyxast7inivgiktls3th44jhk3ej3i7ya\.b32\.i2p/|
-                            (?:www\.)?4l2dgddgsrkf2ous66i6seeyi6etzfgrue332grh2n7madpwopotugyd\.onion/|
-                            youtube\.googleapis\.com/)                        # the various hostnames, with wildcard subdomains
+                         (?:(?:(?:(?:\w+\.)?[yY][oO][uU][tT][uU][bB][eE](?:-nocookie|kids)?\.com|
+                            (?:www\.)?deturl\.com/www\.youtube\.com|
+                            (?:www\.)?pwnyoutube\.com|
+                            (?:www\.)?hooktube\.com|
+                            (?:www\.)?yourepeat\.com|
+                            tube\.majestyc\.net|
+                            %(invidious)s|
+                            youtube\.googleapis\.com)/                        # the various hostnames, with wildcard subdomains
                          (?:.*?\#/)?                                          # handle anchor (#/) redirect urls
                          (?:                                                  # the various things that can precede the ID:
                              (?:(?:v|embed|e)/(?!videoseries))                # v/ or embed/ or e/
@@ -388,6 +391,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                             youtu\.be|                                        # just youtu.be/xxxx
                             vid\.plus|                                        # or vid.plus/xxxx
                             zwearz\.com/watch|                                # or zwearz.com/watch/xxxx
+                            %(invidious)s
                          )/
                          |(?:www\.)?cleanvideosearch\.com/media/action/yt/watch\?videoId=
                          )
@@ -400,7 +404,10 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                         )
                      )
                      (?(1).+)?                                                # if we found the ID, everything can follow
-                     $""" % {'playlist_id': YoutubeBaseInfoExtractor._PLAYLIST_ID_RE}
+                     $""" % {
+        'playlist_id': YoutubeBaseInfoExtractor._PLAYLIST_ID_RE,
+        'invidious': '|'.join(_INVIDIOUS_SITES),
+    }
     _PLAYER_INFO_RE = (
         r'/s/player/(?P<id>[a-zA-Z0-9_-]{8,})/player',
         r'/(?P<id>[a-zA-Z0-9_-]{8,})/player(?:_ias\.vflset(?:/[a-zA-Z]{2,3}_[a-zA-Z]{2,3})?|-plasma-ias-(?:phone|tablet)-[a-z]{2}_[A-Z]{2}\.vflset)/base\.js$',
