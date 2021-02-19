@@ -172,7 +172,7 @@ class LBRYIE(LBRYBaseIE):
 
 class LBRYChannelIE(LBRYBaseIE):
     IE_NAME = 'lbry:channel'
-    _VALID_URL = LBRYBaseIE._BASE_URL_REGEX + r'(?P<id>@%s)/?(?:[?#&]|$)' % LBRYBaseIE._OPT_CLAIM_ID
+    _VALID_URL = LBRYBaseIE._BASE_URL_REGEX + r'(?P<id>@%s)/?(?:[?&]|$)' % LBRYBaseIE._OPT_CLAIM_ID
     _TESTS = [{
         'url': 'https://lbry.tv/@LBRYFoundation:0',
         'info_dict': {
