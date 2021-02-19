@@ -7,7 +7,112 @@ from .common import InfoExtractor
 from ..compat import compat_str
 
 
-class GediDigitalBaseIE(InfoExtractor):
+class GediDigitalIE(InfoExtractor):
+    IE_NAME = ''
+    _VALID_URL = r'''(?x)https?://video\.
+                    (?P<iename>
+                        (?:espresso\.)?repubblica
+                        |lastampa
+                        |ilsecoloxix
+                        |iltirreno
+                        |messaggeroveneto
+                        |ilpiccolo
+                        |gazzettadimantova
+                        |mattinopadova
+                        |laprovinciapavese
+                        |tribunatreviso
+                        |nuovavenezia
+                        |gazzettadimodena
+                        |lanuovaferrara
+                        |corrierealpi
+                        |lasentinella
+                    )
+                    (?:\.gelocal)?\.it/.+?/(?P<id>[\d/]+)(?:\?|\&|$)'''
+    _TESTS = [{
+        'url': 'https://video.lastampa.it/politica/il-paradosso-delle-regionali-la-lega-vince-ma-sembra-aver-perso/121559/121683',
+        'md5': '60f33c793bc396dc23da682d2453feee',
+        'info_dict': {
+            'id': '121559/121683',
+            'ext': 'mp4',
+            'title': 'Il paradosso delle Regionali: ecco perché la Lega vince ma sembra aver perso',
+            'description': 'md5:de7f4d6eaaaf36c153b599b10f8ce7ca',
+            'thumbnail': r're:^https://www\.repstatic\.it/video/photo/.+?-thumb-social-play\.jpg$',
+        },
+    }, {
+        'url': 'https://video.repubblica.it/motori/record-della-pista-a-spa-francorchamps-la-pagani-huayra-roadster-bc-stupisce/367415/367963',
+        'md5': '1737111b9601b2d36b456f992643e911',
+        'info_dict': {
+            'id': '367415/367963',
+            'ext': 'mp4',
+            'title': 'Record della pista a Spa Francorchamps, la Pagani Huayra Roadster BC stupisce',
+            'description': 'md5:5deb503cefe734a3eb3f07ed74303920',
+            'thumbnail': r're:^https://www\.repstatic\.it/video/photo/.+?-thumb-social-play\.jpg$',
+        },
+    }, {
+        'url': 'https://video.ilsecoloxix.it/sport/cassani-e-i-brividi-azzurri-ai-mondiali-di-imola-qui-mi-sono-innamorato-del-ciclismo-da-ragazzino-incredibile-tornarci-da-ct/66184/66267',
+        'md5': '696a20e29a83422125995fc371879bb8',
+        'info_dict': {
+            'id': '66184/66267',
+            'ext': 'mp4',
+            'title': 'Cassani e i brividi azzurri ai Mondiali di Imola: \\"Qui mi sono innamorato del ciclismo da ragazzino, incredibile tornarci da ct\\"',
+            'description': 'md5:fc9c50894f70a2469bb9b54d3d0a3d3b',
+            'thumbnail': r're:^https://www\.repstatic\.it/video/photo/.+?-thumb-social-play\.jpg$',
+        },
+    }, {
+        'url': 'https://video.iltirreno.gelocal.it/sport/dentro-la-notizia-ferrari-cosa-succede-a-maranello/141059/142723',
+        'md5': '6e5e85fac6cdd8b41b868d55645b411d',
+        'info_dict': {
+            'id': '141059/142723',
+            'ext': 'mp4',
+            'title': 'Dentro la notizia - Ferrari, cosa succede a Maranello',
+            'description': 'md5:9907d65b53765681fa3a0b3122617c1f',
+            'thumbnail': r're:^https://www\.repstatic\.it/video/photo/.+?-thumb-social-play\.jpg$',
+        },
+    }, {
+        'url': 'https://video.espresso.repubblica.it/embed/tutti-i-video/01-ted-villa/14772/14870&width=640&height=360',
+        'md5': '295b7eed409f12c7107f9adca58a0cc6',
+        'info_dict': {
+            'id': '14772/14870',
+            'ext': 'mp4',
+            'title': 'Festival EMERGENCY, Villa: «La buona informazione aiuta la salute» (14772-14870)',
+            'description': 'md5:2bce954d278248f3c950be355b7c2226',
+            'thumbnail': r're:^https://www\.repstatic\.it/video/photo/.+?-thumb-social-play\.jpg$',
+        },
+    }, {
+        'url': 'https://video.messaggeroveneto.gelocal.it/sport/dentro-la-notizia-ferrari-cosa-succede-a-maranello/133362/134466',
+        'only_matching': True,
+    }, {
+        'url': 'https://video.ilpiccolo.gelocal.it/sport/dentro-la-notizia-ferrari-cosa-succede-a-maranello/133362/134466',
+        'only_matching': True,
+    }, {
+        'url': 'https://video.gazzettadimantova.gelocal.it/sport/dentro-la-notizia-ferrari-cosa-succede-a-maranello/133362/134466',
+        'only_matching': True,
+    }, {
+        'url': 'https://video.mattinopadova.gelocal.it/sport/dentro-la-notizia-ferrari-cosa-succede-a-maranello/133362/134466',
+        'only_matching': True,
+    }, {
+        'url': 'https://video.laprovinciapavese.gelocal.it/sport/dentro-la-notizia-ferrari-cosa-succede-a-maranello/133362/134466',
+        'only_matching': True,
+    }, {
+        'url': 'https://video.tribunatreviso.gelocal.it/sport/dentro-la-notizia-ferrari-cosa-succede-a-maranello/133362/134466',
+        'only_matching': True,
+    }, {
+        'url': 'https://video.nuovavenezia.gelocal.it/sport/dentro-la-notizia-ferrari-cosa-succede-a-maranello/133362/134466',
+        'only_matching': True,
+    }, {
+        'url': 'https://video.gazzettadimodena.gelocal.it/sport/dentro-la-notizia-ferrari-cosa-succede-a-maranello/133362/134466',
+        'only_matching': True,
+    }, {
+        'url': 'https://video.lanuovaferrara.gelocal.it/sport/dentro-la-notizia-ferrari-cosa-succede-a-maranello/133362/134466',
+        'only_matching': True,
+    }, {
+        'url': 'https://video.corrierealpi.gelocal.it/sport/dentro-la-notizia-ferrari-cosa-succede-a-maranello/133362/134466',
+        'only_matching': True,
+    }, {
+        'url': 'https://video.lasentinella.gelocal.it/sport/dentro-la-notizia-ferrari-cosa-succede-a-maranello/133362/134466',
+        'only_matching': True,
+    }]
+
     @staticmethod
     def _clean_audio_fmts(formats):
         # remove duplicates audio formats
@@ -71,110 +176,3 @@ class GediDigitalBaseIE(InfoExtractor):
             'thumbnail': thumb,
             'formats': formats,
         }
-
-
-class GediDigitalIE(GediDigitalBaseIE):
-    IE_NAME = ''
-    _VALID_URL = r'''(?x)https?://video\.
-                    (?P<iename>
-                        (?:espresso\.)?repubblica
-                        |lastampa
-                        |ilsecoloxix
-                        |iltirreno
-                        |messaggeroveneto
-                        |ilpiccolo
-                        |gazzettadimantova
-                        |mattinopadova
-                        |laprovinciapavese
-                        |tribunatreviso
-                        |nuovavenezia
-                        |gazzettadimodena
-                        |lanuovaferrara
-                        |corrierealpi
-                        |lasentinella
-                    )
-                    (?:\.gelocal)?\.it/.+?/(?P<id>[\d/]+)(?:\?|\&|$)'''
-    _TESTS = [{
-        'url': 'https://video.lastampa.it/politica/il-paradosso-delle-regionali-la-lega-vince-ma-sembra-aver-perso/121559/121683',
-        'md5': '84658d7fb9e55a6e57ecc77b73137494',
-        'info_dict': {
-            'id': '121559/121683',
-            'ext': 'mp4',
-            'title': 'Il paradosso delle Regionali: ecco perché la Lega vince ma sembra aver perso',
-            'description': 'md5:de7f4d6eaaaf36c153b599b10f8ce7ca',
-            'thumbnail': r're:^https://www\.repstatic\.it/video/photo/.+?-thumb-social-play\.jpg$',
-        },
-    }, {
-        'url': 'https://video.repubblica.it/motori/record-della-pista-a-spa-francorchamps-la-pagani-huayra-roadster-bc-stupisce/367415/367963',
-        'md5': 'e763b94b7920799a0e0e23ffefa2d157',
-        'info_dict': {
-            'id': '367415/367963',
-            'ext': 'mp4',
-            'title': 'Record della pista a Spa Francorchamps, la Pagani Huayra Roadster BC stupisce',
-            'description': 'md5:5deb503cefe734a3eb3f07ed74303920',
-            'thumbnail': r're:^https://www\.repstatic\.it/video/photo/.+?-thumb-social-play\.jpg$',
-        },
-    }, {
-        'url': 'https://video.ilsecoloxix.it/sport/cassani-e-i-brividi-azzurri-ai-mondiali-di-imola-qui-mi-sono-innamorato-del-ciclismo-da-ragazzino-incredibile-tornarci-da-ct/66184/66267',
-        'md5': 'e48108e97b1af137d22a8469f2019057',
-        'info_dict': {
-            'id': '66184/66267',
-            'ext': 'mp4',
-            'title': 'Cassani e i brividi azzurri ai Mondiali di Imola: \\"Qui mi sono innamorato del ciclismo da ragazzino, incredibile tornarci da ct\\"',
-            'description': 'md5:fc9c50894f70a2469bb9b54d3d0a3d3b',
-            'thumbnail': r're:^https://www\.repstatic\.it/video/photo/.+?-thumb-social-play\.jpg$',
-        },
-    }, {
-        'url': 'https://video.iltirreno.gelocal.it/sport/dentro-la-notizia-ferrari-cosa-succede-a-maranello/141059/142723',
-        'md5': 'a6e39f3bdc1842bbd92abbbbef230817',
-        'info_dict': {
-            'id': '141059/142723',
-            'ext': 'mp4',
-            'title': 'Dentro la notizia - Ferrari, cosa succede a Maranello',
-            'description': 'md5:9907d65b53765681fa3a0b3122617c1f',
-            'thumbnail': r're:^https://www\.repstatic\.it/video/photo/.+?-thumb-social-play\.jpg$',
-        },
-    }, {
-        'url': 'https://video.espresso.repubblica.it/embed/tutti-i-video/01-ted-villa/14772/14870&width=640&height=360',
-        'md5': 'ca3323b47c94cac92fff03eef0387d97',
-        'info_dict': {
-            'id': '14772/14870',
-            'ext': 'mp4',
-            'title': 'Festival EMERGENCY, Villa: «La buona informazione aiuta la salute» (14772-14870)',
-            'description': 'md5:2bce954d278248f3c950be355b7c2226',
-            'thumbnail': r're:^https://www\.repstatic\.it/video/photo/.+?-thumb-social-play\.jpg$',
-        },
-    }, {
-        'url': 'https://video.messaggeroveneto.gelocal.it/sport/dentro-la-notizia-ferrari-cosa-succede-a-maranello/133362/134466',
-        'only_matching': True,
-    }, {
-        'url': 'https://video.ilpiccolo.gelocal.it/sport/dentro-la-notizia-ferrari-cosa-succede-a-maranello/133362/134466',
-        'only_matching': True,
-    }, {
-        'url': 'https://video.gazzettadimantova.gelocal.it/sport/dentro-la-notizia-ferrari-cosa-succede-a-maranello/133362/134466',
-        'only_matching': True,
-    }, {
-        'url': 'https://video.mattinopadova.gelocal.it/sport/dentro-la-notizia-ferrari-cosa-succede-a-maranello/133362/134466',
-        'only_matching': True,
-    }, {
-        'url': 'https://video.laprovinciapavese.gelocal.it/sport/dentro-la-notizia-ferrari-cosa-succede-a-maranello/133362/134466',
-        'only_matching': True,
-    }, {
-        'url': 'https://video.tribunatreviso.gelocal.it/sport/dentro-la-notizia-ferrari-cosa-succede-a-maranello/133362/134466',
-        'only_matching': True,
-    }, {
-        'url': 'https://video.nuovavenezia.gelocal.it/sport/dentro-la-notizia-ferrari-cosa-succede-a-maranello/133362/134466',
-        'only_matching': True,
-    }, {
-        'url': 'https://video.gazzettadimodena.gelocal.it/sport/dentro-la-notizia-ferrari-cosa-succede-a-maranello/133362/134466',
-        'only_matching': True,
-    }, {
-        'url': 'https://video.lanuovaferrara.gelocal.it/sport/dentro-la-notizia-ferrari-cosa-succede-a-maranello/133362/134466',
-        'only_matching': True,
-    }, {
-        'url': 'https://video.corrierealpi.gelocal.it/sport/dentro-la-notizia-ferrari-cosa-succede-a-maranello/133362/134466',
-        'only_matching': True,
-    }, {
-        'url': 'https://video.lasentinella.gelocal.it/sport/dentro-la-notizia-ferrari-cosa-succede-a-maranello/133362/134466',
-        'only_matching': True,
-    }]
