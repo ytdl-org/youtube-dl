@@ -21,6 +21,7 @@ from ..utils import (
     parse_iso8601,
     sanitized_Request,
     std_headers,
+    try_get,
 )
 
 
@@ -30,7 +31,7 @@ class VikiBaseIE(InfoExtractor):
     _API_URL_TEMPLATE = 'https://api.viki.io%s&sig=%s'
 
     _APP = '100005a'
-    _APP_VERSION = '2.2.5.1428709186'
+    _APP_VERSION = '6.0.0'
     _APP_SECRET = 'MM_d*yP@`&1@]@!AVrXf_o-HVEnoTnm$O-ti4[G~$JDI/Dc-&piU&z&5.;:}95=Iad'
 
     _GEO_BYPASS = False
@@ -41,7 +42,7 @@ class VikiBaseIE(InfoExtractor):
     _ERRORS = {
         'geo': 'Sorry, this content is not available in your region.',
         'upcoming': 'Sorry, this content is not yet available.',
-        # 'paywall': 'paywall',
+        'paywall': 'Sorry, this content is only available to Viki Pass Plus subscribers',
     }
 
     def _prepare_call(self, path, timestamp=None, post_data=None):
@@ -62,7 +63,8 @@ class VikiBaseIE(InfoExtractor):
 
     def _call_api(self, path, video_id, note, timestamp=None, post_data=None):
         resp = self._download_json(
-            self._prepare_call(path, timestamp, post_data), video_id, note)
+            self._prepare_call(path, timestamp, post_data), video_id, note,
+            headers={'x-viki-app-ver': self._APP_VERSION})
 
         error = resp.get('error')
         if error:
@@ -82,11 +84,13 @@ class VikiBaseIE(InfoExtractor):
             expected=True)
 
     def _check_errors(self, data):
-        for reason, status in data.get('blocking', {}).items():
+        for reason, status in (data.get('blocking') or {}).items():
             if status and reason in self._ERRORS:
                 message = self._ERRORS[reason]
                 if reason == 'geo':
                     self.raise_geo_restricted(msg=message)
+                elif reason == 'paywall':
+                    self.raise_login_required(message)
                 raise ExtractorError('%s said: %s' % (
                     self.IE_NAME, message), expected=True)
 
@@ -131,13 +135,19 @@ class VikiIE(VikiBaseIE):
         'info_dict': {
             'id': '1023585v',
             'ext': 'mp4',
-            'title': 'Heirs Episode 14',
-            'uploader': 'SBS',
-            'description': 'md5:c4b17b9626dd4b143dcc4d855ba3474e',
+            'title': 'Heirs - Episode 14',
+            'uploader': 'SBS Contents Hub',
+            'timestamp': 1385047627,
             'upload_date': '20131121',
             'age_limit': 13,
+            'duration': 3570,
+            'episode_number': 14,
+        },
+        'params': {
+            'format': 'bestvideo',
         },
         'skip': 'Blocked in the US',
+        'expected_warnings': ['Unknown MIME type image/jpeg in DASH manifest'],
     }, {
         # clip
         'url': 'http://www.viki.com/videos/1067139v-the-avengers-age-of-ultron-press-conference',
@@ -153,7 +163,8 @@ class VikiIE(VikiBaseIE):
             'uploader': 'Arirang TV',
             'like_count': int,
             'age_limit': 0,
-        }
+        },
+        'skip': 'Sorry. There was an error loading this video',
     }, {
         'url': 'http://www.viki.com/videos/1048879v-ankhon-dekhi',
         'info_dict': {
@@ -171,7 +182,7 @@ class VikiIE(VikiBaseIE):
     }, {
         # episode
         'url': 'http://www.viki.com/videos/44699v-boys-over-flowers-episode-1',
-        'md5': '94e0e34fd58f169f40c184f232356cfe',
+        'md5': '0a53dc252e6e690feccd756861495a8c',
         'info_dict': {
             'id': '44699v',
             'ext': 'mp4',
@@ -183,6 +194,10 @@ class VikiIE(VikiBaseIE):
             'uploader': 'group8',
             'like_count': int,
             'age_limit': 13,
+            'episode_number': 1,
+        },
+        'params': {
+            'format': 'bestvideo',
         },
         'expected_warnings': ['Unknown MIME type image/jpeg in DASH manifest'],
     }, {
@@ -209,7 +224,7 @@ class VikiIE(VikiBaseIE):
     }, {
         # non-English description
         'url': 'http://www.viki.com/videos/158036v-love-in-magic',
-        'md5': 'adf9e321a0ae5d0aace349efaaff7691',
+        'md5': '41faaba0de90483fb4848952af7c7d0d',
         'info_dict': {
             'id': '158036v',
             'ext': 'mp4',
@@ -220,6 +235,10 @@ class VikiIE(VikiBaseIE):
             'title': 'Love In Magic',
             'age_limit': 13,
         },
+        'params': {
+            'format': 'bestvideo',
+        },
+        'expected_warnings': ['Unknown MIME type image/jpeg in DASH manifest'],
     }]
 
     def _real_extract(self, url):
@@ -229,36 +248,33 @@ class VikiIE(VikiBaseIE):
             'https://www.viki.com/api/videos/' + video_id,
             video_id, 'Downloading video JSON', headers={
                 'x-client-user-agent': std_headers['User-Agent'],
-                'x-viki-app-ver': '4.0.57',
+                'x-viki-app-ver': '3.0.0',
             })
         video = resp['video']
 
         self._check_errors(video)
 
         title = self.dict_selection(video.get('titles', {}), 'en', allow_fallback=False)
+        episode_number = int_or_none(video.get('number'))
         if not title:
-            title = 'Episode %d' % video.get('number') if video.get('type') == 'episode' else video.get('id') or video_id
-            container_titles = video.get('container', {}).get('titles', {})
+            title = 'Episode %d' % episode_number if video.get('type') == 'episode' else video.get('id') or video_id
+            container_titles = try_get(video, lambda x: x['container']['titles'], dict) or {}
             container_title = self.dict_selection(container_titles, 'en')
             title = '%s - %s' % (container_title, title)
 
         description = self.dict_selection(video.get('descriptions', {}), 'en')
 
-        duration = int_or_none(video.get('duration'))
-        timestamp = parse_iso8601(video.get('created_at'))
-        uploader = video.get('author')
-        like_count = int_or_none(video.get('likes', {}).get('count'))
-        age_limit = parse_age_limit(video.get('rating'))
+        like_count = int_or_none(try_get(video, lambda x: x['likes']['count']))
 
         thumbnails = []
-        for thumbnail_id, thumbnail in video.get('images', {}).items():
+        for thumbnail_id, thumbnail in (video.get('images') or {}).items():
             thumbnails.append({
                 'id': thumbnail_id,
                 'url': thumbnail.get('url'),
             })
 
         subtitles = {}
-        for subtitle_lang, _ in video.get('subtitle_completions', {}).items():
+        for subtitle_lang, _ in (video.get('subtitle_completions') or {}).items():
             subtitles[subtitle_lang] = [{
                 'ext': subtitles_format,
                 'url': self._prepare_call(
@@ -269,13 +285,15 @@ class VikiIE(VikiBaseIE):
             'id': video_id,
             'title': title,
             'description': description,
-            'duration': duration,
-            'timestamp': timestamp,
-            'uploader': uploader,
+            'duration': int_or_none(video.get('duration')),
+            'timestamp': parse_iso8601(video.get('created_at')),
+            'uploader': video.get('author'),
+            'uploader_url': video.get('author_url'),
             'like_count': like_count,
-            'age_limit': age_limit,
+            'age_limit': parse_age_limit(video.get('rating')),
             'thumbnails': thumbnails,
             'subtitles': subtitles,
+            'episode_number': episode_number,
         }
 
         formats = []
@@ -360,7 +378,7 @@ class VikiChannelIE(VikiBaseIE):
         'info_dict': {
             'id': '50c',
             'title': 'Boys Over Flowers',
-            'description': 'md5:ecd3cff47967fe193cff37c0bec52790',
+            'description': 'md5:804ce6e7837e1fd527ad2f25420f4d59',
         },
         'playlist_mincount': 71,
     }, {
@@ -371,6 +389,7 @@ class VikiChannelIE(VikiBaseIE):
             'description': 'md5:05bf5471385aa8b21c18ad450e350525',
         },
         'playlist_count': 127,
+        'skip': 'Page not found',
     }, {
         'url': 'http://www.viki.com/news/24569c-showbiz-korea',
         'only_matching': True,
