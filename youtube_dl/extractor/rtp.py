@@ -6,22 +6,27 @@ from ..utils import (
     determine_ext,
     js_to_json,
 )
+from ..compat import (
+    compat_b64decode,
+    compat_urllib_parse_unquote,
+)
+
+import re
 
 
 class RTPIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:www\.)?rtp\.pt/play/p(?P<program_id>[0-9]+)/(?P<id>[^/?#]+)/?'
+    _VALID_URL = r'https?://(?:www\.)?rtp\.pt/play/(.*\/)?p(?P<program_id>[0-9]+)/(?P<id>[^/?#]+)/?'
     _TESTS = [{
-        'url': 'http://www.rtp.pt/play/p405/e174042/paixoes-cruzadas',
-        'md5': 'e736ce0c665e459ddb818546220b4ef8',
+        'url': 'https://www.rtp.pt/play/p117/e476527/os-contemporaneos',
         'info_dict': {
-            'id': 'e174042',
-            'ext': 'mp3',
-            'title': 'Paixões Cruzadas',
-            'description': 'As paixões musicais de António Cartaxo e António Macedo',
+            'id': 'e476527',
+            'ext': 'mp4',
+            'title': 'Os Contemporâneos Episódio 1 -  RTP Play - RTP',
+            'description': 'Os Contemporâneos, um programa de humor com um olhar na sociedade portuguesa!',
             'thumbnail': r're:^https?://.*\.jpg',
         },
     }, {
-        'url': 'http://www.rtp.pt/play/p831/a-quimica-das-coisas',
+        'url': 'https://www.rtp.pt/play/p510/aleixo-fm',
         'only_matching': True,
     }]
 
@@ -29,30 +34,60 @@ class RTPIE(InfoExtractor):
         video_id = self._match_id(url)
 
         webpage = self._download_webpage(url, video_id)
-        title = self._html_search_meta(
-            'twitter:title', webpage, display_name='title', fatal=True)
+        title = self._html_search_regex(r'<title>(.+?)</title>', webpage, 'title')
 
-        config = self._parse_json(self._search_regex(
-            r'(?s)RTPPlayer\(({.+?})\);', webpage,
-            'player config'), video_id, js_to_json)
+        # Get JS object
+        js_object = self._search_regex(r'(?s)RTPPlayer *\( *({.+?}) *\);', webpage, 'player config')
+
+        json_string_for_config = ''
+
+        # Verify JS object since it isn't pure JSON and maybe it needs some decodings
+        for line in js_object.splitlines():
+            stripped_line = line.strip()
+
+            # If JS object key is 'file'
+            if re.match('file ?:', stripped_line):
+                if 'decodeURIComponent' in stripped_line:
+                    # 1) The file URL is inside object and with HLS encoded...
+                    hls_encoded = re.match(r"[^[]*\[([^]]*)\]", stripped_line).groups()[0]
+                    hls_encoded = hls_encoded.replace('"', '').replace('\'', '').replace(',', '')
+                    decoded_file_url = compat_b64decode(
+                        compat_urllib_parse_unquote(
+                            hls_encoded.replace('"', '').replace(',', ''))).decode('utf-8')
+
+                    # Insert the decoded HLS file URL into pure JSON string
+                    json_string_for_config += '\nfile: "' + decoded_file_url + '",'
+                else:
+                    # 2) ... or it's a direct M3U8 file
+                    json_string_for_config += '\n' + line
+
+            elif not stripped_line.startswith("//") and not re.match('fileKey ?:', stripped_line):
+                # Ignore commented lines and 'fileKey' entry since it is no longer supported by RTP
+                json_string_for_config += '\n' + line
+
+        # Finally send pure JSON string for JSON parsing
+        config = self._parse_json(json_string_for_config, video_id, js_to_json)
+
+        # config = self._parse_json(self._search_regex(
+        #       r'(?s)RTPPlayer ?\( ?({.+?})\);', webpage,
+        #       'player config'), video_id, js_to_json)
+
         file_url = config['file']
         ext = determine_ext(file_url)
+
         if ext == 'm3u8':
-            file_key = config.get('fileKey')
+            # Download via m3u8 file
             formats = self._extract_m3u8_formats(
                 file_url, video_id, 'mp4', 'm3u8_native',
-                m3u8_id='hls', fatal=file_key)
-            if file_key:
-                formats.append({
-                    'url': 'https://cdn-ondemand.rtp.pt' + file_key,
-                    'preference': 1,
-                })
+                m3u8_id='hls')
+
             self._sort_formats(formats)
         else:
             formats = [{
                 'url': file_url,
                 'ext': ext,
             }]
+
         if config.get('mediaType') == 'audio':
             for f in formats:
                 f['vcodec'] = 'none'
