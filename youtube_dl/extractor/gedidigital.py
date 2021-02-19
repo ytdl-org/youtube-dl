@@ -4,10 +4,7 @@ from __future__ import unicode_literals
 import re
 
 from .common import InfoExtractor
-from ..utils import (
-    int_or_none,
-    parse_iso8601,
-)
+from ..utils import parse_iso8601
 
 
 class GediDigitalIE(InfoExtractor):
@@ -125,97 +122,27 @@ class GediDigitalIE(InfoExtractor):
         'only_matching': True,
     }]
 
-    @staticmethod
-    def _clean_audio_fmts(formats):
-        # remove duplicates audio formats
-        unique_formats = []
-        for f in formats:
-            if 'acodec' in f:
-                unique_formats.append(f)
-        formats[:] = unique_formats
-
-    @staticmethod
-    def _generate_http_urls(mp4, formats):
-        _QUALITY = {
-            # tbr: w, h
-            '200': [428, 240],
-            '400': [428, 240],
-            '650': [640, 360],
-            '1200': [640, 360],
-            '1800': [854, 480],
-            '2500': [1280, 720],
-            '3500': [1280, 720],
-            '4500': [1920, 1080]
-        }
-        _PATTERN = r'(rrtv-([\d\,]+)-)'
-
-        def get_format_info(tbr):
-            br = int_or_none(tbr)
-            if len(formats) == 1 and not br:
-                br = formats[0].get('tbr')
-
-            for f in formats:
-                if f.get('tbr'):
-                    if (br - br / 100 * 10) <= f['tbr'] <= (br + br / 100 * 10):
-                        return [
-                            f.get('width'),
-                            f.get('height'),
-                            f['tbr']
-                        ]
-            return [None, None, None]
-
-        mobj = re.search(_PATTERN, mp4.get('mp4') or '')
-        if not mobj:
-            return None
-        pattern = mobj.group(1)
-
-        qualities = re.search(_PATTERN, mp4.get('manifest') or '')
-        if qualities:
-            qualities = qualities.group(2)
-            qualities = qualities.split(',') if qualities else ['.']
-            qualities = [i for i in qualities if i]
-        else:
-            qualities = [mobj.group(2)]
-
-        http_formats = []
-        for q in qualities:
-            w, h, t = get_format_info(q)
-            http_formats.append({
-                'url': mp4['mp4'].replace(pattern, 'rrtv-%s-' % q),
-                'width': w or _QUALITY[q][0],
-                'height': h or _QUALITY[q][1],
-                'tbr': t or int(q),
-                'protocol': 'https',
-                'format_id': 'https-%s' % q,
-            })
-        return http_formats
-
     def _real_extract(self, url):
         video_id = self._match_id(url)
 
         webpage = self._download_webpage(url, video_id)
         player_data = re.findall(
-            r'''PlayerFactory\.setParam\('(?P<type>format|param)',\s*'(?P<name>(?:audio|video|mp4|image).*?)',\s*'(?P<val>.+?)'\);''',
+            r'''PlayerFactory\.setParam\('(?P<type>format|param)',\s*'(?P<name>(?:audio|video|image).*?)',\s*'(?P<val>.+?)'\);''',
             webpage)
 
         formats = []
-        audio_fmts = []
         thumb = None
-        mp4 = {}
 
         for t, n, v in player_data:
             if t == 'format':
-                if n == 'mp4':
-                    mp4.update({'mp4': v})
                 if n == 'video-hls-vod-ak':
-                    mp4.update({'manifest': v})
                     formats.extend(self._extract_akamai_formats(
                         v, video_id, {'http': 'media.gedidigital.it'}))
                 if n == 'audio-hls-vod':
-                    audio_fmts.extend(self._extract_m3u8_formats(
+                    formats.extend(self._extract_m3u8_formats(
                         v, video_id, 'm4a', m3u8_id='audio-hls', fatal=False))
                 if n == 'audio-rrtv-mp3':
-                    audio_fmts.append({
+                    formats.append({
                         'format_id': 'audio-mp3',
                         'url': v,
                         'tbr': 128,
@@ -227,10 +154,6 @@ class GediDigitalIE(InfoExtractor):
                 if n in ['image_full_play', 'image_full', 'image']:
                     thumb = v
 
-        # self._clean_audio_fmts(audio_fmts)
-        formats.extend(audio_fmts)
-        if mp4:
-            formats.extend(self._generate_http_urls(mp4, formats) or [])
         self._sort_formats(formats)
 
         return {
