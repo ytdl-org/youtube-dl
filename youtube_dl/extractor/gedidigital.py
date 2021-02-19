@@ -5,6 +5,7 @@ import re
 
 from .common import InfoExtractor
 from ..compat import compat_str
+from ..utils import int_or_none
 
 
 class GediDigitalIE(InfoExtractor):
@@ -30,7 +31,7 @@ class GediDigitalIE(InfoExtractor):
                     (?:\.gelocal)?\.it/.+?/(?P<id>[\d/]+)(?:\?|\&|$)'''
     _TESTS = [{
         'url': 'https://video.lastampa.it/politica/il-paradosso-delle-regionali-la-lega-vince-ma-sembra-aver-perso/121559/121683',
-        'md5': '60f33c793bc396dc23da682d2453feee',
+        'md5': '84658d7fb9e55a6e57ecc77b73137494',
         'info_dict': {
             'id': '121559/121683',
             'ext': 'mp4',
@@ -40,7 +41,7 @@ class GediDigitalIE(InfoExtractor):
         },
     }, {
         'url': 'https://video.repubblica.it/motori/record-della-pista-a-spa-francorchamps-la-pagani-huayra-roadster-bc-stupisce/367415/367963',
-        'md5': '1737111b9601b2d36b456f992643e911',
+        'md5': 'e763b94b7920799a0e0e23ffefa2d157',
         'info_dict': {
             'id': '367415/367963',
             'ext': 'mp4',
@@ -50,7 +51,7 @@ class GediDigitalIE(InfoExtractor):
         },
     }, {
         'url': 'https://video.ilsecoloxix.it/sport/cassani-e-i-brividi-azzurri-ai-mondiali-di-imola-qui-mi-sono-innamorato-del-ciclismo-da-ragazzino-incredibile-tornarci-da-ct/66184/66267',
-        'md5': '696a20e29a83422125995fc371879bb8',
+        'md5': 'e48108e97b1af137d22a8469f2019057',
         'info_dict': {
             'id': '66184/66267',
             'ext': 'mp4',
@@ -60,7 +61,7 @@ class GediDigitalIE(InfoExtractor):
         },
     }, {
         'url': 'https://video.iltirreno.gelocal.it/sport/dentro-la-notizia-ferrari-cosa-succede-a-maranello/141059/142723',
-        'md5': '6e5e85fac6cdd8b41b868d55645b411d',
+        'md5': 'a6e39f3bdc1842bbd92abbbbef230817',
         'info_dict': {
             'id': '141059/142723',
             'ext': 'mp4',
@@ -70,7 +71,7 @@ class GediDigitalIE(InfoExtractor):
         },
     }, {
         'url': 'https://video.espresso.repubblica.it/embed/tutti-i-video/01-ted-villa/14772/14870&width=640&height=360',
-        'md5': '295b7eed409f12c7107f9adca58a0cc6',
+        'md5': 'ca3323b47c94cac92fff03eef0387d97',
         'info_dict': {
             'id': '14772/14870',
             'ext': 'mp4',
@@ -122,6 +123,62 @@ class GediDigitalIE(InfoExtractor):
                 unique_formats.append(f)
         formats[:] = unique_formats
 
+    @staticmethod
+    def _generate_http_urls(mp4, formats):
+        _QUALITY = {
+            # tbr: w, h
+            '200': [428, 240],
+            '400': [428, 240],
+            '650': [640, 360],
+            '1200': [640, 360],
+            '1800': [854, 480],
+            '2500': [1280, 720],
+            '3500': [1280, 720],
+            '4500': [1920, 1080]
+        }
+        _PATTERN = r'(rrtv-([\d\,]+)-)'
+
+        def get_format_info(tbr):
+            br = int_or_none(tbr)
+            if len(formats) == 1 and not br:
+                br = formats[0].get('tbr')
+
+            for f in formats:
+                if f.get('tbr'):
+                    if (br - br / 100 * 10) <= f['tbr'] <= (br + br / 100 * 10):
+                        return [
+                            f.get('width'),
+                            f.get('height'),
+                            f['tbr']
+                        ]
+            return [None, None, None]
+
+        mobj = re.search(_PATTERN, mp4.get('mp4') or '')
+        if not mobj:
+            return None
+        pattern = mobj.group(1)
+
+        qualities = re.search(_PATTERN, mp4.get('manifest') or '')
+        if qualities:
+            qualities = qualities.group(2)
+            qualities = qualities.split(',') if qualities else ['.']
+            qualities = [i for i in qualities if i]
+        else:
+            qualities = [mobj.group(2)]
+
+        http_formats = []
+        for q in qualities:
+            w, h, t = get_format_info(q)
+            http_formats.append({
+                'url': mp4['mp4'].replace(pattern, 'rrtv-%s-' % q),
+                'width': w or _QUALITY[q][0],
+                'height': h or _QUALITY[q][1],
+                'tbr': t or int(q),
+                'protocol': 'https',
+                'format_id': 'https-%s' % q,
+            })
+        return http_formats
+
     def _real_extract(self, url):
         u = re.match(self._VALID_URL, url)
         self.IE_NAME = u.group('iename') if u.group('iename') else 'gedi'
@@ -136,15 +193,19 @@ class GediDigitalIE(InfoExtractor):
         audio_fmts = []
         title = None
         thumb = None
+        mp4 = {}
 
         for t, n, v in player_data:
             if t == 'format':
+                if n == 'mp4':
+                    mp4.update({'mp4': v})
                 if n == 'video-hls-vod-ak':
+                    mp4.update({'manifest': v})
                     formats.extend(self._extract_akamai_formats(
                         v, video_id, {'http': 'media.gedidigital.it'}))
                 if n == 'audio-hls-vod':
                     audio_fmts.extend(self._extract_m3u8_formats(
-                        v, video_id, 'm4a', m3u8_id='hls', fatal=False))
+                        v, video_id, 'm4a', m3u8_id='audio-hls', fatal=False))
                 if n == 'audio-rrtv-mp3':
                     audio_fmts.append({
                         'format_id': 'mp3',
@@ -167,6 +228,10 @@ class GediDigitalIE(InfoExtractor):
 
         self._clean_audio_fmts(audio_fmts)
         formats.extend(audio_fmts)
+
+        if mp4:
+            formats.extend(self._generate_http_urls(mp4, formats) or [])
+
         self._sort_formats(formats)
 
         return {
