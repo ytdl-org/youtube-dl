@@ -4,14 +4,15 @@ from __future__ import unicode_literals
 import re
 
 from .common import InfoExtractor
-from ..compat import compat_str
-from ..utils import int_or_none
+from ..utils import (
+    int_or_none,
+    parse_iso8601,
+)
 
 
 class GediDigitalIE(InfoExtractor):
-    IE_NAME = ''
     _VALID_URL = r'''(?x)https?://video\.
-                    (?P<iename>
+                    (?:
                         (?:espresso\.)?repubblica
                         |lastampa
                         |ilsecoloxix
@@ -38,6 +39,8 @@ class GediDigitalIE(InfoExtractor):
             'title': 'Il paradosso delle Regionali: ecco perché la Lega vince ma sembra aver perso',
             'description': 'md5:de7f4d6eaaaf36c153b599b10f8ce7ca',
             'thumbnail': r're:^https://www\.repstatic\.it/video/photo/.+?-thumb-social-play\.jpg$',
+            'timestamp': 1600788168,
+            'upload_date': '20200922',
         },
     }, {
         'url': 'https://video.repubblica.it/motori/record-della-pista-a-spa-francorchamps-la-pagani-huayra-roadster-bc-stupisce/367415/367963',
@@ -48,6 +51,8 @@ class GediDigitalIE(InfoExtractor):
             'title': 'Record della pista a Spa Francorchamps, la Pagani Huayra Roadster BC stupisce',
             'description': 'md5:5deb503cefe734a3eb3f07ed74303920',
             'thumbnail': r're:^https://www\.repstatic\.it/video/photo/.+?-thumb-social-play\.jpg$',
+            'timestamp': 1600531032,
+            'upload_date': '20200919',
         },
     }, {
         'url': 'https://video.ilsecoloxix.it/sport/cassani-e-i-brividi-azzurri-ai-mondiali-di-imola-qui-mi-sono-innamorato-del-ciclismo-da-ragazzino-incredibile-tornarci-da-ct/66184/66267',
@@ -55,9 +60,11 @@ class GediDigitalIE(InfoExtractor):
         'info_dict': {
             'id': '66184/66267',
             'ext': 'mp4',
-            'title': 'Cassani e i brividi azzurri ai Mondiali di Imola: \\"Qui mi sono innamorato del ciclismo da ragazzino, incredibile tornarci da ct\\"',
+            'title': 'Cassani e i brividi azzurri ai Mondiali di Imola: \'Qui mi sono innamorato del ciclismo da ragazzino, incredibile tornarci da ct\'',
             'description': 'md5:fc9c50894f70a2469bb9b54d3d0a3d3b',
             'thumbnail': r're:^https://www\.repstatic\.it/video/photo/.+?-thumb-social-play\.jpg$',
+            'timestamp': 1600852553,
+            'upload_date': '20200923',
         },
     }, {
         'url': 'https://video.iltirreno.gelocal.it/sport/dentro-la-notizia-ferrari-cosa-succede-a-maranello/141059/142723',
@@ -68,6 +75,8 @@ class GediDigitalIE(InfoExtractor):
             'title': 'Dentro la notizia - Ferrari, cosa succede a Maranello',
             'description': 'md5:9907d65b53765681fa3a0b3122617c1f',
             'thumbnail': r're:^https://www\.repstatic\.it/video/photo/.+?-thumb-social-play\.jpg$',
+            'timestamp': 1600847536,
+            'upload_date': '20200923',
         },
     }, {
         'url': 'https://video.espresso.repubblica.it/embed/tutti-i-video/01-ted-villa/14772/14870&width=640&height=360',
@@ -75,9 +84,11 @@ class GediDigitalIE(InfoExtractor):
         'info_dict': {
             'id': '14772/14870',
             'ext': 'mp4',
-            'title': 'Festival EMERGENCY, Villa: «La buona informazione aiuta la salute» (14772-14870)',
+            'title': 'Festival EMERGENCY, Villa: «La buona informazione aiuta la salute»',
             'description': 'md5:2bce954d278248f3c950be355b7c2226',
             'thumbnail': r're:^https://www\.repstatic\.it/video/photo/.+?-thumb-social-play\.jpg$',
+            'timestamp': 1602159940,
+            'upload_date': '20201008',
         },
     }, {
         'url': 'https://video.messaggeroveneto.gelocal.it/sport/dentro-la-notizia-ferrari-cosa-succede-a-maranello/133362/134466',
@@ -180,18 +191,15 @@ class GediDigitalIE(InfoExtractor):
         return http_formats
 
     def _real_extract(self, url):
-        u = re.match(self._VALID_URL, url)
-        self.IE_NAME = u.group('iename') if u.group('iename') else 'gedi'
         video_id = self._match_id(url)
 
         webpage = self._download_webpage(url, video_id)
         player_data = re.findall(
-            r'PlayerFactory\.setParam\(\'(?P<type>.+?)\',\s*\'(?P<name>.+?)\',\s*\'(?P<val>.+?)\'\);',
+            r'''PlayerFactory\.setParam\('(?P<type>format|param)',\s*'(?P<name>(?:audio|video|mp4|image).*?)',\s*'(?P<val>.+?)'\);''',
             webpage)
 
         formats = []
         audio_fmts = []
-        title = None
         thumb = None
         mp4 = {}
 
@@ -208,7 +216,7 @@ class GediDigitalIE(InfoExtractor):
                         v, video_id, 'm4a', m3u8_id='audio-hls', fatal=False))
                 if n == 'audio-rrtv-mp3':
                     audio_fmts.append({
-                        'format_id': 'mp3',
+                        'format_id': 'audio-mp3',
                         'url': v,
                         'tbr': 128,
                         'ext': 'mp3',
@@ -216,28 +224,24 @@ class GediDigitalIE(InfoExtractor):
                         'acodec': 'mp3',
                     })
             elif t == 'param':
-                if n == 'videotitle':
-                    title = v
                 if n in ['image_full_play', 'image_full', 'image']:
                     thumb = v
 
-        title = self._og_search_title(webpage) if not title else title
-
-        # clean weird char
-        title = compat_str(title).encode('utf8', 'replace').replace(b'\xc3\x82', b'').decode('utf8', 'replace')
-
-        self._clean_audio_fmts(audio_fmts)
+        # self._clean_audio_fmts(audio_fmts)
         formats.extend(audio_fmts)
-
         if mp4:
             formats.extend(self._generate_http_urls(mp4, formats) or [])
-
         self._sort_formats(formats)
 
         return {
             'id': video_id,
-            'title': title,
-            'description': self._html_search_meta('twitter:description', webpage),
-            'thumbnail': thumb,
+            'title': self._html_search_meta('twitter:title', webpage) or self._og_search_title(webpage),
+            'description': self._html_search_meta(
+                ['twitter:description', 'og:description', 'description'],
+                webpage, default=None),
+            'timestamp': parse_iso8601(self._og_search_property(
+                ['published_time', 'modified_time'],
+                webpage, default='').strip()),
+            'thumbnail': thumb or self._og_search_thumbnail(webpage),
             'formats': formats,
         }
