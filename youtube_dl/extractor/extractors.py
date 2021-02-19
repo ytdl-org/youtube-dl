@@ -642,6 +642,10 @@ from .mediasite import (
     MediasiteCatalogIE,
     MediasiteNamedCatalogIE,
 )
+from .mediathekviewweb import (
+    MediathekViewWebSearchIE,
+    MediathekViewWebIE,
+)
 from .medici import MediciIE
 from .megaphone import MegaphoneIE
 from .meipai import MeipaiIE

@@ -165,14 +165,11 @@ class MediathekViewWebSearchIE(SearchInfoExtractor):
                 headers={'Content-Type': 'text/plain'})
             if results['err'] is not None:
                 raise ExtractorError('API returned an error: %s' % results['err'][0])
-
-            meta = results['result']['queryInfo']
-            print(json.dumps(meta))
-
             entries.extend(self._extract_playlist_entries(results['result']['results']))
 
+            meta = results['result']['queryInfo']
             # @todo This returns full pages: 100 results if 51 are requested.
-            if meta['resultCount'] == 0 or meta['resultCount'] + queryObject['offset'] >= n:
+            if len(entries) >= n or meta['resultCount'] == 0:
                 break
 
         return self.playlist_result(entries, playlist_title=query)
@@ -183,7 +180,6 @@ class MediathekViewWebIE(InfoExtractor):
     _VALID_URL = r'https?://mediathekviewweb\.de/\#query=(?P<id>.+)'
 
     # @todo Specify test cases.
-
     def _real_extract(self, url):
         query = self._match_id(url)
         search = compat_urllib_parse_unquote(query)
