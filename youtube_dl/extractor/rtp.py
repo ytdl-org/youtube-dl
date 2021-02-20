@@ -58,7 +58,7 @@ class RTPIE(InfoExtractor):
                     # Insert the decoded HLS file URL into pure JSON string
                     json_string_for_config += '\nfile: "' + decoded_file_url + '",'
                 else:
-                    # 2) ... or it's a direct M3U8 file
+                    # 2) ... or the file URL is not encoded so keep it that way
                     json_string_for_config += '\n' + line
 
             elif not stripped_line.startswith("//") and not re.match('fileKey ?:', stripped_line):
@@ -68,11 +68,12 @@ class RTPIE(InfoExtractor):
         # Finally send pure JSON string for JSON parsing
         config = self._parse_json(json_string_for_config, video_id, js_to_json)
 
-        # config = self._parse_json(self._search_regex(
-        #       r'(?s)RTPPlayer ?\( ?({.+?})\);', webpage,
-        #       'player config'), video_id, js_to_json)
+        # Check if file URL is directly a string or is still inside object
+        if isinstance(config['file'], str):
+            file_url = config['file']
+        else:
+            file_url = config['file']['hls']
 
-        file_url = config['file']
         ext = determine_ext(file_url)
 
         if ext == 'm3u8':
