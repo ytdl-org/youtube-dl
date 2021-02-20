@@ -88,37 +88,37 @@ class GediDigitalIE(InfoExtractor):
             'upload_date': '20201008',
         },
     }, {
-        'url': 'https://video.messaggeroveneto.gelocal.it/sport/dentro-la-notizia-ferrari-cosa-succede-a-maranello/133362/134466',
+        'url': 'https://video.messaggeroveneto.gelocal.it/locale/maria-giovanna-elmi-covid-vaccino/138155/139268',
         'only_matching': True,
     }, {
-        'url': 'https://video.ilpiccolo.gelocal.it/sport/dentro-la-notizia-ferrari-cosa-succede-a-maranello/133362/134466',
+        'url': 'https://video.ilpiccolo.gelocal.it/dossier/big-john/dinosauro-big-john-al-via-le-visite-guidate-a-trieste/135226/135751',
         'only_matching': True,
     }, {
-        'url': 'https://video.gazzettadimantova.gelocal.it/sport/dentro-la-notizia-ferrari-cosa-succede-a-maranello/133362/134466',
+        'url': 'https://video.gazzettadimantova.gelocal.it/locale/dal-ponte-visconteo-di-valeggio-l-and-8217sos-dei-ristoratori-aprire-anche-a-cena/137310/137818',
         'only_matching': True,
     }, {
-        'url': 'https://video.mattinopadova.gelocal.it/sport/dentro-la-notizia-ferrari-cosa-succede-a-maranello/133362/134466',
+        'url': 'https://video.mattinopadova.gelocal.it/dossier/coronavirus-in-veneto/covid-a-vo-un-anno-dopo-un-cuore-tricolore-per-non-dimenticare/138402/138964',
         'only_matching': True,
     }, {
-        'url': 'https://video.laprovinciapavese.gelocal.it/sport/dentro-la-notizia-ferrari-cosa-succede-a-maranello/133362/134466',
+        'url': 'https://video.laprovinciapavese.gelocal.it/locale/mede-zona-rossa-via-alle-vaccinazioni-per-gli-over-80/137545/138120',
         'only_matching': True,
     }, {
-        'url': 'https://video.tribunatreviso.gelocal.it/sport/dentro-la-notizia-ferrari-cosa-succede-a-maranello/133362/134466',
+        'url': 'https://video.tribunatreviso.gelocal.it/dossier/coronavirus-in-veneto/ecco-le-prima-vaccinazioni-di-massa-nella-marca/134485/135024',
         'only_matching': True,
     }, {
-        'url': 'https://video.nuovavenezia.gelocal.it/sport/dentro-la-notizia-ferrari-cosa-succede-a-maranello/133362/134466',
+        'url': 'https://video.nuovavenezia.gelocal.it/locale/camion-troppo-alto-per-il-ponte-ferroviario-perde-il-carico/135734/136266',
         'only_matching': True,
     }, {
-        'url': 'https://video.gazzettadimodena.gelocal.it/sport/dentro-la-notizia-ferrari-cosa-succede-a-maranello/133362/134466',
+        'url': 'https://video.gazzettadimodena.gelocal.it/locale/modena-scoperta-la-proteina-che-predice-il-livello-di-gravita-del-covid/139109/139796',
         'only_matching': True,
     }, {
-        'url': 'https://video.lanuovaferrara.gelocal.it/sport/dentro-la-notizia-ferrari-cosa-succede-a-maranello/133362/134466',
+        'url': 'https://video.lanuovaferrara.gelocal.it/locale/due-bombole-di-gpl-aperte-e-abbandonate-i-vigili-bruciano-il-gas/134391/134957',
         'only_matching': True,
     }, {
-        'url': 'https://video.corrierealpi.gelocal.it/sport/dentro-la-notizia-ferrari-cosa-succede-a-maranello/133362/134466',
+        'url': 'https://video.corrierealpi.gelocal.it/dossier/cortina-2021-i-mondiali-di-sci-alpino/mondiali-di-sci-il-timelapse-sulla-splendida-olympia/133760/134331',
         'only_matching': True,
     }, {
-        'url': 'https://video.lasentinella.gelocal.it/sport/dentro-la-notizia-ferrari-cosa-succede-a-maranello/133362/134466',
+        'url': 'https://video.lasentinella.gelocal.it/locale/vestigne-centra-un-auto-e-si-ribalta/138931/139466',
         'only_matching': True,
     }]
 
