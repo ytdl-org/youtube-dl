@@ -4,7 +4,10 @@ from __future__ import unicode_literals
 import re
 
 from .common import InfoExtractor
-from ..utils import parse_iso8601
+from ..utils import (
+    int_or_none,
+    parse_iso8601,
+)
 
 
 class GediDigitalIE(InfoExtractor):
@@ -29,7 +32,7 @@ class GediDigitalIE(InfoExtractor):
                     (?:\.gelocal)?\.it/.+?/(?P<id>[\d/]+)(?:\?|\&|$)'''
     _TESTS = [{
         'url': 'https://video.lastampa.it/politica/il-paradosso-delle-regionali-la-lega-vince-ma-sembra-aver-perso/121559/121683',
-        'md5': '84658d7fb9e55a6e57ecc77b73137494',
+        'md5': '1e9bbbfb7c563b6858376fa6e4211b30',
         'info_dict': {
             'id': '121559/121683',
             'ext': 'mp4',
@@ -41,7 +44,7 @@ class GediDigitalIE(InfoExtractor):
         },
     }, {
         'url': 'https://video.repubblica.it/motori/record-della-pista-a-spa-francorchamps-la-pagani-huayra-roadster-bc-stupisce/367415/367963',
-        'md5': 'e763b94b7920799a0e0e23ffefa2d157',
+        'md5': 'c75ba5637a3c375a1b09062d7a7bd305',
         'info_dict': {
             'id': '367415/367963',
             'ext': 'mp4',
@@ -53,7 +56,7 @@ class GediDigitalIE(InfoExtractor):
         },
     }, {
         'url': 'https://video.ilsecoloxix.it/sport/cassani-e-i-brividi-azzurri-ai-mondiali-di-imola-qui-mi-sono-innamorato-del-ciclismo-da-ragazzino-incredibile-tornarci-da-ct/66184/66267',
-        'md5': 'e48108e97b1af137d22a8469f2019057',
+        'md5': '08097084884a2edfc532fb1f2434d22a',
         'info_dict': {
             'id': '66184/66267',
             'ext': 'mp4',
@@ -65,7 +68,7 @@ class GediDigitalIE(InfoExtractor):
         },
     }, {
         'url': 'https://video.iltirreno.gelocal.it/sport/dentro-la-notizia-ferrari-cosa-succede-a-maranello/141059/142723',
-        'md5': 'a6e39f3bdc1842bbd92abbbbef230817',
+        'md5': 'ad0bfd3683e7e2bbe3f52b0d5c27ecb4',
         'info_dict': {
             'id': '141059/142723',
             'ext': 'mp4',
@@ -77,7 +80,7 @@ class GediDigitalIE(InfoExtractor):
         },
     }, {
         'url': 'https://video.espresso.repubblica.it/embed/tutti-i-video/01-ted-villa/14772/14870&width=640&height=360',
-        'md5': 'ca3323b47c94cac92fff03eef0387d97',
+        'md5': '0391c2c83c6506581003aaf0255889c0',
         'info_dict': {
             'id': '14772/14870',
             'ext': 'mp4',
@@ -127,20 +130,42 @@ class GediDigitalIE(InfoExtractor):
 
         webpage = self._download_webpage(url, video_id)
         player_data = re.findall(
-            r'''PlayerFactory\.setParam\('(?P<type>format|param)',\s*'(?P<name>(?:audio|video|image).*?)',\s*'(?P<val>.+?)'\);''',
+            r'''PlayerFactory\.setParam\('(?P<type>format|param)',\s*'(?P<name>(?:audio|video|image|mp4).*?)',\s*'(?P<val>.+?)'\);''',
             webpage)
 
         formats = []
         thumb = None
-
         for t, n, v in player_data:
             if t == 'format':
-                if n == 'video-hls-vod-ak':
-                    formats.extend(self._extract_akamai_formats(
-                        v, video_id, {'http': 'media.gedidigital.it'}))
-                if n == 'audio-hls-vod':
+                # http direct formats
+                fmt = re.match(r'(?:video|mp4)(?:-rrtv-)?(\d+)?-?(\d+)?$', n)
+                if fmt:
+                    formats.append({
+                        'format_id': n if 'video' in n else 'video-%s' % n,
+                        'url': v,
+                        'ext': 'mp4',
+                        'protocol': 'https',
+                        'height': int_or_none(fmt.group(1)) or 360,
+                        'tbr': int_or_none(fmt.group(2)) or (
+                            4500 if fmt.group(1) == '1080' else 650),
+                    })
+                    continue
+                # hls formats
+                fmt = re.match(r'(video|audio)-hls-', n)
+                if fmt:
+                    ext = 'mp4' if fmt.group(1) == 'video' else 'm4a'
                     formats.extend(self._extract_m3u8_formats(
-                        v, video_id, 'm4a', m3u8_id='audio-hls', fatal=False))
+                        v, video_id, ext, m3u8_id=n, fatal=False))
+                    continue
+                # hds formats
+                if 'video-hds-' in n:
+                    f4m_formats = self._extract_f4m_formats(
+                        '%s?hdcore=3.7.0' % v, video_id, f4m_id=n, fatal=False)
+                    for entry in f4m_formats:
+                        entry.update({'extra_param_to_segment_url': 'hdcore=3.7.0'})
+                    formats.extend(f4m_formats)
+                    continue
+                # mp3 audio
                 if n == 'audio-rrtv-mp3':
                     formats.append({
                         'format_id': 'audio-mp3',
@@ -150,9 +175,8 @@ class GediDigitalIE(InfoExtractor):
                         'vcodec': 'none',
                         'acodec': 'mp3',
                     })
-            elif t == 'param':
-                if n in ['image_full_play', 'image_full', 'image']:
-                    thumb = v
+            elif t == 'param' and n in ['image_full_play', 'image_full', 'image']:
+                thumb = v
 
         self._sort_formats(formats)
 
