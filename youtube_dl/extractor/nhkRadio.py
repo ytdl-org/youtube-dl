@@ -82,14 +82,13 @@ class NhkRadioIE(NhkRadioBase):
 class NhkRadioProgramIE(NhkRadioBase):
     _VALID_URL = r"https?://www\.nhk\.or\.jp/radio/ondemand/detail\.html\?p=(?P<program_id>\d+)_(?P<corner_id>\d+)"
 
-    _TESTS = [{
-        "url": "https://www.nhk.or.jp/radio/ondemand/detail.html?p=0164_01",
-        "info_dict": {
-            "title": "青春アドベンチャー",
-            "id": "0164_01"
-        },
-        "playlist_mincount": 5,
-    }]
+    _TESTS = [
+        {
+            "url": "https://www.nhk.or.jp/radio/ondemand/detail.html?p=0164_01",
+            "info_dict": {"title": "青春アドベンチャー", "id": "0164_01"},
+            "playlist_mincount": 5,
+        }
+    ]
 
     def _real_extract(self, url):
         program_id, corner_id = re.match(self._VALID_URL, url).groups()
