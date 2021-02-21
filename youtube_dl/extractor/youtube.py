@@ -1603,6 +1603,8 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                     # Youtube throttles chunks >~10M
                     'http_chunk_size': 10485760,
                 }
+                if dct.get('ext'):
+                    dct['container'] = dct['ext'] + '_dash'
             formats.append(dct)
 
         hls_manifest_url = streaming_data.get('hlsManifestUrl')
