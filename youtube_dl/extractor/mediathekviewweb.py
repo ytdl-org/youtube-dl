@@ -187,7 +187,13 @@ class MediathekViewWebSearchIE(SearchInfoExtractor):
             elif meta['resultCount'] == 0:
                 break
 
-        return self.playlist_result(entries, playlist_title=query)
+        common_topic = None
+        if entries:
+            common_topic = entries[0]['series']
+            for entry in entries:
+                common_topic = common_topic if entry['series'] == common_topic else None
+
+        return self.playlist_result(entries, playlist_title=common_topic or query)
 
 
 class MediathekViewWebIE(InfoExtractor):
