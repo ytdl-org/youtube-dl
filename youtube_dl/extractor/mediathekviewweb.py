@@ -13,15 +13,43 @@ class MediathekViewWebSearchIE(SearchInfoExtractor):
     _SEARCH_KEY = 'mvwsearch'
     _MAX_RESULTS = float('inf')
     _MAX_RESULTS_PER_PAGE = 50
-    # _GEO_COUNTRIES = ['DE']
 
-    # _TESTS = [{
-    #     'url': 'mvwsearch:tagesschau',
-    #     'info_dict': {
-    #         'title': 'post-avant jazzcore',
-    #     },
-    #     'playlist_count': 15,
-    # }]
+    _TESTS = [
+        {
+            'url': 'mvwsearchall:sandmännchen !kika',
+            'info_dict': {
+                'title': 'Unser Sandmännchen',
+            },
+            'playlist': [],
+            'playlist_count': 7,
+        },
+        {
+            # Audio description & common topic.
+            'url': 'mvwsearch:#Sendung,Maus Audiodeskription',
+            'info_dict' : {
+                'title': 'Die Sendung mit der Maus',
+            },
+            'playlist': [],
+            'playlist_count': 1,
+            'params': {
+                'format': 'medium-audio_description',
+                'skip_download': True,
+            }
+        },
+        {
+            # Sign language.
+            'url': 'mvwsearchall:!ard #Tagesschau Gebärdensprache',
+            'info_dict': {
+                'title': '!ard #Tagesschau Gebärdensprache',
+            },
+            'playlist': [],
+            'playlist_mincount': 365,
+            'params': {
+                'format': 'medium-sign_language',
+                'skip_download': True,
+            },
+        },
+    ]
 
     # Map of title affixes indicating video variants.
     _variants = {
@@ -201,9 +229,32 @@ class MediathekViewWebIE(InfoExtractor):
     IE_NAME = 'mediathekviewweb'
     _VALID_URL = r'https?://mediathekviewweb\.de/\#query=(?P<id>.+)'
 
-    # @todo Specify test cases.
-    # https://mediathekviewweb.de/#query=%23tagesschau%20%3E5&everywhere=true&future=false
-    # & und ! #: https://mediathekviewweb.de/#query=%26%20und%20!%20%23
+    _TESTS = [
+        {
+            # Test for everywhere.
+            'url': 'https://mediathekviewweb.de/#query=!ard%20%23Tagesschau%2020%2CUhr&everywhere=true',
+            'info_dict': {
+                'title': '!ard #Tagesschau 20,Uhr',
+            },
+            # Without everywhere, there are <100 results.
+            'playlist_mincount': 365,
+            'params': {
+                'skip_download': True,
+            },
+        },
+        {
+            # Test for non-future videos.
+            'url': 'https://mediathekviewweb.de/#query=%23sport%2Cim%2Costen%20biathlon&future=false',
+            'info_dict': {
+                'title': 'Sport im Osten',
+            },
+            # Future yields 4 results instead.
+            'playlist_maxcount': 2,
+            'params': {
+                'skip_download': True,
+            },
+        },
+    ]
 
     def _real_extract(self, url):
         query_hash = self._match_id(url)
