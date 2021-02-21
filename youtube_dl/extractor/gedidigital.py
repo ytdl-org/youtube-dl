@@ -43,17 +43,17 @@ class GediDigitalIE(InfoExtractor):
             'upload_date': '20200922',
         },
     }, {
+        # .strip() necessary in timezone creation
+        'url': 'https://video.espresso.repubblica.it/embed/tutti-i-video/01-ted-villa/14772/14870&width=640&height=360',
+        'only_matching': True,
+    }, {
         'url': 'https://video.repubblica.it/motori/record-della-pista-a-spa-francorchamps-la-pagani-huayra-roadster-bc-stupisce/367415/367963',
-        'md5': 'c75ba5637a3c375a1b09062d7a7bd305',
         'only_matching': True,
     }, {
         'url': 'https://video.ilsecoloxix.it/sport/cassani-e-i-brividi-azzurri-ai-mondiali-di-imola-qui-mi-sono-innamorato-del-ciclismo-da-ragazzino-incredibile-tornarci-da-ct/66184/66267',
         'only_matching': True,
     }, {
         'url': 'https://video.iltirreno.gelocal.it/sport/dentro-la-notizia-ferrari-cosa-succede-a-maranello/141059/142723',
-        'only_matching': True,
-    }, {
-        'url': 'https://video.espresso.repubblica.it/embed/tutti-i-video/01-ted-villa/14772/14870&width=640&height=360',
         'only_matching': True,
     }, {
         'url': 'https://video.messaggeroveneto.gelocal.it/locale/maria-giovanna-elmi-covid-vaccino/138155/139268',
@@ -152,7 +152,7 @@ class GediDigitalIE(InfoExtractor):
                 ['twitter:description', 'og:description', 'description'],
                 webpage, default=None),
             'timestamp': parse_iso8601(self._og_search_property(
-                'published_time', webpage, default='').strip()),
+                'published_time', webpage, fatal=False).strip()),
             'thumbnail': thumb or self._og_search_thumbnail(webpage),
             'formats': formats,
         }
