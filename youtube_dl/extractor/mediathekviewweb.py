@@ -1,3 +1,4 @@
+# coding=utf-8
 import datetime
 import itertools
 import json
