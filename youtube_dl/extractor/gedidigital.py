@@ -38,58 +38,23 @@ class GediDigitalIE(InfoExtractor):
             'ext': 'mp4',
             'title': 'Il paradosso delle Regionali: ecco perché la Lega vince ma sembra aver perso',
             'description': 'md5:de7f4d6eaaaf36c153b599b10f8ce7ca',
-            'thumbnail': r're:^https://www\.repstatic\.it/video/photo/.+?-thumb-social-play\.jpg$',
+            'thumbnail': r're:^https://www\.repstatic\.it/video/photo/.+?-thumb-full-.+?\.jpg$',
             'timestamp': 1600788168,
             'upload_date': '20200922',
         },
     }, {
         'url': 'https://video.repubblica.it/motori/record-della-pista-a-spa-francorchamps-la-pagani-huayra-roadster-bc-stupisce/367415/367963',
         'md5': 'c75ba5637a3c375a1b09062d7a7bd305',
-        'info_dict': {
-            'id': '367415/367963',
-            'ext': 'mp4',
-            'title': 'Record della pista a Spa Francorchamps, la Pagani Huayra Roadster BC stupisce',
-            'description': 'md5:5deb503cefe734a3eb3f07ed74303920',
-            'thumbnail': r're:^https://www\.repstatic\.it/video/photo/.+?-thumb-social-play\.jpg$',
-            'timestamp': 1600531032,
-            'upload_date': '20200919',
-        },
+        'only_matching': True,
     }, {
         'url': 'https://video.ilsecoloxix.it/sport/cassani-e-i-brividi-azzurri-ai-mondiali-di-imola-qui-mi-sono-innamorato-del-ciclismo-da-ragazzino-incredibile-tornarci-da-ct/66184/66267',
-        'md5': '08097084884a2edfc532fb1f2434d22a',
-        'info_dict': {
-            'id': '66184/66267',
-            'ext': 'mp4',
-            'title': 'Cassani e i brividi azzurri ai Mondiali di Imola: \'Qui mi sono innamorato del ciclismo da ragazzino, incredibile tornarci da ct\'',
-            'description': 'md5:fc9c50894f70a2469bb9b54d3d0a3d3b',
-            'thumbnail': r're:^https://www\.repstatic\.it/video/photo/.+?-thumb-social-play\.jpg$',
-            'timestamp': 1600852553,
-            'upload_date': '20200923',
-        },
+        'only_matching': True,
     }, {
         'url': 'https://video.iltirreno.gelocal.it/sport/dentro-la-notizia-ferrari-cosa-succede-a-maranello/141059/142723',
-        'md5': 'ad0bfd3683e7e2bbe3f52b0d5c27ecb4',
-        'info_dict': {
-            'id': '141059/142723',
-            'ext': 'mp4',
-            'title': 'Dentro la notizia - Ferrari, cosa succede a Maranello',
-            'description': 'md5:9907d65b53765681fa3a0b3122617c1f',
-            'thumbnail': r're:^https://www\.repstatic\.it/video/photo/.+?-thumb-social-play\.jpg$',
-            'timestamp': 1600847536,
-            'upload_date': '20200923',
-        },
+        'only_matching': True,
     }, {
         'url': 'https://video.espresso.repubblica.it/embed/tutti-i-video/01-ted-villa/14772/14870&width=640&height=360',
-        'md5': '0391c2c83c6506581003aaf0255889c0',
-        'info_dict': {
-            'id': '14772/14870',
-            'ext': 'mp4',
-            'title': 'Festival EMERGENCY, Villa: «La buona informazione aiuta la salute»',
-            'description': 'md5:2bce954d278248f3c950be355b7c2226',
-            'thumbnail': r're:^https://www\.repstatic\.it/video/photo/.+?-thumb-social-play\.jpg$',
-            'timestamp': 1602159940,
-            'upload_date': '20201008',
-        },
+        'only_matching': True,
     }, {
         'url': 'https://video.messaggeroveneto.gelocal.it/locale/maria-giovanna-elmi-covid-vaccino/138155/139268',
         'only_matching': True,
@@ -151,7 +116,7 @@ class GediDigitalIE(InfoExtractor):
                     })
                     continue
                 # hls formats
-                fmt = re.match(r'(video|audio)-hls-', n)
+                fmt = re.match(r'(video|audio)-(hls|ipad)-', n)
                 if fmt:
                     ext = 'mp4' if fmt.group(1) == 'video' else 'm4a'
                     formats.extend(self._extract_m3u8_formats(
@@ -175,7 +140,7 @@ class GediDigitalIE(InfoExtractor):
                         'vcodec': 'none',
                         'acodec': 'mp3',
                     })
-            elif t == 'param' and n in ['image_full_play', 'image_full', 'image']:
+            elif t == 'param' and n in ['image_full', 'image']:
                 thumb = v
 
         self._sort_formats(formats)
@@ -187,8 +152,7 @@ class GediDigitalIE(InfoExtractor):
                 ['twitter:description', 'og:description', 'description'],
                 webpage, default=None),
             'timestamp': parse_iso8601(self._og_search_property(
-                ['published_time', 'modified_time'],
-                webpage, default='').strip()),
+                'published_time', webpage, default='').strip()),
             'thumbnail': thumb or self._og_search_thumbnail(webpage),
             'formats': formats,
         }
