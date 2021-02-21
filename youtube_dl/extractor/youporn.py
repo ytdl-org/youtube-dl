@@ -25,6 +25,7 @@ class YouPornIE(InfoExtractor):
             'title': 'Sex Ed: Is It Safe To Masturbate Daily?',
             'description': 'Love & Sex Answers: http://bit.ly/DanAndJenn -- Is It Unhealthy To Masturbate Daily?',
             'thumbnail': r're:^https?://.*\.jpg$',
+            'duration': 210,
             'uploader': 'Ask Dan And Jennifer',
             'upload_date': '20101217',
             'average_rating': int,
