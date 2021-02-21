@@ -1,5 +1,9 @@
 # coding: utf-8
 from __future__ import unicode_literals
+try:
+    unicode
+except NameError:
+    unicode = str
 
 from .common import InfoExtractor
 
@@ -36,24 +40,42 @@ class Pac12IE(InfoExtractor):
                 r'<script[^>]+type="application/json"[^>]*data-drupal-selector="drupal-settings-json">([^<]+)</script>',
                 webpage, 'drupal settings'), video_id)
 
-        cv = drupal_settings.get('currentVideo', {})
-        manifest_url = cv.get('manifest_url')
+        cv = drupal_settings.get('currentVideo')
 
-        if manifest_url is None:
-            # Video may be embedded one level deeper
+        if cv is False:
+            # May be an event page; look for the live stream.
+            try:
+                network = drupal_settings['pac12_react'][
+                    'pac12_react_event_widget']['event'][
+                    'broadcast_info']['broadcast_networks'][0]['id']
+                cv = drupal_settings['pac12_react']['networks'][str(network)]
+            except (KeyError, IndexError):
+                # Can't find a live stream this way.
+                pass
+
+        if not cv or 'manifest_url' not in cv:
+            # Video may be embedded one level deeper; look for embed URL.
             vod_url = self._search_regex(
                 r'(https?://(?:embed\.)?pac-12\.com/(?:embed/)?vod-\w+)',
                 webpage, 'url', default=None)
             if vod_url is None:
+                # Failure; no video found.
                 return None
             return self.url_result(vod_url)
 
         return {
-            'id': cv.get('id') or video_id,
+            # cv['id'] might be an integer, string, or missing.
+            'id': unicode(cv.get('id') or video_id),
             'title': (cv.get('title')
+                      or self._html_search_meta(
+                          ['og:title', 'twitter:title',
+                           'branch.deeplink.title'], webpage)
                       or self._html_search_regex(r'<title>(.+?)</title>',
                                                  webpage, 'title')),
-            'description': cv.get('description'),
-            'url': manifest_url,
+            'description': (cv.get('description')
+                            or self._html_search_meta(
+                                ['og:description', 'twitter:description',
+                                 'description'], webpage, fatal=False)),
+            'url': cv['manifest_url'],
             'ext': 'mp4',
         }
