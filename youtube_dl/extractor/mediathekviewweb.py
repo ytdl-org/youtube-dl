@@ -25,8 +25,8 @@ class MediathekViewWebSearchIE(SearchInfoExtractor):
 
     # Map of title affixes indicating video variants.
     _variants = {
-        'audio_description': '(Audiodeskription)',
-        'sign_language': '(mit Gebärdensprache)',
+        'audio_description': 'Audiodeskription',
+        'sign_language': 'mit Gebärdensprache',
     }
     _future = True
     _everywhere = False
@@ -108,7 +108,7 @@ class MediathekViewWebSearchIE(SearchInfoExtractor):
             formats = []
             formats.append({
                 'url': item['url_video'],
-                'format': ('medium ' + self._variants[variant]) if variant else None,
+                'format': ('medium (' + self._variants[variant] + ')') if variant else None,
                 'format_id': ('medium-' + variant) if variant else 'medium',
                 'language_preference': -10 if variant else 10,
                 'quality': -2,
@@ -117,7 +117,7 @@ class MediathekViewWebSearchIE(SearchInfoExtractor):
             if len(item.get('url_video_low', '')) > 0:
                 formats.append({
                     'url': item['url_video_low'],
-                    'format': ('low ' + self._variants[variant]) if variant else None,
+                    'format': ('low (' + self._variants[variant] + ')') if variant else None,
                     'format_id': ('low-' + variant) if variant else 'low',
                     'language_preference': -10 if variant else 10,
                     'quality': -3,
@@ -125,7 +125,7 @@ class MediathekViewWebSearchIE(SearchInfoExtractor):
             if len(item.get('url_video_hd', '')) > 0:
                 formats.append({
                     'url': item['url_video_hd'],
-                    'format': ('high ' + self._variants[variant]) if variant else None,
+                    'format': ('high (' + self._variants[variant] + ')') if variant else None,
                     'format_id': ('high-' + variant) if variant else 'high',
                     'language_preference': -10 if variant else 10,
                     'quality': -1,
