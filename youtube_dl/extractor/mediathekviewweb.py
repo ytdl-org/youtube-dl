@@ -1,11 +1,11 @@
 import datetime
 import itertools
 import json
-import re
 
 from .common import InfoExtractor, SearchInfoExtractor
 from ..compat import compat_urllib_parse_unquote
 from ..utils import ExtractorError, int_or_none
+
 
 class MediathekViewWebSearchIE(SearchInfoExtractor):
     IE_NAME = 'mediathekviewweb:search'
@@ -32,10 +32,6 @@ class MediathekViewWebSearchIE(SearchInfoExtractor):
     def _build_conditions(self, search):
         # @note So far, there is no API endpoint to convert a query string into
         #   a complete query object, as required by the /api/query endpoint.
-        # @see https://github.com/mediathekview/mediathekviewweb/blob/master/client/index.ts#L144
-        #   for parsing the search string into properties.
-        # @see https://github.com/mediathekview/mediathekviewweb/blob/master/client/index.ts#L389
-        #   for converting properties into field queries.
         filters = {}
         extra = {}
         for component in search.lower().split():
@@ -89,7 +85,7 @@ class MediathekViewWebSearchIE(SearchInfoExtractor):
         for item in results:
             variant = None
             for key, value in self._variants.items():
-                if item['title'].find(value) != -1:
+                if item.setdefault('title', '').find(value) != -1:
                     variant = key
 
             formats = []
@@ -99,7 +95,7 @@ class MediathekViewWebSearchIE(SearchInfoExtractor):
                 'format_id': ('medium-' + variant) if variant else 'medium',
                 'language_preference': -10 if variant else 10,
                 'quality': -2,
-                'filesize': item['size'],
+                'filesize': item.get('size'),
             })
             if len(item.get('url_video_low', '')) > 0:
                 formats.append({
@@ -122,21 +118,22 @@ class MediathekViewWebSearchIE(SearchInfoExtractor):
             video = {
                 '_type': 'video',
                 'formats': formats,
-                'id': item['id'],
-                'title': item['title'],
-                'description': item['description'],
-                'series': item['topic'],
-                'channel': item['channel'],
-                'uploader': item['channel'],
-                'duration': int_or_none(item['duration']),
-                'webpage_url': item['url_website'],
+                'id': item.get('id'),
+                'title': item.get('title'),
+                'description': item.get('description'),
+                'series': item.get('topic'),
+                'channel': item.get('channel'),
+                'uploader': item.get('channel'),
+                'duration': int_or_none(item.get('duration')),
+                'webpage_url': item.get('url_website'),
             }
 
-            upload_date = datetime.datetime.utcfromtimestamp(item['timestamp'])
-            video['upload_date'] = upload_date.strftime('%Y%m%d')
-            if item['url_subtitle']:
+            if item.get('timestamp'):
+                upload_date = datetime.datetime.utcfromtimestamp(item['timestamp'])
+                video['upload_date'] = upload_date.strftime('%Y%m%d')
+            if item.get('url_subtitle'):
                 video.setdefault('subtitles', {}).setdefault('de', []).append({
-                    'url': item['url_subtitle'],
+                    'url': item.get('url_subtitle'),
                 })
             entries.append(video)
 
@@ -160,19 +157,22 @@ class MediathekViewWebSearchIE(SearchInfoExtractor):
         for page_num in itertools.count(1):
             queryObject.update({'offset': (page_num - 1) * queryObject['size']})
             results = self._download_json('https://mediathekviewweb.de/api/query', query,
-                note='Fetching page %d' % page_num,
-                data=json.dumps(queryObject).encode('utf-8'),
-                headers={'Content-Type': 'text/plain'})
+                                          note='Fetching page %d' % page_num,
+                                          data=json.dumps(queryObject).encode('utf-8'),
+                                          headers={'Content-Type': 'text/plain'})
             if results['err'] is not None:
                 raise ExtractorError('API returned an error: %s' % results['err'][0])
             entries.extend(self._extract_playlist_entries(results['result']['results']))
 
             meta = results['result']['queryInfo']
-            # @todo This returns full pages: 100 results if 51 are requested.
-            if len(entries) >= n or meta['resultCount'] == 0:
+            if len(entries) >= n:
+                entries = entries[0:n]
+                break
+            elif meta['resultCount'] == 0:
                 break
 
         return self.playlist_result(entries, playlist_title=query)
+
 
 class MediathekViewWebIE(InfoExtractor):
     # @see https://github.com/mediathekview/mediathekviewweb
