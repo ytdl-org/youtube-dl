@@ -26,7 +26,7 @@ class MediathekViewWebSearchIE(SearchInfoExtractor):
         {
             # Audio description & common topic.
             'url': 'mvwsearch:#Sendung,Maus Audiodeskription',
-            'info_dict' : {
+            'info_dict': {
                 'title': 'Die Sendung mit der Maus',
             },
             'playlist': [],
