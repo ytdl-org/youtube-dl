@@ -21,7 +21,7 @@ class StreamwoIE(InfoExtractor):
         webpage = self._download_webpage(url, video_id)
         self.report_extraction(video_id)
         title = self._html_search_regex(r'<span class="titles">(.+?)</span>', webpage, 'title')
-        video_url = self._html_search_regex(r'<source src="(.+?)" type="video/mp4">', webpage, u'video URL')
+        video_url = self._html_search_regex(r'<source src="(.+?)" type="video/mp4">', webpage, 'video URL')
         return {
             'id': video_id,
             'url': video_url,
