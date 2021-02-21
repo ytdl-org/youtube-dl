@@ -1,3 +1,40 @@
+version <unreleased>
+
+Core
++ [postprocessor/embedthumbnail] Recognize atomicparsley binary in lowercase
+  (#28112)
+
+Extractors
+* [apa] Fix and improve extraction (#27750)
++ [youporn] Extract duration (#28019)
++ [peertube] Add support for canard.tube (#28190)
+* [youtube] Fixup m4a_dash formats (#28165)
++ [samplefocus] Add support for samplefocus.com (#27763)
++ [vimeo] Add support for unlisted video source format extraction
+* [viki] Improve extraction (#26522, #28203)
+    * Extract uploader URL and episode number
+    * Report login required error
+    + Extract 480p formats
+    * Fix API v4 calls
+* [ninegag] Unescape title (#28201)
+* [youtube] Improve URL regular expression (#28193)
++ [youtube] Add support for redirect.invidious.io (#28193)
++ [dplay] Add support for de.hgtv.com (#28182)
++ [dplay] Add support for discoveryplus.com (#24698)
++ [simplecast] Add support for simplecast.com (#24107)
+* [youtube] Fix uploader extraction in flat playlist mode (#28045)
+* [yandexmusic:playlist] Request missing tracks in chunks (#27355, #28184)
++ [storyfire] Add support for storyfire.com (#25628, #26349)
++ [zhihu] Add support for zhihu.com (#28177)
+* [youtube] Fix controversial videos when authenticated with cookies (#28174)
+* [ccma] Fix timestamp parsing in python 2
++ [videopress] Add support for video.wordpress.com
+* [kakao] Improve info extraction and detect geo restriction (#26577)
+* [xboxclips] Fix extraction (#27151)
+* [ard] Improve formats extraction (#28155)
++ [canvas] Add support for dagelijksekost.een.be (#28119)
+
+
 version 2021.02.10
 
 Extractors
