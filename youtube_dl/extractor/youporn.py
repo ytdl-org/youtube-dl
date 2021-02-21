@@ -55,6 +55,7 @@ class YouPornIE(InfoExtractor):
         'params': {
             'skip_download': True,
         },
+        'skip': '404',
     }, {
         'url': 'https://www.youporn.com/embed/505835/sex-ed-is-it-safe-to-masturbate-daily/',
         'only_matching': True,
