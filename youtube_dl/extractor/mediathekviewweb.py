@@ -210,9 +210,9 @@ class MediathekViewWebIE(InfoExtractor):
         if len(query) > 0:
             # Detect global flags, MVW is very strict about accepted values.
             extractor = MediathekViewWebSearchIE(self._downloader)
-            if query.get('everywhere', [])[0] == 'true':
+            if query.get('everywhere', []) == ['true']:
                 extractor._everywhere = True
-            if query.get('future', [])[0] == 'false':
+            if query.get('future', []) == ['false']:
                 extractor._future = False
             return extractor._real_extract('mvwsearchall:' + search)
 
