@@ -15,11 +15,11 @@ import re
 
 
 class RTPIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:www\.)?rtp\.pt/play/(.*\/)?p(?P<program_id>[0-9]+)/(?P<id>[^/?#]+)/?'
+    _VALID_URL = r'https?://(?:(?:(?:www\.)?rtp\.pt/play/(?P<subarea>.*/)?p(?P<program_id>[0-9]+)/(?P<episode_id>e[0-9]+/)?)|(?:arquivos\.rtp\.pt/conteudos/))(?P<id>[^/?#]+)/?'
     _TESTS = [{
         'url': 'https://www.rtp.pt/play/p117/e476527/os-contemporaneos',
         'info_dict': {
-            'id': 'e476527',
+            'id': 'os-contemporaneos',
             'ext': 'mp4',
             'title': 'Os Contemporâneos Episódio 1 -  RTP Play - RTP',
             'description': 'Os Contemporâneos, um programa de humor com um olhar na sociedade portuguesa!',
@@ -51,9 +51,12 @@ class RTPIE(InfoExtractor):
                     # 1) The file URL is inside object and with HLS encoded...
                     hls_encoded = re.match(r"[^[]*\[([^]]*)\]", stripped_line).groups()[0]
                     hls_encoded = hls_encoded.replace('"', '').replace('\'', '').replace(',', '')
-                    decoded_file_url = compat_b64decode(
-                        compat_urllib_parse_unquote(
-                            hls_encoded.replace('"', '').replace(',', ''))).decode('utf-8')
+                    if 'atob' in stripped_line:
+                        decoded_file_url = compat_b64decode(
+                            compat_urllib_parse_unquote(
+                                hls_encoded.replace('"', '').replace(',', ''))).decode('utf-8')
+                    else:
+                        decoded_file_url = compat_urllib_parse_unquote(hls_encoded)
 
                     # Insert the decoded HLS file URL into pure JSON string
                     json_string_for_config += '\nfile: "' + decoded_file_url + '",'
