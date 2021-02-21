@@ -3,7 +3,7 @@ import itertools
 import json
 
 from .common import InfoExtractor, SearchInfoExtractor
-from ..compat import compat_urllib_parse_unquote
+from ..compat import compat_parse_qs, compat_urlparse
 from ..utils import ExtractorError, int_or_none
 
 
@@ -28,19 +28,27 @@ class MediathekViewWebSearchIE(SearchInfoExtractor):
         'audio_description': '(Audiodeskription)',
         'sign_language': '(mit Gebärdensprache)',
     }
+    _future = True
+    _everywhere = False
 
     def _build_conditions(self, search):
         # @note So far, there is no API endpoint to convert a query string into
         #   a complete query object, as required by the /api/query endpoint.
         filters = {}
         extra = {}
+
         for component in search.lower().split():
             if len(component) == 0:
                 continue
 
-            field = None
             operator = component[0:1]
             value = component[1:]
+            if len(value) == 0:
+                # Treat single character query as such.
+                # @note This differs from MVW's implementation.
+                operator = ''
+                value = component
+
             # Extra, non-field settings.
             if operator == '>':
                 value = int(value.split(',')[0]) * 60
@@ -52,7 +60,7 @@ class MediathekViewWebSearchIE(SearchInfoExtractor):
                 continue
 
             # Field query operators.
-            elif operator == '!':
+            if operator == '!':
                 field = 'channel'
             elif operator == '#':
                 field = 'topic'
@@ -61,14 +69,23 @@ class MediathekViewWebSearchIE(SearchInfoExtractor):
             elif operator == '*':
                 field = 'description'
             else:
-                field = 'topic,title'
-                operator = ''
+                # No known operator specified.
+                field = 'generic'
                 value = component
 
-            if field:
-                # @todo In theory, comma-joined values are for AND queries.
-                #   But so far, each is an AND component, even without comma.
-                filters.setdefault(field, []).append(' '.join(value.split(',')))
+            # @note In theory, comma-joined values are for AND queries. However
+            #   so far, each condition is AND joined, even without comma.
+            filters.setdefault(field, []).append(' '.join(value.split(',')))
+
+        # Generic filters can apply to different fields, based on the query.
+        if 'generic' in filters:
+            if self._everywhere:
+                filters['channel,topic,title,description'] = filters['generic']
+            elif 'topic' in filters:
+                filters['title'] = filters['generic']
+            else:
+                filters['topic,title'] = filters['generic']
+            filters.pop('generic')
 
         conditions = []
         for field, keys in filters.items():
@@ -140,13 +157,12 @@ class MediathekViewWebSearchIE(SearchInfoExtractor):
         return entries
 
     def _get_n_results(self, query, n):
-        # @todo Add support for everywhere/future options.
         queries, extra = self._build_conditions(query)
         queryObject = {
             'queries': queries,
             'sortBy': 'timestamp',
             'sortOrder': 'desc',
-            'future': True,
+            'future': self._future,
             'duration_min': extra.get('duration_min'),
             'duration_max': extra.get('duration_max'),
             'offset': 0,
@@ -166,7 +182,7 @@ class MediathekViewWebSearchIE(SearchInfoExtractor):
 
             meta = results['result']['queryInfo']
             if len(entries) >= n:
-                entries = entries[0:n]
+                entries = entries[:n]
                 break
             elif meta['resultCount'] == 0:
                 break
@@ -180,11 +196,24 @@ class MediathekViewWebIE(InfoExtractor):
     _VALID_URL = r'https?://mediathekviewweb\.de/\#query=(?P<id>.+)'
 
     # @todo Specify test cases.
+    # https://mediathekviewweb.de/#query=%23tagesschau%20%3E5&everywhere=true&future=false
+    # & und ! #: https://mediathekviewweb.de/#query=%26%20und%20!%20%23
+
     def _real_extract(self, url):
-        query = self._match_id(url)
-        search = compat_urllib_parse_unquote(query)
-        return {
-            '_type': 'url',
-            'url': 'mvwsearchall:' + search,
-            'ie_key': 'MediathekViewWebSearch',
-        }
+        query_hash = self._match_id(url)
+
+        url_stub = '?query=' + query_hash
+        query = compat_parse_qs(compat_urlparse.urlparse(url_stub).query)
+        search = query['query'][0]
+        query.pop('query')
+
+        if len(query) > 0:
+            # Detect global flags, MVW is very strict about accepted values.
+            extractor = MediathekViewWebSearchIE(self._downloader)
+            if query.get('everywhere', [])[0] == 'true':
+                extractor._everywhere = True
+            if query.get('future', [])[0] == 'false':
+                extractor._future = False
+            return extractor._real_extract('mvwsearchall:' + search)
+
+        return self.url_result('mvwsearchall:' + search, ie=MediathekViewWebSearchIE.ie_key())
