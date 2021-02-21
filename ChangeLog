@@ -1,4 +1,4 @@
-version <unreleased>
+version 2021.02.22
 
 Core
 + [postprocessor/embedthumbnail] Recognize atomicparsley binary in lowercase
