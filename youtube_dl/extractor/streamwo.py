@@ -12,7 +12,7 @@ class StreamwoIE(InfoExtractor):
         'info_dict': {
             'id': 'c11cf208',
             'ext': 'mp4',
-            'title': 'pexels-rodnae-productions-6192787
+            'title': 'pexels-rodnae-productions-6192787'
         }
     }
 
