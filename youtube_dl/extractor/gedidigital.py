@@ -4,10 +4,7 @@ from __future__ import unicode_literals
 import re
 
 from .common import InfoExtractor
-from ..utils import (
-    int_or_none,
-    parse_iso8601,
-)
+from ..utils import int_or_none
 
 
 class GediDigitalIE(InfoExtractor):
@@ -39,11 +36,8 @@ class GediDigitalIE(InfoExtractor):
             'title': 'Il paradosso delle Regionali: ecco perché la Lega vince ma sembra aver perso',
             'description': 'md5:de7f4d6eaaaf36c153b599b10f8ce7ca',
             'thumbnail': r're:^https://www\.repstatic\.it/video/photo/.+?-thumb-full-.+?\.jpg$',
-            'timestamp': 1600788168,
-            'upload_date': '20200922',
         },
     }, {
-        # .strip() necessary in timezone creation
         'url': 'https://video.espresso.repubblica.it/embed/tutti-i-video/01-ted-villa/14772/14870&width=640&height=360',
         'only_matching': True,
     }, {
@@ -151,8 +145,6 @@ class GediDigitalIE(InfoExtractor):
             'description': self._html_search_meta(
                 ['twitter:description', 'og:description', 'description'],
                 webpage, default=None),
-            'timestamp': parse_iso8601(self._og_search_property(
-                'published_time', webpage, fatal=False).strip()),
             'thumbnail': thumb or self._og_search_thumbnail(webpage),
             'formats': formats,
         }
