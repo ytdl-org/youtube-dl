@@ -32,7 +32,7 @@ class GediDigitalIE(InfoExtractor):
                 |corrierealpi
                 |lasentinella
             )\.gelocal
-        )\.it(?:/[^/]+){2,3}/(?P<id>\d+)'''
+        )\.it(?:/[^/]+){2,3}?/(?P<id>\d+)(?:[/?&#]|$)'''
     _TESTS = [{
         'url': 'https://video.lastampa.it/politica/il-paradosso-delle-regionali-la-lega-vince-ma-sembra-aver-perso/121559/121683',
         'md5': '84658d7fb9e55a6e57ecc77b73137494',
