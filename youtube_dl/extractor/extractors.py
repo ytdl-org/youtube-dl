@@ -979,6 +979,7 @@ from .redbulltv import (
 )
 from .reddit import (
     RedditIE,
+    RedditGIE,
     RedditRIE,
 )
 from .redtube import RedTubeIE

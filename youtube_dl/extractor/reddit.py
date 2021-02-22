@@ -9,6 +9,8 @@ from ..utils import (
     float_or_none,
     try_get,
     unescapeHTML,
+    urljoin,
+    url_basename,
     url_or_none,
 )
 
@@ -47,6 +49,58 @@ class RedditIE(InfoExtractor):
             'title': video_id,
             'formats': formats,
         }
+
+
+class RedditGIE(InfoExtractor):
+    _VALID_URL = r'(?:https?://(?:[^/]+\.)?reddit\.com/gallery/(?P<id>[^/?#&]+))'
+    _TEST = {
+        # from https://www.reddit.com/r/BostonTerrier/comments/j8foda/my_mookie/ -> https://www.reddit.com/gallery/j8foda/
+        'url': 'https://www.reddit.com/gallery/j8foda/',
+        'info_dict': {
+            'id': 'flmjm893p7s51',
+            'ext': 'jpg',
+            'title': 'My Mookie',
+            'entries': [
+                {'url': 'https://i.reddit.com/flmjm893p7s51.jpg'},
+                {'url': 'https://i.reddit.com/fhcwp0793p7s5.jpg'},
+            ]
+        },
+        'params': {
+            'format': 'bestvideo',
+        },
+    }
+
+    def _real_extract(self, url):
+        video_id = self._match_id(url)
+        metadata_url = 'https://reddit.com/%s.json' % video_id
+
+        response = self._download_json(metadata_url, video_id)
+        title = video_id
+
+        # Doesn't work for crossposted links (data will be in crosspost_parent_list)
+        entries = []
+        for listing in response:
+            for child in listing['data']['children']:
+                # XXX: read preview image and use sort_format
+                for key, data in child['data']['media_metadata'].items():
+                    # previews under 'p', original(?) under 'o', source(?) under 's'
+
+                    # Need to extract fileextension from url
+                    filename = url_basename(data['s']['u'])
+                    assert filename.startswith(key), (key, filename)
+
+                    entry = self.url_result(
+                        urljoin('https://i.redd.it', filename),
+                        ie=None,
+                        video_id=key,
+                        video_title=filename)
+
+                    entries.append(entry)
+
+                if 'title' in child:
+                    title = child['title']
+
+        return self.playlist_result(entries, video_id, title)
 
 
 class RedditRIE(InfoExtractor):
