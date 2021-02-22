@@ -7,12 +7,12 @@ from .common import InfoExtractor
 class StreamwoIE(InfoExtractor):
     _VALID_URL = r'https?://streamwo\.com/(?P<id>\w+)'
     _TEST = {
-        "url": 'https://streamwo.com/4529aff4',
-        'md5': 'eaf1f163635c868ecbba95d23ba83448',
+        "url": 'https://streamwo.com/c11cf208',
+        'md5': '64a3e444e10f90051725cc1776682b06',
         'info_dict': {
-            'id': '4529aff4',
+            'id': 'c11cf208',
             'ext': 'mp4',
-            'title': 'Goal 2021 13-04-50'
+            'title': 'pexels-rodnae-productions-6192787
         }
     }
 
