@@ -7,12 +7,12 @@ from .common import InfoExtractor
 class StreamwoIE(InfoExtractor):
     _VALID_URL = r'https?://streamwo\.com/(?P<id>\w+)'
     _TEST = {
-        "url": 'https://streamwo.com/4529aff4',
-        'md5': 'eaf1f163635c868ecbba95d23ba83448',
+        "url": 'https://streamwo.com/c11cf208',
+        'md5': '64a3e444e10f90051725cc1776682b06',
         'info_dict': {
-            'id': '4529aff4',
+            'id': 'zrxKAY8',
             'ext': 'mp4',
-            'title': 'Goal 2021 13-04-50'
+            'title': "Imgur"
         }
     }
 
@@ -20,11 +20,7 @@ class StreamwoIE(InfoExtractor):
         video_id = self._match_id(url)
         webpage = self._download_webpage(url, video_id)
         self.report_extraction(video_id)
-        title = self._html_search_regex(r'<span class="titles">(.+?)</span>', webpage, 'title')
-        video_url = self._html_search_regex(r'<source src="(.+?)" type="video/mp4">', webpage, u'video URL')
-        return {
-            'id': video_id,
-            'url': video_url,
-            'ext': 'mp4',
-            "title": title
-        }
+        video_url = self._html_search_regex(r'<source src="(.+?)" type="video/mp4">', webpage, 'video URL')
+        if video_url:
+            return self.url_result(video_url, ie="Generic")
+        return self.url_result(url, ie='Generic')
