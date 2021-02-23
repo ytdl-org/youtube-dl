@@ -297,16 +297,18 @@ class ZattooIE(ZattooBaseIE):
     _VALID_URL_TEMPLATE = r'''(?x)
                             https?://(?:www\.)?%s/
                             (?:
-                                ondemand/videos/([A-Za-z0-9]+)|
-                                program/([^/]+)/(\d+)|
-                                live/([^/]+)
-                            )|
-                            (?:
-                                .+\?recording=([0-9]+)|
-                                .+\?video=([A-Za-z0-9]+)|
-                                .+\?channel=([^&]+)(?:
-                                    &program=(\d+)
-                                )?
+                                (?:
+                                    ondemand/videos/([A-Za-z0-9]+)|
+                                    program/([^/]+)/(\d+)|
+                                    live/([^/]+)
+                                )|
+                                (?:
+                                    .+\?recording=([0-9]+)|
+                                    .+\?video=([A-Za-z0-9]+)|
+                                    .+\?channel=([^&]+)(?:
+                                        &program=(\d+)
+                                    )?
+                                )
                             )'''
 
     _VALID_URL = _make_valid_url(_VALID_URL_TEMPLATE, ZattooBaseIE._HOST)
