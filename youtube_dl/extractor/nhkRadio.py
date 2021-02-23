@@ -20,7 +20,7 @@ class NhkRadioBase(InfoExtractor):
             )
         except ExtractorError as e:
             if isinstance(e.cause, compat_HTTPError) and e.cause.code == 404:
-                raise ExtractorError("The url is missing", expected=True)
+                raise ExtractorError("The invalid url", expected=True)
         return data
 
     def _extract_program(self, info, program_corner_id):
