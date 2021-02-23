@@ -64,7 +64,7 @@ class WatIE(InfoExtractor):
         if error_desc:
             if video_info.get('error_code') == 'GEOBLOCKED':
                 self.raise_geo_restricted(error_desc, video_info.get('geoList'))
-            raise ExtractorError(error_desc)
+            raise ExtractorError(error_desc, expected=True)
 
         title = video_info['title']
 
@@ -86,6 +86,8 @@ class WatIE(InfoExtractor):
         delivery = video_data.get('delivery') or {}
         extract_formats({delivery.get('format'): delivery.get('url')})
         if not formats:
+            if delivery.get('drm'):
+                raise ExtractorError('This video is DRM protected.', expected=True)
             manifest_urls = self._download_json(
                 'http://www.wat.tv/get/webhtml/' + video_id, video_id, fatal=False)
             if manifest_urls:
