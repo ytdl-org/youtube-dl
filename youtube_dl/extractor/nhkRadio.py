@@ -87,7 +87,15 @@ class NhkRadioProgramIE(NhkRadioBase):
             "url": "https://www.nhk.or.jp/radio/ondemand/detail.html?p=0164_01",
             "info_dict": {"title": "青春アドベンチャー", "id": "0164_01"},
             "playlist_mincount": 5,
-        }
+        },
+        {
+            "url": "https://www.nhk.or.jp/radio/ondemand/detail.html?p=0455_01",
+            "info_dict": {
+            "id": "0455_01",
+            "title": "弾き語りフォーユー"
+        },
+        "playlist_mincount": 5,
+    }
     ]
 
     def _real_extract(self, url):
