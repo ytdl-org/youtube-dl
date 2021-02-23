@@ -12,7 +12,9 @@ from ..utils import (
     ExtractorError,
     clean_html,
     get_element_by_class,
-    std_headers
+    std_headers,
+    get_elements_by_attribute,
+    get_elements_by_class
 )
 
 import logging
@@ -27,22 +29,22 @@ class FraternityXBaseIE(InfoExtractor):
     _NETRC_MACHINE = 'fraternityx'
 
 
-
-    def __init__(self):
-
-        self.headers = dict()
+        
  
     def initcfg(self):
+        self.headers = dict()
         self.islogged()
         self._abort()
         self._login()
+        self._logout()
         data = dict()
         data['headers'] = self.headers
-        data['cookies'] = self._get_cookies(self._URL_COOKIES)
+        data['cookies'] = self._get_cookies(self._SITE_URL)
         return data
 
     def islogged(self):
 
+        self._set_cookie('fraternityx.com', 'pp-accepted', 'true')
         webpage, _ = self._download_webpage_handle(
             self._SITE_URL,
             None,
@@ -87,7 +89,7 @@ class FraternityXBaseIE(InfoExtractor):
             None,
             headers=self.headers
         )
-        self.cookies = self._get_cookies(self._LOGIN_URL)
+        self.cookies = self._get_cookies(self._SITE_URL)
         #print(cookies)
         data = {
             "username": self.username,
@@ -245,11 +247,12 @@ class FraternityXBaseIE(InfoExtractor):
 class FraternityXIE(FraternityXBaseIE):
     IE_NAME = 'fraternityx'
     IE_DESC = 'fraternityx'
-    _VALID_URL = r'https?://(?:www\.)?fraternityx.com/episode/.*'
-    _URL_COOKIES = "https://fraternityx.com"
+    _VALID_URL = r'https?://(?:www\.)?fraternityx.com/episode/.*'    
+    
     
     def _real_initialize(self):
 
+        self.headers = dict()
         if not self.islogged():
             self._login()
         self.headers.update({            
@@ -270,17 +273,19 @@ class FraternityXIE(FraternityXBaseIE):
 class FraternityXPlayListIE(FraternityXBaseIE):
     IE_NAME = 'fraternityx:playlist'
     IE_DESC = 'fraternityx:playlist'
-    _VALID_URL = r"https?://(?:www\.)?fraternityx\.com/episodes/(?P<id>\d+)"
+    _VALID_URL = r"https?://(?:www\.)?fraternityx\.com/episodes(?:$|/(?P<id>\d+))"
     _BASE_URL = "https://fraternityx.com"
     _BASE_URL_PL = "https://fraternityx.com/episodes/"
 
+     
     def _real_initialize(self):
+        self.headers = dict()
         if not self.islogged():
-            self._login()          
-        self.headers.update({
-            "Referer" : self._LOGIN_URL,
+            self._login()
+        self.headers.update({            
+            "Referer" : "https://fraternityx.com/episodes/1",
         })
-        self.username, self.password = self._get_login_info() 
+        self.username, self.password = self._get_login_info()
 
     def _real_extract(self, url):
 
@@ -288,32 +293,47 @@ class FraternityXPlayListIE(FraternityXBaseIE):
 
         entries = []
 
-        i = 0
+        if not playlistid:
+            
+            playlistid = "All_FraternityX"
 
-        while True:
+            i = 1
+            while True:
 
-            url_pl = f"{self._BASE_URL_PL}{int(playlistid) + i}"
+                url_pl = f"{self._BASE_URL_PL}{i}"
 
-            print(url_pl)
-        
-            content, _ = self._download_webpage_handle(url_pl, None, headers=self.headers)
-        
-            episodes = re.findall(r'<h1><a href=\"(/episode/.*?)\">(.*?)<', content)
-           
-    
-            for ep in episodes:
+                self.to_screen(url_pl)
+            
+                content, _ = self._download_webpage_handle(url_pl, playlistid, headers=self.headers)
                 
-                entries.append(self.url_result(self._BASE_URL + ep[0], ie=FraternityXIE.ie_key(), video_title=ep[1].replace(" ","_").replace("/","_")))
-
-            if "NEXT>" in content:
-                i += 1
-            else:
-                break
             
-            
-        self._log_out()
-        return self.playlist_result(entries, f"fraternityx Episodes:{playlistid}", f"fraternityx Episodes:{playlistid}")
-
-
+                list_episodes = [f"{self._BASE_URL}{res[0]}" for el in get_elements_by_class("description", content) if (res:=re.findall(r'href="(.*)"', el)) != []]
+                
+                #print(list_episodes)
         
+                for episode_url in list_episodes:
+                    
+                    entries.append(self.url_result(episode_url, ie=FraternityXIE.ie_key()))
+                    
+                #print(entries)
 
+                if ">NEXT" in content:
+                    
+                    i += 1
+                
+                else:
+                    break
+        
+        else:
+            
+            self.to_screen(url)
+            content, _ = self._download_webpage_handle(url, playlistid, headers=self.headers)
+            list_episodes = [f"{self._BASE_URL}{res[0]}" for el in get_elements_by_class("description", content) if (res:=re.findall(r'href="(.*)"', el)) != []]
+                
+            for episode_url in list_episodes:
+                
+                entries.append(self.url_result(episode_url, ie=FraternityXIE.ie_key()))    
+            
+        #self._log_out()
+         
+        return self.playlist_result(entries, f"fraternityx Episodes:{playlistid}", f"fraternityx Episodes:{playlistid}")

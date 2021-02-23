@@ -409,7 +409,6 @@ from .francetv import (
     CultureboxIE,
 )
 from .fraternityx import (
-    FraternityXBaseIE,
     FraternityXIE,
     FraternityXPlayListIE,
     
@@ -432,8 +431,10 @@ from .gameinformer import GameInformerIE
 from .gamespot import GameSpotIE
 from .gamestar import GameStarIE
 from .gaskrank import GaskrankIE
+from .gaybeeg import GayBeegIE
 from .gayforfans import GayForFansIE
 from .gayforiteu import GayForITEUIE 
+from .gayqt import GayQTIE
 from .gazeta import GazetaIE
 from .gdcvault import GDCVaultIE
 from .generic import GenericIE
@@ -763,6 +764,7 @@ from .ndr import (
 from .ndtv import NDTVIE
 from .netzkino import NetzkinoIE
 from .nerdcubed import NerdCubedFeedIE
+from .netdna import NetDNAIE
 from .neteasemusic import (
     NetEaseMusicIE,
     NetEaseMusicAlbumIE,
@@ -1097,7 +1099,6 @@ from .sina import SinaIE
 from .sixplay import SixPlayIE
 from .sketboy import SketBoyIE
 from .sketchysex import (
-    #SketchySexBaseIE,
     SketchySexIE,
     SketchySexPlayListIE,
 )
