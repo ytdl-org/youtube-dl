@@ -76,10 +76,9 @@ class LoomIE(LoomBaseInfoIE):
 
         formats = []
         for type in ['transcoded-url', 'raw-url']:
-            request = compat_urllib_request.Request(
+            json_doc = self._download_json(
                 self._BASE_URL + 'api/campaigns/sessions/' + video_id + '/' + type,
-                {})
-            json_doc = self._download_json(request, video_id)
+                video_id, data={})
             url = url_or_none(json_doc.get('url'))
             part_credentials = json_doc.get('part_credentials')
 
