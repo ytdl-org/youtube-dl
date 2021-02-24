@@ -75,12 +75,15 @@ class VVVVIDIE(InfoExtractor):
             'https://www.vvvvid.it/user/login',
             None, headers=self.geo_verification_headers())['data']['conn_id']
 
-    def _download_info(self, show_id, path, video_id, fatal=True):
+    def _download_info(self, show_id, path, video_id, fatal=True, query=None):
+        q = {
+            'conn_id': self._conn_id,
+        }
+        if query:
+            q.update(query)
         response = self._download_json(
             'https://www.vvvvid.it/vvvvid/ondemand/%s/%s' % (show_id, path),
-            video_id, headers=self.geo_verification_headers(), query={
-                'conn_id': self._conn_id,
-            }, fatal=fatal)
+            video_id, headers=self.geo_verification_headers(), query=q, fatal=fatal)
         if not (response or fatal):
             return
         if response.get('result') == 'error':
@@ -98,7 +101,8 @@ class VVVVIDIE(InfoExtractor):
         show_id, season_id, video_id = re.match(self._VALID_URL, url).groups()
 
         response = self._download_info(
-            show_id, 'season/%s' % season_id, video_id)
+            show_id, 'season/%s' % season_id,
+            video_id, query={'video_id': video_id})
 
         vid = int(video_id)
         video_data = list(filter(
