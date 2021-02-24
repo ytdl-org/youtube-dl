@@ -959,6 +959,16 @@ class BBCIE(BBCCoUkIE):
              r'videoId\s*:\s*["\'](%s)["\']' % self._ID_REGEX],
             webpage, 'vpid', default=None)
 
+        # bbc reel (e.g. https://www.bbc.com/reel/video/p07c6sb6/how-positive-thinking-is-harming-your-happiness)
+        initial_data = self._search_regex(
+            r'<script[^>]+id="initial-data"[^>]+data-json=\'(.+)\'>',
+            webpage, 'initial data', fatal=False, default=None)
+        if initial_data:
+            programme_id = self._search_regex(
+                r'"versionID":"(%s)"' % self._ID_REGEX,
+                unescapeHTML(initial_data),
+                'programme id', fatal=False, default=None)
+
         if programme_id:
             formats, subtitles = self._download_media_selector(programme_id)
             self._sort_formats(formats)
