@@ -109,7 +109,7 @@ class LoomIE(LoomBaseInfoIE):
                         m3u8_formats[i])
 
         return {
-            'id': info.get('id'),
+            'id': info.get('id') or video_id,
             'title': info.get('name'),
             'formats': formats,
             'thumbnails': [
