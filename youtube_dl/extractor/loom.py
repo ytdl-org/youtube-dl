@@ -11,6 +11,7 @@ from ..compat import (
     compat_urllib_request
 )
 from ..utils import (
+    int_or_none,
     js_to_json,
     try_get,
     unified_timestamp,
@@ -90,8 +91,8 @@ class LoomIE(LoomBaseInfoIE):
                     'url': url,
                     'ext': ext,
                     'format_id': type,
-                    'width': try_get(info, lambda x: x['video_properties']['width']),
-                    'height': try_get(info, lambda x: x['video_properties']['height'])
+                    'width': int_or_none(try_get(info, lambda x: x['video_properties']['width'])),
+                    'height': int_or_none(try_get(info, lambda x: x['video_properties']['height']))
                 })
             else:
                 credentials = compat_urllib_parse_urlencode(part_credentials)
