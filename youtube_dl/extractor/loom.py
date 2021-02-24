@@ -189,6 +189,6 @@ class LoomFolderIE(LoomBaseInfoIE):
 
         for i in range(len(folder_info['entries'])):
             video_id = folder_info['entries'][i]
-            folder_info['entries'][i] = LoomIE(self._downloader)._real_extract(url_or_none(self._BASE_URL + 'share/' + video_id))
+            folder_info['entries'][i] = self.url_result(self._BASE_URL + 'share/' + video_id, 'Loom', video_id)
 
         return folder_info
