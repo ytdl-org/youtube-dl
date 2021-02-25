@@ -1,6 +1,5 @@
 # Supported sites
  - **1tv**: Первый канал
- - **1up.com**
  - **20min**
  - **220.ro**
  - **23video**
@@ -46,14 +45,16 @@
  - **Amara**
  - **AMCNetworks**
  - **AmericasTestKitchen**
+ - **AmericasTestKitchenSeason**
  - **anderetijden**: npo.nl, ntr.nl, omroepwnl.nl, zapp.nl and npo3.nl
  - **AnimeOnDemand**
  - **Anvato**
- - **aol.com**
+ - **aol.com**: Yahoo screen and movies
  - **APA**
  - **Aparat**
  - **AppleConnect**
  - **AppleDaily**: 臺灣蘋果日報
+ - **ApplePodcasts**
  - **appletrailers**
  - **appletrailers:section**
  - **archive.org**: archive.org videos
@@ -98,6 +99,10 @@
  - **BellMedia**
  - **Bet**
  - **bfi:player**
+ - **bfmtv**
+ - **bfmtv:article**
+ - **bfmtv:live**
+ - **BibelTV**
  - **Bigflix**
  - **Bild**: Bild.de
  - **BiliBili**
@@ -187,8 +192,6 @@
  - **CNNArticle**
  - **CNNBlogs**
  - **ComedyCentral**
- - **ComedyCentralFullEpisodes**
- - **ComedyCentralShortname**
  - **ComedyCentralTV**
  - **CondeNast**: Condé Nast media group: Allure, Architectural Digest, Ars Technica, Bon Appétit, Brides, Condé Nast, Condé Nast Traveler, Details, Epicurious, GQ, Glamour, Golf Digest, SELF, Teen Vogue, The New Yorker, Vanity Fair, Vogue, W Magazine, WIRED
  - **CONtv**
@@ -209,6 +212,7 @@
  - **curiositystream**
  - **curiositystream:collection**
  - **CWTV**
+ - **DagelijkseKost**: dagelijksekost.een.be
  - **DailyMail**
  - **dailymotion**
  - **dailymotion:playlist**
@@ -230,6 +234,7 @@
  - **DiscoveryGo**
  - **DiscoveryGoPlaylist**
  - **DiscoveryNetworksDe**
+ - **DiscoveryPlus**
  - **DiscoveryVR**
  - **Disney**
  - **dlive:stream**
@@ -336,6 +341,8 @@
  - **Go**
  - **GodTube**
  - **Golem**
+ - **google:podcasts**
+ - **google:podcasts:feed**
  - **GoogleDrive**
  - **Goshgay**
  - **GPUTechConf**
@@ -348,6 +355,7 @@
  - **HentaiStigma**
  - **hetklokhuis**
  - **hgtv.com:show**
+ - **HGTVDe**
  - **HiDive**
  - **HistoricFilms**
  - **history:player**
@@ -370,6 +378,10 @@
  - **HungamaSong**
  - **Hypem**
  - **ign.com**
+ - **IGNArticle**
+ - **IGNVideo**
+ - **IHeartRadio**
+ - **iheartradio:podcast**
  - **imdb**: Internet Movie Database trailers
  - **imdb:list**: Internet Movie Database lists
  - **Imgur**
@@ -409,7 +421,8 @@
  - **Katsomo**
  - **KeezMovies**
  - **Ketnet**
- - **KhanAcademy**
+ - **khanacademy**
+ - **khanacademy:unit**
  - **KickStarter**
  - **KinjaEmbed**
  - **KinoPoisk**
@@ -496,6 +509,9 @@
  - **Mgoon**
  - **MGTV**: 芒果TV
  - **MiaoPai**
+ - **minds**
+ - **minds:channel**
+ - **minds:group**
  - **MinistryGrid**
  - **Minoto**
  - **miomio.tv**
@@ -525,6 +541,7 @@
  - **mtv:video**
  - **mtvjapan**
  - **mtvservices:embedded**
+ - **MTVUutisetArticle**
  - **MuenchenTV**: münchen.tv
  - **mva**: Microsoft Virtual Academy videos
  - **mva:course**: Microsoft Virtual Academy courses
@@ -663,7 +680,6 @@
  - **parliamentlive.tv**: UK parliament videos
  - **Patreon**
  - **pbs**: Public Broadcasting Service (PBS) and member stations: PBS: Public Broadcasting Service, APT - Alabama Public Television (WBIQ), GPB/Georgia Public Broadcasting (WGTV), Mississippi Public Broadcasting (WMPN), Nashville Public Television (WNPT), WFSU-TV (WFSU), WSRE (WSRE), WTCI (WTCI), WPBA/Channel 30 (WPBA), Alaska Public Media (KAKM), Arizona PBS (KAET), KNME-TV/Channel 5 (KNME), Vegas PBS (KLVX), AETN/ARKANSAS ETV NETWORK (KETS), KET (WKLE), WKNO/Channel 10 (WKNO), LPB/LOUISIANA PUBLIC BROADCASTING (WLPB), OETA (KETA), Ozarks Public Television (KOZK), WSIU Public Broadcasting (WSIU), KEET TV (KEET), KIXE/Channel 9 (KIXE), KPBS San Diego (KPBS), KQED (KQED), KVIE Public Television (KVIE), PBS SoCal/KOCE (KOCE), ValleyPBS (KVPT), CONNECTICUT PUBLIC TELEVISION (WEDH), KNPB Channel 5 (KNPB), SOPTV (KSYS), Rocky Mountain PBS (KRMA), KENW-TV3 (KENW), KUED Channel 7 (KUED), Wyoming PBS (KCWC), Colorado Public Television / KBDI 12 (KBDI), KBYU-TV (KBYU), Thirteen/WNET New York (WNET), WGBH/Channel 2 (WGBH), WGBY (WGBY), NJTV Public Media NJ (WNJT), WLIW21 (WLIW), mpt/Maryland Public Television (WMPB), WETA Television and Radio (WETA), WHYY (WHYY), PBS 39 (WLVT), WVPT - Your Source for PBS and More! (WVPT), Howard University Television (WHUT), WEDU PBS (WEDU), WGCU Public Media (WGCU), WPBT2 (WPBT), WUCF TV (WUCF), WUFT/Channel 5 (WUFT), WXEL/Channel 42 (WXEL), WLRN/Channel 17 (WLRN), WUSF Public Broadcasting (WUSF), ETV (WRLK), UNC-TV (WUNC), PBS Hawaii - Oceanic Cable Channel 10 (KHET), Idaho Public Television (KAID), KSPS (KSPS), OPB (KOPB), KWSU/Channel 10 & KTNW/Channel 31 (KWSU), WILL-TV (WILL), Network Knowledge - WSEC/Springfield (WSEC), WTTW11 (WTTW), Iowa Public Television/IPTV (KDIN), Nine Network (KETC), PBS39 Fort Wayne (WFWA), WFYI Indianapolis (WFYI), Milwaukee Public Television (WMVS), WNIN (WNIN), WNIT Public Television (WNIT), WPT (WPNE), WVUT/Channel 22 (WVUT), WEIU/Channel 51 (WEIU), WQPT-TV (WQPT), WYCC PBS Chicago (WYCC), WIPB-TV (WIPB), WTIU (WTIU), CET  (WCET), ThinkTVNetwork (WPTD), WBGU-TV (WBGU), WGVU TV (WGVU), NET1 (KUON), Pioneer Public Television (KWCM), SDPB Television (KUSD), TPT (KTCA), KSMQ (KSMQ), KPTS/Channel 8 (KPTS), KTWU/Channel 11 (KTWU), East Tennessee PBS (WSJK), WCTE-TV (WCTE), WLJT, Channel 11 (WLJT), WOSU TV (WOSU), WOUB/WOUC (WOUB), WVPB (WVPB), WKYU-PBS (WKYU), KERA 13 (KERA), MPBN (WCBB), Mountain Lake PBS (WCFE), NHPTV (WENH), Vermont PBS (WETK), witf (WITF), WQED Multimedia (WQED), WMHT Educational Telecommunications (WMHT), Q-TV (WDCQ), WTVS Detroit Public TV (WTVS), CMU Public Television (WCMU), WKAR-TV (WKAR), WNMU-TV Public TV 13 (WNMU), WDSE - WRPT (WDSE), WGTE TV (WGTE), Lakeland Public Television (KAWE), KMOS-TV - Channels 6.1, 6.2 and 6.3 (KMOS), MontanaPBS (KUSM), KRWG/Channel 22 (KRWG), KACV (KACV), KCOS/Channel 13 (KCOS), WCNY/Channel 24 (WCNY), WNED (WNED), WPBS (WPBS), WSKG Public TV (WSKG), WXXI (WXXI), WPSU (WPSU), WVIA Public Media Studios (WVIA), WTVI (WTVI), Western Reserve PBS (WNEO), WVIZ/PBS ideastream (WVIZ), KCTS 9 (KCTS), Basin PBS (KPBT), KUHT / Channel 8 (KUHT), KLRN (KLRN), KLRU (KLRU), WTJX Channel 12 (WTJX), WCVE PBS (WCVE), KBTC Public Television (KBTC)
- - **pcmag**
  - **PearVideo**
  - **PeerTube**
  - **People**
@@ -691,7 +707,6 @@
  - **Playwire**
  - **pluralsight**
  - **pluralsight:course**
- - **plus.google**: Google Plus
  - **podomatic**
  - **Pokemon**
  - **PolskieRadio**
@@ -791,6 +806,7 @@
  - **safari:course**: safaribooksonline.com online courses
  - **SAKTV**
  - **SaltTV**
+ - **SampleFocus**
  - **Sapo**: SAPO Vídeos
  - **savefrom.net**
  - **SBS**: sbs.com.au
@@ -813,6 +829,9 @@
  - **ShahidShow**
  - **Shared**: shared.sx
  - **ShowRoomLive**
+ - **simplecast**
+ - **simplecast:episode**
+ - **simplecast:podcast**
  - **Sina**
  - **sky.it**
  - **sky:news**
@@ -850,6 +869,8 @@
  - **Sport5**
  - **SportBox**
  - **SportDeutschland**
+ - **spotify**
+ - **spotify:show**
  - **Spreaker**
  - **SpreakerPage**
  - **SpreakerShow**
@@ -862,6 +883,10 @@
  - **stanfordoc**: Stanford Open ClassRoom
  - **Steam**
  - **Stitcher**
+ - **StitcherShow**
+ - **StoryFire**
+ - **StoryFireSeries**
+ - **StoryFireUser**
  - **Streamable**
  - **streamcloud.eu**
  - **StreamCZ**
@@ -930,12 +955,13 @@
  - **TNAFlixNetworkEmbed**
  - **toggle**
  - **ToonGoggles**
- - **Tosh**: Tosh.0
  - **tou.tv**
  - **Toypics**: Toypics video
  - **ToypicsUser**: Toypics user profile
  - **TrailerAddict** (Currently broken)
  - **Trilulilu**
+ - **Trovo**
+ - **TrovoVod**
  - **TruNews**
  - **TruTV**
  - **Tube8**
@@ -1043,7 +1069,6 @@
  - **vidme**
  - **vidme:user**
  - **vidme:user:likes**
- - **Vidzi**
  - **vier**: vier.be and vijf.be
  - **vier:videos**
  - **viewlift**
@@ -1088,6 +1113,7 @@
  - **vrv**
  - **vrv:series**
  - **VShare**
+ - **VTM**
  - **VTXTV**
  - **vube**: Vube.com
  - **VuClip**
@@ -1123,7 +1149,7 @@
  - **WWE**
  - **XBef**
  - **XboxClips**
- - **XFileShare**: XFileShare based sites: ClipWatching, GoUnlimited, GoVid, HolaVid, Streamty, TheVideoBee, Uqload, VidBom, vidlo, VidLocker, VidShare, VUp, XVideoSharing
+ - **XFileShare**: XFileShare based sites: Aparat, ClipWatching, GoUnlimited, GoVid, HolaVid, Streamty, TheVideoBee, Uqload, VidBom, vidlo, VidLocker, VidShare, VUp, XVideoSharing
  - **XHamster**
  - **XHamsterEmbed**
  - **XHamsterUser**
@@ -1182,5 +1208,6 @@
  - **ZattooLive**
  - **ZDF**
  - **ZDFChannel**
+ - **Zhihu**
  - **zingmp3**: mp3.zing.vn
  - **Zype**

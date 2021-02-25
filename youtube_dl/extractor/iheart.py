@@ -35,7 +35,7 @@ class IHeartRadioIE(IHeartRadioBaseIE):
             'id': '70346499',
             'ext': 'mp3',
             'title': 'Part One: Alexander Lukashenko: The Dictator of Belarus',
-            'description': 'md5:66480b2d25ec93a5f60c0faa3275ce5c',
+            'description': 'md5:96cc7297b3a5a9ebae28643801c96fae',
             'timestamp': 1597741200,
             'upload_date': '20200818',
         }
