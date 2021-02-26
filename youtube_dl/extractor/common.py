@@ -81,6 +81,7 @@ from ..utils import (
     xpath_element,
     xpath_text,
     xpath_with_ns,
+    get_referrer_url
 )
 
 
@@ -2487,6 +2488,14 @@ class InfoExtractor(object):
                 return f
             return {}
 
+        def get_referrer_policy(page):
+            mobj = re.search(r'<meta name="referrer" content="(.+?)">', page)
+            if mobj:
+                return mobj.group(1)
+            else:
+                # If no policy is set, default value is no-refferer-when-downgrade
+                return "no-referrer-when-downgrade"
+
         def _media_formats(src, cur_media_type, type_info={}):
             full_url = absolute_url(src)
             ext = type_info.get('ext') or determine_ext(full_url)
@@ -2509,6 +2518,7 @@ class InfoExtractor(object):
             return is_plain_url, formats
 
         entries = []
+        referrer_policy = get_referrer_policy(webpage)
         # amp-video and amp-audio are very similar to their HTML5 counterparts
         # so we wll include them right here (see
         # https://www.ampproject.org/docs/reference/components/amp-video)
@@ -2590,7 +2600,11 @@ class InfoExtractor(object):
                             'url': absolute_url(src),
                         })
             for f in media_info['formats']:
-                f.setdefault('http_headers', {})['Referer'] = base_url
+                referrer = get_referrer_url(base_url, f["url"], referrer_policy)
+                if referrer:
+                    f.setdefault('http_headers', {})['Referer'] = referrer
+                else:
+                    f.setdefault('http_headers', {})
             if media_info['formats'] or media_info['subtitles']:
                 entries.append(media_info)
         return entries

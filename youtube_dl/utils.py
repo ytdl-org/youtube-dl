@@ -2326,6 +2326,58 @@ def bug_reports_message():
     return msg
 
 
+def get_referrer_url(base_url, target_url, policy):
+    # Returns correct referrer url based on the site policy
+    # https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Referrer-Policy#examples
+    parsed_url = compat_urlparse.urlparse(base_url)
+    parsed_target_url = compat_urlparse.urlparse(target_url)
+    if policy == "no-referrer":
+        return None
+    elif policy == "no-referrer-when-downgrade":
+        if "http" == parsed_target_url.scheme and "https" == parsed_url.scheme:
+            return None
+        elif "https" == parsed_target_url.scheme:
+            return base_url
+    elif policy == "origin":
+        return compat_urlparse.urljoin(base_url, "/")
+    elif policy == "origin-when-cross-origin":
+        if parsed_url.netloc == parsed_target_url.netloc:
+            if parsed_url.scheme == parsed_target_url.scheme:
+                return base_url
+            elif "http" == parsed_target_url.scheme:
+                return compat_urlparse.urljoin(base_url, "/")
+        else:
+            return compat_urlparse.urljoin(base_url, "/")
+    elif policy == "same-origin":
+        if parsed_url.netloc == parsed_target_url.netloc:
+            if parsed_url.scheme == parsed_target_url.scheme:
+                return base_url
+            else:
+                return None
+        else:
+            return None
+    elif policy == "strict-origin":
+        if "http" == parsed_url.scheme:
+            return compat_urlparse.urljoin(base_url, "/")
+        elif parsed_url.netloc == parsed_target_url.netloc:
+            if parsed_url.scheme == parsed_target_url.scheme:
+                return base_url
+            else:
+                return None
+        else:
+            return compat_urlparse.urljoin(base_url, "/")
+    elif policy == "strict-origin-when-cross-origin":
+        if parsed_url.netloc == parsed_target_url.netloc:
+            if parsed_url.scheme == parsed_target_url.scheme:
+                return base_url
+            else:
+                return None
+        else:
+            return compat_urlparse.urljoin(base_url, "/")
+    elif policy == "unsafe-url":
+        return base_url
+
+
 class YoutubeDLError(Exception):
     """Base exception for YoutubeDL errors."""
     pass
