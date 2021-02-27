@@ -960,14 +960,29 @@ class BBCIE(BBCCoUkIE):
             webpage, 'vpid', default=None)
 
         # bbc reel (e.g. https://www.bbc.com/reel/video/p07c6sb6/how-positive-thinking-is-harming-your-happiness)
-        initial_data = self._search_regex(
-            r'<script[^>]+id="initial-data"[^>]+data-json=\'(.+)\'>',
-            webpage, 'initial data', default=None)
-        if initial_data:
-            programme_id = self._search_regex(
-                r'"versionID":"(%s)"' % self._ID_REGEX,
-                unescapeHTML(initial_data),
-                'programme id', fatal=False, default=None)
+        if not programme_id:
+            initial_data = self._search_regex(
+                r'<script[^>]+id="initial-data"[^>]+data-json=\'(.+)\'>',
+                webpage, 'initial data', default=None)
+            if initial_data:
+                # let's see if it actually is, or ExtractorError
+                initial_data = self._parse_json(unescapeHTML(initial_data), 'initial data')
+                def _extract_pid(data):
+                    if isinstance(data, dict):
+                        if data.get('kind','') == 'programme' and 'versionID' in data:
+                            return data['versionID']
+                        else:
+                            for k in data:
+                                pid = _extract_pid(data[k])
+                                if pid:
+                                    return pid 
+                    elif isinstance(data, list):
+                        for v in data:
+                                pid = _extract_pid(v)
+                                if pid:
+                                    return pid
+                    return None
+                programme_id = _extract_pid(initial_data);
 
         if programme_id:
             formats, subtitles = self._download_media_selector(programme_id)
