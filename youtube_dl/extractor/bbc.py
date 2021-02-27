@@ -962,7 +962,7 @@ class BBCIE(BBCCoUkIE):
         # bbc reel (e.g. https://www.bbc.com/reel/video/p07c6sb6/how-positive-thinking-is-harming-your-happiness)
         initial_data = self._search_regex(
             r'<script[^>]+id="initial-data"[^>]+data-json=\'(.+)\'>',
-            webpage, 'initial data', fatal=False, default=None)
+            webpage, 'initial data', default=None)
         if initial_data:
             programme_id = self._search_regex(
                 r'"versionID":"(%s)"' % self._ID_REGEX,
