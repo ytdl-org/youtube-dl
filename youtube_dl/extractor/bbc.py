@@ -965,25 +965,14 @@ class BBCIE(BBCCoUkIE):
                 r'<[sS][cC][rR][iI][pP][tT]\b[^>]+\bid\s*=\s*(["\'])initial-data\1[^>]+\bdata-json\s*=\s*(["\'])([^\']+)\2[^>]*>',
                 webpage, 'initial data', default=None, group=3)
             if initial_data:
-                # let's see if it actually is, or ExtractorError
-                initial_data = self._parse_json(initial_data, 'initial data')
-
-                def _extract_pid(data):
-                    if isinstance(data, dict):
-                        if data.get('kind', '') == 'programme' and 'versionID' in data:
-                            return data['versionID']
-                        else:
-                            for k in data:
-                                pid = _extract_pid(data[k])
-                                if pid:
-                                    return pid
-                    elif isinstance(data, list):
-                        for v in data:
-                            pid = _extract_pid(v)
-                            if pid:
-                                return pid
-                    return None
-                programme_id = _extract_pid(initial_data)
+                # let's see if it actually is, or warning
+                initial_data = self._parse_json(initial_data, 'initial data', fatal=False)
+                if initial_data:
+                    try:
+                        programme_id = initial_data['initData']['items'][0]['clipPID']
+                    except (TypeError, KeyError, IndexError) as ex:
+                        self.report_warning('initial data: exception %s getting pid from JSON' % str(ex))
+                        programme_id = None
 
         if programme_id:
             formats, subtitles = self._download_media_selector(programme_id)
