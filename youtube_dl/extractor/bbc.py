@@ -967,7 +967,7 @@ class BBCIE(BBCCoUkIE):
             if initial_data:
                 # let's see if it actually is, or ExtractorError
                 initial_data = self._parse_json(unescapeHTML(initial_data), 'initial data')
-                
+
                 def _extract_pid(data):
                     if isinstance(data, dict):
                         if data.get('kind', '') == 'programme' and 'versionID' in data:
