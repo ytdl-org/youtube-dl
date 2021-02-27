@@ -961,12 +961,12 @@ class BBCIE(BBCCoUkIE):
 
         # bbc reel (e.g. https://www.bbc.com/reel/video/p07c6sb6/how-positive-thinking-is-harming-your-happiness)
         if not programme_id:
-            initial_data = self._search_regex(
-                r'<script[^>]+id="initial-data"[^>]+data-json=\'(.+)\'>',
-                webpage, 'initial data', default=None)
+            initial_data = self._html_search_regex(
+                r'<[sS][cC][rR][iI][pP][tT]\b[^>]+\bid\s*=\s*(["\'])initial-data\1[^>]+\bdata-json\s*=\s*(["\'])([^\']+)\2[^>]*>',
+                webpage, 'initial data', default=None, group=3)
             if initial_data:
                 # let's see if it actually is, or ExtractorError
-                initial_data = self._parse_json(unescapeHTML(initial_data), 'initial data')
+                initial_data = self._parse_json(initial_data, 'initial data')
 
                 def _extract_pid(data):
                     if isinstance(data, dict):
