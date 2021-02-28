@@ -989,15 +989,15 @@ class BBCIE(BBCCoUkIE):
                 if thumbnail:
                     thumbnail = thumbnail.replace('$recipe', '64x64')
                     thumbnails = [{'url': thumbnail.replace('$recipe', '%dx%d' % (x, x)),
-                                'width': x, 'height': x}
-                               for x in [16, 32, 64, 128, 512]]
+                                    'width': x, 'height': x}
+                                    for x in [16, 32, 64, 128, 512]]
                 else:
                     thumbnails = None
                 formats, subtitles = self._download_media_selector(programme_id)
                 if formats:
                     self._sort_formats(formats)
                     vars = {'title', 'description', 'timestamp', 'formats',
-                         'subtitles', 'duration', 'alt_title'}
+                            'subtitles', 'duration', 'alt_title'}
                     ret = {'id': programme_id}
                     ret.update([[x, locals().get(x)] for x in vars if locals().get(x)])
                     return ret
