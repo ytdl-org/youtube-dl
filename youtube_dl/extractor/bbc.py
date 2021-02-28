@@ -801,10 +801,11 @@ class BBCIE(BBCCoUkIE):
             'id': 'p07c6sb9',
             'ext': 'mp4',
             'title': 'How positive thinking is harming your happiness',
-            'description': 'BEST OF 2019: Illusionist and writer Derren Brown discusses why we should be rethinking our traditional concept of happiness.\n \nCould optimism and positive thinking actually have a harmful effect on our well-being?\n \nVideo by Griesham Taan\n\nAnimation by Jacqueline Robertson',
+            'description': 'md5:fad74b31da60d83b8265954ee42d85b4',
             'timestamp': 1559606400,
             'duration': 235,
             'thumbnail': 'https://ychef.files.bbci.co.uk/64x64/p07c9dsr.jpg',
+            'upload_date': '20190604',
         },
     }]
 
