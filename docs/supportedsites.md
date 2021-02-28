@@ -489,6 +489,7 @@
  - **MarkizaPage**
  - **massengeschmack.tv**
  - **MatchTV**
+ - **mbl.is**: Morgunblaðið
  - **MDR**: MDR.DE and KiKA
  - **MedalTV**
  - **media.ccc.de**
