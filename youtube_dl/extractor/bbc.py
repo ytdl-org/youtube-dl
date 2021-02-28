@@ -794,6 +794,17 @@ class BBCIE(BBCCoUkIE):
             'description': 'Learn English words and phrases from this story',
         },
         'add_ie': [BBCCoUkIE.ie_key()],
+    }, {
+        # BBC Reel 
+        'url': 'https://www.bbc.com/reel/video/p07c6sb6/how-positive-thinking-is-harming-your-happiness',
+        'info_dict': {
+            'id': 'p07c6sb9',
+            'ext': 'mp4',
+            'title': 'How positive thinking is harming your happiness',
+            'description': 'BEST OF 2019: Illusionist and writer Derren Brown discusses why we should be rethinking our traditional concept of happiness.\n \nCould optimism and positive thinking actually have a harmful effect on our well-being?\n \nVideo by Griesham Taan\n\nAnimation by Jacqueline Robertson',
+            'timestamp': 1559606400,
+            'duration': 235,
+            'thumbnail': 'https://ychef.files.bbci.co.uk/64x64/p07c9dsr.jpg',
     }]
 
     @classmethod
@@ -998,8 +1009,8 @@ class BBCIE(BBCCoUkIE):
                 formats, subtitles = self._download_media_selector(programme_id)
                 if formats:
                     self._sort_formats(formats)
-                    vars = {'title', 'description', 'timestamp', 'formats',
-                            'subtitles', 'duration', 'alt_title'}
+                    vars = {'title', 'description', 'timestamp', 'duration', 'alt_title',
+                            'thumbnail', 'thumbnails', 'formats', 'subtitles'}
                     ret = {'id': programme_id}
                     ret.update([[x, locals().get(x)] for x in vars if locals().get(x)])
                     return ret
