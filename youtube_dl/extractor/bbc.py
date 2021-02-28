@@ -17,6 +17,7 @@ from ..utils import (
     parse_iso8601,
     try_get,
     unescapeHTML,
+    unified_timestamp,
     url_or_none,
     urlencode_postdata,
     urljoin,
@@ -968,11 +969,41 @@ class BBCIE(BBCCoUkIE):
                 # let's see if it actually is, or warning
                 initial_data = self._parse_json(initial_data, 'initial data', fatal=False)
                 if initial_data:
-                    try:
-                        programme_id = initial_data['initData']['items'][0]['clipPID']
-                    except (TypeError, KeyError, IndexError) as ex:
-                        self.report_warning('initial data: exception %s getting pid from JSON' % str(ex))
-                        programme_id = None
+                    initial_data = try_get(initial_data, lambda x: x['initData']
+                    if initial_data:
+                        smp_data = initial_data.get('smpData',{})
+                        clip_data = try_get(smp_data, lambda x: x['items'][0], dict)
+                        if clip_data:
+                            initial_data.update(smp_data)
+                            initial_data.update(clip_data)
+                            programme_id = initial_data.get('versionID')
+            if programme_id:               
+                 alt_title = initial_data.get('shortTitle', playlist_id)
+                 title = initial_data.get('title', alt_title)
+                 if title == alt_title:
+                     alt_title = None
+                 description = dict_get(initial_data, ['summary', 'shortSummary'])
+                 timestamp = unified_timestamp(initial_data.get('displayDate'))
+                 duration = initial_data.get('duration')
+                 thumbnail = initial_data.get('holdingImageURL')
+                 if thumbnail:
+                     thumbnail = thumbnail.replace('$recipe', '64x64')
+                     thumbnails = [{'url': thumbnail.replace('$recipe', '%dx%d' % (x, x)),
+                                    'width': x, 'height': x}
+                                   for x in [16, 32, 64, 128, 512]]
+                 else:
+                     thumbnails = None
+                 formats, subtitles = self._download_media_selector(programme_id)
+                 if formats:
+                     self._sort_formats(formats)
+                     vars = {'title', 'description', 'timestamp', 'formats', 
+                             'subtitles', 'duration', 'alt_title'}
+                     ret = {'id': programme_id}
+                     ret.update([[x, locals().get(x)] for x in vars if locals().get(x)])
+                     return ret
+                 else:
+                     self.report_warning('BBC Reel: no formats available', programme_id)
+                     programme_id = None
 
         if programme_id:
             formats, subtitles = self._download_media_selector(programme_id)
