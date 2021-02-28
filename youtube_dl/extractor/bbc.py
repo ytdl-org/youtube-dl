@@ -795,7 +795,7 @@ class BBCIE(BBCCoUkIE):
         },
         'add_ie': [BBCCoUkIE.ie_key()],
     }, {
-        # BBC Reel 
+        # BBC Reel
         'url': 'https://www.bbc.com/reel/video/p07c6sb6/how-positive-thinking-is-harming-your-happiness',
         'info_dict': {
             'id': 'p07c6sb9',
@@ -805,6 +805,7 @@ class BBCIE(BBCCoUkIE):
             'timestamp': 1559606400,
             'duration': 235,
             'thumbnail': 'https://ychef.files.bbci.co.uk/64x64/p07c9dsr.jpg',
+        },
     }]
 
     @classmethod
@@ -980,7 +981,8 @@ class BBCIE(BBCCoUkIE):
                 # let's see if it actually is, or warning
                 initial_data = self._parse_json(initial_data, 'initial data', fatal=False)
                 if initial_data:
-                    initial_data = try_get(initial_data, lambda x: x['initData'], dict)
+                    initial_data = try_get(initial_data,
+                                           lambda x: x['initData']['items'][0], dict)
                     if initial_data:
                         smp_data = initial_data.get('smpData', {})
                         clip_data = try_get(smp_data, lambda x: x['items'][0], dict)
