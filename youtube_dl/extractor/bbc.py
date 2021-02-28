@@ -988,9 +988,11 @@ class BBCIE(BBCCoUkIE):
                 thumbnail = initial_data.get('holdingImageURL')
                 if thumbnail:
                     thumbnail = thumbnail.replace('$recipe', '64x64')
-                    thumbnails = [{'url': thumbnail.replace('$recipe', '%dx%d' % (x, x)),
-                                    'width': x, 'height': x}
-                                    for x in [16, 32, 64, 128, 512]]
+                    thumbnails = [
+                        {'url': thumbnail.replace('$recipe', '%dx%d' % (x, x)),
+                         'width': x, 'height': x}
+                        for x in [16, 32, 64, 128, 512]
+                    ]
                 else:
                     thumbnails = None
                 formats, subtitles = self._download_media_selector(programme_id)
