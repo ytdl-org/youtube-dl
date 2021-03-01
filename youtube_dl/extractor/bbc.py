@@ -994,32 +994,34 @@ class BBCIE(BBCCoUkIE):
             if programme_id:
                 alt_title = initial_data.get('shortTitle', playlist_id)
                 title = initial_data.get('title', alt_title)
-                if title == alt_title:
+                if title == alt_title or alt_title == playlist_id:
                     alt_title = None
+                formats, subtitles = self._download_media_selector(programme_id)
+                self._sort_formats(formats)
                 description = dict_get(initial_data, ['summary', 'shortSummary'])
                 timestamp = unified_timestamp(initial_data.get('displayDate'))
                 duration = initial_data.get('duration')
+                thumbnails = None
+                # if this has a $recipe, make thumbnails with it, else use it as-is
                 thumbnail = initial_data.get('holdingImageURL')
                 if thumbnail:
-                    thumbnail = thumbnail.replace('$recipe', '64x64')
-                    thumbnails = [
-                        {'url': thumbnail.replace('$recipe', '%dx%d' % (x, x)),
-                         'width': x, 'height': x}
-                        for x in [16, 32, 64, 128, 512]
-                    ]
-                else:
-                    thumbnails = None
-                formats, subtitles = self._download_media_selector(programme_id)
-                if formats:
-                    self._sort_formats(formats)
-                    vars = {'title', 'description', 'timestamp', 'duration', 'alt_title',
-                            'thumbnail', 'thumbnails', 'formats', 'subtitles'}
-                    ret = {'id': programme_id}
-                    ret.update([[x, locals().get(x)] for x in vars if locals().get(x)])
-                    return ret
-                else:
-                    self.report_warning('BBC Reel: no formats available', programme_id)
-                    programme_id = None
+                    tnail = thumbnail.replace('$recipe', '64x64')
+                    if tnail != thumbnail:
+                        thumbnails = [
+                            {'url': thumbnail.replace('$recipe', '%dx%d' % (x, x)),
+                             'width': x, 'height': x}
+                            for x in [16, 32, 64, 128, 512]
+                        ]
+                        thumbnail = None
+                    else:
+                        thumbnail = tnail
+                # return dict containing id + all the vars with value not None
+                # mandatory members formats and title are known to be set by now
+                vars = {'title', 'description', 'timestamp', 'duration', 'alt_title',
+                        'thumbnail', 'thumbnails', 'formats', 'subtitles'}
+                ret = {'id': programme_id}
+                ret.update([[x, locals().get(x)] for x in vars if locals().get(x) is not None])
+                return ret
 
         if programme_id:
             formats, subtitles = self._download_media_selector(programme_id)
