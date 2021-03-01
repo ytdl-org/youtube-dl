@@ -82,6 +82,7 @@
  - **awaan:video**
  - **AZMedien**: AZ Medien videos
  - **BaiduVideo**: 百度视频
+ - **bandaichannel**
  - **Bandcamp**
  - **Bandcamp:album**
  - **Bandcamp:weekly**
@@ -330,6 +331,7 @@
  - **Gaskrank**
  - **Gazeta**
  - **GDCVault**
+ - **GediDigital**
  - **generic**: Generic downloader that works on some sites
  - **Gfycat**
  - **GiantBomb**
