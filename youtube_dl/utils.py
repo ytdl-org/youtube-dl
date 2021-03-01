@@ -3954,10 +3954,10 @@ def urlencode_postdata(*args, **kargs):
 def update_url_query(url, query):
     if not query:
         return url
-    parsed_referrer_source = compat_urlparse.urlparse(url)
-    qs = compat_parse_qs(parsed_referrer_source.query)
+    parsed_url = compat_urlparse.urlparse(url)
+    qs = compat_parse_qs(parsed_url.query)
     qs.update(query)
-    return compat_urlparse.urlunparse(parsed_referrer_source._replace(
+    return compat_urlparse.urlunparse(parsed_url._replace(
         query=compat_urllib_parse_urlencode(qs, True)))
 
 

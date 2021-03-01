@@ -2596,7 +2596,8 @@ class InfoExtractor(object):
                         })
             for f in media_info['formats']:
                 referrer = get_referrer_url(base_url, f["url"], referrer_policy)
-                f.setdefault('http_headers', {})['Referer'] = referrer
+                if referrer:
+                    f.setdefault('http_headers', {})['Referer'] = referrer
             if media_info['formats'] or media_info['subtitles']:
                 entries.append(media_info)
         return entries
