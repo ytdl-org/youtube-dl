@@ -336,6 +336,10 @@ class TestUtil(unittest.TestCase):
         self.assertEqual(get_referrer_url("https://example.com/page?q=123", "https://example.com/page?q=123", "unsafe-url"), "https://example.com/page?q=123")
         self.assertEqual(get_referrer_url("https://example.com/page?q=123", "https://mozilla.org", "unsafe-url"), "https://example.com/page?q=123")
         self.assertEqual(get_referrer_url("https://example.com/page?q=123", "https://example.com/page?q=123", "unsafe-url"), "https://example.com/page?q=123")
+        # None
+        self.assertEqual(get_referrer_url("https://example.com/page", "https://example.com/otherpage", None), "https://example.com/page")
+        self.assertEqual(get_referrer_url("https://example.com/page", "https://mozilla.org", None), "https://example.com/")
+        self.assertEqual(get_referrer_url("https://example.com/page", "http://example.com/otherpage", None), None)
 
     def test_date_from_str(self):
         self.assertEqual(date_from_str('yesterday'), date_from_str('now-1day'))

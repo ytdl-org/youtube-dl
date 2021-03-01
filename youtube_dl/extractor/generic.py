@@ -2249,7 +2249,7 @@ class GenericIE(InfoExtractor):
             'playlist_mincount': 52,
         },
         {
-            # Test StreamWo
+            # Test Native <video> embed and application of the correct referrer url
             "url": 'https://streamwo.com/c11cf208',
             'md5': '64a3e444e10f90051725cc1776682b06',
             'info_dict': {

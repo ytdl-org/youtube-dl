@@ -2326,56 +2326,57 @@ def bug_reports_message():
     return msg
 
 
-def get_referrer_url(base_url, target_url, policy):
+def get_referrer_url(referrer_source, request_url, referrer_policy):
     # Returns correct referrer url based on the site policy
     # https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Referrer-Policy#examples
-    parsed_url = compat_urlparse.urlparse(base_url)
-    parsed_target_url = compat_urlparse.urlparse(target_url)
-    if policy == "no-referrer":
+    parsed_referrer_source = compat_urllib_parse_urlparse(referrer_source)
+    parsed_request_url = compat_urllib_parse_urlparse(request_url)
+    if referrer_policy == "no-referrer":
         return None
-    elif policy == "no-referrer-when-downgrade":
-        if "http" == parsed_target_url.scheme and "https" == parsed_url.scheme:
+    elif referrer_policy == "no-referrer-when-downgrade":
+        if "http" == parsed_request_url.scheme and "https" == parsed_referrer_source.scheme:
             return None
-        elif "https" == parsed_target_url.scheme:
-            return base_url
-    elif policy == "origin":
-        return compat_urlparse.urljoin(base_url, "/")
-    elif policy == "origin-when-cross-origin":
-        if parsed_url.netloc == parsed_target_url.netloc:
-            if parsed_url.scheme == parsed_target_url.scheme:
-                return base_url
-            elif "http" == parsed_target_url.scheme:
-                return compat_urlparse.urljoin(base_url, "/")
+        elif "https" == parsed_request_url.scheme:
+            return referrer_source
+    elif referrer_policy == "origin":
+        return compat_urlparse.urljoin(referrer_source, "/")
+    elif referrer_policy == "origin-when-cross-origin":
+        if parsed_referrer_source.netloc == parsed_request_url.netloc:
+            if parsed_referrer_source.scheme == parsed_request_url.scheme:
+                return referrer_source
+            elif "http" == parsed_request_url.scheme:
+                return compat_urlparse.urljoin(referrer_source, "/")
         else:
-            return compat_urlparse.urljoin(base_url, "/")
-    elif policy == "same-origin":
-        if parsed_url.netloc == parsed_target_url.netloc:
-            if parsed_url.scheme == parsed_target_url.scheme:
-                return base_url
+            return compat_urlparse.urljoin(referrer_source, "/")
+    elif referrer_policy == "same-origin":
+        if parsed_referrer_source.netloc == parsed_request_url.netloc:
+            if parsed_referrer_source.scheme == parsed_request_url.scheme:
+                return referrer_source
             else:
                 return None
         else:
             return None
-    elif policy == "strict-origin":
-        if "http" == parsed_url.scheme:
-            return compat_urlparse.urljoin(base_url, "/")
-        elif parsed_url.netloc == parsed_target_url.netloc:
-            if parsed_url.scheme == parsed_target_url.scheme:
-                return base_url
+    elif referrer_policy == "strict-origin":
+        if "http" == parsed_referrer_source.scheme:
+            return compat_urlparse.urljoin(referrer_source, "/")
+        elif parsed_referrer_source.netloc == parsed_request_url.netloc:
+            if parsed_referrer_source.scheme == parsed_request_url.scheme:
+                return referrer_source
             else:
                 return None
         else:
-            return compat_urlparse.urljoin(base_url, "/")
-    elif policy == "strict-origin-when-cross-origin":
-        if parsed_url.netloc == parsed_target_url.netloc:
-            if parsed_url.scheme == parsed_target_url.scheme:
-                return base_url
+            return compat_urlparse.urljoin(referrer_source, "/")
+    elif referrer_policy == "strict-origin-when-cross-origin" or referrer_policy is None:
+        # This is the default fallback if no referrer policy is defined
+        if parsed_referrer_source.netloc == parsed_request_url.netloc:
+            if parsed_referrer_source.scheme == parsed_request_url.scheme:
+                return referrer_source
             else:
                 return None
         else:
-            return compat_urlparse.urljoin(base_url, "/")
-    elif policy == "unsafe-url":
-        return base_url
+            return compat_urlparse.urljoin(referrer_source, "/")
+    elif referrer_policy == "unsafe-url":
+        return referrer_source
 
 
 class YoutubeDLError(Exception):
@@ -3953,10 +3954,10 @@ def urlencode_postdata(*args, **kargs):
 def update_url_query(url, query):
     if not query:
         return url
-    parsed_url = compat_urlparse.urlparse(url)
-    qs = compat_parse_qs(parsed_url.query)
+    parsed_referrer_source = compat_urlparse.urlparse(url)
+    qs = compat_parse_qs(parsed_referrer_source.query)
     qs.update(query)
-    return compat_urlparse.urlunparse(parsed_url._replace(
+    return compat_urlparse.urlunparse(parsed_referrer_source._replace(
         query=compat_urllib_parse_urlencode(qs, True)))
 
 
