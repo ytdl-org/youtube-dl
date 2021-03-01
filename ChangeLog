@@ -1,3 +1,28 @@
+version <unreleased>
+
+Extractors
+* [zdf] Rework extractors (#11606, #13473, #17354, #21185, #26711, #27068,
+  #27930, #28198, #28199, #28274)
+    * Generalize cross-extractor video ids for zdf based extractors
+    * Improve extraction
+    * Fix 3sat and phoenix
+* [stretchinternet] Fix extraction (#28297)
+* [urplay] Fix episode data extraction (#28292)
++ [bandaichannel] Add support for b-ch.com (#21404)
+* [srgssr] Improve extraction (#14717, #14725, #27231, #28238)
+    + Extract subtitle
+    * Fix extraction for new videos
+    * Update srf download domains
+* [vvvvid] Reduce season request payload size
++ [vvvvid] Extract series sublists playlist title (#27601, #27618)
++ [dplay] Extract Ad-Free uplynk URLs (#28160)
++ [wat] Detect DRM protected videos (#27958)
+* [tf1] Improve extraction (#27980, #28040)
+* [tmz] Fix and improve extraction (#24603, #24687, 28211)
++ [gedidigital] Add support for Gedi group sites (#7347, #26946)
+* [youtube] Fix get_video_info request
+
+
 version 2021.02.22
 
 Core
