@@ -943,7 +943,7 @@ class BBCIE(BBCCoUkIE):
                                     else:
                                         entry['title'] = info['title']
                                         entry['formats'].extend(info['formats'])
-                                except Exception as e:
+                                except ExtractorError as e:
                                     # Some playlist URL may fail with 500, at the same time
                                     # the other one may work fine (e.g.
                                     # http://www.bbc.com/turkce/haberler/2015/06/150615_telabyad_kentin_cogu)
