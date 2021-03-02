@@ -600,6 +600,10 @@ class InfoExtractor(object):
 
         See _download_webpage docstring for arguments specification.
         """
+        page_sleep_interval = self._downloader.params.get('page_sleep_interval')
+        page_sleep_interval = 0 if page_sleep_interval is None else float(page_sleep_interval)
+        time.sleep(page_sleep_interval)
+
         if note is None:
             self.report_download_webpage(video_id)
         elif note is not False:

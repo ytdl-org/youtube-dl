@@ -8,6 +8,7 @@ import os.path
 import random
 import re
 import traceback
+import time
 
 from .common import InfoExtractor, SearchInfoExtractor
 from ..compat import (
@@ -2482,12 +2483,15 @@ class YoutubeTabIE(YoutubeBaseInfoExtractor):
         if identity_token:
             headers['x-youtube-identity-token'] = identity_token
 
+        page_sleep_interval = self._downloader.params.get('page_sleep_interval')
+        page_sleep_interval = 0 if page_sleep_interval is None else float(page_sleep_interval)
         for page_num in itertools.count(1):
             if not continuation:
                 break
             count = 0
             retries = 3
             while count <= retries:
+                time.sleep(page_sleep_interval)
                 try:
                     # Downloading page may result in intermittent 5xx HTTP error
                     # that is usually worked around with a retry
