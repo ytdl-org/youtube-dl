@@ -8,6 +8,7 @@ from ..utils import (
     ExtractorError,
     float_or_none,
     int_or_none,
+    srt_subtitles_timecode,
     urlencode_postdata,
     urljoin,
 )
@@ -31,10 +32,16 @@ class LinkedInLearningBaseIE(InfoExtractor):
             })
             sub = ' %dp' % resolution
         api_url = 'https://www.linkedin.com/learning-api/detailedCourses'
+        cookies = self._get_cookies(api_url)
+
+        headers = {}
+        if 'JSESSIONID' in cookies:
+            headers['Csrf-Token'] = cookies['JSESSIONID'].value
+
         return self._download_json(
-            api_url, video_slug, 'Downloading%s JSON metadata' % sub, headers={
-                'Csrf-Token': self._get_cookies(api_url)['JSESSIONID'].value,
-            }, query=query)['elements'][0]
+            api_url, video_slug, 'Downloading%s JSON metadata' % sub,
+            headers=headers,
+            query=query)['elements'][0]
 
     def _get_urn_id(self, video_data):
         urn = video_data.get('urn')
@@ -47,12 +54,14 @@ class LinkedInLearningBaseIE(InfoExtractor):
         return self._get_urn_id(video_data) or '%s/%s' % (course_slug, video_slug)
 
     def _real_initialize(self):
+        # We need the JSESSIONID from the login page, even if we're not logging in
+        login_page = self._download_webpage(
+            self._LOGIN_URL, None, 'Downloading login page')
+
         email, password = self._get_login_info()
         if email is None:
             return
 
-        login_page = self._download_webpage(
-            self._LOGIN_URL, None, 'Downloading login page')
         action_url = urljoin(self._LOGIN_URL, self._search_regex(
             r'<form[^>]+action=(["\'])(?P<url>.+?)\1', login_page, 'post url',
             default='https://www.linkedin.com/uas/login-submit', group='url'))
@@ -126,6 +135,8 @@ class LinkedInLearningIE(LinkedInLearningBaseIE):
 
         self._sort_formats(formats, ('width', 'height', 'source_preference', 'tbr', 'abr'))
 
+        subtitles = self.extract_subtitles(video_data)
+
         return {
             'id': self._get_video_id(video_data, course_slug, video_slug),
             'title': title,
@@ -133,7 +144,39 @@ class LinkedInLearningIE(LinkedInLearningBaseIE):
             'thumbnail': video_data.get('defaultThumbnail'),
             'timestamp': float_or_none(video_data.get('publishedOn'), 1000),
             'duration': int_or_none(video_data.get('durationInSeconds')),
+            'subtitles': subtitles,
         }
+
+    def _get_subtitles(self, video_data):
+        transcript = video_data.get('transcript')
+        if not transcript:
+            return {}
+        lines = transcript.get('lines')
+        if not lines:
+            return {}
+        fixed_subs = self._fix_subtitles(lines)
+        if fixed_subs:
+            return {'en': [{'ext': 'srt', 'data': fixed_subs}]}
+        return {}
+
+    def _fix_subtitles(self, lines):
+        srt = ''
+        seq_counter = 0
+        for pos in range(0, len(lines) - 1):
+            seq_current = lines[pos]
+            seq_next = lines[pos + 1]
+
+            appear_time = self._timecode(seq_current['transcriptStartAt'])
+            disappear_time = self._timecode(seq_next['transcriptStartAt'])
+            text = seq_current['caption'].strip()
+
+            if text:
+                seq_counter += 1
+                srt += '%s\r\n%s --> %s\r\n%s\r\n\r\n' % (seq_counter, appear_time, disappear_time, text)
+        return srt
+
+    def _timecode(self, ms):
+        return srt_subtitles_timecode(ms / 1000.0)
 
 
 class LinkedInLearningCourseIE(LinkedInLearningBaseIE):

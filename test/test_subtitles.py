@@ -27,6 +27,8 @@ from youtube_dl.extractor import (
     ThePlatformFeedIE,
     RTVEALaCartaIE,
     DemocracynowIE,
+    LinkedInLearningIE,
+    VoxMediaIE,
 )
 
 
@@ -218,6 +220,18 @@ class TestLyndaSubtitles(BaseTestSubtitles):
         self.assertEqual(md5(subtitles['en']), '09bbe67222259bed60deaa26997d73a7')
 
 
+class TestLinkedInSubtitles(BaseTestSubtitles):
+    url = 'https://www.linkedin.com/learning/programming-foundations-fundamentals/welcome?autoplay=true'
+    IE = LinkedInLearningIE
+
+    def test_allsubtitles(self):
+        self.DL.params['writesubtitles'] = True
+        self.DL.params['allsubtitles'] = True
+        subtitles = self.getSubtitles()
+        self.assertEqual(set(subtitles.keys()), set(['en']))
+        self.assertEqual(md5(subtitles['en']), 'b329730e94e7fbdbac0307b3cad1221a')
+
+
 class TestNPOSubtitles(BaseTestSubtitles):
     url = 'http://www.npo.nl/nos-journaal/28-08-2014/POW_00722860'
     IE = NPOIE
@@ -327,6 +341,19 @@ class TestRtveSubtitles(BaseTestSubtitles):
         subtitles = self.getSubtitles()
         self.assertEqual(set(subtitles.keys()), set(['es']))
         self.assertEqual(md5(subtitles['es']), '69e70cae2d40574fb7316f31d6eb7fca')
+
+
+class TestFunnyOrDieSubtitles(BaseTestSubtitles):
+    url = 'http://www.funnyordie.com/videos/224829ff6d/judd-apatow-will-direct-your-vine'
+    IE = VoxMediaIE
+
+    @unittest.skip('This stopped working.')
+    def test_allsubtitles(self):
+        self.DL.params['writesubtitles'] = True
+        self.DL.params['allsubtitles'] = True
+        subtitles = self.getSubtitles()
+        self.assertEqual(set(subtitles.keys()), set(['en']))
+        self.assertEqual(md5(subtitles['en']), 'c5593c193eacd353596c11c2d4f9ecc4')
 
 
 class TestDemocracynowSubtitles(BaseTestSubtitles):
