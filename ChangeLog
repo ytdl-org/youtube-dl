@@ -1,3 +1,11 @@
+version <unreleased>
+
+Extractors
+* [youtube:tab] Switch continuation to browse API (#28289, #28327)
+* [9c9media] Fix extraction for videos with multiple ContentPackages (#28309)
++ [bbc] Add support for BBC Reel videos (#21870, #23660, #28268)
+
+
 version 2021.03.02
 
 Extractors
