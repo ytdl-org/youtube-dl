@@ -995,7 +995,7 @@ class BBCIE(BBCCoUkIE):
             }
 
         # bbc reel (e.g. https://www.bbc.com/reel/video/p07c6sb6/how-positive-thinking-is-harming-your-happiness)
-        programme_id = self._search_regex( 
+        programme_id = self._search_regex(
             r'/reel/video/(?P<id>%s)/' % self._ID_REGEX, url, 'Reel pid', default=None)
         initial_data = self._parse_json(self._html_search_regex(
             r'<script[^>]+id=(["\'])initial-data\1[^>]+data-json=(["\'])(?P<json>(?:(?!\2).)+)',
@@ -1020,22 +1020,22 @@ class BBCIE(BBCCoUkIE):
                     'duration': int_or_none(clip_data.get('duration')),
                     'categories': [topic_title] if topic_title else None,
                 }
-                
+
                 if not programme_id:
                     # get the formats from the reel page
                     formats, subtitles = self._download_media_selector(version_id)
                     self._sort_formats(formats)
                     ret.update({
-                            'formats': formats,
-                            'subtitles': subtitles,
+                        'formats': formats,
+                        'subtitles': subtitles,
                         })
                 else:
                     # get the formats (including HD) from the programmes page
                     # avoid https: to help proxying
                     ret.update({
-                    	'_type': 'url_transparent',
-                    	'url': 'http://bbc.co.uk/programmes/%s' % programme_id
-                    	})
+                        '_type': 'url_transparent',
+                        'url': 'http://bbc.co.uk/programmes/%s' % programme_id
+                        })
                 return ret
         elif programme_id:
             # the Reel page was not as expected: try the programmes page
