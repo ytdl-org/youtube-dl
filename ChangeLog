@@ -1,4 +1,4 @@
-version <unreleased>
+version 2021.03.03
 
 Extractors
 * [youtube:tab] Switch continuation to browse API (#28289, #28327)
