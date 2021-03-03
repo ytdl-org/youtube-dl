@@ -1012,6 +1012,7 @@ class BBCIE(BBCCoUkIE):
                 topic_title = init_data.get('topicTitle')
                 ret = {
                     'title': smp_data.get('title', playlist_id),
+                    'id': version_id,
                     'alt_title': init_data.get('shortTitle'),
                     'thumbnail': image_url.replace('$recipe', 'raw') if image_url else None,
                     'description': smp_data.get('summary') or init_data.get('shortSummary'),
@@ -1025,7 +1026,6 @@ class BBCIE(BBCCoUkIE):
                     formats, subtitles = self._download_media_selector(version_id)
                     self._sort_formats(formats)
                     ret.update({
-                            'id': version_id,
                             'formats': formats,
                             'subtitles': subtitles,
                         })
