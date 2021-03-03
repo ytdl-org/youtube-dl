@@ -688,6 +688,8 @@ You can also use special names to select particular edge case formats:
  - `bestaudio`: Select the best quality audio only-format. May not be available.
  - `worstaudio`: Select the worst quality audio only-format. May not be available.
 
+(Generally, youtube-dl determines which of the available formats is "best" or "worst" by considering the following information, in descending order of importance: the descriptive quality level reported by the website (e. g., "HQ" is better than "SD"); the average bitrate of audio and video; the filesize; the video bitrate; the video height; the video width; the audio bitrate; the video framerate; the approximate filesize; and the order in which the formats are delivered by the website. Depending on the file that is being downloaded and the website from which it is being downloaded, some of this information may not be available to youtube-dl.)
+
 For example, to download the worst quality video-only format you can use `-f worstvideo`.
 
 If you want to download multiple videos and they don't have the same formats available, you can specify the order of preference using slashes. Note that slash is left-associative, i.e. formats on the left hand side are preferred, for example `-f 22/17/18` will download format 22 if it's available, otherwise it will download format 17 if it's available, otherwise it will download format 18 if it's available, otherwise it will complain that no suitable formats are available for download.
