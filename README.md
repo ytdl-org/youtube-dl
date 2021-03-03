@@ -667,7 +667,7 @@ $ youtube-dl -o - BaW_jenozKc
 
 # FORMAT SELECTION
 
-By default youtube-dl tries to download the best available quality, i.e. if you want the best quality you **don't need** to pass any special options, youtube-dl will guess it for you by **default**.
+By default youtube-dl tries to download the best available quality (highest bit rate), i.e. if you want the best quality you **don't need** to pass any special options, youtube-dl will guess it for you by **default**.
 
 But sometimes you may want to download in a different format, for example when you are on a slow or intermittent connection. The key mechanism for achieving this is so-called *format selection* based on which you can explicitly specify desired format, select formats based on some criterion or criteria, setup precedence and much more.
 
