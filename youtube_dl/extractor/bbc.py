@@ -1028,14 +1028,14 @@ class BBCIE(BBCCoUkIE):
                     ret.update({
                         'formats': formats,
                         'subtitles': subtitles,
-                        })
+                    })
                 else:
                     # get the formats (including HD) from the programmes page
                     # avoid https: to help proxying
                     ret.update({
                         '_type': 'url_transparent',
                         'url': 'http://bbc.co.uk/programmes/%s' % programme_id
-                        })
+                    })
                 return ret
         elif programme_id:
             # the Reel page was not as expected: try the programmes page
