@@ -1017,7 +1017,7 @@ class BBCIE(BBCCoUkIE):
                 topic_title = init_data.get('topicTitle')
                 return {
                     'id': version_id,
-                    'title': title
+                    'title': title,
                     'formats': formats,
                     'alt_title': init_data.get('shortTitle'),
                     'thumbnail': image_url.replace('$recipe', 'raw') if image_url else None,
