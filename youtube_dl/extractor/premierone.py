@@ -95,7 +95,7 @@ class PremierOneIE(InfoExtractor):
                     'Accept': 'application/json',
                     'Referer': 'https://premier.one/show/' + show_id + '/season/' + str(season.get('number'))
                 })
-            while metainfo and (metainfo.get('page') == 1 or metainfo.get('has_next')):
+            while metainfo and len(metainfo.get('results')) > 0:
                 for item in metainfo.get('results'):
                     video_id = item.get('id')
                     if not video_id:
