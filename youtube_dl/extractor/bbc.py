@@ -995,6 +995,8 @@ class BBCIE(BBCCoUkIE):
             }
 
         # bbc reel (e.g. https://www.bbc.com/reel/video/p07c6sb6/how-positive-thinking-is-harming-your-happiness)
+        programme_id = self._search_regex( 
+            r'/reel/video/(?P<id>%s)/' % self._ID_REGEX, url, 'Reel pid', default=None)
         initial_data = self._parse_json(self._html_search_regex(
             r'<script[^>]+id=(["\'])initial-data\1[^>]+data-json=(["\'])(?P<json>(?:(?!\2).)+)',
             webpage, 'initial data', default='{}', group='json'), playlist_id, fatal=False)
@@ -1005,25 +1007,39 @@ class BBCIE(BBCCoUkIE):
             clip_data = try_get(smp_data, lambda x: x['items'][0], dict) or {}
             version_id = clip_data.get('versionID')
             if version_id:
-                title = smp_data['title']
-                formats, subtitles = self._download_media_selector(version_id)
-                self._sort_formats(formats)
                 image_url = smp_data.get('holdingImageURL')
                 display_date = init_data.get('displayDate')
                 topic_title = init_data.get('topicTitle')
-
-                return {
-                    'id': version_id,
-                    'title': title,
-                    'formats': formats,
+                ret = {
+                    'title': smp_data.get('title', playlist_id),
                     'alt_title': init_data.get('shortTitle'),
                     'thumbnail': image_url.replace('$recipe', 'raw') if image_url else None,
                     'description': smp_data.get('summary') or init_data.get('shortSummary'),
                     'upload_date': display_date.replace('-', '') if display_date else None,
-                    'subtitles': subtitles,
                     'duration': int_or_none(clip_data.get('duration')),
                     'categories': [topic_title] if topic_title else None,
                 }
+                
+                if not programme_id:
+                    # get the formats from the reel page
+                    formats, subtitles = self._download_media_selector(version_id)
+                    self._sort_formats(formats)
+                    ret.update({
+                            'id': version_id,
+                            'formats': formats,
+                            'subtitles': subtitles,
+                        })
+                else:
+                    # get the formats (including HD) from the programmes page
+                    # avoid https: to help proxying
+                    ret.update({
+                    	'_type': 'url_transparent',
+                    	'url': 'http://bbc.co.uk/programmes/%s' % programme_id
+                    	})
+                return ret
+        elif programme_id:
+            # the Reel page was not as expected: try the programmes page
+            return self._url_result(programme_id)
 
         # Morph based embed (e.g. http://www.bbc.co.uk/sport/live/olympics/36895975)
         # There are several setPayload calls may be present but the video
