@@ -95,8 +95,11 @@ class CDAIE(InfoExtractor):
         if 'Ten film jest dostępny dla użytkowników premium' in webpage:
             raise ExtractorError('This video is only available for premium users.', expected=True)
 
+        if re.search(r'niedostępn[ey] w(?:&nbsp;|\s+)Twoim kraju\s*<', webpage):
+            self.raise_geo_restricted()
+
         need_confirm_age = False
-        if self._html_search_regex(r'(<form[^>]+action="/a/validatebirth")',
+        if self._html_search_regex(r'(<form[^>]+action="[^"]*/a/validatebirth[^"]*")',
                                    webpage, 'birthday validate form', default=None):
             webpage = self._download_age_confirm_page(
                 url, video_id, note='Confirming age')
