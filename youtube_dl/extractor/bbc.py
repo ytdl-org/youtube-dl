@@ -1331,7 +1331,7 @@ class BBCCoUkPlaylistBaseIE(InfoExtractor):
 
         webpage = self._download_webpage(url, playlist_id)
 
-        title, description = self._extract_title_and_description(webpage)
+        title, description = self._extract_title_and_description(webpage, playlist_id)
 
         return self.playlist_result(
             self._entries(webpage, url, playlist_id),
@@ -1342,7 +1342,7 @@ class BBCCoUkIPlayerPlaylistIE(BBCCoUkPlaylistBaseIE):
     IE_NAME = 'bbc.co.uk:iplayer:playlist'
     _VALID_URL = r'https?://(?:www\.)?bbc\.co\.uk/iplayer/(?:episodes|group)/(?P<id>%s)' % BBCCoUkIE._ID_REGEX
     _URL_TEMPLATE = 'http://www.bbc.co.uk/iplayer/episode/%s'
-    _VIDEO_ID_TEMPLATE = r'data-ip-id=["\'](%s)'
+    _VIDEO_ID_TEMPLATE = r'"href":\s*"/iplayer/episode/(%s)/'
     _TESTS = [{
         'url': 'http://www.bbc.co.uk/iplayer/episodes/b05rcz9v',
         'info_dict': {
@@ -1363,11 +1363,16 @@ class BBCCoUkIPlayerPlaylistIE(BBCCoUkPlaylistBaseIE):
         'playlist_mincount': 10,
     }]
 
-    def _extract_title_and_description(self, webpage):
-        title = self._search_regex(r'<h1>([^<]+)</h1>', webpage, 'title', fatal=False)
-        description = self._search_regex(
-            r'<p[^>]+class=(["\'])subtitle\1[^>]*>(?P<value>[^<]+)</p>',
-            webpage, 'description', fatal=False, group='value')
+    def _extract_title_and_description(self, webpage, playlist_id):
+        redux_state = self._parse_json(self._html_search_regex(
+            r'<script[^>]+id=(["\'])tvip-script-app-store\1[^>]*>[^<]*_REDUX_STATE__\s*=\s*(?P<json>[^<]+)\s*;\s*<',
+            webpage, 'redux state', default='{}', group='json'), playlist_id, fatal=False)
+        if redux_state:
+            redux_hdr = redux_state.get('header') or {}                               
+            redux_hdr.update(redux_state.get('page') or {})
+            redux_state = redux_hdr
+        title = redux_state.get('title') or self._og_search_title(webpage, fatal=False)
+        description = redux_state.get('description') or self._og_search_description(webpage)
         return title, description
 
 
@@ -1413,7 +1418,7 @@ class BBCCoUkPlaylistIE(BBCCoUkPlaylistBaseIE):
         'only_matching': True,
     }]
 
-    def _extract_title_and_description(self, webpage):
+    def _extract_title_and_description(self, webpage, playlist_id):
         title = self._og_search_title(webpage, fatal=False)
         description = self._og_search_description(webpage)
         return title, description
