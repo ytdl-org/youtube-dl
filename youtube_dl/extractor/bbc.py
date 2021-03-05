@@ -1372,9 +1372,9 @@ class BBCCoUkIPlayerPlaylistIE(BBCCoUkPlaylistBaseIE):
             redux_hdr.update(redux_state.get('page') or {})
             redux_state = redux_hdr
         title = redux_state.get('title') or self._og_search_title(webpage, fatal=False)
-        description = (redux_state.get('description') or 
-                       self._html_search_meta('description', webpage, default=None) or 
-                       self._og_search_description(webpage))
+        description = redux_state.get('description') or \
+                        self._html_search_meta('description', webpage, default=None) or \
+                        self._og_search_description(webpage)
         return title, description
 
 
