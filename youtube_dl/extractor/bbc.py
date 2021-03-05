@@ -1328,6 +1328,7 @@ class BBCCoUkPlaylistBaseIE(InfoExtractor):
 
     def _real_extract(self, url):
         playlist_id = self._match_id(url)
+        self._playlist_id = playlist_id
 
         webpage = self._download_webpage(url, playlist_id)
 
@@ -1342,7 +1343,7 @@ class BBCCoUkIPlayerPlaylistIE(BBCCoUkPlaylistBaseIE):
     IE_NAME = 'bbc.co.uk:iplayer:playlist'
     _VALID_URL = r'https?://(?:www\.)?bbc\.co\.uk/iplayer/(?:episodes|group)/(?P<id>%s)' % BBCCoUkIE._ID_REGEX
     _URL_TEMPLATE = 'http://www.bbc.co.uk/iplayer/episode/%s'
-    _VIDEO_ID_TEMPLATE = r'data-ip-id=["\'](%s)'
+    _VIDEO_ID_TEMPLATE = r'"href":\s*"/iplayer/episode/(%s)/'
     _TESTS = [{
         'url': 'http://www.bbc.co.uk/iplayer/episodes/b05rcz9v',
         'info_dict': {
@@ -1364,10 +1365,17 @@ class BBCCoUkIPlayerPlaylistIE(BBCCoUkPlaylistBaseIE):
     }]
 
     def _extract_title_and_description(self, webpage):
-        title = self._search_regex(r'<h1>([^<]+)</h1>', webpage, 'title', fatal=False)
-        description = self._search_regex(
-            r'<p[^>]+class=(["\'])subtitle\1[^>]*>(?P<value>[^<]+)</p>',
-            webpage, 'description', fatal=False, group='value')
+        redux_state = self._parse_json(self._html_search_regex(
+            r'<script[^>]+id=(["\'])tvip-script-app-store\1[^>]*>[^<]*_REDUX_STATE__\s*=\s*(?P<json>[^<]+)\s*;\s*<',
+            webpage, 'redux state', default='{}', group='json'), self._playlist_id, fatal=False)
+        if redux_state:
+            redux_hdr = redux_state.get('header') or {}
+            redux_hdr.update(redux_state.get('page') or {})
+            redux_state = redux_hdr
+        title = redux_state.get('title') or self._og_search_title(webpage, fatal=False)
+        description = redux_state.get('description') or \
+            self._html_search_meta('description', webpage, default=None) or \
+            self._og_search_description(webpage)
         return title, description
 
 
