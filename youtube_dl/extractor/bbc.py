@@ -1368,7 +1368,7 @@ class BBCCoUkIPlayerPlaylistIE(BBCCoUkPlaylistBaseIE):
             r'<script[^>]+id=(["\'])tvip-script-app-store\1[^>]*>[^<]*_REDUX_STATE__\s*=\s*(?P<json>[^<]+)\s*;\s*<',
             webpage, 'redux state', default='{}', group='json'), playlist_id, fatal=False)
         if redux_state:
-            redux_hdr = redux_state.get('header') or {}                               
+            redux_hdr = redux_state.get('header') or {}
             redux_hdr.update(redux_state.get('page') or {})
             redux_state = redux_hdr
         title = redux_state.get('title') or self._og_search_title(webpage, fatal=False)
