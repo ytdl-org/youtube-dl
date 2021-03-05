@@ -41,21 +41,21 @@ class NhkRadioIE(NhkRadioBase):
 
     _TESTS = [
         {
-            "url": "https://www.nhk.or.jp/radio/player/ondemand.html?p=0456_01_2801095",
+            "url": "https://www.nhk.or.jp/radio/player/ondemand.html?p=4812_01_2898188",
             "info_dict": {
-                "id": "0456_01_2801095",
+                "id": "4812_01_2898188",
                 "ext": "m4a",
-                "title": "ひるのいこい",
+                "title": "世界へ発信！ニュースで英語術　＃２０９▽“首相長男から接待”　総務省１１人を処分",
                 "upload_date": str,
                 "timestamp": int,
             },
         },
         {
-            "url": "https://www.nhk.or.jp/radio/player/ondemand.html?p=0444_01_2786552",
+            "url": "https://www.nhk.or.jp/radio/player/ondemand.html?p=0444_01_2890944",
             "info_dict": {
                 "ext": "m4a",
-                "id": "0444_01_2786552",
-                "title": "歌謡スクランブル　２１世紀のメロディー（３）　▽中島美嘉",
+                "id": "0444_01_2890944",
+                "title": "歌謡スクランブル　春色コレクション（３）　▽尾崎亜美",
                 "upload_date": str,
                 "timestamp": int,
             },
