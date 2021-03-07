@@ -170,11 +170,14 @@ class RaiPlayIE(RaiBaseIE):
         media = self._download_json(
             base + '.json', video_id, 'Downloading video JSON')
 
-        if try_get(media, lambda x: x['rights_management']['rights']['drm'], dict) or try_get(media, lambda x: x['program_info']['rights_management']['rights']['drm'], dict):
+        if try_get(
+                media,
+                (lambda x: x['rights_management']['rights']['drm'],
+                 lambda x: x['program_info']['rights_management']['rights']['drm']),
+                dict):
             raise ExtractorError('This video is DRM protected.', expected=True)
 
         title = media['name']
-
         video = media['video']
 
         relinker_info = self._extract_relinker_info(video['content_url'], video_id)
