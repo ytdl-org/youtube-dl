@@ -156,6 +156,7 @@ class BiliBiliIE(InfoExtractor):
             cid = js['result']['cid']
 
         headers = {
+            'Accept': 'application/json',
             'Referer': url
         }
         headers.update(self.geo_verification_headers())
