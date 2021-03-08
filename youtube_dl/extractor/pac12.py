@@ -42,12 +42,15 @@ class Pac12IE(InfoExtractor):
 
         if cv is False:
             # May be an event page; look for the live stream.
-            network = try_get(drupal_settings, lambda x: x['pac12_react'][
-                'pac12_react_event_widget']['event']['broadcast_info'][
-                'broadcast_networks'][0]['id'], int)
+            network = try_get(drupal_settings,
+                              lambda x: x['pac12_react'][
+                                  'pac12_react_event_widget']['event'][
+                                  'broadcast_info']['broadcast_networks'][0][
+                                  'id'], int)
             if network is not None:
-                cv = try_get(drupal_settings, lambda x: x['pac12_react'
-                    ]['networks'][str(network)], dict)
+                cv = try_get(drupal_settings,
+                             lambda x: x['pac12_react']['networks'][
+                                 str(network)], dict)
 
         if not cv or 'manifest_url' not in cv:
             # Video may be embedded one level deeper; look for embed URL.
