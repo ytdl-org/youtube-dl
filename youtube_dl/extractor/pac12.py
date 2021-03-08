@@ -1,11 +1,8 @@
 # coding: utf-8
 from __future__ import unicode_literals
-try:
-    unicode
-except NameError:
-    unicode = str
 
 from .common import InfoExtractor
+from ..compat import compat_str
 
 
 class Pac12IE(InfoExtractor):
@@ -65,7 +62,7 @@ class Pac12IE(InfoExtractor):
 
         return {
             # cv['id'] might be an integer, string, or missing.
-            'id': unicode(cv.get('id') or video_id),
+            'id': compat_str(cv.get('id') or video_id),
             'title': (cv.get('title')
                       or self._html_search_meta(
                           ['og:title', 'twitter:title',
