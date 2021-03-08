@@ -3,6 +3,7 @@ from __future__ import unicode_literals
 
 from .common import InfoExtractor
 from ..compat import compat_str
+from ..utils import try_get
 
 
 class Pac12IE(InfoExtractor):
@@ -41,14 +42,12 @@ class Pac12IE(InfoExtractor):
 
         if cv is False:
             # May be an event page; look for the live stream.
-            try:
-                network = drupal_settings['pac12_react'][
-                    'pac12_react_event_widget']['event'][
-                    'broadcast_info']['broadcast_networks'][0]['id']
-                cv = drupal_settings['pac12_react']['networks'][str(network)]
-            except (KeyError, IndexError):
-                # Can't find a live stream this way.
-                pass
+            network = try_get(drupal_settings, lambda x: x['pac12_react'][
+                'pac12_react_event_widget']['event']['broadcast_info'][
+                'broadcast_networks'][0]['id'], int)
+            if network is not None:
+                cv = try_get(drupal_settings, lambda x: x['pac12_react'
+                    ]['networks'][str(network)], dict)
 
         if not cv or 'manifest_url' not in cv:
             # Video may be embedded one level deeper; look for embed URL.
