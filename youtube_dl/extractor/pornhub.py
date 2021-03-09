@@ -394,6 +394,21 @@ class PornHubIE(PornHubBaseIE):
 
         upload_date = None
         formats = []
+
+        def add_format(format_url, height=None):
+            tbr = None
+            mobj = re.search(r'(?P<height>\d+)[pP]?_(?P<tbr>\d+)[kK]', format_url)
+            if mobj:
+                if not height:
+                    height = int(mobj.group('height'))
+                tbr = int(mobj.group('tbr'))
+            formats.append({
+                'url': format_url,
+                'format_id': '%dp' % height if height else None,
+                'height': height,
+                'tbr': tbr,
+            })
+
         for video_url, height in video_urls:
             if not upload_date:
                 upload_date = self._search_regex(
@@ -410,18 +425,19 @@ class PornHubIE(PornHubBaseIE):
                     video_url, video_id, 'mp4', entry_protocol='m3u8_native',
                     m3u8_id='hls', fatal=False))
                 continue
-            tbr = None
-            mobj = re.search(r'(?P<height>\d+)[pP]?_(?P<tbr>\d+)[kK]', video_url)
-            if mobj:
-                if not height:
-                    height = int(mobj.group('height'))
-                tbr = int(mobj.group('tbr'))
-            formats.append({
-                'url': video_url,
-                'format_id': '%dp' % height if height else None,
-                'height': height,
-                'tbr': tbr,
-            })
+            if '/video/get_media' in video_url:
+                medias = self._download_json(video_url, video_id, fatal=False)
+                if isinstance(medias, list):
+                    for media in medias:
+                        if not isinstance(media, dict):
+                            continue
+                        video_url = url_or_none(media.get('videoUrl'))
+                        if not video_url:
+                            continue
+                        height = int_or_none(media.get('quality'))
+                        add_format(video_url, height)
+                continue
+            add_format(video_url)
         self._sort_formats(formats)
 
         video_uploader = self._html_search_regex(
