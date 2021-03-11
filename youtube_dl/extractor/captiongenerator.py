@@ -12,7 +12,7 @@ class CaptionGeneratorIE(InfoExtractor):
             'id': '128',
             'ext': 'mp4',
             'title': 'Team building...',
-            'http_headers': {"Referer": "https://www.captiongenerator.com/"}
+            'http_headers': 'Referer: https://www.captiongenerator.com/'
         }
     }
 
