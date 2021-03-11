@@ -5,13 +5,14 @@ from .common import InfoExtractor
 
 
 class CaptionGeneratorIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:www\.)?captiongenerator\.com/(?P<id>[0-9]+)'
+    _VALID_URL = r'(?:https?://(?:www\.)?captiongenerator\.com/(?P<id>[0-9]+))'
     _TEST = {
         'url': 'https://d34ov3vwfhhb30.cloudfront.net/Hitler+Reacts+-+No+Subtitles.mp4',
         'info_dict': {
             'id': '128',
             'ext': 'mp4',
             'title': 'Team building...',
+            'http_headers': {"Referer": "https://www.captiongenerator.com/"}
         }
     }
 
@@ -35,6 +36,5 @@ class CaptionGeneratorIE(InfoExtractor):
             'id': video_id,
             'title': title,
             'url': video_url,
-            'description': self._og_search_description(webpage),
             'http_headers': {"Referer": "https://www.captiongenerator.com/"}
         }
