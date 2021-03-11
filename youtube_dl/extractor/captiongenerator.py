@@ -6,15 +6,39 @@ from .common import InfoExtractor
 
 class CaptionGeneratorIE(InfoExtractor):
     _VALID_URL = r'(?:https?://(?:www\.)?captiongenerator\.com/(?P<id>[0-9]+))'
-    _TEST = {
-        'url': 'https://d34ov3vwfhhb30.cloudfront.net/Hitler+Reacts+-+No+Subtitles.mp4',
+    _TESTS = [{
+        'url': 'https://www.captiongenerator.com/128/Team-building',
         'info_dict': {
             'id': '128',
             'ext': 'mp4',
             'title': 'Team building...',
-            'http_headers': 'Referer: https://www.captiongenerator.com/'
-        }
-    }
+            'http_headers': {'Referer': 'https://www.captiongenerator.com/'}
+        },
+    }, {
+        'url': 'https://www.captiongenerator.com/2153287/Man-finds-phone',
+        'info_dict': {
+            'id': '2153287',
+            'ext': 'mp4',
+            'title': 'Man finds phone',
+            'http_headers': {'Referer': 'https://www.captiongenerator.com/'}
+        },
+    }, {
+        'url': 'https://www.captiongenerator.com/2140517/Haavisto-Pietarissa',
+        'info_dict': {
+            'id': '2140517',
+            'ext': 'mp4',
+            'title': 'Haavisto Pietarissa',
+            'http_headers': {'Referer': 'https://www.captiongenerator.com/'}
+        },
+    }, {
+        'url': 'https://www.captiongenerator.com/2153147/81-Pay',
+        'info_dict': {
+            'id': '2153147',
+            'ext': 'mp4',
+            'title': '81 Pay',
+            'http_headers': {'Referer': 'https://www.captiongenerator.com/'}
+        },
+    }]
 
     def _real_extract(self, url):
         video_id = self._match_id(url)
