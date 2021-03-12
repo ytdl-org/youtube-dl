@@ -330,7 +330,7 @@ class FFmpegExtractAudioPP(FFmpegPostProcessor):
 
         # Don't overwrite files if the nopostoverwrites option is active or if
         # ffmpeg would just copy them anyway
-        if (new_path == path and acodec == 'copy') or (self._nopostoverwrites and os.path.exists(encodeFilename(new_path))):
+        if (new_path == path and acodec == 'copy' and not self._configuration_args()) or (self._nopostoverwrites and os.path.exists(encodeFilename(new_path))):
             self._downloader.to_screen('[ffmpeg] Post-process file %s exists, skipping' % new_path)
             return [], information
 
