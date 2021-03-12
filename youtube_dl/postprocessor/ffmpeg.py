@@ -274,10 +274,10 @@ class FFmpegExtractAudioPP(FFmpegPostProcessor):
             raise PostProcessingError('WARNING: unable to obtain file audio codec with ffprobe')
 
         more_opts = []
-        if (self._preferredcodec == 'best' 
-            or (self._preferredquality is None 
+        if (self._preferredcodec == 'best'
+            or (self._preferredquality is None
                 and (self._preferredcodec == filecodec
-                    or (self._preferredcodec == 'm4a' and filecodec == 'aac')))):
+                     or (self._preferredcodec == 'm4a' and filecodec == 'aac')))):
             if filecodec == 'aac' and self._preferredcodec in ['m4a', 'best']:
                 # Lossless, but in another container
                 acodec = 'copy'
@@ -296,22 +296,22 @@ class FFmpegExtractAudioPP(FFmpegPostProcessor):
                 acodec = 'libmp3lame'
                 extension = 'mp3'
                 more_opts = []
-                if self._preferredquality is not None:
-                    if int(self._preferredquality) < 10:
-                        more_opts += ['-q:a', self._preferredquality]
-                    else:
-                        more_opts += ['-b:a', self._preferredquality + 'k']
+                self._preferredquality = self._preferredquality if self._preferredquality else "5"
+                if int(self._preferredquality) < 10:
+                    more_opts += ['-q:a', self._preferredquality]
+                else:
+                    more_opts += ['-b:a', self._preferredquality + 'k']
         else:
             # We convert the audio (lossy if codec is lossy)
             acodec = ACODECS[self._preferredcodec]
             extension = self._preferredcodec
             more_opts = []
-            if self._preferredquality is not None:
-                # The opus codec doesn't support the -aq option
-                if int(self._preferredquality) < 10 and extension != 'opus':
-                    more_opts += ['-q:a', self._preferredquality]
-                else:
-                    more_opts += ['-b:a', self._preferredquality + 'k']
+            self._preferredquality = self._preferredquality if self._preferredquality else "5"
+            # The opus codec doesn't support the -aq option
+            if int(self._preferredquality) < 10 and extension != 'opus':
+                more_opts += ['-q:a', self._preferredquality]
+            else:
+                more_opts += ['-b:a', self._preferredquality + 'k']
             if self._preferredcodec == 'aac':
                 more_opts += ['-f', 'adts']
             if self._preferredcodec == 'm4a':
@@ -330,8 +330,7 @@ class FFmpegExtractAudioPP(FFmpegPostProcessor):
 
         # Don't overwrite files if the nopostoverwrites option is active or if
         # ffmpeg would just copy them anyway
-        if ((new_path == path and acodec == 'copy')
-            or (self._nopostoverwrites and os.path.exists(encodeFilename(new_path)))):
+        if (new_path == path and acodec == 'copy') or (self._nopostoverwrites and os.path.exists(encodeFilename(new_path))):
             self._downloader.to_screen('[ffmpeg] Post-process file %s exists, skipping' % new_path)
             return [], information
 
