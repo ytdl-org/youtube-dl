@@ -35,7 +35,7 @@ class SportDeutschlandIE(InfoExtractor):
         api_url = 'https://proxy.vidibusdynamic.net/ssl/backend.sportdeutschland.tv/api/permalinks/%s/%s?access_token=true' % (
             sport_id, video_id)
         req = sanitized_Request(api_url, headers={
-            'Accept': 'application/vnd.vidibus.v2.html+json',
+            'Accept': 'application/json;',
             'Referer': url,
         })
         data = self._download_json(req, video_id)
@@ -44,7 +44,7 @@ class SportDeutschlandIE(InfoExtractor):
         categories = [data['section']['title']]
 
         formats = []
-        smil_url = asset['video']
+        smil_url = asset['videos'][0]['url']
         if '.smil' in smil_url:
             m3u8_url = smil_url.replace('.smil', '.m3u8')
             formats.extend(
@@ -74,7 +74,7 @@ class SportDeutschlandIE(InfoExtractor):
             'title': asset['title'],
             'thumbnail': asset.get('image'),
             'description': asset.get('teaser'),
-            'duration': asset.get('duration'),
+            'duration': asset.get('seconds'),
             'categories': categories,
             'view_count': asset.get('views'),
             'rtmp_live': asset.get('live'),
