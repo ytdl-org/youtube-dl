@@ -182,6 +182,7 @@ class MediathekViewWebSearchIE(SearchInfoExtractor):
             if item.get('url_subtitle'):
                 video.setdefault('subtitles', {}).setdefault('de', []).append({
                     'url': item.get('url_subtitle'),
+                    'ext': 'ttml',
                 })
             entries.append(video)
 
