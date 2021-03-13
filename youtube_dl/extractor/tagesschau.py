@@ -135,7 +135,7 @@ class TagesschauIE(InfoExtractor):
             'id': 'impfungen-coronavirus-usa-101',
             'title': 'Kampf gegen das Coronavirus: Impfwunder USA?',
         },
-        'playlist_count': 3,
+        'playlist_count': 2,
     }, {
         # article without videos
         'url': 'https://www.tagesschau.de/wirtschaft/ukraine-russland-kredit-101.html',
@@ -351,8 +351,13 @@ class TagesschauIE(InfoExtractor):
               and not self._downloader.params.get('noplaylist')
               and (webpage_type == 'website' or not mobj.group('id'))):
             # article or playlist
-            entries = [self._extract_from_player(s, video_id, title)
-                       for s in players]
+            entries = []
+            seen = set()
+            for player in players:
+                entry = self._extract_from_player(player, video_id, title)
+                if entry['id'] not in seen:
+                    entries.append(entry)
+                    seen.add(entry['id'])
             return self.playlist_result(entries, display_id, title)
         else:
             # single video/audio
