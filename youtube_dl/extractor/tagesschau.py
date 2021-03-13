@@ -12,6 +12,7 @@ from ..utils import (
     parse_duration,
     parse_filesize,
     remove_quotes,
+    strip_or_none,
     try_get,
     unescapeHTML,
     unified_timestamp,
@@ -87,7 +88,7 @@ class TagesschauIE(InfoExtractor):
         'info_dict': {
             'id': 'video-45741',
             'ext': 'mp4',
-            'title': 'Ganze Sendung',
+            'title': 'tagesschau 20 Uhr - 04.12.14 20:00',
             'description': '04.12.2014 20:00',
             'thumbnail': r're:^https?:.*\.jpg$',
             'uploader': 'tagesschau',
@@ -154,6 +155,18 @@ class TagesschauIE(InfoExtractor):
             'description': '19.07.2015 19:05 Uhr',
         }
     }, {
+        # handling of generic title
+        'url': 'https://www.tagesschau.de/multimedia/video/video-835681.html',
+        'info_dict': {
+            'id': 'video-835681',
+            'ext': 'mp4',
+            'title': 'Tagesschau in 100 Sekunden - 13.03.21 17:35',
+            'upload_date': '20210313',
+            'uploader': 'Tagesschau24',
+            'description': '13.03.2021 17:35',
+            'timestamp': 1615656900,
+        }
+    }, {
         'url': 'http://www.tagesschau.de/multimedia/sendung/tsg-3771.html',
         'only_matching': True,
     }, {
@@ -192,6 +205,25 @@ class TagesschauIE(InfoExtractor):
             if mobj:
                 return mobj.group('id')
 
+    def _handle_generic_titles(self, title, pixelConf):
+        if strip_or_none(title, '').lower() not in ('ganze sendung', '100 sekunden',
+                                                    'tagesschau in 100 sekunden'):
+            return title
+        # otherwise find more meaningful title than the generic Ganze Sendung/100 Sekunden
+        for item in pixelConf:
+            if item.get('tracker') == 'AGFdebug':
+                s = try_get(item, lambda x: x['clipData']['program'], compat_str)
+                if s:
+                    # extract date and time
+                    parts = (try_get(item, lambda x: x['clipData']['title'], compat_str)
+                             or '').split('_')[-2:]
+                    if len(parts) == 2:
+                        title = "%s - %s" % (s, ' '.join(parts))
+                    else:
+                        title = s
+                break
+        return title
+
     def _extract_from_player(self, player_div, video_id_fallback, title_fallback):
         player_data = unescapeHTML(self._search_regex(
             r'data-config=(?P<quote>["\'])(?P<data>[^"\']*)(?P=quote)',
@@ -219,7 +251,8 @@ class TagesschauIE(InfoExtractor):
 
         video_id = self._video_id_from_url(webpage_url)
         duration = None
-        for item in (try_get(meta, lambda x: x['pc']['_pixelConfig'], list) or []):
+        pixelConf = try_get(meta, lambda x: x['pc']['_pixelConfig'], list) or []
+        for item in pixelConf:
             video_id = (video_id or try_get(item,
                         [lambda x: x['playerID'],
                          lambda x: x['clipData']['playerId']], compat_str))
@@ -265,6 +298,7 @@ class TagesschauIE(InfoExtractor):
         title = (try_get(mc, [lambda x: x['_info']['clipTitle'],
                               lambda x: x['_download']['title']], compat_str)
                  or title_fallback)
+        title = self._handle_generic_titles(title, pixelConf)
 
         sub_url = url_or_none(mc.get('_subtitleUrl'))
         subs = {'de': [{'ext': 'ttml', 'url': sub_url}]} if sub_url else None
