@@ -380,13 +380,13 @@ class TagesschauIE(InfoExtractor):
     # Some old pages still use the old format, so we keep the previous
     # extractor for now.
     def _legacy_extract(self, webpage, display_id, title, webpage_type):
-        DOWNLOAD_REGEX = r'(?s)<p>Wir bieten dieses (?P<kind>Video|Audio) in folgenden Formaten zum Download an:</p>\s*<div class="controls">(?P<links>.*?)</div>\s*<p>'
+        DOWNLOAD_REGEX = r'<p>Wir bieten dieses (?P<kind>Video|Audio) in folgenden Formaten zum Download an:</p>\s*<div class="controls">(?P<links>.*?)</div>\s*<p>'
 
         if webpage_type == 'website':  # Article
             entries = []
             for num, (entry_title, media_kind, download_text) in enumerate(re.findall(
-                    r'(?s)<p[^>]+class="infotext"[^>]*>\s*(?:<a[^>]+>)?\s*<strong>(.+?)</strong>.*?</p>.*?%s' % DOWNLOAD_REGEX,
-                    webpage), 1):
+                    r'<p[^>]+class="infotext"[^>]*>\s*(?:<a[^>]+>)?\s*<strong>(.+?)</strong>.*?</p>.*?%s' % DOWNLOAD_REGEX,
+                    webpage, flags=re.S), 1):
                 entries.append({
                     'id': '%s-%d' % (display_id, num),
                     'title': '%s' % entry_title,
@@ -397,9 +397,9 @@ class TagesschauIE(InfoExtractor):
             formats = entries[0]['formats']
         else:  # Assume single video
             download_text = self._search_regex(
-                DOWNLOAD_REGEX, webpage, 'download links', group='links')
+                DOWNLOAD_REGEX, webpage, 'download links', flags=re.S, group='links')
             media_kind = self._search_regex(
-                DOWNLOAD_REGEX, webpage, 'media kind', default='Video', group='kind')
+                DOWNLOAD_REGEX, webpage, 'media kind', default='Video', flags=re.S, group='kind')
             formats = self._legacy_extract_formats(download_text, media_kind)
         thumbnail = self._og_search_thumbnail(webpage)
         description = self._html_search_regex(
