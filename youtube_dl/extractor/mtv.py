@@ -142,7 +142,7 @@ class MTVServicesInfoExtractor(InfoExtractor):
             mediagen_url += 'hls' if use_hls else 'fms'
         if (self._LANG):
             mediagen_url += '&' if '?' in mediagen_url else '?'
-            mediagen_url += 'lang='+ self._LANG
+            mediagen_url += 'lang=' + self._LANG
 
         mediagen_doc = self._download_xml(
             mediagen_url, video_id, 'Downloading video urls', fatal=False)

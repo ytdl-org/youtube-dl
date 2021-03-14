@@ -85,9 +85,10 @@ class SouthParkDeIE(MTVServicesInfoExtractor):
             'arcEp': 'shared.southpark.gsa.de',
             'ep': '50c78199',
             'imageEp': 'shared.southpark.gsa.de',
-            'clusterName' : 'EMEAA',
+            'clusterName': 'EMEAA',
             'mgid': uri,
         }
+
 
 class SouthParkDeEnIE(SouthParkIE):
     IE_NAME = 'southpark.de:en'
@@ -120,9 +121,10 @@ class SouthParkDeEnIE(SouthParkIE):
             'arcEp': 'shared.southpark.gsa.en',
             'ep': '20476225',
             'imageEp': 'shared.southpark.gsa.en',
-            'clusterName' : 'EMEAA',
+            'clusterName': 'EMEAA',
             'mgid': uri,
         }
+
 
 class SouthParkNlIE(SouthParkIE):
     IE_NAME = 'southpark.nl'
