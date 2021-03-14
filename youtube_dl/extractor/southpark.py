@@ -56,7 +56,7 @@ class SouthParkEsIE(SouthParkIE):
 
 class SouthParkDeIE(MTVServicesInfoExtractor):
     IE_NAME = 'southpark.de'
-    _VALID_URL = r'https?://(?:www\.)?(?P<url>southpark\.de/(?:videoclip|folgen|)/(?P<id>.+?)(\?|#|$))'
+    _VALID_URL = r'https?://(?:www\.)?(?P<url>southpark\.de/(?:videoclip|folgen|collections)/(?P<id>.+?)(\?|#|$))'
     _FEED_URL = 'http://feeds.mtvnservices.com/od/feed/intl-mrss-player-feed'
     _LANG = 'de'
 
