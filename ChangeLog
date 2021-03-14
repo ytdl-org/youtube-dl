@@ -1,3 +1,28 @@
+version <unreleased>
+
+Core
++ Introduce release_timestamp meta field (#28386)
+
+Extractors
++ [southpark] Add support for southparkstudios.com (#28413)
+* [southpark] Fix extraction (#26763, #28413)
+* [sportdeutschland] Fix extraction (#21856, #28425)
+* [pinterest] Reduce the number of HLS format requests
+* [peertube] Improve thumbnail extraction (#28419)
+* [tver] Improve title extraction (#28418)
+* [fujitv] Fix HLS formats extension (#28416)
+* [shahid] Fix format extraction (#28383)
++ [lbry] Add support for channel filters (#28385)
++ [bandcamp] Extract release timestamp
++ [lbry] Extract release timestamp (#28386)
+* [pornhub] Detect flagged videos
++ [pornhub] Extract formats from get_media end point (#28395)
+* [bilibili] Fix video info extraction (#28341)
++ [cbs] Add support for Paramount+ (#28342)
++ [trovo] Add Origin header to VOD formats (#28346)
+* [voxmedia] Fix volume embed extraction (#28338)
+
+
 version 2021.03.03
 
 Extractors
