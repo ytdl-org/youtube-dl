@@ -2295,6 +2295,7 @@ class GenericIE(InfoExtractor):
             entries.append({
                 '_type': 'url_transparent',
                 'url': next_url,
+                'id': it.find('guid').text,
                 'title': it.find('title').text,
                 'description': xpath_text(it, 'description', default=None),
                 'timestamp': unified_timestamp(
