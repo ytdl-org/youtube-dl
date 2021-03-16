@@ -406,6 +406,7 @@ from .francetv import (
 from .freesound import FreesoundIE
 from .freespeech import FreespeechIE
 from .freshlive import FreshLiveIE
+from .frndlytv import FrndlyTVIE
 from .frontendmasters import (
     FrontendMastersIE,
     FrontendMastersLessonIE,
