@@ -986,6 +986,14 @@ Before we had the issue template, despite our extensive [bug reporting instructi
 
 youtube-dl is an open-source project manned by too few volunteers, so we'd rather spend time fixing bugs where we are certain none of those simple problems apply, and where we can be reasonably confident to be able to reproduce the issue without asking the reporter repeatedly. As such, the output of `youtube-dl -v YOUR_URL_HERE` is really all that's required to file an issue. The issue template also guides you through some basic steps you can do, such as checking that your version of youtube-dl is current.
 
+### Why does youtube-dl throw an error when used with Zsh?
+
+Zsh requires that you use quotations (single or double) around the URL argument in youtube-dl.
+
+ex:
+    youtube-dl youtube.com/example-URL // will not work
+    youtube-dl "youtube.com/example-URL" //will work
+
 # DEVELOPER INSTRUCTIONS
 
 Most users do not need to build youtube-dl and can [download the builds](https://ytdl-org.github.io/youtube-dl/download.html) or get them from their distribution.
