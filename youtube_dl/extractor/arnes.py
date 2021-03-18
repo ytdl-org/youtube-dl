@@ -23,7 +23,7 @@ class ArnesIE(InfoExtractor):
     def _real_extract(self, url):
         video_id = self._match_id(url)
 
-        video_info = self._download_json(f'https://video.arnes.si/api/public/video/{video_id}', video_id).get('data')
+        video_info = self._download_json('https://video.arnes.si/api/public/video/' + video_id, video_id).get('data')
 
         formats = []
         for format in video_info.get('media'):
