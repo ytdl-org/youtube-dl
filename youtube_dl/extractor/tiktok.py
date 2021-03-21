@@ -107,9 +107,12 @@ class TikTokIE(TikTokBaseIE):
     def _real_extract(self, url):
         video_id = self._match_id(url)
         webpage = self._download_webpage(url, video_id)
-        data = self._parse_json(self._search_regex(
+        page_props = self._parse_json(self._search_regex(
             r'<script[^>]+\bid=["\']__NEXT_DATA__[^>]+>\s*({.+?})\s*</script',
-            webpage, 'data'), video_id)['props']['pageProps']['itemInfo']['itemStruct']
+            webpage, 'data'), video_id)['props']['pageProps']
+        data = try_get(page_props, lambda x: x['itemInfo']['itemStruct'], dict)
+        if not data and page_props.get('statusCode') == 10216:
+            raise ExtractorError('This video is private', expected=True)
         return self._extract_video(data, video_id)
 
 
