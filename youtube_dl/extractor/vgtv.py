@@ -24,7 +24,7 @@ class VGTVIE(XstreamIE):
         'aftenposten.no/webtv': 'aptv',
         'ap.vgtv.no/webtv': 'aptv',
         'tv.aftonbladet.se': 'abtv',
-        # obsolete URL schemase, kept in order to save one HTTP redirect
+        # obsolete URL schemas, kept in order to save one HTTP redirect
         'tv.aftonbladet.se/abtv': 'abtv',
         'www.aftonbladet.se/tv': 'abtv',
     }
