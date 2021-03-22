@@ -23,7 +23,7 @@ class VGTVIE(XstreamIE):
         'fvn.no/fvntv': 'fvntv',
         'aftenposten.no/webtv': 'aptv',
         'ap.vgtv.no/webtv': 'aptv',
-        'tv.aftonbladet.se/abtv': 'abtv',
+        'tv.aftonbladet.se': 'abtv',
         'www.aftonbladet.se/tv': 'abtv',
     }
 
@@ -128,6 +128,23 @@ class VGTVIE(XstreamIE):
             },
         },
         {
+            'url': 'https://tv.aftonbladet.se/video/326488/saa-blir-vadret-dar-du-bor',
+            'md5': '123',
+            'info_dict': {
+                'id': '326488',
+                'ext': 'mp4',
+                'title': 'Så blir vädret där du bor',
+                'description': 'Dagens väder 18 mars',
+                'duration': 66.643,
+                'upload_date': '20210318',
+                'timestamp': 1616038314,
+            },
+            'params': {
+                # m3u8 download
+                'skip_download': True,
+            },
+        },
+        {
             'url': 'http://www.bt.no/tv/#!/video/100250/norling-dette-er-forskjellen-paa-1-divisjon-og-eliteserien',
             'only_matching': True,
         },
@@ -138,14 +155,6 @@ class VGTVIE(XstreamIE):
         {
             # geoblocked
             'url': 'http://www.vgtv.no/#!/video/127205/inside-the-mind-of-favela-funk',
-            'only_matching': True,
-        },
-        {
-            'url': 'http://tv.aftonbladet.se/abtv/articles/36015',
-            'only_matching': True,
-        },
-        {
-            'url': 'https://www.aftonbladet.se/tv/a/36015',
             'only_matching': True,
         },
         {
