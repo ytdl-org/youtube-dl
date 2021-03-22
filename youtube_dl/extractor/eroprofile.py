@@ -6,7 +6,8 @@ from .common import InfoExtractor
 from ..compat import compat_urllib_parse_urlencode
 from ..utils import (
     ExtractorError,
-    unescapeHTML
+    unescapeHTML,
+    unified_strdate
 )
 
 
@@ -20,6 +21,9 @@ class EroProfileIE(InfoExtractor):
         'info_dict': {
             'id': '8452925',
             'display_id': 'Farting-in-leather-trousers',
+            'upload_date': '20190423',
+            'description': 'Join your fellow fart aficionados over on Reddit at r/peefarts and r/girlsfarting',
+            'uploader': 'ukfartgirllover',
             'title': 'Farting in leather trousers',
             'ext': 'm4v',
             'thumbnail': r're:https?://.*\.jpg.*',
@@ -31,6 +35,9 @@ class EroProfileIE(InfoExtractor):
         'info_dict': {
             'id': '9998587',
             'display_id': 'Strict-Teacher-Huge-Cumshot-Over-Black-Leather-Skirt-YummyCouple-com',
+            'upload_date': '20201230',
+            'description': None,
+            'uploader': 'MrSunshine',
             'title': 'Strict Teacher Huge Cumshot Over Black Leather Skirt - YummyCouple.com',
             'ext': 'm4v',
             'thumbnail': r're:https?://.*\.jpg.*',
@@ -47,7 +54,7 @@ class EroProfileIE(InfoExtractor):
         query = compat_urllib_parse_urlencode({
             'username': username,
             'password': password,
-            'url': 'http://www.eroprofile.com/',
+            'url': 'https://www.eroprofile.com/',
         })
         login_url = self._LOGIN_URL + query
         login_page = self._download_webpage(login_url, None, False)
@@ -80,11 +87,29 @@ class EroProfileIE(InfoExtractor):
 
         video_url = unescapeHTML(self._search_regex(
             r'<source src="([^"]+)', webpage, 'video url'))
+
         title = self._html_search_regex(
             r'<h1 class="capMultiLine">(.*?)</h1>', webpage, 'title')
+
+        uploader = self._html_search_regex(
+            r'<div.*?>Uploaded by</div>.*?<div.*?<a .*?>(.*?)</a>',
+            webpage, 'uploader', fatal=False, flags=re.DOTALL)
+
+        description = self._html_search_regex(
+            r'<h1 class="capMultiLine">.*?</h1>.*?<p>(.*?)</p>.*?<div.*?>Uploaded by</div>',
+            webpage, 'description', default=None, flags=re.DOTALL)
+
+        categories = self._html_search_regex(
+             r'<div.*?>Niche</div>.*?<div.*?<a .*?>(.*?)</a>',
+             webpage, 'description', fatal=False, flags=re.DOTALL)
+
         thumbnail = self._search_regex(
             r'<video.*? poster="([^"]+)',
             webpage, 'thumbnail', fatal=False, flags=re.DOTALL)
+
+        upload_date = unified_strdate(self._html_search_regex(
+            r'<div.*?>Upload date</div>.*?<div.*?>(.*?)<span',
+            webpage, 'thumbnail', fatal=False, flags=re.DOTALL))
 
         return {
             'id': video_id,
@@ -92,5 +117,9 @@ class EroProfileIE(InfoExtractor):
             'url': video_url,
             'title': title,
             'thumbnail': thumbnail,
+            'uploader': uploader,
+            'description': description,
+            'categories': [categories],
+            'upload_date': upload_date,
             'age_limit': 18,
         }
