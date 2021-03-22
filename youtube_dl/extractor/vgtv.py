@@ -24,6 +24,8 @@ class VGTVIE(XstreamIE):
         'aftenposten.no/webtv': 'aptv',
         'ap.vgtv.no/webtv': 'aptv',
         'tv.aftonbladet.se': 'abtv',
+        # obsolete URL schemase, kept in order to save one HTTP redirect
+        'tv.aftonbladet.se/abtv': 'abtv',
         'www.aftonbladet.se/tv': 'abtv',
     }
 
@@ -142,6 +144,10 @@ class VGTVIE(XstreamIE):
         },
         {
             'url': 'https://tv.aftonbladet.se/video/36015/vulkanutbrott-i-rymden-nu-slapper-nasa-bilderna',
+            'only_matching': True,
+        },
+        {
+            'url': 'http://tv.aftonbladet.se/abtv/articles/36015',
             'only_matching': True,
         },
         {
