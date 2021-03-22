@@ -12,27 +12,28 @@ from ..utils import (
 
 class EroProfileIE(InfoExtractor):
     _VALID_URL = r'https?://(?:www\.)?eroprofile\.com/m/videos/view/(?P<id>[^/]+)'
-    _LOGIN_URL = 'http://www.eroprofile.com/auth/auth.php?'
+    _LOGIN_URL = 'https://www.eroprofile.com/ajax_v1.php'
     _NETRC_MACHINE = 'eroprofile'
     _TESTS = [{
-        'url': 'http://www.eroprofile.com/m/videos/view/sexy-babe-softcore',
-        'md5': 'c26f351332edf23e1ea28ce9ec9de32f',
+        'url': 'https://www.eroprofile.com/m/videos/view/Farting-in-leather-trousers',
+        'md5': 'f3ea883be7a342cd0d03e69772f186d3',
         'info_dict': {
-            'id': '3733775',
-            'display_id': 'sexy-babe-softcore',
+            'id': '8452925',
+            'display_id': 'Farting-in-leather-trousers',
+            'title': 'Farting in leather trousers',
             'ext': 'm4v',
-            'title': 'sexy babe softcore',
-            'thumbnail': r're:https?://.*\.jpg',
+            'thumbnail': r're:https?://.*\.jpg.*',
             'age_limit': 18,
         }
     }, {
-        'url': 'http://www.eroprofile.com/m/videos/view/Try-It-On-Pee_cut_2-wmv-4shared-com-file-sharing-download-movie-file',
-        'md5': '1baa9602ede46ce904c431f5418d8916',
+        'url': 'https://www.eroprofile.com/m/videos/view/Strict-Teacher-Huge-Cumshot-Over-Black-Leather-Skirt-YummyCouple-com',
+        'md5': '5562113ca7cac4bfb989032dcd21c49e',
         'info_dict': {
-            'id': '1133519',
+            'id': '9998587',
+            'display_id': 'Strict-Teacher-Huge-Cumshot-Over-Black-Leather-Skirt-YummyCouple-com',
+            'title': 'Strict Teacher Huge Cumshot Over Black Leather Skirt - YummyCouple.com',
             'ext': 'm4v',
-            'title': 'Try It On Pee_cut_2.wmv - 4shared.com - file sharing - download movie file',
-            'thumbnail': r're:https?://.*\.jpg',
+            'thumbnail': r're:https?://.*\.jpg.*',
             'age_limit': 18,
         },
         'skip': 'Requires login',
@@ -80,10 +81,10 @@ class EroProfileIE(InfoExtractor):
         video_url = unescapeHTML(self._search_regex(
             r'<source src="([^"]+)', webpage, 'video url'))
         title = self._html_search_regex(
-            r'Title:</th><td>([^<]+)</td>', webpage, 'title')
+            r'<h1 class="capMultiLine">(.*?)</h1>', webpage, 'title')
         thumbnail = self._search_regex(
-            r'onclick="showVideoPlayer\(\)"><img src="([^"]+)',
-            webpage, 'thumbnail', fatal=False)
+            r'<video.*? poster="([^"]+)',
+            webpage, 'thumbnail', fatal=False, flags=re.DOTALL)
 
         return {
             'id': video_id,
