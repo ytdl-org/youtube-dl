@@ -1359,7 +1359,7 @@ class BBCCoUkIPlayerPlaylistIE(BBCCoUkPlaylistBaseIE):
         'info_dict': {
             'id': 'p02tcc32',
             'title': 'Bohemian Icons',
-            'description': 'md5:683e901041b2fe9ba596f2ab04c4dbe7',
+            'description': 'md5:8b60017680e9f3115e79e0c20697a585',
         },
         'playlist_mincount': 10,
     }]
