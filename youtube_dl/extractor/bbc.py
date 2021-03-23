@@ -1344,6 +1344,9 @@ class BBCCoUkIPlayerPlaylistIE(BBCCoUkPlaylistBaseIE):
     _VALID_URL = r'https?://(?:www\.)?bbc\.co\.uk/iplayer/(?:episodes|group)/(?P<id>%s)' % BBCCoUkIE._ID_REGEX
     _URL_TEMPLATE = 'http://www.bbc.co.uk/iplayer/episode/%s'
     _VIDEO_ID_TEMPLATE = r'"href":\s*"/iplayer/episode/(%s)/'
+    _SERIES_ID_TEMPLATE = '/iplayer/episodes/%s/.+[?&]seriesId=(%s)'
+    _SERIES_URL_TEMPLATE = 'http://www.bbc.co.uk/programmes/%s/episodes/player'
+
     _TESTS = [{
         'url': 'http://www.bbc.co.uk/iplayer/episodes/b05rcz9v',
         'info_dict': {
@@ -1362,7 +1365,22 @@ class BBCCoUkIPlayerPlaylistIE(BBCCoUkPlaylistBaseIE):
             'description': 'md5:8b60017680e9f3115e79e0c20697a585',
         },
         'playlist_mincount': 10,
+    }, {
+        # Playlist with more than one series/season
+        'url': 'https://www.bbc.co.uk/iplayer/episodes/b094m5t9/doctor-foster',
+        'info_dict': {
+            'id': 'b094m5t9',
+            'title': 'Doctor Foster',
+            'description': 'A trusted GP sees her charmed life explode when she suspects her husband of an affair.',
+        },
+        'playlist_mincount': 10,
     }]
+
+    def _entries(self, webpage, url, playlist_id):
+        for entry in super(BBCCoUkIPlayerPlaylistIE, self)._entries(webpage, url, playlist_id):
+            yield entry
+        for series_id in re.findall(self._SERIES_ID_TEMPLATE % (playlist_id, BBCCoUkIE._ID_REGEX), webpage):
+            yield self.url_result(self._SERIES_URL_TEMPLATE % series_id)
 
     def _extract_title_and_description(self, webpage):
         redux_state = self._parse_json(self._html_search_regex(
