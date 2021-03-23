@@ -1318,7 +1318,7 @@ class BBCCoUkPlaylistBaseIE(InfoExtractor):
             if single_page:
                 return
             next_page = self._search_regex(
-                r'<li[^>]+class=(["\'])pagination_+next\1[^>]*>\s*<a[^>]+href=(["\'])(?P<url>(?:(?!\2).)+)\2',
+                r'(?:<li[^>]+class=(["\'])pagination_+next\1[^>]*>\s*<a|<a[^>]+\baria-label=(["\'])Next Page\2)[^>]+href=(["\'])(?P<url>(?:(?!\3).)+)\3',
                 webpage, 'next page url', default=None, group='url')
             if not next_page:
                 break
@@ -1374,6 +1374,15 @@ class BBCCoUkIPlayerPlaylistIE(BBCCoUkPlaylistBaseIE):
             'description': 'A trusted GP sees her charmed life explode when she suspects her husband of an affair.',
         },
         'playlist_mincount': 10,
+    }, {
+        # Playlist with more than one page
+        'url': 'https://www.bbc.co.uk/iplayer/episodes/m0004c4v/beechgrove',
+        'info_dict': {
+            'id': 'm0004c4v',
+            'title': 'Beechgrove',
+            'description': 'Gardening show that celebrates Scottish horticulture and growing conditions.',
+        },
+        'playlist_mincount': 37,
     }]
 
     def _entries(self, webpage, url, playlist_id):
