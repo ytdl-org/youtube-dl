@@ -1,3 +1,24 @@
+version <unreleased>
+
+Extractors
++ [zoom] Add support for zoom.us (#16597, #27002, #28531)
+* [bbc] Fix BBC IPlayer Episodes/Group extraction (#28360)
+* [youtube] Fix default value for youtube_include_dash_manifest (#28523)
+* [zingmp3] Fix extraction (#11589, #16409, #16968, #27205)
++ [vgtv] Add support for new tv.aftonbladet.se URL schema (#28514)
++ [tiktok] Detect private videos (#28453)
+* [vimeo:album] Fix extraction for albums with number of videos multiple
+  to page size (#28486)
+* [vvvvid] Fix kenc format extraction (#28473)
+* [mlb] Fix video extraction (#21241)
+* [svtplay] Improve extraction (#28448)
+* [applepodcasts] Fix extraction (#28445)
+* [rtve] Improve extraction
+    + Extract all formats
+    * Fix RTVE Infantil extraction (#24851)
+    + Extract is_live and series
+
+
 version 2021.03.14
 
 Core
