@@ -90,7 +90,8 @@
  - **bbc**: BBC
  - **bbc.co.uk**: BBC iPlayer
  - **bbc.co.uk:article**: BBC articles
- - **bbc.co.uk:iplayer:playlist**
+ - **bbc.co.uk:iplayer:episodes**
+ - **bbc.co.uk:iplayer:group**
  - **bbc.co.uk:playlist**
  - **BBVTV**
  - **Beatport**
@@ -522,6 +523,7 @@
  - **mixcloud:playlist**
  - **mixcloud:user**
  - **MLB**
+ - **MLBVideo**
  - **Mnet**
  - **MNetTV**
  - **MoeVideo**: LetitBit video services: moevideo.net, playreplay.net and videochart.net
@@ -1212,4 +1214,6 @@
  - **ZDFChannel**
  - **Zhihu**
  - **zingmp3**: mp3.zing.vn
+ - **zingmp3:album**
+ - **zoom**
  - **Zype**
