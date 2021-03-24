@@ -299,7 +299,7 @@ class ZattooIE(ZattooBaseIE):
                             (?:
                                 (?:
                                     ondemand/videos/([A-Za-z0-9]+)|
-                                    program/([^/]+)/(\d+)|
+                                    (?:program|watch)/([^/]+)/(\d+)|
                                     live/([^/]+)
                                 )|
                                 (?:
