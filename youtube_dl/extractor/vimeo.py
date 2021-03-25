@@ -24,6 +24,7 @@ from ..utils import (
     merge_dicts,
     OnDemandPagedList,
     parse_filesize,
+    parse_iso8601,
     RegexNotFoundError,
     sanitized_Request,
     smuggle_url,
@@ -278,7 +279,7 @@ class VimeoIE(VimeoBaseInfoExtractor):
                             )?
                         (?:videos?/)?
                         (?P<id>[0-9]+)
-                        (?:/[\da-f]+)?
+                        (?:/(?P<unlisted_hash>[\da-f]{10}))?
                         /?(?:[?&].*)?(?:[#].*)?$
                     '''
     IE_NAME = 'vimeo'
@@ -577,11 +578,37 @@ class VimeoIE(VimeoBaseInfoExtractor):
         if 'Referer' not in headers:
             headers['Referer'] = url
 
-        channel_id = self._search_regex(
-            r'vimeo\.com/channels/([^/]+)', url, 'channel id', default=None)
-
         # Extract ID from URL
-        video_id = self._match_id(url)
+        video_id, unlisted_hash = re.match(self._VALID_URL, url).groups()
+        if unlisted_hash:
+            token = self._download_json(
+                'https://vimeo.com/_rv/jwt', video_id, headers={
+                    'X-Requested-With': 'XMLHttpRequest'
+                })['token']
+            video = self._download_json(
+                'https://api.vimeo.com/videos/%s:%s' % (video_id, unlisted_hash),
+                video_id, headers={
+                    'Authorization': 'jwt ' + token,
+                }, query={
+                    'fields': 'config_url,created_time,description,license,metadata.connections.comments.total,metadata.connections.likes.total,release_time,stats.plays',
+                })
+            info = self._parse_config(self._download_json(
+                video['config_url'], video_id), video_id)
+            self._vimeo_sort_formats(info['formats'])
+            get_timestamp = lambda x: parse_iso8601(video.get(x + '_time'))
+            info.update({
+                'description': video.get('description'),
+                'license': video.get('license'),
+                'release_timestamp': get_timestamp('release'),
+                'timestamp': get_timestamp('created'),
+                'view_count': int_or_none(try_get(video, lambda x: x['stats']['plays'])),
+            })
+            connections = try_get(
+                video, lambda x: x['metadata']['connections'], dict) or {}
+            for k in ('comment', 'like'):
+                info[k + '_count'] = int_or_none(try_get(connections, lambda x: x[k + 's']['total']))
+            return info
+
         orig_url = url
         is_pro = 'vimeopro.com/' in url
         is_player = '://player.vimeo.com/video/' in url
@@ -756,6 +783,8 @@ class VimeoIE(VimeoBaseInfoExtractor):
                 r'<link[^>]+rel=["\']license["\'][^>]+href=(["\'])(?P<license>(?:(?!\1).)+)\1',
                 webpage, 'license', default=None, group='license')
 
+        channel_id = self._search_regex(
+            r'vimeo\.com/channels/([^/]+)', url, 'channel id', default=None)
         channel_url = 'https://vimeo.com/channels/%s' % channel_id if channel_id else None
 
         info_dict = {
