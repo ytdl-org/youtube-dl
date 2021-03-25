@@ -84,4 +84,15 @@ class RTVSLO4DIE(InfoExtractor):
             'thumbnail': media_info.get('thumbnail_sec'),
             'timestamp': unified_timestamp(media_info.get('broadcastDate')),
             'duration': media_info.get('duration'),
+            'subtitles': self.extract_subtitles(media_info)
         }
+
+    def _get_subtitles(self, media_info):
+        subs = {}
+        for sub in media_info.get('subtitles', []):
+            subs[sub['language']] = [{
+                'ext': 'vtt',
+                'url': sub['file']
+            }]
+
+        return subs
