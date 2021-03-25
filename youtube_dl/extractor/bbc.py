@@ -262,6 +262,21 @@ class BBCCoUkIE(InfoExtractor):
         }, {
             'url': 'https://www.bbc.co.uk/programmes/w172w4dww1jqt5s',
             'only_matching': True,
+        }, {
+            # audio-described
+            'url': 'https://www.bbc.co.uk/iplayer/episode/m000b1v0/ad/his-dark-materials-series-1-1-lyras-jordan',
+            'info_dict': {
+                'id': 'p07ss5kj',
+                'ext': 'mp4',
+                'title': 'His Dark Materials - Series 1: 1. Lyra\u2019s Jordan - Audio Described',
+                'description': 'Orphan Lyra Belacqua\'s world is turned upside-down by her long-absent uncle\'s return from the north, while the glamorous Mrs Coulter visits Jordan College with a proposition.',
+                'duration': 3407,
+            },
+            'params': {
+                # rtmp download
+                'skip_download': True,
+            },
+            'skip': 'geolocation',
         }]
 
     def _login(self):
