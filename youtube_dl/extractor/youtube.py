@@ -24,6 +24,7 @@ from ..jsinterp import JSInterpreter
 from ..utils import (
     ExtractorError,
     clean_html,
+    dict_get,
     float_or_none,
     int_or_none,
     mimetype2ext,
@@ -2541,13 +2542,14 @@ class YoutubeTabIE(YoutubeBaseInfoExtractor):
                     continuation = self._extract_continuation(continuation_renderer)
                     continue
 
+            on_response_received = dict_get(response, ('onResponseReceivedActions', 'onResponseReceivedEndpoints'))
             continuation_items = try_get(
-                response, lambda x: x['onResponseReceivedActions'][0]['appendContinuationItemsAction']['continuationItems'], list)
+                on_response_received, lambda x: x[0]['appendContinuationItemsAction']['continuationItems'], list)
             if continuation_items:
                 continuation_item = continuation_items[0]
                 if not isinstance(continuation_item, dict):
                     continue
-                renderer = continuation_item.get('gridVideoRenderer')
+                renderer = self._extract_grid_item_renderer(continuation_item)
                 if renderer:
                     grid_renderer = {'items': continuation_items}
                     for entry in self._grid_entries(grid_renderer):
@@ -2560,6 +2562,13 @@ class YoutubeTabIE(YoutubeBaseInfoExtractor):
                     for entry in self._playlist_entries(video_list_renderer):
                         yield entry
                     continuation = self._extract_continuation(video_list_renderer)
+                    continue
+                renderer = continuation_item.get('backstagePostThreadRenderer')
+                if renderer:
+                    continuation_renderer = {'contents': continuation_items}
+                    for entry in self._post_thread_continuation_entries(continuation_renderer):
+                        yield entry
+                    continuation = self._extract_continuation(continuation_renderer)
                     continue
 
             break
