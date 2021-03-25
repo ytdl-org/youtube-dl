@@ -11,6 +11,7 @@ from ..compat import (
     compat_etree_Element,
     compat_HTTPError,
     compat_parse_qs,
+    compat_str,
     compat_urllib_parse_urlparse,
     compat_urlparse,
 )
@@ -64,6 +65,8 @@ class BBCCoUkIE(InfoExtractor):
     ]
 
     _EMP_PLAYLIST_NS = 'http://bbc.co.uk/2008/emp/playlist'
+
+    _DESCRIPTION_KEY = 'synopses'
 
     _TESTS = [
         {
@@ -314,6 +317,10 @@ class BBCCoUkIE(InfoExtractor):
     def _extract_connections(self, media):
         return media.get('connection') or []
 
+    def _get_description(self, data):
+        synopses = try_get(data, lambda x: x[self._DESCRIPTION_KEY], dict) or {}
+        return dict_get(synopses, ('large', 'medium', 'small'))
+
     def _get_subtitles(self, media, programme_id):
         subtitles = {}
         for connection in self._extract_connections(media):
@@ -539,15 +546,45 @@ class BBCCoUkIE(InfoExtractor):
 
         programme_id = None
         duration = None
+        description = None
+        thumbnail = None
 
-        tviplayer = self._search_regex(
-            r'mediator\.bind\(({.+?})\s*,\s*document\.getElementById',
-            webpage, 'player', default=None)
+        # current pages embed data from http://www.bbc.co.uk/programmes/PID.json
+        # similar data available at http://ibl.api.bbc.co.uk/ibl/v1/episodes/PID
+        redux_state = self._parse_json(self._html_search_regex(
+            r'<script\b[^>]+id=(["\'])tvip-script-app-store\1[^>]*>[^<]*_REDUX_STATE__\s*=\s*(?P<json>[^<]+)\s*;\s*<',
+            webpage, 'redux state', default='{}', group='json'), group_id, fatal=False)
+        episode = redux_state.get('episode', {})
+        if episode.get('id') == group_id:
+            # try to match the version against the page's version
+            current_version = episode.get('currentVersion')
+            kinds = ['original']
+            if current_version == 'ad':
+                kinds.insert(0, 'audio-described')
+            for kind in kinds:
+                for version in redux_state.get('versions', {}):
+                    if try_get(version, lambda x: x['kind'], compat_str) == kind:
+                        programme_id = version.get('id')
+                        duration = try_get(version, lambda x: x['duration']['seconds'], int)
+                        break
+                if programme_id:
+                    break
+            if programme_id:
+                description = self._get_description(episode)
+                thumbnail = try_get(episode, lambda x: x['images']['standard'], compat_str)
+                if thumbnail:
+                    thumbnail = thumbnail.format(recipe='raw')
 
-        if tviplayer:
-            player = self._parse_json(tviplayer, group_id).get('player', {})
-            duration = int_or_none(player.get('duration'))
-            programme_id = player.get('vpid')
+        if not programme_id:
+            # still valid?
+            tviplayer = self._search_regex(
+                r'mediator\.bind\(({.+?})\s*,\s*document\.getElementById',
+                webpage, 'player', default=None)
+
+            if tviplayer:
+                player = self._parse_json(tviplayer, group_id).get('player', {})
+                duration = int_or_none(player.get('duration'))
+                programme_id = player.get('vpid')
 
         if not programme_id:
             programme_id = self._search_regex(
@@ -558,7 +595,7 @@ class BBCCoUkIE(InfoExtractor):
             title = self._og_search_title(webpage, default=None) or self._html_search_regex(
                 (r'<h2[^>]+id="parent-title"[^>]*>(.+?)</h2>',
                  r'<div[^>]+class="info"[^>]*>\s*<h1>(.+?)</h1>'), webpage, 'title')
-            description = self._search_regex(
+            description = description or self._search_regex(
                 (r'<p class="[^"]*medium-description[^"]*">([^<]+)</p>',
                  r'<div[^>]+class="info_+synopsis"[^>]*>([^<]+)</div>'),
                 webpage, 'description', default=None)
@@ -573,7 +610,7 @@ class BBCCoUkIE(InfoExtractor):
             'id': programme_id,
             'title': title,
             'description': description,
-            'thumbnail': self._og_search_thumbnail(webpage, default=None),
+            'thumbnail': thumbnail or self._og_search_thumbnail(webpage, default=None),
             'duration': duration,
             'formats': formats,
             'subtitles': subtitles,
