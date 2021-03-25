@@ -58,9 +58,11 @@ class RTVSLO4DIE(InfoExtractor):
             query={'client_id': '19cc0556a5ee31d0d52a0e30b0696b26'})['response']
 
         if media_info['mediaType'] == 'video':
-            formats = self._extract_m3u8_formats(
-                media_info['addaptiveMedia']['hls_sec'], media_id, 'mp4',
-                entry_protocol='m3u8_native', m3u8_id='hls')
+            formats = []
+            for proto in ('hls_sec', 'hls',):
+                formats += self._extract_m3u8_formats(
+                    media_info['addaptiveMedia'][proto], media_id, 'mp4',
+                    entry_protocol='m3u8_native', m3u8_id='hls')
 
         elif media_info['mediaType'] == 'audio':
             formats = [{
