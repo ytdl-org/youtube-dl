@@ -426,6 +426,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                 'ext': 'mp4',
                 'title': 'youtube-dl test video "\'/\\ä↭𝕐',
                 'uploader': 'Philipp Hagemeister',
+                'channel': 'Philipp Hagemeister',
                 'uploader_id': 'phihag',
                 'uploader_url': r're:https?://(?:www\.)?youtube\.com/user/phihag',
                 'channel_id': 'UCLqxVugv74EIW3VWh2NOa3Q',
@@ -1078,6 +1079,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                 'description': 'md5:d0865e57701acd99b4d89679a66e9632',
                 'upload_date': '20200716',
                 'uploader': '稲葉曇',
+                'channel': 'inabakumori',
                 'uploader_id': 'UCNElM45JypxqAR73RoUQ10g',
                 'uploader_url': r're:https?://(?:www\.)?youtube\.com/channel/UCNElM45JypxqAR73RoUQ10g',
             },
@@ -1914,7 +1916,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                     info['channel'] = get_text(try_get(
                         vsir,
                         lambda x: x['owner']['videoOwnerRenderer']['title'],
-                        compat_str))
+                        dict))
                     rows = try_get(
                         vsir,
                         lambda x: x['metadataRowContainer']['metadataRowContainerRenderer']['rows'],
