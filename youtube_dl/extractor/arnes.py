@@ -9,7 +9,7 @@ class ArnesIE(InfoExtractor):
     IE_DESC = 'Arnes Video'
     _VALID_URL = r'https?:\/\/video.arnes\.si\/(en\/)?(watch|embed|api\/asset)\/(?P<id>[a-zA-Z1-9]{12}).*'
     _TESTS = [{
-        'url': 'https://video.arnes.si/watch/a1qrWTOQfVoU',
+        'url': 'https://video.arnes.si/watch/a1qrWTOQfVoU',  # Normal url
         'md5': '75ab8384b71106b64dd8a23b105ef650',
         'info_dict': {
             'id': 'a1qrWTOQfVoU',
@@ -19,7 +19,7 @@ class ArnesIE(InfoExtractor):
             'description': 'Linearna neodvisnost, definicija'
         }
     }, {
-        'url': 'https://video.arnes.si/api/asset/s1YjnV7hadlC/play.mp4',
+        'url': 'https://video.arnes.si/api/asset/s1YjnV7hadlC/play.mp4',  # API url
         'md5': 'e29ccea409ec7c958f5cb82774cadd77',
         'info_dict': {
             'id': 's1YjnV7hadlC',
@@ -29,19 +29,20 @@ class ArnesIE(InfoExtractor):
             'description': 'Install Gentoo'
         }
     }, {
-        'url': 'https://video.arnes.si/embed/s1YjnV7hadlC',
+        'url': 'https://video.arnes.si/embed/s1YjnV7hadlC',  # Embed url
         'only_matching': True,
     }, {
-        'url': 'https://video.arnes.si/en/watch/s1YjnV7hadlC',
+        'url': 'https://video.arnes.si/en/watch/s1YjnV7hadlC',  # English url
         'only_matching': True,
     }, {
-        'url': 'https://video.arnes.si/embed/s1YjnV7hadlC?t=123&hideRelated=1',
+        'url': 'https://video.arnes.si/embed/s1YjnV7hadlC?t=123&hideRelated=1',  # Url with GET parameters
         'only_matching': True,
     }]
 
     def _real_extract(self, url):
         video_id = self._match_id(url)
 
+        # Video information is available at https://video.arnes.si/api/public/video/{video_id}
         video_info = self._download_json('https://video.arnes.si/api/public/video/' + video_id, video_id).get('data')
 
         formats = []
