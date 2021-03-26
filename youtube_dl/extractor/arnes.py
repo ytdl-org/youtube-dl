@@ -7,7 +7,7 @@ from .common import InfoExtractor
 class ArnesIE(InfoExtractor):
     IE_NAME = 'video.arnes.si'
     IE_DESC = 'Arnes Video'
-    _VALID_URL = r'https?://(?:www\.)?video.arnes\.si/(watch|embed)/(?P<id>[a-zA-Z1-9]{12})'
+    _VALID_URL = r'https?:\/\/video.arnes\.si\/(en\/)?(watch|embed|api\/asset)\/(?P<id>[a-zA-Z1-9]{12}).*'
     _TESTS = [{
         'url': 'https://video.arnes.si/watch/a1qrWTOQfVoU',
         'md5': '75ab8384b71106b64dd8a23b105ef650',
@@ -18,6 +18,25 @@ class ArnesIE(InfoExtractor):
             'creator': 'Polona Oblak',
             'description': 'Linearna neodvisnost, definicija'
         }
+    }, {
+        'url': 'https://video.arnes.si/api/asset/s1YjnV7hadlC/play.mp4',
+        'md5': 'e29ccea409ec7c958f5cb82774cadd77',
+        'info_dict': {
+            'id': 's1YjnV7hadlC',
+            'ext': 'mp4',
+            'title': 'Install Gentoo',
+            'creator': 'Filip Kristan',
+            'description': 'Install Gentoo'
+        }
+    }, {
+        'url': 'https://video.arnes.si/embed/s1YjnV7hadlC',
+        'only_matching': True,
+    }, {
+        'url': 'https://video.arnes.si/en/watch/s1YjnV7hadlC',
+        'only_matching': True,
+    }, {
+        'url': 'https://video.arnes.si/embed/s1YjnV7hadlC?t=123&hideRelated=1',
+        'only_matching': True,
     }]
 
     def _real_extract(self, url):
