@@ -16,6 +16,8 @@ class ArnesIE(InfoExtractor):
             'ext': 'mp4',
             'title': 'Linearna neodvisnost, definicija',
             'creator': 'Polona Oblak',
+            'license': 'PRIVATE',
+            'duration': 596.75,
             'description': 'Linearna neodvisnost, definicija'
         }
     }, {
@@ -26,6 +28,8 @@ class ArnesIE(InfoExtractor):
             'ext': 'mp4',
             'title': 'Install Gentoo',
             'creator': 'Filip Kristan',
+            'license': 'CC_BY',
+            'duration': 53.54,
             'description': 'Install Gentoo'
         }
     }, {
@@ -46,20 +50,21 @@ class ArnesIE(InfoExtractor):
         video_info = self._download_json('https://video.arnes.si/api/public/video/' + video_id, video_id).get('data')
 
         formats = []
-        for format in video_info.get('media'):
+        for video_format in video_info.get('media'):
             formats.append({
-                'url': 'https://video.arnes.si' + format.get('url'),
+                'url': 'https://video.arnes.si' + video_format.get('url'),
                 'ext': 'mp4',
-                'width': format.get('width'),
-                'height': format.get('height')
+                'width': video_format.get('width'),
+                'height': video_format.get('height')
             })
 
         return {
             'id': video_id,
             'title': video_info.get('title'),
             'description': video_info.get('description'),
-            'duration': video_info.get('duration') / 100,
+            'duration': video_info.get('duration') / 1000,
             'view_count': video_info.get('views'),
             'creator': video_info.get('author'),
+            'license': video_info.get('license'),
             'formats': formats
         }
