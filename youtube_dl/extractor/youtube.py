@@ -1896,7 +1896,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                     info['channel'] = get_text(try_get(
                         vsir,
                         lambda x: x['owner']['videoOwnerRenderer']['title'],
-                        compat_str))
+                        dict))
                     rows = try_get(
                         vsir,
                         lambda x: x['metadataRowContainer']['metadataRowContainerRenderer']['rows'],
