@@ -867,19 +867,21 @@ class BBCIE(BBCCoUkIE):
         webpage = self._download_webpage(url, playlist_id)
 
         json_ld_info = self._search_json_ld(webpage, playlist_id, default={})
-        timestamp = json_ld_info.get('timestamp')
-
         playlist_title = json_ld_info.get('title')
         if not playlist_title:
-            playlist_title = self._og_search_title(
-                webpage, default=None) or self._html_search_regex(
-                r'<title>(.+?)</title>', webpage, 'playlist title', default=None)
+            playlist_title = self._og_search_title(webpage, default=None) or \
+                self._html_search_meta('title', webpage, display_name='playlist title')
             if playlist_title:
                 playlist_title = re.sub(r'(.+)\s*-\s*BBC.*?$', r'\1', playlist_title).strip()
 
-        playlist_description = json_ld_info.get(
-            'description') or self._og_search_description(webpage, default=None)
+        playlist_description = json_ld_info.get('description')
+        if not playlist_description:
+            playlist_description = self._og_search_description(webpage, default=None) or \
+                self._html_search_meta('description', webpage, default=None)
+            if playlist_description:
+                playlist_description = playlist_description.strip()
 
+        timestamp = json_ld_info.get('timestamp')
         if not timestamp:
             timestamp = parse_iso8601(self._search_regex(
                 [r'<meta[^>]+property="article:published_time"[^>]+content="([^"]+)"',
@@ -891,6 +893,7 @@ class BBCIE(BBCCoUkIE):
 
         # article with multiple videos embedded with playlist.sxml (e.g.
         # http://www.bbc.com/sport/0/football/34475836)
+        # - obsolete?
         playlists = re.findall(r'<param[^>]+name="playlist"[^>]+value="([^"]+)"', webpage)
         playlists.extend(re.findall(r'data-media-id="([^"]+/playlist\.sxml)"', webpage))
         if playlists:
@@ -1039,6 +1042,7 @@ class BBCIE(BBCCoUkIE):
                 webpage, 'morph payload', default='{}'),
             playlist_id, fatal=False)
         if morph_payload:
+            # - obsolete?
             components = try_get(morph_payload, lambda x: x['body']['components'], list) or []
             for component in components:
                 if not isinstance(component, dict):
@@ -1073,6 +1077,66 @@ class BBCIE(BBCCoUkIE):
                     'formats': formats,
                     'subtitles': subtitles,
                 }
+
+            body_media = try_get(morph_payload, lambda x: x['body'], dict) or {}
+            body_media.update(body_media.get('media') or {})
+            programme_id = body_media.get('pid')
+            if programme_id:
+                title = body_media.get('title') or \
+                    self._og_search_title(webpage) or \
+                    self._html_search_meta('title', webpage)
+                formats, subtitles = self._download_media_selector(programme_id)
+                self._sort_formats(formats)
+                image_url = body_media.get('holdingImageUrl')
+                return {
+                    'id': programme_id,
+                    'title': title,
+                    'formats': formats,
+                    'subtitles': subtitles,
+                    'thumbnail': image_url.replace('{width}xn','raw') if image_url else None,
+                    'duration':  parse_duration(body_media.get('duration')),
+                    'description': try_get(body_media, lambda x: x['promos']['summary'], str) or \
+                        self._html_search_meta('description', webpage),
+                    'timestamp': parse_iso8601(body_media.get('dateTime')),
+                }
+
+        # morph-based playlist (replaces playlist.sxml?)
+        # a JS setPayload call with arg1 containg the playlist_id has JSON in arg2;
+        # deeply nested within it is our target string containing more JSON ...
+        morph_payload = self._parse_json(
+            self._search_regex(
+                r'Morph\.setPayload\s*\([^,]+%s%s%s[^,]+,\s*(\{.+[]}]\s*})\s*\)\s*;' % ('%2F', playlist_id, '%22%2CisStory%3Atrue'),
+                webpage, 'morph playlist payload', default='{}'),
+            playlist_id, fatal=False)
+        if morph_payload:
+            # looking for a string containing a JSON list
+            components = try_get(morph_payload, lambda x: x['body']['content']['article']['body'], compat_str) or '[]'
+            components = self._parse_json(components, playlist_id, fatal=False) or []
+            for component in components:
+                if component.get('name') != 'video':
+                    continue
+                component = component.get('videoData') or {}
+                programme_id = dict_get(component, ('vpid', 'pid'))
+                if programme_id:
+                    formats, subtitles = self._download_media_selector(programme_id)
+                    if not formats:
+                        continue
+                    self._sort_formats(formats)
+                    entries.append({
+                        'id': programme_id,
+                        'title': component.get('title', 'Unnamed clip %s' % programme_id),
+                        'formats': formats,
+                        'subtitles': subtitles,
+                        'thumbnail': dict_get(component, ('iChefImage', 'image')),
+                        'duration':  parse_duration(component.get('duration')),
+                        'description': component.get('caption'),
+                    })
+            if entries:
+                return self.playlist_result(
+                    entries,
+                    playlist_id,
+                    playlist_title,
+                    playlist_description)
 
         preload_state = self._parse_json(self._search_regex(
             r'window\.__PRELOADED_STATE__\s*=\s*({.+?});', webpage,
@@ -1331,6 +1395,13 @@ class BBCCoUkPlaylistBaseIE(InfoExtractor):
                 compat_urlparse.urljoin(url, next_page), playlist_id,
                 'Downloading page %d' % page_num, page_num)
 
+    def _extract_title_and_description(self, webpage):
+        title = self._og_search_title(webpage, default=None) or \
+            self._html_search_meta('title', webpage, display_name='playlist title', default='Unnamed playlist')
+        description = self._og_search_description(webpage, default=None) or \
+            self._html_search_meta('description', webpage, default=None)
+        return title, description
+
     def _real_extract(self, url):
         playlist_id = self._match_id(url)
 
@@ -1545,6 +1616,14 @@ class BBCCoUkIPlayerGroupIE(BBCCoUkIPlayerPlaylistBaseIE):
     def _get_playlist_title(self, data):
         return data.get('title')
 
+    def _extract_title_and_description(self, webpage):
+        title, description = super(BBCCoUkIPlayerPlaylistIE, self)._extract_title_and_description(webpage)
+        title = self._html_search_regex(r'<h1>([^<]+)</h1>', webpage, 'title', default=title)
+        description = self._html_search_regex(
+            r'<p[^>]+class=(["\'])subtitle\1[^>]*>(?P<value>[^<]+)</p>',
+            webpage, 'description', group='value', default=description)
+        return title, description
+
 
 class BBCCoUkPlaylistIE(BBCCoUkPlaylistBaseIE):
     IE_NAME = 'bbc.co.uk:playlist'
@@ -1587,8 +1666,3 @@ class BBCCoUkPlaylistIE(BBCCoUkPlaylistBaseIE):
         'url': 'http://www.bbc.co.uk/programmes/b055jkys/episodes/player',
         'only_matching': True,
     }]
-
-    def _extract_title_and_description(self, webpage):
-        title = self._og_search_title(webpage, fatal=False)
-        description = self._og_search_description(webpage)
-        return title, description
