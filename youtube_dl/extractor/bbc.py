@@ -11,6 +11,7 @@ from ..compat import (
     compat_etree_Element,
     compat_HTTPError,
     compat_parse_qs,
+    compat_str,
     compat_urllib_parse_urlparse,
     compat_urlparse,
 )
@@ -812,6 +813,18 @@ class BBCIE(BBCCoUkIE):
             'upload_date': '20190604',
             'categories': ['Psychology'],
         },
+    }, {
+        # BBC Weather
+        'url': 'https://www.bbc.co.uk/weather/features/55581056',
+        'info_dict': {
+            'id': 'p093xhxl',
+            'ext': 'mp4',
+            'title': 'Weather for the Week Ahead',
+            'description': 'There\'ll be a battle between colder and milder weather in the coming few days, before it turns chillier once again.',
+            'duration': 209,
+            'thumbnail': r're:https?://.+/p093xk3z.jpg',
+            'upload_date': '20210113',
+        },
     }]
 
     @classmethod
@@ -1034,19 +1047,17 @@ class BBCIE(BBCCoUkIE):
                 }
 
         # Morph based embed (e.g. http://www.bbc.co.uk/sport/live/olympics/36895975)
-        # There are several setPayload calls may be present but the video
-        # seems to be always related to the first one
+        # Several setPayload calls may be present so pick the one with 'asset-data'
+        # For Weather, use 'asset-with-media'
         morph_payload = self._parse_json(
             self._search_regex(
-                r'Morph\.setPayload\([^,]+,\s*({.+?})\);',
+                r'Morph\.setPayload\s*\([^,]+-asset-(?:data|with-media)/[^,]+,\s*(\{.+[]}]\s*})\s*\)\s*;',
                 webpage, 'morph payload', default='{}'),
             playlist_id, fatal=False)
         if morph_payload:
             # - obsolete?
             components = try_get(morph_payload, lambda x: x['body']['components'], list) or []
             for component in components:
-                if not isinstance(component, dict):
-                    continue
                 lead_media = try_get(component, lambda x: x['props']['leadMedia'], dict)
                 if not lead_media:
                     continue
@@ -1077,6 +1088,74 @@ class BBCIE(BBCCoUkIE):
                     'formats': formats,
                     'subtitles': subtitles,
                 }
+            # 'components' may be obsolete?
+            body_media = try_get(morph_payload, lambda x: x['body'], dict) or {}
+            # check for variant but similar format found with Weather
+            # dict.values() is a view in Python 3, a list in Python 2
+            primary_video = try_get(body_media, lambda x: list(x['media']['videos']['primary'].values())[0], dict)
+            if primary_video:
+                body_media.update(primary_video)
+                programme_id = body_media.get('versionPid')
+            else:
+                body_media.update(body_media.get('media') or {})
+                programme_id = body_media.get('pid')
+            if programme_id:
+	        title = body_media.get('title') or \
+	            self._og_search_title(webpage) or \
+	            self._html_search_meta('title', webpage)
+                formats, subtitles = self._download_media_selector(programme_id)
+                self._sort_formats(formats)
+                image_url = body_media.get('holdingImageUrl')
+                return {
+                    'id': programme_id,
+                    'title': title,
+                    'formats': formats,
+                    'subtitles': subtitles,
+                    'thumbnail': re.sub(r'(\{width}xn|\$recipe)', 'raw', image_url) if image_url else None,
+                    'duration': parse_duration(dict_get(body_media, ('duration', 'durationSeconds'))),
+                    'description': try_get(body_media, lambda x: x['promos']['summary'], compat_str) or \
+                        body_media.get('summary') or \
+                        self._html_search_meta('description', webpage),
+                    'timestamp': parse_iso8601(dict_get(body_media, ('dateTime', 'lastUpdated'))),
+                }
+
+        # morph-based playlist (replaces playlist.sxml)
+        # a JS setPayload call with arg1 containing the playlist_id has JSON in arg2;
+        # deeply nested within it is our target string containing more JSON ...
+        morph_payload = self._parse_json(
+            self._search_regex(
+                r'Morph\.setPayload\s*\([^,]+%s%s%s[^,]+,\s*(\{.+[]}]\s*})\s*\)\s*;' % ('%2F', playlist_id, '%22%2CisStory%3Atrue'),
+                webpage, 'morph playlist payload', default='{}'),
+            playlist_id, fatal=False)
+        if morph_payload:
+            # looking for a string containing a JSON list
+            components = try_get(morph_payload, lambda x: x['body']['content']['article']['body'], compat_str) or '[]'
+            components = self._parse_json(components, playlist_id, fatal=False) or []
+            for component in components:
+                if component.get('name') != 'video':
+                    continue
+                component = component.get('videoData') or {}
+                programme_id = dict_get(component, ('vpid', 'pid'))
+                if programme_id:
+                    formats, subtitles = self._download_media_selector(programme_id)
+                    if not formats:
+                        continue
+                    self._sort_formats(formats)
+                    entries.append({
+                        'id': programme_id,
+                        'title': component.get('title', 'Unnamed clip %s' % programme_id),
+                        'formats': formats,
+                        'subtitles': subtitles,
+                        'thumbnail': dict_get(component, ('iChefImage', 'image')),
+                        'duration':  parse_duration(component.get('duration')),
+                        'description': component.get('caption'),
+                    })
+            if entries:
+                return self.playlist_result(
+                    entries,
+                    playlist_id,
+	            playlist_title,
+	            playlist_description)
 
             body_media = try_get(morph_payload, lambda x: x['body'], dict) or {}
             body_media.update(body_media.get('media') or {})
