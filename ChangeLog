@@ -1,3 +1,18 @@
+version <unreleased>
+
+Extractors
+* [vlive] Fix inkey request (#28589)
+* [francetvinfo] Improve video id extraction (#28584)
++ [instagram] Extract duration (#28469)
+* [instagram] Improve title extraction (#28469)
++ [sbs] Add support for ondemand watch URLs (#28566)
+* [youtube] Fix video's channel extraction (#28562)
+* [picarto] Fix live stream extraction (#28532)
+* [vimeo] Fix unlisted video extraction (#28414)
+* [youtube:tab] Fix playlist/community continuation items extraction (#28266)
+* [ard] Improve clip id extraction (#22724, #28528)
+
+
 version 2021.03.25
 
 Extractors
