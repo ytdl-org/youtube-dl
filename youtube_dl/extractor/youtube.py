@@ -1432,7 +1432,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
         base_url = self.http_scheme() + '//www.youtube.com/'
         webpage_url = base_url + 'watch?v=' + video_id
         webpage = self._download_webpage(
-            webpage_url + '&bpctr=9999999999', video_id, fatal=False)
+            webpage_url + '&bpctr=9999999999&has_verified=1', video_id, fatal=False)
 
         player_response = None
         if webpage:
