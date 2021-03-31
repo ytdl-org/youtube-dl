@@ -1,3 +1,11 @@
+version <unreleased>
+
+Extractors
+* [youtube] Setup CONSENT cookie when needed (#28604)
+* [vimeo] Fix password protected review extraction (#27591)
+* [youtube] Improve age-restricted video extraction (#28578)
+
+
 version 2021.03.31
 
 Extractors
