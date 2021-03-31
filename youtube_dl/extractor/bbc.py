@@ -825,6 +825,18 @@ class BBCIE(BBCCoUkIE):
             'thumbnail': r're:https?://.+/p093xk3z.jpg',
             'upload_date': '20210113',
         },
+    }, {
+        # BBC Bitesize
+        'url': 'https://www.bbc.co.uk/bitesize/guides/zgvq4qt/revision/6',
+        'info_dict': {
+            'id': 'p04yj749',
+            'ext': 'mp4',
+            'title': 'Circuits',
+            'description': 'Learn about and revise electrical circuits, charge, current, power and resistance with GCSE Bitesize Combined Science.',
+            'duration': 205,
+            'thumbnail': r're:https?://.+/p04z1ckk.jpg',
+            'upload_date': '20180223',
+        },
     }]
 
     @classmethod
@@ -882,7 +894,8 @@ class BBCIE(BBCCoUkIE):
         json_ld_info = self._search_json_ld(webpage, playlist_id, default={})
         playlist_title = json_ld_info.get('title')
         if not playlist_title:
-            playlist_title = (self._og_search_title(webpage, default=None)
+            playlist_title = (self._html_search_regex(r'<title\b[^>]*>(.+)</title>', webpage, 'playlist title', default=None)
+                              or self._og_search_title(webpage, name='playlist title', default=None)
                               or self._html_search_meta('title', webpage, display_name='playlist title'))
             if playlist_title:
                 playlist_title = re.sub(r'(.+)\s*-\s*BBC.*?$', r'\1', playlist_title).strip()
@@ -1048,14 +1061,16 @@ class BBCIE(BBCCoUkIE):
 
         # Morph based embed (e.g. http://www.bbc.co.uk/sport/live/olympics/36895975)
         # Several setPayload calls may be present so pick the one with 'asset-data'
+        # or 'page-component-data'
         # For Weather, use 'asset-with-media'
+        # For Bitesize, use 'guide-data'
         morph_payload = self._parse_json(
             self._search_regex(
-                r'Morph\.setPayload\s*\([^,]+-asset-(?:data|with-media)/[^,]+,\s*(\{.+[]}]\s*})\s*\)\s*;',
+                r'Morph\.setPayload\s*\([^,]+-(?:asset-data|page-component-data|asset-with-media|guide-data)/[^,]+,\s*(\{.+[]}]\s*})\s*\)(?:\s*;\s*}\s*\))?\s*;\s*</script',
                 webpage, 'morph payload', default='{}'),
             playlist_id, fatal=False)
         if morph_payload:
-            # - obsolete?
+            # try for components
             components = try_get(morph_payload, lambda x: x['body']['components'], list) or []
             for component in components:
                 lead_media = try_get(component, lambda x: x['props']['leadMedia'], dict)
@@ -1088,7 +1103,7 @@ class BBCIE(BBCCoUkIE):
                     'formats': formats,
                     'subtitles': subtitles,
                 }
-            # 'components' may be obsolete?
+            # another type (asset-data/)
             body_media = try_get(morph_payload, lambda x: x['body'], dict) or {}
             # check for variant but similar format found with Weather
             # dict.values() is a view in Python 3, a list in Python 2
@@ -1097,6 +1112,24 @@ class BBCIE(BBCCoUkIE):
                 body_media.update(primary_video)
                 programme_id = body_media.get('versionPid')
             else:
+                # Bite-size
+                page_children = try_get(body_media, lambda x: x['chapterData']['page']['children'], list) or []
+                def chdata_extract_media(children):
+                    for child in children:
+                        type = try_get(child, lambda x: x['type'], compat_str)
+                        if type != 'element':
+                            continue
+                        if child.get('name') == 'media':
+                            return try_get(child, lambda x: x['attributes'], dict)
+                        media = chdata_extract_media(child.get('children'))
+                        if media:
+                            return media
+                media = chdata_extract_media(page_children)
+                if media:
+                    programme_id = media.get('vpid')
+                    if programme_id:
+                        body_media.update(media)
+            if not programme_id:
                 body_media.update(body_media.get('media') or {})
                 programme_id = body_media.get('pid')
             if programme_id:
@@ -1105,7 +1138,7 @@ class BBCIE(BBCCoUkIE):
                          or self._html_search_meta('title', webpage))
                 formats, subtitles = self._download_media_selector(programme_id)
                 self._sort_formats(formats)
-                image_url = body_media.get('holdingImageUrl')
+                image_url = dict_get(body_media, ('holdingImageUrl', 'holdingImage'))
                 return {
                     'id': programme_id,
                     'title': title,
@@ -1114,73 +1147,13 @@ class BBCIE(BBCCoUkIE):
                     'thumbnail': re.sub(r'(\{width}xn|\$recipe)', 'raw', image_url) if image_url else None,
                     'duration': parse_duration(dict_get(body_media, ('duration', 'durationSeconds'))),
                     'description': (try_get(body_media, lambda x: x['promos']['summary'], compat_str)
-                                    or body_media.get('summary')
+                                    or dict_get(body_media, ('summary', 'shortSynopsis'))
                                     or self._html_search_meta('description', webpage)),
-                    'timestamp': parse_iso8601(dict_get(body_media, ('dateTime', 'lastUpdated'))),
+                    'timestamp': parse_iso8601(dict_get(body_media, ('dateTime', 'lastUpdated', 'lastModified'))),
                 }
 
         # morph-based playlist (replaces playlist.sxml)
         # a JS setPayload call with arg1 containing the playlist_id has JSON in arg2;
-        # deeply nested within it is our target string containing more JSON ...
-        morph_payload = self._parse_json(
-            self._search_regex(
-                r'Morph\.setPayload\s*\([^,]+%s%s%s[^,]+,\s*(\{.+[]}]\s*})\s*\)\s*;' % ('%2F', playlist_id, '%22%2CisStory%3Atrue'),
-                webpage, 'morph playlist payload', default='{}'),
-            playlist_id, fatal=False)
-        if morph_payload:
-            # looking for a string containing a JSON list
-            components = try_get(morph_payload, lambda x: x['body']['content']['article']['body'], compat_str) or '[]'
-            components = self._parse_json(components, playlist_id, fatal=False) or []
-            for component in components:
-                if component.get('name') != 'video':
-                    continue
-                component = component.get('videoData') or {}
-                programme_id = dict_get(component, ('vpid', 'pid'))
-                if programme_id:
-                    formats, subtitles = self._download_media_selector(programme_id)
-                    if not formats:
-                        continue
-                    self._sort_formats(formats)
-                    entries.append({
-                        'id': programme_id,
-                        'title': component.get('title', 'Unnamed clip %s' % programme_id),
-                        'formats': formats,
-                        'subtitles': subtitles,
-                        'thumbnail': dict_get(component, ('iChefImage', 'image')),
-                        'duration': parse_duration(component.get('duration')),
-                        'description': component.get('caption'),
-                    })
-            if entries:
-                return self.playlist_result(
-                    entries,
-                    playlist_id,
-                    playlist_title,
-                    playlist_description)
-
-            body_media = try_get(morph_payload, lambda x: x['body'], dict) or {}
-            body_media.update(body_media.get('media') or {})
-            programme_id = body_media.get('pid')
-            if programme_id:
-                title = (body_media.get('title')
-                         or self._og_search_title(webpage)
-                         or self._html_search_meta('title', webpage))
-                formats, subtitles = self._download_media_selector(programme_id)
-                self._sort_formats(formats)
-                image_url = body_media.get('holdingImageUrl')
-                return {
-                    'id': programme_id,
-                    'title': title,
-                    'formats': formats,
-                    'subtitles': subtitles,
-                    'thumbnail': image_url.replace('{width}xn', 'raw') if image_url else None,
-                    'duration': parse_duration(body_media.get('duration')),
-                    'description': (try_get(body_media, lambda x: x['promos']['summary'], str)
-                                    or self._html_search_meta('description', webpage)),
-                    'timestamp': parse_iso8601(body_media.get('dateTime')),
-                }
-
-        # morph-based playlist (replaces playlist.sxml?)
-        # a JS setPayload call with arg1 containg the playlist_id has JSON in arg2;
         # deeply nested within it is our target string containing more JSON ...
         morph_payload = self._parse_json(
             self._search_regex(
