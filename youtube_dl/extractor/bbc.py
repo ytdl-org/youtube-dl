@@ -1075,11 +1075,13 @@ class BBCIE(BBCCoUkIE):
             for component in components:
                 lead_media = try_get(component, lambda x: x['props']['leadMedia'], dict)
                 if not lead_media:
+                    lead_media = try_get(component, lambda x: x['props']['supportingMedia'][0], dict)
+                if not lead_media:
                     continue
                 identifiers = lead_media.get('identifiers')
                 if not identifiers or not isinstance(identifiers, dict):
                     continue
-                programme_id = identifiers.get('vpid') or identifiers.get('playablePid')
+                programme_id = dict_get(identifiers, ('vpid', 'playablePid'))
                 if not programme_id:
                     continue
                 title = lead_media.get('title') or self._og_search_title(webpage)
@@ -1114,6 +1116,7 @@ class BBCIE(BBCCoUkIE):
             else:
                 # Bite-size
                 page_children = try_get(body_media, lambda x: x['chapterData']['page']['children'], list) or []
+
                 def chdata_extract_media(children):
                     for child in children:
                         type = try_get(child, lambda x: x['type'], compat_str)
@@ -1124,6 +1127,7 @@ class BBCIE(BBCCoUkIE):
                         media = chdata_extract_media(child.get('children'))
                         if media:
                             return media
+
                 media = chdata_extract_media(page_children)
                 if media:
                     programme_id = media.get('vpid')
