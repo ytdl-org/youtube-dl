@@ -1,4 +1,4 @@
-version <unreleased>
+version 2021.04.01
 
 Extractors
 * [youtube] Setup CONSENT cookie when needed (#28604)
