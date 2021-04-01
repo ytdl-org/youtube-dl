@@ -128,6 +128,7 @@ class RaiBaseIE(InfoExtractor):
         def get_location(url, headers={}):
             _url = compat_urllib_parse_urlparse(url)
             conn = compat_http_client.HTTPConnection(_url.netloc)
+            headers.update({'Connection': 'close'})
             try:
                 conn.request(
                     'HEAD', '%s?%s' % (_url.path, _url.query),
