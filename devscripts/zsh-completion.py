@@ -8,7 +8,7 @@ import sys
 sys.path.insert(0, dirn(dirn((os.path.abspath(__file__)))))
 import youtube_dl
 
-ZSH_COMPLETION_FILE = "youtube-dl.zsh"
+ZSH_COMPLETION_FILE = "_youtube-dl"
 ZSH_COMPLETION_TEMPLATE = "devscripts/zsh-completion.in"
 
 
