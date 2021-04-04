@@ -593,6 +593,7 @@ from .limelight import (
     LimelightChannelListIE,
 )
 from .line import LineTVIE
+from .lineLive import LineLiveIE,LineLiveUserIE
 from .linkedin import (
     LinkedInLearningIE,
     LinkedInLearningCourseIE,
