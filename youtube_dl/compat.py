@@ -73,6 +73,15 @@ try:
 except ImportError:  # Python 2
     import Cookie as compat_cookies
 
+if sys.version_info[0] == 2:
+    class compat_SimpleCookie(compat_cookies.SimpleCookie):
+        def load(self, rawdata):
+            if isinstance(rawdata, unicode):
+                rawdata = str(rawdata)
+            return super(compat_SimpleCookie, self).load(rawdata)
+else:
+    compat_SimpleCookie = compat_cookies.SimpleCookie
+
 try:
     import html.entities as compat_html_entities
 except ImportError:  # Python 2

@@ -17,13 +17,13 @@ import math
 
 from ..compat import (
     compat_cookiejar_Cookie,
-    compat_cookies,
     compat_etree_Element,
     compat_etree_fromstring,
     compat_getpass,
     compat_integer_types,
     compat_http_client,
     compat_os_name,
+    compat_SimpleCookie,
     compat_str,
     compat_urllib_error,
     compat_urllib_parse_unquote,
@@ -2901,13 +2901,10 @@ class InfoExtractor(object):
         self._downloader.cookiejar.set_cookie(cookie)
 
     def _get_cookies(self, url):
-        """ Return a compat_cookies.SimpleCookie with the cookies for the url """
+        """ Return a compat_SimpleCookie with the cookies for the url """
         req = sanitized_Request(url)
         self._downloader.cookiejar.add_cookie_header(req)
-        cookie = req.get_header('Cookie')
-        if cookie and sys.version_info[0] == 2:
-            cookie = str(cookie)
-        return compat_cookies.SimpleCookie(cookie)
+        return compat_SimpleCookie(req.get_header('Cookie'))
 
     def _apply_first_set_cookie_header(self, url_handle, cookie):
         """
