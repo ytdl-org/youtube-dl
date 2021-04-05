@@ -23,6 +23,7 @@ from ..utils import (
     get_element_by_class,
     int_or_none,
     js_to_json,
+    parse_bitrate,
     parse_duration,
     parse_iso8601,
     try_get,
@@ -635,9 +636,7 @@ class BBCIE(BBCCoUkIE):
             'skip_download': True,
         }
     }, {
-        # article with single video embedded with data-playable containing XML playlist
-        # with direct video links as progressiveDownloadUrl (for now these are extracted)
-        # and playlist with f4m and m3u8 as streamingUrl
+        # article with single video (formerly) embedded, now using SIMORGH_DATA JSON
         'url': 'http://www.bbc.com/turkce/haberler/2015/06/150615_telabyad_kentin_cogu',
         'info_dict': {
             'id': '150615_telabyad_kentin_cogu',
@@ -649,12 +648,13 @@ class BBCIE(BBCCoUkIE):
         },
         'params': {
             'skip_download': True,
-        }
+        },
+        'skip': 'Video no longer embedded, 2021',
     }, {
-        # single video embedded with data-playable containing XML playlists (regional section)
+        # single video embedded, legacy media, in promo object of SIMORGH_DATA JSON
         'url': 'http://www.bbc.com/mundo/video_fotos/2015/06/150619_video_honduras_militares_hospitales_corrupcion_aw',
         'info_dict': {
-            'id': '150619_video_honduras_militares_hospitales_corrupcion_aw',
+            'id': '39275083',
             'ext': 'mp4',
             'title': 'Honduras militariza sus hospitales por nuevo escándalo de corrupción',
             'description': 'md5:1525f17448c4ee262b64b8f0c9ce66c8',
@@ -811,6 +811,18 @@ class BBCIE(BBCCoUkIE):
             'thumbnail': r're:https?://.+/p07c9dsr.jpg',
             'upload_date': '20190604',
             'categories': ['Psychology'],
+        },
+    }, {
+        # BBC World Service etc: media nested in content object of SIMORGH_DATA JSON
+        'url': 'http://www.bbc.co.uk/scotland/articles/cm49v4x1r9lo',
+        'info_dict': {
+            'id': 'p06p040v',
+            'ext': 'mp4',
+            'title': 'Five things ants can teach us about management',
+            'description': 'They may be tiny, but us humans could learn a thing or two from ants.',
+            'duration': 191,
+            'thumbnail': r're:https?://.+/p06p0qzv.jpg',
+            'upload_date': '20181016',
         },
     }]
 
@@ -1073,6 +1085,85 @@ class BBCIE(BBCCoUkIE):
                     'formats': formats,
                     'subtitles': subtitles,
                 }
+
+        # simorgh-based playlist (see https://github.com/bbc/simorgh)
+        # JSON assigned to window.SIMORGH_DATA in a <script> element
+        simorgh_data = self._parse_json(
+            self._search_regex(
+                r'window\.SIMORGH_DATA\s*=\s*(\{[^<]+})\s*</',
+                webpage, 'simorgh playlist', default='{}'),
+            playlist_id, fatal=False)
+        # legacy media, video in promo object (eg, http://www.bbc.com/mundo/video_fotos/2015/06/150619_video_honduras_militares_hospitales_corrupcion_aw)
+        playlist = try_get(simorgh_data, lambda x: x['pageData']['promo']['media']['playlist']) or []
+        if playlist:
+            media = simorgh_data['pageData']['promo']
+            if media['media'].get('format') == 'video':
+                media.update(media['media'])
+                formats = []
+                keys = {'url', 'format', 'format_id', 'language', 'quality', 'tbr', 'resolution'}
+                for format in playlist:
+                    if not (format.get('url') and format.get('format')):
+                        continue
+                    bitrate = format.pop('bitrate')
+                    if bitrate:
+                        bitrate = re.sub(r'000\s*$', 'kbps', bitrate)
+                        format['tbr'] = parse_bitrate(bitrate)
+                    format['language'] = media.get('language')
+                    # format id: penultimate item from the url split on _ and .
+                    (fmt,) = re.split('[_.]', format['url'])[-2:][:1]
+                    format['format_id'] = '%s_%s' % (format['format'], fmt)
+                    if not format.get('resolution'):
+                        format['resolution'] = fmt
+                    format['quality'] = -1
+                    formats.append(dict((k, format[k]) for k in keys))
+                self._sort_formats(formats)
+                return {
+                    'id': media.get('id'),
+                    'title': (dict_get(media.get('headlines'),
+                                       ('shortHeadline', 'headline'))
+                              or playlist_title),
+                    'description': media.get('summary') or playlist_description,
+                    'formats': formats,
+                    'subtitles': None,
+                    'thumbnail': try_get(media, lambda x: x['image']['href']),
+                    'timestamp': int_or_none(media.get('timestamp'), scale=1000)
+                }
+
+        # general case: media nested in content object
+        # test: https://www.bbc.co.uk/scotland/articles/cm49v4x1r9lo
+        if simorgh_data:
+
+            def extract_media_from_simorgh(model):
+                if not isinstance(model, dict):
+                    return
+                for block in model.get('blocks') or {}:
+                    if block.get('type') == 'aresMediaMetadata':
+                        vpid = try_get(block, lambda x: x['model']['versions'][0]['versionId'])
+                        if vpid:
+                            formats, subtitles = self._download_media_selector(vpid)
+                            self._sort_formats(formats)
+                            model = block['model']
+                            version = model['versions'][0]
+                            thumbnail = model.get('imageUrl')
+                            return {
+                                'id': vpid,
+                                'title': model.get('title') or 'unnamed clip',
+                                'description': dict_get(model.get('synopses') or {}, ('long', 'medium', 'short')),
+                                'duration': (int_or_none(version.get('duration'))
+                                             or parse_duration(version.get('durationISO8601'))),
+                                'timestamp': version.get('availableFrom'),
+                                'thumbnail': urljoin(url, thumbnail.replace('$recipe', 'raw')) if thumbnail else None,
+                                'formats': formats,
+                                'subtitles': subtitles,
+                            }
+                    else:
+                        entry = extract_media_from_simorgh(block.get('model'))
+                        if entry:
+                            return entry
+
+            playlist = extract_media_from_simorgh(try_get(simorgh_data, lambda x: x['pageData']['content']['model']))
+            if playlist:
+                return playlist
 
         preload_state = self._parse_json(self._search_regex(
             r'window\.__PRELOADED_STATE__\s*=\s*({.+?});', webpage,
