@@ -26,7 +26,7 @@ class NhkRadioBase(InfoExtractor):
     def _extract_program(self, info, program_corner_id):
         id = program_corner_id + "_" + info.get("headline_id")
         file = info.get("file_list")[0]
-        formats = self._extract_m3u8_formats(file.get("file_name"), id, "m4a", entry_protocol="m3u8_native", m3u8_id="hls")
+        formats = self._extract_m3u8_formats(file.get("file_name", None), id, "m4a", entry_protocol="m3u8_native", m3u8_id="hls")
         self._sort_formats(formats)
         return {
             "id": id,
