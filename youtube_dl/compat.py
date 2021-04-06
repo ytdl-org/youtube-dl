@@ -76,7 +76,7 @@ except ImportError:  # Python 2
 if sys.version_info[0] == 2:
     class compat_SimpleCookie(compat_cookies.SimpleCookie):
         def load(self, rawdata):
-            if isinstance(rawdata, unicode):
+            if isinstance(rawdata, compat_str):
                 rawdata = str(rawdata)
             return super(compat_SimpleCookie, self).load(rawdata)
 else:
