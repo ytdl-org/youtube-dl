@@ -1,3 +1,25 @@
+version <unreleased>
+
+Core
+* [extractor/common] Use compat_cookies_SimpleCookie for _get_cookies
++ [compat] Introduce compat_cookies_SimpleCookie
+* [extractor/common] Improve JSON-LD author extraction
+* [extractor/common] Fix _get_cookies on python 2 (#20673, #23256, #20326,
+  #28640)
+
+Extractors
+* [youtube] Fix extraction of videos with restricted location (#28685)
++ [line] Add support for live.line.me (#17205, #28658)
+* [vimeo] Improve extraction (#28591)
+* [youku] Update ccode (#17852, #28447, #28460, #28648)
+* [youtube] Prefer direct entry metadata over entry metadata from playlist
+  (#28619, #28636)
+* [screencastomatic] Fix extraction (#11976, #24489)
++ [palcomp3] Add support for palcomp3.com (#13120)
++ [arnes] Add support for video.arnes.si (#28483)
++ [youtube:tab] Add support for hashtags (#28308)
+
+
 version 2021.04.01
 
 Extractors
