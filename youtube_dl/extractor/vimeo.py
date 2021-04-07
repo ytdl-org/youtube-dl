@@ -662,6 +662,10 @@ class VimeoIE(VimeoBaseInfoExtractor):
             token, vuid = self._extract_xsrft_and_vuid(webpage)
             webpage = self._verify_video_password(
                 redirect_url, video_id, video_password, token, vuid)
+            config = self._verify_player_video_password(
+                "https://player.vimeo.com/video/" + video_id, video_id, headers)
+            info = self._parse_config(config, video_id)
+            self._vimeo_sort_formats(info['formats'])
 
         vimeo_config = self._extract_vimeo_config(webpage, video_id, default=None)
         if vimeo_config:
