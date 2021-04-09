@@ -5,7 +5,7 @@ from .common import InfoExtractor
 
 
 class MaoriTVIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:www\.)?maoritelevision\.com/shows/(?:[^/]+/)+'
+    _VALID_URL = r'https?://(?:www\.)?maoritelevision\.com/shows/(?:[^/]+/)+(?P<id>[\w-]+)'
     _TEST = {
         'url': 'https://www.maoritelevision.com/shows/korero-mai/S01E054/korero-mai-series-1-episode-54',
         'md5': '5ade8ef53851b6a132c051b1cd858899',
@@ -23,7 +23,7 @@ class MaoriTVIE(InfoExtractor):
     BRIGHTCOVE_URL_TEMPLATE = 'http://players.brightcove.net/1614493167001/default_default/index.html?videoId=%s'
 
     def _real_extract(self, url):
-        video_id = None
+        video_id = self._match_id(url)
         webpage = self._download_webpage(url, video_id)
 
         brightcove_id = self._search_regex(r'data-main-video-id=["\'](\d+)', webpage, 'brightcove id')
