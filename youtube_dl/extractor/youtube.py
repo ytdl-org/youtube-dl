@@ -2020,6 +2020,15 @@ class YoutubeTabIE(YoutubeBaseInfoExtractor):
             'description': 'md5:be97ee0f14ee314f1f002cf187166ee2',
         },
     }, {
+        # playlists, series
+        'url': 'https://www.youtube.com/c/3blue1brown/playlists?view=50&sort=dd&shelf_id=3',
+        'playlist_mincount': 5,
+        'info_dict': {
+            'id': 'UCYO_jab_esuFRV4b17AJtAw',
+            'title': '3Blue1Brown - Playlists',
+            'description': 'md5:e1384e8a133307dd10edee76e875d62f',
+        },
+    }, {
         # playlists, singlepage
         'url': 'https://www.youtube.com/user/ThirstForScience/playlists',
         'playlist_mincount': 4,
@@ -2311,7 +2320,7 @@ class YoutubeTabIE(YoutubeBaseInfoExtractor):
 
     @staticmethod
     def _extract_grid_item_renderer(item):
-        for item_kind in ('Playlist', 'Video', 'Channel'):
+        for item_kind in ('Playlist', 'Video', 'Channel', 'Show'):
             renderer = item.get('grid%sRenderer' % item_kind)
             if renderer:
                 return renderer
@@ -2344,6 +2353,19 @@ class YoutubeTabIE(YoutubeBaseInfoExtractor):
                 yield self.url_result(
                     'https://www.youtube.com/channel/%s' % channel_id,
                     ie=YoutubeTabIE.ie_key(), video_title=title)
+            # show
+            if playlist_id is None:  # needs to check for playlist_id, or non-series playlists are recognized twice
+                show_playlist_url = try_get(
+                    renderer, lambda x: x['navigationEndpoint']['commandMetadata']['webCommandMetadata']['url'],
+                    compat_str)
+                if show_playlist_url:
+                    playlist_id = self._search_regex(r'/playlist\?list=([0-9a-zA-Z-_]+)', show_playlist_url,
+                                                     'playlist id', default=None)
+                    if playlist_id:
+                        title = try_get(renderer, lambda x: x['title']['simpleText'], compat_str)
+                        yield self.url_result(
+                            "https://www.youtube.com/playlist?list=%s" % playlist_id,
+                            ie=YoutubeTabIE.ie_key(), video_id=playlist_id, video_title=title)
 
     def _shelf_entries_from_content(self, shelf_renderer):
         content = shelf_renderer.get('content')
