@@ -1671,18 +1671,17 @@ class YoutubeDL(object):
 
         formats_to_download = list(format_selector(ctx))
         if not formats_to_download:
-            raise ExtractorError('requested format not available',
-                                 expected=True)
-
-        if download:
-            if len(formats_to_download) > 1:
-                self.to_screen('[info] %s: downloading video in %s formats' % (info_dict['id'], len(formats_to_download)))
-            for format in formats_to_download:
-                new_info = dict(info_dict)
-                new_info.update(format)
-                self.process_info(new_info)
-        # We update the info dict with the best quality format (backwards compatibility)
-        info_dict.update(formats_to_download[-1])
+            self.report_warning("format '%s' not available for %s" % (req_format, info_dict['id']))
+        else:
+            if download:
+                if len(formats_to_download) > 1:
+                    self.to_screen('[info] %s: downloading video in %s formats' % (info_dict['id'], len(formats_to_download)))
+                for format in formats_to_download:
+                    new_info = dict(info_dict)
+                    new_info.update(format)
+                    self.process_info(new_info)
+            # We update the info dict with the best quality format (backwards compatibility)
+            info_dict.update(formats_to_download[-1])
         return info_dict
 
     def process_subtitles(self, video_id, normal_subtitles, automatic_captions):
