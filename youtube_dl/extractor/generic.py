@@ -40,96 +40,98 @@ from ..utils import (
     xpath_with_ns,
 )
 from .commonprotocols import RtmpIE
+
+
+from .anvato import AnvatoIE
+from .apa import APAIE
+from .arcpublishing import ArcPublishingIE
+from .arkena import ArkenaIE
+from .arte import ArteTVEmbedIE
 from .brightcove import (
     BrightcoveLegacyIE,
     BrightcoveNewIE,
 )
-from .nexx import (
-    NexxIE,
-    NexxEmbedIE,
-)
-from .nbc import NBCSportsVPlayerIE
-from .ooyala import OoyalaIE
-from .rutv import RUTVIE
-from .tvc import TVCIE
-from .sportbox import SportBoxIE
-from .myvi import MyviIE
-from .condenast import CondeNastIE
-from .udn import UDNEmbedIE
-from .senateisvp import SenateISVPIE
-from .svt import SVTIE
-from .pornhub import PornHubIE
-from .xhamster import XHamsterEmbedIE
-from .tnaflix import TNAFlixNetworkEmbedIE
-from .drtuber import DrTuberIE
-from .redtube import RedTubeIE
-from .tube8 import Tube8IE
-from .mofosex import MofosexEmbedIE
-from .spankwire import SpankwireIE
-from .youporn import YouPornIE
-from .vimeo import (
-    VimeoIE,
-    VHXEmbedIE,
-)
-from .dailymotion import DailymotionIE
-from .dailymail import DailyMailIE
-from .onionstudios import OnionStudiosIE
-from .viewlift import ViewLiftEmbedIE
-from .mtv import MTVServicesEmbeddedIE
-from .pladform import PladformIE
-from .videomore import VideomoreIE
-from .webcaster import WebcasterFeedIE
-from .googledrive import GoogleDriveIE
-from .jwplatform import JWPlatformIE
-from .digiteka import DigitekaIE
-from .arkena import ArkenaIE
-from .instagram import InstagramIE
-from .liveleak import LiveLeakIE
-from .threeqsdn import ThreeQSDNIE
-from .theplatform import ThePlatformIE
-from .kaltura import KalturaIE
-from .eagleplatform import EaglePlatformIE
-from .facebook import FacebookIE
-from .soundcloud import SoundcloudEmbedIE
-from .tunein import TuneInBaseIE
-from .vbox7 import Vbox7IE
-from .dbtv import DBTVIE
-from .piksel import PikselIE
-from .videa import VideaIE
-from .twentymin import TwentyMinutenIE
-from .ustream import UstreamIE
-from .arte import ArteTVEmbedIE
-from .videopress import VideoPressIE
-from .rutube import RutubeIE
-from .limelight import LimelightBaseIE
-from .anvato import AnvatoIE
-from .washingtonpost import WashingtonPostIE
-from .wistia import WistiaIE
-from .mediaset import MediasetIE
-from .joj import JojIE
-from .megaphone import MegaphoneIE
-from .vzaar import VzaarIE
 from .channel9 import Channel9IE
-from .vshare import VShareIE
-from .mediasite import MediasiteIE
-from .springboardplatform import SpringboardPlatformIE
-from .yapfiles import YapFilesIE
-from .vice import ViceIE
-from .xfileshare import XFileShareIE
 from .cloudflarestream import CloudflareStreamIE
-from .peertube import PeerTubeIE
-from .teachable import TeachableIE
-from .indavideo import IndavideoEmbedIE
-from .apa import APAIE
-from .foxnews import FoxNewsIE
-from .viqeo import ViqeoIE
+from .condenast import CondeNastIE
+from .dailymail import DailyMailIE
+from .dailymotion import DailymotionIE
+from .dbtv import DBTVIE
+from .digiteka import DigitekaIE
+from .drtuber import DrTuberIE
+from .eagleplatform import EaglePlatformIE
 from .expressen import ExpressenIE
-from .zype import ZypeIE
-from .odnoklassniki import OdnoklassnikiIE
+from .facebook import FacebookIE
+from .foxnews import FoxNewsIE
+from .googledrive import GoogleDriveIE
+from .indavideo import IndavideoEmbedIE
+from .instagram import InstagramIE
+from .joj import JojIE
+from .jwplatform import JWPlatformIE
+from .kaltura import KalturaIE
 from .kinja import KinjaEmbedIE
-from .arcpublishing import ArcPublishingIE
+from .limelight import LimelightBaseIE
+from .liveleak import LiveLeakIE
 from .medialaan import MedialaanIE
+from .mediaset import MediasetIE
+from .mediasite import MediasiteIE
+from .megaphone import MegaphoneIE
+from .mofosex import MofosexEmbedIE
+from .mtv import MTVServicesEmbeddedIE
+from .myvi import MyviIE
+from .nbc import NBCSportsVPlayerIE
+from .nexx import (
+    NexxEmbedIE,
+    NexxIE,
+)
+from .odnoklassniki import OdnoklassnikiIE
+from .onionstudios import OnionStudiosIE
+from .ooyala import OoyalaIE
+from .peertube import PeerTubeIE
+from .piksel import PikselIE
+from .pladform import PladformIE
+from .pornhub import PornHubIE
+from .redtube import RedTubeIE
+from .rutube import RutubeIE
+from .rutv import RUTVIE
+from .senateisvp import SenateISVPIE
 from .simplecast import SimplecastIE
+from .soundcloud import SoundcloudEmbedIE
+from .spankwire import SpankwireIE
+from .sportbox import SportBoxIE
+from .springboardplatform import SpringboardPlatformIE
+from .svt import SVTIE
+from .teachable import TeachableIE
+from .theplatform import ThePlatformIE
+from .threeqsdn import ThreeQSDNIE
+from .tnaflix import TNAFlixNetworkEmbedIE
+from .tube8 import Tube8IE
+from .tunein import TuneInBaseIE
+from .tvc import TVCIE
+from .twentymin import TwentyMinutenIE
+from .udn import UDNEmbedIE
+from .ustream import UstreamIE
+from .vbox7 import Vbox7IE
+from .vice import ViceIE
+from .videa import VideaIE
+from .videomore import VideomoreIE
+from .videopress import VideoPressIE
+from .viewlift import ViewLiftEmbedIE
+from .vimeo import (
+    VHXEmbedIE,
+    VimeoIE,
+)
+from .viqeo import ViqeoIE
+from .vshare import VShareIE
+from .vzaar import VzaarIE
+from .washingtonpost import WashingtonPostIE
+from .webcaster import WebcasterFeedIE
+from .wistia import WistiaIE
+from .xfileshare import XFileShareIE
+from .xhamster import XHamsterEmbedIE
+from .yapfiles import YapFilesIE
+from .youporn import YouPornIE
+from .zype import ZypeIE
 
 
 class GenericIE(InfoExtractor):
