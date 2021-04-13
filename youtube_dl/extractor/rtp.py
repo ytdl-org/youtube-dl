@@ -64,8 +64,8 @@ class RTPIE(InfoExtractor):
                     # 2) ... or the file URL is not encoded so keep it that way
                     json_string_for_config += '\n' + line
 
-            elif not stripped_line.startswith("//") and not re.match('fileKey ?:', stripped_line):
-                # Ignore commented lines and 'fileKey' entry since it is no longer supported by RTP
+            elif not stripped_line.startswith("//") and not re.match('fileKey ?:', stripped_line) and not re.match('.*extraSettings ?:', stripped_line):
+                # Ignore commented lines, 'fileKey' entry since it is no longer supported by RTP and also 'extraSettings'
                 json_string_for_config += '\n' + line
 
         # Finally send pure JSON string for JSON parsing
