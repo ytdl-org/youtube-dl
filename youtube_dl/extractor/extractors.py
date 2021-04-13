@@ -72,6 +72,7 @@ from .arte import (
     ArteTVEmbedIE,
     ArteTVPlaylistIE,
 )
+from .arnes import ArnesIE
 from .asiancrush import (
     AsianCrushIE,
     AsianCrushPlaylistIE,
@@ -90,11 +91,13 @@ from .awaan import (
 )
 from .azmedien import AZMedienIE
 from .baidu import BaiduVideoIE
+from .bandaichannel import BandaiChannelIE
 from .bandcamp import BandcampIE, BandcampAlbumIE, BandcampWeeklyIE
 from .bbc import (
     BBCCoUkIE,
     BBCCoUkArticleIE,
-    BBCCoUkIPlayerPlaylistIE,
+    BBCCoUkIPlayerEpisodesIE,
+    BBCCoUkIPlayerGroupIE,
     BBCCoUkPlaylistIE,
     BBCIE,
 )
@@ -188,7 +191,11 @@ from .cbsnews import (
     CBSNewsIE,
     CBSNewsLiveVideoIE,
 )
-from .cbssports import CBSSportsIE
+from .cbssports import (
+    CBSSportsEmbedIE,
+    CBSSportsIE,
+    TwentyFourSevenSportsIE,
+)
 from .ccc import (
     CCCIE,
     CCCPlaylistIE,
@@ -421,6 +428,7 @@ from .gamestar import GameStarIE
 from .gaskrank import GaskrankIE
 from .gazeta import GazetaIE
 from .gdcvault import GDCVaultIE
+from .gedidigital import GediDigitalIE
 from .generic import GenericIE
 from .gfycat import GfycatIE
 from .giantbomb import GiantBombIE
@@ -591,7 +599,11 @@ from .limelight import (
     LimelightChannelIE,
     LimelightChannelListIE,
 )
-from .line import LineTVIE
+from .line import (
+    LineTVIE,
+    LineLiveIE,
+    LineLiveChannelIE,
+)
 from .linkedin import (
     LinkedInLearningIE,
     LinkedInLearningCourseIE,
@@ -628,6 +640,7 @@ from .mangomolo import (
     MangomoloLiveIE,
 )
 from .manyvids import ManyVidsIE
+from .maoritv import MaoriTVIE
 from .markiza import (
     MarkizaIE,
     MarkizaPageIE,
@@ -671,7 +684,10 @@ from .mixcloud import (
     MixcloudUserIE,
     MixcloudPlaylistIE,
 )
-from .mlb import MLBIE
+from .mlb import (
+    MLBIE,
+    MLBVideoIE,
+)
 from .mnet import MnetIE
 from .moevideo import MoeVideoIE
 from .mofosex import (
@@ -871,6 +887,11 @@ from .outsidetv import OutsideTVIE
 from .packtpub import (
     PacktPubIE,
     PacktPubCourseIE,
+)
+from .palcomp3 import (
+    PalcoMP3IE,
+    PalcoMP3ArtistIE,
+    PalcoMP3VideoIE,
 )
 from .pandoratv import PandoraTVIE
 from .parliamentliveuk import ParliamentLiveUKIE
@@ -1619,5 +1640,9 @@ from .zattoo import (
 )
 from .zdf import ZDFIE, ZDFChannelIE
 from .zhihu import ZhihuIE
-from .zingmp3 import ZingMp3IE
+from .zingmp3 import (
+    ZingMp3IE,
+    ZingMp3AlbumIE,
+)
+from .zoom import ZoomIE
 from .zype import ZypeIE

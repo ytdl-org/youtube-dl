@@ -24,6 +24,7 @@ from ..jsinterp import JSInterpreter
 from ..utils import (
     ExtractorError,
     clean_html,
+    dict_get,
     float_or_none,
     int_or_none,
     mimetype2ext,
@@ -248,7 +249,23 @@ class YoutubeBaseInfoExtractor(InfoExtractor):
 
         return True
 
+    def _initialize_consent(self):
+        cookies = self._get_cookies('https://www.youtube.com/')
+        if cookies.get('__Secure-3PSID'):
+            return
+        consent_id = None
+        consent = cookies.get('CONSENT')
+        if consent:
+            if 'YES' in consent.value:
+                return
+            consent_id = self._search_regex(
+                r'PENDING\+(\d+)', consent.value, 'consent', default=None)
+        if not consent_id:
+            consent_id = random.randint(100, 999)
+        self._set_cookie('.youtube.com', 'CONSENT', 'YES+cb.20210328-17-p0.en+FX+%s' % consent_id)
+
     def _real_initialize(self):
+        self._initialize_consent()
         if self._downloader is None:
             return
         if not self._login():
@@ -289,7 +306,7 @@ class YoutubeBaseInfoExtractor(InfoExtractor):
         return self._parse_json(
             self._search_regex(
                 r'ytcfg\.set\s*\(\s*({.+?})\s*\)\s*;', webpage, 'ytcfg',
-                default='{}'), video_id, fatal=False)
+                default='{}'), video_id, fatal=False) or {}
 
     def _extract_video(self, renderer):
         video_id = renderer['videoId']
@@ -312,7 +329,7 @@ class YoutubeBaseInfoExtractor(InfoExtractor):
             (lambda x: x['ownerText']['runs'][0]['text'],
              lambda x: x['shortBylineText']['runs'][0]['text']), compat_str)
         return {
-            '_type': 'url_transparent',
+            '_type': 'url',
             'ie_key': YoutubeIE.ie_key(),
             'id': video_id,
             'url': video_id,
@@ -1067,6 +1084,23 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
             'url': 'https://www.youtube.com/watch?v=nGC3D_FkCmg',
             'only_matching': True,
         },
+        {
+            # restricted location, https://github.com/ytdl-org/youtube-dl/issues/28685
+            'url': 'cBvYw8_A0vQ',
+            'info_dict': {
+                'id': 'cBvYw8_A0vQ',
+                'ext': 'mp4',
+                'title': '4K Ueno Okachimachi  Street  Scenes  上野御徒町歩き',
+                'description': 'md5:ea770e474b7cd6722b4c95b833c03630',
+                'upload_date': '20201120',
+                'uploader': 'Walk around Japan',
+                'uploader_id': 'UC3o_t8PzBmXf5S9b7GLx1Mw',
+                'uploader_url': r're:https?://(?:www\.)?youtube\.com/channel/UC3o_t8PzBmXf5S9b7GLx1Mw',
+            },
+            'params': {
+                'skip_download': True,
+            },
+        },
     ]
     _formats = {
         '5': {'ext': 'flv', 'width': 400, 'height': 240, 'acodec': 'mp3', 'abr': 64, 'vcodec': 'h263'},
@@ -1431,7 +1465,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
         base_url = self.http_scheme() + '//www.youtube.com/'
         webpage_url = base_url + 'watch?v=' + video_id
         webpage = self._download_webpage(
-            webpage_url + '&bpctr=9999999999', video_id, fatal=False)
+            webpage_url + '&bpctr=9999999999&has_verified=1', video_id, fatal=False)
 
         player_response = None
         if webpage:
@@ -1450,7 +1484,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                     'Refetching age-gated info webpage',
                     'unable to download video info webpage', query={
                         'video_id': video_id,
-                        'eurl': 'https://www.youtube.com/embed/' + video_id,
+                        'eurl': 'https://youtube.googleapis.com/v/' + video_id,
                     }, fatal=False)),
                 lambda x: x['player_response'][0],
                 compat_str) or '{}', video_id)
@@ -1468,7 +1502,13 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
         def get_text(x):
             if not x:
                 return
-            return x.get('simpleText') or ''.join([r['text'] for r in x['runs']])
+            text = x.get('simpleText')
+            if text and isinstance(text, compat_str):
+                return text
+            runs = x.get('runs')
+            if not isinstance(runs, list):
+                return
+            return ''.join([r['text'] for r in runs if isinstance(r.get('text'), compat_str)])
 
         search_meta = (
             lambda x: self._html_search_meta(x, webpage, default=None)) \
@@ -1617,7 +1657,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                     f['format_id'] = itag
                 formats.append(f)
 
-        if self._downloader.params.get('youtube_include_dash_manifest'):
+        if self._downloader.params.get('youtube_include_dash_manifest', True):
             dash_manifest_url = streaming_data.get('dashManifestUrl')
             if dash_manifest_url:
                 for f in self._extract_mpd_formats(
@@ -1895,7 +1935,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                     info['channel'] = get_text(try_get(
                         vsir,
                         lambda x: x['owner']['videoOwnerRenderer']['title'],
-                        compat_str))
+                        dict))
                     rows = try_get(
                         vsir,
                         lambda x: x['metadataRowContainer']['metadataRowContainerRenderer']['rows'],
@@ -1942,7 +1982,7 @@ class YoutubeTabIE(YoutubeBaseInfoExtractor):
                             invidio\.us
                         )/
                         (?:
-                            (?:channel|c|user|feed)/|
+                            (?:channel|c|user|feed|hashtag)/|
                             (?:playlist|watch)\?.*?\blist=|
                             (?!(?:watch|embed|v|e)\b)
                         )
@@ -2228,6 +2268,13 @@ class YoutubeTabIE(YoutubeBaseInfoExtractor):
     }, {
         'url': 'https://www.youtube.com/TheYoungTurks/live',
         'only_matching': True,
+    }, {
+        'url': 'https://www.youtube.com/hashtag/cctv9',
+        'info_dict': {
+            'id': 'cctv9',
+            'title': '#cctv9',
+        },
+        'playlist_mincount': 350,
     }]
 
     @classmethod
@@ -2375,6 +2422,14 @@ class YoutubeTabIE(YoutubeBaseInfoExtractor):
             for entry in self._post_thread_entries(renderer):
                 yield entry
 
+    def _rich_grid_entries(self, contents):
+        for content in contents:
+            video_renderer = try_get(content, lambda x: x['richItemRenderer']['content']['videoRenderer'], dict)
+            if video_renderer:
+                entry = self._video_entry(video_renderer)
+                if entry:
+                    yield entry
+
     @staticmethod
     def _build_continuation_query(continuation, ctp=None):
         query = {
@@ -2420,82 +2475,111 @@ class YoutubeTabIE(YoutubeBaseInfoExtractor):
             ctp = continuation_ep.get('clickTrackingParams')
             return YoutubeTabIE._build_continuation_query(continuation, ctp)
 
-    def _entries(self, tab, identity_token):
+    def _entries(self, tab, item_id, webpage):
         tab_content = try_get(tab, lambda x: x['content'], dict)
         if not tab_content:
             return
         slr_renderer = try_get(tab_content, lambda x: x['sectionListRenderer'], dict)
-        if not slr_renderer:
-            return
-        is_channels_tab = tab.get('title') == 'Channels'
-        continuation = None
-        slr_contents = try_get(slr_renderer, lambda x: x['contents'], list) or []
-        for slr_content in slr_contents:
-            if not isinstance(slr_content, dict):
-                continue
-            is_renderer = try_get(slr_content, lambda x: x['itemSectionRenderer'], dict)
-            if not is_renderer:
-                continue
-            isr_contents = try_get(is_renderer, lambda x: x['contents'], list) or []
-            for isr_content in isr_contents:
-                if not isinstance(isr_content, dict):
+        if slr_renderer:
+            is_channels_tab = tab.get('title') == 'Channels'
+            continuation = None
+            slr_contents = try_get(slr_renderer, lambda x: x['contents'], list) or []
+            for slr_content in slr_contents:
+                if not isinstance(slr_content, dict):
                     continue
-                renderer = isr_content.get('playlistVideoListRenderer')
-                if renderer:
-                    for entry in self._playlist_entries(renderer):
-                        yield entry
-                    continuation = self._extract_continuation(renderer)
+                is_renderer = try_get(slr_content, lambda x: x['itemSectionRenderer'], dict)
+                if not is_renderer:
                     continue
-                renderer = isr_content.get('gridRenderer')
-                if renderer:
-                    for entry in self._grid_entries(renderer):
-                        yield entry
-                    continuation = self._extract_continuation(renderer)
-                    continue
-                renderer = isr_content.get('shelfRenderer')
-                if renderer:
-                    for entry in self._shelf_entries(renderer, not is_channels_tab):
-                        yield entry
-                    continue
-                renderer = isr_content.get('backstagePostThreadRenderer')
-                if renderer:
-                    for entry in self._post_thread_entries(renderer):
-                        yield entry
-                    continuation = self._extract_continuation(renderer)
-                    continue
-                renderer = isr_content.get('videoRenderer')
-                if renderer:
-                    entry = self._video_entry(renderer)
-                    if entry:
-                        yield entry
+                isr_contents = try_get(is_renderer, lambda x: x['contents'], list) or []
+                for isr_content in isr_contents:
+                    if not isinstance(isr_content, dict):
+                        continue
+                    renderer = isr_content.get('playlistVideoListRenderer')
+                    if renderer:
+                        for entry in self._playlist_entries(renderer):
+                            yield entry
+                        continuation = self._extract_continuation(renderer)
+                        continue
+                    renderer = isr_content.get('gridRenderer')
+                    if renderer:
+                        for entry in self._grid_entries(renderer):
+                            yield entry
+                        continuation = self._extract_continuation(renderer)
+                        continue
+                    renderer = isr_content.get('shelfRenderer')
+                    if renderer:
+                        for entry in self._shelf_entries(renderer, not is_channels_tab):
+                            yield entry
+                        continue
+                    renderer = isr_content.get('backstagePostThreadRenderer')
+                    if renderer:
+                        for entry in self._post_thread_entries(renderer):
+                            yield entry
+                        continuation = self._extract_continuation(renderer)
+                        continue
+                    renderer = isr_content.get('videoRenderer')
+                    if renderer:
+                        entry = self._video_entry(renderer)
+                        if entry:
+                            yield entry
 
+                if not continuation:
+                    continuation = self._extract_continuation(is_renderer)
             if not continuation:
-                continuation = self._extract_continuation(is_renderer)
+                continuation = self._extract_continuation(slr_renderer)
+        else:
+            rich_grid_renderer = tab_content.get('richGridRenderer')
+            if not rich_grid_renderer:
+                return
+            for entry in self._rich_grid_entries(rich_grid_renderer.get('contents') or []):
+                yield entry
+            continuation = self._extract_continuation(rich_grid_renderer)
 
-        if not continuation:
-            continuation = self._extract_continuation(slr_renderer)
+        ytcfg = self._extract_ytcfg(item_id, webpage)
+        client_version = try_get(
+            ytcfg, lambda x: x['INNERTUBE_CLIENT_VERSION'], compat_str) or '2.20210407.08.00'
 
         headers = {
             'x-youtube-client-name': '1',
-            'x-youtube-client-version': '2.20201112.04.01',
+            'x-youtube-client-version': client_version,
+            'content-type': 'application/json',
         }
+
+        context = try_get(ytcfg, lambda x: x['INNERTUBE_CONTEXT'], dict) or {
+            'client': {
+                'clientName': 'WEB',
+                'clientVersion': client_version,
+            }
+        }
+        visitor_data = try_get(context, lambda x: x['client']['visitorData'], compat_str)
+
+        identity_token = self._extract_identity_token(ytcfg, webpage)
         if identity_token:
             headers['x-youtube-identity-token'] = identity_token
+
+        data = {
+            'context': context,
+        }
 
         for page_num in itertools.count(1):
             if not continuation:
                 break
+            if visitor_data:
+                headers['x-goog-visitor-id'] = visitor_data
+            data['continuation'] = continuation['continuation']
+            data['clickTracking'] = {
+                'clickTrackingParams': continuation['itct']
+            }
             count = 0
             retries = 3
             while count <= retries:
                 try:
                     # Downloading page may result in intermittent 5xx HTTP error
                     # that is usually worked around with a retry
-                    browse = self._download_json(
-                        'https://www.youtube.com/browse_ajax', None,
-                        'Downloading page %d%s'
-                        % (page_num, ' (retry #%d)' % count if count else ''),
-                        headers=headers, query=continuation)
+                    response = self._download_json(
+                        'https://www.youtube.com/youtubei/v1/browse?key=AIzaSyAO_FJ2SlqU8Q4STEHLGCilw_Y9_11qcW8',
+                        None, 'Downloading page %d%s' % (page_num, ' (retry #%d)' % count if count else ''),
+                        headers=headers, data=json.dumps(data).encode('utf8'))
                     break
                 except ExtractorError as e:
                     if isinstance(e.cause, compat_HTTPError) and e.cause.code in (500, 503):
@@ -2503,11 +2587,11 @@ class YoutubeTabIE(YoutubeBaseInfoExtractor):
                         if count <= retries:
                             continue
                     raise
-            if not browse:
-                break
-            response = try_get(browse, lambda x: x[1]['response'], dict)
             if not response:
                 break
+
+            visitor_data = try_get(
+                response, lambda x: x['responseContext']['visitorData'], compat_str) or visitor_data
 
             continuation_contents = try_get(
                 response, lambda x: x['continuationContents'], dict)
@@ -2531,13 +2615,14 @@ class YoutubeTabIE(YoutubeBaseInfoExtractor):
                     continuation = self._extract_continuation(continuation_renderer)
                     continue
 
+            on_response_received = dict_get(response, ('onResponseReceivedActions', 'onResponseReceivedEndpoints'))
             continuation_items = try_get(
-                response, lambda x: x['onResponseReceivedActions'][0]['appendContinuationItemsAction']['continuationItems'], list)
+                on_response_received, lambda x: x[0]['appendContinuationItemsAction']['continuationItems'], list)
             if continuation_items:
                 continuation_item = continuation_items[0]
                 if not isinstance(continuation_item, dict):
                     continue
-                renderer = continuation_item.get('gridVideoRenderer')
+                renderer = self._extract_grid_item_renderer(continuation_item)
                 if renderer:
                     grid_renderer = {'items': continuation_items}
                     for entry in self._grid_entries(grid_renderer):
@@ -2550,6 +2635,19 @@ class YoutubeTabIE(YoutubeBaseInfoExtractor):
                     for entry in self._playlist_entries(video_list_renderer):
                         yield entry
                     continuation = self._extract_continuation(video_list_renderer)
+                    continue
+                renderer = continuation_item.get('backstagePostThreadRenderer')
+                if renderer:
+                    continuation_renderer = {'contents': continuation_items}
+                    for entry in self._post_thread_continuation_entries(continuation_renderer):
+                        yield entry
+                    continuation = self._extract_continuation(continuation_renderer)
+                    continue
+                renderer = continuation_item.get('richItemRenderer')
+                if renderer:
+                    for entry in self._rich_grid_entries(continuation_items):
+                        yield entry
+                    continuation = self._extract_continuation({'contents': continuation_items})
                     continue
 
             break
@@ -2603,11 +2701,12 @@ class YoutubeTabIE(YoutubeBaseInfoExtractor):
                 alerts.append(text)
         return '\n'.join(alerts)
 
-    def _extract_from_tabs(self, item_id, webpage, data, tabs, identity_token):
+    def _extract_from_tabs(self, item_id, webpage, data, tabs):
         selected_tab = self._extract_selected_tab(tabs)
         renderer = try_get(
             data, lambda x: x['metadata']['channelMetadataRenderer'], dict)
-        playlist_id = title = description = None
+        playlist_id = item_id
+        title = description = None
         if renderer:
             channel_title = renderer.get('title') or item_id
             tab_title = selected_tab.get('title')
@@ -2616,14 +2715,18 @@ class YoutubeTabIE(YoutubeBaseInfoExtractor):
                 title += ' - %s' % tab_title
             description = renderer.get('description')
             playlist_id = renderer.get('externalId')
-        renderer = try_get(
-            data, lambda x: x['metadata']['playlistMetadataRenderer'], dict)
-        if renderer:
-            title = renderer.get('title')
-            description = None
-            playlist_id = item_id
+        else:
+            renderer = try_get(
+                data, lambda x: x['metadata']['playlistMetadataRenderer'], dict)
+            if renderer:
+                title = renderer.get('title')
+            else:
+                renderer = try_get(
+                    data, lambda x: x['header']['hashtagHeaderRenderer'], dict)
+                if renderer:
+                    title = try_get(renderer, lambda x: x['hashtag']['simpleText'])
         playlist = self.playlist_result(
-            self._entries(selected_tab, identity_token),
+            self._entries(selected_tab, item_id, webpage),
             playlist_id=playlist_id, playlist_title=title,
             playlist_description=description)
         playlist.update(self._extract_uploader(data))
@@ -2647,8 +2750,7 @@ class YoutubeTabIE(YoutubeBaseInfoExtractor):
             self._playlist_entries(playlist), playlist_id=playlist_id,
             playlist_title=title)
 
-    def _extract_identity_token(self, webpage, item_id):
-        ytcfg = self._extract_ytcfg(item_id, webpage)
+    def _extract_identity_token(self, ytcfg, webpage):
         if ytcfg:
             token = try_get(ytcfg, lambda x: x['ID_TOKEN'], compat_str)
             if token:
@@ -2671,12 +2773,11 @@ class YoutubeTabIE(YoutubeBaseInfoExtractor):
                 return self.url_result(video_id, ie=YoutubeIE.ie_key(), video_id=video_id)
             self.to_screen('Downloading playlist %s - add --no-playlist to just download video %s' % (playlist_id, video_id))
         webpage = self._download_webpage(url, item_id)
-        identity_token = self._extract_identity_token(webpage, item_id)
         data = self._extract_yt_initial_data(item_id, webpage)
         tabs = try_get(
             data, lambda x: x['contents']['twoColumnBrowseResultsRenderer']['tabs'], list)
         if tabs:
-            return self._extract_from_tabs(item_id, webpage, data, tabs, identity_token)
+            return self._extract_from_tabs(item_id, webpage, data, tabs)
         playlist = try_get(
             data, lambda x: x['contents']['twoColumnWatchNextResults']['playlist']['playlist'], dict)
         if playlist:
