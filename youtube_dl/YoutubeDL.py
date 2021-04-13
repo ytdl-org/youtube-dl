@@ -2428,17 +2428,18 @@ class YoutubeDL(object):
         if self.params.get('writethumbnail', False):
             thumbnails = info_dict.get('thumbnails')
             thumbnailformat = self.params.get('thumbnailformat', False)
-            if thumbnailformat:
-                if thumbnailformat in [i.get('id') for i in thumbnails]:
-                    thumbnails = [i for i in thumbnails if i.get('id')==thumbnailformat]
+            if thumbnails:
+                if thumbnailformat:
+                    if thumbnailformat in [i.get('id') for i in thumbnails]:
+                        thumbnails = [i for i in thumbnails if i.get('id')==thumbnailformat]
+                    else:
+                        self.report_warning(
+                                'Thumbnail ID unavailable, falling back to default.'
+                                ' Check available thumbnail formats with the option --list-thumbnails'
+                                )
+                        thumbnails = [thumbnails[-1]]
                 else:
-                    self.report_warning(
-                            'Thumbnail ID unavailable, falling back to default.'
-                            ' Check available thumbnail formats with the option --list-thumbnails'
-                            )
                     thumbnails = [thumbnails[-1]]
-            else:
-                thumbnails = [thumbnails[-1]]
         elif self.params.get('write_all_thumbnails', False):
             thumbnails = info_dict.get('thumbnails')
         else:
