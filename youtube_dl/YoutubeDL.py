@@ -2431,12 +2431,11 @@ class YoutubeDL(object):
             if thumbnails:
                 if thumbnailformat:
                     if thumbnailformat in [i.get('id') for i in thumbnails]:
-                        thumbnails = [i for i in thumbnails if i.get('id')==thumbnailformat]
+                        thumbnails = [i for i in thumbnails if i.get('id') == thumbnailformat]
                     else:
-                        self.report_warning(
-                                'Thumbnail ID unavailable, falling back to default.'
-                                ' Check available thumbnail formats with the option --list-thumbnails'
-                                )
+                        self.report_warning('Thumbnail ID unavailable, falling back to default.'
+                                            ' Check available thumbnail formats with the option --list-thumbnails'
+                                            )
                         thumbnails = [thumbnails[-1]]
                 else:
                     thumbnails = [thumbnails[-1]]
