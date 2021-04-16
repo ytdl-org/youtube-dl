@@ -813,6 +813,11 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
             'skip': 'This video does not exist.',
         },
         {
+            # Video with incomplete 'yt:stretch=16:'
+            'url': 'https://www.youtube.com/watch?v=FRhJzUSJbGI',
+            'only_matching': True,
+        },
+        {
             # Video licensed under Creative Commons
             'url': 'https://www.youtube.com/watch?v=M4gD1WSo5mA',
             'info_dict': {
@@ -1717,13 +1722,16 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                 for m in re.finditer(self._meta_regex('og:video:tag'), webpage)]
         for keyword in keywords:
             if keyword.startswith('yt:stretch='):
-                w, h = keyword.split('=')[1].split(':')
-                w, h = int(w), int(h)
-                if w > 0 and h > 0:
-                    ratio = w / h
-                    for f in formats:
-                        if f.get('vcodec') != 'none':
-                            f['stretched_ratio'] = ratio
+                mobj = re.search(r'(\d+)\s*:\s*(\d+)', keyword)
+                if mobj:
+                    # NB: float is intentional for forcing float division
+                    w, h = (float(v) for v in mobj.groups())
+                    if w > 0 and h > 0:
+                        ratio = w / h
+                        for f in formats:
+                            if f.get('vcodec') != 'none':
+                                f['stretched_ratio'] = ratio
+                        break
 
         thumbnails = []
         for container in (video_details, microformat):
