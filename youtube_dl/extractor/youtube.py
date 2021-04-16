@@ -2320,10 +2320,13 @@ class YoutubeTabIE(YoutubeBaseInfoExtractor):
 
     @staticmethod
     def _extract_grid_item_renderer(item):
-        for item_kind in ('Playlist', 'Video', 'Channel', 'Show'):
-            renderer = item.get('grid%sRenderer' % item_kind)
-            if renderer:
-                return renderer
+        assert isinstance(item, dict)
+        for key, renderer in item.items():
+            if not key.startswith('grid') or not key.endswith('Renderer'):
+                continue
+            if not isinstance(renderer, dict):
+                continue
+            return renderer
 
     def _grid_entries(self, grid_renderer):
         for item in grid_renderer['items']:
@@ -2333,7 +2336,8 @@ class YoutubeTabIE(YoutubeBaseInfoExtractor):
             if not isinstance(renderer, dict):
                 continue
             title = try_get(
-                renderer, lambda x: x['title']['runs'][0]['text'], compat_str)
+                renderer, (lambda x: x['title']['runs'][0]['text'],
+                           lambda x: x['title']['simpleText']), compat_str)
             # playlist
             playlist_id = renderer.get('playlistId')
             if playlist_id:
@@ -2341,10 +2345,12 @@ class YoutubeTabIE(YoutubeBaseInfoExtractor):
                     'https://www.youtube.com/playlist?list=%s' % playlist_id,
                     ie=YoutubeTabIE.ie_key(), video_id=playlist_id,
                     video_title=title)
+                continue
             # video
             video_id = renderer.get('videoId')
             if video_id:
                 yield self._extract_video(renderer)
+                continue
             # channel
             channel_id = renderer.get('channelId')
             if channel_id:
@@ -2353,19 +2359,17 @@ class YoutubeTabIE(YoutubeBaseInfoExtractor):
                 yield self.url_result(
                     'https://www.youtube.com/channel/%s' % channel_id,
                     ie=YoutubeTabIE.ie_key(), video_title=title)
-            # show
-            if playlist_id is None:  # needs to check for playlist_id, or non-series playlists are recognized twice
-                show_playlist_url = try_get(
-                    renderer, lambda x: x['navigationEndpoint']['commandMetadata']['webCommandMetadata']['url'],
-                    compat_str)
-                if show_playlist_url:
-                    playlist_id = self._search_regex(r'/playlist\?list=([0-9a-zA-Z-_]+)', show_playlist_url,
-                                                     'playlist id', default=None)
-                    if playlist_id:
-                        title = try_get(renderer, lambda x: x['title']['simpleText'], compat_str)
+                continue
+            # generic endpoint URL support
+            ep_url = urljoin('https://www.youtube.com/', try_get(
+                renderer, lambda x: x['navigationEndpoint']['commandMetadata']['webCommandMetadata']['url'],
+                compat_str))
+            if ep_url:
+                for ie in (YoutubeTabIE, YoutubePlaylistIE, YoutubeIE):
+                    if ie.suitable(ep_url):
                         yield self.url_result(
-                            "https://www.youtube.com/playlist?list=%s" % playlist_id,
-                            ie=YoutubeTabIE.ie_key(), video_id=playlist_id, video_title=title)
+                            ep_url, ie=ie.ie_key(), video_id=ie._match_id(ep_url), video_title=title)
+                        break
 
     def _shelf_entries_from_content(self, shelf_renderer):
         content = shelf_renderer.get('content')
