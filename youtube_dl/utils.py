@@ -2908,7 +2908,7 @@ class YoutubeDLRedirectHandler(compat_urllib_request.HTTPRedirectHandler):
         """
         m = req.get_method()
         if (not (code in (301, 302, 303, 307, 308) and m in ("GET", "HEAD")
-            or code in (301, 302, 303) and m == "POST")):
+                 or code in (301, 302, 303) and m == "POST")):
             raise compat_HTTPError(req.full_url, code, msg, headers, fp)
         # Strictly (according to RFC 2616), 301 or 302 in response to
         # a POST MUST NOT cause a redirection without confirmation
@@ -2930,11 +2930,10 @@ class YoutubeDLRedirectHandler(compat_urllib_request.HTTPRedirectHandler):
         CONTENT_HEADERS = ("content-length", "content-type")
         # NB: don't use dict comprehension for python 2.6 compatibility
         newheaders = dict((k, v) for k, v in req.headers.items()
-                           if k.lower() not in CONTENT_HEADERS)
-        return compat_urllib_request.Request(newurl,
-                       headers=newheaders,
-                       origin_req_host=req.origin_req_host,
-                       unverifiable=True)
+                          if k.lower() not in CONTENT_HEADERS)
+        return compat_urllib_request.Request(
+            newurl, headers=newheaders, origin_req_host=req.origin_req_host,
+            unverifiable=True)
 
 
 def extract_timezone(date_str):
