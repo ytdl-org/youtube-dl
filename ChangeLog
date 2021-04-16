@@ -1,4 +1,4 @@
-version <unreleased>
+version 2021.04.17
 
 Core
 + [utils] Add support for experimental HTTP response status code
