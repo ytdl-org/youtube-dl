@@ -1483,8 +1483,32 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
         webpage = self._download_webpage(
             webpage_url + '&bpctr=9999999999&has_verified=1', video_id, fatal=False)
 
+        # check is music
+        is_music = re.match(r'^https?://music\.youtube\.com/.+', url)
+
         player_response = None
-        if webpage:
+        if is_music:
+            # we are forcing to use parse_json because 141 only appeared in get_video_info.
+            # el, c, cver, cplayer field required for 141(aac 256kbps) codec
+            # maybe paramter of youtube music player?
+            pr = self._parse_json(try_get(compat_parse_qs(
+                self._download_webpage(
+                    base_url + 'get_video_info', video_id,
+                    'Fetching youtube-music info webpage',
+                    'unable to download video info webpage', query={
+                        'video_id': video_id,
+                        'eurl': 'https://youtube.googleapis.com/v/' + video_id,
+                        'el': 'detailpage',
+                        'c': 'WEB_REMIX',
+                        'cver': '0.1',
+                        'cplayer': 'UNIPLAYER'
+                    }, fatal=False)),
+                lambda x: x['player_response'][0],
+                compat_str) or '{}', video_id)
+            if pr:
+                self.to_screen("Parsed youtube music info!")
+                player_response = pr
+        elif webpage:
             player_response = self._extract_yt_initial_variable(
                 webpage, self._YT_INITIAL_PLAYER_RESPONSE_RE,
                 video_id, 'initial player response')
@@ -2809,8 +2833,15 @@ class YoutubeTabIE(YoutubeBaseInfoExtractor):
 
     def _real_extract(self, url):
         item_id = self._match_id(url)
+        # mark youtube music
+        is_music = False
+        if re.match(r'^https?://music\.youtube\.com/.+', url):
+            self.to_screen("URL is youtube music")
+            is_music = True
+
         url = compat_urlparse.urlunparse(
             compat_urlparse.urlparse(url)._replace(netloc='www.youtube.com'))
+        self.to_screen(url)
         # Handle both video/playlist URLs
         qs = parse_qs(url)
         video_id = qs.get('v', [None])[0]
@@ -2818,25 +2849,51 @@ class YoutubeTabIE(YoutubeBaseInfoExtractor):
         if video_id and playlist_id:
             if self._downloader.params.get('noplaylist'):
                 self.to_screen('Downloading just video %s because of --no-playlist' % video_id)
-                return self.url_result(video_id, ie=YoutubeIE.ie_key(), video_id=video_id)
+                # should provide full url instead of video id if it is music. (Is there a good idea better than this?)
+                if is_music:
+                    url = 'https://music.youtube.com/watch?v=' + video_id
+                return self.url_result(url, ie=YoutubeIE.ie_key(), video_id=video_id)
             self.to_screen('Downloading playlist %s - add --no-playlist to just download video %s' % (playlist_id, video_id))
         webpage = self._download_webpage(url, item_id)
         data = self._extract_yt_initial_data(item_id, webpage)
         tabs = try_get(
             data, lambda x: x['contents']['twoColumnBrowseResultsRenderer']['tabs'], list)
         if tabs:
-            return self._extract_from_tabs(item_id, webpage, data, tabs)
+            # Hooking generator to list for modifying all url to music
+            # Memory ineffective but it will be okay.
+            hook = self._extract_from_tabs(item_id, webpage, data, tabs)
+            if is_music:
+                _list = list(hook['entries'])
+                for _entry in _list:
+                    _entry['url'] = 'https://music.youtube.com/watch?v=' + _entry['url']
+                hook['entries'] = _list
+            return hook
+            # return self._extract_from_tabs(item_id, webpage, data, tabs)
         playlist = try_get(
             data, lambda x: x['contents']['twoColumnWatchNextResults']['playlist']['playlist'], dict)
         if playlist:
-            return self._extract_from_playlist(item_id, url, data, playlist)
+            # Hooking playlist to refer music..
+            if is_music:
+                url = 'https://music.youtube.com/playlist?list=' + item_id
+            hook = self._extract_from_playlist(item_id, url, data, playlist)
+            # Hooking generator to list for modifying all url to music
+            if is_music:
+                _list = list(hook['entries'])
+                for _entry in _list:
+                    _entry['url'] = 'https://music.youtube.com/watch?v=' + _entry['url']
+                hook['entries'] = _list
+            return hook
         # Fallback to video extraction if no playlist alike page is recognized.
         # First check for the current video then try the v attribute of URL query.
         video_id = try_get(
             data, lambda x: x['currentVideoEndpoint']['watchEndpoint']['videoId'],
             compat_str) or video_id
         if video_id:
-            return self.url_result(video_id, ie=YoutubeIE.ie_key(), video_id=video_id)
+            # also provide url instead of id-only
+            if is_music:
+                return self.url_result('https://music.youtube.com/watch?v=' + video_id, ie=YoutubeIE.ie_key(), video_id=video_id)
+            else:
+                return self.url_result(url, ie=YoutubeIE.ie_key(), video_id=video_id)
         # Capture and output alerts
         alert = self._extract_alert(data)
         if alert:
