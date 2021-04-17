@@ -5,17 +5,16 @@ import re
 
 from .common import InfoExtractor
 from ..compat import (
-    compat_http_client,
-    compat_urlparse,
-    compat_urllib_parse_urlparse,
     compat_str,
+    compat_urlparse,
 )
 from ..utils import (
-    ExtractorError,
     determine_ext,
+    ExtractorError,
     find_xpath_attr,
     fix_xml_ampersands,
     GeoRestrictedError,
+    HEADRequest,
     int_or_none,
     parse_duration,
     remove_start,
@@ -108,8 +107,7 @@ class RaiBaseIE(InfoExtractor):
 
     def _create_http_urls(self, relinker_url, fmts):
         _RELINKER_REG = r'https?://(?P<host>[^/]+?)/(?:i/)?(?P<extra>[^/]+?)/(?P<path>.+?)/(?P<id>\d+)(?:_(?P<quality>[\d\,]+))?(?:\.mp4|/playlist\.m3u8).+?'
-        _MP4_REG = r'https?://(?P<cdn_id>creativemedia[x]?|download)(?P<cdn_num>\d+).+?/\d+(?:_\d+)?\.mp4$'
-        _MP4_TMPL = 'https://%s%s-rai-it.akamaized.net/%s%s/%s%s.mp4'
+        _MP4_TMPL = '%s&overrideUserAgentRule=mp4-%s'
         _QUALITY = {
             # tbr: w, h
             '250': [352, 198],
@@ -125,99 +123,72 @@ class RaiBaseIE(InfoExtractor):
             '10000': [1920, 1080],
         }
 
-        def get_location(url, headers={}):
-            _url = compat_urllib_parse_urlparse(url)
-            conn = compat_http_client.HTTPConnection(_url.netloc)
-            headers.update({'Connection': 'close'})
-            try:
-                conn.request(
-                    'HEAD', '%s?%s' % (_url.path, _url.query),
-                    headers=headers)
-            except Exception:
-                return None
+        def test_url(url):
+            resp = self._request_webpage(
+                HEADRequest(url), None, headers={'User-Agent': 'Rai'},
+                fatal=False, errnote=False, note=False)
 
-            resp = conn.getresponse()
+            if resp is False:
+                return False
 
-            if resp.status == 200:
-                return True
-            elif resp.status == 302:
-                return resp.getheader('Location')
-            elif resp.status == 404:
-                return None
+            if resp.code == 200:
+                return False if resp.url == url else resp.url
             return None
 
         def get_format_info(tbr):
+            import math
             br = int_or_none(tbr)
             if len(fmts) == 1 and not br:
                 br = fmts[0].get('tbr')
+            if br > 300:
+                tbr = compat_str(math.floor(br / 100) * 100)
+            else:
+                tbr = '250'
 
+            # try extracting info from available m3u8 formats
+            format_copy = None
             for f in fmts:
                 if f.get('tbr'):
-                    if (br - br / 100 * 10) <= f.get('tbr') <= (br + br / 100 * 10):
-                        return [
-                            f.get('width'),
-                            f.get('height'),
-                            f.get('tbr'),
-                            f.get('format_id').split('-')[1],
-                        ]
+                    br_limit = math.floor(br / 100)
+                    if br_limit - 1 <= math.floor(f['tbr'] / 100) <= br_limit + 1:
+                        format_copy = f.copy()
+            return {
+                'width': format_copy.get('width'),
+                'height': format_copy.get('height'),
+                'tbr': format_copy.get('tbr'),
+                'vcodec': format_copy.get('vcodec'),
+                'acodec': format_copy.get('acodec'),
+                'fps': format_copy.get('fps'),
+                'format_id': 'https-%s' % tbr,
+            } if format_copy else {
+                'width': _QUALITY[tbr][0],
+                'height': _QUALITY[tbr][1],
+                'format_id': 'https-%s' % tbr,
+                'tbr': int(tbr),
+            }
 
-            return [None, None, None, tbr]
-
-        def quality_tag(q, qualities):
-            return '_%s' % q if (len(qualities) > 1 or int_or_none(q)) else ''
-
-        cdn_id, cdn_num = None, None
-        loc = get_location(relinker_url)
-        loc = loc if loc is not True else ''
-        mobj = re.match(_MP4_REG, loc or '')
-        if mobj:
-            cdn_id, cdn_num = mobj.groups()
+        loc = test_url(_MP4_TMPL % (relinker_url, '*'))
+        if not isinstance(loc, compat_str):
+            return []
 
         mobj = re.match(
             _RELINKER_REG,
-            get_location(relinker_url, {'User-Agent': 'Rai'}) or '')
-
+            test_url(relinker_url) or '')
         if not mobj:
             return []
 
-        mobj = mobj.groupdict()
-        mobj['quality'] = mobj['quality'].split(',') if mobj['quality'] else ['.']
-        mobj['quality'] = [i for i in mobj['quality'] if i]
-        mobj['extra'] = mobj['extra'] + '/' if 'akamai' in mobj['host'] else ''
-
-        if not cdn_id and not cdn_num:
-            found = False
-            quality = quality_tag(mobj['quality'][-1], mobj['quality'])
-            for cdn_num in range(1, 10):
-                for cdn_id in ['creativemedia', 'download']:
-                    temp = _MP4_TMPL % (
-                        cdn_id, str(cdn_num), mobj['extra'], mobj['path'],
-                        mobj['id'], quality)
-                    if get_location(temp) is True:
-                        found = True
-                        break
-                else:
-                    continue
-                break
-
-            if not found:
-                return []
+        available_qualities = mobj.group('quality').split(',') if mobj.group('quality') else ['*']
+        available_qualities = [i for i in available_qualities if i]
 
         formats = []
-        for q in mobj['quality']:
-            w, h, t = None, None, None
-            quality = quality_tag(q, mobj['quality'])
-            w, h, t, q = get_format_info(q)
-            formats.append({
-                'url': _MP4_TMPL % (
-                    cdn_id, str(cdn_num), mobj['extra'], mobj['path'],
-                    mobj['id'], quality),
-                'width': w or _QUALITY[q][0],
-                'height': h or _QUALITY[q][1],
-                'tbr': t or int(q),
+        for q in available_qualities:
+            fmt = {
+                'url': _MP4_TMPL % (relinker_url, q),
                 'protocol': 'https',
-                'format_id': 'https-%s' % q,
-            })
+                'ext': 'mp4',
+            }
+            fmt.update(get_format_info(q))
+            formats.append(fmt)
         return formats
 
     @staticmethod
@@ -268,6 +239,22 @@ class RaiPlayIE(RaiBaseIE):
         },
         'params': {
             'skip_download': True,
+        },
+    }, {
+        # 1080p direct mp4 url
+        'url': 'https://www.raiplay.it/video/2021/03/Leonardo-S1E1-b5703b02-82ee-475a-85b6-c9e4a8adf642.html',
+        'md5': '2e501e8651d72f05ffe8f5d286ad560b',
+        'info_dict': {
+            'id': 'b5703b02-82ee-475a-85b6-c9e4a8adf642',
+            'ext': 'mp4',
+            'title': 'Leonardo - S1E1',
+            'alt_title': 'St 1 Ep 1 - Episodio 1',
+            'description': 'md5:f5360cd267d2de146e4e3879a5a47d31',
+            'thumbnail': r're:^https?://.*\.jpg$',
+            'uploader': 'Rai 1',
+            'duration': 3229,
+            'series': 'Leonardo',
+            'season': 'Season 1',
         },
     }, {
         'url': 'http://www.raiplay.it/video/2016/11/gazebotraindesi-efebe701-969c-4593-92f3-285f0d1ce750.html?',
@@ -425,7 +412,7 @@ class RaiIE(RaiBaseIE):
     }, {
         # with ContentItem in og:url
         'url': 'http://www.rai.it/dl/RaiTV/programmi/media/ContentItem-efb17665-691c-45d5-a60c-5301333cbb0c.html',
-        'md5': '6865dd00cf0bbf5772fdd89d59bd768a',
+        'md5': '06345bd97c932f19ffb129973d07a020',
         'info_dict': {
             'id': 'efb17665-691c-45d5-a60c-5301333cbb0c',
             'ext': 'mp4',
@@ -453,22 +440,6 @@ class RaiIE(RaiBaseIE):
             'id': '3156f2f2-dc70-4953-8e2f-70d7489d4ce9',
             'ext': 'mp4',
             'title': 'La diretta di Rainews24',
-        },
-        'params': {
-            'skip_download': True,
-        },
-    }, {
-        # ContentItem in iframe (see #12652) and subtitle at 'subtitlesUrl' key
-        'url': 'http://www.presadiretta.rai.it/dl/portali/site/puntata/ContentItem-3ed19d13-26c2-46ff-a551-b10828262f1b.html',
-        'info_dict': {
-            'id': '1ad6dc64-444a-42a4-9bea-e5419ad2f5fd',
-            'ext': 'mp4',
-            'title': 'Partiti acchiappavoti - Presa diretta del 13/09/2015',
-            'description': 'md5:d291b03407ec505f95f27970c0b025f4',
-            'upload_date': '20150913',
-            'subtitles': {
-                'it': 'count:2',
-            },
         },
         'params': {
             'skip_download': True,
