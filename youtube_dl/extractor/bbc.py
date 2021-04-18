@@ -1099,35 +1099,49 @@ class BBCIE(BBCCoUkIE):
             media = simorgh_data['pageData']['promo']
             if media['media'].get('format') == 'video':
                 media.update(media['media'])
-                formats = []
-                keys = {'url', 'format', 'format_id', 'language', 'quality', 'tbr', 'resolution'}
-                for format in playlist:
-                    if not (format.get('url') and format.get('format')):
-                        continue
-                    bitrate = format.pop('bitrate')
-                    if bitrate:
-                        bitrate = re.sub(r'000\s*$', 'kbps', bitrate)
-                        format['tbr'] = parse_bitrate(bitrate)
-                    format['language'] = media.get('language')
-                    # format id: penultimate item from the url split on _ and .
-                    (fmt,) = re.split('[_.]', format['url'])[-2:][:1]
-                    format['format_id'] = '%s_%s' % (format['format'], fmt)
-                    if not format.get('resolution'):
-                        format['resolution'] = fmt
-                    format['quality'] = -1
-                    formats.append(dict((k, format[k]) for k in keys))
-                self._sort_formats(formats)
-                return {
-                    'id': media.get('id'),
-                    'title': (dict_get(media.get('headlines'),
-                                       ('shortHeadline', 'headline'))
-                              or playlist_title),
-                    'description': media.get('summary') or playlist_description,
-                    'formats': formats,
-                    'subtitles': None,
-                    'thumbnail': try_get(media, lambda x: x['image']['href']),
-                    'timestamp': int_or_none(media.get('timestamp'), scale=1000)
-                }
+                title = (dict_get(media.get('headlines') or {},
+                                  ('shortHeadline', 'headline'))
+                         or playlist_title),
+                programme_id = media.get('id')
+                if programme_id and title:
+                    formats = []
+                    keys = {'url', 'format', 'format_id', 'language', 'quality', 'tbr', 'resolution'}
+                    for format in playlist:
+                        if not (format.get('url') and format.get('format')):
+                            continue
+                        bitrate = format.pop('bitrate')
+                        format['tbr'] = int_or_none(bitrate, scale=1000) or parse_bitrate(bitrate)
+                        format['language'] = media.get('language')
+                        # format id: penultimate item from the url split on _ and .
+                        (fmt,) = re.split('[_.]', format['url'])[-2:][:1]
+                        format['format_id'] = '%s_%s' % (format['format'], fmt)
+                        # try to set resolution using any available data
+                        aspect_ratio = re.split(r'[xX:]', media.get('aspectRatio') or '')
+                        if len(aspect_ratio) != 2:
+                            aspect_ratio = None
+                        else:
+                            aspect_ratio = float_or_none(aspect_ratio[0], scale=aspect_ratio[1])
+                        # these may not be present, but try anyway
+                        width = int_or_none(format.get('width'))
+                        height = int_or_none(format.get('height'))
+                        if (not height) and aspect_ratio:
+                            height = int(width / aspect_ratio)
+                        elif (not width) and aspect_ratio:
+                            width = int(height * aspect_ratio)
+                        format['resolution'] = ('%dx%d' % (width, height) if width and height
+                                                else dict_get(format, ('resolution', 'res'), default=fmt))
+                        format['quality'] = -1
+                        formats.append(dict((k, format[k]) for k in keys))
+                    self._sort_formats(formats)
+                    return {
+                        'id': programme_id,
+                        'title': title,
+                        'description': media.get('summary') or playlist_description,
+                        'formats': formats,
+                        'subtitles': None,
+                        'thumbnail': try_get(media, lambda x: x['image']['href']),
+                        'timestamp': int_or_none(media.get('timestamp'), scale=1000)
+                    }
 
         # general case: media nested in content object
         # test: https://www.bbc.co.uk/scotland/articles/cm49v4x1r9lo
