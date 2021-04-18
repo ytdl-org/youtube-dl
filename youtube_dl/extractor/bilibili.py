@@ -460,7 +460,7 @@ class BiliBiliLiveRecordIE(BiliBiliIE):
     def _real_extract(self, url):
         API_URL = 'https://api.live.bilibili.com/xlive/web-room/v1/record/'
         video_id = self._match_id(url)
-        info = {'id': video_id}
+        info = {}
 
         # download live info
         js = self._download_json(API_URL+'getInfoByLiveRecord', video_id, query={'rid': video_id})
@@ -497,11 +497,10 @@ class BiliBiliLiveRecordIE(BiliBiliIE):
                 'id':       video_id + re.search('([^/?#&]+).flv', chunk['url']).group()[-24:-5],
                 'duration': float_or_none(chunk.get('length'), 1000),
                 'formats':  formats,
-                **info
             })
 
-        return {
-            '_type':       'multi_video',
-            'entries':     entries,
-            **info
-        }
+        for e in entries:
+            e.update(info)
+        info.update({'id': video_id, '_type': 'multi_video', 'entries': entries})
+
+        return info
