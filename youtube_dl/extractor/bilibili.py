@@ -449,3 +449,59 @@ class BiliBiliPlayerIE(InfoExtractor):
         return self.url_result(
             'http://www.bilibili.tv/video/av%s/' % video_id,
             ie=BiliBiliIE.ie_key(), video_id=video_id)
+
+class BiliBiliLiveRecordIE(BiliBiliIE):
+    _VALID_URL = r'https?://live\.bilibili\.com/record/(?P<id>R[^/?#&]+)'
+    _TEST = {
+        'url': 'https://live.bilibili.com/record/R1Bx411w7gp',
+        'only_matching': True
+    }
+
+    def _real_extract(self, url):
+        API_URL = 'https://api.live.bilibili.com/xlive/web-room/v1/record/'
+        video_id = self._match_id(url)
+        info = {'id': video_id}
+
+        # download live info
+        js = self._download_json(API_URL+'getInfoByLiveRecord', video_id, query={'rid': video_id})
+        if js['code'] != 0:
+            self._report_error(js)
+        data = js['data']['live_record_info']
+
+        # extract info from data
+        info['title'] = data.get('title')
+        area_name = []
+        n = data.get('area_name')
+        if n:
+            area_name.append(n)
+        n = data.get('parent_area_name')
+        if n:
+            area_name.append(n)
+        if area_name:
+            info['categories'] = area_name
+
+        # download urls
+        js = self._download_json(API_URL+'getLiveRecordUrl', video_id, query={'rid': video_id, 'platform': 'html5'})
+        if js['code'] != 0:
+            self._report_error(js)
+        data = js['data']
+
+        entries = []
+        for chunk in data['list']:
+            formats = [{
+                'url':          chunk['url'],
+                'filesize':     chunk.get('size'),
+                'http_headers': {'Referer': url},
+            }]
+            entries.append({
+                'id':       video_id + re.search('([^/?#&]+).flv', chunk['url']).group()[-24:-5],
+                'duration': float_or_none(chunk.get('length'), 1000),
+                'formats':  formats,
+                **info
+            })
+
+        return {
+            '_type':       'multi_video',
+            'entries':     entries,
+            **info
+        }
