@@ -450,6 +450,7 @@ class BiliBiliPlayerIE(InfoExtractor):
             'http://www.bilibili.tv/video/av%s/' % video_id,
             ie=BiliBiliIE.ie_key(), video_id=video_id)
 
+
 class BiliBiliLiveRecordIE(BiliBiliIE):
     _VALID_URL = r'https?://live\.bilibili\.com/record/(?P<id>R[^/?#&]+)'
     _TEST = {
@@ -463,7 +464,7 @@ class BiliBiliLiveRecordIE(BiliBiliIE):
         info = {}
 
         # download live info
-        js = self._download_json(API_URL+'getInfoByLiveRecord', video_id, query={'rid': video_id})
+        js = self._download_json(API_URL + 'getInfoByLiveRecord', video_id, query={'rid': video_id})
         if js['code'] != 0:
             self._report_error(js)
         data = js['data']['live_record_info']
@@ -481,7 +482,7 @@ class BiliBiliLiveRecordIE(BiliBiliIE):
             info['categories'] = area_name
 
         # download urls
-        js = self._download_json(API_URL+'getLiveRecordUrl', video_id, query={'rid': video_id, 'platform': 'html5'})
+        js = self._download_json(API_URL + 'getLiveRecordUrl', video_id, query={'rid': video_id, 'platform': 'html5'})
         if js['code'] != 0:
             self._report_error(js)
         data = js['data']
@@ -489,14 +490,14 @@ class BiliBiliLiveRecordIE(BiliBiliIE):
         entries = []
         for chunk in data['list']:
             formats = [{
-                'url':          chunk['url'],
-                'filesize':     chunk.get('size'),
+                'url': chunk['url'],
+                'filesize': chunk.get('size'),
                 'http_headers': {'Referer': url},
             }]
             entries.append({
-                'id':       video_id + re.search('([^/?#&]+).flv', chunk['url']).group()[-24:-5],
+                'id': video_id + re.search('([^/?#&]+).flv', chunk['url']).group()[-24:-5],
                 'duration': float_or_none(chunk.get('length'), 1000),
-                'formats':  formats,
+                'formats': formats,
             })
 
         for e in entries:
