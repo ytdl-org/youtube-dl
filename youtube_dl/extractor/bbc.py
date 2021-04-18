@@ -1205,7 +1205,10 @@ class BBCIE(BBCCoUkIE):
                 if name == 'media-experience':
                     parse_media(try_get(resp, lambda x: x['data']['initialItem']['mediaItem'], dict))
                 elif name == 'article':
-                    for block in (try_get(resp, lambda x: x['data']['blocks'], list) or []):
+                    for block in (try_get(resp,
+                                          (lambda x: x['data']['blocks'],
+                                           lambda x: x['data']['content']['model']['blocks'],),
+                                          list) or []):
                         if block.get('type') != 'media':
                             continue
                         parse_media(block.get('model'))
