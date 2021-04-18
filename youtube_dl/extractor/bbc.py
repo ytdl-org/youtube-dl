@@ -768,10 +768,12 @@ class BBCIE(BBCCoUkIE):
         'url': 'http://www.bbc.co.uk/news/science-environment-33661876',
         'info_dict': {
             'id': 'p02xzws1',
+            'ext': 'mp4',
             'title': "Pluto may have 'nitrogen glaciers'",
             'description': "Pluto could have glaciers of nitrogen ice, new photographs from Nasa's New Horizons probe suggest.",
             'thumbnail': r're:https?://.+/.+\.jpg',
             'timestamp': 1437785037,
+            'upload_date': '20150725',
         },
     }, {
         # single video article embedded with data-media-vpid
