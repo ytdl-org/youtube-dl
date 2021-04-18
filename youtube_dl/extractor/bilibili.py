@@ -453,10 +453,10 @@ class BiliBiliPlayerIE(InfoExtractor):
 
 class BiliBiliLiveRecordIE(BiliBiliIE):
     _VALID_URL = r'https?://live\.bilibili\.com/record/(?P<id>R[^/?#&]+)'
-    _TEST = {
+    _TESTS = [{
         'url': 'https://live.bilibili.com/record/R1Bx411w7gp',
         'only_matching': True
-    }
+    }]
 
     def _real_extract(self, url):
         API_URL = 'https://api.live.bilibili.com/xlive/web-room/v1/record/'
