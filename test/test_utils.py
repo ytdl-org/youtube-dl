@@ -65,6 +65,8 @@ from youtube_dl.utils import (
     sanitize_filename,
     sanitize_path,
     sanitize_url,
+    extract_user_pass,
+    sanitized_Request,
     expand_path,
     prepend_extension,
     replace_extension,
@@ -236,6 +238,26 @@ class TestUtil(unittest.TestCase):
         self.assertEqual(sanitize_url('httpss://foo.bar'), 'https://foo.bar')
         self.assertEqual(sanitize_url('rmtps://foo.bar'), 'rtmps://foo.bar')
         self.assertEqual(sanitize_url('https://foo.bar'), 'https://foo.bar')
+
+    def test_extract_user_pass(self):
+        self.assertEqual(extract_user_pass('http://foo.bar'), ('http://foo.bar', None, None))
+        self.assertEqual(extract_user_pass('http://:foo.bar'), ('http://:foo.bar', None, None))
+        self.assertEqual(extract_user_pass('http://@foo.bar'), ('http://foo.bar', '', ''))
+        self.assertEqual(extract_user_pass('http://:pass@foo.bar'), ('http://foo.bar', '', 'pass'))
+        self.assertEqual(extract_user_pass('http://user:@foo.bar'), ('http://foo.bar', 'user', ''))
+        self.assertEqual(extract_user_pass('http://user:pass@foo.bar'), ('http://foo.bar', 'user', 'pass'))
+
+    def test_sanitized_Request(self):
+        self.assertFalse(sanitized_Request('http://foo.bar').has_header('Authorization'))
+        self.assertFalse(sanitized_Request('http://:foo.bar').has_header('Authorization'))
+        self.assertEqual(sanitized_Request('http://@foo.bar').get_header('Authorization'),
+                         'Basic Og==')
+        self.assertEqual(sanitized_Request('http://:pass@foo.bar').get_header('Authorization'),
+                         'Basic OnBhc3M=')
+        self.assertEqual(sanitized_Request('http://user:@foo.bar').get_header('Authorization'),
+                         'Basic dXNlcjo=')
+        self.assertEqual(sanitized_Request('http://user:pass@foo.bar').get_header('Authorization'),
+                         'Basic dXNlcjpwYXNz')
 
     def test_expand_path(self):
         def env(var):

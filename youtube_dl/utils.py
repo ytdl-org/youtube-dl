@@ -2154,8 +2154,32 @@ def sanitize_url(url):
     return url
 
 
+def extract_user_pass(url):
+    parts = compat_urlparse.urlsplit(url)
+    username = parts.username
+    password = parts.password
+    if username is not None:
+        if password is None:
+            password = ''
+        netloc = parts.hostname
+        if parts.port is not None:
+            netloc = parts.hostname + ':' + parts.port
+        parts = parts._replace(netloc=netloc)
+        url = compat_urlparse.urlunsplit(parts)
+    return url, username, password
+
+
 def sanitized_Request(url, *args, **kwargs):
-    return compat_urllib_request.Request(sanitize_url(url), *args, **kwargs)
+    url = sanitize_url(url)
+    url, username, password = extract_user_pass(url)
+    if username is not None:
+        # password is not None
+        auth_payload = username + ':' + password
+        auth_payload = base64.b64encode(auth_payload.encode('utf-8')).decode('utf-8')
+        auth_header = 'Basic ' + auth_payload
+        headers = args[1] if len(args) >= 2 else kwargs.setdefault('headers', {})
+        headers['Authorization'] = auth_header
+    return compat_urllib_request.Request(url, *args, **kwargs)
 
 
 def expand_path(s):
