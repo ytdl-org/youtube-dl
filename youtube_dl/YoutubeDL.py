@@ -1853,6 +1853,7 @@ class YoutubeDL(object):
             # subtitles download errors are already managed as troubles in relevant IE
             # that way it will silently go on when used with unsupporting IE
             subtitles = info_dict['requested_subtitles']
+            subs_missing = []
             ie = self.get_info_extractor(info_dict['extractor_key'])
             for sub_lang, sub_info in subtitles.items():
                 sub_format = sub_info['ext']
@@ -1877,9 +1878,16 @@ class YoutubeDL(object):
                             with io.open(encodeFilename(sub_filename), 'wb') as subfile:
                                 subfile.write(sub_data)
                         except (ExtractorError, IOError, OSError, ValueError) as err:
-                            self.report_warning('Unable to download subtitle for "%s": %s' %
-                                                (sub_lang, error_to_compat_str(err)))
+                            if isinstance(err, ExtractorError) and isinstance(err.cause, compat_urllib_error.URLError) and err.cause.code == 404:
+                                subs_missing.append(sub_lang)
+                                self.report_warning('Unable to download subtitle for "%s": %s' %
+                                                    (sub_lang, 'the file is missing, skipping!'))
+                            else:
+                                self.report_warning('Unable to download subtitle for "%s": %s' %
+                                                    (sub_lang, error_to_compat_str(err)))
                             continue
+            for i in subs_missing:
+                del subtitles[i]
 
         if self.params.get('writeinfojson', False):
             infofn = replace_extension(filename, 'info.json', info_dict.get('ext'))
