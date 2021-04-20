@@ -887,6 +887,18 @@ class BBCIE(BBCCoUkIE):
                 }
         return {}
 
+    def _get_playlist_entry(self, entry):
+        programme_id = entry.get('id')
+        if not programme_id:
+            return
+        formats, subtitles = self._download_media_selector(programme_id)
+        self._sort_formats(formats)
+        entry.update({
+            'formats': formats,
+            'subtitles': subtitles,
+        })
+        return entry
+
     def _real_extract(self, url):
         playlist_id = self._match_id(url)
 
@@ -939,15 +951,12 @@ class BBCIE(BBCCoUkIE):
                     playlist_object = settings.get('playlistObject', {})
                     if playlist_object:
                         entry = self._extract_from_playlist_object(playlist_object)
-                        programme_id = entry.get('id')
-                        formats, subtitles = self._download_media_selector(programme_id)
-                        self._sort_formats(formats)
-                        entry.update({
-                            'timestamp': timestamp,
-                            'formats': formats,
-                            'subtitles': subtitles,
-                        })
-                        entries.append(entry)
+                        entry = self._get_playlist_entry(entry)
+                        if entry:
+                            entry.update({
+                                'timestamp': timestamp,
+                            })
+                            entries.append(entry)
                     else:
                         # data-playable without vpid but with a playlist.sxml URLs
                         # in otherSettings.playlist (e.g.
@@ -983,25 +992,19 @@ class BBCIE(BBCCoUkIE):
             settings = self._html_search_regex(
                 r'<script\b[^>]+>.+\.playerSettings\s*=\s*(?P<json>\{.*\})\s*(?:,\s*function\s*\(\s*\)\s*\{\s*["\']use strict.+\(\s*\)\s*)?</script\b',
                 webpage, 'player settings', default='{}', group='json')
-            settings = re.sub(r'([{,]\s*)(\w+)(\s*:)', r'\1"\2"\3', settings)
-            for pling in (('!0', 'true'), ('!1', 'false')):
-                settings = re.sub(r'(:\s*)(%s)(\s*[,}])' % pling[0], r'\1%s\3' % pling[1], settings)
-            settings = self._parse_json(settings, playlist_id, fatal=False)
+            settings = self._parse_json(settings, playlist_id, transform_source=js_to_json, fatal=False)
             if settings:
                 playlist_object = settings.get('playlistObject', {})
                 if playlist_object:
                     entry = self._extract_from_playlist_object(playlist_object)
-                    programme_id = entry.get('id')
-                    formats, subtitles = self._download_media_selector(programme_id)
-                    self._sort_formats(formats)
-                    thumbnail = playlist_object.get('holdingImageURL')
-                    entry.update({
-                        'timestamp': timestamp,
-                        'formats': formats,
-                        'subtitles': subtitles,
-                        'thumbnail': thumbnail.replace('$recipe', 'raw') if thumbnail else None,
-                    })
-                    entries.append(entry)
+                    entry = self._get_playlist_entry(entry)
+                    if entry:
+                        thumbnail = playlist_object.get('holdingImageURL')
+                        entry.update({
+                            'timestamp': timestamp,
+                            'thumbnail': thumbnail.replace('$recipe', 'raw') if thumbnail else None,
+                        })
+                        entries.append(entry)
         if entries:
             return self.playlist_result(entries, playlist_id, playlist_title, playlist_description)
 
