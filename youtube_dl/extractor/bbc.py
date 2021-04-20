@@ -11,6 +11,7 @@ from ..compat import (
     compat_etree_Element,
     compat_HTTPError,
     compat_parse_qs,
+    compat_str,
     compat_urllib_parse_urlparse,
     compat_urlparse,
 )
@@ -25,8 +26,10 @@ from ..utils import (
     js_to_json,
     parse_duration,
     parse_iso8601,
+    strip_or_none,
     try_get,
     unescapeHTML,
+    unified_timestamp,
     url_or_none,
     urlencode_postdata,
     urljoin,
@@ -761,8 +764,17 @@ class BBCIE(BBCCoUkIE):
         'only_matching': True,
     }, {
         # custom redirection to www.bbc.com
+        # also, video with window.__INITIAL_DATA__
         'url': 'http://www.bbc.co.uk/news/science-environment-33661876',
-        'only_matching': True,
+        'info_dict': {
+            'id': 'p02xzws1',
+            'ext': 'mp4',
+            'title': "Pluto may have 'nitrogen glaciers'",
+            'description': "Pluto could have glaciers of nitrogen ice, new photographs from Nasa's New Horizons probe suggest.",
+            'thumbnail': r're:https?://.+/.+\.jpg',
+            'timestamp': 1437785037,
+            'upload_date': '20150725',
+        },
     }, {
         # single video article embedded with data-media-vpid
         'url': 'http://www.bbc.co.uk/sport/rowing/35908187',
@@ -1164,12 +1176,23 @@ class BBCIE(BBCCoUkIE):
                         continue
                     formats, subtitles = self._download_media_selector(item_id)
                     self._sort_formats(formats)
+                    item_desc = try_get(
+                        media,
+                        lambda x: x['summary']['blocks'][0]['model']['text'],
+                        compat_str)
+                    item_time = None
+                    for meta in try_get(media, lambda x: x['metadata']['items'], list) or []:
+                        if try_get(meta, lambda x: x['label']) == 'Published':
+                            item_time = unified_timestamp(meta.get('timestamp'))
+                            break
                     entries.append({
                         'id': item_id,
                         'title': item_title,
                         'thumbnail': item.get('holdingImageUrl'),
                         'formats': formats,
                         'subtitles': subtitles,
+                        'timestamp': item_time,
+                        'description': strip_or_none(item_desc),
                     })
             for resp in (initial_data.get('data') or {}).values():
                 name = resp.get('name')
