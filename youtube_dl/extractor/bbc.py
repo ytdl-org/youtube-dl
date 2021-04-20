@@ -770,7 +770,7 @@ class BBCIE(BBCCoUkIE):
             'id': 'p02xzws1',
             'ext': 'mp4',
             'title': "Pluto may have 'nitrogen glaciers'",
-            'description': "Pluto could have glaciers of nitrogen ice, new photographs from Nasa's New Horizons probe suggest.",
+            'description': 'md5:6a95b593f528d7a5f2605221bc56912f',
             'thumbnail': r're:https?://.+/.+\.jpg',
             'timestamp': 1437785037,
             'upload_date': '20150725',
@@ -1176,10 +1176,16 @@ class BBCIE(BBCCoUkIE):
                         continue
                     formats, subtitles = self._download_media_selector(item_id)
                     self._sort_formats(formats)
-                    item_desc = try_get(
-                        media,
-                        lambda x: x['summary']['blocks'][0]['model']['text'],
-                        compat_str)
+                    item_desc = None
+                    blocks = try_get(media, lambda x: x['summary']['blocks'], list)
+                    if blocks:
+                        summary = []
+                        for block in blocks:
+                            text = try_get(block, lambda x: x['model']['text'], compat_str)
+                            if text:
+                                summary.append(text)
+                        if summary:
+                            item_desc = '\n\n'.join(summary)
                     item_time = None
                     for meta in try_get(media, lambda x: x['metadata']['items'], list) or []:
                         if try_get(meta, lambda x: x['label']) == 'Published':
