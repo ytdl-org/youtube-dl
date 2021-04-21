@@ -34,6 +34,10 @@ class RTPIE(InfoExtractor):
         video_id = self._match_id(url)
 
         webpage = self._download_webpage(url, video_id)
+
+        # Remove JS multi-line comments from webpage source
+        webpage = re.sub(r'(\/\*.*\*\/)', '', webpage, flags=re.DOTALL)
+
         title = self._html_search_regex(r'<title>(.+?)</title>', webpage, 'title')
 
         # Get JS object
