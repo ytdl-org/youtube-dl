@@ -946,8 +946,8 @@ class BBCIE(BBCCoUkIE):
                     continue
                 settings = data_playable.get('settings', {})
                 if settings:
-                    # data-playable with video vpid in settings.playlistObject.items (e.g.
-                    # http://www.bbc.com/news/world-us-canada-34473351)
+                    # data-playable with video vpid in settings.playlistObject.items
+                    # obsolete? example previously quoted uses __INITIAL_DATA__ now
                     playlist_object = settings.get('playlistObject', {})
                     if playlist_object:
                         entry = self._extract_from_playlist_object(playlist_object)
@@ -1196,6 +1196,7 @@ class BBCIE(BBCCoUkIE):
                 return self.playlist_result(
                     entries, playlist_id, playlist_title, playlist_description)
 
+        # eg, http://www.bbc.com/news/world-us-canada-34473351
         initial_data = self._parse_json(self._search_regex(
             r'window\.__INITIAL_DATA__\s*=\s*({.+?});', webpage,
             'preload state', default='{}'), playlist_id, fatal=False)
