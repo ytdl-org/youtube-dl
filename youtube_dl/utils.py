@@ -4127,6 +4127,9 @@ def js_to_json(code):
     code = re.sub(r'("(?:[^"\\]|\\[\s\S])*"|\'(?:[^\'\\]|\\[\s\S])*\')|[ \t]*//.*|[ \t]*/\*(?:[^*]|\*(?!/))*\*/',
                   lambda m: m.group(1) or '', code)
 
+    # Remove all ! characters
+    code = code.replace('!', '')
+
     def fix_kv(m):
         v = m.group(0)
         if v in ('true', 'false', 'null'):
