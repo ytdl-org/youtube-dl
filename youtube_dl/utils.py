@@ -4159,6 +4159,7 @@ def js_to_json(code):
         [0-9]+(?=\s*:)
         ''', fix_kv, code)
 
+
 def qualities(quality_ids):
     """ Get a numeric quality value out of a list of possible values """
     def q(qid):
