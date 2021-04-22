@@ -335,7 +335,7 @@ class ARDIE(InfoExtractor):
 
 
 class ARDBetaMediathekIE(ARDMediathekBaseIE):
-    _VALID_URL = r'https://(?:(?:beta|www)\.)?ardmediathek\.de/(?P<client>[^/]+)/(?:player|live|video)/(?P<display_id>(?:[^/]+/)*)(?P<video_id>[a-zA-Z0-9]+)'
+    _VALID_URL = r'https://(?:(?:beta|www)\.)?ardmediathek\.de/(?:[^/]+/)?(?:player|live|video)/(?:[^/]+/)*(?P<id>Y3JpZDovL[a-zA-Z0-9]+)'
     _TESTS = [{
         'url': 'https://www.ardmediathek.de/mdr/video/die-robuste-roswita/Y3JpZDovL21kci5kZS9iZWl0cmFnL2Ntcy84MWMxN2MzZC0wMjkxLTRmMzUtODk4ZS0wYzhlOWQxODE2NGI/',
         'md5': 'a1dc75a39c61601b980648f7c9f9f71d',
@@ -365,22 +365,22 @@ class ARDBetaMediathekIE(ARDMediathekBaseIE):
     }, {
         'url': 'https://www.ardmediathek.de/swr/live/Y3JpZDovL3N3ci5kZS8xMzQ4MTA0Mg',
         'only_matching': True,
+    }, {
+        'url': 'https://www.ardmediathek.de/video/coronavirus-update-ndr-info/astrazeneca-kurz-lockdown-und-pims-syndrom-81/ndr/Y3JpZDovL25kci5kZS84NzE0M2FjNi0wMWEwLTQ5ODEtOTE5NS1mOGZhNzdhOTFmOTI/',
+        'only_matching': True,
+    }, {
+        'url': 'https://www.ardmediathek.de/ard/player/Y3JpZDovL3dkci5kZS9CZWl0cmFnLWQ2NDJjYWEzLTMwZWYtNGI4NS1iMTI2LTU1N2UxYTcxOGIzOQ/tatort-duo-koeln-leipzig-ihr-kinderlein-kommet',
+        'only_matching': True,
     }]
 
     def _real_extract(self, url):
-        mobj = re.match(self._VALID_URL, url)
-        video_id = mobj.group('video_id')
-        display_id = mobj.group('display_id')
-        if display_id:
-            display_id = display_id.rstrip('/')
-        if not display_id:
-            display_id = video_id
+        video_id = self._match_id(url)
 
         player_page = self._download_json(
             'https://api.ardmediathek.de/public-gateway',
-            display_id, data=json.dumps({
+            video_id, data=json.dumps({
                 'query': '''{
-  playerPage(client:"%s", clipId: "%s") {
+  playerPage(client: "ard", clipId: "%s") {
     blockedByFsk
     broadcastedOn
     maturityContentRating
@@ -410,7 +410,7 @@ class ARDBetaMediathekIE(ARDMediathekBaseIE):
       }
     }
   }
-}''' % (mobj.group('client'), video_id),
+}''' % video_id,
             }).encode(), headers={
                 'Content-Type': 'application/json'
             })['data']['playerPage']
@@ -435,7 +435,6 @@ class ARDBetaMediathekIE(ARDMediathekBaseIE):
                 r'\(FSK\s*(\d+)\)\s*$', description, 'age limit', default=None))
         info.update({
             'age_limit': age_limit,
-            'display_id': display_id,
             'title': title,
             'description': description,
             'timestamp': unified_timestamp(player_page.get('broadcastedOn')),
