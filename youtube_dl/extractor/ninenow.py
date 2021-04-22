@@ -60,7 +60,7 @@ class NineNowIE(InfoExtractor):
             'timestamp': 1618966200.0,
             'upload_date': "20210421",
         },
-        'only_matching': False,
+        'skip': 'Only available in Australia',
     }]
     BRIGHTCOVE_URL_TEMPLATE = 'http://players.brightcove.net/4460760524001/default_default/index.html?videoId=%s'
 
