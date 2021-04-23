@@ -640,6 +640,7 @@ from .mangomolo import (
     MangomoloLiveIE,
 )
 from .manyvids import ManyVidsIE
+from .masterclass import MasterClassIE
 from .maoritv import MaoriTVIE
 from .markiza import (
     MarkizaIE,
