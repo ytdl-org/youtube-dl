@@ -40,6 +40,14 @@ class RTPIE(InfoExtractor):
 
         title = self._html_search_regex(r'<title>(.+?)</title>', webpage, 'title')
 
+        # Replace irrelevant text in title
+        title = title.replace(' - RTP Play - RTP', '')
+
+        # Check if it's a video split in parts, if so add part number to title
+        part = self._html_search_regex(r'section\-parts.*<span.*>(.+?)</span>.*</ul>', webpage, 'part', default=None)
+        if part:
+            title = f'{title} {part}'
+
         # Get JS object
         js_object = self._search_regex(r'(?s)RTPPlayer *\( *({.+?}) *\);', webpage, 'player config')
 
