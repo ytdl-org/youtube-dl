@@ -30,13 +30,13 @@ class Keep2ShareIE(InfoExtractor):
         },
     }]
 
-    def _real_extract(self, url):
-        video_id = self._match_id(url)
+    def _get_app_secret(self, video_id):
+        """ retrieve REACT_APP_API_CLIENT_SECRET """
 
-        # TODO share app_secret across calls to _real_extract
-        app_secret = None
+        if getattr(self, '_app_secret', None) is not None:
+            return self._app_secret
 
-        # retrieve app_secret
+        url = 'https://k2s.cc/file/' + video_id
         webpage = self._download_webpage(url, video_id)
         scripts = re.finditer(r'<script\s+src="(?P<src>/static/[^"]*)"', webpage)
         for mobj in scripts:
@@ -47,26 +47,35 @@ class Keep2ShareIE(InfoExtractor):
                     'string': r'"(?:[^"]|\\")*"' + '|' + r"'(?:[^']|\\')*'",
                 }, script, 'app secret', group='secret', default=None)
             if secret is not None:
-                app_secret = self._parse_json(secret, video_id, transform_source=js_to_json)
-                break
-        else:
-            raise RegexNotFoundError('Unable to extract app secret')
+                self._app_secret = self._parse_json(secret, video_id,
+                                                    transform_source=js_to_json)
+                return self._app_secret
 
-        # retrieve access_token
-        # TODO share access_token across calls fo _real_extract
+        raise RegexNotFoundError('Unable to extract app secret')
+
+    def _get_access_token(self, video_id):
+        """ retrieve access_token """
+
+        if getattr(self, '_access_token', None) is not None:
+            return self._access_token
+
         data = {
             'grant_type': 'client_credentials',
             'client_id': 'k2s_web_app',
-            'client_secret': app_secret,
+            'client_secret': self._get_app_secret(video_id),
         }
         data = json.dumps(data, separators=(',', ':')).encode('utf-8')
         headers = {'Content-Type': 'application/json'}
         tokens = self._download_json('https://api.k2s.cc/v1/auth/token',
                                      video_id, data=data, headers=headers)
-        access_token = tokens['access_token']
+        self._access_token = tokens['access_token']
 
-        # retrieve API page
-        headers = {'Cookie': 'accessToken=' + access_token}
+        return self._access_token
+
+    def _real_extract(self, url):
+        video_id = self._match_id(url)
+
+        headers = {'Cookie': 'accessToken=' + self._get_access_token(url)}
         info = self._download_json('https://api.k2s.cc/v1/files/' + video_id,
                                    video_id, headers=headers)
 
