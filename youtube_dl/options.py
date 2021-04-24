@@ -198,6 +198,10 @@ def parseOpts(overrideArguments=None):
         action='store_true', dest='no_color',
         default=False,
         help='Do not emit color codes in output')
+    general.add_option(
+        '--profile-picture',
+        action='store_true', dest='profile_picture',
+        help='Return channel profile picture')
 
     network = optparse.OptionGroup(parser, 'Network Options')
     network.add_option(
