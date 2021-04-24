@@ -10,6 +10,8 @@ from ..utils import (
     int_or_none,
     float_or_none,
     smuggle_url,
+    unified_timestamp,
+    unified_strdate,
 )
 
 
@@ -57,7 +59,7 @@ class NineNowIE(InfoExtractor):
             'episode_number': 3,
             'description': 'In the first elimination of the competition, teams will have 10 hours to build a world inside a snow globe.',
             'uploader_id': "4460760524001",
-            'timestamp': 1618966200.0,
+            'timestamp': 1618989402,
             'upload_date': "20210421",
         },
         'skip': 'Only available in Australia',
@@ -113,18 +115,17 @@ class NineNowIE(InfoExtractor):
         upload_date = None
 
         for key in ('airDate', 'availability'):
-            if key in common_data.get("episode"):
-                parsed_datetime = datetime.strptime(common_data.get('episode').get("airDate"), "%Y-%m-%dT%H:%M:%S.000Z")
+            if 'episode' in common_data and key in common_data.get("episode"):
                 if key == 'airDate':
-                    timestamp = parsed_datetime.timestamp()
+                    timestamp = unified_timestamp(common_data.get('airDate'))
 
                 if key == 'availability':
-                    upload_date = parsed_datetime.strftime("%Y%m%d")
+                    upload_date = unified_strdate(common_data.get('availability'))
 
         thumbnails = [{
             'id': thumbnail_id,
             'url': thumbnail_url,
-            'width': int_or_none(thumbnail_id[1:])
+            'width': int_or_none(thumbnail_id[1:]),
         } for thumbnail_id, thumbnail_url in common_data.get('episode').get('image', {}).get('sizes', {}).items()]
 
         return {
