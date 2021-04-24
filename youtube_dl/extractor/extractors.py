@@ -590,6 +590,10 @@ from .lifenews import (
     LifeNewsIE,
     LifeEmbedIE,
 )
+from .likee import (
+    LikeeIE,
+    LikeeUserIE,
+)
 from .limelight import (
     LimelightMediaIE,
     LimelightChannelIE,
