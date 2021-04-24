@@ -73,8 +73,11 @@ class DoodStreamIE(InfoExtractor):
             title = video_id
 
         token = self._html_search_regex(r'[?&]token=([a-z0-9]+)[&\']', webpage, 'token')
-        auth_url = 'https://dood.to' + self._html_search_regex(
-            r'(/pass_md5.*?)\'', webpage, 'pass_md5')
+        auth_url = self._html_search_regex(r"('/pass_md5.*?')", webpage,
+                                           'pass_md5')
+        auth_url = self._parse_json(auth_url, video_id,
+                                    transform_source=js_to_json)
+        auth_url = urljoin(url, auth_url)
 
         webpage = self._download_webpage(auth_url, video_id, headers=referer)
         final_url = webpage + ''.join(random.choice(string.ascii_letters + string.digits) for _ in range(10)) + "?token=" + token + "&expiry=" + str(int(time.time() * 1000))
