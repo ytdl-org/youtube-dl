@@ -69,7 +69,6 @@ class NineNowIE(InfoExtractor):
     def _real_extract(self, url):
         display_id = self._match_id(url)
         webpage = self._download_webpage(url, display_id)
-        # import pdb; pdb.set_trace()
         page_data = self._parse_json(
             self._search_regex(
                 r'window\.__data\s*=\s*({.*?});',
