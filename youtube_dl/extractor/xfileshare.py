@@ -58,7 +58,7 @@ class XFileShareIE(InfoExtractor):
         (r'vidlocker\.xyz', 'VidLocker'),
         (r'vidshare\.tv', 'VidShare'),
         (r'vup\.to', 'VUp'),
-        (r'wolfstream\.tv', 'Wolfstream'),
+        (r'wolfstream\.tv', 'WolfStream'),
         (r'xvideosharing\.com', 'XVideoSharing'),
     )
 
