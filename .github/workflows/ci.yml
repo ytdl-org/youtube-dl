@@ -49,7 +49,7 @@ jobs:
     - name: Install Jython
       if: ${{ matrix.python-impl == 'jython' }}
       run: |
-        wget http://search.maven.org/remotecontent?filepath=org/python/jython-installer/2.7.1/jython-installer-2.7.1.jar -O jython-installer.jar
+        wget https://repo1.maven.org/maven2/org/python/jython-installer/2.7.1/jython-installer-2.7.1.jar -O jython-installer.jar
         java -jar jython-installer.jar -s -d "$HOME/jython"
         echo "$HOME/jython/bin" >> $GITHUB_PATH
     - name: Install nose
