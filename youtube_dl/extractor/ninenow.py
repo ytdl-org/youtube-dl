@@ -1,8 +1,6 @@
 # coding: utf-8
 from __future__ import unicode_literals
 
-from datetime import datetime
-
 from .common import InfoExtractor
 from ..compat import compat_str
 from ..utils import (
@@ -100,13 +98,14 @@ class NineNowIE(InfoExtractor):
         else:
             raise ExtractorError('Unable to find video data')
 
+        # Video Data extraction
         video_data = common_data['episode']['video']
-
         if video_data.get('drm'):
             raise ExtractorError('This video is DRM protected.', expected=True)
-
         brightcove_id = video_data.get('brightcoveId') or 'ref:' + video_data['referenceId']
         video_id = compat_str(video_data.get('id') or brightcove_id)
+        
+        # Episode/Season data extraction
         title = common_data['episode']['name']
         season_number = common_data.get("season").get("seasonNumber", None)
         episode_number = common_data.get('episode').get("episodeNumber", None)
