@@ -1,4 +1,4 @@
-version <unreleased>
+version 2021.04.26
 
 Extractors
 + [xfileshare] Add support for wolfstream.tv (#28858)
