@@ -1,3 +1,16 @@
+version <unreleased>
+
+Extractors
++ [xfileshare] Add support for wolfstream.tv (#28858)
+* [francetvinfo] Improve video id extraction (#28792)
+* [medaltv] Fix extraction (#28807)
+* [tver] Redirect all downloads to Brightcove (#28849)
+* [go] Improve video id extraction (#25207, #25216, #26058)
+* [youtube] Fix lazy extractors (#28780)
++ [bbc] Extract description and timestamp from __INITIAL_DATA__ (#28774)
+* [cbsnews] Fix extraction for python <3.6 (#23359)
+
+
 version 2021.04.17
 
 Core
