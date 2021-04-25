@@ -238,6 +238,8 @@ Alternatively, refer to the [developer instructions](#developer-instructions) fo
                                          url,ffmpeg,httpie,wget
     --external-downloader-args ARGS      Give these arguments to the external
                                          downloader
+    --profile-picture True               Allows user to download profile picture
+                                         of user who uploaded video
 
 ## Filesystem Options:
     -a, --batch-file FILE                File containing URLs to download ('-'
