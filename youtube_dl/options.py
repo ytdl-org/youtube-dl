@@ -348,6 +348,10 @@ def parseOpts(overrideArguments=None):
         '--include-ads',
         dest='include_ads', action='store_true',
         help='Download advertisements as well (experimental)')
+    selection.add_option(
+        '--profile-picture',
+        dest='profile_picture',
+        help='Set to True to download profile photo of user')
 
     authentication = optparse.OptionGroup(parser, 'Authentication Options')
     authentication.add_option(

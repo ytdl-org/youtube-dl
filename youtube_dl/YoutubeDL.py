@@ -25,6 +25,8 @@ import time
 import tokenize
 import traceback
 import random
+import requests
+from bs4 import BeautifulSoup
 
 from string import ascii_letters
 
@@ -2044,16 +2046,79 @@ class YoutubeDL(object):
                     return
                 self.record_download_archive(info_dict)
 
+    def download_profile_picture(self, url, count):
+
+        channel_ind = -1
+        page = requests.get(url)
+        soup = BeautifulSoup(page.content, 'html.parser')
+        soup_str = str(soup)
+
+        channel_name = ""
+
+        if not "channelName" in soup_str:
+            
+            channel_name = str(count)
+
+        else:
+    
+            channel_ind = soup_str.index("channelName")
+            channel_str = soup_str[channel_ind:channel_ind + 200]
+            channel_name = channel_str.split('"')[2]
+
+        if not '{"style":"CHANNEL"' in soup_str:
+            print("Failed to find profile image!")
+            return
+        
+        ind = soup_str.index('{"style":"CHANNEL"')
+        split = soup_str[ind:ind+250].split('"')
+
+        im_url = ""
+        
+        for i in split:
+            if "https" in i:
+                im_url = i
+                break
+        
+        p_folder = os.path.join(os.getcwd(), "profile_pictures")
+
+        if not os.path.exists(p_folder):
+            os.makedirs(p_folder)
+
+        response = requests.get(im_url)
+        
+        if response.status_code == 200:
+            
+            file = open(os.path.join(p_folder, channel_name+".png"), 'wb')
+            file.write(response.content)
+            file.close()
+        
+        else:
+            
+            print("Cannot retrieve profile image!")
+
+            
+                
+
     def download(self, url_list):
         """Download a given list of URLs."""
+
+        count = 0
         outtmpl = self.params.get('outtmpl', DEFAULT_OUTTMPL)
+
+        print(url_list)
+
         if (len(url_list) > 1
                 and outtmpl != '-'
                 and '%' not in outtmpl
                 and self.params.get('max_downloads') != 1):
             raise SameFileError(outtmpl)
-
         for url in url_list:
+            
+            ++count
+            
+            if bool(self.params.get('profile_picture')):
+                self.download_profile_picture(url, count)
+            
             try:
                 # It also downloads the videos
                 res = self.extract_info(
@@ -2068,6 +2133,7 @@ class YoutubeDL(object):
                     self.to_stdout(json.dumps(res))
 
         return self._download_retcode
+    
 
     def download_with_info_file(self, info_filename):
         with contextlib.closing(fileinput.FileInput(

@@ -46,6 +46,7 @@ from .YoutubeDL import YoutubeDL
 
 
 def _real_main(argv=None):
+
     # Compatibility fixes for Windows
     if sys.platform == 'win32':
         # https://github.com/ytdl-org/youtube-dl/issues/820
@@ -215,7 +216,9 @@ def _real_main(argv=None):
     if opts.convertsubtitles is not None:
         if opts.convertsubtitles not in ['srt', 'vtt', 'ass', 'lrc']:
             parser.error('invalid subtitle format specified')
-
+    if opts.profile_picture is not None:
+        if opts.profile_picture != 'True':
+            parser.error('invalid option for profile picture!')
     if opts.date is not None:
         date = DateRange.day(opts.date)
     else:
@@ -405,6 +408,7 @@ def _real_main(argv=None):
         'debug_printtraffic': opts.debug_printtraffic,
         'prefer_ffmpeg': opts.prefer_ffmpeg,
         'include_ads': opts.include_ads,
+        'profile_picture': opts.profile_picture,
         'default_search': opts.default_search,
         'youtube_include_dash_manifest': opts.youtube_include_dash_manifest,
         'encoding': opts.encoding,
