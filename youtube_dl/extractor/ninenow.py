@@ -10,6 +10,7 @@ from ..utils import (
     smuggle_url,
     unified_timestamp,
     unified_strdate,
+    try_get,
 )
 
 
@@ -51,14 +52,14 @@ class NineNowIE(InfoExtractor):
         'md5': 'e73b986e7efb81c90896f0806e56d7e4',
         'info_dict': {
             'id': '6249614030001',
-            'title': "Episode 3",
+            'title': 'Episode 3',
             'ext': 'mp4',
             'season_number': 3,
             'episode_number': 3,
             'description': 'In the first elimination of the competition, teams will have 10 hours to build a world inside a snow globe.',
-            'uploader_id': "4460760524001",
+            'uploader_id': '4460760524001',
             'timestamp': 1618989402,
-            'upload_date': "20210421",
+            'upload_date': '20210421',
         },
         'skip': 'Only available in Australia',
     }]
@@ -67,16 +68,9 @@ class NineNowIE(InfoExtractor):
     def _real_extract(self, url):
         display_id = self._match_id(url)
         webpage = self._download_webpage(url, display_id)
-        page_data = self._parse_json(
-            self._search_regex(
-                r'window\.__data\s*=\s*({.*?});',
-                webpage,
-                'page data',
-                default='{}'
-            ),
-            display_id,
-            fatal=False
-        )
+        page_data = self._parse_json(self._search_regex(
+            r'window\.__data\s*=\s*({.*?});', webpage,
+            'page data', default='{}'), display_id, fatal=False)
         if not page_data:
             page_data = self._parse_json(self._parse_json(self._search_regex(
                 r'window\.__data\s*=\s*JSON\.parse\s*\(\s*(".+?")\s*\)\s*;',
@@ -107,24 +101,15 @@ class NineNowIE(InfoExtractor):
 
         # Episode/Season data extraction
         title = common_data['episode']['name']
-        season_number = common_data.get("season").get("seasonNumber", None)
-        episode_number = common_data.get('episode').get("episodeNumber", None)
-        timestamp = None
-        upload_date = None
-
-        for key in ('airDate', 'availability'):
-            if 'episode' in common_data and key in common_data.get("episode"):
-                if key == 'airDate':
-                    timestamp = unified_timestamp(common_data.get('airDate'))
-
-                if key == 'availability':
-                    upload_date = unified_strdate(common_data.get('availability'))
-
+        season_number = common_data.get('season', {}).get('seasonNumber', None)
+        episode_number = common_data.get('episode', {}).get('episodeNumber', None)
+        timestamp = unified_timestamp(try_get(common_data, lambda x: x['episode']['airDate'], str) or None)
+        upload_date = unified_strdate(try_get(common_data, lambda x: x['episode']['availability'], str) or None)
         thumbnails = [{
             'id': thumbnail_id,
             'url': thumbnail_url,
             'width': int_or_none(thumbnail_id[1:]),
-        } for thumbnail_id, thumbnail_url in common_data.get('episode').get('image', {}).get('sizes', {}).items()]
+        } for thumbnail_id, thumbnail_url in common_data.get('episode', {}).get('image', {}).get('sizes', {}).items()]
 
         return {
             '_type': 'url_transparent',
@@ -133,12 +118,12 @@ class NineNowIE(InfoExtractor):
                 {'geo_countries': self._GEO_COUNTRIES}),
             'id': video_id,
             'title': title,
-            'description': common_data.get('episode').get('description'),
+            'description': common_data.get('episode', {}).get('description'),
             'duration': float_or_none(video_data.get('duration'), 1000),
             'thumbnails': thumbnails,
             'ie_key': 'BrightcoveNew',
             'season_number': season_number,
             'episode_number': episode_number,
-            "timestamp": timestamp,
-            "upload_date": upload_date,
+            'timestamp': timestamp,
+            'upload_date': upload_date,
         }
