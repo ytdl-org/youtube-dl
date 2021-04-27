@@ -4,6 +4,7 @@ from __future__ import unicode_literals
 
 import os
 import subprocess
+import imghdr
 
 from .ffmpeg import FFmpegPostProcessor
 
@@ -18,7 +19,6 @@ from ..utils import (
 )
 
 from base64 import b64encode
-from shutil import copyfile
 
 
 class EmbedThumbnailPPError(PostProcessingError):
@@ -136,13 +136,12 @@ class EmbedThumbnailPP(FFmpegPostProcessor):
             except ImportError:
                 raise EmbedThumbnailPPError('mutagen was not found. Please install.')
 
-            # to prevent the behaviour of in-place modification of Mutagen
-            copyfile(filename, temp_filename)
-
-            aufile = {'opus': OggOpus, 'flac': FLAC, 'ogg': OggVorbis}[info['ext']](temp_filename)
+            aufile = {'opus': OggOpus, 'flac': FLAC, 'ogg': OggVorbis}[info['ext']](filename)
+            thumbfile = open(thumbnail_filename, 'rb')
 
             covart = Picture()
-            covart.data = open(thumbnail_filename, 'rb').read()
+            covart.mime = 'image/' + imghdr.what(thumbfile)
+            covart.data = thumbfile.read()
             covart.type = 3  # as the front cover
 
             if info['ext'] == 'flac':
@@ -156,8 +155,6 @@ class EmbedThumbnailPP(FFmpegPostProcessor):
 
             if not self._already_have_thumbnail:
                 os.remove(encodeFilename(thumbnail_filename))
-            os.remove(encodeFilename(filename))
-            os.rename(encodeFilename(temp_filename), encodeFilename(filename))
         else:
             raise EmbedThumbnailPPError('Only mp3, m4a/mp4, ogg, opus and flac are supported for thumbnail embedding for now.')
 
