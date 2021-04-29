@@ -640,13 +640,16 @@ from .mangomolo import (
     MangomoloLiveIE,
 )
 from .manyvids import ManyVidsIE
-from .masterclass import MasterClassIE
 from .maoritv import MaoriTVIE
 from .markiza import (
     MarkizaIE,
     MarkizaPageIE,
 )
 from .massengeschmacktv import MassengeschmackTVIE
+from .masterclass import (
+    MasterClassIE,
+    MasterClassCourseIE,
+)
 from .matchtv import MatchTVIE
 from .mdr import MDRIE
 from .medaltv import MedalTVIE
