@@ -11,7 +11,7 @@ class NinjaStreamIE(InfoExtractor):
     """
     Handles downloading video from ninjastream.to
     """
-    _VALID_URL = r'https?://(?:\w+\.)?ninjastream\.to/watch/[0-9a-zA-Z]+'
+    _VALID_URL = r'https?://(?:www\.)?ninjastream\.to/(?:download|watch)/(?P<id>[^/?#]+)'
     _TESTS = [
         {
             'url': 'https://ninjastream.to/watch/GbJQP8rawQ7rw',
@@ -24,13 +24,7 @@ class NinjaStreamIE(InfoExtractor):
     ]
 
     def _real_extract(self, url):
-        """
-        Parses the URL into the video's URL.
-        """
-        # Parse the video id
-        video_id = self._search_regex(
-            r'https?://(?:\w+\.)?ninjastream\.to/watch/([0-9a-zA-Z]+)',
-            url, 'video_id', fatal=False, default='')
+        video_id = self._match_id(url)
 
         # Get the hosted webpage
         webpage = self._download_webpage(url, video_id)
