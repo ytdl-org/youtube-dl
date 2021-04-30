@@ -5,6 +5,7 @@ import json
 import posixpath
 
 from .common import InfoExtractor
+from ..utils import urljoin
 
 
 class NinjaStreamIE(InfoExtractor):
@@ -40,6 +41,10 @@ class NinjaStreamIE(InfoExtractor):
         except KeyError:
             filename = 'ninjastream.to'
 
+        thumbnail = file_meta.get('poster_id')
+        if thumbnail:
+            thumbnail = urljoin('https://cdn.ninjastream.to/', thumbnail)
+
         data = {'id': video_id}
         headers = {
             'X-Requested-With': 'XMLHttpRequest',
@@ -51,12 +56,14 @@ class NinjaStreamIE(InfoExtractor):
                                           video_id, data=data, headers=headers)
 
         # Get and parse the m3u8 information
+        stream_url = stream_meta['result']['playlist']
         formats = self._extract_m3u8_formats(
-            url, video_id, 'mp4', entry_protocol='m3u8_native',
+            stream_url, video_id, 'mp4', entry_protocol='m3u8_native',
             m3u8_id='hls')
 
         return {
             'formats': formats,
             'id': video_id,
+            'thumbnail': thumbnail,
             'title': filename,
         }
