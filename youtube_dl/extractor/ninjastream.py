@@ -1,10 +1,10 @@
 # coding: utf-8
 from __future__ import unicode_literals
 
-import os
+import json
+import posixpath
 
 from .common import InfoExtractor
-from ..utils import ExtractorError
 
 
 class NinjaStreamIE(InfoExtractor):
@@ -29,43 +29,31 @@ class NinjaStreamIE(InfoExtractor):
         # Get the hosted webpage
         webpage = self._download_webpage(url, video_id)
 
-        # The links to the m3u8 file will be buried and html encoded in
-        # the <file-watch-jwplayer> tag
-        jwplayer_link = self._html_search_regex(
-            r'<file-watch-jwplayer (.*)', webpage,
-            'file-watch-jwplayer', fatal=False)
-
-        if jwplayer_link is None:
-            raise ExtractorError(
-                'NinjaStream: Failed to find the file information on the website')
-
         # The v-bind:file will give us the correct title for the video
         file_meta = self._parse_json(
-            self._search_regex(r'v-bind:file=\"(\{.*?\})\"', jwplayer_link,
-                               video_id),
-            video_id, fatal=False)
+            self._html_search_regex(r'v-bind:file="([^"]*)"', webpage,
+                                    video_id),
+            video_id, fatal=False) or {}
 
-        filename = video_id
-        if file_meta is not None:
-            filename = os.path.splitext(file_meta.get('name'))[0]
+        try:
+            filename = posixpath.splitext(file_meta['name'])[0]
+        except KeyError:
+            filename = 'ninjastream.to'
 
-        # The v-bind:stream will give us the location of the m3u8 file
-        stream_meta = self._parse_json(
-            self._search_regex(r'v-bind:stream=\"(\{.*?\})\"',
-                               jwplayer_link, video_id),
-            video_id, fatal=False)
-
-        if stream_meta is None:
-            raise ExtractorError(
-                'NinjaStream: Failed to find the m3u8 information on website')
-
-        url = '{0}/{1}/index.m3u8'.format(stream_meta['host'],
-                                          stream_meta['hash'])
+        data = {'id': video_id}
+        headers = {
+            'X-Requested-With': 'XMLHttpRequest',
+            'Content-Type': 'application/json',
+            'Referer': url,
+        }
+        data = json.dumps(data, separators=(',', ':')).encode('utf-8')
+        stream_meta = self._download_json('https://ninjastream.to/api/video/get',
+                                          video_id, data=data, headers=headers)
 
         # Get and parse the m3u8 information
         formats = self._extract_m3u8_formats(
             url, video_id, 'mp4', entry_protocol='m3u8_native',
-            m3u8_id='hls', fatal=False)
+            m3u8_id='hls')
 
         return {
             'formats': formats,
