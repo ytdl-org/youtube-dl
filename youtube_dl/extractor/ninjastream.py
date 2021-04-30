@@ -14,11 +14,11 @@ class NinjaStreamIE(InfoExtractor):
     _VALID_URL = r'https?://(?:\w+\.)?ninjastream\.to/watch/[0-9a-zA-Z]+'
     _TESTS = [
         {
-            'url': 'https://ninjastream.to/watch/74GA02Nw6ZYBk',
+            'url': 'https://ninjastream.to/watch/GbJQP8rawQ7rw',
             'info_dict': {
-                'id': '74GA02Nw6ZYBk',
+                'id': 'GbJQP8rawQ7rw',
                 'ext': 'mp4',
-                'title': 'Damon_Andros_and_Stephen_Harte'
+                'title': 'Big Buck Bunny 360 10s 5MB'
             },
         }
     ]
