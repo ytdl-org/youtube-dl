@@ -196,9 +196,14 @@ class CDAIE(InfoExtractor):
             else:
                 handler = self._download_webpage
 
-            webpage = handler(
-                self._BASE_URL + href, video_id,
-                'Downloading %s version information' % resolution, fatal=False)
+            if "vfilm" in href:
+                webpage = handler(
+                    href, video_id,
+                    'Downloading %s version information' % resolution, fatal=False)
+            else:
+                webpage = handler(
+                    self._BASE_URL + href, video_id,
+                    'Downloading %s version information' % resolution, fatal=False)
             if not webpage:
                 # Manually report warning because empty page is returned when
                 # invalid version is requested.
