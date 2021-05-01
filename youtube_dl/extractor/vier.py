@@ -84,7 +84,7 @@ class VierVijfKijkOnlineIE(InfoExtractor):
 
         playlists = json.loads(video_data.replace('&quot;', '"'))['data']['playlists']
         wanted_playlist = [x for x in playlists if x['pageInfo']['url'] in url][0]
-        wanted_episode = [x for x in wanted_playlist['episodes'] if x['pageInfo']['url'] in url][0]
+        wanted_episode = [x for x in wanted_playlist['episodes'] if x['pageInfo']['url'] == url][0] or [x for x in wanted_playlist['episodes'] if x['pageInfo']['url'] in url][0]
         video_id = wanted_episode['videoUuid']
 
         api_url = 'https://api.viervijfzes.be/content/%s' % (video_id)
