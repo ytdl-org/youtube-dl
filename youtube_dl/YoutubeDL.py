@@ -775,6 +775,7 @@ class YoutubeDL(object):
                      process=True, force_generic_extractor=False):
         '''
         Returns a list with a dictionary for each video we find.
+        If 'process', resolves all unresolved references (playlist items).
         If 'download', also downloads the videos.
         extra_info is a dict containing the extra values to add to each result
         '''
