@@ -157,10 +157,10 @@ class FunimationIE(InfoExtractor):
 
 class FunimationShowPlaylistIE(FunimationIE):
     IE_NAME = 'funimation:playlist'
-    _VALID_URL = r'https?://(?:www\.)?funimation(?:\.com|now\.uk)/[a-z]{2}/shows/(?P<id>[^/?#&]+)'
+    _VALID_URL = r'https?://(?:www\.)?funimation(?:\.com|now\.uk)/(?:[^/]+/)?shows/(?P<id>[^/?#&]+)'
 
     _TESTS = [{
-        'url': 'https://www.funimation.com/en/shows/hacksign/',
+        'url': 'https://www.funimation.com/shows/hacksign/',
         'info_dict': {
             'id': 90646,
             'title': '.hack//SIGN'
@@ -169,6 +169,10 @@ class FunimationShowPlaylistIE(FunimationIE):
         'params': {
             'skip_download': True,
         },
+    }, {
+        # with lang code
+        'url': 'https://www.funimation.com/en/shows/hacksign/',
+        'only_matching': True,
     }]
 
     def _real_extract(self, url):
