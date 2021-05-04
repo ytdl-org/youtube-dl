@@ -6,6 +6,7 @@ from .common import InfoExtractor
 from .kaltura import KalturaIE
 from ..utils import (
     HEADRequest,
+    remove_start,
     sanitized_Request,
     smuggle_url,
     urlencode_postdata,
@@ -117,6 +118,11 @@ class GDCVaultIE(InfoExtractor):
                 'skip_download': True,
             },
         },
+        {
+            # HTML5 video
+            'url': 'http://www.gdcvault.com/play/1014846/Conference-Keynote-Shigeru',
+            'only_matching': True,
+        },
     ]
 
     def _login(self, webpage_url, display_id):
@@ -190,7 +196,18 @@ class GDCVaultIE(InfoExtractor):
 
             xml_name = self._html_search_regex(
                 r'<iframe src=".*?\?xml(?:=|URL=xml/)(.+?\.xml).*?".*?</iframe>',
-                start_page, 'xml filename')
+                start_page, 'xml filename', default=None)
+            if not xml_name:
+                info = self._parse_html5_media_entries(url, start_page, video_id)[0]
+                info.update({
+                    'title': remove_start(self._search_regex(
+                        r'>Session Name:\s*<.*?>\s*<td>(.+?)</td>', start_page,
+                        'title', default=None) or self._og_search_title(
+                        start_page, default=None), 'GDC Vault - '),
+                    'id': video_id,
+                    'display_id': display_id,
+                })
+                return info
             embed_url = '%s/xml/%s' % (xml_root, xml_name)
             ie_key = 'DigitallySpeaking'
 
