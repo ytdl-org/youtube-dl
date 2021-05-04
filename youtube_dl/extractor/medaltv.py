@@ -15,7 +15,7 @@ from ..utils import (
 
 
 class MedalTVIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:www\.)?medal\.tv/clips/(?P<id>[a-zA-Z0-9_-]+)'
+    _VALID_URL = r'https?://(?:www\.)?medal\.tv/clips/(?P<id>[^/?#&]+)'
     _TESTS = [{
         'url': 'https://medal.tv/clips/2mA60jWAGQCBH',
         'md5': '7b07b064331b1cf9e8e5c52a06ae68fa',
@@ -44,30 +44,10 @@ class MedalTVIE(InfoExtractor):
         }
     }, {
         'url': 'https://medal.tv/clips/37rMeFpryCC-9',
-        'md5': '13ee5fbda0df847607b7f41be655e885',
-        'info_dict': {
-            'id': '37rMeFpryCC-9',
-            'ext': 'mp4',
-            'title': 'sage bucky balenced and fair 100%',
-            'description': 'Medal,https://medal.tv/desktop/',
-            'uploader': 'littlereason',
-            'timestamp': 1615340789,
-            'upload_date': '20210310',
-            'uploader_id': '3658822',
-        }
+        'only_matching': True,
     }, {
         'url': 'https://medal.tv/clips/2WRj40tpY_EU9',
-        'md5': '6c6bb6569777fd8b4ef7b33c09de8dcf',
-        'info_dict': {
-            'id': '2WRj40tpY_EU9',
-            'ext': 'mp4',
-            'title': '1v5 clutch',
-            'description': 'Medal,https://medal.tv/desktop/',
-            'uploader': 'adny',
-            'timestamp': 1612896680,
-            'upload_date': '20210209',
-            'uploader_id': '6256941',
-        }
+        'only_matching': True,
     }]
 
     def _real_extract(self, url):
