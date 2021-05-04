@@ -51,6 +51,9 @@ class FunimationIE(InfoExtractor):
     }, {
         'url': 'https://www.funimationnow.uk/shows/puzzle-dragons-x/drop-impact/simulcast/',
         'only_matching': True,
+    }, {
+        'url': 'https://www.funimation.com/en/shows/hacksign/role-play/',
+        'only_matching': True,
     }]
 
     def _login(self):
