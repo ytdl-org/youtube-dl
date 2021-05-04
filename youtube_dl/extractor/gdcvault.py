@@ -102,6 +102,21 @@ class GDCVaultIE(InfoExtractor):
                 'format': 'mp4-408',
             },
         },
+        {
+            # Kaltura embed, whitespace between quote and embedded URL in iframe's src
+            'url': 'https://www.gdcvault.com/play/1025699',
+            'info_dict': {
+                'id': '0_zagynv0a',
+                'ext': 'mp4',
+                'title': 'Tech Toolbox',
+                'upload_date': '20190408',
+                'uploader_id': 'joe@blazestreaming.com',
+                'timestamp': 1554764629,
+            },
+            'params': {
+                'skip_download': True,
+            },
+        },
     ]
 
     def _login(self, webpage_url, display_id):

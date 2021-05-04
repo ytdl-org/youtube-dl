@@ -145,7 +145,7 @@ class KalturaIE(InfoExtractor):
                 ''', webpage))
             or list(re.finditer(
                 r'''(?xs)
-                    <(?:iframe[^>]+src|meta[^>]+\bcontent)=(?P<q1>["'])
+                    <(?:iframe[^>]+src|meta[^>]+\bcontent)=(?P<q1>["'])\s*
                       (?:https?:)?//(?:(?:www|cdnapi(?:sec)?)\.)?kaltura\.com/(?:(?!(?P=q1)).)*\b(?:p|partner_id)/(?P<partner_id>\d+)
                       (?:(?!(?P=q1)).)*
                       [?&;]entry_id=(?P<id>(?:(?!(?P=q1))[^&])+)
