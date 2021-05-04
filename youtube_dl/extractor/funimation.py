@@ -170,6 +170,9 @@ class FunimationShowPlaylistIE(FunimationIE):
             'skip_download': True,
         },
     }, {
+        'url': 'https://www.funimationnow.uk/shows/puzzle-dragons-x/',
+        'only_matching': True,
+    }, {
         # with lang code
         'url': 'https://www.funimation.com/en/shows/hacksign/',
         'only_matching': True,
