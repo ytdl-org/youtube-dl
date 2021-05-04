@@ -103,6 +103,7 @@ class GDCVaultIE(InfoExtractor):
             },
         },
         {
+            # Kaltura embed, whitespace between quote and embedded URL in iframe's src
             'url': 'https://www.gdcvault.com/play/1025699',
             'info_dict': {
                 'id': '0_zagynv0a',
