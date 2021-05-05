@@ -2,9 +2,6 @@
 from __future__ import unicode_literals
 
 from .common import InfoExtractor
-from ..utils import ExtractorError
-
-import json
 
 
 class PlayStuffIE(InfoExtractor):
@@ -29,33 +26,26 @@ class PlayStuffIE(InfoExtractor):
     }]
 
     BRIGHTCOVE_URL_TEMPLATE = 'http://players.brightcove.net/%s/%s_default/index.html?videoId=%s'
-    _JSON_RE = r'window.__INITIAL_STATE__ = ({.+});'
 
     def _real_extract(self, url):
         video_id = self._match_id(url)
         webpage = self._download_webpage(url, video_id)
 
-        info_json = self._search_regex(self._JSON_RE, webpage, 'info')
+        info_json = self._search_regex(r'window.__INITIAL_STATE__ = ({.+});', webpage, 'info')
+        info = self._parse_json(info_json, video_id)
         entries = []
 
-        if info_json:
-            info = json.loads(info_json)
+        for itemId, video in info.get('items').items():
+            if 'content' in video:
+                entries.append({
+                    '_type': 'url_transparent',
+                    'id': itemId,
+                    'url': self.BRIGHTCOVE_URL_TEMPLATE % (
+                        info.get('configurations').get('accountId'),
+                        info.get('configurations').get('playerId'),
+                        video.get('content').get('attributes').get('assetId'),
+                    ),
+                    'ie_key': 'BrightcoveNew',
+                })
 
-            for itemId, video in info['items'].items():
-                if 'content' in video:
-                    entries.append({
-                        '_type': 'url_transparent',
-                        'id': itemId,
-                        'url': self.BRIGHTCOVE_URL_TEMPLATE % (
-                            info['configurations']['accountId'],
-                            info['configurations']['playerId'],
-                            video['content']['attributes']['assetId']),
-                        'ie_key': 'BrightcoveNew',
-                    })
-
-        if not entries:
-            raise ExtractorError('No videos found', expected=True)
-
-        return self.playlist_result(
-            entries, video_id, self._og_search_title(webpage),
-            self._html_search_meta(['og:description', 'description'], webpage))
+        return self.playlist_result(entries, video_id)
