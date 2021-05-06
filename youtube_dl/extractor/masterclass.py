@@ -63,7 +63,7 @@ class MasterClassIE(MasterClassBaseIE):
                 brightcove_url = self.BRIGHTCOVE_URL_TEMPLATE % (self.BRIGHTCOVE_ACCOUNT_ID, brightcove_id)
 
                 title = json_data['title']
-                chapter_number = json_data.get('number')
+                chapter_number = int_or_none(json_data.get('number'))
                 duration = int_or_none(parse_duration(json_data.get('duration')))
                 description = json_data.get('abstract')
                 thumbnail = url_or_none(json_data.get('video_thumb_url'))
@@ -112,7 +112,7 @@ class MasterClassCourseIE(MasterClassBaseIE):
 
                 title = json_data['title']
                 video_id = json_data.get('slug')
-                chapter_number = json_data.get('number')
+                chapter_number = int_or_none(json_data.get('number'))
                 duration = int_or_none(parse_duration(json_data.get('duration')))
                 description = json_data.get('abstract')
                 thumbnail = url_or_none(json_data.get('video_thumb_url'))
