@@ -70,6 +70,9 @@ class RTPIE(InfoExtractor):
                     else:
                         decoded_file_url = compat_urllib_parse_unquote(hls_encoded)
 
+                    # Workaround for new behaviour
+                    decoded_file_url = decoded_file_url.replace('streaming-vod.rtp.pt/hls/', 'streaming-ondemand.rtp.pt/').replace('.mp4/', '/')
+
                     # Insert the decoded HLS file URL into pure JSON string
                     json_string_for_config += '\nfile: "' + decoded_file_url + '",'
                 else:
