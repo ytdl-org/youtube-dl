@@ -15,7 +15,7 @@ from ..utils import (
 
 
 class MedalTVIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:www\.)?medal\.tv/clips/(?P<id>[a-zA-Z0-9]+)'
+    _VALID_URL = r'https?://(?:www\.)?medal\.tv/clips/(?P<id>[^/?#&]+)'
     _TESTS = [{
         'url': 'https://medal.tv/clips/2mA60jWAGQCBH',
         'md5': '7b07b064331b1cf9e8e5c52a06ae68fa',
@@ -42,6 +42,12 @@ class MedalTVIE(InfoExtractor):
             'upload_date': '20201117',
             'uploader_id': '5156321',
         }
+    }, {
+        'url': 'https://medal.tv/clips/37rMeFpryCC-9',
+        'only_matching': True,
+    }, {
+        'url': 'https://medal.tv/clips/2WRj40tpY_EU9',
+        'only_matching': True,
     }]
 
     def _real_extract(self, url):
