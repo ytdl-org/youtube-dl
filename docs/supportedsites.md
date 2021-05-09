@@ -3,6 +3,7 @@
  - **20min**
  - **220.ro**
  - **23video**
+ - **247sports**
  - **24video**
  - **3qsdn**: 3Q SDN
  - **3sat**
@@ -82,6 +83,7 @@
  - **awaan:video**
  - **AZMedien**: AZ Medien videos
  - **BaiduVideo**: 百度视频
+ - **bandaichannel**
  - **Bandcamp**
  - **Bandcamp:album**
  - **Bandcamp:weekly**
@@ -89,7 +91,8 @@
  - **bbc**: BBC
  - **bbc.co.uk**: BBC iPlayer
  - **bbc.co.uk:article**: BBC articles
- - **bbc.co.uk:iplayer:playlist**
+ - **bbc.co.uk:iplayer:episodes**
+ - **bbc.co.uk:iplayer:group**
  - **bbc.co.uk:playlist**
  - **BBVTV**
  - **Beatport**
@@ -158,7 +161,8 @@
  - **cbsnews**: CBS News
  - **cbsnews:embed**
  - **cbsnews:livevideo**: CBS News Live Videos
- - **CBSSports**
+ - **cbssports**
+ - **cbssports:embed**
  - **CCMA**
  - **CCTV**: 央视网
  - **CDA**
@@ -212,6 +216,7 @@
  - **curiositystream**
  - **curiositystream:collection**
  - **CWTV**
+ - **DagelijkseKost**: dagelijksekost.een.be
  - **DailyMail**
  - **dailymotion**
  - **dailymotion:playlist**
@@ -233,6 +238,7 @@
  - **DiscoveryGo**
  - **DiscoveryGoPlaylist**
  - **DiscoveryNetworksDe**
+ - **DiscoveryPlus**
  - **DiscoveryVR**
  - **Disney**
  - **dlive:stream**
@@ -328,6 +334,7 @@
  - **Gaskrank**
  - **Gazeta**
  - **GDCVault**
+ - **GediDigital**
  - **generic**: Generic downloader that works on some sites
  - **Gfycat**
  - **GiantBomb**
@@ -353,6 +360,7 @@
  - **HentaiStigma**
  - **hetklokhuis**
  - **hgtv.com:show**
+ - **HGTVDe**
  - **HiDive**
  - **HistoricFilms**
  - **history:player**
@@ -457,6 +465,8 @@
  - **limelight**
  - **limelight:channel**
  - **limelight:channel_list**
+ - **LineLive**
+ - **LineLiveChannel**
  - **LineTV**
  - **linkedin:learning**
  - **linkedin:learning:course**
@@ -482,6 +492,7 @@
  - **mangomolo:live**
  - **mangomolo:video**
  - **ManyVids**
+ - **MaoriTV**
  - **Markiza**
  - **MarkizaPage**
  - **massengeschmack.tv**
@@ -517,6 +528,7 @@
  - **mixcloud:playlist**
  - **mixcloud:user**
  - **MLB**
+ - **MLBVideo**
  - **Mnet**
  - **MNetTV**
  - **MoeVideo**: LetitBit video services: moevideo.net, playreplay.net and videochart.net
@@ -672,6 +684,9 @@
  - **OutsideTV**
  - **PacktPub**
  - **PacktPubCourse**
+ - **PalcoMP3:artist**
+ - **PalcoMP3:song**
+ - **PalcoMP3:video**
  - **pandora.tv**: 판도라TV
  - **ParamountNetwork**
  - **parliamentlive.tv**: UK parliament videos
@@ -803,6 +818,7 @@
  - **safari:course**: safaribooksonline.com online courses
  - **SAKTV**
  - **SaltTV**
+ - **SampleFocus**
  - **Sapo**: SAPO Vídeos
  - **savefrom.net**
  - **SBS**: sbs.com.au
@@ -825,6 +841,9 @@
  - **ShahidShow**
  - **Shared**: shared.sx
  - **ShowRoomLive**
+ - **simplecast**
+ - **simplecast:episode**
+ - **simplecast:podcast**
  - **Sina**
  - **sky.it**
  - **sky:news**
@@ -877,6 +896,9 @@
  - **Steam**
  - **Stitcher**
  - **StitcherShow**
+ - **StoryFire**
+ - **StoryFireSeries**
+ - **StoryFireUser**
  - **Streamable**
  - **streamcloud.eu**
  - **StreamCZ**
@@ -1045,6 +1067,7 @@
  - **Vidbit**
  - **Viddler**
  - **Videa**
+ - **video.arnes.si**: Arnes Video
  - **video.google:search**: Google Video search
  - **video.sky.it**
  - **video.sky.it:live**
@@ -1139,7 +1162,7 @@
  - **WWE**
  - **XBef**
  - **XboxClips**
- - **XFileShare**: XFileShare based sites: Aparat, ClipWatching, GoUnlimited, GoVid, HolaVid, Streamty, TheVideoBee, Uqload, VidBom, vidlo, VidLocker, VidShare, VUp, XVideoSharing
+ - **XFileShare**: XFileShare based sites: Aparat, ClipWatching, GoUnlimited, GoVid, HolaVid, Streamty, TheVideoBee, Uqload, VidBom, vidlo, VidLocker, VidShare, VUp, WolfStream, XVideoSharing
  - **XHamster**
  - **XHamsterEmbed**
  - **XHamsterUser**
@@ -1198,5 +1221,8 @@
  - **ZattooLive**
  - **ZDF**
  - **ZDFChannel**
+ - **Zhihu**
  - **zingmp3**: mp3.zing.vn
+ - **zingmp3:album**
+ - **zoom**
  - **Zype**
