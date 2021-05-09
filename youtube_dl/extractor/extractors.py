@@ -714,6 +714,7 @@ from .mtv import (
 from .muenchentv import MuenchenTVIE
 from .mwave import MwaveIE, MwaveMeetGreetIE
 from .mychannels import MyChannelsIE
+from .myinstants import MyinstantsIE
 from .myspace import MySpaceIE, MySpaceAlbumIE
 from .myspass import MySpassIE
 from .myvi import (
