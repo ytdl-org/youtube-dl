@@ -1,3 +1,41 @@
+version 2021.04.26
+
+Extractors
++ [xfileshare] Add support for wolfstream.tv (#28858)
+* [francetvinfo] Improve video id extraction (#28792)
+* [medaltv] Fix extraction (#28807)
+* [tver] Redirect all downloads to Brightcove (#28849)
+* [go] Improve video id extraction (#25207, #25216, #26058)
+* [youtube] Fix lazy extractors (#28780)
++ [bbc] Extract description and timestamp from __INITIAL_DATA__ (#28774)
+* [cbsnews] Fix extraction for python <3.6 (#23359)
+
+
+version 2021.04.17
+
+Core
++ [utils] Add support for experimental HTTP response status code
+  308 Permanent Redirect (#27877, #28768)
+
+Extractors
++ [lbry] Add support for HLS videos (#27877, #28768)
+* [youtube] Fix stretched ratio calculation
+* [youtube] Improve stretch extraction (#28769)
+* [youtube:tab] Improve grid extraction (#28725)
++ [youtube:tab] Detect series playlist on playlists page (#28723)
++ [youtube] Add more invidious instances (#28706)
+* [pluralsight] Extend anti-throttling timeout (#28712)
+* [youtube] Improve URL to extractor routing (#27572, #28335, #28742)
++ [maoritv] Add support for maoritelevision.com (#24552)
++ [youtube:tab] Pass innertube context and x-goog-visitor-id header along with
+  continuation requests (#28702)
+* [mtv] Fix Viacom A/B Testing Video Player extraction (#28703)
++ [pornhub] Extract DASH and HLS formats from get_media end point (#28698)
+* [cbssports] Fix extraction (#28682)
+* [jamendo] Fix track extraction (#28686)
+* [curiositystream] Fix format extraction (#26845, #28668)
+
+
 version 2021.04.07
 
 Core
