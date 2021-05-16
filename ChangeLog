@@ -1,4 +1,4 @@
-version <unreleased>
+version 2021.05.16
 
 Core
 * [options] Fix thumbnail option group name (#29042)
