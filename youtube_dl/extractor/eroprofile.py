@@ -24,7 +24,8 @@ class EroProfileIE(InfoExtractor):
             'title': 'sexy babe softcore',
             'thumbnail': r're:https?://.*\.jpg',
             'age_limit': 18,
-        }
+        },
+        'skip': 'Video not found',
     }, {
         'url': 'http://www.eroprofile.com/m/videos/view/Try-It-On-Pee_cut_2-wmv-4shared-com-file-sharing-download-movie-file',
         'md5': '1baa9602ede46ce904c431f5418d8916',
