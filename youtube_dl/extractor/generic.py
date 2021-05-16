@@ -3400,6 +3400,9 @@ class GenericIE(InfoExtractor):
                         'url': src,
                         'ext': (mimetype2ext(src_type)
                                 or ext if ext in KNOWN_EXTENSIONS else 'mp4'),
+                        'http_headers': {
+                            'Referer': full_response.geturl(),
+                        },
                     })
             if formats:
                 self._sort_formats(formats)
