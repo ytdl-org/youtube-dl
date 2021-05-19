@@ -75,7 +75,7 @@ class NewgroundsIE(InfoExtractor):
                 'quality': 1,
             }]
         else:
-            json_data = loads(self._download_webpage(str(url).replace('view', 'video'), media_id, headers={
+            json_data = loads(self._download_webpage(str(url).replace('view', 'video').replace('http:', 'https:'), media_id, headers={
                 'Accept': 'application/json, text/javascript, */*; q=0.01',
                 'Accept-Language': 'en-US,en;q=0.5',
                 'Accept-Encoding': 'gzip, deflate, br',
