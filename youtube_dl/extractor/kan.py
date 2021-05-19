@@ -75,6 +75,9 @@ class KanEpisodeIE(KanBaseIE):
             'release_date': '20200803',
             'duration': 2393,
         },
+        'params': {
+            'skip_download': True
+        },
     }
 
     def _real_extract(self, url):
