@@ -2,10 +2,10 @@ from __future__ import unicode_literals
 
 import re
 
+from json import loads
 from .common import InfoExtractor
 from ..utils import (
     extract_attributes,
-    int_or_none,
     parse_duration,
     parse_filesize,
     unified_timestamp,
@@ -61,30 +61,37 @@ class NewgroundsIE(InfoExtractor):
         title = self._html_search_regex(
             r'<title>([^>]+)</title>', webpage, 'title')
 
-        media_url = self._parse_json(self._search_regex(
-            r'"url"\s*:\s*("[^"]+"),', webpage, ''), media_id)
+        try:
+            media_url = self._parse_json(self._search_regex(
+                r'"url"\s*:\s*("[^"]+"),', webpage, ''), media_id)
+        except:
+            media_url = None
+        formats = []
 
-        formats = [{
-            'url': media_url,
-            'format_id': 'source',
-            'quality': 1,
-        }]
+        if media_url:
+            formats = [{
+                'url': media_url,
+                'format_id': 'source',
+                'quality': 1,
+            }]
+        else:
+            json_data = loads(self._download_webpage(str(url).replace('view', 'video'), media_id, headers={
+                'Accept': 'application/json, text/javascript, */*; q=0.01',
+                'Accept-Language': 'en-US,en;q=0.5',
+                'Accept-Encoding': 'gzip, deflate, br',
+                'X-Requested-With': 'XMLHttpRequest',
+                'Connection': 'keep-alive',
+                'Referer': url
+            }))
 
-        max_resolution = int_or_none(self._search_regex(
-            r'max_resolution["\']\s*:\s*(\d+)', webpage, 'max resolution',
-            default=None))
-        if max_resolution:
-            url_base = media_url.rpartition('.')[0]
-            for resolution in (360, 720, 1080):
-                if resolution > max_resolution:
-                    break
-                formats.append({
-                    'url': '%s.%dp.mp4' % (url_base, resolution),
-                    'format_id': '%dp' % resolution,
-                    'height': resolution,
-                })
+            for resolution in ('360p', '720p', '1080p'):
+                if resolution in json_data['sources']:
+                    formats.append({
+                        'url': json_data['sources'][resolution][0]['src'],
+                        'format_id': resolution,
+                        'height': int(resolution[:-1]),
+                    })
 
-        self._check_formats(formats, media_id)
         self._sort_formats(formats)
 
         uploader = self._html_search_regex(
@@ -100,6 +107,10 @@ class NewgroundsIE(InfoExtractor):
             r'(?s)<dd>\s*Song\s*</dd>\s*<dd>.+?</dd>\s*<dd>([^<]+)', webpage,
             'duration', default=None))
 
+        description = self._html_search_regex(
+            r'<meta\s+name="description"\s+content="([^"]+)"[^>]+>', webpage, 'description',
+            fatal=False)
+
         filesize_approx = parse_filesize(self._html_search_regex(
             r'(?s)<dd>\s*Song\s*</dd>\s*<dd>(.+?)</dd>', webpage, 'filesize',
             default=None))
@@ -108,7 +119,6 @@ class NewgroundsIE(InfoExtractor):
 
         if '<dd>Song' in webpage:
             formats[0]['vcodec'] = 'none'
-
         return {
             'id': media_id,
             'title': title,
@@ -116,6 +126,7 @@ class NewgroundsIE(InfoExtractor):
             'timestamp': timestamp,
             'duration': duration,
             'formats': formats,
+            'description': description,
         }
 
 
@@ -155,14 +166,14 @@ class NewgroundsPlaylistIE(InfoExtractor):
 
         entries = []
         for a, path, media_id in re.findall(
-                r'(<a[^>]+\bhref=["\']/?((?:portal/view|audio/listen)/(\d+))[^>]+>)',
+                r'(<a[^>]+href="https?://[^/]+/(audio/listen|portal/view)/([0-9]+)"[^>]+>)',
                 webpage):
             a_class = extract_attributes(a).get('class')
             if a_class not in ('item-portalsubmission', 'item-audiosubmission'):
                 continue
             entries.append(
                 self.url_result(
-                    'https://www.newgrounds.com/%s' % path,
+                    'https://www.newgrounds.com/%s' % (path + '/' + media_id),
                     ie=NewgroundsIE.ie_key(), video_id=media_id))
 
         return self.playlist_result(entries, playlist_id, title)
