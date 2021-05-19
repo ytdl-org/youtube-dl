@@ -21,13 +21,10 @@ def get_thumbnail(data):
 
 
 class KanBaseIE(InfoExtractor):
-    _GEO_COUNTRIES = ['IL']
-
     def download_webpage(self, url, video_id):
         return self._download_webpage(
             url,
-            video_id,
-            headers=self.geo_verification_headers())
+            video_id)
 
     def extract_item(self, video_id, webpage):
         data = self._parse_json(
