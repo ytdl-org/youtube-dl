@@ -8,8 +8,7 @@ from ..utils import (
     ExtractorError,
     parse_duration,
     try_get,
-    unified_strdate,
-)
+    unified_strdate)
 
 
 def get_thumbnail(data):
@@ -35,10 +34,8 @@ class KanBaseIE(InfoExtractor):
             self._search_regex(
                 r'<script[^>]+id="kan_app_search_data"[^>]*>([^<]+)</script>',
                 webpage,
-                'data',
-            ),
-            video_id,
-        )
+                'data'),
+            video_id)
         title = data.get('title') or self._og_search_title(webpage)
         m3u8_url = try_get(data, lambda x: x['content']['src'], compat_str)
         formats = self._extract_m3u8_formats(m3u8_url, video_id, ext='mp4')
@@ -106,8 +103,7 @@ class KanPlaylistIE(KanBaseIE):
             video_url = 'https://www.kan.org.il/Item/?itemId=%s' % video_id
             entries.append(self.extract_item(
                 video_id,
-                self.download_webpage(video_url, video_id))
-            )
+                self.download_webpage(video_url, video_id)))
         if not entries:
             raise ExtractorError('Unable to extract playlist entries')
 
