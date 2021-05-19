@@ -3,6 +3,8 @@ from __future__ import unicode_literals
 import re
 
 from json import loads
+
+import youtube_dl.utils
 from .common import InfoExtractor
 from ..utils import (
     extract_attributes,
@@ -64,7 +66,7 @@ class NewgroundsIE(InfoExtractor):
         try:
             media_url = self._parse_json(self._search_regex(
                 r'"url"\s*:\s*("[^"]+"),', webpage, ''), media_id)
-        except:
+        except youtube_dl.utils.RegexNotFoundError or youtube_dl.utils.ExtractorError or youtube_dl.utils.DownloadError:
             media_url = None
         formats = []
 
@@ -108,8 +110,8 @@ class NewgroundsIE(InfoExtractor):
             'duration', default=None))
 
         description = self._html_search_regex(
-            r'<meta\s+name="description"\s+content="([^"]+)"[^>]+>', webpage, 'description',
-            fatal=False)
+            r'<meta\s+[a-z]+="[^"]+description"\s+content="([^"]+)"[^>]+>', webpage, 'description',
+            default=None, fatal=False)
 
         filesize_approx = parse_filesize(self._html_search_regex(
             r'(?s)<dd>\s*Song\s*</dd>\s*<dd>(.+?)</dd>', webpage, 'filesize',
