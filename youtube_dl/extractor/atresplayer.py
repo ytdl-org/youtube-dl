@@ -63,7 +63,7 @@ class AtresPlayerIE(InfoExtractor):
             return
 
         self._request_webpage(
-            urljoin(self._API_BASE, 'login'), None, 'Downloading login page')
+            urljoin(self._API_BASE, 'login'), None, 'Downloading login page', fatal=False)
 
         try:
             target_url = self._download_json(
