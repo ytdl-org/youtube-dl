@@ -18,38 +18,10 @@ class NineNowIE(InfoExtractor):
     IE_NAME = '9now.com.au'
     _VALID_URL = r'https?://(?:www\.)?9now\.com\.au/(?:[^/]+/){2}(?P<id>[^/?#]+)'
     _GEO_COUNTRIES = ['AU']
-
-    # Deprecated these tests as of 2021-04-22 as these files no longer exist (404) but
-    #  the structure may be of future use.
-    #
-    # _TESTS = [
-    #     # clip
-    #     'url': 'https://www.9now.com.au/afl-footy-show/2016/clip-ciql02091000g0hp5oktrnytc',
-    #     'md5': '17cf47d63ec9323e562c9957a968b565',
-    #     'info_dict': {
-    #         'id': '16801',
-    #         'ext': 'mp4',
-    #         'title': 'St. Kilda\'s Joey Montagna on the potential for a player\'s strike',
-    #         'description': 'Is a boycott of the NAB Cup "on the table"?',
-    #         'uploader_id': '4460760524001',
-    #         'upload_date': '20160713',
-    #         'timestamp': 1468421266,
-    #     },
-    #     # 'skip': 'Only available in Australia',
-    # }, {
-    #     # episode
-    #     'url': 'https://www.9now.com.au/afl-footy-show/2016/episode-19',
-    #     'only_matching': True,
-    # }, {
-    #     # DRM protected
-    #     'url': 'https://www.9now.com.au/andrew-marrs-history-of-the-world/season-1/episode-1',
-    #     'only_matching': True,
-    # },
-
     _TESTS = [{
         # episode of series
         'url': 'https://www.9now.com.au/lego-masters/season-3/episode-3',
-        'md5': 'e73b986e7efb81c90896f0806e56d7e4',
+        'md5': '62feeb8d534697c2c1bee11b27bf020d',
         'info_dict': {
             'id': '6249614030001',
             'title': 'Episode 3',
@@ -58,10 +30,10 @@ class NineNowIE(InfoExtractor):
             'episode_number': 3,
             'description': 'In the first elimination of the competition, teams will have 10 hours to build a world inside a snow globe.',
             'uploader_id': '4460760524001',
-            'timestamp': 1618989402,
+            'timestamp': 1619002200,
             'upload_date': '20210421',
         },
-        'skip': 'Only available in Australia',
+        # 'skip': 'Only available in Australia',
     }]
     BRIGHTCOVE_URL_TEMPLATE = 'http://players.brightcove.net/4460760524001/default_default/index.html?videoId=%s'
 
@@ -93,23 +65,27 @@ class NineNowIE(InfoExtractor):
             raise ExtractorError('Unable to find video data')
 
         # Video Data extraction
-        video_data = common_data['episode']['video']
-        if video_data.get('drm'):
+        if try_get(common_data, lambda x: x['episode']['video']['drm'], bool):
             raise ExtractorError('This video is DRM protected.', expected=True)
-        brightcove_id = video_data.get('brightcoveId') or 'ref:' + video_data['referenceId']
-        video_id = compat_str(video_data.get('id') or brightcove_id)
+        brightcove_id = \
+            try_get(
+                common_data, 
+                lambda x: x['episode']['video']['brightcoveId'] or f"ref:{x['episode']['video']['referenceId']}"
+                , compat_str
+            ) 
+        video_id = try_get(common_data, lambda x: x['episode']['video']['id'] or brightcove_id, compat_str)
 
         # Episode/Season data extraction
-        title = common_data['episode']['name']
-        season_number = common_data.get('season', {}).get('seasonNumber', None)
-        episode_number = common_data.get('episode', {}).get('episodeNumber', None)
-        timestamp = unified_timestamp(try_get(common_data, lambda x: x['episode']['airDate'], str) or None)
-        upload_date = unified_strdate(try_get(common_data, lambda x: x['episode']['availability'], str) or None)
+        title = try_get(common_data, lambda x: x['episode']['name'], compat_str)
+        season_number = try_get(common_data, lambda x: x['season']['seasonNumber'], int)
+        episode_number = try_get(common_data, lambda x: x['episode']['episodeNumber'], int)
+        timestamp = unified_timestamp(try_get(common_data, lambda x: x['episode']['airDate'], compat_str) or None)
+        upload_date = unified_strdate(try_get(common_data, lambda x: x['episode']['availability'], compat_str) or None)
         thumbnails = [{
             'id': thumbnail_id,
             'url': thumbnail_url,
             'width': int_or_none(thumbnail_id[1:]),
-        } for thumbnail_id, thumbnail_url in common_data.get('episode', {}).get('image', {}).get('sizes', {}).items()]
+        } for thumbnail_id, thumbnail_url in try_get(common_data, lambda x: x['episode']['image']['sizes'], dict).items()]
 
         return {
             '_type': 'url_transparent',
@@ -118,8 +94,8 @@ class NineNowIE(InfoExtractor):
                 {'geo_countries': self._GEO_COUNTRIES}),
             'id': video_id,
             'title': title,
-            'description': common_data.get('episode', {}).get('description'),
-            'duration': float_or_none(video_data.get('duration'), 1000),
+            'description': try_get(common_data, lambda x: x['episode']['description'], compat_str),
+            'duration': float_or_none(try_get(common_data, lambda x: x['episode']['video']['duration'], float), 1000),
             'thumbnails': thumbnails,
             'ie_key': 'BrightcoveNew',
             'season_number': season_number,
