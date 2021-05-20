@@ -16,7 +16,8 @@ from ..utils import (
 
 
 class SohuIE(InfoExtractor):
-    _VALID_URL = r'https?://(?P<mytv>my\.)?tv\.sohu\.com/.+?/(?(mytv)|n)(?P<id>\d+)\.shtml.*?'
+    _VALID_URL = r'https?://(?:my\.)?tv\.sohu\.com/.+?/.+(?:\.html|\.shtml).*?'
+    _VALID_URL_OG_URL = r'https?://(?P<mytv>my\.)?tv\.sohu\.com/.+?/(?(mytv)|n)(?P<id>\d+)\.shtml.*?'
 
     # Sohu videos give different MD5 sums on Travis CI and my machine
     _TESTS = [{
@@ -82,6 +83,29 @@ class SohuIE(InfoExtractor):
         'params': {
             'skip_download': True
         }
+    }, {
+        'url': 'https://tv.sohu.com/v/dXMvMjMyNzk5ODg5Lzc4NjkzNDY0LnNodG1s.html',
+        'info_dict': {
+            'id': '78693464',
+            'ext': 'mp4',
+            'title': '【爱范品】第31期：MWC见不到的奇葩手机',
+        }
+    }, {
+        'note': 'Video in issue #18542: https://github.com/ytdl-org/youtube-dl/issues/18542',
+        'url': 'https://tv.sohu.com/v/MjAxNzA3MTMvbjYwMDA1MzM4MS5zaHRtbA==.html',
+        'info_dict': {
+            'id': '600053381',
+            'ext': 'mp4',
+            'title': '试听：侯旭《孤鸟》',
+        },
+    }, {
+        'note': 'Video in issue #28944: https://github.com/ytdl-org/youtube-dl/issues/28944',
+        'url': 'https://tv.sohu.com/v/dXMvNTAyMjA5MTMvNjg1NjIyNTYuc2h0bWw=.html?src=pl',
+        'info_dict': {
+            'id': '68562256',
+            'ext': 'mp4',
+            'title': "Cryin'  [HD 1080p]  Chris.Botti(feat. Steven Tyler",
+        },
     }]
 
     def _real_extract(self, url):
@@ -97,7 +121,12 @@ class SohuIE(InfoExtractor):
                 'Downloading JSON data for %s' % vid_id,
                 headers=self.geo_verification_headers())
 
-        mobj = re.match(self._VALID_URL, url)
+        mobj = re.match(self._VALID_URL_OG_URL, url)
+        if mobj is None:
+            webpage = self._download_webpage(url, '')
+            url = self._og_search_url(webpage)
+            mobj = re.match(self._VALID_URL_OG_URL, url)
+
         video_id = mobj.group('id')
         mytv = mobj.group('mytv') is not None
 
