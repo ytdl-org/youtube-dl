@@ -249,7 +249,7 @@ class ARDMediathekIE(ARDMediathekBaseIE):
 
 
 class ARDIE(InfoExtractor):
-    _VALID_URL = r'(?P<mainurl>https?://(?:www\.)?daserste\.de/[^?#]+/videos(?:extern)?/(?P<display_id>[^/?#]+)-(?:video-?)?(?P<id>[0-9]+))\.html'
+    _VALID_URL = r'(?P<mainurl>https?://(?:www\.)?daserste\.de/[^?#]+/videos(?:extern)?/(?P<display_id>[^/?#]+)-?(?:video-?)?(?P<id>[0-9]+))\.html'
     _TESTS = [{
         # available till 7.01.2022
         'url': 'https://www.daserste.de/information/talk/maischberger/videos/maischberger-die-woche-video100.html',
