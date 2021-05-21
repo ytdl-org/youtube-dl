@@ -28,15 +28,14 @@ class NewgroundsIE(InfoExtractor):
             'duration': 143,
         },
     }, {
-        'url': 'https://www.newgrounds.com/portal/view/673111',
-        'md5': '3394735822aab2478c31b1004fe5e5bc',
+        'url': 'https://www.newgrounds.com/portal/view/297383',
         'info_dict': {
-            'id': '673111',
+            'id': '297383',
             'ext': 'mp4',
-            'title': 'Dancin',
-            'uploader': 'Squirrelman82',
-            'timestamp': 1460256780,
-            'upload_date': '20160410',
+            'title': 'Metal Gear Awesome',
+            'uploader': 'Egoraptor',
+            'timestamp': 1140663240,
+            'upload_date': '20060223',
         },
     }, {
         # source format unavailable, additional mp4 formats
@@ -67,7 +66,6 @@ class NewgroundsIE(InfoExtractor):
                 r'"url"\s*:\s*("[^"]+"),', webpage, ''), media_id)
         except RegexNotFoundError or ExtractorError:
             media_url = None
-
         formats = []
 
         if media_url:
@@ -121,7 +119,6 @@ class NewgroundsIE(InfoExtractor):
 
         if '<dd>Song' in webpage:
             formats[0]['vcodec'] = 'none'
-
         return {
             'id': media_id,
             'title': title,
