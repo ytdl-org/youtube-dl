@@ -126,6 +126,7 @@ from .viqeo import ViqeoIE
 from .expressen import ExpressenIE
 from .zype import ZypeIE
 from .odnoklassniki import OdnoklassnikiIE
+from .vk import VKIE
 from .kinja import KinjaEmbedIE
 from .arcpublishing import ArcPublishingIE
 from .medialaan import MedialaanIE
@@ -2248,6 +2249,11 @@ class GenericIE(InfoExtractor):
             },
             'playlist_mincount': 52,
         },
+        {
+            # Sibnet embed (https://help.sibnet.ru/?sibnet_video_embed)
+            'url': 'https://phpbb3.x-tk.ru/bbcode-video-sibnet-t24.html',
+            'only_matching': True,
+        },
     ]
 
     def report_following_redirect(self, new_url):
@@ -2777,6 +2783,11 @@ class GenericIE(InfoExtractor):
         if odnoklassniki_url:
             return self.url_result(odnoklassniki_url, OdnoklassnikiIE.ie_key())
 
+        # Look for sibnet embedded player
+        sibnet_urls = VKIE._extract_sibnet_urls(webpage)
+        if sibnet_urls:
+            return self.playlist_from_matches(sibnet_urls, video_id, video_title)
+
         # Look for embedded ivi player
         mobj = re.search(r'<embed[^>]+?src=(["\'])(?P<url>https?://(?:www\.)?ivi\.ru/video/player.+?)\1', webpage)
         if mobj is not None:
@@ -2953,7 +2964,7 @@ class GenericIE(InfoExtractor):
             webpage)
         if not mobj:
             mobj = re.search(
-                r'data-video-link=["\'](?P<url>http://m.mlb.com/video/[^"\']+)',
+                r'data-video-link=["\'](?P<url>http://m\.mlb\.com/video/[^"\']+)',
                 webpage)
         if mobj is not None:
             return self.url_result(mobj.group('url'), 'MLB')
@@ -3400,6 +3411,9 @@ class GenericIE(InfoExtractor):
                         'url': src,
                         'ext': (mimetype2ext(src_type)
                                 or ext if ext in KNOWN_EXTENSIONS else 'mp4'),
+                        'http_headers': {
+                            'Referer': full_response.geturl(),
+                        },
                     })
             if formats:
                 self._sort_formats(formats)
@@ -3468,7 +3482,7 @@ class GenericIE(InfoExtractor):
             m_video_type = re.findall(r'<meta.*?property="og:video:type".*?content="video/(.*?)"', webpage)
             # We only look in og:video if the MIME type is a video, don't try if it's a Flash player:
             if m_video_type is not None:
-                found = filter_video(re.findall(r'<meta.*?property="og:video".*?content="(.*?)"', webpage))
+                found = filter_video(re.findall(r'<meta.*?property="og:(?:video|audio)".*?content="(.*?)"', webpage))
         if not found:
             REDIRECT_REGEX = r'[0-9]{,2};\s*(?:URL|url)=\'?([^\'"]+)'
             found = re.search(

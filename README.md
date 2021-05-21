@@ -287,7 +287,7 @@ Alternatively, refer to the [developer instructions](#developer-instructions) fo
     --no-cache-dir                       Disable filesystem caching
     --rm-cache-dir                       Delete all filesystem cache files
 
-## Thumbnail images:
+## Thumbnail Options:
     --write-thumbnail                    Write thumbnail image to disk
     --write-all-thumbnails               Write all thumbnail image formats to
                                          disk
