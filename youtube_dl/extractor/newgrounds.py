@@ -2,13 +2,14 @@ from __future__ import unicode_literals
 
 import re
 
-import youtube_dl.utils
 from .common import InfoExtractor
 from ..utils import (
     extract_attributes,
     parse_duration,
     parse_filesize,
     unified_timestamp,
+    RegexNotFoundError,
+    ExtractorError,
 )
 
 
@@ -64,8 +65,9 @@ class NewgroundsIE(InfoExtractor):
         try:
             media_url = self._parse_json(self._search_regex(
                 r'"url"\s*:\s*("[^"]+"),', webpage, ''), media_id)
-        except youtube_dl.utils.RegexNotFoundError or youtube_dl.utils.ExtractorError or youtube_dl.utils.DownloadError:
+        except RegexNotFoundError or ExtractorError:
             media_url = None
+
         formats = []
 
         if media_url:
@@ -119,6 +121,7 @@ class NewgroundsIE(InfoExtractor):
 
         if '<dd>Song' in webpage:
             formats[0]['vcodec'] = 'none'
+
         return {
             'id': media_id,
             'title': title,
