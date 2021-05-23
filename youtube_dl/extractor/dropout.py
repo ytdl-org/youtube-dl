@@ -108,7 +108,7 @@ class DropoutPlaylistIE(DropoutIE):
 
         items = []
         while True:
-            items.extend(re.findall(r'browse-item-title[^>]+>[^<]*<a href="(?P<url>https://www.dropout.tv/[^/]+/[^"]+)"', webpage))
+            items.extend(re.findall(r'<a href="(?P<url>https://www.dropout.tv/[^/]+/[^"]+)" class="browse-item-link"', webpage))
             next_page_url = self._search_regex(r'href="([^"]+\?[^"]*(?:&|&amp;)?page=\d+)"', webpage, 'next page url', default=None)
             if not next_page_url:
                 break
