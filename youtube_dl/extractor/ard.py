@@ -267,6 +267,9 @@ class ARDIE(InfoExtractor):
         'url': 'https://www.daserste.de/information/reportage-dokumentation/erlebnis-erde/videosextern/woelfe-und-herdenschutzhunde-ungleiche-brueder-102.html',
         'only_matching': True,
     }, {
+        'url': 'https://www.daserste.de/unterhaltung/serie/in-aller-freundschaft-die-jungen-aerzte/videos/diversity-tag-sanam-afrashteh100.html',
+        'only_matching': True,
+    }, {
         'url': 'http://www.daserste.de/information/reportage-dokumentation/dokus/videos/die-story-im-ersten-mission-unter-falscher-flagge-100.html',
         'only_matching': True,
     }]
