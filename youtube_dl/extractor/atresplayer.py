@@ -62,23 +62,20 @@ class AtresPlayerIE(InfoExtractor):
         if username is None:
             return
 
-        self._request_webpage(
-            urljoin(self._API_BASE, 'login'), None, 'Downloading login page', fatal=False)
-
         try:
-            target_url = self._download_json(
-                'https://account.atresmedia.com/api/login', None,
+            self._download_json(
+                urljoin(self._API_BASE, 'login'), None,
                 'Logging in', headers={
                     'Content-Type': 'application/x-www-form-urlencoded'
                 }, data=urlencode_postdata({
                     'username': username,
                     'password': password,
-                }))['targetUrl']
+                    'type': 'credentials',
+                }))
         except ExtractorError as e:
+            if isinstance(e.cause, compat_HTTPError) and e.cause.code == 401:
+                raise ExtractorError('Authentication failure', expected=True)
             self._handle_error(e, 400)
-
-        target_url = urljoin('https://account.atresmedia.com', target_url)
-        self._request_webpage(target_url, None, 'Following Target URL')
 
     def _get_mpd_subtitles(self, mpd_xml, mpd_url):
         subs = {}
