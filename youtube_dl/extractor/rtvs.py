@@ -9,7 +9,7 @@ class RTVSIE(InfoExtractor):
     _TESTS = [{
         # radio archive
         'url': 'https://www.rtvs.sk/radio/archiv/11224/414872',
-        'md5': 'f3d6f3fe74a4aaddafb3ff78b667dbd5',
+        'md5': '134d5d6debdeddf8a5d761cbc9edacb8',
         'info_dict': {
             'id': '414872',
             'ext': 'mp3',
@@ -21,7 +21,7 @@ class RTVSIE(InfoExtractor):
     }, {
         # tv archive
         'url': 'https://www.rtvs.sk/televizia/archiv/8249/63118',
-        'md5': '180dc795290ccddd916f7fa6440ce3c6',
+        'md5': '85e2c55cf988403b70cac24f5c086dc6',
         'info_dict': {
             'id': '63118',
             'ext': 'mp4',
