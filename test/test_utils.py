@@ -105,6 +105,7 @@ from youtube_dl.utils import (
     cli_valueless_option,
     cli_bool_option,
     parse_codecs,
+    update_Request,
 )
 from youtube_dl.compat import (
     compat_chr,
@@ -114,6 +115,7 @@ from youtube_dl.compat import (
     compat_setenv,
     compat_urlparse,
     compat_parse_qs,
+    compat_urllib_request,
 )
 
 
@@ -1475,6 +1477,23 @@ Line 1
         self.assertEqual(clean_podcast_url('https://www.podtrac.com/pts/redirect.mp3/chtbl.com/track/5899E/traffic.megaphone.fm/HSW7835899191.mp3'), 'https://traffic.megaphone.fm/HSW7835899191.mp3')
         self.assertEqual(clean_podcast_url('https://play.podtrac.com/npr-344098539/edge1.pod.npr.org/anon.npr-podcasts/podcast/npr/waitwait/2020/10/20201003_waitwait_wwdtmpodcast201003-015621a5-f035-4eca-a9a1-7c118d90bc3c.mp3'), 'https://edge1.pod.npr.org/anon.npr-podcasts/podcast/npr/waitwait/2020/10/20201003_waitwait_wwdtmpodcast201003-015621a5-f035-4eca-a9a1-7c118d90bc3c.mp3')
 
+    def test_update_request(self):
+        url = 'https://www.youtube.com/watch?v=iiWCZDEjjKw'
+        new_url = 'https://www.youtube.com/watch?v=wjRi0a19Dd0'
+        new_data = 'Test'
+        new_header = {'Test': 'test'}
+
+        req = compat_urllib_request.Request(url)
+        self.assertEqual(update_Request(req).headers, req.headers)
+        self.assertEqual(update_Request(req).data, req.data)
+        self.assertEqual(update_Request(req).get_full_url(), url)
+        self.assertEqual(update_Request(req).get_method(), req.get_method())
+
+        self.assertDictEqual(update_Request(req, new_url, new_data, new_header, {}).headers, new_header)
+        self.assertEqual(update_Request(req, new_url, new_data, new_header, {}).data, new_data)
+        self.assertEqual(update_Request(req, url, new_data, {}, {}).get_full_url(), url)
+        self.assertEqual(update_Request(req, None, None, {}, None).get_full_url(), url)
+        self.assertEqual(update_Request(req, new_url, None, {}, None).get_full_url(), new_url)
 
 if __name__ == '__main__':
     unittest.main()
