@@ -106,6 +106,35 @@ class SohuIE(InfoExtractor):
             'ext': 'mp4',
             'title': "Cryin'  [HD 1080p]  Chris.Botti(feat. Steven Tyler",
         },
+    }, {
+        'note': 'Multipart video with new address format',
+        'url': 'https://tv.sohu.com/v/dXMvMjQyNTYyMTYzLzc4OTEwMzM5LnNodG1s.html?src=pl',
+        'info_dict': {
+            'id': '78910339',
+            'title': '【神探苍实战秘籍】第13期 战争之影 赫卡里姆',
+        },
+        'playlist': [{
+            'info_dict': {
+                'id': '78910339_part1',
+                'ext': 'mp4',
+                'duration': 294,
+                'title': '【神探苍实战秘籍】第13期 战争之影 赫卡里姆',
+            }
+        }, {
+            'info_dict': {
+                'id': '78910339_part2',
+                'ext': 'mp4',
+                'duration': 300,
+                'title': '【神探苍实战秘籍】第13期 战争之影 赫卡里姆',
+            }
+        }, {
+            'info_dict': {
+                'id': '78910339_part3',
+                'ext': 'mp4',
+                'duration': 150,
+                'title': '【神探苍实战秘籍】第13期 战争之影 赫卡里姆',
+            }
+        }]
     }]
 
     def _real_extract(self, url):
