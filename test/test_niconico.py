@@ -18,7 +18,7 @@ class NiconicoIEWithCredentialsFail(NiconicoIE):
 
 class NiconicoIEWithCredentials(NiconicoIE):
     def _get_login_info(self):
-        return 'zangyaxuan@gmail.com', '12345zyx'
+        return 'juliaz199701@gmail.com', '12345zyx'
 
 
 class WarningLogger(object):
