@@ -1277,10 +1277,10 @@ from .trovo import (
 )
 from .trunews import TruNewsIE
 from .trutv import TruTVIE
+from .tubetugraz import TubeTuGrazIE
 from .tube8 import Tube8IE
 from .tubitv import TubiTvIE
 from .tumblr import TumblrIE
-from .tubetugraz import TubeTuGrazIE
 from .tunein import (
     TuneInClipIE,
     TuneInStationIE,
