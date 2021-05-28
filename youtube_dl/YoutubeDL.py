@@ -192,6 +192,7 @@ class YoutubeDL(object):
     keepvideo:         Keep the video file after post-processing
     daterange:         A DateRange object, download only if the upload_date is in the range.
     skip_download:     Skip the actual download of the video file
+    autonumber_reset:  Reset autonumber counter to autonumber-start before each playlist
     cachedir:          Location of the cache files in the filesystem.
                        False to disable filesystem cache.
     noplaylist:        Download single video instead of a playlist if in doubt.
@@ -339,6 +340,7 @@ class YoutubeDL(object):
     _pps = []
     _download_retcode = None
     _num_downloads = None
+    _autonumber_index = None
     _playlist_level = 0
     _playlist_urls = set()
     _screen_file = None
@@ -353,6 +355,7 @@ class YoutubeDL(object):
         self._progress_hooks = []
         self._download_retcode = 0
         self._num_downloads = 0
+        self._autonumber_index = 0
         self._screen_file = [sys.stdout, sys.stderr][params.get('logtostderr', False)]
         self._err_file = sys.stderr
         self.params = {
@@ -643,7 +646,7 @@ class YoutubeDL(object):
             autonumber_size = self.params.get('autonumber_size')
             if autonumber_size is None:
                 autonumber_size = 5
-            template_dict['autonumber'] = self.params.get('autonumber_start', 1) - 1 + self._num_downloads
+            template_dict['autonumber'] = self.params.get('autonumber_start', 1) - 1 + self._autonumber_index
             if template_dict.get('resolution') is None:
                 if template_dict.get('width') and template_dict.get('height'):
                     template_dict['resolution'] = '%dx%d' % (template_dict['width'], template_dict['height'])
@@ -964,6 +967,9 @@ class YoutubeDL(object):
         playlist = ie_result.get('title') or ie_result.get('id')
 
         self.to_screen('[download] Downloading playlist: %s' % playlist)
+
+        if self.params.get('autonumber_reset'):
+            self._autonumber_index = 0
 
         playlist_results = []
 
@@ -1795,6 +1801,7 @@ class YoutubeDL(object):
             return
 
         self._num_downloads += 1
+        self._autonumber_index += 1
 
         info_dict['_filename'] = filename = self.prepare_filename(info_dict)
 

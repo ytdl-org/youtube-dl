@@ -710,6 +710,10 @@ def parseOpts(overrideArguments=None):
         action='store_true', dest='autonumber', default=False,
         help=optparse.SUPPRESS_HELP)
     filesystem.add_option(
+        '--autonumber-reset',
+        action='store_true', dest='autonumber_reset', default=False,
+        help='Reset %(autonumber)s counter to %(autonumber_start)s before each playlist')
+    filesystem.add_option(
         '-t', '--title',
         action='store_true', dest='usetitle', default=False,
         help=optparse.SUPPRESS_HELP)
