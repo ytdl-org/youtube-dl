@@ -49,6 +49,7 @@ class TwitchBaseIE(InfoExtractor):
         'ChannelCollectionsContent': '07e3691a1bad77a36aba590c351180439a40baefc1c275356f40fc7082419a84',
         'StreamMetadata': '1c719a40e481453e5c48d9bb585d971b8b372f8ebb105b17076722264dfa5b3e',
         'ComscoreStreamingQuery': 'e1edae8122517d013405f237ffcc124515dc6ded82480a88daef69c83b53ac01',
+        'VideoAccessToken_Clip': '36b89d2507fce29e5ca551df756d27c1cfe079e2609642b4390aa4c35796eb11',
         'VideoPreviewOverlay': '3006e77e51b128d838fa4e835723ca4dc9a05c5efd4466c1085215c6e437e65c',
         'VideoMetadata': '226edb3e692509f727fd56821f5653c05740242c82b0388883e0c0e75dcbf687',
     }
@@ -924,6 +925,17 @@ class TwitchClipsIE(TwitchBaseIE):
             raise ExtractorError(
                 'This clip is no longer available', expected=True)
 
+        access_token = self._download_gql(
+            video_id, [{
+                'operationName': 'VideoAccessToken_Clip',
+                'variables': {
+                    'slug': video_id,
+                },
+            }],
+            'Downloading access token GraphQL')
+        access_token = try_get(
+            access_token, lambda x: x[0]['data']['clip']['playbackAccessToken'])
+
         formats = []
         for option in clip.get('videoQualities', []):
             if not isinstance(option, dict):
@@ -931,6 +943,14 @@ class TwitchClipsIE(TwitchBaseIE):
             source = url_or_none(option.get('sourceURL'))
             if not source:
                 continue
+            if access_token:
+                source = "%s%s%s" % (
+                    source,
+                    "&" if "?" in source else "?",
+                    compat_urllib_parse_urlencode({
+                        "sig": access_token.get('signature'),
+                        "token": access_token.get('value'),
+                    }))
             formats.append({
                 'url': source,
                 'format_id': option.get('quality'),
