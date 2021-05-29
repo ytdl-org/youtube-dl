@@ -894,7 +894,25 @@ class TwitchClipsIE(TwitchBaseIE):
     def _real_extract(self, url):
         video_id = self._match_id(url)
 
-        clip = self._download_base_gql(
+        clip = self._download_gql(
+            video_id, [{
+                'operationName': 'VideoAccessToken_Clip',
+                'variables': {
+                    'slug': video_id,
+                },
+            }],
+            'Downloading clip access token GraphQL')[0]['data']['clip']
+
+        if not clip:
+            raise ExtractorError(
+                'This clip is no longer available', expected=True)
+
+        access_query = {
+            'sig': clip['playbackAccessToken']['signature'],
+            'token': clip['playbackAccessToken']['value'],
+        }
+
+        data = self._download_base_gql(
             video_id, {
                 'query': '''{
   clip(slug: "%s") {
@@ -919,22 +937,10 @@ class TwitchClipsIE(TwitchBaseIE):
     }
     viewCount
   }
-}''' % video_id}, 'Downloading clip GraphQL')['data']['clip']
+}''' % video_id}, 'Downloading clip GraphQL', fatal=False)
 
-        if not clip:
-            raise ExtractorError(
-                'This clip is no longer available', expected=True)
-
-        access_token = self._download_gql(
-            video_id, [{
-                'operationName': 'VideoAccessToken_Clip',
-                'variables': {
-                    'slug': video_id,
-                },
-            }],
-            'Downloading access token GraphQL')
-        access_token = try_get(
-            access_token, lambda x: x[0]['data']['clip']['playbackAccessToken'])
+        if data:
+            clip = try_get(data, lambda x: x['data']['clip'], dict) or clip
 
         formats = []
         for option in clip.get('videoQualities', []):
@@ -943,16 +949,8 @@ class TwitchClipsIE(TwitchBaseIE):
             source = url_or_none(option.get('sourceURL'))
             if not source:
                 continue
-            if access_token:
-                source = "%s%s%s" % (
-                    source,
-                    "&" if "?" in source else "?",
-                    compat_urllib_parse_urlencode({
-                        "sig": access_token.get('signature'),
-                        "token": access_token.get('value'),
-                    }))
             formats.append({
-                'url': source,
+                'url': update_url_query(source, access_query),
                 'format_id': option.get('quality'),
                 'height': int_or_none(option.get('quality')),
                 'fps': int_or_none(option.get('frameRate')),
