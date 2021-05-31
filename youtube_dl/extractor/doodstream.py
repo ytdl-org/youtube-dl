@@ -9,6 +9,7 @@ from .common import InfoExtractor
 from ..utils import (
     js_to_json,
     urljoin,
+    try_get,
 )
 
 
@@ -27,6 +28,15 @@ def doodExe(crp, crs):
     result = result.replace('+--+', ']')
     result = result.replace('+', ' ')
     return result
+
+
+def try_doodExe(metadata, key):
+    try:
+        x = metadata[key]
+        # everything that can go wrong in this call raises a TypeError
+        return doodExe(**x)
+    except (KeyError, TypeError):
+        return None
 
 
 class DoodStreamIE(InfoExtractor):
@@ -58,20 +68,6 @@ class DoodStreamIE(InfoExtractor):
         metadata_url = urljoin(url, metadata_url)
         metadata = self._download_json(metadata_url, video_id, headers=referer)
 
-        thumb = self._og_search_thumbnail(webpage)
-        try:
-            filesize = int(doodExe(**metadata['siz']), 10)
-        except (KeyError, ValueError):
-            filesize = None
-        try:
-            duration = int(doodExe(**metadata['len']), 10)
-        except (KeyError, ValueError):
-            duration = None
-        try:
-            title = doodExe(**metadata['ttl'])
-        except KeyError:
-            title = video_id
-
         token = self._html_search_regex(r"[?&]token=([a-z0-9]+)[&']", webpage, 'token')
         auth_url = self._html_search_regex(r"('/pass_md5.*?')", webpage,
                                            'pass_md5')
@@ -84,11 +80,11 @@ class DoodStreamIE(InfoExtractor):
 
         return {
             'id': video_id,
-            'title': title,
+            'title': try_doodExe(metadata, 'ttl') or video_id,
             'url': final_url,
             'http_headers': referer,
             'ext': 'mp4',
-            'thumbnail': thumb,
-            'filesize': filesize,
-            'duration': duration,
+            'thumbnail': self._og_search_thumbnail(webpage),
+            'filesize': try_get(try_doodExe(metadata, 'siz'), lambda x: int(x, 10)),
+            'duration': try_get(try_doodExe(metadata, 'len'), lambda x: int(x, 10)),
         }
