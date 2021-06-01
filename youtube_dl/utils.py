@@ -2176,11 +2176,11 @@ def sanitize_url(url):
     for mistake, fixup in COMMON_TYPOS:
         if re.match(mistake, url):
             return re.sub(mistake, fixup, url)
-    return escape_url(url)
+    return url
 
 
 def sanitized_Request(url, *args, **kwargs):
-    return compat_urllib_request.Request(sanitize_url(url), *args, **kwargs)
+    return compat_urllib_request.Request(escape_url(sanitize_url(url)), *args, **kwargs)
 
 
 def expand_path(s):
