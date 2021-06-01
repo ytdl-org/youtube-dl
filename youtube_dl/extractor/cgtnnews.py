@@ -34,4 +34,4 @@ class CgtnNewsIE(InfoExtractor):
             'description': self._og_search_description(webpage),
             'uploader': self._search_regex(r'<div[^>]+id="uploader"[^>]*>([^<]+)<', webpage, 'uploader', fatal=False),
             # TODO more properties (see youtube_dl/extractor/common.py)
-        }
+        } 
