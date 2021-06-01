@@ -33,7 +33,7 @@ class ThisVidIE(InfoExtractor):
         main_id = self._match_id(url)
         webpage = self._download_webpage(url, main_id)
 
-        # URL decryptor was reversed from version 4.0.4, later verified working with 5.0.1 and may change in the future.
+        # URL decryptor was reversed from version 4.0.4, later verified working with 5.0.1
         kvs_version = self._html_search_regex(r'<script [^>]+?src="https://thisvid\.com/player/kt_player\.js\?v=(\d+(\.\d+)+)">', webpage, 'kvs_version', fatal=False)
         if not kvs_version.startswith("5."):
             self.report_warning("Major version change (" + kvs_version + ") in player engine--Download may fail.")
