@@ -397,6 +397,7 @@ def _real_main(argv=None):
         'age_limit': opts.age_limit,
         'download_archive': download_archive_fn,
         'cookiefile': opts.cookiefile,
+        'cookiesfrombrowser': opts.cookiesfrombrowser,
         'nocheckcertificate': opts.no_check_certificate,
         'prefer_insecure': opts.prefer_insecure,
         'proxy': opts.proxy,
