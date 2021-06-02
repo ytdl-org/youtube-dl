@@ -19,6 +19,7 @@ import socket
 import struct
 import subprocess
 import sys
+import tempfile
 import xml.etree.ElementTree
 
 
@@ -2923,6 +2924,24 @@ except TypeError:  # Python 2.6
             yield n
             n += step
 
+
+try:
+    from tempfile import TemporaryDirectory as Compat_TemporaryDirectory
+except ImportError:
+    class Compat_TemporaryDirectory:
+        def __init__(self, prefix=None):
+            self._prefix = prefix
+            self._path = None
+
+        def __enter__(self):
+            self._path = tempfile.mkdtemp(prefix=self._prefix)
+            return self._path
+
+        def __exit__(self, exc_type, exc_val, exc_tb):
+            if self._path is not None:
+                shutil.rmtree(self._path)
+
+
 if sys.version_info >= (3, 0):
     from tokenize import tokenize as compat_tokenize_tokenize
 else:
@@ -3040,6 +3059,7 @@ __all__ = [
     'compat_struct_pack',
     'compat_struct_unpack',
     'compat_subprocess_get_DEVNULL',
+    'compat_TemporaryDirectory',
     'compat_tokenize_tokenize',
     'compat_urllib_error',
     'compat_urllib_parse',

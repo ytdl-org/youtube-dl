@@ -1,6 +1,4 @@
-import base64
 import ctypes
-import glob
 import json
 import os
 import shutil
@@ -8,11 +6,8 @@ import sqlite3
 import subprocess
 import sys
 import warnings
-from abc import ABC, abstractmethod
-from ctypes.wintypes import DWORD
-from tempfile import TemporaryDirectory
 
-from youtube_dl.compat import compat_cookiejar_Cookie
+from youtube_dl.compat import compat_cookiejar_Cookie, compat_b64decode, Compat_TemporaryDirectory, compat_ord
 from youtube_dl.utils import YoutubeDLCookieJar, expand_path
 
 try:
@@ -36,7 +31,7 @@ SUPPORTED_BROWSERS = ['firefox', 'chrome', 'chrome_beta', 'chrome_dev', 'chromiu
                       'edge', 'edge_beta']
 
 
-def extract_cookies_from_browser(browser_name: str):
+def extract_cookies_from_browser(browser_name):
     if browser_name == 'firefox':
         return _extract_firefox_cookies()
     elif browser_name in ('chrome', 'chrome_beta', 'chrome_dev', 'chromium',
@@ -62,7 +57,7 @@ def _extract_firefox_cookies():
     if cookie_database_path is None:
         raise FileNotFoundError('could not find firefox cookies database')
 
-    with TemporaryDirectory(prefix='youtube_dl') as tmpdir:
+    with Compat_TemporaryDirectory(prefix='youtube_dl') as tmpdir:
         cursor = None
         try:
             cursor = _open_database_copy(cookie_database_path, tmpdir)
@@ -153,7 +148,7 @@ def _extract_chrome_cookies(browser_name):
 
     decryptor = get_cookie_decryptor(config['browser_dir'], config['keyring_name'])
 
-    with TemporaryDirectory(prefix='youtube_dl') as tmpdir:
+    with Compat_TemporaryDirectory(prefix='youtube_dl') as tmpdir:
         cursor = None
         try:
             cursor = _open_database_copy(cookie_database_path, tmpdir)
@@ -190,7 +185,7 @@ def _extract_chrome_cookies(browser_name):
                 cursor.connection.close()
 
 
-class ChromeCookieDecryptor(ABC):
+class ChromeCookieDecryptor:
     """
     Overview:
 
@@ -216,7 +211,6 @@ class ChromeCookieDecryptor(ABC):
         - KeyStorageLinux::CreateService
     """
 
-    @abstractmethod
     def decrypt(self, encrypted_value):
         raise NotImplementedError
 
@@ -371,7 +365,7 @@ def _get_windows_v10_password(browser_root):
         base64_password = data['os_crypt']['encrypted_key']
     except KeyError:
         return None
-    encrypted_password = base64.b64decode(base64_password)
+    encrypted_password = compat_b64decode(base64_password)
     prefix = b'DPAPI'
     if not encrypted_password.startswith(prefix):
         return None
@@ -382,7 +376,7 @@ def _decrypt_aes_cbc(ciphertext, key):
     cipher = Cipher(algorithm=AES(key), mode=CBC(initialization_vector=b' ' * 16))
     decryptor = cipher.decryptor()
     plaintext = decryptor.update(ciphertext) + decryptor.finalize()
-    padding_length = plaintext[-1]
+    padding_length = compat_ord(plaintext[-1])
     try:
         return plaintext[:-padding_length].decode('utf-8')
     except UnicodeDecodeError:
@@ -406,6 +400,8 @@ def _decrypt_windows_dpapi(ciphertext):
     References:
         - https://docs.microsoft.com/en-us/windows/win32/api/dpapi/nf-dpapi-cryptunprotectdata
     """
+    from ctypes.wintypes import DWORD
+
     class DATA_BLOB(ctypes.Structure):
         _fields_ = [('cbData', DWORD),
                     ('pbData', ctypes.POINTER(ctypes.c_char))]
@@ -445,8 +441,11 @@ def _open_database_copy(database_path, tmpdir):
 
 def _find_most_recently_used_file(root, filename):
     # if there are multiple browser profiles, take the most recently used one
-    paths = glob.iglob(os.path.join(root, '**', filename), recursive=True)
-    paths = [path for path in paths if os.path.isfile(path)]
+    paths = []
+    for root, dirs, files in os.walk(root):
+        for file in files:
+            if file == filename:
+                paths.append(os.path.join(root, file))
     return None if not paths else max(paths, key=lambda path: os.lstat(path).st_mtime)
 
 
