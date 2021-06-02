@@ -14,7 +14,7 @@ from ..utils import (
 
 
 class NewgroundsIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:www\.)?newgrounds\.com/(?:audio/listen|portal/view)/(?P<id>[0-9]+)'
+    _VALID_URL = r'https?://(?:www\.)?newgrounds\.com/(?:audio/listen|portal/view)/(?P<id>[0-9]+)(?:/format/flash)?'
     _TESTS = [{
         'url': 'https://www.newgrounds.com/audio/listen/549479',
         'md5': 'fe6033d297591288fa1c1f780386f07a',
@@ -75,9 +75,8 @@ class NewgroundsIE(InfoExtractor):
                 'quality': 1,
             }]
         else:
-            json_data = self._download_json(str(url).replace('view', 'video').replace('http:', 'https:'), media_id, headers={
+            json_data = self._download_json('https://www.newgrounds.com/portal/video/' + media_id, media_id, headers={
                 'Accept': 'application/json, text/javascript, */*; q=0.01',
-                'Accept-Language': 'en-US,en;q=0.5',
                 'Accept-Encoding': 'gzip, deflate, br',
                 'X-Requested-With': 'XMLHttpRequest',
                 'Connection': 'keep-alive',
