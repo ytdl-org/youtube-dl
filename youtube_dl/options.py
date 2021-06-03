@@ -761,7 +761,7 @@ def parseOpts(overrideArguments=None):
     filesystem.add_option(
         '--cookies-from-browser',
         dest='cookiesfrombrowser', metavar='BROWSER',
-        help='Browser to load cookies from: {}'.format(', '.join(SUPPORTED_BROWSERS)))
+        help='Load cookies from a user profile of the given web browser: {}. You can specify an alternative user profile name or directory using "BROWSER:PROFILE_NAME" or "BROWSER:PROFILE_PATH"'.format(', '.join(SUPPORTED_BROWSERS)))
     filesystem.add_option(
         '--cache-dir', dest='cachedir', default=None, metavar='DIR',
         help='Location in the filesystem where youtube-dl can store some downloaded information permanently. By default $XDG_CACHE_HOME/youtube-dl or ~/.cache/youtube-dl . At the moment, only YouTube player files (for videos with obfuscated signatures) are cached, but that may change.')

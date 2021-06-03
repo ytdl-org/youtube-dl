@@ -30,6 +30,9 @@ SUPPORTED_BROWSERS = ['firefox', 'chrome', 'chrome_beta', 'chrome_dev', 'chromiu
 
 
 class Logger:
+    def debug(self, message):
+        print(message)
+
     def info(self, message):
         print(message)
 
@@ -37,31 +40,34 @@ class Logger:
         print(message, file=sys.stderr)
 
 
-def extract_cookies_from_browser(browser_name, logger=Logger()):
+def _is_path(value):
+    return os.path.sep in value
+
+
+def extract_cookies_from_browser(browser_name, profile=None, logger=Logger()):
     if browser_name == 'firefox':
-        return _extract_firefox_cookies(logger)
+        return _extract_firefox_cookies(profile, logger)
     elif browser_name in ('chrome', 'chrome_beta', 'chrome_dev', 'chromium',
                           'brave', 'opera', 'edge', 'edge_beta'):
-        return _extract_chrome_cookies(browser_name, logger)
+        return _extract_chrome_cookies(browser_name, profile, logger)
     else:
         raise ValueError('unknown browser: {}'.format(browser_name))
 
 
-def _extract_firefox_cookies(logger):
+def _extract_firefox_cookies(profile, logger):
     logger.info('extracting cookies from firefox')
 
-    if sys.platform in ('linux', 'linux2'):
-        root = os.path.expanduser('~/.mozilla/firefox')
-    elif sys.platform == 'win32':
-        root = os.path.expandvars(r'%APPDATA%\Mozilla\Firefox')
-    elif sys.platform == 'darwin':
-        root = os.path.expanduser('~/Library/Application Support/Firefox')
+    if profile is None:
+        search_root = _firefox_browser_dir()
+    elif _is_path(profile):
+        search_root = profile
     else:
-        raise ValueError('unsupported platform: {}'.format(sys.platform))
+        search_root = os.path.join(_firefox_browser_dir(), profile)
 
-    cookie_database_path = _find_most_recently_used_file(root, 'cookies.sqlite')
+    cookie_database_path = _find_most_recently_used_file(search_root, 'cookies.sqlite')
     if cookie_database_path is None:
-        raise FileNotFoundError('could not find firefox cookies database')
+        raise FileNotFoundError('could not find firefox cookies database in {}'.format(search_root))
+    logger.debug('extracting from: "{}"'.format(cookie_database_path))
 
     with Compat_TemporaryDirectory(prefix='youtube_dl') as tmpdir:
         cursor = None
@@ -81,6 +87,17 @@ def _extract_firefox_cookies(logger):
         finally:
             if cursor is not None:
                 cursor.connection.close()
+
+
+def _firefox_browser_dir():
+    if sys.platform in ('linux', 'linux2'):
+        return os.path.expanduser('~/.mozilla/firefox')
+    elif sys.platform == 'win32':
+        return os.path.expandvars(r'%APPDATA%\Mozilla\Firefox')
+    elif sys.platform == 'darwin':
+        return os.path.expanduser('~/Library/Application Support/Firefox')
+    else:
+        raise ValueError('unsupported platform: {}'.format(sys.platform))
 
 
 def _get_chrome_like_browser_settings(browser_name):
@@ -144,13 +161,22 @@ def _get_chrome_like_browser_settings(browser_name):
     }
 
 
-def _extract_chrome_cookies(browser_name, logger):
+def _extract_chrome_cookies(browser_name, profile, logger):
     logger.info('extracting cookies from {}'.format(browser_name))
     config = _get_chrome_like_browser_settings(browser_name)
 
-    cookie_database_path = _find_most_recently_used_file(config['browser_dir'], 'Cookies')
+    if profile is None:
+        search_root = config['browser_dir']
+    elif _is_path(profile):
+        search_root = profile
+        config['browser_dir'] = os.path.dirname(profile)
+    else:
+        search_root = os.path.join(config['browser_dir'], profile)
+
+    cookie_database_path = _find_most_recently_used_file(search_root, 'Cookies')
     if cookie_database_path is None:
-        raise FileNotFoundError('could not find {} cookies database'.format(browser_name))
+        raise FileNotFoundError('could not find {} cookies database in "{}"'.format(browser_name, search_root))
+    logger.debug('extracting from: "{}"'.format(cookie_database_path))
 
     decryptor = get_cookie_decryptor(config['browser_dir'], config['keyring_name'], logger)
 
@@ -477,6 +503,10 @@ class YDLLogger(Logger):
     def __init__(self, ydl):
         self._ydl = ydl
 
+    def debug(self, message):
+        if self._ydl.params.get('verbose'):
+            self._ydl.to_screen('[debug] ' + message)
+
     def info(self, message):
         self._ydl.to_screen(message)
 
@@ -484,10 +514,22 @@ class YDLLogger(Logger):
         self._ydl.to_stderr(message)
 
 
-def load_cookies(cookie_file, browser, ydl):
+def parse_browser_specification(browser_specification):
+    parts = browser_specification.split(':')
+    while len(parts) < 2:
+        parts.append('')
+    parts = [p.strip() or None for p in parts]
+    if not parts[0] or len(parts) > 2:
+        raise ValueError('invalid browser specification: "{}"'.format(browser_specification))
+    browser_name, profile = parts
+    return browser_name, profile
+
+
+def load_cookies(cookie_file, browser_specification, ydl):
     cookie_jars = []
-    if browser is not None:
-        cookie_jars.append(extract_cookies_from_browser(browser, YDLLogger(ydl)))
+    if browser_specification is not None:
+        browser_name, profile = parse_browser_specification(browser_specification)
+        cookie_jars.append(extract_cookies_from_browser(browser_name, profile, YDLLogger(ydl)))
 
     if cookie_file is not None:
         cookie_file = expand_path(cookie_file)
