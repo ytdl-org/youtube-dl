@@ -40,8 +40,20 @@ class Logger:
         print(message, file=sys.stderr)
 
 
-def _is_path(value):
-    return os.path.sep in value
+def load_cookies(cookie_file, browser_specification, ydl):
+    cookie_jars = []
+    if browser_specification is not None:
+        browser_name, profile = _parse_browser_specification(browser_specification)
+        cookie_jars.append(extract_cookies_from_browser(browser_name, profile, YDLLogger(ydl)))
+
+    if cookie_file is not None:
+        cookie_file = expand_path(cookie_file)
+        jar = YoutubeDLCookieJar(cookie_file)
+        if os.access(cookie_file, os.R_OK):
+            jar.load(ignore_discard=True, ignore_expires=True)
+        cookie_jars.append(jar)
+
+    return _merge_cookie_jars(cookie_jars)
 
 
 def extract_cookies_from_browser(browser_name, profile=None, logger=Logger()):
@@ -276,7 +288,7 @@ class LinuxChromeCookieDecryptor(ChromeCookieDecryptor):
 
         elif version == b'v11':
             if self._v11_key is None:
-                warnings.warn('cannot decrypt cookie as the `keyring` modules is not installed')
+                warnings.warn('cannot decrypt cookie as the `keyring` module is not installed')
                 return None
             return _decrypt_aes_cbc(ciphertext, self._v11_key)
 
@@ -401,7 +413,7 @@ def _decrypt_aes_cbc(ciphertext, key, initialization_vector=b' ' * 16):
     plaintext = aes_cbc_decrypt(bytes_to_intlist(ciphertext),
                                 bytes_to_intlist(key),
                                 bytes_to_intlist(initialization_vector))
-    padding_length = compat_ord(plaintext[-1])
+    padding_length = plaintext[-1]
     try:
         return intlist_to_bytes(plaintext[:-padding_length]).decode('utf-8')
     except UnicodeDecodeError:
@@ -503,7 +515,11 @@ class YDLLogger(Logger):
         self._ydl.to_stderr(message)
 
 
-def parse_browser_specification(browser_specification):
+def _is_path(value):
+    return os.path.sep in value
+
+
+def _parse_browser_specification(browser_specification):
     parts = browser_specification.split(':')
     while len(parts) < 2:
         parts.append('')
@@ -514,19 +530,3 @@ def parse_browser_specification(browser_specification):
     if profile is not None and _is_path(profile):
         profile = os.path.expanduser(profile)
     return browser_name, profile
-
-
-def load_cookies(cookie_file, browser_specification, ydl):
-    cookie_jars = []
-    if browser_specification is not None:
-        browser_name, profile = parse_browser_specification(browser_specification)
-        cookie_jars.append(extract_cookies_from_browser(browser_name, profile, YDLLogger(ydl)))
-
-    if cookie_file is not None:
-        cookie_file = expand_path(cookie_file)
-        jar = YoutubeDLCookieJar(cookie_file)
-        if os.access(cookie_file, os.R_OK):
-            jar.load(ignore_discard=True, ignore_expires=True)
-        cookie_jars.append(jar)
-
-    return _merge_cookie_jars(cookie_jars)
