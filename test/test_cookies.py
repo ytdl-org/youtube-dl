@@ -22,6 +22,14 @@ class MonkeyPatch:
 
 @unittest.skipIf(not CRYPTO_AVAILABLE, 'cryptography library not available')
 class TestCookies(unittest.TestCase):
+    def test_chrome_cookie_decryptor_linux_derive_key(self):
+        key = LinuxChromeCookieDecryptor.derive_key('abc')
+        assert key == b'7\xa1\xec\xd4m\xfcA\xc7\xb19Z\xd0\x19\xdcM\x17'
+
+    def test_chrome_cookie_decryptor_mac_derive_key(self):
+        key = MacChromeCookieDecryptor.derive_key('abc')
+        assert key == b'Y\xe2\xc0\xd0P\xf6\xf4\xe1l\xc1\x8cQ\xcb|\xcdY'
+
     def test_chrome_cookie_decryptor_linux_v10(self):
         with MonkeyPatch(cookies, '_get_linux_keyring_password', lambda *args, **kwargs: ''):
             encrypted_value = b'v10\xccW%\xcd\xe6\xe6\x9fM" \xa7\xb0\xca\xe4\x07\xd6'

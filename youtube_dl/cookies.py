@@ -11,11 +11,9 @@ from youtube_dl.compat import compat_cookiejar_Cookie, compat_b64decode, Compat_
 from youtube_dl.utils import YoutubeDLCookieJar, expand_path
 
 try:
-    from cryptography.hazmat.primitives.ciphers import Cipher
-    from cryptography.hazmat.primitives.ciphers.algorithms import AES
-    from cryptography.hazmat.primitives.ciphers.modes import CBC, GCM
-    from cryptography.hazmat.primitives.hashes import SHA1
-    from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
+    from Crypto.Cipher import AES
+    from Crypto.Protocol.KDF import PBKDF2
+    from Crypto.Hash import SHA1
     CRYPTO_AVAILABLE = True
 except ImportError:
     CRYPTO_AVAILABLE = False
@@ -197,7 +195,7 @@ class ChromeCookieDecryptor:
 
         Mac:
         - cookies are either v10 or not v10
-            - v10: AES-CBC encrypted (with more iterations than Linux) with an OS protected key (keyring)
+            - v10: AES-CBC encrypted with an OS protected key (keyring) and more key derivation iterations than linux
             - not v10: 'old data' stored as plaintext
 
         Windows:
@@ -232,15 +230,15 @@ class LinuxChromeCookieDecryptor(ChromeCookieDecryptor):
         self._v10_key = None
         self._v11_key = None
         if CRYPTO_AVAILABLE:
-            # values from
-            # https://chromium.googlesource.com/chromium/src/+/refs/heads/main/components/os_crypt/os_crypt_linux.cc
-            self._v10_key = PBKDF2HMAC(algorithm=SHA1(), length=16,
-                                       salt=b'saltysalt', iterations=1).derive(b'peanuts')
-
+            self._v10_key = self.derive_key('peanuts')
             if KEYRING_AVAILABLE:
-                password = _get_linux_keyring_password(browser_keyring_name)
-                self._v11_key = PBKDF2HMAC(algorithm=SHA1(), length=16,
-                                           salt=b'saltysalt', iterations=1).derive(password.encode('utf-8'))
+                self._v11_key = self.derive_key(_get_linux_keyring_password(browser_keyring_name))
+
+    @staticmethod
+    def derive_key(password):
+        # values from
+        # https://chromium.googlesource.com/chromium/src/+/refs/heads/main/components/os_crypt/os_crypt_linux.cc
+        return PBKDF2(password, salt=b'saltysalt', dkLen=16, count=1, hmac_hash_module=SHA1)
 
     def decrypt(self, encrypted_value):
         version = encrypted_value[:3]
@@ -248,13 +246,13 @@ class LinuxChromeCookieDecryptor(ChromeCookieDecryptor):
 
         if version == b'v10':
             if self._v10_key is None:
-                warnings.warn('cannot decrypt cookie as the cryptography module is not installed')
+                warnings.warn('cannot decrypt cookie as the module `pycryptodome` is not installed')
                 return None
             return _decrypt_aes_cbc(ciphertext, self._v10_key)
 
         elif version == b'v11':
             if self._v11_key is None:
-                warnings.warn('cannot decrypt cookie as the cryptography or keyring modules are not installed')
+                warnings.warn('cannot decrypt cookie as the `pycryptodome` or `keyring` modules are not installed')
                 return None
             return _decrypt_aes_cbc(ciphertext, self._v11_key)
 
@@ -266,11 +264,13 @@ class MacChromeCookieDecryptor(ChromeCookieDecryptor):
     def __init__(self, browser_keyring_name):
         self._v10_key = None
         if CRYPTO_AVAILABLE:
-            # values from
-            # https://chromium.googlesource.com/chromium/src/+/refs/heads/main/components/os_crypt/os_crypt_mac.mm
-            password = _get_mac_keyring_password(browser_keyring_name)
-            self._v10_key = PBKDF2HMAC(algorithm=SHA1(), length=16,
-                                       salt=b'saltysalt', iterations=1003).derive(password.encode('utf-8'))
+            self._v10_key = self.derive_key(_get_mac_keyring_password(browser_keyring_name))
+
+    @staticmethod
+    def derive_key(password):
+        # values from
+        # https://chromium.googlesource.com/chromium/src/+/refs/heads/main/components/os_crypt/os_crypt_mac.mm
+        return PBKDF2(password, salt=b'saltysalt', dkLen=16, count=1003, hmac_hash_module=SHA1)
 
     def decrypt(self, encrypted_value):
         version = encrypted_value[:3]
@@ -278,7 +278,7 @@ class MacChromeCookieDecryptor(ChromeCookieDecryptor):
 
         if version == b'v10':
             if self._v10_key is None:
-                warnings.warn('cannot decrypt cookie as the cryptography module is not installed')
+                warnings.warn('cannot decrypt cookie as the `pycryptodome` module is not installed')
                 return None
             return _decrypt_aes_cbc(ciphertext, self._v10_key)
 
@@ -372,10 +372,9 @@ def _get_windows_v10_password(browser_root):
     return _decrypt_windows_dpapi(encrypted_password[len(prefix):])
 
 
-def _decrypt_aes_cbc(ciphertext, key):
-    cipher = Cipher(algorithm=AES(key), mode=CBC(initialization_vector=b' ' * 16))
-    decryptor = cipher.decryptor()
-    plaintext = decryptor.update(ciphertext) + decryptor.finalize()
+def _decrypt_aes_cbc(ciphertext, key, initialization_vector=b' ' * 16):
+    cipher = AES.new(key, AES.MODE_CBC, iv=initialization_vector)
+    plaintext = cipher.decrypt(ciphertext)
     padding_length = compat_ord(plaintext[-1])
     try:
         return plaintext[:-padding_length].decode('utf-8')
@@ -385,9 +384,13 @@ def _decrypt_aes_cbc(ciphertext, key):
 
 
 def _decrypt_aes_gcm(ciphertext, key, nonce, authentication_tag):
-    cipher = Cipher(algorithm=AES(key), mode=GCM(nonce, tag=authentication_tag))
-    decryptor = cipher.decryptor()
-    plaintext = decryptor.update(ciphertext) + decryptor.finalize()
+    cipher = AES.new(key, AES.MODE_GCM, nonce)
+    try:
+        plaintext = cipher.decrypt_and_verify(ciphertext, authentication_tag)
+    except ValueError:
+        warnings.warn('failed to decrypt cookie because the MAC check failed. Possibly the key is wrong?')
+        return None
+
     try:
         return plaintext.decode('utf-8')
     except UnicodeDecodeError:
