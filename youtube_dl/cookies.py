@@ -144,6 +144,8 @@ def _get_chrome_like_browser_settings(browser_name):
     else:
         raise ValueError('unsupported platform: {}'.format(sys.platform))
 
+    # Linux keyring names can be determined by snooping on dbus while opening the browser in KDE:
+    # dbus-monitor "interface='org.kde.KWallet'" "type=method_return"
     keyring_name = {
         'chrome': 'Chrome',
         'chrome_beta': 'Chrome',
