@@ -1,4 +1,5 @@
 import ctypes
+import hashlib
 import json
 import os
 import shutil
@@ -12,8 +13,6 @@ from youtube_dl.utils import YoutubeDLCookieJar, expand_path
 
 try:
     from Crypto.Cipher import AES
-    from Crypto.Protocol.KDF import PBKDF2
-    from Crypto.Hash import SHA1
     CRYPTO_AVAILABLE = True
 except ImportError:
     CRYPTO_AVAILABLE = False
@@ -25,7 +24,8 @@ except ImportError:
     KEYRING_AVAILABLE = False
 
 
-SUPPORTED_BROWSERS = ['firefox', 'chrome', 'chromium', 'brave', 'opera', 'edge']
+SUPPORTED_BROWSERS = ['brave', 'chrome', 'chromium', 'edge' 'firefox', 'opera']
+CHROME_LIKE_BROWSERS = {'brave', 'chrome', 'chromium', 'edge' 'opera'}
 
 
 class Logger:
@@ -46,7 +46,7 @@ def _is_path(value):
 def extract_cookies_from_browser(browser_name, profile=None, logger=Logger()):
     if browser_name == 'firefox':
         return _extract_firefox_cookies(profile, logger)
-    elif browser_name in ('chrome', 'chromium', 'brave', 'opera', 'edge'):
+    elif browser_name in CHROME_LIKE_BROWSERS:
         return _extract_chrome_cookies(browser_name, profile, logger)
     else:
         raise ValueError('unknown browser: {}'.format(browser_name))
@@ -103,32 +103,32 @@ def _get_chrome_like_browser_settings(browser_name):
     if sys.platform in ('linux', 'linux2'):
         config = _config_home()
         browser_dir = {
+            'brave': os.path.join(config, 'BraveSoftware/Brave-Browser'),
             'chrome': os.path.join(config, 'google-chrome'),
             'chromium': os.path.join(config, 'chromium'),
-            'brave': os.path.join(config, 'BraveSoftware/Brave-Browser'),
-            'opera': os.path.join(config, 'opera'),
             'edge': os.path.join(config, 'microsoft-edge'),
+            'opera': os.path.join(config, 'opera'),
         }[browser_name]
 
     elif sys.platform == 'win32':
         appdata_local = os.path.expandvars('%LOCALAPPDATA%')
         appdata_roaming = os.path.expandvars('%APPDATA%')
         browser_dir = {
+            'brave': os.path.join(appdata_local, r'BraveSoftware\Brave-Browser'),
             'chrome': os.path.join(appdata_local, r'Google\Chrome'),
             'chromium': os.path.join(appdata_local, r'Google\Chromium'),
-            'brave': os.path.join(appdata_local, r'BraveSoftware\Brave-Browser'),
-            'opera': os.path.join(appdata_roaming, r'Opera Software\Opera Stable'),
             'edge': os.path.join(appdata_local, r'Microsoft\Edge'),
+            'opera': os.path.join(appdata_roaming, r'Opera Software\Opera Stable'),
         }[browser_name]
 
     elif sys.platform == 'darwin':
         appdata = os.path.expanduser('~/Library/Application Support')
         browser_dir = {
+            'brave': os.path.join(appdata, 'BraveSoftware/Brave-Browser'),
             'chrome': os.path.join(appdata, 'Google/Chrome'),
             'chromium': os.path.join(appdata, 'Google/Chromium'),
-            'brave': os.path.join(appdata, 'BraveSoftware/Brave-Browser'),
-            'opera': os.path.join(appdata, 'com.operasoftware.Opera'),
             'edge': os.path.join(appdata, 'Microsoft Edge'),
+            'opera': os.path.join(appdata, 'com.operasoftware.Opera'),
         }[browser_name]
 
     else:
@@ -137,11 +137,11 @@ def _get_chrome_like_browser_settings(browser_name):
     # Linux keyring names can be determined by snooping on dbus while opening the browser in KDE:
     # dbus-monitor "interface='org.kde.KWallet'" "type=method_return"
     keyring_name = {
+        'brave': 'Brave',
         'chrome': 'Chrome',
         'chromium': 'Chromium',
-        'brave': 'Brave',
-        'opera': 'Opera' if sys.platform == 'darwin' else 'Chromium',
         'edge': 'Mirosoft Edge' if sys.platform == 'darwin' else 'Chromium',
+        'opera': 'Opera' if sys.platform == 'darwin' else 'Chromium',
     }[browser_name]
 
     return {
@@ -253,7 +253,7 @@ class LinuxChromeCookieDecryptor(ChromeCookieDecryptor):
         self._v10_key = None
         self._v11_key = None
         if CRYPTO_AVAILABLE:
-            self._v10_key = self.derive_key('peanuts')
+            self._v10_key = self.derive_key(b'peanuts')
             if KEYRING_AVAILABLE:
                 self._v11_key = self.derive_key(_get_linux_keyring_password(browser_keyring_name))
 
@@ -261,7 +261,7 @@ class LinuxChromeCookieDecryptor(ChromeCookieDecryptor):
     def derive_key(password):
         # values from
         # https://chromium.googlesource.com/chromium/src/+/refs/heads/main/components/os_crypt/os_crypt_linux.cc
-        return PBKDF2(password, salt=b'saltysalt', dkLen=16, count=1, hmac_hash_module=SHA1)
+        return hashlib.pbkdf2_hmac('sha1', password, salt=b'saltysalt', iterations=1, dklen=16)
 
     def decrypt(self, encrypted_value):
         version = encrypted_value[:3]
@@ -293,7 +293,7 @@ class MacChromeCookieDecryptor(ChromeCookieDecryptor):
     def derive_key(password):
         # values from
         # https://chromium.googlesource.com/chromium/src/+/refs/heads/main/components/os_crypt/os_crypt_mac.mm
-        return PBKDF2(password, salt=b'saltysalt', dkLen=16, count=1003, hmac_hash_module=SHA1)
+        return hashlib.pbkdf2_hmac('sha1', password, salt=b'saltysalt', iterations=1003, dklen=16)
 
     def decrypt(self, encrypted_value):
         version = encrypted_value[:3]
@@ -358,12 +358,13 @@ def _get_linux_keyring_password(browser_keyring_name):
             # this may be a bug as the intended behaviour is to generate a random password and store
             # it, but that doesn't matter here.
             password = ''
-        return password
+        return password.encode('utf-8')
 
 
 def _get_mac_keyring_password(browser_keyring_name):
     if KEYRING_AVAILABLE:
-        return keyring.get_password('{} Safe Storage'.format(browser_keyring_name), browser_keyring_name)
+        password = keyring.get_password('{} Safe Storage'.format(browser_keyring_name), browser_keyring_name)
+        return password.encode('utf-8')
     else:
         proc = subprocess.Popen(['security', 'find-generic-password',
                                  '-w',  # write password to stdout
@@ -373,7 +374,7 @@ def _get_mac_keyring_password(browser_keyring_name):
                                 stderr=subprocess.DEVNULL)
         proc.wait()
         if proc.returncode == 0:
-            return proc.stdout.read().decode('utf-8').strip()
+            return proc.stdout.read().strip()
         else:
             return None
 
@@ -511,7 +512,7 @@ def parse_browser_specification(browser_specification):
     if not parts[0] or len(parts) > 2:
         raise ValueError('invalid browser specification: "{}"'.format(browser_specification))
     browser_name, profile = parts
-    if _is_path(profile):
+    if profile is not None and _is_path(profile):
         profile = os.path.expanduser(profile)
     return browser_name, profile
 
