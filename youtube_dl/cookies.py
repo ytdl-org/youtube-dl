@@ -9,7 +9,7 @@ import sys
 import warnings
 
 from youtube_dl.aes import aes_cbc_decrypt
-from youtube_dl.compat import compat_cookiejar_Cookie, compat_b64decode, Compat_TemporaryDirectory, compat_ord
+from youtube_dl.compat import compat_cookiejar_Cookie, compat_b64decode, Compat_TemporaryDirectory
 from youtube_dl.utils import YoutubeDLCookieJar, expand_path, bytes_to_intlist, intlist_to_bytes
 
 try:
