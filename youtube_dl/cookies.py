@@ -24,8 +24,8 @@ except ImportError:
     KEYRING_AVAILABLE = False
 
 
-SUPPORTED_BROWSERS = ['brave', 'chrome', 'chromium', 'edge' 'firefox', 'opera']
-CHROME_LIKE_BROWSERS = {'brave', 'chrome', 'chromium', 'edge' 'opera'}
+SUPPORTED_BROWSERS = ['brave', 'chrome', 'chromium', 'edge' 'firefox', 'opera', 'vivaldi']
+CHROME_LIKE_BROWSERS = {'brave', 'chrome', 'chromium', 'edge' 'opera', 'vivaldi'}
 
 
 class Logger:
@@ -108,17 +108,19 @@ def _get_chrome_like_browser_settings(browser_name):
             'chromium': os.path.join(config, 'chromium'),
             'edge': os.path.join(config, 'microsoft-edge'),
             'opera': os.path.join(config, 'opera'),
+            'vivaldi': os.path.join(config, 'vivaldi'),
         }[browser_name]
 
     elif sys.platform == 'win32':
         appdata_local = os.path.expandvars('%LOCALAPPDATA%')
         appdata_roaming = os.path.expandvars('%APPDATA%')
         browser_dir = {
-            'brave': os.path.join(appdata_local, r'BraveSoftware\Brave-Browser'),
-            'chrome': os.path.join(appdata_local, r'Google\Chrome'),
-            'chromium': os.path.join(appdata_local, r'Google\Chromium'),
-            'edge': os.path.join(appdata_local, r'Microsoft\Edge'),
+            'brave': os.path.join(appdata_local, r'BraveSoftware\Brave-Browser\User Data'),
+            'chrome': os.path.join(appdata_local, r'Google\Chrome\User Data'),
+            'chromium': os.path.join(appdata_local, r'Google\Chromium\User Data'),
+            'edge': os.path.join(appdata_local, r'Microsoft\Edge\User Data'),
             'opera': os.path.join(appdata_roaming, r'Opera Software\Opera Stable'),
+            'vivaldi': os.path.join(appdata_local, r'Vivaldi\User Data'),
         }[browser_name]
 
     elif sys.platform == 'darwin':
@@ -126,9 +128,10 @@ def _get_chrome_like_browser_settings(browser_name):
         browser_dir = {
             'brave': os.path.join(appdata, 'BraveSoftware/Brave-Browser'),
             'chrome': os.path.join(appdata, 'Google/Chrome'),
-            'chromium': os.path.join(appdata, 'Google/Chromium'),
+            'chromium': os.path.join(appdata, 'Chromium'),
             'edge': os.path.join(appdata, 'Microsoft Edge'),
             'opera': os.path.join(appdata, 'com.operasoftware.Opera'),
+            'vivaldi': os.path.join(appdata, 'Vivaldi'),
         }[browser_name]
 
     else:
@@ -142,6 +145,7 @@ def _get_chrome_like_browser_settings(browser_name):
         'chromium': 'Chromium',
         'edge': 'Mirosoft Edge' if sys.platform == 'darwin' else 'Chromium',
         'opera': 'Opera' if sys.platform == 'darwin' else 'Chromium',
+        'vivaldi': 'Vivaldi' if sys.platform == 'darwin' else 'Chrome',
     }[browser_name]
 
     return {
