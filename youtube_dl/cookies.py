@@ -29,18 +29,26 @@ SUPPORTED_BROWSERS = ['firefox', 'chrome', 'chrome_beta', 'chrome_dev', 'chromiu
                       'edge', 'edge_beta']
 
 
-def extract_cookies_from_browser(browser_name):
+class Logger:
+    def info(self, message):
+        print(message)
+
+    def error(self, message):
+        print(message, file=sys.stderr)
+
+
+def extract_cookies_from_browser(browser_name, logger=Logger()):
     if browser_name == 'firefox':
-        return _extract_firefox_cookies()
+        return _extract_firefox_cookies(logger)
     elif browser_name in ('chrome', 'chrome_beta', 'chrome_dev', 'chromium',
                           'brave', 'opera', 'edge', 'edge_beta'):
-        return _extract_chrome_cookies(browser_name)
+        return _extract_chrome_cookies(browser_name, logger)
     else:
         raise ValueError('unknown browser: {}'.format(browser_name))
 
 
-def _extract_firefox_cookies():
-    print('extracting cookies from firefox')
+def _extract_firefox_cookies(logger):
+    logger.info('extracting cookies from firefox')
 
     if sys.platform in ('linux', 'linux2'):
         root = os.path.expanduser('~/.mozilla/firefox')
@@ -68,14 +76,14 @@ def _extract_firefox_cookies():
                     path=path, path_specified=bool(path), secure=is_secure, expires=expiry, discard=False,
                     comment=None, comment_url=None, rest={})
                 jar.set_cookie(cookie)
-            print('extracted {} cookies from firefox'.format(len(jar)))
+            logger.info('extracted {} cookies from firefox'.format(len(jar)))
             return jar
         finally:
             if cursor is not None:
                 cursor.connection.close()
 
 
-def _get_browser_settings(browser_name):
+def _get_chrome_like_browser_settings(browser_name):
     # https://chromium.googlesource.com/chromium/src/+/HEAD/docs/user_data_dir.md
     if sys.platform in ('linux', 'linux2'):
         config = _config_home()
@@ -136,15 +144,15 @@ def _get_browser_settings(browser_name):
     }
 
 
-def _extract_chrome_cookies(browser_name):
-    print('extracting cookies from {}'.format(browser_name))
-    config = _get_browser_settings(browser_name)
+def _extract_chrome_cookies(browser_name, logger):
+    logger.info('extracting cookies from {}'.format(browser_name))
+    config = _get_chrome_like_browser_settings(browser_name)
 
     cookie_database_path = _find_most_recently_used_file(config['browser_dir'], 'Cookies')
     if cookie_database_path is None:
         raise FileNotFoundError('could not find {} cookies database'.format(browser_name))
 
-    decryptor = get_cookie_decryptor(config['browser_dir'], config['keyring_name'])
+    decryptor = get_cookie_decryptor(config['browser_dir'], config['keyring_name'], logger)
 
     with Compat_TemporaryDirectory(prefix='youtube_dl') as tmpdir:
         cursor = None
@@ -176,7 +184,7 @@ def _extract_chrome_cookies(browser_name):
                 failed_message = ' ({} could not be decrypted)'.format(failed_cookies)
             else:
                 failed_message = ''
-            print('extracted {} cookies from {}{}'.format(len(jar), browser_name, failed_message))
+            logger.info('extracted {} cookies from {}{}'.format(len(jar), browser_name, failed_message))
             return jar
         finally:
             if cursor is not None:
@@ -213,13 +221,13 @@ class ChromeCookieDecryptor:
         raise NotImplementedError
 
 
-def get_cookie_decryptor(browser_root, browser_keyring_name):
+def get_cookie_decryptor(browser_root, browser_keyring_name, logger):
     if sys.platform in ('linux', 'linux2'):
         return LinuxChromeCookieDecryptor(browser_keyring_name)
     elif sys.platform == 'darwin':
         return MacChromeCookieDecryptor(browser_keyring_name)
     elif sys.platform == 'win32':
-        return WindowsChromeCookieDecryptor(browser_root)
+        return WindowsChromeCookieDecryptor(browser_root, logger)
     else:
         raise NotImplementedError('Chrome cookie decryption is not supported '
                                   'on this platform: {}'.format(sys.platform))
@@ -289,8 +297,9 @@ class MacChromeCookieDecryptor(ChromeCookieDecryptor):
 
 
 class WindowsChromeCookieDecryptor(ChromeCookieDecryptor):
-    def __init__(self, browser_root):
-        self._v10_key = _get_windows_v10_password(browser_root)
+    def __init__(self, browser_root, logger):
+        self._logger = logger
+        self._v10_key = _get_windows_v10_password(browser_root, logger)
 
     def decrypt(self, encrypted_value):
         version = encrypted_value[:3]
@@ -318,7 +327,7 @@ class WindowsChromeCookieDecryptor(ChromeCookieDecryptor):
         else:
             # any other prefix means the data is DPAPI encrypted
             # https://chromium.googlesource.com/chromium/src/+/refs/heads/main/components/os_crypt/os_crypt_win.cc
-            return _decrypt_windows_dpapi(encrypted_value)
+            return _decrypt_windows_dpapi(encrypted_value, self._logger)
 
 
 def _get_linux_keyring_password(browser_keyring_name):
@@ -354,22 +363,24 @@ def _get_mac_keyring_password(browser_keyring_name):
             return None
 
 
-def _get_windows_v10_password(browser_root):
+def _get_windows_v10_password(browser_root, logger):
     path = _find_most_recently_used_file(browser_root, 'Local State')
     if path is None:
-        print('could not find local state file')
+        logger.error('could not find local state file')
         return None
     with open(path, 'r') as f:
         data = json.load(f)
     try:
         base64_password = data['os_crypt']['encrypted_key']
     except KeyError:
+        logger.error('no encrypted key in Local State')
         return None
     encrypted_password = compat_b64decode(base64_password)
     prefix = b'DPAPI'
     if not encrypted_password.startswith(prefix):
+        logger.error('invalid key')
         return None
-    return _decrypt_windows_dpapi(encrypted_password[len(prefix):])
+    return _decrypt_windows_dpapi(encrypted_password[len(prefix):], logger)
 
 
 def _decrypt_aes_cbc(ciphertext, key, initialization_vector=b' ' * 16):
@@ -398,7 +409,7 @@ def _decrypt_aes_gcm(ciphertext, key, nonce, authentication_tag):
         return None
 
 
-def _decrypt_windows_dpapi(ciphertext):
+def _decrypt_windows_dpapi(ciphertext, logger):
     """
     References:
         - https://docs.microsoft.com/en-us/windows/win32/api/dpapi/nf-dpapi-cryptunprotectdata
@@ -422,7 +433,7 @@ def _decrypt_windows_dpapi(ciphertext):
         ctypes.byref(blob_out)  # pDataOut
     )
     if not ret:
-        print('failed to decrypt with DPAPI')
+        logger.info('failed to decrypt with DPAPI')
         return None
 
     result = ctypes.string_at(blob_out.pbData, blob_out.cbData)
@@ -462,10 +473,21 @@ def _merge_cookie_jars(jars):
     return output_jar
 
 
-def load_cookies(cookie_file, browser):
+class YDLLogger(Logger):
+    def __init__(self, ydl):
+        self._ydl = ydl
+
+    def info(self, message):
+        self._ydl.to_screen(message)
+
+    def error(self, message):
+        self._ydl.to_stderr(message)
+
+
+def load_cookies(cookie_file, browser, ydl):
     cookie_jars = []
     if browser is not None:
-        cookie_jars.append(extract_cookies_from_browser(browser))
+        cookie_jars.append(extract_cookies_from_browser(browser, YDLLogger(ydl)))
 
     if cookie_file is not None:
         cookie_file = expand_path(cookie_file)

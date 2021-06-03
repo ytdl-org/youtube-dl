@@ -2371,7 +2371,7 @@ class YoutubeDL(object):
         opts_cookiefile = self.params.get('cookiefile')
         opts_proxy = self.params.get('proxy')
 
-        self.cookiejar = load_cookies(opts_cookiefile, opts_cookiesfrombrowser)
+        self.cookiejar = load_cookies(opts_cookiefile, opts_cookiesfrombrowser, self)
 
         cookie_processor = YoutubeDLCookieProcessor(self.cookiejar)
         if opts_proxy is not None:
