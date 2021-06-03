@@ -25,8 +25,7 @@ except ImportError:
     KEYRING_AVAILABLE = False
 
 
-SUPPORTED_BROWSERS = ['firefox', 'chrome', 'chrome_beta', 'chrome_dev', 'chromium', 'brave', 'opera',
-                      'edge', 'edge_beta']
+SUPPORTED_BROWSERS = ['firefox', 'chrome', 'chromium', 'brave', 'opera', 'edge']
 
 
 class Logger:
@@ -47,8 +46,7 @@ def _is_path(value):
 def extract_cookies_from_browser(browser_name, profile=None, logger=Logger()):
     if browser_name == 'firefox':
         return _extract_firefox_cookies(profile, logger)
-    elif browser_name in ('chrome', 'chrome_beta', 'chrome_dev', 'chromium',
-                          'brave', 'opera', 'edge', 'edge_beta'):
+    elif browser_name in ('chrome', 'chromium', 'brave', 'opera', 'edge'):
         return _extract_chrome_cookies(browser_name, profile, logger)
     else:
         raise ValueError('unknown browser: {}'.format(browser_name))
@@ -106,13 +104,10 @@ def _get_chrome_like_browser_settings(browser_name):
         config = _config_home()
         browser_dir = {
             'chrome': os.path.join(config, 'google-chrome'),
-            'chrome_beta': os.path.join(config, 'google-chrome-beta'),
-            'chrome_dev': os.path.join(config, 'google-chrome-unstable'),
             'chromium': os.path.join(config, 'chromium'),
             'brave': os.path.join(config, 'BraveSoftware/Brave-Browser'),
             'opera': os.path.join(config, 'opera'),
             'edge': os.path.join(config, 'microsoft-edge'),
-            'edge_beta': os.path.join(config, 'microsoft-edge-beta'),
         }[browser_name]
 
     elif sys.platform == 'win32':
@@ -120,21 +115,16 @@ def _get_chrome_like_browser_settings(browser_name):
         appdata_roaming = os.path.expandvars('%APPDATA%')
         browser_dir = {
             'chrome': os.path.join(appdata_local, r'Google\Chrome'),
-            'chrome_beta': os.path.join(appdata_local, r'Google\Chrome Beta'),
-            'chrome_dev': os.path.join(appdata_local, r'Google\Chrome SxS'),
             'chromium': os.path.join(appdata_local, r'Google\Chromium'),
             'brave': os.path.join(appdata_local, r'BraveSoftware\Brave-Browser'),
             'opera': os.path.join(appdata_roaming, r'Opera Software\Opera Stable'),
             'edge': os.path.join(appdata_local, r'Microsoft\Edge'),
-            'edge_beta': os.path.join(appdata_local, r'Microsoft\Edge Beta'),
         }[browser_name]
 
     elif sys.platform == 'darwin':
         appdata = os.path.expanduser('~/Library/Application Support')
         browser_dir = {
             'chrome': os.path.join(appdata, 'Google/Chrome'),
-            'chrome_beta': os.path.join(appdata, 'Google/Chrome Beta'),
-            'chrome_dev': os.path.join(appdata, 'Google/Chrome Canary'),
             'chromium': os.path.join(appdata, 'Google/Chromium'),
             'brave': os.path.join(appdata, 'BraveSoftware/Brave-Browser'),
             'opera': os.path.join(appdata, 'com.operasoftware.Opera'),
@@ -148,13 +138,10 @@ def _get_chrome_like_browser_settings(browser_name):
     # dbus-monitor "interface='org.kde.KWallet'" "type=method_return"
     keyring_name = {
         'chrome': 'Chrome',
-        'chrome_beta': 'Chrome',
-        'chrome_dev': 'Chrome',
         'chromium': 'Chromium',
         'brave': 'Brave',
         'opera': 'Opera' if sys.platform == 'darwin' else 'Chromium',
         'edge': 'Mirosoft Edge' if sys.platform == 'darwin' else 'Chromium',
-        'edge_beta': 'Mirosoft Edge' if sys.platform == 'darwin' else 'Chromium',
     }[browser_name]
 
     return {
@@ -524,6 +511,8 @@ def parse_browser_specification(browser_specification):
     if not parts[0] or len(parts) > 2:
         raise ValueError('invalid browser specification: "{}"'.format(browser_specification))
     browser_name, profile = parts
+    if _is_path(profile):
+        profile = os.path.expanduser(profile)
     return browser_name, profile
 
 
