@@ -8,8 +8,9 @@ import subprocess
 import sys
 import warnings
 
+from youtube_dl.aes import aes_cbc_decrypt
 from youtube_dl.compat import compat_cookiejar_Cookie, compat_b64decode, Compat_TemporaryDirectory, compat_ord
-from youtube_dl.utils import YoutubeDLCookieJar, expand_path
+from youtube_dl.utils import YoutubeDLCookieJar, expand_path, bytes_to_intlist, intlist_to_bytes
 
 try:
     from Crypto.Cipher import AES
@@ -254,12 +255,11 @@ def get_cookie_decryptor(browser_root, browser_keyring_name, logger):
 
 class LinuxChromeCookieDecryptor(ChromeCookieDecryptor):
     def __init__(self, browser_keyring_name):
-        self._v10_key = None
-        self._v11_key = None
-        if CRYPTO_AVAILABLE:
-            self._v10_key = self.derive_key(b'peanuts')
-            if KEYRING_AVAILABLE:
-                self._v11_key = self.derive_key(_get_linux_keyring_password(browser_keyring_name))
+        self._v10_key = self.derive_key(b'peanuts')
+        if KEYRING_AVAILABLE:
+            self._v11_key = self.derive_key(_get_linux_keyring_password(browser_keyring_name))
+        else:
+            self._v11_key = None
 
     @staticmethod
     def derive_key(password):
@@ -272,14 +272,11 @@ class LinuxChromeCookieDecryptor(ChromeCookieDecryptor):
         ciphertext = encrypted_value[3:]
 
         if version == b'v10':
-            if self._v10_key is None:
-                warnings.warn('cannot decrypt cookie as the module `pycryptodome` is not installed')
-                return None
             return _decrypt_aes_cbc(ciphertext, self._v10_key)
 
         elif version == b'v11':
             if self._v11_key is None:
-                warnings.warn('cannot decrypt cookie as the `pycryptodome` or `keyring` modules are not installed')
+                warnings.warn('cannot decrypt cookie as the `keyring` modules is not installed')
                 return None
             return _decrypt_aes_cbc(ciphertext, self._v11_key)
 
@@ -289,9 +286,7 @@ class LinuxChromeCookieDecryptor(ChromeCookieDecryptor):
 
 class MacChromeCookieDecryptor(ChromeCookieDecryptor):
     def __init__(self, browser_keyring_name):
-        self._v10_key = None
-        if CRYPTO_AVAILABLE:
-            self._v10_key = self.derive_key(_get_mac_keyring_password(browser_keyring_name))
+        self._v10_key = self.derive_key(_get_mac_keyring_password(browser_keyring_name))
 
     @staticmethod
     def derive_key(password):
@@ -304,9 +299,6 @@ class MacChromeCookieDecryptor(ChromeCookieDecryptor):
         ciphertext = encrypted_value[3:]
 
         if version == b'v10':
-            if self._v10_key is None:
-                warnings.warn('cannot decrypt cookie as the `pycryptodome` module is not installed')
-                return None
             return _decrypt_aes_cbc(ciphertext, self._v10_key)
 
         else:
@@ -327,6 +319,9 @@ class WindowsChromeCookieDecryptor(ChromeCookieDecryptor):
         if version == b'v10':
             if self._v10_key is None:
                 warnings.warn('cannot decrypt cookie')
+                return None
+            elif not CRYPTO_AVAILABLE:
+                warnings.warn('cannot decrypt cookie as the `pycryptodome` module is not installed')
                 return None
 
             # https://chromium.googlesource.com/chromium/src/+/refs/heads/main/components/os_crypt/os_crypt_win.cc
@@ -350,19 +345,18 @@ class WindowsChromeCookieDecryptor(ChromeCookieDecryptor):
 
 
 def _get_linux_keyring_password(browser_keyring_name):
-    if KEYRING_AVAILABLE:
-        password = keyring.get_password('{} Keys'.format(browser_keyring_name),
-                                        '{} Safe Storage'.format(browser_keyring_name))
-        if password is None:
-            # this sometimes occurs in KDE because chrome does not check hasEntry and instead
-            # just tries to read the value (which kwallet returns "") whereas keyring checks hasEntry
-            # to verify this:
-            # dbus-monitor "interface='org.kde.KWallet'" "type=method_return"
-            # while starting chrome.
-            # this may be a bug as the intended behaviour is to generate a random password and store
-            # it, but that doesn't matter here.
-            password = ''
-        return password.encode('utf-8')
+    password = keyring.get_password('{} Keys'.format(browser_keyring_name),
+                                    '{} Safe Storage'.format(browser_keyring_name))
+    if password is None:
+        # this sometimes occurs in KDE because chrome does not check hasEntry and instead
+        # just tries to read the value (which kwallet returns "") whereas keyring checks hasEntry
+        # to verify this:
+        # dbus-monitor "interface='org.kde.KWallet'" "type=method_return"
+        # while starting chrome.
+        # this may be a bug as the intended behaviour is to generate a random password and store
+        # it, but that doesn't matter here.
+        password = ''
+    return password.encode('utf-8')
 
 
 def _get_mac_keyring_password(browser_keyring_name):
@@ -404,11 +398,12 @@ def _get_windows_v10_password(browser_root, logger):
 
 
 def _decrypt_aes_cbc(ciphertext, key, initialization_vector=b' ' * 16):
-    cipher = AES.new(key, AES.MODE_CBC, iv=initialization_vector)
-    plaintext = cipher.decrypt(ciphertext)
+    plaintext = aes_cbc_decrypt(bytes_to_intlist(ciphertext),
+                                bytes_to_intlist(key),
+                                bytes_to_intlist(initialization_vector))
     padding_length = compat_ord(plaintext[-1])
     try:
-        return plaintext[:-padding_length].decode('utf-8')
+        return intlist_to_bytes(plaintext[:-padding_length]).decode('utf-8')
     except UnicodeDecodeError:
         warnings.warn('failed to decrypt cookie because UTF-8 decoding failed. Possibly the key is wrong?')
         return None
