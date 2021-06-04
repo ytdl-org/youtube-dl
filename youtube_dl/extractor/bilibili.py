@@ -112,6 +112,14 @@ class BiliBiliIE(InfoExtractor):
     _APP_KEY = 'iVGUTjsxvpLeuDCf'
     _BILIBILI_KEY = 'aHRmhWMLkdeMuILqORnYZocwMBpMEOdt'
 
+    def convert_timestamp_format(self, cc_timestamp):
+        s, mm = int(cc_timestamp), 0
+        if "." in str(cc_timestamp):
+            s, mm = map(int, str(cc_timestamp).split("."))
+        m, s = divmod(s, 60)
+        h, m = divmod(m, 60)
+        return "%02d:%02d:%02d,%03d" % (h, m, s, mm)
+
     def _report_error(self, result):
         if 'message' in result:
             raise ExtractorError('%s said: %s' % (self.IE_NAME, result['message']), expected=True)
@@ -154,6 +162,21 @@ class BiliBiliIE(InfoExtractor):
             if 'result' not in js:
                 self._report_error(js)
             cid = js['result']['cid']
+
+        subtitles = {}
+        for sub in re.findall(r'"lan":\s*"([^"]+)"[^}]+"subtitle_url":\s*"([^"]+)"', webpage, re.DOTALL):
+            subtitles[sub[0]] = [{'url': sub[1]}]
+            j = self._download_json(sub[1].replace("\\u002F", "/"), video_id, note='Downloading raw subtitle: %s' % (sub[0]))
+            srt = []
+            for idx, line in enumerate(j["body"]):
+                from_timestamp = self.convert_timestamp_format(line["from"])
+                to_timestamp = self.convert_timestamp_format(line["to"])
+                srt_tmp = (
+                    """%d\n%s --> %s\n%s\n""" % (idx, from_timestamp, to_timestamp, line["content"])
+                )
+                srt.append(srt_tmp)
+            subtitles[sub[0]][0]["data"] = "\n".join(srt)
+            subtitles[sub[0]][0]["ext"] = "srt"
 
         headers = {
             'Accept': 'application/json',
@@ -204,6 +227,7 @@ class BiliBiliIE(InfoExtractor):
                     'id': '%s_part%s' % (video_id, idx),
                     'duration': float_or_none(durl.get('length'), 1000),
                     'formats': formats,
+                    'subtitles': subtitles
                 })
             break
 
