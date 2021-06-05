@@ -1,4 +1,4 @@
-version <unreleased>
+version 2021.06.06
 
 Extractors
 * [facebook] Improve login required detection
