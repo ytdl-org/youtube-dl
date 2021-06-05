@@ -1,0 +1,12 @@
+
+prepare:
+  - pip install flake8
+
+stages:
+  - build
+  - test
+
+build-code-job:
+  stage: build
+  script:
+    - flake 8 ./youtube_dl/extractor/thisvid.py
