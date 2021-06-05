@@ -322,7 +322,7 @@ class MacChromeCookieDecryptor(ChromeCookieDecryptor):
 class WindowsChromeCookieDecryptor(ChromeCookieDecryptor):
     def __init__(self, browser_root, logger):
         self._logger = logger
-        self._v10_key = _get_windows_v10_password(browser_root, logger)
+        self._v10_key = _get_windows_v10_key(browser_root, logger)
 
     def decrypt(self, encrypted_value):
         version = encrypted_value[:3]
@@ -389,7 +389,7 @@ def _get_mac_keyring_password(browser_keyring_name):
             return None
 
 
-def _get_windows_v10_password(browser_root, logger):
+def _get_windows_v10_key(browser_root, logger):
     path = _find_most_recently_used_file(browser_root, 'Local State')
     if path is None:
         logger.error('could not find local state file')
@@ -397,16 +397,16 @@ def _get_windows_v10_password(browser_root, logger):
     with open(path, 'r') as f:
         data = json.load(f)
     try:
-        base64_password = data['os_crypt']['encrypted_key']
+        base64_key = data['os_crypt']['encrypted_key']
     except KeyError:
         logger.error('no encrypted key in Local State')
         return None
-    encrypted_password = compat_b64decode(base64_password)
+    encrypted_key = compat_b64decode(base64_key)
     prefix = b'DPAPI'
-    if not encrypted_password.startswith(prefix):
+    if not encrypted_key.startswith(prefix):
         logger.error('invalid key')
         return None
-    return _decrypt_windows_dpapi(encrypted_password[len(prefix):], logger)
+    return _decrypt_windows_dpapi(encrypted_key[len(prefix):], logger)
 
 
 def _decrypt_aes_cbc(ciphertext, key, initialization_vector=b' ' * 16):

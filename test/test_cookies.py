@@ -45,7 +45,7 @@ class TestCookies(unittest.TestCase):
             assert decryptor.decrypt(encrypted_value) == value
 
     def test_chrome_cookie_decryptor_windows_v10(self):
-        with MonkeyPatch(cookies, '_get_windows_v10_password',
+        with MonkeyPatch(cookies, '_get_windows_v10_key',
                          lambda *args, **kwargs: b'Y\xef\xad\xad\xeerp\xf0Y\xe6\x9b\x12\xc2<z\x16]\n\xbb\xb8\xcb\xd7\x9bA\xc3\x14e\x99{\xd6\xf4&'):
             encrypted_value = b'v10T\xb8\xf3\xb8\x01\xa7TtcV\xfc\x88\xb8\xb8\xef\x05\xb5\xfd\x18\xc90\x009\xab\xb1\x893\x85)\x87\xe1\xa9-\xa3\xad='
             value = '32101439'
