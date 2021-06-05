@@ -113,12 +113,10 @@ class BiliBiliIE(InfoExtractor):
     _BILIBILI_KEY = 'aHRmhWMLkdeMuILqORnYZocwMBpMEOdt'
 
     def convert_timestamp_format(self, cc_timestamp):
-        s, mm = int(cc_timestamp), 0
-        if "." in str(cc_timestamp):
-            s, mm = map(int, str(cc_timestamp).split("."))
-        m, s = divmod(s, 60)
+        ss, mm = "{:.3f}".format(float(cc_timestamp)).split(".")
+        m, s = divmod(int(ss), 60)
         h, m = divmod(m, 60)
-        return "%02d:%02d:%02d,%03d" % (h, m, s, mm)
+        return "%02d:%02d:%02d,%s" % (h, m, s, mm)
 
     def _report_error(self, result):
         if 'message' in result:
