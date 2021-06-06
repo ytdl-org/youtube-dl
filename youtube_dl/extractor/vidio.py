@@ -166,7 +166,6 @@ class VidioPremierIE(VidioBaseIE):
 
     def _playlist_entries(self, playlist, series_id, series_name, season_name, display_id):
         playlist_url = 'https://api.vidio.com/content_profiles/%s/playlists/%s/playlist_items' % (series_id, playlist['id'])
-        playlist_name = playlist.get('name')
 
         entries = []
         index = 1
@@ -255,7 +254,7 @@ class VidioLiveIE(VidioBaseIE):
             if stream_meta.get('stream_token_url'):
                 token_json = self._download_json(
                     'https://www.vidio.com/live/%s/tokens' % video_id,
-                display_id, note='Downloading HLS token JSON', data=b'')
+                    display_id, note='Downloading HLS token JSON', data=b'')
                 formats.extend(self._extract_m3u8_formats(
                     stream_meta['stream_token_url'] + '?' + token_json.get('token', ''), display_id, 'mp4', 'm3u8_native'))
             if stream_meta.get('stream_dash_url'):
