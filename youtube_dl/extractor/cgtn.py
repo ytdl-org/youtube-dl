@@ -3,7 +3,7 @@ from __future__ import unicode_literals
 from .common import InfoExtractor
 
 
-class CgtnNewsIE(InfoExtractor):
+class CGTNIE(InfoExtractor):
     _VALID_URL = r'https?://news\.cgtn\.com/news/[0-9]{4}-[0-9]{2}-[0-9]{2}/(?P<id>[a-zA-Z0-9-]+)/index\.html'
     _TESTS = [
         {
