@@ -4,34 +4,44 @@ from .common import InfoExtractor
 
 
 class CgtnNewsIE(InfoExtractor):
-    _VALID_URL = r'https?://news\.cgtn\.com/news/[0-9]{4}-[0-9]{2}-[0-9]{2}/[a-zA-Z0-9-]+/index\.html'
-    _TEST = {
-        'url': 'https://news.cgtn.com/news/2021-03-09/Up-and-Out-of-Poverty-Ep-1-A-solemn-promise-YuOUaOzGQU/index.html',
-        'md5': 'TODO: md5 sum of the first 10241 bytes of the video file (use --test)',
-        'info_dict': {
-            'id': '42',
-            'ext': 'mp4',
-            'title': 'Video title goes here',
-            'thumbnail': r're:^https?://.*\.jpg$',
-            # TODO more properties, either as:
-            # * A value
-            # * MD5 checksum; start the string with md5:
-            # * A regular expression; start the string with re:
-            # * Any Python type (for example int or float)
+    _VALID_URL = r'https?://news\.cgtn\.com/news/[0-9]{4}-[0-9]{2}-[0-9]{2}/(?P<id>[a-zA-Z0-9-]+)/index\.html'
+    _TESTS = [
+        {
+            'url': 'https://news.cgtn.com/news/2021-03-09/Up-and-Out-of-Poverty-Ep-1-A-solemn-promise-YuOUaOzGQU/index.html',
+            'info_dict': {
+                'id': 'YuOUaOzGQU',
+                'ext': 'mp4',
+                'title': 'Up and Out of Poverty Ep. 1: A solemn promise',
+                'thumbnail': r're:^https?://.*\.jpg$',
+            }
+        },
+        {
+            'url': 'https://news.cgtn.com/news/2021-06-06/China-Indonesia-vow-to-further-deepen-maritime-cooperation-10REvJCewCY/index.html',
+            'info_dict': {
+                'id': '10REvJCewCY',
+                'ext': 'mp4',
+                'title': 'China, Indonesia vow to further deepen maritime cooperation',
+                'thumbnail': r're:^https?://.*\.jpg$',
+            }
         }
-    }
+    ]
 
     def _real_extract(self, url):
         video_id = self._match_id(url)
+        video_id = video_id.split('-')[-1]
         webpage = self._download_webpage(url, video_id)
 
-        # TODO more code goes here, for example ...
-        title = self._html_search_regex(r'<h1>(.+?)</h1>', webpage, 'title')
+        title = self._html_search_regex(r'<div class="news-title">(.+?)</div>', webpage, 'title')
+        download_url = self._html_search_regex(r'<div class="cg-player-container J_player_container" .*? data-video ="(?P<url>.+m3u8)" (.*?)>', webpage, 'download_url')
+        thumbnail = self._html_search_regex(r'<div class="cg-player-container J_player_container" .*? data-poster="(?P<thumbnail>.+jpg)" (.*?)>', webpage, 'thumbnail')
+
+        formats = self._extract_m3u8_formats(
+            download_url, video_id, 'mp4',
+            entry_protocol='m3u8_native', m3u8_id='hls')
 
         return {
             'id': video_id,
             'title': title,
-            'description': self._og_search_description(webpage),
-            'uploader': self._search_regex(r'<div[^>]+id="uploader"[^>]*>([^<]+)<', webpage, 'uploader', fatal=False),
-            # TODO more properties (see youtube_dl/extractor/common.py)
-        } 
+            'thumbnail': thumbnail,
+            'formats': formats
+        }
