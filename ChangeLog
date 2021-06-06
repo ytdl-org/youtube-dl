@@ -1,3 +1,21 @@
+version 2021.06.06
+
+Extractors
+* [facebook] Improve login required detection
+* [youporn] Fix formats and view count extraction (#29216)
+* [orf:tvthek] Fix thumbnails extraction (#29217)
+* [formula1] Fix extraction (#29206)
+* [ard] Relax URL regular expression and fix video ids (#22724, #29091)
++ [ustream] Detect https embeds (#29133)
+* [ted] Prefer own formats over external sources (#29142)
+* [twitch:clips] Improve extraction (#29149)
++ [twitch:clips] Add access token query to download URLs (#29136)
+* [youtube] Fix get_video_info request (#29086, #29165)
+* [vimeo] Fix vimeo pro embed extraction (#29126)
+* [redbulltv] Fix embed data extraction (#28770)
+* [shahid] Relax URL regular expression (#28772, #28930)
+
+
 version 2021.05.16
 
 Core
