@@ -14,6 +14,7 @@ from ..compat import (
 from ..utils import (
     js_to_json,
     strip_jsonp,
+    url_or_none,
     urlencode_postdata,
 )
 
@@ -26,6 +27,7 @@ class WeiboIE(InfoExtractor):
             'id': 'Fp6RGfbff',
             'ext': 'mp4',
             'title': 'You should have servants to massage you,... 来自Hosico_猫 - 微博',
+            'uploader': 'Hosico_猫',
         }
     }
 
@@ -74,34 +76,65 @@ class WeiboIE(InfoExtractor):
                 url, video_id, note='Revisiting webpage')
 
         title = self._html_search_regex(
-            r'<title>(.+?)</title>', webpage, 'title')
+            r'<title>(.+?)</title>', webpage, 'title', default=None, flags=re.DOTALL) or \
+            self._search_regex(
+                r'CONFIG\[\'title_value\'\]=\'(.+?)\';', webpage, 'title')
 
         video_formats = compat_parse_qs(self._search_regex(
             r'video-sources=\\\"(.+?)\"', webpage, 'video_sources'))
 
         formats = []
-        supported_resolutions = (480, 720)
-        for res in supported_resolutions:
-            vid_urls = video_formats.get(compat_str(res))
-            if not vid_urls or not isinstance(vid_urls, list):
-                continue
+        supported_resolutions = ('360p', '480p', '720p', '1080p', '1080p+')
+        quality_list = video_formats.get('quality_label_list')
+        if quality_list and isinstance(quality_list, list):
+            quality_list = self._parse_json(quality_list[0], video_id, fatal=False)
+            if quality_list:
+                for res in supported_resolutions:
+                    vid_urls = [q.get('url') for q in quality_list
+                                if q.get('quality_label', '').lower() == res]
+                    if not vid_urls:
+                        continue
+                    vid_url = url_or_none(vid_urls[0])
+                    if not vid_url:
+                        continue
+                    formats.append({
+                        'url': vid_url,
+                        'resolution': res,
+                    })
 
-            vid_url = vid_urls[0]
-            formats.append({
-                'url': vid_url,
-                'height': res,
-            })
+        if not formats:
+            supported_resolutions = (480, 720, 1080)
+            for res in supported_resolutions:
+                vid_urls = video_formats.get(compat_str(res))
+                if not vid_urls or not isinstance(vid_urls, list):
+                    continue
+
+                vid_url = vid_urls[0]
+                formats.append({
+                    'url': vid_url,
+                    'height': res,
+                })
 
         self._sort_formats(formats)
 
-        uploader = self._og_search_property(
-            'nick-name', webpage, 'uploader', default=None)
+        uploader = self._search_regex(
+            [r'nick-name=\\\"(.+?)\\\"', r'CONFIG\[\'onick\'\]=\'(.+?)\';'],
+            webpage, 'uploader', default=None)
+
+        thumbnail = None
+        action_data = compat_parse_qs(self._search_regex(
+            r'action-data=\\\"([^"]+?cover_img=[^"]+?)\\\"', webpage, 'thumbnail', default=''))
+        if action_data:
+            cover_imgs = action_data.get('cover_img')
+            if cover_imgs and isinstance(cover_imgs, list):
+                thumbnail = url_or_none(cover_imgs[0])
 
         return {
             'id': video_id,
             'title': title,
             'uploader': uploader,
-            'formats': formats
+            'formats': formats,
+            'thumbnail': thumbnail,
         }
 
 
