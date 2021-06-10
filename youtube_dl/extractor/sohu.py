@@ -1,6 +1,7 @@
 # coding: utf-8
 from __future__ import unicode_literals
 
+import math
 import re
 
 from .common import InfoExtractor
@@ -11,7 +12,7 @@ from ..compat import (
 from ..utils import (
     ExtractorError,
     int_or_none,
-    try_get,
+    try_get, NO_DEFAULT, HTMLAttributeParser,
 )
 
 
@@ -258,3 +259,66 @@ class SohuIE(InfoExtractor):
             }
 
         return info
+
+
+class SohuPlaylistIE(InfoExtractor):
+    _VALID_URL = r'https?://(?:my\.)?tv\.sohu\.com/pl/(?P<pl_id>\d+)'
+    _URL_IN_PLAYLIST = re.compile(r'<strong>.*?</strong>')
+    parser = HTMLAttributeParser()
+    _TESTS = [{
+        'url': 'https://my.tv.sohu.com/pl/9637148',
+        'info_dict': {
+            'title': '【语文大师】初中必背、常考经典古诗词',
+            'id': '9637148',
+        },
+        'playlist_count': 70,
+    }, {
+        'url': 'https://my.tv.sohu.com/pl/9700995',
+        'info_dict': {
+            'title': '牛人游戏',
+            'id': '9700995',
+        },
+        'playlist_count': 198,
+    },
+    ]
+
+    def _real_extract(self, url):
+        mobj = re.match(self._VALID_URL, url)
+        playlist_id = mobj.group('pl_id')
+
+        webpage = self._download_webpage(url, playlist_id)
+        title = self._get_playlist_title(webpage)
+        all_pages = self._get_all_pages_in_playlist(webpage, url)
+        video_list = self._get_video_list(all_pages, playlist_id)
+        playlist = self.playlist_result(self._entries(video_list), playlist_id, title)
+
+        return playlist
+
+    def _get_playlist_title(self, webpage):
+        title = self._search_regex(r'<title>(.*?)</title>', webpage, 'title')
+        return re.sub(r'(?:^栏目：| -搜狐视频$)', '', title)
+
+    def _entries(self, video_list):
+        entries = []
+        for mobj in re.finditer(self._URL_IN_PLAYLIST, video_list):
+            self.parser.feed(mobj.group(0))
+            url = self.parser.attrs['href']
+            title = self.parser.attrs['title']
+            entry = self.url_result(url, SohuIE.ie_key(), '', title)
+            entries.append(entry)
+        return entries
+
+    def _get_all_pages_in_playlist(self, first_page, url):
+        pgcount = int(self._search_regex(r'var pgcount = \'(\d+)\'', first_page, 'pgcount'))
+        pgsize = int(self._search_regex(r'var pgsize = \'(\d+)\'', first_page, 'pgsize'))
+        return [url + '/index%d.shtml' % (i+1) for i in range(0, math.ceil(pgcount/pgsize))]
+
+    def _get_video_list(self, all_pages, playlist_id):
+        video_list = ''
+        for i, url in enumerate(all_pages):
+            webpage = self._download_webpage(url, "playlist " + playlist_id + " page: %d" % (1+i))
+            video_list += self._search_regex(
+                r'<ul class="uList cfix">(.*?)</ul>',
+                webpage, 'video list', NO_DEFAULT, True, re.DOTALL)
+        return video_list
+
