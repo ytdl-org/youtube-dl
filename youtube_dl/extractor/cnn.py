@@ -3,8 +3,19 @@ from __future__ import unicode_literals
 import re
 
 from .common import InfoExtractor
+from ..compat import (
+    compat_parse_qs,
+    compat_str,
+    compat_urllib_parse_urlparse,
+)
 from .turner import TurnerBaseIE
-from ..utils import url_basename
+from ..utils import (
+    clean_podcast_url,
+    int_or_none,
+    parse_iso8601,
+    try_get,
+    url_basename,
+)
 
 
 class CNNIE(TurnerBaseIE):
@@ -126,7 +137,7 @@ class CNNBlogsIE(InfoExtractor):
 
 
 class CNNArticleIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:(?:edition|www)\.)?cnn\.com/(?!videos?/)'
+    _VALID_URL = r'https?://(?:(?:edition|www)\.)?cnn\.com/(?!(?:videos?|audio/podcasts)/)'
     _TEST = {
         'url': 'http://www.cnn.com/2014/12/21/politics/obama-north-koreas-hack-not-war-but-cyber-vandalism/',
         'md5': '689034c2a3d9c6dc4aa72d65a81efd01',
@@ -145,3 +156,66 @@ class CNNArticleIE(InfoExtractor):
         webpage = self._download_webpage(url, url_basename(url))
         cnn_url = self._html_search_regex(r"video:\s*'([^']+)'", webpage, 'cnn url')
         return self.url_result('http://cnn.com/video/?/video/' + cnn_url, CNNIE.ie_key())
+
+
+class CNNPodcastsIE(InfoExtractor):
+    _VALID_URL = r'https?://(?:(?:edition|us|www)\.)?cnn\.com/audio/podcasts/'
+    _TESTS = [{
+        'url': 'https://edition.cnn.com/audio/podcasts/lincoln?episodeguid=4780950f-e269-407b-9ea1-accc01762945',
+        'info_dict': {
+            'id': '4780950f-e269-407b-9ea1-accc01762945',
+            'ext': 'mp3',
+            'title': 'Rising Star',
+            'description': 'md5:cc953c3786761333e0829608d2437aba',
+            'timestamp': 1613361600,
+            'upload_date': '20210215',
+        },
+    }, {
+        # playlist
+        'url': 'https://edition.cnn.com/audio/podcasts/lincoln',
+        'info_dict': {
+            'id': 'lincoln',
+            'title': 'Lincoln: Divided We Stand',
+            'description': 'md5:9e122d8d05d58464fc2d5346d84671df',
+        },
+        'playlist_count': 7,
+    }]
+
+    def _real_extract(self, url):
+        episode_id = None
+        query = compat_urllib_parse_urlparse(url).query
+        if query:
+            episode_id = compat_parse_qs(query).get('episodeguid', [None])[0]
+        playlist_id = url_basename(url)
+        video_id = episode_id or playlist_id
+        webpage = self._download_webpage(url, video_id)
+        episode_data = self._parse_json(self._search_regex(
+            r'EPISODE_DATA\s*=\s*(\{.+?\});', webpage, 'episode data'), video_id)
+        episodes = episode_data.get('episodes') or []
+
+        def entry_info_dict(episode):
+            description = episode.get('summary')
+            if description:
+                # remove extra note
+                description = re.sub(r'\r\n.*', '', description, flags=re.DOTALL).strip()
+            return {
+                'id': episode.get('guid'),
+                'title': episode.get('title'),
+                'url': clean_podcast_url(try_get(episode, lambda x: x['enclosure']['url'], compat_str)),
+                'description': description,
+                'duration': int_or_none(episode.get('duration')),
+                'timestamp': parse_iso8601(episode.get('publishedDate')),
+            }
+
+        if episode_id:
+            for episode in episodes:
+                if episode.get('guid') == episode_id:
+                    return entry_info_dict(episode)
+        else:
+            entries = []
+            for episode in episodes:
+                entries.append(entry_info_dict(episode))
+            playlist_title = episode_data.get('name')
+            playlist_description = episode_data.get('description')
+            return self.playlist_result(
+                entries, playlist_id, playlist_title, playlist_description)
