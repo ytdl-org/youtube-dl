@@ -262,7 +262,7 @@ class SohuIE(InfoExtractor):
 
 
 class SohuPlaylistIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:my\.)?tv\.sohu\.com/pl/(?P<pl_id>\d+)'
+    _VALID_URL = r'https?://(?:my\.)?tv\.sohu\.com/pl/(?P<pl_id>\d+)$'
     _URL_IN_PLAYLIST = re.compile(r'<strong>.*?</strong>')
     parser = HTMLAttributeParser()
     _TESTS = [{
@@ -311,14 +311,13 @@ class SohuPlaylistIE(InfoExtractor):
     def _get_all_pages_in_playlist(self, first_page, url):
         pgcount = int(self._search_regex(r'var pgcount = \'(\d+)\'', first_page, 'pgcount'))
         pgsize = int(self._search_regex(r'var pgsize = \'(\d+)\'', first_page, 'pgsize'))
-        return [url + '/index%d.shtml' % (i+1) for i in range(0, math.ceil(pgcount/pgsize))]
+        return [url + '/index%d.shtml' % (i + 1) for i in range(0, math.ceil(pgcount / pgsize))]
 
     def _get_video_list(self, all_pages, playlist_id):
         video_list = ''
         for i, url in enumerate(all_pages):
-            webpage = self._download_webpage(url, "playlist " + playlist_id + " page: %d" % (1+i))
+            webpage = self._download_webpage(url, "playlist " + playlist_id + " page: %d" % (1 + i))
             video_list += self._search_regex(
                 r'<ul class="uList cfix">(.*?)</ul>',
                 webpage, 'video list', NO_DEFAULT, True, re.DOTALL)
         return video_list
-
