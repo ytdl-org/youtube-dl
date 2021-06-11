@@ -14,13 +14,14 @@ from ..utils import (
 
 
 class XVideosIE(InfoExtractor):
+    
     _VALID_URL = r'''(?x)
                     https?://
                         (?:
-                            (?:[^/]+\.)?xvideos3?\.com/video|
-                            (?:www\.)?xvideos3\.es/video|
-                            flashservice\.xvideos3\.com/embedframe/|
-                            static-hw\.xvideos3\.com/swf/xv-player\.swf\?.*?\bid_video=
+                            (?:[^/]+\.)?xvideos[2-5]?\.com/video|
+                            (?:www\.)?xvideos\.es/video|
+                            flashservice\.xvideos\.com/embedframe/|
+                            static-hw\.xvideos\.com/swf/xv-player\.swf\?.*?\bid_video=
                         )
                         (?P<id>[0-9]+)
                     '''
@@ -76,14 +77,31 @@ class XVideosIE(InfoExtractor):
     }, {
         'url': 'https://de.xvideos.com/video4588838/biker_takes_his_girl',
         'only_matching': True
+    }, {
+        'url': 'https://www.xvideos2.com/video4588838/biker_takes_his_girl',
+        'only_matching': True
+    }, {
+        'url': 'https://www.xvideos3.com/video4588838/biker_takes_his_girl',
+        'only_matching': True
+    }, {
+        'url': 'https://www.xvideos4.com/video4588838/biker_takes_his_girl',
+        'only_matching': True
+        
+    }, {
+        'url': 'https://www.xvideos5.com/video4588838/biker_takes_his_girl',
+        'only_matching': True
     }]
-
     def _real_extract(self, url):
         video_id = self._match_id(url)
 
-        webpage = self._download_webpage(
-            'https://www.xvideos3.com/video%s/' % video_id, video_id)
-
+        self.report_download_webpage(video_id)
+        Host_List = ['xvideos', 'xvideos2', 'xvideos3','xvideos4','xvideos5']
+        for host in Host_List:
+            webpage = self._download_webpage(
+                'https://www.' + host + '.com/video%s/' % video_id, video_id,note=False, fatal=host==Host_List[-1], errnote=host==Host_List[-1])
+            if webpage:
+                break
+            
         mobj = re.search(r'<h1 class="inlineError">(.+?)</h1>', webpage)
         if mobj:
             raise ExtractorError('%s said: %s' % (self.IE_NAME, clean_html(mobj.group(1))), expected=True)
