@@ -26,7 +26,7 @@ except ImportError:
 
 
 SUPPORTED_BROWSERS = ['brave', 'chrome', 'chromium', 'edge' 'firefox', 'opera', 'vivaldi']
-CHROME_LIKE_BROWSERS = {'brave', 'chrome', 'chromium', 'edge' 'opera', 'vivaldi'}
+CHROMIUM_BASED_BROWSERS = {'brave', 'chrome', 'chromium', 'edge' 'opera', 'vivaldi'}
 
 
 class Logger:
@@ -59,7 +59,7 @@ def load_cookies(cookie_file, browser_specification, ydl):
 def extract_cookies_from_browser(browser_name, profile=None, logger=Logger()):
     if browser_name == 'firefox':
         return _extract_firefox_cookies(profile, logger)
-    elif browser_name in CHROME_LIKE_BROWSERS:
+    elif browser_name in CHROMIUM_BASED_BROWSERS:
         return _extract_chrome_cookies(browser_name, profile, logger)
     else:
         raise ValueError('unknown browser: {}'.format(browser_name))
@@ -111,7 +111,7 @@ def _firefox_browser_dir():
         raise ValueError('unsupported platform: {}'.format(sys.platform))
 
 
-def _get_chrome_like_browser_settings(browser_name):
+def _get_chromium_based_browser_settings(browser_name):
     # https://chromium.googlesource.com/chromium/src/+/HEAD/docs/user_data_dir.md
     if sys.platform in ('linux', 'linux2'):
         config = _config_home()
@@ -161,23 +161,30 @@ def _get_chrome_like_browser_settings(browser_name):
         'vivaldi': 'Vivaldi' if sys.platform == 'darwin' else 'Chrome',
     }[browser_name]
 
+    browsers_without_profiles = {'opera'}
+
     return {
         'browser_dir': browser_dir,
-        'keyring_name': keyring_name
+        'keyring_name': keyring_name,
+        'supports_profiles': browser_name not in browsers_without_profiles
     }
 
 
 def _extract_chrome_cookies(browser_name, profile, logger):
     logger.info('extracting cookies from {}'.format(browser_name))
-    config = _get_chrome_like_browser_settings(browser_name)
+    config = _get_chromium_based_browser_settings(browser_name)
 
     if profile is None:
         search_root = config['browser_dir']
     elif _is_path(profile):
         search_root = profile
-        config['browser_dir'] = os.path.dirname(profile)
+        config['browser_dir'] = os.path.dirname(profile) if config['supports_profiles'] else profile
     else:
-        search_root = os.path.join(config['browser_dir'], profile)
+        if config['supports_profiles']:
+            search_root = os.path.join(config['browser_dir'], profile)
+        else:
+            logger.error('{} does not support profiles'.format(browser_name))
+            search_root = config['browser_dir']
 
     cookie_database_path = _find_most_recently_used_file(search_root, 'Cookies')
     if cookie_database_path is None:
