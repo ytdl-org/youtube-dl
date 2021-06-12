@@ -4,6 +4,7 @@ from __future__ import unicode_literals
 
 import os
 import subprocess
+import re
 
 from .ffmpeg import FFmpegPostProcessor
 
@@ -14,7 +15,8 @@ from ..utils import (
     PostProcessingError,
     prepend_extension,
     replace_extension,
-    shell_quote
+    shell_quote,
+    str_to_int
 )
 
 
@@ -86,6 +88,7 @@ class EmbedThumbnailPP(FFmpegPostProcessor):
                     '-metadata:s:v', 'title="Album cover"', '-metadata:s:v', 'comment="Cover (Front)"']
                 input_paths = [filename, thumbnail_filename]
             elif info['ext'] == 'mkv':
+                # https://matroska.org/technical/cover_art/index.html as pointed in #6046
                 if thumbnail_filename.endswith('.png'):
                     mimetype = 'image/png'
                     extension = 'png'
@@ -93,14 +96,19 @@ class EmbedThumbnailPP(FFmpegPostProcessor):
                     mimetype = 'image/jpeg'
                     extension = 'jpg'
 
+                thumbnail_resolution = self.get_image_resolution(thumbnail_filename)
+                if thumbnail_resolution is not None and (thumbnail_resolution[0] > thumbnail_resolution[1]):
+                    attach_filename = 'cover_land'
+                else:
+                    attach_filename = 'cover'
+
                 options = [
                     '-c', 'copy',
                     '-map', '0',
-                    '-attach', thumbnail_filename,
-                    # https://matroska.org/technical/cover_art/index.html as pointed in #6046
-                    # No orientation detection nor dimensions checking/convertion
-                    '-metadata:s:t', 'filename=cover_land.%s' % extension,
-                    # If not given : "[matroska @ 000001458de38840] Attachment stream 2 has no mimetype tag and it cannot be deduced from the codec id."
+                    '-attach', self._ffmpeg_filename_argument(thumbnail_filename),
+                    '-metadata:s:t', 'filename=%s.%s' % (attach_filename, extension),
+                    # Output example if mimetype is not given:
+                    # "[matroska @ 000001458de38840] Attachment stream 2 has no mimetype tag and it cannot be deduced from the codec id."
                     '-metadata:s:t', 'mimetype=%s' % mimetype,
                     # Use metadata "title" so it is set as MATROSKA_ID_FILEDESC - optional
                     # https://github.com/FFmpeg/FFmpeg/blob/9cfdf0e3322b9a451277cf36406ac4a8e4e3da74/libavformat/matroskaenc.c#L1762
@@ -155,3 +163,34 @@ class EmbedThumbnailPP(FFmpegPostProcessor):
                 os.rename(encodeFilename(temp_filename), encodeFilename(filename))
 
         return [], info
+
+    def get_image_resolution(self, image_filename):
+        # Inspired by FFmpegPostProcessor.get_audio_codec()
+        try:
+            cmd = [
+                encodeFilename(self.executable, True),
+                encodeArgument('-i')
+            ]
+            cmd.append(encodeFilename(self._ffmpeg_filename_argument(image_filename), True))
+            if self._downloader.params.get('verbose', False):
+                self._downloader.to_screen(
+                    '[debug] %s command line: %s' % (self.basename, shell_quote(cmd)))
+            handle = subprocess.Popen(
+                cmd, stderr=subprocess.PIPE,
+                stdout=subprocess.PIPE, stdin=subprocess.PIPE)
+            _, stderr_data = handle.communicate()
+            expected_ret = 1
+            if handle.wait() != expected_ret:
+                return None
+        except (IOError, OSError):
+            return None
+
+        output = stderr_data.decode('ascii', 'ignore')
+        match = re.search(
+            r'^\s*Stream #0:0: Video: (?:[^,]+(?:\([^)]+\))?,){2} ([0-9]+x[0-9]+)',
+            output,
+            re.M
+        )
+        if match:
+            return tuple(map(str_to_int, match.group(1).split('x')))
+        return None
