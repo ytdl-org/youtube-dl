@@ -1,8 +1,9 @@
 import unittest
+from datetime import datetime, timezone
 
 from youtube_dl import cookies
 from youtube_dl.cookies import LinuxChromeCookieDecryptor, WindowsChromeCookieDecryptor, CRYPTO_AVAILABLE, \
-    MacChromeCookieDecryptor, Logger
+    MacChromeCookieDecryptor, Logger, parse_safari_cookies
 
 
 class MonkeyPatch:
@@ -20,7 +21,6 @@ class MonkeyPatch:
         setattr(self._module, self._name, self._backup_value)
 
 
-@unittest.skipIf(not CRYPTO_AVAILABLE, 'cryptography library not available')
 class TestCookies(unittest.TestCase):
     def test_chrome_cookie_decryptor_linux_derive_key(self):
         key = LinuxChromeCookieDecryptor.derive_key(b'abc')
@@ -44,6 +44,7 @@ class TestCookies(unittest.TestCase):
             decryptor = LinuxChromeCookieDecryptor('Chrome')
             assert decryptor.decrypt(encrypted_value) == value
 
+    @unittest.skipIf(not CRYPTO_AVAILABLE, 'cryptography library not available')
     def test_chrome_cookie_decryptor_windows_v10(self):
         with MonkeyPatch(cookies, '_get_windows_v10_key',
                          lambda *args, **kwargs: b'Y\xef\xad\xad\xeerp\xf0Y\xe6\x9b\x12\xc2<z\x16]\n\xbb\xb8\xcb\xd7\x9bA\xc3\x14e\x99{\xd6\xf4&'):
@@ -59,4 +60,23 @@ class TestCookies(unittest.TestCase):
             decryptor = MacChromeCookieDecryptor('')
             assert decryptor.decrypt(encrypted_value) == value
 
+    def test_safari_cookie_parsing(self):
+        cookies = \
+            b'cook\x00\x00\x00\x01\x00\x00\x00i\x00\x00\x01\x00\x01\x00\x00\x00\x10\x00\x00\x00\x00\x00\x00\x00Y' \
+            b'\x00\x00\x00\x00\x00\x00\x00 \x00\x00\x00\x00\x00\x00\x008\x00\x00\x00B\x00\x00\x00F\x00\x00\x00H' \
+            b'\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x80\x03\xa5>\xc3A\x00\x00\x80\xc3\x07:\xc3A' \
+            b'localhost\x00foo\x00/\x00test%20%3Bcookie\x00\x00\x00\x054\x07\x17 \x05\x00\x00\x00Kbplist00\xd1\x01' \
+            b'\x02_\x10\x18NSHTTPCookieAcceptPolicy\x10\x02\x08\x0b&\x00\x00\x00\x00\x00\x00\x01\x01\x00\x00\x00' \
+            b'\x00\x00\x00\x00\x03\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00('
 
+        jar = parse_safari_cookies(cookies)
+        assert len(jar) == 1
+        cookie = list(jar)[0]
+        assert cookie.domain == 'localhost'
+        assert cookie.port is None
+        assert cookie.path == '/'
+        assert cookie.name == 'foo'
+        assert cookie.value == 'test%20%3Bcookie'
+        assert not cookie.secure
+        expected_expiration = datetime(2021, 6, 18, 20, 39, 19, tzinfo=timezone.utc)
+        assert cookie.expires == expected_expiration.timestamp()

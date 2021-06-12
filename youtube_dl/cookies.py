@@ -4,9 +4,11 @@ import json
 import os
 import shutil
 import sqlite3
+import struct
 import subprocess
 import sys
 import warnings
+from datetime import datetime, timedelta
 
 from youtube_dl.aes import aes_cbc_decrypt
 from youtube_dl.compat import compat_cookiejar_Cookie, compat_b64decode, Compat_TemporaryDirectory
@@ -25,7 +27,7 @@ except ImportError:
     KEYRING_AVAILABLE = False
 
 
-SUPPORTED_BROWSERS = ['brave', 'chrome', 'chromium', 'edge' 'firefox', 'opera', 'vivaldi']
+SUPPORTED_BROWSERS = ['brave', 'chrome', 'chromium', 'edge' 'firefox', 'opera', 'safari', 'vivaldi']
 CHROMIUM_BASED_BROWSERS = {'brave', 'chrome', 'chromium', 'edge' 'opera', 'vivaldi'}
 
 
@@ -35,6 +37,9 @@ class Logger:
 
     def info(self, message):
         print(message)
+
+    def warning(self, message):
+        print(message, file=sys.stderr)
 
     def error(self, message):
         print(message, file=sys.stderr)
@@ -59,6 +64,8 @@ def load_cookies(cookie_file, browser_specification, ydl):
 def extract_cookies_from_browser(browser_name, profile=None, logger=Logger()):
     if browser_name == 'firefox':
         return _extract_firefox_cookies(profile, logger)
+    elif browser_name == 'safari':
+        return _extract_safari_cookies(profile, logger)
     elif browser_name in CHROMIUM_BASED_BROWSERS:
         return _extract_chrome_cookies(browser_name, profile, logger)
     else:
@@ -366,6 +373,170 @@ class WindowsChromeCookieDecryptor(ChromeCookieDecryptor):
             return _decrypt_windows_dpapi(encrypted_value, self._logger).decode('utf-8')
 
 
+def _extract_safari_cookies(profile, logger):
+    if profile is not None:
+        logger.error('safari does not support profiles')
+    if sys.platform != 'darwin':
+        raise ValueError('unsupported platform: {}'.format(sys.platform))
+
+    cookies_path = os.path.expanduser('~/Library/Cookies/Cookies.binarycookies')
+
+    if not os.path.isfile(cookies_path):
+        raise FileNotFoundError('could not find safari cookies database')
+
+    with open(cookies_path, 'rb') as f:
+        cookies_data = f.read()
+
+    jar = parse_safari_cookies(cookies_data, logger=logger)
+    logger.info('extracted {} cookies from safari'.format(len(jar)))
+    return jar
+
+
+class ParserError(Exception):
+    pass
+
+
+class DataParser:
+    def __init__(self, data, logger):
+        self._data = data
+        self.cursor = 0
+        self._logger = logger
+
+    def read_bytes(self, num_bytes):
+        if num_bytes < 0:
+            raise ParserError('invalid read of {} bytes'.format(num_bytes))
+        end = self.cursor + num_bytes
+        if end > len(self._data):
+            raise ParserError('reached end of input')
+        data = self._data[self.cursor:end]
+        self.cursor = end
+        return data
+
+    def expect_bytes(self, expected_value, message):
+        value = self.read_bytes(len(expected_value))
+        if value != expected_value:
+            raise ParserError('unexpected value: {} != {} ({})'.format(value, expected_value, message))
+
+    def read_uint(self, big_endian=False):
+        data_format = '>I' if big_endian else '<I'
+        return struct.unpack(data_format, self.read_bytes(4))[0]
+
+    def read_double(self, big_endian=False):
+        data_format = '>d' if big_endian else '<d'
+        return struct.unpack(data_format, self.read_bytes(8))[0]
+
+    def read_cstring(self):
+        buffer = []
+        while True:
+            c = self.read_bytes(1)
+            if c == b'\x00':
+                return b''.join(buffer).decode('utf-8')
+            else:
+                buffer.append(c)
+
+    def skip(self, num_bytes, description='unknown'):
+        if num_bytes > 0:
+            self._logger.debug('skipping {} bytes ({}): {}'.format(
+                num_bytes, description, self.read_bytes(num_bytes)))
+        elif num_bytes < 0:
+            raise ParserError('invalid skip of {} bytes'.format(num_bytes))
+
+    def skip_to(self, offset, description='unknown'):
+        self.skip(offset - self.cursor, description)
+
+    def skip_to_end(self, description='unknown'):
+        self.skip_to(len(self._data), description)
+
+
+def _mac_absolute_time_to_posix(timestamp):
+    return (datetime(2001, 1, 1, 0, 0) + timedelta(seconds=timestamp)).timestamp()
+
+
+def _parse_safari_cookies_header(data, logger):
+    p = DataParser(data, logger)
+    p.expect_bytes(b'cook', 'database signature')
+    number_of_pages = p.read_uint(big_endian=True)
+    page_sizes = [p.read_uint(big_endian=True) for _ in range(number_of_pages)]
+    return page_sizes, p.cursor
+
+
+def _parse_safari_cookies_page(data, jar, logger):
+    p = DataParser(data, logger)
+    p.expect_bytes(b'\x00\x00\x01\x00', 'page signature')
+    number_of_cookies = p.read_uint()
+    record_offsets = [p.read_uint() for _ in range(number_of_cookies)]
+    if number_of_cookies == 0:
+        logger.debug('a cookies page of size {} has no cookies'.format(len(data)))
+        return
+
+    p.skip_to(record_offsets[0], 'unknown page header field')
+
+    for record_offset in record_offsets:
+        p.skip_to(record_offset, 'space between records')
+        record_length = _parse_safari_cookies_record(data[record_offset:], jar, logger)
+        p.read_bytes(record_length)
+    p.skip_to_end('space in between pages')
+
+
+def _parse_safari_cookies_record(data, jar, logger):
+    p = DataParser(data, logger)
+    record_size = p.read_uint()
+    p.skip(4, 'unknown record field 1')
+    flags = p.read_uint()
+    is_secure = bool(flags & 0x0001)
+    p.skip(4, 'unknown record field 2')
+    domain_offset = p.read_uint()
+    name_offset = p.read_uint()
+    path_offset = p.read_uint()
+    value_offset = p.read_uint()
+    p.skip(8, 'unknown record field 3')
+    expiration_date = _mac_absolute_time_to_posix(p.read_double())
+    _creation_date = _mac_absolute_time_to_posix(p.read_double())
+
+    try:
+        p.skip_to(domain_offset)
+        domain = p.read_cstring()
+
+        p.skip_to(name_offset)
+        name = p.read_cstring()
+
+        p.skip_to(path_offset)
+        path = p.read_cstring()
+
+        p.skip_to(value_offset)
+        value = p.read_cstring()
+    except UnicodeDecodeError:
+        warnings.warn('failed to parse cookie because UTF-8 decoding failed')
+        return record_size
+
+    p.skip_to(record_size, 'space at the end of the record')
+
+    cookie = compat_cookiejar_Cookie(
+        version=0, name=name, value=value, port=None, port_specified=False,
+        domain=domain, domain_specified=bool(domain), domain_initial_dot=domain.startswith('.'),
+        path=path, path_specified=bool(path), secure=is_secure, expires=expiration_date, discard=False,
+        comment=None, comment_url=None, rest={})
+    jar.set_cookie(cookie)
+    return record_size
+
+
+def parse_safari_cookies(data, jar=None, logger=Logger()):
+    """
+    References:
+        - https://github.com/libyal/dtformats/blob/main/documentation/Safari%20Cookies.asciidoc
+            - this data appears to be out of date but the important parts of the database structure is the same
+            - there are a few bytes here and there which are skipped during parsing
+    """
+    if jar is None:
+        jar = YoutubeDLCookieJar()
+    page_sizes, body_start = _parse_safari_cookies_header(data, logger)
+    p = DataParser(data[body_start:], logger)
+    for page_size in page_sizes:
+        _parse_safari_cookies_page(p.read_bytes(page_size), jar, logger)
+    p.skip_to_end('footer')
+    return jar
+
+
 def _get_linux_keyring_password(browser_keyring_name):
     password = keyring.get_password('{} Keys'.format(browser_keyring_name),
                                     '{} Safe Storage'.format(browser_keyring_name))
@@ -525,6 +696,9 @@ class YDLLogger(Logger):
 
     def info(self, message):
         self._ydl.to_screen(message)
+
+    def warning(self, message):
+        self._ydl.to_stderr(message)
 
     def error(self, message):
         self._ydl.to_stderr(message)
