@@ -130,7 +130,7 @@ def _get_chromium_based_browser_settings(browser_name):
         browser_dir = {
             'brave': os.path.join(appdata_local, r'BraveSoftware\Brave-Browser\User Data'),
             'chrome': os.path.join(appdata_local, r'Google\Chrome\User Data'),
-            'chromium': os.path.join(appdata_local, r'Google\Chromium\User Data'),
+            'chromium': os.path.join(appdata_local, r'Chromium\User Data'),
             'edge': os.path.join(appdata_local, r'Microsoft\Edge\User Data'),
             'opera': os.path.join(appdata_roaming, r'Opera Software\Opera Stable'),
             'vivaldi': os.path.join(appdata_local, r'Vivaldi\User Data'),
@@ -198,7 +198,10 @@ def _extract_chrome_cookies(browser_name, profile, logger):
         try:
             cursor = _open_database_copy(cookie_database_path, tmpdir)
             cursor.connection.text_factory = bytes
-            cursor.execute('SELECT host_key, name, value, encrypted_value, path, expires_utc, is_secure FROM cookies')
+            column_names = _get_column_names(cursor, 'cookies')
+            secure_column = 'is_secure' if 'is_secure' in column_names else 'secure'
+            cursor.execute('SELECT host_key, name, value, encrypted_value, path, '
+                           'expires_utc, {} FROM cookies'.format(secure_column))
             jar = YoutubeDLCookieJar()
             failed_cookies = 0
             for host_key, name, value, encrypted_value, path, expires_utc, is_secure in cursor.fetchall():
@@ -360,7 +363,7 @@ class WindowsChromeCookieDecryptor(ChromeCookieDecryptor):
         else:
             # any other prefix means the data is DPAPI encrypted
             # https://chromium.googlesource.com/chromium/src/+/refs/heads/main/components/os_crypt/os_crypt_win.cc
-            return _decrypt_windows_dpapi(encrypted_value, self._logger)
+            return _decrypt_windows_dpapi(encrypted_value, self._logger).decode('utf-8')
 
 
 def _get_linux_keyring_password(browser_keyring_name):
@@ -485,6 +488,11 @@ def _open_database_copy(database_path, tmpdir):
     shutil.copy(database_path, database_copy_path)
     conn = sqlite3.connect(database_copy_path)
     return conn.cursor()
+
+
+def _get_column_names(cursor, table_name):
+    table_info = cursor.execute('PRAGMA table_info({})'.format(table_name)).fetchall()
+    return [row[1].decode('utf-8') for row in table_info]
 
 
 def _find_most_recently_used_file(root, filename):
