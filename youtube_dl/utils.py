@@ -4369,6 +4369,10 @@ def _match_one(filter_part, dct):
         '>=': operator.ge,
         '=': operator.eq,
         '!=': operator.ne,
+        '~=': operator.contains,
+        '!~=': lambda left, right: not operator.contains(left, right),
+        '*=': lambda left, right: bool(re.search(right, left)),
+        '!*=': lambda left, right: not bool(re.search(right, left)),
     }
     operator_rex = re.compile(r'''(?x)\s*
         (?P<key>[a-z_]+)
@@ -4392,14 +4396,14 @@ def _match_one(filter_part, dct):
             # https://github.com/ytdl-org/youtube-dl/issues/11082).
             or actual_value is not None and m.group('intval') is not None
                 and isinstance(actual_value, compat_str)):
-            if m.group('op') not in ('=', '!='):
-                raise ValueError(
-                    'Operator %s does not support string values!' % m.group('op'))
             comparison_value = m.group('quotedstrval') or m.group('strval') or m.group('intval')
             quote = m.group('quote')
             if quote is not None:
                 comparison_value = comparison_value.replace(r'\%s' % quote, quote)
         else:
+            if m.group('op') in ('~=', '!~=', '*=', '!*='):
+                raise ValueError(
+                    'Operator %s only supports string values!' % m.group('op'))
             try:
                 comparison_value = int(m.group('intval'))
             except ValueError:
