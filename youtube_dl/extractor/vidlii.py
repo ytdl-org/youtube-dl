@@ -2,6 +2,7 @@
 from __future__ import unicode_literals
 
 import re
+import requests
 
 from .common import InfoExtractor
 from ..utils import (
@@ -17,23 +18,23 @@ from ..utils import (
 class VidLiiIE(InfoExtractor):
     _VALID_URL = r'https?://(?:www\.)?vidlii\.com/(?:watch|embed)\?.*?\bv=(?P<id>[0-9A-Za-z_-]{11})'
     _TESTS = [{
-        'url': 'https://www.vidlii.com/watch?v=tJluaH4BJ3v',
-        'md5': '9bf7d1e005dfa909b6efb0a1ff5175e2',
+        'url': 'https://www.vidlii.com/watch?v=zTAtaAgOLKt',
+        'md5': '5778f7366aa4c569b77002f8bf6b614f',
         'info_dict': {
-            'id': 'tJluaH4BJ3v',
+            'id': 'zTAtaAgOLKt',
             'ext': 'mp4',
-            'title': 'Vidlii is against me',
-            'description': 'md5:fa3f119287a2bfb922623b52b1856145',
-            'thumbnail': 're:https://.*.jpg',
-            'uploader': 'APPle5auc31995',
-            'uploader_url': 'https://www.vidlii.com/user/APPle5auc31995',
-            'upload_date': '20171107',
-            'duration': 212,
+            'title': 'FULPTUBE SUCKS.',
+            'description': 'md5:087b2ca355d4c8f8f77e97c43e72d711',
+            'thumbnail': 'https://www.vidlii.com/usfi/thmp/zTAtaAgOLKt.jpg',
+            'uploader': 'Homicide',
+            'uploader_url': 'https://www.vidlii.com/user/Homicide',
+            'upload_date': '20210612',
+            'duration': 89,
             'view_count': int,
             'comment_count': int,
             'average_rating': float,
             'categories': ['News & Politics'],
-            'tags': ['Vidlii', 'Jan', 'Videogames'],
+            'tags': ['fulp', 'tube', 'sucks', 'bad', 'fulptube'],
         }
     }, {
         'url': 'https://www.vidlii.com/embed?v=tJluaH4BJ3v&a=0',
@@ -42,17 +43,34 @@ class VidLiiIE(InfoExtractor):
 
     def _real_extract(self, url):
         video_id = self._match_id(url)
-
         webpage = self._download_webpage(
             'https://www.vidlii.com/watch?v=%s' % video_id, video_id)
+        formats = []
 
-        video_url = self._search_regex(
-            r'src\s*:\s*(["\'])(?P<url>(?:https?://)?(?:(?!\1).)+)\1', webpage,
-            'video url', group='url')
+        def add_format(format_url, height=None):
+            if format_url[-7:][:-4] == "720":
+                height = 720
+            else:
+                height = 360
+            formats.append({
+                'url': format_url,
+                'format_id': '%dp' % height if height else None,
+                'height': height,
+            })
+
+        hdsrc = self._search_regex(
+            r'hdsrc\s*:\s*(["\'])(?P<url>(?:https?://)?(?:(?!\1).)+)\1',
+            webpage, 'video url', group='url')
+        if not requests.head(hdsrc).status_code == 404:
+            add_format(hdsrc)
+        add_format(self._search_regex(
+            r'src\s*:\s*(["\'])(?P<url>(?:https?://)?(?:(?!\1).)+)\1',
+            webpage, 'video url', group='url'))
+        self._sort_formats(formats)
 
         title = self._search_regex(
-            (r'<h1>([^<]+)</h1>', r'<title>([^<]+) - VidLii<'), webpage,
-            'title')
+            (r'<h1>([^<]+)</h1>', r'<title>([^<]+) - VidLii<'),
+            webpage, 'title')
 
         description = self._html_search_meta(
             ('description', 'twitter:description'), webpage,
@@ -109,11 +127,11 @@ class VidLiiIE(InfoExtractor):
 
         return {
             'id': video_id,
-            'url': video_url,
             'title': title,
             'description': description,
             'thumbnail': thumbnail,
             'uploader': uploader,
+            'formats': formats,
             'uploader_url': uploader_url,
             'upload_date': upload_date,
             'duration': duration,
