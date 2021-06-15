@@ -27,7 +27,7 @@ class EggheadCourseIE(EggheadBaseIE):
         'url': 'https://egghead.io/courses/professor-frisby-introduces-composable-functional-javascript',
         'playlist_count': 29,
         'info_dict': {
-            'id': '72',
+            'id': '432655',
             'title': 'Professor Frisby Introduces Composable Functional JavaScript',
             'description': 're:(?s)^This course teaches the ubiquitous.*You\'ll start composing functionality before you know it.$',
         },
@@ -65,7 +65,7 @@ class EggheadCourseIE(EggheadBaseIE):
 class EggheadLessonIE(EggheadBaseIE):
     IE_DESC = 'egghead.io lesson'
     IE_NAME = 'egghead:lesson'
-    _VALID_URL = r'https://egghead\.io/(?:api/v1/)?lessons/(?P<id>[^/?#&]+)'
+    _VALID_URL = r'https://(?:app\.)?egghead\.io/(?:api/v1/)?lessons/(?P<id>[^/?#&]+)'
     _TESTS = [{
         'url': 'https://egghead.io/lessons/javascript-linear-data-flow-with-container-style-types-box',
         'info_dict': {
