@@ -28,7 +28,7 @@ class UMGDeIE(InfoExtractor):
     def _real_extract(self, url):
         video_id = self._match_id(url)
         video_data = self._download_json(
-            'https://api.universal-music.de/graphql',
+            'https://graphql.universal-music.de/',
             video_id, query={
                 'query': '''{
   universalMusic(channel:16) {
@@ -50,17 +50,10 @@ class UMGDeIE(InfoExtractor):
 }''' % video_id})['data']['universalMusic']['video']
 
         title = video_data['headline']
-        hls_url_template = 'http://mediadelivery.universal-music-services.de/vod/mp4:autofill/storage/' + '/'.join(list(video_id)) + '/content/%s/file/playlist.m3u8'
+        hls_url_template = 'https://hls.universal-music.de/' + '/'.join(list(video_id)) + '/playlist.m3u8'
 
         thumbnails = []
         formats = []
-
-        def add_m3u8_format(format_id):
-            m3u8_formats = self._extract_m3u8_formats(
-                hls_url_template % format_id, video_id, 'mp4',
-                'm3u8_native', m3u8_id='hls', fatal='False')
-            if m3u8_formats and m3u8_formats[0].get('height'):
-                formats.extend(m3u8_formats)
 
         for f in video_data.get('formats', []):
             f_url = f.get('url')
@@ -77,11 +70,6 @@ class UMGDeIE(InfoExtractor):
             if f_type == 'Image':
                 thumbnails.append(fmt)
             elif f_type == 'Video':
-                format_id = f.get('formatId')
-                if format_id:
-                    fmt['format_id'] = format_id
-                    if mime_type == 'video/mp4':
-                        add_m3u8_format(format_id)
                 urlh = self._request_webpage(f_url, video_id, fatal=False)
                 if urlh:
                     first_byte = urlh.read(1)
@@ -89,8 +77,10 @@ class UMGDeIE(InfoExtractor):
                         continue
                     formats.append(fmt)
         if not formats:
-            for format_id in (867, 836, 940):
-                add_m3u8_format(format_id)
+            m3u8_formats = self._extract_m3u8_formats(
+                hls_url_template, 'mp4',
+                'm3u8_native', m3u8_id='hls', fatal='False')
+            formats.extend(m3u8_formats)
         self._sort_formats(formats, ('width', 'height', 'filesize', 'tbr'))
 
         return {
