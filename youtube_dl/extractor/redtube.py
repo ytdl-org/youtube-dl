@@ -84,15 +84,25 @@ class RedTubeIE(InfoExtractor):
                 r'mediaDefinition["\']?\s*:\s*(\[.+?}\s*\])', webpage,
                 'media definitions', default='{}'),
             video_id, fatal=False)
-        if medias and isinstance(medias, list):
-            for media in medias:
+        for media in medias if isinstance(medias, list) else []:
+            format_url = url_or_none(media.get('videoUrl'))
+            if not format_url:
+                continue
+            format_id = media.get('format')
+            quality = media.get('quality')
+            if format_id == 'hls' or (format_id == 'mp4' and not quality):
+                more_media = self._download_json(format_url, video_id, fatal=False)
+            else:
+                more_media = [media]
+            for media in more_media if isinstance(more_media, list) else []:
                 format_url = url_or_none(media.get('videoUrl'))
                 if not format_url:
                     continue
-                if media.get('format') == 'hls' or determine_ext(format_url) == 'm3u8':
+                format_id = media.get('format')
+                if format_id == 'hls' or determine_ext(format_url) == 'm3u8':
                     formats.extend(self._extract_m3u8_formats(
                         format_url, video_id, 'mp4',
-                        entry_protocol='m3u8_native', m3u8_id='hls',
+                        entry_protocol='m3u8_native', m3u8_id=format_id or 'hls',
                         fatal=False))
                     continue
                 format_id = media.get('quality')
