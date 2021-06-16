@@ -88,6 +88,9 @@ class EggheadLessonIE(EggheadBaseIE):
     }, {
         'url': 'https://egghead.io/api/v1/lessons/react-add-redux-to-a-react-application',
         'only_matching': True,
+    }, {
+        'url': 'https://app.egghead.io/lessons/javascript-linear-data-flow-with-container-style-types-box',
+        'only_matching': True,
     }]
 
     def _real_extract(self, url):
