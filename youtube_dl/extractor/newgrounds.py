@@ -149,14 +149,7 @@ class NewgroundsPlaylistIE(InfoExtractor):
             'id': 'cats',
             'title': 'Cats',
         },
-        'playlist_mincount': 46,
-    }, {
-        'url': 'http://www.newgrounds.com/portal/search/author/ZONE-SAMA',
-        'info_dict': {
-            'id': 'ZONE-SAMA',
-            'title': 'Portal Search: ZONE-SAMA',
-        },
-        'playlist_mincount': 47,
+        'playlist_mincount': 45,
     }, {
         'url': 'http://www.newgrounds.com/audio/search/title/cats',
         'only_matching': True,
@@ -184,7 +177,7 @@ class NewgroundsPlaylistIE(InfoExtractor):
                 continue
             entries.append(
                 self.url_result(
-                    'https://www.newgrounds.com/ + path + '/' + media_id,
+                    'https://www.newgrounds.com/' + path + '/' + media_id,
                     ie=NewgroundsIE.ie_key(), video_id=media_id))
 
         return self.playlist_result(entries, playlist_id, title)
