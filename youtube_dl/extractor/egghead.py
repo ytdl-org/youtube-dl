@@ -22,8 +22,8 @@ class EggheadBaseIE(InfoExtractor):
 class EggheadCourseIE(EggheadBaseIE):
     IE_DESC = 'egghead.io course'
     IE_NAME = 'egghead:course'
-    _VALID_URL = r'https://egghead\.io/courses/(?P<id>[^/?#&]+)'
-    _TEST = {
+    _VALID_URL = r'https://(?:app\.)?egghead\.io/(?:course|playlist)s/(?P<id>[^/?#&]+)'
+    _TESTS = [{
         'url': 'https://egghead.io/courses/professor-frisby-introduces-composable-functional-javascript',
         'playlist_count': 29,
         'info_dict': {
@@ -31,7 +31,10 @@ class EggheadCourseIE(EggheadBaseIE):
             'title': 'Professor Frisby Introduces Composable Functional JavaScript',
             'description': 're:(?s)^This course teaches the ubiquitous.*You\'ll start composing functionality before you know it.$',
         },
-    }
+    }, {
+        'url': 'https://app.egghead.io/playlists/professor-frisby-introduces-composable-functional-javascript',
+        'only_matching': True,
+    }]
 
     def _real_extract(self, url):
         playlist_id = self._match_id(url)
