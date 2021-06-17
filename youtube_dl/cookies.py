@@ -11,7 +11,7 @@ import warnings
 from datetime import datetime, timedelta
 
 from youtube_dl.aes import aes_cbc_decrypt
-from youtube_dl.compat import compat_cookiejar_Cookie, compat_b64decode, Compat_TemporaryDirectory
+from youtube_dl.compat import compat_cookiejar_Cookie, compat_b64decode, compat_TemporaryDirectory
 from youtube_dl.utils import YoutubeDLCookieJar, expand_path, bytes_to_intlist, intlist_to_bytes
 
 try:
@@ -87,7 +87,7 @@ def _extract_firefox_cookies(profile, logger):
         raise FileNotFoundError('could not find firefox cookies database in {}'.format(search_root))
     logger.debug('extracting from: "{}"'.format(cookie_database_path))
 
-    with Compat_TemporaryDirectory(prefix='youtube_dl') as tmpdir:
+    with compat_TemporaryDirectory(prefix='youtube_dl') as tmpdir:
         cursor = None
         try:
             cursor = _open_database_copy(cookie_database_path, tmpdir)
@@ -200,7 +200,7 @@ def _extract_chrome_cookies(browser_name, profile, logger):
 
     decryptor = get_cookie_decryptor(config['browser_dir'], config['keyring_name'], logger)
 
-    with Compat_TemporaryDirectory(prefix='youtube_dl') as tmpdir:
+    with compat_TemporaryDirectory(prefix='youtube_dl') as tmpdir:
         cursor = None
         try:
             cursor = _open_database_copy(cookie_database_path, tmpdir)
@@ -491,7 +491,7 @@ def _parse_safari_cookies_record(data, jar, logger):
     value_offset = p.read_uint()
     p.skip(8, 'unknown record field 3')
     expiration_date = _mac_absolute_time_to_posix(p.read_double())
-    _creation_date = _mac_absolute_time_to_posix(p.read_double())
+    _creation_date = _mac_absolute_time_to_posix(p.read_double())  # noqa: F841
 
     try:
         p.skip_to(domain_offset)

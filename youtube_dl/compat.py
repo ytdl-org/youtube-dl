@@ -2926,9 +2926,9 @@ except TypeError:  # Python 2.6
 
 
 try:
-    from tempfile import TemporaryDirectory as Compat_TemporaryDirectory
+    from tempfile import TemporaryDirectory as compat_TemporaryDirectory
 except ImportError:
-    class Compat_TemporaryDirectory:
+    class compat_TemporaryDirectory:
         def __init__(self, prefix=None):
             self._prefix = prefix
             self._path = None

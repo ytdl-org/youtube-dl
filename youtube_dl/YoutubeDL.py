@@ -89,7 +89,6 @@ from .utils import (
     version_tuple,
     write_json_file,
     write_string,
-    YoutubeDLCookieJar,
     YoutubeDLCookieProcessor,
     YoutubeDLHandler,
     YoutubeDLRedirectHandler,
