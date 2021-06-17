@@ -2,7 +2,6 @@
 from __future__ import unicode_literals
 
 import re
-import requests
 
 from .common import InfoExtractor
 from ..utils import (
@@ -13,11 +12,35 @@ from ..utils import (
     unified_strdate,
     urljoin,
 )
+from ..compat import (
+    compat_urllib_parse_urlparse,
+    compat_urllib_request,
+    compat_urllib_error,
+)
 
 
 class VidLiiIE(InfoExtractor):
     _VALID_URL = r'https?://(?:www\.)?vidlii\.com/(?:watch|embed)\?.*?\bv=(?P<id>[0-9A-Za-z_-]{11})'
     _TESTS = [{
+        'url': 'https://www.vidlii.com/watch?v=tJluaH4BJ3v',
+        'md5': '9bf7d1e005dfa909b6efb0a1ff5175e2',
+        'info_dict': {
+            'id': 'tJluaH4BJ3v',
+            'ext': 'mp4',
+            'title': 'Vidlii is against me',
+            'description': 'md5:fa3f119287a2bfb922623b52b1856145',
+            'thumbnail': 're:https://.*.jpg',
+            'uploader': 'APPle5auc31995',
+            'uploader_url': 'https://www.vidlii.com/user/APPle5auc31995',
+            'upload_date': '20171107',
+            'duration': 212,
+            'view_count': int,
+            'comment_count': int,
+            'average_rating': float,
+            'categories': ['News & Politics'],
+            'tags': ['Vidlii', 'Jan', 'Videogames'],
+        }
+    }, {
         'url': 'https://www.vidlii.com/watch?v=zTAtaAgOLKt',
         'md5': '5778f7366aa4c569b77002f8bf6b614f',
         'info_dict': {
@@ -35,9 +58,9 @@ class VidLiiIE(InfoExtractor):
             'average_rating': float,
             'categories': ['News & Politics'],
             'tags': ['fulp', 'tube', 'sucks', 'bad', 'fulptube'],
-        }
+        },
     }, {
-        'url': 'https://www.vidlii.com/embed?v=tJluaH4BJ3v&a=0',
+        'url': 'https://www.vidlii.com/watch?v=tJluaH4BJ3v',
         'only_matching': True,
     }]
 
@@ -48,9 +71,10 @@ class VidLiiIE(InfoExtractor):
         formats = []
 
         def add_format(format_url, height=None):
-            if format_url[-7:][:-4] == "720":
+            try: 
+                self._search_regex(r"(\d\d\d)\.mp4", format_url, "height")
                 height = 720
-            else:
+            except:
                 height = 360
             formats.append({
                 'url': format_url,
@@ -61,16 +85,19 @@ class VidLiiIE(InfoExtractor):
         hdsrc = self._search_regex(
             r'hdsrc\s*:\s*(["\'])(?P<url>(?:https?://)?(?:(?!\1).)+)\1',
             webpage, 'video url', group='url')
-        if not requests.head(hdsrc).status_code == 404:
+        try: 
+            response = compat_urllib_request.urlopen(hdsrc)
             add_format(hdsrc)
+        except:
+            pass
         add_format(self._search_regex(
             r'src\s*:\s*(["\'])(?P<url>(?:https?://)?(?:(?!\1).)+)\1',
             webpage, 'video url', group='url'))
         self._sort_formats(formats)
 
         title = self._search_regex(
-            (r'<h1>([^<]+)</h1>', r'<title>([^<]+) - VidLii<'),
-            webpage, 'title')
+            (r'<h1>([^<]+)</h1>', r'<title>([^<]+) - VidLii<'), webpage,
+            'title')
 
         description = self._html_search_meta(
             ('description', 'twitter:description'), webpage,
