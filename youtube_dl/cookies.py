@@ -1,5 +1,4 @@
 import ctypes
-import hashlib
 import json
 import os
 import shutil
@@ -294,7 +293,7 @@ class LinuxChromeCookieDecryptor(ChromeCookieDecryptor):
     def derive_key(password):
         # values from
         # https://chromium.googlesource.com/chromium/src/+/refs/heads/main/components/os_crypt/os_crypt_linux.cc
-        return hashlib.pbkdf2_hmac('sha1', password, salt=b'saltysalt', iterations=1, dklen=16)
+        return pbkdf2_sha1(password, salt=b'saltysalt', iterations=1, key_length=16)
 
     def decrypt(self, encrypted_value):
         version = encrypted_value[:3]
@@ -321,7 +320,7 @@ class MacChromeCookieDecryptor(ChromeCookieDecryptor):
     def derive_key(password):
         # values from
         # https://chromium.googlesource.com/chromium/src/+/refs/heads/main/components/os_crypt/os_crypt_mac.mm
-        return hashlib.pbkdf2_hmac('sha1', password, salt=b'saltysalt', iterations=1003, dklen=16)
+        return pbkdf2_sha1(password, salt=b'saltysalt', iterations=1003, key_length=16)
 
     def decrypt(self, encrypted_value):
         version = encrypted_value[:3]
@@ -588,6 +587,24 @@ def _get_windows_v10_key(browser_root, logger):
         logger.error('invalid key')
         return None
     return _decrypt_windows_dpapi(encrypted_key[len(prefix):], logger)
+
+
+PBKDF2_AVAILABLE = sys.version_info[:2] >= (3, 4) or CRYPTO_AVAILABLE
+
+
+def pbkdf2_sha1(password, salt, iterations, key_length):
+    try:
+        from hashlib import pbkdf2_hmac
+        return pbkdf2_hmac('sha1', password, salt, iterations, key_length)
+    except ImportError:
+        try:
+            from Crypto.Protocol.KDF import PBKDF2
+            from Crypto.Hash import SHA1
+            return PBKDF2(password, salt, key_length, iterations, hmac_hash_module=SHA1)
+        except ImportError:
+            warnings.warn('PBKDF2 is not available. You must either upgrade to '
+                          'python >= 3.4 or install the pycryptodome package')
+            return None
 
 
 def _decrypt_aes_cbc(ciphertext, key, initialization_vector=b' ' * 16):
