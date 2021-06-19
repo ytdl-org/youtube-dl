@@ -4,7 +4,7 @@ from .common import InfoExtractor
 
 
 class CGTNIE(InfoExtractor):
-    _VALID_URL = r'https?://news\.cgtn\.com/news/[0-9]{4}-[0-9]{2}-[0-9]{2}/(?P<id>[a-zA-Z0-9-]+)/index\.html'
+    _VALID_URL = r'https?://news\.cgtn\.com/news/[0-9]{4}-[0-9]{2}-[0-9]{2}/[a-zA-Z0-9-]+-(?P<id>[a-zA-Z0-9-]+)/index\.html'
     _TESTS = [
         {
             'url': 'https://news.cgtn.com/news/2021-03-09/Up-and-Out-of-Poverty-Ep-1-A-solemn-promise-YuOUaOzGQU/index.html',
@@ -28,11 +28,10 @@ class CGTNIE(InfoExtractor):
 
     def _real_extract(self, url):
         video_id = self._match_id(url)
-        video_id = video_id.split('-')[-1]
         webpage = self._download_webpage(url, video_id)
 
         title = self._html_search_regex(r'<div class="news-title">(.+?)</div>', webpage, 'title')
-        download_url = self._html_search_regex(r'<div class="cg-player-container J_player_container" .*? data-video ="(?P<url>.+m3u8)" (.*?)>', webpage, 'download_url')
+        download_url = self._html_search_regex(r'data-video ="(?P<url>.+m3u8)"', webpage, 'download_url')
         thumbnail = self._html_search_regex(r'<div class="cg-player-container J_player_container" .*? data-poster="(?P<thumbnail>.+jpg)" (.*?)>', webpage, 'thumbnail')
 
         formats = self._extract_m3u8_formats(
