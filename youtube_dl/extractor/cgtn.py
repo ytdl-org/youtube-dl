@@ -32,7 +32,7 @@ class CGTNIE(InfoExtractor):
 
         title = self._html_search_regex(r'<div class="news-title">(.+?)</div>', webpage, 'title')
         download_url = self._html_search_regex(r'data-video ="(?P<url>.+m3u8)"', webpage, 'download_url')
-        thumbnail = self._html_search_regex(r'<div class="cg-player-container J_player_container" .*? data-poster="(?P<thumbnail>.+jpg)" (.*?)>', webpage, 'thumbnail')
+        thumbnail = self._html_search_regex(r'<div class="cg-player-container J_player_container" .*? data-poster="(?P<thumbnail>.+jpg)" (.*?)>', webpage, 'thumbnail', fatal=False)
 
         formats = self._extract_m3u8_formats(
             download_url, video_id, 'mp4',
