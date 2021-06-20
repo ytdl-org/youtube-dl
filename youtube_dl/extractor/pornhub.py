@@ -236,6 +236,10 @@ class PornHubIE(PornHubBaseIE):
     }, {
         'url': 'https://www.pornhubpremium.com/view_video.php?viewkey=ph5f75b0f4b18e3',
         'only_matching': True,
+    }, {
+        # geo restricted
+        'url': 'https://www.pornhub.com/view_video.php?viewkey=ph5a9813bfa7156',
+        'only_matching': True,
     }]
 
     @staticmethod
@@ -274,6 +278,11 @@ class PornHubIE(PornHubBaseIE):
             raise ExtractorError(
                 'PornHub said: %s' % error_msg,
                 expected=True, video_id=video_id)
+
+        if any(re.search(p, webpage) for p in (
+                r'class=["\']geoBlocked["\']',
+                r'>\s*This content is unavailable in your country')):
+            self.raise_geo_restricted()
 
         # video_title from flashvars contains whitespace instead of non-ASCII (see
         # http://www.pornhub.com/view_video.php?viewkey=1331683002), not relying
