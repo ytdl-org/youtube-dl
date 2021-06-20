@@ -1504,22 +1504,25 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
 
         playability_status = player_response.get('playabilityStatus') or {}
         if playability_status.get('reason') == 'Sign in to confirm your age':
-            pr = self._parse_json(try_get(compat_parse_qs(
-                self._download_webpage(
-                    base_url + 'get_video_info', video_id,
-                    'Refetching age-gated info webpage',
-                    'unable to download video info webpage', query={
-                        'video_id': video_id,
-                        'eurl': 'https://youtube.googleapis.com/v/' + video_id,
-                        'html5': 1,
-                        # See https://github.com/ytdl-org/youtube-dl/issues/29333#issuecomment-864049544
-                        'c': 'TVHTML5',
-                        'cver': '6.20180913',
-                    }, fatal=False)),
-                lambda x: x['player_response'][0],
-                compat_str) or '{}', video_id)
-            if pr:
-                player_response = pr
+            video_info = self._download_webpage(
+                base_url + 'get_video_info', video_id,
+                'Refetching age-gated info webpage',
+                'unable to download video info webpage', query={
+                    'video_id': video_id,
+                    'eurl': 'https://youtube.googleapis.com/v/' + video_id,
+                    'html5': 1,
+                    # See https://github.com/ytdl-org/youtube-dl/issues/29333#issuecomment-864049544
+                    'c': 'TVHTML5',
+                    'cver': '6.20180913',
+                }, fatal=False)
+            if video_info:
+                pr = self._parse_json(
+                    try_get(
+                        compat_parse_qs(video_info),
+                        lambda x: x['player_response'][0], compat_str) or '{}',
+                    video_id, fatal=False)
+                if pr and isinstance(pr, dict):
+                    player_response = pr
 
         trailer_video_id = try_get(
             playability_status,
