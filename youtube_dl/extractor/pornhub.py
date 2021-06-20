@@ -408,17 +408,14 @@ class PornHubIE(PornHubBaseIE):
                     format_url, video_id, 'mp4', entry_protocol='m3u8_native',
                     m3u8_id='hls', fatal=False))
                 return
-            tbr = None
-            mobj = re.search(r'(?P<height>\d+)[pP]?_(?P<tbr>\d+)[kK]', format_url)
-            if mobj:
-                if not height:
-                    height = int(mobj.group('height'))
-                tbr = int(mobj.group('tbr'))
+            if not height:
+                height = int_or_none(self._search_regex(
+                    r'(?P<height>\d+)[pP]?_\d+[kK]', format_url, 'height',
+                    default=None))
             formats.append({
                 'url': format_url,
                 'format_id': '%dp' % height if height else None,
                 'height': height,
-                'tbr': tbr,
             })
 
         for video_url, height in video_urls:
@@ -440,7 +437,8 @@ class PornHubIE(PornHubBaseIE):
                         add_format(video_url, height)
                 continue
             add_format(video_url)
-        self._sort_formats(formats)
+        self._sort_formats(
+            formats, field_preference=('height', 'width', 'fps', 'format_id'))
 
         video_uploader = self._html_search_regex(
             r'(?s)From:&nbsp;.+?<(?:a\b[^>]+\bhref=["\']/(?:(?:user|channel)s|model|pornstar)/|span\b[^>]+\bclass=["\']username)[^>]+>(.+?)<',
