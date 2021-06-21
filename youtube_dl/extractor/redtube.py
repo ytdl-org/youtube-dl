@@ -104,13 +104,13 @@ class RedTubeIE(InfoExtractor):
                         format_url, video_id, 'mp4',
                         entry_protocol='m3u8_native', m3u8_id=format_id or 'hls',
                         fatal=False))
-                    continue
-                format_id = media.get('quality')
-                formats.append({
-                    'url': format_url,
-                    'format_id': format_id,
-                    'height': int_or_none(format_id),
-                })
+                else:
+                    format_id = media.get('quality')
+                    formats.append({
+                        'url': format_url,
+                        'format_id': format_id,
+                        'height': int_or_none(format_id),
+                    })
         if not formats:
             video_url = self._html_search_regex(
                 r'<source src="(.+?)" type="video/mp4">', webpage, 'video URL')
