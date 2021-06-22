@@ -171,29 +171,11 @@ class WgetFD(ExternalFD):
                 retry[1] = '0'
             cmd += retry
         cmd += self._option('--bind-address', 'source_address')
+        cmd += self._option('--proxy', 'proxy')
         cmd += self._valueless_option('--no-check-certificate', 'nocheckcertificate')
         cmd += self._configuration_args()
         cmd += ['--', info_dict['url']]
         return cmd
-
-    def _call_downloader(self, tmpfilename, info_dict):
-        env = None
-        proxy = self.params.get('proxy')
-        if proxy:
-            env = os.environ.copy()
-            compat_setenv('http_proxy', proxy, env=env)
-            compat_setenv('https_proxy', proxy, env=env)
-
-        cmd = [encodeArgument(a) for a in self._make_cmd(tmpfilename, info_dict)]
-
-        self._debug_cmd(cmd)
-
-        p = subprocess.Popen(
-            cmd, stderr=subprocess.PIPE, env=env)
-        _, stderr = p.communicate()
-        if p.returncode != 0:
-            self.to_stderr(stderr.decode('utf-8', 'replace'))
-        return p.returncode
 
 
 class Aria2cFD(ExternalFD):
