@@ -19,7 +19,7 @@ from ..utils import (
     int_or_none,
     str_or_none,
     try_get,
-    url_or_none
+    url_or_none,
 )
 
 
@@ -35,7 +35,8 @@ class HotStarBaseIE(InfoExtractor):
         h.update(headers)
 
         return self._download_json(
-            'https://api.hotstar.com/' + path,video_id, headers=h, query=query, data=data)
+            'https://api.hotstar.com/' + path,
+            video_id, headers=h, query=query, data=data)
 
     def _call_api(self, path, video_id, query_name='contentId'):
         response = self._call_api_impl(path, video_id, {
