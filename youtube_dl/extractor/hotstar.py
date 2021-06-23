@@ -19,16 +19,14 @@ from ..utils import (
     int_or_none,
     str_or_none,
     try_get,
-    url_or_none,
-    urlencode_postdata,
-    sanitized_Request
+    url_or_none
 )
 
 
 class HotStarBaseIE(InfoExtractor):
     _AKAMAI_ENCRYPTION_KEY = b'\x05\xfc\x1a\x01\xca\xc9\x4b\xc4\x12\xfc\x53\x12\x07\x75\xf9\xee'
 
-    def _call_api_impl(self, path, video_id, headers, query, data=None,method=None):
+    def _call_api_impl(self, path, video_id, headers, query, data=None):
         st = int(time.time())
         exp = st + 6000
         auth = 'st=%d~exp=%d~acl=/*' % (st, exp)
@@ -36,11 +34,8 @@ class HotStarBaseIE(InfoExtractor):
         h = {'hotstarauth': auth}
         h.update(headers)
 
-        req = sanitized_Request('https://api.hotstar.com/' + path, data=data)
-        if method is not None: req.get_method = lambda: method
-        
         return self._download_json(
-            req,video_id, headers=h, query=query, data=data)
+            'https://api.hotstar.com/' + path,video_id, headers=h, query=query, data=data)
 
     def _call_api(self, path, video_id, query_name='contentId'):
         response = self._call_api_impl(path, video_id, {
@@ -58,7 +53,6 @@ class HotStarBaseIE(InfoExtractor):
     def _call_api_v2(self, path, video_id, headers, query=None, data=None):
         h = {'X-Request-Id': compat_str(uuid.uuid4())}
         h.update(headers)
-
         try:
             return self._call_api_impl(
                 path, video_id, h, query, data)
