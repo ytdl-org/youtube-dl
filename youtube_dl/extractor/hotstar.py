@@ -20,22 +20,27 @@ from ..utils import (
     str_or_none,
     try_get,
     url_or_none,
+    urlencode_postdata,
+    sanitized_Request
 )
 
 
 class HotStarBaseIE(InfoExtractor):
     _AKAMAI_ENCRYPTION_KEY = b'\x05\xfc\x1a\x01\xca\xc9\x4b\xc4\x12\xfc\x53\x12\x07\x75\xf9\xee'
 
-    def _call_api_impl(self, path, video_id, headers, query, data=None):
+    def _call_api_impl(self, path, video_id, headers, query, data=None,method=None):
         st = int(time.time())
         exp = st + 6000
         auth = 'st=%d~exp=%d~acl=/*' % (st, exp)
         auth += '~hmac=' + hmac.new(self._AKAMAI_ENCRYPTION_KEY, auth.encode(), hashlib.sha256).hexdigest()
         h = {'hotstarauth': auth}
         h.update(headers)
+
+        req = sanitized_Request('https://api.hotstar.com/' + path, data=data)
+        if method is not None: req.get_method = lambda: method
+        
         return self._download_json(
-            'https://api.hotstar.com/' + path,
-            video_id, headers=h, query=query, data=data)
+            req,video_id, headers=h, query=query, data=data)
 
     def _call_api(self, path, video_id, query_name='contentId'):
         response = self._call_api_impl(path, video_id, {
@@ -53,13 +58,15 @@ class HotStarBaseIE(InfoExtractor):
     def _call_api_v2(self, path, video_id, headers, query=None, data=None):
         h = {'X-Request-Id': compat_str(uuid.uuid4())}
         h.update(headers)
+
         try:
             return self._call_api_impl(
                 path, video_id, h, query, data)
         except ExtractorError as e:
             if isinstance(e.cause, compat_HTTPError):
                 if e.cause.code == 402:
-                    self.raise_login_required()
+                    raise ExtractorError('This video is only available for registered users. You may want to use --cookies.', expected=True)
+
                 message = self._parse_json(e.cause.read().decode(), video_id)['message']
                 if message in ('Content not available in region', 'Country is not supported'):
                     raise self.raise_geo_restricted(message)
@@ -134,6 +141,13 @@ class HotStarIE(HotStarBaseIE):
         headers = {'Referer': url}
         formats = []
         geo_restricted = False
+
+        for cookie in self._downloader.cookiejar:
+            if "hotstar" in cookie.domain:
+                if cookie.name == "userUP":
+                    self._USER_TOKEN = cookie.value
+                elif cookie.name == "device-id":
+                    self._DEVICE_ID = cookie.value
 
         if not self._USER_TOKEN:
             self._DEVICE_ID = compat_str(uuid.uuid4())
