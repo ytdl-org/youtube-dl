@@ -30,6 +30,7 @@ from ..utils import (
 
 class PornHubBaseIE(InfoExtractor):
     _NETRC_MACHINE = 'pornhub'
+    _PORNHUB_HOST_RE = r'(?:(?P<host>pornhub(?:premium)?\.(?:com|net|org))|pornhubthbh7ap3u\.onion)'
 
     def _download_webpage_handle(self, *args, **kwargs):
         def dl(*args, **kwargs):
@@ -122,11 +123,13 @@ class PornHubIE(PornHubBaseIE):
     _VALID_URL = r'''(?x)
                     https?://
                         (?:
-                            (?:[^/]+\.)?(?P<host>pornhub(?:premium)?\.(?:com|net|org))/(?:(?:view_video\.php|video/show)\?viewkey=|embed/)|
+                            (?:[^/]+\.)?
+                            %s
+                            /(?:(?:view_video\.php|video/show)\?viewkey=|embed/)|
                             (?:www\.)?thumbzilla\.com/video/
                         )
                         (?P<id>[\da-z]+)
-                    '''
+                    ''' % PornHubBaseIE._PORNHUB_HOST_RE
     _TESTS = [{
         'url': 'http://www.pornhub.com/view_video.php?viewkey=648719015',
         'md5': 'a6391306d050e4547f62b3f485dd9ba9',
@@ -236,6 +239,13 @@ class PornHubIE(PornHubBaseIE):
     }, {
         'url': 'https://www.pornhubpremium.com/view_video.php?viewkey=ph5f75b0f4b18e3',
         'only_matching': True,
+    }, {
+        # geo restricted
+        'url': 'https://www.pornhub.com/view_video.php?viewkey=ph5a9813bfa7156',
+        'only_matching': True,
+    }, {
+        'url': 'http://pornhubthbh7ap3u.onion/view_video.php?viewkey=ph5a9813bfa7156',
+        'only_matching': True,
     }]
 
     @staticmethod
@@ -274,6 +284,11 @@ class PornHubIE(PornHubBaseIE):
             raise ExtractorError(
                 'PornHub said: %s' % error_msg,
                 expected=True, video_id=video_id)
+
+        if any(re.search(p, webpage) for p in (
+                r'class=["\']geoBlocked["\']',
+                r'>\s*This content is unavailable in your country')):
+            self.raise_geo_restricted()
 
         # video_title from flashvars contains whitespace instead of non-ASCII (see
         # http://www.pornhub.com/view_video.php?viewkey=1331683002), not relying
@@ -398,17 +413,24 @@ class PornHubIE(PornHubBaseIE):
         formats = []
 
         def add_format(format_url, height=None):
-            tbr = None
-            mobj = re.search(r'(?P<height>\d+)[pP]?_(?P<tbr>\d+)[kK]', format_url)
-            if mobj:
-                if not height:
-                    height = int(mobj.group('height'))
-                tbr = int(mobj.group('tbr'))
+            ext = determine_ext(format_url)
+            if ext == 'mpd':
+                formats.extend(self._extract_mpd_formats(
+                    format_url, video_id, mpd_id='dash', fatal=False))
+                return
+            if ext == 'm3u8':
+                formats.extend(self._extract_m3u8_formats(
+                    format_url, video_id, 'mp4', entry_protocol='m3u8_native',
+                    m3u8_id='hls', fatal=False))
+                return
+            if not height:
+                height = int_or_none(self._search_regex(
+                    r'(?P<height>\d+)[pP]?_\d+[kK]', format_url, 'height',
+                    default=None))
             formats.append({
                 'url': format_url,
                 'format_id': '%dp' % height if height else None,
                 'height': height,
-                'tbr': tbr,
             })
 
         for video_url, height in video_urls:
@@ -417,16 +439,6 @@ class PornHubIE(PornHubBaseIE):
                     r'/(\d{6}/\d{2})/', video_url, 'upload data', default=None)
                 if upload_date:
                     upload_date = upload_date.replace('/', '')
-            ext = determine_ext(video_url)
-            if ext == 'mpd':
-                formats.extend(self._extract_mpd_formats(
-                    video_url, video_id, mpd_id='dash', fatal=False))
-                continue
-            elif ext == 'm3u8':
-                formats.extend(self._extract_m3u8_formats(
-                    video_url, video_id, 'mp4', entry_protocol='m3u8_native',
-                    m3u8_id='hls', fatal=False))
-                continue
             if '/video/get_media' in video_url:
                 medias = self._download_json(video_url, video_id, fatal=False)
                 if isinstance(medias, list):
@@ -440,7 +452,8 @@ class PornHubIE(PornHubBaseIE):
                         add_format(video_url, height)
                 continue
             add_format(video_url)
-        self._sort_formats(formats)
+        self._sort_formats(
+            formats, field_preference=('height', 'width', 'fps', 'format_id'))
 
         video_uploader = self._html_search_regex(
             r'(?s)From:&nbsp;.+?<(?:a\b[^>]+\bhref=["\']/(?:(?:user|channel)s|model|pornstar)/|span\b[^>]+\bclass=["\']username)[^>]+>(.+?)<',
@@ -513,7 +526,7 @@ class PornHubPlaylistBaseIE(PornHubBaseIE):
 
 
 class PornHubUserIE(PornHubPlaylistBaseIE):
-    _VALID_URL = r'(?P<url>https?://(?:[^/]+\.)?(?P<host>pornhub(?:premium)?\.(?:com|net|org))/(?:(?:user|channel)s|model|pornstar)/(?P<id>[^/?#&]+))(?:[?#&]|/(?!videos)|$)'
+    _VALID_URL = r'(?P<url>https?://(?:[^/]+\.)?%s/(?:(?:user|channel)s|model|pornstar)/(?P<id>[^/?#&]+))(?:[?#&]|/(?!videos)|$)' % PornHubBaseIE._PORNHUB_HOST_RE
     _TESTS = [{
         'url': 'https://www.pornhub.com/model/zoe_ph',
         'playlist_mincount': 118,
@@ -541,6 +554,9 @@ class PornHubUserIE(PornHubPlaylistBaseIE):
     }, {
         # Same as before, multi page
         'url': 'https://www.pornhubpremium.com/pornstar/lily-labeau',
+        'only_matching': True,
+    }, {
+        'url': 'https://pornhubthbh7ap3u.onion/model/zoe_ph',
         'only_matching': True,
     }]
 
@@ -617,7 +633,7 @@ class PornHubPagedPlaylistBaseIE(PornHubPlaylistBaseIE):
 
 
 class PornHubPagedVideoListIE(PornHubPagedPlaylistBaseIE):
-    _VALID_URL = r'https?://(?:[^/]+\.)?(?P<host>pornhub(?:premium)?\.(?:com|net|org))/(?P<id>(?:[^/]+/)*[^/?#&]+)'
+    _VALID_URL = r'https?://(?:[^/]+\.)?%s/(?P<id>(?:[^/]+/)*[^/?#&]+)' % PornHubBaseIE._PORNHUB_HOST_RE
     _TESTS = [{
         'url': 'https://www.pornhub.com/model/zoe_ph/videos',
         'only_matching': True,
@@ -722,6 +738,9 @@ class PornHubPagedVideoListIE(PornHubPagedPlaylistBaseIE):
     }, {
         'url': 'https://de.pornhub.com/playlist/4667351',
         'only_matching': True,
+    }, {
+        'url': 'https://pornhubthbh7ap3u.onion/model/zoe_ph/videos',
+        'only_matching': True,
     }]
 
     @classmethod
@@ -732,7 +751,7 @@ class PornHubPagedVideoListIE(PornHubPagedPlaylistBaseIE):
 
 
 class PornHubUserVideosUploadIE(PornHubPagedPlaylistBaseIE):
-    _VALID_URL = r'(?P<url>https?://(?:[^/]+\.)?(?P<host>pornhub(?:premium)?\.(?:com|net|org))/(?:(?:user|channel)s|model|pornstar)/(?P<id>[^/]+)/videos/upload)'
+    _VALID_URL = r'(?P<url>https?://(?:[^/]+\.)?%s/(?:(?:user|channel)s|model|pornstar)/(?P<id>[^/]+)/videos/upload)' % PornHubBaseIE._PORNHUB_HOST_RE
     _TESTS = [{
         'url': 'https://www.pornhub.com/pornstar/jenny-blighe/videos/upload',
         'info_dict': {
@@ -741,5 +760,8 @@ class PornHubUserVideosUploadIE(PornHubPagedPlaylistBaseIE):
         'playlist_mincount': 129,
     }, {
         'url': 'https://www.pornhub.com/model/zoe_ph/videos/upload',
+        'only_matching': True,
+    }, {
+        'url': 'http://pornhubthbh7ap3u.onion/pornstar/jenny-blighe/videos/upload',
         'only_matching': True,
     }]

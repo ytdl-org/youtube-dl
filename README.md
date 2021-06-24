@@ -287,7 +287,7 @@ Alternatively, refer to the [developer instructions](#developer-instructions) fo
     --no-cache-dir                       Disable filesystem caching
     --rm-cache-dir                       Delete all filesystem cache files
 
-## Thumbnail images:
+## Thumbnail Options:
     --write-thumbnail                    Write thumbnail image to disk
     --write-all-thumbnails               Write all thumbnail image formats to
                                          disk
@@ -893,7 +893,7 @@ Since June 2012 ([#342](https://github.com/ytdl-org/youtube-dl/issues/342)) yout
 
 ### The exe throws an error due to missing `MSVCR100.dll`
 
-To run the exe you need to install first the [Microsoft Visual C++ 2010 Redistributable Package (x86)](https://www.microsoft.com/en-US/download/details.aspx?id=5555).
+To run the exe you need to install first the [Microsoft Visual C++ 2010 Service Pack 1 Redistributable Package (x86)](https://download.microsoft.com/download/1/6/5/165255E7-1014-4D0A-B094-B6A430A6BFFC/vcredist_x86.exe).
 
 ### On Windows, how should I set up ffmpeg and youtube-dl? Where should I put the exe files?
 
