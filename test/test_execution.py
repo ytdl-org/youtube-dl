@@ -44,10 +44,12 @@ class TestExecution(unittest.TestCase):
             subprocess.check_call([sys.executable, 'devscripts/make_lazy_extractors.py', 'youtube_dl/extractor/lazy_extractors.py'], cwd=rootDir, stdout=_DEV_NULL)
             subprocess.check_call([sys.executable, 'test/test_all_urls.py'], cwd=rootDir, stdout=_DEV_NULL)
         finally:
-            try:
-                os.remove('youtube_dl/extractor/lazy_extractors.py')
-            except (IOError, OSError):
-                pass
+            for f in ('youtube_dl/extractor/lazy_extractors.py',
+                      'youtube_dl/extractor/lazy_extractors.pyc'):
+                try:
+                    os.remove(f)
+                except (IOError, OSError):
+                    pass
 
 
 if __name__ == '__main__':
