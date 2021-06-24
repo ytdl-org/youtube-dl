@@ -8,7 +8,7 @@ import warnings
 import sys
 
 try:
-    from setuptools import setup, Command
+    from setuptools import setup, sic, Command
     setuptools_available = True
 except ImportError:
     from distutils.core import setup, Command
@@ -35,6 +35,10 @@ py2exe_options = {
 # Get the version from youtube_dl/version.py without importing the package
 exec(compile(open('youtube_dl/version.py').read(),
              'youtube_dl/version.py', 'exec'))
+if setuptools_available:
+    # The yyyy-mm-dd scheme is PEP 440-compliant, tell setuptools
+    # not to normalise version numbers (and complain about having to)
+    __version__ = sic(__version__)
 
 DESCRIPTION = 'YouTube video downloader'
 LONG_DESCRIPTION = 'Command-line program to download videos from YouTube.com and other video sites'
