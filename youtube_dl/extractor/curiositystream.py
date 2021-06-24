@@ -145,7 +145,7 @@ class CuriosityStreamIE(CuriosityStreamBaseIE):
 
 class CuriosityStreamCollectionIE(CuriosityStreamBaseIE):
     IE_NAME = 'curiositystream:collection'
-    _VALID_URL = r'https?://(?:app\.)?curiositystream\.com/(?:collection|series)/(?P<id>\d+)'
+    _VALID_URL = r'https?://(?:app\.)?curiositystream\.com/(?:collections?|series)/(?P<id>\d+)'
     _TESTS = [{
         'url': 'https://app.curiositystream.com/collection/2',
         'info_dict': {
@@ -156,6 +156,9 @@ class CuriosityStreamCollectionIE(CuriosityStreamBaseIE):
         'playlist_mincount': 16,
     }, {
         'url': 'https://curiositystream.com/series/2',
+        'only_matching': True,
+    }, {
+        'url': 'https://curiositystream.com/collections/36',
         'only_matching': True,
     }]
 
