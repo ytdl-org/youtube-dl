@@ -14,6 +14,8 @@ from ..compat import (
     compat_urlparse,
 )
 from ..utils import (
+    NO_DEFAULT,
+    base_url,
     clean_html,
     determine_ext,
     ExtractorError,
@@ -255,6 +257,11 @@ class VimeoBaseInfoExtractor(InfoExtractor):
                             'preference': 1,
                         }
 
+    def _extract_config_url(self, webpage, name, default=NO_DEFAULT):
+        return self._html_search_regex(
+            r'\bdata-config-url\s*=\s*([\'"])(.+?\d)\1', webpage, name,
+            default=default, group=2)
+
 
 class VimeoIE(VimeoBaseInfoExtractor):
     """Information extractor for vimeo.com."""
@@ -270,7 +277,7 @@ class VimeoIE(VimeoBaseInfoExtractor):
                             \.
                         )?
                         vimeo(?:pro)?\.com/
-                        (?!(?:channels|album|showcase)/[^/?#]+/?(?:$|[?#])|[^/]+/review/|ondemand/)
+                        (?!(?:channels|album|showcase)/[^/?#]+/?(?:$|[?#])|[^/]+/review/|ondemand/|event/)
                         (?:.*?/)?
                         (?:
                             (?:
@@ -547,6 +554,9 @@ class VimeoIE(VimeoBaseInfoExtractor):
             r'<embed[^>]+?src=(["\'])(?P<url>(?:https?:)?//(?:www\.)?vimeo\.com/moogaloop\.swf.+?)\1',
             # Look more for non-standard embedded Vimeo player
             r'<video[^>]+src=(["\'])(?P<url>(?:https?:)?//(?:www\.)?vimeo\.com/[0-9]+)\1',
+            # Embedded event media
+            # https://vimeo.zendesk.com/hc/en-us/articles/360055104711-Creating-and-embedding-live-and-live-to-VOD-events
+            r'<iframe[^>]+?src\s*=\s*(["\'])(?P<url>(?:https?:)?//(?:www\.)?vimeo\.com/event/[^/#?]+?/embed/)\1',
         )
         for embed_re in PLAIN_EMBED_RE:
             for mobj in re.finditer(embed_re, webpage):
@@ -679,8 +689,7 @@ class VimeoIE(VimeoBaseInfoExtractor):
         channel_id = self._search_regex(
             r'vimeo\.com/channels/([^/]+)', url, 'channel id', default=None)
         if channel_id:
-            config_url = self._html_search_regex(
-                r'\bdata-config-url="([^"]+)"', webpage, 'config URL')
+            config_url = self._extract_config_url(webpage, 'config URL')
             video_description = clean_html(get_element_by_class('description', webpage))
             info_dict.update({
                 'channel_id': channel_id,
@@ -1156,3 +1165,29 @@ class VHXEmbedIE(VimeoBaseInfoExtractor):
         info['id'] = video_id
         self._vimeo_sort_formats(info['formats'])
         return info
+
+
+class VimeoEventIE(VimeoBaseInfoExtractor):
+    IE_NAME = 'vimeo:event'
+    _VALID_URL = r'https?://(?:www\.)?vimeo\.com/event/(?P<id>[^/?#&]+\d)'
+    _TESTS = [
+        {
+            'url': 'https://vimeo.com/event/1023598/embed/ff6cf5dd25',
+            'info_dict': {
+                'id': '555011351',
+                'title': 'Quantitative Experimental Approaches in Microbial Evolution and Ecology',
+                'uploader_id': 'user75302951',
+                'uploader': 'Projection',
+                'ext': 'mp4',
+            },
+        },
+    ]
+
+    def _real_extract(self, url):
+        video_id = self._match_id(url)
+
+        webpage = self._download_webpage(url, video_id)
+        config_url = self._extract_config_url(webpage, 'player URL')
+        if config_url:
+            config_url = base_url(config_url)
+            return self.url_result(config_url, ie='Vimeo', video_id=video_id)
