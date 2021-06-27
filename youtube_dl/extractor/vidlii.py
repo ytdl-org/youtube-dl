@@ -13,9 +13,7 @@ from ..utils import (
     urljoin,
 )
 from ..compat import (
-    compat_urllib_parse_urlparse,
     compat_urllib_request,
-    compat_urllib_error,
 )
 
 
@@ -60,7 +58,7 @@ class VidLiiIE(InfoExtractor):
             'tags': ['fulp', 'tube', 'sucks', 'bad', 'fulptube'],
         },
     }, {
-        'url': 'https://www.vidlii.com/watch?v=tJluaH4BJ3v',
+        'url': 'https://www.vidlii.com/embed?v=tJluaH4BJ3v',
         'only_matching': True,
     }]
 
@@ -71,10 +69,11 @@ class VidLiiIE(InfoExtractor):
         formats = []
 
         def add_format(format_url, height=None):
-            try: 
-                self._search_regex(r"(\d\d\d)\.mp4", format_url, "height")
-                height = 720
-            except:
+            try:
+                height = int(self._search_regex(r"(?P<h>\d\d\d).mp4",
+                                                format_url, "height",
+                                                group="h"))
+            except Exception:
                 height = 360
             formats.append({
                 'url': format_url,
@@ -85,10 +84,10 @@ class VidLiiIE(InfoExtractor):
         hdsrc = self._search_regex(
             r'hdsrc\s*:\s*(["\'])(?P<url>(?:https?://)?(?:(?!\1).)+)\1',
             webpage, 'video url', group='url')
-        try: 
-            response = compat_urllib_request.urlopen(hdsrc)
+        try:
+            compat_urllib_request.urlopen(hdsrc)
             add_format(hdsrc)
-        except:
+        except Exception:
             pass
         add_format(self._search_regex(
             r'src\s*:\s*(["\'])(?P<url>(?:https?://)?(?:(?!\1).)+)\1',
