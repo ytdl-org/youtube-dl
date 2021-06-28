@@ -32,6 +32,7 @@ from .compat import (
     compat_basestring,
     compat_cookiejar,
     compat_get_terminal_size,
+    compat_getenv,
     compat_http_client,
     compat_kwargs,
     compat_numeric_types,
@@ -53,6 +54,7 @@ from .utils import (
     determine_protocol,
     DownloadError,
     encode_compat_str,
+    encodeArgument,
     encodeFilename,
     error_to_compat_str,
     expand_path,
@@ -355,6 +357,7 @@ class YoutubeDL(object):
         self._num_downloads = 0
         self._screen_file = [sys.stdout, sys.stderr][params.get('logtostderr', False)]
         self._err_file = sys.stderr
+        self._apple_terminal = None
         self.params = {
             # Default parameters
             'nocheckcertificate': False,
@@ -546,8 +549,29 @@ class YoutubeDL(object):
         if self.params.get('simulate', False):
             return
         if compat_os_name != 'nt' and 'TERM' in os.environ:
-            # Save the title on stack
-            self._write_string('\033[22;0t', self._screen_file)
+            if not (sys.platform == 'darwin' and compat_getenv('TERM_PROGRAM') == 'Apple_Terminal'):
+                # Save the title on stack
+                self._write_string('\033[22;0t', self._screen_file)
+            else:
+                # macOS Terminal app
+                window_title = None
+                try:
+                    ttyname = os.ttyname(self._screen_file.fileno())
+                    opts = ['-e', 'tell app "Terminal" to get custom title of item 1 of (every window whose tty is "%s")' % ttyname]
+                    cmd = ([encodeFilename('osascript', True)]
+                           + [encodeArgument(o) for o in opts])
+                    p = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+                    stdout, stderr = p.communicate()
+                    if p.returncode == 0:
+                        window_title = stdout.decode('utf-8').strip()
+                except EnvironmentError:
+                    pass
+                if window_title is None or window_title and preferredencoding() != 'UTF-8':
+                    self.report_warning('Window title may not be restored correctly')
+                if window_title is None:
+                    self._apple_terminal = ''  # reset on restore anyway
+                else:
+                    self._apple_terminal = window_title
 
     def restore_console_title(self):
         if not self.params.get('consoletitle', False):
@@ -555,8 +579,11 @@ class YoutubeDL(object):
         if self.params.get('simulate', False):
             return
         if compat_os_name != 'nt' and 'TERM' in os.environ:
-            # Restore the title from stack
-            self._write_string('\033[23;0t', self._screen_file)
+            if self._apple_terminal is None:
+                # Restore the title from stack
+                self._write_string('\033[23;0t', self._screen_file)
+            else:
+                self._write_string('\033]0;%s\007' % self._apple_terminal, self._screen_file)
 
     def __enter__(self):
         self.save_console_title()
