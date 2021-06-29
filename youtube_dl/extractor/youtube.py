@@ -1112,6 +1112,41 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                 'uploader': 'Walk around Japan',
                 'uploader_id': 'UC3o_t8PzBmXf5S9b7GLx1Mw',
                 'uploader_url': r're:https?://(?:www\.)?youtube\.com/channel/UC3o_t8PzBmXf5S9b7GLx1Mw',
+                'artist': 'The Cinematic Orchestra',
+            },
+            'params': {
+                'skip_download': True,
+            },
+        },
+        {
+            # This video is only available to YouTube Music Premium members
+            'url': 'rmeKRQXjfZA',
+            'info_dict': {
+                'id': 'rmeKRQXjfZA',
+                'ext': 'mp4',
+                'title': '夜鷹',
+                'description': 'md5:ea770e474b7cd6722b4c95b833c03630',
+                'upload_date': '20181204',
+                'uploader': 'Kinoko Teikoku - Topic',
+                'uploader_id': 'UClJbEh-JJDXCjtQLQMi_gjA',
+                'uploader_url': r're:https?://(?:www\.)?youtube\.com/channel/UClJbEh-JJDXCjtQLQMi_gjA',
+            },
+            'params': {
+                'skip_download': True,
+            },
+        },
+        {
+            # Members only video
+            'url': '3mY1NXSO4Sg',
+            'info_dict': {
+                'id': '3mY1NXSO4Sg',
+                'ext': 'mp4',
+                'title': '[yt-dl] Members only',
+                'description': 'youtube-dl test video\nPlease don\'t ask me how I did this\n\nCase:\n- Members only\n- No restrict tag (Same even with tag, this channel didn\'t have a valid member enabled)',
+                'upload_date': '20210622',
+                'uploader': 'Sam',
+                'uploader_id': 'UC2jmvub7wysjqp9TyhGzTig',
+                'uploader_url': r're:https?://(?:www\.)?youtube\.com/channel/UC2jmvub7wysjqp9TyhGzTig',
             },
             'params': {
                 'skip_download': True,
