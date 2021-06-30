@@ -557,7 +557,18 @@ class YoutubeDL(object):
                 window_title = None
                 try:
                     ttyname = os.ttyname(self._screen_file.fileno())
-                    opts = ['-e', 'tell app "Terminal" to get custom title of item 1 of (every window whose tty is "%s")' % ttyname]
+                    scpt = [
+                        'tell app "Terminal"',
+                        'repeat with win in (every window)',
+                        'if tty of win is "%s" then' % ttyname,
+                        'return custom title of win',
+                        'end if',
+                        'end repeat',
+                        'end tell'
+                    ]
+                    opts = []
+                    for s in scpt:
+                        opts += ['-e', s]
                     cmd = ([encodeFilename('osascript', True)]
                            + [encodeArgument(o) for o in opts])
                     p = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
