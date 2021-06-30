@@ -578,13 +578,10 @@ class YoutubeDL(object):
                         'end repeat',
                         'end tell'
                     ]
-                    opts = []
-                    for s in scpt:
-                        opts += ['-e', s]
-                    cmd = ([encodeFilename('osascript', True)]
-                           + [encodeArgument(o) for o in opts])
-                    p = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-                    stdout, stderr = p.communicate()
+                    scpt = '\n'.join(scpt).encode('utf-8')
+                    cmd = [encodeFilename('osascript', True), encodeArgument('-')]
+                    p = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, stdin=subprocess.PIPE)
+                    stdout, stderr = p.communicate(input=scpt)
                     if p.returncode == 0:
                         window_title = stdout.decode('utf-8').strip()
                 except EnvironmentError:
