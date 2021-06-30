@@ -357,6 +357,7 @@ class YoutubeDL(object):
         self._num_downloads = 0
         self._screen_file = [sys.stdout, sys.stderr][params.get('logtostderr', False)]
         self._err_file = sys.stderr
+        self._tty_file = None  # for --console-title
         self._apple_terminal = None
         self.params = {
             # Default parameters
@@ -421,6 +422,17 @@ class YoutubeDL(object):
             self.report_warning(
                 'Parameter outtmpl is bytes, but should be a unicode string. '
                 'Put  from __future__ import unicode_literals  at the top of your code file or consider switching to Python 3.x.')
+
+        if (self.params.get('consoletitle', False)
+                and not self.params.get('simulate', False)
+                and compat_os_name != 'nt' and 'TERM' in os.environ):
+            if self._screen_file.isatty():
+                self._tty_file = self._screen_file
+            elif self._err_file != self._screen_file and self._err_file.isatty():
+                self._tty_file = self._err_file
+            else:
+                self.report_warning('Could not find a tty for output, ignoring --console-title. Either stdout or stderr must be a tty.')
+                self.params['consoletitle'] = False
 
         self._setup_opener()
 
@@ -541,7 +553,7 @@ class YoutubeDL(object):
                 # already of type unicode()
                 ctypes.windll.kernel32.SetConsoleTitleW(ctypes.c_wchar_p(message))
         elif 'TERM' in os.environ:
-            self._write_string('\033]0;%s\007' % message, self._screen_file)
+            self._write_string('\033]0;%s\007' % message, self._tty_file)
 
     def save_console_title(self):
         if not self.params.get('consoletitle', False):
@@ -551,12 +563,12 @@ class YoutubeDL(object):
         if compat_os_name != 'nt' and 'TERM' in os.environ:
             if not (sys.platform == 'darwin' and compat_getenv('TERM_PROGRAM') == 'Apple_Terminal'):
                 # Save the title on stack
-                self._write_string('\033[22;0t', self._screen_file)
+                self._write_string('\033[22;0t', self._tty_file)
             else:
                 # macOS Terminal app
                 window_title = None
                 try:
-                    ttyname = os.ttyname(self._screen_file.fileno())
+                    ttyname = os.ttyname(self._tty_file.fileno())
                     scpt = [
                         'tell app "Terminal"',
                         'repeat with win in (every window)',
@@ -592,9 +604,9 @@ class YoutubeDL(object):
         if compat_os_name != 'nt' and 'TERM' in os.environ:
             if self._apple_terminal is None:
                 # Restore the title from stack
-                self._write_string('\033[23;0t', self._screen_file)
+                self._write_string('\033[23;0t', self._tty_file)
             else:
-                self._write_string('\033]0;%s\007' % self._apple_terminal, self._screen_file)
+                self._write_string('\033]0;%s\007' % self._apple_terminal, self._tty_file)
 
     def __enter__(self):
         self.save_console_title()
