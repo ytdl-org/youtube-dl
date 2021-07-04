@@ -1119,23 +1119,6 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
             },
         },
         {
-            # This video is only available to YouTube Music Premium members
-            'url': 'rmeKRQXjfZA',
-            'info_dict': {
-                'id': 'rmeKRQXjfZA',
-                'ext': 'mp4',
-                'title': '夜鷹',
-                'description': 'md5:ea770e474b7cd6722b4c95b833c03630',
-                'upload_date': '20181204',
-                'uploader': 'Kinoko Teikoku - Topic',
-                'uploader_id': 'UClJbEh-JJDXCjtQLQMi_gjA',
-                'uploader_url': r're:https?://(?:www\.)?youtube\.com/channel/UClJbEh-JJDXCjtQLQMi_gjA',
-            },
-            'params': {
-                'skip_download': True,
-            },
-        },
-        {
             # Members only video
             'url': '3mY1NXSO4Sg',
             'info_dict': {
