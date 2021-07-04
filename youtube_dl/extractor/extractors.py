@@ -611,10 +611,6 @@ from .linkedin import (
 from .linuxacademy import LinuxAcademyIE
 from .litv import LiTVIE
 from .livejournal import LiveJournalIE
-from .liveleak import (
-    LiveLeakIE,
-    LiveLeakEmbedIE,
-)
 from .livestream import (
     LivestreamIE,
     LivestreamOriginalIE,
