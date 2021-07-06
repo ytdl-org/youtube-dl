@@ -315,7 +315,7 @@ class YoutubeBaseInfoExtractor(InfoExtractor):
              lambda x: x['title']['simpleText']), compat_str)
         description = try_get(
             renderer, lambda x: x['descriptionSnippet']['runs'][0]['text'],
-            compat_str) 
+            compat_str)
         duration_text = try_get(
             renderer,
             (lambda x: x['lengthText']['simpleText'],
