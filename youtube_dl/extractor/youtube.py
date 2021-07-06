@@ -318,7 +318,7 @@ class YoutubeBaseInfoExtractor(InfoExtractor):
             compat_str)
         duration_text = try_get(
             renderer, 
-           (lambda x: x['lengthText']['simpleText'], 
+           (lambda x: x['lengthText']['simpleText'],
             lambda x: x['thumbnailOverlays'][0]['thumbnailOverlayTimeStatusRenderer']['text']['simpleText']),
             compat_str)
         duration = parse_duration(duration_text)
