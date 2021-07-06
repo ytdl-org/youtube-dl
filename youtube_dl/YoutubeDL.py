@@ -26,8 +26,10 @@ import tokenize
 import traceback
 import random
 
+from optparse import SUPPRESS_HELP
 from string import ascii_letters
 
+from .options import parseOpts
 from .compat import (
     compat_basestring,
     compat_cookiejar,
@@ -361,6 +363,38 @@ class YoutubeDL(object):
         }
         self.params.update(params)
         self.cache = Cache(self)
+
+        # check the validity of api options if not invoked from cli or test
+        if 'test' not in params:
+            parser = parseOpts([])[0]
+            valid_opts = set(
+                [o.dest for o in parser._get_all_options() if o.dest and o.help != SUPPRESS_HELP])
+            valid_opts.update([
+                # aliases
+                'continuedl',
+                'daterange',
+                'forcedescription',
+                'forceduration',
+                'forcefilename',
+                'forceformat',
+                'forceid',
+                'forcejson',
+                'forcethumbnail',
+                'forcetitle',
+                'forceurl',
+                'logtostderr',
+                'nocheckcertificate',
+                'playlistrandom',
+                'playlistreverse',
+                'postprocessors',
+                # logger, hook
+                'logger',
+                'progress_hooks',
+            ])
+            passed_opts = set(params.keys())
+            invalid_opts = passed_opts - valid_opts
+            if invalid_opts:
+                self.report_error('Invalid option(s): %s' % ', '.join(invalid_opts))
 
         def check_deprecated(param, option, suggestion):
             if self.params.get(param) is not None:
