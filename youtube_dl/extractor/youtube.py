@@ -1836,8 +1836,27 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                     lang_code = caption_track.get('languageCode')
                     if not lang_code:
                         continue
+
+                    name = caption_track.get('name')
+                    if not name:
+                        process_language(
+                            subtitles, base_url, lang_code, {})
+                        continue
+                    name_text = name.get('simpleText')
+                    if not name_text:
+                        process_language(
+                            subtitles, base_url, lang_code, {})
+                        continue
+
+                    if len(name_text.split(' - ', 1)) != 2:
+                        process_language(
+                            subtitles, base_url, lang_code, {})
+                        continue
+
+                    suffix = name_text.split(' - ', 1)[1]
+
                     process_language(
-                        subtitles, base_url, lang_code, {})
+                        subtitles, base_url, lang_code + '-' + suffix, {})
                     continue
                 automatic_captions = {}
                 for translation_language in (pctr.get('translationLanguages') or []):
