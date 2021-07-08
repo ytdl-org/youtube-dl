@@ -183,8 +183,6 @@ class Aria2cFD(ExternalFD):
 
     def _make_cmd(self, tmpfilename, info_dict):
         cmd = [self.exe, '-c']
-        cmd += self._configuration_args([
-            '--min-split-size', '1M', '--max-connection-per-server', '4'])
         dn = os.path.dirname(tmpfilename)
         if dn:
             cmd += ['--dir', dn]
@@ -195,6 +193,8 @@ class Aria2cFD(ExternalFD):
         cmd += self._option('--all-proxy', 'proxy')
         cmd += self._bool_option('--check-certificate', 'nocheckcertificate', 'false', 'true', '=')
         cmd += self._bool_option('--remote-time', 'updatetime', 'true', 'false', '=')
+        cmd += self._configuration_args([
+            '--min-split-size', '1M', '--max-connection-per-server', '4'])
         cmd += ['--', info_dict['url']]
         return cmd
 
