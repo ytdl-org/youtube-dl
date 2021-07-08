@@ -16,6 +16,7 @@ from .options import (
     parseOpts,
 )
 from .compat import (
+    compat_BrokenPipeError,
     compat_getpass,
     compat_shlex_split,
     workaround_optparse_bug9161,
@@ -25,6 +26,7 @@ from .utils import (
     decodeOption,
     DEFAULT_OUTTMPL,
     DownloadError,
+    error_to_compat_str,
     expand_path,
     match_filter_func,
     MaxDownloadsReached,
@@ -479,6 +481,12 @@ def main(argv=None):
         sys.exit('ERROR: fixed output name but more than one file to download')
     except KeyboardInterrupt:
         sys.exit('\nERROR: Interrupted by user')
+    except compat_BrokenPipeError as err:
+        # See "Note on SIGPIPE"
+        #   https://docs.python.org/3/library/signal.html#note-on-sigpipe
+        devnull = os.open(os.devnull, os.O_WRONLY)
+        os.dup2(devnull, sys.stdout.fileno())
+        sys.exit('ERROR: %s' % error_to_compat_str(err))
 
 
 __all__ = ['main', 'YoutubeDL', 'gen_extractors', 'list_extractors']

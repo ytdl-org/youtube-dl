@@ -2998,7 +2998,14 @@ else:
         return ctypes.WINFUNCTYPE(*args, **kwargs)
 
 
+try:  # Python >= 3.3
+    compat_BrokenPipeError = BrokenPipeError
+except NameError:
+    compat_BrokenPipeError = IOError
+
+
 __all__ = [
+    'compat_BrokenPipeError',
     'compat_HTMLParseError',
     'compat_HTMLParser',
     'compat_HTTPError',
