@@ -15,7 +15,8 @@ from ..utils import (
 class GBNewsIE(InfoExtractor):
     '''GB News clips and features'''
 
-    _VALID_URL = r'https?://(?:www\.)?gbnews\.uk/(?:shows(?:/(?P<display_id>[^/]+))?|a)/(?P<id>\d+)'
+    # \w+ is normally shows or news, but apparently any word redirects to the correct URL
+    _VALID_URL = r'https?://(?:www\.)?gbnews\.uk/(?:\w+(?:/(?P<display_id>[^/]+))?|a)/(?P<id>\d+)'
     _PLATFORM = 'safari'
     _SSMP_URL = 'https://mm-dev.simplestream.com/ssmp/api.php'
     _TESTS = [{
