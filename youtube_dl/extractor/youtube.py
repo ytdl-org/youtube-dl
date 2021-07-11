@@ -353,7 +353,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
         r'(?:www\.)?invidious\.13ad\.de',
         r'(?:www\.)?invidious\.mastodon\.host',
         r'(?:www\.)?invidious\.zapashcanon\.fr',
-        r'(?:www\.)?invidious\.kavin\.rocks',
+        r'(?:www\.)?(?:invidious(?:-us)?|piped)\.kavin\.rocks',
         r'(?:www\.)?invidious\.tinfoil-hat\.net',
         r'(?:www\.)?invidious\.himiko\.cloud',
         r'(?:www\.)?invidious\.reallyancient\.tech',
@@ -380,6 +380,14 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
         r'(?:www\.)?invidious\.toot\.koeln',
         r'(?:www\.)?invidious\.fdn\.fr',
         r'(?:www\.)?watch\.nettohikari\.com',
+        r'(?:www\.)?invidious\.namazso\.eu',
+        r'(?:www\.)?invidious\.silkky\.cloud',
+        r'(?:www\.)?invidious\.exonip\.de',
+        r'(?:www\.)?invidious\.riverside\.rocks',
+        r'(?:www\.)?invidious\.blamefran\.net',
+        r'(?:www\.)?invidious\.moomoo\.de',
+        r'(?:www\.)?ytb\.trom\.tf',
+        r'(?:www\.)?yt\.cyberhost\.uk',
         r'(?:www\.)?kgg2m7yk5aybusll\.onion',
         r'(?:www\.)?qklhadlycap4cnod\.onion',
         r'(?:www\.)?axqzx4s6s54s32yentfqojs3x5i7faxza6xo3ehd4bzzsg2ii4fv2iid\.onion',
@@ -388,6 +396,10 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
         r'(?:www\.)?invidious\.l4qlywnpwqsluw65ts7md3khrivpirse744un3x7mlskqauz5pyuzgqd\.onion',
         r'(?:www\.)?owxfohz4kjyv25fvlqilyxast7inivgiktls3th44jhk3ej3i7ya\.b32\.i2p',
         r'(?:www\.)?4l2dgddgsrkf2ous66i6seeyi6etzfgrue332grh2n7madpwopotugyd\.onion',
+        r'(?:www\.)?w6ijuptxiku4xpnnaetxvnkc5vqcdu7mgns2u77qefoixi63vbvnpnqd\.onion',
+        r'(?:www\.)?kbjggqkzv65ivcqj6bumvp337z6264huv5kpkwuv6gu5yjiskvan7fad\.onion',
+        r'(?:www\.)?grwp24hodrefzvjjuccrkw3mjq4tzhaaq32amf33dzpmuxe7ilepcmad\.onion',
+        r'(?:www\.)?hpniueoejy4opn7bc4ftgazyqjoeqwlvh2uiku2xqku6zpoa4bf5ruid\.onion',
     )
     _VALID_URL = r"""(?x)^
                      (
@@ -1492,19 +1504,25 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
 
         playability_status = player_response.get('playabilityStatus') or {}
         if playability_status.get('reason') == 'Sign in to confirm your age':
-            pr = self._parse_json(try_get(compat_parse_qs(
-                self._download_webpage(
-                    base_url + 'get_video_info', video_id,
-                    'Refetching age-gated info webpage',
-                    'unable to download video info webpage', query={
-                        'video_id': video_id,
-                        'eurl': 'https://youtube.googleapis.com/v/' + video_id,
-                        'html5': 1,
-                    }, fatal=False)),
-                lambda x: x['player_response'][0],
-                compat_str) or '{}', video_id)
-            if pr:
-                player_response = pr
+            video_info = self._download_webpage(
+                base_url + 'get_video_info', video_id,
+                'Refetching age-gated info webpage',
+                'unable to download video info webpage', query={
+                    'video_id': video_id,
+                    'eurl': 'https://youtube.googleapis.com/v/' + video_id,
+                    'html5': 1,
+                    # See https://github.com/ytdl-org/youtube-dl/issues/29333#issuecomment-864049544
+                    'c': 'TVHTML5',
+                    'cver': '6.20180913',
+                }, fatal=False)
+            if video_info:
+                pr = self._parse_json(
+                    try_get(
+                        compat_parse_qs(video_info),
+                        lambda x: x['player_response'][0], compat_str) or '{}',
+                    video_id, fatal=False)
+                if pr and isinstance(pr, dict):
+                    player_response = pr
 
         trailer_video_id = try_get(
             playability_status,
