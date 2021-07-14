@@ -74,10 +74,10 @@ class WeiboIE(InfoExtractor):
                 url, video_id, note='Revisiting webpage')
 
         title = self._html_search_regex(
-            r'<title>(.+?)</title>', webpage, 'title')
+            r'<title>(.+?)</title>', webpage, 'title', flags=re.DOTALL)
 
         video_formats = compat_parse_qs(self._search_regex(
-            r'video-sources=\\\"(.+?)\"', webpage, 'video_sources'))
+            r'video-sources=\\\"(.+?)\"', webpage, 'video_sources', flags=re.DOTALL))
 
         formats = []
         supported_resolutions = (480, 720)
