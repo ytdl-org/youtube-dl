@@ -370,6 +370,10 @@ def parseOpts(overrideArguments=None):
         '--video-password',
         dest='videopassword', metavar='PASSWORD',
         help='Video password (vimeo, youku)')
+    authentication.add_option(
+        '--client-certificate',
+        dest='clientcertificate', metavar='PATH',
+        help='Path to a single certificate file in PEM format, used to authenticate to the site')
 
     adobe_pass = optparse.OptionGroup(parser, 'Adobe Pass Options')
     adobe_pass.add_option(

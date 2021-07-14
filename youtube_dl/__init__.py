@@ -320,6 +320,7 @@ def _real_main(argv=None):
         'password': opts.password,
         'twofactor': opts.twofactor,
         'videopassword': opts.videopassword,
+        'clientcertificate': opts.clientcertificate,
         'ap_mso': opts.ap_mso,
         'ap_username': opts.ap_username,
         'ap_password': opts.ap_password,
