@@ -512,8 +512,7 @@ class FFmpegMetadataPP(FFmpegPostProcessor):
             if info['ext'] in ('mov', 'avi', 'wav'):
                 add_comment('', 'description')
                 add_comment('composer')  # may be by --metadata-from-title
-            if info['ext'] in ('mp4', 'm4a', 'avi', 'wav'):
-                add_comment('author')  # may be by --metadata-from-title
+            add_comment('author')  # may be by --metadata-from-title
             add_comment('conductor')  # may be by --metadata-from-title
             add_comment('publisher', ('uploader', 'uploader_id'))
             add_comment('URL', 'webpage_url')
