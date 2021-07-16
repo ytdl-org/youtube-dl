@@ -18,30 +18,34 @@ class ServusIE(InfoExtractor):
                         (?:www\.)?
                         (?:
                             servus\.com/(?:(?:at|de)/p/[^/]+|tv/videos)|
-                            (?:servustv|pm-wissen)\.com/videos
+                            (?:servustv|pm-wissen)\.com/(?:videos|[^/]+/v)
                         )
                         /(?P<id>[aA]{2}-\w+|\d+-\d+)
                     '''
     _TESTS = [{
         # new URL schema
-        'url': 'https://www.servustv.com/videos/aa-1t6vbu5pw1w12/',
-        'md5': '60474d4c21f3eb148838f215c37f02b9',
+        'url': 'https://www.servustv.com/wissen/v/aa-1x7uv5sfw1w12/',
+        'md5': 'ef53f9aa493acc4d9bdddce0168db575',
         'info_dict': {
-            'id': 'AA-1T6VBU5PW1W12',
+            'id': 'AA-1X7UV5SFW1W12',
             'ext': 'mp4',
-            'title': 'Die Grünen aus Sicht des Volkes',
-            'alt_title': 'Talk im Hangar-7 Voxpops Gruene',
-            'description': 'md5:1247204d85783afe3682644398ff2ec4',
+            'title': 'Ägyptens verlorene Prinzessin',
+            'alt_title': 'Ägyptens verlorene Prinzessin',
+            'description': 'md5:a09daa11c79b66407304e98a20060354',
             'thumbnail': r're:^https?://.*\.jpg',
-            'duration': 62.442,
-            'timestamp': 1605193976,
-            'upload_date': '20201112',
-            'series': 'Talk im Hangar-7',
-            'season': 'Season 9',
-            'season_number': 9,
-            'episode': 'Episode 31 - September 14',
-            'episode_number': 31,
+            'duration': 2687.68,
+            'timestamp': 1625633948,
+            'upload_date': '20210707',
+            'series': 'Treasures Decoded',
+            'season': 'Season 5',
+            'season_number': 5,
+            'episode': 'Episode 2',
+            'episode_number': 2,
         }
+    }, {
+        # old URL schema
+        'url': 'https://www.servustv.com/videos/aa-1t6vbu5pw1w12/',
+        'only_matching': True,
     }, {
         # old URL schema
         'url': 'https://www.servus.com/de/p/Die-Gr%C3%BCnen-aus-Sicht-des-Volkes/AA-1T6VBU5PW1W12/',
