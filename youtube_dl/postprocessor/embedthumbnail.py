@@ -112,7 +112,7 @@ class EmbedThumbnailPP(FFmpegPostProcessor):
             stdout, stderr = p.communicate()
 
             if p.returncode != 0:
-                msg = stderr.decode('utf-8', 'replace').strip()
+                msg = (stdout + stderr).decode('utf-8', 'replace').strip()
                 raise EmbedThumbnailPPError(msg)
 
             if not self._already_have_thumbnail:
