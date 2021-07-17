@@ -33,11 +33,21 @@ class ArteTVIE(ArteTVBaseIE):
                         /(?P<id>\d{6}-\d{3}-[AF])
                     ''' % {'langs': ArteTVBaseIE._ARTE_LANGUAGES}
     _TESTS = [{
+        'url': 'https://www.arte.tv/de/videos/030273-820-A/arte-reportage',
+        'info_dict': {
+            'id': '030273-820-A',
+            'ext': 'mp4',
+            'title': 'ARTE Reportage',
+            'description': 'Sudan: In nur wenigen Stunden verloren viele Bewohner aus der Region Tigray alles im Konflikt gegen die Regierung.In diesem Konflikt geht es um die jahrzehntealten Spannungen zwischen den gut 80 Ethnien im Land. / Elfenbeinküste: Die 1.000 Einwohner des Dorfs Trinlé-Diapleu integrieren Patienten eines Psychiatrischen Zentrums in ihr Dorfleben, um ihnen bei der Genesung zu helfen.\n\n(1): Sudan: Die Tigray fliehen aus ÄthiopienIn nur wenigen Stunden verloren viele Bewohner aus der Region Tigray alles im Konflikt gegen die Regierung.Ärzte und Bauern, Studenten und Händler, ganze Familien aus der Region Tigray mussten im Konflikt gegen die Regierung fliehen. In ihrer Heimatregion hatten Tigray Rebellen die Regierung herausgefordert und die schlug hart zurück. In diesem Konflikt geht es um die jahrzehntealten Spannungen zwischen den gut 80 Ethnien im Land, es geht um politischen Einfluss und um Landbesitz. Auch dem neuen und zunächst international hoch gelobten Ministerpräsidenten Abiy Ahmed Ali ist es nicht gelungen, die Ethnien untereinander zu befrieden. Unsere Reporter begleiteten die Flüchtlinge aus Äthiopien im Sudan in ein Flüchtlingscamp in der Wüste, die meisten verbringen die ersten Nächte dort unter freiem Himmel.(2): Elfenbeinküste: Das Dorf, das psychisch Kranken hilftDie 1.000 Einwohner des Dorfs Trinlé-Diapleu helfen Patienten in ihrem Psychiatrie Zentrum gesund zu werden.In Trinlé-Diapleu leben die psychisch Kranken nicht abgetrennt von den Leuten im Dorf, ganz im Gegenteil: Die Patienten des Psychiatrischen Zentrums Victor Houali werden gleich nach ihrer Ankunft behutsam in das Dorfleben integriert. Das Prinzip der offenen Psychiatrie, in dieser Form wohl nicht nur in der Elfenbeinküste einmalig, haben zwei Ärzte der in Frankreich sehr bekannten Clinique de La Borde, Philippe Bichon und Frédérique Drogoul, in den 80er Jahren hier eingeführt. Auch Patienten mit Psychosen und Wahnvorstellungen oder schwere Fälle von Schizophrenie heilen sie hier mit der Hilfe von Medikamenten, Therapiegesprächen und Mitmenschlichkeit. Für viele Kranke in der Elfenbeinküste ist das Victor Houali die letzte Hoffnung auf Genesung.',
+            'upload_date': '20210716'
+        }
+    }, {
         'url': 'https://www.arte.tv/en/videos/088501-000-A/mexico-stealing-petrol-to-survive/',
         'info_dict': {
             'id': '088501-000-A',
             'ext': 'mp4',
             'title': 'Mexico: Stealing Petrol to Survive',
+            'description': 'In Mexico, the black market in oil is more lucrative than drugs. Poor families drill into pipelines and syphon off the petrol that finds its way to illegal gas stations. The illicit trade in gasoline is highly dangerous and costs Mexico 3 billion euros a year.',
             'upload_date': '20190628',
         },
     }, {
@@ -170,14 +180,17 @@ class ArteTVIE(ArteTVBaseIE):
 
         self._sort_formats(formats)
 
-        return {
+        extracted_metadata = {
             'id': player_info.get('VID') or video_id,
             'title': title,
-            'description': player_info.get('VDE'),
             'upload_date': unified_strdate(upload_date_str),
             'thumbnail': player_info.get('programImage') or player_info.get('VTU', {}).get('IUR'),
             'formats': formats,
         }
+        description = "%s\n\n%s" % (player_info.get('V7T', '').strip(), player_info.get('VDE', '').strip())
+        if description.strip():
+            extracted_metadata['description'] = description.strip()
+        return extracted_metadata
 
 
 class ArteTVEmbedIE(InfoExtractor):
