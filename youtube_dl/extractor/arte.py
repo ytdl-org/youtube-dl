@@ -33,6 +33,15 @@ class ArteTVIE(ArteTVBaseIE):
                         /(?P<id>\d{6}-\d{3}-[AF])
                     ''' % {'langs': ArteTVBaseIE._ARTE_LANGUAGES}
     _TESTS = [{
+        'url': 'https://www.arte.tv/de/videos/092724-001-A/lasst-mich-schlafen/',
+        'info_dict': {
+            'id': '092724-001-A',
+            'ext': 'mp4',
+            'title': 'Lasst mich schlafen!',
+            'alt_title': 'Wie schlafen wir?',
+            'upload_date': '20200224'
+        },
+    }, {
         'url': 'https://www.arte.tv/en/videos/088501-000-A/mexico-stealing-petrol-to-survive/',
         'info_dict': {
             'id': '088501-000-A',
@@ -170,7 +179,7 @@ class ArteTVIE(ArteTVBaseIE):
 
         self._sort_formats(formats)
 
-        return {
+        extracted_metadata = {
             'id': player_info.get('VID') or video_id,
             'title': title,
             'description': player_info.get('VDE'),
@@ -178,6 +187,9 @@ class ArteTVIE(ArteTVBaseIE):
             'thumbnail': player_info.get('programImage') or player_info.get('VTU', {}).get('IUR'),
             'formats': formats,
         }
+        if player_info.get('subtitle', '').strip():
+            extracted_metadata['alt_title'] = player_info.get('subtitle', '').strip()
+        return extracted_metadata
 
 
 class ArteTVEmbedIE(InfoExtractor):
