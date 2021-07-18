@@ -3800,7 +3800,10 @@ def detect_exe_version(output, version_re=None, unrecognized='present'):
         version_re = r'version\s+([-0-9._a-zA-Z]+)'
     m = re.search(version_re, output)
     if m:
-        return m.group(1)
+        if len(m.groups()) == 1:
+            return m.group(1)
+        else:
+            return m.groups()
     else:
         return unrecognized
 
