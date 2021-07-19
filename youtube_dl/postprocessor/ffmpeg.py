@@ -81,11 +81,14 @@ class FFmpegPostProcessor(PostProcessor):
                 # get ffmpeg and libavformat runtime versions
                 vers = get_exe_version(
                     path, args=['-version'],
-                    version_re=r'(?s)version\s+([-0-9._a-zA-Z]+)(?:.*?libavformat.*?/\s+([0-9. ]+))?')
+                    version_re=r'(?s)version\s+([-0-9._a-zA-Z]+)(?:.*?libavformat\s+([0-9. ]+)\s+/\s+([0-9. ]+))?')
                 if isinstance(vers, (list, tuple)):
                     ver = vers[0]
-                    if len(vers) > 1 and vers[1]:
-                        self._lavf_version = vers[1].replace(' ', '')
+                    if len(vers) > 2 and vers[1] and vers[2]:
+                        self._lavf_version = {
+                            'build': vers[1].replace(' ', ''),
+                            'runtime': vers[2].replace(' ', '')
+                        }
                 else:
                     ver = vers
             else:
@@ -107,7 +110,7 @@ class FFmpegPostProcessor(PostProcessor):
 
         self._paths = None
         self._versions = None
-        self._lavf_version = None
+        self._lavf_version = {}
         if self._downloader:
             prefer_ffmpeg = self._downloader.params.get('prefer_ffmpeg', True)
             location = self._downloader.params.get('ffmpeg_location')
