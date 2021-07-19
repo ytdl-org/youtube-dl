@@ -404,6 +404,9 @@ Alternatively, refer to the [developer instructions](#developer-instructions) fo
     -2, --twofactor TWOFACTOR            Two-factor authentication code
     -n, --netrc                          Use .netrc authentication data
     --video-password PASSWORD            Video password (vimeo, youku)
+    --client-certificate                 Path to a single certificate file in 
+                                         PEM format, used to authenticate to the
+                                         site (including private key)
 
 ## Adobe Pass Options:
     --ap-mso MSO                         Adobe Pass multiple-system operator (TV
