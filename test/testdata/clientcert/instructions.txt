@@ -1,0 +1,11 @@
+#https://blog.devolutions.net/2020/07/tutorial-how-to-generate-secure-self-signed-server-and-client-certificates-with-openssl
+# Adapt the commands below
+# 6027 days from the time of signing to the day before Y2038
+# Recalculate or use -preserve_dates if re-signing, until
+# 32-bit time_t is not an issue 
+#openssl ecparam -name prime256v1 -genkey -noout -out ca.key
+#openssl req -new -x509 -sha256 -days 6027 -key ca.key -out ca.crt
+#openssl ecparam -name prime256v1 -genkey -noout -out client.key
+#openssl req -new -sha256 -key client.key -out client.csr
+#openssl x509 -req -in client.csr -CA ca.crt -CAkey ca.key -CAcreateserial -out client.crt -days 6027 -sha256
+#cat client.key >> client.crt
