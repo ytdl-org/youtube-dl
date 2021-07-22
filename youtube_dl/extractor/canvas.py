@@ -1,7 +1,6 @@
 from __future__ import unicode_literals
 
 import re
-import json
 
 from .common import InfoExtractor
 from .gigya import GigyaBaseIE
@@ -277,11 +276,11 @@ class VrtNUIE(GigyaBaseIE):
                 'https://accounts.vrt.be/accounts.login', None,
                 note='Login data', errnote='Could not get Login data',
                 headers={}, data=urlencode_postdata({
-                    'loginID':username,
-                    'password':password,
-                    'sessionExpiration':'-2',
-                    'APIKey':self._APIKEY,
-                    'targetEnv':'jssdk',
+                    'loginID': username,
+                    'password': password,
+                    'sessionExpiration': '-2',
+                    'APIKey': self._APIKEY,
+                    'targetEnv': 'jssdk',
                 }))
         except ExtractorError as e:
             self.report_warning("Cookie request HTTP code: %s" % e.cause.code)
@@ -292,10 +291,10 @@ class VrtNUIE(GigyaBaseIE):
         while login_attempt <= 3:
             try:
                 # get XSRF Token
-                xsrf_req = self._request_webpage('https://token.vrt.be/vrtnuinitlogin',
-                    None, note='Requesting XSRF Token', errnote='Could not get XSRF Token', 
-                    query={'provider':'site', 'destination':'https://www.vrt.be/vrtnu/'})
-                
+                self._request_webpage('https://token.vrt.be/vrtnuinitlogin',
+                                      None, note='Requesting XSRF Token', errnote='Could not get XSRF Token',
+                                      query={'provider': 'site', 'destination': 'https://www.vrt.be/vrtnu/'})
+
                 post_data = {
                     'UID': auth_info['UID'],
                     'UIDSignature': auth_info['UIDSignature'],
@@ -308,12 +307,12 @@ class VrtNUIE(GigyaBaseIE):
                         break
 
                 # do login
-                vrt_token = self._request_webpage(
+                self._request_webpage(
                     'https://login.vrt.be/perform_login',
                     None, note='Requesting a token', errnote='Could not get a token',
                     headers={}, data=urlencode_postdata(post_data)
                 )
- 
+
             except ExtractorError as e:
                 if isinstance(e.cause, compat_HTTPError) and e.cause.code == 401:
                     login_attempt += 1
