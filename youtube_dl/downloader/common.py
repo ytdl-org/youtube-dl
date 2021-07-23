@@ -269,7 +269,7 @@ class FileDownloader(object):
         if s.get('eta') is not None:
             s['_eta_str'] = self.format_eta(s['eta'])
         else:
-            s['_eta_str'] = 'Unknown ETA'
+            s['_eta_str'] = 'Unknown'
 
         if s.get('total_bytes') and s.get('downloaded_bytes') is not None:
             s['_percent_str'] = self.format_percent(100 * s['downloaded_bytes'] / s['total_bytes'])
