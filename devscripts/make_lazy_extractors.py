@@ -6,7 +6,10 @@ import os
 from os.path import dirname as dirn
 import sys
 
-print('WARNING: Lazy loading extractors is an experimental feature that may not always work', file=sys.stderr)
+print(
+    "WARNING: Lazy loading extractors is an experimental feature that may not always work",
+    file=sys.stderr,
+)
 
 sys.path.insert(0, dirn(dirn((os.path.abspath(__file__)))))
 
@@ -17,45 +20,47 @@ if os.path.exists(lazy_extractors_filename):
 from youtube_dl.extractor import _ALL_CLASSES
 from youtube_dl.extractor.common import InfoExtractor, SearchInfoExtractor
 
-with open('devscripts/lazy_load_template.py', 'rt') as f:
+with open("devscripts/lazy_load_template.py", "rt") as f:
     module_template = f.read()
 
 module_contents = [
-    module_template + '\n' + getsource(InfoExtractor.suitable) + '\n',
-    'class LazyLoadSearchExtractor(LazyLoadExtractor):\n    pass\n']
+    module_template + "\n" + getsource(InfoExtractor.suitable) + "\n",
+    "class LazyLoadSearchExtractor(LazyLoadExtractor):\n    pass\n",
+]
 
-ie_template = '''
+ie_template = """
 class {name}({bases}):
     _VALID_URL = {valid_url!r}
     _module = '{module}'
-'''
+"""
 
-make_valid_template = '''
+make_valid_template = """
     @classmethod
     def _make_valid_url(cls):
         return {valid_url!r}
-'''
+"""
 
 
 def get_base_name(base):
     if base is InfoExtractor:
-        return 'LazyLoadExtractor'
+        return "LazyLoadExtractor"
     elif base is SearchInfoExtractor:
-        return 'LazyLoadSearchExtractor'
+        return "LazyLoadSearchExtractor"
     else:
         return base.__name__
 
 
 def build_lazy_ie(ie, name):
-    valid_url = getattr(ie, '_VALID_URL', None)
+    valid_url = getattr(ie, "_VALID_URL", None)
     s = ie_template.format(
         name=name,
-        bases=', '.join(map(get_base_name, ie.__bases__)),
+        bases=", ".join(map(get_base_name, ie.__bases__)),
         valid_url=valid_url,
-        module=ie.__module__)
+        module=ie.__module__,
+    )
     if ie.suitable.__func__ is not InfoExtractor.suitable.__func__:
-        s += '\n' + getsource(ie.suitable)
-    if hasattr(ie, '_make_valid_url'):
+        s += "\n" + getsource(ie.suitable)
+    if hasattr(ie, "_make_valid_url"):
         # search extractors
         s += make_valid_template.format(valid_url=ie._make_valid_url())
     return s
@@ -71,7 +76,7 @@ while classes:
         stop = False
         for b in bases:
             if b not in classes and b not in ordered_cls:
-                if b.__name__ == 'GenericIE':
+                if b.__name__ == "GenericIE":
                     exit()
                 classes.insert(0, b)
                 stop = True
@@ -91,10 +96,9 @@ for ie in ordered_cls:
     if ie in _ALL_CLASSES:
         names.append(name)
 
-module_contents.append(
-    '_ALL_CLASSES = [{0}]'.format(', '.join(names)))
+module_contents.append("_ALL_CLASSES = [{0}]".format(", ".join(names)))
 
-module_src = '\n'.join(module_contents) + '\n'
+module_src = "\n".join(module_contents) + "\n"
 
-with io.open(lazy_extractors_filename, 'wt', encoding='utf-8') as f:
+with io.open(lazy_extractors_filename, "wt", encoding="utf-8") as f:
     f.write(module_src)

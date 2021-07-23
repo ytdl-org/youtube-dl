@@ -17,15 +17,14 @@ class ExecAfterDownloadPP(PostProcessor):
 
     def run(self, information):
         cmd = self.exec_cmd
-        if '{}' not in cmd:
-            cmd += ' {}'
+        if "{}" not in cmd:
+            cmd += " {}"
 
-        cmd = cmd.replace('{}', compat_shlex_quote(information['filepath']))
+        cmd = cmd.replace("{}", compat_shlex_quote(information["filepath"]))
 
-        self._downloader.to_screen('[exec] Executing command: %s' % cmd)
+        self._downloader.to_screen("[exec] Executing command: %s" % cmd)
         retCode = subprocess.call(encodeArgument(cmd), shell=True)
         if retCode != 0:
-            raise PostProcessingError(
-                'Command returned error code %d' % retCode)
+            raise PostProcessingError("Command returned error code %d" % retCode)
 
         return [], information

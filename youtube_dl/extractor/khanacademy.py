@@ -11,97 +11,114 @@ from ..utils import (
 
 
 class KhanAcademyBaseIE(InfoExtractor):
-    _VALID_URL_TEMPL = r'https?://(?:www\.)?khanacademy\.org/(?P<id>(?:[^/]+/){%s}%s[^?#/&]+)'
+    _VALID_URL_TEMPL = (
+        r"https?://(?:www\.)?khanacademy\.org/(?P<id>(?:[^/]+/){%s}%s[^?#/&]+)"
+    )
 
     def _parse_video(self, video):
         return {
-            '_type': 'url_transparent',
-            'url': video['youtubeId'],
-            'id': video.get('slug'),
-            'title': video.get('title'),
-            'thumbnail': video.get('imageUrl') or video.get('thumbnailUrl'),
-            'duration': int_or_none(video.get('duration')),
-            'description': video.get('description'),
-            'ie_key': 'Youtube',
+            "_type": "url_transparent",
+            "url": video["youtubeId"],
+            "id": video.get("slug"),
+            "title": video.get("title"),
+            "thumbnail": video.get("imageUrl") or video.get("thumbnailUrl"),
+            "duration": int_or_none(video.get("duration")),
+            "description": video.get("description"),
+            "ie_key": "Youtube",
         }
 
     def _real_extract(self, url):
         display_id = self._match_id(url)
-        component_props = self._parse_json(self._download_json(
-            'https://www.khanacademy.org/api/internal/graphql',
-            display_id, query={
-                'hash': 1604303425,
-                'variables': json.dumps({
-                    'path': display_id,
-                    'queryParams': '',
-                }),
-            })['data']['contentJson'], display_id)['componentProps']
+        component_props = self._parse_json(
+            self._download_json(
+                "https://www.khanacademy.org/api/internal/graphql",
+                display_id,
+                query={
+                    "hash": 1604303425,
+                    "variables": json.dumps(
+                        {
+                            "path": display_id,
+                            "queryParams": "",
+                        }
+                    ),
+                },
+            )["data"]["contentJson"],
+            display_id,
+        )["componentProps"]
         return self._parse_component_props(component_props)
 
 
 class KhanAcademyIE(KhanAcademyBaseIE):
-    IE_NAME = 'khanacademy'
-    _VALID_URL = KhanAcademyBaseIE._VALID_URL_TEMPL % ('4', 'v/')
+    IE_NAME = "khanacademy"
+    _VALID_URL = KhanAcademyBaseIE._VALID_URL_TEMPL % ("4", "v/")
     _TEST = {
-        'url': 'https://www.khanacademy.org/computing/computer-science/cryptography/crypt/v/one-time-pad',
-        'md5': '9c84b7b06f9ebb80d22a5c8dedefb9a0',
-        'info_dict': {
-            'id': 'FlIG3TvQCBQ',
-            'ext': 'mp4',
-            'title': 'The one-time pad',
-            'description': 'The perfect cipher',
-            'duration': 176,
-            'uploader': 'Brit Cruise',
-            'uploader_id': 'khanacademy',
-            'upload_date': '20120411',
-            'timestamp': 1334170113,
-            'license': 'cc-by-nc-sa',
+        "url": "https://www.khanacademy.org/computing/computer-science/cryptography/crypt/v/one-time-pad",
+        "md5": "9c84b7b06f9ebb80d22a5c8dedefb9a0",
+        "info_dict": {
+            "id": "FlIG3TvQCBQ",
+            "ext": "mp4",
+            "title": "The one-time pad",
+            "description": "The perfect cipher",
+            "duration": 176,
+            "uploader": "Brit Cruise",
+            "uploader_id": "khanacademy",
+            "upload_date": "20120411",
+            "timestamp": 1334170113,
+            "license": "cc-by-nc-sa",
         },
-        'add_ie': ['Youtube'],
+        "add_ie": ["Youtube"],
     }
 
     def _parse_component_props(self, component_props):
-        video = component_props['tutorialPageData']['contentModel']
+        video = component_props["tutorialPageData"]["contentModel"]
         info = self._parse_video(video)
-        author_names = video.get('authorNames')
-        info.update({
-            'uploader': ', '.join(author_names) if author_names else None,
-            'timestamp': parse_iso8601(video.get('dateAdded')),
-            'license': video.get('kaUserLicense'),
-        })
+        author_names = video.get("authorNames")
+        info.update(
+            {
+                "uploader": ", ".join(author_names) if author_names else None,
+                "timestamp": parse_iso8601(video.get("dateAdded")),
+                "license": video.get("kaUserLicense"),
+            }
+        )
         return info
 
 
 class KhanAcademyUnitIE(KhanAcademyBaseIE):
-    IE_NAME = 'khanacademy:unit'
-    _VALID_URL = (KhanAcademyBaseIE._VALID_URL_TEMPL % ('2', '')) + '/?(?:[?#&]|$)'
+    IE_NAME = "khanacademy:unit"
+    _VALID_URL = (KhanAcademyBaseIE._VALID_URL_TEMPL % ("2", "")) + "/?(?:[?#&]|$)"
     _TEST = {
-        'url': 'https://www.khanacademy.org/computing/computer-science/cryptography',
-        'info_dict': {
-            'id': 'cryptography',
-            'title': 'Cryptography',
-            'description': 'How have humans protected their secret messages through history? What has changed today?',
+        "url": "https://www.khanacademy.org/computing/computer-science/cryptography",
+        "info_dict": {
+            "id": "cryptography",
+            "title": "Cryptography",
+            "description": "How have humans protected their secret messages through history? What has changed today?",
         },
-        'playlist_mincount': 31,
+        "playlist_mincount": 31,
     }
 
     def _parse_component_props(self, component_props):
-        curation = component_props['curation']
+        curation = component_props["curation"]
 
         entries = []
-        tutorials = try_get(curation, lambda x: x['tabs'][0]['modules'][0]['tutorials'], list) or []
+        tutorials = (
+            try_get(curation, lambda x: x["tabs"][0]["modules"][0]["tutorials"], list)
+            or []
+        )
         for tutorial_number, tutorial in enumerate(tutorials, 1):
             chapter_info = {
-                'chapter': tutorial.get('title'),
-                'chapter_number': tutorial_number,
-                'chapter_id': tutorial.get('id'),
+                "chapter": tutorial.get("title"),
+                "chapter_number": tutorial_number,
+                "chapter_id": tutorial.get("id"),
             }
-            for content_item in (tutorial.get('contentItems') or []):
-                if content_item.get('kind') == 'Video':
+            for content_item in tutorial.get("contentItems") or []:
+                if content_item.get("kind") == "Video":
                     info = self._parse_video(content_item)
                     info.update(chapter_info)
                     entries.append(info)
 
         return self.playlist_result(
-            entries, curation.get('unit'), curation.get('title'),
-            curation.get('description'))
+            entries,
+            curation.get("unit"),
+            curation.get("title"),
+            curation.get("description"),
+        )

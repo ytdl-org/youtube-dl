@@ -152,10 +152,7 @@ from .businessinsider import BusinessInsiderIE
 from .buzzfeed import BuzzFeedIE
 from .byutv import BYUtvIE
 from .c56 import C56IE
-from .camdemy import (
-    CamdemyIE,
-    CamdemyFolderIE
-)
+from .camdemy import CamdemyIE, CamdemyFolderIE
 from .cammodels import CamModelsIE
 from .camtube import CamTubeIE
 from .camwithher import CamWithHerIE
@@ -256,10 +253,7 @@ from .corus import CorusIE
 from .cracked import CrackedIE
 from .crackle import CrackleIE
 from .crooksandliars import CrooksAndLiarsIE
-from .crunchyroll import (
-    CrunchyrollIE,
-    CrunchyrollShowPlaylistIE
-)
+from .crunchyroll import CrunchyrollIE, CrunchyrollShowPlaylistIE
 from .cspan import CSpanIE
 from .ctsnews import CtsNewsIE
 from .ctv import CTVIE
@@ -414,7 +408,7 @@ from .freshlive import FreshLiveIE
 from .frontendmasters import (
     FrontendMastersIE,
     FrontendMastersLessonIE,
-    FrontendMastersCourseIE
+    FrontendMastersCourseIE,
 )
 from .fujitv import FujiTVFODPlus7IE
 from .funimation import FunimationIE
@@ -489,10 +483,7 @@ from .iheart import (
     IHeartRadioIE,
     IHeartRadioPodcastIE,
 )
-from .imdb import (
-    ImdbIE,
-    ImdbListIE
-)
+from .imdb import ImdbIE, ImdbListIE
 from .imgur import (
     ImgurIE,
     ImgurAlbumIE,
@@ -516,10 +507,7 @@ from .itv import (
     ITVIE,
     ITVBTCCIE,
 )
-from .ivi import (
-    IviIE,
-    IviCompilationIE
-)
+from .ivi import IviIE, IviCompilationIE
 from .ivideon import IvideonIE
 from .iwara import IwaraIE
 from .izlesene import IzleseneIE
@@ -619,10 +607,7 @@ from .lnkgo import LnkGoIE
 from .localnews8 import LocalNews8IE
 from .lovehomeporn import LoveHomePornIE
 from .lrt import LRTIE
-from .lynda import (
-    LyndaIE,
-    LyndaCourseIE
-)
+from .lynda import LyndaIE, LyndaCourseIE
 from .m6 import M6IE
 from .mailru import (
     MailRuIE,
@@ -691,10 +676,7 @@ from .mofosex import (
 )
 from .mojvideo import MojvideoIE
 from .morningstar import MorningstarIE
-from .motherless import (
-    MotherlessIE,
-    MotherlessGroupIE
-)
+from .motherless import MotherlessIE, MotherlessGroupIE
 from .motorsport import MotorsportIE
 from .movieclips import MovieClipsIE
 from .moviezine import MoviezineIE
@@ -1025,7 +1007,13 @@ from .rtl2 import (
 )
 from .rtp import RTPIE
 from .rts import RTSIE
-from .rtve import RTVEALaCartaIE, RTVELiveIE, RTVEInfantilIE, RTVELiveIE, RTVETelevisionIE
+from .rtve import (
+    RTVEALaCartaIE,
+    RTVELiveIE,
+    RTVEInfantilIE,
+    RTVELiveIE,
+    RTVETelevisionIE,
+)
 from .rtvnh import RTVNHIE
 from .rtvs import RTVSIE
 from .ruhd import RUHDIE
@@ -1121,16 +1109,13 @@ from .soundcloud import (
     SoundcloudPlaylistIE,
     SoundcloudSearchIE,
 )
-from .soundgasm import (
-    SoundgasmIE,
-    SoundgasmProfileIE
-)
+from .soundgasm import SoundgasmIE, SoundgasmProfileIE
 from .southpark import (
     SouthParkIE,
     SouthParkDeIE,
     SouthParkDkIE,
     SouthParkEsIE,
-    SouthParkNlIE
+    SouthParkNlIE,
 )
 from .spankbang import (
     SpankBangIE,
@@ -1362,10 +1347,7 @@ from .twitter import (
     TwitterAmplifyIE,
     TwitterBroadcastIE,
 )
-from .udemy import (
-    UdemyIE,
-    UdemyCourseIE
-)
+from .udemy import UdemyIE, UdemyCourseIE
 from .udn import UDNEmbedIE
 from .ufctv import (
     UFCTVIE,
@@ -1524,10 +1506,7 @@ from .webofstories import (
     WebOfStoriesIE,
     WebOfStoriesPlaylistIE,
 )
-from .weibo import (
-    WeiboIE,
-    WeiboMobileIE
-)
+from .weibo import WeiboIE, WeiboMobileIE
 from .weiqitv import WeiqiTVIE
 from .wistia import (
     WistiaIE,
@@ -1547,16 +1526,8 @@ from .xhamster import (
     XHamsterEmbedIE,
     XHamsterUserIE,
 )
-from .xiami import (
-    XiamiSongIE,
-    XiamiAlbumIE,
-    XiamiArtistIE,
-    XiamiCollectionIE
-)
-from .ximalaya import (
-    XimalayaIE,
-    XimalayaAlbumIE
-)
+from .xiami import XiamiSongIE, XiamiAlbumIE, XiamiArtistIE, XiamiCollectionIE
+from .ximalaya import XimalayaIE, XimalayaAlbumIE
 from .xminus import XMinusIE
 from .xnxx import XNXXIE
 from .xstream import XstreamIE
@@ -1606,7 +1577,7 @@ from .youtube import (
     YoutubeRecommendedIE,
     YoutubeSearchDateIE,
     YoutubeSearchIE,
-    #YoutubeSearchURLIE,
+    # YoutubeSearchURLIE,
     YoutubeSubscriptionsIE,
     YoutubeTruncatedIDIE,
     YoutubeTruncatedURLIE,

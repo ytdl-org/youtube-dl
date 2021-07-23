@@ -19,22 +19,22 @@ from .metadatafromtitle import MetadataFromTitlePP
 
 
 def get_postprocessor(key):
-    return globals()[key + 'PP']
+    return globals()[key + "PP"]
 
 
 __all__ = [
-    'EmbedThumbnailPP',
-    'ExecAfterDownloadPP',
-    'FFmpegEmbedSubtitlePP',
-    'FFmpegExtractAudioPP',
-    'FFmpegFixupM3u8PP',
-    'FFmpegFixupM4aPP',
-    'FFmpegFixupStretchedPP',
-    'FFmpegMergerPP',
-    'FFmpegMetadataPP',
-    'FFmpegPostProcessor',
-    'FFmpegSubtitlesConvertorPP',
-    'FFmpegVideoConvertorPP',
-    'MetadataFromTitlePP',
-    'XAttrMetadataPP',
+    "EmbedThumbnailPP",
+    "ExecAfterDownloadPP",
+    "FFmpegEmbedSubtitlePP",
+    "FFmpegExtractAudioPP",
+    "FFmpegFixupM3u8PP",
+    "FFmpegFixupM4aPP",
+    "FFmpegFixupStretchedPP",
+    "FFmpegMergerPP",
+    "FFmpegMetadataPP",
+    "FFmpegPostProcessor",
+    "FFmpegSubtitlesConvertorPP",
+    "FFmpegVideoConvertorPP",
+    "MetadataFromTitlePP",
+    "XAttrMetadataPP",
 ]

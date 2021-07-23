@@ -6,24 +6,24 @@ import optparse
 
 
 def main():
-    parser = optparse.OptionParser(usage='%prog INFILE OUTFILE')
+    parser = optparse.OptionParser(usage="%prog INFILE OUTFILE")
     options, args = parser.parse_args()
     if len(args) != 2:
-        parser.error('Expected an input and an output filename')
+        parser.error("Expected an input and an output filename")
 
     infile, outfile = args
 
-    with io.open(infile, encoding='utf-8') as inf:
+    with io.open(infile, encoding="utf-8") as inf:
         issue_template_tmpl = inf.read()
 
     # Get the version from youtube_dl/version.py without importing the package
-    exec(compile(open('youtube_dl/version.py').read(),
-                 'youtube_dl/version.py', 'exec'))
+    exec(compile(open("youtube_dl/version.py").read(), "youtube_dl/version.py", "exec"))
 
-    out = issue_template_tmpl % {'version': locals()['__version__']}
+    out = issue_template_tmpl % {"version": locals()["__version__"]}
 
-    with io.open(outfile, 'w', encoding='utf-8') as outf:
+    with io.open(outfile, "w", encoding="utf-8") as outf:
         outf.write(out)
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     main()

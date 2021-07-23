@@ -4,6 +4,7 @@ from __future__ import unicode_literals
 import os
 import sys
 import unittest
+
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 import io
@@ -12,14 +13,14 @@ import re
 rootDir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 IGNORED_FILES = [
-    'setup.py',  # http://bugs.python.org/issue13943
-    'conf.py',
-    'buildserver.py',
+    "setup.py",  # http://bugs.python.org/issue13943
+    "conf.py",
+    "buildserver.py",
 ]
 
 IGNORED_DIRS = [
-    '.git',
-    '.tox',
+    ".git",
+    ".tox",
 ]
 
 from test.helper import assertRegexpMatches
@@ -34,13 +35,13 @@ class TestUnicodeLiterals(unittest.TestCase):
                     # recurse into it
                     dirnames.remove(ignore_dir)
             for basename in filenames:
-                if not basename.endswith('.py'):
+                if not basename.endswith(".py"):
                     continue
                 if basename in IGNORED_FILES:
                     continue
 
                 fn = os.path.join(dirpath, basename)
-                with io.open(fn, encoding='utf-8') as inf:
+                with io.open(fn, encoding="utf-8") as inf:
                     code = inf.read()
 
                 if "'" not in code and '"' not in code:
@@ -48,16 +49,18 @@ class TestUnicodeLiterals(unittest.TestCase):
                 assertRegexpMatches(
                     self,
                     code,
-                    r'(?:(?:#.*?|\s*)\n)*from __future__ import (?:[a-z_]+,\s*)*unicode_literals',
-                    'unicode_literals import  missing in %s' % fn)
+                    r"(?:(?:#.*?|\s*)\n)*from __future__ import (?:[a-z_]+,\s*)*unicode_literals",
+                    "unicode_literals import  missing in %s" % fn,
+                )
 
                 m = re.search(r'(?<=\s)u[\'"](?!\)|,|$)', code)
                 if m is not None:
                     self.assertTrue(
                         m is None,
-                        'u present in %s, around %s' % (
-                            fn, code[m.start() - 10:m.end() + 10]))
+                        "u present in %s, around %s"
+                        % (fn, code[m.start() - 10 : m.end() + 10]),
+                    )
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()

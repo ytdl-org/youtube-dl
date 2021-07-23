@@ -13,8 +13,7 @@ ZSH_COMPLETION_TEMPLATE = "devscripts/zsh-completion.in"
 
 
 def build_completion(opt_parser):
-    opts = [opt for group in opt_parser.option_groups
-            for opt in group.option_list]
+    opts = [opt for group in opt_parser.option_groups for opt in group.option_list]
     opts_file = [opt for opt in opts if opt.metavar == "FILE"]
     opts_dir = [opt for opt in opts if opt.metavar == "DIR"]
 

@@ -55,14 +55,16 @@ class PostProcessor(object):
         """
         return [], information  # by default, keep file and do nothing
 
-    def try_utime(self, path, atime, mtime, errnote='Cannot update utime of file'):
+    def try_utime(self, path, atime, mtime, errnote="Cannot update utime of file"):
         try:
             os.utime(encodeFilename(path), (atime, mtime))
         except Exception:
             self._downloader.report_warning(errnote)
 
     def _configuration_args(self, default=[]):
-        return cli_configuration_args(self._downloader.params, 'postprocessor_args', default)
+        return cli_configuration_args(
+            self._downloader.params, "postprocessor_args", default
+        )
 
 
 class AudioConversionError(PostProcessingError):

@@ -12,19 +12,35 @@ from ..utils import (
 
 class RtspFD(FileDownloader):
     def real_download(self, filename, info_dict):
-        url = info_dict['url']
+        url = info_dict["url"]
         self.report_destination(filename)
         tmpfilename = self.temp_name(filename)
 
-        if check_executable('mplayer', ['-h']):
+        if check_executable("mplayer", ["-h"]):
             args = [
-                'mplayer', '-really-quiet', '-vo', 'null', '-vc', 'dummy',
-                '-dumpstream', '-dumpfile', tmpfilename, url]
-        elif check_executable('mpv', ['-h']):
+                "mplayer",
+                "-really-quiet",
+                "-vo",
+                "null",
+                "-vc",
+                "dummy",
+                "-dumpstream",
+                "-dumpfile",
+                tmpfilename,
+                url,
+            ]
+        elif check_executable("mpv", ["-h"]):
             args = [
-                'mpv', '-really-quiet', '--vo=null', '--stream-dump=' + tmpfilename, url]
+                "mpv",
+                "-really-quiet",
+                "--vo=null",
+                "--stream-dump=" + tmpfilename,
+                url,
+            ]
         else:
-            self.report_error('MMS or RTSP download detected but neither "mplayer" nor "mpv" could be run. Please install any.')
+            self.report_error(
+                'MMS or RTSP download detected but neither "mplayer" nor "mpv" could be run. Please install any.'
+            )
             return False
 
         self._debug_cmd(args)
@@ -32,16 +48,18 @@ class RtspFD(FileDownloader):
         retval = subprocess.call(args)
         if retval == 0:
             fsize = os.path.getsize(encodeFilename(tmpfilename))
-            self.to_screen('\r[%s] %s bytes' % (args[0], fsize))
+            self.to_screen("\r[%s] %s bytes" % (args[0], fsize))
             self.try_rename(tmpfilename, filename)
-            self._hook_progress({
-                'downloaded_bytes': fsize,
-                'total_bytes': fsize,
-                'filename': filename,
-                'status': 'finished',
-            })
+            self._hook_progress(
+                {
+                    "downloaded_bytes": fsize,
+                    "total_bytes": fsize,
+                    "filename": filename,
+                    "status": "finished",
+                }
+            )
             return True
         else:
-            self.to_stderr('\n')
-            self.report_error('%s exited with code %d' % (args[0], retval))
+            self.to_stderr("\n")
+            self.report_error("%s exited with code %d" % (args[0], retval))
             return False
