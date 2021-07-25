@@ -10,7 +10,7 @@ from ..utils import (
 
 class SBSIE(InfoExtractor):
     IE_DESC = 'sbs.com.au'
-    _VALID_URL = r'https?://(?:www\.)?sbs\.com\.au/(?:ondemand(?:/video/(?:single/)?|.*?\bplay=|/watch/)|news/(?:embeds/)?video/)(?P<id>[0-9]+)'
+    _VALID_URL = r'https?://(?:www\.)?sbs\.com\.au/(?:ondemand(?:/movie/.*?/|/video/(?:single/)?|.*?\bplay=|/watch/)|news/(?:embeds/)?video/)(?P<id>[0-9]+)'
 
     _TESTS = [{
         # Original URL is handled by the generic IE which finds the iframe:
@@ -29,9 +29,6 @@ class SBSIE(InfoExtractor):
             'uploader': 'SBSC',
         },
     }, {
-        'url': 'http://www.sbs.com.au/ondemand/video/320403011771/Dingo-Conservation-The-Feed',
-        'only_matching': True,
-    }, {
         'url': 'http://www.sbs.com.au/news/video/471395907773/The-Feed-July-9',
         'only_matching': True,
     }, {
@@ -43,8 +40,16 @@ class SBSIE(InfoExtractor):
     }, {
         'url': 'https://www.sbs.com.au/news/embeds/video/1840778819866',
         'only_matching': True,
+    },
+    # URL formats below this point confirmed in use 2021-07-25
+    {
+        'url': 'http://www.sbs.com.au/ondemand/video/320403011771/Dingo-Conservation-The-Feed',
+        'only_matching': True,
     }, {
         'url': 'https://www.sbs.com.au/ondemand/watch/1698704451971',
+        'only_matching': True,
+    }, {
+        'url': 'https://www.sbs.com.au/ondemand/movie/happy-as-lazzaro/1861372483555',
         'only_matching': True,
     }]
 
