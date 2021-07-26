@@ -2,6 +2,7 @@
 from __future__ import unicode_literals
 
 import re
+import json
 
 from .common import InfoExtractor
 from ..compat import (
@@ -13,14 +14,50 @@ from ..utils import (
     int_or_none,
     qualities,
     try_get,
-    unified_strdate,
     url_or_none,
 )
 
 
 class ArteTVBaseIE(InfoExtractor):
     _ARTE_LANGUAGES = 'fr|de|en|es|it|pl'
-    _API_BASE = 'https://api.arte.tv/api/player/v1'
+    _API_BASE_V1 = 'https://api.arte.tv/api/player/v1'
+    _API_BASE_V2 = 'https://api.arte.tv/api/player/v2'
+
+    def _get_api_authorization_header(self, url):
+        """Fetches the Authorization header required for api.arte.tv/api/player/v2"""
+        # actually this request is only for making the authorization
+        # requirements for api/player/v2 fullfilled, but it contains some
+        # metadata too since we have to request this page anyway.
+        html_page = self._download_webpage(url, 'dummy_auth_request_with_some_meta')
+        page_metadata_json = self._search_regex(
+            r'window.__INITIAL_STATE__ = (\{.*\});\n', html_page, 'initial_state')
+        if page_metadata_json:
+            page_metadata = json.loads(page_metadata_json)
+        else:
+            page_metadata = {}
+            
+        manifest_js = self._download_webpage(
+            'https://static-cdn.arte.tv/guide/manifest.js', 'arte_api_token')
+        token = self._search_regex(
+            r'"default":{"token":"([a-zA-Z0-9_-]*)"}', manifest_js, 'token')
+        return {
+            'page_metadata': page_metadata,
+            'headers': {
+                'Authorization': 'Bearer %s' % (token),
+                'Accept': 'application/json, text/plain, */*',
+                'Accept-Language': 'en-GB,en;q=0.8,de-DE;q=0.5,de;q=0.3',
+                'Referer': url,
+                'Origin': 'https://www.arte.tv',
+                'Connection': 'keep-alive',
+                'Sec-Fetch-Dest': 'empty',
+                'Sec-Fetch-Mode': 'cors',
+                'Sec-Fetch-Site': 'same-site',
+                'Pragma': 'no-cache',
+                'Cache-Control': 'no-cache',
+                'TE': 'trailers',
+                'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:90.0) Gecko/20100101 Firefox/90.0'
+            }
+        }
 
 
 class ArteTVIE(ArteTVBaseIE):
@@ -53,28 +90,34 @@ class ArteTVIE(ArteTVBaseIE):
         video_id = mobj.group('id')
         lang = mobj.group('lang') or mobj.group('lang_2')
 
-        info = self._download_json(
-            '%s/config/%s/%s' % (self._API_BASE, lang, video_id), video_id)
-        player_info = info['videoJsonPlayer']
-
+        # legacy for debugging only
+        legacy_info = self._download_json(
+            '%s/config/%s/%s' % (self._API_BASE_V1, lang, video_id), video_id)
+        player_info = legacy_info.get('data')
         vsr = try_get(player_info, lambda x: x['VSR'], dict)
-        if not vsr:
-            error = None
-            if try_get(player_info, lambda x: x['custom_msg']['type']) == 'error':
-                error = try_get(
-                    player_info, lambda x: x['custom_msg']['msg'], compat_str)
-            if not error:
-                error = 'Video %s is not available' % player_info.get('VID') or video_id
-            raise ExtractorError(error, expected=True)
 
-        upload_date_str = player_info.get('shootingDate')
-        if not upload_date_str:
-            upload_date_str = (player_info.get('VRA') or player_info.get('VDA') or '').split(' ')[0]
+        # v2 api stuff
+        auth_data = self._get_api_authorization_header(url)
+        info = self._download_json(
+            '%s/config/%s/%s' % (self._API_BASE_V2, lang, video_id), video_id, headers=auth_data.get('headers'))
+        attributes = info.get('data').get('attributes')
+        metadata = attributes.get('metadata')
+        streams = attributes.get('streams')
 
-        title = (player_info.get('VTI') or player_info['VID']).strip()
-        subtitle = player_info.get('VSU', '').strip()
-        if subtitle:
-            title += ' - %s' % subtitle
+        if not streams or not metadata:
+            raise ExtractorError('Required metadata could not be fetched', expected=True)
+
+        info_dict = {
+            'id': video_id,
+            'title': self._get_full_title(metadata),
+            'description': metadata.get('description'),
+            'upload_date': self._get_upload_date(attributes.get('rights')),
+            'thumbnail': self._get_thumbnail_url(metadata)
+        }
+  
+
+        import pdb
+        pdb.set_trace()
 
         qfunc = qualities(['MQ', 'HQ', 'EQ', 'SQ'])
 
@@ -170,14 +213,36 @@ class ArteTVIE(ArteTVBaseIE):
 
         self._sort_formats(formats)
 
-        return {
-            'id': player_info.get('VID') or video_id,
-            'title': title,
-            'description': player_info.get('VDE'),
-            'upload_date': unified_strdate(upload_date_str),
-            'thumbnail': player_info.get('programImage') or player_info.get('VTU', {}).get('IUR'),
-            'formats': formats,
-        }
+        return info_dict
+        # return {
+        #     'id': player_info.get('VID') or video_id,
+        #     'title': title,
+        #     'description': player_info.get('VDE'),
+        #     'upload_date': unified_strdate(upload_date_str),
+        #     'thumbnail': player_info.get('programImage') or player_info.get('VTU', {}).get('IUR'),
+        #     'formats': formats,
+        # }
+
+    def _get_full_title(self, metadata):
+        if metadata.get('subtitle'):
+            return '%s - %s' % (metadata.get('title'), metadata.get('subtitle'))
+        return metadata.get('title')
+
+    def _get_upload_date(self, rights):
+        begin = rights.get('begin')
+        if not begin:
+            return None
+        date_part = begin.split('T')[0]
+        if not date_part:
+            return None
+        start_year, start_month, start_day = date_part.split('-')
+        return '%s%s%s' % (start_year, start_month, start_day)
+
+    def _get_thumbnail_url(self, metadata):
+        images = metadata.get('images')
+        if not images or not images[0] or not images[0].get('url'):
+            return None
+        return images[0].get('url')
 
 
 class ArteTVEmbedIE(InfoExtractor):
@@ -229,7 +294,7 @@ class ArteTVPlaylistIE(ArteTVBaseIE):
         lang, playlist_id = re.match(self._VALID_URL, url).groups()
         collection = self._download_json(
             '%s/collectionData/%s/%s?source=videos'
-            % (self._API_BASE, lang, playlist_id), playlist_id)
+            % (self._API_BASE_V1, lang, playlist_id), playlist_id)
         entries = []
         for video in collection['videos']:
             if not isinstance(video, dict):
