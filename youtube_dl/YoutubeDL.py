@@ -1697,46 +1697,73 @@ class YoutubeDL(object):
     def process_subtitles(self, video_id, normal_subtitles, automatic_captions):
         """Select the requested subtitles and their format"""
         available_subs = {}
+        available_auto_subs = {}
+        available_langs = []
         if normal_subtitles and self.params.get('writesubtitles'):
             available_subs.update(normal_subtitles)
+            available_langs = list(available_subs.keys())
         if automatic_captions and self.params.get('writeautomaticsub'):
-            for lang, cap_info in automatic_captions.items():
-                if lang not in available_subs:
-                    available_subs[lang] = cap_info
+            available_auto_subs.update(automatic_captions)
+            for lang in available_auto_subs:
+                if lang not in available_langs:
+                    available_langs.append(lang)
 
         if (not self.params.get('writesubtitles') and not
                 self.params.get('writeautomaticsub') or not
-                available_subs):
+                available_langs):
             return None
 
         if self.params.get('allsubtitles', False):
-            requested_langs = available_subs.keys()
+            requested_langs = available_langs
         else:
             if self.params.get('subtitleslangs', False):
                 requested_langs = self.params.get('subtitleslangs')
-            elif 'en' in available_subs:
+            elif 'en' in available_langs:
                 requested_langs = ['en']
             else:
-                requested_langs = [list(available_subs.keys())[0]]
+                requested_langs = [available_langs[0]]
 
         formats_query = self.params.get('subtitlesformat', 'best')
         formats_preference = formats_query.split('/') if formats_query else []
         subs = {}
         for lang in requested_langs:
-            formats = available_subs.get(lang)
-            if formats is None:
+            formats = available_subs.get(lang) if self.params.get('writesubtitles') else None
+            formats_auto = available_auto_subs.get(lang) if self.params.get('writeautomaticsub') else None
+            if not formats and not formats_auto:
                 self.report_warning('%s subtitles not available for %s' % (lang, video_id))
                 continue
+            f = {}
             for ext in formats_preference:
                 if ext == 'best':
-                    f = formats[-1]
+                    if formats:
+                        f = formats[-1]
+                    if formats_auto:
+                        if f:
+                            f.update({'auto': formats_auto[-1]})
+                        else:
+                            f = formats_auto[-1]
                     break
-                matches = list(filter(lambda f: f['ext'] == ext, formats))
-                if matches:
-                    f = matches[-1]
+                if formats:
+                    matches = list(filter(lambda f: f['ext'] == ext, formats))
+                    if matches:
+                        f = matches[-1]
+                if formats_auto:
+                    matches_auto = list(filter(lambda f: f['ext'] == ext, formats_auto))
+                    if matches_auto:
+                        if f:
+                            f.update({'auto': matches_auto[-1]})
+                        else:
+                            f = matches_auto[-1]
+                if f:
                     break
             else:
-                f = formats[-1]
+                if formats:
+                    f = formats[-1]
+                if formats_auto:
+                    if f:
+                        f.update({'auto': formats_auto[-1]})
+                    else:
+                        f = formats_auto[-1]
                 self.report_warning(
                     'No subtitle format found matching "%s" for language %s, '
                     'using %s' % (formats_query, lang, f['ext']))
@@ -1863,7 +1890,8 @@ class YoutubeDL(object):
             # that way it will silently go on when used with unsupporting IE
             subtitles = info_dict['requested_subtitles']
             ie = self.get_info_extractor(info_dict['extractor_key'])
-            for sub_lang, sub_info in subtitles.items():
+
+            def write_subtitle(filename, sub_lang, sub_info, ie, info_dict):
                 sub_format = sub_info['ext']
                 sub_filename = subtitles_filename(filename, sub_lang, sub_format, info_dict.get('ext'))
                 if self.params.get('nooverwrites', False) and os.path.exists(encodeFilename(sub_filename)):
@@ -1878,7 +1906,7 @@ class YoutubeDL(object):
                                 subfile.write(sub_info['data'])
                         except (OSError, IOError):
                             self.report_error('Cannot write subtitles file ' + sub_filename)
-                            return
+                            return False
                     else:
                         try:
                             sub_data = ie._request_webpage(
@@ -1888,7 +1916,16 @@ class YoutubeDL(object):
                         except (ExtractorError, IOError, OSError, ValueError) as err:
                             self.report_warning('Unable to download subtitle for "%s": %s' %
                                                 (sub_lang, error_to_compat_str(err)))
-                            continue
+                return True
+
+            for sub_lang, sub_info in subtitles.items():
+                retval = write_subtitle(filename, sub_lang, sub_info, ie, info_dict)
+                if not retval:
+                    return
+                if sub_info.get('auto'):
+                    retval = write_subtitle(filename, sub_lang + '.auto', sub_info['auto'], ie, info_dict)
+                    if not retval:
+                        return
 
         if self.params.get('writeinfojson', False):
             infofn = replace_extension(filename, 'info.json', info_dict.get('ext'))
