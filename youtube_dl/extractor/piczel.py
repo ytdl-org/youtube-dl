@@ -24,7 +24,7 @@ class PiczelIE(InfoExtractor):
             'description': 'Horni Vibin\'',
             'is_live': bool,            
         },
-        #'skip': 'Stream is offline'
+        'skip': 'Stream is offline',
         'params': {
             'skip_download': True,
         },
@@ -38,7 +38,7 @@ class PiczelIE(InfoExtractor):
             'description': 'GENERAL BUTCH',
             'is_live': bool,            
         },
-        #'skip': 'Stream is offline'
+        'skip': 'Stream is offline',
         'params': {
             'skip_download': True,
         },
@@ -52,7 +52,7 @@ class PiczelIE(InfoExtractor):
             'description': u'(ﾉ´ヮ`)ﾉ*: ･ﾟ',
             'is_live': bool, 
         },
-        #'skip': 'Stream is offline'
+        'skip': 'Stream is offline',
         'params': {
             'skip_download': True,
         },
