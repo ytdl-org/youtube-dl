@@ -228,34 +228,30 @@ class TestLyndaSubtitles(BaseTestSubtitles):
 
 
 class TestNPOSubtitles(BaseTestSubtitles):
-    url = 'http://www.npo.nl/nos-journaal/28-08-2014/POW_00722860'
+    url = 'https://www.npostart.nl/tegenlicht/25-02-2013/VPWON_1169289'
     IE = NPOIE
 
     def test_allsubtitles(self):
-        print('Skipping TestNPOSubtitles, extractor need fix')
-        return
         self.DL.params['writesubtitles'] = True
         self.DL.params['allsubtitles'] = True
         subtitles = self.getSubtitles()
         self.assertEqual(set(subtitles.keys()), set(['nl']))
-        self.assertEqual(md5(subtitles['nl']), 'fc6435027572b63fb4ab143abd5ad3f4')
+        self.assertEqual(md5(subtitles['nl']), '6241cb42588b369b4f4b509b17cc885c')
 
 
 class TestMTVSubtitles(BaseTestSubtitles):
-    url = 'http://www.cc.com/video-clips/p63lk0/adam-devine-s-house-party-chasing-white-swans'
+    url = 'https://www.cc.com/video/5ke9v2/the-daily-show-with-trevor-noah-doc-rivers-and-steve-ballmer-the-nba-player-strike'
     IE = ComedyCentralIE
 
     def getInfoDict(self):
         return super(TestMTVSubtitles, self).getInfoDict()['entries'][0]
 
     def test_allsubtitles(self):
-        print('Skipping TestMTVSubtitles, need new test url')
-        return
         self.DL.params['writesubtitles'] = True
         self.DL.params['allsubtitles'] = True
         subtitles = self.getSubtitles()
         self.assertEqual(set(subtitles.keys()), set(['en']))
-        self.assertEqual(md5(subtitles['en']), '78206b8d8a0cfa9da64dc026eea48961')
+        self.assertEqual(md5(subtitles['en']), 'a566bec478086b93fe20cccbdcea68e1')
 
 
 class TestNRKSubtitles(BaseTestSubtitles):
