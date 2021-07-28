@@ -186,6 +186,10 @@ class ORFRadioIE(InfoExtractor):
         mobj = re.match(self._VALID_URL, url)
         show_date = mobj.group('date')
         show_id = mobj.group('show')
+        station = mobj.group('station')
+        if self._API_STATION == 'radiothek':
+            self._API_STATION = station
+            self._LOOP_STATION = station
 
         data = self._download_json(
             'http://audioapi.orf.at/%s/api/json/current/broadcast/%s/%s'
@@ -241,7 +245,6 @@ class ORFFM4IE(ORFRadioIE):
             'timestamp': 1483819257,
             'upload_date': '20170107',
         },
-        'skip': 'Shows from ORF radios are only available for 7 days.',
         'only_matching': True,
     }
 
@@ -384,18 +387,55 @@ class ORFOE1IE(ORFRadioIE):
     _LOOP_STATION = 'oe1'
 
     _TEST = {
-        'url': 'http://oe1.orf.at/player/20170108/456544',
-        'md5': '34d8a6e67ea888293741c86a099b745b',
+        'url': 'https://oe1.orf.at/player/20210723/645522',
+        'md5': '237da997b084f2f5cf40043dda42e8e5',
         'info_dict': {
-            'id': '2017-01-08_0759_tl_51_7DaysSun6_256141',
+            'id': '2021-07-23_1355_tl_51_7DaysFri25_1594313',
             'ext': 'mp3',
-            'title': 'Morgenjournal',
-            'duration': 609,
-            'timestamp': 1483858796,
-            'upload_date': '20170108',
+            'title': 'Pandemie, Fossilien, Mars',
+            'description': 'Kommunikationshürden in der Pandemie +++ Fossilien-App für Hobbysammler und Wissenschaft +++ Das Innere des Mars erkunden',
+            'duration': 287,
+            'timestamp': 1627041300,
+            'upload_date': '20210723',
         },
-        'skip': 'Shows from ORF radios are only available for 7 days.'
+        'only_matching': True,
     }
+
+
+class ORFRADIOTHEKIE(ORFRadioIE):
+    IE_NAME = 'orf:radiothek'
+    IE_DESC = 'radiothek.orf.at'
+    _VALID_URL = r'https?://radiothek\.orf\.at/(?P<station>\w+)/(?P<date>[0-9]+)/(?P<show>\w+)'
+    _API_STATION = 'radiothek'
+    _LOOP_STATION = 'radiothek'
+
+    _TESTS = [{
+        'url': 'https://radiothek.orf.at/oe1/20210723/645522',
+        'md5': '237da997b084f2f5cf40043dda42e8e5',
+        'info_dict': {
+            'id': '2021-07-23_1355_tl_51_7DaysFri25_1594313',
+            'ext': 'mp3',
+            'title': 'Pandemie, Fossilien, Mars',
+            'description': 'Kommunikationshürden in der Pandemie +++ Fossilien-App für Hobbysammler und Wissenschaft +++ Das Innere des Mars erkunden',
+            'duration': 287,
+            'timestamp': 1627041300,
+            'upload_date': '20210723',
+        },
+        'only_matching': True,
+    }, {
+        'url': 'https://radiothek.orf.at/oe3/20210728/3SDL',
+        'md5': 'c2deeb2ab910e443d36c6497ed7044d9',
+        'info_dict': {
+            "id": "2021-07-28_1200_tl_53_7DaysWed3_1610654",
+            'ext': 'mp3',
+            "title": "Der Song deines Lebens",
+            "description": None,
+            "duration": 3603,
+            "timestamp": 1627466402,
+            "upload_date": "20210728",
+        },
+        'only_matching': True,
+    }]
 
 
 class ORFIPTVIE(InfoExtractor):
