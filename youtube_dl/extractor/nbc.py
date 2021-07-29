@@ -495,12 +495,10 @@ class NBCOlympicsStreamIE(AdobePassIE):
         display_id = self._match_id(url)
         webpage = self._download_webpage(url, display_id)
         pid = self._search_regex(r'pid\s*=\s*(\d+);', webpage, 'pid')
-        resource = self._search_regex(
-            r"resource\s*=\s*'(.+)';", webpage,
-            'resource').replace("' + pid + '", pid)
         event_config = self._download_json(
             self._DATA_URL_TEMPLATE % ('event_config', pid),
             pid)['eventConfig']
+        resource = event_config.get('resourceId', 'NBCOlympics')
         title = self._live_title(event_config['eventTitle'])
         source_url = self._download_json(
             self._DATA_URL_TEMPLATE % ('live_sources', pid),
