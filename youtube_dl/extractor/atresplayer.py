@@ -44,7 +44,6 @@ class AtresPlayerIE(InfoExtractor):
             'only_matching': True,
         },
     ]
-    _API_BASE = 'https://api.atresplayer.com/'
 
     def _real_initialize(self):
         self._login()
@@ -63,14 +62,13 @@ class AtresPlayerIE(InfoExtractor):
             return
 
         try:
-            self._download_json(
-                urljoin(self._API_BASE, 'login'), None,
+            self._download_webpage(
+                'https://account.atresplayer.com/auth/v1/login', None,
                 'Logging in', headers={
                     'Content-Type': 'application/x-www-form-urlencoded'
                 }, data=urlencode_postdata({
                     'username': username,
                     'password': password,
-                    'type': 'credentials',
                 }))
         except ExtractorError as e:
             if isinstance(e.cause, compat_HTTPError) and e.cause.code == 401:
