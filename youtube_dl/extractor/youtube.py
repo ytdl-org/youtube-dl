@@ -76,7 +76,10 @@ class YoutubeBaseInfoExtractor(InfoExtractor):
         username, password = self._get_login_info()
         # No authentication to be performed
         if username is None:
-            if self._LOGIN_REQUIRED and self._downloader.params.get('cookiefile') is None:
+
+            if (self._LOGIN_REQUIRED
+                    and self._downloader.params.get('cookiefile') is None
+                    and self._downloader.params.get('cookiesfrombrowser') is None):
                 raise ExtractorError('No login info available, needed for using %s.' % self.IE_NAME, expected=True)
             return True
 
