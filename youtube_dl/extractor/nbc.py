@@ -490,28 +490,58 @@ class NBCOlympicsStreamIE(AdobePassIE):
         },
     }
     _DATA_URL_TEMPLATE = 'http://stream.nbcolympics.com/data/%s_%s.json'
+    _LEAP_URL_TEMPLATE = 'https://api-leap.nbcsports.com/feeds/assets/%s?application=NBCOlympics&platform=%s&format=nbc-player&env=staging'
 
     def _real_extract(self, url):
         display_id = self._match_id(url)
         webpage = self._download_webpage(url, display_id)
         pid = self._search_regex(r'pid\s*=\s*(\d+);', webpage, 'pid')
+
         event_config = self._download_json(
             self._DATA_URL_TEMPLATE % ('event_config', pid),
-            pid)['eventConfig']
+            pid,
+            'Downloading event config',
+        )['eventConfig']
         resource = event_config.get('resourceId', 'NBCOlympics')
         title = self._live_title(event_config['eventTitle'])
-        source_url = self._download_json(
-            self._DATA_URL_TEMPLATE % ('live_sources', pid),
-            pid)['videoSources'][0]['sourceUrl']
+
+        leap_config = self._download_json(
+            self._LEAP_URL_TEMPLATE % (pid, 'desktop'),
+            pid,
+            'Downloading leap config',
+        )
+        source_url = leap_config['videoSources'][0]['cdnSources']['primary'][0]['sourceUrl']
+
+        ap_resource = self._get_mvpd_resource(
+            resource,
+            re.sub(r'[^\w\d ]+', '', event_config['eventTitle']),
+            pid,
+            event_config['ratingId'],
+        )
         media_token = self._extract_mvpd_auth(
-            url, pid, event_config.get('requestorId', 'NBCOlympics'), resource)
-        formats = self._extract_m3u8_formats(self._download_webpage(
-            'http://sp.auth.adobe.com/tvs/v1/sign', pid, query={
+            url, pid, event_config.get('requestorId', 'NBCOlympics'), ap_resource)
+
+        tokenized_url = self._download_json(
+            'https://tokens.playmakerservices.com/',
+            pid,
+            'Retrieving tokenized URL',
+            data=json.dumps({
+                'application': 'NBCSports',
+                'authentication-type': 'adobe-pass',
                 'cdn': 'akamai',
-                'mediaToken': base64.b64encode(media_token.encode()),
-                'resource': base64.b64encode(resource.encode()),
+                # Indicates that the player communicates its token not via the path but via a cookie?
+                #'inPath': 'false',
+                'pid': pid,
+                'platform': 'desktop',
+                'requestorId': 'NBCOlympics',
+                'resourceId': base64.b64encode(ap_resource.encode()).decode(),
+                'token': base64.b64encode(media_token.encode()).decode(),
                 'url': source_url,
-            }), pid, 'mp4')
+                'version': 'v1',
+            }).encode(),
+        )['akamai'][0]['tokenizedUrl']
+
+        formats = self._extract_m3u8_formats(tokenized_url, pid, 'mp4')
         self._sort_formats(formats)
 
         return {
