@@ -294,11 +294,8 @@ class VrtNUIE(GigyaBaseIE):
                     'UIDSignature': auth_info['UIDSignature'],
                     'signatureTimestamp': auth_info['signatureTimestamp'],
                     'client_id': 'vrtnu-site',
+                    '_csrf': self._get_cookies('https://login.vrt.be/').get('OIDCXSRF').value
                 }
-                for cookie in self._downloader.cookiejar:
-                    if cookie.name == 'OIDCXSRF':
-                        post_data['_csrf'] = cookie.value
-                        break
 
                 self._request_webpage(
                     'https://login.vrt.be/perform_login',
