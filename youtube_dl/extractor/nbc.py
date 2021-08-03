@@ -542,6 +542,10 @@ class NBCOlympicsStreamIE(AdobePassIE):
         )['akamai'][0]['tokenizedUrl']
 
         formats = self._extract_m3u8_formats(tokenized_url, pid, 'mp4')
+        for f in formats:
+            f['_seekable'] = False
+            f['_http_seekable'] = False
+            f['_icy'] = False
         self._sort_formats(formats)
 
         return {
