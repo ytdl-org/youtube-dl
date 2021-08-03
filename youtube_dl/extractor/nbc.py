@@ -477,18 +477,34 @@ class NBCOlympicsIE(InfoExtractor):
 class NBCOlympicsStreamIE(AdobePassIE):
     IE_NAME = 'nbcolympics:stream'
     _VALID_URL = r'https?://stream\.nbcolympics\.com/(?P<id>[0-9a-z-]+)'
-    _TEST = {
-        'url': 'https://stream.nbcolympics.com/womens-soccer-group-round-11',
-        'info_dict': {
-            'id': '2019740',
-            'ext': 'mp4',
-            'title': r"re:Women's Group Stage - Netherlands vs\. Brazil [0-9]{4}-[0-9]{2}-[0-9]{2} [0-9]{2}:[0-9]{2}$",
+    _TESTS = [
+        # "Tokenized" .m3u8 source URL
+        {
+            'url': 'https://stream.nbcolympics.com/womens-soccer-group-round-11',
+            'info_dict': {
+                'id': '2019740',
+                'ext': 'mp4',
+                'title': r"re:Women's Group Stage - Netherlands vs\. Brazil [0-9]{4}-[0-9]{2}-[0-9]{2} [0-9]{2}:[0-9]{2}$",
+            },
+            'params': {
+                # m3u8 download
+                'skip_download': True,
+            },
         },
-        'params': {
-            # m3u8 download
-            'skip_download': True,
+        # Plain .m3u8 source URL
+        {
+            'url': 'https://stream.nbcolympics.com/gymnastics-event-finals-mens-floor-pommel-horse-womens-vault-bars',
+            'info_dict': {
+                'id': '2021729',
+                'ext': 'mp4',
+                'title': r're:Event Finals: M Floor, W Vault, M Pommel, W Uneven Bars [0-9]{4}-[0-9]{2}-[0-9]{2} [0-9]{2}:[0-9]{2}$',
+            },
+            'params': {
+                # m3u8 download
+                'skip_download': True,
+            },
         },
-    }
+    ]
     _DATA_URL_TEMPLATE = 'http://stream.nbcolympics.com/data/%s_%s.json'
     _LEAP_URL_TEMPLATE = 'https://api-leap.nbcsports.com/feeds/assets/%s?application=NBCOlympics&platform=%s&format=nbc-player&env=staging'
 
@@ -521,29 +537,30 @@ class NBCOlympicsStreamIE(AdobePassIE):
         media_token = self._extract_mvpd_auth(
             url, pid, event_config.get('requestorId', 'NBCOlympics'), ap_resource)
 
-        tokenized_url = self._download_json(
-            'https://tokens.playmakerservices.com/',
-            pid,
-            'Retrieving tokenized URL',
-            data=json.dumps({
-                'application': 'NBCSports',
-                'authentication-type': 'adobe-pass',
-                'cdn': 'akamai',
-                # Indicates that the player communicates its token not via the path
-                # but via a cookie? NBC's player specifies `'false'` but field just
-                # doesn't seem to have an effect.
-                # 'inPath': 'false',
-                'pid': pid,
-                'platform': 'desktop',
-                'requestorId': 'NBCOlympics',
-                'resourceId': base64.b64encode(ap_resource.encode()).decode(),
-                'token': base64.b64encode(media_token.encode()).decode(),
-                'url': source_url,
-                'version': 'v1',
-            }).encode(),
-        )['akamai'][0]['tokenizedUrl']
+        if event_config.get('cdnToken') is True:
+            source_url = self._download_json(
+                'https://tokens.playmakerservices.com/',
+                pid,
+                'Retrieving tokenized URL',
+                data=json.dumps({
+                    'application': 'NBCSports',
+                    'authentication-type': 'adobe-pass',
+                    'cdn': 'akamai',
+                    # Indicates that the player communicates its token not via the path
+                    # but via a cookie? NBC's player specifies `'false'` but field just
+                    # doesn't seem to have an effect.
+                    # 'inPath': 'false',
+                    'pid': pid,
+                    'platform': 'desktop',
+                    'requestorId': 'NBCOlympics',
+                    'resourceId': base64.b64encode(ap_resource.encode()).decode(),
+                    'token': base64.b64encode(media_token.encode()).decode(),
+                    'url': source_url,
+                    'version': 'v1',
+                }).encode(),
+            )['akamai'][0]['tokenizedUrl']
 
-        formats = self._extract_m3u8_formats(tokenized_url, pid, 'mp4')
+        formats = self._extract_m3u8_formats(source_url, pid, 'mp4')
         for f in formats:
             f['_seekable'] = False
             f['_http_seekable'] = False
