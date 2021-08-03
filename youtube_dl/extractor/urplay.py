@@ -5,6 +5,8 @@ from .common import InfoExtractor
 from ..utils import (
     dict_get,
     int_or_none,
+    ISO639Utils,
+    try_get,
     unified_timestamp,
 )
 
@@ -23,7 +25,7 @@ class URPlayIE(InfoExtractor):
             'upload_date': '20171214',
             'series': 'UR Samtiden - Livet, universum och rymdens märkliga musik',
             'duration': 2269,
-            'categories': ['Kultur & historia'],
+            'categories': ['Vetenskap & teknik'],
             'tags': ['Kritiskt tänkande', 'Vetenskap', 'Vetenskaplig verksamhet'],
             'episode': 'Om vetenskap, kritiskt tänkande och motstånd',
         },
@@ -90,6 +92,20 @@ class URPlayIE(InfoExtractor):
         series = urplayer_data.get('series') or {}
         series_title = dict_get(series, ('seriesTitle', 'title')) or dict_get(urplayer_data, ('seriesTitle', 'mainTitle'))
 
+        subtitles = {}
+        for subtitle_lang in (urplayer_data.get('subtitleLanguages') or ['swe']):
+            subtitle_info = try_get(
+                urplayer_data, lambda x: x['streamingInfo'][subtitle_lang + 'Complete'], dict) or {}
+            lang = ISO639Utils.long2short(subtitle_lang) or 'sv'
+            for k, v in subtitle_info.items():
+                if not (k in ('tt', 'vtt') and isinstance(v, dict)):
+                    continue
+                subtitle_url = v.get('location')
+                if subtitle_url:
+                    subtitles.setdefault(lang, []).append({
+                        'url': subtitle_url,
+                    })
+
         return {
             'id': video_id,
             'title': '%s : %s' % (series_title, episode) if series_title else episode,
@@ -97,6 +113,7 @@ class URPlayIE(InfoExtractor):
             'thumbnails': thumbnails,
             'timestamp': unified_timestamp(urplayer_data.get('publishedAt')),
             'series': series_title,
+            'subtitles': subtitles,
             'formats': formats,
             'duration': int_or_none(urplayer_data.get('duration')),
             'categories': urplayer_data.get('categories'),
