@@ -478,11 +478,11 @@ class NBCOlympicsStreamIE(AdobePassIE):
     IE_NAME = 'nbcolympics:stream'
     _VALID_URL = r'https?://stream\.nbcolympics\.com/(?P<id>[0-9a-z-]+)'
     _TEST = {
-        'url': 'http://stream.nbcolympics.com/2018-winter-olympics-nbcsn-evening-feb-8',
+        'url': 'https://stream.nbcolympics.com/womens-soccer-group-round-11',
         'info_dict': {
-            'id': '203493',
+            'id': '2019740',
             'ext': 'mp4',
-            'title': 're:Curling, Alpine, Luge [0-9]{4}-[0-9]{2}-[0-9]{2} [0-9]{2}:[0-9]{2}$',
+            'title': r"re:Women's Group Stage - Netherlands vs\. Brazil [0-9]{4}-[0-9]{2}-[0-9]{2} [0-9]{2}:[0-9]{2}$",
         },
         'params': {
             # m3u8 download
@@ -516,7 +516,7 @@ class NBCOlympicsStreamIE(AdobePassIE):
             resource,
             re.sub(r'[^\w\d ]+', '', event_config['eventTitle']),
             pid,
-            event_config['ratingId'],
+            event_config.get('ratingId', 'NO VALUE'),
         )
         media_token = self._extract_mvpd_auth(
             url, pid, event_config.get('requestorId', 'NBCOlympics'), ap_resource)
@@ -529,8 +529,10 @@ class NBCOlympicsStreamIE(AdobePassIE):
                 'application': 'NBCSports',
                 'authentication-type': 'adobe-pass',
                 'cdn': 'akamai',
-                # Indicates that the player communicates its token not via the path but via a cookie?
-                #'inPath': 'false',
+                # Indicates that the player communicates its token not via the path
+                # but via a cookie? NBC's player specifies `'false'` but field just
+                # doesn't seem to have an effect.
+                # 'inPath': 'false',
                 'pid': pid,
                 'platform': 'desktop',
                 'requestorId': 'NBCOlympics',
