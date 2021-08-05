@@ -805,7 +805,7 @@ def parseOpts(overrideArguments=None):
     postproc.add_option(
         '-k', '--keep-files', '--keep-video',
         action='store_true', dest='keepvideo', default=False,
-        help='Keep original files on disk after the post-processing; original files (videos/subtitles) are erased by default')
+        help='Keep original files on disk after the post-processing; original files (videos, subtitles) are erased by default')
     postproc.add_option(
         '--no-post-overwrites',
         action='store_true', dest='nopostoverwrites', default=False,
