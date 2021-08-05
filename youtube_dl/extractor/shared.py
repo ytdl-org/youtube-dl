@@ -86,7 +86,7 @@ class SharedIE(SharedBaseIE):
 
 class VivoIE(SharedBaseIE):
     IE_DESC = 'vivo.sx'
-    _VALID_URL = r'https?://vivo\.s[xt]/(?P<id>[\da-z]{10})'
+    _VALID_URL = r'https?://vivo\.s[xt]/(embed/)?(?P<id>[\da-z]{10})'
     _FILE_NOT_FOUND = '>The file you have requested does not exists or has been removed'
 
     _TESTS = [{
