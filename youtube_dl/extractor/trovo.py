@@ -153,6 +153,7 @@ class TrovoVodIE(TrovoBaseIE):
                 'protocol': 'm3u8_native',
                 'tbr': int_or_none(play_info.get('bitrate')),
                 'url': play_url,
+                'http_headers': {'Origin': 'https://trovo.live'},
             })
         self._sort_formats(formats)
 

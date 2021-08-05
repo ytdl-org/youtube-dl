@@ -249,14 +249,14 @@ class ARDMediathekIE(ARDMediathekBaseIE):
 
 
 class ARDIE(InfoExtractor):
-    _VALID_URL = r'(?P<mainurl>https?://(?:www\.)?daserste\.de/[^?#]+/videos(?:extern)?/(?P<display_id>[^/?#]+)-(?:video-?)?(?P<id>[0-9]+))\.html'
+    _VALID_URL = r'(?P<mainurl>https?://(?:www\.)?daserste\.de/(?:[^/?#&]+/)+(?P<id>[^/?#&]+))\.html'
     _TESTS = [{
         # available till 7.01.2022
         'url': 'https://www.daserste.de/information/talk/maischberger/videos/maischberger-die-woche-video100.html',
         'md5': '867d8aa39eeaf6d76407c5ad1bb0d4c1',
         'info_dict': {
-            'display_id': 'maischberger-die-woche',
-            'id': '100',
+            'id': 'maischberger-die-woche-video100',
+            'display_id': 'maischberger-die-woche-video100',
             'ext': 'mp4',
             'duration': 3687.0,
             'title': 'maischberger. die woche vom 7. Januar 2021',
@@ -264,16 +264,25 @@ class ARDIE(InfoExtractor):
             'thumbnail': r're:^https?://.*\.jpg$',
         },
     }, {
-        'url': 'https://www.daserste.de/information/reportage-dokumentation/erlebnis-erde/videosextern/woelfe-und-herdenschutzhunde-ungleiche-brueder-102.html',
+        'url': 'https://www.daserste.de/information/politik-weltgeschehen/morgenmagazin/videosextern/dominik-kahun-aus-der-nhl-direkt-zur-weltmeisterschaft-100.html',
+        'only_matching': True,
+    }, {
+        'url': 'https://www.daserste.de/information/nachrichten-wetter/tagesthemen/videosextern/tagesthemen-17736.html',
         'only_matching': True,
     }, {
         'url': 'http://www.daserste.de/information/reportage-dokumentation/dokus/videos/die-story-im-ersten-mission-unter-falscher-flagge-100.html',
+        'only_matching': True,
+    }, {
+        'url': 'https://www.daserste.de/unterhaltung/serie/in-aller-freundschaft-die-jungen-aerzte/Drehpause-100.html',
+        'only_matching': True,
+    }, {
+        'url': 'https://www.daserste.de/unterhaltung/film/filmmittwoch-im-ersten/videos/making-ofwendezeit-video-100.html',
         'only_matching': True,
     }]
 
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
-        display_id = mobj.group('display_id')
+        display_id = mobj.group('id')
 
         player_url = mobj.group('mainurl') + '~playerXml.xml'
         doc = self._download_xml(player_url, display_id)
@@ -324,7 +333,7 @@ class ARDIE(InfoExtractor):
         self._sort_formats(formats)
 
         return {
-            'id': mobj.group('id'),
+            'id': xpath_text(video_node, './videoId', default=display_id),
             'formats': formats,
             'display_id': display_id,
             'title': video_node.find('./title').text,
@@ -335,7 +344,7 @@ class ARDIE(InfoExtractor):
 
 
 class ARDBetaMediathekIE(ARDMediathekBaseIE):
-    _VALID_URL = r'https://(?:(?:beta|www)\.)?ardmediathek\.de/(?P<client>[^/]+)/(?:player|live|video)/(?P<display_id>(?:[^/]+/)*)(?P<video_id>[a-zA-Z0-9]+)'
+    _VALID_URL = r'https://(?:(?:beta|www)\.)?ardmediathek\.de/(?:[^/]+/)?(?:player|live|video)/(?:[^/]+/)*(?P<id>Y3JpZDovL[a-zA-Z0-9]+)'
     _TESTS = [{
         'url': 'https://www.ardmediathek.de/mdr/video/die-robuste-roswita/Y3JpZDovL21kci5kZS9iZWl0cmFnL2Ntcy84MWMxN2MzZC0wMjkxLTRmMzUtODk4ZS0wYzhlOWQxODE2NGI/',
         'md5': 'a1dc75a39c61601b980648f7c9f9f71d',
@@ -365,22 +374,22 @@ class ARDBetaMediathekIE(ARDMediathekBaseIE):
     }, {
         'url': 'https://www.ardmediathek.de/swr/live/Y3JpZDovL3N3ci5kZS8xMzQ4MTA0Mg',
         'only_matching': True,
+    }, {
+        'url': 'https://www.ardmediathek.de/video/coronavirus-update-ndr-info/astrazeneca-kurz-lockdown-und-pims-syndrom-81/ndr/Y3JpZDovL25kci5kZS84NzE0M2FjNi0wMWEwLTQ5ODEtOTE5NS1mOGZhNzdhOTFmOTI/',
+        'only_matching': True,
+    }, {
+        'url': 'https://www.ardmediathek.de/ard/player/Y3JpZDovL3dkci5kZS9CZWl0cmFnLWQ2NDJjYWEzLTMwZWYtNGI4NS1iMTI2LTU1N2UxYTcxOGIzOQ/tatort-duo-koeln-leipzig-ihr-kinderlein-kommet',
+        'only_matching': True,
     }]
 
     def _real_extract(self, url):
-        mobj = re.match(self._VALID_URL, url)
-        video_id = mobj.group('video_id')
-        display_id = mobj.group('display_id')
-        if display_id:
-            display_id = display_id.rstrip('/')
-        if not display_id:
-            display_id = video_id
+        video_id = self._match_id(url)
 
         player_page = self._download_json(
             'https://api.ardmediathek.de/public-gateway',
-            display_id, data=json.dumps({
+            video_id, data=json.dumps({
                 'query': '''{
-  playerPage(client:"%s", clipId: "%s") {
+  playerPage(client: "ard", clipId: "%s") {
     blockedByFsk
     broadcastedOn
     maturityContentRating
@@ -410,7 +419,7 @@ class ARDBetaMediathekIE(ARDMediathekBaseIE):
       }
     }
   }
-}''' % (mobj.group('client'), video_id),
+}''' % video_id,
             }).encode(), headers={
                 'Content-Type': 'application/json'
             })['data']['playerPage']
@@ -435,7 +444,6 @@ class ARDBetaMediathekIE(ARDMediathekBaseIE):
                 r'\(FSK\s*(\d+)\)\s*$', description, 'age limit', default=None))
         info.update({
             'age_limit': age_limit,
-            'display_id': display_id,
             'title': title,
             'description': description,
             'timestamp': unified_timestamp(player_page.get('broadcastedOn')),

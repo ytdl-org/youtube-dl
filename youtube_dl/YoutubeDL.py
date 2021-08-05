@@ -773,11 +773,20 @@ class YoutubeDL(object):
 
     def extract_info(self, url, download=True, ie_key=None, extra_info={},
                      process=True, force_generic_extractor=False):
-        '''
-        Returns a list with a dictionary for each video we find.
-        If 'download', also downloads the videos.
-        extra_info is a dict containing the extra values to add to each result
-        '''
+        """
+        Return a list with a dictionary for each video extracted.
+
+        Arguments:
+        url -- URL to extract
+
+        Keyword arguments:
+        download -- whether to download videos during extraction
+        ie_key -- extractor key hint
+        extra_info -- dictionary containing the extra values to add to each result
+        process -- whether to resolve all unresolved references (URLs, playlist items),
+            must be True for download to work.
+        force_generic_extractor -- force using the generic extractor
+        """
 
         if not ie_key and force_generic_extractor:
             ie_key = 'Generic'
@@ -1511,14 +1520,18 @@ class YoutubeDL(object):
         if 'display_id' not in info_dict and 'id' in info_dict:
             info_dict['display_id'] = info_dict['id']
 
-        if info_dict.get('upload_date') is None and info_dict.get('timestamp') is not None:
-            # Working around out-of-range timestamp values (e.g. negative ones on Windows,
-            # see http://bugs.python.org/issue1646728)
-            try:
-                upload_date = datetime.datetime.utcfromtimestamp(info_dict['timestamp'])
-                info_dict['upload_date'] = upload_date.strftime('%Y%m%d')
-            except (ValueError, OverflowError, OSError):
-                pass
+        for ts_key, date_key in (
+                ('timestamp', 'upload_date'),
+                ('release_timestamp', 'release_date'),
+        ):
+            if info_dict.get(date_key) is None and info_dict.get(ts_key) is not None:
+                # Working around out-of-range timestamp values (e.g. negative ones on Windows,
+                # see http://bugs.python.org/issue1646728)
+                try:
+                    upload_date = datetime.datetime.utcfromtimestamp(info_dict[ts_key])
+                    info_dict[date_key] = upload_date.strftime('%Y%m%d')
+                except (ValueError, OverflowError, OSError):
+                    pass
 
         # Auto generate title fields corresponding to the *_number fields when missing
         # in order to always have clean titles. This is very common for TV series.

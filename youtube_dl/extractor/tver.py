@@ -25,6 +25,10 @@ class TVerIE(InfoExtractor):
     }, {
         'url': 'https://tver.jp/episode/79622438',
         'only_matching': True,
+    }, {
+        # subtitle = ' '
+        'url': 'https://tver.jp/corner/f0068870',
+        'only_matching': True,
     }]
     _TOKEN = None
     BRIGHTCOVE_URL_TEMPLATE = 'http://players.brightcove.net/%s/default_default/index.html?videoId=%s'
@@ -40,28 +44,18 @@ class TVerIE(InfoExtractor):
             query={'token': self._TOKEN})['main']
         p_id = main['publisher_id']
         service = remove_start(main['service'], 'ts_')
-        info = {
+
+        r_id = main['reference_id']
+        if service not in ('tx', 'russia2018', 'sebare2018live', 'gorin'):
+            r_id = 'ref:' + r_id
+        bc_url = smuggle_url(
+            self.BRIGHTCOVE_URL_TEMPLATE % (p_id, r_id),
+            {'geo_countries': ['JP']})
+
+        return {
             '_type': 'url_transparent',
             'description': try_get(main, lambda x: x['note'][0]['text'], compat_str),
             'episode_number': int_or_none(try_get(main, lambda x: x['ext']['episode_number'])),
+            'url': bc_url,
+            'ie_key': 'BrightcoveNew',
         }
-
-        if service == 'cx':
-            info.update({
-                'title': main.get('subtitle') or main['title'],
-                'url': 'https://i.fod.fujitv.co.jp/plus7/web/%s/%s.html' % (p_id[:4], p_id),
-                'ie_key': 'FujiTVFODPlus7',
-            })
-        else:
-            r_id = main['reference_id']
-            if service not in ('tx', 'russia2018', 'sebare2018live', 'gorin'):
-                r_id = 'ref:' + r_id
-            bc_url = smuggle_url(
-                self.BRIGHTCOVE_URL_TEMPLATE % (p_id, r_id),
-                {'geo_countries': ['JP']})
-            info.update({
-                'url': bc_url,
-                'ie_key': 'BrightcoveNew',
-            })
-
-        return info
