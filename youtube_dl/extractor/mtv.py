@@ -229,6 +229,8 @@ class MTVServicesInfoExtractor(InfoExtractor):
             if info:
                 entries.append(info)
 
+        if len(entries) == 1:
+            return entries[0]
         return self.playlist_result(
             entries, playlist_title=title, playlist_description=description)
 
@@ -299,6 +301,8 @@ class MTVServicesInfoExtractor(InfoExtractor):
         webpage = self._download_webpage(url, title)
         mgid = self._extract_mgid(webpage)
         videos_info = self._get_videos_info(mgid)
+        if videos_info and videos_info.get('_type') != 'playlist':
+            videos_info['display_id'] = title
         return videos_info
 
 
