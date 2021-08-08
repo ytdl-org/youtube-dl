@@ -23,7 +23,7 @@ from ..utils import (
 
 
 class InstagramIE(InfoExtractor):
-    _VALID_URL = r'(?P<url>https?://(?:www\.)?instagram\.com/(?:p|tv|reel)/(?P<id>[^/?#&]+))'
+    _VALID_URL = r'(?P<url>https?://(?:www\.)?instagram\.com/(?:p|tv|reel)/(?P<id>[^/?#&]+)/?)'
     _TESTS = [{
         'url': 'https://instagram.com/p/aye83DjauH/?foo=bar#abc',
         'md5': '0d2da106a9d2631273e192b372806516',
@@ -243,6 +243,9 @@ class InstagramIE(InfoExtractor):
             'url': video_url,
             'width': width,
             'height': height,
+            'http_headers': {
+                'Referer': 'https://www.instagram.com/',
+            },
         }]
 
         if not uploader_id:
