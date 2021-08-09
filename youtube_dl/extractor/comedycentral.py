@@ -16,7 +16,7 @@ class ComedyCentralIE(MTVServicesInfoExtractor):
 
     _TESTS = [{
         'url': 'http://www.cc.com/video-clips/5ke9v2/the-daily-show-with-trevor-noah-doc-rivers-and-steve-ballmer---the-nba-player-strike',
-        'md5': 'b8acb347177c680ff18a292aa2166f80',
+        'md5': '58e7caf5c7c0c865d9d79f7d151e5090',
         'info_dict': {
             'id': '89ccc86e-1b02-4f83-b0c9-1d9592ecd025',
             'ext': 'mp4',
@@ -24,6 +24,9 @@ class ComedyCentralIE(MTVServicesInfoExtractor):
             'description': 'md5:5334307c433892b85f4f5e5ac9ef7498',
             'timestamp': 1598670000,
             'upload_date': '20200829',
+        },
+        'params': {
+            'hls_prefer_native': False,
         },
     }, {
         'url': 'http://www.cc.com/episodes/pnzzci/drawn-together--american-idol--parody-clip-show-season-3-ep-314',
@@ -37,9 +40,12 @@ class ComedyCentralIE(MTVServicesInfoExtractor):
             'id': '2f56e756-91ec-4d68-8799-e3b710e360e4',
             'ext': 'mp4',
             'title': 'The Daily Show with Trevor Noah|August 4, 2021|26|NO-EPISODE#|Hottest Take - The Olympics',
-            'description': 'md5:f877effd54484878f0aaddbe418314f4',
+            'description': 'md5:104484314a4cba36d8c62b094523efc8',
             'timestamp': 1628125200,
             'upload_date': '20210805',
+        },
+        'params': {
+            'hls_prefer_native': False,
         },
     }, ]
 
