@@ -924,6 +924,7 @@ from .plays import PlaysTVIE
 from .playstuff import PlayStuffIE
 from .playtvak import PlaytvakIE
 from .playvid import PlayvidIE
+from .playvids import PlayvidsIE
 from .playwire import PlaywireIE
 from .pluralsight import (
     PluralsightIE,
