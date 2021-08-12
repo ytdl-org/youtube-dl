@@ -2496,7 +2496,8 @@ class InfoExtractor(object):
             return {}
 
         def get_referrer_policy_from_meta_element(page):
-            return self._html_search_meta('referrer', page)
+            policy = self._html_search_meta('referrer', page)
+            return policy if policy is not None else "strict-origin-when-cross-origin"
 
         def _media_formats(src, cur_media_type, type_info={}):
             full_url = absolute_url(src)

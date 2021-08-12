@@ -2327,7 +2327,7 @@ def bug_reports_message():
     return msg
 
 
-def get_referrer_url(referrer_source, request_url, policy="strict-origin-when-cross-origin"):
+def get_referrer_url(referrer_source, request_url, policy):
     # Returns correct referrer url based on the site policy
     # Resources used:
     # https://w3c.github.io/webappsec-referrer-policy/#determine-requests-referrer
