@@ -55,6 +55,7 @@ class PlayvidsIE(InfoExtractor):
                     'url': unescapeHTML(n[1]),
                     'format_id': 'hls-%sp' % height.group(0),
                     'height': int_or_none(height.group(0)),
+                    'ext': 'mp4',
                 })
             elif n[0] == 'data-dash-src':
                 formats.extend(self._extract_mpd_formats(unescapeHTML(n[1]), video_id, mpd_id='dash', fatal=False))
