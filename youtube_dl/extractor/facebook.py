@@ -23,6 +23,7 @@ from ..utils import (
     int_or_none,
     js_to_json,
     limit_length,
+    merge_dicts,
     parse_count,
     qualities,
     sanitized_Request,
@@ -82,7 +83,8 @@ class FacebookIE(InfoExtractor):
         'info_dict': {
             'id': '274175099429670',
             'ext': 'mp4',
-            'title': 're:^Asif Nawab Butt posted a video',
+            'title': 'Asif Nawab Butt',
+            'description': 'Asif Nawab Butt',
             'uploader': 'Asif Nawab Butt',
             'upload_date': '20140506',
             'timestamp': 1399398998,
@@ -137,15 +139,17 @@ class FacebookIE(InfoExtractor):
             'upload_date': '20160223',
             'uploader': 'Barack Obama',
         },
+        'skip': 'Gif on giphy.com and gone',
     }, {
         # have 1080P, but only up to 720p in swf params
         # data.video.story.attachments[].media
         'url': 'https://www.facebook.com/cnn/videos/10155529876156509/',
-        'md5': '9571fae53d4165bbbadb17a94651dcdc',
+        'md5': '3f3798adb2b73423263e59376f1f5eb7',
         'info_dict': {
             'id': '10155529876156509',
             'ext': 'mp4',
-            'title': 'She survived the holocaust — and years later, she’s getting her citizenship s...',
+            'title': 'Holocaust survivor becomes US citizen',
+            'description': 'She survived the holocaust — and years later, she’s getting her citizenship so she can vote for Hillary Clinton http://cnn.it/2eERh5f',
             'timestamp': 1477818095,
             'upload_date': '20161030',
             'uploader': 'CNN',
@@ -178,9 +182,7 @@ class FacebookIE(InfoExtractor):
             'uploader': 'La Guía Del Varón',
             'thumbnail': r're:^https?://.*',
         },
-        'params': {
-            'skip_download': True,
-        },
+        'skip': 'Requires logging in',
     }, {
         # data.node.comet_sections.content.story.attachments[].style_type_renderer.attachment.media
         'url': 'https://www.facebook.com/groups/1024490957622648/permalink/1396382447100162/',
@@ -255,6 +257,7 @@ class FacebookIE(InfoExtractor):
             'id': '10157667649866271',
         },
         'playlist_count': 3,
+        'skip': 'Requires logging in',
     }, {
         # data.nodes[].comet_sections.content.story.attachments[].style_type_renderer.attachment.media
         'url': 'https://m.facebook.com/Alliance.Police.Department/posts/4048563708499330',
@@ -642,11 +645,15 @@ class FacebookIE(InfoExtractor):
                 webpage, 'alternative title', default=None)
         if not video_title:
             video_title = self._html_search_meta(
-                'description', webpage, 'title', default=None)
+                ['og:title', 'twitter:title', 'description'],
+                webpage, 'title', default=None)
         if video_title:
             video_title = limit_length(video_title, 80)
         else:
             video_title = 'Facebook video #%s' % video_id
+        description = self._html_search_meta(
+            ['description', 'og:description', 'twitter:description'],
+            webpage, 'description', default=None)
         uploader = clean_html(get_element_by_id(
             'fbPhotoPageAuthorName', webpage)) or self._search_regex(
             r'ownerName\s*:\s*"([^"]+)"', webpage, 'uploader',
@@ -663,6 +670,7 @@ class FacebookIE(InfoExtractor):
         info_dict = {
             'id': video_id,
             'title': video_title,
+            'description': description,
             'formats': formats,
             'uploader': uploader,
             'timestamp': timestamp,
@@ -671,7 +679,13 @@ class FacebookIE(InfoExtractor):
             'subtitles': subtitles,
         }
 
-        return info_dict
+        info_json_ld = self._search_json_ld(
+            webpage, video_id, expected_type='VideoObject', default={})
+        if info_json_ld.get('title'):
+            info_json_ld['title'] = limit_length(
+                re.sub(r'\s*\|\s*Facebook$', '', info_json_ld['title']), 80)
+
+        return merge_dicts(info_json_ld, info_dict)
 
     def _real_extract(self, url):
         video_id = self._match_id(url)
