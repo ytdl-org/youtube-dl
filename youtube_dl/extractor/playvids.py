@@ -5,6 +5,7 @@ import re
 
 from .common import InfoExtractor
 from ..utils import (
+    unescapeHTML,
     int_or_none,
     merge_dicts
 )
@@ -42,21 +43,21 @@ class PlayvidsIE(InfoExtractor):
     def _real_extract(self, url):
         video_id = self._match_id(url)
         webpage = self._download_webpage(url, video_id)
-        title = self._html_search_regex(r'<h1>(.+?)</h1>', webpage, 'title', fatal=False).strip()
+        title = self._html_search_regex(r'<h1>(.+?)</h1>', webpage, 'title', default='Untitled video %s' % video_id).strip()
         video_tags = re.findall(r'(data-dash-src|data-hls-src[0-9]*?)="([^"]*)"', webpage)
         json_ld_data = self._search_json_ld(webpage, video_id, default={})
         formats = []
 
         for n in video_tags:
-            height = re.findall(r'hls-src([\d]+)', n[0])
+            height = re.search(r'\d+$', n[0])
             if height:
                 formats.append({
-                    'url': n[1].replace("&amp;", "&"),
-                    'format_id': 'hls-%sp' % height[0],
-                    'height': int_or_none(height[0]),
+                    'url': unescapeHTML(n[1]),
+                    'format_id': 'hls-%sp' % height.group(0),
+                    'height': int_or_none(height.group(0)),
                 })
             elif n[0] == 'data-dash-src':
-                formats.extend(self._extract_mpd_formats(n[1].replace("&amp;", "&"), video_id, mpd_id='dash', fatal=False))
+                formats.extend(self._extract_mpd_formats(unescapeHTML(n[1]), video_id, mpd_id='dash', fatal=False))
 
         self._sort_formats(formats)
 
