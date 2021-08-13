@@ -40,7 +40,7 @@ def try_doodExe(metadata, key):
 
 
 class DoodStreamIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:www\.)?(?:doodstream\.com|dood\.(?:cx|so|to|watch))/[de]/(?P<id>[^/?#]+)'
+    _VALID_URL = r'https?://(?:www\.)?(?:doodstream\.com|dood\.(?:la|so|to|watch))/[de]/(?P<id>[^/?#]+)'
     _TESTS = [{
         'url': 'https://dood.to/d/wpyp2mgwi2kb',
         'md5': '2aaf633bcd5fefb64b27344f55022bf9',
