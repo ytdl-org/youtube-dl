@@ -14,7 +14,7 @@ from ..utils import (
 
 
 class RumbleEmbedIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:www\.)?rumble\.com/(?:embed/(?:[0-9a-z]+\.)?(?P<id>[0-9a-z]+)|(.*?)\.html)'
+    _VALID_URL = r'https?://(?:www\.)?rumble\.com/(?:embed/(?:[0-9a-z]+\.)?(?P<id>[0-9a-z]+)|([0-9a-z]+)-(.*?)\.html)'
     _TESTS = [{
         'url': 'https://rumble.com/embed/v5pv5f',
         'md5': '36a18a049856720189f30977ccbb2c34',
@@ -34,10 +34,10 @@ class RumbleEmbedIE(InfoExtractor):
     }]
 
     def _real_extract(self, url):
-        if re.match(r'https?://(?:www\.)?rumble\.com/(.*?)\.html', url):
-            video_id = ""
-            content, urlh = self._download_webpage_handle(url, video_id)
-            video_id = re.findall(r'"embedUrl":"https://rumble\.com/embed/(.*?)/"', content)[0]
+        if re.match(r'https?://(?:www\.)?rumble\.com/([0-9a-z]+)-(.*?)\.html', url):
+            direct_video_id = re.findall(r'https?://(?:www\.)?rumble\.com/([0-9a-z]+)-(?:.*?)\.html', url)[0]
+            content = self._download_webpage(url, direct_video_id)
+            video_id = re.findall(r'"embedUrl"\s*:\s*"https://rumble\.com/embed/(.*?)/"', content)[0]
         else:
             video_id = self._match_id(url)
         video = self._download_json(
