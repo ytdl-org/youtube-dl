@@ -9,34 +9,7 @@ from .common import InfoExtractor
 from ..utils import (
     js_to_json,
     urljoin,
-    try_get,
 )
-
-
-def doodExe(crp, crs):
-    if crp == 'N_crp':
-        return crs
-    sorted_crp = ''.join(sorted(crp))
-    result = ''
-    for c in crs:
-        i = crp.find(c)
-        if i >= 0:
-            result += sorted_crp[i]
-    result = result.replace('+.+', '(')
-    result = result.replace('+..+', ')')
-    result = result.replace('+-+', '[')
-    result = result.replace('+--+', ']')
-    result = result.replace('+', ' ')
-    return result
-
-
-def try_doodExe(metadata, key):
-    try:
-        x = metadata[key]
-        # everything that can go wrong in this call raises a TypeError
-        return doodExe(**x)
-    except (KeyError, TypeError):
-        return None
 
 
 class DoodStreamIE(InfoExtractor):
@@ -49,8 +22,6 @@ class DoodStreamIE(InfoExtractor):
             'ext': 'mp4',
             'title': 'Big Buck Bunny Trailer',
             'thumbnail': r're:^https?://.*\.jpg$',
-            'filesize': 4447915,
-            'duration': 33,
         },
     }]
 
@@ -61,12 +32,12 @@ class DoodStreamIE(InfoExtractor):
         referer = {'Referer': url}
         webpage = self._download_webpage(url, video_id)
 
-        metadata_url = self._html_search_regex(r"('/cptr/[^']*')", webpage,
-                                               'video metadata')
-        metadata_url = self._parse_json(metadata_url, video_id,
-                                        transform_source=js_to_json)
-        metadata_url = urljoin(url, metadata_url)
-        metadata = self._download_json(metadata_url, video_id, headers=referer)
+        title = self._html_search_regex(r'<title>(.+?)\s+-\s+DoodStream</title>',
+                                        webpage, 'title')
+        thumbnail = self._html_search_regex(r"('https?://img\.doodcdn\.com/splash/.+?')",
+                                            webpage, 'thumbnail')
+        thumbnail = self._parse_json(thumbnail, video_id,
+                                     transform_source=js_to_json)
 
         token = self._html_search_regex(r"[?&]token=([a-z0-9]+)[&']", webpage, 'token')
         auth_url = self._html_search_regex(r"('/pass_md5.*?')", webpage,
@@ -80,11 +51,9 @@ class DoodStreamIE(InfoExtractor):
 
         return {
             'id': video_id,
-            'title': try_doodExe(metadata, 'ttl') or video_id,
+            'title': title,
             'url': final_url,
             'http_headers': referer,
             'ext': 'mp4',
-            'thumbnail': self._og_search_thumbnail(webpage),
-            'filesize': try_get(try_doodExe(metadata, 'siz'), lambda x: int(x, 10)),
-            'duration': try_get(try_doodExe(metadata, 'len'), lambda x: int(x, 10)),
+            'thumbnail': thumbnail,
         }
