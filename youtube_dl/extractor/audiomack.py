@@ -75,7 +75,7 @@ class AudiomackIE(InfoExtractor):
 
 
 class AudiomackAlbumIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:www\.)?audiomack\.com/album/(?P<id>[\w/-]+)'
+    _VALID_URL = r'https?://(?:www\.)?audiomack\.com/(?:album/|(?=.+/album/))(?P<id>[\w/-]+)'
     IE_NAME = 'audiomack:album'
     _TESTS = [
         # Standard album playlist
