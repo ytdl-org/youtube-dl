@@ -212,6 +212,16 @@ class RTVELiveIE(RTVEALaCartaIE):
         'params': {
             'skip_download': 'live stream',
         }
+    }, {
+        'url': 'http://www.rtve.es/directo/la-2/',
+        'info_dict': {
+            'id': 'la-2',
+            'ext': 'mp4',
+            'title': r're:^[^\s].+[^\s]$',
+        },
+        'params': {
+            'skip_download': 'live stream',
+        }
     }]
 
     def _real_extract(self, url):
