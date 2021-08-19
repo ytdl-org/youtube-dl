@@ -3,6 +3,7 @@ from __future__ import unicode_literals
 
 from .common import InfoExtractor
 from ..utils import (
+    ExtractorError,
     determine_ext,
     js_to_json,
 )
@@ -14,15 +15,22 @@ from ..compat import (
 import re
 
 
+def decode_b64_url(code):
+    decoded_url = re.match(r"[^[]*\[([^]]*)\]", code).groups()[0]
+    return compat_b64decode(
+        compat_urllib_parse_unquote(
+            decoded_url.replace('"', '').replace('\'', '').replace(',', ''))).decode('utf-8')
+
+
 class RTPIE(InfoExtractor):
     _VALID_URL = r'https?://(?:(?:(?:www\.)?rtp\.pt/play/(?P<subarea>.*/)?p(?P<program_id>[0-9]+)/(?P<episode_id>e[0-9]+/)?)|(?:arquivos\.rtp\.pt/conteudos/))(?P<id>[^/?#]+)/?'
     _TESTS = [{
-        'url': 'https://www.rtp.pt/play/p117/e476527/os-contemporaneos',
+        'url': 'https://www.rtp.pt/play/p9165/e562949/por-do-sol',
         'info_dict': {
-            'id': 'os-contemporaneos',
+            'id': 'por-do-sol',
             'ext': 'mp4',
-            'title': 'Os Contemporâneos Episódio 1 -  RTP Play - RTP',
-            'description': 'Os Contemporâneos, um programa de humor com um olhar na sociedade portuguesa!',
+            'title': 'Pôr do Sol Episódio 1 - de 16 Ago 2021',
+            'description': 'Madalena Bourbon de Linhaça vive atormentada pelo segredo que esconde desde 1990. Matilde Bourbon de Linhaça sonha fugir com o seu amor proibido. O en',
             'thumbnail': r're:^https?://.*\.jpg',
         },
     }, {
@@ -50,60 +58,42 @@ class RTPIE(InfoExtractor):
 
         # Get JS object
         js_object = self._search_regex(r'(?s)RTPPlayer *\( *({.+?}) *\);', webpage, 'player config')
-
         json_string_for_config = ''
+        full_url = None
 
-        # Verify JS object since it isn't pure JSON and maybe it needs some decodings
+        # Verify JS object since it isn't pure JSON and maybe it needs some tuning
         for line in js_object.splitlines():
             stripped_line = line.strip()
 
-            # If JS object key is 'file'
-            if re.match('file ?:', stripped_line):
-                if 'decodeURIComponent' in stripped_line:
-                    # 1) The file URL is inside object and with HLS encoded...
-                    hls_encoded = re.match(r"[^[]*\[([^]]*)\]", stripped_line).groups()[0]
-                    hls_encoded = hls_encoded.replace('"', '').replace('\'', '').replace(',', '')
-                    if 'atob' in stripped_line:
-                        decoded_file_url = compat_b64decode(
-                            compat_urllib_parse_unquote(
-                                hls_encoded.replace('"', '').replace(',', ''))).decode('utf-8')
-                    else:
-                        decoded_file_url = compat_urllib_parse_unquote(hls_encoded)
-
-                    # Workaround for new behaviour
-                    decoded_file_url = decoded_file_url.replace('streaming-vod.rtp.pt/hls/', 'streaming-ondemand.rtp.pt/').replace('.mp4/', '/')
-
-                    # Insert the decoded HLS file URL into pure JSON string
-                    json_string_for_config += '\nfile: "' + decoded_file_url + '",'
+            # key == 'fileKey', then we found what we wanted
+            if re.match(r'fileKey:', stripped_line):
+                if re.match(r'fileKey: *""', stripped_line):
+                    raise ExtractorError("Episode not found (probably removed)", expected=True)
+                url = decode_b64_url(stripped_line)
+                if 'mp3' in url:
+                    full_url = 'https://cdn-ondemand.rtp.pt' + url
                 else:
-                    # 2) ... or the file URL is not encoded so keep it that way
-                    json_string_for_config += '\n' + line
+                    full_url = 'https://streaming-vod.rtp.pt/dash{}/manifest.mpd'.format(url)
 
-            elif not stripped_line.startswith("//") and not re.match('fileKey ?:', stripped_line) and not re.match('.*extraSettings ?:', stripped_line):
-                # Ignore commented lines, 'fileKey' entry since it is no longer supported by RTP and also 'extraSettings'
+            elif not stripped_line.startswith("//") and not re.match('file *:', stripped_line) and not re.match('.*extraSettings ?:', stripped_line):
+                # Ignore commented lines, `extraSettings` and `f`. The latter seems to some random unrelated video.
                 json_string_for_config += '\n' + line
+
+        if not full_url:
+            raise ExtractorError("No valid media source found in page")
 
         # Finally send pure JSON string for JSON parsing
         config = self._parse_json(json_string_for_config, video_id, js_to_json)
+        full_url = full_url.replace('drm-dash', 'dash')
+        ext = determine_ext(full_url)
 
-        # Check if file URL is directly a string or is still inside object
-        if isinstance(config['file'], str):
-            file_url = config['file']
-        else:
-            file_url = config['file']['hls']
-
-        ext = determine_ext(file_url)
-
-        if ext == 'm3u8':
-            # Download via m3u8 file
-            formats = self._extract_m3u8_formats(
-                file_url, video_id, 'mp4', 'm3u8_native',
-                m3u8_id='hls')
-
+        if ext == 'mpd':
+            # Download via mpd file
+            formats = self._extract_mpd_formats(full_url, video_id)
             self._sort_formats(formats)
         else:
             formats = [{
-                'url': file_url,
+                'url': full_url,
                 'ext': ext,
             }]
 
