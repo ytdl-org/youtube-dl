@@ -175,35 +175,6 @@ class MegaphonePlaylistIE(MegaphoneEpisodeIE):
         return entries
 
 
-import xml
-import sys
-
-if sys.version_info[0] >= 3:
-    compat_XMLParser = xml.etree.ElementTree.XMLParser
-else:
-    from ..compat import (
-        _XML,
-        _TreeBuilder,
-        _element_factory,
-        _etree_iter,
-    )
-
-    class compat_XMLParser(xml.etree.ElementTree.XMLParser):
-        def _fixtext(self, text):
-            return text
-
-    def compat_etree_fromstring(text):
-        doc = _XML(
-            text.encode('utf-8'),
-            parser=compat_XMLParser(
-                target=_TreeBuilder(element_factory=_element_factory),
-                encoding='utf-8'))
-        for el in _etree_iter(doc):
-            if el.text is not None and isinstance(el.text, bytes):
-                el.text = el.text.decode('utf-8')
-        return doc
-
-
 class MegaphoneChannelIE(MegaphoneIE):
     IE_NAME = 'megaphone.fm:channel'
     IE_DESC = 'megaphone.fm channel'
@@ -264,12 +235,10 @@ class MegaphoneChannelIE(MegaphoneIE):
             playlist_json, video_id,
             transform_source=lambda s: self._parse_json(s, video_id, transform_source=js_to_json))
         entries = []
-        ep_num = 0
         ep_list = None
         # Support --no-playlist to get the first item when no explicit selection
         noplaylist = self._downloader.params.get('noplaylist')
-        for episode in playlist_json:
-            ep_num += 1
+        for ep_num, episode in enumerate(playlist_json):
             ep_url = episode.get('mp3')
             ep_title = episode.get('title')
             ep_id = episode.get('uid')
@@ -279,7 +248,7 @@ class MegaphoneChannelIE(MegaphoneIE):
                 'url': ep_url,
                 'id': ep_id,
             }
-            if ep_num == 1:
+            if ep_num == 0:
                 # As there are items to process, initialise the public-ep-list
                 ep_list = self._search_regex(
                     r'(?s)<div\s[^>]*?class\s*=\s*("|\')public-ep-list\1[^>]*>.*?(?P<ep_list><div\s[^>]*?id\s*=.+?</div>\s*</div>)\s*</div>',
@@ -308,7 +277,7 @@ class MegaphoneChannelIE(MegaphoneIE):
             if not ep_title:
                 continue
             entry['title'] = ep_title
-            if ep_num == 1 and noplaylist:
+            if ep_num == 0 and noplaylist:
                 self.to_screen('Downloading just the first episode because of --no-playlist')
                 return entry
             entries.append(entry)
