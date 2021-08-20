@@ -97,3 +97,42 @@ class IwaraIE(InfoExtractor):
             'age_limit': age_limit,
             'formats': formats,
         }
+
+class IwaraPlaylistIE(InfoExtractor):
+    IE_NAME = 'iwara:playlist'
+    _VALID_URL = r'https?://(?:www\.|ecchi\.)?iwara\.tv/playlist/(?P<id>[a-zA-Z0-9-]+)'
+    _TEST = {
+        'url': 'https://ecchi.iwara.tv/playlist/best-enf',
+        'info_dict': {
+            'title': 'Best enf',
+            'uploader_id': 'Jared98112',
+            'id': 'best-enf',
+        },
+        'playlist_mincount': 50,
+    }
+
+    def _real_extract(self, url):
+        playlist_id = self._match_id(url)
+
+        webpage, urlh = self._download_webpage_handle(url, playlist_id)
+
+        hostname = compat_urllib_parse_urlparse(urlh.geturl()).hostname
+        age_limit = 18 if hostname.split('.')[0] == 'ecchi' else 0
+
+        title = self._html_search_regex(r'<h1 class="title"[^>]*?>(.*?)</h1>', webpage, 'title')
+        uploader_id = self._html_search_regex(
+            r'<div class="[^"]views-field-name">\s*<span class="field-content"><h2>(.*?)</h2>',
+            webpage,
+            'uploader_id')
+        urls = re.findall(
+            r'<h3 class="title">\s*<a href="([^"]+)">',
+            webpage)
+        entries = [self.url_result(u) for u in urls]
+
+        return {
+            '_type': 'playlist',
+            'id': playlist_id,
+            'uploader_id': uploader_id,
+            'title': title,
+            'entries': entries,
+        }

@@ -521,7 +521,10 @@ from .ivi import (
     IviCompilationIE
 )
 from .ivideon import IvideonIE
-from .iwara import IwaraIE
+from .iwara import (
+    IwaraIE,
+    IwaraPlaylistIE,
+)
 from .izlesene import IzleseneIE
 from .jamendo import (
     JamendoIE,
