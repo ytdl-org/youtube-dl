@@ -1,6 +1,8 @@
 # coding: utf-8
 from __future__ import unicode_literals
 
+import re
+
 from .common import InfoExtractor
 from ..compat import compat_urllib_parse_urlparse
 from ..utils import (
@@ -98,6 +100,7 @@ class IwaraIE(InfoExtractor):
             'formats': formats,
         }
 
+
 class IwaraPlaylistIE(InfoExtractor):
     IE_NAME = 'iwara:playlist'
     _VALID_URL = r'https?://(?:www\.|ecchi\.)?iwara\.tv/playlist/(?P<id>[a-zA-Z0-9-]+)'
@@ -134,5 +137,6 @@ class IwaraPlaylistIE(InfoExtractor):
             'id': playlist_id,
             'uploader_id': uploader_id,
             'title': title,
+            'age_limit': age_limit,
             'entries': entries,
         }
