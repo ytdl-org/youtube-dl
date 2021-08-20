@@ -117,10 +117,7 @@ class IwaraPlaylistIE(InfoExtractor):
     def _real_extract(self, url):
         playlist_id = self._match_id(url)
 
-        webpage, urlh = self._download_webpage_handle(url, playlist_id)
-
-        hostname = compat_urllib_parse_urlparse(urlh.geturl()).hostname
-        age_limit = 18 if hostname.split('.')[0] == 'ecchi' else 0
+        webpage = self._download_webpage(url, playlist_id)
 
         title = self._html_search_regex(r'<h1 class="title"[^>]*?>(.*?)</h1>', webpage, 'title')
         uploader_id = self._html_search_regex(
@@ -137,6 +134,5 @@ class IwaraPlaylistIE(InfoExtractor):
             'id': playlist_id,
             'uploader_id': uploader_id,
             'title': title,
-            'age_limit': age_limit,
             'entries': entries,
         }
