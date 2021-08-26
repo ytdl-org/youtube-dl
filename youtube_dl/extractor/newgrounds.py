@@ -9,6 +9,7 @@ from ..utils import (
     parse_duration,
     parse_filesize,
     parse_count,
+    parse_resolution,
     unified_timestamp,
 )
 
@@ -83,15 +84,17 @@ class NewgroundsIE(InfoExtractor):
             })
 
             uploader = json_data.get('author')
-            media_formats = json_data.get('sources', [])
+            media_formats = json_data['sources']
             for media_format in media_formats:
                 media_sources = media_formats[media_format]
                 for source in media_sources:
-                    formats.append({
+                    format = {
                         'format_id': media_format,
-                        'quality': int_or_none(media_format[:-1]),
-                        'url': source.get('src')
-                    })
+                        'url': source.get('src'),
+                    }
+                    format.update(parse_resolution(media_format))
+                    format['quality'] = format.get('height')
+                    formats.append(format)
 
         if not uploader:
             uploader = self._html_search_regex(
