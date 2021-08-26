@@ -7,7 +7,10 @@ import re
 from .common import InfoExtractor
 from .theplatform import ThePlatformIE
 from .adobepass import AdobePassIE
-from ..compat import compat_urllib_parse_unquote
+from ..compat import (
+    compat_str,
+    compat_urllib_parse_unquote
+)
 from ..utils import (
     int_or_none,
     parse_duration,
@@ -287,7 +290,7 @@ class NBCSportsStreamIE(AdobePassIE):
 
 
 class NBCNewsIE(ThePlatformIE):
-    _VALID_URL = r'(?x)https?://(?:www\.)?(?:nbcnews|today|msnbc)\.com/([^/]+/)*(?:.*-)?(?P<id>[^/?]+)'
+    _VALID_URL = r'(?x)https?://(?:www[0-9]?\.)?(?:nbcnews|today|msnbc)\.com/([^/]+/)*(?:.*-)?(?P<id>[^/?#]+)'
 
     _TESTS = [
         {
@@ -370,20 +373,41 @@ class NBCNewsIE(ThePlatformIE):
             # From http://www.vulture.com/2016/06/letterman-couldnt-care-less-about-late-night.html
             'url': 'http://www.nbcnews.com/widget/video-embed/701714499682',
             'only_matching': True,
+        }, {
+            'url': 'https://www.nbcnews.com/news/amp/ncna1276021',
+            'md5': '948bf2f3b0a8b0ea595c424e0850e7a2',
+            'info_dict': {
+                'id': 'ncna1276021',
+                'ext': 'mp4',
+                'title': 'Devastating Dixie Fire consumes Californian town',
+                'description': 'The town of Greenville was destroyed in around three hours by California\'s largest active wildfire.',
+                'thumbnail': r're:^https?://.*\.jpg$',
+                'timestamp': 1628152660,
+                'upload_date': '20210805',
+            },
         },
     ]
 
-    def _real_extract(self, url):
-        video_id = self._match_id(url)
-        webpage = self._download_webpage(url, video_id)
+    def _old_real_extract(self, url, video_id, webpage=None):
+        print url
+        if not webpage:
+            webpage = self._download_webpage(url, video_id)
 
-        data = self._parse_json(self._search_regex(
+        data = self._search_regex(
             r'<script[^>]+id="__NEXT_DATA__"[^>]*>({.+?})</script>',
-            webpage, 'bootstrap json'), video_id)['props']['initialState']
+            webpage, 'bootstrap json', fatal=False)
+        if data:
+            data = self._parse_json(data, video_id, fatal=False)
+        if data:
+            data = try_get(data, lambda x: x['props']['initialState'], dict)
+        if not data:
+            return
         video_data = try_get(data, lambda x: x['video']['current'], dict)
         if not video_data:
-            video_data = data['article']['content'][0]['primaryMedia']['video']
-        title = video_data['headline']['primary']
+            video_data = try_get(data, lambda x: x['article']['content'][0]['primaryMedia']['video'], dict)
+        title = try_get(video_data, lambda x: x['headline']['primary'], compat_str)
+        if not title:
+            return
 
         formats = []
         for va in video_data.get('videoAssets', []):
@@ -431,6 +455,28 @@ class NBCNewsIE(ThePlatformIE):
             'formats': formats,
             'subtitles': subtitles,
         }
+
+    def _real_extract(self, url):
+        video_id = self._match_id(url)
+        webpage = self._download_webpage(url, video_id)
+
+        entries = []
+        for mobj in re.finditer(
+                r'<amp-iframe\s[^>]+?\bsrc\s*=\s*(\'|")(?P<link>[^>]+?)\1(\s[^>]*)?>',
+                webpage):
+            link_url = mobj.group('link')
+            if link_url:
+                if '/embedded-video/' not in link_url:
+                    continue
+                entry = self._old_real_extract(link_url, video_id)
+            if entry:
+                entries.append(entry)
+        if entries:
+            if len(entries) == 1:
+                return entries[0]
+            return self.playlist_result(entries, video_id)
+        else:
+            return self._old_real_extract(url, video_id, webpage)
 
 
 class NBCOlympicsIE(InfoExtractor):
