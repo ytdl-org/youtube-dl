@@ -12,7 +12,9 @@ from ..compat import (
     compat_urllib_parse_unquote
 )
 from ..utils import (
+    ExtractorError,
     int_or_none,
+    parse_age_limit,
     parse_duration,
     smuggle_url,
     try_get,
@@ -21,7 +23,7 @@ from ..utils import (
 )
 
 
-class NBCIE(AdobePassIE):
+class NBCIE(ThePlatformIE):
     _VALID_URL = r'https?(?P<permalink>://(?:www\.)?nbc\.com/(?:classic-tv/)?[^/]+/video/[^/]+/(?P<id>n?\d+))'
 
     _TESTS = [
@@ -134,8 +136,13 @@ class NBCIE(AdobePassIE):
             'mbr': 'true',
             'manifest': 'm3u',
         }
-        video_id = video_data['mpxGuid']
-        title = video_data['secondaryTitle']
+        video_id = try_get(video_data, lambda x: x['mpxGuid'])
+        if not video_id:
+            raise ExtractorError('Empty or no metadata from NBC GraphQL API', expected=True)
+        tp_path = ('NnzsPC/media/guid/%s/%s' %
+                   (video_data.get('mpxAccountId', '2410887629'), video_id))
+        tpm = self._download_theplatform_metadata(tp_path, video_id)
+        title = tpm.get('title') or video_data['secondaryTitle']
         if video_data.get('locked'):
             resource = self._get_mvpd_resource(
                 video_data.get('resourceId') or 'nbcentertainment',
@@ -145,17 +152,27 @@ class NBCIE(AdobePassIE):
         theplatform_url = smuggle_url(update_url_query(
             'http://link.theplatform.com/s/NnzsPC/media/guid/%s/%s' % (video_data.get('mpxAccountId') or '2410887629', video_id),
             query), {'force_smil_url': True})
+        episode_number = int_or_none(
+            video_data.get('episodeNumber'),
+            default=int_or_none(tpm.get('nbcu$airOrder')))
+        rating = video_data.get('rating',
+                                try_get(tpm, lambda x: x['ratings'][0]['rating']))
+        season_number = int_or_none(
+            video_data.get('seasonNumber'),
+            default=int_or_none(tpm.get('nbcu$seasonNumber')))
+        series = video_data.get('seriesShortTitle', tpm.get('nbcu$seriesShortTitle'))
         return {
             '_type': 'url_transparent',
             'id': video_id,
             'title': title,
             'url': theplatform_url,
-            'description': video_data.get('description'),
-            'tags': video_data.get('keywords'),
-            'season_number': int_or_none(video_data.get('seasonNumber')),
-            'episode_number': int_or_none(video_data.get('episodeNumber')),
+            'description': video_data.get('description') or tpm.get('description'),
+            'tags': video_data.get('keywords') or tpm.get('keywords'),
+            'season_number': season_number,
+            'episode_number': episode_number,
             'episode': title,
-            'series': video_data.get('seriesShortTitle'),
+            'series': series,
+            'age_limit': parse_age_limit(rating),
             'ie_key': 'ThePlatform',
         }
 
@@ -389,7 +406,6 @@ class NBCNewsIE(ThePlatformIE):
     ]
 
     def _old_real_extract(self, url, video_id, webpage=None):
-        print url
         if not webpage:
             webpage = self._download_webpage(url, video_id)
 
