@@ -5,13 +5,11 @@ import re
 from .common import InfoExtractor
 from ..utils import (
     extract_attributes,
+    int_or_none,
     parse_duration,
     parse_filesize,
     parse_count,
     unified_timestamp,
-    unified_strdate,
-    RegexNotFoundError,
-    ExtractorError,
 )
 
 
@@ -28,6 +26,7 @@ class NewgroundsIE(InfoExtractor):
             'timestamp': 1378878540,
             'upload_date': '20130911',
             'duration': 143,
+            'description': 'Sonic blahblahblah I\'m late again SEPTEMBER 11TH: Busmode-The story of ants on a log. ',
         },
     }, {
         'url': 'https://www.newgrounds.com/portal/view/297383',
@@ -38,6 +37,7 @@ class NewgroundsIE(InfoExtractor):
             'uploader': 'Egoraptor',
             'timestamp': 1140663240,
             'upload_date': '20060223',
+            'description': 'Metal Gear is awesome is so is this movie.',
         },
     }, {
         # source format unavailable, additional mp4 formats
@@ -46,9 +46,10 @@ class NewgroundsIE(InfoExtractor):
             'id': '689400',
             'ext': 'mp4',
             'title': 'ZTV News Episode 8',
-            'uploader': 'BennettTheSage',
+            'uploader': 'ZONE-SAMA',
             'timestamp': 1487965140,
             'upload_date': '20170224',
+            'description': 'ZTV News Episode 8 (February 2017)',
         },
         'params': {
             'skip_download': True,
@@ -57,20 +58,18 @@ class NewgroundsIE(InfoExtractor):
 
     def _real_extract(self, url):
         media_id = self._match_id(url)
+        formats = []
+        uploader = None
 
         webpage = self._download_webpage(url, media_id)
 
         title = self._html_search_regex(
             r'<title>(.+?)</title>', webpage, 'title')
 
-        try:
-            media_url = self._parse_json(self._search_regex(
-                r'"url"\s*:\s*("[^"]+"),', webpage, ''), media_id)
-        except RegexNotFoundError or ExtractorError:
-            media_url = None
-        formats = []
+        media_url_string = self._search_regex(r'"url"\s*:\s*("[^"]+"),', webpage, 'media url string', fatal=False, default=None)
 
-        if media_url:
+        if media_url_string:
+            media_url = self._parse_json(media_url_string, media_id)
             formats = [{
                 'url': media_url,
                 'format_id': 'source',
@@ -81,32 +80,29 @@ class NewgroundsIE(InfoExtractor):
                 'Accept': 'application/json, text/javascript, */*; q=0.01',
                 'Accept-Encoding': 'gzip, deflate, br',
                 'X-Requested-With': 'XMLHttpRequest',
-                'Connection': 'keep-alive',
             })
 
-            for resolution in ('360p', '720p', '1080p'):
-                if resolution in json_data['sources']:
+            uploader = json_data.get('author')
+            media_formats = json_data.get('sources', [])
+            for media_format in media_formats:
+                media_sources = media_formats[media_format]
+                for source in media_sources:
                     formats.append({
-                        'url': json_data['sources'][resolution][0]['src'],
-                        'format_id': resolution,
-                        'height': int(resolution[:-1]),
+                        'format_id': media_format,
+                        'quality': int_or_none(media_format[:-1]),
+                        'url': source.get('src')
                     })
 
-        self._sort_formats(formats)
+        if not uploader:
+            uploader = self._html_search_regex(
+                (r'(?s)<h4[^>]*>(.+?)</h4>.*?<em>\s*Author\s*</em>',
+                 r'(?:Author|Writer)\s*<a[^>]+>([^<]+)'), webpage, 'uploader',
+                fatal=False)
 
-        uploader = self._html_search_regex(
-            (r'(?s)<h4[^>]*>(.+?)</h4>.*?<em>\s*Author\s*</em>',
-             r'(?:Author|Writer)\s*<a[^>]+>([^<]+)'), webpage, 'uploader',
-            fatal=False)
-
-        timestamp = self._html_search_regex(
+        timestamp = unified_timestamp(self._html_search_regex(
             (r'<dt>\s*Uploaded\s*</dt>\s*<dd>([^<]+</dd>\s*<dd>[^<]+)',
              r'<dt>\s*Uploaded\s*</dt>\s*<dd>([^<]+)'), webpage, 'timestamp',
-            default=None)
-
-        upload_date = unified_strdate(timestamp)
-
-        timestamp = unified_timestamp(timestamp)
+            default=None))
 
         thumbnail = self._og_search_thumbnail(webpage)
 
@@ -127,6 +123,9 @@ class NewgroundsIE(InfoExtractor):
 
         if '<dd>Song' in webpage:
             formats[0]['vcodec'] = 'none'
+
+        self._sort_formats(formats)
+
         return {
             'id': media_id,
             'title': title,
@@ -137,7 +136,6 @@ class NewgroundsIE(InfoExtractor):
             'description': description,
             'thumbnail': thumbnail,
             'view_count': view_count,
-            'upload_date': upload_date,
         }
 
 
@@ -150,6 +148,13 @@ class NewgroundsPlaylistIE(InfoExtractor):
             'title': 'Cats',
         },
         'playlist_mincount': 45,
+    }, {
+        'url': 'https://www.newgrounds.com/collection/dogs',
+        'info_dict': {
+            'id': 'dogs',
+            'title': 'Dogs',
+        },
+        'playlist_mincount': 25,
     }, {
         'url': 'http://www.newgrounds.com/audio/search/title/cats',
         'only_matching': True,
@@ -177,7 +182,7 @@ class NewgroundsPlaylistIE(InfoExtractor):
                 continue
             entries.append(
                 self.url_result(
-                    'https://www.newgrounds.com/' + path + '/' + media_id,
+                    'https://www.newgrounds.com/%s/%s' % (path, media_id),
                     ie=NewgroundsIE.ie_key(), video_id=media_id))
 
         return self.playlist_result(entries, playlist_id, title)
