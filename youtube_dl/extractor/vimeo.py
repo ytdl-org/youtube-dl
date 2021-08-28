@@ -647,7 +647,7 @@ class VimeoIE(VimeoBaseInfoExtractor):
                         expected=True)
             raise
 
-        if '://player.vimeo.com/video/' in url:
+        if '//player.vimeo.com/video/' in url:
             config = self._parse_json(self._search_regex(
                 r'\bconfig\s*=\s*({.+?})\s*;', webpage, 'info section'), video_id)
             if config.get('view') == 4:

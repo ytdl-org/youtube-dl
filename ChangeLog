@@ -1,3 +1,52 @@
+version 2021.06.06
+
+Extractors
+* [facebook] Improve login required detection
+* [youporn] Fix formats and view count extraction (#29216)
+* [orf:tvthek] Fix thumbnails extraction (#29217)
+* [formula1] Fix extraction (#29206)
+* [ard] Relax URL regular expression and fix video ids (#22724, #29091)
++ [ustream] Detect https embeds (#29133)
+* [ted] Prefer own formats over external sources (#29142)
+* [twitch:clips] Improve extraction (#29149)
++ [twitch:clips] Add access token query to download URLs (#29136)
+* [youtube] Fix get_video_info request (#29086, #29165)
+* [vimeo] Fix vimeo pro embed extraction (#29126)
+* [redbulltv] Fix embed data extraction (#28770)
+* [shahid] Relax URL regular expression (#28772, #28930)
+
+
+version 2021.05.16
+
+Core
+* [options] Fix thumbnail option group name (#29042)
+* [YoutubeDL] Improve extract_info doc (#28946)
+
+Extractors
++ [playstuff] Add support for play.stuff.co.nz (#28901, #28931)
+* [eroprofile] Fix extraction (#23200, #23626, #29008)
++ [vivo] Add support for vivo.st (#29009)
++ [generic] Add support for og:audio (#28311, #29015)
+* [phoenix] Fix extraction (#29057)
++ [generic] Add support for sibnet embeds
++ [vk] Add support for sibnet embeds (#9500)
++ [generic] Add Referer header for direct videojs download URLs (#2879,
+  #20217, #29053)
+* [orf:radio] Switch download URLs to HTTPS (#29012, #29046)
+- [blinkx] Remove extractor (#28941)
+* [medaltv] Relax URL regular expression (#28884)
++ [funimation] Add support for optional lang code in URLs (#28950)
++ [gdcvault] Add support for HTML5 videos
+* [dispeak] Improve FLV extraction (#13513, #28970)
+* [kaltura] Improve iframe extraction (#28969)
+* [kaltura] Make embed code alternatives actually work
+* [cda] Improve extraction (#28709, #28937)
+* [twitter] Improve formats extraction from vmap URL (#28909)
+* [xtube] Fix formats extraction (#28870)
+* [svtplay] Improve extraction (#28507, #28876)
+* [tv2dk] Fix extraction (#28888)
+
+
 version 2021.04.26
 
 Extractors
