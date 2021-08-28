@@ -10,30 +10,22 @@ from ..utils import (
 
 
 class JoveIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:www\.)?jove\.com/video/(?P<id>[0-9]+)'
+    _VALID_URL = r'https?://(?:www\.)?jove\.com/v/(?P<id>[0-9]+)'
     _CHAPTERS_URL = 'http://www.jove.com/video-chapters?videoid={video_id:}'
     _TESTS = [
         {
-            'url': 'http://www.jove.com/video/2744/electrode-positioning-montage-transcranial-direct-current',
-            'md5': '93723888d82dbd6ba8b3d7d0cd65dd2b',
-            'info_dict': {
-                'id': '2744',
-                'ext': 'mp4',
-                'title': 'Electrode Positioning and Montage in Transcranial Direct Current Stimulation',
-                'description': 'md5:015dd4509649c0908bc27f049e0262c6',
-                'thumbnail': r're:^https?://.*\.png$',
-                'upload_date': '20110523',
-            }
+            'url': 'http://www.jove.com/v/2744/electrode-positioning-montage-transcranial-direct-current',
+            'only_matching': True,
         },
         {
-            'url': 'http://www.jove.com/video/51796/culturing-caenorhabditis-elegans-axenic-liquid-media-creation',
-            'md5': '914aeb356f416811d911996434811beb',
+            'url': 'http://www.jove.com/v/51796/culturing-caenorhabditis-elegans-axenic-liquid-media-creation',
+            'md5': 'a5b4cb47d97208ee24c8e1044c61e393',
             'info_dict': {
                 'id': '51796',
                 'ext': 'mp4',
                 'title': 'Culturing Caenorhabditis elegans in Axenic Liquid Media and Creation of Transgenic Worms by Microparticle Bombardment',
                 'description': 'md5:35ff029261900583970c4023b70f1dc9',
-                'thumbnail': r're:^https?://.*\.png$',
+                'thumbnail': r're:^https?://.*\.jpg$',
                 'upload_date': '20140802',
             }
         },
@@ -58,16 +50,18 @@ class JoveIE(InfoExtractor):
         if not video_url:
             raise ExtractorError('Failed to get the video URL')
 
+        if "mp4" not in video_url:
+            json_file = self._download_json(("https://ljsp.lwcdn.com/web/public/native/config/media/%s", video_url), video_id=video_url)
+            video_url = json_file['src'][1]['src']
+            raise ExtractorError('This video is DRM protected.', expected=True)
+
         title = self._html_search_meta('citation_title', webpage, 'title')
         thumbnail = self._og_search_thumbnail(webpage)
         description = self._html_search_regex(
-            r'<div id="section_body_summary"><p class="jove_content">(.+?)</p>',
+            r'<p class="jove_content">(.+?)</p>',
             webpage, 'description', fatal=False)
         publish_date = unified_strdate(self._html_search_meta(
             'citation_publication_date', webpage, 'publish date', fatal=False))
-        comment_count = int(self._html_search_regex(
-            r'<meta name="num_comments" content="(\d+) Comments?"',
-            webpage, 'comment count', fatal=False))
 
         return {
             'id': video_id,
@@ -76,5 +70,4 @@ class JoveIE(InfoExtractor):
             'thumbnail': thumbnail,
             'description': description,
             'upload_date': publish_date,
-            'comment_count': comment_count,
         }
