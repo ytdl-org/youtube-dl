@@ -52,7 +52,7 @@ class JoveIE(InfoExtractor):
 
         if "mp4" not in video_url:
             json_file = self._download_json(("https://ljsp.lwcdn.com/web/public/native/config/media/%s", video_url), video_id=video_url)
-            video_url = json_file['src'][1]['src']
+            video_url = json_file.get('src')[1].get('src')
             raise ExtractorError('This video is DRM protected.', expected=True)
 
         title = self._html_search_meta('citation_title', webpage, 'title')
