@@ -15,7 +15,15 @@ class JoveIE(InfoExtractor):
     _TESTS = [
         {
             'url': 'http://www.jove.com/v/2744/electrode-positioning-montage-transcranial-direct-current',
-            'only_matching': True,
+            'md5': '93723888d82dbd6ba8b3d7d0cd65dd2b',
+            'info_dict': {
+                'id': '2744',
+                'ext': 'mp4',
+                'title': 'Electrode Positioning and Montage in Transcranial Direct Current Stimulation',
+                'description': 'md5:015dd4509649c0908bc27f049e0262c6',
+                'thumbnail': r're:^https?://.*\.png$',
+                'upload_date': '20110523',
+            }
         },
         {
             'url': 'http://www.jove.com/v/51796/culturing-caenorhabditis-elegans-axenic-liquid-media-creation',
@@ -51,8 +59,6 @@ class JoveIE(InfoExtractor):
             raise ExtractorError('Failed to get the video URL')
 
         if "mp4" not in video_url:
-            json_file = self._download_json(("https://ljsp.lwcdn.com/web/public/native/config/media/%s", video_url), video_id=video_url)
-            video_url = json_file.get('src')[1].get('src')
             raise ExtractorError('This video is DRM protected.', expected=True)
 
         title = self._html_search_meta('citation_title', webpage, 'title')
