@@ -15,15 +15,7 @@ class JoveIE(InfoExtractor):
     _TESTS = [
         {
             'url': 'http://www.jove.com/v/2744/electrode-positioning-montage-transcranial-direct-current',
-            'md5': '93723888d82dbd6ba8b3d7d0cd65dd2b',
-            'info_dict': {
-                'id': '2744',
-                'ext': 'mp4',
-                'title': 'Electrode Positioning and Montage in Transcranial Direct Current Stimulation',
-                'description': 'md5:015dd4509649c0908bc27f049e0262c6',
-                'thumbnail': r're:^https?://.*\.png$',
-                'upload_date': '20110523',
-            }
+            'only_matching': True,
         },
         {
             'url': 'http://www.jove.com/v/51796/culturing-caenorhabditis-elegans-axenic-liquid-media-creation',
