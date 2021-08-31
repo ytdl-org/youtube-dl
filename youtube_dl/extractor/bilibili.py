@@ -38,7 +38,21 @@ class BiliBiliIE(InfoExtractor):
                     '''
 
     _TESTS = [{
-        'url': 'http://www.bilibili.tv/video/av1074402/',
+        'url': 'https://www.bilibili.com/video/BV1N7411A7WU/',
+        'info_dict': {
+            'id': '1N7411A7WU',
+            'ext': 'flv',
+            'title': '[经验分享]观看B站视频时如何开启CC字幕？(B站小白必看)',
+            'description': 'md5:b5b03414a659c29c7f5bce58c725b8ee',
+            'duration': 119.267,
+            'timestamp': 1582321654,
+            'upload_date': '20200221',
+            'uploader': 'Lynda教程和字幕',
+            'uploader_id': '389168097',
+            'subtitles': {'zh-CN': [{'url': 'http:\\u002F\\u002Fi0.hdslb.com\\u002Fbfs\\u002Fsubtitle\\u002F3c648ce057eea5b4e619c5dd9f0f23fbcad728f5.json', 'data': 'md5:ece63ef7a3a45fe2f7183f95f96d3181', 'ext': 'srt'}]}
+        },
+    }, {
+        'url': 'http://www.bilibili.com/video/av1074402/',
         'md5': '5f7d29e1a2872f3df0cf76b1f87d3788',
         'info_dict': {
             'id': '1074402',
