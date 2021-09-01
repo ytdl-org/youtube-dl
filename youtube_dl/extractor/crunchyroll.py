@@ -430,7 +430,10 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
         if note_m:
             raise ExtractorError(note_m)
 
-        mobj = re.search(r'Page\.messaging_box_controller\.addItems\(\[(?P<msg>{.+?})\]\)', webpage)
+        mobj = re.search(
+            r'Page\.messaging_box_controller\.addItems\(\[(?P<msg>{(?!.*},{).+?})\]\)',
+            webpage)
+
         if mobj:
             msg = json.loads(mobj.group('msg'))
             if msg.get('type') == 'error':
