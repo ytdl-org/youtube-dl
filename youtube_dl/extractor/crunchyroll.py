@@ -431,7 +431,7 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
             raise ExtractorError(note_m)
 
         mobj = re.search(
-            r'Page\.messaging_box_controller\.addItems\(\[(?P<msg>{(?!.*},{).+?})\]\)',
+            r'Page\s*\.\s*messaging_box_controller\s*\.\s*addItems\s*\(\s*\[\s*(?P<msg>{(?!.*}\s*,\s*{).+?})\s*\]\s*\)',
             webpage)
 
         if mobj:
