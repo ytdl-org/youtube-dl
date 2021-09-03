@@ -63,7 +63,9 @@ class YoutubeBaseInfoExtractor(InfoExtractor):
     # If True it will raise an error if no login info is provided
     _LOGIN_REQUIRED = False
 
-    _PLAYLIST_ID_RE = r'(?:(?:PL|LL|EC|UU|FL|RD|UL|TL|PU|OLAK5uy_)[0-9A-Za-z-_]{10,}|RDMM)'
+    _VIDEO_ID_RE = r'[0-9A-Za-z_-]{11}'
+    _PLAYLIST_ID_RE = r'(?:(?:PL|LL|EC|UU|FL|RD|UL|TL|PU|OLAK5uy_)[0-9A-Za-z_-]{10,}|RDMM)'
+    _CHANNEL_ID_RE = r'(?:UC[0-9A-Za-z_-]{10,})'
 
     def _login(self):
         """
@@ -342,65 +344,7 @@ class YoutubeBaseInfoExtractor(InfoExtractor):
 
 class YoutubeIE(YoutubeBaseInfoExtractor):
     IE_DESC = 'YouTube.com'
-    _INVIDIOUS_SITES = (
-        # invidious-redirect websites
-        r'(?:www\.)?redirect\.invidious\.io',
-        r'(?:(?:www|dev)\.)?invidio\.us',
-        # Invidious instances taken from https://github.com/iv-org/documentation/blob/master/Invidious-Instances.md
-        r'(?:(?:www|no)\.)?invidiou\.sh',
-        r'(?:(?:www|fi)\.)?invidious\.snopyta\.org',
-        r'(?:www\.)?invidious\.kabi\.tk',
-        r'(?:www\.)?invidious\.13ad\.de',
-        r'(?:www\.)?invidious\.mastodon\.host',
-        r'(?:www\.)?invidious\.zapashcanon\.fr',
-        r'(?:www\.)?(?:invidious(?:-us)?|piped)\.kavin\.rocks',
-        r'(?:www\.)?invidious\.tinfoil-hat\.net',
-        r'(?:www\.)?invidious\.himiko\.cloud',
-        r'(?:www\.)?invidious\.reallyancient\.tech',
-        r'(?:www\.)?invidious\.tube',
-        r'(?:www\.)?invidiou\.site',
-        r'(?:www\.)?invidious\.site',
-        r'(?:www\.)?invidious\.xyz',
-        r'(?:www\.)?invidious\.nixnet\.xyz',
-        r'(?:www\.)?invidious\.048596\.xyz',
-        r'(?:www\.)?invidious\.drycat\.fr',
-        r'(?:www\.)?inv\.skyn3t\.in',
-        r'(?:www\.)?tube\.poal\.co',
-        r'(?:www\.)?tube\.connect\.cafe',
-        r'(?:www\.)?vid\.wxzm\.sx',
-        r'(?:www\.)?vid\.mint\.lgbt',
-        r'(?:www\.)?vid\.puffyan\.us',
-        r'(?:www\.)?yewtu\.be',
-        r'(?:www\.)?yt\.elukerio\.org',
-        r'(?:www\.)?yt\.lelux\.fi',
-        r'(?:www\.)?invidious\.ggc-project\.de',
-        r'(?:www\.)?yt\.maisputain\.ovh',
-        r'(?:www\.)?ytprivate\.com',
-        r'(?:www\.)?invidious\.13ad\.de',
-        r'(?:www\.)?invidious\.toot\.koeln',
-        r'(?:www\.)?invidious\.fdn\.fr',
-        r'(?:www\.)?watch\.nettohikari\.com',
-        r'(?:www\.)?invidious\.namazso\.eu',
-        r'(?:www\.)?invidious\.silkky\.cloud',
-        r'(?:www\.)?invidious\.exonip\.de',
-        r'(?:www\.)?invidious\.riverside\.rocks',
-        r'(?:www\.)?invidious\.blamefran\.net',
-        r'(?:www\.)?invidious\.moomoo\.de',
-        r'(?:www\.)?ytb\.trom\.tf',
-        r'(?:www\.)?yt\.cyberhost\.uk',
-        r'(?:www\.)?kgg2m7yk5aybusll\.onion',
-        r'(?:www\.)?qklhadlycap4cnod\.onion',
-        r'(?:www\.)?axqzx4s6s54s32yentfqojs3x5i7faxza6xo3ehd4bzzsg2ii4fv2iid\.onion',
-        r'(?:www\.)?c7hqkpkpemu6e7emz5b4vyz7idjgdvgaaa3dyimmeojqbgpea3xqjoid\.onion',
-        r'(?:www\.)?fz253lmuao3strwbfbmx46yu7acac2jz27iwtorgmbqlkurlclmancad\.onion',
-        r'(?:www\.)?invidious\.l4qlywnpwqsluw65ts7md3khrivpirse744un3x7mlskqauz5pyuzgqd\.onion',
-        r'(?:www\.)?owxfohz4kjyv25fvlqilyxast7inivgiktls3th44jhk3ej3i7ya\.b32\.i2p',
-        r'(?:www\.)?4l2dgddgsrkf2ous66i6seeyi6etzfgrue332grh2n7madpwopotugyd\.onion',
-        r'(?:www\.)?w6ijuptxiku4xpnnaetxvnkc5vqcdu7mgns2u77qefoixi63vbvnpnqd\.onion',
-        r'(?:www\.)?kbjggqkzv65ivcqj6bumvp337z6264huv5kpkwuv6gu5yjiskvan7fad\.onion',
-        r'(?:www\.)?grwp24hodrefzvjjuccrkw3mjq4tzhaaq32amf33dzpmuxe7ilepcmad\.onion',
-        r'(?:www\.)?hpniueoejy4opn7bc4ftgazyqjoeqwlvh2uiku2xqku6zpoa4bf5ruid\.onion',
-    )
+    _CANONICAL_VIDEO_RE = r'https://www\.youtube\.com/watch\?v=%s' % YoutubeBaseInfoExtractor._VIDEO_ID_RE
     _VALID_URL = r"""(?x)^
                      (
                          (?:https?://|//)                                    # http(s):// or protocol-independent URL
@@ -410,7 +354,6 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                             (?:www\.)?hooktube\.com|
                             (?:www\.)?yourepeat\.com|
                             tube\.majestyc\.net|
-                            %(invidious)s|
                             youtube\.googleapis\.com)/                        # the various hostnames, with wildcard subdomains
                          (?:.*?\#/)?                                          # handle anchor (#/) redirect urls
                          (?:                                                  # the various things that can precede the ID:
@@ -425,16 +368,15 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                          |(?:
                             youtu\.be|                                        # just youtu.be/xxxx
                             vid\.plus|                                        # or vid.plus/xxxx
-                            zwearz\.com/watch|                                # or zwearz.com/watch/xxxx
-                            %(invidious)s
+                            zwearz\.com/watch                                # or zwearz.com/watch/xxxx
                          )/
                          |(?:www\.)?cleanvideosearch\.com/media/action/yt/watch\?videoId=
                          )
                      )?                                                       # all until now is optional -> you can pass the naked ID
-                     (?P<id>[0-9A-Za-z_-]{11})                                # here is it! the YouTube video ID
+                     (?P<id>%(video_id)s)                                     # here is it! the YouTube video ID
                      (?(1).+)?                                                # if we found the ID, everything can follow
                      $""" % {
-        'invidious': '|'.join(_INVIDIOUS_SITES),
+        'video_id': YoutubeBaseInfoExtractor._VIDEO_ID_RE,
     }
     _PLAYER_INFO_RE = (
         r'/s/player/(?P<id>[a-zA-Z0-9_-]{8,})/player',
@@ -942,19 +884,6 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
         {
             # geo restricted to JP
             'url': 'sJL6WA-aGkQ',
-            'only_matching': True,
-        },
-        {
-            'url': 'https://invidio.us/watch?v=BaW_jenozKc',
-            'only_matching': True,
-        },
-        {
-            'url': 'https://redirect.invidious.io/watch?v=BaW_jenozKc',
-            'only_matching': True,
-        },
-        {
-            # from https://nitter.pussthecat.org/YouTube/status/1360363141947944964#m
-            'url': 'https://redirect.invidious.io/Yh0AhrY9GjA',
             'only_matching': True,
         },
         {
@@ -2013,10 +1942,8 @@ class YoutubeTabIE(YoutubeBaseInfoExtractor):
     _VALID_URL = r'''(?x)
                     https?://
                         (?:\w+\.)?
-                        (?:
-                            youtube(?:kids)?\.com|
-                            invidio\.us
-                        )/
+                        youtube(?:kids)?\.com
+                        /
                         (?:
                             (?:channel|c|user|feed|hashtag)/|
                             (?:playlist|watch)\?.*?\blist=|
@@ -2140,9 +2067,6 @@ class YoutubeTabIE(YoutubeBaseInfoExtractor):
         },
         'playlist_mincount': 138,
     }, {
-        'url': 'https://invidio.us/channel/UCmlqkdCBesrv2Lak1mF_MxA',
-        'only_matching': True,
-    }, {
         'url': 'https://www.youtubekids.com/channel/UCmlqkdCBesrv2Lak1mF_MxA',
         'only_matching': True,
     }, {
@@ -2192,9 +2116,6 @@ class YoutubeTabIE(YoutubeBaseInfoExtractor):
             'uploader': 'Computerphile',
         },
         'playlist_mincount': 11,
-    }, {
-        'url': 'https://invidio.us/playlist?list=PL4lCao7KL_QFVb7Iudeipvc2BCavECqzc',
-        'only_matching': True,
     }, {
         # Playlist URL that does not actually serve a playlist
         'url': 'https://www.youtube.com/watch?v=FqZTN594JQw&list=PLMYEtVRpaqY00V9W81Cwmzp6N6vZqfUKD4',
@@ -2870,7 +2791,6 @@ class YoutubePlaylistIE(InfoExtractor):
                         (?:
                             (?:
                                 youtube(?:kids)?\.com|
-                                invidio\.us
                             )
                             /.*?\?.*?\blist=
                         )?
@@ -3255,3 +3175,222 @@ class YoutubeTruncatedIDIE(InfoExtractor):
         raise ExtractorError(
             'Incomplete YouTube ID %s. URL %s looks truncated.' % (video_id, url),
             expected=True)
+
+
+class InvidiousIE(YoutubeIE):
+    # Invidious Instances (#29885) per https://github.com/iv-org/invidious/pull/1730
+    # Thanks: https://github.com/yt-dlp/yt-dlp/commit/df0c81513e0bb37986d00c532a5ad8cef31a24ea
+    IE_NAME = 'invidious'
+    IE_DESC = 'Invidious YT front-end videos, playlists, channels, searches'
+    _VALID_URL = r'ytdlie://Invidious#(?P<id>.+)'
+    _REAL_VALID_URL = r"""(?x)^
+                     (?:(
+                         (?:https?:)?//                                       # http(s):// or protocol-independent URL
+                         (?:[a-zA-Z\d-]+\.)+[a-zA-Z\d-]+/                                        # any domain
+                         (?:.*?\#/)?                                          # handle anchor (#/) redirect urls
+                         (?:                                                  # the various things that can precede the ID:
+                             (?:(?:v|embed|e)/(?!videoseries))?               # v/ or embed/ or e/, or nothing
+                             |(?:                                             # or the v= param in all its forms
+                                 (?:(?:watch|movie)(?:_popup)?(?:\.php)?/?)?  # preceding watch(_popup|.php) or nothing (like /?v=xxxx)
+                                 (?:\?|\#!?)                                  # the params delimiter ? or # or #!
+                                 (?:.*?[&;])??                                # any other preceding param (like /?s=tuff&v=xxxx or ?s=tuff&amp;v=V36LpHqtcDY)
+                                 v=
+                             )
+                         )
+                       )?|(?:                                                     # all until now is optional -> you can pass the naked ID
+                         (?:https?:)?//                                       # http(s):// or protocol-independent URL
+                         (?:[a-zA-Z\d-]+\.)+[a-zA-Z\d-]+/                                        # any domain
+                         (?:(
+                             (?:playlist|watch)\?.*?\blist=
+                           )|(
+                             (?:feed/)?(?:channel|c|user)/
+                           )|(
+                             (?:feed|hashtag)/
+                           )|(search\?(?=q=)
+                           )
+                         )
+                       )
+                     )
+                     (?(2)IV)?(?P<id>(?(2)%(playlist_id)s|
+                                         (?(3)%(channel_id)s|
+                                              (?(4)%(feed_id)s|
+                                                  (?(5).+|
+                                                      %(video_id)s))))
+                              )
+                     (?(1).*)                                                 # if we found the ID, everything can follow
+                     $""" % {
+        'video_id': YoutubeBaseInfoExtractor._VIDEO_ID_RE,
+        'playlist_id': YoutubeBaseInfoExtractor._PLAYLIST_ID_RE,
+        'channel_id': YoutubeBaseInfoExtractor._CHANNEL_ID_RE,
+        'feed_id': r'[0-9a-zA-Z_-]{10,}',
+    }
+    _LINK_RE = r'<link\s[^>]*?%s[^>]*>'
+    # <link title="Invidious">
+    _LINK_TITLE_RE = _LINK_RE % r'title\s*=\s*(?P<q>"|\'|\b)Invidious(?P=q)'
+    _TITLE_RE = r'<title\b[^>]*?>(.+)\s*-\s*Invidious</title>'
+    _TESTS = [{
+        # Invidious video page with standard link to YT
+        'url': 'https://invidious.snopyta.org/watch?v=aU_jWooBxzI',
+        'md5': 'fad656e510b491dcbefba0b0065ceb37',
+        'info_dict': {
+            'id': 'aU_jWooBxzI',
+            'ext': 'mp4',
+            'title': 'PCs are TOO Powerful… and it’s a problem',
+            'thumbnail': r're:https?://i.ytimg.com/.+\.jpg',
+            'upload_date': '20210818',
+            'uploader': 'Linus Tech Tips',
+            'uploader_id': 'LinusTechTips',
+            'description': 'md5:749b04d3931048628191889dfb14c5ba',
+            'duration': 708,
+        },
+    }, {
+        # Invidious video page with standard link to YT
+        'url': 'https://invidious-us.kavin.rocks/watch?v=15TvLqK29PU&list=IVPLxy40xZSaui6mZCrEUbd-MeMQD41-k6D',
+        'md5': '7a7ab808f6cee434361463161c046d25',
+        'info_dict': {
+            'id': '15TvLqK29PU',
+            'ext': 'mp4',
+            'title': 'md5:5130b529083cd4a692c4917beb059428',
+            'thumbnail': 're:https?://i.ytimg.com/.+',
+            'upload_date': '20120921',
+            'uploader': 'md5:42326ad7441688122b035175a51de385',
+            'uploader_id': 'UCuel_9Lg9WH9P5dFnXZ0zKQ',
+            'description': 'md5:541ed05829043b077d920029641ad831',
+            'duration': 366,
+        },
+        'params': {
+            # Cloudflare breaks HTTP if Chrome is mentioned in the UA (2021-08)
+            'user_agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/6533.18.5 (KHTML, like Gecko) Safari/6533.18.5',
+        },
+        'skip': 'test_download doesn\'t respect the user_agent option',
+    }, {
+        # Invidious playlist, more than one page
+        # Results may be fewer than YoutubePlaylistIE because of global deduplication
+        'url': 'https://invidious.snopyta.org/playlist?list=PL143B3D4078ECAD35',
+        'info_dict': {
+            'id': 'PL143B3D4078ECAD35',
+            'title': 'yum yum gimme sum',
+        },
+        'playlist_mincount': 95,
+    }, {
+        # Invidious channel, more than one page
+        'url': 'https://invidious.snopyta.org/channel/UCFEFodsnfvA2diJOn7xxd0g',
+        'info_dict': {
+            'id': 'UCFEFodsnfvA2diJOn7xxd0g',
+            'title': 'waaghalsrecords',
+        },
+        'playlist_mincount': 90,
+    }, {
+        # Invidious search, more than one page
+        'url': 'https://invidious.snopyta.org/search?q=dale+"hawkins"',
+        'info_dict': {
+            'id': 'q=dale+"hawkins"',
+            'title': 'dale "hawkins"',
+        },
+        'playlist_mincount': 410,
+    }]
+
+    @classmethod
+    def page_suitable(cls, caller, url, webpage):
+        '''Return truthy iff the webpage at the URL is suitable for the extractor
+
+        Arguments:
+        cls -- the InfoExtractor class being tested
+        caller -- the calling InfoExtractor instance
+        url -- compat_str url to test against the class
+        webpage -- compat_str text of the page at the url
+        '''
+
+        return caller._search_regex(cls._LINK_TITLE_RE, webpage, 'Invidious title', default=False)
+
+    @classmethod
+    def page_url_result(cls, url, video_id=None, video_title=None, webpage=None):
+        '''Pass the URL to an extractor using the custom ytdlie:// scheme'''
+        ie_key = cls.ie_key()
+        url = smuggle_url('ytdlie://' + ie_key, {'url': url, })
+        return cls.url_result(url, ie=ie_key, video_id=video_id, video_title=video_title)
+
+    @classmethod
+    def _real_match_id(cls, url):
+        '''Return ID from url matched against _REAL_VALID_URL'''
+        if '_REAL_VALID_URL_RE' not in cls.__dict__:
+            cls._REAL_VALID_URL_RE = re.compile(cls._REAL_VALID_URL)
+        m = re.match(cls._REAL_VALID_URL_RE, url)
+        assert m
+        return compat_str(m.group('id'))
+
+    def _real_extract(self, url):
+        '''Return YT URL of video in an Invidious single video page
+
+        Arguments:
+        caller -- an InfoExtractor
+        webpage -- compat_str text of the video page
+        '''
+        url = unsmuggle_url(url, {})[1]['url']
+        video_id = self._real_match_id(url)
+        webpage = self._download_webpage(url, video_id)
+
+        # single video page?
+        REL_ALT_RE = r'(?P<rel%(n)d>rel\s*=\s*(?P<q%(n)d>"|\'|\b)alternate(?P=q%(n)d))'
+        LINK_REL_ALT_TEMPL = (
+            r'''
+                %(rel_alt1)s                               # rel="alternate"
+                \s[^>]*?
+                href\s*=\s*(?P<q0>"|\'|\b)                 # href="invid URL"
+                    (?P<invid_url>%(canonical_video_url)s)(?P=q0)
+                (?(rel1)|\s[^>]*?%(rel_alt2)s)             # rel="alternate" if following
+            ''')
+        LINK_REL_ALT_RE = '(?x)' + self._LINK_RE % LINK_REL_ALT_TEMPL
+        yt_url = self._search_regex(
+            LINK_REL_ALT_RE
+            % {
+                'rel_alt1': REL_ALT_RE % {'n': 1, },
+                'canonical_video_url': YoutubeIE._CANONICAL_VIDEO_RE,
+                'rel_alt2': REL_ALT_RE % {'n': 2, },
+            },
+            webpage, 'youtube link', default=None, group='invid_url')
+        if yt_url:
+            return self.url_result(yt_url, ie=YoutubeIE.ie_key(), video_id=video_id)
+
+        # perhaps it's a playlist or a channel?
+        title = self._html_search_regex(self._TITLE_RE, webpage, 'page title', default=None)
+
+        NEXT_PAGE_RE = r'''(?x)
+                           <a\s[^>]*?href\s*=\s*(?P<q>"|\'|\b)
+                               (?P<next_page>.+?[&?]page=(?P<page_num>%s))
+                           (?P=q)>
+                       '''
+
+        # generate all video links from page and further pages
+        def gen_extract(url, webpage, video_id):
+            next_page_re = NEXT_PAGE_RE
+            next_page = (int_or_none(
+                self._search_regex(
+                    next_page_re % r'\d+',
+                    webpage, 'next page num', default=None, group='page_num'))
+                or 2)
+            next_page_re = next_page_re % '%d'
+            VIDEO_LINK_RE = r'''(?x)
+                                <a\s[^>]*?
+                                    href\s*=\s*(?P<q>"|\'|\b)
+                                    /watch\?v=(%s)(?!.+\blisten=1.*).*?
+                                (?P=q)
+                            ''' % self._VIDEO_ID_RE
+            for n in itertools.count(next_page):
+                video_ids = re.findall(VIDEO_LINK_RE, webpage)
+                for _, vid in video_ids:
+                    yield 'https://www.youtube.com/watch?v=%s' % vid
+                next_page = self._search_regex(
+                    next_page_re % n,
+                    webpage, 'next page', default=None, group='next_page')
+                webpage = (
+                    next_page
+                    and self._download_webpage(urljoin(url, next_page), video_id, fatal=False))
+
+                if not webpage:
+                    break
+
+        return self.playlist_from_matches(
+            gen_extract(url, webpage, video_id),
+            playlist_id=video_id, playlist_title=title,
+            ie=YoutubeIE.ie_key())

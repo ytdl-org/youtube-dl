@@ -7,7 +7,11 @@ import re
 import sys
 
 from .common import InfoExtractor
-from .youtube import YoutubeIE
+from .youtube import (
+    YoutubeIE,
+    InvidiousIE,
+)
+
 from ..compat import (
     compat_etree_fromstring,
     compat_str,
@@ -2632,6 +2636,10 @@ class GenericIE(InfoExtractor):
         if youtube_urls:
             return self.playlist_from_matches(
                 youtube_urls, video_id, video_title, ie=YoutubeIE.ie_key())
+
+        # Invidious YT front-end
+        if InvidiousIE.page_suitable(self, url, webpage):
+            return InvidiousIE.page_url_result(url, video_id, video_title, webpage)
 
         matches = DailymotionIE._extract_urls(webpage)
         if matches:
