@@ -10,6 +10,7 @@ from .common import FileDownloader
 from ..compat import (
     compat_setenv,
     compat_str,
+    compat_subprocess_get_DEVNULL,
 )
 from ..postprocessor.ffmpeg import FFmpegPostProcessor, EXT_TO_OUT_FORMATS
 from ..utils import (
@@ -350,6 +351,65 @@ class FFmpegFD(ExternalFD):
 
 class AVconvFD(FFmpegFD):
     pass
+
+
+class StreamlinkFD(ExternalFD):
+    AVAILABLE_OPT = '--version'
+
+    @classmethod
+    def supports(cls, info_dict):
+        return info_dict['protocol'] in ('m3u8', 'm3u8_native')
+
+    def _make_cmd(self, tmpfilename, info_dict):
+        cmd = [self.exe, '-f', '-o', tmpfilename]
+        if self.params.get('quiet'):
+            cmd += ['-l', 'none']
+        else:
+            if self.params.get('verbose'):
+                log_level = 'debug'
+            else:
+                log_level = 'info'
+            cmd += ['-l', log_level]
+        for key, val in info_dict['http_headers'].items():
+            cmd += ['--http-header', '%s=%s' % (key, val)]
+        cmd += self._option('--interface', 'source_address')
+        cmd += self._option('--http-proxy', 'proxy')
+        cmd += self._valueless_option('--http-no-ssl-verify', 'nocheckcertificate')
+        retry = self._option('--retry-max', 'retries')
+        if len(retry) == 2:
+            if retry[1] in ('inf', 'infinite'):
+                retry[1] = '0'
+            cmd += retry
+        retry = self._option('--hls-segment-attempts', 'fragment_retries')
+        if len(retry) == 2:
+            if retry[1] in ('inf', 'infinite'):
+                retry[1] = '2147483647'
+            cmd += retry
+        cmd += self._configuration_args([
+            '--hls-segment-threads', '4'])
+        cmd += ['hls://%s' % info_dict['url'], 'best']
+        return cmd
+
+    def _call_downloader(self, tmpfilename, info_dict):
+        cmd = [encodeArgument(a) for a in self._make_cmd(tmpfilename, info_dict)]
+
+        self._debug_cmd(cmd)
+
+        # streamlink writes the progress to stderr independent of log level
+        # discard or don't capture it
+        if self.params.get('quiet'):
+            stderr = compat_subprocess_get_DEVNULL()
+        else:
+            stderr = None
+        p = subprocess.Popen(cmd, stderr=stderr)
+        try:
+            p.wait()
+        except KeyboardInterrupt:
+            # wait for streamlink to exit
+            if p.returncode is None:
+                p.wait()
+            raise
+        return p.returncode
 
 
 _BY_NAME = dict(
