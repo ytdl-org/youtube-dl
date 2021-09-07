@@ -11,6 +11,7 @@ from ..utils import (
     determine_ext,
     ExtractorError,
     int_or_none,
+    js_to_json,
     parse_duration,
     str_or_none,
     try_get,
@@ -545,7 +546,7 @@ class NRKTVSeasonIE(NRKTVSerieBaseIE):
         'url': 'https://tv.nrk.no/serie/backstage/sesong/1',
         'info_dict': {
             'id': 'backstage/1',
-            'title': 'Sesong 1',
+            'title': 'Backstage - Sesong 1',
         },
         'playlist_mincount': 30,
     }, {
@@ -553,7 +554,7 @@ class NRKTVSeasonIE(NRKTVSerieBaseIE):
         'url': 'https://tv.nrk.no/serie/lindmo/2016',
         'info_dict': {
             'id': 'lindmo/2016',
-            'title': '2016',
+            'title': 'Lindmo - 2016',
         },
         'playlist_mincount': 29,
     }, {
@@ -600,6 +601,32 @@ class NRKTVSeasonIE(NRKTVSerieBaseIE):
         serie = mobj.group('serie')
         season_id = mobj.group('id') or mobj.group('id_2')
         display_id = '%s/%s' % (serie, season_id)
+
+        if domain == 'tv':
+
+            webpage = self._download_webpage(url, display_id)
+
+            data = self._parse_json(self._search_regex(
+                r'__NRK_TV_SERIES_INITIAL_DATA_V2__\s*=\s*({.+});',
+                webpage, 'tv initial data'), display_id, transform_source=js_to_json)
+            data = data.get('initialState') or {}
+
+            if try_get(data, lambda x: x['standard']['seasons']['seasons'], dict):
+                selected_season = try_get(data, lambda x: x['standard']['seasons']['selectedSeason']['selectedSeason'], compat_str) or ''
+                season_data = try_get(data, lambda x: x['standard']['seasons']['seasons'][selected_season]['season'], dict) or {}
+            else:
+                season_data = try_get(data, lambda x: x['series']['seasons'][int(season_id) - 1], dict) or {}
+
+            title = try_get(data, lambda x: x['series']['titles']['title'], compat_str) or ''
+            if title:
+                season_title = try_get(season_data, lambda x: x['titles']['title'], compat_str) or ''
+                if season_title:
+                    title += ' - ' + season_title
+            else:
+                title = display_id
+            return self.playlist_result(
+                self._entries(season_data, display_id),
+                display_id, title)
 
         data = self._call_api(
             '%s/catalog/%s/%s/seasons/%s'
