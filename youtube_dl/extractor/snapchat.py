@@ -1,8 +1,7 @@
 # coding: utf-8
 from __future__ import unicode_literals
-import re
 
-from ..utils import unified_timestamp, parse_duration
+from ..utils import unified_timestamp, parse_duration, try_get, str_or_none, ExtractorError
 from .common import InfoExtractor
 
 
@@ -15,11 +14,11 @@ class SnapchatIE(InfoExtractor):
             'id': 'W7_EDlXWTBiXAEEniNoMPwAAYuz9_1mcdex8MAXndPyIOAXndPyFyAO1OAA',
             'ext': 'mp4',
             'title': 'W7_EDlXWTBiXAEEniNoMPwAAYuz9_1mcdex8MAXndPyIOAXndPyFyAO1OAA',
-            'thumbnail': 'https://s.sc-cdn.net/p9mgs8YyMZzfFRls4HGZxwXWBGVF-cEa6ZYPuCT2xPk=/default/preview.jpg',
+            'thumbnail': r're:https://s\.sc-cdn\.net/.+\.jpg',
             'description': '#spotlight',
             'timestamp': 1622914559,
             'upload_date': '20210605',
-            'view_count': 62100,
+            'view_count': 72100,
             'uploader_id': None
         }
     }
@@ -28,27 +27,23 @@ class SnapchatIE(InfoExtractor):
         video_id = self._match_id(url)
         webpage = self._download_webpage(url, video_id)
 
-        schema_video_object_raw = self._html_search_regex(r'<script data-react-helmet="true" type="application/ld\+json">(.+)</script>',
+        schema_video_object_raw = self._html_search_regex(r'<script\s[^>]*?data-react-helmet\s*=\s*"true"\s[^>]*?type\s*=\s*"application/ld\+json">(.+?)</script>',
                                                           webpage, 'schema_video_object')
         schema_video_object = self._parse_json(schema_video_object_raw, video_id, fatal=True)
-        video_url = schema_video_object.get('contentUrl')
+        try:
+            video_url = str_or_none(schema_video_object['contentUrl'])
+            if not video_url:
+                raise ValueError('video_url must be non-empty string')
+        except (TypeError, ValueError) as e:
+            raise ExtractorError('Unexpected format for schema_video_object', cause=e, video_id=video_id)
+
         title = schema_video_object.get('name')
         if not title:
-            matching = re.match(r'sc-cdn.net/\w+/(\w+)', video_url)
-            if matching:
-                title = matching.group(1)
-        if not title:
-            title = video_id
+            title = self._generic_title(url)
 
-        try:
-            views = schema_video_object.get('interactionStatistic').get('userInteractionCount')
-        except AttributeError:
-            views = None
+        views = try_get(schema_video_object.get('interactionStatistic'), lambda x: x['userInteractionCount'])
 
-        try:
-            uploader_id = schema_video_object.get('creator').get('alternateName')
-        except AttributeError:
-            uploader_id = None
+        uploader_id = try_get(schema_video_object.get('creator'), lambda x: x['alternateName'])
 
         return {
             'id': video_id,
