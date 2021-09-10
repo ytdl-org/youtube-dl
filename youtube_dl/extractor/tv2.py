@@ -24,7 +24,7 @@ class TV2IE(InfoExtractor):
         'url': 'http://www.tv2.no/v/916509/',
         'info_dict': {
             'id': '916509',
-            'ext': 'flv',
+            'ext': 'mp4',
             'title': 'Se Frode Gryttens hyllest av Steven Gerrard',
             'description': 'TV 2 Sportens huspoet tar avskjed med Liverpools kaptein Steven Gerrard.',
             'timestamp': 1431715610,
@@ -35,7 +35,7 @@ class TV2IE(InfoExtractor):
         },
     }]
     _API_DOMAIN = 'sumo.tv2.no'
-    _PROTOCOLS = ('HDS', 'HLS', 'DASH')
+    _PROTOCOLS = ('HLS', 'DASH')
     _GEO_COUNTRIES = ['NO']
 
     def _real_extract(self, url):
@@ -53,7 +53,7 @@ class TV2IE(InfoExtractor):
         for protocol in self._PROTOCOLS:
             try:
                 data = self._download_json(
-                    api_base + '/play.json?protocol=%s&videoFormat=SMIL+ISMUSP' % protocol,
+                    api_base + '/play.json?protocol=%s' % protocol,
                     video_id, 'Downloading play JSON')['playback']
             except ExtractorError as e:
                 if isinstance(e.cause, compat_HTTPError) and e.cause.code == 401:
