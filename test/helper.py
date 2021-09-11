@@ -89,8 +89,10 @@ class FakeYDL(YoutubeDL):
         self.report_warning = types.MethodType(report_warning, self)
 
 
-def gettestcases(include_onlymatching=False):
+def gettestcases(include_onlymatching=False, include_pagesuitable=True):
     for ie in youtube_dl.extractor.gen_extractors():
+        if not include_pagesuitable and callable(getattr(ie, 'page_suitable', None)):
+            continue
         for tc in ie.get_testcases(include_onlymatching):
             yield tc
 

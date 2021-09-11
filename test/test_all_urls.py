@@ -76,7 +76,7 @@ class TestAllURLsMatching(unittest.TestCase):
 
     def test_no_duplicates(self):
         ies = gen_extractors()
-        for tc in gettestcases(include_onlymatching=True):
+        for tc in gettestcases(include_onlymatching=True, include_pagesuitable=False):
             url = tc['url']
             for ie in ies:
                 if type(ie).__name__ in ('GenericIE', tc['name'] + 'IE'):
