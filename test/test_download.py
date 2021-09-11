@@ -34,6 +34,7 @@ from youtube_dl.utils import (
     DownloadError,
     ExtractorError,
     format_bytes,
+    std_headers,
     UnavailableVideoError,
 )
 from youtube_dl.extractor import get_info_extractor
@@ -124,6 +125,17 @@ def generator(test_case, tname):
         if is_playlist and 'playlist' not in test_case:
             params.setdefault('extract_flat', 'in_playlist')
             params.setdefault('skip_download', True)
+
+        if 'user_agent' in params:
+            std_headers['User-Agent'] = params['user_agent']
+
+        if 'referer' in params:
+            std_headers['Referer'] = params['referer']
+
+        for h in params.get('headers', []):
+            h = h.split(':', 1)
+            if len(h) > 1:
+                std_headers[h[0]] = h[1]
 
         ydl = YoutubeDL(params, auto_init=False)
         ydl.add_default_info_extractors()
