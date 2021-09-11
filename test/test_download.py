@@ -23,6 +23,7 @@ import hashlib
 import io
 import json
 import socket
+import re
 
 import youtube_dl.YoutubeDL
 from youtube_dl.compat import (
@@ -85,6 +86,13 @@ class TestDownload(unittest.TestCase):
         return '%s (%s)%s:' % (self._testMethodName,
                                strclass(self.__class__),
                                ' [%s]' % add_ie if add_ie else '')
+
+    @classmethod
+    def addTest(cls, test_method, test_method_name, add_ie):
+        test_method.__name__ = str(test_method_name)
+        test_method.add_ie = add_ie
+        setattr(TestDownload, test_method.__name__, test_method)
+        del test_method
 
     def setUp(self):
         self.defs = defs
@@ -268,12 +276,49 @@ for n, test_case in enumerate(defs):
         tname = 'test_%s_%d' % (test_case['name'], i)
         i += 1
     test_method = generator(test_case, tname)
-    test_method.__name__ = str(tname)
-    ie_list = test_case.get('add_ie')
-    test_method.add_ie = ie_list and ','.join(ie_list)
-    setattr(TestDownload, test_method.__name__, test_method)
-    del test_method
+    ie_list = ','.join(test_case.get('add_ie', []))
+    TestDownload.addTest(test_method, tname, ie_list)
 
+# Py2 compat (should be in compat.py?)
+try:
+    from itertools import (ifilter as filter, imap as map)
+except ImportError:
+    pass
+
+
+def tests_for_ie(ie_key):
+    return filter(
+        lambda a: callable(getattr(TestDownload, a, None)),
+        filter(lambda a: re.match(r'test_%s(?:_\d+)?$' % ie_key, a),
+               dir(TestDownload)))
+
+
+def gen_test_suite(ie_key):
+    def test_all(self):
+        print(self)
+        suite = unittest.TestSuite(
+            map(TestDownload, tests_for_ie(ie_key)))
+        result = self.defaultTestResult()
+        suite.run(result)
+        print('Errors: %d\t Failures: %d\tSkipped: %d' %
+              tuple(map(len, (result.errors, result.failures, result.skipped))))
+        print('Expected failures: %d\tUnexpected successes: %d' %
+              tuple(map(len, (result.expectedFailures, result.unexpectedSuccesses))))
+        return result
+
+    return test_all
+
+
+for ie_key in set(
+    map(lambda x: x[0],
+        filter(
+            lambda x: callable(x[1]),
+            map(lambda a: (a[5:], getattr(TestDownload, a, None)),
+                filter(lambda t:
+                       re.match(r'test_.+(?<!(?:_all|.._\d|._\d\d|_\d\d\d))$', t),
+                       dir(TestDownload)))))):
+    test_all = gen_test_suite(ie_key)
+    TestDownload.addTest(test_all, 'test_%s_all' % ie_key, 'Test all: %s' % ie_key)
 
 if __name__ == '__main__':
     unittest.main()
