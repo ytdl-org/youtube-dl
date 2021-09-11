@@ -57,12 +57,6 @@ Alternatively, refer to the [developer instructions](#developer-instructions) fo
     -U, --update                         Update this program to latest version.
                                          Make sure that you have sufficient
                                          permissions (run with sudo if needed)
-    -i, --ignore-errors                  Continue on download errors, for
-                                         example to skip unavailable videos in a
-                                         playlist
-    --abort-on-error                     Abort downloading of further videos (in
-                                         the playlist or the command line) if an
-                                         error occurs
     --dump-user-agent                    Display the current browser
                                          identification
     --list-extractors                    List all supported extractors
@@ -128,19 +122,6 @@ Alternatively, refer to the [developer instructions](#developer-instructions) fo
                                          CIDR notation
 
 ## Video Selection:
-    --playlist-start NUMBER              Playlist video to start at (default is
-                                         1)
-    --playlist-end NUMBER                Playlist video to end at (default is
-                                         last)
-    --playlist-items ITEM_SPEC           Playlist video items to download.
-                                         Specify indices of the videos in the
-                                         playlist separated by commas like: "--
-                                         playlist-items 1,2,5,8" if you want to
-                                         download videos indexed 1, 2, 5, 8 in
-                                         the playlist. You can specify range: "
-                                         --playlist-items 1-3,7,10-13", it will
-                                         download the videos at index 1, 2, 3,
-                                         7, 10, 11, 12 and 13.
     --match-title REGEX                  Download only matching titles (regex or
                                          caseless sub-string)
     --reject-title REGEX                 Skip download for matching titles
@@ -181,10 +162,6 @@ Alternatively, refer to the [developer instructions](#developer-instructions) fo
                                          but who also have a description, use
                                          --match-filter "like_count > 100 &
                                          dislike_count <? 50 & description" .
-    --no-playlist                        Download only the video, if the URL
-                                         refers to a video and a playlist.
-    --yes-playlist                       Download the playlist, if the URL
-                                         refers to a video and a playlist.
     --age-limit YEARS                    Download only videos suitable for the
                                          given age
     --download-archive FILE              Download only videos not listed in the
@@ -192,7 +169,36 @@ Alternatively, refer to the [developer instructions](#developer-instructions) fo
                                          downloaded videos in it.
     --include-ads                        Download advertisements as well
                                          (experimental)
-
+                                         
+## Playlist Options:
+    --playlist-start NUMBER              Playlist video to start at (default is
+                                         1)
+    --playlist-end NUMBER                Playlist video to end at (default is
+                                         last)
+    --playlist-items ITEM_SPEC           Playlist video items to download.
+                                         Specify indices of the videos in the
+                                         playlist separated by commas like: "--
+                                         playlist-items 1,2,5,8" if you want to
+                                         download videos indexed 1, 2, 5, 8 in
+                                         the playlist. You can specify range: "
+                                         --playlist-items 1-3,7,10-13", it will
+                                         download the videos at index 1, 2, 3,
+                                         7, 10, 11, 12 and 13.                                         
+    --no-playlist                        Download only the video, if the URL
+                                         refers to a video and a playlist.
+    --yes-playlist                       Download the playlist, if the URL
+                                         refers to a video and a playlist.
+    --playlist-reverse                   Download playlist videos in reverse
+                                         order
+    --playlist-random                    Download playlist videos in random
+                                         order
+    -i, --ignore-errors                  Continue on download errors, for
+                                         example to skip unavailable videos in a
+                                         playlist
+    --abort-on-error                     Abort downloading of further videos (in
+                                         the playlist or the command line) if an
+                                         error occurs                                         
+                                         
 ## Download Options:
     -r, --limit-rate RATE                Maximum download rate in bytes per
                                          second (e.g. 50K or 4.2M)
@@ -219,10 +225,6 @@ Alternatively, refer to the [developer instructions](#developer-instructions) fo
                                          (default is disabled). May be useful
                                          for bypassing bandwidth throttling
                                          imposed by a webserver (experimental)
-    --playlist-reverse                   Download playlist videos in reverse
-                                         order
-    --playlist-random                    Download playlist videos in random
-                                         order
     --xattr-set-filesize                 Set file xattribute ytdl.filesize with
                                          expected file size
     --hls-prefer-native                  Use the native HLS downloader instead
@@ -264,16 +266,7 @@ Alternatively, refer to the [developer instructions](#developer-instructions) fo
     --no-part                            Do not use .part files - write directly
                                          into output file
     --no-mtime                           Do not use the Last-modified header to
-                                         set the file modification time
-    --write-description                  Write video description to a
-                                         .description file
-    --write-info-json                    Write video metadata to a .info.json
-                                         file
-    --write-annotations                  Write video annotations to a
-                                         .annotations.xml file
-    --load-info-json FILE                JSON file containing the video
-                                         information (created with the "--write-
-                                         info-json" option)
+                                         set the file modification time                                       
     --cookies FILE                       File to read cookies from and dump
                                          cookie jar in
     --cache-dir DIR                      Location in the filesystem where
@@ -293,6 +286,17 @@ Alternatively, refer to the [developer instructions](#developer-instructions) fo
                                          disk
     --list-thumbnails                    Simulate and list all available
                                          thumbnail formats
+                                         
+## Video Infomation
+    --write-info-json                    Write video metadata to a .info.json
+                                         file
+    --load-info-json FILE                JSON file containing the video
+                                         information (created with the "--write-
+                                         info-json" option)
+    --write-description                  Write video description to a
+                                         .description file                                         
+    --write-annotations                  Write video annotations to a
+                                         .annotations.xml file  
 
 ## Verbosity / Simulation Options:
     -q, --quiet                          Activate quiet mode
