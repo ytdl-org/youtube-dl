@@ -4,6 +4,7 @@ from __future__ import unicode_literals
 from .common import InfoExtractor
 from ..utils import (
     bool_or_none,
+    extract_attributes,
     smuggle_url,
     try_get,
     url_or_none,
@@ -54,8 +55,17 @@ class SlidesLiveIE(InfoExtractor):
 
     def _real_extract(self, url):
         video_id = self._match_id(url)
+        webpage = self._download_webpage(url, video_id)
+        player = self._search_regex(
+            r'<div\s[^>]*?id\s*=\s*(?P<q>\'|"|\b)player(?P=q)(?:\s[^>]*)?>.*?</div>',
+            webpage, 'player div', fatal=False, group=0)
+        player = (player and extract_attributes(player)) or {}
+        token = player.get('data-player-token')
+        if not token:
+            raise ExtractorError('Unable to get player token', expected=True)
         video_data = self._download_json(
-            'https://ben.slideslive.com/player/' + video_id, video_id)
+            'https://ben.slideslive.com/player/' + video_id, video_id,
+            query={'player_token': token, })
         service_name = video_data['video_service_name'].lower()
         assert service_name in ('url', 'yoda', 'vimeo', 'youtube')
         service_id = video_data['video_service_id']
