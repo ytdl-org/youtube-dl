@@ -2,39 +2,70 @@ from __future__ import unicode_literals
 
 from math import ceil
 
-from .compat import compat_b64decode
+from .compat import compat_b64decode, compat_struct_pack
 from .utils import bytes_to_intlist, intlist_to_bytes
 
 BLOCK_SIZE_BYTES = 16
 
 
-def aes_ctr_decrypt(data, key, counter):
+def signature_conversion(args_conv=None, kwargs_conv=None, ret_conv=None):
+    def decorator(function):
+        def wrapper(*args, **kwargs):
+            result = function(*args_conv(args) if args_conv else args,
+                              **kwargs_conv(kwargs) if kwargs_conv else kwargs)
+            return ret_conv(result) if ret_conv else result
+        return wrapper
+    return decorator
+
+
+def convert_all_args_to_intlist(arguments):
+    return map(bytes_to_intlist, arguments)
+
+
+def convert_expanded_key_args(arguments):
+    data, key = arguments
+    return [bytes_to_intlist(data), key_expansion(bytes_to_intlist(key))]
+
+
+def _aes_ctr_decrypt(data, key, iv):
     """
     Decrypt with aes in counter mode
 
     @param {int[]} data        cipher
     @param {int[]} key         16/24/32-Byte cipher key
-    @param {instance} counter  Instance whose next_value function (@returns {int[]}  16-Byte block)
-                               returns the next counter block
+    @param {int[]} iv          16-Byte initialization vector
     @returns {int[]}           decrypted data
+    """
+    return _aes_ctr_encrypt(data, key, iv)
+
+
+def _aes_ctr_encrypt(data, key, iv):
+    """
+    Encrypt with aes in counter mode
+
+    @param {int[]} data        cleartext
+    @param {int[]} key         16/24/32-Byte cipher key
+    @param {int[]} iv          16-Byte initialization vector
+    @returns {int[]}           encrypted data
     """
     expanded_key = key_expansion(key)
     block_count = int(ceil(float(len(data)) / BLOCK_SIZE_BYTES))
+    counter = iter_vector(iv)
 
-    decrypted_data = []
+    encrypted_data = []
     for i in range(block_count):
-        counter_block = counter.next_value()
+        counter_block = next(counter)
         block = data[i * BLOCK_SIZE_BYTES: (i + 1) * BLOCK_SIZE_BYTES]
         block += [0] * (BLOCK_SIZE_BYTES - len(block))
 
-        cipher_counter_block = aes_encrypt(counter_block, expanded_key)
-        decrypted_data += xor(block, cipher_counter_block)
-    decrypted_data = decrypted_data[:len(data)]
+        cipher_counter_block = _aes_encrypt(counter_block, expanded_key)
+        encrypted_data += xor(block, cipher_counter_block)
+    encrypted_data = encrypted_data[:len(data)]
 
-    return decrypted_data
+    return encrypted_data
 
 
-def aes_cbc_decrypt(data, key, iv):
+def _aes_cbc_decrypt(data, key, iv):
     """
     Decrypt with aes in CBC mode
 
@@ -52,7 +83,7 @@ def aes_cbc_decrypt(data, key, iv):
         block = data[i * BLOCK_SIZE_BYTES: (i + 1) * BLOCK_SIZE_BYTES]
         block += [0] * (BLOCK_SIZE_BYTES - len(block))
 
-        decrypted_block = aes_decrypt(block, expanded_key)
+        decrypted_block = _aes_decrypt(block, expanded_key)
         decrypted_data += xor(decrypted_block, previous_cipher_block)
         previous_cipher_block = block
     decrypted_data = decrypted_data[:len(data)]
@@ -60,7 +91,7 @@ def aes_cbc_decrypt(data, key, iv):
     return decrypted_data
 
 
-def aes_cbc_encrypt(data, key, iv):
+def _aes_cbc_encrypt(data, key, iv):
     """
     Encrypt with aes in CBC mode. Using PKCS#7 padding
 
@@ -80,7 +111,7 @@ def aes_cbc_encrypt(data, key, iv):
         block += [remaining_length] * remaining_length
         mixed_block = xor(block, previous_cipher_block)
 
-        encrypted_block = aes_encrypt(mixed_block, expanded_key)
+        encrypted_block = _aes_encrypt(mixed_block, expanded_key)
         encrypted_data += encrypted_block
 
         previous_cipher_block = encrypted_block
@@ -88,63 +119,46 @@ def aes_cbc_encrypt(data, key, iv):
     return encrypted_data
 
 
-def key_expansion(data):
+def _aes_gcm_decrypt_and_verify(data, key, tag, nonce):
     """
-    Generate key schedule
+    Decrypt with aes in GBM mode and checks authenticity using tag
 
-    @param {int[]} data  16/24/32-Byte cipher key
-    @returns {int[]}     176/208/240-Byte expanded key
+    @param {int[]} data        cipher
+    @param {int[]} key         16-Byte cipher key
+    @param {int[]} tag         authentication tag
+    @param {int[]} nonce       IV (recommended 12-Byte)
+    @returns {int[]}           decrypted data
     """
-    data = data[:]  # copy
-    rcon_iteration = 1
-    key_size_bytes = len(data)
-    expanded_key_size_bytes = (key_size_bytes // 4 + 7) * BLOCK_SIZE_BYTES
+    # XXX: check aes, gcm param
+    hash_subkey = _aes_encrypt([0] * BLOCK_SIZE_BYTES, key_expansion(key))
 
-    while len(data) < expanded_key_size_bytes:
-        temp = data[-4:]
-        temp = key_schedule_core(temp, rcon_iteration)
-        rcon_iteration += 1
-        data += xor(temp, data[-key_size_bytes: 4 - key_size_bytes])
+    if len(nonce) == 12:
+        j0 = nonce + [0, 0, 0, 1]
+    else:
+        fill = (BLOCK_SIZE_BYTES - (len(nonce) % BLOCK_SIZE_BYTES)) % BLOCK_SIZE_BYTES + 8
+        ghash_in = nonce + [0] * fill + bytes_to_intlist(compat_struct_pack('B', 8 * len(nonce)))
+        j0 = ghash(hash_subkey, ghash_in)
 
-        for _ in range(3):
-            temp = data[-4:]
-            data += xor(temp, data[-key_size_bytes: 4 - key_size_bytes])
+    # nonce_ctr = j0[:12]
+    iv_ctr = inc(j0)
 
-        if key_size_bytes == 32:
-            temp = data[-4:]
-            temp = sub_bytes(temp)
-            data += xor(temp, data[-key_size_bytes: 4 - key_size_bytes])
+    decrypted_data = _aes_ctr_decrypt(data, key, iv_ctr + [0] * (BLOCK_SIZE_BYTES - len(iv_ctr)))
+    pad_len = len(data) // BLOCK_SIZE_BYTES * BLOCK_SIZE_BYTES
+    s_tag = ghash(
+        hash_subkey,
+        data
+        + [0] * (BLOCK_SIZE_BYTES - len(data) + pad_len)                # pad
+        + bytes_to_intlist(compat_struct_pack('B', 0 * 8)               # length of associated data
+                           + (compat_struct_pack('B', len(data) * 8)))  # length of data
+    )
 
-        for _ in range(3 if key_size_bytes == 32 else 2 if key_size_bytes == 24 else 0):
-            temp = data[-4:]
-            data += xor(temp, data[-key_size_bytes: 4 - key_size_bytes])
-    data = data[:expanded_key_size_bytes]
+    if tag != _aes_ctr_encrypt(s_tag, key, j0):
+        raise ValueError("Mismatching authentication tag")
 
-    return data
-
-
-def aes_encrypt(data, expanded_key):
-    """
-    Encrypt one block with aes
-
-    @param {int[]} data          16-Byte state
-    @param {int[]} expanded_key  176/208/240-Byte expanded key
-    @returns {int[]}             16-Byte cipher
-    """
-    rounds = len(expanded_key) // BLOCK_SIZE_BYTES - 1
-
-    data = xor(data, expanded_key[:BLOCK_SIZE_BYTES])
-    for i in range(1, rounds + 1):
-        data = sub_bytes(data)
-        data = shift_rows(data)
-        if i != rounds:
-            data = mix_columns(data)
-        data = xor(data, expanded_key[i * BLOCK_SIZE_BYTES: (i + 1) * BLOCK_SIZE_BYTES])
-
-    return data
+    return decrypted_data
 
 
-def aes_decrypt(data, expanded_key):
+def _aes_decrypt(data, expanded_key):
     """
     Decrypt one block with aes
 
@@ -165,6 +179,27 @@ def aes_decrypt(data, expanded_key):
     return data
 
 
+def _aes_encrypt(data, expanded_key):
+    """
+    Encrypt one block with aes
+
+    @param {int[]} data          16-Byte state
+    @param {int[]} expanded_key  176/208/240-Byte expanded key
+    @returns {int[]}             16-Byte cipher
+    """
+    rounds = len(expanded_key) // BLOCK_SIZE_BYTES - 1
+
+    data = xor(data, expanded_key[:BLOCK_SIZE_BYTES])
+    for i in range(1, rounds + 1):
+        data = sub_bytes(data)
+        data = shift_rows(data)
+        if i != rounds:
+            data = mix_columns(data)
+        data = xor(data, expanded_key[i * BLOCK_SIZE_BYTES: (i + 1) * BLOCK_SIZE_BYTES])
+
+    return data
+
+
 def aes_decrypt_text(data, password, key_size_bytes):
     """
     Decrypt text
@@ -180,27 +215,53 @@ def aes_decrypt_text(data, password, key_size_bytes):
     """
     NONCE_LENGTH_BYTES = 8
 
-    data = bytes_to_intlist(compat_b64decode(data))
-    password = bytes_to_intlist(password.encode('utf-8'))
+    data = compat_b64decode(data)
+    password = password.encode('utf-8')
 
-    key = password[:key_size_bytes] + [0] * (key_size_bytes - len(password))
-    key = aes_encrypt(key[:BLOCK_SIZE_BYTES], key_expansion(key)) * (key_size_bytes // BLOCK_SIZE_BYTES)
+    key = password[:key_size_bytes] + b'\x00' * (key_size_bytes - len(password))
+    key = aes_encrypt(key[:BLOCK_SIZE_BYTES], key) * (key_size_bytes // BLOCK_SIZE_BYTES)
 
     nonce = data[:NONCE_LENGTH_BYTES]
     cipher = data[NONCE_LENGTH_BYTES:]
 
-    class Counter(object):
-        __value = nonce + [0] * (BLOCK_SIZE_BYTES - NONCE_LENGTH_BYTES)
+    decrypted_data = aes_ctr_decrypt(cipher, key, nonce + b'\00' * (BLOCK_SIZE_BYTES - NONCE_LENGTH_BYTES))
 
-        def next_value(self):
-            temp = self.__value
-            self.__value = inc(self.__value)
-            return temp
+    return decrypted_data
 
-    decrypted_data = aes_ctr_decrypt(cipher, key, Counter())
-    plaintext = intlist_to_bytes(decrypted_data)
 
-    return plaintext
+@signature_conversion(convert_all_args_to_intlist, None, intlist_to_bytes)
+def aes_ctr_decrypt(data, key, iv):
+    return _aes_ctr_decrypt(data, key, iv)
+
+
+@signature_conversion(convert_all_args_to_intlist, None, intlist_to_bytes)
+def aes_ctr_encrypt(data, key, iv):
+    return _aes_ctr_encrypt(data, key, iv)
+
+
+@signature_conversion(convert_all_args_to_intlist, None, intlist_to_bytes)
+def aes_cbc_decrypt(data, key, iv):
+    return _aes_cbc_decrypt(data, key, iv)
+
+
+@signature_conversion(convert_all_args_to_intlist, None, intlist_to_bytes)
+def aes_cbc_encrypt(data, key, iv):
+    return _aes_cbc_encrypt(data, key, iv)
+
+
+@signature_conversion(convert_all_args_to_intlist, None, intlist_to_bytes)
+def aes_gcm_decrypt_and_verify(data, key, tag, nonce):
+    return _aes_gcm_decrypt_and_verify(data, key, tag, nonce)
+
+
+@signature_conversion(convert_expanded_key_args, None, intlist_to_bytes)
+def aes_decrypt(data, key):
+    return _aes_decrypt(data, key)
+
+
+@signature_conversion(convert_expanded_key_args, None, intlist_to_bytes)
+def aes_encrypt(data, key):
+    return _aes_encrypt(data, key)
 
 
 RCON = (0x8d, 0x01, 0x02, 0x04, 0x08, 0x10, 0x20, 0x40, 0x80, 0x1b, 0x36)
@@ -278,6 +339,47 @@ RIJNDAEL_LOG_TABLE = (0x00, 0x00, 0x19, 0x01, 0x32, 0x02, 0x1a, 0xc6, 0x4b, 0xc7
                       0x67, 0x4a, 0xed, 0xde, 0xc5, 0x31, 0xfe, 0x18, 0x0d, 0x63, 0x8c, 0x80, 0xc0, 0xf7, 0x70, 0x07)
 
 
+def key_expansion(data):
+    """
+    Generate key schedule
+
+    @param {int[]} data  16/24/32-Byte cipher key
+    @returns {int[]}     176/208/240-Byte expanded key
+    """
+    data = data[:]  # copy
+    rcon_iteration = 1
+    key_size_bytes = len(data)
+    expanded_key_size_bytes = (key_size_bytes // 4 + 7) * BLOCK_SIZE_BYTES
+
+    while len(data) < expanded_key_size_bytes:
+        temp = data[-4:]
+        temp = key_schedule_core(temp, rcon_iteration)
+        rcon_iteration += 1
+        data += xor(temp, data[-key_size_bytes: 4 - key_size_bytes])
+
+        for _ in range(3):
+            temp = data[-4:]
+            data += xor(temp, data[-key_size_bytes: 4 - key_size_bytes])
+
+        if key_size_bytes == 32:
+            temp = data[-4:]
+            temp = sub_bytes(temp)
+            data += xor(temp, data[-key_size_bytes: 4 - key_size_bytes])
+
+        for _ in range(3 if key_size_bytes == 32 else 2 if key_size_bytes == 24 else 0):
+            temp = data[-4:]
+            data += xor(temp, data[-key_size_bytes: 4 - key_size_bytes])
+    data = data[:expanded_key_size_bytes]
+
+    return data
+
+
+def iter_vector(iv):
+    while True:
+        yield iv
+        iv = inc(iv)
+
+
 def sub_bytes(data):
     return [SBOX[x] for x in data]
 
@@ -303,7 +405,7 @@ def xor(data1, data2):
 
 
 def rijndael_mul(a, b):
-    if(a == 0 or b == 0):
+    if a == 0 or b == 0:
         return 0
     return RIJNDAEL_EXP_TABLE[(RIJNDAEL_LOG_TABLE[a] + RIJNDAEL_LOG_TABLE[b]) % 0xFF]
 
@@ -347,6 +449,20 @@ def shift_rows_inv(data):
     return data_shifted
 
 
+def shift_block(data):
+    data_shifted = []
+
+    bit = 0
+    for n in data:
+        if bit:
+            n |= 0x100
+        bit = n & 1
+        n >>= 1
+        data_shifted.append(n)
+
+    return data_shifted
+
+
 def inc(data):
     data = data[:]  # copy
     for i in range(len(data) - 1, -1, -1):
@@ -358,4 +474,49 @@ def inc(data):
     return data
 
 
-__all__ = ['aes_encrypt', 'key_expansion', 'aes_ctr_decrypt', 'aes_cbc_decrypt', 'aes_decrypt_text']
+def block_product(block_x, block_y):
+    # NIST SP 800-38D, Algorithm 1
+
+    if len(block_x) != BLOCK_SIZE_BYTES or len(block_y) != BLOCK_SIZE_BYTES:
+        raise ValueError("Length of blocks need to be %d bytes" % BLOCK_SIZE_BYTES)
+
+    block_r = [0xE1] + [0] * (BLOCK_SIZE_BYTES - 1)
+    block_v = block_y[:]
+    block_z = [0] * BLOCK_SIZE_BYTES
+
+    for i in block_x:
+        for bit in range(7, -1, -1):
+            if i & (1 << bit):
+                block_z = xor(block_z, block_v)
+
+            do_xor = block_v[-1] & 1
+            block_v = shift_block(block_v)
+            if do_xor:
+                block_v = xor(block_v, block_r)
+
+    return block_z
+
+
+def ghash(subkey, data):
+    # NIST SP 800-38D, Algorithm 2
+
+    if len(data) % BLOCK_SIZE_BYTES:
+        raise ValueError("Length of data should be %d bytes" % BLOCK_SIZE_BYTES)
+
+    last_y = [0] * BLOCK_SIZE_BYTES
+    for i in range(0, len(data), BLOCK_SIZE_BYTES):
+        block = data[i : i + BLOCK_SIZE_BYTES]  # noqa: E203
+        last_y = block_product(xor(last_y, block), subkey)
+
+    return last_y
+
+
+__all__ = [
+    'aes_cbc_encrypt',
+    'aes_cbc_decrypt',
+    'aes_ctr_encrypt',
+    'aes_decrypt',
+    'aes_encrypt',
+    'aes_gcm_decrypt_and_verify',
+    'key_expansion'
+]
