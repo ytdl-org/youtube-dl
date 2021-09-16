@@ -571,7 +571,7 @@ class BrightcoveNewIE(AdobePassIE):
         duration = float_or_none(json_data.get('duration'), 1000)
         if duration is not None and duration <= 0:
             is_live = True
-        common_res=["160x90","320x180","480x270","640x360","768x432","1024x576","1280x720","1366x768","1920x1080"]
+        common_res = ["160x90", "320x180", "480x270", "640x360", "768x432", "1024x576", "1280x720", "1366x768", "1920x1080"]
         thumbnails = []
         if '640x360' in json_data.get('poster'):
             base_url = json_data.get('poster')
@@ -582,7 +582,7 @@ class BrightcoveNewIE(AdobePassIE):
         for res in common_res:
             thumbnails.append({
                 'url': base_url.replace(replace, res),
-                'width': int(res.split('x')[0]), 
+                'width': int(res.split('x')[0]),
                 'height': int(res.split('x')[1]),
                 'preference': len(thumbnails)
             })
