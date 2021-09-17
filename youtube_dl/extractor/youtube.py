@@ -1780,6 +1780,10 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
             or parse_duration(search_meta('duration'))
         is_live = video_details.get('isLive')
         owner_profile_url = microformat.get('ownerProfileUrl')
+        live_details = microformat.get('liveBroadcastDetails')
+        broadcast_start_timestamp = None
+        if live_details:
+            broadcast_start_timestamp = live_details.get('startTimestamp')
 
         info = {
             'id': video_id,
@@ -1809,6 +1813,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
             'categories': [category] if category else None,
             'tags': keywords,
             'is_live': is_live,
+            'broadcast_start_timestamp': broadcast_start_timestamp,
         }
 
         pctr = try_get(
