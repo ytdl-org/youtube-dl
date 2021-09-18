@@ -1813,16 +1813,10 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
         }
 
         live_details = microformat.get('liveBroadcastDetails')
-        broadcast_start_timestamp = None
         if live_details:
             broadcast_start_timestamp = live_details.get('startTimestamp')
-
-        if broadcast_start_timestamp:
-            info['timestamp'] = parse_iso8601(broadcast_start_timestamp)
-        else:
-            info['upload_date'] = unified_strdate(
-                microformat.get('uploadDate')
-                or search_meta('uploadDate'))
+            if broadcast_start_timestamp:
+                info['release_timestamp'] = parse_iso8601(broadcast_start_timestamp)
 
         pctr = try_get(
             player_response,
