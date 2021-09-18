@@ -30,6 +30,7 @@ from ..utils import (
     mimetype2ext,
     parse_codecs,
     parse_duration,
+    parse_iso8601,
     qualities,
     remove_start,
     smuggle_url,
@@ -1780,10 +1781,6 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
             or parse_duration(search_meta('duration'))
         is_live = video_details.get('isLive')
         owner_profile_url = microformat.get('ownerProfileUrl')
-        live_details = microformat.get('liveBroadcastDetails')
-        broadcast_start_timestamp = None
-        if live_details:
-            broadcast_start_timestamp = live_details.get('startTimestamp')
 
         info = {
             'id': video_id,
@@ -1813,8 +1810,19 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
             'categories': [category] if category else None,
             'tags': keywords,
             'is_live': is_live,
-            'broadcast_start_timestamp': broadcast_start_timestamp,
         }
+
+        live_details = microformat.get('liveBroadcastDetails')
+        broadcast_start_timestamp = None
+        if live_details:
+            broadcast_start_timestamp = live_details.get('startTimestamp')
+
+        if broadcast_start_timestamp:
+            info['timestamp'] = parse_iso8601(broadcast_start_timestamp)
+        else:
+            info['upload_date'] = unified_strdate(
+                microformat.get('uploadDate')
+                or search_meta('uploadDate'))
 
         pctr = try_get(
             player_response,
