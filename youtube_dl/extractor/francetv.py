@@ -20,6 +20,7 @@ from ..utils import (
     urljoin,
 )
 from .dailymotion import DailymotionIE
+from ..downloader import PROTOCOL_MAP
 
 
 class FranceTVBaseInfoExtractor(InfoExtractor):
@@ -90,17 +91,47 @@ class FranceTVIE(InfoExtractor):
         # Videos are identified by idDiffusion so catalogue part is optional.
         # However when provided, some extra formats may be returned so we pass
         # it if available.
-        info = self._download_json(
-            'https://sivideo.webservices.francetelevisions.fr/tools/getInfosOeuvre/v2/',
-            video_id, 'Downloading video JSON', query={
-                'idDiffusion': video_id,
-                'catalogue': catalogue or '',
-            })
 
-        if info.get('status') == 'NOK':
+        info = {
+            'title': None,
+            'subtitle': None,
+            'image': None,
+            'subtitles': {},
+            'duration': None,
+            'videos': [],
+            'formats': [],
+        }
+
+        def update_info(name, value):
+            if (info[name] is None) and value:
+                info[name] = value
+
+        for device_type in ['desktop', 'mobile']:
+            linfo = self._download_json(
+                'https://player.webservices.francetelevisions.fr/v1/videos/%s' % video_id,
+                video_id, 'Downloading %s video JSON' % device_type, query={
+                    'device_type': device_type,
+                    'browser': 'chrome',
+                }, fatal=False)
+
+            if linfo and linfo.get('video'):
+                if linfo.get('meta'):
+                    update_info('title', linfo['meta'].get('title'))
+                    update_info('subtitle', linfo['meta'].get('additional_title'))
+                    update_info('image', linfo['meta'].get('image_url'))
+                if linfo['video'].get('url'):
+                    if linfo['video'].get('drm'):
+                        self._downloader.to_screen('This video source is DRM protected. Skipping')
+                    else:
+                        info['videos'].append(linfo['video'])
+                        update_info('duration', linfo['video'].get('duration'))
+
+        if len(info['videos']) == 0:
             raise ExtractorError(
-                '%s returned error: %s' % (self.IE_NAME, info['message']),
-                expected=True)
+                'No video source has been found',
+                expected=True,
+                video_id=video_id)
+
         allowed_countries = info['videos'][0].get('geoblocage')
         if allowed_countries:
             georestricted = True
@@ -129,29 +160,7 @@ class FranceTVIE(InfoExtractor):
 
         is_live = None
 
-        videos = []
-
-        for video in (info.get('videos') or []):
-            if video.get('statut') != 'ONLINE':
-                continue
-            if not video.get('url'):
-                continue
-            videos.append(video)
-
-        if not videos:
-            for device_type in ['desktop', 'mobile']:
-                fallback_info = self._download_json(
-                    'https://player.webservices.francetelevisions.fr/v1/videos/%s' % video_id,
-                    video_id, 'Downloading fallback %s video JSON' % device_type, query={
-                        'device_type': device_type,
-                        'browser': 'chrome',
-                    }, fatal=False)
-
-                if fallback_info and fallback_info.get('video'):
-                    videos.append(fallback_info['video'])
-
-        formats = []
-        for video in videos:
+        for video in info['videos']:
             video_url = video.get('url')
             if not video_url:
                 continue
@@ -167,56 +176,56 @@ class FranceTVIE(InfoExtractor):
                     # See https://github.com/ytdl-org/youtube-dl/issues/3963
                     # m3u8 urls work fine
                     continue
-                formats.extend(self._extract_f4m_formats(
+                info['formats'].extend(self._extract_f4m_formats(
                     sign(video_url, format_id) + '&hdcore=3.7.0&plugin=aasp-3.7.0.39.44',
                     video_id, f4m_id=format_id, fatal=False))
             elif ext == 'm3u8':
-                formats.extend(self._extract_m3u8_formats(
+                format, subtitle = self._extract_m3u8_formats(
                     sign(video_url, format_id), video_id, 'mp4',
                     entry_protocol='m3u8_native', m3u8_id=format_id,
-                    fatal=False))
+                    fatal=False, include_subtitles=True)
+                info['formats'].extend(format)
+                for lang in subtitle:
+                    if lang in info['subtitles']:
+                        info['subtitles'][lang].extend(subtitle[lang])
+                    else:
+                        info['subtitles'][lang] = subtitle[lang]
             elif ext == 'mpd':
-                formats.extend(self._extract_mpd_formats(
+                info['formats'].extend(self._extract_mpd_formats(
                     sign(video_url, format_id), video_id, mpd_id=format_id, fatal=False))
             elif video_url.startswith('rtmp'):
-                formats.append({
+                info['formats'].append({
                     'url': video_url,
                     'format_id': 'rtmp-%s' % format_id,
                     'ext': 'flv',
                 })
             else:
                 if self._is_valid_url(video_url, video_id, format_id):
-                    formats.append({
+                    info['formats'].append({
                         'url': video_url,
                         'format_id': format_id,
                     })
 
-        self._sort_formats(formats)
+        self._sort_formats(info['formats'])
 
-        title = info['titre']
-        subtitle = info.get('sous_titre')
-        if subtitle:
-            title += ' - %s' % subtitle
-        title = title.strip()
+        if info['subtitle']:
+            info['title'] += ' - %s' % info['subtitle']
+        info['title'] = info['title'].strip()
 
-        subtitles = {}
-        subtitles_list = [{
-            'url': subformat['url'],
-            'ext': subformat.get('format'),
-        } for subformat in info.get('subtitles', []) if subformat.get('url')]
-        if subtitles_list:
-            subtitles['fr'] = subtitles_list
-
+        for lang, sts in info['subtitles'].items():
+            for st in sts:
+                st['downloader'] = lambda ydl, filename: PROTOCOL_MAP['m3u8_native'](ydl, ydl.params).download(filename, st)
+        
         return {
             'id': video_id,
-            'title': self._live_title(title) if is_live else title,
+            'title': self._live_title(info['title']) if is_live else info['title'],
             'description': clean_html(info.get('synopsis')),
-            'thumbnail': urljoin('https://sivideo.webservices.francetelevisions.fr', info.get('image')),
-            'duration': int_or_none(info.get('real_duration')) or parse_duration(info.get('duree')),
+            'thumbnail': info.get('image'),
+            'duration': int_or_none(info.get('duration')),
             'timestamp': int_or_none(try_get(info, lambda x: x['diffusion']['timestamp'])),
             'is_live': is_live,
-            'formats': formats,
-            'subtitles': subtitles,
+            'formats': info['formats'],
+            'subtitles': info['subtitles'],
         }
 
     def _real_extract(self, url):

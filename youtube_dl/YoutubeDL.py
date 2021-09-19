@@ -1879,6 +1879,8 @@ class YoutubeDL(object):
                         except (OSError, IOError):
                             self.report_error('Cannot write subtitles file ' + sub_filename)
                             return
+                    elif sub_info.get('downloader') is not None:
+                        sub_info.get('downloader')(self, encodeFilename(sub_filename))
                     else:
                         try:
                             sub_data = ie._request_webpage(
