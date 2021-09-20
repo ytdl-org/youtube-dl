@@ -1707,7 +1707,7 @@ class InfoExtractor(object):
             if include_subtitles and (media_type == 'SUBTITLES'):
                 subtitles[media['LANGUAGE']] = [{
                     'url': format_url(media['URI']),
-                    'ext': media['SUBFORMAT'],
+                    'ext': media.get('SUBFORMAT', 'webtt'),
                 }]
                 return
             if media_type not in ('VIDEO', 'AUDIO'):

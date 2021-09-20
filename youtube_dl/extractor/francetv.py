@@ -50,14 +50,11 @@ class FranceTVIE(InfoExtractor):
     _TESTS = [{
         # without catalog
         'url': 'https://sivideo.webservices.francetelevisions.fr/tools/getInfosOeuvre/v2/?idDiffusion=162311093&callback=_jsonp_loader_callback_request_0',
-        'md5': 'c2248a8de38c4e65ea8fae7b5df2d84f',
+        'md5': '283491d723a14db7c4e10b887c4b475a',
         'info_dict': {
             'id': '162311093',
             'ext': 'mp4',
             'title': '13h15, le dimanche... - Les mystères de Jésus',
-            'description': 'md5:75efe8d4c0a8205e5904498ffe1e1a42',
-            'timestamp': 1502623500,
-            'upload_date': '20170813',
         },
     }, {
         # with catalog
@@ -252,9 +249,6 @@ class FranceTVSiteIE(FranceTVBaseInfoExtractor):
             'id': 'ec217ecc-0733-48cf-ac06-af1347b849d1',
             'ext': 'mp4',
             'title': '13h15, le dimanche... - Les mystères de Jésus',
-            'description': 'md5:75efe8d4c0a8205e5904498ffe1e1a42',
-            'timestamp': 1502623500,
-            'upload_date': '20170813',
         },
         'params': {
             'skip_download': True,
@@ -316,55 +310,26 @@ class FranceTVSiteIE(FranceTVBaseInfoExtractor):
         return self._make_url_result(video_id, catalogue)
 
 
-class FranceTVEmbedIE(FranceTVBaseInfoExtractor):
-    _VALID_URL = r'https?://embed\.francetv\.fr/*\?.*?\bue=(?P<id>[^&]+)'
-
-    _TESTS = [{
-        'url': 'http://embed.francetv.fr/?ue=7fd581a2ccf59d2fc5719c5c13cf6961',
-        'info_dict': {
-            'id': 'NI_983319',
-            'ext': 'mp4',
-            'title': 'Le Pen Reims',
-            'upload_date': '20170505',
-            'timestamp': 1493981780,
-            'duration': 16,
-        },
-        'params': {
-            'skip_download': True,
-        },
-        'add_ie': [FranceTVIE.ie_key()],
-    }]
-
-    def _real_extract(self, url):
-        video_id = self._match_id(url)
-
-        video = self._download_json(
-            'http://api-embed.webservices.francetelevisions.fr/key/%s' % video_id,
-            video_id)
-
-        return self._make_url_result(video['video_id'], video.get('catalog'))
-
-
 class FranceTVInfoIE(FranceTVBaseInfoExtractor):
     IE_NAME = 'francetvinfo.fr'
     _VALID_URL = r'https?://(?:www|mobile|france3-regions)\.francetvinfo\.fr/(?:[^/]+/)*(?P<id>[^/?#&.]+)'
 
     _TESTS = [{
-        'url': 'http://www.francetvinfo.fr/replay-jt/france-3/soir-3/jt-grand-soir-3-lundi-26-aout-2013_393427.html',
+        'url': 'https://www.francetvinfo.fr/replay-jt/france-3/soir-3/jt-grand-soir-3-lundi-26-aout-2019_3569073.html',
         'info_dict': {
-            'id': '84981923',
+            'id': 'e49f9ff0-2177-458e-830f-a28eccf19dd1',
             'ext': 'mp4',
             'title': 'Soir 3',
-            'upload_date': '20130826',
-            'timestamp': 1377548400,
             'subtitles': {
-                'fr': 'mincount:2',
+                'fr': 'mincount:1',
             },
         },
         'params': {
             'skip_download': True,
+            'format': 'dash-video=118000+dash-audio_fre=192000',
         },
         'add_ie': [FranceTVIE.ie_key()],
+        'expected_warnings': 'Unknown MIME type application/mp4 in DASH manifest',
     }, {
         'url': 'http://www.francetvinfo.fr/elections/europeennes/direct-europeennes-regardez-le-debat-entre-les-candidats-a-la-presidence-de-la-commission_600639.html',
         'only_matching': True,
@@ -389,6 +354,10 @@ class FranceTVInfoIE(FranceTVBaseInfoExtractor):
             'uploader_id': 'x2q2ez',
         },
         'add_ie': ['Dailymotion'],
+        'params': {
+            # TODO: the download currently fails (FORBIDDEN) - fix and complete the test
+            'skip_download': True,
+        },
     }, {
         'url': 'http://france3-regions.francetvinfo.fr/limousin/emissions/jt-1213-limousin',
         'only_matching': True,
@@ -417,139 +386,3 @@ class FranceTVInfoIE(FranceTVBaseInfoExtractor):
             webpage, 'video id')
 
         return self._make_url_result(video_id)
-
-
-class FranceTVInfoSportIE(FranceTVBaseInfoExtractor):
-    IE_NAME = 'sport.francetvinfo.fr'
-    _VALID_URL = r'https?://sport\.francetvinfo\.fr/(?:[^/]+/)*(?P<id>[^/?#&]+)'
-    _TESTS = [{
-        'url': 'https://sport.francetvinfo.fr/les-jeux-olympiques/retour-sur-les-meilleurs-moments-de-pyeongchang-2018',
-        'info_dict': {
-            'id': '6e49080e-3f45-11e8-b459-000d3a2439ea',
-            'ext': 'mp4',
-            'title': 'Retour sur les meilleurs moments de Pyeongchang 2018',
-            'timestamp': 1523639962,
-            'upload_date': '20180413',
-        },
-        'params': {
-            'skip_download': True,
-        },
-        'add_ie': [FranceTVIE.ie_key()],
-    }]
-
-    def _real_extract(self, url):
-        display_id = self._match_id(url)
-        webpage = self._download_webpage(url, display_id)
-        video_id = self._search_regex(r'data-video="([^"]+)"', webpage, 'video_id')
-        return self._make_url_result(video_id, 'Sport-web')
-
-
-class GenerationWhatIE(InfoExtractor):
-    IE_NAME = 'france2.fr:generation-what'
-    _VALID_URL = r'https?://generation-what\.francetv\.fr/[^/]+/video/(?P<id>[^/?#&]+)'
-
-    _TESTS = [{
-        'url': 'http://generation-what.francetv.fr/portrait/video/present-arms',
-        'info_dict': {
-            'id': 'wtvKYUG45iw',
-            'ext': 'mp4',
-            'title': 'Generation What - Garde à vous - FRA',
-            'uploader': 'Generation What',
-            'uploader_id': 'UCHH9p1eetWCgt4kXBYCb3_w',
-            'upload_date': '20160411',
-        },
-        'params': {
-            'skip_download': True,
-        },
-        'add_ie': ['Youtube'],
-    }, {
-        'url': 'http://generation-what.francetv.fr/europe/video/present-arms',
-        'only_matching': True,
-    }]
-
-    def _real_extract(self, url):
-        display_id = self._match_id(url)
-
-        webpage = self._download_webpage(url, display_id)
-
-        youtube_id = self._search_regex(
-            r"window\.videoURL\s*=\s*'([0-9A-Za-z_-]{11})';",
-            webpage, 'youtube id')
-
-        return self.url_result(youtube_id, ie='Youtube', video_id=youtube_id)
-
-
-class CultureboxIE(FranceTVBaseInfoExtractor):
-    _VALID_URL = r'https?://(?:m\.)?culturebox\.francetvinfo\.fr/(?:[^/]+/)*(?P<id>[^/?#&]+)'
-
-    _TESTS = [{
-        'url': 'https://culturebox.francetvinfo.fr/opera-classique/musique-classique/c-est-baroque/concerts/cantates-bwv-4-106-et-131-de-bach-par-raphael-pichon-57-268689',
-        'info_dict': {
-            'id': 'EV_134885',
-            'ext': 'mp4',
-            'title': 'Cantates BWV 4, 106 et 131 de Bach par Raphaël Pichon 5/7',
-            'description': 'md5:19c44af004b88219f4daa50fa9a351d4',
-            'upload_date': '20180206',
-            'timestamp': 1517945220,
-            'duration': 5981,
-        },
-        'params': {
-            'skip_download': True,
-        },
-        'add_ie': [FranceTVIE.ie_key()],
-    }]
-
-    def _real_extract(self, url):
-        display_id = self._match_id(url)
-
-        webpage = self._download_webpage(url, display_id)
-
-        if ">Ce live n'est plus disponible en replay<" in webpage:
-            raise ExtractorError(
-                'Video %s is not available' % display_id, expected=True)
-
-        video_id, catalogue = self._search_regex(
-            r'["\'>]https?://videos\.francetv\.fr/video/([^@]+@.+?)["\'<]',
-            webpage, 'video id').split('@')
-
-        return self._make_url_result(video_id, catalogue)
-
-
-class FranceTVJeunesseIE(FranceTVBaseInfoExtractor):
-    _VALID_URL = r'(?P<url>https?://(?:www\.)?(?:zouzous|ludo)\.fr/heros/(?P<id>[^/?#&]+))'
-
-    _TESTS = [{
-        'url': 'https://www.zouzous.fr/heros/simon',
-        'info_dict': {
-            'id': 'simon',
-        },
-        'playlist_count': 9,
-    }, {
-        'url': 'https://www.ludo.fr/heros/ninjago',
-        'info_dict': {
-            'id': 'ninjago',
-        },
-        'playlist_count': 10,
-    }, {
-        'url': 'https://www.zouzous.fr/heros/simon?abc',
-        'only_matching': True,
-    }]
-
-    def _real_extract(self, url):
-        mobj = re.match(self._VALID_URL, url)
-        playlist_id = mobj.group('id')
-
-        playlist = self._download_json(
-            '%s/%s' % (mobj.group('url'), 'playlist'), playlist_id)
-
-        if not playlist.get('count'):
-            raise ExtractorError(
-                '%s is not available' % playlist_id, expected=True)
-
-        entries = []
-        for item in playlist['items']:
-            identity = item.get('identity')
-            if identity and isinstance(identity, compat_str):
-                entries.append(self._make_url_result(identity))
-
-        return self.playlist_result(entries, playlist_id)
