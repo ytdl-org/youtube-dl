@@ -6,7 +6,6 @@ import re
 
 from .common import InfoExtractor
 from ..compat import (
-    compat_str,
     compat_urlparse,
 )
 from ..utils import (
@@ -14,10 +13,8 @@ from ..utils import (
     determine_ext,
     ExtractorError,
     int_or_none,
-    parse_duration,
     try_get,
     url_or_none,
-    urljoin,
 )
 from .dailymotion import DailymotionIE
 from ..downloader import PROTOCOL_MAP
@@ -212,7 +209,7 @@ class FranceTVIE(InfoExtractor):
         for lang, sts in info['subtitles'].items():
             for st in sts:
                 st['downloader'] = lambda ydl, filename: PROTOCOL_MAP['m3u8_native'](ydl, ydl.params).download(filename, st)
-        
+
         return {
             'id': video_id,
             'title': self._live_title(info['title']) if is_live else info['title'],
