@@ -1771,7 +1771,7 @@ class YoutubeDL(object):
             self.to_stdout(formatSeconds(info_dict['duration']))
         print_mandatory('format')
         if self.params.get('forcejson', False):
-            self.to_stdout(json.dumps(info_dict))
+            self.to_stdout(json.dumps(info_dict, default=lambda _:'<not serialized>'))
 
     def process_info(self, info_dict):
         """Process a single resolved IE result."""
@@ -2076,7 +2076,7 @@ class YoutubeDL(object):
                 raise
             else:
                 if self.params.get('dump_single_json', False):
-                    self.to_stdout(json.dumps(res))
+                    self.to_stdout(json.dumps(res, default=lambda _:'<not serialized>'))
 
         return self._download_retcode
 
