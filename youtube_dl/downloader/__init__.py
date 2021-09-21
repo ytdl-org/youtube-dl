@@ -33,7 +33,8 @@ def get_suitable_downloader(info_dict, params={}):
     """Get the downloader class that can handle the info dict."""
     protocol = determine_protocol(info_dict)
     info_dict['protocol'] = protocol
-
+    print('SACHA> ', protocol)
+    
     # if (info_dict.get('start_time') or info_dict.get('end_time')) and not info_dict.get('requested_formats') and FFmpegFD.can_download(info_dict):
     #     return FFmpegFD
 

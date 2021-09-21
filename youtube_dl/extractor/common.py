@@ -1708,6 +1708,7 @@ class InfoExtractor(object):
                 subtitles[media['LANGUAGE']] = [{
                     'url': format_url(media['URI']),
                     'ext': media.get('SUBFORMAT', 'webtt'),
+                    'protocol': 'm3u8_native',
                 }]
                 return
             if media_type not in ('VIDEO', 'AUDIO'):

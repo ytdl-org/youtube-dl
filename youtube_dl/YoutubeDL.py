@@ -1771,7 +1771,7 @@ class YoutubeDL(object):
             self.to_stdout(formatSeconds(info_dict['duration']))
         print_mandatory('format')
         if self.params.get('forcejson', False):
-            self.to_stdout(json.dumps(info_dict, default=lambda _:'<not serialized>'))
+            self.to_stdout(json.dumps(info_dict))
 
     def process_info(self, info_dict):
         """Process a single resolved IE result."""
@@ -1879,15 +1879,16 @@ class YoutubeDL(object):
                         except (OSError, IOError):
                             self.report_error('Cannot write subtitles file ' + sub_filename)
                             return
-                    elif callable(sub_info.get('downloader')):
-                        sub_info.get('downloader')(self, encodeFilename(sub_filename))
                     else:
+                        fd = get_suitable_downloader(sub_info, self.params)(self, self.params)
                         try:
-                            sub_data = ie._request_webpage(
-                                sub_info['url'], info_dict['id'], note=False).read()
-                            with io.open(encodeFilename(sub_filename), 'wb') as subfile:
-                                subfile.write(sub_data)
-                        except (ExtractorError, IOError, OSError, ValueError) as err:
+                            if self.params.get('verbose'):
+                                self.to_screen('[debug] Invoking subtitle downloader on %r' % sub_info.get('url'))
+                            # The FD is supposed to encodeFilename()
+                            if not fd.download(sub_filename, sub_info):
+                                # depending on the FD, it may catch errors and return False, or not
+                                raise DownloadError('Subtitle download failed')
+                        except (compat_urllib_error.URLError, compat_http_client.HTTPException, socket.error, OSError, IOError, YoutubeDLError) as err:
                             self.report_warning('Unable to download subtitle for "%s": %s' %
                                                 (sub_lang, error_to_compat_str(err)))
                             continue
@@ -2076,7 +2077,7 @@ class YoutubeDL(object):
                 raise
             else:
                 if self.params.get('dump_single_json', False):
-                    self.to_stdout(json.dumps(res, default=lambda _:'<not serialized>'))
+                    self.to_stdout(json.dumps(res))
 
         return self._download_retcode
 

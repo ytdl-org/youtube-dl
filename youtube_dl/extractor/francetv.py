@@ -206,10 +206,6 @@ class FranceTVIE(InfoExtractor):
             info['title'] += ' - %s' % info['subtitle']
         info['title'] = info['title'].strip()
 
-        for lang, sts in info['subtitles'].items():
-            for st in sts:
-                st['downloader'] = lambda ydl, filename: PROTOCOL_MAP['m3u8_native'](ydl, ydl.params).download(filename, st)
-
         return {
             'id': video_id,
             'title': self._live_title(info['title']) if is_live else info['title'],
