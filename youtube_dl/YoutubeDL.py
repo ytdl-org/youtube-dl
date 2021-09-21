@@ -91,6 +91,7 @@ from .utils import (
     write_string,
     YoutubeDLCookieJar,
     YoutubeDLCookieProcessor,
+    YoutubeDLError,
     YoutubeDLHandler,
     YoutubeDLRedirectHandler,
 )
@@ -1862,7 +1863,6 @@ class YoutubeDL(object):
             # subtitles download errors are already managed as troubles in relevant IE
             # that way it will silently go on when used with unsupporting IE
             subtitles = info_dict['requested_subtitles']
-            ie = self.get_info_extractor(info_dict['extractor_key'])
             for sub_lang, sub_info in subtitles.items():
                 sub_format = sub_info['ext']
                 sub_filename = subtitles_filename(filename, sub_lang, sub_format, info_dict.get('ext'))
@@ -1887,7 +1887,7 @@ class YoutubeDL(object):
                             # The FD is supposed to encodeFilename()
                             if not fd.download(sub_filename, sub_info):
                                 # depending on the FD, it may catch errors and return False, or not
-                                raise DownloadError('Subtitle download failed')
+                                raise YoutubeDLError('Subtitle download failed')
                         except (compat_urllib_error.URLError, compat_http_client.HTTPException, socket.error, OSError, IOError, YoutubeDLError) as err:
                             self.report_warning('Unable to download subtitle for "%s": %s' %
                                                 (sub_lang, error_to_compat_str(err)))

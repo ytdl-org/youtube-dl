@@ -17,7 +17,6 @@ from ..utils import (
     url_or_none,
 )
 from .dailymotion import DailymotionIE
-from ..downloader import PROTOCOL_MAP
 
 
 class FranceTVBaseInfoExtractor(InfoExtractor):
