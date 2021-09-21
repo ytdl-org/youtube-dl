@@ -210,7 +210,6 @@
  - **CTV**
  - **CTVNews**
  - **cu.ntv.co.jp**: Nippon Television Network
- - **Culturebox**
  - **CultureUnplugged**
  - **curiositystream**
  - **curiositystream:collection**
@@ -307,13 +306,10 @@
  - **foxnews**: Fox News and Fox Business Video
  - **foxnews:article**
  - **FoxSports**
- - **france2.fr:generation-what**
  - **FranceCulture**
  - **FranceInter**
  - **FranceTV**
- - **FranceTVEmbed**
  - **francetvinfo.fr**
- - **FranceTVJeunesse**
  - **FranceTVSite**
  - **Freesound**
  - **freespeech.org**
@@ -472,8 +468,6 @@
  - **LinuxAcademy**
  - **LiTV**
  - **LiveJournal**
- - **LiveLeak**
- - **LiveLeakEmbed**
  - **livestream**
  - **livestream:original**
  - **LnkGo**
@@ -877,7 +871,6 @@
  - **SpankBangPlaylist**
  - **Spankwire**
  - **Spiegel**
- - **sport.francetvinfo.fr**
  - **Sport5**
  - **SportBox**
  - **SportDeutschland**
