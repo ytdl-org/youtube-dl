@@ -202,6 +202,18 @@ class FranceTVIE(InfoExtractor):
                         'format_id': format_id,
                     })
 
+        for f in info['formats']:
+            preference = 50
+            if f['format_id'].startswith('dash-audio_qtz=96000') or (f['format_id'].find('Description') >= 0):
+                preference = -1
+            elif f['format_id'].startswith('hls-audio'):
+                preference = 10
+            elif f['format_id'].startswith('dash-audio'):
+                preference = 20
+            elif f['format_id'].startswith('dash-video'):
+                preference = 100
+            f['preference'] = preference
+
         self._sort_formats(info['formats'])
 
         if info['subtitle']:
