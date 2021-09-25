@@ -22,6 +22,7 @@ from ..utils import (
     encodeArgument,
     handle_youtubedl_headers,
     check_executable,
+    get_exe_version,
     is_outdated_version,
 )
 
@@ -354,13 +355,25 @@ class AVconvFD(FFmpegFD):
 
 
 class StreamlinkFD(ExternalFD):
-    AVAILABLE_OPT = '--version'
+    exe_version = ''
+
+    @classmethod
+    def available(cls):
+        cls.exe_version = get_exe_version('streamlink', version_re=r'streamlink\s+([0-9.]+)')
+        if cls.exe_version:
+            return True
+        else:
+            return False
 
     @classmethod
     def supports(cls, info_dict):
         return info_dict['protocol'] in ('m3u8', 'm3u8_native')
 
     def _make_cmd(self, tmpfilename, info_dict):
+        if is_outdated_version(StreamlinkFD.exe_version, '2.4.0'):
+            segment_option_prefix = 'hls'
+        else:
+            segment_option_prefix = 'stream'
         cmd = [self.exe, '-f', '-o', tmpfilename]
         if self.params.get('quiet'):
             cmd += ['-l', 'none']
@@ -380,13 +393,12 @@ class StreamlinkFD(ExternalFD):
             if retry[1] in ('inf', 'infinite'):
                 retry[1] = '0'
             cmd += retry
-        retry = self._option('--hls-segment-attempts', 'fragment_retries')
+        retry = self._option('--%s-segment-attempts' % segment_option_prefix, 'fragment_retries')
         if len(retry) == 2:
             if retry[1] in ('inf', 'infinite'):
                 retry[1] = '2147483647'
             cmd += retry
-        cmd += self._configuration_args([
-            '--hls-segment-threads', '4'])
+        cmd += self._configuration_args(['--%s-segment-threads' % segment_option_prefix, '4'])
         cmd += ['hls://%s' % info_dict['url'], 'best']
         return cmd
 
