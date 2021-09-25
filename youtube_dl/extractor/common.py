@@ -250,7 +250,10 @@ class InfoExtractor(object):
                     preference, each element is a dictionary with the "ext"
                     entry and one of:
                         * "data": The subtitles file contents
-                        * "url": A URL pointing to the subtitles file
+                        * "url": A URL pointing to the subtitles resource
+                    With "url", a "protocol" entry (as for "formats" above)
+                    may be provided to indicate how the URL should be
+                    processed; by default it is a file downloaded by HTTP(S)
                     "ext" will be calculated from URL if missing
     automatic_captions: Like 'subtitles', used by the YoutubeIE for
                     automatically generated captions
