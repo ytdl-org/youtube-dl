@@ -173,10 +173,13 @@ class FranceTVIE(InfoExtractor):
                     sign(video_url, format_id) + '&hdcore=3.7.0&plugin=aasp-3.7.0.39.44',
                     video_id, f4m_id=format_id, fatal=False))
             elif ext == 'm3u8':
-                format, subtitle = self._extract_m3u8_formats(
+                res = self._extract_m3u8_formats(
                     sign(video_url, format_id), video_id, 'mp4',
                     entry_protocol='m3u8_native', m3u8_id=format_id,
                     fatal=False, include_subtitles=True)
+                if not res:
+                    continue
+                format, subtitle = res
                 info['formats'].extend(format)
                 for lang in subtitle:
                     if lang in info['subtitles']:
