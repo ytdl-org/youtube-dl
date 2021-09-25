@@ -90,6 +90,7 @@ from .awaan import (
     AWAANSeasonIE,
 )
 from .azmedien import AZMedienIE
+from .baddiehub import BaddieHubIE
 from .baidu import BaiduVideoIE
 from .bandaichannel import BandaiChannelIE
 from .bandcamp import BandcampIE, BandcampAlbumIE, BandcampWeeklyIE
@@ -949,6 +950,7 @@ from .pornhub import (
 from .pornotube import PornotubeIE
 from .pornovoisines import PornoVoisinesIE
 from .pornoxo import PornoXOIE
+from .porntrex import PornTrexIE
 from .puhutv import (
     PuhuTVIE,
     PuhuTVSerieIE,
