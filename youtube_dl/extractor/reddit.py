@@ -1,6 +1,7 @@
 from __future__ import unicode_literals
 
 import re
+import random
 
 from .common import InfoExtractor
 from ..utils import (
@@ -29,8 +30,18 @@ class RedditIE(InfoExtractor):
         },
     }
 
+    @staticmethod
+    def _gen_session_id():
+        # The actual value of the cookie does not seem to matter.
+        # Using a random 16-char hex string for now.
+        id_length = 16
+        rand_max = 1 << (id_length * 4)
+        return '%0.*x' % (id_length, random.randrange(rand_max))
+
     def _real_extract(self, url):
         video_id = self._match_id(url)
+
+        self._set_cookie('.reddit.com', 'reddit_session', RedditIE._gen_session_id())
 
         formats = self._extract_m3u8_formats(
             'https://v.redd.it/%s/HLSPlaylist.m3u8' % video_id, video_id,
@@ -102,6 +113,8 @@ class RedditRIE(InfoExtractor):
         url, video_id = mobj.group('url', 'id')
 
         video_id = self._match_id(url)
+
+        self._set_cookie('.reddit.com', 'reddit_session', RedditIE._gen_session_id())
 
         data = self._download_json(
             url + '/.json', video_id)[0]['data']['children'][0]['data']
