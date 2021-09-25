@@ -46,12 +46,16 @@ class FranceTVIE(InfoExtractor):
     _TESTS = [{
         # without catalog
         'url': 'https://sivideo.webservices.francetelevisions.fr/tools/getInfosOeuvre/v2/?idDiffusion=162311093&callback=_jsonp_loader_callback_request_0',
-        'md5': '283491d723a14db7c4e10b887c4b475a',
+        'md5': '944fe929c5ed2c05f864085ec5714f98',
         'info_dict': {
             'id': '162311093',
             'ext': 'mp4',
             'title': '13h15, le dimanche... - Les mystères de Jésus',
         },
+        'params': {
+            'format': 'bestvideo',
+        },
+        'expected_warnings': 'Unknown MIME type application/mp4 in DASH manifest',
     }, {
         # with catalog
         'url': 'https://sivideo.webservices.francetelevisions.fr/tools/getInfosOeuvre/v2/?idDiffusion=NI_1004933&catalogue=Zouzous&callback=_jsonp_loader_callback_request_4',
@@ -203,15 +207,15 @@ class FranceTVIE(InfoExtractor):
                     })
 
         for f in info['formats']:
-            preference = 50
+            preference = 100
             if f['format_id'].startswith('dash-audio_qtz=96000') or (f['format_id'].find('Description') >= 0):
                 preference = -1
-            elif f['format_id'].startswith('hls-audio'):
-                preference = 10
             elif f['format_id'].startswith('dash-audio'):
-                preference = 20
+                preference = 10
+            elif f['format_id'].startswith('hls-audio'):
+                preference = 200
             elif f['format_id'].startswith('dash-video'):
-                preference = 100
+                preference = 50
             f['preference'] = preference
 
         self._sort_formats(info['formats'])
@@ -259,8 +263,10 @@ class FranceTVSiteIE(FranceTVBaseInfoExtractor):
         },
         'params': {
             'skip_download': True,
+            'format': 'bestvideo',
         },
         'add_ie': [FranceTVIE.ie_key()],
+        'expected_warnings': 'Unknown MIME type application/mp4 in DASH manifest',
     }, {
         # france3
         'url': 'https://www.france.tv/france-3/des-chiffres-et-des-lettres/139063-emission-du-mardi-9-mai-2017.html',
