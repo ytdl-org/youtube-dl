@@ -365,7 +365,7 @@ class MacChromeCookieDecryptor(ChromeCookieDecryptor):
     def __init__(self, browser_keyring_name, logger):
         self._logger = logger
         if browser_keyring_name is not None:
-            password = _get_mac_keyring_password(browser_keyring_name)
+            password = _get_mac_keyring_password(browser_keyring_name, logger)
             self._v10_key = None if password is None else self.derive_key(password)
         else:
             self._v10_key = None
@@ -610,11 +610,13 @@ def _get_linux_keyring_password(browser_keyring_name):
     return password.encode('utf-8')
 
 
-def _get_mac_keyring_password(browser_keyring_name):
+def _get_mac_keyring_password(browser_keyring_name, logger):
     if KEYRING_AVAILABLE:
+        logger.debug('using keyring to obtain password')
         password = keyring.get_password('{} Safe Storage'.format(browser_keyring_name), browser_keyring_name)
         return password.encode('utf-8')
     else:
+        logger.debug('using find-generic-password to obtain password')
         proc = subprocess.Popen(['security', 'find-generic-password',
                                  '-w',  # write password to stdout
                                  '-a', browser_keyring_name,  # match 'account'
@@ -623,7 +625,10 @@ def _get_mac_keyring_password(browser_keyring_name):
                                 stderr=subprocess.DEVNULL)
         proc.wait()
         if proc.returncode == 0:
-            return proc.stdout.read().strip()
+            stdout = proc.stdout.read()
+            if stdout[-1:] == b'\n':
+                stdout = stdout[:-1]
+            return stdout
         else:
             return None
 
