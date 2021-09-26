@@ -27,7 +27,23 @@ class RedTubeIE(InfoExtractor):
             'duration': 596,
             'view_count': int,
             'age_limit': 18,
-        }
+        },
+        'skip': 'private video',
+    }, {
+        'url': 'https://www.redtube.com/38864951',
+        'md5': '4fba70cbca3aefd25767ab4b523c9878',
+        'info_dict': {
+            'id': '38864951',
+            'ext': 'mp4',
+            'title': 'Public Sex on the Balcony in Freezing Paris! Amateur Couple LeoLulu',
+            'description': 'Watch video Public Sex on the Balcony in Freezing Paris! Amateur Couple LeoLulu on Redtube, home of free Blowjob porn videos and Blonde sex movies online. Video length: (10:46) - Uploaded by leolulu - Verified User - Starring Pornstar: Leolulu',
+            'upload_date': '20210111',
+            'timestamp': 1610343109,
+            'duration': 646,
+            'view_count': int,
+            'age_limit': 18,
+            'thumbnail': r're:https://\wi-ph\.rdtcdn\.com/videos/.+/.+\.jpg',
+        },
     }, {
         'url': 'http://embed.redtube.com/?bgcolor=000000&id=1443286',
         'only_matching': True,
