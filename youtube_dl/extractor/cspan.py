@@ -1,11 +1,14 @@
 from __future__ import unicode_literals
 
+import os
 import re
 
-from .common import InfoExtractor
+from .common import InfoExtractor, compat_str, compat_urllib_parse_unquote
+from .senateisvp import SenateISVPIE
+from .ustream import UstreamIE
 from ..utils import (
-    determine_ext,
     ExtractorError,
+    determine_ext,
     extract_attributes,
     find_xpath_attr,
     get_element_by_attribute,
@@ -18,11 +21,10 @@ from ..utils import (
     str_to_int,
     unescapeHTML,
 )
-from .senateisvp import SenateISVPIE
-from .ustream import UstreamIE
 
 
 class CSpanIE(InfoExtractor):
+    _BASIC_URL = r'https?://(?:www\.)?c-span\.org/'
     _VALID_URL = r'https?://(?:www\.)?c-span\.org/video/\?(?P<id>[0-9a-f]+)'
     IE_DESC = 'C-SPAN'
     _TESTS = [{
@@ -80,6 +82,29 @@ class CSpanIE(InfoExtractor):
         'only_matching': True,
     }]
     BRIGHTCOVE_URL_TEMPLATE = 'http://players.brightcove.net/%s/%s_%s/index.html?videoId=%s'
+
+    @classmethod
+    def is_basic_url(cls, url):
+        if '_BASIC_URL_RE' not in cls.__dict__:
+            cls._BASIC_URL_RE = re.compile(cls._BASIC_URL)
+
+        return cls._BASIC_URL_RE.match(url) is not None
+
+    @classmethod
+    def get_basic_url(cls, url):
+        return "/".join(url.rstrip('/').split('/')[:3])
+
+    @classmethod
+    def _get_id(cls, url):
+        if '_ID_URL_RE' not in cls.__dict__:
+            cls._ID_URL_RE = re.compile(cls._ID_URL)
+
+        if cls._ID_URL_RE.match(url) is not None:
+            m = cls._ID_URL_RE.match(url)
+            assert m
+            return compat_str(m.group('id'))
+        else:
+            return compat_urllib_parse_unquote(os.path.splitext(url.rstrip('/').split('/')[-1])[0])
 
     def _real_extract(self, url):
         video_id = self._match_id(url)
