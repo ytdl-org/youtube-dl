@@ -31,17 +31,10 @@ class BaddieHubIE(InfoExtractor):
         webpage = self._download_webpage(url, video_id)
 
         title = self._html_search_regex(r"<title>(.+?)</title>", webpage, "title")
-        content_url = self._html_search_regex(
-            r"<meta itemprop=\"contentURL\".*content=\"(?P<contentURL>.*?)\"\s\/>",
-            webpage,
-            "contentURL",
-        )
-        author = self._html_search_regex(
-            r"<meta itemprop=\"author\".*content=\"(?P<author>.*?)\"\s\/>",
-            webpage,
-            "author",
-            default="BaddieHub"
-        )
+
+        content_url = self._html_search_meta('contentURL', webpage)
+
+        author = self._html_search_meta('author', webpage) or "BaddieHub"
 
         info_dict = {}
         info_dict.update(
