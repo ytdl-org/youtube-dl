@@ -171,7 +171,7 @@ def _aes_decrypt(data, expanded_key):
     for i in range(rounds, 0, -1):
         data = xor(data, expanded_key[i * BLOCK_SIZE_BYTES: (i + 1) * BLOCK_SIZE_BYTES])
         if i != rounds:
-            data = mix_columns_inv(data)
+            data = list(iter_mix_columns(data, MIX_COLUMN_MATRIX_INV))
         data = shift_rows_inv(data)
         data = sub_bytes_inv(data)
     data = xor(data, expanded_key[:BLOCK_SIZE_BYTES])
@@ -194,7 +194,7 @@ def _aes_encrypt(data, expanded_key):
         data = sub_bytes(data)
         data = shift_rows(data)
         if i != rounds:
-            data = mix_columns(data)
+            data = list(iter_mix_columns(data, MIX_COLUMN_MATRIX))
         data = xor(data, expanded_key[i * BLOCK_SIZE_BYTES: (i + 1) * BLOCK_SIZE_BYTES])
 
     return data
@@ -404,49 +404,29 @@ def xor(data1, data2):
     return [x ^ y for x, y in zip(data1, data2)]
 
 
-def rijndael_mul(a, b):
-    if a == 0 or b == 0:
-        return 0
-    return RIJNDAEL_EXP_TABLE[(RIJNDAEL_LOG_TABLE[a] + RIJNDAEL_LOG_TABLE[b]) % 0xFF]
-
-
-def mix_column(data, matrix):
-    data_mixed = []
-    for row in range(4):
-        mixed = 0
-        for column in range(4):
+def iter_mix_columns(data, matrix):
+    for i in (0, 4, 8, 12):
+        d0, d1, d2, d3 = data[i: i + 4]
+        for row in matrix:
+            c0, c1, c2, c3 = row
             # xor is (+) and (-)
-            mixed ^= rijndael_mul(data[column], matrix[row][column])
-        data_mixed.append(mixed)
-    return data_mixed
-
-
-def mix_columns(data, matrix=MIX_COLUMN_MATRIX):
-    data_mixed = []
-    for i in range(4):
-        column = data[i * 4: (i + 1) * 4]
-        data_mixed += mix_column(column, matrix)
-    return data_mixed
-
-
-def mix_columns_inv(data):
-    return mix_columns(data, MIX_COLUMN_MATRIX_INV)
+            v0 = (0 if d0 == 0 or c0 == 0 else
+                  RIJNDAEL_EXP_TABLE[(RIJNDAEL_LOG_TABLE[d0] + RIJNDAEL_LOG_TABLE[c0]) % 0xFF])
+            v1 = (0 if d1 == 0 or c1 == 0 else
+                  RIJNDAEL_EXP_TABLE[(RIJNDAEL_LOG_TABLE[d1] + RIJNDAEL_LOG_TABLE[c1]) % 0xFF])
+            v2 = (0 if d2 == 0 or c2 == 0 else
+                  RIJNDAEL_EXP_TABLE[(RIJNDAEL_LOG_TABLE[d2] + RIJNDAEL_LOG_TABLE[c2]) % 0xFF])
+            v3 = (0 if d3 == 0 or c3 == 0 else
+                  RIJNDAEL_EXP_TABLE[(RIJNDAEL_LOG_TABLE[d3] + RIJNDAEL_LOG_TABLE[c3]) % 0xFF])
+            yield v0 ^ v1 ^ v2 ^ v3
 
 
 def shift_rows(data):
-    data_shifted = []
-    for column in range(4):
-        for row in range(4):
-            data_shifted.append(data[((column + row) & 0b11) * 4 + row])
-    return data_shifted
+    return [data[((column + row) & 0b11) * 4 + row] for column in range(4) for row in range(4)]
 
 
 def shift_rows_inv(data):
-    data_shifted = []
-    for column in range(4):
-        for row in range(4):
-            data_shifted.append(data[((column - row) & 0b11) * 4 + row])
-    return data_shifted
+    return [data[((column - row) & 0b11) * 4 + row] for column in range(4) for row in range(4)]
 
 
 def shift_block(data):
@@ -505,7 +485,7 @@ def ghash(subkey, data):
 
     last_y = [0] * BLOCK_SIZE_BYTES
     for i in range(0, len(data), BLOCK_SIZE_BYTES):
-        block = data[i : i + BLOCK_SIZE_BYTES]  # noqa: E203
+        block = data[i: i + BLOCK_SIZE_BYTES]  # noqa: E203
         last_y = block_product(xor(last_y, block), subkey)
 
     return last_y
