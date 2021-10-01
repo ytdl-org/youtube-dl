@@ -29,6 +29,10 @@ h3{
     font-size: 1.5rem;
 }
 
+h4{
+    font-size: 1.2rem;
+}
+
 p{
     line-height: 1.2;
     font-size: 1.2rem;
@@ -63,9 +67,15 @@ nav{
     display: flex;
     flex-direction: row;
     justify-content: space-around;
-    margin: 3rem 0;
+    margin: 5rem 0;
 }
 
 .btn{
     padding: 1rem 2rem;
+}
+
+/* footer */
+#footer{
+    text-align: center;
+    margin-top: 10rem;
 }
