@@ -224,7 +224,7 @@ def aes_decrypt_text(data, password, key_size_bytes):
     nonce = data[:NONCE_LENGTH_BYTES]
     cipher = data[NONCE_LENGTH_BYTES:]
 
-    decrypted_data = aes_ctr_decrypt(cipher, key, nonce + b'\00' * (BLOCK_SIZE_BYTES - NONCE_LENGTH_BYTES))
+    decrypted_data = aes_ctr_decrypt(cipher, key, nonce + b'\x00' * (BLOCK_SIZE_BYTES - NONCE_LENGTH_BYTES))
 
     return decrypted_data
 
