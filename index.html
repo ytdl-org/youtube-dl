@@ -4,6 +4,9 @@
 <head>
 	<meta http-equiv="Content-type" content="text/html;charset=UTF-8" />
 	<title>youtube-dl</title>
+	<!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.1/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-F3w7mX95PdgyTmZZMECAngseQB83DfGTowi0iMjiWaeVhAn4FJkqJByhZMI3AhiU" crossorigin="anonymous">
+
 	<link rel="stylesheet" href="style.css" type="text/css" />
 	<link rel="alternate" type="application/atom+xml" title="youtube-dl releases" href="update/releases.atom" />
 </head>
@@ -18,7 +21,7 @@
 		</ul>
 	</nav>
 
-	<section class="introduction">
+	<section id="introduction">
 		<h2>Download videos from YouTube (and <a href="supportedsites.html">more sites</a>)</h2>
 
 		<p><b>youtube-dl</b> is a command-line program to download videos from YouTube.com and a few <a
@@ -33,15 +36,11 @@
 		</p>
 
 	</section>
-	<table border="0" id="rgb">
-		<tr>
-			<td><a class="button" id="r"
-					href="https://github.com/ytdl-org/youtube-dl/blob/master/README.md#readme">Documentation</a></td>
-		</tr>
-		<tr>
-			<td><a class="button" id="g" href="download.html">Download</a></td>
-		</tr>
-	</table>
+
+	<section id="cta">
+		<a href="download.html"><button type="button" class="btn btn-lg btn-primary">Download</button></a>
+		<a href="https://github.com/ytdl-org/youtube-dl/blob/master/README.md#readme"><button type="button" class="btn btn-lg btn-info">Documentation</button></a>
+	</section>
 
 	<p>You can also contact us on the irc channel <a href="irc://chat.freenode.net/#youtube-dl">#youtube-dl</a> (<a
 			href="http://webchat.freenode.net/?randomnick=1&amp;channels=youtube-dl">webchat</a>) on freenode.</p>
@@ -53,6 +52,7 @@
 		Copyright © 2006-2011 Ricardo Garcia Gonzalez<br />
 		Copyright © 2011-2021 youtube-dl developers
 	</div>
+	<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.1/dist/js/bootstrap.bundle.min.js" integrity="sha384-/bQdsTh/da6pkI1MST/rWKFNjaCP5gBSY4sEBT38Q/9RBh9AH40zEOg7Hlq2THRZ" crossorigin="anonymous"></script>
 </body>
 
 </html>

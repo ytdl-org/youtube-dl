@@ -43,11 +43,29 @@ nav{
     display: flex;
     flex-direction: row;
     justify-content: space-between;
-    margin-bottom: 2rem;
+    margin: 2rem 0;
 }
 
 #navbar-links{
     display: flex;
     flex-direction: row;
     justify-content: space-between;
+}
+
+/* introduction */
+.introduction{
+    margin: 2rem 0;
+}
+
+/* cta */
+
+#cta{
+    display: flex;
+    flex-direction: row;
+    justify-content: space-around;
+    margin: 3rem 0;
+}
+
+.btn{
+    padding: 1rem 2rem;
 }
