@@ -1,77 +1,104 @@
 <!DOCTYPE html>
 <html>
+
 <head>
-<meta http-equiv="Content-type" content="text/html;charset=UTF-8">
-<title>youtube-dl: Download Page</title>
-<link rel="stylesheet" href="style.css" type="text/css">
+	<meta http-equiv="Content-type" content="text/html;charset=UTF-8">
+	<title>youtube-dl: Download Page</title>
+	<link rel="stylesheet" href="style.css" type="text/css">
 </head>
+
 <body>
 
-<table class="heading"><tr>
-	<td class="title"><a href="index.html">youtube-dl</a></td>
-	<td class="subtitle">Download Page</td>
-</tr></table>
+	<nav>
+		<h1><a id="title" href="index.html">youtube-dl</a></h1>
+		<ul id="navbar-links">
+			<li><a href="index.html">Home</a></li>
+			<li><a href="https://github.com/ytdl-org/youtube-dl/issues/new/choose">Support</a></li>
+			<li><a href="https://github.com/ytdl-org/youtube-dl/">Develop</a></li>
+			<li><a href="about.html">About</a></li>
+		</ul>
+	</nav>
 
-<p>Remember <em>youtube-dl</em> requires <a href="http://www.python.org/">Python</a> version 2.6, 2.7, or 3.2+ to work except for Windows exe.</p>
+	<p>Remember <em>youtube-dl</em> requires <a href="http://www.python.org/">Python</a> version 2.6, 2.7, or 3.2+ to
+		work except for Windows exe.</p>
 
-<p><a href="https://yt-dl.org/downloads/2021.06.06/youtube-dl.exe">Windows exe</a> requires <a href="https://download.microsoft.com/download/1/6/5/165255E7-1014-4D0A-B094-B6A430A6BFFC/vcredist_x86.exe">Microsoft Visual C++ 2010 Service Pack 1 Redistributable Package (x86)</a> and does not require Python that is already embedded into the binary.</p>
+	<p><a href="https://yt-dl.org/downloads/2021.06.06/youtube-dl.exe">Windows exe</a> requires <a
+			href="https://download.microsoft.com/download/1/6/5/165255E7-1014-4D0A-B094-B6A430A6BFFC/vcredist_x86.exe">Microsoft
+			Visual C++ 2010 Service Pack 1 Redistributable Package (x86)</a> and does not require Python that is already
+		embedded into the binary.</p>
 
-<h2><a href="https://yt-dl.org/downloads/2021.06.06/youtube-dl">2021.06.06</a> (<a href="https://yt-dl.org/downloads/2021.06.06/youtube-dl.sig">sig</a>)</h2>
+	<h2><a href="https://yt-dl.org/downloads/2021.06.06/youtube-dl">2021.06.06</a> (<a
+			href="https://yt-dl.org/downloads/2021.06.06/youtube-dl.sig">sig</a>)</h2>
 
-<p><strong>SHA256</strong>: c4a3558ba57d4dd6bd49e604e52db370ab3db7a6a91bb366c6863f5f48f951c3</p>
+	<p><strong>SHA256</strong>: c4a3558ba57d4dd6bd49e604e52db370ab3db7a6a91bb366c6863f5f48f951c3</p>
 
-<p>
-	<a href="https://yt-dl.org/downloads/2021.06.06/youtube-dl.exe">Windows exe</a> (<a href="https://yt-dl.org/downloads/2021.06.06/youtube-dl.exe.sig">sig</a> - SHA256 78c009f4cf8ae56db150800d55faaac97c127c76c89715b23fe406d85c3c0628)<br>
-	<a href="https://yt-dl.org/downloads/2021.06.06/youtube-dl-2021.06.06.tar.gz">Full source + docs + binary tarball</a> (<a href="https://yt-dl.org/downloads/2021.06.06/youtube-dl-2021.06.06.tar.gz.sig">sig</a> - SHA256 3ccb0e4db9fd172338ed1c32bae0be2f716458dca4143e55732ff55260b20ac3)
-</p>
+	<p>
+		<a href="https://yt-dl.org/downloads/2021.06.06/youtube-dl.exe">Windows exe</a> (<a
+			href="https://yt-dl.org/downloads/2021.06.06/youtube-dl.exe.sig">sig</a> - SHA256
+		78c009f4cf8ae56db150800d55faaac97c127c76c89715b23fe406d85c3c0628)<br>
+		<a href="https://yt-dl.org/downloads/2021.06.06/youtube-dl-2021.06.06.tar.gz">Full source + docs + binary
+			tarball</a> (<a href="https://yt-dl.org/downloads/2021.06.06/youtube-dl-2021.06.06.tar.gz.sig">sig</a> -
+		SHA256 3ccb0e4db9fd172338ed1c32bae0be2f716458dca4143e55732ff55260b20ac3)
+	</p>
 
-<p>To install it right away for all UNIX users (Linux, OS X, etc.), type:
-<code class="commands">sudo curl -L https://yt-dl.org/downloads/latest/youtube-dl -o /usr/local/bin/youtube-dl<br/>
-sudo chmod a+rx /usr/local/bin/youtube-dl</code>
-</p>
+	<h3>To install it right away for all UNIX users (Linux, OS X, etc.), type:</h3>
+	<pre>
+		<code>sudo curl -L https://yt-dl.org/downloads/latest/youtube-dl -o /usr/local/bin/youtube-dl<br><br>sudo chmod a+rx /usr/local/bin/youtube-dl</code>
+	</pre>
 
-<p>If you do not have curl, you can alternatively use a recent wget:
+	<h3>If you do not have curl, you can alternatively use a recent wget:</h3>
+	<pre>
+	<code>sudo wget https://yt-dl.org/downloads/latest/youtube-dl -O /usr/local/bin/youtube-dl<br><br>sudo chmod a+rx /usr/local/bin/youtube-dl</code>
+	</pre>
 
-<code class="commands">sudo wget https://yt-dl.org/downloads/latest/youtube-dl -O /usr/local/bin/youtube-dl<br/>
-sudo chmod a+rx /usr/local/bin/youtube-dl</code>
-</p>
+	<h3>You can also use pip:</h3>
+	<pre>
+		<code>sudo pip install --upgrade youtube_dl</code>
+	</pre>
 
-<p>You can also use pip:
-<code class="commands">sudo pip install --upgrade youtube_dl</code>
-</p>
-<p>
-This command will update youtube-dl if you have already installed it.
-See the <a href="https://pypi.python.org/pypi/youtube_dl">pypi page</a> for more information.
-</p>
+	<p>
+		This command will update youtube-dl if you have already installed it.
+		See the <a href="https://pypi.python.org/pypi/youtube_dl">pypi page</a> for more information.
+	</p>
 
-<p>You can use Homebrew if you have it:
-<code class="commands">brew install youtube-dl</code>
-</p>
+	<h3>You can use Homebrew if you have it:</h3>
+	<pre>
+		<code>brew install youtube-dl</code>
+	</pre>
 
-<p>To check the signature, type:
-<code class="commands">sudo wget https://yt-dl.org/downloads/latest/youtube-dl.sig -O youtube-dl.sig<br/>gpg --verify youtube-dl.sig /usr/local/bin/youtube-dl<br/>rm youtube-dl.sig</code>
-</p>
+	<h3>To check the signature, type:</h3>
+	<pre>
+		<code>sudo wget https://yt-dl.org/downloads/latest/youtube-dl.sig -O youtube-dl.sig<br><br>gpg --verify youtube-dl.sig /usr/local/bin/youtube-dl<br><br>rm youtube-dl.sig</code>
+	</pre>
 
-<p>The following GPG keys will be used to sign the binaries and the git tags:</p>
-<ul>
-<li>Sergey M. <code class="fingerprint"><a href="https://dstftw.github.io/keys/18A9236D.asc">ED7F 5BF4 6B3B BED8 1C87  368E 2C39 3E0F 18A9 236D</a></code></li>
-</ul>
+	<h4>The following GPG keys will be used to sign the binaries and the git tags:</h4>
+	<ul>
+		<li>Sergey M.
+			<code><a href="https://dstftw.github.io/keys/18A9236D.asc">ED7F 5BF4 6B3B BED8 1C87  368E 2C39 3E0F 18A9 236D</a></code>
+		</li>
+	</ul>
 
-<p>Older releases are also signed with one of:
+	<h4>Older releases are also signed with one of:</h4>
 
-<ul>
-<li>Philipp Hagemeister <code class="fingerprint"><a href="https://phihag.de/keys/A4826A18.asc">7D33 D762 FD6C 3513 0481  347F DB4B 54CB A482 6A18</a></code> (until 2016-05-30)</li>
-<li>Philipp Hagemeister <code class="fingerprint">0600 E1DB 6FB5 3A5D 95D8  FC0D F5EA B582 FAFB 085C</code> (until 2013-06-01)</li>
-</li>
-<li>Filippo Valsorda <code class="fingerprint">428D F5D6 3EF0 7494 BB45  5AC0 EBF0 1804 BCF0 5F6B</code> (until 2014)</li>
-</p>
+	<ul>
+		<li>Philipp Hagemeister
+			<code><a href="https://phihag.de/keys/A4826A18.asc">7D33 D762 FD6C 3513 0481  347F DB4B 54CB A482 6A18</a></code>
+			(until 2016-05-30)</li>
+		<li>Philipp Hagemeister <code>0600 E1DB 6FB5 3A5D 95D8  FC0D F5EA B582 FAFB 085C</code> (until 2013-06-01)</li>
+		<li>Filippo Valsorda <code>428D F5D6 3EF0 7494 BB45  5AC0 EBF0 1804 BCF0 5F6B</code> (until 2014)</li>
+	</ul>
 
-<div class="note">
-<a rel="license" href="http://creativecommons.org/licenses/by-sa/3.0/deed.en_US">
-<img alt="Creative Commons License" style="border-width:0"
-src="https://i.creativecommons.org/l/by-sa/3.0/80x15.png" /></a><br />
-Copyright © 2006-2011 Ricardo Garcia Gonzalez<br />
-Copyright © 2011-2021 youtube-dl developers
-</div>
+
+	<footer id="footer">
+		<h4>You can also contact us on the irc channel <a href="irc://chat.freenode.net/#youtube-dl">#youtube-dl</a>
+			(<a href="http://webchat.freenode.net/?randomnick=1&amp;channels=youtube-dl">webchat</a>) on freenode.
+		</h4>
+		<a rel="license" href="http://creativecommons.org/licenses/by-sa/3.0/deed.en_US">
+			<img alt="Creative Commons License" style="border-width:0"
+				src="https://i.creativecommons.org/l/by-sa/3.0/80x15.png" /></a>
+		<p>Copyright © 2006-2011 Ricardo Garcia Gonzalez</p>
+		<p>Copyright © 2011-2021 youtube-dl developers</p>
+	</footer>
 </body>
+
 </html>
