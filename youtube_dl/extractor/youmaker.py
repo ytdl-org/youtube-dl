@@ -1,7 +1,3 @@
-import calendar
-import re
-from datetime import datetime
-
 from .common import InfoExtractor
 from .. import utils
 
@@ -21,14 +17,16 @@ class YouMakerIE(InfoExtractor):
                 "ext": "mp4",
                 "title": "Althistoriker Dr. David Engels im Interview: „Das ist der echte Untergang des Abendlandes“",
                 "description": "Im Interview mit Epoch Times führt der belgische Althistoriker Dr. David Engels aus, "
-                "wie sich der Zerfall der europäischen Staatengemeinschaft im Zuge der Corona-Krise "
-                "zugespitzt hat, und zeichnet Parallelen zu den letzten Atemzügen der spätrömischen "
-                "Republik. , , Der Artikel zu dem Interview folgt in Kürze "
-                "hier: https://www.epochtimes.de/wissen/gesellschaft/"
-                "das-ist-der-echte-untergang-des-abendlandes-a3613553.html - Youmaker",
+                "wie sich der Zerfall der europäischen Staatengemeinschaft im Zuge der Corona-Krise zugespitzt hat, "
+                "und zeichnet Parallelen zu den letzten Atemzügen der spätrömischen Republik. \n\n"
+                "Der Artikel zu dem Interview folgt in Kürze hier: https://www.epochtimes.de/wissen/"
+                "gesellschaft/das-ist-der-echte-untergang-des-abendlandes-a3613553.html",
                 "duration": 3507,
                 "upload_date": "20211001",
-                "timestamp": 1633046400,
+                "uploader": "Deepochtimes",
+                "timestamp": 1633079621,
+                "channel": "Epoch Times Deutsch",
+                "channel_id": "9a7c740c-74c7-4ebb-86ad-611ba4e71535",
             },
             "params": {
                 "skip_download": True,
@@ -39,62 +37,49 @@ class YouMakerIE(InfoExtractor):
 
     def _real_extract(self, url):
         video_id = self._match_id(url)
-        webpage = self._download_webpage(
-            "https://youmaker.com/video/%s" % video_id, video_id
+        info = self._download_json(
+            "https://youmaker.com/v1/api/video/metadata/%s" % video_id, video_id
         )
 
-        info = self._parse_json(
-            self._search_regex(
-                (
-                    r'<script\s+type="application/ld\+json">s*'
-                    r"(?P<json>{[^}]+})"
-                    r"\s*</script>"
-                ),
-                webpage,
-                "json_info",
-                default="{}",
-                group="json",
-            ),
-            video_id,
-        )
+        status = info.get("status", "something went wrong")
+        if status != "ok":
+            raise utils.ExtractorError(status, expected=True)
 
-        thumbnail_urls = info.get("thumbnailUrl", [])
-        if not thumbnail_urls:
-            raise utils.ExtractorError("Resource not available", expected=False)
+        info = info["data"]
+        video_info = info.get("data", "")
+        duration = video_info.get("duration")
+        formats = []
+        playlist = video_info.get("videoAssets", {}).get("Stream")
 
-        asset_base = thumbnail_urls[0].rsplit("/", maxsplit=1)[0]
-        match = re.match(r".*/assets/(\d\d\d\d)/(\d\d\d\d)/([^/]+)$", asset_base)
-        if match:
-            upload_date = "".join(match.groups()[0:2])
-            dt = datetime.strptime(upload_date, "%Y%m%d")
-            timestamp = calendar.timegm(dt.timetuple())
-            video_id = match.groups()[2]
-        else:
-            upload_date = utils.unified_strdate(info["uploadDate"])
-            timestamp = utils.parse_iso8601(info["uploadDate"])
+        if playlist:
+            formats.extend(
+                self._extract_m3u8_formats(
+                    playlist,
+                    video_id,
+                    ext="mp4",
+                )
+            )
 
-        formats = self._extract_m3u8_formats(
-            "/".join((asset_base, "playlist.m3u8")),
-            video_id,
-            ext="mp4",
-        )
-        parts_d = re.match(r"PT(?:(\d+)H)?(?:(\d+)M)?(\d+)S", info["duration"]).groups()
-        duration = sum((int(n) * l for n, l in zip(parts_d, (3600, 60, 1)) if n))
-        for item in formats:
-            item["format_id"] = "hls-%dp" % item["height"]
-            item["filesize_approx"] = 128 * item["tbr"] * duration
+        if formats:
+            self._sort_formats(formats)
+            for item in formats:
+                item["format_id"] = "hls-%dp" % item["height"]
+                if duration and item.get("tbr"):
+                    item["filesize_approx"] = 128 * item["tbr"] * duration
 
-        ret_info = {
-            "id": video_id,
+        return {
+            "id": info["video_uid"],
             "formats": formats,
-            "title": info["name"],
+            "title": info["title"],
             "description": info["description"],
-            "timestamp": timestamp,
-            "upload_date": upload_date,
+            "timestamp": utils.parse_iso8601(info["uploaded_at"]),
+            "upload_date": utils.unified_strdate(info["uploaded_at"]),
+            "uploader": info.get("uploaded_by"),
             "duration": duration,
-            "channel": info.get("author"),
-            "thumbnails": [{"url": url} for url in thumbnail_urls],
-            "view_count": utils.int_or_none(info.get("interactionCount")),
+            "channel": info.get("channel_name"),
+            "channel_id": info.get("channel_uid"),
+            "channel_url": "https://www.youmaker.com/channel/%s"
+            % info.get("channel_uid", ""),
+            "thumbnails": [{"url": info["thumbmail_path"]}],
+            "view_count": utils.int_or_none(info.get("click")),
         }
-
-        return ret_info
