@@ -137,7 +137,7 @@ class AtresPlayerIE(InfoExtractor):
                 if mpd:
                     mpd_doc, mpd_handle = mpd
                     mpd_base_url = base_url(mpd_handle.geturl())
-                    subtitles.update(self._get_mpd_subtitles(mpd_doc, mpd_base_url))
+                    subtitles = self._merge_subtitles(subtitles, self._get_mpd_subtitles(mpd_doc, mpd_base_url))
                     formats.extend(self._parse_mpd_formats(
                         mpd_doc, mpd_id='dash', mpd_base_url=mpd_base_url, mpd_url=src))
         self._sort_formats(formats)
