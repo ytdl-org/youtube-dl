@@ -1,3 +1,6 @@
+# coding: utf-8
+from __future__ import unicode_literals
+
 from .common import InfoExtractor
 from .. import utils
 
@@ -11,34 +14,37 @@ class YouMakerIE(InfoExtractor):
 
     _TESTS = [
         {
-            "url": "https://www.youmaker.com/v/Dnnrq0lw8062",
+            "url": "https://www.youmaker.com/v/71b5d2c5-31b6-43b8-8475-1dcb5e10dfb0",
             "info_dict": {
-                "id": "77c92592-57fa-4bfc-a5da-79e965667001",
+                "id": "71b5d2c5-31b6-43b8-8475-1dcb5e10dfb0",
                 "ext": "mp4",
-                "title": "Althistoriker Dr. David Engels im Interview: „Das ist der echte Untergang des Abendlandes“",
-                "description": "Im Interview mit Epoch Times führt der belgische Althistoriker Dr. David Engels aus, "
-                "wie sich der Zerfall der europäischen Staatengemeinschaft im Zuge der Corona-Krise zugespitzt hat, "
-                "und zeichnet Parallelen zu den letzten Atemzügen der spätrömischen Republik. \n\n"
-                "Der Artikel zu dem Interview folgt in Kürze hier: https://www.epochtimes.de/wissen/"
-                "gesellschaft/das-ist-der-echte-untergang-des-abendlandes-a3613553.html",
-                "duration": 3507,
-                "upload_date": "20211001",
-                "uploader": "Deepochtimes",
-                "timestamp": 1633079621,
-                "channel": "Epoch Times Deutsch",
-                "channel_id": "9a7c740c-74c7-4ebb-86ad-611ba4e71535",
+                "title": "Как сшить шапочку из трикотажа. Плоский шов двойной иглой.",
+                "description": r"re:(?s)^Привет друзья!\n\nВ этом видео я .* представлена www\.iksonmusic\.com$",
+                "thumbnail": r"re:^https?://.*\.(?:jpg|png)$",
+                "duration": 358,
+                "upload_date": "20190614",
+                "uploader": "user_318f21e00e1f8a6b414f20a654d0f4fc7d2053bc",
+                "timestamp": 1560554895,
+                "channel": "Sewing Ideas",
+                "channel_id": "40ca79f7-8b21-477f-adba-7d0f81e5b5fd",
+                "channel_url": r"re:https?://www.youmaker.com/channel/40ca79f7-8b21-477f-adba-7d0f81e5b5fd",
+                "tags": [
+                    "как сшить детскую шапочку из трикотажа",
+                    "как шить двойной иглой трикотаж",
+                ],
             },
             "params": {
                 "skip_download": True,
-                "nocheckcertificate": True,
             },
         },
     ]
 
     def _real_extract(self, url):
         video_id = self._match_id(url)
+        protocol = "https" if url.startswith("https://") else "http"
+        base_url = "%s://www.youmaker.com" % protocol
         info = self._download_json(
-            "https://youmaker.com/v1/api/video/metadata/%s" % video_id, video_id
+            "%s/v1/api/video/metadata/%s" % (base_url, video_id), video_id
         )
 
         status = info.get("status", "something went wrong")
@@ -46,7 +52,15 @@ class YouMakerIE(InfoExtractor):
             raise utils.ExtractorError(status, expected=True)
 
         info = info["data"]
-        video_info = info.get("data", "")
+        info["tags"] = [
+            tag.strip() for tag in info.get("tag", "").strip("[]").split(",") if tag
+        ]
+        info["channel_url"] = (
+            "%s/channel/%s" % (base_url, info["channel_uid"])
+            if "channel_uid" in info
+            else None
+        )
+        video_info = info.get("data", {})
         duration = video_info.get("duration")
         formats = []
         playlist = video_info.get("videoAssets", {}).get("Stream")
@@ -69,17 +83,17 @@ class YouMakerIE(InfoExtractor):
 
         return {
             "id": info["video_uid"],
-            "formats": formats,
             "title": info["title"],
             "description": info["description"],
+            "formats": formats,
             "timestamp": utils.parse_iso8601(info["uploaded_at"]),
             "upload_date": utils.unified_strdate(info["uploaded_at"]),
             "uploader": info.get("uploaded_by"),
             "duration": duration,
+            "tags": info["tags"],
             "channel": info.get("channel_name"),
             "channel_id": info.get("channel_uid"),
-            "channel_url": "https://www.youmaker.com/channel/%s"
-            % info.get("channel_uid", ""),
-            "thumbnails": [{"url": info["thumbmail_path"]}],
-            "view_count": utils.int_or_none(info.get("click")),
+            "channel_url": info["channel_url"],
+            "thumbnail": info.get("thumbmail_path"),
+            "view_count": info.get("click"),
         }
