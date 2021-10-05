@@ -14,7 +14,7 @@ class YouMakerIE(InfoExtractor):
 
     _TESTS = [
         {
-            "url": "https://www.youmaker.com/v/71b5d2c5-31b6-43b8-8475-1dcb5e10dfb0",
+            "url": "http://www.youmaker.com/v/71b5d2c5-31b6-43b8-8475-1dcb5e10dfb0",
             "info_dict": {
                 "id": "71b5d2c5-31b6-43b8-8475-1dcb5e10dfb0",
                 "ext": "mp4",
@@ -39,12 +39,56 @@ class YouMakerIE(InfoExtractor):
         },
     ]
 
+    def __init__(self, downloader=None):
+        """Constructor. Receives an optional downloader."""
+        super(YouMakerIE, self).__init__(downloader=downloader)
+        self.__protocol = "https"
+
+    def _fix_url(self, url):
+        if url.startswith("//"):
+            return "%s:%s" % (self.__protocol, url)
+        return url
+
+    @property
+    def _base_url(self):
+        return self._fix_url("//www.youmaker.com")
+
+    @property
+    def _api_url(self):
+        return "%s/v1/api" % self._base_url
+
+    @property
+    def _asset_url(self):
+        # as this url might change in the future
+        # it needs to be extracted from some js magic...
+        return self._fix_url("//vs.youmaker.com/assets")
+
+    def _extract_subtitles(self, system_id=None):
+        subtitles = {}
+
+        if system_id is None:
+            return subtitles
+
+        info = self._download_json(
+            "%s/video/subtitle?systemid=%s" % (self._api_url, system_id),
+            system_id,
+        )
+
+        if info.get("status") != "ok":
+            return subtitles
+
+        for item in info.get("data", []):
+            subtitles.setdefault(item["language_code"], []).append(
+                {"url": "%s/%s" % (self._asset_url, item["url"])}
+            )
+        return subtitles
+
     def _real_extract(self, url):
         video_id = self._match_id(url)
-        protocol = "https" if url.startswith("https://") else "http"
-        base_url = "%s://www.youmaker.com" % protocol
+        if url.startswith("http://"):
+            self.__protocol = "http"
         info = self._download_json(
-            "%s/v1/api/video/metadata/%s" % (base_url, video_id), video_id
+            "%s/video/metadata/%s" % (self._api_url, video_id), video_id
         )
 
         status = info.get("status", "something went wrong")
@@ -56,7 +100,7 @@ class YouMakerIE(InfoExtractor):
             tag.strip() for tag in info.get("tag", "").strip("[]").split(",") if tag
         ]
         info["channel_url"] = (
-            "%s/channel/%s" % (base_url, info["channel_uid"])
+            "%s/channel/%s" % (self._base_url, info["channel_uid"])
             if "channel_uid" in info
             else None
         )
@@ -68,7 +112,7 @@ class YouMakerIE(InfoExtractor):
         if playlist:
             formats.extend(
                 self._extract_m3u8_formats(
-                    playlist,
+                    self._fix_url(playlist),
                     video_id,
                     ext="mp4",
                 )
@@ -96,4 +140,5 @@ class YouMakerIE(InfoExtractor):
             "channel_url": info["channel_url"],
             "thumbnail": info.get("thumbmail_path"),
             "view_count": info.get("click"),
+            "subtitles": self._extract_subtitles(info.get("system_id")),
         }
