@@ -2,6 +2,7 @@
 from __future__ import unicode_literals
 
 from .common import InfoExtractor
+from ..compat import compat_urllib_parse_urlencode
 from ..utils import parse_iso8601, unified_strdate, ExtractorError
 
 
@@ -43,6 +44,13 @@ class YouMakerIE(InfoExtractor):
         """Constructor. Receives an optional downloader."""
         super(YouMakerIE, self).__init__(downloader=downloader)
         self.__protocol = "https"
+        self.__video_id = None
+        self.__cache = {}
+
+    def _set_id_and_protocol(self, url):
+        self.__video_id = self._match_id(url)
+        if url.startswith("http://"):
+            self.__protocol = "http"
 
     def _fix_url(self, url):
         if url.startswith("//"):
@@ -54,48 +62,60 @@ class YouMakerIE(InfoExtractor):
         return self._fix_url("//www.youmaker.com")
 
     @property
-    def _api_url(self):
-        return "%s/v1/api" % self._base_url
-
-    @property
     def _asset_url(self):
         # as this url might change in the future
         # it needs to be extracted from some js magic...
         return self._fix_url("//vs.youmaker.com/assets")
 
-    def _get_subtitles(self, system_id=None):
+    def _api(self, path, cache=False, **kwargs):
+        """
+        call the YouMaker JSON API and return the data
+
+        path:       API endpoint
+        **kwargs:   parameters passed to _download_json()
+        """
+        key = hash((path, compat_urllib_parse_urlencode(kwargs.get("query", {}))))
+        if cache and key in self.__cache:
+            return self.__cache[key]
+
+        url = "%s/v1/api/%s" % (self._base_url, path)
+        info = self._download_json(url, self.__video_id, **kwargs)
+        status = info.get("status", "something went wrong")
+        data = info.get("data")
+        if status != "ok" or data is None:
+            raise ExtractorError(status, expected=True)
+
+        if cache:
+            self.__cache[key] = data
+
+        return data
+
+    def _get_subtitles(self, system_id):
+        try:
+            assert system_id is not None
+            subs_list = self._api(
+                "video/subtitle",
+                note="checking for subtitles",
+                query={"systemid": system_id},
+            )
+        except (AssertionError, ExtractorError):
+            return {}
+
         subtitles = {}
-
-        if system_id is None:
-            return subtitles
-
-        info = self._download_json(
-            "%s/video/subtitle?systemid=%s" % (self._api_url, system_id),
-            system_id,
-        )
-
-        if info.get("status") != "ok":
-            return subtitles
-
-        for item in info.get("data", []):
+        for item in subs_list:
             subtitles.setdefault(item["language_code"], []).append(
                 {"url": "%s/%s" % (self._asset_url, item["url"])}
             )
+
         return subtitles
 
     def _real_extract(self, url):
-        video_id = self._match_id(url)
-        if url.startswith("http://"):
-            self.__protocol = "http"
-        info = self._download_json(
-            "%s/video/metadata/%s" % (self._api_url, video_id), video_id
+        self._set_id_and_protocol(url)
+
+        info = self._api(
+            "video/metadata/%s" % self.__video_id, note="Downloading video metadata"
         )
 
-        status = info.get("status", "something went wrong")
-        if status != "ok":
-            raise ExtractorError(status, expected=True)
-
-        info = info["data"]
         info["tags"] = [
             tag.strip() for tag in info.get("tag", "").strip("[]").split(",") if tag
         ]
@@ -106,6 +126,7 @@ class YouMakerIE(InfoExtractor):
         )
         video_info = info.get("data", {})
         duration = video_info.get("duration")
+
         formats = []
         playlist = video_info.get("videoAssets", {}).get("Stream")
 
@@ -113,7 +134,7 @@ class YouMakerIE(InfoExtractor):
             formats.extend(
                 self._extract_m3u8_formats(
                     self._fix_url(playlist),
-                    video_id,
+                    self.__video_id,
                     ext="mp4",
                 )
             )
