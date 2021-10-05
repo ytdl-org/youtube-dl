@@ -63,7 +63,7 @@ class YouMakerIE(InfoExtractor):
         # it needs to be extracted from some js magic...
         return self._fix_url("//vs.youmaker.com/assets")
 
-    def _extract_subtitles(self, system_id=None):
+    def _get_subtitles(self, system_id=None):
         subtitles = {}
 
         if system_id is None:
@@ -140,5 +140,5 @@ class YouMakerIE(InfoExtractor):
             "channel_url": info["channel_url"],
             "thumbnail": info.get("thumbmail_path"),
             "view_count": info.get("click"),
-            "subtitles": self._extract_subtitles(info.get("system_id")),
+            "subtitles": self.extract_subtitles(info.get("system_id")),
         }
