@@ -33,6 +33,7 @@ class YouMakerIE(InfoExtractor):
                     "как сшить детскую шапочку из трикотажа",
                     "как шить двойной иглой трикотаж",
                 ],
+                "categories": ["Life", "How-to & DIY"],
             },
             "params": {
                 "skip_download": True,
@@ -89,6 +90,25 @@ class YouMakerIE(InfoExtractor):
             self.__cache[key] = data
 
         return data
+
+    def _categories_by_id(self, cid):
+        category_map = self.__cache.get("category_map")
+        if category_map is None:
+            category_list = self._api(
+                "video/category/list", note="Downloading categories"
+            )
+            category_map = {item["category_id"]: item for item in category_list}
+            self.__cache["category_map"] = category_map
+
+        categories = []
+        while True:
+            item = category_map.get(cid)
+            if item is None or item["category_name"] in categories:
+                break
+            categories.insert(0, item["category_name"])
+            cid = item["parent_category_id"]
+
+        return categories
 
     def _get_subtitles(self, system_id):
         try:
@@ -165,6 +185,7 @@ class YouMakerIE(InfoExtractor):
             "upload_date": unified_strdate(info.get("uploaded_at")),
             "uploader": info.get("uploaded_by"),
             "duration": duration,
+            "categories": self._categories_by_id(info.get("category_id")),
             "tags": tags,
             "channel": info.get("channel_name"),
             "channel_id": info.get("channel_uid"),
