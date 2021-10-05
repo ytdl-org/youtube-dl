@@ -2,7 +2,7 @@
 from __future__ import unicode_literals
 
 from .common import InfoExtractor
-from .. import utils
+from ..utils import parse_iso8601, unified_strdate, ExtractorError
 
 
 class YouMakerIE(InfoExtractor):
@@ -93,7 +93,7 @@ class YouMakerIE(InfoExtractor):
 
         status = info.get("status", "something went wrong")
         if status != "ok":
-            raise utils.ExtractorError(status, expected=True)
+            raise ExtractorError(status, expected=True)
 
         info = info["data"]
         info["tags"] = [
@@ -130,8 +130,8 @@ class YouMakerIE(InfoExtractor):
             "title": info["title"],
             "description": info["description"],
             "formats": formats,
-            "timestamp": utils.parse_iso8601(info["uploaded_at"]),
-            "upload_date": utils.unified_strdate(info["uploaded_at"]),
+            "timestamp": parse_iso8601(info["uploaded_at"]),
+            "upload_date": unified_strdate(info["uploaded_at"]),
             "uploader": info.get("uploaded_by"),
             "duration": duration,
             "tags": info["tags"],
