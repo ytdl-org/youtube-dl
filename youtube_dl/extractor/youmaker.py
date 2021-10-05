@@ -116,15 +116,25 @@ class YouMakerIE(InfoExtractor):
             "video/metadata/%s" % self.__video_id, note="Downloading video metadata"
         )
 
-        info["tags"] = [
-            tag.strip() for tag in info.get("tag", "").strip("[]").split(",") if tag
-        ]
-        info["channel_url"] = (
+        # check some dictionary keys so it's safe to use them
+        mandatory_keys = {"video_uid", "title", "data"}
+        missing_keys = mandatory_keys - set(info.keys())
+        if missing_keys:
+            raise ExtractorError("Missing video metadata: %s" % ", ".join(missing_keys))
+
+        tag_str = info.get("tag")
+        if tag_str:
+            tags = [tag.strip() for tag in tag_str.strip("[]").split(",")]
+        else:
+            tags = None
+
+        channel_url = (
             "%s/channel/%s" % (self._base_url, info["channel_uid"])
             if "channel_uid" in info
             else None
         )
-        video_info = info.get("data", {})
+
+        video_info = info["data"]  # asserted before
         duration = video_info.get("duration")
 
         formats = []
@@ -147,18 +157,18 @@ class YouMakerIE(InfoExtractor):
                     item["filesize_approx"] = 128 * item["tbr"] * duration
 
         return {
-            "id": info["video_uid"],
-            "title": info["title"],
-            "description": info["description"],
+            "id": info["video_uid"],  # asserted before
+            "title": info["title"],  # asserted before
+            "description": info.get("description"),
             "formats": formats,
-            "timestamp": parse_iso8601(info["uploaded_at"]),
-            "upload_date": unified_strdate(info["uploaded_at"]),
+            "timestamp": parse_iso8601(info.get("uploaded_at")),
+            "upload_date": unified_strdate(info.get("uploaded_at")),
             "uploader": info.get("uploaded_by"),
             "duration": duration,
-            "tags": info["tags"],
+            "tags": tags,
             "channel": info.get("channel_name"),
             "channel_id": info.get("channel_uid"),
-            "channel_url": info["channel_url"],
+            "channel_url": channel_url,
             "thumbnail": info.get("thumbmail_path"),
             "view_count": info.get("click"),
             "subtitles": self.extract_subtitles(info.get("system_id")),
