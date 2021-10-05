@@ -70,9 +70,11 @@ class YouMakerIE(InfoExtractor):
 
     def _api(self, path, cache=False, **kwargs):
         """
-        call the YouMaker JSON API and return the data
+        call the YouMaker JSON API and return the data object
+        otherwise raises ExtractorError
 
         path:       API endpoint
+        cache:      if True, use cached result on multiple calls
         **kwargs:   parameters passed to _download_json()
         """
         key = hash((path, compat_urllib_parse_urlencode(kwargs.get("query", {}))))
