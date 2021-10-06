@@ -1,6 +1,8 @@
 # coding: utf-8
 from __future__ import unicode_literals
 
+import re
+
 from .common import InfoExtractor
 from ..compat import compat_urllib_parse_urlencode
 from ..utils import parse_iso8601, unified_strdate, ExtractorError
@@ -8,7 +10,7 @@ from ..utils import parse_iso8601, unified_strdate, ExtractorError
 
 class YouMakerIE(InfoExtractor):
     _VALID_URL = r"""(?x)
-                    https?://(?:www\.)?youmaker\.com/
+                    (?P<protocol>https?)://(?:www\.)?youmaker\.com/
                     (?:v|video|embed)/
                     (?P<id>[0-9a-zA-Z-]+)
                     """
@@ -45,13 +47,15 @@ class YouMakerIE(InfoExtractor):
         """Constructor. Receives an optional downloader."""
         super(YouMakerIE, self).__init__(downloader=downloader)
         self.__protocol = "https"
-        self.__video_id = None
         self.__cache = {}
 
-    def _set_id_and_protocol(self, url):
-        self.__video_id = self._match_id(url)
-        if url.startswith("http://"):
-            self.__protocol = "http"
+    @classmethod
+    def _match_url(cls, url):
+        if "_VALID_URL_RE" not in cls.__dict__:
+            cls._VALID_URL_RE = re.compile(cls._VALID_URL)
+        match = cls._VALID_URL_RE.match(url)
+        assert match
+        return match.groupdict()
 
     def _fix_url(self, url):
         if url.startswith("//"):
@@ -68,7 +72,7 @@ class YouMakerIE(InfoExtractor):
         # it needs to be extracted from some js magic...
         return self._fix_url("//vs.youmaker.com/assets")
 
-    def _api(self, path, cache=False, **kwargs):
+    def _api(self, uid, path, cache=False, **kwargs):
         """
         call the YouMaker JSON API and return the data object
         otherwise raises ExtractorError
@@ -82,11 +86,11 @@ class YouMakerIE(InfoExtractor):
             return self.__cache[key]
 
         url = "%s/v1/api/%s" % (self._base_url, path)
-        info = self._download_json(url, self.__video_id, **kwargs)
+        info = self._download_json(url, uid, **kwargs)
         status = info.get("status", "something went wrong")
         data = info.get("data")
         if status != "ok" or data is None:
-            raise ExtractorError(status, expected=True)
+            raise ExtractorError(status, video_id=uid, expected=True)
 
         if cache:
             self.__cache[key] = data
@@ -97,7 +101,7 @@ class YouMakerIE(InfoExtractor):
         category_map = self.__cache.get("category_map")
         if category_map is None:
             category_list = self._api(
-                "video/category/list", note="Downloading categories"
+                "JSON API", "video/category/list", note="Downloading categories"
             )
             category_map = {item["category_id"]: item for item in category_list}
             self.__cache["category_map"] = category_map
@@ -116,6 +120,7 @@ class YouMakerIE(InfoExtractor):
         try:
             assert system_id is not None
             subs_list = self._api(
+                system_id,
                 "video/subtitle",
                 note="checking for subtitles",
                 query={"systemid": system_id},
@@ -131,19 +136,14 @@ class YouMakerIE(InfoExtractor):
 
         return subtitles
 
-    def _real_extract(self, url):
-        self._set_id_and_protocol(url)
-
-        info = self._api(
-            "video/metadata/%s" % self.__video_id, note="Downloading video metadata"
-        )
-
+    def _video_entry(self, info):
         # check some dictionary keys so it's safe to use them
         mandatory_keys = {"video_uid", "title", "data"}
         missing_keys = mandatory_keys - set(info.keys())
         if missing_keys:
             raise ExtractorError("Missing video metadata: %s" % ", ".join(missing_keys))
 
+        video_uid = info["video_uid"]
         tag_str = info.get("tag")
         if tag_str:
             tags = [tag.strip() for tag in tag_str.strip("[]").split(",")]
@@ -166,20 +166,28 @@ class YouMakerIE(InfoExtractor):
             formats.extend(
                 self._extract_m3u8_formats(
                     self._fix_url(playlist),
-                    self.__video_id,
+                    video_uid,
                     ext="mp4",
+                    fatal=False,
+                    errnote="%s (playlist.m3u8)" % video_uid,
                 )
             )
 
-        if formats:
-            self._sort_formats(formats)
-            for item in formats:
-                item["format_id"] = "hls-%dp" % item["height"]
-                if duration and item.get("tbr"):
-                    item["filesize_approx"] = 128 * item["tbr"] * duration
+        if not formats:
+            raise ExtractorError(
+                "No video formats found!", video_id=video_uid, expected=True
+            )
+
+        self._sort_formats(formats)
+        for item in formats:
+            if "height" not in item:
+                continue
+            item["format_id"] = "hls-%dp" % item["height"]
+            if duration and item.get("tbr"):
+                item["filesize_approx"] = 128 * item["tbr"] * duration
 
         return {
-            "id": info["video_uid"],  # asserted before
+            "id": video_uid,
             "title": info["title"],  # asserted before
             "description": info.get("description"),
             "formats": formats,
@@ -196,3 +204,129 @@ class YouMakerIE(InfoExtractor):
             "view_count": info.get("click"),
             "subtitles": self.extract_subtitles(info.get("system_id")),
         }
+
+    def _real_extract(self, url):
+        url_info = self._match_url(url)
+        self.__protocol = url_info["protocol"]
+        info = self._api(
+            url_info["id"],
+            "video/metadata/%s" % url_info["id"],
+            note="Downloading video metadata",
+        )
+
+        return self._video_entry(info)
+
+
+class YouMakerPlaylistIE(YouMakerIE):
+    _VALID_URL = r"""(?x)
+                    (?P<protocol>https?)://(?:www\.)?youmaker\.com/
+                    (?:channel)/(?P<channel_id>[0-9a-zA-Z-]+)
+                    (?:/playlists/(?P<playlist_id>[0-9a-zA-Z-]+))?
+                    """
+    _TESTS = [
+        {
+            # all videos from channel
+            "url": "http://www.youmaker.com/channel/f06b2e8d-219e-4069-9003-df343ac5fcf3",
+            "info_dict": {
+                "id": "f06b2e8d-219e-4069-9003-df343ac5fcf3",
+                "title": "YoYo Cello",
+                "description": "Connect the World Through Music. \nConnect Our Hearts with Music.",
+            },
+            "playlist_mincount": 30,
+            "params": {
+                "nocheckcertificate": True,
+            },
+        },
+        {
+            # all videos from channel playlist
+            "url": "https://www.youmaker.com/channel/f8d585f8-2ff7-4c3c-b1ea-a78d77640d54/"
+            "playlists/f99a120c-7a5e-47b2-9235-3817d1c12662",
+            "info_dict": {
+                "id": "f99a120c-7a5e-47b2-9235-3817d1c12662",
+                "title": "Mini Cakes",
+            },
+            "playlist_mincount": 9,
+            "params": {
+                "nocheckcertificate": True,
+            },
+        },
+    ]
+
+    def _channel_entries(self, channel_uid, request_limit=50):
+        offset = 0
+
+        while True:
+            info = self._api(
+                channel_uid,
+                path="video/channel/%s" % channel_uid,
+                query={"offset": offset, "limit": request_limit},
+                note="Downloading video metadata (%d-%d)" % (offset, offset + request_limit),
+            )
+            offset += request_limit
+            for item in info:
+                try:
+                    entry = self._video_entry(item)
+                except ExtractorError as exc:
+                    self.report_warning(str(exc))
+                    continue
+                yield entry
+
+            if len(info) < request_limit:
+                break
+
+    def _playlist_entries(self, playlist_uid, request_limit=50):
+        video_extractor = YouMakerIE(downloader=self._downloader)
+        offset = 0
+
+        while True:
+            info = self._api(
+                playlist_uid,
+                path="playlist/video",
+                query={"playlist_uid": playlist_uid, "offset": offset, "limit": request_limit},
+                note="Downloading video metadata (%d-%d)" % (offset, offset + request_limit),
+            )
+            offset += request_limit
+            for item in info:
+                url = "%s/video/%s" % (self._base_url, item["video_uid"])
+                try:
+                    entry = video_extractor._real_extract(url)
+                except ExtractorError as exc:
+                    self.report_warning(str(exc))
+                    continue
+                yield entry
+
+            if len(info) < request_limit:
+                break
+
+    def _real_extract(self, url):
+        url_info = self._match_url(url)
+        self.__protocol = url_info["protocol"]
+
+        if url_info["playlist_id"] is not None:
+            info = self._api(
+                url_info["playlist_id"],
+                "playlist/%s" % url_info["playlist_id"],
+                note="Downloading playlist metadata",
+            )
+            return self.playlist_result(
+                self._playlist_entries(
+                    info["playlist_uid"],
+                ),
+                playlist_id=info["playlist_uid"],
+                playlist_title=info.get("name"),
+                playlist_description=None,
+            )
+
+        # otherwise provide all channel videos
+        info = self._api(
+            url_info["channel_id"],
+            "video/channel/metadata/%s" % url_info["channel_id"],
+            note="Downloading channel metadata",
+        )
+
+        return self.playlist_result(
+            self._channel_entries(info["channel_uid"]),
+            playlist_id=info["channel_uid"],
+            playlist_title=info.get("name"),
+            playlist_description=info.get("description"),
+        )

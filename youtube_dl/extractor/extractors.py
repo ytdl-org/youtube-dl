@@ -1589,7 +1589,7 @@ from .youku import (
     YoukuIE,
     YoukuShowIE,
 )
-from .youmaker import YouMakerIE
+from .youmaker import YouMakerIE, YouMakerPlaylistIE
 from .younow import (
     YouNowLiveIE,
     YouNowChannelIE,
