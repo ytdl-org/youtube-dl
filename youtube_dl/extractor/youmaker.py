@@ -72,6 +72,9 @@ class YouMakerIE(InfoExtractor):
         # it needs to be extracted from some js magic...
         return self._fix_url("//vs.youmaker.com/assets")
 
+    def _live_url(self, video_id):
+        return self._fix_url("//live.youmaker.com/%s/playlist.m3u8" % video_id)
+
     def _api(self, uid, path, cache=False, **kwargs):
         """
         call the YouMaker JSON API and return the data object
@@ -158,9 +161,14 @@ class YouMakerIE(InfoExtractor):
 
         video_info = info["data"]  # asserted before
         duration = video_info.get("duration")
-
         formats = []
-        playlist = video_info.get("videoAssets", {}).get("Stream")
+
+        if info.get("live") and info.get("live_status") == "start":
+            is_live = True
+            playlist = self._live_url(video_uid)
+        else:
+            is_live = False
+            playlist = video_info.get("videoAssets", {}).get("Stream")
 
         if playlist:
             formats.extend(
@@ -191,6 +199,7 @@ class YouMakerIE(InfoExtractor):
             "title": info["title"],  # asserted before
             "description": info.get("description"),
             "formats": formats,
+            "is_live": is_live,
             "timestamp": parse_iso8601(info.get("uploaded_at")),
             "upload_date": unified_strdate(info.get("uploaded_at")),
             "uploader": info.get("uploaded_by"),
@@ -260,7 +269,8 @@ class YouMakerPlaylistIE(YouMakerIE):
                 channel_uid,
                 path="video/channel/%s" % channel_uid,
                 query={"offset": offset, "limit": request_limit},
-                note="Downloading video metadata (%d-%d)" % (offset, offset + request_limit),
+                note="Downloading video metadata (%d-%d)"
+                % (offset, offset + request_limit),
             )
             offset += request_limit
             for item in info:
@@ -282,8 +292,13 @@ class YouMakerPlaylistIE(YouMakerIE):
             info = self._api(
                 playlist_uid,
                 path="playlist/video",
-                query={"playlist_uid": playlist_uid, "offset": offset, "limit": request_limit},
-                note="Downloading video metadata (%d-%d)" % (offset, offset + request_limit),
+                query={
+                    "playlist_uid": playlist_uid,
+                    "offset": offset,
+                    "limit": request_limit,
+                },
+                note="Downloading video metadata (%d-%d)"
+                % (offset, offset + request_limit),
             )
             offset += request_limit
             for item in info:
