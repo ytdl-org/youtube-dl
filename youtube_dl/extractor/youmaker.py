@@ -15,9 +15,51 @@ from ..compat import (
 from ..utils import parse_iso8601, unified_strdate, ExtractorError, try_get
 
 
+class ParsedURL(object):
+    """
+    This class provides a unified interface for urlparse(),
+    parse_qsl() and regular expression groups
+    """
+
+    def __init__(self, url, regex=None):
+        self._match = None
+        self._groups = {}
+        self._query = query = {}
+        self._parts = parts = compat_urllib_parse_urlparse(url)
+
+        for key, value in compat_urlparse.parse_qsl(parts.query):
+            query[key] = int(value) if value.isdigit() else value
+
+        if regex:
+            self._match = re.match(regex, url)
+            assert self._match, "regex does not match url"
+
+    def __getattr__(self, item):
+        """
+        forward the attributes from urlparse.ParsedResult
+        thus providing scheme, netloc, url, params, fragment
+
+        note that .query is shadowed by a different method
+        """
+        return getattr(self._parts, item)
+
+    def query(self, key=None, default=None):
+        if key is None:
+            return dict(self._query)
+
+        return self._query.get(key, default)
+
+    def regex_group(self, key=None):
+        assert self._match, "no regex provided"
+        if key is None:
+            return self._match.groupdict()
+
+        return self._match.group(key)
+
+
 class YouMakerIE(InfoExtractor):
     _VALID_URL = r"""(?x)
-                    (?P<protocol>https?)://(?:www\.)?youmaker\.com/
+                    https?://(?:[a-z][a-z0-9]+\.)?youmaker\.com/
                     (?:v|video|embed)/
                     (?P<id>[0-9a-zA-Z-]+)
                     """
@@ -56,14 +98,6 @@ class YouMakerIE(InfoExtractor):
         self.__protocol = "https"
         self.__cache = {}
 
-    @classmethod
-    def _match_url(cls, url):
-        if "_VALID_URL_RE" not in cls.__dict__:
-            cls._VALID_URL_RE = re.compile(cls._VALID_URL)
-        match = cls._VALID_URL_RE.match(url)
-        assert match
-        return match.groupdict()
-
     def _fix_url(self, url):
         if url.startswith("//"):
             return "%s:%s" % (self.__protocol, url)
@@ -88,7 +122,7 @@ class YouMakerIE(InfoExtractor):
 
         path:       API endpoint
         cache:      if True, use cached result on multiple calls
-        what:       query decription
+        what:       query description
         fatal:      if True might raise ExtractorError otherwise warn and return None
         **kwargs:   parameters passed to _download_json()
         """
@@ -252,11 +286,13 @@ class YouMakerIE(InfoExtractor):
         }
 
     def _real_extract(self, url):
-        url_info = self._match_url(url)
-        self.__protocol = url_info["protocol"]
+        parsed_url = ParsedURL(url, regex=self._VALID_URL)
+        self.__protocol = parsed_url.scheme
+        uid = parsed_url.regex_group("id")
+
         info = self._call_api(
-            url_info["id"],
-            "video/metadata/%s" % url_info["id"],
+            uid,
+            "video/metadata/%s" % uid,
             what="video metadata",
         )
 
@@ -265,7 +301,7 @@ class YouMakerIE(InfoExtractor):
 
 class YouMakerPlaylistIE(YouMakerIE):
     _VALID_URL = r"""(?x)
-                    https?://(?:www\.)?youmaker\.com/
+                    https?://(?:[a-z][a-z0-9]+\.)?youmaker\.com/
                     (?:channel|playlist)/(?P<id>[0-9a-zA-Z-]+)
                     """
     _TESTS = [
@@ -295,11 +331,24 @@ class YouMakerPlaylistIE(YouMakerIE):
                 "nocheckcertificate": True,
             },
         },
+        {
+            # check using search keywords, we take something that does not match any videos
+            "url": "https://www.youmaker.com/channel/40ca79f7-8b21-477f-adba-7d0f81e5b5fd?channel_keyword=nomatch",
+            "info_dict": {
+                "id": "40ca79f7-8b21-477f-adba-7d0f81e5b5fd",
+                "title": "Sewing Ideas",
+                "description": r"re:Добро пожаловать на канал Швейные Идеи! .*",
+            },
+            "playlist_count": 0,
+            "params": {
+                "nocheckcertificate": True,
+            },
+        },
     ]
 
     def _channel_entries(self, _channel_uid, api_path, **api_params):
         request_limit = 50
-        offset = int(api_params.get("offset", 0))
+        offset = api_params.get("offset", 0)
 
         while True:
             api_params.update({"offset": offset, "limit": request_limit})
@@ -350,7 +399,7 @@ class YouMakerPlaylistIE(YouMakerIE):
                 break
 
     def _real_extract(self, url):
-        parsed_url = compat_urllib_parse_urlparse(url)
+        parsed_url = ParsedURL(url)
         self.__protocol = parsed_url.scheme
 
         playlist_matches = (
@@ -404,19 +453,19 @@ class YouMakerPlaylistIE(YouMakerIE):
                 playlist_description=info.get("description"),
             )
 
-        query = dict(compat_urlparse.parse_qsl(parsed_url.query))
-        if "keywords" in query:
+        keywords = parsed_url.query("channel_keyword")
+        if keywords:
             # filter by keywords
             api_path = "video/search"
             params = {
-                "keywords": query["keywords"],
+                "keywords": keywords,
                 "channel_uid": uid,
-                "order": query.get("order", 1),
+                "order": parsed_url.query("order", 1),
             }
         else:
             # return all channel entries
             api_path = "video/channel/%s" % uid
-            params = {"offset": query.get("offset", 0)}
+            params = {"offset": parsed_url.query("offset", 0)}
 
         return self.playlist_result(
             self._channel_entries(uid, api_path=api_path, **params),
