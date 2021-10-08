@@ -275,6 +275,7 @@ class YoumakerIE(InfoExtractor):
                     self._fix_url(playlist),
                     video_uid,
                     ext="mp4",
+                    entry_protocol="m3u8" if is_live else "m3u8_native",
                     note="Downloading %s" % playlist_name,
                     errnote="%s (%s)" % (video_uid, playlist_name),
                     fatal=False,
@@ -290,11 +291,12 @@ class YoumakerIE(InfoExtractor):
 
         self._sort_formats(formats)
         for item in formats:
-            if "height" not in item:
-                continue
-            item["format_id"] = "hls-%dp" % item["height"]
-            if duration and item.get("tbr"):
-                item["filesize_approx"] = 128 * item["tbr"] * duration
+            height = try_get(item, itemgetter("height"), int)
+            if height:
+                item["format_id"] = "%dp" % item["height"]
+            tbr = try_get(item, itemgetter("tbr"), (int, float))
+            if duration and tbr:
+                item["filesize_approx"] = 128 * tbr * duration
 
         return {
             "id": video_uid,
