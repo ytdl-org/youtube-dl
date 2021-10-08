@@ -155,22 +155,30 @@ class YouMakerIE(InfoExtractor):
 
         return data
 
-    def _categories_by_id(self, cid):
+    @property
+    def _category_map(self):
         category_map = self.__cache.get("category_map")
-        if category_map is None:
-            category_list = (
-                self._call_api(
-                    None,
-                    "video/category/list",
-                    what="categories",
-                    fatal=False,
-                )
-                or ()
+        if category_map is not None:
+            return category_map
+        category_list = (
+            self._call_api(
+                None,
+                "video/category/list",
+                what="categories",
+                fatal=False,
             )
-            category_map = {item["category_id"]: item for item in category_list}
-            self.__cache["category_map"] = category_map
+            or ()
+        )
+        category_map = {item["category_id"]: item for item in category_list}
+        self.__cache["category_map"] = category_map
+        return category_map
 
+    def _categories_by_id(self, cid):
         categories = []
+        if cid is None:
+            return categories
+
+        category_map = self._category_map
         while True:
             item = category_map.get(cid)
             if item is None or item["category_name"] in categories:
