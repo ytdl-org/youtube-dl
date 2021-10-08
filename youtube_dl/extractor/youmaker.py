@@ -125,6 +125,14 @@ class YoumakerIE(InfoExtractor):
         self._protocol = "https"
         self._category_map = None
 
+    @staticmethod
+    def _extract_url(webpage):
+        match = re.search(
+            r'<iframe[^>]+src="(?P<url>https?://(?:www\.)?youmaker\.com/embed/[0-9a-zA-Z-]+)[^"]*"',
+            webpage,
+        )
+        return match.group("url") if match else None
+
     def _fix_url(self, url):
         if url.startswith("//"):
             return "%s:%s" % (self._protocol, url)

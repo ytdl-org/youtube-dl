@@ -130,6 +130,7 @@ from .kinja import KinjaEmbedIE
 from .arcpublishing import ArcPublishingIE
 from .medialaan import MedialaanIE
 from .simplecast import SimplecastIE
+from .youmaker import YoumakerIE
 
 
 class GenericIE(InfoExtractor):
@@ -2228,6 +2229,24 @@ class GenericIE(InfoExtractor):
             'url': 'https://phpbb3.x-tk.ru/bbcode-video-sibnet-t24.html',
             'only_matching': True,
         },
+        {
+            # Youmaker Embed
+            'url': 'https://www.epochtimes.de/politik/deutschland/kommunismus-schleicht-sich-in-die-gesellschaft-a3611606.html',
+            'info_dict': {
+                'id': 'ce7f89dd-0612-401b-96be-662a6d41604b',
+                'ext': 'mp4',
+                'title': 'Unter dem Kommunismus zu Tode verurteilt: Interview mit Oberstaatsanwalt a.D. Daniel Trappe',
+                'description': r're:Oberstaatsanwalt a\.D\. Daniel Friedmann Trappe floh 1973 aus dem kommunistischen Ungarn\. .*',
+                'uploader': 'Deepochtimes',
+                'timestamp': 1633539668,
+                'upload_date': '20211006',
+                'duration': 1488,
+            },
+            "params": {
+                "skip_download": True,
+                "nocheckcertificate": True,
+            },
+        },
     ]
 
     def report_following_redirect(self, new_url):
@@ -2626,6 +2645,11 @@ class GenericIE(InfoExtractor):
             webpage, 'vid.me embed', default=None)
         if vid_me_embed_url is not None:
             return self.url_result(vid_me_embed_url, 'Vidme')
+
+        # Look for Youmaker embeds
+        youmaker_url = YoumakerIE._extract_url(webpage)
+        if youmaker_url:
+            return self.url_result(youmaker_url, ie=YoumakerIE.ie_key())
 
         # Look for YouTube embeds
         youtube_urls = YoutubeIE._extract_urls(webpage)
