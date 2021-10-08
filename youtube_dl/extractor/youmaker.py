@@ -3,6 +3,7 @@ from __future__ import unicode_literals
 
 import os.path
 import re
+from collections import Sequence
 from operator import itemgetter
 
 from .common import InfoExtractor
@@ -11,7 +12,7 @@ from ..compat import (
     compat_urlparse,
     compat_str,
 )
-from ..utils import parse_iso8601, unified_strdate, ExtractorError, try_get
+from ..utils import parse_iso8601, ExtractorError, try_get
 
 
 class ParsedURL(object):
@@ -315,56 +316,60 @@ class YoumakerIE(InfoExtractor):
 
         return self._video_entry_by_metadata(info)
 
-    def _iter_playlist(self, uid):
-        offset = 0
-
+    def _iter_request(
+        self, uid, path, what=None, query=None, offset=0, request_limit=REQUEST_LIMIT
+    ):
+        api_query = dict(query or ())
         while True:
+            api_query.update({"offset": offset, "limit": request_limit})
             info = self._call_api(
                 uid,
-                path="playlist/video",
-                what="playlist entries",
-                query={
-                    "playlist_uid": uid,
-                    "offset": offset,
-                    "limit": self.REQUEST_LIMIT,
-                },
+                path=path,
+                what=what,
+                query=api_query,
             )
-            offset += self.REQUEST_LIMIT
-            for item in info:
-                try:
-                    entry = self._video_entry_by_id(item["video_uid"])
-                except ExtractorError as exc:
-                    self.report_warning(exc)
-                    continue
-                yield entry
+            if not isinstance(info, Sequence):
+                raise ExtractorError("Unexpected %s" % what, uid, expected=False)
 
-            if len(info) < self.REQUEST_LIMIT:
+            for item in info:
+                yield item
+
+            offset += request_limit
+            if len(info) < request_limit:
                 break
+
+    def _iter_playlist(self, uid):
+        request = self._iter_request(
+            uid,
+            path="playlist/video",
+            what="playlist entries",
+            query={
+                "playlist_uid": uid,
+            },
+        )
+
+        for item in request:
+            try:
+                entry = self._video_entry_by_id(item["video_uid"])
+            except ExtractorError as exc:
+                self.report_warning(exc)
+                continue
+            yield entry
 
     def _iter_channel(self, uid):
-        offset = 0
+        request = self._iter_request(
+            uid,
+            path="video/channel/%s" % uid,
+            what="channel entries",
+        )
 
-        while True:
-            info = self._call_api(
-                uid=uid,
-                path="video/channel/%s" % uid,
-                what="channel entries",
-                query={
-                    "offset": offset,
-                    "limit": self.REQUEST_LIMIT,
-                },
-            )
-            offset += self.REQUEST_LIMIT
-            for item in info:
-                try:
-                    entry = self._video_entry_by_metadata(item)
-                except ExtractorError as exc:
-                    self.report_warning(exc)
-                    continue
-                yield entry
-
-            if len(info) < self.REQUEST_LIMIT:
-                break
+        for item in request:
+            try:
+                entry = self._video_entry_by_metadata(item)
+            except ExtractorError as exc:
+                self.report_warning(exc)
+                continue
+            yield entry
 
     def _playlist_entries_by_id(self, uid):
         info = self._call_api(
@@ -397,9 +402,8 @@ class YoumakerIE(InfoExtractor):
         )
 
     def _real_extract(self, url):
-        parsed_url = ParsedURL(url, regex=self._VALID_URL)
+        parsed_url = ParsedURL(url)
         self._protocol = parsed_url.scheme
-        _ = self._category_map  # preload categories
 
         dispatch = (
             (r"/(?:v|video|embed)/(?P<uid>[a-zA-z0-9-]+)", self._video_entry_by_id),
@@ -416,6 +420,4 @@ class YoumakerIE(InfoExtractor):
                 continue
             return func(**match.groupdict())
         else:
-            raise ExtractorError(
-                "unsupported url", video_id=self.ie_key(), expected=True
-            )
+            raise ExtractorError("unsupported %s url" % self.ie_key(), expected=True)
