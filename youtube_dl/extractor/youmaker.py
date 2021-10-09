@@ -12,7 +12,7 @@ from ..compat import (
     compat_urlparse,
     compat_str,
 )
-from ..utils import parse_iso8601, ExtractorError, try_get
+from ..utils import parse_iso8601, ExtractorError, try_get, OnDemandPagedList
 
 
 class ParsedURL(object):
@@ -327,61 +327,52 @@ class YoumakerIE(InfoExtractor):
 
         return self._video_entry_by_metadata(info)
 
-    def _iter_request(
-        self, uid, path, what=None, query=None, offset=0, request_limit=REQUEST_LIMIT
-    ):
-        api_query = dict(query or ())
-        while True:
-            api_query.update({"offset": offset, "limit": request_limit})
+    def _paged_playlist_entries(self, uid, page_size=REQUEST_LIMIT):
+        def fetch_page(page_number):
+            offset = page_number * page_size
             info = self._call_api(
                 uid,
-                path=path,
-                what=what,
-                query=api_query,
+                path="playlist/video",
+                what="playlist entries %d-%d" % (offset + 1, offset + page_size),
+                query={"playlist_uid": uid, "offset": offset, "limit": page_size},
             )
             if not isinstance(info, Sequence):
-                raise ExtractorError("Unexpected %s" % what, uid, expected=False)
+                raise ExtractorError("Unexpected playlist entries", uid, expected=False)
 
             for item in info:
-                yield item
+                yield self.url_result(
+                    "%s/video/%s" % (self._base_url, item["video_uid"]),
+                    ie=self.ie_key(),
+                    video_id=item["video_uid"],
+                    video_title=item["video_title"],
+                )
 
-            offset += request_limit
-            if len(info) < request_limit:
-                break
+        _ = self._categories  # preload categories
+        return OnDemandPagedList(fetch_page, page_size)
 
-    def _iter_playlist(self, uid):
-        request = self._iter_request(
-            uid,
-            path="playlist/video",
-            what="playlist entries",
-            query={
-                "playlist_uid": uid,
-            },
-        )
-
-        for item in request:
-            yield self.url_result(
-                "%s/video/%s" % (self._base_url, item["video_uid"]),
-                ie=self.ie_key(),
-                video_id=item["video_uid"],
-                video_title=item["video_title"],
+    def _paged_channel_entries(self, uid, page_size=REQUEST_LIMIT):
+        def fetch_page(page_number):
+            offset = page_number * page_size
+            info = self._call_api(
+                uid,
+                path="video/channel/%s" % uid,
+                what="channel entries %d-%d" % (offset + 1, offset + page_size),
+                query={"offset": offset, "limit": page_size},
             )
+            if not isinstance(info, Sequence):
+                raise ExtractorError("Unexpected channel entries", uid, expected=False)
 
-    def _iter_channel(self, uid):
-        request = self._iter_request(
-            uid,
-            path="video/channel/%s" % uid,
-            what="channel entries",
-        )
+            for item in info:
+                self._cache[item["video_uid"]] = item
+                yield self.url_result(
+                    "%s/video/%s" % (self._base_url, item["video_uid"]),
+                    ie=self.ie_key(),
+                    video_id=item["video_uid"],
+                    video_title=item["title"],
+                )
 
-        for item in request:
-            self._cache[item["video_uid"]] = item
-            yield self.url_result(
-                "%s/video/%s" % (self._base_url, item["video_uid"]),
-                ie=self.ie_key(),
-                video_id=item["video_uid"],
-                video_title=item["title"],
-            )
+        _ = self._categories  # preload categories
+        return OnDemandPagedList(fetch_page, page_size)
 
     def _playlist_entries_by_id(self, uid):
         _ = self._categories  # preload categories
@@ -391,7 +382,7 @@ class YoumakerIE(InfoExtractor):
             what="playlist metadata",
         )
         return self.playlist_result(
-            self._iter_playlist(
+            self._paged_playlist_entries(
                 info["playlist_uid"],
             ),
             playlist_id=info["playlist_uid"],
@@ -407,7 +398,7 @@ class YoumakerIE(InfoExtractor):
             what="channel metadata",
         )
         return self.playlist_result(
-            self._iter_channel(
+            self._paged_channel_entries(
                 info["channel_uid"],
             ),
             playlist_id=info["channel_uid"],
