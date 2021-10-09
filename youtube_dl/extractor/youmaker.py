@@ -124,6 +124,7 @@ class YoumakerIE(InfoExtractor):
         super(YoumakerIE, self).__init__(downloader=downloader)
         self._protocol = "https"
         self._category_map = None
+        self._cache = {}
 
     @staticmethod
     def _extract_url(webpage):
@@ -318,7 +319,7 @@ class YoumakerIE(InfoExtractor):
         }
 
     def _video_entry_by_id(self, uid):
-        info = self._call_api(
+        info = self._cache.get(uid) or self._call_api(
             uid,
             "video/metadata/%s" % uid,
             what="video metadata",
@@ -359,12 +360,12 @@ class YoumakerIE(InfoExtractor):
         )
 
         for item in request:
-            try:
-                entry = self._video_entry_by_id(item["video_uid"])
-            except ExtractorError as exc:
-                self.report_warning(exc)
-                continue
-            yield entry
+            yield self.url_result(
+                "%s/video/%s" % (self._base_url, item["video_uid"]),
+                ie=self.ie_key(),
+                video_id=item["video_uid"],
+                video_title=item["video_title"],
+            )
 
     def _iter_channel(self, uid):
         request = self._iter_request(
@@ -374,14 +375,16 @@ class YoumakerIE(InfoExtractor):
         )
 
         for item in request:
-            try:
-                entry = self._video_entry_by_metadata(item)
-            except ExtractorError as exc:
-                self.report_warning(exc)
-                continue
-            yield entry
+            self._cache[item["video_uid"]] = item
+            yield self.url_result(
+                "%s/video/%s" % (self._base_url, item["video_uid"]),
+                ie=self.ie_key(),
+                video_id=item["video_uid"],
+                video_title=item["title"],
+            )
 
     def _playlist_entries_by_id(self, uid):
+        _ = self._categories  # preload categories
         info = self._call_api(
             uid,
             "playlist/%s" % uid,
@@ -397,6 +400,7 @@ class YoumakerIE(InfoExtractor):
         )
 
     def _channel_entries_by_id(self, uid):
+        _ = self._categories  # preload categories
         info = self._call_api(
             uid,
             path="video/channel/metadata/%s" % uid,
