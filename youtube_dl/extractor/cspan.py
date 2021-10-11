@@ -3,12 +3,14 @@ from __future__ import unicode_literals
 import os
 import re
 
-from .common import InfoExtractor, compat_str, compat_urllib_parse_unquote
-from .senateisvp import SenateISVPIE
-from .ustream import UstreamIE
+from .common import InfoExtractor
+from ..compat import (
+    compat_str,
+    compat_urllib_parse_unquote
+)
 from ..utils import (
-    ExtractorError,
     determine_ext,
+    ExtractorError,
     extract_attributes,
     find_xpath_attr,
     get_element_by_attribute,
@@ -21,6 +23,8 @@ from ..utils import (
     str_to_int,
     unescapeHTML,
 )
+from .senateisvp import SenateISVPIE
+from .ustream import UstreamIE
 
 
 class CSpanIE(InfoExtractor):
