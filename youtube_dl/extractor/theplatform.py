@@ -20,6 +20,7 @@ from ..utils import (
     float_or_none,
     int_or_none,
     sanitized_Request,
+    try_get,
     unsmuggle_url,
     update_url_query,
     xpath_with_ns,
@@ -33,6 +34,15 @@ _x = lambda p: xpath_with_ns(p, {'smil': default_ns})
 
 class ThePlatformBaseIE(OnceIE):
     _TP_TLD = 'com'
+
+    @classmethod
+    def _match_valid_url(cls, url):
+        # This does not use has/getattr intentionally - we want to know whether
+        # we have cached the regexp for *this* class, whereas getattr would also
+        # match the superclass
+        if '_VALID_URL_RE' not in cls.__dict__:
+            cls._VALID_URL_RE = re.compile(cls._VALID_URL)
+        return cls._VALID_URL_RE.match(url)
 
     def _extract_theplatform_smil(self, smil_url, video_id, note='Downloading SMIL data'):
         meta = self._download_xml(
@@ -238,7 +248,7 @@ class ThePlatformIE(ThePlatformBaseIE, AdobePassIE):
             'countries': smuggled_data.get('geo_countries'),
         })
 
-        mobj = re.match(self._VALID_URL, url)
+        mobj = self._match_valid_url(url)
         provider_id = mobj.group('provider_id')
         video_id = mobj.group('id')
 
@@ -338,6 +348,7 @@ class ThePlatformFeedIE(ThePlatformBaseIE):
             'categories': ['MSNBC/Issues/Democrats', 'MSNBC/Issues/Elections/Election 2016'],
             'uploader': 'NBCU-NEWS',
         },
+        'expected_warnings': ('Empty metadata',),
     }, {
         'url': 'http://feed.theplatform.com/f/2E2eJC/nnd_NBCNews?byGuid=nn_netcast_180306.Copy.01',
         'only_matching': True,
@@ -345,7 +356,11 @@ class ThePlatformFeedIE(ThePlatformBaseIE):
 
     def _extract_feed_info(self, provider_id, feed_id, filter_query, video_id, custom_fields=None, asset_types_query={}, account_id=None):
         real_url = self._URL_TEMPLATE % (self.http_scheme(), provider_id, feed_id, filter_query)
-        entry = self._download_json(real_url, video_id)['entries'][0]
+        entry = self._download_json(real_url, video_id)
+        entry = try_get(entry, lambda x: x['entries'][0], dict)
+        if not entry:
+            self.report_warning('Empty metadata', video_id)
+            return None
         main_smil_url = 'http://link.theplatform.com/s/%s/media/guid/%d/%s' % (provider_id, account_id, entry['guid']) if account_id else entry.get('plmedia$publicUrl')
 
         formats = []
@@ -404,7 +419,7 @@ class ThePlatformFeedIE(ThePlatformBaseIE):
         return ret
 
     def _real_extract(self, url):
-        mobj = re.match(self._VALID_URL, url)
+        mobj = self._match_valid_url(url)
 
         video_id = mobj.group('id')
         provider_id = mobj.group('provider_id')
