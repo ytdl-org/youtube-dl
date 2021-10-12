@@ -217,7 +217,6 @@ class RTVEAudioIE(RTVEALaCartaIE):
     }]
 
     def _extract_png_formats(self, audio_id):
-        print(__name__, self._manager, audio_id)
         png = self._download_webpage(
             'http://www.rtve.es/ztnr/movil/thumbnail/%s/audios/%s.png' %
             (self._manager, audio_id),
