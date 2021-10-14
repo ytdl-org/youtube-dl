@@ -96,7 +96,6 @@ class SonyLIVIE(InfoExtractor):
         episode = metadata.get('episodeTitle')
         if episode and title != episode:
             title += ' - ' + episode
-            
         subtitles = {}
         for subtitle in (content.get('subtitle') or []):
             base_url = subtitle.get('subtitleUrl')
