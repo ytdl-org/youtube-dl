@@ -96,6 +96,19 @@ class SonyLIVIE(InfoExtractor):
         episode = metadata.get('episodeTitle')
         if episode and title != episode:
             title += ' - ' + episode
+            
+        subtitles = {}
+        for subtitle in (content.get('subtitle') or []):
+            base_url = subtitle.get('subtitleUrl')
+            if not base_url:
+                continue
+            lang_code = subtitle.get('subtitleLanguageName')
+            if not lang_code:
+                continue
+            subtitles[lang_code] = [{
+                'ext': 'vtt',
+                'url': base_url,
+            }]
 
         return {
             'id': video_id,
@@ -109,4 +122,5 @@ class SonyLIVIE(InfoExtractor):
             'episode': episode,
             'episode_number': int_or_none(metadata.get('episodeNumber')),
             'release_year': int_or_none(metadata.get('year')),
+            'subtitles': subtitles
         }
