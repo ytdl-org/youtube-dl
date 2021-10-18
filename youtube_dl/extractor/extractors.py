@@ -71,6 +71,7 @@ from .arte import (
     ArteTVIE,
     ArteTVEmbedIE,
     ArteTVPlaylistIE,
+    ArteTVCategoryIE,
 )
 from .arnes import ArnesIE
 from .asiancrush import (
