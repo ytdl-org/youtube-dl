@@ -2806,8 +2806,8 @@ class YoutubeTabIE(YoutubeBaseInfoExtractor):
             self._entries(selected_tab, item_id, webpage),
             playlist_id=playlist_id, playlist_title=title,
             playlist_description=description,
-            playlist_view_count=view_count,
-            playlist_last_update=last_updated)
+            view_count=view_count,
+            last_update=last_updated)
         playlist.update(self._extract_uploader(data))
         return playlist
 
