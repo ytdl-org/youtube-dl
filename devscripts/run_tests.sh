@@ -14,9 +14,7 @@ case "$YTDL_TEST_SET" in
         test_set="-I test_(?!$DOWNLOAD_TESTS).+\.py"
         multiprocess_args="--processes=4 --process-timeout=540"
     ;;
-    *)
-        break
-    ;;
 esac
 
+# shellcheck disable=SC2086
 nosetests test --verbose $test_set $multiprocess_args
