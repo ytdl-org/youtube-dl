@@ -2797,7 +2797,6 @@ class YoutubeTabIE(YoutubeBaseInfoExtractor):
 
                 last_updated_text = try_get(stats, lambda x: x[2]['runs'][1]['text'])
                 last_updated = unified_strdate(last_updated_text)
-
             else:
                 renderer = try_get(
                     data, lambda x: x['header']['hashtagHeaderRenderer'], dict)
