@@ -2786,6 +2786,18 @@ class YoutubeTabIE(YoutubeBaseInfoExtractor):
             if renderer:
                 title = renderer.get('title')
                 description = renderer.get('description')
+
+                stats = try_get(
+                    data, lambda x: x['sidebar']['playlistSidebarRenderer']['items'][0]['playlistSidebarPrimaryInfoRenderer']['stats'])
+                view_count_text = try_get(
+                    stats, lambda x: x[1]['simpleText'], compat_str) or ''
+                view_count = str_to_int(self._search_regex(
+                    r'^([\d,]+)', re.sub(r'\s', '', view_count_text),
+                    'view count', default=None))
+
+                last_updated_text = try_get(stats, lambda x: x[2]['runs'][1]['text'])
+                last_updated = unified_strdate(last_updated_text)
+
             else:
                 renderer = try_get(
                     data, lambda x: x['header']['hashtagHeaderRenderer'], dict)
@@ -2794,7 +2806,9 @@ class YoutubeTabIE(YoutubeBaseInfoExtractor):
         playlist = self.playlist_result(
             self._entries(selected_tab, item_id, webpage),
             playlist_id=playlist_id, playlist_title=title,
-            playlist_description=description)
+            playlist_description=description,
+            playlist_view_count=view_count,
+            playlist_last_update=last_updated)
         playlist.update(self._extract_uploader(data))
         return playlist
 
