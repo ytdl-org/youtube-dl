@@ -38,6 +38,7 @@ from ..utils import (
     try_get,
     unescapeHTML,
     unified_strdate,
+    date_from_str,
     unsmuggle_url,
     update_url_query,
     url_or_none,
@@ -2795,8 +2796,14 @@ class YoutubeTabIE(YoutubeBaseInfoExtractor):
                     r'^([\d,]+)', re.sub(r'\s', '', view_count_text),
                     'view count', default=None))
 
-                last_updated_text = try_get(stats, lambda x: x[2]['runs'][1]['text'])
-                last_updated = unified_strdate(last_updated_text)
+                last_updated_text = try_get(stats, lambda x: x[2]['runs'][1]['text']) or try_get(stats, lambda x: x[2]['runs'][0]['text'])
+                last_updated_text = last_updated_text.replace('Updated ', '') if 'Updated ' in last_updated_text else last_updated_text
+                try:
+                    last_updated = unified_strdate(last_updated_text)
+                    if last_updated is None:
+                        last_updated = date_from_str(last_updated_text).strftime("%Y%m%d")
+                except:
+                    last_updated = None
             else:
                 renderer = try_get(
                     data, lambda x: x['header']['hashtagHeaderRenderer'], dict)
