@@ -2802,7 +2802,7 @@ class YoutubeTabIE(YoutubeBaseInfoExtractor):
                     last_updated = unified_strdate(last_updated_text)
                     if last_updated is None:
                         last_updated = date_from_str(last_updated_text).strftime("%Y%m%d")
-                except:
+                except ValueError:
                     last_updated = None
             else:
                 renderer = try_get(
