@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+# -*- coding: utf-8 -*-
 from __future__ import unicode_literals
 
 # Allow direct execution
@@ -9,11 +10,10 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from test.helper import FakeYDL
 
-
 from youtube_dl.extractor import (
+    YoutubeIE,
     YoutubePlaylistIE,
     YoutubeTabIE,
-    YoutubeIE,
 )
 
 
@@ -25,9 +25,11 @@ class TestYoutubeLists(unittest.TestCase):
     def test_youtube_playlist_noplaylist(self):
         dl = FakeYDL()
         dl.params['noplaylist'] = True
+        dl.params['format'] = 'best'
         ie = YoutubePlaylistIE(dl)
         result = ie.extract('https://www.youtube.com/watch?v=FXxLjLQi3Fg&list=PLwiyx1dc3P2JR9N8gQaQN_BCvlSlap7re')
         self.assertEqual(result['_type'], 'url')
+        result = dl.extract_info(result['url'], download=False, ie_key=result.get('ie_key'), process=False)
         self.assertEqual(YoutubeIE().extract_id(result['url']), 'FXxLjLQi3Fg')
 
     def test_youtube_course(self):
