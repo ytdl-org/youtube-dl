@@ -32,16 +32,6 @@ class TestYoutubeLists(unittest.TestCase):
         result = dl.extract_info(result['url'], download=False, ie_key=result.get('ie_key'), process=False)
         self.assertEqual(YoutubeIE().extract_id(result['url']), 'FXxLjLQi3Fg')
 
-    def test_youtube_course(self):
-        dl = FakeYDL()
-        ie = YoutubePlaylistIE(dl)
-        # TODO find a > 100 (paginating?) videos course
-        result = ie.extract('https://www.youtube.com/course?list=ECUl4u3cNGP61MdtwGTqZA0MreSaDybji8')
-        entries = list(result['entries'])
-        self.assertEqual(YoutubeIE().extract_id(entries[0]['url']), 'j9WZyLZCBzs')
-        self.assertEqual(len(entries), 25)
-        self.assertEqual(YoutubeIE().extract_id(entries[-1]['url']), 'rYefUsYuEp0')
-
     def test_youtube_mix(self):
         dl = FakeYDL()
         ie = YoutubePlaylistIE(dl)
