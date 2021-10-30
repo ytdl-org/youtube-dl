@@ -260,7 +260,7 @@ class VLivePostIE(VLiveIE):
 
 class VLiveChannelIE(VLiveIE):
     IE_NAME = 'vlive:channel'
-    _VALID_URL = r'https?://(?:channels\.vlive\.tv|(?:(?:www|m)\.)?vlive\.tv/channel)/(?P<id>[0-9A-Z]+)(?:/board/[0-9]+)?'
+    _VALID_URL = r'https?://(?:channels\.vlive\.tv|(?:(?:www|m)\.)?vlive\.tv/channel)/(?P<id>[0-9A-Z]+)(?:/board/(?P<board_id>[0-9]+))?'
     _TESTS = [{
         'url': 'http://channels.vlive.tv/FCD4B',
         'info_dict': {
@@ -281,13 +281,11 @@ class VLiveChannelIE(VLiveIE):
     }]
 
     def _real_extract(self, url):
-        channel_code = self._match_id(url)
+        channel_code, board_id = re.match(self._VALID_URL, url).groups()
 
         channel_name = None
 
-        mobj = re.search(r'channel/[0-9A-Z]+/board/(?P<id>[0-9]+)', url)
-        if mobj:
-            board_id = mobj.group('id')
+        if board_id:
             # check the board type
             board = self._call_api(
                 'board/v1.0/board-%s', board_id, 'title,boardType')
@@ -338,14 +336,8 @@ class VLiveChannelIE(VLiveIE):
                         channel_name += ' - ' + board_name
                 if video.get('contentType') != 'VIDEO':
                     continue
-                video_id = video.get('postId')
-                if not video_id:
-                    continue
-                video_id = compat_str(video_id)
-                video_title = video.get('title')
-                if not video_title:
-                    continue
-                video_title = compat_str(video_title)
+                video_id = str_or_none(video.get('postId'))
+                video_title = str_or_none(video.get('title'))
                 video_url = url_or_none(video.get('url'))
                 if not video_url:
                     continue
