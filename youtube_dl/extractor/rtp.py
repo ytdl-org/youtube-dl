@@ -90,7 +90,7 @@ class RTPIE(InfoExtractor):
         # Check if it's a video split in parts, if so add part number to title
         part = self._html_search_regex(r'section\-parts.*<span.*>(.+?)</span>.*</ul>', webpage, 'part', default=None)
         if part:
-            title = f'{title} {part}'
+            title = '{title} {part}'.format(title=title, part=part)
 
         # Get JS object
         js_object = self._search_regex(r'(?s)RTPPlayer *\( *({.+?}) *\);', webpage, 'player config')
@@ -120,10 +120,10 @@ class RTPIE(InfoExtractor):
                         decoded_url = compat_urllib_parse_unquote(encoded_url)
 
                     # Insert the (relative) decoded URL in JSON
-                    json_string_for_config += f'\nfileKey: "{decoded_url}",'
+                    json_string_for_config += '\nfileKey: "{decoded_url}",'.format(decoded_url=decoded_url)
                 else:
                     # 2) ... or the value URL is not encoded so keep it that way
-                    json_string_for_config += f'\n{stripped_line}'
+                    json_string_for_config += '\n{stripped_line}'.format(stripped_line=stripped_line)
 
             elif (
                 not stripped_line.startswith("//")
@@ -131,7 +131,7 @@ class RTPIE(InfoExtractor):
                 and (not filekey_found or (filekey_found and not re.match('file ?:', stripped_line)))
             ):
                 # Ignore commented lines and 'extraSettings'. Also ignore 'file' if 'fileKey' already exists
-                json_string_for_config += f'\n{stripped_line}'
+                json_string_for_config += '\n{stripped_line}'.format(stripped_line=stripped_line)
 
         # Finally send pure JSON string for JSON parsing
         config = self._parse_json(json_string_for_config, video_id, js_to_json)
@@ -149,7 +149,7 @@ class RTPIE(InfoExtractor):
 
         if ext == 'mp4':
             # Due to recent changes, we need to hardcode the URL like this and download it using 'm3u8'
-            file_url = f'https://streaming-vod.rtp.pt/hls{file_url}/index-v1-a1.m3u8'
+            file_url = 'https://streaming-vod.rtp.pt/hls{file_url}/index-v1-a1.m3u8'.format(file_url=file_url)
 
             formats = self._extract_m3u8_formats(
                 file_url, video_id, 'mp4', 'm3u8_native',
@@ -161,7 +161,7 @@ class RTPIE(InfoExtractor):
                 m3u8_id='hls')
         else:
             # Need to set basepath
-            file_url = f'https://cdn-ondemand.rtp.pt{file_url}'
+            file_url = 'https://cdn-ondemand.rtp.pt{file_url}'.format(file_url=file_url)
             formats = [{
                 'url': file_url,
                 'ext': ext,
