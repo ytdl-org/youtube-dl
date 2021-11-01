@@ -30,12 +30,18 @@ class ServusIE(InfoExtractor):
             'id': 'AA-1W4Q6MEK11W12',
             'ext': 'mp4',
             'title': 'Von Lüttichau ganz privat',
-            'description': 'md5:127992801b14b032576597bb25555115',
+            'description': 'md5:4e343370acf8580378a9048e8705f1c5',
             'thumbnail': r're:^https?://.*\.jpg',
             'duration': 357,
             'series': 'Hubert und Staller',
             'season': 'Season 7',
+            'season_number': 7,
             'episode': 'Episode 1 - Der Räucherschorsch dreht durch',
+            'episode_number': 1,
+        },
+        'params': {
+            'format': 'bestvideo+bestaudio/best',
+            'skip_download': True,
         }
     }, {
         # old URL schema
@@ -97,6 +103,10 @@ class ServusIE(InfoExtractor):
         season = attrs.get('season')
         episode = attrs.get('chapter')
         duration = int_or_none(attrs.get('duration'))
+        season_number = int_or_none(self._search_regex(
+            r'Season (\d+)', season or '', 'season number', default=None))
+        episode_number = int_or_none(self._search_regex(
+            r'Episode (\d+)', episode or '', 'episode number', default=None))
         thumbnail = url_or_none(attrs.get('poster'))
 
         return {
@@ -107,6 +117,8 @@ class ServusIE(InfoExtractor):
             'duration': duration,
             'series': series,
             'season': season,
+            'season_number': season_number,
             'episode': episode,
+            'episode_number': episode_number,
             'formats': formats,
         }
