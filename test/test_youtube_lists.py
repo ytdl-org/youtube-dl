@@ -52,7 +52,7 @@ class TestYoutubeLists(unittest.TestCase):
         entries = list(result['entries'])
         self.assertTrue(len(entries) == 1)
         video = entries[0]
-        self.assertEqual(video['_type'], 'url_transparent')
+        self.assertEqual(video['_type'], 'url')
         self.assertEqual(video['ie_key'], 'Youtube')
         self.assertEqual(video['id'], 'BaW_jenozKc')
         self.assertEqual(video['url'], 'BaW_jenozKc')
