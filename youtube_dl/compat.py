@@ -21,6 +21,10 @@ import subprocess
 import sys
 import xml.etree.ElementTree
 
+try:
+    import collections.abc as compat_collections_abc
+except ImportError:
+    import collections as compat_collections_abc
 
 try:
     import urllib.request as compat_urllib_request
@@ -3025,6 +3029,7 @@ __all__ = [
     'compat_b64decode',
     'compat_basestring',
     'compat_chr',
+    'compat_collections_abc',
     'compat_cookiejar',
     'compat_cookiejar_Cookie',
     'compat_cookies',
