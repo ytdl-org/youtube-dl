@@ -1459,6 +1459,9 @@ from .viki import (
     VikiIE,
     VikiChannelIE,
 )
+from .vimpothr import (
+    VimpOTHRVideoIE,
+)
 from .viqeo import ViqeoIE
 from .viu import (
     ViuIE,
