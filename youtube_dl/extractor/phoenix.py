@@ -7,6 +7,7 @@ from .youtube import YoutubeIE
 from .zdf import ZDFBaseIE
 from ..compat import compat_str
 from ..utils import (
+    ExtractorError,
     int_or_none,
     merge_dicts,
     try_get,
@@ -70,7 +71,11 @@ class PhoenixIE(ZDFBaseIE):
             'https://www.phoenix.de/response/id/%s' % article_id, article_id,
             'Downloading article JSON')
 
-        video = article['absaetze'][0]
+        for video in article['absaetze']:
+            if video.get('typ').startswith('video-'):
+                break
+        else:
+            raise ExtractorError('Cannot find video info')
         title = video.get('titel') or article.get('subtitel')
 
         if video.get('typ') == 'video-youtube':
