@@ -2,6 +2,9 @@
 from __future__ import unicode_literals
 
 from .common import InfoExtractor
+from ..utils import (
+    get_element_by_class
+)
 
 
 class VimpOTHRVideoIE(InfoExtractor):
@@ -15,6 +18,7 @@ class VimpOTHRVideoIE(InfoExtractor):
             'title': 'VE2-Vorlesungsaufzeichnung von Fr. 5.November',
             'description': 'Invarianzsatz, Rentenbarwerte',
             'thumbnail': 'https://vimp.oth-regensburg.de/cache/b56c79d598c594b117d769dc1731ed6a.jpg',
+            'uploader_id': 'frm39711'
         }
     }
 
@@ -27,12 +31,18 @@ class VimpOTHRVideoIE(InfoExtractor):
         thumbnail = self._og_search_thumbnail(webpage)
         video_url = self._og_search_video_url(webpage)
 
+        uploader_element = get_element_by_class('uploader', webpage)
+        uploader_id = self._search_regex(
+            r'alt="([a-z]{3}[0-9]{5})"',
+            uploader_element, 'uploader_id', fatal=False)
+
         return {
             'id': video_id,
             'title': title,
             'url': video_url,
             'thumbnail': thumbnail,
             'description': description,
+            'uploader_id': uploader_id
         }
 
 
@@ -74,7 +84,8 @@ class VimpOTHRMediaPrivateIE(InfoExtractor):
             'title': 'AD IT3IT4 SoSe2021 Vorlesung 6',
             'description': '6. Vorlesung AD IT3IT4 SoSe 2021',
             'thumbnail': 'https://vimp.oth-regensburg.de/cache/45730408711783c78320ddfc81eb96f2.jpg',
-            'display_id': '0b3bbf4a75f4c85b1b9a63c79e7054d3'
+            'display_id': '0b3bbf4a75f4c85b1b9a63c79e7054d3',
+            'uploader_id': 'vok39696'
         }
     }
 
@@ -101,11 +112,17 @@ class VimpOTHRMediaPrivateIE(InfoExtractor):
             r'https?://vimp\.oth-regensburg\.de/getMedium/([a-z0-9]{32})\.mp4',
             video_url, 'display_id', fatal=False)
 
+        uploader_element = get_element_by_class('uploader', webpage)
+        uploader_id = self._search_regex(
+            r'alt="([a-z]{3}[0-9]{5})"',
+            uploader_element, 'uploader_id', fatal=False)
+
         return {
             'id': video_id,
             'title': title,
             'url': video_url,
             'thumbnail': thumbnail,
             'description': description,
-            'display_id': display_id
+            'display_id': display_id,
+            'uploader_id': uploader_id
         }
