@@ -22,14 +22,15 @@ class VimpOTHRVideoIE(InfoExtractor):
         video_id = self._match_id(url)
         webpage = self._download_webpage(url, video_id)
 
-        title = self._html_search_regex(r'<h1>(.+?)</h1>', webpage, 'title') or self._og_search_title(webpage)
+        title = self._og_search_title(webpage)
         description = self._og_search_description(webpage)
         thumbnail = self._og_search_thumbnail(webpage)
+        video_url = self._og_search_video_url(webpage)
 
         return {
             'id': video_id,
             'title': title,
-            'url': self._og_search_video_url(webpage),
+            'url': video_url,
             'thumbnail': thumbnail,
             'description': description,
         }
