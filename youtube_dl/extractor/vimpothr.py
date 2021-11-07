@@ -39,7 +39,7 @@ class VimpOTHRVideoIE(InfoExtractor):
 class VimpOTHRMediaEmbedIE(InfoExtractor):
     _VALID_URL = r'https?://vimp\.oth-regensburg\.de/media/embed\?key=(?P<id>[a-z0-9]{32})'
     _TEST = {
-        'url': 'https://vimp.oth-regensburg.de/media/embed?key=adcacc06493f5e04cb927f13784aba2c&width=1280&height=720',
+        'url': 'https://vimp.oth-regensburg.de/media/embed?key=adcacc06493f5e04cb927f13784aba2c',
         'md5': '5f9e19703bae38d463ea1a9a3c730f2b',
         'info_dict': {
             'id': 'adcacc06493f5e04cb927f13784aba2c',
