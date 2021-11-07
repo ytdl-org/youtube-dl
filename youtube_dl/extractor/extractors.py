@@ -1462,6 +1462,7 @@ from .viki import (
 from .vimpothr import (
     VimpOTHRVideoIE,
     VimpOTHRMediaEmbedIE,
+    VimpOTHRMediaPrivateIE,
 )
 from .viqeo import ViqeoIE
 from .viu import (

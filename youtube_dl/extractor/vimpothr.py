@@ -61,3 +61,51 @@ class VimpOTHRMediaEmbedIE(InfoExtractor):
             'url': 'https://vimp.oth-regensburg.de/getMedium/%(video_id)s.mp4' % locals(),
             'thumbnail': 'https://vimp.oth-regensburg.de/cache/%(video_id)s.jpg' % locals(),
         }
+
+
+class VimpOTHRMediaPrivateIE(InfoExtractor):
+    _VALID_URL = r'https?://vimp\.oth-regensburg\.de/m/(?P<id>[a-z0-9]{128})'
+    _TEST = {
+        'url': 'https://vimp.oth-regensburg.de/m/1a1c13511badaeb37546e9bfaefe9796b824153c0cdebee49dbc84c7a6aa52cd6fd55eaa45f8a35e45f9a4a4d8113d3f4ce166b3ac57c87a9d28f5735650d1e2',
+        'md5': '086922d06b504f5a8f91c54c9198a6c6',
+        'info_dict': {
+            'id': '1a1c13511badaeb37546e9bfaefe9796b824153c0cdebee49dbc84c7a6aa52cd6fd55eaa45f8a35e45f9a4a4d8113d3f4ce166b3ac57c87a9d28f5735650d1e2',
+            'ext': 'mp4',
+            'title': 'AD IT3IT4 SoSe2021 Vorlesung 6',
+            'description': '6. Vorlesung AD IT3IT4 SoSe 2021',
+            'thumbnail': 'https://vimp.oth-regensburg.de/cache/45730408711783c78320ddfc81eb96f2.jpg',
+            'display_id': '0b3bbf4a75f4c85b1b9a63c79e7054d3'
+        }
+    }
+
+    def _real_extract(self, url):
+        video_id = self._match_id(url)
+        webpage = self._download_webpage(url, video_id)
+
+        title = self._html_search_meta(
+            ['og:title', 'twitter:title', 'title'],
+            webpage, 'title', default=None)
+
+        description = self._html_search_meta(
+            ['og:description', 'twitter:description'],
+            webpage, 'description', default=None)
+
+        thumbnail = self._html_search_meta(
+            ['og:image', 'twitter:image'],
+            webpage, 'thumbnail', default=None)
+
+        video_url = self._og_search_video_url(webpage)
+
+        # display_id = extract_attributes(get_element_by_id('sharekey', webpage)).get('value')
+        display_id = self._search_regex(
+            r'https?://vimp\.oth-regensburg\.de/getMedium/([a-z0-9]{32})\.mp4',
+            video_url, 'display_id', fatal=False)
+
+        return {
+            'id': video_id,
+            'title': title,
+            'url': video_url,
+            'thumbnail': thumbnail,
+            'description': description,
+            'display_id': display_id
+        }
