@@ -128,7 +128,7 @@ class GlomexBaseIE(InfoExtractor):
 class GlomexIE(GlomexBaseIE):
     IE_NAME = 'glomex'
     IE_DESC = 'Glomex videos'
-    _VALID_URL = r'https?://video.glomex.com/[^/]+/(?P<id>v-[^-]+)'
+    _VALID_URL = r'https?://video\.glomex\.com/[^/]+/(?P<id>v-[^-]+)'
     # Hard-coded integration ID for video.glomex.com
     _INTEGRATION_ID = '19syy24xjn1oqlpc'
 
