@@ -3201,7 +3201,7 @@ class GenericIE(InfoExtractor):
                 rutube_urls, video_id, video_title, ie=RutubeIE.ie_key())
 
         # Look for Glomex embeds
-        glomex_urls = GlomexEmbedIE._extract_urls(webpage, url)
+        glomex_urls = list(GlomexEmbedIE._extract_urls(webpage, url))
         if glomex_urls:
             return self.playlist_from_matches(
                 glomex_urls, video_id, video_title, ie=GlomexEmbedIE.ie_key())
