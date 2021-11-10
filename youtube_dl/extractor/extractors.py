@@ -1038,6 +1038,10 @@ from .rutube import (
     RutubePersonIE,
     RutubePlaylistIE,
 )
+from .megatvcom import (
+    MegaTVComIE,
+    MegaTVComEmbedIE,
+)
 from .rutv import RUTVIE
 from .ruutu import RuutuIE
 from .ruv import RuvIE
