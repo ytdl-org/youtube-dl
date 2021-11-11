@@ -6,7 +6,6 @@ import re
 from .common import InfoExtractor
 from ..compat import (
     compat_str,
-    compat_parse_qs,
     compat_urllib_parse_urlparse,
     compat_urllib_parse_urlencode,
 )
@@ -263,11 +262,13 @@ class GlomexEmbedIE(GlomexBaseIE):
 
     def _real_extract(self, url):
         url, origin_url = self._unsmuggle_origin_url(url)
-        embed_id = self._match_id(url)
-        query = compat_parse_qs(compat_urllib_parse_urlparse(url).query)
-        video_id = query['playlistId'][0]
-        # perhaps redundant
-        assert embed_id == video_id
-        integration = query['integrationId'][0]
+        # must return a valid match since it was already tested when selecting the IE
+        try:
+            matches = self._VALID_URL_RE.match(url).groupdict()
+        except AttributeError:
+            matches = re.match(self._VALID_URL, url).groupdict()
+        # id is not enforced in the pattern, so do it now; ditto integration
+        video_id = matches['id']
+        integration = matches['integration']
         return self._download_and_extract_api_data(video_id, integration,
                                                    origin_url)
