@@ -162,7 +162,8 @@ class GlomexEmbedIE(GlomexBaseIE):
     IE_NAME = 'glomex:embed'
     IE_DESC = 'Glomex embedded videos'
     _BASE_PLAYER_URL = 'https://player.glomex.com/integration/1/iframe-player.html'
-    _VALID_URL = r'(?:https?:)?//player\.glomex\.com/integration/[^/]+/iframe-player\.html\?(?:(?:integrationId=(?P<integration>[^&#]+)|playlistId=(?P<id>[^&#]+)|[^&=#]+=[^&#]+)&?)+'
+    _VALID_URL = r'''(?x)https?://player\.glomex\.com/integration/[^/]+/iframe-player\.html
+        \?(?:(?:integrationId=(?P<integration>[^&#]+)|playlistId=(?P<id>[^&#]+)|[^&=#]+=[^&#]+)&?)+'''
 
     _TESTS = [{
         'url': 'https://player.glomex.com/integration/1/iframe-player.html?integrationId=4059a013k56vb2yd&playlistId=v-cfa6lye0dkdd-sf',
@@ -219,12 +220,16 @@ class GlomexEmbedIE(GlomexBaseIE):
 
     @classmethod
     def _extract_urls(cls, webpage, origin_url):
+        # make the scheme in _VALID_URL optional
+        _URL_RE = r'(?:https?:)?//' + cls._VALID_URL.split('://', 1)[1]
+        # simplify the query string part of _VALID_URL; after extracting iframe
+        # src, the URL will be matched again
+        _URL_RE = _URL_RE.split(r'\?', 1)[0] + r'\?(?:(?!(?P=_q1)).)+'
         # https://docs.glomex.com/publisher/video-player-integration/javascript-api/
         EMBED_RE = r'''(?x)
         (?:
             <iframe[^>]+?src=(?P<_q1>%(quot_re)s)
-                (?P<url>(?:https?:)?//player\.glomex\.com/integration/[^/]+/iframe-player\.html\?
-                (?:(?!(?P=_q1)).)+)(?P=_q1)|
+                (?P<url>%(url_re)s)(?P=_q1)|
             <(?P<html_tag>glomex-player|div)(?:
                 data-integration-id=(?P<_q2>%(quot_re)s)(?P<integration_html>(?:(?!(?P=_q2)).)+)(?P=_q2)|
                 data-playlist-id=(?P<_q3>%(quot_re)s)(?P<id_html>(?:(?!(?P=_q3)).)+)(?P=_q3)|
@@ -240,7 +245,7 @@ class GlomexEmbedIE(GlomexBaseIE):
                 (?:\s|.)*?
             )+</script>
         )
-        ''' % {'quot_re': r'[\"\']'}
+        ''' % {'quot_re': r'[\"\']', 'url_re': _URL_RE}
         for mobj in re.finditer(EMBED_RE, webpage):
             url, html_tag, video_id_html, integration_html, glomex_player, \
                 script_tag, video_id_js, integration_js = \
@@ -248,7 +253,14 @@ class GlomexEmbedIE(GlomexBaseIE):
                            'integration_html', 'glomex_player', 'script_tag',
                            'id_js', 'integration_js')
             if url:
-                yield cls._smuggle_origin_url(unescapeHTML(url), origin_url)
+                url = unescapeHTML(url)
+                if url.startswith('//'):
+                    scheme = compat_urllib_parse_urlparse(origin_url).scheme \
+                        if origin_url else 'https'
+                    url = '%s:%s' % (scheme, url)
+                if not cls.suitable(url):
+                    continue
+                yield cls._smuggle_origin_url(url, origin_url)
             elif html_tag:
                 if html_tag == "div" and not glomex_player:
                     continue
