@@ -28,7 +28,7 @@ class MegaTVComBaseIE(InfoExtractor):
     def _extract_player_attrs(self, webpage):
         PLAYER_DIV_RE = r'''(?x)
         <div(?:
-            id=(?P<_q1>[\"\'])(?P<%(pdi)s>%(pdi)s)(?P=_q1)|
+            id=(?P<_q1>["'])(?P<%(pdi)s>%(pdi)s)(?P=_q1)|
             [^>]*?
         )+>
         ''' % {'pdi': self._PLAYER_DIV_ID}
@@ -78,7 +78,7 @@ class MegaTVComIE(MegaTVComBaseIE):
     def _match_article_id(self, webpage):
         ART_RE = r'''(?x)
         <article(?:
-            id=(?P<_q2>[\"\'])Article_(?P<article>\d+)(?P=_q2)|
+            id=(?P<_q2>["'])Article_(?P<article>\d+)(?P=_q2)|
             [^>]*?
         )+>
         '''
@@ -124,7 +124,7 @@ class MegaTVComIE(MegaTVComBaseIE):
 class MegaTVComEmbedIE(MegaTVComBaseIE):
     IE_NAME = 'megatvcom:embed'
     IE_DESC = 'megatv.com embedded videos'
-    _VALID_URL = r'https?://(?:www\.)?megatv.com/embed/?\?p=\d+'
+    _VALID_URL = r'https?://(?:www\.)?megatv\.com/embed/?\?p=\d+'
 
     _TESTS = [{
         'url': 'https://www.megatv.com/embed/?p=2020520979',
@@ -157,7 +157,7 @@ class MegaTVComEmbedIE(MegaTVComBaseIE):
         EMBED_RE = r'''(?x)
             <iframe[^>]+?src=(?P<_q1>%(quot_re)s)
                 (?P<url>%(url_re)s)(?P=_q1)
-        ''' % {'quot_re': r'[\"\']', 'url_re': _URL_RE}
+        ''' % {'quot_re': r'["\']', 'url_re': _URL_RE}
         for mobj in re.finditer(EMBED_RE, webpage):
             if url.startswith('//'):
                 scheme = compat_urllib_parse_urlparse(origin_url).scheme \
