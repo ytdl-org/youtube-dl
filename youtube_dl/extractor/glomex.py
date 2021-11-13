@@ -245,7 +245,7 @@ class GlomexEmbedIE(GlomexBaseIE):
                 (?:\s|.)*?
             )+</script>
         )
-        ''' % {'quot_re': r'[\"\']', 'url_re': _URL_RE}
+        ''' % {'quot_re': r'["\']', 'url_re': _URL_RE}
         for mobj in re.finditer(EMBED_RE, webpage):
             url, html_tag, video_id_html, integration_html, glomex_player, \
                 script_tag, video_id_js, integration_js = \
