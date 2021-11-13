@@ -165,9 +165,7 @@ class Ant1NewsGrEmbedIE(Ant1NewsGrBaseIE):
                 url = '%s:%s' % (scheme, url)
             if not cls.suitable(url):
                 continue
-            if isinstance(parent_info, dict):
-                url = cls._smuggle_parent_info(url, **parent_info)
-            yield url
+            yield cls._smuggle_parent_info(url, **parent_info)
 
     def _real_extract(self, url):
         url, parent_info = type(self)._unsmuggle_parent_info(url)
