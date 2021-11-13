@@ -1390,12 +1390,13 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                 'https://www.youtube.com', player_url)
         return player_url
 
-    # Based on an equivalent function [1] in the youtube.lua script from VLC
-    # Many thanks to @linkfanel [2]
+    # Based on an equivalent function [2] in the youtube.lua script from VLC
+    # Many thanks to @linkfanel [3]
     # NB This code could fail if YT should revise the player code and would then have
-    # to be reworked (thankless task previously undertaken at [1])
-    # 1. https://code.videolan.org/videolan/vlc/-/blob/4fb284e5af69aa9ac2100ccbdd3b88debec9987f/share/lua/playlist/youtube.lua#L116
-    # 2. https://github.com/ytdl-org/youtube-dl/issues/30097#issuecomment-950157377
+    # to be reworked (thankless task previously undertaken at [1] and [2])
+    # 1. https://github.com/ytdl-org/youtube-dl/issues/29326#issuecomment-894619419
+    # 2. https://code.videolan.org/videolan/vlc/-/blob/4fb284e5af69aa9ac2100ccbdd3b88debec9987f/share/lua/playlist/youtube.lua#L116
+    # 3. https://github.com/ytdl-org/youtube-dl/issues/30097#issuecomment-950157377
     def _n_descramble(self, n_param, js):
         """Compute the response to YT's "n" parameter challenge
 
@@ -1521,6 +1522,11 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                        # function(d,e){e=(e%d.length+d.length)%d.length;d.splice(-e).reverse().forEach(function(f){d.unshift(f)})}
                        r"^[^}]+?d\.unshift\((?:d\.pop\(\)|f\)\})\)},",
                        def_skip),
+            ('compound', lambda tab, s: compound(tab, s, "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ-_", 96),
+                         # noqa: E127
+                         # function(d,e,f){var h=f.length;d.forEach(function(l,m,n){this.push(n[m]=f[(f.indexOf(l)-f.indexOf(this[m])+m+h--)%f.length])},e.split(""))}
+                         r"^function\(\w,\w,\w\)",
+                         cp_skip),
             # Compound transformations first build a variation of a
             # Base64 alphabet, then in a common section, compound the
             # "n" parameter with an input string, character by character.
@@ -1533,7 +1539,6 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                           # noqa: E127
                           # function(d,e){for(var f=64,h=[];++f-h.length-32;){switch(f){case 58:f-=14;case 91:case 92:case 93:continue;case 123:f=47;case 94:case 95:case 96:continue;case 46:f=95}h.push(String.fromCharCode(f))} [ compound... ] }
                           # function(d,e){for(var f=64,h=[];++f-h.length-32;)switch(f){case 46:f=95;default:h.push(String.fromCharCode(f));case 94:case 95:case 96:break;case 123:f-=76;case 92:case 93:continue;case 58:f=44;case 91:} [ compound... ] }
-
                           r"^[^}]+?case\s58:f(?:-=14|=44);",
                           cp_skip),
             # Fallback
@@ -1606,7 +1611,8 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
         # the descrambling script.
         # c[40](c[14],c[2]),c[25](c[48]),c[21](c[32],c[23]), [...]
         for ifunc, itab, iarg in map(lambda m: m.groups(),
-                                     re.finditer(r"c\[(\d+)\]\(c\[(\d+)\](?:,\s*c\[(\d+)\]|[^)]*?)\)", script)):
+                                     # c[m](c[mm]{,c[mmm]{,c[mmmm]}})
+                                     re.finditer(r"c\[(\d+)\]\(c\[(\d+)\](?:,\s*c\[(\d+)\])?(?:,\s*c\[\d+\]\(\))?[^)]*?\)", script)):
             func = data[int(ifunc)]
             tab = data[int(itab)]
             arg = iarg and data[int(iarg)]
