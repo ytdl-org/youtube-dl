@@ -159,11 +159,12 @@ class MegaTVComEmbedIE(MegaTVComBaseIE):
                 (?P<url>%(url_re)s)(?P=_q1)
         ''' % {'quot_re': r'["\']', 'url_re': _URL_RE}
         for mobj in re.finditer(EMBED_RE, webpage):
+            url = unescapeHTML(mobj.group('url'))
             if url.startswith('//'):
                 scheme = compat_urllib_parse_urlparse(origin_url).scheme \
                     if origin_url else 'https'
                 url = '%s:%s' % (scheme, url)
-            yield unescapeHTML(mobj.group('url'))
+            yield url
 
     def _real_extract(self, url):
         webpage = self._download_webpage(url, 'N/A')
