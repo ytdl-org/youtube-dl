@@ -166,10 +166,26 @@ class MegaTVComEmbedIE(MegaTVComBaseIE):
                 url = '%s:%s' % (scheme, url)
             yield url
 
+    def _match_canonical_url(self, webpage):
+        LINK_RE = r'''(?x)
+        <link(?:
+            rel=(?P<_q1>%(quot_re)s)(?P<canonical>canonical)(?P=_q1)|
+            href=(?P<_q2>%(quot_re)s)(?P<href>(?:(?!(?P=_q2)).)+)(?P=_q2)|
+            [^>]*?
+        )+>
+        ''' % {'quot_re': r'["\']'}
+        for mobj in re.finditer(LINK_RE, webpage):
+            canonical, href = mobj.group('canonical', 'href')
+            if canonical and href:
+                return unescapeHTML(href)
+
     def _real_extract(self, url):
         webpage = self._download_webpage(url, 'N/A')
         player_attrs = self._extract_player_attrs(webpage)
-        canonical_url = player_attrs['share_url']
+        canonical_url = player_attrs.get('share_url') or \
+            self._match_canonical_url(webpage)
+        if not canonical_url:
+            raise ExtractorError('canonical URL not found')
         video_id = compat_parse_qs(compat_urllib_parse_urlparse(
             canonical_url).query)['p'][0]
 
