@@ -1436,10 +1436,18 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
             return
         # Split code into two main sections: 1/ data and transformations,
         # and 2/ a script of calls
-        datac, script = find_first(r'(?s)c=\[(.+)\];.+?;try\{(.+)\}catch\(', code, groups=True)
+        datac, xc, script = find_first(r'(?s)c=\[(.+)\];(.+?);try\{(.+)\}catch\(', code, groups=True)
         if not datac or not script:
             self.report_warning("Couldn't extract YouTube video throttling parameter descrambling rules")
             return
+        if xc:
+            # ad hoc update of c[] array after declaration (player 2dfe380c, ...)
+            xc = [int(x) for x in re.findall(r'c\[(\d+)\]=c\b', xc)]
+            if not xc:
+                self.report_warning("Couldn't extract YouTube video throttling parameter additional rules")
+        else:
+            xc = []
+
         # Split "n" parameter into a table as descrambling operates on it
         # as one of several arrays - in Python just copy it as a list
         n = list(n_param)
@@ -1487,6 +1495,11 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
         def remove(s, i):
             del s[i]
 
+        b64_alphabets = [
+            "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ-_",
+            "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_",
+        ]
+
         # Compounding functions use a subfunction, so we need to be
         # more specific in how much parsed data we consume.
         cp_skip = r'(?s)^.*?\},e\.split\(""\)\)},\s*(.*)$'
@@ -1522,20 +1535,31 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                        # function(d,e){e=(e%d.length+d.length)%d.length;d.splice(-e).reverse().forEach(function(f){d.unshift(f)})}
                        r"^[^}]+?d\.unshift\((?:d\.pop\(\)|f\)\})\)},",
                        def_skip),
-            ('compound', lambda tab, s: compound(tab, s, "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ-_", 96),
+            ('alphabet1', lambda: b64_alphabets[0],
+                          # noqa: E127
+                          # function(){for(var d=64,e=[];++d-e.length-32;){switch(d){case 91:d=44;continue;case 123:d=65;break;case 65:d-=18;continue;case 58:d=96;continue;case 46:d=95}e.push(String.fromCharCode(d))}return e}
+                          r"^[^}]+?case\s58:d=96;.+?\}return",
+                          def_skip),
+            ('alphabet2', lambda: b64_alphabets[1],
+                          # noqa: E127
+                          # function(){for(var d=64,e=[];++d-e.length-32;)switch(d){case 46:d=95;default:e.push(String.fromCharCode(d));case 94:case 95:case 96:break;case 123:d-=76;case 92:case 93:continue;case 58:d=44;case 91:}return e}
+                          r"^[^}]+?case\s58:d=44;[^}]+\}return",
+                          def_skip),
+            ('compound', lambda tab, s, alphabet: compound(tab, s, alphabet, 96),
                          # noqa: E127
                          # function(d,e,f){var h=f.length;d.forEach(function(l,m,n){this.push(n[m]=f[(f.indexOf(l)-f.indexOf(this[m])+m+h--)%f.length])},e.split(""))}
                          r"^function\(\w,\w,\w\)",
                          cp_skip),
+
             # Compound transformations first build a variation of a
             # Base64 alphabet, then in a common section, compound the
             # "n" parameter with an input string, character by character.
-            ('compound1', lambda tab, s: compound(tab, s, "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ-_", 96),
+            ('compound1', lambda tab, s: compound(tab, s, b64_alphabets[0], 96),
                           # noqa: E127
                           # function(d,e){for(var f=64,h=[];++f-h.length-32;)switch(f){case 58:f=96;continue;case 91:f=44;break;case 65:f=47;continue;case 46:f=153;case 123:f-=58;default:h.push(String.fromCharCode(f))} [ compound... ] }
                           r"^[^}]+?case\s58:f=96;",
                           cp_skip),
-            ('compound2', lambda tab, s: compound(tab, s, "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_", 96),
+            ('compound2', lambda tab, s: compound(tab, s, b64_alphabets[1], 96),
                           # noqa: E127
                           # function(d,e){for(var f=64,h=[];++f-h.length-32;){switch(f){case 58:f-=14;case 91:case 92:case 93:continue;case 123:f=47;case 94:case 95:case 96:continue;case 46:f=95}h.push(String.fromCharCode(f))} [ compound... ] }
                           # function(d,e){for(var f=64,h=[];++f-h.length-32;)switch(f){case 46:f=95;default:h.push(String.fromCharCode(f));case 94:case 95:case 96:break;case 123:f-=76;case 92:case 93:continue;case 58:f=44;case 91:} [ compound... ] }
@@ -1583,6 +1607,10 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                 datac = find_first(r"(?s)^[^,]*?,\s*(.*)$", datac)
             data.append(el)
 
+        # Additional rules
+        for idx in xc:
+            data[idx] = data
+
         # Debugging helper to print data array elements
         def prd(el, tab=None):
             if not el:
@@ -1610,12 +1638,19 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
         # as a second argument. We parse and emulate those calls to follow
         # the descrambling script.
         # c[40](c[14],c[2]),c[25](c[48]),c[21](c[32],c[23]), [...]
-        for ifunc, itab, iarg in map(lambda m: m.groups(),
-                                     # c[m](c[mm]{,c[mmm]{,c[mmmm]}})
-                                     re.finditer(r"c\[(\d+)\]\(c\[(\d+)\](?:,\s*c\[(\d+)\])?(?:,\s*c\[\d+\]\(\))?[^)]*?\)", script)):
-            func = data[int(ifunc)]
+        for ifunc, itab, iarg, iextra in map(lambda m: m.groups(),
+                                             # c[m](c[mm]{,c[mmm]{,c[mmmm]}})
+                                             re.finditer(
+                                                 r"c\[(\d+)\]\(c\[(\d+)\](?:,\s*c\[(\d+)\])?(?:,\s*c\[(\d+)\]\(\))?[^)]*?\)",
+                                                 script)):
             tab = data[int(itab)]
             arg = iarg and data[int(iarg)]
+            if iextra:
+                alphabet = data[int(iextra)]()
+                func = lambda t, s: data[int(ifunc)](t, s, alphabet)
+            else:
+                func = data[int(ifunc)]
+
             # Uncomment to debug transformation chain
             # nprev = ''.join(n)
             # dprev = ' '.join(map(prd, data))
