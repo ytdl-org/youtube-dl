@@ -972,7 +972,8 @@ class InfoExtractor(object):
         """Returns a playlist"""
         video_info = {'_type': 'playlist',
                       'entries': entries}
-        video_info.update(kwargs)
+        video_info.update((key, value) for key, value in kwargs.items() if value is not None)
+
         if playlist_id:
             video_info['id'] = playlist_id
         if playlist_title:
