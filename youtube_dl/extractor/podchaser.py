@@ -59,8 +59,8 @@ class PodchaserIE(InfoExtractor):
 
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
-        audio_id, podcast_id, creator_id = compat_str(mobj.group('id')), \
-            compat_str(mobj.group('podcast_id')), compat_str(mobj.group('creator_id'))
+        audio_id, podcast_id, creator_id = mobj.group('id'), \
+            mobj.group('podcast_id'), mobj.group('creator_id')
         webpage = self._download_webpage(url, audio_id)
         page_title = self._html_search_meta(['title', 'og:title', 'twitter:title'], webpage, default=None) \
             or self._search_regex(
