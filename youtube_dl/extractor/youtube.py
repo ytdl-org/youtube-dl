@@ -2773,6 +2773,8 @@ class YoutubeTabIE(YoutubeBaseInfoExtractor):
             data, lambda x: x['metadata']['channelMetadataRenderer'], dict)
         playlist_id = item_id
         title = description = None
+        view_count = None
+        last_updated = None
         if renderer:
             channel_title = renderer.get('title') or item_id
             tab_title = selected_tab.get('title')
