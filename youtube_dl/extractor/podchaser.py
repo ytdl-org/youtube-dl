@@ -11,7 +11,7 @@ class PodchaserIE(InfoExtractor):
     _VALID_URL = r'''(?x)
         https?://(?:www\.)?podchaser\.com/
         (?:(?:podcasts)|(?:creators))
-        /[\w\-]+-
+        /[\w-]+-
         (?:
             (?P<creator_id>[\d]+[\w]+)|(?P<podcast_id>[\d]+))
         (?:/episodes/[\w\-]+-
