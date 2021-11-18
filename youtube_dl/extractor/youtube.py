@@ -1543,7 +1543,8 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
             ('alphabet2', lambda: b64_alphabets[1],
                           # noqa: E127
                           # function(){for(var d=64,e=[];++d-e.length-32;)switch(d){case 46:d=95;default:e.push(String.fromCharCode(d));case 94:case 95:case 96:break;case 123:d-=76;case 92:case 93:continue;case 58:d=44;case 91:}return e}
-                          r"^[^}]+?case\s58:d=44;[^}]+\}return",
+                          # function(){for(var d=64,e=[];++d-e.length-32;){switch(d){case 58:d-=14;case 91:case 92:case 93:continue;case 123:d=47;case 94:case 95:case 96:continue;case 46:d=95}e.push(String.fromCharCode(d))}return e}
+                          r"^[^}]+?case\s58:d(?:=44;|-=14;[^}]+\})[^}]+\}return",
                           def_skip),
             ('compound', lambda tab, s, alphabet: compound(tab, s, alphabet, 96),
                          # noqa: E127
