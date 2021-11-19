@@ -266,11 +266,13 @@ class GlomexEmbedIE(GlomexBaseIE):
                     continue
                 if not video_id_html or not integration_html:
                     continue
-                yield cls.build_player_url(video_id_html, integration_html, url)
+                yield cls.build_player_url(video_id_html, integration_html,
+                                           origin_url)
             elif script_tag:
                 if not video_id_js or not integration_js:
                     continue
-                yield cls.build_player_url(video_id_js, integration_js, url)
+                yield cls.build_player_url(video_id_js, integration_js,
+                                           origin_url)
 
     def _real_extract(self, url):
         url, origin_url = self._unsmuggle_origin_url(url)
