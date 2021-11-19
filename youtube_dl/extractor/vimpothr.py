@@ -3,7 +3,8 @@ from __future__ import unicode_literals
 
 from .common import InfoExtractor
 from ..utils import (
-    get_element_by_class
+    get_element_by_class,
+    urljoin
 )
 
 
@@ -18,7 +19,8 @@ class VimpOTHRVideoIE(InfoExtractor):
             'title': 'VE2-Vorlesungsaufzeichnung von Fr. 5.November',
             'description': 'Invarianzsatz, Rentenbarwerte',
             'thumbnail': 'https://vimp.oth-regensburg.de/cache/b56c79d598c594b117d769dc1731ed6a.jpg',
-            'uploader_id': 'frm39711'
+            'uploader_id': 'frm39711',
+            'uploader_url': 'https://vimp.oth-regensburg.de/user/view/user/frm39711/uid/778'
         }
     }
 
@@ -32,9 +34,8 @@ class VimpOTHRVideoIE(InfoExtractor):
         video_url = self._og_search_video_url(webpage)
 
         uploader_element = get_element_by_class('uploader', webpage)
-        uploader_id = self._search_regex(
-            r'alt="([a-z]{3}[0-9]{5})"',
-            uploader_element, 'uploader_id', fatal=False)
+        uploader_id = self._search_regex(r'alt="(?P<uploader_id>[a-z]{3}\d{5})"', uploader_element, 'uploader_id')
+        uploader_url = self._search_regex(r'<a[^>]*href="(?P<uploader_url>[^"]+)', uploader_element, 'uploader_url')
 
         return {
             'id': video_id,
@@ -42,7 +43,8 @@ class VimpOTHRVideoIE(InfoExtractor):
             'url': video_url,
             'thumbnail': thumbnail,
             'description': description,
-            'uploader_id': uploader_id
+            'uploader_id': uploader_id,
+            'uploader_url': urljoin('https://vimp.oth-regensburg.de', uploader_url)
         }
 
 
