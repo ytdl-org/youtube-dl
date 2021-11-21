@@ -116,7 +116,7 @@ if compat_os_name == 'nt':
 class YoutubeDL(object):
     """YoutubeDL class.
 
-    YoutubeDL objects are the ones responsible of downloading the
+    YoutubeDL objects are the ones responsible for downloading the
     actual video file and writing it to disk if the user has requested
     it, among some other tasks. In most cases there should be one per
     program. As, given a video URL, the downloader doesn't know how to
