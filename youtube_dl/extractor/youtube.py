@@ -1589,9 +1589,9 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
             elif re.match(r'^"[^"]*",', datac):
                 el, datac = find_first(r'(?s)^"([^"]*)",\s*(.*)$', datac, groups=True)
             # Integer input data
-            elif re.match(r'^-?\d+,', datac):
+            elif re.match(r'^-?\d+(?:E\d+)?,', datac):
                 el, datac = find_first(r"(?s)^(.*?),\s*(.*)$", datac, groups=True)
-                el = int(el)
+                el = int(float(el) if 'E' in el else el)
             # Reference to "n" parameter array
             elif re.match('^b,', datac):
                 el = n
