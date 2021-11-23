@@ -2,7 +2,7 @@
 from __future__ import unicode_literals
 import re
 from datetime import datetime
-from ..utils import float_or_none, try_get, str_to_int
+from ..utils import float_or_none, try_get, str_to_int, unified_timestamp
 from ..compat import compat_str
 from .common import InfoExtractor
 
@@ -28,7 +28,7 @@ class PodchaserIE(InfoExtractor):
             'categories': ['Comedy'],
             'series': 'Cum Town',
             'duration': 3708,
-            'timestamp': 1636560059,
+            'timestamp': 1636531259,
             'upload_date': '20211110'
         }
     }, {
@@ -44,7 +44,7 @@ class PodchaserIE(InfoExtractor):
         'info_dict': {
             'id': '107ZzkFiEQ',
             'title': 'Todd Glass',
-            'description': 'md5:f0302588c98d474d4e8551f4914042c9',
+            'description': 'md5:0771e81d879f304f11254e5a56a97a58',
         },
         'playlist_mincount': 48
     }, {
@@ -52,7 +52,7 @@ class PodchaserIE(InfoExtractor):
         'info_dict': {
             'id': '699349',
             'title': "Sean Carroll's Mindscape: Science, Society, Philosophy, Culture, Arts, and Ideas",
-            'description': 'md5:a1ed5db77378a736b3a85a2331cbc05a'
+            'description': 'md5:8692ce0c50cb900c5e4eb27b437dd67b'
         },
         'playlist_count': 25
     }]
@@ -83,7 +83,7 @@ class PodchaserIE(InfoExtractor):
             'url': episode.get('audio_url'),
             'thumbnail': try_get(episode, lambda x: x['podcast']['image_url']),
             'duration': str_to_int(episode.get('length')),
-            'timestamp': datetime.strptime(episode.get('air_date'), '%Y-%m-%d %H:%M:%S').timestamp(),
+            'timestamp': unified_timestamp(episode.get('air_date')),
             'rating': float_or_none(episode.get('rating')),
             'categories': [x['text'] for x in try_get(episode, lambda x: x['podcast']['categories'], list) or []],
             'tags': [tag['text'] for tag in episode.get('tags') or []],
