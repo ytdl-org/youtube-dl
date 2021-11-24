@@ -161,13 +161,14 @@ class FFmpegPostProcessor(PostProcessor):
     def probe_executable(self):
         return self._paths[self.probe_basename]
 
-    def get_audio_codec(self, path):
+    def get_stream_info(self, path):
         if not self.probe_available and not self.available:
             raise PostProcessingError('ffprobe/avprobe and ffmpeg/avconv not found. Please install one.')
         try:
             if self.probe_available:
                 cmd = [
                     encodeFilename(self.probe_executable, True),
+                    encodeArgument('-show_format'),
                     encodeArgument('-show_streams')]
             else:
                 cmd = [
@@ -183,25 +184,39 @@ class FFmpegPostProcessor(PostProcessor):
             stdout_data, stderr_data = handle.communicate()
             expected_ret = 0 if self.probe_available else 1
             if handle.wait() != expected_ret:
-                return None
+                return {}
         except (IOError, OSError):
-            return None
+            return {}
+        file_format = None
+        audio_codec = None
         output = (stdout_data if self.probe_available else stderr_data).decode('ascii', 'ignore')
         if self.probe_available:
-            audio_codec = None
+            codec_name = None
+            for line in output.split('\n'):
+                if line.startswith('format_name='):
+                    file_format = line.split('=')[1].strip()
+                    break
             for line in output.split('\n'):
                 if line.startswith('codec_name='):
-                    audio_codec = line.split('=')[1].strip()
-                elif line.strip() == 'codec_type=audio' and audio_codec is not None:
-                    return audio_codec
+                    codec_name = line.split('=')[1].strip()
+                elif line.strip() == 'codec_type=audio' and codec_name is not None:
+                    audio_codec = codec_name
+                    break
         else:
+            # Input #FILE_INDEX, FILE_FORMAT, from
+            mobj = re.search(r'Input\s*#\d+,\s*([0-9a-z,]+),\s*from', output)
+            if mobj:
+                file_format = mobj.group(1)
             # Stream #FILE_INDEX:STREAM_INDEX[STREAM_ID](LANGUAGE): CODEC_TYPE: CODEC_NAME
             mobj = re.search(
                 r'Stream\s*#\d+:\d+(?:\[0x[0-9a-f]+\])?(?:\([a-z]{3}\))?:\s*Audio:\s*([0-9a-z]+)',
                 output)
             if mobj:
-                return mobj.group(1)
-        return None
+                audio_codec = mobj.group(1)
+        return {
+            'file_format': file_format,
+            'audio_codec': audio_codec,
+        }
 
     def run_ffmpeg_multiple_files(self, input_paths, out_path, opts):
         self.check_version()
@@ -272,7 +287,8 @@ class FFmpegExtractAudioPP(FFmpegPostProcessor):
     def run(self, information):
         path = information['filepath']
 
-        filecodec = self.get_audio_codec(path)
+        stream_info = self.get_stream_info(path)
+        filecodec = stream_info.get('audio_codec')
         if filecodec is None:
             raise PostProcessingError('WARNING: unable to obtain file audio codec with ffprobe')
 
@@ -522,6 +538,10 @@ class FFmpegMergerPP(FFmpegPostProcessor):
         filename = info['filepath']
         temp_filename = prepend_extension(filename, 'temp')
         args = ['-c', 'copy', '-map', '0:v:0', '-map', '1:a:0']
+        if info['requested_formats'][1].get('protocol') in ('m3u8', 'm3u8_native'):
+            stream_info = self.get_stream_info(info['__files_to_merge'][1])
+            if stream_info.get('file_format') == 'mpegts' and stream_info.get('audio_codec') == 'aac':
+                args += ['-bsf:a', 'aac_adtstoasc']
         self._downloader.to_screen('[ffmpeg] Merging formats into "%s"' % filename)
         self.run_ffmpeg_multiple_files(info['__files_to_merge'], temp_filename, args)
         os.rename(encodeFilename(temp_filename), encodeFilename(filename))
@@ -585,11 +605,14 @@ class FFmpegFixupM4aPP(FFmpegPostProcessor):
 class FFmpegFixupM3u8PP(FFmpegPostProcessor):
     def run(self, info):
         filename = info['filepath']
-        if self.get_audio_codec(filename) == 'aac':
+        stream_info = self.get_stream_info(filename)
+        if stream_info.get('file_format') == 'mpegts':
             temp_filename = prepend_extension(filename, 'temp')
 
-            options = ['-c', 'copy', '-f', 'mp4', '-bsf:a', 'aac_adtstoasc']
-            self._downloader.to_screen('[ffmpeg] Fixing malformed AAC bitstream in "%s"' % filename)
+            options = ['-c', 'copy', '-f', 'mp4']
+            if stream_info.get('audio_codec') == 'aac':
+                options += ['-bsf:a', 'aac_adtstoasc']
+            self._downloader.to_screen('[ffmpeg] Correcting container in "%s"' % filename)
             self.run_ffmpeg(filename, temp_filename, options)
 
             os.remove(encodeFilename(filename))
