@@ -2142,6 +2142,9 @@ class InfoExtractor(object):
                 initialization = source.find(_add_ns('Initialization'))
                 if initialization is not None:
                     ms_info['initialization_url'] = initialization.attrib['sourceURL']
+                    initialization_url_range = initialization.get('range')
+                    if initialization_url_range:
+                        ms_info['initialization_url_range'] = initialization_url_range
 
             segment_list = element.find(_add_ns('SegmentList'))
             if segment_list is not None:
@@ -2150,6 +2153,9 @@ class InfoExtractor(object):
                 segment_urls_e = segment_list.findall(_add_ns('SegmentURL'))
                 if segment_urls_e:
                     ms_info['segment_urls'] = [segment.attrib['media'] for segment in segment_urls_e]
+                    segment_urls_range = [segment.get('mediaRange') for segment in segment_urls_e]
+                    if any(segment_urls_range):
+                        ms_info['segment_urls_range'] = segment_urls_range
             else:
                 segment_template = element.find(_add_ns('SegmentTemplate'))
                 if segment_template is not None:
@@ -2328,6 +2334,24 @@ class InfoExtractor(object):
                                     })
                                     segment_index += 1
                             representation_ms_info['fragments'] = fragments
+                        elif 'segment_urls' in representation_ms_info and 'segment_urls_range' in representation_ms_info:
+                            # Segment URLs with mediaRange
+                            # Example: https://kinescope.io/200615537/master.mpd
+                            # https://github.com/ytdl-org/youtube-dl/issues/30235
+                            # or any mpd made with Bento4 `mp4dash --no-split`
+                            fragments = []
+                            segment_duration = float_or_none(
+                                representation_ms_info['segment_duration'],
+                                representation_ms_info['timescale']) if 'segment_duration' in representation_ms_info else None
+                            for segment_url, segment_url_range in zip(
+                                    representation_ms_info['segment_urls'], representation_ms_info['segment_urls_range']):
+                                fragment = {
+                                    location_key(segment_url): segment_url,
+                                    'range': segment_url_range,
+                                    'duration': segment_duration,
+                                }
+                                fragments.append(fragment)
+                            representation_ms_info['fragments'] = fragments
                         elif 'segment_urls' in representation_ms_info:
                             # Segment URLs with no SegmentTimeline
                             # Example: https://www.seznam.cz/zpravy/clanek/cesko-zasahne-vitr-o-sile-vichrice-muze-byt-i-zivotu-nebezpecny-39091
@@ -2360,7 +2384,11 @@ class InfoExtractor(object):
                                 initialization_url = representation_ms_info['initialization_url']
                                 if not f.get('url'):
                                     f['url'] = initialization_url
-                                f['fragments'].append({location_key(initialization_url): initialization_url})
+                                fragment = {location_key(initialization_url): initialization_url}
+                                initialization_url_range = representation_ms_info.get('initialization_url_range')
+                                if initialization_url_range:
+                                    fragment['range'] = initialization_url_range
+                                f['fragments'].append(fragment)
                             f['fragments'].extend(representation_ms_info['fragments'])
                         else:
                             # Assuming direct URL to unfragmented media.

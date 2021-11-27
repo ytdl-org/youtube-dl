@@ -45,7 +45,11 @@ class DashSegmentsFD(FragmentFD):
                     if not fragment_url:
                         assert fragment_base_url
                         fragment_url = urljoin(fragment_base_url, fragment['path'])
-                    success, frag_content = self._download_fragment(ctx, fragment_url, info_dict)
+                    headers = info_dict.get('http_headers', {})
+                    fragment_range = fragment.get('range')
+                    if fragment_range:
+                        headers['Range'] = 'bytes=%s' % fragment_range
+                    success, frag_content = self._download_fragment(ctx, fragment_url, info_dict, headers)
                     if not success:
                         return False
                     self._append_fragment(ctx, frag_content)
