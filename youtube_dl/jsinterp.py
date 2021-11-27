@@ -9,7 +9,8 @@ from .utils import (
     remove_quotes,
 )
 from .compat import (
-    compat_collections_abc
+    compat_collections_abc,
+    compat_str,
 )
 MutableMapping = compat_collections_abc.MutableMapping
 
@@ -372,7 +373,7 @@ class JSInterpreter(object):
                 # nonlocal member
                 member = nl.member
                 if variable == 'String':
-                    obj = str
+                    obj = compat_str
                 elif variable in local_vars:
                     obj = local_vars[variable]
                 else:
@@ -391,7 +392,7 @@ class JSInterpreter(object):
                     self.interpret_expression(v, local_vars, allow_recursion)
                     for v in self._separate(arg_str)]
 
-                if obj == str:
+                if obj == compat_str:
                     if member == 'fromCharCode':
                         assertion(argvals, 'takes one or more arguments')
                         return ''.join(map(chr, argvals))
@@ -533,7 +534,7 @@ class JSInterpreter(object):
             name = self._named_object(
                 local_vars,
                 self.extract_function_from_code(
-                    [str.strip(x) for x in mobj.group('args').split(',')],
+                    [x.strip() for x in mobj.group('args').split(',')],
                     body, local_vars, *global_stack))
             code = code[:start] + name + remaining
         return self.build_function(argnames, code, local_vars, *global_stack)
