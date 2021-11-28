@@ -173,6 +173,8 @@ class InfoExtractor(object):
                                             fragment_base_url
                                  * "duration" (optional, int or float)
                                  * "filesize" (optional, int)
+                                 * "range" (optional, str of the form "start-end"
+                                            to use in HTTP Range header)
                     * preference Order number of this format. If this field is
                                  present and not None, the formats get sorted
                                  by this field, regardless of all other values.
@@ -2141,7 +2143,9 @@ class InfoExtractor(object):
             def extract_Initialization(source):
                 initialization = source.find(_add_ns('Initialization'))
                 if initialization is not None:
-                    ms_info['initialization_url'] = initialization.attrib['sourceURL']
+                    initialization_url = initialization.get('sourceURL')
+                    if initialization_url:
+                        ms_info['initialization_url'] = initialization_url
                     initialization_url_range = initialization.get('range')
                     if initialization_url_range:
                         ms_info['initialization_url_range'] = initialization_url_range
@@ -2152,7 +2156,9 @@ class InfoExtractor(object):
                 extract_Initialization(segment_list)
                 segment_urls_e = segment_list.findall(_add_ns('SegmentURL'))
                 if segment_urls_e:
-                    ms_info['segment_urls'] = [segment.attrib['media'] for segment in segment_urls_e]
+                    segment_urls = [segment.get('media') for segment in segment_urls_e]
+                    if any(segment_urls):
+                        ms_info['segment_urls'] = segment_urls
                     segment_urls_range = [segment.get('mediaRange') for segment in segment_urls_e]
                     if any(segment_urls_range):
                         ms_info['segment_urls_range'] = segment_urls_range
@@ -2266,6 +2272,11 @@ class InfoExtractor(object):
                         def location_key(location):
                             return 'url' if re.match(r'^https?://', location) else 'path'
 
+                        def calc_segment_duration():
+                            return float_or_none(
+                                representation_ms_info['segment_duration'],
+                                representation_ms_info['timescale']) if 'segment_duration' in representation_ms_info else None
+
                         if 'segment_urls' not in representation_ms_info and 'media' in representation_ms_info:
 
                             media_template = prepare_template('media', ('Number', 'Bandwidth', 'Time'))
@@ -2338,35 +2349,42 @@ class InfoExtractor(object):
                             # Segment URLs with mediaRange
                             # Example: https://kinescope.io/200615537/master.mpd
                             # https://github.com/ytdl-org/youtube-dl/issues/30235
-                            # or any mpd made with Bento4 `mp4dash --no-split`
+                            # or any mpd generated with Bento4 `mp4dash --no-split --use-segment-list`
                             fragments = []
-                            segment_duration = float_or_none(
-                                representation_ms_info['segment_duration'],
-                                representation_ms_info['timescale']) if 'segment_duration' in representation_ms_info else None
+                            segment_duration = calc_segment_duration()
                             for segment_url, segment_url_range in zip(
                                     representation_ms_info['segment_urls'], representation_ms_info['segment_urls_range']):
-                                fragment = {
+                                fragments.append({
                                     location_key(segment_url): segment_url,
                                     'range': segment_url_range,
                                     'duration': segment_duration,
-                                }
-                                fragments.append(fragment)
+                                })
                             representation_ms_info['fragments'] = fragments
                         elif 'segment_urls' in representation_ms_info:
                             # Segment URLs with no SegmentTimeline
                             # Example: https://www.seznam.cz/zpravy/clanek/cesko-zasahne-vitr-o-sile-vichrice-muze-byt-i-zivotu-nebezpecny-39091
                             # https://github.com/ytdl-org/youtube-dl/pull/14844
                             fragments = []
-                            segment_duration = float_or_none(
-                                representation_ms_info['segment_duration'],
-                                representation_ms_info['timescale']) if 'segment_duration' in representation_ms_info else None
+                            segment_duration = calc_segment_duration()
                             for segment_url in representation_ms_info['segment_urls']:
-                                fragment = {
+                                fragments.append({
                                     location_key(segment_url): segment_url,
-                                }
-                                if segment_duration:
-                                    fragment['duration'] = segment_duration
-                                fragments.append(fragment)
+                                    'duration': segment_duration,
+                                })
+                            representation_ms_info['fragments'] = fragments
+                        elif 'segment_urls_range' in representation_ms_info:
+                            # no Segment URLs but mediaRange
+                            # Example: https://media18.vbox7.com/sl/0ZYJAV00u9tCwCbFvKwrzg/1638223200/21/21871a4a85/21871a4a85.mpd
+                            # https://github.com/ytdl-org/youtube-dl/issues/27575
+                            # or any mpd generated with GPAC `MP4Box -dash dur -single-file`
+                            fragments = []
+                            segment_duration = calc_segment_duration()
+                            for segment_url_range in representation_ms_info['segment_urls_range']:
+                                fragments.append({
+                                    location_key(base_url): base_url,
+                                    'range': segment_url_range,
+                                    'duration': segment_duration,
+                                })
                             representation_ms_info['fragments'] = fragments
                         # If there is a fragments key available then we correctly recognized fragmented media.
                         # Otherwise we will assume unfragmented media with direct access. Technically, such
@@ -2380,15 +2398,26 @@ class InfoExtractor(object):
                                 'fragments': [],
                                 'protocol': 'http_dash_segments',
                             })
-                            if 'initialization_url' in representation_ms_info:
+                            if 'initialization_url' in representation_ms_info and 'initialization_url_range' in representation_ms_info:
+                                # Initialization URL with range (accompanied by Segment URLs with mediaRange above)
+                                # https://github.com/ytdl-org/youtube-dl/issues/30235
+                                initialization_url = representation_ms_info['initialization_url']
+                                f['fragments'].append({
+                                    location_key(initialization_url): initialization_url,
+                                    'range': representation_ms_info['initialization_url_range'],
+                                })
+                            elif 'initialization_url' in representation_ms_info:
                                 initialization_url = representation_ms_info['initialization_url']
                                 if not f.get('url'):
                                     f['url'] = initialization_url
-                                fragment = {location_key(initialization_url): initialization_url}
-                                initialization_url_range = representation_ms_info.get('initialization_url_range')
-                                if initialization_url_range:
-                                    fragment['range'] = initialization_url_range
-                                f['fragments'].append(fragment)
+                                f['fragments'].append({location_key(initialization_url): initialization_url})
+                            elif 'initialization_url_range' in representation_ms_info:
+                                # no Initialization URL but range (accompanied by no Segment URLs but mediaRange above)
+                                # https://github.com/ytdl-org/youtube-dl/issues/27575
+                                f['fragments'].append({
+                                    location_key(base_url): base_url,
+                                    'range': representation_ms_info['initialization_url_range'],
+                                })
                             f['fragments'].extend(representation_ms_info['fragments'])
                         else:
                             # Assuming direct URL to unfragmented media.
