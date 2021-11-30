@@ -99,8 +99,8 @@ class Vbox7IE(InfoExtractor):
 
         formats = []
         if re.search(r'\.mpd\b', video_url):
-            # youtube-dl cannot parse GPAC generated MPD used here, but try anyway,
-            # and use mp4 formats (usually provided to Safari, iOS and old Win's) on failure
+            # In case MPD cannot be parsed, use mp4 format as a fallback
+            # usually provided to Safari, iOS, and old Win's
             try:
                 formats.extend(self._extract_mpd_formats(
                     video_url, video_id, 'dash', fatal=False))
