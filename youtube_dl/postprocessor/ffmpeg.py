@@ -564,12 +564,18 @@ class FFmpegFixupStretchedPP(FFmpegPostProcessor):
         return [], info
 
 
-class FFmpegFixupM4aPP(FFmpegPostProcessor):
+class FFmpegFixupMpegDashPP(FFmpegPostProcessor):
     def run(self, info):
-        if info.get('container') != 'm4a_dash':
+        if info.get('container') not in ('m4a_dash', 'mp4_dash'):
             return [], info
 
         filename = info['filepath']
+        if info.get('container') == 'mp4_dash':
+            with open(encodeFilename(filename), 'rb') as f:
+                b = f.read(8)
+            if b[4:8] == b'ftyp':
+                return [], info
+
         temp_filename = prepend_extension(filename, 'temp')
 
         options = ['-c', 'copy', '-f', 'mp4']

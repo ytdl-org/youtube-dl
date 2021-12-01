@@ -101,7 +101,7 @@ from .downloader import get_suitable_downloader
 from .downloader.rtmp import rtmpdump_version
 from .postprocessor import (
     FFmpegFixupM3u8PP,
-    FFmpegFixupM4aPP,
+    FFmpegFixupMpegDashPP,
     FFmpegFixupStretchedPP,
     FFmpegMergerPP,
     FFmpegPostProcessor,
@@ -2009,22 +2009,24 @@ class YoutubeDL(object):
                         assert fixup_policy in ('ignore', 'never')
 
                 if (info_dict.get('requested_formats') is None
-                        and info_dict.get('container') == 'm4a_dash'):
+                        and info_dict.get('container') in ('m4a_dash', 'mp4_dash')):
                     if fixup_policy == 'warn':
                         self.report_warning(
-                            '%s: writing DASH m4a. '
+                            'Writing DASH %s in "%s". '
                             'Only some players support this container.'
-                            % info_dict['id'])
+                            % ('m4a' if info_dict.get('container') == 'm4a_dash' else 'mp4',
+                                filename))
                     elif fixup_policy == 'detect_or_warn':
-                        fixup_pp = FFmpegFixupM4aPP(self)
+                        fixup_pp = FFmpegFixupMpegDashPP(self)
                         if fixup_pp.available:
                             info_dict.setdefault('__postprocessors', [])
                             info_dict['__postprocessors'].append(fixup_pp)
                         else:
                             self.report_warning(
-                                '%s: writing DASH m4a. '
+                                'Writing DASH %s in "%s". '
                                 'Only some players support this container. %s'
-                                % (info_dict['id'], INSTALL_FFMPEG_MESSAGE))
+                                % ('m4a' if info_dict.get('container') == 'm4a_dash' else 'mp4',
+                                    filename, INSTALL_FFMPEG_MESSAGE))
                     else:
                         assert fixup_policy in ('ignore', 'never')
 
