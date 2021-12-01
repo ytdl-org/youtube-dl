@@ -1994,8 +1994,8 @@ class YoutubeDL(object):
                 stretched_ratio = info_dict.get('stretched_ratio')
                 if stretched_ratio is not None and stretched_ratio != 1:
                     if fixup_policy == 'warn':
-                        self.report_warning('%s: Non-uniform pixel ratio (%s)' % (
-                            info_dict['id'], stretched_ratio))
+                        self.report_warning('Non-uniform pixel ratio (%f) in "%s".' % (
+                            stretched_ratio, filename))
                     elif fixup_policy == 'detect_or_warn':
                         stretched_pp = FFmpegFixupStretchedPP(self)
                         if stretched_pp.available:
@@ -2003,8 +2003,8 @@ class YoutubeDL(object):
                             info_dict['__postprocessors'].append(stretched_pp)
                         else:
                             self.report_warning(
-                                '%s: Non-uniform pixel ratio (%s). %s'
-                                % (info_dict['id'], stretched_ratio, INSTALL_FFMPEG_MESSAGE))
+                                'Non-uniform pixel ratio (%f) in "%s". %s'
+                                % (stretched_ratio, filename, INSTALL_FFMPEG_MESSAGE))
                     else:
                         assert fixup_policy in ('ignore', 'never')
 
