@@ -2012,9 +2012,9 @@ class YoutubeDL(object):
                         and info_dict.get('container') == 'm4a_dash'):
                     if fixup_policy == 'warn':
                         self.report_warning(
-                            'Writing DASH m4a in "%s". '
+                            '%s: writing DASH m4a. '
                             'Only some players support this container.'
-                            % filename)
+                            % info_dict['id'])
                     elif fixup_policy == 'detect_or_warn':
                         fixup_pp = FFmpegFixupM4aPP(self)
                         if fixup_pp.available:
@@ -2022,9 +2022,9 @@ class YoutubeDL(object):
                             info_dict['__postprocessors'].append(fixup_pp)
                         else:
                             self.report_warning(
-                                'Writing DASH m4a in "%s". '
+                                '%s: writing DASH m4a. '
                                 'Only some players support this container. %s'
-                                % (filename, INSTALL_FFMPEG_MESSAGE))
+                                % (info_dict['id'], INSTALL_FFMPEG_MESSAGE))
                     else:
                         assert fixup_policy in ('ignore', 'never')
 
