@@ -200,6 +200,7 @@ class TestUtil(unittest.TestCase):
             return
 
         self.assertEqual(sanitize_path('abc'), 'abc')
+        self.assertEqual(sanitize_path('? abc'), 'abc')
         self.assertEqual(sanitize_path('abc/def'), 'abc\\def')
         self.assertEqual(sanitize_path('abc\\def'), 'abc\\def')
         self.assertEqual(sanitize_path('abc|def'), 'abc#def')
