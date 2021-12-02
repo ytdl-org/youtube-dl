@@ -19,7 +19,7 @@ class RuutuIE(InfoExtractor):
     _VALID_URL = r'''(?x)
                     https?://
                         (?:
-                            (?:www\.)?(?:ruutu|supla)\.fi/(?:video|supla|audio)/|
+                            (?:www\.)?(?:ruutu|supla)\.fi/(?:video|supla|audio|movie)/|
                             static\.nelonenmedia\.fi/player/misc/embed_player\.html\?.*?\bnid=
                         )
                         (?P<id>\d+)
@@ -119,6 +119,23 @@ class RuutuIE(InfoExtractor):
             # premium
             'url': 'https://www.ruutu.fi/video/3618715',
             'only_matching': True,
+        },
+        {
+            # movie
+            'url': 'https://www.ruutu.fi/movie/3366742',
+            'info_dict': {
+                'id': '3366742',
+                'ext': 'mp4',
+                'title': 'Elokuva: Valmentaja (7) 14.02.2020 12:00',
+                'description': 'md5:c253a1631f42af022215e7988890c438',
+                'thumbnail': r're:^https?://.*\.jpg$',
+                'duration': 6685,
+                'age_limit': 7,
+                'upload_date': '20200214',
+            },
+            'params': {
+                'skip_download': True,
+            },
         },
     ]
     _API_BASE = 'https://gatling.nelonenmedia.fi'
