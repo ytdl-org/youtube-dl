@@ -218,7 +218,8 @@ class FFmpegFD(ExternalFD):
 
     @classmethod
     def available(cls):
-        return FFmpegPostProcessor().available
+        ffpp = FFmpegPostProcessor()
+        return ffpp.available and ffpp.basename == cls.get_basename()
 
     def _call_downloader(self, tmpfilename, info_dict):
         url = info_dict['url']
@@ -368,4 +369,4 @@ def get_external_downloader(external_downloader):
         downloader . """
     # Drop .exe extension on Windows
     bn = os.path.splitext(os.path.basename(external_downloader))[0]
-    return _BY_NAME[bn]
+    return _BY_NAME.get(bn)

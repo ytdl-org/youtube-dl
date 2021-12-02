@@ -2451,6 +2451,10 @@ class ContentTooShortError(YoutubeDLError):
         self.expected = expected
 
 
+class ExternalDownloaderError(YoutubeDLError):
+    pass
+
+
 class XAttrMetadataError(YoutubeDLError):
     def __init__(self, code=None, msg='Unknown error'):
         super(XAttrMetadataError, self).__init__(msg)

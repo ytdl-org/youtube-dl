@@ -56,6 +56,7 @@ from .utils import (
     encodeFilename,
     error_to_compat_str,
     expand_path,
+    ExternalDownloaderError,
     ExtractorError,
     format_bytes,
     formatSeconds,
@@ -1907,7 +1908,7 @@ class YoutubeDL(object):
         if not self.params.get('skip_download', False):
             try:
                 def dl(name, info):
-                    fd = get_suitable_downloader(info, self.params)(self, self.params)
+                    fd = get_suitable_downloader(info, self, self.params)(self, self.params)
                     for ph in self._progress_hooks:
                         fd.add_progress_hook(ph)
                     if self.params.get('verbose'):
@@ -1981,6 +1982,9 @@ class YoutubeDL(object):
                 raise UnavailableVideoError(err)
             except (ContentTooShortError, ) as err:
                 self.report_error('content too short (expected %s bytes and served %s)' % (err.expected, err.downloaded))
+                return
+            except (ExternalDownloaderError, ) as err:
+                self.report_error(error_to_compat_str(err))
                 return
 
             if success and filename != '-':

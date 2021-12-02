@@ -15,6 +15,7 @@ from .external import (
 
 from ..utils import (
     determine_protocol,
+    ExternalDownloaderError,
 )
 
 PROTOCOL_MAP = {
@@ -29,7 +30,7 @@ PROTOCOL_MAP = {
 }
 
 
-def get_suitable_downloader(info_dict, params={}):
+def get_suitable_downloader(info_dict, ydl, params={}):
     """Get the downloader class that can handle the info dict."""
     protocol = determine_protocol(info_dict)
     info_dict['protocol'] = protocol
@@ -40,8 +41,17 @@ def get_suitable_downloader(info_dict, params={}):
     external_downloader = params.get('external_downloader')
     if external_downloader is not None:
         ed = get_external_downloader(external_downloader)
-        if ed.can_download(info_dict):
+        if not ed:
+            raise ExternalDownloaderError(
+                'unknown/unsupported external downloader %s specified' % external_downloader)
+        if not ed.available():
+            raise ExternalDownloaderError(
+                'external downloader %s not found in PATH' % external_downloader)
+        if ed.supports(info_dict):
             return ed
+        else:
+            ydl.report_warning(
+                'external downloader %s is not used for protocol %s' % (external_downloader, protocol))
 
     if protocol.startswith('m3u8') and info_dict.get('is_live'):
         return FFmpegFD
