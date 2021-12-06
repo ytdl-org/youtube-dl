@@ -2079,13 +2079,25 @@ class YoutubeDL(object):
         return self._download_retcode
 
     def download_with_info_file(self, info_filename):
-        with contextlib.closing(fileinput.FileInput(
-                [info_filename], mode='r',
-                openhook=fileinput.hook_encoded('utf-8'))) as f:
-            # FileInput doesn't have a read method, we can't call json.load
-            info = self.filter_requested_info(json.loads('\n'.join(f)))
+        try:
+            with contextlib.closing(fileinput.FileInput(
+                    [info_filename], mode='r',
+                    openhook=fileinput.hook_encoded('utf-8'))) as f:
+                # FileInput doesn't have a read method, we can't call json.load
+                info = self.filter_requested_info(json.loads('\n'.join(f)))
+        except (IOError, ValueError) as err:
+            self.report_error('Unable to load info json: %s' % error_to_compat_str(err))
+            return self._download_retcode
         try:
             self.process_ie_result(info, download=True)
+        except ExtractorError as err:
+            err_str = error_to_compat_str(err)
+            # don't show the message to report an issue because the source may
+            # not be reliable (shown in verbose mode anyway)
+            pos = err_str.find('; please report this issue')
+            if pos >= 0:
+                err_str = err_str[:pos]
+            self.report_error('Unable to process info json: %s' % err_str)
         except DownloadError:
             webpage_url = info.get('webpage_url')
             if webpage_url is not None:
