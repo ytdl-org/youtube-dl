@@ -160,6 +160,24 @@ class NiconicoIE(InfoExtractor):
     }, {
         'url': 'http://sp.nicovideo.jp/watch/sm28964488?ss_pos=1&cp_in=wt_tg',
         'only_matching': True,
+    }, {
+        # DMC video with heartbeat
+        'url': 'https://www.nicovideo.jp/watch/sm34815188',
+        'md5': '9360c6e1f1519d7759e2fe8e1326ae83',
+        'info_dict': {
+            'id': 'sm34815188',
+            'ext': 'mp4',
+            'title': 'md5:aee93e9f3366db72f902f6cd5d389cb7',
+            'description': 'md5:7b9149fc7a00ab053cafaf5c19662704',
+            'thumbnail': r're:https?://.*',
+            'uploader': 'md5:2762e18fa74dbb40aa1ad27c6291ee32',
+            'uploader_id': '67449889',
+            'upload_date': '20190322',
+            'timestamp': int,  # timestamp is unstable
+            'duration': 1082.0,
+            'view_count': int,
+            'comment_count': int,
+        },
     }]
 
     _VALID_URL = r'https?://(?:www\.|secure\.|sp\.)?nicovideo\.jp/watch/(?P<id>(?:[a-z]{2})?[0-9]+)'

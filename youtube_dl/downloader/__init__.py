@@ -1,20 +1,29 @@
 from __future__ import unicode_literals
 
+from ..utils import (
+    determine_protocol,
+)
+
+
+def get_suitable_downloader(info_dict, params={}):
+    info_dict['protocol'] = determine_protocol(info_dict)
+    info_copy = info_dict.copy()
+    return _get_suitable_downloader(info_copy, params)
+
+
+# Some of these require get_suitable_downloader
 from .common import FileDownloader
+from .dash import DashSegmentsFD
 from .f4m import F4mFD
 from .hls import HlsFD
 from .http import HttpFD
 from .rtmp import RtmpFD
-from .dash import DashSegmentsFD
 from .rtsp import RtspFD
 from .ism import IsmFD
+from .niconico import NiconicoDmcFD
 from .external import (
     get_external_downloader,
     FFmpegFD,
-)
-
-from ..utils import (
-    determine_protocol,
 )
 
 PROTOCOL_MAP = {
@@ -26,13 +35,12 @@ PROTOCOL_MAP = {
     'f4m': F4mFD,
     'http_dash_segments': DashSegmentsFD,
     'ism': IsmFD,
+    'niconico_dmc': NiconicoDmcFD,
 }
 
 
-def get_suitable_downloader(info_dict, params={}):
+def _get_suitable_downloader(info_dict, params={}):
     """Get the downloader class that can handle the info dict."""
-    protocol = determine_protocol(info_dict)
-    info_dict['protocol'] = protocol
 
     # if (info_dict.get('start_time') or info_dict.get('end_time')) and not info_dict.get('requested_formats') and FFmpegFD.can_download(info_dict):
     #     return FFmpegFD
@@ -43,6 +51,7 @@ def get_suitable_downloader(info_dict, params={}):
         if ed.can_download(info_dict):
             return ed
 
+    protocol = info_dict['protocol']
     if protocol.startswith('m3u8') and info_dict.get('is_live'):
         return FFmpegFD
 
