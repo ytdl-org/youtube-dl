@@ -26,10 +26,7 @@ class NateIE(InfoExtractor):
 
     def _real_extract(self, url):
         video_id = self._match_id(url)
-        webpage = self._download_webpage(url, video_id)
-
-        #video_data = self._download_json(
-        #    'https://tv.nate.com/api/v1/clip/% s'%video_id, video_id, headers=self.geo_verification_headers())
+        
         video_data = self._download_json('https://tv.nate.com/api/v1/clip/' + str(video_id), video_id)
 
         title = video_data.get('clipTitle')
@@ -38,7 +35,6 @@ class NateIE(InfoExtractor):
         age_limit = video_data.get('targetAge')
         url = video_data['smcUriList'][4]
 
-        # TODO more code goes here, for example ...
 
         return {
             'id': video_id,
@@ -47,5 +43,4 @@ class NateIE(InfoExtractor):
             'upload_date' : upload_date[:8],
             'age_limit' : age_limit,
             'url': url
-            # TODO more properties (see youtube_dl/extractor/common.py)
         }
