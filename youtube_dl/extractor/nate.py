@@ -15,7 +15,7 @@ class NateIE(InfoExtractor):
             'title': '[심쿵엔딩] 이준호x이세영, 서로를 기억하며 끌어안는 두 사람!💕, MBC 211204 방송',
             'thumbnail': r're:^http?://.*\.jpg$',
             'upload_date': '20211204',
-            'age_limit' : '15'
+            'age_limit' : 15
             # TODO more properties, either as:
             # * A value
             # * MD5 checksum; start the string with md5:
@@ -30,13 +30,13 @@ class NateIE(InfoExtractor):
 
         #video_data = self._download_json(
         #    'https://tv.nate.com/api/v1/clip/% s'%video_id, video_id, headers=self.geo_verification_headers())
-        video_data = self._download_json(url, video_id)
+        video_data = self._download_json('https://tv.nate.com/api/v1/clip/' + str(video_id), video_id)
 
         title = video_data.get('clipTitle')
         thumbnail = video_data.get('contentImg')
-        upload_date = video_data.get('regData')
+        upload_date = video_data.get('regDate')
         age_limit = video_data.get('targetAge')
-
+        url = video_data['smcUriList'][4]
 
         # TODO more code goes here, for example ...
 
@@ -45,6 +45,7 @@ class NateIE(InfoExtractor):
             'title': title,
             'thumbnail' : thumbnail,
             'upload_date' : upload_date[:8],
-            'age_limit' : age_limit
+            'age_limit' : age_limit,
+            'url': url
             # TODO more properties (see youtube_dl/extractor/common.py)
         }
