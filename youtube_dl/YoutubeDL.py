@@ -1889,6 +1889,8 @@ class YoutubeDL(object):
                             self.report_warning('Unable to download subtitle for "%s": %s' %
                                                 (sub_lang, error_to_compat_str(err)))
                             continue
+        elif subtitles_are_requested and not info_dict.get('requested_subtitles'):
+            self.report_warning('There are no subtitles to write.')
 
         if self.params.get('writeinfojson', False):
             infofn = replace_extension(filename, 'info.json', info_dict.get('ext'))
@@ -2261,11 +2263,11 @@ class YoutubeDL(object):
     def list_thumbnails(self, info_dict):
         thumbnails = info_dict.get('thumbnails')
         if not thumbnails:
-            self.to_screen('[info] No thumbnails present for %s' % info_dict['id'])
+            self.to_screen('%s has no thumbnail' % info_dict['id'])
             return
 
         self.to_screen(
-            '[info] Thumbnails for %s:' % info_dict['id'])
+            '[info] Available thumbnails for %s:' % info_dict['id'])
         self.to_screen(render_table(
             ['ID', 'width', 'height', 'URL'],
             [[t['id'], t.get('width', 'unknown'), t.get('height', 'unknown'), t['url']] for t in thumbnails]))
@@ -2275,7 +2277,7 @@ class YoutubeDL(object):
             self.to_screen('%s has no %s' % (video_id, name))
             return
         self.to_screen(
-            'Available %s for %s:' % (name, video_id))
+            '[info] Available %s for %s:' % (name, video_id))
         self.to_screen(render_table(
             ['Language', 'formats'],
             [[lang, ', '.join(f['ext'] for f in reversed(formats))]
@@ -2443,7 +2445,7 @@ class YoutubeDL(object):
             return
 
         if not thumbnails:
-            # No thumbnails present, so return immediately
+            self.report_warning('There\'s no thumbnail to write.')
             return
 
         for t in thumbnails:
