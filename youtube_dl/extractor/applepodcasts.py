@@ -7,6 +7,7 @@ from ..utils import (
     clean_podcast_url,
     get_element_by_class,
     int_or_none,
+    parse_codecs,
     parse_iso8601,
     try_get,
 )
@@ -74,7 +75,7 @@ class ApplePodcastsIE(InfoExtractor):
                 series = try_get(inc, lambda x: x['attributes']['name'])
         series = series or clean_html(get_element_by_class('podcast-header__identity', webpage))
 
-        return {
+        info = [{
             'id': episode_id,
             'title': episode['name'],
             'url': clean_podcast_url(episode['assetUrl']),
@@ -82,4 +83,9 @@ class ApplePodcastsIE(InfoExtractor):
             'timestamp': parse_iso8601(episode.get('releaseDateTime')),
             'duration': int_or_none(episode.get('durationInMilliseconds'), 1000),
             'series': series,
-        }
+        }]
+        self._sort_formats(info)
+        info = info[0]
+        codecs = parse_codecs(info.get('ext', 'mp3'))
+        info.update(codecs)
+        return info
