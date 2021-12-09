@@ -27,6 +27,7 @@ class ApplePodcastsIE(InfoExtractor):
             'timestamp': 1593932400,
             'duration': 6454,
             'series': 'The Tim Dillon Show',
+            'thumbnail': 're:.+[.](png|jpe?g|webp)',
         }
     }, {
         'url': 'https://podcasts.apple.com/podcast/207-whitney-webb-returns/id1135137367?i=1000482637777',
@@ -83,6 +84,7 @@ class ApplePodcastsIE(InfoExtractor):
             'timestamp': parse_iso8601(episode.get('releaseDateTime')),
             'duration': int_or_none(episode.get('durationInMilliseconds'), 1000),
             'series': series,
+            'thumbnail': self._og_search_thumbnail(webpage),
         }]
         self._sort_formats(info)
         info = info[0]
