@@ -32,7 +32,10 @@ class EmbedThumbnailPP(FFmpegPostProcessor):
         temp_filename = prepend_extension(filename, 'temp')
 
         if not info.get('thumbnails'):
-            self._downloader.to_screen('[embedthumbnail] There aren\'t any thumbnails to embed')
+            self._downloader.report_warning('There\'s no thumbnail to embed.')
+            return [], info
+        if info['ext'] not in ('mp3', 'm4a', 'mp4'):
+            self._downloader.report_warning('Thumbnails can only be embedded in mp3, m4a or mp4 files.')
             return [], info
 
         thumbnail_filename = info['thumbnails'][-1]['filename']
@@ -124,7 +127,5 @@ class EmbedThumbnailPP(FFmpegPostProcessor):
             else:
                 os.remove(encodeFilename(filename))
                 os.rename(encodeFilename(temp_filename), encodeFilename(filename))
-        else:
-            raise EmbedThumbnailPPError('Only mp3 and m4a/mp4 are supported for thumbnail embedding for now.')
 
         return [], info

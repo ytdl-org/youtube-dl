@@ -377,12 +377,12 @@ class FFmpegVideoConvertorPP(FFmpegPostProcessor):
 
 class FFmpegEmbedSubtitlePP(FFmpegPostProcessor):
     def run(self, information):
-        if information['ext'] not in ('mp4', 'webm', 'mkv'):
-            self._downloader.to_screen('[ffmpeg] Subtitles can only be embedded in mp4, webm or mkv files')
-            return [], information
         subtitles = information.get('requested_subtitles')
         if not subtitles:
-            self._downloader.to_screen('[ffmpeg] There aren\'t any subtitles to embed')
+            self._downloader.report_warning('There are no subtitles to embed.')
+            return [], information
+        if information['ext'] not in ('mp4', 'webm', 'mkv'):
+            self._downloader.report_warning('Subtitles can only be embedded in mp4, webm or mkv files.')
             return [], information
 
         filename = information['filepath']
@@ -400,7 +400,7 @@ class FFmpegEmbedSubtitlePP(FFmpegPostProcessor):
             else:
                 if not webm_vtt_warn and ext == 'webm' and sub_ext != 'vtt':
                     webm_vtt_warn = True
-                    self._downloader.to_screen('[ffmpeg] Only WebVTT subtitles can be embedded in webm files')
+                    self._downloader.report_warning('Only WebVTT subtitles can be embedded in webm files.')
 
         if not sub_langs:
             return [], information
