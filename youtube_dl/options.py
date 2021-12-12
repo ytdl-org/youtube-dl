@@ -603,7 +603,7 @@ def parseOpts(overrideArguments=None):
         action='store_true', dest='getid', default=False,
         help='Simulate, quiet but print id')
     verbosity.add_option(
-        '--get-thumbnail',
+        '--get-thumbnail-url',
         action='store_true', dest='getthumbnail', default=False,
         help='Simulate, quiet but print thumbnail URL')
     verbosity.add_option(
