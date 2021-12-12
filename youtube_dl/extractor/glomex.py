@@ -5,7 +5,6 @@ import re
 
 from .common import InfoExtractor
 from ..compat import (
-    compat_str,
     compat_urllib_parse_urlparse,
     compat_urllib_parse_urlencode,
 )
@@ -209,14 +208,6 @@ class GlomexEmbedIE(GlomexBaseIE):
         if origin_url is not None:
             player_url = cls._smuggle_origin_url(player_url, origin_url)
         return player_url
-
-    @classmethod
-    def _match_integration(cls, url):
-        if '_VALID_URL_RE' not in cls.__dict__:
-            cls._VALID_URL_RE = re.compile(cls._VALID_URL)
-        m = cls._VALID_URL_RE.match(url)
-        assert m
-        return compat_str(m.group('integration'))
 
     @classmethod
     def _extract_urls(cls, webpage, origin_url):
