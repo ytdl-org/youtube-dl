@@ -20,7 +20,7 @@ class ServusIE(InfoExtractor):
                             servus\.com/(?:(?:at|de)/p/[^/]+|tv/videos)|
                             (?:servustv|pm-wissen)\.com/(?:videos|[^/]+/v)
                         )
-                        /(?P<id>[aA]{2}-\w+|\d+-\d+)
+                        /(?P<id>[aA]{2}-?\w+|\d+-\d+)
                     '''
     _TESTS = [{
         # new URL schema
@@ -40,7 +40,29 @@ class ServusIE(InfoExtractor):
             'episode_number': 1,
         },
         'params': {
-            'format': 'bestvideo+bestaudio/best',
+            'format': 'bestvideo/best',
+            'skip_download': True,
+        }
+    }, {
+        # new video-id
+        'url': 'https://www.servustv.com/volkskultur/v/aawg5x4ywdc94xyjv9ly/',
+        'md5': 'f8154f22bc05e0d286d124f3ef4fe5cc',
+        'info_dict': {
+            'id': 'AAWG5X4YWDC94XYJV9LY',
+            'ext': 'mp4',
+            'title': '75 Jahre Adventsingen',
+            'description': 'md5:b8dffa1efb6c73ee2d4df727367ed5be',
+            'thumbnail': r're:^https?://.*\.jpg',
+            'duration': 3571,
+            'series': 'Salzburger Adventsingen',
+            'season': 'Season 2',
+            'season_number': 2,
+            'episode': 'Episode 1 - 75 Jahre Adventsingen',
+            'episode_number': 1,
+        },
+        'params': {
+            'geo_bypass_country': 'AT',
+            'format': 'bestvideo/best',
             'skip_download': True,
         }
     }, {
