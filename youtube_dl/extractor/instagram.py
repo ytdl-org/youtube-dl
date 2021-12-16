@@ -23,7 +23,7 @@ from ..utils import (
 
 
 class InstagramIE(InfoExtractor):
-    _VALID_URL = r'(?P<url>https?://(?:www\.)?instagram\.com/(?:p|tv|reel)/(?P<id>[^/?#&]+)/?)'
+    _VALID_URL = r'(?P<url>https?://(?:www\.)?instagram\.com/(?:[^/]+/)?(?:p|tv|reel)/(?P<id>[^/?#&]+)/?)'
     _TESTS = [{
         'url': 'https://instagram.com/p/aye83DjauH/?foo=bar#abc',
         'md5': '0d2da106a9d2631273e192b372806516',
@@ -107,6 +107,25 @@ class InstagramIE(InfoExtractor):
             'comments': list,
             'description': 'Meet Cass Hirst (@cass.fb), a fingerboarding pro who can perform tiny ollies and kickflips while blindfolded.',
         }
+    }, {
+        # URL variation
+        'url': 'https://www.instagram.com/marvelskies.fc/reel/CWqAgUZgCku/',
+        'md5': '6ed9d482584b3f0831e28519a9ecbc35',
+        'info_dict': {
+            'id': 'CWqAgUZgCku',
+            'ext': 'mp4',
+            'title': 'Video by marvelskies.fc',
+            'description': 'md5:89332c29fa5507e72b2e8fc155e57154',
+            'thumbnail': r're:^https?://.*\.jpg',
+            'duration': 8.894,
+            'timestamp': 1637752193,
+            'upload_date': '20211124',
+            'uploader_id': 'marvelskies.fc',
+            'uploader': '',
+            'like_count': int,
+            'comment_count': int,
+            'comments': list,
+        },
     }, {
         'url': 'https://instagram.com/p/-Cmh1cukG2/',
         'only_matching': True,
