@@ -1,4 +1,4 @@
-version <unreleased>
+version 2021.12.17
 
 Core
 * [postprocessor/ffmpeg] Show ffmpeg output on error (#22680, #29336)
