@@ -4,7 +4,7 @@ from __future__ import unicode_literals
 from .common import InfoExtractor
 from ..utils import (
     ExtractorError,
-    float_or_none,
+    int_or_none,
     try_get,
     orderedSet
 )
@@ -30,9 +30,10 @@ class DouyinVideoIE(InfoExtractor):
         video_id = self._match_id(url)
 
         iteminfo = self._download_json('https://www.douyin.com/web/api/v2/aweme/iteminfo',
-                                       video_id, query={'item_ids': video_id})
-        if iteminfo['status_code']:
-            raise ExtractorError(iteminfo['status_msg'], video_id=video_id)
+                                       video_id, query={'item_ids': video_id}) or {}
+        status_code = iteminfo.get('status_code', 'status_code missing')
+        if status_code:
+            raise ExtractorError('%s (%s)' % (iteminfo.get('status_msg', 'status_msg missing'), status_code), video_id=video_id)
 
         item_list = iteminfo.get('item_list')
         if not item_list:
@@ -40,20 +41,19 @@ class DouyinVideoIE(InfoExtractor):
                                  video_id=video_id, expected=True)
         item = item_list[0]
 
-        info_dict = {}
-        info_dict['id'] = video_id
-        info_dict['title'] = item['desc']
-        info_dict['url'] = item['video']['play_addr']['url_list'][0]
-        info_dict['uploader'] = try_get(item, lambda x: x['author']['nickname'])
-        info_dict['uploader_id'] = try_get(item, lambda x: x['author']['uid'])
-        info_dict['duration'] = float_or_none(item.get('duration') or try_get(item, lambda x: x['video']['duration'], int), scale=1000)
-        info_dict['timestamp'] = float_or_none(item.get('create_time'), invscale=1000)
-        info_dict['width'] = try_get(item, lambda x: x['video']['width'])
-        info_dict['height'] = try_get(item, lambda x: x['video']['height'])
-        info_dict['vbr'] = try_get(item, lambda x: x['video']['bit_rate'])
-        info_dict['ext'] = 'mp4'
-
-        return info_dict
+        return {
+            'id': video_id,
+            'title': item['desc'],
+            'url': item['video']['play_addr']['url_list'][0],
+            'uploader': try_get(item, lambda x: x['author']['nickname']),
+            'uploader_id': try_get(item, lambda x: x['author']['uid']),
+            'duration': int_or_none(item.get('duration') or try_get(item, lambda x: x['video']['duration'], int), scale=1000),
+            'timestamp': int_or_none(item.get('create_time'), invscale=1000),
+            'width': try_get(item, lambda x: x['video']['width']),
+            'height': try_get(item, lambda x: x['video']['height']),
+            'vbr': try_get(item, lambda x: x['video']['bit_rate']),
+            'ext': 'mp4'
+        }
 
 
 class DouyinUserIE(InfoExtractor):
@@ -75,9 +75,10 @@ class DouyinUserIE(InfoExtractor):
         entries = []
         while has_more:
             post = self._download_json('https://www.douyin.com/web/api/v2/aweme/post',
-                                       sec_uid, query={'sec_uid': sec_uid, 'max_cursor': max_cursor, 'count': 50})
-            if post['status_code']:
-                raise ExtractorError(post['status_msg'], video_id=sec_uid)
+                                       sec_uid, query={'sec_uid': sec_uid, 'max_cursor': max_cursor, 'count': 50}) or {}
+            status_code = post.get('status_code', 'status_code missing')
+            if status_code:
+                raise ExtractorError('%s (%s)' % (post.get('status_msg', 'status_msg missing'), status_code), video_id=sec_uid)
 
             aweme_list = post.get('aweme_list')
             if aweme_list is None:
