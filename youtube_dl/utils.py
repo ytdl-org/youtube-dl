@@ -1671,7 +1671,6 @@ def random_user_agent():
 
 std_headers = {
     'User-Agent': random_user_agent(),
-    'Accept-Charset': 'ISO-8859-1,utf-8;q=0.7,*;q=0.7',
     'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
     'Accept-Encoding': 'gzip, deflate',
     'Accept-Language': 'en-us,en;q=0.5',
