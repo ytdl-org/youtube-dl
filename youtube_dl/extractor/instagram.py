@@ -1,3 +1,4 @@
+# coding: utf-8
 from __future__ import unicode_literals
 
 import itertools
@@ -121,7 +122,7 @@ class InstagramIE(InfoExtractor):
             'timestamp': 1637752193,
             'upload_date': '20211124',
             'uploader_id': 'marvelskies.fc',
-            'uploader': '',
+            'uploader': 'Marvel Skies ©',
             'like_count': int,
             'comment_count': int,
             'comments': list,
@@ -157,6 +158,18 @@ class InstagramIE(InfoExtractor):
             r'<a[^>]+href=([\'"])(?P<link>[^\'"]+)\1', blockquote_el)
         if mobj:
             return mobj.group('link')
+
+    # Temporary modification to detect login redirection and raise an error.
+    # Needs to be removed when implementing the login process.
+    def _download_webpage_handle(self, *args, **kwargs):
+        content, urlh = super(InstagramIE, self)._download_webpage_handle(*args, **kwargs)
+        if '/accounts/login' in urlh.geturl():
+            raise ExtractorError(
+                'Access to this page is restricted. Try passing cookies with --cookies. '
+                'Alternatively, you may succeed by using --proxy or VPN to make an access '
+                'via another country or region, or trying again after some time.',
+                expected=True)
+        return (content, urlh)
 
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
