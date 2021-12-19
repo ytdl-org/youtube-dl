@@ -36,7 +36,7 @@ class FacebookIE(InfoExtractor):
     _VALID_URL = r'''(?x)
                 (?:
                     https?://
-                        (?:[\w-]+\.)?(?:facebook\.com|facebookcorewwwi\.onion)/
+                        (?:[\w-]+\.)?(?:facebook\.com|facebookwkhpilnemxj7asaniu7vnjjbiltxjqhye3mhbshg7kx5tfyd\.onion)/
                         (?:[^#]*?\#!/)?
                         (?:
                             (?:
@@ -219,7 +219,7 @@ class FacebookIE(InfoExtractor):
         'only_matching': True,
     }, {
         # data.video
-        'url': 'https://www.facebookcorewwwi.onion/video.php?v=274175099429670',
+        'url': 'https://www.facebookwkhpilnemxj7asaniu7vnjjbiltxjqhye3mhbshg7kx5tfyd.onion/video.php?v=274175099429670',
         'only_matching': True,
     }, {
         # no title
