@@ -2,8 +2,7 @@
 
 
 youtube-dl - download videos from youtube.com or other video platforms
-
-- [INSTALLATION](#installation)
+//A new Edit.
 - [DESCRIPTION](#description)
 - [OPTIONS](#options)
 - [CONFIGURATION](#configuration)
