@@ -91,7 +91,7 @@ class VideaIE(InfoExtractor):
             k = S[(S[i] + S[j]) % 256]
             res += compat_struct_pack('B', k ^ compat_ord(cipher_text[m]))
 
-        return res.decode()
+        return res.decode('utf-8')
 
     def _real_extract(self, url):
         video_id = self._match_id(url)
@@ -121,7 +121,7 @@ class VideaIE(InfoExtractor):
                 compat_b64decode(b64_info), key), video_id)
 
         video = xpath_element(info, './video', 'video')
-        if not video:
+        if video is None:
             raise ExtractorError(xpath_element(
                 info, './error', fatal=True), expected=True)
         sources = xpath_element(
