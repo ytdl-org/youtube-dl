@@ -91,29 +91,31 @@ class FranceTVIE(InfoExtractor):
         # However when provided, some extra formats may be returned so we pass
         # it if available.
         info = self._download_json(
-            'https://sivideo.webservices.francetelevisions.fr/tools/getInfosOeuvre/v2/',
+            'https://player.webservices.francetelevisions.fr/v1/videos/%s' % (video_id),
             video_id, 'Downloading video JSON', query={
-                'idDiffusion': video_id,
-                'catalogue': catalogue or '',
+                'country_code': 'FR',
+                'device_type': 'desktop',
+                'browser': 'chrome'
             })
 
         if info.get('status') == 'NOK':
             raise ExtractorError(
                 '%s returned error: %s' % (self.IE_NAME, info['message']),
                 expected=True)
-        allowed_countries = info['videos'][0].get('geoblocage')
-        if allowed_countries:
-            georestricted = True
-            geo_info = self._download_json(
-                'http://geo.francetv.fr/ws/edgescape.json', video_id,
-                'Downloading geo restriction info')
-            country = geo_info['reponse']['geo_info']['country_code']
-            if country not in allowed_countries:
-                raise ExtractorError(
-                    'The video is not available from your location',
-                    expected=True)
-        else:
-            georestricted = False
+        # allowed_countries = info['videos'][0].get('geoblocage')
+        # if allowed_countries:
+        #     georestricted = True
+        #     geo_info = self._download_json(
+        #         'http://geo.francetv.fr/ws/edgescape.json', video_id,
+        #         'Downloading geo restriction info')
+        #     country = geo_info['reponse']['geo_info']['country_code']
+        #     if country not in allowed_countries:
+        #         raise ExtractorError(
+        #             'The video is not available from your location',
+        #             expected=True)
+        # else:
+        #     georestricted = False
+        georestricted = False
 
         def sign(manifest_url, manifest_id):
             for host in ('hdfauthftv-a.akamaihd.net', 'hdfauth.francetv.fr'):
@@ -131,12 +133,13 @@ class FranceTVIE(InfoExtractor):
 
         videos = []
 
-        for video in (info.get('videos') or []):
-            if video.get('statut') != 'ONLINE':
-                continue
-            if not video.get('url'):
-                continue
-            videos.append(video)
+        videos.append(info['video'])
+        # for video in (info.get('videos') or []):
+        #     if video.get('statut') != 'ONLINE':
+        #         continue
+        #     if not video.get('url'):
+        #         continue
+        #     videos.append(video)
 
         if not videos:
             for device_type in ['desktop', 'mobile']:
@@ -193,8 +196,8 @@ class FranceTVIE(InfoExtractor):
 
         self._sort_formats(formats)
 
-        title = info['titre']
-        subtitle = info.get('sous_titre')
+        title = info['meta']['title']
+        subtitle = info['meta']['additional_title']
         if subtitle:
             title += ' - %s' % subtitle
         title = title.strip()
