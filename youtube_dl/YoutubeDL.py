@@ -173,6 +173,7 @@ class YoutubeDL(object):
     playlist_items:    Specific indices of playlist to download.
     playlistreverse:   Download playlist items in reverse order.
     playlistrandom:    Download playlist items in random order.
+    profile_picture:   Download profile picture of channel
     matchtitle:        Download only matching titles.
     rejecttitle:       Reject downloads for matching titles.
     logger:            Log messages to a logging.Logger instance.
@@ -1511,6 +1512,8 @@ class YoutubeDL(object):
             self.list_thumbnails(info_dict)
             return
 
+        if self.params.get('profile_picture'):
+            print(info_dict.get('profile_picture'))
         thumbnail = info_dict.get('thumbnail')
         if thumbnail:
             info_dict['thumbnail'] = sanitize_url(thumbnail)
@@ -2061,7 +2064,7 @@ class YoutubeDL(object):
                 and '%' not in outtmpl
                 and self.params.get('max_downloads') != 1):
             raise SameFileError(outtmpl)
-
+        
         for url in url_list:
             try:
                 # It also downloads the videos

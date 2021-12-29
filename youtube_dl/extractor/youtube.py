@@ -1484,7 +1484,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
         return self._parse_json(self._search_regex(
             (r'%s\s*%s' % (regex, self._YT_INITIAL_BOUNDARY_RE),
              regex), webpage, name, default='{}'), video_id, fatal=False)
-
+            
     def _real_extract(self, url):
         url, smuggled_data = unsmuggle_url(url, {})
         video_id = self._match_id(url)
@@ -1492,6 +1492,14 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
         webpage_url = base_url + 'watch?v=' + video_id
         webpage = self._download_webpage(
             webpage_url + '&bpctr=9999999999&has_verified=1', video_id, fatal=False)
+
+        webpage_data = self._extract_yt_initial_data(video_id, webpage)
+        profile_picture = url_or_none(try_get(
+            webpage_data, 
+            lambda x: x['contents']['twoColumnWatchNextResults']['secondaryResults']
+            ['secondaryResults']['results'][0]['compactVideoRenderer']['channelThumbnail']
+            ['thumbnails'][0]['url'], 
+            compat_str))
 
         player_response = None
         if webpage:
@@ -1501,7 +1509,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
         if not player_response:
             player_response = self._call_api(
                 'player', {'videoId': video_id}, video_id)
-
+        
         playability_status = player_response.get('playabilityStatus') or {}
         if playability_status.get('reason') == 'Sign in to confirm your age':
             video_info = self._download_webpage(
@@ -1556,7 +1564,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
             or get_text(microformat.get('title')) \
             or search_meta(['og:title', 'twitter:title', 'title'])
         video_description = video_details.get('shortDescription')
-
+        
         if not smuggled_data.get('force_singlefeed', False):
             if not self._downloader.params.get('noplaylist'):
                 multifeed_metadata_list = try_get(
@@ -1780,7 +1788,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
             or parse_duration(search_meta('duration'))
         is_live = video_details.get('isLive')
         owner_profile_url = microformat.get('ownerProfileUrl')
-
+        
         info = {
             'id': video_id,
             'title': self._live_title(video_title) if is_live else video_title,
@@ -1809,6 +1817,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
             'categories': [category] if category else None,
             'tags': keywords,
             'is_live': is_live,
+            'profile_picture': profile_picture
         }
 
         pctr = try_get(
