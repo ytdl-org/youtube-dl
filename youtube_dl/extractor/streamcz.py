@@ -13,11 +13,12 @@ from ..utils import (
     urljoin,
 )
 
+
 class StreamCZBase(InfoExtractor):
     def _extract_sdn_formats(self, sdn_url, video_id):
         sdn_data = self._download_json(sdn_url, video_id)
         formats = []
-        
+
         mp4_formats = try_get(sdn_data, lambda x: x['data']['mp4'], dict)
         for format_id, format_data in mp4_formats.items():
             format = {
@@ -30,10 +31,10 @@ class StreamCZBase(InfoExtractor):
             }
             format.update(parse_codecs(format_data.get('codec')))
             formats.append(format)
-        
+
         def get_url(format_id):
             return try_get(pls, lambda x: x[format_id]['url'], compat_str)
-        
+
         # PLS might contain further formats (DASH, HLS, HLS with fMP4)
         pls = sdn_data.get('pls')
 
@@ -44,7 +45,7 @@ class StreamCZBase(InfoExtractor):
                 urljoin(sdn_url, dash_rel_url), video_id, mpd_id='dash',
                 fatal=False
             ))
-        
+
         # HLS with fMP4 format
         hls_rel_url = get_url('hls_fmp4')
         if hls_rel_url:
@@ -56,6 +57,7 @@ class StreamCZBase(InfoExtractor):
         self._sort_formats(formats)
         return formats
 
+
 class StreamCZIE(StreamCZBase):
     _VALID_URL = r'https?://(?:www\.)?stream\.cz/(?:[^/]+)/.+-(?P<id>[0-9]+)'
     _TEST = {
@@ -64,8 +66,8 @@ class StreamCZIE(StreamCZBase):
             'id': '64087937',
             'title': 'Kdo to mluví? Velké odhalení přináší nový pořad už od 25. srpna',
             'description': 'K ikonickým tvářím obrazovek a filmových pláten neodmyslitelně patří i jejich hlasy. Kdo se ale za nimi skrývá? Sledujte nový seriál ze zákulisí dabingu už od příštího úterý.',
-            'ext': 'mp4'
-            #'formats': 
+            'duration': 51,
+            'ext': 'mp4',
         }
     }
 
@@ -77,7 +79,7 @@ class StreamCZIE(StreamCZBase):
         webpage_json = self._parse_json(webpage_data, video_id, transform_source=js_to_json)
 
         video_detail = try_get(webpage_json, lambda x: x['data']['fetchable']['episode']['videoDetail']['data'], dict)
-        
+
         # metadata
         title = video_detail.get('name')
         description = video_detail.get('perex')
