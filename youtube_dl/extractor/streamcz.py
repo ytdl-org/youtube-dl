@@ -6,6 +6,7 @@ from ..compat import (
     compat_str,
 )
 from ..utils import (
+    float_or_none,
     int_or_none,
     js_to_json,
     parse_codecs,
@@ -22,12 +23,13 @@ class StreamCZBase(InfoExtractor):
         mp4_formats = try_get(sdn_data, lambda x: x['data']['mp4'], dict)
         for format_id, format_data in mp4_formats.items():
             format = {
+                'url': urljoin(sdn_url, format_data.get('url')),
                 'format_id': 'http-%s' % format_id,
                 'container': 'mp4',
                 'width': int_or_none(format_data.get('resolution')[0]),
                 'height': int_or_none(format_data.get('resolution')[1]),
                 'tbr': int_or_none(format_data.get('bandwidth'), scale=1000),
-                'url': urljoin(sdn_url, format_data.get('url'))
+                'protocol': 'https',
             }
             format.update(parse_codecs(format_data.get('codec')))
             formats.append(format)
@@ -46,12 +48,12 @@ class StreamCZBase(InfoExtractor):
                 fatal=False
             ))
 
-        # HLS with fMP4 format
-        hls_rel_url = get_url('hls_fmp4')
+        # HLS
+        hls_rel_url = get_url('hls')
         if hls_rel_url:
             formats.extend(self._extract_m3u8_formats(
-                urljoin(sdn_url, hls_rel_url), video_id, m3u8_id='hls_fmp4',
-                ext='mp4', fatal=False
+                urljoin(sdn_url, hls_rel_url), video_id, m3u8_id='hls',
+                ext='ts', fatal=False
             ))
 
         self._sort_formats(formats)
@@ -92,6 +94,6 @@ class StreamCZIE(StreamCZBase):
             'id': video_id,
             'title': title,
             'description': description,
-            'duration': duration,
+            'duration': float_or_none(duration),
             'formats': formats,
         }
