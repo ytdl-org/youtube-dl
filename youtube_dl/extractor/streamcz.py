@@ -10,7 +10,9 @@ from ..utils import (
     int_or_none,
     js_to_json,
     parse_codecs,
+    str_or_none,
     try_get,
+    url_or_none,
     urljoin,
 )
 
@@ -68,6 +70,8 @@ class StreamCZIE(StreamCZBase):
             'id': '64087937',
             'title': 'Kdo to mluví? Velké odhalení přináší nový pořad už od 25. srpna',
             'description': 'K ikonickým tvářím obrazovek a filmových pláten neodmyslitelně patří i jejich hlasy. Kdo se ale za nimi skrývá? Sledujte nový seriál ze zákulisí dabingu už od příštího úterý.',
+            'timestamp': 1597730400,
+            'upload_date': '20200818',
             'duration': 51,
             'ext': 'mp4',
         }
@@ -86,6 +90,11 @@ class StreamCZIE(StreamCZBase):
         title = video_detail.get('name')
         description = video_detail.get('perex')
         duration = video_detail.get('duration')
+        published = video_detail.get('publishTime').get('timestamp')
+        thumbnails = video_detail.get('images')
+        view_count = video_detail.get('views')
+        is_live = video_detail.get('isLive')
+        series = video_detail.get('originTag').get('name')
 
         sdn_url = video_detail.get('spl') + 'spl2,3,VOD'
         formats = self._extract_sdn_formats(sdn_url, video_id)
@@ -94,6 +103,11 @@ class StreamCZIE(StreamCZBase):
             'id': video_id,
             'title': title,
             'description': description,
+            'thumbnails': thumbnails,
+            'timestamp': published,
             'duration': float_or_none(duration),
+            'view_count': view_count,
+            'is_live': is_live,
+            'series': series,
             'formats': formats,
         }
