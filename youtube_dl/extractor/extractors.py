@@ -644,7 +644,11 @@ from .massengeschmacktv import MassengeschmackTVIE
 from .matchtv import MatchTVIE
 from .mdr import MDRIE
 from .medaltv import MedalTVIE
-from .mediaset import MediasetIE
+from .mediaset import (
+    MediasetIE,
+    MediasetClipIE,
+    MediasetShowIE,
+)
 from .mediasite import (
     MediasiteIE,
     MediasiteCatalogIE,
