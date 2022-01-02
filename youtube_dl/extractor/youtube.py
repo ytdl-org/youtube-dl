@@ -1838,7 +1838,6 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                         continue
                     process_language(
                         subtitles, base_url, lang_code, {})
-                    continue
                 automatic_captions = {}
                 for translation_language in (pctr.get('translationLanguages') or []):
                     translation_language_code = translation_language.get('languageCode')
