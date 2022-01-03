@@ -12,7 +12,6 @@ from ..utils import (
     parse_codecs,
     str_or_none,
     try_get,
-    url_or_none,
     urljoin,
 )
 
@@ -102,12 +101,12 @@ class StreamCZIE(StreamCZBase):
         return {
             'id': video_id,
             'title': title,
-            'description': description,
+            'description': str_or_none(description),
             'thumbnails': thumbnails,
             'timestamp': published,
             'duration': float_or_none(duration),
-            'view_count': view_count,
+            'view_count': int_or_none(view_count),
             'is_live': is_live,
-            'series': series,
+            'series': str_or_none(series),
             'formats': formats,
         }
