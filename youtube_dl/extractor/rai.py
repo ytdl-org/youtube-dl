@@ -189,6 +189,10 @@ class RaiPlayIE(RaiBaseIE):
 
         program_info = media.get('program_info') or {}
         season = media.get('season')
+        
+        year = media.get('track_info').get('year')
+        edit_year = media.get('track_info').get('edit_year')
+
 
         info = {
             'id': remove_start(media.get('id'), 'ContentItem-') or video_id,
@@ -208,6 +212,8 @@ class RaiPlayIE(RaiBaseIE):
             'episode': media.get('episode_title'),
             'episode_number': int_or_none(media.get('episode')),
             'subtitles': subtitles,
+            'year': year,
+            'edit_year': original_year,
         }
 
         info.update(relinker_info)
