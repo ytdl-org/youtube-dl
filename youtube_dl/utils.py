@@ -5703,7 +5703,7 @@ def write_xattr(path, key, value):
             except EnvironmentError as e:
                 raise XAttrMetadataError(e.errno, e.strerror)
         else:
-            user_has_setfattr = check_executable('setfattr', ['--version'])
+            user_has_setfattr = get_exe_version('setfattr', ['--version'], r'setfattr\s*([0-9.]+)')
             user_has_xattr = check_executable('xattr', ['-h'])
 
             if user_has_setfattr or user_has_xattr:
@@ -5712,6 +5712,8 @@ def write_xattr(path, key, value):
                 if user_has_setfattr:
                     executable = 'setfattr'
                     opts = ['-n', key, '-v', value]
+                    if not is_outdated_version(user_has_setfattr, '2.4.48', False):
+                        opts += ['--raw']
                 elif user_has_xattr:
                     executable = 'xattr'
                     opts = ['-w', key, value]
