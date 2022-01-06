@@ -73,6 +73,7 @@ class StreamCZIE(StreamCZBase):
             'upload_date': '20200818',
             'duration': 51,
             'ext': 'mp4',
+            'series': 'Kdo to mluví?'
         }
     }
 
@@ -80,22 +81,22 @@ class StreamCZIE(StreamCZBase):
         video_id = self._match_id(url)
 
         webpage = self._download_webpage(url, video_id)
-        webpage_data = self._html_search_regex(r'window\.APP_SERVER_STATE\s=\s(\{[^;]*)', webpage, 'webpage_data')
+        webpage_data = self._html_search_regex(r'(?s)window\s*\.\s*APP_SERVER_STATE\s*=\s*(\{.+?\})\s*;', webpage, 'webpage_data')
         webpage_json = self._parse_json(webpage_data, video_id, transform_source=js_to_json)
 
         video_detail = try_get(webpage_json, lambda x: x['data']['fetchable']['episode']['videoDetail']['data'], dict)
 
         # metadata
-        title = video_detail.get('name')
+        title = video_detail['name']
         description = video_detail.get('perex')
         duration = video_detail.get('duration')
-        published = video_detail.get('publishTime').get('timestamp')
+        published = try_get(video_detail, lambda x: x['publishTime']['timestamp'], int)
         thumbnails = video_detail.get('images')
         view_count = video_detail.get('views')
         is_live = video_detail.get('isLive')
-        series = video_detail.get('originTag').get('name')
+        series = try_get(video_detail, lambda x: x['originTag']['name'], str)
 
-        sdn_url = video_detail.get('spl') + 'spl2,3,VOD'
+        sdn_url = video_detail['spl'] + 'spl2,3,VOD'
         formats = self._extract_sdn_formats(sdn_url, video_id)
 
         return {
