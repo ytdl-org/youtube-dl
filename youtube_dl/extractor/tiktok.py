@@ -127,11 +127,6 @@ class TikTokIE(TikTokBaseIE):
     def _real_extract(self, url):
         video_id = self._match_id(url)
 
-        # dummy request to set cookies
-        self._request_webpage(
-            HEADRequest(url), video_id,
-            note=False, errnote='Could not send HEAD request to %s' % url,
-            fatal=False)
         webpage = self._download_webpage(url, video_id)
 
         page_props = self._parse_json(self._search_regex(
@@ -162,7 +157,6 @@ class TikTokUserIE(TikTokBaseIE):
         },
         'playlist_mincount': 24,
     }]
-    _WORKING = False
 
     @classmethod
     def suitable(cls, url):
@@ -170,10 +164,38 @@ class TikTokUserIE(TikTokBaseIE):
 
     def _real_extract(self, url):
         user_id = self._match_id(url)
+
+        webpage = self._download_webpage(url, user_id)
+        page_props = self._parse_json(self._search_regex(
+            r'''(?s)<script\s[^>]*?\bid\s*=\s*(?P<q>"|'|\b)sigi-persisted-data(?P=q)[^>]*>[^=]*=\s*(?P<json>{.+?})\s*(?:;[^<]+)?</script''',
+            webpage, 'sigi data', default='{}', group='json'), user_id)
+        user_data = try_get(page_props, lambda x: x['UserModule']['users'], dict)
+        entries = []
+        if user_data:
+            num_id = try_get(
+                user_data.values(),
+                lambda x: [user['id'] for user in x if user['uniqueId'] == user_id][0],
+                compat_str)
+            item_data = try_get(page_props, lambda x: x['ItemModule'], dict)
+            if item_data:
+                item_data = item_data.values()
+            for data in item_data or []:
+                if data.get('privateItem'):
+                    continue
+                item = self._extract_video(data, user_id)
+                if item:
+                    entries.append(item)
+            result = entries and self.playlist_result(entries, num_id)
+            if not result:
+                item_data = try_get(page_props, lambda x: x['ItemList']['user-post']['list'], list)
+                result = self.playlist_from_matches(item_data, playlist_id=num_id, getter=lambda m: 'tiktok:%s' % (m, ))
+            if result:
+                result['display_id'] = user_id
+                return result
+
         data = self._download_json(
             'https://m.tiktok.com/h5/share/usr/list/%s/' % user_id, user_id,
             query={'_signature': '_'})
-        entries = []
         for aweme in data['aweme_list']:
             try:
                 entry = self._extract_video(aweme)
@@ -181,4 +203,5 @@ class TikTokUserIE(TikTokBaseIE):
                 continue
             entry['extractor_key'] = TikTokIE.ie_key()
             entries.append(entry)
+
         return self.playlist_result(entries, user_id)
