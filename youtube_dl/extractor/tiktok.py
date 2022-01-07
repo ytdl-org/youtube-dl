@@ -15,10 +15,11 @@ from ..utils import (
 
 class TikTokBaseIE(InfoExtractor):
     def _extract_video(self, data, video_id=None):
-        video = data['video']
-        description = str_or_none(try_get(data, lambda x: x['desc']))
-        width = int_or_none(try_get(data, lambda x: video['width']))
-        height = int_or_none(try_get(data, lambda x: video['height']))
+        video = try_get(data, lambda x: x['video'], dict)
+        if not video:
+            return
+        width = int_or_none(video.get('width'))
+        height = int_or_none(video.get('height'))
 
         format_urls = set()
         formats = []
@@ -43,30 +44,32 @@ class TikTokBaseIE(InfoExtractor):
         thumbnail = url_or_none(video.get('cover'))
         duration = float_or_none(video.get('duration'))
 
-        uploader = try_get(data, lambda x: x['author']['nickname'], compat_str)
-        uploader_id = try_get(data, lambda x: x['author']['id'], compat_str)
+        author = data.get('author')
+        if isinstance(author, dict):
+            uploader_id = author.get('id')
+        else:
+            uploader_id = data.get('authorId')
+            author = data
+        uploader = str_or_none(author.get('nickname'))
 
         timestamp = int_or_none(data.get('createTime'))
 
-        def stats(key):
-            return int_or_none(try_get(
-                data, lambda x: x['stats']['%sCount' % key]))
-
-        view_count = stats('play')
-        like_count = stats('digg')
-        comment_count = stats('comment')
-        repost_count = stats('share')
+        stats = try_get(data, lambda x: x['stats'], dict)
+        view_count, like_count, comment_count, repost_count = [
+            stats and int_or_none(stats.get('%sCount' % key))
+            for key in ('play', 'digg', 'comment', 'share', )]
 
         aweme_id = data.get('id') or video_id
 
         return {
             'id': aweme_id,
+            'display_id': video_id,
             'title': uploader or aweme_id,
-            'description': description,
+            'description': str_or_none(data.get('desc')),
             'thumbnail': thumbnail,
             'duration': duration,
             'uploader': uploader,
-            'uploader_id': uploader_id,
+            'uploader_id': str_or_none(uploader_id),
             'timestamp': timestamp,
             'view_count': view_count,
             'like_count': like_count,
@@ -84,11 +87,11 @@ class TikTokIE(TikTokBaseIE):
         'info_dict': {
             'id': '6606727368545406213',
             'ext': 'mp4',
-            'title': 'Zureeal',
+            'title': 'md5:24acc456b62b938a7e2dd88e978b20d9',
             'description': '#bowsette#mario#cosplay#uk#lgbt#gaming#asian#bowsettecosplay',
             'thumbnail': r're:^https?://.*',
             'duration': 15,
-            'uploader': 'Zureeal',
+            'uploader': 'md5:24acc456b62b938a7e2dd88e978b20d9',
             'uploader_id': '188294915489964032',
             'timestamp': 1538248586,
             'upload_date': '20180929',
@@ -98,7 +101,6 @@ class TikTokIE(TikTokBaseIE):
             'repost_count': int,
         }
     }]
-
     def _real_initialize(self):
         # Setup session (will set necessary cookies)
         self._request_webpage(
@@ -106,19 +108,23 @@ class TikTokIE(TikTokBaseIE):
 
     def _real_extract(self, url):
         video_id = self._match_id(url)
+
         webpage = self._download_webpage(url, video_id)
-        try:
-            page_props = self._parse_json(self._search_regex(
-                r'<script[^>]+\bid=["\']__NEXT_DATA__[^>]+>\s*({.+?})\s*</script',
-                webpage, 'data'), video_id)['props']['pageProps']
-            data = try_get(page_props, lambda x: x['itemInfo']['itemStruct'], dict)
-        except:
-            page_props = self._parse_json(self._search_regex(
-                r'<script[^>]+\bid=["\']sigi-persisted-data[^>]+>window\[\'SIGI_STATE\']=({.+?});window\[',
-                webpage, 'data'), video_id)
-            data = try_get(page_props, lambda x: x['ItemModule'][video_id], dict)
-            author = try_get(page_props, lambda x: x['UserModule']['users'][data['author']], dict)
-            data['author'] = author
+
+        page_props = self._parse_json(self._search_regex(
+            r'''(?s)<script\s[^>]*?\bid\s*=\s*(?P<q>"|'|\b)sigi-persisted-data(?P=q)[^>]*>[^=]*=\s*(?P<json>{.+?})\s*(?:;[^<]+)?</script''',
+            webpage, 'sigi data', default='{}', group='json'), video_id)
+        data = try_get(page_props, lambda x: x['ItemModule'][video_id]['video'], dict)
+        if data:
+            data = page_props['ItemModule'][video_id]
+            if data.get('privateItem'):
+                raise ExtractorError('This video is private', expected=True)
+            return self._extract_video(data, video_id)
+
+        page_props = self._parse_json(self._search_regex(
+            r'<script[^>]+\bid=["\']__NEXT_DATA__[^>]+>\s*({.+?})\s*</script',
+            webpage, 'data'), video_id)['props']['pageProps']
+        data = try_get(page_props, lambda x: x['itemInfo']['itemStruct'], dict)
         if not data and page_props.get('statusCode') == 10216:
             raise ExtractorError('This video is private', expected=True)
         return self._extract_video(data, video_id)
