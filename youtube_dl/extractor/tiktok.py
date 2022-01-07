@@ -2,10 +2,14 @@
 from __future__ import unicode_literals
 
 from .common import InfoExtractor
-from ..utils import (
+from ..compat import (
     compat_str,
+    compat_urllib_request,
+)
+from ..utils import (
     ExtractorError,
     float_or_none,
+    HEADRequest,
     int_or_none,
     str_or_none,
     try_get,
@@ -14,6 +18,24 @@ from ..utils import (
 
 
 class TikTokBaseIE(InfoExtractor):
+    def _download_webpage(
+            self, url_or_request, video_id, note=None, errnote=None,
+            fatal=True, tries=1, timeout=5, encoding=None, data=None,
+            headers={}, query={}, expected_status=None, setup=True):
+
+        if setup:
+            url = url_or_request.geturl() if isinstance(url_or_request, compat_urllib_request.Request) else url_or_request
+            # dummy request to set cookies
+            self._request_webpage(
+                HEADRequest(url), video_id,
+                note=False, errnote='Could not send HEAD request to %s' % url,
+                fatal=False, headers=headers)
+
+        return super(TikTokBaseIE, self)._download_webpage(
+            url_or_request, video_id, note=note, errnote=errnote,
+            fatal=fatal, tries=tries, timeout=timeout, encoding=encoding, data=data,
+            headers=headers, query=query, expected_status=expected_status)
+
     def _extract_video(self, data, video_id=None):
         video = try_get(data, lambda x: x['video'], dict)
         if not video:
@@ -101,14 +123,15 @@ class TikTokIE(TikTokBaseIE):
             'repost_count': int,
         }
     }]
-    def _real_initialize(self):
-        # Setup session (will set necessary cookies)
-        self._request_webpage(
-            'https://www.tiktok.com/', None, note='Setting up session')
 
     def _real_extract(self, url):
         video_id = self._match_id(url)
 
+        # dummy request to set cookies
+        self._request_webpage(
+            HEADRequest(url), video_id,
+            note=False, errnote='Could not send HEAD request to %s' % url,
+            fatal=False)
         webpage = self._download_webpage(url, video_id)
 
         page_props = self._parse_json(self._search_regex(
