@@ -4,6 +4,7 @@ import re
 import binascii
 try:
     from Crypto.Cipher import AES
+    from Crypto.Util.Padding import unpad
     can_decrypt_frag = True
 except ImportError:
     can_decrypt_frag = False
@@ -178,6 +179,7 @@ class HlsFD(FragmentFD):
                         if not test:
                             frag_content = AES.new(
                                 decrypt_info['KEY'], AES.MODE_CBC, iv).decrypt(frag_content)
+                            frag_content = unpad(frag_content, AES.block_size, style='pkcs7')
                     self._append_fragment(ctx, frag_content)
                     # We only download the first fragment during the test
                     if test:
