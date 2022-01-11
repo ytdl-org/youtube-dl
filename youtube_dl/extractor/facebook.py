@@ -492,7 +492,10 @@ class FacebookIE(InfoExtractor):
                         lambda x: x['attachments']
                     ], list) or []
                     for attachment in attachments:
-                        attachment = try_get(attachment, lambda x: x['style_type_renderer']['attachment'], dict)
+                        attachment = try_get(attachment, [
+                            lambda x: x['style_type_renderer']['attachment'],
+                            lambda x: x['styles']['attachment']
+                        ], dict) or {}
                         ns = try_get(attachment, lambda x: x['all_subattachments']['nodes'], list) or []
                         for n in ns:
                             parse_attachment(n)
