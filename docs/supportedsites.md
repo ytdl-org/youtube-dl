@@ -472,8 +472,6 @@
  - **LinuxAcademy**
  - **LiTV**
  - **LiveJournal**
- - **LiveLeak**
- - **LiveLeakEmbed**
  - **livestream**
  - **livestream:original**
  - **LnkGo**
