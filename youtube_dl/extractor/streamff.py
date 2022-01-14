@@ -22,5 +22,6 @@ class StreamFFIE(InfoExtractor):
 
     def _real_extract(self, url):
         video_id = self._match_id(url)
-        video_url = "https://streamffcdn.b-cdn.net/uploads/%s.mp4" % video_id
+        response = self._download_json("https://streamff.com/api/videos/%s" % video_id, video_id)
+        video_url = "https://streamff.com%s" % response["videoLink"]
         return self.url_result(video_url, ie="Generic")
