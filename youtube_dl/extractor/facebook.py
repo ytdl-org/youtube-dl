@@ -306,6 +306,18 @@ class FacebookIE(InfoExtractor):
         },
         'playlist_count': 1,
         'skip': 'Requires logging in',
+    }, {
+        # data.node.comet_sections.content.story.attachments[].styles.attachment.media
+        'url': 'https://www.facebook.com/groups/352666925484718/permalink/1112505706167499/',
+        'info_dict': {
+            'id': '1080405282779948',
+            'ext': 'mp4',
+            'title': 'Best Chinese Song',
+            'timestamp': 1641225430,
+            'upload_date': '20220103',
+            'uploader_id': '1847991063',
+            'uploader': 'Best Chinese Song',
+        },
     }]
     _SUPPORTED_PAGLETS_REGEX = r'(?:pagelet_group_mall|permalink_video_pagelet|hyperfeed_story_id_[0-9a-f]+)'
     _api_config = {
@@ -558,7 +570,10 @@ class FacebookIE(InfoExtractor):
                         lambda x: x['attachments']
                     ], list) or []
                     for attachment in attachments:
-                        attachment = try_get(attachment, lambda x: x['style_type_renderer']['attachment'], dict)
+                        attachment = try_get(attachment, [
+                            lambda x: x['style_type_renderer']['attachment'],
+                            lambda x: x['styles']['attachment']
+                        ], dict) or {}
                         ns = try_get(attachment, lambda x: x['all_subattachments']['nodes'], list) or []
                         for n in ns:
                             parse_attachment(n)
