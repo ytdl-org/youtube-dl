@@ -1332,6 +1332,14 @@ class InfoExtractor(object):
                         'title': unescapeHTML(e.get('headline')),
                         'description': unescapeHTML(e.get('articleBody')),
                     })
+                elif item_type == expected_type == 'SocialMediaPosting':
+                    author = e.get('author')
+                    info.update({
+                        'title': unescapeHTML(e.get('headline')),
+                        'description': unescapeHTML(e.get('articleBody')),
+                        'uploader': author.get('name') if isinstance(author, dict) else author if isinstance(author, compat_str) else None,
+                    })
+                    extract_interaction_statistic(e)
                 elif item_type == 'VideoObject':
                     extract_video_object(e)
                     if expected_type is None:
