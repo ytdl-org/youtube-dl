@@ -74,12 +74,12 @@ class JojIE(InfoExtractor):
         for format_url in try_get(bitrates, lambda x: x['mp4'], list) or []:
             if isinstance(format_url, compat_str):
                 height = self._search_regex(
-                    r'\-(\d+)(p|)\.', format_url, 'height', default=None)
+                    r'-(\d+)p?\.', format_url, 'height', default=None)
                 formats.append({
                     'url': format_url,
                     'format_id': '%sp' % height if height else None,
                     'height': int(height),
-                    'resolution': quality.get(str(height)+'p')
+                    'resolution': quality.get(compat_str(height)+'p')
                 })
         if not formats:
             playlist = self._download_xml(
