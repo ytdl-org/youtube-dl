@@ -1,20 +1,21 @@
 # coding: utf-8
 from __future__ import unicode_literals
 
-# update 15.01.2022 jastrab
 import re
-import json
 
 from .common import InfoExtractor
 from ..utils import (
     orderedSet,
     url_or_none,
-    determine_ext
+    determine_ext,
+    try_get,
+    compat_str
 )
 
 
 class MarkizaIE(InfoExtractor):
-    _VALID_URL = r'https:\/\/(?:www\.)?videoarchiv\.markiza\.sk\/(?:video\/(?:[^\/]+\/)*|embed\/)epizoda\/(?P<id>\d+)(?:[\_\/\-]|$)'
+    _VALID_URL = r'https?://(?:www\.)?videoarchiv\.markiza\.sk/(?:video/(?:[^/]+/)*|embed/)\S+/(?P<id>\d+)(?:[_/-]|$)'
+
     _TESTS = [{
         'url': 'http://videoarchiv.markiza.sk/video/oteckovia/\
             84723_oteckovia-109',
@@ -28,7 +29,7 @@ class MarkizaIE(InfoExtractor):
             'duration': 2760,
         },
     }, {
-        'url': ' https://videoarchiv.markiza.sk/video/laska-na-prenajom/epizoda/58779-seria-1-epizoda-14',
+        'url': 'https://videoarchiv.markiza.sk/video/laska-na-prenajom/epizoda/58779-seria-1-epizoda-14',
         'info_dict': {
             'id': '85430',
             'title': 'Televízne noviny',
@@ -52,31 +53,37 @@ class MarkizaIE(InfoExtractor):
     }]
 
     def _real_extract(self, url):
+
         video_id = self._match_id(url)
+
         webpage = self._download_webpage(url, video_id)
+
         embed = self._search_regex(
             r'<iframe src="(https:\/\/media.*?)" style="',
             webpage, 'embed', fatal=False)
+
         webpage = self._download_webpage(embed, video_id)
         data = self._search_regex(
-            r'processAdTagModifier\((\{.*)\), {"video":',
-            webpage, 'embed', fatal=False)
+            r'processAdTagModifier\s*\(\s*(\{.*)\)\s*,\s*\{\s*"video"\s*:',
+            webpage, 'embed', default='')
         data2 = self._search_regex(
-            r'processAdTagModifier\(\{.*\), ({"video":.*)\);',
-            webpage, 'embed', fatal=False)
+            r'processAdTagModifier\s*\(\s*\{.*\)\s*,\s*(\{\s*"video"\s*:.*)\s*\);',
+            webpage, 'embed', default='')
         data = re.sub('\\\\/', '/', data)
         data2 = re.sub('\\\\/', '/', data2)
-        info = json.loads(data)
-        info2 = json.loads(data2)
+        info = self._parse_json(data, video_id)
+        info2 = self._parse_json(data2, video_id)
 
         formats = []
-        for format_id, format_list in info['tracks'].items():
-            if not isinstance(format_list, list):
-                format_list = [format_list]
+        for format_id, format_list in (
+                try_get(info, lambda x: x['tracks'], dict) or {}).items():
             for format_dict in format_list:
                 if not isinstance(format_dict, dict):
                     continue
-                format_url = url_or_none(format_dict.get('src'))
+                format_url = try_get(
+                    format_dict, lambda x: url_or_none(x['src']))
+                if not format_url:
+                    continue
                 format_type = format_dict.get('type')
                 ext = determine_ext(format_url)
                 if (format_type == 'application/x-mpegURL'
@@ -93,14 +100,23 @@ class MarkizaIE(InfoExtractor):
                     formats.append({
                         'url': format_url,
                     })
-        thumbnail = info.get('plugins').get('thumbnails').get('url')
+        # thumbnail = info.get('plugins').get('thumbnails').get('url')
+        thumbnail = try_get(
+                info, lambda x: x['plugins']['thumbnails']['url'], compat_str)
         thumbnail = re.sub('$Num$', '001', thumbnail)
         duration = info.get('duration')
-        title2 = info2.get('video').get('title')
-        title = info2.get('video').get('custom').get('show_title')
+        # title2 = info2.get('video').get('title')
+        # title = info2.get('video').get('custom').get('show_title')
+        title2 = try_get(info2, lambda x: x['video']['title'], compat_str)
+        title = try_get(
+            info2, lambda x: x['video']['custom']['show_title'], compat_str)
+        title = ' - '.join(x for x in (title, title2, ) if x)
+        # if not title:
+        #     continue
+
         return {
             'id': video_id,
-            'title': title + ' - ' + title2,
+            'title': title,
             'thumbnail': thumbnail,
             'duration': duration,
             'formats': formats
@@ -127,8 +143,7 @@ class MarkizaPageIE(InfoExtractor):
         'url': 'https://dajto.markiza.sk/filmy-a-serialy/1774695_frajeri-vo-vegas',
         'only_matching': True,
     }, {
-        'url': 'https://superstar.markiza.sk/aktualne/\
-        1923870_to-je-ale-telo-spevacka-ukazala-sexy-postavicku-v-bikinach',
+        'url': 'https://superstar.markiza.sk/aktualne/1923870_to-je-ale-telo-spevacka-ukazala-sexy-postavicku-v-bikinach',
         'only_matching': True,
     }, {
         'url': 'https://hybsa.markiza.sk/aktualne/1923790_uzasna-atmosfera-na-hybsa-v-poprade-superstaristi-si-prve-koncerty-pred-davom-ludi-poriadne-uzili',
@@ -143,8 +158,10 @@ class MarkizaPageIE(InfoExtractor):
 
     @classmethod
     def suitable(cls, url):
-        return False if MarkizaIE.suitable(url) else \
-            super(MarkizaPageIE, cls).suitable(url)
+        return (
+            False if MarkizaIE.suitable(url)
+            else super(MarkizaPageIE, cls).suitable(url)
+        )
 
     def _real_extract(self, url):
         playlist_id = self._match_id(url)
