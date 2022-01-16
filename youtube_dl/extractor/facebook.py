@@ -84,8 +84,8 @@ class FacebookIE(InfoExtractor):
             'id': '274175099429670',
             'ext': 'mp4',
             'title': 'Asif Nawab Butt',
-            'description': 'Asif Nawab Butt',
             'uploader': 'Asif Nawab Butt',
+            'uploader_id': '100005115464446',
             'upload_date': '20140506',
             'timestamp': 1399398998,
             'thumbnail': r're:^https?://.*',
@@ -144,7 +144,6 @@ class FacebookIE(InfoExtractor):
         # have 1080P, but only up to 720p in swf params
         # data.video.story.attachments[].media
         'url': 'https://www.facebook.com/cnn/videos/10155529876156509/',
-        'md5': '3f3798adb2b73423263e59376f1f5eb7',
         'info_dict': {
             'id': '10155529876156509',
             'ext': 'mp4',
@@ -153,6 +152,7 @@ class FacebookIE(InfoExtractor):
             'timestamp': 1477818095,
             'upload_date': '20161030',
             'uploader': 'CNN',
+            'uploader_id': '5550296508',
             'thumbnail': r're:^https?://.*',
             'view_count': int,
         },
@@ -163,9 +163,9 @@ class FacebookIE(InfoExtractor):
         'info_dict': {
             'id': '1417995061575415',
             'ext': 'mp4',
-            'title': 'Yaroslav Korpan - Довгоочікуване відео',
+            'title': 'Ukrainian Scientists Worldwide | Довгоочікуване відео',
             'description': 'Довгоочікуване відео',
-            'timestamp': 1486648771,
+            'timestamp': 1486648217,
             'upload_date': '20170209',
             'uploader': 'Yaroslav Korpan',
             'uploader_id': '100000948048708',
@@ -195,9 +195,9 @@ class FacebookIE(InfoExtractor):
         'info_dict': {
             'id': '202882990186699',
             'ext': 'mp4',
-            'title': 'Elisabeth Ahtn - Hello? Yes your uber ride is here\n* Jukin...',
-            'description': 'Hello? Yes your uber ride is here\n* Jukin Media Verified *\nFind this video and others like it by visiting...',
-            'timestamp': 1486035513,
+            'title': 'birb (O v O\") | Hello? Yes your uber ride is here',
+            'description': 'md5:963dee8a667a2b49f2059cf7ab54fe55',
+            'timestamp': 1486035494,
             'upload_date': '20170202',
             'uploader': 'Elisabeth Ahtn',
             'uploader_id': '100013949973717',
@@ -431,7 +431,7 @@ class FacebookIE(InfoExtractor):
             uploader = clean_html(get_element_by_id(
                 'fbPhotoPageAuthorName', webpage)) or self._search_regex(
                 r'ownerName\s*:\s*"([^"]+)"', webpage, 'uploader',
-                default=None) or self._og_search_title(webpage, fatal=False)
+                default=None) or self._og_search_title(webpage, default=None)
             timestamp = int_or_none(self._search_regex(
                 r'<abbr[^>]+data-utime=["\'](\d+)', webpage,
                 'timestamp', default=None))
@@ -443,8 +443,8 @@ class FacebookIE(InfoExtractor):
             if thumbnail and not re.search(r'\.(?:jpg|png)', thumbnail):
                 thumbnail = None
             view_count = parse_count(self._search_regex(
-                r'\bviewCount\s*:\s*["\']([\d,.]+)', webpage, 'view count',
-                default=None))
+                [r'\bviewCount\s*:\s*["\']([\d,.]+)', r'"video_view_count"\s*:\s*([\d,.]+)'],
+                webpage, 'view count', default=None))
             info_dict = {
                 'title': video_title,
                 'description': description,
@@ -454,6 +454,13 @@ class FacebookIE(InfoExtractor):
                 'view_count': view_count,
             }
             info_json_ld = self._search_json_ld(webpage, video_id, default={})
+            if not info_json_ld:
+                # expecting title, description, uploader, comment_count and like_count
+                info_json_ld = self._search_json_ld(
+                    webpage, video_id, expected_type='SocialMediaPosting', default={})
+                # if we already have a non-generic title, honor that
+                if info_dict['title'] != 'Facebook video #%s' % video_id:
+                    info_json_ld['title'] = info_dict['title']
             if info_json_ld.get('title'):
                 info_json_ld['title'] = limit_length(
                     re.sub(r'\s*\|\s*Facebook$', '', info_json_ld['title']), 80)
