@@ -40,13 +40,14 @@ class NDRIE(NDRBaseIE):
             'title': 'Party, Pötte und Parade',
             'description': 'md5:ad14f9d2f91d3040b6930c697e5f6b4c',
             'uploader': 'ndrtv',
-            'timestamp': 1431108900,
+            'timestamp': 1431255671,
             'upload_date': '20150510',
             'duration': 3498,
         },
         'params': {
             'skip_download': True,
         },
+        'expected_warnings': ['Unable to download f4m manifest'],
     }, {
         # httpVideo, different content id
         'url': 'http://www.ndr.de/sport/fussball/40-Osnabrueck-spielt-sich-in-einen-Rausch,osna270.html',
@@ -65,6 +66,7 @@ class NDRIE(NDRBaseIE):
         'params': {
             'skip_download': True,
         },
+        'skip': 'No longer available',
     }, {
         # httpAudio, same content id
         'url': 'http://www.ndr.de/info/La-Valette-entgeht-der-Hinrichtung,audio51535.html',
@@ -76,8 +78,8 @@ class NDRIE(NDRBaseIE):
             'title': 'La Valette entgeht der Hinrichtung',
             'description': 'md5:22f9541913a40fe50091d5cdd7c9f536',
             'uploader': 'ndrinfo',
-            'timestamp': 1290626100,
-            'upload_date': '20140729',
+            'timestamp': 1631711863,
+            'upload_date': '20210915',
             'duration': 884,
         },
         'params': {
@@ -91,9 +93,10 @@ class NDRIE(NDRBaseIE):
             'display_id': 'extra-3-Satiremagazin-mit-Christian-Ehring',
             'ext': 'mp4',
             'title': 'Extra 3 vom 11.11.2020 mit Christian Ehring',
-            'description': 'md5:42ee53990a715eaaf4dc7f13a3bd56c6',
+            'description': 'md5:700f6de264010585012a72f97b0ac0c9',
             'uploader': 'ndrtv',
-            'upload_date': '20201113',
+            'upload_date': '20201207',
+            'timestamp': 1614349457,
             'duration': 1749,
             'subtitles': {
                 'de': [{
@@ -174,19 +177,19 @@ class NJoyIE(NDRBaseIE):
         'params': {
             'skip_download': True,
         },
+        'skip': 'No longer available',
     }, {
         # httpVideo, different content id
         'url': 'http://www.n-joy.de/musik/Das-frueheste-DJ-Set-des-Nordens-live-mit-Felix-Jaehn-,felixjaehn168.html',
         'md5': '417660fffa90e6df2fda19f1b40a64d8',
         'info_dict': {
-            'id': 'dockville882',
+            'id': 'livestream283',
             'display_id': 'Das-frueheste-DJ-Set-des-Nordens-live-mit-Felix-Jaehn-',
-            'ext': 'mp4',
-            'title': '"Ich hab noch nie" mit Felix Jaehn',
-            'description': 'md5:85dd312d53be1b99e1f998a16452a2f3',
+            'ext': 'mp3',
+            'title': 'Das frueheste DJ Set des Nordens live mit Felix Jaehn',
+            'description': 'md5:681698f527b8601e511e7b79edde7d2c',
             'uploader': 'njoy',
-            'upload_date': '20150822',
-            'duration': 211,
+            'upload_date': '20210830',
         },
         'params': {
             'skip_download': True,
@@ -332,6 +335,7 @@ class NDREmbedIE(NDREmbedBaseIE):
             'upload_date': '20150907',
             'duration': 132,
         },
+        'skip': 'No longer available',
     }, {
         'url': 'http://www.ndr.de/ndr2/events/soundcheck/soundcheck3366-player.html',
         'md5': '002085c44bae38802d94ae5802a36e78',
@@ -347,6 +351,7 @@ class NDREmbedIE(NDREmbedBaseIE):
         'params': {
             'skip_download': True,
         },
+        'skip': 'No longer available',
     }, {
         'url': 'http://www.ndr.de/info/audio51535-player.html',
         'md5': 'bb3cd38e24fbcc866d13b50ca59307b8',
@@ -356,7 +361,7 @@ class NDREmbedIE(NDREmbedBaseIE):
             'title': 'La Valette entgeht der Hinrichtung',
             'is_live': False,
             'uploader': 'ndrinfo',
-            'upload_date': '20140729',
+            'upload_date': '20210915',
             'duration': 884,
         },
         'params': {
@@ -377,15 +382,17 @@ class NDREmbedIE(NDREmbedBaseIE):
         'params': {
             'skip_download': True,
         },
+        'skip': 'No longer available',
     }, {
         # httpVideoLive
         'url': 'http://www.ndr.de/fernsehen/livestream/livestream217-externalPlayer.html',
         'info_dict': {
             'id': 'livestream217',
-            'ext': 'flv',
+            'ext': 'mp4',
             'title': r're:^NDR Fernsehen Niedersachsen \d{4}-\d{2}-\d{2} \d{2}:\d{2}$',
             'is_live': True,
-            'upload_date': '20150910',
+            'upload_date': '20210409',
+            'uploader': 'ndrtv',
         },
         'params': {
             'skip_download': True,
@@ -423,9 +430,10 @@ class NJoyEmbedIE(NDREmbedBaseIE):
             'ext': 'mp4',
             'title': 'Zehn Jahre Reeperbahn Festival - die Doku',
             'is_live': False,
-            'upload_date': '20150807',
+            'upload_date': '20200826',
             'duration': 1011,
         },
+        'expected_warnings': ['Unable to download f4m manifest'],
     }, {
         # httpAudio
         'url': 'http://www.n-joy.de/news_wissen/stefanrichter100-player_image-d5e938b1-f21a-4b9a-86b8-aaba8bca3a13_theme-n-joy.html',
@@ -442,6 +450,7 @@ class NJoyEmbedIE(NDREmbedBaseIE):
         'params': {
             'skip_download': True,
         },
+        'skip': 'No longer available',
     }, {
         # httpAudioLive, no explicit ext
         'url': 'http://www.n-joy.de/news_wissen/webradioweltweit100-player_image-3fec0484-2244-4565-8fb8-ed25fd28b173_theme-n-joy.html',
@@ -451,7 +460,7 @@ class NJoyEmbedIE(NDREmbedBaseIE):
             'title': r're:^N-JOY Weltweit \d{4}-\d{2}-\d{2} \d{2}:\d{2}$',
             'is_live': True,
             'uploader': 'njoy',
-            'upload_date': '20150810',
+            'upload_date': '20210830',
         },
         'params': {
             'skip_download': True,
