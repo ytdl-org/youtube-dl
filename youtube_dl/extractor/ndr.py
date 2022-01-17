@@ -196,18 +196,25 @@ class NJoyIE(NDRBaseIE):
         'only_matching': True,
     }]
 
-    def _extract_embed(self, webpage, display_id):
+    def _extract_embed(self, webpage, display_id, url=None):
+        # find tell-tale URL with the actual ID, or ...
         video_id = self._search_regex(
-            r'<iframe[^>]+id="pp_([\da-z]+)"', webpage, 'embed id')
-        description = self._search_regex(
+            (r'''\bsrc\s*=\s*(?:"|')?(?:/\w+)+/([a-z]+\d+)(?!\.)\b''',
+             r'<iframe[^>]+id="pp_([\da-z]+)"', ),
+            webpage, 'NDR id', default=None)
+
+        description = (
+            self._html_search_meta('description', webpage)
+            or self._search_regex(
                 r'<div[^>]+class="subline"[^>]*>[^<]+</div>\s*<p>([^<]+)</p>',
-            webpage, 'description', fatal=False)
+                webpage, 'description', fatal=False))
         return {
             '_type': 'url_transparent',
             'ie_key': 'NDREmbedBase',
             'url': 'ndr:%s' % video_id,
             'display_id': display_id,
             'description': description,
+            'title': display_id.replace('-', ' ').strip(),
         }
 
 
