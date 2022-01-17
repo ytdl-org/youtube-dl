@@ -4,8 +4,10 @@ from __future__ import unicode_literals
 import re
 
 from .common import InfoExtractor
+from ..compat import compat_urllib_parse_urlparse
 from ..utils import (
     determine_ext,
+    ExtractorError,
     int_or_none,
     merge_dicts,
     parse_iso8601,
@@ -20,13 +22,13 @@ class NDRBaseIE(InfoExtractor):
         mobj = re.match(self._VALID_URL, url)
         display_id = next(group for group in mobj.groups() if group)
         webpage = self._download_webpage(url, display_id)
-        return self._extract_embed(webpage, display_id)
+        return self._extract_embed(webpage, display_id, url)
 
 
 class NDRIE(NDRBaseIE):
     IE_NAME = 'ndr'
     IE_DESC = 'NDR.de - Norddeutscher Rundfunk'
-    _VALID_URL = r'https?://(?:www\.)?ndr\.de/(?:[^/]+/)*(?P<id>[^/?#]+),[\da-z]+\.html'
+    _VALID_URL = r'https?://(?:\w+\.)?ndr\.de/(?:[^/]+/)*(?P<id>[^/?#]+),[\da-z]+\.html'
     _TESTS = [{
         # httpVideo, same content id
         'url': 'http://www.ndr.de/fernsehen/Party-Poette-und-Parade,hafengeburtstag988.html',
@@ -109,19 +111,38 @@ class NDRIE(NDRBaseIE):
         'only_matching': True,
     }]
 
-    def _extract_embed(self, webpage, display_id):
-        embed_url = self._html_search_meta(
-            'embedURL', webpage, 'embed URL',
-            default=None) or self._search_regex(
-            r'\bembedUrl["\']\s*:\s*(["\'])(?P<url>(?:(?!\1).)+)\1', webpage,
-            'embed URL', group='url')
+    def _extract_embed(self, webpage, display_id, url):
+        embed_url = (
+            self._html_search_meta(
+                'embedURL', webpage, 'embed URL',
+                default=None)
+            or self._search_regex(
+                r'\bembedUrl["\']\s*:\s*(["\'])(?P<url>(?:(?!\1).)+)\1', webpage,
+                'embed URL', group='url', default=None)
+            or self._search_regex(
+                r'\bvar\s*sophoraID\s*=\s*(["\'])(?P<url>(?:(?!\1).)+)\1', webpage,
+                'embed URL', group='url', default=''))
+        # some more work needed if we only found sophoraID
+        if re.match(r'^[a-z]+\d+$', embed_url):
+            # get the initial part of the url path,. eg /panorama/archiv/2022/
+            parsed_url = compat_urllib_parse_urlparse(url)
+            path = self._search_regex(r'(.+/)%s' % display_id, parsed_url.path or '', 'embed URL', default='')
+            # find tell-tale image with the actual ID
+            ndr_id = self._search_regex(r'%s([a-z]+\d+)(?!\.)\b' % (path, ), webpage, 'embed URL', default=None)
+            # or try to use special knowledge!
+            NDR_INFO_URL_TPL = 'https://www.ndr.de/info/%s-player.html'
+            embed_url = 'ndr:%s' % (ndr_id, ) if ndr_id else NDR_INFO_URL_TPL % (embed_url, )
+        if not embed_url:
+            raise ExtractorError('Unable to extract embedUrl')
+
         description = self._search_regex(
             r'<p[^>]+itemprop="description">([^<]+)</p>',
             webpage, 'description', default=None) or self._og_search_description(webpage)
         timestamp = parse_iso8601(
             self._search_regex(
-                r'<span[^>]+itemprop="(?:datePublished|uploadDate)"[^>]+content="([^"]+)"',
-                webpage, 'upload date', default=None))
+                (r'<span[^>]+itemprop="(?:datePublished|uploadDate)"[^>]+content="(?P<cont>[^"]+)"',
+                 r'\bvar\s*pdt\s*=\s*(?P<q>["\'])(?P<cont>(?:(?!(?P=q)).)+)(?P=q)', ),
+                webpage, 'upload date', group='cont', default=None))
         info = self._search_json_ld(webpage, display_id, default={})
         return merge_dicts({
             '_type': 'url_transparent',
@@ -179,7 +200,7 @@ class NJoyIE(NDRBaseIE):
         video_id = self._search_regex(
             r'<iframe[^>]+id="pp_([\da-z]+)"', webpage, 'embed id')
         description = self._search_regex(
-            r'<div[^>]+class="subline"[^>]*>[^<]+</div>\s*<p>([^<]+)</p>',
+                r'<div[^>]+class="subline"[^>]*>[^<]+</div>\s*<p>([^<]+)</p>',
             webpage, 'description', fatal=False)
         return {
             '_type': 'url_transparent',
@@ -291,7 +312,7 @@ class NDREmbedBaseIE(InfoExtractor):
 
 class NDREmbedIE(NDREmbedBaseIE):
     IE_NAME = 'ndr:embed'
-    _VALID_URL = r'https?://(?:www\.)?ndr\.de/(?:[^/]+/)*(?P<id>[\da-z]+)-(?:player|externalPlayer)\.html'
+    _VALID_URL = r'https?://(?:www\.)?ndr\.de/(?:[^/]+/)*(?P<id>[\da-z]+)-(?:(?:ard)?player|externalPlayer)\.html'
     _TESTS = [{
         'url': 'http://www.ndr.de/fernsehen/sendungen/ndr_aktuell/ndraktuell28488-player.html',
         'md5': '8b9306142fe65bbdefb5ce24edb6b0a9',
