@@ -4,6 +4,7 @@ from __future__ import unicode_literals
 import base64
 import datetime
 import hashlib
+import io
 import json
 import netrc
 import os
@@ -753,6 +754,14 @@ class InfoExtractor(object):
 
         return content
 
+    def _load_webpage_file(self, video_id, webpage_filename):
+        self.to_screen('%s: Loading webpage from file' % video_id)
+        try:
+            with io.open(webpage_filename, mode='r', encoding='utf-8') as f:
+                return f.read()
+        except (IOError, OSError) as err:
+            self._downloader.report_warning('Unable to load webpage from file: [Errno %s] %s. Continue to download from URL' % (err.errno, error_to_compat_str(err.strerror)))
+
     def _download_webpage(
             self, url_or_request, video_id, note=None, errnote=None,
             fatal=True, tries=1, timeout=5, encoding=None, data=None,
@@ -790,6 +799,12 @@ class InfoExtractor(object):
             Note that this argument does not affect success status codes (2xx)
             which are always accepted.
         """
+
+        webpage_filename = self._downloader.params.get('load_webpage_filename')
+        if webpage_filename:
+            content = self._load_webpage_file(video_id, webpage_filename)
+            if content:
+                return content
 
         success = False
         try_count = 0
