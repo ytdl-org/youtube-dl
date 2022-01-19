@@ -7,7 +7,7 @@ from .common import InfoExtractor
 from .brightcove import BrightcoveNewIE
 
 from ..compat import compat_str
-from ..utils import (
+from ..utils import (  # noqa: F401
     base_url,
     clean_html,
     determine_ext,
@@ -208,6 +208,13 @@ class ITVIE(InfoExtractor):
                 'url': thumbnail_url,
             })
         self._remove_duplicate_formats(thumbnails)
+
+        # TODO: remove this once utils.py is updated
+        def parse_duration(s):  # noqa: F811
+            from re import sub
+            from ..utils import parse_duration as utils_parse_duration
+            return utils_parse_duration(
+                sub(r':(\d{3,})$', r'.\1', s or ''))
 
         return merge_dicts({
             'id': video_id,
