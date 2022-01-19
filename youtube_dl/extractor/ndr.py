@@ -28,7 +28,7 @@ class NDRBaseIE(InfoExtractor):
 class NDRIE(NDRBaseIE):
     IE_NAME = 'ndr'
     IE_DESC = 'NDR.de - Norddeutscher Rundfunk'
-    _VALID_URL = r'https?://(?:\w+\.)?ndr\.de/(?:[^/]+/)*(?P<id>[^/?#]+),[\da-z]+\.html'
+    _VALID_URL = r'https?://(?:\w+\.)*ndr\.de/(?:[^/]+/)*(?P<id>[^/?#]+),[\da-z]+\.html'
     _TESTS = [{
         # httpVideo, same content id
         'url': 'http://www.ndr.de/fernsehen/Party-Poette-und-Parade,hafengeburtstag988.html',
@@ -202,7 +202,7 @@ class NJoyIE(NDRBaseIE):
     def _extract_embed(self, webpage, display_id, url=None):
         # find tell-tale URL with the actual ID, or ...
         video_id = self._search_regex(
-            (r'''\bsrc\s*=\s*(?:"|')?(?:/\w+)+/([a-z]+\d+)(?!\.)\b''',
+            (r'''\bsrc\s*=\s*["']?(?:/\w+)+/([a-z]+\d+)(?!\.)\b''',
              r'<iframe[^>]+id="pp_([\da-z]+)"', ),
             webpage, 'NDR id', default=None)
 
@@ -322,7 +322,7 @@ class NDREmbedBaseIE(InfoExtractor):
 
 class NDREmbedIE(NDREmbedBaseIE):
     IE_NAME = 'ndr:embed'
-    _VALID_URL = r'https?://(?:www\.)?ndr\.de/(?:[^/]+/)*(?P<id>[\da-z]+)-(?:(?:ard)?player|externalPlayer)\.html'
+    _VALID_URL = r'https?://(?:\w+\.)*ndr\.de/(?:[^/]+/)*(?P<id>[\da-z]+)-(?:(?:ard)?player|externalPlayer)\.html'
     _TESTS = [{
         'url': 'http://www.ndr.de/fernsehen/sendungen/ndr_aktuell/ndraktuell28488-player.html',
         'md5': '8b9306142fe65bbdefb5ce24edb6b0a9',
