@@ -24,7 +24,6 @@ class SkylineWebcamsIE(InfoExtractor):
         video_id = self._match_id(url)
 
         webpage = self._download_webpage(url, video_id)
-        print(webpage)
         stream_url = 'https://hd-auth.skylinewebcams.com/live.m3u8' + self._search_regex(
             r'(?:url|source)\s*:\s*(["\'])(livee\.m3u8(?P<a_param>\?a=\w+))\1', webpage,
             'stream url', group='a_param')
