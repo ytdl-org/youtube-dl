@@ -7,7 +7,7 @@ from .common import InfoExtractor
 class SkylineWebcamsIE(InfoExtractor):
     _VALID_URL = r'https?://(?:www\.)?skylinewebcams\.com/[^/]+/webcam/(?:[^/]+/)+(?P<id>[^/]+)\.html'
     _TEST = {
-        'url': 'https://www.skylinewebcams.com/it/webcam/italia/lazio/roma/scalinata-piazza-di-spagna-barcaccia.html',
+        'url': 'https://www.skylinewebcams.com/it/webcam/italia/lazio/roma/piazza-di-spagna.html',
         'info_dict': {
             'id': 'scalinata-piazza-di-spagna-barcaccia',
             'ext': 'mp4',
@@ -24,10 +24,9 @@ class SkylineWebcamsIE(InfoExtractor):
         video_id = self._match_id(url)
 
         webpage = self._download_webpage(url, video_id)
-
-        stream_url = self._search_regex(
-            r'(?:url|source)\s*:\s*(["\'])(?P<url>(?:https?:)?//.+?\.m3u8.*?)\1', webpage,
-            'stream url', group='url')
+        stream_url = 'https://hd-auth.skylinewebcams.com/live.m3u8' + self._search_regex(
+            r'(?:url|source)\s*:\s*(["\'])(livee\.m3u8(?P<a_param>\?a=\w+))\1', webpage,
+            'stream url', group='a_param')
 
         title = self._og_search_title(webpage)
         description = self._og_search_description(webpage)
