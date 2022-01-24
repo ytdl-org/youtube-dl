@@ -11,6 +11,7 @@ from .common import FileDownloader
 from ..compat import (
     compat_str,
     compat_urllib_error,
+    Forbidden403
 )
 from ..utils import (
     ContentTooShortError,
@@ -183,9 +184,11 @@ class HttpFD(FileDownloader):
                             ctx.resume_len = 0
                             ctx.open_mode = 'wb'
                             return
-                elif err.code < 500 or err.code >= 600:
+                elif err.code != 403 and (err.code < 500 or err.code >= 600):
                     # Unexpected HTTP error
                     raise
+                elif err.code == 403: # The famous 403 Forbidden error
+                    raise Forbidden403(int(info_dict.get("playlist_pos")))
                 raise RetryDownload(err)
             except socket.error as err:
                 if err.errno != errno.ECONNRESET:
