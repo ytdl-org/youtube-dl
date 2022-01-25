@@ -170,11 +170,11 @@ class WDRPageIE(WDRIE):
         {
             'url': 'http://www1.wdr.de/mediathek/video/live/index.html',
             'info_dict': {
-                'id': 'mdb-1406149',
+                'id': 'mdb-2296252',
                 'ext': 'mp4',
-                'title': r're:^WDR Fernsehen im Livestream \(nur in Deutschland erreichbar\) [0-9]{4}-[0-9]{2}-[0-9]{2} [0-9]{2}:[0-9]{2}$',
+                'title': r're:^WDR Fernsehen im Livestream (?:\(nur in Deutschland erreichbar\) )?[0-9]{4}-[0-9]{2}-[0-9]{2} [0-9]{2}:[0-9]{2}$',
                 'alt_title': 'WDR Fernsehen Live',
-                'upload_date': '20150101',
+                'upload_date': '20201112',
                 'is_live': True,
             },
             'params': {
@@ -183,7 +183,7 @@ class WDRPageIE(WDRIE):
         },
         {
             'url': 'http://www1.wdr.de/mediathek/video/sendungen/aktuelle-stunde/aktuelle-stunde-120.html',
-            'playlist_mincount': 7,
+            'playlist_mincount': 6,
             'info_dict': {
                 'id': 'aktuelle-stunde-120',
             },
@@ -196,7 +196,7 @@ class WDRPageIE(WDRIE):
                 'upload_date': 're:^[0-9]{8}$',
                 'title': 're:^Die Sendung (?:mit der Maus )?vom [0-9.]{10}$',
             },
-            # 'skip': 'The id changes from week to week because of the new episode'
+            'skip': 'The id changes from week to week because of the new episode'
         },
         {
             'url': 'http://www.wdrmaus.de/filme/sachgeschichten/achterbahn.php5',
@@ -207,6 +207,7 @@ class WDRPageIE(WDRIE):
                 'upload_date': '20130919',
                 'title': 'Sachgeschichte - Achterbahn ',
             },
+            'skip': 'HTTP Error 404: Not Found',
         },
         {
             'url': 'http://www1.wdr.de/radio/player/radioplayer116~_layout-popupVersion.html',
@@ -232,6 +233,7 @@ class WDRPageIE(WDRIE):
             'params': {
                 'skip_download': True,
             },
+            'skip': 'HTTP Error 404: Not Found',
         },
         {
             'url': 'http://www.sportschau.de/handballem2018/audio-vorschau---die-handball-em-startet-mit-grossem-favoritenfeld-100.html',
@@ -298,16 +300,14 @@ class WDRPageIE(WDRIE):
 class WDRElefantIE(InfoExtractor):
     _VALID_URL = r'https?://(?:www\.)wdrmaus\.de/elefantenseite/#(?P<id>.+)'
     _TEST = {
-        'url': 'http://www.wdrmaus.de/elefantenseite/#folge_ostern_2015',
+        'url': 'http://www.wdrmaus.de/elefantenseite/#elefantenkino_wippe',
+        # adaptive stream: unstable file MD5
         'info_dict': {
-            'title': 'Folge Oster-Spezial 2015',
-            'id': 'mdb-1088195',
+            'title': 'Wippe',
+            'id': 'mdb-1198320',
             'ext': 'mp4',
             'age_limit': None,
-            'upload_date': '20150406'
-        },
-        'params': {
-            'skip_download': True,
+            'upload_date': '20071003'
         },
     }
 
@@ -342,6 +342,7 @@ class WDRMobileIE(InfoExtractor):
         /[0-9]+/[0-9]+/
         (?P<id>[0-9]+)_(?P<title>[0-9]+)'''
     IE_NAME = 'wdr:mobile'
+    _WORKING = False  # no such domain
     _TEST = {
         'url': 'http://mobile-ondemand.wdr.de/CMS2010/mdb/ondemand/weltweit/fsk0/42/421735/421735_4283021.mp4',
         'info_dict': {
