@@ -832,6 +832,7 @@ class YoutubeDL(object):
                 global playlist_pos_total
                 playlist_pos_total += err.playlist_pos
                 self.params['playliststart'] = playlist_pos_total
+                time.sleep(random.randint(3, 13)) # Lets not abuse of this 😜 we don't want to get brutal, on the server.
                 wrapper(self, *args, **kwargs) # Execute the wrapper function.
             except Exception as e:
                 if self.params.get('ignoreerrors', False):
