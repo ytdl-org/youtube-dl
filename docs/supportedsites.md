@@ -136,10 +136,13 @@
  - **BusinessInsider**
  - **BuzzFeed**
  - **BYUtv**
+ - **Cambro**
  - **Camdemy**
  - **CamdemyFolder**
+ - **Camhub**
  - **CamModels**
  - **CamTube**
+ - **CamWhores**
  - **CamWithHer**
  - **canalc2.tv**
  - **Canalplus**: mycanal.fr and piwiplus.fr
@@ -644,6 +647,7 @@
  - **NRKTVSeries**
  - **NRLTV**
  - **ntv.ru**
+ - **Nudespree**
  - **Nuvid**
  - **NYTimes**
  - **NYTimesArticle**

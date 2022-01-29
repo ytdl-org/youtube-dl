@@ -547,6 +547,12 @@ from .kinja import KinjaEmbedIE
 from .kinopoisk import KinoPoiskIE
 from .konserthusetplay import KonserthusetPlayIE
 from .krasview import KrasViewIE
+from .ktplayer import (
+    CambroIE,
+    CamWhoresIE,
+    CamhubIE,
+    NudespreeIE,
+)
 from .ku6 import Ku6IE
 from .kusi import KUSIIE
 from .kuwo import (

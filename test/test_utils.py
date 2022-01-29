@@ -11,6 +11,7 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 
 # Various small unit tests
+import datetime
 import io
 import json
 import xml.etree.ElementTree
@@ -18,6 +19,7 @@ import xml.etree.ElementTree
 from youtube_dl.utils import (
     age_restricted,
     args_to_str,
+    date_from_ago,
     encode_base_n,
     caesar,
     clean_html,
@@ -1474,6 +1476,45 @@ Line 1
     def test_clean_podcast_url(self):
         self.assertEqual(clean_podcast_url('https://www.podtrac.com/pts/redirect.mp3/chtbl.com/track/5899E/traffic.megaphone.fm/HSW7835899191.mp3'), 'https://traffic.megaphone.fm/HSW7835899191.mp3')
         self.assertEqual(clean_podcast_url('https://play.podtrac.com/npr-344098539/edge1.pod.npr.org/anon.npr-podcasts/podcast/npr/waitwait/2020/10/20201003_waitwait_wwdtmpodcast201003-015621a5-f035-4eca-a9a1-7c118d90bc3c.mp3'), 'https://edge1.pod.npr.org/anon.npr-podcasts/podcast/npr/waitwait/2020/10/20201003_waitwait_wwdtmpodcast201003-015621a5-f035-4eca-a9a1-7c118d90bc3c.mp3')
+
+    def test_date_from_ago(self):
+        self.assertIsNone(date_from_ago(None))
+        self.assertIsNone(date_from_ago(''))
+        self.assertIsNone(date_from_ago('invalid'))
+        self.assertIsNone(date_from_ago('1 microsecond ago'))
+        self.assertIsNone(date_from_ago('five days ago'))
+
+        self.assertEqual(
+            date_from_ago('1 minute ago'),
+            (datetime.datetime.utcnow() - datetime.timedelta(minutes=1)).strftime('%Y%m%d'))
+
+        self.assertEqual(
+            date_from_ago('1 Minute Ago'),
+            (datetime.datetime.utcnow() - datetime.timedelta(minutes=1)).strftime('%Y%m%d'))
+
+        self.assertEqual(
+            date_from_ago('2 minutes ago'),
+            (datetime.datetime.utcnow() - datetime.timedelta(minutes=2)).strftime('%Y%m%d'))
+
+        self.assertEqual(
+            date_from_ago('1 hour ago'),
+            (datetime.datetime.utcnow() - datetime.timedelta(hours=1)).strftime('%Y%m%d'))
+
+        self.assertEqual(
+            date_from_ago('2 hours ago'),
+            (datetime.datetime.utcnow() - datetime.timedelta(hours=2)).strftime('%Y%m%d'))
+
+        self.assertEqual(
+            date_from_ago('5 days ago'),
+            (datetime.datetime.utcnow() - datetime.timedelta(days=5)).strftime('%Y%m%d'))
+
+        self.assertEqual(
+            date_from_ago('2 months ago'),
+            (datetime.datetime.utcnow() - datetime.timedelta(days=60)).strftime('%Y%m%d'))
+
+        self.assertEqual(
+            date_from_ago('10 years ago'),
+            (datetime.datetime.utcnow() - datetime.timedelta(days=3650)).strftime('%Y%m%d'))
 
 
 if __name__ == '__main__':

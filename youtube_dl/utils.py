@@ -5772,3 +5772,42 @@ def clean_podcast_url(url):
                 st\.fm # https://podsights.com/docs/
             )/e
         )/''', '', url)
+
+
+def date_from_ago(ago_str):
+    """Converts strings like '2 months ago' into YYYYMMDD
+    Returns None if fails
+    """
+    if not ago_str:
+        return None
+
+    upload_date = re.search(
+        r'(?P<val>\d+)\s+(?P<unit>(?:years?)|(?:months?)|(?:weeks?)|(?:days?)|(?:hours?)|(?:minutes?))\s+ago',
+        ago_str, flags=re.IGNORECASE)
+    if not upload_date:
+        return None
+
+    value = int(upload_date.group('val'))
+    unit = upload_date.group('unit')
+    if not unit or not value:
+        return None
+
+    ago_units = {
+        'minute': lambda x: {'minutes': x},
+        'hour': lambda x: {'hours': x},
+        'day': lambda x: {'days': x},
+        'week': lambda x: {'days': 7 * x},
+        'month': lambda x: {'days': 30 * x},
+        'year': lambda x: {'days': 365 * x},
+    }
+    kwargs = {}
+    for k, v in ago_units.items():
+        if unit.lower().startswith(k):
+            kwargs = v(value)
+    if not kwargs:
+        return None
+
+    now = datetime.datetime.utcnow()
+    delta = datetime.timedelta(**kwargs)
+    upload_date = (now - delta).strftime('%Y%m%d')
+    return upload_date
