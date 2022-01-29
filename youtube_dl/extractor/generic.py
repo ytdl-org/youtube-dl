@@ -84,7 +84,6 @@ from .jwplatform import JWPlatformIE
 from .digiteka import DigitekaIE
 from .arkena import ArkenaIE
 from .instagram import InstagramIE
-from .liveleak import LiveLeakIE
 from .threeqsdn import ThreeQSDNIE
 from .theplatform import ThePlatformIE
 from .kaltura import KalturaIE
@@ -126,8 +125,11 @@ from .viqeo import ViqeoIE
 from .expressen import ExpressenIE
 from .zype import ZypeIE
 from .odnoklassniki import OdnoklassnikiIE
+from .vk import VKIE
 from .kinja import KinjaEmbedIE
 from .arcpublishing import ArcPublishingIE
+from .medialaan import MedialaanIE
+from .simplecast import SimplecastIE
 
 
 class GenericIE(InfoExtractor):
@@ -1626,31 +1628,6 @@ class GenericIE(InfoExtractor):
                 'upload_date': '20160409',
             },
         },
-        # LiveLeak embed
-        {
-            'url': 'http://www.wykop.pl/link/3088787/',
-            'md5': '7619da8c820e835bef21a1efa2a0fc71',
-            'info_dict': {
-                'id': '874_1459135191',
-                'ext': 'mp4',
-                'title': 'Man shows poor quality of new apartment building',
-                'description': 'The wall is like a sand pile.',
-                'uploader': 'Lake8737',
-            },
-            'add_ie': [LiveLeakIE.ie_key()],
-        },
-        # Another LiveLeak embed pattern (#13336)
-        {
-            'url': 'https://milo.yiannopoulos.net/2017/06/concealed-carry-robbery/',
-            'info_dict': {
-                'id': '2eb_1496309988',
-                'ext': 'mp4',
-                'title': 'Thief robs place where everyone was armed',
-                'description': 'md5:694d73ee79e535953cf2488562288eee',
-                'uploader': 'brazilwtf',
-            },
-            'add_ie': [LiveLeakIE.ie_key()],
-        },
         # Duplicated embedded video URLs
         {
             'url': 'http://www.hudl.com/athlete/2538180/highlights/149298443',
@@ -2223,6 +2200,34 @@ class GenericIE(InfoExtractor):
                 'duration': 1581,
             },
         },
+        {
+            # MyChannels SDK embed
+            # https://www.24kitchen.nl/populair/deskundige-dit-waarom-sommigen-gevoelig-zijn-voor-voedselallergieen
+            'url': 'https://www.demorgen.be/nieuws/burgemeester-rotterdam-richt-zich-in-videoboodschap-tot-relschoppers-voelt-het-goed~b0bcfd741/',
+            'md5': '90c0699c37006ef18e198c032d81739c',
+            'info_dict': {
+                'id': '194165',
+                'ext': 'mp4',
+                'title': 'Burgemeester Aboutaleb spreekt relschoppers toe',
+                'timestamp': 1611740340,
+                'upload_date': '20210127',
+                'duration': 159,
+            },
+        },
+        {
+            # Simplecast player embed
+            'url': 'https://www.bio.org/podcast',
+            'info_dict': {
+                'id': 'podcast',
+                'title': 'I AM BIO Podcast | BIO',
+            },
+            'playlist_mincount': 52,
+        },
+        {
+            # Sibnet embed (https://help.sibnet.ru/?sibnet_video_embed)
+            'url': 'https://phpbb3.x-tk.ru/bbcode-video-sibnet-t24.html',
+            'only_matching': True,
+        },
     ]
 
     def report_following_redirect(self, new_url):
@@ -2462,6 +2467,9 @@ class GenericIE(InfoExtractor):
         webpage = self._webpage_read_content(
             full_response, url, video_id, prefix=first_bytes)
 
+        if '<title>DPG Media Privacy Gate</title>' in webpage:
+            webpage = self._download_webpage(url, video_id)
+
         self.report_extraction(video_id)
 
         # Is it an RSS feed, a SMIL file, an XSPF playlist or a MPD manifest?
@@ -2592,6 +2600,11 @@ class GenericIE(InfoExtractor):
         arc_urls = ArcPublishingIE._extract_urls(webpage)
         if arc_urls:
             return self.playlist_from_matches(arc_urls, video_id, video_title, ie=ArcPublishingIE.ie_key())
+
+        mychannels_urls = MedialaanIE._extract_urls(webpage)
+        if mychannels_urls:
+            return self.playlist_from_matches(
+                mychannels_urls, video_id, video_title, ie=MedialaanIE.ie_key())
 
         # Look for embedded rtl.nl player
         matches = re.findall(
@@ -2744,6 +2757,11 @@ class GenericIE(InfoExtractor):
         if odnoklassniki_url:
             return self.url_result(odnoklassniki_url, OdnoklassnikiIE.ie_key())
 
+        # Look for sibnet embedded player
+        sibnet_urls = VKIE._extract_sibnet_urls(webpage)
+        if sibnet_urls:
+            return self.playlist_from_matches(sibnet_urls, video_id, video_title)
+
         # Look for embedded ivi player
         mobj = re.search(r'<embed[^>]+?src=(["\'])(?P<url>https?://(?:www\.)?ivi\.ru/video/player.+?)\1', webpage)
         if mobj is not None:
@@ -2768,6 +2786,12 @@ class GenericIE(InfoExtractor):
         if matches:
             return self.playlist_from_matches(
                 matches, video_id, video_title, getter=unescapeHTML, ie='FunnyOrDie')
+
+        # Look for Simplecast embeds
+        simplecast_urls = SimplecastIE._extract_urls(webpage)
+        if simplecast_urls:
+            return self.playlist_from_matches(
+                simplecast_urls, video_id, video_title)
 
         # Look for BBC iPlayer embed
         matches = re.findall(r'setPlaylist\("(https?://www\.bbc\.co\.uk/iplayer/[^/]+/[\da-z]{8})"\)', webpage)
@@ -2914,7 +2938,7 @@ class GenericIE(InfoExtractor):
             webpage)
         if not mobj:
             mobj = re.search(
-                r'data-video-link=["\'](?P<url>http://m.mlb.com/video/[^"\']+)',
+                r'data-video-link=["\'](?P<url>http://m\.mlb\.com/video/[^"\']+)',
                 webpage)
         if mobj is not None:
             return self.url_result(mobj.group('url'), 'MLB')
@@ -3128,11 +3152,6 @@ class GenericIE(InfoExtractor):
         if instagram_embed_url is not None:
             return self.url_result(
                 self._proto_relative_url(instagram_embed_url), InstagramIE.ie_key())
-
-        # Look for LiveLeak embeds
-        liveleak_urls = LiveLeakIE._extract_urls(webpage)
-        if liveleak_urls:
-            return self.playlist_from_matches(liveleak_urls, video_id, video_title)
 
         # Look for 3Q SDN embeds
         threeqsdn_url = ThreeQSDNIE._extract_url(webpage)
@@ -3361,6 +3380,9 @@ class GenericIE(InfoExtractor):
                         'url': src,
                         'ext': (mimetype2ext(src_type)
                                 or ext if ext in KNOWN_EXTENSIONS else 'mp4'),
+                        'http_headers': {
+                            'Referer': full_response.geturl(),
+                        },
                     })
             if formats:
                 self._sort_formats(formats)
@@ -3429,7 +3451,7 @@ class GenericIE(InfoExtractor):
             m_video_type = re.findall(r'<meta.*?property="og:video:type".*?content="video/(.*?)"', webpage)
             # We only look in og:video if the MIME type is a video, don't try if it's a Flash player:
             if m_video_type is not None:
-                found = filter_video(re.findall(r'<meta.*?property="og:video".*?content="(.*?)"', webpage))
+                found = filter_video(re.findall(r'<meta.*?property="og:(?:video|audio)".*?content="(.*?)"', webpage))
         if not found:
             REDIRECT_REGEX = r'[0-9]{,2};\s*(?:URL|url)=\'?([^\'"]+)'
             found = re.search(

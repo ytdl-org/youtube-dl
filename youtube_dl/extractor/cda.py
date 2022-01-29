@@ -95,8 +95,11 @@ class CDAIE(InfoExtractor):
         if 'Ten film jest dostępny dla użytkowników premium' in webpage:
             raise ExtractorError('This video is only available for premium users.', expected=True)
 
+        if re.search(r'niedostępn[ey] w(?:&nbsp;|\s+)Twoim kraju\s*<', webpage):
+            self.raise_geo_restricted()
+
         need_confirm_age = False
-        if self._html_search_regex(r'(<form[^>]+action="/a/validatebirth")',
+        if self._html_search_regex(r'(<form[^>]+action="[^"]*/a/validatebirth[^"]*")',
                                    webpage, 'birthday validate form', default=None):
             webpage = self._download_age_confirm_page(
                 url, video_id, note='Confirming age')
@@ -129,6 +132,8 @@ class CDAIE(InfoExtractor):
             'duration': None,
             'age_limit': 18 if need_confirm_age else 0,
         }
+
+        info = self._search_json_ld(webpage, video_id, default={})
 
         # Source: https://www.cda.pl/js/player.js?t=1606154898
         def decrypt_file(a):
@@ -194,7 +199,7 @@ class CDAIE(InfoExtractor):
                 handler = self._download_webpage
 
             webpage = handler(
-                self._BASE_URL + href, video_id,
+                urljoin(self._BASE_URL, href), video_id,
                 'Downloading %s version information' % resolution, fatal=False)
             if not webpage:
                 # Manually report warning because empty page is returned when
@@ -205,7 +210,5 @@ class CDAIE(InfoExtractor):
             extract_format(webpage, resolution)
 
         self._sort_formats(formats)
-
-        info = self._search_json_ld(webpage, video_id, default={})
 
         return merge_dicts(info_dict, info)

@@ -17,6 +17,7 @@ from ..compat import (
 )
 from ..utils import (
     clean_html,
+    dict_get,
     ExtractorError,
     float_or_none,
     int_or_none,
@@ -48,6 +49,7 @@ class TwitchBaseIE(InfoExtractor):
         'ChannelCollectionsContent': '07e3691a1bad77a36aba590c351180439a40baefc1c275356f40fc7082419a84',
         'StreamMetadata': '1c719a40e481453e5c48d9bb585d971b8b372f8ebb105b17076722264dfa5b3e',
         'ComscoreStreamingQuery': 'e1edae8122517d013405f237ffcc124515dc6ded82480a88daef69c83b53ac01',
+        'VideoAccessToken_Clip': '36b89d2507fce29e5ca551df756d27c1cfe079e2609642b4390aa4c35796eb11',
         'VideoPreviewOverlay': '3006e77e51b128d838fa4e835723ca4dc9a05c5efd4466c1085215c6e437e65c',
         'VideoMetadata': '226edb3e692509f727fd56821f5653c05740242c82b0388883e0c0e75dcbf687',
     }
@@ -76,14 +78,14 @@ class TwitchBaseIE(InfoExtractor):
 
             headers = {
                 'Referer': page_url,
-                'Origin': page_url,
+                'Origin': 'https://www.twitch.tv',
                 'Content-Type': 'text/plain;charset=UTF-8',
             }
 
             response = self._download_json(
                 post_url, None, note, data=json.dumps(form).encode(),
                 headers=headers, expected_status=400)
-            error = response.get('error_description') or response.get('error_code')
+            error = dict_get(response, ('error', 'error_description', 'error_code'))
             if error:
                 fail(error)
 
@@ -137,13 +139,17 @@ class TwitchBaseIE(InfoExtractor):
         self._sort_formats(formats)
 
     def _download_base_gql(self, video_id, ops, note, fatal=True):
+        headers = {
+            'Content-Type': 'text/plain;charset=UTF-8',
+            'Client-ID': self._CLIENT_ID,
+        }
+        gql_auth = self._get_cookies('https://gql.twitch.tv').get('auth-token')
+        if gql_auth:
+            headers['Authorization'] = 'OAuth ' + gql_auth.value
         return self._download_json(
             'https://gql.twitch.tv/gql', video_id, note,
             data=json.dumps(ops).encode(),
-            headers={
-                'Content-Type': 'text/plain;charset=UTF-8',
-                'Client-ID': self._CLIENT_ID,
-            }, fatal=fatal)
+            headers=headers, fatal=fatal)
 
     def _download_gql(self, video_id, ops, note, fatal=True):
         for op in ops:
@@ -888,7 +894,25 @@ class TwitchClipsIE(TwitchBaseIE):
     def _real_extract(self, url):
         video_id = self._match_id(url)
 
-        clip = self._download_base_gql(
+        clip = self._download_gql(
+            video_id, [{
+                'operationName': 'VideoAccessToken_Clip',
+                'variables': {
+                    'slug': video_id,
+                },
+            }],
+            'Downloading clip access token GraphQL')[0]['data']['clip']
+
+        if not clip:
+            raise ExtractorError(
+                'This clip is no longer available', expected=True)
+
+        access_query = {
+            'sig': clip['playbackAccessToken']['signature'],
+            'token': clip['playbackAccessToken']['value'],
+        }
+
+        data = self._download_base_gql(
             video_id, {
                 'query': '''{
   clip(slug: "%s") {
@@ -913,11 +937,10 @@ class TwitchClipsIE(TwitchBaseIE):
     }
     viewCount
   }
-}''' % video_id}, 'Downloading clip GraphQL')['data']['clip']
+}''' % video_id}, 'Downloading clip GraphQL', fatal=False)
 
-        if not clip:
-            raise ExtractorError(
-                'This clip is no longer available', expected=True)
+        if data:
+            clip = try_get(data, lambda x: x['data']['clip'], dict) or clip
 
         formats = []
         for option in clip.get('videoQualities', []):
@@ -927,7 +950,7 @@ class TwitchClipsIE(TwitchBaseIE):
             if not source:
                 continue
             formats.append({
-                'url': source,
+                'url': update_url_query(source, access_query),
                 'format_id': option.get('quality'),
                 'height': int_or_none(option.get('quality')),
                 'fps': int_or_none(option.get('frameRate')),

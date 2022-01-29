@@ -340,6 +340,7 @@ def _real_main(argv=None):
         'format': opts.format,
         'listformats': opts.listformats,
         'outtmpl': outtmpl,
+        'outtmpl_na_placeholder': opts.outtmpl_na_placeholder,
         'autonumber_size': opts.autonumber_size,
         'autonumber_start': opts.autonumber_start,
         'restrictfilenames': opts.restrictfilenames,

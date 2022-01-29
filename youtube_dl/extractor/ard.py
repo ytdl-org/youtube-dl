@@ -187,13 +187,13 @@ class ARDMediathekIE(ARDMediathekBaseIE):
             if doc.tag == 'rss':
                 return GenericIE()._extract_rss(url, video_id, doc)
 
-        title = self._html_search_regex(
+        title = self._og_search_title(webpage, default=None) or self._html_search_regex(
             [r'<h1(?:\s+class="boxTopHeadline")?>(.*?)</h1>',
              r'<meta name="dcterms\.title" content="(.*?)"/>',
              r'<h4 class="headline">(.*?)</h4>',
              r'<title[^>]*>(.*?)</title>'],
             webpage, 'title')
-        description = self._html_search_meta(
+        description = self._og_search_description(webpage, default=None) or self._html_search_meta(
             'dcterms.abstract', webpage, 'description', default=None)
         if description is None:
             description = self._html_search_meta(
@@ -249,31 +249,40 @@ class ARDMediathekIE(ARDMediathekBaseIE):
 
 
 class ARDIE(InfoExtractor):
-    _VALID_URL = r'(?P<mainurl>https?://(www\.)?daserste\.de/[^?#]+/videos(?:extern)?/(?P<display_id>[^/?#]+)-(?P<id>[0-9]+))\.html'
+    _VALID_URL = r'(?P<mainurl>https?://(?:www\.)?daserste\.de/(?:[^/?#&]+/)+(?P<id>[^/?#&]+))\.html'
     _TESTS = [{
-        # available till 14.02.2019
-        'url': 'http://www.daserste.de/information/talk/maischberger/videos/das-groko-drama-zerlegen-sich-die-volksparteien-video-102.html',
-        'md5': '8e4ec85f31be7c7fc08a26cdbc5a1f49',
+        # available till 7.01.2022
+        'url': 'https://www.daserste.de/information/talk/maischberger/videos/maischberger-die-woche-video100.html',
+        'md5': '867d8aa39eeaf6d76407c5ad1bb0d4c1',
         'info_dict': {
-            'display_id': 'das-groko-drama-zerlegen-sich-die-volksparteien-video',
-            'id': '102',
+            'id': 'maischberger-die-woche-video100',
+            'display_id': 'maischberger-die-woche-video100',
             'ext': 'mp4',
-            'duration': 4435.0,
-            'title': 'Das GroKo-Drama: Zerlegen sich die Volksparteien?',
-            'upload_date': '20180214',
+            'duration': 3687.0,
+            'title': 'maischberger. die woche vom 7. Januar 2021',
+            'upload_date': '20210107',
             'thumbnail': r're:^https?://.*\.jpg$',
         },
     }, {
-        'url': 'https://www.daserste.de/information/reportage-dokumentation/erlebnis-erde/videosextern/woelfe-und-herdenschutzhunde-ungleiche-brueder-102.html',
+        'url': 'https://www.daserste.de/information/politik-weltgeschehen/morgenmagazin/videosextern/dominik-kahun-aus-der-nhl-direkt-zur-weltmeisterschaft-100.html',
+        'only_matching': True,
+    }, {
+        'url': 'https://www.daserste.de/information/nachrichten-wetter/tagesthemen/videosextern/tagesthemen-17736.html',
         'only_matching': True,
     }, {
         'url': 'http://www.daserste.de/information/reportage-dokumentation/dokus/videos/die-story-im-ersten-mission-unter-falscher-flagge-100.html',
+        'only_matching': True,
+    }, {
+        'url': 'https://www.daserste.de/unterhaltung/serie/in-aller-freundschaft-die-jungen-aerzte/Drehpause-100.html',
+        'only_matching': True,
+    }, {
+        'url': 'https://www.daserste.de/unterhaltung/film/filmmittwoch-im-ersten/videos/making-ofwendezeit-video-100.html',
         'only_matching': True,
     }]
 
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
-        display_id = mobj.group('display_id')
+        display_id = mobj.group('id')
 
         player_url = mobj.group('mainurl') + '~playerXml.xml'
         doc = self._download_xml(player_url, display_id)
@@ -284,25 +293,47 @@ class ARDIE(InfoExtractor):
 
         formats = []
         for a in video_node.findall('.//asset'):
+            file_name = xpath_text(a, './fileName', default=None)
+            if not file_name:
+                continue
+            format_type = a.attrib.get('type')
+            format_url = url_or_none(file_name)
+            if format_url:
+                ext = determine_ext(file_name)
+                if ext == 'm3u8':
+                    formats.extend(self._extract_m3u8_formats(
+                        format_url, display_id, 'mp4', entry_protocol='m3u8_native',
+                        m3u8_id=format_type or 'hls', fatal=False))
+                    continue
+                elif ext == 'f4m':
+                    formats.extend(self._extract_f4m_formats(
+                        update_url_query(format_url, {'hdcore': '3.7.0'}),
+                        display_id, f4m_id=format_type or 'hds', fatal=False))
+                    continue
             f = {
-                'format_id': a.attrib['type'],
-                'width': int_or_none(a.find('./frameWidth').text),
-                'height': int_or_none(a.find('./frameHeight').text),
-                'vbr': int_or_none(a.find('./bitrateVideo').text),
-                'abr': int_or_none(a.find('./bitrateAudio').text),
-                'vcodec': a.find('./codecVideo').text,
-                'tbr': int_or_none(a.find('./totalBitrate').text),
+                'format_id': format_type,
+                'width': int_or_none(xpath_text(a, './frameWidth')),
+                'height': int_or_none(xpath_text(a, './frameHeight')),
+                'vbr': int_or_none(xpath_text(a, './bitrateVideo')),
+                'abr': int_or_none(xpath_text(a, './bitrateAudio')),
+                'vcodec': xpath_text(a, './codecVideo'),
+                'tbr': int_or_none(xpath_text(a, './totalBitrate')),
             }
-            if a.find('./serverPrefix').text:
-                f['url'] = a.find('./serverPrefix').text
-                f['playpath'] = a.find('./fileName').text
+            server_prefix = xpath_text(a, './serverPrefix', default=None)
+            if server_prefix:
+                f.update({
+                    'url': server_prefix,
+                    'playpath': file_name,
+                })
             else:
-                f['url'] = a.find('./fileName').text
+                if not format_url:
+                    continue
+                f['url'] = format_url
             formats.append(f)
         self._sort_formats(formats)
 
         return {
-            'id': mobj.group('id'),
+            'id': xpath_text(video_node, './videoId', default=display_id),
             'formats': formats,
             'display_id': display_id,
             'title': video_node.find('./title').text,
@@ -313,19 +344,19 @@ class ARDIE(InfoExtractor):
 
 
 class ARDBetaMediathekIE(ARDMediathekBaseIE):
-    _VALID_URL = r'https://(?:(?:beta|www)\.)?ardmediathek\.de/(?P<client>[^/]+)/(?:player|live|video)/(?P<display_id>(?:[^/]+/)*)(?P<video_id>[a-zA-Z0-9]+)'
+    _VALID_URL = r'https://(?:(?:beta|www)\.)?ardmediathek\.de/(?:[^/]+/)?(?:player|live|video)/(?:[^/]+/)*(?P<id>Y3JpZDovL[a-zA-Z0-9]+)'
     _TESTS = [{
-        'url': 'https://ardmediathek.de/ard/video/die-robuste-roswita/Y3JpZDovL2Rhc2Vyc3RlLmRlL3RhdG9ydC9mYmM4NGM1NC0xNzU4LTRmZGYtYWFhZS0wYzcyZTIxNGEyMDE',
-        'md5': 'dfdc87d2e7e09d073d5a80770a9ce88f',
+        'url': 'https://www.ardmediathek.de/mdr/video/die-robuste-roswita/Y3JpZDovL21kci5kZS9iZWl0cmFnL2Ntcy84MWMxN2MzZC0wMjkxLTRmMzUtODk4ZS0wYzhlOWQxODE2NGI/',
+        'md5': 'a1dc75a39c61601b980648f7c9f9f71d',
         'info_dict': {
             'display_id': 'die-robuste-roswita',
-            'id': '70153354',
+            'id': '78566716',
             'title': 'Die robuste Roswita',
-            'description': r're:^Der Mord.*trüber ist als die Ilm.',
+            'description': r're:^Der Mord.*totgeglaubte Ehefrau Roswita',
             'duration': 5316,
-            'thumbnail': 'https://img.ardmediathek.de/standard/00/70/15/33/90/-1852531467/16x9/960?mandant=ard',
-            'timestamp': 1577047500,
-            'upload_date': '20191222',
+            'thumbnail': 'https://img.ardmediathek.de/standard/00/78/56/67/84/575672121/16x9/960?mandant=ard',
+            'timestamp': 1596658200,
+            'upload_date': '20200805',
             'ext': 'mp4',
         },
     }, {
@@ -343,22 +374,22 @@ class ARDBetaMediathekIE(ARDMediathekBaseIE):
     }, {
         'url': 'https://www.ardmediathek.de/swr/live/Y3JpZDovL3N3ci5kZS8xMzQ4MTA0Mg',
         'only_matching': True,
+    }, {
+        'url': 'https://www.ardmediathek.de/video/coronavirus-update-ndr-info/astrazeneca-kurz-lockdown-und-pims-syndrom-81/ndr/Y3JpZDovL25kci5kZS84NzE0M2FjNi0wMWEwLTQ5ODEtOTE5NS1mOGZhNzdhOTFmOTI/',
+        'only_matching': True,
+    }, {
+        'url': 'https://www.ardmediathek.de/ard/player/Y3JpZDovL3dkci5kZS9CZWl0cmFnLWQ2NDJjYWEzLTMwZWYtNGI4NS1iMTI2LTU1N2UxYTcxOGIzOQ/tatort-duo-koeln-leipzig-ihr-kinderlein-kommet',
+        'only_matching': True,
     }]
 
     def _real_extract(self, url):
-        mobj = re.match(self._VALID_URL, url)
-        video_id = mobj.group('video_id')
-        display_id = mobj.group('display_id')
-        if display_id:
-            display_id = display_id.rstrip('/')
-        if not display_id:
-            display_id = video_id
+        video_id = self._match_id(url)
 
         player_page = self._download_json(
             'https://api.ardmediathek.de/public-gateway',
-            display_id, data=json.dumps({
+            video_id, data=json.dumps({
                 'query': '''{
-  playerPage(client:"%s", clipId: "%s") {
+  playerPage(client: "ard", clipId: "%s") {
     blockedByFsk
     broadcastedOn
     maturityContentRating
@@ -388,7 +419,7 @@ class ARDBetaMediathekIE(ARDMediathekBaseIE):
       }
     }
   }
-}''' % (mobj.group('client'), video_id),
+}''' % video_id,
             }).encode(), headers={
                 'Content-Type': 'application/json'
             })['data']['playerPage']
@@ -413,7 +444,6 @@ class ARDBetaMediathekIE(ARDMediathekBaseIE):
                 r'\(FSK\s*(\d+)\)\s*$', description, 'age limit', default=None))
         info.update({
             'age_limit': age_limit,
-            'display_id': display_id,
             'title': title,
             'description': description,
             'timestamp': unified_timestamp(player_page.get('broadcastedOn')),

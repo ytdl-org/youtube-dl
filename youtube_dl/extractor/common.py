@@ -17,7 +17,7 @@ import math
 
 from ..compat import (
     compat_cookiejar_Cookie,
-    compat_cookies,
+    compat_cookies_SimpleCookie,
     compat_etree_Element,
     compat_etree_fromstring,
     compat_getpass,
@@ -230,8 +230,10 @@ class InfoExtractor(object):
     uploader:       Full name of the video uploader.
     license:        License name the video is licensed under.
     creator:        The creator of the video.
+    release_timestamp: UNIX timestamp of the moment the video was released.
     release_date:   The date (YYYYMMDD) when the video was released.
-    timestamp:      UNIX timestamp of the moment the video became available.
+    timestamp:      UNIX timestamp of the moment the video became available
+                    (uploaded).
     upload_date:    Video upload date (YYYYMMDD).
                     If not explicitly set, calculated from timestamp.
     uploader_id:    Nickname or id of the video uploader.
@@ -1273,6 +1275,7 @@ class InfoExtractor(object):
 
         def extract_video_object(e):
             assert e['@type'] == 'VideoObject'
+            author = e.get('author')
             info.update({
                 'url': url_or_none(e.get('contentUrl')),
                 'title': unescapeHTML(e.get('name')),
@@ -1280,7 +1283,11 @@ class InfoExtractor(object):
                 'thumbnail': url_or_none(e.get('thumbnailUrl') or e.get('thumbnailURL')),
                 'duration': parse_duration(e.get('duration')),
                 'timestamp': unified_timestamp(e.get('uploadDate')),
-                'uploader': str_or_none(e.get('author')),
+                # author can be an instance of 'Organization' or 'Person' types.
+                # both types can have 'name' property(inherited from 'Thing' type). [1]
+                # however some websites are using 'Text' type instead.
+                # 1. https://schema.org/VideoObject
+                'uploader': author.get('name') if isinstance(author, dict) else author if isinstance(author, compat_str) else None,
                 'filesize': float_or_none(e.get('contentSize')),
                 'tbr': int_or_none(e.get('bitrate')),
                 'width': int_or_none(e.get('width')),
@@ -2064,7 +2071,7 @@ class InfoExtractor(object):
             })
         return entries
 
-    def _extract_mpd_formats(self, mpd_url, video_id, mpd_id=None, note=None, errnote=None, fatal=True, formats_dict={}, data=None, headers={}, query={}):
+    def _extract_mpd_formats(self, mpd_url, video_id, mpd_id=None, note=None, errnote=None, fatal=True, data=None, headers={}, query={}):
         res = self._download_xml_handle(
             mpd_url, video_id,
             note=note or 'Downloading MPD manifest',
@@ -2078,10 +2085,9 @@ class InfoExtractor(object):
         mpd_base_url = base_url(urlh.geturl())
 
         return self._parse_mpd_formats(
-            mpd_doc, mpd_id=mpd_id, mpd_base_url=mpd_base_url,
-            formats_dict=formats_dict, mpd_url=mpd_url)
+            mpd_doc, mpd_id, mpd_base_url, mpd_url)
 
-    def _parse_mpd_formats(self, mpd_doc, mpd_id=None, mpd_base_url='', formats_dict={}, mpd_url=None):
+    def _parse_mpd_formats(self, mpd_doc, mpd_id=None, mpd_base_url='', mpd_url=None):
         """
         Parse formats from MPD manifest.
         References:
@@ -2359,15 +2365,7 @@ class InfoExtractor(object):
                         else:
                             # Assuming direct URL to unfragmented media.
                             f['url'] = base_url
-
-                        # According to [1, 5.3.5.2, Table 7, page 35] @id of Representation
-                        # is not necessarily unique within a Period thus formats with
-                        # the same `format_id` are quite possible. There are numerous examples
-                        # of such manifests (see https://github.com/ytdl-org/youtube-dl/issues/15111,
-                        # https://github.com/ytdl-org/youtube-dl/issues/13919)
-                        full_info = formats_dict.get(representation_id, {}).copy()
-                        full_info.update(f)
-                        formats.append(full_info)
+                        formats.append(f)
                     else:
                         self.report_warning('Unknown MIME type %s in DASH manifest' % mime_type)
         return formats
@@ -2903,10 +2901,10 @@ class InfoExtractor(object):
         self._downloader.cookiejar.set_cookie(cookie)
 
     def _get_cookies(self, url):
-        """ Return a compat_cookies.SimpleCookie with the cookies for the url """
+        """ Return a compat_cookies_SimpleCookie with the cookies for the url """
         req = sanitized_Request(url)
         self._downloader.cookiejar.add_cookie_header(req)
-        return compat_cookies.SimpleCookie(req.get_header('Cookie'))
+        return compat_cookies_SimpleCookie(req.get_header('Cookie'))
 
     def _apply_first_set_cookie_header(self, url_handle, cookie):
         """
