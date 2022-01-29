@@ -3455,17 +3455,10 @@ class YoutubeSearchIE(SearchInfoExtractor, YoutubeBaseInfoExtractor):
     _SEARCH_PARAMS = 'EgIQAQ%3D%3D'  # Videos only
     _TESTS = []
 
-    def _entries(self, query, n):
-        total = 0
-        for entry in self._search_results(query, self._SEARCH_PARAMS):
-            yield entry
-            total += 1
-            if total >= n:
-                return
-
     def _get_n_results(self, query, n):
         """Get a specified number of results for a query"""
-        return self.playlist_result(self._entries(query, n), query)
+        entries = itertools.islice(self._search_results(query, self._SEARCH_PARAMS), 0, None if n == float('inf') else n)
+        return self.playlist_result(entries, query, query)
 
 
 class YoutubeSearchDateIE(YoutubeSearchIE):
