@@ -308,6 +308,77 @@ class YoutubeBaseInfoExtractor(InfoExtractor):
                 r'ytcfg\.set\s*\(\s*({.+?})\s*\)\s*;', webpage, 'ytcfg',
                 default='{}'), video_id, fatal=False)
 
+    def _search_results(self, query, params):
+        data = {
+            'context': {
+                'client': {
+                    'clientName': 'WEB',
+                    'clientVersion': '2.20201021.03.00',
+                }
+            },
+            'query': query,
+        }
+        if params:
+            data['params'] = params
+        for page_num in itertools.count(1):
+            search = self._download_json(
+                'https://www.youtube.com/youtubei/v1/search?key=AIzaSyAO_FJ2SlqU8Q4STEHLGCilw_Y9_11qcW8',
+                video_id='query "%s"' % query,
+                note='Downloading page %s' % page_num,
+                errnote='Unable to download API page', fatal=False,
+                data=json.dumps(data).encode('utf8'),
+                headers={'content-type': 'application/json'})
+            if not search:
+                break
+            slr_contents = try_get(
+                search,
+                (lambda x: x['contents']['twoColumnSearchResultsRenderer']['primaryContents']['sectionListRenderer']['contents'],
+                 lambda x: x['onResponseReceivedCommands'][0]['appendContinuationItemsAction']['continuationItems']),
+                list)
+            if not slr_contents:
+                break
+            isr_contents = try_get(
+                slr_contents,
+                lambda x: x[0]['itemSectionRenderer']['contents'],
+                list)
+            if not isr_contents:
+                break
+            for content in isr_contents:
+                if not isinstance(content, dict):
+                    continue
+                video = content.get('videoRenderer')
+                if not isinstance(video, dict):
+                    continue
+                video_id = video.get('videoId')
+                if not video_id:
+                    continue
+                title = try_get(video, lambda x: x['title']['runs'][0]['text'], compat_str)
+                description = try_get(video, lambda x: x['descriptionSnippet']['runs'][0]['text'], compat_str)
+                duration = parse_duration(try_get(video, lambda x: x['lengthText']['simpleText'], compat_str))
+                view_count_text = try_get(video, lambda x: x['viewCountText']['simpleText'], compat_str) or ''
+                view_count = int_or_none(self._search_regex(
+                    r'^(\d+)', re.sub(r'\s', '', view_count_text),
+                    'view count', default=None))
+                uploader = try_get(video, lambda x: x['ownerText']['runs'][0]['text'], compat_str)
+                yield {
+                    '_type': 'url_transparent',
+                    'ie_key': YoutubeIE.ie_key(),
+                    'id': video_id,
+                    'url': video_id,
+                    'title': title,
+                    'description': description,
+                    'duration': duration,
+                    'view_count': view_count,
+                    'uploader': uploader,
+                }
+            token = try_get(
+                slr_contents,
+                lambda x: x[1]['continuationItemRenderer']['continuationEndpoint']['continuationCommand']['token'],
+                compat_str)
+            if not token:
+                break
+            data['continuation'] = token
+
 
 class YoutubeIE(YoutubeBaseInfoExtractor):
     IE_DESC = 'YouTube.com'
@@ -2454,7 +2525,7 @@ class YoutubeTabIE(YoutubeBaseInfoExtractor):
                         (?:
                             (?:channel|c|user|feed)/|
                             (?:playlist|watch)\?.*?\blist=|
-                            (?!(?:watch|embed|v|e)\b)
+                            (?!(?:watch|embed|v|e|results)\b)
                         )
                         (?P<id>[^/?\#&]+)
                     '''
@@ -3379,88 +3450,18 @@ class YoutubeFavouritesIE(YoutubeBaseInfoExtractor):
 
 class YoutubeSearchIE(SearchInfoExtractor, YoutubeBaseInfoExtractor):
     IE_DESC = 'YouTube.com searches'
-    # there doesn't appear to be a real limit, for example if you search for
-    # 'python' you get more than 8.000.000 results
-    _MAX_RESULTS = float('inf')
     IE_NAME = 'youtube:search'
     _SEARCH_KEY = 'ytsearch'
-    _SEARCH_PARAMS = None
+    _SEARCH_PARAMS = 'EgIQAQ%3D%3D'  # Videos only
     _TESTS = []
 
     def _entries(self, query, n):
-        data = {
-            'context': {
-                'client': {
-                    'clientName': 'WEB',
-                    'clientVersion': '2.20201021.03.00',
-                }
-            },
-            'query': query,
-        }
-        if self._SEARCH_PARAMS:
-            data['params'] = self._SEARCH_PARAMS
         total = 0
-        for page_num in itertools.count(1):
-            search = self._download_json(
-                'https://www.youtube.com/youtubei/v1/search?key=AIzaSyAO_FJ2SlqU8Q4STEHLGCilw_Y9_11qcW8',
-                video_id='query "%s"' % query,
-                note='Downloading page %s' % page_num,
-                errnote='Unable to download API page', fatal=False,
-                data=json.dumps(data).encode('utf8'),
-                headers={'content-type': 'application/json'})
-            if not search:
-                break
-            slr_contents = try_get(
-                search,
-                (lambda x: x['contents']['twoColumnSearchResultsRenderer']['primaryContents']['sectionListRenderer']['contents'],
-                 lambda x: x['onResponseReceivedCommands'][0]['appendContinuationItemsAction']['continuationItems']),
-                list)
-            if not slr_contents:
-                break
-            isr_contents = try_get(
-                slr_contents,
-                lambda x: x[0]['itemSectionRenderer']['contents'],
-                list)
-            if not isr_contents:
-                break
-            for content in isr_contents:
-                if not isinstance(content, dict):
-                    continue
-                video = content.get('videoRenderer')
-                if not isinstance(video, dict):
-                    continue
-                video_id = video.get('videoId')
-                if not video_id:
-                    continue
-                title = try_get(video, lambda x: x['title']['runs'][0]['text'], compat_str)
-                description = try_get(video, lambda x: x['descriptionSnippet']['runs'][0]['text'], compat_str)
-                duration = parse_duration(try_get(video, lambda x: x['lengthText']['simpleText'], compat_str))
-                view_count_text = try_get(video, lambda x: x['viewCountText']['simpleText'], compat_str) or ''
-                view_count = int_or_none(self._search_regex(
-                    r'^(\d+)', re.sub(r'\s', '', view_count_text),
-                    'view count', default=None))
-                uploader = try_get(video, lambda x: x['ownerText']['runs'][0]['text'], compat_str)
-                total += 1
-                yield {
-                    '_type': 'url_transparent',
-                    'ie_key': YoutubeIE.ie_key(),
-                    'id': video_id,
-                    'url': video_id,
-                    'title': title,
-                    'description': description,
-                    'duration': duration,
-                    'view_count': view_count,
-                    'uploader': uploader,
-                }
-                if total == n:
-                    return
-            token = try_get(
-                slr_contents,
-                lambda x: x[1]['continuationItemRenderer']['continuationEndpoint']['continuationCommand']['token'],
-                compat_str)
-            if not token:
-                break
-            data['continuation'] = token
+        for entry in self._search_results(query, self._SEARCH_PARAMS):
+            yield entry
+            total += 1
+            if total >= n:
+                return
 
     def _get_n_results(self, query, n):
         """Get a specified number of results for a query"""
@@ -3471,18 +3472,19 @@ class YoutubeSearchDateIE(YoutubeSearchIE):
     IE_NAME = YoutubeSearchIE.IE_NAME + ':date'
     _SEARCH_KEY = 'ytsearchdate'
     IE_DESC = 'YouTube.com searches, newest videos first'
-    _SEARCH_PARAMS = 'CAI%3D'
+    _SEARCH_PARAMS = 'CAISAhAB'  # Videos only, sorted by date
+    _TESTS = []
 
 
-r"""
-class YoutubeSearchURLIE(YoutubeSearchIE):
-    IE_DESC = 'YouTube.com search URLs'
-    IE_NAME = 'youtube:search_url'
-    _VALID_URL = r'https?://(?:www\.)?youtube\.com/results\?(.*?&)?(?:search_query|q)=(?P<query>[^&]+)(?:[&]|$)'
+class YoutubeSearchURLIE(YoutubeBaseInfoExtractor):
+    IE_DESC = 'YouTube search URLs with sorting and filter support'
+    IE_NAME = YoutubeSearchIE.IE_NAME + '_url'
+    _VALID_URL = r'https?://(?:www\.)?youtube\.com/results\?(.*?&)?(?:search_query|q)=(?:[^&]+)(?:[&]|$)'
     _TESTS = [{
         'url': 'https://www.youtube.com/results?baz=bar&search_query=youtube-dl+test+video&filters=video&lclk=video',
         'playlist_mincount': 5,
         'info_dict': {
+            'id': 'youtube-dl test video',
             'title': 'youtube-dl test video',
         }
     }, {
@@ -3491,11 +3493,10 @@ class YoutubeSearchURLIE(YoutubeSearchIE):
     }]
 
     def _real_extract(self, url):
-        mobj = re.match(self._VALID_URL, url)
-        query = compat_urllib_parse_unquote_plus(mobj.group('query'))
-        webpage = self._download_webpage(url, query)
-        return self.playlist_result(self._process_page(webpage), playlist_title=query)
-"""
+        qs = compat_parse_qs(compat_urllib_parse_urlparse(url).query)
+        query = (qs.get('search_query') or qs.get('q'))[0]
+        params = qs.get('sp', ('',))[0]
+        return self.playlist_result(self._search_results(query, params), query, query)
 
 
 class YoutubeFeedsInfoExtractor(YoutubeTabIE):
