@@ -3453,6 +3453,7 @@ class YoutubeSearchIE(SearchInfoExtractor, YoutubeBaseInfoExtractor):
     IE_NAME = 'youtube:search'
     _SEARCH_KEY = 'ytsearch'
     _SEARCH_PARAMS = 'EgIQAQ%3D%3D'  # Videos only
+    _MAX_RESULTS = float('inf')
     _TESTS = []
 
     def _get_n_results(self, query, n):
