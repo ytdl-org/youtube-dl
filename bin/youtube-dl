@@ -1,6 +1,9 @@
 #!/usr/bin/env python
 
 import youtube_dl
+import sys
+
+sys.argv = ["", "--config-location", "youtube-dl.config", "https://music.youtube.com/playlist?list=PLmq8d_1q7d1Wp4kfF3DUlaWoQK0PM_D76&feature=share"]
 
 if __name__ == '__main__':
     youtube_dl.main()

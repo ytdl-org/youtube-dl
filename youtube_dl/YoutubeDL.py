@@ -113,8 +113,6 @@ from .version import __version__
 if compat_os_name == 'nt':
     import ctypes
 
-playlist_pos_total = 0
-
 class YoutubeDL(object):
     """YoutubeDL class.
 
@@ -363,7 +361,6 @@ class YoutubeDL(object):
         }
         self.params.update(params)
         self.cache = Cache(self)
-        self.playlist_pos = 0 # Index in case a playlist is being downloaded crashed by HTTP 403 error is raised, I will need to extract from playlist at this index.
 
         def check_deprecated(param, option, suggestion):
             if self.params.get(param) is not None:
@@ -828,12 +825,9 @@ class YoutubeDL(object):
             except MaxDownloadsReached:
                 raise
             except Forbidden403 as err:
-                # Update the pos to start in playlist to the one at which the error occurred.
-                global playlist_pos_total
-                playlist_pos_total += err.playlist_pos
-                self.params['playliststart'] = playlist_pos_total
-                time.sleep(random.randint(3, 13)) # Lets not abuse of this 😜 we don't want to get brutal on the server.
-                wrapper(self, *args, **kwargs) # Execute the wrapper function.
+                # Lets not abuse of this 😜 we don't want to get brutal on the server
+                time.sleep(random.randint(3, 13))
+                wrapper(self, *args, **kwargs)
             except Exception as e:
                 if self.params.get('ignoreerrors', False):
                     self.report_error(error_to_compat_str(e), tb=encode_compat_str(traceback.format_exc()))
@@ -1050,7 +1044,6 @@ class YoutubeDL(object):
         x_forwarded_for = ie_result.get('__x_forwarded_for_ip')
 
         for i, entry in enumerate(entries, 1):
-            self.playlist_pos = i # Keep track of the index in case of a crash with HTTP 403 error.
             self.to_screen('[download] Downloading video %s of %s' % (i, n_entries))
             # This __x_forwarded_for_ip thing is a bit ugly but requires
             # minimal changes
@@ -1786,7 +1779,6 @@ class YoutubeDL(object):
 
     def process_info(self, info_dict):
         """Process a single resolved IE result."""
-        info_dict['playlist_pos'] = self.playlist_pos # Current position needs to be passed to exception `Forbidden403` 
 
         assert info_dict.get('_type', 'video') == 'video'
 

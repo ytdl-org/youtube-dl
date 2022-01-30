@@ -2999,10 +2999,7 @@ else:
 
 # Implement an error for which it is raise when error code 403 HTTPError
 class Forbidden403(Exception):
-    def __init__(self, playlist_pos):
-        self.playlist_pos = playlist_pos
-    def __str__(self):
-        return "Downloaded playlist has stopped at %d" % self.playlist_pos
+        pass
 
 __all__ = [
     'compat_HTMLParseError',

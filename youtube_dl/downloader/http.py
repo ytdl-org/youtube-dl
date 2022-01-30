@@ -188,7 +188,7 @@ class HttpFD(FileDownloader):
                     # Unexpected HTTP error
                     raise
                 elif err.code == 403: # The famous 403 Forbidden error
-                    raise Forbidden403(int(info_dict.get("playlist_pos")))
+                    raise Forbidden403
                 raise RetryDownload(err)
             except socket.error as err:
                 if err.errno != errno.ECONNRESET:
