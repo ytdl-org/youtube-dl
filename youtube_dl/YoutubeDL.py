@@ -113,6 +113,7 @@ from .version import __version__
 if compat_os_name == 'nt':
     import ctypes
 
+
 class YoutubeDL(object):
     """YoutubeDL class.
 
@@ -824,7 +825,7 @@ class YoutubeDL(object):
                 self.report_error(compat_str(e), e.format_traceback())
             except MaxDownloadsReached:
                 raise
-            except Forbidden403 as err:
+            except Forbidden403:
                 # Lets not abuse of this 😜 we don't want to get brutal on the server
                 time.sleep(random.randint(3, 13))
                 wrapper(self, *args, **kwargs)

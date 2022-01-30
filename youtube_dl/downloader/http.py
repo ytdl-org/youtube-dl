@@ -187,7 +187,7 @@ class HttpFD(FileDownloader):
                 elif err.code != 403 and (err.code < 500 or err.code >= 600):
                     # Unexpected HTTP error
                     raise
-                elif err.code == 403: # The famous 403 Forbidden error
+                elif err.code == 403:  # The famous 403 Forbidden error
                     raise Forbidden403
                 raise RetryDownload(err)
             except socket.error as err:
