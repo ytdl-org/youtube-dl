@@ -4121,6 +4121,17 @@ def update_url_query(url, query):
         query=compat_urllib_parse_urlencode(qs, True)))
 
 
+def update_url(url, **kwargs):
+    """Replace URL components specified by kwargs
+       url: compat_str or parsed URL tuple
+       returns: compat_str"""
+    if not kwargs:
+        return compat_urlparse.urlunparse(url) if isinstance(url, tuple) else url
+    if not isinstance(url, tuple):
+        url = compat_urlparse.urlparse(url)
+    return compat_urlparse.urlunparse(url._replace(**kwargs))
+
+
 def update_Request(req, url=None, data=None, headers={}, query={}):
     req_headers = req.headers.copy()
     req_headers.update(headers)
