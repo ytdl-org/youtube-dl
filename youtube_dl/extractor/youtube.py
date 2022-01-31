@@ -417,6 +417,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                          (?:.*?\#/)?                                          # handle anchor (#/) redirect urls
                          (?:                                                  # the various things that can precede the ID:
                              (?:(?:v|embed|e)/(?!videoseries))                # v/ or embed/ or e/
+                             |shorts/
                              |(?:                                             # or the v= param in all its forms
                                  (?:(?:watch|movie)(?:_popup)?(?:\.php)?/?)?  # preceding watch(_popup|.php) or nothing (like /?v=xxxx)
                                  (?:\?|\#!?)                                  # the params delimiter ? or # or #!
@@ -1114,6 +1115,22 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                 'uploader': 'Walk around Japan',
                 'uploader_id': 'UC3o_t8PzBmXf5S9b7GLx1Mw',
                 'uploader_url': r're:https?://(?:www\.)?youtube\.com/channel/UC3o_t8PzBmXf5S9b7GLx1Mw',
+            },
+            'params': {
+                'skip_download': True,
+            },
+        },
+        {
+            # YT 'Shorts'
+            'url': 'https://youtube.com/shorts/4L2J27mJ3Dc',
+            'info_dict': {
+                'id': '4L2J27mJ3Dc',
+                'ext': 'mp4',
+                'upload_date': '20211025',
+                'uploader': 'Charlie Berens',
+                'description': 'md5:976512b8a29269b93bbd8a61edc45a6d',
+                'uploader_id': 'fivedlrmilkshake',
+                'title': 'Midwest Squid Game #Shorts',
             },
             'params': {
                 'skip_download': True,
