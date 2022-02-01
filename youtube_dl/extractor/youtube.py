@@ -26,6 +26,7 @@ from ..utils import (
     ExtractorError,
     clean_html,
     dict_get,
+    error_to_compat_str,
     float_or_none,
     int_or_none,
     js_to_json,
@@ -1463,7 +1464,12 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                 self._downloader.to_screen('[debug] [%s] %s' % (self.IE_NAME, 'Decrypted nsig {0} => {1}'.format(n_param, self._player_cache[sig_id])))
             return self._player_cache[sig_id]
         except Exception as e:
-            raise ExtractorError(traceback.format_exc(), cause=e, video_id=video_id)
+            self._downloader.report_warning(
+                '[%s] %s (%s %s)' % (
+                    self.IE_NAME,
+                    'Unable to decode n-parameter: download likely to be throttled',
+                    error_to_compat_str(e),
+                    traceback.format_exc()))
 
     def _unthrottle_format_urls(self, video_id, player_url, formats):
         for fmt in formats:
