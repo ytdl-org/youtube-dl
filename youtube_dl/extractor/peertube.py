@@ -413,7 +413,8 @@ class PeerTubeIE(InfoExtractor):
                             peertube3\.cpy\.re|
                             peertube2\.cpy\.re|
                             videos\.tcit\.fr|
-                            peertube\.cpy\.re
+                            peertube\.cpy\.re|
+                            canard\.tube
                         )'''
     _UUID_RE = r'[\da-fA-F]{8}-[\da-fA-F]{4}-[\da-fA-F]{4}-[\da-fA-F]{4}-[\da-fA-F]{12}'
     _API_BASE = 'https://%s/api/v1/videos/%s/%s'
@@ -568,15 +569,15 @@ class PeerTubeIE(InfoExtractor):
             formats.append(f)
         self._sort_formats(formats)
 
-        full_description = self._call_api(
-            host, video_id, 'description', note='Downloading description JSON',
-            fatal=False)
+        description = video.get('description')
+        if len(description) >= 250:
+            # description is shortened
+            full_description = self._call_api(
+                host, video_id, 'description', note='Downloading description JSON',
+                fatal=False)
 
-        description = None
-        if isinstance(full_description, dict):
-            description = str_or_none(full_description.get('description'))
-        if not description:
-            description = video.get('description')
+            if isinstance(full_description, dict):
+                description = str_or_none(full_description.get('description')) or description
 
         subtitles = self.extract_subtitles(host, video_id)
 
@@ -598,11 +599,13 @@ class PeerTubeIE(InfoExtractor):
         else:
             age_limit = None
 
+        webpage_url = 'https://%s/videos/watch/%s' % (host, video_id)
+
         return {
             'id': video_id,
             'title': title,
             'description': description,
-            'thumbnail': urljoin(url, video.get('thumbnailPath')),
+            'thumbnail': urljoin(webpage_url, video.get('thumbnailPath')),
             'timestamp': unified_timestamp(video.get('publishedAt')),
             'uploader': account_data('displayName', compat_str),
             'uploader_id': str_or_none(account_data('id', int)),
@@ -620,5 +623,6 @@ class PeerTubeIE(InfoExtractor):
             'tags': try_get(video, lambda x: x['tags'], list),
             'categories': categories,
             'formats': formats,
-            'subtitles': subtitles
+            'subtitles': subtitles,
+            'webpage_url': webpage_url,
         }

@@ -89,10 +89,14 @@ class EmbedThumbnailPP(FFmpegPostProcessor):
             os.rename(encodeFilename(temp_filename), encodeFilename(filename))
 
         elif info['ext'] in ['m4a', 'mp4']:
-            if not check_executable('AtomicParsley', ['-v']):
+            atomicparsley = next((x
+                                  for x in ['AtomicParsley', 'atomicparsley']
+                                  if check_executable(x, ['-v'])), None)
+
+            if atomicparsley is None:
                 raise EmbedThumbnailPPError('AtomicParsley was not found. Please install.')
 
-            cmd = [encodeFilename('AtomicParsley', True),
+            cmd = [encodeFilename(atomicparsley, True),
                    encodeFilename(filename, True),
                    encodeArgument('--artwork'),
                    encodeFilename(thumbnail_filename, True),
