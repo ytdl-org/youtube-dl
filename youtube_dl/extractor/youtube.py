@@ -3206,7 +3206,14 @@ class YoutubeSearchIE(SearchInfoExtractor, YoutubeBaseInfoExtractor):
     _SEARCH_KEY = 'ytsearch'
     _SEARCH_PARAMS = 'EgIQAQ%3D%3D'  # Videos only
     _MAX_RESULTS = float('inf')
-    _TESTS = []
+    _TESTS = [{
+        'url': 'ytsearch10:youtube-dl test video',
+        'playlist_count': 10,
+        'info_dict': {
+            'id': 'youtube-dl test video',
+            'title': 'youtube-dl test video',
+        }
+    }]
 
     def _get_n_results(self, query, n):
         """Get a specified number of results for a query"""
@@ -3219,7 +3226,14 @@ class YoutubeSearchDateIE(YoutubeSearchIE):
     _SEARCH_KEY = 'ytsearchdate'
     IE_DESC = 'YouTube.com searches, newest videos first'
     _SEARCH_PARAMS = 'CAISAhAB'  # Videos only, sorted by date
-    _TESTS = []
+    _TESTS = [{
+        'url': 'ytsearchdate10:youtube-dl test video',
+        'playlist_count': 10,
+        'info_dict': {
+            'id': 'youtube-dl test video',
+            'title': 'youtube-dl test video',
+        }
+    }]
 
 
 class YoutubeSearchURLIE(YoutubeBaseInfoExtractor):
@@ -3232,7 +3246,8 @@ class YoutubeSearchURLIE(YoutubeBaseInfoExtractor):
         'info_dict': {
             'id': 'youtube-dl test video',
             'title': 'youtube-dl test video',
-        }
+        },
+        'params': {'playlistend': 5}
     }, {
         'url': 'https://www.youtube.com/results?q=test&sp=EgQIBBgB',
         'only_matching': True,
