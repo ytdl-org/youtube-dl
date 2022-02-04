@@ -751,6 +751,16 @@ class BBCIE(BBCCoUkIE):
         },
         'playlist_count': 3,
     }, {
+        # single video embedded, data in playlistObject of playerSettings
+        'url': 'https://www.bbc.com/news/av/embed/p07xmg48/50670843',
+        'info_dict': {
+            'id': 'p07xmg48',
+            'ext': 'mp4',
+            'title': 'General election 2019: From the count, to your TV',
+            'description': 'General election 2019: From the count, to your TV',
+            'duration': 160,
+        },
+    }, {
         # school report article with single video
         'url': 'http://www.bbc.co.uk/schoolreport/35744779',
         'info_dict': {
@@ -873,6 +883,34 @@ class BBCIE(BBCCoUkIE):
             'subtitles': subtitles,
         }
 
+    def _extract_from_playlist_object(self, playlist_object):
+        title = playlist_object.get('title')
+        item_0 = try_get(playlist_object, lambda x: x['items'][0], dict)
+        if item_0 and title:
+            description = playlist_object.get('summary')
+            duration = int_or_none(item_0.get('duration'))
+            programme_id = dict_get(item_0, ('vpid', 'versionID'))
+            if programme_id:
+                return {
+                    'id': programme_id,
+                    'title': title,
+                    'description': description,
+                    'duration': duration,
+                }
+        return {}
+
+    def _get_playlist_entry(self, entry):
+        programme_id = entry.get('id')
+        if not programme_id:
+            return
+        formats, subtitles = self._download_media_selector(programme_id)
+        self._sort_formats(formats)
+        entry.update({
+            'formats': formats,
+            'subtitles': subtitles,
+        })
+        return entry
+
     def _real_extract(self, url):
         playlist_id = self._match_id(url)
 
@@ -920,27 +958,17 @@ class BBCIE(BBCCoUkIE):
                     continue
                 settings = data_playable.get('settings', {})
                 if settings:
-                    # data-playable with video vpid in settings.playlistObject.items (e.g.
-                    # http://www.bbc.com/news/world-us-canada-34473351)
+                    # data-playable with video vpid in settings.playlistObject.items
+                    # obsolete? example previously quoted uses __INITIAL_DATA__ now
                     playlist_object = settings.get('playlistObject', {})
                     if playlist_object:
-                        items = playlist_object.get('items')
-                        if items and isinstance(items, list):
-                            title = playlist_object['title']
-                            description = playlist_object.get('summary')
-                            duration = int_or_none(items[0].get('duration'))
-                            programme_id = items[0].get('vpid')
-                            formats, subtitles = self._download_media_selector(programme_id)
-                            self._sort_formats(formats)
-                            entries.append({
-                                'id': programme_id,
-                                'title': title,
-                                'description': description,
+                        entry = self._extract_from_playlist_object(playlist_object)
+                        entry = self._get_playlist_entry(entry)
+                        if entry:
+                            entry.update({
                                 'timestamp': timestamp,
-                                'duration': duration,
-                                'formats': formats,
-                                'subtitles': subtitles,
                             })
+                            entries.append(entry)
                     else:
                         # data-playable without vpid but with a playlist.sxml URLs
                         # in otherSettings.playlist (e.g.
@@ -970,7 +998,25 @@ class BBCIE(BBCCoUkIE):
                             if entry:
                                 self._sort_formats(entry['formats'])
                                 entries.append(entry)
-
+        else:
+            # embed video with playerSettings, eg
+            # https://www.bbc.com/news/av/embed/p07xmg48/50670843
+            settings = self._html_search_regex(
+                r'<script\b[^>]+>.+\.playerSettings\s*=\s*(?P<json>\{.*\})\s*(?:,\s*function\s*\(\s*\)\s*\{\s*["\']use strict.+\(\s*\)\s*)?</script\b',
+                webpage, 'player settings', default='{}', group='json')
+            settings = self._parse_json(settings, playlist_id, transform_source=js_to_json, fatal=False)
+            if settings:
+                playlist_object = settings.get('playlistObject', {})
+                if playlist_object:
+                    entry = self._extract_from_playlist_object(playlist_object)
+                    entry = self._get_playlist_entry(entry)
+                    if entry:
+                        thumbnail = playlist_object.get('holdingImageURL')
+                        entry.update({
+                            'timestamp': timestamp,
+                            'thumbnail': thumbnail.replace('$recipe', 'raw') if thumbnail else None,
+                        })
+                        entries.append(entry)
         if entries:
             return self.playlist_result(entries, playlist_id, playlist_title, playlist_description)
 
@@ -1162,6 +1208,7 @@ class BBCIE(BBCCoUkIE):
                 return self.playlist_result(
                     entries, playlist_id, playlist_title, playlist_description)
 
+        # eg, http://www.bbc.com/news/world-us-canada-34473351
         initial_data = self._parse_json(self._search_regex(
             r'window\.__INITIAL_DATA__\s*=\s*({.+?});', webpage,
             'preload state', default='{}'), playlist_id, fatal=False)
