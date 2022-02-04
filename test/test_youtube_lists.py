@@ -36,12 +36,12 @@ class TestYoutubeLists(unittest.TestCase):
         dl = FakeYDL()
         dl.params['format'] = 'best'
         ie = YoutubeTabIE(dl)
-        result = dl.extract_info('https://www.youtube.com/watch?v=uVJ0Il5WvbE&list=PLhQjrBD2T381k8ul4WQ8SQ165XqY149WW',
+        result = dl.extract_info('https://www.youtube.com/watch?v=tyITL_exICo&list=RDCLAK5uy_kLWIr9gv1XLlPbaDS965-Db4TrBoUTxQ8',
                                  download=False, ie_key=ie.ie_key(), process=True)
         entries = (result or {}).get('entries', [{'id': 'not_found', }])
-        self.assertTrue(len(entries) >= 50)
+        self.assertTrue(len(entries) >= 25)
         original_video = entries[0]
-        self.assertEqual(original_video['id'], 'uVJ0Il5WvbE')
+        self.assertEqual(original_video['id'], 'tyITL_exICo')
 
     def test_youtube_flat_playlist_extraction(self):
         dl = FakeYDL()
