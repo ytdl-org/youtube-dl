@@ -105,6 +105,8 @@ class TV2DKIE(InfoExtractor):
                 (r'\\u002Fp\\u002F(\d+)\\u002F', r'/p/(\d+)/'), webpage,
                 'partner id')
             add_entry(partner_id, kaltura_id)
+        if len(entries) == 1:
+            return entries[0]
         return self.playlist_result(entries)
 
 
