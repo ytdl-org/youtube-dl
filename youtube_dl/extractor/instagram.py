@@ -108,6 +108,21 @@ class InstagramIE(InfoExtractor):
             'description': 'Meet Cass Hirst (@cass.fb), a fingerboarding pro who can perform tiny ollies and kickflips while blindfolded.',
         }
     }, {
+        # Response with items JSON Array
+        'url': 'https://www.instagram.com/reel/CZZ61TyMmxf/?utm_medium=share_sheet',
+        'info_dict': {
+            'id': 'CZZ61TyMmxf',
+            'ext': 'mp4',
+            'title': 'Video by dog',
+            'duration': 9.544,
+            'timestamp': 1643654754,
+            'uploader_id': 'dog',
+            'uploader': '@DOG',
+            'like_count': int,
+            'comment_count': int,
+            'description': 'Nova’s like "im gonna get you!"\nvia @emma.leinenbach',
+        }
+    }, {
         'url': 'https://instagram.com/p/-Cmh1cukG2/',
         'only_matching': True,
     }, {
@@ -173,6 +188,27 @@ class InstagramIE(InfoExtractor):
                 media = try_get(
                     additional_data, lambda x: x['graphql']['shortcode_media'],
                     dict)
+                if not media:
+                    # In some cases, the response from the server has items in it
+                    # Here is a sample of code that works fine with one item, but
+                    # I don't know for multiple items, cuz I don't have test links
+                    # for those.
+                    items0 = try_get(additional_data, lambda x: x['items'][0], dict)
+                    if items0:
+                        best_quality = items0.get("video_versions")[0]
+                        video_url = best_quality.get('url')
+                        height = int_or_none(best_quality.get('height'))
+                        width = int_or_none(best_quality.get('width'))
+                        description = items0.get('caption').get('text')
+                        title = None
+                        duration = float_or_none(items0.get('video_duration'))
+                        thumbnail = items0.get('image_versions2').get('candidates')[0].get('url')
+                        timestamp = int_or_none(items0.get('taken_at'))
+                        uploader = items0.get('user').get('full_name')
+                        uploader_id = items0.get('user').get('username')
+                        like_count = int_or_none(items0.get('like_count'))
+                        comment_count = int_or_none(items0.get('comment_count'))
+
         if media:
             video_url = media.get('video_url')
             height = int_or_none(media.get('dimensions', {}).get('height'))
@@ -196,6 +232,7 @@ class InstagramIE(InfoExtractor):
                                 lambda x: x['%ss' % kind]['count'])))
                     if count is not None:
                         return count
+
             like_count = get_count('preview_like', 'like')
             comment_count = get_count(
                 ('preview_comment', 'to_comment', 'to_parent_comment'), 'comment')
