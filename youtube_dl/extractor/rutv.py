@@ -179,7 +179,7 @@ class RUTVIE(InfoExtractor):
                         'player_url': 'http://player.rutv.ru/flash3v/osmf.swf?i=22',
                         'rtmp_live': True,
                         'ext': 'flv',
-                        'vbr': int(quality),
+                        'vbr': int(quality) if quality else 0,
                         'preference': preference,
                     }
                 elif transport == 'm3u8':
