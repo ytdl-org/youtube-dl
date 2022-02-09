@@ -22,15 +22,19 @@ class TeleportalIE(InfoExtractor):
         video_id = self._match_id(url)
         backend_url = 'https://tp-back.starlight.digital/ua/{}'.format(video_id)
         metadata = self._download_json(backend_url, video_id)
-        api_metadata = self._download_json('https://vcms-api2.starlight.digital/player-api/{}?referer=https://teleportal.ua/&lang=ua'.format(metadata["hash"]), video_id)
+        api_metadata = self._download_json('https://vcms-api2.starlight.digital/player-api/{}?referer=https://teleportal.ua/&lang=ua'.format(metadata['hash']), video_id)
+
+        try:
+            thumbnail = api_metadata['video'][0]['poster']
+        except (KeyError, IndexError):
+            thumbnail = None
 
         return {
             'id': video_id,
-            'title': metadata['title'],
-            'description': metadata['description'],
-            'real_id': metadata['id'],
-            'hash': metadata['hash'],
-            'url': api_metadata['video'][0]['mediaHls'],
-            'thumbnail': api_metadata['video'][0]['poster'],
+            'title': metadata.get('title'),
+            'description': metadata.get('description'),
+            'real_id': metadata.get('id'),
+            'hash': metadata.get('hash'),
+            'thumbnail': thumbnail,
             'formats': self._extract_m3u8_formats(api_metadata['video'][0]['mediaHls'], video_id, 'mp4'),
         }
