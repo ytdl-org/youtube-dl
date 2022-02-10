@@ -7,7 +7,6 @@ from ..utils import (
     ExtractorError,
     int_or_none,
     str_to_int,
-    strip_or_none,
     url_or_none,
 )
 from .common import InfoExtractor
@@ -18,23 +17,19 @@ from ..compat import compat_urllib_parse_unquote
 class Tube8IE(InfoExtractor):
     _VALID_URL = r'https?://(?:www\.)?tube8\.com/(?:[^/]+/)+(?P<display_id>[^/]+)/(?P<id>\d+)'
     _TESTS = [{
-        'url': 'http://www.tube8.com/teen/kasia-music-video/229795/',
-        'md5': '65e20c48e6abff62ed0c3965fff13a39',
+        'url': 'https://www.tube8.com/erotic/playtime/81807731/',
+        'md5': 'fefa69ff76debaa63aa59374bfc51c95',
         'info_dict': {
-            'id': '229795',
-            'display_id': 'kasia-music-video',
+            'id': '81807731',
+            'display_id': 'playtime',
             'ext': 'mp4',
-            'description': 'hot teen Kasia grinding',
-            'uploader': 'unknown',
-            'title': 'Kasia music video',
+            'uploader': 'kikkijay-ph',
+            'title': 'Playtime',
             'age_limit': 18,
-            'duration': 230,
-            'categories': ['Teen'],
-            'tags': ['dancing'],
+            'duration': 988,
+            'categories': ['Erotic'],
+            'tags': ['adult toys', 'big boobs', 'butt', 'masturbate'],
         },
-    }, {
-        'url': 'http://www.tube8.com/shemale/teen/blonde-cd-gets-kidnapped-by-two-blacks-and-punished-for-being-a-slutty-girl/19569151/',
-        'only_matching': True,
     }]
 
     @staticmethod
@@ -43,12 +38,10 @@ class Tube8IE(InfoExtractor):
             r'<iframe[^>]+\bsrc=["\']((?:https?:)?//(?:www\.)?tube8\.com/embed/(?:[^/]+/)+\d+)',
             webpage)
 
-    def _extract_info(self, url, fatal=True):
+    def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
         video_id = mobj.group('id')
-        display_id = (mobj.group('display_id')
-                      if 'display_id' in mobj.groupdict()
-                      else None) or mobj.group('id')
+        display_id = mobj.group('display_id')
 
         webpage = self._download_webpage(
             url, display_id, headers={'Cookie': 'age_verified=1'})
@@ -92,51 +85,75 @@ class Tube8IE(InfoExtractor):
         if flashvars:
             title = flashvars.get('video_title')
             thumbnail = flashvars.get('image_url')
+            duration = int_or_none(flashvars.get('video_duration'))
+            encrypted = flashvars.get('encrypted') is True
+            uploader = flashvars.get('sponsor')
+            for key, value in flashvars.items():
+                mobj = re.search(r'quality_(\d+)[pP]', key)
+                if mobj:
+                    extract_format(value, int(mobj.group(1)))
+            video_url = flashvars.get('video_url')
+            for key, value in flashvars.items():
+                mobj = re.search(r'quality_(\d+)[pP]', key)
+                if mobj:
+                    extract_format(value, int(mobj.group(1)))
+            video_url = flashvars.get('video_url')
+            if video_url and determine_ext(video_url, None):
+                extract_format(video_url)
 
-    def _real_extract(self, url):
-        webpage, info = self._extract_info(url)
+        video_url = self._html_search_regex(
+            r'flashvars\.video_url\s*=\s*(["\'])(?P<url>http.+?)\1',
+            webpage, 'video url', default=None, group='url')
+        if video_url:
+            extract_format(compat_urllib_parse_unquote(video_url))
 
-        if not info['title']:
-            info['title'] = self._html_search_regex(
-                r'videoTitle\s*=\s*"([^"]+)', webpage, 'title')
+        if not formats:
+            if 'title="This video is no longer available"' in webpage:
+                raise ExtractorError(
+                    'Video %s is no longer available' % video_id, expected=True)
 
-        description = self._html_search_regex(
-            r'(?s)Description:</dt>\s*<dd>(.+?)</dd>', webpage, 'description', fatal=False)
-        uploader = self._html_search_regex(
-            r'<span class="username">\s*(.+?)\s*<',
-            webpage, 'uploader', fatal=False)
+        self._sort_formats(formats)
+
+        if not title:
+            title = self._html_search_regex([
+                r'<h1[^>]*>([^<]+)'
+                r'videoTitle\s*=\s*"([^"]+)'], webpage, 'title', default=display_id.capitalize())
 
         like_count = int_or_none(self._search_regex(
-            r'rupVar\s*=\s*"(\d+)"', webpage, 'like count', fatal=False))
+            r'rupVar\s*=\s*(\d+);', webpage, 'like count', fatal=False))
         dislike_count = int_or_none(self._search_regex(
-            r'rdownVar\s*=\s*"(\d+)"', webpage, 'dislike count', fatal=False))
+            r'rdownVar\s*=\s*(\d+);', webpage, 'dislike count', fatal=False))
         view_count = str_to_int(self._search_regex(
             r'Views:\s*</dt>\s*<dd>([\d,\.]+)',
             webpage, 'view count', fatal=False))
         comment_count = str_to_int(self._search_regex(
-            r'<span id="allCommentsCount">(\d+)</span>',
+            r'<span id="allCommentsCount">\((\d+)\)</span>',
             webpage, 'comment count', fatal=False))
 
         category = self._search_regex(
-            r'Category:\s*</dt>\s*<dd>\s*<a[^>]+href=[^>]+>([^<]+)',
+            r'videoCategoryByName\s*=\s*"([^"]+)";',
             webpage, 'category', fatal=False)
         categories = [category] if category else None
 
         tags_str = self._search_regex(
-            r'(?s)Tags:\s*</dt>\s*<dd>(.+?)</(?!a)',
+            r"(?s)<li\s+class\s*=\s*'video-tag'\s+data-esp-node\s*=\s*'tag'>(.*?)</div>",
             webpage, 'tags', fatal=False)
         tags = [t for t in re.findall(
             r'<a[^>]+href=[^>]+>([^<]+)', tags_str)] if tags_str else None
 
-        info.update({
-            'description': description,
+        return {
             'uploader': uploader,
+            'id': video_id,
+            'display_id': display_id,
+            'title': title,
+            'thumbnail': thumbnail,
+            'duration': duration,
+            'age_limit': 18,
+            'formats': formats,
             'view_count': view_count,
             'like_count': like_count,
             'dislike_count': dislike_count,
             'comment_count': comment_count,
             'categories': categories,
             'tags': tags,
-        })
-
-        return info
+        }
