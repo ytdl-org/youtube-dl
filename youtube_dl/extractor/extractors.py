@@ -356,7 +356,6 @@ from .esri import EsriVideoIE
 from .europa import EuropaIE
 from .expotv import ExpoTVIE
 from .expressen import ExpressenIE
-from .extremetube import ExtremeTubeIE
 from .eyedotv import EyedoTVIE
 from .facebook import (
     FacebookIE,
@@ -537,7 +536,6 @@ from .kaltura import KalturaIE
 from .kankan import KankanIE
 from .karaoketv import KaraoketvIE
 from .karrierevideos import KarriereVideosIE
-from .keezmovies import KeezMoviesIE
 from .ketnet import KetnetIE
 from .khanacademy import (
     KhanAcademyIE,
@@ -686,10 +684,6 @@ from .mlb import (
 )
 from .mnet import MnetIE
 from .moevideo import MoeVideoIE
-from .mofosex import (
-    MofosexIE,
-    MofosexEmbedIE,
-)
 from .mojvideo import MojvideoIE
 from .morningstar import MorningstarIE
 from .motherless import (

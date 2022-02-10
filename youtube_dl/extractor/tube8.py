@@ -3,13 +3,19 @@ from __future__ import unicode_literals
 import re
 
 from ..utils import (
+    determine_ext,
+    ExtractorError,
     int_or_none,
     str_to_int,
+    strip_or_none,
+    url_or_none,
 )
-from .keezmovies import KeezMoviesIE
+from .common import InfoExtractor
+from ..aes import aes_decrypt_text
+from ..compat import compat_urllib_parse_unquote
 
 
-class Tube8IE(KeezMoviesIE):
+class Tube8IE(InfoExtractor):
     _VALID_URL = r'https?://(?:www\.)?tube8\.com/(?:[^/]+/)+(?P<display_id>[^/]+)/(?P<id>\d+)'
     _TESTS = [{
         'url': 'http://www.tube8.com/teen/kasia-music-video/229795/',
@@ -36,6 +42,56 @@ class Tube8IE(KeezMoviesIE):
         return re.findall(
             r'<iframe[^>]+\bsrc=["\']((?:https?:)?//(?:www\.)?tube8\.com/embed/(?:[^/]+/)+\d+)',
             webpage)
+
+    def _extract_info(self, url, fatal=True):
+        mobj = re.match(self._VALID_URL, url)
+        video_id = mobj.group('id')
+        display_id = (mobj.group('display_id')
+                      if 'display_id' in mobj.groupdict()
+                      else None) or mobj.group('id')
+
+        webpage = self._download_webpage(
+            url, display_id, headers={'Cookie': 'age_verified=1'})
+
+        formats = []
+        format_urls = set()
+
+        title = None
+        thumbnail = None
+        duration = None
+        encrypted = False
+
+        def extract_format(format_url, height=None):
+            format_url = url_or_none(format_url)
+            if not format_url or not format_url.startswith(('http', '//')):
+                return
+            if format_url in format_urls:
+                return
+            format_urls.add(format_url)
+            tbr = int_or_none(self._search_regex(
+                r'[/_](\d+)[kK][/_]', format_url, 'tbr', default=None))
+            if not height:
+                height = int_or_none(self._search_regex(
+                    r'[/_](\d+)[pP][/_]', format_url, 'height', default=None))
+            if encrypted:
+                format_url = aes_decrypt_text(
+                    video_url, title, 32).decode('utf-8')
+            formats.append({
+                'url': format_url,
+                'format_id': '%dp' % height if height else None,
+                'height': height,
+                'tbr': tbr,
+            })
+
+        flashvars = self._parse_json(
+            self._search_regex(
+                r'flashvars\s*=\s*({.+?});', webpage,
+                'flashvars', default='{}'),
+            display_id, fatal=False)
+
+        if flashvars:
+            title = flashvars.get('video_title')
+            thumbnail = flashvars.get('image_url')
 
     def _real_extract(self, url):
         webpage, info = self._extract_info(url)
