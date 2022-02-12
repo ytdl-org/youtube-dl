@@ -6,6 +6,7 @@ from .common import InfoExtractor
 from ..utils import (
     float_or_none,
     int_or_none,
+    merge_dicts,
     parse_codecs,
     urljoin,
 )
@@ -58,7 +59,7 @@ class StreamCZIE(InfoExtractor):
             for format_id, stream in streams.items():
                 if not stream.get('url'):
                     continue
-                yield {
+                yield merge_dicts({
                     'format_id': '{}-{}'.format(format_id, ext),
                     'ext': ext,
                     'source_preference': pref,
@@ -67,8 +68,7 @@ class StreamCZIE(InfoExtractor):
                     'duration': float_or_none(stream.get('duration'), scale=1000),
                     'width': stream.get('resolution', 2 * [0])[0] or None,
                     'height': stream.get('resolution', 2 * [0])[1] or int_or_none(format_id.replace('p', '')),
-                    **parse_codecs(stream.get('codec')),
-                }
+                }, parse_codecs(stream.get('codec')))
 
     def _real_extract(self, url):
         display_id, video_id = re.match(self._VALID_URL, url).groups()
