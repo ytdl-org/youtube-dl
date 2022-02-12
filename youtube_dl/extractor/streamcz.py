@@ -7,7 +7,6 @@ from ..utils import (
     float_or_none,
     int_or_none,
     parse_codecs,
-    traverse_obj,
     urljoin,
 )
 
@@ -38,7 +37,7 @@ class StreamCZIE(InfoExtractor):
 
     def _extract_formats(self, spl_url, video):
         for ext, pref, streams in (
-                ('ts', -1, traverse_obj(video, ('http_stream', 'qualities'))),
+                ('ts', -1, video.get('http_stream', {}).get('qualities', {})),
                 ('mp4', 1, video.get('mp4'))):
             for format_id, stream in streams.items():
                 if not stream.get('url'):
@@ -50,8 +49,8 @@ class StreamCZIE(InfoExtractor):
                     'url': urljoin(spl_url, stream['url']),
                     'tbr': float_or_none(stream.get('bandwidth'), scale=1000),
                     'duration': float_or_none(stream.get('duration'), scale=1000),
-                    'width': traverse_obj(stream, ('resolution', 0)),
-                    'height': traverse_obj(stream, ('resolution', 1)) or int_or_none(format_id.replace('p', '')),
+                    'width': stream.get('resolution', 2 * [0])[0] or None,
+                    'height': stream.get('resolution', 2 * [0])[1] or int_or_none(format_id.replace('p', '')),
                     **parse_codecs(stream.get('codec')),
                 }
 
