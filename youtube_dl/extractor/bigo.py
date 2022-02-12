@@ -2,7 +2,7 @@
 from __future__ import unicode_literals
 
 from .common import InfoExtractor
-from ..utils import ExtractorError
+from ..utils import ExtractorError, urlencode_postdata
 
 
 class BigoIE(InfoExtractor):
@@ -32,11 +32,11 @@ class BigoIE(InfoExtractor):
 
         info_raw = self._download_json(
             'https://bigo.tv/studio/getInternalStudioInfo',
-            user_id, form_params={'siteId': user_id})
+            user_id, data=urlencode_postdata({'siteId': user_id}))
 
         if info_raw.get('code'):
             raise ExtractorError(
-                f'{info_raw["msg"]} (code {info_raw["code"]})', expected=True)
+                '%s (code %s)' % (info_raw.get('msg'), info_raw.get('code')), expected=True)
         info = info_raw.get('data') or {}
 
         if not info.get('alive'):
