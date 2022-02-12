@@ -43,7 +43,7 @@ class StreamCZIE(InfoExtractor):
                 if not stream.get('url'):
                     continue
                 yield {
-                    'format_id': f'{format_id}-{ext}',
+                    'format_id': '{}-{}'.format(format_id, ext),
                     'ext': ext,
                     'source_preference': pref,
                     'url': urljoin(spl_url, stream['url']),
