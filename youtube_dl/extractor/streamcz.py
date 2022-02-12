@@ -1,5 +1,6 @@
 # coding: utf-8
 import json
+import re
 
 from .common import InfoExtractor
 from ..utils import (
@@ -55,7 +56,7 @@ class StreamCZIE(InfoExtractor):
                 }
 
     def _real_extract(self, url):
-        display_id, video_id = self._match_valid_url(url).groups()
+        display_id, video_id = re.match(self._VALID_URL, url).groups()
 
         data = self._download_json(
             'https://www.televizeseznam.cz/api/graphql', video_id, 'Downloading GraphQL result',
