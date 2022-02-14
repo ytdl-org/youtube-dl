@@ -44,7 +44,7 @@ class BigoIE(InfoExtractor):
 
         return {
             'id': info.get('roomId') or user_id,
-            'title': info.get('roomTopic'),
+            'title': info.get('roomTopic') or info.get('nick_name') or user_id,
             'formats': [{
                 'url': info.get('hls_src'),
                 'ext': 'mp4',
