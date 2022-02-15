@@ -20,10 +20,12 @@ class GoIE(AdobePassIE):
         'abc': {
             'brand': '001',
             'requestor_id': 'ABC',
+            'go': True,
         },
         'freeform': {
             'brand': '002',
             'requestor_id': 'ABCFamily',
+            'go': True,
         },
         'watchdisneychannel': {
             'brand': '004',
@@ -40,6 +42,7 @@ class GoIE(AdobePassIE):
         'disneynow': {
             'brand': '011',
             'resource_id': 'Disney',
+            'go': True,
         },
         'fxnow.fxnetworks': {
             'brand': '025',
@@ -48,15 +51,19 @@ class GoIE(AdobePassIE):
     }
     _VALID_URL = r'''(?x)
                     https?://
-                        (?:
-                            (?:(?P<sub_domain>%s)\.)?go|
-                            (?P<sub_domain_2>abc|freeform|disneynow|fxnow\.fxnetworks)
+                        (?P<sub_domain>
+                            (?:(?:%(sites)s)\.)?go|fxnow\.fxnetworks|
+                            (?:www\.)?(?:%(sites)s)
                         )\.com/
                         (?:
                             (?:[^/]+/)*(?P<id>[Vv][Dd][Kk][Aa]\w+)|
                             (?:[^/]+/)*(?P<display_id>[^/?\#]+)
                         )
-                    ''' % '|'.join(list(_SITE_INFO.keys()))
+                    ''' % {
+        'sites':
+            # keep _SITE_INFO in scope
+            (lambda s: '|'.join(re.escape(k) for k in s.keys() if s[k].get('go')))(_SITE_INFO),
+    }
     _TESTS = [{
         'url': 'http://abc.go.com/shows/designated-survivor/video/most-recent/VDKA3807643',
         'info_dict': {
@@ -70,14 +77,9 @@ class GoIE(AdobePassIE):
             'skip_download': True,
         },
         'skip': 'This content is no longer available.',
-    }, {
-        'url': 'http://watchdisneyxd.go.com/doraemon',
-        'info_dict': {
-            'title': 'Doraemon',
-            'id': 'SH55574025',
-        },
-        'playlist_mincount': 51,
-    }, {
+    },
+        # Disney XD app withdrawn 2018: 'http://watchdisneyxd.go.com/doraemon',
+        {
         'url': 'http://freeform.go.com/shows/shadowhunters/episodes/season-2/1-this-guilty-blood',
         'info_dict': {
             'id': 'VDKA3609139',
@@ -85,23 +87,37 @@ class GoIE(AdobePassIE):
             'title': 'This Guilty Blood',
             'description': 'md5:f18e79ad1c613798d95fdabfe96cd292',
             'age_limit': 14,
+            'duration': 2544,
+            'episode': 'Episode 1',
+            'thumbnail': r're:https?://.*?\.jpg',
+            'season_number': 2,
+            'episode_number': 1,
+            'season': 'Season 2',
+            'series': 'Shadowhunters',
         },
         'params': {
-            'geo_bypass_ip_block': '3.244.239.0/24',
+            'geo_bypass_ip_block': '6.48.97.0/24',
             # m3u8 download
             'skip_download': True,
         },
     }, {
-        'url': 'https://abc.com/shows/the-rookie/episode-guide/season-02/03-the-bet',
+        'url': 'https://abc.com/shows/the-rookie/episode-guide/season-04/13-fight-or-flight',
         'info_dict': {
-            'id': 'VDKA13435179',
+            'id': 'VDKA26139487',
             'ext': 'mp4',
-            'title': 'The Bet',
-            'description': 'md5:c66de8ba2e92c6c5c113c3ade84ab404',
+            'title': 'Fight or Flight',
+            'episode': 'Episode 13',
+            'thumbnail': r're:https?://.*?\.jpg',
+            'series': 'The Rookie',
+            'description': 'md5:8caf91de9806a1c5f79823059fe80267',
+            'duration': 2575,
+            'episode_number': 13,
+            'season_number': 4,
+            'season': 'Season 4',
             'age_limit': 14,
         },
         'params': {
-            'geo_bypass_ip_block': '3.244.239.0/24',
+            'geo_bypass_ip_block': '6.48.97.0/24',
             # m3u8 download
             'skip_download': True,
         },
@@ -112,9 +128,13 @@ class GoIE(AdobePassIE):
             'ext': 'mp4',
             'title': 'First Look: Better Things - Season 2',
             'description': 'md5:fa73584a95761c605d9d54904e35b407',
+            'duration': 161,
+            'series': 'Better Things',
+            'age_limit': 14,
+            'thumbnail': r're:https?://.*?\.jpg',
         },
         'params': {
-            'geo_bypass_ip_block': '3.244.239.0/24',
+            'geo_bypass_ip_block': '6.48.97.0/24',
             # m3u8 download
             'skip_download': True,
         },
@@ -125,6 +145,14 @@ class GoIE(AdobePassIE):
             'ext': 'mp4',
             'title': 'Pilot',
             'description': 'md5:74306df917cfc199d76d061d66bebdb4',
+            'season': 'Season 1',
+            'episode': 'Episode 1',
+            'series': 'Modern Family',
+            'season_number': 1,
+            'duration': 1301,
+            'episode_number': 1,
+            'age_limit': 0,
+            'thumbnail': r're:https?://.*?\.jpg',
         },
         'params': {
             # m3u8 download
@@ -147,17 +175,48 @@ class GoIE(AdobePassIE):
     }, {
         'url': 'https://disneynow.com/shows/minnies-bow-toons/video/happy-campers/vdka4872013',
         'only_matching': True,
+    }, {
+        'url': 'https://www.freeform.com/shows/cruel-summer/episode-guide/season-01/01-happy-birthday-jeanette-turner',
+        'only_matching': True,
+    }, {
+        'url': 'https://disneynow.com/shows/ducktales-disney-channel/season-02/episode-09-the-outlaw-scrooge-mcduck/vdka9680773',
+        'info_dict': {
+            'id': 'VDKA9680773',
+            'ext': 'mp4',
+            'season_number': 2,
+            'title': 'The Outlaw Scrooge McDuck!',
+            'episode': 'Episode 9',
+            'season': 'Season 2',
+            'episode_number': 9,
+            'age_limit': 7,
+            'series': 'DuckTales',
+            'description': 'md5:3d450c1094a5e7544ac094f1e6da2827',
+            'duration': 1348,
+            'thumbnail': r're:https?://.*?\.jpg',
+        },
+        'params': {
+            # AES-128: ffmpeg
+            'skip_download': True,
+        },
+    }, {
+        'url': 'https://disneynow.com/shows/ducktales-disney-channel',
+        'info_dict': {
+            'title': 'DuckTales TV Show',
+            'id': 'SH553923438',
+        },
+        'playlist_mincount': 33,
+        'expected_warnings': ['Ignoring subtitle tracks', ],
     }]
 
     def _extract_videos(self, brand, video_id='-1', show_id='-1'):
         display_id = video_id if video_id != '-1' else show_id
         return self._download_json(
-            'http://api.contents.watchabc.go.com/vp2/ws/contents/3000/videos/%s/001/-1/%s/-1/%s/-1/-1.json' % (brand, show_id, video_id),
+            'http://api.contents.watchabc.go.com/vp2/ws/contents/4000/videos/%s/001/-1/%s/-1/%s/-1/-1.json' % (brand, show_id, video_id),
             display_id)['video']
 
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
-        sub_domain = mobj.group('sub_domain') or mobj.group('sub_domain_2')
+        sub_domain = re.sub(r'^(?:www\.)?(.+?)(?:\.go)?$', r'\1', mobj.group('sub_domain') or '')
         video_id, display_id = mobj.group('id', 'display_id')
         site_info = self._SITE_INFO.get(sub_domain, {})
         brand = site_info.get('brand')
@@ -181,26 +240,33 @@ class GoIE(AdobePassIE):
                     (
                         # There may be inner quotes, e.g. data-video-id="'VDKA3609139'"
                         # from http://freeform.go.com/shows/shadowhunters/episodes/season-2/1-this-guilty-blood
-                        r'data-video-id=["\']*(VDKA\w+)',
+                        r'data-video-id\s*=\s*["\']{,2}(VDKA\w+)',
                         # page.analytics.videoIdCode
                         r'\bvideoIdCode["\']\s*:\s*["\']((?:vdka|VDKA)\w+)',
+                        # This obsolete pattern, if matched, overrides detection of DisneyNow show pages
                         # https://abc.com/shows/the-rookie/episode-guide/season-02/03-the-bet
-                        r'\b(?:video)?id["\']\s*:\s*["\'](VDKA\w+)'
+                        # r'\b(?:video)?id["\']\s*:\s*["\'](VDKA\w+)'
                     ), webpage, 'video id', default=video_id)
             if not site_info:
                 brand = self._search_regex(
                     (r'data-brand=\s*["\']\s*(\d+)',
-                     r'data-page-brand=\s*["\']\s*(\d+)'), webpage, 'brand',
-                    default='004')
+                     r'data-page-brand=\s*["\']\s*(\d+)',
+                     r'"brand"\s*:\s*"(\d+)"'), webpage, 'brand',
+                    # default to a brand that has an active domain
+                    default='011')
                 site_info = next(
-                    si for _, si in self._SITE_INFO.items()
+                    si for si in self._SITE_INFO.values()
                     if si.get('brand') == brand)
             if not video_id:
                 # show extraction works for Disney, DisneyJunior and DisneyXD
                 # ABC and Freeform has different layout
                 show_id = self._search_regex(r'data-show-id=["\']*(SH\d+)', webpage, 'show id')
                 videos = self._extract_videos(brand, show_id=show_id)
-                show_title = self._search_regex(r'data-show-title="([^"]+)"', webpage, 'show title', fatal=False)
+                show_title = (
+                    self._search_regex(r'data-show-title="([^"]+)"', webpage, 'show title', default=None)
+                    or self._og_search_title(webpage, fatal=False))
+                if show_title:
+                    show_title = re.sub(r'^(?:Watch\s+)?(.+?)(?:\s*\|\s*Disney.*)?$', r'\1', show_title)
                 entries = []
                 for video in videos:
                     entries.append(self.url_result(
@@ -262,7 +328,8 @@ class GoIE(AdobePassIE):
                 if re.search(r'(?:/mp4/source/|_source\.mp4)', asset_url):
                     f.update({
                         'format_id': ('%s-' % format_id if format_id else '') + 'SOURCE',
-                        'preference': 1,
+                        'quality': 1,
+                        # 'preference': 1,
                     })
                 else:
                     mobj = re.search(r'/(\d+)x(\d+)/', asset_url)
