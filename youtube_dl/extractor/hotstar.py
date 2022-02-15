@@ -3,6 +3,7 @@ from __future__ import unicode_literals
 
 import hashlib
 import hmac
+import json
 import re
 import time
 import uuid
@@ -25,43 +26,50 @@ from ..utils import (
 class HotStarBaseIE(InfoExtractor):
     _AKAMAI_ENCRYPTION_KEY = b'\x05\xfc\x1a\x01\xca\xc9\x4b\xc4\x12\xfc\x53\x12\x07\x75\xf9\xee'
 
-    def _call_api_impl(self, path, video_id, query):
+    def _call_api_impl(self, path, video_id, headers, query, data=None):
         st = int(time.time())
         exp = st + 6000
         auth = 'st=%d~exp=%d~acl=/*' % (st, exp)
         auth += '~hmac=' + hmac.new(self._AKAMAI_ENCRYPTION_KEY, auth.encode(), hashlib.sha256).hexdigest()
-        response = self._download_json(
-            'https://api.hotstar.com/' + path, video_id, headers={
-                'hotstarauth': auth,
-                'x-country-code': 'IN',
-                'x-platform-code': 'JIO',
-            }, query=query)
+        h = {'hotstarauth': auth}
+        h.update(headers)
+        return self._download_json(
+            'https://api.hotstar.com/' + path,
+            video_id, headers=h, query=query, data=data)
+
+    def _call_api(self, path, video_id, query_name='contentId'):
+        response = self._call_api_impl(path, video_id, {
+            'x-country-code': 'IN',
+            'x-platform-code': 'JIO',
+        }, {
+            query_name: video_id,
+            'tas': 10000,
+        })
         if response['statusCode'] != 'OK':
             raise ExtractorError(
                 response['body']['message'], expected=True)
         return response['body']['results']
 
-    def _call_api(self, path, video_id, query_name='contentId'):
-        return self._call_api_impl(path, video_id, {
-            query_name: video_id,
-            'tas': 10000,
-        })
-
-    def _call_api_v2(self, path, video_id):
-        return self._call_api_impl(
-            '%s/in/contents/%s' % (path, video_id), video_id, {
-                'desiredConfig': 'encryption:plain;ladder:phone,tv;package:hls,dash',
-                'client': 'mweb',
-                'clientVersion': '6.18.0',
-                'deviceId': compat_str(uuid.uuid4()),
-                'osName': 'Windows',
-                'osVersion': '10',
-            })
+    def _call_api_v2(self, path, video_id, headers, query=None, data=None):
+        h = {'X-Request-Id': compat_str(uuid.uuid4())}
+        h.update(headers)
+        try:
+            return self._call_api_impl(
+                path, video_id, h, query, data)
+        except ExtractorError as e:
+            if isinstance(e.cause, compat_HTTPError):
+                if e.cause.code == 402:
+                    self.raise_login_required()
+                message = self._parse_json(e.cause.read().decode(), video_id)['message']
+                if message in ('Content not available in region', 'Country is not supported'):
+                    raise self.raise_geo_restricted(message)
+                raise ExtractorError(message)
+            raise e
 
 
 class HotStarIE(HotStarBaseIE):
     IE_NAME = 'hotstar'
-    _VALID_URL = r'https?://(?:www\.)?hotstar\.com/(?:.+?[/-])?(?P<id>\d{10})'
+    _VALID_URL = r'https?://(?:www\.)?hotstar\.com/(?:.+[/-])?(?P<id>\d{10})'
     _TESTS = [{
         # contentData
         'url': 'https://www.hotstar.com/can-you-not-spread-rumours/1000076273',
@@ -92,8 +100,13 @@ class HotStarIE(HotStarBaseIE):
         # only available via api v2
         'url': 'https://www.hotstar.com/tv/ek-bhram-sarvagun-sampanna/s-2116/janhvi-targets-suman/1000234847',
         'only_matching': True,
+    }, {
+        'url': 'https://www.hotstar.com/in/tv/start-music/1260005217/cooks-vs-comalis/1100039717',
+        'only_matching': True,
     }]
     _GEO_BYPASS = False
+    _DEVICE_ID = None
+    _USER_TOKEN = None
 
     def _real_extract(self, url):
         video_id = self._match_id(url)
@@ -121,7 +134,30 @@ class HotStarIE(HotStarBaseIE):
         headers = {'Referer': url}
         formats = []
         geo_restricted = False
-        playback_sets = self._call_api_v2('h/v2/play', video_id)['playBackSets']
+
+        if not self._USER_TOKEN:
+            self._DEVICE_ID = compat_str(uuid.uuid4())
+            self._USER_TOKEN = self._call_api_v2('um/v3/users', video_id, {
+                'X-HS-Platform': 'PCTV',
+                'Content-Type': 'application/json',
+            }, data=json.dumps({
+                'device_ids': [{
+                    'id': self._DEVICE_ID,
+                    'type': 'device_id',
+                }],
+            }).encode())['user_identity']
+
+        playback_sets = self._call_api_v2(
+            'play/v2/playback/content/' + video_id, video_id, {
+                'X-HS-Platform': 'web',
+                'X-HS-AppVersion': '6.99.1',
+                'X-HS-UserToken': self._USER_TOKEN,
+            }, query={
+                'device-id': self._DEVICE_ID,
+                'desired-config': 'encryption:plain',
+                'os-name': 'Windows',
+                'os-version': '10',
+            })['data']['playBackSets']
         for playback_set in playback_sets:
             if not isinstance(playback_set, dict):
                 continue
@@ -163,19 +199,22 @@ class HotStarIE(HotStarBaseIE):
         for f in formats:
             f.setdefault('http_headers', {}).update(headers)
 
+        image = try_get(video_data, lambda x: x['image']['h'], compat_str)
+
         return {
             'id': video_id,
             'title': title,
+            'thumbnail': 'https://img1.hotstarext.com/image/upload/' + image if image else None,
             'description': video_data.get('description'),
             'duration': int_or_none(video_data.get('duration')),
             'timestamp': int_or_none(video_data.get('broadcastDate') or video_data.get('startDate')),
             'formats': formats,
             'channel': video_data.get('channelName'),
-            'channel_id': video_data.get('channelId'),
+            'channel_id': str_or_none(video_data.get('channelId')),
             'series': video_data.get('showName'),
             'season': video_data.get('seasonName'),
             'season_number': int_or_none(video_data.get('seasonNo')),
-            'season_id': video_data.get('seasonId'),
+            'season_id': str_or_none(video_data.get('seasonId')),
             'episode': title,
             'episode_number': int_or_none(video_data.get('episodeNo')),
         }
@@ -183,7 +222,7 @@ class HotStarIE(HotStarBaseIE):
 
 class HotStarPlaylistIE(HotStarBaseIE):
     IE_NAME = 'hotstar:playlist'
-    _VALID_URL = r'https?://(?:www\.)?hotstar\.com/tv/[^/]+/s-\w+/list/[^/]+/t-(?P<id>\w+)'
+    _VALID_URL = r'https?://(?:www\.)?hotstar\.com/(?:[a-z]{2}/)?tv/[^/]+/s-\w+/list/[^/]+/t-(?P<id>\w+)'
     _TESTS = [{
         'url': 'https://www.hotstar.com/tv/savdhaan-india/s-26/list/popular-clips/t-3_2_26',
         'info_dict': {
@@ -192,6 +231,9 @@ class HotStarPlaylistIE(HotStarBaseIE):
         'playlist_mincount': 20,
     }, {
         'url': 'https://www.hotstar.com/tv/savdhaan-india/s-26/list/extras/t-2480',
+        'only_matching': True,
+    }, {
+        'url': 'https://www.hotstar.com/us/tv/masterchef-india/s-830/list/episodes/t-1_2_830',
         'only_matching': True,
     }]
 

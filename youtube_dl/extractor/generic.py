@@ -20,19 +20,24 @@ from ..utils import (
     ExtractorError,
     float_or_none,
     HEADRequest,
+    int_or_none,
     is_html,
     js_to_json,
     KNOWN_EXTENSIONS,
     merge_dicts,
     mimetype2ext,
     orderedSet,
+    parse_duration,
     sanitized_Request,
     smuggle_url,
     unescapeHTML,
-    unified_strdate,
+    unified_timestamp,
     unsmuggle_url,
     UnsupportedError,
+    url_or_none,
+    xpath_attr,
     xpath_text,
+    xpath_with_ns,
 )
 from .commonprotocols import RtmpIE
 from .brightcove import (
@@ -48,7 +53,6 @@ from .ooyala import OoyalaIE
 from .rutv import RUTVIE
 from .tvc import TVCIE
 from .sportbox import SportBoxIE
-from .smotri import SmotriIE
 from .myvi import MyviIE
 from .condenast import CondeNastIE
 from .udn import UDNEmbedIE
@@ -63,7 +67,10 @@ from .tube8 import Tube8IE
 from .mofosex import MofosexEmbedIE
 from .spankwire import SpankwireIE
 from .youporn import YouPornIE
-from .vimeo import VimeoIE
+from .vimeo import (
+    VimeoIE,
+    VHXEmbedIE,
+)
 from .dailymotion import DailymotionIE
 from .dailymail import DailyMailIE
 from .onionstudios import OnionStudiosIE
@@ -77,7 +84,6 @@ from .jwplatform import JWPlatformIE
 from .digiteka import DigitekaIE
 from .arkena import ArkenaIE
 from .instagram import InstagramIE
-from .liveleak import LiveLeakIE
 from .threeqsdn import ThreeQSDNIE
 from .theplatform import ThePlatformIE
 from .kaltura import KalturaIE
@@ -119,7 +125,11 @@ from .viqeo import ViqeoIE
 from .expressen import ExpressenIE
 from .zype import ZypeIE
 from .odnoklassniki import OdnoklassnikiIE
+from .vk import VKIE
 from .kinja import KinjaEmbedIE
+from .arcpublishing import ArcPublishingIE
+from .medialaan import MedialaanIE
+from .simplecast import SimplecastIE
 
 
 class GenericIE(InfoExtractor):
@@ -198,11 +208,48 @@ class GenericIE(InfoExtractor):
         {
             'url': 'http://podcastfeeds.nbcnews.com/audio/podcast/MSNBC-MADDOW-NETCAST-M4V.xml',
             'info_dict': {
-                'id': 'pdv_maddow_netcast_m4v-02-27-2015-201624',
-                'ext': 'm4v',
-                'upload_date': '20150228',
-                'title': 'pdv_maddow_netcast_m4v-02-27-2015-201624',
-            }
+                'id': 'http://podcastfeeds.nbcnews.com/nbcnews/video/podcast/MSNBC-MADDOW-NETCAST-M4V.xml',
+                'title': 'MSNBC Rachel Maddow (video)',
+                'description': 're:.*her unique approach to storytelling.*',
+            },
+            'playlist': [{
+                'info_dict': {
+                    'ext': 'mov',
+                    'id': 'pdv_maddow_netcast_mov-12-04-2020-224335',
+                    'title': 're:MSNBC Rachel Maddow',
+                    'description': 're:.*her unique approach to storytelling.*',
+                    'timestamp': int,
+                    'upload_date': compat_str,
+                    'duration': float,
+                },
+            }],
+        },
+        # RSS feed with item with description and thumbnails
+        {
+            'url': 'https://anchor.fm/s/dd00e14/podcast/rss',
+            'info_dict': {
+                'id': 'https://anchor.fm/s/dd00e14/podcast/rss',
+                'title': 're:.*100% Hydrogen.*',
+                'description': 're:.*In this episode.*',
+            },
+            'playlist': [{
+                'info_dict': {
+                    'ext': 'm4a',
+                    'id': 'c1c879525ce2cb640b344507e682c36d',
+                    'title': 're:Hydrogen!',
+                    'description': 're:.*In this episode we are going.*',
+                    'timestamp': 1567977776,
+                    'upload_date': '20190908',
+                    'duration': 459,
+                    'thumbnail': r're:^https?://.*\.jpg$',
+                    'episode_number': 1,
+                    'season_number': 1,
+                    'age_limit': 0,
+                },
+            }],
+            'params': {
+                'skip_download': True,
+            },
         },
         # RSS feed with enclosures and unsupported link URLs
         {
@@ -1581,31 +1628,6 @@ class GenericIE(InfoExtractor):
                 'upload_date': '20160409',
             },
         },
-        # LiveLeak embed
-        {
-            'url': 'http://www.wykop.pl/link/3088787/',
-            'md5': '7619da8c820e835bef21a1efa2a0fc71',
-            'info_dict': {
-                'id': '874_1459135191',
-                'ext': 'mp4',
-                'title': 'Man shows poor quality of new apartment building',
-                'description': 'The wall is like a sand pile.',
-                'uploader': 'Lake8737',
-            },
-            'add_ie': [LiveLeakIE.ie_key()],
-        },
-        # Another LiveLeak embed pattern (#13336)
-        {
-            'url': 'https://milo.yiannopoulos.net/2017/06/concealed-carry-robbery/',
-            'info_dict': {
-                'id': '2eb_1496309988',
-                'ext': 'mp4',
-                'title': 'Thief robs place where everyone was armed',
-                'description': 'md5:694d73ee79e535953cf2488562288eee',
-                'uploader': 'brazilwtf',
-            },
-            'add_ie': [LiveLeakIE.ie_key()],
-        },
         # Duplicated embedded video URLs
         {
             'url': 'http://www.hudl.com/athlete/2538180/highlights/149298443',
@@ -1984,22 +2006,6 @@ class GenericIE(InfoExtractor):
             'add_ie': [SpringboardPlatformIE.ie_key()],
         },
         {
-            'url': 'https://www.youtube.com/shared?ci=1nEzmT-M4fU',
-            'info_dict': {
-                'id': 'uPDB5I9wfp8',
-                'ext': 'webm',
-                'title': 'Pocoyo: 90 minutos de episódios completos Português para crianças - PARTE 3',
-                'description': 'md5:d9e4d9346a2dfff4c7dc4c8cec0f546d',
-                'upload_date': '20160219',
-                'uploader': 'Pocoyo - Português (BR)',
-                'uploader_id': 'PocoyoBrazil',
-            },
-            'add_ie': [YoutubeIE.ie_key()],
-            'params': {
-                'skip_download': True,
-            },
-        },
-        {
             'url': 'https://www.yapfiles.ru/show/1872528/690b05d3054d2dbe1e69523aa21bb3b1.mp4.html',
             'info_dict': {
                 'id': 'vMDE4NzI1Mjgt690b',
@@ -2103,23 +2109,23 @@ class GenericIE(InfoExtractor):
                 'skip_download': True,
             },
         },
-        {
-            # Zype embed
-            'url': 'https://www.cookscountry.com/episode/554-smoky-barbecue-favorites',
-            'info_dict': {
-                'id': '5b400b834b32992a310622b9',
-                'ext': 'mp4',
-                'title': 'Smoky Barbecue Favorites',
-                'thumbnail': r're:^https?://.*\.jpe?g',
-                'description': 'md5:5ff01e76316bd8d46508af26dc86023b',
-                'upload_date': '20170909',
-                'timestamp': 1504915200,
-            },
-            'add_ie': [ZypeIE.ie_key()],
-            'params': {
-                'skip_download': True,
-            },
-        },
+        # {
+        #     # Zype embed
+        #     'url': 'https://www.cookscountry.com/episode/554-smoky-barbecue-favorites',
+        #     'info_dict': {
+        #         'id': '5b400b834b32992a310622b9',
+        #         'ext': 'mp4',
+        #         'title': 'Smoky Barbecue Favorites',
+        #         'thumbnail': r're:^https?://.*\.jpe?g',
+        #         'description': 'md5:5ff01e76316bd8d46508af26dc86023b',
+        #         'upload_date': '20170909',
+        #         'timestamp': 1504915200,
+        #     },
+        #     'add_ie': [ZypeIE.ie_key()],
+        #     'params': {
+        #         'skip_download': True,
+        #     },
+        # },
         {
             # videojs embed
             'url': 'https://video.sibnet.ru/shell.php?videoid=3422904',
@@ -2168,7 +2174,60 @@ class GenericIE(InfoExtractor):
         #     'params': {
         #         'force_generic_extractor': True,
         #     },
-        # }
+        # },
+        {
+            # VHX Embed
+            'url': 'https://demo.vhx.tv/category-c/videos/file-example-mp4-480-1-5mg-copy',
+            'info_dict': {
+                'id': '858208',
+                'ext': 'mp4',
+                'title': 'Untitled',
+                'uploader_id': 'user80538407',
+                'uploader': 'OTT Videos',
+            },
+        },
+        {
+            # ArcPublishing PoWa video player
+            'url': 'https://www.adn.com/politics/2020/11/02/video-senate-candidates-campaign-in-anchorage-on-eve-of-election-day/',
+            'md5': 'b03b2fac8680e1e5a7cc81a5c27e71b3',
+            'info_dict': {
+                'id': '8c99cb6e-b29c-4bc9-9173-7bf9979225ab',
+                'ext': 'mp4',
+                'title': 'Senate candidates wave to voters on Anchorage streets',
+                'description': 'md5:91f51a6511f090617353dc720318b20e',
+                'timestamp': 1604378735,
+                'upload_date': '20201103',
+                'duration': 1581,
+            },
+        },
+        {
+            # MyChannels SDK embed
+            # https://www.24kitchen.nl/populair/deskundige-dit-waarom-sommigen-gevoelig-zijn-voor-voedselallergieen
+            'url': 'https://www.demorgen.be/nieuws/burgemeester-rotterdam-richt-zich-in-videoboodschap-tot-relschoppers-voelt-het-goed~b0bcfd741/',
+            'md5': '90c0699c37006ef18e198c032d81739c',
+            'info_dict': {
+                'id': '194165',
+                'ext': 'mp4',
+                'title': 'Burgemeester Aboutaleb spreekt relschoppers toe',
+                'timestamp': 1611740340,
+                'upload_date': '20210127',
+                'duration': 159,
+            },
+        },
+        {
+            # Simplecast player embed
+            'url': 'https://www.bio.org/podcast',
+            'info_dict': {
+                'id': 'podcast',
+                'title': 'I AM BIO Podcast | BIO',
+            },
+            'playlist_mincount': 52,
+        },
+        {
+            # Sibnet embed (https://help.sibnet.ru/?sibnet_video_embed)
+            'url': 'https://phpbb3.x-tk.ru/bbcode-video-sibnet-t24.html',
+            'only_matching': True,
+        },
     ]
 
     def report_following_redirect(self, new_url):
@@ -2179,6 +2238,10 @@ class GenericIE(InfoExtractor):
         playlist_title = doc.find('./channel/title').text
         playlist_desc_el = doc.find('./channel/description')
         playlist_desc = None if playlist_desc_el is None else playlist_desc_el.text
+
+        NS_MAP = {
+            'itunes': 'http://www.itunes.com/dtds/podcast-1.0.dtd',
+        }
 
         entries = []
         for it in doc.findall('./channel/item'):
@@ -2195,10 +2258,33 @@ class GenericIE(InfoExtractor):
             if not next_url:
                 continue
 
+            def itunes(key):
+                return xpath_text(
+                    it, xpath_with_ns('./itunes:%s' % key, NS_MAP),
+                    default=None)
+
+            duration = itunes('duration')
+            explicit = (itunes('explicit') or '').lower()
+            if explicit in ('true', 'yes'):
+                age_limit = 18
+            elif explicit in ('false', 'no'):
+                age_limit = 0
+            else:
+                age_limit = None
+
             entries.append({
                 '_type': 'url_transparent',
                 'url': next_url,
                 'title': it.find('title').text,
+                'description': xpath_text(it, 'description', default=None),
+                'timestamp': unified_timestamp(
+                    xpath_text(it, 'pubDate', default=None)),
+                'duration': int_or_none(duration) or parse_duration(duration),
+                'thumbnail': url_or_none(xpath_attr(it, xpath_with_ns('./itunes:image', NS_MAP), 'href')),
+                'episode': itunes('title'),
+                'episode_number': int_or_none(itunes('episode')),
+                'season_number': int_or_none(itunes('season')),
+                'age_limit': age_limit,
             })
 
         return {
@@ -2318,7 +2404,7 @@ class GenericIE(InfoExtractor):
         info_dict = {
             'id': video_id,
             'title': self._generic_title(url),
-            'upload_date': unified_strdate(head_response.headers.get('Last-Modified'))
+            'timestamp': unified_timestamp(head_response.headers.get('Last-Modified'))
         }
 
         # Check for direct link to a video
@@ -2381,6 +2467,9 @@ class GenericIE(InfoExtractor):
         webpage = self._webpage_read_content(
             full_response, url, video_id, prefix=first_bytes)
 
+        if '<title>DPG Media Privacy Gate</title>' in webpage:
+            webpage = self._download_webpage(url, video_id)
+
         self.report_extraction(video_id)
 
         # Is it an RSS feed, a SMIL file, an XSPF playlist or a MPD manifest?
@@ -2424,7 +2513,9 @@ class GenericIE(InfoExtractor):
         # Sometimes embedded video player is hidden behind percent encoding
         # (e.g. https://github.com/ytdl-org/youtube-dl/issues/2448)
         # Unescaping the whole page allows to handle those cases in a generic way
-        webpage = compat_urllib_parse_unquote(webpage)
+        # FIXME: unescaping the whole page may break URLs, commenting out for now.
+        # There probably should be a second run of generic extractor on unescaped webpage.
+        # webpage = compat_urllib_parse_unquote(webpage)
 
         # Unescape squarespace embeds to be detected by generic extractor,
         # see https://github.com/ytdl-org/youtube-dl/issues/21294
@@ -2506,6 +2597,15 @@ class GenericIE(InfoExtractor):
         if tp_urls:
             return self.playlist_from_matches(tp_urls, video_id, video_title, ie='ThePlatform')
 
+        arc_urls = ArcPublishingIE._extract_urls(webpage)
+        if arc_urls:
+            return self.playlist_from_matches(arc_urls, video_id, video_title, ie=ArcPublishingIE.ie_key())
+
+        mychannels_urls = MedialaanIE._extract_urls(webpage)
+        if mychannels_urls:
+            return self.playlist_from_matches(
+                mychannels_urls, video_id, video_title, ie=MedialaanIE.ie_key())
+
         # Look for embedded rtl.nl player
         matches = re.findall(
             r'<iframe[^>]+?src="((?:https?:)?//(?:(?:www|static)\.)?rtl\.nl/(?:system/videoplayer/[^"]+(?:video_)?)?embed[^"]+)"',
@@ -2516,6 +2616,10 @@ class GenericIE(InfoExtractor):
         vimeo_urls = VimeoIE._extract_urls(url, webpage)
         if vimeo_urls:
             return self.playlist_from_matches(vimeo_urls, video_id, video_title, ie=VimeoIE.ie_key())
+
+        vhx_url = VHXEmbedIE._extract_url(webpage)
+        if vhx_url:
+            return self.url_result(vhx_url, VHXEmbedIE.ie_key())
 
         vid_me_embed_url = self._search_regex(
             r'src=[\'"](https?://vid\.me/[^\'"]+)[\'"]',
@@ -2653,6 +2757,11 @@ class GenericIE(InfoExtractor):
         if odnoklassniki_url:
             return self.url_result(odnoklassniki_url, OdnoklassnikiIE.ie_key())
 
+        # Look for sibnet embedded player
+        sibnet_urls = VKIE._extract_sibnet_urls(webpage)
+        if sibnet_urls:
+            return self.playlist_from_matches(sibnet_urls, video_id, video_title)
+
         # Look for embedded ivi player
         mobj = re.search(r'<embed[^>]+?src=(["\'])(?P<url>https?://(?:www\.)?ivi\.ru/video/player.+?)\1', webpage)
         if mobj is not None:
@@ -2677,6 +2786,12 @@ class GenericIE(InfoExtractor):
         if matches:
             return self.playlist_from_matches(
                 matches, video_id, video_title, getter=unescapeHTML, ie='FunnyOrDie')
+
+        # Look for Simplecast embeds
+        simplecast_urls = SimplecastIE._extract_urls(webpage)
+        if simplecast_urls:
+            return self.playlist_from_matches(
+                simplecast_urls, video_id, video_title)
 
         # Look for BBC iPlayer embed
         matches = re.findall(r'setPlaylist\("(https?://www\.bbc\.co\.uk/iplayer/[^/]+/[\da-z]{8})"\)', webpage)
@@ -2772,11 +2887,6 @@ class GenericIE(InfoExtractor):
         if mobj is not None:
             return self.url_result(mobj.group('url'))
 
-        # Look for embedded smotri.com player
-        smotri_url = SmotriIE._extract_url(webpage)
-        if smotri_url:
-            return self.url_result(smotri_url, 'Smotri')
-
         # Look for embedded Myvi.ru player
         myvi_url = MyviIE._extract_url(webpage)
         if myvi_url:
@@ -2828,7 +2938,7 @@ class GenericIE(InfoExtractor):
             webpage)
         if not mobj:
             mobj = re.search(
-                r'data-video-link=["\'](?P<url>http://m.mlb.com/video/[^"\']+)',
+                r'data-video-link=["\'](?P<url>http://m\.mlb\.com/video/[^"\']+)',
                 webpage)
         if mobj is not None:
             return self.url_result(mobj.group('url'), 'MLB')
@@ -3042,11 +3152,6 @@ class GenericIE(InfoExtractor):
         if instagram_embed_url is not None:
             return self.url_result(
                 self._proto_relative_url(instagram_embed_url), InstagramIE.ie_key())
-
-        # Look for LiveLeak embeds
-        liveleak_urls = LiveLeakIE._extract_urls(webpage)
-        if liveleak_urls:
-            return self.playlist_from_matches(liveleak_urls, video_id, video_title)
 
         # Look for 3Q SDN embeds
         threeqsdn_url = ThreeQSDNIE._extract_url(webpage)
@@ -3275,6 +3380,9 @@ class GenericIE(InfoExtractor):
                         'url': src,
                         'ext': (mimetype2ext(src_type)
                                 or ext if ext in KNOWN_EXTENSIONS else 'mp4'),
+                        'http_headers': {
+                            'Referer': full_response.geturl(),
+                        },
                     })
             if formats:
                 self._sort_formats(formats)
@@ -3343,7 +3451,7 @@ class GenericIE(InfoExtractor):
             m_video_type = re.findall(r'<meta.*?property="og:video:type".*?content="video/(.*?)"', webpage)
             # We only look in og:video if the MIME type is a video, don't try if it's a Flash player:
             if m_video_type is not None:
-                found = filter_video(re.findall(r'<meta.*?property="og:video".*?content="(.*?)"', webpage))
+                found = filter_video(re.findall(r'<meta.*?property="og:(?:video|audio)".*?content="(.*?)"', webpage))
         if not found:
             REDIRECT_REGEX = r'[0-9]{,2};\s*(?:URL|url)=\'?([^\'"]+)'
             found = re.search(

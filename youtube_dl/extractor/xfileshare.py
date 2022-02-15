@@ -45,6 +45,7 @@ def aa_decode(aa_code):
 
 class XFileShareIE(InfoExtractor):
     _SITES = (
+        (r'aparat\.cam', 'Aparat'),
         (r'clipwatching\.com', 'ClipWatching'),
         (r'gounlimited\.to', 'GoUnlimited'),
         (r'govid\.me', 'GoVid'),
@@ -57,6 +58,7 @@ class XFileShareIE(InfoExtractor):
         (r'vidlocker\.xyz', 'VidLocker'),
         (r'vidshare\.tv', 'VidShare'),
         (r'vup\.to', 'VUp'),
+        (r'wolfstream\.tv', 'WolfStream'),
         (r'xvideosharing\.com', 'XVideoSharing'),
     )
 
@@ -78,6 +80,12 @@ class XFileShareIE(InfoExtractor):
             'title': 'sample',
             'thumbnail': r're:http://.*\.jpg',
         },
+    }, {
+        'url': 'https://aparat.cam/n4d6dh0wvlpr',
+        'only_matching': True,
+    }, {
+        'url': 'https://wolfstream.tv/nthme29v9u2x',
+        'only_matching': True,
     }]
 
     @staticmethod
