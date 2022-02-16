@@ -1450,6 +1450,7 @@ from .vimeo import (
     VimeoIE,
     VimeoAlbumIE,
     VimeoChannelIE,
+    VimeoEventIE,
     VimeoGroupsIE,
     VimeoLikesIE,
     VimeoOndemandIE,
