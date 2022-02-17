@@ -182,3 +182,26 @@ class YouPornIE(InfoExtractor):
             'age_limit': age_limit,
             'formats': formats,
         }
+
+    def _get_formats(self, meta):
+        formats = []
+
+        for item in meta:
+            format = {
+                'url': item['videoUrl'],
+                'format_id': '%s-%s' % (item['quality'], item['codec']),
+                'height': int(item['quality']),
+            }
+
+            mobj = re.search(r'(?P<height>\d{3,4})[pP]_(?P<bitrate>\d+)[kK]_\d+', item['videoUrl'])
+            if mobj:
+                height = int(mobj.group('height'))
+                bitrate = int(mobj.group('bitrate'))
+                format.update({
+                    'height': height,
+                    'tbr': bitrate,
+                })
+
+            formats.append(format)
+
+        return formats

@@ -1,5 +1,6 @@
 from __future__ import unicode_literals
 
+import json
 import re
 
 from .common import InfoExtractor
@@ -66,46 +67,7 @@ class RedTubeIE(InfoExtractor):
                 webpage, 'title', group='title',
                 default=None) or self._og_search_title(webpage)
 
-        formats = []
-        sources = self._parse_json(
-            self._search_regex(
-                r'sources\s*:\s*({.+?})', webpage, 'source', default='{}'),
-            video_id, fatal=False)
-        if sources and isinstance(sources, dict):
-            for format_id, format_url in sources.items():
-                if format_url:
-                    formats.append({
-                        'url': format_url,
-                        'format_id': format_id,
-                        'height': int_or_none(format_id),
-                    })
-        medias = self._parse_json(
-            self._search_regex(
-                r'mediaDefinition["\']?\s*:\s*(\[.+?}\s*\])', webpage,
-                'media definitions', default='{}'),
-            video_id, fatal=False)
-        if medias and isinstance(medias, list):
-            for media in medias:
-                format_url = url_or_none(media.get('videoUrl'))
-                if not format_url:
-                    continue
-                if media.get('format') == 'hls' or determine_ext(format_url) == 'm3u8':
-                    formats.extend(self._extract_m3u8_formats(
-                        format_url, video_id, 'mp4',
-                        entry_protocol='m3u8_native', m3u8_id='hls',
-                        fatal=False))
-                    continue
-                format_id = media.get('quality')
-                formats.append({
-                    'url': format_url,
-                    'format_id': format_id,
-                    'height': int_or_none(format_id),
-                })
-        if not formats:
-            video_url = self._html_search_regex(
-                r'<source src="(.+?)" type="video/mp4">', webpage, 'video URL')
-            formats.append({'url': video_url})
-        self._sort_formats(formats)
+        formats = self._get_formats(webpage, video_id)
 
         thumbnail = self._og_search_thumbnail(webpage)
         upload_date = unified_strdate(self._search_regex(
@@ -134,3 +96,51 @@ class RedTubeIE(InfoExtractor):
             'age_limit': age_limit,
             'formats': formats,
         })
+
+    def _get_formats(self, webpage, video_id):
+        formats = []
+
+        matches = re.findall(r'\{.+?\}', webpage)
+        if matches is not None:
+            for match in matches:
+                try:
+                    match = json.loads(match)
+                    if 'videoUrl' in match:
+                        url = match['videoUrl']
+                        if url.startswith('https://www.redtube.com/media/mp4?'):
+                            self._add_formats(formats, url, 'mp4', video_id)
+                        elif url.startswith('https://www.redtube.com/media/hls?'):
+                            self._add_formats(formats, url, 'hls', video_id)
+                except json.decoder.JSONDecodeError as e:
+                    pass  # print(e)
+
+        self._sort_formats(formats)
+        return formats
+
+    def _add_formats(self, formats, url, codec, video_id):
+        raw_meta = self._download_webpage(url, video_id)
+        meta = json.loads(raw_meta)
+
+        for stream in meta:
+            quality = stream['quality']
+            if isinstance(quality, list):
+                quality = quality[0]
+
+            format = {
+                'url': stream['videoUrl'],
+                'format_id': '%s-%s' % (quality, codec),
+                'height': int(quality),
+            }
+
+            mobj = re.search(r'(?P<height>\d{3,4})[pP]_(?P<bitrate>\d+)[kK]_\d+', format['url'])
+            if mobj:
+                height = int(mobj.group('height'))
+                bitrate = int(mobj.group('bitrate'))
+                format.update({
+                    'height': height,
+                    'tbr': bitrate,
+                })
+
+            formats.append(format)
+
+        return formats

@@ -2,6 +2,7 @@ from __future__ import unicode_literals
 
 import itertools
 import re
+import json
 
 from .common import InfoExtractor
 from ..compat import compat_str
@@ -137,7 +138,7 @@ class XHamsterIE(InfoExtractor):
 
         def get_height(s):
             return int_or_none(self._search_regex(
-                r'^(\d+)[pP]', s, 'height', default=None))
+                r'^(\d+)[pP]', s, 'height', default=480))
 
         initials = self._parse_json(
             self._search_regex(

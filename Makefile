@@ -1,3 +1,6 @@
+# Also edit in youtube_dl/version.py
+VERSION = 2022.02.17
+
 all: youtube-dl README.md CONTRIBUTING.md README.txt youtube-dl.1 youtube-dl.bash-completion youtube-dl.zsh youtube-dl.fish supportedsites
 
 clean:
@@ -36,6 +39,9 @@ test:
 	#nosetests --with-coverage --cover-package=youtube_dl --cover-html --verbose --processes 4 test
 	nosetests --verbose test
 	$(MAKE) codetest
+
+test-redgifs:
+	python3 -m youtube_dl -jq 'https://xhamster4.com/videos/izzy-bell-creampie-pussy-xhpwA7S'
 
 ot: offlinetest
 
@@ -133,3 +139,14 @@ youtube-dl.tar.gz: youtube-dl README.md README.txt youtube-dl.1 youtube-dl.bash-
 		Makefile MANIFEST.in youtube-dl.1 youtube-dl.bash-completion \
 		youtube-dl.zsh youtube-dl.fish setup.py setup.cfg \
 		youtube-dl
+
+build:
+	rm -f dist/*.whl
+	VERSION=$(VERSION)_redgifs python3 setup.py bdist_wheel
+	ls -ldh dist/youtube_dl-$(VERSION)_redgifs-py2.py3-none-any.whl
+
+release: build
+	-gh release create v$(VERSION) --title "v$(VERSION)" --notes "Fixes to extractors, probably."
+	gh release upload v$(VERSION) dist/youtube_dl-$(VERSION)_redgifs-py2.py3-none-any.whl
+
+.PHONY: build
