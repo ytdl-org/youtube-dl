@@ -70,7 +70,7 @@ jobs:
         tag_name: ${{ steps.bump_version.outputs.ytdl_version }}
         release_name: youtube-dl ${{ steps.bump_version.outputs.ytdl_version }}
         commitish: ${{ steps.push_release.outputs.head_sha }}
-        body: This is a daily build of youtube-dl.
+        body: ${{ env.changelog }}
         draft: false
         prerelease: false
     - name: Upload youtube-dl Unix binary
