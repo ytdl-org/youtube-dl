@@ -3,6 +3,7 @@ from __future__ import unicode_literals
 import json
 import operator
 import re
+from collections import Counter
 
 from .utils import (
     ExtractorError,
@@ -19,6 +20,7 @@ class Nonlocal:
     pass
 
 
+# tightest first
 _OPERATORS = [
     ('|', operator.or_),
     ('^', operator.xor),
@@ -124,7 +126,7 @@ class JSInterpreter(object):
     def _separate(expr, delim=',', max_split=None):
         if not expr:
             return
-        counters = {k: 0 for k in _MATCHING_PARENS.values()}
+        counters = Counter()
         start, splits, pos, delim_len = 0, 0, 0, len(delim) - 1
         for idx, char in enumerate(expr):
             if char in _MATCHING_PARENS:
