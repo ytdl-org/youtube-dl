@@ -41,14 +41,19 @@ _NAME_RE = r'[a-zA-Z_$][a-zA-Z_$0-9]*'
 _MATCHING_PARENS = dict(zip(*zip('()', '{}', '[]')))
 
 
-class JS_Break(ExtractorError):
-    def __init__(self):
-        ExtractorError.__init__(self, 'Invalid break')
+class JSError(ExtractorError):
+    def __init__(self, msg):
+        super(JSError, self).__init__('JS: ' + msg)
 
 
-class JS_Continue(ExtractorError):
+class JS_Break(JSError):
     def __init__(self):
-        ExtractorError.__init__(self, 'Invalid continue')
+        super(JS_Break, self).__init__('Invalid break')
+
+
+class JS_Continue(JSError):
+    def __init__(self):
+        super(JS_Continue, self).__init__('Invalid continue')
 
 
 class LocalNameSpace(MutableMapping):
@@ -148,14 +153,15 @@ class JSInterpreter(object):
 
     @staticmethod
     def _separate_at_paren(expr, delim):
-        separated = list(JSInterpreter._separate(expr, delim, 1))
-        if len(separated) < 2:
-            raise ExtractorError('No terminating paren {0} in {1}'.format(delim, expr))
-        return separated[0][1:].strip(), separated[1].strip()
+        separated = JSInterpreter._separate(expr, delim, 1)
+        try:
+            return next(separated)[1:].strip(), next(separated).strip()
+        except (StopIteration, TypeError):
+            raise JSError('No terminating paren {0} in {1}'.format(delim, expr))
 
     def interpret_statement(self, stmt, local_vars, allow_recursion=100):
         if allow_recursion < 0:
-            raise ExtractorError('Recursion limit reached')
+            raise JSError('Recursion limit reached')
 
         sub_statements = list(self._separate(stmt, ';'))
         stmt = (sub_statements or ['']).pop()
@@ -211,7 +217,7 @@ class JSInterpreter(object):
 
         m = re.match(r'try\s*', expr)
         if m:
-            if expr[m.end()] == '{':
+            if m.end() < len(expr) and expr[m.end()] == '{':
                 try_expr, expr = self._separate_at_paren(expr[m.end():], '}')
             else:
                 try_expr, expr = expr[m.end() - 1:], ''
@@ -229,7 +235,7 @@ class JSInterpreter(object):
 
         elif md.get('for'):
             def raise_constructor_error(c):
-                raise ExtractorError(
+                raise JSError(
                     'Premature return in the initialization of a for loop in {0!r}'.format(c))
 
             constructor, remaining = self._separate_at_paren(expr[m.end() - 1:], ')')
@@ -313,7 +319,7 @@ class JSInterpreter(object):
                 lvar = local_vars[m.group('out')]
                 idx = self.interpret_expression(m.group('index'), local_vars, allow_recursion)
                 if not isinstance(idx, int):
-                    raise ExtractorError('List indices must be integers: %s' % (idx, ))
+                    raise JSError('List indices must be integers: %s' % (idx, ))
                 cur = lvar[idx]
                 val = opfunc(cur, right_val)
                 lvar[idx] = val
@@ -348,7 +354,7 @@ class JSInterpreter(object):
             return val[idx]
 
         def raise_expr_error(where, op, exp):
-            raise ExtractorError('Premature {0} return of {1} in {2!r}'.format(where, op, exp))
+            raise JSError('Premature {0} return of {1} in {2!r}'.format(where, op, exp))
 
         for op, opfunc in _OPERATORS:
             separated = list(self._separate(expr, op))
@@ -559,7 +565,7 @@ class JSInterpreter(object):
             local_vars.update(dict(zip(argnames, args)))
             local_vars.update(kwargs)
             var_stack = LocalNameSpace(local_vars, *global_stack)
-            for stmt in self._separate(code.replace('\n', ''), ';'):
+            for stmt in self._separate(code.replace('\n', ''), ';') or []:
                 ret, should_abort = self.interpret_statement(stmt, var_stack)
                 if should_abort:
                     break
