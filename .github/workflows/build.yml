@@ -29,7 +29,10 @@ jobs:
       run: sudo apt-get -y install zip pandoc man
     - name: Set version suffix
       id: version_suffix
-      run: echo ::set-output name=version_suffix::114514
+      env:
+        PUSH_VERSION_COMMIT: ${{ secrets.PUSH_VERSION_COMMIT }}
+      if: "env.PUSH_VERSION_COMMIT == ''"
+      run: echo ::set-output name=version_suffix::$(date -u +"%H%M%S")
     - name: Bump version
       id: bump_version
       run: |
