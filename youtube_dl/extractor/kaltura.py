@@ -8,13 +8,16 @@ from .common import InfoExtractor
 from ..compat import (
     compat_urlparse,
     compat_parse_qs,
+    compat_str,
 )
 from ..utils import (
     clean_html,
     ExtractorError,
     int_or_none,
-    unsmuggle_url,
     smuggle_url,
+    try_get,
+    unsmuggle_url,
+    url_or_none,
 )
 
 
@@ -34,6 +37,7 @@ class KalturaIE(InfoExtractor):
                         )(?:/(?P<path>[^?]+))?(?:\?(?P<query>.*))?
                 )
                 '''
+    # See https://www.kaltura.com/api_v3/testmeDoc/
     _SERVICE_URL = 'http://cdnapi.kaltura.com'
     _SERVICE_BASE = '/api_v3/index.php'
     # See https://github.com/kaltura/server/blob/master/plugins/content/caption/base/lib/model/enums/CaptionType.php
@@ -56,6 +60,41 @@ class KalturaIE(InfoExtractor):
                 'thumbnail': 're:^https?://.*/thumbnail/.*',
                 'timestamp': int,
             },
+            'skip': 'The access to this service is forbidden since the specified partner is blocked',
+        },
+        {
+            'url': 'kaltura:956951:1_et8lwckd',
+            'md5': '248d91651534930f8eda6be7484156cc',
+            'info_dict': {
+                'id': '1_et8lwckd',
+                'ext': 'mp4',
+                'title': 'BUS 599 Week 8 Discussion Overview',
+                'upload_date': '20181116',
+                'uploader_id': 'andrea.banto',
+                'timestamp': 1542382513,
+            },
+            'params': {
+                # force reproducible download
+                'format': 'mp4[format_id!^=hls]',
+            },
+        },
+        {
+            # Livestream (Danish Parliament)
+            'url': 'kaltura:2158211:1_24gfa7qq',
+            'info_dict': {
+                'id': '1_24gfa7qq',
+                'ext': 'mp4',
+                'title': 'Folketingets 24/7 TV kanal',
+                'is_live': True,
+                'upload_date': '20180110',
+                'uploader_id': 'jesper@img.dk',
+                'timestamp': 1515581608,
+            },
+            'params': {
+                # live stream
+                'skip_download': True,
+            },
+            'expected_warnings': ['Unable to download f4m manifest'],
         },
         {
             'url': 'http://www.kaltura.com/index.php/kwidget/cache_st/1300318621/wid/_269692/uiconf_id/3873291/entry_id/1_1jc2y3e4',
@@ -180,10 +219,23 @@ class KalturaIE(InfoExtractor):
             (service_url or self._SERVICE_URL) + self._SERVICE_BASE,
             video_id, query=params, *args, **kwargs)
 
-        status = data if len(actions) == 1 else data[0]
-        if status.get('objectType') == 'KalturaAPIException':
+        def raise_api_error(msg, expected=True):
             raise ExtractorError(
-                '%s said: %s' % (self.IE_NAME, status['message']))
+                '%s said: %s' % (self.IE_NAME, msg))
+
+        # general check on result: assume it is either one dict or a list of items,
+        # each either a dict or a list
+        for resp in data if isinstance(data, list) else [data if isinstance(data, dict) else {}]:
+            if isinstance(resp, list):
+                continue
+            resp_type = try_get(resp, lambda x: x['objectType'], compat_str)
+            if resp_type is None:
+                raise_api_error('Empty response from API', expected=False)
+            elif resp_type == 'KalturaAPIException':
+                raise_api_error(
+                    '%s (code %s)' % (
+                        resp.get('message', '--'),
+                        resp.get('code', '--')))
 
         return data
 
@@ -207,7 +259,7 @@ class KalturaIE(InfoExtractor):
                 'entryId': video_id,
                 'service': 'baseentry',
                 'ks': '{1:result:ks}',
-                'responseProfile:fields': 'createdAt,dataUrl,duration,name,plays,thumbnailUrl,userId',
+                'responseProfile:fields': 'createdAt,dataUrl,duration,liveStreamConfigurations,name,plays,thumbnailUrl,userId',
                 'responseProfile:type': 1,
             },
             {
@@ -288,64 +340,95 @@ class KalturaIE(InfoExtractor):
         else:
             referrer = None
 
-        def sign_url(unsigned_url):
-            if ks:
-                unsigned_url += '/ks/%s' % ks
-            if referrer:
-                unsigned_url += '?referrer=%s' % referrer
-            return unsigned_url
-
-        data_url = info['dataUrl']
-        if '/flvclipper/' in data_url:
-            data_url = re.sub(r'/flvclipper/.*', '/serveFlavor', data_url)
-
         formats = []
-        for f in flavor_assets:
-            # Continue if asset is not ready
-            if f.get('status') != 2:
-                continue
-            # Original format that's not available (e.g. kaltura:1926081:0_c03e1b5g)
-            # skip for now.
-            if f.get('fileExt') == 'chun':
-                continue
-            # DRM-protected video, cannot be decrypted
-            if f.get('fileExt') == 'wvm':
-                continue
-            if not f.get('fileExt'):
-                # QT indicates QuickTime; some videos have broken fileExt
-                if f.get('containerFormat') == 'qt':
-                    f['fileExt'] = 'mov'
-                else:
-                    f['fileExt'] = 'mp4'
-            video_url = sign_url(
-                '%s/flavorId/%s' % (data_url, f['id']))
-            format_id = '%(fileExt)s-%(bitrate)s' % f
-            # Source format may not be available (e.g. kaltura:513551:1_66x4rg7o)
-            if f.get('isOriginal') is True and not self._is_valid_url(
-                    video_url, entry_id, format_id):
-                continue
-            # audio-only has no videoCodecId (e.g. kaltura:1926081:0_c03e1b5g
-            # -f mp4-56)
-            vcodec = 'none' if 'videoCodecId' not in f and f.get(
-                'frameRate') == 0 else f.get('videoCodecId')
-            formats.append({
-                'format_id': format_id,
-                'ext': f.get('fileExt'),
-                'tbr': int_or_none(f['bitrate']),
-                'fps': int_or_none(f.get('frameRate')),
-                'filesize_approx': int_or_none(f.get('size'), invscale=1024),
-                'container': f.get('containerFormat'),
-                'vcodec': vcodec,
-                'height': int_or_none(f.get('height')),
-                'width': int_or_none(f.get('width')),
-                'url': video_url,
-            })
-        if '/playManifest/' in data_url:
-            m3u8_url = sign_url(data_url.replace(
-                'format/url', 'format/applehttp'))
-            formats.extend(self._extract_m3u8_formats(
-                m3u8_url, entry_id, 'mp4', 'm3u8_native',
-                m3u8_id='hls', fatal=False))
+        info_dict = {}
+        if try_get(info, lambda x: x['objectType'], compat_str) == 'KalturaLiveStreamEntry':
+            info_dict['is_live'] = True
+            seen_urls = set()
+            for cnf in try_get(info, lambda x: x['liveStreamConfigurations'], list) or []:
+                m_url = url_or_none(try_get(cnf, lambda x: x['url'], compat_str))
+                if not m_url or m_url in seen_urls:
+                    continue
+                seen_urls.add(m_url)
+                protocol = cnf.get('protocol')
+                # https://cdnapi.kaltura.com/p/2158211/sp/215821100/playManifest/entryId/1_24gfa7qq/protocol/https/format/...
+                # applehttp_to_mc (multicast)??
+                if protocol in ('hls', 'applehttp', 'applehttp_to_mc'):
+                    # ... applehttp/a.m3u8',
+                    # ... applehttp_to_mc/a.m3u8',
+                    formats.extend(self._extract_m3u8_formats(
+                        m_url, entry_id, 'mp4', 'm3u8_native',
+                        m3u8_id=protocol, fatal=False))
+                elif protocol == 'hds':
+                    # ...hds/a.f4m',
+                    formats.extend(self._extract_f4m_formats(
+                        m_url, entry_id, f4m_id=protocol,
+                        m3u8_id=protocol, fatal=False))
+                # elif protocol == 'sl': # SilverLight, really?
+                # ... sl/Manifest
+                elif protocol == 'mpegdash':
+                    # ... mpegdash/manifest.mpd
+                    formats.extend(self._extract_mpd_formats(
+                        m_url, entry_id, mpd_id='dash', fatal=False))
+        else:
+
+            def sign_url(unsigned_url):
+                if ks:
+                    unsigned_url += '/ks/%s' % ks
+                if referrer:
+                    unsigned_url += '?referrer=%s' % referrer
+                return unsigned_url
+
+            data_url = info['dataUrl']
+            if '/flvclipper/' in data_url:
+                data_url = re.sub(r'/flvclipper/.*', '/serveFlavor', data_url)
+
+            for f in flavor_assets:
+                # Continue if asset is not ready
+                if f.get('status') != 2:
+                    continue
+                # Original format that's not available (e.g. kaltura:1926081:0_c03e1b5g)
+                # skip for now.
+                if f.get('fileExt') == 'chun':
+                    continue
+                # DRM-protected video, cannot be decrypted
+                if f.get('fileExt') == 'wvm':
+                    continue
+                if not f.get('fileExt'):
+                    # QT indicates QuickTime; some videos have broken fileExt
+                    if f.get('containerFormat') == 'qt':
+                        f['fileExt'] = 'mov'
+                    else:
+                        f['fileExt'] = 'mp4'
+                video_url = sign_url(
+                    '%s/flavorId/%s' % (data_url, f['id']))
+                format_id = '%(fileExt)s-%(bitrate)s' % f
+                # Source format may not be available (e.g. kaltura:513551:1_66x4rg7o)
+                if f.get('isOriginal') is True and not self._is_valid_url(
+                        video_url, entry_id, format_id):
+                    continue
+                # audio-only has no videoCodecId (e.g. kaltura:1926081:0_c03e1b5g
+                # -f mp4-56)
+                vcodec = 'none' if 'videoCodecId' not in f and f.get(
+                    'frameRate') == 0 else f.get('videoCodecId')
+                formats.append({
+                    'format_id': format_id,
+                    'ext': f.get('fileExt'),
+                    'tbr': int_or_none(f['bitrate']),
+                    'fps': int_or_none(f.get('frameRate')),
+                    'filesize_approx': int_or_none(f.get('size'), invscale=1024),
+                    'container': f.get('containerFormat'),
+                    'vcodec': vcodec,
+                    'height': int_or_none(f.get('height')),
+                    'width': int_or_none(f.get('width')),
+                    'url': video_url,
+                })
+            if '/playManifest/' in data_url:
+                m3u8_url = sign_url(data_url.replace(
+                    'format/url', 'format/applehttp'))
+                formats.extend(self._extract_m3u8_formats(
+                    m3u8_url, entry_id, 'mp4', 'm3u8_native',
+                    m3u8_id='hls', fatal=False))
 
         self._sort_formats(formats)
 
@@ -363,7 +446,7 @@ class KalturaIE(InfoExtractor):
                     'ext': caption.get('fileExt') or self._CAPTION_TYPES.get(caption_format) or 'ttml',
                 })
 
-        return {
+        info_dict.update({
             'id': entry_id,
             'title': info['name'],
             'formats': formats,
@@ -374,4 +457,5 @@ class KalturaIE(InfoExtractor):
             'timestamp': info.get('createdAt'),
             'uploader_id': info.get('userId') if info.get('userId') != 'None' else None,
             'view_count': info.get('plays'),
-        }
+        })
+        return info_dict
