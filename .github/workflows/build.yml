@@ -1,9 +1,6 @@
 name: Build
 
-on:
-  workflow_dispatch:
-  schedule:
-    - cron: "0 2 * * *"
+on: workflow_dispatch
 
 jobs:
   build_unix:
