@@ -198,18 +198,18 @@ class InstagramIE(InfoExtractor):
                         items = additional_data
                     for item in items:
                         best_quality = item["video_versions"][0]
-                        video_url = best_quality.get('url')
-                        height = int_or_none(best_quality.get('height'))
-                        width = int_or_none(best_quality.get('width'))
-                        description = try_get(additional_data, lambda x: x['caption']['text'])
+                        video_url = best_quality['url']
+                        height = int_or_none(best_quality['height'])
+                        width = int_or_none(best_quality['width'])
+                        description = try_get(item, lambda x: x['caption']['text'])
                         title = None
                         duration = float_or_none(item.get('video_duration'))
-                        thumbnail = item.get('image_versions2').get('candidates')[0].get('url')
-                        timestamp = int_or_none(item.get('taken_at'))
-                        uploader = item.get('user').get('full_name')
-                        uploader_id = item.get('user').get('username')
-                        like_count = int_or_none(item.get('like_count'))
-                        comment_count = int_or_none(item.get('comment_count'))
+                        thumbnail = item['image_versions2']['candidates'][0]['url']
+                        timestamp = int_or_none(item['taken_at'])
+                        uploader = item['user']['full_name']
+                        uploader_id = item['user']['username']
+                        like_count = int_or_none(item['like_count'])
+                        comment_count = int_or_none(item['comment_count'])
 
         if media:
             video_url = media.get('video_url')
