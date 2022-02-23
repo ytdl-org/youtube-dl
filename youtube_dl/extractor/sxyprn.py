@@ -8,7 +8,7 @@ from ..utils import (
 )
 
 
-class YourPornIE(InfoExtractor):
+class SxyPrnIE(InfoExtractor):
     _VALID_URL = r'https?://(?:www\.)?sxyprn\.com/post/(?P<id>[^/?#&.]+)'
     _TESTS = [{
         'url': 'https://sxyprn.com/post/57ffcb2e1179b.html',
