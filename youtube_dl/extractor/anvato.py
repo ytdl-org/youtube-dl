@@ -207,7 +207,9 @@ class AnvatoIE(InfoExtractor):
     _API_PREFIX = 'https://tkx.mp.lura.live/rest/v2/'
     _API_KEY = '3hwbSuqqT690uxjNYBktSQpa5ZrpYYR0Iofx7NcJHyA'
 
-    _ANVP_RE = r'<script[^>]+\bdata-anvp\s*=\s*(["\'])(?P<anvp>(?:(?!\1).)+)\1'
+    _ANVP_RE = (
+        r'<script[^>]*>[^<]*?\bAnvatoPlayer\s*\(\s*["\w]+\s*\)\s*\.\s*init\s*\(\s*(?P<anvp>{[^<]+?})\s*\);',
+        r'<script[^>]+\bdata-anvp\s*=\s*(["\'])(?P<anvp>(?:(?!\1).)+)\1')
     _AUTH_KEY = b'\x31\xc2\x42\x84\x9e\x73\xa0\xce'
 
     _TESTS = [{
@@ -381,26 +383,28 @@ class AnvatoIE(InfoExtractor):
     @staticmethod
     def _extract_urls(ie, webpage, video_id):
         entries = []
-        for mobj in re.finditer(AnvatoIE._ANVP_RE, webpage):
-            anvplayer_data = ie._parse_json(
-                mobj.group('anvp'), video_id, transform_source=unescapeHTML,
-                fatal=False)
-            if not anvplayer_data:
-                continue
-            video = anvplayer_data.get('video')
-            if not isinstance(video, compat_str) or not video.isdigit():
-                continue
-            access_key = anvplayer_data.get('accessKey')
-            if not access_key:
-                mcp = anvplayer_data.get('mcp')
-                if mcp:
-                    access_key = AnvatoIE._MCP_TO_ACCESS_KEY_TABLE.get(
-                        mcp.lower())
-            if not access_key:
-                continue
-            entries.append(ie.url_result(
-                'anvato:%s:%s' % (access_key, video), ie=AnvatoIE.ie_key(),
-                video_id=video))
+        anvp_res = AnvatoIE._ANVP_RE
+        for anvp_re in anvp_res if isinstance(anvp_res, (list, tuple, )) else (anvp_res, ):
+            for mobj in re.finditer(anvp_re, webpage):
+                anvplayer_data = ie._parse_json(
+                    mobj.group('anvp'), video_id, transform_source=unescapeHTML,
+                    fatal=False)
+                if not anvplayer_data:
+                    continue
+                video = anvplayer_data.get('video')
+                if not isinstance(video, compat_str) or not video.isdigit():
+                    continue
+                access_key = anvplayer_data.get('accessKey')
+                if not access_key:
+                    mcp = anvplayer_data.get('mcp')
+                    if mcp:
+                        access_key = AnvatoIE._MCP_TO_ACCESS_KEY_TABLE.get(
+                            mcp.lower())
+                if not access_key:
+                    continue
+                entries.append(ie.url_result(
+                    'anvato:%s:%s' % (access_key, video), ie=AnvatoIE.ie_key(),
+                    video_id=video))
         return entries
 
     def _extract_anvato_videos(self, webpage, video_id):
