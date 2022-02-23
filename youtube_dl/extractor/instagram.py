@@ -193,10 +193,12 @@ class InstagramIE(InfoExtractor):
                     # Here is a sample of code that works fine with one item, but
                     # I don't know for multiple items, cuz I don't have test links
                     # for those.
-                    items = try_get(additional_data, lambda x: x['carousel_media'], list)
+                    items = try_get(additional_data, lambda x: x['carousel_media'], dict)
                     if not items:
                         items = additional_data
                     for item in items:
+                        if "video_versions" not in item:
+                            continue
                         best_quality = item["video_versions"][0]
                         video_url = best_quality['url']
                         height = int_or_none(best_quality['height'])
