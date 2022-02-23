@@ -201,10 +201,10 @@ class InstagramIE(InfoExtractor):
                         video_url = best_quality.get('url')
                         height = int_or_none(best_quality.get('height'))
                         width = int_or_none(best_quality.get('width'))
-                        description = try_get(item, lambda x: x['caption']['text'])
+                        description = try_get(additional_data, lambda x: x['caption']['text'])
                         title = None
                         duration = float_or_none(item.get('video_duration'))
-                        thumbnail = item['image_versions2']['candidates'][0].get('url')
+                        thumbnail = item.get('image_versions2').get('candidates')[0].get('url')
                         timestamp = int_or_none(item.get('taken_at'))
                         uploader = item.get('user').get('full_name')
                         uploader_id = item.get('user').get('username')
