@@ -193,21 +193,23 @@ class InstagramIE(InfoExtractor):
                     # Here is a sample of code that works fine with one item, but
                     # I don't know for multiple items, cuz I don't have test links
                     # for those.
-                    items0 = try_get(additional_data, lambda x: x['items'][0], dict)
-                    if items0:
-                        best_quality = items0.get("video_versions")[0]
+                    items = try_get(additional_data, lambda x: x['carousel_media'], list)
+                    if not items:
+                        items = additional_data
+                    for item in items:
+                        best_quality = item["video_versions"][0]
                         video_url = best_quality.get('url')
                         height = int_or_none(best_quality.get('height'))
                         width = int_or_none(best_quality.get('width'))
-                        description = items0.get('caption').get('text')
+                        description = try_get(additional_data, lambda x: x['caption']['text'])
                         title = None
-                        duration = float_or_none(items0.get('video_duration'))
-                        thumbnail = items0.get('image_versions2').get('candidates')[0].get('url')
-                        timestamp = int_or_none(items0.get('taken_at'))
-                        uploader = items0.get('user').get('full_name')
-                        uploader_id = items0.get('user').get('username')
-                        like_count = int_or_none(items0.get('like_count'))
-                        comment_count = int_or_none(items0.get('comment_count'))
+                        duration = float_or_none(item.get('video_duration'))
+                        thumbnail = item.get('image_versions2').get('candidates')[0].get('url')
+                        timestamp = int_or_none(item.get('taken_at'))
+                        uploader = item.get('user').get('full_name')
+                        uploader_id = item.get('user').get('username')
+                        like_count = int_or_none(item.get('like_count'))
+                        comment_count = int_or_none(item.get('comment_count'))
 
         if media:
             video_url = media.get('video_url')
