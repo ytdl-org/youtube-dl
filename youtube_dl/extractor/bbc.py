@@ -40,7 +40,7 @@ from ..utils import (
 class BBCCoUkIE(InfoExtractor):
     IE_NAME = 'bbc.co.uk'
     IE_DESC = 'BBC iPlayer'
-    _ID_REGEX = r'(?:[pbm][\da-z]{7}|w[\da-z]{7,14})'
+    _ID_REGEX = r'(?:[pbml][\da-z]{7}|w[\da-z]{7,14})'
     _VALID_URL = r'''(?x)
                     https?://
                         (?:www\.)?bbc\.co\.uk/
