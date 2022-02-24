@@ -58,7 +58,7 @@ class SxyPrnIE(InfoExtractor):
             default=None))
 
         tags = self._search_regex(r'<meta name="keywords".+content="(?P<tags>.+)"', webpage, 'tags', group='tags').split(', ')
-
+        
         return {
             'id': video_id,
             'url': video_url,
