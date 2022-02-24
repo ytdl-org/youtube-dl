@@ -21,6 +21,9 @@ class SxyPrnIE(InfoExtractor):
             'duration': 165,
             'age_limit': 18,
             'tags': ['porn', 'gratis porno', 'anal', 'free porn videos', 'videos', 'movies'],
+            'uploader': 'PornHot',
+            'uploader_id': 'PornHot',
+            'uploader_url': 'https://sxyprn.com/blog/porn-hot/0.html',
         },
         'params': {
             'skip_download': True,
@@ -56,9 +59,10 @@ class SxyPrnIE(InfoExtractor):
         duration = parse_duration(self._search_regex(
             r'duration\s*:\s*<[^>]+>([\d:]+)', webpage, 'duration',
             default=None))
-
         tags = self._search_regex(r'<meta name="keywords".+content="(?P<tags>.+)"', webpage, 'tags', group='tags').split(', ')
-        
+        uploader = self._search_regex(r'<div class=\'pes_author_div pes_edit_div transition\'.+?>.+?<span class=\'a_name\'>(?P<uploader>.+?)<', webpage, 'uploader', group='uploader')
+        uploader_url = urljoin(url, self._search_regex(r'<div class=\'pes_author_div pes_edit_div transition\'.+?><a href=\'(?P<uploader_url>.+?)\'.+?<span class=\'a_name\'>(?P<uploader>.+?)<', webpage, 'uploader_url', group='uploader_url'))
+
         return {
             'id': video_id,
             'url': video_url,
@@ -68,4 +72,7 @@ class SxyPrnIE(InfoExtractor):
             'age_limit': 18,
             'ext': 'mp4',
             'tags': tags,
+            'uploader': uploader,
+            'uploader_id': uploader,
+            'uploader_url': uploader_url,
         }
