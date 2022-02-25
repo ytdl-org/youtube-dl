@@ -2,7 +2,7 @@
 from __future__ import unicode_literals
 
 from .common import InfoExtractor
-from .vimeo import VHXEmbedIE
+from .vimeo import VHXEmbedIE, VimeoIE
 from ..utils import (
     clean_html,
     ExtractorError,
@@ -11,8 +11,7 @@ from ..utils import (
     get_elements_by_class,
     int_or_none,
     unified_strdate,
-    urlencode_postdata,
-    std_headers
+    urlencode_postdata
 )
 
 
@@ -139,8 +138,6 @@ class DropoutIE(InfoExtractor):
             raise ExtractorError('Incorrect username/password')
 
     def _real_extract(self, url):
-        std_headers['Referer'] = 'https://www.dropout.tv'  # See issue 2858
-
         display_id = self._match_id(url)
         try:
             logged_in = self._login(display_id)
@@ -166,7 +163,7 @@ class DropoutIE(InfoExtractor):
         return {
             '_type': 'url_transparent',
             'ie_key': VHXEmbedIE.ie_key(),
-            'url': embed_url,
+            'url': VimeoIE._smuggle_referrer(embed_url, 'https://www.dropout.tv'),
             'id': self._search_regex(r'embed.vhx.tv/videos/(.+?)\?', embed_url, 'id'),
             'display_id': display_id,
             'title': title,
