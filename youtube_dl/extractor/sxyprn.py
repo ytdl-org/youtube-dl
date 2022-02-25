@@ -26,7 +26,7 @@ class SxyPrnIE(InfoExtractor):
             'uploader_id': 'SmokeCrumb',
             'uploader_url': 'https://sxyprn.com/blog/608a6b540ee7b/0.html',
             'actors': [{'given_name': 'Nicole Love'}, {'given_name': 'Cindy Shine'}],
-            'views': 0,
+            'views': int,
         },
         'params': {
             'skip_download': True,
@@ -72,7 +72,6 @@ class SxyPrnIE(InfoExtractor):
                 'given_name': name
             })
         views = int(self._search_regex(r'<div class=\'post_control_time\'>.+?</strong> (?P<views>.+) views</div>', webpage, 'views', group='views'))
-        self._TESTS[0]['info_dict']['views'] = views
 
         return {
             'id': video_id,
