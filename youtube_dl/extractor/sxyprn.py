@@ -1,4 +1,5 @@
 from __future__ import unicode_literals
+import re
 
 from .common import InfoExtractor
 from ..compat import compat_str
@@ -11,25 +12,26 @@ from ..utils import (
 class SxyPrnIE(InfoExtractor):
     _VALID_URL = r'https?://(?:www\.)?sxyprn\.com/post/(?P<id>[^/?#&.]+)'
     _TESTS = [{
-        'url': 'https://sxyprn.com/post/57ffcb2e1179b.html',
+        'url': 'https://sxyprn.com/post/6217e4ce4c36e.html',
         'md5': '6f8682b6464033d87acaa7a8ff0c092e',
         'info_dict': {
-            'id': '57ffcb2e1179b',
+            'id': '6217e4ce4c36e',
             'ext': 'mp4',
-            'title': 'md5:c9f43630bd968267672651ba905a7d35',
+            'title': 'md5:04e5427c36d2e9e229588059dac45a62',
             'thumbnail': r're:^https?://.*\.jpg$',
-            'duration': 165,
+            'duration': 3813,
             'age_limit': 18,
-            'tags': ['porn', 'gratis porno', 'anal', 'free porn videos', 'videos', 'movies'],
-            'uploader': 'PornHot',
-            'uploader_id': 'PornHot',
-            'uploader_url': 'https://sxyprn.com/blog/porn-hot/0.html',
+            'tags': ['Nicole Love', 'Cindy Shine', 'Anal', 'DoublePenetration', 'GangBang', 'BigTits', 'BigAss', 'Blowjob'],
+            'uploader': 'SmokeCrumb',
+            'uploader_id': 'SmokeCrumb',
+            'uploader_url': 'https://sxyprn.com/blog/608a6b540ee7b/0.html',
+            'actors': [{'given_name': 'Nicole Love'}, {'given_name': 'Cindy Shine'}],
         },
         'params': {
             'skip_download': True,
         },
     }, {
-        'url': 'https://sxyprn.com/post/57ffcb2e1179b.html',
+        'url': 'https://sxyprn.com/post/6217e4ce4c36e.html',
         'only_matching': True,
     }]
 
@@ -62,6 +64,12 @@ class SxyPrnIE(InfoExtractor):
         tags = self._search_regex(r'<meta name="keywords".+content="(?P<tags>.+)"', webpage, 'tags', group='tags').split(', ')
         uploader = self._search_regex(r'<div class=\'pes_author_div pes_edit_div transition\'.+?>.+?<span class=\'a_name\'>(?P<uploader>.+?)<', webpage, 'uploader', group='uploader')
         uploader_url = urljoin(url, self._search_regex(r'<div class=\'pes_author_div pes_edit_div transition\'.+?><a href=\'(?P<uploader_url>.+?)\'.+?<span class=\'a_name\'>(?P<uploader>.+?)<', webpage, 'uploader_url', group='uploader_url'))
+        actors_names = re.findall(r'<span>·</span><b>(?P<actor>.+?)</b>', webpage)
+        actors=[]
+        for name in actors_names:
+            actors.append({
+                'given_name': name
+            })
 
         return {
             'id': video_id,
@@ -75,4 +83,5 @@ class SxyPrnIE(InfoExtractor):
             'uploader': uploader,
             'uploader_id': uploader,
             'uploader_url': uploader_url,
+            'actors': actors
         }
