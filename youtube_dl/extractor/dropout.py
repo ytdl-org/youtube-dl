@@ -1,4 +1,6 @@
 # coding: utf-8
+from __future__ import unicode_literals
+
 from .common import InfoExtractor
 from .vimeo import VHXEmbedIE
 from ..utils import (
@@ -8,7 +10,6 @@ from ..utils import (
     get_element_by_id,
     get_elements_by_class,
     int_or_none,
-    join_nonempty,
     unified_strdate,
     urlencode_postdata,
     std_headers
@@ -21,6 +22,20 @@ class DropoutIE(InfoExtractor):
 
     _VALID_URL = r'https?://(?:www\.)?dropout\.tv/(?:[^/]+/)*videos/(?P<id>[^/]+)/?$'
     _TESTS = [
+        {
+            'url': 'https://www.dropout.tv/dimension-20-misfits-and-magic/season:2/videos/misfits-and-magic-holiday-special-trailer',
+            'note': 'No login required',
+            'md5': 'cafb8d704af8da70134d70a97d966799',
+            'info_dict': {
+                'id': '1893157',
+                'ext': 'mp4',
+                'title': 'Dimension 20: Misfits and Magic Holiday Special Trailer',
+                'description': 'Independent. Funny. Ad Free.',
+                'uploader': 'OTT Videos',
+                'uploader_id': 'user80538407',
+            },
+            'expected_warnings': ['No login information available']
+        },
         {
             'url': 'https://www.dropout.tv/game-changer/season:2/videos/yes-or-no',
             'note': 'Episode in a series',
@@ -43,7 +58,8 @@ class DropoutIE(InfoExtractor):
                 'uploader_url': 'https://vimeo.com/user80538407',
                 'uploader': 'OTT Videos'
             },
-            'expected_warnings': ['Ignoring subtitle tracks found in the HLS manifest']
+            'expected_warnings': ['Ignoring subtitle tracks found in the HLS manifest'],
+            'skip': 'Username and password required',
         },
         {
             'url': 'https://www.dropout.tv/dimension-20-fantasy-high/season:1/videos/episode-1',
@@ -66,7 +82,8 @@ class DropoutIE(InfoExtractor):
                 'uploader_url': 'https://vimeo.com/user80538407',
                 'uploader': 'OTT Videos'
             },
-            'expected_warnings': ['Ignoring subtitle tracks found in the HLS manifest']
+            'expected_warnings': ['Ignoring subtitle tracks found in the HLS manifest'],
+            'skip': 'Username and password required',
         },
         {
             'url': 'https://www.dropout.tv/videos/misfits-magic-holiday-special',
@@ -85,8 +102,9 @@ class DropoutIE(InfoExtractor):
                 'uploader_url': 'https://vimeo.com/user80538407',
                 'uploader': 'OTT Videos'
             },
-            'expected_warnings': ['Ignoring subtitle tracks found in the HLS manifest']
-        }
+            'expected_warnings': ['Ignoring subtitle tracks found in the HLS manifest'],
+            'skip': 'Username and password required',
+        },
     ]
 
     def _get_authenticity_token(self, display_id):
@@ -99,7 +117,9 @@ class DropoutIE(InfoExtractor):
     def _login(self, display_id):
         username, password = self._get_login_info()
         if not (username and password):
-            self.raise_login_required(method='password')
+            # self.raise_login_required()
+            self.report_warning('No login information available', display_id)
+            return False
 
         response = self._download_webpage(
             self._LOGIN_URL, display_id, note='Logging in', data=urlencode_postdata({
@@ -123,10 +143,15 @@ class DropoutIE(InfoExtractor):
 
         display_id = self._match_id(url)
         try:
-            self._login(display_id)
+            logged_in = self._login(display_id)
             webpage = self._download_webpage(url, display_id, note='Downloading video webpage')
+        except ExtractorError:
+            if logged_in is False:
+                self.raise_login_required()
+            raise
         finally:
-            self._download_webpage('https://www.dropout.tv/logout', display_id, note='Logging out')
+            if logged_in is not False:
+                self._download_webpage('https://www.dropout.tv/logout', display_id, note='Logging out')
 
         embed_url = self._search_regex(r'embed_url:\s*["\'](.+?)["\']', webpage, 'embed url')
         thumbnail = self._og_search_thumbnail(webpage)
@@ -206,6 +231,10 @@ class DropoutSeasonIE(InfoExtractor):
         seasons = (get_element_by_class('select-dropdown-wrapper', webpage) or '').strip().replace('\n', '')
         current_season = self._search_regex(r'<option[^>]+selected>([^<]+)</option>',
                                             seasons, 'current_season', default='').strip()
+
+        def join_nonempty(*args, **kwargs):
+            delim = kwargs.get('delim', '-')
+            return delim.join(x for x in args if x)
 
         return {
             '_type': 'playlist',
