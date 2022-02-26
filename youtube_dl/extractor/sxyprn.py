@@ -26,7 +26,7 @@ class SxyPrnIE(InfoExtractor):
             'uploader_id': 'SmokeCrumb',
             'uploader_url': 'https://sxyprn.com/blog/608a6b540ee7b/0.html',
             'actors': [{'given_name': 'Nicole Love', 'url': 'https://sxyprn.com/Nicole-Love.html'}, {'given_name': 'Cindy Shine', 'url': 'https://sxyprn.com/Cindy-Shine.html'}],
-            'views': int,
+            'view_count': int,
         },
         'params': {
             'skip_download': True,
@@ -87,5 +87,5 @@ class SxyPrnIE(InfoExtractor):
             'uploader_id': uploader,
             'uploader_url': uploader_url,
             'actors': actors,
-            'views': views,
+            'view_count': views,
         }
