@@ -36,6 +36,7 @@ class XVideosIE(InfoExtractor):
             'age_limit': 18,
             'tags': ['lesbian', 'teen', 'hardcore', 'latina', 'rough', 'squirt', 'big-ass', 'cheater', 'twistys', 'cheat', 'ass-play', 'when-girls-play'],
             'creator': 'Twistys',
+            'actors': [{'given_name': 'Adriana Chechik', 'url': 'https://www.xvideos.com/pornstars/adriana-chechik'}, {'given_name': 'Abella Danger', 'url': 'https://www.xvideos.com/pornstars/abella-danger'}],
         }
     }, {
         'url': 'https://flashservice.xvideos.com/embedframe/4588838',
@@ -144,6 +145,14 @@ class XVideosIE(InfoExtractor):
 
         creator = self._search_regex(r'<span class="name">(?P<creator>.+?)<', webpage, 'creator', group='creator')
 
+        actors_data = re.findall(r'href="(?P<actor_url>/pornstars/.+?)" class="btn btn-default label profile hover-name"><span class="name">(?P<actor_name>.+?)</span>', webpage)
+        actors = []
+        for actor_tuple in actors_data:
+            actors.append({
+                'given_name': actor_tuple[1],
+                'url': urljoin(url, actor_tuple[0]),
+            })
+
         return {
             'id': video_id,
             'formats': formats,
@@ -153,4 +162,5 @@ class XVideosIE(InfoExtractor):
             'age_limit': 18,
             'tags': tags,
             'creator': creator,
+            'actors': actors,
         }
