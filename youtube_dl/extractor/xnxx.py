@@ -48,6 +48,7 @@ class XNXXIE(InfoExtractor):
             'uploader_id': 'Babes Network',
             'uploader_url': '/porn-maker/babes3',
             'actors': [{'given_name': 'darcie dolce', 'url': 'https://www.xnxx.com/search/darcie%20dolce'}, {'given_name': 'darcie dolce lesbian', 'url': 'https://www.xnxx.com/search/darcie%20dolce%20lesbian'}, {'given_name': 'abella danger lesbian', 'url': 'https://www.xnxx.com/search/abella%20danger%20lesbian'}, {'given_name': 'abella danger', 'url': 'https://www.xnxx.com/search/abella%20danger'}, {'given_name': 'darcie dolce abella danger', 'url': 'https://www.xnxx.com/search/darcie%20dolce%20abella%20danger'}],
+            'average_rating': float,
         }
     }, {
         'url': 'http://video.xnxx.com/video1135332/lida_naked_funny_actress_5_',
@@ -114,6 +115,8 @@ class XNXXIE(InfoExtractor):
                     'url': urljoin(url, actor_tuple[0]),
                 })
         
+        rating = float_or_none(self._search_regex(r'<span class="rating-box value">(?P<rating>.+?)%</span>', webpage, 'rating', group='rating'))
+
         return {
             'id': video_id,
             'title': title,
@@ -127,4 +130,5 @@ class XNXXIE(InfoExtractor):
             'uploader_id': uploader_id,
             'uploader_url': uploader_url,
             'actors': actors,
+            'average_rating': rating,
         }
