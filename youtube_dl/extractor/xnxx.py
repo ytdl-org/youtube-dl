@@ -25,6 +25,7 @@ class XNXXIE(InfoExtractor):
             'duration': 469,
             'view_count': int,
             'age_limit': 18,
+            'tags': ['video game', 'skyrim', '3d', 'game', '3d game', 'video games', 'rule34', 'test', 'rough', 'sfm', 'fallout', 'porno game', 'skyrim hentai', 'h game', '3d horse', '3d porno anime', 'xx video wwxxx cartoon cartoons', 'gaming', 'games', '3d porno desenho'],
             'uploader': 'Glurp',
             'uploader_id': 'Glurp',
             'uploader_url': '/porn-maker/glurp',
@@ -76,6 +77,8 @@ class XNXXIE(InfoExtractor):
             r'-.+?\t+- (?P<views>.+?) <span class="icon-f icf-eye">', webpage, 'view count', group='views',
             default=0))
 
+        tags = self._search_regex(r'<meta name="keywords" content="porn,porn movies,free porn,free porn movies,sex,porno,free sex,tube porn,tube,videos,full porn,xxnx,xnxxx,xxx,pussy,(?P<tags>.+?)"', webpage, 'tags', group='tags', default='').split(',')
+
         uploader_data = re.findall(r'<a class="gold-plate" href="(?P<uploader_url>.+?)">(?P<uploader_name>.+?)</a>', webpage)
         uploader_id = ''
         uploader_url = ''
@@ -91,6 +94,7 @@ class XNXXIE(InfoExtractor):
             'view_count': view_count,
             'age_limit': 18,
             'formats': formats,
+            'tags': tags,
             'uploader': uploader_id,
             'uploader_id': uploader_id,
             'uploader_url': uploader_url,
