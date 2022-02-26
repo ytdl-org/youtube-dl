@@ -4,6 +4,7 @@ import re
 
 from .common import InfoExtractor
 from ..utils import (
+    base_url,
     determine_ext,
     ExtractorError,
     int_or_none,
@@ -27,7 +28,27 @@ class RedTubeIE(InfoExtractor):
             'duration': 596,
             'view_count': int,
             'age_limit': 18,
-        }
+        },
+        'skip': 'private video',
+    }, {
+        'url': 'https://www.redtube.com/38864951',
+        'md5': '4fba70cbca3aefd25767ab4b523c9878',
+        'info_dict': {
+            'id': '38864951',
+            'ext': 'mp4',
+            'title': 'Public Sex on the Balcony in Freezing Paris! Amateur Couple LeoLulu',
+            'description': 'Watch video Public Sex on the Balcony in Freezing Paris! Amateur Couple LeoLulu on Redtube, home of free Blowjob porn videos and Blonde sex movies online. Video length: (10:46) - Uploaded by leolulu - Verified User - Starring Pornstar: Leolulu',
+            'upload_date': '20210111',
+            'timestamp': 1610343109,
+            'duration': 646,
+            'view_count': int,
+            'age_limit': 18,
+            'thumbnail': r're:https://\wi-ph\.rdtcdn\.com/videos/.+/.+\.jpg',
+            'tags': ['Teens (18+)', 'Blowjob', 'Amateur', 'Public', 'Cumshot', 'Blonde', 'POV', 'HD', 'Verified Amateurs', 'French', 'Big Ass', 'Big Dick'],
+            'uploader': 'leolulu',
+            'uploader_id': 'leolulu',
+            'uploader_url': 'https://www.redtube.com/users/leolulu'
+        },
     }, {
         'url': 'http://embed.redtube.com/?bgcolor=000000&id=1443286',
         'only_matching': True,
@@ -46,6 +67,9 @@ class RedTubeIE(InfoExtractor):
         video_id = self._match_id(url)
         webpage = self._download_webpage(
             'http://www.redtube.com/%s' % video_id, video_id)
+        oneline_webpage=""
+        for line in webpage:
+            oneline_webpage+=line.rstrip('\n')
 
         ERRORS = (
             (('video-deleted-info', '>This video has been removed'), 'has been removed'),
@@ -84,23 +108,33 @@ class RedTubeIE(InfoExtractor):
                 r'mediaDefinition["\']?\s*:\s*(\[.+?}\s*\])', webpage,
                 'media definitions', default='{}'),
             video_id, fatal=False)
-        if medias and isinstance(medias, list):
-            for media in medias:
+        for media in medias if isinstance(medias, list) else []:
+            format_url = url_or_none(media.get('videoUrl'))
+            if not format_url:
+                continue
+            format_id = media.get('format')
+            quality = media.get('quality')
+            if format_id == 'hls' or (format_id == 'mp4' and not quality):
+                more_media = self._download_json(format_url, video_id, fatal=False)
+            else:
+                more_media = [media]
+            for media in more_media if isinstance(more_media, list) else []:
                 format_url = url_or_none(media.get('videoUrl'))
                 if not format_url:
                     continue
-                if media.get('format') == 'hls' or determine_ext(format_url) == 'm3u8':
+                format_id = media.get('format')
+                if format_id == 'hls' or determine_ext(format_url) == 'm3u8':
                     formats.extend(self._extract_m3u8_formats(
                         format_url, video_id, 'mp4',
-                        entry_protocol='m3u8_native', m3u8_id='hls',
+                        entry_protocol='m3u8_native', m3u8_id=format_id or 'hls',
                         fatal=False))
-                    continue
-                format_id = media.get('quality')
-                formats.append({
-                    'url': format_url,
-                    'format_id': format_id,
-                    'height': int_or_none(format_id),
-                })
+                else:
+                    format_id = media.get('quality')
+                    formats.append({
+                        'url': format_url,
+                        'format_id': format_id,
+                        'height': int_or_none(format_id),
+                    })
         if not formats:
             video_url = self._html_search_regex(
                 r'<source src="(.+?)" type="video/mp4">', webpage, 'video URL')
@@ -119,10 +153,15 @@ class RedTubeIE(InfoExtractor):
              r'<span[^>]*>VIEWS</span>\s*</td>\s*<td>\s*([\d,.]+)',
              r'<span[^>]+\bclass=["\']video_view_count[^>]*>\s*([\d,.]+)'),
             webpage, 'view count', default=None))
-
-        # No self-labeling, but they describe themselves as
-        # "Home of Videos Porno"
-        age_limit = 18
+        tags = re.findall(r'<a.+?class="item video_carousel_item video_carousel_category".+?>(?P<tag>.+?)<', webpage)
+        uploader_data = re.search(r'<a class="video-infobox-link" href="(?P<uploader_url>.+?)".+?>(?P<uploader>.+?)</a>', webpage)
+        actors_info = re.findall(r'<div class ="pornstar-name pornstarPopupWrapper">.+?<a.+?href="(?P<actor_url>.+?)">(?P<actor_name>.+?)<', oneline_webpage)
+        actors = []
+        for actor_tuple in actors_info:
+            actors.append({
+                'given_name': actor_tuple[1],
+                'url': actor_tuple[0],
+            })
 
         return merge_dicts(info, {
             'id': video_id,
@@ -131,6 +170,11 @@ class RedTubeIE(InfoExtractor):
             'upload_date': upload_date,
             'duration': duration,
             'view_count': view_count,
-            'age_limit': age_limit,
+            'age_limit': 18,
             'formats': formats,
+            'tags': tags,
+            'uploader': uploader_data.group('uploader'),
+            'uploader_id': uploader_data.group('uploader'),
+            'uploader_url': base_url(url)[:-1]+uploader_data.group('uploader_url'),
+            'actors': actors,
         })
