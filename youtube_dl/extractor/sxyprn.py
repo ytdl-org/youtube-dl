@@ -84,6 +84,7 @@ class SxyPrnIE(InfoExtractor):
             'age_limit': 18,
             'ext': 'mp4',
             'tags': tags,
+            'creator': uploader,
             'uploader': uploader,
             'uploader_id': uploader,
             'uploader_url': uploader_url,
