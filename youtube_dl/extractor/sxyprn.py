@@ -26,7 +26,7 @@ class SxyPrnIE(InfoExtractor):
             'uploader_id': 'SmokeCrumb',
             'uploader_url': 'https://sxyprn.com/blog/608a6b540ee7b/0.html',
             'actors': [{'given_name': 'Nicole Love', 'url': 'https://sxyprn.com/Nicole-Love.html'}, {'given_name': 'Cindy Shine', 'url': 'https://sxyprn.com/Cindy-Shine.html'}],
-            'views': int,
+            'view_count': int,
         },
         'params': {
             'skip_download': True,
@@ -62,17 +62,18 @@ class SxyPrnIE(InfoExtractor):
         duration = parse_duration(self._search_regex(
             r'duration\s*:\s*<[^>]+>([\d:]+)', webpage, 'duration',
             default=None))
-        tags = self._search_regex(r'<meta name="keywords".+content="(?P<tags>.+)"', webpage, 'tags', group='tags').split(', ')
-        uploader = self._search_regex(r'<div class=\'pes_author_div pes_edit_div transition\'.+?>.+?<span class=\'a_name\'>(?P<uploader>.+?)<', webpage, 'uploader', group='uploader')
+        tags = self._search_regex(r'<meta name="keywords".+content="(?P<tags>.+)"', webpage, 'tags', group='tags', default='').split(', ')
+        uploader = self._search_regex(r'<div class=\'pes_author_div pes_edit_div transition\'.+?>.+?<span class=\'a_name\'>(?P<uploader>.+?)<', webpage, 'uploader', group='uploader', default=None)
         uploader_url = urljoin(url, self._search_regex(r'<div class=\'pes_author_div pes_edit_div transition\'.+?><a href=\'(?P<uploader_url>.+?)\'.+?<span class=\'a_name\'>(?P<uploader>.+?)<', webpage, 'uploader_url', group='uploader_url'))
         actors_data = re.findall(r'<a href=\'(?P<actor_url>.+?)\' class=\'tdn htag_rel_a\'><div class=\'htag_rel\'><span>·</span><b>(?P<actor_name>.+?)</b>', webpage)
         actors = []
-        for actor_tuple in actors_data:
-            actors.append({
-                'given_name': actor_tuple[1],
-                'url': urljoin(url, actor_tuple[0])
-            })
-        views = int(self._search_regex(r'<div class=\'post_control_time\'>.+?</strong> (?P<views>.+) views</div>', webpage, 'views', group='views'))
+        if actors_data != []:
+            for actor_tuple in actors_data:
+                actors.append({
+                    'given_name': actor_tuple[1],
+                    'url': urljoin(url, actor_tuple[0])
+                })
+        views = int(self._search_regex(r'<div class=\'post_control_time\'>.+?</strong> (?P<views>.+) views</div>', webpage, 'views', group='views', default=0))
 
         return {
             'id': video_id,
@@ -83,9 +84,10 @@ class SxyPrnIE(InfoExtractor):
             'age_limit': 18,
             'ext': 'mp4',
             'tags': tags,
+            'creator': uploader,
             'uploader': uploader,
             'uploader_id': uploader,
             'uploader_url': uploader_url,
             'actors': actors,
-            'views': views,
+            'view_count': views,
         }
