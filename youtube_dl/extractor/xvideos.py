@@ -25,14 +25,15 @@ class XVideosIE(InfoExtractor):
                         (?P<id>[0-9]+)
                     '''
     _TESTS = [{
-        'url': 'http://www.xvideos.com/video4588838/biker_takes_his_girl',
-        'md5': '14cea69fcb84db54293b1e971466c2e1',
+        'url': 'https://www.xvideos.com/video23686408/le_ragazze_universitarie_provano_cose_nuove',
+        'md5': '69638dcd63e14f587fb5b6efc932ccc3',
         'info_dict': {
-            'id': '4588838',
+            'id': '23686408',
             'ext': 'mp4',
-            'title': 'Biker Takes his Girl',
-            'duration': 108,
+            'title': 'College Girls try new things',
+            'duration': 277,
             'age_limit': 18,
+            'tags': ['teen', 'amateur', 'college', 'dorm', '18', 'sorority'],
         }
     }, {
         'url': 'https://flashservice.xvideos.com/embedframe/4588838',
@@ -137,6 +138,8 @@ class XVideosIE(InfoExtractor):
 
         self._sort_formats(formats)
 
+        tags = self._search_regex(r'<meta name="keywords" content="xvideos,xvideos\.com, x videos,x video,porn,video,videos,(?P<tag>.+?)"', webpage, 'tags', group='tag').split(',')
+
         return {
             'id': video_id,
             'formats': formats,
@@ -144,4 +147,5 @@ class XVideosIE(InfoExtractor):
             'duration': duration,
             'thumbnails': thumbnails,
             'age_limit': 18,
+            'tags': tags,
         }
