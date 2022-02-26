@@ -102,7 +102,7 @@ class XNXXIE(InfoExtractor):
         uploader_data = re.findall(r'<a class=".+?-plate" href="(?P<uploader_url>.+?)">(?P<uploader_name>.+?)</a>', webpage)
         uploader_id = ''
         uploader_url = ''
-        if uploader_data!=[]:
+        if uploader_data != []:
             uploader_id = uploader_data[0][1]
             uploader_url = uploader_data[0][0]
 
@@ -114,7 +114,7 @@ class XNXXIE(InfoExtractor):
                     'given_name': actor_tuple[1],
                     'url': urljoin(url, actor_tuple[0]),
                 })
-        
+
         rating = float_or_none(self._search_regex(r'<span class="rating-box value">(?P<rating>.+?)%</span>', webpage, 'rating', group='rating'))
 
         return {
