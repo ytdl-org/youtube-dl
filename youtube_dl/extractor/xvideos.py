@@ -146,7 +146,7 @@ class XVideosIE(InfoExtractor):
 
         self._sort_formats(formats)
 
-        tags = self._search_regex(r'<meta name="keywords" content="xvideos,xvideos\.com, x videos,x video,porn,video,videos,(?P<tag>.+?)"', webpage, 'tags', group='tag').split(',')
+        tags = self._search_regex(r'<meta name="keywords" content="xvideos,xvideos\.com, x videos,x video,porn,video,videos,(?P<tag>.+?)"', webpage, 'tags', group='tag', default='').split(',')
 
         creator_data = re.findall(r'<a href="(?P<creator_url>.+?)" class="btn btn-default label main uploader-tag hover-name"><span class="name">(?P<creator>.+?)<', webpage)
         creator = creator_data[0][1]
@@ -160,7 +160,7 @@ class XVideosIE(InfoExtractor):
                 'url': urljoin(url, actor_tuple[0]),
             })
 
-        views = self._search_regex(r'<strong class="mobile-hide">(?P<views>.+?)<', webpage, 'views', group='views')
+        views = self._search_regex(r'<strong class="mobile-hide">(?P<views>.+?)<', webpage, 'views', group='views', default=0)
 
         return {
             'id': video_id,
