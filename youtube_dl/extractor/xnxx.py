@@ -126,6 +126,7 @@ class XNXXIE(InfoExtractor):
             'age_limit': 18,
             'formats': formats,
             'tags': tags,
+            'creator': uploader_id,
             'uploader': uploader_id,
             'uploader_id': uploader_id,
             'uploader_url': uploader_url,
