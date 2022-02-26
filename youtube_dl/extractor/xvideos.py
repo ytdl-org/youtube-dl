@@ -10,6 +10,7 @@ from ..utils import (
     ExtractorError,
     int_or_none,
     parse_duration,
+    urljoin,
 )
 
 
@@ -25,15 +26,16 @@ class XVideosIE(InfoExtractor):
                         (?P<id>[0-9]+)
                     '''
     _TESTS = [{
-        'url': 'https://www.xvideos.com/video23686408/le_ragazze_universitarie_provano_cose_nuove',
-        'md5': '69638dcd63e14f587fb5b6efc932ccc3',
+        'url': 'https://www.xvideos.com/video50011247/when_girls_play_-_adriana_chechik_abella_danger_-_tradimento_-_twistys',
+        'md5': 'aa54f96311768b3a8bfe54b8c8fda070',
         'info_dict': {
-            'id': '23686408',
+            'id': '50011247',
             'ext': 'mp4',
-            'title': 'College Girls try new things',
-            'duration': 277,
+            'title': 'When Girls Play - (Adriana Chechik, Abella Danger) - Betrayal - Twistys',
+            'duration': 720,
             'age_limit': 18,
-            'tags': ['teen', 'amateur', 'college', 'dorm', '18', 'sorority'],
+            'tags': ['lesbian', 'teen', 'hardcore', 'latina', 'rough', 'squirt', 'big-ass', 'cheater', 'twistys', 'cheat', 'ass-play', 'when-girls-play'],
+            'creator': 'Twistys',
         }
     }, {
         'url': 'https://flashservice.xvideos.com/embedframe/4588838',
@@ -140,6 +142,8 @@ class XVideosIE(InfoExtractor):
 
         tags = self._search_regex(r'<meta name="keywords" content="xvideos,xvideos\.com, x videos,x video,porn,video,videos,(?P<tag>.+?)"', webpage, 'tags', group='tag').split(',')
 
+        creator = self._search_regex(r'<span class="name">(?P<creator>.+?)<', webpage, 'creator', group='creator')
+
         return {
             'id': video_id,
             'formats': formats,
@@ -148,4 +152,5 @@ class XVideosIE(InfoExtractor):
             'thumbnails': thumbnails,
             'age_limit': 18,
             'tags': tags,
+            'creator': creator,
         }
