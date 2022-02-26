@@ -37,6 +37,9 @@ class XVideosIE(InfoExtractor):
             'age_limit': 18,
             'tags': ['lesbian', 'teen', 'hardcore', 'latina', 'rough', 'squirt', 'big-ass', 'cheater', 'twistys', 'cheat', 'ass-play', 'when-girls-play'],
             'creator': 'Twistys',
+            'uploader': 'Twistys',
+            'uploader_id': 'Twistys',
+            'uploader_url': '/channels/twistys1',
             'actors': [{'given_name': 'Adriana Chechik', 'url': 'https://www.xvideos.com/pornstars/adriana-chechik'}, {'given_name': 'Abella Danger', 'url': 'https://www.xvideos.com/pornstars/abella-danger'}],
             'views': int,
         }
@@ -145,7 +148,9 @@ class XVideosIE(InfoExtractor):
 
         tags = self._search_regex(r'<meta name="keywords" content="xvideos,xvideos\.com, x videos,x video,porn,video,videos,(?P<tag>.+?)"', webpage, 'tags', group='tag').split(',')
 
-        creator = self._search_regex(r'<span class="name">(?P<creator>.+?)<', webpage, 'creator', group='creator')
+        creator_data = re.findall(r'<a href="(?P<creator_url>.+?)" class="btn btn-default label main uploader-tag hover-name"><span class="name">(?P<creator>.+?)<', webpage)
+        creator = creator_data[0][1]
+        uploader_url = creator_data[0][0]
 
         actors_data = re.findall(r'href="(?P<actor_url>/pornstars/.+?)" class="btn btn-default label profile hover-name"><span class="name">(?P<actor_name>.+?)</span>', webpage)
         actors = []
@@ -166,6 +171,9 @@ class XVideosIE(InfoExtractor):
             'age_limit': 18,
             'tags': tags,
             'creator': creator,
+            'uploader': creator,
+            'uploader_id': creator,
+            'uploader_url': uploader_url,
             'actors': actors,
             'views': str_to_int(views),
         }
