@@ -41,7 +41,7 @@ class XVideosIE(InfoExtractor):
             'uploader_id': 'Twistys',
             'uploader_url': '/channels/twistys1',
             'actors': [{'given_name': 'Adriana Chechik', 'url': 'https://www.xvideos.com/pornstars/adriana-chechik'}, {'given_name': 'Abella Danger', 'url': 'https://www.xvideos.com/pornstars/abella-danger'}],
-            'views': int,
+            'view_count': int,
         }
     }, {
         'url': 'https://flashservice.xvideos.com/embedframe/4588838',
@@ -175,5 +175,5 @@ class XVideosIE(InfoExtractor):
             'uploader_id': creator,
             'uploader_url': uploader_url,
             'actors': actors,
-            'views': str_to_int(views),
+            'view_count': str_to_int(views),
         }
