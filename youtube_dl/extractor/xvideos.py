@@ -154,11 +154,12 @@ class XVideosIE(InfoExtractor):
 
         actors_data = re.findall(r'href="(?P<actor_url>/pornstars/.+?)" class="btn btn-default label profile hover-name"><span class="name">(?P<actor_name>.+?)</span>', webpage)
         actors = []
-        for actor_tuple in actors_data:
-            actors.append({
-                'given_name': actor_tuple[1],
-                'url': urljoin(url, actor_tuple[0]),
-            })
+        if actors_data is not None:
+            for actor_tuple in actors_data:
+                actors.append({
+                    'given_name': actor_tuple[1],
+                    'url': urljoin(url, actor_tuple[0]),
+                })
 
         views = self._search_regex(r'<strong class="mobile-hide">(?P<views>.+?)<', webpage, 'views', group='views', default=0)
 
