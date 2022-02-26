@@ -6,6 +6,7 @@ import re
 from .common import InfoExtractor
 from ..utils import (
     determine_ext,
+    float_or_none,
     int_or_none,
     NO_DEFAULT,
     str_to_int,
@@ -100,19 +101,19 @@ class XNXXIE(InfoExtractor):
         uploader_data = re.findall(r'<a class=".+?-plate" href="(?P<uploader_url>.+?)">(?P<uploader_name>.+?)</a>', webpage)
         uploader_id = ''
         uploader_url = ''
-        if uploader_data is not None:
+        if uploader_data!=[]:
             uploader_id = uploader_data[0][1]
             uploader_url = uploader_data[0][0]
 
         actors_data = re.findall(r'<a class="is-pornstar" href="(?P<actor_url>.+?)">(?P<actor_name>.+?)</a>', webpage)
         actors = []
-        if actors_data is not None:
+        if actors_data != []:
             for actor_tuple in actors_data:
                 actors.append({
                     'given_name': actor_tuple[1],
                     'url': urljoin(url, actor_tuple[0]),
                 })
-
+        
         return {
             'id': video_id,
             'title': title,
