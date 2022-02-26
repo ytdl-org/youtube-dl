@@ -79,7 +79,7 @@ class XNXXIE(InfoExtractor):
 
         tags = self._search_regex(r'<meta name="keywords" content="porn,porn movies,free porn,free porn movies,sex,porno,free sex,tube porn,tube,videos,full porn,xxnx,xnxxx,xxx,pussy,(?P<tags>.+?)"', webpage, 'tags', group='tags', default='').split(',')
 
-        uploader_data = re.findall(r'<a class="gold-plate" href="(?P<uploader_url>.+?)">(?P<uploader_name>.+?)</a>', webpage)
+        uploader_data = re.findall(r'<a class=".+?-plate" href="(?P<uploader_url>.+?)">(?P<uploader_name>.+?)</a>', webpage)
         uploader_id = ''
         uploader_url = ''
         if uploader_data is not None:
