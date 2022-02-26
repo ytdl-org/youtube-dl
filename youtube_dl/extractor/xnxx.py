@@ -16,7 +16,7 @@ class XNXXIE(InfoExtractor):
     _VALID_URL = r'https?://(?:video|www)\.xnxx\.com/video-?(?P<id>[0-9a-z]+)/'
     _TESTS = [{
         'url': 'http://www.xnxx.com/video-55awb78/skyrim_test_video',
-        'md5': '7583e96c15c0f21e9da3453d9920fbba',
+        'md5': '73c071a361a09aae7e7d60008221fd13',
         'info_dict': {
             'id': '55awb78',
             'ext': 'mp4',
@@ -73,8 +73,8 @@ class XNXXIE(InfoExtractor):
             'ThumbUrl', fatal=False) or get('ThumbUrl169', fatal=False)
         duration = int_or_none(self._og_search_property('duration', webpage))
         view_count = str_to_int(self._search_regex(
-            r'id=["\']nb-views-number[^>]+>([\d,.]+)', webpage, 'view count',
-            default=None))
+            r'-.+?\t+- (?P<views>.+?) <span class="icon-f icf-eye">', webpage, 'view count', group='views',
+            default=0))
 
         uploader_data = re.findall(r'<a class="gold-plate" href="(?P<uploader_url>.+?)">(?P<uploader_name>.+?)</a>', webpage)
         uploader_id = ''
