@@ -62,7 +62,7 @@ class SxyPrnIE(InfoExtractor):
         duration = parse_duration(self._search_regex(
             r'duration\s*:\s*<[^>]+>([\d:]+)', webpage, 'duration',
             default=None))
-        tags = self._search_regex(r'<meta name="keywords".+content="(?P<tags>.+)"', webpage, 'tags', group='tags', default=None).split(', ')
+        tags = self._search_regex(r'<meta name="keywords".+content="(?P<tags>.+)"', webpage, 'tags', group='tags', default='').split(', ')
         uploader = self._search_regex(r'<div class=\'pes_author_div pes_edit_div transition\'.+?>.+?<span class=\'a_name\'>(?P<uploader>.+?)<', webpage, 'uploader', group='uploader', default=None)
         uploader_url = urljoin(url, self._search_regex(r'<div class=\'pes_author_div pes_edit_div transition\'.+?><a href=\'(?P<uploader_url>.+?)\'.+?<span class=\'a_name\'>(?P<uploader>.+?)<', webpage, 'uploader_url', group='uploader_url'))
         actors_data = re.findall(r'<a href=\'(?P<actor_url>.+?)\' class=\'tdn htag_rel_a\'><div class=\'htag_rel\'><span>·</span><b>(?P<actor_name>.+?)</b>', webpage)
