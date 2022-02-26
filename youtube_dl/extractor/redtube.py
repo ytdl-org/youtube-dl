@@ -12,6 +12,7 @@ from ..utils import (
     str_to_int,
     unified_strdate,
     url_or_none,
+    urljoin,
 )
 
 
@@ -67,6 +68,7 @@ class RedTubeIE(InfoExtractor):
         video_id = self._match_id(url)
         webpage = self._download_webpage(
             'http://www.redtube.com/%s' % video_id, video_id)
+        # Needed for actors regexes
         oneline_webpage=""
         for line in webpage:
             oneline_webpage+=line.rstrip('\n')
@@ -175,6 +177,6 @@ class RedTubeIE(InfoExtractor):
             'tags': tags,
             'uploader': uploader_data.group('uploader'),
             'uploader_id': uploader_data.group('uploader'),
-            'uploader_url': base_url(url)[:-1]+uploader_data.group('uploader_url'),
+            'uploader_url': urljoin(url, uploader_data.group('uploader_url')),
             'actors': actors,
         })
