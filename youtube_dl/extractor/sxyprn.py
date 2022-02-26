@@ -67,11 +67,12 @@ class SxyPrnIE(InfoExtractor):
         uploader_url = urljoin(url, self._search_regex(r'<div class=\'pes_author_div pes_edit_div transition\'.+?><a href=\'(?P<uploader_url>.+?)\'.+?<span class=\'a_name\'>(?P<uploader>.+?)<', webpage, 'uploader_url', group='uploader_url'))
         actors_data = re.findall(r'<a href=\'(?P<actor_url>.+?)\' class=\'tdn htag_rel_a\'><div class=\'htag_rel\'><span>·</span><b>(?P<actor_name>.+?)</b>', webpage)
         actors = []
-        for actor_tuple in actors_data:
-            actors.append({
-                'given_name': actor_tuple[1],
-                'url': urljoin(url, actor_tuple[0])
-            })
+        if actors_data is not None:
+            for actor_tuple in actors_data:
+                actors.append({
+                    'given_name': actor_tuple[1],
+                    'url': urljoin(url, actor_tuple[0])
+                })
         views = int(self._search_regex(r'<div class=\'post_control_time\'>.+?</strong> (?P<views>.+) views</div>', webpage, 'views', group='views'))
 
         return {
