@@ -10,6 +10,7 @@ from ..utils import (
     ExtractorError,
     int_or_none,
     parse_duration,
+    str_to_int,
     urljoin,
 )
 
@@ -37,6 +38,7 @@ class XVideosIE(InfoExtractor):
             'tags': ['lesbian', 'teen', 'hardcore', 'latina', 'rough', 'squirt', 'big-ass', 'cheater', 'twistys', 'cheat', 'ass-play', 'when-girls-play'],
             'creator': 'Twistys',
             'actors': [{'given_name': 'Adriana Chechik', 'url': 'https://www.xvideos.com/pornstars/adriana-chechik'}, {'given_name': 'Abella Danger', 'url': 'https://www.xvideos.com/pornstars/abella-danger'}],
+            'views': int,
         }
     }, {
         'url': 'https://flashservice.xvideos.com/embedframe/4588838',
@@ -153,6 +155,8 @@ class XVideosIE(InfoExtractor):
                 'url': urljoin(url, actor_tuple[0]),
             })
 
+        views = self._search_regex(r'<strong class="mobile-hide">(?P<views>.+?)<', webpage, 'views', group='views')
+
         return {
             'id': video_id,
             'formats': formats,
@@ -163,4 +167,5 @@ class XVideosIE(InfoExtractor):
             'tags': tags,
             'creator': creator,
             'actors': actors,
+            'views': str_to_int(views),
         }
