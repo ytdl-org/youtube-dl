@@ -25,6 +25,9 @@ class XNXXIE(InfoExtractor):
             'duration': 469,
             'view_count': int,
             'age_limit': 18,
+            'uploader': 'Glurp',
+            'uploader_id': 'Glurp',
+            'uploader_url': '/porn-maker/glurp',
         },
     }, {
         'url': 'http://video.xnxx.com/video1135332/lida_naked_funny_actress_5_',
@@ -73,6 +76,13 @@ class XNXXIE(InfoExtractor):
             r'id=["\']nb-views-number[^>]+>([\d,.]+)', webpage, 'view count',
             default=None))
 
+        uploader_data = re.findall(r'<a class="gold-plate" href="(?P<uploader_url>.+?)">(?P<uploader_name>.+?)</a>', webpage)
+        uploader_id = ''
+        uploader_url = ''
+        if uploader_data is not None:
+            uploader_id = uploader_data[0][1]
+            uploader_url = uploader_data[0][0]
+
         return {
             'id': video_id,
             'title': title,
@@ -81,4 +91,7 @@ class XNXXIE(InfoExtractor):
             'view_count': view_count,
             'age_limit': 18,
             'formats': formats,
+            'uploader': uploader_id,
+            'uploader_id': uploader_id,
+            'uploader_url': uploader_url,
         }
