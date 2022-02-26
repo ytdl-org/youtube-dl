@@ -9,6 +9,7 @@ from ..utils import (
     int_or_none,
     NO_DEFAULT,
     str_to_int,
+    urljoin,
 )
 
 
@@ -30,6 +31,23 @@ class XNXXIE(InfoExtractor):
             'uploader_id': 'Glurp',
             'uploader_url': '/porn-maker/glurp',
         },
+    }, {
+        'url': 'https://www.xnxx.com/video-h46klf8/babes_-_come_back_to_bed_starring_abella_danger_and_darcie_dolce_clip',
+        'md5': 'b8b4a594b4091de46ce05d0a9d45317c',
+        'info_dict': {
+            'id': 'h46klf8',
+            'ext': 'mp4',
+            'title': 'Babes - Come Back to Bed  starring  Abella Danger and Darcie Dolce clip',
+            'thumbnail': r're:^https?://.*\.jpg',
+            'duration': 480,
+            'view_count': int,
+            'age_limit': 18,
+            'tags': ['lesbicas', 'darcie dolce', 'darcie dolce lesbian', 'abella danger lesbian', 'babes', 'lesb', 'abella danger', 'mmf', 'come', 'darcie', 'lesbianas', 'mulher chupando peito da outra', 'abella', 'girl on girl', 'darcie dolce abella danger', 'chupando peitos', 'para', 'lesbian', 'chupando peitos lesbicas', 'black lesbians'],
+            'uploader': 'Babes Network',
+            'uploader_id': 'Babes Network',
+            'uploader_url': '/porn-maker/babes3',
+            'actors': [{'given_name': 'darcie dolce', 'url': 'https://www.xnxx.com/search/darcie%20dolce'}, {'given_name': 'darcie dolce lesbian', 'url': 'https://www.xnxx.com/search/darcie%20dolce%20lesbian'}, {'given_name': 'abella danger lesbian', 'url': 'https://www.xnxx.com/search/abella%20danger%20lesbian'}, {'given_name': 'abella danger', 'url': 'https://www.xnxx.com/search/abella%20danger'}, {'given_name': 'darcie dolce abella danger', 'url': 'https://www.xnxx.com/search/darcie%20dolce%20abella%20danger'}],
+        }
     }, {
         'url': 'http://video.xnxx.com/video1135332/lida_naked_funny_actress_5_',
         'only_matching': True,
@@ -86,6 +104,15 @@ class XNXXIE(InfoExtractor):
             uploader_id = uploader_data[0][1]
             uploader_url = uploader_data[0][0]
 
+        actors_data = re.findall(r'<a class="is-pornstar" href="(?P<actor_url>.+?)">(?P<actor_name>.+?)</a>', webpage)
+        actors = []
+        if actors_data is not None:
+            for actor_tuple in actors_data:
+                actors.append({
+                    'given_name': actor_tuple[1],
+                    'url': urljoin(url, actor_tuple[0]),
+                })
+
         return {
             'id': video_id,
             'title': title,
@@ -98,4 +125,5 @@ class XNXXIE(InfoExtractor):
             'uploader': uploader_id,
             'uploader_id': uploader_id,
             'uploader_url': uploader_url,
+            'actors': actors,
         }
