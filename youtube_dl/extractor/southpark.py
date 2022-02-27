@@ -13,10 +13,11 @@ class SouthParkIE(MTVServicesInfoExtractor):
     _TESTS = [{
         'url': 'https://southpark.cc.com/video-clips/d7wr06/south-park-you-all-agreed-to-counseling',
         'info_dict': {
+            'id': '31929ad5-8269-11eb-8774-70df2f866ace',
             'ext': 'mp4',
             'title': 'You All Agreed to Counseling',
             'description': 'Kenny, Cartman, Stan, and Kyle visit Mr. Mackey and ask for his help getting Mrs. Nelson to come back. Mr. Mackey reveals the only way to get things back to normal is to get the teachers vaccinated.',
-            'timestamp': 1615352400,
+            'timestamp': 1615377600,
             'upload_date': '20210310',
         },
     }, {
@@ -68,6 +69,7 @@ class SouthParkDeIE(SouthParkIE):
             'timestamp': 1380160800,
             'upload_date': '20130926',
         },
+        'skip': 'Geo-restricted',
     }, {
         # non-ASCII characters in initial URL
         'url': 'http://www.southpark.de/alle-episoden/s18e09-hashtag-aufwärmen',
@@ -76,6 +78,7 @@ class SouthParkDeIE(SouthParkIE):
             'description': 'Kyle will mit seinem kleinen Bruder Ike Videospiele spielen. Als der nicht mehr mit ihm spielen will, hat Kyle Angst, dass er die Kids von heute nicht mehr versteht.',
         },
         'playlist_count': 3,
+        'skip': 'Geo-restricted',
     }, {
         # non-ASCII characters in redirect URL
         'url': 'http://www.southpark.de/alle-episoden/s18e09',
@@ -84,6 +87,7 @@ class SouthParkDeIE(SouthParkIE):
             'description': 'Kyle will mit seinem kleinen Bruder Ike Videospiele spielen. Als der nicht mehr mit ihm spielen will, hat Kyle Angst, dass er die Kids von heute nicht mehr versteht.',
         },
         'playlist_count': 3,
+        'skip': 'Geo-restricted',
     }, {
         'url': 'http://www.southpark.de/collections/2476/superhero-showdown/1',
         'only_matching': True,
@@ -102,6 +106,7 @@ class SouthParkNlIE(SouthParkIE):
             'description': 'Stan is addicted to the new Terrance and Phillip mobile game.',
         },
         'playlist_mincount': 3,
+        'skip': 'Geo-restricted',
     }]
 
 
@@ -117,6 +122,7 @@ class SouthParkDkIE(SouthParkIE):
             'description': 'Butters is convinced he\'s living in a virtual reality.',
         },
         'playlist_mincount': 3,
+        'skip': 'Geo-restricted',
     }, {
         'url': 'http://www.southparkstudios.dk/collections/2476/superhero-showdown/1',
         'only_matching': True,
