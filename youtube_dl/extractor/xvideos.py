@@ -152,8 +152,7 @@ class XVideosIE(InfoExtractor):
         creator = ''
         uploader_url = ''
         if creator_data != []:
-            creator = creator_data[0][1]
-            uploader_url = creator_data[0][0]
+            uploader_url, creator = creator_data[0][0:2]
 
         actors_data = re.findall(r'href="(?P<actor_url>/pornstars/.+?)" class="btn btn-default label profile hover-name"><span class="name">(?P<actor_name>.+?)</span>', webpage)
         actors = []
