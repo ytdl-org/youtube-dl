@@ -149,8 +149,8 @@ class XVideosIE(InfoExtractor):
         tags = self._search_regex(r'<meta name="keywords" content="xvideos,xvideos\.com, x videos,x video,porn,video,videos,(?P<tag>.+?)"', webpage, 'tags', group='tag', default='').split(',')
 
         creator_data = re.findall(r'<a href="(?P<creator_url>.+?)" class="btn btn-default label main uploader-tag hover-name"><span class="name">(?P<creator>.+?)<', webpage)
-        creator = ''
-        uploader_url = ''
+        creator = None
+        uploader_url = None
         if creator_data != []:
             uploader_url, creator = creator_data[0][0:2]
 
