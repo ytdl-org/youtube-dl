@@ -103,8 +103,7 @@ class XNXXIE(InfoExtractor):
         uploader_id = ''
         uploader_url = ''
         if uploader_data != []:
-            uploader_id = uploader_data[0][1]
-            uploader_url = uploader_data[0][0]
+            uploader_url, uploader_id = uploader_data[0][0:2]
 
         actors_data = re.findall(r'<a class="is-pornstar" href="(?P<actor_url>.+?)">(?P<actor_name>.+?)</a>', webpage)
         actors = []
