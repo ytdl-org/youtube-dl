@@ -157,7 +157,7 @@ class MTVServicesInfoExtractor(InfoExtractor):
 
         description = strip_or_none(xpath_text(itemdoc, 'description'))
 
-        timestamp = timeconvert(xpath_text(itemdoc, 'pubDate'))
+        timestamp = timeconvert(xpath_text(itemdoc, 'pubDate') or xpath_text(itemdoc, 'airDate'))
 
         title_el = None
         if title_el is None:
