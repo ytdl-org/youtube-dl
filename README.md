@@ -52,6 +52,7 @@ Alternatively, refer to the [developer instructions](#developer-instructions) fo
     youtube-dl [OPTIONS] URL [URL...]
 
 # OPTIONS
+    ls                                   lists all the files in that directory
     -h, --help                           Print this help text and exit
     --version                            Print program version and exit
     -U, --update                         Update this program to latest version.
