@@ -301,6 +301,7 @@ Alternatively, refer to the [developer instructions](#developer-instructions) fo
                                          write anything to disk
     --skip-download                      Do not download the video
     -g, --get-url                        Simulate, quiet but print URL
+    --get-manifest-url                   Simulate, quiet but print manifest URL
     -e, --get-title                      Simulate, quiet but print title
     --get-id                             Simulate, quiet but print id
     --get-thumbnail                      Simulate, quiet but print thumbnail URL

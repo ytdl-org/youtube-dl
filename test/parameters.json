@@ -4,6 +4,7 @@
     "forcedescription": false, 
     "forcefilename": false, 
     "forceformat": false, 
+    "forcemanifesturl": false, 
     "forcethumbnail": false, 
     "forcetitle": false, 
     "forceurl": false, 
