@@ -1,23 +1,23 @@
 # coding: utf-8
 from __future__ import unicode_literals
 
-import datetime
 import hashlib
 import hmac
 import re
-from urllib.parse import urlencode
+from youtube_dl.compat import compat_urllib_parse_urlencode
 
 from .common import InfoExtractor
 from ..utils import (
     int_or_none,
     try_get,
+    ExtractorError,
+    dict_get,
 )
 
 
 class ZingMp3BaseIE(InfoExtractor):
-    _VALID_URL_TMPL = r'https?://(?:mp3\.zing|zingmp3)\.vn/(?P<type>(?:%s))/[^/]+/(?P<id>\w+)(?:\.html|\?)'
+    _VALID_URL_TMPL = r'https?://(?:mp3\.zing|zingmp3)\.vn/(?P<type>(?:%s))/[^/]+/(?P<id>\w+)($|\W)'
     _GEO_COUNTRIES = ['VN']
-    _IS_UPDATE_COOKIES = False
     _DOMAIN = 'https://zingmp3.vn'
     _SLUG_API = {
         'bai-hat': '/api/v2/page/get/song',
@@ -29,21 +29,18 @@ class ZingMp3BaseIE(InfoExtractor):
         'song_streaming': '/api/v2/song/get/streaming',
     }
 
-    _TIMESTAMP = str(int(datetime.datetime.now().timestamp()))
     _API_KEY = '88265e23d4284f25963e6eedac8fbfa3'
     _SECRET_KEY = b'2aa2d1c561e809b267f3638c4a307aab'
 
     def _extract_item(self, item, song_id, type_url, fatal):
         item_id = item.get('encodeId') or song_id
-        title = item.get('title') or item.get('alias')
+        title = dict_get(item, ('title', 'alias')) or item['title']
 
         if type_url == 'video-clip':
             source = item.get('streaming')
         else:
-            api = self.get_api_with_signature(name_api=self._SLUG_API.get('song_streaming'), param={
-                'ctime': self._TIMESTAMP,
-                'id': item_id})
-            source = self.download_json(api, item_id).get('data')
+            api = self.get_api_with_signature(name_api=self._SLUG_API.get('song_streaming'), param={'id': item_id})
+            source = self._download_json(api, video_id=item_id).get('data')
 
         formats = []
         for k, v in (source or {}).items():
@@ -83,10 +80,8 @@ class ZingMp3BaseIE(InfoExtractor):
 
         lyric = item.get('lyric')
         if not lyric:
-            api = self.get_api_with_signature(name_api=self._SLUG_API.get("lyric"), param={
-                'ctime': self._TIMESTAMP,
-                'id': item_id})
-            info_lyric = self.download_json(api, item_id)
+            api = self.get_api_with_signature(name_api=self._SLUG_API.get("lyric"), param={'id': item_id})
+            info_lyric = self._download_json(api, video_id=item_id)
             lyric = try_get(info_lyric, lambda x: x['data']['file'])
         subtitles = {
             'origin': [{
@@ -100,13 +95,13 @@ class ZingMp3BaseIE(InfoExtractor):
             'id': item_id,
             'title': title,
             'formats': formats,
-            'thumbnail': item.get('thumbnail') or item.get('thumbnailM'),
+            'thumbnail': try_get(item, lambda x: x['thumbnail']) or try_get(item, lambda x: x['thumbnailM']),
             'subtitles': subtitles,
-            'duration': int_or_none(item.get('duration')),
+            'duration': int_or_none(try_get(item, lambda x: x['duration'])),
             'track': title,
-            'artist': item.get('artistsNames') or item.get('artists_names'),
-            'album': album.get('name') or album.get('title'),
-            'album_artist': album.get('artistsNames') or album.get('artists_names'),
+            'artist': try_get(item, lambda x: x['artistsNames']) or try_get(item, lambda x: x['artists_names']),
+            'album': try_get(album, lambda x: x['name']) or try_get(album, lambda x: x['title']),
+            'album_artist': try_get(album, lambda x: x['artistsNames']) or try_get(album, lambda x: x['artists_names']),
         }
 
     def _real_extract(self, url):
@@ -114,44 +109,33 @@ class ZingMp3BaseIE(InfoExtractor):
 
         song_id = mobj.group('id')
         type_url = mobj.group('type')
+        api = self.get_api_with_signature(name_api=self._SLUG_API[type_url], param={'id': song_id})
 
-        api = self.get_api_with_signature(name_api=self._SLUG_API[type_url], param={
-            'ctime': self._TIMESTAMP,
-            'id': song_id})
-        info = self.download_json(api, song_id)
+        # Check the cookie file, if cookie file doesn't exist, create a dummy request to update the cookie
+        if not self._downloader.params.get('cookiefile'):
+            self._download_json(api, video_id=song_id, note='Dummy request to update cookie')
+
+        info = self._download_json(api, video_id=song_id)
+
+        if not info:
+            raise ExtractorError('Can not extract data.')
+
         return self._process_data(info.get('data'), song_id, type_url)
 
-    def download_json(self, api, video_id):
-        # For the first time making the request, we need to make one more temp request to update the cookie
-        # and the next time we don't need to do it.
-        # But if download with cookieFile, so we don't need to make one more temp request
-        if self._downloader.params.get('cookiefile'):
-            self._IS_UPDATE_COOKIES = True
-
-        if not self._IS_UPDATE_COOKIES:
-            self._download_json(api, video_id=video_id, note='Update cookies for request')
-            self._IS_UPDATE_COOKIES = True
-
-        return self._download_json(api, video_id=video_id)
-
     def get_api_with_signature(self, name_api, param):
-        text = ''
-        for k, v in param.items():
-            text += f'{k}={v}'
+        sha256 = self.sha256_params(''.join('%s=%s' % (k, v) for k, v in param.items()))
 
-        sha256 = self.get_hash256(text)
         data = {
-            'ctime': param.get('ctime'),
             'apiKey': self._API_KEY,
-            'sig': self.get_hmac512(f'{name_api}{sha256}')
+            'sig': self.hmac512_string('%s%s' % (name_api, sha256))
         }
         data.update(param)
-        return f'{self._DOMAIN}{name_api}?{urlencode(data)}'
+        return '%s%s?%s' % (self._DOMAIN, name_api, compat_urllib_parse_urlencode(data))
 
-    def get_hash256(self, string):
+    def sha256_params(self, string):
         return hashlib.sha256(string.encode('utf-8')).hexdigest()
 
-    def get_hmac512(self, string):
+    def hmac512_string(self, string):
         return hmac.new(self._SECRET_KEY, string.encode('utf-8'), hashlib.sha512).hexdigest()
 
 
