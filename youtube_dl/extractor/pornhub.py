@@ -22,7 +22,6 @@ from ..utils import (
     orderedSet,
     parse_count,
     remove_quotes,
-    str_to_int,
     update_url_query,
     urlencode_postdata,
     url_or_none,
