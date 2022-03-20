@@ -36,7 +36,7 @@ You can also use pip:
     
 If you want to be on the cutting edge, you can also install the master branch with pip:
 
-    sudo -H pip install --force-reinstall https://github.com/ytdl-org/youtube-dl/archive/master.zip
+    sudo -H pip install --force-reinstall https://github.com/ytdl-org/youtube-dl/archive/master.tar.gz
 
 This command will update youtube-dl if you have already installed it. See the [pypi page](https://pypi.python.org/pypi/youtube_dl) for more information.
 
