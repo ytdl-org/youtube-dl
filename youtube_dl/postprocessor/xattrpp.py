@@ -55,6 +55,11 @@ class XAttrMetadataPP(PostProcessor):
                     write_xattr(filename, xattrname, byte_value)
                     num_written += 1
 
+            self._hook_progress({
+                'status': 'postprocessed',
+                'postprocessor': self.__class__.__name__
+            })
+
             return [], info
 
         except XAttrUnavailableError as e:

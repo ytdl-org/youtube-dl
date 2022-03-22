@@ -33,6 +33,7 @@ class PostProcessor(object):
 
     def __init__(self, downloader=None):
         self._downloader = downloader
+        self._progress_hooks = []
 
     def set_downloader(self, downloader):
         """Sets the downloader for this PP."""
@@ -63,6 +64,15 @@ class PostProcessor(object):
 
     def _configuration_args(self, default=[]):
         return cli_configuration_args(self._downloader.params, 'postprocessor_args', default)
+
+    def _hook_progress(self, status):
+        for ph in self._progress_hooks:
+            ph(status)
+
+    def add_progress_hook(self, ph):
+        # See YoutubeDl.py (search for progress_hooks) for a description of
+        # this interface
+        self._progress_hooks.append(ph)
 
 
 class AudioConversionError(PostProcessingError):
