@@ -9,7 +9,7 @@ from ..utils import (
 
 
 class MujRozhlasIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:www\.)?mujrozhlas\.cz/(?P<id>[a-zA-Z0-9\-\/]+)'
+    _VALID_URL = r'https?://(?:www\.)?mujrozhlas\.cz/(?P<id>[a-zA-Z0-9/-]+)'
     _TESTS = [{
         'url': 'https://www.mujrozhlas.cz/meteor/meteor-o-nejvetsim-matematikovi-nekonecnem-vesmiru-skakajicim-pavoukovi-hrani-surikat',
         'info_dict': {
@@ -33,14 +33,16 @@ class MujRozhlasIE(InfoExtractor):
 
         webpage = self._download_webpage(url, audio_id)
 
-        content_id = self._html_search_regex(r'\"contentId\":\"(.+?)\"', webpage, 'content_id', default=None)
+        content_id = self._html_search_regex(r'\"contentId\":\"(.+?)\"', webpage, 'content_id')
         content_url = 'https://api.mujrozhlas.cz/episodes/' + content_id
 
         content = self._download_json(content_url, content_id)
-        audio_url = content['data']['attributes']['audioLinks'][0]['url']
-        duration = content['data']['attributes']['audioLinks'][0]['duration']
-        title = content['data']['attributes']['title']
-        description = clean_html(content['data']['attributes']['description'])
+        attrs = content['data']['attributes']
+        title = attrs['title']
+        audio_info = content['data']['attributes']['audioLinks'][0]
+        duration = audio_info.get('duration')
+        description = clean_html(attrs.get('description'))
+        audio_url = audio_info.get('url')
 
         return {
             'id': audio_id,
