@@ -1906,8 +1906,17 @@ class YoutubeDL(object):
 
         if not self.params.get('skip_download', False):
             try:
+                def checked_get_suitable_downloader(info_dict, params):
+                    ed_args = params.get('external_downloader_args')
+                    dler = get_suitable_downloader(info_dict, params)
+                    if ed_args and not params.get('external_downloader_args'):
+                        # external_downloader_args was cleared because external_downloader was rejected
+                        self.report_warning('Requested external downloader cannot be used: '
+                                            'ignoring --external-downloader-args.')
+                    return dler
+
                 def dl(name, info):
-                    fd = get_suitable_downloader(info, self.params)(self, self.params)
+                    fd = checked_get_suitable_downloader(info, self.params)(self, self.params)
                     for ph in self._progress_hooks:
                         fd.add_progress_hook(ph)
                     if self.params.get('verbose'):
