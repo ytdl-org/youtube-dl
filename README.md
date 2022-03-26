@@ -32,11 +32,11 @@ Windows users can [download an .exe file](https://yt-dl.org/latest/youtube-dl.ex
 
 You can also use pip:
 
-    sudo -H python -m pip install --upgrade youtube-dl
+    sudo -H python3 -m pip install --upgrade youtube-dl
     
 If you want to be on the cutting edge, you can also install the master branch with pip:
 
-    sudo -H python -m pip install --force-reinstall https://github.com/ytdl-org/youtube-dl/archive/master.tar.gz
+    sudo -H python3 -m pip install --force-reinstall https://github.com/ytdl-org/youtube-dl/archive/master.tar.gz
 
 This command will update youtube-dl if you have already installed it. See the [pypi page](https://pypi.python.org/pypi/youtube_dl) for more information.
 
