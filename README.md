@@ -38,6 +38,8 @@ If you want to be on the cutting edge, you can also install the master branch wi
 
     sudo -H python -m pip install --force-reinstall https://github.com/ytdl-org/youtube-dl/archive/master.tar.gz
 
+   Note that on some systems, you may need to use `py` or `python3` instead of `python`
+   
 This command will update youtube-dl if you have already installed it. See the [pypi page](https://pypi.python.org/pypi/youtube_dl) for more information.
 
 macOS users can install youtube-dl with [Homebrew](https://brew.sh/):
