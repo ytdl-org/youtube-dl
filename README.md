@@ -20,23 +20,23 @@ youtube-dl - download videos from youtube.com or other video platforms
 
 To install it right away for all UNIX users (Linux, macOS, etc.), type:
 
-    sudo curl -L https://yt-dl.org/downloads/latest/youtube-dl -o /usr/local/bin/youtube-dl
-    sudo chmod a+rx /usr/local/bin/youtube-dl
+    su -c "curl -L https://yt-dl.org/downloads/latest/youtube-dl -o /usr/local/bin/youtube-dl"
+    su -c "chmod a+rx /usr/local/bin/youtube-dl"
 
 If you do not have curl, you can alternatively use a recent wget:
 
-    sudo wget https://yt-dl.org/downloads/latest/youtube-dl -O /usr/local/bin/youtube-dl
-    sudo chmod a+rx /usr/local/bin/youtube-dl
+    su -c "wget https://yt-dl.org/downloads/latest/youtube-dl -O /usr/local/bin/youtube-dl"
+    su -c "chmod a+rx /usr/local/bin/youtube-dl"
 
 Windows users can [download an .exe file](https://yt-dl.org/latest/youtube-dl.exe) and place it in any location on their [PATH](https://en.wikipedia.org/wiki/PATH_%28variable%29) except for `%SYSTEMROOT%\System32` (e.g. **do not** put in `C:\Windows\System32`).
 
 You can also use pip:
 
-    sudo -H python3 -m pip install --upgrade youtube-dl
+    su -c "python3 -m pip install --upgrade youtube-dl"
     
 If you want to be on the cutting edge, you can also install the master branch with pip:
 
-    sudo -H python3 -m pip install --force-reinstall https://github.com/ytdl-org/youtube-dl/archive/master.tar.gz
+    su -c "python3 -m pip install --force-reinstall https://github.com/ytdl-org/youtube-dl/archive/master.tar.gz"
 
 This command will update youtube-dl if you have already installed it. See the [pypi page](https://pypi.python.org/pypi/youtube_dl) for more information.
 
