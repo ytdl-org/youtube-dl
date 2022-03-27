@@ -1287,6 +1287,7 @@ from .toongoggles import ToonGogglesIE
 from .toutv import TouTvIE
 from .toypics import ToypicsUserIE, ToypicsIE
 from .traileraddict import TrailerAddictIE
+from .transistorfm import TransistorFMIE
 from .trilulilu import TriluliluIE
 from .trovo import (
     TrovoIE,
