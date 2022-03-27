@@ -49,7 +49,7 @@ Alternatively, refer to the [developer instructions](#developer-instructions) fo
 # DESCRIPTION
 **youtube-dl** is a command-line program to download videos from YouTube.com and a few more sites. It requires the Python interpreter, version 2.6, 2.7, or 3.2+, and it is not platform specific. It should work on your Unix box, on Windows or on macOS. It is released to the public domain, which means you can modify it, redistribute it or use it however you like.
 
-    youtube-dl [OPTIONS] URL [URL...]
+    youtube-dl [OPTIONS] <em>URL</em> ...
 
 # OPTIONS
     -h, --help                           Print this help text and exit
@@ -83,10 +83,9 @@ Alternatively, refer to the [developer instructions](#developer-instructions) fo
     --ignore-config                      Do not read configuration files. When
                                          given in the global configuration file
                                          /etc/youtube-dl.conf: Do not read the
-                                         user configuration in
-                                         ~/.config/youtube-dl/config
-                                         (%APPDATA%/youtube-dl/config.txt on
-                                         Windows)
+                                         user configuration in ~/.config
+                                         /youtube-dl/config (%APPDATA%/youtube-
+                                         dl/config.txt on Windows)
     --config-location PATH               Location of the configuration file;
                                          either the path to the config or its
                                          containing directory.
@@ -134,11 +133,11 @@ Alternatively, refer to the [developer instructions](#developer-instructions) fo
                                          last)
     --playlist-items ITEM_SPEC           Playlist video items to download.
                                          Specify indices of the videos in the
-                                         playlist separated by commas like: "--
-                                         playlist-items 1,2,5,8" if you want to
-                                         download videos indexed 1, 2, 5, 8 in
-                                         the playlist. You can specify range: "
-                                         --playlist-items 1-3,7,10-13", it will
+                                         playlist separated by commas like:
+                                         "--playlist-items 1,2,5,8" if you want
+                                         to download videos indexed 1, 2, 5, 8
+                                         in the playlist. You can specify range:
+                                         "--playlist-items 1-3,7,10-13", it will
                                          download the videos at index 1, 2, 3,
                                          7, 10, 11, 12 and 13.
     --match-title REGEX                  Download only matching titles (regex or
@@ -279,11 +278,11 @@ Alternatively, refer to the [developer instructions](#developer-instructions) fo
     --cache-dir DIR                      Location in the filesystem where
                                          youtube-dl can store some downloaded
                                          information permanently. By default
-                                         $XDG_CACHE_HOME/youtube-dl or
-                                         ~/.cache/youtube-dl . At the moment,
-                                         only YouTube player files (for videos
-                                         with obfuscated signatures) are cached,
-                                         but that may change.
+                                         $XDG_CACHE_HOME/youtube-dl or ~/.cache
+                                         /youtube-dl . At the moment, only
+                                         YouTube player files (for videos with
+                                         obfuscated signatures) are cached, but
+                                         that may change.
     --no-cache-dir                       Disable filesystem caching
     --rm-cache-dir                       Delete all filesystem cache files
 
