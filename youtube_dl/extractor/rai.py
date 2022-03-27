@@ -5,6 +5,7 @@ import re
 
 from .common import InfoExtractor
 from ..compat import (
+    compat_HTMLParser,
     compat_urlparse,
     compat_str,
 )
@@ -14,6 +15,7 @@ from ..utils import (
     find_xpath_attr,
     fix_xml_ampersands,
     GeoRestrictedError,
+    get_element_by_class,
     int_or_none,
     parse_duration,
     remove_start,
@@ -485,3 +487,111 @@ class RaiIE(RaiBaseIE):
         info.update(relinker_info)
 
         return info
+
+
+class HTMLListAttrsParser(compat_HTMLParser):
+    def __init__(self):
+        compat_HTMLParser.__init__(self)
+        self.items = []
+        self._level = 0
+
+    def handle_starttag(self, tag, attrs):
+        if tag == 'li' and self._level == 0:
+            self.items.append(dict(attrs))
+        self._level += 1
+
+    def handle_endtag(self, tag):
+        self._level -= 1
+
+
+class RaiPlayRadioBaseIE(InfoExtractor):
+    _BASE = 'https://www.raiplayradio.it'
+
+    def parse_list(self, webpage):
+        parser = HTMLListAttrsParser()
+        parser.feed(webpage)
+        parser.close()
+        return parser.items
+
+    def get_playlist_iter(self, url, uid):
+        webpage = self._download_webpage(url, uid)
+        for attrs in self.parse_list(webpage):
+            title = attrs['data-title'].strip()
+            audio_url = urljoin(url, attrs['data-mediapolis'])
+            entry = {
+                'url': audio_url,
+                'id': attrs['data-uniquename'].lstrip('ContentItem-'),
+                'title': title,
+                'ext': 'mp3',
+                'language': 'it',
+            }
+            if 'data-image' in attrs:
+                entry['thumbnail'] = urljoin(url, attrs['data-image'])
+            yield entry
+
+    def get_playlist(self, *args, **kwargs):
+        return list(self.get_playlist_iter(*args, **kwargs))
+
+
+class RaiPlayRadioIE(RaiPlayRadioBaseIE):
+    _VALID_URL = r'%s/audio/.+?-(?P<id>%s)\.html' % (
+        RaiPlayRadioBaseIE._BASE, RaiBaseIE._UUID_RE)
+    _TEST = {
+        'url': 'https://www.raiplayradio.it/audio/2019/07/RADIO3---LEZIONI-DI-MUSICA-36b099ff-4123-4443-9bf9-38e43ef5e025.html',
+        'info_dict': {
+            'id': '36b099ff-4123-4443-9bf9-38e43ef5e025',
+            'ext': 'mp3',
+            'title': 'Dal "Chiaro di luna" al  "Clair de lune", '
+                     'prima parte con Giovanni Bietti',
+            'thumbnail': r're:^https?://.*\.jpg$',
+            'language': 'it',
+        }
+    }
+
+    def _real_extract(self, url):
+        audio_id = self._match_id(url)
+        list_url = url.replace('.html', '-list.html')
+        for entry in self.get_playlist_iter(list_url, audio_id):
+            if entry['id'] == audio_id:
+                return entry
+
+
+class RaiPlayRadioPlaylistIE(RaiPlayRadioBaseIE):
+    _VALID_URL = r'%s/playlist/.+?-(?P<id>%s)\.html' % (
+        RaiPlayRadioBaseIE._BASE, RaiBaseIE._UUID_RE)
+    _TEST = {
+        'url': 'https://www.raiplayradio.it/playlist/2017/12/Alice-nel-paese-delle-meraviglie-72371d3c-d998-49f3-8860-d168cfdf4966.html',
+        'info_dict': {
+            'id': '72371d3c-d998-49f3-8860-d168cfdf4966',
+            'title': "Alice nel paese delle meraviglie",
+            'description': "di Lewis Carrol letto da Aldo Busi",
+        },
+        'playlist_count': 11,
+    }
+
+    def _real_extract(self, url):
+        playlist_id = self._match_id(url)
+        playlist_webpage = self._download_webpage(url, playlist_id)
+        playlist_title = unescapeHTML(self._html_search_regex(
+            r'data-playlist-title="(.+?)"', playlist_webpage, 'title'))
+        playlist_creator = self._html_search_meta(
+            'nomeProgramma', playlist_webpage)
+        playlist_description = get_element_by_class(
+            'textDescriptionProgramma', playlist_webpage)
+
+        player_href = self._html_search_regex(
+            r'data-player-href="(.+?)"', playlist_webpage, 'href')
+        list_url = urljoin(url, player_href)
+
+        entries = self.get_playlist(list_url, playlist_id)
+        for index, entry in enumerate(entries, start=1):
+            entry.update({
+                'track': entry['title'],
+                'track_number': index,
+                'artist': playlist_creator,
+            })
+            if playlist_title:
+                entry['album'] = playlist_title
+
+        return self.playlist_result(
+            entries, playlist_id, playlist_title, playlist_description)
