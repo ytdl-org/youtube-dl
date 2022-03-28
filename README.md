@@ -1,5 +1,8 @@
-[![Build Status](https://github.com/ytdl-org/youtube-dl/workflows/CI/badge.svg)](https://github.com/ytdl-org/youtube-dl/actions?query=workflow%3ACI)
+# In this fork
 
+This fork adds an extractor for recording lectures from a https://livestream.kuleuven.be/ stream.
+
+# youtube-dl
 
 youtube-dl - download videos from youtube.com or other video platforms
 
