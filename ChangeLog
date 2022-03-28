@@ -1,3 +1,28 @@
+version 2021.12.17
+
+Core
+* [postprocessor/ffmpeg] Show ffmpeg output on error (#22680, #29336)
+
+Extractors
+* [youtube] Update signature function patterns (#30363, #30366)
+* [peertube] Only call description endpoint if necessary (#29383)
+* [periscope] Pass referer to HLS requests (#29419)
+- [liveleak] Remove extractor (#17625, #24222, #29331)
++ [pornhub] Add support for pornhubthbh7ap3u.onion
+* [pornhub] Detect geo restriction
+* [pornhub] Dismiss tbr extracted from download URLs (#28927)
+* [curiositystream:collection] Extend _VALID_URL (#26326, #29117)
+* [youtube] Make get_video_info processing more robust (#29333)
+* [youtube] Workaround for get_video_info request (#29333)
+* [bilibili] Strip uploader name (#29202)
+* [youtube] Update invidious instance list (#29281)
+* [umg:de] Update GraphQL API URL (#29304)
+* [nrk] Switch psapi URL to https (#29344)
++ [egghead] Add support for app.egghead.io (#28404, #29303)
+* [appleconnect] Fix extraction (#29208)
++ [orf:tvthek] Add support for MPD formats (#28672, #29236)
+
+
 version 2021.06.06
 
 Extractors
