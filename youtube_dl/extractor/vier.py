@@ -53,6 +53,8 @@ class VierVijfKijkOnlineIE(InfoExtractor):
         self._logged_in = True
 
     def _real_extract(self, url):
+        if "#" in url:
+            url = url.split("#")[0]
 
         if not self._logged_in:
             self._login()
@@ -102,13 +104,14 @@ class VierVijfKijkOnlineIE(InfoExtractor):
             api['video']['S'], video_id, 'mp4', entry_protocol='m3u8_native',
             m3u8_id='HLS', fatal=False))
 
+        self._sort_formats(formats)
         return {
             'id': video_id,
             'title': title,
             'series': series,
             'season_number': int_or_none(season),
             'episode_number': int_or_none(episode),
-            'formats': reversed(formats),
+            'formats': formats,
         }
 
 
