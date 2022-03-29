@@ -811,15 +811,15 @@ def parseOpts(overrideArguments=None):
         action='store_true', dest='nopostoverwrites', default=False,
         help='Do not overwrite post-processed files; the post-processed files are overwritten by default')
     postproc.add_option(
-        '--embed-subs',
+        '--embed-subs', '--add-subs',
         action='store_true', dest='embedsubtitles', default=False,
         help='Embed subtitles in the video (only for mp4, webm and mkv videos)')
     postproc.add_option(
-        '--embed-thumbnail',
+        '--embed-thumbnail', '--add-thumbnail',
         action='store_true', dest='embedthumbnail', default=False,
         help='Embed thumbnail in the audio as cover art')
     postproc.add_option(
-        '--add-metadata',
+        '--add-metadata', '--embed-metadata',
         action='store_true', dest='addmetadata', default=False,
         help='Write metadata to the video file')
     postproc.add_option(
