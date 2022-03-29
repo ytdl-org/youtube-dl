@@ -6,7 +6,7 @@ from ..utils import unified_strdate
 
 
 class NBLIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:www\.)?nbl\.com\.au/tv/(?:game-replays|highlights|condensed-games)/(?P<id>[0-9]+)'  # /(?P<display_id>.+)'
+    _VALID_URL = r'https?://(?:www\.)?nbl\.com\.au/tv/(?:game-replays|highlights|condensed-games)/(?P<id>[0-9]+)/(?P<display_id>.+)'
     _TESTS = [
         {
             'url': 'https://nbl.com.au/tv/highlights/1310086/Perth-Wildcats-vs.-Sydney-Kings---Game-Highlights',
