@@ -6,8 +6,10 @@ import json
 
 from .common import InfoExtractor
 from ..compat import (
+    compat_parse_qs,
     compat_str,
     compat_urllib_parse_unquote,
+    compat_urllib_parse_urlparse,
 )
 from ..utils import (
     determine_ext,
@@ -60,6 +62,7 @@ class LBRYBaseIE(InfoExtractor):
             'description': stream_value.get('description'),
             'license': stream_value.get('license'),
             'timestamp': int_or_none(stream.get('timestamp')),
+            'release_timestamp': int_or_none(stream_value.get('release_time')),
             'tags': stream_value.get('tags'),
             'duration': int_or_none(media.get('duration')),
             'channel': try_get(signing_channel, lambda x: x['value']['title']),
@@ -92,6 +95,8 @@ class LBRYIE(LBRYBaseIE):
             'description': 'md5:f6cb5c704b332d37f5119313c2c98f51',
             'timestamp': 1595694354,
             'upload_date': '20200725',
+            'release_timestamp': 1595340697,
+            'release_date': '20200721',
             'width': 1280,
             'height': 720,
         }
@@ -106,12 +111,34 @@ class LBRYIE(LBRYBaseIE):
             'description': 'md5:661ac4f1db09f31728931d7b88807a61',
             'timestamp': 1591312601,
             'upload_date': '20200604',
+            'release_timestamp': 1591312421,
+            'release_date': '20200604',
             'tags': list,
             'duration': 2570,
             'channel': 'The LBRY Foundation',
             'channel_id': '0ed629d2b9c601300cacf7eabe9da0be79010212',
             'channel_url': 'https://lbry.tv/@LBRYFoundation:0ed629d2b9c601300cacf7eabe9da0be79010212',
             'vcodec': 'none',
+        }
+    }, {
+        # HLS
+        'url': 'https://odysee.com/@gardeningincanada:b/plants-i-will-never-grow-again.-the:e',
+        'md5': 'fc82f45ea54915b1495dd7cb5cc1289f',
+        'info_dict': {
+            'id': 'e51671357333fe22ae88aad320bde2f6f96b1410',
+            'ext': 'mp4',
+            'title': 'PLANTS I WILL NEVER GROW AGAIN. THE BLACK LIST PLANTS FOR A CANADIAN GARDEN | Gardening in Canada 🍁',
+            'description': 'md5:9c539c6a03fb843956de61a4d5288d5e',
+            'timestamp': 1618254123,
+            'upload_date': '20210412',
+            'release_timestamp': 1618254002,
+            'release_date': '20210412',
+            'tags': list,
+            'duration': 554,
+            'channel': 'Gardening In Canada',
+            'channel_id': 'b8be0e93b423dad221abe29545fbe8ec36e806bc',
+            'channel_url': 'https://odysee.com/@gardeningincanada:b8be0e93b423dad221abe29545fbe8ec36e806bc',
+            'formats': 'mincount:3',
         }
     }, {
         'url': 'https://odysee.com/@BrodieRobertson:5/apple-is-tracking-everything-you-do-on:e',
@@ -156,10 +183,18 @@ class LBRYIE(LBRYBaseIE):
         streaming_url = self._call_api_proxy(
             'get', claim_id, {'uri': uri}, 'streaming url')['streaming_url']
         info = self._parse_stream(result, url)
+        urlh = self._request_webpage(
+            streaming_url, display_id, note='Downloading streaming redirect url info')
+        if determine_ext(urlh.geturl()) == 'm3u8':
+            info['formats'] = self._extract_m3u8_formats(
+                urlh.geturl(), display_id, 'mp4', entry_protocol='m3u8_native',
+                m3u8_id='hls')
+            self._sort_formats(info['formats'])
+        else:
+            info['url'] = streaming_url
         info.update({
             'id': claim_id,
             'title': title,
-            'url': streaming_url,
         })
         return info
 
@@ -181,17 +216,18 @@ class LBRYChannelIE(LBRYBaseIE):
     }]
     _PAGE_SIZE = 50
 
-    def _fetch_page(self, claim_id, url, page):
+    def _fetch_page(self, claim_id, url, params, page):
         page += 1
+        page_params = {
+            'channel_ids': [claim_id],
+            'claim_type': 'stream',
+            'no_totals': True,
+            'page': page,
+            'page_size': self._PAGE_SIZE,
+        }
+        page_params.update(params)
         result = self._call_api_proxy(
-            'claim_search', claim_id, {
-                'channel_ids': [claim_id],
-                'claim_type': 'stream',
-                'no_totals': True,
-                'page': page,
-                'page_size': self._PAGE_SIZE,
-                'stream_types': self._SUPPORTED_STREAM_TYPES,
-            }, 'page %d' % page)
+            'claim_search', claim_id, page_params, 'page %d' % page)
         for item in (result.get('items') or []):
             stream_claim_name = item.get('name')
             stream_claim_id = item.get('claim_id')
@@ -212,8 +248,31 @@ class LBRYChannelIE(LBRYBaseIE):
         result = self._resolve_url(
             'lbry://' + display_id, display_id, 'channel')
         claim_id = result['claim_id']
+        qs = compat_parse_qs(compat_urllib_parse_urlparse(url).query)
+        content = qs.get('content', [None])[0]
+        params = {
+            'fee_amount': qs.get('fee_amount', ['>=0'])[0],
+            'order_by': {
+                'new': ['release_time'],
+                'top': ['effective_amount'],
+                'trending': ['trending_group', 'trending_mixed'],
+            }[qs.get('order', ['new'])[0]],
+            'stream_types': [content] if content in ['audio', 'video'] else self._SUPPORTED_STREAM_TYPES,
+        }
+        duration = qs.get('duration', [None])[0]
+        if duration:
+            params['duration'] = {
+                'long': '>=1200',
+                'short': '<=240',
+            }[duration]
+        language = qs.get('language', ['all'])[0]
+        if language != 'all':
+            languages = [language]
+            if language == 'en':
+                languages.append('none')
+            params['any_languages'] = languages
         entries = OnDemandPagedList(
-            functools.partial(self._fetch_page, claim_id, url),
+            functools.partial(self._fetch_page, claim_id, url, params),
             self._PAGE_SIZE)
         result_value = result.get('value') or {}
         return self.playlist_result(

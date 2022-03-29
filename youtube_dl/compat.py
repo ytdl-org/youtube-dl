@@ -21,6 +21,10 @@ import subprocess
 import sys
 import xml.etree.ElementTree
 
+try:
+    import collections.abc as compat_collections_abc
+except ImportError:
+    import collections as compat_collections_abc
 
 try:
     import urllib.request as compat_urllib_request
@@ -72,6 +76,15 @@ try:
     import http.cookies as compat_cookies
 except ImportError:  # Python 2
     import Cookie as compat_cookies
+
+if sys.version_info[0] == 2:
+    class compat_cookies_SimpleCookie(compat_cookies.SimpleCookie):
+        def load(self, rawdata):
+            if isinstance(rawdata, compat_str):
+                rawdata = str(rawdata)
+            return super(compat_cookies_SimpleCookie, self).load(rawdata)
+else:
+    compat_cookies_SimpleCookie = compat_cookies.SimpleCookie
 
 try:
     import html.entities as compat_html_entities
@@ -2953,6 +2966,25 @@ else:
         compat_Struct = struct.Struct
 
 
+# compat_map/filter() returning an iterator, supposedly the
+# same versioning as for zip below
+try:
+    from future_builtins import map as compat_map
+except ImportError:
+    try:
+        from itertools import imap as compat_map
+    except ImportError:
+        compat_map = map
+
+try:
+    from future_builtins import filter as compat_filter
+except ImportError:
+    try:
+        from itertools import ifilter as compat_filter
+    except ImportError:
+        compat_filter = filter
+
+
 try:
     from future_builtins import zip as compat_zip
 except ImportError:  # not 2.6+ or is 3.x
@@ -2997,14 +3029,17 @@ __all__ = [
     'compat_b64decode',
     'compat_basestring',
     'compat_chr',
+    'compat_collections_abc',
     'compat_cookiejar',
     'compat_cookiejar_Cookie',
     'compat_cookies',
+    'compat_cookies_SimpleCookie',
     'compat_ctypes_WINFUNCTYPE',
     'compat_etree_Element',
     'compat_etree_fromstring',
     'compat_etree_register_namespace',
     'compat_expanduser',
+    'compat_filter',
     'compat_get_terminal_size',
     'compat_getenv',
     'compat_getpass',
@@ -3016,6 +3051,7 @@ __all__ = [
     'compat_integer_types',
     'compat_itertools_count',
     'compat_kwargs',
+    'compat_map',
     'compat_numeric_types',
     'compat_ord',
     'compat_os_name',
