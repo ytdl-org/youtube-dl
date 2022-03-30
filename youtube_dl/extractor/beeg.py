@@ -1,14 +1,20 @@
+# coding: utf-8
+
 from __future__ import unicode_literals
+
+import itertools
 
 from .common import InfoExtractor
 from ..compat import (
     compat_str,
     compat_urlparse,
+    compat_zip as zip,
 )
 from ..utils import (
     dict_get,
     int_or_none,
     parse_iso8601,
+    str_or_none,
     try_get,
     unified_timestamp,
     urljoin,
@@ -51,7 +57,7 @@ class BeegIE(InfoExtractor):
         'url': 'https://beeg.com/-01882333214',
         'md5': 'f8fd97a58a09bc6d2ac25b6bbc98c220',
         'info_dict': {
-            'id': '01882333214',
+            'id': '1882333214',
             'ext': 'mp4',
             'title': 'Be mine',
             'description': 'Lil cam dork living in Canada with 4 kitties',
@@ -60,6 +66,11 @@ class BeegIE(InfoExtractor):
             'duration': 559,
             'tags': list,
             'age_limit': 18,
+            'thumbnail': r're:https?://thumbs\.beeg\.com/videos/1882333214/\d+\.jpe?g',
+        },
+        'params': {
+            # ignore variable HLS file data
+            'skip_download': True,
         },
     }]
 
@@ -83,7 +94,7 @@ class BeegIE(InfoExtractor):
             query = {'v': 1}
 
         def reverse_enumerate(l):
-            return zip(reversed(zip(*enumerate(l))[0]), l)
+            return zip(reversed(next(zip(*enumerate(l)), [])), l)
 
         for rcnt, api_path in reverse_enumerate(('', 'api.')):
             video = self._download_json(
@@ -147,7 +158,9 @@ class BeegIE(InfoExtractor):
             video_data = try_get(video, lambda x: x['file'], dict) or {}
             video_data.update(video_data.get('stuff', {}))
             video_data.update(try_get(video, lambda x: x['fc_facts'][0], dict))
-            for format_id, key in try_get(video_data, lambda x: iter(x['resources'].items())) or []:
+            for format_id, key in itertools.chain(
+                    try_get(video_data, lambda x: x['resources'].items()) or [],
+                    try_get(video_data, lambda x: x['hls_resources'].items()) or []):
                 if not format_id:
                     continue
                 formats.append({
@@ -157,24 +170,25 @@ class BeegIE(InfoExtractor):
                 })
             if formats:
                 self._sort_formats(formats)
-                title = video_data.get('sf_name') or 'Beeg video %s' % video_id
-                tags = try_get(video_data, lambda v: [tag['tg_slug'] for tag in v['tags'] if tag.get('tg_slug')])
+                tags = try_get(video, lambda v: [tag['tg_slug'] for tag in v['tags'] if tag.get('tg_slug')])
                 result = {
-                    'id': video_id,
+                    'id': str_or_none(video.get('fc_file_id')) or video_id,
                     'title': video_data.get('sf_name') or 'Beeg video %s' % video_id,
-                    'description': video_data.get('sf_story', title),
+                    'description': video_data.get('sf_story'),
                     'timestamp': parse_iso8601(video_data.get('fc_created')),
                     'duration': int_or_none(dict_get(video_data, ('fl_duration', 'sf_duration'))),
                     'tags': tags,
                     'formats': formats,
-                    'age_limit': self._rta_search(webpage),
+                    'age_limit': self._rta_search(webpage) or 18,
                     'height': int_or_none(video_data.get('fl_height')),
                     'width': int_or_none(video_data.get('fl_width')),
                 }
-                set_id = video_data['resources'].get('set_id')
-                thumb_id = try_get(video_data, lambda x: x['fc_facts'][0]['fc_thumbs'][0], int)
-                if set_id and thumb_id:
+                thumb_id = try_get(video_data, lambda x: x['fc_thumbs'][0], int)
+                if thumb_id is not None:
+                    set_id = video_data.get('resources', {}).get('set_id')
                     result['thumbnail'] = (
+                        'https://thumbs.beeg.com/videos/%s/%d.jpg' % (result['id'], thumb_id)
+                        if set_id is None else
                         'https://thumbs-015.externulls.com/sets/%s/thumbs/%s-%0.4d.jpg' % (set_id, set_id, thumb_id))
                 return result
 
