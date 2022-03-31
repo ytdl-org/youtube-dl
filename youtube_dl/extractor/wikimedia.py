@@ -32,12 +32,14 @@ class WikimediaIE(InfoExtractor):
 
         subtitle_url = f'https://commons.wikimedia.org/w/api.php?' \
                        f'action=timedtext&lang=nl&title=File%3A{urllib.parse.quote(video_id)}&trackformat=srt'
-        with open(video_id + '.srt', 'w+', encoding='utf') as f:
-            subtitles = requests.post(subtitle_url).text
-            if 'timedtext-notfound' not in subtitles:
+
+        subtitles = requests.post(subtitle_url).text
+        if 'timedtext-notfound' not in subtitles:
+            with open(video_id + '.srt', 'w+', encoding='utf') as f:
                 f.write(subtitles)
-            else:
-                print("subtitles not found")
+        else:
+            print("subtitles not found")
+
         resp['url'] = video_url
         resp['ext'] = 'webm'
         resp['id'] = video_id
