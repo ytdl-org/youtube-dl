@@ -1,5 +1,5 @@
 from .common import InfoExtractor
-from ..utils import get_element_by_class, compat_urlparse
+from ..utils import get_element_by_class, compat_urlparse, clean_html
 
 
 class WikimediaIE(InfoExtractor):
@@ -21,9 +21,12 @@ class WikimediaIE(InfoExtractor):
                        '2050 mit spekulativem Verlauf in der Prognose (ausgeprägtes Global-warming-Szenario ist '
                        'dargestellt).English:  Climate change, Temperature in history of Earth, Video of Terra X.',
         'ext': 'webm', 'id': 'Die_Temperaturkurve_der_Erde_(ZDF,_Terra_X)_720p_HD_50FPS.webm',
-        'title': 'File:Die Temperaturkurve der Erde (ZDF, Terra X) 720p HD 50FPS.webm - Wikimedia Commons',
+        'title': 'Die Temperaturkurve der Erde (ZDF, Terra X) 720p HD 50FPS.webm - Wikimedia Commons',
         'license': 'This file is licensed under the Creative Commons Attribution 4.0 International license.',
-        'author': 'ZDF/Terra X/Gruppe 5/Luise Wagner, Jonas Sichert, Andreas Hougardy'}
+        'author': 'ZDF/Terra X/Gruppe 5/Luise Wagner, Jonas Sichert, Andreas Hougardy', 'subtitles': {'nl': [
+            {'ext': 'srt',
+             'url': 'https://commons.wikimedia.org/w/api.php?action=timedtext&lang=nl&title=File'
+                    '%3ADie_Temperaturkurve_der_Erde_%28ZDF%2C_Terra_X%29_720p_HD_50FPS.webm&trackformat=srt'}]}}
 
     def _real_extract(self, url):
         video_id = self._match_id(url)
@@ -44,7 +47,7 @@ class WikimediaIE(InfoExtractor):
         subtitles = 'https://commons.wikimedia.org/w/api.php?action=timedtext&lang=nl&title=File%3A{}' \
                     '&trackformat=srt'.format(compat_urlparse.quote_plus(video_id))
         info['url'] = video_url
-        info['description'] = description
+        info['description'] = clean_html(description)
         info['ext'] = 'webm'
         info['id'] = video_id
         info['title'] = self._og_search_title(webpage).replace("File:", "")
