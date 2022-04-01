@@ -1,8 +1,5 @@
 from .common import InfoExtractor
-import re
-import requests
-import urllib.parse
-from ..utils import clean_html
+from ..utils import get_element_by_class, compat_urlparse
 
 
 class WikimediaIE(InfoExtractor):
@@ -29,8 +26,7 @@ class WikimediaIE(InfoExtractor):
         'author': 'ZDF/Terra X/Gruppe 5/Luise Wagner, Jonas Sichert, Andreas Hougardy'}
 
     def _real_extract(self, url):
-        mobj = re.match(self._VALID_URL, url)
-        video_id = mobj.group('id')
+        video_id = self._match_id(url)
 
         if not video_id.endswith('.webm'):
             raise Exception("invalid video url")
@@ -39,32 +35,23 @@ class WikimediaIE(InfoExtractor):
         self.report_extraction(video_id)
         video_url = self._html_search_regex(r'<source [^>]*src="([^"]+)"', webpage,
                                             u'video URL')
-        licenze = self._html_search_regex(f"(?<=td>This)(.*)(?=license.)", webpage, u'video license')
+        licenze = self._html_search_regex(r'\bThis\s*(.*?)\s*license\b', webpage, u'video license')
         licenze = "This " + licenze + " license."
 
-        description = self._html_search_regex(f'(?<=<div class="description mw-content-ltr de" dir="ltr" lang="de">)('
-                                              f'.*)(?=</div>)', webpage,
-                                              u'video description')
+        description = get_element_by_class('description', webpage)
 
-        author = re.search(r'<td>([^\<]*?)<\/td>', str(webpage))
-        author = clean_html(author.group(0))
-        resp = {}
+        author = self._html_search_regex(r'<td>([^\<]*?)<\/td>', str(webpage), u"video author")
 
-        subtitle_url = f'https://commons.wikimedia.org/w/api.php?' \
-                       f'action=timedtext&lang=nl&title=File%3A{urllib.parse.quote(video_id)}&trackformat=srt'
-
-        subtitles = requests.post(subtitle_url).text
-        if 'timedtext-notfound' not in subtitles:
-            with open(video_id + '.srt', 'w+', encoding='utf') as f:
-                f.write(subtitles)
-        else:
-            print("subtitles not found")
-
-        resp['url'] = video_url
-        resp['description'] = description
-        resp['ext'] = 'webm'
-        resp['id'] = video_id
-        resp['title'] = self._og_search_title(webpage)
-        resp['license'] = licenze
-        resp['author'] = author
-        return [resp]
+        info = {}
+        subtitles = 'https://commons.wikimedia.org/w/api.php?action=timedtext&lang=nl&title=File%3A{}' \
+                    '&trackformat=srt'.format(compat_urlparse.quote_plus(video_id))
+        info['url'] = video_url
+        info['description'] = description
+        info['ext'] = 'webm'
+        info['id'] = video_id
+        info['title'] = self._og_search_title(webpage).replace("File:", "")
+        info['license'] = licenze
+        info['author'] = author
+        info['subtitles'] = {"nl": [{"ext": "srt", "url": subtitles}]}
+        print("ih")
+        return info
