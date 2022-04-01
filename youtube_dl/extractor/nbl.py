@@ -1,12 +1,14 @@
 # coding: utf-8
 from __future__ import unicode_literals
 
+import re
+
 from .common import InfoExtractor
 from ..utils import unified_strdate
 
 
 class NBLIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:www\.)?nbl\.com\.au/tv/(?:game-replays|highlights|condensed-games)/(?P<id>[0-9]+)/(?P<display_id>.+)'
+    _VALID_URL = r'https?://(?:www\.)?nbl\.com\.au/tv/(?:game-replays|highlights|condensed-games)?/?(?P<id>[0-9]+)/?(?P<display_id>.*)'
     _TESTS = [
         {
             'url': 'https://nbl.com.au/tv/highlights/1310086/Perth-Wildcats-vs.-Sydney-Kings---Game-Highlights',
@@ -16,6 +18,7 @@ class NBLIE(InfoExtractor):
                 'ext': 'mp4',
                 'title': 'Perth Wildcats vs. Sydney Kings - Game Highlights',
                 'description': 'Watch the Game Highlights from Perth Wildcats vs. Sydney Kings, 03/26/2022',
+                'display_id': 'Perth-Wildcats-vs.-Sydney-Kings---Game-Highlights',
                 'upload_date': '20220326'
             }
         },
@@ -27,17 +30,29 @@ class NBLIE(InfoExtractor):
                 'ext': 'mp4',
                 'title': 'Perth Wildcats vs. Sydney Kings - Condensed Game',
                 'description': 'Watch the Condensed Game from Perth Wildcats vs. Sydney Kings, 03/26/2022',
+                'display_id': 'Perth-Wildcats-vs.-Sydney-Kings---Condensed-Game',
                 'upload_date': '20220326'
             }
         },
         {
             'url': 'https://nbl.com.au/tv/game-replays/1303323/NBL22-Round-17-Replay---Perth-Wildcats-vs-Sydney-Kings',
             'md5': '8505f02156f756e865a1aa80050eb768',
-            'expected_warnings': ['unable to extract OpenGraph description.+'],
             'info_dict': {
                 'id': '1303323',
                 'ext': 'mp4',
                 'title': 'NBL22 Round 17 Replay - Perth Wildcats vs Sydney Kings',
+                'display_id': 'NBL22-Round-17-Replay---Perth-Wildcats-vs-Sydney-Kings',
+                'upload_date': '20220326'
+            }
+        },
+        {
+            'url': 'https://nbl.com.au/tv/game-replays/1303323',
+            'md5': '8505f02156f756e865a1aa80050eb768',
+            'info_dict': {
+                'id': '1303323',
+                'ext': 'mp4',
+                'title': 'NBL22 Round 17 Replay - Perth Wildcats vs Sydney Kings',
+                'display_id': 'NBL22-Round-17-Replay---Perth-Wildcats-vs-Sydney-Kings',
                 'upload_date': '20220326'
             }
         }
@@ -45,25 +60,27 @@ class NBLIE(InfoExtractor):
 
     def _real_extract(self, url):
         video_id = self._match_id(url)
+        mobj = re.match(self._VALID_URL, url)
         webpage = self._download_webpage(url, video_id)
 
-        title = self._html_search_regex(r'<title>(.+?)</title>', webpage, 'title')
+        title = self._html_search_regex(r'<title\b[^>]*>\s*(.+?)\s*</title>', webpage, 'title')
         stream_url = self._download_json(
-            "https://ott.nbl.com.au/api/v2/content/" + video_id + "/access/hls",
+            'https://ott.nbl.com.au/api/v2/content/' + video_id + '/access/hls',
             video_id,
-            data=b"",
+            data=b'',
             headers={
-                "Referer": "https://ott.nbl.com.au/en-int/embed/" + video_id,
-                "Origin": "https://ott.nbl.com.au",
-                "Content-Length": "0"
+                'Referer': 'https://ott.nbl.com.au/en-int/embed/' + video_id,
+                'Origin': 'https://ott.nbl.com.au',
+                'Content-Length': '0'
             }
-        )["data"]["stream"]
-        formats = self._extract_m3u8_formats(stream_url, video_id, ext="mp4")
+        )['data']['stream']
+        formats = self._extract_m3u8_formats(stream_url, video_id, ext='mp4')
 
         return {
             'id': video_id,
             'title': title,
             'description': self._og_search_description(webpage, default=None),
-            'upload_date': unified_strdate(self._og_search_property('video:release_date', webpage, 'upload_date')),
+            'display_id': mobj.groupdict().get('display_id') or title.replace(" ", "-"),
+            'upload_date': unified_strdate(self._og_search_property('video:release_date', webpage, 'upload_date', fatal=False)),
             'formats': formats
         }
