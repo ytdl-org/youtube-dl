@@ -39,9 +39,7 @@ class WikimediaIE(InfoExtractor):
         licenze = "This " + licenze + " license."
 
         description = get_element_by_class('description', webpage)
-
         author = self._html_search_regex(r'<td>([^\<]*?)<\/td>', str(webpage), u"video author")
-
         info = {}
         subtitles = 'https://commons.wikimedia.org/w/api.php?action=timedtext&lang=nl&title=File%3A{}' \
                     '&trackformat=srt'.format(compat_urlparse.quote_plus(video_id))
@@ -53,5 +51,4 @@ class WikimediaIE(InfoExtractor):
         info['license'] = licenze
         info['author'] = author
         info['subtitles'] = {"nl": [{"ext": "srt", "url": subtitles}]}
-        print("ih")
         return info
