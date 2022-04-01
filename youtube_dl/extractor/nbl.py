@@ -8,7 +8,7 @@ from ..utils import unified_strdate
 
 
 class NBLIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:www\.)?nbl\.com\.au/tv/(?:game-replays|highlights|condensed-games)?/?(?P<id>[0-9]+)/?(?P<display_id>.*)'
+    _VALID_URL = r'https?://(?:www|ott\.)?nbl\.com\.au/(?:tv|en(?:-int)?)/(?P<section>game-replays|highlights|condensed-games|embed)?/?(?P<id>[0-9]+)/?(?P<display_id>.*)'
     _TESTS = [
         {
             'url': 'https://nbl.com.au/tv/highlights/1310086/Perth-Wildcats-vs.-Sydney-Kings---Game-Highlights',
@@ -55,13 +55,26 @@ class NBLIE(InfoExtractor):
                 'display_id': 'NBL22-Round-17-Replay---Perth-Wildcats-vs-Sydney-Kings',
                 'upload_date': '20220326'
             }
+        },
+        {
+            'url': 'https://ott.nbl.com.au/en-int/embed/1303323',
+            'md5': '8505f02156f756e865a1aa80050eb768',
+            'info_dict': {
+                'id': '1303323',
+                'ext': 'mp4',
+                'title': 'NBL22 Round 17 Replay - Perth Wildcats vs Sydney Kings',
+                'display_id': 'NBL22-Round-17-Replay---Perth-Wildcats-vs-Sydney-Kings'
+            }
         }
     ]
 
     def _real_extract(self, url):
         video_id = self._match_id(url)
         mobj = re.match(self._VALID_URL, url)
-        webpage = self._download_webpage(url, video_id)
+        if mobj.groupdict().get("section") not in ['game-replays', 'highlights', 'condensed-games']:
+            webpage = self._download_webpage('https://ott.nbl.com.au/en-int/embed/' + video_id, video_id)
+        else:
+            webpage = self._download_webpage(url, video_id)
 
         title = self._html_search_regex(r'<title\b[^>]*>\s*(.+?)\s*</title>', webpage, 'title')
         stream_url = self._download_json(
@@ -81,6 +94,6 @@ class NBLIE(InfoExtractor):
             'title': title,
             'description': self._og_search_description(webpage, default=None),
             'display_id': mobj.groupdict().get('display_id') or title.replace(" ", "-"),
-            'upload_date': unified_strdate(self._og_search_property('video:release_date', webpage, 'upload_date', fatal=False)),
+            'upload_date': unified_strdate(self._og_search_property('video:release_date', webpage, 'upload_date', fatal=False, default=None)),
             'formats': formats
         }
