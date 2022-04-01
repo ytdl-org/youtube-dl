@@ -49,7 +49,7 @@ class WikimediaIE(InfoExtractor):
         info['url'] = video_url
         info['description'] = clean_html(description)
         info['ext'] = 'webm'
-        info['id'] = video_id
+        info['id'] = video_id[:-5]
         info['title'] = self._og_search_title(webpage).replace("File:", "")
         info['license'] = licenze
         info['author'] = author
