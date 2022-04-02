@@ -1,5 +1,6 @@
 from .common import InfoExtractor
 from ..utils import get_element_by_class, compat_urlparse, clean_html
+import re
 
 
 class WikimediaIE(InfoExtractor):
@@ -44,8 +45,7 @@ class WikimediaIE(InfoExtractor):
         description = get_element_by_class('description', webpage)
         author = self._html_search_regex(r'<td>([^\<]*?)<\/td>', str(webpage), u"video author")
         info = {}
-        subtitles = 'https://commons.wikimedia.org/w/api.php?action=timedtext&lang=nl&title=File%3A{}' \
-                    '&trackformat=srt'.format(compat_urlparse.quote_plus(video_id))
+
         info['url'] = video_url
         info['description'] = clean_html(description)
         info['ext'] = 'webm'
@@ -53,5 +53,12 @@ class WikimediaIE(InfoExtractor):
         info['title'] = self._og_search_title(webpage).replace("File:", "")
         info['license'] = licenze
         info['author'] = author
-        info['subtitles'] = {"nl": [{"ext": "srt", "url": subtitles}]}
+
+        subtitles = re.findall(r'\bsrc=\"\/w\/api\s*(.*?)\s*srt\b', str(webpage))
+        info['subtitles'] = {}
+        for sub in subtitles:
+            sub = 'https://commons.wikimedia.org/w/api' + sub + 'srt'
+            lang = sub[sub.find('lang=') + 5:]
+            lang = lang[:lang.find('&')]
+            info['subtitles'][lang] = [{"ext": "srt", "url": sub}]
         return info
