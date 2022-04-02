@@ -60,5 +60,6 @@ class WikimediaIE(InfoExtractor):
             sub = 'https://commons.wikimedia.org/w/api' + sub + 'srt'
             lang = sub[sub.find('lang=') + 5:]
             lang = lang[:lang.find('&')]
+            sub = sub.replace(';','&')
             info['subtitles'][lang] = [{"ext": "srt", "url": sub}]
         return info
