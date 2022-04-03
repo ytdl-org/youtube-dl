@@ -51,6 +51,10 @@ from .anvato import AnvatoIE
 from .aol import AolIE
 from .allocine import AllocineIE
 from .aliexpress import AliExpressLiveIE
+from .alsace20tv import (
+    Alsace20TVIE,
+    Alsace20TVEmbedIE,
+)
 from .apa import APAIE
 from .aparat import AparatIE
 from .appleconnect import AppleConnectIE
@@ -71,6 +75,7 @@ from .arte import (
     ArteTVIE,
     ArteTVEmbedIE,
     ArteTVPlaylistIE,
+    ArteTVCategoryIE,
 )
 from .arnes import ArnesIE
 from .asiancrush import (
@@ -114,6 +119,7 @@ from .bfmtv import (
 )
 from .bibeltv import BibelTVIE
 from .bigflix import BigflixIE
+from .bigo import BigoIE
 from .bild import BildIE
 from .bilibili import (
     BiliBiliIE,
@@ -253,6 +259,10 @@ from .commonprotocols import (
 from .condenast import CondeNastIE
 from .contv import CONtvIE
 from .corus import CorusIE
+from .cpac import (
+    CPACIE,
+    CPACPlaylistIE,
+)
 from .cracked import CrackedIE
 from .crackle import CrackleIE
 from .crooksandliars import CrooksAndLiarsIE
@@ -789,7 +799,14 @@ from .nick import (
     NickNightIE,
     NickRuIE,
 )
-from .niconico import NiconicoIE, NiconicoPlaylistIE
+from .niconico import (
+    NiconicoIE,
+    NiconicoPlaylistIE,
+    NiconicoUserIE,
+    NicovideoSearchIE,
+    NicovideoSearchDateIE,
+    NicovideoSearchURLIE,
+)
 from .ninecninemedia import NineCNineMediaIE
 from .ninegag import NineGagIE
 from .ninenow import NineNowIE
@@ -1607,7 +1624,7 @@ from .youtube import (
     YoutubeRecommendedIE,
     YoutubeSearchDateIE,
     YoutubeSearchIE,
-    #YoutubeSearchURLIE,
+    YoutubeSearchURLIE,
     YoutubeSubscriptionsIE,
     YoutubeTruncatedIDIE,
     YoutubeTruncatedURLIE,
