@@ -141,10 +141,10 @@ Alternatively, refer to the [developer instructions](#developer-instructions) fo
                                          --playlist-items 1-3,7,10-13", it will
                                          download the videos at index 1, 2, 3,
                                          7, 10, 11, 12 and 13.
-    --match-title REGEX                  Download only matching titles (regex or
+    --match-title REGEX                  Download only matching titles (caseless regex or
                                          caseless sub-string)
     --reject-title REGEX                 Skip download for matching titles
-                                         (regex or caseless sub-string)
+                                         (caseless regex or caseless sub-string)
     --max-downloads NUMBER               Abort after downloading NUMBER files
     --min-filesize SIZE                  Do not download any videos smaller than
                                          SIZE (e.g. 50k or 44.6m)
