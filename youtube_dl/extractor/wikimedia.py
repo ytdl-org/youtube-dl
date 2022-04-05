@@ -1,5 +1,5 @@
 from .common import InfoExtractor
-from ..utils import get_element_by_class, compat_urlparse, clean_html
+from ..utils import get_element_by_class, determine_ext, clean_html, KNOWN_EXTENSIONS
 import re
 
 
@@ -33,8 +33,8 @@ class WikimediaIE(InfoExtractor):
 
     def _real_extract(self, url):
         video_id = self._match_id(url)
-
-        if not video_id.endswith('.webm'):
+        ext = determine_ext(url)
+        if not ext.lower() in KNOWN_EXTENSIONS:
             raise Exception("invalid video url")
 
         webpage = self._download_webpage(url, video_id)
@@ -50,8 +50,8 @@ class WikimediaIE(InfoExtractor):
 
         info['url'] = video_url
         info['description'] = clean_html(description)
-        info['ext'] = 'webm'
-        info['id'] = video_id[:-5]
+        info['ext'] = ext
+        info['id'] = video_id.replace('.' + ext, "")
         info['title'] = self._og_search_title(webpage).replace("File:", "")
         info['license'] = licenze
         info['author'] = author
