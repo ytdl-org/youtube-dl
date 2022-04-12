@@ -64,6 +64,9 @@ def _get_suitable_downloader(info_dict, params={}):
     if protocol == 'm3u8_native' and params.get('hls_prefer_native') is False:
         return FFmpegFD
 
+    if params.get('_clip_args'):
+        return FFmpegFD
+
     return PROTOCOL_MAP.get(protocol, HttpFD)
 
 
