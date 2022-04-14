@@ -1,3 +1,5 @@
+# coding: utf-8
+from __future__ import unicode_literals
 from .common import InfoExtractor
 from ..utils import get_element_by_class, determine_ext, clean_html, KNOWN_EXTENSIONS
 import re
@@ -12,7 +14,7 @@ class WikimediaIE(InfoExtractor):
     _TEST = {
         'url': 'https://commons.wikimedia.org/wiki/File:Die_Temperaturkurve_der_Erde_(ZDF,_Terra_X)_720p_HD_50FPS.webm',
         'info_dict': {
-            'description': 'Deutsch:  Beschreibung auf der Seite: "Im Verlauf der Erdgeschichte glich das Klima einer Achterbahnfahrt. Die „Fieberkurve“ unseres Planeten zeigt die globalen Temperaturschwankungen bis heute – rekonstruiert anhand von historischen Klimadaten."\nZu Wikimedia Commons hochgeladen von: PantheraLeo1359531.\nHinweise zur Weiterverwendung: https://www.zdf.de/dokumentation/terra-x/terra-x-creative-commons-cc-100.html.\nVereinfachender Verlauf in der Geschichte der Erde, für die Zukunft spätestens ab dem Jahr 2050 mit spekulativem Verlauf in der Prognose (ausgeprägtes Global-warming-Szenario ist dargestellt).English:  Climate change, Temperature in history of Earth, Video of Terra X.',
+            'description': 'md5:D6F4C7BF1C0DB1EAE80371B1F93EA85E',
             'ext': 'webm',
             'id': 'Die_Temperaturkurve_der_Erde_(ZDF,_Terra_X)_720p_HD_50FPS',
             'title': 'Die Temperaturkurve der Erde (ZDF, Terra X) 720p HD 50FPS.webm - Wikimedia Commons',
@@ -56,12 +58,13 @@ class WikimediaIE(InfoExtractor):
         info['license'] = licenze
         info['author'] = author
 
-        subtitles = re.findall(r'\bsrc=\"\/w\/api\s*(.*?)\s*srt\b', str(webpage))
-        info['subtitles'] = {}
-        for sub in subtitles:
+        subtitles = {}
+        for sub in re.findall(r'\bsrc=\"\/w\/api\s*(.*?)\s*srt\b', str(webpage)):
             sub = 'https://commons.wikimedia.org/w/api' + sub + 'srt'
             lang = sub[sub.find('lang=') + 5:]
             lang = lang[:lang.find('&')]
             sub = sub.replace(';', '&')
             info['subtitles'][lang] = [{"ext": "srt", "url": sub}]
+
+        info['subtitles'] = subtitles
         return info
