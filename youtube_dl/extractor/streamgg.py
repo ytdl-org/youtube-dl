@@ -5,7 +5,7 @@ from .common import InfoExtractor
 
 
 class StreamggIE(InfoExtractor):
-    _VALID_URL = r'https?://up.streamgg\.com/v/(?P<id>\w+)'
+    _VALID_URL = r'https?://(up.)?streamgg\.com/v/(?P<id>\w+)'
     _TEST = {
         "url": 'https://up.streamgg.com/v/r9gb3m95',
         'md5': 'eaf1f163635c868ecbba95d23ba83448',
