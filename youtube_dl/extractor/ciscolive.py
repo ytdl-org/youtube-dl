@@ -10,6 +10,7 @@ from ..compat import (
 )
 from ..utils import (
     clean_html,
+    ExtractorError,
     float_or_none,
     int_or_none,
     try_get,
@@ -21,12 +22,13 @@ class CiscoLiveBaseIE(InfoExtractor):
     # These appear to be constant across all Cisco Live presentations
     # and are not tied to any user session or event
     RAINFOCUS_API_URL = 'https://events.rainfocus.com/api/%s'
-    RAINFOCUS_API_PROFILE_ID = 'Na3vqYdAlJFSxhYTYQGuMbpafMqftalz'
-    RAINFOCUS_WIDGET_ID = 'n6l4Lo05R8fiy3RpUBm447dZN8uNWoye'
+    RAINFOCUS_API_PROFILE_ID = ''  # if blank will be fetched at runtime from site javascript
+    RAINFOCUS_WIDGET_ID = ''  # if blank will be fetched at runtime from site javascript
+    RAINFOCUS_TOKENS_URL = 'https://cdn-events.rainfocus.com/pages/cisco/clondemand/catalog.js'
     BRIGHTCOVE_URL_TEMPLATE = 'http://players.brightcove.net/5647924234001/SyK2FdqjM_default/index.html?videoId=%s'
 
     HEADERS = {
-        'Origin': 'https://ciscolive.cisco.com',
+        'Origin': 'https://ciscolive.com',
         'rfApiProfileId': RAINFOCUS_API_PROFILE_ID,
         'rfWidgetId': RAINFOCUS_WIDGET_ID,
     }
@@ -34,6 +36,21 @@ class CiscoLiveBaseIE(InfoExtractor):
     def _call_api(self, ep, rf_id, query, referrer, note=None):
         headers = self.HEADERS.copy()
         headers['Referer'] = referrer
+        if not self.RAINFOCUS_API_PROFILE_ID and not self.RAINFOCUS_WIDGET_ID:
+            rf_token_js = self._download_webpage(self.RAINFOCUS_TOKENS_URL, 'catalog.js', headers=headers)
+            if "apiToken" not in rf_token_js:
+                raise ExtractorError(
+                    'Unable to fetch api profile (apiToken) value.', expected=True)
+            if "widgetId" not in rf_token_js:
+                raise ExtractorError(
+                    'Unable to fetch widgetId value', expected=True)
+            api_token = self._html_search_regex(
+                r'(?:apiToken): \'(\w+)\',', rf_token_js, 'apiToken')
+            widget_id = self._html_search_regex(
+                r'(?:widgetId): \'(\w+)\',', rf_token_js, 'widgetId')
+            if api_token and widget_id:
+                headers['rfApiProfileId'] = api_token
+                headers['rfWidgetId'] = widget_id
         return self._download_json(
             self.RAINFOCUS_API_URL % ep, rf_id, note=note,
             data=urlencode_postdata(query), headers=headers)
@@ -65,19 +82,18 @@ class CiscoLiveBaseIE(InfoExtractor):
 
 
 class CiscoLiveSessionIE(CiscoLiveBaseIE):
-    _VALID_URL = r'https?://(?:www\.)?ciscolive(?:\.cisco)?\.com/[^#]*#/session/(?P<id>[^/?&]+)'
+    _VALID_URL = r'https?://(?:www\.)?ciscolive\.com/[^#]*#/session/(?P<id>[^/?&]+)'
     _TESTS = [{
-        'url': 'https://ciscolive.cisco.com/on-demand-library/?#/session/1423353499155001FoSs',
-        'md5': 'c98acf395ed9c9f766941c70f5352e22',
+        'url': 'https://www.ciscolive.com/on-demand/on-demand-library.html?search=#/session/16360600004400017rMx',
+        'md5': 'e0f5b0b2927b586ebff619294fec6926',
         'info_dict': {
-            'id': '5803694304001',
+            'id': '6128601216001',
             'ext': 'mp4',
-            'title': '13 Smart Automations to Monitor Your Cisco IOS Network',
-            'description': 'md5:ec4a436019e09a918dec17714803f7cc',
-            'timestamp': 1530305395,
-            'upload_date': '20180629',
+            'title': 'A Deeper Dive into the Telco Cloud Architecture Evolution to support 5G and MEC - BRKSPG-1565',
+            'description': 'md5:04bc54ec8ede2bbd9d21264bfaf16cb3',
+            'timestamp': 1580474594,
+            'upload_date': '20200131',
             'uploader_id': '5647924234001',
-            'location': '16B Mezz.',
         },
     }, {
         'url': 'https://www.ciscolive.com/global/on-demand-library.html?search.event=ciscoliveemea2019#/session/15361595531500013WOU',
@@ -85,25 +101,30 @@ class CiscoLiveSessionIE(CiscoLiveBaseIE):
     }, {
         'url': 'https://www.ciscolive.com/global/on-demand-library.html?#/session/1490051371645001kNaS',
         'only_matching': True,
+    }, {
+        'url': 'https://www.ciscolive.com/on-demand/on-demand-library.html?#/session/16360600774720017Iby',
+        'only_matching': True,
     }]
 
     def _real_extract(self, url):
         rf_id = self._match_id(url)
         rf_result = self._call_api('session', rf_id, {'id': rf_id}, url)
+        if int(rf_result['responseCode']) != 0:
+            raise ExtractorError(
+                'Rainfocus session api returned a non success responseCode: %s. api keys might be invalid' % rf_result['responseCode'], expected=True)
         return self._parse_rf_item(rf_result['items'][0])
 
 
 class CiscoLiveSearchIE(CiscoLiveBaseIE):
-    _VALID_URL = r'https?://(?:www\.)?ciscolive(?:\.cisco)?\.com/(?:global/)?on-demand-library(?:\.html|/)'
+    _VALID_URL = r'https?://(?:www\.)?ciscolive\.com/(?:global|on-demand/)?on-demand-library(?:\.html|/)'
     _TESTS = [{
-        'url': 'https://ciscolive.cisco.com/on-demand-library/?search.event=ciscoliveus2018&search.technicallevel=scpsSkillLevel_aintroductory&search.focus=scpsSessionFocus_designAndDeployment#/',
+        'url': 'https://www.ciscolive.com/on-demand/on-demand-library.html?search.event=1636046385176005FbBU&search.technology=scpsTechnology_dataCenter&search.technicallevel=scpsSkillLevel_aintroductory#/',
         'info_dict': {
             'title': 'Search query',
         },
-        'playlist_count': 5,
+        'playlist_count': 3,  # example returns 4 results, only 3 have video
     }, {
-        'url': 'https://ciscolive.cisco.com/on-demand-library/?search.technology=scpsTechnology_applicationDevelopment&search.technology=scpsTechnology_ipv6&search.focus=scpsSessionFocus_troubleshootingTroubleshooting#/',
-        'only_matching': True,
+        'url': 'https://www.ciscolive.com/on-demand/on-demand-library.html?search.technology=scpsTechnology_automation&search.technicallevel=scpsSkillLevel_cadvanced#/',
     }, {
         'url': 'https://www.ciscolive.com/global/on-demand-library.html?search.technicallevel=scpsSkillLevel_aintroductory&search.event=ciscoliveemea2019&search.technology=scpsTechnology_dataCenter&search.focus=scpsSessionFocus_bestPractices#/',
         'only_matching': True,
@@ -124,6 +145,10 @@ class CiscoLiveSearchIE(CiscoLiveBaseIE):
             results = self._call_api(
                 'search', None, query, url,
                 'Downloading search JSON page %d' % page_num)
+            if int(results['totalSearchItems']) == 0:
+                raise ExtractorError(
+                    'Search api returned 0 items (if matches are expected rfApiProfileId may be invalid)',
+                    expected=True)
             sl = try_get(results, lambda x: x['sectionList'][0], dict)
             if sl:
                 results = sl
