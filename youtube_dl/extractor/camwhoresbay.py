@@ -31,7 +31,6 @@ class CamWhoresBayVideoIE(InfoExtractor):
             #     'url': r're:https://www\.camwhoresbay\.com/get_file/7/55259a27805bf1313318c14b2afb0dae1fef6e1dd4/484000/484472/484472_720p\.mp4/\?rnd=.+',
             #     'height': 720
             # }]
-            'thumbnail': 'https://cwbstatic.cdntrex.com/contents/videos_screenshots/484000/484472/preview.mp4.jpg',
             'thumbnails': [{
                 'url': 'https://cwbstatic.cdntrex.com/contents/videos_screenshots/484000/484472/preview.mp4.jpg',
                 'height': 360
@@ -93,9 +92,8 @@ class CamWhoresBayVideoIE(InfoExtractor):
             'id': video_id,
             'title': title,
             'uploader': uploader,
-            'url': formats[0]['url'],
+            'url': formats[0].get('url'),
             'formats': formats,
-            'thumbnail': thumbnails[0]['url'],
             'thumbnails': thumbnails,
         }
 
