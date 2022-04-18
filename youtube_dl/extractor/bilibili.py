@@ -233,7 +233,7 @@ class BiliBiliIE(InfoExtractor):
             webpage)
         if uploader_mobj:
             info.update({
-                'uploader': uploader_mobj.group('name'),
+                'uploader': uploader_mobj.group('name').strip(),
                 'uploader_id': uploader_mobj.group('id'),
             })
         if not info.get('uploader'):
@@ -368,6 +368,11 @@ class BilibiliAudioIE(BilibiliAudioBaseIE):
             'url': play_data['cdns'][0],
             'filesize': int_or_none(play_data.get('size')),
         }]
+
+        for a_format in formats:
+            a_format.setdefault('http_headers', {}).update({
+                'Referer': url,
+            })
 
         song = self._call_api('song/info', au_id)
         title = song['title']
