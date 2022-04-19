@@ -39,6 +39,7 @@ class Porn91IE(InfoExtractor):
 
     def _real_extract(self, url):
         video_id = self._match_id(url)
+        # set language for page to be extracted
         self._set_cookie('91porn.com', 'language', 'cn_CN')
 
         webpage = self._download_webpage(
@@ -57,7 +58,9 @@ class Porn91IE(InfoExtractor):
 
         info_dict = self._parse_html5_media_entries(url, '<video>%s</video>' % (video_link_url, ), video_id)[0]
 
+        # extract various fields in <tag class=info>Name: value</tag>
         FIELD_MAP = {
+            # cn_CN name: (yt-dl key, value parser, en name)
             '时长': ('duration', parse_duration, 'Runtime', ),
             '查看': ('view_count', str_to_int, 'Views', ),
             '留言': ('comment_count', str_to_int, 'Comments', ),
@@ -67,7 +70,14 @@ class Porn91IE(InfoExtractor):
             '__ignore__': ('description', strip_or_none, 'Description', ),
             '作者': ('uploader', strip_or_none, 'From', ),
         }
-        for elt in get_elements_by_class('info', re.sub(r'</span>\s*<span\b[^>]*?>', '', webpage)) or []:
+        # yt-dl's original implementation of get_elements_by_class() uses regex
+        # yt-dlp uses an actual HTML parser, and can be confused by bad HTML fragments
+        for elt in get_elements_by_class(
+                'info',
+                # concatenate <span>s ...
+                re.sub(r'(?i)</span>\s*<span\b[^>]*?>', '',
+                       # ... and strip out possibly unbalanced <font> for yt-dlp
+                       re.sub(r'(?i)(?:<font\b[^>]*?>|</font\s*>)', '', webpage))) or []:
             elt = re.split(r':\s*', clean_html(elt), 1)
             if len(elt) != 2 or elt[1] == '':
                 continue
