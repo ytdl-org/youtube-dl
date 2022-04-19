@@ -410,8 +410,15 @@ class FacebookIE(InfoExtractor):
         self._login()
 
     def _extract_from_url(self, url, video_id):
-        webpage = self._download_webpage(
+        webpage, urlh = self._download_webpage_handle(
             url.replace('://m.facebook.com/', '://www.facebook.com/'), video_id)
+        login_or_id_check = re.search(r'(?P<login>\blogin\b)|/permalink/|[/=?]' + video_id, urlh.geturl())
+        if login_or_id_check and login_or_id_check.group('login'):
+            self.raise_login_required()
+        elif not login_or_id_check:
+            raise ExtractorError(
+                'Facebook redirected to a generic page (%s): the video may be unavailable or you may need to log in.' % urlh.geturl(),
+                expected=True)
 
         def extract_metadata(webpage):
             video_title = self._html_search_regex(
