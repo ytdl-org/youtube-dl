@@ -26,43 +26,43 @@ class SpankBangIE(InfoExtractor):
                         )
                     '''
     _TESTS = [{
-        'url': 'http://spankbang.com/3vvn/video/fantasy+solo',
-        'md5': '1cc433e1d6aa14bc376535b8679302f7',
+        'url': 'https://spankbang.com/15wo7/video/pamela+anderson+vip',
+        'md5': '09ff3f76a6d499016767dcd26a082557',
         'info_dict': {
-            'id': '3vvn',
+            'id': '15wo7',
             'ext': 'mp4',
-            'title': 'fantasy solo',
-            'description': 'dillion harper masturbates on a bed',
+            'title': 'Pamela Anderson VIP pamela anderson',
+            'description': 'Watch Pamela Anderson VIP on SpankBang now! - Pamela Anderson, Boobs, Pamela Porn - SpankBang ',
             'thumbnail': r're:^https?://.*\.jpg$',
-            'uploader': 'silly2587',
-            'timestamp': 1422571989,
-            'upload_date': '20150129',
+            'uploader': 'loop1985',
+            'timestamp': 1490757355,
+            'upload_date': '20170329',
             'age_limit': 18,
         }
     }, {
         # 480p only
-        'url': 'http://spankbang.com/1vt0/video/solvane+gangbang',
+        'url': 'https://spankbang.com/x4v4/video/fucked+up+facials+raylene',
         'only_matching': True,
     }, {
         # no uploader
-        'url': 'http://spankbang.com/lklg/video/sex+with+anyone+wedding+edition+2',
+        'url': 'https://spankbang.com/26q1b/video/son+will+see+mom+s+a+jizzrag',
         'only_matching': True,
     }, {
         # mobile page
-        'url': 'http://m.spankbang.com/1o2de/video/can+t+remember+her+name',
+        'url': 'https://m.spankbang.com/vy4u/video/fucked+up+facials+alanah+rae',
         'only_matching': True,
     }, {
         # 4k
-        'url': 'https://spankbang.com/1vwqx/video/jade+kush+solo+4k',
+        'url': 'https://spankbang.com/607re/video/all+etta+sexy+af+4k',
         'only_matching': True,
     }, {
-        'url': 'https://m.spankbang.com/3vvn/play/fantasy+solo/480p/',
+        'url': 'https://spankbang.com/jvfm/video/sienna+west+fucked+up+facial/480p/',
         'only_matching': True,
     }, {
         'url': 'https://m.spankbang.com/3vvn/play',
         'only_matching': True,
     }, {
-        'url': 'https://spankbang.com/2y3td/embed/',
+        'url': 'https://spankbang.com/2ja1p/embed/',
         'only_matching': True,
     }, {
         'url': 'https://spankbang.com/2v7ik-7ecbgu/playlist/latina+booty',
@@ -140,9 +140,9 @@ class SpankBangIE(InfoExtractor):
             webpage, 'description', default=None)
         thumbnail = self._og_search_thumbnail(webpage, default=None)
         uploader = self._html_search_regex(
-            (r'(?s)<li[^>]+class=["\']profile[^>]+>(.+?)</a>',
+            (r'(?s)<li[^>]+class=["\']us[^>]+>(.+?)</a>',
              r'class="user"[^>]*><img[^>]+>([^<]+)'),
-            webpage, 'uploader', default=None)
+            webpage, 'uploader', default="SpankBang")
         duration = parse_duration(self._search_regex(
             r'<div[^>]+\bclass=["\']right_side[^>]+>\s*<span>([^<]+)',
             webpage, 'duration', default=None))
