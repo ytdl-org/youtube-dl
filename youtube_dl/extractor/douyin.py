@@ -2,6 +2,7 @@
 from __future__ import unicode_literals
 
 from .common import InfoExtractor
+from ..compat import compat_str
 from ..utils import (
     ExtractorError,
     int_or_none,
@@ -14,12 +15,12 @@ class DouyinVideoIE(InfoExtractor):
     _VALID_URL = r'https?://(?:www\.)?douyin\.com/video/(?P<id>[0-9]+)'
     _TEST = {
         'url': 'https://www.douyin.com/video/6989098563519270181',
-        'md5': 'b4c99f3be1be343948a9eaaea8303d27',
+        'md5': '99c5667992b8a8d46c145907f677c92b',
         'info_dict': {
             'id': '6989098563519270181',
-            'url': r're:^https://v3-dy-o.zjcdn.com/[0-9a-f]{32}/[0-9a-f]{8}/video/tos/cn/tos-cn-ve-15/[0-9a-f]{32}/?.*',
+            'url': 'https://aweme.snssdk.com/aweme/v1/playwm/?video_id=v0300fg10000c3v47dbc77u9fvb20tbg&ratio=720p&line=0',
             'title': '杨集#我的家乡 ',
-            'uploader': '永恒的爱',
+            'uploader': '🌹永恒的爱🌹',
             'uploader_id': '104081949894',
             'timestamp': 1627276320000.0,
             'ext': 'mp4'
@@ -45,13 +46,13 @@ class DouyinVideoIE(InfoExtractor):
             'id': video_id,
             'title': item['desc'],
             'url': item['video']['play_addr']['url_list'][0],
-            'uploader': try_get(item, lambda x: x['author']['nickname']),
-            'uploader_id': try_get(item, lambda x: x['author']['uid']),
+            'uploader': try_get(item, lambda x: x['author']['nickname'], compat_str),
+            'uploader_id': try_get(item, lambda x: x['author']['uid'], compat_str),
             'duration': int_or_none(item.get('duration') or try_get(item, lambda x: x['video']['duration'], int), scale=1000),
             'timestamp': int_or_none(item.get('create_time'), invscale=1000),
-            'width': try_get(item, lambda x: x['video']['width']),
-            'height': try_get(item, lambda x: x['video']['height']),
-            'vbr': try_get(item, lambda x: x['video']['bit_rate']),
+            'width': try_get(item, lambda x: x['video']['width'], int),
+            'height': try_get(item, lambda x: x['video']['height'], int),
+            'vbr': try_get(item, lambda x: x['video']['bit_rate'], int),
             'ext': 'mp4'
         }
 
@@ -84,12 +85,13 @@ class DouyinUserIE(InfoExtractor):
             if aweme_list is None:
                 raise ExtractorError('JSON response does not contain aweme_list', video_id=sec_uid)
 
-            entries.extend([self.url_result('https://www.douyin.com/video/%s' % aweme['aweme_id'],
-                                            ie=DouyinVideoIE.ie_key(), video_id=aweme['aweme_id'])
-                            for aweme in aweme_list])
+            entries.extend([self.url_result('https://www.douyin.com/video/%s' % aweme_id,
+                                            ie=DouyinVideoIE.ie_key(), video_id=aweme_id)
+                            for aweme_id in filter(None,
+                                                   (aweme.get('aweme_id') for aweme in aweme_list
+                                                    if isinstance(aweme, dict)))])
 
-            has_more = post['has_more']
-            max_cursor = post['max_cursor']
+            has_more = post.get('has_more')
+            max_cursor = post.get('max_cursor')
 
         return self.playlist_result(orderedSet(entries), sec_uid)
-
