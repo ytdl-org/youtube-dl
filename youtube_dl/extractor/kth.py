@@ -6,7 +6,7 @@ from ..utils import smuggle_url
 
 
 class KTHIE(InfoExtractor):
-    _VALID_URL = r'https?://play\.kth\.se/(?:.+/)+(?P<id>[a-z0-9_]+)'
+    _VALID_URL = r'https?://play\.kth\.se/(?:[^/]+/)+(?P<id>[a-z0-9_]+)'
     _TEST = {
         'url': 'https://play.kth.se/media/Lunch+breakA+De+nya+aff%C3%A4rerna+inom+Fordonsdalen/0_uoop6oz9',
         'md5': 'd83ada6d00ca98b73243a88efe19e8a6',
