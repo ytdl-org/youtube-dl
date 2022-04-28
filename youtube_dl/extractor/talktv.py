@@ -26,6 +26,7 @@ from ..utils import (
 
 class TalkTVIE(InfoExtractor):
     IE_NAME = 'talk.tv'
+    IE_DESC = 'TalkTV UK catch-up and live shows'
     _VALID_URL = r'https?://watch\.talk\.tv/(?P<id>watch/(?:vod|replay)/\d+|live)'
     _TESTS = [{
         'url': 'https://watch.talk.tv/watch/replay/12216792',
@@ -156,6 +157,7 @@ class TalkTVIE(InfoExtractor):
 
 class TalkTVSeriesIE(InfoExtractor):
     IE_NAME = 'talk.tv:series'
+    IE_DESC = 'TalkTV UK series catch-up'
     _VALID_URL = r'https?://(?:watch\.|www\.)?talk\.tv/shows/(?P<id>[\da-f]{8}-(?:[\da-f]{4}-){3}[\da-f]{12})'
     _TESTS = [{
         'url': 'https://watch.talk.tv/shows/86dadc3e-c4d2-11ec-b4c6-0af62ebc70d1',
