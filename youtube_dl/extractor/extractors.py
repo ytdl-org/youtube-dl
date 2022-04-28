@@ -1214,6 +1214,10 @@ from .tagesschau import (
     TagesschauPlayerIE,
     TagesschauIE,
 )
+from .talktv import (
+    TalkTVIE,
+    TalkTVSeriesIE,
+)
 from .tass import TassIE
 from .tbs import TBSIE
 from .tdslifeway import TDSLifewayIE
