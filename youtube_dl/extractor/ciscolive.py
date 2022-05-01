@@ -36,24 +36,25 @@ class CiscoLiveBaseIE(InfoExtractor):
     def _call_api(self, ep, rf_id, query, referrer, note=None):
         headers = self.HEADERS.copy()
         headers['Referer'] = referrer
-        if not self.RAINFOCUS_API_PROFILE_ID and not self.RAINFOCUS_WIDGET_ID:
+        if not self.RAINFOCUS_API_PROFILE_ID or not self.RAINFOCUS_WIDGET_ID:
             rf_token_js = self._download_webpage(self.RAINFOCUS_TOKENS_URL, 'catalog.js', headers=headers)
-            if "apiToken" not in rf_token_js:
-                raise ExtractorError(
-                    'Unable to fetch api profile (apiToken) value.', expected=True)
-            if "widgetId" not in rf_token_js:
-                raise ExtractorError(
-                    'Unable to fetch widgetId value', expected=True)
+            for token in ('apiToken', 'widgetId'):
+                if token not in rf_token_js:
+                    raise ExtractorError(
+                        'Unable to fetch ' + token, expected=True)
             api_token = self._html_search_regex(
-                r'(?:apiToken): \'(\w+)\',', rf_token_js, 'apiToken')
+                r'''apiToken:\s+["'](\w+)''', rf_token_js, 'apiToken')
             widget_id = self._html_search_regex(
-                r'(?:widgetId): \'(\w+)\',', rf_token_js, 'widgetId')
-            if api_token and widget_id:
-                headers['rfApiProfileId'] = api_token
-                headers['rfWidgetId'] = widget_id
-        return self._download_json(
+                r'''widgetId:\s+["'](\w+)''', rf_token_js, 'widgetId')
+            headers['rfApiProfileId'] = api_token
+            headers['rfWidgetId'] = widget_id
+        rf_result = self._download_json(
             self.RAINFOCUS_API_URL % ep, rf_id, note=note,
             data=urlencode_postdata(query), headers=headers)
+        if int(rf_result['responseCode']) != 0:
+            raise ExtractorError(
+                'Rainfocus %s api returned a non success responseCode: %s. api keys might be invalid' % (ep, rf_result['responseCode']), expected=True)
+        return rf_result
 
     def _parse_rf_item(self, rf_item):
         event_name = rf_item.get('eventName')
@@ -82,7 +83,7 @@ class CiscoLiveBaseIE(InfoExtractor):
 
 
 class CiscoLiveSessionIE(CiscoLiveBaseIE):
-    _VALID_URL = r'https?://(?:www\.)?ciscolive\.com/[^#]*#/session/(?P<id>[^/?&]+)'
+    _VALID_URL = r'https?://(?:www\.)?ciscolive(?:\.cisco)?\.com/[^#]*#/session/(?P<id>[^/?&]+)'
     _TESTS = [{
         'url': 'https://www.ciscolive.com/on-demand/on-demand-library.html?search=#/session/16360600004400017rMx',
         'md5': 'e0f5b0b2927b586ebff619294fec6926',
@@ -109,14 +110,11 @@ class CiscoLiveSessionIE(CiscoLiveBaseIE):
     def _real_extract(self, url):
         rf_id = self._match_id(url)
         rf_result = self._call_api('session', rf_id, {'id': rf_id}, url)
-        if int(rf_result['responseCode']) != 0:
-            raise ExtractorError(
-                'Rainfocus session api returned a non success responseCode: %s. api keys might be invalid' % rf_result['responseCode'], expected=True)
         return self._parse_rf_item(rf_result['items'][0])
 
 
 class CiscoLiveSearchIE(CiscoLiveBaseIE):
-    _VALID_URL = r'https?://(?:www\.)?ciscolive\.com/(?:global|on-demand/)?on-demand-library(?:\.html|/)'
+    _VALID_URL = r'https?://(?:www\.)?ciscolive(?:\.cisco)?\.com/(?:global/|on-demand/)?on-demand-library(?:\.html|/)'
     _TESTS = [{
         'url': 'https://www.ciscolive.com/on-demand/on-demand-library.html?search.event=1636046385176005FbBU&search.technology=scpsTechnology_dataCenter&search.technicallevel=scpsSkillLevel_aintroductory#/',
         'info_dict': {
@@ -147,7 +145,7 @@ class CiscoLiveSearchIE(CiscoLiveBaseIE):
                 'Downloading search JSON page %d' % page_num)
             if int(results['totalSearchItems']) == 0:
                 raise ExtractorError(
-                    'Search api returned 0 items (if matches are expected rfApiProfileId may be invalid)',
+                    'Search api returned no items (if matches are expected rfApiProfileId may be invalid)',
                     expected=True)
             sl = try_get(results, lambda x: x['sectionList'][0], dict)
             if sl:
