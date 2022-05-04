@@ -355,6 +355,7 @@ from .embedly import EmbedlyIE
 from .engadget import EngadgetIE
 from .eporner import EpornerIE
 from .eroprofile import EroProfileIE
+from .ertflix import ErtflixIE
 from .escapist import EscapistIE
 from .espn import (
     ESPNIE,
