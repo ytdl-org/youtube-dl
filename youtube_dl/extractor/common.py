@@ -1228,6 +1228,10 @@ class InfoExtractor(object):
         if isinstance(json_ld, dict):
             json_ld = [json_ld]
 
+        def valued_dict(items):
+            """Return dict from dict or iterable of pairs omitting None values"""
+            return dict((k, v) for k, v in (items.items() if isinstance(items, dict) else items) if v is not None)
+
         INTERACTION_TYPE_MAP = {
             'CommentAction': 'comment',
             'AgreeAction': 'like',
@@ -1325,18 +1329,19 @@ class InfoExtractor(object):
                         'series': series_name,
                     })
                 elif item_type == 'Movie':
-                    info.update({
+                    # here and in the next, don't erase existing value with None
+                    info.update(valued_dict({
                         'title': unescapeHTML(e.get('name')),
                         'description': unescapeHTML(e.get('description')),
                         'duration': parse_duration(e.get('duration')),
                         'timestamp': unified_timestamp(e.get('dateCreated')),
-                    })
+                    }))
                 elif item_type in ('Article', 'NewsArticle'):
-                    info.update({
+                    info.update(valued_dict({
                         'timestamp': parse_iso8601(e.get('datePublished')),
                         'title': unescapeHTML(e.get('headline')),
                         'description': unescapeHTML(e.get('articleBody')),
-                    })
+                    }))
                 elif item_type == 'VideoObject':
                     extract_video_object(e)
                     if expected_type is None:
@@ -1350,7 +1355,7 @@ class InfoExtractor(object):
                     continue
                 else:
                     break
-        return dict((k, v) for k, v in info.items() if v is not None)
+        return valued_dict(info)
 
     @staticmethod
     def _hidden_inputs(html):
