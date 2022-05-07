@@ -14,9 +14,10 @@ from ..utils import (
     urljoin,
 )
 
-from ..compat import (
-    compat_HTTPError
-)
+try:
+    from urllib.error import HTTPError
+except ImportError:  # Python 2 support
+    from urllib2 import HTTPError
 
 
 class VidLiiIE(InfoExtractor):
@@ -89,7 +90,7 @@ class VidLiiIE(InfoExtractor):
         try:
             self._request_webpage(sources[1][1], video_id, 'Checking HD URL')
             add_format(sources[1][1])
-        except compat_HTTPError:
+        except HTTPError:
             pass
 
         add_format(sources[0][1])
