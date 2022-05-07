@@ -6,6 +6,7 @@ import re
 from .common import InfoExtractor
 
 from ..utils import (
+    ExtractorError,
     float_or_none,
     get_element_by_id,
     int_or_none,
@@ -13,11 +14,6 @@ from ..utils import (
     unified_strdate,
     urljoin,
 )
-
-try:
-    from urllib.error import HTTPError
-except ImportError:  # Python 2 support
-    from urllib2 import HTTPError
 
 
 class VidLiiIE(InfoExtractor):
@@ -90,7 +86,7 @@ class VidLiiIE(InfoExtractor):
         try:
             self._request_webpage(sources[1][1], video_id, 'Checking HD URL')
             add_format(sources[1][1])
-        except HTTPError:
+        except ExtractorError:
             pass
 
         add_format(sources[0][1])
