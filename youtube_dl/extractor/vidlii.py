@@ -14,6 +14,10 @@ from ..utils import (
     urljoin,
 )
 
+from ..compat import (
+    compat_HTTPError
+)
+
 
 class VidLiiIE(InfoExtractor):
     _VALID_URL = r'https?://(?:www\.)?vidlii\.com/(?:watch|embed)\?.*?\bv=(?P<id>[0-9A-Za-z_-]{11})'
@@ -85,7 +89,7 @@ class VidLiiIE(InfoExtractor):
         try:
             self._request_webpage(sources[1][1], video_id, 'Checking HD URL')
             add_format(sources[1][1])
-        except Exception:
+        except compat_HTTPError:
             pass
 
         add_format(sources[0][1])
