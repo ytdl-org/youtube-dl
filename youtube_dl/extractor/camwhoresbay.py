@@ -5,7 +5,11 @@ from .common import InfoExtractor
 import re
 import itertools
 from ..utils import (
+    int_or_none,
     js_to_json,
+    parse_resolution,
+    sanitize_url,
+    update_url_query,
 )
 
 
@@ -21,31 +25,7 @@ class CamWhoresBayVideoIE(InfoExtractor):
             'title': 'Kirsten_Xxx 2022-01-19',
             'uploader': '789sani',
             'url': r're:https://www\.camwhoresbay\.com/get_file/7/55259a27805bf1313318c14b2afb0dae1fef6e1dd4/484000/484472/484472_720p\.mp4/\?rnd=.+',
-            # 'formats': [{
-            #     'url': r're:https://www\.camwhoresbay\.com/get_file/7/55259a27805bf1313318c14b2afb0dae1fef6e1dd4/484000/484472/484472\.mp4/\?rnd=.+',
-            #     'height': 360
-            # }, {
-            #     'url': r're:https://www\.camwhoresbay\.com/get_file/7/55259a27805bf1313318c14b2afb0dae1fef6e1dd4/484000/484472/484472_480p\.mp4/\?rnd=.+',
-            #     'height': 480
-            # }, {
-            #     'url': r're:https://www\.camwhoresbay\.com/get_file/7/55259a27805bf1313318c14b2afb0dae1fef6e1dd4/484000/484472/484472_720p\.mp4/\?rnd=.+',
-            #     'height': 720
-            # }]
-            'thumbnails': [{
-                'url': 'https://cwbstatic.cdntrex.com/contents/videos_screenshots/484000/484472/preview.mp4.jpg',
-                'height': 360
-            }, {
-                'url': 'https://cwbstatic.cdntrex.com/contents/videos_screenshots/484000/484472/preview_480p.mp4.jpg',
-                'height': 480
-            }, {
-                'url': 'https://cwbstatic.cdntrex.com/contents/videos_screenshots/484000/484472/preview_720p.mp4.jpg',
-                'height': 720
-            }],
-            # TODO more properties, either as:
-            # * A value
-            # * MD5 checksum; start the string with md5:
-            # * A regular expression; start the string with re:
-            # * Any Python type (for example int or float)
+            'thumbnail': r're:^https?://cwbstatic.cdntrex.com/contents/videos_screenshots/484000/484472/preview_720p.mp4.jpg',
         }
     }
 
@@ -54,11 +34,11 @@ class CamWhoresBayVideoIE(InfoExtractor):
         formats = []
         rnd = flashvars.get('rnd')
         for k, v in flashvars.items():
-            if re.match(r"^video_(alt_)?url\d?$", k):
+            if re.match(r'^video_(alt_)?url\d?$', k):
                 f = {
-                    'url': '{}?rnd={}'.format(v, rnd),
-                    'height': int(flashvars['{}_text'.format(k)][:-1])
+                    'url': update_url_query(v, {'rnd': rnd, })
                 }
+                f.update(parse_resolution(flashvars.get(k + '_text')))
                 formats.append(f)
         return formats
 
@@ -66,10 +46,10 @@ class CamWhoresBayVideoIE(InfoExtractor):
     def _parse_thumbnails(flashvars):
         thumbnails = []
         for k, v in flashvars.items():
-            if re.match(r"^preview_url\d$", k):
+            if re.match(r'^preview_url\d$', k):
                 t = {
-                    'url': 'https:{}'.format(v),
-                    'height': int(flashvars[k.replace('_url', '_height')])
+                    'url': sanitize_url(v),
+                    'height': int_or_none(flashvars.get(k.replace('_url', '_height'))),
                 }
                 thumbnails.append(t)
         return thumbnails
@@ -77,12 +57,17 @@ class CamWhoresBayVideoIE(InfoExtractor):
     def _real_extract(self, url):
         video_id = self._match_id(url)
         webpage = self._download_webpage(url, video_id)
+
+        if re.search(r'(?s)<div class=\"no-player\"', webpage):
+            print("Video is private, skipping.")
+            return
+
         title = self._html_search_regex(r'<div class=\"headline\">\n\s*<h1>(.+?)</h1>', webpage, 'title')
 
         flashvars = self._parse_json(
-            self._search_regex(r'var\s+flashvars\s+=\s+({\n.+});', webpage, 'flashvars', default='{}'),
+            self._search_regex(r'(?s)var\s+flashvars\s*=\s*({.+?})\s*;', webpage, 'flashvars', default='{}'),
             video_id, transform_source=js_to_json)
-        uploader = self._search_regex(r'class=\"avatar\" href=\"http.+/\" title=\"(.+)\"', webpage, 'uploader',
+        uploader = self._search_regex(r'''(?s)\bclass\s*=\s*["']avatar["'][^>]+?\btitle\s*=\s*["'](.+)["']''', webpage, 'uploader',
                                       fatal=False)
 
         formats = self._parse_formats(flashvars)
@@ -101,9 +86,9 @@ class CamWhoresBayVideoIE(InfoExtractor):
 class CamWhoresBayModelIE(CamWhoresBayVideoIE):
     IE_NAME = 'camwhoresbay:model'
     _VALID_URL = r'https?://(?:www\.)?camwhoresbay\.com/models/(?P<id>[0-9a-z\-]+)/?'
-    _MORE_PAGES_INDICATOR = r'<li\s+class="next"><a\s+href="#videos"'
+    _MORE_PAGES_INDICATOR = r'''<li\s[^>]*\bclass\s*=\s*["']next["'][^>]*><a\s[^>]*href\s*=\s*["']#videos["']'''
     _TITLE = None
-    _TITLE_RE = r'<div\s+class=\"headline\">\n\s*<h1>\s*(.*?)\'s New Videos.+</h1>'
+    _TITLE_RE = r'''(?is)<div\s[^>]+?\bclass\s*=\s*["']headline["'][^>]*>\s*<h1\s[^>]*>\s*(.*?)'s\s+New\s+Videos\b'''
     _BASE_URL_TEMPL = 'https://www.camwhoresbay.com/models/%s/?mode=async&function=get_block&block_id=list_videos_common_videos_list&sort_by=post_date&from='
     _TEST = {
         'url': 'https://www.camwhoresbay.com/models/kirsten-xxx/',
@@ -115,7 +100,7 @@ class CamWhoresBayModelIE(CamWhoresBayVideoIE):
     _PAGE_SIZE = 35
 
     def _extract_list_title(self, webpage):
-        return self._TITLE or self._html_search_regex(
+        return self._html_search_regex(
             self._TITLE_RE, webpage, 'list title', fatal=False)
 
     def _title_and_entries(self, model_id, base_url):
@@ -125,7 +110,9 @@ class CamWhoresBayModelIE(CamWhoresBayVideoIE):
             if page == 1:
                 yield self._extract_list_title(webpage)
 
-            for video_id in re.findall(r'<div\s+class=\"video-item\s*\">\n\s*<a href=\"(.*?)\"\s+title', webpage):
+            for video_id in re.findall(
+                    r'(?is)<div\s[^>]*\bclass\s*=\s*["\'.*?\bvideo\-item\b.*?["\'][^>]*>\s*<a\s[^>]*\bhref\s*=\s*["\'](.*?)["\']',
+                    webpage):
                 yield self.url_result(video_id)
 
             if re.search(self._MORE_PAGES_INDICATOR, webpage, re.DOTALL) is None:
@@ -138,4 +125,4 @@ class CamWhoresBayModelIE(CamWhoresBayVideoIE):
 
     def _real_extract(self, url):
         model_id = self._match_id(url)
-        return self._extract_videos(model_id, self._BASE_URL_TEMPL % model_id)
+        return self._extract_videos(model_id, self._BASE_URL_TEMPL % (model_id,))
