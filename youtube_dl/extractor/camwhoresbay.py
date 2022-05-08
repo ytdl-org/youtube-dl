@@ -24,7 +24,7 @@ class CamWhoresBayVideoIE(InfoExtractor):
             'ext': 'mp4',
             'title': 'Kirsten_Xxx 2022-01-19',
             'uploader': '789sani',
-            'url': r're:https://www\.camwhoresbay\.com/get_file/7/55259a27805bf1313318c14b2afb0dae1fef6e1dd4/484000/484472/484472_720p\.mp4/\?rnd=.+',
+            'url': r're:^https?://www\.camwhoresbay\.com/get_file/7/55259a27805bf1313318c14b2afb0dae1fef6e1dd4/484000/484472/484472_720p\.mp4/\?rnd=.+',
             'thumbnail': r're:^https?://cwbstatic.cdntrex.com/contents/videos_screenshots/484000/484472/preview_720p.mp4.jpg',
         }
     }
