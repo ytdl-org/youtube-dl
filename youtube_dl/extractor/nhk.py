@@ -129,6 +129,7 @@ class NhkVodIE(NhkBaseIE):
     }, {
         # video, alphabetic character in ID #29670
         'url': 'https://www3.nhk.or.jp/nhkworld/en/ondemand/video/9999a34/',
+        'only_matching': True,
         'info_dict': {
             'id': 'qfjay6cg',
             'ext': 'mp4',
