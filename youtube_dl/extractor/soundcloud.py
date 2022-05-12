@@ -84,7 +84,7 @@ class SoundcloudIE(InfoExtractor):
                 'id': '62986583',
                 'ext': 'mp3',
                 'title': 'Lostin Powers - She so Heavy (SneakPreview) Adrian Ackers Blueprint 1',
-                'description': 'No Downloads untill we record the finished version this weekend, i was too pumped n i had to post it , earl is prolly gonna b hella p.o\'d',
+                'description': 'No Downloads until we record the finished version this weekend, i was too pumped n i had to post it , earl is prolly gonna b hella p.o\'d',
                 'uploader': 'E.T. ExTerrestrial Music',
                 'uploader_id': '1571244',
                 'timestamp': 1349920598,
