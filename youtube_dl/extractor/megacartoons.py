@@ -21,18 +21,21 @@ class MegaCartoonsIE(InfoExtractor):
     }
 
     def _real_extract(self, url):
+        # ID is equal to the episode name
         video_id = self._match_id(url)
         webpage = self._download_webpage(url, video_id)
 
         # The id is equal to the title
         title = video_id
-        # Video and thumbnail are
+
+        # Video data is stored in a json -> extract it from the raw html
         url_json = json.loads(self._html_search_regex(r'<div.*data-item="(?P<videourls>{.*})".*>', webpage, 'videourls'))
 
-        video_url = url_json['sources'][0]['src']
-        video_type = url_json['sources'][0]['type']
-        video_thumbnail = url_json['splash']
+        video_url = url_json['sources'][0]['src']       # Get the video url
+        video_type = url_json['sources'][0]['type']     # Get the video type -> 'video/mp4'
+        video_thumbnail = url_json['splash']            # Get the thumbnail
 
+        # Every video has a short summary -> save it as description
         video_description = self._html_search_regex(r'<p>(?P<videodescription>.*)</p>', webpage, 'videodescription')
 
         return {
