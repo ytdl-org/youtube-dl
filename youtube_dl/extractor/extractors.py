@@ -690,6 +690,7 @@ from .mixcloud import (
     MixcloudUserIE,
     MixcloudPlaylistIE,
 )
+from .megacartoons import MegaCartoonsIE
 from .mlb import (
     MLBIE,
     MLBVideoIE,
