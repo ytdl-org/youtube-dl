@@ -50,7 +50,7 @@ class WikimediaIE(InfoExtractor):
         license = clean_html(license)
 
         description = get_element_by_class('description', webpage)
-        author = self._html_search_regex('>\s*Author\s*</td>\s*<td\b[^>]*>\s*([^<]+?)\s*</td>',
+        author = self._html_search_regex(r'>\s*Author\s*</td>\s*<td\b[^>]*>\s*([^<]+?)\s*</td>',
                                          webpage, 'video author', default=None)
         info = {'url': video_url, 'description': clean_html(description), 'ext': ext,
                 'id': video_id.replace('.' + ext, ''), 'title': self._og_search_title(webpage).replace('File:', ''),
