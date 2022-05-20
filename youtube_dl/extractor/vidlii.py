@@ -70,8 +70,8 @@ class VidLiiIE(InfoExtractor):
         formats = []
 
         def add_format(format_url, height=None):
-            height = int(self._search_regex(r"(\d+).mp4",
-                         format_url, "height", default=360))
+            height = int(self._search_regex(r'(\d+)\.mp4',
+                         format_url, 'height', default=360))
 
             formats.append({
                 'url': format_url,
