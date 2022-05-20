@@ -55,7 +55,7 @@ class VidLiiIE(InfoExtractor):
             'comment_count': int,
             'average_rating': float,
             'categories': ['Film & Animation'],
-            'tags': ['1', '2'],
+            'tags': list,
         },
     }, {
         'url': 'https://www.vidlii.com/embed?v=tJluaH4BJ3v&a=0',
@@ -84,17 +84,17 @@ class VidLiiIE(InfoExtractor):
             r'src\s*:\s*(["\'])(?P<url>(?:https?://)?(?:(?!\1).)+)\1',
             webpage)
 
-        try:
-            self._request_webpage(sources[1][1], video_id, 'Checking HD URL')
-            add_format(sources[1][1])
-        except ExtractorError:
-            pass
-
-        add_format(sources[0][1])
+        formats = []
+        if len(sources) > 1:
+            formats = [sources[1][1]]
+            self._check_formats(formats, video_id)
+        if len(sources) > 0:
+            formats.append(sources[0][1])
+        map(add_format, formats)
 
         self._sort_formats(formats)
 
-        title = self._search_regex(
+        title = self._html_search_regex(
             (r'<h1>([^<]+)</h1>', r'<title>([^<]+) - VidLii<'), webpage,
             'title')
 
