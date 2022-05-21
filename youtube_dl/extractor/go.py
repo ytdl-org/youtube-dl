@@ -158,6 +158,7 @@ class GoIE(AdobePassIE):
             # m3u8 download
             'skip_download': True,
         },
+        'skip': 'The content you’re looking for is not available',
     }, {
         'url': 'http://abc.go.com/shows/the-catch/episode-guide/season-01/10-the-wedding',
         'only_matching': True,
@@ -179,19 +180,19 @@ class GoIE(AdobePassIE):
         'url': 'https://www.freeform.com/shows/cruel-summer/episode-guide/season-01/01-happy-birthday-jeanette-turner',
         'only_matching': True,
     }, {
-        'url': 'https://disneynow.com/shows/ducktales-disney-channel/season-02/episode-09-the-outlaw-scrooge-mcduck/vdka9680773',
+        # will expire and need to be replaced by a newer episode
+        'url': 'https://disneynow.com/shows/ducktales-disney-channel/season-03/episode-22-the-last-adventure/vdka22464554',
         'info_dict': {
-            'id': 'VDKA9680773',
+            'id': 'VDKA22464554',
             'ext': 'mp4',
-            'season_number': 2,
-            'title': 'The Outlaw Scrooge McDuck!',
-            'episode': 'Episode 9',
-            'season': 'Season 2',
-            'episode_number': 9,
+            'title': 'The Last Adventure!',
+            'description': 'The Duck Family uncovers earth-shattering secrets in a final standoff with FOWL, with the future of adventure hanging in the balance.',
+            'season_number': 3,
+            'episode': 'Episode 22',
+            'season': 'Season 3',
+            'episode_number': 22,
             'age_limit': 7,
             'series': 'DuckTales',
-            'description': 'md5:3d450c1094a5e7544ac094f1e6da2827',
-            'duration': 1348,
             'thumbnail': r're:https?://.*?\.jpg',
         },
         'params': {
@@ -204,30 +205,37 @@ class GoIE(AdobePassIE):
             'title': 'DuckTales TV Show',
             'id': 'SH553923438',
         },
-        'playlist_mincount': 33,
+        'playlist_mincount': 30,
         'expected_warnings': ['Ignoring subtitle tracks', ],
     }]
 
     def _extract_videos(self, brand, video_id='-1', show_id='-1'):
         display_id = video_id if video_id != '-1' else show_id
-        return self._download_json(
+        data = self._download_json(
             'http://api.contents.watchabc.go.com/vp2/ws/contents/4000/videos/%s/001/-1/%s/-1/%s/-1/-1.json' % (brand, show_id, video_id),
-            display_id)['video']
+            display_id, fatal=False)
+        return try_get(data, lambda x: x['video'], list)
+
+    def _raise_extractor_error(self, video_id, msg, expected=True):
+        raise ExtractorError('%s said: %s: %s' % (self.IE_NAME, video_id, msg), expected=expected)
 
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
         sub_domain = re.sub(r'^(?:www\.)?(.+?)(?:\.go)?$', r'\1', mobj.group('sub_domain') or '')
         video_id, display_id = mobj.group('id', 'display_id')
+        display_id = display_id or video_id
         site_info = self._SITE_INFO.get(sub_domain, {})
         brand = site_info.get('brand')
         if not video_id or not site_info:
-            webpage = self._download_webpage(url, display_id or video_id)
+            webpage = self._download_webpage(url, display_id, expected_status=[404])
+            if re.search(r'(?:>|=\s*")Page not found\s', webpage):
+                self._raise_extractor_error(display_id, 'Page not found')
             data = self._parse_json(
                 self._search_regex(
                     r'["\']__abc_com__["\']\s*\]\s*=\s*({.+?})\s*;', webpage,
                     'data', default='{}'),
-                display_id or video_id, fatal=False)
-            # https://abc.com/shows/modern-family/episode-guide/season-01/101-pilot
+                display_id, fatal=False)
+            # https://abc.com/shows/ExtractorErrmodern-family/episode-guide/season-01/101-pilot
             layout = try_get(data, lambda x: x['page']['content']['video']['layout'], dict)
             video_id = None
             if layout:
@@ -273,8 +281,13 @@ class GoIE(AdobePassIE):
                         video['url'], 'Go', video.get('id'), video.get('title')))
                 entries.reverse()
                 return self.playlist_result(entries, show_id, show_title)
-        video_data = self._extract_videos(brand, video_id)[0]
-        video_id = video_data['id']
+        video_data = self._extract_videos(brand, video_id)
+        if not video_data:
+            self._raise_extractor_error(video_id, 'No video found')
+        video_id = try_get(video_data, lambda x: x[0]['id'], compat_str)
+        if not video_id:
+            self._raise_extractor_error(video_id, 'No video data', expected=False)
+        video_data = video_data[0]
         title = video_data['title']
 
         formats = []
@@ -315,7 +328,7 @@ class GoIE(AdobePassIE):
                             self.raise_geo_restricted(
                                 error['message'], countries=['US'])
                     error_message = ', '.join([error['message'] for error in errors])
-                    raise ExtractorError('%s said: %s' % (self.IE_NAME, error_message), expected=True)
+                    self._raise_extractor_error(video_id, error_message)
                 asset_url += '?' + entitlement['uplynkData']['sessionKey']
                 formats.extend(self._extract_m3u8_formats(
                     asset_url, video_id, 'mp4', m3u8_id=format_id or 'hls', fatal=False))
