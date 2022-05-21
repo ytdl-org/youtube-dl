@@ -86,12 +86,11 @@ class VidLiiIE(InfoExtractor):
 
         formats = []
         if len(sources) > 1:
-            formats = [sources[1][1]]
-            self._check_formats(formats, video_id)
+            add_format(sources[1][1])
         if len(sources) > 0:
-            formats.append(sources[0][1])
-        map(add_format, formats)
+            add_format(sources[0][1])
 
+        self._check_formats(formats, video_id)
         self._sort_formats(formats)
 
         title = self._html_search_regex(
