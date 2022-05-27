@@ -50,6 +50,7 @@ class DumpertIE(InfoExtractor):
                 'url': uri,
                 'format_id': version,
                 'quality': quality(version),
+                'ext': 'mp4',
             })
         self._sort_formats(formats)
 
