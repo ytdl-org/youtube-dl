@@ -9,7 +9,7 @@ from ..utils import (
 
 
 class DumpertIE(InfoExtractor):
-    _VALID_URL = r'(?P<protocol>https?)://(?:(?:www|legacy)\.)?dumpert\.nl/(?:mediabase|embed|item)/(?P<id>[0-9]+[/_][0-9a-zA-Z]+)'
+    _VALID_URL = r'(?P<protocol>https?)://(?:(?:www|legacy)\.)?dumpert\.nl(?:/(?:mediabase|embed|item)/|(?:/toppers|/latest|/?)\?selectedId=)(?P<id>[0-9]+[/_][0-9a-zA-Z]+)'
     _TESTS = [{
         'url': 'https://www.dumpert.nl/item/6646981_951bc60f',
         'md5': '1b9318d7d5054e7dcb9dc7654f21d643',
@@ -39,6 +39,15 @@ class DumpertIE(InfoExtractor):
             'description': '<p>Die zag je niet eh</p>',
             'thumbnail': r're:^https?://.*\.(?:jpg|png)$',
         },
+    }, {
+        'url': 'https://www.dumpert.nl/toppers?selectedId=100031688_b317a185',
+        'only_matching': True,
+    }, {
+        'url': 'https://www.dumpert.nl/latest?selectedId=100031688_b317a185',
+        'only_matching': True,
+    }, {
+        'url': 'https://www.dumpert.nl/?selectedId=100031688_b317a185',
+        'only_matching': True,
     }]
 
     def _real_extract(self, url):
