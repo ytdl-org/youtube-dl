@@ -29,6 +29,16 @@ class DumpertIE(InfoExtractor):
     }, {
         'url': 'http://legacy.dumpert.nl/embed/6675421/dc440fe7',
         'only_matching': True,
+    }, {
+        'url': 'https://www.dumpert.nl/item/100031688_b317a185',
+        'md5': '98bece7add22c2645eb3906e6d55318b',
+        'info_dict': {
+            'id': '100031688/b317a185',
+            'ext': 'mp4',
+            'title': 'Epic schijnbeweging',
+            'description': '<p>Die zag je niet eh</p>',
+            'thumbnail': r're:^https?://.*\.(?:jpg|png)$',
+        },
     }]
 
     def _real_extract(self, url):
