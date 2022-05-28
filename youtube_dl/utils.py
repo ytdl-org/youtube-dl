@@ -2292,12 +2292,30 @@ def formatSeconds(secs):
 
 
 def make_HTTPS_handler(params, **kwargs):
+
+    # https://www.rfc-editor.org/info/rfc7301
+    ALPN_PROTOCOLS = ['http/1.1']
+
+    def set_alpn_protocols(ctx):
+        # From https://github.com/yt-dlp/yt-dlp/commit/2c6dcb65fb612fc5bc5c61937bf438d3c473d8d0
+        # Thanks @coletdjnz
+        # Some servers may (wrongly) reject requests if ALPN extension is not sent. See:
+        # https://github.com/python/cpython/issues/85140
+        # https://github.com/yt-dlp/yt-dlp/issues/3878
+        try:
+            ctx.set_alpn_protocols(ALPN_PROTOCOLS)
+        except (AttributeError, NotImplementedError):
+            # Python < 2.7.10, not ssl.HAS_ALPN
+            pass
+
     opts_no_check_certificate = params.get('nocheckcertificate', False)
     if hasattr(ssl, 'create_default_context'):  # Python >= 3.4 or 2.7.9
         context = ssl.create_default_context(ssl.Purpose.SERVER_AUTH)
+        set_alpn_protocols(context)
         if opts_no_check_certificate:
             context.check_hostname = False
             context.verify_mode = ssl.CERT_NONE
+
         try:
             return YoutubeDLHTTPSHandler(params, context=context, **kwargs)
         except TypeError:
@@ -2313,6 +2331,7 @@ def make_HTTPS_handler(params, **kwargs):
                                if opts_no_check_certificate
                                else ssl.CERT_REQUIRED)
         context.set_default_verify_paths()
+        set_alpn_protocols(context)
         return YoutubeDLHTTPSHandler(params, context=context, **kwargs)
 
 
