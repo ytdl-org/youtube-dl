@@ -64,8 +64,8 @@ class TestYoutubeSubtitles(BaseTestSubtitles):
         self.DL.params['allsubtitles'] = True
         subtitles = self.getSubtitles()
         self.assertEqual(len(subtitles.keys()), 13)
-        self.assertEqual(md5(subtitles['en']), '3cb210999d3e021bd6c7f0ea751eab06')
-        self.assertEqual(md5(subtitles['it']), '6d752b98c31f1cf8d597050c7a2cb4b5')
+        self.assertEqual(md5(subtitles['en']), 'ae1bd34126571a77aabd4d276b28044d')
+        self.assertEqual(md5(subtitles['it']), '0e0b667ba68411d88fd1c5f4f4eab2f9')
         for lang in ['fr', 'de']:
             self.assertTrue(subtitles.get(lang) is not None, 'Subtitles for \'%s\' not extracted' % lang)
 
@@ -73,13 +73,13 @@ class TestYoutubeSubtitles(BaseTestSubtitles):
         self.DL.params['writesubtitles'] = True
         self.DL.params['subtitlesformat'] = 'ttml'
         subtitles = self.getSubtitles()
-        self.assertEqual(md5(subtitles['en']), 'e306f8c42842f723447d9f63ad65df54')
+        self.assertEqual(md5(subtitles['en']), 'c97ddf1217390906fa9fbd34901f3da2')
 
     def test_youtube_subtitles_vtt_format(self):
         self.DL.params['writesubtitles'] = True
         self.DL.params['subtitlesformat'] = 'vtt'
         subtitles = self.getSubtitles()
-        self.assertEqual(md5(subtitles['en']), '3cb210999d3e021bd6c7f0ea751eab06')
+        self.assertEqual(md5(subtitles['en']), 'ae1bd34126571a77aabd4d276b28044d')
 
     def test_youtube_automatic_captions(self):
         self.url = '8YoUxe5ncPo'
@@ -98,11 +98,19 @@ class TestYoutubeSubtitles(BaseTestSubtitles):
 
     def test_youtube_nosubtitles(self):
         self.DL.expect_warning('video doesn\'t have subtitles')
-        self.url = 'n5BB19UTcdA'
+        self.url = 'Ltzcqax0BrU'
         self.DL.params['writesubtitles'] = True
         self.DL.params['allsubtitles'] = True
         subtitles = self.getSubtitles()
         self.assertFalse(subtitles)
+
+    def test_youtube_namedsubtitles(self):
+        self.url = 'oIa3BFBHJFI'
+        self.DL.params['writesubtitles'] = True
+        self.DL.params['allsubtitles'] = True
+        subtitles = self.getSubtitles()
+        self.assertTrue(subtitles['en'] is not None)
+        self.assertTrue(subtitles['en-PHP'] is not None)
 
 
 class TestDailymotionSubtitles(BaseTestSubtitles):
