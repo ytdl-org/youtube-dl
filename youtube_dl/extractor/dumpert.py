@@ -59,7 +59,7 @@ class DumpertIE(InfoExtractor):
         title = item['title']
         media = next(m for m in item['media'] if m.get('mediatype') == 'VIDEO')
 
-        quality = qualities(['flv', 'mobile', 'tablet', '720p'])
+        quality = qualities(['flv', 'mobile', 'tablet', '720p', '1080p'])
         formats = []
         for variant in media.get('variants', []):
             uri = variant.get('uri')
