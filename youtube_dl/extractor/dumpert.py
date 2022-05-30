@@ -32,7 +32,7 @@ class DumpertIE(InfoExtractor):
         'only_matching': True,
     }, {
         'url': 'https://www.dumpert.nl/item/100031688_b317a185',
-        'md5': '98bece7add22c2645eb3906e6d55318b',
+        'md5': '34a0c10c91d281141b959b27ee862b8f',
         'info_dict': {
             'id': '100031688/b317a185',
             'ext': 'mp4',
@@ -70,7 +70,8 @@ class DumpertIE(InfoExtractor):
             ext = determine_ext(uri)
             if ext == 'm3u8':
                 formats.extend(self._extract_m3u8_formats(
-                    uri, video_id, ext='mp4', preference=preference))
+                    uri, video_id, ext='mp4', entry_protocol='m3u8_native',
+                    preference=preference))
             else:
                 formats.append({
                     'url': uri,
