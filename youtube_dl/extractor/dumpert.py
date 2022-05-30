@@ -3,6 +3,7 @@ from __future__ import unicode_literals
 
 from .common import InfoExtractor
 from ..utils import (
+    determine_ext,
     int_or_none,
     qualities,
 )
@@ -65,12 +66,17 @@ class DumpertIE(InfoExtractor):
             if not uri:
                 continue
             version = variant.get('version')
-            formats.append({
-                'url': uri,
-                'format_id': version,
-                'quality': quality(version),
-                'ext': 'mp4',
-            })
+            ext = determine_ext(uri)
+            if ext == 'm3u8':
+                formats.extend(self._extract_m3u8_formats(
+                    uri, video_id, ext='mp4', m3u8_id=format_id))
+            else:
+                formats.append({
+                    'url': uri,
+                    'format_id': version,
+                })
+            for format in formats:
+                format['quality'] = quality(format['format_id'])
         self._sort_formats(formats)
 
         thumbnails = []
