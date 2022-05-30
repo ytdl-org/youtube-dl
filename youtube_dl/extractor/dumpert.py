@@ -69,7 +69,7 @@ class DumpertIE(InfoExtractor):
             ext = determine_ext(uri)
             if ext == 'm3u8':
                 formats.extend(self._extract_m3u8_formats(
-                    uri, video_id, ext='mp4', m3u8_id=format_id))
+                    uri, video_id, ext='mp4', m3u8_id=version))
             else:
                 formats.append({
                     'url': uri,
