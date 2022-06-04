@@ -21,7 +21,7 @@ from .common import InfoExtractor
 
 
 class DoodStreamIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:www\.)?dood\.(?:to|watch)/[ed]/(?P<id>[a-z0-9]+)'
+    _VALID_URL = r'https?://(?:www\.)?dood\.(?:to|watch|so|la|pm|sh|ws|one)/[ed]/(?P<id>[a-z0-9]+)'
     _TESTS = [{
         'url': 'http://dood.to/e/5s1wmbdacezb',
         'md5': '4568b83b31e13242b3f1ff96c55f0595',
@@ -61,10 +61,23 @@ class DoodStreamIE(InfoExtractor):
         'info_dict': {
             'id': 'is34uy8wvaet',
             'ext': 'mp4',
-            'title': 'Akhanda (2021) Telugu DVDScr MP3 700MB - DoodStream',
+            'title': 'Akhanda (2021) Telugu DVDScr MP3 700MB',
             'upload_date': '20211202',
+            'thumbnail': r're:https?://img\.doodcdn\.com?/[\w/]+\.jpg',
             'filesize_approx': int,
             'duration': 9886,
+        }
+    }, {
+        'url': 'https://dood.so/d/wlihoael8uog',
+        'md5': '2c14444c89788cc309738c1560abe278',
+        'info_dict': {
+            'id': 'wlihoael8uog',
+            'ext': 'mp4',
+            'title': 'VID 20220319 161659',
+            'thumbnail': r're:https?://img\.doodcdn\.com?/splash/rmpnhb8ckkk79cge\.jpg',
+            'upload_date': '20220319',
+            'filesize_approx': int,
+            'duration': 12.0,
         }
     }]
 
@@ -76,11 +89,12 @@ class DoodStreamIE(InfoExtractor):
         }
         webpage = self._download_webpage(url, video_id, headers=headers)
 
-        title = self._html_search_meta(('og:title', 'twitter:title'), webpage, default=None)
-        if not title:
-            title = self._html_search_regex(r'<title\b[^>]*>([^<]+?)(?:\|\s+DoodStream\s*)?</title', webpage, 'title')
-            if title == 'Video not found':
-                raise ExtractorError(title, expected=True)
+        def get_title(html, fatal=False):
+            return self._html_search_regex(r'<title\b[^>]*>([^<]+?)(?:[|-]\s+DoodStream\s*)?</title', html, 'title', fatal=fatal)
+
+        title = get_title(webpage)
+        if title == 'Video not found':
+            raise ExtractorError(title, expected=True)
         token = self._html_search_regex(r'''[?&]token=([a-z0-9]+)[&']''', webpage, 'token')
 
         headers.update({
@@ -100,7 +114,12 @@ class DoodStreamIE(InfoExtractor):
         description = self._html_search_meta(
             ('og:description', 'description', 'twitter:description'), webpage, default=None)
 
-        webpage = self._download_webpage('https://dood.to/d/' + video_id, video_id, headers=headers, fatal=False)
+        webpage = self._download_webpage('https://dood.to/d/' + video_id, video_id, headers=headers, fatal=False) or ''
+
+        title = (
+            self._html_search_meta(('og:title', 'twitter:title'), webpage, default=None)
+            or get_title(webpage, fatal=(title is not None))
+            or title)
 
         def get_class_text(x):
             return clean_html(get_element_by_class(x, webpage))
