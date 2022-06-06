@@ -1,11 +1,16 @@
+# coding: utf-8
 from __future__ import unicode_literals
 
+import itertools
 import re
 
 from .common import InfoExtractor
 from ..utils import (
     determine_ext,
+    extract_attributes,
     ExtractorError,
+    get_element_by_class,
+    get_element_by_id,
     merge_dicts,
     parse_duration,
     parse_resolution,
@@ -173,32 +178,56 @@ class SpankBangIE(InfoExtractor):
 
 class SpankBangPlaylistIE(InfoExtractor):
     _VALID_URL = r'https?://(?:[^/]+\.)?spankbang\.com/(?P<id>[\da-z]+)/playlist/(?P<display_id>[^/]+)'
-    _TEST = {
+    _TESTS = [{
         'url': 'https://spankbang.com/ug0k/playlist/big+ass+titties',
         'info_dict': {
             'id': 'ug0k',
             'title': 'Big Ass Titties',
         },
-        'playlist_mincount': 40,
-    }
+        'playlist_mincount': 35,
+    }, {
+        # pagination required
+        'url': 'https://spankbang.com/51wxk/playlist/dance',
+        'info_dict': {
+            'id': '51wxk',
+            'title': 'Dance',
+        },
+        'playlist_mincount': 60,
+    }]
 
     def _real_extract(self, url):
         mobj = re.match(self._VALID_URL, url)
         playlist_id = mobj.group('id')
         display_id = mobj.group('display_id')
 
-        webpage = self._download_webpage(
-            url, playlist_id, headers={'Cookie': 'country=US; mobile=on'})
+        webpage = self._download_webpage(url, playlist_id)
 
-        entries = [self.url_result(
-            urljoin(url, mobj.group('path')),
-            ie=SpankBangIE.ie_key(), video_id=mobj.group('id'))
-            for mobj in re.finditer(
-                r'<a[^>]+\bhref=(["\'])(?P<path>/?[\da-z]+-(?P<id>[\da-z]+)/playlist/%s(?:(?!\1).)*)\1'
-                % re.escape(display_id), webpage)]
+        def _entries(url, webpage=None):
+            for ii in itertools.count(1):
+                if not webpage:
+                    webpage = self._download_webpage(
+                        url, playlist_id,
+                        note='Downloading playlist page %d' % (ii, ),
+                        fatal=False)
+                if not webpage:
+                    break
+                # search <main id="container">...</main>.innerHTML
+                for mobj in re.finditer(
+                        r'''<a\b[^>]*?\bclass\s*=\s*('|")(?:(?:(?!\1).)+?\s)?\s*thumb\b[^>]*>''',
+                        get_element_by_id('container', webpage) or webpage):
+                    item_url = extract_attributes(mobj.group(0)).get('href')
+                    if item_url:
+                        yield urljoin(url, item_url)
+                next_url = self._search_regex(
+                    r'''\bhref\s*=\s*(["'])(?P<path>(?!\1).+?)/?\1''',
+                    get_element_by_class('next', webpage) or '',
+                    'continuation page', group='path', default=None)
+                if next_url is None or next_url in url:
+                    break
+                url, webpage = urljoin(url, next_url + '/'), None
 
         title = self._html_search_regex(
             r'<h1>([^<]+)\s+playlist\s*<', webpage, 'playlist title',
-            fatal=False)
+            fatal=False) or re.sub(r'(\w)\+(\w)', r'\1 \2', display_id).title()
 
-        return self.playlist_result(entries, playlist_id, title)
+        return self.playlist_from_matches(_entries(url, webpage), playlist_id, title, ie=SpankBangIE.ie_key())
