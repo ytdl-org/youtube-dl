@@ -5,6 +5,7 @@ import itertools
 import re
 
 from .common import InfoExtractor
+from ..compat import compat_urlparse
 from ..utils import (
     determine_ext,
     extract_attributes,
@@ -183,6 +184,7 @@ class SpankBangPlaylistIE(InfoExtractor):
         'info_dict': {
             'id': 'ug0k',
             'title': 'Big Ass Titties',
+            'description': 'md5:65b01bb13a9276cf172a67a41304bafd',
         },
         'playlist_mincount': 35,
     }, {
@@ -191,43 +193,152 @@ class SpankBangPlaylistIE(InfoExtractor):
         'info_dict': {
             'id': '51wxk',
             'title': 'Dance',
+            'description': 'md5:7aae6991c65d561a9319ecab31f857e2',
         },
         'playlist_mincount': 60,
     }]
 
+    def _entries(self, url, playlist_id, webpage=None):
+        for ii in itertools.count(1):
+            if not webpage:
+                webpage = self._download_webpage(
+                    url, playlist_id,
+                    note='Downloading playlist page %d' % (ii, ),
+                    fatal=False)
+            if not webpage:
+                break
+            # search <main id="container">...</main>.innerHTML
+            for mobj in re.finditer(
+                    r'''<a\b[^>]*?\bclass\s*=\s*('|")(?:(?:(?!\1).)+?\s)?\s*thumb\b[^>]*>''',
+                    get_element_by_id('container', webpage) or webpage):
+                item_url = extract_attributes(mobj.group(0)).get('href')
+                if item_url:
+                    yield urljoin(url, item_url)
+            next_url = self._search_regex(
+                r'''\bhref\s*=\s*(["'])(?P<path>(?!\1).+?)/?\1''',
+                get_element_by_class('next', webpage) or '',
+                'continuation page', group='path', default=None)
+            if next_url is None or next_url in url:
+                break
+            url, webpage = urljoin(url, next_url), None
+            p_url = compat_urlparse.urlparse(url)
+            url = compat_urlparse.urlunparse(p_url._replace(path=p_url.path + '/'))
+
+    def _get_title(self, list_id, webpage, url):
+        return self._html_search_regex(
+            r'<h1>([^<]+)\s+playlist\s*<', webpage, 'playlist title',
+            fatal=False) or re.sub(r'(\w)\+(\w)', r'\1 \2', list_id).title()
+
     def _real_extract(self, url):
-        mobj = re.match(self._VALID_URL, url)
-        playlist_id = mobj.group('id')
-        display_id = mobj.group('display_id')
+        mobj = re.match(self._VALID_URL, url).groupdict()
+        playlist_id = mobj['id']
+        display_id = mobj.get('display_id') or playlist_id
+        related = mobj.get('related')
 
         webpage = self._download_webpage(url, playlist_id)
 
-        def _entries(url, webpage=None):
-            for ii in itertools.count(1):
-                if not webpage:
-                    webpage = self._download_webpage(
-                        url, playlist_id,
-                        note='Downloading playlist page %d' % (ii, ),
-                        fatal=False)
-                if not webpage:
-                    break
-                # search <main id="container">...</main>.innerHTML
-                for mobj in re.finditer(
-                        r'''<a\b[^>]*?\bclass\s*=\s*('|")(?:(?:(?!\1).)+?\s)?\s*thumb\b[^>]*>''',
-                        get_element_by_id('container', webpage) or webpage):
-                    item_url = extract_attributes(mobj.group(0)).get('href')
-                    if item_url:
-                        yield urljoin(url, item_url)
-                next_url = self._search_regex(
-                    r'''\bhref\s*=\s*(["'])(?P<path>(?!\1).+?)/?\1''',
-                    get_element_by_class('next', webpage) or '',
-                    'continuation page', group='path', default=None)
-                if next_url is None or next_url in url:
-                    break
-                url, webpage = urljoin(url, next_url + '/'), None
+        def get_title():
+            t = self._get_title(display_id, webpage, url)
+            if related:
+                t = '%s of %s' % (related.title(), t, )
+            return t
 
-        title = self._html_search_regex(
-            r'<h1>([^<]+)\s+playlist\s*<', webpage, 'playlist title',
-            fatal=False) or re.sub(r'(\w)\+(\w)', r'\1 \2', display_id).title()
+        result = self.playlist_from_matches(self._entries(url, playlist_id, webpage), playlist_id, get_title(), ie=SpankBangIE.ie_key())
+        description = self._html_search_meta(('description', 'og:description'), webpage)
+        if description:
+            result['description'] = description
+        return result
 
-        return self.playlist_from_matches(_entries(url, webpage), playlist_id, title, ie=SpankBangIE.ie_key())
+
+class SpankBangListIE(SpankBangPlaylistIE):
+    _VALID_URL = r'''(?x)
+            https?://(?:[^/]+\.)?spankbang\.com/
+                (?:
+                    category|tag|s|
+                    [^/]+/channel|
+                    [^/]+/pornstar|
+                    (?P<profile>profile)
+                )/(?P<id>[^/?#]+)(?(profile)/(?P<related>videos|likes|playlists)?|)'''
+    _TESTS = [{
+        'url': 'https://spankbang.com/category/striptease/?p=d',
+        'info_dict': {
+            'id': 'striptease',
+            'title': 'Category: Striptease Porn (Jun 2022) - Joi & Strip (today)',
+            'description': 'md5:d4580b5fc1e8fae9f627178964989959',
+        },
+        'playlist_mincount': 1,
+    }, {
+        'url': 'https://spankbang.com/tag/monty/',
+        'info_dict': {
+            'id': 'monty',
+            'title': 'Tag: Monty Porn - Jenni Lee & British',
+            'description': 'md5:93535d53455f10b934034bfb9562de35',
+        },
+        'playlist_mincount': 40,
+    }, {
+        'url': 'https://spankbang.com/s/silly/?q=fhd&d=10',
+        'info_dict': {
+            'id': 'silly',
+            'title': 'Search: Silly HD Porn - Chubby Teens & Cum Swallow (FHD, 10+ mins)',
+            'description': 'md5:a241b24847f1efd7cc3cfc4ef2b22429',
+        },
+        'playlist_mincount': 20,
+    }, {
+        'url': 'https://spankbang.com/er/channel/purexxxfilms/?o=new',
+        'info_dict': {
+            'id': 'purexxxfilms',
+            'title': 'PureXXXFilms Channel (new)',
+            'description': 'md5:bb61fbf523511f3bd15aea0360bdbdc0',
+        },
+        'playlist_mincount': 65,
+    }, {
+        'url': 'https://spankbang.com/5pj/pornstar/promise/',
+        'info_dict': {
+            'id': 'promise',
+            'title': 'Promise Pornstar Page',
+            'description': 'md5:ff08a6ac2d6cd1225f0fae74ac896d63',
+        },
+        'playlist_mincount': 90,
+    }, {
+        'url': 'https://spankbang.com/profile/migouche/likes',
+        'info_dict': {
+            'id': 'migouche',
+            'title': 'Likes of migouche Profile',
+            'description': 'md5:b97540209879a62cadf2af6b0934bbc9',
+        },
+        'playlist_mincount': 2,
+    },
+    ]
+
+    def _get_title(self, list_id, webpage, url):
+        title = (
+            self._og_search_title(webpage, default=None)
+            or self._html_search_regex(
+                r'<title\b[^>]*>([^<]+)</title', webpage, 'channel title',
+                fatal=False))
+        if title:
+            title = re.sub(r'\s*(?:&\s+(?:Porn\s+))?(?:Videos\s+)?[@-]\s*SpankBang\s*$', '', title)
+        title = title or re.sub(r'(\w)\+(\w)', r'\1 \2', list_id).title()
+        qs = compat_urlparse.parse_qs(compat_urlparse.urlparse(url).query)
+        quals = []
+        for q in ('o', 'q', 'd', 'p'):
+            v = qs.get(q, [None])[-1]
+            if not v:
+                continue
+            if q == 'q':
+                v = v.upper()
+            elif q == 'd':
+                v += '+ mins'
+            elif q == 'p':
+                v = {'d': 'today', 'w': 'this week', 'm': 'this month', 'y': 'this year'}.get(v, v)
+            quals.append(v)
+        quals = ', '.join(quals)
+        if quals:
+            title += ' (%s)' % (quals, )
+        m = re.search(r'/(category|tag|s)/', url)
+        if m:
+            pfx = m.group(1)
+            if pfx == 's':
+                pfx = 'search'
+            title = '%s: %s' % (pfx.title(), title)
+        return title
