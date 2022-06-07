@@ -6,7 +6,11 @@ import json
 from .common import InfoExtractor
 from .brightcove import BrightcoveNewIE
 
-from ..compat import compat_str
+from ..compat import (
+    compat_HTTPError,
+    compat_kwargs,
+    compat_str,
+)
 from ..utils import (  # noqa: F401
     base_url,
     clean_html,
@@ -25,7 +29,20 @@ from ..utils import (  # noqa: F401
 )
 
 
-class ITVIE(InfoExtractor):
+class ITVBaseIE(InfoExtractor):
+    # enforce default UA that ITV doesn't block
+    _VANILLA_UA = 'Mozilla/5.0'
+
+    def _request_webpage(self, *args, **kwargs):
+        headers = kwargs.get('headers', {})
+        if 'User-Agent' not in headers:
+            headers['User-Agent'] = self._VANILLA_UA
+            kwargs.update({'headers': headers, })
+            kwargs = compat_kwargs(kwargs)
+        return super(ITVBaseIE, self)._request_webpage(*args, **kwargs)
+
+
+class ITVIE(ITVBaseIE):
     _VALID_URL = r'https?://(?:www\.)?itv\.com/hub/[^/]+/(?P<id>[0-9a-zA-Z]+)'
     _GEO_COUNTRIES = ['GB']
     _TESTS = [{
@@ -136,7 +153,18 @@ class ITVIE(InfoExtractor):
 
     def _real_extract(self, url):
         video_id = self._match_id(url)
-        webpage = self._download_webpage(url, video_id)
+        webpage, urlh = self._download_webpage_handle(url, video_id, expected_status=404)
+        title = (
+            self._html_search_meta(['og:title', 'twitter:title'], webpage)
+            or self._html_search(r'(?s)<title\b[^>]*>(.+?)(?:-\s+ITV\s+Hub\s*)?</title\b', 'title', webpage))
+        if any(sorry in title for sorry in ('Episode not available', "We're really sorry")):
+            raise ExtractorError(
+                '%s not found; %s said: %s' % (video_id, self.IE_NAME, title),
+                expected=True)
+        if urlh.getcode() == 404:
+            raise compat_HTTPError(
+                urlh.geturl(), 404, '%s (%s: %s)' % (urlh.msg or 'Not Found', video_id, title, ), urlh.headers, None)
+
         params = extract_attributes(self._search_regex(
             r'(?s)(<[^>]+id="video"[^>]*>)', webpage, 'params'))
         variants = self._parse_json(
@@ -154,7 +182,6 @@ class ITVIE(InfoExtractor):
 
         ios_playlist_url = params.get('data-video-playlist') or params['data-video-id']
         headers = self._generate_api_headers(params['data-video-hmac'])
-        headers['Referer'] = url
         ios_playlist = self._call_api(
             video_id, ios_playlist_url, headers, platform_tag_video, featureset_video)
 
@@ -214,20 +241,21 @@ class ITVIE(InfoExtractor):
             from re import sub
             from ..utils import parse_duration as utils_parse_duration
             return utils_parse_duration(
-                sub(r':(\d{3,})$', r'.\1', s or ''))
+                sub(r':(\d{3,})$', r'.\1', s or '') or None)
 
         return merge_dicts({
             'id': video_id,
-            'title': self._html_search_meta(['og:title', 'twitter:title'], webpage),
+            'title': title,
             'formats': formats,
             'subtitles': self.extract_subtitles(video_id, variants, ios_playlist_url, headers),
             'duration': parse_duration(video_data.get('Duration')),
             'description': clean_html(get_element_by_class('episode-info__synopsis', webpage)),
-            'thumbnails': thumbnails
+            'thumbnails': thumbnails,
+            'http_headers': {'User-Agent': self._VANILLA_UA, },
         }, info)
 
 
-class ITVBTCCIE(InfoExtractor):
+class ITVBTCCIE(ITVBaseIE):
     _VALID_URL = r'https?://(?:www\.)?itv\.com/(?:news|btcc)/(?:[^/]+/)*(?P<id>[^/?#&]+)'
     _TESTS = [{
         'url': 'https://www.itv.com/btcc/articles/btcc-2019-brands-hatch-gp-race-action',
