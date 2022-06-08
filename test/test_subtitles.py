@@ -131,6 +131,7 @@ class TestDailymotionSubtitles(BaseTestSubtitles):
         self.assertFalse(subtitles)
 
 
+@unittest.skip('IE broken')
 class TestTedSubtitles(BaseTestSubtitles):
     url = 'http://www.ted.com/talks/dan_dennett_on_our_consciousness.html'
     IE = TEDIE
@@ -155,18 +156,19 @@ class TestVimeoSubtitles(BaseTestSubtitles):
         self.DL.params['allsubtitles'] = True
         subtitles = self.getSubtitles()
         self.assertEqual(set(subtitles.keys()), set(['de', 'en', 'es', 'fr']))
-        self.assertEqual(md5(subtitles['en']), '8062383cf4dec168fc40a088aa6d5888')
-        self.assertEqual(md5(subtitles['fr']), 'b6191146a6c5d3a452244d853fde6dc8')
+        self.assertEqual(md5(subtitles['en']), '386cbc9320b94e25cb364b97935e5dd1')
+        self.assertEqual(md5(subtitles['fr']), 'c9b69eef35bc6641c0d4da8a04f9dfac')
 
     def test_nosubtitles(self):
         self.DL.expect_warning('video doesn\'t have subtitles')
-        self.url = 'http://vimeo.com/56015672'
+        self.url = 'http://vimeo.com/68093876'
         self.DL.params['writesubtitles'] = True
         self.DL.params['allsubtitles'] = True
         subtitles = self.getSubtitles()
         self.assertFalse(subtitles)
 
 
+@unittest.skip('IE broken')
 class TestWallaSubtitles(BaseTestSubtitles):
     url = 'http://vod.walla.co.il/movie/2705958/the-yes-men'
     IE = WallaIE
@@ -188,6 +190,7 @@ class TestWallaSubtitles(BaseTestSubtitles):
         self.assertFalse(subtitles)
 
 
+@unittest.skip('IE broken')
 class TestCeskaTelevizeSubtitles(BaseTestSubtitles):
     url = 'http://www.ceskatelevize.cz/ivysilani/10600540290-u6-uzasny-svet-techniky'
     IE = CeskaTelevizeIE
@@ -209,6 +212,7 @@ class TestCeskaTelevizeSubtitles(BaseTestSubtitles):
         self.assertFalse(subtitles)
 
 
+@unittest.skip('IE broken')
 class TestLyndaSubtitles(BaseTestSubtitles):
     url = 'http://www.lynda.com/Bootstrap-tutorials/Using-exercise-files/110885/114408-4.html'
     IE = LyndaIE
@@ -221,6 +225,7 @@ class TestLyndaSubtitles(BaseTestSubtitles):
         self.assertEqual(md5(subtitles['en']), '09bbe67222259bed60deaa26997d73a7')
 
 
+@unittest.skip('IE broken')
 class TestNPOSubtitles(BaseTestSubtitles):
     url = 'http://www.npo.nl/nos-journaal/28-08-2014/POW_00722860'
     IE = NPOIE
@@ -233,6 +238,7 @@ class TestNPOSubtitles(BaseTestSubtitles):
         self.assertEqual(md5(subtitles['nl']), 'fc6435027572b63fb4ab143abd5ad3f4')
 
 
+@unittest.skip('IE broken')
 class TestMTVSubtitles(BaseTestSubtitles):
     url = 'http://www.cc.com/video-clips/p63lk0/adam-devine-s-house-party-chasing-white-swans'
     IE = ComedyCentralIE
@@ -256,8 +262,8 @@ class TestNRKSubtitles(BaseTestSubtitles):
         self.DL.params['writesubtitles'] = True
         self.DL.params['allsubtitles'] = True
         subtitles = self.getSubtitles()
-        self.assertEqual(set(subtitles.keys()), set(['no']))
-        self.assertEqual(md5(subtitles['no']), '544fa917d3197fcbee64634559221cc2')
+        self.assertEqual(set(subtitles.keys()), set(['nb-ttv']))
+        self.assertEqual(md5(subtitles['nb-ttv']), '67e06ff02d0deaf975e68f6cb8f6a149')
 
 
 class TestRaiPlaySubtitles(BaseTestSubtitles):
@@ -280,6 +286,7 @@ class TestRaiPlaySubtitles(BaseTestSubtitles):
         self.assertEqual(md5(subtitles['it']), '4b3264186fbb103508abe5311cfcb9cd')
 
 
+@unittest.skip('IE broken - DRM only')
 class TestVikiSubtitles(BaseTestSubtitles):
     url = 'http://www.viki.com/videos/1060846v-punch-episode-18'
     IE = VikiIE
@@ -306,6 +313,7 @@ class TestThePlatformSubtitles(BaseTestSubtitles):
         self.assertEqual(md5(subtitles['en']), '97e7670cbae3c4d26ae8bcc7fdd78d4b')
 
 
+@unittest.skip('IE broken')
 class TestThePlatformFeedSubtitles(BaseTestSubtitles):
     url = 'http://feed.theplatform.com/f/7wvmTC/msnbc_video-p-test?form=json&pretty=true&range=-40&byGuid=n_hardball_5biden_140207'
     IE = ThePlatformFeedIE
@@ -341,7 +349,7 @@ class TestDemocracynowSubtitles(BaseTestSubtitles):
         self.DL.params['allsubtitles'] = True
         subtitles = self.getSubtitles()
         self.assertEqual(set(subtitles.keys()), set(['en']))
-        self.assertEqual(md5(subtitles['en']), 'acaca989e24a9e45a6719c9b3d60815c')
+        self.assertEqual(md5(subtitles['en']), 'a3cc4c0b5eadd74d9974f1c1f5101045')
 
     def test_subtitles_in_page(self):
         self.url = 'http://www.democracynow.org/2015/7/3/this_flag_comes_down_today_bree'
@@ -349,7 +357,7 @@ class TestDemocracynowSubtitles(BaseTestSubtitles):
         self.DL.params['allsubtitles'] = True
         subtitles = self.getSubtitles()
         self.assertEqual(set(subtitles.keys()), set(['en']))
-        self.assertEqual(md5(subtitles['en']), 'acaca989e24a9e45a6719c9b3d60815c')
+        self.assertEqual(md5(subtitles['en']), 'a3cc4c0b5eadd74d9974f1c1f5101045')
 
 
 if __name__ == '__main__':
