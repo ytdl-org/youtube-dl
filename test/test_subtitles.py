@@ -59,6 +59,21 @@ class BaseTestSubtitles(unittest.TestCase):
 
 
 class TestYoutubeSubtitles(BaseTestSubtitles):
+    # Available subtitles for QRS8MkLhQmM:
+    # Language formats
+    # ru       vtt, ttml, srv3, srv2, srv1, json3
+    # fr       vtt, ttml, srv3, srv2, srv1, json3
+    # en       vtt, ttml, srv3, srv2, srv1, json3
+    # nl       vtt, ttml, srv3, srv2, srv1, json3
+    # de       vtt, ttml, srv3, srv2, srv1, json3
+    # ko       vtt, ttml, srv3, srv2, srv1, json3
+    # it       vtt, ttml, srv3, srv2, srv1, json3
+    # zh-Hant  vtt, ttml, srv3, srv2, srv1, json3
+    # hi       vtt, ttml, srv3, srv2, srv1, json3
+    # pt-BR    vtt, ttml, srv3, srv2, srv1, json3
+    # es-MX    vtt, ttml, srv3, srv2, srv1, json3
+    # ja       vtt, ttml, srv3, srv2, srv1, json3
+    # pl       vtt, ttml, srv3, srv2, srv1, json3
     url = 'QRS8MkLhQmM'
     IE = YoutubeIE
 
@@ -67,41 +82,60 @@ class TestYoutubeSubtitles(BaseTestSubtitles):
         self.DL.params['allsubtitles'] = True
         subtitles = self.getSubtitles()
         self.assertEqual(len(subtitles.keys()), 13)
-        self.assertEqual(md5(subtitles['en']), '3cb210999d3e021bd6c7f0ea751eab06')
-        self.assertEqual(md5(subtitles['it']), '6d752b98c31f1cf8d597050c7a2cb4b5')
+        self.assertEqual(md5(subtitles['en']), 'ae1bd34126571a77aabd4d276b28044d')
+        self.assertEqual(md5(subtitles['it']), '0e0b667ba68411d88fd1c5f4f4eab2f9')
         for lang in ['fr', 'de']:
             self.assertTrue(subtitles.get(lang) is not None, 'Subtitles for \'%s\' not extracted' % lang)
 
-    def test_youtube_subtitles_ttml_format(self):
+    def _test_subtitles_format(self, fmt, md5_hash, lang='en'):
         self.DL.params['writesubtitles'] = True
-        self.DL.params['subtitlesformat'] = 'ttml'
+        self.DL.params['subtitlesformat'] = fmt
         subtitles = self.getSubtitles()
-        self.assertEqual(md5(subtitles['en']), 'e306f8c42842f723447d9f63ad65df54')
+        self.assertEqual(md5(subtitles[lang]), md5_hash)
+
+    def test_youtube_subtitles_ttml_format(self):
+        self._test_subtitles_format('ttml', 'c97ddf1217390906fa9fbd34901f3da2')
 
     def test_youtube_subtitles_vtt_format(self):
-        self.DL.params['writesubtitles'] = True
-        self.DL.params['subtitlesformat'] = 'vtt'
+        self._test_subtitles_format('vtt', 'ae1bd34126571a77aabd4d276b28044d')
+
+    def test_youtube_subtitles_json3_format(self):
+        self._test_subtitles_format('json3', '688dd1ce0981683867e7fe6fde2a224b')
+
+    def _test_automatic_captions(self, url, lang):
+        self.url = url
+        self.DL.params['writeautomaticsub'] = True
+        self.DL.params['subtitleslangs'] = [lang]
         subtitles = self.getSubtitles()
-        self.assertEqual(md5(subtitles['en']), '3cb210999d3e021bd6c7f0ea751eab06')
+        self.assertTrue(subtitles[lang] is not None)
 
     def test_youtube_automatic_captions(self):
-        self.url = '8YoUxe5ncPo'
-        self.DL.params['writeautomaticsub'] = True
-        self.DL.params['subtitleslangs'] = ['it']
-        subtitles = self.getSubtitles()
-        self.assertTrue(subtitles['it'] is not None)
+        # Available automatic captions for 8YoUxe5ncPo:
+        # Language formats (all in vtt, ttml, srv3, srv2, srv1, json3)
+        # gu, zh-Hans, zh-Hant, gd, ga, gl, lb, la, lo, tt, tr,
+        # lv, lt, tk, th, tg, te, fil, haw, yi, ceb, yo, de, da,
+        # el, eo, en, eu, et, es, ru, rw, ro, bn, be, bg, uk, jv,
+        # bs, ja, or, xh, co, ca, cy, cs, ps, pt, pa, vi, pl, hy,
+        # hr, ht, hu, hmn, hi, ha, mg, uz, ml, mn, mi, mk, ur,
+        # mt, ms, mr, ug, ta, my, af, sw, is, am, 
+        #                                         *it*, iw, sv, ar,
+        # su, zu, az, id, ig, nl, no, ne, ny, fr, ku, fy, fa, fi,
+        # ka, kk, sr, sq, ko, kn, km, st, sk, si, so, sn, sm, sl,
+        # ky, sd
+        # ...
+        self._test_automatic_captions('8YoUxe5ncPo', 'it')
 
+    @unittest.skip('ASR subs all in all supported langs now')
     def test_youtube_translated_subtitles(self):
-        # This video has a subtitles track, which can be translated
-        self.url = 'Ky9eprVWzlI'
-        self.DL.params['writeautomaticsub'] = True
-        self.DL.params['subtitleslangs'] = ['it']
-        subtitles = self.getSubtitles()
-        self.assertTrue(subtitles['it'] is not None)
+        # This video has a subtitles track, which can be translated (#4555)
+        self._test_automatic_captions('Ky9eprVWzlI', 'it')
 
     def test_youtube_nosubtitles(self):
         self.DL.expect_warning('video doesn\'t have subtitles')
-        self.url = 'n5BB19UTcdA'
+        # Available automatic captions for 8YoUxe5ncPo:
+        # ...
+        # 8YoUxe5ncPo has no subtitles
+        self.url = '8YoUxe5ncPo'
         self.DL.params['writesubtitles'] = True
         self.DL.params['allsubtitles'] = True
         subtitles = self.getSubtitles()
