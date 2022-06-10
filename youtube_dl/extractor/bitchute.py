@@ -11,6 +11,7 @@ from ..utils import (
     GeoRestrictedError,
     get_element_by_class,
     get_element_by_id,
+    int_or_none,
     merge_dicts,
     orderedSet,
     strip_or_none,
@@ -26,6 +27,7 @@ class BitChuteBaseIE(InfoExtractor):
         TOKEN = 'zyG6tQcGPE5swyAEFLqKUwMuMMuF6IO2DZ6ZDQjGfsL0e4dcTLwqkTTul05Jdve7'
         list_url = self._API_URL + list_id
         offset = 0
+        query = {'showall': '1'} if 18 <= int_or_none(self._downloader.params.get('age_limit')) or 0 else None
         for page_num in itertools.count(1):
             data = self._download_json(
                 list_url + '/extend/', list_id,
@@ -39,7 +41,7 @@ class BitChuteBaseIE(InfoExtractor):
                     'Referer': list_url,
                     'X-Requested-With': 'XMLHttpRequest',
                     'Cookie': 'csrftoken=' + TOKEN,
-                })
+                }, query=query)
             if data.get('success') is False:
                 break
             html = data.get('html')
@@ -85,6 +87,22 @@ class BitChuteIE(BitChuteBaseIE):
             'description': 'md5:a0337e7b1fe39e32336974af8173a034',
             'thumbnail': r're:^https?://.*\.jpg$',
             'uploader': 'BitChute',
+            'age_limit': None,
+        },
+    }, {
+        # NSFW (#24419)
+        'url': 'https://www.bitchute.com/video/wrTrKp7PmFZC/',
+        'md5': '4ef880ce8d24e322172d41a0cf6f8096',
+        'info_dict': {
+            'id': 'wrTrKp7PmFZC',
+            'ext': 'mp4',
+            'title': "You Can't Stop Progress | Episode 2",
+            'timestamp': 1541476920,
+            'upload_date': '20181106',
+            'description': 'md5:f191b538a2c4d8f57540141a6bfd7eb0',
+            'thumbnail': r're:^https?://.*\.jpg$',
+            'uploader': "You Can't Stop Progress",
+            'age_limit': 18,
         },
     }, {
         'url': 'https://www.bitchute.com/embed/lbb5G1hjPhw/',
@@ -104,11 +122,20 @@ class BitChuteIE(BitChuteBaseIE):
     def _real_extract(self, url):
         video_id = self._match_id(url)
 
-        webpage = self._download_webpage(
+        def get_error_title(html):
+            return strip_or_none(clean_html(get_element_by_class('page-title', html)))
+
+        def get_error_text(html):
+            return strip_or_none(clean_html(get_element_by_id('page-detail', html)))
+
+        webpage, urlh = self._download_webpage_handle(
             'https://www.bitchute.com/video/' + video_id, video_id,
             headers={
                 'User-Agent': self._USER_AGENT,
-            })
+            }, expected_status=404)
+
+        if urlh.getcode() == 404:
+            raise ExtractorError(get_error_title(webpage) or 'Cannot find video', expected=True)
 
         title = self._search_title(webpage, 'video-title')
 
@@ -126,10 +153,16 @@ class BitChuteIE(BitChuteBaseIE):
             entries = self._parse_html5_media_entries(
                 url, webpage, video_id)
             if not entries:
-                error = strip_or_none(clean_html(self.get_element_by_id('video-title'))) or 'Cannot find video'
+                error = strip_or_none(clean_html(get_element_by_id('video-title', webpage)))
                 if error == 'Video Unavailable':
-                    raise GeoRestrictedError(error)
-                raise ExtractorError(error)
+                    raise GeoRestrictedError(error, expected=True)
+                error = get_error_title(webpage)
+                if error:
+                    reason = get_error_text(webpage)
+                    if reason:
+                        self.to_screen(reason)
+                    raise ExtractorError(error, expected=True)
+                raise ExtractorError('Cannot find video', )
             formats = entries[0]['formats']
 
         self._check_formats(formats, video_id)
@@ -164,20 +197,42 @@ class BitChuteIE(BitChuteBaseIE):
             'uploader': uploader,
             'timestamp': timestamp,
             'formats': formats,
+            'age_limit': 18 if '>This video has been marked as Not Safe For Work' in webpage else None,
         }
 
 
 class BitChuteChannelIE(BitChuteBaseIE):
     _VALID_URL = r'https?://(?:www\.)?bitchute\.com/channel/(?P<id>[^/?#&]+)'
-    _TEST = {
+    _TESTS = [{
         'url': 'https://www.bitchute.com/channel/livesonnet/',
         'playlist_mincount': 135,
         'info_dict': {
             'id': 'livesonnet',
             'title': 'livesonnet_vidz',
             'description': 'md5:b0017be20656a1347eeb84f1049fc424',
+        }
+    }, {
+        # channel with NSFW content, not listed
+        'url': 'https://www.bitchute.com/channel/hQl9oMSgUyMX/',
+        'playlist_maxcount': 150,
+        'info_dict': {
+            'id': 'hQl9oMSgUyMX',
+            'title': "You Can't Stop Progress",
+            'description': 'md5:a7e3fd8cf02e96ddcc73e9f13d2ce768',
         },
-    }
+    }, {
+        # channel with NSFW content, listed with adult age limit
+        'url': 'https://www.bitchute.com/channel/hQl9oMSgUyMX/',
+        'playlist_mincount': 160,
+        'info_dict': {
+            'id': 'hQl9oMSgUyMX',
+            'title': "You Can't Stop Progress",
+            'description': 'md5:a7e3fd8cf02e96ddcc73e9f13d2ce768',
+        },
+        'params': {
+            'age_limit': 18,
+        }
+    }]
     _API_URL = 'https://www.bitchute.com/channel/'
 
     def _real_extract(self, url):
@@ -201,7 +256,7 @@ class BitChuteChannelIE(BitChuteBaseIE):
 
 class BitChutePlaylistIE(BitChuteBaseIE):
     _VALID_URL = r'https?://(?:www\.)?bitchute\.com/playlist/(?P<id>[^/?#&]+)'
-    _TEST = {
+    _TESTS = [{
         'url': 'https://www.bitchute.com/playlist/g4WTfWTdYEQa/',
         'playlist_mincount': 1,
         'info_dict': {
@@ -209,7 +264,7 @@ class BitChutePlaylistIE(BitChuteBaseIE):
             'title': 'Podcasts',
             'description': 'Podcast Playlist',
         },
-    }
+    }]
     _API_URL = 'https://www.bitchute.com/playlist/'
 
     def _real_extract(self, url):
