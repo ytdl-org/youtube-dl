@@ -11,15 +11,67 @@ from ..utils import (
     GeoRestrictedError,
     get_element_by_class,
     get_element_by_id,
+    merge_dicts,
     orderedSet,
     strip_or_none,
-    unified_strdate,
     unified_timestamp,
     urlencode_postdata,
 )
 
 
-class BitChuteIE(InfoExtractor):
+class BitChuteBaseIE(InfoExtractor):
+    _USER_AGENT = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_0) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/69.0.3497.57 Safari/537.36'
+
+    def _list_entries(self, list_id):
+        TOKEN = 'zyG6tQcGPE5swyAEFLqKUwMuMMuF6IO2DZ6ZDQjGfsL0e4dcTLwqkTTul05Jdve7'
+        list_url = self._API_URL + list_id
+        offset = 0
+        for page_num in itertools.count(1):
+            data = self._download_json(
+                list_url + '/extend/', list_id,
+                'Downloading list page %d' % (page_num, ),
+                data=urlencode_postdata({
+                    'csrfmiddlewaretoken': TOKEN,
+                    'name': '',
+                    'offset': offset,
+                }), headers={
+                    'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
+                    'Referer': list_url,
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'Cookie': 'csrftoken=' + TOKEN,
+                })
+            if data.get('success') is False:
+                break
+            html = data.get('html')
+            if not html:
+                break
+            video_ids = re.findall(
+                r'''class\s*=\s*["'](?:channel-videos-)?image-container[^>]+>\s*<a\b[^>]+\bhref\s*=\s*["']/video/([^"'/]+)''',
+                html)
+            if not video_ids:
+                break
+            offset += len(video_ids)
+            for video_id in video_ids:
+                yield self.url_result(
+                    'https://www.bitchute.com/video/' + video_id,
+                    ie=BitChuteIE.ie_key(), video_id=video_id)
+
+    def _search_title(self, html, title_id, **kwargs):
+        return (
+            strip_or_none(clean_html(get_element_by_id(title_id, html)))
+            or self._og_search_title(html, default=None)
+            or self._html_search_regex(r'(?s)<title\b[^>]*>.*?</title', html, 'title', **kwargs))
+
+    def _search_description(self, html, descr_id):
+        return (
+            self._og_search_description(html)
+            or (descr_id and clean_html(get_element_by_id(descr_id, html)))
+            or self._html_search_regex(
+                r'(?s)<div\b[^>]+\bclass=["\']full hidden[^>]+>(.+?)</div>',
+                html, 'description', fatal=False))
+
+
+class BitChuteIE(BitChuteBaseIE):
     _VALID_URL = r'https?://(?:www\.)?bitchute\.com/(?:video|embed|torrent/[^/]+)/(?P<id>[^/?#&]+)'
     _TESTS = [{
         'url': 'https://www.bitchute.com/video/UGlrF9o9b-Q/',
@@ -53,14 +105,12 @@ class BitChuteIE(InfoExtractor):
         video_id = self._match_id(url)
 
         webpage = self._download_webpage(
-            'https://www.bitchute.com/video/%s' % video_id, video_id, headers={
-                'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_0) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/69.0.3497.57 Safari/537.36',
+            'https://www.bitchute.com/video/' + video_id, video_id,
+            headers={
+                'User-Agent': self._USER_AGENT,
             })
 
-        title = (
-            self._og_search_title(webpage, default=None) 
-            or strip_or_none(clean_html(get_element_by_id('video-title', webpage)))
-            or self._html_search_regex(r'(?s)<title\b[^>]*>.*?</title', webpage, 'title'))
+        title = self._search_title(webpage, 'video-title')
 
         format_urls = [
             mobj.group('url')
@@ -86,8 +136,7 @@ class BitChuteIE(InfoExtractor):
         self._sort_formats(formats)
 
         description = (
-            self._og_search_description(webpage)
-            or clean_html(get_element_by_id('video-description', webpage))
+            self._search_description(webpage, 'video-description')
             or self._html_search_regex(
                 r'(?s)<div\b[^>]+\bclass=["\']full hidden[^>]+>(.+?)</div>',
                 webpage, 'description', fatal=False))
@@ -118,52 +167,69 @@ class BitChuteIE(InfoExtractor):
         }
 
 
-class BitChuteChannelIE(InfoExtractor):
+class BitChuteChannelIE(BitChuteBaseIE):
     _VALID_URL = r'https?://(?:www\.)?bitchute\.com/channel/(?P<id>[^/?#&]+)'
     _TEST = {
         'url': 'https://www.bitchute.com/channel/livesonnet/',
         'playlist_mincount': 135,
         'info_dict': {
             'id': 'livesonnet',
+            'title': 'livesonnet_vidz',
+            'description': 'md5:b0017be20656a1347eeb84f1049fc424',
         },
     }
-
-    _TOKEN = 'zyG6tQcGPE5swyAEFLqKUwMuMMuF6IO2DZ6ZDQjGfsL0e4dcTLwqkTTul05Jdve7'
-
-    def _entries(self, channel_id):
-        channel_url = 'https://www.bitchute.com/channel/%s' % (channel_id, )
-        offset = 0
-        for page_num in itertools.count(1):
-            data = self._download_json(
-                channel_url + '/extend/', channel_id,
-                'Downloading channel page %d' % (page_num, ),
-                data=urlencode_postdata({
-                    'csrfmiddlewaretoken': self._TOKEN,
-                    'name': '',
-                    'offset': offset,
-                }), headers={
-                    'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
-                    'Referer': channel_url,
-                    'X-Requested-With': 'XMLHttpRequest',
-                    'Cookie': 'csrftoken=' + self._TOKEN,
-                })
-            if data.get('success') is False:
-                break
-            html = data.get('html')
-            if not html:
-                break
-            video_ids = re.findall(
-                r'''class\s*=\s*["']channel-videos-image-container[^>]+>\s*<a\b[^>]+\bhref\s*=\s*["']/video/([^"'/]+)''',
-                html)
-            if not video_ids:
-                break
-            offset += len(video_ids)
-            for video_id in video_ids:
-                yield self.url_result(
-                    'https://www.bitchute.com/video/' + video_id,
-                    ie=BitChuteIE.ie_key(), video_id=video_id)
+    _API_URL = 'https://www.bitchute.com/channel/'
 
     def _real_extract(self, url):
         channel_id = self._match_id(url)
-        return self.playlist_result(
-            self._entries(channel_id), playlist_id=channel_id)
+
+        webpage = self._download_webpage(
+            'https://www.bitchute.com/channel/' + channel_id, channel_id,
+            headers={
+                'User-Agent': self._USER_AGENT,
+            })
+
+        title = self._search_title(webpage, 'channel-title', default=None)
+
+        result = self.playlist_result(
+            self._list_entries(channel_id), playlist_id=channel_id, playlist_title=title)
+
+        return merge_dicts(
+            result,
+            {'description': self._search_description(webpage, 'channel-description')})
+
+
+class BitChutePlaylistIE(BitChuteBaseIE):
+    _VALID_URL = r'https?://(?:www\.)?bitchute\.com/playlist/(?P<id>[^/?#&]+)'
+    _TEST = {
+        'url': 'https://www.bitchute.com/playlist/g4WTfWTdYEQa/',
+        'playlist_mincount': 1,
+        'info_dict': {
+            'id': 'g4WTfWTdYEQa',
+            'title': 'Podcasts',
+            'description': 'Podcast Playlist',
+        },
+    }
+    _API_URL = 'https://www.bitchute.com/playlist/'
+
+    def _real_extract(self, url):
+        playlist_id = self._match_id(url)
+
+        webpage = self._download_webpage(
+            'https://www.bitchute.com/playlist/' + playlist_id, playlist_id,
+            headers={
+                'User-Agent': self._USER_AGENT,
+            })
+
+        title = self._search_title(webpage, 'playlist-title', default=None)
+
+        result = self.playlist_result(
+            self._list_entries(playlist_id), playlist_id=playlist_id, playlist_title=title)
+
+        description = (
+            strip_or_none(clean_html(get_element_by_class('description', webpage)))
+            or self._search_description(webpage, None))
+
+        return merge_dicts(
+            result,
+            {'description': description})
