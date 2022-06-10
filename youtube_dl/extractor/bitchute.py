@@ -17,6 +17,7 @@ from ..utils import (
     strip_or_none,
     unified_timestamp,
     urlencode_postdata,
+    urljoin,
 )
 
 
@@ -88,6 +89,7 @@ class BitChuteIE(BitChuteBaseIE):
             'thumbnail': r're:^https?://.*\.jpg$',
             'uploader': 'BitChute',
             'age_limit': None,
+            'channel_url': 'https://www.bitchute.com/channel/bitchute/',
         },
     }, {
         # NSFW (#24419)
@@ -103,6 +105,7 @@ class BitChuteIE(BitChuteBaseIE):
             'thumbnail': r're:^https?://.*\.jpg$',
             'uploader': "You Can't Stop Progress",
             'age_limit': 18,
+            'channel_url': 'https://www.bitchute.com/channel/ycsp/',
         },
     }, {
         'url': 'https://www.bitchute.com/embed/lbb5G1hjPhw/',
@@ -142,7 +145,7 @@ class BitChuteIE(BitChuteBaseIE):
         format_urls = [
             mobj.group('url')
             for mobj in re.finditer(
-                r'''\baddWebSeed\s*\(\s*(["'])(?P<url>(?:(?!\1).)+)\1''', webpage)]
+                r'''\baddWebSeed\s*\(\s*("|')(?P<url>(?:(?!\1).)+)\1''', webpage)]
         format_urls.extend(re.findall(r'''as=(https?://[^&"']+)''', webpage))
 
         formats = [
@@ -189,6 +192,14 @@ class BitChuteIE(BitChuteBaseIE):
 
         timestamp = more_unified_timestamp(get_element_by_class('video-publish-date', webpage))
 
+        # TODO: remove this work-around for class matching bug
+        webpage = re.split(r'''('|")channel-banner\1''', webpage, 1)[-1]
+        channel_details = get_element_by_class('details', webpage)
+        channel_details = channel_details and get_element_by_class('name', channel_details)
+        channel_url = urljoin(url, self._search_regex(
+            r'''<a\b[^>]*?\bhref\s*=\s*('|")(?P<url>(?:(?!\1).)+)''',
+            channel_details or '', 'channel url', group='url', default=None))
+
         return {
             'id': video_id,
             'title': title,
@@ -198,6 +209,7 @@ class BitChuteIE(BitChuteBaseIE):
             'timestamp': timestamp,
             'formats': formats,
             'age_limit': 18 if '>This video has been marked as Not Safe For Work' in webpage else None,
+            'channel_url': channel_url,
         }
 
 
