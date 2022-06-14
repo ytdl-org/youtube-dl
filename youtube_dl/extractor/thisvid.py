@@ -46,8 +46,7 @@ class ThisVidIE(InfoExtractor):
         thumbnail = self._html_search_regex(r"preview_url:\s+'((?:https?:)?//media\.thisvid\.com/.+?\.jpg)',", webpage, 'thumbnail', fatal=False)
         uploader = self._html_search_regex(r'<span>Added by: </span><a class="author" href="https://thisvid.com/members/[0-9]+/">(.+?)</a>', webpage, 'uploader')
         uploader_id = self._html_search_regex(r'<span>Added by: </span><a class="author" href="https://thisvid.com/members/([0-9]+)/">.+?</a>', webpage, 'uploader_id')
-        if thumbnail.startswith("//"):
-            thumbnail = "https:" + thumbnail
+        thumbnail = sanitize_url(thumbnail)
         if (re.match(self._VALID_URL, url).group('type') == "videos"):
             display_id = main_id
         else:
