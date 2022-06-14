@@ -46,7 +46,7 @@ class ThisVidIE(InfoExtractor):
         title = self._html_search_regex(r'<title\b[^>]*?>(?:Video:\s+)?(.+?)(?:\s+-\s+ThisVid(?:\.com| tube))?</title>', webpage, 'title')
         # video_id, video_url and license_code from the 'flashvars' JSON object:
         video_id = self._html_search_regex(r"video_id:\s+'([0-9]+)',", webpage, 'video_id')
-        video_url = self._html_search_regex(r"video_url:\s+'(function/0/.+?)',", webpage, 'video_url')
+        video_url = self._html_search_regex(r"video_url:\s+'function/0/((?:[^/']+/){5,}.+?)',", webpage, 'video_url')
         license_code = self._html_search_regex(r"license_code:\s+'([0-9$]{16})',", webpage, 'license_code')
         thumbnail = self._html_search_regex(r"preview_url:\s+'((?:https?:)?//media\.thisvid\.com/.+?\.jpg)',", webpage, 'thumbnail', fatal=False)
         uploader = self._html_search_regex(r'<span>Added by: </span><a class="author" href="https://thisvid.com/members/[0-9]+/">(.+?)</a>', webpage, 'uploader')
