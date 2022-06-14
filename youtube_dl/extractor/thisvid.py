@@ -77,12 +77,12 @@ def getrealurl(video_url, license_code):
         l = (o + sum([int(n) for n in license[o:]])) % 32
 
         for i in range(0, len(newmagic)):
-            if i == o:
-                new += newmagic[l]
-            elif i == l:
-                new += newmagic[o]
-            else:
-                new += newmagic[i]
+            idx = i
+            if idx == o:
+                idx = l
+            elif idx == l:
+                idx = o
+            new += newmagic[idx]
         newmagic = new
 
     urlparts[5] = newmagic + urlparts[5][32:]
