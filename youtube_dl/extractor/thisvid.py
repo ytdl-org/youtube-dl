@@ -52,10 +52,7 @@ class ThisVidIE(InfoExtractor):
         uploader = self._html_search_regex(r'<span>Added by: </span><a class="author" href="https://thisvid.com/members/[0-9]+/">(.+?)</a>', webpage, 'uploader')
         uploader_id = self._html_search_regex(r'<span>Added by: </span><a class="author" href="https://thisvid.com/members/([0-9]+)/">.+?</a>', webpage, 'uploader_id')
         thumbnail = sanitize_url(thumbnail)
-        if (re.match(self._VALID_URL, url).group('type') == "videos"):
-            display_id = main_id
-        else:
-            display_id = self._search_regex(r'<link\s+rel\s*=\s*"canonical"\s+href\s*=\s*"%s"' % (self._VALID_URL, ), webpage, 'display_id', fatal=False)
+        display_id = self._search_regex(r'<link\s+rel\s*=\s*"canonical"\s+href\s*=\s*"%s"' % (self._VALID_URL, ), webpage, 'display_id', fatal=False) if type_ == 'videos' else main_id
 
         return {
             'id': video_id,
