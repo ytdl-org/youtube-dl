@@ -49,8 +49,14 @@ class ThisVidIE(InfoExtractor):
         video_url = self._html_search_regex(r"video_url:\s+'function/0/((?:[^/']+/){5,}.+?)',", webpage, 'video_url')
         license_code = self._html_search_regex(r"license_code:\s+'([0-9$]{16})',", webpage, 'license_code')
         thumbnail = self._html_search_regex(r"preview_url:\s+'((?:https?:)?//media\.thisvid\.com/.+?\.jpg)',", webpage, 'thumbnail', fatal=False)
-        uploader = self._html_search_regex(r'<span>Added by: </span><a class="author" href="https://thisvid.com/members/[0-9]+/">(.+?)</a>', webpage, 'uploader')
-        uploader_id = self._html_search_regex(r'<span>Added by: </span><a class="author" href="https://thisvid.com/members/([0-9]+)/">.+?</a>', webpage, 'uploader_id')
+        uploader = self._html_search_regex(r'''(?s)<span\b[^>]*>Added by:\s*</span><a\b[^>]+\bclass\s*=\s*["']author\b[^>]+\bhref\s*=\s*["']https://thisvid\.com/members/([0-9]+/.{3,}?)\s*</a>''', webpage, 'uploader', default='')
+        uploader = re.split(r'''/["'][^>]*>\s*''', uploader)
+        if len(uploader) == 2:
+            # id must be non-empty, uploader could be ''
+            uploader_id, uploader = uploader
+            uploader = uploader or None
+        else:
+            uploader_id = uploader = None
         thumbnail = sanitize_url(thumbnail)
         display_id = self._search_regex(r'<link\s+rel\s*=\s*"canonical"\s+href\s*=\s*"%s"' % (self._VALID_URL, ), webpage, 'display_id', fatal=False) if type_ == 'videos' else main_id
 
