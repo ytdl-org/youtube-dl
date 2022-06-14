@@ -96,12 +96,8 @@ def getlicensetoken(license):
     backhalf = int(modlicense[center:])
 
     modlicense = compat_str(4 * abs(fronthalf - backhalf))
-    retval = ""
+    retval = ''
     for o in range(0, center + 1):
         for i in range(1, 5):
             retval += compat_str((int(license[o + i]) + int(modlicense[o])) % 10)
-    retval = ""
-    for o in range(0, center + 1):
-        for i in range(1, 5):
-            retval += str((int(license[o + i]) + int(modlicense[o])) % 10)
     return retval
