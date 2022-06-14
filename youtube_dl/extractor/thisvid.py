@@ -3,7 +3,12 @@ from __future__ import unicode_literals
 import re
 
 from .common import InfoExtractor
-
+from ..compat import (
+    compat_str,
+)
+from ..utils import (
+    sanitize_url,
+)
 
 class ThisVidIE(InfoExtractor):
     _VALID_URL = r'https?://(?:www\.)?thisvid\.com/(?P<type>videos|embed)/(?P<id>[A-Za-z0-9-]+/?)'
