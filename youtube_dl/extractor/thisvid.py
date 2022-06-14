@@ -35,7 +35,7 @@ class ThisVidIE(InfoExtractor):
     }]
 
     def _real_extract(self, url):
-        main_id = self._match_id(url)
+        main_id, type_ = re.match(self._VALID_URL, url).group('id', 'type')
         webpage = self._download_webpage(url, main_id)
 
         # URL decryptor was reversed from version 4.0.4, later verified working with 5.0.1
