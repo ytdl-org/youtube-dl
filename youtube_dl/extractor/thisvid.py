@@ -10,6 +10,7 @@ from ..utils import (
     sanitize_url,
 )
 
+
 class ThisVidIE(InfoExtractor):
     _VALID_URL = r'https?://(?:www\.)?thisvid\.com/(?P<type>videos|embed)/(?P<id>[A-Za-z0-9-]+/?)'
     _TESTS = [{
@@ -31,6 +32,8 @@ class ThisVidIE(InfoExtractor):
             'title': 'Big Man Walking26',
             'thumbnail': 'https://media.thisvid.com/contents/videos_screenshots/2123000/2123318/preview.mp4.jpg',
             'age_limit': 18,
+            'uploader': 'sample',
+            'uploader_id': '1064619',
         }
     }]
 
