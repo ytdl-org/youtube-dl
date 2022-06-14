@@ -50,7 +50,7 @@ class ThisVidIE(InfoExtractor):
         if (re.match(self._VALID_URL, url).group('type') == "videos"):
             display_id = main_id
         else:
-           display_id = self._search_regex(r'<link\s+rel\s*=\s*"canonical"\s+href\s*=\s*"%s"' % (self._VALID_URL, ), webpage, 'display_id', fatal=False)
+            display_id = self._search_regex(r'<link\s+rel\s*=\s*"canonical"\s+href\s*=\s*"%s"' % (self._VALID_URL, ), webpage, 'display_id', fatal=False)
 
         return {
             'id': video_id,
