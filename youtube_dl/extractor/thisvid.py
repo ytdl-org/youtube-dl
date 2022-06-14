@@ -67,6 +67,8 @@ class ThisVidIE(InfoExtractor):
             'url': getrealurl(video_url, license_code),
             'thumbnail': thumbnail,
             'age_limit': 18,
+            'uploader': uploader,
+            'uploader_id': uploader_id,
         }
 
 
