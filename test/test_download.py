@@ -88,6 +88,7 @@ class TestDownload(unittest.TestCase):
 
 # Dynamically generate tests
 
+
 def generator(test_case, tname):
 
     def test_template(self):
