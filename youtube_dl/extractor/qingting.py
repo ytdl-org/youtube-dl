@@ -22,7 +22,7 @@ class QingTingIE(InfoExtractor):
     def _real_extract(self, url):
         video_id = re.search(self._VALID_URL, url).group('id')
         webpage = self._download_webpage(url, video_id)
-        title = self._html_search_regex(r'<title.*>(.*)</title>', webpage, 'title') or self._og_search_title(webpage)
+        title = self._html_search_regex(r'(?s)<title\b[^>]*>(.*)</title>', webpage, 'title', default=None) or self._og_search_title(webpage)
         url = self._search_regex(
             r'''("|')audioUrl\1\s*:\s*("|')(?P<url>(?:(?!\2).)*)\2''',
             webpage, 'audio URL')
