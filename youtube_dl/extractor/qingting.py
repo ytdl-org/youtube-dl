@@ -8,7 +8,7 @@ from .common import InfoExtractor
 
 class QingTingIE(InfoExtractor):
     IE_NAME = 'QingTing'
-    _VALID_URL = r'(?:https?://)?(?:www\.)?m\.((qingting\.fm)|(qtfm\.cn))/vchannels/\d+/programs/(?P<id>\d+)'
+    _VALID_URL = r'(?:https?://)?(?:www\.)?m\.(?:qingting\.fm|qtfm\.cn)/vchannels/\d+/programs/(?P<id>\d+)'
     _TEST = {
         'url': 'https://m.qingting.fm/vchannels/378005/programs/22257411/',
         'md5': '47e6a94f4e621ed832c316fd1888fb3c',
