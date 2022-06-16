@@ -23,7 +23,13 @@ class QingTingIE(InfoExtractor):
         video_id = re.search(self._VALID_URL, url).group('id')
         webpage = self._download_webpage(url, video_id)
         title = self._html_search_regex(r'<title.*>(.*)</title>', webpage, 'title') or self._og_search_title(webpage)
-        url = re.search(r'\"audioUrl\"\s*:\s*\"(?P<url>.*?)\"', webpage).group('url')
+        url = self._search_regex(
+            r'''("|')audioUrl\1\s*:\s*("|')(?P<url>(?:(?!\2).)*)\2''',
+            webpage, 'audio URL')
+        test_url = url_or_none(url)
+        if not test_url:
+            raise ExtractorError('Invalid audio URL %s' % (url, ))
+        url = test_url
         return {
             'id': video_id,
             'title': title,
