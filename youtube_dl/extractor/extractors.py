@@ -975,10 +975,7 @@ from .presstv import PressTVIE
 from .prosiebensat1 import ProSiebenSat1IE
 from .puls4 import Puls4IE
 from .pyvideo import PyvideoIE
-from .qingting import (
-    QingTingMobileIE,
-    QingTingDeskTopIE,
-)
+from .qingting import QingTingIE
 from .qqmusic import (
     QQMusicIE,
     QQMusicSingerIE,
