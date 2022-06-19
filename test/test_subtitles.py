@@ -117,7 +117,7 @@ class TestYoutubeSubtitles(BaseTestSubtitles):
         # el, eo, en, eu, et, es, ru, rw, ro, bn, be, bg, uk, jv,
         # bs, ja, or, xh, co, ca, cy, cs, ps, pt, pa, vi, pl, hy,
         # hr, ht, hu, hmn, hi, ha, mg, uz, ml, mn, mi, mk, ur,
-        # mt, ms, mr, ug, ta, my, af, sw, is, am, 
+        # mt, ms, mr, ug, ta, my, af, sw, is, am,
         #                                         *it*, iw, sv, ar,
         # su, zu, az, id, ig, nl, no, ne, ny, fr, ku, fy, fa, fi,
         # ka, kk, sr, sq, ko, kn, km, st, sk, si, so, sn, sm, sl,
