@@ -3,6 +3,8 @@ from __future__ import unicode_literals
 
 from .common import InfoExtractor
 
+from ..utils import parse_age_limit
+
 
 class ErtflixIE(InfoExtractor):
     _VALID_URL = r'https?://www\.ertflix\.gr/(?:series|vod)/(?P<id>[a-z]{3}\.\d+)'
@@ -17,6 +19,12 @@ class ErtflixIE(InfoExtractor):
             'thumbnail': r're:^https?://.*\.jpg$',
         }
     }
+    @staticmethod
+    def _parse_age_rating(info_dict):
+        return parse_age_limit(
+            info_dict.get('AgeRating')
+            or (info_dict.get('IsAdultContent') and 18)
+            or (info_dict.get('IsKidsContent') and 0))
 
     def _real_extract(self, url):
         display_id = self._match_id(url)
