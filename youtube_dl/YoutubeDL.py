@@ -73,6 +73,7 @@ from .utils import (
     PostProcessingError,
     preferredencoding,
     prepend_extension,
+    process_communicate_or_kill,
     register_socks_protocols,
     render_table,
     replace_extension,
@@ -2323,7 +2324,7 @@ class YoutubeDL(object):
                 ['git', 'rev-parse', '--short', 'HEAD'],
                 stdout=subprocess.PIPE, stderr=subprocess.PIPE,
                 cwd=os.path.dirname(os.path.abspath(__file__)))
-            out, err = sp.communicate()
+            out, err = process_communicate_or_kill(sp)
             out = out.decode().strip()
             if re.match('[0-9a-f]+', out):
                 self._write_string('[debug] Git HEAD: ' + out + '\n')

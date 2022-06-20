@@ -499,7 +499,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
         r'/(?P<id>[a-zA-Z0-9_-]{8,})/player(?:_ias\.vflset(?:/[a-zA-Z]{2,3}_[a-zA-Z]{2,3})?|-plasma-ias-(?:phone|tablet)-[a-z]{2}_[A-Z]{2}\.vflset)/base\.js$',
         r'\b(?P<id>vfl[a-zA-Z0-9_-]+)\b.*?\.js$',
     )
-    _SUBTITLE_FORMATS = ('srv1', 'srv2', 'srv3', 'ttml', 'vtt')
+    _SUBTITLE_FORMATS = ('json3', 'srv1', 'srv2', 'srv3', 'ttml', 'vtt')
 
     _GEO_BYPASS = False
 
@@ -1464,16 +1464,22 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
     # 2. https://code.videolan.org/videolan/vlc/-/blob/4fb284e5af69aa9ac2100ccbdd3b88debec9987f/share/lua/playlist/youtube.lua#L116
     # 3. https://github.com/ytdl-org/youtube-dl/issues/30097#issuecomment-950157377
     def _extract_n_function_name(self, jscode):
-        target = r'(?P<nfunc>[a-zA-Z0-9$]{3})(?:\[(?P<idx>\d+)\])?'
+        target = r'(?P<nfunc>[a-zA-Z_$][\w$]*)(?:\[(?P<idx>\d+)\])?'
         nfunc_and_idx = self._search_regex(
-            r'\.get\("n"\)\)&&\(b=(%s)\([a-zA-Z0-9]\)' % (target, ),
+            r'\.get\("n"\)\)&&\(b=(%s)\([\w$]+\)' % (target, ),
             jscode, 'Initial JS player n function name')
         nfunc, idx = re.match(target, nfunc_and_idx).group('nfunc', 'idx')
         if not idx:
             return nfunc
+        if int_or_none(idx) == 0:
+            real_nfunc = self._search_regex(
+                r'var %s\s*=\s*\[([a-zA-Z_$][\w$]*)\];' % (re.escape(nfunc), ), jscode,
+                'Initial JS player n function alias ({nfunc}[{idx}])'.format(**locals()))
+            if real_nfunc:
+                return real_nfunc
         return self._parse_json(self._search_regex(
-            r'var %s\s*=\s*(\[.+?\]);' % (nfunc, ), jscode,
-            'Initial JS player n function list ({nfunc}[{idx}])'.format(**locals())), nfunc, transform_source=js_to_json)[int(idx)]
+            r'var %s\s*=\s*(\[.+?\]);' % (re.escape(nfunc), ), jscode,
+            'Initial JS player n function name ({nfunc}[{idx}])'.format(**locals())), nfunc, transform_source=js_to_json)[int(idx)]
 
     def _extract_n_function(self, video_id, player_url):
         player_id = self._extract_player_info(player_url)
@@ -1482,7 +1488,6 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
         if func_code:
             jsi = JSInterpreter(func_code)
         else:
-            player_id = self._extract_player_info(player_url)
             jscode = self._get_player_code(video_id, player_url, player_id)
             funcname = self._extract_n_function_name(jscode)
             jsi = JSInterpreter(jscode)
