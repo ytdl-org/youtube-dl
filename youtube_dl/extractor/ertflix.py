@@ -12,7 +12,7 @@ from .common import InfoExtractor
 
 class ErtflixIE(InfoExtractor):
     _VALID_URL = r'https?://www\.ertflix\.gr/(?:series|vod)/(?P<id>[a-z]{3}\.\d+)'
-    _TEST = {
+    _TESTS = [{
         'url': 'https://www.ertflix.gr/en/vod/vod.130833-the-incredible-story-of-the-giant-pear-i-apisteyti-istoria-toy-gigantioy-achladioy',
         'info_dict': {
             'id': '130833',
@@ -25,7 +25,16 @@ class ErtflixIE(InfoExtractor):
         'params': {
             'format': 'bestvideo',
         }
-    }
+    },{'url': 'https://www.ertflix.gr/en/series/ser.161418-dunata',
+        'info_dict': {
+            'id': '161418',
+            'displayid' : 'Out Loud',
+            'ext': 'mp4',
+            'title': 'Out Loud',
+            'description' : 'It is a celebration, a performance, a gathering of friends, a concert, a game show ',
+            'thumbnail': r're:^https?://.*\.jpg$',
+       },
+    }]
 
     def _extract_formats_and_subs(self, video_id, allow_none=True):
         media_info = self._call_api(video_id, codename=video_id)
