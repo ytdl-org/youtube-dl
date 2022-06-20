@@ -5,7 +5,7 @@ from .common import InfoExtractor
 
 
 class ErtflixIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:www\.)?ertflix\.gr/(?:en)?/(?:vod/vod|series/ser)\.(?P<id>[0-9]+).*'
+    _VALID_URL = r'https?://www\.ertflix\.gr/(?:series|vod)/(?P<id>[a-z]{3}\.\d+)'
     _TEST = {
         'url': 'https://www.ertflix.gr/en/vod/vod.130833-the-incredible-story-of-the-giant-pear-i-apisteyti-istoria-toy-gigantioy-achladioy',
         'info_dict': {
