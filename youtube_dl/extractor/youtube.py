@@ -1641,6 +1641,27 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
             fmt['url'] = compat_urlparse.urlunparse(
                 parsed_fmt_url._replace(query=compat_urllib_parse_urlencode(qs, True)))
 
+    # from yt-dlp, with tweaks
+    def _extract_signature_timestamp(self, video_id, player_url, ytcfg=None, fatal=False):
+        """
+        Extract signatureTimestamp (sts)
+        Required to tell API what sig/player version is in use.
+        """
+        sts = int_or_none(ytcfg.get('STS')) if isinstance(ytcfg, dict) else None
+        if not sts:
+            # Attempt to extract from player
+            if player_url is None:
+                error_msg = 'Cannot extract signature timestamp without player_url.'
+                if fatal:
+                    raise ExtractorError(error_msg)
+                self._downloader.report_warning(error_msg)
+                return
+            code = self._get_player_code(video_id, player_url)
+            sts = int_or_none(self._search_regex(
+                r'(?:signatureTimestamp|sts)\s*:\s*(?P<sts>[0-9]{5})', code or '',
+                'JS player signature timestamp', group='sts', fatal=fatal))
+        return sts
+
     def _mark_watched(self, video_id, player_response):
         playback_url = url_or_none(try_get(
             player_response,
@@ -1765,6 +1786,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
             webpage_url + '&bpctr=9999999999&has_verified=1', video_id, fatal=False)
 
         player_response = None
+        player_url = None
         if webpage:
             player_response = self._extract_yt_initial_variable(
                 webpage, self._YT_INITIAL_PLAYER_RESPONSE_RE,
@@ -1798,8 +1820,17 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
 
             # Thanks: https://github.com/yt-dlp/yt-dlp/pull/3233
             pb_context = {'html5Preference': 'HTML5_PREF_WANTS'}
+
+            # Use signatureTimestamp if available
+            # Thanks https://github.com/ytdl-org/youtube-dl/issues/31034#issuecomment-1160718026
+            player_url = self._extract_player_url(webpage)
+            ytcfg = self._extract_ytcfg(video_id, webpage)
+            sts = self._extract_signature_timestamp(video_id, player_url, ytcfg)
+            if sts:
+                pb_context['signatureTimestamp'] = sts
+
             query = {
-                'playbackContext': {'contentPlaybackContext': {'html5Preference': 'HTML5_PREF_WANTS'}},
+                'playbackContext': {'contentPlaybackContext': pb_context},
                 'contentCheckOk': True,
                 'racyCheckOk': True,
                 'context': {
@@ -1900,7 +1931,6 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
         formats = []
         itags = []
         itag_qualities = {}
-        player_url = None
         q = qualities(['tiny', 'small', 'medium', 'large', 'hd720', 'hd1080', 'hd1440', 'hd2160', 'hd2880', 'highres'])
         streaming_data = player_response.get('streamingData') or {}
         streaming_formats = streaming_data.get('formats') or []
