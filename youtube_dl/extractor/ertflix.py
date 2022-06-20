@@ -1,9 +1,13 @@
 # coding: utf-8
 from __future__ import unicode_literals
-
+from ..utils import( parse_age_limit,
+    determine_ext,
+    parse_age_limit,
+    str_or_none,
+    try_get,
+    url_or_none,
+)
 from .common import InfoExtractor
-
-from ..utils import parse_age_limit
 
 
 class ErtflixIE(InfoExtractor):
@@ -17,8 +21,40 @@ class ErtflixIE(InfoExtractor):
             'title': 'Η απίστευτη ιστορία του γιγάντιου αχλαδιού',
             'description' : 'The incredible story of the giant pear.',
             'thumbnail': r're:^https?://.*\.jpg$',
+       },
+        'params': {
+            'format': 'bestvideo',
         }
     }
+
+    def _extract_formats_and_subs(self, video_id, allow_none=True):
+        media_info = self._call_api(video_id, codename=video_id)
+        formats, subs = [], {}
+        for media_file in try_get(media_info, lambda x: x['MediaFiles'], list) or []:
+            for media in try_get(media_file, lambda x: x['Formats'], list) or []:
+                fmt_url = url_or_none(try_get(media, lambda x: x['Url']))
+                if not fmt_url:
+                    continue
+                ext = determine_ext(fmt_url)
+                if ext == 'm3u8':
+                    formats_, subs_ = self._extract_m3u8_formats_and_subtitles(
+                        fmt_url, video_id, m3u8_id='hls', ext='mp4', fatal=False)
+                elif ext == 'mpd':
+                    formats_, subs_ = self._extract_mpd_formats_and_subtitles(
+                        fmt_url, video_id, mpd_id='dash', fatal=False)
+                else:
+                    formats.append({
+                        'url': fmt_url,
+                        'format_id': str_or_none(media.get('Id')),
+                    })
+                    continue
+                formats.extend(formats_)
+                self._merge_subtitles(subs_, target=subs)
+
+        if formats or not allow_none:
+            self._sort_formats(formats)
+        return formats, subs
+
     @staticmethod
     def _parse_age_rating(info_dict):
         return parse_age_limit(
