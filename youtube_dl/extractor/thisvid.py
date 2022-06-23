@@ -9,7 +9,11 @@ from ..compat import (
     compat_str,
 )
 from ..utils import (
+    clean_html,
+    get_element_by_class,
     sanitize_url,
+    url_or_none,
+    urljoin,
 )
 
 
