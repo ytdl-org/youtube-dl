@@ -106,7 +106,7 @@ def getrealurl(video_url, license_code):
         newmagic = new
 
     urlparts[5] = newmagic + urlparts[5][32:]
-    return "/".join(urlparts)
+    return '/'.join(urlparts)
 
 
 def getlicensetoken(license):
