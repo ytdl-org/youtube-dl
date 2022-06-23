@@ -88,7 +88,7 @@ class ThisVidIE(InfoExtractor):
 
 
 def getrealurl(video_url, license_code):
-    urlparts = video_url.split('/')[2:]
+    urlparts = video_url.split('/')
     license = getlicensetoken(license_code)
     newmagic = urlparts[5][:32]
 
