@@ -121,3 +121,58 @@ def getlicensetoken(license):
         for i in range(1, 5):
             retval += compat_str((int(license[o + i]) + int(modlicense[o])) % 10)
     return retval
+
+
+class ThisVidMemberIE(InfoExtractor):
+    _VALID_URL = r'https?://thisvid\.com/members/(?P<id>\d+)'
+    _TESTS = [{
+        'url': 'https://thisvid.com/members/3235959/',
+        'info_dict': {
+            'id': '3235959',
+            'title': 'ButtLoverAss\'s Profile',
+        },
+        'playlist_mincount': 64,
+    }, {
+        'url': 'https://thisvid.com/members/3235959/favourite_videos/',
+        'info_dict': {
+            'id': '3235959',
+            'title': 'ButtLoverAss\'s Favourite Videos',
+        },
+        'playlist_mincount': 57,
+    }, {
+        'url': 'https://thisvid.com/members/3235959/public_videos/',
+        'info_dict': {
+            'id': '3235959',
+            'title': 'ButtLoverAss\'s Public Videos',
+        },
+        'playlist_mincount': 29,
+    },
+    ]
+
+    def _real_extract(self, url):
+        pl_id = self._match_id(url)
+        webpage = self._download_webpage(url, pl_id)
+
+        title = re.split(
+            r'(?i)\s*\|\s*ThisVid\.com\s*$',
+            self._og_search_title(webpage, default=None) or self._html_search_regex(r'(?s)<title\b[^>]*>(.+?)</title', webpage, 'title', fatal=False) or '', 1)[0] or None
+
+        def entries(page_url, html=None):
+            for page in itertools.count(1):
+                if not html:
+                    html = self._download_webpage(
+                        page_url, pl_id, note='Downloading page %d' % (page, ),
+                        fatal=False) or ''
+                for m in re.finditer(r'''<a\b[^>]+\bhref\s*=\s*["'](?P<url>%s\b)[^>]+>''' % (ThisVidIE._VALID_URL, ), html):
+                    yield m.group('url')
+                next_page = get_element_by_class('pagination-next', html)
+                next_page = urljoin(url,
+                    next_page and self._search_regex(
+                        r'''<a\b[^>]+\bhref\s*=\s*("|')(?P<url>(?:(?!\1).)+)''', 
+                        next_page, 'next page link', group='url', default=None))
+                if not next_page:
+                    break
+                page_url, html = next_page, None
+
+        return self.playlist_from_matches(
+            entries(url, webpage), playlist_id=pl_id, playlist_title=title, ie='ThisVid')
