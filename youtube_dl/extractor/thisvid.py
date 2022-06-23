@@ -64,8 +64,8 @@ class ThisVidIE(InfoExtractor):
            self.raise_login_required(
                (clean_html(video_holder) or 'Private video').split('\n', 1)[0])
        # video_id, video_url and license_code from the 'flashvars' JSON object:
-        video_id = self._html_search_regex(r"video_id:\s+'([0-9]+)',", webpage, 'video_id')
-        video_url = self._html_search_regex(r"video_url:\s+'function/0/((?:[^/']+/){5,}.+?)',", webpage, 'video_url')
+        video_id = self._html_search_regex(r'''video_id:\s+'([0-9]+)',''', webpage, 'video_id')
+        video_url = self._html_search_regex(r'''video_url:\s+'function/0/(https?://(?:[^/']+/){5,}.*?)',''', webpage, 'video_url')
         license_code = self._html_search_regex(r"license_code:\s+'([0-9$]{16})',", webpage, 'license_code')
         thumbnail = self._html_search_regex(r"preview_url:\s+'((?:https?:)?//media\.thisvid\.com/.+?\.jpg)',", webpage, 'thumbnail', fatal=False)
         uploader = self._html_search_regex(r'''(?s)<span\b[^>]*>Added by:\s*</span><a\b[^>]+\bclass\s*=\s*["']author\b[^>]+\bhref\s*=\s*["']https://thisvid\.com/members/([0-9]+/.{3,}?)\s*</a>''', webpage, 'uploader', default='')
