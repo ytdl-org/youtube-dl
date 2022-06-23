@@ -20,26 +20,28 @@ from ..utils import (
 class ThisVidIE(InfoExtractor):
     _VALID_URL = r'https?://(?:www\.)?thisvid\.com/(?P<type>videos|embed)/(?P<id>[A-Za-z0-9-]+/?)'
     _TESTS = [{
-        'url': 'https://thisvid.com/videos/big-man-walking26/',
-        'md5': '74a11cac6a738f28c1a37945145a3f96',
+        'url': 'https://thisvid.com/videos/sitting-on-ball-tight-jeans/',
+        'md5': '839becb572995687e11a69dc4358a386',
         'info_dict': {
-            'id': '2123318',
+            'id': '3533241',
             'ext': 'mp4',
-            'title': 'Big Man Walking26',
-            'thumbnail': 'https://media.thisvid.com/contents/videos_screenshots/2123000/2123318/preview.mp4.jpg',
+            'title': 'Sitting on ball tight jeans',
+            'thumbnail': r're:https?://\w+\.thisvid\.com/(?:[^/]+/)+3533241/preview\.jpg',
+            'uploader_id': '150629',
+            'uploader': 'jeanslevisjeans',
             'age_limit': 18,
         }
     }, {
-        'url': 'https://thisvid.com/embed/2123318/',
-        'md5': '74a11cac6a738f28c1a37945145a3f96',
+        'url': 'https://thisvid.com/embed/3533241/',
+        'md5': '839becb572995687e11a69dc4358a386',
         'info_dict': {
-            'id': '2123318',
+            'id': '3533241',
             'ext': 'mp4',
-            'title': 'Big Man Walking26',
-            'thumbnail': 'https://media.thisvid.com/contents/videos_screenshots/2123000/2123318/preview.mp4.jpg',
+            'title': 'Sitting on ball tight jeans',
+            'thumbnail': r're:https?://\w+\.thisvid\.com/(?:[^/]+/)+3533241/preview\.jpg',
+            'uploader_id': '150629',
+            'uploader': 'jeanslevisjeans',
             'age_limit': 18,
-            'uploader': 'sample',
-            'uploader_id': '1064619',
         }
     }]
 
