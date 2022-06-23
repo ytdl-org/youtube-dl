@@ -110,7 +110,7 @@ def getrealurl(video_url, license_code):
 
 
 def getlicensetoken(license):
-    modlicense = license.replace("$", "").replace("0", "1")
+    modlicense = license.replace('$', '').replace('0', '1')
     center = len(modlicense) // 2
     fronthalf = int(modlicense[:center + 1])
     backhalf = int(modlicense[center:])
