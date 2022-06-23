@@ -1,6 +1,8 @@
 # coding: utf-8
 from __future__ import unicode_literals
+
 import re
+import itertools
 
 from .common import InfoExtractor
 from ..compat import (
