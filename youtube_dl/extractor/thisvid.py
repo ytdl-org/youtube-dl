@@ -77,7 +77,6 @@ class ThisVidIE(InfoExtractor):
         else:
             uploader_id = uploader = None
         thumbnail = sanitize_url(thumbnail)
-        display_id = self._search_regex(r'<link\s+rel\s*=\s*"canonical"\s+href\s*=\s*"%s"' % (self._VALID_URL, ), webpage, 'display_id', fatal=False) if type_ == 'videos' else main_id
 
         return {
             'id': video_id,
