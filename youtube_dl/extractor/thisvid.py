@@ -60,10 +60,10 @@ class ThisVidIE(InfoExtractor):
             if video_alt_url:
                 webpage = self._download_webpage(video_alt_url, main_id, note='Redirecting embed to main page', fatal=False)
         video_holder = get_element_by_class('video-holder', webpage) or ''
-       if '>This video is a private video' in video_holder:
-           self.raise_login_required(
-               (clean_html(video_holder) or 'Private video').split('\n', 1)[0])
-       # video_id, video_url and license_code from the 'flashvars' JSON object:
+        if '>This video is a private video' in video_holder:
+            self.raise_login_required(
+                (clean_html(video_holder) or 'Private video').split('\n', 1)[0])
+        # video_id, video_url and license_code from the 'flashvars' JSON object:
         video_id = self._html_search_regex(r'''video_id:\s+'([0-9]+)',''', webpage, 'video_id')
         video_url = self._html_search_regex(r'''video_url:\s+'function/0/(https?://(?:[^/']+/){5,}.*?)',''', webpage, 'video_url')
         license_code = self._html_search_regex(r"license_code:\s+'([0-9$]{16})',", webpage, 'license_code')
