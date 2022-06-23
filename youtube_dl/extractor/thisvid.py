@@ -77,7 +77,7 @@ class ThisVidIE(InfoExtractor):
 
         return {
             'id': video_id,
-            'display_id': display_id,
+            'display_id': main_id,
             'title': title,
             'url': getrealurl(video_url, license_code),
             'thumbnail': thumbnail,
