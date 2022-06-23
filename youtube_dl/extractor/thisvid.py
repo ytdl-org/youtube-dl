@@ -55,6 +55,10 @@ class ThisVidIE(InfoExtractor):
             self.report_warning('Major version change (' + kvs_version + ') in player engine--Download may fail.')
 
         title = self._html_search_regex(r'<title\b[^>]*?>(?:Video:\s+)?(.+?)(?:\s+-\s+ThisVid(?:\.com| tube))?</title>', webpage, 'title')
+        if type_ == 'embed':
+            video_alt_url = url_or_none(self._html_search_regex(r'''video_alt_url:\s+'(%s)',''' % (self._VALID_URL, ), webpage, 'video_alt_url', default=None))
+            if video_alt_url:
+                webpage = self._download_webpage(video_alt_url, main_id, note='Redirecting embed to main page', fatal=False)
         video_holder = get_element_by_class('video-holder', webpage) or ''
        if '>This video is a private video' in video_holder:
            self.raise_login_required(
