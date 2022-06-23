@@ -55,7 +55,11 @@ class ThisVidIE(InfoExtractor):
             self.report_warning('Major version change (' + kvs_version + ') in player engine--Download may fail.')
 
         title = self._html_search_regex(r'<title\b[^>]*?>(?:Video:\s+)?(.+?)(?:\s+-\s+ThisVid(?:\.com| tube))?</title>', webpage, 'title')
-        # video_id, video_url and license_code from the 'flashvars' JSON object:
+        video_holder = get_element_by_class('video-holder', webpage) or ''
+       if '>This video is a private video' in video_holder:
+           self.raise_login_required(
+               (clean_html(video_holder) or 'Private video').split('\n', 1)[0])
+       # video_id, video_url and license_code from the 'flashvars' JSON object:
         video_id = self._html_search_regex(r"video_id:\s+'([0-9]+)',", webpage, 'video_id')
         video_url = self._html_search_regex(r"video_url:\s+'function/0/((?:[^/']+/){5,}.+?)',", webpage, 'video_url')
         license_code = self._html_search_regex(r"license_code:\s+'([0-9$]{16})',", webpage, 'license_code')
