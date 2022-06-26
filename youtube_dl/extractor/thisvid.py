@@ -79,7 +79,6 @@ class ThisVidIE(InfoExtractor):
             uploader_id = uploader = None
         thumbnail = sanitize_url(thumbnail)
 
-
         def getrealurl(video_url, license_code):
             urlparts = video_url.split('/')
             license = getlicensetoken(license_code)
@@ -100,7 +99,6 @@ class ThisVidIE(InfoExtractor):
 
             urlparts[5] = newmagic + urlparts[5][32:]
             return '/'.join(urlparts)
-
 
         def getlicensetoken(license):
             modlicense = license.replace('$', '').replace('0', '1')
