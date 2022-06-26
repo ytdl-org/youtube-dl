@@ -79,6 +79,42 @@ class ThisVidIE(InfoExtractor):
             uploader_id = uploader = None
         thumbnail = sanitize_url(thumbnail)
 
+
+        def getrealurl(video_url, license_code):
+            urlparts = video_url.split('/')
+            license = getlicensetoken(license_code)
+            newmagic = urlparts[5][:32]
+
+            for o in range(len(newmagic) - 1, -1, -1):
+                new = ''
+                l = (o + sum([int(n) for n in license[o:]])) % 32
+
+                for i in range(0, len(newmagic)):
+                    idx = i
+                    if idx == o:
+                        idx = l
+                    elif idx == l:
+                        idx = o
+                    new += newmagic[idx]
+                newmagic = new
+
+            urlparts[5] = newmagic + urlparts[5][32:]
+            return '/'.join(urlparts)
+
+
+        def getlicensetoken(license):
+            modlicense = license.replace('$', '').replace('0', '1')
+            center = len(modlicense) // 2
+            fronthalf = int(modlicense[:center + 1])
+            backhalf = int(modlicense[center:])
+
+            modlicense = compat_str(4 * abs(fronthalf - backhalf))
+            retval = ''
+            for o in range(0, center + 1):
+                for i in range(1, 5):
+                    retval += compat_str((int(license[o + i]) + int(modlicense[o])) % 10)
+            return retval
+
         return {
             'id': video_id,
             'display_id': main_id,
@@ -89,42 +125,6 @@ class ThisVidIE(InfoExtractor):
             'uploader': uploader,
             'uploader_id': uploader_id,
         }
-
-
-def getrealurl(video_url, license_code):
-    urlparts = video_url.split('/')
-    license = getlicensetoken(license_code)
-    newmagic = urlparts[5][:32]
-
-    for o in range(len(newmagic) - 1, -1, -1):
-        new = ''
-        l = (o + sum([int(n) for n in license[o:]])) % 32
-
-        for i in range(0, len(newmagic)):
-            idx = i
-            if idx == o:
-                idx = l
-            elif idx == l:
-                idx = o
-            new += newmagic[idx]
-        newmagic = new
-
-    urlparts[5] = newmagic + urlparts[5][32:]
-    return '/'.join(urlparts)
-
-
-def getlicensetoken(license):
-    modlicense = license.replace('$', '').replace('0', '1')
-    center = len(modlicense) // 2
-    fronthalf = int(modlicense[:center + 1])
-    backhalf = int(modlicense[center:])
-
-    modlicense = compat_str(4 * abs(fronthalf - backhalf))
-    retval = ''
-    for o in range(0, center + 1):
-        for i in range(1, 5):
-            retval += compat_str((int(license[o + i]) + int(modlicense[o])) % 10)
-    return retval
 
 
 class ThisVidMemberIE(InfoExtractor):
