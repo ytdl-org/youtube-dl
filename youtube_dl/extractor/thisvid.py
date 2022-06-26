@@ -49,11 +49,6 @@ class ThisVidIE(InfoExtractor):
         main_id, type_ = re.match(self._VALID_URL, url).group('id', 'type')
         webpage = self._download_webpage(url, main_id)
 
-        # URL decryptor was reversed from version 4.0.4, later verified working with 5.0.1
-        kvs_version = self._html_search_regex(r'<script [^>]+?src="https://thisvid\.com/player/kt_player\.js\?v=(\d+(\.\d+)+)">', webpage, 'kvs_version', fatal=False)
-        if not (kvs_version and kvs_version.startswith('5.')):
-            self.report_warning('Major version change (' + kvs_version + ') in player engine--Download may fail.')
-
         title = self._html_search_regex(r'<title\b[^>]*?>(?:Video:\s+)?(.+?)(?:\s+-\s+ThisVid(?:\.com| tube))?</title>', webpage, 'title')
         if type_ == 'embed':
             video_alt_url = url_or_none(self._html_search_regex(r'''video_alt_url:\s+'(%s)',''' % (self._VALID_URL, ), webpage, 'video_alt_url', default=None))
@@ -63,6 +58,12 @@ class ThisVidIE(InfoExtractor):
         if '>This video is a private video' in video_holder:
             self.raise_login_required(
                 (clean_html(video_holder) or 'Private video').split('\n', 1)[0])
+
+        # URL decryptor was reversed from version 4.0.4, later verified working with 5.0.1
+        kvs_version = self._html_search_regex(r'<script [^>]+?src="https://thisvid\.com/player/kt_player\.js\?v=(\d+(\.\d+)+)">', webpage, 'kvs_version', fatal=False)
+        if not (kvs_version and kvs_version.startswith('5.')):
+            self.report_warning('Major version change (' + kvs_version + ') in player engine--Download may fail.')
+
         # video_id, video_url and license_code from the 'flashvars' JSON object:
         video_id = self._html_search_regex(r'''video_id:\s+'([0-9]+)',''', webpage, 'video_id')
         video_url = self._html_search_regex(r'''video_url:\s+'function/0/(https?://(?:[^/']+/){5,}.*?)',''', webpage, 'video_url')
