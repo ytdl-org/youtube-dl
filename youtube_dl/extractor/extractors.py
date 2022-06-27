@@ -627,6 +627,9 @@ from .livestream import (
     LivestreamOriginalIE,
     LivestreamShortenerIE,
 )
+from .livestreamfails import (
+    LivestreamfailsIE,
+)
 from .lnkgo import LnkGoIE
 from .localnews8 import LocalNews8IE
 from .lovehomeporn import LoveHomePornIE
