@@ -173,7 +173,7 @@ class ThisVidMemberIE(InfoExtractor):
                     # member list page
                     next_page = urljoin(url, self._search_regex(
                         r'''<a\b[^>]+\bhref\s*=\s*("|')(?P<url>(?:(?!\1).)+)''',
-                        next_page, 'next page link', group='url', default=None)
+                        next_page, 'next page link', group='url', default=None))
                 # in case a member page should have pagination-next with empty link, not just `else:`
                 if next_page is None:
                     # playlist page
