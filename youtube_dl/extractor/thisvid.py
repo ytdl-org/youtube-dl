@@ -210,7 +210,7 @@ class ThisVidPlaylistIE(ThisVidMemberIE):
             'ext': 'mp4',
             'title': 'Big Italian Booty 28',
         'params': {
-            'noplaylist: True,
+            'noplaylist': True,
         },
     }]
 
