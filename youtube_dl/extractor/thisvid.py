@@ -209,6 +209,7 @@ class ThisVidPlaylistIE(ThisVidMemberIE):
             'id': '1072387',
             'ext': 'mp4',
             'title': 'Big Italian Booty 28',
+        },
         'params': {
             'noplaylist': True,
         },
