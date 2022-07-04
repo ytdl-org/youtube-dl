@@ -21,6 +21,10 @@ import subprocess
 import sys
 import xml.etree.ElementTree
 
+try:
+    import collections.abc as compat_collections_abc
+except ImportError:
+    import collections as compat_collections_abc
 
 try:
     import urllib.request as compat_urllib_request
@@ -2886,6 +2890,7 @@ else:
     _terminal_size = collections.namedtuple('terminal_size', ['columns', 'lines'])
 
     def compat_get_terminal_size(fallback=(80, 24)):
+        from .utils import process_communicate_or_kill
         columns = compat_getenv('COLUMNS')
         if columns:
             columns = int(columns)
@@ -2902,7 +2907,7 @@ else:
                 sp = subprocess.Popen(
                     ['stty', 'size'],
                     stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-                out, err = sp.communicate()
+                out, err = process_communicate_or_kill(sp)
                 _lines, _columns = map(int, out.split())
             except Exception:
                 _columns, _lines = _terminal_size(*fallback)
@@ -2962,6 +2967,25 @@ else:
         compat_Struct = struct.Struct
 
 
+# compat_map/filter() returning an iterator, supposedly the
+# same versioning as for zip below
+try:
+    from future_builtins import map as compat_map
+except ImportError:
+    try:
+        from itertools import imap as compat_map
+    except ImportError:
+        compat_map = map
+
+try:
+    from future_builtins import filter as compat_filter
+except ImportError:
+    try:
+        from itertools import ifilter as compat_filter
+    except ImportError:
+        compat_filter = filter
+
+
 try:
     from future_builtins import zip as compat_zip
 except ImportError:  # not 2.6+ or is 3.x
@@ -3006,6 +3030,7 @@ __all__ = [
     'compat_b64decode',
     'compat_basestring',
     'compat_chr',
+    'compat_collections_abc',
     'compat_cookiejar',
     'compat_cookiejar_Cookie',
     'compat_cookies',
@@ -3015,6 +3040,7 @@ __all__ = [
     'compat_etree_fromstring',
     'compat_etree_register_namespace',
     'compat_expanduser',
+    'compat_filter',
     'compat_get_terminal_size',
     'compat_getenv',
     'compat_getpass',
@@ -3026,6 +3052,7 @@ __all__ = [
     'compat_integer_types',
     'compat_itertools_count',
     'compat_kwargs',
+    'compat_map',
     'compat_numeric_types',
     'compat_ord',
     'compat_os_name',

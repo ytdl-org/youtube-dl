@@ -270,11 +270,11 @@ def parseOpts(overrideArguments=None):
     selection.add_option(
         '--match-title',
         dest='matchtitle', metavar='REGEX',
-        help='Download only matching titles (regex or caseless sub-string)')
+        help='Download only matching titles (case-insensitive regex or alphanumeric sub-string)')
     selection.add_option(
         '--reject-title',
         dest='rejecttitle', metavar='REGEX',
-        help='Skip download for matching titles (regex or caseless sub-string)')
+        help='Skip download for matching titles (case-insensitive regex or alphanumeric sub-string)')
     selection.add_option(
         '--max-downloads',
         dest='max_downloads', metavar='NUMBER', type=int, default=None,

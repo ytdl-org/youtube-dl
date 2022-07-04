@@ -997,6 +997,25 @@ class TestYoutubeDL(unittest.TestCase):
         self.assertEqual(downloaded['extractor'], 'Video')
         self.assertEqual(downloaded['extractor_key'], 'Video')
 
+    def test_default_times(self):
+        """Test addition of missing upload/release/_date from /release_/timestamp"""
+        info = {
+            'id': '1234',
+            'url': TEST_URL,
+            'title': 'Title',
+            'ext': 'mp4',
+            'timestamp': 1631352900,
+            'release_timestamp': 1632995931,
+        }
+
+        params = {'simulate': True, }
+        ydl = FakeYDL(params)
+        out_info = ydl.process_ie_result(info)
+        self.assertTrue(isinstance(out_info['upload_date'], compat_str))
+        self.assertEqual(out_info['upload_date'], '20210911')
+        self.assertTrue(isinstance(out_info['release_date'], compat_str))
+        self.assertEqual(out_info['release_date'], '20210930')
+
 
 if __name__ == '__main__':
     unittest.main()

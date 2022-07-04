@@ -2151,7 +2151,7 @@ def sanitize_url(url):
     for mistake, fixup in COMMON_TYPOS:
         if re.match(mistake, url):
             return re.sub(mistake, fixup, url)
-    return url
+    return escape_url(url)
 
 
 def sanitized_Request(url, *args, **kwargs):
@@ -2210,6 +2210,15 @@ def unescapeHTML(s):
 
     return re.sub(
         r'&([^&;]+;)', lambda m: _htmlentity_transform(m.group(1)), s)
+
+
+def process_communicate_or_kill(p, *args, **kwargs):
+    try:
+        return p.communicate(*args, **kwargs)
+    except BaseException:  # Including KeyboardInterrupt
+        p.kill()
+        p.wait()
+        raise
 
 
 def get_subprocess_encoding():
@@ -2292,12 +2301,30 @@ def formatSeconds(secs):
 
 
 def make_HTTPS_handler(params, **kwargs):
+
+    # https://www.rfc-editor.org/info/rfc7301
+    ALPN_PROTOCOLS = ['http/1.1']
+
+    def set_alpn_protocols(ctx):
+        # From https://github.com/yt-dlp/yt-dlp/commit/2c6dcb65fb612fc5bc5c61937bf438d3c473d8d0
+        # Thanks @coletdjnz
+        # Some servers may (wrongly) reject requests if ALPN extension is not sent. See:
+        # https://github.com/python/cpython/issues/85140
+        # https://github.com/yt-dlp/yt-dlp/issues/3878
+        try:
+            ctx.set_alpn_protocols(ALPN_PROTOCOLS)
+        except (AttributeError, NotImplementedError):
+            # Python < 2.7.10, not ssl.HAS_ALPN
+            pass
+
     opts_no_check_certificate = params.get('nocheckcertificate', False)
     if hasattr(ssl, 'create_default_context'):  # Python >= 3.4 or 2.7.9
         context = ssl.create_default_context(ssl.Purpose.SERVER_AUTH)
+        set_alpn_protocols(context)
         if opts_no_check_certificate:
             context.check_hostname = False
             context.verify_mode = ssl.CERT_NONE
+
         try:
             return YoutubeDLHTTPSHandler(params, context=context, **kwargs)
         except TypeError:
@@ -2313,6 +2340,7 @@ def make_HTTPS_handler(params, **kwargs):
                                if opts_no_check_certificate
                                else ssl.CERT_REQUIRED)
         context.set_default_verify_paths()
+        set_alpn_protocols(context)
         return YoutubeDLHTTPSHandler(params, context=context, **kwargs)
 
 
@@ -3769,7 +3797,8 @@ def check_executable(exe, args=[]):
     """ Checks if the given binary is installed somewhere in PATH, and returns its name.
     args can be a list of arguments for a short output (like -version) """
     try:
-        subprocess.Popen([exe] + args, stdout=subprocess.PIPE, stderr=subprocess.PIPE).communicate()
+        process_communicate_or_kill(subprocess.Popen(
+            [exe] + args, stdout=subprocess.PIPE, stderr=subprocess.PIPE))
     except OSError:
         return False
     return exe
@@ -3783,10 +3812,10 @@ def get_exe_version(exe, args=['--version'],
         # STDIN should be redirected too. On UNIX-like systems, ffmpeg triggers
         # SIGTTOU if youtube-dl is run in the background.
         # See https://github.com/ytdl-org/youtube-dl/issues/955#issuecomment-209789656
-        out, _ = subprocess.Popen(
+        out, _ = process_communicate_or_kill(subprocess.Popen(
             [encodeArgument(exe)] + args,
             stdin=subprocess.PIPE,
-            stdout=subprocess.PIPE, stderr=subprocess.STDOUT).communicate()
+            stdout=subprocess.PIPE, stderr=subprocess.STDOUT))
     except OSError:
         return False
     if isinstance(out, bytes):  # Python 2.x
@@ -5725,7 +5754,7 @@ def write_xattr(path, key, value):
                         cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, stdin=subprocess.PIPE)
                 except EnvironmentError as e:
                     raise XAttrMetadataError(e.errno, e.strerror)
-                stdout, stderr = p.communicate()
+                stdout, stderr = process_communicate_or_kill(p)
                 stderr = stderr.decode('utf-8', 'replace')
                 if p.returncode != 0:
                     raise XAttrMetadataError(p.returncode, stderr)
