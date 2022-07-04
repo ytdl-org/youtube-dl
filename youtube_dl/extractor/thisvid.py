@@ -12,6 +12,7 @@ from ..compat import (
 from ..utils import (
     clean_html,
     get_element_by_class,
+    int_or_none,
     sanitize_url,
     url_or_none,
     urljoin,
@@ -224,7 +225,6 @@ class ThisVidPlaylistIE(ThisVidMemberIE):
 
         self.to_screen(
             'Downloading playlist {pl_id} - add --no-playlist to download just the featured video').format(locals())
-        
         result = super(ThisVidPlaylistIE, self)._real_extract(url)
 
         # rework title returned as `the title - the title`
@@ -232,6 +232,6 @@ class ThisVidPlaylistIE(ThisVidMemberIE):
         t_len = len(title)
         if t_len > 5 and t_len % 2 != 0:
             t_len = t_len // 2
-            if title[t_len] == '-' and title[:t_len] == title[t_len+1:]:
-                result['title'] = title[:tlen]
+            if title[t_len] == '-' and title[:t_len] == title[t_len + 1:]:
+                result['title'] = title[:t_len]
         return result
