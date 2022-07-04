@@ -18,7 +18,7 @@ from ..utils import (
 
 
 class ThisVidIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:www\.)?thisvid\.com/(?P<type>videos|embed)/(?P<id>[A-Za-z0-9-]+/?)'
+    _VALID_URL = r'https?://(?:www\.)?thisvid\.com/(?P<type>videos|embed|(?P<pl>playlist))(?(pl)/\d+/video)/(?P<id>[A-Za-z0-9-]+/?)'
     _TESTS = [{
         'url': 'https://thisvid.com/videos/sitting-on-ball-tight-jeans/',
         'md5': '839becb572995687e11a69dc4358a386',
