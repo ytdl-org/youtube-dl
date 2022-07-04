@@ -191,3 +191,45 @@ class ThisVidMemberIE(InfoExtractor):
 
         return self.playlist_from_matches(
             entries(url, webpage), playlist_id=pl_id, playlist_title=title, ie='ThisVid')
+
+
+class ThisVidPlaylistIE(ThisVidMemberIE):
+    _VALID_URL = r'https?://thisvid\.com/playlist/(?P<id>\d+)/video/(?P<video_id>[A-Za-z0-9-]+)'
+    _TESTS = [{
+        'url': 'https://thisvid.com/playlist/6615/video/big-italian-booty-28/',
+        'info_dict': {
+            'id': '6615',
+            'title': 'Underwear Stuff',
+        },
+        'playlist_mincount': 207,
+    }, {
+        'url': 'https://thisvid.com/playlist/6615/video/big-italian-booty-28/',
+        'info_dict': {
+            'id': '1072387',
+            'ext': 'mp4',
+            'title': 'Big Italian Booty 28',
+        'params': {
+            'noplaylist: True,
+        },
+    }]
+
+    def _real_extract(self, url):
+        pl_id, video_id = re.match(self._VALID_URL, url).groups('id', 'video_id')
+
+        if self._downloader.params.get('noplaylist'):
+            self.to_screen('Downloading just the featured video because of --no-playlist')
+            return self.url_result(urljoin(url, '/videos/' + video_id), 'ThisVid', video_id)
+
+        self.to_screen(
+            'Downloading playlist {pl_id} - add --no-playlist to download just the featured video').format(locals())
+        
+        result = super(ThisVidPlaylistIE, self)._real_extract(url)
+
+        # rework title returned as `the title - the title`
+        title = result['title']
+        t_len = len(title)
+        if t_len > 5 and t_len % 2 != 0:
+            t_len = t_len // 2
+            if title[t_len] == '-' and title[:t_len] == title[t_len+1:]:
+                result['title'] = title[:tlen]
+        return result
