@@ -1267,6 +1267,7 @@ from .thisoldhouse import ThisOldHouseIE
 from .thisvid import (
     ThisVidIE,
     ThisVidMemberIE,
+    ThisVidPlaylistIE,
 )
 from .threeqsdn import ThreeQSDNIE
 from .tiktok import (
