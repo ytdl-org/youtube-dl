@@ -8,7 +8,7 @@ from ..utils import urljoin
 
 
 class NhkBaseIE(InfoExtractor):
-    _API_URL_TEMPLATE = 'https://api.nhk.or.jp/nhkworld/%sod%slist/v7a/%s/%s/%s/all%s.json'
+    _API_URL_TEMPLATE = 'https://nwapi.nhk.jp/nhkworld/%sod%slist/v7b/%s/%s/%s/all%s.json'
     _BASE_URL_REGEX = r'https?://www3\.nhk\.or\.jp/nhkworld/(?P<lang>[a-z]{2})/ondemand'
     _TYPE_REGEX = r'/(?P<type>video|audio)/'
 
