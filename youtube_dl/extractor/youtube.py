@@ -8,6 +8,7 @@ import os.path
 import random
 import re
 import traceback
+import string
 
 from .common import InfoExtractor, SearchInfoExtractor
 from ..compat import (
@@ -1664,8 +1665,12 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
         video_id = self._match_id(url)
         base_url = self.http_scheme() + '//www.youtube.com/'
         webpage_url = base_url + 'watch?v=' + video_id
+        # setting a random cookie helps to avoid http 429 errors
+        rnd1 = ''.join(random.choice(string.ascii_letters+string.digits) for i in range(11))
+        rnd2 = ''.join(random.choice(string.ascii_letters+string.digits) for i in range(11))
+        cookie = 'CONSENT=YES+cb.20210523-18-p0.de+FX+696; GPS=1; YSC='+rnd1+'; VISITOR_INFO1_LIVE='+rnd2+'; PREF=tz=Europe.Berlin'
         webpage = self._download_webpage(
-            webpage_url + '&bpctr=9999999999&has_verified=1', video_id, fatal=False)
+            webpage_url + '&bpctr=9999999999&has_verified=1', video_id, fatal=False, headers={'Cookie':cookie})
 
         player_response = None
         if webpage:
