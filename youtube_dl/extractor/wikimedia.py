@@ -28,13 +28,13 @@ class WikimediaIE(InfoExtractor):
             'title': 'Die Temperaturkurve der Erde (ZDF, Terra X) 720p HD 50FPS.webm - Wikimedia Commons',
             'license': 'md5:62907cddf705a9f7ae7076c15407a977',
             'author': None, 'subtitles': {'de': [{'ext': 'srt',
-                                                  'url': 'https://commons.wikimedia.org/w/api.php?action=timedtext&amp;title=File%3ADie_Temperaturkurve_der_Erde_%28ZDF%2C_Terra_X%29_720p_HD_50FPS.webm&amp;lang=de&amp;trackformat=vtt '}],
+                                                  'url': 'https?://commons.wikimedia.org/w/api.php'}],
                                           'en-gb': [{'ext': 'srt',
-                                                     'url': 'https://commons.wikimedia.org/w/api.php?action=timedtext&amp;title=File%3ADie_Temperaturkurve_der_Erde_%28ZDF%2C_Terra_X%29_720p_HD_50FPS.webm&amp;lang=en-gb&amp;trackformat=vtt '}],
+                                                     'url': 'https?://commons.wikimedia.org/w/api.php'}],
                                           'nl': [{'ext': 'srt',
-                                                  'url': 'https://commons.wikimedia.org/w/api.php?action=timedtext&amp;title=File%3ADie_Temperaturkurve_der_Erde_%28ZDF%2C_Terra_X%29_720p_HD_50FPS.webm&amp;lang=nl&amp;trackformat=vtt '}],
+                                                  'url': 'https?://commons.wikimedia.org/w/api.php'}],
                                           'en': [{'ext': 'srt',
-                                                  'url': 'https://commons.wikimedia.org/w/api.php?action=timedtext&amp;title=File%3ADie_Temperaturkurve_der_Erde_%28ZDF%2C_Terra_X%29_720p_HD_50FPS_-_redub_NL.webm&amp;lang=en&amp;trackformat=vtt '}]}}
+                                                  'url': 're:https?://commons.wikimedia.org/w/api.php'}]}}
     }
 
     def _real_extract(self, url):
