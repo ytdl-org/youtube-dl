@@ -4,6 +4,11 @@ from __future__ import unicode_literals
 from .common import InfoExtractor
 import time
 import calendar
+from ..utils import (
+    try_get,
+    url_or_none,
+)
+from ..compat import compat_str
 
 
 class LivestreamfailsIE(InfoExtractor):
@@ -40,10 +45,10 @@ class LivestreamfailsIE(InfoExtractor):
 
         return {
             'id': id,
+            'url': 'https://livestreamfails-video-prod.b-cdn.net/video/' + api_response['videoId'],
+            'title': api_response['label'],
             'display_id': api_response.get('sourceId'),  # Twitch ID of clip
             'timestamp': timestamp,
-            'url': 'https://livestreamfails-video-prod.b-cdn.net/video/' + api_response.get('videoId'),
-            'title': api_response.get('label'),
-            'creator': api_response.get('streamer', {}).get('label'),
-            'thumbnail': 'https://livestreamfails-image-prod.b-cdn.net/image/' + api_response.get('imageId'),
+            'creator': try_get(api_response, lambda x: x['streamer']['label'], compat_str),
+            'thumbnail': url_or_none(try_get(api_response, lambda x: 'https://livestreamfails-image-prod.b-cdn.net/image/' + x['imageId']))
         }
