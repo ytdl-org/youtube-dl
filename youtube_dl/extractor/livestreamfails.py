@@ -29,10 +29,10 @@ class LivestreamfailsIE(InfoExtractor):
 
         # https://livestreamfails.com/clip/id uses https://api.livestreamfails.com/clip/ to fetch the video metadata
         # Use the same endpoint here to avoid loading and parsing the provided page (which requires JS)
-        apiResponse = json.loads(self._download_webpage('https://api.livestreamfails.com/clip/' + id, id))
+        api_response = json.loads(self._download_webpage('https://api.livestreamfails.com/clip/' + id, id))
 
         # Get the input timestamp (test case gives 2022-06-26T19:29:45.515Z)
-        timestamp = apiResponse.get('createdAt')
+        timestamp = api_response.get('createdAt')
         if(timestamp):
             # Parse it into a struct_time
             timestamp = time.strptime(timestamp, '%Y-%m-%dT%H:%M:%S.%fZ')
@@ -41,10 +41,10 @@ class LivestreamfailsIE(InfoExtractor):
 
         return {
             'id': id,
-            'display_id': apiResponse.get('sourceId'),  # Twitch ID of clip
+            'display_id': api_response.get('sourceId'),  # Twitch ID of clip
             'timestamp': timestamp,
-            'url': 'https://livestreamfails-video-prod.b-cdn.net/video/' + apiResponse.get('videoId'),
-            'title': apiResponse.get('label'),
-            'creator': apiResponse.get('streamer', {}).get('label'),
-            'thumbnail': 'https://livestreamfails-image-prod.b-cdn.net/image/' + apiResponse.get('imageId'),
+            'url': 'https://livestreamfails-video-prod.b-cdn.net/video/' + api_response.get('videoId'),
+            'title': api_response.get('label'),
+            'creator': api_response.get('streamer', {}).get('label'),
+            'thumbnail': 'https://livestreamfails-image-prod.b-cdn.net/image/' + api_response.get('imageId'),
         }
