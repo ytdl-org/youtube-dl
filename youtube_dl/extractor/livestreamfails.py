@@ -25,28 +25,26 @@ class LivestreamfailsIE(InfoExtractor):
     }]
 
     def _real_extract(self, url):
-        result = {}
-        result['id'] = self._match_id(url)
+        id = self._match_id(url)
 
         # https://livestreamfails.com/clip/id uses https://api.livestreamfails.com/clip/ to fetch the video metadata
         # Use the same endpoint here to avoid loading and parsing the provided page (which requires JS)
-        apiResponse = json.loads(self._download_webpage('https://api.livestreamfails.com/clip/' + result['id'], result['id']))
-
-        # Twitch ID of clip
-        result['display_id'] = apiResponse.get('sourceId')
+        apiResponse = json.loads(self._download_webpage('https://api.livestreamfails.com/clip/' + id, id))
 
         # Get the input timestamp (test case gives 2022-06-26T19:29:45.515Z)
-        result['timestamp'] = apiResponse.get('createdAt')
-        if(result.get('timestamp')):
+        timestamp = apiResponse.get('createdAt')
+        if(timestamp):
             # Parse it into a struct_time
-            result['timestamp'] = time.strptime(result['timestamp'], '%Y-%m-%dT%H:%M:%S.%fZ')
+            timestamp = time.strptime(timestamp, '%Y-%m-%dT%H:%M:%S.%fZ')
             # Convert the struct_time to a UNIX timestamp while ignoring the local timezone attached by time.strptime()
-            result['timestamp'] = calendar.timegm(result['timestamp'])
+            timestamp = calendar.timegm(timestamp)
 
-        # Other fields
-        result['url'] = 'https://livestreamfails-video-prod.b-cdn.net/video/' + apiResponse.get('videoId')
-        result['title'] = apiResponse.get('label')
-        result['creator'] = apiResponse.get('streamer', {}).get('label')
-        result['thumbnail'] = 'https://livestreamfails-image-prod.b-cdn.net/image/' + apiResponse.get('imageId')
-
-        return result
+        return {
+            'id': id,
+            'display_id': apiResponse.get('sourceId'),  # Twitch ID of clip
+            'timestamp': timestamp,
+            'url': 'https://livestreamfails-video-prod.b-cdn.net/video/' + apiResponse.get('videoId'),
+            'title': apiResponse.get('label'),
+            'creator': apiResponse.get('streamer', {}).get('label'),
+            'thumbnail': 'https://livestreamfails-image-prod.b-cdn.net/image/' + apiResponse.get('imageId'),
+        }
