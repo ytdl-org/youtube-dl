@@ -7,6 +7,7 @@ import calendar
 from ..utils import (
     try_get,
     url_or_none,
+    parse_iso8601,
 )
 from ..compat import compat_str
 
@@ -35,20 +36,12 @@ class LivestreamfailsIE(InfoExtractor):
         # Use the same endpoint here to avoid loading and parsing the provided page (which requires JS)
         api_response = self._download_json('https://api.livestreamfails.com/clip/' + id, id)
 
-        # Get the input timestamp (test case gives 2022-06-26T19:29:45.515Z)
-        timestamp = api_response.get('createdAt')
-        if(timestamp):
-            # Parse it into a struct_time
-            timestamp = time.strptime(timestamp, '%Y-%m-%dT%H:%M:%S.%fZ')
-            # Convert the struct_time to a UNIX timestamp while ignoring the local timezone attached by time.strptime()
-            timestamp = calendar.timegm(timestamp)
-
         return {
             'id': id,
             'url': 'https://livestreamfails-video-prod.b-cdn.net/video/' + api_response['videoId'],
             'title': api_response['label'],
             'display_id': api_response.get('sourceId'),  # Twitch ID of clip
-            'timestamp': timestamp,
+            'timestamp': parse_iso8601(api_response.get('createdAt')),
             'creator': try_get(api_response, lambda x: x['streamer']['label'], compat_str),
             'thumbnail': url_or_none(try_get(api_response, lambda x: 'https://livestreamfails-image-prod.b-cdn.net/image/' + x['imageId']))
         }
