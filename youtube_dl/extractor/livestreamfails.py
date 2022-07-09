@@ -2,7 +2,6 @@
 from __future__ import unicode_literals
 
 from .common import InfoExtractor
-import json
 import time
 import calendar
 
@@ -29,7 +28,7 @@ class LivestreamfailsIE(InfoExtractor):
 
         # https://livestreamfails.com/clip/id uses https://api.livestreamfails.com/clip/ to fetch the video metadata
         # Use the same endpoint here to avoid loading and parsing the provided page (which requires JS)
-        api_response = json.loads(self._download_webpage('https://api.livestreamfails.com/clip/' + id, id))
+        api_response = self._download_json('https://api.livestreamfails.com/clip/' + id, id)
 
         # Get the input timestamp (test case gives 2022-06-26T19:29:45.515Z)
         timestamp = api_response.get('createdAt')
