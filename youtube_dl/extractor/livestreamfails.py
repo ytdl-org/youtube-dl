@@ -36,10 +36,13 @@ class LivestreamfailsIE(InfoExtractor):
         # Use the same endpoint here to avoid loading and parsing the provided page (which requires JS)
         api_response = self._download_json('https://api.livestreamfails.com/clip/' + id, id)
 
+        video_url = 'https://livestreamfails-video-prod.b-cdn.net/video/' + api_response['videoId']
+        title = api_response['label']
+
         return {
             'id': id,
-            'url': 'https://livestreamfails-video-prod.b-cdn.net/video/' + api_response['videoId'],
-            'title': api_response['label'],
+            'url': video_url,
+            'title': title,
             'display_id': api_response.get('sourceId'),  # Twitch ID of clip
             'timestamp': parse_iso8601(api_response.get('createdAt')),
             'creator': try_get(api_response, lambda x: x['streamer']['label'], compat_str),
