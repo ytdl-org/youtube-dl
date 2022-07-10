@@ -2,8 +2,6 @@
 from __future__ import unicode_literals
 
 from .common import InfoExtractor
-import time
-import calendar
 from ..utils import (
     try_get,
     url_or_none,
