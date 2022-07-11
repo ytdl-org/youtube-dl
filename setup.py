@@ -68,11 +68,11 @@ else:
     data_files = []
     for dirname, files in files_spec:
         resfiles = []
-        for fn in files:
-            if not os.path.exists(fn):
-                warnings.warn('Skipping file %s since it is not present. Type  make  to build all automatically generated files.' % fn)
+        for filename in files:
+            if not os.path.exists(filename):
+                warnings.warn('Skipping file %s since it is not present. Type  make  to build all automatically generated files.' % filename)
             else:
-                resfiles.append(fn)
+                resfiles.append(filename)
         data_files.append((dirname, resfiles))
 
     params = {
