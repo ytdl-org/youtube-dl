@@ -2996,9 +2996,7 @@ class YoutubeTabIE(YoutubeBaseInfoExtractor):
             playlist, lambda x: x['endpoint']['commandMetadata']['webCommandMetadata']['url'],
             compat_str))
         if playlist_url and playlist_url != url:
-            return self.url_result(
-                playlist_url, ie=YoutubeTabIE.ie_key(), video_id=playlist_id,
-                video_title=title)
+            return self.extract(playlist_url)
         return self.playlist_result(
             self._playlist_entries(playlist), playlist_id=playlist_id,
             playlist_title=title)
