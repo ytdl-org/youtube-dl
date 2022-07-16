@@ -27,6 +27,17 @@ class NewgroundsIE(InfoExtractor):
             'duration': 143,
         },
     }, {
+        'url': 'https://www.newgrounds.com/portal/view/850292',
+        'md5': 'bb7cacf45e1b4d648e2dac2d79284d67',
+        'info_dict': {
+            'id': '850292',
+            'ext': 'mp4',
+            'title': 'Timeless (2021)',
+            'uploader': 'Kevuhn',
+            'timestamp': 1657896960,
+            'upload_date': '20220715',
+        },
+    }, {
         # source format unavailable, additional mp4 formats
         'url': 'http://www.newgrounds.com/portal/view/689400',
         'info_dict': {
@@ -44,7 +55,7 @@ class NewgroundsIE(InfoExtractor):
 
     def _real_extract(self, url):
         media_id = self._match_id(url)
-
+        
         webpage = self._download_webpage(url, media_id)
 
         title = self._html_search_regex(
@@ -80,7 +91,6 @@ class NewgroundsIE(InfoExtractor):
             (r'(?s)<h4[^>]*>(.+?)</h4>.*?<em>\s*Author\s*</em>',
              r'(?:Author|Writer)\s*<a[^>]+>([^<]+)'), webpage, 'uploader',
             fatal=False)
-
         timestamp = unified_timestamp(self._html_search_regex(
             (r'<dt>\s*Uploaded\s*</dt>\s*<dd>([^<]+</dd>\s*<dd>[^<]+)',
              r'<dt>\s*Uploaded\s*</dt>\s*<dd>([^<]+)'), webpage, 'timestamp',
