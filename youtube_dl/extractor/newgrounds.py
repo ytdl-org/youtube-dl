@@ -56,13 +56,13 @@ class NewgroundsIE(InfoExtractor):
         media_id = self._match_id(url)
 
         webpage = self._download_webpage(url, media_id)
-      
+
         paths = url.split('/')
         if paths[-3] == 'audio':
             isAudio = True
         else:
-            isAudio = False 
-        
+            isAudio = False
+
         if isAudio:
             media_url = self._parse_json(self._search_regex(
                 r'"url"\s*:\s*("[^"]+"),', webpage, ''), media_id)
@@ -71,7 +71,7 @@ class NewgroundsIE(InfoExtractor):
                 (r'(?s)<h4[^>]*>(.+?)</h4>.*?<em>\s*Author\s*</em>',
                  r'(?:Author|Writer)\s*<a[^>]+>([^<]+)'), webpage, 'uploader',
                 fatal=False)
-            
+
             formats = [{
                 'url': media_url,
                 'format_id': 'source',
@@ -92,9 +92,8 @@ class NewgroundsIE(InfoExtractor):
                     formats.append({
                         'url': sources[source][i]['src'],
                         'format_id': source,
-                        'height': int(source[:-2]) # 1080p -> 1080
+                        'height': int(source[:-2])  # 1080p -> 1080
                     })
-
 
         title = self._html_search_regex(
             r'<title>([^>]+)</title>', webpage, 'title')
@@ -116,7 +115,7 @@ class NewgroundsIE(InfoExtractor):
 
         self._check_formats(formats, media_id)
         self._sort_formats(formats)
-        
+
         return {
             'id': media_id,
             'title': title,
