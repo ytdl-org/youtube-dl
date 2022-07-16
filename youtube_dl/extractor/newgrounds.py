@@ -5,7 +5,6 @@ import re
 from .common import InfoExtractor
 from ..utils import (
     extract_attributes,
-    int_or_none,
     parse_duration,
     parse_filesize,
     unified_timestamp,
@@ -55,42 +54,50 @@ class NewgroundsIE(InfoExtractor):
 
     def _real_extract(self, url):
         media_id = self._match_id(url)
-        
+
         webpage = self._download_webpage(url, media_id)
+      
+        paths = url.split('/')
+        if paths[-3] == 'audio':
+            isAudio = True
+        else:
+            isAudio = False 
+        
+        if isAudio:
+            media_url = self._parse_json(self._search_regex(
+                r'"url"\s*:\s*("[^"]+"),', webpage, ''), media_id)
+
+            uploader = self._html_search_regex(
+                (r'(?s)<h4[^>]*>(.+?)</h4>.*?<em>\s*Author\s*</em>',
+                 r'(?:Author|Writer)\s*<a[^>]+>([^<]+)'), webpage, 'uploader',
+                fatal=False)
+            
+            formats = [{
+                'url': media_url,
+                'format_id': 'source',
+                'quality': 1,
+            }]
+
+        else:
+            media_url = f'https://www.newgrounds.com/portal/video/{media_id}'
+            media = self._download_json(media_url, media_id, headers={'X-Requested-With': 'XMLHttpRequest'})
+
+            uploader = media['author']
+
+            sources = media['sources']
+
+            formats = []
+            for source in sources:
+                for i in range(len(sources[source])):
+                    formats.append({
+                        'url': sources[source][i]['src'],
+                        'format_id': source,
+                        'height': int(source[:-2]) # 1080p -> 1080
+                    })
+
 
         title = self._html_search_regex(
             r'<title>([^>]+)</title>', webpage, 'title')
-
-        media_url = self._parse_json(self._search_regex(
-            r'"url"\s*:\s*("[^"]+"),', webpage, ''), media_id)
-
-        formats = [{
-            'url': media_url,
-            'format_id': 'source',
-            'quality': 1,
-        }]
-
-        max_resolution = int_or_none(self._search_regex(
-            r'max_resolution["\']\s*:\s*(\d+)', webpage, 'max resolution',
-            default=None))
-        if max_resolution:
-            url_base = media_url.rpartition('.')[0]
-            for resolution in (360, 720, 1080):
-                if resolution > max_resolution:
-                    break
-                formats.append({
-                    'url': '%s.%dp.mp4' % (url_base, resolution),
-                    'format_id': '%dp' % resolution,
-                    'height': resolution,
-                })
-
-        self._check_formats(formats, media_id)
-        self._sort_formats(formats)
-
-        uploader = self._html_search_regex(
-            (r'(?s)<h4[^>]*>(.+?)</h4>.*?<em>\s*Author\s*</em>',
-             r'(?:Author|Writer)\s*<a[^>]+>([^<]+)'), webpage, 'uploader',
-            fatal=False)
         timestamp = unified_timestamp(self._html_search_regex(
             (r'<dt>\s*Uploaded\s*</dt>\s*<dd>([^<]+</dd>\s*<dd>[^<]+)',
              r'<dt>\s*Uploaded\s*</dt>\s*<dd>([^<]+)'), webpage, 'timestamp',
@@ -98,7 +105,6 @@ class NewgroundsIE(InfoExtractor):
         duration = parse_duration(self._search_regex(
             r'(?s)<dd>\s*Song\s*</dd>\s*<dd>.+?</dd>\s*<dd>([^<]+)', webpage,
             'duration', default=None))
-
         filesize_approx = parse_filesize(self._html_search_regex(
             r'(?s)<dd>\s*Song\s*</dd>\s*<dd>(.+?)</dd>', webpage, 'filesize',
             default=None))
@@ -108,6 +114,9 @@ class NewgroundsIE(InfoExtractor):
         if '<dd>Song' in webpage:
             formats[0]['vcodec'] = 'none'
 
+        self._check_formats(formats, media_id)
+        self._sort_formats(formats)
+        
         return {
             'id': media_id,
             'title': title,
