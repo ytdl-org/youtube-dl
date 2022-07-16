@@ -44,7 +44,7 @@ class NewgroundsIE(InfoExtractor):
             'id': '689400',
             'ext': 'mp4',
             'title': 'ZTV News Episode 8',
-            'uploader': 'BennettTheSage',
+            'uploader': 'ZONE-SAMA',
             'timestamp': 1487965140,
             'upload_date': '20170224',
         },
