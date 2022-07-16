@@ -27,17 +27,6 @@ class NewgroundsIE(InfoExtractor):
             'duration': 143,
         },
     }, {
-        'url': 'https://www.newgrounds.com/portal/view/673111',
-        'md5': '3394735822aab2478c31b1004fe5e5bc',
-        'info_dict': {
-            'id': '673111',
-            'ext': 'mp4',
-            'title': 'Dancin',
-            'uploader': 'Squirrelman82',
-            'timestamp': 1460256780,
-            'upload_date': '20160410',
-        },
-    }, {
         # source format unavailable, additional mp4 formats
         'url': 'http://www.newgrounds.com/portal/view/689400',
         'info_dict': {
