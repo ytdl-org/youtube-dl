@@ -92,9 +92,8 @@ Alternatively, refer to the [developer instructions](#developer-instructions) fo
                                          containing directory.
     --flat-playlist                      Do not extract the videos of a
                                          playlist, only list them.
-    --mark-watched                       Mark videos watched (YouTube only)
-    --no-mark-watched                    Do not mark videos watched (YouTube
-                                         only)
+    --mark-watched                       Mark videos watched
+    --no-mark-watched                    Do not mark videos watched
     --no-color                           Do not emit color codes in output
 
 ## Network Options:
