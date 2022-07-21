@@ -79,7 +79,7 @@ class NewgroundsIE(InfoExtractor):
             }]
 
         else:
-            media_url = f'https://www.newgrounds.com/portal/video/{media_id}'
+            media_url = 'https://www.newgrounds.com/portal/video/' + media_id
             media = self._download_json(media_url, media_id, headers={'X-Requested-With': 'XMLHttpRequest'})
 
             uploader = media['author']
