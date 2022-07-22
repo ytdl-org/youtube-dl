@@ -83,7 +83,7 @@ class MegaCartoonsIE(InfoExtractor):
 
         if 'url' not in info or 'thumbnail' not in info:
             # Video data is stored in a json -> extract it from the raw html
-            url_json = self._parse_json(self._html_search_regex(r'''<div\b[^>]+\bdata-item\s*=\s*(["'])(?P<videourls>\{.*})\1''', webpage, 'videourls', group='videourls', default='{}'), video_id, fatal=False)) or {}
+            url_json = self._parse_json(self._html_search_regex(r'''<div\b[^>]+\bdata-item\s*=\s*(["'])(?P<videourls>\{.*})\1''', webpage, 'videourls', group='videourls', default='{}'), video_id, fatal=False) or {}
 
             video_url = url_or_none(try_get(url_json, lambda x: x['sources'][0]['src'], compat_str) or self._og_search_video_url(webpage))   # Get the video url
             video_thumbnail = url_or_none(url_json.get('splash') or self._og_search_thumbnail(webpage))            # Get the thumbnail
