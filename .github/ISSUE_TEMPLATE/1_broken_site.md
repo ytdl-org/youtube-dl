@@ -18,7 +18,7 @@ title: ''
 
 <!--
 Carefully read and work through this check list in order to prevent the most common mistakes and misuse of youtube-dl:
-- First of, make sure you are using the latest version of youtube-dl. Run `youtube-dl --version` and ensure your version is 2021.12.17. If it's not, see https://yt-dl.org/update on how to update. Issues with outdated version will be REJECTED.
+- First of all, make sure you are using the latest version of youtube-dl. Run `youtube-dl --version` and ensure your version is 2021.12.17. If it's not, see https://yt-dl.org/update on how to update. Issues with outdated version will be REJECTED.
 - Make sure that all provided video/audio/playlist URLs (if any) are alive and playable in a browser.
 - Make sure that all URLs and arguments with special characters are properly quoted or escaped as explained in http://yt-dl.org/escape.
 - Search the bugtracker for similar issues: http://yt-dl.org/search-issues. DO NOT post duplicates.

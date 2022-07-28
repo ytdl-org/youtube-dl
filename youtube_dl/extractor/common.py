@@ -2223,7 +2223,7 @@ class InfoExtractor(object):
 
                         def prepare_template(template_name, identifiers):
                             tmpl = representation_ms_info[template_name]
-                            # First of, % characters outside $...$ templates
+                            # First of all, % characters outside $...$ templates
                             # must be escaped by doubling for proper processing
                             # by % operator string formatting used further (see
                             # https://github.com/ytdl-org/youtube-dl/issues/16867).
