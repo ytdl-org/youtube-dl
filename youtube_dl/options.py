@@ -86,6 +86,22 @@ def parseOpts(overrideArguments=None):
                 os.path.join(compat_expanduser('~'), 'youtube-dl.conf.txt'),
                 default=None)
 
+        # Portable configuration
+        # The idea is to check 3 levels of directories starting from directory with this file (options.py)
+        # and going up three times (2 reqired to check unbundled and 3 for bundled binary)
+        if userConf is None:
+            possibleConfigDirectory = None
+            possibleConfigDirectory = os.path.dirname(os.path.abspath(__file__))
+            for i in range(3):
+                if possibleConfigDirectory:
+                    userConf = _readOptions(
+                        os.path.join(possibleConfigDirectory, 'youtube-dl.conf'),
+                        default=None)
+                if userConf is not None:
+                    break
+                else:
+                    possibleConfigDirectory = os.path.dirname(possibleConfigDirectory)
+
         if userConf is None:
             userConf = []
 
