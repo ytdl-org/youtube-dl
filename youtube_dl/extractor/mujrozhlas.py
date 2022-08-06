@@ -44,10 +44,10 @@ class MujRozhlasIE(InfoExtractor):
         content = self._download_json(content_url, content_id)
         attrs = content['data']['attributes']
         title = attrs['title']
+        audio_url = content['data']['attributes']['audioLinks'][0]['url']
         audio_info = content['data']['attributes']['audioLinks'][0]
         duration = audio_info.get('duration')
         description = clean_html(attrs.get('description'))
-        audio_url = audio_info.get('url')
         thumbnail = self._og_search_thumbnail(webpage)
         timestamp = parse_iso8601(self._og_search_property('updated_time', webpage, fatal=False))
 
