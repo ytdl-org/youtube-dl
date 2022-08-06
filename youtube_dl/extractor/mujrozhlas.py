@@ -38,7 +38,7 @@ class MujRozhlasIE(InfoExtractor):
 
         webpage = self._download_webpage(url, audio_id)
 
-        content_id = self._html_search_regex(r'\"contentId\":\"(.+?)\"', webpage, 'content_id')
+        content_id = self._html_search_regex(r'"contentId":"(.+?)"', webpage, 'content_id')
         content_url = 'https://api.mujrozhlas.cz/episodes/' + content_id
 
         content = self._download_json(content_url, content_id)
