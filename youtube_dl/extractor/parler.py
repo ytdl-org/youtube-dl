@@ -40,7 +40,6 @@ class ParlerIE(InfoExtractor):
             },
         },
     ]
-    _GEO_COUNTRIES = ["US"]  # The site is only available in the US
 
     def _real_extract(self, url):
         video_id = self._match_id(url)
