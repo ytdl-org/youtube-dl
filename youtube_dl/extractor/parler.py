@@ -51,7 +51,7 @@ class ParlerIE(InfoExtractor):
         video_id = self._match_id(url)
 
         # Get data from API
-        api_url = "https://parler.com/open-api/ParleyDetailEndpoint.php"
+        api_url = 'https://parler.com/open-api/ParleyDetailEndpoint.php'
         payload = parse.urlencode({"uuid": video_id}).encode()
         status = self._download_json(api_url, video_id, data=payload)
 
