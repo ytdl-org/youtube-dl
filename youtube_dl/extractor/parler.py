@@ -69,11 +69,11 @@ class ParlerIE(InfoExtractor):
 
         # Return the result
         return {
-            "id": video_id,
-            "url": url,
-            "title": title,
-            "timestamp": timestamp,
-            "uploader": uploader,
-            "uploader_id": uploader_id,
-            "uploader_url": uploader_url,
+            'id': video_id,
+            'url': url,
+            'title': title,
+            'timestamp': timestamp,
+            'uploader': uploader,
+            'uploader_id': uploader_id,
+            'uploader_url': uploader_url,
         }
