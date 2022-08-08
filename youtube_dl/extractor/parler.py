@@ -56,9 +56,9 @@ class ParlerIE(InfoExtractor):
         status = self._download_json(api_url, video_id, data=payload)
 
         # Pull out video
-        data = status["data"][0]["primary"]
-        video = data["video_data"]
-        url = video["videoSrc"]
+        url = status['data'][0]['primary']['video_data']['videoSrc']
+        # now we know this exists and is a dict
+        data = status['data'][0]['primary']
 
         # Pull out metadata
         title = clean_html(data.get("full_body")).replace("\n", "")
