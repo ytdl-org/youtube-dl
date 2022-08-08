@@ -65,7 +65,7 @@ class ParlerIE(InfoExtractor):
         timestamp = unified_timestamp(data.get('date_created'))
         uploader = strip_or_none(data.get('name'))
         uploader_id = strip_or_none(data.get('username'))
-        uploader_url = "https://parler.com/" + uploader_id if uploader_id else None
+        uploader_url = ('https://parler.com/' + uploader_id) if uploader_id else None
 
         # Return the result
         return {
