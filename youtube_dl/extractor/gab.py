@@ -40,7 +40,7 @@ class GabIE(InfoExtractor):
         url = status['media_attachments'][0]['source_mp4']
 
         # Pull out metadata
-        title = strip_or_none(clean_html(status.get('content'))) or self.generic_title(url)
+        title = strip_or_none(clean_html(status.get('content'))) or self._generic_title(url)
         timestamp = unified_timestamp(status.get('created_at'))
         account = status.get('account') or {}
         uploader = strip_or_none(account.get('display_name'))
