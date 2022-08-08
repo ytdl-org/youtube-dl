@@ -5,13 +5,19 @@ from urllib import parse
 
 from .common import InfoExtractor
 
-from ..utils import clean_html, unified_timestamp
+from ..utils import (
+    clean_html,
+    strip_or_none,
+    unified_timestamp,
+    urlencode_postdata,
+)
 
 
 class ParlerIE(InfoExtractor):
     """Extract videos from posts on Parler."""
 
-    _VALID_URL = r"https://parler\.com/feed/(?P<id>[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})"
+    _UUID_RE = r'[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}'
+    _VALID_URL = r'https://parler\.com/feed/(?P<id>%s)' % (_UUID_RE, )
     _TESTS = [
         {
             'url': 'https://parler.com/feed/df79fdba-07cc-48fe-b085-3293897520d7',
@@ -45,14 +51,14 @@ class ParlerIE(InfoExtractor):
         video_id = self._match_id(url)
 
         # Get data from API
-        api_url = "https://parler.com/open-api/ParleyDetailEndpoint.php"
+        api_url = 'https://parler.com/open-api/ParleyDetailEndpoint.php'
         payload = parse.urlencode({"uuid": video_id}).encode()
         status = self._download_json(api_url, video_id, data=payload)
 
         # Pull out video
-        data = status["data"][0]["primary"]
-        video = data["video_data"]
-        url = video["videoSrc"]
+        url = status['data'][0]['primary']['video_data']['videoSrc']
+        # now we know this exists and is a dict
+        data = status['data'][0]['primary']
 
         # Pull out metadata
         title = clean_html(data.get("full_body")).replace("\n", "")
