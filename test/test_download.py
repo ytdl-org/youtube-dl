@@ -164,7 +164,7 @@ def generator(test_case, tname):
                     if not err.exc_info[0] in (compat_urllib_error.URLError, socket.timeout, UnavailableVideoError, compat_http_client.BadStatusLine) or (err.exc_info[0] == compat_HTTPError and err.exc_info[1].code == 503):
                         msg = getattr(err, 'msg', error_to_compat_str(err))
                         err.msg = '%s (%s)' % (msg, tname, )
-                        raise
+                        raise err
 
                     if try_num == RETRIES:
                         report_warning('%s failed due to network errors, skipping...' % tname)
