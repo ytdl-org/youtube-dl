@@ -63,8 +63,8 @@ class ParlerIE(InfoExtractor):
         # Pull out metadata
         title = clean_html(data.get("full_body")).replace("\n", "")
         timestamp = unified_timestamp(data.get("date_created"))
-        uploader = data.get("name")
-        uploader_id = data.get("username")
+        uploader = strip_or_none(data.get('name'))
+        uploader_id = strip_or_none(data.get('username'))
         uploader_url = "https://parler.com/" + uploader_id if uploader_id else None
 
         # Return the result
