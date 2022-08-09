@@ -254,7 +254,7 @@ class TwitterIE(TwitterBaseIE):
         'info_dict': {
             'id': '705235433198714880',
             'ext': 'mp4',
-            'title': '@BTNBrentYarina - 1456976204',
+            'title': '@BTNBrentYarina-705235433198714880',
             'description': "Khalil Iverson's missed highlight dunk. And made highlight dunk. In one highlight. https://t.co/OrxcJ28Bns",
             'uploader_id': 'BTNBrentYarina',
             'uploader': 'Brent Yarina',
