@@ -25,7 +25,8 @@ class ParlerIE(InfoExtractor):
             'info_dict': {
                 'id': 'df79fdba-07cc-48fe-b085-3293897520d7',
                 'ext': 'mp4',
-                'title': 'Puberty-blocking procedures promoted by the Biden/Harris Admin are child abuse. The FDA has recently confirmed these hormones/drugs have extremely dangerous side effects, like brain swelling and vision loss.',
+                'title': '@TulsiGabbard-720',
+                'description': 'Puberty-blocking procedures promoted by the Biden/Harris Admin are child abuse. The FDA has recently confirmed these hormones/drugs have extremely dangerous side effects, like brain swelling and vision loss.',
                 'timestamp': 1659744000,
                 'upload_date': '20220806',
                 'uploader': 'Tulsi Gabbard',
@@ -38,7 +39,8 @@ class ParlerIE(InfoExtractor):
             'info_dict': {
                 'id': 'a7406eb4-91e5-4793-b5e3-ade57a24e287',
                 'ext': 'mp4',
-                'title': 'This man should run for office',
+                'title': '@BennyJohnson-360',
+                'description': 'This man should run for office',
                 'timestamp': 1659657600,
                 'upload_date': '20220805',
                 'uploader': 'Benny Johnson',
@@ -61,17 +63,23 @@ class ParlerIE(InfoExtractor):
         data = status['data'][0]['primary']
 
         # Pull out metadata
-        title = clean_html(data.get('full_body')) or self._generic_title(url)
+        description = strip_or_none(clean_html(data.get('full_body')))
         timestamp = unified_timestamp(data.get('date_created'))
         uploader = strip_or_none(data.get('name'))
         uploader_id = strip_or_none(data.get('username'))
         uploader_url = ('https://parler.com/' + uploader_id) if uploader_id else None
+
+        # Keep the file name short so it doesn't exceed filesystem limits
+        title = self._generic_title(url)
+        if uploader_id:
+            title = '@%s-%s' % (uploader_id, title)
 
         # Return the result
         return {
             'id': video_id,
             'url': url,
             'title': title,
+            'description': description,
             'timestamp': timestamp,
             'uploader': uploader,
             'uploader_id': uploader_id,
