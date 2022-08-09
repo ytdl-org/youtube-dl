@@ -198,7 +198,7 @@ class TwitterIE(TwitterBaseIE):
         'info_dict': {
             'id': '1555878318469091330',
             'ext': 'mp4',
-            'title': '@TulsiGabbard - 1659785272',
+            'title': '@TulsiGabbard-1555878318469091330',
             'thumbnail': r're:^https?://.*\.jpg',
             'description': """Puberty-blocking procedures promoted by the Biden/Harris Admin are child abuse. The FDA has recently confirmed these hormones/drugs have extremely dangerous side effects, like brain swelling and vision loss. https://t.co/pcc70Uyt76""",
             'uploader': 'Tulsi Gabbard 🌺',
@@ -213,7 +213,7 @@ class TwitterIE(TwitterBaseIE):
         'info_dict': {
             'id': '643211948184596480',
             'ext': 'mp4',
-            'title': '@freethenipple - 1442188653',
+            'title': '@freethenipple-643211948184596480',
             'thumbnail': r're:^https?://.*\.jpg',
             'description': 'FTN supporters on Hollywood Blvd today! http://t.co/c7jHH749xJ',
             'uploader': 'FREE THE NIPPLE',
@@ -229,7 +229,7 @@ class TwitterIE(TwitterBaseIE):
         'info_dict': {
             'id': '657991469417025536',
             'ext': 'mp4',
-            'title': '@giphz',
+            'title': '@giphz-657991469417025536',
             'description': 'Gifs on Twitter: "tu vai cai tu vai cai tu nao eh capaz disso tu vai cai https://t.co/tM46VHFlO5"',
             'thumbnail': r're:^https?://.*\.png',
             'uploader': 'Gifs',
@@ -242,7 +242,7 @@ class TwitterIE(TwitterBaseIE):
         'info_dict': {
             'id': '665052190608723968',
             'ext': 'mp4',
-            'title': '@starwars - 1447395772',
+            'title': '@starwars-665052190608723968',
             'description': 'A new beginning is coming December 18. Watch the official 60 second #TV spot for #StarWars: #TheForceAwakens. https://t.co/OkSqT2fjWJ',
             'uploader_id': 'starwars',
             'uploader': 'Star Wars | Andor Premieres Sept 21 on Disney+',
@@ -271,7 +271,7 @@ class TwitterIE(TwitterBaseIE):
         'info_dict': {
             'id': '700207533655363584',
             'ext': 'mp4',
-            'title': '@jaydingeer - 1455777459',
+            'title': '@jaydingeer-700207533655363584',
             'description': 'BEAT PROD: @suhmeduh  https://t.co/HBrQ4AfpvZ #Damndaniel https://t.co/byBooq2ejZ',
             'thumbnail': r're:^https?://.*\.jpg',
             'uploader': 'jaydin donte geer',
@@ -298,7 +298,7 @@ class TwitterIE(TwitterBaseIE):
         'info_dict': {
             'id': '719944021058060289',
             'ext': 'mp4',
-            'title': '@CaptainAmerica - 1460483005',
+            'title': '@CaptainAmerica-719944021058060289',
             'description': '@King0fNerd Are you sure you made the right choice? Find out in theaters. https://t.co/GpgYi9xMJI',
             'uploader_id': 'CaptainAmerica',
             'uploader': 'Captain America',
@@ -338,7 +338,7 @@ class TwitterIE(TwitterBaseIE):
         'info_dict': {
             'id': '910031516746514432',
             'ext': 'mp4',
-            'title': '@Prefet971 - 1505803395',
+            'title': '@Prefet971-910031516746514432',
             'thumbnail': r're:^https?://.*\.jpg',
             'description': '[Direct] #Maria Le centre se trouve actuellement au sud de Basse-Terre. Restez confinés. Réfugiez-vous dans la pièce la + sûre. https://t.co/mwx01Rs4lo',
             'uploader': 'Préfet de Guadeloupe',
@@ -356,7 +356,7 @@ class TwitterIE(TwitterBaseIE):
         'info_dict': {
             'id': '1001551623938805763',
             'ext': 'mp4',
-            'title': '@LisPower1 - 1527623489',
+            'title': '@LisPower1-1001551623938805763',
             'thumbnail': r're:^https?://.*\.jpg',
             'description': 'md5:37b9f2ff31720cef23b2bd42ee8a0f09',
             'uploader': 'Lis Power',
@@ -373,7 +373,7 @@ class TwitterIE(TwitterBaseIE):
         'info_dict': {
             'id': '1087791357756956680',
             'ext': 'mp4',
-            'title': '@Twitter - 1548184644',
+            'title': '@Twitter-1087791357756956680',
             'thumbnail': r're:^https?://.*\.jpg',
             'description': 'md5:6dfd341a3310fb97d80d2bf7145df976',
             'uploader': 'Twitter',
@@ -399,7 +399,7 @@ class TwitterIE(TwitterBaseIE):
         'info_dict': {
             'id': '1349794411333394432',
             'ext': 'mp4',
-            'title': '@BrooklynNets - 1610651040',
+            'title': '@BrooklynNets-1349794411333394432',
             'thumbnail': r're:^https?://.*\.jpg',
             'description': 'md5:71ead15ec44cee55071547d6447c6a3e',
             'uploader': 'Brooklyn Nets',
@@ -464,9 +464,9 @@ class TwitterIE(TwitterBaseIE):
         timestamp = unified_timestamp(status.get('created_at'))
 
         # Keep the file name short so it doesn't exceed filesystem limits
-        title = '%s' % (timestamp,)
+        title = self._generic_title(url)
         if uploader_id:
-            title = '@%s - %s' % (uploader_id, timestamp)
+            title = '@%s-%s' % (uploader_id, title)
 
         tags = []
         for hashtag in (try_get(status, lambda x: x['entities']['hashtags'], list) or []):
