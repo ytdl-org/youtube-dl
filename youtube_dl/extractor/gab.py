@@ -21,7 +21,8 @@ class GabIE(InfoExtractor):
         'info_dict': {
             'id': '108732338582726706',
             'ext': 'mp4',
-            'title': """NOW LIVE!!! ALEX'S WAR 🔥 🔥 🔥\n\n#AlexsWar is an unprecedented close examination of this guarded, mythic figure #AlexJones, and the story of the fracturing of the American narrative—through the eyes of this man who helped break it.\n\n🎥 PURCHASE NOW: https://www.infowarsstore.com/alex-jones-war-dvd\n\n⚔️ LEARN MORE: https://www.alexswar.com/\n\n#AlexJonesWasRight #INFOWARS #FreeSpeech @RealAlexJones""",
+            'title': 'INFOWARS-73ccf7aaae4fb767',
+            'description': """NOW LIVE!!! ALEX'S WAR 🔥 🔥 🔥\n\n#AlexsWar is an unprecedented close examination of this guarded, mythic figure #AlexJones, and the story of the fracturing of the American narrative—through the eyes of this man who helped break it.\n\n🎥 PURCHASE NOW: https://www.infowarsstore.com/alex-jones-war-dvd\n\n⚔️ LEARN MORE: https://www.alexswar.com/\n\n#AlexJonesWasRight #INFOWARS #FreeSpeech @RealAlexJones""",
             'timestamp': 1659123823,
             'upload_date': '20220729',
             'uploader': 'INFOWARS',
@@ -40,7 +41,7 @@ class GabIE(InfoExtractor):
         url = status['media_attachments'][0]['source_mp4']
 
         # Pull out metadata
-        title = strip_or_none(clean_html(status.get('content'))) or self._generic_title(url)
+        description = strip_or_none(clean_html(status.get('content')))
         timestamp = unified_timestamp(status.get('created_at'))
         account = status.get('account') or {}
         uploader = strip_or_none(account.get('display_name'))
@@ -50,10 +51,16 @@ class GabIE(InfoExtractor):
         like_count = int_or_none(status.get('favourites_count'))
         comment_count = int_or_none(status.get('replies_count'))
 
+        # Keep the file name short so it doesn't exceed filesystem limits
+        title = self._generic_title(url)
+        if uploader_id:
+            title = '%s-%s' % (uploader_id, title)
+
         return {
             'id': video_id,
             'url': url,
             'title': title,
+            'description': description,
             'timestamp': timestamp,
             'uploader': uploader,
             'uploader_id': uploader_id,
