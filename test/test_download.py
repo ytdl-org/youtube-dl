@@ -33,6 +33,7 @@ from youtube_dl.compat import (
 from youtube_dl.utils import (
     DownloadError,
     ExtractorError,
+    error_to_compat_str,
     format_bytes,
     UnavailableVideoError,
 )
@@ -108,7 +109,7 @@ def generator(test_case, tname):
         for tc in test_cases:
             info_dict = tc.get('info_dict', {})
             if not (info_dict.get('id') and info_dict.get('ext')):
-                raise Exception('Test definition incorrect. The output file cannot be known. Are both \'id\' and \'ext\' keys present?')
+                raise Exception('Test definition (%s) requires both \'id\' and \'ext\' keys present to define the output file' % (tname, ))
 
         if 'skip' in test_case:
             print_skipping(test_case['skip'])
@@ -161,7 +162,9 @@ def generator(test_case, tname):
                 except (DownloadError, ExtractorError) as err:
                     # Check if the exception is not a network related one
                     if not err.exc_info[0] in (compat_urllib_error.URLError, socket.timeout, UnavailableVideoError, compat_http_client.BadStatusLine) or (err.exc_info[0] == compat_HTTPError and err.exc_info[1].code == 503):
-                        raise
+                        msg = getattr(err, 'msg', error_to_compat_str(err))
+                        err.msg = '%s (%s)' % (msg, tname, )
+                        raise err
 
                     if try_num == RETRIES:
                         report_warning('%s failed due to network errors, skipping...' % tname)
