@@ -208,7 +208,7 @@ class TwitterIE(TwitterBaseIE):
             'upload_date': '20220806',
             'age_limit': 0,
         },
-     },{
+    }, {
         'url': 'https://twitter.com/freethenipple/status/643211948184596480',
         'info_dict': {
             'id': '643211948184596480',
