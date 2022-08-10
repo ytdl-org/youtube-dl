@@ -198,7 +198,7 @@ class TwitterIE(TwitterBaseIE):
         'info_dict': {
             'id': '1555878318469091330',
             'ext': 'mp4',
-            'title': 'Tulsi Gabbard 🌺 - Puberty-blocking procedures promote[...]',
+            'title': 'Tulsi Gabbard 🌺 - Puberty-blocking ...',
             'description': 'Puberty-blocking procedures promoted by the Biden/Harris Admin are child abuse. The FDA has recently confirmed these hormones/drugs have extremely dangerous side effects, like brain swelling and vision loss. https://t.co/pcc70Uyt76',
             'thumbnail': r're:^https?://.*\.jpg',
             'uploader': 'Tulsi Gabbard 🌺',
@@ -213,7 +213,7 @@ class TwitterIE(TwitterBaseIE):
         'info_dict': {
             'id': '643211948184596480',
             'ext': 'mp4',
-            'title': 'FREE THE NIPPLE - FTN supporters on Hollywood Blvd to[...]',
+            'title': 'FREE THE NIPPLE - FTN supporters on Hollywood Blvd today!',
             'thumbnail': r're:^https?://.*\.jpg',
             'description': 'FTN supporters on Hollywood Blvd today! http://t.co/c7jHH749xJ',
             'uploader': 'FREE THE NIPPLE',
@@ -242,7 +242,7 @@ class TwitterIE(TwitterBaseIE):
         'info_dict': {
             'id': '665052190608723968',
             'ext': 'mp4',
-            'title': 'Star Wars | Andor Premieres Sept 21 on Disney+ - A new beginning is coming December [...]',
+            'title': 'Star Wars | Andor Premieres Sept 21 on Disney+ - A new beginning is coming December ...',
             'description': 'A new beginning is coming December 18. Watch the official 60 second #TV spot for #StarWars: #TheForceAwakens. https://t.co/OkSqT2fjWJ',
             'uploader_id': 'starwars',
             'uploader': 'Star Wars | Andor Premieres Sept 21 on Disney+',
@@ -271,7 +271,7 @@ class TwitterIE(TwitterBaseIE):
         'info_dict': {
             'id': '700207533655363584',
             'ext': 'mp4',
-            'title': 'jaydin donte geer - BEAT PROD: @suhmeduh  https://t.co/[...]',
+            'title': 'jaydin donte geer - BEAT PROD: @suhmeduh #Damndaniel',
             'description': 'BEAT PROD: @suhmeduh  https://t.co/HBrQ4AfpvZ #Damndaniel https://t.co/byBooq2ejZ',
             'thumbnail': r're:^https?://.*\.jpg',
             'uploader': 'jaydin donte geer',
@@ -298,7 +298,7 @@ class TwitterIE(TwitterBaseIE):
         'info_dict': {
             'id': '719944021058060289',
             'ext': 'mp4',
-            'title': 'Captain America - @King0fNerd Are you sure you made t[...]',
+            'title': 'Captain America - @King0fNerd ...',
             'description': '@King0fNerd Are you sure you made the right choice? Find out in theaters. https://t.co/GpgYi9xMJI',
             'uploader_id': 'CaptainAmerica',
             'uploader': 'Captain America',
@@ -338,7 +338,7 @@ class TwitterIE(TwitterBaseIE):
         'info_dict': {
             'id': '910031516746514432',
             'ext': 'mp4',
-            'title': 'Préfet de Guadeloupe - [Direct] #Maria Le centre se trouve[...]',
+            'title': 'Préfet de Guadeloupe - [Direct] #Maria Le centre se trouve...',
             'thumbnail': r're:^https?://.*\.jpg',
             'description': '[Direct] #Maria Le centre se trouve actuellement au sud de Basse-Terre. Restez confinés. Réfugiez-vous dans la pièce la + sûre. https://t.co/mwx01Rs4lo',
             'uploader': 'Préfet de Guadeloupe',
@@ -356,7 +356,7 @@ class TwitterIE(TwitterBaseIE):
         'info_dict': {
             'id': '1001551623938805763',
             'ext': 'mp4',
-            'title': 'Lis Power - Holy shit, Shep is on a roll today.[...]',
+            'title': 'Lis Power - Holy shit, Shep is on a roll today....',
             'thumbnail': r're:^https?://.*\.jpg',
             'description': 'md5:37b9f2ff31720cef23b2bd42ee8a0f09',
             'uploader': 'Lis Power',
@@ -373,7 +373,7 @@ class TwitterIE(TwitterBaseIE):
         'info_dict': {
             'id': '1087791357756956680',
             'ext': 'mp4',
-            'title': 'Twitter - A new https://t.co/fHiPXozBdO is co[...]',
+            'title': 'Twitter - A new is coming.  Some of you got a...',
             'thumbnail': r're:^https?://.*\.jpg',
             'description': 'md5:6dfd341a3310fb97d80d2bf7145df976',
             'uploader': 'Twitter',
@@ -399,7 +399,7 @@ class TwitterIE(TwitterBaseIE):
         'info_dict': {
             'id': '1349794411333394432',
             'ext': 'mp4',
-            'title': 'Brooklyn Nets - WATCH: Sean Marks\' full media sessi[...]',
+            'title': 'Brooklyn Nets - WATCH: Sean Marks\' full media sessi...',
             'thumbnail': r're:^https?://.*\.jpg',
             'description': 'md5:71ead15ec44cee55071547d6447c6a3e',
             'uploader': 'Brooklyn Nets',
@@ -468,8 +468,8 @@ class TwitterIE(TwitterBaseIE):
         if len(title) > 40:
             trim = 35
             # allow up to 10 more characters to find whitespace 
-            m = re.search(r'\s+', title, trim, trim + 10)
-            if m:
+            m = re.search(r'\s+', title)
+            if m and m.start() > 10:
                 trim = m.start() + 1
             title = title[:trim] + '...'
         if uploader:
