@@ -42,6 +42,7 @@ from .compat import (
     compat_HTTPError,
     compat_basestring,
     compat_chr,
+    compat_collections_abc,
     compat_cookiejar,
     compat_ctypes_WINFUNCTYPE,
     compat_etree_fromstring,
@@ -1684,6 +1685,7 @@ USER_AGENTS = {
 
 
 NO_DEFAULT = object()
+IDENTITY = lambda x: x
 
 ENGLISH_MONTH_NAMES = [
     'January', 'February', 'March', 'April', 'May', 'June',
@@ -5801,3 +5803,123 @@ def clean_podcast_url(url):
                 st\.fm # https://podsights.com/docs/
             )/e
         )/''', '', url)
+
+
+def traverse_obj(obj, *path_list, **kwargs):
+    ''' Traverse nested list/dict/tuple
+    @param path_list        A list of paths which are checked one by one.
+                            Each path is a list of keys where each key is a:
+                              - None:     Do nothing
+                              - string:   A dictionary key
+                              - int:      An index into a list
+                              - tuple:    A list of keys all of which will be traversed
+                              - Ellipsis: Fetch all values in the object
+                              - Function: Takes the key and value as arguments
+                                          and returns whether the key matches or not
+    @param default          Default value to return
+    @param expected_type    Only accept final value of this type (Can also be any callable)
+    @param get_all          Return all the values obtained from a path or only the first one
+    @param casesense        Whether to consider dictionary keys as case sensitive
+    @param is_user_input    Whether the keys are generated from user input. If True,
+                            strings are converted to int/slice if necessary
+    @param traverse_string  Whether to traverse inside strings. If True, any
+                            non-compatible object will also be converted into a string
+    # TODO: Write tests
+    '''
+    default = kwargs.pop('default', None)
+    expected_type = kwargs.pop('expected_type', None)
+    get_all = kwargs.pop('get_all', True)
+    casesense = kwargs.pop('casesense', True)
+    is_user_input = kwargs.pop('is_user_input', False)
+    traverse_string = kwargs.pop('traverse_string', False)
+    if not casesense:
+        _lower = lambda k: (k.lower() if isinstance(k, str) else k)
+        path_list = (map(_lower, variadic(path)) for path in path_list)
+
+    def _traverse_obj(obj, path, _current_depth=0):
+        path = tuple(variadic(path))
+        for i, key in enumerate(path):
+            if None in (key, obj):
+                return obj
+            if isinstance(key, (list, tuple)):
+                obj = [_traverse_obj(obj, sub_key, _current_depth) for sub_key in key]
+                key = Ellipsis
+            if key is Ellipsis:
+                # TODO support LazyList when ported
+                obj = (obj.values() if isinstance(obj, dict)
+                       else obj if isinstance(obj, (list, tuple))
+                       else str(obj) if traverse_string else [])
+                _current_depth += 1
+                depth[0] = max(depth[0], _current_depth)
+                return [_traverse_obj(inner_obj, path[i + 1:], _current_depth) for inner_obj in obj]
+            elif callable(key):
+                # TODO support LazyList when ported
+                if isinstance(obj, (list, tuple)):
+                    obj = enumerate(obj)
+                elif isinstance(obj, dict):
+                    obj = obj.items()
+                else:
+                    if not traverse_string:
+                        return None
+                    obj = str(obj)
+                _current_depth += 1
+                depth[0] = max(depth[0], _current_depth)
+                return [_traverse_obj(v, path[i + 1:], _current_depth) for k, v in obj if try_call(key, args=(k, v))]
+            elif isinstance(obj, dict) and not (is_user_input and key == ':'):
+                obj = (obj.get(key) if casesense or (key in obj)
+                       else next((v for k, v in obj.items() if _lower(k) == key), None))
+            else:
+                if is_user_input:
+                    key = (int_or_none(key) if ':' not in key
+                           else slice(*map(int_or_none, key.split(':'))))
+                    if key == slice(None):
+                        return _traverse_obj(obj, (lambda *a: a)(Ellipsis, *path[i + 1:]), _current_depth)
+                if not isinstance(key, (int, slice)):
+                    return None
+                # TODO support LazyList when ported
+                if not isinstance(obj, (list, tuple)):
+                    if not traverse_string:
+                        return None
+                    obj = str(obj)
+                try:
+                    obj = obj[key]
+                except IndexError:
+                    return None
+        return obj
+
+    if isinstance(expected_type, type):
+        type_test = lambda val: val if isinstance(val, expected_type) else None
+    else:
+        type_test = expected_type or IDENTITY
+
+    for path in path_list:
+        depth = [0]
+        val = _traverse_obj(obj, path)
+        if val is not None:
+            if depth[0]:
+                for _ in range(depth[0] - 1):
+                    val = itertools.chain.from_iterable(v for v in val if v is not None)
+                val = [v for v in map(type_test, val) if v is not None]
+                if val:
+                    return val if get_all else val[0]
+            else:
+                val = type_test(val)
+                if val is not None:
+                    return val
+    return default
+
+
+def get_first(obj, keys, **kwargs):
+    return traverse_obj(obj, (lambda *a: a)(Ellipsis, *variadic(keys)), get_all=False, **kwargs)
+
+
+def variadic(x, allowed_types=(str, bytes, dict)):
+    return x if isinstance(x, compat_collections_abc.Iterable) and not isinstance(x, allowed_types) else (x,)
+
+
+def join_nonempty(*values, **kwargs):
+    delim = kwargs.pop('delim', '-')
+    from_dict = kwargs.pop('from_dict', None)
+    if from_dict is not None:
+        values = (traverse_obj(from_dict, variadic(v)) for v in values)
+    return delim.join(map(str, filter(None, values)))

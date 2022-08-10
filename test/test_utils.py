@@ -40,10 +40,12 @@ from youtube_dl.utils import (
     get_element_by_attribute,
     get_elements_by_class,
     get_elements_by_attribute,
+    get_first,
     InAdvancePagedList,
     int_or_none,
     intlist_to_bytes,
     is_html,
+    join_nonempty,
     js_to_json,
     limit_length,
     merge_dicts,
@@ -79,6 +81,7 @@ from youtube_dl.utils import (
     strip_or_none,
     subtitles_filename,
     timeconvert,
+    traverse_obj,
     unescapeHTML,
     unified_strdate,
     unified_timestamp,
@@ -1475,6 +1478,15 @@ Line 1
         self.assertEqual(clean_podcast_url('https://www.podtrac.com/pts/redirect.mp3/chtbl.com/track/5899E/traffic.megaphone.fm/HSW7835899191.mp3'), 'https://traffic.megaphone.fm/HSW7835899191.mp3')
         self.assertEqual(clean_podcast_url('https://play.podtrac.com/npr-344098539/edge1.pod.npr.org/anon.npr-podcasts/podcast/npr/waitwait/2020/10/20201003_waitwait_wwdtmpodcast201003-015621a5-f035-4eca-a9a1-7c118d90bc3c.mp3'), 'https://edge1.pod.npr.org/anon.npr-podcasts/podcast/npr/waitwait/2020/10/20201003_waitwait_wwdtmpodcast201003-015621a5-f035-4eca-a9a1-7c118d90bc3c.mp3')
 
+    def test_traverse_obj(self):
+        self.assertEqual(traverse_obj({'a': [{'b': 'c'}]}, ('a', Ellipsis, 'b')), ['c'])
+
+    def test_get_first(self):
+        self.assertEqual(get_first([{'a': 'b'}], 'a'), 'b')
+
+    def test_join_nonempty(self):
+        self.assertEqual(join_nonempty('a', 'b'), 'a-b')
+        self.assertEqual(join_nonempty('a', 'b', from_dict={'a': 'c', 'b': 'd'}), 'c-d')
 
 if __name__ == '__main__':
     unittest.main()
