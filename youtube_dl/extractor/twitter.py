@@ -467,7 +467,7 @@ class TwitterIE(TwitterBaseIE):
         title = re.sub(r'\s+(https?://[^ ]+)', '', description)
         if len(title) > 40:
             trim = 35
-            # allow up to 10 more characters to find whitespace 
+            # allow up to 10 more characters to find whitespace
             m = re.search(r'\s+', title)
             if m and m.start() > 10:
                 trim = m.start() + 1
