@@ -464,7 +464,7 @@ class TwitterIE(TwitterBaseIE):
         timestamp = unified_timestamp(status.get('created_at'))
 
         # Keep the file name short so it doesn't exceed filesystem limits
-        title = description
+        title = re.sub(r'\s+(https?://[^ ]+)', '', description)
         if len(title) > 40:
             trim = 35
             # allow up to 10 more characters to find whitespace 
