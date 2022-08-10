@@ -1,6 +1,9 @@
 # coding: utf-8
 from __future__ import unicode_literals
 
+import re
+from typing import Optional
+
 from ..compat import compat_urlparse
 from ..utils import (
     ExtractorError,
@@ -74,12 +77,11 @@ class Tele5IE(DPlayIE):
         'only_matching': True,
     }]
 
-    def _real_extract(self, url):
-        video_id = self._match_id(url)
-        webpage = self._download_webpage(url, video_id)
-        player_element = self._search_regex(r'(<hyoga-player\b[^>]+?>)', webpage, 'video player')
+    def _extract_single_entry(self,
+                              player_element: str,
+                              url: str) -> Optional[dict]:
         player_info = extract_attributes(player_element)
-        asset_id, country, realm = (player_info[x] for x in ('assetid', 'locale', 'realm', ))
+        asset_id, country, realm = (player_info[x] for x in ('assetid', 'locale', 'realm',))
         endpoint = compat_urlparse.urlparse(player_info['endpoint']).hostname
         source_type = player_info.get('sourcetype')
         if source_type:
@@ -90,3 +92,16 @@ class Tele5IE(DPlayIE):
             if getattr(e, 'message', '') == 'Missing deviceId in context':
                 raise ExtractorError('DRM protected', cause=e, expected=True)
             raise
+
+    def _real_extract(self, url):
+        video_id = self._match_id(url)
+        webpage = self._download_webpage(url, video_id)
+        player_elements = re.findall(r'(<hyoga-player\b[^>]+?>)', webpage)
+        if len(player_elements) > 1:
+            entries = [self._extract_single_entry(player_element=player_element,
+                                                  url=url) for player_element in player_elements]
+            video_info = {'_type': 'playlist',
+                          'entries': entries}
+        else:
+            video_info = self._extract_single_entry(player_element=player_elements[0], url=url)
+        return video_info
