@@ -1779,10 +1779,9 @@ class YoutubeDL(object):
 
         assert info_dict.get('_type', 'video') == 'video'
 
-        max_downloads = self.params.get('max_downloads')
-        if max_downloads is not None:
-            if self._num_downloads >= int(max_downloads):
-                raise MaxDownloadsReached()
+        max_downloads = int_or_none(self.params.get('max_downloads')) or float('inf')
+        if self._num_downloads >= max_downloads:
+            raise MaxDownloadsReached()
 
         # TODO: backward compatibility, to be removed
         info_dict['fulltitle'] = info_dict['title']
@@ -2062,6 +2061,9 @@ class YoutubeDL(object):
                     self.report_error('postprocessing: %s' % str(err))
                     return
                 self.record_download_archive(info_dict)
+                # avoid possible nugatory search for further items (PR #26638)
+                if self._num_downloads >= max_downloads:
+                    raise MaxDownloadsReached()
 
     def download(self, url_list):
         """Download a given list of URLs."""
