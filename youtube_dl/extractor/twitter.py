@@ -466,7 +466,12 @@ class TwitterIE(TwitterBaseIE):
         # Keep the file name short so it doesn't exceed filesystem limits
         title = description
         if len(title) > 40:
-            title = title[:35] + "[...]"
+            trim = 35
+            # allow up to 10 more characters to find whitespace 
+            m = re.search(r'\s+', title, trim, trim + 10)
+            if m:
+                trim = m.start() + 1
+            title = title[:trim] + '...'
         if uploader:
             title = '%s - %s' % (uploader, title)
 
