@@ -7,7 +7,7 @@ from typing import Optional
 from ..compat import compat_urlparse
 from ..utils import (
     ExtractorError,
-    extract_attributes,
+    extract_attributes, RegexNotFoundError,
 )
 
 from .dplay import DPlayIE
@@ -77,6 +77,8 @@ class Tele5IE(DPlayIE):
         'only_matching': True,
     }]
 
+    _PLAYER_REGEX = r'(<hyoga-player\b[^>]+?>)'
+
     def _extract_single_entry(self,
                               player_element: str,
                               url: str) -> Optional[dict]:
@@ -96,8 +98,12 @@ class Tele5IE(DPlayIE):
     def _real_extract(self, url):
         video_id = self._match_id(url)
         webpage = self._download_webpage(url, video_id)
-        player_elements = re.findall(r'(<hyoga-player\b[^>]+?>)', webpage)
-        if len(player_elements) > 1:
+        player_elements = re.findall(pattern=self._PLAYER_REGEX,
+                                     string=webpage)
+        if len(player_elements) == 0:
+            raise RegexNotFoundError('Unable to extract Player Element {0}'.format(self._PLAYER_REGEX))
+
+        elif len(player_elements) > 1:
             entries = [self._extract_single_entry(player_element=player_element,
                                                   url=url) for player_element in player_elements]
             video_info = {'_type': 'playlist',
