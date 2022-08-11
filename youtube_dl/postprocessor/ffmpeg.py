@@ -599,9 +599,10 @@ class FFmpegFixupM3u8PP(FFmpegPostProcessor):
 
 
 class FFmpegSubtitlesConvertorPP(FFmpegPostProcessor):
-    def __init__(self, downloader=None, format=None):
+    def __init__(self, downloader=None, format=None, ttml_convert_style=True):
         super(FFmpegSubtitlesConvertorPP, self).__init__(downloader)
         self.format = format
+        self.ttml_convert_style = ttml_convert_style
 
     def run(self, info):
         subs = info.get('requested_subtitles')
@@ -634,7 +635,7 @@ class FFmpegSubtitlesConvertorPP(FFmpegPostProcessor):
                 srt_file = subtitles_filename(filename, lang, 'srt', info.get('ext'))
 
                 with open(dfxp_file, 'rb') as f:
-                    srt_data = dfxp2srt(f.read())
+                    srt_data = dfxp2srt(f.read(), self.ttml_convert_style)
 
                 with io.open(srt_file, 'wt', encoding='utf-8') as f:
                     f.write(srt_data)
