@@ -1,9 +1,8 @@
 # coding: utf-8
 from __future__ import unicode_literals
 
-from youtube_dl.utils import try_get, unified_timestamp
-
 from .common import InfoExtractor
+from ..utils import try_get, unified_timestamp
 
 
 class HololiveFCIE(InfoExtractor):
