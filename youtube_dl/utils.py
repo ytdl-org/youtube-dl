@@ -4070,6 +4070,23 @@ def dict_get(d, key_or_keys, default=None, skip_false_values=True):
     return d.get(key_or_keys, default)
 
 
+def try_call(*funcs, **kwargs):
+
+    # parameter defaults
+    expected_type = kwargs.get('expected_type')
+    fargs = kwargs.get('args', [])
+    fkwargs = kwargs.get('kwargs', {})
+
+    for f in funcs:
+        try:
+            val = f(*fargs, **fkwargs)
+        except (AttributeError, KeyError, TypeError, IndexError, ZeroDivisionError):
+            pass
+        else:
+            if expected_type is None or isinstance(val, expected_type):
+                return val
+
+
 def try_get(src, getter, expected_type=None):
     if not isinstance(getter, (list, tuple)):
         getter = [getter]
@@ -5826,14 +5843,31 @@ def traverse_obj(obj, *path_list, **kwargs):
                             non-compatible object will also be converted into a string
     # TODO: Write tests
     '''
-    default = kwargs.pop('default', None)
-    expected_type = kwargs.pop('expected_type', None)
-    get_all = kwargs.pop('get_all', True)
-    casesense = kwargs.pop('casesense', True)
-    is_user_input = kwargs.pop('is_user_input', False)
-    traverse_string = kwargs.pop('traverse_string', False)
+
+    # parameter defaults
+    default = kwargs.get('default')
+    expected_type = kwargs.get('expected_type')
+    get_all = kwargs.get('get_all', True)
+    casesense = kwargs.get('casesense', True)
+    is_user_input = kwargs.get('is_user_input', False)
+    traverse_string = kwargs.get('traverse_string', False)
+
+    def listish(l):
+        # TODO support LazyList when ported
+        return isinstance(l, (list, tuple))
+
+    def from_iterable(iterables):
+        # chain.from_iterable(['ABC', 'DEF']) --> A B C D E F
+        for it in iterables:
+            for element in it:
+                yield element
+
+    class Nonlocal:
+        pass
+    nl = Nonlocal()
+
     if not casesense:
-        _lower = lambda k: (k.lower() if isinstance(k, str) else k)
+        _lower = lambda k: (k.lower() if isinstance(k, compat_str) else k)
         path_list = (map(_lower, variadic(path)) for path in path_list)
 
     def _traverse_obj(obj, path, _current_depth=0):
@@ -5841,29 +5875,27 @@ def traverse_obj(obj, *path_list, **kwargs):
         for i, key in enumerate(path):
             if None in (key, obj):
                 return obj
-            if isinstance(key, (list, tuple)):
+            if listish(key):
                 obj = [_traverse_obj(obj, sub_key, _current_depth) for sub_key in key]
                 key = Ellipsis
             if key is Ellipsis:
-                # TODO support LazyList when ported
                 obj = (obj.values() if isinstance(obj, dict)
-                       else obj if isinstance(obj, (list, tuple))
-                       else str(obj) if traverse_string else [])
+                       else obj if listish(obj)
+                       else compat_str(obj) if traverse_string else [])
                 _current_depth += 1
-                depth[0] = max(depth[0], _current_depth)
+                nl.depth = max(nl.depth, _current_depth)
                 return [_traverse_obj(inner_obj, path[i + 1:], _current_depth) for inner_obj in obj]
             elif callable(key):
-                # TODO support LazyList when ported
-                if isinstance(obj, (list, tuple)):
+                if listish(obj):
                     obj = enumerate(obj)
                 elif isinstance(obj, dict):
                     obj = obj.items()
                 else:
                     if not traverse_string:
                         return None
-                    obj = str(obj)
+                    obj = compat_str(obj)
                 _current_depth += 1
-                depth[0] = max(depth[0], _current_depth)
+                nl.depth = max(nl.depth, _current_depth)
                 return [_traverse_obj(v, path[i + 1:], _current_depth) for k, v in obj if try_call(key, args=(k, v))]
             elif isinstance(obj, dict) and not (is_user_input and key == ':'):
                 obj = (obj.get(key) if casesense or (key in obj)
@@ -5873,14 +5905,13 @@ def traverse_obj(obj, *path_list, **kwargs):
                     key = (int_or_none(key) if ':' not in key
                            else slice(*map(int_or_none, key.split(':'))))
                     if key == slice(None):
-                        return _traverse_obj(obj, (lambda *a: a)(Ellipsis, *path[i + 1:]), _current_depth)
+                        return _traverse_obj(obj, (Ellipsis,) + path[i + 1:], _current_depth)
                 if not isinstance(key, (int, slice)):
                     return None
-                # TODO support LazyList when ported
-                if not isinstance(obj, (list, tuple)):
+                if not listish(obj):
                     if not traverse_string:
                         return None
-                    obj = str(obj)
+                    obj = compat_str(obj)
                 try:
                     obj = obj[key]
                 except IndexError:
@@ -5893,12 +5924,12 @@ def traverse_obj(obj, *path_list, **kwargs):
         type_test = expected_type or IDENTITY
 
     for path in path_list:
-        depth = [0]
+        nl.depth = 0
         val = _traverse_obj(obj, path)
         if val is not None:
-            if depth[0]:
-                for _ in range(depth[0] - 1):
-                    val = itertools.chain.from_iterable(v for v in val if v is not None)
+            if nl.depth:
+                for _ in range(nl.depth - 1):
+                    val = from_iterable(v for v in val if v is not None)
                 val = [v for v in map(type_test, val) if v is not None]
                 if val:
                     return val if get_all else val[0]
@@ -5910,7 +5941,7 @@ def traverse_obj(obj, *path_list, **kwargs):
 
 
 def get_first(obj, keys, **kwargs):
-    return traverse_obj(obj, (lambda *a: a)(Ellipsis, *variadic(keys)), get_all=False, **kwargs)
+    return traverse_obj(obj, (Ellipsis,) + tuple(variadic(keys)), get_all=False, **kwargs)
 
 
 def variadic(x, allowed_types=(str, bytes, dict)):
@@ -5918,8 +5949,11 @@ def variadic(x, allowed_types=(str, bytes, dict)):
 
 
 def join_nonempty(*values, **kwargs):
-    delim = kwargs.pop('delim', '-')
-    from_dict = kwargs.pop('from_dict', None)
+
+    # parameter defaults
+    delim = kwargs.get('delim', '-')
+    from_dict = kwargs.get('from_dict')
+
     if from_dict is not None:
         values = (traverse_obj(from_dict, variadic(v)) for v in values)
     return delim.join(map(str, filter(None, values)))
