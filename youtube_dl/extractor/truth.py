@@ -2,19 +2,16 @@
 from __future__ import unicode_literals
 
 from .common import InfoExtractor
-
 from ..utils import (
     clean_html,
     int_or_none,
+    strip_or_none,
     unified_timestamp,
-    strip_or_none
 )
 
 
 class TruthIE(InfoExtractor):
-    """Extract videos from posts on Donald Trump's truthsocial.com."""
-
-    _VALID_URL = r'https://truthsocial\.com/@[^/]+/posts/(?P<id>[\d]+)'
+    _VALID_URL = r'https?://truthsocial\.com/@[^/]+/posts/(?P<id>\d+)'
     _TESTS = [
         {
             'url': 'https://truthsocial.com/@realDonaldTrump/posts/108779000807761862',
@@ -22,7 +19,8 @@ class TruthIE(InfoExtractor):
             'info_dict': {
                 'id': '108779000807761862',
                 'ext': 'qt',
-                'title': 'Donald J. Trump - 0d8691160c73d663',
+                'title': 'Truth video #108779000807761862',
+                'description': None,
                 'timestamp': 1659835827,
                 'upload_date': '20220807',
                 'uploader': 'Donald J. Trump',
@@ -39,7 +37,7 @@ class TruthIE(InfoExtractor):
             'info_dict': {
                 'id': '108618228543962049',
                 'ext': 'mp4',
-                'title': 'md5:48813a16498d21b07edf24e1af621e83',
+                'title': 'md5:debde7186cf83f60ff7b44dbb9444e35',
                 'description': 'md5:e070ba6bcf6165957e26a7a94ef6d975',
                 'timestamp': 1657382637,
                 'upload_date': '20220709',
@@ -52,44 +50,20 @@ class TruthIE(InfoExtractor):
             },
         },
     ]
-    _GEO_COUNTRIES = ['US']  # The site is only available in the US
 
     def _real_extract(self, url):
-        # Get data from API
         video_id = self._match_id(url)
-        status = self._download_json(
-            'https://truthsocial.com/api/v1/statuses/' + video_id,
-            video_id
-        )
-
-        # Pull out video
-        url = status['media_attachments'][0]['url']
-
-        # Return the stuff
-        account = status.get('account') or {}
-        uploader = strip_or_none(account.get('display_name'))
-        uploader_id = strip_or_none(account.get('username'))
-        post = strip_or_none(clean_html(status.get('content')))
-
-        # Set the title, handling case where its too long or empty
-        if len(post) > 40:
-            title = post[:35] + "[...]"
-        elif len(post) == 0:
-            title = self._generic_title(url)
-        else:
-            title = post
-        if uploader:
-            title = '%s - %s' % (uploader, title)
-
+        status = self._download_json(f'https://truthsocial.com/api/v1/statuses/{video_id}', video_id)
+        uploader_id = strip_or_none(status['account']['username'])
         return {
             'id': video_id,
-            'url': url,
-            'title': title,
-            'description': post,
+            'url': status['media_attachments'][0]['url'],
+            'title': 'Truth video #%s' % video_id,
+            'description': strip_or_none(clean_html(status.get('content'))) or None,
             'timestamp': unified_timestamp(status.get('created_at')),
-            'uploader': uploader,
+            'uploader': strip_or_none(status['account']['display_name']),
             'uploader_id': uploader_id,
-            'uploader_url': ('https://truthsocial.com/@' + uploader_id) if uploader_id else None,
+            'uploader_url': 'https://truthsocial.com/@%s' % uploader_id,
             'repost_count': int_or_none(status.get('reblogs_count')),
             'like_count': int_or_none(status.get('favourites_count')),
             'comment_count': int_or_none(status.get('replies_count')),
