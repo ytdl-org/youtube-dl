@@ -11,6 +11,7 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 import math
 
 from youtube_dl.jsinterp import JSInterpreter
+undefined = JSInterpreter.undefined
 
 
 class TestJSInterpreter(unittest.TestCase):
@@ -240,6 +241,16 @@ class TestJSInterpreter(unittest.TestCase):
         ''')
         self.assertIs(jsi.call_function('x'), None)
 
+        jsi = JSInterpreter('''
+        function x() { return [null > 0, null < 0, null == 0, null === 0]; }
+        ''')
+        self.assertEqual(jsi.call_function('x'), [False, False, False, False])
+
+        jsi = JSInterpreter('''
+        function x() { return [null >= 0, null <= 0]; }
+        ''')
+        self.assertEqual(jsi.call_function('x'), [True, True])
+
     def test_undefined(self):
         jsi = JSInterpreter('''
         function x() { return undefined === undefined; }
@@ -249,27 +260,37 @@ class TestJSInterpreter(unittest.TestCase):
         jsi = JSInterpreter('''
         function x() { return undefined; }
         ''')
-        self.assertIs(jsi.call_function('x'), JSInterpreter.undefined)
+        self.assertIs(jsi.call_function('x'), undefined)
 
         jsi = JSInterpreter('''
         function x() { let v; return v; }
         ''')
-        self.assertIs(jsi.call_function('x'), JSInterpreter.undefined)
+        self.assertIs(jsi.call_function('x'), undefined)
 
         jsi = JSInterpreter('''
-        function x() { return [undefined === undefined, undefined == undefined]; }
+        function x() { return [undefined === undefined, undefined == undefined, undefined < undefined, undefined > undefined]; }
         ''')
-        self.assertEqual(jsi.call_function('x'), [True, True])
+        self.assertEqual(jsi.call_function('x'), [True, True, False, False])
 
         jsi = JSInterpreter('''
-        function x() { return [undefined === 0, undefined == 0]; }
+        function x() { return [undefined === 0, undefined == 0, undefined < 0, undefined > 0]; }
+        ''')
+        self.assertEqual(jsi.call_function('x'), [False, False, False, False])
+
+        jsi = JSInterpreter('''
+        function x() { return [undefined >= 0, undefined <= 0]; }
         ''')
         self.assertEqual(jsi.call_function('x'), [False, False])
 
         jsi = JSInterpreter('''
-        function x() { return [undefined === null, undefined == null]; }
+        function x() { return [undefined > null, undefined < null, undefined == null, undefined === null]; }
         ''')
-        self.assertEqual(jsi.call_function('x'), [False, True])
+        self.assertEqual(jsi.call_function('x'), [False, False, True, False])
+
+        jsi = JSInterpreter('''
+        function x() { return [undefined === null, undefined == null, undefined < null, undefined > null]; }
+        ''')
+        self.assertEqual(jsi.call_function('x'), [False, True, False, False])
 
         jsi = JSInterpreter('''
         function x() { let v; return [42+v, v+42, v**42, 42**v, 0**v]; }
@@ -285,7 +306,7 @@ class TestJSInterpreter(unittest.TestCase):
         jsi = JSInterpreter('''
         function x() { let v; return [v>42, v<=42, v&&42, 42&&v]; }
         ''')
-        self.assertEqual(jsi.call_function('x'), [False, False, JSInterpreter.undefined, JSInterpreter.undefined])
+        self.assertEqual(jsi.call_function('x'), [False, False, undefined, undefined])
 
         jsi = JSInterpreter('function x(){return undefined ?? 42; }')
         self.assertEqual(jsi.call_function('x'), 42)
@@ -294,19 +315,19 @@ class TestJSInterpreter(unittest.TestCase):
         jsi = JSInterpreter('''
         function x() { return {}; }
         ''')
-        self.assertEquals(jsi.call_function('x'), {})
+        self.assertEqual(jsi.call_function('x'), {})
         jsi = JSInterpreter('''
         function x() { let a = {m1: 42, m2: 0 }; return [a["m1"], a.m2]; }
         ''')
-        self.assertEquals(jsi.call_function('x'), [42, 0])
+        self.assertEqual(jsi.call_function('x'), [42, 0])
         jsi = JSInterpreter('''
         function x() { let a; return a?.qq; }
         ''')
-        self.assertIs(jsi.call_function('x'), JSInterpreter.undefined)
+        self.assertIs(jsi.call_function('x'), undefined)
         jsi = JSInterpreter('''
         function x() { let a = {m1: 42, m2: 0 }; return a?.qq; }
         ''')
-        self.assertIs(jsi.call_function('x'), JSInterpreter.undefined)
+        self.assertIs(jsi.call_function('x'), undefined)
 
 
 if __name__ == '__main__':
