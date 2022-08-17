@@ -2594,8 +2594,8 @@ class YoutubeTabIE(YoutubeBaseInfoExtractor):
                 yield entry
         renderer = content.get('horizontalListRenderer')
         if renderer:
-            # TODO
-            pass
+            for entry in self._grid_entries(renderer):
+                yield entry
 
     def _shelf_entries(self, shelf_renderer, skip_channels=False):
         ep = try_get(
