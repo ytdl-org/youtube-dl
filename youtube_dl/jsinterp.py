@@ -180,10 +180,15 @@ class LocalNameSpace(ChainMap):
         raise NotImplementedError('Deleting is not supported')
 
     # except
-    def pop(self, key):
-        off = self.__getitem__(key)
-        super(LocalNameSpace, self).__delitem__(key)
-        return off
+    def pop(self, key, *args):
+        try:
+            off = self.__getitem__(key)
+            super(LocalNameSpace, self).__delitem__(key)
+            return off
+        except KeyError:
+            if len(args) > 0:
+                return args[0]
+            raise
 
     def __contains__(self, key):
         try:
