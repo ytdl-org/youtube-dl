@@ -7,6 +7,7 @@ import operator
 import re
 
 from .utils import (
+    error_to_compat_str,
     ExtractorError,
     js_to_json,
     remove_quotes,
@@ -130,7 +131,7 @@ _SC_OPERATORS = (
 _OPERATOR_RE = '|'.join(map(lambda x: re.escape(x[0]), _OPERATORS + _LOG_OPERATORS))
 
 _MATCHING_PARENS = dict(zip(*zip('()', '{}', '[]')))
-_QUOTES = '\'"'
+_QUOTES = '\'"/'
 
 
 def _ternary(cndn, if_true=True, if_false=False):
@@ -155,6 +156,12 @@ class JS_Continue(ExtractorError):
         ExtractorError.__init__(self, 'Invalid continue')
 
 
+class JS_Throw(ExtractorError):
+    def __init__(self, e):
+        self.error = e
+        ExtractorError.__init__(self, 'Uncaught exception ' + error_to_compat_str(e))
+
+
 class LocalNameSpace(ChainMap):
     def __getitem__(self, key):
         try:
@@ -172,6 +179,17 @@ class LocalNameSpace(ChainMap):
     def __delitem__(self, key):
         raise NotImplementedError('Deleting is not supported')
 
+    # except
+    def pop(self, key, *args):
+        try:
+            off = self.__getitem__(key)
+            super(LocalNameSpace, self).__delitem__(key)
+            return off
+        except KeyError:
+            if len(args) > 0:
+                return args[0]
+            raise
+
     def __contains__(self, key):
         try:
             super(LocalNameSpace, self).__getitem__(key)
@@ -188,9 +206,29 @@ class JSInterpreter(object):
 
     undefined = _UNDEFINED
 
+    RE_FLAGS = {
+        # special knowledge: Python's re flags are bitmask values, current max 128
+        # invent new bitmask values well above that for literal parsing
+        # TODO: new pattern class to execute matches with these flags
+        'd': 1024,  # Generate indices for substring matches
+        'g': 2048,  # Global search
+        'i': re.I,  # Case-insensitive search
+        'm': re.M,  # Multi-line search
+        's': re.S,  # Allows . to match newline characters
+        'u': re.U,  # Treat a pattern as a sequence of unicode code points
+        'y': 4096,  # Perform a "sticky" search that matches starting at the current position in the target string
+    }
+
+    _EXC_NAME = '__youtube_dl_exception__'
+    _OBJ_NAME = '__youtube_dl_jsinterp_obj'
+
+    OP_CHARS = None
+
     def __init__(self, code, objects=None):
         self.code, self._functions = code, {}
         self._objects = {} if objects is None else objects
+        if type(self).OP_CHARS is None:
+            type(self).OP_CHARS = self.OP_CHARS = self.__op_chars()
 
     class Exception(ExtractorError):
         def __init__(self, msg, *args, **kwargs):
@@ -199,32 +237,64 @@ class JSInterpreter(object):
                 msg = '{0} in: {1!r}'.format(msg.rstrip(), expr[:100])
             super(JSInterpreter.Exception, self).__init__(msg, *args, **kwargs)
 
+    @classmethod
+    def __op_chars(cls):
+        op_chars = set(';,')
+        for op in cls._all_operators():
+            for c in op[0]:
+                op_chars.add(c)
+        return op_chars
+
     def _named_object(self, namespace, obj):
         self.__named_object_counter += 1
-        name = '__youtube_dl_jsinterp_obj%d' % (self.__named_object_counter, )
+        name = '%s%d' % (self._OBJ_NAME, self.__named_object_counter)
         namespace[name] = obj
         return name
 
-    @staticmethod
-    def _separate(expr, delim=',', max_split=None, skip_delims=None):
+    @classmethod
+    def _regex_flags(cls, expr):
+        flags = 0
+        if not expr:
+            return flags, expr
+        for idx, ch in enumerate(expr):
+            if ch not in cls.RE_FLAGS:
+                break
+            flags |= cls.RE_FLAGS[ch]
+        return flags, expr[idx:] if idx > 0 else expr
+
+    @classmethod
+    def _separate(cls, expr, delim=',', max_split=None, skip_delims=None):
         if not expr:
             return
         counters = {k: 0 for k in _MATCHING_PARENS.values()}
-        start, splits, pos, skipping, delim_len = 0, 0, 0, 0, len(delim) - 1
-        in_quote, escaping = None, False
+        start, splits, pos, delim_len = 0, 0, 0, len(delim) - 1
+        in_quote, escaping, skipping = None, False, 0
+        after_op, in_regex_char_group, skip_re = True, False, 0
+
         for idx, char in enumerate(expr):
+            if skip_re > 0:
+                skip_re -= 1
+                continue
             if not in_quote:
                 if char in _MATCHING_PARENS:
                     counters[_MATCHING_PARENS[char]] += 1
                 elif char in counters:
                     counters[char] -= 1
-            if not escaping:
-                if char in _QUOTES and in_quote in (char, None):
-                    in_quote = None if in_quote else char
-                else:
-                    escaping = in_quote and char == '\\'
-            else:
-                escaping = False
+            if not escaping and char in _QUOTES and in_quote in (char, None):
+                if in_quote or after_op or char != '/':
+                    in_quote = None if in_quote and not in_regex_char_group else char
+                    if in_quote is None and char == '/' and delim != '/':
+                        # regexp flags
+                        n_idx = idx + 1
+                        while n_idx < len(expr) and expr[n_idx] in cls.RE_FLAGS:
+                            n_idx += 1
+                        skip_re = n_idx - idx - 1
+                        if skip_re > 0:
+                            continue
+            elif in_quote == '/' and char in '[]':
+                in_regex_char_group = char == '['
+            escaping = not escaping and in_quote and char == '\\'
+            after_op = not in_quote and char in cls.OP_CHARS or (char == ' ' and after_op)
 
             if char != delim[pos] or any(counters.values()) or in_quote:
                 pos = skipping = 0
@@ -313,16 +383,23 @@ class JSInterpreter(object):
             if should_return:
                 return ret, should_return
 
-        m = re.match(r'(?P<var>(?:var|const|let)\s)|return(?:\s+|$)', stmt)
+        m = re.match(r'(?P<var>(?:var|const|let)\s)|return(?:\s+|(?=["\'])|$)|(?P<throw>throw\s+)', stmt)
         if m:
             expr = stmt[len(m.group(0)):].strip()
+            if m.group('throw'):
+                raise JS_Throw(self.interpret_expression(expr, local_vars, allow_recursion))
             should_return = not m.group('var')
         if not expr:
             return None, should_return
 
         if expr[0] in _QUOTES:
             inner, outer = self._separate(expr, expr[0], 1)
-            inner = json.loads(js_to_json(inner + expr[0]))  # , strict=True))
+            if expr[0] == '/':
+                flags, _ = self._regex_flags(outer)
+                inner, outer = inner.replace('"', r'\"'), ''
+                inner = re.compile(js_to_json(inner + expr[0]), flags=flags)  # , strict=True))
+            else:
+                inner = json.loads(js_to_json(inner + expr[0]))  # , strict=True))
             if not outer:
                 return inner, should_return
             expr = self._named_object(local_vars, inner) + outer
@@ -374,22 +451,37 @@ class JSInterpreter(object):
                 for item in self._separate(inner)])
             expr = name + outer
 
-        m = re.match(r'(?P<try>try|finally)\s*|(?:(?P<catch>catch)|(?P<for>for)|(?P<switch>switch))\s*\(', expr)
+        m = re.match(r'''(?x)
+            (?P<try>try|finally)\s*|
+            (?P<catch>catch\s*(?P<err>\(\s*{_NAME_RE}\s*\)))|
+            (?P<switch>switch)\s*\(|
+            (?P<for>for)\s*\(|'''.format(**globals()), expr)
         md = m.groupdict() if m else {}
         if md.get('try'):
             if expr[m.end()] == '{':
                 try_expr, expr = self._separate_at_paren(expr[m.end():], '}')
             else:
                 try_expr, expr = expr[m.end() - 1:], ''
-            ret, should_abort = self.interpret_statement(try_expr, local_vars, allow_recursion)
-            if should_abort:
-                return ret, True
+            try:
+                ret, should_abort = self.interpret_statement(try_expr, local_vars, allow_recursion)
+                if should_abort:
+                    return ret, True
+            except JS_Throw as e:
+                local_vars[self._EXC_NAME] = e.error
+            except Exception as e:
+                # XXX: This works for now, but makes debugging future issues very hard
+                local_vars[self._EXC_NAME] = e
             ret, should_abort = self.interpret_statement(expr, local_vars, allow_recursion)
             return ret, should_abort or should_return
 
         elif md.get('catch'):
-            # We ignore the catch block
-            _, expr = self._separate_at_paren(expr, '}')
+            catch_expr, expr = self._separate_at_paren(expr[m.end():], '}')
+            if self._EXC_NAME in local_vars:
+                catch_vars = local_vars.new_child({m.group('err'): local_vars.pop(self._EXC_NAME)})
+                ret, should_abort = self.interpret_statement(catch_expr, catch_vars, allow_recursion)
+                if should_abort:
+                    return ret, True
+
             ret, should_abort = self.interpret_statement(expr, local_vars, allow_recursion)
             return ret, should_abort or should_return
 
@@ -503,7 +595,7 @@ class JSInterpreter(object):
                 raise self.Exception('List index %s must be integer' % (idx, ), expr=expr)
             idx = int(idx)
             left_val[idx] = self._operator(
-                m.group('op'), left_val[idx], m.group('expr'), expr, local_vars, allow_recursion)
+                m.group('op'), self._index(left_val, idx), m.group('expr'), expr, local_vars, allow_recursion)
             return left_val[idx], should_return
 
         elif expr.isdigit():
