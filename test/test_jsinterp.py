@@ -11,8 +11,9 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 import math
 import re
 
-from youtube_dl.jsinterp import JSInterpreter
-undefined = JSInterpreter.undefined
+from youtube_dl.compat import compat_re_Pattern
+
+from youtube_dl.jsinterp import JS_Undefined, JSInterpreter
 
 
 class TestJSInterpreter(unittest.TestCase):
@@ -261,12 +262,12 @@ class TestJSInterpreter(unittest.TestCase):
         jsi = JSInterpreter('''
         function x() { return undefined; }
         ''')
-        self.assertIs(jsi.call_function('x'), undefined)
+        self.assertIs(jsi.call_function('x'), JS_Undefined)
 
         jsi = JSInterpreter('''
         function x() { let v; return v; }
         ''')
-        self.assertIs(jsi.call_function('x'), undefined)
+        self.assertIs(jsi.call_function('x'), JS_Undefined)
 
         jsi = JSInterpreter('''
         function x() { return [undefined === undefined, undefined == undefined, undefined < undefined, undefined > undefined]; }
@@ -307,7 +308,7 @@ class TestJSInterpreter(unittest.TestCase):
         jsi = JSInterpreter('''
         function x() { let v; return [v>42, v<=42, v&&42, 42&&v]; }
         ''')
-        self.assertEqual(jsi.call_function('x'), [False, False, undefined, undefined])
+        self.assertEqual(jsi.call_function('x'), [False, False, JS_Undefined, JS_Undefined])
 
         jsi = JSInterpreter('function x(){return undefined ?? 42; }')
         self.assertEqual(jsi.call_function('x'), 42)
@@ -326,12 +327,12 @@ class TestJSInterpreter(unittest.TestCase):
         jsi = JSInterpreter('''
         function x() { let a; return a?.qq; }
         ''')
-        self.assertIs(jsi.call_function('x'), undefined)
+        self.assertIs(jsi.call_function('x'), JS_Undefined)
 
         jsi = JSInterpreter('''
         function x() { let a = {m1: 42, m2: 0 }; return a?.qq; }
         ''')
-        self.assertIs(jsi.call_function('x'), undefined)
+        self.assertIs(jsi.call_function('x'), JS_Undefined)
 
     def test_regex(self):
         jsi = JSInterpreter('''
@@ -342,13 +343,12 @@ class TestJSInterpreter(unittest.TestCase):
         jsi = JSInterpreter('''
         function x() { let a=/,,[/,913,/](,)}/; return a; }
         ''')
-        # Pythons disagree on the type of a pattern
-        self.assertTrue(isinstance(jsi.call_function('x'), type(re.compile(''))))
+        self.assertIsInstance(jsi.call_function('x'), compat_re_Pattern)
 
         jsi = JSInterpreter('''
         function x() { let a=/,,[/,913,/](,)}/i; return a; }
         ''')
-        self.assertEqual(jsi.call_function('x').flags & re.I, re.I)
+        self.assertEqual(jsi.call_function('x').flags & ~re.U, re.I)
 
 
 if __name__ == '__main__':

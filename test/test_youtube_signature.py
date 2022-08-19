@@ -12,10 +12,11 @@ import io
 import re
 import string
 
+from youtube_dl.compat import compat_str, compat_urlretrieve
+
 from test.helper import FakeYDL
 from youtube_dl.extractor import YoutubeIE
 from youtube_dl.jsinterp import JSInterpreter
-from youtube_dl.compat import compat_str, compat_urlretrieve
 
 _SIG_TESTS = [
     (
