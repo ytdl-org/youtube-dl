@@ -3023,17 +3023,33 @@ except ImportError:
             self.maps[0].__setitem__(k, v)
             return
 
-        def __delitem__(self, k):
+        def __contains__(self, k):
+            return any((k in m) for m in self.maps)
+
+        def __delitem(self, k):
             if k in self.maps[0]:
                 del self.maps[0][k]
                 return
             raise KeyError(k)
+
+        def __delitem__(self, k):
+            self.__delitem(k)
 
         def __iter__(self):
             return itertools.chain(*reversed(self.maps))
 
         def __len__(self):
             return len(iter(self))
+
+        # to match Py3, don't del directly
+        def pop(self, k, *args):
+            if self.__contains__(k):
+                off = self.__getitem__(k)
+                self.__delitem(k)
+                return off
+            elif len(args) > 0:
+                return args[0]
+            raise KeyError(k)
 
         def new_child(self, m=None, **kwargs):
             m = m or {}
@@ -3044,6 +3060,8 @@ except ImportError:
         def parents(self):
             return compat_collections_chain_map(*(self.maps[1:]))
 
+# Pythons disagree on the type of a pattern (RegexObject, _sre.SRE_Pattern, Pattern, ...?)
+compat_re_Pattern = type(re.compile(''))
 
 if sys.version_info < (3, 3):
     def compat_b64decode(s, *args, **kwargs):
@@ -3110,6 +3128,7 @@ __all__ = [
     'compat_os_name',
     'compat_parse_qs',
     'compat_print',
+    'compat_re_Pattern',
     'compat_realpath',
     'compat_setenv',
     'compat_shlex_quote',
