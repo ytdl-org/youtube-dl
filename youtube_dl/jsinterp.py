@@ -256,7 +256,7 @@ class JSInterpreter(object):
         in_quote, escaping, skipping = None, False, 0
         in_comment_block, in_comment_line, finishing_comment = False, False, False
         after_op, in_regex_char_group, skip_re = True, False, 0
-        start_comment = None;
+        start_comment = None
         comment_spans = []
 
         for idx, char in enumerate(expr):
@@ -287,15 +287,15 @@ class JSInterpreter(object):
                 if in_comment_line:
                     if char == '\n':
                         in_comment_line = False
-                        comment_spans.append((start_comment, idx));
+                        comment_spans.append((start_comment, idx))
                         start_comment = None
                     continue
                 if finishing_comment:
                     # Eat the final '/' of a '/* ... */' comment.
                     finishing_comment = False
-                    comment_spans.append((start_comment, idx));
+                    comment_spans.append((start_comment, idx))
                     start_comment = None
-                    continue;
+                    continue
             if not in_quote:
                 if char in _MATCHING_PARENS:
                     counters[_MATCHING_PARENS[char]] += 1
