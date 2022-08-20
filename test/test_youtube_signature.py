@@ -12,10 +12,11 @@ import io
 import re
 import string
 
+from youtube_dl.compat import compat_str, compat_urlretrieve
+
 from test.helper import FakeYDL
 from youtube_dl.extractor import YoutubeIE
 from youtube_dl.jsinterp import JSInterpreter
-from youtube_dl.compat import compat_str, compat_urlretrieve
 
 _SIG_TESTS = [
     (
@@ -90,12 +91,33 @@ _NSIG_TESTS = [
         'https://www.youtube.com/s/player/e06dea74/player_ias.vflset/en_US/base.js',
         'AiuodmaDDYw8d3y4bf', 'ankd8eza2T6Qmw',
     ),
+    (
+        'https://www.youtube.com/s/player/5dd88d1d/player-plasma-ias-phone-en_US.vflset/base.js',
+        'kSxKFLeqzv_ZyHSAt', 'n8gS8oRlHOxPFA',
+    ),
+    (
+        'https://www.youtube.com/s/player/324f67b9/player_ias.vflset/en_US/base.js',
+        'xdftNy7dh9QGnhW', '22qLGxrmX8F1rA',
+    ),
+    (
+        'https://www.youtube.com/s/player/4c3f79c5/player_ias.vflset/en_US/base.js',
+        'TDCstCG66tEAO5pR9o', 'dbxNtZ14c-yWyw',
+    ),
+    (
+        'https://www.youtube.com/s/player/c81bbb4a/player_ias.vflset/en_US/base.js',
+        'gre3EcLurNY2vqp94', 'Z9DfGxWP115WTg',
+    ),
+    (
+        'https://www.youtube.com/s/player/1f7d5369/player_ias.vflset/en_US/base.js',
+        'batNX7sYqIJdkJ', 'IhOkL_zxbkOZBw',
+    ),
 ]
 
 
 class TestPlayerInfo(unittest.TestCase):
     def test_youtube_extract_player_info(self):
         PLAYER_URLS = (
+            ('https://www.youtube.com/s/player/4c3f79c5/player_ias.vflset/en_US/base.js', '4c3f79c5'),
             ('https://www.youtube.com/s/player/64dddad9/player_ias.vflset/en_US/base.js', '64dddad9'),
             ('https://www.youtube.com/s/player/64dddad9/player_ias.vflset/fr_FR/base.js', '64dddad9'),
             ('https://www.youtube.com/s/player/64dddad9/player-plasma-ias-phone-en_US.vflset/base.js', '64dddad9'),
