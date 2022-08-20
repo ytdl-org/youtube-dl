@@ -269,7 +269,10 @@ def t_factory(name, sig_func, url_pattern):
         test_id = m.group('id')
 
         def test_func(self):
-            basename = 'player-{0}-{1}.js'.format(name, test_id)
+            tn = name
+            if name.endswith('_wd'):
+                tn = name[:-3]
+            basename = 'player-{0}-{1}.js'.format(tn, test_id)
             fn = os.path.join(self.TESTDATA_DIR, basename)
 
             if not os.path.exists(fn):
@@ -297,6 +300,10 @@ def n_sig(jscode, sig_input):
         funcname, sig_input, _ytdl_do_not_return=sig_input)
 
 
+def n_sig_wd(jscode, sig_input):
+    return YoutubeIE(FakeYDL())._call_n_function_with_webdriver('chrome', jscode, sig_input)
+
+
 make_sig_test = t_factory(
     'signature', signature, re.compile(r'.*(?:-|/player/)(?P<id>[a-zA-Z0-9_-]+)(?:/.+\.js|(?:/watch_as3|/html5player)?\.[a-z]+)$'))
 for test_spec in _SIG_TESTS:
@@ -306,6 +313,11 @@ make_nsig_test = t_factory(
     'nsig', n_sig, re.compile(r'.+/player/(?P<id>[a-zA-Z0-9_-]+)/.+.js$'))
 for test_spec in _NSIG_TESTS:
     make_nsig_test(*test_spec)
+
+make_nsig_wd_test = t_factory(
+    'nsig_wd', n_sig_wd, re.compile(r'.+/player/(?P<id>[a-zA-Z0-9_-]+)/.+.js$'))
+for test_spec in _NSIG_TESTS:
+    make_nsig_wd_test(*test_spec)
 
 
 if __name__ == '__main__':
