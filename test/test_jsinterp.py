@@ -100,8 +100,6 @@ class TestJSInterpreter(unittest.TestCase):
         self.assertEqual(jsi.call_function('f'), -11)
 
     def test_comments(self):
-        'Skipping: Not yet fully implemented'
-        return
         jsi = JSInterpreter('''
         function x() {
             var x = /* 1 + */ 2;
@@ -120,6 +118,9 @@ class TestJSInterpreter(unittest.TestCase):
         }
         ''')
         self.assertEqual(jsi.call_function('f'), 3)
+
+        jsi = JSInterpreter('function f(){var x = 20; +/**/+x; return x;}')
+        self.assertEqual(jsi.call_function('f'), 20)
 
     def test_precedence(self):
         jsi = JSInterpreter('''

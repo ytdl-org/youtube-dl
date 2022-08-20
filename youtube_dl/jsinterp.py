@@ -238,18 +238,64 @@ class JSInterpreter(object):
         return flags, expr[idx + 1:]
 
     @classmethod
+    def _decomment(cls, expr, comment_spans):
+        def code_spans():
+            start = 0
+            for comment_start, comment_end in comment_spans:
+                yield expr[start:comment_start]
+                start = comment_end + 1
+            yield expr[start:]
+        return ' '.join(code_spans())
+
+    @classmethod
     def _separate(cls, expr, delim=',', max_split=None, skip_delims=None):
         if not expr:
             return
         counters = {k: 0 for k in _MATCHING_PARENS.values()}
-        start, splits, pos, delim_len = 0, 0, 0, len(delim) - 1
+        start, splits, pos, delim_len, skip = 0, 0, 0, len(delim) - 1, 0
         in_quote, escaping, skipping = None, False, 0
+        in_comment_block, in_comment_line, finishing_comment = False, False, False
         after_op, in_regex_char_group, skip_re = True, False, 0
+        start_comment = None;
+        comment_spans = []
 
         for idx, char in enumerate(expr):
+            if skip > 0:
+                # If char is already handled in an earlier iteration,
+                # just skip is entirely this time round.
+                skip -= 1
+                continue
             if skip_re > 0:
                 skip_re -= 1
                 continue
+            if not in_quote:
+                if expr[idx:].startswith('//'):
+                    in_comment_line = True
+                    skip = 1
+                    start_comment = idx - start
+                    continue
+                if expr[idx:].startswith('/*'):
+                    in_comment_block = True
+                    skip = 1
+                    start_comment = idx - start
+                    continue
+                if in_comment_block:
+                    if expr[idx:].startswith('*/'):
+                        in_comment_block = False
+                        finishing_comment = True
+                    continue
+                if in_comment_line:
+                    if char == '\n':
+                        in_comment_line = False
+                        comment_spans.append((start_comment, idx));
+                        start_comment = None
+                    continue
+                if finishing_comment:
+                    # Eat the final '/' of a '/* ... */' comment.
+                    finishing_comment = False
+                    comment_spans.append((start_comment, idx));
+                    start_comment = None
+                    continue;
             if not in_quote:
                 if char in _MATCHING_PARENS:
                     counters[_MATCHING_PARENS[char]] += 1
@@ -280,12 +326,12 @@ class JSInterpreter(object):
             if pos < delim_len:
                 pos += 1
                 continue
-            yield expr[start: idx - delim_len]
+            yield cls._decomment(expr[start: idx - delim_len], comment_spans)
             start, pos = idx + 1, 0
             splits += 1
             if max_split and splits >= max_split:
                 break
-        yield expr[start:]
+        yield cls._decomment(expr[start:], comment_spans)
 
     @classmethod
     def _separate_at_paren(cls, expr, delim):
