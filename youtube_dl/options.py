@@ -576,6 +576,9 @@ def parseOpts(overrideArguments=None):
             'Upper bound of a range for randomized sleep before each download '
             '(maximum possible number of seconds to sleep). Must only be used '
             'along with --min-sleep-interval.'))
+    workarounds.add_option(
+        '--webdriver', metavar='TYPE', dest='webdriver', default=None,
+        help='Specify webdriver type when you want to use selenium webdriver to execute "n_function" : "firefox", "chrome", "edge", or "safari"')
 
     verbosity = optparse.OptionGroup(parser, 'Verbosity / Simulation Options')
     verbosity.add_option(

@@ -12,6 +12,7 @@ import re
 import string
 import time
 import traceback
+import importlib
 
 from .common import InfoExtractor, SearchInfoExtractor
 from ..compat import (
@@ -22,6 +23,7 @@ from ..compat import (
     compat_urllib_parse,
     compat_urllib_parse_parse_qs as compat_parse_qs,
     compat_urllib_parse_unquote_plus,
+    compat_urllib_quote,
     compat_urllib_parse_urlparse,
     compat_zip as zip,
 )
@@ -1604,6 +1606,11 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
         super(YoutubeIE, self).__init__(*args, **kwargs)
         self._code_cache = {}
         self._player_cache = {}
+        self._webdriver = None
+
+    def __del__(self):
+        if self._webdriver is not None:
+            self._webdriver.quit()
 
     # *ytcfgs, webpage=None
     def _extract_player_url(self, *ytcfgs, **kw_webpage):
@@ -1852,6 +1859,22 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
         if player_url is None:
             raise ExtractorError('Cannot decrypt nsig without player_url')
 
+        webdriver_type = self._downloader.params.get('webdriver', None)
+        if webdriver_type is not None:
+            try:
+                jscode = self._load_player(video_id, player_url)
+                ret = self._call_n_function_with_webdriver(webdriver_type, jscode, n)
+            except Exception as e:
+                self.report_warning(
+                    '%s (%s %s)' % (
+                        'Unable to decode n-parameter: download likely to be throttled',
+                        error_to_compat_str(e),
+                        traceback.format_exc()),
+                    video_id=video_id)
+                return
+            self.write_debug('Decrypted nsig(with webdriver) {0} => {1}'.format(n, ret))
+            return ret
+
         try:
             jsi, player_id, func_code = self._extract_n_function_code(video_id, player_url)
         except ExtractorError as e:
@@ -1874,6 +1897,58 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
 
         self.write_debug('Decrypted nsig {0} => {1}'.format(n, ret))
         return ret
+
+    def _call_n_function_with_webdriver(self, webdriver_type, jscode, n_param):
+        if self._webdriver is None:
+            wd = importlib.import_module('selenium.webdriver')
+            if webdriver_type == 'firefox':  # geckodriver
+                o = wd.FirefoxOptions()
+                o.headless = True
+                s = wd.firefox.service.Service(log_path=os.path.devnull)
+                self._webdriver = wd.Firefox(options=o, service=s)
+            elif webdriver_type == 'chrome':  # chromedriver
+                o = wd.ChromeOptions()
+                o.headless = True
+                """
+                If you are using the snap version of the chromium, chromedriver is included in the snap package.
+                You should use that driver.
+                $ cd /snap/bin && sudo ln -s -T chromium.chromedriver chromedriver
+                or
+                s = wd.chrome.service.Service(executable_path='chromium.chromedriver')
+                self._webdriver = wd.Chrome(options=o, service=s)
+                """
+                self._webdriver = wd.Chrome(options=o)
+            elif webdriver_type == 'edge':  # msedgedriver
+                o = wd.EdgeOptions()
+                o.headless = True
+                self._webdriver = wd.Edge(options=o)
+            elif webdriver_type == 'safari':  # safaridriver
+                """
+                safaridriver does not have headless-mode. :(
+                But macOS includes safaridriver by default.
+                To enable automation on safaridriver, run the following command once from the admin terminal.
+                # safaridriver --enable
+                """
+                self._webdriver = wd.Safari()
+            else:
+                raise ExtractorError('unsupported webdriver type: %s' % (webdriver_type))
+        self._webdriver.get('about:blank')
+        funcname = self._extract_n_function_name(jscode)
+        alphabet = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ'
+        dummyfunc = ''.join(random.choice(alphabet) for _ in range(8))
+        f = ('return ((e) => {{'
+             'const d = decodeURIComponent(e);'
+             'const p = d.lastIndexOf("}}");'
+             'const th = d.substring(0, p);'
+             'const bh = d.substring(p);'
+             'const m = "var {0};" + th + ";{0} = {1};" + bh;'
+             'const s = document.createElement("script");'
+             's.innerHTML = m;'
+             'document.body.append(s);'
+             'return {0}("{2}");'
+             '}})("{3}");').format(dummyfunc, funcname, n_param, compat_urllib_quote(jscode))
+        n = self._webdriver.execute_script(f)
+        return n
 
     def _extract_n_function_name(self, jscode):
         func_name, idx = None, None

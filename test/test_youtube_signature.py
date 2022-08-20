@@ -408,7 +408,10 @@ def t_factory(name, sig_func, url_pattern):
                 jscode = testf.read()
             self.assertEqual(sig_func(jscode, sig_input), expected_sig)
 
-        test_func.__name__ = str('test_{0}_js_{1}'.format(name, test_id))
+        tn = name
+        if name.endswith('_wd'):
+            tn = name[:-3]
+        test_func.__name__ = str('test_{0}_js_{1}'.format(tn, test_id))
         setattr(TestSignature, test_func.__name__, test_func)
     return make_tfunc
 
@@ -428,6 +431,10 @@ def n_sig(jscode, sig_input):
     return ie._extract_n_function_from_code(jsi, func_code)(sig_input)
 
 
+def n_sig_wd(jscode, sig_input):
+    return YoutubeIE(FakeYDL())._call_n_function_with_webdriver('chrome', jscode, sig_input)
+
+
 make_sig_test = t_factory(
     'signature', signature,
     re.compile(r'''(?x)
@@ -441,6 +448,11 @@ make_nsig_test = t_factory(
     'nsig', n_sig, re.compile(r'.+/player/(?P<id>[a-zA-Z0-9_/.-]+)\.js$'))
 for test_spec in _NSIG_TESTS:
     make_nsig_test(*test_spec)
+
+make_nsig_wd_test = t_factory(
+    'nsig_wd', n_sig_wd, re.compile(r'.+/player/(?P<id>[a-zA-Z0-9_-]+)/.+.js$'))
+for test_spec in _NSIG_TESTS:
+    make_nsig_wd_test(*test_spec)
 
 
 if __name__ == '__main__':
