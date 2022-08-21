@@ -24,6 +24,7 @@ class EmbedThumbnailPPError(PostProcessingError):
 
 
 class EmbedThumbnailPP(FFmpegPostProcessor):
+
     def __init__(self, downloader=None, already_have_thumbnail=False):
         super(EmbedThumbnailPP, self).__init__(downloader)
         self._already_have_thumbnail = already_have_thumbnail
@@ -103,6 +104,7 @@ class EmbedThumbnailPP(FFmpegPostProcessor):
                    encodeFilename(thumbnail_filename, True),
                    encodeArgument('-o'),
                    encodeFilename(temp_filename, True)]
+            cmd += [encodeArgument(o) for o in self._configuration_args(exe='AtomicParsley')]
 
             self._downloader.to_screen('[atomicparsley] Adding thumbnail to "%s"' % filename)
 

@@ -210,7 +210,7 @@ class FFmpegPostProcessor(PostProcessor):
         oldest_mtime = min(
             os.stat(encodeFilename(path)).st_mtime for path in input_paths)
 
-        opts += self._configuration_args()
+        opts += self._configuration_args(exe=self.basename)
 
         files_cmd = []
         for path in input_paths:

@@ -2,9 +2,9 @@ from __future__ import unicode_literals
 
 import os
 
+from ..compat import compat_str
 from ..utils import (
     PostProcessingError,
-    cli_configuration_args,
     encodeFilename,
 )
 
@@ -34,6 +34,10 @@ class PostProcessor(object):
     def __init__(self, downloader=None):
         self._downloader = downloader
 
+    @classmethod
+    def pp_key(cls):
+        return compat_str(cls.__name__[:-2])
+
     def set_downloader(self, downloader):
         """Sets the downloader for this PP."""
         self._downloader = downloader
@@ -61,8 +65,40 @@ class PostProcessor(object):
         except Exception:
             self._downloader.report_warning(errnote)
 
-    def _configuration_args(self, default=[]):
-        return cli_configuration_args(self._downloader.params, 'postprocessor_args', default)
+    def _configuration_args(self, default=[], exe=None):
+        args = self._downloader.params.get('postprocessor_args', {})
+        if isinstance(args, (list, tuple)):  # for backward compatibility
+            return args
+        if args is None:
+            return default
+        assert isinstance(args, dict)
+
+        pp_key = self.pp_key().lower()
+
+        exe_args = None
+        if exe is not None:
+            assert isinstance(exe, compat_str)
+            exe = exe.lower()
+            specific_args = args.get('%s+%s' % (pp_key, exe))
+            if specific_args is not None:
+                assert isinstance(specific_args, (list, tuple))
+                return specific_args
+            exe_args = args.get(exe)
+
+        pp_args = args.get(pp_key)
+        if pp_args is None and exe_args is None:
+            default = args.get('default', default)
+            assert isinstance(default, (list, tuple))
+            return default
+
+        if pp_args is None:
+            pp_args = []
+        elif exe_args is None:
+            exe_args = []
+
+        assert isinstance(pp_args, (list, tuple))
+        assert isinstance(exe_args, (list, tuple))
+        return pp_args + exe_args
 
 
 class AudioConversionError(PostProcessingError):
