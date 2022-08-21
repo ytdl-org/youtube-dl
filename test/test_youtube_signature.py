@@ -449,11 +449,17 @@ make_nsig_test = t_factory(
 for test_spec in _NSIG_TESTS:
     make_nsig_test(*test_spec)
 
-make_nsig_wd_test = t_factory(
-    'nsig_wd', n_sig_wd, re.compile(r'.+/player/(?P<id>[a-zA-Z0-9_-]+)/.+.js$'))
-for test_spec in _NSIG_TESTS:
-    make_nsig_wd_test(*test_spec)
-
+test_wd = False
+for arg in sys.argv:
+    if arg == '--test_wd':
+        test_wd = True
+        break
+if test_wd:
+    sys.argv = [arg for arg in sys.argv if arg != '--test_wd']
+    make_nsig_wd_test = t_factory(
+        'nsig_wd', n_sig_wd, re.compile(r'.+/player/(?P<id>[a-zA-Z0-9_-]+)/.+.js$'))
+    for test_spec in _NSIG_TESTS:
+        make_nsig_wd_test(*test_spec)
 
 if __name__ == '__main__':
     unittest.main()
