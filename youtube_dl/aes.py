@@ -303,7 +303,7 @@ def xor(data1, data2):
 
 
 def rijndael_mul(a, b):
-    if(a == 0 or b == 0):
+    if (a == 0 or b == 0):
         return 0
     return RIJNDAEL_EXP_TABLE[(RIJNDAEL_LOG_TABLE[a] + RIJNDAEL_LOG_TABLE[b]) % 0xFF]
 
