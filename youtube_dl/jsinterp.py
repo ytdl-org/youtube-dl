@@ -5,6 +5,7 @@ import json
 import math
 import operator
 import re
+from collections import Counter
 
 from .utils import (
     error_to_compat_str,
@@ -108,8 +109,8 @@ _OPERATORS = (
 
 _COMP_OPERATORS = (
     ('===', operator.is_),
-    ('==', _js_eq_op(operator.eq)),
     ('!==', operator.is_not),
+    ('==', _js_eq_op(operator.eq)),
     ('!=', _js_eq_op(operator.ne)),
     ('<=', _js_comp_op(operator.le)),
     ('>=', _js_comp_op(operator.ge)),
@@ -241,7 +242,9 @@ class JSInterpreter(object):
     def _separate(cls, expr, delim=',', max_split=None, skip_delims=None):
         if not expr:
             return
+        # collections.Counter() is ~10% slower
         counters = {k: 0 for k in _MATCHING_PARENS.values()}
+        # counters = Counter()
         start, splits, pos, delim_len = 0, 0, 0, len(delim) - 1
         in_quote, escaping, skipping = None, False, 0
         after_op, in_regex_char_group, skip_re = True, False, 0
@@ -442,6 +445,7 @@ class JSInterpreter(object):
             return ret, should_abort or should_return
 
         elif md.get('catch'):
+
             catch_expr, expr = self._separate_at_paren(expr[m.end():], '}')
             if self._EXC_NAME in local_vars:
                 catch_vars = local_vars.new_child({m.group('err'): local_vars.pop(self._EXC_NAME)})
@@ -450,6 +454,7 @@ class JSInterpreter(object):
                     return ret, True
 
             ret, should_abort = self.interpret_statement(expr, local_vars, allow_recursion)
+
             return ret, should_abort or should_return
 
         elif md.get('for'):
