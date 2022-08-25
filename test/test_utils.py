@@ -65,6 +65,7 @@ from youtube_dl.utils import (
     sanitize_filename,
     sanitize_path,
     sanitize_url,
+    sanitized_Request,
     expand_path,
     prepend_extension,
     replace_extension,
@@ -236,6 +237,10 @@ class TestUtil(unittest.TestCase):
         self.assertEqual(sanitize_url('httpss://foo.bar'), 'https://foo.bar')
         self.assertEqual(sanitize_url('rmtps://foo.bar'), 'rtmps://foo.bar')
         self.assertEqual(sanitize_url('https://foo.bar'), 'https://foo.bar')
+        self.assertEqual(sanitize_url('ytsearch:search query'), 'ytsearch:search query')
+
+    def test_sanitized_Request(self):
+        self.assertEqual(sanitized_Request('https://foo.bar/foo bar').get_full_url(), 'https://foo.bar/foo%20bar')
 
     def test_expand_path(self):
         def env(var):
