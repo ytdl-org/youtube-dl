@@ -192,6 +192,31 @@ class TestJSInterpreter(unittest.TestCase):
         ''')
         self.assertEqual(jsi.call_function('x'), 10)
 
+    def test_catch(self):
+        jsi = JSInterpreter('''
+        function x() { try{throw 10} catch(e){return 5} }
+        ''')
+        self.assertEqual(jsi.call_function('x'), 5)
+
+    @unittest.expectedFailure
+    def test_finally(self):
+        jsi = JSInterpreter('''
+        function x() { try{throw 10} finally {return 42} }
+        ''')
+        self.assertEqual(jsi.call_function('x'), 42)
+        jsi = JSInterpreter('''
+        function x() { try{throw 10} catch(e){return 5} finally {return 42} }
+        ''')
+        self.assertEqual(jsi.call_function('x'), 42)
+
+    def test_nested_try(self):
+        jsi = JSInterpreter('''
+        function x() {try {
+            try{throw 10} finally {throw 42} 
+            } catch(e){return 5} }
+        ''')
+        self.assertEqual(jsi.call_function('x'), 5)
+
     def test_for_loop_continue(self):
         jsi = JSInterpreter('''
         function x() { a=0; for (i=0; i-10; i++) { continue; a++ } return a }
