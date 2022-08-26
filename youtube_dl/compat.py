@@ -3005,7 +3005,7 @@ except ImportError:
 try:
     from collections import ChainMap as compat_collections_chain_map
     # Py3.3's ChainMap is deficient
-    if sys.version_info <= (3, 3):
+    if sys.version_info < (3, 4):
         raise ImportError
 except ImportError:
     # Py <= 3.3
