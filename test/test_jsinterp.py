@@ -74,6 +74,9 @@ class TestJSInterpreter(unittest.TestCase):
         jsi = JSInterpreter('function f(){return 0 ?? 42;}')
         self.assertEqual(jsi.call_function('f'), 0)
 
+        jsi = JSInterpreter('function f(){return "life, the universe and everything" < 42;}')
+        self.assertFalse(jsi.call_function('f'))
+
     def test_array_access(self):
         jsi = JSInterpreter('function f(){var x = [1,2,3]; x[0] = 4; x[0] = 5; x[2.0] = 7; return x;}')
         self.assertEqual(jsi.call_function('f'), [5, 2, 7])
@@ -198,7 +201,6 @@ class TestJSInterpreter(unittest.TestCase):
         ''')
         self.assertEqual(jsi.call_function('x'), 5)
 
-    @unittest.expectedFailure
     def test_finally(self):
         jsi = JSInterpreter('''
         function x() { try{throw 10} finally {return 42} }
@@ -212,7 +214,7 @@ class TestJSInterpreter(unittest.TestCase):
     def test_nested_try(self):
         jsi = JSInterpreter('''
         function x() {try {
-            try{throw 10} finally {throw 42} 
+            try{throw 10} finally {throw 42}
             } catch(e){return 5} }
         ''')
         self.assertEqual(jsi.call_function('x'), 5)
@@ -228,6 +230,14 @@ class TestJSInterpreter(unittest.TestCase):
         function x() { a=0; for (i=0; i-10; i++) { break; a++ } return a }
         ''')
         self.assertEqual(jsi.call_function('x'), 0)
+
+    def test_for_loop_try(self):
+        jsi = JSInterpreter('''
+        function x() {
+            for (i=0; i-10; i++) { try { if (i == 5) throw i} catch {return 10} finally {break} };
+            return 42 }
+        ''')
+        self.assertEqual(jsi.call_function('x'), 42)
 
     def test_literal_list(self):
         jsi = JSInterpreter('''
