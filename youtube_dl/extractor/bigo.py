@@ -32,7 +32,7 @@ class BigoIE(InfoExtractor):
         user_id = self._match_id(url)
 
         info_raw = self._download_json(
-            'https://bigo.tv/studio/getInternalStudioInfo',
+            'https://ta.bigo.tv/official_website/studio/getInternalStudioInfo',
             user_id, data=urlencode_postdata({'siteId': user_id}))
 
         if not isinstance(info_raw, dict):
