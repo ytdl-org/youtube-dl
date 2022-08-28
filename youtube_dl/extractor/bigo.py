@@ -12,6 +12,7 @@ class BigoIE(InfoExtractor):
         'url': 'https://www.bigo.tv/ja/221338632',
         'info_dict': {
             'id': '6576287577575737440',
+            'ext': 'mp4',
             'title': '土よ〜💁‍♂️ 休憩室/REST room',
             'thumbnail': r're:https?://.+',
             'uploader': '✨Shin💫',
