@@ -1,7 +1,3 @@
-# -*- coding: utf-8 -*-
-
-from __future__ import unicode_literals
-
 import re
 
 from .common import InfoExtractor
@@ -145,19 +141,19 @@ class BandlabAlbumIE(InfoExtractor):
 class BandlabPlaylistIE(InfoExtractor):
     _VALID_URL = r'https?://(?:www\.)?bandlab\.com/[^/]+/collections/(?P<id>[^/]+)'
     _TEST = {
-        'url': 'https://www.bandlab.com/hexatetrahedronx/collections/606442da-f426-ed11-9441-000d3a3f83b4',
+        'url': 'https://www.bandlab.com/hexatetrahedronx/collections/8fb1041c-e865-eb11-9889-0050f28a2802',
         'playlist': [
             {
                 'info_dict': {
-                    'id': '3086d9cd-983a-4d2c-b088-adc3eb8d618d',
-                    'title': u'If You Leave (En-Esp) Si Te Vas #forkable #fork 🎤🎹📀',
+                    'id': '8f37e4aa-92c4-eb11-a7ad-0050f280467f',
+                    'title': 'psych ward',
                     'ext': 'm4a'
                 }
             }
         ],
         'info_dict': {
-            'id': '606442da-f426-ed11-9441-000d3a3f83b4',
-            'playlist': 'youtube-mp3-test'
+            'id': '8fb1041c-e865-eb11-9889-0050f28a2802',
+            'playlist': 'DOOMTAPE'
         }
     }
 
