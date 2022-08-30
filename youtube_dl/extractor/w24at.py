@@ -26,8 +26,10 @@ class W24atIE(InfoExtractor):
                                             webpage, "video")
         return {
             'id': video_id,
-            'title': self._og_search_title(webpage),
+            'title': re.sub(r'\s+-\sW24\s*$', '', self._og_search_title(webpage)),
             'description': self._og_search_description(webpage),
             'formats': self._extract_m3u8_formats("https://%s%s" % (media_server, m3u8_path), video_id, 'mp4'),
-            'extension': 'mp4'
+            'extension': 'mp4',
+            'thumbnail': self._og_search_thumbnail(webpage),
+            'uploader': self._og_search_property('site_name', webpage, fatal=False),
         }
