@@ -23,10 +23,11 @@ from .compat import (
 
 def _js_bit_op(op):
 
+    def zeroise(x):
+        return 0 if x in (None, JS_Undefined) else x
+
     def wrapped(a, b):
-        def zeroise(x):
-            return 0 if x in (None, JS_Undefined) else x
-        return op(zeroise(a), zeroise(b))
+        return op(zeroise(a), zeroise(b)) & 0xffffffff
 
     return wrapped
 
@@ -44,7 +45,7 @@ def _js_arith_op(op):
 def _js_div(a, b):
     if JS_Undefined in (a, b) or not (a and b):
         return float('nan')
-    return float('inf') if not b else operator.truediv(a or 0, b)
+    return operator.truediv(a or 0, b) if b else float('inf')
 
 
 def _js_mod(a, b):
@@ -260,13 +261,14 @@ class JSInterpreter(object):
                     counters[_MATCHING_PARENS[char]] += 1
                 elif char in counters:
                     counters[char] -= 1
-            if not escaping and char in _QUOTES and in_quote in (char, None):
-                if in_quote or after_op or char != '/':
-                    in_quote = None if in_quote and not in_regex_char_group else char
-            elif in_quote == '/' and char in '[]':
-                in_regex_char_group = char == '['
+            if not escaping:
+                if char in _QUOTES and in_quote in (char, None):
+                    if in_quote or after_op or char != '/':
+                        in_quote = None if in_quote and not in_regex_char_group else char
+                elif in_quote == '/' and char in '[]':
+                    in_regex_char_group = char == '['
             escaping = not escaping and in_quote and char == '\\'
-            after_op = not in_quote and char in cls.OP_CHARS or (char == ' ' and after_op)
+            after_op = not in_quote and (char in cls.OP_CHARS or (char.isspace() and after_op))
 
             if char != delim[pos] or any(counters.values()) or in_quote:
                 pos = skipping = 0
@@ -590,6 +592,8 @@ class JSInterpreter(object):
 
         elif expr == 'undefined':
             return JS_Undefined, should_return
+        elif expr == 'NaN':
+            return float('NaN'), should_return
 
         elif md.get('return'):
             return local_vars[m.group('name')], should_return
@@ -635,7 +639,8 @@ class JSInterpreter(object):
             def assertion(cndn, msg):
                 """ assert, but without risk of getting optimized out """
                 if not cndn:
-                    raise ExtractorError('{member} {msg}'.format(**locals()), expr=expr)
+                    memb = member
+                    raise self.Exception('{member} {msg}'.format(**locals()), expr=expr)
 
             def eval_method():
                 if (variable, member) == ('console', 'debug'):
@@ -737,6 +742,13 @@ class JSInterpreter(object):
                         return obj.index(idx, start)
                     except ValueError:
                         return -1
+                elif member == 'charCodeAt':
+                    assertion(isinstance(obj, compat_str), 'must be applied on a string')
+                    # assertion(len(argvals) == 1, 'takes exactly one argument') # but not enforced
+                    idx = argvals[0] if isinstance(argvals[0], int) else 0
+                    if idx >= len(obj):
+                        return None
+                    return ord(obj[idx])
 
                 idx = int(member) if isinstance(obj, list) else member
                 return obj[idx](argvals, allow_recursion=allow_recursion)
@@ -820,12 +832,10 @@ class JSInterpreter(object):
             if mobj is None:
                 break
             start, body_start = mobj.span()
-            body, remaining = self._separate_at_paren(code[body_start - 1:])
-            name = self._named_object(
-                local_vars,
-                self.extract_function_from_code(
-                    self.build_arglist(mobj.group('args')),
-                    body, local_vars, *global_stack))
+            body, remaining = self._separate_at_paren(code[body_start - 1:], '}')
+            name = self._named_object(local_vars, self.extract_function_from_code(
+                [x.strip() for x in mobj.group('args').split(',')],
+                body, local_vars, *global_stack))
             code = code[:start] + name + remaining
         return self.build_function(argnames, code, local_vars, *global_stack)
 
@@ -854,7 +864,7 @@ class JSInterpreter(object):
                 zip_longest(argnames, args, fillvalue=None))
             global_stack[0].update(kwargs)
             var_stack = LocalNameSpace(*global_stack)
-            ret, should_abort = self.interpret_statement(code.replace('\n', ''), var_stack, allow_recursion - 1)
+            ret, should_abort = self.interpret_statement(code.replace('\n', ' '), var_stack, allow_recursion - 1)
             if should_abort:
                 return ret
         return resf
