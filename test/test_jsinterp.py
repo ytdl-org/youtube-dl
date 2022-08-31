@@ -136,6 +136,11 @@ class TestJSInterpreter(unittest.TestCase):
 
     def test_builtins(self):
         jsi = JSInterpreter('''
+        function x() { return NaN }
+        ''')
+        self.assertTrue(math.isnan(jsi.call_function('x')))
+
+        jsi = JSInterpreter('''
         function x() { return new Date('Wednesday 31 December 1969 18:01:26 MDT') - 0; }
         ''')
         self.assertEqual(jsi.call_function('x'), 86000)
@@ -384,6 +389,22 @@ class TestJSInterpreter(unittest.TestCase):
         function x() { let a=/,,[/,913,/](,)}/i; return a; }
         ''')
         self.assertEqual(jsi.call_function('x').flags & ~re.U, re.I)
+
+    def test_char_code_at(self):
+        jsi = JSInterpreter('function x(i){return "test".charCodeAt(i)}')
+        self.assertEqual(jsi.call_function('x', 0), 116)
+        self.assertEqual(jsi.call_function('x', 1), 101)
+        self.assertEqual(jsi.call_function('x', 2), 115)
+        self.assertEqual(jsi.call_function('x', 3), 116)
+        self.assertEqual(jsi.call_function('x', 4), None)
+        self.assertEqual(jsi.call_function('x', 'not_a_number'), 116)
+
+    def test_bitwise_operators_overflow(self):
+        jsi = JSInterpreter('function x(){return -524999584 << 5}')
+        self.assertEqual(jsi.call_function('x'), 379882496)
+
+        jsi = JSInterpreter('function x(){return 1236566549 << 5}')
+        self.assertEqual(jsi.call_function('x'), 915423904)
 
 
 if __name__ == '__main__':
