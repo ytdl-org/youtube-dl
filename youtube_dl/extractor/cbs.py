@@ -55,6 +55,9 @@ class CBSIE(CBSBaseIE):
     }, {
         'url': 'https://www.paramountplus.com/shows/all-rise/video/QmR1WhNkh1a_IrdHZrbcRklm176X_rVc/all-rise-space/',
         'only_matching': True,
+    }, {
+        'url': 'https://www.cbs.com/shows/video/GdZlRWQ9xaxkOmx573U_ZhuSl_nfBqFw/',
+        'only_matching': True,
     }]
 
     def _extract_video_info(self, content_id, site='cbs', mpx_acc=2198311517):
