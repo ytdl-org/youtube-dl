@@ -107,8 +107,8 @@ _OPERATORS = (
     ('+', _js_arith_op(operator.add)),
     ('-', _js_arith_op(operator.sub)),
     ('*', _js_arith_op(operator.mul)),
-    ('/', _js_div),
     ('%', _js_mod),
+    ('/', _js_div),
     ('**', _js_exp),
 )
 
