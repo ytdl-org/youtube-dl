@@ -578,7 +578,7 @@ def parseOpts(overrideArguments=None):
             'along with --min-sleep-interval.'))
     workarounds.add_option(
         '--webdriver', metavar='TYPE', dest='webdriver', default=None,
-        help='Specify webdriver type when you want to use selenium webdriver to execute "n_function" : "firefox", "chrome", "edge", or "safari"')
+        help='Specify webdriver type when you want to use Selenium to execute YouTube\'s "n_function" in order to avoid throttling: "firefox", "chrome", "edge", or "safari"')
 
     verbosity = optparse.OptionGroup(parser, 'Verbosity / Simulation Options')
     verbosity.add_option(
