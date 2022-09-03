@@ -108,6 +108,7 @@ from .bbc import (
 )
 from .beeg import BeegIE
 from .behindkink import BehindKinkIE
+from .bellesa import BellesaIE
 from .bellmedia import BellMediaIE
 from .beatport import BeatportIE
 from .bet import BetIE
