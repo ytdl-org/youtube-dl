@@ -993,6 +993,7 @@ from .radiocanada import (
 from .radiode import RadioDeIE
 from .radiojavan import RadioJavanIE
 from .radiobremen import RadioBremenIE
+from .radiofrance import RadioFrancePodcastIE
 from .rai import (
     RaiPlayIE,
     RaiPlayLiveIE,
