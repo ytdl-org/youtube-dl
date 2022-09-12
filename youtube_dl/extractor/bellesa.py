@@ -1,3 +1,4 @@
+# coding: utf-8
 from __future__ import unicode_literals
 
 import json
@@ -21,8 +22,8 @@ class BellesaIE(InfoExtractor):
             'upload_date': '20191216',
             'timestamp': 1576539207,
             'duration': 721,
-            'tags': ["HD Porn", "Porn for Women", "Orgasm", "Bellesa Films", "Threesome", "FFF", "Girl on Girl", "Lesbians", "Lesbian Porn", "Nipple Licking", "Finger", "Cunnilingus", "Anilingus", "Eating Out", "Clit Play", "Clit Stimulation", "Natural Breasts", "Face Sitting", "Spitting"],
-            'categories': ["Girl on Girl", "Story"],
+            'tags': ['HD Porn', 'Porn for Women', 'Orgasm', 'Bellesa Films', 'Threesome', 'FFF', 'Girl on Girl', 'Lesbians', 'Lesbian Porn', 'Nipple Licking', 'Finger', 'Cunnilingus', 'Anilingus', 'Eating Out', 'Clit Play', 'Clit Stimulation', 'Natural Breasts', 'Face Sitting', 'Spitting'],
+            'categories': ['Girl on Girl', 'Story'],
             'age_limit': 18,
         }
     }]
@@ -33,7 +34,10 @@ class BellesaIE(InfoExtractor):
         webpage = self._download_webpage(
             'https://www.bellesa.co/videos/%s/' % video_id, video_id)
 
-        if "VideoCard" not in webpage:
+        # videos on this page are embedded into a container called VideoCard - if there is
+        # nothing on the page referencing a VideoCard we cannot extract the information and
+        # thus need to raise an error
+        if 'VideoCard' not in webpage:
             title = self._html_search_regex(
                 r'<title[^>]*>(?P<title>.+?)\s+\|\s+Bellesa',
                 webpage, 'title', default=None,
@@ -41,24 +45,24 @@ class BellesaIE(InfoExtractor):
 
             raise ExtractorError('%s said: %s' % (self.IE_NAME, clean_html(title)), expected=True)
 
-        initial_data_raw = self._search_regex(r"window\.__INITIAL_DATA__\s+=\s+(.+?);</script>", webpage, 'initial_data')
+        initial_data_raw = self._search_regex(r'window\.__INITIAL_DATA__\s+=\s+(.+?);</script>', webpage, 'initial_data')
 
         try:
             initial_data = json.loads(initial_data_raw)
         except json.JSONDecodeError:
             raise ExtractorError('%s said: cannot decode initial data', self.IE_NAME, expected=True)
 
-        video = try_get(initial_data, lambda x: x["video"])
+        video = try_get(initial_data, lambda x: x['video'])
         if not video:
             raise ExtractorError('%s said: initial data malformed' % self.IE_NAME, expected=True)
 
-        resolutions = try_get(video, lambda x: x["resolutions"])
-        source = try_get(video, lambda x: x["source"])
+        resolutions = try_get(video, lambda x: x['resolutions'])
+        source = try_get(video, lambda x: x['source'])
 
         if not resolutions or not source:
             raise ExtractorError('%s said: cannot extract playlist information from meta data' % self.IE_NAME, expected=True)
 
-        m3u8_url = "https://s.bellesa.co/hls/v/%s/,%s,.mp4.urlset/master.m3u8" % (source, resolutions)
+        m3u8_url = 'https://s.bellesa.co/hls/v/%s/,%s,.mp4.urlset/master.m3u8' % (source, resolutions)
         formats = self._extract_m3u8_formats(
             m3u8_url, video_id, 'mp4',
             entry_protocol='m3u8_native', m3u8_id='hls',
@@ -67,37 +71,37 @@ class BellesaIE(InfoExtractor):
         self._sort_formats(formats)
 
         # get from video meta data first
-        title = video.get("title")
+        title = video.get('title')
         if title:
             title = title.strip()
         else:
             # fallback to og:title, which needs some treatment
             title = self._og_search_title(webpage)
             if title:
-                title = title.split("|")[0].strip()
+                title = title.split('|')[0].strip()
 
         tags = None
-        tag_string = video.get("tags")
+        tag_string = video.get('tags')
         if tag_string:
-            tags = [c for c in map(lambda s: s.strip(), tag_string.split(","))]
+            tags = [c for c in map(lambda s: s.strip(), tag_string.split(','))]
 
         categories = None
-        if "categories" in video:
-            categories = [c["name"] for c in video.get("categories")]
+        if 'categories' in video:
+            categories = [c['name'] for c in video.get('categories')]
 
-        description = try_get(video, lambda x: x["description"])
+        description = try_get(video, lambda x: x['description'])
         if description:
             description = description.strip()
 
         return {
             'id': video_id,
             'title': title,
-            'thumbnail': try_get(video, lambda x: x["image"]),
+            'thumbnail': try_get(video, lambda x: x['image']),
             'description': description,
-            'creator': try_get(video, lambda x: x["content_provider"][0]["name"]),
-            'timestamp': try_get(video, lambda x: x["posted_on"]),
-            'duration': try_get(video, lambda x: x["duration"]),
-            'view_count': try_get(video, lambda x: x["views"]),
+            'creator': try_get(video, lambda x: x['content_provider'][0]['name']),
+            'timestamp': try_get(video, lambda x: x['posted_on']),
+            'duration': try_get(video, lambda x: x['duration']),
+            'view_count': try_get(video, lambda x: x['views']),
             'tags': tags,
             'categories': categories,
             'age_limit': 18,
