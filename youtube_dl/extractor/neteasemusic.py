@@ -2,6 +2,7 @@
 from __future__ import unicode_literals
 
 from base64 import b64encode
+from binascii import hexlify
 from datetime import datetime
 from hashlib import md5
 from random import randint
@@ -71,8 +72,8 @@ class NetEaseMusicBaseIE(InfoExtractor):
         data = '{}-36cd479b6b5-{}-36cd479b6b5-{}'.format(
             URL, request_text, msg_digest)
         data = pkcs7_padding(bytes_to_intlist(data))
-        encrypted_params = intlist_to_bytes(
-            aes_ecb_encrypt(data, bytes_to_intlist(KEY))).hex().upper()
+        encrypted = intlist_to_bytes(aes_ecb_encrypt(data, bytes_to_intlist(KEY)))
+        encrypted_params = hexlify(encrypted).decode('ascii').upper()
 
         cookie = '; '.join(
             ['{}={}'.format(k, v if v is not None else 'undefined')
@@ -90,9 +91,7 @@ class NetEaseMusicBaseIE(InfoExtractor):
     def _call_player_api(cls, song_id, bitrate):
         url = 'https://interface3.music.163.com/eapi/song/enhance/player/url'
         data, headers = cls.make_player_api_request_data_and_headers(song_id, bitrate)
-        req = sanitized_Request(
-            url, data=data.encode('latin1'), headers=headers, method='POST',
-        )
+        req = sanitized_Request(url, data=data.encode('ascii'), headers=headers)
         try:
             resp = compat_urllib_request.urlopen(req)
         except Exception:
