@@ -154,18 +154,6 @@ class NetEaseMusicIE(NetEaseMusicBaseIE):
             'description': 'md5:25fc5f27e47aad975aa6d36382c7833c',
         },
     }, {
-        'note': 'No lyrics translation.',
-        'url': 'http://music.163.com/#/song?id=29822014',
-        'info_dict': {
-            'id': '29822014',
-            'ext': 'mp3',
-            'title': '听见下雨的声音',
-            'creator': '周杰伦',
-            'upload_date': '20141225',
-            'timestamp': 1419523200,
-            'description': 'md5:a4d8d89f44656af206b7b2555c0bce6c',
-        },
-    }, {
         'note': 'No lyrics.',
         'url': 'http://music.163.com/song?id=17241424',
         'info_dict': {
@@ -174,6 +162,7 @@ class NetEaseMusicIE(NetEaseMusicBaseIE):
             'title': 'Opus 28',
             'creator': 'Dustin O\'Halloran',
             'upload_date': '20080211',
+            'description': '[99:00.00]纯音乐，请欣赏\n',
             'timestamp': 1202745600,
         },
     }, {
