@@ -22,9 +22,9 @@ from ..utils import (
 _bytes_to_chr = (lambda x: x) if sys.version_info[0] == 2 else (lambda x: map(chr, x))
 
 
-class RTVEALaCartaIE(InfoExtractor):
-    IE_NAME = 'rtve.es:alacarta'
-    IE_DESC = 'RTVE a la carta'
+class RTVEPlayIE(InfoExtractor):
+    IE_NAME = 'rtve.es:play'
+    IE_DESC = 'RTVE Play'
     _VALID_URL = r'https?://(?:www\.)?rtve\.es/(playz?/videos|filmoteca)/[^/]+/[^/]+/(?P<id>\d+)'
 
     _TESTS = [{
@@ -183,7 +183,7 @@ class RTVEALaCartaIE(InfoExtractor):
             for s in subs)
 
 
-class RTVEInfantilIE(RTVEALaCartaIE):
+class RTVEInfantilIE(RTVEPlayIE):
     IE_NAME = 'rtve.es:infantil'
     IE_DESC = 'RTVE infantil'
     _VALID_URL = r'https?://(?:www\.)?rtve\.es/infantil/serie/[^/]+/video/[^/]+/(?P<id>[0-9]+)/'
@@ -202,7 +202,7 @@ class RTVEInfantilIE(RTVEALaCartaIE):
     }]
 
 
-class RTVELiveIE(RTVEALaCartaIE):
+class RTVELiveIE(RTVEPlayIE):
     IE_NAME = 'rtve.es:live'
     IE_DESC = 'RTVE.es live streams'
     _VALID_URL = r'https?://(?:www\.)?rtve\.es/play/videos/directo/(?P<id>.+)'
@@ -255,4 +255,4 @@ class RTVETelevisionIE(InfoExtractor):
             raise ExtractorError(
                 'The webpage doesn\'t contain any video', expected=True)
 
-        return self.url_result(alacarta_url, ie=RTVEALaCartaIE.ie_key())
+        return self.url_result(alacarta_url, ie=RTVEPlayIE.ie_key())
