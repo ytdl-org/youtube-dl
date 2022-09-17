@@ -26,7 +26,7 @@ _bytes_to_chr = (lambda x: x) if sys.version_info[0] == 2 else (lambda x: map(ch
 class RTVEPlayIE(InfoExtractor):
     IE_NAME = 'rtve.es:play'
     IE_DESC = 'RTVE Play'
-    _VALID_URL = r'https?://(?:www\.)?rtve\.es/(playz?/videos|filmoteca)/[^/]+/[^/]+/(?P<id>\d+)'
+    _VALID_URL = r'https?://(?:www\.)?rtve\.es/(?P<kind>playz?/(?:audios|videos)|filmoteca)/[^/]+/[^/]+/(?P<id>\d+)'
 
     _TESTS = [{
         'url': 'http://www.rtve.es/alacarta/videos/balonmano/o-swiss-cup-masculina-final-espana-suecia/2491869/',
@@ -70,6 +70,17 @@ class RTVEPlayIE(InfoExtractor):
     }, {
         'url': 'http://www.rtve.es/filmoteca/no-do/not-1-introduccion-primer-noticiario-espanol/1465256/',
         'only_matching': True,
+    }, {
+        'url': 'http://www.rtve.es/alacarta/audios/a-hombros-de-gigantes/palabra-ingeniero-codigos-informaticos-27-04-21/5889192/',
+        'md5': 'ae06d27bff945c4e87a50f89f6ce48ce',
+        'info_dict': {
+            'id': '5889192',
+            'ext': 'mp3',
+            'title': 'Códigos informáticos',
+            'description': 'md5:72b0d7c1ca20fd327bdfff7ac0171afb',
+            'thumbnail': r're:https?://.+/1598856591583.jpg',
+            'duration': 349.440,
+        },
     }]
 
     def _real_initialize(self):
@@ -149,11 +160,14 @@ class RTVEPlayIE(InfoExtractor):
         return formats
 
     def _real_extract(self, url):
-        return self._real_extract_from_id(self._match_id(url))
+        groups = re.match(self._VALID_URL, url).groupdict()
+        is_audio = groups.get('kind') == 'play/audios'
+        return self._real_extract_from_id(groups['id'], is_audio)
 
-    def _real_extract_from_id(self, video_id):
+    def _real_extract_from_id(self, video_id, is_audio=False):
+        kind = 'audios' if is_audio else 'videos'
         info = self._download_json(
-            'http://www.rtve.es/api/videos/%s.json' % video_id,
+            'http://www.rtve.es/api/%s/%s.json' % (kind, video_id),
             video_id)['page']['items'][0]
         if (info.get('pubState') or {}).get('code') == 'DESPU':
             raise ExtractorError('The video is no longer available', expected=True)
