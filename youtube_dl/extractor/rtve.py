@@ -229,7 +229,8 @@ class RTVELiveIE(RTVEPlayIE):
 
 class RTVETelevisionIE(InfoExtractor):
     IE_NAME = 'rtve.es:television'
-    _VALID_URL = r'https?://(?:www\.)?rtve\.es/television/[^/]+/[^/]+/(?P<id>\d+).shtml'
+    # https://www.rtve.es/SECTION/YYYYMMDD/CONTENT_SLUG/CONTENT_ID.shtml
+    _VALID_URL = r'https?://(?:www\.)?rtve\.es/[^/]+/\d{8}/[^/]+/(?P<id>\d+)\.shtml'
 
     _TEST = {
         'url': 'http://www.rtve.es/television/20160628/revolucion-del-movil/1364141.shtml',
