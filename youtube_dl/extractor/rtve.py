@@ -86,8 +86,12 @@ class RTVEALaCartaIE(InfoExtractor):
                 break
             data = encrypted_data.read(length)
             if chunk_type == b'tEXt':
-                alphabet_data, text = data.split(b'\0')
-                quality, url_data = text.split(b'%%')
+                alphabet_data, text = data.replace(b'\0', b'').split(b'#')
+                components = text.split(b'%%')
+                if len(components) < 2:
+                    components.insert(0, b'')
+                quality, url_data = components
+
                 alphabet = []
                 e = 0
                 d = 0
