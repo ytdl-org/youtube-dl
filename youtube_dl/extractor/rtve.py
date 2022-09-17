@@ -16,8 +16,6 @@ from ..utils import (
     ExtractorError,
     float_or_none,
     qualities,
-    remove_end,
-    remove_start,
     std_headers,
 )
 
@@ -147,7 +145,9 @@ class RTVEALaCartaIE(InfoExtractor):
         return formats
 
     def _real_extract(self, url):
-        video_id = self._match_id(url)
+        return self._real_extract_from_id(self._match_id(url))
+
+    def _real_extract_from_id(self, video_id):
         info = self._download_json(
             'http://www.rtve.es/api/videos/%s/config/alacarta_videos.json' % video_id,
             video_id)['page']['items'][0]
@@ -220,25 +220,11 @@ class RTVELiveIE(RTVEALaCartaIE):
     }]
 
     def _real_extract(self, url):
-        mobj = re.match(self._VALID_URL, url)
-        video_id = mobj.group('id')
-
-        webpage = self._download_webpage(url, video_id)
-        title = remove_end(self._og_search_title(webpage), ' en directo en RTVE.es')
-        title = remove_start(title, 'Estoy viendo ')
-
-        vidplayer_id = self._search_regex(
-            (r'playerId=player([0-9]+)',
-             r'class=["\'].*?\blive_mod\b.*?["\'][^>]+data-assetid=["\'](\d+)',
-             r'data-id=["\'](\d+)'),
+        webpage = self._download_webpage(url, self._match_id(url))
+        asset_id = self._search_regex(
+            r'class=["\'].*?\bvideoPlayer\b.*?["\'][^>]+data-setup=[^>]+?(?:"|&quot;)idAsset(?:"|&quot;)\s*:\s*(?:"|&quot;)(\d+)(?:"|&quot;)',
             webpage, 'internal video ID')
-
-        return {
-            'id': video_id,
-            'title': self._live_title(title),
-            'formats': self._extract_png_formats(vidplayer_id),
-            'is_live': True,
-        }
+        return self._real_extract_from_id(asset_id)
 
 
 class RTVETelevisionIE(InfoExtractor):
