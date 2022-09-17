@@ -12,6 +12,7 @@ from ..compat import (
     compat_struct_unpack,
 )
 from ..utils import (
+    clean_html,
     determine_ext,
     ExtractorError,
     float_or_none,
@@ -33,7 +34,8 @@ class RTVEPlayIE(InfoExtractor):
         'info_dict': {
             'id': '2491869',
             'ext': 'mp4',
-            'title': 'Balonmano - Swiss Cup masculina. Final: España-Suecia',
+            'title': 'Final de la Swiss Cup masculina: España-Suecia',
+            'description': 'Swiss Cup masculina, Final: España-Suecia.',
             'duration': 5024.566,
             'series': 'Balonmano',
         },
@@ -45,6 +47,7 @@ class RTVEPlayIE(InfoExtractor):
             'id': '1694255',
             'ext': 'mp4',
             'title': 're:^24H LIVE [0-9]{4}-[0-9]{2}-[0-9]{2} [0-9]{2}:[0-9]{2}$',
+            'description': '24H LIVE',
             'is_live': True,
         },
         'params': {
@@ -56,7 +59,8 @@ class RTVEPlayIE(InfoExtractor):
         'info_dict': {
             'id': '4236788',
             'ext': 'mp4',
-            'title': 'Servir y proteger - Capítulo 104',
+            'title': 'Capítulo 104',
+            'description': 'md5:caae29ae04291875e611dd667fe84641',
             'duration': 3222.0,
         },
         'expected_warnings': ['Failed to download MPD manifest', 'Failed to download m3u8 information'],
@@ -149,9 +153,9 @@ class RTVEPlayIE(InfoExtractor):
 
     def _real_extract_from_id(self, video_id):
         info = self._download_json(
-            'http://www.rtve.es/api/videos/%s/config/alacarta_videos.json' % video_id,
+            'http://www.rtve.es/api/videos/%s.json' % video_id,
             video_id)['page']['items'][0]
-        if info['state'] == 'DESPU':
+        if (info.get('pubState') or {}).get('code') == 'DESPU':
             raise ExtractorError('The video is no longer available', expected=True)
         title = info['title'].strip()
         formats = self._extract_png_formats(video_id)
@@ -161,17 +165,19 @@ class RTVEPlayIE(InfoExtractor):
         if sbt_file:
             subtitles = self.extract_subtitles(video_id, sbt_file)
 
-        is_live = info.get('live') is True
+        is_live = info.get('consumption') == 'live'
 
         return {
             'id': video_id,
             'title': self._live_title(title) if is_live else title,
             'formats': formats,
-            'thumbnail': info.get('image'),
+            'url': info.get('htmlUrl'),
+            'description': clean_html(info.get('description')),
+            'thumbnail': info.get('thumbnail'),
             'subtitles': subtitles,
             'duration': float_or_none(info.get('duration'), 1000),
             'is_live': is_live,
-            'series': info.get('programTitle'),
+            'series': (info.get('programInfo') or {}).get('title'),
         }
 
     def _get_subtitles(self, video_id, sub_file):
@@ -195,7 +201,8 @@ class RTVEInfantilIE(RTVEPlayIE):
             'id': '6693248',
             'ext': 'mp4',
             'title': 'Un pequeño gran ayudante',
-            'thumbnail': r're:https?://.+/1663318364013\.jpg',
+            'description': 'md5:144ca351e31f9ee99a637ab9fc2787d5',
+            'thumbnail': r're:https?://.+/1663318364501\.jpg',
             'duration': 691.44,
         },
         'expected_warnings': ['Failed to download MPD manifest', 'Failed to download m3u8 information'],
@@ -213,6 +220,7 @@ class RTVELiveIE(RTVEPlayIE):
             'id': '1688877',
             'ext': 'mp4',
             'title': 're:^La 1 [0-9]{4}-[0-9]{2}-[0-9]{2} [0-9]{2}:[0-9]{2}$',
+            'description': 'La 1',
         },
         'params': {
             'skip_download': 'live stream',
@@ -223,6 +231,7 @@ class RTVELiveIE(RTVEPlayIE):
             'id': '1688877',
             'ext': 'mp4',
             'title': 're:^La 1 [0-9]{4}-[0-9]{2}-[0-9]{2} [0-9]{2}:[0-9]{2}$',
+            'description': 'La 1',
         },
         'params': {
             'skip_download': 'live stream',
@@ -233,6 +242,7 @@ class RTVELiveIE(RTVEPlayIE):
             'id': '1938028',
             'ext': 'mp4',
             'title': 're:^Mas24 - 1 [0-9]{4}-[0-9]{2}-[0-9]{2} [0-9]{2}:[0-9]{2}$',
+            'description': 'Mas24 - 1',
         },
         'params': {
             'skip_download': 'live stream',
@@ -258,6 +268,7 @@ class RTVETelevisionIE(InfoExtractor):
             'id': '6668919',
             'ext': 'mp4',
             'title': 'Las películas del Festival de San Sebastián en RTVE Play',
+            'description': 'El\xa0Festival de San Sebastián vuelve a llenarse de artistas. Y en su honor,\xa0RTVE Play\xa0destacará cada viernes una\xa0película galardonada\xa0con la\xa0Concha de Oro\xa0en su catálogo.',
             'duration': 20.048,
         },
         'params': {
@@ -269,6 +280,7 @@ class RTVETelevisionIE(InfoExtractor):
             'id': '6694087',
             'ext': 'mp4',
             'title': 'Penélope Cruz recoge el Premio Nacional de Cinematografía: "No dejen nunca de proteger nuestro cine"',
+            'description': 'md5:eda9e6baa78dbbbcc7708c0cc8150a91',
             'duration': 388.2,
         },
         'params': {
@@ -280,6 +292,7 @@ class RTVETelevisionIE(InfoExtractor):
             'id': '6694142',
             'ext': 'mp4',
             'title': "Bagnaia logra su quinta 'pole' del año y Márquez partirá decimotercero",
+            'description': 'md5:07e2ccb983a046cb42f896cce225f0a7',
             'duration': 153.44,
         },
         'params': {
@@ -290,7 +303,8 @@ class RTVETelevisionIE(InfoExtractor):
         'info_dict': {
             'id': '6665408',
             'ext': 'mp4',
-            'title': 'Festivales Playz: Covaleda Fest (Soria) - Día 3 con Marc Seguí, Rizha y Judeline',
+            'title': 'Covaleda Fest (Soria) - Día 3 con Marc Seguí y Paranoid 1966',
+            'description': 'Festivales Playz viaja a Covaleda, Soria, para contarte todo lo que sucede en el Covaleda Fest. Entrevistas, challenges a los artistas, juegos... Khan, Adriana Jiménez y María García no dejarán pasar ni una. ¡No te lo pierdas!',
             'duration': 12009.92,
         },
         'params': {
