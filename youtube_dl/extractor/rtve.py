@@ -27,7 +27,7 @@ _bytes_to_chr = (lambda x: x) if sys.version_info[0] == 2 else (lambda x: map(ch
 class RTVEALaCartaIE(InfoExtractor):
     IE_NAME = 'rtve.es:alacarta'
     IE_DESC = 'RTVE a la carta'
-    _VALID_URL = r'https?://(?:www\.)?rtve\.es/(m/)?(alacarta/videos|filmoteca)/[^/]+/[^/]+/(?P<id>\d+)'
+    _VALID_URL = r'https?://(?:www\.)?rtve\.es/(playz?/videos|filmoteca)/[^/]+/[^/]+/(?P<id>\d+)'
 
     _TESTS = [{
         'url': 'http://www.rtve.es/alacarta/videos/balonmano/o-swiss-cup-masculina-final-espana-suecia/2491869/',
@@ -124,7 +124,7 @@ class RTVEALaCartaIE(InfoExtractor):
 
     def _extract_png_formats(self, video_id):
         png = self._download_webpage(
-            'http://www.rtve.es/ztnr/movil/thumbnail/%s/videos/%s.png' % (self._manager, video_id),
+            'http://ztnr.rtve.es/ztnr/movil/thumbnail/%s/videos/%s.png' % (self._manager, video_id),
             video_id, 'Downloading url information', query={'q': 'v2'})
         q = qualities(['Media', 'Alta', 'HQ', 'HD_READY', 'HD_FULL'])
         formats = []
@@ -205,7 +205,7 @@ class RTVEInfantilIE(RTVEALaCartaIE):
 class RTVELiveIE(RTVEALaCartaIE):
     IE_NAME = 'rtve.es:live'
     IE_DESC = 'RTVE.es live streams'
-    _VALID_URL = r'https?://(?:www\.)?rtve\.es/directo/(?P<id>[a-zA-Z0-9-]+)'
+    _VALID_URL = r'https?://(?:www\.)?rtve\.es/play/videos/directo/(?P<id>.+)'
 
     _TESTS = [{
         'url': 'http://www.rtve.es/directo/la-1/',
@@ -263,7 +263,7 @@ class RTVETelevisionIE(InfoExtractor):
         webpage = self._download_webpage(url, page_id)
 
         alacarta_url = self._search_regex(
-            r'data-location="alacarta_videos"[^<]+url&quot;:&quot;(http://www\.rtve\.es/alacarta.+?)&',
+            r'data-location="alacarta_videos"[^<]+url&quot;:&quot;(https?://www\.rtve\.es/play.+?)&',
             webpage, 'alacarta url', default=None)
         if alacarta_url is None:
             raise ExtractorError(
