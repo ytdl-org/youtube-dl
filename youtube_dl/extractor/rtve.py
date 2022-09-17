@@ -29,7 +29,7 @@ class RTVEPlayIE(InfoExtractor):
 
     _TESTS = [{
         'url': 'http://www.rtve.es/alacarta/videos/balonmano/o-swiss-cup-masculina-final-espana-suecia/2491869/',
-        'md5': '1d49b7e1ca7a7502c56a4bf1b60f1b43',
+        'md5': '2c70aacf8a415d1b4e7fcc0525951162',
         'info_dict': {
             'id': '2491869',
             'ext': 'mp4',
@@ -52,7 +52,7 @@ class RTVEPlayIE(InfoExtractor):
         },
     }, {
         'url': 'http://www.rtve.es/alacarta/videos/servir-y-proteger/servir-proteger-capitulo-104/4236788/',
-        'md5': 'd850f3c8731ea53952ebab489cf81cbf',
+        'md5': '30b8827cba25f39d1af5a7c482cc8ac5',
         'info_dict': {
             'id': '4236788',
             'ext': 'mp4',
@@ -189,14 +189,14 @@ class RTVEInfantilIE(RTVEPlayIE):
     _VALID_URL = r'https?://(?:www\.)?rtve\.es/infantil/serie/[^/]+/video/[^/]+/(?P<id>[0-9]+)/'
 
     _TESTS = [{
-        'url': 'http://www.rtve.es/infantil/serie/cleo/video/maneras-vivir/3040283/',
-        'md5': '5747454717aedf9f9fdf212d1bcfc48d',
+        'url': 'https://www.rtve.es/infantil/serie/dino-ranch/video/pequeno-gran-ayudante/6693248/',
+        'md5': '06d3f57eec593ad93fe9dcf079fbd940',
         'info_dict': {
-            'id': '3040283',
+            'id': '6693248',
             'ext': 'mp4',
-            'title': 'Maneras de vivir',
-            'thumbnail': r're:https?://.+/1426182947956\.JPG',
-            'duration': 357.958,
+            'title': 'Un pequeño gran ayudante',
+            'thumbnail': r're:https?://.+/1663318364013\.jpg',
+            'duration': 691.44,
         },
         'expected_warnings': ['Failed to download MPD manifest', 'Failed to download m3u8 information'],
     }]
@@ -208,11 +208,31 @@ class RTVELiveIE(RTVEPlayIE):
     _VALID_URL = r'https?://(?:www\.)?rtve\.es/play/videos/directo/(?P<id>.+)'
 
     _TESTS = [{
-        'url': 'http://www.rtve.es/directo/la-1/',
+        'url': 'https://www.rtve.es/play/videos/directo/la-1/',
         'info_dict': {
-            'id': 'la-1',
+            'id': '1688877',
             'ext': 'mp4',
             'title': 're:^La 1 [0-9]{4}-[0-9]{2}-[0-9]{2} [0-9]{2}:[0-9]{2}$',
+        },
+        'params': {
+            'skip_download': 'live stream',
+        }
+    }, {
+        'url': 'https://www.rtve.es/play/videos/directo/canales-lineales/la-1/',
+        'info_dict': {
+            'id': '1688877',
+            'ext': 'mp4',
+            'title': 're:^La 1 [0-9]{4}-[0-9]{2}-[0-9]{2} [0-9]{2}:[0-9]{2}$',
+        },
+        'params': {
+            'skip_download': 'live stream',
+        }
+    }, {
+        'url': 'https://www.rtve.es/play/videos/directo/canales-lineales/capilla-ardiente-isabel-westminster/10886/',
+        'info_dict': {
+            'id': '1938028',
+            'ext': 'mp4',
+            'title': 're:^Mas24 - 1 [0-9]{4}-[0-9]{2}-[0-9]{2} [0-9]{2}:[0-9]{2}$',
         },
         'params': {
             'skip_download': 'live stream',
@@ -232,18 +252,51 @@ class RTVETelevisionIE(InfoExtractor):
     # https://www.rtve.es/SECTION/YYYYMMDD/CONTENT_SLUG/CONTENT_ID.shtml
     _VALID_URL = r'https?://(?:www\.)?rtve\.es/[^/]+/\d{8}/[^/]+/(?P<id>\d+)\.shtml'
 
-    _TEST = {
-        'url': 'http://www.rtve.es/television/20160628/revolucion-del-movil/1364141.shtml',
+    _TESTS = [{
+        'url': 'https://www.rtve.es/television/20220916/destacados-festival-san-sebastian-rtve-play/2395620.shtml',
         'info_dict': {
-            'id': '3069778',
+            'id': '6668919',
             'ext': 'mp4',
-            'title': 'Documentos TV - La revolución del móvil',
-            'duration': 3496.948,
+            'title': 'Las películas del Festival de San Sebastián en RTVE Play',
+            'duration': 20.048,
         },
         'params': {
             'skip_download': True,
         },
-    }
+    }, {
+        'url': 'https://www.rtve.es/noticias/20220917/penelope-cruz-san-sebastian-premio-nacional/2402565.shtml',
+        'info_dict': {
+            'id': '6694087',
+            'ext': 'mp4',
+            'title': 'Penélope Cruz recoge el Premio Nacional de Cinematografía: "No dejen nunca de proteger nuestro cine"',
+            'duration': 388.2,
+        },
+        'params': {
+            'skip_download': True,
+        },
+    }, {
+        'url': 'https://www.rtve.es/deportes/20220917/motogp-bagnaia-pole-marquez-decimotercero-motorland-aragon/2402566.shtml',
+        'info_dict': {
+            'id': '6694142',
+            'ext': 'mp4',
+            'title': "Bagnaia logra su quinta 'pole' del año y Márquez partirá decimotercero",
+            'duration': 153.44,
+        },
+        'params': {
+            'skip_download': True,
+        },
+    }, {
+        'url': 'https://www.rtve.es/playz/20220807/covaleda-fest-final/2394809.shtml',
+        'info_dict': {
+            'id': '6665408',
+            'ext': 'mp4',
+            'title': 'Festivales Playz: Covaleda Fest (Soria) - Día 3 con Marc Seguí, Rizha y Judeline',
+            'duration': 12009.92,
+        },
+        'params': {
+            'skip_download': True,
+        },
+    }]
 
     def _real_extract(self, url):
         page_id = self._match_id(url)
