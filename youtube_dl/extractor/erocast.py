@@ -10,9 +10,8 @@ class ErocastIE(InfoExtractor):
         'url': 'https://erocast.me/track/4254/intimate-morning-with-your-wife',
         'info_dict': {
             'id': '4254',
-            'ext': 'mp3',
-            'mp3': 0,
-            'title':'Intimate morning  with your wife'
+            'formats': [{'url': "https:\/\/erocast.s3.us-east-2.wasabisys.com\/261020\/track.m3u8", 'ext': 'hls'}],
+            'ext': 'mp3'
             # TODO more properties, either as:
             # * A
             # value
@@ -26,18 +25,15 @@ class ErocastIE(InfoExtractor):
         video_id = self._match_id(url)
         webpage = self._download_webpage(url, video_id)
         json_data = self._search_regex(r'<script>(.+\n)', webpage, 'song data')
-        json_data = json_data.replace("</script>", "")
-        json_data = json_data[json_data.find('{') - 1:]
+        json_data = json_data[json_data.find('{') - 1:].replace("</script>", "")
         json_data = self._parse_json(json_data, video_id)
-        ext="mp3"
         # TODO more code goes here, for example ...
         # title = self._html_search_regex(r'<script>(.|\n)+*}<\/script>', webpage, 'title')
         return {
             'id': video_id,
             'title': json_data["title"],
-            'ext':ext,
-            'url': json_data["permalink_url"],
-            'mp3':json_data["mp3"]
+            'formats': [{'url': json_data['file_url'], 'ext': 'hls'}],
+            'ext': 'mp3'
             # 'description': self._og_search_description(webpage),
             # 'uploader': self._search_regex(r'<div[^>]+id="uploader"[^>]*>([^<]+)<', webpage, 'uploader', fatal=False),
             # TODO more properties (see youtube_dl/extractor/common.py)
