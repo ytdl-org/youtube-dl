@@ -14,61 +14,8 @@ from ..utils import (
 )
 
 
-class RadioFrancePodcastIE(InfoExtractor):
+class RadioFranceBaseIE(InfoExtractor):
     _BASE_URL = r'https://www.radiofrance.fr/'
-    _VALID_URL = r'''(?x)https?://www\.radiofrance\.fr/
-                    (?:francemusique|franceinter|franceculture|franceinfo|mouv|fip)/
-                    podcasts/(
-                        .+/.+-(?P<id>\d+)
-                        |
-                        (?P<playlist_id>[^/]+?)(?:[?#].*)?
-                    )$'''
-
-    _TESTS = [{
-        'note': 'Podcast episode with audio from France Info',
-        'url': 'https://www.radiofrance.fr/franceinfo/podcasts/le-brief-eco/le-brief-eco-du-lundi-05-septembre-2022-8310713',
-        'info_dict': {
-            'id': '8310713',
-            'ext': 'mp3',
-            'url': r're:^https?://.*\.mp3$',
-            'title': 'Pour la première fois en vingt ans, l’euro passe sous les 0,99\u00a0dollar',
-            'description': str,
-            'thumbnail': r're:^https?://.*\.jpg$',
-            'timestamp': int,
-            'duration': int,
-            'upload_date': str
-        }
-    }, {
-        'note': 'Podcast episode from France Musique',
-        'url': 'https://www.radiofrance.fr/francemusique/podcasts/allegretto/lever-du-jour-9233228',
-        'only_matching': True
-    }, {
-        'note': 'Podcast episode from FranceInter',
-        'url': 'https://www.radiofrance.fr/franceinter/podcasts/rendez-vous-avec-x/un-mysterieux-echange-digne-de-la-guerre-froide-9343281',
-        'only_matching': True
-    }, {
-        'note': 'Podcast episode from France Culture',
-        'url': 'https://www.radiofrance.fr/franceculture/podcasts/la-science-cqfd/teotihuacan-la-plus-mysterieuse-des-cites-d-or-9224610',
-        'only_matching': True
-    }, {
-        'note': 'Podcast episode from Le Mouv',
-        'url': 'https://www.radiofrance.fr/mouv/podcasts/mouv-dj-la-caution/ncr2a-ne-cherche-rien-d-autre-ailleurs-1197950',
-        'only_matching': True
-    }, {
-        'note': 'Podcast episode from FIP',
-        'url': 'https://www.radiofrance.fr/fip/podcasts/certains-l-aiment-fip/hommage-au-cinema-de-vangelis-4734742',
-        'only_matching': True
-    }, {
-        'note': 'Podcast show with multiple pages of episodes and some of them are missing',
-        'url': 'https://www.radiofrance.fr/franceculture/podcasts/une-semaine-dans-le-monde-10-11?p=2',
-        'info_dict': {
-            'id': 'une-semaine-dans-le-monde-10-11',
-            'title': 'Une semaine dans le monde | 10-11',
-            'description': str,
-            'timestamp': int
-        },
-        'playlist_count': 23,
-    }]
 
     def extract_api_data(self, id, html):
         pattern = r'<script [^>]*sveltekit:data-url="https://www\.radiofrance\.fr/api/v[\d.]+/path[^>]*>(?P<json>.*)</script>'
@@ -140,7 +87,7 @@ class RadioFrancePodcastIE(InfoExtractor):
             if episode_path is None:
                 self.report_warning('No path found for episode "%s"', item.get('title'))
                 continue
-            episode_id = self._match_id(self._BASE_URL + item.get('path'))
+            episode_id = RadioFrancePodcastEpisodeIE._match_id(self._BASE_URL + item.get('path'))
             if episode_id is None:
                 self.report_warning('Could not parse id of episode from path: "%s"' % item.get('path'))
                 continue
@@ -183,18 +130,76 @@ class RadioFrancePodcastIE(InfoExtractor):
         api_data = self.extract_api_data(id, webpage)
         return webpage, api_data
 
-    def _real_extract(self, url):
-        episode_id, playlist_id = re.match(self._VALID_URL, url).group('id', 'playlist_id')
-        media_id = episode_id or playlist_id
 
-        webpage, api_data = self.get_data(url, media_id)
+class RadioFrancePodcastEpisodeIE(RadioFranceBaseIE):
+    _VALID_URL = r'https?://www\.radiofrance\.fr/(?:francemusique|franceinter|franceculture|franceinfo|mouv|fip)/podcasts/.+/.+-(?P<id>\d+)$'
+
+    _TESTS = [{
+        'note': 'Podcast episode with audio from France Info',
+        'url': 'https://www.radiofrance.fr/franceinfo/podcasts/le-brief-eco/le-brief-eco-du-lundi-05-septembre-2022-8310713',
+        'info_dict': {
+            'id': '8310713',
+            'ext': 'mp3',
+            'url': r're:^https?://.*\.mp3$',
+            'title': 'Pour la première fois en vingt ans, l’euro passe sous les 0,99\u00a0dollar',
+            'description': str,
+            'thumbnail': r're:^https?://.*\.jpg$',
+            'timestamp': int,
+            'duration': int,
+            'upload_date': str
+        }
+    }, {
+        'note': 'Podcast episode from France Musique',
+        'url': 'https://www.radiofrance.fr/francemusique/podcasts/allegretto/lever-du-jour-9233228',
+        'only_matching': True
+    }, {
+        'note': 'Podcast episode from FranceInter',
+        'url': 'https://www.radiofrance.fr/franceinter/podcasts/rendez-vous-avec-x/un-mysterieux-echange-digne-de-la-guerre-froide-9343281',
+        'only_matching': True
+    }, {
+        'note': 'Podcast episode from France Culture',
+        'url': 'https://www.radiofrance.fr/franceculture/podcasts/la-science-cqfd/teotihuacan-la-plus-mysterieuse-des-cites-d-or-9224610',
+        'only_matching': True
+    }, {
+        'note': 'Podcast episode from Le Mouv',
+        'url': 'https://www.radiofrance.fr/mouv/podcasts/mouv-dj-la-caution/ncr2a-ne-cherche-rien-d-autre-ailleurs-1197950',
+        'only_matching': True
+    }, {
+        'note': 'Podcast episode from FIP',
+        'url': 'https://www.radiofrance.fr/fip/podcasts/certains-l-aiment-fip/hommage-au-cinema-de-vangelis-4734742',
+        'only_matching': True
+    }]
+
+    def _real_extract(self, url):
+        id = self._match_id(url)
+        webpage, api_data = self.get_data(url, id)
+        api_data_info = self.extract_episode(id, api_data)
+        if api_data_info is None:
+            msg = 'Podcast file is not available. If the show is too recent, the file may not have been uploaded yet: try again later.'
+            raise ExtractorError(msg, expected=True, video_id=id)
 
         html_info = self.parse_html_info(webpage)
-        if episode_id:
-            api_data_info = self.extract_episode(episode_id, api_data)
-            if api_data_info is None:
-                msg = 'Podcast file is not available. If the show is too recent, the file may not have been uploaded yet: try again later.'
-                raise ExtractorError(msg, expected=True, video_id=episode_id)
-            return html_info | api_data_info
+        return html_info | api_data_info
 
-        return html_info | self.extract_playlist(playlist_id, url, api_data)
+
+class RadioFrancePodcastPlaylistIE(RadioFranceBaseIE):
+    _VALID_URL = r'https?://www\.radiofrance\.fr/(?:francemusique|franceinter|franceculture|franceinfo|mouv|fip)/podcasts/(?P<id>[^/]+?)(?:[?#].*)?$'
+
+    _TESTS = [{
+        'note': 'Podcast show with multiple pages of episodes and some of them are missing',
+        'url': 'https://www.radiofrance.fr/franceculture/podcasts/une-semaine-dans-le-monde-10-11?p=2',
+        'info_dict': {
+            'id': 'une-semaine-dans-le-monde-10-11',
+            'title': 'Une semaine dans le monde | 10-11',
+            'description': str,
+            'timestamp': int
+        },
+        'playlist_count': 23,
+    }]
+
+    def _real_extract(self, url):
+        id = self._match_id(url)
+        webpage, api_data = self.get_data(url, id)
+
+        html_info = self.parse_html_info(webpage)
+        return html_info | self.extract_playlist(id, url, api_data)

@@ -993,7 +993,10 @@ from .radiocanada import (
 from .radiode import RadioDeIE
 from .radiojavan import RadioJavanIE
 from .radiobremen import RadioBremenIE
-from .radiofrance import RadioFrancePodcastIE
+from .radiofrance import (
+    RadioFrancePodcastEpisodeIE,
+    RadioFrancePodcastPlaylistIE
+)
 from .rai import (
     RaiPlayIE,
     RaiPlayLiveIE,
