@@ -31,10 +31,10 @@ from ..utils import (
 
 
 class ADNIE(InfoExtractor):
-    IE_DESC = 'Anime Digital Network'
-    _VALID_URL = r'https?://(?:www\.)?animedigitalnetwork\.fr/video/[^/]+/(?P<id>\d+)'
+    IE_DESC = 'Animation Digital Network'
+    _VALID_URL = r'https?://(?:www\.)?animationdigitalnetwork\.fr/video/[^/]+/(?P<id>\d+)'
     _TEST = {
-        'url': 'http://animedigitalnetwork.fr/video/blue-exorcist-kyoto-saga/7778-episode-1-debut-des-hostilites',
+        'url': 'http://animationdigitalnetwork.fr/video/blue-exorcist-kyoto-saga/7778-episode-1-debut-des-hostilites',
         'md5': '0319c99885ff5547565cacb4f3f9348d',
         'info_dict': {
             'id': '7778',
@@ -52,9 +52,9 @@ class ADNIE(InfoExtractor):
         }
     }
 
-    _NETRC_MACHINE = 'animedigitalnetwork'
-    _BASE_URL = 'http://animedigitalnetwork.fr'
-    _API_BASE_URL = 'https://gw.api.animedigitalnetwork.fr/'
+    _NETRC_MACHINE = 'animationdigitalnetwork'
+    _BASE_URL = 'http://animationdigitalnetwork.fr'
+    _API_BASE_URL = 'https://gw.api.animationdigitalnetwork.fr/'
     _PLAYER_BASE_URL = _API_BASE_URL + 'player/'
     _HEADERS = {}
     _LOGIN_ERR_MESSAGE = 'Unable to log in'
@@ -82,11 +82,11 @@ class ADNIE(InfoExtractor):
         if subtitle_location:
             enc_subtitles = self._download_webpage(
                 subtitle_location, video_id, 'Downloading subtitles data',
-                fatal=False, headers={'Origin': 'https://animedigitalnetwork.fr'})
+                fatal=False, headers={'Origin': 'https://animationdigitalnetwork.fr'})
         if not enc_subtitles:
             return None
 
-        # http://animedigitalnetwork.fr/components/com_vodvideo/videojs/adn-vjs.min.js
+        # http://animationdigitalnetwork.fr/components/com_vodvideo/videojs/adn-vjs.min.js
         dec_subtitles = intlist_to_bytes(aes_cbc_decrypt(
             bytes_to_intlist(compat_b64decode(enc_subtitles[24:])),
             bytes_to_intlist(binascii.unhexlify(self._K + 'ab9f52f5baae7c72')),
