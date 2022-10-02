@@ -675,6 +675,7 @@ from .metacritic import MetacriticIE
 from .mgoon import MgoonIE
 from .mgtv import MGTVIE
 from .miaopai import MiaoPaiIE
+from .mrgay import MrGayIE
 from .microsoftvirtualacademy import (
     MicrosoftVirtualAcademyIE,
     MicrosoftVirtualAcademyCourseIE,
