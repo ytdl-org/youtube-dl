@@ -19,7 +19,8 @@ class XMilfIE(VXXXIE):
             'timestamp': 1662465481,
             'upload_date': '20220906',
             'duration': 480.0,
-            'categories': ['Amateur', 'Big Tits', 'Brunette', 'Fetish', 'HD', 'Lingerie', 'MILF', 'Webcam'],
+            'categories': ['Amateur', 'Big Tits', 'Brunette', 'Fetish', 'HD',
+                           'Lingerie', 'MILF', 'Webcam'],
         }
     }]
 
