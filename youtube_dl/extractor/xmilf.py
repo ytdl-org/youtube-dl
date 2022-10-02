@@ -21,6 +21,7 @@ class XMilfIE(VXXXIE):
             'duration': 480.0,
             'categories': ['Amateur', 'Big Tits', 'Brunette', 'Fetish', 'HD',
                            'Lingerie', 'MILF', 'Webcam'],
+            'age_limit': 18,
         }
     }]
 

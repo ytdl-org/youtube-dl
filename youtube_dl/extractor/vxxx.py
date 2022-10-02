@@ -25,7 +25,9 @@ class VXXXIE(InfoExtractor):
             'duration': 2373.0,
             'categories': ['Anal', 'Asian', 'BDSM', 'Brunette', 'Toys',
                            'Fetish', 'HD', 'Interracial', 'MILF'],
-        }}]
+            'age_limit': 18,
+        }
+    }]
 
     def _download_info_object(self, video_id):
         return self._download_json(
@@ -83,6 +85,7 @@ class VXXXIE(InfoExtractor):
             'dislike_count': int(info_object['statistics']['dislikes']),
             'average_rating': float(info_object['statistics']['rating']),
             'categories': [category['title'] for category in info_object['categories'].values()],
+            'age_limit': 18,
             'formats': None
         }
 

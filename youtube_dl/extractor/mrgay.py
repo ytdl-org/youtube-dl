@@ -21,6 +21,7 @@ class MrGayIE(VXXXIE):
             'duration': 834.0,
             'categories': ['Amateur', 'Asian', 'Brunette', 'Crossdressing',
                            'Japanese', 'Webcam'],
+            'age_limit': 18,
         }
     }]
 

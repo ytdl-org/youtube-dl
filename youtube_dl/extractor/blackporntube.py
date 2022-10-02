@@ -21,7 +21,8 @@ class BlackPornTubeIE(VXXXIE):
             'duration': 193.0,
             'categories': ['BDSM', 'Bondage', 'Celebrity', 'Ebony', 'Fetish',
                            'Shibari Bondage', 'Solo Female',
-                           'Tattoo']
+                           'Tattoo'],
+            'age_limit': 18,
         }
     }]
 

@@ -21,7 +21,9 @@ class BdsmxTubeIE(VXXXIE):
             'duration': 68.0,
             'categories': ['Asian', 'Brunette', 'Cosplay', 'Fetish',
                            'Fuck Machine', 'Gagging', 'Japanese',
-                           'JAV Uncensored', 'Latex', 'Leather', 'POV']}
+                           'JAV Uncensored', 'Latex', 'Leather', 'POV'],
+            'age_limit': 18,
+        }
     }]
 
     def _download_info_object(self, video_id):

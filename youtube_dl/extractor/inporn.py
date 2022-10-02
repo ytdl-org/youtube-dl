@@ -20,7 +20,9 @@ class InPornIE(VXXXIE):
             'upload_date': '20220930',
             'duration': 480.0,
             'categories': ['Asian', 'Brunette', 'Casting', 'HD', 'Japanese',
-                           'JAV Uncensored']}
+                           'JAV Uncensored'],
+            'age_limit': 18,
+        },
     }]
 
     def _download_info_object(self, video_id):
