@@ -995,7 +995,8 @@ from .radiojavan import RadioJavanIE
 from .radiobremen import RadioBremenIE
 from .radiofrance import (
     RadioFrancePodcastEpisodeIE,
-    RadioFrancePodcastPlaylistIE
+    RadioFrancePodcastPlaylistIE,
+    RadioFranceWebradioIE,
 )
 from .rai import (
     RaiPlayIE,
