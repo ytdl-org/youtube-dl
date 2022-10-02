@@ -23,10 +23,6 @@ class VXXXIE(InfoExtractor):
             'timestamp': 1607167706,
             'upload_date': '20201205',
             'duration': 2373.0,
-            'view_count': 1071,
-            'like_count': 1,
-            'dislike_count': 0,
-            'average_rating': 5.0,
             'categories': ['Anal', 'Asian', 'BDSM', 'Brunette', 'Toys',
                            'Fetish', 'HD', 'Interracial', 'MILF'],
         }}]
@@ -50,8 +46,8 @@ class VXXXIE(InfoExtractor):
 
     def _decode_base164(self, e):
         """
-        Some non-standard encoding called "base164" in the JavaScript code. It
-        is similar to base 64 with some alphabets replaced:
+        Some non-standard encoding called "base164" in the JavaScript code. It's
+        similar to the regular base64 with a slightly different alphabet:
             - "АВСЕМ" are Cyrillic letters instead of uppercase English letters
             - "." is used instead of "+"; "," is used instead of "/"
             - "~" is used for padding instead of "="
@@ -91,9 +87,11 @@ class VXXXIE(InfoExtractor):
         }
 
         qualities = {
-            '_fhd.mp4': -1,
-            '_hd.mp4': -2,
-            '_sd.mp4': -3
+            '_fhd.mp4': -1,  # 1080p
+            '_hd.mp4': -2,   # 720p
+            '_hq.mp4': -2,   # 720p
+            '_sd.mp4': -3,   # 480p
+            '_lq.mp4': -3    # 480p
         }
 
         format_object = self._download_format_object(video_id)

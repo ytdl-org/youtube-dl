@@ -106,6 +106,7 @@ from .bbc import (
     BBCCoUkPlaylistIE,
     BBCIE,
 )
+from .bdsmxtube import BdsmxTubeIE
 from .beeg import BeegIE
 from .behindkink import BehindKinkIE
 from .bellmedia import BellMediaIE
