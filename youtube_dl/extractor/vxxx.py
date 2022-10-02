@@ -1,6 +1,7 @@
 # coding: utf-8
 from __future__ import unicode_literals
 
+import base64
 import re
 
 from .common import InfoExtractor
@@ -10,7 +11,7 @@ from ..utils import unified_timestamp, parse_duration
 class VXXXIE(InfoExtractor):
     _VALID_URL = r'https?://vxxx\.com/video-(?P<id>\d+)'
     _TESTS = [{
-        'url': 'https://vxxx.com/video-80747',
+        'url': 'https://vxxx.com/video-80747/',
         'md5': '4736e868b0e008b4ff9dc09585c26c52',
         'info_dict': {
             'id': '80747',
@@ -33,7 +34,7 @@ class VXXXIE(InfoExtractor):
     def _download_info_object(self, video_id):
         return self._download_json(
             'https://vxxx.com/api/json/video/86400/0/{}/{}.json'.format(
-                int(video_id) // 10000 * 10000,
+                int(video_id) // 1000 * 1000,
                 video_id,
             ), video_id, headers={'Referer': 'https://vxxx.com'})['video']
 
@@ -47,32 +48,34 @@ class VXXXIE(InfoExtractor):
     def _get_video_host(self):
         return 'vxxx.com'
 
-    def _decode_base164(self, text):
-        alphabet = [*'АВСDЕFGHIJKLМNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789.,~']
-        bit_str = ''
-        text_str = ''
+    def _decode_base164(self, e):
+        """
+        Some non-standard encoding called "base164" in the JavaScript code. It
+        is similar to base 64 with some alphabets replaced:
+            - "АВСЕМ" are Cyrillic letters instead of uppercase English letters
+            - "." is used instead of "+"; "," is used instead of "/"
+            - "~" is used for padding instead of "="
+        """
 
-        for char in text:
-            if char in alphabet:
-                bin_char = bin(alphabet.index(char)).lstrip("0b")
-                bin_char = bin_char.zfill(6)
-                bit_str += bin_char
-
-        brackets = [bit_str[x:x + 8] for x in range(0, len(bit_str), 8)]
-
-        for bracket in brackets:
-            text_str += chr(int(bracket, 2))
-
-        return text_str
+        return base64.b64decode(e
+                                .replace("А", "A")
+                                .replace("В", "B")
+                                .replace("С", "C")
+                                .replace("Е", "E")
+                                .replace("М", "M")
+                                .replace(".", "+")
+                                .replace(",", "/")
+                                .replace("~", "=")
+                                ).decode()
 
     def _extract_info(self, url):
-        mobj = re.match(self._VALID_URL, url)
-        id = mobj.group('id')
+        matches = re.match(self._VALID_URL, url)
+        video_id = matches.group('id')
 
-        info_object = self._download_info_object(id)
+        info_object = self._download_info_object(video_id)
 
         info = {
-            'id': id,
+            'id': video_id,
             'title': info_object['title'],
             'display_id': info_object['dir'],
             'thumbnail': info_object['thumb'],
@@ -88,11 +91,12 @@ class VXXXIE(InfoExtractor):
         }
 
         qualities = {
-            '_hd.mp4': -1,
-            '_sd.mp4': -2
+            '_fhd.mp4': -1,
+            '_hd.mp4': -2,
+            '_sd.mp4': -3
         }
 
-        format_object = self._download_format_object(id)
+        format_object = self._download_format_object(video_id)
         formats = list(map(lambda f: {
             'url': "https://{}{}".format(
                 self._get_video_host(),
