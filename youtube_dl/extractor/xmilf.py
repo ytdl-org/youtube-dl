@@ -8,7 +8,7 @@ class XMilfIE(VXXXIE):
     _VALID_URL = r'https?://xmilf\.com/video/(?P<id>\d+)'
     _TESTS = [{
         'url': 'https://xmilf.com/video/143777/big-boob-brunette-masturbates3/',
-        'md5': 'a93d43a83042cb6e42103053d981de81',
+        'md5': 'a196fe8daebe194a758754c81e9232ad',
         'info_dict': {
             'id': '143777',
             'ext': 'mp4',

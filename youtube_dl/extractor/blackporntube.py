@@ -8,7 +8,7 @@ class BlackPornTubeIE(VXXXIE):
     _VALID_URL = r'https?://blackporn\.tube/video/(?P<id>\d+)'
     _TESTS = [{
         'url': 'https://blackporn.tube/video/10043813/young-ebony-babe-gets-super-wet/',
-        'md5': 'f5c2652f686e66d453f6fede3bdba054',
+        'md5': '4a4c126970f2f1453b8b2050947fc870',
         'info_dict': {
             'id': '10043813',
             'ext': 'mp4',

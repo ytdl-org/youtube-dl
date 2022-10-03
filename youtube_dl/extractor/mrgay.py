@@ -8,7 +8,7 @@ class MrGayIE(VXXXIE):
     _VALID_URL = r'https?://mrgay\.com/video/(?P<id>\d+)'
     _TESTS = [{
         'url': 'https://mrgay.com/video/10169199/jpn-crossdresser-6/',
-        'md5': 'b2ff401f8a168007702f3f5cbecd7bc2',
+        'md5': 'b5780a9437c205b4bc87eb939b23e8ef',
         'info_dict': {
             'id': '10169199',
             'ext': 'mp4',

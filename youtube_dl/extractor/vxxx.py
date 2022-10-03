@@ -12,7 +12,7 @@ class VXXXIE(InfoExtractor):
     _VALID_URL = r'https?://vxxx\.com/video-(?P<id>\d+)'
     _TESTS = [{
         'url': 'https://vxxx.com/video-80747/',
-        'md5': '4736e868b0e008b4ff9dc09585c26c52',
+        'md5': '2f4bfd829b682ff9e3da1bda71b81b81',
         'info_dict': {
             'id': '80747',
             'ext': 'mp4',
@@ -89,26 +89,16 @@ class VXXXIE(InfoExtractor):
             'formats': None
         }
 
-        qualities = {
-            '_fhd.mp4': -1,  # 1080p
-            '_hd.mp4': -2,   # 720p
-            '_hq.mp4': -2,   # 720p
-            '_sd.mp4': -3,   # 480p
-            '_lq.mp4': -3    # 480p
-        }
-
         format_object = self._download_format_object(video_id)
-        formats = list(map(lambda f: {
-            'url': "https://{}{}".format(
+        m3u8_formats = self._extract_m3u8_formats(
+            "https://{}{}&f=video.m3u8".format(
                 self._get_video_host(),
-                self._decode_base164(f['video_url'])
+                self._decode_base164(format_object[0]['video_url'])
             ),
-            'format_id': f['format'],
-            'quality': qualities.get(f['format'], -1)
-        }, format_object))
-        self._sort_formats(formats)
+            video_id, 'mp4')
+        self._sort_formats(m3u8_formats)
+        info['formats'] = m3u8_formats
 
-        info['formats'] = formats
         return info
 
     def _real_extract(self, url):

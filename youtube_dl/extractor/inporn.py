@@ -8,7 +8,7 @@ class InPornIE(VXXXIE):
     _VALID_URL = r'https?://(?:www\.)?inporn\.com/video/(?P<id>\d+)'
     _TESTS = [{
         'url': 'https://inporn.com/video/533613/2k-t-2nd-season-parm-151/',
-        'md5': '111e5c4680b1fa5995144e101c521a4f',
+        'md5': 'c358d1da6b451ebe7cfb00dd89741607',
         'info_dict': {
             'id': '533613',
             'ext': 'mp4',

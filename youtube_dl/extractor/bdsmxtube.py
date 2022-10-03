@@ -8,7 +8,7 @@ class BdsmxTubeIE(VXXXIE):
     _VALID_URL = r'https?://bdsmx\.tube/video/(?P<id>\d+)'
     _TESTS = [{
         'url': 'https://bdsmx.tube/video/127583/latex-puppy-leashed/',
-        'md5': '06b6000c19207cb068bc0009f243345d',
+        'md5': '79751d4ed75668afe07a660c4bcb2f1b',
         'info_dict': {
             'id': '127583',
             'ext': 'mp4',
