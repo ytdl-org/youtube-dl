@@ -211,7 +211,7 @@ class MotherlessGroupIE(InfoExtractor):
             'description', webpage, fatal=False)
         page_count = str_to_int(self._search_regex(
             r'(\d+)\s*</(?:a|span)>\s*<(?:a|span)[^>]+(?:>\s*NEXT|\brel\s*=\s*["\']?next)\b',
-            webpage, 'page_count', default='1')
+            webpage, 'page_count', default='1'))
         PAGE_SIZE = 80
 
         def _get_page(idx):
