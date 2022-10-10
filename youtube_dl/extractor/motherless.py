@@ -169,7 +169,7 @@ class MotherlessGroupIE(InfoExtractor):
             'description': 'Sex can be funny. Wide smiles,laugh, games, fun of '
                            'any kind!'
         },
-        'playlist_mincount': 9,
+        'playlist_mincount': 0,
     }]
 
     @classmethod
@@ -208,9 +208,9 @@ class MotherlessGroupIE(InfoExtractor):
             r'<title>([\w\s]+\w)\s+-', webpage, 'title', fatal=False)
         description = self._html_search_meta(
             'description', webpage, fatal=False)
-        page_count = self._int(self._search_regex(
-            r'(\d+)</(?:a|span)><(?:a|span)[^>]+>\s*NEXT',
-            webpage, 'page_count'), 'page_count')
+        page_count = str_to_int(self._search_regex(
+            r'(\d+)\s*</(?:a|span)>\s*<(?:a|span)[^>]+(?:>\s*NEXT|\brel\s*=\s*["\']?next)\b',
+            webpage, 'page_count', default='1')
         PAGE_SIZE = 80
 
         def _get_page(idx):
