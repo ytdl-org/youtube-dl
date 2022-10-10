@@ -92,7 +92,7 @@ class NetEaseMusicBaseIE(InfoExtractor):
 
     def _call_player_api(self, song_id, bitrate):
         url = 'https://interface3.music.163.com/eapi/song/enhance/player/url'
-        data, headers = cls.make_player_api_request_data_and_headers(song_id, bitrate)
+        data, headers = self.make_player_api_request_data_and_headers(song_id, bitrate)
         try:
             return self._download_json(
                 url, song_id, data=data.encode('ascii'), headers=headers)
@@ -162,7 +162,7 @@ class NetEaseMusicIE(NetEaseMusicBaseIE):
             'title': 'Opus 28',
             'creator': 'Dustin O\'Halloran',
             'upload_date': '20080211',
-            'description': 'md5:...',
+            'description': 'md5:f12945b0f6e0365e3b73c5032e1b0ff4',
             'timestamp': 1202745600,
         },
     }, {
