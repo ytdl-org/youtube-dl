@@ -19,10 +19,14 @@ from ..compat import (
     compat_itertools_count,
 )
 from ..utils import (
+    ExtractorError,
     bytes_to_intlist,
     float_or_none,
+    int_or_none,
     intlist_to_bytes,
     sanitized_Request,
+    std_headers,
+    try_get,
 )
 
 
@@ -80,7 +84,7 @@ class NetEaseMusicBaseIE(InfoExtractor):
              for [k, v] in cookie.items()])
 
         headers = {
-            'User-Agent': 'Mozilla/5.0 (Linux; U; Android 9; zh-cn; Redmi Note 8 Build/PKQ1.190616.001) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/71.0.3578.141 Mobile Safari/537.36 XiaoMi/MiuiBrowser/12.5.22',
+            'User-Agent': std_headers['User-Agent'],
             'Content-Type': 'application/x-www-form-urlencoded',
             'Referer': 'https://music.163.com',
             'Cookie': cookie,
