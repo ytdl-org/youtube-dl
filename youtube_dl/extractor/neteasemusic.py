@@ -164,7 +164,7 @@ class NetEaseMusicIE(NetEaseMusicBaseIE):
             'title': 'Opus 28',
             'creator': 'Dustin O\'Halloran',
             'upload_date': '20080211',
-            'description': '[99:00.00]纯音乐，请欣赏\n',
+            'description': 'md5:...',
             'timestamp': 1202745600,
         },
     }, {
