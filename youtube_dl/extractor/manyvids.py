@@ -4,12 +4,12 @@ from __future__ import unicode_literals
 import re
 
 from .common import InfoExtractor
+from ..compat import compat_str
 from ..utils import (
     determine_ext,
     extract_attributes,
     int_or_none,
     str_to_int,
-    strip_or_none,
     url_or_none,
     urlencode_postdata,
 )
@@ -66,12 +66,15 @@ class ManyVidsIE(InfoExtractor):
             (self._og_search_video_url(webpage, secure=False, default=None), 'og_video'),
         )
 
-        uploader = strip_or_none(info.get('data-meta-author'))
+        def txt_or_none(s, default=None):
+            return (s.strip() or default) if isinstance(s, compat_str) else default
+
+        uploader = txt_or_none(info.get('data-meta-author'))
 
         def mung_title(s):
             if uploader:
                 s = re.sub(r'^\s*%s\s+[|-]' % (re.escape(uploader), ), '', s)
-            return strip_or_none(s)
+            return txt_or_none(s)
 
         title = (
             mung_title(info.get('data-meta-title'))
@@ -148,8 +151,8 @@ class ManyVidsIE(InfoExtractor):
             'id': video_id,
             'title': title,
             'formats': formats,
-            'description': strip_or_none(info.get('data-meta-description')),
-            'uploader': strip_or_none(info.get('data-meta-author')),
+            'description': txt_or_none(info.get('data-meta-description')),
+            'uploader': txt_or_none(info.get('data-meta-author')),
             'thumbnail': (
                 url_or_none(info.get('data-meta-image'))
                 or url_or_none(player.get('data-video-screenshot'))),
