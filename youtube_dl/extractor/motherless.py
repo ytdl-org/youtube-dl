@@ -71,7 +71,7 @@ class MotherlessIE(InfoExtractor):
             'title': 'a/ Hot Teens',
             'categories': list,
             'upload_date': '20210104',
-            'uploader_id': 'yonbiw',
+            'uploader_id': 'anonymous',
             'thumbnail': r're:https?://.*\.jpg',
             'age_limit': 18,
         },
