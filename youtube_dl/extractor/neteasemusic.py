@@ -13,7 +13,6 @@ import time
 from .common import InfoExtractor
 from ..aes import aes_ecb_encrypt, pkcs7_padding
 from ..compat import (
-    compat_urllib_request,
     compat_urllib_parse_urlencode,
     compat_str,
     compat_itertools_count,
@@ -91,8 +90,7 @@ class NetEaseMusicBaseIE(InfoExtractor):
         }
         return ('params={0}'.format(encrypted_params), headers)
 
-    @classmethod
-    def _call_player_api(cls, song_id, bitrate):
+    def _call_player_api(self, song_id, bitrate):
         url = 'https://interface3.music.163.com/eapi/song/enhance/player/url'
         data, headers = cls.make_player_api_request_data_and_headers(song_id, bitrate)
         try:
@@ -117,7 +115,7 @@ class NetEaseMusicBaseIE(InfoExtractor):
             bitrate = int_or_none(details.get('bitrate')) or 999000
             data = self._call_player_api(song_id, bitrate)
             for song in try_get(data, lambda x: x['data'], list) or []:
-                song_url = try_get(song, lambda s: x['url'])
+                song_url = try_get(song, lambda x: x['url'])
                 if self._is_valid_url(song_url, info['id'], 'song'):
                     formats.append({
                         'url': song_url,
