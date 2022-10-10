@@ -19,8 +19,8 @@ from ..compat import (
     compat_itertools_count,
 )
 from ..utils import (
-    float_or_none,
     bytes_to_intlist,
+    float_or_none,
     intlist_to_bytes,
     sanitized_Request,
 )
@@ -60,23 +60,23 @@ class NetEaseMusicBaseIE(InfoExtractor):
             '__csrf': '',
             'os': 'pc',
             'channel': None,
-            'requestId': '{}_{:04}'.format(now, rand),
+            'requestId': '{0}_{1:04}'.format(now, rand),
         }
         request_text = json.dumps(
-            {'ids': '[{}]'.format(song_id), 'br': bitrate, 'header': cookie},
+            {'ids': '[{0}]'.format(song_id), 'br': bitrate, 'header': cookie},
             separators=(',', ':'))
-        message = 'nobody{}use{}md5forencrypt'.format(
+        message = 'nobody{0}use{1}md5forencrypt'.format(
             URL, request_text).encode('latin1')
         msg_digest = md5(message).hexdigest()
 
-        data = '{}-36cd479b6b5-{}-36cd479b6b5-{}'.format(
+        data = '{0}-36cd479b6b5-{1}-36cd479b6b5-{2}'.format(
             URL, request_text, msg_digest)
         data = pkcs7_padding(bytes_to_intlist(data))
         encrypted = intlist_to_bytes(aes_ecb_encrypt(data, bytes_to_intlist(KEY)))
         encrypted_params = hexlify(encrypted).decode('ascii').upper()
 
         cookie = '; '.join(
-            ['{}={}'.format(k, v if v is not None else 'undefined')
+            ['{0}={1}'.format(k, v if v is not None else 'undefined')
              for [k, v] in cookie.items()])
 
         headers = {
@@ -85,19 +85,22 @@ class NetEaseMusicBaseIE(InfoExtractor):
             'Referer': 'https://music.163.com',
             'Cookie': cookie,
         }
-        return ('params={}'.format(encrypted_params), headers)
+        return ('params={0}'.format(encrypted_params), headers)
 
     @classmethod
     def _call_player_api(cls, song_id, bitrate):
         url = 'https://interface3.music.163.com/eapi/song/enhance/player/url'
         data, headers = cls.make_player_api_request_data_and_headers(song_id, bitrate)
-        req = sanitized_Request(url, data=data.encode('ascii'), headers=headers)
         try:
-            resp = compat_urllib_request.urlopen(req)
+            return self._download_json(
+                url, song_id, data=data.encode('ascii'), headers=headers)
+        except ExtractorError as e:
+            if type(e.cause) in (ValueError, TypeError):
+                # JSON load failure
+                raise
         except Exception:
-            return {}
-        content = resp.read()
-        return json.loads(content)
+            pass
+        return {}
 
     def extract_formats(self, info):
         formats = []
@@ -107,23 +110,19 @@ class NetEaseMusicBaseIE(InfoExtractor):
             if not details:
                 continue
 
-            bitrate = details.get('bitrate', 999000)
+            bitrate = int_or_none(details.get('bitrate')) or 999000
             data = self._call_player_api(song_id, bitrate)
-            if data and 'data' in data:
-                for song in data['data']:
-                    song_url = song['url']
-                    bitrate = song['br']
-                    size = song['size']
-
-                    if self._is_valid_url(song_url, info['id'], 'song'):
-                        formats.append({
-                            'url': song_url,
-                            'ext': details.get('extension'),
-                            'abr': float_or_none(bitrate, scale=1000),
-                            'format_id': song_format,
-                            'filesize': size,
-                            'asr': details.get('sr'),
-                        })
+            for song in try_get(data, lambda x: x['data'], list) or []:
+                song_url = try_get(song, lambda s: x['url'])
+                if self._is_valid_url(song_url, info['id'], 'song'):
+                    formats.append({
+                        'url': song_url,
+                        'ext': details.get('extension'),
+                        'abr': float_or_none(song.get('br'), scale=1000),
+                        'format_id': song_format,
+                        'filesize': int_or_none(song.get('size')),
+                        'asr': int_or_none(details.get('sr')),
+                    })
         return formats
 
     @classmethod
