@@ -240,6 +240,7 @@ class TestUtil(unittest.TestCase):
         self.assertEqual(sanitize_url('ytsearch:search query'), 'ytsearch:search query')
 
     def test_sanitized_Request(self):
+        # issue 31008
         self.assertEqual(sanitized_Request('https://foo.bar/foo bar').get_full_url(), 'https://foo.bar/foo%20bar')
 
     def test_expand_path(self):
