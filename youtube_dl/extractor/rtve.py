@@ -26,7 +26,7 @@ _bytes_to_chr = (lambda x: x) if sys.version_info[0] == 2 else (lambda x: map(ch
 class RTVEPlayIE(InfoExtractor):
     IE_NAME = 'rtve.es:play'
     IE_DESC = 'RTVE Play'
-    _VALID_URL = r'https?://(?:www\.)?rtve\.es/(?P<kind>(?:playz?|alacarta)/(?:audios|videos)|filmoteca)/[^/]+/[^/]+/(?P<id>\d+)'
+    _VALID_URL = r'https?://(?:www\.)?rtve\.es/(?P<kind>(?:playz?|(?:m/)?alacarta)/(?:audios|videos)|filmoteca)/[^/]+/[^/]+/(?P<id>\d+)'
 
     _TESTS = [{
         'url': 'http://www.rtve.es/alacarta/videos/balonmano/o-swiss-cup-masculina-final-espana-suecia/2491869/',
