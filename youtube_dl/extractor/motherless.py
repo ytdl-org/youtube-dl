@@ -1,3 +1,4 @@
+# coding: utf-8
 from __future__ import unicode_literals
 
 import datetime
@@ -71,7 +72,7 @@ class MotherlessIE(InfoExtractor):
             'title': 'a/ Hot Teens',
             'categories': list,
             'upload_date': '20210104',
-            'uploader_id': 'yonbiw',
+            'uploader_id': 'anonymous',
             'thumbnail': r're:https?://.*\.jpg',
             'age_limit': 18,
         },
@@ -127,7 +128,7 @@ class MotherlessIE(InfoExtractor):
 
         comment_count = webpage.count('class="media-comment-contents"')
         uploader_id = self._html_search_regex(
-            r'"thumb-member-username">\s+<a href="/m/([^"]+)"',
+            r'''(?s)['"](?:media-meta-member|thumb-member-username)\b[^>]+>\s*<a\b[^>]+\bhref\s*=\s*['"]/m/([^"']+)''',
             webpage, 'uploader_id')
 
         categories = self._html_search_meta('keywords', webpage, default=None)
@@ -169,7 +170,7 @@ class MotherlessGroupIE(InfoExtractor):
             'description': 'Sex can be funny. Wide smiles,laugh, games, fun of '
                            'any kind!'
         },
-        'playlist_mincount': 9,
+        'playlist_mincount': 0,
     }]
 
     @classmethod
@@ -208,9 +209,9 @@ class MotherlessGroupIE(InfoExtractor):
             r'<title>([\w\s]+\w)\s+-', webpage, 'title', fatal=False)
         description = self._html_search_meta(
             'description', webpage, fatal=False)
-        page_count = self._int(self._search_regex(
-            r'(\d+)</(?:a|span)><(?:a|span)[^>]+>\s*NEXT',
-            webpage, 'page_count'), 'page_count')
+        page_count = str_to_int(self._search_regex(
+            r'(\d+)\s*</(?:a|span)>\s*<(?:a|span)[^>]+(?:>\s*NEXT|\brel\s*=\s*["\']?next)\b',
+            webpage, 'page_count', default='1'))
         PAGE_SIZE = 80
 
         def _get_page(idx):
