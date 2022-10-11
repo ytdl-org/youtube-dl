@@ -3004,8 +3004,11 @@ except ImportError:
 # new class in collections
 try:
     from collections import ChainMap as compat_collections_chain_map
+    # Py3.3's ChainMap is deficient
+    if sys.version_info < (3, 4):
+        raise ImportError
 except ImportError:
-    # Py < 3.3
+    # Py <= 3.3
     class compat_collections_chain_map(compat_collections_abc.MutableMapping):
 
         maps = [{}]
@@ -3059,6 +3062,7 @@ except ImportError:
         @property
         def parents(self):
             return compat_collections_chain_map(*(self.maps[1:]))
+
 
 # Pythons disagree on the type of a pattern (RegexObject, _sre.SRE_Pattern, Pattern, ...?)
 compat_re_Pattern = type(re.compile(''))

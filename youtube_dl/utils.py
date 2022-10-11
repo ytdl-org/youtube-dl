@@ -33,6 +33,7 @@ import sys
 import tempfile
 import time
 import traceback
+import unicodedata
 import xml.etree.ElementTree
 import zlib
 
@@ -2118,6 +2119,9 @@ def sanitize_filename(s, restricted=False, is_id=False):
             return '_'
         return char
 
+    # Replace look-alike Unicode glyphs
+    if restricted and not is_id:
+        s = unicodedata.normalize('NFKC', s)
     # Handle timestamps
     s = re.sub(r'[0-9]+(?::[0-9]+)+', lambda m: m.group(0).replace(':', '_'), s)
     result = ''.join(map(replace_insane, s))
@@ -3970,7 +3974,8 @@ def escape_rfc3986(s):
     """Escape non-ASCII characters as suggested by RFC 3986"""
     if sys.version_info < (3, 0) and isinstance(s, compat_str):
         s = s.encode('utf-8')
-    return compat_urllib_parse.quote(s, b"%/;:@&=+$,!~*'()?#[]")
+    # ensure unicode: after quoting, it can always be converted
+    return compat_str(compat_urllib_parse.quote(s, b"%/;:@&=+$,!~*'()?#[]"))
 
 
 def escape_url(url):
