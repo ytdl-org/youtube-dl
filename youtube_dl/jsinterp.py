@@ -214,7 +214,7 @@ class JSInterpreter(object):
         def __init__(self, msg, *args, **kwargs):
             expr = kwargs.pop('expr', None)
             if expr is not None:
-                msg = '{0} in: {1!r}'.format(msg.rstrip(), expr[:100])
+                msg = '{0} in: {1!r:.100}'.format(msg.rstrip(), expr)
             super(JSInterpreter.Exception, self).__init__(msg, *args, **kwargs)
 
     @classmethod
@@ -268,7 +268,7 @@ class JSInterpreter(object):
                 elif in_quote == '/' and char in '[]':
                     in_regex_char_group = char == '['
             escaping = not escaping and in_quote and char == '\\'
-            after_op = not in_quote and (char in cls.OP_CHARS or (char.isspace() and after_op))
+            after_op = not in_quote and (char in cls.OP_CHARS or char == '[' or (char.isspace() and after_op))
 
             if char != delim[pos] or any(counters.values()) or in_quote:
                 pos = skipping = 0
@@ -301,7 +301,7 @@ class JSInterpreter(object):
         separated = list(cls._separate(expr, delim, 1))
 
         if len(separated) < 2:
-            raise cls.Exception('No terminating paren {delim} in {expr}'.format(**locals()))
+            raise cls.Exception('No terminating paren {delim} in {expr:.100}'.format(**locals()))
         return separated[0][1:].strip(), separated[1].strip()
 
     @staticmethod
