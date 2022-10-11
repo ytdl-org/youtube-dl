@@ -33,6 +33,7 @@ import sys
 import tempfile
 import time
 import traceback
+import unicodedata
 import xml.etree.ElementTree
 import zlib
 
@@ -2118,6 +2119,9 @@ def sanitize_filename(s, restricted=False, is_id=False):
             return '_'
         return char
 
+    # Replace look-alike Unicode glyphs
+    if restricted and not is_id:
+        s = unicodedata.normalize('NFKC', s)
     # Handle timestamps
     s = re.sub(r'[0-9]+(?::[0-9]+)+', lambda m: m.group(0).replace(':', '_'), s)
     result = ''.join(map(replace_insane, s))
