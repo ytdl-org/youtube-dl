@@ -1,20 +1,31 @@
 # coding: utf-8
 from __future__ import unicode_literals
 
-from hashlib import md5
 from base64 import b64encode
+from binascii import hexlify
 from datetime import datetime
+from hashlib import md5
+from random import randint
+import json
 import re
+import time
 
 from .common import InfoExtractor
+from ..aes import aes_ecb_encrypt, pkcs7_padding
 from ..compat import (
     compat_urllib_parse_urlencode,
     compat_str,
     compat_itertools_count,
 )
 from ..utils import (
-    sanitized_Request,
+    ExtractorError,
+    bytes_to_intlist,
     float_or_none,
+    int_or_none,
+    intlist_to_bytes,
+    sanitized_Request,
+    std_headers,
+    try_get,
 )
 
 
@@ -35,32 +46,85 @@ class NetEaseMusicBaseIE(InfoExtractor):
         result = b64encode(m.digest()).decode('ascii')
         return result.replace('/', '_').replace('+', '-')
 
+    @classmethod
+    def make_player_api_request_data_and_headers(cls, song_id, bitrate):
+        KEY = b'e82ckenh8dichen8'
+        URL = '/api/song/enhance/player/url'
+        now = int(time.time() * 1000)
+        rand = randint(0, 1000)
+        cookie = {
+            'osver': None,
+            'deviceId': None,
+            'appver': '8.0.0',
+            'versioncode': '140',
+            'mobilename': None,
+            'buildver': '1623435496',
+            'resolution': '1920x1080',
+            '__csrf': '',
+            'os': 'pc',
+            'channel': None,
+            'requestId': '{0}_{1:04}'.format(now, rand),
+        }
+        request_text = json.dumps(
+            {'ids': '[{0}]'.format(song_id), 'br': bitrate, 'header': cookie},
+            separators=(',', ':'))
+        message = 'nobody{0}use{1}md5forencrypt'.format(
+            URL, request_text).encode('latin1')
+        msg_digest = md5(message).hexdigest()
+
+        data = '{0}-36cd479b6b5-{1}-36cd479b6b5-{2}'.format(
+            URL, request_text, msg_digest)
+        data = pkcs7_padding(bytes_to_intlist(data))
+        encrypted = intlist_to_bytes(aes_ecb_encrypt(data, bytes_to_intlist(KEY)))
+        encrypted_params = hexlify(encrypted).decode('ascii').upper()
+
+        cookie = '; '.join(
+            ['{0}={1}'.format(k, v if v is not None else 'undefined')
+             for [k, v] in cookie.items()])
+
+        headers = {
+            'User-Agent': std_headers['User-Agent'],
+            'Content-Type': 'application/x-www-form-urlencoded',
+            'Referer': 'https://music.163.com',
+            'Cookie': cookie,
+        }
+        return ('params={0}'.format(encrypted_params), headers)
+
+    def _call_player_api(self, song_id, bitrate):
+        url = 'https://interface3.music.163.com/eapi/song/enhance/player/url'
+        data, headers = self.make_player_api_request_data_and_headers(song_id, bitrate)
+        try:
+            return self._download_json(
+                url, song_id, data=data.encode('ascii'), headers=headers)
+        except ExtractorError as e:
+            if type(e.cause) in (ValueError, TypeError):
+                # JSON load failure
+                raise
+        except Exception:
+            pass
+        return {}
+
     def extract_formats(self, info):
         formats = []
+        song_id = info['id']
         for song_format in self._FORMATS:
             details = info.get(song_format)
             if not details:
                 continue
-            song_file_path = '/%s/%s.%s' % (
-                self._encrypt(details['dfsId']), details['dfsId'], details['extension'])
 
-            # 203.130.59.9, 124.40.233.182, 115.231.74.139, etc is a reverse proxy-like feature
-            # from NetEase's CDN provider that can be used if m5.music.126.net does not
-            # work, especially for users outside of Mainland China
-            # via: https://github.com/JixunMoe/unblock-163/issues/3#issuecomment-163115880
-            for host in ('http://m5.music.126.net', 'http://115.231.74.139/m1.music.126.net',
-                         'http://124.40.233.182/m1.music.126.net', 'http://203.130.59.9/m1.music.126.net'):
-                song_url = host + song_file_path
+            bitrate = int_or_none(details.get('bitrate')) or 999000
+            data = self._call_player_api(song_id, bitrate)
+            for song in try_get(data, lambda x: x['data'], list) or []:
+                song_url = try_get(song, lambda x: x['url'])
                 if self._is_valid_url(song_url, info['id'], 'song'):
                     formats.append({
                         'url': song_url,
                         'ext': details.get('extension'),
-                        'abr': float_or_none(details.get('bitrate'), scale=1000),
+                        'abr': float_or_none(song.get('br'), scale=1000),
                         'format_id': song_format,
-                        'filesize': details.get('size'),
-                        'asr': details.get('sr')
+                        'filesize': int_or_none(song.get('size')),
+                        'asr': int_or_none(details.get('sr')),
                     })
-                    break
         return formats
 
     @classmethod
@@ -79,30 +143,16 @@ class NetEaseMusicIE(NetEaseMusicBaseIE):
     _VALID_URL = r'https?://music\.163\.com/(#/)?song\?id=(?P<id>[0-9]+)'
     _TESTS = [{
         'url': 'http://music.163.com/#/song?id=32102397',
-        'md5': 'f2e97280e6345c74ba9d5677dd5dcb45',
+        'md5': '3e909614ce09b1ccef4a3eb205441190',
         'info_dict': {
             'id': '32102397',
             'ext': 'mp3',
-            'title': 'Bad Blood (feat. Kendrick Lamar)',
+            'title': 'Bad Blood',
             'creator': 'Taylor Swift / Kendrick Lamar',
-            'upload_date': '20150517',
-            'timestamp': 1431878400,
-            'description': 'md5:a10a54589c2860300d02e1de821eb2ef',
+            'upload_date': '20150516',
+            'timestamp': 1431792000,
+            'description': 'md5:25fc5f27e47aad975aa6d36382c7833c',
         },
-        'skip': 'Blocked outside Mainland China',
-    }, {
-        'note': 'No lyrics translation.',
-        'url': 'http://music.163.com/#/song?id=29822014',
-        'info_dict': {
-            'id': '29822014',
-            'ext': 'mp3',
-            'title': '听见下雨的声音',
-            'creator': '周杰伦',
-            'upload_date': '20141225',
-            'timestamp': 1419523200,
-            'description': 'md5:a4d8d89f44656af206b7b2555c0bce6c',
-        },
-        'skip': 'Blocked outside Mainland China',
     }, {
         'note': 'No lyrics.',
         'url': 'http://music.163.com/song?id=17241424',
@@ -112,9 +162,9 @@ class NetEaseMusicIE(NetEaseMusicBaseIE):
             'title': 'Opus 28',
             'creator': 'Dustin O\'Halloran',
             'upload_date': '20080211',
+            'description': 'md5:f12945b0f6e0365e3b73c5032e1b0ff4',
             'timestamp': 1202745600,
         },
-        'skip': 'Blocked outside Mainland China',
     }, {
         'note': 'Has translated name.',
         'url': 'http://music.163.com/#/song?id=22735043',
@@ -128,7 +178,6 @@ class NetEaseMusicIE(NetEaseMusicBaseIE):
             'timestamp': 1264608000,
             'alt_title': '说出愿望吧(Genie)',
         },
-        'skip': 'Blocked outside Mainland China',
     }]
 
     def _process_lyrics(self, lyrics_info):
