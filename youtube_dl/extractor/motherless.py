@@ -126,9 +126,10 @@ class MotherlessIE(InfoExtractor):
                 kwargs = {_AGO_UNITS.get(uploaded_ago[-1]): delta}
                 upload_date = (datetime.datetime.utcnow() - datetime.timedelta(**kwargs)).strftime('%Y%m%d')
 
-        comment_count = webpage.count('class="media-comment-contents"')
+        comment_count = len(re.findall(r'''class\s*=\s*['"]media-comment-contents\b''', webpage))
         uploader_id = self._html_search_regex(
-            r'''(?s)['"](?:media-meta-member|thumb-member-username)\b[^>]+>\s*<a\b[^>]+\bhref\s*=\s*['"]/m/([^"']+)''',
+            (r'''<span\b[^>]+\bclass\s*=\s*["']username\b[^>]*>([^<]+)</span>''',
+             r'''(?s)['"](?:media-meta-member|thumb-member-username)\b[^>]+>\s*<a\b[^>]+\bhref\s*=\s*['"]/m/([^"']+)'''),
             webpage, 'uploader_id')
 
         categories = self._html_search_meta('keywords', webpage, default=None)
@@ -171,6 +172,17 @@ class MotherlessGroupIE(InfoExtractor):
                            'any kind!'
         },
         'playlist_mincount': 0,
+        'expected_warnings': [
+            'This group has no videos.',
+        ]
+    }, {
+        'url': 'https://motherless.com/g/beautiful_cock',
+        'info_dict': {
+            'id': 'beautiful_cock',
+            'title': 'Beautiful Cock',
+            'description': 'Group for lovely cocks yours, mine, a friends anything human',
+        },
+        'playlist_mincount': 2500,
     }]
 
     @classmethod
@@ -211,14 +223,21 @@ class MotherlessGroupIE(InfoExtractor):
             'description', webpage, fatal=False)
         page_count = str_to_int(self._search_regex(
             r'(\d+)\s*</(?:a|span)>\s*<(?:a|span)[^>]+(?:>\s*NEXT|\brel\s*=\s*["\']?next)\b',
-            webpage, 'page_count', default='1'))
+            webpage, 'page_count', default=0))
+        if not page_count:
+            message = self._search_regex(
+                r'''class\s*=\s*['"]error-page\b[^>]*>\s*<p[^>]*>\s*(?P<error_msg>[^<]+)(?<=\S)\s*''',
+                webpage, 'error_msg', default=None) or 'This group has no videos.'
+            self.report_warning(message, group_id)
+            page_count = 1
         PAGE_SIZE = 80
 
         def _get_page(idx):
-            webpage = self._download_webpage(
-                page_url, group_id, query={'page': idx + 1},
-                note='Downloading page %d/%d' % (idx + 1, page_count)
-            )
+            if idx > 0:
+                webpage = self._download_webpage(
+                    page_url, group_id, query={'page': idx + 1},
+                    note='Downloading page %d/%d' % (idx + 1, page_count)
+                )
             for entry in self._extract_entries(webpage, url):
                 yield entry
 
