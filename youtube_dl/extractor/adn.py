@@ -34,20 +34,20 @@ class ADNIE(InfoExtractor):
     IE_DESC = 'Animation Digital Network'
     _VALID_URL = r'https?://(?:www\.)?animationdigitalnetwork\.fr/video/[^/]+/(?P<id>\d+)'
     _TEST = {
-        'url': 'http://animationdigitalnetwork.fr/video/blue-exorcist-kyoto-saga/7778-episode-1-debut-des-hostilites',
-        'md5': '0319c99885ff5547565cacb4f3f9348d',
+        'url': 'https://animationdigitalnetwork.fr/video/fruits-basket/9841-episode-1-a-ce-soir',
+        'md5': '1c9ef066ceb303c86f80c2b371615261',
         'info_dict': {
-            'id': '7778',
+            'id': '9841',
             'ext': 'mp4',
-            'title': 'Blue Exorcist - Kyôto Saga - Episode 1',
-            'description': 'md5:2f7b5aa76edbc1a7a92cedcda8a528d5',
-            'series': 'Blue Exorcist - Kyôto Saga',
-            'duration': 1467,
-            'release_date': '20170106',
+            'title': 'Fruits Basket - Episode 1',
+            'description': 'md5:14be2f72c3c96809b0ca424b0097d336',
+            'series': 'Fruits Basket',
+            'duration': 1437,
+            'release_date': '20190405',
             'comment_count': int,
             'average_rating': float,
-            'season_number': 2,
-            'episode': 'Début des hostilités',
+            'season_number': 1,
+            'episode': 'À ce soir !',
             'episode_number': 1,
         }
     }
