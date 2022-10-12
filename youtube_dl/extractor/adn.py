@@ -89,7 +89,7 @@ class ADNIE(InfoExtractor):
         # http://animationdigitalnetwork.fr/components/com_vodvideo/videojs/adn-vjs.min.js
         dec_subtitles = intlist_to_bytes(aes_cbc_decrypt(
             bytes_to_intlist(compat_b64decode(enc_subtitles[24:])),
-            bytes_to_intlist(binascii.unhexlify(self._K + 'ab9f52f5baae7c72')),
+            bytes_to_intlist(binascii.unhexlify(self._K + '7fac1178830cfe0c')),
             bytes_to_intlist(compat_b64decode(enc_subtitles[:24]))
         ))
         subtitles_json = self._parse_json(
