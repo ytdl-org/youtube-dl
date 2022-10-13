@@ -56,8 +56,8 @@ class ADNIE(InfoExtractor):
     }]
 
     _NETRC_MACHINE = 'animationdigitalnetwork'
-    _BASE_URL = 'http://animationdigitalnetwork.fr'
-    _API_BASE_URL = 'https://gw.api.animationdigitalnetwork.fr/'
+    _BASE = 'animationdigitalnetwork.fr'
+    _API_BASE_URL = 'https://gw.api.' + _BASE + '/'
     _PLAYER_BASE_URL = _API_BASE_URL + 'player/'
     _HEADERS = {}
     _LOGIN_ERR_MESSAGE = 'Unable to log in'
@@ -85,7 +85,7 @@ class ADNIE(InfoExtractor):
         if subtitle_location:
             enc_subtitles = self._download_webpage(
                 subtitle_location, video_id, 'Downloading subtitles data',
-                fatal=False, headers={'Origin': 'https://animationdigitalnetwork.fr'})
+                fatal=False, headers={'Origin': 'https://' + _BASE})
         if not enc_subtitles:
             return None
 
