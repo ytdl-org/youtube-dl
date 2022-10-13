@@ -50,7 +50,7 @@ class ManyVidsIE(InfoExtractor):
         real_url = 'https://www.manyvids.com/video/%s/gtm.js' % (video_id, )
         try:
             webpage = self._download_webpage(real_url, video_id)
-        except:
+        except Exception:
             # probably useless fallback
             webpage = self._download_webpage(url, video_id)
 
