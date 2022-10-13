@@ -32,7 +32,7 @@ from ..utils import (
 
 class ADNIE(InfoExtractor):
     IE_DESC = 'Animation Digital Network'
-    _VALID_URL = r'https?://(?:www\.)?animationdigitalnetwork\.fr/video/[^/]+/(?P<id>\d+)'
+    _VALID_URL = r'https?://(?:www\.)?(?:animation|anime)digitalnetwork\.fr/video/[^/]+/(?P<id>\d+)'
     _TEST = {
         'url': 'https://animationdigitalnetwork.fr/video/fruits-basket/9841-episode-1-a-ce-soir',
         'md5': '1c9ef066ceb303c86f80c2b371615261',
