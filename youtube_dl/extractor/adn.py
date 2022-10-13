@@ -33,7 +33,7 @@ from ..utils import (
 class ADNIE(InfoExtractor):
     IE_DESC = 'Animation Digital Network'
     _VALID_URL = r'https?://(?:www\.)?(?:animation|anime)digitalnetwork\.fr/video/[^/]+/(?P<id>\d+)'
-    _TEST = {
+    _TESTS = [{
         'url': 'https://animationdigitalnetwork.fr/video/fruits-basket/9841-episode-1-a-ce-soir',
         'md5': '1c9ef066ceb303c86f80c2b371615261',
         'info_dict': {
@@ -50,7 +50,10 @@ class ADNIE(InfoExtractor):
             'episode': 'À ce soir !',
             'episode_number': 1,
         }
-    }
+    }, {
+        'url': 'http://animedigitalnetwork.fr/video/blue-exorcist-kyoto-saga/7778-episode-1-debut-des-hostilites',
+        'only_matching': True,
+    }]
 
     _NETRC_MACHINE = 'animationdigitalnetwork'
     _BASE_URL = 'http://animationdigitalnetwork.fr'
