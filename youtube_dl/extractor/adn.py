@@ -85,7 +85,7 @@ class ADNIE(InfoExtractor):
         if subtitle_location:
             enc_subtitles = self._download_webpage(
                 subtitle_location, video_id, 'Downloading subtitles data',
-                fatal=False, headers={'Origin': 'https://' + _BASE})
+                fatal=False, headers={'Origin': 'https://' + self._BASE})
         if not enc_subtitles:
             return None
 
