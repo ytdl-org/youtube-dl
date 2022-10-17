@@ -49,7 +49,8 @@ class ADNIE(InfoExtractor):
             'season_number': 1,
             'episode': 'À ce soir !',
             'episode_number': 1,
-        }
+        },
+        'skip': 'Only available in region (FR, ...)',
     }, {
         'url': 'http://animedigitalnetwork.fr/video/blue-exorcist-kyoto-saga/7778-episode-1-debut-des-hostilites',
         'only_matching': True,
@@ -141,9 +142,9 @@ Format: Marked,Start,End,Style,Name,MarginL,MarginR,MarginV,Effect,Text'''
         if not username:
             return
         try:
+            url = self._API_BASE_URL + 'authentication/login'
             access_token = (self._download_json(
-                self._API_BASE_URL + 'authentication/login', None,
-                'Logging in', self._LOGIN_ERR_MESSAGE, fatal=False,
+                url, None, 'Logging in', self._LOGIN_ERR_MESSAGE, fatal=False,
                 data=urlencode_postdata({
                     'password': password,
                     'rememberMe': False,
@@ -156,7 +157,8 @@ Format: Marked,Start,End,Style,Name,MarginL,MarginR,MarginV,Effect,Text'''
             message = None
             if isinstance(e.cause, compat_HTTPError) and e.cause.code == 401:
                 resp = self._parse_json(
-                    e.cause.read().decode(), None, fatal=False) or {}
+                    self._webpage_read_content(e.cause, url, username),
+                    username, fatal=False) or {}
                 message = resp.get('message') or resp.get('code')
             self.report_warning(message or self._LOGIN_ERR_MESSAGE)
 
@@ -214,7 +216,9 @@ Format: Marked,Start,End,Style,Name,MarginL,MarginR,MarginV,Effect,Text'''
                     # This usually goes away with a different random pkcs1pad, so retry
                     continue
 
-                error = self._parse_json(e.cause.read(), video_id)
+                error = self._parse_json(
+                    self._webpage_read_content(e.cause, links_url, video_id),
+                    video_id, fatal=False) or {}
                 message = error.get('message')
                 if e.cause.code == 403 and error.get('code') == 'player-bad-geolocation-country':
                     self.raise_geo_restricted(msg=message)
