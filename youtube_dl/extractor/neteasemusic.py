@@ -122,6 +122,8 @@ class NetEaseMusicBaseIE(InfoExtractor):
             data = self._call_player_api(song_id, bitrate)
             for song in try_get(data, lambda x: x['data'], list) or []:
                 song_url = try_get(song, lambda x: x['url'])
+                if not song_url:
+                    continue
                 if self._is_valid_url(song_url, info['id'], 'song'):
                     formats.append({
                         'url': song_url,
