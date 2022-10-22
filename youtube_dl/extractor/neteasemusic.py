@@ -20,6 +20,7 @@ from ..compat import (
 from ..utils import (
     ExtractorError,
     bytes_to_intlist,
+    error_to_compat_str,
     float_or_none,
     int_or_none,
     intlist_to_bytes,
@@ -94,14 +95,19 @@ class NetEaseMusicBaseIE(InfoExtractor):
         url = 'https://interface3.music.163.com/eapi/song/enhance/player/url'
         data, headers = self.make_player_api_request_data_and_headers(song_id, bitrate)
         try:
-            return self._download_json(
+            msg = 'empty result, maybe you should use a proper proxy server located in China'
+            result = self._download_json(
                 url, song_id, data=data.encode('ascii'), headers=headers)
+            if result:
+                return result
         except ExtractorError as e:
             if type(e.cause) in (ValueError, TypeError):
                 # JSON load failure
                 raise
-        except Exception:
-            pass
+        except Exception as e:
+            msg = error_to_compat_str(e)
+            self.report_warning('API call (%s, %s, %s) failed: %s' % (
+                url, song_id, bitrate, msg))
         return {}
 
     def extract_formats(self, info):
@@ -125,6 +131,8 @@ class NetEaseMusicBaseIE(InfoExtractor):
                         'filesize': int_or_none(song.get('size')),
                         'asr': int_or_none(details.get('sr')),
                     })
+        if not formats:
+            self.report_warning('Maybe you should use a proper proxy server located in China')
         return formats
 
     @classmethod
