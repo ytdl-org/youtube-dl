@@ -140,7 +140,7 @@ class NetEaseMusicBaseIE(InfoExtractor):
 class NetEaseMusicIE(NetEaseMusicBaseIE):
     IE_NAME = 'netease:song'
     IE_DESC = '网易云音乐'
-    _VALID_URL = r'https?://music\.163\.com/(#/)?song\?id=(?P<id>[0-9]+)'
+    _VALID_URL = r'https?://(y\.)?music\.163\.com/(#/|m/)?song\?.*?\bid=(?P<id>[0-9]+)'
     _TESTS = [{
         'url': 'http://music.163.com/#/song?id=32102397',
         'md5': '3e909614ce09b1ccef4a3eb205441190',
@@ -177,6 +177,18 @@ class NetEaseMusicIE(NetEaseMusicBaseIE):
             'upload_date': '20100127',
             'timestamp': 1264608000,
             'alt_title': '说出愿望吧(Genie)',
+        },
+    }, {
+        'url': 'https://y.music.163.com/m/song?app_version=8.8.45&id=95670&uct2=sKnvS4+0YStsWkqsPhFijw%3D%3D&dlt=0846',
+        'md5': '95826c73ea50b1c288b22180ec9e754d',
+        'info_dict': {
+            'id': '95670',
+            'ext': 'mp3',
+            'title': '国际歌',
+            'creator': '马备',
+            'upload_date': '19911130',
+            'timestamp': 691516800,
+            'description': 'md5:1ba2f911a2b0aa398479f595224f2141',
         },
     }]
 
