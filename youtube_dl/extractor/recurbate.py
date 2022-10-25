@@ -7,11 +7,11 @@ from .common import InfoExtractor
 class RecurbateIE(InfoExtractor):
     _VALID_URL = r'https?:\/\/(?:www\.)?recurbate\.com\/play\.php\?video=(?P<id>[0-9]+)'
     _TEST = {
-        'url': 'https://recurbate.com/play.php?video=38825900',
+        'url': 'https://recurbate.com/play.php?video=39161415',
         'info_dict': {
-            'id': '38825900',
+            'id': '39161415',
             'ext': 'mp4',
-            'title': 'Performer vvendy show on 2022-10-21 16:55, Chaturbate Archive – Recurbate'
+            'title': 'Performer zsnicole33 show on 2022-10-25 20_23, Chaturbate Archive – Recurbate'
         },
         'skip': 'Requires premium subscription cookie session',
     }
