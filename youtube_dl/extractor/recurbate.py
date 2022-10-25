@@ -22,7 +22,7 @@ class RecurbateIE(InfoExtractor):
 
         title = self._html_search_regex(r'<title>(.+?)</title>', webpage, 'title')
         token = self._html_search_regex(r'data-token=(.+?")', webpage, 'play_button').strip("\"")
-        get_url = f"https://recurbate.com/api/get.php?video={video_id}&token={token}"
+        get_url = "https://recurbate.com/api/get.php?video={}&token={}".format(video_id, token)
         video_webpage = self._download_webpage(get_url, video_id)
         real_url = self._html_search_regex(r'<source src=(.+?) type=\"video\/mp4\"', video_webpage, 'mp4video').strip("\"")
 
