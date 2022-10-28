@@ -6,9 +6,12 @@ from ..compat import (
     compat_str,
 )
 from ..utils import (
+    clean_html,
     ExtractorError,
+    get_element_by_class,
     int_or_none,
     str_or_none,
+    strip_or_none,
     try_get,
     urlencode_postdata,
     urljoin,
@@ -100,38 +103,47 @@ class PlatziIE(PlatziBaseIE):
     def _real_extract(self, url):
         lecture_id = self._match_id(url)
 
-        webpage = self._download_webpage(url, lecture_id)
+        headers = {'User-Agent': 'Mozilla/5.0'}
+        webpage = self._download_webpage(url, lecture_id, headers=headers)
         data_preloaded_state = self._parse_json(
             self._search_regex(
                 (r'window\s*.\s*__PRELOADED_STATE__\s*=\s*({.*?});?\s*</script'), webpage, 'client data'),
             lecture_id)
 
         video_player = try_get(data_preloaded_state, lambda x: x['videoPlayer'], dict)
-        title = video_player.get('name', '')
-        duration = video_player.get('duration', '')
-        servers = video_player.get('video', '').get('servers', {})
+        title = strip_or_none(video_player.get('name')) or self._og_search_title(webpage)
+        servers = try_get(video_player, lambda x: x['video']['servers'], dict) or {}
         formats = []
-        for server in servers.keys():
-            server_json = servers.get(server, {})
-            if 'hls' in server_json.keys():
-                formats.extend(self._extract_m3u8_formats(
-                    server_json['hls'], lecture_id, 'mp4',
-                    entry_protocol='m3u8_native', m3u8_id='hls',
-                    note='Downloading %s m3u8 information' % server_json.get('id', ''),
-                    fatal=False))
-            elif 'dash' in server_json.keys():
-                formats.extend(self._extract_mpd_formats(
-                    server_json['dash'], lecture_id, mpd_id='dash',
-                    note='Downloading %s MPD manifest' % server_json.get('id', ''),
-                    fatal=False))
+        headers['Referer'] = url
+        extractions = {
+            'hls': lambda x: formats.extend(self._extract_m3u8_formats(
+                        server_json[x], lecture_id, 'mp4',
+                        entry_protocol='m3u8_native', m3u8_id='hls',
+                        note='Downloading %s m3u8 information' % (server_json.get('id', x), ),
+                        headers=headers, fatal=False)),
+            'dash': lambda x: formats.extend(self._extract_mpd_formats(
+                        server_json[x], lecture_id, mpd_id='dash',
+                        note='Downloading %s MPD manifest' % (server_json.get('id', x), ),
+                        headers=headers, fatal=False)),
+        }
+        for server, server_json in servers.items():
+            if not isinstance(server_json, dict):
+                continue
+            for fmt in server_json.keys():
+                extraction = extractions.get(fmt)
+                if callable(extraction):
+                    extraction(fmt)
         self._sort_formats(formats)
-
-        duration = int_or_none(duration, invscale=60)
+        for f in formats:
+            f.setdefault('http_headers', {})['Referer'] = headers['Referer']
 
         return {
             'id': lecture_id,
             'title': title,
-            'duration': duration,
+            'description': self._og_search_description(webpage),
+            'thumbnail': self._og_search_thumbnail(webpage),
+            'duration': int_or_none(video_player.get('duration'), invscale=60),
+            'creator': clean_html(get_element_by_class('TeacherDetails-name', webpage)),
             'formats': formats,
         }
 
@@ -171,12 +183,11 @@ class PlatziCourseIE(PlatziBaseIE):
 
         initialData = self._search_regex(
             (r'window.initialData\s*=\s*({.+?})\s*;\s*\n', r'window.initialData\s*=\s*({.+?})\s*;'),
-            webpage, 'window.initialData')
-        props = self._parse_json(
-            initialData,
-            course_name)['initialState']
+            webpage, 'initialData')
+        props = self._parse_json(initialData, course_name, default={})
+        props = try_get(props, lambda x: x['initialProps'], dict) or {}
         entries = []
-        for chapter_num, chapter in enumerate(props['concepts'], 1):
+        for chapter_num, chapter in enumerate(props.get('concepts') or [], 1):
             if not isinstance(chapter, dict):
                 continue
             materials = chapter.get('materials')
@@ -206,4 +217,8 @@ class PlatziCourseIE(PlatziBaseIE):
         course_id = compat_str(try_get(props, lambda x: x['course']['id']))
         course_title = try_get(props, lambda x: x['course']['name'], compat_str)
 
-        return self.playlist_result(entries, course_id, course_title)
+        result = self.playlist_result(entries, course_id, course_title)
+        desc = clean_html(get_element_by_class('RouteDescription-content', webpage))
+        if desc:
+            result['description'] = desc
+        return result
