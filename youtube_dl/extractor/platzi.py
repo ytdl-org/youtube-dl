@@ -7,12 +7,15 @@ from ..compat import (
 )
 from ..utils import (
     clean_html,
+    dict_get,
     ExtractorError,
     get_element_by_class,
     int_or_none,
+    parse_iso8601,
     str_or_none,
     strip_or_none,
     try_get,
+    url_or_none,
     urlencode_postdata,
     urljoin,
 )
@@ -113,6 +116,13 @@ class PlatziIE(PlatziBaseIE):
         video_player = try_get(data_preloaded_state, lambda x: x['videoPlayer'], dict)
         title = strip_or_none(video_player.get('name')) or self._og_search_title(webpage)
         servers = try_get(video_player, lambda x: x['video']['servers'], dict) or {}
+        if not servers and try_get(video_player, lambda x: x['blockedInfo']['blocked']):
+            why = video_player['blockedInfo'].get('type') or 'unspecified'
+            if why == 'unlogged':
+                self.raise_login_required()
+            raise ExtractorError(
+                'All video formats blocked because ' + why, expected=True)
+
         formats = []
         headers['Referer'] = url
         extractions = {
@@ -137,13 +147,22 @@ class PlatziIE(PlatziBaseIE):
         for f in formats:
             f.setdefault('http_headers', {})['Referer'] = headers['Referer']
 
+        def categories():
+            cat = strip_or_none(video_player.get('courseCategory'))
+            if cat:
+                return [cat]
+
         return {
             'id': lecture_id,
             'title': title,
-            'description': self._og_search_description(webpage),
-            'thumbnail': self._og_search_thumbnail(webpage),
+            'description': clean_html(video_player.get('courseDescription')) or self._og_search_description(webpage),
             'duration': int_or_none(video_player.get('duration'), invscale=60),
-            'creator': clean_html(get_element_by_class('TeacherDetails-name', webpage)),
+            'thumbnail': url_or_none(video_player.get('thumbnail')) or self._og_search_thumbnail(webpage),
+            'timestamp': parse_iso8601(dict_get(video_player, ('dataModified', 'dataPublished'))),
+            'creator': strip_or_none(video_player.get('teacherName')) or clean_html(get_element_by_class('TeacherDetails-name', webpage)),
+            'comment_count': int_or_none(video_player.get('commentsNumber')),
+            'categories': categories(),
+            'series': strip_or_none(video_player.get('courseTitle')) or None,
             'formats': formats,
         }
 
