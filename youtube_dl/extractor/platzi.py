@@ -127,14 +127,14 @@ class PlatziIE(PlatziBaseIE):
         headers['Referer'] = url
         extractions = {
             'hls': lambda x: formats.extend(self._extract_m3u8_formats(
-                        server_json[x], lecture_id, 'mp4',
-                        entry_protocol='m3u8_native', m3u8_id='hls',
-                        note='Downloading %s m3u8 information' % (server_json.get('id', x), ),
-                        headers=headers, fatal=False)),
+                server_json[x], lecture_id, 'mp4',
+                entry_protocol='m3u8_native', m3u8_id='hls',
+                note='Downloading %s m3u8 information' % (server_json.get('id', x), ),
+                headers=headers, fatal=False)),
             'dash': lambda x: formats.extend(self._extract_mpd_formats(
-                        server_json[x], lecture_id, mpd_id='dash',
-                        note='Downloading %s MPD manifest' % (server_json.get('id', x), ),
-                        headers=headers, fatal=False)),
+                server_json[x], lecture_id, mpd_id='dash',
+                note='Downloading %s MPD manifest' % (server_json.get('id', x), ),
+                headers=headers, fatal=False)),
         }
         for server, server_json in servers.items():
             if not isinstance(server_json, dict):
