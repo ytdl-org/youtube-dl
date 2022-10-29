@@ -5,7 +5,10 @@ import base64
 import re
 
 from .common import InfoExtractor
-from ..utils import unified_timestamp, parse_duration
+from ..utils import (
+    parse_duration,
+    unified_timestamp,
+)
 
 
 class VXXXIE(InfoExtractor):
@@ -31,67 +34,73 @@ class VXXXIE(InfoExtractor):
 
     def _download_info_object(self, video_id):
         return self._download_json(
-            'https://vxxx.com/api/json/video/86400/0/{}/{}.json'.format(
+            self._INFO_OBJECT_URL_TMPL.format(
+                self._BASE_URL,
                 int(video_id) // 1000 * 1000,
                 video_id,
-            ), video_id, headers={'Referer': 'https://vxxx.com'})['video']
+            ), video_id, headers={'Referer': self._BASE_URL})['video']
 
     def _download_format_object(self, video_id):
         return self._download_json(
-            'https://vxxx.com/api/videofile.php?video_id={}'.format(video_id),
+            self._FORMAT_OBJECT_URL_TMPL.format(self._BASE_URL, video_id),
             video_id,
-            headers={'Referer': 'https://vxxx.com'}
+            headers={'Referer': self._BASE_URL}
         )
 
-    def _get_video_host(self):
-        return 'vxxx.com'
+    @classmethod
+    def _get_video_host(cls):
+        # or use the proper Python URL parsing functions
+        return cls._BASE_URL.split('//')[-1]
 
     def _decode_base164(self, e):
         """
         Some non-standard encoding called "base164" in the JavaScript code. It's
         similar to the regular base64 with a slightly different alphabet:
-            - "АВСЕМ" are Cyrillic letters instead of uppercase English letters
+            - "АВСЕМ" are Cyrillic letters instead of uppercase Latin letters
             - "." is used instead of "+"; "," is used instead of "/"
             - "~" is used for padding instead of "="
         """
 
-        return base64.b64decode(e
-                                .replace("А", "A")
-                                .replace("В", "B")
-                                .replace("С", "C")
-                                .replace("Е", "E")
-                                .replace("М", "M")
-                                .replace(".", "+")
-                                .replace(",", "/")
-                                .replace("~", "=")
+            # using the kwarg to memoise the result
+            def get_trans_tbl(from_, to, tbl={}):
+                k = (from_, to)
+                if not tbl.get(k):
+                    tbl[k] = string.maketrans(from_, to)
+                return tbl[k]
+
+           # maybe for the 2nd arg:
+           # import unicodedata and
+           # ''.join((unicodedata.lookup('CYRILLIC CAPITAL LETTER ' + x) for x in ('A', 'BE', 'ES', 'IE', 'EM'))) + '+/='
+           trans_tbl = get_trans_tbl('АBCEM.,~', 'ABCEM+/=')
+           return base64.b64decode(e.translate(trans_tbl)
                                 ).decode()
 
     def _extract_info(self, url):
-        matches = re.match(self._VALID_URL, url)
-        video_id = matches.group('id')
+        video_id = self._match_id(url)
 
         info_object = self._download_info_object(video_id)
 
+        title = info_object['title']
+        stats = info_object.get('statistics') or {}
         info = {
             'id': video_id,
-            'title': info_object['title'],
-            'display_id': info_object['dir'],
-            'thumbnail': info_object['thumb'],
-            'description': info_object['description'],
-            'timestamp': unified_timestamp(info_object['post_date']),
-            'duration': parse_duration(info_object['duration']),
-            'view_count': int(info_object['statistics']['viewed']),
-            'like_count': int(info_object['statistics']['likes']),
-            'dislike_count': int(info_object['statistics']['dislikes']),
-            'average_rating': float(info_object['statistics']['rating']),
-            'categories': [category['title'] for category in info_object['categories'].values()],
+            'title': title,
+            'display_id': info_object.get('dir'),
+            'thumbnail': url_or_none(info_object.get('thumb')),
+            'description': strip_or_none(info_object('description')) or None,
+            'timestamp': unified_timestamp(info_object.get('post_date')),
+            'duration': parse_duration(info_object.get('duration')),
+            'view_count': int_or_none(stats.get('viewed')),
+            'like_count': int_or_none(stats.get('likes')),
+            'dislike_count': int_or_none(stats.get('dislikes')),
+            'average_rating': float_or_none(stats.get('rating')),
+            'categories': [category['title'] for category in (info_object.get('categories') or {}).values() if category.get('title')],
             'age_limit': 18,
-            'formats': None
         }
 
         format_object = self._download_format_object(video_id)
         m3u8_formats = self._extract_m3u8_formats(
-            "https://{}{}&f=video.m3u8".format(
+            'https://{0}{1}&f=video.m3u8'.format(
                 self._get_video_host(),
                 self._decode_base164(format_object[0]['video_url'])
             ),

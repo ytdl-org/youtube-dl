@@ -28,14 +28,14 @@ class BdsmxTubeIE(VXXXIE):
 
     def _download_info_object(self, video_id):
         return self._download_json(
-            'https://bdsmx.tube/api/json/video/86400/0/{}/{}.json'.format(
+            'https://bdsmx.tube/api/json/video/86400/0/{0}/{1}.json'.format(
                 int(video_id) // 1000 * 1000,
                 video_id,
             ), video_id, headers={'Referer': 'https://bdsmx.tube'})['video']
 
     def _download_format_object(self, video_id):
         return self._download_json(
-            'https://bdsmx.tube/api/videofile.php?video_id={}'.format(video_id),
+            'https://bdsmx.tube/api/videofile.php?video_id={0}'.format(video_id),
             video_id,
             headers={'Referer': 'https://bdsmx.tube'}
         )

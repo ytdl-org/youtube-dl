@@ -1522,7 +1522,14 @@ from .vvvvid import (
     VVVVIDIE,
     VVVVIDShowIE,
 )
-from .vxxx import VXXXIE
+from .vxxx import (
+    BdsmxTubeIE,
+    BlackPornTubeIE,
+    InPornIE,
+    MrGayIE,
+    VXXXIE,
+    XMilfIE,
+)
 from .vyborymos import VyboryMosIE
 from .vzaar import VzaarIE
 from .wakanim import WakanimIE
