@@ -57,7 +57,7 @@ class PlatziBaseIE(InfoExtractor):
         path = compat_urllib_parse_urlparse(x[1].geturl())
         if path == '/':
             self._raise_extractor_error(video_id, 'Redirected to home page: content expired?')
-        elif path =='/login':
+        elif path == '/login':
             self.raise_login_required()
         else:
             errs = clean_html(get_element_by_class('Errorpage-text', x[0]))
@@ -177,7 +177,7 @@ class PlatziIE(PlatziBaseIE):
             why = video_player['blockedInfo'].get('type') or 'unspecified'
             if why == 'unlogged':
                 self.raise_login_required()
-            self._raise_extractor_error(video_id, 'All video formats blocked because ' + why)
+            self._raise_extractor_error(lecture_id, 'All video formats blocked because ' + why)
 
         formats = []
         headers = {'Referer': url}
@@ -287,13 +287,13 @@ class PlatziCourseIE(PlatziBaseIE):
             r'''(["'])courseId\1\s*:\s*(?P<id>\d+)''',
             webpage, 'course id', group='id', fatal=False) or course_id
         return self.__extract_things(
-            webpage, course_id, 
+            webpage, course_id,
             r'''<a\b[^>]+\bhref\s*=\s*['"]?(?P<path>/clases/\d+-%s/[^/]+)'''
             % (display_id, ))
 
     def _extract_categories(self, webpage, cat_id):
         return self.__extract_things(
-            webpage, cat_id, 
+            webpage, cat_id,
             r'''<a\b[^>]+\bhref\s*=\s*['"]?(?P<path>/cursos/[^/]+)''')
 
     def _real_extract(self, url):
