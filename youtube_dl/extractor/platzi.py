@@ -125,13 +125,13 @@ class PlatziIE(PlatziBaseIE):
     def _download_webpage_handle(self, url_or_request, video_id, *args, **kwargs):
         # CF likes Connection: keep-alive and so disfavours Py2
         # retry on 403 may get in
-        kwargs['expected_status'] = 403    
+        kwargs['expected_status'] = 403
         x = super(PlatziIE, self)._download_webpage_handle(url_or_request, video_id, *args, **kwargs)
         if x is not False and x[1].getcode() == 403:
             kwargs.pop('expected_status', None)
             note = kwargs.pop('note', '')
-            kwargs['note'] = (note or 'Downloading webpage') + ' - retrying' 
-            x = super(PlatziIE, self)._download_webpage_handle(url_or_request, video_id, *args, **kwargs)
+            kwargs['note'] = (note or 'Downloading webpage') + ' - retrying'
+            x = super(PlatziIE, self)._download_webpage_handle(url_or_request, video_id, *args, **compat_kwargs(kwargs))
         return x
 
     def _real_extract(self, url):
@@ -139,7 +139,7 @@ class PlatziIE(PlatziBaseIE):
 
         # header parameters required fpor Py3 to breach site's CF fence w/o 403
         headers = {
-            'User-Agent': 'Mozilla/5.0', # (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/93.0.0.0 Safari/537.36',
+            'User-Agent': 'Mozilla/5.0',
         }
         webpage, urlh = self._download_webpage_handle(url, lecture_id, headers=headers)
         if compat_urllib_parse_urlparse(urlh.geturl()).path == '/':
