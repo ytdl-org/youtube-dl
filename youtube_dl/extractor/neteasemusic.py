@@ -95,7 +95,7 @@ class NetEaseMusicBaseIE(InfoExtractor):
         url = 'https://interface3.music.163.com/eapi/song/enhance/player/url'
         data, headers = self.make_player_api_request_data_and_headers(song_id, bitrate)
         try:
-            msg = 'empty result, maybe you should use a proper proxy server located in China'
+            msg = 'empty result'
             result = self._download_json(
                 url, song_id, data=data.encode('ascii'), headers=headers)
             if result:
@@ -106,11 +106,12 @@ class NetEaseMusicBaseIE(InfoExtractor):
                 raise
         except Exception as e:
             msg = error_to_compat_str(e)
-            self.report_warning('API call (%s, %s, %s) failed: %s' % (
-                url, song_id, bitrate, msg))
+            self.report_warning('%s API call (%s) failed: %s' % (
+                song_id, bitrate, msg))
         return {}
 
     def extract_formats(self, info):
+        err = 0
         formats = []
         song_id = info['id']
         for song_format in self._FORMATS:
@@ -133,8 +134,19 @@ class NetEaseMusicBaseIE(InfoExtractor):
                         'filesize': int_or_none(song.get('size')),
                         'asr': int_or_none(details.get('sr')),
                     })
+                elif err == 0:
+                    err = try_get(song, lambda x: x['code'], int)
+
         if not formats:
-            self.report_warning('Maybe you should use a proper proxy server located in China')
+            msg = 'No media links found'
+            if err != 0 and (err < 200 or err >= 400):
+                raise ExtractorError(
+                    '%s (site code %d)' % (msg, err, ), expected=True)
+            else:
+                self.raise_geo_restricted(
+                    msg + ': probably this video is not available from your location due to geo restriction.',
+                    countries=['CN'])
+
         return formats
 
     @classmethod
