@@ -106,7 +106,6 @@ from .bbc import (
     BBCCoUkPlaylistIE,
     BBCIE,
 )
-from .bdsmxtube import BdsmxTubeIE
 from .beeg import BeegIE
 from .behindkink import BehindKinkIE
 from .bellmedia import BellMediaIE
@@ -139,7 +138,6 @@ from .bleacherreport import (
     BleacherReportIE,
     BleacherReportCMSIE,
 )
-from .blackporntube import BlackPornTubeIE
 from .bloomberg import BloombergIE
 from .bokecc import BokeCCIE
 from .bongacams import BongaCamsIE
@@ -522,7 +520,6 @@ from .instagram import (
 )
 from .internazionale import InternazionaleIE
 from .internetvideoarchive import InternetVideoArchiveIE
-from .inporn import InPornIE
 from .iprima import IPrimaIE
 from .iqiyi import IqiyiIE
 from .ir90tv import Ir90TvIE
@@ -675,7 +672,6 @@ from .metacritic import MetacriticIE
 from .mgoon import MgoonIE
 from .mgtv import MGTVIE
 from .miaopai import MiaoPaiIE
-from .mrgay import MrGayIE
 from .microsoftvirtualacademy import (
     MicrosoftVirtualAcademyIE,
     MicrosoftVirtualAcademyCourseIE,
@@ -1589,7 +1585,6 @@ from .ximalaya import (
     XimalayaAlbumIE
 )
 from .xminus import XMinusIE
-from .xmilf import XMilfIE
 from .xnxx import XNXXIE
 from .xstream import XstreamIE
 from .xtube import XTubeUserIE, XTubeIE
