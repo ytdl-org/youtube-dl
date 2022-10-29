@@ -3,7 +3,9 @@ from __future__ import unicode_literals
 
 from .common import InfoExtractor
 from ..compat import (
+    compat_kwargs,
     compat_str,
+    compat_urllib_parse_urlparse,
 )
 from ..utils import (
     clean_html,
@@ -78,6 +80,26 @@ class PlatziIE(PlatziBaseIE):
                     '''
 
     _TESTS = [{
+        'url': 'https://platzi.com/clases/1927-intro-selenium/29383-bienvenida-al-curso',
+        'md5': '0af120f1ffd18a2246f19099d52b83e2',
+        'info_dict': {
+            'id': '29383',
+            'ext': 'mp4',
+            'title': 'Por qué aprender Selenium y qué verás',
+            'description': 'md5:bbe91d2760052ca4054a3149a6580436',
+            'timestamp': 1627400390,
+            'upload_date': '20210727',
+            'creator': 'Héctor Vega',
+            'series': 'Curso de Introducción a Selenium con Python',
+            'duration': 11700,
+            'categories': list,
+        },
+        'params': {
+            'format': 'bestvideo',
+            # 'skip_download': True,
+        },
+        'expected_warnings': ['HTTP Error 401']
+    }, {
         'url': 'https://platzi.com/clases/1311-next-js/12074-creando-nuestra-primera-pagina/',
         'md5': '8f56448241005b561c10f11a595b37e3',
         'info_dict': {
@@ -87,7 +109,7 @@ class PlatziIE(PlatziBaseIE):
             'description': 'md5:4c866e45034fc76412fbf6e60ae008bc',
             'duration': 420,
         },
-        'skip': 'Requires platzi account credentials',
+        'skip': 'Content expired',
     }, {
         'url': 'https://courses.platzi.com/classes/1367-communication-codestream/13430-background/',
         'info_dict': {
@@ -97,23 +119,39 @@ class PlatziIE(PlatziBaseIE):
             'description': 'md5:49c83c09404b15e6e71defaf87f6b305',
             'duration': 360,
         },
-        'skip': 'Requires platzi account credentials',
-        'params': {
-            'skip_download': True,
-        },
+        'skip': 'Content expired',
     }]
+
+    def _download_webpage_handle(self, url_or_request, video_id, *args, **kwargs):
+        # CF likes Connection: keep-alive and so disfavours Py2
+        # retry on 403 may get in
+        kwargs['expected_status'] = 403    
+        x = super(PlatziIE, self)._download_webpage_handle(url_or_request, video_id, *args, **kwargs)
+        if x is not False and x[1].getcode() == 403:
+            kwargs.pop('expected_status', None)
+            note = kwargs.pop('note', '')
+            kwargs['note'] = (note or 'Downloading webpage') + ' - retrying' 
+            x = super(PlatziIE, self)._download_webpage_handle(url_or_request, video_id, *args, **kwargs)
+        return x
 
     def _real_extract(self, url):
         lecture_id = self._match_id(url)
 
-        headers = {'User-Agent': 'Mozilla/5.0'}
-        webpage = self._download_webpage(url, lecture_id, headers=headers)
+        # header parameters required fpor Py3 to breach site's CF fence w/o 403
+        headers = {
+            'User-Agent': 'Mozilla/5.0', # (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/93.0.0.0 Safari/537.36',
+        }
+        webpage, urlh = self._download_webpage_handle(url, lecture_id, headers=headers)
+        if compat_urllib_parse_urlparse(urlh.geturl()).path == '/':
+            raise ExtractorError(
+                'Redirected to home page: content expired?', expected=True)
+
         data_preloaded_state = self._parse_json(
             self._search_regex(
                 (r'window\s*.\s*__PRELOADED_STATE__\s*=\s*({.*?});?\s*</script'), webpage, 'client data'),
             lecture_id)
 
-        video_player = try_get(data_preloaded_state, lambda x: x['videoPlayer'], dict)
+        video_player = try_get(data_preloaded_state, lambda x: x['videoPlayer'], dict) or {}
         title = strip_or_none(video_player.get('name')) or self._og_search_title(webpage)
         servers = try_get(video_player, lambda x: x['video']['servers'], dict) or {}
         if not servers and try_get(video_player, lambda x: x['blockedInfo']['blocked']):
@@ -158,7 +196,7 @@ class PlatziIE(PlatziBaseIE):
             'description': clean_html(video_player.get('courseDescription')) or self._og_search_description(webpage),
             'duration': int_or_none(video_player.get('duration'), invscale=60),
             'thumbnail': url_or_none(video_player.get('thumbnail')) or self._og_search_thumbnail(webpage),
-            'timestamp': parse_iso8601(dict_get(video_player, ('dataModified', 'dataPublished'))),
+            'timestamp': parse_iso8601(dict_get(video_player, ('dateModified', 'datePublished'))),
             'creator': strip_or_none(video_player.get('teacherName')) or clean_html(get_element_by_class('TeacherDetails-name', webpage)),
             'comment_count': int_or_none(video_player.get('commentsNumber')),
             'categories': categories(),
