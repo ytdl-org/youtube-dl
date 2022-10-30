@@ -20,6 +20,7 @@ from ..compat import (
 from ..utils import (
     ExtractorError,
     bytes_to_intlist,
+    error_to_compat_str,
     float_or_none,
     int_or_none,
     intlist_to_bytes,
@@ -94,17 +95,23 @@ class NetEaseMusicBaseIE(InfoExtractor):
         url = 'https://interface3.music.163.com/eapi/song/enhance/player/url'
         data, headers = self.make_player_api_request_data_and_headers(song_id, bitrate)
         try:
-            return self._download_json(
+            msg = 'empty result'
+            result = self._download_json(
                 url, song_id, data=data.encode('ascii'), headers=headers)
+            if result:
+                return result
         except ExtractorError as e:
             if type(e.cause) in (ValueError, TypeError):
                 # JSON load failure
                 raise
-        except Exception:
-            pass
+        except Exception as e:
+            msg = error_to_compat_str(e)
+            self.report_warning('%s API call (%s) failed: %s' % (
+                song_id, bitrate, msg))
         return {}
 
     def extract_formats(self, info):
+        err = 0
         formats = []
         song_id = info['id']
         for song_format in self._FORMATS:
@@ -116,6 +123,8 @@ class NetEaseMusicBaseIE(InfoExtractor):
             data = self._call_player_api(song_id, bitrate)
             for song in try_get(data, lambda x: x['data'], list) or []:
                 song_url = try_get(song, lambda x: x['url'])
+                if not song_url:
+                    continue
                 if self._is_valid_url(song_url, info['id'], 'song'):
                     formats.append({
                         'url': song_url,
@@ -125,6 +134,19 @@ class NetEaseMusicBaseIE(InfoExtractor):
                         'filesize': int_or_none(song.get('size')),
                         'asr': int_or_none(details.get('sr')),
                     })
+                elif err == 0:
+                    err = try_get(song, lambda x: x['code'], int)
+
+        if not formats:
+            msg = 'No media links found'
+            if err != 0 and (err < 200 or err >= 400):
+                raise ExtractorError(
+                    '%s (site code %d)' % (msg, err, ), expected=True)
+            else:
+                self.raise_geo_restricted(
+                    msg + ': probably this video is not available from your location due to geo restriction.',
+                    countries=['CN'])
+
         return formats
 
     @classmethod
