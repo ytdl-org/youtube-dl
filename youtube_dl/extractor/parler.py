@@ -7,6 +7,7 @@ from ..utils import (
     clean_html,
     int_or_none,
     strip_or_none,
+    try_get,
     unified_timestamp,
     urlencode_postdata,
 )
@@ -91,7 +92,7 @@ class ParlerIE(InfoExtractor):
         data = self._download_json(
             'https://parler.com/open-api/ParleyDetailEndpoint.php', video_id,
             data=urlencode_postdata({'uuid': video_id}))['data'][0]
-        primary = data['primary']
+        primary = try_get(data, lambda x: x['primary'], dict) or {}
 
         embed = self._parse_json(primary.get('V2LINKLONG') or '', video_id, fatal=False)
         if embed:
