@@ -4,6 +4,8 @@ from __future__ import unicode_literals
 import re
 
 from .common import InfoExtractor
+
+from .compat import compat_str
 from ..utils import (
     clean_html,
     int_or_none,
@@ -108,7 +110,7 @@ class CCMAIE(InfoExtractor):
         durada = informacio.get('durada') or {}
         duration = int_or_none(durada.get('milisegons'), 1000) or parse_duration(durada.get('text'))
         tematica = try_get(informacio, lambda x: x['tematica']['text'])
-        timestamp = parse_iso8601(try_get(informacio, lambda x: x['data_emissio']['utc']))
+        timestamp = parse_iso8601(try_get(informacio, lambda x: x['data_emissio']['utc']), compat_str)
 
         subtitles = {}
         subtitols = media.get('subtitols') or []
