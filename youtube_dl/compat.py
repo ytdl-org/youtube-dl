@@ -2375,8 +2375,10 @@ except ImportError:
 
 try:
     compat_str = unicode  # Python 2
+    from .casefold import casefold as compat_casefold
 except NameError:
     compat_str = str
+    compat_casefold = lambda s: s.casefold()
 
 try:
     from urllib.parse import unquote_to_bytes as compat_urllib_parse_unquote_to_bytes
@@ -3066,6 +3068,9 @@ except ImportError:
 
 # Pythons disagree on the type of a pattern (RegexObject, _sre.SRE_Pattern, Pattern, ...?)
 compat_re_Pattern = type(re.compile(''))
+# and on the type of a match
+compat_re_Match = type(re.match('a', 'a'))
+
 
 if sys.version_info < (3, 3):
     def compat_b64decode(s, *args, **kwargs):
@@ -3101,6 +3106,7 @@ __all__ = [
     'compat_Struct',
     'compat_b64decode',
     'compat_basestring',
+    'compat_casefold',
     'compat_chr',
     'compat_collections_abc',
     'compat_collections_chain_map',
@@ -3132,6 +3138,7 @@ __all__ = [
     'compat_os_name',
     'compat_parse_qs',
     'compat_print',
+    'compat_re_Match',
     'compat_re_Pattern',
     'compat_realpath',
     'compat_setenv',
