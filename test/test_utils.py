@@ -1763,5 +1763,6 @@ Line 1
         self.assertEqual(join_nonempty('a', 'b'), 'a-b')
         self.assertEqual(join_nonempty('a', 'b', from_dict={'a': 'c', 'b': 'd'}), 'c-d')
 
+
 if __name__ == '__main__':
     unittest.main()

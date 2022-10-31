@@ -5990,6 +5990,8 @@ def traverse_obj(obj, *paths, **kwargs):
     str = compat_str
 
     is_sequence = lambda x: isinstance(x, compat_collections_abc.Sequence) and not isinstance(x, (str, bytes))
+    # stand-in until compat_re_Match is added
+    compat_re_Match = type(re.match('a', 'a'))
     # stand-in until casefold.py is added
     try:
         ''.casefold()
