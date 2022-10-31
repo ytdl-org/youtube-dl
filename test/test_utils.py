@@ -12,7 +12,9 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 # Various small unit tests
 import io
+import itertools
 import json
+import re
 import xml.etree.ElementTree
 
 from youtube_dl.utils import (
@@ -115,6 +117,7 @@ from youtube_dl.compat import (
     compat_getenv,
     compat_os_name,
     compat_setenv,
+    compat_str,
     compat_urlparse,
     compat_parse_qs,
 )
