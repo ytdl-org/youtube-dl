@@ -6080,6 +6080,7 @@ def traverse_obj(obj, *paths, **kwargs):
             if not isinstance(key, (int, slice)):
                 return
 
+            # force change for Linter
             if not is_sequence(obj):
                 if not _traverse_string:
                     return
