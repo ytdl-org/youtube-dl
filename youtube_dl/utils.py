@@ -5925,130 +5925,208 @@ def clean_podcast_url(url):
         )/''', '', url)
 
 
-def traverse_obj(obj, *path_list, **kwargs):
-    ''' Traverse nested list/dict/tuple
-    @param path_list        A list of paths which are checked one by one.
-                            Each path is a list of keys where each key is a:
-                              - None:     Do nothing
-                              - string:   A dictionary key
-                              - int:      An index into a list
-                              - tuple:    A list of keys all of which will be traversed
-                              - Ellipsis: Fetch all values in the object
-                              - Function: Takes the key and value as arguments
-                                          and returns whether the key matches or not
-    @param default          Default value to return
-    @param expected_type    Only accept final value of this type (Can also be any callable)
-    @param get_all          Return all the values obtained from a path or only the first one
-    @param casesense        Whether to consider dictionary keys as case sensitive
-    @param is_user_input    Whether the keys are generated from user input. If True,
-                            strings are converted to int/slice if necessary
-    @param traverse_string  Whether to traverse inside strings. If True, any
-                            non-compatible object will also be converted into a string
-    # TODO: Write tests
-    '''
+def traverse_obj(obj, *paths, **kwargs):
+    """
+    Safely traverse nested `dict`s and `Sequence`s
+
+    >>> obj = [{}, {"key": "value"}]
+    >>> traverse_obj(obj, (1, "key"))
+    "value"
+
+    Each of the provided `paths` is tested and the first producing a valid result will be returned.
+    The next path will also be tested if the path branched but no results could be found.
+    Supported values for traversal are `Mapping`, `Sequence` and `re.Match`.
+    A value of None is treated as the absence of a value.
+
+    The paths will be wrapped in `variadic`, so that `'key'` is conveniently the same as `('key', )`.
+
+    The keys in the path can be one of:
+        - `None`:           Return the current object.
+        - `str`/`int`:      Return `obj[key]`. For `re.Match, return `obj.group(key)`.
+        - `slice`:          Branch out and return all values in `obj[key]`.
+        - `Ellipsis`:       Branch out and return a list of all values.
+        - `tuple`/`list`:   Branch out and return a list of all matching values.
+                            Read as: `[traverse_obj(obj, branch) for branch in branches]`.
+        - `function`:       Branch out and return values filtered by the function.
+                            Read as: `[value for key, value in obj if function(key, value)]`.
+                            For `Sequence`s, `key` is the index of the value.
+        - `dict`            Transform the current object and return a matching dict.
+                            Read as: `{key: traverse_obj(obj, path) for key, path in dct.items()}`.
+
+        `tuple`, `list`, and `dict` all support nested paths and branches.
+
+    @params paths           Paths which to traverse by.
+    Keyword arguments:
+    @param default          Value to return if the paths do not match.
+    @param expected_type    If a `type`, only accept final values of this type.
+                            If any other callable, try to call the function on each result.
+    @param get_all          If `False`, return the first matching result, otherwise all matching ones.
+    @param casesense        If `False`, consider string dictionary keys as case insensitive.
+
+    The following are only meant to be used by YoutubeDL.prepare_outtmpl and are not part of the API
+
+    @param _is_user_input    Whether the keys are generated from user input.
+                            If `True` strings get converted to `int`/`slice` if needed.
+    @param _traverse_string  Whether to traverse into objects as strings.
+                            If `True`, any non-compatible object will first be
+                            converted into a string and then traversed into.
+
+
+    @returns                The result of the object traversal.
+                            If successful, `get_all=True`, and the path branches at least once,
+                            then a list of results is returned instead.
+                            A list is always returned if the last path branches and no `default` is given.
+    """
 
     # parameter defaults
-    default = kwargs.get('default')
+    default = kwargs.get('default', NO_DEFAULT)
     expected_type = kwargs.get('expected_type')
     get_all = kwargs.get('get_all', True)
     casesense = kwargs.get('casesense', True)
-    is_user_input = kwargs.get('is_user_input', False)
-    traverse_string = kwargs.get('traverse_string', False)
+    _is_user_input = kwargs.get('_is_user_input', False)
+    _traverse_string = kwargs.get('_traverse_string', False)
 
-    def listish(l):
-        # TODO support LazyList when ported
-        return isinstance(l, (list, tuple))
+    # instant compat
+    str = compat_str
 
-    def from_iterable(iterables):
-        # chain.from_iterable(['ABC', 'DEF']) --> A B C D E F
-        for it in iterables:
-            for element in it:
-                yield element
-
-    class Nonlocal:
-        pass
-    nl = Nonlocal()
-
-    if not casesense:
-        _lower = lambda k: (k.lower() if isinstance(k, compat_str) else k)
-        path_list = (map(_lower, variadic(path)) for path in path_list)
-
-    def _traverse_obj(obj, path, _current_depth=0):
-        path = tuple(variadic(path))
-        for i, key in enumerate(path):
-            if None in (key, obj):
-                return obj
-            if listish(key):
-                obj = [_traverse_obj(obj, sub_key, _current_depth) for sub_key in key]
-                key = Ellipsis
-            if key is Ellipsis:
-                obj = (obj.values() if isinstance(obj, dict)
-                       else obj if listish(obj)
-                       else compat_str(obj) if traverse_string else [])
-                _current_depth += 1
-                nl.depth = max(nl.depth, _current_depth)
-                return [_traverse_obj(inner_obj, path[i + 1:], _current_depth) for inner_obj in obj]
-            elif callable(key):
-                if listish(obj):
-                    obj = enumerate(obj)
-                elif isinstance(obj, dict):
-                    obj = obj.items()
-                else:
-                    if not traverse_string:
-                        return None
-                    obj = compat_str(obj)
-                _current_depth += 1
-                nl.depth = max(nl.depth, _current_depth)
-                return [_traverse_obj(v, path[i + 1:], _current_depth) for k, v in obj if try_call(key, args=(k, v))]
-            elif isinstance(obj, dict) and not (is_user_input and key == ':'):
-                obj = (obj.get(key) if casesense or (key in obj)
-                       else next((v for k, v in obj.items() if _lower(k) == key), None))
-            else:
-                if is_user_input:
-                    key = (int_or_none(key) if ':' not in key
-                           else slice(*map(int_or_none, key.split(':'))))
-                    if key == slice(None):
-                        return _traverse_obj(obj, (Ellipsis,) + path[i + 1:], _current_depth)
-                if not isinstance(key, (int, slice)):
-                    return None
-                if not listish(obj):
-                    if not traverse_string:
-                        return None
-                    obj = compat_str(obj)
-                try:
-                    obj = obj[key]
-                except IndexError:
-                    return None
-        return obj
+    is_sequence = lambda x: isinstance(x, compat_collections_abc.Sequence) and not isinstance(x, (str, bytes))
+    # stand-in until casefold.py is added
+    try:
+        ''.casefold()
+        compat_casefold = lambda s: s.casefold()
+    except AttributeError:
+        compat_casefold = lambda s: s.lower()
+    casefold = lambda k: compat_casefold(k) if isinstance(k, str) else k
 
     if isinstance(expected_type, type):
         type_test = lambda val: val if isinstance(val, expected_type) else None
     else:
-        type_test = expected_type or IDENTITY
+        type_test = lambda val: try_call(expected_type or IDENTITY, args=(val,))
 
-    for path in path_list:
-        nl.depth = 0
-        val = _traverse_obj(obj, path)
-        if val is not None:
-            if nl.depth:
-                for _ in range(nl.depth - 1):
-                    val = from_iterable(v for v in val if v is not None)
-                val = [v for v in map(type_test, val) if v is not None]
-                if val:
-                    return val if get_all else val[0]
+    def from_iterable(iterables):
+        # chain.from_iterable(['ABC', 'DEF']) --> A B C D E F
+        for it in iterables:
+            for item in it:
+                yield item
+
+    def apply_key(key, obj):
+        if obj is None:
+            return
+
+        elif key is None:
+            yield obj
+
+        elif isinstance(key, (list, tuple)):
+            for branch in key:
+                _, result = apply_path(obj, branch)
+                for item in result:
+                    yield item
+
+        elif key is Ellipsis:
+            result = []
+            if isinstance(obj, compat_collections_abc.Mapping):
+                result = obj.values()
+            elif is_sequence(obj):
+                result = obj
+            elif isinstance(obj, compat_re_Match):
+                result = obj.groups()
+            elif _traverse_string:
+                result = str(obj)
+            for item in result:
+                yield item
+
+        elif callable(key):
+            if is_sequence(obj):
+                iter_obj = enumerate(obj)
+            elif isinstance(obj, compat_collections_abc.Mapping):
+                iter_obj = obj.items()
+            elif isinstance(obj, compat_re_Match):
+                iter_obj = enumerate(itertools.chain([obj.group()], obj.groups()))
+            elif _traverse_string:
+                iter_obj = enumerate(str(obj))
             else:
-                val = type_test(val)
-                if val is not None:
-                    return val
-    return default
+                return
+            for item in (v for k, v in iter_obj if try_call(key, args=(k, v))):
+                 yield item
+
+        elif isinstance(key, dict):
+            iter_obj = ((k, _traverse_obj(obj, v)) for k, v in key.items())
+            yield dict((k, v if v is not None else default) for k, v in iter_obj
+                   if v is not None or default is not NO_DEFAULT)
+
+        elif isinstance(obj, compat_collections_abc.Mapping):
+            yield (obj.get(key) if casesense or (key in obj)
+                   else next((v for k, v in obj.items() if casefold(k) == key), None))
+
+        elif isinstance(obj, compat_re_Match):
+            if isinstance(key, int) or casesense:
+                try:
+                    yield obj.group(key)
+                    return
+                except IndexError:
+                    pass
+            if not isinstance(key, str):
+                return
+
+            yield next((v for k, v in obj.groupdict().items() if casefold(k) == key), None)
+
+        else:
+            if _is_user_input:
+                key = (int_or_none(key) if ':' not in key
+                       else slice(*map(int_or_none, key.split(':'))))
+
+            if not isinstance(key, (int, slice)):
+                return
+
+            if not is_sequence(obj):
+                if not _traverse_string:
+                    return
+                obj = str(obj)
+
+            try:
+                yield obj[key]
+            except IndexError:
+                pass
+
+    def apply_path(start_obj, path):
+        objs = (start_obj,)
+        has_branched = False
+
+        for key in variadic(path):
+            if _is_user_input and key == ':':
+                key = Ellipsis
+
+            if not casesense and isinstance(key, str):
+                key = compat_casefold(key)
+
+            if key is Ellipsis or isinstance(key, (list, tuple)) or callable(key):
+                has_branched = True
+
+            key_func = functools.partial(apply_key, key)
+            objs = from_iterable(map(key_func, objs))
+
+        return has_branched, objs
+
+    def _traverse_obj(obj, path, use_list=True):
+        has_branched, results = apply_path(obj, path)
+        results = LazyList(x for x in map(type_test, results) if x is not None)
+
+        if get_all and has_branched:
+            return results.exhaust() if results or use_list else None
+
+        return results[0] if results else None
+
+    for index, path in enumerate(paths, 1):
+        use_list = default is NO_DEFAULT and index == len(paths)
+        result = _traverse_obj(obj, path, use_list)
+        if result is not None:
+            return result
+
+    return None if default is NO_DEFAULT else default
 
 
 def get_first(obj, keys, **kwargs):
     return traverse_obj(obj, (Ellipsis,) + tuple(variadic(keys)), get_all=False, **kwargs)
-
-
-def variadic(x, allowed_types=(str, bytes, dict)):
-    return x if isinstance(x, compat_collections_abc.Iterable) and not isinstance(x, allowed_types) else (x,)
 
 
 def join_nonempty(*values, **kwargs):
