@@ -3836,6 +3836,105 @@ def detect_exe_version(output, version_re=None, unrecognized='present'):
         return unrecognized
 
 
+class LazyList(compat_collections_abc.Sequence):
+    """Lazy immutable list from an iterable
+    Note that slices of a LazyList are lists and not LazyList"""
+
+    class IndexError(IndexError):
+        def __init__(self, cause=None):
+            if cause:
+                # reproduce `raise from`
+                self.__cause__ = cause
+            super(IndexError, self).__init__()
+
+    def __init__(self, iterable, **kwargs):
+        # kwarg-only
+        reverse = kwargs.get('reverse', False)
+        _cache = kwargs.get('_cache')
+
+        self._iterable = iter(iterable)
+        self._cache = [] if _cache is None else _cache
+        self._reversed = reverse
+
+    def __iter__(self):
+        if self._reversed:
+            # We need to consume the entire iterable to iterate in reverse
+            for item in self.exhaust():
+                yield item
+            return
+        for item in self._cache:
+            yield item
+        for item in self._iterable:
+            self._cache.append(item)
+            yield item
+
+    def _exhaust(self):
+        self._cache.extend(self._iterable)
+        self._iterable = []  # Discard the emptied iterable to make it pickle-able
+        return self._cache
+
+    def exhaust(self):
+        """Evaluate the entire iterable"""
+        return self._exhaust()[::-1 if self._reversed else 1]
+
+    @staticmethod
+    def _reverse_index(x):
+        return None if x is None else ~x
+
+    def __getitem__(self, idx):
+        if isinstance(idx, slice):
+            if self._reversed:
+                idx = slice(self._reverse_index(idx.start), self._reverse_index(idx.stop), -(idx.step or 1))
+            start, stop, step = idx.start, idx.stop, idx.step or 1
+        elif isinstance(idx, int):
+            if self._reversed:
+                idx = self._reverse_index(idx)
+            start, stop, step = idx, idx, 0
+        else:
+            raise TypeError('indices must be integers or slices')
+        if ((start or 0) < 0 or (stop or 0) < 0
+                or (start is None and step < 0)
+                or (stop is None and step > 0)):
+            # We need to consume the entire iterable to be able to slice from the end
+            # Obviously, never use this with infinite iterables
+            self._exhaust()
+            try:
+                return self._cache[idx]
+            except IndexError as e:
+                raise self.IndexError(e)
+        n = max(start or 0, stop or 0) - len(self._cache) + 1
+        if n > 0:
+            self._cache.extend(itertools.islice(self._iterable, n))
+        try:
+            return self._cache[idx]
+        except IndexError as e:
+            raise self.IndexError(e)
+
+    def __bool__(self):
+        try:
+            self[-1] if self._reversed else self[0]
+        except self.IndexError:
+            return False
+        return True
+
+    def __len__(self):
+        self._exhaust()
+        return len(self._cache)
+
+    def __reversed__(self):
+        return type(self)(self._iterable, reverse=not self._reversed, _cache=self._cache)
+
+    def __copy__(self):
+        return type(self)(self._iterable, reverse=self._reversed, _cache=self._cache)
+
+    def __repr__(self):
+        # repr and str should mimic a list. So we exhaust the iterable
+        return repr(self.exhaust())
+
+    def __str__(self):
+        return repr(self.exhaust())
+
+
 class PagedList(object):
     def __len__(self):
         # This is only useful for tests
