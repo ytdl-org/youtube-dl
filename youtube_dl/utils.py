@@ -6049,7 +6049,7 @@ def traverse_obj(obj, *paths, **kwargs):
             else:
                 return
             for item in (v for k, v in iter_obj if try_call(key, args=(k, v))):
-                 yield item
+                yield item
 
         elif isinstance(key, dict):
             iter_obj = ((k, _traverse_obj(obj, v)) for k, v in key.items())
@@ -6080,7 +6080,6 @@ def traverse_obj(obj, *paths, **kwargs):
             if not isinstance(key, (int, slice)):
                 return
 
-            # force change for Linter
             if not is_sequence(obj):
                 if not _traverse_string:
                     return
