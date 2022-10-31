@@ -6054,7 +6054,7 @@ def traverse_obj(obj, *paths, **kwargs):
         elif isinstance(key, dict):
             iter_obj = ((k, _traverse_obj(obj, v)) for k, v in key.items())
             yield dict((k, v if v is not None else default) for k, v in iter_obj
-                   if v is not None or default is not NO_DEFAULT)
+                       if v is not None or default is not NO_DEFAULT)
 
         elif isinstance(obj, compat_collections_abc.Mapping):
             yield (obj.get(key) if casesense or (key in obj)
