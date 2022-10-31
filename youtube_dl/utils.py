@@ -6137,4 +6137,4 @@ def join_nonempty(*values, **kwargs):
 
     if from_dict is not None:
         values = (traverse_obj(from_dict, variadic(v)) for v in values)
-    return delim.join(map(str, filter(None, values)))
+    return delim.join(map(compat_str, filter(None, values)))
