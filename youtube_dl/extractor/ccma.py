@@ -5,7 +5,7 @@ import re
 
 from .common import InfoExtractor
 
-from .compat import compat_str
+from ..compat import compat_str
 from ..utils import (
     clean_html,
     int_or_none,
