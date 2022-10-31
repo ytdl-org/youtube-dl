@@ -124,6 +124,11 @@ from youtube_dl.compat import (
 
 
 class TestUtil(unittest.TestCase):
+
+    # yt-dlp shim
+    def assertCountEqual(self, expected, got, msg='count should be the same'):
+        return self.assertEqual(len(tuple(expected)), len(tuple(got)), msg=msg)
+
     def test_timeconvert(self):
         self.assertTrue(timeconvert('') is None)
         self.assertTrue(timeconvert('bougrg') is None)
