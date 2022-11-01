@@ -1687,12 +1687,17 @@ Line 1
                 'KeY': 'value1',
                 0: {'KeY': 'value2'},
             },
+             # FULLWIDTH LATIN CAPITAL LETTER K
+            '\uff2bey': 'value3',
         }
         self.assertEqual(traverse_obj(_CASESENSE_DATA, 'key'), None,
                          msg='dict keys should be case sensitive unless `casesense`')
         self.assertEqual(traverse_obj(_CASESENSE_DATA, 'keY',
                                       casesense=False), 'value0',
                          msg='allow non matching key case if `casesense`')
+        self.assertEqual(traverse_obj(_CASESENSE_DATA, '\uff4bey',  # FULLWIDTH LATIN SMALL LETTER K
+                                      casesense=False), 'value3',
+                         msg='allow non matching Unicode key case if `casesense`')
         self.assertEqual(traverse_obj(_CASESENSE_DATA, (0, ('keY',)),
                                       casesense=False), ['value1'],
                          msg='allow non matching key case in branch if `casesense`')
