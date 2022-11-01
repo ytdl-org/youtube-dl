@@ -11,6 +11,7 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 
 from youtube_dl.compat import (
+    compat_casefold,
     compat_getenv,
     compat_setenv,
     compat_etree_Element,
