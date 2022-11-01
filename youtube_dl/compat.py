@@ -21,6 +21,19 @@ import subprocess
 import sys
 import xml.etree.ElementTree
 
+# deal with critical unicode/str things first
+try:
+    # Python 2
+    compat_str, compat_basestring, compat_chr = (
+        unicode, basestring, unichr
+    )
+    from .casefold import casefold as compat_casefold
+except NameError:
+    compat_str, compat_basestring, compat_chr = (
+        str, str, chr
+    )
+    compat_casefold = lambda s: s.casefold()
+
 try:
     import collections.abc as compat_collections_abc
 except ImportError:
@@ -2374,13 +2387,6 @@ except ImportError:
     import BaseHTTPServer as compat_http_server
 
 try:
-    compat_str = unicode  # Python 2
-    from .casefold import casefold as compat_casefold
-except NameError:
-    compat_str = str
-    compat_casefold = lambda s: s.casefold()
-
-try:
     from urllib.parse import unquote_to_bytes as compat_urllib_parse_unquote_to_bytes
     from urllib.parse import unquote as compat_urllib_parse_unquote
     from urllib.parse import unquote_plus as compat_urllib_parse_unquote_plus
@@ -2511,20 +2517,9 @@ except ImportError:  # Python < 3.4
             return compat_urllib_response.addinfourl(io.BytesIO(data), headers, url)
 
 try:
-    compat_basestring = basestring  # Python 2
-except NameError:
-    compat_basestring = str
-
-try:
-    compat_chr = unichr  # Python 2
-except NameError:
-    compat_chr = chr
-
-try:
     from xml.etree.ElementTree import ParseError as compat_xml_parse_error
 except ImportError:  # Python 2.6
     from xml.parsers.expat import ExpatError as compat_xml_parse_error
-
 
 etree = xml.etree.ElementTree
 
