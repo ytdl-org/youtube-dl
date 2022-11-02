@@ -51,7 +51,9 @@ class TestUnicodeLiterals(unittest.TestCase):
                     r'(?:(?:#.*?|\s*)\n)*from __future__ import (?:[a-z_]+,\s*)*unicode_literals',
                     'unicode_literals import  missing in %s' % fn)
 
-                m = re.search(r'(?<=\s)u[\'"](?!\)|,|$)', code)
+                # match explicit unicode literal on a line not starting with #|'|"
+                # and preceded by a space or =
+                m = re.search(r'(?m)(?:^\s*?[^#\s"\'].*?)(?<=\s|=)u[\'"](?!\)|,|$)', code)
                 if m is not None:
                     self.assertTrue(
                         m is None,

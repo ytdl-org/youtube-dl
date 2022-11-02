@@ -3,6 +3,7 @@
 
 from __future__ import unicode_literals
 
+import ast
 import base64
 import binascii
 import calendar
@@ -54,6 +55,7 @@ from .compat import (
     compat_kwargs,
     compat_os_name,
     compat_parse_qs,
+    compat_reprlib,
     compat_shlex_quote,
     compat_str,
     compat_struct_pack,
@@ -2055,6 +2057,43 @@ def clean_html(html):
     return html.strip()
 
 
+def eviscerate(text, width, placeholder=' [...]'):
+    """Shorten the text to width by replacing text
+    from the middle of text with placeholder.
+    """
+
+    r = compat_reprlib.Repr()
+    r.ellipsis = '...'
+    r.maxstring = width - len(placeholder) + len(r.ellipsis) + len(r.repr(''))
+    r.maxother = r.maxstring
+
+    t = r.repr(text)
+    # u'xx...xx'/'xx...xx' -> xx[...]xx
+    return ast.literal_eval(t).replace(r.ellipsis, placeholder)
+
+
+def reduce_filename(path, reduction=0.5, min_length=20, ellipsis='[...]'):
+    """Try to reduce the filename by a specified reduction factor
+
+    Arguments:
+    path -- the path name to reduce
+    reduction -- factor by which to reduce its filename component
+    ellipsis -- placeholder for removed text
+
+    Returns path name with reduced filename, or None
+    """
+
+    fname = os.path.split(path)
+    fname = list(fname[:1] + os.path.splitext(fname[1]))
+    fname[1] = fname[1].replace(ellipsis, ' ')
+    flen = len(fname[1])
+    if flen < min_length:
+        # give up
+        return None
+    fname[1] = eviscerate(fname[1], int(1 + reduction * flen), placeholder=ellipsis)
+    return os.path.join(fname[0], ''.join(fname[1:]))
+
+
 def sanitize_open(filename, open_mode):
     """Try to open the given filename, and slightly tweak it if this fails.
 
@@ -2065,26 +2104,54 @@ def sanitize_open(filename, open_mode):
 
     It returns the tuple (stream, definitive_file_name).
     """
+    def openfile(filename, open_mode):
+        stream = open(encodeFilename(filename), open_mode)
+        return (stream, filename)
+
     try:
         if filename == '-':
             if sys.platform == 'win32':
                 import msvcrt
                 msvcrt.setmode(sys.stdout.fileno(), os.O_BINARY)
             return (sys.stdout.buffer if hasattr(sys.stdout, 'buffer') else sys.stdout, filename)
-        stream = open(encodeFilename(filename), open_mode)
-        return (stream, filename)
+        return openfile(filename, open_mode)
     except (IOError, OSError) as err:
         if err.errno in (errno.EACCES,):
             raise
 
-        # In case of error, try to remove win32 forbidden chars
-        alt_filename = sanitize_path(filename)
-        if alt_filename == filename:
+        if 'w' not in open_mode or '+' in open_mode:
+            # only mung filename when creating the file
             raise
+
+        org_err = err
+
+        # In case of error, try to remove win32 forbidden chars
+        if err.errno in (errno.EINVAL, ):
+            alt_filename = sanitize_path(filename)
+            if alt_filename != filename:
+                try:
+                    return openfile(alt_filename, open_mode)
+                except (IOError, OSError) as new_err:
+                    err = new_err
         else:
-            # An exception here should be caught in the caller
-            stream = open(encodeFilename(alt_filename), open_mode)
-            return (stream, alt_filename)
+            alt_filename = filename
+
+        # Windows: an over-long file name can be detected by the CreateFile()
+        # API, and then get EINVAL, or by the filesystem, and then perhaps
+        # ENAMETOOLONG
+        # POSIX: ENAMETOOLONG in general
+        while err.errno in (errno.ENAMETOOLONG, errno.EINVAL, ):
+            alt_filename = reduce_filename(alt_filename)
+            if not alt_filename:
+                break
+            try:
+                return openfile(alt_filename, open_mode)
+            except (IOError, OSError) as new_err:
+                err = new_err
+
+        # Reduction didn't help; give up and report what initially went wrong
+        # This exception should be caught in the caller
+        raise org_err
 
 
 def timeconvert(timestr):

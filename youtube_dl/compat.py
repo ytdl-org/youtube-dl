@@ -3093,6 +3093,10 @@ else:
     def compat_ctypes_WINFUNCTYPE(*args, **kwargs):
         return ctypes.WINFUNCTYPE(*args, **kwargs)
 
+try:
+    import reprlib as compat_reprlib
+except ImportError:
+    import repr as compat_reprlib
 
 __all__ = [
     'compat_HTMLParseError',
@@ -3136,6 +3140,7 @@ __all__ = [
     'compat_re_Match',
     'compat_re_Pattern',
     'compat_realpath',
+    'compat_reprlib',
     'compat_setenv',
     'compat_shlex_quote',
     'compat_shlex_split',
