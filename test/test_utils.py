@@ -1540,17 +1540,17 @@ Line 1
 
         self.assertEqual(try_call(None), None,
                          msg='not a fn should give None')
-        self.assertEqual(try_call(lambda : 1), 1,
+        self.assertEqual(try_call(lambda: 1), 1,
                          msg='int fn with no expected_type should give int')
-        self.assertEqual(try_call(lambda : 1, expected_type=int), 1,
+        self.assertEqual(try_call(lambda: 1, expected_type=int), 1,
                          msg='int fn with expected_type int should give int')
-        self.assertEqual(try_call(lambda : 1, expected_type=dict), None,
+        self.assertEqual(try_call(lambda: 1, expected_type=dict), None,
                          msg='int fn with wrong expected_type should give None')
         self.assertEqual(try_call(total, args=(0, 1, 0, ), expected_type=int), 1,
                          msg='fn should accept arglist')
         self.assertEqual(try_call(total, kwargs={'a': 0, 'b': 1, 'c': 0}, expected_type=int), 1,
                          msg='fn should accept kwargs')
-        self.assertEqual(try_call(lambda : 1, expected_type=dict), None,
+        self.assertEqual(try_call(lambda: 1, expected_type=dict), None,
                          msg='int fn with no expected_type should give None')
         self.assertEqual(try_call(lambda x: {}, total, args=(42, ), expected_type=int), 42,
                          msg='expect first int result with expected_type int')
@@ -1795,8 +1795,8 @@ Line 1
     def test_join_nonempty(self):
         self.assertEqual(join_nonempty('a', 'b'), 'a-b')
         self.assertEqual(join_nonempty(
-                'a', 'b', 'c', 'd',
-                from_dict={'a': 'c', 'c': [], 'b': 'd', 'd': None}), 'c-d')
+            'a', 'b', 'c', 'd',
+            from_dict={'a': 'c', 'c': [], 'b': 'd', 'd': None}), 'c-d')
 
 
 if __name__ == '__main__':
