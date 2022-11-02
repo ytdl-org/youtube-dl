@@ -85,6 +85,7 @@ from youtube_dl.utils import (
     subtitles_filename,
     timeconvert,
     traverse_obj,
+    try_call,
     unescapeHTML,
     unified_strdate,
     unified_timestamp,
@@ -98,7 +99,7 @@ from youtube_dl.utils import (
     urlencode_postdata,
     urshift,
     update_url_query,
-    # variadic,
+    variadic,
     version_tuple,
     xpath_with_ns,
     xpath_element,
@@ -1533,6 +1534,32 @@ Line 1
         ll = reversed(ll)
         test(ll, -15, 14, range(15))
 
+    def test_try_call(self):
+        def total(*x, **kwargs):
+            return sum(x) + sum(kwargs.values())
+
+        self.assertEqual(try_call(None), None,
+                         msg='not a fn should give None')
+        self.assertEqual(try_call(lambda : 1), 1,
+                         msg='int fn with no expected_type should give int')
+        self.assertEqual(try_call(lambda : 1, expected_type=int), 1,
+                         msg='int fn with expected_type int should give int')
+        self.assertEqual(try_call(lambda : 1, expected_type=dict), None,
+                         msg='int fn with wrong expected_type should give None')
+        self.assertEqual(try_call(total, args=(0, 1, 0, ), expected_type=int), 1,
+                         msg='fn should accept arglist')
+        self.assertEqual(try_call(total, kwargs={'a': 0, 'b': 1, 'c': 0}, expected_type=int), 1,
+                         msg='fn should accept kwargs')
+        self.assertEqual(try_call(lambda : 1, expected_type=dict), None,
+                         msg='int fn with no expected_type should give None')
+        self.assertEqual(try_call(lambda x: {}, total, args=(42, ), expected_type=int), 42,
+                         msg='expect first int result with expected_type int')
+
+    def test_variadic(self):
+        self.assertEqual(variadic(None), (None, ))
+        self.assertEqual(variadic('spam'), ('spam', ))
+        self.assertEqual(variadic('spam', allowed_types=dict), 'spam')
+
     def test_traverse_obj(self):
         _TEST_DATA = {
             100: 100,
@@ -1606,7 +1633,7 @@ Line 1
                          msg='do not fail early on branching')
         self.assertCountEqual(traverse_obj(_TEST_DATA, ('urls', ((1, ('fail', 'url')), (0, 'url')))),
                               ['https://www.example.com/0', 'https://www.example.com/1'],
-                              msg='tripple nesting in path should be treated as branches')
+                              msg='triple nesting in path should be treated as branches')
         self.assertEqual(traverse_obj(_TEST_DATA, ('urls', ('fail', (Ellipsis, 'url')))),
                          ['https://www.example.com/0', 'https://www.example.com/1'],
                          msg='ellipsis as branch path start gets flattened')
@@ -1688,7 +1715,7 @@ Line 1
                 'KeY': 'value1',
                 0: {'KeY': 'value2'},
             },
-             # FULLWIDTH LATIN CAPITAL LETTER K
+            # FULLWIDTH LATIN CAPITAL LETTER K
             '\uff2bey': 'value3',
         }
         self.assertEqual(traverse_obj(_CASESENSE_DATA, 'key'), None,
@@ -1763,11 +1790,13 @@ Line 1
                          msg='failing int key on a `re.Match` should return `default`')
 
     def test_get_first(self):
-        self.assertEqual(get_first([{'a': 'b'}], 'a'), 'b')
+        self.assertEqual(get_first([{'a': None}, {'a': 'spam'}], 'a'), 'spam')
 
     def test_join_nonempty(self):
         self.assertEqual(join_nonempty('a', 'b'), 'a-b')
-        self.assertEqual(join_nonempty('a', 'b', from_dict={'a': 'c', 'b': 'd'}), 'c-d')
+        self.assertEqual(join_nonempty(
+                'a', 'b', 'c', 'd',
+                from_dict={'a': 'c', 'c': [], 'b': 'd', 'd': None}), 'c-d')
 
 
 if __name__ == '__main__':
