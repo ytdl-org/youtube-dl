@@ -1519,12 +1519,9 @@ from .vvvvid import (
     VVVVIDShowIE,
 )
 from .vxxx import (
-    BdsmxTubeIE,
-    BlackPornTubeIE,
     InPornIE,
     MrGayIE,
     VXXXIE,
-    XMilfIE,
 )
 from .vyborymos import VyboryMosIE
 from .vzaar import VzaarIE

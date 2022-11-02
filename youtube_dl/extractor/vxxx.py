@@ -112,56 +112,6 @@ class VXXXIE(InfoExtractor):
         return info
 
 
-class BdsmxTubeIE(VXXXIE):
-    _VALID_URL = r'https?://bdsmx\.tube/video/(?P<id>\d+)'
-    _TESTS = [{
-        'url': 'https://bdsmx.tube/video/127583/latex-puppy-leashed/',
-        'md5': '79751d4ed75668afe07a660c4bcb2f1b',
-        'info_dict': {
-            'id': '127583',
-            'ext': 'mp4',
-            'title': 'Latex Puppy Leashed',
-            'display_id': 'latex-puppy-leashed',
-            'thumbnail': 'https://tn.bdsmx-porn.com/contents/videos_screenshots/127000/127583/480x270/1.jpg',
-            'description': None,
-            'timestamp': 1651003323,
-            'upload_date': '20220426',
-            'duration': 68.0,
-            'categories': ['Asian', 'Brunette', 'Cosplay', 'Fetish',
-                           'Fuck Machine', 'Gagging', 'Japanese',
-                           'JAV Uncensored', 'Latex', 'Leather', 'POV'],
-            'age_limit': 18,
-        }
-    }]
-
-    _BASE_URL = 'https://bdsmx.tube'
-
-
-class BlackPornTubeIE(VXXXIE):
-    _VALID_URL = r'https?://blackporn\.tube/video/(?P<id>\d+)'
-    _TESTS = [{
-        'url': 'https://blackporn.tube/video/10043813/young-ebony-babe-gets-super-wet/',
-        'md5': '4a4c126970f2f1453b8b2050947fc870',
-        'info_dict': {
-            'id': '10043813',
-            'ext': 'mp4',
-            'title': 'Young Ebony Babe Gets Super Wet',
-            'display_id': 'young-ebony-babe-gets-super-wet',
-            'thumbnail': 'https://tn.blackporn.tube/contents/videos_screenshots/10043000/10043813/480x270/1.jpg',
-            'description': None,
-            'timestamp': 1654806141,
-            'upload_date': '20220609',
-            'duration': 193.0,
-            'categories': ['BDSM', 'Bondage', 'Celebrity', 'Ebony', 'Fetish',
-                           'Shibari Bondage', 'Solo Female',
-                           'Tattoo'],
-            'age_limit': 18,
-        }
-    }]
-
-    _BASE_URL = 'https://blackporn.tube'
-
-
 class InPornIE(VXXXIE):
     _VALID_URL = r'https?://(?:www\.)?inporn\.com/video/(?P<id>\d+)'
     _TESTS = [{
@@ -209,6 +159,60 @@ class MrGayIE(VXXXIE):
 
     _BASE_URL = 'https://mrgay.com'
 
+# The following three extractors are for "friend" sites whose videos could be
+# extracted in the same way, but unsupported by youtube-dl due to missing proper
+# DMCA notices. Consider re-enable them if their DMCA pages become available.
+class BdsmxTubeIE(VXXXIE):
+    _VALID_URL = r'https?://bdsmx\.tube/video/(?P<id>\d+)'
+    _TESTS = [{
+        'url': 'https://bdsmx.tube/video/127583/latex-puppy-leashed/',
+        'md5': '79751d4ed75668afe07a660c4bcb2f1b',
+        'info_dict': {
+            'id': '127583',
+            'ext': 'mp4',
+            'title': 'Latex Puppy Leashed',
+            'display_id': 'latex-puppy-leashed',
+            'thumbnail': 'https://tn.bdsmx-porn.com/contents/videos_screenshots/127000/127583/480x270/1.jpg',
+            'description': None,
+            'timestamp': 1651003323,
+            'upload_date': '20220426',
+            'duration': 68.0,
+            'categories': ['Asian', 'Brunette', 'Cosplay', 'Fetish',
+                           'Fuck Machine', 'Gagging', 'Japanese',
+                           'JAV Uncensored', 'Latex', 'Leather', 'POV'],
+            'age_limit': 18,
+        }
+    }]
+    _WORKING = False
+
+    _BASE_URL = 'https://bdsmx.tube'
+
+
+class BlackPornTubeIE(VXXXIE):
+    _VALID_URL = r'https?://blackporn\.tube/video/(?P<id>\d+)'
+    _TESTS = [{
+        'url': 'https://blackporn.tube/video/10043813/young-ebony-babe-gets-super-wet/',
+        'md5': '4a4c126970f2f1453b8b2050947fc870',
+        'info_dict': {
+            'id': '10043813',
+            'ext': 'mp4',
+            'title': 'Young Ebony Babe Gets Super Wet',
+            'display_id': 'young-ebony-babe-gets-super-wet',
+            'thumbnail': 'https://tn.blackporn.tube/contents/videos_screenshots/10043000/10043813/480x270/1.jpg',
+            'description': None,
+            'timestamp': 1654806141,
+            'upload_date': '20220609',
+            'duration': 193.0,
+            'categories': ['BDSM', 'Bondage', 'Celebrity', 'Ebony', 'Fetish',
+                           'Shibari Bondage', 'Solo Female',
+                           'Tattoo'],
+            'age_limit': 18,
+        }
+    }]
+    _WORKING = False
+
+    _BASE_URL = 'https://blackporn.tube'
+
 
 class XMilfIE(VXXXIE):
     _VALID_URL = r'https?://xmilf\.com/video/(?P<id>\d+)'
@@ -230,5 +234,6 @@ class XMilfIE(VXXXIE):
             'age_limit': 18,
         }
     }]
+    _WORKING = False
 
     _BASE_URL = 'https://xmilf.com'
