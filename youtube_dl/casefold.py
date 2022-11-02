@@ -1639,7 +1639,15 @@ FF3A; C; FF5A; # FULLWIDTH LATIN CAPITAL LETTER Z
 1E921; C; 1E943; # ADLAM CAPITAL LETTER SHA
 '''
 
-_parse_unichr = lambda s: compat_chr(int(s, 16))
+
+def _parse_unichr(s):
+    s = int(s, 16)
+    try:
+        return compat_chr(s)
+    except ValueError:
+        # work around "unichr() arg not in range(0x10000) (narrow Python build)"
+        return ('\\U%08x' % s).decode('unicode-escape')
+
 
 _map = dict(
     (_parse_unichr(from_), ''.join(map(_parse_unichr, to_.split(' '))))
