@@ -98,6 +98,7 @@ from youtube_dl.utils import (
     urlencode_postdata,
     urshift,
     update_url_query,
+    # variadic,
     version_tuple,
     xpath_with_ns,
     xpath_element,
