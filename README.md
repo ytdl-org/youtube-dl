@@ -128,9 +128,9 @@ Alternatively, refer to the [developer instructions](#developer-instructions) fo
                                          CIDR notation
 
 ## Video Selection:
-    --playlist-start NUMBER              Playlist video to start at (default is
+    --playlist-start NUMBER              Playlist video to start at (inclusive) (default is
                                          1)
-    --playlist-end NUMBER                Playlist video to end at (default is
+    --playlist-end NUMBER                Playlist video to end at (inclusive) (default is
                                          last)
     --playlist-items ITEM_SPEC           Playlist video items to download.
                                          Specify indices of the videos in the
