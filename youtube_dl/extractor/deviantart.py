@@ -7,6 +7,7 @@ from datetime import datetime
 from functools import reduce
 
 from .common import InfoExtractor
+from ..utils import ExtractorError
 
 
 class DeviantArtIE(InfoExtractor):
@@ -30,22 +31,37 @@ class DeviantArtIE(InfoExtractor):
     def _real_extract(self, url):
         video_id = self._match_id(url)
         webpage = self._download_webpage(url, video_id)
+
+        # Extracting JSON from webpage
         initial_state_str = self._html_search_regex(r'window.__INITIAL_STATE__ = JSON.parse\("([^;].*)"\);', webpage, 'url')
         json_state = json.loads(codecs.decode(initial_state_str, 'unicode-escape'))
-        metadata = json_state.get('@@entities', {}).get('deviation', {}).get(video_id, {})
-        upload_date = datetime.fromisoformat(metadata.get('publishedTime')[:-5]) if metadata.get('publishedTime') else None
-        media_types = metadata.get('media', {}).get('types', [])
+
+        # Parsing metadata
+        entities = json_state.get('@@entities', {})
+        deviation = entities.get('deviation', {}).get(video_id, {})
+        media_types = deviation.get('media', {}).get('types', [])
         video_types = list(filter(lambda element: element.get('t') == 'video', media_types))
         video_type = reduce(lambda x, y: y if x.get('w', 0) < y.get('w', 0) else x, video_types)
 
+        if not deviation.get('isVideo', False) or not video_type:
+            raise ExtractorError('no video info found in requested element', expected=True)
+
+        upload_date = datetime.fromisoformat(deviation.get('publishedTime')[:-5]) if deviation.get('publishedTime') else None
+        deviation_ext = entities.get('deviationExtended', {}).get(video_id, {})
+        tags = list(map(lambda tag: tag.get('name'), deviation_ext.get('tags', [])))
+
         return {
-            'id': metadata.get('deviationId'),
-            'title': metadata.get('title'),
-            'description': self._og_search_description(webpage),
+            'id': deviation.get('deviationId'),
+            'title': deviation.get('title'),
+            'description': deviation_ext.get('descriptionText', {}).get('html', {}).get('markup'),
             'uploader': self._search_regex(self._VALID_URL, url, 'uploader', group=1, fatal=False),
             'url': video_type.get('b'),
-            'thumbnail': metadata.get('media', {}).get('baseUri'),
+            'thumbnail': deviation.get('media', {}).get('baseUri'),
             'upload_date': upload_date.strftime("%Y%m%d") if upload_date is not None else None,
-            'uploader_id': metadata.get('author'),
-            'view_count': metadata.get('stats', {}).get('views'),
+            'uploader_id': deviation.get('author'),
+            'view_count': deviation.get('stats', {}).get('views'),
+            'height': video_type.get('h'),
+            'width': video_type.get('w'),
+            'filesize': deviation_ext.get('originalFile', {}).get('filesize'),
+            'tags': tags,
         }
