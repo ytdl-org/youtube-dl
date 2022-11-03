@@ -13,6 +13,7 @@ from ..utils import (
     float_or_none,
     sanitized_Request,
     str_or_none,
+    traverse_obj,
     urlencode_postdata,
     USER_AGENTS,
 )
