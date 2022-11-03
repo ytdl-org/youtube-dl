@@ -3,15 +3,9 @@ from __future__ import unicode_literals
 
 import re
 
+from ..utils import (determine_protocol, float_or_none, int_or_none,
+                     parse_iso8601, unescapeHTML, update_url_query)
 from .common import InfoExtractor
-from ..utils import (
-    float_or_none,
-    parse_iso8601,
-    update_url_query,
-    int_or_none,
-    determine_protocol,
-    unescapeHTML,
-)
 
 
 class SendtoNewsIE(InfoExtractor):

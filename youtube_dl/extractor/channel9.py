@@ -2,15 +2,9 @@ from __future__ import unicode_literals
 
 import re
 
+from ..utils import (ExtractorError, clean_html, int_or_none, parse_iso8601,
+                     qualities, unescapeHTML)
 from .common import InfoExtractor
-from ..utils import (
-    clean_html,
-    ExtractorError,
-    int_or_none,
-    parse_iso8601,
-    qualities,
-    unescapeHTML,
-)
 
 
 class Channel9IE(InfoExtractor):

@@ -3,15 +3,9 @@ from __future__ import unicode_literals
 
 import re
 
+from ..utils import (float_or_none, get_element_by_id, int_or_none,
+                     strip_or_none, unified_strdate, urljoin)
 from .common import InfoExtractor
-from ..utils import (
-    float_or_none,
-    get_element_by_id,
-    int_or_none,
-    strip_or_none,
-    unified_strdate,
-    urljoin,
-)
 
 
 class VidLiiIE(InfoExtractor):

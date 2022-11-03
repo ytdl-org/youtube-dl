@@ -1,18 +1,11 @@
 # coding: utf-8
 from __future__ import unicode_literals
 
-from .common import InfoExtractor
 from ..compat import compat_urllib_parse_urlparse
-from ..utils import (
-    determine_ext,
-    ExtractorError,
-    find_xpath_attr,
-    int_or_none,
-    unified_strdate,
-    url_or_none,
-    xpath_attr,
-    xpath_text,
-)
+from ..utils import (ExtractorError, determine_ext, find_xpath_attr,
+                     int_or_none, unified_strdate, url_or_none, xpath_attr,
+                     xpath_text)
+from .common import InfoExtractor
 
 
 class RuutuIE(InfoExtractor):

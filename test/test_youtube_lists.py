@@ -6,15 +6,12 @@ from __future__ import unicode_literals
 import os
 import sys
 import unittest
+
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from test.helper import FakeYDL
 
-from youtube_dl.extractor import (
-    YoutubeIE,
-    YoutubePlaylistIE,
-    YoutubeTabIE,
-)
+from youtube_dl.extractor import YoutubeIE, YoutubePlaylistIE, YoutubeTabIE
 
 
 class TestYoutubeLists(unittest.TestCase):

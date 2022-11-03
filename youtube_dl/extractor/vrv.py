@@ -2,24 +2,17 @@
 from __future__ import unicode_literals
 
 import base64
-import json
 import hashlib
 import hmac
+import json
 import random
 import string
 import time
 
+from ..compat import (compat_HTTPError, compat_urllib_parse,
+                      compat_urllib_parse_urlencode)
+from ..utils import ExtractorError, float_or_none, int_or_none
 from .common import InfoExtractor
-from ..compat import (
-    compat_HTTPError,
-    compat_urllib_parse_urlencode,
-    compat_urllib_parse,
-)
-from ..utils import (
-    ExtractorError,
-    float_or_none,
-    int_or_none,
-)
 
 
 class VRVBaseIE(InfoExtractor):
@@ -123,7 +116,7 @@ class VRVIE(VRVBaseIE):
     _NETRC_MACHINE = 'vrv'
 
     def _real_initialize(self):
-        super(VRVIE, self)._real_initialize()
+        super()._real_initialize()
 
         email, password = self._get_login_info()
         if email is None:

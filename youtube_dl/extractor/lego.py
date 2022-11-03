@@ -4,13 +4,9 @@ from __future__ import unicode_literals
 import re
 import uuid
 
-from .common import InfoExtractor
 from ..compat import compat_HTTPError
-from ..utils import (
-    ExtractorError,
-    int_or_none,
-    qualities,
-)
+from ..utils import ExtractorError, int_or_none, qualities
+from .common import InfoExtractor
 
 
 class LEGOIE(InfoExtractor):

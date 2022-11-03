@@ -1,12 +1,8 @@
 # coding: utf-8
 from __future__ import unicode_literals
 
+from ..utils import unified_strdate, update_url_query, urlencode_postdata
 from .common import InfoExtractor
-from ..utils import (
-    unified_strdate,
-    update_url_query,
-    urlencode_postdata,
-)
 
 
 class MediciIE(InfoExtractor):

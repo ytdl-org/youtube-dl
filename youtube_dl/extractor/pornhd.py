@@ -2,15 +2,9 @@ from __future__ import unicode_literals
 
 import re
 
+from ..utils import (ExtractorError, determine_ext, int_or_none, js_to_json,
+                     merge_dicts, urljoin)
 from .common import InfoExtractor
-from ..utils import (
-    determine_ext,
-    ExtractorError,
-    int_or_none,
-    js_to_json,
-    merge_dicts,
-    urljoin,
-)
 
 
 class PornHdIE(InfoExtractor):

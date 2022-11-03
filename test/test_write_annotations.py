@@ -6,22 +6,20 @@ from __future__ import unicode_literals
 import os
 import sys
 import unittest
+
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
+import io
+import xml.etree.ElementTree
 from test.helper import get_params, try_rm
 
-
-import io
-
-import xml.etree.ElementTree
-
-import youtube_dl.YoutubeDL
 import youtube_dl.extractor
+import youtube_dl.YoutubeDL
 
 
 class YoutubeDL(youtube_dl.YoutubeDL):
     def __init__(self, *args, **kwargs):
-        super(YoutubeDL, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
         self.to_stderr = self.to_screen
 
 

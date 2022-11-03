@@ -7,18 +7,10 @@ import json
 import random
 import re
 
+from ..compat import compat_HTTPError, compat_str
+from ..utils import (ExtractorError, float_or_none, int_or_none, orderedSet,
+                     str_or_none)
 from .common import InfoExtractor
-from ..compat import (
-    compat_HTTPError,
-    compat_str,
-)
-from ..utils import (
-    ExtractorError,
-    float_or_none,
-    int_or_none,
-    orderedSet,
-    str_or_none,
-)
 
 
 class GloboIE(InfoExtractor):

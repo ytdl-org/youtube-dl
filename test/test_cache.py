@@ -7,11 +7,12 @@ from __future__ import unicode_literals
 import os
 import sys
 import unittest
+
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 import shutil
-
 from test.helper import FakeYDL
+
 from youtube_dl.cache import Cache
 from youtube_dl.utils import version_tuple
 from youtube_dl.version import __version__

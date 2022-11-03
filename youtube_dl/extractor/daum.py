@@ -4,12 +4,9 @@ from __future__ import unicode_literals
 
 import itertools
 
+from ..compat import (compat_parse_qs, compat_urllib_parse_unquote,
+                      compat_urlparse)
 from .common import InfoExtractor
-from ..compat import (
-    compat_parse_qs,
-    compat_urllib_parse_unquote,
-    compat_urlparse,
-)
 
 
 class DaumBaseIE(InfoExtractor):

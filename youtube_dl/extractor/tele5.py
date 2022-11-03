@@ -2,11 +2,7 @@
 from __future__ import unicode_literals
 
 from ..compat import compat_urlparse
-from ..utils import (
-    ExtractorError,
-    extract_attributes,
-)
-
+from ..utils import ExtractorError, extract_attributes
 from .dplay import DPlayIE
 
 

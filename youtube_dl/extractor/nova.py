@@ -3,16 +3,9 @@ from __future__ import unicode_literals
 
 import re
 
+from ..utils import (clean_html, determine_ext, int_or_none, js_to_json,
+                     qualities, unified_strdate, url_or_none)
 from .common import InfoExtractor
-from ..utils import (
-    clean_html,
-    determine_ext,
-    int_or_none,
-    js_to_json,
-    qualities,
-    unified_strdate,
-    url_or_none,
-)
 
 
 class NovaEmbedIE(InfoExtractor):

@@ -6,19 +6,14 @@ from __future__ import unicode_literals
 import os
 import sys
 import unittest
+
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 import random
 import subprocess
+from test.helper import FakeYDL, get_params
 
-from test.helper import (
-    FakeYDL,
-    get_params,
-)
-from youtube_dl.compat import (
-    compat_str,
-    compat_urllib_request,
-)
+from youtube_dl.compat import compat_str, compat_urllib_request
 
 
 class TestMultipleSocks(unittest.TestCase):

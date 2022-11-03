@@ -3,12 +3,8 @@ from __future__ import unicode_literals
 
 import re
 
+from ..utils import int_or_none, smuggle_url, update_url_query
 from .adobepass import AdobePassIE
-from ..utils import (
-    smuggle_url,
-    update_url_query,
-    int_or_none,
-)
 
 
 class BravoTVIE(AdobePassIE):

@@ -4,19 +4,11 @@ from __future__ import unicode_literals
 import json
 import re
 
-from .common import InfoExtractor
+from ..utils import (JSON_LD_RE, clean_html, determine_ext, extract_attributes,
+                     get_element_by_class, merge_dicts, parse_duration,
+                     smuggle_url, url_or_none)
 from .brightcove import BrightcoveNewIE
-from ..utils import (
-    clean_html,
-    determine_ext,
-    extract_attributes,
-    get_element_by_class,
-    JSON_LD_RE,
-    merge_dicts,
-    parse_duration,
-    smuggle_url,
-    url_or_none,
-)
+from .common import InfoExtractor
 
 
 class ITVIE(InfoExtractor):

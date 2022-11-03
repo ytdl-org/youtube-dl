@@ -4,14 +4,9 @@ from __future__ import unicode_literals
 import re
 import time
 
+from ..compat import compat_ord
+from ..utils import int_or_none, parse_duration
 from .common import InfoExtractor
-from ..compat import (
-    compat_ord,
-)
-from ..utils import (
-    int_or_none,
-    parse_duration,
-)
 
 
 class XMinusIE(InfoExtractor):

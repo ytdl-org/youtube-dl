@@ -1,21 +1,13 @@
 # coding: utf-8
 from __future__ import unicode_literals
 
-import re
 import base64
+import re
 
+from ..compat import compat_parse_qs, compat_urlparse
+from ..utils import (ExtractorError, clean_html, int_or_none, smuggle_url,
+                     unsmuggle_url)
 from .common import InfoExtractor
-from ..compat import (
-    compat_urlparse,
-    compat_parse_qs,
-)
-from ..utils import (
-    clean_html,
-    ExtractorError,
-    int_or_none,
-    unsmuggle_url,
-    smuggle_url,
-)
 
 
 class KalturaIE(InfoExtractor):

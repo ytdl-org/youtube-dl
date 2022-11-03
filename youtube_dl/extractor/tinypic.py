@@ -2,8 +2,8 @@ from __future__ import unicode_literals
 
 import re
 
-from .common import InfoExtractor
 from ..utils import ExtractorError
+from .common import InfoExtractor
 
 
 class TinyPicIE(InfoExtractor):

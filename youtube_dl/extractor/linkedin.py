@@ -3,14 +3,9 @@ from __future__ import unicode_literals
 
 import re
 
+from ..utils import (ExtractorError, float_or_none, int_or_none,
+                     urlencode_postdata, urljoin)
 from .common import InfoExtractor
-from ..utils import (
-    ExtractorError,
-    float_or_none,
-    int_or_none,
-    urlencode_postdata,
-    urljoin,
-)
 
 
 class LinkedInLearningBaseIE(InfoExtractor):

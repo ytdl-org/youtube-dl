@@ -4,15 +4,10 @@ from __future__ import unicode_literals
 import base64
 import hashlib
 
-from .common import InfoExtractor
 from ..aes import aes_cbc_decrypt
-from ..utils import (
-    bytes_to_intlist,
-    int_or_none,
-    intlist_to_bytes,
-    parse_codecs,
-    parse_duration,
-)
+from ..utils import (bytes_to_intlist, int_or_none, intlist_to_bytes,
+                     parse_codecs, parse_duration)
+from .common import InfoExtractor
 
 
 class NewstubeIE(InfoExtractor):

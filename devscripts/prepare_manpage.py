@@ -47,11 +47,7 @@ def filter_options(readme):
     in_options = False
     for line in readme.split('\n'):
         if line.startswith('# '):
-            if line[2:].startswith('OPTIONS'):
-                in_options = True
-            else:
-                in_options = False
-
+            inoptions = bool(line[2:].startswith('OPTIONS'))
         if in_options:
             if line.lstrip().startswith('-'):
                 split = re.split(r'\s{2,}', line.lstrip())

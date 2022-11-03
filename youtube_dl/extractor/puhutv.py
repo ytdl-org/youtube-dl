@@ -1,22 +1,11 @@
 # coding: utf-8
 from __future__ import unicode_literals
 
+from ..compat import compat_HTTPError, compat_str
+from ..utils import (ExtractorError, float_or_none, int_or_none,
+                     parse_resolution, str_or_none, try_get, unified_timestamp,
+                     url_or_none, urljoin)
 from .common import InfoExtractor
-from ..compat import (
-    compat_HTTPError,
-    compat_str,
-)
-from ..utils import (
-    ExtractorError,
-    int_or_none,
-    float_or_none,
-    parse_resolution,
-    str_or_none,
-    try_get,
-    unified_timestamp,
-    url_or_none,
-    urljoin,
-)
 
 
 class PuhuTVIE(InfoExtractor):

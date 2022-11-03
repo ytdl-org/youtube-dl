@@ -3,20 +3,10 @@ from __future__ import unicode_literals
 
 import re
 
+from ..compat import compat_str, compat_urlparse
+from ..utils import (ExtractorError, int_or_none, qualities, strip_or_none,
+                     try_get, unified_strdate, url_or_none)
 from .common import InfoExtractor
-from ..compat import (
-    compat_str,
-    compat_urlparse,
-)
-from ..utils import (
-    ExtractorError,
-    int_or_none,
-    qualities,
-    strip_or_none,
-    try_get,
-    unified_strdate,
-    url_or_none,
-)
 
 
 class ArteTVBaseIE(InfoExtractor):

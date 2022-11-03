@@ -3,16 +3,10 @@ from __future__ import unicode_literals
 
 import re
 
-from .adobepass import AdobePassIE
 from ..compat import compat_str
-from ..utils import (
-    int_or_none,
-    determine_ext,
-    parse_age_limit,
-    try_get,
-    urlencode_postdata,
-    ExtractorError,
-)
+from ..utils import (ExtractorError, determine_ext, int_or_none,
+                     parse_age_limit, try_get, urlencode_postdata)
+from .adobepass import AdobePassIE
 
 
 class GoIE(AdobePassIE):

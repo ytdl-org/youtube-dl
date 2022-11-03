@@ -1,10 +1,7 @@
 from __future__ import unicode_literals
 
+from ..utils import ExtractorError, smuggle_url
 from .common import InfoExtractor
-from ..utils import (
-    ExtractorError,
-    smuggle_url,
-)
 
 
 class MinistryGridIE(InfoExtractor):

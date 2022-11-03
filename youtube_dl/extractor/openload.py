@@ -6,19 +6,10 @@ import os
 import subprocess
 import tempfile
 
-from ..compat import (
-    compat_urlparse,
-    compat_kwargs,
-)
-from ..utils import (
-    check_executable,
-    encodeArgument,
-    ExtractorError,
-    get_exe_version,
-    is_outdated_version,
-    process_communicate_or_kill,
-    std_headers,
-)
+from ..compat import compat_kwargs, compat_urlparse
+from ..utils import (ExtractorError, check_executable, encodeArgument,
+                     get_exe_version, is_outdated_version,
+                     process_communicate_or_kill, std_headers)
 
 
 def cookie_to_dict(cookie):
@@ -52,7 +43,7 @@ def cookie_jar_to_list(cookie_jar):
     return [cookie_to_dict(cookie) for cookie in cookie_jar]
 
 
-class PhantomJSwrapper(object):
+class PhantomJSwrapper():
     """PhantomJS wrapper class
 
     This class is experimental.

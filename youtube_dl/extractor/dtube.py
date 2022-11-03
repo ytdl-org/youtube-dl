@@ -5,11 +5,8 @@ import json
 import re
 from socket import timeout
 
+from ..utils import int_or_none, parse_iso8601
 from .common import InfoExtractor
-from ..utils import (
-    int_or_none,
-    parse_iso8601,
-)
 
 
 class DTubeIE(InfoExtractor):

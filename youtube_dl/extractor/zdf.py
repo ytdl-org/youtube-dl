@@ -3,25 +3,13 @@ from __future__ import unicode_literals
 
 import re
 
-from .common import InfoExtractor
 from ..compat import compat_str
-from ..utils import (
-    determine_ext,
-    ExtractorError,
-    extract_attributes,
-    float_or_none,
-    int_or_none,
-    merge_dicts,
-    NO_DEFAULT,
-    parse_codecs,
-    qualities,
-    str_or_none,
-    try_get,
-    unified_timestamp,
-    update_url_query,
-    url_or_none,
-    urljoin,
-)
+from ..utils import (NO_DEFAULT, ExtractorError, determine_ext,
+                     extract_attributes, float_or_none, int_or_none,
+                     merge_dicts, parse_codecs, qualities, str_or_none,
+                     try_get, unified_timestamp, update_url_query, url_or_none,
+                     urljoin)
+from .common import InfoExtractor
 
 
 class ZDFBaseIE(InfoExtractor):
@@ -389,7 +377,7 @@ class ZDFChannelIE(ZDFBaseIE):
         return False if ZDFIE.suitable(url) else super(ZDFChannelIE, cls).suitable(url)
 
     def _og_search_title(self, webpage, fatal=False):
-        title = super(ZDFChannelIE, self)._og_search_title(webpage, fatal=fatal)
+        title = super()._og_search_title(webpage, fatal=fatal)
         return re.split(r'\s+[-|]\s+ZDF(?:mediathek)?$', title or '')[0] or None
 
     def _real_extract(self, url):

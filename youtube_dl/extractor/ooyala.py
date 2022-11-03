@@ -3,19 +3,10 @@ from __future__ import unicode_literals
 import base64
 import re
 
+from ..compat import compat_b64decode, compat_str
+from ..utils import (ExtractorError, determine_ext, float_or_none, int_or_none,
+                     try_get, unsmuggle_url)
 from .common import InfoExtractor
-from ..compat import (
-    compat_b64decode,
-    compat_str,
-)
-from ..utils import (
-    determine_ext,
-    ExtractorError,
-    float_or_none,
-    int_or_none,
-    try_get,
-    unsmuggle_url,
-)
 
 
 class OoyalaBaseIE(InfoExtractor):

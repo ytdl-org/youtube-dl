@@ -9,44 +9,21 @@ import random
 import re
 import traceback
 
-from .common import InfoExtractor, SearchInfoExtractor
-from ..compat import (
-    compat_chr,
-    compat_HTTPError,
-    compat_map as map,
-    compat_parse_qs,
-    compat_str,
-    compat_urllib_parse_unquote_plus,
-    compat_urllib_parse_urlencode,
-    compat_urllib_parse_urlparse,
-    compat_urlparse,
-)
+from ..compat import compat_chr, compat_HTTPError
+from ..compat import compat_map as map
+from ..compat import (compat_parse_qs, compat_str,
+                      compat_urllib_parse_unquote_plus,
+                      compat_urllib_parse_urlencode,
+                      compat_urllib_parse_urlparse, compat_urlparse)
 from ..jsinterp import JSInterpreter
-from ..utils import (
-    ExtractorError,
-    clean_html,
-    dict_get,
-    error_to_compat_str,
-    float_or_none,
-    int_or_none,
-    js_to_json,
-    mimetype2ext,
-    parse_codecs,
-    parse_duration,
-    qualities,
-    remove_start,
-    smuggle_url,
-    str_or_none,
-    str_to_int,
-    try_get,
-    unescapeHTML,
-    unified_strdate,
-    unsmuggle_url,
-    update_url_query,
-    url_or_none,
-    urlencode_postdata,
-    urljoin,
-)
+from ..utils import (ExtractorError, clean_html, dict_get, error_to_compat_str,
+                     float_or_none, int_or_none, js_to_json, mimetype2ext,
+                     parse_codecs, parse_duration, qualities, remove_start,
+                     smuggle_url, str_or_none, str_to_int, try_get,
+                     unescapeHTML, unified_strdate, unsmuggle_url,
+                     update_url_query, url_or_none, urlencode_postdata,
+                     urljoin)
+from .common import InfoExtractor, SearchInfoExtractor
 
 
 def parse_qs(url):
@@ -1309,7 +1286,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
         return super(YoutubeIE, cls).suitable(url)
 
     def __init__(self, *args, **kwargs):
-        super(YoutubeIE, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
         self._code_cache = {}
         self._player_cache = {}
 

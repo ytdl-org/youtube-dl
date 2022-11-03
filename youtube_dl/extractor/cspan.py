@@ -2,22 +2,12 @@ from __future__ import unicode_literals
 
 import re
 
+from ..utils import (ExtractorError, determine_ext, extract_attributes,
+                     find_xpath_attr, get_element_by_attribute,
+                     get_element_by_class, int_or_none, js_to_json,
+                     merge_dicts, parse_iso8601, smuggle_url, str_to_int,
+                     unescapeHTML)
 from .common import InfoExtractor
-from ..utils import (
-    determine_ext,
-    ExtractorError,
-    extract_attributes,
-    find_xpath_attr,
-    get_element_by_attribute,
-    get_element_by_class,
-    int_or_none,
-    js_to_json,
-    merge_dicts,
-    parse_iso8601,
-    smuggle_url,
-    str_to_int,
-    unescapeHTML,
-)
 from .senateisvp import SenateISVPIE
 from .ustream import UstreamIE
 

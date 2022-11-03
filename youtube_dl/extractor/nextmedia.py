@@ -1,16 +1,10 @@
 # coding: utf-8
 from __future__ import unicode_literals
 
-from .common import InfoExtractor
 from ..compat import compat_urlparse
-from ..utils import (
-    clean_html,
-    get_element_by_class,
-    int_or_none,
-    parse_iso8601,
-    remove_start,
-    unified_timestamp,
-)
+from ..utils import (clean_html, get_element_by_class, int_or_none,
+                     parse_iso8601, remove_start, unified_timestamp)
+from .common import InfoExtractor
 
 
 class NextMediaIE(InfoExtractor):

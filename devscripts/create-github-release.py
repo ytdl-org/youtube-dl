@@ -12,19 +12,12 @@ import sys
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from youtube_dl.compat import (
-    compat_basestring,
-    compat_getpass,
-    compat_print,
-    compat_urllib_request,
-)
-from youtube_dl.utils import (
-    make_HTTPS_handler,
-    sanitized_Request,
-)
+from youtube_dl.compat import (compat_basestring, compat_getpass, compat_print,
+                               compat_urllib_request)
+from youtube_dl.utils import make_HTTPS_handler, sanitized_Request
 
 
-class GitHubReleaser(object):
+class GitHubReleaser():
     _API_URL = 'https://api.github.com/repos/ytdl-org/youtube-dl/releases'
     _UPLOADS_URL = 'https://uploads.github.com/repos/ytdl-org/youtube-dl/releases/%s/assets?name=%s'
     _NETRC_MACHINE = 'github.com'
@@ -41,8 +34,7 @@ class GitHubReleaser(object):
                 self._token = info[2]
                 compat_print('Using GitHub credentials found in .netrc...')
                 return
-            else:
-                compat_print('No GitHub credentials found in .netrc')
+            compat_print('No GitHub credentials found in .netrc')
         except (IOError, netrc.NetrcParseError):
             compat_print('Unable to parse .netrc')
         self._token = compat_getpass(

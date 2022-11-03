@@ -4,16 +4,10 @@ from __future__ import unicode_literals
 import json
 import re
 
-from .common import InfoExtractor
 from ..compat import compat_HTTPError
-from ..utils import (
-    determine_ext,
-    ExtractorError,
-    float_or_none,
-    int_or_none,
-    strip_or_none,
-    unified_timestamp,
-)
+from ..utils import (ExtractorError, determine_ext, float_or_none, int_or_none,
+                     strip_or_none, unified_timestamp)
+from .common import InfoExtractor
 
 
 class DPlayIE(InfoExtractor):

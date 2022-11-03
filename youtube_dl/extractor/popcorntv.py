@@ -2,12 +2,8 @@ from __future__ import unicode_literals
 
 import re
 
+from ..utils import extract_attributes, int_or_none, unified_timestamp
 from .common import InfoExtractor
-from ..utils import (
-    extract_attributes,
-    int_or_none,
-    unified_timestamp,
-)
 
 
 class PopcornTVIE(InfoExtractor):

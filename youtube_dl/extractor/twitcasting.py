@@ -3,17 +3,10 @@ from __future__ import unicode_literals
 
 import re
 
+from ..utils import (clean_html, float_or_none, get_element_by_class,
+                     get_element_by_id, parse_duration, str_to_int,
+                     unified_timestamp, urlencode_postdata)
 from .common import InfoExtractor
-from ..utils import (
-    clean_html,
-    float_or_none,
-    get_element_by_class,
-    get_element_by_id,
-    parse_duration,
-    str_to_int,
-    unified_timestamp,
-    urlencode_postdata,
-)
 
 
 class TwitCastingIE(InfoExtractor):

@@ -5,17 +5,10 @@ import hmac
 import re
 import time
 
-from .common import InfoExtractor
 from ..compat import compat_str
-from ..utils import (
-    ExtractorError,
-    js_to_json,
-    int_or_none,
-    parse_iso8601,
-    try_get,
-    unescapeHTML,
-    update_url_query,
-)
+from ..utils import (ExtractorError, int_or_none, js_to_json, parse_iso8601,
+                     try_get, unescapeHTML, update_url_query)
+from .common import InfoExtractor
 
 
 class ABCIE(InfoExtractor):

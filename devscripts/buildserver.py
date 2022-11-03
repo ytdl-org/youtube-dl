@@ -3,21 +3,17 @@
 import argparse
 import ctypes
 import functools
+import os.path
 import shutil
 import subprocess
 import sys
 import tempfile
 import threading
 import traceback
-import os.path
 
 sys.path.insert(0, os.path.dirname(os.path.dirname((os.path.abspath(__file__)))))
-from youtube_dl.compat import (
-    compat_input,
-    compat_http_server,
-    compat_str,
-    compat_urlparse,
-)
+from youtube_dl.compat import (compat_http_server, compat_input, compat_str,
+                               compat_urlparse)
 
 # These are not used outside of buildserver.py thus not in compat.py
 
@@ -266,7 +262,7 @@ class HTTPError(BuildError):
     pass
 
 
-class PythonBuilder(object):
+class PythonBuilder():
     def __init__(self, **kwargs):
         python_version = kwargs.pop('python', '3.4')
         python_path = None
@@ -288,10 +284,10 @@ class PythonBuilder(object):
 
         self.pythonPath = python_path
 
-        super(PythonBuilder, self).__init__(**kwargs)
+        super().__init__(**kwargs)
 
 
-class GITInfoBuilder(object):
+class GITInfoBuilder():
     def __init__(self, **kwargs):
         try:
             self.user, self.repoName = kwargs['path'][:2]
@@ -307,7 +303,7 @@ class GITInfoBuilder(object):
         self.basePath = tempfile.mkdtemp(dir=path)
         self.buildPath = os.path.join(self.basePath, 'build')
 
-        super(GITInfoBuilder, self).__init__(**kwargs)
+        super().__init__(**kwargs)
 
 
 class GITBuilder(GITInfoBuilder):
@@ -318,10 +314,10 @@ class GITBuilder(GITInfoBuilder):
         except subprocess.CalledProcessError as e:
             raise BuildError(e.output)
 
-        super(GITBuilder, self).build()
+        super().build()
 
 
-class YoutubeDLBuilder(object):
+class YoutubeDLBuilder():
     authorizedUsers = ['fraca7', 'phihag', 'rg3', 'FiloSottile', 'ytdl-org']
 
     def __init__(self, **kwargs):
@@ -330,7 +326,7 @@ class YoutubeDLBuilder(object):
         if self.user not in self.authorizedUsers:
             raise HTTPError('Unauthorized user "%s"' % self.user, 401)
 
-        super(YoutubeDLBuilder, self).__init__(**kwargs)
+        super().__init__(**kwargs)
 
     def build(self):
         try:
@@ -341,10 +337,10 @@ class YoutubeDLBuilder(object):
         except subprocess.CalledProcessError as e:
             raise BuildError(e.output)
 
-        super(YoutubeDLBuilder, self).build()
+        super().build()
 
 
-class DownloadBuilder(object):
+class DownloadBuilder():
     def __init__(self, **kwargs):
         self.handler = kwargs.pop('handler')
         self.srcPath = os.path.join(self.buildPath, *tuple(kwargs['path'][2:]))
@@ -352,7 +348,7 @@ class DownloadBuilder(object):
         if not self.srcPath.startswith(self.buildPath):
             raise HTTPError(self.srcPath, 401)
 
-        super(DownloadBuilder, self).__init__(**kwargs)
+        super().__init__(**kwargs)
 
     def build(self):
         if not os.path.exists(self.srcPath):
@@ -369,20 +365,20 @@ class DownloadBuilder(object):
         with open(self.srcPath, 'rb') as src:
             shutil.copyfileobj(src, self.handler.wfile)
 
-        super(DownloadBuilder, self).build()
+        super().build()
 
 
-class CleanupTempDir(object):
+class CleanupTempDir():
     def build(self):
         try:
             rmtree(self.basePath)
         except Exception as e:
             print('WARNING deleting "%s": %s' % (self.basePath, e))
 
-        super(CleanupTempDir, self).build()
+        super().build()
 
 
-class Null(object):
+class Null():
     def __init__(self, **kwargs):
         pass
 

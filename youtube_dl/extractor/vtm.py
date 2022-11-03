@@ -1,12 +1,8 @@
 # coding: utf-8
 from __future__ import unicode_literals
 
+from ..utils import int_or_none, parse_iso8601, try_get
 from .common import InfoExtractor
-from ..utils import (
-    int_or_none,
-    parse_iso8601,
-    try_get,
-)
 
 
 class VTMIE(InfoExtractor):

@@ -6,20 +6,10 @@ import io
 import re
 import sys
 
+from ..compat import compat_b64decode, compat_struct_unpack
+from ..utils import (ExtractorError, determine_ext, float_or_none, qualities,
+                     remove_end, remove_start, std_headers)
 from .common import InfoExtractor
-from ..compat import (
-    compat_b64decode,
-    compat_struct_unpack,
-)
-from ..utils import (
-    determine_ext,
-    ExtractorError,
-    float_or_none,
-    qualities,
-    remove_end,
-    remove_start,
-    std_headers,
-)
 
 _bytes_to_chr = (lambda x: x) if sys.version_info[0] == 2 else (lambda x: map(chr, x))
 

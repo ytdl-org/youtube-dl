@@ -3,17 +3,10 @@ from __future__ import unicode_literals
 
 import re
 
+from ..compat import compat_str, compat_urlparse
+from ..utils import (ExtractorError, parse_duration, url_or_none,
+                     urlencode_postdata)
 from .common import InfoExtractor
-from ..compat import (
-    compat_str,
-    compat_urlparse,
-)
-from ..utils import (
-    ExtractorError,
-    parse_duration,
-    url_or_none,
-    urlencode_postdata,
-)
 
 
 class FrontendMastersBaseIE(InfoExtractor):

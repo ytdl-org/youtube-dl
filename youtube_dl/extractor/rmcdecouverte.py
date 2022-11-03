@@ -3,13 +3,10 @@ from __future__ import unicode_literals
 
 import re
 
-from .common import InfoExtractor
-from .brightcove import BrightcoveLegacyIE
-from ..compat import (
-    compat_parse_qs,
-    compat_urlparse,
-)
+from ..compat import compat_parse_qs, compat_urlparse
 from ..utils import smuggle_url
+from .brightcove import BrightcoveLegacyIE
+from .common import InfoExtractor
 
 
 class RMCDecouverteIE(InfoExtractor):

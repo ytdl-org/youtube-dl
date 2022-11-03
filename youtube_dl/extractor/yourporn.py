@@ -1,11 +1,8 @@
 from __future__ import unicode_literals
 
-from .common import InfoExtractor
 from ..compat import compat_str
-from ..utils import (
-    parse_duration,
-    urljoin,
-)
+from ..utils import parse_duration, urljoin
+from .common import InfoExtractor
 
 
 class YourPornIE(InfoExtractor):

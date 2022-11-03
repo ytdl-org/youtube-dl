@@ -3,17 +3,10 @@ from __future__ import unicode_literals
 
 import re
 
+from ..utils import (determine_ext, float_or_none, int_or_none,
+                     parse_age_limit, qualities, random_birthday,
+                     unified_timestamp, urljoin)
 from .common import InfoExtractor
-from ..utils import (
-    determine_ext,
-    float_or_none,
-    int_or_none,
-    parse_age_limit,
-    qualities,
-    random_birthday,
-    unified_timestamp,
-    urljoin,
-)
 
 
 class VideoPressIE(InfoExtractor):

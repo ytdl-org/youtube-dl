@@ -1,10 +1,10 @@
-from __future__ import unicode_literals, print_function
+from __future__ import print_function, unicode_literals
 
-from inspect import getsource
 import io
 import os
-from os.path import dirname as dirn
 import sys
+from inspect import getsource
+from os.path import dirname as dirn
 
 print('WARNING: Lazy loading extractors is an experimental feature that may not always work', file=sys.stderr)
 
@@ -40,10 +40,9 @@ make_valid_template = '''
 def get_base_name(base):
     if base is InfoExtractor:
         return 'LazyLoadExtractor'
-    elif base is SearchInfoExtractor:
+    if base is SearchInfoExtractor:
         return 'LazyLoadSearchExtractor'
-    else:
-        return base.__name__
+    return base.__name__
 
 
 def build_lazy_ie(ie, name):
@@ -72,7 +71,7 @@ while classes:
         for b in bases:
             if b not in classes and b not in ordered_cls:
                 if b.__name__ == 'GenericIE':
-                    exit()
+                    sys.exit()
                 classes.insert(0, b)
                 stop = True
         if stop:

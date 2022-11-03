@@ -1,25 +1,19 @@
 from __future__ import unicode_literals
 
 import errno
-import io
 import hashlib
+import io
 import json
 import os.path
 import re
-import types
 import ssl
 import sys
+import types
 
 import youtube_dl.extractor
 from youtube_dl import YoutubeDL
-from youtube_dl.compat import (
-    compat_os_name,
-    compat_str,
-)
-from youtube_dl.utils import (
-    preferredencoding,
-    write_string,
-)
+from youtube_dl.compat import compat_os_name, compat_str
+from youtube_dl.utils import preferredencoding, write_string
 
 
 def get_params(override=None):
@@ -66,7 +60,7 @@ class FakeYDL(YoutubeDL):
         # Different instances of the downloader can't share the same dictionary
         # some test set the "sublang" parameter, which would break the md5 checks.
         params = get_params(override=override)
-        super(FakeYDL, self).__init__(params, auto_init=False)
+        super().__init__(params, auto_init=False)
         self.result = []
 
     def to_screen(self, s, skip_eol=None):
@@ -211,8 +205,7 @@ def expect_info_dict(self, got_dict, expected_dict):
         def _repr(v):
             if isinstance(v, compat_str):
                 return "'%s'" % v.replace('\\', '\\\\').replace("'", "\\'").replace('\n', '\\n')
-            else:
-                return repr(v)
+            return repr(v)
         info_dict_str = ''
         if len(missing_keys) != len(expected_dict):
             info_dict_str += ''.join(
@@ -235,35 +228,34 @@ def expect_info_dict(self, got_dict, expected_dict):
 def assertRegexpMatches(self, text, regexp, msg=None):
     if hasattr(self, 'assertRegexp'):
         return self.assertRegexp(text, regexp, msg)
-    else:
-        m = re.match(regexp, text)
-        if not m:
-            note = 'Regexp didn\'t match: %r not found' % (regexp)
-            if len(text) < 1000:
-                note += ' in %r' % text
-            if msg is None:
-                msg = note
-            else:
-                msg = note + ', ' + msg
-            self.assertTrue(m, msg)
+    m = re.match(regexp, text)
+    if not m:
+        note = 'Regexp didn\'t match: %r not found' % (regexp)
+        if len(text) < 1000:
+            note += ' in %r' % text
+        if msg is None:
+            msg = note
+        else:
+            msg = note + ', ' + msg
+        self.assertTrue(m, msg)
 
 
 def assertGreaterEqual(self, got, expected, msg=None):
-    if not (got >= expected):
+    if not got >= expected:
         if msg is None:
             msg = '%r not greater than or equal to %r' % (got, expected)
         self.assertTrue(got >= expected, msg)
 
 
 def assertLessEqual(self, got, expected, msg=None):
-    if not (got <= expected):
+    if not got <= expected:
         if msg is None:
             msg = '%r not less than or equal to %r' % (got, expected)
         self.assertTrue(got <= expected, msg)
 
 
 def assertEqual(self, got, expected, msg=None):
-    if not (got == expected):
+    if not got == expected:
         if msg is None:
             msg = '%r not equal to %r' % (got, expected)
         self.assertTrue(got == expected, msg)

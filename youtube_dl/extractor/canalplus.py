@@ -3,14 +3,9 @@ from __future__ import unicode_literals
 
 import re
 
+from ..utils import (int_or_none, qualities,  # ExtractorError,; HEADRequest,
+                     unified_strdate)
 from .common import InfoExtractor
-from ..utils import (
-    # ExtractorError,
-    # HEADRequest,
-    int_or_none,
-    qualities,
-    unified_strdate,
-)
 
 
 class CanalplusIE(InfoExtractor):

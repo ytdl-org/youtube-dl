@@ -2,16 +2,10 @@ from __future__ import unicode_literals
 
 import re
 
-from .common import InfoExtractor
 from ..compat import compat_str
-from ..utils import (
-    determine_ext,
-    extract_attributes,
-    ExtractorError,
-    url_or_none,
-    urlencode_postdata,
-    urljoin,
-)
+from ..utils import (ExtractorError, determine_ext, extract_attributes,
+                     url_or_none, urlencode_postdata, urljoin)
+from .common import InfoExtractor
 
 
 class AnimeOnDemandIE(InfoExtractor):

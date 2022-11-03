@@ -5,31 +5,14 @@ import json
 import re
 import socket
 
+from ..compat import (compat_etree_fromstring, compat_http_client, compat_str,
+                      compat_urllib_error, compat_urllib_parse_unquote,
+                      compat_urllib_parse_unquote_plus)
+from ..utils import (ExtractorError, clean_html, error_to_compat_str,
+                     float_or_none, get_element_by_id, int_or_none, js_to_json,
+                     limit_length, parse_count, qualities, sanitized_Request,
+                     try_get, urlencode_postdata, urljoin)
 from .common import InfoExtractor
-from ..compat import (
-    compat_etree_fromstring,
-    compat_http_client,
-    compat_str,
-    compat_urllib_error,
-    compat_urllib_parse_unquote,
-    compat_urllib_parse_unquote_plus,
-)
-from ..utils import (
-    clean_html,
-    error_to_compat_str,
-    ExtractorError,
-    float_or_none,
-    get_element_by_id,
-    int_or_none,
-    js_to_json,
-    limit_length,
-    parse_count,
-    qualities,
-    sanitized_Request,
-    try_get,
-    urlencode_postdata,
-    urljoin,
-)
 
 
 class FacebookIE(InfoExtractor):

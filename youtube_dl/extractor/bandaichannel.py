@@ -1,8 +1,8 @@
 # coding: utf-8
 from __future__ import unicode_literals
 
-from .brightcove import BrightcoveNewIE
 from ..utils import extract_attributes
+from .brightcove import BrightcoveNewIE
 
 
 class BandaiChannelIE(BrightcoveNewIE):

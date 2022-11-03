@@ -6,9 +6,11 @@ from __future__ import unicode_literals
 import os
 import sys
 import unittest
+
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from test.helper import FakeYDL
+
 from youtube_dl.extractor import IqiyiIE
 
 
@@ -17,7 +19,7 @@ class IqiyiIEWithCredentials(IqiyiIE):
         return 'foo', 'bar'
 
 
-class WarningLogger(object):
+class WarningLogger():
     def __init__(self):
         self.messages = []
 

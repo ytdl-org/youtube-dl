@@ -4,20 +4,12 @@ import io
 import itertools
 import time
 
+from ..compat import (compat_b64decode, compat_etree_fromstring,
+                      compat_struct_pack, compat_struct_unpack,
+                      compat_urllib_error, compat_urllib_parse_urlparse,
+                      compat_urlparse)
+from ..utils import fix_xml_ampersands, xpath_text
 from .fragment import FragmentFD
-from ..compat import (
-    compat_b64decode,
-    compat_etree_fromstring,
-    compat_urlparse,
-    compat_urllib_error,
-    compat_urllib_parse_urlparse,
-    compat_struct_pack,
-    compat_struct_unpack,
-)
-from ..utils import (
-    fix_xml_ampersands,
-    xpath_text,
-)
 
 
 class DataTruncatedError(Exception):

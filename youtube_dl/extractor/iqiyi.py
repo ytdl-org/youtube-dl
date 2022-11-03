@@ -6,27 +6,18 @@ import itertools
 import re
 import time
 
+from ..compat import compat_str, compat_urllib_parse_urlencode
+from ..utils import (ExtractorError, clean_html, decode_packed_codes,
+                     get_element_by_attribute, get_element_by_id,
+                     ohdave_rsa_encrypt, remove_start)
 from .common import InfoExtractor
-from ..compat import (
-    compat_str,
-    compat_urllib_parse_urlencode,
-)
-from ..utils import (
-    clean_html,
-    decode_packed_codes,
-    get_element_by_id,
-    get_element_by_attribute,
-    ExtractorError,
-    ohdave_rsa_encrypt,
-    remove_start,
-)
 
 
 def md5_text(text):
     return hashlib.md5(text.encode('utf-8')).hexdigest()
 
 
-class IqiyiSDK(object):
+class IqiyiSDK():
     def __init__(self, target, ip, timestamp):
         self.target = target
         self.ip = ip
@@ -120,7 +111,7 @@ class IqiyiSDK(object):
         self.target = self.digit_sum(self.timestamp) + chunks[0] + compat_str(sum(ip))
 
 
-class IqiyiSDKInterpreter(object):
+class IqiyiSDKInterpreter():
     def __init__(self, sdk_code):
         self.sdk_code = sdk_code
 

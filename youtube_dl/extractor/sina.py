@@ -3,16 +3,10 @@ from __future__ import unicode_literals
 
 import re
 
+from ..utils import (ExtractorError, HEADRequest, clean_html,
+                     get_element_by_attribute, int_or_none, qualities,
+                     update_url_query)
 from .common import InfoExtractor
-from ..utils import (
-    HEADRequest,
-    ExtractorError,
-    int_or_none,
-    update_url_query,
-    qualities,
-    get_element_by_attribute,
-    clean_html,
-)
 
 
 class SinaIE(InfoExtractor):

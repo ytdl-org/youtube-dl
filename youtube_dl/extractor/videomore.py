@@ -3,16 +3,9 @@ from __future__ import unicode_literals
 
 import re
 
+from ..compat import compat_parse_qs, compat_str, compat_urllib_parse_urlparse
+from ..utils import ExtractorError, int_or_none
 from .common import InfoExtractor
-from ..compat import (
-    compat_parse_qs,
-    compat_str,
-    compat_urllib_parse_urlparse,
-)
-from ..utils import (
-    ExtractorError,
-    int_or_none,
-)
 
 
 class VideomoreBaseIE(InfoExtractor):

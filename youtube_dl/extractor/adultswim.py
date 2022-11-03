@@ -4,17 +4,9 @@ from __future__ import unicode_literals
 import json
 import re
 
+from ..utils import (determine_ext, float_or_none, int_or_none, mimetype2ext,
+                     parse_age_limit, parse_iso8601, strip_or_none, try_get)
 from .turner import TurnerBaseIE
-from ..utils import (
-    determine_ext,
-    float_or_none,
-    int_or_none,
-    mimetype2ext,
-    parse_age_limit,
-    parse_iso8601,
-    strip_or_none,
-    try_get,
-)
 
 
 class AdultSwimIE(TurnerBaseIE):

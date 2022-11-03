@@ -4,14 +4,9 @@ from __future__ import unicode_literals
 import json
 import re
 
+from ..utils import (float_or_none, int_or_none, merge_dicts, parse_codecs,
+                     urljoin)
 from .common import InfoExtractor
-from ..utils import (
-    float_or_none,
-    int_or_none,
-    merge_dicts,
-    parse_codecs,
-    urljoin,
-)
 
 
 class StreamCZIE(InfoExtractor):

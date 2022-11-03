@@ -3,16 +3,11 @@ from __future__ import unicode_literals
 
 import re
 
+from ..compat import compat_str
+from ..utils import (int_or_none, merge_dicts, try_get, unified_timestamp,
+                     urljoin)
 from .youtube import YoutubeIE
 from .zdf import ZDFBaseIE
-from ..compat import compat_str
-from ..utils import (
-    int_or_none,
-    merge_dicts,
-    try_get,
-    unified_timestamp,
-    urljoin,
-)
 
 
 class PhoenixIE(ZDFBaseIE):

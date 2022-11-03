@@ -3,22 +3,11 @@ from __future__ import unicode_literals
 
 import re
 
-from .common import InfoExtractor
 from ..compat import compat_str
-from ..utils import (
-    clean_html,
-    determine_ext,
-    float_or_none,
-    HEADRequest,
-    int_or_none,
-    orderedSet,
-    remove_end,
-    str_or_none,
-    strip_jsonp,
-    unescapeHTML,
-    unified_strdate,
-    url_or_none,
-)
+from ..utils import (HEADRequest, clean_html, determine_ext, float_or_none,
+                     int_or_none, orderedSet, remove_end, str_or_none,
+                     strip_jsonp, unescapeHTML, unified_strdate, url_or_none)
+from .common import InfoExtractor
 
 
 class ORFTVthekIE(InfoExtractor):

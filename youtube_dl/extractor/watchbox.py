@@ -3,16 +3,10 @@ from __future__ import unicode_literals
 
 import re
 
-from .common import InfoExtractor
 from ..compat import compat_str
-from ..utils import (
-    int_or_none,
-    js_to_json,
-    strip_or_none,
-    try_get,
-    unescapeHTML,
-    unified_timestamp,
-)
+from ..utils import (int_or_none, js_to_json, strip_or_none, try_get,
+                     unescapeHTML, unified_timestamp)
+from .common import InfoExtractor
 
 
 class WatchBoxIE(InfoExtractor):

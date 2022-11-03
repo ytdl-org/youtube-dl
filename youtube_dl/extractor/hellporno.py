@@ -1,12 +1,7 @@
 from __future__ import unicode_literals
 
+from ..utils import int_or_none, merge_dicts, remove_end, unified_timestamp
 from .common import InfoExtractor
-from ..utils import (
-    int_or_none,
-    merge_dicts,
-    remove_end,
-    unified_timestamp,
-)
 
 
 class HellPornoIE(InfoExtractor):

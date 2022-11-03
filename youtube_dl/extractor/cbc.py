@@ -6,27 +6,12 @@ import json
 import re
 from xml.sax.saxutils import escape
 
+from ..compat import compat_HTTPError, compat_str
+from ..utils import (ExtractorError, find_xpath_attr, int_or_none, js_to_json,
+                     orderedSet, parse_age_limit, parse_duration,
+                     parse_iso8601, smuggle_url, strip_or_none, try_get,
+                     xpath_element, xpath_text, xpath_with_ns)
 from .common import InfoExtractor
-from ..compat import (
-    compat_str,
-    compat_HTTPError,
-)
-from ..utils import (
-    js_to_json,
-    smuggle_url,
-    try_get,
-    xpath_text,
-    xpath_element,
-    xpath_with_ns,
-    find_xpath_attr,
-    orderedSet,
-    parse_duration,
-    parse_iso8601,
-    parse_age_limit,
-    strip_or_none,
-    int_or_none,
-    ExtractorError,
-)
 
 
 class CBCIE(InfoExtractor):

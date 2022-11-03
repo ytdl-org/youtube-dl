@@ -1,8 +1,8 @@
 # coding: utf-8
 from __future__ import unicode_literals
 
-from .common import InfoExtractor
 from ..utils import ExtractorError, urlencode_postdata
+from .common import InfoExtractor
 
 
 class BigoIE(InfoExtractor):

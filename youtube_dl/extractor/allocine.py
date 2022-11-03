@@ -1,16 +1,10 @@
 # coding: utf-8
 from __future__ import unicode_literals
 
-from .common import InfoExtractor
 from ..compat import compat_str
-from ..utils import (
-    int_or_none,
-    qualities,
-    remove_end,
-    try_get,
-    unified_timestamp,
-    url_basename,
-)
+from ..utils import (int_or_none, qualities, remove_end, try_get,
+                     unified_timestamp, url_basename)
+from .common import InfoExtractor
 
 
 class AllocineIE(InfoExtractor):

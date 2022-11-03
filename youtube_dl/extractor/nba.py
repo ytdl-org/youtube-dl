@@ -3,23 +3,12 @@ from __future__ import unicode_literals
 import functools
 import re
 
+from ..compat import (compat_parse_qs, compat_str, compat_urllib_parse_unquote,
+                      compat_urllib_parse_urlparse)
+from ..utils import (OnDemandPagedList, int_or_none, merge_dicts,
+                     parse_duration, parse_iso8601, try_get, update_url_query,
+                     urljoin)
 from .turner import TurnerBaseIE
-from ..compat import (
-    compat_parse_qs,
-    compat_str,
-    compat_urllib_parse_unquote,
-    compat_urllib_parse_urlparse,
-)
-from ..utils import (
-    int_or_none,
-    merge_dicts,
-    OnDemandPagedList,
-    parse_duration,
-    parse_iso8601,
-    try_get,
-    update_url_query,
-    urljoin,
-)
 
 
 class NBACVPBaseIE(TurnerBaseIE):

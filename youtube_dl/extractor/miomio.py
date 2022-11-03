@@ -3,14 +3,9 @@ from __future__ import unicode_literals
 
 import random
 
-from .common import InfoExtractor
 from ..compat import compat_urlparse
-from ..utils import (
-    xpath_text,
-    int_or_none,
-    ExtractorError,
-    sanitized_Request,
-)
+from ..utils import ExtractorError, int_or_none, sanitized_Request, xpath_text
+from .common import InfoExtractor
 
 
 class MioMioIE(InfoExtractor):

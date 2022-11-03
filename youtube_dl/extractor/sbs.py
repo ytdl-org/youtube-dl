@@ -1,11 +1,8 @@
 # coding: utf-8
 from __future__ import unicode_literals
 
+from ..utils import ExtractorError, smuggle_url
 from .common import InfoExtractor
-from ..utils import (
-    smuggle_url,
-    ExtractorError,
-)
 
 
 class SBSIE(InfoExtractor):

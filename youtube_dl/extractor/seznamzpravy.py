@@ -3,18 +3,9 @@ from __future__ import unicode_literals
 
 import re
 
+from ..compat import compat_parse_qs, compat_str, compat_urllib_parse_urlparse
+from ..utils import int_or_none, parse_codecs, try_get, urljoin
 from .common import InfoExtractor
-from ..compat import (
-    compat_parse_qs,
-    compat_str,
-    compat_urllib_parse_urlparse,
-)
-from ..utils import (
-    urljoin,
-    int_or_none,
-    parse_codecs,
-    try_get,
-)
 
 
 def _raw_id(src_url):

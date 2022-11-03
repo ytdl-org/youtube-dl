@@ -3,11 +3,8 @@ from __future__ import unicode_literals
 
 import re
 
+from ..utils import qualities, unified_timestamp
 from .common import InfoExtractor
-from ..utils import (
-    qualities,
-    unified_timestamp,
-)
 
 
 class PearVideoIE(InfoExtractor):

@@ -3,8 +3,8 @@ from __future__ import unicode_literals
 
 import re
 
-from .common import InfoExtractor
 from ..utils import urljoin
+from .common import InfoExtractor
 
 
 class NhkBaseIE(InfoExtractor):

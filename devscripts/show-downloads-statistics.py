@@ -9,10 +9,7 @@ import sys
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from youtube_dl.compat import (
-    compat_print,
-    compat_urllib_request,
-)
+from youtube_dl.compat import compat_print, compat_urllib_request
 from youtube_dl.utils import format_bytes
 
 

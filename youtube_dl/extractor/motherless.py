@@ -4,15 +4,10 @@ from __future__ import unicode_literals
 import datetime
 import re
 
-from .common import InfoExtractor
 from ..compat import compat_urlparse
-from ..utils import (
-    ExtractorError,
-    InAdvancePagedList,
-    orderedSet,
-    str_to_int,
-    unified_strdate,
-)
+from ..utils import (ExtractorError, InAdvancePagedList, orderedSet,
+                     str_to_int, unified_strdate)
+from .common import InfoExtractor
 
 
 class MotherlessIE(InfoExtractor):

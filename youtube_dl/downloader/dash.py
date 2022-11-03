@@ -1,11 +1,8 @@
 from __future__ import unicode_literals
 
-from .fragment import FragmentFD
 from ..compat import compat_urllib_error
-from ..utils import (
-    DownloadError,
-    urljoin,
-)
+from ..utils import DownloadError, urljoin
+from .fragment import FragmentFD
 
 
 class DashSegmentsFD(FragmentFD):

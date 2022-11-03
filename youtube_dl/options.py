@@ -1,22 +1,14 @@
 from __future__ import unicode_literals
 
-import os.path
 import optparse
+import os.path
 import re
 import sys
 
+from .compat import (compat_expanduser, compat_get_terminal_size,
+                     compat_getenv, compat_kwargs, compat_shlex_split)
 from .downloader.external import list_external_downloaders
-from .compat import (
-    compat_expanduser,
-    compat_get_terminal_size,
-    compat_getenv,
-    compat_kwargs,
-    compat_shlex_split,
-)
-from .utils import (
-    preferredencoding,
-    write_string,
-)
+from .utils import preferredencoding, write_string
 from .version import __version__
 
 
@@ -28,8 +20,7 @@ def _hide_login_info(opts):
         m = eqre.match(o)
         if m:
             return m.group('key') + '=PRIVATE'
-        else:
-            return o
+        return o
 
     opts = list(map(_scrub_eq, opts))
     for idx, opt in enumerate(opts):

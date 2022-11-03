@@ -12,8 +12,9 @@
 # All configuration values have a default; values that are commented out
 # serve to show the default.
 
-import sys
 import os
+import sys
+
 # Allows to import youtube_dl
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
@@ -36,8 +37,8 @@ source_suffix = '.rst'
 master_doc = 'index'
 
 # General information about the project.
-project = u'youtube-dl'
-copyright = u'2014, Ricardo Garcia Gonzalez'
+project = 'youtube-dl'
+copyright = '2014, Ricardo Garcia Gonzalez'
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
@@ -45,6 +46,7 @@ copyright = u'2014, Ricardo Garcia Gonzalez'
 #
 # The short X.Y version.
 from youtube_dl.version import __version__
+
 version = __version__
 # The full version, including alpha/beta/rc tags.
 release = version

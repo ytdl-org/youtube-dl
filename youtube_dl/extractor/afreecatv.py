@@ -3,16 +3,10 @@ from __future__ import unicode_literals
 
 import re
 
-from .common import InfoExtractor
 from ..compat import compat_xpath
-from ..utils import (
-    determine_ext,
-    ExtractorError,
-    int_or_none,
-    url_or_none,
-    urlencode_postdata,
-    xpath_text,
-)
+from ..utils import (ExtractorError, determine_ext, int_or_none, url_or_none,
+                     urlencode_postdata, xpath_text)
+from .common import InfoExtractor
 
 
 class AfreecaTVIE(InfoExtractor):

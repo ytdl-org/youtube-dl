@@ -2,13 +2,8 @@ from __future__ import unicode_literals
 
 import re
 
+from ..utils import NO_DEFAULT, int_or_none, parse_duration, str_to_int
 from .common import InfoExtractor
-from ..utils import (
-    int_or_none,
-    NO_DEFAULT,
-    parse_duration,
-    str_to_int,
-)
 
 
 class DrTuberIE(InfoExtractor):

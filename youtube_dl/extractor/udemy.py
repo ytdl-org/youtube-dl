@@ -2,27 +2,12 @@ from __future__ import unicode_literals
 
 import re
 
+from ..compat import (compat_HTTPError, compat_kwargs, compat_str,
+                      compat_urllib_request, compat_urlparse)
+from ..utils import (ExtractorError, determine_ext, extract_attributes,
+                     float_or_none, int_or_none, js_to_json, sanitized_Request,
+                     try_get, unescapeHTML, url_or_none, urlencode_postdata)
 from .common import InfoExtractor
-from ..compat import (
-    compat_HTTPError,
-    compat_kwargs,
-    compat_str,
-    compat_urllib_request,
-    compat_urlparse,
-)
-from ..utils import (
-    determine_ext,
-    extract_attributes,
-    ExtractorError,
-    float_or_none,
-    int_or_none,
-    js_to_json,
-    sanitized_Request,
-    try_get,
-    unescapeHTML,
-    url_or_none,
-    urlencode_postdata,
-)
 
 
 class UdemyIE(InfoExtractor):
@@ -131,7 +116,7 @@ class UdemyIE(InfoExtractor):
         headers = kwargs.get('headers', {}).copy()
         headers['User-Agent'] = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/72.0.3626.109 Safari/537.36'
         kwargs['headers'] = headers
-        ret = super(UdemyIE, self)._download_webpage_handle(
+        ret = super()._download_webpage_handle(
             *args, **compat_kwargs(kwargs))
         if not ret:
             return ret
@@ -164,7 +149,7 @@ class UdemyIE(InfoExtractor):
         else:
             url_or_request = sanitized_Request(url_or_request, headers=headers)
 
-        response = super(UdemyIE, self)._download_json(url_or_request, *args, **kwargs)
+        response = super()._download_json(url_or_request, *args, **kwargs)
         self._handle_error(response)
         return response
 

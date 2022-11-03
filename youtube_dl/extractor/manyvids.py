@@ -3,16 +3,10 @@ from __future__ import unicode_literals
 
 import re
 
-from .common import InfoExtractor
 from ..compat import compat_str
-from ..utils import (
-    determine_ext,
-    extract_attributes,
-    int_or_none,
-    str_to_int,
-    url_or_none,
-    urlencode_postdata,
-)
+from ..utils import (determine_ext, extract_attributes, int_or_none,
+                     str_to_int, url_or_none, urlencode_postdata)
+from .common import InfoExtractor
 
 
 class ManyVidsIE(InfoExtractor):

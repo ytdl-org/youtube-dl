@@ -5,14 +5,9 @@ import hashlib
 import itertools
 import re
 
-from .common import InfoExtractor
 from ..compat import compat_str
-from ..utils import (
-    ExtractorError,
-    int_or_none,
-    float_or_none,
-    try_get,
-)
+from ..utils import ExtractorError, float_or_none, int_or_none, try_get
+from .common import InfoExtractor
 
 
 class YandexMusicBaseIE(InfoExtractor):
@@ -39,13 +34,13 @@ class YandexMusicBaseIE(InfoExtractor):
             expected=True)
 
     def _download_webpage_handle(self, *args, **kwargs):
-        webpage = super(YandexMusicBaseIE, self)._download_webpage_handle(*args, **kwargs)
+        webpage = super()._download_webpage_handle(*args, **kwargs)
         if 'Нам очень жаль, но&nbsp;запросы, поступившие с&nbsp;вашего IP-адреса, похожи на&nbsp;автоматические.' in webpage:
             self._raise_captcha()
         return webpage
 
     def _download_json(self, *args, **kwargs):
-        response = super(YandexMusicBaseIE, self)._download_json(*args, **kwargs)
+        response = super()._download_json(*args, **kwargs)
         self._handle_error(response)
         return response
 

@@ -3,14 +3,9 @@ from __future__ import unicode_literals
 
 import re
 
-from .common import InfoExtractor
 from ..compat import compat_HTTPError
-from ..utils import (
-    determine_ext,
-    ExtractorError,
-    int_or_none,
-    unified_strdate,
-)
+from ..utils import ExtractorError, determine_ext, int_or_none, unified_strdate
+from .common import InfoExtractor
 
 
 class RadioCanadaIE(InfoExtractor):

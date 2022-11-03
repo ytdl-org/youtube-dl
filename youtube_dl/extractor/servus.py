@@ -1,15 +1,9 @@
 # coding: utf-8
 from __future__ import unicode_literals
 
+from ..utils import (determine_ext, float_or_none, int_or_none,
+                     unified_timestamp, url_or_none, urlencode_postdata)
 from .common import InfoExtractor
-from ..utils import (
-    determine_ext,
-    float_or_none,
-    int_or_none,
-    unified_timestamp,
-    urlencode_postdata,
-    url_or_none,
-)
 
 
 class ServusIE(InfoExtractor):

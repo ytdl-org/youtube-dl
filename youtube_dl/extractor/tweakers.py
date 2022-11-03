@@ -1,11 +1,7 @@
 from __future__ import unicode_literals
 
+from ..utils import determine_ext, int_or_none, mimetype2ext
 from .common import InfoExtractor
-from ..utils import (
-    int_or_none,
-    determine_ext,
-    mimetype2ext,
-)
 
 
 class TweakersIE(InfoExtractor):

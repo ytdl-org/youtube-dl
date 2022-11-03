@@ -1,33 +1,22 @@
 # coding: utf-8
 from __future__ import unicode_literals
 
+import json
+import re
+import time
 from base64 import b64encode
 from binascii import hexlify
 from datetime import datetime
 from hashlib import md5
 from random import randint
-import json
-import re
-import time
 
-from .common import InfoExtractor
 from ..aes import aes_ecb_encrypt, pkcs7_padding
-from ..compat import (
-    compat_urllib_parse_urlencode,
-    compat_str,
-    compat_itertools_count,
-)
-from ..utils import (
-    ExtractorError,
-    bytes_to_intlist,
-    error_to_compat_str,
-    float_or_none,
-    int_or_none,
-    intlist_to_bytes,
-    sanitized_Request,
-    std_headers,
-    try_get,
-)
+from ..compat import (compat_itertools_count, compat_str,
+                      compat_urllib_parse_urlencode)
+from ..utils import (ExtractorError, bytes_to_intlist, error_to_compat_str,
+                     float_or_none, int_or_none, intlist_to_bytes,
+                     sanitized_Request, std_headers, try_get)
+from .common import InfoExtractor
 
 
 class NetEaseMusicBaseIE(InfoExtractor):

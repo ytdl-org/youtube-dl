@@ -4,17 +4,9 @@ from __future__ import unicode_literals
 import hashlib
 import re
 
+from ..compat import compat_parse_qs, compat_urllib_request, compat_urlparse
+from ..utils import ExtractorError, sanitized_Request, urlencode_postdata
 from .common import InfoExtractor
-from ..compat import (
-    compat_parse_qs,
-    compat_urllib_request,
-    compat_urlparse,
-)
-from ..utils import (
-    ExtractorError,
-    sanitized_Request,
-    urlencode_postdata,
-)
 
 
 class FC2IE(InfoExtractor):

@@ -1,40 +1,23 @@
 # coding: utf-8
 from __future__ import unicode_literals
 
-import re
 import json
+import re
 import zlib
-
 from hashlib import sha1
-from math import pow, sqrt, floor
+from math import floor, pow, sqrt
+
+from ..aes import aes_cbc_decrypt
+from ..compat import (compat_b64decode, compat_etree_Element,
+                      compat_etree_fromstring, compat_str,
+                      compat_urllib_parse_urlencode, compat_urllib_request,
+                      compat_urlparse)
+from ..utils import (ExtractorError, bytes_to_intlist, extract_attributes,
+                     float_or_none, int_or_none, intlist_to_bytes,
+                     lowercase_escape, merge_dicts, remove_end,
+                     sanitized_Request, urlencode_postdata, xpath_text)
 from .common import InfoExtractor
 from .vrv import VRVIE
-from ..compat import (
-    compat_b64decode,
-    compat_etree_Element,
-    compat_etree_fromstring,
-    compat_str,
-    compat_urllib_parse_urlencode,
-    compat_urllib_request,
-    compat_urlparse,
-)
-from ..utils import (
-    ExtractorError,
-    bytes_to_intlist,
-    extract_attributes,
-    float_or_none,
-    intlist_to_bytes,
-    int_or_none,
-    lowercase_escape,
-    merge_dicts,
-    remove_end,
-    sanitized_Request,
-    urlencode_postdata,
-    xpath_text,
-)
-from ..aes import (
-    aes_cbc_decrypt,
-)
 
 
 class CrunchyrollBaseIE(InfoExtractor):

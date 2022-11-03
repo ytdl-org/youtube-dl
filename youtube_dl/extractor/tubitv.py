@@ -3,13 +3,9 @@ from __future__ import unicode_literals
 
 import re
 
+from ..utils import (ExtractorError, int_or_none, sanitized_Request,
+                     urlencode_postdata)
 from .common import InfoExtractor
-from ..utils import (
-    ExtractorError,
-    int_or_none,
-    sanitized_Request,
-    urlencode_postdata,
-)
 
 
 class TubiTvIE(InfoExtractor):

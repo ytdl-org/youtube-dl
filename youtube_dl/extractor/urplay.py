@@ -1,16 +1,9 @@
 # coding: utf-8
 from __future__ import unicode_literals
 
+from ..utils import (ExtractorError, ISO639Utils, dict_get, int_or_none,
+                     parse_age_limit, try_get, unified_timestamp)
 from .common import InfoExtractor
-from ..utils import (
-    dict_get,
-    ExtractorError,
-    int_or_none,
-    ISO639Utils,
-    parse_age_limit,
-    try_get,
-    unified_timestamp,
-)
 
 
 class URPlayIE(InfoExtractor):

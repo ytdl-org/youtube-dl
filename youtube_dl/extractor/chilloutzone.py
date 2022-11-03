@@ -1,15 +1,12 @@
 from __future__ import unicode_literals
 
-import re
 import json
+import re
 
+from ..compat import compat_b64decode
+from ..utils import ExtractorError, clean_html
 from .common import InfoExtractor
 from .youtube import YoutubeIE
-from ..compat import compat_b64decode
-from ..utils import (
-    clean_html,
-    ExtractorError
-)
 
 
 class ChilloutzoneIE(InfoExtractor):

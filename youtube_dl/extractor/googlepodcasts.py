@@ -4,13 +4,8 @@ from __future__ import unicode_literals
 import json
 import re
 
+from ..utils import clean_podcast_url, int_or_none, try_get, urlencode_postdata
 from .common import InfoExtractor
-from ..utils import (
-    clean_podcast_url,
-    int_or_none,
-    try_get,
-    urlencode_postdata,
-)
 
 
 class GooglePodcastsBaseIE(InfoExtractor):

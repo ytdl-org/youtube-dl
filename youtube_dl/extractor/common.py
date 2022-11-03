@@ -5,6 +5,7 @@ import base64
 import datetime
 import hashlib
 import json
+import math
 import netrc
 import os
 import random
@@ -13,78 +14,32 @@ import socket
 import ssl
 import sys
 import time
-import math
 
-from ..compat import (
-    compat_cookiejar_Cookie,
-    compat_cookies_SimpleCookie,
-    compat_etree_Element,
-    compat_etree_fromstring,
-    compat_getpass,
-    compat_integer_types,
-    compat_http_client,
-    compat_os_name,
-    compat_str,
-    compat_urllib_error,
-    compat_urllib_parse_unquote,
-    compat_urllib_parse_urlencode,
-    compat_urllib_request,
-    compat_urlparse,
-    compat_xml_parse_error,
-)
-from ..downloader.f4m import (
-    get_base_url,
-    remove_encrypted_media,
-)
-from ..utils import (
-    NO_DEFAULT,
-    age_restricted,
-    base_url,
-    bug_reports_message,
-    clean_html,
-    compiled_regex_type,
-    determine_ext,
-    determine_protocol,
-    dict_get,
-    error_to_compat_str,
-    ExtractorError,
-    extract_attributes,
-    fix_xml_ampersands,
-    float_or_none,
-    GeoRestrictedError,
-    GeoUtils,
-    int_or_none,
-    js_to_json,
-    JSON_LD_RE,
-    mimetype2ext,
-    orderedSet,
-    parse_bitrate,
-    parse_codecs,
-    parse_duration,
-    parse_iso8601,
-    parse_m3u8_attributes,
-    parse_resolution,
-    RegexNotFoundError,
-    sanitized_Request,
-    sanitize_filename,
-    str_or_none,
-    str_to_int,
-    strip_or_none,
-    unescapeHTML,
-    unified_strdate,
-    unified_timestamp,
-    update_Request,
-    update_url_query,
-    urljoin,
-    url_basename,
-    url_or_none,
-    xpath_element,
-    xpath_text,
-    xpath_with_ns,
-)
+from ..compat import (compat_cookiejar_Cookie, compat_cookies_SimpleCookie,
+                      compat_etree_Element, compat_etree_fromstring,
+                      compat_getpass, compat_http_client, compat_integer_types,
+                      compat_os_name, compat_str, compat_urllib_error,
+                      compat_urllib_parse_unquote,
+                      compat_urllib_parse_urlencode, compat_urllib_request,
+                      compat_urlparse, compat_xml_parse_error)
+from ..downloader.f4m import get_base_url, remove_encrypted_media
+from ..utils import (JSON_LD_RE, NO_DEFAULT, ExtractorError,
+                     GeoRestrictedError, GeoUtils, RegexNotFoundError,
+                     age_restricted, base_url, bug_reports_message, clean_html,
+                     compiled_regex_type, determine_ext, determine_protocol,
+                     dict_get, error_to_compat_str, extract_attributes,
+                     fix_xml_ampersands, float_or_none, int_or_none,
+                     js_to_json, mimetype2ext, orderedSet, parse_bitrate,
+                     parse_codecs, parse_duration, parse_iso8601,
+                     parse_m3u8_attributes, parse_resolution,
+                     sanitize_filename, sanitized_Request, str_or_none,
+                     str_to_int, strip_or_none, unescapeHTML, unified_strdate,
+                     unified_timestamp, update_Request, update_url_query,
+                     url_basename, url_or_none, urljoin, xpath_element,
+                     xpath_text, xpath_with_ns)
 
 
-class InfoExtractor(object):
+class InfoExtractor():
     """Information Extractor class.
 
     Information extractors are the classes that, given a URL, extract
@@ -807,9 +762,8 @@ class InfoExtractor(object):
                 self._sleep(timeout, video_id)
         if res is False:
             return res
-        else:
-            content, _ = res
-            return content
+        content, _ = res
+        return content
 
     def _download_xml_handle(
             self, url_or_request, video_id, note='Downloading XML',
@@ -1211,11 +1165,10 @@ class InfoExtractor(object):
             return json_ld
         if default is not NO_DEFAULT:
             return default
-        elif fatal:
+        if fatal:
             raise RegexNotFoundError('Unable to extract JSON-LD')
-        else:
-            self._downloader.report_warning('unable to extract JSON-LD %s' % bug_reports_message())
-            return {}
+        self._downloader.report_warning('unable to extract JSON-LD %s' % bug_reports_message())
+        return {}
 
     def _json_ld(self, json_ld, video_id, fatal=True, expected_type=None):
         if isinstance(json_ld, compat_str):

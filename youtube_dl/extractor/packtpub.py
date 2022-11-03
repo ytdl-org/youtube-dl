@@ -3,20 +3,10 @@ from __future__ import unicode_literals
 import json
 import re
 
+from ..compat import compat_HTTPError  # compat_str,
+from ..utils import (ExtractorError, clean_html,  # remove_end,; urljoin,
+                     str_or_none, strip_or_none, unified_timestamp)
 from .common import InfoExtractor
-from ..compat import (
-    # compat_str,
-    compat_HTTPError,
-)
-from ..utils import (
-    clean_html,
-    ExtractorError,
-    # remove_end,
-    str_or_none,
-    strip_or_none,
-    unified_timestamp,
-    # urljoin,
-)
 
 
 class PacktPubBaseIE(InfoExtractor):

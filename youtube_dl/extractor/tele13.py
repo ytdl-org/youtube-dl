@@ -1,13 +1,9 @@
 # coding: utf-8
 from __future__ import unicode_literals
 
+from ..utils import determine_ext, js_to_json, qualities
 from .common import InfoExtractor
 from .youtube import YoutubeIE
-from ..utils import (
-    js_to_json,
-    qualities,
-    determine_ext,
-)
 
 
 class Tele13IE(InfoExtractor):

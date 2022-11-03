@@ -95,7 +95,7 @@ if sys.version_info[0] == 2:
         def load(self, rawdata):
             if isinstance(rawdata, compat_str):
                 rawdata = str(rawdata)
-            return super(compat_cookies_SimpleCookie, self).load(rawdata)
+            return super().load(rawdata)
 else:
     compat_cookies_SimpleCookie = compat_cookies.SimpleCookie
 
@@ -2387,9 +2387,10 @@ except ImportError:
     import BaseHTTPServer as compat_http_server
 
 try:
-    from urllib.parse import unquote_to_bytes as compat_urllib_parse_unquote_to_bytes
     from urllib.parse import unquote as compat_urllib_parse_unquote
     from urllib.parse import unquote_plus as compat_urllib_parse_unquote_plus
+    from urllib.parse import \
+        unquote_to_bytes as compat_urllib_parse_unquote_to_bytes
 except ImportError:  # Python 2
     _asciire = (compat_urllib_parse._asciire if hasattr(compat_urllib_parse, '_asciire')
                 else re.compile(r'([\x00-\x7f]+)'))
@@ -2684,10 +2685,9 @@ except (AssertionError, UnicodeEncodeError):
 
 
 def compat_ord(c):
-    if type(c) is int:
+    if isinstance(c, int):
         return c
-    else:
-        return ord(c)
+    return ord(c)
 
 
 if sys.version_info >= (3, 0):
@@ -2950,7 +2950,7 @@ except TypeError:
         def __init__(self, fmt):
             if isinstance(fmt, compat_str):
                 fmt = fmt.encode('ascii')
-            super(compat_Struct, self).__init__(fmt)
+            super().__init__(fmt)
 else:
     compat_struct_pack = struct.pack
     compat_struct_unpack = struct.unpack
@@ -2959,7 +2959,7 @@ else:
             def unpack(self, string):
                 if not isinstance(string, buffer):  # noqa: F821
                     string = buffer(string)  # noqa: F821
-                return super(compat_Struct, self).unpack(string)
+                return super().unpack(string)
     else:
         compat_Struct = struct.Struct
 
@@ -3001,6 +3001,7 @@ except ImportError:
 # new class in collections
 try:
     from collections import ChainMap as compat_collections_chain_map
+
     # Py3.3's ChainMap is deficient
     if sys.version_info < (3, 4):
         raise ImportError

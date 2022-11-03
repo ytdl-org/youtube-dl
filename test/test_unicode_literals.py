@@ -4,6 +4,7 @@ from __future__ import unicode_literals
 import os
 import sys
 import unittest
+
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 import io
@@ -45,7 +46,7 @@ class TestUnicodeLiterals(unittest.TestCase):
 
                 if "'" not in code and '"' not in code:
                     continue
-                assertRegexpMatches(
+                assertRegexMatches(
                     self,
                     code,
                     r'(?:(?:#.*?|\s*)\n)*from __future__ import (?:[a-z_]+,\s*)*unicode_literals',

@@ -5,12 +5,8 @@ import json
 import re
 import sys
 
+from ..utils import ExtractorError, int_or_none, qualities
 from .common import InfoExtractor
-from ..utils import (
-    ExtractorError,
-    int_or_none,
-    qualities,
-)
 
 
 class IviIE(InfoExtractor):

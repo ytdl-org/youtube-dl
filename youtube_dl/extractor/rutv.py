@@ -3,12 +3,8 @@ from __future__ import unicode_literals
 
 import re
 
+from ..utils import ExtractorError, int_or_none, str_to_int
 from .common import InfoExtractor
-from ..utils import (
-    ExtractorError,
-    int_or_none,
-    str_to_int
-)
 
 
 class RUTVIE(InfoExtractor):

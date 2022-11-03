@@ -1,14 +1,9 @@
 # coding: utf-8
 from __future__ import unicode_literals
 
+from ..utils import (clean_html, extract_attributes, float_or_none,
+                     int_or_none, try_get)
 from .common import InfoExtractor
-from ..utils import (
-    clean_html,
-    extract_attributes,
-    float_or_none,
-    int_or_none,
-    try_get,
-)
 
 
 class EllenTubeBaseIE(InfoExtractor):

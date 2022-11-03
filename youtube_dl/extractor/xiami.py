@@ -1,16 +1,16 @@
 # coding: utf-8
 from __future__ import unicode_literals
 
-from .common import InfoExtractor
 from ..compat import compat_urllib_parse_unquote
 from ..utils import int_or_none
+from .common import InfoExtractor
 
 
 class XiamiBaseIE(InfoExtractor):
     _API_BASE_URL = 'https://emumo.xiami.com/song/playlist/cat/json/id'
 
     def _download_webpage_handle(self, *args, **kwargs):
-        webpage = super(XiamiBaseIE, self)._download_webpage_handle(*args, **kwargs)
+        webpage = super()._download_webpage_handle(*args, **kwargs)
         if '>Xiami is currently not available in your country.<' in webpage:
             self.raise_geo_restricted('Xiami is currently not available in your country')
         return webpage

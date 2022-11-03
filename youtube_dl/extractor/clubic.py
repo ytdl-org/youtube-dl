@@ -1,11 +1,8 @@
 # coding: utf-8
 from __future__ import unicode_literals
 
+from ..utils import clean_html, qualities
 from .common import InfoExtractor
-from ..utils import (
-    clean_html,
-    qualities,
-)
 
 
 class ClubicIE(InfoExtractor):

@@ -3,15 +3,10 @@ from __future__ import unicode_literals
 
 import re
 
-from .common import InfoExtractor
 from ..compat import compat_urlparse
-from ..utils import (
-    ExtractorError,
-    float_or_none,
-    int_or_none,
-    parse_iso8601,
-    try_get,
-)
+from ..utils import (ExtractorError, float_or_none, int_or_none, parse_iso8601,
+                     try_get)
+from .common import InfoExtractor
 
 
 class ArkenaIE(InfoExtractor):

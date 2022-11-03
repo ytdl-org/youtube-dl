@@ -3,16 +3,9 @@ from __future__ import unicode_literals
 
 import re
 
+from ..compat import compat_parse_qs, compat_urllib_parse_urlparse
+from ..utils import ExtractorError, int_or_none, update_url_query
 from .theplatform import ThePlatformBaseIE
-from ..compat import (
-    compat_parse_qs,
-    compat_urllib_parse_urlparse,
-)
-from ..utils import (
-    ExtractorError,
-    int_or_none,
-    update_url_query,
-)
 
 
 class MediasetIE(ThePlatformBaseIE):
@@ -129,7 +122,7 @@ class MediasetIE(ThePlatformBaseIE):
     def _parse_smil_formats(self, smil, smil_url, video_id, namespace=None, f4m_params=None, transform_rtmp_url=None):
         for video in smil.findall(self._xpath_ns('.//video', namespace)):
             video.attrib['src'] = re.sub(r'(https?://vod05)t(-mediaset-it\.akamaized\.net/.+?.mpd)\?.+', r'\1\2', video.attrib['src'])
-        return super(MediasetIE, self)._parse_smil_formats(smil, smil_url, video_id, namespace, f4m_params, transform_rtmp_url)
+        return super()._parse_smil_formats(smil, smil_url, video_id, namespace, f4m_params, transform_rtmp_url)
 
     def _real_extract(self, url):
         guid = self._match_id(url)
@@ -148,7 +141,7 @@ class MediasetIE(ThePlatformBaseIE):
                             'mbr': 'true',
                             'formats': f,
                             'assetTypes': asset_type,
-                        }), guid, 'Downloading %s %s SMIL data' % (f.split('+')[0], asset_type))
+                        }), guid, 'Downloading %s %s SMIL data' % (f.split('+',maxsplit=1)[0], asset_type))
                 except ExtractorError as e:
                     if not first_e:
                         first_e = e

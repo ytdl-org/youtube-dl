@@ -3,16 +3,10 @@ from __future__ import unicode_literals
 
 import re
 
-from .common import InfoExtractor
 from ..compat import compat_str
-from ..utils import (
-    dict_get,
-    ExtractorError,
-    int_or_none,
-    parse_iso8601,
-    try_get,
-    unescapeHTML,
-)
+from ..utils import (ExtractorError, dict_get, int_or_none, parse_iso8601,
+                     try_get, unescapeHTML)
+from .common import InfoExtractor
 
 
 class PikselIE(InfoExtractor):

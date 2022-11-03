@@ -3,12 +3,8 @@ from __future__ import unicode_literals
 
 import json
 
+from ..utils import ExtractorError, unified_timestamp
 from .common import InfoExtractor
-
-from ..utils import (
-    ExtractorError,
-    unified_timestamp,
-)
 
 
 class TennisTVIE(InfoExtractor):

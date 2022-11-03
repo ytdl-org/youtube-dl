@@ -1,19 +1,11 @@
 from __future__ import unicode_literals
 
-import re
 import json
+import re
 
+from ..compat import compat_HTTPError, compat_str, compat_urlparse
+from ..utils import ExtractorError, int_or_none, parse_iso8601
 from .common import InfoExtractor
-from ..compat import (
-    compat_str,
-    compat_urlparse,
-    compat_HTTPError,
-)
-from ..utils import (
-    ExtractorError,
-    int_or_none,
-    parse_iso8601,
-)
 
 
 class VevoBaseIE(InfoExtractor):

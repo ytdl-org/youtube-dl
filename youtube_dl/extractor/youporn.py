@@ -3,14 +3,9 @@ from __future__ import unicode_literals
 
 import re
 
+from ..utils import (extract_attributes, int_or_none, str_to_int,
+                     unified_strdate, url_or_none)
 from .common import InfoExtractor
-from ..utils import (
-    extract_attributes,
-    int_or_none,
-    str_to_int,
-    unified_strdate,
-    url_or_none,
-)
 
 
 class YouPornIE(InfoExtractor):

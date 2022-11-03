@@ -1,23 +1,17 @@
 from __future__ import division, unicode_literals
 
 import os
+import random
 import re
 import sys
 import time
-import random
 
 from ..compat import compat_os_name
-from ..utils import (
-    decodeArgument,
-    encodeFilename,
-    error_to_compat_str,
-    format_bytes,
-    shell_quote,
-    timeconvert,
-)
+from ..utils import (decodeArgument, encodeFilename, error_to_compat_str,
+                     format_bytes, shell_quote, timeconvert)
 
 
-class FileDownloader(object):
+class FileDownloader():
     """File Downloader class.
 
     File downloader objects are the ones responsible of downloading the
@@ -73,8 +67,7 @@ class FileDownloader(object):
             return '--:--:--'
         if hours == 0:
             return '%02d:%02d' % (mins, secs)
-        else:
-            return '%02d:%02d:%02d' % (hours, mins, secs)
+        return '%02d:%02d:%02d' % (hours, mins, secs)
 
     @staticmethod
     def calc_percent(byte_counter, data_len):

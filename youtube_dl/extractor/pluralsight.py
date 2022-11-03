@@ -6,23 +6,11 @@ import os
 import random
 import re
 
+from ..compat import compat_str, compat_urlparse
+from ..utils import (ExtractorError, dict_get, float_or_none, int_or_none,
+                     parse_duration, qualities, srt_subtitles_timecode,
+                     try_get, update_url_query, urlencode_postdata)
 from .common import InfoExtractor
-from ..compat import (
-    compat_str,
-    compat_urlparse,
-)
-from ..utils import (
-    dict_get,
-    ExtractorError,
-    float_or_none,
-    int_or_none,
-    parse_duration,
-    qualities,
-    srt_subtitles_timecode,
-    try_get,
-    update_url_query,
-    urlencode_postdata,
-)
 
 
 class PluralsightBaseIE(InfoExtractor):

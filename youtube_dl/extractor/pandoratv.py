@@ -3,18 +3,10 @@ from __future__ import unicode_literals
 
 import re
 
+from ..compat import compat_str, compat_urlparse
+from ..utils import (ExtractorError, float_or_none, parse_duration, str_to_int,
+                     urlencode_postdata)
 from .common import InfoExtractor
-from ..compat import (
-    compat_str,
-    compat_urlparse,
-)
-from ..utils import (
-    ExtractorError,
-    float_or_none,
-    parse_duration,
-    str_to_int,
-    urlencode_postdata,
-)
 
 
 class PandoraTVIE(InfoExtractor):

@@ -1,17 +1,9 @@
 # coding: utf-8
 from __future__ import unicode_literals
 
+from ..utils import (KNOWN_EXTENSIONS, clean_html, determine_ext, int_or_none,
+                     mimetype2ext, parse_iso8601, str_or_none, try_get)
 from .common import InfoExtractor
-from ..utils import (
-    clean_html,
-    determine_ext,
-    int_or_none,
-    KNOWN_EXTENSIONS,
-    mimetype2ext,
-    parse_iso8601,
-    str_or_none,
-    try_get,
-)
 
 
 class PatreonIE(InfoExtractor):

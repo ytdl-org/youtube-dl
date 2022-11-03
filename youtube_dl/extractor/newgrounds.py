@@ -2,14 +2,9 @@ from __future__ import unicode_literals
 
 import re
 
+from ..utils import (extract_attributes, int_or_none, parse_duration,
+                     parse_filesize, unified_timestamp)
 from .common import InfoExtractor
-from ..utils import (
-    extract_attributes,
-    int_or_none,
-    parse_duration,
-    parse_filesize,
-    unified_timestamp,
-)
 
 
 class NewgroundsIE(InfoExtractor):

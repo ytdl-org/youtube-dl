@@ -2,17 +2,10 @@ from __future__ import unicode_literals
 
 import re
 
+from ..compat import compat_xpath
+from ..utils import (int_or_none, parse_duration, smuggle_url, unsmuggle_url,
+                     xpath_text)
 from .common import InfoExtractor
-from ..compat import (
-    compat_xpath,
-)
-from ..utils import (
-    int_or_none,
-    parse_duration,
-    smuggle_url,
-    unsmuggle_url,
-    xpath_text,
-)
 
 
 class MicrosoftVirtualAcademyBaseIE(InfoExtractor):

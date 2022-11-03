@@ -4,14 +4,9 @@ from __future__ import unicode_literals
 import itertools
 import re
 
+from ..utils import (ExtractorError, clean_html, determine_ext,
+                     get_element_by_attribute, orderedSet)
 from .common import InfoExtractor
-from ..utils import (
-    clean_html,
-    determine_ext,
-    ExtractorError,
-    get_element_by_attribute,
-    orderedSet,
-)
 
 
 class TVPIE(InfoExtractor):

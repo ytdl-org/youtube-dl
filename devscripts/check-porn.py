@@ -12,11 +12,13 @@ pass the list filename as the only argument
 # Allow direct execution
 import os
 import sys
+
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from test.helper import gettestcases
-from youtube_dl.utils import compat_urllib_parse_urlparse
-from youtube_dl.utils import compat_urllib_request
+
+from youtube_dl.utils import (compat_urllib_parse_urlparse,
+                              compat_urllib_request)
 
 if len(sys.argv) > 1:
     METHOD = 'LIST'

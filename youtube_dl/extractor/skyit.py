@@ -1,18 +1,9 @@
 # coding: utf-8
 from __future__ import unicode_literals
 
+from ..compat import compat_parse_qs, compat_str, compat_urllib_parse_urlparse
+from ..utils import dict_get, int_or_none, parse_duration, unified_timestamp
 from .common import InfoExtractor
-from ..compat import (
-    compat_str,
-    compat_parse_qs,
-    compat_urllib_parse_urlparse,
-)
-from ..utils import (
-    dict_get,
-    int_or_none,
-    parse_duration,
-    unified_timestamp,
-)
 
 
 class SkyItPlayerIE(InfoExtractor):

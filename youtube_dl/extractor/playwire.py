@@ -2,11 +2,8 @@ from __future__ import unicode_literals
 
 import re
 
+from ..utils import dict_get, float_or_none
 from .common import InfoExtractor
-from ..utils import (
-    dict_get,
-    float_or_none,
-)
 
 
 class PlaywireIE(InfoExtractor):

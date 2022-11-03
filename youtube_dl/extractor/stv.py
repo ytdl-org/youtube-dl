@@ -3,15 +3,9 @@ from __future__ import unicode_literals
 
 import re
 
+from ..utils import (compat_str, float_or_none, int_or_none, smuggle_url,
+                     str_or_none, try_get)
 from .common import InfoExtractor
-from ..utils import (
-    compat_str,
-    float_or_none,
-    int_or_none,
-    smuggle_url,
-    str_or_none,
-    try_get,
-)
 
 
 class STVPlayerIE(InfoExtractor):

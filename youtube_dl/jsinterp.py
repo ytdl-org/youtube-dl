@@ -6,19 +6,12 @@ import math
 import operator
 import re
 
-from .utils import (
-    error_to_compat_str,
-    ExtractorError,
-    js_to_json,
-    remove_quotes,
-    unified_timestamp,
-)
-from .compat import (
-    compat_basestring,
-    compat_collections_chain_map as ChainMap,
-    compat_itertools_zip_longest as zip_longest,
-    compat_str,
-)
+from .compat import compat_basestring
+from .compat import compat_collections_chain_map as ChainMap
+from .compat import compat_itertools_zip_longest as zip_longest
+from .compat import compat_str
+from .utils import (ExtractorError, error_to_compat_str, js_to_json,
+                    remove_quotes, unified_timestamp)
 
 
 def _js_bit_op(op):
@@ -143,7 +136,7 @@ _MATCHING_PARENS = dict(zip(*zip('()', '{}', '[]')))
 _QUOTES = '\'"/'
 
 
-class JS_Undefined(object):
+class JS_Undefined():
     pass
 
 
@@ -166,7 +159,7 @@ class JS_Throw(ExtractorError):
 class LocalNameSpace(ChainMap):
     def __getitem__(self, key):
         try:
-            return super(LocalNameSpace, self).__getitem__(key)
+            return super().__getitem__(key)
         except KeyError:
             return JS_Undefined
 
@@ -184,7 +177,7 @@ class LocalNameSpace(ChainMap):
         return 'LocalNameSpace%s' % (self.maps, )
 
 
-class JSInterpreter(object):
+class JSInterpreter():
     __named_object_counter = 0
 
     _RE_FLAGS = {

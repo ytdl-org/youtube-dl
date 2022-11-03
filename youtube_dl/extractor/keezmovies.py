@@ -2,17 +2,11 @@ from __future__ import unicode_literals
 
 import re
 
-from .common import InfoExtractor
 from ..aes import aes_decrypt_text
 from ..compat import compat_urllib_parse_unquote
-from ..utils import (
-    determine_ext,
-    ExtractorError,
-    int_or_none,
-    str_to_int,
-    strip_or_none,
-    url_or_none,
-)
+from ..utils import (ExtractorError, determine_ext, int_or_none, str_to_int,
+                     strip_or_none, url_or_none)
+from .common import InfoExtractor
 
 
 class KeezMoviesIE(InfoExtractor):

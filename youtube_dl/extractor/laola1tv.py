@@ -4,16 +4,10 @@ from __future__ import unicode_literals
 import json
 import re
 
+from ..utils import (ExtractorError, js_to_json, unified_strdate,
+                     update_url_query, urlencode_postdata, xpath_element,
+                     xpath_text)
 from .common import InfoExtractor
-from ..utils import (
-    ExtractorError,
-    unified_strdate,
-    urlencode_postdata,
-    xpath_element,
-    xpath_text,
-    update_url_query,
-    js_to_json,
-)
 
 
 class Laola1TvEmbedIE(InfoExtractor):

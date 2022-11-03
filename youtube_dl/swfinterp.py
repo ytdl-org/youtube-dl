@@ -4,13 +4,8 @@ import collections
 import io
 import zlib
 
-from .compat import (
-    compat_str,
-    compat_struct_unpack,
-)
-from .utils import (
-    ExtractorError,
-)
+from .compat import compat_str, compat_struct_unpack
+from .utils import ExtractorError
 
 
 def _extract_tags(file_contents):
@@ -44,7 +39,7 @@ def _extract_tags(file_contents):
         pos += tag_len
 
 
-class _AVMClass_Object(object):
+class _AVMClass_Object():
     def __init__(self, avm_class):
         self.avm_class = avm_class
 
@@ -54,16 +49,16 @@ class _AVMClass_Object(object):
 
 class _ScopeDict(dict):
     def __init__(self, avm_class):
-        super(_ScopeDict, self).__init__()
+        super().__init__()
         self.avm_class = avm_class
 
     def __repr__(self):
         return '%s__Scope(%s)' % (
             self.avm_class.name,
-            super(_ScopeDict, self).__repr__())
+            super().__repr__())
 
 
-class _AVMClass(object):
+class _AVMClass():
     def __init__(self, name_idx, name, static_properties=None):
         self.name_idx = name_idx
         self.name = name
@@ -89,7 +84,7 @@ class _AVMClass(object):
             for name, idx in methods.items()))
 
 
-class _Multiname(object):
+class _Multiname():
     def __init__(self, kind):
         self.kind = kind
 
@@ -166,7 +161,7 @@ _builtin_classes = {
 }
 
 
-class _Undefined(object):
+class _Undefined():
     def __bool__(self):
         return False
     __nonzero__ = __bool__
@@ -182,7 +177,7 @@ class _Undefined(object):
 undefined = _Undefined()
 
 
-class SWFInterpreter(object):
+class SWFInterpreter():
     def __init__(self, file_contents):
         self._patched_functions = {
             (TimerClass, 'addEventListener'): lambda params: undefined,

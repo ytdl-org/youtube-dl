@@ -3,8 +3,8 @@ from __future__ import unicode_literals
 
 import re
 
-from .mtv import MTVServicesInfoExtractor
 from ..utils import update_url_query
+from .mtv import MTVServicesInfoExtractor
 
 
 class NickIE(MTVServicesInfoExtractor):

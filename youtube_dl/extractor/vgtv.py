@@ -3,13 +3,9 @@ from __future__ import unicode_literals
 
 import re
 
+from ..utils import ExtractorError, float_or_none, try_get
 from .common import InfoExtractor
 from .xstream import XstreamIE
-from ..utils import (
-    ExtractorError,
-    float_or_none,
-    try_get,
-)
 
 
 class VGTVIE(XstreamIE):

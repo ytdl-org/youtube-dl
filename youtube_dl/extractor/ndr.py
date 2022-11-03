@@ -3,18 +3,10 @@ from __future__ import unicode_literals
 
 import re
 
-from .common import InfoExtractor
 from ..compat import compat_urllib_parse_urlparse
-from ..utils import (
-    determine_ext,
-    ExtractorError,
-    int_or_none,
-    merge_dicts,
-    parse_iso8601,
-    qualities,
-    try_get,
-    urljoin,
-)
+from ..utils import (ExtractorError, determine_ext, int_or_none, merge_dicts,
+                     parse_iso8601, qualities, try_get, urljoin)
+from .common import InfoExtractor
 
 
 class NDRBaseIE(InfoExtractor):

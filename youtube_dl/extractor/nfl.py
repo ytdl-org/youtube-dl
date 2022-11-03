@@ -3,12 +3,8 @@ from __future__ import unicode_literals
 
 import re
 
+from ..utils import clean_html, determine_ext, get_element_by_class
 from .common import InfoExtractor
-from ..utils import (
-    clean_html,
-    determine_ext,
-    get_element_by_class,
-)
 
 
 class NFLBaseIE(InfoExtractor):

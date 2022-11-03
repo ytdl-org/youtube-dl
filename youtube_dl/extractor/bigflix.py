@@ -3,11 +3,8 @@ from __future__ import unicode_literals
 
 import re
 
+from ..compat import compat_b64decode, compat_urllib_parse_unquote
 from .common import InfoExtractor
-from ..compat import (
-    compat_b64decode,
-    compat_urllib_parse_unquote,
-)
 
 
 class BigflixIE(InfoExtractor):

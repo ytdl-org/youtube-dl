@@ -9,17 +9,12 @@ import shutil
 import traceback
 
 from .compat import compat_getenv
-from .utils import (
-    error_to_compat_str,
-    expand_path,
-    is_outdated_version,
-    try_get,
-    write_json_file,
-)
+from .utils import (error_to_compat_str, expand_path, is_outdated_version,
+                    try_get, write_json_file)
 from .version import __version__
 
 
-class Cache(object):
+class Cache():
 
     _YTDL_DIR = 'youtube-dl'
     _VERSION_KEY = _YTDL_DIR + '_version'

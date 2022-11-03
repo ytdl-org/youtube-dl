@@ -5,11 +5,7 @@ from __future__ import unicode_literals
 import json
 import re
 
-from ..utils import (
-    int_or_none,
-    unified_timestamp,
-    unescapeHTML
-)
+from ..utils import int_or_none, unescapeHTML, unified_timestamp
 from .common import InfoExtractor
 
 

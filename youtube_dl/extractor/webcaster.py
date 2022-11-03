@@ -3,11 +3,8 @@ from __future__ import unicode_literals
 
 import re
 
+from ..utils import determine_ext, xpath_text
 from .common import InfoExtractor
-from ..utils import (
-    determine_ext,
-    xpath_text,
-)
 
 
 class WebcasterIE(InfoExtractor):

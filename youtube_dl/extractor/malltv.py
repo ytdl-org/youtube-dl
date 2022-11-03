@@ -1,16 +1,9 @@
 # coding: utf-8
 from __future__ import unicode_literals
 
+from ..utils import (clean_html, dict_get, float_or_none, int_or_none,
+                     merge_dicts, parse_duration, try_get)
 from .common import InfoExtractor
-from ..utils import (
-    clean_html,
-    dict_get,
-    float_or_none,
-    int_or_none,
-    merge_dicts,
-    parse_duration,
-    try_get,
-)
 
 
 class MallTVIE(InfoExtractor):

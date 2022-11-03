@@ -3,21 +3,12 @@ from __future__ import unicode_literals
 
 import re
 
+from ..compat import (compat_etree_fromstring, compat_parse_qs,
+                      compat_urllib_parse_unquote,
+                      compat_urllib_parse_urlparse)
+from ..utils import (ExtractorError, int_or_none, qualities, unescapeHTML,
+                     unified_strdate, urlencode_postdata)
 from .common import InfoExtractor
-from ..compat import (
-    compat_etree_fromstring,
-    compat_parse_qs,
-    compat_urllib_parse_unquote,
-    compat_urllib_parse_urlparse,
-)
-from ..utils import (
-    ExtractorError,
-    unified_strdate,
-    int_or_none,
-    qualities,
-    unescapeHTML,
-    urlencode_postdata,
-)
 
 
 class OdnoklassnikiIE(InfoExtractor):

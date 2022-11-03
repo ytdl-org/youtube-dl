@@ -8,18 +8,12 @@ import random
 import re
 import time
 
-from .common import InfoExtractor
 from ..aes import aes_encrypt
 from ..compat import compat_str
-from ..utils import (
-    bytes_to_intlist,
-    determine_ext,
-    intlist_to_bytes,
-    int_or_none,
-    strip_jsonp,
-    unescapeHTML,
-    unsmuggle_url,
-)
+from ..utils import (bytes_to_intlist, determine_ext, int_or_none,
+                     intlist_to_bytes, strip_jsonp, unescapeHTML,
+                     unsmuggle_url)
+from .common import InfoExtractor
 
 
 def md5_text(s):
@@ -231,7 +225,7 @@ class AnvatoIE(InfoExtractor):
     }]
 
     def __init__(self, *args, **kwargs):
-        super(AnvatoIE, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
         self.__server_time = None
 
     def _server_time(self, access_key, video_id):

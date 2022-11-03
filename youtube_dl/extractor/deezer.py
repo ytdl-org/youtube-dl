@@ -3,12 +3,8 @@ from __future__ import unicode_literals
 import json
 import re
 
+from ..utils import ExtractorError, int_or_none, orderedSet
 from .common import InfoExtractor
-from ..utils import (
-    ExtractorError,
-    int_or_none,
-    orderedSet,
-)
 
 
 class DeezerPlaylistIE(InfoExtractor):

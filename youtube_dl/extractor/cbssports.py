@@ -2,12 +2,9 @@ from __future__ import unicode_literals
 
 import re
 
+from ..utils import int_or_none, try_get
 # from .cbs import CBSBaseIE
 from .common import InfoExtractor
-from ..utils import (
-    int_or_none,
-    try_get,
-)
 
 
 # class CBSSportsEmbedIE(CBSBaseIE):

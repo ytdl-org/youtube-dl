@@ -4,22 +4,11 @@ from __future__ import unicode_literals
 import functools
 import json
 
+from ..compat import (compat_parse_qs, compat_str, compat_urllib_parse_unquote,
+                      compat_urllib_parse_urlparse)
+from ..utils import (ExtractorError, OnDemandPagedList, determine_ext,
+                     int_or_none, mimetype2ext, try_get, urljoin)
 from .common import InfoExtractor
-from ..compat import (
-    compat_parse_qs,
-    compat_str,
-    compat_urllib_parse_unquote,
-    compat_urllib_parse_urlparse,
-)
-from ..utils import (
-    determine_ext,
-    ExtractorError,
-    int_or_none,
-    mimetype2ext,
-    OnDemandPagedList,
-    try_get,
-    urljoin,
-)
 
 
 class LBRYBaseIE(InfoExtractor):

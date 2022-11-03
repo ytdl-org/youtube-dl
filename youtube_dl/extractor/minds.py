@@ -1,14 +1,9 @@
 # coding: utf-8
 from __future__ import unicode_literals
 
-from .common import InfoExtractor
 from ..compat import compat_str
-from ..utils import (
-    clean_html,
-    int_or_none,
-    str_or_none,
-    strip_or_none,
-)
+from ..utils import clean_html, int_or_none, str_or_none, strip_or_none
+from .common import InfoExtractor
 
 
 class MindsBaseIE(InfoExtractor):
@@ -78,7 +73,7 @@ class MindsIE(MindsBaseIE):
             else:
                 return self.url_result(entity['perma_url'])
         else:
-            assert (entity['subtype'] == 'video')
+            assert entity['subtype'] == 'video'
             video_id = entity_id
         # 1080p and webm formats available only on the sources array
         video = self._call_api(

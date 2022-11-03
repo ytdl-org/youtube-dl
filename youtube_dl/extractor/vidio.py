@@ -3,14 +3,9 @@ from __future__ import unicode_literals
 
 import re
 
+from ..utils import (int_or_none, parse_iso8601, str_or_none, strip_or_none,
+                     try_get)
 from .common import InfoExtractor
-from ..utils import (
-    int_or_none,
-    parse_iso8601,
-    str_or_none,
-    strip_or_none,
-    try_get,
-)
 
 
 class VidioIE(InfoExtractor):

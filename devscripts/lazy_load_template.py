@@ -4,7 +4,7 @@ from __future__ import unicode_literals
 import re
 
 
-class LazyLoadExtractor(object):
+class LazyLoadExtractor():
     _module = None
 
     @classmethod

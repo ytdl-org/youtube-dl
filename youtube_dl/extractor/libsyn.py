@@ -3,14 +3,9 @@ from __future__ import unicode_literals
 
 import re
 
+from ..utils import (clean_html, get_element_by_class, parse_duration,
+                     strip_or_none, unified_strdate)
 from .common import InfoExtractor
-from ..utils import (
-    clean_html,
-    get_element_by_class,
-    parse_duration,
-    strip_or_none,
-    unified_strdate,
-)
 
 
 class LibsynIE(InfoExtractor):

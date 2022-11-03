@@ -2,12 +2,8 @@ from __future__ import unicode_literals
 
 import re
 
+from ..utils import ExtractorError, decode_packed_codes, urlencode_postdata
 from .common import InfoExtractor
-from ..utils import (
-    decode_packed_codes,
-    ExtractorError,
-    urlencode_postdata,
-)
 
 
 class SCTEBaseIE(InfoExtractor):

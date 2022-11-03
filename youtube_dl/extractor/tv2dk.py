@@ -4,13 +4,8 @@ from __future__ import unicode_literals
 import json
 import re
 
+from ..utils import determine_ext, extract_attributes, js_to_json, url_or_none
 from .common import InfoExtractor
-from ..utils import (
-    determine_ext,
-    extract_attributes,
-    js_to_json,
-    url_or_none,
-)
 
 
 class TV2DKIE(InfoExtractor):

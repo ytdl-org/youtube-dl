@@ -2,17 +2,10 @@
 
 from __future__ import unicode_literals
 
-from .common import InfoExtractor
 from ..compat import compat_HTTPError
-from ..utils import (
-    ExtractorError,
-    int_or_none,
-    str_or_none,
-    strip_or_none,
-    try_get,
-    unified_timestamp,
-    update_url_query,
-)
+from ..utils import (ExtractorError, int_or_none, str_or_none, strip_or_none,
+                     try_get, unified_timestamp, update_url_query)
+from .common import InfoExtractor
 
 
 class KakaoIE(InfoExtractor):

@@ -3,8 +3,8 @@ from __future__ import unicode_literals
 
 import re
 
-from .cbs import CBSIE
 from ..utils import int_or_none
+from .cbs import CBSIE
 
 
 class CBSInteractiveIE(CBSIE):

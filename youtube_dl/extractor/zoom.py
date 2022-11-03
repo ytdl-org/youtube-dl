@@ -3,14 +3,9 @@ from __future__ import unicode_literals
 
 import re
 
+from ..utils import (ExtractorError, int_or_none, js_to_json, parse_filesize,
+                     urlencode_postdata)
 from .common import InfoExtractor
-from ..utils import (
-    ExtractorError,
-    int_or_none,
-    js_to_json,
-    parse_filesize,
-    urlencode_postdata,
-)
 
 
 class ZoomIE(InfoExtractor):

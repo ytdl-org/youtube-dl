@@ -1,8 +1,8 @@
 # coding: utf-8
 from __future__ import unicode_literals
 
-from .common import InfoExtractor
 from ..utils import urljoin
+from .common import InfoExtractor
 
 
 class YourUploadIE(InfoExtractor):

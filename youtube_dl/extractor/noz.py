@@ -1,17 +1,9 @@
 # coding: utf-8
 from __future__ import unicode_literals
 
+from ..compat import compat_urllib_parse_unquote, compat_xpath
+from ..utils import find_xpath_attr, int_or_none, update_url_query, xpath_text
 from .common import InfoExtractor
-from ..compat import (
-    compat_urllib_parse_unquote,
-    compat_xpath,
-)
-from ..utils import (
-    int_or_none,
-    find_xpath_attr,
-    xpath_text,
-    update_url_query,
-)
 
 
 class NozIE(InfoExtractor):

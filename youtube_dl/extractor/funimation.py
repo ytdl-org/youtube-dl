@@ -4,15 +4,10 @@ from __future__ import unicode_literals
 import random
 import string
 
-from .common import InfoExtractor
 from ..compat import compat_HTTPError
-from ..utils import (
-    determine_ext,
-    int_or_none,
-    js_to_json,
-    ExtractorError,
-    urlencode_postdata
-)
+from ..utils import (ExtractorError, determine_ext, int_or_none, js_to_json,
+                     urlencode_postdata)
+from .common import InfoExtractor
 
 
 class FunimationIE(InfoExtractor):

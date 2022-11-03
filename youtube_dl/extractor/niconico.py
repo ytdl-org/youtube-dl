@@ -6,29 +6,13 @@ import itertools
 import json
 import re
 
-from .common import InfoExtractor, SearchInfoExtractor
+from ..compat import compat_parse_qs, compat_str, compat_urllib_parse_urlparse
 from ..postprocessor.ffmpeg import FFmpegPostProcessor
-from ..compat import (
-    compat_parse_qs,
-    compat_str,
-    compat_urllib_parse_urlparse,
-)
-from ..utils import (
-    ExtractorError,
-    dict_get,
-    float_or_none,
-    int_or_none,
-    OnDemandPagedList,
-    parse_duration,
-    parse_iso8601,
-    PostProcessingError,
-    remove_start,
-    str_or_none,
-    try_get,
-    unified_timestamp,
-    urlencode_postdata,
-    xpath_text,
-)
+from ..utils import (ExtractorError, OnDemandPagedList, PostProcessingError,
+                     dict_get, float_or_none, int_or_none, parse_duration,
+                     parse_iso8601, remove_start, str_or_none, try_get,
+                     unified_timestamp, urlencode_postdata, xpath_text)
+from .common import InfoExtractor, SearchInfoExtractor
 
 
 class NiconicoIE(InfoExtractor):
@@ -413,10 +397,10 @@ class NiconicoIE(InfoExtractor):
             if error_code == 'DELETED':
                 raise ExtractorError('The video has been deleted.',
                                      expected=True)
-            elif error_code == 'NOT_FOUND':
+            if error_code == 'NOT_FOUND':
                 raise ExtractorError('The video is not found.',
                                      expected=True)
-            elif error_code == 'COMMUNITY':
+            if error_code == 'COMMUNITY':
                 self.to_screen('%s: The video is community members only.' % video_id)
             else:
                 raise ExtractorError('%s reports error: %s' % (self.IE_NAME, error_code))
@@ -784,7 +768,7 @@ class NicovideoSearchDateIE(NicovideoSearchBaseIE, SearchInfoExtractor):
         if page_num:
             query['page'] = compat_str(page_num)
 
-        for entry in iter(super(NicovideoSearchDateIE, self)._entries(url, item_id, query=query, note=note)):
+        for entry in iter(super()._entries(url, item_id, query=query, note=note)):
             yield entry
 
 

@@ -7,11 +7,12 @@ from __future__ import unicode_literals
 import os
 import sys
 import unittest
+
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 import copy
-
 from test.helper import FakeYDL, assertRegexpMatches
+
 from youtube_dl import YoutubeDL
 from youtube_dl.compat import compat_str, compat_urllib_error
 from youtube_dl.extractor import YoutubeIE
@@ -24,7 +25,7 @@ TEST_URL = 'http://localhost/sample.mp4'
 
 class YDL(FakeYDL):
     def __init__(self, *args, **kwargs):
-        super(YDL, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
         self.downloaded_info_dicts = []
         self.msgs = []
 
@@ -668,10 +669,10 @@ class TestYoutubeDL(unittest.TestCase):
     def test_format_note(self):
         ydl = YoutubeDL()
         self.assertEqual(ydl._format_note({}), '')
-        assertRegexpMatches(self, ydl._format_note({
+        assertRegexMatches(self, ydl._format_note({
             'vbr': 10,
         }), r'^\s*10k$')
-        assertRegexpMatches(self, ydl._format_note({
+        assertRegexMatches(self, ydl._format_note({
             'fps': 30,
         }), r'^30fps$')
 
@@ -716,14 +717,14 @@ class TestYoutubeDL(unittest.TestCase):
     def test_match_filter(self):
         class FilterYDL(YDL):
             def __init__(self, *args, **kwargs):
-                super(FilterYDL, self).__init__(*args, **kwargs)
+                super().__init__(*args, **kwargs)
                 self.params['simulate'] = True
 
             def process_info(self, info_dict):
                 super(YDL, self).process_info(info_dict)
 
             def _match_entry(self, info_dict, incomplete):
-                res = super(FilterYDL, self)._match_entry(info_dict, incomplete)
+                res = super()._match_entry(info_dict, incomplete)
                 if res is None:
                     self.downloaded_info_dicts.append(info_dict)
                 return res
@@ -932,7 +933,7 @@ class TestYoutubeDL(unittest.TestCase):
 
         class _YDL(YDL):
             def __init__(self, *args, **kwargs):
-                super(_YDL, self).__init__(*args, **kwargs)
+                super().__init__(*args, **kwargs)
 
             def trouble(self, s, tb=None):
                 pass

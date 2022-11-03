@@ -6,13 +6,15 @@ from __future__ import unicode_literals
 import os
 import sys
 import unittest
+
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from test.helper import http_server_port
-from youtube_dl import YoutubeDL
-from youtube_dl.compat import compat_http_server, compat_urllib_request
 import ssl
 import threading
+from test.helper import http_server_port
+
+from youtube_dl import YoutubeDL
+from youtube_dl.compat import compat_http_server, compat_urllib_request
 
 TEST_DIR = os.path.dirname(os.path.abspath(__file__))
 
@@ -52,7 +54,7 @@ class HTTPTestRequestHandler(compat_http_server.BaseHTTPRequestHandler):
             assert False
 
 
-class FakeLogger(object):
+class FakeLogger():
     def debug(self, msg):
         pass
 

@@ -1,7 +1,7 @@
 from __future__ import unicode_literals
 
-from .once import OnceIE
 from ..compat import compat_urllib_parse_unquote
+from .once import OnceIE
 
 
 class GameSpotIE(OnceIE):

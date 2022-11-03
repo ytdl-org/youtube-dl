@@ -3,10 +3,8 @@ from __future__ import unicode_literals
 
 import re
 
+from ..utils import extract_attributes
 from .common import InfoExtractor
-from ..utils import (
-    extract_attributes,
-)
 
 
 class NZZIE(InfoExtractor):

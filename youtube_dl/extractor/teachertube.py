@@ -3,12 +3,8 @@ from __future__ import unicode_literals
 
 import re
 
+from ..utils import ExtractorError, determine_ext, qualities
 from .common import InfoExtractor
-from ..utils import (
-    determine_ext,
-    ExtractorError,
-    qualities,
-)
 
 
 class TeacherTubeIE(InfoExtractor):

@@ -3,12 +3,8 @@ from __future__ import unicode_literals
 
 import re
 
+from ..utils import int_or_none, str_or_none, url_or_none
 from .common import InfoExtractor
-from ..utils import (
-    int_or_none,
-    str_or_none,
-    url_or_none,
-)
 
 
 class ViqeoIE(InfoExtractor):

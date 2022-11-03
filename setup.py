@@ -4,14 +4,14 @@
 from __future__ import print_function
 
 import os.path
-import warnings
 import sys
+import warnings
 
 try:
-    from setuptools import setup, Command
+    from setuptools import Command, setup
     setuptools_available = True
 except ImportError:
-    from distutils.core import setup, Command
+    from distutils.core import Command, setup
     setuptools_available = False
 from distutils.spawn import spawn
 
@@ -22,7 +22,7 @@ try:
 except ImportError:
     if len(sys.argv) >= 2 and sys.argv[1] == 'py2exe':
         print('Cannot import py2exe', file=sys.stderr)
-        exit(1)
+        sys.exit(1)
 
 py2exe_options = {
     'bundle_files': 1,

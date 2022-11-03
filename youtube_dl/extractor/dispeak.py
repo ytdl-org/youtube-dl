@@ -2,14 +2,9 @@ from __future__ import unicode_literals
 
 import re
 
+from ..utils import (int_or_none, parse_duration, remove_end, xpath_element,
+                     xpath_text)
 from .common import InfoExtractor
-from ..utils import (
-    int_or_none,
-    parse_duration,
-    remove_end,
-    xpath_element,
-    xpath_text,
-)
 
 
 class DigitallySpeakingIE(InfoExtractor):

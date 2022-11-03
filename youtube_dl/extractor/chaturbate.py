@@ -2,12 +2,8 @@ from __future__ import unicode_literals
 
 import re
 
+from ..utils import ExtractorError, lowercase_escape, url_or_none
 from .common import InfoExtractor
-from ..utils import (
-    ExtractorError,
-    lowercase_escape,
-    url_or_none,
-)
 
 
 class ChaturbateIE(InfoExtractor):

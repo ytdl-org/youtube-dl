@@ -1,12 +1,8 @@
 from __future__ import unicode_literals
 
+from ..utils import (clean_html, extract_attributes, unified_strdate,
+                     unified_timestamp)
 from .common import InfoExtractor
-from ..utils import (
-    clean_html,
-    extract_attributes,
-    unified_strdate,
-    unified_timestamp,
-)
 
 
 class ArchiveOrgIE(InfoExtractor):

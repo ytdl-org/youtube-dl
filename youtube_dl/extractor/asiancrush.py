@@ -4,16 +4,10 @@ from __future__ import unicode_literals
 import functools
 import re
 
+from ..utils import (OnDemandPagedList, extract_attributes, int_or_none,
+                     parse_age_limit, strip_or_none, try_get)
 from .common import InfoExtractor
 from .kaltura import KalturaIE
-from ..utils import (
-    extract_attributes,
-    int_or_none,
-    OnDemandPagedList,
-    parse_age_limit,
-    strip_or_none,
-    try_get,
-)
 
 
 class AsianCrushBaseIE(InfoExtractor):

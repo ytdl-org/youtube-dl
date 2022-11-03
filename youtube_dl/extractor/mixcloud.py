@@ -3,21 +3,10 @@ from __future__ import unicode_literals
 import itertools
 import re
 
+from ..compat import (compat_b64decode, compat_chr, compat_ord, compat_str,
+                      compat_urllib_parse_unquote, compat_zip)
+from ..utils import int_or_none, parse_iso8601, strip_or_none, try_get
 from .common import InfoExtractor
-from ..compat import (
-    compat_b64decode,
-    compat_chr,
-    compat_ord,
-    compat_str,
-    compat_urllib_parse_unquote,
-    compat_zip
-)
-from ..utils import (
-    int_or_none,
-    parse_iso8601,
-    strip_or_none,
-    try_get,
-)
 
 
 class MixcloudBaseIE(InfoExtractor):

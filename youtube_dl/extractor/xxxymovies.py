@@ -2,11 +2,8 @@ from __future__ import unicode_literals
 
 import re
 
+from ..utils import int_or_none, parse_duration
 from .common import InfoExtractor
-from ..utils import (
-    parse_duration,
-    int_or_none,
-)
 
 
 class XXXYMoviesIE(InfoExtractor):

@@ -3,15 +3,10 @@ from __future__ import unicode_literals
 
 import re
 
-from .common import InfoExtractor
 from ..compat import compat_HTTPError
-from ..utils import (
-    dict_get,
-    ExtractorError,
-    int_or_none,
-    js_to_json,
-    parse_iso8601,
-)
+from ..utils import (ExtractorError, dict_get, int_or_none, js_to_json,
+                     parse_iso8601)
+from .common import InfoExtractor
 
 
 class ZypeIE(InfoExtractor):

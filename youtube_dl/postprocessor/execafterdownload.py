@@ -2,17 +2,14 @@ from __future__ import unicode_literals
 
 import subprocess
 
-from .common import PostProcessor
 from ..compat import compat_shlex_quote
-from ..utils import (
-    encodeArgument,
-    PostProcessingError,
-)
+from ..utils import PostProcessingError, encodeArgument
+from .common import PostProcessor
 
 
 class ExecAfterDownloadPP(PostProcessor):
     def __init__(self, downloader, exec_cmd):
-        super(ExecAfterDownloadPP, self).__init__(downloader)
+        super().__init__(downloader)
         self.exec_cmd = exec_cmd
 
     def run(self, information):

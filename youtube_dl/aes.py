@@ -222,7 +222,7 @@ def aes_decrypt_text(data, password, key_size_bytes):
     nonce = data[:NONCE_LENGTH_BYTES]
     cipher = data[NONCE_LENGTH_BYTES:]
 
-    class Counter(object):
+    class Counter():
         __value = nonce + [0] * (BLOCK_SIZE_BYTES - NONCE_LENGTH_BYTES)
 
         def next_value(self):

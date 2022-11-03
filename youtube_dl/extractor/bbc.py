@@ -6,35 +6,15 @@ import itertools
 import json
 import re
 
+from ..compat import (compat_etree_Element, compat_HTTPError, compat_parse_qs,
+                      compat_str, compat_urllib_error,
+                      compat_urllib_parse_urlparse, compat_urlparse)
+from ..utils import (ExtractorError, OnDemandPagedList, clean_html, dict_get,
+                     float_or_none, get_element_by_class, int_or_none,
+                     js_to_json, parse_duration, parse_iso8601, strip_or_none,
+                     try_get, unescapeHTML, unified_timestamp, url_or_none,
+                     urlencode_postdata, urljoin)
 from .common import InfoExtractor
-from ..compat import (
-    compat_etree_Element,
-    compat_HTTPError,
-    compat_parse_qs,
-    compat_str,
-    compat_urllib_error,
-    compat_urllib_parse_urlparse,
-    compat_urlparse,
-)
-from ..utils import (
-    ExtractorError,
-    OnDemandPagedList,
-    clean_html,
-    dict_get,
-    float_or_none,
-    get_element_by_class,
-    int_or_none,
-    js_to_json,
-    parse_duration,
-    parse_iso8601,
-    strip_or_none,
-    try_get,
-    unescapeHTML,
-    unified_timestamp,
-    url_or_none,
-    urlencode_postdata,
-    urljoin,
-)
 
 
 class BBCCoUkIE(InfoExtractor):

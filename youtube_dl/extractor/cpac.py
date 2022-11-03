@@ -1,16 +1,10 @@
 # coding: utf-8
 from __future__ import unicode_literals
 
-from .common import InfoExtractor
 from ..compat import compat_str
-from ..utils import (
-    int_or_none,
-    str_or_none,
-    try_get,
-    unified_timestamp,
-    update_url_query,
-    urljoin,
-)
+from ..utils import (int_or_none, str_or_none, try_get, unified_timestamp,
+                     update_url_query, urljoin)
+from .common import InfoExtractor
 
 # compat_range
 try:

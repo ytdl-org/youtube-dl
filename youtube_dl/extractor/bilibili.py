@@ -4,23 +4,11 @@ from __future__ import unicode_literals
 import hashlib
 import re
 
+from ..compat import compat_parse_qs, compat_urlparse
+from ..utils import (ExtractorError, float_or_none, int_or_none, parse_iso8601,
+                     smuggle_url, str_or_none, strip_jsonp, unified_timestamp,
+                     unsmuggle_url, urlencode_postdata)
 from .common import InfoExtractor
-from ..compat import (
-    compat_parse_qs,
-    compat_urlparse,
-)
-from ..utils import (
-    ExtractorError,
-    int_or_none,
-    float_or_none,
-    parse_iso8601,
-    smuggle_url,
-    str_or_none,
-    strip_jsonp,
-    unified_timestamp,
-    unsmuggle_url,
-    urlencode_postdata,
-)
 
 
 class BiliBiliIE(InfoExtractor):

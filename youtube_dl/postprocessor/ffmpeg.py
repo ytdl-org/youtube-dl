@@ -2,28 +2,16 @@ from __future__ import unicode_literals
 
 import io
 import os
+import re
 import subprocess
 import time
-import re
 
-
+from ..utils import (ISO639Utils, PostProcessingError, dfxp2srt,
+                     encodeArgument, encodeFilename, get_exe_version,
+                     is_outdated_version, prepend_extension,
+                     process_communicate_or_kill, replace_extension,
+                     shell_quote, subtitles_filename)
 from .common import AudioConversionError, PostProcessor
-
-from ..utils import (
-    encodeArgument,
-    encodeFilename,
-    get_exe_version,
-    is_outdated_version,
-    PostProcessingError,
-    prepend_extension,
-    process_communicate_or_kill,
-    shell_quote,
-    subtitles_filename,
-    dfxp2srt,
-    ISO639Utils,
-    replace_extension,
-)
-
 
 EXT_TO_OUT_FORMATS = {
     'aac': 'adts',
@@ -355,7 +343,7 @@ class FFmpegExtractAudioPP(FFmpegPostProcessor):
 
 class FFmpegVideoConvertorPP(FFmpegPostProcessor):
     def __init__(self, downloader=None, preferedformat=None):
-        super(FFmpegVideoConvertorPP, self).__init__(downloader)
+        super().__init__(downloader)
         self._preferedformat = preferedformat
 
     def run(self, information):
@@ -600,7 +588,7 @@ class FFmpegFixupM3u8PP(FFmpegPostProcessor):
 
 class FFmpegSubtitlesConvertorPP(FFmpegPostProcessor):
     def __init__(self, downloader=None, format=None):
-        super(FFmpegSubtitlesConvertorPP, self).__init__(downloader)
+        super().__init__(downloader)
         self.format = format
 
     def run(self, info):

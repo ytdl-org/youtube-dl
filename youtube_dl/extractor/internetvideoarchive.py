@@ -3,11 +3,8 @@ from __future__ import unicode_literals
 import json
 import re
 
+from ..compat import compat_parse_qs, compat_urlparse
 from .common import InfoExtractor
-from ..compat import (
-    compat_parse_qs,
-    compat_urlparse,
-)
 
 
 class InternetVideoArchiveIE(InfoExtractor):

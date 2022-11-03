@@ -1,16 +1,9 @@
 # coding: utf-8
 from __future__ import unicode_literals
 
+from ..utils import (ExtractorError, compat_str, float_or_none, int_or_none,
+                     str_or_none, try_get, url_or_none)
 from .common import InfoExtractor
-from ..utils import (
-    compat_str,
-    ExtractorError,
-    float_or_none,
-    int_or_none,
-    str_or_none,
-    try_get,
-    url_or_none,
-)
 
 
 class TikTokBaseIE(InfoExtractor):

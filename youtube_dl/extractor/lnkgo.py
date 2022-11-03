@@ -3,13 +3,8 @@ from __future__ import unicode_literals
 
 import re
 
+from ..utils import clean_html, compat_str, int_or_none, parse_iso8601
 from .common import InfoExtractor
-from ..utils import (
-    clean_html,
-    compat_str,
-    int_or_none,
-    parse_iso8601,
-)
 
 
 class LnkGoIE(InfoExtractor):

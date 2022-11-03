@@ -2,15 +2,9 @@ from __future__ import unicode_literals
 
 import re
 
+from ..utils import (clean_html, determine_ext, int_or_none, js_to_json,
+                     mimetype2ext, parse_filesize)
 from .common import InfoExtractor
-from ..utils import (
-    clean_html,
-    determine_ext,
-    int_or_none,
-    js_to_json,
-    mimetype2ext,
-    parse_filesize,
-)
 
 
 class MassengeschmackTVIE(InfoExtractor):

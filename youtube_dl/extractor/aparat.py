@@ -1,14 +1,9 @@
 # coding: utf-8
 from __future__ import unicode_literals
 
+from ..utils import (get_element_by_id, int_or_none, merge_dicts, mimetype2ext,
+                     url_or_none)
 from .common import InfoExtractor
-from ..utils import (
-    get_element_by_id,
-    int_or_none,
-    merge_dicts,
-    mimetype2ext,
-    url_or_none,
-)
 
 
 class AparatIE(InfoExtractor):

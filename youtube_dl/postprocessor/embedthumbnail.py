@@ -1,22 +1,14 @@
 # coding: utf-8
 from __future__ import unicode_literals
 
-
 import os
 import subprocess
 
+from ..utils import (PostProcessingError, check_executable, encodeArgument,
+                     encodeFilename, prepend_extension,
+                     process_communicate_or_kill, replace_extension,
+                     shell_quote)
 from .ffmpeg import FFmpegPostProcessor
-
-from ..utils import (
-    check_executable,
-    encodeArgument,
-    encodeFilename,
-    PostProcessingError,
-    prepend_extension,
-    process_communicate_or_kill,
-    replace_extension,
-    shell_quote,
-)
 
 
 class EmbedThumbnailPPError(PostProcessingError):
@@ -25,7 +17,7 @@ class EmbedThumbnailPPError(PostProcessingError):
 
 class EmbedThumbnailPP(FFmpegPostProcessor):
     def __init__(self, downloader=None, already_have_thumbnail=False):
-        super(EmbedThumbnailPP, self).__init__(downloader)
+        super().__init__(downloader)
         self._already_have_thumbnail = already_have_thumbnail
 
     def run(self, info):

@@ -1,25 +1,15 @@
 from __future__ import unicode_literals
 
-import itertools
 import hashlib
+import itertools
 import json
 import re
 
+from ..compat import compat_HTTPError, compat_str
+from ..utils import (ExtractorError, float_or_none, get_element_by_attribute,
+                     int_or_none, lowercase_escape, std_headers, try_get,
+                     url_or_none)
 from .common import InfoExtractor
-from ..compat import (
-    compat_str,
-    compat_HTTPError,
-)
-from ..utils import (
-    ExtractorError,
-    float_or_none,
-    get_element_by_attribute,
-    int_or_none,
-    lowercase_escape,
-    std_headers,
-    try_get,
-    url_or_none,
-)
 
 
 class InstagramIE(InfoExtractor):

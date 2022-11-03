@@ -3,11 +3,8 @@ from __future__ import unicode_literals
 
 import re
 
+from ..utils import ExtractorError, parse_duration
 from .common import InfoExtractor
-from ..utils import (
-    ExtractorError,
-    parse_duration,
-)
 
 
 class MojvideoIE(InfoExtractor):

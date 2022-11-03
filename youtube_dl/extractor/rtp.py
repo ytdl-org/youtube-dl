@@ -1,11 +1,8 @@
 # coding: utf-8
 from __future__ import unicode_literals
 
+from ..utils import determine_ext, js_to_json
 from .common import InfoExtractor
-from ..utils import (
-    determine_ext,
-    js_to_json,
-)
 
 
 class RTPIE(InfoExtractor):

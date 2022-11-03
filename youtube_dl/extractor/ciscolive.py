@@ -3,18 +3,10 @@ from __future__ import unicode_literals
 
 import itertools
 
+from ..compat import compat_parse_qs, compat_urllib_parse_urlparse
+from ..utils import (clean_html, float_or_none, int_or_none, try_get,
+                     urlencode_postdata)
 from .common import InfoExtractor
-from ..compat import (
-    compat_parse_qs,
-    compat_urllib_parse_urlparse,
-)
-from ..utils import (
-    clean_html,
-    float_or_none,
-    int_or_none,
-    try_get,
-    urlencode_postdata,
-)
 
 
 class CiscoLiveBaseIE(InfoExtractor):

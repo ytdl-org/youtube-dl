@@ -2,15 +2,10 @@ from __future__ import unicode_literals
 
 import re
 
+from ..utils import (HEADRequest, remove_start, sanitized_Request, smuggle_url,
+                     urlencode_postdata)
 from .common import InfoExtractor
 from .kaltura import KalturaIE
-from ..utils import (
-    HEADRequest,
-    remove_start,
-    sanitized_Request,
-    smuggle_url,
-    urlencode_postdata,
-)
 
 
 class GDCVaultIE(InfoExtractor):

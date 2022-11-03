@@ -11,8 +11,8 @@ import collections
 import contextlib
 import ctypes
 import datetime
-import email.utils
 import email.header
+import email.utils
 import errno
 import functools
 import gzip
@@ -37,41 +37,20 @@ import unicodedata
 import xml.etree.ElementTree
 import zlib
 
-from .compat import (
-    compat_HTMLParseError,
-    compat_HTMLParser,
-    compat_HTTPError,
-    compat_basestring,
-    compat_chr,
-    compat_cookiejar,
-    compat_ctypes_WINFUNCTYPE,
-    compat_etree_fromstring,
-    compat_expanduser,
-    compat_html_entities,
-    compat_html_entities_html5,
-    compat_http_client,
-    compat_integer_types,
-    compat_kwargs,
-    compat_os_name,
-    compat_parse_qs,
-    compat_shlex_quote,
-    compat_str,
-    compat_struct_pack,
-    compat_struct_unpack,
-    compat_urllib_error,
-    compat_urllib_parse,
-    compat_urllib_parse_urlencode,
-    compat_urllib_parse_urlparse,
-    compat_urllib_parse_unquote_plus,
-    compat_urllib_request,
-    compat_urlparse,
-    compat_xpath,
-)
-
-from .socks import (
-    ProxyType,
-    sockssocket,
-)
+from .compat import (compat_basestring, compat_chr, compat_cookiejar,
+                     compat_ctypes_WINFUNCTYPE, compat_etree_fromstring,
+                     compat_expanduser, compat_html_entities,
+                     compat_html_entities_html5, compat_HTMLParseError,
+                     compat_HTMLParser, compat_http_client, compat_HTTPError,
+                     compat_integer_types, compat_kwargs, compat_os_name,
+                     compat_parse_qs, compat_shlex_quote, compat_str,
+                     compat_struct_pack, compat_struct_unpack,
+                     compat_urllib_error, compat_urllib_parse,
+                     compat_urllib_parse_unquote_plus,
+                     compat_urllib_parse_urlencode,
+                     compat_urllib_parse_urlparse, compat_urllib_request,
+                     compat_urlparse, compat_xpath)
+from .socks import ProxyType, sockssocket
 
 
 def register_socks_protocols():
@@ -2228,7 +2207,7 @@ def _htmlentity_transform(entity_with_semicolon):
 def unescapeHTML(s):
     if s is None:
         return None
-    assert type(s) == compat_str
+    assert isinstance(s, compat_str)
 
     return re.sub(
         r'&([^&;]+;)', lambda m: _htmlentity_transform(m.group(1)), s)
@@ -2260,7 +2239,7 @@ def encodeFilename(s, for_subprocess=False):
     @param s The name of the file
     """
 
-    assert type(s) == compat_str
+    assert isinstance(s, compat_str)
 
     # Python 3 has a Unicode API
     if sys.version_info >= (3, 0):
@@ -2398,7 +2377,7 @@ class ExtractorError(YoutubeDLError):
             msg += ' (caused by %r)' % cause
         if not expected:
             msg += bug_reports_message()
-        super(ExtractorError, self).__init__(msg)
+        super().__init__(msg)
 
         self.traceback = tb
         self.exc_info = sys.exc_info()  # preserve original exception
@@ -2413,7 +2392,7 @@ class ExtractorError(YoutubeDLError):
 
 class UnsupportedError(ExtractorError):
     def __init__(self, url):
-        super(UnsupportedError, self).__init__(
+        super().__init__(
             'Unsupported URL: %s' % url, expected=True)
         self.url = url
 
@@ -2430,7 +2409,7 @@ class GeoRestrictedError(ExtractorError):
     geographic location due to geographic restrictions imposed by a website.
     """
     def __init__(self, msg, countries=None):
-        super(GeoRestrictedError, self).__init__(msg, expected=True)
+        super().__init__(msg, expected=True)
         self.msg = msg
         self.countries = countries
 
@@ -2445,7 +2424,7 @@ class DownloadError(YoutubeDLError):
 
     def __init__(self, msg, exc_info=None):
         """ exc_info, if given, is the original exception that caused the trouble (as returned by sys.exc_info()). """
-        super(DownloadError, self).__init__(msg)
+        super().__init__(msg)
         self.exc_info = exc_info
 
 
@@ -2466,7 +2445,7 @@ class PostProcessingError(YoutubeDLError):
     """
 
     def __init__(self, msg):
-        super(PostProcessingError, self).__init__(msg)
+        super().__init__(msg)
         self.msg = msg
 
 
@@ -2493,7 +2472,7 @@ class ContentTooShortError(YoutubeDLError):
     """
 
     def __init__(self, downloaded, expected):
-        super(ContentTooShortError, self).__init__(
+        super().__init__(
             'Downloaded {0} bytes, expected {1} bytes'.format(downloaded, expected)
         )
         # Both in bytes
@@ -2503,7 +2482,7 @@ class ContentTooShortError(YoutubeDLError):
 
 class XAttrMetadataError(YoutubeDLError):
     def __init__(self, code=None, msg='Unknown error'):
-        super(XAttrMetadataError, self).__init__(msg)
+        super().__init__(msg)
         self.code = code
         self.msg = msg
 
@@ -3157,7 +3136,7 @@ def hyphenate_date(date_str):
         return date_str
 
 
-class DateRange(object):
+class DateRange():
     """Represents a time interval between two dates"""
 
     def __init__(self, start=None, end=None):
@@ -3276,7 +3255,7 @@ def _windows_write_string(s, out):
 def write_string(s, out=None, encoding=None):
     if out is None:
         out = sys.stderr
-    assert type(s) == compat_str
+    assert isinstance(s, compat_str)
 
     if sys.platform == 'win32' and encoding is None and hasattr(out, 'fileno'):
         if _windows_write_string(s, out):
@@ -3300,8 +3279,7 @@ def bytes_to_intlist(bs):
         return []
     if isinstance(bs[0], int):  # Python 3
         return list(bs)
-    else:
-        return [ord(c) for c in bs]
+    return [ord(c) for c in bs]
 
 
 def intlist_to_bytes(xs):
@@ -3385,7 +3363,7 @@ else:
             raise IOError(UNSUPPORTED_MSG)
 
 
-class locked_file(object):
+class locked_file():
     def __init__(self, filename, mode, encoding=None):
         assert mode in ['r', 'a', 'w']
         self.f = io.open(filename, mode, encoding=encoding)
@@ -3454,7 +3432,7 @@ def unsmuggle_url(smug_url, default=None):
 def format_bytes(bytes):
     if bytes is None:
         return 'N/A'
-    if type(bytes) is str:
+    if isinstance(bytes, str):
         bytes = float(bytes)
     if bytes == 0.0:
         exponent = 0
@@ -3863,11 +3841,10 @@ def detect_exe_version(output, version_re=None, unrecognized='present'):
     m = re.search(version_re, output)
     if m:
         return m.group(1)
-    else:
-        return unrecognized
+    return unrecognized
 
 
-class PagedList(object):
+class PagedList():
     def __len__(self):
         # This is only useful for tests
         return len(self.getslice())
@@ -4153,7 +4130,7 @@ TV_PARENTAL_GUIDELINES = {
 
 
 def parse_age_limit(s):
-    if type(s) == int:
+    if isinstance(s, int):
         return s if 0 <= s <= 21 else None
     if not isinstance(s, compat_basestring):
         return None
@@ -4505,9 +4482,8 @@ def match_filter_func(filter_str):
     def _match_func(info_dict):
         if match_str(filter_str, info_dict):
             return None
-        else:
-            video_title = info_dict.get('title', info_dict.get('id', 'video'))
-            return '%s does not pass filter %s, skipping ..' % (video_title, filter_str)
+        video_title = info_dict.get('title', info_dict.get('id', 'video'))
+        return '%s does not pass filter %s, skipping ..' % (video_title, filter_str)
     return _match_func
 
 
@@ -4562,7 +4538,7 @@ def dfxp2srt(dfxp_data):
     styles = {}
     default_style = {}
 
-    class TTMLPElementParser(object):
+    class TTMLPElementParser():
         _out = ''
         _unclosed_elements = []
         _applied_styles = []
@@ -4722,7 +4698,7 @@ def cli_configuration_args(params, param, default=[]):
     return ex_args
 
 
-class ISO639Utils(object):
+class ISO639Utils():
     # See http://www.loc.gov/standards/iso639-2/ISO-639-2_utf-8.txt
     _lang_map = {
         'aa': 'aar',
@@ -4927,7 +4903,7 @@ class ISO639Utils(object):
                 return short_name
 
 
-class ISO3166Utils(object):
+class ISO3166Utils():
     # From http://data.okfn.org/data/core/country-list
     _country_map = {
         'AF': 'Afghanistan',
@@ -5187,7 +5163,7 @@ class ISO3166Utils(object):
         return cls._country_map.get(code.upper())
 
 
-class GeoUtils(object):
+class GeoUtils():
     # Major IPv4 address blocks per country
     _country_ip_map = {
         'AD': '46.172.224.0/19',

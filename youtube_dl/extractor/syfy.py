@@ -1,10 +1,7 @@
 from __future__ import unicode_literals
 
+from ..utils import smuggle_url, update_url_query
 from .adobepass import AdobePassIE
-from ..utils import (
-    update_url_query,
-    smuggle_url,
-)
 
 
 class SyfyIE(AdobePassIE):

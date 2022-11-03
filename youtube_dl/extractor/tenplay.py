@@ -1,13 +1,8 @@
 # coding: utf-8
 from __future__ import unicode_literals
 
+from ..utils import HEADRequest, parse_age_limit, parse_iso8601  # smuggle_url,
 from .common import InfoExtractor
-from ..utils import (
-    HEADRequest,
-    parse_age_limit,
-    parse_iso8601,
-    # smuggle_url,
-)
 
 
 class TenPlayIE(InfoExtractor):

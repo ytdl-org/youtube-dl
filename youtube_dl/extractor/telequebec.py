@@ -1,14 +1,9 @@
 # coding: utf-8
 from __future__ import unicode_literals
 
-from .common import InfoExtractor
 from ..compat import compat_str
-from ..utils import (
-    int_or_none,
-    smuggle_url,
-    try_get,
-    unified_timestamp,
-)
+from ..utils import int_or_none, smuggle_url, try_get, unified_timestamp
+from .common import InfoExtractor
 
 
 class TeleQuebecBaseIE(InfoExtractor):

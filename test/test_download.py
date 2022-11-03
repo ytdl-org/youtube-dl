@@ -6,38 +6,23 @@ from __future__ import unicode_literals
 import os
 import sys
 import unittest
+
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-
-from test.helper import (
-    assertGreaterEqual,
-    expect_warnings,
-    get_params,
-    gettestcases,
-    expect_info_dict,
-    try_rm,
-    report_warning,
-)
-
 
 import hashlib
 import io
 import json
 import socket
+from test.helper import (assertGreaterEqual, expect_info_dict, expect_warnings,
+                         get_params, gettestcases, report_warning, try_rm)
 
 import youtube_dl.YoutubeDL
-from youtube_dl.compat import (
-    compat_http_client,
-    compat_urllib_error,
-    compat_HTTPError,
-)
-from youtube_dl.utils import (
-    DownloadError,
-    ExtractorError,
-    error_to_compat_str,
-    format_bytes,
-    UnavailableVideoError,
-)
+from youtube_dl.compat import (compat_http_client, compat_HTTPError,
+                               compat_urllib_error)
 from youtube_dl.extractor import get_info_extractor
+from youtube_dl.utils import (DownloadError, ExtractorError,
+                              UnavailableVideoError, error_to_compat_str,
+                              format_bytes)
 
 RETRIES = 3
 
@@ -46,7 +31,7 @@ class YoutubeDL(youtube_dl.YoutubeDL):
     def __init__(self, *args, **kwargs):
         self.to_stderr = self.to_screen
         self.processed_info_dicts = []
-        super(YoutubeDL, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
 
     def report_warning(self, message):
         # Don't accept warnings during tests
@@ -54,7 +39,7 @@ class YoutubeDL(youtube_dl.YoutubeDL):
 
     def process_info(self, info_dict):
         self.processed_info_dicts.append(info_dict)
-        return super(YoutubeDL, self).process_info(info_dict)
+        return super().process_info(info_dict)
 
 
 def _file_md5(fn):

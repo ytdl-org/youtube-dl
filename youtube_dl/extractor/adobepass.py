@@ -5,19 +5,10 @@ import re
 import time
 import xml.etree.ElementTree as etree
 
+from ..compat import compat_kwargs, compat_urlparse
+from ..utils import (NO_DEFAULT, ExtractorError, unescapeHTML,
+                     unified_timestamp, urlencode_postdata)
 from .common import InfoExtractor
-from ..compat import (
-    compat_kwargs,
-    compat_urlparse,
-)
-from ..utils import (
-    unescapeHTML,
-    urlencode_postdata,
-    unified_timestamp,
-    ExtractorError,
-    NO_DEFAULT,
-)
-
 
 MSO_INFO = {
     'DTV': {
@@ -1333,7 +1324,7 @@ class AdobePassIE(InfoExtractor):
         headers = self.geo_verification_headers()
         headers.update(kwargs.get('headers', {}))
         kwargs['headers'] = headers
-        return super(AdobePassIE, self)._download_webpage_handle(
+        return super()._download_webpage_handle(
             *args, **compat_kwargs(kwargs))
 
     @staticmethod

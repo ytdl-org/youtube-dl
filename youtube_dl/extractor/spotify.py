@@ -4,15 +4,9 @@ from __future__ import unicode_literals
 import json
 import re
 
+from ..utils import (clean_podcast_url, float_or_none, int_or_none,
+                     strip_or_none, try_get, unified_strdate)
 from .common import InfoExtractor
-from ..utils import (
-    clean_podcast_url,
-    float_or_none,
-    int_or_none,
-    strip_or_none,
-    try_get,
-    unified_strdate,
-)
 
 
 class SpotifyBaseIE(InfoExtractor):

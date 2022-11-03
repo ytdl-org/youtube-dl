@@ -2,14 +2,10 @@ from __future__ import unicode_literals
 
 import re
 
+from ..compat import compat_str
+from ..utils import determine_ext, int_or_none, unified_timestamp
 from .common import InfoExtractor
 from .once import OnceIE
-from ..compat import compat_str
-from ..utils import (
-    determine_ext,
-    int_or_none,
-    unified_timestamp,
-)
 
 
 class ESPNIE(OnceIE):

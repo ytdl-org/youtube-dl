@@ -4,20 +4,10 @@ from __future__ import unicode_literals
 import itertools
 import json
 
+from ..compat import compat_HTTPError, compat_str
+from ..utils import (ExtractorError, int_or_none, merge_dicts, str_or_none,
+                     strip_or_none, try_get, urlencode_postdata)
 from .naver import NaverBaseIE
-from ..compat import (
-    compat_HTTPError,
-    compat_str,
-)
-from ..utils import (
-    ExtractorError,
-    int_or_none,
-    merge_dicts,
-    str_or_none,
-    strip_or_none,
-    try_get,
-    urlencode_postdata,
-)
 
 
 class VLiveBaseIE(NaverBaseIE):

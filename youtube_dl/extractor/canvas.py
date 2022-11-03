@@ -1,23 +1,14 @@
 from __future__ import unicode_literals
 
-import re
 import json
+import re
 
+from ..compat import compat_HTTPError
+from ..utils import (ExtractorError, clean_html, extract_attributes,
+                     float_or_none, get_element_by_class, int_or_none,
+                     merge_dicts, str_or_none, strip_or_none, url_or_none)
 from .common import InfoExtractor
 from .gigya import GigyaBaseIE
-from ..compat import compat_HTTPError
-from ..utils import (
-    ExtractorError,
-    clean_html,
-    extract_attributes,
-    float_or_none,
-    get_element_by_class,
-    int_or_none,
-    merge_dicts,
-    str_or_none,
-    strip_or_none,
-    url_or_none,
-)
 
 
 class CanvasIE(InfoExtractor):

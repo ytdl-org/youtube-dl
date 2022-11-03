@@ -1,7 +1,7 @@
 from __future__ import unicode_literals
 
-from .common import InfoExtractor
 from ..utils import js_to_json
+from .common import InfoExtractor
 
 
 class DiggIE(InfoExtractor):

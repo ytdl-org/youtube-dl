@@ -4,18 +4,10 @@ from __future__ import unicode_literals
 import itertools
 import re
 
+from ..compat import compat_str, compat_urllib_parse_unquote, compat_urlparse
+from ..utils import (extract_attributes, int_or_none, strip_or_none,
+                     unified_timestamp)
 from .common import InfoExtractor
-from ..compat import (
-    compat_str,
-    compat_urllib_parse_unquote,
-    compat_urlparse
-)
-from ..utils import (
-    extract_attributes,
-    int_or_none,
-    strip_or_none,
-    unified_timestamp,
-)
 
 
 class PolskieRadioIE(InfoExtractor):

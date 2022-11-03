@@ -6,13 +6,13 @@ from __future__ import unicode_literals
 import os
 import sys
 import unittest
+
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 import math
 import re
 
 from youtube_dl.compat import compat_re_Pattern
-
 from youtube_dl.jsinterp import JS_Undefined, JSInterpreter
 
 

@@ -4,12 +4,8 @@ from __future__ import unicode_literals
 import json
 import re
 
+from ..utils import determine_ext, parse_duration, parse_iso8601
 from .theplatform import ThePlatformIE
-from ..utils import (
-    determine_ext,
-    parse_duration,
-    parse_iso8601,
-)
 
 
 class TheWeatherChannelIE(ThePlatformIE):

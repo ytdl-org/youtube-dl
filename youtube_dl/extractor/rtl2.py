@@ -3,20 +3,11 @@ from __future__ import unicode_literals
 
 import re
 
-from .common import InfoExtractor
 from ..aes import aes_cbc_decrypt
-from ..compat import (
-    compat_b64decode,
-    compat_ord,
-    compat_str,
-)
-from ..utils import (
-    bytes_to_intlist,
-    ExtractorError,
-    intlist_to_bytes,
-    int_or_none,
-    strip_or_none,
-)
+from ..compat import compat_b64decode, compat_ord, compat_str
+from ..utils import (ExtractorError, bytes_to_intlist, int_or_none,
+                     intlist_to_bytes, strip_or_none)
+from .common import InfoExtractor
 
 
 class RTL2IE(InfoExtractor):
