@@ -292,6 +292,7 @@ from .daum import (
     DaumPlaylistIE,
     DaumUserIE,
 )
+from .deviantart import DeviantArtIE
 from .dbtv import DBTVIE
 from .dctp import DctpTvIE
 from .deezer import DeezerPlaylistIE
@@ -1268,6 +1269,7 @@ from .threeqsdn import ThreeQSDNIE
 from .tiktok import (
     TikTokIE,
     TikTokUserIE,
+    TikTokVMIE,
 )
 from .tinypic import TinyPicIE
 from .tmz import (
