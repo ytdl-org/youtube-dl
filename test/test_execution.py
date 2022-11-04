@@ -48,6 +48,11 @@ class TestExecution(unittest.TestCase):
                 os.remove('youtube_dl/extractor/lazy_extractors.py')
             except (IOError, OSError):
                 pass
+            if sys.version_info < (3, 0):
+                try:
+                    os.remove('youtube_dl/extractor/lazy_extractors.pyc')
+                except (IOError, OSError):
+                    pass
 
 
 if __name__ == '__main__':
