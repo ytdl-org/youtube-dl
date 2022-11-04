@@ -51,7 +51,7 @@ class DeviantArtIE(InfoExtractor):
         tags = list(map(lambda tag: tag.get('name'), deviation_ext.get('tags', [])))
 
         return {
-            'id': deviation.get('deviationId'),
+            'id': f"{deviation.get('deviationId')}",
             'title': deviation.get('title'),
             'description': deviation_ext.get('descriptionText', {}).get('html', {}).get('markup'),
             'uploader': self._search_regex(self._VALID_URL, url, 'uploader', group=1, fatal=False),
