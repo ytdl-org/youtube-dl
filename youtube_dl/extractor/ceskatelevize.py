@@ -7,10 +7,12 @@ from .common import InfoExtractor
 from ..compat import (
     compat_urllib_parse_unquote,
     compat_urllib_parse_urlparse,
+    compat_urllib_parse_urlencode
 )
 from ..utils import (
     ExtractorError,
     float_or_none,
+    str_or_none,
     sanitized_Request,
     unescapeHTML,
     update_url_query,
@@ -20,7 +22,14 @@ from ..utils import (
 
 
 class CeskaTelevizeIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:www\.)?ceskatelevize\.cz/ivysilani/(?:[^/?#&]+/)*(?P<id>[^/#?]+)'
+    _VALID_URL = r'''(?x)
+                    https?://
+                        (?:
+                            (?:www\.)?ceskatelevize\.cz/ivysilani/(?:[^/?#&]+/)*
+                            |decko.ceskatelevize.cz/video/
+                        )
+                        (?P<id>[^/#?]+)
+                '''
     _TESTS = [{
         'url': 'http://www.ceskatelevize.cz/ivysilani/ivysilani/10441294653-hyde-park-civilizace/214411058091220',
         'info_dict': {
@@ -66,6 +75,14 @@ class CeskaTelevizeIE(InfoExtractor):
     }, {
         'url': 'http://www.ceskatelevize.cz/ivysilani/embed/iFramePlayer.php?hash=d6a3e1370d2e4fa76296b90bad4dfc19673b641e&IDEC=217 562 22150/0004&channelID=1&width=100%25',
         'only_matching': True,
+    }, {
+        'url': 'http://decko.ceskatelevize.cz/video/213543116070004',
+        'info_dict': {
+            'id': '61924494877085121',
+            'ext': 'mp4',
+            'description': 'Internetové hřiště České televize pro malé i velké děti.',
+            'title': 'Déčko'
+        }
     }]
 
     def _real_extract(self, url):
@@ -79,23 +96,29 @@ class CeskaTelevizeIE(InfoExtractor):
 
         type_ = None
         episode_id = None
+        is_decko = 'decko.ceskatelevize.cz' in url
 
-        playlist = self._parse_json(
-            self._search_regex(
-                r'getPlaylistUrl\(\[({.+?})\]', webpage, 'playlist',
-                default='{}'), playlist_id)
-        if playlist:
-            type_ = playlist.get('type')
-            episode_id = playlist.get('id')
+        if is_decko:
+            type_ = 'episode'
+            episode_id = compat_urllib_parse_unquote(playlist_id)
+            episode_id = episode_id.replace(" ", "").replace("_", "")
+        else:
+            playlist = self._parse_json(
+                self._search_regex(
+                    r'getPlaylistUrl\(\[({.+?})\]', webpage, 'playlist',
+                    default='{}'), playlist_id)
+            if playlist:
+                type_ = playlist.get('type')
+                episode_id = playlist.get('id')
 
-        if not type_:
-            type_ = self._html_search_regex(
-                r'getPlaylistUrl\(\[\{"type":"(.+?)","id":".+?"\}\],',
-                webpage, 'type')
-        if not episode_id:
-            episode_id = self._html_search_regex(
-                r'getPlaylistUrl\(\[\{"type":".+?","id":"(.+?)"\}\],',
-                webpage, 'episode_id')
+            if not type_:
+                type_ = self._html_search_regex(
+                    r'getPlaylistUrl\(\[\{"type":"(.+?)","id":".+?"\}\],',
+                    webpage, 'type')
+            if not episode_id:
+                episode_id = self._html_search_regex(
+                    r'getPlaylistUrl\(\[\{"type":".+?","id":"(.+?)"\}\],',
+                    webpage, 'episode_id')
 
         data = {
             'playlist[0][type]': type_,
@@ -287,3 +310,41 @@ class CeskaTelevizePoradyIE(InfoExtractor):
         })
 
         return self.url_result(data_url, ie=CeskaTelevizeIE.ie_key())
+
+
+class CeskaTelevizeDeckoIE(InfoExtractor):
+    _VALID_URL = r'https?://decko.ceskatelevize.cz/(?P<id>[a-z-]+)(\?.*)?$'
+    _TESTS = [{
+        'url': 'http://decko.ceskatelevize.cz/nejmensi-slon-na-svete',
+        'playlist_count': 13
+    }, {
+        'url': 'http://decko.ceskatelevize.cz/nejmensi-slon-na-svete?foo=bar',
+        'playlist_count': 13
+
+    }]
+
+    def _real_extract(self, url):
+        video_id = self._match_id(url)
+        webpage = self._download_webpage(url, video_id)
+
+        idec = self._html_search_regex(r'var\s+IDEC\s*=\s*[\'\"](.+?)[\'\"]', webpage, 'IDEC')
+        json = self._download_json(
+            'http://decko.ceskatelevize.cz/rest/Programme/relatedVideosForEpisode?'
+                + compat_urllib_parse_urlencode({'IDEC':idec}),
+            video_id)
+        episodes = json.get('episodes', [])
+
+        entries = []
+        for episode in episodes:
+            idec = str_or_none(episode.get('episode', {}).get('IDEC'))
+            if idec is None:
+                continue
+
+            idec = idec.replace(' ', '').replace('/', '')
+            url = 'http://decko.ceskatelevize.cz/video/' + idec
+            entries.append(self.url_result(url))
+
+        return {
+            '_type': 'playlist',
+            'entries': entries
+        }
