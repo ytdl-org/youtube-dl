@@ -47,7 +47,12 @@ class ManyVidsIE(InfoExtractor):
     def _real_extract(self, url):
         video_id = self._match_id(url)
 
-        webpage = self._download_webpage(url, video_id)
+        real_url = 'https://www.manyvids.com/video/%s/gtm.js' % (video_id, )
+        try:
+            webpage = self._download_webpage(real_url, video_id)
+        except Exception:
+            # probably useless fallback
+            webpage = self._download_webpage(url, video_id)
 
         info = self._search_regex(
             r'''(<div\b[^>]*\bid\s*=\s*(['"])pageMetaDetails\2[^>]*>)''',
@@ -98,7 +103,8 @@ class ManyVidsIE(InfoExtractor):
             # Sets some cookies
             self._download_webpage(
                 'https://www.manyvids.com/includes/ajax_repository/you_had_me_at_hello.php',
-                video_id, fatal=False, data=urlencode_postdata({
+                video_id, note='Setting format cookies', fatal=False,
+                data=urlencode_postdata({
                     'mvtoken': mv_token,
                     'vid': video_id,
                 }), headers={

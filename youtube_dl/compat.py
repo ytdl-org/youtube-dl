@@ -21,6 +21,19 @@ import subprocess
 import sys
 import xml.etree.ElementTree
 
+# deal with critical unicode/str things first
+try:
+    # Python 2
+    compat_str, compat_basestring, compat_chr = (
+        unicode, basestring, unichr
+    )
+    from .casefold import casefold as compat_casefold
+except NameError:
+    compat_str, compat_basestring, compat_chr = (
+        str, str, chr
+    )
+    compat_casefold = lambda s: s.casefold()
+
 try:
     import collections.abc as compat_collections_abc
 except ImportError:
@@ -2374,11 +2387,6 @@ except ImportError:
     import BaseHTTPServer as compat_http_server
 
 try:
-    compat_str = unicode  # Python 2
-except NameError:
-    compat_str = str
-
-try:
     from urllib.parse import unquote_to_bytes as compat_urllib_parse_unquote_to_bytes
     from urllib.parse import unquote as compat_urllib_parse_unquote
     from urllib.parse import unquote_plus as compat_urllib_parse_unquote_plus
@@ -2509,20 +2517,9 @@ except ImportError:  # Python < 3.4
             return compat_urllib_response.addinfourl(io.BytesIO(data), headers, url)
 
 try:
-    compat_basestring = basestring  # Python 2
-except NameError:
-    compat_basestring = str
-
-try:
-    compat_chr = unichr  # Python 2
-except NameError:
-    compat_chr = chr
-
-try:
     from xml.etree.ElementTree import ParseError as compat_xml_parse_error
 except ImportError:  # Python 2.6
     from xml.parsers.expat import ExpatError as compat_xml_parse_error
-
 
 etree = xml.etree.ElementTree
 
@@ -3066,6 +3063,9 @@ except ImportError:
 
 # Pythons disagree on the type of a pattern (RegexObject, _sre.SRE_Pattern, Pattern, ...?)
 compat_re_Pattern = type(re.compile(''))
+# and on the type of a match
+compat_re_Match = type(re.match('a', 'a'))
+
 
 if sys.version_info < (3, 3):
     def compat_b64decode(s, *args, **kwargs):
@@ -3101,6 +3101,7 @@ __all__ = [
     'compat_Struct',
     'compat_b64decode',
     'compat_basestring',
+    'compat_casefold',
     'compat_chr',
     'compat_collections_abc',
     'compat_collections_chain_map',
@@ -3132,6 +3133,7 @@ __all__ = [
     'compat_os_name',
     'compat_parse_qs',
     'compat_print',
+    'compat_re_Match',
     'compat_re_Pattern',
     'compat_realpath',
     'compat_setenv',
