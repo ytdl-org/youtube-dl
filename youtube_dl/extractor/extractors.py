@@ -893,6 +893,10 @@ from .parliamentliveuk import ParliamentLiveUKIE
 from .patreon import PatreonIE
 from .pbs import PBSIE
 from .pearvideo import PearVideoIE
+from .peekvids import (
+    PeekVidsIE,
+    PlayVidsIE,
+)
 from .peertube import PeerTubeIE
 from .people import PeopleIE
 from .performgroup import PerformGroupIE
@@ -924,7 +928,6 @@ from .plays import PlaysTVIE
 from .playstuff import PlayStuffIE
 from .playtvak import PlaytvakIE
 from .playvid import PlayvidIE
-from .playvids import PlayvidsIE
 from .playwire import PlaywireIE
 from .pluralsight import (
     PluralsightIE,
