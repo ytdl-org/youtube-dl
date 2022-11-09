@@ -11,7 +11,6 @@ from ..utils import (
     merge_dicts,
     url_or_none,
 )
-from .common import InfoExtractor
 
 
 class PeekVidsIE(InfoExtractor):
@@ -68,8 +67,7 @@ class PeekVidsIE(InfoExtractor):
             (url_or_none(f_v), f_match.group(1))
             for f_v, f_match in (
                 (v, re.match(r'^data-src(\d{3,})$', k))
-                for k, v in srcs.items() if v)
-                if f_match)
+                for k, v in srcs.items() if v) if f_match)
             if f_url
         ]
         if not formats:
@@ -88,8 +86,8 @@ class PeekVidsIE(InfoExtractor):
 
         def cat_tags(name, html):
             l = self._html_search_regex(
-                    r'(?s)<span\b[^>]*>\s*%s\s*:\s*</span>(.+?)</li>' % (re.escape(name), ),
-                    html, name, default='')
+                r'(?s)<span\b[^>]*>\s*%s\s*:\s*</span>(.+?)</li>' % (re.escape(name), ),
+                html, name, default='')
             return [x for x in re.split(r'\s+', l) if x]
 
         return merge_dicts({
