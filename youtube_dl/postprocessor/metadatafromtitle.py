@@ -40,6 +40,8 @@ class MetadataFromTitlePP(PostProcessor):
                 % self._titleformat)
             return [], info
         for attribute, value in match.groupdict().items():
+            if value is None:
+                continue
             info[attribute] = value
             self._downloader.to_screen(
                 '[fromtitle] parsed %s: %s'

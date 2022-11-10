@@ -8,6 +8,18 @@ from .utils import bytes_to_intlist, intlist_to_bytes
 BLOCK_SIZE_BYTES = 16
 
 
+def pkcs7_padding(data):
+    """
+    PKCS#7 padding
+
+    @param {int[]} data        cleartext
+    @returns {int[]}           padding data
+    """
+
+    remaining_length = BLOCK_SIZE_BYTES - len(data) % BLOCK_SIZE_BYTES
+    return data + [remaining_length] * remaining_length
+
+
 def aes_ctr_decrypt(data, key, counter):
     """
     Decrypt with aes in counter mode
@@ -76,14 +88,35 @@ def aes_cbc_encrypt(data, key, iv):
     previous_cipher_block = iv
     for i in range(block_count):
         block = data[i * BLOCK_SIZE_BYTES: (i + 1) * BLOCK_SIZE_BYTES]
-        remaining_length = BLOCK_SIZE_BYTES - len(block)
-        block += [remaining_length] * remaining_length
+        block = pkcs7_padding(block)
         mixed_block = xor(block, previous_cipher_block)
 
         encrypted_block = aes_encrypt(mixed_block, expanded_key)
         encrypted_data += encrypted_block
 
         previous_cipher_block = encrypted_block
+
+    return encrypted_data
+
+
+def aes_ecb_encrypt(data, key):
+    """
+    Encrypt with aes in ECB mode. Using PKCS#7 padding
+
+    @param {int[]} data        cleartext
+    @param {int[]} key         16/24/32-Byte cipher key
+    @returns {int[]}           encrypted data
+    """
+    expanded_key = key_expansion(key)
+    block_count = int(ceil(float(len(data)) / BLOCK_SIZE_BYTES))
+
+    encrypted_data = []
+    for i in range(block_count):
+        block = data[i * BLOCK_SIZE_BYTES: (i + 1) * BLOCK_SIZE_BYTES]
+        block = pkcs7_padding(block)
+
+        encrypted_block = aes_encrypt(block, expanded_key)
+        encrypted_data += encrypted_block
 
     return encrypted_data
 
@@ -303,7 +336,7 @@ def xor(data1, data2):
 
 
 def rijndael_mul(a, b):
-    if(a == 0 or b == 0):
+    if (a == 0 or b == 0):
         return 0
     return RIJNDAEL_EXP_TABLE[(RIJNDAEL_LOG_TABLE[a] + RIJNDAEL_LOG_TABLE[b]) % 0xFF]
 

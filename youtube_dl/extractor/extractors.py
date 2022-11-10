@@ -208,10 +208,7 @@ from .ccc import (
 from .ccma import CCMAIE
 from .cctv import CCTVIE
 from .cda import CDAIE
-from .ceskatelevize import (
-    CeskaTelevizeIE,
-    CeskaTelevizePoradyIE,
-)
+from .ceskatelevize import CeskaTelevizeIE
 from .channel9 import Channel9IE
 from .charlierose import CharlieRoseIE
 from .chaturbate import ChaturbateIE
@@ -479,6 +476,7 @@ from .hotstar import (
 )
 from .howcast import HowcastIE
 from .howstuffworks import HowStuffWorksIE
+from .hrfernsehen import HRFernsehenIE
 from .hrti import (
     HRTiIE,
     HRTiPlaylistIE,
@@ -911,6 +909,10 @@ from .parliamentliveuk import ParliamentLiveUKIE
 from .patreon import PatreonIE
 from .pbs import PBSIE
 from .pearvideo import PearVideoIE
+from .peekvids import (
+    PeekVidsIE,
+    PlayVidsIE,
+)
 from .peertube import PeerTubeIE
 from .people import PeopleIE
 from .performgroup import PerformGroupIE
