@@ -111,9 +111,9 @@ class VeejoyIE(InfoExtractor):
             if not f_url:
                 continue
             ext = determine_ext(f_url)
-            transcodingFormat = try_get(asset_format, lambda x: x['transcodingFormat'], dict) or {}
+            transcodingFormat = try_get(asset_format, lambda x: x['transcodingFormat'], dict)
 
-            if transcodingFormat == {}:
+            if not transcodingFormat:
                 continue
 
             label = strip_or_none(transcodingFormat.get('label') or '').split('-')
