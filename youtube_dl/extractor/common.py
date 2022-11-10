@@ -2714,7 +2714,7 @@ class InfoExtractor(object):
 
     def _find_jwplayer_data(self, webpage, video_id=None, transform_source=js_to_json):
         mobj = re.search(
-            r'''(?s)jwplayer\s*\(\s*(?P<q>'|")(?!(?P=q)).+(?P=q)\s*\)(?!</script>).*?\.\s*setup\s*\(\s*(?P<options>[^)]+)\s*\)''',
+            r'''(?s)jwplayer\s*\(\s*(?P<q>'|")(?!(?P=q)).+(?P=q)\s*\)(?!</script>).*?\.\s*setup\s*\(\s*(?P<options>(?:\([^)]*)|[^)])+)\s*\)''',
             webpage)
         if mobj:
             try:
@@ -2735,13 +2735,14 @@ class InfoExtractor(object):
 
     def _parse_jwplayer_data(self, jwplayer_data, video_id=None, require_title=True,
                              m3u8_id=None, mpd_id=None, rtmp_params=None, base_url=None):
-        if try_get(jwplayer_data, lambda x: x.get('playlist') or True) is None:
-            # not a dict
-            return {}
+        flat_pl = try_get(jwplayer_data, lambda x: x.get('playlist') or True)
+        if flat_pl is None:
+            # not even a dict
+            return []
 
         # JWPlayer backward compatibility: flattened playlists
         # https://github.com/jwplayer/jwplayer/blob/v7.4.3/src/js/api/config.js#L81-L96
-        if 'playlist' not in jwplayer_data:
+        if flat_pl is True:
             jwplayer_data = {'playlist': [jwplayer_data]}
 
         entries = []
@@ -2859,7 +2860,8 @@ class InfoExtractor(object):
                     'url': source_url,
                     'width': int_or_none(source.get('width')),
                     'height': height,
-                    'tbr': int_or_none(source.get('bitrate')),
+                    'tbr': int_or_none(source.get('bitrate'), scale=1000),
+                    'filesize': int_or_none(source.get('filesize')),
                     'ext': ext,
                 }
                 if format_id:
