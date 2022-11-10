@@ -2804,7 +2804,9 @@ class InfoExtractor(object):
                     'url': formats[0]['url'],
                 })
             else:
-                self._sort_formats(formats)
+                # avoid exception in case of only sttls
+                if formats:
+                    self._sort_formats(formats)
                 entry['formats'] = formats
             entries.append(entry)
         if len(entries) == 1:
@@ -2814,7 +2816,7 @@ class InfoExtractor(object):
 
     def _parse_jwplayer_formats(self, jwplayer_sources_data, video_id=None,
                                 m3u8_id=None, mpd_id=None, rtmp_params=None, base_url=None):
-        urls = []
+        urls = set()
         formats = []
         for source in jwplayer_sources_data:
             if not isinstance(source, dict):
@@ -2823,7 +2825,7 @@ class InfoExtractor(object):
                 base_url, self._proto_relative_url(source.get('file')))
             if not source_url or source_url in urls:
                 continue
-            urls.append(source_url)
+            urls.add(source_url)
             source_type = source.get('type') or ''
             ext = mimetype2ext(source_type) or determine_ext(source_url)
             if source_type == 'hls' or ext == 'm3u8' or 'format=m3u8-aapl' in source_url:
