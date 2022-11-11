@@ -2,12 +2,8 @@
 from __future__ import unicode_literals
 
 from .common import InfoExtractor
-from ..compat import (
-    compat_urllib_parse,
-)
-from ..utils import (
-    unified_strdate,
-)
+from ..compat import compat_urllib_parse
+from ..utils import unified_strdate
 
 
 class UrortIE(InfoExtractor):

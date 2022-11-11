@@ -1,14 +1,14 @@
 from __future__ import unicode_literals
 
 import codecs
-import subprocess
-
 import os
+import subprocess
 import sys
+
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from youtube_dl.utils import intlist_to_bytes
 from youtube_dl.aes import aes_encrypt, key_expansion
+from youtube_dl.utils import intlist_to_bytes
 
 secret_msg = b'Secret message goes here'
 

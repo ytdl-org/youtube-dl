@@ -4,13 +4,8 @@ import collections
 import io
 import zlib
 
-from .compat import (
-    compat_str,
-    compat_struct_unpack,
-)
-from .utils import (
-    ExtractorError,
-)
+from .compat import compat_str, compat_struct_unpack
+from .utils import ExtractorError
 
 
 def _extract_tags(file_contents):

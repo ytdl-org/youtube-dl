@@ -4,10 +4,7 @@ import re
 import time
 
 from .common import InfoExtractor
-from ..utils import (
-    int_or_none,
-    HEADRequest,
-)
+from ..utils import HEADRequest, int_or_none
 
 
 class CultureUnpluggedIE(InfoExtractor):

@@ -3,7 +3,7 @@ from __future__ import unicode_literals
 import re
 
 from .common import InfoExtractor
-from ..utils import unified_strdate, determine_ext
+from ..utils import determine_ext, unified_strdate
 
 
 class RoxwelIE(InfoExtractor):

@@ -4,12 +4,7 @@ from __future__ import unicode_literals
 import functools
 
 from .common import InfoExtractor
-from ..utils import (
-    # HEADRequest,
-    int_or_none,
-    OnDemandPagedList,
-    smuggle_url,
-)
+from ..utils import OnDemandPagedList, int_or_none, smuggle_url  # HEADRequest,
 
 
 class StoryFireBaseIE(InfoExtractor):

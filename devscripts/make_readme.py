@@ -1,8 +1,8 @@
 from __future__ import unicode_literals
 
 import io
-import sys
 import re
+import sys
 
 README_FILE = 'README.md'
 helptext = sys.stdin.read()

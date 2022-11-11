@@ -2,11 +2,7 @@
 from __future__ import unicode_literals
 
 from .common import InfoExtractor
-from ..utils import (
-    ExtractorError,
-    NO_DEFAULT,
-    remove_start
-)
+from ..utils import NO_DEFAULT, ExtractorError, remove_start
 
 
 class OdaTVIE(InfoExtractor):

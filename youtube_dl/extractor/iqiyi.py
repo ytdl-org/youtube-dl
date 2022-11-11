@@ -7,16 +7,13 @@ import re
 import time
 
 from .common import InfoExtractor
-from ..compat import (
-    compat_str,
-    compat_urllib_parse_urlencode,
-)
+from ..compat import compat_str, compat_urllib_parse_urlencode
 from ..utils import (
+    ExtractorError,
     clean_html,
     decode_packed_codes,
-    get_element_by_id,
     get_element_by_attribute,
-    ExtractorError,
+    get_element_by_id,
     ohdave_rsa_encrypt,
     remove_start,
 )

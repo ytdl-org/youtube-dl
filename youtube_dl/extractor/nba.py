@@ -11,9 +11,9 @@ from ..compat import (
     compat_urllib_parse_urlparse,
 )
 from ..utils import (
+    OnDemandPagedList,
     int_or_none,
     merge_dicts,
-    OnDemandPagedList,
     parse_duration,
     parse_iso8601,
     try_get,

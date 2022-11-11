@@ -4,15 +4,8 @@ from __future__ import unicode_literals
 import re
 
 from .common import InfoExtractor
-from ..compat import (
-    compat_parse_qs,
-    compat_urllib_parse_urlparse,
-)
-from ..utils import (
-    int_or_none,
-    month_by_abbreviation,
-    parse_filesize,
-)
+from ..compat import compat_parse_qs, compat_urllib_parse_urlparse
+from ..utils import int_or_none, month_by_abbreviation, parse_filesize
 
 
 class XboxClipsIE(InfoExtractor):

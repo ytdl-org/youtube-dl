@@ -2,12 +2,7 @@
 from __future__ import unicode_literals
 
 from .common import InfoExtractor
-from ..utils import (
-    ExtractorError,
-    int_or_none,
-    try_get,
-    unified_timestamp,
-)
+from ..utils import ExtractorError, int_or_none, try_get, unified_timestamp
 
 
 class VootIE(InfoExtractor):

@@ -4,8 +4,8 @@ from __future__ import unicode_literals
 import re
 
 from .common import InfoExtractor
-from ..utils import ExtractorError
 from ..compat import compat_urlparse
+from ..utils import ExtractorError
 
 
 class TuneInBaseIE(InfoExtractor):

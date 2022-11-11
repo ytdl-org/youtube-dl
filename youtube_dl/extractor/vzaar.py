@@ -5,12 +5,7 @@ import re
 
 from .common import InfoExtractor
 from ..compat import compat_str
-from ..utils import (
-    int_or_none,
-    float_or_none,
-    unified_timestamp,
-    url_or_none,
-)
+from ..utils import float_or_none, int_or_none, unified_timestamp, url_or_none
 
 
 class VzaarIE(InfoExtractor):

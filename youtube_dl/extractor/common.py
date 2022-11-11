@@ -5,6 +5,7 @@ import base64
 import datetime
 import hashlib
 import json
+import math
 import netrc
 import os
 import random
@@ -13,7 +14,6 @@ import socket
 import ssl
 import sys
 import time
-import math
 
 from ..compat import (
     compat_cookiejar_Cookie,
@@ -21,8 +21,8 @@ from ..compat import (
     compat_etree_Element,
     compat_etree_fromstring,
     compat_getpass,
-    compat_integer_types,
     compat_http_client,
+    compat_integer_types,
     compat_os_name,
     compat_str,
     compat_urllib_error,
@@ -32,12 +32,14 @@ from ..compat import (
     compat_urlparse,
     compat_xml_parse_error,
 )
-from ..downloader.f4m import (
-    get_base_url,
-    remove_encrypted_media,
-)
+from ..downloader.f4m import get_base_url, remove_encrypted_media
 from ..utils import (
+    JSON_LD_RE,
     NO_DEFAULT,
+    ExtractorError,
+    GeoRestrictedError,
+    GeoUtils,
+    RegexNotFoundError,
     age_restricted,
     base_url,
     bug_reports_message,
@@ -47,15 +49,11 @@ from ..utils import (
     determine_protocol,
     dict_get,
     error_to_compat_str,
-    ExtractorError,
     extract_attributes,
     fix_xml_ampersands,
     float_or_none,
-    GeoRestrictedError,
-    GeoUtils,
     int_or_none,
     js_to_json,
-    JSON_LD_RE,
     mimetype2ext,
     orderedSet,
     parse_bitrate,
@@ -64,9 +62,8 @@ from ..utils import (
     parse_iso8601,
     parse_m3u8_attributes,
     parse_resolution,
-    RegexNotFoundError,
-    sanitized_Request,
     sanitize_filename,
+    sanitized_Request,
     str_or_none,
     str_to_int,
     strip_or_none,
@@ -75,9 +72,9 @@ from ..utils import (
     unified_timestamp,
     update_Request,
     update_url_query,
-    urljoin,
     url_basename,
     url_or_none,
+    urljoin,
     xpath_element,
     xpath_text,
     xpath_with_ns,

@@ -7,10 +7,7 @@ from ..compat import (
     compat_urllib_parse_unquote,
     compat_urllib_parse_unquote_plus,
 )
-from ..utils import (
-    clean_html,
-    ExtractorError,
-)
+from ..utils import ExtractorError, clean_html
 
 
 class PlayvidIE(InfoExtractor):

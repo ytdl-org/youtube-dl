@@ -1,11 +1,10 @@
 from __future__ import unicode_literals
 
-import os.path
 import optparse
+import os.path
 import re
 import sys
 
-from .downloader.external import list_external_downloaders
 from .compat import (
     compat_expanduser,
     compat_get_terminal_size,
@@ -13,10 +12,8 @@ from .compat import (
     compat_kwargs,
     compat_shlex_split,
 )
-from .utils import (
-    preferredencoding,
-    write_string,
-)
+from .downloader.external import list_external_downloaders
+from .utils import preferredencoding, write_string
 from .version import __version__
 
 

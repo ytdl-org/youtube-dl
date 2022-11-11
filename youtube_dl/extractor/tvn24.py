@@ -2,11 +2,7 @@
 from __future__ import unicode_literals
 
 from .common import InfoExtractor
-from ..utils import (
-    int_or_none,
-    NO_DEFAULT,
-    unescapeHTML,
-)
+from ..utils import NO_DEFAULT, int_or_none, unescapeHTML
 
 
 class TVN24IE(InfoExtractor):

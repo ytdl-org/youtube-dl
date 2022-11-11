@@ -6,12 +6,7 @@ import re
 
 from .common import InfoExtractor
 from ..compat import compat_HTTPError
-from ..utils import (
-    clean_html,
-    ExtractorError,
-    int_or_none,
-    PUTRequest,
-)
+from ..utils import ExtractorError, PUTRequest, clean_html, int_or_none
 
 
 class PlayPlusTVIE(InfoExtractor):

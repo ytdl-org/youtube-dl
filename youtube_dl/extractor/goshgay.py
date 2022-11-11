@@ -2,12 +2,8 @@
 from __future__ import unicode_literals
 
 from .common import InfoExtractor
-from ..compat import (
-    compat_parse_qs,
-)
-from ..utils import (
-    parse_duration,
-)
+from ..compat import compat_parse_qs
+from ..utils import parse_duration
 
 
 class GoshgayIE(InfoExtractor):

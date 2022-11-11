@@ -4,10 +4,7 @@ from __future__ import unicode_literals
 import re
 
 from .common import InfoExtractor
-from ..compat import (
-    compat_urllib_parse_urlparse,
-    compat_urlparse,
-)
+from ..compat import compat_urllib_parse_urlparse, compat_urlparse
 from ..utils import (
     determine_ext,
     extract_attributes,

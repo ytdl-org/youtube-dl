@@ -15,9 +15,9 @@ from ..compat import (
     compat_urllib_parse_unquote_plus,
 )
 from ..utils import (
+    ExtractorError,
     clean_html,
     error_to_compat_str,
-    ExtractorError,
     float_or_none,
     get_element_by_id,
     int_or_none,

@@ -4,9 +4,9 @@ import base64
 import json
 import re
 
+from .adobepass import AdobePassIE
 from .common import InfoExtractor
 from .theplatform import ThePlatformIE
-from .adobepass import AdobePassIE
 from ..compat import compat_urllib_parse_unquote
 from ..utils import (
     int_or_none,

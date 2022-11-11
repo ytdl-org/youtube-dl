@@ -1,14 +1,14 @@
 from __future__ import division, unicode_literals
 
+import json
 import os
 import time
-import json
 
 from .common import FileDownloader
 from .http import HttpFD
 from ..utils import (
-    error_to_compat_str,
     encodeFilename,
+    error_to_compat_str,
     sanitize_open,
     sanitized_Request,
 )

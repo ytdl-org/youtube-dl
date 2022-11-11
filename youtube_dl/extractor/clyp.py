@@ -1,14 +1,8 @@
 from __future__ import unicode_literals
 
 from .common import InfoExtractor
-from ..compat import (
-    compat_parse_qs,
-    compat_urllib_parse_urlparse,
-)
-from ..utils import (
-    float_or_none,
-    unified_timestamp,
-)
+from ..compat import compat_parse_qs, compat_urllib_parse_urlparse
+from ..utils import float_or_none, unified_timestamp
 
 
 class ClypIE(InfoExtractor):

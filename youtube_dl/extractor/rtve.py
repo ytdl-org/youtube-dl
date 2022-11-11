@@ -7,13 +7,10 @@ import re
 import sys
 
 from .common import InfoExtractor
-from ..compat import (
-    compat_b64decode,
-    compat_struct_unpack,
-)
+from ..compat import compat_b64decode, compat_struct_unpack
 from ..utils import (
-    determine_ext,
     ExtractorError,
+    determine_ext,
     float_or_none,
     qualities,
     remove_end,

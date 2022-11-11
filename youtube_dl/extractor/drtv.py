@@ -5,16 +5,15 @@ import binascii
 import hashlib
 import re
 
-
 from .common import InfoExtractor
 from ..aes import aes_cbc_decrypt
 from ..compat import compat_urllib_parse_unquote
 from ..utils import (
-    bytes_to_intlist,
     ExtractorError,
+    bytes_to_intlist,
+    float_or_none,
     int_or_none,
     intlist_to_bytes,
-    float_or_none,
     mimetype2ext,
     str_or_none,
     try_get,

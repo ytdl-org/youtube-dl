@@ -6,15 +6,15 @@ from __future__ import unicode_literals
 import os
 import sys
 import unittest
+
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 import io
 import re
 import string
 
-from youtube_dl.compat import compat_str, compat_urlretrieve
-
 from test.helper import FakeYDL
+from youtube_dl.compat import compat_str, compat_urlretrieve
 from youtube_dl.extractor import YoutubeIE
 from youtube_dl.jsinterp import JSInterpreter
 

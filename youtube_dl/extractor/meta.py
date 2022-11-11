@@ -3,11 +3,7 @@ from __future__ import unicode_literals
 
 from .common import InfoExtractor
 from .pladform import PladformIE
-from ..utils import (
-    unescapeHTML,
-    int_or_none,
-    ExtractorError,
-)
+from ..utils import ExtractorError, int_or_none, unescapeHTML
 
 
 class METAIE(InfoExtractor):

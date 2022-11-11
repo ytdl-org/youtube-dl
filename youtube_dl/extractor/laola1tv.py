@@ -7,12 +7,12 @@ import re
 from .common import InfoExtractor
 from ..utils import (
     ExtractorError,
+    js_to_json,
     unified_strdate,
+    update_url_query,
     urlencode_postdata,
     xpath_element,
     xpath_text,
-    update_url_query,
-    js_to_json,
 )
 
 

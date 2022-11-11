@@ -4,10 +4,7 @@ from __future__ import unicode_literals
 import re
 
 from .common import InfoExtractor
-from ..utils import (
-    float_or_none,
-    ExtractorError,
-)
+from ..utils import ExtractorError, float_or_none
 
 
 class UplynkIE(InfoExtractor):

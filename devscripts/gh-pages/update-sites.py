@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 from __future__ import unicode_literals
 
-import sys
 import os
+import sys
 import textwrap
 
 # We must be able to import youtube_dl

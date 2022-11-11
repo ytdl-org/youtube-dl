@@ -2,11 +2,7 @@
 from __future__ import unicode_literals
 
 from .common import InfoExtractor
-from ..utils import (
-    parse_duration,
-    int_or_none,
-    ExtractorError,
-)
+from ..utils import ExtractorError, int_or_none, parse_duration
 
 
 class Porn91IE(InfoExtractor):

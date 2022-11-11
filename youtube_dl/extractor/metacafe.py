@@ -10,10 +10,10 @@ from ..compat import (
     compat_urllib_parse_unquote,
 )
 from ..utils import (
-    determine_ext,
     ExtractorError,
-    int_or_none,
+    determine_ext,
     get_element_by_attribute,
+    int_or_none,
     mimetype2ext,
 )
 

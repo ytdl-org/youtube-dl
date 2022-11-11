@@ -6,9 +6,9 @@ import re
 from .common import InfoExtractor
 from ..compat import compat_chr
 from ..utils import (
+    ExtractorError,
     decode_packed_codes,
     determine_ext,
-    ExtractorError,
     int_or_none,
     js_to_json,
     urlencode_postdata,

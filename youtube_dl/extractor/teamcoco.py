@@ -5,8 +5,8 @@ import json
 
 from .turner import TurnerBaseIE
 from ..utils import (
-    determine_ext,
     ExtractorError,
+    determine_ext,
     int_or_none,
     mimetype2ext,
     parse_duration,

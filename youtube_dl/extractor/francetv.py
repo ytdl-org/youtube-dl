@@ -5,21 +5,18 @@ from __future__ import unicode_literals
 import re
 
 from .common import InfoExtractor
-from ..compat import (
-    compat_str,
-    compat_urlparse,
-)
+from .dailymotion import DailymotionIE
+from ..compat import compat_str, compat_urlparse
 from ..utils import (
+    ExtractorError,
     clean_html,
     determine_ext,
-    ExtractorError,
     int_or_none,
     parse_duration,
     try_get,
     url_or_none,
     urljoin,
 )
-from .dailymotion import DailymotionIE
 
 
 class FranceTVBaseInfoExtractor(InfoExtractor):

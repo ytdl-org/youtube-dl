@@ -4,8 +4,8 @@ import re
 
 from .common import InfoExtractor
 from ..utils import (
-    determine_ext,
     ExtractorError,
+    determine_ext,
     int_or_none,
     js_to_json,
     merge_dicts,

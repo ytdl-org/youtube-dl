@@ -2,11 +2,7 @@
 from __future__ import unicode_literals
 
 from .common import InfoExtractor
-from ..utils import (
-    parse_duration,
-    int_or_none,
-    determine_protocol,
-)
+from ..utils import determine_protocol, int_or_none, parse_duration
 
 
 class SWRMediathekIE(InfoExtractor):

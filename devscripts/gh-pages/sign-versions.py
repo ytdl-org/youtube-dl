@@ -1,9 +1,10 @@
 #!/usr/bin/env python3
 from __future__ import unicode_literals, with_statement
 
-import rsa
 import json
 from binascii import hexlify
+
+import rsa
 
 try:
     input = raw_input

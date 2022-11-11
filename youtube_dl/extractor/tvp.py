@@ -6,9 +6,9 @@ import re
 
 from .common import InfoExtractor
 from ..utils import (
+    ExtractorError,
     clean_html,
     determine_ext,
-    ExtractorError,
     get_element_by_attribute,
     orderedSet,
 )

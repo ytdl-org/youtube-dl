@@ -5,14 +5,11 @@ import hashlib
 import re
 
 from .common import InfoExtractor
-from ..compat import (
-    compat_parse_qs,
-    compat_urlparse,
-)
+from ..compat import compat_parse_qs, compat_urlparse
 from ..utils import (
     ExtractorError,
-    int_or_none,
     float_or_none,
+    int_or_none,
     parse_iso8601,
     smuggle_url,
     str_or_none,

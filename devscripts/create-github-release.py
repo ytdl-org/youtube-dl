@@ -18,10 +18,7 @@ from youtube_dl.compat import (
     compat_print,
     compat_urllib_request,
 )
-from youtube_dl.utils import (
-    make_HTTPS_handler,
-    sanitized_Request,
-)
+from youtube_dl.utils import make_HTTPS_handler, sanitized_Request
 
 
 class GitHubReleaser(object):

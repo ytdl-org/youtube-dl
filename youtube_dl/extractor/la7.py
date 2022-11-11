@@ -2,10 +2,7 @@
 from __future__ import unicode_literals
 
 from .common import InfoExtractor
-from ..utils import (
-    js_to_json,
-    smuggle_url,
-)
+from ..utils import js_to_json, smuggle_url
 
 
 class LA7IE(InfoExtractor):

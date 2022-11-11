@@ -7,8 +7,8 @@ import re
 from .common import InfoExtractor
 from ..compat import compat_urllib_parse_unquote_plus
 from ..utils import (
-    int_or_none,
     float_or_none,
+    int_or_none,
     timeconvert,
     update_url_query,
     xpath_text,

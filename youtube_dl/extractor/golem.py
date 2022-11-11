@@ -2,13 +2,8 @@
 from __future__ import unicode_literals
 
 from .common import InfoExtractor
-from ..compat import (
-    compat_str,
-    compat_urlparse,
-)
-from ..utils import (
-    determine_ext,
-)
+from ..compat import compat_str, compat_urlparse
+from ..utils import determine_ext
 
 
 class GolemIE(InfoExtractor):

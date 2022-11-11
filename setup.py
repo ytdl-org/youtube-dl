@@ -4,14 +4,14 @@
 from __future__ import print_function
 
 import os.path
-import warnings
 import sys
+import warnings
 
 try:
-    from setuptools import setup, Command
+    from setuptools import Command, setup
     setuptools_available = True
 except ImportError:
-    from distutils.core import setup, Command
+    from distutils.core import Command, setup
     setuptools_available = False
 from distutils.spawn import spawn
 

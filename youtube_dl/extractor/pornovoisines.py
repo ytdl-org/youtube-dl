@@ -4,11 +4,7 @@ from __future__ import unicode_literals
 import re
 
 from .common import InfoExtractor
-from ..utils import (
-    int_or_none,
-    float_or_none,
-    unified_strdate,
-)
+from ..utils import float_or_none, int_or_none, unified_strdate
 
 
 class PornoVoisinesIE(InfoExtractor):

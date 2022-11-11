@@ -6,8 +6,8 @@ import re
 from .common import InfoExtractor
 from ..compat import compat_HTTPError
 from ..utils import (
-    dict_get,
     ExtractorError,
+    dict_get,
     int_or_none,
     js_to_json,
     parse_iso8601,

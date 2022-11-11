@@ -1,10 +1,7 @@
 # coding: utf-8
 from __future__ import unicode_literals
 
-from .compat import (
-    compat_str,
-    compat_chr,
-)
+from .compat import compat_chr, compat_str
 
 # Below is included the text of icu/CaseFolding.txt retrieved from
 # https://github.com/unicode-org/icu/blob/main/icu4c/source/data/unidata/CaseFolding.txt

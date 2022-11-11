@@ -6,14 +6,11 @@ import os
 import subprocess
 import tempfile
 
-from ..compat import (
-    compat_urlparse,
-    compat_kwargs,
-)
+from ..compat import compat_kwargs, compat_urlparse
 from ..utils import (
+    ExtractorError,
     check_executable,
     encodeArgument,
-    ExtractorError,
     get_exe_version,
     is_outdated_version,
     process_communicate_or_kill,

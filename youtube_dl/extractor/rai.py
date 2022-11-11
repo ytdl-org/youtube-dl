@@ -4,17 +4,14 @@ from __future__ import unicode_literals
 import re
 
 from .common import InfoExtractor
-from ..compat import (
-    compat_str,
-    compat_urlparse,
-)
+from ..compat import compat_str, compat_urlparse
 from ..utils import (
-    determine_ext,
     ExtractorError,
-    find_xpath_attr,
-    fix_xml_ampersands,
     GeoRestrictedError,
     HEADRequest,
+    determine_ext,
+    find_xpath_attr,
+    fix_xml_ampersands,
     int_or_none,
     parse_duration,
     remove_start,

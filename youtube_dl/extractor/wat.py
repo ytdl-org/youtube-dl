@@ -3,12 +3,7 @@ from __future__ import unicode_literals
 
 from .common import InfoExtractor
 from ..compat import compat_str
-from ..utils import (
-    ExtractorError,
-    int_or_none,
-    try_get,
-    unified_strdate,
-)
+from ..utils import ExtractorError, int_or_none, try_get, unified_strdate
 
 
 class WatIE(InfoExtractor):

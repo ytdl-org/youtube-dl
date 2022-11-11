@@ -2,11 +2,7 @@
 from __future__ import unicode_literals
 
 from .common import InfoExtractor
-from ..utils import (
-    determine_ext,
-    int_or_none,
-    unescapeHTML,
-)
+from ..utils import determine_ext, int_or_none, unescapeHTML
 
 
 class ATVAtIE(InfoExtractor):

@@ -4,10 +4,7 @@ import subprocess
 
 from .common import PostProcessor
 from ..compat import compat_shlex_quote
-from ..utils import (
-    encodeArgument,
-    PostProcessingError,
-)
+from ..utils import PostProcessingError, encodeArgument
 
 
 class ExecAfterDownloadPP(PostProcessor):

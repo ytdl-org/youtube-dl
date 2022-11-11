@@ -3,10 +3,10 @@ from __future__ import unicode_literals
 
 from .common import InfoExtractor
 from ..utils import (
+    KNOWN_EXTENSIONS,
     clean_html,
     determine_ext,
     int_or_none,
-    KNOWN_EXTENSIONS,
     mimetype2ext,
     parse_iso8601,
     str_or_none,

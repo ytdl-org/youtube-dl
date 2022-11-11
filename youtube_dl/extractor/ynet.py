@@ -1,8 +1,8 @@
 # coding: utf-8
 from __future__ import unicode_literals
 
-import re
 import json
+import re
 
 from .common import InfoExtractor
 from ..compat import compat_urllib_parse_unquote_plus

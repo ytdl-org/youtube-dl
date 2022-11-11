@@ -4,12 +4,7 @@ from __future__ import unicode_literals
 from .common import InfoExtractor
 from .once import OnceIE
 from ..compat import compat_urllib_parse_unquote
-from ..utils import (
-    ExtractorError,
-    int_or_none,
-    try_get,
-    unified_timestamp,
-)
+from ..utils import ExtractorError, int_or_none, try_get, unified_timestamp
 
 
 class VoxMediaVolumeIE(OnceIE):

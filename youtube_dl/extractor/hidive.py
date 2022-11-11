@@ -5,12 +5,7 @@ import re
 
 from .common import InfoExtractor
 from ..compat import compat_str
-from ..utils import (
-    ExtractorError,
-    int_or_none,
-    url_or_none,
-    urlencode_postdata,
-)
+from ..utils import ExtractorError, int_or_none, url_or_none, urlencode_postdata
 
 
 class HiDiveIE(InfoExtractor):

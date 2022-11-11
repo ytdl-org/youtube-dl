@@ -1,17 +1,12 @@
 # coding: utf-8
 from __future__ import unicode_literals
 
-import time
 import hashlib
 import re
+import time
 
 from .common import InfoExtractor
-from ..utils import (
-    ExtractorError,
-    unescapeHTML,
-    unified_strdate,
-    urljoin,
-)
+from ..utils import ExtractorError, unescapeHTML, unified_strdate, urljoin
 
 
 class DouyuTVIE(InfoExtractor):

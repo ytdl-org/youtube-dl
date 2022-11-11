@@ -5,11 +5,7 @@ import json
 
 from .radiocanada import RadioCanadaIE
 from ..compat import compat_HTTPError
-from ..utils import (
-    ExtractorError,
-    int_or_none,
-    merge_dicts,
-)
+from ..utils import ExtractorError, int_or_none, merge_dicts
 
 
 class TouTvIE(RadioCanadaIE):

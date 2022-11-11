@@ -3,11 +3,7 @@ from __future__ import unicode_literals
 import re
 
 from .common import InfoExtractor
-from ..utils import (
-    determine_ext,
-    parse_duration,
-    unified_strdate,
-)
+from ..utils import determine_ext, parse_duration, unified_strdate
 
 
 class HuffPostIE(InfoExtractor):

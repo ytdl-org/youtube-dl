@@ -3,11 +3,11 @@ from __future__ import unicode_literals
 from .theplatform import ThePlatformFeedIE
 from ..utils import (
     ExtractorError,
-    int_or_none,
     find_xpath_attr,
+    int_or_none,
+    update_url_query,
     xpath_element,
     xpath_text,
-    update_url_query,
 )
 
 

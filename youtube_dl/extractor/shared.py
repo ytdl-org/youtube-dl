@@ -1,16 +1,13 @@
 from __future__ import unicode_literals
 
 from .common import InfoExtractor
-from ..compat import (
-    compat_b64decode,
-    compat_urllib_parse_unquote_plus,
-)
+from ..compat import compat_b64decode, compat_urllib_parse_unquote_plus
 from ..utils import (
-    determine_ext,
+    KNOWN_EXTENSIONS,
     ExtractorError,
+    determine_ext,
     int_or_none,
     js_to_json,
-    KNOWN_EXTENSIONS,
     parse_filesize,
     rot47,
     url_or_none,

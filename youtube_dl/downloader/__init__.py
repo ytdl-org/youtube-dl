@@ -1,8 +1,6 @@
 from __future__ import unicode_literals
 
-from ..utils import (
-    determine_protocol,
-)
+from ..utils import determine_protocol
 
 
 def get_suitable_downloader(info_dict, params={}):
@@ -14,17 +12,14 @@ def get_suitable_downloader(info_dict, params={}):
 # Some of these require get_suitable_downloader
 from .common import FileDownloader
 from .dash import DashSegmentsFD
+from .external import FFmpegFD, get_external_downloader
 from .f4m import F4mFD
 from .hls import HlsFD
 from .http import HttpFD
-from .rtmp import RtmpFD
-from .rtsp import RtspFD
 from .ism import IsmFD
 from .niconico import NiconicoDmcFD
-from .external import (
-    get_external_downloader,
-    FFmpegFD,
-)
+from .rtmp import RtmpFD
+from .rtsp import RtspFD
 
 PROTOCOL_MAP = {
     'rtmp': RtmpFD,

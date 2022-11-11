@@ -3,9 +3,7 @@ from __future__ import unicode_literals
 import re
 
 from .common import InfoExtractor
-from ..utils import (
-    fix_xml_ampersands,
-)
+from ..utils import fix_xml_ampersands
 
 
 class MetacriticIE(InfoExtractor):

@@ -2387,9 +2387,10 @@ except ImportError:
     import BaseHTTPServer as compat_http_server
 
 try:
-    from urllib.parse import unquote_to_bytes as compat_urllib_parse_unquote_to_bytes
     from urllib.parse import unquote as compat_urllib_parse_unquote
     from urllib.parse import unquote_plus as compat_urllib_parse_unquote_plus
+    from urllib.parse import \
+        unquote_to_bytes as compat_urllib_parse_unquote_to_bytes
 except ImportError:  # Python 2
     _asciire = (compat_urllib_parse._asciire if hasattr(compat_urllib_parse, '_asciire')
                 else re.compile(r'([\x00-\x7f]+)'))
@@ -3001,6 +3002,7 @@ except ImportError:
 # new class in collections
 try:
     from collections import ChainMap as compat_collections_chain_map
+
     # Py3.3's ChainMap is deficient
     if sys.version_info < (3, 4):
         raise ImportError

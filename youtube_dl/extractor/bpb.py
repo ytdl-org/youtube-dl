@@ -4,10 +4,7 @@ from __future__ import unicode_literals
 import re
 
 from .common import InfoExtractor
-from ..utils import (
-    js_to_json,
-    determine_ext,
-)
+from ..utils import determine_ext, js_to_json
 
 
 class BpbIE(InfoExtractor):

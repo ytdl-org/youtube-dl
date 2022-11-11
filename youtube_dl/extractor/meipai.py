@@ -2,11 +2,7 @@
 from __future__ import unicode_literals
 
 from .common import InfoExtractor
-from ..utils import (
-    int_or_none,
-    parse_duration,
-    unified_timestamp,
-)
+from ..utils import int_or_none, parse_duration, unified_timestamp
 
 
 class MeipaiIE(InfoExtractor):

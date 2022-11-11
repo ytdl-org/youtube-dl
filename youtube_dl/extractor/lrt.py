@@ -4,10 +4,7 @@ from __future__ import unicode_literals
 import re
 
 from .common import InfoExtractor
-from ..utils import (
-    clean_html,
-    merge_dicts,
-)
+from ..utils import clean_html, merge_dicts
 
 
 class LRTIE(InfoExtractor):

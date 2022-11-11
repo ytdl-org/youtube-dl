@@ -6,8 +6,8 @@ import re
 from .common import InfoExtractor
 from ..compat import compat_urlparse
 from ..utils import (
-    HEADRequest,
     KNOWN_EXTENSIONS,
+    HEADRequest,
     sanitized_Request,
     str_to_int,
     urlencode_postdata,

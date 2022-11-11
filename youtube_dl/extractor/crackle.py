@@ -1,5 +1,5 @@
 # coding: utf-8
-from __future__ import unicode_literals, division
+from __future__ import division, unicode_literals
 
 import hashlib
 import hmac
@@ -9,13 +9,13 @@ import time
 from .common import InfoExtractor
 from ..compat import compat_HTTPError
 from ..utils import (
+    ExtractorError,
     determine_ext,
     float_or_none,
     int_or_none,
     parse_age_limit,
     parse_duration,
     url_or_none,
-    ExtractorError
 )
 
 

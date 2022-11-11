@@ -6,10 +6,10 @@ import re
 from .common import InfoExtractor
 from ..compat import compat_str
 from ..utils import (
-    float_or_none,
-    int_or_none,
     ISO639Utils,
     OnDemandPagedList,
+    float_or_none,
+    int_or_none,
     parse_duration,
     str_or_none,
     str_to_int,

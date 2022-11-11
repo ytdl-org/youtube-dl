@@ -2,16 +2,8 @@
 from __future__ import unicode_literals
 
 from .common import InfoExtractor
-from ..compat import (
-    compat_HTTPError,
-    compat_str,
-)
-from ..utils import (
-    ExtractorError,
-    int_or_none,
-    str_or_none,
-    urlencode_postdata,
-)
+from ..compat import compat_HTTPError, compat_str
+from ..utils import ExtractorError, int_or_none, str_or_none, urlencode_postdata
 
 
 class RoosterTeethIE(InfoExtractor):

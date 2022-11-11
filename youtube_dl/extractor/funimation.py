@@ -7,11 +7,11 @@ import string
 from .common import InfoExtractor
 from ..compat import compat_HTTPError
 from ..utils import (
+    ExtractorError,
     determine_ext,
     int_or_none,
     js_to_json,
-    ExtractorError,
-    urlencode_postdata
+    urlencode_postdata,
 )
 
 

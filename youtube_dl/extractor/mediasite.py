@@ -1,14 +1,11 @@
 # coding: utf-8
 from __future__ import unicode_literals
 
-import re
 import json
+import re
 
 from .common import InfoExtractor
-from ..compat import (
-    compat_str,
-    compat_urlparse,
-)
+from ..compat import compat_str, compat_urlparse
 from ..utils import (
     ExtractorError,
     float_or_none,
@@ -20,7 +17,6 @@ from ..utils import (
     url_or_none,
     urljoin,
 )
-
 
 _ID_RE = r'(?:[0-9a-f]{32,34}|[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12,14})'
 

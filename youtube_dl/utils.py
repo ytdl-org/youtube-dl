@@ -11,8 +11,8 @@ import collections
 import contextlib
 import ctypes
 import datetime
-import email.utils
 import email.header
+import email.utils
 import errno
 import functools
 import gzip
@@ -38,9 +38,6 @@ import xml.etree.ElementTree
 import zlib
 
 from .compat import (
-    compat_HTMLParseError,
-    compat_HTMLParser,
-    compat_HTTPError,
     compat_basestring,
     compat_chr,
     compat_collections_abc,
@@ -50,7 +47,10 @@ from .compat import (
     compat_expanduser,
     compat_html_entities,
     compat_html_entities_html5,
+    compat_HTMLParseError,
+    compat_HTMLParser,
     compat_http_client,
+    compat_HTTPError,
     compat_integer_types,
     compat_kwargs,
     compat_os_name,
@@ -61,18 +61,14 @@ from .compat import (
     compat_struct_unpack,
     compat_urllib_error,
     compat_urllib_parse,
+    compat_urllib_parse_unquote_plus,
     compat_urllib_parse_urlencode,
     compat_urllib_parse_urlparse,
-    compat_urllib_parse_unquote_plus,
     compat_urllib_request,
     compat_urlparse,
     compat_xpath,
 )
-
-from .socks import (
-    ProxyType,
-    sockssocket,
-)
+from .socks import ProxyType, sockssocket
 
 
 def register_socks_protocols():

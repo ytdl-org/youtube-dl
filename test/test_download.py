@@ -6,18 +6,8 @@ from __future__ import unicode_literals
 import os
 import sys
 import unittest
+
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-
-from test.helper import (
-    assertGreaterEqual,
-    expect_warnings,
-    get_params,
-    gettestcases,
-    expect_info_dict,
-    try_rm,
-    report_warning,
-)
-
 
 import hashlib
 import io
@@ -25,19 +15,28 @@ import json
 import socket
 
 import youtube_dl.YoutubeDL
+from test.helper import (
+    assertGreaterEqual,
+    expect_info_dict,
+    expect_warnings,
+    get_params,
+    gettestcases,
+    report_warning,
+    try_rm,
+)
 from youtube_dl.compat import (
     compat_http_client,
-    compat_urllib_error,
     compat_HTTPError,
+    compat_urllib_error,
 )
+from youtube_dl.extractor import get_info_extractor
 from youtube_dl.utils import (
     DownloadError,
     ExtractorError,
+    UnavailableVideoError,
     error_to_compat_str,
     format_bytes,
-    UnavailableVideoError,
 )
-from youtube_dl.extractor import get_info_extractor
 
 RETRIES = 3
 

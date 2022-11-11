@@ -4,8 +4,8 @@ from __future__ import unicode_literals
 from .common import InfoExtractor
 from ..compat import compat_urllib_parse_urlparse
 from ..utils import (
-    determine_ext,
     ExtractorError,
+    determine_ext,
     find_xpath_attr,
     int_or_none,
     unified_strdate,

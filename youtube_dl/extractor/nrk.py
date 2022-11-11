@@ -8,14 +8,14 @@ import re
 from .common import InfoExtractor
 from ..compat import compat_str
 from ..utils import (
-    determine_ext,
     ExtractorError,
+    determine_ext,
     int_or_none,
     parse_duration,
     str_or_none,
     try_get,
-    urljoin,
     url_or_none,
+    urljoin,
 )
 
 

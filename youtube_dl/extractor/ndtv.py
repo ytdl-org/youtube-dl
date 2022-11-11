@@ -2,15 +2,8 @@
 from __future__ import unicode_literals
 
 from .common import InfoExtractor
-from ..compat import (
-    compat_urllib_parse_unquote_plus
-)
-from ..utils import (
-    parse_duration,
-    remove_end,
-    unified_strdate,
-    urljoin
-)
+from ..compat import compat_urllib_parse_unquote_plus
+from ..utils import parse_duration, remove_end, unified_strdate, urljoin
 
 
 class NDTVIE(InfoExtractor):

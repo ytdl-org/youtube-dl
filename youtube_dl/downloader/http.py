@@ -2,25 +2,22 @@ from __future__ import unicode_literals
 
 import errno
 import os
-import socket
-import time
 import random
 import re
+import socket
+import time
 
 from .common import FileDownloader
-from ..compat import (
-    compat_str,
-    compat_urllib_error,
-)
+from ..compat import compat_str, compat_urllib_error
 from ..utils import (
     ContentTooShortError,
+    XAttrMetadataError,
+    XAttrUnavailableError,
     encodeFilename,
     int_or_none,
     sanitize_open,
     sanitized_Request,
     write_xattr,
-    XAttrMetadataError,
-    XAttrUnavailableError,
 )
 
 

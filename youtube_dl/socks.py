@@ -3,20 +3,17 @@
 
 from __future__ import unicode_literals
 
+import collections
+import socket
+
+from .compat import compat_ord, compat_struct_pack, compat_struct_unpack
+
 # References:
 # SOCKS4 protocol http://www.openssh.com/txt/socks4.protocol
 # SOCKS4A protocol http://www.openssh.com/txt/socks4a.protocol
 # SOCKS5 protocol https://tools.ietf.org/html/rfc1928
 # SOCKS5 username/password authentication https://tools.ietf.org/html/rfc1929
 
-import collections
-import socket
-
-from .compat import (
-    compat_ord,
-    compat_struct_pack,
-    compat_struct_unpack,
-)
 
 __author__ = 'Timo Schmid <coding@timoschmid.de>'
 

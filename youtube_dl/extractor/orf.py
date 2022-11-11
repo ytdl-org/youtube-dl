@@ -6,10 +6,10 @@ import re
 from .common import InfoExtractor
 from ..compat import compat_str
 from ..utils import (
+    HEADRequest,
     clean_html,
     determine_ext,
     float_or_none,
-    HEADRequest,
     int_or_none,
     orderedSet,
     remove_end,

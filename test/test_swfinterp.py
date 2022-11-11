@@ -5,6 +5,7 @@ from __future__ import unicode_literals
 import os
 import sys
 import unittest
+
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 
@@ -15,7 +16,6 @@ import re
 import subprocess
 
 from youtube_dl.swfinterp import SWFInterpreter
-
 
 TEST_DIR = os.path.join(
     os.path.dirname(os.path.abspath(__file__)), 'swftests')

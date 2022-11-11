@@ -4,12 +4,7 @@ from __future__ import unicode_literals
 import re
 
 from .common import InfoExtractor
-from ..utils import (
-    determine_ext,
-    int_or_none,
-    NO_DEFAULT,
-    str_to_int,
-)
+from ..utils import NO_DEFAULT, determine_ext, int_or_none, str_to_int
 
 
 class XNXXIE(InfoExtractor):

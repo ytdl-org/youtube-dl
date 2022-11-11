@@ -6,18 +6,16 @@ import math
 import operator
 import re
 
+from .compat import compat_basestring
+from .compat import compat_collections_chain_map as ChainMap
+from .compat import compat_itertools_zip_longest as zip_longest
+from .compat import compat_str
 from .utils import (
-    error_to_compat_str,
     ExtractorError,
+    error_to_compat_str,
     js_to_json,
     remove_quotes,
     unified_timestamp,
-)
-from .compat import (
-    compat_basestring,
-    compat_collections_chain_map as ChainMap,
-    compat_itertools_zip_longest as zip_longest,
-    compat_str,
 )
 
 

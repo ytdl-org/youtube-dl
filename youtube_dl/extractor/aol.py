@@ -4,15 +4,8 @@ from __future__ import unicode_literals
 import re
 
 from .yahoo import YahooIE
-from ..compat import (
-    compat_parse_qs,
-    compat_urllib_parse_urlparse,
-)
-from ..utils import (
-    ExtractorError,
-    int_or_none,
-    url_or_none,
-)
+from ..compat import compat_parse_qs, compat_urllib_parse_urlparse
+from ..utils import ExtractorError, int_or_none, url_or_none
 
 
 class AolIE(YahooIE):

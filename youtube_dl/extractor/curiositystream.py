@@ -4,12 +4,7 @@ from __future__ import unicode_literals
 import re
 
 from .common import InfoExtractor
-from ..utils import (
-    int_or_none,
-    urlencode_postdata,
-    compat_str,
-    ExtractorError,
-)
+from ..utils import ExtractorError, compat_str, int_or_none, urlencode_postdata
 
 
 class CuriosityStreamBaseIE(InfoExtractor):

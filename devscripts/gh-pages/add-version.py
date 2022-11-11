@@ -1,11 +1,10 @@
 #!/usr/bin/env python3
 from __future__ import unicode_literals
 
-import json
-import sys
 import hashlib
+import json
 import os.path
-
+import sys
 
 if len(sys.argv) <= 1:
     print('Specify the version number as parameter')

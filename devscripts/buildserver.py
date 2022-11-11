@@ -3,18 +3,18 @@
 import argparse
 import ctypes
 import functools
+import os.path
 import shutil
 import subprocess
 import sys
 import tempfile
 import threading
 import traceback
-import os.path
 
 sys.path.insert(0, os.path.dirname(os.path.dirname((os.path.abspath(__file__)))))
 from youtube_dl.compat import (
-    compat_input,
     compat_http_server,
+    compat_input,
     compat_str,
     compat_urlparse,
 )

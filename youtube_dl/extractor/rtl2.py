@@ -5,16 +5,12 @@ import re
 
 from .common import InfoExtractor
 from ..aes import aes_cbc_decrypt
-from ..compat import (
-    compat_b64decode,
-    compat_ord,
-    compat_str,
-)
+from ..compat import compat_b64decode, compat_ord, compat_str
 from ..utils import (
-    bytes_to_intlist,
     ExtractorError,
-    intlist_to_bytes,
+    bytes_to_intlist,
     int_or_none,
+    intlist_to_bytes,
     strip_or_none,
 )
 

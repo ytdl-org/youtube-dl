@@ -4,15 +4,8 @@ from __future__ import unicode_literals
 import re
 
 from .theplatform import ThePlatformBaseIE
-from ..compat import (
-    compat_parse_qs,
-    compat_urllib_parse_urlparse,
-)
-from ..utils import (
-    ExtractorError,
-    int_or_none,
-    update_url_query,
-)
+from ..compat import compat_parse_qs, compat_urllib_parse_urlparse
+from ..utils import ExtractorError, int_or_none, update_url_query
 
 
 class MediasetIE(ThePlatformBaseIE):

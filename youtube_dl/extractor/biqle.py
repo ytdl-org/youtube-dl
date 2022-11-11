@@ -3,10 +3,7 @@ from __future__ import unicode_literals
 
 from .common import InfoExtractor
 from .vk import VKIE
-from ..compat import (
-    compat_b64decode,
-    compat_urllib_parse_unquote,
-)
+from ..compat import compat_b64decode, compat_urllib_parse_unquote
 from ..utils import int_or_none
 
 

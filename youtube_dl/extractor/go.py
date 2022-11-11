@@ -6,12 +6,12 @@ import re
 from .adobepass import AdobePassIE
 from ..compat import compat_str
 from ..utils import (
-    int_or_none,
+    ExtractorError,
     determine_ext,
+    int_or_none,
     parse_age_limit,
     try_get,
     urlencode_postdata,
-    ExtractorError,
 )
 
 

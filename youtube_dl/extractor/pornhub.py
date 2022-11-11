@@ -7,24 +7,20 @@ import operator
 import re
 
 from .common import InfoExtractor
-from ..compat import (
-    compat_HTTPError,
-    compat_str,
-    compat_urllib_request,
-)
 from .openload import PhantomJSwrapper
+from ..compat import compat_HTTPError, compat_str, compat_urllib_request
 from ..utils import (
-    determine_ext,
+    NO_DEFAULT,
     ExtractorError,
+    determine_ext,
     int_or_none,
     merge_dicts,
-    NO_DEFAULT,
     orderedSet,
     remove_quotes,
     str_to_int,
     update_url_query,
-    urlencode_postdata,
     url_or_none,
+    urlencode_postdata,
 )
 
 

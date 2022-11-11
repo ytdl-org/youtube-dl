@@ -4,6 +4,7 @@ from __future__ import unicode_literals
 import re
 
 from .common import InfoExtractor
+from .periscope import PeriscopeBaseIE, PeriscopeIE
 from ..compat import (
     compat_HTTPError,
     compat_parse_qs,
@@ -11,21 +12,16 @@ from ..compat import (
     compat_urllib_parse_urlparse,
 )
 from ..utils import (
-    dict_get,
     ExtractorError,
+    dict_get,
     float_or_none,
     int_or_none,
-    try_get,
     strip_or_none,
+    try_get,
     unified_timestamp,
     update_url_query,
     url_or_none,
     xpath_text,
-)
-
-from .periscope import (
-    PeriscopeBaseIE,
-    PeriscopeIE,
 )
 
 

@@ -11,37 +11,32 @@ import os
 import random
 import sys
 
-
-from .options import (
-    parseOpts,
-)
 from .compat import (
     compat_getpass,
     compat_shlex_split,
     workaround_optparse_bug9161,
 )
+from .downloader import FileDownloader
+from .extractor import gen_extractors, list_extractors
+from .extractor.adobepass import MSO_INFO
+from .options import parseOpts
+from .update import update_self
 from .utils import (
-    DateRange,
-    decodeOption,
     DEFAULT_OUTTMPL,
+    DateRange,
     DownloadError,
+    MaxDownloadsReached,
+    SameFileError,
+    decodeOption,
     expand_path,
     match_filter_func,
-    MaxDownloadsReached,
     preferredencoding,
     read_batch_urls,
-    SameFileError,
+    render_table,
     setproctitle,
     std_headers,
     write_string,
-    render_table,
 )
-from .update import update_self
-from .downloader import (
-    FileDownloader,
-)
-from .extractor import gen_extractors, list_extractors
-from .extractor.adobepass import MSO_INFO
 from .YoutubeDL import YoutubeDL
 
 

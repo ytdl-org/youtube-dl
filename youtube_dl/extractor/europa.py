@@ -9,7 +9,7 @@ from ..utils import (
     parse_duration,
     qualities,
     unified_strdate,
-    xpath_text
+    xpath_text,
 )
 
 

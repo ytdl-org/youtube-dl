@@ -6,17 +6,15 @@ from __future__ import unicode_literals
 import os
 import sys
 import unittest
+
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from test.helper import get_params, try_rm
-
-
 import io
-
 import xml.etree.ElementTree
 
-import youtube_dl.YoutubeDL
 import youtube_dl.extractor
+import youtube_dl.YoutubeDL
+from test.helper import get_params, try_rm
 
 
 class YoutubeDL(youtube_dl.YoutubeDL):
