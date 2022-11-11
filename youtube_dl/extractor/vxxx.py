@@ -159,6 +159,7 @@ class MrGayIE(VXXXIE):
 
     _BASE_URL = 'https://mrgay.com'
 
+
 # The following three extractors are for "friend" sites whose videos could be
 # extracted in the same way, but unsupported by youtube-dl due to missing proper
 # DMCA notices. Consider re-enable them if their DMCA pages become available.
