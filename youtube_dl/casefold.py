@@ -1,8 +1,20 @@
 # coding: utf-8
 from __future__ import unicode_literals
 
-from .compat import compat_str
+from .compat import (
+    compat_str,
+    compat_chr,
+)
 
+# Below is included the text of icu/CaseFolding.txt retrieved from
+# https://github.com/unicode-org/icu/blob/main/icu4c/source/data/unidata/CaseFolding.txt
+# In case newly foldable Unicode characters are defined, paste the new version
+# of the text inside the ''' marks.
+# The text is expected to have only blank lines andlines with 1st character #,
+# all ignored, and fold definitions like this:
+# `from_hex_code; space_separated_to_hex_code_list; comment`
+
+_map_str = '''
 # CaseFolding-15.0.0.txt
 # Date: 2022-02-02, 23:35:35 GMT
 # © 2022 Unicode®, Inc.
@@ -65,7 +77,6 @@ from .compat import compat_str
 #  have the value C for the status field, and the code point itself for the mapping field.
 
 # =================================================================
-_map_str = '''
 0041; C; 0061; # LATIN CAPITAL LETTER A
 0042; C; 0062; # LATIN CAPITAL LETTER B
 0043; C; 0063; # LATIN CAPITAL LETTER C
@@ -1627,16 +1638,29 @@ FF3A; C; FF5A; # FULLWIDTH LATIN CAPITAL LETTER Z
 1E920; C; 1E942; # ADLAM CAPITAL LETTER KPO
 1E921; C; 1E943; # ADLAM CAPITAL LETTER SHA
 '''
+
+
+def _parse_unichr(s):
+    s = int(s, 16)
+    try:
+        return compat_chr(s)
+    except ValueError:
+        # work around "unichr() arg not in range(0x10000) (narrow Python build)"
+        return ('\\U%08x' % s).decode('unicode-escape')
+
+
 _map = dict(
-    (unichr(int(from_, 16)), ''.join((unichr(int(v, 16)) for v in to_.split(' '))))
+    (_parse_unichr(from_), ''.join(map(_parse_unichr, to_.split(' '))))
     for from_, type_, to_, _ in (
-        l.split('; ', 3) for l in _map_str.splitlines() if l)
+        l.split('; ', 3) for l in _map_str.splitlines() if l and not l[0] == '#')
     if type_ in ('C', 'F'))
 del _map_str
+
 
 def casefold(s):
     assert isinstance(s, compat_str)
     return ''.join((_map.get(c, c) for c in s))
+
 
 __all__ = [
     casefold
