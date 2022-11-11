@@ -40,8 +40,7 @@ now_iso = now.isoformat() + 'Z'
 atom_template = atom_template.replace('@TIMESTAMP@', now_iso)
 
 versions_info = json.load(open('update/versions.json'))
-versions = list(versions_info['versions'].keys())
-versions.sort()
+versions = sorted(versions_info['versions'].keys())
 
 entries = []
 for v in versions:

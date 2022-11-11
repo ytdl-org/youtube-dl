@@ -83,6 +83,7 @@ else:
     else:
         params['scripts'] = ['bin/youtube-dl']
 
+
 class build_lazy_extractors(Command):
     description = 'Build the extractor lazy loading module'
     user_options = []
@@ -98,6 +99,7 @@ class build_lazy_extractors(Command):
             [sys.executable, 'devscripts/make_lazy_extractors.py', 'youtube_dl/extractor/lazy_extractors.py'],
             dry_run=self.dry_run,
         )
+
 
 setup(
     name='youtube_dl',
