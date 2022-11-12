@@ -13,8 +13,7 @@ from ..utils import (
     clean_html,
     get_element_by_class,
     int_or_none,
-    sanitize_url,
-    url_or_none,
+    merge_dicts,
     urljoin,
 )
 
@@ -41,8 +40,6 @@ class ThisVidIE(InfoExtractor):
             'ext': 'mp4',
             'title': 'Sitting on ball tight jeans',
             'thumbnail': r're:https?://\w+\.thisvid\.com/(?:[^/]+/)+3533241/preview\.jpg',
-            'uploader_id': '150629',
-            'uploader': 'jeanslevisjeans',
             'age_limit': 18,
         }
     }]
@@ -52,25 +49,11 @@ class ThisVidIE(InfoExtractor):
         webpage = self._download_webpage(url, main_id)
 
         title = self._html_search_regex(r'<title\b[^>]*?>(?:Video:\s+)?(.+?)(?:\s+-\s+ThisVid(?:\.com| tube))?</title>', webpage, 'title')
-        if type_ == 'embed':
-            video_alt_url = url_or_none(self._html_search_regex(r'''video_alt_url:\s+'(%s)',''' % (self._VALID_URL, ), webpage, 'video_alt_url', default=None))
-            if video_alt_url:
-                webpage = self._download_webpage(video_alt_url, main_id, note='Redirecting embed to main page', fatal=False)
         video_holder = get_element_by_class('video-holder', webpage) or ''
         if '>This video is a private video' in video_holder:
             self.raise_login_required(
                 (clean_html(video_holder) or 'Private video').split('\n', 1)[0])
 
-        # URL decryptor was reversed from version 4.0.4, later verified working with 5.0.1
-        kvs_version = self._html_search_regex(r'<script [^>]+?src="https://thisvid\.com/player/kt_player\.js\?v=(\d+(\.\d+)+)">', webpage, 'kvs_version', fatal=False)
-        if not (kvs_version and kvs_version.startswith('5.')):
-            self.report_warning('Major version change (' + kvs_version + ') in player engine--Download may fail.')
-
-        # video_id, video_url and license_code from the 'flashvars' JSON object:
-        video_id = self._html_search_regex(r'''video_id:\s+'([0-9]+)',''', webpage, 'video_id')
-        video_url = self._html_search_regex(r'''video_url:\s+'function/0/(https?://(?:[^/']+/){5,}.*?)',''', webpage, 'video_url')
-        license_code = self._html_search_regex(r"license_code:\s+'([0-9$]{16})',", webpage, 'license_code')
-        thumbnail = self._html_search_regex(r"preview_url:\s+'((?:https?:)?//media\.thisvid\.com/.+?\.jpg)',", webpage, 'thumbnail', fatal=False)
         uploader = self._html_search_regex(r'''(?s)<span\b[^>]*>Added by:\s*</span><a\b[^>]+\bclass\s*=\s*["']author\b[^>]+\bhref\s*=\s*["']https://thisvid\.com/members/([0-9]+/.{3,}?)\s*</a>''', webpage, 'uploader', default='')
         uploader = re.split(r'''/["'][^>]*>\s*''', uploader)
         if len(uploader) == 2:
@@ -79,79 +62,45 @@ class ThisVidIE(InfoExtractor):
             uploader = uploader or None
         else:
             uploader_id = uploader = None
-        thumbnail = sanitize_url(thumbnail)
 
-        def getrealurl(video_url, license_code):
-            urlparts = video_url.split('/')
-            license = getlicensetoken(license_code)
-            newmagic = urlparts[5][:32]
-
-            for o in range(len(newmagic) - 1, -1, -1):
-                new = ''
-                l = (o + sum([int(n) for n in license[o:]])) % 32
-
-                for i in range(0, len(newmagic)):
-                    idx = i
-                    if idx == o:
-                        idx = l
-                    elif idx == l:
-                        idx = o
-                    new += newmagic[idx]
-                newmagic = new
-
-            urlparts[5] = newmagic + urlparts[5][32:]
-            return '/'.join(urlparts)
-
-        def getlicensetoken(license):
-            modlicense = license.replace('$', '').replace('0', '1')
-            center = len(modlicense) // 2
-            fronthalf = int(modlicense[:center + 1])
-            backhalf = int(modlicense[center:])
-
-            modlicense = compat_str(4 * abs(fronthalf - backhalf))
-            retval = ''
-            for o in range(0, center + 1):
-                for i in range(1, 5):
-                    retval += compat_str((int(license[o + i]) + int(modlicense[o])) % 10)
-            return retval
-
-        return {
-            'id': video_id,
-            'display_id': main_id,
+        return merge_dicts({
+            '_type': 'url_transparent',
             'title': title,
-            'url': getrealurl(video_url, license_code),
-            'thumbnail': thumbnail,
             'age_limit': 18,
             'uploader': uploader,
             'uploader_id': uploader_id,
-        }
+        }, self.url_result(url, ie='Generic'))
 
 
 class ThisVidMemberIE(InfoExtractor):
     _VALID_URL = r'https?://thisvid\.com/members/(?P<id>\d+)'
     _TESTS = [{
-        'url': 'https://thisvid.com/members/3235959/',
+        'url': 'https://thisvid.com/members/2140501/',
         'info_dict': {
-            'id': '3235959',
-            'title': 'ButtLoverAss\'s Profile',
+            'id': '2140501',
+            'title': 'Rafflesia\'s Profile',
         },
-        'playlist_mincount': 64,
+        'playlist_mincount': 16,
     }, {
-        'url': 'https://thisvid.com/members/3235959/favourite_videos/',
+        'url': 'https://thisvid.com/members/2140501/favourite_videos/',
         'info_dict': {
-            'id': '3235959',
-            'title': 'ButtLoverAss\'s Favourite Videos',
+            'id': '2140501',
+            'title': 'Rafflesia\'s Favourite Videos',
         },
-        'playlist_mincount': 57,
+        'playlist_mincount': 15,
     }, {
-        'url': 'https://thisvid.com/members/3235959/public_videos/',
+        'url': 'https://thisvid.com/members/636468/public_videos/',
         'info_dict': {
-            'id': '3235959',
-            'title': 'ButtLoverAss\'s Public Videos',
+            'id': '636468',
+            'title': 'Happymouth\'s Public Videos',
         },
-        'playlist_mincount': 29,
+        'playlist_mincount': 196,
     },
     ]
+
+    def _urls(self, html):
+        for m in re.finditer(r'''<a\b[^>]+\bhref\s*=\s*["'](?P<url>%s\b)[^>]+>''' % (ThisVidIE._VALID_URL, ), html):
+            yield m.group('url')
 
     def _real_extract(self, url):
         pl_id = self._match_id(url)
@@ -167,13 +116,13 @@ class ThisVidMemberIE(InfoExtractor):
                     html = self._download_webpage(
                         page_url, pl_id, note='Downloading page %d' % (page, ),
                         fatal=False) or ''
-                for m in re.finditer(r'''<a\b[^>]+\bhref\s*=\s*["'](?P<url>%s\b)[^>]+>''' % (ThisVidIE._VALID_URL, ), html):
-                    yield m.group('url')
-                next_page = get_element_by_class('pagination-next', html)
+                for u in self._urls(html):
+                    yield u
+                next_page = get_element_by_class('pagination-next', html) or ''
                 if next_page:
                     # member list page
                     next_page = urljoin(url, self._search_regex(
-                        r'''<a\b[^>]+\bhref\s*=\s*("|')(?P<url>(?:(?!\1).)+)''',
+                        r'''<a\b[^>]+\bhref\s*=\s*("|')(?P<url>(?!#)(?:(?!\1).)+)''',
                         next_page, 'next page link', group='url', default=None))
                 # in case a member page should have pagination-next with empty link, not just `else:`
                 if next_page is None:
@@ -183,7 +132,7 @@ class ThisVidMemberIE(InfoExtractor):
                     num = int_or_none(num)
                     if num is None:
                         base_path, num = parsed_url.path.rstrip('/'), 1
-                    parsed_url._replace(path=base_path + ('/%d' % (num + 1, )))
+                    parsed_url = parsed_url._replace(path=base_path + ('/%d' % (num + 1, )))
                     next_page = compat_urlparse.urlunparse(parsed_url)
                     if page_url == next_page:
                         next_page = None
@@ -203,28 +152,39 @@ class ThisVidPlaylistIE(ThisVidMemberIE):
             'id': '6615',
             'title': 'Underwear Stuff',
         },
-        'playlist_mincount': 207,
+        'playlist_mincount': 200,
     }, {
         'url': 'https://thisvid.com/playlist/6615/video/big-italian-booty-28/',
         'info_dict': {
             'id': '1072387',
             'ext': 'mp4',
             'title': 'Big Italian Booty 28',
+            'uploader_id': '367912',
+            'uploader': 'Jcmusclefun',
+            'age_limit': 18,
         },
         'params': {
             'noplaylist': True,
         },
     }]
 
+    def _get_video_url(self, pl_url):
+        video_id = re.match(self._VALID_URL, pl_url).group('video_id')
+        return urljoin(pl_url, '/videos/%s/' % (video_id, ))
+
+    def _urls(self, html):
+        for m in re.finditer(r'''<a\b[^>]+\bhref\s*=\s*["'](?P<url>%s\b)[^>]+>''' % (self._VALID_URL, ), html):
+            yield self._get_video_url(m.group('url'))
+
     def _real_extract(self, url):
-        pl_id, video_id = re.match(self._VALID_URL, url).groups('id', 'video_id')
+        pl_id = self._match_id(url)
 
         if self._downloader.params.get('noplaylist'):
             self.to_screen('Downloading just the featured video because of --no-playlist')
-            return self.url_result(urljoin(url, '/videos/' + video_id), 'ThisVid', video_id)
+            return self.url_result(self._get_video_url(url), 'ThisVid')
 
         self.to_screen(
-            'Downloading playlist {pl_id} - add --no-playlist to download just the featured video').format(locals())
+            'Downloading playlist %s - add --no-playlist to download just the featured video' % (pl_id, ))
         result = super(ThisVidPlaylistIE, self)._real_extract(url)
 
         # rework title returned as `the title - the title`
@@ -232,6 +192,8 @@ class ThisVidPlaylistIE(ThisVidMemberIE):
         t_len = len(title)
         if t_len > 5 and t_len % 2 != 0:
             t_len = t_len // 2
-            if title[t_len] == '-' and title[:t_len] == title[t_len + 1:]:
-                result['title'] = title[:t_len]
+            if title[t_len] == '-':
+                title = [t.strip() for t in (title[:t_len], title[t_len + 1:])]
+                if title[0] and title[0] == title[1]:
+                    result['title'] = title[0]
         return result
