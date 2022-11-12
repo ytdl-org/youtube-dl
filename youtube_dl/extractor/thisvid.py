@@ -71,8 +71,8 @@ class ThisVidIE(InfoExtractor):
                 (clean_html(video_holder) or 'Private video').split('\n', 1)[0])
 
         uploader = self._html_search_regex(
-             r'''(?s)<span\b[^>]*>Added by:\s*</span><a\b[^>]+\bclass\s*=\s*["']author\b[^>]+\bhref\s*=\s*["']https://thisvid\.com/members/([0-9]+/.{3,}?)\s*</a>''',
-             webpage, 'uploader', default='')
+            r'''(?s)<span\b[^>]*>Added by:\s*</span><a\b[^>]+\bclass\s*=\s*["']author\b[^>]+\bhref\s*=\s*["']https://thisvid\.com/members/([0-9]+/.{3,}?)\s*</a>''',
+            webpage, 'uploader', default='')
         uploader = re.split(r'''/["'][^>]*>\s*''', uploader)
         if len(uploader) == 2:
             # id must be non-empty, uploader could be ''
