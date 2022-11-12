@@ -26,6 +26,7 @@ class ThisVidIE(InfoExtractor):
             'id': '3533241',
             'ext': 'mp4',
             'title': 'Sitting on ball tight jeans',
+            'description': 'md5:372353bb995883d1b65fddf507489acd',
             'thumbnail': r're:https?://\w+\.thisvid\.com/(?:[^/]+/)+3533241/preview\.jpg',
             'uploader_id': '150629',
             'uploader': 'jeanslevisjeans',
