@@ -159,6 +159,7 @@ class ThisVidPlaylistIE(ThisVidMemberIE):
             'id': '1072387',
             'ext': 'mp4',
             'title': 'Big Italian Booty 28',
+            'description': 'md5:1bccf7b13765e18fb27bf764dba7ede2',
             'uploader_id': '367912',
             'uploader': 'Jcmusclefun',
             'age_limit': 18,
