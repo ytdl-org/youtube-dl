@@ -36,6 +36,7 @@ from ..utils import (
     unsmuggle_url,
     UnsupportedError,
     url_or_none,
+    urljoin,
     xpath_attr,
     xpath_text,
     xpath_with_ns,
@@ -2308,6 +2309,17 @@ class GenericIE(InfoExtractor):
                 'height': 720,
                 'age_limit': 18,
             },
+        }, {
+            'url': 'https://shooshtime.com/videos/284002/just-out-of-the-shower-joi/',
+            'md5': 'e2f0a4c329f7986280b7328e24036d60',
+            'info_dict': {
+                'id': '284002',
+                'display_id': 'just-out-of-the-shower-joi',
+                'ext': 'mp4',
+                'title': 'Just Out Of The Shower JOI - Shooshtime',
+                'height': 720,
+                'age_limit': 18,
+            },
         },
     ]
 
@@ -2477,7 +2489,7 @@ class GenericIE(InfoExtractor):
             format_id = flashvars.get(key + '_text', key)
             formats.append(merge_dicts(
                 parse_resolution(format_id) or parse_resolution(flashvars[key]), {
-                    'url': getrealurl(flashvars[key], flashvars['license_code']),
+                    'url': urljoin(url, getrealurl(flashvars[key], flashvars['license_code'])),
                     'format_id': format_id,
                     'ext': 'mp4',
                     'http_headers': {'Referer': url},
@@ -2704,6 +2716,7 @@ class GenericIE(InfoExtractor):
         AGE_LIMIT_MARKERS = [
             r'Proudly Labeled <a href="http://www\.rtalabel\.org/" title="Restricted to Adults">RTA</a>',
             r'>[^<]*you acknowledge you are at least (\d+) years old',
+            r'>\s*(?:18\s+U(?:\.S\.C\.|SC)\s+)?(?:§+\s*)?2257\b',
         ]
         for marker in AGE_LIMIT_MARKERS:
             m = re.search(marker, webpage)
@@ -3559,13 +3572,15 @@ class GenericIE(InfoExtractor):
                 return info_dict
 
         # Look for generic KVS player (before ld+json for tests)
-        found = re.search(
-            r'<script\b[^>]+?\bsrc\s*=\s*(["\'])https?://(?:\S+?/)+kt_player\.js\?v=(?P<ver>(?P<maj_ver>\d+)(\.\d+)+)\1[^>]*>',
-            webpage)
+        found = self._search_regex(
+            (r'<script\b[^>]+?\bsrc\s*=\s*(["\'])https?://(?:\S+?/)+kt_player\.js\?v=(?P<ver>\d+(?:\.\d+)+)\1[^>]*>',
+             # kt_player('kt_player', 'https://i.shoosh.co/player/kt_player.swf?v=5.5.1', ...
+             r'kt_player\s*\(\s*(["\'])(?:(?!\1)[\w\W])+\1\s*,\s*(["\'])https?://(?:\S+?/)+kt_player\.swf\?v=(?P<ver>\d+(?:\.\d+)+)\2\s*,', 
+            ), webpage, 'KVS player', group='ver', default=False)
         if found:
-            self.report_extraction('KVS Player')
-            if found.group('maj_ver') not in ('4', '5', '6'):
-                self.report_warning('Untested major version (%s) in player engine - download may fail.' % (found.group('ver'), ))
+            self.report_extraction('%s: KVS Player' % (video_id, ))
+            if found.split('.')[0] not in ('4', '5', '6'):
+                self.report_warning('Untested major version (%s) in player engine - download may fail.' % (found, ))
             return merge_dicts(
                 self._extract_kvs(url, webpage, video_id),
                 info_dict)
