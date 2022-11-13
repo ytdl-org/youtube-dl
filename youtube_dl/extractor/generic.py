@@ -2252,31 +2252,7 @@ class GenericIE(InfoExtractor):
                 'skip_download': True,
             },
         }, {
-            # KVS Player
-            'url': 'https://thisvid.com/videos/fruit-is-healthy/',
-            'md5': 'f83e52f409b9139a7efee58ef926a72e',
-            'info_dict': {
-                'id': '7079579',
-                'display_id': 'fruit-is-healthy',
-                'ext': 'mp4',
-                'title': 'Fruit is healthy - ThisVid.com',
-                'thumbnail': 'https://media.thisvid.com/contents/videos_screenshots/7079000/7079579/preview.jpg',
-            }
-        }, {
-            # KVS Player
-            'url': 'https://thisvid.com/embed/7079579/',
-            'info_dict': {
-                'id': '7079579',
-                'display_id': 'fruit-is-healthy',
-                'ext': 'mp4',
-                'title': 'Fruit is healthy - ThisVid.com',
-                'thumbnail': 'https://media.thisvid.com/contents/videos_screenshots/7079000/7079579/preview.jpg',
-            },
-            'params': {
-                'skip_download': True,
-            },
-        }, {
-            # KVS Player
+            # KVS Player (tested also in thisvid.py)
             'url': 'https://youix.com/video/leningrad-zoj/',
             'md5': '94f96ba95706dc3880812b27b7d8a2b8',
             'info_dict': {
@@ -2306,6 +2282,7 @@ class GenericIE(InfoExtractor):
                 'display_id': '40-nochey-2016',
                 'ext': 'mp4',
                 'title': '40 ночей (2016) - BogMedia.org',
+                'description': 'md5:4e6d7d622636eb7948275432eb256dc3',
                 'thumbnail': 'https://bogmedia.org/contents/videos_screenshots/21000/21217/preview_480p.mp4.jpg',
             },
         }, {
@@ -2318,6 +2295,18 @@ class GenericIE(InfoExtractor):
                 'ext': 'mp4',
                 'title': 'Syren De Mer  onlyfans_05-07-2020Have_a_happy_safe_holiday5f014e68a220979bdb8cd_source / Embed плеер',
                 'thumbnail': r're:https?://www\.camhub\.world/contents/videos_screenshots/389000/389508/preview\.mp4\.jpg',
+            },
+        }, {
+            'url': 'https://mrdeepfakes.com/video/5/selena-gomez-pov-deep-fakes',
+            'md5': 'fec4ad5ec150f655e0c74c696a4a2ff4',
+            'info_dict': {
+                'id': '5',
+                'display_id': 'selena-gomez-pov-deep-fakes',
+                'ext': 'mp4',
+                'title': 'Selena Gomez POV (Deep Fakes) DeepFake Porn - MrDeepFakes',
+                'description': 'md5:17d1f84b578c9c26875ac5ef9a932354',
+                'height': 720,
+                'age_limit': 18,
             },
         },
     ]
@@ -2491,6 +2480,7 @@ class GenericIE(InfoExtractor):
                     'url': getrealurl(flashvars[key], flashvars['license_code']),
                     'format_id': format_id,
                     'ext': 'mp4',
+                    'http_headers': {'Referer': url},
                 }))
             if not formats[-1].get('height'):
                 formats[-1]['quality'] = 1
@@ -2713,9 +2703,15 @@ class GenericIE(InfoExtractor):
         # but actually don't.
         AGE_LIMIT_MARKERS = [
             r'Proudly Labeled <a href="http://www\.rtalabel\.org/" title="Restricted to Adults">RTA</a>',
+            r'>[^<]*you acknowledge you are at least (\d+) years old',
         ]
-        if any(re.search(marker, webpage) for marker in AGE_LIMIT_MARKERS):
-            age_limit = 18
+        for marker in AGE_LIMIT_MARKERS:
+            m = re.search(marker, webpage)
+            if not m:
+                continue
+            age_limit = max(
+                age_limit or 0,
+                int_or_none(m.groups() and m.group(1), default=18))
 
         # video uploader is domain name
         video_uploader = self._search_regex(
@@ -3570,7 +3566,9 @@ class GenericIE(InfoExtractor):
             self.report_extraction('KVS Player')
             if found.group('maj_ver') not in ('4', '5', '6'):
                 self.report_warning('Untested major version (%s) in player engine - download may fail.' % (found.group('ver'), ))
-            return self._extract_kvs(url, webpage, video_id)
+            return merge_dicts(
+                self._extract_kvs(url, webpage, video_id),
+                info_dict)
 
         # Looking for http://schema.org/VideoObject
         json_ld = self._search_json_ld(
