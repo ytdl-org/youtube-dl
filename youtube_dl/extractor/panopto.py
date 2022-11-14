@@ -117,7 +117,7 @@ class PanoptoBaseIE(InfoExtractor):
 class PanoptoIE(PanoptoBaseIE):
     _VALID_URL = PanoptoBaseIE.BASE_URL_RE + r'/Pages/(Viewer|Embed)\.aspx.*(?:\?|&)id=(?P<id>[a-f0-9-]+)'
     _EMBED_REGEX = [
-        r'''<iframe[^>]+src=["\'](?P<url>%s/Pages/(Viewer|Embed|Sessions/List)\.aspx[^"']+)'''
+        r'''<iframe\b[^>]+\bsrc\s*=\s*(["'])(?P<url>%s/Pages/(?:Viewer|Embed|Sessions/List)\.aspx(?:(?!\1)[\w\W])+)'''
         % (PanoptoBaseIE.BASE_URL_RE, )]
     _TESTS = [
         {
@@ -292,7 +292,7 @@ class PanoptoIE(PanoptoBaseIE):
     def _mark_watched(self, base_url, video_id, delivery_info):
         duration = traverse_obj(delivery_info, ('Delivery', 'Duration'), expected_type=float)
         invocation_id = delivery_info.get('InvocationId')
-        stream_id = traverse_obj(delivery_info, ('Delivery', 'Streams', Ellipsis, 'PublicID'), get_all=False, expected_type=str)
+        stream_id = traverse_obj(delivery_info, ('Delivery', 'Streams', Ellipsis, 'PublicID'), get_all=False, expected_type=compat_str)
         if invocation_id and stream_id and duration:
             timestamp_str = '/Date(%s000)/' % (calendar.timegm(datetime.utcnow().timetuple()), )
             data = {
@@ -517,7 +517,6 @@ class PanoptoPlaylistIE(PanoptoBaseIE):
             },
             'playlist_mincount': 4
         },
-
     ]
 
     def _entries(self, base_url, playlist_id, session_list_id):
@@ -531,16 +530,13 @@ class PanoptoPlaylistIE(PanoptoBaseIE):
             if item.get('TypeName') != 'Session':
                 self.report_warning('Got an item in the playlist that is not a Session' + bug_reports_message(), only_once=True)
                 continue
-            yield {
-                '_type': 'url',
-                'id': item.get('Id'),
-                'url': item.get('ViewerUri'),
-                'title': item.get('Name'),
-                'description': item.get('Description'),
-                'duration': item.get('Duration'),
-                'channel': traverse_obj(item, ('Parent', 'Name')),
-                'channel_id': traverse_obj(item, ('Parent', 'Id'))
-            }
+            yield merge_dicts(
+                self.url_result(item.get('ViewerUri'), item.get('Id'), item.get('Name')), {
+                    'description': item.get('Description'),
+                    'duration': item.get('Duration'),
+                    'channel': traverse_obj(item, ('Parent', 'Name')),
+                    'channel_id': traverse_obj(item, ('Parent', 'Id'))
+                })
 
     def _real_extract(self, url):
         base_url, playlist_id = self._match_valid_url(url).group('base_url', 'id')
@@ -594,7 +590,6 @@ class PanoptoListIE(PanoptoBaseIE):
     ]
 
     def _fetch_page(self, base_url, query_params, display_id, page):
-
         params = merge_dicts({
             'page': page,
             'maxResults': self._PAGE_SIZE,
@@ -611,17 +606,15 @@ class PanoptoListIE(PanoptoBaseIE):
         for result in get_first(response, 'Results', default=[]):
             # This could be a video, playlist (or maybe something else)
             item_id = result.get('DeliveryID')
-            yield {
-                '_type': 'url',
-                'id': item_id,
-                'title': result.get('SessionName'),
-                'url': (
+            yield merge_dicts(
+                self.url_result(
                     traverse_obj(result, 'ViewerUrl', 'EmbedUrl', get_all=False)
-                    or update_url_query(base_url + '/Pages/Viewer.aspx', {'id': item_id})),
-                'duration': result.get('Duration'),
-                'channel': result.get('FolderName'),
-                'channel_id': result.get('FolderID'),
-            }
+                    or update_url_query(base_url + '/Pages/Viewer.aspx', {'id': item_id}),
+                    item_id, result.get('SessionName')), {
+                    'duration': result.get('Duration'),
+                    'channel': result.get('FolderName'),
+                    'channel_id': result.get('FolderID'),
+                })
 
         for folder in get_first(response, 'Subfolders', default=[]):
             folder_id = folder.get('ID')
