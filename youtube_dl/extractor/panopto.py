@@ -280,7 +280,7 @@ class PanoptoIE(PanoptoBaseIE):
 
     @classmethod
     def suitable(cls, url):
-        return False if PanoptoPlaylistIE.suitable(url) else super().suitable(url)
+        return False if PanoptoPlaylistIE.suitable(url) else super(PanoptoIE, cls).suitable(url)
 
     @classmethod
     def _extract_from_webpage(cls, url, webpage):
@@ -657,15 +657,13 @@ class PanoptoListIE(PanoptoBaseIE):
         if query:
             display_id += ': query "%s"' % (query, )
 
-        info = {
-            '_type': 'playlist',
-            'id': display_id,
-            'title': display_id,
-        }
+        info = self.playlist_result(
+            OnDemandPagedList(
+                functools.partial(self._fetch_page, base_url, query_params, display_id), self._PAGE_SIZE),
+            playlist_id=display_id,
+            playlist_title=display_id)
+
         if folder_id:
             info.update(self._extract_folder_metadata(base_url, folder_id))
-
-        info['entries'] = OnDemandPagedList(
-            functools.partial(self._fetch_page, base_url, query_params, display_id), self._PAGE_SIZE)
 
         return info

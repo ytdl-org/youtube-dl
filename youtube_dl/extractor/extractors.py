@@ -911,7 +911,7 @@ from .pandoratv import PandoraTVIE
 from .panopto import (
     PanoptoIE,
     PanoptoListIE,
-    PanoptoPlaylistIE
+    PanoptoPlaylistIE,
  )
 from .parliamentliveuk import ParliamentLiveUKIE
 from .patreon import PatreonIE

@@ -130,7 +130,7 @@ from .kinja import KinjaEmbedIE
 from .arcpublishing import ArcPublishingIE
 from .medialaan import MedialaanIE
 from .simplecast import SimplecastIE
-from .panopto import PanoptoBaseIE
+from .panopto import PanoptoIE
 
 
 class GenericIE(InfoExtractor):
@@ -3327,9 +3327,9 @@ class GenericIE(InfoExtractor):
             return self.playlist_from_matches(
                 zype_urls, video_id, video_title, ie=ZypeIE.ie_key())
 
-        panopto_urls = PanoptoBaseIE._extract_urls(webpage)
-        if panopto_urls:
-            return self.playlist_from_matches(panopto_urls, video_id, video_title)
+        panopto_entries = PanoptoIE._extract_from_webpage(url, webpage)
+        if panopto_entries:
+            return self.playlist_result(panopto_entries, video_id, video_title)
         # Look for HTML5 media
         entries = self._parse_html5_media_entries(url, webpage, video_id, m3u8_id='hls')
         if entries:
