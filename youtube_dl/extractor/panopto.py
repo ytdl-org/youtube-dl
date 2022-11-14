@@ -116,7 +116,7 @@ class PanoptoBaseIE(InfoExtractor):
 
 class PanoptoIE(PanoptoBaseIE):
     _VALID_URL = PanoptoBaseIE.BASE_URL_RE + r'/Pages/(Viewer|Embed)\.aspx.*(?:\?|&)id=(?P<id>[a-f0-9-]+)'
-    __EMBED_REGEX = [
+    _EMBED_REGEX = [
         r'''<iframe[^>]+src=["\'](?P<url>%s/Pages/(Viewer|Embed|Sessions/List)\.aspx[^"']+)'''
         % (PanoptoBaseIE.BASE_URL_RE, )]
     _TESTS = [
