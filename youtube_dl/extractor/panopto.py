@@ -22,6 +22,7 @@ from ..utils import (
     ExtractorError,
     get_first,
     int_or_none,
+    LazyList,
     merge_dicts,
     OnDemandPagedList,
     orderedSet,
@@ -284,10 +285,10 @@ class PanoptoIE(PanoptoBaseIE):
 
     @classmethod
     def _extract_from_webpage(cls, url, webpage):
-        return map(
+        return LazyList(map(
             lambda u: cls.url_result(u, cls.ie_key()),
             orderedSet(m.group('url') for m in itertools.chain(
-                *(re.finditer(embed_re, webpage) for embed_re in cls._EMBED_REGEX))))
+                *(re.finditer(embed_re, webpage) for embed_re in cls._EMBED_REGEX)))))
 
     def _mark_watched(self, base_url, video_id, delivery_info):
         duration = traverse_obj(delivery_info, ('Delivery', 'Duration'), expected_type=float)
