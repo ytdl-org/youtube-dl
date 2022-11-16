@@ -30,10 +30,8 @@ class MyVideoGeIE(InfoExtractor):
             'uploader': 'chixa33',
             'description': 'md5:5b067801318e33c2e6eea4ab90b1fdd3',
         },
-        'params': {
-            # for CI servers
-            'geo_bypass_country': 'GE',
-        },
+        # working from local dev system
+        'skip': 'site blocks CI servers',
     }
     _MONTH_NAMES_KA = ['იანვარი', 'თებერვალი', 'მარტი', 'აპრილი', 'მაისი', 'ივნისი', 'ივლისი', 'აგვისტო', 'სექტემბერი', 'ოქტომბერი', 'ნოემბერი', 'დეკემბერი']
 
