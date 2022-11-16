@@ -16,6 +16,7 @@ from ..utils import (
     ExtractorError,
     get_exe_version,
     is_outdated_version,
+    process_communicate_or_kill,
     std_headers,
 )
 
@@ -226,7 +227,7 @@ class PhantomJSwrapper(object):
             self.exe, '--ssl-protocol=any',
             self._TMP_FILES['script'].name
         ], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-        out, err = p.communicate()
+        out, err = process_communicate_or_kill(p)
         if p.returncode != 0:
             raise ExtractorError(
                 'Executing JS failed\n:' + encodeArgument(err))

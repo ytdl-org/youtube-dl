@@ -270,11 +270,11 @@ def parseOpts(overrideArguments=None):
     selection.add_option(
         '--match-title',
         dest='matchtitle', metavar='REGEX',
-        help='Download only matching titles (regex or caseless sub-string)')
+        help='Download only matching titles (case-insensitive regex or alphanumeric sub-string)')
     selection.add_option(
         '--reject-title',
         dest='rejecttitle', metavar='REGEX',
-        help='Skip download for matching titles (regex or caseless sub-string)')
+        help='Skip download for matching titles (case-insensitive regex or alphanumeric sub-string)')
     selection.add_option(
         '--max-downloads',
         dest='max_downloads', metavar='NUMBER', type=int, default=None,
@@ -369,7 +369,7 @@ def parseOpts(overrideArguments=None):
     authentication.add_option(
         '--video-password',
         dest='videopassword', metavar='PASSWORD',
-        help='Video password (vimeo, smotri, youku)')
+        help='Video password (vimeo, youku)')
 
     adobe_pass = optparse.OptionGroup(parser, 'Adobe Pass Options')
     adobe_pass.add_option(
@@ -690,6 +690,10 @@ def parseOpts(overrideArguments=None):
         dest='outtmpl', metavar='TEMPLATE',
         help=('Output filename template, see the "OUTPUT TEMPLATE" for all the info'))
     filesystem.add_option(
+        '--output-na-placeholder',
+        dest='outtmpl_na_placeholder', metavar='PLACEHOLDER', default='NA',
+        help=('Placeholder value for unavailable meta fields in output filename template (default is "%default")'))
+    filesystem.add_option(
         '--autonumber-size',
         dest='autonumber_size', metavar='NUMBER', type=int,
         help=optparse.SUPPRESS_HELP)
@@ -764,7 +768,7 @@ def parseOpts(overrideArguments=None):
         action='store_true', dest='rm_cachedir',
         help='Delete all filesystem cache files')
 
-    thumbnail = optparse.OptionGroup(parser, 'Thumbnail images')
+    thumbnail = optparse.OptionGroup(parser, 'Thumbnail Options')
     thumbnail.add_option(
         '--write-thumbnail',
         action='store_true', dest='writethumbnail', default=False,
@@ -782,7 +786,7 @@ def parseOpts(overrideArguments=None):
     postproc.add_option(
         '-x', '--extract-audio',
         action='store_true', dest='extractaudio', default=False,
-        help='Convert video files to audio-only files (requires ffmpeg or avconv and ffprobe or avprobe)')
+        help='Convert video files to audio-only files (requires ffmpeg/avconv and ffprobe/avprobe)')
     postproc.add_option(
         '--audio-format', metavar='FORMAT', dest='audioformat', default='best',
         help='Specify audio format: "best", "aac", "flac", "mp3", "m4a", "opus", "vorbis", or "wav"; "%default" by default; No effect without -x')
@@ -797,7 +801,7 @@ def parseOpts(overrideArguments=None):
     postproc.add_option(
         '--postprocessor-args',
         dest='postprocessor_args', metavar='ARGS',
-        help='Give these arguments to the postprocessor')
+        help='Give these arguments to the postprocessor (if postprocessing is required)')
     postproc.add_option(
         '-k', '--keep-video',
         action='store_true', dest='keepvideo', default=False,

@@ -23,8 +23,8 @@ class MediasetIE(ThePlatformBaseIE):
                         https?://
                             (?:(?:www|static3)\.)?mediasetplay\.mediaset\.it/
                             (?:
-                                (?:video|on-demand)/(?:[^/]+/)+[^/]+_|
-                                player/index\.html\?.*?\bprogramGuid=
+                                (?:video|on-demand|movie)/(?:[^/]+/)+[^/]+_|
+                                player(?:/v\d+)?/index\.html\?.*?\bprogramGuid=
                             )
                     )(?P<id>[0-9A-Z]{16,})
                     '''
@@ -74,6 +74,10 @@ class MediasetIE(ThePlatformBaseIE):
         'url': 'https://static3.mediasetplay.mediaset.it/player/index.html?appKey=5ad3966b1de1c4000d5cec48&programGuid=FAFU000000665104&id=665104',
         'only_matching': True,
     }, {
+        # embedUrl (from https://www.wittytv.it/amici/est-ce-que-tu-maimes-gabriele-5-dicembre-copia/)
+        'url': 'https://static3.mediasetplay.mediaset.it/player/v2/index.html?partnerId=wittytv&configId=&programGuid=FD00000000153323&autoplay=true&purl=http://www.wittytv.it/amici/est-ce-que-tu-maimes-gabriele-5-dicembre-copia/',
+        'only_matching': True,
+    }, {
         'url': 'mediaset:FAFU000000665924',
         'only_matching': True,
     }, {
@@ -87,6 +91,9 @@ class MediasetIE(ThePlatformBaseIE):
         'only_matching': True,
     }, {
         'url': 'https://www.mediasetplay.mediaset.it/video/grandefratellovip/benedetta-una-doccia-gelata_F309344401044C135',
+        'only_matching': True,
+    }, {
+        'url': 'https://www.mediasetplay.mediaset.it/movie/herculeslaleggendahainizio/hercules-la-leggenda-ha-inizio_F305927501000102',
         'only_matching': True,
     }]
 

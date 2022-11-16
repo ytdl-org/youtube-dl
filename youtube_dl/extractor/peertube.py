@@ -413,7 +413,8 @@ class PeerTubeIE(InfoExtractor):
                             peertube3\.cpy\.re|
                             peertube2\.cpy\.re|
                             videos\.tcit\.fr|
-                            peertube\.cpy\.re
+                            peertube\.cpy\.re|
+                            canard\.tube
                         )'''
     _UUID_RE = r'[\da-fA-F]{8}-[\da-fA-F]{4}-[\da-fA-F]{4}-[\da-fA-F]{4}-[\da-fA-F]{12}'
     _API_BASE = 'https://%s/api/v1/videos/%s/%s'
@@ -449,6 +450,18 @@ class PeerTubeIE(InfoExtractor):
             'dislike_count': int,
             'tags': ['framasoft', 'peertube'],
             'categories': ['Science & Technology'],
+        }
+    }, {
+        # Issue #26002
+        'url': 'peertube:spacepub.space:d8943b2d-8280-497b-85ec-bc282ec2afdc',
+        'info_dict': {
+            'id': 'd8943b2d-8280-497b-85ec-bc282ec2afdc',
+            'ext': 'mp4',
+            'title': 'Dot matrix printer shell demo',
+            'uploader_id': '3',
+            'timestamp': 1587401293,
+            'upload_date': '20200420',
+            'uploader': 'Drew DeVault',
         }
     }, {
         'url': 'https://peertube.tamanoir.foucry.net/videos/watch/0b04f13d-1e18-4f1d-814e-4979aa7c9c44',
@@ -526,7 +539,15 @@ class PeerTubeIE(InfoExtractor):
         title = video['name']
 
         formats = []
-        for file_ in video['files']:
+        files = video.get('files') or []
+        for playlist in (video.get('streamingPlaylists') or []):
+            if not isinstance(playlist, dict):
+                continue
+            playlist_files = playlist.get('files')
+            if not (playlist_files and isinstance(playlist_files, list)):
+                continue
+            files.extend(playlist_files)
+        for file_ in files:
             if not isinstance(file_, dict):
                 continue
             file_url = url_or_none(file_.get('fileUrl'))
@@ -541,18 +562,22 @@ class PeerTubeIE(InfoExtractor):
                 'format_id': format_id,
                 'filesize': file_size,
             })
+            if format_id == '0p':
+                f['vcodec'] = 'none'
+            else:
+                f['fps'] = int_or_none(file_.get('fps'))
             formats.append(f)
         self._sort_formats(formats)
 
-        full_description = self._call_api(
-            host, video_id, 'description', note='Downloading description JSON',
-            fatal=False)
+        description = video.get('description')
+        if len(description) >= 250:
+            # description is shortened
+            full_description = self._call_api(
+                host, video_id, 'description', note='Downloading description JSON',
+                fatal=False)
 
-        description = None
-        if isinstance(full_description, dict):
-            description = str_or_none(full_description.get('description'))
-        if not description:
-            description = video.get('description')
+            if isinstance(full_description, dict):
+                description = str_or_none(full_description.get('description')) or description
 
         subtitles = self.extract_subtitles(host, video_id)
 
@@ -574,11 +599,13 @@ class PeerTubeIE(InfoExtractor):
         else:
             age_limit = None
 
+        webpage_url = 'https://%s/videos/watch/%s' % (host, video_id)
+
         return {
             'id': video_id,
             'title': title,
             'description': description,
-            'thumbnail': urljoin(url, video.get('thumbnailPath')),
+            'thumbnail': urljoin(webpage_url, video.get('thumbnailPath')),
             'timestamp': unified_timestamp(video.get('publishedAt')),
             'uploader': account_data('displayName', compat_str),
             'uploader_id': str_or_none(account_data('id', int)),
@@ -596,5 +623,6 @@ class PeerTubeIE(InfoExtractor):
             'tags': try_get(video, lambda x: x['tags'], list),
             'categories': categories,
             'formats': formats,
-            'subtitles': subtitles
+            'subtitles': subtitles,
+            'webpage_url': webpage_url,
         }

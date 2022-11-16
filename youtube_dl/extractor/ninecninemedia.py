@@ -5,10 +5,11 @@ import re
 
 from .common import InfoExtractor
 from ..utils import (
-    parse_iso8601,
-    float_or_none,
     ExtractorError,
+    float_or_none,
     int_or_none,
+    parse_iso8601,
+    try_get,
 )
 
 
@@ -22,11 +23,9 @@ class NineCNineMediaIE(InfoExtractor):
         destination_code, content_id = re.match(self._VALID_URL, url).groups()
         api_base_url = self._API_BASE_TEMPLATE % (destination_code, content_id)
         content = self._download_json(api_base_url, content_id, query={
-            '$include': '[Media,Season,ContentPackages]',
+            '$include': '[Media.Name,Season,ContentPackages.Duration,ContentPackages.Id]',
         })
         title = content['Name']
-        if len(content['ContentPackages']) > 1:
-            raise ExtractorError('multiple content packages')
         content_package = content['ContentPackages'][0]
         package_id = content_package['Id']
         content_package_url = api_base_url + 'contentpackages/%s/' % package_id
@@ -35,7 +34,7 @@ class NineCNineMediaIE(InfoExtractor):
                 '$include': '[HasClosedCaptions]',
             })
 
-        if content_package.get('Constraints', {}).get('Security', {}).get('Type'):
+        if try_get(content_package, lambda x: x['Constraints']['Security']['Type']):
             raise ExtractorError('This video is DRM protected.', expected=True)
 
         manifest_base_url = content_package_url + 'manifest.'
@@ -52,7 +51,7 @@ class NineCNineMediaIE(InfoExtractor):
         self._sort_formats(formats)
 
         thumbnails = []
-        for image in content.get('Images', []):
+        for image in (content.get('Images') or []):
             image_url = image.get('Url')
             if not image_url:
                 continue
@@ -70,7 +69,7 @@ class NineCNineMediaIE(InfoExtractor):
                     continue
                 container.append(e_name)
 
-        season = content.get('Season', {})
+        season = content.get('Season') or {}
 
         info = {
             'id': content_id,
@@ -79,13 +78,14 @@ class NineCNineMediaIE(InfoExtractor):
             'timestamp': parse_iso8601(content.get('BroadcastDateTime')),
             'episode_number': int_or_none(content.get('Episode')),
             'season': season.get('Name'),
-            'season_number': season.get('Number'),
+            'season_number': int_or_none(season.get('Number')),
             'season_id': season.get('Id'),
-            'series': content.get('Media', {}).get('Name'),
+            'series': try_get(content, lambda x: x['Media']['Name']),
             'tags': tags,
             'categories': categories,
             'duration': float_or_none(content_package.get('Duration')),
             'formats': formats,
+            'thumbnails': thumbnails,
         }
 
         if content_package.get('HasClosedCaptions'):

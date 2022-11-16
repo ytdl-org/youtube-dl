@@ -4,10 +4,12 @@ from __future__ import unicode_literals
 import re
 
 from .adobepass import AdobePassIE
+from ..compat import compat_str
 from ..utils import (
     int_or_none,
     determine_ext,
     parse_age_limit,
+    try_get,
     urlencode_postdata,
     ExtractorError,
 )
@@ -38,13 +40,17 @@ class GoIE(AdobePassIE):
         'disneynow': {
             'brand': '011',
             'resource_id': 'Disney',
-        }
+        },
+        'fxnow.fxnetworks': {
+            'brand': '025',
+            'requestor_id': 'dtci',
+        },
     }
     _VALID_URL = r'''(?x)
                     https?://
                         (?:
                             (?:(?P<sub_domain>%s)\.)?go|
-                            (?P<sub_domain_2>abc|freeform|disneynow)
+                            (?P<sub_domain_2>abc|freeform|disneynow|fxnow\.fxnetworks)
                         )\.com/
                         (?:
                             (?:[^/]+/)*(?P<id>[Vv][Dd][Kk][Aa]\w+)|
@@ -100,6 +106,31 @@ class GoIE(AdobePassIE):
             'skip_download': True,
         },
     }, {
+        'url': 'https://fxnow.fxnetworks.com/shows/better-things/video/vdka12782841',
+        'info_dict': {
+            'id': 'VDKA12782841',
+            'ext': 'mp4',
+            'title': 'First Look: Better Things - Season 2',
+            'description': 'md5:fa73584a95761c605d9d54904e35b407',
+        },
+        'params': {
+            'geo_bypass_ip_block': '3.244.239.0/24',
+            # m3u8 download
+            'skip_download': True,
+        },
+    }, {
+        'url': 'https://abc.com/shows/modern-family/episode-guide/season-01/101-pilot',
+        'info_dict': {
+            'id': 'VDKA22600213',
+            'ext': 'mp4',
+            'title': 'Pilot',
+            'description': 'md5:74306df917cfc199d76d061d66bebdb4',
+        },
+        'params': {
+            # m3u8 download
+            'skip_download': True,
+        },
+    }, {
         'url': 'http://abc.go.com/shows/the-catch/episode-guide/season-01/10-the-wedding',
         'only_matching': True,
     }, {
@@ -132,14 +163,30 @@ class GoIE(AdobePassIE):
         brand = site_info.get('brand')
         if not video_id or not site_info:
             webpage = self._download_webpage(url, display_id or video_id)
-            video_id = self._search_regex(
-                (
-                    # There may be inner quotes, e.g. data-video-id="'VDKA3609139'"
-                    # from http://freeform.go.com/shows/shadowhunters/episodes/season-2/1-this-guilty-blood
-                    r'data-video-id=["\']*(VDKA\w+)',
-                    # https://abc.com/shows/the-rookie/episode-guide/season-02/03-the-bet
-                    r'\b(?:video)?id["\']\s*:\s*["\'](VDKA\w+)'
-                ), webpage, 'video id', default=video_id)
+            data = self._parse_json(
+                self._search_regex(
+                    r'["\']__abc_com__["\']\s*\]\s*=\s*({.+?})\s*;', webpage,
+                    'data', default='{}'),
+                display_id or video_id, fatal=False)
+            # https://abc.com/shows/modern-family/episode-guide/season-01/101-pilot
+            layout = try_get(data, lambda x: x['page']['content']['video']['layout'], dict)
+            video_id = None
+            if layout:
+                video_id = try_get(
+                    layout,
+                    (lambda x: x['videoid'], lambda x: x['video']['id']),
+                    compat_str)
+            if not video_id:
+                video_id = self._search_regex(
+                    (
+                        # There may be inner quotes, e.g. data-video-id="'VDKA3609139'"
+                        # from http://freeform.go.com/shows/shadowhunters/episodes/season-2/1-this-guilty-blood
+                        r'data-video-id=["\']*(VDKA\w+)',
+                        # page.analytics.videoIdCode
+                        r'\bvideoIdCode["\']\s*:\s*["\']((?:vdka|VDKA)\w+)',
+                        # https://abc.com/shows/the-rookie/episode-guide/season-02/03-the-bet
+                        r'\b(?:video)?id["\']\s*:\s*["\'](VDKA\w+)'
+                    ), webpage, 'video id', default=video_id)
             if not site_info:
                 brand = self._search_regex(
                     (r'data-brand=\s*["\']\s*(\d+)',

@@ -464,6 +464,7 @@ class TestFormatSelection(unittest.TestCase):
         assert_syntax_error('+bestaudio')
         assert_syntax_error('bestvideo+')
         assert_syntax_error('/')
+        assert_syntax_error('bestvideo+bestvideo+bestaudio')
 
     def test_format_filtering(self):
         formats = [
@@ -632,13 +633,20 @@ class TestYoutubeDL(unittest.TestCase):
             'title2': '%PATH%',
         }
 
-        def fname(templ):
-            ydl = YoutubeDL({'outtmpl': templ})
+        def fname(templ, na_placeholder='NA'):
+            params = {'outtmpl': templ}
+            if na_placeholder != 'NA':
+                params['outtmpl_na_placeholder'] = na_placeholder
+            ydl = YoutubeDL(params)
             return ydl.prepare_filename(info)
         self.assertEqual(fname('%(id)s.%(ext)s'), '1234.mp4')
         self.assertEqual(fname('%(id)s-%(width)s.%(ext)s'), '1234-NA.mp4')
-        # Replace missing fields with 'NA'
-        self.assertEqual(fname('%(uploader_date)s-%(id)s.%(ext)s'), 'NA-1234.mp4')
+        NA_TEST_OUTTMPL = '%(uploader_date)s-%(width)d-%(id)s.%(ext)s'
+        # Replace missing fields with 'NA' by default
+        self.assertEqual(fname(NA_TEST_OUTTMPL), 'NA-NA-1234.mp4')
+        # Or by provided placeholder
+        self.assertEqual(fname(NA_TEST_OUTTMPL, na_placeholder='none'), 'none-none-1234.mp4')
+        self.assertEqual(fname(NA_TEST_OUTTMPL, na_placeholder=''), '--1234.mp4')
         self.assertEqual(fname('%(height)d.%(ext)s'), '1080.mp4')
         self.assertEqual(fname('%(height)6d.%(ext)s'), '  1080.mp4')
         self.assertEqual(fname('%(height)-6d.%(ext)s'), '1080  .mp4')
@@ -918,6 +926,95 @@ class TestYoutubeDL(unittest.TestCase):
         self.assertEqual(downloaded['id'], 'testid')
         self.assertEqual(downloaded['extractor'], 'testex')
         self.assertEqual(downloaded['extractor_key'], 'TestEx')
+
+    # Test case for https://github.com/ytdl-org/youtube-dl/issues/27064
+    def test_ignoreerrors_for_playlist_with_url_transparent_iterable_entries(self):
+
+        class _YDL(YDL):
+            def __init__(self, *args, **kwargs):
+                super(_YDL, self).__init__(*args, **kwargs)
+
+            def trouble(self, s, tb=None):
+                pass
+
+        ydl = _YDL({
+            'format': 'extra',
+            'ignoreerrors': True,
+        })
+
+        class VideoIE(InfoExtractor):
+            _VALID_URL = r'video:(?P<id>\d+)'
+
+            def _real_extract(self, url):
+                video_id = self._match_id(url)
+                formats = [{
+                    'format_id': 'default',
+                    'url': 'url:',
+                }]
+                if video_id == '0':
+                    raise ExtractorError('foo')
+                if video_id == '2':
+                    formats.append({
+                        'format_id': 'extra',
+                        'url': TEST_URL,
+                    })
+                return {
+                    'id': video_id,
+                    'title': 'Video %s' % video_id,
+                    'formats': formats,
+                }
+
+        class PlaylistIE(InfoExtractor):
+            _VALID_URL = r'playlist:'
+
+            def _entries(self):
+                for n in range(3):
+                    video_id = compat_str(n)
+                    yield {
+                        '_type': 'url_transparent',
+                        'ie_key': VideoIE.ie_key(),
+                        'id': video_id,
+                        'url': 'video:%s' % video_id,
+                        'title': 'Video Transparent %s' % video_id,
+                    }
+
+            def _real_extract(self, url):
+                return self.playlist_result(self._entries())
+
+        ydl.add_info_extractor(VideoIE(ydl))
+        ydl.add_info_extractor(PlaylistIE(ydl))
+        info = ydl.extract_info('playlist:')
+        entries = info['entries']
+        self.assertEqual(len(entries), 3)
+        self.assertTrue(entries[0] is None)
+        self.assertTrue(entries[1] is None)
+        self.assertEqual(len(ydl.downloaded_info_dicts), 1)
+        downloaded = ydl.downloaded_info_dicts[0]
+        self.assertEqual(entries[2], downloaded)
+        self.assertEqual(downloaded['url'], TEST_URL)
+        self.assertEqual(downloaded['title'], 'Video Transparent 2')
+        self.assertEqual(downloaded['id'], '2')
+        self.assertEqual(downloaded['extractor'], 'Video')
+        self.assertEqual(downloaded['extractor_key'], 'Video')
+
+    def test_default_times(self):
+        """Test addition of missing upload/release/_date from /release_/timestamp"""
+        info = {
+            'id': '1234',
+            'url': TEST_URL,
+            'title': 'Title',
+            'ext': 'mp4',
+            'timestamp': 1631352900,
+            'release_timestamp': 1632995931,
+        }
+
+        params = {'simulate': True, }
+        ydl = FakeYDL(params)
+        out_info = ydl.process_ie_result(info)
+        self.assertTrue(isinstance(out_info['upload_date'], compat_str))
+        self.assertEqual(out_info['upload_date'], '20210911')
+        self.assertTrue(isinstance(out_info['release_date'], compat_str))
+        self.assertEqual(out_info['release_date'], '20210930')
 
 
 if __name__ == '__main__':

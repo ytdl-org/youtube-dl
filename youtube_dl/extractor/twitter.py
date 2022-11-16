@@ -19,6 +19,7 @@ from ..utils import (
     strip_or_none,
     unified_timestamp,
     update_url_query,
+    url_or_none,
     xpath_text,
 )
 
@@ -52,6 +53,9 @@ class TwitterBaseIE(InfoExtractor):
             return [f]
 
     def _extract_formats_from_vmap_url(self, vmap_url, video_id):
+        vmap_url = url_or_none(vmap_url)
+        if not vmap_url:
+            return []
         vmap_data = self._download_xml(vmap_url, video_id)
         formats = []
         urls = []
@@ -251,10 +255,10 @@ class TwitterIE(TwitterBaseIE):
         'info_dict': {
             'id': '700207533655363584',
             'ext': 'mp4',
-            'title': 'simon vetugo - BEAT PROD: @suhmeduh #Damndaniel',
+            'title': 'simon vertugo - BEAT PROD: @suhmeduh #Damndaniel',
             'description': 'BEAT PROD: @suhmeduh  https://t.co/HBrQ4AfpvZ #Damndaniel https://t.co/byBooq2ejZ',
             'thumbnail': r're:^https?://.*\.jpg',
-            'uploader': 'simon vetugo',
+            'uploader': 'simon vertugo',
             'uploader_id': 'simonvertugo',
             'duration': 30.0,
             'timestamp': 1455777459,
@@ -312,6 +316,7 @@ class TwitterIE(TwitterBaseIE):
             'timestamp': 1492000653,
             'upload_date': '20170412',
         },
+        'skip': 'Account suspended',
     }, {
         'url': 'https://twitter.com/i/web/status/910031516746514432',
         'info_dict': {
@@ -373,12 +378,54 @@ class TwitterIE(TwitterBaseIE):
         },
         'add_ie': ['TwitterBroadcast'],
     }, {
+        # unified card
+        'url': 'https://twitter.com/BrooklynNets/status/1349794411333394432?s=20',
+        'info_dict': {
+            'id': '1349794411333394432',
+            'ext': 'mp4',
+            'title': 'md5:d1c4941658e4caaa6cb579260d85dcba',
+            'thumbnail': r're:^https?://.*\.jpg',
+            'description': 'md5:71ead15ec44cee55071547d6447c6a3e',
+            'uploader': 'Brooklyn Nets',
+            'uploader_id': 'BrooklynNets',
+            'duration': 324.484,
+            'timestamp': 1610651040,
+            'upload_date': '20210114',
+        },
+        'params': {
+            'skip_download': True,
+        },
+    }, {
         # Twitch Clip Embed
         'url': 'https://twitter.com/GunB1g/status/1163218564784017422',
         'only_matching': True,
     }, {
         # promo_video_website card
         'url': 'https://twitter.com/GunB1g/status/1163218564784017422',
+        'only_matching': True,
+    }, {
+        # promo_video_convo card
+        'url': 'https://twitter.com/poco_dandy/status/1047395834013384704',
+        'only_matching': True,
+    }, {
+        # appplayer card
+        'url': 'https://twitter.com/poco_dandy/status/1150646424461176832',
+        'only_matching': True,
+    }, {
+        # video_direct_message card
+        'url': 'https://twitter.com/qarev001/status/1348948114569269251',
+        'only_matching': True,
+    }, {
+        # poll2choice_video card
+        'url': 'https://twitter.com/CAF_Online/status/1349365911120195585',
+        'only_matching': True,
+    }, {
+        # poll3choice_video card
+        'url': 'https://twitter.com/SamsungMobileSA/status/1348609186725289984',
+        'only_matching': True,
+    }, {
+        # poll4choice_video card
+        'url': 'https://twitter.com/SouthamptonFC/status/1347577658079641604',
         'only_matching': True,
     }]
 
@@ -424,8 +471,7 @@ class TwitterIE(TwitterBaseIE):
             'tags': tags,
         }
 
-        media = try_get(status, lambda x: x['extended_entities']['media'][0])
-        if media and media.get('type') != 'photo':
+        def extract_from_video_info(media):
             video_info = media.get('video_info') or {}
 
             formats = []
@@ -452,6 +498,10 @@ class TwitterIE(TwitterBaseIE):
                 'thumbnails': thumbnails,
                 'duration': float_or_none(video_info.get('duration_millis'), 1000),
             })
+
+        media = try_get(status, lambda x: x['extended_entities']['media'][0])
+        if media and media.get('type') != 'photo':
+            extract_from_video_info(media)
         else:
             card = status.get('card')
             if card:
@@ -462,7 +512,35 @@ class TwitterIE(TwitterBaseIE):
                     return try_get(o, lambda x: x[x['type'].lower() + '_value'])
 
                 card_name = card['name'].split(':')[-1]
-                if card_name in ('amplify', 'promo_video_website'):
+                if card_name == 'player':
+                    info.update({
+                        '_type': 'url',
+                        'url': get_binding_value('player_url'),
+                    })
+                elif card_name == 'periscope_broadcast':
+                    info.update({
+                        '_type': 'url',
+                        'url': get_binding_value('url') or get_binding_value('player_url'),
+                        'ie_key': PeriscopeIE.ie_key(),
+                    })
+                elif card_name == 'broadcast':
+                    info.update({
+                        '_type': 'url',
+                        'url': get_binding_value('broadcast_url'),
+                        'ie_key': TwitterBroadcastIE.ie_key(),
+                    })
+                elif card_name == 'summary':
+                    info.update({
+                        '_type': 'url',
+                        'url': get_binding_value('card_url'),
+                    })
+                elif card_name == 'unified_card':
+                    media_entities = self._parse_json(get_binding_value('unified_card'), twid)['media_entities']
+                    extract_from_video_info(next(iter(media_entities.values())))
+                # amplify, promo_video_website, promo_video_convo, appplayer,
+                # video_direct_message, poll2choice_video, poll3choice_video,
+                # poll4choice_video, ...
+                else:
                     is_amplify = card_name == 'amplify'
                     vmap_url = get_binding_value('amplify_url_vmap') if is_amplify else get_binding_value('player_stream_url')
                     content_id = get_binding_value('%s_content_id' % (card_name if is_amplify else 'player'))
@@ -488,25 +566,6 @@ class TwitterIE(TwitterBaseIE):
                         'duration': int_or_none(get_binding_value(
                             'content_duration_seconds')),
                     })
-                elif card_name == 'player':
-                    info.update({
-                        '_type': 'url',
-                        'url': get_binding_value('player_url'),
-                    })
-                elif card_name == 'periscope_broadcast':
-                    info.update({
-                        '_type': 'url',
-                        'url': get_binding_value('url') or get_binding_value('player_url'),
-                        'ie_key': PeriscopeIE.ie_key(),
-                    })
-                elif card_name == 'broadcast':
-                    info.update({
-                        '_type': 'url',
-                        'url': get_binding_value('broadcast_url'),
-                        'ie_key': TwitterBroadcastIE.ie_key(),
-                    })
-                else:
-                    raise ExtractorError('Unsupported Twitter Card.')
             else:
                 expanded_url = try_get(status, lambda x: x['entities']['urls'][0]['expanded_url'])
                 if not expanded_url:

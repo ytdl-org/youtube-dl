@@ -1,28 +1,29 @@
 # coding: utf-8
 from __future__ import unicode_literals
 
+import collections
 import itertools
-import re
-import random
 import json
+import random
+import re
 
 from .common import InfoExtractor
 from ..compat import (
-    compat_kwargs,
     compat_parse_qs,
     compat_str,
+    compat_urlparse,
     compat_urllib_parse_urlencode,
     compat_urllib_parse_urlparse,
 )
 from ..utils import (
     clean_html,
+    dict_get,
     ExtractorError,
+    float_or_none,
     int_or_none,
-    orderedSet,
     parse_duration,
     parse_iso8601,
     qualities,
-    str_or_none,
     try_get,
     unified_timestamp,
     update_url_query,
@@ -41,30 +42,17 @@ class TwitchBaseIE(InfoExtractor):
     _CLIENT_ID = 'kimne78kx3ncx6brgo4mv6wki5h1ko'
     _NETRC_MACHINE = 'twitch'
 
-    def _handle_error(self, response):
-        if not isinstance(response, dict):
-            return
-        error = response.get('error')
-        if error:
-            raise ExtractorError(
-                '%s returned error: %s - %s' % (self.IE_NAME, error, response.get('message')),
-                expected=True)
-
-    def _call_api(self, path, item_id, *args, **kwargs):
-        headers = kwargs.get('headers', {}).copy()
-        headers.update({
-            'Accept': 'application/vnd.twitchtv.v5+json; charset=UTF-8',
-            'Client-ID': self._CLIENT_ID,
-        })
-        kwargs.update({
-            'headers': headers,
-            'expected_status': (400, 410),
-        })
-        response = self._download_json(
-            '%s/%s' % (self._API_BASE, path), item_id,
-            *args, **compat_kwargs(kwargs))
-        self._handle_error(response)
-        return response
+    _OPERATION_HASHES = {
+        'CollectionSideBar': '27111f1b382effad0b6def325caef1909c733fe6a4fbabf54f8d491ef2cf2f14',
+        'FilterableVideoTower_Videos': 'a937f1d22e269e39a03b509f65a7490f9fc247d7f83d6ac1421523e3b68042cb',
+        'ClipsCards__User': 'b73ad2bfaecfd30a9e6c28fada15bd97032c83ec77a0440766a56fe0bd632777',
+        'ChannelCollectionsContent': '07e3691a1bad77a36aba590c351180439a40baefc1c275356f40fc7082419a84',
+        'StreamMetadata': '1c719a40e481453e5c48d9bb585d971b8b372f8ebb105b17076722264dfa5b3e',
+        'ComscoreStreamingQuery': 'e1edae8122517d013405f237ffcc124515dc6ded82480a88daef69c83b53ac01',
+        'VideoAccessToken_Clip': '36b89d2507fce29e5ca551df756d27c1cfe079e2609642b4390aa4c35796eb11',
+        'VideoPreviewOverlay': '3006e77e51b128d838fa4e835723ca4dc9a05c5efd4466c1085215c6e437e65c',
+        'VideoMetadata': '226edb3e692509f727fd56821f5653c05740242c82b0388883e0c0e75dcbf687',
+    }
 
     def _real_initialize(self):
         self._login()
@@ -90,14 +78,14 @@ class TwitchBaseIE(InfoExtractor):
 
             headers = {
                 'Referer': page_url,
-                'Origin': page_url,
+                'Origin': 'https://www.twitch.tv',
                 'Content-Type': 'text/plain;charset=UTF-8',
             }
 
             response = self._download_json(
                 post_url, None, note, data=json.dumps(form).encode(),
                 headers=headers, expected_status=400)
-            error = response.get('error_description') or response.get('error_code')
+            error = dict_get(response, ('error', 'error_description', 'error_code'))
             if error:
                 fail(error)
 
@@ -150,120 +138,53 @@ class TwitchBaseIE(InfoExtractor):
                     })
         self._sort_formats(formats)
 
-
-class TwitchItemBaseIE(TwitchBaseIE):
-    def _download_info(self, item, item_id):
-        return self._extract_info(self._call_api(
-            'kraken/videos/%s%s' % (item, item_id), item_id,
-            'Downloading %s info JSON' % self._ITEM_TYPE))
-
-    def _extract_media(self, item_id):
-        info = self._download_info(self._ITEM_SHORTCUT, item_id)
-        response = self._call_api(
-            'api/videos/%s%s' % (self._ITEM_SHORTCUT, item_id), item_id,
-            'Downloading %s playlist JSON' % self._ITEM_TYPE)
-        entries = []
-        chunks = response['chunks']
-        qualities = list(chunks.keys())
-        for num, fragment in enumerate(zip(*chunks.values()), start=1):
-            formats = []
-            for fmt_num, fragment_fmt in enumerate(fragment):
-                format_id = qualities[fmt_num]
-                fmt = {
-                    'url': fragment_fmt['url'],
-                    'format_id': format_id,
-                    'quality': 1 if format_id == 'live' else 0,
-                }
-                m = re.search(r'^(?P<height>\d+)[Pp]', format_id)
-                if m:
-                    fmt['height'] = int(m.group('height'))
-                formats.append(fmt)
-            self._sort_formats(formats)
-            entry = dict(info)
-            entry['id'] = '%s_%d' % (entry['id'], num)
-            entry['title'] = '%s part %d' % (entry['title'], num)
-            entry['formats'] = formats
-            entries.append(entry)
-        return self.playlist_result(entries, info['id'], info['title'])
-
-    def _extract_info(self, info):
-        status = info.get('status')
-        if status == 'recording':
-            is_live = True
-        elif status == 'recorded':
-            is_live = False
-        else:
-            is_live = None
-        _QUALITIES = ('small', 'medium', 'large')
-        quality_key = qualities(_QUALITIES)
-        thumbnails = []
-        preview = info.get('preview')
-        if isinstance(preview, dict):
-            for thumbnail_id, thumbnail_url in preview.items():
-                thumbnail_url = url_or_none(thumbnail_url)
-                if not thumbnail_url:
-                    continue
-                if thumbnail_id not in _QUALITIES:
-                    continue
-                thumbnails.append({
-                    'url': thumbnail_url,
-                    'preference': quality_key(thumbnail_id),
-                })
-        return {
-            'id': info['_id'],
-            'title': info.get('title') or 'Untitled Broadcast',
-            'description': info.get('description'),
-            'duration': int_or_none(info.get('length')),
-            'thumbnails': thumbnails,
-            'uploader': info.get('channel', {}).get('display_name'),
-            'uploader_id': info.get('channel', {}).get('name'),
-            'timestamp': parse_iso8601(info.get('recorded_at')),
-            'view_count': int_or_none(info.get('views')),
-            'is_live': is_live,
+    def _download_base_gql(self, video_id, ops, note, fatal=True):
+        headers = {
+            'Content-Type': 'text/plain;charset=UTF-8',
+            'Client-ID': self._CLIENT_ID,
         }
+        gql_auth = self._get_cookies('https://gql.twitch.tv').get('auth-token')
+        if gql_auth:
+            headers['Authorization'] = 'OAuth ' + gql_auth.value
+        return self._download_json(
+            'https://gql.twitch.tv/gql', video_id, note,
+            data=json.dumps(ops).encode(),
+            headers=headers, fatal=fatal)
 
-    def _real_extract(self, url):
-        return self._extract_media(self._match_id(url))
+    def _download_gql(self, video_id, ops, note, fatal=True):
+        for op in ops:
+            op['extensions'] = {
+                'persistedQuery': {
+                    'version': 1,
+                    'sha256Hash': self._OPERATION_HASHES[op['operationName']],
+                }
+            }
+        return self._download_base_gql(video_id, ops, note)
+
+    def _download_access_token(self, video_id, token_kind, param_name):
+        method = '%sPlaybackAccessToken' % token_kind
+        ops = {
+            'query': '''{
+              %s(
+                %s: "%s",
+                params: {
+                  platform: "web",
+                  playerBackend: "mediaplayer",
+                  playerType: "site"
+                }
+              )
+              {
+                value
+                signature
+              }
+            }''' % (method, param_name, video_id),
+        }
+        return self._download_base_gql(
+            video_id, ops,
+            'Downloading %s access token GraphQL' % token_kind)['data'][method]
 
 
-class TwitchVideoIE(TwitchItemBaseIE):
-    IE_NAME = 'twitch:video'
-    _VALID_URL = r'%s/[^/]+/b/(?P<id>\d+)' % TwitchBaseIE._VALID_URL_BASE
-    _ITEM_TYPE = 'video'
-    _ITEM_SHORTCUT = 'a'
-
-    _TEST = {
-        'url': 'http://www.twitch.tv/riotgames/b/577357806',
-        'info_dict': {
-            'id': 'a577357806',
-            'title': 'Worlds Semifinals - Star Horn Royal Club vs. OMG',
-        },
-        'playlist_mincount': 12,
-        'skip': 'HTTP Error 404: Not Found',
-    }
-
-
-class TwitchChapterIE(TwitchItemBaseIE):
-    IE_NAME = 'twitch:chapter'
-    _VALID_URL = r'%s/[^/]+/c/(?P<id>\d+)' % TwitchBaseIE._VALID_URL_BASE
-    _ITEM_TYPE = 'chapter'
-    _ITEM_SHORTCUT = 'c'
-
-    _TESTS = [{
-        'url': 'http://www.twitch.tv/acracingleague/c/5285812',
-        'info_dict': {
-            'id': 'c5285812',
-            'title': 'ACRL Off Season - Sports Cars @ Nordschleife',
-        },
-        'playlist_mincount': 3,
-        'skip': 'HTTP Error 404: Not Found',
-    }, {
-        'url': 'http://www.twitch.tv/tsm_theoddone/c/2349361',
-        'only_matching': True,
-    }]
-
-
-class TwitchVodIE(TwitchItemBaseIE):
+class TwitchVodIE(TwitchBaseIE):
     IE_NAME = 'twitch:vod'
     _VALID_URL = r'''(?x)
                     https?://
@@ -273,8 +194,6 @@ class TwitchVodIE(TwitchItemBaseIE):
                         )
                         (?P<id>\d+)
                     '''
-    _ITEM_TYPE = 'vod'
-    _ITEM_SHORTCUT = 'v'
 
     _TESTS = [{
         'url': 'http://www.twitch.tv/riotgames/v/6528877?t=5m10s',
@@ -284,7 +203,7 @@ class TwitchVodIE(TwitchItemBaseIE):
             'title': 'LCK Summer Split - Week 6 Day 1',
             'thumbnail': r're:^https?://.*\.jpg$',
             'duration': 17208,
-            'timestamp': 1435131709,
+            'timestamp': 1435131734,
             'upload_date': '20150624',
             'uploader': 'Riot Games',
             'uploader_id': 'riotgames',
@@ -332,27 +251,100 @@ class TwitchVodIE(TwitchItemBaseIE):
         'only_matching': True,
     }]
 
-    def _real_extract(self, url):
-        item_id = self._match_id(url)
+    def _download_info(self, item_id):
+        data = self._download_gql(
+            item_id, [{
+                'operationName': 'VideoMetadata',
+                'variables': {
+                    'channelLogin': '',
+                    'videoID': item_id,
+                },
+            }],
+            'Downloading stream metadata GraphQL')[0]['data']
+        video = data.get('video')
+        if video is None:
+            raise ExtractorError(
+                'Video %s does not exist' % item_id, expected=True)
+        return self._extract_info_gql(video, item_id)
 
-        info = self._download_info(self._ITEM_SHORTCUT, item_id)
-        access_token = self._call_api(
-            'api/vods/%s/access_token' % item_id, item_id,
-            'Downloading %s access token' % self._ITEM_TYPE)
+    @staticmethod
+    def _extract_info(info):
+        status = info.get('status')
+        if status == 'recording':
+            is_live = True
+        elif status == 'recorded':
+            is_live = False
+        else:
+            is_live = None
+        _QUALITIES = ('small', 'medium', 'large')
+        quality_key = qualities(_QUALITIES)
+        thumbnails = []
+        preview = info.get('preview')
+        if isinstance(preview, dict):
+            for thumbnail_id, thumbnail_url in preview.items():
+                thumbnail_url = url_or_none(thumbnail_url)
+                if not thumbnail_url:
+                    continue
+                if thumbnail_id not in _QUALITIES:
+                    continue
+                thumbnails.append({
+                    'url': thumbnail_url,
+                    'preference': quality_key(thumbnail_id),
+                })
+        return {
+            'id': info['_id'],
+            'title': info.get('title') or 'Untitled Broadcast',
+            'description': info.get('description'),
+            'duration': int_or_none(info.get('length')),
+            'thumbnails': thumbnails,
+            'uploader': info.get('channel', {}).get('display_name'),
+            'uploader_id': info.get('channel', {}).get('name'),
+            'timestamp': parse_iso8601(info.get('recorded_at')),
+            'view_count': int_or_none(info.get('views')),
+            'is_live': is_live,
+        }
+
+    @staticmethod
+    def _extract_info_gql(info, item_id):
+        vod_id = info.get('id') or item_id
+        # id backward compatibility for download archives
+        if vod_id[0] != 'v':
+            vod_id = 'v%s' % vod_id
+        thumbnail = url_or_none(info.get('previewThumbnailURL'))
+        if thumbnail:
+            for p in ('width', 'height'):
+                thumbnail = thumbnail.replace('{%s}' % p, '0')
+        return {
+            'id': vod_id,
+            'title': info.get('title') or 'Untitled Broadcast',
+            'description': info.get('description'),
+            'duration': int_or_none(info.get('lengthSeconds')),
+            'thumbnail': thumbnail,
+            'uploader': try_get(info, lambda x: x['owner']['displayName'], compat_str),
+            'uploader_id': try_get(info, lambda x: x['owner']['login'], compat_str),
+            'timestamp': unified_timestamp(info.get('publishedAt')),
+            'view_count': int_or_none(info.get('viewCount')),
+        }
+
+    def _real_extract(self, url):
+        vod_id = self._match_id(url)
+
+        info = self._download_info(vod_id)
+        access_token = self._download_access_token(vod_id, 'video', 'id')
 
         formats = self._extract_m3u8_formats(
             '%s/vod/%s.m3u8?%s' % (
-                self._USHER_BASE, item_id,
+                self._USHER_BASE, vod_id,
                 compat_urllib_parse_urlencode({
                     'allow_source': 'true',
                     'allow_audio_only': 'true',
                     'allow_spectre': 'true',
                     'player': 'twitchweb',
                     'playlist_include_framerate': 'true',
-                    'nauth': access_token['token'],
-                    'nauthsig': access_token['sig'],
+                    'nauth': access_token['value'],
+                    'nauthsig': access_token['signature'],
                 })),
-            item_id, 'mp4', entry_protocol='m3u8_native')
+            vod_id, 'mp4', entry_protocol='m3u8_native')
 
         self._prefer_source(formats)
         info['formats'] = formats
@@ -366,7 +358,7 @@ class TwitchVodIE(TwitchItemBaseIE):
             info['subtitles'] = {
                 'rechat': [{
                     'url': update_url_query(
-                        'https://api.twitch.tv/v5/videos/%s/comments' % item_id, {
+                        'https://api.twitch.tv/v5/videos/%s/comments' % vod_id, {
                             'client_id': self._CLIENT_ID,
                         }),
                     'ext': 'json',
@@ -376,163 +368,341 @@ class TwitchVodIE(TwitchItemBaseIE):
         return info
 
 
-class TwitchPlaylistBaseIE(TwitchBaseIE):
-    _PLAYLIST_PATH = 'kraken/channels/%s/videos/?offset=%d&limit=%d'
-    _PAGE_LIMIT = 100
-
-    def _extract_playlist(self, channel_id):
-        info = self._call_api(
-            'kraken/channels/%s' % channel_id,
-            channel_id, 'Downloading channel info JSON')
-        channel_name = info.get('display_name') or info.get('name')
-        entries = []
-        offset = 0
-        limit = self._PAGE_LIMIT
-        broken_paging_detected = False
-        counter_override = None
-        for counter in itertools.count(1):
-            response = self._call_api(
-                self._PLAYLIST_PATH % (channel_id, offset, limit),
-                channel_id,
-                'Downloading %s JSON page %s'
-                % (self._PLAYLIST_TYPE, counter_override or counter))
-            page_entries = self._extract_playlist_page(response)
-            if not page_entries:
-                break
-            total = int_or_none(response.get('_total'))
-            # Since the beginning of March 2016 twitch's paging mechanism
-            # is completely broken on the twitch side. It simply ignores
-            # a limit and returns the whole offset number of videos.
-            # Working around by just requesting all videos at once.
-            # Upd: pagination bug was fixed by twitch on 15.03.2016.
-            if not broken_paging_detected and total and len(page_entries) > limit:
-                self.report_warning(
-                    'Twitch pagination is broken on twitch side, requesting all videos at once',
-                    channel_id)
-                broken_paging_detected = True
-                offset = total
-                counter_override = '(all at once)'
-                continue
-            entries.extend(page_entries)
-            if broken_paging_detected or total and len(page_entries) >= total:
-                break
-            offset += limit
-        return self.playlist_result(
-            [self._make_url_result(entry) for entry in orderedSet(entries)],
-            channel_id, channel_name)
-
-    def _make_url_result(self, url):
-        try:
-            video_id = 'v%s' % TwitchVodIE._match_id(url)
-            return self.url_result(url, TwitchVodIE.ie_key(), video_id=video_id)
-        except AssertionError:
-            return self.url_result(url)
-
-    def _extract_playlist_page(self, response):
-        videos = response.get('videos')
-        return [video['url'] for video in videos] if videos else []
-
-    def _real_extract(self, url):
-        return self._extract_playlist(self._match_id(url))
+def _make_video_result(node):
+    assert isinstance(node, dict)
+    video_id = node.get('id')
+    if not video_id:
+        return
+    return {
+        '_type': 'url_transparent',
+        'ie_key': TwitchVodIE.ie_key(),
+        'id': video_id,
+        'url': 'https://www.twitch.tv/videos/%s' % video_id,
+        'title': node.get('title'),
+        'thumbnail': node.get('previewThumbnailURL'),
+        'duration': float_or_none(node.get('lengthSeconds')),
+        'view_count': int_or_none(node.get('viewCount')),
+    }
 
 
-class TwitchProfileIE(TwitchPlaylistBaseIE):
-    IE_NAME = 'twitch:profile'
-    _VALID_URL = r'%s/(?P<id>[^/]+)/profile/?(?:\#.*)?$' % TwitchBaseIE._VALID_URL_BASE
-    _PLAYLIST_TYPE = 'profile'
+class TwitchCollectionIE(TwitchBaseIE):
+    _VALID_URL = r'https?://(?:(?:www|go|m)\.)?twitch\.tv/collections/(?P<id>[^/]+)'
 
     _TESTS = [{
-        'url': 'http://www.twitch.tv/vanillatv/profile',
+        'url': 'https://www.twitch.tv/collections/wlDCoH0zEBZZbQ',
         'info_dict': {
-            'id': 'vanillatv',
-            'title': 'VanillaTV',
+            'id': 'wlDCoH0zEBZZbQ',
+            'title': 'Overthrow Nook, capitalism for children',
         },
-        'playlist_mincount': 412,
-    }, {
-        'url': 'http://m.twitch.tv/vanillatv/profile',
-        'only_matching': True,
+        'playlist_mincount': 13,
     }]
 
+    _OPERATION_NAME = 'CollectionSideBar'
 
-class TwitchVideosBaseIE(TwitchPlaylistBaseIE):
-    _VALID_URL_VIDEOS_BASE = r'%s/(?P<id>[^/]+)/videos' % TwitchBaseIE._VALID_URL_BASE
-    _PLAYLIST_PATH = TwitchPlaylistBaseIE._PLAYLIST_PATH + '&broadcast_type='
+    def _real_extract(self, url):
+        collection_id = self._match_id(url)
+        collection = self._download_gql(
+            collection_id, [{
+                'operationName': self._OPERATION_NAME,
+                'variables': {'collectionID': collection_id},
+            }],
+            'Downloading collection GraphQL')[0]['data']['collection']
+        title = collection.get('title')
+        entries = []
+        for edge in collection['items']['edges']:
+            if not isinstance(edge, dict):
+                continue
+            node = edge.get('node')
+            if not isinstance(node, dict):
+                continue
+            video = _make_video_result(node)
+            if video:
+                entries.append(video)
+        return self.playlist_result(
+            entries, playlist_id=collection_id, playlist_title=title)
 
 
-class TwitchAllVideosIE(TwitchVideosBaseIE):
-    IE_NAME = 'twitch:videos:all'
-    _VALID_URL = r'%s/all' % TwitchVideosBaseIE._VALID_URL_VIDEOS_BASE
-    _PLAYLIST_PATH = TwitchVideosBaseIE._PLAYLIST_PATH + 'archive,upload,highlight'
-    _PLAYLIST_TYPE = 'all videos'
+class TwitchPlaylistBaseIE(TwitchBaseIE):
+    _PAGE_LIMIT = 100
+
+    def _entries(self, channel_name, *args):
+        cursor = None
+        variables_common = self._make_variables(channel_name, *args)
+        entries_key = '%ss' % self._ENTRY_KIND
+        for page_num in itertools.count(1):
+            variables = variables_common.copy()
+            variables['limit'] = self._PAGE_LIMIT
+            if cursor:
+                variables['cursor'] = cursor
+            page = self._download_gql(
+                channel_name, [{
+                    'operationName': self._OPERATION_NAME,
+                    'variables': variables,
+                }],
+                'Downloading %ss GraphQL page %s' % (self._NODE_KIND, page_num),
+                fatal=False)
+            if not page:
+                break
+            edges = try_get(
+                page, lambda x: x[0]['data']['user'][entries_key]['edges'], list)
+            if not edges:
+                break
+            for edge in edges:
+                if not isinstance(edge, dict):
+                    continue
+                if edge.get('__typename') != self._EDGE_KIND:
+                    continue
+                node = edge.get('node')
+                if not isinstance(node, dict):
+                    continue
+                if node.get('__typename') != self._NODE_KIND:
+                    continue
+                entry = self._extract_entry(node)
+                if entry:
+                    cursor = edge.get('cursor')
+                    yield entry
+            if not cursor or not isinstance(cursor, compat_str):
+                break
+
+
+class TwitchVideosIE(TwitchPlaylistBaseIE):
+    _VALID_URL = r'https?://(?:(?:www|go|m)\.)?twitch\.tv/(?P<id>[^/]+)/(?:videos|profile)'
 
     _TESTS = [{
-        'url': 'https://www.twitch.tv/spamfish/videos/all',
+        # All Videos sorted by Date
+        'url': 'https://www.twitch.tv/spamfish/videos?filter=all',
         'info_dict': {
             'id': 'spamfish',
-            'title': 'Spamfish',
+            'title': 'spamfish - All Videos sorted by Date',
         },
-        'playlist_mincount': 869,
+        'playlist_mincount': 924,
+    }, {
+        # All Videos sorted by Popular
+        'url': 'https://www.twitch.tv/spamfish/videos?filter=all&sort=views',
+        'info_dict': {
+            'id': 'spamfish',
+            'title': 'spamfish - All Videos sorted by Popular',
+        },
+        'playlist_mincount': 931,
+    }, {
+        # Past Broadcasts sorted by Date
+        'url': 'https://www.twitch.tv/spamfish/videos?filter=archives',
+        'info_dict': {
+            'id': 'spamfish',
+            'title': 'spamfish - Past Broadcasts sorted by Date',
+        },
+        'playlist_mincount': 27,
+    }, {
+        # Highlights sorted by Date
+        'url': 'https://www.twitch.tv/spamfish/videos?filter=highlights',
+        'info_dict': {
+            'id': 'spamfish',
+            'title': 'spamfish - Highlights sorted by Date',
+        },
+        'playlist_mincount': 901,
+    }, {
+        # Uploads sorted by Date
+        'url': 'https://www.twitch.tv/esl_csgo/videos?filter=uploads&sort=time',
+        'info_dict': {
+            'id': 'esl_csgo',
+            'title': 'esl_csgo - Uploads sorted by Date',
+        },
+        'playlist_mincount': 5,
+    }, {
+        # Past Premieres sorted by Date
+        'url': 'https://www.twitch.tv/spamfish/videos?filter=past_premieres',
+        'info_dict': {
+            'id': 'spamfish',
+            'title': 'spamfish - Past Premieres sorted by Date',
+        },
+        'playlist_mincount': 1,
+    }, {
+        'url': 'https://www.twitch.tv/spamfish/videos/all',
+        'only_matching': True,
     }, {
         'url': 'https://m.twitch.tv/spamfish/videos/all',
         'only_matching': True,
-    }]
-
-
-class TwitchUploadsIE(TwitchVideosBaseIE):
-    IE_NAME = 'twitch:videos:uploads'
-    _VALID_URL = r'%s/uploads' % TwitchVideosBaseIE._VALID_URL_VIDEOS_BASE
-    _PLAYLIST_PATH = TwitchVideosBaseIE._PLAYLIST_PATH + 'upload'
-    _PLAYLIST_TYPE = 'uploads'
-
-    _TESTS = [{
-        'url': 'https://www.twitch.tv/spamfish/videos/uploads',
-        'info_dict': {
-            'id': 'spamfish',
-            'title': 'Spamfish',
-        },
-        'playlist_mincount': 0,
     }, {
-        'url': 'https://m.twitch.tv/spamfish/videos/uploads',
+        'url': 'https://www.twitch.tv/spamfish/videos',
         'only_matching': True,
     }]
 
+    Broadcast = collections.namedtuple('Broadcast', ['type', 'label'])
 
-class TwitchPastBroadcastsIE(TwitchVideosBaseIE):
-    IE_NAME = 'twitch:videos:past-broadcasts'
-    _VALID_URL = r'%s/past-broadcasts' % TwitchVideosBaseIE._VALID_URL_VIDEOS_BASE
-    _PLAYLIST_PATH = TwitchVideosBaseIE._PLAYLIST_PATH + 'archive'
-    _PLAYLIST_TYPE = 'past broadcasts'
+    _DEFAULT_BROADCAST = Broadcast(None, 'All Videos')
+    _BROADCASTS = {
+        'archives': Broadcast('ARCHIVE', 'Past Broadcasts'),
+        'highlights': Broadcast('HIGHLIGHT', 'Highlights'),
+        'uploads': Broadcast('UPLOAD', 'Uploads'),
+        'past_premieres': Broadcast('PAST_PREMIERE', 'Past Premieres'),
+        'all': _DEFAULT_BROADCAST,
+    }
+
+    _DEFAULT_SORTED_BY = 'Date'
+    _SORTED_BY = {
+        'time': _DEFAULT_SORTED_BY,
+        'views': 'Popular',
+    }
+
+    _OPERATION_NAME = 'FilterableVideoTower_Videos'
+    _ENTRY_KIND = 'video'
+    _EDGE_KIND = 'VideoEdge'
+    _NODE_KIND = 'Video'
+
+    @classmethod
+    def suitable(cls, url):
+        return (False
+                if any(ie.suitable(url) for ie in (
+                    TwitchVideosClipsIE,
+                    TwitchVideosCollectionsIE))
+                else super(TwitchVideosIE, cls).suitable(url))
+
+    @staticmethod
+    def _make_variables(channel_name, broadcast_type, sort):
+        return {
+            'channelOwnerLogin': channel_name,
+            'broadcastType': broadcast_type,
+            'videoSort': sort.upper(),
+        }
+
+    @staticmethod
+    def _extract_entry(node):
+        return _make_video_result(node)
+
+    def _real_extract(self, url):
+        channel_name = self._match_id(url)
+        qs = compat_urlparse.parse_qs(compat_urlparse.urlparse(url).query)
+        filter = qs.get('filter', ['all'])[0]
+        sort = qs.get('sort', ['time'])[0]
+        broadcast = self._BROADCASTS.get(filter, self._DEFAULT_BROADCAST)
+        return self.playlist_result(
+            self._entries(channel_name, broadcast.type, sort),
+            playlist_id=channel_name,
+            playlist_title='%s - %s sorted by %s'
+            % (channel_name, broadcast.label,
+               self._SORTED_BY.get(sort, self._DEFAULT_SORTED_BY)))
+
+
+class TwitchVideosClipsIE(TwitchPlaylistBaseIE):
+    _VALID_URL = r'https?://(?:(?:www|go|m)\.)?twitch\.tv/(?P<id>[^/]+)/(?:clips|videos/*?\?.*?\bfilter=clips)'
 
     _TESTS = [{
-        'url': 'https://www.twitch.tv/spamfish/videos/past-broadcasts',
+        # Clips
+        'url': 'https://www.twitch.tv/vanillatv/clips?filter=clips&range=all',
         'info_dict': {
-            'id': 'spamfish',
-            'title': 'Spamfish',
+            'id': 'vanillatv',
+            'title': 'vanillatv - Clips Top All',
         },
-        'playlist_mincount': 0,
+        'playlist_mincount': 1,
     }, {
-        'url': 'https://m.twitch.tv/spamfish/videos/past-broadcasts',
+        'url': 'https://www.twitch.tv/dota2ruhub/videos?filter=clips&range=7d',
         'only_matching': True,
     }]
 
+    Clip = collections.namedtuple('Clip', ['filter', 'label'])
 
-class TwitchHighlightsIE(TwitchVideosBaseIE):
-    IE_NAME = 'twitch:videos:highlights'
-    _VALID_URL = r'%s/highlights' % TwitchVideosBaseIE._VALID_URL_VIDEOS_BASE
-    _PLAYLIST_PATH = TwitchVideosBaseIE._PLAYLIST_PATH + 'highlight'
-    _PLAYLIST_TYPE = 'highlights'
+    _DEFAULT_CLIP = Clip('LAST_WEEK', 'Top 7D')
+    _RANGE = {
+        '24hr': Clip('LAST_DAY', 'Top 24H'),
+        '7d': _DEFAULT_CLIP,
+        '30d': Clip('LAST_MONTH', 'Top 30D'),
+        'all': Clip('ALL_TIME', 'Top All'),
+    }
+
+    # NB: values other than 20 result in skipped videos
+    _PAGE_LIMIT = 20
+
+    _OPERATION_NAME = 'ClipsCards__User'
+    _ENTRY_KIND = 'clip'
+    _EDGE_KIND = 'ClipEdge'
+    _NODE_KIND = 'Clip'
+
+    @staticmethod
+    def _make_variables(channel_name, filter):
+        return {
+            'login': channel_name,
+            'criteria': {
+                'filter': filter,
+            },
+        }
+
+    @staticmethod
+    def _extract_entry(node):
+        assert isinstance(node, dict)
+        clip_url = url_or_none(node.get('url'))
+        if not clip_url:
+            return
+        return {
+            '_type': 'url_transparent',
+            'ie_key': TwitchClipsIE.ie_key(),
+            'id': node.get('id'),
+            'url': clip_url,
+            'title': node.get('title'),
+            'thumbnail': node.get('thumbnailURL'),
+            'duration': float_or_none(node.get('durationSeconds')),
+            'timestamp': unified_timestamp(node.get('createdAt')),
+            'view_count': int_or_none(node.get('viewCount')),
+            'language': node.get('language'),
+        }
+
+    def _real_extract(self, url):
+        channel_name = self._match_id(url)
+        qs = compat_urlparse.parse_qs(compat_urlparse.urlparse(url).query)
+        range = qs.get('range', ['7d'])[0]
+        clip = self._RANGE.get(range, self._DEFAULT_CLIP)
+        return self.playlist_result(
+            self._entries(channel_name, clip.filter),
+            playlist_id=channel_name,
+            playlist_title='%s - Clips %s' % (channel_name, clip.label))
+
+
+class TwitchVideosCollectionsIE(TwitchPlaylistBaseIE):
+    _VALID_URL = r'https?://(?:(?:www|go|m)\.)?twitch\.tv/(?P<id>[^/]+)/videos/*?\?.*?\bfilter=collections'
 
     _TESTS = [{
-        'url': 'https://www.twitch.tv/spamfish/videos/highlights',
+        # Collections
+        'url': 'https://www.twitch.tv/spamfish/videos?filter=collections',
         'info_dict': {
             'id': 'spamfish',
-            'title': 'Spamfish',
+            'title': 'spamfish - Collections',
         },
-        'playlist_mincount': 805,
-    }, {
-        'url': 'https://m.twitch.tv/spamfish/videos/highlights',
-        'only_matching': True,
+        'playlist_mincount': 3,
     }]
+
+    _OPERATION_NAME = 'ChannelCollectionsContent'
+    _ENTRY_KIND = 'collection'
+    _EDGE_KIND = 'CollectionsItemEdge'
+    _NODE_KIND = 'Collection'
+
+    @staticmethod
+    def _make_variables(channel_name):
+        return {
+            'ownerLogin': channel_name,
+        }
+
+    @staticmethod
+    def _extract_entry(node):
+        assert isinstance(node, dict)
+        collection_id = node.get('id')
+        if not collection_id:
+            return
+        return {
+            '_type': 'url_transparent',
+            'ie_key': TwitchCollectionIE.ie_key(),
+            'id': collection_id,
+            'url': 'https://www.twitch.tv/collections/%s' % collection_id,
+            'title': node.get('title'),
+            'thumbnail': node.get('thumbnailURL'),
+            'duration': float_or_none(node.get('lengthSeconds')),
+            'timestamp': unified_timestamp(node.get('updatedAt')),
+            'view_count': int_or_none(node.get('viewCount')),
+        }
+
+    def _real_extract(self, url):
+        channel_name = self._match_id(url)
+        return self.playlist_result(
+            self._entries(channel_name), playlist_id=channel_name,
+            playlist_title='%s - Collections' % channel_name)
 
 
 class TwitchStreamIE(TwitchBaseIE):
@@ -583,43 +753,53 @@ class TwitchStreamIE(TwitchBaseIE):
     def suitable(cls, url):
         return (False
                 if any(ie.suitable(url) for ie in (
-                    TwitchVideoIE,
-                    TwitchChapterIE,
                     TwitchVodIE,
-                    TwitchProfileIE,
-                    TwitchAllVideosIE,
-                    TwitchUploadsIE,
-                    TwitchPastBroadcastsIE,
-                    TwitchHighlightsIE,
+                    TwitchCollectionIE,
+                    TwitchVideosIE,
+                    TwitchVideosClipsIE,
+                    TwitchVideosCollectionsIE,
                     TwitchClipsIE))
                 else super(TwitchStreamIE, cls).suitable(url))
 
     def _real_extract(self, url):
-        channel_name = self._match_id(url)
+        channel_name = self._match_id(url).lower()
 
-        access_token = self._call_api(
-            'api/channels/%s/access_token' % channel_name, channel_name,
-            'Downloading access token JSON')
+        gql = self._download_gql(
+            channel_name, [{
+                'operationName': 'StreamMetadata',
+                'variables': {'channelLogin': channel_name},
+            }, {
+                'operationName': 'ComscoreStreamingQuery',
+                'variables': {
+                    'channel': channel_name,
+                    'clipSlug': '',
+                    'isClip': False,
+                    'isLive': True,
+                    'isVodOrCollection': False,
+                    'vodID': '',
+                },
+            }, {
+                'operationName': 'VideoPreviewOverlay',
+                'variables': {'login': channel_name},
+            }],
+            'Downloading stream GraphQL')
 
-        token = access_token['token']
-        channel_id = compat_str(self._parse_json(
-            token, channel_name)['channel_id'])
+        user = gql[0]['data']['user']
 
-        stream = self._call_api(
-            'kraken/streams/%s?stream_type=all' % channel_id,
-            channel_id, 'Downloading stream JSON').get('stream')
+        if not user:
+            raise ExtractorError(
+                '%s does not exist' % channel_name, expected=True)
+
+        stream = user['stream']
 
         if not stream:
-            raise ExtractorError('%s is offline' % channel_id, expected=True)
+            raise ExtractorError('%s is offline' % channel_name, expected=True)
 
-        # Channel name may be typed if different case than the original channel name
-        # (e.g. http://www.twitch.tv/TWITCHPLAYSPOKEMON) that will lead to constructing
-        # an invalid m3u8 URL. Working around by use of original channel name from stream
-        # JSON and fallback to lowercase if it's not available.
-        channel_name = try_get(
-            stream, lambda x: x['channel']['name'],
-            compat_str) or channel_name.lower()
+        access_token = self._download_access_token(
+            channel_name, 'stream', 'channelName')
+        token = access_token['value']
 
+        stream_id = stream.get('id') or channel_name
         query = {
             'allow_source': 'true',
             'allow_audio_only': 'true',
@@ -628,45 +808,43 @@ class TwitchStreamIE(TwitchBaseIE):
             'player': 'twitchweb',
             'playlist_include_framerate': 'true',
             'segment_preference': '4',
-            'sig': access_token['sig'].encode('utf-8'),
+            'sig': access_token['signature'].encode('utf-8'),
             'token': token.encode('utf-8'),
         }
         formats = self._extract_m3u8_formats(
-            '%s/api/channel/hls/%s.m3u8?%s'
-            % (self._USHER_BASE, channel_name, compat_urllib_parse_urlencode(query)),
-            channel_id, 'mp4')
+            '%s/api/channel/hls/%s.m3u8' % (self._USHER_BASE, channel_name),
+            stream_id, 'mp4', query=query)
         self._prefer_source(formats)
 
         view_count = stream.get('viewers')
-        timestamp = parse_iso8601(stream.get('created_at'))
+        timestamp = unified_timestamp(stream.get('createdAt'))
 
-        channel = stream['channel']
-        title = self._live_title(channel.get('display_name') or channel.get('name'))
-        description = channel.get('status')
+        sq_user = try_get(gql, lambda x: x[1]['data']['user'], dict) or {}
+        uploader = sq_user.get('displayName')
+        description = try_get(
+            sq_user, lambda x: x['broadcastSettings']['title'], compat_str)
 
-        thumbnails = []
-        for thumbnail_key, thumbnail_url in stream['preview'].items():
-            m = re.search(r'(?P<width>\d+)x(?P<height>\d+)\.jpg$', thumbnail_key)
-            if not m:
-                continue
-            thumbnails.append({
-                'url': thumbnail_url,
-                'width': int(m.group('width')),
-                'height': int(m.group('height')),
-            })
+        thumbnail = url_or_none(try_get(
+            gql, lambda x: x[2]['data']['user']['stream']['previewImageURL'],
+            compat_str))
+
+        title = uploader or channel_name
+        stream_type = stream.get('type')
+        if stream_type in ['rerun', 'live']:
+            title += ' (%s)' % stream_type
 
         return {
-            'id': str_or_none(stream.get('_id')) or channel_id,
+            'id': stream_id,
             'display_id': channel_name,
-            'title': title,
+            'title': self._live_title(title),
             'description': description,
-            'thumbnails': thumbnails,
-            'uploader': channel.get('display_name'),
-            'uploader_id': channel.get('name'),
+            'thumbnail': thumbnail,
+            'uploader': uploader,
+            'uploader_id': channel_name,
             'timestamp': timestamp,
             'view_count': view_count,
             'formats': formats,
-            'is_live': True,
+            'is_live': stream_type == 'live',
         }
 
 
@@ -716,8 +894,26 @@ class TwitchClipsIE(TwitchBaseIE):
     def _real_extract(self, url):
         video_id = self._match_id(url)
 
-        clip = self._download_json(
-            'https://gql.twitch.tv/gql', video_id, data=json.dumps({
+        clip = self._download_gql(
+            video_id, [{
+                'operationName': 'VideoAccessToken_Clip',
+                'variables': {
+                    'slug': video_id,
+                },
+            }],
+            'Downloading clip access token GraphQL')[0]['data']['clip']
+
+        if not clip:
+            raise ExtractorError(
+                'This clip is no longer available', expected=True)
+
+        access_query = {
+            'sig': clip['playbackAccessToken']['signature'],
+            'token': clip['playbackAccessToken']['value'],
+        }
+
+        data = self._download_base_gql(
+            video_id, {
                 'query': '''{
   clip(slug: "%s") {
     broadcaster {
@@ -741,14 +937,10 @@ class TwitchClipsIE(TwitchBaseIE):
     }
     viewCount
   }
-}''' % video_id,
-            }).encode(), headers={
-                'Client-ID': self._CLIENT_ID,
-            })['data']['clip']
+}''' % video_id}, 'Downloading clip GraphQL', fatal=False)
 
-        if not clip:
-            raise ExtractorError(
-                'This clip is no longer available', expected=True)
+        if data:
+            clip = try_get(data, lambda x: x['data']['clip'], dict) or clip
 
         formats = []
         for option in clip.get('videoQualities', []):
@@ -758,7 +950,7 @@ class TwitchClipsIE(TwitchBaseIE):
             if not source:
                 continue
             formats.append({
-                'url': source,
+                'url': update_url_query(source, access_query),
                 'format_id': option.get('quality'),
                 'height': int_or_none(option.get('quality')),
                 'fps': int_or_none(option.get('frameRate')),
