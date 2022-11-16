@@ -15,6 +15,7 @@ from ..utils import (
     unified_strdate,
 )
 
+
 class MyVideoGeIE(InfoExtractor):
     _VALID_URL = r'https?://(?:www\.)?myvideo\.ge/v/(?P<id>[0-9]+)'
     _TEST = {
@@ -30,7 +31,7 @@ class MyVideoGeIE(InfoExtractor):
             'description': 'md5:5b067801318e33c2e6eea4ab90b1fdd3',
         }
     }
-    _MONTH_NAMES_KA = ['იანვარი', 'თებერვალი', 'მარტი', 'აპრილი', 'მაისი', 'ივნისი','ივლისი', 'აგვისტო', 'სექტემბერი', 'ოქტომბერი', 'ნოემბერი', 'დეკემბერი']
+    _MONTH_NAMES_KA = ['იანვარი', 'თებერვალი', 'მარტი', 'აპრილი', 'მაისი', 'ივნისი', 'ივლისი', 'აგვისტო', 'სექტემბერი', 'ოქტომბერი', 'ნოემბერი', 'დეკემბერი']
 
     _quality = staticmethod(qualities(('SD', 'HD')))
 
