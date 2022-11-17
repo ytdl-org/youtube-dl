@@ -8,6 +8,7 @@ from ..utils import (
     url_or_none,
 )
 
+
 class VOEIE(InfoExtractor):
     IE_NAME = 'voe'
     IE_DESC = 'VOE.SX'
