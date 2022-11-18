@@ -2447,10 +2447,11 @@ class YoutubeDL(object):
     def _write_thumbnails(self, info_dict, filename):
         if self.params.get('writethumbnail', False):
             thumbnails = info_dict.get('thumbnails')
-            if thumbnails:
-                thumbnails = [thumbnails[-1]]
+            thumbnails.reverse()
+            getFirst = True
         elif self.params.get('write_all_thumbnails', False):
             thumbnails = info_dict.get('thumbnails')
+            getFirst = False
         else:
             return
 
@@ -2476,6 +2477,8 @@ class YoutubeDL(object):
                         shutil.copyfileobj(uf, thumbf)
                     self.to_screen('[%s] %s: Writing thumbnail %sto: %s' %
                                    (info_dict['extractor'], info_dict['id'], thumb_display_id, thumb_filename))
+                    if getFirst:
+                        break
                 except (compat_urllib_error.URLError, compat_http_client.HTTPException, socket.error) as err:
                     self.report_warning('Unable to download thumbnail "%s": %s' %
                                         (t['url'], error_to_compat_str(err)))
