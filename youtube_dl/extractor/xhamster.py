@@ -436,6 +436,9 @@ class XHamsterUserIE(InfoExtractor):
     }, {
         'url': 'https://xhday.com/users/mobhunter',
         'only_matching': True,
+    }, {
+        'url': 'https://xhvid.com/users/pelushe21',
+        'only_matching': True,
     }]
 
     def _entries(self, user_id):
