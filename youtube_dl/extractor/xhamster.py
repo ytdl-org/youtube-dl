@@ -123,6 +123,9 @@ class XHamsterIE(InfoExtractor):
     }, {
         'url': 'https://xhday.com/videos/strapless-threesome-xhh7yVf',
         'only_matching': True,
+    }, {
+        'url': 'https://xhvid.com/videos/lk-mm-xhc6wn6',
+        'only_matching': True,
     }]
 
     def _real_extract(self, url):
