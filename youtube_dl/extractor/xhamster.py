@@ -24,7 +24,7 @@ from ..utils import (
 
 
 class XHamsterIE(InfoExtractor):
-    _DOMAINS = r'(?:xhamster\.(?:com|one|desi)|xhms\.pro|xhamster\d+\.com|xhday\.com)'
+    _DOMAINS = r'(?:xhamster\.(?:com|one|desi)|xhms\.pro|xhamster\d+\.com|xhday\.com|xhvid\.com)'
     _VALID_URL = r'''(?x)
                     https?://
                         (?:.+?\.)?%s/
@@ -122,6 +122,9 @@ class XHamsterIE(InfoExtractor):
         'only_matching': True,
     }, {
         'url': 'https://xhday.com/videos/strapless-threesome-xhh7yVf',
+        'only_matching': True,
+    }, {
+        'url': 'https://xhvid.com/videos/lk-mm-xhc6wn6',
         'only_matching': True,
     }]
 
