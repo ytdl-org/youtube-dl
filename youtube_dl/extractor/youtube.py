@@ -2206,7 +2206,16 @@ class YoutubeTabIE(YoutubeBaseInfoExtractor):
                     '''
     IE_NAME = 'youtube:tab'
 
-    _TESTS = [{
+    _TESTS = [ {
+        'url': 'https://www.youtube.com/@SuperCooperShorts/shorts',
+        'playlist_mincount': 5,
+        'info_dict': {
+            'description': 'Short clips from Super Cooper Sundays!',
+            'id': 'UCKMA8kHZ8bPYpnMNaUSxfEQ',
+            'title': 'Super Cooper Shorts - Shorts',
+        }
+
+    },{
         # playlists, multipage
         'url': 'https://www.youtube.com/c/ИгорьКлейнер/playlists?view=1&flow=grid',
         'playlist_mincount': 94,
