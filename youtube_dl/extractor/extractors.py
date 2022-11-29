@@ -374,6 +374,7 @@ from .fc2 import (
     FC2EmbedIE,
 )
 from .fczenit import FczenitIE
+from .fifa import FifaIE
 from .filmon import (
     FilmOnIE,
     FilmOnChannelIE,
