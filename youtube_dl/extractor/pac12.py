@@ -11,7 +11,7 @@ class Pac12IE(InfoExtractor):
 
     _TESTS = [{
         'url': 'https://pac-12.com/videos/2020-pac-12-womens-basketball-media-day-arizona-cal-stanford',
-        'md5': 'b2e3c0cb99458c8b8e2dc22cb5ac922d',
+        'md5': 'c134cb64fc884658497690dca50094a3',
         'info_dict': {
             'id': 'vod-VGQNKGlo9Go',
             'ext': 'mp4',
@@ -20,7 +20,7 @@ class Pac12IE(InfoExtractor):
         }
     }, {
         'url': 'https://pac-12.com/article/2020/11/24/sonoran-dog-dish-presented-tums',
-        'md5': 'a7a8ac72273b9468924bc058cc220d37',
+        'md5': 'a91ae1eaf05cea2c5dbe6c1ab7997cc3',
         'info_dict': {
             'id': 'vod-YLMKpNLZvR0',
             'ext': 'mp4',
