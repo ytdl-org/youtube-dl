@@ -315,7 +315,9 @@ class YoutubeBaseInfoExtractor(InfoExtractor):
         title = try_get(
             renderer,
             (lambda x: x['title']['runs'][0]['text'],
-             lambda x: x['title']['simpleText']), compat_str)
+             lambda x: x['title']['simpleText'],
+             lambda x: x['headline']['simpleText']), compat_str)
+        # print("TITLE OF VIDEO: ", title)
         description = try_get(
             renderer, lambda x: x['descriptionSnippet']['runs'][0]['text'],
             compat_str)
@@ -2644,6 +2646,7 @@ class YoutubeTabIE(YoutubeBaseInfoExtractor):
 
     def _video_entry(self, video_renderer):
         video_id = video_renderer.get('videoId')
+        # print("VIDEO TITLE", video_renderer['headline']['simpleText'])
         if video_id:
             return self._extract_video(video_renderer)
 
@@ -2688,11 +2691,13 @@ class YoutubeTabIE(YoutubeBaseInfoExtractor):
                 yield entry
 
     def _rich_grid_entries(self, contents):
+        # print("_rich_grid_entries contents", contents)
         for content in contents:
             video_renderer = try_get(content,
                 (lambda x: x['richItemRenderer']['content']['videoRenderer'],
                  lambda x: x['richItemRenderer']['content']['reelItemRenderer']),
                 dict)
+            # print("_rich_grid_entries video_renderer", video_renderer)
             if video_renderer:
                 entry = self._video_entry(video_renderer)
                 if entry:
@@ -2745,6 +2750,7 @@ class YoutubeTabIE(YoutubeBaseInfoExtractor):
 
     def _entries(self, tab, item_id, webpage):
         tab_content = try_get(tab, lambda x: x['content'], dict)
+        # print("_entries tab_content", tab_content)
         if not tab_content:
             return
         slr_renderer = try_get(tab_content, lambda x: x['sectionListRenderer'], dict)
@@ -2980,6 +2986,7 @@ class YoutubeTabIE(YoutubeBaseInfoExtractor):
             channel_title = renderer.get('title') or item_id
             tab_title = selected_tab.get('title')
             title = channel_title or item_id
+            # print("TITLE OF VIDEO: ", title)
             if tab_title:
                 title += ' - %s' % tab_title
             if selected_tab.get('expandedText'):
@@ -3001,6 +3008,9 @@ class YoutubeTabIE(YoutubeBaseInfoExtractor):
             playlist_id=playlist_id, playlist_title=title,
             playlist_description=description)
         playlist.update(self._extract_uploader(data))
+        # print("_extract_from_tabs playlist", playlist)
+        # for video in playlist['entries']:
+        #     print(video)
         return playlist
 
     def _extract_from_playlist(self, item_id, url, data, playlist):
@@ -3031,6 +3041,7 @@ class YoutubeTabIE(YoutubeBaseInfoExtractor):
             'identity token', default=None)
 
     def _real_extract(self, url):
+        print("EXTRACTING INFORMATION")
         item_id = self._match_id(url)
         url = compat_urlparse.urlunparse(
             compat_urlparse.urlparse(url)._replace(netloc='www.youtube.com'))
@@ -3047,6 +3058,7 @@ class YoutubeTabIE(YoutubeBaseInfoExtractor):
         data = self._extract_yt_initial_data(item_id, webpage)
         tabs = try_get(
             data, lambda x: x['contents']['twoColumnBrowseResultsRenderer']['tabs'], list)
+        # print("TEST TEST TEST TABS PRINT: ", tabs)
         if tabs:
             return self._extract_from_tabs(item_id, webpage, data, tabs)
         playlist = try_get(
