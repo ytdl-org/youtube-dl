@@ -1,5 +1,10 @@
+# coding: utf-8
+
+from __future__ import unicode_literals
+
 import json
 
+from ..utils import strip_or_none, traverse_obj
 from .common import InfoExtractor
 
 
@@ -14,7 +19,7 @@ class BlerpIE(InfoExtractor):
             'uploader': 'luminousaj',
             'uploader_id': '5fb81e51aa66ae000c395478',
             'ext': 'mp3',
-            'keywords': 'samsung,galaxy,s8,over the horizon,2016,ringtone',
+            'keywords': ['samsung', 'galaxy', 's8', 'over the horizon', '2016', 'ringtone'],
         }
     }, {
         'url': 'https://blerp.com/soundbites/5bc94ef4796001000498429f',
@@ -24,12 +29,114 @@ class BlerpIE(InfoExtractor):
             'uploader': '179617322678353920',
             'uploader_id': '5ba99cf71386730004552c42',
             'ext': 'mp3',
-            'keywords': 'YEE,YEET,wo ha haah catchy tune yee,yee'
+            'keywords': ['YEE', 'YEET', 'wo ha haah catchy tune yee', 'yee']
         }
     }]
 
     _GRAPHQL_OPERATIONNAME = "webBitePageGetBite"
-    _GRAPHQL_QUERY = "query webBitePageGetBite($_id: MongoID!) {\n  web {\n    biteById(_id: $_id) {\n      ...bitePageFrag\n      __typename\n    }\n    __typename\n  }\n}\n\nfragment bitePageFrag on Bite {\n  _id\n  title\n  userKeywords\n  keywords\n  color\n  visibility\n  isPremium\n  owned\n  price\n  extraReview\n  isAudioExists\n  image {\n    filename\n    original {\n      url\n      __typename\n    }\n    __typename\n  }\n  userReactions {\n    _id\n    reactions\n    createdAt\n    __typename\n  }\n  topReactions\n  totalSaveCount\n  saved\n  blerpLibraryType\n  license\n  licenseMetaData\n  playCount\n  totalShareCount\n  totalFavoriteCount\n  totalAddedToBoardCount\n  userCategory\n  userAudioQuality\n  audioCreationState\n  transcription\n  userTranscription\n  description\n  createdAt\n  updatedAt\n  author\n  listingType\n  ownerObject {\n    _id\n    username\n    profileImage {\n      filename\n      original {\n        url\n        __typename\n      }\n      __typename\n    }\n    __typename\n  }\n  transcription\n  favorited\n  visibility\n  isCurated\n  sourceUrl\n  audienceRating\n  strictAudienceRating\n  ownerId\n  reportObject {\n    reportedContentStatus\n    __typename\n  }\n  giphy {\n    mp4\n    gif\n    __typename\n  }\n  audio {\n    filename\n    original {\n      url\n      __typename\n    }\n    mp3 {\n      url\n      __typename\n    }\n    __typename\n  }\n  __typename\n}\n"
+    _GRAPHQL_QUERY = (
+        '''query webBitePageGetBite($_id: MongoID!) {
+            web {
+                biteById(_id: $_id) {
+                    ...bitePageFrag
+                    __typename
+                }
+                __typename
+            }
+        }
+
+        fragment bitePageFrag on Bite {
+            _id
+            title
+            userKeywords
+            keywords
+            color
+            visibility
+            isPremium
+            owned
+            price
+            extraReview
+            isAudioExists
+            image {
+                filename
+                original {
+                    url
+                    __typename
+                }
+                __typename
+            }
+            userReactions {
+                _id
+                reactions
+                createdAt
+                __typename
+            }
+            topReactions
+            totalSaveCount
+            saved
+            blerpLibraryType
+            license
+            licenseMetaData
+            playCount
+            totalShareCount
+            totalFavoriteCount
+            totalAddedToBoardCount
+            userCategory
+            userAudioQuality
+            audioCreationState
+            transcription
+            userTranscription
+            description
+            createdAt
+            updatedAt
+            author
+            listingType
+            ownerObject {
+                _id
+                username
+                profileImage {
+                    filename
+                    original {
+                        url
+                        __typename
+                    }
+                    __typename
+                }
+                __typename
+            }
+            transcription
+            favorited
+            visibility
+            isCurated
+            sourceUrl
+            audienceRating
+            strictAudienceRating
+            ownerId
+            reportObject {
+                reportedContentStatus
+                __typename
+            }
+            giphy {
+                mp4
+                gif
+                __typename
+            }
+            audio {
+                filename
+                original {
+                    url
+                    __typename
+                }
+                mp3 {
+                    url
+                    __typename
+                }
+                __typename
+            }
+            __typename
+        }
+
+        ''')
 
     def _real_extract(self, url):
         audio_id = self._match_id(url)
@@ -55,10 +162,10 @@ class BlerpIE(InfoExtractor):
             'id': bite_json['_id'],
             'url': bite_json['audio']['mp3']['url'],
             'title': bite_json['title'],
-            'uploader': bite_json['ownerObject']['username'],
-            'uploader_id': bite_json['ownerObject']['_id'],
+            'uploader': traverse_obj(bite_json, ('ownerObject', 'username'), expected_type=strip_or_none),
+            'uploader_id': traverse_obj(bite_json, ('ownerObject', '_id'), expected_type=strip_or_none),
             'ext': 'mp3',
-            'keywords': ",".join(bite_json['userKeywords'])
+            'keywords': list(filter(None, map(strip_or_none, (traverse_obj(bite_json, 'userKeywords', expected_type=list) or []))) or None)
         }
 
         return info_dict
