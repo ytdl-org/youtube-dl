@@ -19,7 +19,7 @@ class BlerpIE(InfoExtractor):
             'uploader': 'luminousaj',
             'uploader_id': '5fb81e51aa66ae000c395478',
             'ext': 'mp3',
-            'keywords': ['samsung', 'galaxy', 's8', 'over the horizon', '2016', 'ringtone'],
+            'tags': ['samsung', 'galaxy', 's8', 'over the horizon', '2016', 'ringtone'],
         }
     }, {
         'url': 'https://blerp.com/soundbites/5bc94ef4796001000498429f',
@@ -29,7 +29,7 @@ class BlerpIE(InfoExtractor):
             'uploader': '179617322678353920',
             'uploader_id': '5ba99cf71386730004552c42',
             'ext': 'mp3',
-            'keywords': ['YEE', 'YEET', 'wo ha haah catchy tune yee', 'yee']
+            'tags': ['YEE', 'YEET', 'wo ha haah catchy tune yee', 'yee']
         }
     }]
 
@@ -165,7 +165,7 @@ class BlerpIE(InfoExtractor):
             'uploader': traverse_obj(bite_json, ('ownerObject', 'username'), expected_type=strip_or_none),
             'uploader_id': traverse_obj(bite_json, ('ownerObject', '_id'), expected_type=strip_or_none),
             'ext': 'mp3',
-            'keywords': list(filter(None, map(strip_or_none, (traverse_obj(bite_json, 'userKeywords', expected_type=list) or []))) or None)
+            'tags': list(filter(None, map(strip_or_none, (traverse_obj(bite_json, 'userKeywords', expected_type=list) or []))) or None)
         }
 
         return info_dict
