@@ -59,12 +59,9 @@ class SenateISVPIE(InfoExtractor):
             'id': 'judiciary031715',
             'ext': 'mp4',
             'title': 'judiciary031715',
-            'thumbnail': r're:^https?://.*\.(?:jpg|png)$',
+            'thumbnail': 'http://www.judiciary.senate.gov/themes/judiciary/images/video-poster-flash-fit.png',
         },
-        'params': {
-            # m3u8 download
-            'skip_download': True,
-        },
+        'expected_warnings': ['Failed to download m3u8 information: HTTP Error 404: Not Found'],
     }, {
         'url': 'http://www.senate.gov/isvp/?type=arch&comm=intel&filename=intel090613&hc_location=ufi',
         # checksum differs each time
@@ -72,12 +69,32 @@ class SenateISVPIE(InfoExtractor):
             'id': 'intel090613',
             'ext': 'mp4',
             'title': 'intel090613',
-            'thumbnail': r're:^https?://.*\.(?:jpg|png)$',
-        }
+        },
+        'expected_warnings': ['Failed to download m3u8 information: HTTP Error 404: Not Found'],
     }, {
-        # From http://www.c-span.org/video/?96791-1
-        'url': 'http://www.senate.gov/isvp?type=live&comm=banking&filename=banking012715',
-        'only_matching': True,
+        'url': 'https://www.senate.gov/isvp/?comm=govtaff&type=archv&stt=975&filename=govtaff111722&auto_play=false&poster=https%3A%2F%2Fwww%2Ehsgac%2Esenate%2Egov%2Fimages%2Fvideo%2Dposter%2Dflash%2Dfit%2Epng',
+        # checksum differs each time
+        'info_dict': {
+            'id': 'govtaff111722',
+            'ext': 'mp4',
+            'title': 'govtaff111722',
+            'thumbnail': 'https://www.hsgac.senate.gov/images/video-poster-flash-fit.png',
+        },
+    }, {
+        'url': 'https://www.senate.gov/isvp/?type=arch&comm=energy&filename=energy111722&stt=00:22:30&auto_play=false&wmode=transparent&poster=https%3A%2F%2Fwww%2Eenergy%2Esenate%2Egov%2Fthemes%2Fenergy%2Fimages%2Fvideo%2Dposter%2Dflash%2Dfit%2Epng',        'info_dict': {
+            'id': 'energy111722',
+            'ext': 'mp4',
+            'title': 'energy111722',
+            'thumbnail': 'https://www.energy.senate.gov/themes/energy/images/video-poster-flash-fit.png',
+        },
+    }, {
+        'url': 'https://www.senate.gov/isvp/?comm=foreign&type=archv&stt=0&filename=foreign080322&auto_play=false&wmode=transparent&poster=https%3A%2F%2Fwww%2Eforeign%2Esenate%2Egov%2Fthemes%2Fforeign%2Fimages%2Fvideo%2Dposter%2Dflash%2Dfit%2Epng',
+        'info_dict': {
+            'id': 'foreign080322',
+            'ext': 'mp4',
+            'title': 'foreign080322',
+            'thumbnail': 'https://www.foreign.senate.gov/themes/foreign/images/video-poster-flash-fit.png',
+        },
     }]
 
     @staticmethod
@@ -122,11 +139,9 @@ class SenateISVPIE(InfoExtractor):
             f'https://ussenate-f.akamaihd.net/i/{video_id}',
         ]
 
-
         # we iterate through the possible locations until we find a hit, that is when formats is filled.
         formats = []
         for url in possible_manifest_urls:
-            print('!!!')
             entries = self._extract_m3u8_formats(
                 url,
                 video_id,
@@ -135,7 +150,6 @@ class SenateISVPIE(InfoExtractor):
                 entry_protocol='m3u8_native',
                 fatal=False,
             )
-            print('|-|-|-|')
 
             for entry in entries:
                 mobj = re.search(r'(?P<tag>-[pb]).m3u8', entry['url'])
