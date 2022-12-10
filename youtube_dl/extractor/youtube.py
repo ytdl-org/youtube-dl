@@ -2207,7 +2207,7 @@ class YoutubeTabIE(YoutubeBaseInfoExtractor):
                     '''
     IE_NAME = 'youtube:tab'
 
-    _TESTS = [ {
+    _TESTS = [{
         # Shorts
         'url': 'https://www.youtube.com/@SuperCooperShorts/shorts',
         'playlist_mincount': 5,
