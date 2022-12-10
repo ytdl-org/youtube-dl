@@ -7,11 +7,10 @@ from ..utils import (
     ExtractorError,
     url_or_none,
     parse_duration,
-    unsmuggle_url,
-)
+    unsmuggle_url)
+
 from ..compat import (
-    compat_parse_qs,
-)
+    compat_parse_qs)
 
 
 class SenateISVPIE(InfoExtractor):
@@ -126,9 +125,7 @@ class SenateISVPIE(InfoExtractor):
         video_id = re.sub(r'\.mp4$', '', filename)
 
         # there is no point in pulling the title from the webpage since it always defaults to 'Integrated Senate Player'
-        title = filename
-        if smuggled_data:
-            title = smuggled_data['force_title']
+        title = smuggled_data.get('force_title') or filename
         stream_number, stream_domain, stream_id, msl3 = self._get_info_for_comm(committee)
 
         # the possible locations that the video could be contained at.
@@ -148,8 +145,7 @@ class SenateISVPIE(InfoExtractor):
                 ext='mp4',
                 m3u8_id='hls',
                 entry_protocol='m3u8_native',
-                fatal=False,
-            )
+                fatal=False)
 
             for entry in entries:
                 mobj = re.search(r'(?P<tag>-[pb]).m3u8', entry['url'])
