@@ -2208,6 +2208,7 @@ class YoutubeTabIE(YoutubeBaseInfoExtractor):
     IE_NAME = 'youtube:tab'
 
     _TESTS = [ {
+        # Shorts
         'url': 'https://www.youtube.com/@SuperCooperShorts/shorts',
         'playlist_mincount': 5,
         'info_dict': {
@@ -2216,7 +2217,18 @@ class YoutubeTabIE(YoutubeBaseInfoExtractor):
             'title': 'Super Cooper Shorts - Shorts',
         }
 
-    },{
+    }, {
+        # Channel that does not have a Shorts tab. Test should just download videos on Home tab instead
+        'url': 'https://www.youtube.com/@emergencyawesome/shorts',
+        'info_dict': {
+            'description': 'md5:592c080c06fef4de3c902c4a8eecd850',
+            'id': 'UCDiFRMQWpcp8_KD4vwIVicw',
+            'title': 'Emergency Awesome - Home',
+        },
+        'playlist_mincount': 5,
+    
+    
+    }, {
         # playlists, multipage
         'url': 'https://www.youtube.com/c/ИгорьКлейнер/playlists?view=1&flow=grid',
         'playlist_mincount': 94,
