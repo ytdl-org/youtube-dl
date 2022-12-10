@@ -62,17 +62,6 @@ class SenateISVPIE(InfoExtractor):
             'skip_download': True,
         },
     }, {
-        'url': 'http://www.senate.gov/isvp/?type=live&comm=commerce&filename=commerce011514.mp4&auto_play=false',
-        'info_dict': {
-            'id': 'commerce011514',
-            'ext': 'mp4',
-            'title': 'Integrated Senate Video Player'
-        },
-        'params': {
-            # m3u8 download
-            'skip_download': True,
-        },
-    }, {
         'url': 'http://www.senate.gov/isvp/?type=arch&comm=intel&filename=intel090613&hc_location=ufi',
         # checksum differs each time
         'info_dict': {
