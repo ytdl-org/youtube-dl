@@ -1,6 +1,7 @@
 from __future__ import unicode_literals
 
 import re
+# from venv import create
 
 from .common import InfoExtractor
 from ..compat import compat_parse_qs
@@ -13,7 +14,6 @@ from ..utils import (
     try_get,
     update_url_query,
 )
-
 
 class GoogleDriveIE(InfoExtractor):
     _VALID_URL = r'''(?x)
@@ -162,6 +162,14 @@ class GoogleDriveIE(InfoExtractor):
         return self._get_captions_by_type(
             video_id, subtitles_id, 'automatic_captions', origin_lang_code)
 
+
+    def _call_api(self, video_id):
+         # Call Google Drive API
+        json_data = self._download_json('https://www.googleapis.com/drive/v3/files/%s?fields=createdTime,modifiedTime,owners&key=%s' % (video_id, self._API_KEY), video_id)
+        print("_real_extract json_data: ", json_data)
+        return json_data
+
+
     # USING URL: https://drive.google.com/file/d/1lVFQrzYKnJDd045Gc9xv1W4YA9zKPX7r/view?usp=sharing
     # API KEY: AIzaSyCGrlNJSIw19pjonNQOqMIyS2Xai9g0YT0
     def _real_extract(self, url):
@@ -171,12 +179,11 @@ class GoogleDriveIE(InfoExtractor):
             'https://drive.google.com/get_video_info',
             video_id, query={'docid': video_id}))
         # print("_real_extract video_info: ", video_info)
-
-        # Call Google Drive API
-        json_data = self._download_json('https://www.googleapis.com/drive/v3/files/%s?fields=createdTime,modifiedTime,owners&key=%s' % (video_id, self._API_KEY), video_id)
-        print("_real_extract json_data: ", json_data)
-
-
+        json_data = self._call_api(video_id)
+        createdTime = json_data['createdTime']
+        modifiedTime = json_data['modifiedTime']
+        print("createdTime: ", createdTime)
+        
         def get_value(key):
             return try_get(video_info, lambda x: x[key][0])
 
