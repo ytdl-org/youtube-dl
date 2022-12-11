@@ -2216,7 +2216,6 @@ class YoutubeTabIE(YoutubeBaseInfoExtractor):
             'id': 'UCKMA8kHZ8bPYpnMNaUSxfEQ',
             'title': 'Super Cooper Shorts - Shorts',
         }
-
     }, {
         # Channel that does not have a Shorts tab. Test should just download videos on Home tab instead
         'url': 'https://www.youtube.com/@emergencyawesome/shorts',
@@ -2226,8 +2225,6 @@ class YoutubeTabIE(YoutubeBaseInfoExtractor):
             'title': 'Emergency Awesome - Home',
         },
         'playlist_mincount': 5,
-    
-    
     }, {
         # playlists, multipage
         'url': 'https://www.youtube.com/c/ИгорьКлейнер/playlists?view=1&flow=grid',
