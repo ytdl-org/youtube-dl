@@ -2699,7 +2699,8 @@ class YoutubeTabIE(YoutubeBaseInfoExtractor):
 
     def _rich_grid_entries(self, contents):
         for content in contents:
-            video_renderer = try_get(content,
+            video_renderer = try_get(
+                content,
                 (lambda x: x['richItemRenderer']['content']['videoRenderer'],
                  lambda x: x['richItemRenderer']['content']['reelItemRenderer']),
                 dict)
