@@ -2,7 +2,10 @@
 from __future__ import unicode_literals
 
 from .common import InfoExtractor
-from ..utils import traverse_obj
+from ..utils import (
+    ExtractorError,
+    traverse_obj,
+)
 
 class CallinIE(InfoExtractor):
     _VALID_URL = r'https?://(?:www\.)?callin\.com/episode/(?:[^/#?-]+-)*(?P<id>[^/#?-]+)'
@@ -38,15 +41,20 @@ class CallinIE(InfoExtractor):
         webpage = self._download_webpage(url, video_id)
         # webpage_json = self._download_json(url, video_id)
 
-        next_data = self._search_nextjs_data(webpage, video_id)['props']['pageProps']['episode']
-        title = next_data.get('title')
+        next_data = self._search_nextjs_data(webpage, video_id)
+        valid = traverse_obj(next_data, ('props', 'pageProps', 'episode'))
+        if not valid:
+            raise ExtractorError('Failed to find m3u8')
+        
+        episode = self._search_nextjs_data(webpage, video_id)['props']['pageProps']['episode']
+        title = episode.get('title')
         if not title:
             title = self._og_search_title(webpage)
-        description = next_data.get('description')
+        description = episode.get('description')
         if not description:
             description = self._og_search_description(webpage)
         
-        video_url = next_data.get('m3u8')
+        video_url = episode.get('m3u8')
         formats = self._extract_m3u8_formats(
             video_url, video_id, 'mp4')
         self._sort_formats(formats)
