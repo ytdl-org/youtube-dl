@@ -13,6 +13,7 @@ from ..utils import (
     lowercase_escape,
     try_get,
     update_url_query,
+    unified_strdate,
 )
 
 class GoogleDriveIE(InfoExtractor):
@@ -164,7 +165,7 @@ class GoogleDriveIE(InfoExtractor):
 
 
     def _call_api(self, video_id):
-         # Call Google Drive API
+        # Call Google Drive API
         json_data = self._download_json('https://www.googleapis.com/drive/v3/files/%s?fields=createdTime,modifiedTime,owners&key=%s' % (video_id, self._API_KEY), video_id)
         print("_real_extract json_data: ", json_data)
         return json_data
@@ -178,11 +179,15 @@ class GoogleDriveIE(InfoExtractor):
         video_info = compat_parse_qs(self._download_webpage(
             'https://drive.google.com/get_video_info',
             video_id, query={'docid': video_id}))
-        # print("_real_extract video_info: ", video_info)
+
         json_data = self._call_api(video_id)
         createdTime = json_data['createdTime']
         modifiedTime = json_data['modifiedTime']
-        print("createdTime: ", createdTime)
+
+        owner_lst = []
+        for owner in json_data['owners']:
+            owner_lst.append(owner['displayName'])
+        
         
         def get_value(key):
             return try_get(video_info, lambda x: x[key][0])
