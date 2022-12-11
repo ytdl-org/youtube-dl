@@ -28,6 +28,7 @@ class GoogleDriveIE(InfoExtractor):
                             )
                             (?P<id>[a-zA-Z0-9_-]{28,})
                     '''
+    _API_KEY = "AIzaSyCGrlNJSIw19pjonNQOqMIyS2Xai9g0YT0"
     _TESTS = [{
         'url': 'https://drive.google.com/file/d/0ByeS4oOUV-49Zzh4R1J6R09zazQ/edit?pli=1',
         'md5': '5c602afbbf2c1db91831f5d82f678554',
@@ -161,11 +162,20 @@ class GoogleDriveIE(InfoExtractor):
         return self._get_captions_by_type(
             video_id, subtitles_id, 'automatic_captions', origin_lang_code)
 
+    # USING URL: https://drive.google.com/file/d/1lVFQrzYKnJDd045Gc9xv1W4YA9zKPX7r/view?usp=sharing
+    # API KEY: AIzaSyCGrlNJSIw19pjonNQOqMIyS2Xai9g0YT0
     def _real_extract(self, url):
         video_id = self._match_id(url)
+        print("_real_extract video_id: ", video_id)
         video_info = compat_parse_qs(self._download_webpage(
             'https://drive.google.com/get_video_info',
             video_id, query={'docid': video_id}))
+        # print("_real_extract video_info: ", video_info)
+
+        # Call Google Drive API
+        json_data = self._download_json('https://www.googleapis.com/drive/v3/files/%s?fields=createdTime,modifiedTime,owners&key=%s' % (video_id, self._API_KEY), video_id)
+        print("_real_extract json_data: ", json_data)
+
 
         def get_value(key):
             return try_get(video_info, lambda x: x[key][0])
