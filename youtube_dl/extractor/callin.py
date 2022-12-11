@@ -5,22 +5,24 @@ from .common import InfoExtractor
 
 
 class CallinIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:www\.)?yourextractor\.com/watch/(?P<id>[0-9]+)'
-    _TEST = {
-        'url': 'https://yourextractor.com/watch/42',
+    _VALID_URL = r'https?://(?:www\.)?callin\.com/episode/(?P<id>[^/#?]+)'
+    _TESTS = [{
+        'url': 'https://www.callin.com/episode/fcc-commissioner-brendan-carr-on-elons-PrumRdSQJW',
         'md5': 'TODO: md5 sum of the first 10241 bytes of the video file (use --test)',
         'info_dict': {
             'id': '42',
             'ext': 'mp4',
-            'title': 'Video title goes here',
-            'thumbnail': r're:^https?://.*\.jpg$',
-            # TODO more properties, either as:
-            # * A value
-            # * MD5 checksum; start the string with md5:
-            # * A regular expression; start the string with re:
-            # * Any Python type (for example int or float)
+            'title': 'FCC Commissioner Brendan Carr on Elon’s Starlink',
         }
-    }
+    }, {
+        'url': 'https://www.callin.com/episode/episode-81-elites-melt-down-over-student-debt-lzxMidUnjA',
+        'md5': 'TODO: md5 sum of the first 10241 bytes of the video file (use --test)',
+        'info_dict': {
+            'id': '42',
+            'ext': 'mp4',
+            'title': 'Episode 81- Elites MELT DOWN over Student Debt Victory? Rumble in NYC?',
+        }
+    }]
 
     def _real_extract(self, url):
         video_id = self._match_id(url)
