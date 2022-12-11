@@ -130,10 +130,10 @@ class SenateISVPIE(InfoExtractor):
 
         # the possible locations that the video could be contained at.
         possible_manifest_urls = [
-            f'https://www-senate-gov-media-srs.akamaized.net/hls/live/{stream_id}/{committee}/{filename}/master.m3u8',
-            f'https://www-senate-gov-msl3archive.akamaized.net/{msl3}/{filename}_1/master.m3u8',
-            f'{stream_domain}/i/{filename}_1@{stream_number}/master.m3u8',
-            f'https://ussenate-f.akamaihd.net/i/{video_id}',
+            'https://www-senate-gov-media-srs.akamaized.net/hls/live/%d/%s/%s/master.m3u8' % (stream_id, committee, filename),
+            'https://www-senate-gov-msl3archive.akamaized.net/%s/%s_1/master.m3u8' % (msl3, filename),
+            '{stream_domain}/i/%s_1@%d/master.m3u8' % (filename, stream_number),
+            'https://ussenate-f.akamaihd.net/i/%s' % video_id,
         ]
 
         # we iterate through the possible locations until we find a hit, that is when formats is filled.
