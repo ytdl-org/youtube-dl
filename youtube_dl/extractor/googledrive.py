@@ -293,6 +293,9 @@ class GoogleDriveIE(InfoExtractor):
             'title': title,
             'thumbnail': 'https://drive.google.com/thumbnail?id=' + video_id,
             'duration': int_or_none(get_value('length_seconds')),
+            'created_date': createdTime,
+            'modified_date': modifiedTime,
+            'owners': owner_lst,
             'formats': formats,
             'subtitles': self.extract_subtitles(video_id, subtitles_id, hl),
             'automatic_captions': self.extract_automatic_captions(
