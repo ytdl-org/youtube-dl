@@ -31,7 +31,7 @@ class CallinIE(InfoExtractor):
         }
     }]
 
-    def _search_nextjs_data(self, webpage, video_id, *, transform_source=None, fatal=True, **kw):
+    def _search_nextjs_data(self, webpage, video_id, transform_source=None, fatal=True, **kw):
         return self._parse_json(
             self._search_regex(
                 r'(?s)<script[^>]+id=[\'"]__NEXT_DATA__[\'"][^>]*>([^<]+)</script>',
