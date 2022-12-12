@@ -2,6 +2,7 @@
 from __future__ import unicode_literals
 
 from .common import InfoExtractor
+from ..compat import compat_str
 from ..utils import (
     ExtractorError,
     traverse_obj,
@@ -19,6 +20,8 @@ class CallinIE(InfoExtractor):
             'ext': 'mp4',
             'title': 'FCC Commissioner Brendan Carr on Elon’s Starlink',
             'description': 'Or, why the government doesn’t like SpaceX',
+            'channel': 'The Pull Request',
+            'channel_url': 'https://callin.com/show/the-pull-request-ucnDJmEKAa',
         }
     }, {
         'url': 'https://www.callin.com/episode/episode-81-elites-melt-down-over-student-debt-lzxMidUnjA',
@@ -28,6 +31,8 @@ class CallinIE(InfoExtractor):
             'ext': 'mp4',
             'title': 'Episode 81- Elites MELT DOWN over Student Debt Victory? Rumble in NYC?',
             'description': 'Let’s talk todays episode about the primary election shake up in NYC and the elites melting down over student debt cancelation.',
+            'channel': 'The DEBRIEF With Briahna Joy Gray',
+            'channel_url': 'https://callin.com/show/the-debrief-with-briahna-joy-gray-siiFDzGegm',
         }
     }]
 
@@ -43,27 +48,26 @@ class CallinIE(InfoExtractor):
         webpage = self._download_webpage(url, video_id)
 
         next_data = self._search_nextjs_data(webpage, video_id)
-        valid = traverse_obj(next_data, ('props', 'pageProps', 'episode'))
-        if not valid:
-            raise ExtractorError('Failed to find m3u8')
+        episode = traverse_obj(next_data, ('props', 'pageProps', 'episode'), expected_type=dict)
+        if not episode:
+            raise ExtractorError('Failed to find episode data')
 
-        episode = try_get(next_data, lambda x: x['props']['pageProps']['episode'], dict)
-        title = episode.get('title')
-        if not title:
-            title = self._og_search_title(webpage)
-        description = episode.get('description')
-        if not description:
-            description = self._og_search_description(webpage)
+        title = episode.get('title') or self._og_search_title(webpage)
+        description = episode.get('description') or self._og_search_description(webpage)
 
         formats = []
-        m3u8_url = episode.get('m3u8')
-        if m3u8_url:
-            formats.extend(self._extract_m3u8_formats(
-                m3u8_url, video_id, 'mp4', fatal=False))
+        formats.extend(self._extract_m3u8_formats(
+            episode.get('m3u8'), video_id, 'mp4', fatal=False))
+        self._sort_formats(formats)
+
+        channel = try_get(episode, lambda x: x['show']['title'], compat_str)
+        channel_url = try_get(episode, lambda x: x['show']['linkObj']['resourceUrl'], compat_str)
 
         return {
             'id': video_id,
             'title': title,
             'description': description,
             'formats': formats,
+            'channel': channel,
+            'channel_url': channel_url,
         }
