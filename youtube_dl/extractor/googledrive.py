@@ -173,7 +173,6 @@ class GoogleDriveIE(InfoExtractor):
     # API KEY: AIzaSyCGrlNJSIw19pjonNQOqMIyS2Xai9g0YT0
     def _real_extract(self, url):
         video_id = self._match_id(url)
-        print("_real_extract video_id: ", video_id)
         video_info = compat_parse_qs(self._download_webpage(
             'https://drive.google.com/get_video_info',
             video_id, query={'docid': video_id}))
@@ -182,9 +181,7 @@ class GoogleDriveIE(InfoExtractor):
         createdTime = unified_strdate(json_data['createdTime'])
         modifiedTime = unified_strdate(json_data['modifiedTime'])
 
-        owner_lst = []
-        for owner in json_data['owners']:
-            owner_lst.append(owner['displayName'])
+        owner_lst = [owner['displayName'] for owner in json_data['owners']]
 
         def get_value(key):
             return try_get(video_info, lambda x: x[key][0])
