@@ -20,6 +20,7 @@ class CallinIE(InfoExtractor):
         }
     }, {
         'url': 'https://www.callin.com/episode/episode-81-elites-melt-down-over-student-debt-lzxMidUnjA',
+        'md5': '16f704ddbf82a27e3930533b12062f07',
         'info_dict': {
             'id': 'lzxMidUnjA',
             'ext': 'mp4',
