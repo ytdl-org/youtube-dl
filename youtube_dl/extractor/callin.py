@@ -11,7 +11,7 @@ class CallinIE(InfoExtractor):
     _VALID_URL = r'https?://(?:www\.)?callin\.com/episode/(?:[^/#?-]+-)*(?P<id>[^/#?-]+)'
     _TESTS = [{
         'url': 'https://www.callin.com/episode/fcc-commissioner-brendan-carr-on-elons-PrumRdSQJW',
-        'md5': '2b17390cd9f80fc3cac530883f6e3d6e',
+        'md5': '14ede27ee2c957b7e4db93140fc0745c',
         'info_dict': {
             'id': 'PrumRdSQJW',
             'ext': 'mp4',
@@ -20,7 +20,6 @@ class CallinIE(InfoExtractor):
         }
     }, {
         'url': 'https://www.callin.com/episode/episode-81-elites-melt-down-over-student-debt-lzxMidUnjA',
-        'md5': 'bd6d6b762e0d5c20cd6090e3d27534a8',
         'info_dict': {
             'id': 'lzxMidUnjA',
             'ext': 'mp4',
@@ -54,12 +53,12 @@ class CallinIE(InfoExtractor):
         if not description:
             description = self._og_search_description(webpage)
         
-        video_url = episode.get('m3u8')
-        formats = self._extract_m3u8_formats(
-            video_url, video_id, 'mp4')
-        self._sort_formats(formats)
-
-        
+        formats = []
+        m3u8_url = episode.get('m3u8')
+        if m3u8_url:
+            formats.extend(self._extract_m3u8_formats(
+                m3u8_url, video_id, 'mp4', fatal=False))
+        # self._sort_formats(formats)       
 
         return {
             'id': video_id,
