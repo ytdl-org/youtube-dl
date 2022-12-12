@@ -16,6 +16,7 @@ from ..utils import (
     unified_strdate,
 )
 
+
 class GoogleDriveIE(InfoExtractor):
     _VALID_URL = r'''(?x)
                         https?://
@@ -163,13 +164,11 @@ class GoogleDriveIE(InfoExtractor):
         return self._get_captions_by_type(
             video_id, subtitles_id, 'automatic_captions', origin_lang_code)
 
-
     def _call_api(self, video_id):
         # Call Google Drive API
         json_data = self._download_json('https://www.googleapis.com/drive/v3/files/%s?fields=createdTime,modifiedTime,owners&key=%s' % (video_id, self._API_KEY), video_id)
         print("_real_extract json_data: ", json_data)
         return json_data
-
 
     # USING URL: https://drive.google.com/file/d/1lVFQrzYKnJDd045Gc9xv1W4YA9zKPX7r/view?usp=sharing
     # API KEY: AIzaSyCGrlNJSIw19pjonNQOqMIyS2Xai9g0YT0
@@ -187,8 +186,7 @@ class GoogleDriveIE(InfoExtractor):
         owner_lst = []
         for owner in json_data['owners']:
             owner_lst.append(owner['displayName'])
-        
-        
+
         def get_value(key):
             return try_get(video_info, lambda x: x[key][0])
 
