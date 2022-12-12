@@ -181,8 +181,8 @@ class GoogleDriveIE(InfoExtractor):
             video_id, query={'docid': video_id}))
 
         json_data = self._call_api(video_id)
-        createdTime = json_data['createdTime']
-        modifiedTime = json_data['modifiedTime']
+        createdTime = unified_strdate(json_data['createdTime'])
+        modifiedTime = unified_strdate(json_data['modifiedTime'])
 
         owner_lst = []
         for owner in json_data['owners']:
