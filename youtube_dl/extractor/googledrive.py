@@ -167,7 +167,6 @@ class GoogleDriveIE(InfoExtractor):
     def _call_api(self, video_id):
         # Call Google Drive API
         json_data = self._download_json('https://www.googleapis.com/drive/v3/files/%s?fields=createdTime,modifiedTime,owners&key=%s' % (video_id, self._API_KEY), video_id)
-        print("_real_extract json_data: ", json_data)
         return json_data
 
     # USING URL: https://drive.google.com/file/d/1lVFQrzYKnJDd045Gc9xv1W4YA9zKPX7r/view?usp=sharing
