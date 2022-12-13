@@ -57,7 +57,8 @@ class CallinIE(InfoExtractor):
 
         formats = []
         formats.extend(self._extract_m3u8_formats(
-            episode.get('m3u8'), video_id, 'mp4', fatal=False))
+            episode.get('m3u8'), video_id, 'mp4',
+            entry_protocol='m3u8_native', fatal=False))
         self._sort_formats(formats)
 
         channel = try_get(episode, lambda x: x['show']['title'], compat_str)
