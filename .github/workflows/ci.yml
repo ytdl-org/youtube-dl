@@ -35,15 +35,15 @@ jobs:
           ytdl-test-set: download
           run-tests-ext: sh
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
     - name: Set up Python ${{ matrix.python-version }}
-      uses: actions/setup-python@v2
+      uses: actions/setup-python@v4
       if: ${{ matrix.python-impl == 'cpython' }}
       with:
         python-version: ${{ matrix.python-version }}
     - name: Set up Java 8
       if: ${{ matrix.python-impl == 'jython' }}
-      uses: actions/setup-java@v1
+      uses: actions/setup-java@v3
       with:
         java-version: 8
     - name: Install Jython
@@ -70,9 +70,9 @@ jobs:
     name: Linter
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
     - name: Set up Python
-      uses: actions/setup-python@v2
+      uses: actions/setup-python@v4
       with:
         python-version: 3.9
     - name: Install flake8
