@@ -13,18 +13,37 @@ INSTANCES_HOST_REGEX = '(?:' + '|'.join([instance.replace('.', r'\.') for instan
 
 class InvidiousIE(InfoExtractor):
     _VALID_URL = r'(?:https?://)?(?:www\.)?' + INSTANCES_HOST_REGEX + r'/watch\?v=(?P<id>.+)'
-    _TEST = {
-        'url': 'https://y.com.sb/watch?v=xKTygGa6hg0',
-        'md5': 'fb95b1847f5a90af14fda5273fc84fc0',
-        'info_dict': {
-            'id': 'xKTygGa6hg0',
-            'ext': 'mp4',
-            'title': 'Coding in C++ - Creating a Player Controller - CRYENGINE Summer Academy S1E5 - [Tutorial]',
-            'uploader': 'CRYENGINE',
-            'uploader_id': 'UCtaXcIVFp8HEpthm7qwtKCQ',
-            'description': 'md5:7aa75816d40ffccdbf3e15a90b05fca3',
-        }
-    }
+    _TESTS = [
+        {
+            'url': 'https://y.com.sb/watch?v=xKTygGa6hg0',
+            'info_dict': {
+                'id': 'xKTygGa6hg0',
+                'ext': 'mp4',
+                'title': 'Coding in C++ - Creating a Player Controller - CRYENGINE Summer Academy S1E5 - [Tutorial]',
+                'uploader': 'CRYENGINE',
+                'uploader_id': 'UCtaXcIVFp8HEpthm7qwtKCQ',
+                'description': 'md5:7aa75816d40ffccdbf3e15a90b05fca3',
+            }
+        },
+        {
+            'url': 'https://yt.artemislena.eu/watch?v=BaW_jenozKc',
+            'md5': '5515885fed58607bfae88f7d2090bc93',
+            'info_dict': {
+                'id': 'BaW_jenozKc',
+                'ext': 'mp4',
+                'title': 'youtube-dl test video "\'/\\ä↭𝕐',
+                'uploader': 'Philipp Hagemeister',
+                'uploader_id': 'UCLqxVugv74EIW3VWh2NOa3Q',
+                'channel_id': 'UCLqxVugv74EIW3VWh2NOa3Q',
+                'description': 'test chars:  "\'/\\ä↭𝕐\ntest URL: https://github.com/rg3/youtube-dl/issues/1892\n\nThis is a test video for youtube-dl.\n\nFor more information, contact phihag@phihag.de .',
+                'tags': ['youtube-dl'],
+                'duration': 10,
+                'view_count': int,
+                'like_count': int,
+                'dislike_count': int,
+            }
+        },
+    ]
 
     def __init__(self, downloader=None):
         super().__init__(downloader)
@@ -165,12 +184,22 @@ class InvidiousIE(InfoExtractor):
 
 class InvidiousPlaylistIE(InfoExtractor):
     _VALID_URL = r'(?:https?://)?(?:www\.)?' + INSTANCES_HOST_REGEX + r'/playlist\?list=(?P<id>.+)'
+    _TEST = {
+        'url': 'https://yt.artemislena.eu/playlist?list=PLowKtXNTBypGqImE405J2565dvjafglHU',
+        'md5': 'de4a9175071169961fe7cf2b6740da12',
+        'info_dict': {
+            'id': 'HyznrdDSSGM',
+            'ext': 'mp4',
+            'title': '8-bit computer update',
+            'uploader': 'Ben Eater',
+            'uploader_id': 'UCS0N5baNlQWJCUrhCEo8WlA',
+            'description': 'An update on my plans to build another 8-bit computer from scratch and make videos of the whole process! Buy a kit and build your own! https://eater.net/8bit/kits\n\nSupport me on Patreon: https://www.patreon.com/beneater',
+        }
+    }
 
     def _get_entries(self, api_response):
-        out = []
-        for video in api_response['videos']:
-            out.append(InvidiousIE(self._downloader)._real_extract(self.host_url + '/watch?v=' + video['videoId']))
-        return out
+        return [InvidiousIE(self._downloader)._real_extract(self.host_url + '/watch?v=' + video['videoId'])
+                for video in api_response['videos']]
 
     def _real_extract(self, url):
         playlist_id = self._match_id(url)
