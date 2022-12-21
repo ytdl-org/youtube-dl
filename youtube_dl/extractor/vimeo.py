@@ -3,25 +3,25 @@ from __future__ import unicode_literals
 
 import base64
 import functools
-import re
 import itertools
+import re
 
 from .common import InfoExtractor
 from ..compat import (
-    compat_kwargs,
     compat_HTTPError,
+    compat_kwargs,
     compat_str,
     compat_urlparse,
 )
 from ..utils import (
+    ExtractorError,
+    OnDemandPagedList,
     clean_html,
     determine_ext,
-    ExtractorError,
     get_element_by_class,
-    js_to_json,
     int_or_none,
+    js_to_json,
     merge_dicts,
-    OnDemandPagedList,
     parse_filesize,
     parse_iso8601,
     sanitized_Request,
@@ -29,11 +29,11 @@ from ..utils import (
     std_headers,
     str_or_none,
     try_get,
+    unescapeHTML,
     unified_timestamp,
     unsmuggle_url,
     urlencode_postdata,
     urljoin,
-    unescapeHTML,
 )
 
 

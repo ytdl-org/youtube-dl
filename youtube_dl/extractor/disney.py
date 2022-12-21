@@ -5,11 +5,11 @@ import re
 
 from .common import InfoExtractor
 from ..utils import (
-    int_or_none,
-    unified_strdate,
+    ExtractorError,
     compat_str,
     determine_ext,
-    ExtractorError,
+    int_or_none,
+    unified_strdate,
     update_url_query,
 )
 

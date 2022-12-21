@@ -5,28 +5,27 @@ from __future__ import unicode_literals
 import os
 import sys
 import unittest
+
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from test.helper import FakeYDL, md5
-
-
 from youtube_dl.extractor import (
-    YoutubeIE,
-    DailymotionIE,
+    NPOIE,
+    NRKTVIE,
     TEDIE,
+    CeskaTelevizeIE,
+    ComedyCentralIE,
+    DailymotionIE,
+    DemocracynowIE,
+    LyndaIE,
+    RaiPlayIE,
+    RTVEALaCartaIE,
+    ThePlatformFeedIE,
+    ThePlatformIE,
+    VikiIE,
     VimeoIE,
     WallaIE,
-    CeskaTelevizeIE,
-    LyndaIE,
-    NPOIE,
-    ComedyCentralIE,
-    NRKTVIE,
-    RaiPlayIE,
-    VikiIE,
-    ThePlatformIE,
-    ThePlatformFeedIE,
-    RTVEALaCartaIE,
-    DemocracynowIE,
+    YoutubeIE,
 )
 
 

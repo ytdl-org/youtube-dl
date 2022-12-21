@@ -2,10 +2,7 @@
 from __future__ import unicode_literals
 
 from .common import InfoExtractor
-from ..utils import (
-    smuggle_url,
-    ExtractorError,
-)
+from ..utils import ExtractorError, smuggle_url
 
 
 class SBSIE(InfoExtractor):

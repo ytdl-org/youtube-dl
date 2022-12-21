@@ -6,8 +6,8 @@ import re
 from .common import InfoExtractor
 from ..compat import compat_str
 from ..utils import (
-    dict_get,
     ExtractorError,
+    dict_get,
     int_or_none,
     parse_iso8601,
     try_get,

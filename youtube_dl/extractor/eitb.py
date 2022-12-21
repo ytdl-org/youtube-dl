@@ -2,12 +2,7 @@
 from __future__ import unicode_literals
 
 from .common import InfoExtractor
-from ..utils import (
-    float_or_none,
-    int_or_none,
-    parse_iso8601,
-    sanitized_Request,
-)
+from ..utils import float_or_none, int_or_none, parse_iso8601, sanitized_Request
 
 
 class EitbIE(InfoExtractor):

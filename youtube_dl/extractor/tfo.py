@@ -4,12 +4,7 @@ from __future__ import unicode_literals
 import json
 
 from .common import InfoExtractor
-from ..utils import (
-    HEADRequest,
-    ExtractorError,
-    int_or_none,
-    clean_html,
-)
+from ..utils import ExtractorError, HEADRequest, clean_html, int_or_none
 
 
 class TFOIE(InfoExtractor):

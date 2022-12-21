@@ -5,14 +5,12 @@ import hashlib
 import itertools
 import re
 
+from .brightcove import BrightcoveNewIE
 from .common import InfoExtractor, SearchInfoExtractor
-from ..compat import (
-    compat_str,
-    compat_urllib_parse,
-)
+from ..compat import compat_str, compat_urllib_parse
 from ..utils import (
-    clean_html,
     ExtractorError,
+    clean_html,
     int_or_none,
     mimetype2ext,
     parse_iso8601,
@@ -20,8 +18,6 @@ from ..utils import (
     try_get,
     url_or_none,
 )
-
-from .brightcove import BrightcoveNewIE
 
 
 class YahooIE(InfoExtractor):

@@ -2,9 +2,9 @@
 from __future__ import unicode_literals
 
 import base64
-import json
 import hashlib
 import hmac
+import json
 import random
 import string
 import time
@@ -12,14 +12,10 @@ import time
 from .common import InfoExtractor
 from ..compat import (
     compat_HTTPError,
-    compat_urllib_parse_urlencode,
     compat_urllib_parse,
+    compat_urllib_parse_urlencode,
 )
-from ..utils import (
-    ExtractorError,
-    float_or_none,
-    int_or_none,
-)
+from ..utils import ExtractorError, float_or_none, int_or_none
 
 
 class VRVBaseIE(InfoExtractor):

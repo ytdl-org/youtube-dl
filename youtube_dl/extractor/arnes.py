@@ -2,16 +2,8 @@
 from __future__ import unicode_literals
 
 from .common import InfoExtractor
-from ..compat import (
-    compat_parse_qs,
-    compat_urllib_parse_urlparse,
-)
-from ..utils import (
-    float_or_none,
-    int_or_none,
-    parse_iso8601,
-    remove_start,
-)
+from ..compat import compat_parse_qs, compat_urllib_parse_urlparse
+from ..utils import float_or_none, int_or_none, parse_iso8601, remove_start
 
 
 class ArnesIE(InfoExtractor):

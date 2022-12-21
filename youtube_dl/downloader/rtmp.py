@@ -9,8 +9,8 @@ from .common import FileDownloader
 from ..compat import compat_str
 from ..utils import (
     check_executable,
-    encodeFilename,
     encodeArgument,
+    encodeFilename,
     get_exe_version,
 )
 

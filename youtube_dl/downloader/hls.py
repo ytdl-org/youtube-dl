@@ -1,25 +1,18 @@
 from __future__ import unicode_literals
 
-import re
 import binascii
+import re
+
 try:
     from Crypto.Cipher import AES
     can_decrypt_frag = True
 except ImportError:
     can_decrypt_frag = False
 
-from .fragment import FragmentFD
 from .external import FFmpegFD
-
-from ..compat import (
-    compat_urllib_error,
-    compat_urlparse,
-    compat_struct_pack,
-)
-from ..utils import (
-    parse_m3u8_attributes,
-    update_url_query,
-)
+from .fragment import FragmentFD
+from ..compat import compat_struct_pack, compat_urllib_error, compat_urlparse
+from ..utils import parse_m3u8_attributes, update_url_query
 
 
 class HlsFD(FragmentFD):

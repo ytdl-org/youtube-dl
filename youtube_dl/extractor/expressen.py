@@ -4,12 +4,7 @@ from __future__ import unicode_literals
 import re
 
 from .common import InfoExtractor
-from ..utils import (
-    determine_ext,
-    int_or_none,
-    unescapeHTML,
-    unified_timestamp,
-)
+from ..utils import determine_ext, int_or_none, unescapeHTML, unified_timestamp
 
 
 class ExpressenIE(InfoExtractor):

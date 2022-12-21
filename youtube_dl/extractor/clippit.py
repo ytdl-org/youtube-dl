@@ -2,13 +2,10 @@
 
 from __future__ import unicode_literals
 
-from .common import InfoExtractor
-from ..utils import (
-    parse_iso8601,
-    qualities,
-)
-
 import re
+
+from .common import InfoExtractor
+from ..utils import parse_iso8601, qualities
 
 
 class ClippitIE(InfoExtractor):

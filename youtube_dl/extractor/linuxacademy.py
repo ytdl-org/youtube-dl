@@ -5,14 +5,10 @@ import random
 import re
 
 from .common import InfoExtractor
-from ..compat import (
-    compat_b64decode,
-    compat_HTTPError,
-    compat_str,
-)
+from ..compat import compat_b64decode, compat_HTTPError, compat_str
 from ..utils import (
-    clean_html,
     ExtractorError,
+    clean_html,
     js_to_json,
     parse_duration,
     try_get,

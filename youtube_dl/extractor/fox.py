@@ -5,11 +5,7 @@ import json
 import uuid
 
 from .adobepass import AdobePassIE
-from ..compat import (
-    compat_HTTPError,
-    compat_str,
-    compat_urllib_parse_unquote,
-)
+from ..compat import compat_HTTPError, compat_str, compat_urllib_parse_unquote
 from ..utils import (
     ExtractorError,
     int_or_none,

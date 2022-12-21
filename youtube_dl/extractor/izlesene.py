@@ -2,10 +2,7 @@
 from __future__ import unicode_literals
 
 from .common import InfoExtractor
-from ..compat import (
-    compat_str,
-    compat_urllib_parse_unquote,
-)
+from ..compat import compat_str, compat_urllib_parse_unquote
 from ..utils import (
     determine_ext,
     float_or_none,

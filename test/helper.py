@@ -1,25 +1,19 @@
 from __future__ import unicode_literals
 
 import errno
-import io
 import hashlib
+import io
 import json
 import os.path
 import re
-import types
 import ssl
 import sys
+import types
 
 import youtube_dl.extractor
 from youtube_dl import YoutubeDL
-from youtube_dl.compat import (
-    compat_os_name,
-    compat_str,
-)
-from youtube_dl.utils import (
-    preferredencoding,
-    write_string,
-)
+from youtube_dl.compat import compat_os_name, compat_str
+from youtube_dl.utils import preferredencoding, write_string
 
 
 def get_params(override=None):

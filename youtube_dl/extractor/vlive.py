@@ -5,10 +5,7 @@ import itertools
 import json
 
 from .naver import NaverBaseIE
-from ..compat import (
-    compat_HTTPError,
-    compat_str,
-)
+from ..compat import compat_HTTPError, compat_str
 from ..utils import (
     ExtractorError,
     int_or_none,

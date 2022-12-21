@@ -2,10 +2,7 @@
 from __future__ import unicode_literals
 
 from .common import InfoExtractor
-from ..utils import (
-    unified_strdate,
-    xpath_text,
-)
+from ..utils import unified_strdate, xpath_text
 
 
 class CinchcastIE(InfoExtractor):

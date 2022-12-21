@@ -7,16 +7,17 @@ from __future__ import unicode_literals
 import os
 import sys
 import unittest
+
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 
 from youtube_dl.compat import (
     compat_casefold,
-    compat_getenv,
-    compat_setenv,
     compat_etree_Element,
     compat_etree_fromstring,
     compat_expanduser,
+    compat_getenv,
+    compat_setenv,
     compat_shlex_split,
     compat_str,
     compat_struct_unpack,

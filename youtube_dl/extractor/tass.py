@@ -4,10 +4,7 @@ from __future__ import unicode_literals
 import json
 
 from .common import InfoExtractor
-from ..utils import (
-    js_to_json,
-    qualities,
-)
+from ..utils import js_to_json, qualities
 
 
 class TassIE(InfoExtractor):

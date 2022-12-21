@@ -4,11 +4,7 @@ from __future__ import unicode_literals
 import re
 
 from .common import InfoExtractor
-from ..utils import (
-    ExtractorError,
-    qualities,
-    unified_strdate,
-)
+from ..utils import ExtractorError, qualities, unified_strdate
 
 
 class MgoonIE(InfoExtractor):

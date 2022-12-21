@@ -1,18 +1,14 @@
 # coding: utf-8
 from __future__ import unicode_literals
 
-import json
 import hashlib
+import json
 import re
 
-from .aws import AWSIE
 from .anvato import AnvatoIE
+from .aws import AWSIE
 from .common import InfoExtractor
-from ..utils import (
-    smuggle_url,
-    urlencode_postdata,
-    xpath_text,
-)
+from ..utils import smuggle_url, urlencode_postdata, xpath_text
 
 
 class ScrippsNetworksWatchIE(AWSIE):

@@ -4,10 +4,7 @@ import re
 
 # from .cbs import CBSBaseIE
 from .common import InfoExtractor
-from ..utils import (
-    int_or_none,
-    try_get,
-)
+from ..utils import int_or_none, try_get
 
 
 # class CBSSportsEmbedIE(CBSBaseIE):

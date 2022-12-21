@@ -2,10 +2,7 @@
 from __future__ import unicode_literals
 
 from .common import InfoExtractor
-from ..utils import (
-    str_to_int,
-    unified_strdate,
-)
+from ..utils import str_to_int, unified_strdate
 
 
 class CloudyIE(InfoExtractor):

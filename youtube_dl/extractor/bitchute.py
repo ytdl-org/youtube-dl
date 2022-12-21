@@ -5,11 +5,7 @@ import itertools
 import re
 
 from .common import InfoExtractor
-from ..utils import (
-    orderedSet,
-    unified_strdate,
-    urlencode_postdata,
-)
+from ..utils import orderedSet, unified_strdate, urlencode_postdata
 
 
 class BitChuteIE(InfoExtractor):

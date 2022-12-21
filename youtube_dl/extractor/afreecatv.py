@@ -6,8 +6,8 @@ import re
 from .common import InfoExtractor
 from ..compat import compat_xpath
 from ..utils import (
-    determine_ext,
     ExtractorError,
+    determine_ext,
     int_or_none,
     url_or_none,
     urlencode_postdata,

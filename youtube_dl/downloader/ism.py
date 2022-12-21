@@ -1,15 +1,11 @@
 from __future__ import unicode_literals
 
-import time
 import binascii
 import io
+import time
 
 from .fragment import FragmentFD
-from ..compat import (
-    compat_Struct,
-    compat_urllib_error,
-)
-
+from ..compat import compat_Struct, compat_urllib_error
 
 u8 = compat_Struct('>B')
 u88 = compat_Struct('>Bx')

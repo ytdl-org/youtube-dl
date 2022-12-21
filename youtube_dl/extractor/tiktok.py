@@ -3,8 +3,8 @@ from __future__ import unicode_literals
 
 from .common import InfoExtractor
 from ..utils import (
-    compat_str,
     ExtractorError,
+    compat_str,
     float_or_none,
     int_or_none,
     str_or_none,

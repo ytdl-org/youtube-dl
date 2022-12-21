@@ -2,10 +2,7 @@
 from __future__ import unicode_literals
 
 from .common import InfoExtractor
-from ..compat import (
-    compat_b64decode,
-    compat_urllib_parse_unquote,
-)
+from ..compat import compat_b64decode, compat_urllib_parse_unquote
 from ..utils import int_or_none
 
 

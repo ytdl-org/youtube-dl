@@ -16,18 +16,18 @@ import locale
 import operator
 import os
 import platform
+import random
 import re
 import shutil
-import subprocess
 import socket
+import subprocess
 import sys
 import time
 import tokenize
 import traceback
-import random
-
 from string import ascii_letters
 
+from .cache import Cache
 from .compat import (
     compat_basestring,
     compat_cookiejar,
@@ -42,64 +42,10 @@ from .compat import (
     compat_urllib_request,
     compat_urllib_request_DataHandler,
 )
-from .utils import (
-    age_restricted,
-    args_to_str,
-    ContentTooShortError,
-    date_from_str,
-    DateRange,
-    DEFAULT_OUTTMPL,
-    determine_ext,
-    determine_protocol,
-    DownloadError,
-    encode_compat_str,
-    encodeFilename,
-    error_to_compat_str,
-    expand_path,
-    ExtractorError,
-    format_bytes,
-    formatSeconds,
-    GeoRestrictedError,
-    int_or_none,
-    ISO3166Utils,
-    locked_file,
-    make_HTTPS_handler,
-    MaxDownloadsReached,
-    orderedSet,
-    PagedList,
-    parse_filesize,
-    PerRequestProxyHandler,
-    platform_name,
-    PostProcessingError,
-    preferredencoding,
-    prepend_extension,
-    process_communicate_or_kill,
-    register_socks_protocols,
-    render_table,
-    replace_extension,
-    SameFileError,
-    sanitize_filename,
-    sanitize_path,
-    sanitize_url,
-    sanitized_Request,
-    std_headers,
-    str_or_none,
-    subtitles_filename,
-    UnavailableVideoError,
-    url_basename,
-    version_tuple,
-    write_json_file,
-    write_string,
-    YoutubeDLCookieJar,
-    YoutubeDLCookieProcessor,
-    YoutubeDLHandler,
-    YoutubeDLRedirectHandler,
-)
-from .cache import Cache
-from .extractor import get_info_extractor, gen_extractor_classes, _LAZY_LOADER
-from .extractor.openload import PhantomJSwrapper
 from .downloader import get_suitable_downloader
 from .downloader.rtmp import rtmpdump_version
+from .extractor import _LAZY_LOADER, gen_extractor_classes, get_info_extractor
+from .extractor.openload import PhantomJSwrapper
 from .postprocessor import (
     FFmpegFixupM3u8PP,
     FFmpegFixupM4aPP,
@@ -107,6 +53,59 @@ from .postprocessor import (
     FFmpegMergerPP,
     FFmpegPostProcessor,
     get_postprocessor,
+)
+from .utils import (
+    DEFAULT_OUTTMPL,
+    ContentTooShortError,
+    DateRange,
+    DownloadError,
+    ExtractorError,
+    GeoRestrictedError,
+    ISO3166Utils,
+    MaxDownloadsReached,
+    PagedList,
+    PerRequestProxyHandler,
+    PostProcessingError,
+    SameFileError,
+    UnavailableVideoError,
+    YoutubeDLCookieJar,
+    YoutubeDLCookieProcessor,
+    YoutubeDLHandler,
+    YoutubeDLRedirectHandler,
+    age_restricted,
+    args_to_str,
+    date_from_str,
+    determine_ext,
+    determine_protocol,
+    encode_compat_str,
+    encodeFilename,
+    error_to_compat_str,
+    expand_path,
+    format_bytes,
+    formatSeconds,
+    int_or_none,
+    locked_file,
+    make_HTTPS_handler,
+    orderedSet,
+    parse_filesize,
+    platform_name,
+    preferredencoding,
+    prepend_extension,
+    process_communicate_or_kill,
+    register_socks_protocols,
+    render_table,
+    replace_extension,
+    sanitize_filename,
+    sanitize_path,
+    sanitize_url,
+    sanitized_Request,
+    std_headers,
+    str_or_none,
+    subtitles_filename,
+    url_basename,
+    version_tuple,
+    write_json_file,
+    write_string,
 )
 from .version import __version__
 

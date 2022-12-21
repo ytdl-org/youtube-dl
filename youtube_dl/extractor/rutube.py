@@ -1,18 +1,14 @@
 # coding: utf-8
 from __future__ import unicode_literals
 
-import re
 import itertools
+import re
 
 from .common import InfoExtractor
-from ..compat import (
-    compat_str,
-    compat_parse_qs,
-    compat_urllib_parse_urlparse,
-)
+from ..compat import compat_parse_qs, compat_str, compat_urllib_parse_urlparse
 from ..utils import (
-    determine_ext,
     bool_or_none,
+    determine_ext,
     int_or_none,
     try_get,
     unified_timestamp,

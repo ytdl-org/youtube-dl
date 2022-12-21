@@ -9,8 +9,8 @@ from .common import InfoExtractor
 from ..compat import compat_str
 from ..utils import (
     ExtractorError,
-    js_to_json,
     int_or_none,
+    js_to_json,
     parse_iso8601,
     try_get,
     unescapeHTML,

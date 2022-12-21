@@ -7,9 +7,9 @@ import re
 from .common import InfoExtractor
 from .kaltura import KalturaIE
 from ..utils import (
+    OnDemandPagedList,
     extract_attributes,
     int_or_none,
-    OnDemandPagedList,
     parse_age_limit,
     strip_or_none,
     try_get,

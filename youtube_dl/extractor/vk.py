@@ -6,13 +6,18 @@ import functools
 import re
 
 from .common import InfoExtractor
+from .dailymotion import DailymotionIE
+from .odnoklassniki import OdnoklassnikiIE
+from .pladform import PladformIE
+from .vimeo import VimeoIE
+from .youtube import YoutubeIE
 from ..compat import compat_urlparse
 from ..utils import (
-    clean_html,
     ExtractorError,
+    OnDemandPagedList,
+    clean_html,
     get_element_by_class,
     int_or_none,
-    OnDemandPagedList,
     orderedSet,
     str_or_none,
     str_to_int,
@@ -21,11 +26,6 @@ from ..utils import (
     url_or_none,
     urlencode_postdata,
 )
-from .dailymotion import DailymotionIE
-from .odnoklassniki import OdnoklassnikiIE
-from .pladform import PladformIE
-from .vimeo import VimeoIE
-from .youtube import YoutubeIE
 
 
 class VKBaseIE(InfoExtractor):

@@ -6,7 +6,6 @@ import optparse
 import os
 import sys
 
-
 # Import youtube_dl
 ROOT_DIR = os.path.join(os.path.dirname(__file__), '..')
 sys.path.insert(0, ROOT_DIR)

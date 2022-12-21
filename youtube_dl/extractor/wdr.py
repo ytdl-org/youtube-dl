@@ -4,21 +4,18 @@ from __future__ import unicode_literals
 import re
 
 from .common import InfoExtractor
-from ..compat import (
-    compat_str,
-    compat_urlparse,
-)
+from ..compat import compat_str, compat_urlparse
 from ..utils import (
+    ExtractorError,
     determine_ext,
     dict_get,
-    ExtractorError,
     js_to_json,
     strip_jsonp,
     try_get,
     unified_strdate,
     update_url_query,
-    urlhandle_detect_ext,
     url_or_none,
+    urlhandle_detect_ext,
 )
 
 

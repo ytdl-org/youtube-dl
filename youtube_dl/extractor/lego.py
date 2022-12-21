@@ -6,11 +6,7 @@ import uuid
 
 from .common import InfoExtractor
 from ..compat import compat_HTTPError
-from ..utils import (
-    ExtractorError,
-    int_or_none,
-    qualities,
-)
+from ..utils import ExtractorError, int_or_none, qualities
 
 
 class LEGOIE(InfoExtractor):

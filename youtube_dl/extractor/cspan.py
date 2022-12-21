@@ -3,9 +3,11 @@ from __future__ import unicode_literals
 import re
 
 from .common import InfoExtractor
+from .senateisvp import SenateISVPIE
+from .ustream import UstreamIE
 from ..utils import (
-    determine_ext,
     ExtractorError,
+    determine_ext,
     extract_attributes,
     find_xpath_attr,
     get_element_by_attribute,
@@ -18,8 +20,6 @@ from ..utils import (
     str_to_int,
     unescapeHTML,
 )
-from .senateisvp import SenateISVPIE
-from .ustream import UstreamIE
 
 
 class CSpanIE(InfoExtractor):

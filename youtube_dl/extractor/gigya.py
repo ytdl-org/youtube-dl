@@ -1,11 +1,7 @@
 from __future__ import unicode_literals
 
 from .common import InfoExtractor
-
-from ..utils import (
-    ExtractorError,
-    urlencode_postdata,
-)
+from ..utils import ExtractorError, urlencode_postdata
 
 
 class GigyaBaseIE(InfoExtractor):

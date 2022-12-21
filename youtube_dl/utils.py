@@ -11,8 +11,8 @@ import collections
 import contextlib
 import ctypes
 import datetime
-import email.utils
 import email.header
+import email.utils
 import errno
 import functools
 import gzip
@@ -38,9 +38,6 @@ import xml.etree.ElementTree
 import zlib
 
 from .compat import (
-    compat_HTMLParseError,
-    compat_HTMLParser,
-    compat_HTTPError,
     compat_basestring,
     compat_chr,
     compat_collections_abc,
@@ -50,7 +47,10 @@ from .compat import (
     compat_expanduser,
     compat_html_entities,
     compat_html_entities_html5,
+    compat_HTMLParseError,
+    compat_HTMLParser,
     compat_http_client,
+    compat_HTTPError,
     compat_integer_types,
     compat_kwargs,
     compat_os_name,
@@ -61,18 +61,14 @@ from .compat import (
     compat_struct_unpack,
     compat_urllib_error,
     compat_urllib_parse,
+    compat_urllib_parse_unquote_plus,
     compat_urllib_parse_urlencode,
     compat_urllib_parse_urlparse,
-    compat_urllib_parse_unquote_plus,
     compat_urllib_request,
     compat_urlparse,
     compat_xpath,
 )
-
-from .socks import (
-    ProxyType,
-    sockssocket,
-)
+from .socks import ProxyType, sockssocket
 
 
 def register_socks_protocols():
@@ -2006,6 +2002,7 @@ def get_elements_by_attribute(attribute, value, html, escape_value=True):
 
 class HTMLAttributeParser(compat_HTMLParser):
     """Trivial HTML parser to gather the attributes for a single element"""
+
     def __init__(self):
         self.attrs = {}
         compat_HTMLParser.__init__(self)
@@ -2230,7 +2227,7 @@ def _htmlentity_transform(entity_with_semicolon):
 def unescapeHTML(s):
     if s is None:
         return None
-    assert type(s) == compat_str
+    assert isinstance(s, compat_str)
 
     return re.sub(
         r'&([^&;]+;)', lambda m: _htmlentity_transform(m.group(1)), s)
@@ -2262,7 +2259,7 @@ def encodeFilename(s, for_subprocess=False):
     @param s The name of the file
     """
 
-    assert type(s) == compat_str
+    assert isinstance(s, compat_str)
 
     # Python 3 has a Unicode API
     if sys.version_info >= (3, 0):
@@ -2431,6 +2428,7 @@ class GeoRestrictedError(ExtractorError):
     This exception may be thrown when a video is not available from your
     geographic location due to geographic restrictions imposed by a website.
     """
+
     def __init__(self, msg, countries=None):
         super(GeoRestrictedError, self).__init__(msg, expected=True)
         self.msg = msg
@@ -3278,7 +3276,7 @@ def _windows_write_string(s, out):
 def write_string(s, out=None, encoding=None):
     if out is None:
         out = sys.stderr
-    assert type(s) == compat_str
+    assert isinstance(s, compat_str)
 
     if sys.platform == 'win32' and encoding is None and hasattr(out, 'fileno'):
         if _windows_write_string(s, out):
@@ -3456,7 +3454,7 @@ def unsmuggle_url(smug_url, default=None):
 def format_bytes(bytes):
     if bytes is None:
         return 'N/A'
-    if type(bytes) is str:
+    if isinstance(bytes, str):
         bytes = float(bytes)
     if bytes == 0.0:
         exponent = 0

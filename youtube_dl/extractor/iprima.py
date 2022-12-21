@@ -5,10 +5,7 @@ import re
 import time
 
 from .common import InfoExtractor
-from ..utils import (
-    determine_ext,
-    js_to_json,
-)
+from ..utils import determine_ext, js_to_json
 
 
 class IPrimaIE(InfoExtractor):

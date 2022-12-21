@@ -1,10 +1,10 @@
-from __future__ import unicode_literals, print_function
+from __future__ import print_function, unicode_literals
 
-from inspect import getsource
 import io
 import os
-from os.path import dirname as dirn
 import sys
+from inspect import getsource
+from os.path import dirname as dirn
 
 print('WARNING: Lazy loading extractors is an experimental feature that may not always work', file=sys.stderr)
 

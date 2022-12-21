@@ -11,9 +11,9 @@ from ..compat import (
     compat_urlparse,
 )
 from ..utils import (
+    ExtractorError,
     determine_ext,
     extract_attributes,
-    ExtractorError,
     float_or_none,
     int_or_none,
     js_to_json,

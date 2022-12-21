@@ -7,20 +7,17 @@ import sys
 import time
 
 from .common import FileDownloader
-from ..compat import (
-    compat_setenv,
-    compat_str,
-)
-from ..postprocessor.ffmpeg import FFmpegPostProcessor, EXT_TO_OUT_FORMATS
+from ..compat import compat_setenv, compat_str
+from ..postprocessor.ffmpeg import EXT_TO_OUT_FORMATS, FFmpegPostProcessor
 from ..utils import (
-    cli_option,
-    cli_valueless_option,
+    check_executable,
     cli_bool_option,
     cli_configuration_args,
-    encodeFilename,
+    cli_option,
+    cli_valueless_option,
     encodeArgument,
+    encodeFilename,
     handle_youtubedl_headers,
-    check_executable,
     is_outdated_version,
     process_communicate_or_kill,
 )

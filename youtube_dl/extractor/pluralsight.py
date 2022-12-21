@@ -7,13 +7,10 @@ import random
 import re
 
 from .common import InfoExtractor
-from ..compat import (
-    compat_str,
-    compat_urlparse,
-)
+from ..compat import compat_str, compat_urlparse
 from ..utils import (
-    dict_get,
     ExtractorError,
+    dict_get,
     float_or_none,
     int_or_none,
     parse_duration,

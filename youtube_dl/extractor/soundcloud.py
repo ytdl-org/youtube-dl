@@ -4,10 +4,7 @@ from __future__ import unicode_literals
 import itertools
 import re
 
-from .common import (
-    InfoExtractor,
-    SearchInfoExtractor
-)
+from .common import InfoExtractor, SearchInfoExtractor
 from ..compat import (
     compat_HTTPError,
     compat_kwargs,
@@ -15,12 +12,12 @@ from ..compat import (
     compat_urlparse,
 )
 from ..utils import (
-    error_to_compat_str,
-    ExtractorError,
-    float_or_none,
-    HEADRequest,
-    int_or_none,
     KNOWN_EXTENSIONS,
+    ExtractorError,
+    HEADRequest,
+    error_to_compat_str,
+    float_or_none,
+    int_or_none,
     mimetype2ext,
     str_or_none,
     try_get,

@@ -2,11 +2,7 @@
 from __future__ import unicode_literals
 
 from .common import InfoExtractor
-from ..utils import (
-    ExtractorError,
-    merge_dicts,
-    urljoin,
-)
+from ..utils import ExtractorError, merge_dicts, urljoin
 
 
 class WakanimIE(InfoExtractor):

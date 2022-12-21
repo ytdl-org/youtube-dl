@@ -14,8 +14,8 @@ from ..compat import compat_str
 from ..utils import (
     bytes_to_intlist,
     determine_ext,
-    intlist_to_bytes,
     int_or_none,
+    intlist_to_bytes,
     strip_jsonp,
     unescapeHTML,
     unsmuggle_url,

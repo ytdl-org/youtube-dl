@@ -1,17 +1,15 @@
 # coding: utf-8
 from __future__ import unicode_literals
 
-
 import os
 import subprocess
 
 from .ffmpeg import FFmpegPostProcessor
-
 from ..utils import (
+    PostProcessingError,
     check_executable,
     encodeArgument,
     encodeFilename,
-    PostProcessingError,
     prepend_extension,
     process_communicate_or_kill,
     replace_extension,

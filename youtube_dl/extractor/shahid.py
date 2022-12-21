@@ -8,9 +8,9 @@ import re
 from .aws import AWSIE
 from ..compat import compat_HTTPError
 from ..utils import (
-    clean_html,
     ExtractorError,
     InAdvancePagedList,
+    clean_html,
     int_or_none,
     parse_iso8601,
     str_or_none,

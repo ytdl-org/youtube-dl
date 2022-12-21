@@ -2,11 +2,7 @@ from __future__ import unicode_literals
 
 import os
 
-from ..utils import (
-    PostProcessingError,
-    cli_configuration_args,
-    encodeFilename,
-)
+from ..utils import PostProcessingError, cli_configuration_args, encodeFilename
 
 
 class PostProcessor(object):

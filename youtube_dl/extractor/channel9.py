@@ -4,8 +4,8 @@ import re
 
 from .common import InfoExtractor
 from ..utils import (
-    clean_html,
     ExtractorError,
+    clean_html,
     int_or_none,
     parse_iso8601,
     qualities,

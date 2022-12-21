@@ -5,9 +5,9 @@ import re
 
 from .common import InfoExtractor
 from ..utils import (
+    ExtractorError,
     clean_html,
     dict_get,
-    ExtractorError,
     int_or_none,
     parse_duration,
     try_get,

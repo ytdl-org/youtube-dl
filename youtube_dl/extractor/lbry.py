@@ -12,11 +12,11 @@ from ..compat import (
     compat_urllib_parse_urlparse,
 )
 from ..utils import (
-    determine_ext,
     ExtractorError,
+    OnDemandPagedList,
+    determine_ext,
     int_or_none,
     mimetype2ext,
-    OnDemandPagedList,
     try_get,
     urljoin,
 )

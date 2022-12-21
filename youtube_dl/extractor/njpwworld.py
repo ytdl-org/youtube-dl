@@ -5,10 +5,7 @@ import re
 
 from .common import InfoExtractor
 from ..compat import compat_urlparse
-from ..utils import (
-    get_element_by_class,
-    urlencode_postdata,
-)
+from ..utils import get_element_by_class, urlencode_postdata
 
 
 class NJPWWorldIE(InfoExtractor):

@@ -9,15 +9,11 @@ import random
 
 from .common import InfoExtractor
 from ..aes import aes_cbc_decrypt
-from ..compat import (
-    compat_HTTPError,
-    compat_b64decode,
-    compat_ord,
-)
+from ..compat import compat_b64decode, compat_HTTPError, compat_ord
 from ..utils import (
+    ExtractorError,
     bytes_to_intlist,
     bytes_to_long,
-    ExtractorError,
     float_or_none,
     int_or_none,
     intlist_to_bytes,

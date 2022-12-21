@@ -5,11 +5,7 @@ import codecs
 import re
 
 from .common import InfoExtractor
-from ..compat import (
-    compat_chr,
-    compat_ord,
-    compat_urllib_parse_unquote,
-)
+from ..compat import compat_chr, compat_ord, compat_urllib_parse_unquote
 from ..utils import (
     ExtractorError,
     float_or_none,

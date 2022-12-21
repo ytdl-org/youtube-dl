@@ -3,18 +3,18 @@
 import argparse
 import ctypes
 import functools
+import os.path
 import shutil
 import subprocess
 import sys
 import tempfile
 import threading
 import traceback
-import os.path
 
 sys.path.insert(0, os.path.dirname(os.path.dirname((os.path.abspath(__file__)))))
 from youtube_dl.compat import (
-    compat_input,
     compat_http_server,
+    compat_input,
     compat_str,
     compat_urlparse,
 )
@@ -336,7 +336,7 @@ class YoutubeDLBuilder(object):
         try:
             proc = subprocess.Popen([os.path.join(self.pythonPath, 'python.exe'), 'setup.py', 'py2exe'], stdin=subprocess.PIPE, cwd=self.buildPath)
             proc.wait()
-            #subprocess.check_output([os.path.join(self.pythonPath, 'python.exe'), 'setup.py', 'py2exe'],
+            # subprocess.check_output([os.path.join(self.pythonPath, 'python.exe'), 'setup.py', 'py2exe'],
             #                        cwd=self.buildPath)
         except subprocess.CalledProcessError as e:
             raise BuildError(e.output)
@@ -428,6 +428,7 @@ class BuildHTTPRequestHandler(compat_http_server.BaseHTTPRequestHandler):
                 self.send_response(500, 'Unknown build method "%s"' % action)
         else:
             self.send_response(500, 'Malformed URL')
+
 
 if __name__ == '__main__':
     main()

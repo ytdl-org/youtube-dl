@@ -4,21 +4,21 @@
 from __future__ import print_function
 
 import os.path
-import warnings
 import sys
+import warnings
 
 try:
-    from setuptools import setup, Command
+    from setuptools import Command, setup
     setuptools_available = True
 except ImportError:
-    from distutils.core import setup, Command
+    from distutils.core import Command, setup
     setuptools_available = False
 from distutils.spawn import spawn
 
 try:
     # This will create an exe that needs Microsoft Visual C++ 2008
     # Redistributable Package
-    import py2exe
+    import py2exe  # noqa: F401
 except ImportError:
     if len(sys.argv) >= 2 and sys.argv[1] == 'py2exe':
         print('Cannot import py2exe', file=sys.stderr)
@@ -42,11 +42,11 @@ LONG_DESCRIPTION = 'Command-line program to download videos from YouTube.com and
 py2exe_console = [{
     'script': './youtube_dl/__main__.py',
     'dest_base': 'youtube-dl',
-    'version': __version__,
+    'version': __version__,  # noqa: F821
     'description': DESCRIPTION,
     'comments': LONG_DESCRIPTION,
     'product_name': 'youtube-dl',
-    'product_version': __version__,
+    'product_version': __version__,  # noqa: F821
 }]
 
 py2exe_params = {
@@ -83,6 +83,7 @@ else:
     else:
         params['scripts'] = ['bin/youtube-dl']
 
+
 class build_lazy_extractors(Command):
     description = 'Build the extractor lazy loading module'
     user_options = []
@@ -99,9 +100,10 @@ class build_lazy_extractors(Command):
             dry_run=self.dry_run,
         )
 
+
 setup(
     name='youtube_dl',
-    version=__version__,
+    version=__version__,  # noqa: F821
     description=DESCRIPTION,
     long_description=LONG_DESCRIPTION,
     url='https://github.com/ytdl-org/youtube-dl',

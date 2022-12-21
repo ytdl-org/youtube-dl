@@ -11,14 +11,14 @@ from .common import InfoExtractor
 from ..compat import (
     compat_parse_qs,
     compat_str,
-    compat_urlparse,
     compat_urllib_parse_urlencode,
     compat_urllib_parse_urlparse,
+    compat_urlparse,
 )
 from ..utils import (
+    ExtractorError,
     clean_html,
     dict_get,
-    ExtractorError,
     float_or_none,
     int_or_none,
     parse_duration,

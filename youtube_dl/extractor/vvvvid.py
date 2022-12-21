@@ -5,11 +5,7 @@ import re
 
 from .common import InfoExtractor
 from .youtube import YoutubeIE
-from ..utils import (
-    ExtractorError,
-    int_or_none,
-    str_or_none,
-)
+from ..utils import ExtractorError, int_or_none, str_or_none
 
 
 class VVVVIDIE(InfoExtractor):

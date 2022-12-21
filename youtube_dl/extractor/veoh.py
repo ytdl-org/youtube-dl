@@ -1,11 +1,7 @@
 from __future__ import unicode_literals
 
 from .common import InfoExtractor
-from ..utils import (
-    int_or_none,
-    parse_duration,
-    qualities,
-)
+from ..utils import int_or_none, parse_duration, qualities
 
 
 class VeohIE(InfoExtractor):

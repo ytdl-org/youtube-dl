@@ -1,13 +1,11 @@
 # coding: utf-8
 from __future__ import unicode_literals
 
-import re
 import itertools
+import re
 
 from .common import InfoExtractor
-from ..compat import (
-    compat_urlparse,
-)
+from ..compat import compat_urlparse
 from ..utils import (
     clean_html,
     get_element_by_class,

@@ -1,14 +1,8 @@
 from __future__ import unicode_literals
 
 from .common import InfoExtractor
-from ..compat import (
-    compat_str,
-    compat_urlparse,
-)
-from ..utils import (
-    int_or_none,
-    unified_timestamp,
-)
+from ..compat import compat_str, compat_urlparse
+from ..utils import int_or_none, unified_timestamp
 
 
 class BeegIE(InfoExtractor):

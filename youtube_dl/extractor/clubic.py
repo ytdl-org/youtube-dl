@@ -2,10 +2,7 @@
 from __future__ import unicode_literals
 
 from .common import InfoExtractor
-from ..utils import (
-    clean_html,
-    qualities,
-)
+from ..utils import clean_html, qualities
 
 
 class ClubicIE(InfoExtractor):

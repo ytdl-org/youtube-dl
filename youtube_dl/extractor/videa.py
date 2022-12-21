@@ -6,6 +6,12 @@ import re
 import string
 
 from .common import InfoExtractor
+from ..compat import (
+    compat_b64decode,
+    compat_ord,
+    compat_struct_pack,
+    compat_urlparse,
+)
 from ..utils import (
     ExtractorError,
     int_or_none,
@@ -15,12 +21,6 @@ from ..utils import (
     urljoin,
     xpath_element,
     xpath_text,
-)
-from ..compat import (
-    compat_b64decode,
-    compat_ord,
-    compat_struct_pack,
-    compat_urlparse,
 )
 
 

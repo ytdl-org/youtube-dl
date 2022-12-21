@@ -1,16 +1,11 @@
 # coding: utf-8
 from __future__ import unicode_literals
 
+import re
+
 from .common import InfoExtractor
 from ..compat import compat_str
-from ..utils import (
-    parse_duration,
-    int_or_none,
-    try_get,
-    url_or_none,
-)
-
-import re
+from ..utils import int_or_none, parse_duration, try_get, url_or_none
 
 
 class NuvidIE(InfoExtractor):

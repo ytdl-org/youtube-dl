@@ -6,13 +6,13 @@ import re
 from .common import InfoExtractor
 from ..compat import compat_str
 from ..utils import (
-    determine_ext,
+    NO_DEFAULT,
     ExtractorError,
+    determine_ext,
     extract_attributes,
     float_or_none,
     int_or_none,
     merge_dicts,
-    NO_DEFAULT,
     parse_codecs,
     qualities,
     str_or_none,

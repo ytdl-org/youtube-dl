@@ -10,14 +10,9 @@ from ..compat import (
     compat_ord,
     compat_str,
     compat_urllib_parse_unquote,
-    compat_zip
+    compat_zip,
 )
-from ..utils import (
-    int_or_none,
-    parse_iso8601,
-    strip_or_none,
-    try_get,
-)
+from ..utils import int_or_none, parse_iso8601, strip_or_none, try_get
 
 
 class MixcloudBaseIE(InfoExtractor):

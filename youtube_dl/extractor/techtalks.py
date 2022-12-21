@@ -3,10 +3,7 @@ from __future__ import unicode_literals
 import re
 
 from .common import InfoExtractor
-from ..utils import (
-    get_element_by_attribute,
-    clean_html,
-)
+from ..utils import clean_html, get_element_by_attribute
 
 
 class TechTalksIE(InfoExtractor):

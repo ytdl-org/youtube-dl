@@ -4,10 +4,7 @@ from __future__ import unicode_literals
 import re
 
 from .common import InfoExtractor
-from ..utils import (
-    determine_ext,
-    unescapeHTML,
-)
+from ..utils import determine_ext, unescapeHTML
 
 
 class CJSWIE(InfoExtractor):

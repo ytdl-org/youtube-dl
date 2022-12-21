@@ -4,14 +4,14 @@ from __future__ import unicode_literals
 import json
 import re
 
-from .common import InfoExtractor
 from .brightcove import BrightcoveNewIE
+from .common import InfoExtractor
 from ..utils import (
+    JSON_LD_RE,
     clean_html,
     determine_ext,
     extract_attributes,
     get_element_by_class,
-    JSON_LD_RE,
     merge_dicts,
     parse_duration,
     smuggle_url,

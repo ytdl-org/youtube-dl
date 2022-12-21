@@ -4,12 +4,7 @@ from __future__ import unicode_literals
 import re
 
 from .common import InfoExtractor
-from ..utils import (
-    clean_html,
-    clean_podcast_url,
-    int_or_none,
-    parse_iso8601,
-)
+from ..utils import clean_html, clean_podcast_url, int_or_none, parse_iso8601
 
 
 class ACastBaseIE(InfoExtractor):

@@ -7,21 +7,17 @@ import json
 import re
 
 from .common import InfoExtractor, SearchInfoExtractor
+from ..compat import compat_parse_qs, compat_str, compat_urllib_parse_urlparse
 from ..postprocessor.ffmpeg import FFmpegPostProcessor
-from ..compat import (
-    compat_parse_qs,
-    compat_str,
-    compat_urllib_parse_urlparse,
-)
 from ..utils import (
     ExtractorError,
+    OnDemandPagedList,
+    PostProcessingError,
     dict_get,
     float_or_none,
     int_or_none,
-    OnDemandPagedList,
     parse_duration,
     parse_iso8601,
-    PostProcessingError,
     remove_start,
     str_or_none,
     try_get,

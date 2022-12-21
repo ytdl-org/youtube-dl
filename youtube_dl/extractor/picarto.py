@@ -2,10 +2,7 @@
 from __future__ import unicode_literals
 
 from .common import InfoExtractor
-from ..utils import (
-    ExtractorError,
-    js_to_json,
-)
+from ..utils import ExtractorError, js_to_json
 
 
 class PicartoIE(InfoExtractor):

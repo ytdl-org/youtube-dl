@@ -11,15 +11,12 @@ import time
 from .adobepass import AdobePassIE
 from .common import InfoExtractor
 from .youtube import YoutubeIE
-from ..compat import (
-    compat_HTTPError,
-    compat_str,
-)
+from ..compat import compat_HTTPError, compat_str
 from ..utils import (
-    clean_html,
     ExtractorError,
-    int_or_none,
     OnDemandPagedList,
+    clean_html,
+    int_or_none,
     parse_age_limit,
     str_or_none,
     try_get,

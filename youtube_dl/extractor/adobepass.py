@@ -6,18 +6,14 @@ import time
 import xml.etree.ElementTree as etree
 
 from .common import InfoExtractor
-from ..compat import (
-    compat_kwargs,
-    compat_urlparse,
-)
+from ..compat import compat_kwargs, compat_urlparse
 from ..utils import (
-    unescapeHTML,
-    urlencode_postdata,
-    unified_timestamp,
-    ExtractorError,
     NO_DEFAULT,
+    ExtractorError,
+    unescapeHTML,
+    unified_timestamp,
+    urlencode_postdata,
 )
-
 
 MSO_INFO = {
     'DTV': {

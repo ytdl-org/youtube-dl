@@ -4,10 +4,7 @@ from __future__ import unicode_literals
 import re
 
 from .common import InfoExtractor
-from ..compat import (
-    compat_b64decode,
-    compat_chr,
-)
+from ..compat import compat_b64decode, compat_chr
 from ..utils import int_or_none
 
 

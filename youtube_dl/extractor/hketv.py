@@ -4,8 +4,8 @@ from __future__ import unicode_literals
 from .common import InfoExtractor
 from ..compat import compat_str
 from ..utils import (
-    clean_html,
     ExtractorError,
+    clean_html,
     int_or_none,
     merge_dicts,
     parse_count,

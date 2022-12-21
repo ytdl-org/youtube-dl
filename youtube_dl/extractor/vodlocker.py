@@ -3,8 +3,8 @@ from __future__ import unicode_literals
 
 from .common import InfoExtractor
 from ..utils import (
-    ExtractorError,
     NO_DEFAULT,
+    ExtractorError,
     sanitized_Request,
     urlencode_postdata,
 )
