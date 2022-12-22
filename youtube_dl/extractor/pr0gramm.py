@@ -80,7 +80,7 @@ class Pr0grammStaticIE(InfoExtractor):
 class Pr0grammIE(InfoExtractor):
     # https://pr0gramm.com/new/546637
     # https://pr0gramm.com/new/video/546637
-    _VALID_URL = r'https?://pr0gramm\.com/(?:new|top)/([^/]+/)?(?P<id>[0-9]+)'
+    _VALID_URL = r'https?://pr0gramm\.com/(?:new|top)/(?:[^/]+/)?(?P<id>[0-9]+)'
     _TEST = {
         'url': 'https://pr0gramm.com/new/video/5466437',
         'info_dict': {
@@ -98,7 +98,6 @@ class Pr0grammIE(InfoExtractor):
     def _real_extract(self, url):
         video_id = self._match_id(url)
 
-        # Since t
         return self.url_result(
             'https://pr0gramm.com/static/' + video_id,
             video_id=video_id,
