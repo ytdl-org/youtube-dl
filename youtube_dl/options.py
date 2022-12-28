@@ -205,7 +205,7 @@ def parseOpts(overrideArguments=None):
         default=None, metavar='URL',
         help='Use the specified HTTP/HTTPS/SOCKS proxy. To enable '
              'SOCKS proxy, specify a proper scheme. For example '
-             'socks5://127.0.0.1:1080/. Pass in an empty string (--proxy "") '
+             'socks5h://127.0.0.1:1080/. Pass in an empty string (--proxy "") '
              'for direct connection')
     network.add_option(
         '--socket-timeout',

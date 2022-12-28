@@ -79,7 +79,7 @@ def register_socks_protocols():
     # "Register" SOCKS protocols
     # In Python < 2.6.5, urlsplit() suffers from bug https://bugs.python.org/issue7904
     # URLs with protocols not in urlparse.uses_netloc are not handled correctly
-    for scheme in ('socks', 'socks4', 'socks4a', 'socks5'):
+    for scheme in ('socks', 'socks4', 'socks4a', 'socks5', 'socks5h'):
         if scheme not in compat_urlparse.uses_netloc:
             compat_urlparse.uses_netloc.append(scheme)
 
@@ -2726,7 +2726,7 @@ def make_socks_conn_class(base_class, socks_proxy):
         compat_http_client.HTTPConnection, compat_http_client.HTTPSConnection))
 
     url_components = compat_urlparse.urlparse(socks_proxy)
-    if url_components.scheme.lower() == 'socks5':
+    if url_components.scheme.lower() in ('socks5', 'socks5h'):
         socks_type = ProxyType.SOCKS5
     elif url_components.scheme.lower() in ('socks', 'socks4'):
         socks_type = ProxyType.SOCKS4
@@ -5586,7 +5586,7 @@ class PerRequestProxyHandler(compat_urllib_request.ProxyHandler):
 
         if proxy == '__noproxy__':
             return None  # No Proxy
-        if compat_urlparse.urlparse(proxy).scheme.lower() in ('socks', 'socks4', 'socks4a', 'socks5'):
+        if compat_urlparse.urlparse(proxy).scheme.lower() in ('socks', 'socks4', 'socks4a', 'socks5', 'socks5h'):
             req.add_header('Ytdl-socks-proxy', proxy)
             # youtube-dl's http/https handlers do wrapping the socket with socks
             return None
