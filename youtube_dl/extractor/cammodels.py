@@ -62,15 +62,14 @@ class CamModelsIE(InfoExtractor):
                         # hls skips fragments, preferring rtmp
                         'preference': -1,
                     })
-                elif format_id == 'jpeg':
-                    thumbnails.append({
-                        'url': f.get('url'),
-                        'width': f.get('width'),
-                        'height': f.get('height'),
-                        'format_id': f.get('format_id')
-                    })
-                    continue
                 else:
+                    if format_id == 'jpeg':
+                        thumbnails.append({
+                            'url': f['url'],
+                            'width': f['width'],
+                            'height': f['height'],
+                            'format_id': f['format_id'],
+                        })
                     continue
                 formats.append(f)
         self._sort_formats(formats)
