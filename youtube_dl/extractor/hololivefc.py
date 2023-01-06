@@ -2,7 +2,7 @@
 from __future__ import unicode_literals
 
 from .common import InfoExtractor
-from ..utils import 
+from ..utils import (
     try_get,
     unified_timestamp,
 )
