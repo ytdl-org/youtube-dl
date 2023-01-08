@@ -87,6 +87,7 @@ from .utils import (
     subtitles_filename,
     UnavailableVideoError,
     url_basename,
+    variadic,
     version_tuple,
     write_json_file,
     write_string,
@@ -1298,57 +1299,46 @@ class YoutubeDL(object):
                 format_spec = selector.selector
 
                 def selector_function(ctx):
-                    formats = list(ctx['formats'])
-                    if not formats:
-                        return
-                    if format_spec == 'all':
-                        for f in formats:
-                            yield f
-                    elif format_spec in ['best', 'worst', None]:
-                        format_idx = 0 if format_spec == 'worst' else -1
+
+                    def best_worst(fmts, fmt_spec='best'):
+                        format_idx = 0 if fmt_spec == 'worst' else -1
                         audiovideo_formats = [
-                            f for f in formats
+                            f for f in fmts
                             if f.get('vcodec') != 'none' and f.get('acodec') != 'none']
                         if audiovideo_formats:
-                            yield audiovideo_formats[format_idx]
+                            return audiovideo_formats[format_idx]
                         # for extractors with incomplete formats (audio only (soundcloud)
                         # or video only (imgur)) we will fallback to best/worst
                         # {video,audio}-only format
                         elif ctx['incomplete_formats']:
-                            yield formats[format_idx]
-                    elif format_spec == 'bestaudio':
+                            return fmts[format_idx]
+
+                    formats = list(ctx['formats'])
+                    if not formats:
+                        return
+                    if format_spec == 'all':
+                        pass
+                    elif format_spec in ('best', 'worst', None):
+                        formats = best_worst(formats, format_spec)
+                    elif format_spec in ('bestaudio', 'worstaudio'):
                         audio_formats = [
                             f for f in formats
                             if f.get('vcodec') == 'none']
-                        if audio_formats:
-                            yield audio_formats[-1]
-                    elif format_spec == 'worstaudio':
-                        audio_formats = [
-                            f for f in formats
-                            if f.get('vcodec') == 'none']
-                        if audio_formats:
-                            yield audio_formats[0]
-                    elif format_spec == 'bestvideo':
+                        formats = audio_formats[:1] if format_spec == 'worstaudio' else audio_formats[-1:]
+                    elif format_spec in ('bestvideo', 'worstvideo'):
                         video_formats = [
                             f for f in formats
                             if f.get('acodec') == 'none']
-                        if video_formats:
-                            yield video_formats[-1]
-                    elif format_spec == 'worstvideo':
-                        video_formats = [
-                            f for f in formats
-                            if f.get('acodec') == 'none']
-                        if video_formats:
-                            yield video_formats[0]
+                        formats = video_formats[:1] if format_spec == 'worstvideo' else video_formats[-1:]
                     else:
                         extensions = ['mp4', 'flv', 'webm', '3gp', 'm4a', 'mp3', 'ogg', 'aac', 'wav']
                         if format_spec in extensions:
                             filter_f = lambda f: f['ext'] == format_spec
                         else:
                             filter_f = lambda f: f['format_id'] == format_spec
-                        matches = list(filter(filter_f, formats))
-                        if matches:
-                            yield matches[-1]
+                        formats = best_worst(filter(filter_f, formats))
+                    for f in variadic(formats or []):
+                        yield f
             elif selector.type == MERGE:
                 def _merge(formats_info):
                     format_1, format_2 = [f['format_id'] for f in formats_info]
