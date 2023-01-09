@@ -1311,7 +1311,7 @@ class YoutubeDL(object):
                         # or video only (imgur)) we will fallback to best/worst
                         # {video,audio}-only format
                         elif ctx['incomplete_formats']:
-                            return fmts[format_idx]
+                            return list(fmts)[format_idx]
 
                     formats = list(ctx['formats'])
                     if not formats:
