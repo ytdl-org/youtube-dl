@@ -1311,7 +1311,7 @@ class YoutubeDL(object):
                         # or video only (imgur)) we will fallback to best/worst
                         # {video,audio}-only format
                         elif ctx['incomplete_formats']:
-                            return list(fmts)[format_idx]
+                            return fmts[format_idx]
 
                     formats = list(ctx['formats'])
                     if not formats:
@@ -1336,7 +1336,7 @@ class YoutubeDL(object):
                             filter_f = lambda f: f['ext'] == format_spec
                         else:
                             filter_f = lambda f: f['format_id'] == format_spec
-                        formats = best_worst(filter(filter_f, formats))
+                        formats = best_worst(list(filter(filter_f, formats)))
                     for f in variadic(formats or []):
                         yield f
             elif selector.type == MERGE:
