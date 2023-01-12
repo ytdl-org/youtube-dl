@@ -18,7 +18,7 @@ class Pr0grammStaticIE(InfoExtractor):
         'info_dict': {
             'id': '5466437',
             'ext': 'mp4',
-            'title': 'pr0gramm',
+            'title': 'pr0gramm - 5466437',
             'uploader': 'g11st',
             'upload_date': '20221221',
         }
@@ -56,7 +56,7 @@ class Pr0grammStaticIE(InfoExtractor):
 
         return merge_dicts({
             'id': video_id,
-            'title': 'pr0gramm',  # Posts don't have titles. The id seems to be postfixed by yt-dl automatically.
+            'title': 'pr0gramm - %s' % video_id,
             'uploader': uploader,
             'upload_date': uploadTimestr
         }, media_info)
@@ -76,11 +76,14 @@ class Pr0grammIE(InfoExtractor):
         'info_dict': {
             'id': '5466437',
             'ext': 'mp4',
-            'title': 'pr0gramm',
+            'title': 'pr0gramm - 5466437',
             'uploader': 'g11st',
             'upload_date': '20221221',
         }
     }
+
+    def _generic_title():
+        return "oof"
 
     def _real_extract(self, url):
         video_id = self._match_id(url)
