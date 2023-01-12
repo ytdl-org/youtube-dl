@@ -68,9 +68,19 @@ class Pr0grammStaticIE(InfoExtractor):
 # the site, which does contain the <video>-element  by itself,  without requiring
 # js to be ran.
 class Pr0grammIE(InfoExtractor):
+    # Possible urls:
     # https://pr0gramm.com/new/546637
     # https://pr0gramm.com/new/video/546637
-    _VALID_URL = r'https?://pr0gramm\.com/(?:new|top)/(?:[^/]+/)?(?P<id>[0-9]+)'
+    # https://pr0gramm.com/top/546637
+    # https://pr0gramm.com/top/video/546637
+    # https://pr0gramm.com/user/g11st/uploads/5466437
+    # https://pr0gramm.com/user/froschler/dafur-ist-man-hier/5091290
+    # https://pr0gramm.com/user/froschler/reinziehen-1elf/5232030
+    # https://pr0gramm.com/user/froschler/1elf/5232030
+    # https://pr0gramm.com/new/5495710:comment62621020 <- this is not the id!
+    # https://pr0gramm.com/top/fruher war alles damals/5498175
+
+    _VALID_URL = r'https?:\/\/pr0gramm\.com\/.+?\/(?P<id>[\d]+)(:|$)'
     _TEST = {
         'url': 'https://pr0gramm.com/new/video/5466437',
         'info_dict': {
