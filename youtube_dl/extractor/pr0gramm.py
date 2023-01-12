@@ -3,7 +3,6 @@ from __future__ import unicode_literals
 
 from .common import InfoExtractor
 
-from datetime import datetime
 import re
 from ..utils import (
     merge_dicts,
@@ -22,9 +21,6 @@ class Pr0grammStaticIE(InfoExtractor):
             'title': 'pr0gramm',
             'uploader': 'g11st',
             'upload_date': '20221221',
-            'release_date': '20221221',
-            'timestamp': 1671580800,
-            'release_timestamp': 1671580800,
         }
     }
 
@@ -47,28 +43,21 @@ class Pr0grammStaticIE(InfoExtractor):
         uploadDay = None
         uploadMon = None
         uploadYear = None
-        uploadTimestamp = None
         uploadTimestr = None
         # (//img.pr0gramm.com/2022/12/21/62ae8aa5e2da0ebf.mp4)
-        m = re.search(r'.*//img\.pr0gramm\.com/(?P<year>[0-9]+)/(?P<mon>[0-9]+)/(?P<day>[0-9]+)/\w+\.\w{,4}.*', webpage)
+        m = re.search(r'//img\.pr0gramm\.com/(?P<year>[\d]+)/(?P<mon>[\d]+)/(?P<day>[\d]+)/\w+\.\w{,4}', webpage)
 
         if (m):
             # Up to a day of accuracy should suffice...
             uploadDay = m.groupdict().get('day')
             uploadMon = m.groupdict().get('mon')
             uploadYear = m.groupdict().get('year')
-            uploadDatetime = datetime(int(uploadYear), int(uploadMon), int(uploadDay))
-            epochDatetime = datetime(1970, 1, 1)
-            uploadTimestamp = (uploadDatetime - epochDatetime).total_seconds()
-            uploadTimestr = str(uploadYear) + str(uploadMon) + str(uploadDay)
+            uploadTimestr = uploadYear + uploadMon + uploadDay
 
         return merge_dicts({
             'id': video_id,
             'title': 'pr0gramm',  # Posts don't have titles. The id seems to be postfixed by yt-dl automatically.
             'uploader': uploader,
-            'timestamp': uploadTimestamp,
-            'release_date': uploadTimestr,
-            'release_timestamp': uploadTimestamp,
             'upload_date': uploadTimestr
         }, media_info)
 
@@ -90,9 +79,6 @@ class Pr0grammIE(InfoExtractor):
             'title': 'pr0gramm',
             'uploader': 'g11st',
             'upload_date': '20221221',
-            'release_date': '20221221',
-            'timestamp': 1671580800,
-            'release_timestamp': 1671580800,
         }
     }
 
