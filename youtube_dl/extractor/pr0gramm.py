@@ -6,7 +6,7 @@ from .common import InfoExtractor
 from datetime import datetime
 import re
 from ..utils import (
-    merge_dicts
+    merge_dicts,
 )
 
 
@@ -24,7 +24,7 @@ class Pr0grammStaticIE(InfoExtractor):
             'upload_date': '20221221',
             'release_date': '20221221',
             'timestamp': 1671580800,
-            'release_timestamp': 1671580800
+            'release_timestamp': 1671580800,
         }
     }
 
@@ -92,7 +92,7 @@ class Pr0grammIE(InfoExtractor):
             'upload_date': '20221221',
             'release_date': '20221221',
             'timestamp': 1671580800,
-            'release_timestamp': 1671580800
+            'release_timestamp': 1671580800,
         }
     }
 
