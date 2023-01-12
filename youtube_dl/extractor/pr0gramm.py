@@ -10,6 +10,7 @@ from ..utils import (
 
 
 class Pr0grammStaticIE(InfoExtractor):
+    # Possible urls:
     # https://pr0gramm.com/static/5466437
     _VALID_URL = r'https?://pr0gramm\.com/static/(?P<id>[0-9]+)'
     _TEST = {
@@ -18,7 +19,7 @@ class Pr0grammStaticIE(InfoExtractor):
         'info_dict': {
             'id': '5466437',
             'ext': 'mp4',
-            'title': 'pr0gramm - 5466437',
+            'title': 'pr0gramm-5466437 by g11st',
             'uploader': 'g11st',
             'upload_date': '20221221',
         }
@@ -56,7 +57,7 @@ class Pr0grammStaticIE(InfoExtractor):
 
         return merge_dicts({
             'id': video_id,
-            'title': 'pr0gramm - %s' % video_id,
+            'title': 'pr0gramm-%s%s' % (video_id, (' by ' + uploader) if uploader else ''),
             'uploader': uploader,
             'upload_date': uploadTimestr
         }, media_info)
@@ -86,7 +87,7 @@ class Pr0grammIE(InfoExtractor):
         'info_dict': {
             'id': '5466437',
             'ext': 'mp4',
-            'title': 'pr0gramm - 5466437',
+            'title': 'pr0gramm-5466437 by g11st',
             'uploader': 'g11st',
             'upload_date': '20221221',
         }
