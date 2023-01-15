@@ -910,6 +910,10 @@ from .parliamentliveuk import ParliamentLiveUKIE
 from .patreon import PatreonIE
 from .pbs import PBSIE
 from .pearvideo import PearVideoIE
+from .peekvids import (
+    PeekVidsIE,
+    PlayVidsIE,
+)
 from .peertube import PeerTubeIE
 from .people import PeopleIE
 from .performgroup import PerformGroupIE
@@ -1262,6 +1266,11 @@ from .theweatherchannel import TheWeatherChannelIE
 from .thisamericanlife import ThisAmericanLifeIE
 from .thisav import ThisAVIE
 from .thisoldhouse import ThisOldHouseIE
+from .thisvid import (
+    ThisVidIE,
+    ThisVidMemberIE,
+    ThisVidPlaylistIE,
+)
 from .threeqsdn import ThreeQSDNIE
 from .tiktok import (
     TikTokIE,
