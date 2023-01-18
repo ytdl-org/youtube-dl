@@ -1049,7 +1049,11 @@ from .rtve import RTVEALaCartaIE, RTVELiveIE, RTVEInfantilIE, RTVELiveIE, RTVETe
 from .rtvnh import RTVNHIE
 from .rtvs import RTVSIE
 from .ruhd import RUHDIE
-from .rumble import RumbleEmbedIE
+from .rumble import (
+    RumbleEmbedIE,
+    RumblePageIE,
+    RumblePlaylistIE,
+)
 from .rutube import (
     RutubeIE,
     RutubeChannelIE,
@@ -1414,6 +1418,10 @@ from .urort import UrortIE
 from .urplay import URPlayIE
 from .usanetwork import USANetworkIE
 from .usatoday import USATodayIE
+from .usawatchdog import (
+    UsaWatchdogStoryIE,
+    UsaWatchdogIE,
+)
 from .ustream import UstreamIE, UstreamChannelIE
 from .ustudio import (
     UstudioIE,
