@@ -552,6 +552,9 @@ from .ktplayer import (
     CamWhoresIE,
     CamhubIE,
     NudespreeIE,
+    OnlineStarsIE,
+    SomeoneSisterIE,
+    CamStreamsTVIE,
 )
 from .ku6 import Ku6IE
 from .kusi import KUSIIE

@@ -9,6 +9,7 @@ from ..utils import (
     date_from_ago,
     parse_duration,
     url_or_none,
+    int_or_none,
 )
 
 
@@ -89,16 +90,30 @@ class KtPlayerHelper:
         return h + orig_hash[limit:]
 
     @staticmethod
-    def get_url(webpage):
-        def search(pattern, string, flags=0):
-            mobj = re.search(pattern, string, flags)
-            if mobj:
-                return next(g for g in mobj.groups() if g is not None)
-            return None
+    def search(pattern, string, flags=0):
+        mobj = re.search(pattern, string, flags)
+        if mobj:
+            return next(g for g in mobj.groups() if g is not None)
+        return None
 
+    @staticmethod
+    def get_raw_url(webpage):
+        video_raw_url = KtPlayerHelper.search(r'video_url:\s+\'(.+?)\'', webpage)
+        return video_raw_url
+
+    @staticmethod
+    def get_url(webpage):
+        return KtPlayerHelper.get_url_inner(webpage, url_tag='video_url')
+
+    @staticmethod
+    def get_alt_url(webpage):
+        return KtPlayerHelper.get_url_inner(webpage, url_tag='video_alt_url')
+
+    @staticmethod
+    def get_url_inner(webpage, url_tag='video_url'):
         # extract video url
-        license_code = search(r'license_code:\s+\'(.+?)\'', webpage)
-        video_raw_url = search(r'video_url:\s+\'(.+?)\'', webpage)
+        license_code = KtPlayerHelper.search(r'license_code:\s+\'(.+?)\'', webpage)
+        video_raw_url = KtPlayerHelper.search(url_tag + r':\s+\'(.+?)\'', webpage)
         if not license_code or not video_raw_url:
             return None
 
@@ -163,12 +178,43 @@ class KtPlayerExtractor(InfoExtractor):
             raise ExtractorError(
                 'Failed to extract video url for %s' % video_id, expected=True)
 
+        default_format = {
+            'format_id': 'default',
+            'url': video_url,
+        }
+
         preview_url = url_or_none(self._html_search_regex(
             r'preview_url:\s+\'(.+?)\'', flashdata, 'preview_url', default=None))
         ext = self._html_search_regex(
             r"""postfix:\s+'(.+?)'""", flashdata, 'ext', fatal=False)
         if ext:
             ext = ext[1:]
+            default_format['ext'] = ext
+
+        res = self._html_search_regex(
+            r"""video_url_text:\s+'(.+?)'""", flashdata, 'res', default=None, fatal=False)
+        if res and res.endswith('p'):
+            default_format['format_id'] = res
+            height = int_or_none(res[:-1])
+            if height:
+                default_format['height'] = height
+
+        formats = [default_format]
+        video_alt_url = KtPlayerHelper.get_alt_url(flashdata)
+        if video_alt_url:
+            alt_format = {
+                'format_id': 'alt',
+                'url': video_alt_url,
+            }
+            alt_res = self._html_search_regex(
+                r"""video_alt_url_text:\s+'(.+?)'""", flashdata, 'res', default=None, fatal=False)
+            if alt_res and alt_res.endswith('p'):
+                alt_format['format_id'] = alt_res
+                height = int_or_none(res[:-1])
+                if height:
+                    alt_format['height'] = height
+
+            formats.append(alt_format)
 
         description = self._og_search_title(webpage, fatal=False)
         duration = self._html_search_regex(
@@ -190,9 +236,8 @@ class KtPlayerExtractor(InfoExtractor):
 
         return {
             'id': video_id,
-            'ext': ext,
+            'formats': formats,
             'title': title,
-            'url': video_url,
             'description': description,
             'thumbnail': preview_url,
             'duration': parse_duration(duration),
@@ -309,3 +354,69 @@ class NudespreeIE(KtPlayerExtractor):
 
     def _real_extract(self, url):
         return self._kt_extract(url, embedded=True)
+
+
+class OnlineStarsIE(KtPlayerExtractor):
+    _VALID_URL = r'(?P<site>https?://onlinestars\.net)/videos/(?P<id>[0-9]+)/(?P<title>[^/?#&]+)/'
+    _TEST = {
+        'url': 'https://onlinestars.net/videos/164853/girl-sexy-video-indian-sex-video-online-young-indian-girl-sex-mms-leake/',
+        'md5': 'd6ed0948466e20d1ed16b3525b9dbdd3',
+        'info_dict': {
+            'id': '164853',
+            'ext': 'mp4',
+            'title': 'girl-sexy-video-indian-sex-video-online-young-indian-girl-sex-mms-leake',
+            'thumbnail': r're:^https?://.*\.jpg$',
+            'description': r're:.*',
+            'duration': 30.0,
+            'upload_date': r're:\d{8}',
+        }
+    }
+    _DURATION_RE = r'<span>Duration: <em>((?:\d+:)?(?:\d+:)?\d+)</em></span>'
+    _UPLOADED_RE = r'<span>Submitted:\s+<em>(.+?\s+ago)</em></span>'
+
+    def _real_extract(self, url):
+        return self._kt_extract(url)
+
+
+class SomeoneSisterIE(KtPlayerExtractor):
+    _VALID_URL = r'(?P<site>https?://someonesister\.com)/videos/(?P<id>[0-9]+)/(?P<title>[^/?#&]+)/'
+    _TEST = {
+        'url': 'https://someonesister.com/videos/759/simply-sasha-chaturbate-video-recording-privat-zapisi-stream-record-naked/',
+        'md5': '4d08ef458527997b88b9c5bf8872c74f',
+        'info_dict': {
+            'id': '759',
+            'ext': 'mp4',
+            'title': 'simply-sasha-chaturbate-video-recording-privat-zapisi-stream-record-naked',
+            'thumbnail': r're:^https?://.*\.jpg$',
+            'description': r're:.*',
+            'duration': 154.0,
+            'upload_date': r're:\d{8}',
+        }
+    }
+    _DURATION_RE = r'<span>Duration: <em>((?:\d+:)?(?:\d+:)?\d+)</em></span>'
+    _UPLOADED_RE = r'<span>Submitted:\s+<em>(.+?\s+ago)</em></span>'
+
+    def _real_extract(self, url):
+        return self._kt_extract(url)
+
+
+class CamStreamsTVIE(KtPlayerExtractor):
+    _VALID_URL = r'(?P<site>https?://camstreams\.tv)/videos/(?P<id>[0-9]+)/(?P<title>[^/?#&]+)/'
+    _TEST = {
+        'url': 'https://camstreams.tv/videos/177167/little-bee-big-dildo-p-xxx-onlyfans-porn-videos/',
+        'md5': 'c1d19dca63acd4ff069082a237347f55',
+        'info_dict': {
+            'id': '177167',
+            'ext': 'mp4',
+            'title': 'little-bee-big-dildo-p-xxx-onlyfans-porn-videos',
+            'thumbnail': r're:^https?://.*\.jpg$',
+            'description': r're:.*',
+            'duration': 192.0,
+            'upload_date': r're:\d{8}',
+        }
+    }
+    _DURATION_RE = r'<span>Duration: <em>((?:\d+:)?(?:\d+:)?\d+)</em></span>'
+    _UPLOADED_RE = r'<span>Submitted:\s+<em>(.+?\s+ago)</em></span>'
+
+    def _real_extract(self, url):
+        return self._kt_extract(url)
