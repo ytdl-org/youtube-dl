@@ -198,6 +198,14 @@ class KtPlayerExtractor(InfoExtractor):
             height = int_or_none(res[:-1])
             if height:
                 default_format['height'] = height
+        else:
+            preview_height = self._html_search_regex(
+                r"""preview_height1:\s+'(.+?)'""", flashdata, 'preview_height', default=None, fatal=False)
+            if preview_height:
+                height = int_or_none(preview_height)
+                if height:
+                    default_format['height'] = height
+                    default_format['format_id'] = preview_height + 'p'
 
         formats = [default_format]
         video_alt_url = KtPlayerHelper.get_alt_url(flashdata)
@@ -215,6 +223,14 @@ class KtPlayerExtractor(InfoExtractor):
                     alt_format['height'] = height
 
             formats.append(alt_format)
+
+        if not ext and len(formats) == 1:
+            # this might indicate the decoded URL is not correct but the original URL might work
+            # add it into formats
+            formats.append({
+                'format_id': 'fallback',
+                'url': KtPlayerHelper.get_raw_url(flashdata),
+            })
 
         description = self._og_search_title(webpage, fatal=False)
         duration = self._html_search_regex(
