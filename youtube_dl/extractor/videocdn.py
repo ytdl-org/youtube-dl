@@ -51,8 +51,7 @@ class VideoCdnIE(InfoExtractor):
         formats = []
         if manifest_url and determine_ext(manifest_url) == 'm3u8':
             formats.extend(self._extract_m3u8_formats(
-                compat_urlparse.urljoin(url, manifest_url),
-                video_id, 'mp4',
+                manifest_url, video_id, 'mp4',
                 entry_protocol='m3u8_native', m3u8_id='m3u8'))
             self._sort_formats(formats)
 
