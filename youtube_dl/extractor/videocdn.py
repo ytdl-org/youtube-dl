@@ -2,13 +2,11 @@
 from __future__ import unicode_literals
 
 from .common import InfoExtractor
-from ..compat import (
-    compat_str,
-    compat_urlparse,
-)
+from ..compat import compat_urlparse
 
 from ..utils import (
     determine_ext,
+    urljoin,
 )
 
 
@@ -40,24 +38,18 @@ class VideoCdnIE(InfoExtractor):
 
         webpage = self._download_webpage(url, video_id)
 
-        formats = []
-
         thumbnail = self._search_regex(
             r'\"thumbnailUrl\":\"(?P<thumbnail>[^\"]+)',
             webpage, 'thumbnail', group='thumbnail',
             default=None)
 
-        title = self._search_regex(
-            r'\"name\":\"(?P<title>[^\"]+)',
-            webpage, 'title', group='title')
+        title = self._search_regex(r'"name"\s*:\s*"((?:\\"|[^"])+)', webpage, 'title')
 
-        manifest_url = self._search_regex(
-            r'\"contentUrl\":\"(?P<manifesturl>[^\"]+)',
-            webpage,
-            'manifest_url', group='manifesturl'
-        )
+        manifest_url = self._search_regex(r'"contentUrl"\s*:\s*"((?:\\"|[^"])+)', webpage, 'manifest_url')
+        manifest_url = urljoin(url, manifest_url)
 
-        if isinstance(manifest_url, compat_str) and determine_ext(manifest_url) == 'm3u8':
+        formats = []
+        if manifest_url and determine_ext(manifest_url) == 'm3u8':
             formats.extend(self._extract_m3u8_formats(
                 compat_urlparse.urljoin(url, manifest_url),
                 video_id, 'mp4',
