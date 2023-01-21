@@ -54,6 +54,7 @@ class VideoCdnIE(InfoExtractor):
                 compat_urlparse.urljoin(url, manifest_url),
                 video_id, 'mp4',
                 entry_protocol='m3u8_native', m3u8_id='m3u8'))
+            self._sort_formats(formats)
 
         return {
             'id': video_id,
