@@ -7,7 +7,9 @@ from ..compat import (
     compat_urlparse,
 )
 
-from ..utils import determine_ext
+from ..utils import (
+    determine_ext,
+)
 
 
 class VideoCdnIE(InfoExtractor):
