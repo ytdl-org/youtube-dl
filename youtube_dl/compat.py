@@ -3094,6 +3094,11 @@ else:
         return ctypes.WINFUNCTYPE(*args, **kwargs)
 
 
+# Implement an error for which it is raise when error code 403 HTTPError
+class Forbidden403(Exception):
+    pass
+
+
 __all__ = [
     'compat_HTMLParseError',
     'compat_HTMLParser',

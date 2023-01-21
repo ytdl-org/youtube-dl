@@ -41,6 +41,7 @@ from .compat import (
     compat_urllib_error,
     compat_urllib_request,
     compat_urllib_request_DataHandler,
+    Forbidden403
 )
 from .utils import (
     age_restricted,
@@ -825,6 +826,10 @@ class YoutubeDL(object):
                 self.report_error(compat_str(e), e.format_traceback())
             except MaxDownloadsReached:
                 raise
+            except Forbidden403:
+                # Lets not abuse of this 😜 we don't want to get brutal on the server
+                time.sleep(random.randint(3, 13))
+                wrapper(self, *args, **kwargs)
             except Exception as e:
                 if self.params.get('ignoreerrors', False):
                     self.report_error(error_to_compat_str(e), tb=encode_compat_str(traceback.format_exc()))
