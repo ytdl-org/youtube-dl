@@ -40,10 +40,6 @@ class VideoCdnIE(InfoExtractor):
 
         formats = []
 
-        video_id = self._search_regex(
-            r'(?ims)<div[^>]+mi24-video-player+.*video-id=[\"\'](?P<videoid>[A-Za-z0-9_-]+)',
-            webpage, 'video id', group='videoid')
-
         thumbnail = self._search_regex(
             r'\"thumbnailUrl\":\"(?P<thumbnail>[^\"]+)',
             webpage, 'thumbnail', group='thumbnail')
