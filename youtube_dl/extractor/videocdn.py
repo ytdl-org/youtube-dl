@@ -44,7 +44,8 @@ class VideoCdnIE(InfoExtractor):
 
         thumbnail = self._search_regex(
             r'\"thumbnailUrl\":\"(?P<thumbnail>[^\"]+)',
-            webpage, 'thumbnail', group='thumbnail')
+            webpage, 'thumbnail', group='thumbnail',
+            default=None)
 
         title = self._search_regex(
             r'\"name\":\"(?P<title>[^\"]+)',
