@@ -211,26 +211,38 @@ class Aria2pFD(ExternalFD):
     '''
     AVAILABLE_OPT = 'show'
 
-    def _make_cmd(self, tmpfilename, info_dict):
-        cmd = [self.exe]
+    def _call_downloader(self, tmpfilename, info_dict):
+        import aria2p
+        aria2 = aria2p.API(
+            aria2p.Client(
+                host="http://localhost",
+                port=6800,
+                secret=""
+            )
+        )
+
         options = dict()
         options["min-split-size"] = "1M"
         options["max-connection-per-server"] = 4
         dn = os.path.dirname(tmpfilename)
         if dn:
             options["dir"] = dn
+        else:
+            options["dir"] = os.path.abspath('.')
         options["out"] = os.path.basename(tmpfilename)
         options["header"] = []
         for key, val in info_dict['http_headers'].items():
             options["header"].append(f"{key}: {val}")
-        options["hearder"] = str(options["header"])
         # cmd += self._option('--interface', 'source_address')
         # cmd += self._option('--all-proxy', 'proxy')
         # cmd += self._bool_option('--check-certificate', 'nocheckcertificate', 'false', 'true', '=')
         # cmd += self._bool_option('--remote-time', 'updatetime', 'true', 'false', '=')
-
-        cmd += ['call', 'adduri', [info_dict['url'], str(options)]]
-        return cmd
+        # cmd += ["call", "adduri", "-J", "[[\"{}\"], {}]".format(info_dict['url'], str(options)).replace("'", '"')]
+        download = aria2.add_uris([info_dict['url']], options)
+        while download.status == "active":
+            download = aria2.get_download(download.gid)
+            print(download.progress_string())
+        print(download.status)
 
 
 class HttpieFD(ExternalFD):
