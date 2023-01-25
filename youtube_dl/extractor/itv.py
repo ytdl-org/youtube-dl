@@ -16,7 +16,6 @@ from ..utils import (
     parse_duration,
     parse_iso8601,
     smuggle_url,
-    std_headers,
     strip_or_none,
     traverse_obj,
     url_or_none,
