@@ -94,7 +94,7 @@ class AmericasTestKitchenIE(InfoExtractor):
 
 
 class AmericasTestKitchenSeasonIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:www\.)?(?P<show>americastestkitchen|cookscountry)\.com/episodes/browse/season_(?P<id>\d+)'
+    _VALID_URL = r'https?:\/\/(?:www\.)?(?P<show>americastestkitchen|cookscountry)\.com\/?(episodes\/browse\/season_(?P<season>\d+))?'
     _TESTS = [{
         # ATK Season
         'url': 'https://www.americastestkitchen.com/episodes/browse/season_1',
@@ -111,29 +111,49 @@ class AmericasTestKitchenSeasonIE(InfoExtractor):
             'title': 'Season 12',
         },
         'playlist_count': 13,
+    }, {
+        # America's Test Kitchen Series
+        'url': 'https://www.americastestkitchen.com/',
+        'info_dict': {
+            'id': 'americastestkitchen',
+            'title': 'America\'s Test Kitchen',
+        },
+        'playlist_count': 558,
+    }, {
+        # Cooks Country Series
+        'url': 'https://www.cookscountry.com',
+        'info_dict': {
+            'id': 'cookscountry',
+            'title': 'Cook\'s Country',
+        },
+        'playlist_count': 199,
     }]
 
     def _real_extract(self, url):
-        show_name, season_number = re.match(self._VALID_URL, url).groups()
-        season_number = int(season_number)
+        match = re.match(self._VALID_URL, url).groupdict()
+        show = match.get('show')
+        season = match.get('season')
+        season_number = int(season) if season else None
 
-        slug = 'atk' if show_name == 'americastestkitchen' else 'cco'
+        slug, title = ('atk', 'America\'s Test Kitchen') if show == 'americastestkitchen' else ('cco', 'Cook\'s Country')
 
-        season = 'Season %d' % season_number
+        facet_filters = [
+            'search_document_klass:episode',
+            'search_show_slug:' + slug,
+        ]
+
+        if season_number:
+            facet_filters.append('search_atk_episode_season:' + season)
 
         season_search = self._download_json(
             'https://y1fnzxui30-dsn.algolia.net/1/indexes/everest_search_%s_season_desc_production' % slug,
             season, headers={
-                'Origin': 'https://www.%s.com' % show_name,
+                'Origin': 'https://www.%s.com' % show,
                 'X-Algolia-API-Key': '8d504d0099ed27c1b73708d22871d805',
                 'X-Algolia-Application-Id': 'Y1FNZXUI30',
             }, query={
-                'facetFilters': json.dumps([
-                    'search_season_list:' + season,
-                    'search_document_klass:episode',
-                    'search_show_slug:' + slug,
-                ]),
-                'attributesToRetrieve': 'description,search_%s_episode_number,search_document_date,search_url,title' % slug,
+                'facetFilters': json.dumps(facet_filters),
+                'attributesToRetrieve': 'description,search_%s_episode_number,search_document_date,search_url,title,search_atk_episode_season' % slug,
                 'attributesToHighlight': '',
                 'hitsPerPage': 1000,
             })
@@ -145,15 +165,17 @@ class AmericasTestKitchenSeasonIE(InfoExtractor):
                     continue
                 yield {
                     '_type': 'url',
-                    'url': 'https://www.%s.com%s' % (show_name, search_url),
+                    'url': 'https://www.%s.com%s' % (show, search_url),
                     'id': try_get(episode, lambda e: e['objectID'].split('_')[-1]),
                     'title': episode.get('title'),
                     'description': episode.get('description'),
                     'timestamp': unified_timestamp(episode.get('search_document_date')),
-                    'season_number': season_number,
+                    'season_number': episode.get('search_atk_episode_season'),
                     'episode_number': int_or_none(episode.get('search_%s_episode_number' % slug)),
                     'ie_key': AmericasTestKitchenIE.ie_key(),
                 }
 
+        playlist_id, playlist_title = ('season_%d' % season_number, 'Season %d' % season_number) if season_number else (show, title)
+
         return self.playlist_result(
-            entries(), 'season_%d' % season_number, season)
+            entries(), playlist_id, playlist_title)
