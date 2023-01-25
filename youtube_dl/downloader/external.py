@@ -200,6 +200,39 @@ class Aria2cFD(ExternalFD):
         return cmd
 
 
+class Aria2pFD(ExternalFD):
+    ''' Aria2pFD class
+    This class support to use aria2p as downloader.
+    (Aria2p, a command-line tool and Python library to interact with an aria2c daemon process
+    through JSON-RPC.)
+    It can help you to get download progress more easily.
+    To use aria2p as downloader, you need to install aria2c and aria2p, aria2p can download with pip.
+    Then run aria2c in the background and enable with the --enable-rpc option.
+    '''
+    AVAILABLE_OPT = 'show'
+
+    def _make_cmd(self, tmpfilename, info_dict):
+        cmd = [self.exe]
+        options = dict()
+        options["min-split-size"] = "1M"
+        options["max-connection-per-server"] = 4
+        dn = os.path.dirname(tmpfilename)
+        if dn:
+            options["dir"] = dn
+        options["out"] = os.path.basename(tmpfilename)
+        options["header"] = []
+        for key, val in info_dict['http_headers'].items():
+            options["header"].append(f"{key}: {val}")
+        options["hearder"] = str(options["header"])
+        # cmd += self._option('--interface', 'source_address')
+        # cmd += self._option('--all-proxy', 'proxy')
+        # cmd += self._bool_option('--check-certificate', 'nocheckcertificate', 'false', 'true', '=')
+        # cmd += self._bool_option('--remote-time', 'updatetime', 'true', 'false', '=')
+
+        cmd += ['call', 'adduri', [info_dict['url'], str(options)]]
+        return cmd
+
+
 class HttpieFD(ExternalFD):
     @classmethod
     def available(cls):
