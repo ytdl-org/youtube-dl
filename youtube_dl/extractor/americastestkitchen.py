@@ -188,7 +188,7 @@ class AmericasTestKitchenSeasonIE(InfoExtractor):
 
         season_search = self._download_json(
             'https://y1fnzxui30-dsn.algolia.net/1/indexes/everest_search_%s_season_desc_production' % slug,
-            playlist_title, headers={
+            playlist_id, headers={
                 'Origin': 'https://www.americastestkitchen.com',
                 'X-Algolia-API-Key': '8d504d0099ed27c1b73708d22871d805',
                 'X-Algolia-Application-Id': 'Y1FNZXUI30',
