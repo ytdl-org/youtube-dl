@@ -11,8 +11,12 @@ print('WARNING: Lazy loading extractors is an experimental feature that may not 
 sys.path.insert(0, dirn(dirn((os.path.abspath(__file__)))))
 
 lazy_extractors_filename = sys.argv[1]
-if os.path.exists(lazy_extractors_filename):
-    os.remove(lazy_extractors_filename)
+# Py2: may be confused by left-over lazy_extractors.pyc
+for x in ('', 'c'):
+    try:
+        os.remove(lazy_extractors_filename + x)
+    except OSError:
+        pass
 
 from youtube_dl.extractor import _ALL_CLASSES
 from youtube_dl.extractor.common import InfoExtractor, SearchInfoExtractor
@@ -21,7 +25,9 @@ with open('devscripts/lazy_load_template.py', 'rt') as f:
     module_template = f.read()
 
 module_contents = [
-    module_template + '\n' + getsource(InfoExtractor.suitable) + '\n',
+    module_template,
+    (lambda cls: ('_match_valid_url' in cls.__dict__) and getsource(cls._match_valid_url))(InfoExtractor),
+    getsource(InfoExtractor.suitable), '',
     'class LazyLoadSearchExtractor(LazyLoadExtractor):\n    pass\n']
 
 ie_template = '''
@@ -94,7 +100,7 @@ for ie in ordered_cls:
 module_contents.append(
     '_ALL_CLASSES = [{0}]'.format(', '.join(names)))
 
-module_src = '\n'.join(module_contents) + '\n'
+module_src = '\n'.join(filter(lambda x: x is not None, module_contents)) + '\n'
 
 with io.open(lazy_extractors_filename, 'wt', encoding='utf-8') as f:
     f.write(module_src)
