@@ -15,7 +15,7 @@ from ..utils import (
 
 
 class AmericasTestKitchenIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:www\.)?(?:americastestkitchen|cooks(?:country|illustrated))\.com/(?P<resource_type>episode|videos)/(?P<id>\d+)'
+    _VALID_URL = r'https?://(?:www\.)?americastestkitchen\.com/(?:cooks(?:country|illustrated)/)?(?P<resource_type>episode|videos)/(?P<id>\d+)'
     _TESTS = [{
         'url': 'https://www.americastestkitchen.com/episode/582-weeknight-japanese-suppers',
         'md5': 'b861c3e365ac38ad319cfd509c30577f',
