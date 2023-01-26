@@ -5,6 +5,10 @@ import re
 import subprocess
 import sys
 import time
+try:
+    import aria2p
+except ModuleNotFoundError:
+    pass
 
 from .common import FileDownloader
 from ..compat import (
@@ -19,6 +23,7 @@ from ..utils import (
     cli_configuration_args,
     encodeFilename,
     encodeArgument,
+    format_bytes,
     handle_youtubedl_headers,
     check_executable,
     is_outdated_version,
@@ -212,18 +217,27 @@ class Aria2pFD(ExternalFD):
     AVAILABLE_OPT = 'show'
 
     def _call_downloader(self, tmpfilename, info_dict):
-        import aria2p
-        aria2 = aria2p.API(
-            aria2p.Client(
-                host="http://localhost",
-                port=6800,
-                secret=""
+        try:    
+            aria2 = aria2p.API(
+                aria2p.Client(
+                    host="http://localhost",
+                    port=6800,
+                    secret=""
+                )
             )
-        )
+        except NameError as exc:
+            raise ModuleNotFoundError("No moudle named aria2p") from exc
 
+        # ANSI colors
+        color_code = tuple(
+            f"\033[{i}m"
+            for i in range(30, 38)
+        )
+        pre_len = -1
         options = dict()
         options["min-split-size"] = "1M"
         options["max-connection-per-server"] = 4
+        options["auto-file-renaming"] = "false"
         dn = os.path.dirname(tmpfilename)
         if dn:
             options["dir"] = dn
@@ -241,8 +255,27 @@ class Aria2pFD(ExternalFD):
         download = aria2.add_uris([info_dict['url']], options)
         while download.status == "active":
             download = aria2.get_download(download.gid)
-            print(download.progress_string())
-        print(download.status)
+            message = (
+                f"{color_code[5]}["
+                f"{color_code[0]}#{download.gid[:7]} "
+                f"{format_bytes(download.completed_length)}/{format_bytes(download.total_length)}"
+                f"{color_code[6]}({download.progress/100:.0%}) "
+                f"{color_code[0]}CN:{download.connections} "
+                f"{color_code[0]}DL:{color_code[2]}{format_bytes(download.download_speed)} "
+                f"{color_code[0]}ETA:{color_code[6]}{download.eta}"
+                f"{color_code[5]}]"
+            )
+            if pre_len > len(message):
+                message += " " * (pre_len - len(message))
+            pre_len = len(message)
+            message += '\r'
+            print(message, end="", flush=True)
+            time.sleep(.5)
+        if pre_len != -1:
+            print(" " * pre_len, '\r', end="", flush=True)
+        if download.status == "complete":
+            return 0
+        return 1
 
 
 class HttpieFD(ExternalFD):
