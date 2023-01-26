@@ -10,7 +10,7 @@ from ..utils import (
 
 
 class DumpertIE(InfoExtractor):
-    _VALID_URL = r'(?P<protocol>https?)://(?:(?:www|legacy)\.)?dumpert\.nl(?:/(?:mediabase|embed|item)/|(?:/toppers|/latest)?/?)\?selectedId=)(?P<id>[0-9]+[/_][0-9a-zA-Z]+)'
+    _VALID_URL = r'(?P<protocol>https?)://(?:(?:www|legacy)\.)?dumpert\.nl(?:/(?:mediabase|embed|item)/|(?:/toppers|/latest)?/?\?selectedId=)(?P<id>[0-9]+[/_][0-9a-zA-Z]+)'
     _TESTS = [{
         'url': 'https://www.dumpert.nl/item/6646981_951bc60f',
         'md5': '1b9318d7d5054e7dcb9dc7654f21d643',
