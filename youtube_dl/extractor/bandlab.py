@@ -9,7 +9,7 @@ from .common import InfoExtractor
 class BandlabIE(InfoExtractor):
     _VALID_URL = r'https?://(?:www\.)?bandlab\.com/post/(?P<id>[^/]+)'
 
-    _TEST = {
+    _TESTS = [{
         'url': 'https://www.bandlab.com/post/f5f04998635a44ea819cacdba7ae2076_f8d8574c3bdaec11b6562818783151a1',
         'info_dict': {
             'id': 'f5f04998635a44ea819cacdba7ae2076_f8d8574c3bdaec11b6562818783151a1',
@@ -17,7 +17,7 @@ class BandlabIE(InfoExtractor):
             'title': 'ON MY OWN (unreleased)',
             'artist': 'Michael MacDonald',
         },
-    }
+    }]
 
     def _real_extract(self, url):
         track_id = self._match_id(url)
@@ -33,9 +33,10 @@ class BandlabIE(InfoExtractor):
         }
 
 
-class BandlabAlbumIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:www\.)?bandlab\.com/[^/]+/albums/(?P<id>[^/]+)'
-    _TEST = {
+class BandlabAlbumOrPlaylistIE(InfoExtractor):
+    _VALID_URL = r'https?://(?:www\.)?bandlab\.com/[^/]+/(?P<kind>albums|collections)/(?P<id>[^/]+)'
+    _TRACK_URL_RE = re.compile(r'.+/(?P<id>[^/]+)\.m4a')
+    _TESTS = [{
         'url': 'https://www.bandlab.com/sbsdasani/albums/dc26e307-e51f-ed11-95d7-002248452390',
         'playlist': [
             {
@@ -107,43 +108,8 @@ class BandlabAlbumIE(InfoExtractor):
             'album': 'ENDLESS SUMMER',
             'artist': 'Michael MacDonald'
         },
-    }
-
-    def _real_extract(self, url):
-        album_id = self._match_id(url)
-        config = self._download_json(
-            'http://www.bandlab.com/api/v1.3/albums/%s' % album_id, album_id)
-        tracks = config['posts']
-        entries = []
-        for track in tracks:
-            if 'track' in track:
-                url = track['track']['sample']['audioUrl']
-                name = track['track']['name']
-            elif 'revision' in track:
-                url = track['revision']['mixdown']['file']
-                name = track['revision']['song']['name']
-            else:
-                raise Exception("Neither track nor revision found in 'posts' object")
-            id_regex = r'.+/(?P<id>[^/]+).m4a'
-            id = re.compile(id_regex).match(url).group('id')
-            entries.append({
-                'url': url,
-                'id': id,
-                'title': name
-            })
-
-        return {
-            '_type': 'playlist',
-            'id': album_id,
-            'album': config['name'],
-            'artist': config['creator']['name'],
-            'entries': entries
-        }
-
-
-class BandlabPlaylistIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:www\.)?bandlab\.com/[^/]+/collections/(?P<id>[^/]+)'
-    _TEST = {
+    },
+    {
         'url': 'https://www.bandlab.com/hexatetrahedronx/collections/8fb1041c-e865-eb11-9889-0050f28a2802',
         'playlist': [
             {
@@ -156,17 +122,20 @@ class BandlabPlaylistIE(InfoExtractor):
         ],
         'info_dict': {
             'id': '8fb1041c-e865-eb11-9889-0050f28a2802',
-            'playlist': 'DOOMTAPE'
+            'album': 'DOOMTAPE',
+            'artist': '12days'
         }
-    }
+    }]
 
     def _real_extract(self, url):
-        playlist_id = self._match_id(url)
+        resource_id = self._match_id(url)
+        kind_regex = re.compile(self._VALID_URL)
+        kind = kind_regex.match(url).group('kind')
         config = self._download_json(
-            'http://www.bandlab.com/api/v1.3/collections/%s' % playlist_id, playlist_id)
+            'http://www.bandlab.com/api/v1.3/%s/%s' % kind, resource_id)
         tracks = config['posts']
         entries = []
-        for track in tracks:
+        for track in config['posts']:
             if 'track' in track:
                 url = track['track']['sample']['audioUrl']
                 name = track['track']['name']
@@ -175,17 +144,16 @@ class BandlabPlaylistIE(InfoExtractor):
                 name = track['revision']['song']['name']
             else:
                 raise Exception("Neither track nor revision found in 'posts' object")
-            id_regex = r'.+/(?P<id>[^/]+).m4a'
-            id = re.compile(id_regex).match(url).group('id')
             entries.append({
                 'url': url,
-                'id': id,
+                'id': self._TRACK_URL_RE.match(url).group('id'),
                 'title': name
             })
 
-        return {
+        res = {
             '_type': 'playlist',
-            'id': playlist_id,
-            'playlist': config['name'],
-            'entries': entries
+            'id': resource_id,
+            'entries': entries,
+            'album': config['name'],
+            'artist': config['creator']['name']
         }
