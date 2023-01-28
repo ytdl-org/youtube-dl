@@ -255,7 +255,7 @@ class Aria2pFD(ExternalFD):
         download = aria2.add_uris([info_dict['url']], options)
         status = {
             'status': 'downloading',
-            'filename': self._filename,
+            'filename': self.__filename,
             'tmpfilename': tmpfilename,
         }
         started = time.time()
