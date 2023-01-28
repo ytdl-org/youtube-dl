@@ -6,7 +6,7 @@ import re
 from .common import InfoExtractor
 
 from ..compat import (
-        compat_str,
+    compat_str,
 )
 
 from ..utils import (
@@ -118,8 +118,7 @@ class BandlabAlbumOrPlaylistIE(InfoExtractor):
             'album': 'ENDLESS SUMMER',
             'artist': 'Michael MacDonald'
         },
-    },
-    {
+    }, {
         'url': 'https://www.bandlab.com/hexatetrahedronx/collections/8fb1041c-e865-eb11-9889-0050f28a2802',
         'playlist': [
             {
