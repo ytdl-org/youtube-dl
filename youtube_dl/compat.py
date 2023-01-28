@@ -21,6 +21,23 @@ import subprocess
 import sys
 import xml.etree.ElementTree
 
+# deal with critical unicode/str things first
+try:
+    # Python 2
+    compat_str, compat_basestring, compat_chr = (
+        unicode, basestring, unichr
+    )
+    from .casefold import casefold as compat_casefold
+except NameError:
+    compat_str, compat_basestring, compat_chr = (
+        str, str, chr
+    )
+    compat_casefold = lambda s: s.casefold()
+
+try:
+    import collections.abc as compat_collections_abc
+except ImportError:
+    import collections as compat_collections_abc
 
 try:
     import urllib.request as compat_urllib_request
@@ -2370,11 +2387,6 @@ except ImportError:
     import BaseHTTPServer as compat_http_server
 
 try:
-    compat_str = unicode  # Python 2
-except NameError:
-    compat_str = str
-
-try:
     from urllib.parse import unquote_to_bytes as compat_urllib_parse_unquote_to_bytes
     from urllib.parse import unquote as compat_urllib_parse_unquote
     from urllib.parse import unquote_plus as compat_urllib_parse_unquote_plus
@@ -2505,20 +2517,9 @@ except ImportError:  # Python < 3.4
             return compat_urllib_response.addinfourl(io.BytesIO(data), headers, url)
 
 try:
-    compat_basestring = basestring  # Python 2
-except NameError:
-    compat_basestring = str
-
-try:
-    compat_chr = unichr  # Python 2
-except NameError:
-    compat_chr = chr
-
-try:
     from xml.etree.ElementTree import ParseError as compat_xml_parse_error
 except ImportError:  # Python 2.6
     from xml.parsers.expat import ExpatError as compat_xml_parse_error
-
 
 etree = xml.etree.ElementTree
 
@@ -2886,6 +2887,7 @@ else:
     _terminal_size = collections.namedtuple('terminal_size', ['columns', 'lines'])
 
     def compat_get_terminal_size(fallback=(80, 24)):
+        from .utils import process_communicate_or_kill
         columns = compat_getenv('COLUMNS')
         if columns:
             columns = int(columns)
@@ -2902,7 +2904,7 @@ else:
                 sp = subprocess.Popen(
                     ['stty', 'size'],
                     stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-                out, err = sp.communicate()
+                out, err = process_communicate_or_kill(sp)
                 _lines, _columns = map(int, out.split())
             except Exception:
                 _columns, _lines = _terminal_size(*fallback)
@@ -2962,6 +2964,24 @@ else:
         compat_Struct = struct.Struct
 
 
+# compat_map/filter() returning an iterator, supposedly the
+# same versioning as for zip below
+try:
+    from future_builtins import map as compat_map
+except ImportError:
+    try:
+        from itertools import imap as compat_map
+    except ImportError:
+        compat_map = map
+
+try:
+    from future_builtins import filter as compat_filter
+except ImportError:
+    try:
+        from itertools import ifilter as compat_filter
+    except ImportError:
+        compat_filter = filter
+
 try:
     from future_builtins import zip as compat_zip
 except ImportError:  # not 2.6+ or is 3.x
@@ -2969,6 +2989,82 @@ except ImportError:  # not 2.6+ or is 3.x
         from itertools import izip as compat_zip  # < 2.5 or 3.x
     except ImportError:
         compat_zip = zip
+
+
+# method renamed between Py2/3
+try:
+    from itertools import zip_longest as compat_itertools_zip_longest
+except ImportError:
+    from itertools import izip_longest as compat_itertools_zip_longest
+
+
+# new class in collections
+try:
+    from collections import ChainMap as compat_collections_chain_map
+    # Py3.3's ChainMap is deficient
+    if sys.version_info < (3, 4):
+        raise ImportError
+except ImportError:
+    # Py <= 3.3
+    class compat_collections_chain_map(compat_collections_abc.MutableMapping):
+
+        maps = [{}]
+
+        def __init__(self, *maps):
+            self.maps = list(maps) or [{}]
+
+        def __getitem__(self, k):
+            for m in self.maps:
+                if k in m:
+                    return m[k]
+            raise KeyError(k)
+
+        def __setitem__(self, k, v):
+            self.maps[0].__setitem__(k, v)
+            return
+
+        def __contains__(self, k):
+            return any((k in m) for m in self.maps)
+
+        def __delitem(self, k):
+            if k in self.maps[0]:
+                del self.maps[0][k]
+                return
+            raise KeyError(k)
+
+        def __delitem__(self, k):
+            self.__delitem(k)
+
+        def __iter__(self):
+            return itertools.chain(*reversed(self.maps))
+
+        def __len__(self):
+            return len(iter(self))
+
+        # to match Py3, don't del directly
+        def pop(self, k, *args):
+            if self.__contains__(k):
+                off = self.__getitem__(k)
+                self.__delitem(k)
+                return off
+            elif len(args) > 0:
+                return args[0]
+            raise KeyError(k)
+
+        def new_child(self, m=None, **kwargs):
+            m = m or {}
+            m.update(kwargs)
+            return compat_collections_chain_map(m, *self.maps)
+
+        @property
+        def parents(self):
+            return compat_collections_chain_map(*(self.maps[1:]))
+
+
+# Pythons disagree on the type of a pattern (RegexObject, _sre.SRE_Pattern, Pattern, ...?)
+compat_re_Pattern = type(re.compile(''))
+# and on the type of a match
+compat_re_Match = type(re.match('a', 'a'))
 
 
 if sys.version_info < (3, 3):
@@ -3005,7 +3101,10 @@ __all__ = [
     'compat_Struct',
     'compat_b64decode',
     'compat_basestring',
+    'compat_casefold',
     'compat_chr',
+    'compat_collections_abc',
+    'compat_collections_chain_map',
     'compat_cookiejar',
     'compat_cookiejar_Cookie',
     'compat_cookies',
@@ -3015,6 +3114,7 @@ __all__ = [
     'compat_etree_fromstring',
     'compat_etree_register_namespace',
     'compat_expanduser',
+    'compat_filter',
     'compat_get_terminal_size',
     'compat_getenv',
     'compat_getpass',
@@ -3025,12 +3125,16 @@ __all__ = [
     'compat_input',
     'compat_integer_types',
     'compat_itertools_count',
+    'compat_itertools_zip_longest',
     'compat_kwargs',
+    'compat_map',
     'compat_numeric_types',
     'compat_ord',
     'compat_os_name',
     'compat_parse_qs',
     'compat_print',
+    'compat_re_Match',
+    'compat_re_Pattern',
     'compat_realpath',
     'compat_setenv',
     'compat_shlex_quote',

@@ -373,5 +373,5 @@ class KalturaIE(InfoExtractor):
             'duration': info.get('duration'),
             'timestamp': info.get('createdAt'),
             'uploader_id': info.get('userId') if info.get('userId') != 'None' else None,
-            'view_count': info.get('plays'),
+            'view_count': int_or_none(info.get('plays')),
         }
