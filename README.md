@@ -47,7 +47,7 @@ Or with [MacPorts](https://www.macports.org/):
 Alternatively, refer to the [developer instructions](#developer-instructions) for how to check out and work with the git repository. For further options, including PGP signatures, see the [youtube-dl Download Page](https://ytdl-org.github.io/youtube-dl/download.html).
 
 # DESCRIPTION
-**youtube-dl** is a command-line program to download videos from YouTube.com and a few more sites. It requires the Python interpreter, version 2.6, 2.7, or 3.2+, and it is not platform specific. It should work on your Unix box, on Windows or on macOS. It is released to the public domain, which means you can modify it, redistribute it or use it however you like.
+**youtube-dl** is a command-line program to download videos from YouTube.com and a few more sites. It requires the Python interpreter, version 2.6, 2.7, or 3.2+, and it is not platform specific. It should work on your Unix box, on Windows, or on macOS. It is released to the public domain, which means you can modify it, redistribute it, or use it however you like.
 
     youtube-dl [OPTIONS] URL [URL...]
 
@@ -499,7 +499,7 @@ For example, with the following configuration file youtube-dl will always extrac
 -o ~/Movies/%(title)s.%(ext)s
 ```
 
-Note that options in configuration file are just the same options aka switches used in regular command line calls thus there **must be no whitespace** after `-` or `--`, e.g. `-o` or `--proxy` but not `- o` or `-- proxy`.
+Note that options in configuration file are just the same options aka switches used in regular command line calls thus there **must be no whitespace** after `-` or `--`, e.g. `-o` or `--proxy` but not `- o` nor `-- proxy`.
 
 You can use `--ignore-config` if you want to disable the configuration file for a particular youtube-dl run.
 
@@ -632,7 +632,7 @@ To use percent literals in an output template use `%%`. To output to stdout use 
 
 The current default template is `%(title)s-%(id)s.%(ext)s`.
 
-In some cases, you don't want special characters such as 中, spaces, or &, such as when transferring the downloaded filename to a Windows system or the filename through an 8bit-unsafe channel. In these cases, add the `--restrict-filenames` flag to get a shorter title:
+In some cases, you don't want special characters such as 中, spaces, or &, such as when transferring the downloaded filename to a Windows system or the filename through an 8-bit-unsafe channel. In these cases, add the `--restrict-filenames` flag to get a shorter title:
 
 #### Output template and Windows batch files
 
@@ -669,9 +669,9 @@ $ youtube-dl -o - BaW_jenozKc
 
 By default youtube-dl tries to download the best available quality, i.e. if you want the best quality you **don't need** to pass any special options, youtube-dl will guess it for you by **default**.
 
-But sometimes you may want to download in a different format, for example when you are on a slow or intermittent connection. The key mechanism for achieving this is so-called *format selection* based on which you can explicitly specify desired format, select formats based on some criterion or criteria, setup precedence and much more.
+But sometimes you may want to download in a different format, for example when you are on a slow or intermittent connection. The key mechanism for achieving this is so-called *format selection* based on which you can explicitly specify desired format, select formats based on some criteria, setup precedence and much more.
 
-The general syntax for format selection is `--format FORMAT` or shorter `-f FORMAT` where `FORMAT` is a *selector expression*, i.e. an expression that describes format or formats you would like to download.
+The general syntax for format selection is `--format FORMAT` or shorter `-f FORMAT` where `FORMAT` is a *selector expression*, i.e. an expression that describes formats you would like to download.
 
 **tl;dr:** [navigate me to examples](#format-selection-examples).
 
@@ -692,7 +692,7 @@ For example, to download the worst quality video-only format you can use `-f wor
 
 If you want to download multiple videos and they don't have the same formats available, you can specify the order of preference using slashes. Note that slash is left-associative, i.e. formats on the left hand side are preferred, for example `-f 22/17/18` will download format 22 if it's available, otherwise it will download format 17 if it's available, otherwise it will download format 18 if it's available, otherwise it will complain that no suitable formats are available for download.
 
-If you want to download several formats of the same video use a comma as a separator, e.g. `-f 22,17,18` will download all these three formats, of course if they are available. Or a more sophisticated example combined with the precedence feature: `-f 136/137/mp4/bestvideo,140/m4a/bestaudio`.
+If you want to download several formats of the same video use a comma as a separator, e.g. `-f 22,17,18` will download these three formats, of course, if they are available. Or a more sophisticated example combined with the precedence feature: `-f 136/137/mp4/bestvideo,140/m4a/bestaudio`.
 
 You can also filter the video formats by putting a condition in brackets, as in `-f "best[height=720]"` (or `-f "[filesize>10M]"`).
 
@@ -899,7 +899,7 @@ To run the exe you need to install first the [Microsoft Visual C++ 2010 Service 
 
 If you put youtube-dl and ffmpeg in the same directory that you're running the command from, it will work, but that's rather cumbersome.
 
-To make a different directory work - either for ffmpeg, or for youtube-dl, or for both - simply create the directory (say, `C:\bin`, or `C:\Users\<User name>\bin`), put all the executables directly in there, and then [set your PATH environment variable](https://www.java.com/en/download/help/path.xml) to include that directory.
+To make a different directory work - either for ffmpeg, youtube-dl, or both - simply create the directory (say, `C:\bin`, or `C:\Users\<User name>\bin`), put all the executables directly in there, and then [set your PATH environment variable](https://www.java.com/en/download/help/path.xml) to include that directory.
 
 From then on, after restarting your shell, you will be able to access both youtube-dl and ffmpeg (and youtube-dl will be able to find ffmpeg) by simply typing `youtube-dl` or `ffmpeg`, no matter what directory you're in.
 
@@ -970,7 +970,7 @@ Please read the [bug reporting instructions](#bugs) below. A lot of bugs lack al
 
 If nobody is interested in solving your issue, you are welcome to take matters into your own hands and submit a pull request (or coerce/pay somebody else to do so).
 
-Feel free to bump the issue from time to time by writing a small comment ("Issue is still present in youtube-dl version ...from France, but fixed from Belgium"), but please not more than once a month. Please do not declare your issue as `important` or `urgent`.
+Feel free to bump the issue from time to time by writing a small comment ("Issue is still present in youtube-dl version ...from France, but working in Belgium"), but please not more than once a month. Please do not declare your issue as `important` or `urgent`.
 
 ### How can I detect whether a given URL is supported by youtube-dl?
 
@@ -978,7 +978,7 @@ For one, have a look at the [list of supported sites](docs/supportedsites.md). N
 
 It is *not* possible to detect whether a URL is supported or not. That's because youtube-dl contains a generic extractor which matches **all** URLs. You may be tempted to disable, exclude, or remove the generic extractor, but the generic extractor not only allows users to extract videos from lots of websites that embed a video from another service, but may also be used to extract video from a service that it's hosting itself. Therefore, we neither recommend nor support disabling, excluding, or removing the generic extractor.
 
-If you want to find out whether a given URL is supported, simply call youtube-dl with it. If you get no videos back, chances are the URL is either not referring to a video or unsupported. You can find out which by examining the output (if you run youtube-dl on the console) or catching an `UnsupportedError` exception if you run it from a Python program.
+If you want to find out whether a given URL is supported, simply call youtube-dl with it. If you get no videos back, chances are the URL either does not refer to a video or is not unsupported. You can find out which by examining the output (if you run youtube-dl on the console) or catching an `UnsupportedError` exception if you run it from a Python program.
 
 # Why do I need to go through that much red tape when filing bugs?
 
@@ -1302,7 +1302,7 @@ description = (
     or self._html_search_meta('twitter:description', webpage, default=None))
 ```
 
-Methods supporting list of patterns are: `_search_regex`, `_html_search_regex`, `_og_search_property`, `_html_search_meta`.
+Methods supporting list of patterns are: `_search_regex`, `_html_search_regex`, `_og_search_property`, and `_html_search_meta`.
 
 ### Trailing parentheses
 
@@ -1333,7 +1333,7 @@ Use `url_or_none` for safe URL processing.
 
 Use `try_get` for safe metadata extraction from parsed JSON.
 
-Use `unified_strdate` for uniform `upload_date` or any `YYYYMMDD` meta field extraction, `unified_timestamp` for uniform `timestamp` extraction, `parse_filesize` for `filesize` extraction, `parse_count` for count meta fields extraction, `parse_resolution`, `parse_duration` for `duration` extraction, `parse_age_limit` for `age_limit` extraction. 
+Use `unified_strdate` for uniform `upload_date` or any `YYYYMMDD` meta field extraction, `unified_timestamp` for uniform `timestamp` extraction, `parse_filesize` for `filesize` extraction, `parse_count` for count meta fields extraction, `parse_resolution`, `parse_duration` for `duration` extraction, and `parse_age_limit` for `age_limit` extraction.
 
 Explore [`youtube_dl/utils.py`](https://github.com/ytdl-org/youtube-dl/blob/master/youtube_dl/utils.py) for more useful convenience functions.
 
@@ -1434,7 +1434,7 @@ Please re-read your issue once again to avoid a couple of common mistakes (you c
 
 We often get issue reports that we cannot really decipher. While in most cases we eventually get the required information after asking back multiple times, this poses an unnecessary drain on our resources. Many contributors, including myself, are also not native speakers, so we may misread some parts.
 
-So please elaborate on what feature you are requesting, or what bug you want to be fixed. Make sure that it's obvious
+So please elaborate on what feature you are requesting or what bug you want to be fixed. Make sure that it's obvious:
 
 - What the problem is
 - How it could be fixed
