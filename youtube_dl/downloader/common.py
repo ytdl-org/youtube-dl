@@ -58,7 +58,7 @@ class FileDownloader(object):
     _TEST_FILE_SIZE = 10241
     params = None
 
-    def __init__(self, ydl, params: dict):
+    def __init__(self, ydl, params):
         """Create a FileDownloader object with the given options."""
         self.ydl = ydl
         self._progress_hooks = []

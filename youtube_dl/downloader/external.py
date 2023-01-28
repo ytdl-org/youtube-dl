@@ -5,10 +5,6 @@ import re
 import subprocess
 import sys
 import time
-try:
-    import aria2p
-except ModuleNotFoundError:
-    pass
 
 from .common import FileDownloader
 from ..compat import (
@@ -214,15 +210,23 @@ class Aria2pFD(ExternalFD):
     To use aria2p as downloader, you need to install aria2c and aria2p, aria2p can download with pip.
     Then run aria2c in the background and enable with the --enable-rpc option.
     '''
-    AVAILABLE_OPT = 'show'
+    try:
+        import aria2p
+        __avail = True
+    except ModuleNotFoundError:
+        __avail = False
 
-    def _call_downloader(self, tmpfilename: str, info_dict: dict):
+    @classmethod
+    def available(cls):
+        return cls.__avail
+
+    def _call_downloader(self, tmpfilename, info_dict):
         try:
             aria2 = aria2p.API(
                 aria2p.Client(
-                    host="http://localhost",
+                    host='http://localhost',
                     port=6800,
-                    secret=""
+                    secret=''
                 )
             )
         except NameError as exc:
@@ -234,10 +238,11 @@ class Aria2pFD(ExternalFD):
             for i in range(30, 38)
         )
         pre_len = -1
-        options = dict()
-        options["min-split-size"] = "1M"
-        options["max-connection-per-server"] = 4
-        options["auto-file-renaming"] = "false"
+        options = {
+            'min-split-size': '1M',
+            'max-connection-per-server': 4,
+            'auto-file-renaming': 'false',
+        }
         download_dir = os.path.dirname(tmpfilename)
         if download_dir:
             options["dir"] = download_dir
@@ -246,31 +251,26 @@ class Aria2pFD(ExternalFD):
         options["out"] = os.path.basename(tmpfilename)
         options["header"] = []
         for key, val in info_dict['http_headers'].items():
-            options["header"].append(f"{key}: {val}")
+            options['header'].append('{0}: {1}'.format(key, val))
         download = aria2.add_uris([info_dict['url']], options)
-        while download.status == "active":
+        status = {
+            'status': 'downloading',
+            'filename': self._filename,
+            'tmpfilename': tmpfilename,
+        }
+        started = time.time()
+        while download.status == 'active':
             download = aria2.get_download(download.gid)
-            message = (
-                f"{color_code[5]}["
-                f"{color_code[0]}#{download.gid[:7]} "
-                f"{format_bytes(download.completed_length)}/{format_bytes(download.total_length)}"
-                f"{color_code[6]}({download.progress/100:.0%}) "
-                f"{color_code[0]}CN:{download.connections} "
-                f"{color_code[0]}DL:{color_code[2]}{format_bytes(download.download_speed)} "
-                f"{color_code[0]}ETA:{color_code[6]}{download.eta}"
-                f"{color_code[5]}]"
-            )
-            if pre_len > len(message):
-                message += " " * (pre_len - len(message))
-            pre_len = len(message)
-            message += '\r'
-            print(message, end="", flush=True)
+            status.update({
+                'downloaded_bytes': download.completed_length,
+                'total_bytes': download.total_length,
+                'elapsed': time.time() - started,
+                'eta': download.eta,
+                'speed': download.download_speed,
+            })
+            self._hook_progress(status)
             time.sleep(.5)
-        if pre_len != -1:
-            print(" " * pre_len, '\r', end="", flush=True)
-        if download.status == "complete":
-            return 0
-        return 1
+        return int(download.status == 'complete')
 
 
 class HttpieFD(ExternalFD):
