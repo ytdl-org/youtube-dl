@@ -81,7 +81,7 @@ class Pr0grammIE(InfoExtractor):
     # https://pr0gramm.com/new/5495710:comment62621020 <- this is not the id!
     # https://pr0gramm.com/top/fruher war alles damals/5498175
 
-    _VALID_URL = r'https?:\/\/pr0gramm\.com\/.+?\/(?P<id>[\d]+)(:|$)'
+    _VALID_URL = r'https?:\/\/pr0gramm\.com\/(?!static/\d+).+?\/(?P<id>[\d]+)(:|$)'
     _TEST = {
         'url': 'https://pr0gramm.com/new/video/5466437',
         'info_dict': {
