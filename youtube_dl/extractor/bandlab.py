@@ -5,6 +5,16 @@ import re
 
 from .common import InfoExtractor
 
+from ..compat import (
+        compat_str,
+)
+
+from ..utils import (
+    strip_or_none,
+    try_get,
+    url_or_none,
+)
+
 
 class BandlabIE(InfoExtractor):
     _VALID_URL = r'https?://(?:www\.)?bandlab\.com/post/(?P<id>[^/]+)'
@@ -133,17 +143,20 @@ class BandlabAlbumOrPlaylistIE(InfoExtractor):
         kind = kind_regex.match(url).group('kind')
         config = self._download_json(
             'http://www.bandlab.com/api/v1.3/%s/%s' % kind, resource_id)
-        tracks = config['posts']
         entries = []
-        for track in config['posts']:
-            if 'track' in track:
-                url = track['track']['sample']['audioUrl']
-                name = track['track']['name']
-            elif 'revision' in track:
-                url = track['revision']['mixdown']['file']
-                name = track['revision']['song']['name']
-            else:
-                raise Exception("Neither track nor revision found in 'posts' object")
+        for track in try_get(config, lambda x: x['posts'], list) or []:
+            url, name = try_get(
+                track,
+                (lambda x: (x['track']['sample']['audioUrl'], x['track']['name']),
+                 lambda x: (x['revision']['mixdown']['file'], x['revision']['song']['name'])),
+                tuple) or (None, '', )
+            url = url_or_none(url)
+            name = strip_or_none(name)
+            if not (url and name):
+                continue
+            id = self._TRACK_ID_RE.match(url).groupdict().get('id')
+            if not id:
+                continue
             entries.append({
                 'url': url,
                 'id': self._TRACK_URL_RE.match(url).group('id'),
@@ -154,6 +167,6 @@ class BandlabAlbumOrPlaylistIE(InfoExtractor):
             '_type': 'playlist',
             'id': resource_id,
             'entries': entries,
-            'album': config['name'],
-            'artist': config['creator']['name']
+            'album': try_get(config, lambda x: x['name'].strip(), compat_str),
+            'artist': try_get(config, lambda x: x['creator']['name'].strip(), compat_str)
         }
