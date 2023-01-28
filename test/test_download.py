@@ -27,6 +27,8 @@ import re
 
 import youtube_dl.YoutubeDL
 from youtube_dl.compat import (
+    compat_filter as filter,
+    compat_map as map,
     compat_http_client,
     compat_urllib_error,
     compat_HTTPError,
@@ -278,12 +280,6 @@ for n, test_case in enumerate(defs):
     test_method = generator(test_case, tname)
     ie_list = ','.join(test_case.get('add_ie', []))
     TestDownload.addTest(test_method, tname, ie_list)
-
-# Py2 compat (should be in compat.py?)
-try:
-    from itertools import (ifilter as filter, imap as map)
-except ImportError:
-    pass
 
 
 def tests_for_ie(ie_key):
