@@ -45,7 +45,7 @@ class BandlabIE(InfoExtractor):
 
 class BandlabAlbumOrPlaylistIE(InfoExtractor):
     _VALID_URL = r'https?://(?:www\.)?bandlab\.com/[^/]+/(?P<kind>albums|collections)/(?P<id>[^/]+)'
-    _TRACK_ID_RE = re.compile(r'.+/(?P<id>[^/]+)\.m4a')
+    _TRACK_ID_RE = r'.+/(?P<id>[^/]+)\.m4a'
     _TESTS = [{
         'url': 'https://www.bandlab.com/sbsdasani/albums/dc26e307-e51f-ed11-95d7-002248452390',
         'playlist': [
@@ -138,9 +138,7 @@ class BandlabAlbumOrPlaylistIE(InfoExtractor):
     }]
 
     def _real_extract(self, url):
-        resource_id = self._match_id(url)
-        kind_regex = re.compile(self._VALID_URL)
-        kind = kind_regex.match(url).group('kind')
+        resource_id, kind = re.match(self._VALID_URL, url).group('id', 'kind')
         config = self._download_json(
             'http://www.bandlab.com/api/v1.3/%s/%s' % (kind, resource_id), resource_id)
         entries = []
@@ -154,13 +152,13 @@ class BandlabAlbumOrPlaylistIE(InfoExtractor):
             name = strip_or_none(name)
             if not (url and name):
                 continue
-            track_id = self._TRACK_ID_RE.match(url).groupdict().get('id')
+            track_id = re.match(self._TRACK_ID_RE, url).group('id')
             if not track_id:
                 continue
             entries.append({
                 'url': url,
                 'id': track_id,
-                'title': name
+                'title': name,
             })
 
         return {
