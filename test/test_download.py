@@ -310,13 +310,12 @@ def gen_test_suite(ie_key):
 
 
 for ie_key in set(
-    map(lambda x: x[0],
+    map(lambda a: a[5:],
         filter(
-            lambda x: callable(x[1]),
-            map(lambda a: (a[5:], getattr(TestDownload, a, None)),
-                filter(lambda t:
-                       re.match(r'test_.+(?<!(?:_all|.._\d|._\d\d|_\d\d\d))$', t),
-                       dir(TestDownload)))))):
+            lambda x: callable(getattr(TestDownload, x, None)),
+            filter(
+                lambda t: re.match(r"test_.+(?<!(?:_all|.._\d|._\d\d|_\d\d\d))$", t),
+                dir(TestDownload))))):
     test_all = gen_test_suite(ie_key)
     TestDownload.addTest(test_all, 'test_%s_all' % ie_key, 'Test all: %s' % ie_key)
 
