@@ -12,6 +12,7 @@ from ..utils import (
     mimetype2ext,
     parse_codecs,
     update_url_query,
+    urljoin,
     xpath_element,
     xpath_text,
 )
@@ -19,6 +20,7 @@ from ..compat import (
     compat_b64decode,
     compat_ord,
     compat_struct_pack,
+    compat_urlparse,
 )
 
 
@@ -45,10 +47,24 @@ class VideaIE(InfoExtractor):
         },
     }, {
         'url': 'http://videa.hu/videok/origo/jarmuvek/supercars-elozes-jAHDWfWSJH5XuFhH',
-        'only_matching': True,
+        'md5': 'd57ccd8812c7fd491d33b1eab8c99975',
+        'info_dict': {
+            'id': 'jAHDWfWSJH5XuFhH',
+            'ext': 'mp4',
+            'title': 'Supercars előzés',
+            'thumbnail': r're:^https?://.*',
+            'duration': 64,
+        },
     }, {
         'url': 'http://videa.hu/player?v=8YfIAjxwWGwT8HVQ',
-        'only_matching': True,
+        'md5': '97a7af41faeaffd9f1fc864a7c7e7603',
+        'info_dict': {
+            'id': '8YfIAjxwWGwT8HVQ',
+            'ext': 'mp4',
+            'title': 'Az őrült kígyász 285 kígyót enged szabadon',
+            'thumbnail': r're:^https?://.*',
+            'duration': 21,
+        },
     }, {
         'url': 'http://videa.hu/player/v/8YfIAjxwWGwT8HVQ?autoplay=1',
         'only_matching': True,
@@ -91,13 +107,20 @@ class VideaIE(InfoExtractor):
             k = S[(S[i] + S[j]) % 256]
             res += compat_struct_pack('B', k ^ compat_ord(cipher_text[m]))
 
-        return res.decode()
+        return res.decode('utf-8')
 
     def _real_extract(self, url):
         video_id = self._match_id(url)
-        query = {'v': video_id}
-        player_page = self._download_webpage(
-            'https://videa.hu/player', video_id, query=query)
+        video_page = self._download_webpage(url, video_id)
+
+        if 'videa.hu/player' in url:
+            player_url = url
+            player_page = video_page
+        else:
+            player_url = self._search_regex(
+                r'<iframe.*?src="(/player\?[^"]+)"', video_page, 'player url')
+            player_url = urljoin(url, player_url)
+            player_page = self._download_webpage(player_url, video_id)
 
         nonce = self._search_regex(
             r'_xt\s*=\s*"([^"]+)"', player_page, 'nonce')
@@ -107,6 +130,7 @@ class VideaIE(InfoExtractor):
         for i in range(0, 32):
             result += s[i - (self._STATIC_SECRET.index(l[i]) - 31)]
 
+        query = compat_urlparse.parse_qs(compat_urlparse.urlparse(player_url).query)
         random_seed = ''.join(random.choice(string.ascii_letters + string.digits) for _ in range(8))
         query['_s'] = random_seed
         query['_t'] = result[:16]
@@ -121,13 +145,13 @@ class VideaIE(InfoExtractor):
                 compat_b64decode(b64_info), key), video_id)
 
         video = xpath_element(info, './video', 'video')
-        if not video:
+        if video is None:
             raise ExtractorError(xpath_element(
                 info, './error', fatal=True), expected=True)
         sources = xpath_element(
             info, './video_sources', 'sources', fatal=True)
         hash_values = xpath_element(
-            info, './hash_values', 'hash values', fatal=True)
+            info, './hash_values', 'hash values', fatal=False)
 
         title = xpath_text(video, './title', fatal=True)
 
@@ -136,15 +160,16 @@ class VideaIE(InfoExtractor):
             source_url = source.text
             source_name = source.get('name')
             source_exp = source.get('exp')
-            if not (source_url and source_name and source_exp):
+            if not (source_url and source_name):
                 continue
-            hash_value = xpath_text(hash_values, 'hash_value_' + source_name)
-            if not hash_value:
-                continue
-            source_url = update_url_query(source_url, {
-                'md5': hash_value,
-                'expires': source_exp,
-            })
+            hash_value = (
+                xpath_text(hash_values, 'hash_value_' + source_name)
+                if hash_values is not None else None)
+            if hash_value and source_exp:
+                source_url = update_url_query(source_url, {
+                    'md5': hash_value,
+                    'expires': source_exp,
+                })
             f = parse_codecs(source.get('codecs'))
             f.update({
                 'url': self._proto_relative_url(source_url),
