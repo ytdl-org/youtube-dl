@@ -24,6 +24,7 @@ from ..utils import (
     merge_dicts,
     parse_duration,
     parse_iso8601,
+    remove_start,
     smuggle_url,
     strip_or_none,
     traverse_obj,
@@ -56,7 +57,12 @@ class ITVBaseIE(InfoExtractor):
             self._downloader.report_warning(errmsg)
             return False
 
+    @staticmethod
+    def _vanilla_ua_header():
+        return {'User-agent': 'Mozilla/5.0'}
+
     def _download_webpage_handle(self, url, video_id, *args, **kwargs):
+        # specialised to (a) use vanilla UA (b) detect geo-block
         params = self._downloader.params
         nkwargs = {}
         if (
@@ -66,7 +72,7 @@ class ITVBaseIE(InfoExtractor):
                 and 'User-agent' not in (kwargs.get('headers') or {})):
 
             kwargs.setdefault('headers', {})
-            kwargs['headers']['User-agent'] = 'Mozilla/5.0'
+            kwargs['headers'] = self._vanilla_ua_header()
             nkwargs = kwargs
         if kwargs.get('expected_status') is not None:
             exp = kwargs['expected_status']
@@ -93,9 +99,7 @@ class ITVBaseIE(InfoExtractor):
             # '{\n  "Message" : "Request Originated Outside Of Allowed Geographic Region",\
             # \n  "TransactionId" : "oas-magni-475082-xbYF0W"\n}'
             if '"Request Originated Outside Of Allowed Geographic Region"' in webpage:
-                self.raise_geo_restricted(
-                    msg='This video is not available from your location due to geo restriction: try --geo-ip-block "193.113.0.0/16"',
-                    countries=['GB'])
+                self.raise_geo_restricted(countries=['GB'])
             ret = self.__handle_request_webpage_error(
                 compat_HTTPError(urlh.geturl(), 403, 'HTTP Error 403: Forbidden', urlh.headers, urlh),
                 fatal=kwargs.get('fatal'))
@@ -107,22 +111,23 @@ class ITVIE(ITVBaseIE):
     _VALID_URL = r'https?://(?:www\.)?itv\.com/(?:(?P<w>watch)|hub)/[^/]+/(?(w)[\w-]+/)(?P<id>\w+)'
     _IE_DESC = 'ITVX'
     _TESTS = [{
-        # while it redirects to ITVX
+        'note': 'Hub URLs redirect to ITVX',
         'url': 'https://www.itv.com/hub/liar/2a4547a0012',
         'only_matching': True,
     }, {
-        # unavailable via data-playlist-url
+        'note': 'Hub page unavailable via data-playlist-url (404 now)',
         'url': 'https://www.itv.com/hub/through-the-keyhole/2a2271a0033',
         'only_matching': True,
     }, {
-        # InvalidVodcrid
+        'note': 'Hub page with InvalidVodcrid (404 now)',
         'url': 'https://www.itv.com/hub/james-martins-saturday-morning/2a5159a0034',
         'only_matching': True,
     }, {
-        # ContentUnavailable
+        'note': 'Hub page with ContentUnavailable (404 now)',
         'url': 'https://www.itv.com/hub/whos-doing-the-dishes/2a2898a0024',
         'only_matching': True,
     }, {
+        'note': 'ITVX, or itvX, show',
         'url': 'https://www.itv.com/watch/vera/1a7314/1a7314a0014',
         'md5': 'bd0ad666b2c058fffe7d036785880064',
         'info_dict': {
@@ -144,12 +149,12 @@ class ITVIE(ITVBaseIE):
             'categories': list,
         },
         'params': {
-            'geo_bypass_ip_block': '193.113.0.0/16',
             # m3u8 download
-            'skip_download': True,
+            # 'skip_download': True,
         },
+        'skip': 'only available in UK',
     }, {
-        # Latest ITV news bulletin: details change daily
+        'note': 'Latest ITV news bulletin: details change daily',
         'url': 'https://www.itv.com/watch/news/varies-but-is-not-checked/6js5d0f',
         'info_dict': {
             'id': '6js5d0f',
@@ -164,10 +169,10 @@ class ITVIE(ITVBaseIE):
             'age_limit': None,
         },
         'params': {
-            'geo_bypass_ip_block': '193.113.0.0/16',
             # variable download
-            'skip_download': True,
+            # 'skip_download': True,
         },
+        'skip': 'only available in UK',
     }
     ]
 
@@ -251,6 +256,9 @@ class ITVIE(ITVBaseIE):
                     'url': href,
                 })
         self._sort_formats(formats)
+        for f in formats:
+            f.setdefault('http_headers', {})
+            f['http_headers'].update(self._vanilla_ua_header())
 
         subtitles = {}
         for sub in traverse_obj(video_data, 'Subtitles', expected_type=list) or []:
@@ -315,16 +323,33 @@ class ITVIE(ITVBaseIE):
 
 class ITVBTCCIE(ITVBaseIE):
     _VALID_URL = r'https?://(?:www\.)?itv\.com/(?!(?:watch|hub)/)(?:[^/]+/)+(?P<id>[^/?#&]+)'
-    _TEST = {
-        'url': 'http://www.itv.com/btcc/races/btcc-2018-all-the-action-from-brands-hatch',
+    _IE_DESC = 'ITV articles: News, British Touring Car Championship'
+    _TESTS = [{
+        'note': 'British Touring Car Championship',
+        'url': 'https://www.itv.com/btcc/articles/btcc-2018-all-the-action-from-brands-hatch',
         'info_dict': {
             'id': 'btcc-2018-all-the-action-from-brands-hatch',
             'title': 'BTCC 2018: All the action from Brands Hatch',
         },
         'playlist_mincount': 9,
-    }
-    BRIGHTCOVE_URL_TEMPLATE = 'http://players.brightcove.net/%s/HkiHLnNRx_default/index.html?videoId=%s'
+    }, {
+        'note': 'redirects to /btcc/articles/...',
+        'url': 'http://www.itv.com/btcc/races/btcc-2018-all-the-action-from-brands-hatch',
+        'only_matching': True,
+    }, {
+        'note': 'news article',
+        'url': 'https://www.itv.com/news/wales/2020-07-23/sean-fletcher-shows-off-wales-coastline-in-new-itv-series-as-british-tourists-opt-for-staycations',
+        'info_dict': {
+            'id': 'sean-fletcher-shows-off-wales-coastline-in-new-itv-series-as-british-tourists-opt-for-staycations',
+            'title': '''Sean Fletcher on why Wales' coastline should be your 'staycation' destination | ITV News''',
+        },
+        'playlist_mincount': 1,
+    }]
+
+    # should really be a class var of the BC IE
+    BRIGHTCOVE_URL_TEMPLATE = 'http://players.brightcove.net/%s/%s_default/index.html?videoId=%s'
     BRIGHTCOVE_ACCOUNT = '1582188683001'
+    BRIGHTCOVE_PLAYER = 'HkiHLnNRx'
 
     def _real_extract(self, url):
         playlist_id = self._match_id(url)
@@ -333,13 +358,16 @@ class ITVBTCCIE(ITVBaseIE):
         link = compat_urlparse.urlparse(urlh.geturl()).path.strip('/')
 
         next_data = self._search_nextjs_data(webpage, playlist_id, fatal=False, default='{}')
+        path_prefix = compat_urlparse.urlparse(next_data.get('assetPrefix') or '').path.strip('/')
+        link = remove_start(link, path_prefix).strip('/')
+
         content = traverse_obj(
             next_data, ('props', 'pageProps', Ellipsis),
             expected_type=lambda x: x if x['link'] == link else None,
             get_all=False, default={})
         content = traverse_obj(
             content, ('body', 'content', Ellipsis, 'data'),
-            expected_type=lambda x: x if x['name'] == 'Brightcove' else None)
+            expected_type=lambda x: x if x.get('name') == 'Brightcove' or x.get('type') == 'Brightcove' else None)
 
         contraband = {
             # ITV does not like some GB IP ranges, so here are some
@@ -357,14 +385,15 @@ class ITVBTCCIE(ITVBaseIE):
                 if not video_id:
                     continue
                 account = data.get('accountId') or self.BRIGHTCOVE_ACCOUNT
+                player = data.get('playerId') or self.BRIGHTCOVE_PLAYER
                 yield self.url_result(
-                    smuggle_url(self.BRIGHTCOVE_URL_TEMPLATE % (account, video_id), contraband),
+                    smuggle_url(self.BRIGHTCOVE_URL_TEMPLATE % (account, player, video_id), contraband),
                     ie=BrightcoveNewIE.ie_key(), video_id=video_id)
 
             # obsolete ?
             for video_id in re.findall(r'''data-video-id=["'](\d+)''', webpage):
                 yield self.url_result(
-                    smuggle_url(self.BRIGHTCOVE_URL_TEMPLATE % (self.BRIGHTCOVE_ACCOUNT, video_id), contraband),
+                    smuggle_url(self.BRIGHTCOVE_URL_TEMPLATE % (self.BRIGHTCOVE_ACCOUNT, self.BRIGHTCOVE_PLAYER, video_id), contraband),
                     ie=BrightcoveNewIE.ie_key(), video_id=video_id)
 
         title = self._og_search_title(webpage, fatal=False)
