@@ -314,7 +314,7 @@ class ITVIE(ITVBaseIE):
 
 
 class ITVBTCCIE(ITVBaseIE):
-    _VALID_URL = r'https?://(?:www\.)?itv\.com/(?!:watch/|hub/)(?:[^/]+/)+(?P<id>[^/?#&]+)'
+    _VALID_URL = r'https?://(?:www\.)?itv\.com/(?!(?:watch|hub)/)(?:[^/]+/)+(?P<id>[^/?#&]+)'
     _TEST = {
         'url': 'http://www.itv.com/btcc/races/btcc-2018-all-the-action-from-brands-hatch',
         'info_dict': {
