@@ -212,7 +212,7 @@ class Aria2pFD(ExternalFD):
     try:
         import aria2p
         __avail = True
-    except ModuleNotFoundError:
+    except ImportError:
         __avail = False
 
     @classmethod
