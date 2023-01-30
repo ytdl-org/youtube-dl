@@ -221,23 +221,14 @@ class Aria2pFD(ExternalFD):
         return cls.__avail
 
     def _call_downloader(self, tmpfilename, info_dict):
-        try:
-            aria2 = aria2p.API(
-                aria2p.Client(
-                    host='http://localhost',
-                    port=6800,
-                    secret=''
-                )
+        aria2 = aria2p.API(
+            aria2p.Client(
+                host='http://localhost',
+                port=6800,
+                secret=''
             )
-        except NameError as exc:
-            raise ModuleNotFoundError("No moudle named aria2p") from exc
-
-        # ANSI colors
-        color_code = tuple(
-            f"\033[{i}m"
-            for i in range(30, 38)
         )
-        pre_len = -1
+
         options = {
             'min-split-size': '1M',
             'max-connection-per-server': 4,
