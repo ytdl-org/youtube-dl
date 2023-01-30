@@ -249,7 +249,7 @@ class Aria2pFD(ExternalFD):
             'tmpfilename': tmpfilename,
         }
         started = time.time()
-        while download.status in ['active', 'waiting'] :
+        while download.status in ['active', 'waiting']:
             download = aria2.get_download(download.gid)
             status.update({
                 'downloaded_bytes': download.completed_length,
@@ -260,7 +260,7 @@ class Aria2pFD(ExternalFD):
             })
             self._hook_progress(status)
             time.sleep(.5)
-        return not(download.status == 'complete')
+        return not (download.status == 'complete')
 
 
 class HttpieFD(ExternalFD):
