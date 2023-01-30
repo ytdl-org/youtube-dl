@@ -19,7 +19,6 @@ from ..utils import (
     cli_configuration_args,
     encodeFilename,
     encodeArgument,
-    format_bytes,
     handle_youtubedl_headers,
     check_executable,
     is_outdated_version,
