@@ -221,6 +221,7 @@ class Aria2pFD(ExternalFD):
         return cls.__avail
 
     def _call_downloader(self, tmpfilename, info_dict):
+        import aria2p
         aria2 = aria2p.API(
             aria2p.Client(
                 host='http://localhost',
@@ -246,22 +247,21 @@ class Aria2pFD(ExternalFD):
         download = aria2.add_uris([info_dict['url']], options)
         status = {
             'status': 'downloading',
-            'filename': self.__filename,
             'tmpfilename': tmpfilename,
         }
         started = time.time()
-        while download.status == 'active':
+        while download.status in ['active', 'waiting'] :
             download = aria2.get_download(download.gid)
             status.update({
                 'downloaded_bytes': download.completed_length,
                 'total_bytes': download.total_length,
                 'elapsed': time.time() - started,
-                'eta': download.eta,
+                'eta': download.eta.total_seconds(),
                 'speed': download.download_speed,
             })
             self._hook_progress(status)
             time.sleep(.5)
-        return int(download.status == 'complete')
+        return not(download.status == 'complete')
 
 
 class HttpieFD(ExternalFD):
