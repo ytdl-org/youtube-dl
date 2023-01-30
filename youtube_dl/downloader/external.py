@@ -260,7 +260,7 @@ class Aria2pFD(ExternalFD):
             })
             self._hook_progress(status)
             time.sleep(.5)
-        return not (download.status == 'complete')
+        return not download.status == 'complete'
 
 
 class HttpieFD(ExternalFD):
