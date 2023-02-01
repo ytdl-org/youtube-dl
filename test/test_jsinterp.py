@@ -158,6 +158,38 @@ class TestJSInterpreter(unittest.TestCase):
         self.assertEqual(jsi.call_function('z'), 5)
         self.assertEqual(jsi.call_function('y'), 2)
 
+    def test_if(self):
+        jsi = JSInterpreter('''
+        function x() {
+            let a = 9;
+            if (0==0) {a++}
+            return a
+        }''')
+        self.assertEqual(jsi.call_function('x'), 10)
+
+        jsi = JSInterpreter('''
+        function x() {
+            if (0==0) {return 10}
+        }''')
+        self.assertEqual(jsi.call_function('x'), 10)
+
+        jsi = JSInterpreter('''
+        function x() {
+            if (0!=0) {return 1}
+            else {return 10}
+        }''')
+        self.assertEqual(jsi.call_function('x'), 10)
+
+        """  # Unsupported
+        jsi = JSInterpreter('''
+        function x() {
+            if (0!=0) {return 1}
+            else if (1==0) {return 2}
+            else {return 10}
+        }''')
+        self.assertEqual(jsi.call_function('x'), 10)
+        """
+
     def test_for_loop(self):
         # function x() { a=0; for (i=0; i-10; i++) {a++} a }
         jsi = JSInterpreter('''

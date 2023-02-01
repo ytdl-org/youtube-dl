@@ -214,7 +214,7 @@ class JSInterpreter(object):
         def __init__(self, msg, *args, **kwargs):
             expr = kwargs.pop('expr', None)
             if expr is not None:
-                msg = '{0} in: {1!r:.100}'.format(msg.rstrip(), expr)
+                msg = '{0} in: {1!r}'.format(msg.rstrip(), expr[:100])
             super(JSInterpreter.Exception, self).__init__(msg, *args, **kwargs)
 
     @classmethod
@@ -268,7 +268,7 @@ class JSInterpreter(object):
                 elif in_quote == '/' and char in '[]':
                     in_regex_char_group = char == '['
             escaping = not escaping and in_quote and char == '\\'
-            after_op = not in_quote and (char in cls.OP_CHARS or char == '[' or (char.isspace() and after_op))
+            after_op = not in_quote and (char in cls.OP_CHARS or (char.isspace() and after_op))
 
             if char != delim[pos] or any(counters.values()) or in_quote:
                 pos = skipping = 0
@@ -301,7 +301,7 @@ class JSInterpreter(object):
         separated = list(cls._separate(expr, delim, 1))
 
         if len(separated) < 2:
-            raise cls.Exception('No terminating paren {delim} in {expr:.100}'.format(**locals()))
+            raise cls.Exception('No terminating paren {delim} in {expr}'.format(**locals()))
         return separated[0][1:].strip(), separated[1].strip()
 
     @staticmethod
@@ -428,10 +428,25 @@ class JSInterpreter(object):
 
         m = re.match(r'''(?x)
                 (?P<try>try)\s*\{|
+                (?P<if>if)\s*\(|
                 (?P<switch>switch)\s*\(|
                 (?P<for>for)\s*\(
                 ''', expr)
         md = m.groupdict() if m else {}
+        if md.get('if'):
+            cndn, expr = self._separate_at_paren(expr[m.end() - 1:])
+            if_expr, expr = self._separate_at_paren(expr.lstrip())
+            # TODO: "else if" is not handled
+            else_expr = None
+            m = re.match(r'else\s*{', expr)
+            if m:
+                else_expr, expr = self._separate_at_paren(expr[m.end() - 1:])
+            cndn = _js_ternary(self.interpret_expression(cndn, local_vars, allow_recursion))
+            ret, should_abort = self.interpret_statement(
+                if_expr if cndn else else_expr, local_vars, allow_recursion)
+            if should_abort:
+                return ret, True
+
         if md.get('try'):
             try_expr, expr = self._separate_at_paren(expr[m.end() - 1:])
             err = None
