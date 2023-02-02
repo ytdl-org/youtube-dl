@@ -1667,3 +1667,7 @@ from .zingmp3 import (
 )
 from .zoom import ZoomIE
 from .zype import ZypeIE
+from .pr0gramm import (
+    Pr0grammIE,
+    Pr0grammStaticIE,
+)
