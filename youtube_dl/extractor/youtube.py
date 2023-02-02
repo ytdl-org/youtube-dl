@@ -315,7 +315,8 @@ class YoutubeBaseInfoExtractor(InfoExtractor):
         title = try_get(
             renderer,
             (lambda x: x['title']['runs'][0]['text'],
-             lambda x: x['title']['simpleText']), compat_str)
+             lambda x: x['title']['simpleText'],
+             lambda x: x['headline']['simpleText']), compat_str)
         description = try_get(
             renderer, lambda x: x['descriptionSnippet']['runs'][0]['text'],
             compat_str)
@@ -2207,6 +2208,24 @@ class YoutubeTabIE(YoutubeBaseInfoExtractor):
     IE_NAME = 'youtube:tab'
 
     _TESTS = [{
+        # Shorts
+        'url': 'https://www.youtube.com/@SuperCooperShorts/shorts',
+        'playlist_mincount': 5,
+        'info_dict': {
+            'description': 'Short clips from Super Cooper Sundays!',
+            'id': 'UCKMA8kHZ8bPYpnMNaUSxfEQ',
+            'title': 'Super Cooper Shorts - Shorts',
+        }
+    }, {
+        # Channel that does not have a Shorts tab. Test should just download videos on Home tab instead
+        'url': 'https://www.youtube.com/@emergencyawesome/shorts',
+        'info_dict': {
+            'description': 'md5:592c080c06fef4de3c902c4a8eecd850',
+            'id': 'UCDiFRMQWpcp8_KD4vwIVicw',
+            'title': 'Emergency Awesome - Home',
+        },
+        'playlist_mincount': 5,
+    }, {
         # playlists, multipage
         'url': 'https://www.youtube.com/c/ИгорьКлейнер/playlists?view=1&flow=grid',
         'playlist_mincount': 94,
@@ -2680,7 +2699,11 @@ class YoutubeTabIE(YoutubeBaseInfoExtractor):
 
     def _rich_grid_entries(self, contents):
         for content in contents:
-            video_renderer = try_get(content, lambda x: x['richItemRenderer']['content']['videoRenderer'], dict)
+            video_renderer = try_get(
+                content,
+                (lambda x: x['richItemRenderer']['content']['videoRenderer'],
+                 lambda x: x['richItemRenderer']['content']['reelItemRenderer']),
+                dict)
             if video_renderer:
                 entry = self._video_entry(video_renderer)
                 if entry:
