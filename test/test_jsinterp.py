@@ -11,8 +11,6 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 import math
 import re
 
-from youtube_dl.compat import compat_re_Pattern
-
 from youtube_dl.jsinterp import JS_Undefined, JSInterpreter
 
 
@@ -140,14 +138,22 @@ class TestJSInterpreter(unittest.TestCase):
         ''')
         self.assertTrue(math.isnan(jsi.call_function('x')))
 
+    def test_Date(self):
         jsi = JSInterpreter('''
         function x() { return new Date('Wednesday 31 December 1969 18:01:26 MDT') - 0; }
         ''')
         self.assertEqual(jsi.call_function('x'), 86000)
+
         jsi = JSInterpreter('''
         function x(dt) { return new Date(dt) - 0; }
         ''')
         self.assertEqual(jsi.call_function('x', 'Wednesday 31 December 1969 18:01:26 MDT'), 86000)
+
+        # date format m/d/y
+        jsi = JSInterpreter('''
+        function x() { return new Date('12/31/1969 18:01:26 MDT') - 0; }
+        ''')
+        self.assertEqual(jsi.call_function('x'), 86000)
 
     def test_call(self):
         jsi = JSInterpreter('''
@@ -183,17 +189,43 @@ class TestJSInterpreter(unittest.TestCase):
         """  # Unsupported
         jsi = JSInterpreter('''
         function x() {
+            if (0!=0) return 1;
+            else {return 10}
+        }''')
+        self.assertEqual(jsi.call_function('x'), 10)
+        """
+
+    def test_elseif(self):
+        jsi = JSInterpreter('''
+        function x() {
             if (0!=0) {return 1}
             else if (1==0) {return 2}
             else {return 10}
         }''')
         self.assertEqual(jsi.call_function('x'), 10)
+
+        """  # Unsupported
+        jsi = JSInterpreter('''
+        function x() {
+            if (0!=0) return 1;
+            else if (1==0) {return 2}
+            else {return 10}
+        }''')
+        self.assertEqual(jsi.call_function('x'), 10)
+        # etc
         """
 
     def test_for_loop(self):
         # function x() { a=0; for (i=0; i-10; i++) {a++} a }
         jsi = JSInterpreter('''
         function x() { a=0; for (i=0; i-10; i++) {a++} return a }
+        ''')
+        self.assertEqual(jsi.call_function('x'), 10)
+
+    def test_while_loop(self):
+        # function x() { a=0; while (a<10) {a++} a }
+        jsi = JSInterpreter('''
+        function x() { a=0; while (a<10) {a++} return a }
         ''')
         self.assertEqual(jsi.call_function('x'), 10)
 
@@ -415,12 +447,27 @@ class TestJSInterpreter(unittest.TestCase):
         jsi = JSInterpreter('''
         function x() { let a=/,,[/,913,/](,)}/; return a; }
         ''')
-        self.assertIsInstance(jsi.call_function('x'), compat_re_Pattern)
+        attrs = set(('findall', 'finditer', 'flags', 'groupindex',
+                     'groups', 'match', 'pattern', 'scanner',
+                     'search', 'split', 'sub', 'subn'))
+        self.assertTrue(set(dir(jsi.call_function('x'))) > attrs)
 
         jsi = JSInterpreter('''
         function x() { let a=/,,[/,913,/](,)}/i; return a; }
         ''')
         self.assertEqual(jsi.call_function('x').flags & ~re.U, re.I)
+
+        jsi = JSInterpreter(r'''
+        function x() { let a=[/[)\\]/]; return a[0]; }
+        ''')
+        self.assertEqual(jsi.call_function('x').pattern, r'[)\\]')
+
+        """  # fails
+        jsi = JSInterpreter(r'''
+        function x() { let a=100; a/=/[0-9]+/.exec('divide by 20 today')[0]; }
+        ''')
+        self.assertEqual(jsi.call_function('x'), 5)
+        """
 
     def test_char_code_at(self):
         jsi = JSInterpreter('function x(i){return "test".charCodeAt(i)}')
