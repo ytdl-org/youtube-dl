@@ -23,7 +23,7 @@ class RecurbateIE(InfoExtractor):
     }
 
     @staticmethod
-    def raise_login_required(msg='Login required: use --cookies to pass your browser's login cookie, or try again later'):
+    def raise_login_required(msg="Login required: use --cookies to pass your browser's login cookie, or try again later"):
         raise ExtractorError(msg, expected=True)
 
     def _real_extract(self, url):
