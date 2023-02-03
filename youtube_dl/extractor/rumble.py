@@ -74,9 +74,9 @@ class RumbleIE(InfoExtractor):
 
     @classmethod
     def suitable(cls, url):
-        return (cls.get_re('jscript_url').match(url) is not None or
-                cls.get_re('list_url').match(url) is not None or
-                cls.get_re('iframe_url').match(url) is not None)
+        return (cls.get_re('jscript_url').match(url) is not None
+                or cls.get_re('list_url').match(url) is not None
+                or cls.get_re('iframe_url').match(url) is not None)
 
     @staticmethod
     def rumble_embedded_id(page_data):
