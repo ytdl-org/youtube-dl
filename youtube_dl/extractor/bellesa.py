@@ -3,7 +3,11 @@ from __future__ import unicode_literals
 
 import json
 
-from ..utils import ExtractorError, clean_html, try_get
+from ..utils import (
+    clean_html,
+    ExtractorError,
+    try_get,
+)
 from .common import InfoExtractor
 
 
