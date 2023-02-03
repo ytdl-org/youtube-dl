@@ -92,6 +92,6 @@ class RbgTumCourseIE(InfoExtractor):
 
         lecture_urls = []
         for lecture_url in re.findall(r'(?i)href="/w/(.+)(?<!/cam)(?<!/pres)(?<!/chat)"', webpage):
-            lecture_urls.append(self.url_result(r'https://live.rbg.tum.de/w/' + lecture_url, ie=RbgTumIE.ie_key()))
+            lecture_urls.append(self.url_result('https://live.rbg.tum.de/w/' + lecture_url, ie=RbgTumIE.ie_key()))
 
         return self.playlist_result(lecture_urls, course_id, lecture_series_title)
