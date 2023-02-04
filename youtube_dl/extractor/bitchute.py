@@ -14,7 +14,6 @@ from ..utils import (
     int_or_none,
     merge_dicts,
     orderedSet,
-    strip_or_none,
     unified_timestamp,
     urlencode_postdata,
     urljoin,
@@ -61,7 +60,7 @@ class BitChuteBaseIE(InfoExtractor):
 
     def _search_title(self, html, title_id, **kwargs):
         return (
-            strip_or_none(clean_html(get_element_by_id(title_id, html)))
+            clean_html(get_element_by_id(title_id, html)) or None
             or self._og_search_title(html, default=None)
             or self._html_search_regex(r'(?s)<title\b[^>]*>.*?</title', html, 'title', **kwargs))
 
@@ -118,7 +117,7 @@ class BitChuteIE(BitChuteBaseIE):
     @staticmethod
     def _extract_urls(webpage):
         urls = re.finditer(
-            r'''<(?:script|iframe)\b[^>]+\bsrc\s*=\s*(["'])(?P<url>%s)''' % (BitChuteIE._VALID_URL, ),
+            r'''<(?:script|iframe)\b[^>]+\bsrc\s*=\s*("|')(?P<url>%s)''' % (BitChuteIE._VALID_URL, ),
             webpage)
         return (mobj.group('url') for mobj in urls)
 
@@ -126,10 +125,10 @@ class BitChuteIE(BitChuteBaseIE):
         video_id = self._match_id(url)
 
         def get_error_title(html):
-            return strip_or_none(clean_html(get_element_by_class('page-title', html)))
+            return clean_html(get_element_by_class('page-title', html)) or None
 
         def get_error_text(html):
-            return strip_or_none(clean_html(get_element_by_id('page-detail', html)))
+            return clean_html(get_element_by_id('page-detail', html)) or None
 
         webpage, urlh = self._download_webpage_handle(
             'https://www.bitchute.com/video/' + video_id, video_id,
@@ -156,7 +155,7 @@ class BitChuteIE(BitChuteBaseIE):
             entries = self._parse_html5_media_entries(
                 url, webpage, video_id)
             if not entries:
-                error = strip_or_none(clean_html(get_element_by_id('video-title', webpage)))
+                error = clean_html(get_element_by_id('video-title', webpage)) or None
                 if error == 'Video Unavailable':
                     raise GeoRestrictedError(error, expected=True)
                 error = get_error_title(webpage)
@@ -294,7 +293,7 @@ class BitChutePlaylistIE(BitChuteBaseIE):
             self._list_entries(playlist_id), playlist_id=playlist_id, playlist_title=title)
 
         description = (
-            strip_or_none(clean_html(get_element_by_class('description', webpage)))
+            clean_html(get_element_by_class('description', webpage))
             or self._search_description(webpage, None))
 
         return merge_dicts(
