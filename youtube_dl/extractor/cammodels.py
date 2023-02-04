@@ -3,7 +3,6 @@ from __future__ import unicode_literals
 
 from .common import InfoExtractor
 from ..utils import (
-    ExtractorError,
     int_or_none,
     url_or_none,
 )
@@ -20,32 +19,11 @@ class CamModelsIE(InfoExtractor):
     def _real_extract(self, url):
         user_id = self._match_id(url)
 
-        webpage = self._download_webpage(
-            url, user_id, headers=self.geo_verification_headers())
-
-        manifest_root = self._html_search_regex(
-            r'manifestUrlRoot=([^&\']+)', webpage, 'manifest', default=None)
-
-        if not manifest_root:
-            ERRORS = (
-                ("I'm offline, but let's stay connected", 'This user is currently offline'),
-                ('in a private show', 'This user is in a private show'),
-                ('is currently performing LIVE', 'This model is currently performing live'),
-            )
-            for pattern, message in ERRORS:
-                if pattern in webpage:
-                    error = message
-                    expected = True
-                    break
-            else:
-                error = 'Unable to find manifest URL root'
-                expected = False
-            raise ExtractorError(error, expected=expected)
-
         manifest = self._download_json(
-            '%s%s.json' % (manifest_root, user_id), user_id)
+            'https://manifest-server.naiadsystems.com/live/s:%s.json' % user_id, user_id)
 
         formats = []
+        thumbnails = []
         for format_id, format_dict in manifest['formats'].items():
             if not isinstance(format_dict, dict):
                 continue
@@ -85,6 +63,13 @@ class CamModelsIE(InfoExtractor):
                         'preference': -1,
                     })
                 else:
+                    if format_id == 'jpeg':
+                        thumbnails.append({
+                            'url': f['url'],
+                            'width': f['width'],
+                            'height': f['height'],
+                            'format_id': f['format_id'],
+                        })
                     continue
                 formats.append(f)
         self._sort_formats(formats)
@@ -92,6 +77,7 @@ class CamModelsIE(InfoExtractor):
         return {
             'id': user_id,
             'title': self._live_title(user_id),
+            'thumbnails': thumbnails,
             'is_live': True,
             'formats': formats,
             'age_limit': 18
