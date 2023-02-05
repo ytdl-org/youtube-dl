@@ -33,6 +33,7 @@ from ..utils import (
     mimetype2ext,
     parse_codecs,
     parse_duration,
+    parse_iso8601,
     qualities,
     remove_start,
     smuggle_url,
@@ -1991,6 +1992,12 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
             'tags': keywords,
             'is_live': is_live,
         }
+
+        live_details = microformat.get('liveBroadcastDetails')
+        if live_details:
+            broadcast_start_timestamp = live_details.get('startTimestamp')
+            if broadcast_start_timestamp:
+                info['release_timestamp'] = parse_iso8601(broadcast_start_timestamp)
 
         pctr = try_get(
             player_response,
