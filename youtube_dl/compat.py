@@ -21,6 +21,10 @@ import subprocess
 import sys
 import xml.etree.ElementTree
 
+# naming convention
+# 'compat_' + Python3_name.replace('.', '_')
+# other aliases exist for convenience and/or legacy
+
 # deal with critical unicode/str things first
 try:
     # Python 2
@@ -28,6 +32,7 @@ try:
         unicode, basestring, unichr
     )
     from .casefold import casefold as compat_casefold
+
 except NameError:
     compat_str, compat_basestring, compat_chr = (
         str, str, chr
@@ -53,16 +58,15 @@ try:
     import urllib.parse as compat_urllib_parse
 except ImportError:  # Python 2
     import urllib as compat_urllib_parse
+    import urlparse as _urlparse
+    for a in dir(_urlparse):
+        if not hasattr(compat_urllib_parse, a):
+            setattr(compat_urllib_parse, a, getattr(_urlparse, a))
+    del _urlparse
 
-try:
-    from urllib.parse import urlparse as compat_urllib_parse_urlparse
-except ImportError:  # Python 2
-    from urlparse import urlparse as compat_urllib_parse_urlparse
-
-try:
-    import urllib.parse as compat_urlparse
-except ImportError:  # Python 2
-    import urlparse as compat_urlparse
+# unfavoured aliases
+compat_urlparse = compat_urllib_parse
+compat_urllib_parse_urlparse = compat_urllib_parse.urlparse
 
 try:
     import urllib.response as compat_urllib_response
@@ -73,6 +77,7 @@ try:
     import http.cookiejar as compat_cookiejar
 except ImportError:  # Python 2
     import cookielib as compat_cookiejar
+compat_http_cookiejar = compat_cookiejar
 
 if sys.version_info[0] == 2:
     class compat_cookiejar_Cookie(compat_cookiejar.Cookie):
@@ -84,11 +89,13 @@ if sys.version_info[0] == 2:
             compat_cookiejar.Cookie.__init__(self, version, name, value, *args, **kwargs)
 else:
     compat_cookiejar_Cookie = compat_cookiejar.Cookie
+compat_http_cookiejar_Cookie = compat_cookiejar_Cookie
 
 try:
     import http.cookies as compat_cookies
 except ImportError:  # Python 2
     import Cookie as compat_cookies
+compat_http_cookies = compat_cookies
 
 if sys.version_info[0] == 2:
     class compat_cookies_SimpleCookie(compat_cookies.SimpleCookie):
@@ -98,6 +105,7 @@ if sys.version_info[0] == 2:
             return super(compat_cookies_SimpleCookie, self).load(rawdata)
 else:
     compat_cookies_SimpleCookie = compat_cookies.SimpleCookie
+compat_http_cookies_SimpleCookie = compat_cookies_SimpleCookie
 
 try:
     import html.entities as compat_html_entities
@@ -2351,16 +2359,19 @@ try:
     from urllib.error import HTTPError as compat_HTTPError
 except ImportError:  # Python 2
     from urllib2 import HTTPError as compat_HTTPError
+compat_urllib_HTTPError = compat_HTTPError
 
 try:
     from urllib.request import urlretrieve as compat_urlretrieve
 except ImportError:  # Python 2
     from urllib import urlretrieve as compat_urlretrieve
+compat_urllib_request_urlretrieve = compat_urlretrieve
 
 try:
     from html.parser import HTMLParser as compat_HTMLParser
 except ImportError:  # Python 2
     from HTMLParser import HTMLParser as compat_HTMLParser
+compat_html_parser_HTMLParser = compat_HTMLParser
 
 try:  # Python 2
     from HTMLParser import HTMLParseError as compat_HTMLParseError
@@ -2374,6 +2385,7 @@ except ImportError:  # Python <3.4
         # and uniform cross-version exception handling
         class compat_HTMLParseError(Exception):
             pass
+compat_html_parser_HTMLParseError = compat_HTMLParseError
 
 try:
     from subprocess import DEVNULL
@@ -2390,6 +2402,8 @@ try:
     from urllib.parse import unquote_to_bytes as compat_urllib_parse_unquote_to_bytes
     from urllib.parse import unquote as compat_urllib_parse_unquote
     from urllib.parse import unquote_plus as compat_urllib_parse_unquote_plus
+    from urllib.parse import urlencode as compat_urllib_parse_urlencode
+    from urllib.parse import parse_qs as compat_parse_qs
 except ImportError:  # Python 2
     _asciire = (compat_urllib_parse._asciire if hasattr(compat_urllib_parse, '_asciire')
                 else re.compile(r'([\x00-\x7f]+)'))
@@ -2456,9 +2470,6 @@ except ImportError:  # Python 2
         string = string.replace('+', ' ')
         return compat_urllib_parse_unquote(string, encoding, errors)
 
-try:
-    from urllib.parse import urlencode as compat_urllib_parse_urlencode
-except ImportError:  # Python 2
     # Python 2 will choke in urlencode on mixture of byte and unicode strings.
     # Possible solutions are to either port it from python 3 with all
     # the friends or manually ensure input query contains only byte strings.
@@ -2480,7 +2491,62 @@ except ImportError:  # Python 2
         def encode_list(l):
             return [encode_elem(e) for e in l]
 
-        return compat_urllib_parse.urlencode(encode_elem(query), doseq=doseq)
+        return compat_urllib_parse._urlencode(encode_elem(query), doseq=doseq)
+
+    # HACK: The following is the correct parse_qs implementation from cpython 3's stdlib.
+    # Python 2's version is apparently totally broken
+    def _parse_qsl(qs, keep_blank_values=False, strict_parsing=False,
+                   encoding='utf-8', errors='replace'):
+        qs, _coerce_result = qs, compat_str
+        pairs = [s2 for s1 in qs.split('&') for s2 in s1.split(';')]
+        r = []
+        for name_value in pairs:
+            if not name_value and not strict_parsing:
+                continue
+            nv = name_value.split('=', 1)
+            if len(nv) != 2:
+                if strict_parsing:
+                    raise ValueError('bad query field: %r' % (name_value,))
+                # Handle case of a control-name with no equal sign
+                if keep_blank_values:
+                    nv.append('')
+                else:
+                    continue
+            if len(nv[1]) or keep_blank_values:
+                name = nv[0].replace('+', ' ')
+                name = compat_urllib_parse_unquote(
+                    name, encoding=encoding, errors=errors)
+                name = _coerce_result(name)
+                value = nv[1].replace('+', ' ')
+                value = compat_urllib_parse_unquote(
+                    value, encoding=encoding, errors=errors)
+                value = _coerce_result(value)
+                r.append((name, value))
+        return r
+
+    def compat_parse_qs(qs, keep_blank_values=False, strict_parsing=False,
+                        encoding='utf-8', errors='replace'):
+        parsed_result = {}
+        pairs = _parse_qsl(qs, keep_blank_values, strict_parsing,
+                           encoding=encoding, errors=errors)
+        for name, value in pairs:
+            if name in parsed_result:
+                parsed_result[name].append(value)
+            else:
+                parsed_result[name] = [value]
+        return parsed_result
+
+    setattr(compat_urllib_parse, '_urlencode',
+            getattr(compat_urllib_parse, 'urlencode'))
+    for name, fix in (
+            ('unquote_to_bytes', compat_urllib_parse_unquote_to_bytes),
+            ('parse_unquote', compat_urllib_parse_unquote),
+            ('unquote_plus', compat_urllib_parse_unquote_plus),
+            ('urlencode', compat_urllib_parse_urlencode),
+            ('parse_qs', compat_parse_qs)):
+        setattr(compat_urllib_parse, name, fix)
+
+compat_urllib_parse_parse_qs = compat_parse_qs
 
 try:
     from urllib.request import DataHandler as compat_urllib_request_DataHandler
@@ -2520,6 +2586,7 @@ try:
     from xml.etree.ElementTree import ParseError as compat_xml_parse_error
 except ImportError:  # Python 2.6
     from xml.parsers.expat import ExpatError as compat_xml_parse_error
+compat_xml_etree_ElementTree_ParseError = compat_xml_parse_error
 
 etree = xml.etree.ElementTree
 
@@ -2533,10 +2600,11 @@ try:
     # xml.etree.ElementTree.Element is a method in Python <=2.6 and
     # the following will crash with:
     #  TypeError: isinstance() arg 2 must be a class, type, or tuple of classes and types
-    isinstance(None, xml.etree.ElementTree.Element)
+    isinstance(None, etree.Element)
     from xml.etree.ElementTree import Element as compat_etree_Element
 except TypeError:  # Python <=2.6
     from xml.etree.ElementTree import _ElementInterface as compat_etree_Element
+compat_xml_etree_ElementTree_Element = compat_etree_Element
 
 if sys.version_info[0] >= 3:
     def compat_etree_fromstring(text):
@@ -2592,6 +2660,7 @@ else:
             if k == uri or v == prefix:
                 del etree._namespace_map[k]
         etree._namespace_map[uri] = prefix
+compat_xml_etree_register_namespace = compat_etree_register_namespace
 
 if sys.version_info < (2, 7):
     # Here comes the crazy part: In 2.6, if the xpath is a unicode,
@@ -2602,53 +2671,6 @@ if sys.version_info < (2, 7):
         return xpath
 else:
     compat_xpath = lambda xpath: xpath
-
-try:
-    from urllib.parse import parse_qs as compat_parse_qs
-except ImportError:  # Python 2
-    # HACK: The following is the correct parse_qs implementation from cpython 3's stdlib.
-    # Python 2's version is apparently totally broken
-
-    def _parse_qsl(qs, keep_blank_values=False, strict_parsing=False,
-                   encoding='utf-8', errors='replace'):
-        qs, _coerce_result = qs, compat_str
-        pairs = [s2 for s1 in qs.split('&') for s2 in s1.split(';')]
-        r = []
-        for name_value in pairs:
-            if not name_value and not strict_parsing:
-                continue
-            nv = name_value.split('=', 1)
-            if len(nv) != 2:
-                if strict_parsing:
-                    raise ValueError('bad query field: %r' % (name_value,))
-                # Handle case of a control-name with no equal sign
-                if keep_blank_values:
-                    nv.append('')
-                else:
-                    continue
-            if len(nv[1]) or keep_blank_values:
-                name = nv[0].replace('+', ' ')
-                name = compat_urllib_parse_unquote(
-                    name, encoding=encoding, errors=errors)
-                name = _coerce_result(name)
-                value = nv[1].replace('+', ' ')
-                value = compat_urllib_parse_unquote(
-                    value, encoding=encoding, errors=errors)
-                value = _coerce_result(value)
-                r.append((name, value))
-        return r
-
-    def compat_parse_qs(qs, keep_blank_values=False, strict_parsing=False,
-                        encoding='utf-8', errors='replace'):
-        parsed_result = {}
-        pairs = _parse_qsl(qs, keep_blank_values, strict_parsing,
-                           encoding=encoding, errors=errors)
-        for name, value in pairs:
-            if name in parsed_result:
-                parsed_result[name].append(value)
-            else:
-                parsed_result[name] = [value]
-        return parsed_result
 
 
 compat_os_name = os._name if os.name == 'java' else os.name
@@ -2774,6 +2796,8 @@ else:
     else:
         compat_expanduser = os.path.expanduser
 
+compat_os_path_expanduser = compat_expanduser
+
 
 if compat_os_name == 'nt' and sys.version_info < (3, 8):
     # os.path.realpath on Windows does not follow symbolic links
@@ -2784,6 +2808,8 @@ if compat_os_name == 'nt' and sys.version_info < (3, 8):
         return path
 else:
     compat_realpath = os.path.realpath
+
+compat_os_path_realpath = compat_realpath
 
 
 if sys.version_info < (3, 0):
@@ -2805,10 +2831,14 @@ if sys.version_info < (3, 0) and sys.platform == 'win32':
 else:
     compat_getpass = getpass.getpass
 
+compat_getpass_getpass = compat_getpass
+
+
 try:
     compat_input = raw_input
 except NameError:  # Python 3
     compat_input = input
+
 
 # Python < 2.6.5 require kwargs to be bytes
 try:
@@ -2915,15 +2945,16 @@ else:
                 lines = _lines
         return _terminal_size(columns, lines)
 
+
 try:
     itertools.count(start=0, step=1)
     compat_itertools_count = itertools.count
 except TypeError:  # Python 2.6
     def compat_itertools_count(start=0, step=1):
-        n = start
         while True:
-            yield n
-            n += step
+            yield start
+            start += step
+
 
 if sys.version_info >= (3, 0):
     from tokenize import tokenize as compat_tokenize_tokenize
@@ -3075,6 +3106,8 @@ if sys.version_info < (3, 3):
 else:
     compat_b64decode = base64.b64decode
 
+compat_base64_b64decode = compat_b64decode
+
 
 if platform.python_implementation() == 'PyPy' and sys.pypy_version_info < (5, 4, 0):
     # PyPy2 prior to version 5.4.0 expects byte strings as Windows function
@@ -3094,30 +3127,53 @@ else:
         return ctypes.WINFUNCTYPE(*args, **kwargs)
 
 
-__all__ = [
+legacy = [
     'compat_HTMLParseError',
     'compat_HTMLParser',
     'compat_HTTPError',
-    'compat_Struct',
     'compat_b64decode',
+    'compat_cookiejar',
+    'compat_cookiejar_Cookie',
+    'compat_cookies',
+    'compat_cookies_SimpleCookie',
+    'compat_etree_Element',
+    'compat_etree_register_namespace',
+    'compat_expanduser',
+    'compat_getpass',
+    'compat_parse_qs',
+    'compat_realpath',
+    'compat_urllib_parse_parse_qs',
+    'compat_urllib_parse_unquote',
+    'compat_urllib_parse_unquote_plus',
+    'compat_urllib_parse_unquote_to_bytes',
+    'compat_urllib_parse_urlencode',
+    'compat_urllib_parse_urlparse',
+    'compat_urlparse',
+    'compat_urlretrieve',
+    'compat_xml_parse_error',
+]
+
+
+__all__ = [
+    'compat_html_parser_HTMLParseError',
+    'compat_html_parser_HTMLParser',
+    'compat_Struct',
+    'compat_base64_b64decode',
     'compat_basestring',
     'compat_casefold',
     'compat_chr',
     'compat_collections_abc',
     'compat_collections_chain_map',
-    'compat_cookiejar',
-    'compat_cookiejar_Cookie',
-    'compat_cookies',
-    'compat_cookies_SimpleCookie',
+    'compat_http_cookiejar',
+    'compat_http_cookiejar_Cookie',
+    'compat_http_cookies',
+    'compat_http_cookies_SimpleCookie',
     'compat_ctypes_WINFUNCTYPE',
-    'compat_etree_Element',
     'compat_etree_fromstring',
-    'compat_etree_register_namespace',
-    'compat_expanduser',
     'compat_filter',
     'compat_get_terminal_size',
     'compat_getenv',
-    'compat_getpass',
+    'compat_getpass_getpass',
     'compat_html_entities',
     'compat_html_entities_html5',
     'compat_http_client',
@@ -3131,11 +3187,11 @@ __all__ = [
     'compat_numeric_types',
     'compat_ord',
     'compat_os_name',
-    'compat_parse_qs',
+    'compat_os_path_expanduser',
+    'compat_os_path_realpath',
     'compat_print',
     'compat_re_Match',
     'compat_re_Pattern',
-    'compat_realpath',
     'compat_setenv',
     'compat_shlex_quote',
     'compat_shlex_split',
@@ -3147,17 +3203,14 @@ __all__ = [
     'compat_tokenize_tokenize',
     'compat_urllib_error',
     'compat_urllib_parse',
-    'compat_urllib_parse_unquote',
-    'compat_urllib_parse_unquote_plus',
-    'compat_urllib_parse_unquote_to_bytes',
-    'compat_urllib_parse_urlencode',
-    'compat_urllib_parse_urlparse',
     'compat_urllib_request',
     'compat_urllib_request_DataHandler',
     'compat_urllib_response',
-    'compat_urlparse',
-    'compat_urlretrieve',
-    'compat_xml_parse_error',
+    'compat_urllib_request_urlretrieve',
+    'compat_urllib_HTTPError',
+    'compat_xml_etree_ElementTree_Element',
+    'compat_xml_etree_ElementTree_ParseError',
+    'compat_xml_etree_register_namespace',
     'compat_xpath',
     'compat_zip',
     'workaround_optparse_bug9161',

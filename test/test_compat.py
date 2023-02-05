@@ -48,7 +48,8 @@ class TestCompat(unittest.TestCase):
 
     def test_all_present(self):
         import youtube_dl.compat
-        all_names = youtube_dl.compat.__all__
+        all_names = sorted(
+            youtube_dl.compat.__all__ + youtube_dl.compat.legacy)
         present_names = set(filter(
             lambda c: '_' in c and not c.startswith('_'),
             dir(youtube_dl.compat))) - set(['unicode_literals'])
