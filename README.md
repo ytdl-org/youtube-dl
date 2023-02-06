@@ -276,6 +276,13 @@ Alternatively, refer to the [developer instructions](#developer-instructions) fo
                                          info-json" option)
     --cookies FILE                       File to read cookies from and dump
                                          cookie jar in
+    --cookies-from-browser BROWSER       Load cookies from a user profile of the
+                                         given web browser: brave, chrome,
+                                         chromium, edgefirefox, opera, safari,
+                                         vivaldi. You can specify an alternative
+                                         user profile name or directory using
+                                         "BROWSER:PROFILE_NAME" or
+                                         "BROWSER:PROFILE_PATH"
     --cache-dir DIR                      Location in the filesystem where
                                          youtube-dl can store some downloaded
                                          information permanently. By default
@@ -916,13 +923,18 @@ Either prepend `https://www.youtube.com/watch?v=` or separate the ID from the op
 
 ### How do I pass cookies to youtube-dl?
 
-Use the `--cookies` option, for example `--cookies /path/to/cookies/file.txt`.
-
-In order to extract cookies from browser use any conforming browser extension for exporting cookies. For example, [Get cookies.txt](https://chrome.google.com/webstore/detail/get-cookiestxt/bgaddhkoddajcdgocldbbfleckgcbcid/) (for Chrome) or [cookies.txt](https://addons.mozilla.org/en-US/firefox/addon/cookies-txt/) (for Firefox).
-
-Note that the cookies file must be in Mozilla/Netscape format and the first line of the cookies file must be either `# HTTP Cookie File` or `# Netscape HTTP Cookie File`. Make sure you have correct [newline format](https://en.wikipedia.org/wiki/Newline) in the cookies file and convert newlines if necessary to correspond with your OS, namely `CRLF` (`\r\n`) for Windows and `LF` (`\n`) for Unix and Unix-like systems (Linux, macOS, etc.). `HTTP Error 400: Bad Request` when using `--cookies` is a good sign of invalid newline format.
+If you have access to a web browser, simply log into youtube in the browser and pass `--cookies-from-browser <BROWSER_NAME>` to youtube-dl (see `youtube-dl --help` for supported browsers).
 
 Passing cookies to youtube-dl is a good way to workaround login when a particular extractor does not implement it explicitly. Another use case is working around [CAPTCHA](https://en.wikipedia.org/wiki/CAPTCHA) some websites require you to solve in particular cases in order to get access (e.g. YouTube, CloudFlare).
+
+#### Passing cookies without a web browser
+Warning: be careful with your cookies file as it can be used to gain access to any accounts you are logged into!
+
+If you do not have access to a web browser (e.g. if running headless) then manually extract cookies to a file from a web browser on another machine. There are browser extensions that can do this such as [Get cookies.txt](https://chrome.google.com/webstore/detail/get-cookiestxt/bgaddhkoddajcdgocldbbfleckgcbcid/) (for Chrome) or [cookies.txt](https://addons.mozilla.org/en-US/firefox/addon/cookies-txt/) (for Firefox).
+Note that the cookies file must be in Mozilla/Netscape format and the first line of the cookies file must be either `# HTTP Cookie File` or `# Netscape HTTP Cookie File`. Make sure you have correct [newline format](https://en.wikipedia.org/wiki/Newline) in the cookies file and convert newlines if necessary to correspond with your OS, namely `CRLF` (`\r\n`) for Windows and `LF` (`\n`) for Unix and Unix-like systems (Linux, macOS, etc.). `HTTP Error 400: Bad Request` when using `--cookies` is a good sign of invalid newline format.
+
+After you have extracted a cookies file, pass it to youtube-dl using the option: `--cookies <path_to_cookies>`
+
 
 ### How do I stream directly to media player?
 

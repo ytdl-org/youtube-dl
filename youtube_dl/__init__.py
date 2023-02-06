@@ -11,7 +11,7 @@ import os
 import random
 import sys
 
-
+from .cookies import SUPPORTED_BROWSERS
 from .options import (
     parseOpts,
 )
@@ -216,6 +216,12 @@ def _real_main(argv=None):
         if opts.convertsubtitles not in ['srt', 'vtt', 'ass', 'lrc']:
             parser.error('invalid subtitle format specified')
 
+    if opts.cookiesfrombrowser is not None:
+        opts.cookiesfrombrowser = [
+            part.strip() or None for part in opts.cookiesfrombrowser.split(':', 1)]
+        if opts.cookiesfrombrowser[0] not in SUPPORTED_BROWSERS:
+            parser.error('unsupported browser specified for cookies')
+
     if opts.date is not None:
         date = DateRange.day(opts.date)
     else:
@@ -397,6 +403,7 @@ def _real_main(argv=None):
         'age_limit': opts.age_limit,
         'download_archive': download_archive_fn,
         'cookiefile': opts.cookiefile,
+        'cookiesfrombrowser': opts.cookiesfrombrowser,
         'nocheckcertificate': opts.no_check_certificate,
         'prefer_insecure': opts.prefer_insecure,
         'proxy': opts.proxy,

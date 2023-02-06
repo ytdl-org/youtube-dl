@@ -19,6 +19,7 @@ import socket
 import struct
 import subprocess
 import sys
+import tempfile
 import xml.etree.ElementTree
 
 # deal with critical unicode/str things first
@@ -2925,6 +2926,7 @@ except TypeError:  # Python 2.6
             yield n
             n += step
 
+
 if sys.version_info >= (3, 0):
     from tokenize import tokenize as compat_tokenize_tokenize
 else:
@@ -2981,6 +2983,23 @@ except ImportError:
         from itertools import ifilter as compat_filter
     except ImportError:
         compat_filter = filter
+
+try:
+    from tempfile import TemporaryDirectory as compat_TemporaryDirectory
+except ImportError:
+    class compat_TemporaryDirectory:
+        def __init__(self, prefix=None):
+            self._prefix = prefix
+            self._path = None
+
+        def __enter__(self):
+            self._path = tempfile.mkdtemp(prefix=self._prefix)
+            return self._path
+
+        def __exit__(self, exc_type, exc_val, exc_tb):
+            if self._path is not None:
+                shutil.rmtree(self._path)
+
 
 try:
     from future_builtins import zip as compat_zip
@@ -3099,6 +3118,7 @@ __all__ = [
     'compat_HTMLParser',
     'compat_HTTPError',
     'compat_Struct',
+    'compat_TemporaryDirectory',
     'compat_b64decode',
     'compat_basestring',
     'compat_casefold',

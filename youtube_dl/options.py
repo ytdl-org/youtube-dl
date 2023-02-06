@@ -17,6 +17,7 @@ from .utils import (
     preferredencoding,
     write_string,
 )
+from .cookies import SUPPORTED_BROWSERS
 from .version import __version__
 
 
@@ -757,6 +758,18 @@ def parseOpts(overrideArguments=None):
         '--cookies',
         dest='cookiefile', metavar='FILE',
         help='File to read cookies from and dump cookie jar in')
+    filesystem.add_option(
+        '--cookies-from-browser',
+        dest='cookiesfrombrowser', metavar='BROWSER[:PROFILE]',
+        help=(
+            'Load cookies from a user profile of the given web browser. '
+            'Currently supported browsers are: {}. '
+            'You can specify the user profile name or directory using '
+            '"BROWSER:PROFILE_NAME" or "BROWSER:PROFILE_PATH". '
+            'If no profile is given, the most recently accessed one is used'.format(
+                '|'.join(sorted(SUPPORTED_BROWSERS))))
+    )
+
     filesystem.add_option(
         '--cache-dir', dest='cachedir', default=None, metavar='DIR',
         help='Location in the filesystem where youtube-dl can store some downloaded information permanently. By default $XDG_CACHE_HOME/youtube-dl or ~/.cache/youtube-dl . At the moment, only YouTube player files (for videos with obfuscated signatures) are cached, but that may change.')

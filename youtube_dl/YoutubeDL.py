@@ -30,7 +30,6 @@ from string import ascii_letters
 
 from .compat import (
     compat_basestring,
-    compat_cookiejar,
     compat_get_terminal_size,
     compat_http_client,
     compat_kwargs,
@@ -42,6 +41,7 @@ from .compat import (
     compat_urllib_request,
     compat_urllib_request_DataHandler,
 )
+from .cookies import load_cookies
 from .utils import (
     age_restricted,
     args_to_str,
@@ -90,7 +90,6 @@ from .utils import (
     version_tuple,
     write_json_file,
     write_string,
-    YoutubeDLCookieJar,
     YoutubeDLCookieProcessor,
     YoutubeDLHandler,
     YoutubeDLRedirectHandler,
@@ -211,6 +210,9 @@ class YoutubeDL(object):
                        Videos already present in the file are not downloaded
                        again.
     cookiefile:        File name where cookies should be read from and dumped to.
+    cookiesfrombrowser:A tuple containing the name of the browser and the profile
+                       name/path from where cookies are loaded.
+                       Eg: ('chrome', ) or (vivaldi, 'default')
     nocheckcertificate:Do not verify SSL certificates
     prefer_insecure:   Use HTTP instead of HTTPS to retrieve information.
                        At the moment, this is only supported by YouTube.
@@ -2379,16 +2381,11 @@ class YoutubeDL(object):
         timeout_val = self.params.get('socket_timeout')
         self._socket_timeout = 600 if timeout_val is None else float(timeout_val)
 
+        opts_cookiesfrombrowser = self.params.get('cookiesfrombrowser')
         opts_cookiefile = self.params.get('cookiefile')
         opts_proxy = self.params.get('proxy')
 
-        if opts_cookiefile is None:
-            self.cookiejar = compat_cookiejar.CookieJar()
-        else:
-            opts_cookiefile = expand_path(opts_cookiefile)
-            self.cookiejar = YoutubeDLCookieJar(opts_cookiefile)
-            if os.access(opts_cookiefile, os.R_OK):
-                self.cookiejar.load(ignore_discard=True, ignore_expires=True)
+        self.cookiejar = load_cookies(opts_cookiefile, opts_cookiesfrombrowser, self)
 
         cookie_processor = YoutubeDLCookieProcessor(self.cookiejar)
         if opts_proxy is not None:
