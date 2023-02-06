@@ -556,6 +556,7 @@ from .khanacademy import (
 from .kickstarter import KickStarterIE
 from .kinja import KinjaEmbedIE
 from .kinopoisk import KinoPoiskIE
+from .kommunetv import KommunetvIE
 from .konserthusetplay import KonserthusetPlayIE
 from .krasview import KrasViewIE
 from .kth import KTHIE
