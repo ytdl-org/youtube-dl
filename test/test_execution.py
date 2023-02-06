@@ -40,14 +40,16 @@ class TestExecution(unittest.TestCase):
         self.assertFalse(stderr)
 
     def test_lazy_extractors(self):
+        lazy_extractors = 'youtube_dl/extractor/lazy_extractors.py'
         try:
-            subprocess.check_call([sys.executable, 'devscripts/make_lazy_extractors.py', 'youtube_dl/extractor/lazy_extractors.py'], cwd=rootDir, stdout=_DEV_NULL)
+            subprocess.check_call([sys.executable, 'devscripts/make_lazy_extractors.py', lazy_extractors], cwd=rootDir, stdout=_DEV_NULL)
             subprocess.check_call([sys.executable, 'test/test_all_urls.py'], cwd=rootDir, stdout=_DEV_NULL)
         finally:
-            try:
-                os.remove('youtube_dl/extractor/lazy_extractors.py')
-            except (IOError, OSError):
-                pass
+            for x in ['', 'c'] if sys.version_info[0] < 3 else ['']:
+                try:
+                    os.remove(lazy_extractors + x)
+                except (IOError, OSError):
+                    pass
 
 
 if __name__ == '__main__':

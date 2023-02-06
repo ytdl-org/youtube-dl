@@ -14,12 +14,11 @@ from ..compat import (
     compat_chr,
     compat_HTTPError,
     compat_map as map,
-    compat_parse_qs,
     compat_str,
+    compat_urllib_parse,
+    compat_urllib_parse_parse_qs as compat_parse_qs,
     compat_urllib_parse_unquote_plus,
-    compat_urllib_parse_urlencode,
     compat_urllib_parse_urlparse,
-    compat_urlparse,
 )
 from ..jsinterp import JSInterpreter
 from ..utils import (
@@ -33,6 +32,7 @@ from ..utils import (
     mimetype2ext,
     parse_codecs,
     parse_duration,
+    parse_qs,
     qualities,
     remove_start,
     smuggle_url,
@@ -48,10 +48,6 @@ from ..utils import (
     urlencode_postdata,
     urljoin,
 )
-
-
-def parse_qs(url):
-    return compat_urlparse.parse_qs(compat_urlparse.urlparse(url).query)
 
 
 class YoutubeBaseInfoExtractor(InfoExtractor):
@@ -319,7 +315,8 @@ class YoutubeBaseInfoExtractor(InfoExtractor):
         title = try_get(
             renderer,
             (lambda x: x['title']['runs'][0]['text'],
-             lambda x: x['title']['simpleText']), compat_str)
+             lambda x: x['title']['simpleText'],
+             lambda x: x['headline']['simpleText']), compat_str)
         description = try_get(
             renderer, lambda x: x['descriptionSnippet']['runs'][0]['text'],
             compat_str)
@@ -635,6 +632,8 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                 'description': r're:(?s).{100,}About the Game\n.*?The Witcher 3: Wild Hunt.{100,}',
                 'duration': 142,
                 'uploader': 'The Witcher',
+                'uploader_id': 'WitcherGame',
+                'uploader_url': r're:https?://(?:www\.)?youtube\.com/user/WitcherGame',
                 'upload_date': '20140605',
                 'thumbnail': 'https://i.ytimg.com/vi/HtVdAasjOgU/maxresdefault.jpg',
                 'age_limit': 18,
@@ -670,7 +669,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
             },
         },
         {
-            'note': 'Age-gated video embedable only with clientScreen=EMBED',
+            'note': 'Age-gated video embeddable only with clientScreen=EMBED',
             'url': 'https://youtube.com/watch?v=Tq92D6wQ1mg',
             'info_dict': {
                 'id': 'Tq92D6wQ1mg',
@@ -1391,11 +1390,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
 
     @classmethod
     def suitable(cls, url):
-        # Hack for lazy extractors until more generic solution is implemented
-        # (see #28780)
-        from .youtube import parse_qs
-        qs = parse_qs(url)
-        if qs.get('list', [None])[0]:
+        if parse_qs(url).get('list', [None])[0]:
             return False
         return super(YoutubeIE, cls).suitable(url)
 
@@ -1545,7 +1540,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
         if player_url.startswith('//'):
             player_url = 'https:' + player_url
         elif not re.match(r'https?://', player_url):
-            player_url = compat_urlparse.urljoin(
+            player_url = compat_urllib_parse.urljoin(
                 'https://www.youtube.com', player_url)
         return player_url
 
@@ -1627,9 +1622,8 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
 
     def _unthrottle_format_urls(self, video_id, player_url, formats):
         for fmt in formats:
-            parsed_fmt_url = compat_urlparse.urlparse(fmt['url'])
-            qs = compat_urlparse.parse_qs(parsed_fmt_url.query)
-            n_param = qs.get('n')
+            parsed_fmt_url = compat_urllib_parse.urlparse(fmt['url'])
+            n_param = compat_parse_qs(parsed_fmt_url.query).get('n')
             if not n_param:
                 continue
             n_param = n_param[-1]
@@ -1637,9 +1631,8 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
             if n_response is None:
                 # give up if descrambling failed
                 break
-            qs['n'] = [n_response]
-            fmt['url'] = compat_urlparse.urlunparse(
-                parsed_fmt_url._replace(query=compat_urllib_parse_urlencode(qs, True)))
+            fmt['url'] = update_url(
+                parsed_fmt_url, query_update={'n': [n_response]})
 
     # from yt-dlp, with tweaks
     def _extract_signature_timestamp(self, video_id, player_url, ytcfg=None, fatal=False):
@@ -1668,20 +1661,17 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
             lambda x: x['playbackTracking']['videostatsPlaybackUrl']['baseUrl']))
         if not playback_url:
             return
-        parsed_playback_url = compat_urlparse.urlparse(playback_url)
-        qs = compat_urlparse.parse_qs(parsed_playback_url.query)
 
         # cpn generation algorithm is reverse engineered from base.js.
         # In fact it works even with dummy cpn.
         CPN_ALPHABET = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-_'
         cpn = ''.join((CPN_ALPHABET[random.randint(0, 256) & 63] for _ in range(0, 16)))
 
-        qs.update({
-            'ver': ['2'],
-            'cpn': [cpn],
-        })
-        playback_url = compat_urlparse.urlunparse(
-            parsed_playback_url._replace(query=compat_urllib_parse_urlencode(qs, True)))
+        playback_url = update_url(
+            playback_url, query_update={
+                'ver': ['2'],
+                'cpn': [cpn],
+            })
 
         self._download_webpage(
             playback_url, video_id, 'Marking watched',
@@ -2074,9 +2064,9 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
 
         thumbnails = []
         for container in (video_details, microformat):
-            for thumbnail in (try_get(
+            for thumbnail in try_get(
                     container,
-                    lambda x: x['thumbnail']['thumbnails'], list) or []):
+                    lambda x: x['thumbnail']['thumbnails'], list) or []:
                 thumbnail_url = url_or_none(thumbnail.get('url'))
                 if not thumbnail_url:
                     continue
@@ -3264,11 +3254,7 @@ class YoutubePlaylistIE(InfoExtractor):
     def suitable(cls, url):
         if YoutubeTabIE.suitable(url):
             return False
-        # Hack for lazy extractors until more generic solution is implemented
-        # (see #28780)
-        from .youtube import parse_qs
-        qs = parse_qs(url)
-        if qs.get('v', [None])[0]:
+        if parse_qs(url).get('v', [None])[0]:
             return False
         return super(YoutubePlaylistIE, cls).suitable(url)
 
@@ -3407,9 +3393,9 @@ class YoutubeSearchURLIE(YoutubeBaseInfoExtractor):
     }]
 
     def _real_extract(self, url):
-        qs = compat_parse_qs(compat_urllib_parse_urlparse(url).query)
-        query = (qs.get('search_query') or qs.get('q'))[0]
-        params = qs.get('sp', ('',))[0]
+        qs = parse_qs(url)
+        query = (qs.get('search_query') or qs.get('q'))[-1]
+        params = qs.get('sp', ('',))[-1]
         return self.playlist_result(self._search_results(query, params), query, query)
 
 
