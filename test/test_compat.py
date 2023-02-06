@@ -50,9 +50,9 @@ class TestCompat(unittest.TestCase):
         import youtube_dl.compat
         all_names = sorted(
             youtube_dl.compat.__all__ + youtube_dl.compat.legacy)
-        present_names = set(filter(
+        present_names = set(map(compat_str, filter(
             lambda c: '_' in c and not c.startswith('_'),
-            dir(youtube_dl.compat))) - set(['unicode_literals'])
+            dir(youtube_dl.compat)))) - set(['unicode_literals'])
         self.assertEqual(all_names, sorted(present_names))
 
     def test_compat_urllib_parse_unquote(self):
