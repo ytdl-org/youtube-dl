@@ -32,17 +32,22 @@ class StreamsbIE(InfoExtractor):
         video_id = self._match_id(url)
         webpage = self._download_webpage(url, video_id)
 
-        iframe_url = self._search_regex(r'IFRAME SRC=\"(.*)\"', webpage, 'iframe')
+        iframe_rel_url = self._search_regex(r'(?i)iframe src=\"(.*\.html)\"', webpage, 'iframe')
+        iframe_url = 'https://' + self.domain + iframe_rel_url
+
+        iframe_data = self._download_webpage(iframe_url, video_id)
+        app_version = self._search_regex(r'script src=".*/app\.min\.(\w+)\.js', iframe_data, 'video_code')
+
         video_code = self._search_regex(r"(\w*).html", iframe_url, 'video_code')
 
         length = 12
         req = generate_random_string(length) + '||' + video_code + '||' + generate_random_string(length) + '||streamsb'
-        ereq = 'https://' + self.domain + '/sources50/' + to_ascii_hex(req)
+        ereq = 'https://' + self.domain + '/sources' + app_version + '/' + to_ascii_hex(req)
 
         video_data = self._download_webpage(ereq, video_id, headers={
             'Referer': iframe_url,
-            'watchsb': 'sbstream'}
-        )
+            'watchsb': 'sbstream'
+        })
         player_data = self._parse_json(video_data, video_id)
         formats = self._extract_m3u8_formats(player_data['stream_data']['file'], video_id, ext='mp4', entry_protocol='m3u8_native', m3u8_id='hls', fatal=False)
         return {
