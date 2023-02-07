@@ -220,8 +220,7 @@ class Aria2pFD(ExternalFD):
         return cls.__avail
 
     def _call_downloader(self, tmpfilename, info_dict):
-        import aria2p
-        aria2 = aria2p.API(
+        aria2 = self.aria2p.API(
             aria2p.Client(
                 host='http://localhost',
                 port=6800,
