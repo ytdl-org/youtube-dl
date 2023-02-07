@@ -75,6 +75,7 @@ class FakeLogger(object):
         pass
 
 
+@unittest.skipUnless(Aria2pFD.available(), 'aria2p module not found')
 class TestAria2pFD(unittest.TestCase):
     def setUp(self):
         self.httpd = compat_http_server.HTTPServer(
