@@ -29,7 +29,7 @@ class HTTPTestRequestHandler(compat_http_server.BaseHTTPRequestHandler):
         range_header = self.headers.get('Range')
         start = end = None
         if range_header:
-            mobj = re.search(r'^bytes=(\d+)-(\d+)', range_header)
+            mobj = re.match(r'bytes=(\d+)-(\d+)', range_header)
             if mobj:
                 start = int(mobj.group(1))
                 end = int(mobj.group(2))
