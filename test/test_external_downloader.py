@@ -31,8 +31,7 @@ class HTTPTestRequestHandler(compat_http_server.BaseHTTPRequestHandler):
         if range_header:
             mobj = re.match(r'bytes=(\d+)-(\d+)', range_header)
             if mobj:
-                start = int(mobj.group(1))
-                end = int(mobj.group(2))
+                start, end = (int(mobj.group(i)) for i in (1, 2))
         valid_range = start is not None and end is not None
         if valid_range:
             content_range = 'bytes %d-%d' % (start, end)
@@ -62,7 +61,7 @@ class HTTPTestRequestHandler(compat_http_server.BaseHTTPRequestHandler):
         elif self.path == '/no-range-no-content-length':
             self.serve(range=False, content_length=False)
         else:
-            assert False
+            assert False, 'unrecognised server path'
 
 
 class FakeLogger(object):
