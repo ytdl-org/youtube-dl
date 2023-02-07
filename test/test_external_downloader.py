@@ -102,8 +102,6 @@ class TestAria2pFD(unittest.TestCase):
                     self.assertEqual(os.path.getsize(encodeFilename(filename)), TEST_SIZE)
                     try_rm(encodeFilename(filename))
                 process.kill()
-        except Exception:
-            pass
 
     def download_all(self, params):
         for ep in ('regular', 'no-content-length', 'no-range', 'no-range-no-content-length'):
