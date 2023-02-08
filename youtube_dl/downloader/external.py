@@ -221,7 +221,7 @@ class Aria2pFD(ExternalFD):
 
     def _call_downloader(self, tmpfilename, info_dict):
         aria2 = self.aria2p.API(
-            aria2p.Client(
+            self.aria2p.Client(
                 host='http://localhost',
                 port=6800,
                 secret=''
@@ -235,11 +235,11 @@ class Aria2pFD(ExternalFD):
         }
         download_dir = os.path.dirname(tmpfilename)
         if download_dir:
-            options["dir"] = download_dir
+            options['dir'] = download_dir
         else:
-            options["dir"] = os.path.abspath('.')
-        options["out"] = os.path.basename(tmpfilename)
-        options["header"] = []
+            options['dir'] = os.path.abspath('.')
+        options['out'] = os.path.basename(tmpfilename)
+        options['header'] = []
         for key, val in info_dict['http_headers'].items():
             options['header'].append('{0}: {1}'.format(key, val))
         download = aria2.add_uris([info_dict['url']], options)

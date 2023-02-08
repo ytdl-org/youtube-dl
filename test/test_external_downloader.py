@@ -10,10 +10,11 @@ import subprocess
 import unittest
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from test.helper import http_server_port, try_rm
+from test.helper import FakeLogger, http_server_port, try_rm
 from youtube_dl import YoutubeDL
 from youtube_dl.compat import compat_http_server
 from youtube_dl.utils import encodeFilename
+from youtube_dl.downloader.external import Aria2pFD
 import threading
 
 TEST_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -64,17 +65,6 @@ class HTTPTestRequestHandler(compat_http_server.BaseHTTPRequestHandler):
             assert False, 'unrecognised server path'
 
 
-class FakeLogger(object):
-    def debug(self, msg):
-        pass
-
-    def warning(self, msg):
-        pass
-
-    def error(self, msg):
-        pass
-
-
 @unittest.skipUnless(Aria2pFD.available(), 'aria2p module not found')
 class TestAria2pFD(unittest.TestCase):
     def setUp(self):
@@ -86,22 +76,21 @@ class TestAria2pFD(unittest.TestCase):
         self.server_thread.start()
 
     def download(self, params, ep):
-        try:
-            with subprocess.Popen(
-                ['aria2c', '--enable-rpc'],
-                stdout=subprocess.DEVNULL,
-                stderr=subprocess.DEVNULL
-            ) as process:
-                if not process.poll():
-                    filename = 'testfile.mp4'
-                    params['logger'] = FakeLogger()
-                    params['outtmpl'] = filename
-                    ydl = YoutubeDL(params)
-                    try_rm(encodeFilename(filename))
-                    self.assertEqual(ydl.download(['http://127.0.0.1:%d/%s' % (self.port, ep)]), 0)
-                    self.assertEqual(os.path.getsize(encodeFilename(filename)), TEST_SIZE)
-                    try_rm(encodeFilename(filename))
-                process.kill()
+        with subprocess.Popen(
+            ['aria2c', '--enable-rpc'],
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL
+        ) as process:
+            if not process.poll():
+                filename = 'testfile.mp4'
+                params['logger'] = FakeLogger()
+                params['outtmpl'] = filename
+                ydl = YoutubeDL(params)
+                try_rm(encodeFilename(filename))
+                self.assertEqual(ydl.download(['http://127.0.0.1:%d/%s' % (self.port, ep)]), 0)
+                self.assertEqual(os.path.getsize(encodeFilename(filename)), TEST_SIZE)
+                try_rm(encodeFilename(filename))
+            process.kill()
 
     def download_all(self, params):
         for ep in ('regular', 'no-content-length', 'no-range', 'no-range-no-content-length'):
