@@ -3,8 +3,6 @@ from __future__ import unicode_literals
 
 from .common import InfoExtractor
 
-from ..utils import base_url
-
 
 class KommunetvIE(InfoExtractor):
     _VALID_URL = r'https://(\w+).kommunetv.no/archive/(?P<id>\w+)'
@@ -26,7 +24,7 @@ class KommunetvIE(InfoExtractor):
         data = self._download_json('https://oslo.kommunetv.no/api/streams?streamType=1&id=%s' % video_id, video_id, headers=headers)
         title = data['stream']['title']
         file = data['playlist'][0]['playlist'][0]['file']
-        url = base_url(file)
+        url = self._search_regex(r'(^[^\?]*)', file, 'url')
         formats = self._extract_m3u8_formats(url, video_id, ext='mp4', entry_protocol='m3u8_native', m3u8_id='hls', fatal=False)
         self._sort_formats(formats)
         return {
