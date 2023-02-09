@@ -200,6 +200,64 @@ class Aria2cFD(ExternalFD):
         return cmd
 
 
+class Aria2pFD(ExternalFD):
+    ''' Aria2pFD class
+    This class support to use aria2p as downloader.
+    (Aria2p, a command-line tool and Python library to interact with an aria2c daemon process
+    through JSON-RPC.)
+    It can help you to get download progress more easily.
+    To use aria2p as downloader, you need to install aria2c and aria2p, aria2p can download with pip.
+    Then run aria2c in the background and enable with the --enable-rpc option.
+    '''
+    try:
+        import aria2p
+        __avail = True
+    except ImportError:
+        __avail = False
+
+    @classmethod
+    def available(cls):
+        return cls.__avail
+
+    def _call_downloader(self, tmpfilename, info_dict):
+        aria2 = self.aria2p.API(
+            self.aria2p.Client(
+                host='http://localhost',
+                port=6800,
+                secret=''
+            )
+        )
+
+        options = {
+            'min-split-size': '1M',
+            'max-connection-per-server': 4,
+            'auto-file-renaming': 'false',
+        }
+        options['dir'] = os.path.dirname(tmpfilename) or os.path.abspath('.')
+        options['out'] = os.path.basename(tmpfilename)
+        options['header'] = []
+        for key, val in info_dict['http_headers'].items():
+            options['header'].append('{0}: {1}'.format(key, val))
+        download = aria2.add_uris([info_dict['url']], options)
+        status = {
+            'status': 'downloading',
+            'tmpfilename': tmpfilename,
+        }
+        started = time.time()
+        while download.status in ['active', 'waiting']:
+            download = aria2.get_download(download.gid)
+            status.update({
+                'downloaded_bytes': download.completed_length,
+                'total_bytes': download.total_length,
+                'elapsed': time.time() - started,
+                'eta': download.eta.total_seconds(),
+                'speed': download.download_speed,
+            })
+            self._hook_progress(status)
+            time.sleep(.5)
+        return download.status != 'complete'
+
+
 class HttpieFD(ExternalFD):
     @classmethod
     def available(cls):

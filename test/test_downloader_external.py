@@ -6,6 +6,7 @@ from __future__ import unicode_literals
 import os
 import re
 import sys
+import subprocess
 import unittest
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
@@ -16,8 +17,8 @@ from test.helper import (
 )
 from youtube_dl import YoutubeDL
 from youtube_dl.compat import compat_http_server
-from youtube_dl.downloader.http import HttpFD
 from youtube_dl.utils import encodeFilename
+from youtube_dl.downloader.external import Aria2pFD
 import threading
 
 TEST_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -34,10 +35,9 @@ class HTTPTestRequestHandler(compat_http_server.BaseHTTPRequestHandler):
         range_header = self.headers.get('Range')
         start = end = None
         if range_header:
-            mobj = re.search(r'^bytes=(\d+)-(\d+)', range_header)
+            mobj = re.match(r'bytes=(\d+)-(\d+)', range_header)
             if mobj:
-                start = int(mobj.group(1))
-                end = int(mobj.group(2))
+                start, end = (int(mobj.group(i)) for i in (1, 2))
         valid_range = start is not None and end is not None
         if valid_range:
             content_range = 'bytes %d-%d' % (start, end)
@@ -67,10 +67,11 @@ class HTTPTestRequestHandler(compat_http_server.BaseHTTPRequestHandler):
         elif self.path == '/no-range-no-content-length':
             self.serve(range=False, content_length=False)
         else:
-            assert False
+            assert False, 'unrecognised server path'
 
 
-class TestHttpFD(unittest.TestCase):
+@unittest.skipUnless(Aria2pFD.available(), 'aria2p module not found')
+class TestAria2pFD(unittest.TestCase):
     def setUp(self):
         self.httpd = compat_http_server.HTTPServer(
             ('127.0.0.1', 0), HTTPTestRequestHandler)
@@ -80,26 +81,32 @@ class TestHttpFD(unittest.TestCase):
         self.server_thread.start()
 
     def download(self, params, ep):
-        params['logger'] = FakeLogger()
-        ydl = YoutubeDL(params)
-        downloader = HttpFD(ydl, params)
-        filename = 'testfile.mp4'
-        try_rm(encodeFilename(filename))
-        self.assertTrue(downloader.real_download(filename, {
-            'url': 'http://127.0.0.1:%d/%s' % (self.port, ep),
-        }))
-        self.assertEqual(os.path.getsize(encodeFilename(filename)), TEST_SIZE)
-        try_rm(encodeFilename(filename))
+        with subprocess.Popen(
+            ['aria2c', '--enable-rpc'],
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL
+        ) as process:
+            if not process.poll():
+                filename = 'testfile.mp4'
+                params['logger'] = FakeLogger()
+                params['outtmpl'] = filename
+                ydl = YoutubeDL(params)
+                try_rm(encodeFilename(filename))
+                self.assertEqual(ydl.download(['http://127.0.0.1:%d/%s' % (self.port, ep)]), 0)
+                self.assertEqual(os.path.getsize(encodeFilename(filename)), TEST_SIZE)
+                try_rm(encodeFilename(filename))
+            process.kill()
 
     def download_all(self, params):
         for ep in ('regular', 'no-content-length', 'no-range', 'no-range-no-content-length'):
             self.download(params, ep)
 
     def test_regular(self):
-        self.download_all({})
+        self.download_all({'external_downloader': 'aria2p'})
 
     def test_chunked(self):
         self.download_all({
+            'external_downloader': 'aria2p',
             'http_chunk_size': 1000,
         })
 

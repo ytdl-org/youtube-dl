@@ -8,7 +8,10 @@ import sys
 import unittest
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from test.helper import http_server_port
+from test.helper import (
+    FakeLogger,
+    http_server_port,
+)
 from youtube_dl import YoutubeDL
 from youtube_dl.compat import compat_http_server, compat_urllib_request
 import ssl
@@ -50,17 +53,6 @@ class HTTPTestRequestHandler(compat_http_server.BaseHTTPRequestHandler):
             self.wfile.write(b'<html><video src="/vid.mp4" /></html>')
         else:
             assert False
-
-
-class FakeLogger(object):
-    def debug(self, msg):
-        pass
-
-    def warning(self, msg):
-        pass
-
-    def error(self, msg):
-        pass
 
 
 class TestHTTP(unittest.TestCase):
