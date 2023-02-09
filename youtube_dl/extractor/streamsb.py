@@ -8,7 +8,7 @@ from .common import InfoExtractor
 
 
 def to_ascii_hex(str1):
-    return ''.join([format(ord(c), 'x') for c in str1])
+    return binascii.hexlify(str1.encode('utf-8')).decode('ascii')
 
 
 def generate_random_string(length):
@@ -16,7 +16,7 @@ def generate_random_string(length):
 
 
 class StreamsbIE(InfoExtractor):
-    domain = 'viewsb.com'
+    _DOMAINS = ('viewsb.com', )
     _VALID_URL = r'https://' + domain + '/(?P<id>.+)'
     _TEST = {
         'url': 'https://viewsb.com/dxfvlu4qanjx',
@@ -32,26 +32,28 @@ class StreamsbIE(InfoExtractor):
         video_id = self._match_id(url)
         webpage = self._download_webpage(url, video_id)
 
-        iframe_rel_url = self._search_regex(r'(?i)iframe src=\"(.*\.html)\"', webpage, 'iframe')
-        iframe_url = 'https://' + self.domain + iframe_rel_url
+        iframe_rel_url = self._search_regex(r'''(?i)<iframe\b[^>]+\bsrc\s*=\s*('|")(?P<path>/.*\.html)\1''', webpage, 'iframe', group='path')
+        iframe_url = urljoin('https://' + self.domain, iframe_rel_url)
 
         iframe_data = self._download_webpage(iframe_url, video_id)
-        app_version = self._search_regex(r'script src=".*/app\.min\.(\w+)\.js', iframe_data, 'video_code')
+        app_version = self._search_regex(r'''<script\b[^>]+\bsrc\s*=\s*("|')(?:(?!\1).)*/app\.min\.(\d+)\.js''', iframe_data, 'app version', fatal=False) or '50'
 
-        video_code = self._search_regex(r"(\w*).html", iframe_url, 'video_code')
+        video_code = url_basename(iframe_url).rsplit('.')[0]
 
         length = 12
-        req = generate_random_string(length) + '||' + video_code + '||' + generate_random_string(length) + '||streamsb'
-        ereq = 'https://' + self.domain + '/sources' + app_version + '/' + to_ascii_hex(req)
+        req = '||'.join((generate_random_string(length), video_code, generate_random_string(length), 'streamsb'))
+        ereq = 'https://{0}/sources{1}/{2}'.format(
+            self.domain, app_version, to_ascii_hex(req))
 
         video_data = self._download_webpage(ereq, video_id, headers={
             'Referer': iframe_url,
-            'watchsb': 'sbstream'
+            'watchsb': 'sbstream',
         })
         player_data = self._parse_json(video_data, video_id)
+        title = player_data['stream_data']['title']
         formats = self._extract_m3u8_formats(player_data['stream_data']['file'], video_id, ext='mp4', entry_protocol='m3u8_native', m3u8_id='hls', fatal=False)
         return {
             'id': video_id,
             'formats': formats,
-            'title': player_data['stream_data']['title']
+            'title': title,
         }
