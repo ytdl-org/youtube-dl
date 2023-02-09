@@ -10,7 +10,11 @@ import subprocess
 import unittest
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from test.helper import FakeLogger, http_server_port, try_rm
+from test.helper import (
+    FakeLogger,
+    http_server_port,
+    try_rm,
+)
 from youtube_dl import YoutubeDL
 from youtube_dl.compat import compat_http_server
 from youtube_dl.utils import encodeFilename
@@ -21,6 +25,7 @@ TEST_DIR = os.path.dirname(os.path.abspath(__file__))
 
 
 TEST_SIZE = 10 * 1024
+
 
 class HTTPTestRequestHandler(compat_http_server.BaseHTTPRequestHandler):
     def log_message(self, format, *args):

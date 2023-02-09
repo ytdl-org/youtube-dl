@@ -88,6 +88,7 @@ class FakeYDL(YoutubeDL):
             old_report_warning(message)
         self.report_warning = types.MethodType(report_warning, self)
 
+
 class FakeLogger(object):
     def debug(self, msg):
         pass
@@ -97,6 +98,7 @@ class FakeLogger(object):
 
     def error(self, msg):
         pass
+
 
 def gettestcases(include_onlymatching=False):
     for ie in youtube_dl.extractor.gen_extractors():

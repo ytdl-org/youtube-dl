@@ -9,7 +9,11 @@ import sys
 import unittest
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from test.helper import FakeLogger, http_server_port, try_rm
+from test.helper import (
+    FakeLogger,
+    http_server_port,
+    try_rm,
+)
 from youtube_dl import YoutubeDL
 from youtube_dl.compat import compat_http_server
 from youtube_dl.downloader.http import HttpFD

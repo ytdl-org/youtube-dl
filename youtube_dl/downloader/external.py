@@ -233,11 +233,7 @@ class Aria2pFD(ExternalFD):
             'max-connection-per-server': 4,
             'auto-file-renaming': 'false',
         }
-        download_dir = os.path.dirname(tmpfilename)
-        if download_dir:
-            options['dir'] = download_dir
-        else:
-            options['dir'] = os.path.abspath('.')
+        options['dir'] = os.path.dirname(tmpfilename) or os.path.abspath('.')
         options['out'] = os.path.basename(tmpfilename)
         options['header'] = []
         for key, val in info_dict['http_headers'].items():
@@ -259,7 +255,7 @@ class Aria2pFD(ExternalFD):
             })
             self._hook_progress(status)
             time.sleep(.5)
-        return not download.status == 'complete'
+        return download.status != 'complete'
 
 
 class HttpieFD(ExternalFD):
