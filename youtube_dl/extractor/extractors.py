@@ -1010,6 +1010,10 @@ from .raywenderlich import (
     RayWenderlichIE,
     RayWenderlichCourseIE,
 )
+from .rbgtum import (
+    RbgTumIE,
+    RbgTumCourseIE,
+)
 from .rbmaradio import RBMARadioIE
 from .rds import RDSIE
 from .redbulltv import (
