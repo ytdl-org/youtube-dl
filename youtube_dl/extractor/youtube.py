@@ -14,12 +14,11 @@ from ..compat import (
     compat_chr,
     compat_HTTPError,
     compat_map as map,
-    compat_parse_qs,
     compat_str,
+    compat_urllib_parse,
+    compat_urllib_parse_parse_qs as compat_parse_qs,
     compat_urllib_parse_unquote_plus,
-    compat_urllib_parse_urlencode,
     compat_urllib_parse_urlparse,
-    compat_urlparse,
 )
 from ..jsinterp import JSInterpreter
 from ..utils import (
@@ -28,29 +27,30 @@ from ..utils import (
     dict_get,
     error_to_compat_str,
     float_or_none,
+    extract_attributes,
+    get_element_by_attribute,
     int_or_none,
     js_to_json,
     mimetype2ext,
     parse_codecs,
     parse_duration,
+    parse_qs,
     qualities,
     remove_start,
     smuggle_url,
     str_or_none,
     str_to_int,
+    traverse_obj,
     try_get,
     unescapeHTML,
     unified_strdate,
     unsmuggle_url,
+    update_url,
     update_url_query,
     url_or_none,
     urlencode_postdata,
     urljoin,
 )
-
-
-def parse_qs(url):
-    return compat_urlparse.parse_qs(compat_urlparse.urlparse(url).query)
 
 
 class YoutubeBaseInfoExtractor(InfoExtractor):
@@ -286,15 +286,18 @@ class YoutubeBaseInfoExtractor(InfoExtractor):
     _YT_INITIAL_PLAYER_RESPONSE_RE = r'ytInitialPlayerResponse\s*=\s*({.+?})\s*;'
     _YT_INITIAL_BOUNDARY_RE = r'(?:var\s+meta|</script|\n)'
 
-    def _call_api(self, ep, query, video_id, fatal=True):
+    def _call_api(self, ep, query, video_id, fatal=True, headers=None):
         data = self._DEFAULT_API_DATA.copy()
         data.update(query)
+        real_headers = {'content-type': 'application/json'}
+        if headers:
+            real_headers.update(headers)
 
         return self._download_json(
             'https://www.youtube.com/youtubei/v1/%s' % ep, video_id=video_id,
             note='Downloading API JSON', errnote='Unable to download API page',
             data=json.dumps(data).encode('utf8'), fatal=fatal,
-            headers={'content-type': 'application/json'},
+            headers=real_headers,
             query={'key': 'AIzaSyAO_FJ2SlqU8Q4STEHLGCilw_Y9_11qcW8'})
 
     def _extract_yt_initial_data(self, video_id, webpage):
@@ -515,6 +518,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                 'uploader': 'Philipp Hagemeister',
                 'uploader_id': 'phihag',
                 'uploader_url': r're:https?://(?:www\.)?youtube\.com/user/phihag',
+                'channel': 'Philipp Hagemeister',
                 'channel_id': 'UCLqxVugv74EIW3VWh2NOa3Q',
                 'channel_url': r're:https?://(?:www\.)?youtube\.com/channel/UCLqxVugv74EIW3VWh2NOa3Q',
                 'upload_date': '20121002',
@@ -524,10 +528,10 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                 'duration': 10,
                 'view_count': int,
                 'like_count': int,
-                'dislike_count': int,
+                'thumbnail': 'https://i.ytimg.com/vi/BaW_jenozKc/maxresdefault.jpg',
                 'start_time': 1,
                 'end_time': 9,
-            }
+            },
         },
         {
             'url': '//www.YouTube.com/watch?v=yZIXLfi8CZQ',
@@ -562,7 +566,6 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                 'duration': 10,
                 'view_count': int,
                 'like_count': int,
-                'dislike_count': int,
             },
             'params': {
                 'skip_download': True,
@@ -621,8 +624,9 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                 'description': 'SUBSCRIBE: http://www.youtube.com/saturninefilms \r\n\r\nEven Obama has taken a stand against freedom on this issue: http://www.huffingtonpost.com/2010/09/09/obama-gma-interview-quran_n_710282.html',
             }
         },
-        # Normal age-gate video (No vevo, embed allowed), available via embed page
+        # Age-gated videos
         {
+            'note': 'Age-gated video (No vevo, embed allowed)',
             'url': 'https://youtube.com/watch?v=HtVdAasjOgU',
             'info_dict': {
                 'id': 'HtVdAasjOgU',
@@ -634,14 +638,98 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                 'uploader_id': 'WitcherGame',
                 'uploader_url': r're:https?://(?:www\.)?youtube\.com/user/WitcherGame',
                 'upload_date': '20140605',
+                'thumbnail': 'https://i.ytimg.com/vi/HtVdAasjOgU/maxresdefault.jpg',
                 'age_limit': 18,
+                'categories': ['Gaming'],
+                'tags': 'count:17',
+                'channel': 'The Witcher',
+                'channel_url': 'https://www.youtube.com/channel/UCzybXLxv08IApdjdN0mJhEg',
+                'channel_id': 'UCzybXLxv08IApdjdN0mJhEg',
+                'view_count': int,
+                'like_count': int,
             },
         },
         {
-            # Age-gated video only available with authentication (unavailable
-            # via embed page workaround)
+            'note': 'Age-gated video with embed allowed in public site',
+            'url': 'https://youtube.com/watch?v=HsUATh_Nc2U',
+            'info_dict': {
+                'id': 'HsUATh_Nc2U',
+                'ext': 'mp4',
+                'title': 'Godzilla 2 (Official Video)',
+                'description': 'md5:bf77e03fcae5529475e500129b05668a',
+                'duration': 177,
+                'uploader': 'FlyingKitty',
+                'uploader_id': 'FlyingKitty900',
+                'upload_date': '20200408',
+                'thumbnail': 'https://i.ytimg.com/vi/HsUATh_Nc2U/maxresdefault.jpg',
+                'age_limit': 18,
+                'categories': ['Entertainment'],
+                'tags': ['Flyingkitty', 'godzilla 2'],
+                'channel': 'FlyingKitty',
+                'channel_url': 'https://www.youtube.com/channel/UCYQT13AtrJC0gsM1far_zJg',
+                'channel_id': 'UCYQT13AtrJC0gsM1far_zJg',
+                'view_count': int,
+                'like_count': int,
+            },
+        },
+        {
+            'note': 'Age-gated video embeddable only with clientScreen=EMBED',
+            'url': 'https://youtube.com/watch?v=Tq92D6wQ1mg',
+            'info_dict': {
+                'id': 'Tq92D6wQ1mg',
+                'ext': 'mp4',
+                'title': '[MMD] Adios - EVERGLOW [+Motion DL]',
+                'description': 'md5:17eccca93a786d51bc67646756894066',
+                'duration': 106,
+                'uploader': 'Projekt Melody',
+                'uploader_id': 'UC1yoRdFoFJaCY-AGfD9W0wQ',
+                'upload_date': '20191227',
+                'age_limit': 18,
+                'thumbnail': 'https://i.ytimg.com/vi/Tq92D6wQ1mg/sddefault.jpg',
+                'tags': ['mmd', 'dance', 'mikumikudance', 'kpop', 'vtuber'],
+                'categories': ['Entertainment'],
+                'channel': 'Projekt Melody',
+                'channel_url': 'https://www.youtube.com/channel/UC1yoRdFoFJaCY-AGfD9W0wQ',
+                'channel_id': 'UC1yoRdFoFJaCY-AGfD9W0wQ',
+                'view_count': int,
+                'like_count': int,
+            },
+        },
+        {
+            'note': 'Non-Age-gated non-embeddable video',
+            'url': 'https://youtube.com/watch?v=MeJVWBSsPAY',
+            'info_dict': {
+                'id': 'MeJVWBSsPAY',
+                'ext': 'mp4',
+                'title': 'OOMPH! - Such Mich Find Mich (Lyrics)',
+                'description': 'Fan Video. Music & Lyrics by OOMPH!.',
+                'duration': 210,
+                'uploader': 'Herr Lurik',
+                'uploader_id': 'st3in234',
+                'upload_date': '20130730',
+                'uploader_url': 'http://www.youtube.com/user/st3in234',
+                'age_limit': 0,
+                'thumbnail': 'https://i.ytimg.com/vi/MeJVWBSsPAY/hqdefault.jpg',
+                'tags': ['oomph', 'such mich find mich', 'lyrics', 'german industrial', 'musica industrial'],
+                'categories': ['Music'],
+                'channel': 'Herr Lurik',
+                'channel_url': 'https://www.youtube.com/channel/UCdR3RSDPqub28LjZx0v9-aA',
+                'channel_id': 'UCdR3RSDPqub28LjZx0v9-aA',
+                'artist': 'OOMPH!',
+                'view_count': int,
+                'like_count': int,
+            },
+        },
+        {
+            'note': 'Non-bypassable age-gated video',
+            'url': 'https://youtube.com/watch?v=Cr381pDsSsA',
+            'only_matching': True,
+        },
+        {
+            'note': 'Age-gated video only available with authentication (not via embed workaround)',
             'url': 'XgnwCQzjau8',
             'only_matching': True,
+            'skip': '''This video has been removed for violating YouTube's Community Guidelines''',
         },
         # video_info is None (https://github.com/ytdl-org/youtube-dl/issues/4421)
         # YouTube Red ad is not captured for creator
@@ -670,17 +758,23 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
             'info_dict': {
                 'id': 'lqQg6PlCWgI',
                 'ext': 'mp4',
+                'title': 'Hockey - Women -  GER-AUS - London 2012 Olympic Games',
+                'description': r're:(?s)(?:.+\s)?HO09  - Women -  GER-AUS - Hockey - 31 July 2012 - London 2012 Olympic Games\s*',
                 'duration': 6085,
                 'upload_date': '20150827',
                 'uploader_id': 'olympic',
                 'uploader_url': r're:https?://(?:www\.)?youtube\.com/user/olympic',
-                'description': 'HO09  - Women -  GER-AUS - Hockey - 31 July 2012 - London 2012 Olympic Games',
-                'uploader': 'Olympic',
-                'title': 'Hockey - Women -  GER-AUS - London 2012 Olympic Games',
+                'uploader': r're:Olympics?',
+                'age_limit': 0,
+                'thumbnail': 'https://i.ytimg.com/vi/lqQg6PlCWgI/maxresdefault.jpg',
+                'categories': ['Sports'],
+                'tags': ['Hockey', '2012-07-31', '31 July 2012', 'Riverbank Arena', 'Session', 'Olympics', 'Olympic Games', 'London 2012', '2012 Summer Olympics', 'Summer Games'],
+                'channel': 'Olympics',
+                'channel_url': 'https://www.youtube.com/channel/UCTl3QQTvqHFjurroKxexy2Q',
+                'channel_id': 'UCTl3QQTvqHFjurroKxexy2Q',
+                'view_count': int,
+                'like_count': int,
             },
-            'params': {
-                'skip_download': 'requires avconv',
-            }
         },
         # Non-square pixels
         {
@@ -840,16 +934,16 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                 'id': 'lsguqyKfVQg',
                 'ext': 'mp4',
                 'title': '{dark walk}; Loki/AC/Dishonored; collab w/Elflover21',
-                'alt_title': 'Dark Walk - Position Music',
+                'alt_title': 'Dark Walk',
                 'description': 'md5:8085699c11dc3f597ce0410b0dcbb34a',
                 'duration': 133,
                 'upload_date': '20151119',
                 'uploader_id': 'IronSoulElf',
                 'uploader_url': r're:https?://(?:www\.)?youtube\.com/user/IronSoulElf',
                 'uploader': 'IronSoulElf',
-                'creator': 'Todd Haberman,  Daniel Law Heath and Aaron Kaplan',
-                'track': 'Dark Walk - Position Music',
-                'artist': 'Todd Haberman,  Daniel Law Heath and Aaron Kaplan',
+                'creator': r're:Todd Haberman[;,]\s+Daniel Law Heath and Aaron Kaplan',
+                'track': 'Dark Walk',
+                'artist': r're:Todd Haberman[;,]\s+Daniel Law Heath and Aaron Kaplan',
                 'album': 'Position Music - Production Music Vol. 143 - Dark Walk',
             },
             'params': {
@@ -1301,11 +1395,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
 
     @classmethod
     def suitable(cls, url):
-        # Hack for lazy extractors until more generic solution is implemented
-        # (see #28780)
-        from .youtube import parse_qs
-        qs = parse_qs(url)
-        if qs.get('list', [None])[0]:
+        if parse_qs(url).get('list', [None])[0]:
             return False
         return super(YoutubeIE, cls).suitable(url)
 
@@ -1455,7 +1545,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
         if player_url.startswith('//'):
             player_url = 'https:' + player_url
         elif not re.match(r'https?://', player_url):
-            player_url = compat_urlparse.urljoin(
+            player_url = compat_urllib_parse.urljoin(
                 'https://www.youtube.com', player_url)
         return player_url
 
@@ -1537,9 +1627,8 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
 
     def _unthrottle_format_urls(self, video_id, player_url, formats):
         for fmt in formats:
-            parsed_fmt_url = compat_urlparse.urlparse(fmt['url'])
-            qs = compat_urlparse.parse_qs(parsed_fmt_url.query)
-            n_param = qs.get('n')
+            parsed_fmt_url = compat_urllib_parse.urlparse(fmt['url'])
+            n_param = compat_parse_qs(parsed_fmt_url.query).get('n')
             if not n_param:
                 continue
             n_param = n_param[-1]
@@ -1547,9 +1636,29 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
             if n_response is None:
                 # give up if descrambling failed
                 break
-            qs['n'] = [n_response]
-            fmt['url'] = compat_urlparse.urlunparse(
-                parsed_fmt_url._replace(query=compat_urllib_parse_urlencode(qs, True)))
+            fmt['url'] = update_url(
+                parsed_fmt_url, query_update={'n': [n_response]})
+
+    # from yt-dlp, with tweaks
+    def _extract_signature_timestamp(self, video_id, player_url, ytcfg=None, fatal=False):
+        """
+        Extract signatureTimestamp (sts)
+        Required to tell API what sig/player version is in use.
+        """
+        sts = int_or_none(ytcfg.get('STS')) if isinstance(ytcfg, dict) else None
+        if not sts:
+            # Attempt to extract from player
+            if player_url is None:
+                error_msg = 'Cannot extract signature timestamp without player_url.'
+                if fatal:
+                    raise ExtractorError(error_msg)
+                self._downloader.report_warning(error_msg)
+                return
+            code = self._get_player_code(video_id, player_url)
+            sts = int_or_none(self._search_regex(
+                r'(?:signatureTimestamp|sts)\s*:\s*(?P<sts>[0-9]{5})', code or '',
+                'JS player signature timestamp', group='sts', fatal=fatal))
+        return sts
 
     def _mark_watched(self, video_id, player_response):
         playback_url = url_or_none(try_get(
@@ -1557,20 +1666,17 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
             lambda x: x['playbackTracking']['videostatsPlaybackUrl']['baseUrl']))
         if not playback_url:
             return
-        parsed_playback_url = compat_urlparse.urlparse(playback_url)
-        qs = compat_urlparse.parse_qs(parsed_playback_url.query)
 
         # cpn generation algorithm is reverse engineered from base.js.
         # In fact it works even with dummy cpn.
         CPN_ALPHABET = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-_'
         cpn = ''.join((CPN_ALPHABET[random.randint(0, 256) & 63] for _ in range(0, 16)))
 
-        qs.update({
-            'ver': ['2'],
-            'cpn': [cpn],
-        })
-        playback_url = compat_urlparse.urlunparse(
-            parsed_playback_url._replace(query=compat_urllib_parse_urlencode(qs, True)))
+        playback_url = update_url(
+            playback_url, query_update={
+                'ver': ['2'],
+                'cpn': [cpn],
+            })
 
         self._download_webpage(
             playback_url, video_id, 'Marking watched',
@@ -1675,6 +1781,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
             webpage_url + '&bpctr=9999999999&has_verified=1', video_id, fatal=False)
 
         player_response = None
+        player_url = None
         if webpage:
             player_response = self._extract_yt_initial_variable(
                 webpage, self._YT_INITIAL_PLAYER_RESPONSE_RE,
@@ -1683,27 +1790,61 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
             player_response = self._call_api(
                 'player', {'videoId': video_id}, video_id)
 
-        playability_status = player_response.get('playabilityStatus') or {}
-        if playability_status.get('reason') == 'Sign in to confirm your age':
-            video_info = self._download_webpage(
-                base_url + 'get_video_info', video_id,
-                'Refetching age-gated info webpage',
-                'unable to download video info webpage', query={
-                    'video_id': video_id,
-                    'eurl': 'https://youtube.googleapis.com/v/' + video_id,
-                    'html5': 1,
-                    # See https://github.com/ytdl-org/youtube-dl/issues/29333#issuecomment-864049544
-                    'c': 'TVHTML5',
-                    'cver': '6.20180913',
-                }, fatal=False)
-            if video_info:
-                pr = self._parse_json(
-                    try_get(
-                        compat_parse_qs(video_info),
-                        lambda x: x['player_response'][0], compat_str) or '{}',
-                    video_id, fatal=False)
-                if pr and isinstance(pr, dict):
-                    player_response = pr
+        def is_agegated(playability):
+            if not isinstance(playability, dict):
+                return
+
+            if playability.get('desktopLegacyAgeGateReason'):
+                return True
+
+            reasons = filter(None, (playability.get(r) for r in ('status', 'reason')))
+            AGE_GATE_REASONS = (
+                'confirm your age', 'age-restricted', 'inappropriate',  # reason
+                'age_verification_required', 'age_check_required',  # status
+            )
+            return any(expected in reason for expected in AGE_GATE_REASONS for reason in reasons)
+
+        def get_playability_status(response):
+            return try_get(response, lambda x: x['playabilityStatus'], dict) or {}
+
+        playability_status = get_playability_status(player_response)
+        if (is_agegated(playability_status)
+                and int_or_none(self._downloader.params.get('age_limit'), default=18) >= 18):
+
+            self.report_age_confirmation()
+
+            # Thanks: https://github.com/yt-dlp/yt-dlp/pull/3233
+            pb_context = {'html5Preference': 'HTML5_PREF_WANTS'}
+
+            # Use signatureTimestamp if available
+            # Thanks https://github.com/ytdl-org/youtube-dl/issues/31034#issuecomment-1160718026
+            player_url = self._extract_player_url(webpage)
+            ytcfg = self._extract_ytcfg(video_id, webpage)
+            sts = self._extract_signature_timestamp(video_id, player_url, ytcfg)
+            if sts:
+                pb_context['signatureTimestamp'] = sts
+
+            query = {
+                'playbackContext': {'contentPlaybackContext': pb_context},
+                'contentCheckOk': True,
+                'racyCheckOk': True,
+                'context': {
+                    'client': {'clientName': 'TVHTML5_SIMPLY_EMBEDDED_PLAYER', 'clientVersion': '2.0', 'hl': 'en', 'clientScreen': 'EMBED'},
+                    'thirdParty': {'embedUrl': 'https://google.com'},
+                },
+                'videoId': video_id,
+            }
+            headers = {
+                'X-YouTube-Client-Name': '85',
+                'X-YouTube-Client-Version': '2.0',
+                'Origin': 'https://www.youtube.com'
+            }
+
+            video_info = self._call_api('player', query, video_id, fatal=False, headers=headers)
+            age_gate_status = get_playability_status(video_info)
+            if age_gate_status.get('status') == 'OK':
+                player_response = video_info
+                playability_status = age_gate_status
 
         trailer_video_id = try_get(
             playability_status,
@@ -1785,7 +1926,6 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
         formats = []
         itags = []
         itag_qualities = {}
-        player_url = None
         q = qualities(['tiny', 'small', 'medium', 'large', 'hd720', 'hd1080', 'hd1440', 'hd2160', 'hd2880', 'highres'])
         streaming_data = player_response.get('streamingData') or {}
         streaming_formats = streaming_data.get('formats') or []
@@ -1929,15 +2069,15 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
 
         thumbnails = []
         for container in (video_details, microformat):
-            for thumbnail in (try_get(
+            for thumbnail in try_get(
                     container,
-                    lambda x: x['thumbnail']['thumbnails'], list) or []):
-                thumbnail_url = thumbnail.get('url')
+                    lambda x: x['thumbnail']['thumbnails'], list) or []:
+                thumbnail_url = url_or_none(thumbnail.get('url'))
                 if not thumbnail_url:
                     continue
                 thumbnails.append({
                     'height': int_or_none(thumbnail.get('height')),
-                    'url': thumbnail_url,
+                    'url': update_url(thumbnail_url, query=None, fragment=None),
                     'width': int_or_none(thumbnail.get('width')),
                 })
             if thumbnails:
@@ -1956,7 +2096,17 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
             or microformat.get('lengthSeconds')) \
             or parse_duration(search_meta('duration'))
         is_live = video_details.get('isLive')
-        owner_profile_url = microformat.get('ownerProfileUrl')
+
+        def gen_owner_profile_url():
+            yield microformat.get('ownerProfileUrl')
+            yield extract_attributes(self._search_regex(
+                r'''(?s)(<link\b[^>]+\bitemprop\s*=\s*("|')url\2[^>]*>)''',
+                get_element_by_attribute('itemprop', 'author', webpage),
+                'owner_profile_url', default='')).get('href')
+
+        owner_profile_url = next(
+            (x for x in map(url_or_none, gen_owner_profile_url()) if x),
+            None)
 
         if not player_url:
             player_url = self._extract_player_url(webpage)
@@ -2041,6 +2191,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                         info[d_k] = parse_duration(query[k][0])
 
         if video_description:
+            # Youtube Music Auto-generated description
             mobj = re.search(r'(?s)(?P<track>[^·\n]+)·(?P<artist>[^\n]+)\n+(?P<album>[^\n]+)(?:.+?℗\s*(?P<release_year>\d{4})(?!\d))?(?:.+?Released on\s*:\s*(?P<release_date>\d{4}-\d{2}-\d{2}))?(.+?\nArtist\s*:\s*(?P<clean_artist>[^\n]+))?.+\nAuto-generated by YouTube\.\s*$', video_description)
             if mobj:
                 release_year = mobj.group('release_year')
@@ -2115,7 +2266,8 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                                 lambda x: x['superTitleIcon']['iconType']) == 'LOCATION_PIN':
                             info['location'] = stl
                         else:
-                            mobj = re.search(r'(.+?)\s*S(\d+)\s*•\s*E(\d+)', stl)
+                            # •? doesn't match, but [•]? does; \xa0 = non-breaking space
+                            mobj = re.search(r'([^\xa0\s].*?)[\xa0\s]*S(\d+)[\xa0\s]*[•]?[\xa0\s]*E(\d+)', stl)
                             if mobj:
                                 info.update({
                                     'series': mobj.group(1),
@@ -2126,7 +2278,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                             vpir,
                             lambda x: x['videoActions']['menuRenderer']['topLevelButtons'],
                             list) or []):
-                        tbr = tlb.get('toggleButtonRenderer') or {}
+                        tbr = traverse_obj(tlb, ('segmentedLikeDislikeButtonRenderer', 'likeButton', 'toggleButtonRenderer'), 'toggleButtonRenderer') or {}
                         for getter, regex in [(
                                 lambda x: x['defaultText']['accessibility']['accessibilityData'],
                                 r'(?P<count>[\d,]+)\s*(?P<type>(?:dis)?like)'), ([
@@ -2142,6 +2294,7 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                     sbr_tooltip = try_get(
                         vpir, lambda x: x['sentimentBar']['sentimentBarRenderer']['tooltip'])
                     if sbr_tooltip:
+                        # however dislike_count was hidden by YT, as if there could ever be dislikable content on YT
                         like_count, dislike_count = sbr_tooltip.split(' / ')
                         info.update({
                             'like_count': str_to_int(like_count),
@@ -2178,6 +2331,30 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                                 info['artist'] = mrr_contents_text
                             elif mrr_title == 'Song':
                                 info['track'] = mrr_contents_text
+
+            # this is not extraction but spelunking!
+            carousel_lockups = traverse_obj(
+                initial_data,
+                ('engagementPanels', Ellipsis, 'engagementPanelSectionListRenderer',
+                 'content', 'structuredDescriptionContentRenderer', 'items', Ellipsis,
+                 'videoDescriptionMusicSectionRenderer', 'carouselLockups', Ellipsis),
+                expected_type=dict) or []
+            # try to reproduce logic from metadataRowContainerRenderer above (if it still is)
+            fields = (('ALBUM', 'album'), ('ARTIST', 'artist'), ('SONG', 'track'), ('LICENSES', 'license'))
+            # multiple_songs ?
+            if len(carousel_lockups) > 1:
+                fields = fields[-1:]
+            for info_row in traverse_obj(
+                    carousel_lockups,
+                    (0, 'carouselLockupRenderer', 'infoRows', Ellipsis, 'infoRowRenderer'),
+                    expected_type=dict):
+                row_title = traverse_obj(info_row, ('title', 'simpleText'))
+                row_text = traverse_obj(info_row, 'defaultMetadata', 'expandedMetadata', expected_type=get_text)
+                if not row_text:
+                    continue
+                for name, field in fields:
+                    if name == row_title and not info.get(field):
+                        info[field] = row_text
 
         for s_k, d_k in [('artist', 'creator'), ('track', 'alt_title')]:
             v = info.get(s_k)
@@ -2411,7 +2588,6 @@ class YoutubeTabIE(YoutubeBaseInfoExtractor):
             'tags': list,
             'view_count': int,
             'like_count': int,
-            'dislike_count': int,
         },
         'params': {
             'skip_download': True,
@@ -2438,7 +2614,6 @@ class YoutubeTabIE(YoutubeBaseInfoExtractor):
             'categories': ['News & Politics'],
             'tags': list,
             'like_count': int,
-            'dislike_count': int,
         },
         'params': {
             'skip_download': True,
@@ -2458,7 +2633,6 @@ class YoutubeTabIE(YoutubeBaseInfoExtractor):
             'categories': ['News & Politics'],
             'tags': ['Cenk Uygur (TV Program Creator)', 'The Young Turks (Award-Winning Work)', 'Talk Show (TV Genre)'],
             'like_count': int,
-            'dislike_count': int,
         },
         'params': {
             'skip_download': True,
@@ -3043,8 +3217,7 @@ class YoutubeTabIE(YoutubeBaseInfoExtractor):
 
     def _real_extract(self, url):
         item_id = self._match_id(url)
-        url = compat_urlparse.urlunparse(
-            compat_urlparse.urlparse(url)._replace(netloc='www.youtube.com'))
+        url = update_url(url, netloc='www.youtube.com')
         # Handle both video/playlist URLs
         qs = parse_qs(url)
         video_id = qs.get('v', [None])[0]
@@ -3144,11 +3317,7 @@ class YoutubePlaylistIE(InfoExtractor):
     def suitable(cls, url):
         if YoutubeTabIE.suitable(url):
             return False
-        # Hack for lazy extractors until more generic solution is implemented
-        # (see #28780)
-        from .youtube import parse_qs
-        qs = parse_qs(url)
-        if qs.get('v', [None])[0]:
+        if parse_qs(url).get('v', [None])[0]:
             return False
         return super(YoutubePlaylistIE, cls).suitable(url)
 
@@ -3178,7 +3347,6 @@ class YoutubeYtBeIE(InfoExtractor):
             'categories': ['Nonprofits & Activism'],
             'tags': list,
             'like_count': int,
-            'dislike_count': int,
         },
         'params': {
             'noplaylist': True,
@@ -3288,9 +3456,9 @@ class YoutubeSearchURLIE(YoutubeBaseInfoExtractor):
     }]
 
     def _real_extract(self, url):
-        qs = compat_parse_qs(compat_urllib_parse_urlparse(url).query)
-        query = (qs.get('search_query') or qs.get('q'))[0]
-        params = qs.get('sp', ('',))[0]
+        qs = parse_qs(url)
+        query = (qs.get('search_query') or qs.get('q'))[-1]
+        params = qs.get('sp', ('',))[-1]
         return self.playlist_result(self._search_results(query, params), query, query)
 
 
