@@ -11,7 +11,7 @@ from ..utils import (
 
 
 class FileMoonIE(InfoExtractor):
-    _VALID_URL = r'https?://(?:www\.)?filemoon\.sx/./(?P<id>\w+)(?:/(?P<title>.+))*'
+    _VALID_URL = r'https?://(?:www\.)?filemoon\.sx/./(?P<id>\w+)'
     _TEST = {
         'url': 'https://filemoon.sx/e/dw40rxrzruqz',
         'md5': '5a713742f57ac4aef29b74733e8dda01',
@@ -23,12 +23,10 @@ class FileMoonIE(InfoExtractor):
     }
 
     def _real_extract(self, url):
-        video_id, title = re.match(self._VALID_URL, url).group('id', 'title')
-        if not title:
-            title = video_id
+        video_id = self._match_id(url)
 
         webpage = self._download_webpage(url, video_id)
-        matches = re.findall(r'(?s)(eval.*?)<\/script>', webpage)
+        matches = re.findall(r'(?s)(eval.*?)</script>', webpage)
         packed = matches[-1]
         unpacked = decode_packed_codes(packed)
         jwplayer_sources = self._parse_json(
@@ -40,6 +38,6 @@ class FileMoonIE(InfoExtractor):
 
         return {
             'id': video_id,
-            'title': title,
+            'title': self._generic_title(url) or video_id,
             'formats': formats
         }
