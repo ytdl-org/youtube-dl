@@ -4,6 +4,7 @@ from __future__ import unicode_literals
 import re
 
 from .common import InfoExtractor
+from ..compat import compat_str
 from ..utils import (
     ExtractorError,
     int_or_none,
@@ -33,7 +34,7 @@ class TubiTvIE(InfoExtractor):
             'id': '715943',
             'ext': 'mp4',
             'title': 'WB TV Watchlist',
-            'description': 're:.*',
+            'description': compat_str,
             'uploader_id': 'a12923a141282c8b62e593bac425db99',
             'is_live': True,
         },
