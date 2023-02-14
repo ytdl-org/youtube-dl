@@ -73,6 +73,7 @@ from .utils import (
     PostProcessingError,
     preferredencoding,
     prepend_extension,
+    process_communicate_or_kill,
     register_socks_protocols,
     render_table,
     replace_extension,
@@ -720,7 +721,7 @@ class YoutubeDL(object):
                 filename = encodeFilename(filename, True).decode(preferredencoding())
             return sanitize_path(filename)
         except ValueError as err:
-            self.report_error('Error in output template: ' + str(err) + ' (encoding: ' + repr(preferredencoding()) + ')')
+            self.report_error('Error in output template: ' + error_to_compat_str(err) + ' (encoding: ' + repr(preferredencoding()) + ')')
             return None
 
     def _match_entry(self, info_dict, incomplete):
@@ -1529,7 +1530,7 @@ class YoutubeDL(object):
                 # see http://bugs.python.org/issue1646728)
                 try:
                     upload_date = datetime.datetime.utcfromtimestamp(info_dict[ts_key])
-                    info_dict[date_key] = upload_date.strftime('%Y%m%d')
+                    info_dict[date_key] = compat_str(upload_date.strftime('%Y%m%d'))
                 except (ValueError, OverflowError, OSError):
                     pass
 
@@ -1569,9 +1570,6 @@ class YoutubeDL(object):
         else:
             formats = info_dict['formats']
 
-        if not formats:
-            raise ExtractorError('No video formats found!')
-
         def is_wellformed(f):
             url = f.get('url')
             if not url:
@@ -1584,7 +1582,10 @@ class YoutubeDL(object):
             return True
 
         # Filter out malformed formats for better extraction robustness
-        formats = list(filter(is_wellformed, formats))
+        formats = list(filter(is_wellformed, formats or []))
+
+        if not formats:
+            raise ExtractorError('No video formats found!')
 
         formats_dict = {}
 
@@ -1778,10 +1779,9 @@ class YoutubeDL(object):
 
         assert info_dict.get('_type', 'video') == 'video'
 
-        max_downloads = self.params.get('max_downloads')
-        if max_downloads is not None:
-            if self._num_downloads >= int(max_downloads):
-                raise MaxDownloadsReached()
+        max_downloads = int_or_none(self.params.get('max_downloads')) or float('inf')
+        if self._num_downloads >= max_downloads:
+            raise MaxDownloadsReached()
 
         # TODO: backward compatibility, to be removed
         info_dict['fulltitle'] = info_dict['title']
@@ -1906,8 +1906,17 @@ class YoutubeDL(object):
 
         if not self.params.get('skip_download', False):
             try:
+                def checked_get_suitable_downloader(info_dict, params):
+                    ed_args = params.get('external_downloader_args')
+                    dler = get_suitable_downloader(info_dict, params)
+                    if ed_args and not params.get('external_downloader_args'):
+                        # external_downloader_args was cleared because external_downloader was rejected
+                        self.report_warning('Requested external downloader cannot be used: '
+                                            'ignoring --external-downloader-args.')
+                    return dler
+
                 def dl(name, info):
-                    fd = get_suitable_downloader(info, self.params)(self, self.params)
+                    fd = checked_get_suitable_downloader(info, self.params)(self, self.params)
                     for ph in self._progress_hooks:
                         fd.add_progress_hook(ph)
                     if self.params.get('verbose'):
@@ -2049,9 +2058,12 @@ class YoutubeDL(object):
                 try:
                     self.post_process(filename, info_dict)
                 except (PostProcessingError) as err:
-                    self.report_error('postprocessing: %s' % str(err))
+                    self.report_error('postprocessing: %s' % error_to_compat_str(err))
                     return
                 self.record_download_archive(info_dict)
+                # avoid possible nugatory search for further items (PR #26638)
+                if self._num_downloads >= max_downloads:
+                    raise MaxDownloadsReached()
 
     def download(self, url_list):
         """Download a given list of URLs."""
@@ -2314,7 +2326,7 @@ class YoutubeDL(object):
                 ['git', 'rev-parse', '--short', 'HEAD'],
                 stdout=subprocess.PIPE, stderr=subprocess.PIPE,
                 cwd=os.path.dirname(os.path.abspath(__file__)))
-            out, err = sp.communicate()
+            out, err = process_communicate_or_kill(sp)
             out = out.decode().strip()
             if re.match('[0-9a-f]+', out):
                 self._write_string('[debug] Git HEAD: ' + out + '\n')

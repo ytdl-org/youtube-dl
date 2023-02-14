@@ -89,6 +89,17 @@ class FakeYDL(YoutubeDL):
         self.report_warning = types.MethodType(report_warning, self)
 
 
+class FakeLogger(object):
+    def debug(self, msg):
+        pass
+
+    def warning(self, msg):
+        pass
+
+    def error(self, msg):
+        pass
+
+
 def gettestcases(include_onlymatching=False):
     for ie in youtube_dl.extractor.gen_extractors():
         for tc in ie.get_testcases(include_onlymatching):
@@ -128,6 +139,12 @@ def expect_value(self, got, expected, field):
         self.assertTrue(
             contains_str in got,
             'field %s (value: %r) should contain %r' % (field, got, contains_str))
+    elif isinstance(expected, compat_str) and re.match(r'^lambda \w+:', expected):
+        fn = eval(expected)
+        suite = expected.split(':', 1)[1].strip()
+        self.assertTrue(
+            fn(got),
+            'Expected field %s to meet condition %s, but value %r failed ' % (field, suite, got))
     elif isinstance(expected, type):
         self.assertTrue(
             isinstance(got, expected),
@@ -137,7 +154,7 @@ def expect_value(self, got, expected, field):
     elif isinstance(expected, list) and isinstance(got, list):
         self.assertEqual(
             len(expected), len(got),
-            'Expect a list of length %d, but got a list of length %d for field %s' % (
+            'Expected a list of length %d, but got a list of length %d for field %s' % (
                 len(expected), len(got), field))
         for index, (item_got, item_expected) in enumerate(zip(got, expected)):
             type_got = type(item_got)

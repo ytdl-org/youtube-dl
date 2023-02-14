@@ -33,6 +33,7 @@ import sys
 import tempfile
 import time
 import traceback
+import unicodedata
 import xml.etree.ElementTree
 import zlib
 
@@ -41,7 +42,9 @@ from .compat import (
     compat_HTMLParser,
     compat_HTTPError,
     compat_basestring,
+    compat_casefold,
     compat_chr,
+    compat_collections_abc,
     compat_cookiejar,
     compat_ctypes_WINFUNCTYPE,
     compat_etree_fromstring,
@@ -52,18 +55,18 @@ from .compat import (
     compat_integer_types,
     compat_kwargs,
     compat_os_name,
-    compat_parse_qs,
+    compat_re_Match,
     compat_shlex_quote,
     compat_str,
     compat_struct_pack,
     compat_struct_unpack,
     compat_urllib_error,
     compat_urllib_parse,
+    compat_urllib_parse_parse_qs as compat_parse_qs,
     compat_urllib_parse_urlencode,
     compat_urllib_parse_urlparse,
     compat_urllib_parse_unquote_plus,
     compat_urllib_request,
-    compat_urlparse,
     compat_xpath,
 )
 
@@ -78,12 +81,12 @@ def register_socks_protocols():
     # In Python < 2.6.5, urlsplit() suffers from bug https://bugs.python.org/issue7904
     # URLs with protocols not in urlparse.uses_netloc are not handled correctly
     for scheme in ('socks', 'socks4', 'socks4a', 'socks5'):
-        if scheme not in compat_urlparse.uses_netloc:
-            compat_urlparse.uses_netloc.append(scheme)
+        if scheme not in compat_urllib_parse.uses_netloc:
+            compat_urllib_parse.uses_netloc.append(scheme)
 
 
-# This is not clearly defined otherwise
-compiled_regex_type = type(re.compile(''))
+# Unfavoured alias
+compiled_regex_type = compat_re_Match
 
 
 def random_user_agent():
@@ -1684,6 +1687,7 @@ USER_AGENTS = {
 
 
 NO_DEFAULT = object()
+IDENTITY = lambda x: x
 
 ENGLISH_MONTH_NAMES = [
     'January', 'February', 'March', 'April', 'May', 'June',
@@ -1694,6 +1698,17 @@ MONTH_NAMES = {
     'fr': [
         'janvier', 'février', 'mars', 'avril', 'mai', 'juin',
         'juillet', 'août', 'septembre', 'octobre', 'novembre', 'décembre'],
+}
+
+# Timezone names for RFC2822 obs-zone
+# From https://github.com/python/cpython/blob/3.11/Lib/email/_parseaddr.py#L36-L42
+TIMEZONE_NAMES = {
+    'UT': 0, 'UTC': 0, 'GMT': 0, 'Z': 0,
+    'AST': -4, 'ADT': -3,  # Atlantic (used in Canada)
+    'EST': -5, 'EDT': -4,  # Eastern
+    'CST': -6, 'CDT': -5,  # Central
+    'MST': -7, 'MDT': -6,  # Mountain
+    'PST': -8, 'PDT': -7   # Pacific
 }
 
 KNOWN_EXTENSIONS = (
@@ -1735,12 +1750,17 @@ DATE_FORMATS = (
     '%b %dth %Y %I:%M',
     '%Y %m %d',
     '%Y-%m-%d',
+    '%Y.%m.%d.',
     '%Y/%m/%d',
     '%Y/%m/%d %H:%M',
     '%Y/%m/%d %H:%M:%S',
+    '%Y%m%d%H%M',
+    '%Y%m%d%H%M%S',
+    '%Y%m%d',
     '%Y-%m-%d %H:%M',
     '%Y-%m-%d %H:%M:%S',
     '%Y-%m-%d %H:%M:%S.%f',
+    '%Y-%m-%d %H:%M:%S:%f',
     '%d.%m.%Y %H:%M',
     '%d.%m.%Y %H.%M',
     '%Y-%m-%dT%H:%M:%SZ',
@@ -1753,6 +1773,7 @@ DATE_FORMATS = (
     '%b %d %Y at %H:%M:%S',
     '%B %d %Y at %H:%M',
     '%B %d %Y at %H:%M:%S',
+    '%H:%M %d-%b-%Y',
 )
 
 DATE_FORMATS_DAY_FIRST = list(DATE_FORMATS)
@@ -1763,6 +1784,7 @@ DATE_FORMATS_DAY_FIRST.extend([
     '%d/%m/%Y',
     '%d/%m/%y',
     '%d/%m/%Y %H:%M:%S',
+    '%d-%m-%Y %H:%M',
 ])
 
 DATE_FORMATS_MONTH_FIRST = list(DATE_FORMATS)
@@ -2100,6 +2122,9 @@ def sanitize_filename(s, restricted=False, is_id=False):
             return '_'
         return char
 
+    # Replace look-alike Unicode glyphs
+    if restricted and not is_id:
+        s = unicodedata.normalize('NFKC', s)
     # Handle timestamps
     s = re.sub(r'[0-9]+(?::[0-9]+)+', lambda m: m.group(0).replace(':', '_'), s)
     result = ''.join(map(replace_insane, s))
@@ -2151,7 +2176,7 @@ def sanitize_url(url):
     for mistake, fixup in COMMON_TYPOS:
         if re.match(mistake, url):
             return re.sub(mistake, fixup, url)
-    return url
+    return escape_url(url)
 
 
 def sanitized_Request(url, *args, **kwargs):
@@ -2210,6 +2235,15 @@ def unescapeHTML(s):
 
     return re.sub(
         r'&([^&;]+;)', lambda m: _htmlentity_transform(m.group(1)), s)
+
+
+def process_communicate_or_kill(p, *args, **kwargs):
+    try:
+        return p.communicate(*args, **kwargs)
+    except BaseException:  # Including KeyboardInterrupt
+        p.kill()
+        p.wait()
+        raise
 
 
 def get_subprocess_encoding():
@@ -2292,12 +2326,30 @@ def formatSeconds(secs):
 
 
 def make_HTTPS_handler(params, **kwargs):
+
+    # https://www.rfc-editor.org/info/rfc7301
+    ALPN_PROTOCOLS = ['http/1.1']
+
+    def set_alpn_protocols(ctx):
+        # From https://github.com/yt-dlp/yt-dlp/commit/2c6dcb65fb612fc5bc5c61937bf438d3c473d8d0
+        # Thanks @coletdjnz
+        # Some servers may (wrongly) reject requests if ALPN extension is not sent. See:
+        # https://github.com/python/cpython/issues/85140
+        # https://github.com/yt-dlp/yt-dlp/issues/3878
+        try:
+            ctx.set_alpn_protocols(ALPN_PROTOCOLS)
+        except (AttributeError, NotImplementedError):
+            # Python < 2.7.10, not ssl.HAS_ALPN
+            pass
+
     opts_no_check_certificate = params.get('nocheckcertificate', False)
     if hasattr(ssl, 'create_default_context'):  # Python >= 3.4 or 2.7.9
         context = ssl.create_default_context(ssl.Purpose.SERVER_AUTH)
+        set_alpn_protocols(context)
         if opts_no_check_certificate:
             context.check_hostname = False
             context.verify_mode = ssl.CERT_NONE
+
         try:
             return YoutubeDLHTTPSHandler(params, context=context, **kwargs)
         except TypeError:
@@ -2313,6 +2365,7 @@ def make_HTTPS_handler(params, **kwargs):
                                if opts_no_check_certificate
                                else ssl.CERT_REQUIRED)
         context.set_default_verify_paths()
+        set_alpn_protocols(context)
         return YoutubeDLHTTPSHandler(params, context=context, **kwargs)
 
 
@@ -2673,7 +2726,7 @@ def make_socks_conn_class(base_class, socks_proxy):
     assert issubclass(base_class, (
         compat_http_client.HTTPConnection, compat_http_client.HTTPSConnection))
 
-    url_components = compat_urlparse.urlparse(socks_proxy)
+    url_components = compat_urllib_parse.urlparse(socks_proxy)
     if url_components.scheme.lower() == 'socks5':
         socks_type = ProxyType.SOCKS5
     elif url_components.scheme.lower() in ('socks', 'socks4'):
@@ -2938,10 +2991,22 @@ class YoutubeDLRedirectHandler(compat_urllib_request.HTTPRedirectHandler):
 
 def extract_timezone(date_str):
     m = re.search(
-        r'^.{8,}?(?P<tz>Z$| ?(?P<sign>\+|-)(?P<hours>[0-9]{2}):?(?P<minutes>[0-9]{2})$)',
-        date_str)
+        r'''(?x)
+            ^.{8,}?                                              # >=8 char non-TZ prefix, if present
+            (?P<tz>Z|                                            # just the UTC Z, or
+                (?:(?<=.\b\d{4}|\b\d{2}:\d\d)|                   # preceded by 4 digits or hh:mm or
+                   (?<!.\b[a-zA-Z]{3}|[a-zA-Z]{4}|..\b\d\d))     # not preceded by 3 alpha word or >= 4 alpha or 2 digits
+                   [ ]?                                          # optional space
+                (?P<sign>\+|-)                                   # +/-
+                (?P<hours>[0-9]{2}):?(?P<minutes>[0-9]{2})       # hh[:]mm
+            $)
+        ''', date_str)
     if not m:
-        timezone = datetime.timedelta()
+        m = re.search(r'\d{1,2}:\d{1,2}(?:\.\d+)?(?P<tz>\s*[A-Z]+)$', date_str)
+        timezone = TIMEZONE_NAMES.get(m and m.group('tz').strip())
+        if timezone is not None:
+            date_str = date_str[:-len(m.group('tz'))]
+        timezone = datetime.timedelta(hours=timezone or 0)
     else:
         date_str = date_str[:-len(m.group('tz'))]
         if not m.group('sign'):
@@ -3009,7 +3074,8 @@ def unified_timestamp(date_str, day_first=True):
     if date_str is None:
         return None
 
-    date_str = re.sub(r'[,|]', '', date_str)
+    date_str = re.sub(r'\s+', ' ', re.sub(
+        r'(?i)[,|]|(mon|tues?|wed(nes)?|thu(rs)?|fri|sat(ur)?)(day)?', '', date_str))
 
     pm_delta = 12 if re.search(r'(?i)PM', date_str) else 0
     timezone, date_str = extract_timezone(date_str)
@@ -3035,7 +3101,7 @@ def unified_timestamp(date_str, day_first=True):
             pass
     timetuple = email.utils.parsedate_tz(date_str)
     if timetuple:
-        return calendar.timegm(timetuple) + pm_delta * 3600
+        return calendar.timegm(timetuple) + pm_delta * 3600 - timezone.total_seconds()
 
 
 def determine_ext(url, default_ext='unknown_video'):
@@ -3608,7 +3674,7 @@ def remove_quotes(s):
 
 
 def url_basename(url):
-    path = compat_urlparse.urlparse(url).path
+    path = compat_urllib_parse.urlparse(url).path
     return path.strip('/').split('/')[-1]
 
 
@@ -3628,7 +3694,7 @@ def urljoin(base, path):
     if not isinstance(base, compat_str) or not re.match(
             r'^(?:https?:)?//', base):
         return None
-    return compat_urlparse.urljoin(base, path)
+    return compat_urllib_parse.urljoin(base, path)
 
 
 class HEADRequest(compat_urllib_request.Request):
@@ -3645,13 +3711,11 @@ def int_or_none(v, scale=1, default=None, get_attr=None, invscale=1):
     if get_attr:
         if v is not None:
             v = getattr(v, get_attr, None)
-    if v == '':
-        v = None
-    if v is None:
+    if v in (None, ''):
         return default
     try:
         return int(v) * invscale // scale
-    except (ValueError, TypeError):
+    except (ValueError, TypeError, OverflowError):
         return default
 
 
@@ -3769,7 +3833,8 @@ def check_executable(exe, args=[]):
     """ Checks if the given binary is installed somewhere in PATH, and returns its name.
     args can be a list of arguments for a short output (like -version) """
     try:
-        subprocess.Popen([exe] + args, stdout=subprocess.PIPE, stderr=subprocess.PIPE).communicate()
+        process_communicate_or_kill(subprocess.Popen(
+            [exe] + args, stdout=subprocess.PIPE, stderr=subprocess.PIPE))
     except OSError:
         return False
     return exe
@@ -3783,10 +3848,10 @@ def get_exe_version(exe, args=['--version'],
         # STDIN should be redirected too. On UNIX-like systems, ffmpeg triggers
         # SIGTTOU if youtube-dl is run in the background.
         # See https://github.com/ytdl-org/youtube-dl/issues/955#issuecomment-209789656
-        out, _ = subprocess.Popen(
+        out, _ = process_communicate_or_kill(subprocess.Popen(
             [encodeArgument(exe)] + args,
             stdin=subprocess.PIPE,
-            stdout=subprocess.PIPE, stderr=subprocess.STDOUT).communicate()
+            stdout=subprocess.PIPE, stderr=subprocess.STDOUT))
     except OSError:
         return False
     if isinstance(out, bytes):  # Python 2.x
@@ -3803,6 +3868,105 @@ def detect_exe_version(output, version_re=None, unrecognized='present'):
         return m.group(1)
     else:
         return unrecognized
+
+
+class LazyList(compat_collections_abc.Sequence):
+    """Lazy immutable list from an iterable
+    Note that slices of a LazyList are lists and not LazyList"""
+
+    class IndexError(IndexError):
+        def __init__(self, cause=None):
+            if cause:
+                # reproduce `raise from`
+                self.__cause__ = cause
+            super(IndexError, self).__init__()
+
+    def __init__(self, iterable, **kwargs):
+        # kwarg-only
+        reverse = kwargs.get('reverse', False)
+        _cache = kwargs.get('_cache')
+
+        self._iterable = iter(iterable)
+        self._cache = [] if _cache is None else _cache
+        self._reversed = reverse
+
+    def __iter__(self):
+        if self._reversed:
+            # We need to consume the entire iterable to iterate in reverse
+            for item in self.exhaust():
+                yield item
+            return
+        for item in self._cache:
+            yield item
+        for item in self._iterable:
+            self._cache.append(item)
+            yield item
+
+    def _exhaust(self):
+        self._cache.extend(self._iterable)
+        self._iterable = []  # Discard the emptied iterable to make it pickle-able
+        return self._cache
+
+    def exhaust(self):
+        """Evaluate the entire iterable"""
+        return self._exhaust()[::-1 if self._reversed else 1]
+
+    @staticmethod
+    def _reverse_index(x):
+        return None if x is None else ~x
+
+    def __getitem__(self, idx):
+        if isinstance(idx, slice):
+            if self._reversed:
+                idx = slice(self._reverse_index(idx.start), self._reverse_index(idx.stop), -(idx.step or 1))
+            start, stop, step = idx.start, idx.stop, idx.step or 1
+        elif isinstance(idx, int):
+            if self._reversed:
+                idx = self._reverse_index(idx)
+            start, stop, step = idx, idx, 0
+        else:
+            raise TypeError('indices must be integers or slices')
+        if ((start or 0) < 0 or (stop or 0) < 0
+                or (start is None and step < 0)
+                or (stop is None and step > 0)):
+            # We need to consume the entire iterable to be able to slice from the end
+            # Obviously, never use this with infinite iterables
+            self._exhaust()
+            try:
+                return self._cache[idx]
+            except IndexError as e:
+                raise self.IndexError(e)
+        n = max(start or 0, stop or 0) - len(self._cache) + 1
+        if n > 0:
+            self._cache.extend(itertools.islice(self._iterable, n))
+        try:
+            return self._cache[idx]
+        except IndexError as e:
+            raise self.IndexError(e)
+
+    def __bool__(self):
+        try:
+            self[-1] if self._reversed else self[0]
+        except self.IndexError:
+            return False
+        return True
+
+    def __len__(self):
+        self._exhaust()
+        return len(self._cache)
+
+    def __reversed__(self):
+        return type(self)(self._iterable, reverse=not self._reversed, _cache=self._cache)
+
+    def __copy__(self):
+        return type(self)(self._iterable, reverse=self._reversed, _cache=self._cache)
+
+    def __repr__(self):
+        # repr and str should mimic a list. So we exhaust the iterable
+        return repr(self.exhaust())
+
+    def __str__(self):
+        return repr(self.exhaust())
 
 
 class PagedList(object):
@@ -3912,7 +4076,8 @@ def escape_rfc3986(s):
     """Escape non-ASCII characters as suggested by RFC 3986"""
     if sys.version_info < (3, 0) and isinstance(s, compat_str):
         s = s.encode('utf-8')
-    return compat_urllib_parse.quote(s, b"%/;:@&=+$,!~*'()?#[]")
+    # ensure unicode: after quoting, it can always be converted
+    return compat_str(compat_urllib_parse.quote(s, b"%/;:@&=+$,!~*'()?#[]"))
 
 
 def escape_url(url):
@@ -3925,6 +4090,10 @@ def escape_url(url):
         query=escape_rfc3986(url_parsed.query),
         fragment=escape_rfc3986(url_parsed.fragment)
     ).geturl()
+
+
+def parse_qs(url):
+    return compat_parse_qs(compat_urllib_parse.urlparse(url).query)
 
 
 def read_batch_urls(batch_fd):
@@ -3947,14 +4116,28 @@ def urlencode_postdata(*args, **kargs):
     return compat_urllib_parse_urlencode(*args, **kargs).encode('ascii')
 
 
+def update_url(url, **kwargs):
+    """Replace URL components specified by kwargs
+       url: compat_str or parsed URL tuple
+       if query_update is in kwargs, update query with
+       its value instead of replacing (overrides any `query`)
+       returns: compat_str
+    """
+    if not kwargs:
+        return compat_urllib_parse.urlunparse(url) if isinstance(url, tuple) else url
+    if not isinstance(url, tuple):
+        url = compat_urllib_parse.urlparse(url)
+    query = kwargs.pop('query_update', None)
+    if query:
+        qs = compat_parse_qs(url.query)
+        qs.update(query)
+        kwargs['query'] = compat_urllib_parse_urlencode(qs, True)
+        kwargs = compat_kwargs(kwargs)
+    return compat_urllib_parse.urlunparse(url._replace(**kwargs))
+
+
 def update_url_query(url, query):
-    if not query:
-        return url
-    parsed_url = compat_urlparse.urlparse(url)
-    qs = compat_parse_qs(parsed_url.query)
-    qs.update(query)
-    return compat_urlparse.urlunparse(parsed_url._replace(
-        query=compat_urllib_parse_urlencode(qs, True)))
+    return update_url(url, query_update=query)
 
 
 def update_Request(req, url=None, data=None, headers={}, query={}):
@@ -4029,6 +4212,10 @@ def multipart_encode(data, boundary=None):
     return out, content_type
 
 
+def variadic(x, allowed_types=(compat_str, bytes, dict)):
+    return x if isinstance(x, compat_collections_abc.Iterable) and not isinstance(x, allowed_types) else (x,)
+
+
 def dict_get(d, key_or_keys, default=None, skip_false_values=True):
     if isinstance(key_or_keys, (list, tuple)):
         for key in key_or_keys:
@@ -4037,6 +4224,23 @@ def dict_get(d, key_or_keys, default=None, skip_false_values=True):
             return d[key]
         return default
     return d.get(key_or_keys, default)
+
+
+def try_call(*funcs, **kwargs):
+
+    # parameter defaults
+    expected_type = kwargs.get('expected_type')
+    fargs = kwargs.get('args', [])
+    fkwargs = kwargs.get('kwargs', {})
+
+    for f in funcs:
+        try:
+            val = f(*fargs, **fkwargs)
+        except (AttributeError, KeyError, TypeError, IndexError, ZeroDivisionError):
+            pass
+        else:
+            if expected_type is None or isinstance(val, expected_type):
+                return val
 
 
 def try_get(src, getter, expected_type=None):
@@ -5401,7 +5605,7 @@ class PerRequestProxyHandler(compat_urllib_request.ProxyHandler):
 
         if proxy == '__noproxy__':
             return None  # No Proxy
-        if compat_urlparse.urlparse(proxy).scheme.lower() in ('socks', 'socks4', 'socks4a', 'socks5'):
+        if compat_urllib_parse.urlparse(proxy).scheme.lower() in ('socks', 'socks4', 'socks4a', 'socks5'):
             req.add_header('Ytdl-socks-proxy', proxy)
             # youtube-dl's http/https handlers do wrapping the socket with socks
             return None
@@ -5725,7 +5929,7 @@ def write_xattr(path, key, value):
                         cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, stdin=subprocess.PIPE)
                 except EnvironmentError as e:
                     raise XAttrMetadataError(e.errno, e.strerror)
-                stdout, stderr = p.communicate()
+                stdout, stderr = process_communicate_or_kill(p)
                 stderr = stderr.decode('utf-8', 'replace')
                 if p.returncode != 0:
                     raise XAttrMetadataError(p.returncode, stderr)
@@ -5772,3 +5976,212 @@ def clean_podcast_url(url):
                 st\.fm # https://podsights.com/docs/
             )/e
         )/''', '', url)
+
+
+def traverse_obj(obj, *paths, **kwargs):
+    """
+    Safely traverse nested `dict`s and `Sequence`s
+
+    >>> obj = [{}, {"key": "value"}]
+    >>> traverse_obj(obj, (1, "key"))
+    "value"
+
+    Each of the provided `paths` is tested and the first producing a valid result will be returned.
+    The next path will also be tested if the path branched but no results could be found.
+    Supported values for traversal are `Mapping`, `Sequence` and `re.Match`.
+    A value of None is treated as the absence of a value.
+
+    The paths will be wrapped in `variadic`, so that `'key'` is conveniently the same as `('key', )`.
+
+    The keys in the path can be one of:
+        - `None`:           Return the current object.
+        - `str`/`int`:      Return `obj[key]`. For `re.Match, return `obj.group(key)`.
+        - `slice`:          Branch out and return all values in `obj[key]`.
+        - `Ellipsis`:       Branch out and return a list of all values.
+        - `tuple`/`list`:   Branch out and return a list of all matching values.
+                            Read as: `[traverse_obj(obj, branch) for branch in branches]`.
+        - `function`:       Branch out and return values filtered by the function.
+                            Read as: `[value for key, value in obj if function(key, value)]`.
+                            For `Sequence`s, `key` is the index of the value.
+        - `dict`            Transform the current object and return a matching dict.
+                            Read as: `{key: traverse_obj(obj, path) for key, path in dct.items()}`.
+
+        `tuple`, `list`, and `dict` all support nested paths and branches.
+
+    @params paths           Paths which to traverse by.
+    Keyword arguments:
+    @param default          Value to return if the paths do not match.
+    @param expected_type    If a `type`, only accept final values of this type.
+                            If any other callable, try to call the function on each result.
+    @param get_all          If `False`, return the first matching result, otherwise all matching ones.
+    @param casesense        If `False`, consider string dictionary keys as case insensitive.
+
+    The following are only meant to be used by YoutubeDL.prepare_outtmpl and are not part of the API
+
+    @param _is_user_input    Whether the keys are generated from user input.
+                            If `True` strings get converted to `int`/`slice` if needed.
+    @param _traverse_string  Whether to traverse into objects as strings.
+                            If `True`, any non-compatible object will first be
+                            converted into a string and then traversed into.
+
+
+    @returns                The result of the object traversal.
+                            If successful, `get_all=True`, and the path branches at least once,
+                            then a list of results is returned instead.
+                            A list is always returned if the last path branches and no `default` is given.
+    """
+
+    # parameter defaults
+    default = kwargs.get('default', NO_DEFAULT)
+    expected_type = kwargs.get('expected_type')
+    get_all = kwargs.get('get_all', True)
+    casesense = kwargs.get('casesense', True)
+    _is_user_input = kwargs.get('_is_user_input', False)
+    _traverse_string = kwargs.get('_traverse_string', False)
+
+    # instant compat
+    str = compat_str
+
+    is_sequence = lambda x: isinstance(x, compat_collections_abc.Sequence) and not isinstance(x, (str, bytes))
+    casefold = lambda k: compat_casefold(k) if isinstance(k, str) else k
+
+    if isinstance(expected_type, type):
+        type_test = lambda val: val if isinstance(val, expected_type) else None
+    else:
+        type_test = lambda val: try_call(expected_type or IDENTITY, args=(val,))
+
+    def from_iterable(iterables):
+        # chain.from_iterable(['ABC', 'DEF']) --> A B C D E F
+        for it in iterables:
+            for item in it:
+                yield item
+
+    def apply_key(key, obj):
+        if obj is None:
+            return
+
+        elif key is None:
+            yield obj
+
+        elif isinstance(key, (list, tuple)):
+            for branch in key:
+                _, result = apply_path(obj, branch)
+                for item in result:
+                    yield item
+
+        elif key is Ellipsis:
+            result = []
+            if isinstance(obj, compat_collections_abc.Mapping):
+                result = obj.values()
+            elif is_sequence(obj):
+                result = obj
+            elif isinstance(obj, compat_re_Match):
+                result = obj.groups()
+            elif _traverse_string:
+                result = str(obj)
+            for item in result:
+                yield item
+
+        elif callable(key):
+            if is_sequence(obj):
+                iter_obj = enumerate(obj)
+            elif isinstance(obj, compat_collections_abc.Mapping):
+                iter_obj = obj.items()
+            elif isinstance(obj, compat_re_Match):
+                iter_obj = enumerate(itertools.chain([obj.group()], obj.groups()))
+            elif _traverse_string:
+                iter_obj = enumerate(str(obj))
+            else:
+                return
+            for item in (v for k, v in iter_obj if try_call(key, args=(k, v))):
+                yield item
+
+        elif isinstance(key, dict):
+            iter_obj = ((k, _traverse_obj(obj, v)) for k, v in key.items())
+            yield dict((k, v if v is not None else default) for k, v in iter_obj
+                       if v is not None or default is not NO_DEFAULT)
+
+        elif isinstance(obj, compat_collections_abc.Mapping):
+            yield (obj.get(key) if casesense or (key in obj)
+                   else next((v for k, v in obj.items() if casefold(k) == key), None))
+
+        elif isinstance(obj, compat_re_Match):
+            if isinstance(key, int) or casesense:
+                try:
+                    yield obj.group(key)
+                    return
+                except IndexError:
+                    pass
+            if not isinstance(key, str):
+                return
+
+            yield next((v for k, v in obj.groupdict().items() if casefold(k) == key), None)
+
+        else:
+            if _is_user_input:
+                key = (int_or_none(key) if ':' not in key
+                       else slice(*map(int_or_none, key.split(':'))))
+
+            if not isinstance(key, (int, slice)):
+                return
+
+            if not is_sequence(obj):
+                if not _traverse_string:
+                    return
+                obj = str(obj)
+
+            try:
+                yield obj[key]
+            except IndexError:
+                pass
+
+    def apply_path(start_obj, path):
+        objs = (start_obj,)
+        has_branched = False
+
+        for key in variadic(path):
+            if _is_user_input and key == ':':
+                key = Ellipsis
+
+            if not casesense and isinstance(key, str):
+                key = compat_casefold(key)
+
+            if key is Ellipsis or isinstance(key, (list, tuple)) or callable(key):
+                has_branched = True
+
+            key_func = functools.partial(apply_key, key)
+            objs = from_iterable(map(key_func, objs))
+
+        return has_branched, objs
+
+    def _traverse_obj(obj, path, use_list=True):
+        has_branched, results = apply_path(obj, path)
+        results = LazyList(x for x in map(type_test, results) if x is not None)
+
+        if get_all and has_branched:
+            return results.exhaust() if results or use_list else None
+
+        return results[0] if results else None
+
+    for index, path in enumerate(paths, 1):
+        use_list = default is NO_DEFAULT and index == len(paths)
+        result = _traverse_obj(obj, path, use_list)
+        if result is not None:
+            return result
+
+    return None if default is NO_DEFAULT else default
+
+
+def get_first(obj, keys, **kwargs):
+    return traverse_obj(obj, (Ellipsis,) + tuple(variadic(keys)), get_all=False, **kwargs)
+
+
+def join_nonempty(*values, **kwargs):
+
+    # parameter defaults
+    delim = kwargs.get('delim', '-')
+    from_dict = kwargs.get('from_dict')
+
+    if from_dict is not None:
+        values = (traverse_obj(from_dict, variadic(v)) for v in values)
+    return delim.join(map(compat_str, filter(None, values)))

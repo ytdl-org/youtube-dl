@@ -13,6 +13,11 @@ sys.path.insert(0, dirn(dirn((os.path.abspath(__file__)))))
 lazy_extractors_filename = sys.argv[1]
 if os.path.exists(lazy_extractors_filename):
     os.remove(lazy_extractors_filename)
+# Py2: may be confused by leftover lazy_extractors.pyc
+try:
+    os.remove(lazy_extractors_filename + 'c')
+except OSError:
+    pass
 
 from youtube_dl.extractor import _ALL_CLASSES
 from youtube_dl.extractor.common import InfoExtractor, SearchInfoExtractor
@@ -22,7 +27,10 @@ with open('devscripts/lazy_load_template.py', 'rt') as f:
 
 module_contents = [
     module_template + '\n' + getsource(InfoExtractor.suitable) + '\n',
-    'class LazyLoadSearchExtractor(LazyLoadExtractor):\n    pass\n']
+    'class LazyLoadSearchExtractor(LazyLoadExtractor):\n    pass\n',
+    # needed for suitable() methods of Youtube extractor (see #28780)
+    'from youtube_dl.utils import parse_qs\n',
+]
 
 ie_template = '''
 class {name}({bases}):
