@@ -50,10 +50,12 @@ class ArteTVIE(ArteTVBaseIE):
             'title': 'USA: Dyskryminacja na porodówce',
             'description': 'md5:242017b7cce59ffae340a54baefcafb1',
             'alt_title': 'ARTE Reportage',
+            'timestamp': 1604417980,
             'upload_date': '20201103',
             'duration': 554,
+            # test format sort
+            'height': 720,
             'thumbnail': r're:https://api-cdn\.arte\.tv/.+940x530',
-            'timestamp': 1604417980,
             'ext': 'mp4',
         },
         'params': {
@@ -205,6 +207,7 @@ class ArteTVIE(ArteTVBaseIE):
 
         formats.extend(secondary_formats)
         self._remove_duplicate_formats(formats)
+        self._sort_formats(formats)
 
         metadata = config['data']['attributes']['metadata']
 
