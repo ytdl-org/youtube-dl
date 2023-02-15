@@ -139,7 +139,7 @@ class ArteTVIE(ArteTVBaseIE):
         mobj = self._match_valid_url(url)
         video_id = mobj.group('id')
         lang = mobj.group('lang') or mobj.group('lang_2')
-        langauge_code = self._LANG_MAP.get(lang)
+        language_code = self._LANG_MAP.get(lang)
 
         config = self._download_json('{0}/config/{1}/{2}'.format(self._API_BASE, lang, video_id), video_id)
 
@@ -165,10 +165,10 @@ class ArteTVIE(ArteTVBaseIE):
             m = self._VERSION_CODE_RE.match(stream_version_code)
             if m:
                 lang_pref = int(''.join('01'[x] for x in (
-                    m.group('vlang') == langauge_code,      # we prefer voice in the requested language
+                    m.group('vlang') == language_code,      # we prefer voice in the requested language
                     not m.group('audio_desc'),              # and not the audio description version
                     bool(m.group('original_voice')),        # but if voice is not in the requested language, at least choose the original voice
-                    m.group('sub_lang') == langauge_code,   # if subtitles are present, we prefer them in the requested language
+                    m.group('sub_lang') == language_code,   # if subtitles are present, we prefer them in the requested language
                     not m.group('has_sub'),                 # but we prefer no subtitles otherwise
                     not m.group('sdh_sub'),                 # and we prefer not the hard-of-hearing subtitles if there are subtitles
                 )))
