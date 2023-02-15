@@ -4,6 +4,7 @@ from __future__ import unicode_literals
 import re
 
 from .common import InfoExtractor
+from ..compat import compat_str
 from ..utils import (
     ExtractorError,
     GeoRestrictedError,
@@ -21,6 +22,8 @@ from ..utils import (
 class ArteTVBaseIE(InfoExtractor):
     _ARTE_LANGUAGES = 'fr|de|en|es|it|pl'
     _API_BASE = 'https://api.arte.tv/api/player/v2'
+
+    # yt-dlp shims
 
     @classmethod
     def _match_valid_url(cls, url):
@@ -173,7 +176,7 @@ class ArteTVIE(ArteTVBaseIE):
                     not m.group('sdh_sub'),                 # and we prefer not the hard-of-hearing subtitles if there are subtitles
                 )))
 
-            short_label = traverse_obj(stream_version, 'shortLabel', expected_type=str, default='?')
+            short_label = traverse_obj(stream_version, 'shortLabel', expected_type=compat_str, default='?')
             if stream['protocol'].startswith('HLS'):
                 fmts, subs = self._extract_m3u8_formats_and_subtitles(
                     stream['url'], video_id=video_id, ext='mp4', m3u8_id=stream_version_code, fatal=False)
@@ -235,28 +238,38 @@ class ArteTVEmbedIE(InfoExtractor):
     _EMBED_REGEX = [r'<(?:iframe|script)[^>]+src=(["\'])(?P<url>(?:https?:)?//(?:www\.)?arte\.tv/player/v\d+/index\.php\?.*?\bjson_url=.+?)\1']
     _TESTS = [{
         'url': 'https://www.arte.tv/player/v5/index.php?json_url=https%3A%2F%2Fapi.arte.tv%2Fapi%2Fplayer%2Fv2%2Fconfig%2Fde%2F100605-013-A&lang=de&autoplay=true&mute=0100605-013-A',
-        'info_dict': {
-            'id': '100605-013-A',
-            'ext': 'mp4',
-            'title': 'United we Stream November Lockdown Edition #13',
-            'description': 'md5:be40b667f45189632b78c1425c7c2ce1',
-            'upload_date': '20201116',
-        },
+        'only_matching': True,
         'skip': 'Video is not available in this language edition of Arte or broadcast rights expired'
+    }, {
+        'url': 'https://www.arte.tv/player/v5/index.php?json_url=https%3A%2F%2Fapi.arte.tv%2Fapi%2Fplayer%2Fv2%2Fconfig%2Fpl%2F100103-000-A&lang=pl&autoplay=true&mute=100103-000-A',
+        'info_dict': {
+            'id': '100103-000-A',
+            'ext': 'mp4',
+            'title': 'USA: Dyskryminacja na porodówce',
+            'timestamp': 1604417980,
+            'upload_date': '20201103',
+            'description': 'md5:242017b7cce59ffae340a54baefcafb1',
+            'duration': 554,
+        },
+        'params': {
+            'format': 'bestvideo',
+            'skip_download': 'm3u8',
+        },
     }, {
         'url': 'https://www.arte.tv/player/v3/index.php?json_url=https://api.arte.tv/api/player/v2/config/de/100605-013-A',
         'only_matching': True,
     }]
 
-    @staticmethod
-    def _extract_urls(webpage):
-        return [url for _, url in re.findall(
-            r'<(?:iframe|script)[^>]+src=(["\'])(?P<url>(?:https?:)?//(?:www\.)?arte\.tv/player/v\d+/index\.php\?.*?\bjson_url=.+?)\1',
-            webpage)]
+    @classmethod
+    def _extract_urls(cls, webpage):
+        import itertools    # just until this is lifted into IE
+        return list(itertools.chain(*(
+            (url for _, url in re.findall(erx, webpage)) for erx in cls._EMBED_REGEX)
+        ))
 
     def _real_extract(self, url):
         qs = parse_qs(url)
-        json_url = qs['json_url'][0]
+        json_url = qs['json_url'][-1]
         video_id = ArteTVIE._match_id(json_url)
         return self.url_result(
             json_url, ie=ArteTVIE.ie_key(), video_id=video_id)
