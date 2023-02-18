@@ -29,6 +29,9 @@ class KickIE(InfoExtractor):
         data = self._download_json('https://kick.com/api/v1/video/%s' % id, id, headers=headers)
 
         video_url = data['source']
+        formats = self._extract_m3u8_formats(
+            data['source'], id, 'mp4')
+        self._sort_formats(formats)
         title = data['livestream']['session_title']
         uploader = data['livestream']['channel']['user']['username']
         thumbnail = data['livestream']['thumbnail']
@@ -39,4 +42,5 @@ class KickIE(InfoExtractor):
             'title': title,
             'uploader': uploader,
             'thumbnail': thumbnail,
+            'formats': formats,
         }
