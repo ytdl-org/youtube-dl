@@ -262,7 +262,7 @@ class JSInterpreter(object):
         if not expr:
             return
         # collections.Counter() is ~10% slower in both 2.7 and 3.9
-        counters = {k: 0 for k in _MATCHING_PARENS.values()}
+        counters = dict((k, 0) for k in _MATCHING_PARENS.values())
         start, splits, pos, delim_len = 0, 0, 0, len(delim) - 1
         in_quote, escaping, skipping = None, False, 0
         after_op, in_regex_char_group, skip_re = True, False, 0
