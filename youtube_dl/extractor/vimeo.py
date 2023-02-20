@@ -286,7 +286,7 @@ class VimeoIE(VimeoBaseInfoExtractor):
                              /(?!videos|likes)[^/?#]+/?|
                              (?(q)|/(?P<unlisted_hash>[\da-f]{10}))?
                          )
-                         (?:(?(q)[&]|(?(u)|/?)[?]).*?)?(?:[#].*)?$
+                         (?:(?(q)[&]|(?(u)|/?)[?]).+?)?(?:[#].*)?$
                  '''
     IE_NAME = 'vimeo'
     _TESTS = [
