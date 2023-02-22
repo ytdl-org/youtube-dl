@@ -46,7 +46,7 @@ class GooglePhotosIE(InfoExtractor):
         formats = []
         dash_mpd_fatal = True
 
-        dash_link = self._html_search_regex(r'data-url="(.+?)"', webpage, '')
+        dash_link = self._search_regex(r'''data-url\s*=\s*('|")(?P<link>(?:(?!\1).)+)''', webpage, group='link')
         mpd_url = self._download_webpage(dash_link + '=mm,dash?alr=true', video_id)
 
         for df in self._extract_mpd_formats(
