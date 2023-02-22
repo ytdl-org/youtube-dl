@@ -10,7 +10,6 @@ from ..utils import (
     traverse_obj,
     url_or_none,
 )
-    
 
 
 class KickIE(InfoExtractor):
