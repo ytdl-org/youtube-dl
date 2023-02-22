@@ -52,8 +52,7 @@ class GooglePhotosIE(InfoExtractor):
         for df in self._extract_mpd_formats(
                 mpd_url, video_id, fatal=dash_mpd_fatal,
                 formats_dict=self._formats):
-            if df['format_id'] not in dash_formats:
-                dash_formats[df['format_id']] = df
+            dash_formats.setdefault(df['format_id'], df)
 
         if dash_formats:
             formats = [f for f in formats if f['format_id'] not in dash_formats.keys()]
