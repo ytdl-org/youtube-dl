@@ -54,9 +54,6 @@ class GooglePhotosIE(InfoExtractor):
                 formats_dict=self._formats):
             dash_formats.setdefault(df['format_id'], df)
 
-        if dash_formats:
-            formats = [f for f in formats if f['format_id'] not in dash_formats.keys()]
-            formats.extend(dash_formats.values())
         
         self._sort_formats(formats)
 
