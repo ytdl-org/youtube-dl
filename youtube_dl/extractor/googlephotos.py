@@ -7,10 +7,10 @@ from .common import InfoExtractor
 class GooglePhotosIE(InfoExtractor):
     _VALID_URL = r'https?://photos\.google\.com/share/(.+?)/photo/(.+?)key=(?P<id>.*)'
     _TEST = {
-        'url': 'https://photos.google.com/share/AF1QipO9WO5MnYm7850JgwAl7DIvRzbCoEcJamtywXL-oQ49rwF3K1frOSK63fjYD5MD-A/photo/AF1QipPRvvdy6-3EOqSACtJb7Q8QfmlXN4d4MwX5ico8?key=ZEV4S3RmYXd0bWNzQjRfQ09KQlBud1M4OUU1RzZn',
+        'url': 'https://photos.google.com/share/AF1QipO4IcvSjf_niq1icqPYPBK50FAsKWniuyVY7Mx8sMIDKZGb71hkUi6ZK9hgIFX-mQ/photo/AF1QipNewPmRaMZquiCgyNtz4McqeLBdkXLugNB3ov6_?key=RUhSeEVVajdhcTVic3o2Wk1URWlVZEtRdnRoaTl3',
         'md5': 'TODO: md5 sum of the first 10241 bytes of the video file (use --test)',
         'info_dict': {
-            'id': 'ZEV4S3RmYXd0bWNzQjRfQ09KQlBud1M4OUU1RzZn',
+            'id': 'AF1QipNewPmRaMZquiCgyNtz4McqeLBdkXLugNB3ov6_',
             'ext': 'mp4',
             'title': 'GooglePhotosVideo',
         }
