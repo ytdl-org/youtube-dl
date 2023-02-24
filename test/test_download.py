@@ -148,6 +148,7 @@ def generator(test_case, tname):
                 try_rm(tc_filename)
                 try_rm(tc_filename + '.part')
                 try_rm(os.path.splitext(tc_filename)[0] + '.info.json')
+
         try_rm_tcs_files()
         try:
             try_num = 1
@@ -213,7 +214,15 @@ def generator(test_case, tname):
                 # First, check test cases' data against extracted data alone
                 expect_info_dict(self, tc_res_dict, tc.get('info_dict', {}))
                 # Now, check downloaded file consistency
+                # support test-case with volatile ID, signalled by regexp value
+                if tc.get('info_dict', {}).get('id', '').startswith('re:'):
+                    test_id = tc['info_dict']['id']
+                    tc['info_dict']['id'] = tc_res_dict['id']
+                else:
+                    test_id = None
                 tc_filename = get_tc_filename(tc)
+                if test_id:
+                    tc['info_dict']['id'] = test_id
                 if not test_case.get('params', {}).get('skip_download', False):
                     self.assertTrue(os.path.exists(tc_filename), msg='Missing file ' + tc_filename)
                     self.assertTrue(tc_filename in finished_hook_called)
