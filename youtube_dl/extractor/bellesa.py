@@ -1,12 +1,13 @@
 # coding: utf-8
 from __future__ import unicode_literals
 
-import json
-
 from ..utils import (
-    clean_html,
+    compat_str,
     ExtractorError,
+    int_or_none,
+    strip_or_none,
     try_get,
+    url_or_none
 )
 from .common import InfoExtractor
 
@@ -41,39 +42,41 @@ class BellesaIE(InfoExtractor):
         # videos on this page are embedded into a container called VideoCard - if there is
         # nothing on the page referencing a VideoCard we cannot extract the information and
         # thus need to raise an error
+        # the VideoCard container is not specific html element but rather only mentioned in
+        # CSS styles; hence we cannot use get_element_by_id and the like to find our info
+        # but instead just quickly check whether or not we have a page with a video
         if 'VideoCard' not in webpage:
-            title = self._html_search_regex(
-                r'(?s)<title\b[^>]*>(?P<title>.+?)(?:\|\s+Bellesa)?</title',
-                webpage, 'title', default=None,
-                group='title', fatal=False)
-
-            raise ExtractorError('[%s] %s: %s' % (self.IE_NAME, video_id, clean_html(title)), expected=True)
+            raise ExtractorError('[%s] %s: page does not contain a VideoCard', self.IE_NAME, video_id, expected=True)
 
         initial_data_raw = self._search_regex(r'(?s)window\s*\.\s*__INITIAL_DATA__\s*=\s*(\{.+?\})\s*;\s*</script>', webpage, 'initial_data')
 
-        try:
-            initial_data = json.loads(initial_data_raw)
-        except json.JSONDecodeError:
-            raise ExtractorError('%s said: cannot decode initial data', self.IE_NAME, expected=True)
+        initial_data = self._parse_json(initial_data_raw, video_id)
+        if not initial_data:
+            raise ExtractorError('[%s] %s: cannot decode initial data', self.IE_NAME, video_id, expected=True)
 
-        video = try_get(initial_data, lambda x: x['video'], dict) or {}
+        video = try_get(initial_data, lambda x: x['video'])
+        if not video:
+            raise ExtractorError('[%s] %s: initial data malformed' % self.IE_NAME, video_id, expected=True)
 
         resolutions = video.get('resolutions')
         source = video.get('source')
 
         if not resolutions or not source:
-            raise ExtractorError('%s said: cannot extract playlist information from meta data' % self.IE_NAME, expected=True)
+            raise ExtractorError('[%s] %s: cannot extract playlist information from meta data' % self.IE_NAME, video_id, expected=True)
 
         m3u8_url = 'https://s.bellesa.co/hls/v/%s/,%s,.mp4.urlset/master.m3u8' % (source, resolutions)
+
         formats = self._extract_m3u8_formats(
             m3u8_url, video_id, 'mp4',
             entry_protocol='m3u8_native', m3u8_id='hls',
             fatal=False)
 
+        if not formats:
+            raise ExtractorError('[%s] %s: cannot extract formats from m3u8 file', self.IE_NAME, video_id, expected=True)
+
         self._sort_formats(formats)
 
         # get from video meta data first
-        title = video.get('title')
         title = strip_or_none(video.get('title'))
         if not title:
             # fallback to og:title, which needs some treatment
@@ -82,11 +85,7 @@ class BellesaIE(InfoExtractor):
                 title = title.split('|')[0].strip()
 
         tags = list(filter(None, map(lambda s: s.strip(), (video.get('tags') or '').split(','))))
-
-        categories = None
-        if 'categories' in video:
-            categories = [c['name'] for c in video.get('categories')]
-        list(filter(None, map(lambda d: strip_or_none(d['name']), (video.get('categories') or []))))
+        categories = list(filter(None, map(lambda d: strip_or_none(d['name']), (video.get('categories') or []))))
 
         return {
             'id': video_id,
