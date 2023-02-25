@@ -7,7 +7,7 @@ class SexuIE(InfoExtractor):
     _VALID_URL = r'https?://(?:www\.)?sexu\.com/(?P<id>\d+)'
     _TEST = {
         'url': 'http://sexu.com/961791/',
-        'md5': 'ff615aca9691053c94f8f10d96cd7884',
+  ``      'md5': 'ff615aca9691053c94f8f10d96cd7884',
         'info_dict': {
             'id': '961791',
             'ext': 'mp4',
@@ -61,3 +61,6 @@ class SexuIE(InfoExtractor):
             'formats': formats,
             'age_limit': 18,
         }
+        
+
+
