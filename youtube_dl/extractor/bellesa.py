@@ -21,12 +21,12 @@ class BellesaIE(InfoExtractor):
             'ext': 'mp4',
             'title': 'My First Time Kissing Women',
             'thumbnail': 'https://c.bellesa.co/dkvdbifey/image/upload/v1599024046/video_upload/2189cover.jpg',
-            'description': 'Jenna opens up about her troubles navigating a long-distance relationship. Her girlfriends ask if she’d ever be open to cheating on him but she says she would never, they’ve been together since college. Lena and Carter sit on either side of her and remind her it isn’t cheating if it’s with a girl…they start kissing and rubbing her chest, going down on her together. This girl on girl scene is so sensual, and the nerves on Jenna are real — exploring your sexuality takes courage, but there’s a lot of good vibes in this threesome.',
+            'description': 'md5:69eea8a4ee31d42d6fd6302ad9e09ab2',
             'creator': 'Bellesa Films',
             'upload_date': '20191216',
             'timestamp': 1576539207,
             'duration': 721,
-            'tags': ['HD Porn', 'Porn for Women', 'Orgasm', 'Bellesa Films', 'Threesome', 'FFF', 'Girl on Girl', 'Lesbians', 'Lesbian Porn', 'Nipple Licking', 'Finger', 'Cunnilingus', 'Anilingus', 'Eating Out', 'Clit Play', 'Clit Stimulation', 'Natural Breasts', 'Face Sitting', 'Spitting'],
+            'tags': 'mincount: 1',
             'categories': ['Girl on Girl', 'Story'],
             'age_limit': 18,
         }
@@ -43,25 +43,23 @@ class BellesaIE(InfoExtractor):
         # thus need to raise an error
         if 'VideoCard' not in webpage:
             title = self._html_search_regex(
-                r'<title[^>]*>(?P<title>.+?)\s+\|\s+Bellesa',
+                r'(?s)<title\b[^>]*>(?P<title>.+?)(?:\|\s+Bellesa)?</title',
                 webpage, 'title', default=None,
                 group='title', fatal=False)
 
-            raise ExtractorError('%s said: %s' % (self.IE_NAME, clean_html(title)), expected=True)
+            raise ExtractorError('[%s] %s: %s' % (self.IE_NAME, video_id, clean_html(title)), expected=True)
 
-        initial_data_raw = self._search_regex(r'window\.__INITIAL_DATA__\s+=\s+(.+?);</script>', webpage, 'initial_data')
+        initial_data_raw = self._search_regex(r'(?s)window\s*\.\s*__INITIAL_DATA__\s*=\s*(\{.+?\})\s*;\s*</script>', webpage, 'initial_data')
 
         try:
             initial_data = json.loads(initial_data_raw)
         except json.JSONDecodeError:
             raise ExtractorError('%s said: cannot decode initial data', self.IE_NAME, expected=True)
 
-        video = try_get(initial_data, lambda x: x['video'])
-        if not video:
-            raise ExtractorError('%s said: initial data malformed' % self.IE_NAME, expected=True)
+        video = try_get(initial_data, lambda x: x['video'], dict) or {}
 
-        resolutions = try_get(video, lambda x: x['resolutions'])
-        source = try_get(video, lambda x: x['source'])
+        resolutions = video.get('resolutions')
+        source = video.get('source')
 
         if not resolutions or not source:
             raise ExtractorError('%s said: cannot extract playlist information from meta data' % self.IE_NAME, expected=True)
@@ -76,38 +74,31 @@ class BellesaIE(InfoExtractor):
 
         # get from video meta data first
         title = video.get('title')
-        if title:
-            title = title.strip()
-        else:
+        title = strip_or_none(video.get('title'))
+        if not title:
             # fallback to og:title, which needs some treatment
             title = self._og_search_title(webpage)
             if title:
                 title = title.split('|')[0].strip()
 
-        tags = None
-        tag_string = video.get('tags')
-        if tag_string:
-            tags = [c for c in map(lambda s: s.strip(), tag_string.split(','))]
+        tags = list(filter(None, map(lambda s: s.strip(), (video.get('tags') or '').split(','))))
 
         categories = None
         if 'categories' in video:
             categories = [c['name'] for c in video.get('categories')]
-
-        description = try_get(video, lambda x: x['description'])
-        if description:
-            description = description.strip()
+        list(filter(None, map(lambda d: strip_or_none(d['name']), (video.get('categories') or []))))
 
         return {
             'id': video_id,
             'title': title,
-            'thumbnail': try_get(video, lambda x: x['image']),
-            'description': description,
-            'creator': try_get(video, lambda x: x['content_provider'][0]['name']),
-            'timestamp': try_get(video, lambda x: x['posted_on']),
-            'duration': try_get(video, lambda x: x['duration']),
-            'view_count': try_get(video, lambda x: x['views']),
-            'tags': tags,
-            'categories': categories,
+            'thumbnail': url_or_none(video.get('image')),
+            'description': strip_or_none(video.get('description')) or None,
+            'creator': try_get(video, lambda x: x['content_provider'][0]['name'].strip(), compat_str),
+            'timestamp': int_or_none(video.get('posted_on')),
+            'duration': int_or_none(video.get('duration')),
+            'view_count': int_or_none(video.get('views')),
+            'tags': tags or None,
+            'categories': categories or None,
             'age_limit': 18,
             'formats': formats,
         }
