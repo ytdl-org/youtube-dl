@@ -25,9 +25,9 @@ class BellesaIE(InfoExtractor):
             'description': 'md5:69eea8a4ee31d42d6fd6302ad9e09ab2',
             'creator': 'Bellesa Films',
             'upload_date': '20191216',
-            'timestamp': 1576539207,
+            'timestamp': 1576539206,
             'duration': 721,
-            'tags': 'mincount: 1',
+            'tags': 'mincount:15',
             'categories': ['Girl on Girl', 'Story'],
             'age_limit': 18,
         }
