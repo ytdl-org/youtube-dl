@@ -405,7 +405,7 @@ class JSInterpreter(object):
                 left, right = self._separate_at_paren(obj[len(klass):])
                 argvals = self.interpret_iter(left, local_vars, allow_recursion)
                 expr = konstr(*argvals)
-                if not expr:
+                if expr is None:
                     raise self.Exception('Failed to parse {klass} {left!r:.100}'.format(**locals()), expr=expr)
                 expr = self._dump(expr, local_vars) + right
                 break
