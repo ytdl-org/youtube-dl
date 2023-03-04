@@ -453,9 +453,15 @@ class YoutubeBaseInfoExtractor(InfoExtractor):
         return urljoin('https://www.youtube.com', url_or_path)
 
     def _extract_uploader_id(self, uploader_url):
-        return self._search_regex(
-            r'/(?:(?:channel|user)/|(?=@))([^/?&#]+)', uploader_url or '',
-            'uploader id', default=None)
+        result = 'fail'
+        try:
+            result = self._search_regex(
+                r'/(?:(?:channel|user)/|(?=@))([^/?&#]+)', uploader_url or '',
+                'uploader id', default=None)
+            return result
+        except:
+            result = 'NotFound'
+        return result
 
 
 class YoutubeIE(YoutubeBaseInfoExtractor):
