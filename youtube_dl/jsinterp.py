@@ -12,9 +12,11 @@ from .utils import (
     js_to_json,
     remove_quotes,
     unified_timestamp,
+    variadic,
 )
 from .compat import (
     compat_basestring,
+    compat_chr,
     compat_collections_chain_map as ChainMap,
     compat_itertools_zip_longest as zip_longest,
     compat_str,
@@ -205,10 +207,10 @@ class JSInterpreter(object):
             super(JSInterpreter.Exception, self).__init__(msg, *args, **kwargs)
 
     class JS_RegExp(object):
-        _RE_FLAGS = {
+        RE_FLAGS = {
             # special knowledge: Python's re flags are bitmask values, current max 128
             # invent new bitmask values well above that for literal parsing
-            # TODO: new pattern class to execute matches with these flags
+            # TODO: execute matches with these flags (remaining: d, y)
             'd': 1024,  # Generate indices for substring matches
             'g': 2048,  # Global search
             'i': re.I,  # Case-insensitive search
@@ -218,12 +220,19 @@ class JSInterpreter(object):
             'y': 4096,  # Perform a "sticky" search that matches starting at the current position in the target string
         }
 
-        def __init__(self, pattern_txt, flags=''):
+        def __init__(self, pattern_txt, flags=0):
             if isinstance(flags, compat_str):
                 flags, _ = self.regex_flags(flags)
-            # Thx: https://stackoverflow.com/questions/44773522/setattr-on-python2-sre-sre-pattern
             # First, avoid https://github.com/python/cpython/issues/74534
-            self.__self = re.compile(pattern_txt.replace('[[', r'[\['), flags)
+            self.__self = None
+            self.__pattern_txt = pattern_txt.replace('[[', r'[\[')
+            self.__flags = flags
+
+        def __instantiate(self):
+            if self.__self:
+                return
+            self.__self = re.compile(self.__pattern_txt, self.__flags)
+            # Thx: https://stackoverflow.com/questions/44773522/setattr-on-python2-sre-sre-pattern
             for name in dir(self.__self):
                 # Only these? Obviously __class__, __init__.
                 # PyPy creates a __weakref__ attribute with value None
@@ -232,15 +241,21 @@ class JSInterpreter(object):
                     continue
                 setattr(self, name, getattr(self.__self, name))
 
+        def __getattr__(self, name):
+            self.__instantiate()
+            if hasattr(self, name):
+                return getattr(self, name)
+            return super(JSInterpreter.JS_RegExp, self).__getattr__(name)
+
         @classmethod
         def regex_flags(cls, expr):
             flags = 0
             if not expr:
                 return flags, expr
             for idx, ch in enumerate(expr):
-                if ch not in cls._RE_FLAGS:
+                if ch not in cls.RE_FLAGS:
                     break
-                flags |= cls._RE_FLAGS[ch]
+                flags |= cls.RE_FLAGS[ch]
             return flags, expr[idx + 1:]
 
     @classmethod
@@ -265,17 +280,17 @@ class JSInterpreter(object):
         counters = dict((k, 0) for k in _MATCHING_PARENS.values())
         start, splits, pos, delim_len = 0, 0, 0, len(delim) - 1
         in_quote, escaping, skipping = None, False, 0
-        after_op, in_regex_char_group, skip_re = True, False, 0
+        after_op, in_regex_char_group = True, False
 
         for idx, char in enumerate(expr):
-            if skip_re > 0:
-                skip_re -= 1
-                continue
+            paren_delta = 0
             if not in_quote:
                 if char in _MATCHING_PARENS:
                     counters[_MATCHING_PARENS[char]] += 1
+                    paren_delta = 1
                 elif char in counters:
                     counters[char] -= 1
+                    paren_delta = -1
             if not escaping:
                 if char in _QUOTES and in_quote in (char, None):
                     if in_quote or after_op or char != '/':
@@ -283,7 +298,7 @@ class JSInterpreter(object):
                 elif in_quote == '/' and char in '[]':
                     in_regex_char_group = char == '['
             escaping = not escaping and in_quote and char == '\\'
-            after_op = not in_quote and (char in cls.OP_CHARS or (char.isspace() and after_op))
+            after_op = not in_quote and (char in cls.OP_CHARS or paren_delta > 0 or (after_op and char.isspace()))
 
             if char != delim[pos] or any(counters.values()) or in_quote:
                 pos = skipping = 0
@@ -293,7 +308,7 @@ class JSInterpreter(object):
                 continue
             elif pos == 0 and skip_delims:
                 here = expr[idx:]
-                for s in skip_delims if isinstance(skip_delims, (list, tuple)) else [skip_delims]:
+                for s in variadic(skip_delims):
                     if here.startswith(s) and s:
                         skipping = len(s) - 1
                         break
@@ -316,7 +331,7 @@ class JSInterpreter(object):
         separated = list(cls._separate(expr, delim, 1))
 
         if len(separated) < 2:
-            raise cls.Exception('No terminating paren {delim} in {expr}'.format(**locals()))
+            raise cls.Exception('No terminating paren {delim} in {expr!r:.5500}'.format(**locals()))
         return separated[0][1:].strip(), separated[1].strip()
 
     @staticmethod
@@ -361,6 +376,20 @@ class JSInterpreter(object):
         except TypeError:
             return self._named_object(namespace, obj)
 
+    # used below
+    _VAR_RET_THROW_RE = re.compile(r'''(?x)
+        (?P<var>(?:var|const|let)\s)|return(?:\s+|(?=["'])|$)|(?P<throw>throw\s+)
+        ''')
+    _COMPOUND_RE = re.compile(r'''(?x)
+        (?P<try>try)\s*\{|
+        (?P<if>if)\s*\(|
+        (?P<switch>switch)\s*\(|
+        (?P<for>for)\s*\(|
+        (?P<while>while)\s*\(
+        ''')
+    _FINALLY_RE = re.compile(r'finally\s*\{')
+    _SWITCH_RE = re.compile(r'switch\s*\(')
+
     def interpret_statement(self, stmt, local_vars, allow_recursion=100):
         if allow_recursion < 0:
             raise self.Exception('Recursion limit reached')
@@ -375,7 +404,7 @@ class JSInterpreter(object):
             if should_return:
                 return ret, should_return
 
-        m = re.match(r'(?P<var>(?:var|const|let)\s)|return(?:\s+|(?=["\'])|$)|(?P<throw>throw\s+)', stmt)
+        m = self._VAR_RET_THROW_RE.match(stmt)
         if m:
             expr = stmt[len(m.group(0)):].strip()
             if m.group('throw'):
@@ -447,13 +476,7 @@ class JSInterpreter(object):
                 for item in self._separate(inner)])
             expr = name + outer
 
-        m = re.match(r'''(?x)
-                (?P<try>try)\s*\{|
-                (?P<if>if)\s*\(|
-                (?P<switch>switch)\s*\(|
-                (?P<for>for)\s*\(|
-                (?P<while>while)\s*\(
-                ''', expr)
+        m = self._COMPOUND_RE.match(expr)
         md = m.groupdict() if m else {}
         if md.get('if'):
             cndn, expr = self._separate_at_paren(expr[m.end() - 1:])
@@ -512,7 +535,7 @@ class JSInterpreter(object):
                     err = None
                     pending = self.interpret_statement(sub_expr, catch_vars, allow_recursion)
 
-            m = re.match(r'finally\s*\{', expr)
+            m = self._FINALLY_RE.match(expr)
             if m:
                 sub_expr, expr = self._separate_at_paren(expr[m.end() - 1:])
                 ret, should_abort = self.interpret_statement(sub_expr, local_vars, allow_recursion)
@@ -531,7 +554,7 @@ class JSInterpreter(object):
             if remaining.startswith('{'):
                 body, expr = self._separate_at_paren(remaining)
             else:
-                switch_m = re.match(r'switch\s*\(', remaining)  # FIXME
+                switch_m = self._SWITCH_RE.match(remaining)  # FIXME
                 if switch_m:
                     switch_val, remaining = self._separate_at_paren(remaining[switch_m.end() - 1:])
                     body, expr = self._separate_at_paren(remaining, '}')
@@ -735,7 +758,7 @@ class JSInterpreter(object):
                 if obj == compat_str:
                     if member == 'fromCharCode':
                         assertion(argvals, 'takes one or more arguments')
-                        return ''.join(map(chr, argvals))
+                        return ''.join(map(compat_chr, argvals))
                     raise self.Exception('Unsupported string method ' + member, expr=expr)
                 elif obj == float:
                     if member == 'pow':
@@ -808,10 +831,17 @@ class JSInterpreter(object):
                     if idx >= len(obj):
                         return None
                     return ord(obj[idx])
-                elif member == 'replace':
+                elif member in ('replace', 'replaceAll'):
                     assertion(isinstance(obj, compat_str), 'must be applied on a string')
                     assertion(len(argvals) == 2, 'takes exactly two arguments')
-                    return re.sub(argvals[0], argvals[1], obj)
+                    # TODO: argvals[1] callable, other Py vs JS edge cases
+                    if isinstance(argvals[0], self.JS_RegExp):
+                        count = 0 if argvals[0].flags & self.JS_RegExp.RE_FLAGS['g'] else 1
+                        assertion(member != 'replaceAll' or count == 0,
+                                  'replaceAll must be called with a global RegExp')
+                        return argvals[0].sub(argvals[1], obj, count=count)
+                    count = ('replaceAll', 'replace').index(member)
+                    return re.sub(re.escape(argvals[0]), argvals[1], obj, count=count)
 
                 idx = int(member) if isinstance(obj, list) else member
                 return obj[idx](argvals, allow_recursion=allow_recursion)
