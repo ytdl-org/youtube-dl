@@ -42,10 +42,9 @@ class IndavideoEmbedIE(InfoExtractor):
 
     # Some example URLs covered by generic extractor:
     #   http://indavideo.hu/video/Vicces_cica_1
-    #   http://index.indavideo.hu/video/2015_0728_beregszasz
-    #   http://auto.indavideo.hu/video/Sajat_utanfutoban_a_kis_tacsko
-    #   http://erotika.indavideo.hu/video/Amator_tini_punci
-    #   http://film.indavideo.hu/video/f_hrom_nagymamm_volt
+    #   https://index.indavideo.hu/video/Kibeszelo_Nemeth_David
+    #   https://auto.indavideo.hu/video/DF_Coyote_Mustang_Buli_-_SportVerda
+    #   https://film.indavideo.hu/video/f_menjek_maradjak
     #   http://palyazat.indavideo.hu/video/Embertelen_dal_Dodgem_egyuttes
 
     @staticmethod
