@@ -2052,13 +2052,10 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                 if mobj:
                     dct['ext'] = mimetype2ext(mobj.group(1))
                     dct.update(parse_codecs(mobj.group(2)))
-            no_audio = dct.get('acodec') == 'none'
-            no_video = dct.get('vcodec') == 'none'
-            if no_audio:
-                dct['vbr'] = tbr
-            if no_video:
-                dct['abr'] = tbr
-            if no_audio or no_video:
+            single_stream = 'none' in (dct.get(c) for c in ('acodec', 'vcodec'))
+            if single_stream and dct.get('ext'):
+                dct['container'] = dct['ext'] + '_dash'
+            if single_stream or itag == '17':
                 # avoid Youtube throttling
                 dct.update({
                     'protocol': 'http_dash_segments',
@@ -2067,8 +2064,6 @@ class YoutubeIE(YoutubeBaseInfoExtractor):
                     'downloader_options': {'http_chunk_size': CHUNK_SIZE}  # No longer useful?
                 })
 
-                if dct.get('ext'):
-                    dct['container'] = dct['ext'] + '_dash'
             formats.append(dct)
 
         hls_manifest_url = streaming_data.get('hlsManifestUrl')
