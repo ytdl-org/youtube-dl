@@ -55,6 +55,8 @@ jobs:
     - name: Install nose
       if: ${{ matrix.python-impl != 'jython' }}
       run: pip install nose
+    - name: Install yourbase
+      run: pip install yourbase
     - name: Install nose (Jython)
       if: ${{ matrix.python-impl == 'jython' }}
       # Working around deprecation of support for non-SNI clients at PyPI CDN (see https://status.python.org/incidents/hzmjhqsdjqgb)
