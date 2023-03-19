@@ -56,7 +56,7 @@ jobs:
       if: ${{ matrix.python-impl != 'jython' }}
       run: pip install nose
     - name: Install yourbase
-      if: ${{ (matrix.python-version > 3.5 && matrix.python-version < 4.0) || matrix.python-version == pypy-3.6 || matrix.python-version == pypy-3.7}}
+      if: ${{ (matrix.python-version > 3.5 && matrix.python-version < 4.0) || matrix.python-version == 'pypy-3.6' || matrix.python-version == 'pypy-3.7'}}
       run: pip install yourbase; pip install --force-reinstall coverage==6.1
     - name: Install nose (Jython)
       if: ${{ matrix.python-impl == 'jython' }}
