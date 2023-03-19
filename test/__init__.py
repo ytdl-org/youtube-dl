@@ -3,7 +3,7 @@ import platform
 
 print(platform.python_implementation())
 
-if sys.version[0:3] > '3.5' and sys.version[0:3] < '4.0':
+if sys.version[0:3] > '3.9':
     import unittest
     import yourbase
 
