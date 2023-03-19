@@ -5,4 +5,4 @@ if sys.version[0:3] > '3.5':
     import unittest
     import yourbase
 
-    yourbase.attatch(unittest)
+    yourbase.attach(unittest)
