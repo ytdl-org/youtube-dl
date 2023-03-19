@@ -1,4 +1,8 @@
-import unittest
-import yourbase
+import sys
 
-yourbase.attatch(unittest)
+
+if sys.version[0:3] > '3.5':
+    import unittest
+    import yourbase
+
+    yourbase.attatch(unittest)
