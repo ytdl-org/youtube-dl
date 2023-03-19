@@ -44,12 +44,13 @@ class SBSIE(InfoExtractor):
             (["\'])(?P<url>https?://(?:www\.)?sbs\.com\.au/ondemand/video/.+?)\1''']
 
     _TESTS = [{
-        # Original URL is handled by the generic IE which finds the iframe:
+        # Exceptional unrestricted show for testing, thanks SBS,
+        # from an iframe of this page, handled by the generic IE, now 404:
         # http://www.sbs.com.au/thefeed/blog/2014/08/21/dingo-conservation
         'url': 'http://www.sbs.com.au/ondemand/video/single/320403011771/?source=drupal&vertical=thefeed',
         'md5': 'e49d0290cb4f40d893b8dfe760dce6b0',
         'info_dict': {
-            'id': '320403011771',  # '_rFBPRPO4pMR',
+            'id': '320403011771',  # formerly '_rFBPRPO4pMR', no longer found
             'ext': 'mp4',
             'title': 'Dingo Conservation (The Feed)',
             'description': 'md5:f250a9856fca50d22dec0b5b8015f8a5',
@@ -107,13 +108,14 @@ class SBSIE(InfoExtractor):
             return False
 
     def _download_webpage_handle(self, url, video_id, *args, **kwargs):
-        # note, errnote, fatal, encoding, data, headers={}, query, expected_status
+        # note, errnote, fatal, encoding, data, headers, query, expected_status
         # specialised to detect geo-block
 
         errnote = args[2] if len(args) > 2 else kwargs.get('errnote')
         fatal = args[3] if len(args) > 3 else kwargs.get('fatal')
         exp = args[7] if len(args) > 7 else kwargs.get('expected_status')
 
+        # add 403 to expected codes for interception
         exp = variadic(exp or [], allowed_types=(compat_str, ))
         if 403 not in exp and '403' not in exp:
             exp = list(exp)
@@ -145,6 +147,9 @@ class SBSIE(InfoExtractor):
             else:
                 err = compat_HTTPError(urlh.geturl(), 403, 'HTTP Error 403: Forbidden', urlh.headers, urlh)
             ret = self.__handle_request_webpage_error(err, video_id, errnote, fatal)
+            if exp:
+                # caller doesn't expect 403
+                return False
 
         return ret
 
@@ -163,15 +168,16 @@ class SBSIE(InfoExtractor):
 
         return super(SBSIE, self)._extract_m3u8_formats(m3u8_url, video_id, *args, **kwargs)
 
-    _AUS_TV_PARENTAL_GUIDELINES = {
+    AUS_TV_PARENTAL_GUIDELINES = {
         'P': 0,
         'C': 7,
         'G': 0,
         'PG': 0,
-        'M': 14,
+        'M': 15,
         'MA15+': 15,
-        'MAV15+': 15,
+        'AV15+': 15,
         'R18+': 18,
+        'NC': 0,  # not classified (unofficial, used by SBS)
     }
     _PLAYER_API = 'https://www.sbs.com.au/api/v3'
     _CATALOGUE_API = 'https://catalogue.pr.sbsod.com/'
@@ -240,7 +246,7 @@ class SBSIE(InfoExtractor):
                 ('genres', Ellipsis), ('taxonomy', ('genre', 'subgenre'), 'name')),
             'tags': traverse_media(
                 (('consumerAdviceTexts', ('sbsSubCertification', 'consumerAdvice')), Ellipsis)),
-            'age_limit': self._AUS_TV_PARENTAL_GUIDELINES.get(traverse_media(
+            'age_limit': self.AUS_TV_PARENTAL_GUIDELINES.get(traverse_media(
                 'classificationID', 'contentRating', default='').upper()),
             'thumbnails': traverse_media(('thumbnails', Ellipsis),
                                          expected_type=xlate_thumb),
@@ -262,6 +268,7 @@ class SBSIE(InfoExtractor):
             'uploader': 'SBSC',
         }
 
+    # just come behind the shed with me, mate
     def _old_real_extract(self, url):
         video_id = self._match_id(url)
         player_params = self._download_json(
