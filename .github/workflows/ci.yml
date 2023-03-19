@@ -56,8 +56,8 @@ jobs:
       if: ${{ matrix.python-impl != 'jython' }}
       run: pip install nose
     - name: Install yourbase
-      if: ${{ matrix.python-version > 3.5 }}
-      run: pip install yourbase
+      if: ${{ matrix.python-version > 3.5 and matrix.python-version < 4.0}}
+      run: pip install yourbase; pip install --force-reinstall coverage==6.1
     - name: Install nose (Jython)
       if: ${{ matrix.python-impl == 'jython' }}
       # Working around deprecation of support for non-SNI clients at PyPI CDN (see https://status.python.org/incidents/hzmjhqsdjqgb)
