@@ -4213,6 +4213,8 @@ def multipart_encode(data, boundary=None):
 
 
 def variadic(x, allowed_types=(compat_str, bytes, dict)):
+    if not isinstance(allowed_types, tuple) and isinstance(allowed_types, compat_collections_abc.Iterable):
+        allowed_types = tuple(allowed_types)
     return x if isinstance(x, compat_collections_abc.Iterable) and not isinstance(x, allowed_types) else (x,)
 
 

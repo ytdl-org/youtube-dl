@@ -1563,6 +1563,7 @@ Line 1
         self.assertEqual(variadic(None), (None, ))
         self.assertEqual(variadic('spam'), ('spam', ))
         self.assertEqual(variadic('spam', allowed_types=dict), 'spam')
+        self.assertEqual(variadic('spam', allowed_types=[dict]), 'spam')
 
     def test_traverse_obj(self):
         _TEST_DATA = {
