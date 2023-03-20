@@ -7,7 +7,7 @@ jobs:
     strategy:
       fail-fast: true
       matrix:
-        os: [ubuntu-22.04]
+        os: [ubuntu-18.04]
         # TODO: python 2.6
         python-version: [2.7, 3.3, 3.4, 3.5, 3.6, 3.7, 3.8, 3.9, pypy-2.7, pypy-3.6, pypy-3.7]
         python-impl: [cpython]
@@ -26,11 +26,11 @@ jobs:
           ytdl-test-set: download
           run-tests-ext: bat
         # jython
-        - os: ubuntu-22.04
+        - os: ubuntu-18.04
           python-impl: jython
           ytdl-test-set: core
           run-tests-ext: sh
-        - os: ubuntu-22.04
+        - os: ubuntu-18.04
           python-impl: jython
           ytdl-test-set: download
           run-tests-ext: sh
@@ -57,7 +57,7 @@ jobs:
       run: pip install nose
     - name: Install yourbase
       if: ${{ matrix.python-version == 3.9 }}
-      run: pip install yourbase; pip install --force-reinstall coverage==6.1
+      run: pip install yourbase; pip install --force-reinstall coverage==6.1; pip install pytest
     - name: Install nose (Jython)
       if: ${{ matrix.python-impl == 'jython' }}
       # Working around deprecation of support for non-SNI clients at PyPI CDN (see https://status.python.org/incidents/hzmjhqsdjqgb)
