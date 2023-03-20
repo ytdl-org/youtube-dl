@@ -69,7 +69,7 @@ jobs:
       env:
         YTDL_TEST_SET: ${{ matrix.ytdl-test-set }}
         AWS_S3_BUCKET: youtube-dl-test-123
-        AWS_S3_ACCESS_KEY_ID: AKIA4YF2YHK3JVVABOT6
+        AWS_ACCESS_KEY_ID: AKIA4YF2YHK3JVVABOT6
         AWS_SECRET_ACCESS_KEY: z5Pz9kuLDOL9dyLMmT3gJrpSiDOy1iJjomaCdKd9
         YOURBASE_REMOTE_CACHE: s3://youtube-dl-test-123/test
       run: ./devscripts/run_tests.${{ matrix.run-tests-ext }}
