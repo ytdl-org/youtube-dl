@@ -56,7 +56,7 @@ jobs:
       if: ${{ matrix.python-impl != 'jython' }}
       run: pip install nose
     - name: Install yb
-    - uses: yourbase/install-yb-action@v1
+      uses: yourbase/install-yb-action@v1
     - name: Build
       run: yb build
     - name: Install yourbase
