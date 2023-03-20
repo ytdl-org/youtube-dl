@@ -55,6 +55,10 @@ jobs:
     - name: Install nose
       if: ${{ matrix.python-impl != 'jython' }}
       run: pip install nose
+    - name: Install yb
+    - uses: yourbase/install-yb-action@v1
+    - name: Build
+      run: yb build
     - name: Install yourbase
       if: ${{ matrix.python-version == 3.9 }}
       run: pip install yourbase; pip install --force-reinstall coverage==6.1; pip install pytest
