@@ -21,6 +21,7 @@ from youtube_dl.extractor import (
 
 class TestAllURLsMatching(unittest.TestCase):
     def setUp(self):
+        print("useless change")
         self.ies = gen_extractors()
 
     def matching_ies(self, url):
