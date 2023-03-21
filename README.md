@@ -263,8 +263,10 @@ Alternatively, refer to the [developer instructions](#developer-instructions) fo
                                          files (restart from beginning)
     --no-part                            Do not use .part files - write directly
                                          into output file
-    --no-mtime                           Do not use the Last-modified header to
+    --mtime                              Use the Last-modified header to
                                          set the file modification time
+    --no-mtime                           Do not use the Last-modified header to
+                                         set the file modification time (default)
     --write-description                  Write video description to a
                                          .description file
     --write-info-json                    Write video metadata to a .info.json
@@ -482,15 +484,12 @@ Alternatively, refer to the [developer instructions](#developer-instructions) fo
 
 You can configure youtube-dl by placing any supported command line option to a configuration file. On Linux and macOS, the system wide configuration file is located at `/etc/youtube-dl.conf` and the user wide configuration file at `~/.config/youtube-dl/config`. On Windows, the user wide configuration file locations are `%APPDATA%\youtube-dl\config.txt` or `C:\Users\<user name>\youtube-dl.conf`. Note that by default configuration file may not exist so you may need to create it yourself.
 
-For example, with the following configuration file youtube-dl will always extract the audio, not copy the mtime, use a proxy and save all videos under `Movies` directory in your home directory:
+For example, with the following configuration file youtube-dl will always extract the audio, use a proxy and save all videos under `Movies` directory in your home directory:
 ```
 # Lines starting with # are comments
 
 # Always extract audio
 -x
-
-# Do not copy the mtime
---no-mtime
 
 # Use this proxy
 --proxy 127.0.0.1:3128

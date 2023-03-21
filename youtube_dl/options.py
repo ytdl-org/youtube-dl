@@ -734,9 +734,13 @@ def parseOpts(overrideArguments=None):
         action='store_true', dest='nopart', default=False,
         help='Do not use .part files - write directly into output file')
     filesystem.add_option(
+        '--mtime',
+        action='store_true', dest='updatetime', default=False,
+        help='Use the Last-modified header to set the file modification time')
+    filesystem.add_option(
         '--no-mtime',
-        action='store_false', dest='updatetime', default=True,
-        help='Do not use the Last-modified header to set the file modification time')
+        action='store_false', dest='updatetime',
+        help='Do not use the Last-modified header to set the file modification time (default)')
     filesystem.add_option(
         '--write-description',
         action='store_true', dest='writedescription', default=False,
