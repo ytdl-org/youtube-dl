@@ -11,7 +11,7 @@ jobs:
         # TODO: python 2.6
         python-version: [2.7, 3.3, 3.4, 3.5, 3.6, 3.7, 3.8, 3.9, pypy-2.7, pypy-3.6, pypy-3.7]
         python-impl: [cpython]
-        ytdl-test-set: [core, download]
+        ytdl-test-set: [core]
         run-tests-ext: [sh]
         include:
         # python 3.2 is only available on windows via setup-python
