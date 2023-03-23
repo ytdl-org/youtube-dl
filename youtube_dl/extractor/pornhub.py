@@ -265,7 +265,7 @@ class PornHubIE(PornHubBaseIE):
 
         self._login(host)
 
-        self._set_cookie(host, 'age_verified', '1')
+        self._set_cookie(host, 'accessAgeDisclaimerPH', '1')
 
         def dl_webpage(platform):
             self._set_cookie(host, 'platform', platform)
