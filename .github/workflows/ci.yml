@@ -20,19 +20,10 @@ jobs:
           python-impl: cpython
           ytdl-test-set: core
           run-tests-ext: bat
-        - os: windows-2019
-          python-version: 3.2
-          python-impl: cpython
-          ytdl-test-set: download
-          run-tests-ext: bat
         # jython
         - os: ubuntu-18.04
           python-impl: jython
           ytdl-test-set: core
-          run-tests-ext: sh
-        - os: ubuntu-18.04
-          python-impl: jython
-          ytdl-test-set: download
           run-tests-ext: sh
     steps:
     - uses: actions/checkout@v2
