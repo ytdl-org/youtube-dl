@@ -43,12 +43,17 @@ class ChelseafcIE(InfoExtractor):
 
         webpage = self._download_webpage(url, video_id)
 
-        raw_data = self._html_search_regex(
-            # TODO improve regex
-            r'(?:<div[^>]+(?:data-component="VideoDetails".*?)+data-props="([^"]*))',
+        video_details_div = self._search_regex(
+            r'(<div[^>]*\sdata-component\s*=\s*(?:"|\')\s*VideoDetails\s*(?:"|\')[^>]*>)',
             webpage,
+            'div'
+        )
+        raw_data = self._html_search_regex(
+            r'<div[^>]*\sdata-props\s*=\s*(?:"|\')\s*([^"\']*)\s*(?:"|\')[^>]*>',
+            video_details_div,
             'data'
         )
+
         data = json.loads(raw_data)['videoDetail']
 
         manifest_url = data['signedUrl']
