@@ -1,4 +1,5 @@
 #   -*- coding: utf-8 -*-
+from __future__ import unicode_literals
 from pybuilder.core import task, dependents, depends, use_plugin, init
 from enum import Enum
 import glob
