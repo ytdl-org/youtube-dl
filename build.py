@@ -144,6 +144,9 @@ def installUnix(logger, project):
     BINDIR = f"{PREFIX}/bin"
     MANDIR = f"{PREFIX}/man"
     SHAREDIR = f"{PREFIX}/share"
+    #SYSCONFDIR = f"$(shell if [ $(PREFIX) = /usr -o $(PREFIX) = /usr/local ]; then echo /etc; else echo $(PREFIX)/etc; fi)
+    SYSCONFDIR = ""
+
     DESTDIR = ""
 
     subprocess.run(f"install -d {DESTDIR}{BINDIR}\
