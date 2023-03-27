@@ -1,4 +1,5 @@
 #   -*- coding: utf-8 -*-
+# flake8: noqa
 from pybuilder.core import *
 from enum import Enum
 import glob
