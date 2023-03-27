@@ -1,5 +1,5 @@
 #   -*- coding: utf-8 -*-
-from pybuilder.core import use_plugin, init, task
+from pybuilder.core import *
 from enum import Enum
 import glob
 import shutil
@@ -121,6 +121,7 @@ def mkdir_p(path):
         pass
 
 @task
+@dependents("installUnix")
 def buildUnix(logger, project):
     logger.info(project.version)
     mkdir_p("zip")
@@ -136,6 +137,26 @@ def buildUnix(logger, project):
     subprocess.run("rm -rf zip", shell=True)
     subprocess.run("echo '#!/usr/bin/env python' > youtube-dl ; cat youtube-dl.zip >> youtube-dl ; rm  youtube-dl.zip; chmod a+x youtube-dl", shell=True)
 
+@task
+@depends("buildUnix")
+def installUnix(logger, project):
+    PREFIX = "/usr/local"
+    BINDIR = f"{PREFIX}/bin"
+    MANDIR = f"{PREFIX}/man"
+    SHAREDIR = f"{PREFIX}/share"
+    DESTDIR = ""
+
+    subprocess.run(f"install -d {DESTDIR}{BINDIR}\
+                    install -m 755 youtube-dl {DESTDIR}{BINDIR}\
+                    install -d {DESTDIR}{MANDIR}/man1\
+                    install -m 644 youtube-dl.1 {DESTDIR}{MANDIR}/man1\
+                    install -d {DESTDIR}{SYSCONFDIR}/bash_completion.d\
+                    install -m 644 youtube-dl.bash-completion {DESTDIR}{SYSCONFDIR}/bash_completion.d/youtube-dl\
+                    install -d {DESTDIR}{SHAREDIR}/zsh/site-functions\
+                    install -m 644 youtube-dl.zsh {DESTDIR}{SHAREDIR}/zsh/site-functions/_youtube-dl\
+                    install -d {DESTDIR}{SYSCONFDIR}/fish/completions\
+                    install -m 644 youtube-dl.fish {DESTDIR}{SYSCONFDIR}/fish/completions/youtube-dl.fish", 
+                   shell=True)
 
 @task
 def buildWin32(logger, project):
@@ -143,7 +164,7 @@ def buildWin32(logger, project):
 
 @task 
 def offlinetest(logger,project):
-    subprocess.run("python -m nose --verbose test \
+    res = subprocess.run("python -m nose --verbose test \
                    --exclude test_age_restriction.py \
 		           --exclude test_download.py \
                    --exclude test_iqiyi_sdk_interpreter.py \
@@ -153,13 +174,17 @@ def offlinetest(logger,project):
 		           --exclude test_youtube_lists.py \
 		           --exclude test_youtube_signature.py",
                    shell=True)
+    if (res.returncode != 0):
+         sys.exit(res.returncode)
 
 @task 
 def test(logger, project):
-     subprocess.run("nosetests --with-coverage \
+    res = subprocess.run("nosetests --with-coverage \
                     --cover-package=youtube_dl \
                     --cover-html \
                     --verbose \
                     --processes 4 test",
-                    shell=True)
+                    shell=True)    
+    if (res.returncode != 0):
+         sys.exit(res.returncode)
     
