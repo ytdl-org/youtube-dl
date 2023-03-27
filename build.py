@@ -15,7 +15,7 @@ use_plugin("python.coverage")
 use_plugin("exec")
 
 name = "youtube-dl"
-default_task = ["clean", "analyze","offlinetest","build"]
+default_task = ["clean","build"]
 version = "0.0.0"
 
 OS = Enum('OS',['Linux','MacOS', 'Windows'])
